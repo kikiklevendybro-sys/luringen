@@ -373,7 +373,8 @@
 
   function visHjem() {
     const pagaende = S.spill
-      ? `<button class="knapp-2" data-h="fortsett">Fortsett spillet · runde ${S.spill.runde}</button>`
+      ? `<button class="knapp-2" data-h="fortsett">Fortsett spillet · runde ${S.spill.runde}</button>
+         <button class="lenke" data-h="avslutt-spill">Avslutt spillet og start på nytt</button>`
       : S.gjest && S.gjest.plass != null
         ? `<button class="knapp-2" data-h="fortsett-gjest">Tilbake til kortet ditt</button>`
         : "";
@@ -855,6 +856,7 @@
       <div class="lenkerad">
         <button class="lenke" data-h="endre-oppsett">Endre oppsett</button>
         <button class="lenke" data-h="nullstill">Nullstill poengene</button>
+        <button class="lenke" data-h="avslutt-spill">Avslutt spillet</button>
       </div>
       <div class="dokk">
         <button class="knapp" data-h="ny-runde">Ny runde</button>
@@ -1394,6 +1396,12 @@
       if (!ok) return;
       S.spill.poeng = S.spill.poeng.map(() => 0);
       gaTil("resultat");
+    },
+    "avslutt-spill": async () => {
+      const ok = await bekreft("Avslutte spillet?", "Runden og poengene slettes. Navn og innstillinger beholdes.", "Avslutt", "Avbryt");
+      if (!ok) return;
+      S.spill = null;
+      gaTil("oppsett");
     },
     "gjest-plass": (el) => {
       S.gjest.plass = Number(el.dataset.v);
