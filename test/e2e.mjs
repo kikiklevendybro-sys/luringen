@@ -255,7 +255,14 @@ try {
   await bilde("oppsett-kategorier");
   await klikk('[data-h="start"]');
   await vent(`!document.querySelector("#s-kode").hidden`);
+  if (!(await js(`document.querySelector("#vert-start").disabled`))) feil.push("Verten kan starte uten å ha valgt plass");
   await klikk('[data-h="vert-plass"][data-v="0"]');
+  if (!(await js(`document.querySelector("#vert-start").disabled`))) feil.push("Verten kan starte uten å ha sett ordet");
+  const slippVert = await hold(".skjerm:not([hidden]) .mappe");
+  const vertKort = await tekst(".skjerm:not([hidden]) .mappe-bakside");
+  if (!vertKort.trim()) feil.push("Verten fikk ikke se kortet sitt");
+  await slippVert();
+  if (await js(`document.querySelector("#vert-start").disabled`)) feil.push("Startknappen åpnet seg ikke etter at verten så ordet");
   await bilde("kode-vert", true);
   const vert = (await tilstand()).spill;
   const kode = vert.kode;

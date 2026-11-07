@@ -577,19 +577,28 @@
           ? '<div class="knapprad"><button class="knapp-2 liten" data-h="kopier-kode">Kopier kode</button><button class="knapp-2 liten" data-h="del-lenke">Del lenke</button></div>'
           : '<button class="knapp-2 liten" data-h="kopier-kode">Kopier kode</button>'}
       </div>
+      <div class="seksjon" id="vertsplass">
+        <h2 class="etikett">1 · Hvilken plass har du?</h2>
+        <div class="plasser">${plasser}</div>
+      </div>
+      ${sp.vertPlass != null
+        ? `<div class="seksjon" id="vertskort"><h2 class="etikett">2 · Se ordet ditt</h2>${mappeHtml(sp.vertPlass)}<p class="hjelp" id="mappe-hjelp">Hold inne for å se. De andre ser sitt ord på sin egen mobil.</p></div>`
+        : ""}
       <ol class="steg">
         <li><b>De andre åpner Luringen</b><span>og trykker «Bli med i et spill».</span></li>
         <li><b>De skriver koden${kanDeleLenke ? " eller skanner QR-koden" : ""}</b><span>Alle må bruke samme versjon av siden.</span></li>
         <li><b>Alle velger sin plass</b><span>Én plass per person – samme nummer som her.</span></li>
       </ol>
-      <div class="seksjon">
-        <h2 class="etikett">Plassene – hvem er du?</h2>
-        <div class="plasser">${plasser}</div>
-      </div>
-      ${sp.vertPlass != null ? mappeHtml(sp.vertPlass) + '<p class="hjelp" id="mappe-hjelp">Hold inne for å se kortet ditt.</p>' : '<p class="hjelp">Trykk på plassen din for å se ditt eget kort.</p>'}
       <div class="dokk">
-        <button class="knapp" data-h="til-diskusjon">Alle har sett ordet – start</button>
+        <button class="knapp" id="vert-start" data-h="til-diskusjon" ${sp.visning.sett ? "" : "disabled"}>${vertKnappTekst()}</button>
       </div>`;
+  }
+
+  function vertKnappTekst() {
+    const sp = S.spill;
+    if (sp.vertPlass == null) return "Velg plassen din først";
+    if (!sp.visning.sett) return "Hold inne på kortet for å se ordet";
+    return "Alle har sett ordet – start";
   }
 
   // ---------- Discussion and timer ----------
@@ -1065,10 +1074,11 @@
       visToast("Hold litt lenger for å lese");
       return;
     }
-    if (S.skjerm === "del" && S.spill && !S.spill.visning.sett) {
+    if ((S.skjerm === "del" || S.skjerm === "kode") && S.spill && !S.spill.visning.sett && !m.closest("#ark")) {
       S.spill.visning.sett = true;
-      const knapp = $("#neste-spiller");
+      const knapp = $("#neste-spiller") || $("#vert-start");
       if (knapp) {
+        if (knapp.id === "vert-start") knapp.textContent = vertKnappTekst();
         knapp.disabled = false;
         knapp.classList.add("pop");
       }
@@ -1306,10 +1316,12 @@
       }
     },
     "vert-plass": (el) => {
-      S.spill.vertPlass = Number(el.dataset.v);
-      const y = window.scrollY;
+      const ny = Number(el.dataset.v);
+      if (S.spill.vertPlass !== ny) S.spill.visning.sett = false;
+      S.spill.vertPlass = ny;
       visKode();
-      window.scrollTo(0, y);
+      const kort = $("#vertskort");
+      if (kort) kort.scrollIntoView({ behavior: rolig() ? "auto" : "smooth", block: "center" });
       lagre();
     },
     "kopier-kode": () => kopier(K.formaterKode(S.spill.kode)),
