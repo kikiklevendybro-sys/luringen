@@ -1,0 +1,8 @@
+/* Pekefingeren: the fixed opening of every statement sits small above the statement. */
+.storkort-tekst .prefiks {
+  display: block;
+  margin-bottom: 10px;
+  font: 800 1.02rem/1.25 var(--font-display);
+  letter-spacing: 0;
+  opacity: 0.62;
+}

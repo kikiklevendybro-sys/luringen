@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// Builds Luringen without any dependencies:
-//   build/ord.json        merged word list (used by the tests)
-//   dist/web/             the website: index.html + manifest, icons and offline support
-//   dist/luringen.html    the same game as one page without <html>/<head> (for the Claude artifact)
-import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, rmSync } from "node:fs";
-import { join, dirname } from "node:path";
+// Builds rusj.no without any dependencies:
+//   build/ord.json        merged word list (used by the tests and several games)
+//   dist/web/             the website: front page, /luringen/, one folder per rusj game, offline support
+//   dist/luringen.html    Luringen as one page without <html>/<head> (for the Claude artifact)
+import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, rmSync, readdirSync } from "node:fs";
+import { byggRusj, CSP, DOMENE } from "./rusj.mjs";
+import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 
@@ -76,72 +77,102 @@ const fyll = (tekst, nettside) => tekst.replace("/*STIL*/", () => kilde("style.c
 mkdirSync(join(ROT, "dist"), { recursive: true });
 writeFileSync(join(ROT, "dist/luringen.html"), fyll(hode + kropp, false));
 
-// Website
-const WEB = join(ROT, "dist/web");
+// ---------- Website: rusj.no ----------
+// Options: --ut <dir> (default dist/web), --spill id1,id2 (only these games; for tests)
+const arg = (navn) => {
+  const i = process.argv.indexOf(navn);
+  return i > 0 ? process.argv[i + 1] : null;
+};
+const WEB = arg("--ut") ? resolve(arg("--ut")) : join(ROT, "dist/web");
+const utvalg = arg("--spill") ? arg("--spill").split(",").map((s) => s.trim()).filter(Boolean) : null;
 rmSync(WEB, { recursive: true, force: true });
 mkdirSync(WEB, { recursive: true });
-const webHode = hode.replace(/<meta name="claude:viewport-fit-sides"[^>]*>\n?/, "");
+
+// Luringen lives at /luringen/ with its script and styles as files (allowed by the CSP).
+const LUR = join(WEB, "luringen");
+mkdirSync(LUR, { recursive: true });
+const lurCss = kilde("style.css");
+const lurJs = skript(true);
+const v = (t) => hashTekst(t).toString(36);
+writeFileSync(join(LUR, "luringen.css"), lurCss);
+writeFileSync(join(LUR, "luringen.js"), lurJs);
+for (const fil of ["ikon.svg", "ikon-180.png", "ikon-192.png", "ikon-512.png", "ikon-maskerbar-512.png"]) {
+  const fra = join(ROT, "src/ikoner", fil);
+  if (existsSync(fra)) copyFileSync(fra, join(LUR, fil));
+  else console.warn(`⚠ mangler src/ikoner/${fil} (kjør node scripts/lag-ikoner.mjs)`);
+}
+const lurDeling = join(ROT, "rusj/bilder/deling-luringen.png");
+if (existsSync(lurDeling)) copyFileSync(lurDeling, join(LUR, "deling.png"));
+const webHode = hode
+  .replace(/<meta name="claude:viewport-fit-sides"[^>]*>\n?/, "")
+  .replace("<title>Luringen</title>", "<title>Luringen – finn bløfferen | rusj</title>")
+  .replace("<style>/*STIL*/</style>", `<link rel="stylesheet" href="/luringen/luringen.css?v=${v(lurCss)}">`);
+const webKropp = kropp.replace("<script>/*SKRIPT*/</script>", `<script src="/luringen/luringen.js?v=${v(lurJs)}"></script>`);
+if (webHode.includes("/*STIL*/") || webKropp.includes("/*SKRIPT*/")) throw new Error("Fant ikke plassholderne i src/page.html");
 const index = `<!doctype html>
 <html lang="nb">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="${CSP}">
+<meta name="referrer" content="no-referrer">
+<link rel="canonical" href="${DOMENE}/luringen/">
 <meta name="theme-color" content="#150c28">
 <meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Luringen">
-<meta property="og:title" content="Luringen">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="rusj">
+<meta property="og:locale" content="nb_NO">
+<meta property="og:title" content="Luringen – finn bløfferen">
 <meta property="og:description" content="Alle får det hemmelige ordet. Nesten alle. Norsk festspill for 3–10 spillere.">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="ikon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="ikon-180.png">
-${fyll(webHode, true).trim()}
+<meta property="og:url" content="${DOMENE}/luringen/">
+${existsSync(lurDeling) ? `<meta property="og:image" content="${DOMENE}/luringen/deling.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">` : ""}
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/luringen/ikon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/luringen/ikon-180.png">
+${webHode.trim()}
 </head>
 <body>
-${fyll(kropp, true).trim()}
+${webKropp.trim()}
 </body>
 </html>
 `;
-writeFileSync(join(WEB, "index.html"), index);
+writeFileSync(join(LUR, "index.html"), index);
 
-const versjon = hashTekst(index).toString(36);
-writeFileSync(join(WEB, "sw.js"), kilde("sw.js").replace("__VERSJON__", versjon));
-writeFileSync(
-  join(WEB, "manifest.webmanifest"),
-  JSON.stringify(
-    {
-      name: "Luringen",
-      short_name: "Luringen",
-      description: "Norsk festspill: alle får samme hemmelige ord – bortsett fra luringen.",
-      lang: "nb",
-      start_url: "./",
-      scope: "./",
-      display: "standalone",
-      orientation: "portrait",
-      background_color: "#150c28",
-      theme_color: "#150c28",
-      icons: [
-        { src: "ikon-192.png", sizes: "192x192", type: "image/png" },
-        { src: "ikon-512.png", sizes: "512x512", type: "image/png" },
-        { src: "ikon-maskerbar-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-        { src: "ikon.svg", sizes: "any", type: "image/svg+xml" },
-      ],
-    },
-    null,
-    2,
-  ),
-);
-for (const fil of ["ikon.svg", "ikon-180.png", "ikon-192.png", "ikon-512.png", "ikon-maskerbar-512.png"]) {
-  const fra = join(ROT, "src/ikoner", fil);
-  if (existsSync(fra)) copyFileSync(fra, join(WEB, fil));
-  else console.warn(`⚠ mangler src/ikoner/${fil} (kjør node scripts/lag-ikoner.mjs)`);
-}
+const LURINGEN_KORT = {
+  id: "luringen",
+  navn: "Luringen",
+  undertittel: "Finn bløfferen",
+  kort: "Alle får det hemmelige ordet. Nesten alle.",
+  spillere: [3, 10],
+  minutter: [10, 40],
+  mobiler: "begge",
+  tagger: ["fest", "blof", "ord", "familie"],
+  farge: "#ff4f8b",
+  rekkefolge: 1,
+};
+const rusj = byggRusj({ ROT, WEB, ordData: data, utvalg, luringen: utvalg && !utvalg.includes("luringen") ? null : LURINGEN_KORT });
+
+// Offline support for the whole site (one service worker at the root).
+const swFiler = ["/", "/manifest.webmanifest", ...rusj.forhand];
+const swVersjon = hashTekst(rusj.filer.join("|") + readdirSync(WEB, { recursive: true }).map((f) => {
+  try {
+    return readFileSync(join(WEB, String(f))).length;
+  } catch (e) {
+    return 0;
+  }
+}).join(",") + lurJs.length + lurCss.length).toString(36);
+writeFileSync(join(WEB, "sw.js"), kilde("../rusj/kit/sw.js").replace("__VERSJON__", swVersjon).replace("__FILER__", JSON.stringify(swFiler)));
 
 const kb = (fil) => Math.round(readFileSync(fil).length / 1024);
 console.log(`✓ ${antall} ord i ${kategorier.length} kategorier (hash ${data.hash})`);
 if (duplikater.length) console.log(`  ${duplikater.length} duplikater fjernet: ${duplikater.slice(0, 12).join(", ")}${duplikater.length > 12 ? " …" : ""}`);
 if (mangler.length) console.log(`  ⚠ mangler kategorier: ${mangler.join(", ")}`);
-console.log(`✓ dist/web/index.html (${kb(join(WEB, "index.html"))} kB)`);
+console.log(`✓ ${rusj.spill.length} rusj-spill + Luringen i ${WEB.replace(ROT + "/", "")} (forside ${kb(join(WEB, "index.html"))} kB, Luringen ${kb(join(LUR, "luringen.js"))} kB)`);
 console.log(`✓ dist/luringen.html (${kb(join(ROT, "dist/luringen.html"))} kB)`);

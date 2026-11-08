@@ -1,0 +1,701 @@
+/* rusj.no front page. Builds on rusj.css (tokens, buttons, chips). Wider than the games:
+   one column on phones, a grid of game cards on bigger screens. */
+
+body.portal {
+  --aksent: var(--lampe);
+  --aksent-dyp: var(--lampe-dyp);
+  overflow-x: hidden;
+}
+
+.portal .scene {
+  background:
+    radial-gradient(ellipse 60% 36% at 50% -4%, rgba(255, 210, 63, 0.2), transparent 72%),
+    radial-gradient(ellipse 50% 40% at 0% 30%, rgba(255, 79, 139, 0.16), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 100% 55%, rgba(61, 227, 176, 0.12), transparent 70%),
+    var(--natt);
+}
+
+/* Slow floating blobs behind everything ("rusj") */
+.portal .scene::before {
+  content: "";
+  position: absolute;
+  top: 8vh;
+  left: 50%;
+  width: 70vmax;
+  height: 70vmax;
+  margin-left: -35vmax;
+  border-radius: 46% 54% 58% 42% / 44% 46% 54% 56%;
+  background: radial-gradient(circle at 35% 35%, rgba(164, 123, 255, 0.16), transparent 62%);
+  animation: blobb 18s ease-in-out infinite alternate;
+}
+
+@keyframes blobb {
+  to {
+    border-radius: 58% 42% 44% 56% / 54% 58% 42% 46%;
+    transform: translate(-6vmax, 4vmax) rotate(40deg);
+  }
+}
+
+/* ---------- Hero ---------- */
+
+.helt {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: calc(28px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px));
+  text-align: center;
+}
+
+.helt-logo {
+  width: min(78vw, 420px);
+  margin: 6px 0 0;
+  filter: drop-shadow(0 18px 40px rgba(255, 79, 139, 0.25));
+}
+
+/* Logo draws itself in, then the blob drops onto the j */
+.rusj-logo.tegnes .logo-for path {
+  stroke-dasharray: 260;
+  stroke-dashoffset: 260;
+  animation: tegn 0.9s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+}
+
+.rusj-logo.tegnes .logo-for path:nth-child(2) {
+  animation-delay: 0.14s;
+}
+
+.rusj-logo.tegnes .logo-for path:nth-child(3) {
+  animation-delay: 0.28s;
+}
+
+.rusj-logo.tegnes .logo-for path:nth-child(4) {
+  animation-delay: 0.42s;
+}
+
+.rusj-logo.tegnes .logo-bak {
+  opacity: 0;
+  animation: frem 0.5s ease-out 0.9s forwards;
+}
+
+.rusj-logo.tegnes .logo-klatt,
+.rusj-logo.tegnes .logo-klatt-bak {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  translate: 0 -120px;
+  opacity: 0;
+  animation: dropp 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) 1.15s forwards;
+}
+
+.rusj-logo .logo-klatt {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.helt-logo:hover .logo-klatt {
+  animation: vugg 0.6s ease-in-out;
+}
+
+@keyframes tegn {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes frem {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dropp {
+  0% {
+    translate: 0 -120px;
+    opacity: 0;
+  }
+  60% {
+    translate: 0 4px;
+    scale: 1.25 0.75;
+    opacity: 1;
+  }
+  80% {
+    translate: 0 -6px;
+    scale: 0.9 1.12;
+  }
+  100% {
+    translate: 0 0;
+    scale: 1 1;
+    opacity: 1;
+  }
+}
+
+@keyframes vugg {
+  30% {
+    scale: 1.2 0.8;
+  }
+  60% {
+    scale: 0.9 1.15;
+  }
+}
+
+.helt-slagord {
+  font: 900 clamp(1.6rem, 6.4vw, 2.6rem) / 1.08 var(--font-display);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  animation: inn 0.6s ease-out 0.5s both;
+}
+
+.helt-slagord em {
+  color: var(--mynte);
+  font-style: normal;
+}
+
+.helt-fakta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: inn 0.6s ease-out 0.7s both;
+}
+
+.helt-fakta li {
+  padding: 7px 13px;
+  border: 1.5px solid var(--strek);
+  border-radius: 999px;
+  background: rgba(33, 20, 61, 0.6);
+  color: var(--tekst-2);
+  font: 700 0.92rem/1 var(--font-display);
+}
+
+.helt-fakta b {
+  color: var(--lampe);
+  font-weight: 900;
+}
+
+.helt-knapper {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 420px);
+  animation: inn 0.6s ease-out 0.85s both;
+}
+
+/* The gang parades past under the hero */
+.parade {
+  width: 100vw;
+  margin-top: 10px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+}
+
+.parade-spor {
+  display: flex;
+  gap: 14px;
+  width: max-content;
+  padding: 18px 0 14px;
+  animation: parade 55s linear infinite;
+}
+
+.parade:hover .parade-spor,
+.parade:focus-within .parade-spor {
+  animation-play-state: paused;
+}
+
+@keyframes parade {
+  to {
+    transform: translateX(calc(-50% - 7px));
+  }
+}
+
+.parade-figur {
+  display: block;
+  flex: none;
+  width: 76px;
+  animation: hopp 2.4s ease-in-out infinite;
+  transition: transform 0.2s;
+}
+
+.parade-figur:nth-child(3n + 1) {
+  animation-delay: -0.8s;
+}
+
+.parade-figur:nth-child(3n + 2) {
+  animation-delay: -1.6s;
+}
+
+.parade-figur:hover,
+.parade-figur:focus-visible {
+  transform: scale(1.18) rotate(-6deg);
+}
+
+@keyframes hopp {
+  50% {
+    translate: 0 -9px;
+    rotate: -4deg;
+  }
+}
+
+/* ---------- Filter ---------- */
+
+.portal-hoved {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 18px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px));
+}
+
+.filter {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+  background: linear-gradient(to bottom, var(--natt-tett) 80%, var(--natt-null));
+  scroll-margin-top: 0;
+}
+
+.filter h2 {
+  font-size: clamp(1.5rem, 5.6vw, 2rem);
+}
+
+.filter-rad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.antall {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.antall-tekst {
+  color: var(--tekst-2);
+  font: 800 0.92rem/1 var(--font-display);
+}
+
+.antall output {
+  min-width: 3.2ch;
+  font: 900 1.15rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.antall-knapp {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--natt-3);
+  font: 900 1.3rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.antall-knapp:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.filter .brikker {
+  flex: 1 1 260px;
+  flex-wrap: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.filter .brikker::-webkit-scrollbar {
+  display: none;
+}
+
+.filter .brikke {
+  flex: none;
+}
+
+.filter .brikke[aria-pressed="true"]:not(.alle) {
+  background: var(--lampe);
+  box-shadow: 0 3px 0 var(--lampe-dyp);
+}
+
+.treff {
+  min-height: 1.2em;
+  color: var(--tekst-3);
+  font: 700 0.9rem/1.2 var(--font-display);
+}
+
+/* ---------- Game cards ---------- */
+
+.spillgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spillkort {
+  animation: kortinn 0.5s cubic-bezier(0.2, 1.1, 0.4, 1) both;
+  animation-delay: calc(min(var(--i), 12) * 45ms + 0.2s);
+}
+
+@keyframes kortinn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+}
+
+.spillkort a {
+  position: relative;
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  height: 100%;
+  padding: 16px 16px 16px 12px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 12% 30%, color-mix(in srgb, var(--kf) 30%, transparent), transparent 55%),
+    linear-gradient(150deg, color-mix(in srgb, var(--kf) 16%, var(--natt-2)), var(--natt-2) 70%);
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--kf) 40%, var(--strek)),
+    0 8px 0 color-mix(in srgb, var(--kf) 22%, var(--natt)),
+    0 18px 32px var(--skygge);
+  text-decoration: none;
+  transition: transform 0.18s cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 0.18s;
+}
+
+.spillkort a:hover,
+.spillkort a:focus-visible {
+  transform: translateY(-4px) rotate(-0.6deg);
+  box-shadow:
+    inset 0 0 0 2.5px var(--kf),
+    0 12px 0 color-mix(in srgb, var(--kf) 30%, var(--natt)),
+    0 24px 40px var(--skygge);
+}
+
+.spillkort a:active {
+  transform: translateY(2px) scale(0.99);
+}
+
+.kort-figur {
+  display: block;
+  width: 92px;
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.spillkort a:hover .kort-figur,
+.spillkort a:focus-visible .kort-figur {
+  transform: scale(1.1) rotate(-8deg);
+}
+
+.kort-tekst {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.kort-sjanger {
+  justify-self: start;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--kf);
+  color: var(--blekk);
+  font: 900 0.74rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kort-navn {
+  font: 900 1.6rem/1.02 var(--font-display);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.kort-linje {
+  color: var(--tekst-2);
+  font-size: 0.93rem;
+  line-height: 1.3;
+}
+
+.kort-fakta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 2px;
+  color: var(--tekst-3);
+  font: 700 0.78rem/1.3 var(--font-display);
+}
+
+.kort-fortsett {
+  position: absolute;
+  top: -9px;
+  right: 14px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--mynte);
+  box-shadow: 0 3px 0 var(--mynte-dyp);
+  color: var(--blekk);
+  font: 900 0.75rem/1 var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* "Surprise me" roulette */
+.spillkort.lyser a {
+  transform: scale(1.03);
+  box-shadow:
+    inset 0 0 0 3px var(--kf),
+    0 0 0 6px color-mix(in srgb, var(--kf) 35%, transparent),
+    0 18px 32px var(--skygge);
+}
+
+.spillkort.vinner a {
+  animation: vinner 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) 2;
+}
+
+@keyframes vinner {
+  50% {
+    transform: scale(1.07) rotate(-1.5deg);
+  }
+}
+
+.ingen-treff {
+  padding: 24px;
+  border: 2px dashed var(--strek);
+  border-radius: var(--r-stor);
+  color: var(--tekst-2);
+  text-align: center;
+}
+
+/* ---------- How it works, install, footer ---------- */
+
+.slik {
+  display: grid;
+  gap: 14px;
+}
+
+.slik h2,
+.installer h2 {
+  font-size: clamp(1.5rem, 5.6vw, 2rem);
+}
+
+.slik-steg {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: steg;
+}
+
+.slik-steg li {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: 18px 18px 18px 66px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  counter-increment: steg;
+}
+
+.slik-steg li::before {
+  content: counter(steg);
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--lampe);
+  box-shadow: 0 3px 0 var(--lampe-dyp);
+  color: var(--blekk);
+  font: 900 1.1rem/1 var(--font-display);
+}
+
+.slik-steg li:nth-child(2)::before {
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+}
+
+.slik-steg li:nth-child(3)::before {
+  background: var(--mynte);
+  box-shadow: 0 3px 0 var(--mynte-dyp);
+}
+
+.slik-steg b {
+  font: 900 1.12rem/1.2 var(--font-display);
+}
+
+.slik-steg span {
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+}
+
+.installer {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: var(--r-stor);
+  background: linear-gradient(150deg, rgba(155, 225, 93, 0.16), var(--natt-2) 70%);
+  box-shadow: inset 0 0 0 2px rgba(155, 225, 93, 0.35);
+}
+
+.installer > div {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.installer p {
+  color: var(--tekst-2);
+}
+
+.installer-figur {
+  display: block;
+  width: 96px;
+}
+
+.bunn {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px max(16px, env(safe-area-inset-right, 0px)) calc(40px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  color: var(--tekst-2);
+  text-align: center;
+}
+
+.bunn b {
+  color: var(--tekst);
+}
+
+.bunn-logo {
+  width: 110px;
+}
+
+.bunn-liten {
+  color: var(--tekst-3);
+  font-size: 0.85rem;
+}
+
+.avdekk {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.avdekk.synlig {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- 404 ---------- */
+
+.borte {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  max-width: 420px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 16px;
+  align-content: center;
+  text-align: center;
+}
+
+.borte-figur {
+  display: block;
+  width: 150px;
+  animation: sveve 4s ease-in-out infinite;
+}
+
+.borte p {
+  color: var(--tekst-2);
+}
+
+@media (min-width: 720px) {
+  .helt {
+    padding-top: 56px;
+  }
+
+  .parade-figur {
+    width: 92px;
+  }
+
+  .filter {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .filter .treff {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parade-spor {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: auto;
+  }
+
+  .parade-spor [aria-hidden="true"] {
+    display: none;
+  }
+
+  .avdekk {
+    opacity: 1;
+    transform: none;
+  }
+
+  .rusj-logo.tegnes .logo-for path {
+    stroke-dashoffset: 0;
+  }
+
+  .rusj-logo.tegnes .logo-bak,
+  .rusj-logo.tegnes .logo-klatt,
+  .rusj-logo.tegnes .logo-klatt-bak {
+    opacity: 1;
+    translate: none;
+  }
+}
