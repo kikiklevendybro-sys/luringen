@@ -1,0 +1,12 @@
+{
+  "id": "vaghalsen",
+  "navn": "Våghalsen",
+  "undertittel": "Sannhet eller konsekvens",
+  "beskrivelse": "Gratis «Sannhet eller konsekvens» på norsk. Snurr flaska, velg sannhet eller konsekvens – og våg! Egne kort for barn, familie, venner og fest.",
+  "kort": "Snurr flaska. Sannhet eller konsekvens – tør du?",
+  "spillere": [2, 20],
+  "minutter": [10, 45],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "barn", "sporsmal"],
+  "rekkefolge": 5
+}

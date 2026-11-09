@@ -1,0 +1,720 @@
+/* Elefanten — memory. Everything is prefixed "ele-". The 3D flip: the button holds a hopping layer
+   (.ele-hopp: lift, shake, cheer) with perspective, which holds the turning layer (.ele-indre). */
+
+/* ---------- Home ---------- */
+
+.ele-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.ele-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+.ele-rekorder li {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ele-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst);
+}
+
+/* ---------- Setup ---------- */
+
+.skjerm-oppsett .fliser .flis:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+/* Long theme names («Verdensrommet») break with a hyphen on small phones instead of sticking out. */
+.skjerm-oppsett .flis b {
+  max-width: 100%;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+}
+
+.ele-flisfigurer {
+  display: flex;
+}
+
+.ele-flisfigurer svg {
+  width: 38px;
+  height: 38px;
+  margin-right: -9px;
+}
+
+.ele-skala {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+  color: var(--tekst-3);
+  font: 800 0.82rem/1 var(--font-display);
+}
+
+/* ---------- Play screen ---------- */
+
+.skjerm-spill {
+  gap: 14px;
+  padding-bottom: 16px;
+}
+
+.ele-topp {
+  position: relative;
+}
+
+.ele-hud {
+  display: grid;
+  gap: 8px;
+}
+
+.ele-hud.solo {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ele-stat {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 4px 7px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.ele-stat small {
+  color: var(--tekst-3);
+  font: 800 0.66rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ele-stat b {
+  font: 900 1.2rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ele-stat.rekord b {
+  color: var(--lampe);
+}
+
+.ele-hud.flere {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Three or four players: one row; avatar and points on top, the whole name underneath. */
+.ele-hud.flere.stablet {
+  grid-template-columns: repeat(var(--antall), minmax(0, 1fr));
+  gap: 6px;
+}
+
+.ele-hud.flere.stablet .ele-spiller {
+  display: grid;
+  grid-template-areas: "a p" "n n";
+  grid-template-columns: auto auto;
+  justify-content: center;
+  align-items: center;
+  gap: 2px 6px;
+  padding: 5px 4px 6px;
+  border-radius: 16px;
+}
+
+.ele-hud.flere.stablet .avatar {
+  grid-area: a;
+}
+
+.ele-hud.flere.stablet .ele-poeng {
+  grid-area: p;
+}
+
+/* Up to three short lines: a 16-letter name (the longest the kit allows) always fits, also at 320 px. */
+.ele-hud.flere.stablet .ele-navn {
+  grid-area: n;
+  font-size: 0.78rem;
+  text-align: center;
+  hyphens: auto;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.ele-spiller {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 5px 12px 5px 5px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  transition: background 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+
+.ele-spiller .avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+}
+
+.ele-spiller.na {
+  background: color-mix(in srgb, var(--pf) 30%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--pf), 0 4px 14px color-mix(in srgb, var(--pf) 30%, transparent);
+  transform: translateY(-2px);
+}
+
+/* Long names wrap to a second line instead of being cut. */
+.ele-navn {
+  display: -webkit-box;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 800 0.9rem/1.12 var(--font-display);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.ele-spiller:not(.na) .ele-navn {
+  color: var(--tekst-2);
+}
+
+.ele-poeng {
+  font: 900 1.2rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Short messages ("Rakett!", "Testspiller B sin tur") pop up over the score bar, never over the cards. */
+.ele-melding {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  z-index: 4;
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 18px;
+  border-radius: 31px;
+  background: var(--mynte);
+  box-shadow: 0 5px 0 var(--mynte-dyp), 0 14px 30px var(--skygge);
+  color: var(--blekk);
+  font: 900 1.35rem/1.05 var(--font-display);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) scale(0.7);
+  transition: opacity 0.18s, transform 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.ele-melding.vis {
+  opacity: 1;
+  transform: translateY(-50%);
+}
+
+/* Name on its own line, then what happens («begynner!», «sin tur»). */
+.ele-m-tekst {
+  display: grid;
+  min-width: 0;
+  text-align: left;
+}
+
+.ele-m-tekst b {
+  font: 900 1.2rem/1.1 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.ele-melding.par {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ele-melding.tur {
+  background: var(--aksent);
+  box-shadow: 0 5px 0 var(--aksent-dyp), 0 14px 30px var(--skygge);
+}
+
+.ele-melding > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ele-melding small {
+  font: 800 0.85rem/1.15 var(--font-display);
+  opacity: 0.75;
+  overflow-wrap: anywhere;
+}
+
+.ele-melding .avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 1.05rem;
+}
+
+/* ---------- The board ---------- */
+
+.ele-brett {
+  --kb: 72px;
+  --gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(var(--kol), var(--kb));
+  justify-content: center;
+  gap: var(--gap);
+  padding-top: 2px;
+}
+
+.ele-kort {
+  position: relative;
+  display: block;
+  width: var(--kb);
+  height: calc(var(--kb) * var(--forhold, 1.22));
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-touch-callout: none;
+}
+
+.ele-kort:focus-visible {
+  outline-offset: 4px;
+  border-radius: calc(var(--kb) * 0.17);
+}
+
+.ele-hopp {
+  position: absolute;
+  inset: 0;
+  display: block;
+  perspective: 640px;
+}
+
+.ele-indre {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transition: transform 0.56s cubic-bezier(0.3, 1.32, 0.48, 1);
+}
+
+.ele-kort.opp .ele-indre {
+  transform: rotateY(180deg);
+}
+
+.ele-kort:not(.opp):active .ele-indre {
+  transform: scale(0.94);
+  transition-duration: 0.12s;
+}
+
+.ele-side {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: calc(var(--kb) * 0.17);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.ele-bak {
+  background:
+    radial-gradient(circle at 26% 12%, rgba(255, 255, 255, 0.5), transparent 40%),
+    radial-gradient(circle, rgba(23, 14, 43, 0.13) 1.5px, transparent 2px) 0 0 / 10px 10px,
+    linear-gradient(155deg, #b3c4ff 0%, var(--aksent) 40%, #9372ff 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.045) rgba(255, 255, 255, 0.5),
+    inset 0 -6px 0 rgba(23, 14, 43, 0.22),
+    0 4px 10px rgba(6, 2, 14, 0.35);
+}
+
+/* The elephant on every card back */
+.ele-bak::after {
+  content: "";
+  width: 66%;
+  aspect-ratio: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='white'%3E%3Cg opacity='.5'%3E%3Cellipse cx='23' cy='45' rx='19' ry='24'/%3E%3Cellipse cx='77' cy='45' rx='19' ry='24'/%3E%3C/g%3E%3Cg opacity='.85'%3E%3Ccircle cx='50' cy='46' r='25'/%3E%3Cpath d='M42 62C41 77 44 87 52 91C59 94 65 90 65 84C61 87 56 85 55 80C54 74 57 68 58 62Z'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%23170e2b' opacity='.3'%3E%3Ccircle cx='41' cy='42' r='3.6'/%3E%3Ccircle cx='59' cy='42' r='3.6'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+  filter: drop-shadow(0 2px 0 rgba(23, 14, 43, 0.18));
+  transform: rotate(-8deg);
+}
+
+.ele-for {
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255, 255, 255, 0.8), transparent 64%),
+    var(--tint, var(--papir));
+  box-shadow:
+    inset 0 0 0 2px rgba(23, 14, 43, 0.12),
+    inset 0 -6px 0 rgba(23, 14, 43, 0.1),
+    0 4px 10px rgba(6, 2, 14, 0.35);
+  transform: rotateY(180deg);
+}
+
+.ele-emoji {
+  font-size: calc(var(--kb) * 0.56);
+  line-height: 1;
+  filter: drop-shadow(0 3px 2px rgba(23, 14, 43, 0.2));
+}
+
+.ele-figur {
+  display: block;
+  width: 84%;
+}
+
+.ele-kort.funnet {
+  cursor: default;
+}
+
+.ele-kort.funnet .ele-for {
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.055) var(--pf, var(--mynte)),
+    inset 0 -6px 0 rgba(23, 14, 43, 0.1),
+    0 0 18px color-mix(in srgb, var(--pf, var(--mynte)) 45%, transparent);
+}
+
+.ele-merke {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  display: grid;
+  place-items: center;
+  width: 32%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--pf);
+  box-shadow: 0 2px 0 rgba(23, 14, 43, 0.25);
+  font-size: calc(var(--kb) * 0.17);
+  line-height: 1;
+}
+
+.ele-gnist {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ele-gnist 0.78s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes ele-gnist {
+  from {
+    opacity: 1;
+    transform: rotate(var(--v)) translateY(0) scale(1.3);
+  }
+  to {
+    opacity: 0;
+    transform: rotate(var(--v)) translateY(calc(-1 * var(--l))) scale(0.3);
+  }
+}
+
+/* Motion */
+.ele-hopp.loft {
+  animation: ele-loft 0.56s cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+@keyframes ele-loft {
+  40% {
+    transform: translateY(-6%) scale(1.09);
+  }
+}
+
+.ele-hopp.nei {
+  animation: ele-nei 0.45s ease-in-out;
+}
+
+@keyframes ele-nei {
+  20% {
+    transform: translateX(-7%) rotate(-5deg);
+  }
+  45% {
+    transform: translateX(6%) rotate(4deg);
+  }
+  70% {
+    transform: translateX(-3%) rotate(-2deg);
+  }
+}
+
+.ele-hopp.jubel {
+  animation: ele-jubel 0.7s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes ele-jubel {
+  30% {
+    transform: scale(1.18) rotate(-5deg);
+  }
+  60% {
+    transform: scale(0.96) rotate(2deg);
+  }
+}
+
+.ele-hopp.bolge {
+  animation: ele-bolge 0.6s ease;
+}
+
+@keyframes ele-bolge {
+  35% {
+    transform: translateY(-20%) rotate(-7deg) scale(1.06);
+  }
+  70% {
+    transform: translateY(3%);
+  }
+}
+
+.ele-brett.del .ele-kort {
+  animation: ele-del 0.55s cubic-bezier(0.2, 1.25, 0.4, 1) both;
+  animation-delay: calc(var(--i) * 26ms);
+}
+
+@keyframes ele-del {
+  from {
+    opacity: 0;
+    transform: translateY(46px) scale(0.55) rotate(-12deg);
+  }
+}
+
+/* The elephant under the board (only when there is room) */
+.ele-venn {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  height: 100px;
+  margin-top: auto;
+  pointer-events: none;
+}
+
+.ele-venn[hidden] {
+  display: none;
+}
+
+.ele-venn .figur-ramme {
+  display: block;
+  width: 92px;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 10px 16px color-mix(in srgb, var(--aksent) 30%, transparent));
+  animation: sveve 4.5s ease-in-out infinite;
+}
+
+.ele-boble {
+  position: absolute;
+  bottom: 62px;
+  left: calc(50% + 40px);
+  padding: 8px 14px;
+  border-radius: 18px 18px 18px 5px;
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 1.05rem/1 var(--font-display);
+  white-space: nowrap;
+  opacity: 0;
+  transform: scale(0.4) translateY(10px);
+  transform-origin: 0 100%;
+  transition: opacity 0.2s, transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.ele-venn.snakker .ele-boble {
+  opacity: 1;
+  transform: none;
+}
+
+.ele-venn.jubel .figur-ramme {
+  animation: ele-venn-hopp 0.75s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+@keyframes ele-venn-hopp {
+  30% {
+    transform: translateY(-28px) rotate(-8deg) scale(1.08);
+  }
+  55% {
+    transform: translateY(0) rotate(4deg) scale(1.05, 0.94);
+  }
+  75% {
+    transform: translateY(-8px);
+  }
+}
+
+.ele-venn.hmm .figur-ramme {
+  animation: ele-venn-hmm 0.8s ease-in-out;
+}
+
+@keyframes ele-venn-hmm {
+  25% {
+    transform: rotate(-11deg);
+  }
+  55% {
+    transform: rotate(8deg);
+  }
+  80% {
+    transform: rotate(-4deg);
+  }
+}
+
+/* ---------- Result ---------- */
+
+.skjerm-slutt .banner h1 {
+  font-size: clamp(1.9rem, 9vw, 2.8rem);
+  overflow-wrap: anywhere;
+}
+
+.ele-stjerner {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  font: 900 3rem/1 var(--font-display);
+}
+
+.ele-stjerner span {
+  color: var(--natt-3);
+  text-shadow: 0 4px 0 var(--natt-2);
+}
+
+.ele-stjerner span.pa {
+  color: var(--lampe);
+  text-shadow: 0 4px 0 var(--lampe-dyp), 0 0 24px color-mix(in srgb, var(--lampe) 50%, transparent);
+  animation: ele-stjerne 0.55s cubic-bezier(0.3, 1.7, 0.5, 1) both;
+  animation-delay: calc(var(--n) * 180ms + 250ms);
+}
+
+@keyframes ele-stjerne {
+  from {
+    opacity: 0;
+    transform: scale(0) rotate(-50deg);
+  }
+}
+
+.ele-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.ele-tall {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 10px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.ele-tall b {
+  font: 900 2.5rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ele-tall span {
+  font: 800 0.8rem/1 var(--font-display);
+  letter-spacing: 0.14em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.ele-ny {
+  position: absolute;
+  top: -12px;
+  right: -4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+  animation: ele-slag 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both 0.7s;
+}
+
+@keyframes ele-slag {
+  from {
+    opacity: 0;
+    transform: rotate(8deg) scale(2.4);
+  }
+}
+
+.ele-vinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.ele-krone {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  transform: translateX(-50%) rotate(-12deg);
+  animation: ele-krone 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.3s;
+}
+
+@keyframes ele-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40px) rotate(-40deg) scale(0.4);
+  }
+}
+
+.ele-samling {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.ele-samling ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ele-samling li {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--tint, var(--papir));
+  box-shadow: inset 0 0 0 3px var(--pf, transparent), 0 3px 0 rgba(6, 2, 14, 0.35);
+  animation: ele-del 0.5s cubic-bezier(0.2, 1.25, 0.4, 1) both;
+}
+
+.ele-samling li {
+  animation-delay: calc(0.15s + var(--n, 0) * 35ms);
+}
+
+.ele-samling .ele-emoji {
+  font-size: 1.7rem;
+}
+
+.ele-samling .ele-figur {
+  width: 42px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ele-indre {
+    transition-duration: 0.01ms !important;
+  }
+}

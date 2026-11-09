@@ -24,6 +24,13 @@
   R.vent = (ms) => new Promise((r) => setTimeout(r, ms));
   R.rolig = () => !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   R.klamp = (n, min, max) => Math.min(max, Math.max(min, n));
+  // "1 sekund", "2 sekunder": R.flertall(n, "sekund", "sekunder")
+  R.flertall = (n, entall, flertall) => `${R.tall(n)} ${Number(n) === 1 ? entall : flertall}`;
+  // "A", "A og B", "A, B og C"
+  R.ramsOpp = (liste) => {
+    const l = (liste || []).map(String);
+    return l.length < 2 ? l.join("") : l.slice(0, -1).join(", ") + " og " + l[l.length - 1];
+  };
   R.formaterTid = (sek) => {
     sek = Math.max(0, Math.ceil(sek));
     return Math.floor(sek / 60) + ":" + String(sek % 60).padStart(2, "0");
@@ -270,29 +277,35 @@
   };
 
   // Keep the screen awake during a game (re-acquired when the tab comes back).
+  // Only one lock at a time, also when holdVaken is called again while a request is on its way.
   let vekkLas = null;
+  let vekkVenter = null;
   let vilVaere = false;
   R.holdVaken = async () => {
     vilVaere = true;
+    if (vekkLas || vekkVenter || !("wakeLock" in navigator) || document.visibilityState !== "visible") return;
     try {
-      if ("wakeLock" in navigator && !vekkLas && document.visibilityState === "visible") {
-        vekkLas = await navigator.wakeLock.request("screen");
-        vekkLas.addEventListener("release", () => {
-          vekkLas = null;
-        });
+      vekkVenter = navigator.wakeLock.request("screen");
+      const las = await vekkVenter;
+      vekkVenter = null;
+      if (!vilVaere) {
+        las.release().catch(() => {});
+        return;
       }
+      vekkLas = las;
+      las.addEventListener("release", () => {
+        if (vekkLas === las) vekkLas = null;
+      });
     } catch (e) {
+      vekkVenter = null;
       vekkLas = null;
     }
   };
   R.slippVaken = () => {
     vilVaere = false;
-    try {
-      if (vekkLas) vekkLas.release();
-    } catch (e) {
-      /* ignore */
-    }
+    const las = vekkLas;
     vekkLas = null;
+    if (las) las.release().catch(() => {});
   };
 
   // ---------- Live announcements for screen readers ----------
@@ -309,11 +322,17 @@
   // ---------- Sheet, confirm, toast ----------
 
   let arkSvar = null;
+  let arkFokus = null;
   R.ark = (html) => {
     if (arkSvar) {
       const s = arkSvar;
       arkSvar = null;
       s(false);
+    }
+    const aktiv = document.activeElement;
+    if (aktiv && aktiv !== document.body && !aktiv.closest("#ark")) {
+      // Remember the element and how to find it again if the screen is redrawn meanwhile.
+      arkFokus = { el: aktiv, id: aktiv.id, h: aktiv.dataset && aktiv.dataset.h, v: aktiv.dataset && aktiv.dataset.v };
     }
     $("#ark-innhold").innerHTML = html;
     $("#ark").hidden = false;
@@ -328,12 +347,44 @@
     if (!ark || ark.hidden) return;
     ark.hidden = true;
     $("#ark-innhold").innerHTML = "";
+    const husk = arkFokus;
+    arkFokus = null;
+    if (husk) {
+      let mal = document.contains(husk.el) ? husk.el : null;
+      if (!mal && husk.id) mal = document.getElementById(husk.id);
+      if (!mal && husk.h) mal = $(`#skjerm [data-h="${CSS.escape(husk.h)}"]${husk.v != null ? `[data-v="${CSS.escape(husk.v)}"]` : ""}`);
+      if (mal) {
+        try {
+          mal.focus({ preventScroll: true });
+        } catch (e) {
+          /* ignore */
+        }
+      }
+    }
     if (arkSvar) {
       const svar = arkSvar;
       arkSvar = null;
       svar(false);
     }
   };
+  // Keep keyboard focus inside an open sheet (it is a modal dialog).
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab" || !R.arkApent()) return;
+    const fokuserbare = $$("#ark-innhold button:not([disabled]), #ark-innhold a[href], #ark-innhold input:not([disabled]), #ark-innhold textarea").filter((el) => el.offsetParent !== null);
+    if (!fokuserbare.length) return;
+    const forste = fokuserbare[0];
+    const siste = fokuserbare[fokuserbare.length - 1];
+    if (!$("#ark-innhold").contains(document.activeElement)) {
+      e.preventDefault();
+      forste.focus();
+    } else if (e.shiftKey && document.activeElement === forste) {
+      e.preventDefault();
+      siste.focus();
+    } else if (!e.shiftKey && document.activeElement === siste) {
+      e.preventDefault();
+      forste.focus();
+    }
+  });
   R.arkApent = () => !$("#ark").hidden;
   R.bekreft = (tittel, tekst, ja, nei) =>
     new Promise((resolve) => {
@@ -347,6 +398,9 @@
       arkSvar = resolve;
     });
   // Choose one of several options in a sheet. valg: [{ v, tekst }]. Resolves to v or null.
+  // Ask before a new game replaces one in progress. Resolves true right away if nothing is running.
+  R.bekreftNytt = (pagar) =>
+    pagar ? R.bekreft("Starte et nytt spill?", "Spillet dere holder på med, og stillingen forsvinner.", "Start nytt", "Avbryt") : Promise.resolve(true);
   R.velgIArk = (tittel, valg, tekst) =>
     new Promise((resolve) => {
       R.ark(`
@@ -358,9 +412,24 @@
     });
 
   let toastId = null;
+  R.skjulToast = () => {
+    clearTimeout(toastId);
+    const t = $("#toast");
+    if (t) t.classList.remove("vis");
+  };
   R.toast = (tekst) => {
     const t = $("#toast");
     t.textContent = tekst;
+    // Just above the action area when the screen has one (never over the heading or the buttons).
+    const dokk = $("#skjerm .dokk");
+    const topp = dokk ? dokk.getBoundingClientRect().top : 0;
+    if (dokk && topp > 120 && topp < window.innerHeight) {
+      t.style.top = "auto";
+      t.style.bottom = Math.round(window.innerHeight - topp + 10) + "px";
+    } else {
+      t.style.top = "";
+      t.style.bottom = "";
+    }
     t.classList.add("vis");
     clearTimeout(toastId);
     toastId = setTimeout(() => t.classList.remove("vis"), 2200);
@@ -392,12 +461,20 @@
 
   // ---------- Countdown overlay ----------
 
+  // Resolves true when the countdown finished, false when the screen changed during it — so:
+  //   if (!(await R.nedtelling())) return;
   R.nedtelling = async (liste, ms) => {
     liste = liste || ["3", "2", "1"];
     ms = ms || 800;
+    const fortsatt = R.vakt();
     const el = $("#nedtelling");
+    const hoved = $("#hoved");
     el.hidden = false;
+    if (hoved) hoved.inert = true; // no tabbing to buttons behind the countdown
+    const fokus = document.activeElement;
+    if (fokus && fokus.blur) fokus.blur(); // Enter/space must not re-trigger the button meanwhile
     for (let i = 0; i < liste.length; i++) {
+      if (!fortsatt()) return false; // the screen changed: R.gaTil already hid the overlay
       const t = String(liste[i]);
       el.innerHTML = `<span class="${t.length > 2 ? "ord" : ""}">${esc(t)}</span>`;
       if (i < liste.length - 1 || /^\d+$/.test(t)) R.lyd.tikk();
@@ -405,14 +482,25 @@
       R.vibrer(20);
       await R.vent(R.rolig() ? Math.min(ms, 500) : ms);
     }
+    if (!fortsatt()) return false; // don't hide a newer countdown on the new screen
     el.hidden = true;
     el.innerHTML = "";
+    if (hoved) hoved.inert = false;
+    return true;
   };
 
   // ---------- Confetti ----------
 
+  let konfettiNr = 0;
+  R.stoppKonfetti = () => {
+    konfettiNr++;
+    const lerret = $("#konfetti");
+    const ctx = lerret && lerret.getContext && lerret.getContext("2d");
+    if (ctx) ctx.clearRect(0, 0, lerret.width, lerret.height);
+  };
   R.konfetti = (fargeTokens) => {
     if (R.rolig()) return;
+    const mitt = ++konfettiNr;
     const lerret = $("#konfetti");
     const ctx = lerret && lerret.getContext && lerret.getContext("2d");
     if (!ctx) return;
@@ -439,6 +527,7 @@
     }));
     const start = performance.now();
     function ramme(na) {
+      if (mitt !== konfettiNr) return; // stopped or replaced by a newer burst
       const t = na - start;
       ctx.clearRect(0, 0, b, h);
       for (const p of biter) {
@@ -462,7 +551,7 @@
   };
 
   // ---------- Timer ----------
-  // new R.Timer({ id, sekunder, vedTikk(igjen), vedSlutt(), tikk: true })
+  // new R.Timer({ id, sekunder, vedTikk(igjen), vedSlutt(), tikk: true, visning: "mm:ss" | "sek" })
   // Draws into the R.ui.timer() markup with the same id. Timers stop automatically when the
   // screen changes, unless { overlev: true }.
 
@@ -476,6 +565,7 @@
       this.vedSlutt = valg.vedSlutt || null;
       this.tikk = valg.tikk !== false;
       this.overlev = !!valg.overlev;
+      this.visning = valg.visning || "mm:ss"; // "sek" shows only whole seconds
       this.kjorer = false;
       this.ferdig = false;
       this.sisteSek = null;
@@ -523,6 +613,7 @@
       return this;
     }
     stopp() {
+      if (this.kjorer) this.igjenMs = Math.max(0, this.slutt - performance.now());
       clearInterval(this.intervall);
       this.kjorer = false;
       aktiveTimere.delete(this);
@@ -542,6 +633,7 @@
       this.tegn();
       if (igjen <= 0 && this.kjorer) {
         this.kjorer = false;
+        this.igjenMs = 0; // show 0:00, not the starting time
         this.ferdig = true;
         clearInterval(this.intervall);
         this.tegn();
@@ -562,7 +654,7 @@
         fyll.style.strokeDashoffset = String(omkrets * (1 - andel));
       }
       const tid = el.querySelector(".timer-tid");
-      if (tid) tid.textContent = R.formaterTid(igjen);
+      if (tid) tid.textContent = this.visning === "sek" ? String(Math.ceil(igjen)) : R.formaterTid(igjen);
       el.classList.toggle("lite", igjen <= 10 && igjen > 0);
       el.classList.toggle("ferdig", this.ferdig);
       el.classList.toggle("pause", !this.kjorer && !this.ferdig);
@@ -584,8 +676,11 @@
   // version of the content is rejected instead of giving different cards.
 
   const ALFABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+  // sjekk = number of check symbols (default 1; 2 catches almost every typo, at one extra character).
+  const sjekksymboler = (symboler, salt, sjekk) =>
+    Array.from({ length: sjekk || 1 }, (_, k) => R.hash((salt || 0) + (k ? ":" + (k + 1) : "") + ":" + symboler.join(",")) % 32);
   R.kode = {
-    lag(verdier, bredder, salt) {
+    lag(verdier, bredder, salt, sjekk) {
       const bits = [];
       verdier.forEach((v, i) => {
         const b = bredder[i];
@@ -595,17 +690,18 @@
       while (bits.length % 5) bits.push(0);
       const symboler = [];
       for (let i = 0; i < bits.length; i += 5) symboler.push(bits.slice(i, i + 5).reduce((s, b) => s * 2 + b, 0));
-      symboler.push(R.hash((salt || 0) + ":" + symboler.join(",")) % 32);
+      symboler.push(...sjekksymboler(symboler, salt, sjekk));
       return symboler.map((s) => ALFABET[s]).join("");
     },
-    les(tekst, bredder, salt) {
+    les(tekst, bredder, salt, sjekk) {
+      const n = sjekk || 1;
       const kode = R.kode.normaliser(tekst);
       const totalBits = bredder.reduce((s, b) => s + b, 0);
-      const lengde = Math.ceil(totalBits / 5) + 1;
+      const lengde = Math.ceil(totalBits / 5) + n;
       if (kode.length !== lengde) return null;
       const symboler = kode.split("").map((c) => ALFABET.indexOf(c));
-      const sum = symboler.pop();
-      if (R.hash((salt || 0) + ":" + symboler.join(",")) % 32 !== sum) return null;
+      const sum = symboler.splice(symboler.length - n, n);
+      if (sjekksymboler(symboler, salt, n).join(",") !== sum.join(",")) return null;
       const bits = [];
       symboler.forEach((s) => {
         for (let i = 4; i >= 0; i--) bits.push((s >> i) & 1);
@@ -617,7 +713,7 @@
         return v;
       });
     },
-    lengde: (bredder) => Math.ceil(bredder.reduce((s, b) => s + b, 0) / 5) + 1,
+    lengde: (bredder, sjekk) => Math.ceil(bredder.reduce((s, b) => s + b, 0) / 5) + (sjekk || 1),
     normaliser: (tekst) =>
       String(tekst || "")
         .toUpperCase()
@@ -695,10 +791,11 @@
   const ui = (R.ui = {});
 
   // Button. variant: "" (accent), "rosa", "mynte", "lampe", "lilla", "himmel", "rod", "papir"; plus "liten"/"stor".
+  // o: { v, id, av (disabled), ikon, etikett (aria-label), stille (no click sound), tekstHtml }
   ui.knapp = (tekst, h, o = {}) =>
-    `<button class="knapp ${o.variant || ""}"${attr("data-h", h)}${attr("data-v", o.v)}${attr("id", o.id)}${o.av ? " disabled" : ""}${attr("aria-label", o.etikett)}>${o.ikon ? `<span class="ikon" aria-hidden="true">${o.ikon}</span>` : ""}${o.tekstHtml || esc(tekst)}</button>`;
+    `<button class="knapp ${o.variant || ""}"${attr("data-h", h)}${attr("data-v", o.v)}${attr("id", o.id)}${o.av ? " disabled" : ""}${o.stille ? " data-stille" : ""}${attr("aria-label", o.etikett)}>${o.ikon ? `<span class="ikon" aria-hidden="true">${o.ikon}</span>` : ""}${o.tekstHtml || esc(tekst)}</button>`;
   ui.knapp2 = (tekst, h, o = {}) =>
-    `<button class="knapp-2 ${o.variant || ""}"${attr("data-h", h)}${attr("data-v", o.v)}${attr("id", o.id)}${o.av ? " disabled" : ""}${attr("aria-label", o.etikett)}>${o.ikon ? `<span class="ikon" aria-hidden="true">${o.ikon}</span>` : ""}${o.tekstHtml || esc(tekst)}</button>`;
+    `<button class="knapp-2 ${o.variant || ""}"${attr("data-h", h)}${attr("data-v", o.v)}${attr("id", o.id)}${o.av ? " disabled" : ""}${o.stille ? " data-stille" : ""}${attr("aria-label", o.etikett)}>${o.ikon ? `<span class="ikon" aria-hidden="true">${o.ikon}</span>` : ""}${o.tekstHtml || esc(tekst)}</button>`;
   ui.lenke = (tekst, h, o = {}) => `<button class="lenke"${attr("data-h", h)}${attr("data-v", o.v)}${attr("id", o.id)}>${esc(tekst)}</button>`;
   ui.dokk = (...deler) => `<div class="dokk">${deler.filter(Boolean).join("")}</div>`;
   ui.lenkerad = (...deler) => `<div class="lenkerad">${deler.filter(Boolean).join("")}</div>`;
@@ -719,6 +816,14 @@
       ${merker.length ? `<ul class="merker" aria-label="Om spillet">${merker.map(([b, t]) => `<li><b>${esc(b)}</b> ${esc(t)}</li>`).join("")}</ul>` : ""}`;
   };
 
+  // Home-screen buttons. While a game is running, "Fortsett" is the main action and starting
+  // over is secondary (pair it with R.bekreftNytt in the handler).
+  // o: { pagar (bool), fortsettTekst, startTekst, nyH ("nytt"), fortsettH ("fortsett"), ekstraHtml }
+  ui.startKnapper = (o = {}) =>
+    (o.pagar
+      ? ui.knapp(o.fortsettTekst || "Fortsett spillet", o.fortsettH || "fortsett") + ui.knapp2(o.nyTekst || "Nytt spill", o.nyH || "nytt")
+      : ui.knapp(o.startTekst || "Start spill", o.nyH || "nytt")) + (o.ekstraHtml || "");
+
   // Segmented choice: valg = [[verdi, tekst], ...]
   ui.seg = (h, valg, aktiv, o = {}) =>
     `<div class="seg" role="group"${attr("aria-label", o.etikett)}>${valg
@@ -734,8 +839,9 @@
     </div>`;
 
   // Tiles: valg = [{ v, tittel, tekst, ikon }]
+  // With an array as aktiv the tiles are a multi-select: each gets a check mark.
   ui.fliser = (h, valg, aktiv, o = {}) =>
-    `<div class="fliser ${o.en ? "en" : ""}">${valg
+    `<div class="fliser ${o.en ? "en" : ""} ${Array.isArray(aktiv) ? "flervalg" : ""}">${valg
       .map(
         (f) => `<button class="flis" data-h="${esc(h)}" data-v="${esc(f.v)}" aria-pressed="${String(f.v) === String(aktiv) || (Array.isArray(aktiv) && aktiv.includes(f.v))}"${f.farge ? ` style="--nf: ${esc(f.farge)}"` : ""}${f.av ? " disabled" : ""}>
           ${f.ikon ? `<span class="flis-ikon" aria-hidden="true">${f.ikon}</span>` : ""}<b>${esc(f.tittel)}</b>${f.tekst ? `<span>${esc(f.tekst)}</span>` : ""}
@@ -793,14 +899,16 @@
 
   ui.lagmerke = (i, tekst) => `<span class="lagmerke" style="--lf: ${R.LAG[i % R.LAG.length].farge}"><i aria-hidden="true"></i>${esc(tekst || "Lag " + R.LAG[i % R.LAG.length].navn)}</span>`;
 
-  // "Give the phone to …" screen. o: { i, h (button action), tekst, knapp, prikker: [ferdig, na, totalt] }
+  // "Give the phone to …" screen.
+  // o: { i, h (button action), v, tekst, knapp, advarsel, ikon (default 🙈, "" for none),
+  //      merkeHtml (badge on the avatar), prikker: [antall, na] }
   ui.giTil = (o) => `
     ${o.prikker ? ui.fremdrift(o.prikker[0], o.prikker[1]) : ""}
     <div class="gi-til">
-      ${R.avatar(o.i, "gigant")}
+      <span class="gi-til-avatar">${R.avatar(o.i, "gigant")}${o.merkeHtml ? `<span class="gi-til-merke">${o.merkeHtml}</span>` : ""}</span>
       <p class="etikett">${esc(o.tekst || "Gi mobilen til")}</p>
       <h1 id="skjerm-tittel">${esc(R.navn(o.i))}</h1>
-      <p class="ikke-se">🙈 ${esc(o.advarsel || "De andre ser bort")}</p>
+      ${o.advarsel === "" ? "" : `<p class="ikke-se">${o.ikon === "" ? "" : esc(o.ikon || "🙈") + " "}${esc(o.advarsel || "De andre ser bort")}</p>`}
     </div>
     ${ui.dokk(ui.knapp(o.knapp || `Jeg er ${R.navn(o.i)}`, o.h, { v: o.v != null ? o.v : o.i }))}`;
 
@@ -829,7 +937,9 @@
   // Big card for question decks. o: { tekst | tekstHtml, etikett, nr, fot, klasse, sveip, kompakt }
   ui.storkort = (o = {}) => {
     const tekst = o.tekstHtml || esc(o.tekst || "");
-    const lang = (o.tekst || o.tekstHtml || "").length > 90 ? "lang" : "";
+    // Size by the visible statement only: markup and a small .prefiks lead-in don't count.
+    const synlig = o.tekst != null ? o.tekst : String(o.tekstHtml || "").replace(/<span class="prefiks">[\s\S]*?<\/span>/g, "").replace(/<[^>]*>/g, "");
+    const lang = (o.lengde != null ? o.lengde : synlig.length) > 90 ? "lang" : "";
     return `<div class="bunke${o.kompakt ? " kompakt" : ""}"><article class="storkort ${o.klasse || ""}"${attr("data-sveip", o.sveip)}${attr("id", o.id)}>
       ${o.etikett || o.nr ? `<div class="storkort-topp">${o.etikett ? `<span class="storkort-etikett">${esc(o.etikett)}</span>` : "<span></span>"}${o.nr ? `<span class="storkort-nr">${esc(o.nr)}</span>` : ""}</div>` : ""}
       <p class="storkort-tekst ${lang}" aria-live="polite">${tekst}</p>
@@ -842,7 +952,7 @@
     <div class="timer ${o.stor ? "stor alene" : ""} ${o.alene ? "alene" : ""}" id="${esc(o.id || "timer")}" role="timer" aria-live="off">
       <div class="timer-ring">
         <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="spor" cx="60" cy="60" r="54"/><circle class="fyll" cx="60" cy="60" r="54"/></svg>
-        <span class="timer-tid">${R.formaterTid(o.sekunder || 0)}</span>
+        <span class="timer-tid">${o.visning === "sek" ? Math.ceil(o.sekunder || 0) : R.formaterTid(o.sekunder || 0)}</span>
       </div>
       ${o.kontrollHtml ? `<div class="timer-kontroll">${o.kontrollHtml}</div>` : ""}
     </div>`;
@@ -862,16 +972,42 @@
       .join("")}</ol>`;
   };
 
-  // Podium for the top three. rader as in poengliste.
+  // Podium for the top three. rader as in poengliste. Equal points share a place (1, 1, 3).
   ui.pall = (rader) => {
-    const s = rader.slice().sort((a, b) => b.poeng - a.poeng).slice(0, 3);
-    const plass = (r, n) => {
+    const alle = rader.filter((r) => r.poeng > 0).sort((a, b) => b.poeng - a.poeng);
+    if (alle.length < 2) return "";
+    const s = alle.slice(0, 3);
+    const rang = (r) => 1 + alle.filter((x) => x.poeng > r.poeng).length;
+    const plass = (r) => {
       if (!r) return "<div></div>";
+      const n = rang(r);
       const navn = r.navn != null ? r.navn : r.lag != null ? "Lag " + R.LAG[r.lag % R.LAG.length].navn : R.navn(r.i);
       const merke = r.lag != null ? `<span class="avatar stor" style="--pf: ${R.LAG[r.lag % R.LAG.length].farge}" aria-hidden="true"></span>` : R.avatar(r.i || 0, "stor");
-      return `<div class="pall-plass p${n + 1}">${merke}<span class="navn">${esc(navn)}</span><span class="poeng">${esc(r.poeng)} p</span><span class="blokk">${n + 1}</span></div>`;
+      return `<div class="pall-plass p${Math.min(n, 3)}">${merke}<span class="navn">${esc(navn)}</span><span class="poeng">${esc(r.poeng)} p</span><span class="blokk">${n}</span></div>`;
     };
-    return `<div class="pall" aria-label="Pallen">${plass(s[1], 1)}${plass(s[0], 0)}${plass(s[2], 2)}</div>`;
+    return `<div class="pall" aria-label="Pallen">${plass(s[1])}${plass(s[0])}${plass(s[2])}</div>`;
+  };
+
+  // Suggest other rusj games that fit the group (window.RUSJ_ANDRE is written by the build).
+  // o: { antall, tittel, maks }
+  ui.flereSpill = (o = {}) => {
+    const andre = (window.RUSJ_ANDRE || []).filter((g) => !o.antall || (o.antall >= g.spillere[0] && o.antall <= g.spillere[1]));
+    if (!andre.length) return "";
+    const dag = new Date();
+    const fro = R.hash(((APP && APP.id) || "") + dag.getFullYear() + "-" + dag.getMonth() + "-" + dag.getDate());
+    const utvalg = R.stokk(andre, R.rng(fro)).slice(0, o.maks || 3);
+    return `<section class="seksjon flere-spill" aria-labelledby="flere-tittel">
+      <h2 id="flere-tittel">${esc(o.tittel || "Spill noe annet med samme gjeng")}</h2>
+      <div class="flere-liste">${utvalg
+        .map(
+          (g) => `<a class="flere-kort" href="/${esc(g.id)}/" style="--kf: ${esc(g.farge)}">
+            <span class="flere-figur">${G.svg(g.id)}</span>
+            <span class="flere-tekst"><b>${esc(g.navn)}</b><small>${esc(g.undertittel)}</small></span>
+          </a>`,
+        )
+        .join("")}</div>
+      <a class="lenke" href="/">Se alle spillene på rusj.no</a>
+    </section>`;
   };
 
   ui.merker = (merker) => `<ul class="merker">${merker.map(([b, t]) => `<li><b>${esc(b)}</b> ${esc(t)}</li>`).join("")}</ul>`;
@@ -882,6 +1018,18 @@
   let S = null;
   let NOKKEL = "";
   let ryddere = [];
+
+  // Counts screen changes. R.vakt() gives a check that is false once the screen has changed —
+  // use it after every await in an action so a late timer can't drag the player back:
+  //   const fortsatt = R.vakt(); await R.vent(800); if (!fortsatt()) return;
+  let skjermNr = 0;
+  let sisteSkjermbytte = -1e9;
+  let sisteOmtegning = -1e9;
+  let sisteKlikk = null;
+  R.vakt = () => {
+    const nr = skjermNr;
+    return () => nr === skjermNr;
+  };
 
   R.vedForlat = (fn) => {
     ryddere.push(fn);
@@ -902,6 +1050,12 @@
   R.lagre = () => {
     if (!APP) return;
     S._tid = Date.now();
+    // For the front page's «Fortsett» badge: is a game in progress? (APP.pagar decides if given.)
+    try {
+      S._aktiv = APP.pagar ? !!APP.pagar(S) : S.skjerm !== (APP.hjem || "hjem");
+    } catch (e) {
+      S._aktiv = false;
+    }
     const data = APP.lagre ? APP.lagre(S) : S;
     R.skriv(NOKKEL, data);
   };
@@ -940,11 +1094,35 @@
 
   R.gaTil = (navn) => {
     if (S.skjerm && APP.skjermer[S.skjerm] && APP.skjermer[S.skjerm].ut) APP.skjermer[S.skjerm].ut(S);
+    skjermNr++;
     rydd();
     lukkMappe(true);
     R.lukkArk();
+    R.skjulToast();
+    R.stoppKonfetti();
+    const ned = $("#nedtelling");
+    if (ned && !ned.hidden) {
+      ned.hidden = true;
+      ned.innerHTML = "";
+    }
+    const hoved = $("#hoved");
+    if (hoved) hoved.inert = false;
+    const si = $("#si");
+    if (si) si.textContent = ""; // a screen-reader message (maybe a secret) must not outlive its screen
     skjermDef(navn);
     S.skjerm = navn;
+    sisteSkjermbytte = performance.now(); // see the ghost-tap guard in the click handler
+    // Back on the game's home screen: drop our extra history entry, so the phone's back button
+    // leaves the game with one press.
+    if (navn === (APP.hjem || "hjem") && harHistorikk && !R.iRamme) {
+      harHistorikk = false;
+      ignorerPop = true;
+      try {
+        history.back();
+      } catch (e) {
+        ignorerPop = false;
+      }
+    }
     tegn({ animer: true });
     window.scrollTo(0, 0);
     const h = $("#skjerm h1, #skjerm h2");
@@ -960,10 +1138,18 @@
     if (sk.inn) sk.inn(S);
     sikreHistorikk();
     R.lagre();
+    // Keep the screen on while a game is in progress; let it sleep on the home screen.
+    try {
+      if (navn === (APP.hjem || "hjem")) R.slippVaken();
+      else if (APP.pagar && APP.pagar(S)) R.holdVaken();
+    } catch (e) {
+      /* ignore */
+    }
   };
 
   // Re-draw the current screen in place (after a state change), keeping scroll and focus.
   R.vis = () => {
+    sisteOmtegning = performance.now();
     const aktiv = document.activeElement;
     const fokusId = aktiv && aktiv.id;
     const fokusH = aktiv && aktiv.dataset && aktiv.dataset.h;
@@ -1003,6 +1189,7 @@
 
   // Android back button: one history entry while away from the game's home screen.
   let harHistorikk = false;
+  let ignorerPop = false;
   function sikreHistorikk() {
     if (!APP) return;
     const hjem = S.skjerm === (APP.hjem || "hjem");
@@ -1016,10 +1203,19 @@
     }
   }
   window.addEventListener("popstate", () => {
+    if (ignorerPop) {
+      ignorerPop = false;
+      return;
+    }
+    if (location.hash) return; // a join link (#code) changed the address: hashchange handles it
     if (!harHistorikk) return;
     harHistorikk = false;
     if (S && S.skjerm !== (APP.hjem || "hjem")) {
-      tilbake().then(sikreHistorikk);
+      const p = tilbake();
+      // Re-arm at once: if tilbake waits for a confirm sheet, the next back press must close the
+      // sheet, not leave the game.
+      sikreHistorikk();
+      Promise.resolve(p).then(sikreHistorikk);
     }
   });
 
@@ -1081,7 +1277,7 @@
       R.felles.navn.splice(i, 1);
       R.lagreFelles();
       S.antall -= 1;
-      if (APP.vedSpillere) APP.vedSpillere(S);
+      if (APP.vedSpillere) APP.vedSpillere(S, { fjernet: i });
       R.vis();
     },
   };
@@ -1215,13 +1411,39 @@
 
     document.documentElement.lang = "nb";
 
+    // A double tap must not run the same async action twice (skip two cards, start two countdowns).
+    // The same action is ignored while it is still running, for at most 0.6 s; other actions and
+    // sheets are never blocked.
+    let opptatt = null;
     document.addEventListener("click", (e) => {
       const el = e.target.closest("[data-h]");
       if (!el || el.disabled) return;
-      const h = handling(el.dataset.h);
+      const navn = el.dataset.h;
+      const h = handling(navn);
       if (!h) return;
+      const iArk = !!el.closest("#ark");
+      if (!iArk && opptatt === navn) return;
+      // Ghost-tap guard: the second tap of a double tap lands on whatever button the NEW screen
+      // has in the same spot (e.g. the next player's secret). Real taps within 350 ms of a
+      // screen change are ignored. (Scripted clicks in tests are not "trusted" and pass.)
+      if (!iArk && e.isTrusted && performance.now() - sisteSkjermbytte < 350) return;
+      // Same after an in-place redraw (R.vis): a different button may now sit under the finger.
+      // Repeating the same action stays quick (steppers, flipping cards).
+      if (!iArk && e.isTrusted && performance.now() - sisteOmtegning < 350 && navn !== sisteKlikk) return;
+      sisteKlikk = navn;
       if (!el.hasAttribute("data-stille")) R.lyd.klikk();
-      h(el, e, S);
+      const svar = h(el, e, S);
+      if (svar && typeof svar.then === "function" && !iArk) {
+        opptatt = navn;
+        const slipp = () => {
+          if (opptatt === navn) opptatt = null;
+        };
+        setTimeout(slipp, 600);
+        svar.then(slipp, (feil) => {
+          slipp();
+          console.error(feil);
+        });
+      }
     });
     document.addEventListener("click", (e) => {
       if (e.target.id === "ark") R.lukkArk();
@@ -1300,9 +1522,23 @@
     let forste = APP.hjem || "hjem";
     const hash = (location.hash || "").slice(1);
     let fraHash = null;
+    // A join code is short; anything longer (or malformed) is ignored rather than stored.
+    const lesHash = (h) => {
+      try {
+        return decodeURIComponent(h).slice(0, 64);
+      } catch (e) {
+        return "";
+      }
+    };
+    // After a reload on a game screen our history entry is still there — don't add another.
+    try {
+      harHistorikk = !!(history.state && history.state.rusj);
+    } catch (e) {
+      harHistorikk = false;
+    }
     if (hash && APP.vedHash) {
       try {
-        fraHash = APP.vedHash(S, decodeURIComponent(hash));
+        fraHash = APP.vedHash(S, lesHash(hash));
       } catch (e) {
         fraHash = null;
       }
@@ -1313,9 +1549,12 @@
       }
     }
     const nylig = S._tid && Date.now() - S._tid < 3 * 60 * 60 * 1000;
+    const forrige = S.skjerm && APP.skjermer[S.skjerm];
     if (fraHash && APP.skjermer[fraHash]) forste = fraHash;
-    else if (nylig && S.skjerm && APP.skjermer[S.skjerm] && APP.skjermer[S.skjerm].gjenoppta !== false) forste = S.skjerm;
-    else if (S.skjerm && APP.skjermer[S.skjerm] && typeof APP.skjermer[S.skjerm].gjenoppta === "string") forste = APP.skjermer[S.skjerm].gjenoppta;
+    // gjenoppta: "skjerm" redirects (e.g. away from a screen that shows a secret); older than
+    // 3 hours, every game starts on its home screen (with «Fortsett» there).
+    else if (nylig && forrige && typeof forrige.gjenoppta === "string" && APP.skjermer[forrige.gjenoppta]) forste = forrige.gjenoppta;
+    else if (nylig && forrige && forrige.gjenoppta !== false && typeof forrige.gjenoppta !== "string") forste = S.skjerm;
     S.skjerm = null;
     try {
       R.gaTil(forste);
@@ -1329,7 +1568,12 @@
     window.addEventListener("hashchange", () => {
       const h = (location.hash || "").slice(1);
       if (!h || !APP.vedHash) return;
-      const sk = APP.vedHash(S, decodeURIComponent(h));
+      let sk = null;
+      try {
+        sk = APP.vedHash(S, lesHash(h));
+      } catch (e) {
+        sk = null;
+      }
       try {
         history.replaceState(null, "", location.pathname + location.search);
       } catch (e) {

@@ -24,15 +24,13 @@ body.portal {
   width: 70vmax;
   height: 70vmax;
   margin-left: -35vmax;
-  border-radius: 46% 54% 58% 42% / 44% 46% 54% 56%;
-  background: radial-gradient(circle at 35% 35%, rgba(164, 123, 255, 0.16), transparent 62%);
+  background: radial-gradient(closest-side, rgba(164, 123, 255, 0.17), rgba(164, 123, 255, 0.06) 55%, transparent);
   animation: blobb 18s ease-in-out infinite alternate;
 }
 
 @keyframes blobb {
   to {
-    border-radius: 58% 42% 44% 56% / 54% 58% 42% 46%;
-    transform: translate(-6vmax, 4vmax) rotate(40deg);
+    transform: translate(-6vmax, 4vmax) scale(1.15, 0.9);
   }
 }
 
@@ -44,15 +42,15 @@ body.portal {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   max-width: 980px;
   margin: 0 auto;
-  padding: calc(28px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px));
+  padding: calc(18px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
   text-align: center;
 }
 
 .helt-logo {
-  width: min(78vw, 420px);
+  width: min(62vw, 400px);
   margin: 6px 0 0;
   filter: drop-shadow(0 18px 40px rgba(255, 79, 139, 0.25));
 }
@@ -180,9 +178,17 @@ body.portal {
 
 .helt-knapper {
   display: grid;
-  gap: 12px;
-  width: min(100%, 420px);
+  grid-template-columns: 1fr 1.3fr;
+  gap: 10px;
+  width: min(100%, 460px);
   animation: inn 0.6s ease-out 0.85s both;
+}
+
+.helt-knapper .knapp,
+.helt-knapper .knapp-2 {
+  min-height: 58px;
+  padding: 10px 12px;
+  font-size: 1.08rem;
 }
 
 /* The gang parades past under the hero */
@@ -196,9 +202,9 @@ body.portal {
 
 .parade-spor {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   width: max-content;
-  padding: 18px 0 14px;
+  padding: 14px 0 6px;
   animation: parade 55s linear infinite;
 }
 
@@ -216,7 +222,7 @@ body.portal {
 .parade-figur {
   display: block;
   flex: none;
-  width: 76px;
+  width: 62px;
   animation: hopp 2.4s ease-in-out infinite;
   transition: transform 0.2s;
 }
@@ -263,12 +269,37 @@ body.portal {
   gap: 12px;
   margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
   padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
-  background: linear-gradient(to bottom, var(--natt-tett) 80%, var(--natt-null));
+  background: transparent;
   scroll-margin-top: 0;
+  transition: background 0.25s, box-shadow 0.25s;
+}
+
+/* Solid only while it sticks to the top (set by portal.js), so it never draws a hard edge in the page. */
+.filter.fast {
+  background: linear-gradient(to bottom, var(--natt-tett) 82%, var(--natt-null));
+}
+
+.filter-vakt {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
 }
 
 .filter h2 {
   font-size: clamp(1.5rem, 5.6vw, 2rem);
+}
+
+/* While stuck to the top: just the controls, as little height as possible. */
+.filter.fast h2,
+.filter.fast .treff {
+  display: none;
+}
+
+.filter.fast {
+  gap: 8px;
+  padding-block: calc(8px + env(safe-area-inset-top, 0px)) 10px;
 }
 
 .filter-rad {
@@ -325,8 +356,11 @@ body.portal {
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding: 2px 28px 4px 2px;
   scrollbar-width: none;
+  /* Fade at the right edge: there is more to scroll to. */
+  -webkit-mask-image: linear-gradient(to right, #000 82%, transparent);
+  mask-image: linear-gradient(to right, #000 82%, transparent);
 }
 
 .filter .brikker::-webkit-scrollbar {
@@ -435,9 +469,10 @@ body.portal {
 }
 
 .kort-navn {
-  font: 900 1.6rem/1.02 var(--font-display);
+  font: 900 clamp(1.3rem, 6.4vw, 1.6rem) / 1.02 var(--font-display);
   letter-spacing: -0.02em;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  hyphens: manual;
 }
 
 .kort-linje {
@@ -653,13 +688,28 @@ body.portal {
   color: var(--tekst-2);
 }
 
+@media (max-width: 359px) {
+  .spillkort a {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .kort-figur {
+    width: 64px;
+  }
+}
+
 @media (min-width: 720px) {
   .helt {
-    padding-top: 56px;
+    padding-top: 48px;
+  }
+
+  .helt-logo {
+    width: min(50vw, 420px);
   }
 
   .parade-figur {
-    width: 92px;
+    width: 86px;
   }
 
   .filter {

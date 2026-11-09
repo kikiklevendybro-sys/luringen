@@ -20,6 +20,13 @@ const flagg = (n) => {
 };
 const WEB = resolve(flagg("--web") || join(ROT, "dist/web"));
 const BILDER = resolve(flagg("--bilder") || join(tmpdir(), "rusj-e2e"));
+// --probe: player names contain markup (<x-q>…</x-q>). Every screen is checked that the markup
+// shows as text and never becomes an element. Only injection problems count as errors then.
+const PROBE = args.includes("--probe");
+if (PROBE) args.splice(args.indexOf("--probe"), 1);
+// --bredde / --hoyde: phone size (default 390×844; try 320 568 for the smallest phones).
+const BREDDE = Number(flagg("--bredde")) || 390;
+const HOYDE = Number(flagg("--hoyde")) || 844;
 if (!existsSync(join(WEB, "index.html"))) {
   console.error(`Fant ikke ${WEB}/index.html – kjør node scripts/bygg.mjs først.`);
   process.exit(1);
@@ -39,7 +46,7 @@ function meta(id) {
 for (const id of valgt) {
   const mappe = join(BILDER, id);
   mkdirSync(mappe, { recursive: true });
-  const c = await startChrome();
+  const c = await startChrome({ bredde: BREDDE, hoyde: HOYDE });
   const feil = [];
   let nr = 0;
   const t = {
@@ -54,8 +61,31 @@ for (const id of valgt) {
     // Screenshot + checks that apply to every screen.
     async bilde(navn, helside = false) {
       await c.sov(350);
-      const bred = await c.js("Math.max(document.documentElement.scrollWidth, window.innerWidth) - 390");
+      if (PROBE) {
+        const injisert = await c.js(`document.querySelectorAll("x-q").length`);
+        if (injisert) feil.push(`HTML-INJEKSJON på «${navn}»: et spillernavn ble tolket som HTML (${injisert} element)`);
+      }
+      const bred = await c.js(`Math.max(document.documentElement.scrollWidth, window.innerWidth) - ${BREDDE}`);
       if (bred > 0) feil.push(`Sidelengs scrolling på «${navn}»: ${bred}px for bred (siden blir zoomet ut på mobil)`);
+      const utenfor = await c.js(`(() => {
+        const ut = [];
+        for (const el of document.querySelectorAll("#skjerm *, .ark *, .portal-hoved *, .helt-slagord")) {
+          if (el.closest("svg, .parade, canvas, [data-utenfor-ok]")) continue;
+          let rulles = false; // inside a row that is meant to scroll sideways
+          for (let f = el.parentElement; f && f !== document.body; f = f.parentElement) {
+            if (/(auto|scroll)/.test(getComputedStyle(f).overflowX)) { rulles = true; break; }
+          }
+          if (rulles) continue;
+          if (!Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim())) continue;
+          const b = el.getBoundingClientRect();
+          if (!b.width || !b.height) continue;
+          const stil = getComputedStyle(el);
+          if (stil.visibility === "hidden" || Number(stil.opacity) === 0) continue;
+          if (b.right > window.innerWidth + 2 || b.left < -2) ut.push(el.tagName.toLowerCase() + "." + String(el.className).split(" ")[0] + " «" + el.textContent.trim().slice(0, 30) + "»");
+        }
+        return ut.slice(0, 3);
+      })()`);
+      if (utenfor.length) feil.push(`Tekst stikker utenfor skjermen på «${navn}»: ${utenfor.join(", ")}`);
       const tomme = await c.js(`Array.from(document.querySelectorAll("button, a")).filter(b => b.offsetParent && !b.innerText.trim() && !b.getAttribute("aria-label") && !b.querySelector("svg, img")).length`);
       if (tomme) feil.push(`${tomme} knapp(er) uten tekst eller aria-label på «${navn}»`);
       await c.skjermbilde(join(mappe, `${String(++nr).padStart(2, "0")}-${navn}.png`), { helside });
@@ -65,7 +95,8 @@ for (const id of valgt) {
     async start(valg = {}) {
       await c.lastSide(t.side);
       await c.js("localStorage.clear()");
-      if (valg.navn) await c.js(`localStorage.setItem("rusj.felles", ${JSON.stringify(JSON.stringify({ lyd: false, navn: valg.navn }))})`);
+      const navn = valg.navn && PROBE ? valg.navn.map((n, i) => `<x-q>${String.fromCharCode(65 + i)}</x-q>`) : valg.navn;
+      if (navn) await c.js(`localStorage.setItem("rusj.felles", ${JSON.stringify(JSON.stringify({ lyd: false, navn }))})`);
       else await c.js(`localStorage.setItem("rusj.felles", JSON.stringify({ lyd: false, navn: [] }))`);
       await c.lastSide(t.side, id === "forside" ? "document.querySelector('.spillgrid')" : "document.querySelector('#skjerm h1')");
     },
@@ -77,7 +108,10 @@ for (const id of valgt) {
       await c.sov(2600); // let the intro animation finish
       await t.bilde("forside");
       const kort = await c.antall(".spillkort");
-      t.sjekk(kort === bygget.length + (existsSync(join(WEB, "luringen/index.html")) ? 1 : 0), `Forsiden viser ${kort} spillkort, ventet ${bygget.length + 1}`);
+      const liste = await c.js("(window.RUSJ_SPILLISTE || []).map((s) => s.id)");
+      const ventet = bygget.length + (liste.includes("luringen") ? 1 : 0);
+      t.sjekk(kort === ventet && liste.length === ventet, `Forsiden viser ${kort} spillkort, ventet ${ventet}`);
+      for (const id of bygget) t.sjekk(liste.includes(id), `Forsiden mangler kortet for ${id}`);
       await c.klikk('[data-antall="1"]');
       await c.klikk('[data-antall="1"]');
       const synlige2 = await c.antall(".spillkort:not([hidden])");
@@ -128,6 +162,18 @@ for (const id of valgt) {
     }
   }
   feil.push(...c.feil.filter((f) => !f.includes("/finnes-ikke/"))); // the 404 test asks for a missing page on purpose
+  if (PROBE) {
+    try {
+      const injisert = await c.js(`document.querySelectorAll("x-q").length`);
+      if (injisert) feil.push(`HTML-INJEKSJON på siste skjerm (${injisert} element)`);
+    } catch (e) {
+      /* page gone */
+    }
+    // In probe mode the scripted checks fail on the odd names; only injections matter.
+    const injeksjoner = feil.filter((f) => f.startsWith("HTML-INJEKSJON"));
+    feil.length = 0;
+    feil.push(...injeksjoner);
+  }
   await c.lukk();
   resultat.push({ id, feil, bilder: nr });
   console.log(`${feil.length ? "✗" : "✓"} ${id}${feil.length ? "" : ` (${nr} skjermbilder)`}`);

@@ -1,0 +1,13 @@
+{
+  "id": "skravla",
+  "navn": "Skravla",
+  "undertittel": "Forklar ordet",
+  "beskrivelse": "Gratis «Forklar ordet»-spill på norsk. Lag mot lag: forklar så mange ord dere rekker, og flytt brikken mot mål. Over 3 000 ord.",
+  "kort": "Forklar ordet uten å si det – første lag i mål vinner.",
+  "spillere": [4, 20],
+  "minutter": [15, 45],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "ord", "lag"],
+  "rekkefolge": 7,
+  "ordbank": true
+}

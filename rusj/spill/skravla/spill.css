@@ -1,0 +1,978 @@
+/* Skravla — team blobs, the race track, the word card and the review list.
+   Everything is prefixed sk- so it can't clash with the kit. */
+
+/* ---------- Team blobs ---------- */
+
+.sk-klump {
+  display: inline-block;
+  flex: none;
+  width: 40px;
+  line-height: 0;
+}
+
+.sk-klump svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.sk-klump .sk-kropp,
+.sk-klump .sk-pynt {
+  fill: var(--lf);
+  stroke: var(--blekk);
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+
+.sk-klump .sk-pynt {
+  filter: brightness(0.86);
+}
+
+.sk-klump .sk-oyne {
+  transform-box: view-box;
+  transform-origin: 50px 55px;
+  animation: sk-blunk 5.4s var(--vent, 0s) infinite;
+}
+
+@keyframes sk-blunk {
+  0%,
+  46%,
+  50%,
+  100% {
+    transform: scaleY(1);
+  }
+  48% {
+    transform: scaleY(0.12);
+  }
+}
+
+.sk-klump.stor {
+  width: 84px;
+}
+
+.sk-klump.gigant {
+  width: min(42vw, 150px);
+  animation: sk-sveve 4.2s ease-in-out infinite;
+  filter: drop-shadow(0 16px 22px color-mix(in srgb, var(--lf) 35%, transparent));
+}
+
+@keyframes sk-sveve {
+  50% {
+    transform: translateY(-8px) rotate(-3deg);
+  }
+}
+
+/* ---------- Setup ---------- */
+
+.sk-lagrad {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sk-lagrad li {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  color: var(--tekst-2);
+  font: 800 0.85rem/1.1 var(--font-display);
+  animation: sk-sprett 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.sk-lagrad .sk-klump {
+  width: 50px;
+}
+
+@keyframes sk-sprett {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.7);
+  }
+}
+
+.sk-to {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.sk-to .seg button {
+  padding-inline: 2px;
+}
+
+.sk-katknapp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sk-katknapp:active {
+  background: var(--natt-3);
+}
+
+.sk-katikon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.sk-katknapp > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+
+.sk-katknapp b {
+  display: block;
+  font: 900 1.05rem/1.2 var(--font-display);
+}
+
+.sk-katknapp small {
+  display: block;
+  overflow: hidden;
+  color: var(--tekst-2);
+  font-size: 0.88rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sk-katknapp i {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+  font: 900 0.85rem/1 var(--font-display);
+  font-style: normal;
+}
+
+/* ---------- The race track ---------- */
+
+.sk-bane {
+  position: relative;
+  width: 100%;
+  margin: 6px auto 0;
+}
+
+.sk-bane > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sk-vei-kant,
+.sk-vei,
+.sk-vei-linje {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sk-vei-kant {
+  stroke: var(--strek);
+  stroke-width: 44;
+}
+
+.sk-vei {
+  stroke: var(--natt-2);
+  stroke-width: 38;
+}
+
+.sk-vei-linje {
+  stroke: color-mix(in srgb, var(--aksent) 30%, var(--natt-3));
+  stroke-width: 3;
+  stroke-dasharray: 2 9;
+}
+
+.sk-stein {
+  fill: color-mix(in srgb, var(--aksent) 38%, var(--natt-3));
+  stroke: var(--blekk);
+  stroke-width: 2.5;
+}
+
+.sk-stein.mile {
+  fill: var(--papir);
+  stroke-width: 3;
+}
+
+.sk-steintall {
+  fill: var(--blekk);
+  font: 900 11.5px/1 var(--font-display);
+  text-anchor: middle;
+}
+
+.sk-start {
+  fill: var(--mynte);
+  stroke: var(--blekk);
+  stroke-width: 3;
+}
+
+.sk-mal {
+  fill: var(--lampe);
+  stroke: var(--blekk);
+  stroke-width: 3.5;
+}
+
+.sk-pokal {
+  font-size: 19px;
+  text-anchor: middle;
+}
+
+.sk-baneord {
+  fill: var(--tekst-2);
+  font: 900 10px/1 var(--font-display);
+  letter-spacing: 0.14em;
+  text-anchor: middle;
+}
+
+/* Tokens grow and shrink with the board; side by side when they share a field. */
+.sk-brikke {
+  position: absolute;
+  z-index: 2;
+  width: clamp(20px, 10%, 44px);
+  transform: translate(calc(-50% + var(--side, 0) * 42%), -78%);
+  transition:
+    left 0.17s ease-in-out,
+    top 0.17s ease-in-out,
+    transform 0.25s;
+  pointer-events: none;
+}
+
+.sk-brikke .sk-klump {
+  width: 100%;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.45));
+}
+
+.sk-brikke.aktiv {
+  z-index: 3;
+}
+
+.sk-brikke.hopp .sk-klump {
+  animation: sk-hopp 0.18s ease-out;
+}
+
+@keyframes sk-hopp {
+  45% {
+    transform: translateY(-13px) scale(1.06, 0.96);
+  }
+}
+
+/* Standings under the track */
+.sk-stilling {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sk-stilling li {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 8px;
+  min-width: 0;
+  padding: 8px 10px 8px 8px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--lf) 12%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lf) 55%, var(--strek));
+}
+
+.sk-stilling .sk-klump {
+  grid-row: span 2;
+  width: 34px;
+}
+
+.sk-stilling b {
+  font: 900 1.45rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-stilling small {
+  overflow: hidden;
+  color: var(--tekst-2);
+  font: 800 0.78rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Four teams: blob above the score so nothing gets cut */
+.sk-stilling.fire li {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  padding: 8px 4px 7px;
+  text-align: center;
+}
+
+.sk-stilling.fire .sk-klump {
+  grid-row: auto;
+  width: 30px;
+  margin-bottom: 2px;
+}
+
+.sk-pluss {
+  position: absolute;
+  top: -9px;
+  right: -3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--mynte);
+  box-shadow: 0 2px 0 var(--mynte-dyp);
+  color: var(--blekk);
+  font: 900 0.8rem/1.1 var(--font-display);
+  animation: sk-sprett 0.5s 0.3s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.sk-pluss.minus {
+  background: var(--rosa);
+  box-shadow: 0 2px 0 var(--rosa-dyp);
+}
+
+/* Who explains next */
+.sk-neste {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 16px 20px;
+  border-radius: var(--r-stor);
+  background: linear-gradient(170deg, color-mix(in srgb, var(--lf) 20%, var(--natt-2)), var(--natt-2) 75%);
+  box-shadow: inset 0 0 0 2.5px var(--lf);
+  text-align: center;
+}
+
+.sk-neste h1 {
+  font-size: clamp(1.55rem, 7vw, 2rem);
+  line-height: 1.1;
+}
+
+.sk-neste h1 span {
+  color: var(--lf);
+}
+
+.sk-neste-tekst {
+  max-width: 30ch;
+  color: var(--tekst-2);
+}
+
+.sk-melding {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--lampe);
+  color: var(--blekk);
+  font: 900 0.9rem/1.25 var(--font-display);
+}
+
+.sk-neste.vunnet h1 {
+  font-size: clamp(2rem, 9vw, 2.6rem);
+}
+
+/* ---------- The round ---------- */
+
+.sk-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.sk-status .timer {
+  gap: 0;
+  padding: 0;
+  background: none;
+}
+
+.sk-status .timer-ring {
+  width: 70px;
+  height: 70px;
+}
+
+.sk-status .timer-ring circle {
+  stroke-width: 14;
+}
+
+.sk-status .timer-tid {
+  font-size: 1.2rem;
+}
+
+.sk-status-lag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sk-status-lag .sk-klump {
+  width: 38px;
+}
+
+.sk-status-lag > span:last-child {
+  min-width: 0;
+}
+
+.sk-status-lag b {
+  display: block;
+  overflow: hidden;
+  font: 900 1.1rem/1.1 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sk-status-lag small {
+  color: var(--tekst-2);
+  font: 700 0.82rem/1.2 var(--font-display);
+}
+
+.sk-teller {
+  display: grid;
+  justify-items: center;
+  min-width: 70px;
+  padding: 8px 10px 7px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.sk-teller.popp b {
+  animation: sk-popp 0.45s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+@keyframes sk-popp {
+  35% {
+    transform: scale(1.35);
+  }
+}
+
+.sk-hint {
+  font: 800 1rem/1.3 var(--font-display);
+  opacity: 0.65;
+}
+
+.sk-teller b {
+  color: var(--mynte);
+  font: 900 1.9rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-teller small {
+  color: var(--tekst-2);
+  font: 700 0.72rem/1.2 var(--font-display);
+}
+
+.sk-kort {
+  container-type: inline-size;
+  text-align: center;
+}
+
+.sk-kort .storkort-tekst {
+  display: grid;
+  place-items: center;
+  margin: auto 0;
+}
+
+.sk-ordet {
+  display: block;
+  max-width: 100%;
+  font: 900 min(4.2rem, calc(148cqi / var(--tegn, 8))) / 1.02 var(--font-display);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.sk-kort .storkort-fot {
+  opacity: 1;
+}
+
+.sk-tabu {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 2.5px dashed color-mix(in srgb, var(--blekk) 30%, transparent);
+}
+
+.sk-tabu-tittel {
+  font: 900 0.74rem/1 var(--font-display);
+  letter-spacing: 0.16em;
+  opacity: 0.75;
+  text-transform: uppercase;
+}
+
+.sk-tabu-ord {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sk-tabu-ord span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px 7px 9px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 800 1.02rem/1.1 var(--font-display);
+}
+
+.sk-tabu-ord span::before {
+  content: "✕";
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--rod);
+  color: var(--blekk);
+  font: 900 0.72rem/1 var(--font-display);
+}
+
+.sk-svarknapper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 12px;
+}
+
+.sk-svarknapper .knapp {
+  min-height: 74px;
+  padding-inline: 10px;
+}
+
+.sk-pausekort {
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.sk-pausekort .figur-ramme {
+  width: 112px;
+}
+
+.sk-pausekort h1 {
+  font-size: clamp(2.2rem, 10vw, 3rem);
+}
+
+.sk-pause-tekst {
+  max-width: 26ch;
+  font: 700 1.05rem/1.35 var(--font-display);
+  opacity: 0.75;
+}
+
+/* Time's up: the last word is free for all */
+.sk-ute {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.sk-ute .bunke {
+  width: 100%;
+  margin-top: -34px;
+}
+
+.sk-stempel {
+  position: relative;
+  z-index: 3;
+  margin-top: 6px;
+  padding: 0.1em 0.35em;
+  background: var(--natt);
+  font-size: clamp(1.7rem, 8.4vw, 2.3rem);
+  white-space: nowrap;
+}
+
+.sk-siste {
+  container-type: inline-size;
+  align-items: center;
+  gap: 10px;
+  padding-top: 52px;
+  text-align: center;
+}
+
+.sk-siste .etikett {
+  color: var(--blekk-2);
+}
+
+.sk-siste .storkort-tekst {
+  margin: 4px 0;
+}
+
+.sk-siste .sk-ordet {
+  font-size: min(3.4rem, calc(140cqi / var(--tegn, 8)));
+}
+
+.sk-siste-tekst {
+  font: 800 1.02rem/1.3 var(--font-display);
+}
+
+.sk-lagknapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.sk-lagknapper.k3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.sk-lagknapper .sk-lagknapp {
+  min-height: 60px;
+  padding-inline: 8px;
+  font-size: 1.12rem;
+}
+
+.sk-lagknapper .sk-ingen {
+  grid-column: 1 / -1;
+}
+
+/* ---------- After the round ---------- */
+
+.sk-resultat {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.sk-resultat .sk-klump {
+  width: 72px;
+  margin-bottom: 4px;
+}
+
+.sk-resultat h1 {
+  font-size: clamp(2.3rem, 11vw, 3.1rem);
+}
+
+.sk-resultat h1 b {
+  color: var(--lf);
+}
+
+.sk-dom {
+  color: var(--tekst-2);
+  font: 800 1.1rem/1.3 var(--font-display);
+}
+
+.sk-ordliste {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sk-ord {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 7px 16px 7px 7px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 1.08rem/1.2 var(--font-display);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sk-ord i {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--natt-3);
+  color: var(--tekst-3);
+  font: 900 1.15rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.sk-ord span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sk-ord small {
+  flex: none;
+  color: var(--tekst-3);
+  font: 700 0.82rem/1 var(--font-tekst);
+}
+
+.sk-ord[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--mynte) 13%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--mynte);
+  color: var(--tekst);
+}
+
+.sk-ord[aria-pressed="true"] i {
+  background: var(--mynte);
+  color: var(--blekk);
+}
+
+.sk-ord[aria-pressed="true"] small {
+  color: var(--mynte);
+  font: 900 1rem/1 var(--font-display);
+}
+
+.sk-sisteord h2 {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- The end ---------- */
+
+.sk-banner {
+  --lf: var(--aksent);
+}
+
+.sk-banner h1 {
+  color: var(--lf);
+}
+
+.sk-delt {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sk-pall .pall-plass .sk-klump {
+  width: 64px;
+}
+
+/* Score list: the team blob takes the place of the kit's avatar dot */
+.sk-liste .sk-klump {
+  width: 36px;
+}
+
+.sk-pall .pall-plass.p1 .blokk {
+  background: var(--lampe);
+  box-shadow: 0 5px 0 var(--lampe-dyp);
+}
+
+.sk-fakta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sk-fakta li {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 12px 6px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  text-align: center;
+}
+
+.sk-fakta b {
+  font: 900 1.7rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-fakta span {
+  color: var(--tekst-2);
+  font: 700 0.82rem/1.2 var(--font-display);
+}
+
+.sk-venstre {
+  margin-top: -4px;
+  text-align: left;
+}
+
+.sk-hoppet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sk-hoppet li {
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 800 0.95rem/1.15 var(--font-display);
+}
+
+@media (max-width: 359px) {
+  .sk-to {
+    grid-template-columns: 1fr;
+  }
+
+  .sk-lagknapper.k3 {
+    grid-template-columns: 1fr;
+  }
+
+  .sk-svarknapper .knapp {
+    font-size: 1.12rem;
+  }
+}
+
+/* Short phones: the word card, the clock and the answer buttons must fit without scrolling. */
+@media (max-height: 700px) {
+  .skjerm-runde {
+    gap: 14px;
+  }
+
+  .sk-status .timer-ring {
+    width: 58px;
+    height: 58px;
+  }
+
+  .sk-status .timer-tid {
+    font-size: 1.05rem;
+  }
+
+  .sk-teller {
+    min-width: 60px;
+    padding: 6px 8px;
+  }
+
+  .sk-teller b {
+    font-size: 1.5rem;
+  }
+
+  .skjerm-runde .bunke {
+    min-height: 0;
+  }
+
+  .skjerm-runde .storkort {
+    gap: 12px;
+    padding: 18px 18px 16px;
+  }
+
+  .skjerm-runde .storkort-tekst {
+    min-height: 96px;
+  }
+
+  .sk-tabu {
+    padding-top: 10px;
+  }
+
+  .skjerm-runde .sveip-hint {
+    display: none;
+  }
+
+  .skjerm-runde .dokk {
+    padding-top: 18px;
+  }
+
+  .sk-svarknapper .knapp {
+    min-height: 62px;
+  }
+
+  .sk-ute {
+    gap: 12px;
+  }
+
+  .sk-ute .bunke {
+    margin-top: -30px;
+  }
+
+  .sk-siste {
+    padding: 44px 16px 18px;
+  }
+
+  .sk-lagknapper {
+    gap: 8px;
+  }
+
+  .sk-lagknapper .sk-lagknapp {
+    min-height: 52px;
+  }
+
+  .sk-lagknapper .sk-ingen {
+    min-height: 46px;
+  }
+
+  .sk-neste {
+    padding: 14px 14px 16px;
+  }
+
+  .sk-neste-tekst {
+    display: none;
+  }
+
+  /* The track shrinks so «Lag X: hvem forklarer?» and the scores stay above the dock. */
+  .skjerm-tavla {
+    gap: 12px;
+  }
+
+  .sk-bane {
+    width: min(100%, calc(27vh * 360 / var(--bh, 284)));
+    margin-top: 0;
+  }
+
+  .sk-stilling li {
+    padding-block: 5px;
+  }
+
+  .sk-stilling .sk-klump {
+    width: 28px;
+  }
+
+  .sk-stilling b {
+    font-size: 1.2rem;
+  }
+
+  .sk-stilling.fire li {
+    padding: 4px 3px;
+  }
+
+  .sk-stilling.fire .sk-klump {
+    width: 20px;
+    margin-bottom: 0;
+  }
+
+  .sk-stilling.fire b {
+    font-size: 1.1rem;
+  }
+
+  .sk-stilling.fire small {
+    font-size: 0.7rem;
+  }
+
+  .sk-neste {
+    gap: 4px;
+  }
+
+  .sk-neste h1 {
+    font-size: 1.35rem;
+  }
+
+  .sk-melding {
+    font-size: 0.85rem;
+  }
+
+  .sk-melding-mer {
+    display: none;
+  }
+}

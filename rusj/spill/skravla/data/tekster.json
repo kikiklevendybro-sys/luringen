@@ -1,0 +1,77 @@
+{
+  "dommer": [
+    {
+      "til": 0,
+      "tekster": [
+        "Stille som en mus.",
+        "Tunga tok seg fri denne runden.",
+        "Null poeng – men for en innsats!",
+        "Ordene satt visst litt fast.",
+        "Der fløy tida, ja.",
+        "Neste runde kan bare bli bedre!"
+      ]
+    },
+    {
+      "til": 3,
+      "tekster": [
+        "Det løsnet mot slutten!",
+        "En forsiktig start.",
+        "Snart varme i trøya!",
+        "Små skritt er også skritt.",
+        "Neste runde tar dere av!",
+        "Motoren er i gang."
+      ]
+    },
+    {
+      "til": 6,
+      "tekster": [
+        "Godt snakket!",
+        "Nå ruller det!",
+        "Solid skravling!",
+        "Det sitter!",
+        "Godt jobba, gjeng!",
+        "Her snakker vi samme språk."
+      ]
+    },
+    {
+      "til": 9,
+      "tekster": [
+        "Nå snakker vi!",
+        "Ordene bare renner ut!",
+        "Det går unna her!",
+        "Tankelesere, alle sammen!",
+        "Skikkelig flyt!",
+        "Kjeften går som en kvern!"
+      ]
+    },
+    {
+      "til": 12,
+      "tekster": [
+        "Skravlebøtter!",
+        "Lynforklaringer på løpende bånd!",
+        "Leser dere hverandres tanker?",
+        "Det gløder i stemmebåndene!",
+        "Dette var proffnivå!",
+        "Er dere sikre på at dere ikke jukset?"
+      ]
+    },
+    {
+      "til": 999,
+      "tekster": [
+        "Verdensrekord i skravling?",
+        "Snakketøyet står i full fyr!",
+        "Dette var ren magi!",
+        "Rekordfart! Hvem har trent dere?",
+        "Ordmaskinen går på høygir!",
+        "Noen bør ringe rekordboka."
+      ]
+    }
+  ],
+  "vinnere": [
+    "Skravlemestere",
+    "Ordkunstnere",
+    "Snakkesalige vinnere",
+    "Pratmestere",
+    "Snakkemestere"
+  ]
+}

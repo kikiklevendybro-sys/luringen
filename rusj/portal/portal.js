@@ -51,7 +51,7 @@
       if (ok) synlige++;
     }
     $("#ingen-treff").hidden = synlige > 0;
-    $("#treff").textContent = synlige === SPILL.length ? `${SPILL.length} spill – trykk på et for å starte` : `Viser ${synlige} av ${SPILL.length} spill`;
+    $("#treff").textContent = synlige === SPILL.length ? `${SPILL.length} spill – trykk på ett for å starte` : `Viser ${synlige} av ${SPILL.length} spill`;
     skriv("rusj.portal", { antall, tagg });
   }
 
@@ -75,14 +75,31 @@
   // ---------- Continue badges ----------
 
   const NA = Date.now();
+  // The newest saved state of a game, whatever its version number (rusj.<id>.v1, .v2 …).
+  function lagretSpill(id) {
+    let beste = null;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const n = localStorage.key(i);
+        if (!n || !n.startsWith(`rusj.${id}.v`) || !/^\d+$/.test(n.slice(`rusj.${id}.v`.length))) continue;
+        const l = les(n, null);
+        if (l && (!beste || (l._tid || 0) > (beste._tid || 0))) beste = l;
+      }
+    } catch (e) {
+      /* storage blocked */
+    }
+    return beste;
+  }
   for (const s of SPILL) {
     let aktiv = false;
     if (s.id === "luringen") {
       const l = les("luringen.v1", null);
       aktiv = !!(l && l.spill);
     } else {
-      const l = les(`rusj.${s.id}.v1`, null);
-      aktiv = !!(l && l._tid && NA - l._tid < 12 * 3600 * 1000 && l.skjerm && l.skjerm !== "hjem");
+      const l = lagretSpill(s.id);
+      // _aktiv is written by the kit (the game decides what counts as "in progress").
+      const pagar = l && (l._aktiv != null ? l._aktiv : l.skjerm && l.skjerm !== "hjem");
+      aktiv = !!(pagar && l._tid && NA - l._tid < 12 * 3600 * 1000);
     }
     if (aktiv) {
       const merke = $(`.spillkort[data-id="${s.id}"] .kort-fortsett`);
@@ -167,6 +184,12 @@
       el.classList.add("avdekk");
       obs.observe(el);
     });
+  }
+
+  // The filter bar gets a solid background only while it is stuck to the top.
+  const vakt = $(".filter-vakt");
+  if (vakt && "IntersectionObserver" in window) {
+    new IntersectionObserver(([o]) => $("#spill").classList.toggle("fast", !o.isIntersecting)).observe(vakt);
   }
 
   oppdater();

@@ -1,0 +1,1200 @@
+/* Bokstavtrollet — everything is prefixed "bt-". The letter block is the troll's yellow block from
+   the mascot; the Bomba screen turns redder as the hidden timer runs out (--fare, 0–1). */
+
+/* ---------- Home: the two games ---------- */
+
+.bt-moduser {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.bt-modus {
+  --mf: var(--rod);
+  --mf-dyp: var(--rod-dyp);
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 150px;
+  padding: 16px 10px 14px;
+  border: 0;
+  border-radius: var(--r-stor);
+  background: radial-gradient(circle at 30% 12%, rgba(255, 255, 255, 0.4), transparent 50%), var(--mf);
+  box-shadow: 0 7px 0 var(--mf-dyp), 0 18px 30px var(--skygge);
+  color: var(--blekk);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.bt-modus:active {
+  transform: translateY(5px);
+  box-shadow: 0 2px 0 var(--mf-dyp);
+}
+
+.bt-modus.jakt {
+  --mf: var(--mynte);
+  --mf-dyp: var(--mynte-dyp);
+}
+
+.bt-modus-ikon {
+  font-size: 2.7rem;
+  line-height: 1.1;
+  filter: drop-shadow(0 4px 0 rgba(23, 14, 43, 0.18));
+}
+
+.bt-modus b {
+  max-width: 100%;
+  font: 900 clamp(1.05rem, 5.3vw, 1.45rem) / 1.1 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.bt-modus span:last-child {
+  font: 700 0.86rem/1.25 var(--font-tekst);
+  opacity: 0.8;
+}
+
+/* ---------- Hearts ---------- */
+
+.bt-hjerter {
+  display: inline-flex;
+  gap: 1px;
+  white-space: nowrap;
+}
+
+.bt-hjerter i {
+  color: var(--natt-3);
+  font-style: normal;
+  line-height: 1;
+  text-shadow: 0 0 0 var(--strek);
+}
+
+.bt-hjerter i.pa {
+  color: var(--rosa);
+  text-shadow: 0 2px 0 var(--rosa-dyp);
+}
+
+.bt-liv {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bt-liv li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.bt-liv .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 0.95rem;
+}
+
+.bt-liv-navn {
+  max-width: 11ch;
+  overflow: hidden;
+  font: 800 0.85rem/1.1 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bt-liv .bt-hjerter {
+  font-size: 0.95rem;
+}
+
+/* Many players: small tiles with the avatar over the hearts, no names. */
+.bt-liv.mange {
+  gap: 6px 4px;
+}
+
+.bt-liv.mange li {
+  flex-direction: column;
+  gap: 3px;
+  padding: 5px 5px 4px;
+  border-radius: 14px;
+}
+
+.bt-liv.mange .bt-liv-navn,
+.bt-liv.mange .bt-ute-tekst {
+  display: none;
+}
+
+.bt-liv.mange .bt-hjerter {
+  font-size: 0.62rem;
+}
+
+.bt-liv.mange .bt-ute {
+  font-size: 0.7rem;
+}
+
+.bt-liv li.na {
+  box-shadow: inset 0 0 0 2.5px var(--pf);
+}
+
+.bt-liv li.ute {
+  opacity: 0.45;
+}
+
+.bt-ute {
+  font: 800 0.8rem/1 var(--font-display);
+}
+
+/* ---------- The card: category + letter ---------- */
+
+.bt-klar {
+  display: grid;
+  justify-items: center;
+}
+
+.bt-klar .bt-trollramme {
+  z-index: 2;
+  width: 112px;
+  margin-bottom: -26px;
+}
+
+.bt-kort {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 30px 18px 22px;
+  border-radius: var(--r-stor);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.6), transparent 60%),
+    var(--papir);
+  box-shadow: 0 9px 0 var(--papir-2), 0 22px 40px var(--skygge);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.bt-kort.nytt {
+  animation: bt-kort-inn 0.55s cubic-bezier(0.25, 1.35, 0.45, 1) both;
+}
+
+@keyframes bt-kort-inn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) rotate(-4deg) scale(0.92);
+  }
+}
+
+.bt-kat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  max-width: 100%;
+}
+
+.bt-kat-ikon {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.bt-kat-navn {
+  min-width: 0;
+  font: 900 clamp(1.45rem, 6.6vw, 1.9rem) / 1.1 var(--font-display);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.bt-pa {
+  color: var(--blekk-2);
+  font: 800 0.92rem/1 var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+.bt-bokstav {
+  display: grid;
+  place-items: center;
+  width: 128px;
+  height: 128px;
+  margin-top: 6px;
+  border: 5px solid var(--blekk);
+  border-radius: 28px;
+  background: radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.55), transparent 50%), var(--lampe);
+  box-shadow: 0 8px 0 var(--lampe-dyp), 0 18px 30px rgba(6, 2, 14, 0.3);
+  color: var(--blekk);
+  font: 900 5.4rem/1 var(--font-display);
+  transform: rotate(-4deg);
+}
+
+.bt-bokstav.spinner span {
+  filter: blur(0.6px);
+  opacity: 0.85;
+}
+
+.bt-bokstav.landet {
+  animation: bt-landet 0.5s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+@keyframes bt-landet {
+  0% {
+    transform: rotate(-4deg) scale(1.25);
+  }
+  100% {
+    transform: rotate(-4deg) scale(1);
+  }
+}
+
+.bt-kort.liten {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  justify-items: start;
+  gap: 4px 14px;
+  padding: 16px 16px 16px 20px;
+  text-align: left;
+}
+
+.bt-kort.liten .bt-kat {
+  justify-content: flex-start;
+}
+
+.bt-kort.liten .bt-pa {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.bt-kort.liten .bt-bokstav {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: 92px;
+  height: 92px;
+  margin: 0;
+  border-radius: 22px;
+  font-size: 3.9rem;
+}
+
+.bt-forst {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--tekst-2);
+  font: 700 1.05rem/1.2 var(--font-display);
+}
+
+.bt-forst b {
+  color: var(--tekst);
+}
+
+.bt-hint {
+  margin-top: -8px;
+  padding: 10px 14px;
+  border: 1.5px dashed var(--strek);
+  border-radius: var(--r-mid);
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.35 var(--font-display);
+  text-align: center;
+}
+
+/* ---------- The troll ---------- */
+
+.bt-trollramme {
+  position: relative;
+  display: block;
+  width: 120px;
+}
+
+.bt-trollramme svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.bt-trollramme.sover svg {
+  transform-origin: 50% 90%;
+  animation: bt-pust var(--pust, 2.6s) ease-in-out infinite;
+}
+
+@keyframes bt-pust {
+  50% {
+    transform: scale(1.045, 0.97) translateY(2px);
+  }
+}
+
+.bt-trollramme .bt-snork {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bt-snork var(--pust, 2.6s) ease-in-out infinite;
+}
+
+@keyframes bt-snork {
+  50% {
+    transform: scale(1.5);
+  }
+}
+
+.bt-zzz {
+  position: absolute;
+  top: -6px;
+  right: -14px;
+  width: 50px;
+  height: 60px;
+  pointer-events: none;
+}
+
+.bt-zzz i {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  color: var(--tekst-2);
+  font: 900 1.1rem/1 var(--font-display);
+  font-style: normal;
+  opacity: 0;
+  animation: bt-zzz 3s ease-in infinite;
+}
+
+.bt-zzz i:nth-child(2) {
+  font-size: 1.35rem;
+  animation-delay: 1s;
+}
+
+.bt-zzz i:nth-child(3) {
+  font-size: 1.6rem;
+  animation-delay: 2s;
+}
+
+@keyframes bt-zzz {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(-10deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(26px, -54px) rotate(12deg);
+  }
+}
+
+.bt-trollramme.vaken svg {
+  animation: bt-brol 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes bt-brol {
+  from {
+    transform: scale(0.7) rotate(-8deg);
+  }
+  60% {
+    transform: scale(1.18) rotate(4deg);
+  }
+}
+
+.bt-bo {
+  position: absolute;
+  top: -6px;
+  left: 62%;
+  padding: 8px 14px;
+  border: 4px solid var(--blekk);
+  border-radius: 20px 20px 20px 6px;
+  background: var(--papir);
+  color: var(--rod-dyp);
+  font: 900 1.4rem/1 var(--font-display);
+  white-space: nowrap;
+  transform: rotate(8deg);
+  animation: bt-bo 0.45s cubic-bezier(0.3, 1.8, 0.5, 1) both 0.1s;
+}
+
+@keyframes bt-bo {
+  from {
+    opacity: 0;
+    transform: rotate(8deg) scale(0.3);
+  }
+}
+
+/* ---------- Bomba: the round ---------- */
+
+/* The round fills the screen so "Send videre" always sits at the same place under the thumb. */
+.skjerm-bomba {
+  --fare: 0;
+  gap: 16px;
+}
+
+.bt-scene {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  padding: 10px 0 4px;
+}
+
+.bt-scene .bt-trollramme {
+  width: min(52vw, 210px);
+  filter: drop-shadow(0 18px 26px color-mix(in srgb, var(--aksent) 25%, transparent));
+}
+
+.bt-scene .bt-zzz {
+  top: 4px;
+  right: -26px;
+  transform: scale(1.4);
+}
+
+/* The troll's heart: beats faster and glows stronger as the hidden timer runs out. */
+.bt-puls {
+  position: absolute;
+  top: 50%;
+  left: calc(50% - min(26vw, 105px) - 30px);
+  color: var(--rosa);
+  font: 900 2.6rem/1 var(--font-display);
+  text-shadow: 0 3px 0 var(--rosa-dyp), 0 0 calc(6px + var(--fare) * 22px) rgba(255, 79, 139, 0.8);
+  opacity: calc(0.5 + var(--fare) * 0.5);
+}
+
+.bt-puls.slag {
+  animation: bt-slag 0.32s ease-out;
+}
+
+@keyframes bt-slag {
+  30% {
+    transform: scale(1.45);
+  }
+}
+
+.bt-holder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 10px;
+}
+
+.bt-mobil {
+  font-size: 1.5rem;
+}
+
+.bt-holder-navn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 70%;
+  padding: 5px 16px 5px 5px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--aksent);
+  font: 900 1.15rem/1.1 var(--font-display);
+}
+
+.bt-holder-navn b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bt-holder-navn.ny {
+  animation: bt-ny 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes bt-ny {
+  from {
+    opacity: 0;
+    transform: translateX(-30px) scale(0.85);
+  }
+}
+
+.bt-ord {
+  color: var(--tekst-3);
+  font: 800 0.9rem/1 var(--font-display);
+}
+
+.bt-hvisk {
+  color: var(--tekst-3);
+  font: 800 0.9rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+/* Red edges that grow as the troll gets closer to waking */
+.bt-fare {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 70% at 50% 45%, transparent 48%, rgba(255, 50, 70, calc(var(--fare) * 0.5)) 100%);
+}
+
+.skjerm-bomba.vakner .bt-fare {
+  background: radial-gradient(ellipse 80% 70% at 50% 45%, rgba(255, 50, 70, 0.18) 20%, rgba(255, 50, 70, 0.6) 100%);
+}
+
+.bt-blink {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 210, 63, 0.8), rgba(255, 60, 60, 0.9) 45%, rgba(184, 30, 40, 0.95));
+  animation: bt-blink 1.1s ease-out forwards;
+}
+
+@keyframes bt-blink {
+  0% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  22% {
+    opacity: 0.35;
+  }
+  34% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- The troll woke: who held the phone? ---------- */
+
+.bt-vakna {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.bt-vakna .bt-trollramme {
+  width: 132px;
+  margin-bottom: 4px;
+}
+
+.bt-vakna h1 {
+  color: var(--rod);
+}
+
+.bt-spiller-tekst {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.bt-gjett .bt-spiller {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  justify-items: start;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 18px 12px 12px;
+  border-radius: var(--r-stor);
+}
+
+.bt-gjett .bt-spiller-tekst {
+  justify-items: start;
+}
+
+.bt-gjett .bt-spiller-navn {
+  font-size: 1.35rem;
+}
+
+.bt-gjett .bt-hjerter {
+  font-size: 1.3rem;
+}
+
+.bt-gjett .bt-trolig {
+  top: -12px;
+  right: 14px;
+  font-size: 1.8rem;
+}
+
+.bt-eller {
+  color: var(--tekst-3);
+  font: 800 0.95rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.bt-velg {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.bt-velg.mange {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bt-velg.mange .bt-spiller {
+  padding: 10px 4px 8px;
+}
+
+.bt-velg.mange .avatar.mid {
+  width: 42px;
+  height: 42px;
+  font-size: 1.3rem;
+}
+
+.bt-velg.mange .bt-spiller-navn {
+  font-size: 0.9rem;
+}
+
+.bt-spiller {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 8px 12px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  cursor: pointer;
+}
+
+.bt-spiller:active {
+  transform: scale(0.97);
+}
+
+.bt-spiller.trolig {
+  background: color-mix(in srgb, var(--pf) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 3px var(--pf), 0 0 20px color-mix(in srgb, var(--pf) 35%, transparent);
+}
+
+.bt-spiller-navn {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 1.05rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bt-trolig {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 1.3rem;
+  animation: bt-vink 1.2s ease-in-out infinite;
+}
+
+@keyframes bt-vink {
+  50% {
+    transform: rotate(-14deg) scale(1.15);
+  }
+}
+
+/* ---------- A heart lost ---------- */
+
+.bt-tap {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding-top: 8px;
+  text-align: center;
+}
+
+.bt-tap-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.bt-knust {
+  position: absolute;
+  right: -8px;
+  bottom: -6px;
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  animation: bt-knust 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.25s;
+}
+
+@keyframes bt-knust {
+  from {
+    opacity: 0;
+    transform: scale(2.4) rotate(-30deg);
+  }
+}
+
+.bt-tap h1 {
+  font-size: clamp(1.7rem, 7.6vw, 2.3rem);
+  overflow-wrap: anywhere;
+}
+
+.bt-stor-hjerter .bt-hjerter {
+  gap: 6px;
+  font-size: 2.6rem;
+}
+
+.bt-stor-ute {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+/* ---------- Bokstavjakt ---------- */
+
+.bt-jakt-start {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.bt-jakt-start .bt-trollramme {
+  width: 140px;
+  animation: sveve 4.5s ease-in-out infinite;
+}
+
+.bt-forbered {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.bt-forbered li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  font: 800 1rem/1.25 var(--font-display);
+}
+
+.bt-forbered span {
+  font-size: 1.5rem;
+}
+
+.bt-jakt-topp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+.bt-bokstav.stor {
+  width: 124px;
+  height: 124px;
+  margin: 0;
+}
+
+.bt-jakt-topp .timer {
+  grid-template-columns: auto;
+  justify-items: center;
+  gap: 8px;
+  padding: 0;
+  background: none;
+}
+
+.bt-jakt-topp .timer-ring {
+  width: 118px;
+  height: 118px;
+}
+
+.bt-jakt-topp .timer-tid {
+  font-size: 2rem;
+}
+
+.bt-jakt-topp .timer-kontroll {
+  grid-auto-flow: column;
+  gap: 6px;
+}
+
+.bt-jakt-topp .timer-kontroll .knapp-2.liten {
+  min-height: 40px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+.bt-kategorier {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bt-kategorier li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 14px 8px 8px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+  animation: bt-kat-inn 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  animation-delay: calc(var(--n) * 110ms);
+}
+
+@keyframes bt-kat-inn {
+  from {
+    opacity: 0;
+    transform: translateX(-40px) rotate(-3deg);
+  }
+}
+
+.bt-kategorier.skjult li {
+  visibility: hidden;
+  animation: none;
+}
+
+.bt-nr {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--aksent);
+  font: 900 1.05rem/1 var(--font-display);
+}
+
+.bt-ki {
+  flex: none;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.bt-kn {
+  min-width: 0;
+  font: 900 1.08rem/1.2 var(--font-display);
+}
+
+.bt-jakt-troll {
+  width: 92px;
+  margin: 0 auto;
+}
+
+.bt-jakt-troll .bt-bo {
+  left: 70%;
+  font-size: 1.1rem;
+}
+
+/* Scoring */
+.bt-poengkort {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 18px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 8px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.bt-poengkort .etikett {
+  color: var(--blekk-2);
+}
+
+.bt-poengkort h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 10px;
+  font-size: clamp(1.5rem, 6.8vw, 2rem);
+}
+
+.bt-pa-bokstav {
+  padding: 2px 12px;
+  border: 3px solid var(--blekk);
+  border-radius: 12px;
+  background: var(--lampe);
+}
+
+.bt-forklaring {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bt-forklaring li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: rgba(23, 14, 43, 0.07);
+  font: 700 0.82rem/1.2 var(--font-tekst);
+}
+
+.bt-forklaring b {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 900 0.85rem/1 var(--font-display);
+}
+
+/* minmax(0, 1fr): the column never grows past the screen, so long names shrink instead of
+   pushing the 0/1/2 buttons out on small phones. */
+.bt-poengrader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bt-poengrader li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 8px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+}
+
+.bt-pr-navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 800 1rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bt-pseg {
+  flex: none;
+  grid-auto-columns: 48px;
+  gap: 4px;
+  padding: 4px;
+}
+
+.bt-pseg button {
+  min-height: 44px;
+  padding: 0;
+  font-size: 1.2rem;
+}
+
+/* The smallest phones: names wrap onto two hyphenated lines instead of being cut,
+   and the 0/1/2 buttons get a little narrower (still 44 px tall). */
+@media (max-width: 359px) {
+  .bt-poengrader .bt-pr-navn {
+    display: -webkit-box;
+    font-size: 0.92rem;
+    white-space: normal;
+    hyphens: auto;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .bt-pseg {
+    grid-auto-columns: 42px;
+  }
+}
+
+/* ---------- Winner ---------- */
+
+.bt-vinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.bt-krone {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  transform: translateX(-50%) rotate(-12deg);
+  animation: bt-krone 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.3s;
+}
+
+@keyframes bt-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40px) rotate(-40deg) scale(0.4);
+  }
+}
+
+.skjerm-vinner .banner h1,
+.skjerm-jakt-stilling .banner h1 {
+  font-size: clamp(1.9rem, 9vw, 2.8rem);
+  overflow-wrap: anywhere;
+}
+
+.bt-rekke {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bt-rekke li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px 8px 8px;
+  border-radius: 999px;
+  background: var(--natt-2);
+}
+
+.bt-rekke li:first-child {
+  background: color-mix(in srgb, var(--aksent) 20%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--aksent);
+}
+
+.bt-plass {
+  width: 2ch;
+  color: var(--tekst-3);
+  font: 900 0.95rem/1 var(--font-display);
+  text-align: center;
+}
+
+.banner .bt-trollramme {
+  width: 120px;
+}
+
+/* Short phones: everything that matters on the card screen stays above the dock. */
+@media (max-height: 700px) {
+  .bt-klar .bt-trollramme {
+    width: 84px;
+    margin-bottom: -20px;
+  }
+
+  .bt-kort {
+    gap: 4px;
+    padding: 22px 14px 16px;
+  }
+
+  .bt-kort:not(.liten) .bt-bokstav {
+    width: 100px;
+    height: 100px;
+    border-radius: 22px;
+    font-size: 4.2rem;
+  }
+
+  .bt-scene .bt-trollramme {
+    width: min(42vw, 160px);
+  }
+
+  .bt-vakna .bt-trollramme {
+    width: 100px;
+  }
+
+  .bt-jakt-topp {
+    gap: 16px;
+  }
+
+  .bt-bokstav.stor {
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
+    font-size: 4rem;
+  }
+
+  .bt-jakt-topp .timer-ring {
+    width: 96px;
+    height: 96px;
+  }
+
+  .bt-jakt-topp .timer-tid {
+    font-size: 1.6rem;
+  }
+
+  .bt-kategorier {
+    gap: 6px;
+  }
+
+  .bt-kategorier li {
+    min-height: 44px;
+    padding: 5px 12px 5px 6px;
+  }
+
+  .bt-nr {
+    width: 30px;
+    height: 30px;
+  }
+
+  .bt-jakt-troll {
+    display: none;
+  }
+}
+
+.bt-oppsett-tittel {
+  font-size: clamp(1.7rem, 7.6vw, 2.2rem);
+}
+
+/* Very short phones (about 560 px high): the card, who begins and the first-round hint stay above
+   the dock; on the lost-heart screen the hearts of everyone stay in view. */
+@media (max-height: 620px) {
+  .bt-klar .bt-trollramme {
+    width: 64px;
+    margin-bottom: -14px;
+  }
+
+  .bt-kort {
+    padding: 18px 12px 12px;
+  }
+
+  .bt-kort:not(.liten) .bt-bokstav {
+    width: 80px;
+    height: 80px;
+    border-width: 4px;
+    border-radius: 18px;
+    font-size: 3.3rem;
+  }
+
+  .bt-kat-ikon {
+    font-size: 1.8rem;
+  }
+
+  .bt-forst .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.95rem;
+  }
+
+  .bt-hint {
+    padding: 6px 10px;
+    font-size: 0.86rem;
+  }
+
+  .bt-tap .avatar.gigant {
+    width: 96px;
+    height: 96px;
+    font-size: 3rem;
+  }
+
+  .bt-knust {
+    font-size: 2.2rem;
+  }
+
+  .bt-stor-hjerter .bt-hjerter {
+    font-size: 2rem;
+  }
+
+  .bt-tap h1 {
+    font-size: 1.6rem;
+  }
+}

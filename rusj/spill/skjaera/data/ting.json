@@ -1,0 +1,168 @@
+{
+  "temaer": [
+    {
+      "id": "frukt",
+      "navn": "Frukt og bær",
+      "ting": [
+        ["🍎", "Eple"], ["🍐", "Pære"], ["🍊", "Appelsin"], ["🍋", "Sitron"], ["🍌", "Banan"], ["🍉", "Vannmelon"],
+        ["🍇", "Druer"], ["🍓", "Jordbær"], ["🫐", "Blåbær"], ["🍒", "Kirsebær"], ["🍑", "Fersken"], ["🥭", "Mango"],
+        ["🍍", "Ananas"], ["🥥", "Kokosnøtt"], ["🥝", "Kiwi"], ["🍈", "Melon"]
+      ]
+    },
+    {
+      "id": "gronnsaker",
+      "navn": "Grønnsaker",
+      "ting": [
+        ["🥕", "Gulrot"], ["🌽", "Maiskolbe"], ["🥦", "Brokkoli"], ["🥒", "Agurk"], ["🍅", "Tomat"], ["🥔", "Potet"],
+        ["🧅", "Løk"], ["🧄", "Hvitløk"], ["🌶️", "Chili"], ["🫑", "Paprika"], ["🥬", "Salat"], ["🍆", "Aubergine"],
+        ["🥑", "Avokado"], ["🍄", "Sopp"], ["🎃", "Gresskar"]
+      ]
+    },
+    {
+      "id": "mat",
+      "navn": "Mat",
+      "ting": [
+        ["🍕", "Pizza"], ["🍔", "Hamburger"], ["🌭", "Pølse i brød"], ["🍟", "Pommes frites"], ["🌮", "Taco"],
+        ["🍝", "Spagetti"], ["🥪", "Sandwich"], ["🧀", "Ost"], ["🥚", "Egg"], ["🍳", "Speilegg"], ["🥞", "Pannekaker"],
+        ["🧇", "Vaffel"], ["🍞", "Brød"], ["🥐", "Croissant"], ["🍗", "Kyllinglår"], ["🍣", "Sushi"]
+      ]
+    },
+    {
+      "id": "sott",
+      "navn": "Søtt og godt",
+      "ting": [
+        ["🍦", "Softis"], ["🍨", "Is i skål"], ["🍩", "Smultring"], ["🍪", "Kjeks"], ["🎂", "Bursdagskake"],
+        ["🍰", "Kakestykke"], ["🧁", "Muffins"], ["🍫", "Sjokolade"], ["🍬", "Drops"], ["🍭", "Kjærlighet på pinne"],
+        ["🍮", "Karamellpudding"], ["🍯", "Honning"], ["🥧", "Pai"], ["🍿", "Popkorn"], ["🥤", "Brus"]
+      ]
+    },
+    {
+      "id": "garden",
+      "navn": "På gården",
+      "ting": [
+        ["🐄", "Ku"], ["🐖", "Gris"], ["🐑", "Sau"], ["🐐", "Geit"], ["🐓", "Hane"], ["🐔", "Høne"],
+        ["🐣", "Kylling"], ["🦆", "And"], ["🐎", "Hest"], ["🐇", "Kanin"], ["🐕", "Hund"], ["🐈", "Katt"],
+        ["🦃", "Kalkun"], ["🐁", "Mus"], ["🐂", "Okse"], ["🦙", "Lama"]
+      ]
+    },
+    {
+      "id": "ville",
+      "navn": "Ville dyr",
+      "ting": [
+        ["🦁", "Løve"], ["🐯", "Tiger"], ["🐘", "Elefant"], ["🦒", "Sjiraff"], ["🦓", "Sebra"], ["🦏", "Neshorn"],
+        ["🦛", "Flodhest"], ["🐊", "Krokodille"], ["🐒", "Ape"], ["🦍", "Gorilla"], ["🐻", "Bjørn"], ["🦊", "Rev"],
+        ["🐺", "Ulv"], ["🦌", "Hjort"], ["🦘", "Kenguru"], ["🐼", "Panda"], ["🦔", "Pinnsvin"], ["🐿️", "Ekorn"]
+      ]
+    },
+    {
+      "id": "havet",
+      "navn": "I havet",
+      "ting": [
+        ["🐟", "Fisk"], ["🐠", "Tropisk fisk"], ["🐡", "Kulefisk"], ["🦈", "Hai"], ["🐬", "Delfin"], ["🐳", "Hval"],
+        ["🐙", "Blekksprut"], ["🦀", "Krabbe"], ["🦞", "Hummer"], ["🦐", "Reke"], ["🐚", "Skjell"], ["🐢", "Skilpadde"],
+        ["🦭", "Sel"], ["🐧", "Pingvin"], ["🦦", "Oter"], ["⚓", "Anker"]
+      ]
+    },
+    {
+      "id": "smakryp",
+      "navn": "Fugler og småkryp",
+      "ting": [
+        ["🦉", "Ugle"], ["🦅", "Ørn"], ["🦜", "Papegøye"], ["🦢", "Svane"], ["🦩", "Flamingo"], ["🕊️", "Due"],
+        ["🦚", "Påfugl"], ["🐝", "Bie"], ["🐞", "Marihøne"], ["🐛", "Larve"], ["🦋", "Sommerfugl"], ["🐌", "Snegle"],
+        ["🐜", "Maur"], ["🕷️", "Edderkopp"], ["🦗", "Gresshoppe"], ["🐸", "Frosk"]
+      ]
+    },
+    {
+      "id": "kjoretoy",
+      "navn": "Kjøretøy",
+      "ting": [
+        ["🚗", "Bil"], ["🚌", "Buss"], ["🚓", "Politibil"], ["🚑", "Ambulanse"], ["🚒", "Brannbil"], ["🚜", "Traktor"],
+        ["🚲", "Sykkel"], ["🛴", "Sparkesykkel"], ["🏍️", "Motorsykkel"], ["🚂", "Damplokomotiv"], ["🚁", "Helikopter"],
+        ["✈️", "Fly"], ["⛵", "Seilbåt"], ["🚢", "Skip"], ["🚀", "Rakett"], ["🚚", "Lastebil"], ["🛶", "Kano"], ["🚕", "Taxi"]
+      ]
+    },
+    {
+      "id": "leker",
+      "navn": "Leker",
+      "ting": [
+        ["🧸", "Bamse"], ["🪀", "Jojo"], ["🪁", "Drage"], ["🎈", "Ballong"], ["🎲", "Terning"], ["🧩", "Puslespillbrikke"],
+        ["🎨", "Malepalett"], ["🖍️", "Fargestift"], ["🎮", "Spillkontroll"], ["🃏", "Spillkort"], ["♟️", "Sjakkbrikke"],
+        ["🪃", "Bumerang"], ["🎯", "Dartskive"], ["🎠", "Karusellhest"], ["🤖", "Robot"], ["🪄", "Tryllestav"]
+      ]
+    },
+    {
+      "id": "klaer",
+      "navn": "Klær og sånt",
+      "ting": [
+        ["👕", "T-skjorte"], ["👖", "Bukse"], ["👗", "Kjole"], ["🧥", "Jakke"], ["🧣", "Skjerf"], ["🧤", "Hansker"],
+        ["🧦", "Sokker"], ["👟", "Joggesko"], ["👢", "Støvel"], ["👠", "Høyhælt sko"], ["🧢", "Caps"], ["🎩", "Flosshatt"],
+        ["🕶️", "Solbriller"], ["👓", "Briller"], ["🎒", "Skolesekk"], ["👜", "Veske"], ["🩳", "Shorts"], ["👑", "Krone"]
+      ]
+    },
+    {
+      "id": "hjemme",
+      "navn": "Hjemme",
+      "ting": [
+        ["🛏️", "Seng"], ["🛋️", "Sofa"], ["🪑", "Stol"], ["🚪", "Dør"], ["🛁", "Badekar"], ["🚽", "Do"],
+        ["🪥", "Tannbørste"], ["🧽", "Svamp"], ["🕯️", "Stearinlys"], ["💡", "Lyspære"], ["🔑", "Nøkkel"],
+        ["⏰", "Vekkerklokke"], ["🖼️", "Maleri"], ["🧺", "Kurv"], ["🧹", "Kost"], ["📺", "TV"], ["☎️", "Telefon"]
+      ]
+    },
+    {
+      "id": "kjokken",
+      "navn": "På kjøkkenet",
+      "ting": [
+        ["🍴", "Bestikk"], ["🥄", "Skje"], ["🍽️", "Tallerken"], ["🫖", "Tekanne"], ["☕", "Kopp"], ["🥛", "Melk"],
+        ["🧂", "Saltbøsse"], ["🥢", "Spisepinner"], ["🧊", "Isbit"], ["⏲️", "Eggeklokke"], ["🍼", "Tåteflaske"],
+        ["🧈", "Smør"], ["🥣", "Frokostskål"], ["🍲", "Gryte"], ["🧃", "Juice"]
+      ]
+    },
+    {
+      "id": "natur",
+      "navn": "Natur og vær",
+      "ting": [
+        ["🌳", "Løvtre"], ["🌲", "Grantre"], ["🌵", "Kaktus"], ["🌻", "Solsikke"], ["🌷", "Tulipan"], ["🌹", "Rose"],
+        ["🍁", "Lønneblad"], ["🍀", "Firkløver"], ["🌈", "Regnbue"], ["⛰️", "Fjell"], ["🌋", "Vulkan"], ["❄️", "Snøfnugg"],
+        ["⛄", "Snømann"], ["⚡", "Lyn"], ["☁️", "Sky"], ["🌙", "Måne"], ["⭐", "Stjerne"], ["☀️", "Sol"], ["☂️", "Paraply"]
+      ]
+    },
+    {
+      "id": "sport",
+      "navn": "Sport og fritid",
+      "ting": [
+        ["⚽", "Fotball"], ["🏀", "Basketball"], ["🎾", "Tennisball"], ["🏐", "Volleyball"], ["⚾", "Baseball"],
+        ["🏓", "Bordtennis"], ["🏸", "Badminton"], ["🏒", "Ishockeykølle"], ["⛸️", "Skøyte"], ["🎿", "Ski"], ["🛷", "Kjelke"],
+        ["🏆", "Pokal"], ["🥇", "Gullmedalje"], ["🥊", "Boksehanske"], ["🏹", "Pil og bue"], ["🛹", "Skateboard"],
+        ["🎣", "Fiskestang"], ["⛺", "Telt"]
+      ]
+    },
+    {
+      "id": "musikk",
+      "navn": "Musikk og moro",
+      "ting": [
+        ["🎸", "Gitar"], ["🎹", "Piano"], ["🥁", "Tromme"], ["🎺", "Trompet"], ["🎻", "Fiolin"], ["🎷", "Saksofon"],
+        ["🪗", "Trekkspill"], ["🎤", "Mikrofon"], ["🎧", "Hodetelefoner"], ["🎵", "Musikknote"], ["🔔", "Bjelle"],
+        ["🎉", "Konfettikanon"], ["🎁", "Gave"], ["🎀", "Sløyfe"], ["🎭", "Teatermasker"], ["🎪", "Sirkustelt"]
+      ]
+    },
+    {
+      "id": "skole",
+      "navn": "På skolen",
+      "ting": [
+        ["✏️", "Blyant"], ["🖊️", "Penn"], ["📏", "Linjal"], ["✂️", "Saks"], ["📎", "Binders"], ["📌", "Tegnestift"],
+        ["📚", "Bøker"], ["📓", "Skrivebok"], ["🌍", "Jordklode"], ["🔬", "Mikroskop"], ["🧮", "Kuleramme"],
+        ["🧪", "Reagensrør"], ["🧲", "Magnet"], ["🔭", "Teleskop"], ["🗺️", "Kart"], ["🖌️", "Pensel"]
+      ]
+    },
+    {
+      "id": "dingser",
+      "navn": "Verktøy og dingser",
+      "ting": [
+        ["🔨", "Hammer"], ["🪛", "Skrutrekker"], ["🔧", "Skiftenøkkel"], ["🪚", "Sag"], ["🧰", "Verktøykasse"],
+        ["🪜", "Stige"], ["🔦", "Lommelykt"], ["🔋", "Batteri"], ["🔒", "Hengelås"], ["⏳", "Timeglass"], ["🧭", "Kompass"],
+        ["📷", "Kamera"], ["📱", "Mobil"], ["💻", "PC"], ["⌚", "Armbåndsur"], ["🪣", "Bøtte"], ["🧯", "Brannslukker"],
+        ["✉️", "Brev"]
+      ]
+    }
+  ]
+}

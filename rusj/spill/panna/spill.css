@@ -1,0 +1,1182 @@
+/* Panna — game styles. Everything is prefixed panna- so nothing clashes with the kit. */
+
+/* ---------- Setup: the deck grid ---------- */
+
+.panna-stokker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.panna-stokk {
+  --sf: var(--aksent);
+  --sf-dyp: var(--aksent-dyp);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 104px;
+  padding: 14px 6px 10px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s, box-shadow 0.15s;
+}
+
+.panna-stokk-ikon {
+  font-size: 2.1rem;
+  line-height: 1;
+  opacity: 0.75;
+  filter: grayscale(0.4);
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.panna-stokk b {
+  max-width: 100%;
+  font: 900 0.95rem/1.1 var(--font-display);
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.panna-stokk small {
+  color: var(--tekst-3);
+  font: 700 0.76rem/1 var(--font-tekst);
+}
+
+.panna-stokk[aria-pressed="true"] {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.35), transparent 70%),
+    var(--sf);
+  box-shadow: 0 4px 0 var(--sf-dyp);
+  color: var(--blekk);
+}
+
+.panna-stokk[aria-pressed="true"] small {
+  color: var(--blekk-2);
+}
+
+.panna-stokk[aria-pressed="true"] .panna-stokk-ikon {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.08) rotate(-6deg);
+}
+
+.panna-stokk[aria-pressed="true"]::after {
+  content: "✓";
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 900 0.75rem/1 var(--font-display);
+}
+
+.panna-stokk:active {
+  transform: scale(0.96);
+}
+
+.panna-mer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 16px;
+  border: 2px dashed var(--strek);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tekst-2);
+  font: 800 0.98rem/1.2 var(--font-display);
+  cursor: pointer;
+}
+
+.panna-mer i {
+  font-style: normal;
+  opacity: 0.7;
+}
+
+.panna-ob {
+  gap: 12px;
+}
+
+.panna-ob .etikett {
+  margin-top: 4px;
+}
+
+/* ---------- Before the round ---------- */
+
+.panna-klar,
+.panna-klar-a,
+.panna-klar-b {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panna-tur {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.panna-tur > div {
+  min-width: 0;
+}
+
+.panna-tur h1 {
+  overflow-wrap: break-word;
+}
+
+.panna-tur .avatar.stor {
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 0 0 4px var(--natt), 0 0 0 7px var(--pf, var(--p1));
+}
+
+.panna-valgte {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panna-valgte li {
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 0.85rem/1.2 var(--font-display);
+}
+
+.panna-tips {
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.panna-tips b {
+  color: var(--tekst);
+  font-family: var(--font-display);
+}
+
+.panna-forklaring {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 14px 10px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.panna-steg {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panna-steg li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.panna-steg li > span {
+  flex: none;
+  width: 1.6em;
+  font-size: 1.25rem;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.panna-steg p {
+  color: var(--tekst-2);
+  font-size: 0.93rem;
+  line-height: 1.3;
+}
+
+.panna-steg b {
+  display: block;
+  color: var(--tekst);
+  font: 900 1.05rem/1.2 var(--font-display);
+}
+
+/* The mascot nods: down = correct, up = pass */
+.panna-demo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 150px;
+  perspective: 420px;
+}
+
+.panna-demo .figur-ramme {
+  width: 92px;
+  transform-origin: 50% 62%;
+  animation: panna-nikk 5s ease-in-out infinite;
+}
+
+@keyframes panna-nikk {
+  0%,
+  10%,
+  50%,
+  60%,
+  100% {
+    transform: rotateX(0deg);
+  }
+  22%,
+  38% {
+    transform: translateY(6px) rotateX(-38deg);
+  }
+  72%,
+  88% {
+    transform: translateY(-6px) rotateX(38deg);
+  }
+}
+
+.panna-demo-merke {
+  position: absolute;
+  left: 50%;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: var(--blekk);
+  font: 900 0.82rem/1 var(--font-display);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-50%);
+}
+
+.panna-demo-merke.ned {
+  bottom: 0;
+  background: var(--mynte);
+  animation: panna-merke-ned 5s ease-in-out infinite;
+}
+
+.panna-demo-merke.opp {
+  top: 0;
+  background: var(--oransje);
+  animation: panna-merke-opp 5s ease-in-out infinite;
+}
+
+@keyframes panna-merke-ned {
+  0%,
+  16%,
+  42%,
+  100% {
+    opacity: 0;
+  }
+  24%,
+  38% {
+    opacity: 1;
+  }
+}
+
+@keyframes panna-merke-opp {
+  0%,
+  66%,
+  92%,
+  100% {
+    opacity: 0;
+  }
+  74%,
+  88% {
+    opacity: 1;
+  }
+}
+
+.panna-mini {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 104px;
+  height: 62px;
+  overflow: hidden;
+  border: 4px solid var(--papir);
+  border-radius: 14px;
+  box-shadow: 0 5px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 0.72rem/1.15 var(--font-display);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.panna-mini span {
+  display: grid;
+  place-items: center;
+}
+
+.panna-mini .pass {
+  background: var(--oransje);
+}
+
+.panna-mini .riktig {
+  background: var(--mynte);
+}
+
+.panna-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2px 8px;
+  padding: 10px 16px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font: 800 0.92rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.panna-status .lenke {
+  min-height: 32px;
+  padding: 4px 6px;
+}
+
+.panna-status.pa {
+  align-self: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mynte) 14%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--mynte) 55%, transparent);
+  color: var(--mynte);
+}
+
+/* ---------- The stage (the round) ---------- */
+
+.skjerm-runde.inn {
+  animation: none;
+}
+
+.panna-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, color-mix(in srgb, var(--aksent) 18%, transparent), transparent 70%),
+    var(--natt);
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.panna-flate {
+  --st: env(safe-area-inset-top, 0px);
+  --sr: env(safe-area-inset-right, 0px);
+  --sb: env(safe-area-inset-bottom, 0px);
+  --sl: env(safe-area-inset-left, 0px);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  container-type: size;
+}
+
+/* Rotation lock on: the screen stays portrait while the phone is held sideways. */
+.panna-scene[data-rot="90"] .panna-flate,
+.panna-scene[data-rot="-90"] .panna-flate {
+  width: 100vh;
+  width: 100dvh;
+  height: 100vw;
+  transform-origin: 0 0;
+}
+
+.panna-scene[data-rot="90"] .panna-flate {
+  --st: env(safe-area-inset-right, 0px);
+  --sr: env(safe-area-inset-bottom, 0px);
+  --sb: env(safe-area-inset-left, 0px);
+  --sl: env(safe-area-inset-top, 0px);
+  transform: translateX(100vw) rotate(90deg);
+}
+
+.panna-scene[data-rot="-90"] .panna-flate {
+  --st: env(safe-area-inset-left, 0px);
+  --sr: env(safe-area-inset-top, 0px);
+  --sb: env(safe-area-inset-right, 0px);
+  --sl: env(safe-area-inset-bottom, 0px);
+  transform: translateY(100vh) rotate(-90deg);
+  transform: translateY(100dvh) rotate(-90deg);
+}
+
+.panna-kort {
+  position: absolute;
+  inset: max(10px, var(--st)) max(10px, var(--sr)) max(14px, var(--sb)) max(10px, var(--sl));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px 16px 0;
+  border-radius: var(--r-stor);
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 45%, rgba(255, 255, 255, 0.55), transparent 75%),
+    var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2), 0 18px 40px var(--skygge);
+  color: var(--blekk);
+}
+
+.panna-topp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  padding-left: 54px;
+}
+
+.panna-kilde {
+  min-width: 0;
+  overflow: hidden;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 800 0.82rem/1 var(--font-display);
+  letter-spacing: 0.06em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.panna-kilde:empty {
+  display: none;
+}
+
+/* Narrow card (a small phone held upright): the deck icon alone */
+@container (max-width: 400px) {
+  .panna-kilde-navn {
+    display: none;
+  }
+}
+
+.panna-poeng {
+  flex: none;
+  margin-left: auto;
+  color: var(--mynte-dyp);
+  font: 900 1.35rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.panna-tid {
+  flex: none;
+  font: 900 1.5rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.panna-tid.lite {
+  color: var(--rod-dyp);
+}
+
+.panna-ordboks {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.panna-ord {
+  width: 100%;
+  margin: 0;
+  color: var(--blekk);
+  font: 900 96px/1.02 var(--font-display);
+  letter-spacing: -0.02em;
+  text-align: center;
+  text-transform: uppercase;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: manual;
+}
+
+.panna-ord.inn {
+  animation: panna-ord-inn 0.34s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+@keyframes panna-ord-inn {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+}
+
+.panna-bunn {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 2px 10px;
+  font: 900 0.82rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.panna-bunn .pass {
+  color: var(--oransje-dyp);
+}
+
+.panna-bunn .riktig {
+  color: var(--mynte-dyp);
+}
+
+.panna-scene[data-fase="plasser"] .panna-bunn,
+.panna-scene[data-fase="nedtelling"] .panna-bunn {
+  visibility: hidden;
+}
+
+.panna-bar {
+  height: 10px;
+  margin: 0 -16px;
+  background: rgba(23, 14, 43, 0.1);
+}
+
+.panna-bar i {
+  display: block;
+  height: 100%;
+  background: var(--aksent-dyp);
+  transform-origin: 0 50%;
+}
+
+.panna-scene.lite .panna-bar i {
+  background: var(--rod);
+}
+
+/* Tap zones: the whole left and right halves */
+.panna-sone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 50%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.panna-sone.pass {
+  left: 0;
+}
+
+.panna-sone.riktig {
+  right: 0;
+}
+
+/* Tilting works: leave the ends where the hands grip the phone inert, so a finger resting
+   on the glass doesn't answer by accident. */
+.panna-scene.vipp .panna-sone {
+  width: 38%;
+}
+
+.panna-scene.vipp .panna-sone.pass {
+  left: 12%;
+}
+
+.panna-scene.vipp .panna-sone.riktig {
+  right: 12%;
+}
+
+.panna-sone:focus-visible {
+  outline-offset: -14px;
+}
+
+.panna-pauseknapp {
+  position: absolute;
+  top: calc(max(10px, var(--st)) + 10px);
+  left: calc(max(10px, var(--sl)) + 12px);
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--papir-2);
+  cursor: pointer;
+}
+
+.panna-pauseknapp svg {
+  width: 20px;
+  height: 20px;
+  fill: var(--blekk);
+}
+
+/* Getting ready / counting down: the button sits on top of the dark layer */
+.panna-scene[data-fase="plasser"] .panna-pauseknapp,
+.panna-scene[data-fase="nedtelling"] .panna-pauseknapp {
+  z-index: 6;
+  background: var(--natt-3);
+}
+
+.panna-scene[data-fase="plasser"] .panna-pauseknapp svg,
+.panna-scene[data-fase="nedtelling"] .panna-pauseknapp svg {
+  fill: var(--tekst);
+}
+
+/* Full-screen flash on every answer */
+.panna-blink {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-out;
+}
+
+.panna-blink.riktig {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.35), transparent 65%),
+    var(--mynte);
+}
+
+.panna-blink.pass {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3), transparent 65%),
+    var(--oransje);
+}
+
+.panna-blink.vis {
+  opacity: 1;
+  transition-duration: 0.04s;
+}
+
+.panna-blink-innhold {
+  display: grid;
+  justify-items: center;
+  gap: 2cqh;
+  color: var(--blekk);
+  transform: rotate(-4deg);
+}
+
+.panna-blink i {
+  display: grid;
+  place-items: center;
+  width: 4.6rem;
+  height: 4.6rem;
+  width: min(30cqh, 22cqw);
+  height: min(30cqh, 22cqw);
+  border-radius: 50%;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 900 3rem/1 var(--font-display);
+  font: 900 min(20cqh, 14cqw) / 1 var(--font-display);
+  font-style: normal;
+}
+
+.panna-blink b {
+  font: 900 4rem/1 var(--font-display);
+  font: 900 min(24cqh, 15cqw) / 1 var(--font-display);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.panna-blink.vis .panna-blink-innhold {
+  animation: panna-slag 0.3s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes panna-slag {
+  from {
+    transform: rotate(-4deg) scale(1.5);
+  }
+}
+
+/* Phase layers: get ready, countdown, pause, time is up */
+.panna-lag {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  gap: min(2.4cqh, 14px);
+  padding: max(16px, var(--st)) max(20px, var(--sr)) max(16px, var(--sb)) max(20px, var(--sl));
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 40%, color-mix(in srgb, var(--aksent) 22%, transparent), transparent 72%),
+    var(--natt);
+  text-align: center;
+}
+
+.panna-plasser-figur .figur-ramme {
+  display: block;
+  width: 140px;
+  width: min(34cqh, 34cqw, 170px);
+  animation: panna-svev 2.4s ease-in-out infinite;
+}
+
+@keyframes panna-svev {
+  50% {
+    transform: translateY(-8px) rotate(-4deg);
+  }
+}
+
+.panna-tall {
+  margin: 0;
+  color: var(--aksent);
+  font: 900 10rem/0.9 var(--font-display);
+  font: 900 min(46cqh, 40cqw) / 0.9 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 8px 0 var(--aksent-dyp), 0 24px 50px rgba(0, 0, 0, 0.5);
+}
+
+.panna-tall.hopp {
+  animation: panna-hopp 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+@keyframes panna-hopp {
+  from {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+.panna-beskjed {
+  margin: 0;
+  font: 900 2rem/1.05 var(--font-display);
+  font: 900 clamp(1.5rem, min(9cqh, 7cqw), 3rem) / 1.05 var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.panna-under {
+  margin: 0;
+  color: var(--tekst-2);
+  font: 700 1.05rem/1.3 var(--font-display);
+  font: 700 clamp(0.95rem, min(4.6cqh, 3.4cqw), 1.25rem) / 1.3 var(--font-display);
+}
+
+.panna-pause h2 {
+  font-size: 2.6rem;
+  font-size: clamp(2.2rem, min(14cqh, 9cqw), 3.4rem);
+}
+
+.panna-pause-knapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: min(100%, 520px);
+  margin-top: 10px;
+}
+
+.panna-pause-knapper .knapp,
+.panna-pause-knapper .knapp-2 {
+  min-height: 60px;
+}
+
+.panna-ute {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.28), transparent 65%),
+    var(--rosa);
+  color: var(--blekk);
+}
+
+.panna-ute .panna-under {
+  color: var(--blekk);
+  opacity: 0.75;
+}
+
+.panna-ute-tekst {
+  margin: 0;
+  font: 900 3.4rem/1 var(--font-display);
+  font: 900 min(24cqh, 15cqw) / 1 var(--font-display);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  animation: panna-slag 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+/* ---------- After the round ---------- */
+
+.panna-res,
+.panna-res-a,
+.panna-res-b {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panna-banner .etikett {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+.panna-banner .etikett .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
+}
+
+.panna-banner h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0 12px;
+}
+
+.panna-stortall {
+  color: var(--aksent);
+  font-size: 1.9em;
+  line-height: 0.9;
+  text-shadow: 0 5px 0 var(--aksent-dyp);
+}
+
+.panna-pass-tall {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--oransje) 18%, var(--natt-2));
+  color: var(--oransje);
+  font: 800 0.85rem/1.4 var(--font-display);
+  white-space: nowrap;
+}
+
+.panna-ordliste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panna-ordliste li {
+  max-width: 100%;
+}
+
+.panna-ordknapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 7px 14px 7px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-3);
+  font: 800 1rem/1.15 var(--font-display);
+  text-align: left;
+  overflow-wrap: break-word;
+  cursor: pointer;
+}
+
+.panna-ordknapp .merke {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--natt-3);
+  color: var(--tekst-2);
+  font: 900 0.85rem/1 var(--font-display);
+}
+
+.panna-ordknapp[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--mynte) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--mynte);
+  color: var(--tekst);
+}
+
+.panna-ordknapp[aria-pressed="true"] .merke {
+  background: var(--mynte);
+  color: var(--blekk);
+}
+
+.panna-ordknapp.ute[aria-pressed="false"] .merke {
+  background: color-mix(in srgb, var(--rosa) 30%, var(--natt-3));
+}
+
+.panna-ordknapp:active {
+  transform: scale(0.97);
+}
+
+/* ---------- Landscape phones (short screens) ---------- */
+
+@media (orientation: landscape) and (max-height: 540px) {
+  html[data-spill="panna"] .app {
+    max-width: 860px;
+  }
+
+  html[data-spill="panna"] .topp {
+    min-height: 52px;
+    padding-block: 4px 0;
+  }
+
+  html[data-spill="panna"] .skjerm {
+    gap: 16px;
+  }
+
+  /* A slim dock: main button and the text links side by side */
+  html[data-spill="panna"] .dokk {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 18px;
+    padding-top: 14px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  html[data-spill="panna"] .dokk .knapp,
+  html[data-spill="panna"] .dokk .knapp.stor {
+    min-height: 56px;
+    font-size: 1.25rem;
+  }
+
+  html[data-spill="panna"] .dokk .lenkerad {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  html[data-spill="panna"] .dokk .lenke {
+    min-height: 34px;
+    padding: 4px 6px;
+  }
+
+  .panna-stokker {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .panna-klar {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    align-items: center;
+    gap: 22px;
+  }
+
+  .panna-klar-a,
+  .panna-klar-b {
+    gap: 12px;
+  }
+
+  .panna-forklaring {
+    padding-block: 10px;
+  }
+
+  .panna-demo {
+    height: 112px;
+  }
+
+  .panna-demo .figur-ramme {
+    width: 78px;
+  }
+
+  .panna-steg {
+    gap: 6px;
+  }
+
+  .panna-res {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    align-items: start;
+    gap: 24px;
+  }
+
+  .ark .panna-stokker {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Very short landscape phones (568×320, 640×360): everything on the ready screen above the dock */
+@media (orientation: landscape) and (max-height: 420px) {
+  /* Left: dots, player and the sensor status; right: the explanation. */
+  .panna-klar {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-areas:
+      "prikker forklaring"
+      "tur forklaring"
+      "status forklaring";
+    align-content: center;
+    gap: 8px 16px;
+  }
+
+  .panna-klar-a,
+  .panna-klar-b {
+    display: contents;
+  }
+
+  .panna-klar .fremdrift {
+    grid-area: prikker;
+  }
+
+  .panna-klar .panna-tur {
+    grid-area: tur;
+  }
+
+  .panna-klar .panna-forklaring {
+    grid-area: forklaring;
+    align-self: center;
+  }
+
+  .panna-klar .panna-status {
+    grid-area: status;
+    justify-self: center;
+  }
+
+  .panna-valgte,
+  .panna-tips {
+    display: none;
+  }
+
+  .panna-tur {
+    gap: 10px;
+  }
+
+  .panna-tur .avatar.stor {
+    width: 46px;
+    height: 46px;
+    font-size: 1.4rem;
+  }
+
+  .panna-tur h1 {
+    font-size: 1.45rem;
+  }
+
+  .panna-forklaring {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px 12px 8px 6px;
+  }
+
+  .panna-demo {
+    height: 92px;
+  }
+
+  .panna-demo .figur-ramme {
+    width: 60px;
+  }
+
+  .panna-demo-merke {
+    font-size: 0.7rem;
+  }
+
+  .panna-steg {
+    gap: 3px;
+  }
+
+  .panna-steg li > span {
+    font-size: 1.05rem;
+  }
+
+  .panna-steg p {
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+
+  .panna-steg b {
+    display: inline;
+    font-size: 0.92rem;
+  }
+
+  .panna-status {
+    padding: 5px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 350px) {
+  .panna-stokker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panna-forklaring {
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 10px;
+    padding-right: 12px;
+  }
+
+  .panna-demo {
+    height: 120px;
+  }
+
+  .panna-demo .figur-ramme {
+    width: 70px;
+  }
+
+  .panna-mini {
+    width: 78px;
+    height: 50px;
+    font-size: 0.6rem;
+  }
+}
+
+/* Short phones (e.g. 320×568): the ready screen must fit above the dock */
+@media (max-height: 620px) and (orientation: portrait) {
+  .panna-valgte {
+    display: none;
+  }
+
+  .panna-klar,
+  .panna-klar-a,
+  .panna-klar-b {
+    gap: 10px;
+  }
+
+  .panna-tur .avatar.stor {
+    width: 52px;
+    height: 52px;
+    font-size: 1.6rem;
+  }
+
+  .panna-forklaring {
+    padding-block: 10px;
+  }
+
+  .panna-demo {
+    height: 100px;
+  }
+
+  .panna-demo .figur-ramme {
+    width: 68px;
+  }
+
+  .panna-steg {
+    gap: 6px;
+  }
+
+  .panna-steg p {
+    font-size: 0.86rem;
+  }
+
+  .panna-steg b {
+    font-size: 0.98rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panna-demo-merke {
+    opacity: 1;
+    animation: none;
+  }
+
+  .panna-demo-merke.opp {
+    top: -4px;
+  }
+}

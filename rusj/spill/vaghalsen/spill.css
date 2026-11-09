@@ -1,0 +1,778 @@
+/* Våghalsen: the table with the spinning bottle, the truth/dare buttons, the result stamp and
+   the awards. Everything new is prefixed vh-. */
+
+/* ---------- The table ---------- */
+
+.skjerm-runde {
+  gap: 4px;
+}
+
+.vh-scene {
+  display: grid;
+  place-items: center;
+  padding: 20px 0 42px;
+}
+
+.vh-hjul {
+  position: relative;
+  width: min(100%, 380px, max(236px, calc(100vh - 450px)));
+  aspect-ratio: 1;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: grab;
+}
+
+@supports (height: 100svh) {
+  .vh-hjul {
+    width: min(100%, 380px, max(236px, calc(100svh - 450px)));
+  }
+}
+
+.vh-hjul.drar {
+  cursor: grabbing;
+}
+
+/* Warm glow under the table */
+.vh-hjul::before {
+  content: "";
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--aksent) 42%, transparent) 0 42%, transparent 72%);
+  filter: blur(16px);
+  opacity: 0.55;
+  transition: opacity 0.5s;
+}
+
+.vh-hjul.snurrer::before,
+.vh-hjul.har-valgt::before {
+  opacity: 1;
+}
+
+.vh-bord {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.vh-kant-skygge {
+  fill: var(--aksent-dyp);
+  stroke: var(--blekk);
+  stroke-width: 4.5;
+}
+
+.vh-kant {
+  fill: var(--aksent);
+  stroke: var(--blekk);
+  stroke-width: 4.5;
+}
+
+.vh-filt-ring {
+  fill: none;
+  stroke: var(--blekk);
+  stroke-width: 4;
+}
+
+.vh-kile {
+  fill: var(--pf);
+  opacity: 0.16;
+  transition: opacity 0.25s;
+}
+
+.vh-kile.pekt {
+  opacity: 0.5;
+  transition: none;
+}
+
+.vh-kile.valgt {
+  opacity: 0.62;
+  animation: vh-kile 1.5s ease-in-out infinite;
+}
+
+@keyframes vh-kile {
+  50% {
+    opacity: 0.36;
+  }
+}
+
+.vh-linjer {
+  fill: none;
+  stroke: var(--natt);
+  stroke-width: 1.3;
+  opacity: 0.7;
+}
+
+/* Marquee bulbs on the rim: twinkle when idle, chase while spinning, flash when it stops */
+.vh-lys,
+.vh-lys-glod {
+  fill: none;
+  stroke: var(--lampe);
+  stroke-linecap: round;
+}
+
+.vh-lys {
+  stroke-width: 3.6;
+  stroke-dasharray: 0 24;
+}
+
+.vh-lys.en {
+  animation: vh-blunk 1.8s steps(1) infinite;
+}
+
+.vh-lys.to {
+  stroke-dashoffset: -12;
+  animation: vh-blunk 1.8s steps(1) -0.9s infinite;
+}
+
+.vh-lys-glod {
+  stroke-width: 8;
+  stroke-dasharray: 0 12;
+  opacity: 0.16;
+}
+
+@keyframes vh-blunk {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.vh-hjul.snurrer .vh-lys.en {
+  stroke-dasharray: 0 12;
+  animation: vh-jag 0.3s linear infinite;
+}
+
+.vh-hjul.snurrer .vh-lys.to {
+  opacity: 0;
+  animation: none;
+}
+
+@keyframes vh-jag {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+.vh-hjul.stoppet .vh-lys.en {
+  stroke-dasharray: 0 12;
+  animation: vh-blink 0.16s steps(1) 7;
+}
+
+.vh-hjul.stoppet .vh-lys.to {
+  opacity: 0;
+  animation: none;
+}
+
+@keyframes vh-blink {
+  50% {
+    opacity: 0.15;
+  }
+}
+
+/* ---------- Players around the table ---------- */
+
+.vh-plass {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  z-index: 2;
+  width: var(--as);
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s, filter 0.3s;
+}
+
+.vh-plass .avatar {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  font-size: 1.3rem;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18), 0 0 0 3px var(--blekk);
+  transition: transform 0.2s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@supports (width: 1cqw) {
+  .vh-hjul {
+    container-type: inline-size;
+  }
+
+  .vh-plass .avatar {
+    font-size: calc(var(--asn) * 0.56cqw);
+  }
+
+  /* Name tags shrink with the table, so small phones don't get overlapping tags */
+  .vh-navn {
+    max-width: min(var(--skilt, 90px), 44cqw);
+    font-size: clamp(0.66rem, 3.4cqw, 0.74rem);
+  }
+}
+
+/* Only the avatar grows; the name tag keeps its size and steps aside */
+.vh-plass.pekt {
+  z-index: 3;
+}
+
+.vh-plass.pekt .avatar {
+  transform: scale(1.18);
+  transition-duration: 0.05s;
+}
+
+.vh-plass.valgt {
+  z-index: 4;
+}
+
+.vh-plass.valgt .avatar {
+  transform: scale(1.24);
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18),
+    0 0 0 3px var(--blekk),
+    0 0 0 7px var(--pf),
+    0 0 34px 8px color-mix(in srgb, var(--pf) 55%, transparent);
+}
+
+.vh-plass.valgt::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--pf);
+  pointer-events: none;
+  animation: vh-ring 1.6s ease-out infinite;
+}
+
+@keyframes vh-ring {
+  from {
+    opacity: 0.9;
+    transform: scale(1.3);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+.vh-plass.ny .avatar {
+  animation: vh-pop 0.7s cubic-bezier(0.25, 1.7, 0.45, 1);
+}
+
+@keyframes vh-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.6);
+  }
+  100% {
+    transform: scale(1.24);
+  }
+}
+
+.vh-hjul.har-valgt .vh-plass:not(.valgt) {
+  opacity: 0.5;
+  filter: saturate(0.6);
+}
+
+.vh-poeng {
+  --b: 21px;
+  position: absolute;
+  top: -10%;
+  right: -16%;
+  min-width: var(--b);
+  height: var(--b);
+  padding: 0 0.3em;
+  border-radius: 999px;
+  background: var(--lampe);
+  box-shadow: 0 0 0 2.5px var(--blekk);
+  color: var(--blekk);
+  font: 900 calc(var(--b) * 0.58) / var(--b) var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+@supports (width: 1cqw) {
+  .vh-poeng {
+    --b: clamp(16px, calc(var(--asn) * 0.38cqw), 23px);
+  }
+}
+
+.vh-hjul.mange .vh-poeng {
+  display: none;
+}
+
+/* Name tag under (or over) each seat: up to two lines, pulled inwards at the sides */
+.vh-navn {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  display: -webkit-box;
+  width: max-content;
+  max-width: var(--skilt, 90px);
+  padding: 3px 9px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 0.74rem/1.2 var(--font-display);
+  text-align: center;
+  overflow-wrap: anywhere;
+  transform: translateX(-50%);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.vh-plass.topp .vh-navn {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
+.vh-plass.venstre .vh-navn {
+  left: -6px;
+  transform: none;
+}
+
+.vh-plass.hoyre .vh-navn {
+  right: -6px;
+  left: auto;
+  transform: none;
+}
+
+.vh-plass.valgt .vh-navn {
+  top: calc(100% + 13px);
+  background: var(--pf);
+  box-shadow: 0 0 0 2px var(--blekk);
+  color: var(--blekk);
+}
+
+.vh-plass.valgt.topp .vh-navn {
+  top: auto;
+  bottom: calc(100% + 13px);
+}
+
+.vh-hjul.mange .vh-navn {
+  display: none;
+}
+
+/* ---------- The bottle (all rotating layers are full-size squares turning about the centre) ---------- */
+
+.vh-lag {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.vh-flaske-svg {
+  position: absolute;
+  top: 25%;
+  left: 43.5%;
+  width: 13%;
+  height: 45.5%;
+  overflow: visible;
+}
+
+.vh-strale {
+  z-index: 1;
+}
+
+.vh-strale::before {
+  content: "";
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  width: min(calc(var(--as) * 1.1), 13%);
+  height: 41%;
+  background: linear-gradient(to top, transparent 30%, color-mix(in srgb, var(--lampe) 70%, transparent));
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 0.4s;
+}
+
+.vh-hjul.har-valgt .vh-strale::before {
+  opacity: 0.5;
+}
+
+.vh-skygge {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  opacity: 0.45;
+  pointer-events: none;
+  transform: translate(1.2%, 2.4%);
+}
+
+.vh-skygge .vh-flaske-svg {
+  filter: blur(2.5px);
+}
+
+.vh-spokelse {
+  z-index: 6;
+  opacity: 0;
+}
+
+.vh-flaske {
+  z-index: 7;
+}
+
+/* Idle: the bottle wiggles now and then, asking to be spun */
+.vh-hjul.vent .vh-flaske-svg {
+  transform-origin: 50% 55%;
+  animation: vh-vink 3.2s ease-in-out 1s infinite;
+}
+
+.vh-hjul.drar .vh-flaske-svg {
+  animation: none;
+}
+
+@keyframes vh-vink {
+  0%,
+  72%,
+  100% {
+    transform: rotate(0);
+  }
+  78% {
+    transform: rotate(-5deg);
+  }
+  86% {
+    transform: rotate(4deg);
+  }
+  93% {
+    transform: rotate(-1.5deg);
+  }
+}
+
+/* ---------- Under the table ---------- */
+
+.vh-info {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-height: 88px;
+  text-align: center;
+}
+
+.vh-info h1 {
+  max-width: 100%;
+  font-size: clamp(1.8rem, 8.6vw, 2.5rem);
+  overflow-wrap: anywhere;
+}
+
+.vh-info.ny h1 {
+  animation: vh-navn-inn 0.55s cubic-bezier(0.25, 1.6, 0.45, 1);
+}
+
+@keyframes vh-navn-inn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+.vh-snurrikon {
+  width: 1.15em;
+  height: 1.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#vh-snurrknapp:disabled .vh-snurrikon {
+  animation: vh-roter 0.7s linear infinite;
+}
+
+@keyframes vh-roter {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.vh-valg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.vh-valg .knapp {
+  flex-direction: column;
+  gap: 3px;
+  min-height: 104px;
+  padding: 10px 6px 12px;
+  font-size: clamp(1.1rem, 5.4vw, 1.32rem);
+}
+
+.vh-valg-ikon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.vh-valg small {
+  font: 800 0.82rem/1 var(--font-display);
+  opacity: 0.7;
+}
+
+/* ---------- The card ---------- */
+
+.skjerm-kort {
+  gap: 16px;
+}
+
+.vh-hvem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.vh-hvem > div {
+  min-width: 0;
+}
+
+.vh-hvem .etikett {
+  margin-bottom: 3px;
+}
+
+.vh-hvem h1 {
+  font-size: clamp(1.6rem, 7.4vw, 2.2rem);
+  overflow-wrap: anywhere;
+}
+
+.storkort-tekst em.vh-andre {
+  padding: 0 0.2em;
+  border-radius: 0.28em;
+  background: var(--blekk);
+  color: var(--papir);
+  text-decoration: none;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* The cards behind a truth card are purple too */
+.vh-bunke.s {
+  --bunke: color-mix(in srgb, var(--lilla) 55%, var(--natt-3));
+}
+
+.vh-stempel {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--r-stor);
+  pointer-events: none;
+}
+
+.vh-stempel .stempel {
+  background: var(--blekk);
+  box-shadow: 0 12px 30px var(--skygge);
+}
+
+.vh-fly {
+  position: absolute;
+  color: var(--lampe);
+  font: 900 3.6rem/1 var(--font-display);
+  text-shadow: 0 4px 0 var(--blekk);
+  animation: vh-fly 1.3s ease-out both;
+}
+
+@keyframes vh-fly {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.5);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-50px) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-160px) scale(1);
+  }
+}
+
+.vh-utfall {
+  grid-template-columns: 1fr 1.45fr;
+}
+
+.vh-utfall .knapp-2 {
+  min-height: 64px;
+}
+
+.vh-pluss {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--mynte);
+  font-size: 0.95rem;
+}
+
+.vh-byttet {
+  min-height: 44px;
+  padding-top: 10px;
+}
+
+/* ---------- Awards ---------- */
+
+.vh-priser {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vh-pris {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px 16px 14px 14px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2);
+  color: var(--blekk);
+  animation: vh-pris-inn 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+.vh-pris:nth-child(2) {
+  animation-delay: 0.14s;
+}
+
+.vh-pris:nth-child(3) {
+  animation-delay: 0.28s;
+}
+
+@keyframes vh-pris-inn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.95);
+  }
+}
+
+.vh-pris-ikon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--vf);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.16), 0 0 0 3px var(--blekk);
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.vh-pris-tekst {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.vh-pris .etikett {
+  color: var(--blekk-2);
+}
+
+.vh-pris b {
+  font: 900 1.3rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.vh-pris-tekst > span:last-child {
+  color: var(--blekk-2);
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.vh-tavle .navn {
+  display: flex;
+  flex-direction: column;
+}
+
+.vh-tavle-navn {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vh-stat {
+  color: var(--tekst-2);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.vh-forklaring {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+}
+
+/* ---------- Mode tile ---------- */
+
+.vh-mini-flaske {
+  display: block;
+  width: 9px;
+  height: 31px;
+  margin: -3px 0 -2px 8px;
+  transform: rotate(35deg);
+}
+
+/* ---------- Short screens (≤ 700 px high, e.g. 375 × 560 or 320 × 568): content above the dock ---------- */
+
+@media (max-height: 700px) {
+  .vh-scene {
+    padding: 16px 0 34px;
+  }
+
+  .vh-hjul {
+    width: min(100%, 380px, max(196px, calc(100vh - 372px)));
+  }
+
+  .vh-info {
+    gap: 2px;
+    min-height: 0;
+  }
+
+  .vh-info h1 {
+    font-size: clamp(1.5rem, 7.4vw, 2rem);
+  }
+
+  .vh-info .ingress {
+    font-size: 0.95rem;
+  }
+
+  .vh-valg .knapp {
+    min-height: 84px;
+  }
+
+  .vh-valg-ikon {
+    font-size: 1.4rem;
+  }
+}
+
+@supports (height: 100svh) {
+  @media (max-height: 700px) {
+    .vh-hjul {
+      width: min(100%, 380px, max(196px, calc(100svh - 372px)));
+    }
+  }
+}
+
+/* ---------- Tablets: a bigger table ---------- */
+
+@media (min-width: 768px) {
+  .vh-hjul {
+    width: min(100%, 470px, max(236px, calc(100vh - 450px)));
+  }
+}

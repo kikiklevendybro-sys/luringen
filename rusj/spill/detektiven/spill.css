@@ -1,0 +1,556 @@
+/* Detektiven — game styles. Everything is prefixed detektiv- so nothing clashes with the kit. */
+
+/* ---------- The secret ---------- */
+
+.detektiv-hode {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.detektiv-hode .ikke-se {
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+/* ---------- Questioning: the magnifying glass ---------- */
+
+.detektiv-avhor {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+}
+
+.detektiv-lupe-sted {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(80vw, 330px);
+  container-type: inline-size;
+}
+
+.detektiv-lupe {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--blekk);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.detektiv-lupe-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 14px 22px var(--skygge));
+  transition: transform 0.12s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.detektiv-lupe:active:not(:disabled) .detektiv-lupe-svg {
+  transform: scale(0.96) rotate(-3deg);
+}
+
+.detektiv-lupe:disabled {
+  cursor: default;
+}
+
+.detektiv-lupe:focus-visible {
+  outline-offset: 6px;
+}
+
+.detektiv-lupe .skaft-kant {
+  stroke: var(--blekk);
+  stroke-width: 36;
+  stroke-linecap: round;
+}
+
+.detektiv-lupe .skaft {
+  stroke: #8a5a3b;
+  stroke-width: 24;
+  stroke-linecap: round;
+}
+
+.detektiv-lupe .ramme {
+  fill: var(--natt-2);
+  stroke: var(--blekk);
+  stroke-width: 7;
+}
+
+.detektiv-lupe .seg {
+  fill: none;
+  stroke: var(--natt-3);
+  stroke-width: 15;
+  transform-origin: 104px 104px;
+  transition: stroke 0.25s;
+}
+
+.detektiv-lupe .seg.s-j {
+  stroke: var(--mynte);
+}
+
+.detektiv-lupe .seg.s-n {
+  stroke: var(--rosa);
+}
+
+.detektiv-lupe .seg.s-k {
+  stroke: var(--lampe);
+}
+
+.detektiv-lupe .seg.s-x {
+  stroke: var(--himmel);
+}
+
+.detektiv-lupe .seg.ny {
+  animation: detektiv-seg 0.45s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes detektiv-seg {
+  from {
+    stroke-width: 26;
+  }
+}
+
+.detektiv-lupe .merke circle {
+  fill: var(--natt-2);
+  stroke: var(--lampe);
+  stroke-width: 2.5;
+}
+
+.detektiv-lupe .merke text {
+  font-size: 12px;
+  opacity: 0.55;
+}
+
+.detektiv-lupe .merke.na circle {
+  fill: var(--lampe);
+  stroke: var(--blekk);
+}
+
+.detektiv-lupe .merke.na text {
+  opacity: 1;
+}
+
+.detektiv-lupe .glass {
+  fill: var(--papir);
+  stroke: var(--blekk);
+  stroke-width: 6;
+}
+
+.detektiv-lupe:active:not(:disabled) .glass {
+  fill: #fff8ec;
+}
+
+.detektiv-lupe .glans {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 7;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.detektiv-tall {
+  position: absolute;
+  top: 41%;
+  left: 43.33%;
+  display: grid;
+  justify-items: center;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.detektiv-tall b {
+  font: 900 4.4rem/0.9 var(--font-display);
+  font-size: 24cqw;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+.detektiv-tall small {
+  color: var(--blekk-2);
+  font: 800 0.95rem/1.1 var(--font-display);
+  font-size: max(0.8rem, 5cqw);
+}
+
+.detektiv-pluss {
+  position: absolute;
+  top: 59%;
+  left: 43.33%;
+  padding: 0.45em 0.95em;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 900 0.82rem/1 var(--font-display);
+  font-size: max(0.72rem, 4.2cqw);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.detektiv-stempel {
+  position: absolute;
+  top: 43.33%;
+  left: 43.33%;
+  z-index: 2;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.detektiv-stempel .stempel {
+  background: var(--natt);
+  box-shadow: 0 10px 30px var(--skygge);
+  font-size: 2.8rem;
+  font-size: 15cqw;
+  white-space: nowrap;
+}
+
+.detektiv-styring {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+}
+
+.detektiv-status {
+  color: var(--tekst-2);
+  font: 800 1.08rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.detektiv-status.varsel {
+  color: var(--rosa);
+}
+
+.detektiv-status.slutt {
+  color: var(--lampe);
+  font-size: 1.3rem;
+}
+
+.detektiv-svar .knapp {
+  min-height: 62px;
+  padding-inline: 8px;
+  font-size: clamp(1.05rem, 5vw, 1.25rem);
+}
+
+.detektiv-hint {
+  display: grid;
+  gap: 10px;
+}
+
+.detektiv-hintkort {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2);
+  color: var(--blekk);
+  animation: detektiv-inn 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.detektiv-hintkort .etikett {
+  color: var(--blekk-2);
+}
+
+.detektiv-hintkort b {
+  font: 900 1.25rem/1.15 var(--font-display);
+  text-align: right;
+  overflow-wrap: break-word;
+}
+
+@keyframes detektiv-inn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+}
+
+.detektiv-hint-laast {
+  padding: 10px 14px;
+  border: 1.5px dashed var(--strek);
+  border-radius: var(--r-mid);
+  color: var(--tekst-3);
+  font: 800 0.92rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+/* ---------- The reveal ---------- */
+
+.detektiv-avsloring {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.detektiv-avsloring .stempel-sted {
+  min-height: 76px;
+}
+
+.detektiv-avsloring h1 {
+  font-size: clamp(1.9rem, 8.5vw, 2.5rem);
+  overflow-wrap: break-word;
+}
+
+.detektiv-fasit {
+  justify-items: center;
+  width: 100%;
+  padding: 22px 18px;
+  text-align: center;
+  animation: detektiv-snu 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+@keyframes detektiv-snu {
+  from {
+    opacity: 0;
+    transform: perspective(600px) rotateY(80deg);
+  }
+}
+
+.detektiv-fasit .kort-ord {
+  color: var(--blekk);
+}
+
+.detektiv-avsloring.uopp .stempel {
+  --st: var(--rosa);
+}
+
+.detektiv-avsloring.spenning .detektiv-fasit {
+  min-height: 150px;
+  place-items: center;
+  animation: detektiv-rist 0.18s linear infinite;
+}
+
+.detektiv-spm-tegn {
+  color: var(--aksent-dyp);
+  font: 900 5rem/1 var(--font-display);
+}
+
+@keyframes detektiv-rist {
+  25% {
+    transform: rotate(-1.5deg);
+  }
+  75% {
+    transform: rotate(1.5deg);
+  }
+}
+
+.detektiv-pluss-liste {
+  display: grid;
+  /* minmax(0, …): long names and reasons shrink with an ellipsis instead of widening the row */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detektiv-pluss-liste li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mynte) 12%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--mynte) 45%, transparent);
+}
+
+.detektiv-pluss-liste .navn {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detektiv-pluss-liste .grunn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detektiv-pluss-liste b {
+  color: var(--mynte);
+  font: 900 1.25rem/1 var(--font-display);
+}
+
+/* ---------- The end ---------- */
+
+.detektiv-fakta {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detektiv-fakta li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.detektiv-fakta li > span {
+  font-size: 1.4rem;
+  line-height: 1.2;
+}
+
+.detektiv-fakta p {
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+}
+
+.detektiv-fakta b {
+  display: block;
+  color: var(--tekst);
+  font: 900 1rem/1.25 var(--font-display);
+}
+
+/* ---------- Landscape phones (short screens) ---------- */
+
+@media (orientation: landscape) and (max-height: 540px) {
+  html[data-spill="detektiven"] .app {
+    max-width: 860px;
+  }
+
+  html[data-spill="detektiven"] .topp {
+    min-height: 52px;
+    padding-block: 4px 0;
+  }
+
+  html[data-spill="detektiven"] .dokk {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 18px;
+    padding-top: 14px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  html[data-spill="detektiven"] .dokk > .knapp,
+  html[data-spill="detektiven"] .dokk > .knapp.stor {
+    min-height: 56px;
+    font-size: 1.25rem;
+  }
+
+  html[data-spill="detektiven"] .dokk .lenkerad {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  html[data-spill="detektiven"] .dokk .lenke {
+    min-height: 34px;
+    padding: 4px 6px;
+  }
+
+  .detektiv-avhor {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 28px;
+  }
+
+  .detektiv-lupe-sted {
+    width: min(54vh, 230px);
+  }
+
+  .detektiv-avsloring {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .detektiv-avsloring .detektiv-fasit {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+}
+
+@media (max-height: 700px) and (orientation: portrait) {
+  .detektiv-lupe-sted {
+    width: min(70vw, 270px);
+  }
+}
+
+/* Short phones (e.g. 320×568): the secret card fits above the dock */
+@media (max-height: 620px) and (orientation: portrait) {
+  .skjerm-hemmelig {
+    gap: 14px;
+  }
+
+  .skjerm-hemmelig .mappe {
+    height: 262px;
+    min-height: 0;
+  }
+
+  .skjerm-hemmelig .mappe-forside {
+    gap: 10px;
+    padding: 18px;
+  }
+
+  .skjerm-hemmelig .mappe-forside .figur-ramme {
+    width: 80px;
+  }
+
+  .detektiv-hode h1 {
+    font-size: 1.7rem;
+  }
+
+  /* Questioning: magnifier, answers and the hint card all above the dock */
+  .detektiv-avhor,
+  .detektiv-styring {
+    gap: 10px;
+  }
+
+  .detektiv-lupe-sted {
+    width: min(56vw, 190px);
+  }
+
+  .detektiv-status {
+    font-size: 0.95rem;
+  }
+
+  .detektiv-svar .knapp {
+    min-height: 52px;
+  }
+
+  .detektiv-hint {
+    gap: 6px;
+  }
+
+  .detektiv-hintkort {
+    padding: 7px 12px;
+  }
+
+  .detektiv-hintkort b {
+    font-size: 1.05rem;
+  }
+
+  .detektiv-hint-laast {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 350px) {
+  .detektiv-svar.knapprad.tre {
+    gap: 8px;
+  }
+
+  .detektiv-svar .knapp {
+    font-size: 1rem;
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "besserwisseren",
+  "navn": "Besserwisseren",
+  "undertittel": "Festquiz",
+  "beskrivelse": "Gratis festquiz på norsk med over 500 spørsmål om Norge, natur, sport, historie og mye mer. Én mobil og én quizmaster – alene, hver for seg eller lag mot lag.",
+  "kort": "Fire svar, ett er riktig – og en faktabit på kjøpet.",
+  "spillere": [1, 20],
+  "minutter": [10, 40],
+  "mobiler": "en",
+  "tagger": ["quiz", "familie", "fest", "lag", "barn"],
+  "rekkefolge": 10
+}

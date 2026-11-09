@@ -19,10 +19,10 @@ mkdirSync(BILDER, { recursive: true });
 
 // Serve dist/web over http, like a real website (enables the share link and the QR code).
 const WEB = join(ROT, "dist/web");
-const TYPER = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".png": "image/png", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
+const TYPER = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
 const tjener = createServer((req, res) => {
   const sti = decodeURIComponent(new URL(req.url, "http://lokal").pathname);
-  const fil = join(WEB, sti === "/" ? "index.html" : sti.replace(/^\/+/, ""));
+  const fil = join(WEB, sti.endsWith("/") ? sti.replace(/^\/+/, "") + "index.html" : sti.replace(/^\/+/, ""));
   if (!fil.startsWith(WEB) || !existsSync(fil)) {
     res.writeHead(404);
     res.end();
@@ -32,7 +32,8 @@ const tjener = createServer((req, res) => {
   res.end(readFileSync(fil));
 });
 await new Promise((r) => tjener.listen(0, "127.0.0.1", r));
-const SIDE = `http://127.0.0.1:${tjener.address().port}/`;
+// Luringen lives at /luringen/ on rusj.no.
+const SIDE = `http://127.0.0.1:${tjener.address().port}/luringen/`;
 
 const sov = (ms) => new Promise((r) => setTimeout(r, ms));
 const port = 9300 + Math.floor(Math.random() * 500);

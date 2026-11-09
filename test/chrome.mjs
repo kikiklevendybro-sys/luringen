@@ -41,13 +41,25 @@ export async function startTjener(rot) {
 
 export async function startChrome(valg = {}) {
   const { bredde = 390, hoyde = 844, skala = 2, mobil = true, gjennomsiktig = false } = valg;
-  const port = 9300 + Math.floor(Math.random() * 600);
+  // Port 0: Chrome picks a free port and writes it to DevToolsActivePort in its profile, so
+  // parallel test runs can never end up talking to each other's browser.
   const profil = mkdtempSync(join(tmpdir(), "rusj-chrome-"));
   const prosess = spawn(
     CHROME,
-    ["--headless=new", `--remote-debugging-port=${port}`, `--user-data-dir=${profil}`, "--no-first-run", "--no-default-browser-check", "--hide-scrollbars", "--mute-audio", "--allow-file-access-from-files", "about:blank"],
+    ["--headless=new", "--remote-debugging-port=0", `--user-data-dir=${profil}`, "--no-first-run", "--no-default-browser-check", "--hide-scrollbars", "--mute-audio", "--allow-file-access-from-files", "about:blank"],
     { stdio: "ignore" },
   );
+  let port = null;
+  for (let i = 0; i < 200 && !port; i++) {
+    try {
+      const linje = readFileSync(join(profil, "DevToolsActivePort"), "utf8").split("\n")[0].trim();
+      if (/^\d+$/.test(linje)) port = Number(linje);
+    } catch (e) {
+      /* not written yet */
+    }
+    if (!port) await sov(50);
+  }
+  if (!port) throw new Error("Chrome startet ikke (fant ikke DevToolsActivePort)");
 
   const feil = [];
   let ws;

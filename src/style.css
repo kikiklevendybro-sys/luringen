@@ -181,6 +181,36 @@ main {
   width: 104px;
 }
 
+/* "‹ rusj" back to the rusj.no front page (website only), same look as the other games. */
+.topp-merke.rusj {
+  flex: none;
+  gap: 6px;
+  height: 46px;
+  padding: 0 14px 0 10px;
+  border: 2px solid var(--strek);
+  border-radius: 999px;
+  background: var(--natt-2);
+  text-decoration: none;
+}
+
+.topp-merke.rusj svg.rusj-logo {
+  display: block;
+  width: 52px;
+  height: auto;
+  margin-top: 2px;
+  overflow: visible;
+}
+
+.topp-merke.rusj .pil {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--tekst-2);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .ikonknapp {
   display: grid;
   flex: none;

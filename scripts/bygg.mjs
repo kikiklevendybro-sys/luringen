@@ -60,7 +60,9 @@ writeFileSync(join(ROT, "build/ord.json"), JSON.stringify(data));
 // ---------- Page ----------
 
 const kilde = (fil) => readFileSync(join(ROT, "src", fil), "utf8");
-const side = kilde("page.html");
+// The "‹ rusj" button in Luringen's top bar uses the shared wordmark.
+const RusjGjengen = require(join(ROT, "rusj/kit/gjengen.js"));
+const side = kilde("page.html").replace("<!--RUSJLOGO-->", RusjGjengen.logo());
 const [hode, kropp] = side.split("<!--KROPP-->");
 if (!kropp) throw new Error("src/page.html mangler <!--KROPP-->");
 
@@ -75,7 +77,9 @@ const fyll = (tekst, nettside) => tekst.replace("/*STIL*/", () => kilde("style.c
 
 // Single page for the artifact: content only, the host adds <html>, <head> and <body>.
 mkdirSync(join(ROT, "dist"), { recursive: true });
-writeFileSync(join(ROT, "dist/luringen.html"), fyll(hode + kropp, false));
+// (Skipped when building into another folder with --ut, so parallel test builds don't touch dist/.)
+const tilAnnenMappe = process.argv.includes("--ut");
+if (!tilAnnenMappe) writeFileSync(join(ROT, "dist/luringen.html"), fyll(hode + kropp, false));
 
 // ---------- Website: rusj.no ----------
 // Options: --ut <dir> (default dist/web), --spill id1,id2 (only these games; for tests)
@@ -160,14 +164,33 @@ const LURINGEN_KORT = {
 const rusj = byggRusj({ ROT, WEB, ordData: data, utvalg, luringen: utvalg && !utvalg.includes("luringen") ? null : LURINGEN_KORT });
 
 // Offline support for the whole site (one service worker at the root).
-const swFiler = ["/", "/manifest.webmanifest", ...rusj.forhand];
-const swVersjon = hashTekst(rusj.filer.join("|") + readdirSync(WEB, { recursive: true }).map((f) => {
-  try {
-    return readFileSync(join(WEB, String(f))).length;
-  } catch (e) {
-    return 0;
-  }
-}).join(",") + lurJs.length + lurCss.length).toString(36);
+// Every page and file is stored on install, so all games work offline — also ones never opened.
+const swFiler = [
+  "/",
+  "/manifest.webmanifest",
+  ...rusj.forhand,
+  "/luringen/",
+  `/luringen/luringen.css?v=${v(lurCss)}`,
+  `/luringen/luringen.js?v=${v(lurJs)}`,
+  "/luringen/ikon.svg",
+  "/luringen/ikon-180.png",
+];
+// The version follows the content of every published file (a change of the same length counts too).
+const swVersjon = hashTekst(
+  readdirSync(WEB, { recursive: true })
+    .map(String)
+    .filter((f) => f !== "sw.js")
+    .sort()
+    .map((f) => {
+      try {
+        const innhold = readFileSync(join(WEB, f));
+        return f + ":" + hashTekst(innhold.toString("latin1"));
+      } catch (e) {
+        return f; // a folder
+      }
+    })
+    .join("|"),
+).toString(36);
 writeFileSync(join(WEB, "sw.js"), kilde("../rusj/kit/sw.js").replace("__VERSJON__", swVersjon).replace("__FILER__", JSON.stringify(swFiler)));
 
 const kb = (fil) => Math.round(readFileSync(fil).length / 1024);
@@ -175,4 +198,4 @@ console.log(`✓ ${antall} ord i ${kategorier.length} kategorier (hash ${data.ha
 if (duplikater.length) console.log(`  ${duplikater.length} duplikater fjernet: ${duplikater.slice(0, 12).join(", ")}${duplikater.length > 12 ? " …" : ""}`);
 if (mangler.length) console.log(`  ⚠ mangler kategorier: ${mangler.join(", ")}`);
 console.log(`✓ ${rusj.spill.length} rusj-spill + Luringen i ${WEB.replace(ROT + "/", "")} (forside ${kb(join(WEB, "index.html"))} kB, Luringen ${kb(join(LUR, "luringen.js"))} kB)`);
-console.log(`✓ dist/luringen.html (${kb(join(ROT, "dist/luringen.html"))} kB)`);
+if (!tilAnnenMappe) console.log(`✓ dist/luringen.html (${kb(join(ROT, "dist/luringen.html"))} kB)`);

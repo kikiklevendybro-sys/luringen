@@ -62,7 +62,7 @@ export const TAGGER = {
   quiz: "Quiz",
   tegning: "Tegning",
   hukommelse: "Hukommelse",
-  sporsmal: "Spørsmål",
+  sporsmal: "Prat",
 };
 
 export function lesSpill(rot, utvalg) {
@@ -137,6 +137,9 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
 
   const spill = lesSpill(ROT, utvalg);
   const LOGO = G.logo();
+  const spillFiler = []; // every game page and its files, stored by the service worker on install
+  // Every game can suggest the others (also those not built in a partial test build).
+  const alleSpillKort = [...(luringen ? [luringen] : []), ...lesSpill(ROT, null)].sort((a, b) => a.rekkefolge - b.rekkefolge);
 
   const hode = (o) => `<!doctype html>
 <html lang="nb"${o.htmlAttr || ""}>
@@ -201,13 +204,16 @@ ${o.css.map((c) => `<link rel="stylesheet" href="${c}">`).join("\n")}
       minutter: m.minutter,
       farge: m.farge,
     };
-    const dataJs = "window.RUSJ_SPILL=" + JSON.stringify(meta) + ";\nwindow.RUSJ_DATA=" + JSON.stringify(data).replace(/</g, "\\u003c") + ";\n";
+    const andre = alleSpillKort.filter((g) => g.id !== id).map((g) => ({ id: g.id, navn: g.navn, undertittel: g.undertittel, spillere: g.spillere, farge: g.farge }));
+    const dataJs =
+      "window.RUSJ_SPILL=" + JSON.stringify(meta) + ";\nwindow.RUSJ_ANDRE=" + JSON.stringify(andre).replace(/</g, "\\u003c") + ";\nwindow.RUSJ_DATA=" + JSON.stringify(data).replace(/</g, "\\u003c") + ";\n";
     const dataSti = skriv(`${id}/data.js`, dataJs);
     const spillSti = skriv(`${id}/spill.js`, spillJs);
     const css = [felles.css];
     if (existsSync(join(m.mappe, "spill.css"))) css.push(skriv(`${id}/spill.css`, readFileSync(join(m.mappe, "spill.css"), "utf8")));
     const ikon = skriv(`${id}/ikon.svg`, ikonSvg(G, id));
     const deling = existsSync(join(BILDER, `deling-${id}.png`)) ? kopier(join(BILDER, `deling-${id}.png`), `${id}/deling.png`) : ikoner.deling;
+    spillFiler.push(`/${id}/`, dataSti, spillSti, ...css.slice(1), ikon); // offline: the whole game
 
     const skript = [felles.gjengen, felles.js];
     if (m.qr) skript.push(felles.qr);
@@ -304,7 +310,7 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
   const portalSide = `${hode({
     tittel: "rusj – gratis festspill på norsk, rett i nettleseren",
     ogTittel: "rusj – gratis festspill på norsk",
-    beskrivelse: `${alleKort.length} gratis festspill og familiespill på norsk. Luringen, Spionen, Jeg har aldri, quiz, tegn og gjett og mer. Ingen app, ingen konto, ingen reklame.`,
+    beskrivelse: `${alleKort.length} gratis fest- og familiespill på norsk: Luringen, Spionen, Jeg har aldri, quiz, tegn og gjett – og mye mer. Ingen app, ingen konto, ingen reklame.`,
     sti: "/",
     ikon: ikoner.svg,
     deling: ikoner.deling,
@@ -322,14 +328,15 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
     <a class="knapp" href="#spill">Finn et spill</a>
     <button class="knapp-2" id="overrask" type="button"><span aria-hidden="true">🎲</span> Overrask meg</button>
   </div>
+  <span class="filter-vakt" aria-hidden="true"></span>
   <nav class="parade" aria-label="Rusj-gjengen"><div class="parade-spor">${parade}${parade.replace(/<a /g, '<a tabindex="-1" aria-hidden="true" ')}</div></nav>
 </header>
 <main class="portal-hoved">
   <section class="filter" id="spill" aria-labelledby="filter-tittel">
     <h2 id="filter-tittel">Hva skal vi spille?</h2>
     <div class="filter-rad">
-      <div class="antall" role="group" aria-label="Hvor mange er dere?">
-        <span class="antall-tekst">Vi er</span>
+      <div class="antall" role="group" aria-label="Hvor mange spillere er dere?">
+        <span class="antall-tekst">Spillere</span>
         <button type="button" class="antall-knapp" data-antall="-1" aria-label="Færre">−</button>
         <output id="antall" aria-live="polite">alle</output>
         <button type="button" class="antall-knapp" data-antall="1" aria-label="Flere">+</button>
@@ -427,7 +434,11 @@ ${kort}
       .join("\n")}\n</urlset>\n`,
   );
 
-  return { spill, filer, forhand: [...Object.values(felles), portalCss, portalJs, portalData, ...Object.values(ikoner).filter(Boolean)] };
+  return {
+    spill,
+    filer,
+    forhand: [...Object.values(felles), portalCss, portalJs, portalData, ...Object.values(ikoner).filter((f) => f && !/deling/.test(f)), ...spillFiler],
+  };
 }
 
 // Square icon with the game's mascot on the night background.

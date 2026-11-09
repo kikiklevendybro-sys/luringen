@@ -1,0 +1,13 @@
+{
+  "id": "hviskeren",
+  "navn": "Hviskeren",
+  "undertittel": "Bare ett hint",
+  "beskrivelse": "Gratis samarbeidsspill på norsk: alle gir ett hint i hemmelighet, men like hint strykes. Klarer gjetteren ordet? 3–10 spillere, én mobil.",
+  "kort": "Alle gir ett hint i hemmelighet – men like hint strykes.",
+  "spillere": [3, 10],
+  "minutter": [15, 30],
+  "mobiler": "en",
+  "tagger": ["ord", "familie", "fest"],
+  "rekkefolge": 14,
+  "ordbank": true
+}

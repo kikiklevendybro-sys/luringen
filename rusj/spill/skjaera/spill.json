@@ -1,0 +1,13 @@
+{
+  "id": "skjaera",
+  "navn": "Skjæra",
+  "undertittel": "Kims lek",
+  "beskrivelse": "Gratis Kims lek på norsk. Se godt på tingene – så stjeler skjæra noe. Hva mangler? 12 nivåer for barn og familie, alene eller sammen.",
+  "kort": "Se godt på tingene. Skjæra stjeler noe – hva mangler?",
+  "spillere": [1, 8],
+  "minutter": [3, 20],
+  "mobiler": "en",
+  "tagger": ["barn", "familie", "hukommelse"],
+  "rekkefolge": 20,
+  "farge": "#4fcfff"
+}

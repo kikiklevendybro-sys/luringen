@@ -1,0 +1,84 @@
+{
+  "kategorier": [
+    {
+      "id": "dyr",
+      "navn": "Dyr",
+      "ikon": "🐘",
+      "lett": ["katt", "hund", "fisk", "fugl", "ku", "gris", "hest", "sau", "mus", "kanin", "and", "høne", "slange", "snegl", "frosk", "elefant", "sjiraff", "løve", "bjørn", "ugle", "edderkopp", "sommerfugl", "bie", "hval", "pingvin", "skilpadde", "marihøne"],
+      "middels": ["krokodille", "ape", "ekorn", "rev", "elg", "sel", "isbjørn", "flodhest", "kamel", "sebra", "papegøye", "blekksprut", "krabbe", "hai", "maur", "pinnsvin", "flaggermus", "struts", "kenguru", "panda", "tiger", "delfin", "hummer", "flamingo", "påfugl", "sjøstjerne", "manet", "gullfisk", "ørn", "måke", "neshorn", "hvalross", "koala", "gorilla", "reinsdyr", "mygg", "hane", "kylling"],
+      "vanskelig": ["nebbdyr", "dovendyr", "kolibri", "stankelbein", "sjøhest", "kameleon", "maursluker", "lama", "katt i sekk", "hund med solbriller", "pingvin på ferie", "elg i rundkjøring", "ku på månen", "fisk på land"]
+    },
+    {
+      "id": "mat",
+      "navn": "Mat",
+      "ikon": "🍕",
+      "lett": ["eple", "banan", "pizza", "is", "kake", "egg", "brød", "ost", "gulrot", "pølse", "pannekake", "hamburger", "jordbær", "vannmelon", "ananas", "sitron", "tomat", "popkorn", "sjokolade", "slikkepinne", "potet", "agurk", "druer", "kirsebær", "pære"],
+      "middels": ["vaffel", "taco", "sushi", "spagetti", "suppe", "appelsin", "løk", "smultring", "kanelbolle", "muffins", "kjeks", "pommes frites", "fiskepinner", "brunost", "bløtkake", "pepperkake", "pepperkakehus", "sukkerspinn", "kakao", "melk", "ketchup", "honning", "peanøtt", "kokosnøtt", "avokado", "brokkoli", "maiskolbe", "speilegg", "bacon", "kyllinglår", "reke", "softis", "milkshake", "baguett", "kringle", "skolebolle", "blåbær", "kiwi", "paprika", "chili", "hvitløk", "godtepose", "tyggegummi", "matpakke", "smørbrød"],
+      "vanskelig": ["risengrynsgrøt", "lefse", "sennep", "syltetøy", "smoothie", "nachos", "croissant", "granateple", "frokostblanding", "lutefisk", "pølse i lompe", "pizza med ananas", "brent toast", "is som smelter", "tacofredag"]
+    },
+    {
+      "id": "ting",
+      "navn": "Ting",
+      "ikon": "🎒",
+      "lett": ["nøkkel", "bok", "blyant", "saks", "lampe", "klokke", "briller", "paraply", "ballong", "hatt", "sko", "sokk", "genser", "bukse", "kjole", "lue", "ring", "krone", "gave", "terning", "bamse", "gitar", "hammer", "flaske", "stige", "bøtte", "robot"],
+      "middels": ["skjerf", "votter", "slips", "mobil", "kamera", "trommer", "piano", "trompet", "sag", "skrutrekker", "tannbørste", "kam", "hårføner", "speil", "spade", "lommelykt", "magnet", "batteri", "lyspære", "kompass", "kikkert", "globus", "puslespill", "papirdrage", "dukke", "konvolutt", "frimerke", "lommebok", "mynt", "sparegris", "hodetelefoner", "ryggsekk", "koffert", "plaster", "timeglass", "mikrofon", "pensel", "viskelær", "linjal", "kalkulator", "hengelås", "sovepose", "termos", "kart", "hodelykt", "fiskestang", "anker", "nettbrett", "gummistøvler", "spillkontroll", "lekeklosser", "jojo", "heis", "rulletrapp", "snøkule", "bumerang"],
+      "vanskelig": ["glidelås", "sikkerhetsnål", "megafon", "stiftemaskin", "binders", "refleks", "isskrape", "nål og tråd", "snurrebass", "solkrem", "ødelagt paraply", "mobil med sprukken skjerm"]
+    },
+    {
+      "id": "hjemme",
+      "navn": "Hjemme",
+      "ikon": "🏠",
+      "lett": ["seng", "stol", "bord", "sofa", "dør", "vindu", "trapp", "dusj", "badekar", "do", "kopp", "gaffel", "skje", "TV", "tallerken", "kjøleskap", "pute", "badeand", "juletre"],
+      "middels": ["vekkerklokke", "komfyr", "mikrobølgeovn", "vaskemaskin", "støvsuger", "kost", "strykejern", "gardin", "teppe", "dyne", "fjernkontroll", "kjele", "stekepanne", "brødrister", "kaffetrakter", "vannkoker", "oppvaskmaskin", "peis", "postkasse", "lysestake", "blomsterpotte", "maleri", "bokhylle", "skap", "gyngestol", "søppelbøtte", "dopapir", "tannkrem", "såpe", "håndkle", "klesklype", "kleshenger", "ostehøvel", "eggekopp", "vifte", "stekespade", "visp", "kjevle", "hundekurv", "lenestol", "isterning"],
+      "vanskelig": ["kommode", "radiator", "stikkontakt", "lysbryter", "ringeklokke", "dørmatte", "rivjern", "durkslag", "pepperkvern", "tørkestativ", "rotete rom", "katt på tastaturet"]
+    },
+    {
+      "id": "natur",
+      "navn": "Natur",
+      "ikon": "🌲",
+      "lett": ["sol", "måne", "stjerne", "sky", "regn", "snø", "regnbue", "lyn", "tre", "blomst", "fjell", "vulkan", "hav", "bølge", "strand", "øy", "stein", "sopp", "kaktus", "palme", "snøfnugg", "blad"],
+      "middels": ["gress", "elv", "foss", "kongle", "solsikke", "tulipan", "rose", "løvetann", "grantre", "istapp", "tornado", "nordlys", "grotte", "ørken", "jungel", "isfjell", "skog", "firkløver", "maurtue", "fuglerede", "edderkoppnett", "regndråpe", "sølepytt", "planet", "stjerneskudd", "solnedgang", "fullmåne", "bikube", "bål", "skjell", "eikenøtt"],
+      "vanskelig": ["tåke", "jordskjelv", "storm", "hagl", "tang", "vannlilje", "fjord", "isbre", "midnattssol", "snøskred", "måneformørkelse", "vind", "sky som ligner en sau", "sanddyne"]
+    },
+    {
+      "id": "kjoretoy",
+      "navn": "Kjøretøy",
+      "ikon": "🚗",
+      "lett": ["bil", "buss", "tog", "fly", "båt", "sykkel", "traktor", "helikopter", "rakett", "brannbil", "seilbåt"],
+      "middels": ["motorsykkel", "ubåt", "kano", "ferje", "cruiseskip", "ambulanse", "politibil", "søppelbil", "gravemaskin", "lastebil", "trikk", "sparkesykkel", "barnevogn", "snøscooter", "varmluftsballong", "taxi", "campingvogn", "gokart", "trehjulssykkel", "robåt", "vannscooter", "trillebår", "handlevogn", "kranbil", "damplokomotiv", "hundeslede", "postbil"],
+      "vanskelig": ["gondol", "tandemsykkel", "limousin", "sjøfly", "luftputebåt", "seilfly", "zeppeliner", "månebil", "slepebåt", "golfbil", "betongbil", "tankbil", "romferje", "isbryter", "bil med punktering", "buss full av sauer", "veivals"]
+    },
+    {
+      "id": "sport",
+      "navn": "Sport",
+      "ikon": "⚽",
+      "lett": ["fotball", "ski", "skøyter", "svømming", "tennis", "bowling", "basketball", "trampoline", "hoppetau", "medalje", "pokal", "kjelke"],
+      "middels": ["golf", "boksing", "slalåm", "skihopp", "langrenn", "løping", "hekkeløp", "høydehopp", "stavsprang", "karate", "yoga", "surfing", "dykking", "klatring", "seiling", "roing", "bordtennis", "badminton", "volleyball", "ishockey", "dart", "biljard", "sjakk", "skateboard", "rulleskøyter", "snowboard", "vektløfting", "tautrekking", "frisbee", "målvakt", "seierspall", "fotballmål", "bueskyting", "ridning", "svømmebriller", "sykkelhjelm"],
+      "vanskelig": ["kulestøt", "bryting", "judo", "turn", "fallskjermhopping", "håndball", "curling", "sekkeløp", "minigolf", "dommer", "heiagjeng", "kunstløp", "maraton", "vannski", "mållinje", "straffespark", "selvmål"]
+    },
+    {
+      "id": "handlinger",
+      "navn": "Handlinger",
+      "ikon": "🤸",
+      "lett": ["sove", "gråte", "le", "hoppe", "danse", "synge", "løpe", "klappe", "vinke", "spise", "lese", "fiske", "bade"],
+      "middels": ["gjespe", "nyse", "snorke", "drikke", "skrive", "male", "strikke", "bake", "støvsuge", "pusse tenner", "ta selfie", "gå på ski", "bygge snømann", "blåse såpebobler", "sjonglere", "stå på hendene", "plukke bær", "klatre i tre", "hoppe i sølepytt", "sole seg", "ta oppvasken", "mate ender", "kaste snøball", "grille pølser", "spille gitar", "slå kollbøtte", "gi en klem", "plystre", "vaske bilen", "ake", "lage snøengel", "blåse ut lys", "skrelle banan", "dusje", "trylle", "rekke tunge", "gå tur med hunden"],
+      "vanskelig": ["gå på line", "knyte skolisser", "dirigere", "ta på seg sokker", "gå på stylter", "rydde rommet", "sove på bussen", "synge i dusjen", "gå i søvne", "falle på isen", "spise spagetti", "drømme", "vente på bussen", "glemme nøklene", "danse i regnet", "løpe fra en bie", "hviske"]
+    },
+    {
+      "id": "steder",
+      "navn": "Steder",
+      "ikon": "🏰",
+      "lett": ["slott", "kirke", "skole", "hus", "telt", "iglo", "pyramide", "skyskraper", "lekeplass", "fyrtårn", "bro"],
+      "middels": ["sykehus", "butikk", "bibliotek", "kino", "sirkus", "dyrehage", "tunnel", "hytte", "fotballbane", "svømmehall", "havn", "togstasjon", "flyplass", "bensinstasjon", "brannstasjon", "bondegård", "låve", "vindmølle", "campingplass", "tivoli", "berg-og-dal-bane", "karusell", "pariserhjul", "akvarium", "museum", "restaurant", "bakeri", "hos frisøren", "rundkjøring", "stadion", "alpinbakke", "romstasjon", "tårn", "stabbur", "lavvo", "sandkasse", "trehytte", "vannpark", "skøytebane", "bussholdeplass", "kiosk", "kafé", "sandslott", "Eiffeltårnet", "utkikkstårn"],
+      "vanskelig": ["ruin", "rorbu", "fengsel", "parkeringsplass", "drivhus", "Den kinesiske mur", "Frihetsgudinnen", "Det skjeve tårnet i Pisa", "torg", "hos tannlegen", "postkontor"]
+    },
+    {
+      "id": "fantasi",
+      "navn": "Fantasi",
+      "ikon": "🐉",
+      "lett": ["drage", "enhjørning", "troll", "julenisse", "heks", "spøkelse", "romvesen", "havfrue", "pirat", "ridder", "prinsesse", "konge", "superhelt", "engel", "påskehare"],
+      "middels": ["trollmann", "vampyr", "mumie", "zombie", "UFO", "dronning", "tannfe", "kjempe", "dverg", "fe", "tryllestav", "flygende teppe", "skattekart", "skattekiste", "krystallkule", "tidsmaskin", "sjørøverskip", "sjøorm", "monster", "varulv", "drageegg", "heksekost", "gresskarlykt"],
+      "vanskelig": ["kentaur", "sfinks", "kyklop", "magisk speil", "usynlig mann", "huldra", "nøkken", "slott i skyene", "troll under brua", "drage som nyser", "snakkende tre", "gris med vinger", "monster under senga", "alv", "fjøsnisse", "spøkelse som er redd", "heks på støvsuger", "drømmefanger"]
+    }
+  ]
+}

@@ -1,0 +1,475 @@
+/* Mimen — a white-faced mime under a spotlight. Everything is prefixed mi- so it can't clash. */
+
+.mi-tett {
+  margin-top: -12px;
+}
+
+/* ---------- Setup ---------- */
+
+.mi-to {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.mi-to .seg button {
+  padding-inline: 2px;
+}
+
+.mi-lagrad {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ---------- Team badge: the mime on a disc in the team colour ---------- */
+
+.mi-lagfigur {
+  display: grid;
+  place-items: center;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--lf) 70%, #fff), var(--lf) 70%);
+  box-shadow:
+    inset 0 -8px 0 rgba(0, 0, 0, 0.16),
+    0 0 0 6px var(--natt),
+    0 0 0 9px var(--lf);
+}
+
+.mi-lagfigur .figur-ramme {
+  width: 96px;
+  margin-top: 6px;
+}
+
+.mi-lagfigur.stor {
+  width: 150px;
+  height: 150px;
+}
+
+.mi-lagfigur.stor .figur-ramme {
+  width: 110px;
+}
+
+.mi-lagfigur.liten {
+  width: 64px;
+  height: 64px;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.16);
+}
+
+.mi-lagfigur.liten .figur-ramme {
+  width: 46px;
+  margin-top: 3px;
+}
+
+/* In score lists and next to a name: the size of the kit's avatar dot */
+.mi-lagfigur.mini {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16);
+}
+
+.mi-lagfigur.mini .figur-ramme {
+  width: 27px;
+  margin-top: 2px;
+}
+
+.mi-lagnavn {
+  color: var(--lf);
+}
+
+/* Shared win: the winners side by side, names as the headline */
+.mi-delt {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.mi-delt-banner h1 {
+  font-size: clamp(1.8rem, 8vw, 2.4rem);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- The secret card ---------- */
+
+.mi-instruks {
+  font-size: clamp(1.7rem, 7.5vw, 2.1rem);
+  text-align: center;
+}
+
+/* The back of the card wears the mime's striped shirt, with the task on a paper label. */
+.mappe-bakside.mi-bak {
+  padding: 20px 16px;
+  background: repeating-linear-gradient(180deg, var(--blekk) 0 16px, var(--papir) 16px 32px);
+}
+
+.mi-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 58%;
+  padding: 22px 16px;
+  border-radius: 22px;
+  background: var(--papir);
+  box-shadow: 0 0 0 4px var(--blekk);
+}
+
+.mi-stjerner {
+  margin-left: 4px;
+  color: var(--rod);
+  letter-spacing: 0.08em;
+}
+
+.mi-panel .kort-ord {
+  text-wrap: balance;
+}
+
+/* ---------- Miming: the clock on stage ---------- */
+
+/* Who mimes, readable from across the table */
+.mi-mimer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: clamp(1.3rem, 6vw, 1.6rem);
+  text-align: center;
+}
+
+.mi-mimer > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.mi-mimer b {
+  color: var(--aksent);
+}
+
+.mi-mimer .avatar.mid {
+  width: 44px;
+  height: 44px;
+  font-size: 1.4rem;
+}
+
+.mi-scene {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.mi-scene::before {
+  content: "";
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  z-index: -1;
+  width: min(92vw, 380px);
+  height: min(92vw, 380px);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--aksent) 16%, transparent), transparent 66%);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.mi-scene .timer-ring .fyll {
+  stroke: var(--papir);
+}
+
+.mi-scene .timer.lite .fyll {
+  stroke: var(--rod);
+}
+
+.mi-scene.pauset .timer-ring {
+  opacity: 0.45;
+}
+
+.mi-skilt {
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 1.15rem/1.15 var(--font-display);
+  text-align: center;
+  transform: rotate(-2deg);
+}
+
+.mi-skilt.pause {
+  background: var(--lampe);
+  box-shadow: 0 4px 0 var(--lampe-dyp);
+}
+
+/* The clock and the peek card share the space above the dock. */
+.mi-midt {
+  display: grid;
+  gap: 22px;
+  margin-block: auto;
+}
+
+/* A small card to peek at the task again */
+.mi-titt .mappe {
+  height: 104px;
+  min-height: 0;
+}
+
+.mi-titt .mappe-forside {
+  padding: 12px 18px;
+}
+
+.mi-titt .mappe-forside .figur-ramme,
+.mi-titt .mappe-etikett {
+  display: none;
+}
+
+.mi-titt .mappe-finger {
+  flex-direction: row;
+  gap: 12px;
+  max-width: 100%;
+  font-size: clamp(0.9rem, 4.4vw, 1.02rem);
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+}
+
+.mi-titt .mappe-finger svg {
+  flex: none;
+}
+
+/* «Hold fingeren på kortet for å se» on two even lines, never «… for / å se» */
+.mappe-finger span {
+  text-wrap: balance;
+}
+
+.mi-titt .mappe-finger svg {
+  width: 40px;
+  height: 40px;
+}
+
+.mi-titt .mappe-bakside.mi-bak {
+  padding: 10px;
+  background: repeating-linear-gradient(180deg, var(--blekk) 0 9px, var(--papir) 9px 18px);
+}
+
+.mi-titt .mi-panel {
+  gap: 4px;
+  min-height: 0;
+  height: 100%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  box-shadow: 0 0 0 3px var(--blekk);
+}
+
+.mi-titt .kort-etikett {
+  font-size: 0.68rem;
+}
+
+.mi-titt .kort-ord,
+.mi-titt .kort-ord.lang,
+.mi-titt .kort-ord.ekstra-lang {
+  font-size: clamp(1.1rem, 5.2vw, 1.45rem);
+}
+
+.mi-svarknapper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 12px;
+}
+
+.mi-svarknapper .knapp {
+  min-height: 74px;
+}
+
+/* ---------- Who guessed it ---------- */
+
+.mi-hvem {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.mi-hvem .stempel {
+  margin-bottom: 4px;
+  font-size: clamp(1.8rem, 9vw, 2.4rem);
+}
+
+/* ---------- The answer ---------- */
+
+.mi-svar {
+  display: grid;
+  gap: 16px;
+}
+
+.mi-svar .stempel-sted {
+  min-height: 78px;
+}
+
+.mi-svar .stempel {
+  font-size: clamp(1.8rem, 9vw, 2.6rem);
+}
+
+.mi-fasit {
+  justify-items: center;
+  gap: 6px;
+  padding: 20px 18px 22px;
+  text-align: center;
+  transform: rotate(-1deg);
+}
+
+.mi-fasit-tekst {
+  font: 900 clamp(1.7rem, 8vw, 2.4rem) / 1.08 var(--font-display);
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.mi-fasit-kat {
+  color: var(--blekk-2);
+  font: 800 0.9rem/1.2 var(--font-display);
+}
+
+.mi-svartekst {
+  color: var(--tekst-2);
+  font: 700 1.05rem/1.4 var(--font-display);
+  text-align: center;
+}
+
+/* ---------- The end ---------- */
+
+.mi-priser {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mi-priser li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.mi-pris-ikon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--papir);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.mi-priser span:last-child {
+  min-width: 0;
+}
+
+.mi-priser b {
+  display: block;
+  font: 900 1.02rem/1.2 var(--font-display);
+}
+
+.mi-priser small {
+  display: block;
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 359px) {
+  .mi-to {
+    grid-template-columns: 1fr;
+  }
+
+  /* Names must be readable when picking who guessed */
+  .skjerm-hvem .velgere {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 700px) {
+  /* Miming: name, clock, sign and peek card all above the dock */
+  .skjerm-mim {
+    gap: 12px;
+  }
+
+  .mi-mimer {
+    font-size: 1.25rem;
+  }
+
+  .mi-mimer .avatar.mid {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
+
+  .mi-midt {
+    gap: 12px;
+  }
+
+  .mi-scene {
+    gap: 10px;
+  }
+
+  .mi-scene .timer.stor .timer-ring {
+    width: min(42vw, 26vh, 170px);
+    height: min(42vw, 26vh, 170px);
+  }
+
+  .mi-scene .timer.stor .timer-tid {
+    font-size: 2.6rem;
+  }
+
+  .mi-skilt {
+    padding: 6px 14px;
+    font-size: 1rem;
+  }
+
+  .mi-titt .mappe {
+    height: 76px;
+  }
+
+  /* The secret card and its instruction must clear the dock on short phones. */
+  .skjerm-se {
+    gap: 16px;
+  }
+
+  .skjerm-se .mi-instruks {
+    font-size: 1.45rem;
+  }
+
+  .skjerm-se .mappe {
+    height: 252px;
+    min-height: 0;
+  }
+
+  .skjerm-se .mappe-forside {
+    gap: 10px;
+    padding: 18px;
+  }
+
+  .skjerm-se .mappe-forside .figur-ramme {
+    width: 76px;
+  }
+
+  .skjerm-se .mappe-finger svg {
+    width: 44px;
+    height: 44px;
+  }
+}

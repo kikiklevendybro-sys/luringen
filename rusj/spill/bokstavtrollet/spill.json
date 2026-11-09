@@ -1,0 +1,12 @@
+{
+  "id": "bokstavtrollet",
+  "navn": "Bokstavtrollet",
+  "undertittel": "Alfabetleken",
+  "beskrivelse": "Gratis alfabetlek på norsk. Si et ord på bokstaven og send mobilen før trollet våkner – eller jakt på ord med blyant og papir. For barn og familie.",
+  "kort": "Si et ord på bokstaven – og send mobilen før trollet våkner!",
+  "spillere": [2, 12],
+  "minutter": [5, 30],
+  "mobiler": "en",
+  "tagger": ["barn", "familie", "ord"],
+  "rekkefolge": 19
+}

@@ -1,0 +1,12 @@
+{
+  "id": "varulven",
+  "navn": "Varulven",
+  "undertittel": "Varulv",
+  "beskrivelse": "Gratis «Varulv» på norsk – uten spilleder. Mobilen går rundt og styrer natta. Varulver, synsk, lege og jeger for 6–18 spillere.",
+  "kort": "Noen i landsbyen er varulver. Mobilen er spillederen.",
+  "spillere": [6, 18],
+  "minutter": [15, 45],
+  "mobiler": "en",
+  "tagger": ["fest", "blof", "lag"],
+  "rekkefolge": 18
+}

@@ -355,6 +355,9 @@
   function oppdaterTopp() {
     const hjem = S.skjerm === "hjem";
     $("#tilbake").hidden = hjem;
+    // On rusj.no the home screen gets the same "‹ rusj" button as every other game.
+    const portal = $("#tilportal");
+    if (portal) portal.hidden = !(NETTSIDE && hjem);
     $("#topp-tittel").textContent = TITLER[S.skjerm] || "";
     $("#lydknapp").setAttribute("aria-pressed", S.lyd ? "true" : "false");
     $("#lydknapp").setAttribute("aria-label", S.lyd ? "Skru av lyd" : "Skru på lyd");

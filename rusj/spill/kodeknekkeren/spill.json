@@ -1,0 +1,14 @@
+{
+  "id": "kodeknekkeren",
+  "navn": "Kodeknekkeren",
+  "undertittel": "Kodeord i lag",
+  "beskrivelse": "Gratis kodeordspill på norsk for to lag. Kodemesteren gir ett ord og et tall – laget finner agentene sine på brettet og unngår fella.",
+  "kort": "Ett ord og et tall – finn agentene før de andre.",
+  "spillere": [4, 20],
+  "minutter": [15, 45],
+  "mobiler": "begge",
+  "tagger": ["lag", "ord", "fest", "familie"],
+  "rekkefolge": 9,
+  "ordbank": true,
+  "qr": true
+}

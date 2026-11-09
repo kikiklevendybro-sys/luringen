@@ -1,0 +1,240 @@
+{
+  "kortstokker": [
+    {
+      "id": "dyr",
+      "navn": "Dyr",
+      "ikon": "🦒",
+      "farge": "lampe",
+      "tekst": "Fra maur til blåhval",
+      "tips": "Lov å lage dyrelyder!",
+      "ord": [
+        "Sjiraff", "Elefant", "Løve", "Tiger", "Sebra", "Flodhest", "Neshorn", "Krokodille",
+        "Kenguru", "Koala", "Panda", "Gorilla", "Dovendyr", "Flaggermus", "Ugle", "Ørn",
+        "Papegøye", "Flamingo", "Struts", "Påfugl", "Pingvin", "Isbjørn", "Blåhval", "Delfin",
+        "Hai", "Blekksprut", "Manet", "Sjøstjerne", "Krabbe", "Hummer", "Skilpadde", "Frosk",
+        "Snegle", "Meitemark", "Sommerfugl", "Bie", "Maur", "Edderkopp", "Mygg", "Marihøne",
+        "Elg", "Rev", "Ulv", "Grevling", "Ekorn", "Pinnsvin", "Kanin", "Hamster",
+        "Esel", "Kamel", "Lama", "Sel", "Hvalross", "Bever", "Lemen", "Gaupe",
+        "Kameleon", "Gepard", "Vaskebjørn", "Stinkdyr", "Muldvarp", "Hakkespett", "Svane", "Måke",
+        "Nebbdyr", "Sjøhest", "Narhval", "Pelikan", "Gresshoppe", "Ku", "Gris", "Geit"
+      ]
+    },
+    {
+      "id": "mat",
+      "navn": "Mat",
+      "ikon": "🍕",
+      "farge": "oransje",
+      "tekst": "Middag, snacks og søtsaker",
+      "tips": "Tenk smak, farge og når man spiser det.",
+      "ord": [
+        "Pizza", "Taco", "Pannekaker", "Spagetti", "Lasagne", "Hamburger", "Pølse i brød", "Sushi",
+        "Iskrem", "Sjokolade", "Popcorn", "Potetgull", "Kjøttkaker", "Fiskeboller", "Risgrøt", "Havregrøt",
+        "Knekkebrød", "Leverpostei", "Kanelbolle", "Bløtkake", "Muffins", "Smultring", "Kebab", "Nachos",
+        "Pommes frites", "Ketchup", "Sennep", "Majones", "Smoothie", "Milkshake", "Kakao", "Brus",
+        "Speilegg", "Eggerøre", "Bacon", "Omelett", "Tomatsuppe", "Fiskesuppe", "Salat", "Ananas",
+        "Vannmelon", "Jordbær", "Sitron", "Avokado", "Brokkoli", "Rosenkål", "Tyggegummi", "Lakris",
+        "Marsipan", "Sukkerspinn", "Gulrotkake", "Fiskepinner", "Pytt i panne", "Burrito", "Croissant", "Rundstykke",
+        "Yoghurt", "Kokosnøtt", "Banan", "Hvitløk", "Chili", "Ostekake", "Kjeks", "Toast"
+      ]
+    },
+    {
+      "id": "yrker",
+      "navn": "Yrker",
+      "ikon": "👩‍🚒",
+      "farge": "rod",
+      "tekst": "Hva jobber du med?",
+      "tips": "Vis hva man gjør på jobben!",
+      "ord": [
+        "Politi", "Brannmann", "Lege", "Sykepleier", "Tannlege", "Frisør", "Kokk", "Baker",
+        "Bonde", "Fisker", "Pilot", "Astronaut", "Snekker", "Rørlegger", "Elektriker", "Maler",
+        "Lærer", "Rektor", "Bussjåfør", "Lokfører", "Kaptein", "Bibliotekar", "Veterinær", "Dyrepasser",
+        "Klovn", "Tryllekunstner", "Dommer", "Advokat", "Journalist", "Fotograf", "Skuespiller", "Dirigent",
+        "Gartner", "Arkitekt", "Forsker", "Kirurg", "Servitør", "Bilmekaniker", "Taxisjåfør", "Livvakt",
+        "Detektiv", "Prest", "Barnehagelærer", "Meteorolog", "Personlig trener", "Influenser", "DJ", "Kranfører",
+        "Søppeltømmer", "Vaktmester", "Badevakt", "Skorsteinsfeier", "Pizzabud", "Programmerer", "Fyrvokter", "Ambulansearbeider",
+        "Jordmor", "Konditor", "Smed", "Skredder", "Murer", "Parkeringsvakt", "Flygeleder", "Skiinstruktør",
+        "Forfatter", "Stuntmann", "Postbud", "Brøytebilsjåfør", "Tolk", "Ordfører"
+      ]
+    },
+    {
+      "id": "sport",
+      "navn": "Sport",
+      "ikon": "⚽",
+      "farge": "himmel",
+      "tekst": "Ball, ski og alt imellom",
+      "tips": "Mim bevegelsene – det hjelper!",
+      "ord": [
+        "Fotball", "Håndball", "Langrenn", "Skihopp", "Skiskyting", "Slalåm", "Snowboard", "Skøyter",
+        "Kunstløp", "Ishockey", "Curling", "Bandy", "Innebandy", "Tennis", "Bordtennis", "Badminton",
+        "Golf", "Minigolf", "Basketball", "Volleyball", "Svømming", "Stup", "Vannpolo", "Roing",
+        "Seiling", "Padling", "Surfing", "Klatring", "Sykling", "BMX", "Motocross", "Gokart",
+        "Ridning", "Boksing", "Bryting", "Sumobryting", "Judo", "Karate", "Fekting", "Bueskyting",
+        "Turn", "Friidrett", "Maraton", "Hekkeløp", "Stafett", "Høydehopp", "Lengdehopp", "Stavsprang",
+        "Spydkast", "Kulestøt", "Sleggekast", "Orientering", "Triatlon", "Vektløfting", "Yoga", "Sjakk",
+        "Dart", "Bowling", "Biljard", "Rugby", "Amerikansk fotball", "Baseball", "Cricket", "Padel",
+        "Squash", "Fallskjermhopping", "Strikkhopp", "Frisbeegolf", "Skateboard", "Hundekjøring", "Sekkeløp", "Tautrekking",
+        "Hinderløp", "E-sport"
+      ]
+    },
+    {
+      "id": "film",
+      "navn": "Filmfigurer",
+      "ikon": "🎬",
+      "farge": "rosa",
+      "tekst": "Helter, skurker og tegnefilm",
+      "tips": "Sitater, lyder og positurer er lov!",
+      "ord": [
+        "Mikke Mus", "Donald Duck", "Langbein", "Onkel Skrue", "Ole Brumm", "Nasse Nøff", "Tigergutt", "Kaptein Sabeltann",
+        "Pippi Langstrømpe", "Karius og Baktus", "Reodor Felgen", "Solan Gundersen", "Postmann Pat", "Pingu", "Peppa Gris", "Mummitrollet",
+        "Lille My", "Garfield", "Snoopy", "Pikachu", "Super Mario", "Sonic", "SvampeBob", "Shrek",
+        "Elsa", "Olaf", "Simba", "Nemo", "Dory", "Lynet McQueen", "Buzz Lightyear", "Woody",
+        "Wall-E", "Minion", "Stitch", "Vaiana", "Aladdin", "Ariel", "Harry Potter", "Hermine",
+        "Gandalf", "Gollum", "Darth Vader", "Yoda", "Chewbacca", "Batman", "Superman", "Spider-Man",
+        "Hulken", "Iron Man", "Pinocchio", "Peter Pan", "Kaptein Krok", "Tingeling", "Grinchen", "Rudolf",
+        "King Kong", "Godzilla", "E.T.", "Dracula", "Frankensteins monster", "Willy Wonka", "Mary Poppins", "James Bond",
+        "Sherlock Holmes", "Indiana Jones", "Jack Sparrow", "Tarzan", "Mowgli", "Baloo", "Dumbo", "Bambi",
+        "Kung Fu Panda", "Paddington", "Sauen Shaun", "Smurf", "Asterix", "Obelix", "Tintin", "Tom og Jerry",
+        "Snurre Sprett", "Scooby-Doo", "Homer Simpson", "Voldemort", "Humlesnurr", "Dobby", "Pumba", "Cruella de Vil"
+      ]
+    },
+    {
+      "id": "eventyr",
+      "navn": "Eventyr og fantasi",
+      "ikon": "🧚",
+      "farge": "lilla",
+      "tekst": "Troll, drager og trolldom",
+      "tips": "Fortell en bit av eventyret!",
+      "ord": [
+        "Troll", "Drage", "Enhjørning", "Havfrue", "Heks", "Trollmann", "Alv", "Dverg",
+        "Kjempe", "Spøkelse", "Vampyr", "Varulv", "Zombie", "Tannfeen", "Julenissen", "Påskeharen",
+        "Askeladden", "Bukkene Bruse", "Rødhette", "De tre små grisene", "Hans og Grete", "Pepperkakehuset", "Snøhvit", "Tornerose",
+        "Rapunzel", "Askepott", "Glassko", "Tryllestav", "Flygende teppe", "Ånden i lampen", "Skattekiste", "Slott",
+        "Prinsesse", "Ridder", "Sjørøver", "Kyklop", "Pegasus", "Føniks", "Nøkken", "Huldra",
+        "Fossegrimen", "Nisse", "Sfinks", "Mumie", "Usynlighetskappe", "Trylledrikk", "Krystallkule", "Heksekost",
+        "Forbannelse", "Tidsmaskin", "Romvesen", "Superhelt", "Superkraft", "Sjumilsstøvler", "Bønnestengel", "Prinsessen på erten",
+        "Keiserens nye klær", "Den stygge andungen", "Tommelise", "Snødronningen", "Soria Moria slott", "Kjerringa mot strømmen", "Mestertyven", "Gullegg"
+      ]
+    },
+    {
+      "id": "huset",
+      "navn": "Ting i huset",
+      "ikon": "🛋️",
+      "farge": "himmel",
+      "tekst": "Alt du finner hjemme",
+      "tips": "Hvor står den, og hva bruker man den til?",
+      "ord": [
+        "Støvsuger", "Robotstøvsuger", "Kjøleskap", "Brødrister", "Fjernkontroll", "Dusj", "Tannbørste", "Vaskemaskin",
+        "Oppvaskmaskin", "Mikrobølgeovn", "Komfyr", "Kaffetrakter", "Vannkoker", "Hårføner", "Speil", "Seng",
+        "Dyne", "Pute", "Sofa", "Lenestol", "Bokhylle", "Lyspære", "Stikkontakt", "Skjøteledning",
+        "Gardin", "Dørmatte", "Ringeklokke", "Postkasse", "Nøkkel", "Paraply", "Klesklype", "Strykejern",
+        "Kost", "Mopp", "Bøtte", "Søppelbøtte", "Toalett", "Dopapir", "Badekar", "Såpe",
+        "Håndkle", "Kam", "Tannkrem", "Vekkerklokke", "Kalender", "Stekepanne", "Kjele", "Potetskreller",
+        "Skjærefjøl", "Kjøkkenvekt", "Eggeklokke", "Kaffekopp", "Røykvarsler", "Brannslukker", "Sikringsskap", "Varmepumpe",
+        "Peis", "Ruter", "TV", "Spillkonsoll", "Kleshenger", "Symaskin", "Lommelykt", "Verktøykasse",
+        "Stige", "Persienne", "Badevekt", "Telys", "Hengekøye"
+      ]
+    },
+    {
+      "id": "steder",
+      "navn": "Steder",
+      "ikon": "🗺️",
+      "farge": "mynte",
+      "tekst": "Fra badeland til månen",
+      "tips": "Hva gjør man der, og hvem er der?",
+      "ord": [
+        "Flyplass", "Sykehus", "Bibliotek", "Badeland", "Fornøyelsespark", "Tannlegekontor", "Frisørsalong", "Bensinstasjon",
+        "Fyrtårn", "Ørken", "Jungel", "Månen", "Nordpolen", "Sydpolen", "Eiffeltårnet", "Pyramidene",
+        "Paris", "London", "New York", "Roma", "Venezia", "Kina", "Australia", "Amazonas",
+        "Mount Everest", "Sahara", "Hawaii", "Las Vegas", "Hollywood", "Den kinesiske mur", "Frihetsgudinnen", "Big Ben",
+        "Colosseum", "Det skjeve tårnet i Pisa", "Taj Mahal", "Grand Canyon", "Niagarafallene", "Stonehenge", "Akropolis", "Dyrepark",
+        "Kino", "Kirke", "Barnehage", "Fengsel", "Politistasjon", "Brannstasjon", "Togstasjon", "Bondegård",
+        "Campingplass", "Strand", "Svømmehall", "Treningssenter", "Kjøpesenter", "Supermarked", "Bakeri", "Restaurant",
+        "Hotell", "Museum", "Sirkus", "Stadion", "Skøytebane", "Alpinanlegg", "Romstasjon", "Akvarium",
+        "Vulkan", "Regnskog", "Grotte", "Øde øy", "Atlantis", "Bermudatriangelet", "Lekeplass",
+        "Loft", "Kjeller", "Badstue", "Venterom", "Bowlinghall"
+      ]
+    },
+    {
+      "id": "norge",
+      "navn": "Norge",
+      "ikon": "🇳🇴",
+      "farge": "rod",
+      "tekst": "Typisk norsk, på godt og vondt",
+      "tips": "Tenk 17. mai, hytta og matpakka.",
+      "ord": [
+        "Brunost", "Fårikål", "Lefse", "Rakfisk", "Lutefisk", "Pinnekjøtt", "Rømmegrøt", "Kransekake",
+        "Vafler", "Pølse i lompe", "Svele", "Skolebolle", "Tørrfisk", "Multebær", "Hurtigruta", "Nordlys",
+        "Midnattssol", "Mørketid", "Fjord", "Bunad", "17. mai", "Barnetog", "Russebuss", "Holmenkollen",
+        "Vikingskip", "Stavkirke", "Trollstigen", "Preikestolen", "Nordkapp", "Lofoten", "Hytte", "Utedo",
+        "Hyttebok", "Matpakke", "Termos", "Dugnad", "Janteloven", "Påskekrim", "Tacofredag", "Søndagstur",
+        "Allemannsretten", "Hardingfele", "Rosemaling", "Fjellvettreglene", "Lusekofte", "Topplue", "Ullundertøy", "Sparkstøtting",
+        "Rattkjelke", "Skismøring", "Ostehøvel", "Binders", "Bompenger", "Elbil", "Brøytestikk", "Snøskuffe",
+        "Seter", "Skrei", "Kaviar på tube", "Julebord", "Lille julaften", "Oljeplattform", "Bergensbanen", "Ferje",
+        "Stortinget", "Pepperkakebyen"
+      ]
+    },
+    {
+      "id": "folelser",
+      "navn": "Følelser",
+      "ikon": "🎭",
+      "farge": "lilla",
+      "tekst": "Spill det – uten å si det",
+      "tips": "Her spiller de andre følelsen med ansikt og kropp!",
+      "ord": [
+        "Glad", "Trist", "Sint", "Redd", "Sjalu", "Stolt", "Flau", "Nervøs",
+        "Forelsket", "Skuffet", "Lettet", "Overrasket", "Sur", "Gretten", "Sliten", "Irritert",
+        "Sulten", "Tørst", "Mett", "Forvirret", "Fornærmet", "Ensom", "Nysgjerrig", "Utålmodig",
+        "Rastløs", "Modig", "Sjenert", "Stresset", "Avslappet", "Rørt", "Bekymret", "Skeptisk",
+        "Misunnelig", "Takknemlig", "Oppspilt", "Kilen", "Kvalm", "Svimmel", "Fnisete", "Bortskjemt",
+        "Uskyldig", "Skyldig", "Mistenksom", "Andpusten", "Kjeder seg", "Hjemlengsel", "Sommerfugler i magen", "Gåsehud",
+        "Hikke", "Stiv av skrekk", "Rasende", "Trassig", "Snurt", "Imponert", "Sjokkert", "Fortvilet",
+        "Håpefull", "Selvsikker", "Usikker", "Hemmelighetsfull", "Lat", "Rampete", "Sjøsyk", "Høydeskrekk",
+        "Iskald", "Svett", "Forkjølet", "Søtsugen"
+      ]
+    },
+    {
+      "id": "barn",
+      "navn": "Barn",
+      "ikon": "🧸",
+      "farge": "lampe",
+      "tekst": "For de minste",
+      "tips": "Gi masse hint – og vær tålmodige!",
+      "ord": [
+        "Ball", "Bil", "Sol", "Måne", "Hus", "Ispinne", "Kake", "Bursdag",
+        "Ballong", "Sokker", "Lue", "Votter", "Snømann", "Snøball", "Sandkasse", "Sandslott",
+        "Huske", "Sklie", "Trampoline", "Hoppetau", "Tog", "Båt", "Fly", "Traktor",
+        "Brannbil", "Bamse", "Dukke", "Klosser", "Puslespill", "Fargeblyanter", "Saks", "Bok",
+        "Såpebobler", "Regnbue", "Gummistøvler", "Sparkesykkel", "Sykkel", "Eple", "Gulrot", "Melk",
+        "Kattunge", "Valp", "Kylling", "Lam", "Kalv", "Føll", "Dinosaur", "Rakett",
+        "Robot", "Akebrett", "Tegning", "Plaster", "Smokk", "Bleie", "Barnevogn", "Sugerør",
+        "Hoppeslott", "Karusell", "Badeball", "Bøtte og spade", "Gave", "Lørdagsgodt", "Pyjamas", "Telt",
+        "Bål", "Pinnebrød", "Stjerne", "Hjerte", "Krone", "Tromme", "Gitar", "Blokkfløyte"
+      ]
+    },
+    {
+      "id": "kaos",
+      "navn": "Kaos",
+      "ikon": "🌪️",
+      "farge": "rosa",
+      "tekst": "Helt sprø situasjoner",
+      "tips": "Gjett hele greia – bit for bit!",
+      "ord": [
+        "Elg i heis", "Bestemor på skateboard", "Viking på sparkesykkel", "Sjørøver med sjøsyke",
+        "Dinosaur på ballett", "Snømann i badstue", "Hai med tannpine", "Spøkelse som er mørkredd",
+        "Ku på skøyter", "Pingvin på ski", "Isbjørn i Syden", "Julenissen i juli",
+        "Troll hos tannlegen", "Superhelt med forkjølelse", "Robot som danser disko", "Kenguru på trampoline",
+        "Rektor på rulleskøyter", "Zombie på yoga", "Hund som spiller piano", "Katt som tar selfie",
+        "Vampyr på stranda", "Heks med flyskrekk", "Gris i smoking", "Drage med hikke",
+        "Bjørn i badebukse", "Pirat med GPS", "Bonde på månen", "Elefant i glassmagasinet",
+        "Mamma på rockekonsert", "Pappa som rapper", "Sau på catwalk",
+        "Krokodille i badekaret", "Bestefar i hoppbakken", "Ninja i barnehagen", "Ugle på nattskift",
+        "Vaffel med ketchup", "Pizza med banan", "Taco til frokost", "Sokker i sandaler",
+        "Hund med solbriller", "Fisk på sykkel", "Ape med mobil", "Snegle med turbo",
+        "Maur med muskler", "Lærer med vannpistol", "Romvesen på bussen", "Tante på trommer",
+        "Gorilla i bryllup", "Mumie på solarium", "Varulv hos frisøren", "Astronaut som har glemt nøklene",
+        "Prinsesse i gjørma", "Trollmann som har glemt passordet", "Konge i kø", "Tiger i tutu",
+        "Ballerina i gummistøvler", "Kamel i snøstorm", "Pingvin på safari"
+      ]
+    }
+  ]
+}

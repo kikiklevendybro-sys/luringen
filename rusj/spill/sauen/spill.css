@@ -1,0 +1,678 @@
+/* Sauen: the flock of answers, the reveal, the black sheep badge and the scoreboard.
+   All classes start with sau-. */
+
+/* ---------- Home: a white sheep and its black friend ---------- */
+
+.sau-duo {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-left: 30px;
+}
+
+.spillhjem .sau-duo .figur-ramme {
+  width: min(40vw, 164px);
+}
+
+.spillhjem .sau-duo .sau-svart {
+  width: min(21vw, 84px);
+  margin-left: -26px;
+  animation-delay: -2.2s;
+  animation-duration: 3.6s;
+  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.45));
+}
+
+/* ---------- The black sheep badge on an avatar ---------- */
+
+.sau-ramme {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+}
+
+.sau-merke {
+  position: absolute;
+  right: -9px;
+  bottom: -7px;
+  width: 26px;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+  animation: sau-merke-inn 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+@keyframes sau-merke-inn {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.4) rotate(-30deg);
+  }
+}
+
+.sau-merke.mid {
+  right: -10px;
+  bottom: -8px;
+  width: 32px;
+}
+
+.sau-merke.stor {
+  position: static;
+  width: 64px;
+}
+
+/* ---------- Question ---------- */
+
+.sau-kort {
+  --kf: var(--papir);
+  --kf-dyp: var(--papir-2);
+  min-height: min(44vh, 360px);
+}
+
+.sau-kort .storkort-tekst {
+  font-size: clamp(1.9rem, 8.4vw, 2.6rem);
+}
+
+.sau-kort .storkort-tekst.lang {
+  font-size: clamp(1.55rem, 6.8vw, 2.1rem);
+}
+
+.sau-kort .storkort-fot em {
+  font-style: normal;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.sau-holder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.25 var(--font-display);
+}
+
+.sau-holder b {
+  color: var(--tekst);
+  overflow-wrap: anywhere;
+}
+
+.sau-minne {
+  padding: 12px 16px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 1.25rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.sau-minne.liten {
+  align-self: center;
+  max-width: 100%;
+  padding: 8px 14px;
+  border-radius: 14px;
+  box-shadow: 0 3px 0 var(--papir-2);
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* ---------- Writing an answer ---------- */
+
+.sau-skriv {
+  display: grid;
+  gap: 12px;
+}
+
+.sau-skriv-hode {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.sau-skriv-hode h1 {
+  display: grid;
+  min-width: 0;
+  font-size: clamp(1.7rem, 7.5vw, 2.1rem);
+}
+
+.sau-skriv-hode h1 small {
+  overflow: hidden;
+  color: var(--tekst-2);
+  font: 800 1rem/1.3 var(--font-display);
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sau-felt {
+  min-height: 68px;
+  font-size: 1.45rem;
+  text-align: center;
+  scroll-margin: 90px 0 140px;
+}
+
+.sau-felt[aria-invalid="true"] {
+  border-color: var(--rosa);
+}
+
+.sau-skriv .feil:empty {
+  min-height: 0;
+}
+
+/* ---------- The reveal and merging ---------- */
+
+.sau-avslor-hode {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+}
+
+.sau-tips {
+  min-height: 1.3em;
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+/* Before the first group: the sheep waits */
+.sau-venter {
+  display: grid;
+  flex: 1;
+  place-items: center;
+}
+
+.sau-venter .figur-ramme {
+  width: min(42vw, 170px);
+  animation: sveve 4.5s ease-in-out infinite;
+}
+
+/* ---------- The reveal ---------- */
+
+.sau-avslorte {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 6px 0 0;
+  list-style: none;
+}
+
+.sau-gruppe {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 16px 16px 14px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  transition: opacity 0.3s;
+}
+
+.sau-gruppe.spot {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.55), transparent 55%),
+    var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2), 0 18px 30px var(--skygge);
+  color: var(--blekk);
+}
+
+.sau-gruppe.inn {
+  animation: sau-avslor 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+@keyframes sau-avslor {
+  from {
+    opacity: 0;
+    transform: rotateX(70deg) translateY(-20px);
+  }
+}
+
+.sau-gruppe.flokk {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(255, 255, 255, 0.45), transparent 55%),
+    var(--mynte);
+  box-shadow: 0 6px 0 var(--mynte-dyp), 0 18px 30px var(--skygge);
+  color: var(--blekk);
+}
+
+.sau-gruppe.uavgjort {
+  box-shadow: inset 0 0 0 3px var(--lampe);
+}
+
+.sau-gruppe-topp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sau-gruppe-svar {
+  min-width: 0;
+  font: 900 1.45rem/1.12 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.sau-gruppe.spot .sau-gruppe-svar,
+.sau-gruppe.flokk .sau-gruppe-svar {
+  font-size: 1.75rem;
+}
+
+.sau-gruppe-antall {
+  display: grid;
+  flex: none;
+  place-items: center;
+  min-width: 46px;
+  height: 46px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  color: var(--tekst);
+  font: 900 1.4rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sau-gruppe.spot .sau-gruppe-antall,
+.sau-gruppe.flokk .sau-gruppe-antall {
+  background: var(--blekk);
+  color: var(--papir);
+}
+
+.sau-varianter {
+  display: block;
+  margin-top: -6px;
+  font: 700 0.88rem/1.3 var(--font-tekst);
+  opacity: 0.7;
+  overflow-wrap: anywhere;
+}
+
+.sau-gruppe-hvem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sau-hvem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 10px 3px 3px;
+  border-radius: 999px;
+  background: rgba(255, 241, 221, 0.08);
+  font: 700 0.88rem/1.1 var(--font-tekst);
+}
+
+.sau-gruppe.spot .sau-hvem,
+.sau-gruppe.flokk .sau-hvem {
+  background: rgba(23, 14, 43, 0.08);
+}
+
+.sau-hvem .avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 0.85rem;
+}
+
+.sau-hvem > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sau-gruppe-stempel {
+  position: absolute;
+  top: -12px;
+  right: 14px;
+  padding: 4px 12px;
+  border: 4px solid var(--blekk);
+  border-radius: 10px;
+  background: var(--mynte);
+  color: var(--blekk);
+  font: 900 1rem/1 var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: rotate(6deg);
+  animation: slag 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) 0.15s both;
+}
+
+.sau-gruppe-stempel.lampe {
+  background: var(--lampe);
+}
+
+.sau-gruppe-alene {
+  flex: none;
+  margin-left: auto;
+  color: var(--tekst-3);
+  font: 800 0.75rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sau-gruppe.svart {
+  background: linear-gradient(160deg, #3b3054, var(--natt-2));
+  box-shadow: inset 0 0 0 2px #5b4d7a;
+}
+
+.sau-gruppe-svartsau {
+  position: absolute;
+  top: -14px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 800 0.75rem/1 var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  animation: slag 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) 0.15s both;
+}
+
+.sau-gruppe-svartsau .figur-ramme {
+  width: 26px;
+}
+
+.sau-gruppe.svart .sau-gruppe-antall {
+  background: var(--blekk);
+}
+
+/* Merging: the whole card is a button (an invisible layer on top), ✂ splits a merged group */
+.sau-gruppeknapp {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.sau-gruppe:has(.sau-gruppeknapp:active) {
+  transform: scale(0.98);
+}
+
+.sau-gruppe.valgt {
+  box-shadow: 0 0 0 4px var(--natt), 0 0 0 7px var(--lampe), 0 14px 26px var(--skygge);
+  transform: translateY(-3px) rotate(-0.8deg);
+  animation: sau-vrikk 0.9s ease-in-out infinite;
+}
+
+@keyframes sau-vrikk {
+  50% {
+    transform: translateY(-5px) rotate(0.8deg);
+  }
+}
+
+.sau-gruppe.puls {
+  animation: sau-puls 0.55s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes sau-puls {
+  0% {
+    transform: scale(0.9);
+  }
+  60% {
+    transform: scale(1.04);
+  }
+}
+
+.sau-gruppe.kan-deles .sau-gruppe-hvem {
+  padding-right: 52px;
+}
+
+.sau-del {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 900 1.1rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.sau-gruppe.flokk .sau-del,
+.sau-gruppe.spot .sau-del {
+  background: var(--blekk);
+  box-shadow: none;
+  color: var(--papir);
+}
+
+.sau-del:active {
+  transform: scale(0.92);
+}
+
+/* ---------- Round result ---------- */
+
+.skjerm-poeng .banner {
+  padding-top: 14px;
+}
+
+.skjerm-poeng .banner h1 {
+  overflow-wrap: anywhere;
+}
+
+.sau-nyhet {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.sau-nyhet.ny {
+  background: linear-gradient(150deg, #3b3054, var(--natt-2) 70%);
+  box-shadow: inset 0 0 0 2px #6b5c8f;
+  animation: sau-nyhet-inn 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) 0.2s both;
+}
+
+@keyframes sau-nyhet-inn {
+  from {
+    opacity: 0;
+    transform: scale(0.85) rotate(-2deg);
+  }
+}
+
+.sau-nyhet .sau-merke {
+  flex: none;
+  animation: sau-hoppe 1.6s ease-in-out infinite;
+}
+
+@keyframes sau-hoppe {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-8px) rotate(-6deg);
+  }
+}
+
+.sau-nyhet p {
+  color: var(--tekst-2);
+  font: 700 1rem/1.35 var(--font-display);
+}
+
+.sau-nyhet p b {
+  color: var(--tekst);
+}
+
+.sau-nyhet .etikett {
+  margin-bottom: 2px;
+  color: var(--tekst-3);
+}
+
+/* ---------- Scoreboard ---------- */
+
+.sau-tavle {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sau-tavle li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 8px 16px 8px 8px;
+  border-radius: 999px;
+  background: var(--natt-2);
+}
+
+.sau-tavle li.leder {
+  background: color-mix(in srgb, var(--aksent) 14%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 60%, transparent);
+}
+
+.sau-tavle li.har-sau {
+  background: linear-gradient(90deg, #3b3054, var(--natt-2) 80%);
+}
+
+.sau-tavle .avatar {
+  width: 44px;
+  height: 44px;
+  font-size: 1.35rem;
+}
+
+.sau-tavle-navn {
+  display: grid;
+  flex: 1;
+  gap: 5px;
+  min-width: 0;
+}
+
+.sau-tavle-navn b {
+  overflow: hidden;
+  font: 800 1rem/1.15 var(--font-tekst);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sau-pips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sau-pips i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.sau-pips i.fylt {
+  background: var(--aksent);
+  box-shadow: none;
+}
+
+.sau-tavle-linje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.sau-tavle .pluss {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--mynte);
+  color: var(--blekk);
+  font: 900 0.85rem/1.2 var(--font-display);
+  animation: slag 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) 0.3s both;
+}
+
+.sau-tavle .sum {
+  min-width: 2ch;
+  font: 900 1.45rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ---------- Winner ---------- */
+
+.sau-titler {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sau-titler li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.sau-titler li > span {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.sau-titler div {
+  display: grid;
+  min-width: 0;
+}
+
+.sau-titler small {
+  color: var(--tekst-3);
+  font: 800 0.72rem/1.3 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sau-titler b {
+  overflow: hidden;
+  font: 900 1.12rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sau-titler div span {
+  color: var(--tekst-2);
+  font-size: 0.88rem;
+}
+
+.skjerm-vinner .banner h1 {
+  overflow-wrap: anywhere;
+}
+
+/* Short screens: smaller sheep, so the question and the buttons fit above the dock. */
+@media (max-height: 700px) {
+  .spillhjem .sau-duo .figur-ramme {
+    width: 116px;
+  }
+
+  .spillhjem .sau-duo .sau-svart {
+    width: 62px;
+    margin-left: -18px;
+  }
+
+  .sau-venter .figur-ramme {
+    width: 110px;
+  }
+}

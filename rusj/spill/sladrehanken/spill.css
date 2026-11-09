@@ -1,0 +1,386 @@
+/* Sladrehanken: «Jeg har aldri …» cards, players with five hearts, knock-out and crowning. */
+
+/* ---------- The card ---------- */
+/* The card grows into the free space above the dock (up to a point). */
+html[data-spill="sladrehanken"] .skjerm-kort > .bunke:not(.kompakt) {
+  flex: 1 1 auto;
+  max-height: 620px;
+}
+
+.storkort.sladre .storkort-tekst .prefiks {
+  display: block;
+  margin-bottom: 12px;
+  font: 800 1.05rem/1.25 var(--font-display);
+  letter-spacing: 0;
+  opacity: 0.6;
+}
+
+.storkort.sladre .storkort-tekst,
+.storkort.sladre .storkort-tekst.lang {
+  font-size: clamp(1.55rem, 7.4vw, 2.2rem);
+  line-height: 1.14;
+}
+
+.storkort.sladre.sladre-kort .storkort-tekst {
+  font-size: clamp(1.85rem, 9vw, 2.65rem);
+  line-height: 1.08;
+}
+
+.storkort.sladre.sladre-lang .storkort-tekst {
+  font-size: clamp(1.35rem, 6.2vw, 1.8rem);
+  line-height: 1.18;
+}
+
+.bunke.kompakt .storkort.sladre .storkort-tekst,
+.bunke.kompakt .storkort.sladre.sladre-kort .storkort-tekst,
+.bunke.kompakt .storkort.sladre.sladre-lang .storkort-tekst {
+  font-size: clamp(1.15rem, 5vw, 1.4rem);
+  line-height: 1.2;
+}
+
+.bunke.kompakt .storkort.sladre .prefiks {
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.sladre-hint {
+  padding-inline: 8px;
+  text-wrap: balance;
+  color: var(--tekst-2);
+  font: 800 0.98rem/1.35 var(--font-display);
+  text-align: center;
+}
+
+/* ---------- Hearts ---------- */
+.sladre-hjerter {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.sladre-hjerter i {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.sladre-hjerter svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: var(--rosa);
+  stroke: var(--rosa-dyp);
+  stroke-width: 1.5;
+}
+
+.sladre-hjerter i.tomt svg {
+  fill: none;
+  stroke: var(--strek);
+  stroke-width: 2.2;
+}
+
+.sladre-hjerter i.truet svg {
+  animation: sladre-dunk 0.9s ease-in-out infinite;
+  transform-origin: 50% 60%;
+}
+
+.sladre-hjerter i.knekk svg {
+  animation: sladre-knekk 0.8s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  transform-origin: 50% 60%;
+}
+
+@keyframes sladre-dunk {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes sladre-knekk {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.7) rotate(-12deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.2) rotate(30deg) translateY(10px);
+  }
+}
+
+/* ---------- Who has done it? ---------- */
+.sladre-velg {
+  gap: 10px;
+}
+
+.sladre-hjelp {
+  margin-top: -4px;
+  color: var(--tekst-2);
+}
+
+.sladre-spillere {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sladre-spillere.bred {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.sladre-spiller {
+  position: relative;
+  display: grid;
+  grid-template-areas: "avatar navn" "hjerter hjerter";
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 8px;
+  min-width: 0;
+  min-height: 72px;
+  padding: 10px 10px 12px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.12s, background 0.15s;
+}
+
+.sladre-spiller .avatar {
+  grid-area: avatar;
+  width: 44px;
+  height: 44px;
+  font-size: 1.4rem;
+}
+
+.sladre-spiller-navn {
+  display: -webkit-box;
+  grid-area: navn;
+  min-width: 0;
+  overflow: hidden;
+  font: 900 1rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.sladre-spiller .sladre-hjerter {
+  grid-area: hjerter;
+  justify-self: start;
+}
+
+.sladre-spillere.bred .sladre-spiller {
+  grid-template-areas: "avatar navn hjerter";
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 66px;
+  padding: 8px 14px 8px 8px;
+}
+
+.sladre-spillere.bred .sladre-spiller .avatar {
+  width: 50px;
+  height: 50px;
+  font-size: 1.55rem;
+}
+
+.sladre-spillere.bred .sladre-spiller-navn {
+  font-size: 1.12rem;
+}
+
+.sladre-spillere.bred .sladre-hjerter i {
+  width: 18px;
+  height: 18px;
+}
+
+.sladre-spiller:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Selected = exposed: an orange outline and a ✋ badge, so the avatar stays visible. */
+.sladre-spiller[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--aksent) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 3px var(--aksent), 0 4px 0 var(--aksent-dyp);
+}
+
+.sladre-spiller[aria-pressed="true"] .sladre-spiller-navn {
+  color: var(--aksent);
+}
+
+.sladre-spiller[aria-pressed="true"]::after {
+  content: "✋";
+  position: absolute;
+  top: -8px;
+  left: 38px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--aksent);
+  box-shadow: 0 0 0 3px var(--natt);
+  font-size: 1.05rem;
+  line-height: 1;
+  animation: sladre-vink 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes sladre-vink {
+  from {
+    opacity: 0;
+    transform: translateY(8px) rotate(-30deg) scale(0.4);
+  }
+}
+
+.sladre-spiller:disabled {
+  cursor: default;
+}
+
+.sladre-ute-rad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  color: var(--tekst-3);
+  font-size: 0.9rem;
+}
+
+.sladre-ute-navn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  text-decoration: line-through;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sladre-ute-navn .avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 0.85rem;
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+/* ---------- Knocked out ---------- */
+.sladre-delt h1 {
+  font-size: clamp(1.7rem, 7.6vw, 2.2rem);
+}
+
+.sladre-ute .stempel-sted {
+  min-height: 70px;
+}
+
+.sladre-ute-figurer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.sladre-ute h1 {
+  overflow-wrap: anywhere;
+}
+
+.sladre-stilling {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sladre-stilling li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  border-radius: 999px;
+  background: var(--natt-2);
+}
+
+.sladre-stilling-navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Titles and results ---------- */
+.sladre-tittel {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.sladre-tittel-ikon {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.sladre-tittel-navn {
+  font: 900 1.4rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.sladre-tittel p:last-child {
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+.sladre-topp {
+  gap: 6px;
+}
+
+.sladre-topp-tekst {
+  font: 900 1.2rem/1.25 var(--font-display);
+}
+
+.sladre-topp p:last-child {
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+.sladre-rang .sladre-hjerter i {
+  width: 13px;
+  height: 13px;
+}
+
+.sladre-ute-merke {
+  flex: none;
+  color: var(--tekst-3);
+  font: 800 0.82rem/1 var(--font-display);
+}
+
+.sladre-velg .seksjon-hode .tall {
+  white-space: nowrap;
+}
+
+@media (max-height: 640px) {
+  html[data-spill="sladrehanken"] .skjerm-kort > .bunke:not(.kompakt) {
+    min-height: 240px;
+  }
+}
+
+/* One column on very narrow phones, with the hearts to the right of the name. */
+@media (max-width: 359px) {
+  .sladre-velg h2 {
+    font-size: 1.25rem;
+  }
+
+  .sladre-spillere {
+    grid-template-columns: 1fr;
+  }
+
+  .sladre-spiller {
+    grid-template-areas: "avatar navn hjerter";
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-height: 62px;
+    padding: 8px 12px 8px 8px;
+  }
+}

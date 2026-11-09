@@ -1,0 +1,1269 @@
+/* Kunstneren: the drawing sheet, tools, results and the replay gallery. */
+
+/* ---------- Drawing screens fill the screen exactly (no scroll, no pull-to-refresh) ---------- */
+
+html.kunst-lerretside {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.kunst-lerretside body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.kunst-lerretside .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.kunst-lerretside main,
+html.kunst-lerretside .skjerm {
+  min-height: 0;
+}
+
+/* The sheet must stand still from the first touch: no slide-in on drawing screens. */
+html.kunst-lerretside .skjerm.inn {
+  animation: none;
+}
+
+.kunst-fast {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  /* Taps still work; the browser just never scrolls or zooms here. */
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.kunst-fast .dokk {
+  padding-top: 6px;
+  background: none;
+}
+
+.kunst-dokkrad {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+}
+
+.kunst-dokkrad .knapp-2 {
+  min-height: 64px;
+}
+
+.kunst-dokkrad.lik {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* ---------- Top row: clock, pause, who draws, peek ---------- */
+
+.kunst-topp {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+}
+
+.kunst-topp .timer {
+  display: block;
+  flex: none;
+  padding: 0;
+  background: none;
+}
+
+.kunst-topp .timer-ring {
+  width: 54px;
+  height: 54px;
+}
+
+.kunst-topp .timer-ring circle {
+  stroke-width: 13;
+}
+
+.kunst-topp .timer-tid {
+  font-size: 0.92rem;
+  letter-spacing: -0.02em;
+}
+
+.kunst-topp .timer.pause .timer-tid {
+  color: var(--tekst-3);
+}
+
+/* The clock is also the pause button */
+.kunst-klokke {
+  position: relative;
+  border: 0;
+  border-radius: 50%;
+  color: inherit;
+  cursor: pointer;
+}
+
+.kunst-klokke:disabled {
+  cursor: default;
+}
+
+.kunst-klokke-merke {
+  position: absolute;
+  right: -6px;
+  bottom: -5px;
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: var(--natt-3);
+  box-shadow: 0 0 0 2.5px var(--natt);
+  color: var(--tekst);
+}
+
+.kunst-klokke-merke svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3.4;
+  stroke-linecap: round;
+}
+
+.kunst-klokke:disabled .kunst-klokke-merke {
+  display: none;
+}
+
+.kunst-bytt {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 58px;
+  min-height: 56px;
+  padding: 6px 4px;
+  border: 2px solid var(--strek);
+  border-radius: 16px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 800 0.8rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.kunst-bytt svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.kunst-titt svg,
+.kunst-handling svg,
+.kunst-visk svg,
+.kunst-spillav svg,
+.kunst-spill-ikon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.kunst-spillav svg .fylt,
+.kunst-spill-ikon svg .fylt {
+  fill: currentColor;
+  stroke: none;
+}
+
+.kunst-hvem {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.kunst-hvem > span {
+  display: grid;
+  min-width: 0;
+}
+
+.kunst-hvem small {
+  color: var(--tekst-3);
+  font: 800 0.72rem/1.2 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* The drawer's name: up to two lines, then «…» (fixed for the whole turn, so nothing jumps). */
+.kunst-hvem b {
+  display: -webkit-box;
+  overflow: hidden;
+  font: 900 1.05rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.kunst-titt {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 14px 6px 10px;
+  border: 2px solid var(--strek);
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 800 0.95rem/1 var(--font-display);
+  cursor: pointer;
+  -webkit-touch-callout: none;
+  touch-action: none;
+}
+
+.kunst-titt[aria-pressed="true"] {
+  border-color: var(--aksent);
+  background: var(--aksent);
+  color: var(--blekk);
+}
+
+.kunst-titt-boble {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 8;
+  display: grid;
+  gap: 2px;
+  max-width: min(64%, 240px);
+  padding: 7px 12px 8px;
+  border-radius: 12px;
+  background: var(--blekk);
+  box-shadow: 0 0 0 2px var(--aksent), 0 10px 24px var(--skygge);
+  color: var(--papir);
+  text-align: right;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.kunst-titt-boble small {
+  color: var(--tekst-3);
+  font: 700 0.68rem/1.2 var(--font-tekst);
+}
+
+.kunst-titt-boble b {
+  font: 900 1rem/1.15 var(--font-display);
+}
+
+/* Hviskeleken: what to draw, on a paper note */
+.kunst-oppgave {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 14px 9px;
+  border-radius: 16px;
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+}
+
+.kunst-oppgave .etikett {
+  color: var(--blekk-2);
+  font-size: 0.7rem;
+}
+
+.kunst-oppgave h1 {
+  font-size: clamp(1.3rem, 6.4vw, 1.75rem);
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.kunst-oppgave h1.lang {
+  font-size: clamp(1.15rem, 5.4vw, 1.45rem);
+}
+
+.kunst-oppgave h1.ekstra-lang {
+  font-size: clamp(1rem, 4.6vw, 1.25rem);
+}
+
+.kunst-tidhint {
+  margin-top: 2px;
+  color: var(--blekk-2);
+  font: 700 0.78rem/1.2 var(--font-tekst);
+}
+
+/* ---------- The sheet ---------- */
+
+.kunst-flate {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 120px;
+}
+
+.kunst-ark {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fff1dd;
+  box-shadow: 0 6px 0 var(--papir-2), 0 18px 34px var(--skygge);
+}
+
+.kunst-ark.levende {
+  position: absolute;
+}
+
+.kunst-ark canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.kunst-ark .kunst-lerret {
+  touch-action: none;
+  cursor: crosshair;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.kunst-ark .kunst-hale {
+  pointer-events: none;
+}
+
+.kunst-ark[data-ark] {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+}
+
+.kunst-ark.spiller {
+  box-shadow: 0 6px 0 var(--papir-2), 0 0 0 3px var(--aksent), 0 18px 34px var(--skygge);
+}
+
+.kunst-ark.mini {
+  border-radius: 12px;
+  box-shadow: 0 4px 0 var(--papir-2), 0 10px 22px var(--skygge);
+}
+
+/* A quiet hint on an empty sheet; gone at the first touch */
+.kunst-tegnher {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: rgba(23, 14, 43, 0.26);
+  font: 900 clamp(1.3rem, 6vw, 1.7rem) / 1 var(--font-display);
+  pointer-events: none;
+}
+
+/* Pause and time-up veil over the sheet */
+.kunst-slor {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 20px;
+  background: rgba(21, 12, 40, 0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  color: var(--papir);
+  text-align: center;
+}
+
+.kunst-slor .etikett {
+  color: var(--papir);
+  font-size: 1rem;
+}
+
+.kunst-slor .knapp {
+  width: auto;
+  padding-inline: 32px;
+}
+
+.kunst-slor.ute {
+  align-content: space-between;
+  padding: 26px 16px 18px;
+  background: rgba(255, 241, 221, 0.18);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.kunst-slor.ute .stempel {
+  background: rgba(255, 241, 221, 0.92);
+  font-size: clamp(1.7rem, 8vw, 2.3rem);
+}
+
+.kunst-slor.ute p {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 800 0.92rem/1.2 var(--font-display);
+}
+
+/* ---------- Tools ---------- */
+
+.kunst-verktoy {
+  --kunst-farge: #21173a;
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: 500px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+}
+
+.kunst-verktoy:disabled {
+  opacity: 0.4;
+}
+
+.kunst-palett {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 2px;
+}
+
+.kunst-farge,
+.kunst-visk {
+  display: grid;
+  flex: 0 1 44px;
+  place-items: center;
+  min-width: 30px;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.kunst-farge {
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.38), transparent 42%), var(--f);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(255, 241, 221, 0.28);
+}
+
+.kunst-visk {
+  background: var(--papir);
+  box-shadow: inset 0 -4px 0 var(--papir-2), 0 0 0 2px rgba(255, 241, 221, 0.28);
+  color: var(--blekk);
+}
+
+.kunst-visk svg {
+  width: 60%;
+  height: 60%;
+}
+
+.kunst-farge[aria-pressed="true"],
+.kunst-visk[aria-pressed="true"] {
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.2), 0 0 0 3px var(--natt), 0 0 0 6px var(--papir);
+  transform: translateY(-2px) scale(1.06);
+}
+
+.kunst-rad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kunst-luft {
+  flex: 1;
+}
+
+.kunst-str {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 46px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--papir);
+  box-shadow: inset 0 -3px 0 var(--papir-2);
+  cursor: pointer;
+}
+
+.kunst-str i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--kunst-farge);
+  box-shadow: 0 0 0 1.5px rgba(23, 14, 43, 0.35);
+}
+
+.kunst-str.tykk i {
+  width: 19px;
+  height: 19px;
+}
+
+.kunst-str[aria-pressed="true"] {
+  box-shadow: inset 0 -3px 0 var(--papir-2), 0 0 0 3px var(--natt), 0 0 0 6px var(--aksent);
+}
+
+.kunst-handling {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 12px;
+  border: 2px solid var(--strek);
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 800 0.92rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.kunst-handling:active:not(:disabled),
+.kunst-bytt:active,
+.kunst-str:active,
+.kunst-titt:active {
+  transform: scale(0.94);
+}
+
+.kunst-handling:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (max-width: 370px) {
+  .kunst-handling span {
+    display: none;
+  }
+
+  .kunst-handling {
+    padding: 0 10px;
+  }
+
+  .kunst-titt span {
+    display: none;
+  }
+
+  .kunst-titt {
+    padding: 6px 10px;
+  }
+}
+
+@media (max-height: 700px) {
+  .kunst-fast {
+    gap: 8px;
+  }
+
+  .kunst-topp {
+    min-height: 46px;
+  }
+
+  .kunst-topp .timer-ring {
+    width: 46px;
+    height: 46px;
+  }
+
+  .kunst-topp .timer-tid {
+    font-size: 0.8rem;
+  }
+
+  .kunst-str,
+  .kunst-handling,
+  .kunst-titt {
+    height: 40px;
+    min-height: 40px;
+  }
+
+  .kunst-farge,
+  .kunst-visk {
+    flex-basis: 40px;
+  }
+
+  .kunst-fast .knapp,
+  .kunst-dokkrad .knapp-2 {
+    min-height: 56px;
+  }
+}
+
+/* Phones on their side, tablets and laptops: the sheet on the left, everything else on the
+   right, so the sheet gets the full height. */
+@media (orientation: landscape) and (max-height: 560px), (orientation: landscape) and (min-width: 900px) {
+  html.kunst-lerretside .app {
+    max-width: 1000px;
+  }
+
+  .kunst-fast {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 320px);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    column-gap: 16px;
+    row-gap: 8px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .kunst-palett {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .kunst-farge,
+  .kunst-visk {
+    flex: 0 0 36px;
+  }
+
+  .kunst-handling span {
+    display: none;
+  }
+
+  .kunst-handling {
+    padding: 0 10px;
+  }
+
+  .kunst-fast > .kunst-flate {
+    grid-row: 1 / 4;
+    grid-column: 1;
+    min-height: 0;
+  }
+
+  .kunst-fast > .kunst-topp {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .kunst-fast > .kunst-verktoy {
+    grid-row: 2;
+    grid-column: 2;
+    align-self: center;
+  }
+
+  .kunst-fast > .dokk {
+    grid-row: 3;
+    grid-column: 2;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* ---------- Tegn og gjett: hand over, who guessed, result ---------- */
+
+.kunst-gi {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.kunst-gi > div {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.kunst-gi h1 {
+  overflow-wrap: anywhere;
+}
+
+/* Short phones: the whole hold-card fits above the dock. */
+@media (max-height: 640px) {
+  .kunst-gi .avatar.stor {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+
+  .kunst-gi h1 {
+    font-size: 1.6rem;
+  }
+
+  .skjerm-ord .mappe {
+    height: 230px;
+    min-height: 210px;
+  }
+
+  .skjerm-ord .mappe-forside .figur-ramme {
+    display: none;
+  }
+}
+
+.kunst-hvem-topp {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.kunst-hvem-topp .etikett {
+  color: var(--mynte);
+}
+
+.kunst-resultat {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding-top: 4px;
+}
+
+.kunst-innramming {
+  position: relative;
+}
+
+.kunst-innramming .stempel {
+  position: absolute;
+  right: -8px;
+  bottom: 14px;
+  border-width: 4px;
+  background: rgba(255, 241, 221, 0.9);
+  font-size: clamp(1.3rem, 6vw, 1.7rem);
+}
+
+.kunst-resultat-tekst {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.kunst-ordet {
+  color: var(--aksent);
+  font: 900 clamp(1.9rem, 9vw, 2.6rem) / 1.02 var(--font-display);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.kunst-ordet.lang {
+  font-size: clamp(1.55rem, 7vw, 2.1rem);
+}
+
+.kunst-ordet.ekstra-lang {
+  font-size: clamp(1.3rem, 5.8vw, 1.7rem);
+}
+
+.skjerm-slutt .banner h1,
+.kunst-gjett-topp .etikett,
+.kunst-lagliste span,
+.kunst-oppdrag {
+  overflow-wrap: anywhere;
+}
+
+/* Low screens: a smaller face on the hand-over, so the warning stays above the button. */
+@media (max-height: 700px) {
+  .skjerm-hgi .avatar.gigant {
+    width: 88px;
+    height: 88px;
+    font-size: 2.8rem;
+  }
+
+  .skjerm-hgi .gi-til {
+    gap: 8px;
+  }
+}
+
+.kunst-pluss {
+  overflow-wrap: anywhere;
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.kunst-fakta {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  list-style: none;
+}
+
+.kunst-galleri {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kunst-flis {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 8px 10px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.kunst-flis .kunst-ark {
+  border-radius: 12px;
+  box-shadow: 0 4px 0 var(--papir-2);
+}
+
+.kunst-flis-tekst {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 0 4px;
+}
+
+.kunst-flis-tekst b {
+  font: 900 1rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.kunst-flis-tekst small {
+  overflow: hidden;
+  color: var(--tekst-3);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Setup ---------- */
+
+.kunst-mer {
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.kunst-mer-knapp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 62px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: none;
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.kunst-mer-knapp > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.kunst-mer-knapp b {
+  font: 900 1.1rem/1.1 var(--font-display);
+}
+
+.kunst-mer-knapp small {
+  color: var(--tekst-3);
+  font-size: 0.85rem;
+}
+
+.kunst-mer-knapp i {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin: -4px 4px 0 0;
+  border-right: 3px solid var(--tekst-2);
+  border-bottom: 3px solid var(--tekst-2);
+  transform: rotate(45deg);
+  transition: transform 0.2s;
+}
+
+.kunst-mer.apen .kunst-mer-knapp i {
+  margin-top: 4px;
+  transform: rotate(-135deg);
+}
+
+.kunst-mer-innhold {
+  display: grid;
+  gap: 22px;
+  padding: 6px 16px 20px;
+}
+
+.kunst-lagliste {
+  display: grid;
+  gap: 8px;
+}
+
+.kunst-lagliste p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+}
+
+.kunst-estimat {
+  margin-bottom: -2px;
+}
+
+/* ---------- Hviskeleken: hand over, guess ---------- */
+
+.kunst-oppdrag {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--aksent) 20%, var(--natt-2));
+  font: 800 1rem/1.25 var(--font-display);
+}
+
+.kunst-gjett-topp {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.kunst-gjettbilde {
+  align-self: center;
+  width: max(170px, min(100%, 290px, calc((100dvh - 390px) * 0.75)));
+  margin-bottom: 10px;
+}
+
+.kunst-spillav {
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 14px 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--blekk);
+  box-shadow: 0 0 0 2px var(--strek);
+  color: var(--papir);
+  font: 800 0.88rem/1 var(--font-display);
+  white-space: nowrap;
+  transform: translateX(-50%);
+  cursor: pointer;
+}
+
+.kunst-spillav svg {
+  width: 16px;
+  height: 16px;
+}
+
+.kunst-gjettskjema {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.kunst-gjettskjema .tekstfelt {
+  text-align: center;
+}
+
+/* ---------- Hviskeleken: the chain ---------- */
+
+.kunst-klar .ingress {
+  max-width: 30ch;
+}
+
+.kunst-galleri-tittel {
+  text-align: center;
+}
+
+.kunst-kjede {
+  display: grid;
+  gap: 26px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kunst-ledd {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.kunst-ledd + .kunst-ledd::before {
+  content: "";
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  width: 4px;
+  height: 18px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(to bottom, var(--strek) 0 4px, transparent 4px 7px);
+}
+
+.kunst-ledd.start {
+  justify-self: center;
+  gap: 6px;
+  width: min(100%, 320px);
+  padding: 18px 20px 20px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 8px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.kunst-ledd.start .etikett {
+  color: var(--blekk-2);
+}
+
+.kunst-ledd.start .kunst-ordet {
+  color: var(--blekk);
+}
+
+.kunst-ledd.start .kort-pille {
+  font-size: 0.85rem;
+}
+
+/* Long names wrap instead of pushing anything off the screen. */
+.kunst-ledd > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.kunst-hvem-liten {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 100%;
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+}
+
+.kunst-hvem-liten span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.kunst-hvem-liten b {
+  color: var(--tekst);
+}
+
+.kunst-spillknapp {
+  position: relative;
+  display: block;
+  width: min(100%, 300px);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.kunst-spill-ikon {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--blekk);
+  box-shadow: 0 3px 10px rgba(6, 2, 14, 0.4);
+  color: var(--papir);
+}
+
+.kunst-spill-ikon svg {
+  width: 18px;
+  height: 18px;
+  margin-left: 2px;
+}
+
+.kunst-boble {
+  position: relative;
+  max-width: calc(100% - 16px);
+  padding: 14px 22px 16px;
+  border-radius: 24px;
+  background: var(--aksent);
+  box-shadow: 0 5px 0 var(--aksent-dyp);
+  color: var(--blekk);
+  font: 900 clamp(1.4rem, 6.6vw, 1.95rem) / 1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.kunst-boble.treff {
+  background: var(--mynte);
+  box-shadow: 0 5px 0 var(--mynte-dyp);
+}
+
+.kunst-boble.treff::before {
+  background: var(--mynte);
+}
+
+.kunst-blink {
+  position: absolute;
+  top: -14px;
+  right: -8px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--papir);
+  box-shadow: 0 0 0 3px var(--natt);
+  font-size: 1.15rem;
+  line-height: 1;
+  transform: rotate(12deg);
+}
+
+.kunst-boble::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  border-radius: 3px;
+  background: var(--aksent);
+  transform: rotate(45deg);
+}
+
+.kunst-ledd.ny {
+  animation: kunst-inn 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+@keyframes kunst-inn {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.92);
+  }
+}
+
+/* The chain's finale: one centred moment at the top of its own screen. */
+.kunst-finale {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 8px 0 4px;
+  text-align: center;
+}
+
+.kunst-finale .stempel {
+  margin: 4px 0 6px;
+}
+
+.kunst-finale-par {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.kunst-finale-kort {
+  display: grid;
+  gap: 4px;
+  width: min(100%, 340px);
+  padding: 14px 18px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2);
+  color: var(--blekk);
+}
+
+.kunst-finale-kort small {
+  color: var(--blekk-2);
+  font: 800 0.75rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.kunst-finale-kort b {
+  font: 900 clamp(1.4rem, 6.4vw, 1.9rem) / 1.1 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.kunst-finale-kort.sist {
+  background: var(--aksent);
+  box-shadow: 0 6px 0 var(--aksent-dyp);
+}
+
+.kunst-finale-pil {
+  color: var(--tekst-3);
+  font: 900 1.6rem/1 var(--font-display);
+}
+
+.kunst-dom {
+  color: var(--tekst-2);
+  font: 800 1.05rem/1.3 var(--font-display);
+}
+
+@media (max-height: 700px) {
+  .kunst-finale {
+    gap: 10px;
+  }
+
+  .kunst-finale-kort {
+    padding: 10px 14px 12px;
+  }
+
+  .kunst-finale-kort b {
+    font-size: 1.35rem;
+  }
+}
+
+/* ---------- The picture to share ---------- */
+
+.kunst-delbilde {
+  display: block;
+  align-self: center;
+  max-width: 100%;
+  max-height: 52vh;
+  border-radius: var(--r-mid);
+  box-shadow: 0 0 0 2px var(--strek), 0 14px 30px var(--skygge);
+  object-fit: contain;
+}
+
+@media (orientation: landscape) and (min-width: 900px) and (min-height: 561px) {
+  .kunst-fast {
+    grid-template-columns: minmax(0, 1fr) 330px;
+    column-gap: 28px;
+    row-gap: 14px;
+  }
+
+  .kunst-fast > .kunst-verktoy {
+    align-self: start;
+    margin-top: 28px;
+  }
+
+  .kunst-palett {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .kunst-farge,
+  .kunst-visk {
+    flex: 0 0 38px;
+  }
+}

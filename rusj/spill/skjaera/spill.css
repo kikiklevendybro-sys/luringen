@@ -1,0 +1,762 @@
+/* Skjæra — Kim's game. Everything is prefixed "skj-". The magpie flies in a fixed layer above the
+   page (#skj-himmel); the board and the options are sized so a whole round fits one screen. */
+
+/* ---------- Home ---------- */
+
+.skj-sum {
+  margin-left: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(23, 14, 43, 0.16);
+  font: 900 0.9rem/1 var(--font-display);
+}
+
+/* ---------- Level map ---------- */
+
+.skj-kart-hode {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.skj-kart-figur .figur-ramme {
+  display: block;
+  width: 78px;
+  animation: sveve 4.5s ease-in-out infinite;
+}
+
+.skj-kart-sum {
+  margin-top: 4px;
+  color: var(--tekst-2);
+  font: 800 1.05rem/1.2 var(--font-display);
+}
+
+.skj-kart-sum b {
+  color: var(--lampe);
+}
+
+.skj-kart {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skj-niva {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 3px;
+  width: 100%;
+  min-height: 92px;
+  padding: 10px 4px;
+  border: 0;
+  border-radius: 22px;
+  background: radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.45), transparent 50%), hsl(var(--h) 88% 74%);
+  box-shadow: 0 6px 0 hsl(var(--h) 50% 46%), 0 14px 24px var(--skygge);
+  color: var(--blekk);
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+
+.skj-niva:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 hsl(var(--h) 50% 46%);
+}
+
+.skj-niva b {
+  font: 900 2.1rem/1 var(--font-display);
+}
+
+.skj-niva-st {
+  color: var(--blekk);
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.skj-niva small {
+  font: 800 0.74rem/1 var(--font-display);
+  opacity: 0.72;
+}
+
+.skj-niva.full .skj-niva-st {
+  color: #9a5b00;
+}
+
+.skj-niva:disabled {
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst-3);
+  cursor: not-allowed;
+}
+
+.skj-niva:disabled .skj-niva-st {
+  color: inherit;
+}
+
+.skj-niva.neste {
+  outline: 3px solid var(--papir);
+  outline-offset: 3px;
+  animation: skj-puls 1.8s ease-in-out infinite;
+}
+
+@keyframes skj-puls {
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ---------- Round screen ---------- */
+
+.skjerm-brett {
+  gap: 10px;
+}
+
+.skj-hode {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.skj-hvem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 4px 14px 4px 4px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  font: 800 0.95rem/1.1 var(--font-display);
+}
+
+.skj-hvem .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 0.95rem;
+}
+
+.skj-hvem span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skj-tittel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: clamp(1.6rem, 7.4vw, 2.2rem);
+}
+
+.skj-tittel.ny {
+  animation: skj-ny 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes skj-ny {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}
+
+.skj-ikon {
+  font-size: 0.95em;
+}
+
+.skj-ikon-figur {
+  display: block;
+  width: 1.25em;
+}
+
+.skj-ikon-figur svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.skj-under {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 46px;
+}
+
+.skj-tid {
+  width: min(78%, 300px);
+  height: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.skj-tid i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--rosa), var(--lampe) 40%, var(--aksent));
+  transform-origin: 0 50%;
+}
+
+.skj-luker {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.skj-luke {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2.5px var(--strek);
+  color: var(--tekst-3);
+  font: 900 1.4rem/1 var(--font-display);
+}
+
+.skj-luke.rett {
+  background: var(--mynte);
+  box-shadow: 0 3px 0 var(--mynte-dyp);
+  font-size: 1.6rem;
+  animation: skj-landet 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.skj-luke.feil {
+  position: relative;
+  background: color-mix(in srgb, var(--rosa) 55%, var(--natt-2));
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  font-size: 1.6rem;
+  animation: rist 0.4s linear;
+}
+
+.skj-luke.feil::after {
+  content: "✕";
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--rod);
+  color: #fff;
+  font: 900 0.8rem/1 var(--font-display);
+}
+
+/* The board */
+.skj-bord {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+.skj-brett {
+  --rb: 80px;
+  --gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(var(--kol), var(--rb));
+  gap: var(--gap);
+}
+
+.skj-rute {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--rb);
+  height: var(--rb);
+}
+
+.skj-rute.tom,
+.skj-rute.venter {
+  border: 3px dashed color-mix(in srgb, var(--aksent) 40%, var(--strek));
+  border-radius: 24%;
+  background: color-mix(in srgb, var(--aksent) 6%, transparent);
+}
+
+.skj-hull {
+  color: color-mix(in srgb, var(--aksent) 55%, var(--strek));
+  font: 900 calc(var(--rb) * 0.4) / 1 var(--font-display);
+  animation: skj-hull 2.2s ease-in-out infinite;
+}
+
+@keyframes skj-hull {
+  50% {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+}
+
+.skj-ting {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 24%;
+  background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.75), transparent 62%), var(--tint);
+  box-shadow: inset 0 -5px 0 rgba(23, 14, 43, 0.12), 0 4px 0 rgba(6, 2, 14, 0.35);
+  font-size: calc(var(--rb) * 0.58);
+  line-height: 1;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.skj-brett.inn .skj-ting {
+  animation: skj-inn 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  animation-delay: calc(var(--n) * 45ms);
+}
+
+@keyframes skj-inn {
+  from {
+    opacity: 0;
+    transform: scale(0.3) rotate(-14deg);
+  }
+}
+
+.skj-ting.tatt {
+  opacity: 0;
+  transform: translateY(-50%) scale(0.2) rotate(30deg);
+  transition: transform 0.26s ease-in, opacity 0.26s ease-in;
+}
+
+.skj-ting.slipp {
+  animation: skj-slipp 0.55s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+@keyframes skj-slipp {
+  from {
+    opacity: 0;
+    transform: translateY(-70px) scale(0.5) rotate(-20deg);
+  }
+}
+
+.skj-ting.landet {
+  animation: skj-landet 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes skj-landet {
+  from {
+    transform: scale(1.35);
+  }
+}
+
+.skj-ting.var-tatt {
+  --ring: var(--rosa);
+  position: relative;
+  box-shadow: inset 0 -5px 0 rgba(23, 14, 43, 0.12), 0 0 0 4px var(--ring), 0 0 22px color-mix(in srgb, var(--ring) 60%, transparent);
+}
+
+.skj-ting.var-tatt.funnet {
+  --ring: var(--mynte);
+}
+
+.skj-ting.var-tatt::after {
+  content: "";
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ring) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23170e2b' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 70% no-repeat;
+  box-shadow: 0 2px 0 rgba(6, 2, 14, 0.35);
+}
+
+/* What the magpie got away with: gold, with the magpie on it – it was not a wrong answer. */
+.skj-ting.var-tatt.her {
+  --ring: var(--lampe);
+  z-index: 1;
+  animation: skj-hopp 0.9s ease-out 0.75s 2 both;
+}
+
+.skj-ting.var-tatt.her::after {
+  display: none;
+}
+
+@keyframes skj-hopp {
+  0%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: translateY(-16%) rotate(-6deg) scale(1.06);
+  }
+  55% {
+    transform: translateY(0) scale(1.04, 0.96);
+  }
+  75% {
+    transform: translateY(-5%);
+  }
+}
+
+.skj-merke {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  display: block;
+  width: 34px;
+  height: 34px;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--lampe);
+  box-shadow: 0 2px 0 var(--lampe-dyp), 0 0 0 2px var(--natt);
+}
+
+.skj-merke svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.skj-her {
+  position: absolute;
+  bottom: -11px;
+  left: 50%;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--lampe);
+  box-shadow: 0 2px 0 var(--lampe-dyp);
+  color: var(--blekk);
+  font: 900 0.72rem/1.1 var(--font-display);
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* Options and answers under the thumb */
+.skj-dokk {
+  display: grid;
+  align-content: end;
+  gap: 10px;
+}
+
+.skj-pst {
+  align-self: end;
+  padding-bottom: 20px;
+  color: var(--tekst-3);
+  font: 800 1rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.skj-valg-rad {
+  display: grid;
+  grid-template-columns: repeat(var(--k), minmax(0, 1fr));
+  gap: 10px;
+  animation: skj-opp 0.42s cubic-bezier(0.3, 1.3, 0.5, 1) both;
+}
+
+@keyframes skj-opp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+.skj-valg {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 78px;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2), 0 12px 22px var(--skygge);
+  color: var(--blekk);
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s, background 0.2s;
+}
+
+.skj-valg:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--papir-2);
+}
+
+.skj-valg-e {
+  font-size: 2.15rem;
+  line-height: 1;
+}
+
+.skj-valg-n {
+  max-width: 100%;
+  font: 800 0.82rem/1.1 var(--font-display);
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.skj-valg:disabled {
+  cursor: default;
+}
+
+.skj-valg.rett {
+  background: var(--mynte);
+  box-shadow: 0 5px 0 var(--mynte-dyp);
+}
+
+.skj-valg.feil {
+  background: color-mix(in srgb, var(--rosa) 40%, var(--papir));
+  box-shadow: 0 5px 0 var(--rosa-dyp);
+  opacity: 0.8;
+  animation: rist 0.4s linear;
+}
+
+.skj-svar p {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  color: var(--tekst-2);
+  font: 700 1rem/1.35 var(--font-tekst);
+  text-align: center;
+}
+
+.skj-pluss {
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--mynte);
+  box-shadow: 0 3px 0 var(--mynte-dyp);
+  color: var(--blekk);
+  font: 900 1.05rem/1.1 var(--font-display);
+  animation: skj-landet 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.skj-pluss.stjerne {
+  background: var(--lampe);
+  box-shadow: 0 3px 0 var(--lampe-dyp);
+}
+
+.skj-pluss.null {
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst-2);
+}
+
+/* ---------- The magpie ---------- */
+
+.skj-himmel {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.skj-fugl {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(140px, 44vw, 184px);
+  will-change: transform;
+}
+
+.skj-kropp {
+  display: block;
+}
+
+.skj-fugl.venstre .skj-kropp {
+  transform: scaleX(-1);
+}
+
+/* A pale rim and a cyan glow keep the dark bird visible against the night sky. */
+.skj-fugl-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 0 1.5px rgba(255, 241, 221, 0.95)) drop-shadow(0 0 12px rgba(79, 207, 255, 0.5)) drop-shadow(0 18px 14px rgba(6, 2, 14, 0.45));
+}
+
+.skj-fugl-svg svg {
+  overflow: visible;
+}
+
+.skj-vinge {
+  transform-box: view-box;
+  animation: skj-flaks 0.22s ease-in-out infinite alternate;
+}
+
+.skj-vinge.v {
+  transform-origin: 84px 84px;
+}
+
+.skj-vinge.h {
+  transform-origin: 116px 84px;
+  animation-name: skj-flaks-h;
+}
+
+@keyframes skj-flaks {
+  from {
+    transform: rotate(18deg);
+  }
+  to {
+    transform: rotate(-30deg);
+  }
+}
+
+@keyframes skj-flaks-h {
+  from {
+    transform: rotate(-18deg);
+  }
+  to {
+    transform: rotate(30deg);
+  }
+}
+
+.skj-bytte {
+  position: absolute;
+  top: 72%;
+  left: 50%;
+  display: flex;
+  font-size: clamp(1.9rem, 9vw, 2.6rem);
+  line-height: 1;
+  filter: drop-shadow(0 6px 6px rgba(6, 2, 14, 0.45));
+  transform: translateX(-50%);
+}
+
+.skj-bytte span {
+  margin: 0 -4px;
+  animation: skj-gripe 0.32s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes skj-gripe {
+  from {
+    transform: scale(0.2) translateY(30px);
+  }
+}
+
+.skj-flyr {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 2.4rem;
+  line-height: 1;
+  filter: drop-shadow(0 8px 8px rgba(6, 2, 14, 0.45));
+}
+
+/* ---------- Results ---------- */
+
+.skj-store-stjerner {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  font: 900 3.2rem/1 var(--font-display);
+}
+
+.skj-store-stjerner span {
+  color: var(--natt-3);
+  text-shadow: 0 4px 0 var(--natt-2);
+}
+
+.skj-store-stjerner span.pa {
+  color: var(--lampe);
+  text-shadow: 0 4px 0 var(--lampe-dyp), 0 0 24px color-mix(in srgb, var(--lampe) 50%, transparent);
+  animation: skj-stjerne 0.55s cubic-bezier(0.3, 1.7, 0.5, 1) both;
+  animation-delay: calc(var(--k) * 200ms + 250ms);
+}
+
+@keyframes skj-stjerne {
+  from {
+    opacity: 0;
+    transform: scale(0) rotate(-50deg);
+  }
+}
+
+.skj-rekord {
+  justify-self: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.95rem/1.2 var(--font-display);
+}
+
+.skj-rekord.mynte {
+  background: var(--mynte);
+  box-shadow: 0 3px 0 var(--mynte-dyp);
+  color: var(--blekk);
+}
+
+.skj-vinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.skj-krone {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  transform: translateX(-50%) rotate(-12deg);
+  animation: skj-krone 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.3s;
+}
+
+@keyframes skj-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40px) rotate(-40deg) scale(0.4);
+  }
+}
+
+.skjerm-slutt .banner h1,
+.skjerm-nivaklart .banner h1 {
+  font-size: clamp(1.9rem, 9vw, 2.8rem);
+  overflow-wrap: anywhere;
+}
+
+/* Short phones: a whole round (board and options) still fits on one screen. */
+@media (max-height: 699px) {
+  .skjerm-brett {
+    gap: 6px;
+  }
+
+  .skj-tittel {
+    font-size: 1.5rem;
+  }
+
+  .skj-under {
+    min-height: 38px;
+  }
+
+  .skj-luke {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    font-size: 1.15rem;
+  }
+
+  .skj-valg {
+    min-height: 64px;
+    padding: 6px 4px;
+  }
+
+  .skj-valg-e {
+    font-size: 1.7rem;
+  }
+
+  .skj-valg-n {
+    font-size: 0.74rem;
+  }
+
+  .skj-niva {
+    min-height: 76px;
+  }
+
+  .skj-niva b {
+    font-size: 1.7rem;
+  }
+}

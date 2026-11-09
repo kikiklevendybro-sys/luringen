@@ -25,7 +25,15 @@ const bare = process.argv.slice(2);
 const chromer = new Map();
 async function chrome(b, h) {
   const n = `${b}x${h}`;
-  if (!chromer.has(n)) chromer.set(n, await startChrome({ bredde: b, hoyde: h, skala: 1, mobil: false, gjennomsiktig: true }));
+  if (!chromer.has(n)) {
+    const c = await startChrome({ bredde: b, hoyde: h, skala: 1, mobil: false, gjennomsiktig: true });
+    // Warm-up: the first screenshot of a fresh browser can come out tiled/garbled, so take one
+    // throwaway shot before the real images.
+    await c.lastSide("data:text/html,<body style='margin:0;background:%23150c28'></body>");
+    await c.sov(300);
+    await c.skjermbilde(join(tmp, `oppvarming-${n}.png`), { klipp: { x: 0, y: 0, width: b, height: h } });
+    chromer.set(n, c);
+  }
   return chromer.get(n);
 }
 

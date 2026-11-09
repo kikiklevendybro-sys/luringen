@@ -1,0 +1,634 @@
+/* Spionen: a spy's case file. Sky-blue accent, paper cards, stamps and seat numbers. */
+
+/* ---------- Pass the phone ---------- */
+
+.sp-mottaker {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.sp-mottaker .spillernavn {
+  justify-content: center;
+}
+
+.spillernavn.sp-navn-l {
+  font-size: clamp(1.75rem, 8vw, 2.35rem);
+}
+
+.spillernavn.sp-navn-xl {
+  font-size: clamp(1.35rem, 6.4vw, 1.95rem);
+}
+
+/* "Ferdig" with the next player's name on a second line, so long names never squeeze it. */
+.sp-to-linjer {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sp-to-linjer small {
+  font: 800 0.92rem/1.2 var(--font-display);
+  opacity: 0.72;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- The secret card (back of the hold-to-reveal folder) ---------- */
+
+.mappe-bakside.sp-kort {
+  gap: 10px;
+  padding: 22px 20px;
+}
+
+.sp-kort-ikon {
+  font-size: 3.3rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(23, 14, 43, 0.12));
+}
+
+.sp-rolle {
+  display: grid;
+  gap: 5px;
+  max-width: 100%;
+  margin-top: 4px;
+  padding: 12px 16px;
+  border: 2.5px dashed rgba(23, 14, 43, 0.3);
+  border-radius: var(--r-mid);
+  font: 800 1.1rem/1.25 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.sp-rolle small {
+  font: 900 0.72rem/1 var(--font-display);
+  letter-spacing: 0.14em;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+/* ---------- Pills, seats ---------- */
+
+.sp-piller {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.sp-piller span {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 0.84rem/1.2 var(--font-display);
+  white-space: nowrap;
+}
+
+.sp-plasser {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+  gap: 8px;
+}
+
+.sp-plass {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 6px 12px 6px 6px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sp-plass b {
+  flex: none;
+  font: 900 1.25rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-plass span:last-child:not(.avatar) {
+  min-width: 0;
+  color: var(--tekst-2);
+  font-weight: 700;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.sp-plass[aria-pressed="true"] {
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.sp-plass[aria-pressed="true"] span:last-child:not(.avatar) {
+  color: var(--blekk);
+}
+
+/* The host's seating list: one row per player with the full name, so everyone finds their number. */
+.sp-plasser.liste {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.sp-plasser.liste .sp-plass {
+  gap: 12px;
+  min-height: 50px;
+  padding-right: 18px;
+}
+
+.sp-plasser.liste .sp-plass b {
+  min-width: 1.4ch;
+  text-align: center;
+}
+
+.sp-plasser.liste .sp-plass span:last-child:not(.avatar) {
+  color: var(--tekst);
+  font-size: 1.05rem;
+}
+
+.sp-plasser.liste .sp-plass[aria-pressed="true"] span:last-child:not(.avatar) {
+  color: var(--blekk);
+}
+
+.sp-plasser.stor {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sp-plasser.stor .sp-plass {
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-height: 108px;
+  padding: 12px 6px;
+  border-radius: var(--r-mid);
+  text-align: center;
+}
+
+.sp-plasser.stor .sp-plass b {
+  font-size: 1.9rem;
+}
+
+.sp-plasser.stor .avatar {
+  width: 44px;
+  height: 44px;
+  font-size: 1.4rem;
+}
+
+/* ---------- Play screen ---------- */
+
+.sp-starter {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px 12px 12px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.sp-starter > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sp-starter-navn {
+  font: 800 1.3rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.sp-starter-navn b {
+  color: var(--aksent);
+}
+
+.sp-starter-hjelp {
+  color: var(--tekst-2);
+  font-size: 0.88rem;
+  line-height: 1.3;
+}
+
+.skjerm-runde .timer.stor .timer-ring {
+  width: min(56vw, 224px);
+  height: min(56vw, 224px);
+}
+
+.skjerm-runde .timer-kontroll {
+  width: min(100%, 300px);
+}
+
+.skjerm-runde > .lenkerad {
+  margin-top: -8px;
+}
+
+.sp-tid-ute-boks {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+/* ---------- Guest phone ---------- */
+
+.sp-du-er {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: clamp(1.8rem, 8vw, 2.3rem);
+}
+
+.skjerm-gjest .mappe {
+  height: min(42vh, 360px);
+  min-height: 280px;
+}
+
+.skjerm-gjest .hjelp b {
+  color: var(--tekst);
+}
+
+/* ---------- Accusation and reveals ---------- */
+
+.sp-tid-ute {
+  align-self: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255, 79, 139, 0.16);
+  color: var(--rosa);
+  font: 900 1.05rem/1.2 var(--font-display);
+  animation: sp-puls 1.2s ease-in-out 3;
+}
+
+@keyframes sp-puls {
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+.sp-spotlys {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding-top: 12px;
+  text-align: center;
+}
+
+.sp-spotlys h1 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.sp-skjelv {
+  display: inline-block;
+}
+
+.sp-spotlys.spenning .sp-skjelv {
+  animation: sp-skjelv 0.45s ease-in-out infinite;
+}
+
+@keyframes sp-skjelv {
+  25% {
+    transform: rotate(-5deg) scale(1.02);
+  }
+  75% {
+    transform: rotate(5deg) scale(1.02);
+  }
+}
+
+.sp-gjettkort {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  padding: 16px 22px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+  font: 900 1.45rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+  transform: rotate(-1.5deg);
+}
+
+.sp-gjettkort span {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.sp-fasit {
+  gap: 14px;
+}
+
+.sp-fasit > div {
+  display: grid;
+  gap: 6px;
+}
+
+.sp-fasit strong {
+  font: 900 1.45rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.sp-navnerad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.sp-navnerad > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font: 800 1.05rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Places list (sheet and guess screen) ---------- */
+
+.sp-stedgruppe {
+  display: grid;
+  gap: 10px;
+}
+
+.sp-stedgruppe h3 {
+  color: var(--tekst-2);
+  font-size: 1rem;
+}
+
+.sp-steder {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sp-sted {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--r-liten);
+  background: var(--natt-3);
+  color: var(--tekst);
+  font: 700 0.93rem/1.2 var(--font-tekst);
+  text-align: left;
+}
+
+button.sp-sted {
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  cursor: pointer;
+}
+
+button.sp-sted:active {
+  background: var(--strek);
+}
+
+.sp-sted-ikon {
+  flex: none;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.sp-sted span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sp-sted[aria-pressed="true"] {
+  opacity: 0.42;
+}
+
+.sp-sted[aria-pressed="true"] span:last-child {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.sp-gjett-topp {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sp-gjett-topp .figur-ramme {
+  flex: none;
+  width: 78px;
+}
+
+.sp-gjett-topp > div {
+  display: grid;
+  gap: 6px;
+}
+
+.skjerm-gjett .sp-sted {
+  background: var(--natt-2);
+}
+
+/* ---------- Results ---------- */
+
+.sp-rolleliste {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sp-rolleliste li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px 8px 8px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+}
+
+.sp-rolleliste li > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.sp-rolleliste b {
+  overflow: hidden;
+  color: var(--tekst);
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sp-rolleliste li.spion {
+  background: color-mix(in srgb, var(--rosa) 14%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--rosa);
+}
+
+/* ---------- Question ideas, setup, joining ---------- */
+
+.sp-ide {
+  padding: 22px 18px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 1.45rem/1.25 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.sp-verktoy {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sp-to {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 12px;
+}
+
+.sp-to h2 {
+  font-size: 1.2rem;
+}
+
+.skjerm-oppsett .sp-to + .hjelp {
+  margin-top: -10px;
+}
+
+.sp-kodeskjema {
+  flex: 1;
+}
+
+@media (max-height: 720px) {
+  .skjerm-runde .timer.stor .timer-ring {
+    width: 150px;
+    height: 150px;
+  }
+
+  .skjerm-runde .timer.stor .timer-tid {
+    font-size: 2.6rem;
+  }
+
+  .sp-starter-hjelp {
+    display: none;
+  }
+}
+
+/* Short screens: the kit makes the card shorter, so its content gets more compact too. */
+@media (max-height: 700px) {
+  .mappe-forside .figur-ramme {
+    width: 76px;
+  }
+
+  .mappe-finger svg {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mappe-bakside.sp-kort {
+    gap: 6px;
+    padding: 14px 16px;
+  }
+
+  .sp-kort-ikon {
+    font-size: 2.3rem;
+  }
+
+  .sp-kort .kort-ord {
+    font-size: clamp(1.5rem, 8vw, 2.1rem);
+  }
+
+  .sp-rolle {
+    margin-top: 0;
+    padding: 8px 12px;
+    font-size: 0.98rem;
+  }
+
+  .sp-kort .kort-fot {
+    font-size: 0.82rem;
+  }
+}
+
+/* The smallest phones (e.g. 320×568): the whole secret card and its instruction stay above the dock. */
+@media (max-height: 620px) {
+  .skjerm-vis,
+  .skjerm-gjest,
+  .skjerm-vert,
+  .skjerm-runde {
+    gap: 14px;
+  }
+
+  /* Tall enough for the whole back of the card; the instruction on the front sits mid-card,
+     well above the dock. */
+  .skjerm-vis .mappe,
+  .skjerm-gjest .mappe,
+  .skjerm-vert .mappe,
+  .ark .mappe {
+    height: 292px;
+    min-height: 0;
+  }
+
+  .skjerm-vis .fremdrift {
+    gap: 8px;
+  }
+
+  .skjerm-vis .prikk {
+    width: 9px;
+    height: 9px;
+  }
+
+  .mappe-forside .figur-ramme {
+    display: none;
+  }
+
+  .sp-mottaker .avatar.stor,
+  .sp-starter .avatar.stor {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+
+  .sp-starter {
+    padding-block: 8px;
+  }
+
+  .skjerm-runde .timer.stor .timer-ring {
+    width: 124px;
+    height: 124px;
+  }
+
+  .skjerm-runde .timer.stor .timer-tid {
+    font-size: 2.2rem;
+  }
+
+  .skjerm-runde .dokk .knapp-2 {
+    min-height: 46px;
+  }
+}
+
+@media (max-width: 359px) {
+  .sp-steder {
+    grid-template-columns: 1fr;
+  }
+
+  .skjerm-runde .dokk .knapp .ikon,
+  .sp-verktoy .knapp-2 .ikon {
+    display: none;
+  }
+
+  .sp-plasser.stor {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

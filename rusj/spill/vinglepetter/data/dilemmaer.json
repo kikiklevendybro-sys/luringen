@@ -1,0 +1,1765 @@
+{
+  "pakker": [
+    {
+      "id": "barn",
+      "navn": "Barn",
+      "ikon": "🧸",
+      "tekst": "For de minste",
+      "dilemmaer": [
+        [
+          "ha sommerferie hele året",
+          "ha bursdag hver måned"
+        ],
+        [
+          "bo i et trehus",
+          "bo i et slott"
+        ],
+        [
+          "ha en hund som kan snakke",
+          "ha en katt som kan fly"
+        ],
+        [
+          "kunne puste under vann",
+          "kunne hoppe like høyt som et hus"
+        ],
+        [
+          "ha et badeland i hagen",
+          "ha en fornøyelsespark i kjelleren"
+        ],
+        [
+          "aldri måtte rydde rommet",
+          "aldri måtte legge deg"
+        ],
+        [
+          "få en ny leke hver dag",
+          "få is hver dag"
+        ],
+        [
+          "være superhelt i én dag",
+          "være kongelig i én dag"
+        ],
+        [
+          "ha en sklie fra rommet ditt ned til kjøkkenet",
+          "ha trampoline i stedet for gulv på rommet"
+        ],
+        [
+          "ha en robot som gjør leksene",
+          "ha en robot som rydder rommet"
+        ],
+        [
+          "gå på skolen med en dinosaur",
+          "gå på skolen med en robot"
+        ],
+        [
+          "kunne gjøre deg like liten som en maur",
+          "kunne gjøre deg like stor som et hus"
+        ],
+        [
+          "at det snør hver dag",
+          "at det er sol hver dag"
+        ],
+        [
+          "bo på en øde øy med bestevennen din",
+          "bo i en storby med hele familien"
+        ],
+        [
+          "bade i et basseng fullt av gelé",
+          "bade i et basseng fullt av ballonger"
+        ],
+        [
+          "ha ti søsken",
+          "ikke ha noen søsken"
+        ],
+        [
+          "gå på skolen om natta",
+          "gå på skolen i helgene"
+        ],
+        [
+          "være like sterk som en bjørn",
+          "være like rask som en gepard"
+        ],
+        [
+          "kunne tegne hva som helst",
+          "kunne bygge hva som helst"
+        ],
+        [
+          "leke gjemsel i et slott",
+          "leke sisten i en jungel"
+        ],
+        [
+          "ha en hemmelig dør på rommet ditt",
+          "ha en hemmelig tunnel under huset"
+        ],
+        [
+          "være tryllekunstner",
+          "være klovn i et sirkus"
+        ],
+        [
+          "ha en elefant som kjæledyr",
+          "ha en sjiraff som kjæledyr"
+        ],
+        [
+          "sove i telt i stua",
+          "sove i hengekøye i hagen"
+        ],
+        [
+          "spise frokost på senga hver dag",
+          "ha piknik hver lørdag"
+        ],
+        [
+          "at julaften kom to ganger i året",
+          "at bursdagen din kom to ganger i året"
+        ],
+        [
+          "bli voksen i morgen",
+          "være barn for alltid"
+        ],
+        [
+          "ha en ryggsekk som alltid har godteri i seg",
+          "ha en blyant som tegner ting som blir ekte"
+        ],
+        [
+          "ha en lærer som er en trollmann",
+          "ha en lærer som er en pirat"
+        ],
+        [
+          "fly i luftballong",
+          "kjøre ubåt"
+        ],
+        [
+          "ha en papegøye som gjentar alt du sier",
+          "ha en hund som kan hundre triks"
+        ],
+        [
+          "gå baklengs en hel dag",
+          "hoppe på ett bein i en hel time"
+        ],
+        [
+          "være med i en film",
+          "være med i et dataspill"
+        ],
+        [
+          "ha en bestevenn som er et spøkelse",
+          "ha en bestevenn som er et romvesen"
+        ],
+        [
+          "ri til skolen på en struts",
+          "fly til skolen på en kjempeørn"
+        ],
+        [
+          "spise suppe med gaffel",
+          "spise is med kniv"
+        ],
+        [
+          "ha sko som gjør at du hopper kjempehøyt",
+          "ha en sykkel som kan fly"
+        ],
+        [
+          "kunne gå gjennom vegger",
+          "kunne gå på vann"
+        ],
+        [
+          "ha fargestifter som aldri går tomme",
+          "ha et viskelær som kan viske ut hva som helst"
+        ],
+        [
+          "gå til skolen på stylter",
+          "gå til skolen på rulleskøyter"
+        ],
+        [
+          "være kaptein på et piratskip",
+          "være pilot på et romskip"
+        ],
+        [
+          "få bestemme middagen hver dag",
+          "få bestemme leggetiden hver dag"
+        ],
+        [
+          "ha et akvarium i taket",
+          "ha et akvarium i gulvet"
+        ],
+        [
+          "synge alt du sier",
+          "danse hver gang du går"
+        ],
+        [
+          "at alle dyr kunne snakke",
+          "at alle lekene dine kunne snakke"
+        ],
+        [
+          "være med i et eventyr",
+          "være med i en tegnefilm"
+        ],
+        [
+          "ha din egen sjokoladefabrikk",
+          "ha din egen leketøysbutikk"
+        ],
+        [
+          "gå i pysj på skolen hver dag",
+          "gå i finklær hjemme hver dag"
+        ],
+        [
+          "ha tyggegummi som aldri mister smaken",
+          "ha en ballong som aldri sprekker"
+        ],
+        [
+          "ha hår som skifter farge etter humøret",
+          "ha øyne som lyser i mørket"
+        ],
+        [
+          "få en kattunge",
+          "få en valp"
+        ],
+        [
+          "kunne klatre som en ape",
+          "kunne svømme som en delfin"
+        ],
+        [
+          "kunne bygge snømenn som lever",
+          "kunne bygge sandslott man kan bo i"
+        ],
+        [
+          "ha snøballkrig med hele skolen",
+          "ha vannkrig med hele skolen"
+        ],
+        [
+          "være best i klassen i fotball",
+          "være best i klassen i å tegne"
+        ],
+        [
+          "kunne hoppe rett til fredag",
+          "kunne gjøre lørdagen dobbelt så lang"
+        ],
+        [
+          "bade med delfiner",
+          "ri på en hest langs stranda"
+        ],
+        [
+          "få et brev fra julenissen",
+          "få et brev fra tannfeen"
+        ],
+        [
+          "være en pingvin i én dag",
+          "være en løve i én dag"
+        ],
+        [
+          "at regnet var saft",
+          "at snøen var iskrem"
+        ],
+        [
+          "være detektiv",
+          "være spion"
+        ],
+        [
+          "leke i et rom fullt av puter",
+          "leke i et rom fullt av slim"
+        ],
+        [
+          "bo i et pepperkakehus",
+          "bo i et sjokoladeslott"
+        ],
+        [
+          "spise grøt til hvert måltid",
+          "spise fiskepinner til hvert måltid"
+        ],
+        [
+          "få fri fra skolen når det snør",
+          "få fri fra skolen når det er over 25 grader"
+        ],
+        [
+          "ha en sparkesykkel med rakettmotor",
+          "ha en sykkel med tak og radio"
+        ],
+        [
+          "kunne løpe like fort som en bil",
+          "kunne hoppe like langt som en kenguru"
+        ]
+      ]
+    },
+    {
+      "id": "familie",
+      "navn": "Familie",
+      "ikon": "🏡",
+      "tekst": "For alle aldre",
+      "dilemmaer": [
+        [
+          "aldri måtte vaske opp igjen",
+          "aldri måtte brette klær igjen"
+        ],
+        [
+          "ha hytte på fjellet",
+          "ha hytte ved sjøen"
+        ],
+        [
+          "feire jul på en strand i varmen",
+          "feire jul i en hytte langt inne i snøen"
+        ],
+        [
+          "ha sommer hele året",
+          "ha vinter hele året"
+        ],
+        [
+          "bare kunne hviske",
+          "bare kunne rope"
+        ],
+        [
+          "ha en bil som kjører selv",
+          "ha en bil som kan fly"
+        ],
+        [
+          "vinne en million i dag",
+          "få 10 000 kroner hver måned resten av livet"
+        ],
+        [
+          "kunne alle språk i verden",
+          "kunne spille alle instrumenter"
+        ],
+        [
+          "være den morsomste i rommet",
+          "være den smarteste i rommet"
+        ],
+        [
+          "bo midt i byen",
+          "bo langt ute på landet"
+        ],
+        [
+          "aldri trenge å sove",
+          "aldri trenge å spise"
+        ],
+        [
+          "ha basseng i hagen",
+          "ha badestamp på terrassen"
+        ],
+        [
+          "ta Bergensbanen over fjellet",
+          "ta Hurtigruta langs kysten"
+        ],
+        [
+          "skrive en bok som blir en bestselger",
+          "lage en sang som blir en hit"
+        ],
+        [
+          "være ti år for alltid",
+          "være sytti år for alltid"
+        ],
+        [
+          "kjøre gravemaskin i én dag",
+          "fly helikopter i én dag"
+        ],
+        [
+          "bo i et fyrtårn",
+          "bo i en husbåt"
+        ],
+        [
+          "ha snø til jul hvert år",
+          "ha sol hele påsken hvert år"
+        ],
+        [
+          "aldri mer måtte stå i kø",
+          "aldri mer måtte vente på rødt lys"
+        ],
+        [
+          "være kjent i hele Norge",
+          "være rik, men helt ukjent"
+        ],
+        [
+          "få gratis kino resten av livet",
+          "få gratis konserter resten av livet"
+        ],
+        [
+          "bo på Svalbard",
+          "bo i Sør-Spania"
+        ],
+        [
+          "spise middag klokka fire som i Norge",
+          "spise middag klokka ti som i Spania"
+        ],
+        [
+          "aldri mer måtte måke snø",
+          "aldri mer måtte klippe plenen"
+        ],
+        [
+          "dra på safari",
+          "dra på polarekspedisjon"
+        ],
+        [
+          "ha en hund på størrelse med en hest",
+          "ha en hest på størrelse med en hund"
+        ],
+        [
+          "bli best i verden på én ting",
+          "bli ganske god i alt du prøver"
+        ],
+        [
+          "leve uten internett i en måned",
+          "leve uten sjokolade i et år"
+        ],
+        [
+          "ha et hus med hemmelige ganger",
+          "ha et hus med rutsjebane mellom etasjene"
+        ],
+        [
+          "alltid vite hva klokka er",
+          "alltid vite hvordan været blir"
+        ],
+        [
+          "få fire dagers arbeidsuke",
+          "få tre måneder sommerferie"
+        ],
+        [
+          "gå på ski til jobben",
+          "gå på skøyter til jobben"
+        ],
+        [
+          "lese tankene til kjæledyret ditt",
+          "lese tankene til naboen din"
+        ],
+        [
+          "bo i et glasshus",
+          "bo i et hus uten vinduer"
+        ],
+        [
+          "kjenne alle naboene i gata",
+          "kunne gå hvor som helst uten å møte noen du kjenner"
+        ],
+        [
+          "spise middag med hele familien hver dag",
+          "ha en stor familiefest én gang i året"
+        ],
+        [
+          "aldri bli forkjølet",
+          "aldri bli solbrent"
+        ],
+        [
+          "at alle dager var lørdag",
+          "at alle dager var julaften"
+        ],
+        [
+          "kunne alle oppskriftene til bestemor",
+          "kunne alle historiene til bestefar"
+        ],
+        [
+          "alltid måtte gå i bunad",
+          "alltid måtte gå i joggedress"
+        ],
+        [
+          "få en ekstra time hver dag",
+          "få en ekstra fridag hver uke"
+        ],
+        [
+          "vinne en tur jorda rundt",
+          "vinne et nytt hus"
+        ],
+        [
+          "ha en sang skrevet om deg",
+          "ha en gate oppkalt etter deg"
+        ],
+        [
+          "være flink til å synge",
+          "være flink til å danse"
+        ],
+        [
+          "kunne bake perfekte kaker",
+          "kunne snekre hva som helst"
+        ],
+        [
+          "bo i samme hus hele livet",
+          "flytte til et nytt land hvert år"
+        ],
+        [
+          "alltid være ti minutter for tidlig",
+          "alltid være ti minutter for sent"
+        ],
+        [
+          "være med i et realityprogram",
+          "være med i en quiz på TV"
+        ],
+        [
+          "bo et sted med nordlys",
+          "bo et sted med palmer"
+        ],
+        [
+          "ha en hytte på en øde øy",
+          "ha en leilighet midt i Paris"
+        ],
+        [
+          "ha mer tid",
+          "ha mer penger"
+        ],
+        [
+          "bare kunne se filmer",
+          "bare kunne lese bøker"
+        ],
+        [
+          "kjøre bil gjennom hele Europa",
+          "ta tog gjennom hele Europa"
+        ],
+        [
+          "ha en hage full av epletrær",
+          "ha en hage full av jordbær"
+        ],
+        [
+          "bo ved siden av en badestrand",
+          "bo ved siden av en skibakke"
+        ],
+        [
+          "alltid ha på deg finsko",
+          "alltid ha på deg gummistøvler"
+        ],
+        [
+          "feire jul hos besteforeldrene hvert år",
+          "feire jul på et nytt sted hvert år"
+        ],
+        [
+          "få et brev fra deg selv i framtiden",
+          "sende et brev til deg selv som barn"
+        ],
+        [
+          "ha en hund som kan rydde",
+          "ha en katt som kan lage kaffe"
+        ],
+        [
+          "være vakthund i én dag",
+          "være huskatt i én dag"
+        ]
+      ]
+    },
+    {
+      "id": "mat",
+      "navn": "Mat",
+      "ikon": "🍕",
+      "tekst": "Smak og grøss",
+      "dilemmaer": [
+        [
+          "bare kunne spise pizza resten av livet",
+          "bare kunne spise taco resten av livet"
+        ],
+        [
+          "aldri mer spise sjokolade",
+          "aldri mer spise potetgull"
+        ],
+        [
+          "ha ribbe hver jul",
+          "ha pinnekjøtt hver jul"
+        ],
+        [
+          "bare ha brunost på brødskiva",
+          "bare ha hvitost på brødskiva"
+        ],
+        [
+          "spise vafler med brunost",
+          "spise vafler med syltetøy og rømme"
+        ],
+        [
+          "spise pølse i brød",
+          "spise pølse i lompe"
+        ],
+        [
+          "aldri mer spise is",
+          "aldri mer spise kake"
+        ],
+        [
+          "bare spise søtt",
+          "bare spise salt"
+        ],
+        [
+          "bare spise varm mat",
+          "bare spise kald mat"
+        ],
+        [
+          "bare få spise med skje",
+          "bare få spise med spisepinner"
+        ],
+        [
+          "aldri spise ost igjen",
+          "aldri spise brød igjen"
+        ],
+        [
+          "spise pizza uten ost",
+          "spise taco uten saus"
+        ],
+        [
+          "spise lutefisk hver jul",
+          "spise smalahove hver påske"
+        ],
+        [
+          "ha et drømmekjøkken uten å kunne lage mat",
+          "kunne lage alt, men bare ha én kokeplate"
+        ],
+        [
+          "smake alle retter i verden",
+          "spise favorittretten din hver dag"
+        ],
+        [
+          "at alle grønnsaker smakte sjokolade",
+          "at sjokolade var like sunt som grønnsaker"
+        ],
+        [
+          "spise et måltid laget av en robot",
+          "spise et måltid laget av en femåring"
+        ],
+        [
+          "bare ha ketchup resten av livet",
+          "bare ha majones resten av livet"
+        ],
+        [
+          "alltid måtte dele maten din",
+          "aldri få smake på andres mat"
+        ],
+        [
+          "aldri spise pasta igjen",
+          "aldri spise ris igjen"
+        ],
+        [
+          "ha leverpostei på matpakka hver dag",
+          "ha makrell i tomat på matpakka hver dag"
+        ],
+        [
+          "spise på en restaurant i verdensrommet",
+          "spise på en restaurant under vann"
+        ],
+        [
+          "bare spise rund mat",
+          "bare spise firkantet mat"
+        ],
+        [
+          "bare spise grønn mat",
+          "bare spise rød mat"
+        ],
+        [
+          "at all mat smakte bacon",
+          "at all mat smakte jordbær"
+        ],
+        [
+          "leve en uke uten salt",
+          "leve en uke uten sukker"
+        ],
+        [
+          "få gratis pizza resten av livet",
+          "få gratis is resten av livet"
+        ],
+        [
+          "kunne bake perfekte boller",
+          "kunne grille perfekte burgere"
+        ],
+        [
+          "alltid ha sjokolade i lomma",
+          "alltid ha en kanelbolle i veska"
+        ],
+        [
+          "spise frokost til middag",
+          "spise middag til frokost"
+        ],
+        [
+          "aldri mer spise fredagstaco",
+          "aldri mer få lørdagsgodt"
+        ],
+        [
+          "hente egg fra dine egne høner",
+          "dyrke dine egne grønnsaker"
+        ],
+        [
+          "spise middag på en fjelltopp",
+          "spise middag på en båt"
+        ],
+        [
+          "ha en sjokoladefontene hjemme",
+          "ha en iskremmaskin hjemme"
+        ],
+        [
+          "at alt du spiser, smaker som favorittretten din",
+          "aldri bli sulten igjen"
+        ],
+        [
+          "bare kunne spise norsk mat",
+          "aldri kunne spise norsk mat igjen"
+        ],
+        [
+          "spise sushi hver dag",
+          "spise kebab hver dag"
+        ],
+        [
+          "bare spise suppe",
+          "bare spise smørbrød"
+        ],
+        [
+          "lage all maten selv",
+          "aldri lage mat selv"
+        ],
+        [
+          "ha brunost med sjokoladesmak",
+          "ha sjokolade med brunostsmak"
+        ],
+        [
+          "bo i landet med verdens beste mat",
+          "bo i landet med verdens beste godteri"
+        ],
+        [
+          "ha all mat uten saus",
+          "ha all mat med altfor mye saus"
+        ],
+        [
+          "alltid få en overraskelse til middag",
+          "alltid vite menyen en måned i forveien"
+        ],
+        [
+          "alltid få det siste kakestykket",
+          "alltid få det største kakestykket"
+        ],
+        [
+          "bli kokk på en luksusrestaurant",
+          "eie verdens beste pølsebod"
+        ],
+        [
+          "aldri få vafler igjen",
+          "aldri få pannekaker igjen"
+        ],
+        [
+          "smake verdens sterkeste chili",
+          "smake verdens sureste godteri"
+        ],
+        [
+          "drikke kakao med krem hver kveld",
+          "spise en bolle med vaniljekrem hver morgen"
+        ],
+        [
+          "spise julemiddag på en strand",
+          "spise grillmat i en snøhule"
+        ],
+        [
+          "bare spise mat som er blå",
+          "bare spise mat som er gjennomsiktig"
+        ],
+        [
+          "ha et kjøleskap som alltid lukter fisk",
+          "ha en ovn som alltid svir bunnen"
+        ],
+        [
+          "få spise dessert først hver dag",
+          "få spise nattmat hver natt"
+        ],
+        [
+          "ha en is som aldri smelter",
+          "ha en brus som aldri blir flat"
+        ],
+        [
+          "få middag på senga hver søndag",
+          "få frokost i badekaret hver lørdag"
+        ],
+        [
+          "ha en kakaokran på kjøkkenet",
+          "ha en bruskran på badet"
+        ],
+        [
+          "spise is med ketchup",
+          "spise pommes frites med sjokoladesaus"
+        ],
+        [
+          "alltid måtte spise sakte",
+          "alltid måtte spise på tid"
+        ],
+        [
+          "bestemme hva hele Norge skal ha til middag i dag",
+          "bestemme hvilket godteri hele Norge skal få på lørdag"
+        ]
+      ]
+    },
+    {
+      "id": "fantasi",
+      "navn": "Superkrefter og fantasi",
+      "ikon": "🦄",
+      "tekst": "Fly, trylle og tidsreiser",
+      "dilemmaer": [
+        [
+          "kunne fly",
+          "kunne bli usynlig"
+        ],
+        [
+          "kunne lese tanker",
+          "kunne se framtiden"
+        ],
+        [
+          "kunne teleportere deg",
+          "kunne reise i tid"
+        ],
+        [
+          "ha superstyrke",
+          "ha superfart"
+        ],
+        [
+          "aldri fryse",
+          "aldri bli sliten"
+        ],
+        [
+          "kunne styre været",
+          "kunne styre tiden"
+        ],
+        [
+          "være en drage",
+          "ri på en drage"
+        ],
+        [
+          "gå på en trolldomsskole",
+          "gå på en romskole"
+        ],
+        [
+          "ha en tryllestav",
+          "ha et flygende teppe"
+        ],
+        [
+          "kunne forvandle deg til et dyr",
+          "kunne forvandle andre til frosker"
+        ],
+        [
+          "kunne krympe deg",
+          "kunne vokse deg kjempestor"
+        ],
+        [
+          "ha en klone som tar alle de kjedelige oppgavene",
+          "ha en robot som gjør alt husarbeidet"
+        ],
+        [
+          "kunne hoppe inn i bøker",
+          "kunne hoppe inn i filmer"
+        ],
+        [
+          "kunne spole tiden ti sekunder tilbake",
+          "kunne pause tiden i ti sekunder"
+        ],
+        [
+          "ha en superkraft som bare virker på mandager",
+          "ha en superkraft som bare virker når du nyser"
+        ],
+        [
+          "kunne fly, men bare i gangfart",
+          "bli usynlig, men bare når du holder pusten"
+        ],
+        [
+          "teleportere deg, men bare til steder du har vært",
+          "reise i tid, men bare én time"
+        ],
+        [
+          "snakke med dyr som alltid er sure",
+          "forstå planter som alltid klager"
+        ],
+        [
+          "være halvt menneske, halvt fisk",
+          "være halvt menneske, halvt hest"
+        ],
+        [
+          "bo i et slott i skyene",
+          "bo i en by under havet"
+        ],
+        [
+          "ha en drage som kjæledyr",
+          "ha en enhjørning som kjæledyr"
+        ],
+        [
+          "kunne trylle bort alle mygg",
+          "kunne trylle bort alle lekser"
+        ],
+        [
+          "sveve hver gang du ler",
+          "teleporteres hver gang du nyser"
+        ],
+        [
+          "møte et romvesen",
+          "møte en dinosaur"
+        ],
+        [
+          "være en superhelt som ingen vet om",
+          "være en superskurk som alle elsker"
+        ],
+        [
+          "bli et troll i ett døgn",
+          "bli en alv i ett døgn"
+        ],
+        [
+          "ha syvmilsstøvler",
+          "ha en usynlighetskappe"
+        ],
+        [
+          "få tre ønsker",
+          "få én superkraft for alltid"
+        ],
+        [
+          "ha en tidsmaskin som bare går bakover",
+          "ha en tidsmaskin som bare går framover"
+        ],
+        [
+          "leve i en verden uten tyngdekraft",
+          "leve i en verden uten natt"
+        ],
+        [
+          "være en kjempe i en verden full av maur",
+          "være en maur i en verden full av kjemper"
+        ],
+        [
+          "vite alt",
+          "kunne alt"
+        ],
+        [
+          "snakke med deg selv som tiåring",
+          "snakke med deg selv som åttiåring"
+        ],
+        [
+          "ha en superheltdrakt med rosa glitter",
+          "ha en superheltdrakt som er en badedrakt"
+        ],
+        [
+          "ha en and som makker",
+          "ha en snakkende brødskive som makker"
+        ],
+        [
+          "bytte kropp med kjæledyret ditt i én dag",
+          "bytte kropp med bestevennen din i én dag"
+        ],
+        [
+          "ha øyne i bakhodet",
+          "ha armer som kan strekke seg ti meter"
+        ],
+        [
+          "ha luktesansen til en hund",
+          "ha hørselen til en flaggermus"
+        ],
+        [
+          "lyse i mørket",
+          "være helt vanntett"
+        ],
+        [
+          "ha vinger",
+          "ha hale"
+        ],
+        [
+          "ha klørne til en hauk",
+          "ha føttene til en and"
+        ],
+        [
+          "ha en fjøsnisse som hjelper deg",
+          "ha en liten drage som varmer huset ditt"
+        ],
+        [
+          "kunne snakke alle språk",
+          "kunne snakke med dyr"
+        ],
+        [
+          "kunne gjøre om én ting du har gjort",
+          "kunne se én ting du kommer til å gjøre"
+        ],
+        [
+          "ha en lommebok som aldri blir tom",
+          "ha et kjøleskap som aldri blir tomt"
+        ],
+        [
+          "leve for alltid",
+          "leve et perfekt liv i hundre år"
+        ],
+        [
+          "kunne se spøkelser",
+          "kunne se inn i drømmene til andre"
+        ],
+        [
+          "ha en dør som fører hvor som helst",
+          "ha et vindu som viser hva som helst"
+        ],
+        [
+          "kunne endre fargen på hva som helst",
+          "kunne endre smaken på hva som helst"
+        ],
+        [
+          "herske over havet",
+          "herske over skogen"
+        ],
+        [
+          "ha en flygende sykkel",
+          "ha en ubåt som kan kjøre på land"
+        ],
+        [
+          "bli verdens største tryllekunstner",
+          "bli verdens største oppfinner"
+        ],
+        [
+          "ha nattsyn",
+          "ha røntgensyn"
+        ],
+        [
+          "være den eneste med superkrefter",
+          "at alle hadde superkrefter"
+        ],
+        [
+          "kunne fly, men være redd for høyder",
+          "kunne puste under vann, men være redd for fisk"
+        ],
+        [
+          "reise til dinosaurenes tid",
+          "reise tusen år fram i tid"
+        ],
+        [
+          "aldri bli stukket av mygg",
+          "aldri bli tatt på bilder med lukkede øyne"
+        ],
+        [
+          "kunne få planter til å vokse på sekunder",
+          "kunne få snø til å falle når du vil"
+        ],
+        [
+          "finne en dør til en hemmelig verden bak klesskapet",
+          "finne en tidsmaskin på loftet"
+        ],
+        [
+          "kunne puste ild",
+          "kunne fryse ting med fingrene"
+        ],
+        [
+          "vokse ti centimeter hver gang du ler",
+          "krympe ti centimeter hver gang du lyver"
+        ]
+      ]
+    },
+    {
+      "id": "ekkelt",
+      "navn": "Ekkelt",
+      "ikon": "🤢",
+      "tekst": "Snørr, slim og grøss",
+      "dilemmaer": [
+        [
+          "spise en meitemark",
+          "spise en edderkopp"
+        ],
+        [
+          "bade i et basseng fullt av spagetti",
+          "bade i et basseng fullt av havregrøt"
+        ],
+        [
+          "ha sokker som lukter fisk",
+          "ha sko som lukter gammel ost"
+        ],
+        [
+          "aldri pusse tennene igjen",
+          "aldri vaske håret igjen"
+        ],
+        [
+          "hikke resten av livet",
+          "nyse hvert femte minutt resten av livet"
+        ],
+        [
+          "rape hver gang du ler",
+          "fise hver gang du hopper"
+        ],
+        [
+          "ha sand i senga for alltid",
+          "ha smuler i senga for alltid"
+        ],
+        [
+          "tråkke på en snegle i bare føtter",
+          "tråkke i kumøkk i bare føtter"
+        ],
+        [
+          "gå med våte sokker en hel dag",
+          "gå med en stein i skoen en hel dag"
+        ],
+        [
+          "bli slikket i ansiktet av en ku",
+          "bli nyst på av en hest"
+        ],
+        [
+          "spise is med fiskesmak",
+          "drikke brus med kålsmak"
+        ],
+        [
+          "bade i en dam full av frosker",
+          "bade i en dam full av igler"
+        ],
+        [
+          "bruke de samme sokkene i en uke",
+          "bruke den samme T-skjorta i en måned"
+        ],
+        [
+          "ta en spiseskje tran",
+          "drikke et glass sylteagurkvann"
+        ],
+        [
+          "gå gjennom en gjørmepøl i sokker",
+          "gå gjennom en snøfonn i shorts"
+        ],
+        [
+          "få fuglebæsj i håret",
+          "tråkke i hundebæsj"
+        ],
+        [
+          "spise middag i et rom som lukter fisk",
+          "sove i et rom som lukter gamle sokker"
+        ],
+        [
+          "bade blant brennmaneter",
+          "bade i et vann fullt av slimete tang"
+        ],
+        [
+          "bli kysset av en frosk",
+          "bli klemt av en blekksprut"
+        ],
+        [
+          "svelge en flue ved et uhell",
+          "få en mygg inn i øret"
+        ],
+        [
+          "holde en slimete snegle i hånda",
+          "holde en hårete edderkopp i hånda"
+        ],
+        [
+          "spise sylte",
+          "spise tørket blekksprut"
+        ],
+        [
+          "spise gelé med fiskebiter",
+          "spise iskrem med sennep"
+        ],
+        [
+          "ha spinat i tennene for alltid",
+          "ha melkebart for alltid"
+        ],
+        [
+          "høre noen skrape en gaffel mot en tallerken i en time",
+          "høre noen smatte i en time"
+        ],
+        [
+          "sitte ved siden av noen som smatter",
+          "sove ved siden av noen som snorker"
+        ],
+        [
+          "stikke hånda i en bøtte med mark",
+          "stikke hånda i en bøtte med slim"
+        ],
+        [
+          "få en slimete fisk i fanget",
+          "bli spyttet på av en lama"
+        ],
+        [
+          "spise en sitron som om den var en appelsin",
+          "spise en løk som om den var et eple"
+        ],
+        [
+          "drikke en smoothie av brokkoli og sardiner",
+          "spise en pizza med banan og tunfisk"
+        ],
+        [
+          "bo med en som aldri vasker opp",
+          "bo med en som aldri skyller ned"
+        ],
+        [
+          "ha hår på tunga",
+          "ha tenner på tærne"
+        ],
+        [
+          "tygge tyggis som har ligget under en pult",
+          "spise en kjeks som har ligget under sofaen"
+        ],
+        [
+          "ha en kløe på ryggen som du aldri når",
+          "ha et hårstrå i munnen som du aldri får ut"
+        ],
+        [
+          "lukte på skoene til en fotballspiller etter kamp",
+          "lukte i en søppelbøtte på en varm sommerdag"
+        ],
+        [
+          "finne et hårstrå i suppa",
+          "finne en flue i brusen"
+        ],
+        [
+          "sove i et fjøs",
+          "sove i et telt fullt av mygg"
+        ],
+        [
+          "spise en skje rått egg",
+          "spise en skje majones rett fra tuben"
+        ],
+        [
+          "ha en sølepytt i senga",
+          "ha en snegle i skoen"
+        ],
+        [
+          "spise surstrømming til frokost",
+          "lukte på surstrømming i en time"
+        ],
+        [
+          "spise en hel rå hvitløk",
+          "drikke et glass sjøvann"
+        ],
+        [
+          "ha en kakerlakk som kjæledyr",
+          "ha en rotte som kjæledyr"
+        ],
+        [
+          "få en spyttklyse i håret",
+          "få en tyggis i håret"
+        ],
+        [
+          "ha tannkrem som smaker fisk",
+          "ha sjampo som lukter fjøs"
+        ],
+        [
+          "lukte en fis i heisen",
+          "lukte svette i garderoben"
+        ],
+        [
+          "spise middag fra en bøtte",
+          "spise middag fra en hundeskål"
+        ],
+        [
+          "låne tannbørsten til en venn",
+          "låne undertøyet til en venn"
+        ],
+        [
+          "ha en sko full av gelé",
+          "ha en lue full av spagetti"
+        ],
+        [
+          "bli stukket av en mygg på øyelokket",
+          "bli stukket av en mygg under foten"
+        ],
+        [
+          "våkne med en edderkopp på puta",
+          "våkne med en snegle på kinnet"
+        ],
+        [
+          "se noen klippe tånegler ved middagsbordet",
+          "se noen pirke seg i nesa ved middagsbordet"
+        ],
+        [
+          "sitte i et badekar fullt av kald suppe",
+          "sitte i et badekar fullt av varm saus"
+        ],
+        [
+          "spise en matpakke som har ligget i sekken i en uke",
+          "drikke kaffe som har stått på pulten i en uke"
+        ],
+        [
+          "ha fingrer som alltid er klissete",
+          "ha føtter som alltid er fuktige"
+        ],
+        [
+          "holde i en død fisk i fem minutter",
+          "holde i en levende frosk i fem minutter"
+        ],
+        [
+          "få gjørme i munnen",
+          "få sand i øynene"
+        ],
+        [
+          "drikke varm melk med skinn på",
+          "spise havregrøt med klumper"
+        ],
+        [
+          "ha ører som alltid er fulle av vann",
+          "ha en nese som alltid er tett"
+        ],
+        [
+          "bo i et hus som lukter brent gummi",
+          "bo i et hus som lukter vått hundehår"
+        ],
+        [
+          "gå barbeint gjennom en fiskebutikk",
+          "gå barbeint gjennom et hønsehus"
+        ],
+        [
+          "ha en dusj som bare har iskaldt vann",
+          "ha en do uten dopapir"
+        ]
+      ]
+    },
+    {
+      "id": "venner",
+      "navn": "Venner",
+      "ikon": "😎",
+      "tekst": "Hverdagsgøy",
+      "dilemmaer": [
+        [
+          "alltid måtte si det du tenker",
+          "aldri kunne si hva du mener"
+        ],
+        [
+          "ha tusen venner du ikke kjenner godt",
+          "ha to venner du kjenner veldig godt"
+        ],
+        [
+          "vite alt vennene dine sier om deg",
+          "aldri få vite noe av det"
+        ],
+        [
+          "lese alle meldingene til bestevennen din",
+          "la bestevennen din lese alle dine"
+        ],
+        [
+          "ha mobilen på én prosent resten av livet",
+          "ha knust skjerm resten av livet"
+        ],
+        [
+          "bare kunne sende talemeldinger",
+          "bare kunne sende emojier"
+        ],
+        [
+          "kutte ut sosiale medier for alltid",
+          "kutte ut strømmetjenester for alltid"
+        ],
+        [
+          "gå alene på konsert med favorittartisten din",
+          "gå på en kjedelig konsert med alle vennene dine"
+        ],
+        [
+          "alltid få røpet slutten på serier",
+          "aldri få se de siste ti minuttene"
+        ],
+        [
+          "bare se filmer med dårlig dubbing",
+          "bare se filmer uten lyd"
+        ],
+        [
+          "at all musikken du hører, er julemusikk",
+          "at all musikken du hører, er barnesanger"
+        ],
+        [
+          "ha en personlig kokk",
+          "ha en personlig sjåfør"
+        ],
+        [
+          "alltid være for varmt kledd",
+          "alltid være for kaldt kledd"
+        ],
+        [
+          "bo sammen med bestevennen din",
+          "bo vegg i vegg med bestevennen din"
+        ],
+        [
+          "ha en trommeslager som nabo",
+          "ha en nabo som griller fisk hver dag"
+        ],
+        [
+          "ha en bil som alltid er skitten",
+          "ha en sykkel som alltid er punktert"
+        ],
+        [
+          "jobbe med noe du elsker og tjene lite",
+          "jobbe med noe du hater og tjene masse"
+        ],
+        [
+          "kunne slette én pinlig ting fra internett",
+          "kunne slette ett pinlig minne fra alle andres hukommelse"
+        ],
+        [
+          "spille brettspill med en jukser",
+          "spille brettspill med en dårlig taper"
+        ],
+        [
+          "ha en venn som alltid sier sannheten",
+          "ha en venn som alltid sier det du vil høre"
+        ],
+        [
+          "være på en øde øy med en morsom person",
+          "være på en øde øy med en flink person"
+        ],
+        [
+          "gå på kino alene",
+          "spise på restaurant alene"
+        ],
+        [
+          "bli kjent med ti nye folk på én kveld",
+          "ha en lang prat med én gammel venn"
+        ],
+        [
+          "alltid måtte synge når du snakker i telefonen",
+          "alltid måtte snakke på rim"
+        ],
+        [
+          "dra på hyttetur med ti venner og én dusj",
+          "dra på hyttetur med to venner og ingen strøm"
+        ],
+        [
+          "planlegge alle turene",
+          "aldri få bestemme noe"
+        ],
+        [
+          "alltid miste den ene øreproppen",
+          "alltid miste den ene votten"
+        ],
+        [
+          "sitte fast i heisen med eksen din",
+          "sitte fast i heisen med sjefen din"
+        ],
+        [
+          "alltid kunne lyve uten at noen merker det",
+          "alltid merke når andre lyver"
+        ],
+        [
+          "alltid ha mobilen på full lyd",
+          "alltid ha mobilen på lydløs"
+        ],
+        [
+          "alltid måtte sende den første meldingen",
+          "aldri kunne sende den første meldingen"
+        ],
+        [
+          "bare kunne kle deg i neonfarger",
+          "bare kunne kle deg i beige"
+        ],
+        [
+          "alltid bli uskarp på bilder",
+          "alltid blunke på bilder"
+        ],
+        [
+          "være på en fest der du ikke kjenner noen",
+          "være på en fest der du kjenner alle altfor godt"
+        ],
+        [
+          "ha en romkamerat som er altfor ryddig",
+          "ha en romkamerat som er altfor rotete"
+        ],
+        [
+          "være kjent på internett",
+          "være kjent på TV"
+        ],
+        [
+          "kunne alle sangene på karaoke",
+          "kunne alle dansetrinnene på dansegulvet"
+        ],
+        [
+          "alltid ha perfekt hår",
+          "alltid ha perfekte klær"
+        ],
+        [
+          "få gaver du ikke liker",
+          "ikke få gaver i det hele tatt"
+        ],
+        [
+          "alltid være den som kjører",
+          "aldri få sitte foran"
+        ],
+        [
+          "ha en venn som alltid kommer for sent",
+          "ha en venn som alltid kommer altfor tidlig"
+        ],
+        [
+          "høre én sang resten av livet",
+          "aldri høre den samme sangen to ganger"
+        ],
+        [
+          "ha en gruppechat med femti meldinger i timen",
+          "ha en gruppechat der ingen svarer"
+        ],
+        [
+          "alltid måtte svare med en gang",
+          "aldri kunne svare før neste dag"
+        ],
+        [
+          "at alle kunne se søkehistorikken din",
+          "at alle kunne se bildene på mobilen din"
+        ],
+        [
+          "dra på festival i regnvær",
+          "dra på festival i hetebølge"
+        ],
+        [
+          "alltid måtte gi bort den siste pizzabiten",
+          "alltid måtte spise den siste pizzabiten"
+        ],
+        [
+          "alltid snakke med en mørk radiostemme",
+          "alltid snakke med pipestemme"
+        ],
+        [
+          "bo ved siden av en fotballbane",
+          "bo ved siden av en konsertscene"
+        ],
+        [
+          "alltid måtte ha hodetelefoner på",
+          "aldri få bruke hodetelefoner"
+        ],
+        [
+          "ha en hund som er altfor energisk",
+          "ha en katt som er altfor lat"
+        ],
+        [
+          "vinne hver diskusjon",
+          "alltid ha rett, men aldri bli trodd"
+        ],
+        [
+          "bli kjent som den morsomste i gjengen",
+          "bli kjent som den snilleste i gjengen"
+        ],
+        [
+          "alltid ha ti minutter for lite tid",
+          "alltid ha en time for mye tid"
+        ],
+        [
+          "spille i et band som ingen har hørt om",
+          "være med i et fotballag som aldri vinner"
+        ],
+        [
+          "ha en venn som forteller alt",
+          "ha en venn som aldri forteller noe"
+        ],
+        [
+          "få hele vennegjengen på besøk i morgen",
+          "få besøk av én venn hver dag i et år"
+        ],
+        [
+          "alltid være litt for tidlig ute med trender",
+          "alltid være litt for sent ute med trender"
+        ],
+        [
+          "ha en hytte alle vil låne",
+          "ha en bil alle vil låne"
+        ]
+      ]
+    },
+    {
+      "id": "fest",
+      "navn": "Fest",
+      "ikon": "🎉",
+      "tekst": "Litt mer på kanten (18+)",
+      "voksen": true,
+      "dilemmaer": [
+        [
+          "ha date i en heis som står fast",
+          "ha date i et pariserhjul som står fast"
+        ],
+        [
+          "få en kjærlighetserklæring på storskjerm",
+          "få en kjærlighetserklæring på radio"
+        ],
+        [
+          "alltid måtte danse når musikken spiller",
+          "aldri få danse"
+        ],
+        [
+          "vise alle meldingene på mobilen til mamma",
+          "vise alle meldingene på mobilen til sjefen"
+        ],
+        [
+          "ha første date på en fjelltur",
+          "ha første date på en karaokebar"
+        ],
+        [
+          "hoste under en romantisk middag",
+          "nyse midt i et kyss"
+        ],
+        [
+          "kysse noen med hvitløksånde",
+          "kysse noen med sardinånde"
+        ],
+        [
+          "ha en kjæreste som snorker høyt",
+          "ha en kjæreste som stjeler dyna"
+        ],
+        [
+          "date noen som bare snakker om tog",
+          "date noen som bare snakker om fotball"
+        ],
+        [
+          "bli fridd til foran tusen mennesker",
+          "bli fridd til i all hemmelighet"
+        ],
+        [
+          "ha vorspiel med bestemor",
+          "ha nachspiel med sjefen"
+        ],
+        [
+          "alltid være den første som kommer på fest",
+          "alltid være den siste som går hjem"
+        ],
+        [
+          "møte svigerfamilien for første gang på julaften",
+          "møte svigerfamilien for første gang på en lang båttur"
+        ],
+        [
+          "holde tale i et bryllup uten forberedelse",
+          "synge solo i et bryllup"
+        ],
+        [
+          "feire valentinsdagen på en fin restaurant",
+          "feire valentinsdagen med pizza i sofaen"
+        ],
+        [
+          "alltid ha på deg kostyme på fest",
+          "aldri få pynte deg til fest"
+        ],
+        [
+          "alltid bruke dårlige sjekkereplikker",
+          "alltid rødme når du flørter"
+        ],
+        [
+          "dra på konsert i Bergen",
+          "dra på klubb i Berlin"
+        ],
+        [
+          "date en som er altfor romantisk",
+          "date en som er altfor sjenert"
+        ],
+        [
+          "få en genial sjekkereplikk fra en du ikke liker",
+          "få en elendig sjekkereplikk fra en du liker"
+        ],
+        [
+          "alltid være DJ på fester",
+          "aldri få velge musikken"
+        ],
+        [
+          "bli med kjæresten på strikkekurs",
+          "bli med kjæresten på boksetrening"
+        ],
+        [
+          "få blomster hver uke",
+          "få en kjærlighetssang skrevet til deg"
+        ],
+        [
+          "treffe kjæresten din på en app",
+          "treffe kjæresten din gjennom en venn"
+        ],
+        [
+          "dra på bryllupsreise til Paris",
+          "dra på bryllupsreise til Lofoten"
+        ],
+        [
+          "at daten din kunne høre tankene dine",
+          "at du kunne høre tankene til daten din"
+        ],
+        [
+          "ha et kjempestort bryllup",
+          "rømme og gifte deg i hemmelighet"
+        ],
+        [
+          "at kjæresten din leste dagboka di",
+          "at foreldrene dine leste dagboka di"
+        ],
+        [
+          "at eksen din ble sjefen din",
+          "at eksen din ble naboen din"
+        ],
+        [
+          "ha en kjæreste med dårlig humor",
+          "ha en kjæreste med dårlig musikksmak"
+        ],
+        [
+          "sende en flørtete melding til mamma ved et uhell",
+          "sende en flørtete melding til sjefen ved et uhell"
+        ],
+        [
+          "ha en første date som varer i tolv timer",
+          "ha en første date som varer i tolv minutter"
+        ],
+        [
+          "dele seng med en som snakker i søvne",
+          "dele seng med en som sparker i søvne"
+        ],
+        [
+          "få gratis taxi hjem fra alle fester",
+          "få gratis inngang på alle konserter"
+        ],
+        [
+          "danse med den du er forelsket i foran alle",
+          "danse helt alene foran alle"
+        ],
+        [
+          "gå på en fest der alle er utkledd unntatt deg",
+          "gå på en fest der bare du er utkledd"
+        ],
+        [
+          "tilbringe nyttårsaften med eksen din",
+          "tilbringe nyttårsaften helt alene"
+        ],
+        [
+          "aldri bli fyllesyk",
+          "aldri bli trøtt på fest"
+        ],
+        [
+          "ha en kjæreste som elsker hytteliv",
+          "ha en kjæreste som elsker storbyferier"
+        ],
+        [
+          "bli dumpet på melding",
+          "bli dumpet midt på en restaurant"
+        ],
+        [
+          "alltid ha hikke på dater",
+          "alltid søle mat på skjorta på dater"
+        ],
+        [
+          "gå på date med en som bare snakker om seg selv",
+          "gå på date med en som ikke sier et ord"
+        ],
+        [
+          "synge karaoke med kollegaene dine",
+          "synge karaoke med svigerfamilien din"
+        ],
+        [
+          "ha mamma med på daten",
+          "ha bestevennen din med på daten"
+        ],
+        [
+          "date en kokk som aldri lager mat hjemme",
+          "date en frisør som aldri vil klippe deg"
+        ],
+        [
+          "spise spagetti på første date",
+          "spise hummer med skall på første date"
+        ],
+        [
+          "gå på date i en klatrehall",
+          "gå på date på et gammeldansball"
+        ],
+        [
+          "ha en kjæreste som elsker skrekkfilmer",
+          "ha en kjæreste som elsker romantiske komedier"
+        ],
+        [
+          "bo med en som synger hele tiden",
+          "bo med en som plystrer hele tiden"
+        ],
+        [
+          "gifte deg på en båt",
+          "gifte deg på en fjelltopp"
+        ],
+        [
+          "ha brudevals til en barnesang",
+          "ha brudevals til en hardrocklåt"
+        ],
+        [
+          "alltid flørte med feil person",
+          "alltid bli flørtet med av feil person"
+        ],
+        [
+          "fri på toppen av et fjell",
+          "fri på en strand i solnedgang"
+        ],
+        [
+          "være forlover for noen du ikke liker",
+          "ha en forlover som holder en pinlig tale"
+        ],
+        [
+          "se alle bildene fra festen dagen etter",
+          "aldri få se et eneste bilde fra festen"
+        ],
+        [
+          "dra på julebord med alle eksene dine",
+          "dra på julebord med alle naboene dine"
+        ],
+        [
+          "ha en fest som slutter klokka ti",
+          "ha en fest som varer i tre dager"
+        ],
+        [
+          "avslutte kvelden med kebab i regnet",
+          "avslutte kvelden med pannekaker hos en venn"
+        ],
+        [
+          "ha den beste dansen på festen",
+          "ha den beste historien dagen etter"
+        ],
+        [
+          "alltid være edru sjåfør",
+          "aldri få være med på nachspiel"
+        ]
+      ]
+    }
+  ]
+}

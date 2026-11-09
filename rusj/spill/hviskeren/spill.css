@@ -1,0 +1,612 @@
+/* Hviskeren: paper hint notes, the secret word card, the deck of rounds. All classes start with hv-. */
+
+/* ---------- The deck (one small card per word) ---------- */
+
+.hv-bunke {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hv-bunke li {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 25px;
+  border-radius: 4px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--blekk);
+  font: 900 0.72rem/1 var(--font-display);
+}
+
+.hv-bunke .hv-riktig {
+  background: var(--mynte);
+  box-shadow: 0 2px 0 var(--mynte-dyp);
+}
+
+.hv-bunke .hv-feil {
+  background: var(--rod);
+  box-shadow: 0 2px 0 var(--rod-dyp);
+}
+
+.hv-bunke .hv-pass {
+  background: var(--tekst-3);
+  box-shadow: 0 2px 0 var(--blekk-2);
+}
+
+.hv-bunke .hv-tapt {
+  background: repeating-linear-gradient(-45deg, var(--rod-dyp) 0 3px, transparent 3px 6px), var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--rod-dyp);
+  opacity: 0.7;
+}
+
+.hv-bunke .hv-na {
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 2px var(--natt), 0 0 0 4px var(--aksent);
+}
+
+.hv-bunke li:not([class]),
+.hv-bunke li[class=""] {
+  opacity: 0.8;
+}
+
+.hv-bunke li.hv-na:not(.hv-riktig):not(.hv-feil):not(.hv-pass) {
+  background: var(--aksent);
+}
+
+/* ---------- Secret word card ---------- */
+
+.hv-for-dere {
+  align-self: center;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 79, 139, 0.14);
+  color: var(--rosa);
+  font: 800 0.9rem/1.2 var(--font-display);
+}
+
+.hv-for-dere::before {
+  content: "🤫 ";
+}
+
+.hv-ordkort {
+  min-height: 210px;
+  text-align: center;
+}
+
+.hv-ordkort .kort-ord {
+  margin: auto 0;
+  padding: 6px 0 10px;
+  color: var(--blekk);
+}
+
+.hv-ordkort.stille {
+  animation: none;
+}
+
+.hv-ordkort.avslor .kort-ord {
+  animation: hv-avslor 0.9s cubic-bezier(0.3, 0.8, 0.3, 1) 0.45s both;
+}
+
+@keyframes hv-avslor {
+  from {
+    filter: blur(14px);
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+}
+
+.hv-ser-bort {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.hv-ser-bort b {
+  color: var(--tekst);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Writing a hint ---------- */
+
+.hv-skriv {
+  display: grid;
+  gap: 12px;
+}
+
+.hv-skriv-hode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hv-skriv-hode h1 {
+  display: grid;
+  min-width: 0;
+  font-size: clamp(1.7rem, 7.5vw, 2.1rem);
+}
+
+.hv-skriv-hode h1 small {
+  overflow: hidden;
+  color: var(--tekst-2);
+  font: 800 1rem/1.3 var(--font-display);
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hv-minne {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 12px 16px;
+  border-radius: var(--r-mid);
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.hv-minne span {
+  font: 800 0.78rem/1.2 var(--font-display);
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.hv-minne b {
+  min-width: 0;
+  font: 900 1.45rem/1.1 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.hv-minne.liten {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+}
+
+.hv-minne.liten b {
+  font-size: 1.1rem;
+}
+
+.hv-felt {
+  min-height: 68px;
+  font-size: 1.5rem;
+  text-align: center;
+  scroll-margin: 90px 0 140px;
+}
+
+.hv-felt[aria-invalid="true"] {
+  border-color: var(--rosa);
+}
+
+.hv-skriv .feil:empty {
+  min-height: 0;
+}
+
+/* ---------- Paper hint notes ---------- */
+
+.hv-lapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px 12px;
+  padding: 8px 2px 4px;
+}
+
+.hv-lapper > .hv-lapp {
+  flex: 0 1 calc(50% - 6px);
+}
+
+.hv-lapp {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 104px;
+  padding: 20px 10px 12px;
+  border: 0;
+  border-radius: 5px 5px 16px 5px;
+  background:
+    linear-gradient(transparent 92%, rgba(23, 14, 43, 0.06) 92%) 0 0 / 100% 22px,
+    var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2), 0 14px 26px var(--skygge);
+  color: var(--blekk);
+  text-align: center;
+  transform: rotate(var(--rot, -1deg));
+  transition: transform 0.18s, opacity 0.2s;
+  animation: hv-lapp-inn 0.4s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+@keyframes hv-lapp-inn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) rotate(calc(var(--rot, -1deg) * 3)) scale(0.92);
+  }
+}
+
+/* A strip of tape holding the note */
+.hv-lapp::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 56px;
+  height: 20px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--aksent) 72%, transparent);
+  transform: translateX(-50%) rotate(-4deg);
+}
+
+button.hv-lapp {
+  cursor: pointer;
+}
+
+button.hv-lapp:active {
+  transform: rotate(var(--rot, -1deg)) scale(0.96);
+}
+
+.hv-lapp-tekst {
+  max-width: 100%;
+  font: 900 clamp(1.2rem, 6vw, 1.45rem) / 1.08 var(--font-display);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.hv-lapp-tekst.lang {
+  font-size: clamp(1rem, 4.8vw, 1.2rem);
+}
+
+.hv-lapp-tekst.ekstra-lang {
+  font-size: clamp(0.9rem, 4vw, 1rem);
+}
+
+.hv-lapp-fra {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  color: var(--blekk-2);
+  font: 700 0.78rem/1.1 var(--font-tekst);
+}
+
+.hv-lapp-fra .avatar {
+  width: 22px;
+  height: 22px;
+  font-size: 0.75rem;
+}
+
+.hv-lapp-fra > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Struck notes stay readable: dimmed word, thin strike, the stamp under the word */
+.hv-lapp-merke {
+  padding: 2px 8px;
+  border: 2px solid var(--rod);
+  border-radius: 7px;
+  color: var(--rod-dyp);
+  font: 900 0.72rem/1.1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  animation: slag 0.4s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.hv-lapp[aria-pressed="true"],
+.hv-lapp.strok {
+  background: var(--papir-2);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--papir-2) 70%, var(--natt)), 0 8px 16px var(--skygge);
+}
+
+.hv-lapp[aria-pressed="true"] .hv-lapp-tekst,
+.hv-lapp.strok .hv-lapp-tekst {
+  color: color-mix(in srgb, var(--blekk) 55%, var(--papir-2));
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--rod) 75%, transparent);
+  text-decoration-thickness: 2px;
+}
+
+.hv-lapp[aria-pressed="true"] .hv-lapp-fra,
+.hv-lapp.strok .hv-lapp-fra {
+  opacity: 0.7;
+}
+
+.hv-lapp[aria-pressed="true"]::before,
+.hv-lapp.strok::before {
+  opacity: 0.5;
+}
+
+/* The guesser's view: bigger notes, no taps */
+.hv-lapper.stor .hv-lapp {
+  min-height: 120px;
+}
+
+.hv-lapper.stor .hv-lapp-tekst {
+  font-size: clamp(1.35rem, 7.2vw, 1.8rem);
+}
+
+.hv-lapper.stor .hv-lapp-tekst.lang {
+  font-size: clamp(1.1rem, 5.4vw, 1.4rem);
+}
+
+.hv-lapper.stor .hv-lapp-tekst.ekstra-lang {
+  font-size: clamp(0.95rem, 4.4vw, 1.12rem);
+}
+
+/* No hints survived */
+.skjerm-gjett .tom {
+  flex: 1;
+  align-content: center;
+}
+
+.skjerm-gjett .tom .figur-ramme {
+  width: 112px;
+}
+
+/* The guesser's notes float in the middle of the free space */
+.skjerm-gjett .hv-lapper.stor {
+  flex: 1;
+  align-content: center;
+  padding-block: 12px;
+}
+
+/* Round summary: small notes */
+.hv-lapper.liten {
+  gap: 12px 10px;
+}
+
+.hv-lapper.liten .hv-lapp {
+  min-height: 78px;
+  padding: 14px 8px 10px;
+  animation: none;
+}
+
+.hv-lapper.liten .hv-lapp-tekst {
+  font-size: 1.12rem;
+}
+
+.hv-lapper.liten .hv-lapp-tekst.lang,
+.hv-lapper.liten .hv-lapp-tekst.ekstra-lang {
+  font-size: 0.95rem;
+}
+
+.hv-lapper.liten .hv-lapp::before {
+  width: 40px;
+  height: 14px;
+  top: -6px;
+}
+
+/* ---------- Screens ---------- */
+
+.hv-sjekk-hode,
+.hv-gjett-hode {
+  display: grid;
+  gap: 8px;
+}
+
+.hv-gjett-hode {
+  justify-items: center;
+  text-align: center;
+}
+
+.hv-status {
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.hv-status b {
+  color: var(--aksent);
+}
+
+.hv-klar {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--aksent) 18%, transparent);
+  color: var(--aksent);
+  font: 800 0.95rem/1.2 var(--font-display);
+}
+
+.hv-sporsmal {
+  font: 900 1.5rem/1.2 var(--font-display);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.hv-utfall {
+  margin-top: -8px;
+  color: var(--tekst-2);
+  font: 700 1.02rem/1.35 var(--font-display);
+  text-align: center;
+}
+
+.hv-stand {
+  margin-top: -10px;
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.hv-stand b {
+  color: var(--tekst);
+  font-size: 1.1rem;
+}
+
+.hv-runden {
+  gap: 14px;
+}
+
+.skjerm-svar .stempel-sted {
+  min-height: 74px;
+  margin-top: -6px;
+}
+
+/* ---------- Setup ---------- */
+
+.hv-katknapp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  text-align: left;
+  cursor: pointer;
+}
+
+.hv-katknapp:active {
+  background: var(--natt-3);
+}
+
+.hv-kat-ikoner {
+  flex: none;
+  font-size: 1.15rem;
+  letter-spacing: -0.15em;
+}
+
+.hv-kat-tekst {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.hv-kat-tekst small {
+  color: var(--tekst-3);
+  font: 800 0.72rem/1.2 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hv-kat-tekst b {
+  overflow: hidden;
+  font: 900 1.05rem/1.25 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hv-kat-endre {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--aksent);
+  color: var(--blekk);
+  font: 900 0.85rem/1 var(--font-display);
+}
+
+#hv-kat .brikker {
+  max-height: 52vh;
+  overflow-y: auto;
+  padding: 2px 2px 18px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent);
+}
+
+/* ---------- Result ---------- */
+
+.hv-logg {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hv-logg li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 14px 8px 8px;
+  border-radius: 999px;
+  background: var(--natt-2);
+}
+
+.hv-logg b {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font: 900 1.02rem/1.2 var(--font-display);
+}
+
+.hv-logg li > span:not(.hv-logg-merke):not(.vh) {
+  max-width: 40%;
+  overflow: hidden;
+  color: var(--tekst-3);
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hv-logg-merke {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--tekst-3);
+  color: var(--blekk);
+  font: 900 1rem/1 var(--font-display);
+}
+
+.hv-logg .hv-riktig .hv-logg-merke {
+  background: var(--mynte);
+}
+
+.hv-logg .hv-feil .hv-logg-merke {
+  background: var(--rod);
+}
+
+.skjerm-slutt .banner h1 span {
+  font-size: 0.8em;
+}
+
+@media (max-width: 350px) {
+  .hv-lapper {
+    gap: 14px 8px;
+  }
+}
+
+/* Short screens: the word and the hints must stay visible above the dock. */
+@media (max-height: 700px) {
+  .hv-ordkort {
+    min-height: 150px;
+  }
+
+  .hv-lapp {
+    min-height: 86px;
+    padding-top: 16px;
+  }
+
+  .hv-lapper.stor .hv-lapp {
+    min-height: 96px;
+  }
+
+  .skjerm-gjett .tom .figur-ramme {
+    width: 80px;
+  }
+}

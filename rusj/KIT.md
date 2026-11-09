@@ -56,6 +56,50 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
   dangerous dares or anything illegal. Dares must be safe to do in a living room.
 - **Storage:** only through the kit (`localStorage` keys start with `rusj.`). No cookies.
 
+## Shared wording (use exactly these, so all games feel like one product)
+
+- Ending a game early: **«Avslutt»**; resuming: **«Fortsett»**. Don't say «forsiden» about the game's own
+  start screen (on rusj.no «forsiden» means rusj.no) — say **«Til [spillnavn]»** if you need that link.
+- Praise: **«Godt jobba!»**. Winner line: **«X vinner!»**; shared win: «A, B og C vinner!» — list names as
+  «A, B og C» (comma-separated, «og» before the last), never «A og B og C».
+- **fingrer** (not «fingre»), **Hurtigruta**, **spagetti**, **T-skjorte**, **matpakka**, **sto** (not «stod»),
+  **verdensrommet** (not «rommet» for space), «faktabit» (one word), «festpakken» (one word).
+- Also: **fram** (not «frem»), **grøt**, **sjiraff**, **disko**, **flygende**, **topphemmelig**, **natta**,
+  seconds as **«30 s»**. The final screen of every game is called **«Kåringen»**. The setup screen's main
+  button is **«Start»**. Hold-to-reveal instruction: **«Hold fingeren på kortet for å se»**.
+- Saying no is always fine: never shame a player for skipping (no booing, no «feig» for children).
+- **ferje** (not «ferge»). Teams are always called **«Lag Rosa», «Lag Gul», «Lag Blå», «Lag Grønn»**
+  (capital L, also mid-sentence), as `R.ui.lagmerke` and `R.ui.poengliste` write them.
+- Numbers with nouns: `R.flertall(n, "sekund", "sekunder")` → «1 sekund» / «2 sekunder» (never «1 sekunder»);
+  name lists: `R.ramsOpp(["A", "B", "C"])` → «A, B og C» (escape the result before inserting it in HTML).
+- Don't use «de/dem/deres» about one person; rewrite with «man/en/seg» or rephrase.
+- Pack names, icons and descriptions: Familie 🏡 «For alle aldre» · Barn 🧸 «For de minste» ·
+  Venner 😎 «Hverdagsgøy» · Mat 🍕 · Reise ✈️ · Skole og jobb 💼 · Pinlig 🙈 · Kaos 🌪️ ·
+  Fest 🎉 «Litt mer på kanten (18+)» (off by default when children may be playing).
+
+## Shared screen patterns
+
+- **Home screen:** use `R.ui.startKnapper({ pagar, fortsettTekst })`. While a game is running,
+  «Fortsett …» is the big main button and «Nytt spill» is secondary; the «nytt» handler must call
+  `await R.bekreftNytt(pagar)` before throwing a running game away.
+- **Modes:** a choice of mode is the FIRST section of the setup screen, as big tiles (`R.ui.fliser`),
+  and is never asked twice. Exception: a game with exactly two modes and no other settings may show
+  the two modes as the two main buttons on the home screen.
+- **Giving points:** every tap that gives or takes points must be undoable («Angre») until the next action.
+- **End screen:** winner banner (+ `R.ui.pall` and `R.ui.poengliste` when there are points), then
+  `R.ui.flereSpill({ antall })` ("Spill noe annet med samme gjeng"). Dock: «Spill igjen» (same setup) as the
+  main button; links «Endre oppsett» and «Alle spill» (`<a class="lenke" href="/">Alle spill</a>`).
+- **Celebrate in proportion:** fanfare + confetti for a real win or a great result; a gentle sound and
+  warm words for a weak solo result.
+- **Ending early:** the link is always just «Avslutt» (a `R.bekreft` sheet explains what happens).
+- **In progress:** pass `pagar: (S) => …` to `Rusj.start` (true while a game is running, false on the end
+  screen). The front page's «Fortsett» badge and the kit's screen wake lock use it.
+- **After every `await`** in an action, check `R.vakt()` (and `if (!(await R.nedtelling(…))) return;`).
+- The kit ignores ghost taps (a real tap within 350 ms after a screen change, or after a redraw when
+  it's a different action) — games don't need their own guard for that.
+- **Short screens:** what the screen is about must be visible above the dock at 375×560; shrink
+  boards, clocks and mascots under `@media (max-height: 700px)`.
+
 ## The kit in one page (`window.Rusj`, here `R`)
 
 ```js
@@ -89,7 +133,8 @@ R.start({
   `tilbake` = "portal" | screen name | `async (S) => name | null` (null = stay);
   `inn(S)` runs once each time the screen is entered (also after a reload) — start timers here;
   `etter(S, rot)` runs after every render (bind canvas etc.); `ut(S)` when leaving;
-  `gjenoppta: false` (never resume this screen) or `"hjem"` (resume to that screen instead).
+  `gjenoppta: false` (never resume this screen) or `"hjem"` (always resume to that screen instead —
+  use this for screens that show a secret).
 - `R.gaTil("skjerm")` navigates (stops timers, closes sheets, focuses the h1, saves).
   `R.vis()` redraws the current screen in place (keeps scroll and focus) — call it after changing `S`.
 - Every screen needs exactly one `<h1>` (it may be visually hidden with class `vh`).

@@ -1,0 +1,645 @@
+/* Varulven: a village under the moon. Night screens get a deep blue sky with a crescent moon and
+   stars, mornings a sunrise. Every night screen looks the same whatever your role. */
+
+/* ---------- Moods ---------- */
+
+html.vu-natt {
+  --aksent: #a3adff;
+  --aksent-dyp: #5d66c2;
+}
+
+html.vu-natt .scene {
+  background: linear-gradient(180deg, #03051a 0%, #08102e 48%, #140c2a 100%);
+}
+
+html.vu-natt .scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 30% at 50% 0%, rgba(163, 173, 255, 0.16), transparent 75%),
+    radial-gradient(1.6px 1.6px at 9% 12%, #fff 99%, transparent),
+    radial-gradient(1.2px 1.2px at 22% 31%, #fff 99%, transparent),
+    radial-gradient(1.8px 1.8px at 37% 8%, #fff 99%, transparent),
+    radial-gradient(1.2px 1.2px at 51% 22%, #fff 99%, transparent),
+    radial-gradient(1.4px 1.4px at 63% 5%, #fff 99%, transparent),
+    radial-gradient(1.2px 1.2px at 70% 28%, #fff 99%, transparent),
+    radial-gradient(1.6px 1.6px at 93% 19%, #fff 99%, transparent),
+    radial-gradient(1.2px 1.2px at 6% 44%, #fff 99%, transparent),
+    radial-gradient(1.4px 1.4px at 30% 52%, #fff 99%, transparent),
+    radial-gradient(1.2px 1.2px at 88% 47%, #fff 99%, transparent),
+    radial-gradient(1.2px 1.2px at 46% 64%, #fff 99%, transparent),
+    radial-gradient(1.6px 1.6px at 15% 78%, #fff 99%, transparent),
+    radial-gradient(1.2px 1.2px at 79% 72%, #fff 99%, transparent);
+  opacity: 0.9;
+  animation: vu-blink 5s ease-in-out infinite;
+}
+
+@keyframes vu-blink {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+html.vu-morgen .scene {
+  background:
+    radial-gradient(circle at 50% calc(100% + 40px), rgba(255, 210, 63, 0.75) 0 90px, rgba(255, 138, 61, 0.38) 180px, transparent 68%),
+    radial-gradient(ellipse 120% 60% at 50% 100%, rgba(255, 79, 139, 0.22), transparent 70%),
+    linear-gradient(180deg, #1a1235 0%, #34204c 58%, #5a2b48 100%);
+}
+
+/* ---------- Pass the phone: roles ---------- */
+
+.vu-mottaker {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.vu-mottaker .spillernavn {
+  justify-content: center;
+}
+
+.spillernavn.vu-navn-l,
+.vu-port h1.vu-navn-l {
+  font-size: clamp(1.75rem, 8vw, 2.35rem);
+}
+
+.spillernavn.vu-navn-xl,
+.vu-port h1.vu-navn-xl {
+  font-size: clamp(1.35rem, 6.4vw, 1.95rem);
+}
+
+.vu-to-linjer {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.vu-to-linjer small {
+  font: 800 0.92rem/1.2 var(--font-display);
+  opacity: 0.72;
+  overflow-wrap: anywhere;
+}
+
+/* The role card behind the hold-to-reveal folder (same colour for every role). */
+.mappe-bakside.vu-kort {
+  gap: 10px;
+  padding: 22px 20px;
+}
+
+.vu-kort-ikon {
+  font-size: 3.4rem;
+  line-height: 1;
+}
+
+.vu-kort-tekst {
+  max-width: 30ch;
+  font: 700 1.02rem/1.35 var(--font-tekst);
+}
+
+.vu-kort .kort-fot {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(23, 14, 43, 0.08);
+  opacity: 1;
+}
+
+/* ---------- Night ---------- */
+
+.vu-natthimmel {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding-top: 6px;
+  text-align: center;
+}
+
+.vu-maane {
+  font-size: 4.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 22px rgba(255, 233, 160, 0.55));
+  animation: vu-sveve 5s ease-in-out infinite;
+}
+
+@keyframes vu-sveve {
+  50% {
+    transform: translateY(-6px) rotate(-6deg);
+  }
+}
+
+.vu-natthimmel h1 {
+  font-size: clamp(2.3rem, 10.5vw, 3rem);
+  text-shadow: 0 4px 0 rgba(93, 102, 194, 0.55);
+}
+
+.vu-fortelling {
+  max-width: 32ch;
+  color: var(--tekst-2);
+  font: italic 700 1.1rem/1.4 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.vu-slik li {
+  background: rgba(8, 16, 46, 0.72);
+  box-shadow: inset 0 0 0 1.5px rgba(163, 173, 255, 0.22);
+}
+
+.skjerm .hjelp b {
+  color: var(--tekst);
+}
+
+/* "Give the phone to …" */
+.vu-port {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-block: 8px;
+  text-align: center;
+}
+
+.vu-port h1 {
+  max-width: 100%;
+  font-size: clamp(2rem, 9vw, 2.6rem);
+  overflow-wrap: anywhere;
+}
+
+/* The pick: same frame for every role */
+.vu-oppdrag {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-radius: var(--r-stor);
+  background: rgba(8, 16, 46, 0.78);
+  box-shadow: inset 0 0 0 2px rgba(163, 173, 255, 0.32);
+}
+
+.vu-oppdrag h1 {
+  font-size: clamp(1.5rem, 6.6vw, 1.85rem);
+  line-height: 1.12;
+}
+
+.vu-oppdrag p {
+  color: var(--tekst-2);
+  line-height: 1.4;
+}
+
+.vu-oppdrag p b {
+  color: var(--tekst);
+}
+
+.vu-hvem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.vu-hvem span:last-child {
+  min-width: 0;
+  color: var(--tekst-2);
+  font: 800 0.95rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.vu-velgere .velger > span:last-child {
+  display: grid;
+}
+
+.vu-velgere .velger b,
+.vu-velgere .velger small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vu-velgere .velger b {
+  font-weight: 700;
+}
+
+.vu-velgere .velger small {
+  color: var(--tekst-3);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.vu-velgere .velger:disabled {
+  opacity: 0.38;
+}
+
+/* The private answer: the same paper card for every role */
+.vu-svar {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  padding: 30px 22px 26px;
+  border-radius: var(--r-stor);
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.5), transparent 60%), var(--papir);
+  box-shadow: 0 10px 0 var(--papir-2), 0 24px 44px var(--skygge);
+  color: var(--blekk);
+  text-align: center;
+  animation: vu-snu 0.42s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+
+@keyframes vu-snu {
+  from {
+    opacity: 0;
+    transform: rotateX(70deg) scale(0.96);
+  }
+}
+
+.vu-svar-ikon {
+  font-size: 3.6rem;
+  line-height: 1;
+}
+
+.vu-svar h1 {
+  max-width: 100%;
+  font-size: clamp(1.6rem, 7.4vw, 2.1rem);
+  overflow-wrap: anywhere;
+}
+
+.vu-svar p {
+  max-width: 32ch;
+  font: 700 1rem/1.4 var(--font-tekst);
+  opacity: 0.75;
+}
+
+/* "Ferdig" waits a moment for everyone, so turns take the same time whatever the role. */
+.knapp.vu-vent {
+  position: relative;
+  overflow: hidden;
+  opacity: 0.6;
+}
+
+.knapp.vu-vent::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 7px;
+  background: var(--blekk);
+  opacity: 0.35;
+  transform-origin: left;
+  animation: vu-fyll var(--vent, 2200ms) linear both;
+}
+
+@keyframes vu-fyll {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ---------- Morning and reveals ---------- */
+
+.vu-sol {
+  align-self: center;
+  margin-top: 18px;
+  font-size: 4.6rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 26px rgba(255, 210, 63, 0.6));
+  animation: vu-soloppgang 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes vu-soloppgang {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.8);
+  }
+}
+
+.vu-spotlys {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding-top: 12px;
+  text-align: center;
+}
+
+.vu-spotlys h1 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.vu-spotlys .stempel {
+  font-size: clamp(1.45rem, 7.2vw, 2.3rem);
+  white-space: nowrap;
+}
+
+.vu-stor-ikon {
+  font-size: 5rem;
+  line-height: 1;
+}
+
+.vu-skjelv,
+.vu-dod {
+  display: inline-block;
+}
+
+.vu-spotlys.spenning .vu-skjelv {
+  animation: vu-skjelv 0.45s ease-in-out infinite;
+}
+
+@keyframes vu-skjelv {
+  25% {
+    transform: rotate(-5deg) scale(1.02);
+  }
+  75% {
+    transform: rotate(5deg) scale(1.02);
+  }
+}
+
+.vu-dod .avatar {
+  filter: grayscale(1) brightness(0.8);
+}
+
+.vu-jeger-topp {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.vu-jeger-topp > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* ---------- Day ---------- */
+
+.skjerm-dag .timer {
+  background: var(--natt-2);
+}
+
+.vu-landsby {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vu-landsby li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.vu-landsby li > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+
+.vu-landsby b {
+  overflow: hidden;
+  font-size: 0.95rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vu-landsby small {
+  overflow: hidden;
+  color: var(--tekst-2);
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vu-landsby li.dod {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px rgba(71, 50, 111, 0.6);
+}
+
+.vu-landsby li.dod .avatar {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+.vu-landsby li.dod b {
+  color: var(--tekst-3);
+  text-decoration: line-through;
+}
+
+/* ---------- Setup ---------- */
+
+/* The deck as one plain line of text (not chips, so it can't be mistaken for buttons). */
+.vu-stokk {
+  margin-top: -8px;
+  color: var(--tekst-2);
+  font: 700 1rem/1.5 var(--font-display);
+}
+
+.vu-stokk .etikett {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.vu-stokk-del {
+  white-space: nowrap;
+}
+
+.vu-tid-ute {
+  color: var(--rosa);
+  font: 900 1rem/1.2 var(--font-display);
+}
+
+.hjelp.vu-venstre {
+  text-align: left;
+}
+
+/* ---------- The end ---------- */
+
+.vu-rolleliste,
+.vu-stat,
+.vu-historikk {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vu-rolleliste li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px 8px 8px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+}
+
+.vu-rolleliste li > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.vu-rolleliste b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vu-rolleliste small {
+  color: var(--tekst-2);
+  font-size: 0.88rem;
+}
+
+.vu-rolleliste li.ulv {
+  background: color-mix(in srgb, var(--rosa) 14%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--rosa);
+}
+
+.vu-rolleliste li.dod .avatar {
+  filter: grayscale(1);
+  opacity: 0.7;
+}
+
+.vu-stat li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2);
+  color: var(--blekk);
+}
+
+.vu-stat-ikon {
+  font-size: 1.7rem;
+  line-height: 1.1;
+}
+
+.vu-stat li > span:last-child {
+  display: grid;
+  gap: 2px;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.vu-stat b {
+  font: 900 1.05rem/1.2 var(--font-display);
+}
+
+.vu-historikk li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.vu-historikk b {
+  color: var(--tekst);
+}
+
+.vu-hist-ikon {
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+
+.vu-hist-tittel {
+  display: block;
+  font: 900 1rem/1.3 var(--font-display);
+}
+
+@media (max-height: 700px) {
+  .vu-port .avatar.gigant {
+    width: 104px;
+    height: 104px;
+    font-size: 3.3rem;
+  }
+}
+
+/* Short screens: the kit makes the card shorter, so its content gets more compact too. */
+@media (max-height: 700px) {
+  .mappe-forside .figur-ramme {
+    width: 76px;
+  }
+
+  .mappe-finger svg {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mappe-bakside.vu-kort {
+    gap: 6px;
+    padding: 14px 16px;
+  }
+
+  .vu-kort-ikon {
+    font-size: 2.2rem;
+  }
+
+  .vu-kort .kort-ord {
+    font-size: 2rem;
+  }
+
+  .vu-kort-tekst {
+    font-size: 0.86rem;
+    line-height: 1.3;
+  }
+
+  .vu-kort .kort-fot {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+  }
+}
+
+/* The smallest phones (e.g. 320×568): the whole role card and its instruction stay above the dock. */
+@media (max-height: 620px) {
+  .skjerm-roller {
+    gap: 14px;
+  }
+
+  /* Up to 18 players: the progress dots stay on one row. */
+  .skjerm-roller .fremdrift,
+  .skjerm-natt .fremdrift {
+    gap: 6px;
+  }
+
+  .skjerm-roller .prikk,
+  .skjerm-natt .prikk {
+    width: 8px;
+    height: 8px;
+  }
+
+  .skjerm-roller .mappe,
+  .ark .mappe {
+    height: 252px;
+    min-height: 0;
+  }
+
+  .mappe-forside .figur-ramme {
+    display: none;
+  }
+
+  .vu-mottaker .avatar.stor {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+}

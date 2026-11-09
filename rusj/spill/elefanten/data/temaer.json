@@ -1,0 +1,105 @@
+{
+  "temaer": [
+    {
+      "id": "dyr",
+      "navn": "Dyr",
+      "ikon": "🐶",
+      "ting": [
+        ["🐶", "Hund"], ["🐱", "Katt"], ["🐭", "Mus"], ["🐰", "Kanin"], ["🦊", "Rev"], ["🐻", "Bjørn"],
+        ["🐼", "Panda"], ["🐨", "Koala"], ["🐯", "Tiger"], ["🦁", "Løve"], ["🐮", "Ku"], ["🐷", "Gris"],
+        ["🐸", "Frosk"], ["🐵", "Ape"], ["🐔", "Høne"], ["🐧", "Pingvin"], ["🦉", "Ugle"], ["🐴", "Hest"],
+        ["🦄", "Enhjørning"], ["🐢", "Skilpadde"], ["🐙", "Blekksprut"], ["🐳", "Hval"], ["🦒", "Sjiraff"],
+        ["🦓", "Sebra"], ["🦔", "Pinnsvin"], ["🐘", "Elefant"], ["🦋", "Sommerfugl"], ["🐞", "Marihøne"]
+      ]
+    },
+    {
+      "id": "mat",
+      "navn": "Mat",
+      "ikon": "🍕",
+      "ting": [
+        ["🍎", "Eple"], ["🍌", "Banan"], ["🍓", "Jordbær"], ["🍉", "Vannmelon"], ["🍇", "Druer"], ["🍒", "Kirsebær"],
+        ["🍍", "Ananas"], ["🥕", "Gulrot"], ["🌽", "Maiskolbe"], ["🥦", "Brokkoli"], ["🍕", "Pizza"], ["🍔", "Hamburger"],
+        ["🌭", "Pølse i brød"], ["🍟", "Pommes frites"], ["🍦", "Softis"], ["🍩", "Smultring"], ["🍪", "Kjeks"],
+        ["🎂", "Bursdagskake"], ["🧀", "Ost"], ["🥚", "Egg"], ["🍞", "Brød"], ["🥞", "Pannekaker"],
+        ["🍭", "Kjærlighet på pinne"], ["🍫", "Sjokolade"], ["🍋", "Sitron"], ["🥝", "Kiwi"], ["🍐", "Pære"],
+        ["🥥", "Kokosnøtt"], ["🍿", "Popkorn"], ["🧁", "Muffins"]
+      ]
+    },
+    {
+      "id": "kjoretoy",
+      "navn": "Kjøretøy",
+      "ikon": "🚒",
+      "ting": [
+        ["🚗", "Bil"], ["🚕", "Taxi"], ["🚌", "Buss"], ["🚓", "Politibil"], ["🚑", "Ambulanse"], ["🚒", "Brannbil"],
+        ["🚜", "Traktor"], ["🚲", "Sykkel"], ["🛴", "Sparkesykkel"], ["🏍️", "Motorsykkel"], ["🚂", "Damplokomotiv"],
+        ["🚁", "Helikopter"], ["✈️", "Fly"], ["⛵", "Seilbåt"], ["🚤", "Speedbåt"], ["🚢", "Skip"], ["🛶", "Kano"],
+        ["🚚", "Lastebil"], ["🛵", "Moped"], ["🏎️", "Racerbil"], ["🚋", "Trikk"], ["🚠", "Gondolbane"],
+        ["🛹", "Skateboard"], ["🚐", "Minibuss"], ["🚙", "Terrengbil"]
+      ]
+    },
+    {
+      "id": "sport",
+      "navn": "Sport",
+      "ikon": "⚽",
+      "ting": [
+        ["⚽", "Fotball"], ["🏀", "Basketball"], ["🏈", "Amerikansk fotball"], ["⚾", "Baseball"], ["🎾", "Tennis"],
+        ["🏐", "Volleyball"], ["🏓", "Bordtennis"], ["🏸", "Badminton"], ["🏒", "Ishockey"], ["⛸️", "Skøyter"],
+        ["🎿", "Ski"], ["🏂", "Snøbrett"], ["🏊", "Svømming"], ["🚴", "Sykling"], ["🏆", "Pokal"], ["🥇", "Gullmedalje"],
+        ["🎳", "Bowling"], ["🥊", "Boksehanske"], ["⛳", "Golf"], ["🏹", "Pil og bue"], ["🤸", "Turn"],
+        ["🏄", "Surfing"], ["🛷", "Kjelke"], ["🥌", "Curling"], ["🎯", "Dart"], ["🏉", "Rugby"], ["🤿", "Dykkermaske"],
+        ["🧗", "Klatring"]
+      ]
+    },
+    {
+      "id": "natur",
+      "navn": "Natur",
+      "ikon": "🌻",
+      "ting": [
+        ["🌳", "Løvtre"], ["🌲", "Grantre"], ["🌵", "Kaktus"], ["🌻", "Solsikke"], ["🌷", "Tulipan"], ["🌹", "Rose"],
+        ["🍄", "Fluesopp"], ["🍁", "Lønneblad"], ["🍀", "Firkløver"], ["🌈", "Regnbue"], ["⛰️", "Fjell"], ["🌋", "Vulkan"],
+        ["🌊", "Bølge"], ["❄️", "Snøfnugg"], ["⛄", "Snømann"], ["🌪️", "Tornado"], ["⚡", "Lyn"], ["☁️", "Sky"],
+        ["🔥", "Ild"], ["🌸", "Kirsebærblomst"], ["🌴", "Palme"], ["🐚", "Skjell"], ["🌰", "Kastanje"],
+        ["🍂", "Høstløv"], ["💧", "Vanndråpe"], ["🌾", "Kornaks"], ["🌼", "Blomst"], ["🌱", "Spire"]
+      ]
+    },
+    {
+      "id": "rom",
+      "navn": "Verdensrommet",
+      "ikon": "🚀",
+      "ting": [
+        ["🚀", "Rakett"], ["🌙", "Halvmåne"], ["⭐", "Stjerne"], ["🪐", "Planet"], ["☄️", "Komet"],
+        ["🛸", "Flygende tallerken"], ["👽", "Romvesen"], ["🌍", "Jorda"], ["☀️", "Sola"], ["🔭", "Teleskop"],
+        ["🛰️", "Satellitt"], ["🧑‍🚀", "Astronaut"], ["🌠", "Stjerneskudd"], ["🌕", "Fullmåne"], ["🌌", "Melkeveien"],
+        ["🤖", "Robot"], ["📡", "Parabolantenne"]
+      ]
+    },
+    {
+      "id": "gjengen",
+      "navn": "Rusj-gjengen",
+      "tekst": "Alle figurene fra rusj"
+    }
+  ],
+  "gjengen": {
+    "luringen": "Luringen",
+    "spionen": "Spionen",
+    "sladrehanken": "Sladrehanken",
+    "pekefingeren": "Pekefingeren",
+    "vaghalsen": "Våghalsen",
+    "vinglepetter": "Vinglepetter",
+    "skravla": "Skravla",
+    "panna": "Panna",
+    "kodeknekkeren": "Kodeknekkeren",
+    "besserwisseren": "Besserwisseren",
+    "detektiven": "Detektiven",
+    "mimen": "Mimen",
+    "tankeleseren": "Tankeleseren",
+    "hviskeren": "Hviskeren",
+    "lognhalsen": "Løgnhalsen",
+    "kunstneren": "Kunstneren",
+    "sauen": "Sauen",
+    "varulven": "Varulven",
+    "bokstavtrollet": "Bokstavtrollet",
+    "skjaera": "Skjæra",
+    "elefanten": "Elefanten"
+  }
+}

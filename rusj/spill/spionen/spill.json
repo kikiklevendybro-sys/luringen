@@ -1,0 +1,13 @@
+{
+  "id": "spionen",
+  "navn": "Spionen",
+  "undertittel": "Finn spionen",
+  "beskrivelse": "Gratis «Finn spionen»-spill på norsk. Alle vet hvor dere er – bortsett fra spionen. 84 steder, én mobil eller hver sin mobil med kode.",
+  "kort": "Alle vet hvor dere er – bortsett fra spionen.",
+  "spillere": [3, 12],
+  "minutter": [10, 40],
+  "mobiler": "begge",
+  "tagger": ["fest", "blof", "familie", "sporsmal"],
+  "rekkefolge": 2,
+  "qr": true
+}

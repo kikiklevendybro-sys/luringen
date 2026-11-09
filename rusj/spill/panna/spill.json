@@ -1,0 +1,13 @@
+{
+  "id": "panna",
+  "navn": "Panna",
+  "undertittel": "Gjett ordet på panna",
+  "beskrivelse": "Gratis «gjett ordet på panna»-spill på norsk. Hold mobilen mot panna, de andre gir hint – vipp ned for riktig, opp for pass. 12 kortstokker.",
+  "kort": "Mobilen på panna, de andre gir hint – vipp når du har det.",
+  "spillere": [2, 20],
+  "minutter": [5, 30],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "ord", "barn"],
+  "rekkefolge": 8,
+  "ordbank": true
+}

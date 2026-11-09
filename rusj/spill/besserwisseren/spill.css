@@ -1,0 +1,635 @@
+/* Besserwisseren: question card, the four answers (A–D), the reveal, the fun fact and a small clock. */
+
+.skjerm-sporsmal {
+  gap: 16px;
+}
+
+/* Progress bar (and the optional clock) under the top bar */
+.bw-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 8px;
+  margin-top: -4px;
+}
+
+.bw-fremdrift {
+  flex: 1;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--natt-3);
+}
+
+.bw-fremdrift i {
+  display: block;
+  width: var(--andel, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--aksent);
+  transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* The question card */
+.bw-kort {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  padding: 18px 20px 22px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 8px 0 var(--papir-2), 0 22px 40px var(--skygge);
+  color: var(--blekk);
+  animation: bw-kort-inn 0.42s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+
+@keyframes bw-kort-inn {
+  from {
+    opacity: 0;
+    transform: translateY(22px) rotate(2deg) scale(0.97);
+  }
+}
+
+.bw-kort-topp {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+}
+
+.bw-kat {
+  display: inline-block;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 7px 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 800 0.76rem/1 var(--font-display);
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--kf, var(--aksent)) 80%, transparent);
+}
+
+.bw-niva {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.bw-niva-ord {
+  color: var(--blekk-2);
+  font: 800 0.76rem/1 var(--font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.bw-niva .stjerner {
+  color: var(--aksent-dyp);
+  font: 900 1.12rem/1 var(--font-display);
+  letter-spacing: 2px;
+}
+
+.bw-sporsmal {
+  font: 900 clamp(1.4rem, 6.2vw, 1.75rem) / 1.18 var(--font-display);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.bw-sporsmal.lang {
+  font-size: clamp(1.22rem, 5.4vw, 1.5rem);
+}
+
+/* The four answers */
+.bw-valgliste {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bw-valg {
+  --vf: var(--rosa);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 62px;
+  padding: 8px 14px 8px 8px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 800 1.15rem/1.2 var(--font-display);
+  text-align: left;
+  transition: opacity 0.35s, transform 0.12s, background 0.3s, box-shadow 0.3s;
+}
+
+.bw-valg.v1 {
+  --vf: var(--lampe);
+}
+
+.bw-valg.v2 {
+  --vf: var(--himmel);
+}
+
+.bw-valg.v3 {
+  --vf: var(--mynte);
+}
+
+button.bw-valg {
+  box-shadow: inset 0 0 0 2px var(--strek), 0 4px 0 var(--natt-3);
+  cursor: pointer;
+}
+
+button.bw-valg:active {
+  transform: translateY(3px);
+  box-shadow: inset 0 0 0 2px var(--vf), 0 1px 0 var(--natt-3);
+}
+
+.bw-bokstav {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--vf);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.2);
+  color: var(--blekk);
+  font: 900 1.35rem/1 var(--font-display);
+}
+
+.bw-tekst {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.bw-merke {
+  flex: none;
+  font: 900 1.6rem/1 var(--font-display);
+}
+
+.bw-valg.riktig {
+  background: var(--mynte);
+  box-shadow: 0 5px 0 var(--mynte-dyp), 0 0 0 5px color-mix(in srgb, var(--mynte) 28%, transparent);
+  color: var(--blekk);
+  animation: bw-riktig 0.55s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+.bw-valg.riktig .bw-bokstav {
+  background: var(--blekk);
+  color: var(--mynte);
+  box-shadow: none;
+}
+
+@keyframes bw-riktig {
+  40% {
+    transform: scale(1.05);
+  }
+}
+
+.bw-valg.feil {
+  background: color-mix(in srgb, var(--rod) 24%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--rod);
+  animation: rist 0.4s linear;
+}
+
+.bw-valg.feil .bw-merke {
+  color: var(--rod);
+}
+
+.bw-valg.dempet {
+  min-height: 48px;
+  padding-block: 4px;
+  font-size: 1rem;
+  opacity: 0.36;
+}
+
+.bw-valg.dempet .bw-bokstav {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  font-size: 1.05rem;
+}
+
+/* After the reveal, keep what the quizmaster needs next above the dock */
+.bw-fakta,
+.bw-hvem-seksjon {
+  scroll-margin-top: 80px;
+  scroll-margin-bottom: 170px;
+}
+
+/* A little tremble while the drum rolls */
+.bw-spenning .bw-valg {
+  animation: bw-skjelv 0.09s linear infinite alternate;
+}
+
+@keyframes bw-skjelv {
+  from {
+    transform: translateX(-1.5px);
+  }
+  to {
+    transform: translateX(1.5px);
+  }
+}
+
+/* Result line for solo play */
+.bw-dom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  color: var(--tekst-2);
+  font: 800 1.05rem/1.2 var(--font-display);
+  text-align: center;
+  animation: bw-opp 0.4s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+.bw-dom-ord {
+  color: var(--tekst);
+  font: 900 2rem/1 var(--font-display);
+}
+
+.bw-dom.riktig .bw-dom-ord {
+  color: var(--mynte);
+}
+
+.bw-dom.feil .bw-dom-ord {
+  color: var(--rod);
+}
+
+/* The fun fact */
+.bw-fakta {
+  display: grid;
+  gap: 6px;
+  padding: 14px 18px 16px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--aksent) 14%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, transparent);
+  animation: bw-opp 0.45s 0.12s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+
+.bw-fakta .etikett {
+  color: var(--aksent);
+}
+
+.bw-fakta p:last-child {
+  color: var(--tekst);
+  font-size: 1.04rem;
+  line-height: 1.42;
+}
+
+@keyframes bw-opp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* Step «Hvem hadde rett?»: the right answer in short at the top */
+.bw-fasitlinje {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 10px;
+  border-radius: var(--r-mid);
+  background: var(--mynte);
+  box-shadow: 0 5px 0 var(--mynte-dyp);
+  color: var(--blekk);
+  animation: bw-opp 0.35s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+.bw-fasitlinje .bw-bokstav {
+  width: 42px;
+  height: 42px;
+  background: var(--blekk);
+  box-shadow: none;
+  color: var(--mynte);
+  font-size: 1.25rem;
+}
+
+.bw-fasitlinje p {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.bw-fasitlinje .etikett {
+  color: var(--blekk-2);
+}
+
+.bw-fasitlinje b {
+  font: 900 1.2rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.bw-fasitlinje .lenke {
+  flex: none;
+  color: var(--blekk);
+}
+
+.bw-hvem-seksjon h1 {
+  font: 900 1.45rem/1.1 var(--font-display);
+  letter-spacing: 0;
+}
+
+.bw-hvem-seksjon .seksjon-hode .tall {
+  flex: none;
+  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--aksent);
+  color: var(--blekk);
+  font: 900 0.85rem/1.3 var(--font-display);
+}
+
+/* Undo the last scoring, next to the progress bar until the next answer is shown */
+.bw-angre {
+  flex: none;
+  min-height: 36px;
+  margin: -14px 0;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst-2);
+  font: 800 0.9rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+/* Small clock next to the progress bar */
+.bw-klokke {
+  flex: none;
+  margin: -6px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.bw-klokke .timer-ring {
+  width: 46px;
+  height: 46px;
+}
+
+.bw-klokke .timer-ring circle {
+  stroke-width: 13;
+}
+
+.bw-klokke .timer-ring .spor {
+  stroke: var(--natt-3);
+}
+
+.bw-klokke .timer-ring .fyll {
+  stroke: var(--aksent);
+}
+
+.bw-klokke.lite .timer-ring .fyll {
+  stroke: var(--rosa);
+}
+
+.bw-klokke .bw-tid {
+  color: var(--tekst);
+  font: 900 1.05rem/1 var(--font-display);
+}
+
+.bw-klokke.ferdig .bw-tid {
+  color: var(--rosa);
+}
+
+.bw-klokke.pause .timer-ring {
+  opacity: 0.55;
+}
+
+.knapp.bw-puls {
+  animation: bw-puls 0.9s ease-in-out infinite;
+}
+
+@keyframes bw-puls {
+  50% {
+    transform: scale(1.03);
+    filter: brightness(1.12);
+  }
+}
+
+/* Setup: team badges in a row */
+.bw-lagrad {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Results */
+.bw-sum {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--aksent);
+  color: var(--blekk);
+  font: 900 0.95rem/1.4 var(--font-display);
+  white-space: nowrap;
+}
+
+/* Solo: one square per question, green when right */
+.bw-rekke {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 300px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bw-rekke li {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  animation: bw-opp 0.35s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+.bw-rekke li.ja {
+  background: var(--mynte);
+  box-shadow: inset 0 -3px 0 var(--mynte-dyp);
+}
+
+.bw-fasit {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bw-fasit li {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-3);
+}
+
+.bw-fasit-nr {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--aksent);
+  color: var(--blekk);
+  font: 900 0.9rem/1 var(--font-display);
+}
+
+.bw-fasit-s {
+  font-weight: 700;
+}
+
+.bw-fasit-a {
+  color: var(--mynte);
+  font: 900 1rem/1.3 var(--font-display);
+}
+
+.bw-fasit-hvem {
+  color: var(--tekst-3);
+  font-size: 0.88rem;
+}
+
+/* Narrow phones: the stars alone show the level */
+@media (max-width: 379px) {
+  .bw-niva-ord {
+    display: none;
+  }
+
+  .bw-valg {
+    font-size: 1.05rem;
+  }
+}
+
+/* Low screens (small phones, landscape): keep the question, all four answers and the main button in
+   view, and after the reveal the right answer and the fun fact – without scrolling. */
+@media (max-height: 700px) {
+  .skjerm-sporsmal {
+    gap: 10px;
+  }
+
+  .skjerm-sporsmal .bw-hint,
+  .skjerm-sporsmal .bw-valgfri {
+    display: none;
+  }
+
+  .bw-kort {
+    gap: 10px;
+    padding: 14px 16px 16px;
+  }
+
+  .bw-kort-topp {
+    min-height: 26px;
+  }
+
+  .bw-kat {
+    padding: 5px 10px;
+    font-size: 0.7rem;
+  }
+
+  .bw-klokke .timer-ring {
+    width: 36px;
+    height: 36px;
+  }
+
+  .bw-klokke .bw-tid {
+    font-size: 0.85rem;
+  }
+
+  .bw-kort.avslort .bw-kort-topp {
+    display: none;
+  }
+
+  .bw-sporsmal,
+  .bw-sporsmal.lang {
+    font-size: clamp(1.15rem, 5.2vw, 1.4rem);
+  }
+
+  .bw-valgliste {
+    gap: 6px;
+  }
+
+  .bw-valg,
+  .bw-valg.dempet {
+    min-height: 44px;
+    padding: 6px 12px 6px 6px;
+    font-size: 1rem;
+  }
+
+  .bw-bokstav,
+  .bw-valg.dempet .bw-bokstav {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    font-size: 1.05rem;
+  }
+
+  /* Short answers two by two */
+  .bw-valgliste.kort-svar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bw-valgliste.kort-svar .bw-valg {
+    height: 100%;
+    padding-right: 8px;
+  }
+
+  .bw-valgliste.kort-svar .bw-valg.riktig,
+  .bw-valgliste.kort-svar .bw-valg.feil {
+    padding-right: 22px;
+  }
+
+  /* The tick goes in the corner so the answer keeps its width */
+  .bw-valgliste.kort-svar .bw-merke {
+    position: absolute;
+    top: 3px;
+    right: 7px;
+    font-size: 1rem;
+  }
+
+  .bw-fakta {
+    gap: 4px;
+    padding: 10px 14px 12px;
+  }
+
+  .bw-fakta p:last-child {
+    font-size: 0.98rem;
+    line-height: 1.35;
+  }
+
+  .bw-dom-ord {
+    font-size: 1.5rem;
+  }
+
+  .skjerm-sporsmal .knapp.stor {
+    min-height: 64px;
+    font-size: 1.3rem;
+  }
+}

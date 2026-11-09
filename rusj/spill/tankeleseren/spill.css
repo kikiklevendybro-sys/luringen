@@ -1,0 +1,992 @@
+/* Tankeleseren — the spectrum card, the dial (the star of the game) and the scores. */
+
+.skjerm-hint,
+.skjerm-skive {
+  gap: 16px;
+}
+
+/* ---------- Spectrum card: two coloured ends ---------- */
+
+.tl-kort {
+  --v: var(--himmel);
+  --h: var(--oransje);
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 72px;
+  overflow: hidden;
+  border-radius: var(--r-mid);
+  box-shadow: 0 6px 0 var(--natt-3), 0 16px 30px var(--skygge);
+  color: var(--blekk);
+  font: 900 clamp(1.02rem, 4.7vw, 1.3rem) / 1.12 var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Labels break only between words (never «sam-le»), with balanced lines. A label with a long
+   word or many letters gets slightly smaller text (classes set in spill.js). */
+.tl-ende {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 12px 14px;
+  overflow-wrap: break-word;
+  hyphens: manual;
+  text-wrap: balance;
+}
+
+.tl-ende > span {
+  min-width: 0;
+}
+
+.tl-ende.lang {
+  font-size: 0.9em;
+}
+
+.tl-ende.ekstra-lang {
+  font-size: 0.8em;
+}
+
+.tl-ende.v {
+  justify-content: flex-start;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--v) 82%, white), var(--v));
+  text-align: left;
+}
+
+.tl-ende.h {
+  justify-content: flex-end;
+  background: linear-gradient(80deg, var(--h), color-mix(in srgb, var(--h) 82%, white));
+  box-shadow: inset 2px 0 0 rgba(23, 14, 43, 0.22);
+  text-align: right;
+}
+
+.tl-ende i {
+  flex: none;
+  font-size: 0.75em;
+  font-style: normal;
+  opacity: 0.5;
+}
+
+/* ---------- The dial ---------- */
+
+.tl-skive {
+  --v: var(--himmel);
+  --h: var(--oransje);
+  position: relative;
+  width: 100%;
+  margin-top: -2px;
+  border-radius: 24px 24px 12px 12px;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tl-skive svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 14px 22px var(--skygge));
+}
+
+.tl-skive:focus {
+  outline: none;
+}
+
+.tl-skive:focus-visible {
+  outline: 3px solid var(--aksent);
+  outline-offset: 4px;
+}
+
+.tl-dra {
+  cursor: grab;
+  touch-action: none;
+}
+
+.tl-dra.drar {
+  cursor: grabbing;
+}
+
+.tl-kikk {
+  cursor: pointer;
+  touch-action: none;
+}
+
+.tl-hus {
+  fill: var(--natt-3);
+  stroke: var(--blekk);
+  stroke-width: 3;
+}
+
+.tl-flate {
+  fill: var(--papir);
+}
+
+.tl-kant {
+  fill: none;
+  stroke: var(--blekk);
+  stroke-width: 2.6;
+}
+
+.tl-tone-v {
+  stop-color: var(--v);
+  stop-opacity: 0.55;
+}
+
+.tl-tone-m {
+  stop-color: var(--papir);
+  stop-opacity: 0;
+}
+
+.tl-tone-h {
+  stop-color: var(--h);
+  stop-opacity: 0.55;
+}
+
+.tl-sone {
+  stroke: var(--blekk);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+}
+
+.tl-sone.s2 {
+  fill: var(--lampe);
+}
+
+.tl-sone.s3 {
+  fill: var(--oransje);
+}
+
+.tl-sone.s4 {
+  fill: var(--aksent);
+}
+
+.tl-sonetall {
+  fill: var(--blekk);
+  font: 900 10.5px var(--font-display);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* The cover sweeps away clockwise, like a wiper, to show the target */
+.tl-deksel {
+  transform-origin: 120px 122px;
+  transition: transform 1s cubic-bezier(0.7, 0, 0.25, 1);
+}
+
+.tl-skive.apen .tl-deksel {
+  transform: rotate(180deg);
+}
+
+.tl-kikk .tl-deksel {
+  transition-duration: 0.3s;
+}
+
+.tl-stripe-a {
+  fill: var(--natt-2);
+}
+
+.tl-stripe-b {
+  fill: #281945;
+}
+
+.tl-deksel-ring {
+  fill: none;
+  stroke: color-mix(in srgb, var(--aksent) 35%, transparent);
+  stroke-dasharray: 3 6;
+  stroke-width: 2;
+}
+
+.tl-deksel-tegn {
+  fill: var(--aksent);
+  font: 900 44px var(--font-display);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.tl-kikk .tl-deksel-tegn {
+  animation: tl-puls 1.8s ease-in-out infinite;
+}
+
+@keyframes tl-puls {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.tl-strek {
+  stroke: rgba(160, 140, 200, 0.85);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.tl-strek.stor {
+  stroke: rgba(205, 188, 233, 0.95);
+  stroke-width: 2.2;
+}
+
+.tl-skive.apen .tl-strek {
+  stroke: rgba(23, 14, 43, 0.4);
+}
+
+.tl-viser {
+  transform-origin: 120px 122px;
+}
+
+.tl-viser.hopp {
+  transition: transform 0.2s cubic-bezier(0.3, 1.35, 0.5, 1);
+}
+
+.tl-nal {
+  fill: var(--rod);
+  stroke: var(--blekk);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.tl-knott {
+  fill: var(--papir);
+  stroke: var(--blekk);
+  stroke-width: 2.8;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.15s;
+}
+
+.tl-dra .tl-knott {
+  fill: var(--lampe);
+}
+
+.tl-dra.drar .tl-knott {
+  transform: scale(1.3);
+}
+
+.tl-nav {
+  fill: var(--aksent);
+  stroke: var(--blekk);
+  stroke-width: 3;
+}
+
+.tl-nav-prikk {
+  fill: var(--blekk);
+}
+
+/* Hold button for the hint giver (the thumb stays off the dial) */
+.tl-holdknapp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 60px;
+  margin-top: -4px;
+  padding: 10px 16px;
+  border: 2.5px dashed color-mix(in srgb, var(--aksent) 70%, var(--strek));
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--aksent) 10%, var(--natt-2));
+  color: var(--tekst);
+  font: 900 1.08rem/1.15 var(--font-display);
+  cursor: pointer;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 0.12s, background 0.2s;
+}
+
+.tl-holdikon {
+  font-size: 1.5rem;
+  line-height: 1;
+  animation: tl-trykk 1.6s ease-in-out infinite;
+}
+
+@keyframes tl-trykk {
+  50% {
+    transform: translateY(3px) scale(0.92);
+  }
+}
+
+.tl-holdknapp.holdes {
+  border-style: solid;
+  background: color-mix(in srgb, var(--aksent) 26%, var(--natt-2));
+  transform: scale(0.98);
+}
+
+.tl-holdknapp.holdes .tl-holdikon {
+  animation: none;
+}
+
+/* Fine adjustment under the dial */
+.tl-fin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: -6px;
+}
+
+.tl-finknapp {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 900 1.15rem/1 var(--font-display);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tl-finknapp:active {
+  background: var(--natt-3);
+  transform: scale(0.95);
+}
+
+.tl-fin-tekst {
+  color: var(--tekst-3);
+  font: 700 0.86rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+/* ---------- Headings on the play screens ---------- */
+
+.tl-hint-topp {
+  display: grid;
+  gap: 4px;
+}
+
+.tl-hint-topp .etikett {
+  color: var(--aksent);
+}
+
+.tl-hint-topp h1,
+.tl-sporsmal {
+  font-size: clamp(1.6rem, 7.2vw, 2.1rem);
+}
+
+.tl-under {
+  margin-top: -10px;
+  color: var(--tekst-2);
+  font-size: 1.02rem;
+}
+
+.tl-under b {
+  color: var(--tekst);
+}
+
+.tl-farge.rosa {
+  color: var(--rosa);
+}
+
+.tl-farge.bla {
+  color: var(--himmel);
+}
+
+.tl-lagmerke {
+  --lf: var(--rosa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: -10px;
+  color: var(--lf);
+  font: 900 1rem/1 var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tl-lagmerke.bla {
+  --lf: var(--himmel);
+}
+
+.tl-lagmerke i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--lf);
+}
+
+/* ---------- Status ---------- */
+
+.tl-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tl-pips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tl-pip {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-3);
+  font: 900 0.78rem/1 var(--font-display);
+}
+
+.tl-pip.na {
+  box-shadow: inset 0 0 0 2.5px var(--aksent);
+  color: var(--aksent);
+}
+
+.tl-pip.p4,
+.tl-logg-poeng.p4 {
+  background: var(--aksent);
+  box-shadow: none;
+  color: var(--blekk);
+}
+
+.tl-pip.p3,
+.tl-logg-poeng.p3 {
+  background: var(--oransje);
+  box-shadow: none;
+  color: var(--blekk);
+}
+
+.tl-pip.p2,
+.tl-logg-poeng.p2 {
+  background: var(--lampe);
+  box-shadow: none;
+  color: var(--blekk);
+}
+
+.tl-pip.p0,
+.tl-logg-poeng.p0 {
+  background: var(--natt-3);
+  box-shadow: none;
+  color: var(--tekst-3);
+}
+
+.tl-sum {
+  flex: none;
+  color: var(--tekst-2);
+  font: 800 0.9rem/1 var(--font-display);
+  white-space: nowrap;
+}
+
+.tl-sum b {
+  color: var(--tekst);
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-status.lag {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.tl-lagpoeng {
+  --lf: var(--rosa);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 12px 11px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lf) 35%, var(--strek));
+  color: var(--lf);
+  font: 900 0.95rem/1 var(--font-display);
+}
+
+.tl-lagpoeng.bla {
+  --lf: var(--himmel);
+}
+
+.tl-lagpoeng span {
+  white-space: nowrap;
+}
+
+/* Sammen with more than 10 rounds: a bar instead of one dot per round */
+.tl-framdrift {
+  position: relative;
+  flex: 1;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.tl-framdrift i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--aksent);
+  transition: width 0.6s ease-out;
+}
+
+.tl-runde-av {
+  flex: none;
+  color: var(--tekst-2);
+  font: 800 0.85rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-lagpoeng b {
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-lagpoeng i {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: var(--lf);
+  transition: width 0.6s ease-out;
+}
+
+.tl-lagpoeng.aktiv {
+  background: color-mix(in srgb, var(--lf) 18%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--lf), 0 0 20px color-mix(in srgb, var(--lf) 30%, transparent);
+}
+
+.tl-mot {
+  color: var(--tekst-3);
+  font: 800 0.72rem/1.1 var(--font-display);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- Result of a round ---------- */
+
+.tl-resultat {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-height: 132px;
+  margin-top: -8px;
+  text-align: center;
+}
+
+.tl-resultat .stempel-sted {
+  min-height: 70px;
+}
+
+.tl-resultat .stempel {
+  font-size: clamp(1.8rem, 9vw, 2.5rem);
+}
+
+.tl-kommentar {
+  font: 900 1.2rem/1.2 var(--font-display);
+}
+
+.tl-kommentar span {
+  margin-left: 6px;
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+}
+
+.tl-tipp {
+  color: var(--tekst-2);
+}
+
+.tl-tipp b {
+  color: var(--mynte);
+}
+
+.tl-resultat.venter {
+  align-content: center;
+}
+
+.tl-spenning {
+  color: var(--tekst-2);
+  font: 900 1.3rem/1 var(--font-display);
+  animation: tl-puls 0.9s ease-in-out infinite;
+}
+
+/* ---------- Teams in the setup ---------- */
+
+.tl-lagene {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tl-lagkolonne {
+  --lf: var(--rosa);
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--lf) 10%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lf) 55%, transparent);
+}
+
+.tl-lagkolonne.bla {
+  --lf: var(--himmel);
+}
+
+.tl-lagkolonne h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 2px 4px 4px;
+  color: var(--lf);
+}
+
+.tl-lagkolonne h3 span {
+  color: var(--tekst-3);
+  font-size: 0.9rem;
+}
+
+.tl-lagspiller {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 4px 10px 4px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tl-lagspiller span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tl-lagspiller .avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+}
+
+/* ---------- Result screen ---------- */
+
+.tl-banner .figur-ramme {
+  width: 104px;
+}
+
+.tl-total {
+  color: var(--tekst-2);
+  font: 800 1.1rem/1 var(--font-display);
+}
+
+.tl-total b {
+  color: var(--aksent);
+  font-size: 2.6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-vinner.rosa h1 {
+  color: var(--rosa);
+}
+
+.tl-vinner.bla h1 {
+  color: var(--himmel);
+}
+
+.tl-stilling {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 12px;
+  font: 800 1.05rem/1 var(--font-display);
+}
+
+.tl-stilling b {
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-stilling .rosa {
+  color: var(--rosa);
+}
+
+.tl-stilling .bla {
+  color: var(--himmel);
+}
+
+.tl-strek {
+  color: var(--tekst-3);
+}
+
+.tl-logg {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tl-logg li {
+  --lf: transparent;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 8px 8px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 4px 0 0 var(--lf);
+}
+
+.tl-logg li.rosa {
+  --lf: var(--rosa);
+}
+
+.tl-logg li.bla {
+  --lf: var(--himmel);
+}
+
+.tl-mini {
+  flex: none;
+  width: 64px;
+}
+
+.tl-mini svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.tl-mini-flate {
+  fill: var(--papir);
+}
+
+.tl-mini svg .tl-sone {
+  stroke-width: 0.6;
+}
+
+.tl-mini-nal {
+  stroke: var(--blekk);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.tl-mini-nav {
+  fill: var(--blekk);
+}
+
+.tl-logg-tekst {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tl-logg-tekst b {
+  font: 800 0.95rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.tl-logg-tekst small {
+  color: var(--tekst-3);
+  font-size: 0.8rem;
+}
+
+.tl-logg-poeng {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font: 900 1rem/1 var(--font-display);
+}
+
+/* Tablets and computers (the kit column is 620 px): keep the whole dial and its buttons on screen. */
+@media (min-width: 768px) {
+  .skjerm-skive .tl-skive {
+    width: min(100%, calc((100vh - 530px) * 1.76));
+    width: min(100%, calc((100dvh - 530px) * 1.76));
+    min-width: 300px;
+    align-self: center;
+  }
+
+  .skjerm-hint .tl-skive {
+    width: min(100%, calc((100vh - 560px) * 1.76));
+    width: min(100%, calc((100dvh - 560px) * 1.76));
+    min-width: 300px;
+    align-self: center;
+  }
+
+  .tl-kort {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 359px) {
+  .tl-pips {
+    gap: 3px;
+  }
+
+  .tl-pip {
+    width: 22px;
+    height: 22px;
+    font-size: 0.72rem;
+  }
+
+  .tl-sum {
+    font-size: 0.8rem;
+  }
+
+  .tl-sum b {
+    font-size: 1.3rem;
+  }
+
+  .tl-ende {
+    padding: 10px;
+  }
+
+  /* Room for «Lag Rosa» on one line */
+  .tl-status.lag {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tl-mot {
+    display: none;
+  }
+}
+
+/* Short phones: keep the dial and the ◀ ▶ buttons above the dock. */
+@media (max-height: 700px) {
+  .skjerm-hint,
+  .skjerm-skive {
+    gap: 10px;
+  }
+
+  .tl-hint-topp h1,
+  .tl-sporsmal {
+    font-size: 1.45rem;
+  }
+
+  .tl-under {
+    margin-top: -6px;
+    font-size: 0.9rem;
+  }
+
+  .tl-kort {
+    min-height: 56px;
+    font-size: 1rem;
+  }
+
+  .tl-ende {
+    padding: 8px 12px;
+  }
+
+  .tl-fin {
+    margin-top: -4px;
+  }
+
+  .skjerm-hint .tl-skive {
+    width: min(100%, calc((100vh - 390px) * 1.76));
+    width: min(100%, calc((100dvh - 390px) * 1.76));
+    align-self: center;
+  }
+
+  .tl-holdknapp {
+    min-height: 50px;
+  }
+
+  .skjerm-hint .hjelp {
+    font-size: 0.85rem;
+  }
+
+  .skjerm-hint .dokk .lenke {
+    min-height: 36px;
+    padding-block: 6px;
+  }
+
+  .tl-finknapp {
+    height: 42px;
+  }
+
+  .tl-resultat {
+    min-height: 116px;
+  }
+
+  .skjerm-skive .dokk,
+  .skjerm-hint .dokk {
+    padding-top: 14px;
+  }
+}
+
+/* Very short screens (375 × 560): a smaller dial, so it and its buttons stay above the dock. */
+@media (max-height: 600px) {
+  .skjerm-skive .tl-skive,
+  .skjerm-hint .tl-skive {
+    width: min(100%, calc((100vh - 330px) * 1.76));
+    width: min(100%, calc((100dvh - 330px) * 1.76));
+    min-width: 230px;
+    align-self: center;
+  }
+
+  .tl-hint-topp .etikett {
+    display: none;
+  }
+}
+
+/* The smallest phones (about 320 × 568): every pixel of height counts. */
+@media (max-height: 640px) {
+  .skjerm-hint,
+  .skjerm-skive {
+    gap: 8px;
+  }
+
+  .skjerm-skive .tl-under {
+    display: none;
+  }
+
+  .tl-kort {
+    min-height: 50px;
+    font-size: 0.95rem;
+  }
+
+  .tl-ende {
+    padding: 6px 10px;
+  }
+
+  .tl-lagpoeng {
+    padding: 6px 10px 9px;
+  }
+
+  .tl-lagpoeng b {
+    font-size: 1.25rem;
+  }
+
+  .skjerm-skive .dokk,
+  .skjerm-hint .dokk {
+    gap: 2px;
+    padding-top: 10px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .skjerm-skive .dokk .knapp,
+  .skjerm-hint .dokk .knapp {
+    min-height: 54px;
+  }
+
+  .skjerm-skive .dokk .lenke,
+  .skjerm-hint .dokk .lenke {
+    min-height: 32px;
+    padding-block: 4px;
+  }
+}

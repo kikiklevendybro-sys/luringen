@@ -1,0 +1,68 @@
+{
+  "natt": [
+    "Månen står opp over landsbyen. Alle lukker øynene …",
+    "Det blir mørkt i landsbyen. Langt inne i skogen uler noe.",
+    "Lysene slukkes, ett etter ett. Ikke alle her er det de ser ut til å være.",
+    "Uglene våkner, og landsbyen sovner. Lukk øynene – og lytt.",
+    "Natta senker seg over hustakene. Et sted sliper noen klørne.",
+    "Fullmåne i natt. Ingen titter, og ingen sier et ord.",
+    "Det knirker i gulvplankene. Det er bare vinden … sikkert.",
+    "Tåka legger seg over landsbyen. Noen er sultne i natt.",
+    "Hundene bjeffer mot skogkanten. Så blir alt helt stille.",
+    "Klokka i kirketårnet slår tolv. Alle lukker øynene.",
+    "Vinden uler i pipa – eller er det noe annet?",
+    "Stearinlysene blafrer og slukner. Natta har kommet."
+  ],
+  "morgen": [
+    "Hanen galer. Landsbyen våkner – men våkner alle?",
+    "Sola titter fram over åsen. Alle åpner øynene.",
+    "Det dufter nybakt brød fra bakeriet. Men hva skjedde i natt?",
+    "Morgenen er kald og stille. Altfor stille.",
+    "Fuglene synger, og landsbyen samles på torget.",
+    "Et nytt døgn. Hvem mangler ved frokostbordet?",
+    "Kirkeklokkene ringer. Det er tid for å telle hoder.",
+    "Duggen ligger tung på gresset, og noen spor leder inn i skogen …"
+  ],
+  "dag": [
+    "Hvem var ute i natt? Hvem har sett noe rart? Snakk sammen!",
+    "Landsbyen samles på torget. Noen her lyver.",
+    "Se hverandre i øynene. Hvem blunker litt for mye?",
+    "Alle har en mening. Bare noen har rett.",
+    "Varulvene sitter blant dere. De smiler også.",
+    "Spør, anklag og forsvar deg. Men ikke for ivrig – da blir du mistenkt.",
+    "Noen her har jord under neglene. Hvem?"
+  ],
+  "dagSenere": [
+    "Tenk tilbake på i går. Hvem stemte litt rart?",
+    "Hvem har vært stille siden i går? Og hvem har snakket litt for mye?"
+  ],
+  "reddet": [
+    "Legen var på riktig sted til riktig tid. Ingen døde i natt!",
+    "Ulvene slo til – men legen var raskere. Alle overlevde!",
+    "Et skrik i natt, og så et plaster. Legen reddet noen!",
+    "Ulvene gikk sultne til sengs. Legen reddet et liv i natt.",
+    "Ulvene kom – og gikk tomhendte hjem igjen.",
+    "Legen la plasteret på rett sted. Ingen døde i natt."
+  ],
+  "ingenUt": [
+    "Landsbyen ble ikke enig. Alle får leve – i hvert fall til i natt.",
+    "Ingen ble kastet ut. Varulvene smiler i skjegget.",
+    "Uenighet på torget. Natta kommer uansett.",
+    "Torget tømmes uten dom. Noen puster lettet ut.",
+    "Ingen fikk flertall. Kanskje det var lurt – kanskje ikke."
+  ],
+  "landsbyVant": [
+    "Den siste varulven er borte. Landsbyen kan endelig sove godt!",
+    "Ulvene er jaget langt inn i skogen. Det blir fest på torget!",
+    "Fred i landsbyen igjen – og ingen flere ulvespor i snøen.",
+    "Ulingen har stilnet. Landsbyen er trygg igjen!",
+    "Kirkeklokkene ringer for seier. Ulvene er borte!"
+  ],
+  "ulvVant": [
+    "Varulvene har tatt over landsbyen. Auuuu!",
+    "Nå er det like mange ulver som folk. Landsbyen er tapt.",
+    "Ulveflokken uler mot månen. De lurte dere alle sammen.",
+    "Månen lyser over en stille landsby. Ulvene vant.",
+    "Landsbyen sov for tungt. Nå er det ulvenes landsby."
+  ]
+}

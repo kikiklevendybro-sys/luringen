@@ -1,0 +1,12 @@
+{
+  "id": "mimen",
+  "navn": "Mimen",
+  "undertittel": "Mimeleken",
+  "beskrivelse": "Gratis mimelek på norsk med over 500 oppgaver – fra pingvin til å gå på glatt is. Alle mot alle eller lag mot lag, med klokke og poeng.",
+  "kort": "Vis det uten ord – de andre gjetter.",
+  "spillere": [3, 20],
+  "minutter": [10, 40],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "barn", "lag"],
+  "rekkefolge": 12
+}
