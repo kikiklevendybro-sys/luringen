@@ -131,7 +131,118 @@
   // Shared across all games: sound on/off and the player names (the same friends play several games).
   R.felles = Object.assign({ lyd: true, navn: [] }, R.les("felles", {}));
   if (!Array.isArray(R.felles.navn)) R.felles.navn = [];
-  R.lagreFelles = () => R.skriv("felles", { lyd: !!R.felles.lyd, navn: R.felles.navn.slice(0, 24).map((n) => String(n || "").slice(0, 16)) });
+  R.lagreFelles = () =>
+    R.skriv("felles", {
+      lyd: !!R.felles.lyd,
+      navn: R.felles.navn.slice(0, 24).map((n) => String(n || "").slice(0, 16)),
+      over18: !!R.felles.over18,
+      installTips: Number(R.felles.installTips) || 0,
+    });
+
+  // ---------- Daily puzzles ----------
+  // The same "today" for everyone in Norway: { tekst: "2026-11-10", nr: days since 1970 }.
+  R.dag = (dato) => {
+    const s = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Oslo", year: "numeric", month: "2-digit", day: "2-digit" }).format(dato || new Date());
+    const [a, m, d] = s.split("-").map(Number);
+    return { tekst: s, nr: Math.floor(Date.UTC(a, m - 1, d) / 86400000) };
+  };
+
+  // ---------- Statistics (anonymous) ----------
+  // Games report a few events: R.statistikk("start", { modus: "lag" }) when a game starts,
+  // R.statistikk("ferdig", { runder: 3 }) when it ends. No names, no free text, nothing personal.
+  // The kit also reports page views and time on page. Sending only happens if the site is
+  // configured with a statistics endpoint (window.RUSJ_STAT); until then this does nothing.
+  const statKo = [];
+  R.statistikk = (hendelse, data) => {
+    if (typeof hendelse !== "string" || hendelse.length > 24) return;
+    const ren = {};
+    for (const [k, v] of Object.entries(data || {})) {
+      if (Object.keys(ren).length >= 6) break;
+      if (typeof v === "number" && Number.isFinite(v)) ren[k.slice(0, 16)] = Math.round(v * 10) / 10;
+      else if (typeof v === "boolean") ren[k.slice(0, 16)] = v;
+      else if (typeof v === "string" && /^[a-z0-9_-]{1,20}$/i.test(v)) ren[k.slice(0, 16)] = v; // ids only, never names
+    }
+    statKo.push({ h: hendelse, d: ren, t: Date.now() });
+    if (statKo.length > 50) statKo.shift();
+    if (R.statSend) R.statSend();
+  };
+  R._statKo = statKo;
+
+  // ---------- The evening's scoreboard («Kveldens gjeng») ----------
+  // At the end of a game: R.kveld.registrer(rader) with the same rows as R.ui.poengliste.
+  // Places 1/2/3 give 3/2/1 evening points (ties share). Kept on this phone only, for 12 hours.
+  R.kveld = {
+    les() {
+      const k = R.les("kveld", null);
+      if (!k || !Array.isArray(k.spill) || Date.now() - (k.start || 0) > 12 * 3600 * 1000) return { start: Date.now(), spill: [] };
+      return k;
+    },
+    registrer(rader, valg) {
+      try {
+        const id = (APP && APP.id) || meta().id;
+        const navn = (r) => (r.navn != null ? String(r.navn) : r.lag != null ? "Lag " + R.LAG[r.lag % R.LAG.length].navn : R.navn(r.i || 0));
+        const med = (rader || []).filter((r) => typeof r.poeng === "number");
+        if (med.length < 2 && !(valg && valg.solo)) return;
+        const sortert = med.slice().sort((a, b) => b.poeng - a.poeng);
+        const resultat = sortert.map((r) => ({ navn: navn(r).slice(0, 30), plass: 1 + sortert.filter((x) => x.poeng > r.poeng).length }));
+        const k = R.kveld.les();
+        k.spill.push({ id, tid: Date.now(), resultat });
+        k.spill = k.spill.slice(-60);
+        R.skriv("kveld", k);
+        R.statistikk("kveld", { spillere: resultat.length });
+        setTimeout(() => R.visInstallTips(), 1800); // the end of a game is a good moment for the tip
+      } catch (e) {
+        /* never break a game for the scoreboard */
+      }
+    },
+    tavle() {
+      const poeng = new Map();
+      for (const s of R.kveld.les().spill)
+        for (const r of s.resultat) {
+          const p = r.plass === 1 ? 3 : r.plass === 2 ? 2 : r.plass === 3 ? 1 : 0;
+          poeng.set(r.navn, (poeng.get(r.navn) || 0) + p);
+        }
+      return Array.from(poeng, ([navn, p]) => ({ navn, poeng: p })).sort((a, b) => b.poeng - a.poeng);
+    },
+  };
+
+  // ---------- "Install as an app" tip ----------
+  let installHendelse = null;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    installHendelse = e;
+  });
+  R.erInstallert = () => !!((window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone);
+  // Shown at most twice per phone, at a calm moment (after a finished game).
+  R.visInstallTips = (tving) => {
+    if (R.iRamme || R.erInstallert()) return;
+    if (!tving && (Number(R.felles.installTips) || 0) >= 2) return;
+    if (R.arkApent && R.arkApent()) return;
+    const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    R.felles.installTips = (Number(R.felles.installTips) || 0) + 1;
+    R.lagreFelles();
+    const tekst = installHendelse
+      ? "Legg rusj på hjemskjermen, så starter spillene som en app – og de virker uten nett."
+      : ios
+        ? "Trykk på Del-knappen <b>⬆︎</b> nederst i Safari og velg «Legg til på Hjem-skjerm». Da starter rusj som en app – og spillene virker uten nett."
+        : "Åpne menyen i nettleseren (⋮) og velg «Installer app» eller «Legg til på startsiden». Da starter rusj som en app – og spillene virker uten nett.";
+    R.ark(`
+      <h2 id="ark-tittel">Ha rusj som app</h2>
+      <p class="ingress">${tekst}</p>
+      ${installHendelse ? '<button class="knapp" data-h="installer-app">Installer rusj</button>' : ""}
+      <button class="${installHendelse ? "lenke" : "knapp-2"}" data-h="lukk-ark">${installHendelse ? "Ikke nå" : "Skjønner!"}</button>`);
+  };
+  R._installer = async () => {
+    if (!installHendelse) return R.lukkArk();
+    installHendelse.prompt();
+    try {
+      await installHendelse.userChoice;
+    } catch (e) {
+      /* ignore */
+    }
+    installHendelse = null;
+    R.lukkArk();
+  };
 
   R.DYR = ["🦊", "🐸", "🐼", "🐙", "🦄", "🐯", "🐧", "🦉", "🐢", "🐳", "🦁", "🐨", "🐰", "🐝", "🦖", "🐷", "🐵", "🦜", "🐻", "🐞"];
   R.MAKS_SPILLERE = 20;
@@ -1243,6 +1354,17 @@
     },
     regler: () => R.visRegler(),
     "lukk-ark": () => R.lukkArk(),
+    "installer-app": () => R._installer(),
+    // The 18+ gate in front of drinking games (spill.json "alder18": true)
+    "alder-ja": () => {
+      R.felles.over18 = true;
+      R.lagreFelles();
+      R.statistikk("alder18");
+      R.gaTil(APP.hjem || "hjem");
+    },
+    "alder-nei": () => {
+      location.href = "/";
+    },
     "ark-svar": (el) => {
       const svar = arkSvar;
       arkSvar = null;
@@ -1518,6 +1640,31 @@
       if (e.target.closest(".mappe, .storkort")) e.preventDefault();
     });
 
+    // Drinking games: confirm age first (once per phone). The gate is a built-in screen.
+    if (meta().alder18) {
+      APP.skjermer.alder = {
+        tittel: "18+",
+        tilbake: "portal",
+        gjenoppta: false,
+        vis: () => `
+          <div class="spillhjem">
+            ${R.figur()}
+            <h1 id="skjerm-tittel">Er du over 18?</h1>
+            <span class="undertittel">Drikkespill · 18+</span>
+            <p class="slagord">${esc(APP.navn)} er et drikkespill for voksne. Du må være over 18 år for å spille.</p>
+          </div>
+          <div class="papirboks alder-boks">
+            <p class="etikett">Drikk med vett</p>
+            <ul class="tips">
+              <li>Alkoholfritt teller like mye – vann, brus og alkoholfritt er alltid lov.</li>
+              <li>Ta små slurker. Ingen skal presses, og alle kan stå over.</li>
+              <li>Spis, drikk vann, og sørg for trygg vei hjem.</li>
+            </ul>
+          </div>
+          ${R.ui.dokk(R.ui.knapp("Ja, jeg er over 18", "alder-ja"), R.ui.lenkerad(R.ui.lenke("Nei, ta meg tilbake", "alder-nei")))}`,
+      };
+    }
+
     // First screen: a join link (#code), the screen we were on (if recent), or home.
     let forste = APP.hjem || "hjem";
     const hash = (location.hash || "").slice(1);
@@ -1555,7 +1702,9 @@
     // 3 hours, every game starts on its home screen (with «Fortsett» there).
     else if (nylig && forrige && typeof forrige.gjenoppta === "string" && APP.skjermer[forrige.gjenoppta]) forste = forrige.gjenoppta;
     else if (nylig && forrige && forrige.gjenoppta !== false && typeof forrige.gjenoppta !== "string") forste = S.skjerm;
+    if (meta().alder18 && !R.felles.over18) forste = "alder"; // the age gate comes before everything
     S.skjerm = null;
+    R.statistikk("visning");
     try {
       R.gaTil(forste);
     } catch (e) {

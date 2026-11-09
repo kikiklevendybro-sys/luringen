@@ -377,6 +377,43 @@
     },
   };
 
+  // Placeholders for new games until their real mascot is drawn: the standard head with the
+  // first letter on the forehead. (Replace each entry with a real design.)
+  const plassholder = (farge, bokstav) => ({
+    farge,
+    plassholder: true,
+    tegn: (f) => `${hode(f)}${kinn(82)}${oyne({ y: 60 })}${smil(90, 14)}${tekst(60, 40, bokstav, 22, B)}`,
+  });
+  const NYE = {
+    ordugla: ["#e8c547", "O"],
+    nissen: ["#ff5a4e", "N"],
+    terninga: ["#f4f0ff", "T"],
+    tidsmaskinen: ["#5ad1ff", "T"],
+    tieren: ["#ffb347", "10"],
+    admiralen: ["#4f7dff", "A"],
+    ballongen: ["#ff6fb5", "B"],
+    nynneren: ["#b48cff", "♪"],
+    papegoyen: ["#53d769", "P"],
+    bingoballen: ["#ffd23f", "B"],
+    brikka: ["#ff7a45", "F"],
+    verktoykassa: ["#9aa9c2", "V"],
+    kortkongen: ["#ff4f6b", "K"],
+    tallknuseren: ["#7fd6c2", "9"],
+    sjakkhesten: ["#c9b28f", "S"],
+    fireren: ["#ffcf3f", "4"],
+    bonden: ["#a3d977", "X"],
+    minesveiperen: ["#8f9bb3", "M"],
+    dobleren: ["#ffb26b", "2"],
+    slangen: ["#6fe07a", "S"],
+    blyanten: ["#ffd66e", "B"],
+    ringen: ["#ff8a5c", "R"],
+    pyramiden: ["#e6b450", "P"],
+    bussen: ["#ff5577", "B"],
+    hjulet: ["#56e0d0", "H"],
+    torsten: ["#c77dff", "T"],
+  };
+  for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
+
   const REKKEFOLGE = Object.keys(FIGURER);
 
   function svg(id, valg) {

@@ -63,6 +63,13 @@ export const TAGGER = {
   tegning: "Tegning",
   hukommelse: "Hukommelse",
   sporsmal: "Prat",
+  klassiker: "Klassikere",
+  daglig: "Dagens",
+  tenke: "Hjernetrim",
+  alene: "Alene",
+  kort: "Kortspill",
+  verktoy: "Verktøy",
+  drikke: "Drikkespill 18+",
 };
 
 export function lesSpill(rot, utvalg) {
@@ -203,8 +210,10 @@ ${o.css.map((c) => `<link rel="stylesheet" href="${c}">`).join("\n")}
       spillere: m.spillere,
       minutter: m.minutter,
       farge: m.farge,
+      alder18: !!m.alder18,
     };
-    const andre = alleSpillKort.filter((g) => g.id !== id).map((g) => ({ id: g.id, navn: g.navn, undertittel: g.undertittel, spillere: g.spillere, farge: g.farge }));
+    // Drinking games only suggest each other; other games never suggest a drinking game.
+    const andre = alleSpillKort.filter((g) => g.id !== id && !!g.alder18 === !!m.alder18).map((g) => ({ id: g.id, navn: g.navn, undertittel: g.undertittel, spillere: g.spillere, farge: g.farge }));
     const dataJs =
       "window.RUSJ_SPILL=" + JSON.stringify(meta) + ";\nwindow.RUSJ_ANDRE=" + JSON.stringify(andre).replace(/</g, "\\u003c") + ";\nwindow.RUSJ_DATA=" + JSON.stringify(data).replace(/</g, "\\u003c") + ";\n";
     const dataSti = skriv(`${id}/data.js`, dataJs);
@@ -281,9 +290,13 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
   const spillData = alleKort.map((m) => ({
     id: m.id,
     navn: m.navn,
+    undertittel: m.undertittel,
+    kort: m.kort,
     spillere: m.spillere,
     tagger: m.tagger,
     mobiler: m.mobiler,
+    alder18: !!m.alder18,
+    sok: Array.isArray(m.sok) ? m.sok : [],
   }));
   const portalData = skriv("felles/spilliste.js", "window.RUSJ_SPILLISTE=" + JSON.stringify(spillData) + ";");
   const MOBIL = { en: "Én mobil", hver: "Hver sin mobil", begge: "Én eller flere mobiler" };

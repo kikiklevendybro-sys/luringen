@@ -100,6 +100,17 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
 - **Short screens:** what the screen is about must be visible above the dock at 375×560; shrink
   boards, clocks and mascots under `@media (max-height: 700px)`.
 
+## Newer kit features (use them)
+
+- `R.dag()` → `{ tekst, nr }`: today in Oslo time, the same on every phone (daily puzzles).
+- `R.statistikk("start" | "ferdig" | …, { tall/ja-nei/korte id-er })`: anonymous usage events —
+  never names or typed text. Call "start" when a game/round starts and "ferdig" when it ends.
+- `R.kveld.registrer(rader)`: on every end screen with scores (same rows as `R.ui.poengliste`) →
+  «Kveldens gjeng», the evening's scoreboard across all games on the front page.
+- spill.json: `"alder18": true` (the kit shows an 18+ gate first), `"sok": ["…"]` (extra words for the
+  front-page search: Norwegian genre names, common names of the genre).
+- `R.visInstallTips()`: the kit shows the "install as app" tip itself after a finished game.
+
 ## The kit in one page (`window.Rusj`, here `R`)
 
 ```js

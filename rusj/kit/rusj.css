@@ -2350,3 +2350,13 @@ textarea.tekstfelt {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- 18+ gate ---------- */
+
+.alder-boks .tips {
+  color: var(--blekk-2);
+}
+
+.alder-boks .tips li {
+  font-weight: 600;
+}
