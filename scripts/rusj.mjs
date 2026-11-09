@@ -302,7 +302,7 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
   const MOBIL = { en: "Én mobil", hver: "Hver sin mobil", begge: "Én eller flere mobiler" };
   const kort = alleKort
     .map(
-      (m, n) => `<li class="spillkort" data-id="${m.id}" style="--kf: ${m.farge}; --i: ${n}">
+      (m, n) => `<li class="spillkort" data-id="${m.id}"${m.alder18 ? " data-alder18" : ""} style="--kf: ${m.farge}; --i: ${n}">
         <a href="/${m.id}/" aria-label="${esc(`${m.navn}: ${m.undertittel}. ${m.kort}`)}">
           <span class="kort-figur">${G.svg(m.id)}</span>
           <span class="kort-tekst">
@@ -312,11 +312,13 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
             <span class="kort-fakta"><span>👥 ${spillereTekst(m)}</span><span>⏱ ${tidTekst(m)}</span><span>📱 ${MOBIL[m.mobiler]}</span></span>
           </span>
           <span class="kort-fortsett" hidden>Fortsett</span>
+          ${m.alder18 ? '<span class="kort-18" aria-hidden="true">18+</span>' : ""}
         </a>
       </li>`,
     )
     .join("\n");
   const parade = alleKort
+    .filter((m) => !m.alder18)
     .map((m) => `<a class="parade-figur" href="/${m.id}/" style="--kf: ${m.farge}" aria-label="${esc(m.navn)}">${G.svg(m.id)}</a>`)
     .join("");
   const brukteTagger = Object.keys(TAGGER).filter((t) => alleKort.some((m) => m.tagger.includes(t)));
@@ -345,8 +347,25 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
   <nav class="parade" aria-label="Rusj-gjengen"><div class="parade-spor">${parade}${parade.replace(/<a /g, '<a tabindex="-1" aria-hidden="true" ')}</div></nav>
 </header>
 <main class="portal-hoved">
+  <div class="installtips" id="installtips" hidden>
+    <span class="installtips-ikon" aria-hidden="true">📲</span>
+    <span class="installtips-tekst"><b>Tips:</b> Legg rusj på hjemskjermen – da starter spillene som en app og virker uten nett.</span>
+    <button type="button" class="installtips-vis" id="installtips-vis">Vis meg</button>
+    <button type="button" class="installtips-lukk" id="installtips-lukk" aria-label="Skjul tipset">×</button>
+  </div>
+  <section class="kveld" id="kveld" hidden aria-labelledby="kveld-tittel">
+    <div class="kveld-topp"><h2 id="kveld-tittel">🏆 Kveldens gjeng</h2><span class="kveld-antall" id="kveld-antall"></span></div>
+    <ol class="kveld-liste" id="kveld-liste"></ol>
+    <p class="kveld-fot">3 poeng for seier, 2 for andreplass og 1 for tredje – i alle spillene dere spiller i kveld.</p>
+    <button type="button" class="lenke" id="kveld-nullstill">Start en ny kveld</button>
+  </section>
   <h2 class="filter-overskrift" id="spill" tabindex="-1">Hva skal vi spille?</h2>
-  <div class="filter" role="region" aria-label="Filter">
+  <div class="filter" role="region" aria-label="Søk og filter">
+    <div class="sok">
+      <span class="sok-ikon" aria-hidden="true">🔎</span>
+      <input type="search" id="sok" placeholder="Søk: quiz, kortspill, barn …" aria-label="Søk etter spill" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+      <button type="button" class="sok-tom" id="sok-tom" aria-label="Tøm søket" hidden>×</button>
+    </div>
     <div class="filter-rad">
       <div class="antall" role="group" aria-label="Hvor mange spillere er dere?">
         <span class="antall-tekst">Spillere</span>
@@ -361,10 +380,13 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
     </div>
   </div>
   <p class="treff" id="treff" aria-live="polite"></p>
+  <div class="hyller" id="hyller"></div>
+  <h2 class="alle-tittel" id="alle-tittel">Alle spill</h2>
   <ul class="spillgrid" id="spillgrid">
 ${kort}
   </ul>
-  <p class="ingen-treff" id="ingen-treff" hidden>Ingen spill passer akkurat det. Prøv et annet antall eller en annen type.</p>
+  <p class="ingen-treff" id="ingen-treff" hidden>Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type.</p>
+  <dialog class="dialog" id="dialog" aria-labelledby="dialog-tittel"></dialog>
 
   <section class="slik" aria-labelledby="slik-tittel">
     <h2 id="slik-tittel">Så enkelt er det</h2>

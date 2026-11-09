@@ -276,7 +276,9 @@ body.portal {
 
 /* Solid only while it sticks to the top (set by portal.js), so it never draws a hard edge in the page. */
 .filter.fast {
-  background: linear-gradient(to bottom, var(--natt-tett) 82%, var(--natt-null));
+  /* Solid, so nothing shows through; the soft edge below is a shadow (no change in height). */
+  background: var(--natt);
+  box-shadow: 0 14px 14px -4px var(--natt);
 }
 
 .filter-vakt {
@@ -746,5 +748,390 @@ body.portal {
   .rusj-logo.tegnes .logo-klatt-bak {
     opacity: 1;
     translate: none;
+  }
+}
+
+/* ---------- Install tip (top) ---------- */
+
+.installtips {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 14px;
+  border-radius: var(--r-mid);
+  background: linear-gradient(120deg, rgba(61, 227, 176, 0.18), rgba(33, 20, 61, 0.9));
+  box-shadow: inset 0 0 0 1.5px rgba(61, 227, 176, 0.45);
+}
+
+.installtips-ikon {
+  font-size: 1.5rem;
+}
+
+.installtips-tekst {
+  flex: 1;
+  min-width: 0;
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.installtips-tekst b {
+  color: var(--mynte);
+}
+
+.installtips-vis {
+  flex: none;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--mynte);
+  box-shadow: 0 3px 0 var(--mynte-dyp);
+  color: var(--blekk);
+  font: 900 0.9rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.installtips-lukk {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tekst-3);
+  font: 900 1.3rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+/* ---------- Kveldens gjeng ---------- */
+
+.kveld {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-radius: var(--r-stor);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(255, 210, 63, 0.25), transparent 55%),
+    var(--natt-2);
+  box-shadow: inset 0 0 0 2px rgba(255, 210, 63, 0.45), 0 14px 30px var(--skygge);
+}
+
+.kveld-topp {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.kveld h2 {
+  font-size: 1.35rem;
+}
+
+.kveld-antall {
+  color: var(--tekst-3);
+  font: 800 0.85rem/1 var(--font-display);
+}
+
+.kveld-liste {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kveld-liste li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(21, 12, 40, 0.6);
+}
+
+.kveld-liste li.leder {
+  background: rgba(255, 210, 63, 0.18);
+  box-shadow: inset 0 0 0 1.5px var(--lampe);
+}
+
+.kveld-plass {
+  width: 2ch;
+  font: 900 1.1rem/1 var(--font-display);
+  text-align: center;
+}
+
+.kveld-navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kveld-poeng {
+  font: 900 1.2rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.kveld-fot {
+  color: var(--tekst-3);
+  font-size: 0.85rem;
+}
+
+.kveld .lenke {
+  justify-self: start;
+  padding-left: 0;
+}
+
+/* ---------- Search ---------- */
+
+.sok {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sok-ikon {
+  position: absolute;
+  left: 14px;
+  font-size: 1.05rem;
+  pointer-events: none;
+}
+
+.sok input {
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 44px 10px 44px;
+  border: 2px solid var(--strek);
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 700 1.02rem/1.2 var(--font-tekst);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.sok input::placeholder {
+  color: var(--tekst-3);
+}
+
+.sok input:focus {
+  border-color: var(--lampe);
+  outline: none;
+}
+
+.sok input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.sok-tom {
+  position: absolute;
+  right: 6px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--natt-3);
+  color: var(--tekst);
+  font: 900 1.2rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+/* ---------- Shelves ---------- */
+
+.hyller {
+  display: grid;
+  gap: 22px;
+}
+
+.hylle {
+  display: grid;
+  gap: 10px;
+}
+
+.hylle-topp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hylle h3 {
+  font-size: 1.2rem;
+}
+
+.hylle-alle {
+  flex: none;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--strek);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tekst-2);
+  font: 800 0.85rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.hylle-rad {
+  display: grid;
+  grid-auto-columns: minmax(200px, 62%);
+  grid-auto-flow: column;
+  gap: 12px;
+  margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  padding: 4px max(16px, env(safe-area-inset-left, 0px)) 14px;
+  overflow-x: auto;
+  list-style: none;
+  scroll-padding-inline: max(16px, env(safe-area-inset-left, 0px));
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.hylle-rad::-webkit-scrollbar {
+  display: none;
+}
+
+.hylle-rad > li {
+  scroll-snap-align: start;
+}
+
+/* Compact cards on the shelves */
+.spillkort.mini {
+  animation: none;
+}
+
+.spillkort.mini a {
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px 12px 12px 10px;
+  border-radius: 20px;
+}
+
+.spillkort.mini .kort-figur {
+  width: 58px;
+}
+
+.spillkort.mini .kort-navn {
+  font-size: 1.15rem;
+}
+
+.spillkort.mini .kort-linje,
+.spillkort.mini .kort-fakta {
+  display: none;
+}
+
+.spillkort.mini .kort-sjanger {
+  font-size: 0.68rem;
+}
+
+.hylle-port button {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  min-height: 86px;
+  padding: 14px 16px;
+  border: 2px dashed rgba(255, 138, 92, 0.6);
+  border-radius: 20px;
+  background: rgba(255, 138, 92, 0.1);
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.hylle-port-ikon {
+  font-size: 1.4rem;
+}
+
+.hylle-port b {
+  font: 900 1.05rem/1.1 var(--font-display);
+}
+
+.hylle-port span:last-child {
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+}
+
+.alle-tittel {
+  font-size: clamp(1.3rem, 5vw, 1.7rem);
+}
+
+.alle-tittel:empty {
+  display: none;
+}
+
+/* 18+ badge, and drinking games stay hidden until someone has confirmed their age */
+.kort-18 {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 3px 7px;
+  border-radius: 8px;
+  background: var(--rod);
+  color: var(--blekk);
+  font: 900 0.72rem/1 var(--font-display);
+}
+
+body:not(.over18) .spillkort[data-alder18] {
+  display: none;
+}
+
+/* ---------- Dialog (18+ and install help) ---------- */
+
+.dialog {
+  width: min(92vw, 420px);
+  padding: 22px;
+  border: 0;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: 0 0 0 2px var(--strek), 0 30px 60px rgba(0, 0, 0, 0.6);
+  color: var(--tekst);
+}
+
+.dialog::backdrop {
+  background: var(--slor);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.dialog h2 {
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+}
+
+.dialog p {
+  margin-bottom: 16px;
+  color: var(--tekst-2);
+}
+
+.dialog-steg {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.dialog-knapper {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 10px;
+}
+
+.dialog-knapper:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
+
+.dialog-knapper .knapp {
+  min-height: 56px;
+  font-size: 1.1rem;
+}
+
+@media (min-width: 720px) {
+  .hylle-rad {
+    grid-auto-columns: minmax(230px, 30%);
   }
 }

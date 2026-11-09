@@ -107,14 +107,16 @@ for (const id of valgt) {
       await t.start();
       await c.sov(2600); // let the intro animation finish
       await t.bilde("forside");
-      const kort = await c.antall(".spillkort");
+      const kort = await c.antall("#spillgrid .spillkort");
       const liste = await c.js("(window.RUSJ_SPILLISTE || []).map((s) => s.id)");
       const ventet = bygget.length + (liste.includes("luringen") ? 1 : 0);
+      // Drinking games are in the list but hidden until someone confirms being over 18.
+      t.sjekk((await c.antall("#spillgrid .spillkort[data-alder18]:not([hidden])")) === 0 || (await c.js("document.body.classList.contains('over18')")), "Drikkespill vises før 18-årsbekreftelsen");
       t.sjekk(kort === ventet && liste.length === ventet, `Forsiden viser ${kort} spillkort, ventet ${ventet}`);
       for (const id of bygget) t.sjekk(liste.includes(id), `Forsiden mangler kortet for ${id}`);
       await c.klikk('[data-antall="1"]');
       await c.klikk('[data-antall="1"]');
-      const synlige2 = await c.antall(".spillkort:not([hidden])");
+      const synlige2 = await c.antall("#spillgrid .spillkort:not([hidden])");
       t.sjekk(synlige2 > 0, "Ingen spill passer for 3 spillere");
       await c.klikk('#tagger .brikke:not(.alle)');
       await t.bilde("forside-filter");
