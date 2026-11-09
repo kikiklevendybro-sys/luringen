@@ -189,7 +189,7 @@
   // The filter bar gets a solid background only while it is stuck to the top.
   const vakt = $(".filter-vakt");
   if (vakt && "IntersectionObserver" in window) {
-    new IntersectionObserver(([o]) => $("#spill").classList.toggle("fast", !o.isIntersecting)).observe(vakt);
+    new IntersectionObserver(([o]) => $(".filter").classList.toggle("fast", !o.isIntersecting)).observe(vakt);
   }
 
   oppdater();

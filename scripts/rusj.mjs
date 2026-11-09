@@ -332,8 +332,8 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
   <nav class="parade" aria-label="Rusj-gjengen"><div class="parade-spor">${parade}${parade.replace(/<a /g, '<a tabindex="-1" aria-hidden="true" ')}</div></nav>
 </header>
 <main class="portal-hoved">
-  <section class="filter" id="spill" aria-labelledby="filter-tittel">
-    <h2 id="filter-tittel">Hva skal vi spille?</h2>
+  <h2 class="filter-overskrift" id="spill" tabindex="-1">Hva skal vi spille?</h2>
+  <div class="filter" role="region" aria-label="Filter">
     <div class="filter-rad">
       <div class="antall" role="group" aria-label="Hvor mange spillere er dere?">
         <span class="antall-tekst">Spillere</span>
@@ -346,8 +346,8 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
         ${brukteTagger.map((t) => `<button type="button" class="brikke" data-tagg="${t}" aria-pressed="false">${esc(TAGGER[t])}</button>`).join("")}
       </div>
     </div>
-    <p class="treff" id="treff" aria-live="polite"></p>
-  </section>
+  </div>
+  <p class="treff" id="treff" aria-live="polite"></p>
   <ul class="spillgrid" id="spillgrid">
 ${kort}
   </ul>

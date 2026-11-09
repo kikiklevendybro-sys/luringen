@@ -287,20 +287,19 @@ body.portal {
   height: 1px;
 }
 
-.filter h2 {
+.filter-overskrift {
+  margin-bottom: -16px;
   font-size: clamp(1.5rem, 5.6vw, 2rem);
+  scroll-margin-top: 12px;
 }
 
-/* While stuck to the top: just the controls, as little height as possible. */
-.filter.fast h2,
-.filter.fast .treff {
-  display: none;
+.treff {
+  margin-top: -16px;
 }
 
-.filter.fast {
-  gap: 8px;
-  padding-block: calc(8px + env(safe-area-inset-top, 0px)) 10px;
-}
+/* The filter bar must never change height while it sticks: a height change moves the page,
+   which un-sticks it again, and slow scrolling gets caught in that loop. Only the background
+   changes (see .filter.fast). The heading and count scroll away above the sticky part instead. */
 
 .filter-rad {
   display: flex;
