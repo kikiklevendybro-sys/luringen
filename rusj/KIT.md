@@ -68,6 +68,10 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
   seconds as **«30 s»**. The final screen of every game is called **«Kåringen»**. The setup screen's main
   button is **«Start»**. Hold-to-reveal instruction: **«Hold fingeren på kortet for å se»**.
 - Saying no is always fine: never shame a player for skipping (no booing, no «feig» for children).
+- The confirm sheet for «Avslutt» has the buttons «Avslutt» and **«Spill videre»**. The computer
+  opponent is **«mobilen»** («Du mot mobilen»). The setup screen is titled **«Gjør klart»**. Level names
+  are lower case mid-sentence («rekord på middels»); plural **«seirer»**. Solo puzzles may give their
+  result screen its own title (e.g. «Ordugla nr. 12») instead of «Kåringen».
 - **ferje** (not «ferge»). Teams are always called **«Lag Rosa», «Lag Gul», «Lag Blå», «Lag Grønn»**
   (capital L, also mid-sentence), as `R.ui.lagmerke` and `R.ui.poengliste` write them.
 - Numbers with nouns: `R.flertall(n, "sekund", "sekunder")` → «1 sekund» / «2 sekunder» (never «1 sekunder»);
@@ -81,13 +85,15 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
 
 - **Home screen:** use `R.ui.startKnapper({ pagar, fortsettTekst })`. While a game is running,
   «Fortsett …» is the big main button and «Nytt spill» is secondary; the «nytt» handler must call
-  `await R.bekreftNytt(pagar)` before throwing a running game away.
+  `await R.bekreftNytt(pagar)` before throwing a running game away (`R.bekreftNytt(pagar, true)` when one
+  person plays alone — then the sheet says «du»; one-player games get that automatically).
 - **Modes:** a choice of mode is the FIRST section of the setup screen, as big tiles (`R.ui.fliser`),
   and is never asked twice. Exception: a game with exactly two modes and no other settings may show
   the two modes as the two main buttons on the home screen.
 - **Giving points:** every tap that gives or takes points must be undoable («Angre») until the next action.
 - **End screen:** winner banner (+ `R.ui.pall` and `R.ui.poengliste` when there are points), then
-  `R.ui.flereSpill({ antall })` ("Spill noe annet med samme gjeng"). Dock: «Spill igjen» (same setup) as the
+  `R.ui.flereSpill({ antall })` ("Spill noe annet med samme gjeng"; with `antall: 1` "Flere spill du kan spille
+  alene" — don't pass your own `tittel`). Dock: «Spill igjen» (same setup) as the
   main button; links «Endre oppsett» and «Alle spill» (`<a class="lenke" href="/">Alle spill</a>`).
 - **Celebrate in proportion:** fanfare + confetti for a real win or a great result; a gentle sound and
   warm words for a weak solo result.
@@ -96,7 +102,8 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
   screen). The front page's «Fortsett» badge and the kit's screen wake lock use it.
 - **After every `await`** in an action, check `R.vakt()` (and `if (!(await R.nedtelling(…))) return;`).
 - The kit ignores ghost taps (a real tap within 350 ms after a screen change, or after a redraw when
-  it's a different action) — games don't need their own guard for that.
+  it's a different action in the same spot) — games don't need their own guard for that. On-screen keyboards: give
+  every key the same `data-h` (e.g. `data-h="tast" data-v="a"`), or fast typing after a redraw is dropped.
 - **Short screens:** what the screen is about must be visible above the dock at 375×560; shrink
   boards, clocks and mascots under `@media (max-height: 700px)`.
 
@@ -110,6 +117,8 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
 - spill.json: `"alder18": true` (the kit shows an 18+ gate first), `"sok": ["…"]` (extra words for the
   front-page search: Norwegian genre names, common names of the genre).
 - `R.visInstallTips()`: the kit shows the "install as app" tip itself after a finished game.
+- `R.dagligFerdig({ vunnet, rekke })`: daily puzzles call it when today's puzzle is done — the front page
+  then shows «✓ i dag» and the streak on the game's card.
 
 ## The kit in one page (`window.Rusj`, here `R`)
 
@@ -188,7 +197,7 @@ Other helpers: `R.esc`, `R.navn(i)`, `R.rng(seed)`, `R.nyttFro()`, `R.stokk(list
 `R.konfetti()`, `R.toast(tekst)`, `R.si(tekst)` (screen-reader announcement),
 `await R.bekreft(tittel, tekst, ja, nei)`, `await R.velgIArk(tittel, [{ v, tekst }])`, `R.ark(html)`,
 `await R.nedtelling(["3","2","1","KJØR!"])`, `await R.kastKort(-1)` (fly the big card out),
-`R.del(tittel, tekst, url)` (share sheet), `R.kopier(tekst)`, `R.vedForlat(fn)` (cleanup on leave).
+`R.del(tittel, tekst, url)` (share sheet; without one it copies text + link), `R.kopier(tekst)`, `R.vedForlat(fn)` (cleanup on leave).
 
 CSS: use the kit classes (`.seksjon`, `.seksjon-hode`, `.ingress`, `.etikett`, `.hjelp`, `.boks`,
 `.papirboks`, `.stabel`, `.rad`, `.banner`, `.stempel`, `.risting`, `.kort-ord`, `.knapprad`…) and

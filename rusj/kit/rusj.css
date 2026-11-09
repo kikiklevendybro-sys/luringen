@@ -317,6 +317,7 @@ h2,
 h3 {
   margin: 0;
   text-wrap: balance;
+  overflow-wrap: break-word; /* long player names */
 }
 
 h1 {
@@ -429,10 +430,12 @@ p {
   box-shadow: 0 2px 0 var(--f-dyp), 0 6px 14px var(--skygge);
 }
 
+/* Opaque, not see-through: in the dock, whatever scrolls behind a faded button showed through it. */
 .knapp:disabled {
   cursor: not-allowed;
-  opacity: 0.35;
-  box-shadow: 0 6px 0 var(--f-dyp);
+  background: color-mix(in srgb, var(--f) 26%, var(--natt));
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--f-dyp) 26%, var(--natt));
+  color: var(--tekst-3);
 }
 
 .knapp.lampe {
@@ -1727,6 +1730,7 @@ p {
 
 .banner h1 {
   font-size: clamp(2.2rem, 10vw, 3rem);
+  overflow-wrap: anywhere; /* a 16-letter name without spaces must not burst the banner on 320 px */
 }
 
 .banner.aksent h1 {

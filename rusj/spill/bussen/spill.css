@@ -1,0 +1,650 @@
+/* Bussen — «Rød eller svart?». Game styles are prefixed "bu-"; the shared playing cards "sk-". */
+
+/* ---------- Playing cards (the same look in Kortkongen, Bussen and Pyramiden) ----------
+   .sk-kort takes its width from --kortbredde (or --kb on the card itself); the face is an SVG that
+   scales with it. The back uses the game's accent colour. Flip: add .sk-opp. */
+.sk-kort {
+  --kb: var(--kortbredde, 64px);
+  --sk-r: calc(var(--kb) * 0.1);
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--kb);
+  height: calc(var(--kb) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sk-r);
+  background: none;
+  color: inherit;
+  font: inherit;
+  perspective: calc(var(--kb) * 9);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sk-indre {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.3, 1.25, 0.45, 1);
+}
+
+.sk-kort.sk-opp .sk-indre {
+  transform: rotateY(180deg);
+}
+
+.sk-side {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--sk-r);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sk-for {
+  background: linear-gradient(170deg, #fffdf8 0%, #fff8ec 55%, #f9eedd 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 18, 48, 0.16),
+    inset 0 calc(var(--kb) * -0.035) 0 rgba(27, 18, 48, 0.06),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+  transform: rotateY(180deg);
+}
+
+.sk-ansikt {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sk-ansikt text {
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* The back: a woven pattern in the game's colour, a paper rim and the rusj blob in the middle. */
+.sk-bak {
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.32), transparent 46%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    linear-gradient(160deg, color-mix(in srgb, var(--aksent) 82%, #fff) 0%, var(--aksent) 42%, color-mix(in srgb, var(--aksent) 62%, var(--natt)) 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.045) #fff8ec,
+    inset 0 0 0 calc(var(--kb) * 0.065) rgba(27, 18, 48, 0.18),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+}
+
+.sk-bak::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44%;
+  aspect-ratio: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-14 -14 28 28'%3E%3Cpath d='M0 -11 C7 -12 12 -6 11 1 C10 8 5 12 -1 11 C-8 10 -12 5 -11 -2 C-10 -8 -6 -10 0 -11Z' fill='%23fff8ec' stroke='%231b1230' stroke-opacity='.25' stroke-width='1.6'/%3E%3Cpath d='M-4.5 -3.5 C-3 -6.5 1 -7.5 3.5 -6' fill='none' stroke='%231b1230' stroke-opacity='.2' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: translate(-50%, -50%) rotate(-10deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-indre {
+    transition-duration: 0.01ms !important;
+  }
+}
+/* ---------- end of playing cards ---------- */
+
+/* ---------- Common pieces ---------- */
+
+.bu-sort {
+  display: block;
+  flex: none;
+  width: var(--str, 22px);
+  height: var(--str, 22px);
+}
+
+.bu-hvem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.bu-hvem h1 {
+  min-width: 0;
+  font-size: clamp(1.7rem, 7.5vw, 2.2rem);
+  overflow-wrap: anywhere;
+}
+
+.bu-hvem .etikett {
+  margin-bottom: 2px;
+}
+
+.bu-pris {
+  display: inline-block;
+  align-self: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--aksent) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--aksent) 45%, var(--strek));
+  color: var(--tekst);
+  font: 800 0.92rem/1.2 var(--font-display);
+}
+
+.bu-vann {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--himmel) 14%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--himmel) 40%, var(--strek));
+  color: var(--tekst);
+  font-weight: 700;
+}
+
+.bu-vann > span {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+/* ---------- Round intro ---------- */
+
+.bu-intro {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.bu-intro h1 {
+  font-size: clamp(2rem, 9vw, 2.7rem);
+}
+
+.bu-illustrasjon {
+  --kortbredde: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 112px;
+  padding: 6px 0;
+}
+
+.bu-illustrasjon .sk-kort:nth-child(1) {
+  transform: rotate(-7deg);
+}
+
+.bu-illustrasjon .sk-kort:last-child {
+  transform: rotate(6deg);
+}
+
+.bu-ill-0 .sk-kort:last-child {
+  margin-left: -14px;
+}
+
+.bu-tegn {
+  color: var(--aksent);
+  font: 900 1.5rem/1.05 var(--font-display);
+  text-align: center;
+}
+
+.bu-fire {
+  display: flex;
+  gap: 10px;
+}
+
+.bu-fire .bu-sort {
+  padding: 10px;
+  border-radius: 18px;
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  box-sizing: content-box;
+}
+
+/* ---------- A player's turn ---------- */
+
+.skjerm-tur,
+.skjerm-buss {
+  gap: 16px;
+}
+
+.bu-hand {
+  --kortbredde: min(92px, calc((100cqw - 30px) / 4));
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.bu-plass {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.bu-tom {
+  display: grid;
+  place-items: center;
+  width: var(--kortbredde);
+  height: calc(var(--kortbredde) * 1.4);
+  border-radius: calc(var(--kortbredde) * 0.1);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tekst-3) 30%, transparent);
+  background: rgba(33, 20, 61, 0.4);
+  color: color-mix(in srgb, var(--tekst-3) 55%, transparent);
+  font: 900 1.4rem/1 var(--font-display);
+}
+
+.bu-tekst {
+  color: var(--tekst-3);
+  font: 800 0.72rem/1.1 var(--font-display);
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.bu-plass.na .bu-tekst {
+  color: var(--aksent);
+}
+
+/* This round's card: dealt in, waiting face down */
+.bu-ny {
+  animation: bu-inn 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both, bu-vent 2.2s ease-in-out 0.6s infinite;
+}
+
+.bu-ny .sk-bak {
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.045) #fff8ec,
+    inset 0 0 0 calc(var(--kb) * 0.065) rgba(27, 18, 48, 0.18),
+    0 0 0 3px color-mix(in srgb, var(--aksent) 55%, transparent),
+    0 10px 24px color-mix(in srgb, var(--aksent) 35%, transparent);
+}
+
+@keyframes bu-inn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) rotate(-12deg) scale(0.8);
+  }
+}
+
+@keyframes bu-vent {
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.bu-snur {
+  animation: bu-loft 0.6s cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+@keyframes bu-loft {
+  40% {
+    transform: translateY(-10px) scale(1.08);
+  }
+}
+
+.bu-sporsmal {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.bu-sporsmal h2 {
+  font-size: clamp(1.45rem, 6.4vw, 1.9rem);
+}
+
+/* The answer: a stamp and what it means */
+.bu-utfall {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.bu-utfall .stempel {
+  font-size: clamp(1.9rem, 9vw, 2.6rem);
+}
+
+.bu-utfall-tekst {
+  font: 900 1.25rem/1.25 var(--font-display);
+}
+
+.bu-slurk {
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 4px 0 var(--rosa-dyp);
+  color: var(--blekk);
+  font: 900 1.25rem/1.2 var(--font-display);
+  animation: bu-pop 0.45s cubic-bezier(0.3, 1.7, 0.5, 1) both 0.35s;
+}
+
+.bu-slurk-info {
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.bu-fot {
+  color: var(--tekst-3);
+  font-size: 0.9rem;
+}
+
+@keyframes bu-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+/* Answer buttons */
+.bu-svar .knapp {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bu-pil {
+  font-size: 0.8em;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.knapp.bu-rod {
+  --f: #e8344c;
+  --f-dyp: #9c1830;
+  --t: #fff8ec;
+}
+
+.knapp.bu-svart {
+  --f: #2a2142;
+  --f-dyp: #0d0718;
+  --t: #fff8ec;
+  box-shadow: 0 6px 0 var(--f-dyp), 0 16px 30px var(--skygge), inset 0 0 0 2px #4a3a66;
+}
+
+.bu-svar .bu-sort {
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.25));
+}
+
+.knapp.bu-rod .bu-sort g {
+  fill: #fff8ec;
+}
+
+.bu-sorter {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bu-sortknapp {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 72px;
+  padding: 8px 2px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2), 0 12px 24px var(--skygge);
+  color: var(--blekk);
+  font: 800 0.82rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.bu-sortknapp:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--papir-2);
+}
+
+.bu-sortknapp span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- The bus ---------- */
+
+.bu-stor-buss {
+  display: block;
+  width: 132px;
+  filter: drop-shadow(0 14px 18px color-mix(in srgb, var(--aksent) 35%, transparent));
+  animation: bu-kjor 1.4s ease-in-out infinite;
+}
+
+.bu-stor-buss svg,
+.bu-liten-buss svg,
+.bu-buss svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@keyframes bu-kjor {
+  50% {
+    transform: translateY(-3px) rotate(-1deg);
+  }
+}
+
+.bu-billett h1 {
+  overflow-wrap: anywhere;
+}
+
+.bu-regelboks .tips {
+  color: var(--blekk-2);
+  font-weight: 600;
+}
+
+/* The road above the stops: the bus drives along it */
+.bu-vei {
+  position: relative;
+  padding-top: 44px;
+}
+
+.bu-vei::before {
+  content: "";
+  position: absolute;
+  top: 34px;
+  right: 0;
+  left: 0;
+  height: 6px;
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--lampe) 70%, transparent) 0 12px, transparent 12px 22px) center / 100% 2px no-repeat,
+    var(--natt-3);
+}
+
+.bu-rute {
+  --kortbredde: calc((100cqw - 30px) / 6);
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.bu-stopp {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+}
+
+.bu-stopp.bom .sk-for {
+  box-shadow: inset 0 0 0 3px var(--rosa), 0 0 16px color-mix(in srgb, var(--rosa) 55%, transparent);
+}
+
+.bu-stopp.start .bu-tekst,
+.bu-stopp.passert .bu-tekst {
+  color: var(--mynte);
+}
+
+/* The bus drives to the stop it has reached (--pos) */
+.bu-buss {
+  --kol: calc((100% - 30px) / 6);
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: calc(var(--pos) * (var(--kol) + 6px) + var(--kol) / 2 - 31px);
+  width: 62px;
+  filter: drop-shadow(0 4px 6px rgba(6, 2, 14, 0.5));
+  transition: left 0.7s cubic-bezier(0.45, 0, 0.3, 1) 0.35s;
+}
+
+.bu-bom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: -4px 0 0;
+}
+
+.bu-bom-tekst {
+  margin-right: 2px;
+  color: var(--tekst-3);
+  font: 800 0.72rem/1 var(--font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.bu-bom i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.bu-bom i.brukt {
+  background: var(--rosa);
+  box-shadow: none;
+}
+
+/* Who starts the round */
+.bu-forst {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.bu-forst b {
+  color: var(--tekst);
+}
+
+.bu-oppsummering {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.bu-oppsummering p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.bu-liten-buss {
+  flex: none;
+  width: 58px;
+}
+
+/* ---------- Short screens: smaller cards, so the question stays above the buttons ---------- */
+@media (max-height: 700px) {
+  .skjerm-tur,
+  .skjerm-buss {
+    gap: 10px;
+  }
+
+  .bu-hand {
+    --kortbredde: min(64px, calc((100cqw - 30px) / 4));
+  }
+
+  .bu-hvem .avatar.mid {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+
+  .bu-hvem h1 {
+    font-size: 1.6rem;
+  }
+
+  .bu-sporsmal h2 {
+    font-size: 1.3rem;
+  }
+
+  .bu-sporsmal .hjelp {
+    font-size: 0.85rem;
+  }
+
+  .bu-utfall .stempel {
+    font-size: 1.7rem;
+    border-width: 5px;
+  }
+
+  .bu-utfall-tekst {
+    font-size: 1.05rem;
+  }
+
+  .bu-slurk {
+    font-size: 1.05rem;
+    padding: 6px 14px;
+  }
+
+  .bu-sortknapp {
+    min-height: 60px;
+  }
+
+  .bu-illustrasjon {
+    --kortbredde: 56px;
+    min-height: 84px;
+  }
+
+  .bu-stor-buss {
+    width: 84px;
+  }
+
+  .bu-billett {
+    gap: 6px;
+  }
+
+  .bu-billett h1 {
+    font-size: 1.9rem;
+  }
+
+  .bu-regelboks {
+    gap: 6px;
+    padding: 14px 16px;
+  }
+
+  .bu-regelboks .tips {
+    font-size: 0.86rem;
+  }
+
+  .bu-vei {
+    padding-top: 36px;
+  }
+
+  .bu-vei::before {
+    top: 27px;
+  }
+
+  .bu-buss {
+    width: 50px;
+    left: calc(var(--pos) * (var(--kol) + 6px) + var(--kol) / 2 - 25px);
+  }
+
+  .skjerm-intro .fremdrift {
+    display: none;
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "tallknuseren",
+  "navn": "Tallknuseren",
+  "undertittel": "Sudoku",
+  "beskrivelse": "Gratis sudoku på norsk. Nye brett i fire nivåer, alltid med bare én løsning. Dagens sudoku for hele landet, notater, hint og beste tider.",
+  "kort": "Ett tall i hver rute – bare logikk, ingen regning.",
+  "spillere": [1, 1],
+  "minutter": [5, 30],
+  "mobiler": "en",
+  "tagger": ["klassiker", "tenke", "alene", "daglig"],
+  "rekkefolge": 24,
+  "farge": "#7fd6c2",
+  "sok": ["sudoku", "dagens sudoku", "tallgåte", "tallspill", "logikk"]
+}

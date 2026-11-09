@@ -1,0 +1,13 @@
+{
+  "id": "tidsmaskinen",
+  "navn": "Tidsmaskinen",
+  "undertittel": "Tidslinja",
+  "beskrivelse": "Gratis tidslinjespill på norsk: legg hendelsen på riktig plass i tidslinja. Over 400 hendelser fra Norge og verden – oppfinnelser, vitenskap, kultur og sport.",
+  "kort": "Når skjedde det? Legg hendelsen på riktig plass i tidslinja.",
+  "spillere": [1, 10],
+  "minutter": [10, 30],
+  "mobiler": "en",
+  "tagger": ["quiz", "familie", "lag"],
+  "rekkefolge": 35,
+  "sok": ["tidslinje", "tidslinjespill", "årstall", "historiequiz", "når skjedde det", "timeline"]
+}

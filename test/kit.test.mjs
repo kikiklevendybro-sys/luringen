@@ -47,14 +47,21 @@ function lastKit() {
 test("join codes round-trip and reject wrong salt or typos", () => {
   const { R } = lastKit();
   const bredder = [25, 4, 2, 1];
+  const tilf = R.rng(2026); // fixed seed: the counts below are the same on every run
+  let annetSalt = 0;
+  let annetSalt2 = 0;
   for (let i = 0; i < 300; i++) {
-    const verdier = [R.heltall(0, 2 ** 25 - 1), R.heltall(0, 15), R.heltall(0, 3), R.heltall(0, 1)];
+    const verdier = [R.heltall(0, 2 ** 25 - 1, tilf), R.heltall(0, 15, tilf), R.heltall(0, 3, tilf), R.heltall(0, 1, tilf)];
     const kode = R.kode.lag(verdier, bredder, 12345);
     assert.equal(kode.length, R.kode.lengde(bredder));
     assert.deepEqual(R.kode.les(kode, bredder, 12345), verdier);
     assert.deepEqual(R.kode.les(R.kode.formater(kode).toLowerCase(), bredder, 12345), verdier, "case and spaces don't matter");
-    assert.equal(R.kode.les(kode, bredder, 999), null, "another salt (other content) is rejected");
+    if (R.kode.les(kode, bredder, 999) !== null) annetSalt++;
+    if (R.kode.les(R.kode.lag(verdier, bredder, 12345, 2), bredder, 999, 2) !== null) annetSalt2++;
   }
+  // One check symbol lets about 1 in 32 through by chance; two symbols about 1 in 1024.
+  assert.ok(annetSalt <= 24, `another salt accepted ${annetSalt}/300 with one check symbol`);
+  assert.ok(annetSalt2 <= 2, `another salt accepted ${annetSalt2}/300 with two check symbols`);
   const kode = R.kode.lag([123456, 7, 2, 1], bredder, 1);
   let avvist = 0;
   for (let p = 0; p < kode.length; p++) {
@@ -82,6 +89,23 @@ test("two check symbols catch (nearly) every typo and keep one-symbol codes unch
     if (R.kode.les(tilfeldig, bredder, 77, 2)) godtatt++;
   }
   assert.ok(godtatt < 60, `random codes accepted: ${godtatt} of 20000 (should be ~0.1 %)`);
+});
+
+// Codes, links and daily puzzles are computed on every phone from these functions; a change would
+// make codes in use invalid, give Nissen links other recipients, or a different «dagens» puzzle.
+// If one of these values changes on purpose, it is a breaking change for everyone mid-game.
+test("codes, hashes, seeded randomness and the daily date never change", () => {
+  const { R } = lastKit();
+  assert.equal(R.kode.lag([123456, 7, 2, 1], [25, 4, 2, 1], 1), "03RJ0F8R");
+  assert.equal(R.kode.lag([987654, 9, 1, 0], [25, 4, 2, 1], 77, 2), "0Y4G6JGC1");
+  assert.equal(R.hash("rusj.no"), 1140757162);
+  const r = R.rng(42);
+  assert.deepEqual([r(), r(), r()], [0.6011037519201636, 0.44829055899754167, 0.8524657934904099]);
+  assert.deepEqual(R.stokk([1, 2, 3, 4, 5, 6, 7, 8], R.rng(7)), [5, 7, 2, 3, 4, 6, 8, 1]);
+  // Oslo time: past midnight in Norway is already the next day, in winter and in summer.
+  assert.deepEqual({ ...R.dag(new Date("2026-11-09T23:30:00Z")) }, { tekst: "2026-11-10", nr: 20767 });
+  assert.deepEqual({ ...R.dag(new Date("2026-07-01T21:59:00Z")) }, { tekst: "2026-07-01", nr: 20635 });
+  assert.deepEqual({ ...R.dag(new Date("2026-07-01T22:01:00Z")) }, { tekst: "2026-07-02", nr: 20636 });
 });
 
 test("code normalisation forgives look-alike letters", () => {

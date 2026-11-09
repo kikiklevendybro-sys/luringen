@@ -1,0 +1,14 @@
+{
+  "id": "pyramiden",
+  "navn": "Pyramiden",
+  "undertittel": "Har du kortet – eller bløffer du?",
+  "beskrivelse": "Gratis drikkespill på norsk (18+). Fire hemmelige kort, en pyramide som snus – del ut slurker eller bløff. Mobilen holder styr. Alkoholfritt teller.",
+  "kort": "Fire hemmelige kort, femten i pyramiden – og mye bløff.",
+  "spillere": [3, 10],
+  "minutter": [15, 30],
+  "mobiler": "en",
+  "tagger": ["drikke", "fest"],
+  "rekkefolge": 44,
+  "alder18": true,
+  "sok": ["pyramide", "pyramiden drikkelek", "drikkelek kort", "bløff", "kortpyramide"]
+}

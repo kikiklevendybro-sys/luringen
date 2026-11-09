@@ -1,0 +1,496 @@
+/* Pyramiden. Game styles are prefixed "py-"; the shared playing cards "sk-". */
+
+/* ---------- Playing cards (the same look in Kortkongen, Bussen and Pyramiden) ----------
+   .sk-kort takes its width from --kortbredde (or --kb on the card itself); the face is an SVG that
+   scales with it. The back uses the game's accent colour. Flip: add .sk-opp. */
+.sk-kort {
+  --kb: var(--kortbredde, 64px);
+  --sk-r: calc(var(--kb) * 0.1);
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--kb);
+  height: calc(var(--kb) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sk-r);
+  background: none;
+  color: inherit;
+  font: inherit;
+  perspective: calc(var(--kb) * 9);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sk-indre {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.3, 1.25, 0.45, 1);
+}
+
+.sk-kort.sk-opp .sk-indre {
+  transform: rotateY(180deg);
+}
+
+.sk-side {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--sk-r);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sk-for {
+  background: linear-gradient(170deg, #fffdf8 0%, #fff8ec 55%, #f9eedd 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 18, 48, 0.16),
+    inset 0 calc(var(--kb) * -0.035) 0 rgba(27, 18, 48, 0.06),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+  transform: rotateY(180deg);
+}
+
+.sk-ansikt {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sk-ansikt text {
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* The back: a woven pattern in the game's colour, a paper rim and the rusj blob in the middle. */
+.sk-bak {
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.32), transparent 46%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    linear-gradient(160deg, color-mix(in srgb, var(--aksent) 82%, #fff) 0%, var(--aksent) 42%, color-mix(in srgb, var(--aksent) 62%, var(--natt)) 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.045) #fff8ec,
+    inset 0 0 0 calc(var(--kb) * 0.065) rgba(27, 18, 48, 0.18),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+}
+
+.sk-bak::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44%;
+  aspect-ratio: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-14 -14 28 28'%3E%3Cpath d='M0 -11 C7 -12 12 -6 11 1 C10 8 5 12 -1 11 C-8 10 -12 5 -11 -2 C-10 -8 -6 -10 0 -11Z' fill='%23fff8ec' stroke='%231b1230' stroke-opacity='.25' stroke-width='1.6'/%3E%3Cpath d='M-4.5 -3.5 C-3 -6.5 1 -7.5 3.5 -6' fill='none' stroke='%231b1230' stroke-opacity='.2' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: translate(-50%, -50%) rotate(-10deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-indre {
+    transition-duration: 0.01ms !important;
+  }
+}
+/* ---------- end of playing cards ---------- */
+
+/* ---------- Common pieces ---------- */
+
+.py-midt {
+  text-align: center;
+}
+
+.py-hvem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.py-hvem h1 {
+  min-width: 0;
+  font-size: clamp(1.7rem, 7.5vw, 2.2rem);
+  overflow-wrap: anywhere;
+}
+
+.py-vann {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--himmel) 14%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--himmel) 40%, var(--strek));
+  color: var(--tekst);
+  font-weight: 700;
+  text-align: left;
+}
+
+.py-vann > span {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+/* ---------- Dealing: the four secret cards behind the hold-to-reveal card ---------- */
+
+.py-mottaker {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.py-hand {
+  --kortbredde: min(96px, calc((100cqw - 24px) / 2));
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  justify-content: center;
+  gap: 10px 12px;
+  width: 100%;
+}
+
+.mappe-bakside .py-hand {
+  --kortbredde: min(88px, 28vw, 15vh);
+  container-type: normal;
+}
+
+.mappe-bakside .py-hand-liten {
+  display: none;
+}
+
+.py-husk {
+  font: 900 1.1rem/1 var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---------- The pyramid ---------- */
+
+.skjerm-pyramide {
+  gap: 14px;
+}
+
+.py-pyramide {
+  --kortbredde: min(64px, calc((100cqw - 40px) / 5));
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 6px;
+}
+
+.py-rad {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.py-rad + .py-rad {
+  margin-top: calc(var(--kortbredde) * 1.4 * -0.3);
+}
+
+.py-kort {
+  transition: transform 0.3s cubic-bezier(0.3, 1.4, 0.5, 1), filter 0.3s;
+}
+
+.py-kort.brukt {
+  filter: saturate(0.75) brightness(0.88);
+}
+
+/* The card just turned: lifted, glowing, above its neighbours */
+.py-kort.na {
+  z-index: 3;
+  transform: translateY(-4px) scale(1.14);
+}
+
+.py-kort.na .sk-for {
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 18, 48, 0.16),
+    0 0 0 3px var(--aksent),
+    0 0 26px color-mix(in srgb, var(--aksent) 60%, transparent),
+    0 10px 20px rgba(6, 2, 14, 0.45);
+}
+
+.py-info {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.py-info h1 {
+  font-size: clamp(1.6rem, 7vw, 2.1rem);
+}
+
+.py-krav {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.py-krav li {
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.py-krav li.avslort {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--rosa) 60%, var(--strek));
+}
+
+.py-valg .knapp {
+  padding-inline: 12px;
+  font-size: 1.12rem;
+}
+
+/* ---------- A claim ---------- */
+
+.py-krav-topp {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.py-krav-topp h1 {
+  font-size: clamp(1.5rem, 6.6vw, 2rem);
+  overflow-wrap: anywhere;
+}
+
+.py-krav-kort {
+  --kortbredde: 76px;
+  flex: none;
+  transform: rotate(-5deg);
+}
+
+/* «A → B»: who handed out to whom */
+.py-par {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-top: 6px;
+  font: 900 1.05rem/1.2 var(--font-display);
+}
+
+.py-person {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.py-person span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.py-par b {
+  color: var(--aksent);
+  font-size: 1.3rem;
+}
+
+.py-par .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 0.95rem;
+}
+
+.py-duell {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+}
+
+.py-duell b {
+  color: var(--tekst);
+}
+
+.py-sjekk,
+.py-resultat {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.py-hand-skjult {
+  --kortbredde: 64px;
+  grid-template-columns: repeat(4, auto);
+}
+
+.py-hand-skjult .sk-kort {
+  animation: py-rist 0.5s ease-in-out infinite alternate;
+}
+
+.py-hand-skjult .sk-kort:nth-child(2n) {
+  animation-delay: 0.15s;
+}
+
+@keyframes py-rist {
+  to {
+    transform: translateY(-6px) rotate(3deg);
+  }
+}
+
+.py-bevis {
+  --kortbredde: 92px;
+  grid-template-columns: repeat(auto-fit, auto);
+  grid-auto-flow: column;
+}
+
+.py-resultat-tekst {
+  max-width: 30ch;
+  font: 900 1.2rem/1.3 var(--font-display);
+  text-wrap: balance;
+}
+
+.py-fot {
+  color: var(--tekst-3);
+  font-size: 0.9rem;
+}
+
+/* ---------- Finale ---------- */
+
+.py-finale-hand {
+  --kortbredde: min(80px, calc((100cqw - 36px) / 4));
+  grid-template-columns: repeat(4, auto);
+}
+
+.py-tall {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.py-tall .knapp-2 {
+  min-height: 60px;
+  padding: 8px 4px;
+  font: 900 1.5rem/1 var(--font-display);
+}
+
+/* ---------- The crowning ---------- */
+
+.py-priser {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.py-pris {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--r-mid);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--vf) 18%, var(--natt-2)), var(--natt-2) 70%);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--vf) 45%, var(--strek));
+}
+
+.py-pris-ikon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.py-pris-tekst {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.py-pris-tekst b {
+  font: 900 1.2rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.py-pris-tekst > span:last-child {
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+}
+
+.py-logg {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.py-logg ul {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding: 0 0 0 18px;
+  color: var(--tekst-2);
+}
+
+/* ---------- Short screens: a smaller pyramid, so the question stays above the buttons ---------- */
+@media (max-height: 700px) {
+  .mappe-bakside .py-hand-stor {
+    display: none;
+  }
+
+  .mappe-bakside .py-hand-liten {
+    --kortbredde: min(62px, calc((100vw - 110px) / 4));
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    gap: 8px;
+  }
+
+  .skjerm-pyramide {
+    gap: 10px;
+  }
+
+  .py-pyramide {
+    --kortbredde: min(48px, calc((100cqw - 40px) / 5));
+  }
+
+  .py-rad {
+    gap: 8px;
+  }
+
+  .py-rad + .py-rad {
+    margin-top: calc(var(--kortbredde) * 1.4 * -0.38);
+  }
+
+  .py-info {
+    gap: 4px;
+  }
+
+  .py-info h1 {
+    font-size: 1.45rem;
+  }
+
+  .py-info .hjelp {
+    font-size: 0.85rem;
+  }
+
+  .py-krav-kort {
+    --kortbredde: 58px;
+  }
+
+  .py-finale-hand {
+    --kortbredde: min(64px, calc((100cqw - 36px) / 4));
+  }
+
+  .py-tall .knapp-2 {
+    min-height: 50px;
+  }
+}

@@ -114,13 +114,84 @@ for (const id of valgt) {
       t.sjekk((await c.antall("#spillgrid .spillkort[data-alder18]:not([hidden])")) === 0 || (await c.js("document.body.classList.contains('over18')")), "Drikkespill vises før 18-årsbekreftelsen");
       t.sjekk(kort === ventet && liste.length === ventet, `Forsiden viser ${kort} spillkort, ventet ${ventet}`);
       for (const id of bygget) t.sjekk(liste.includes(id), `Forsiden mangler kortet for ${id}`);
+      const synligeKort = (sel = "#spillgrid .spillkort") => c.js(`Array.from(document.querySelectorAll(${JSON.stringify(sel)})).filter((k) => k.offsetParent).length`);
+      const alle = await synligeKort();
+
+      // The mascot parade: filled by portal.js, never a drinking game, doubled for the loop.
+      const parade = await c.js(`(() => { const f = Array.from(document.querySelectorAll("#parade .parade-figur")); const ids = f.map((a) => a.getAttribute("href").split("/")[1]); const atten = (window.RUSJ_SPILLISTE || []).filter((s) => s.alder18).map((s) => s.id); return { n: f.length, skjult: f.filter((a) => a.getAttribute("aria-hidden") === "true").length, atten: ids.filter((i) => atten.includes(i)).length, fokus: f.filter((a) => a.tabIndex >= 0).length }; })()`);
+      t.sjekk(parade.n > 0 && parade.skjult === parade.n / 2, `Paraden er tom eller ikke doblet (${parade.n} figurer, ${parade.skjult} skjult)`);
+      t.sjekk(parade.atten === 0, "Paraden viser drikkespill");
+      t.sjekk(parade.fokus === 0, "Paradefigurene kan få tastaturfokus");
+
+      // Search narrows the list (and «quiz» finds something).
+      await c.skrivInn("#sok", "Quiz");
+      const treff = await synligeKort();
+      t.sjekk(treff > 0 && treff < alle, `Søket «Quiz» viser ${treff} av ${alle} spill`);
+      t.sjekk(await c.js("document.querySelector('#hyller').hidden"), "Hyllene vises fortsatt under søket");
+      await t.bilde("forside-sok");
+      await c.klikk("#sok-tom");
+      t.sjekk((await synligeKort()) === alle, "«Tøm søket» viser ikke alle spillene igjen");
+
+      // The filter button opens and closes the panel; the badge counts the active filters.
+      t.sjekk(await c.js("document.querySelector('#filtre').hidden && document.querySelector('#filter-knapp').getAttribute('aria-expanded') === 'false'"), "Filterpanelet er åpent før det er valgt noe");
+      await c.klikk("#filter-knapp");
+      t.sjekk(await c.js("!document.querySelector('#filtre').hidden && document.querySelector('#filter-knapp').getAttribute('aria-expanded') === 'true'"), "Filterknappen åpner ikke panelet");
       await c.klikk('[data-antall="1"]');
       await c.klikk('[data-antall="1"]');
       const synlige2 = await c.antall("#spillgrid .spillkort:not([hidden])");
       t.sjekk(synlige2 > 0, "Ingen spill passer for 3 spillere");
-      await c.klikk('#tagger .brikke:not(.alle)');
+      await c.klikk("#tagger .brikke:not(.alle)");
+      t.sjekk((await c.tekst("#filter-antall")).trim() === "2", "Filterknappen viser ikke 2 aktive filtre");
       await t.bilde("forside-filter");
-      await c.klikk('[data-tagg=""]');
+      await c.klikk('#tagger [data-tagg=""]');
+      await c.klikk('[data-antall="-1"]');
+      await c.klikk('[data-antall="-1"]'); // 3 → 2 → alle
+      t.sjekk(await c.js("document.querySelector('#filter-antall').hidden"), "Filtertelleren vises uten aktive filtre");
+      await c.klikk("#filter-knapp");
+      t.sjekk(await c.js("document.querySelector('#filtre').hidden"), "Filterknappen lukker ikke panelet");
+
+      // 18+: hidden until confirmed in the dialog, then focus lands on the drinking shelf.
+      const atten = await c.antall("#spillgrid .spillkort[data-alder18]");
+      if (atten) {
+        t.sjekk((await synligeKort("#spillgrid .spillkort[data-alder18]")) === 0, "Drikkespill vises før 18-årsbekreftelsen");
+        await c.klikk("[data-vis18]");
+        t.sjekk(await c.js("document.querySelector('#dialog').open"), "18+-dialogen åpnes ikke");
+        await t.bilde("forside-18");
+        await c.klikk('#dialog [value="ja"]');
+        t.sjekk((await synligeKort("#spillgrid .spillkort[data-alder18]")) === atten, "Drikkespillene vises ikke etter «Ja»");
+        t.sjekk(await c.js("!!document.activeElement.closest('.hylle-18')"), "Fokus havner ikke på drikkespill-hylla etter «Ja»");
+        await c.klikk("[data-skjul18]");
+        t.sjekk((await synligeKort("#spillgrid .spillkort[data-alder18]")) === 0, "«Skjul» skjuler ikke drikkespillene");
+        t.sjekk(await c.js("document.activeElement !== document.body"), "Fokus forsvinner etter «Skjul»");
+      }
+
+      // «Overrask meg»: the slot machine opens, picks a game that isn't 18+, and Escape closes it.
+      await c.klikk("#overrask");
+      t.sjekk(await c.js("document.querySelector('#automat').open"), "«Overrask meg» åpner ikke automaten");
+      await c.vent("document.querySelector('#automat [data-spill]').getAttribute('aria-disabled') === 'false'", 5000);
+      const valgt = await c.js("document.querySelector('#automat-svar b')?.textContent || ''");
+      const valgt18 = await c.js(`(window.RUSJ_SPILLISTE || []).some((s) => s.alder18 && s.navn === ${JSON.stringify(valgt)})`);
+      t.sjekk(valgt && !valgt18, `Automaten valgte «${valgt}»${valgt18 ? " (et drikkespill)" : ""}`);
+      await t.bilde("forside-overrask");
+      await c.klikk("#automat [data-en-til]");
+      await c.vent("document.querySelector('#automat [data-spill]').getAttribute('aria-disabled') === 'false'", 5000);
+      await c.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+      await c.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+      await c.sov(200);
+      t.sjekk(await c.js("!document.querySelector('#automat').open"), "Escape lukker ikke automaten");
+      t.sjekk(await c.js("document.activeElement && document.activeElement.id === 'overrask'"), "Fokus går ikke tilbake til «Overrask meg»");
+
+      // «Fortsett der dere slapp» shows a game with saved, in-progress state; «Kveldens gjeng» shows the top 5.
+      const fortsettId = bygget.find((i) => !meta(i).alder18);
+      await c.js(`localStorage.setItem("rusj.${fortsettId}.v1", JSON.stringify({ _aktiv: true, _tid: Date.now(), skjerm: "spill" }))`);
+      await c.js(`localStorage.setItem("rusj.kveld", JSON.stringify({ start: Date.now(), spill: [{ id: "x", resultat: ["Ada", "Bo", "Cia", "Dag", "Eli", "Fia", "Gro"].map((navn, i) => ({ navn, plass: Math.min(i + 1, 4) })) }] }))`);
+      await c.lastSide(t.side, "document.querySelector('.spillgrid')");
+      await c.sov(2600);
+      t.sjekk(await c.finnes(`#fortsett:not([hidden]) #fortsett-rad .spillkort[data-id="${fortsettId}"] .kort-fortsett`), `«Fortsett»-raden viser ikke ${fortsettId}`);
+      t.sjekk((await c.antall("#kveld-liste li:not([hidden])")) === 5, "Kveldens gjeng viser ikke topp 5");
+      await t.bilde("forside-fortsett");
+      await c.klikk("#kveld-alle");
+      t.sjekk((await c.antall("#kveld-liste li:not([hidden])")) === 7 && (await c.js("document.querySelector('#kveld-alle').getAttribute('aria-expanded') === 'true'")), "«Vis alle» viser ikke hele Kveldens gjeng");
       await t.bilde("forside-hel", true);
       await c.lastSide("about:blank");
       await c.lastSide(`${tjener.url}/#ABCD2345`, "location.pathname.startsWith('/luringen/')");
@@ -139,6 +210,14 @@ for (const id of valgt) {
     } else {
       const m = meta(id);
       await t.start();
+      if (m.alder18) {
+        // Drinking games: the kit's 18+ gate comes first; "Nei" leads away, "Ja" opens the game.
+        t.sjekk(/18/.test(await c.tekst("#skjerm h1")), "18+-porten vises ikke først i et drikkespill");
+        t.sjekk(await c.finnes('[data-h="alder-ja"]') && (await c.finnes('[data-h="alder-nei"]')), "18+-porten mangler Ja/Nei");
+        await t.bilde("alder");
+        await c.klikk('[data-h="alder-ja"]');
+        await c.vent("document.querySelector('#skjerm h1') && !/18\\?/.test(document.querySelector('#skjerm h1').textContent)");
+      }
       const h1 = await c.tekst("#skjerm h1");
       t.sjekk(h1.trim() === m.navn, `Hjem-skjermen har overskriften «${h1}», ventet «${m.navn}»`);
       t.sjekk(await c.finnes("#tilportal:not([hidden])"), "Mangler rusj-knappen øverst på hjem-skjermen");

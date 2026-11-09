@@ -131,20 +131,55 @@
   // Shared across all games: sound on/off and the player names (the same friends play several games).
   R.felles = Object.assign({ lyd: true, navn: [] }, R.les("felles", {}));
   if (!Array.isArray(R.felles.navn)) R.felles.navn = [];
-  R.lagreFelles = () =>
+  // over18 is read back from storage unless it is the thing being changed: the front page or
+  // another tab may have changed it since this page loaded, and an old copy must not undo that.
+  R.lagreFelles = (endring) => {
+    const lagret = R.les("felles", {}) || {};
+    R.felles.over18 = endring && "over18" in endring ? !!endring.over18 : !!lagret.over18;
     R.skriv("felles", {
       lyd: !!R.felles.lyd,
       navn: R.felles.navn.slice(0, 24).map((n) => String(n || "").slice(0, 16)),
-      over18: !!R.felles.over18,
+      over18: R.felles.over18,
       installTips: Number(R.felles.installTips) || 0,
     });
+  };
 
   // ---------- Daily puzzles ----------
   // The same "today" for everyone in Norway: { tekst: "2026-11-10", nr: days since 1970 }.
+  // Read with formatToParts (not a locale's date format, which a browser may lack), and fall back
+  // to the phone's own date if the time zone is unknown.
   R.dag = (dato) => {
-    const s = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Oslo", year: "numeric", month: "2-digit", day: "2-digit" }).format(dato || new Date());
-    const [a, m, d] = s.split("-").map(Number);
-    return { tekst: s, nr: Math.floor(Date.UTC(a, m - 1, d) / 86400000) };
+    const naa = dato || new Date();
+    let a, m, d;
+    try {
+      const deler = {};
+      for (const p of new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", year: "numeric", month: "numeric", day: "numeric" }).formatToParts(naa)) deler[p.type] = Number(p.value);
+      a = deler.year;
+      m = deler.month;
+      d = deler.day;
+    } catch (e) {
+      /* fall through */
+    }
+    if (!(a > 0 && m > 0 && d > 0)) {
+      a = naa.getFullYear();
+      m = naa.getMonth() + 1;
+      d = naa.getDate();
+    }
+    const to = (n) => String(n).padStart(2, "0");
+    return { tekst: `${a}-${to(m)}-${to(d)}`, nr: Math.floor(Date.UTC(a, m - 1, d) / 86400000) };
+  };
+
+  // Daily puzzles call R.dagligFerdig({ vunnet, rekke }) when today's puzzle is done (won or not).
+  // The front page shows «✓ i dag» and the streak (🔥) on the game's card. This phone only.
+  R.dagligFerdig = (info) => {
+    try {
+      const id = (APP && APP.id) || meta().id;
+      const alle = R.les("daglig", {}) || {};
+      alle[id] = { nr: R.dag().nr, vunnet: !!(info && info.vunnet), rekke: Math.max(0, Math.min(9999, Number(info && info.rekke) || 0)) };
+      R.skriv("daglig", alle);
+    } catch (e) {
+      /* never break a game for this */
+    }
   };
 
   // ---------- Statistics (anonymous) ----------
@@ -190,7 +225,12 @@
         k.spill = k.spill.slice(-60);
         R.skriv("kveld", k);
         R.statistikk("kveld", { spillere: resultat.length });
-        setTimeout(() => R.visInstallTips(), 1800); // the end of a game is a good moment for the tip
+        // A calm moment on the end screen. Games often register just before R.gaTil("slutt"), so the
+        // screen is read on the next tick; the tip only shows if the player is still there 1.8 s later.
+        setTimeout(() => {
+          const fortsatt = R.vakt();
+          setTimeout(() => fortsatt() && R.visInstallTips(), 1800);
+        }, 0);
       } catch (e) {
         /* never break a game for the scoreboard */
       }
@@ -510,8 +550,13 @@
     });
   // Choose one of several options in a sheet. valg: [{ v, tekst }]. Resolves to v or null.
   // Ask before a new game replaces one in progress. Resolves true right away if nothing is running.
-  R.bekreftNytt = (pagar) =>
-    pagar ? R.bekreft("Starte et nytt spill?", "Spillet dere holder på med, og stillingen forsvinner.", "Start nytt", "Avbryt") : Promise.resolve(true);
+  // solo: talk to one person («du»). Defaults to true for one-player games; pass it for games
+  // that can be played alone or together (e.g. sp.antall === 1).
+  R.bekreftNytt = (pagar, solo) => {
+    if (!pagar) return Promise.resolve(true);
+    const alene = solo != null ? !!solo : !!(meta().spillere && meta().spillere[1] === 1);
+    return R.bekreft("Starte et nytt spill?", alene ? "Spillet du holder på med, forsvinner." : "Spillet dere holder på med, og stillingen forsvinner.", "Start nytt", "Avbryt");
+  };
   R.velgIArk = (tittel, valg, tekst) =>
     new Promise((resolve) => {
       R.ark(`
@@ -528,13 +573,15 @@
     const t = $("#toast");
     if (t) t.classList.remove("vis");
   };
-  R.toast = (tekst) => {
+  // R.toast(tekst) or R.toast(tekst, { topp: true }) — the top variant for screens where the area
+  // above the dock is the game board.
+  R.toast = (tekst, valg) => {
     const t = $("#toast");
     t.textContent = tekst;
     // Just above the action area when the screen has one (never over the heading or the buttons).
     const dokk = $("#skjerm .dokk");
     const topp = dokk ? dokk.getBoundingClientRect().top : 0;
-    if (dokk && topp > 120 && topp < window.innerHeight) {
+    if (!(valg && valg.topp) && dokk && topp > 120 && topp < window.innerHeight) {
       t.style.top = "auto";
       t.style.bottom = Math.round(window.innerHeight - topp + 10) + "px";
     } else {
@@ -567,7 +614,8 @@
     } catch (e) {
       if (e && e.name === "AbortError") return;
     }
-    R.kopier(url);
+    // No share sheet: copy the whole thing (e.g. a result with coloured squares), not just the link.
+    R.kopier([tekst, url].filter(Boolean).join("\n"));
   };
 
   // ---------- Countdown overlay ----------
@@ -677,6 +725,7 @@
       this.tikk = valg.tikk !== false;
       this.overlev = !!valg.overlev;
       this.visning = valg.visning || "mm:ss"; // "sek" shows only whole seconds
+      this.alarm = valg.alarm !== false; // false: no alarm sound/vibration when time is up
       this.kjorer = false;
       this.ferdig = false;
       this.sisteSek = null;
@@ -748,8 +797,10 @@
         this.ferdig = true;
         clearInterval(this.intervall);
         this.tegn();
-        R.lyd.alarm();
-        R.vibrer([200, 100, 200]);
+        if (this.alarm) {
+          R.lyd.alarm();
+          R.vibrer([200, 100, 200]);
+        }
         if (this.vedSlutt) this.vedSlutt();
       }
     }
@@ -788,8 +839,19 @@
 
   const ALFABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
   // sjekk = number of check symbols (default 1; 2 catches almost every typo, at one extra character).
+  // FNV alone mixes a change near the end of the text into only a few bits, so the hash is run
+  // through a finaliser (murmur3's fmix32) first: every typo or swapped pair then changes each
+  // check symbol at random — one symbol misses 1 in 32, two symbols about 1 in 1000.
+  const bland = (h) => {
+    h ^= h >>> 16;
+    h = Math.imul(h, 0x85ebca6b);
+    h ^= h >>> 13;
+    h = Math.imul(h, 0xc2b2ae35);
+    h ^= h >>> 16;
+    return h >>> 0;
+  };
   const sjekksymboler = (symboler, salt, sjekk) =>
-    Array.from({ length: sjekk || 1 }, (_, k) => R.hash((salt || 0) + (k ? ":" + (k + 1) : "") + ":" + symboler.join(",")) % 32);
+    Array.from({ length: sjekk || 1 }, (_, k) => bland(R.hash((salt || 0) + (k ? ":" + (k + 1) : "") + ":" + symboler.join(","))) >>> 27);
   R.kode = {
     lag(verdier, bredder, salt, sjekk) {
       const bits = [];
@@ -837,11 +899,12 @@
         .join(""),
     formater: (kode) => String(kode).replace(/(.{4})(?=.)/g, "$1 "),
     lenke: (kode) => location.origin + location.pathname + "#" + kode,
-    qr(tekst) {
+    // nivå: error correction "M" (default) or "L" for long links (more data fits).
+    qr(tekst, nivå) {
       const Q = window.LuringenQr;
       if (!Q) return "";
       try {
-        return Q.qrSvg(Q.lagQr(tekst, "M"), { mork: "var(--blekk)", lys: "var(--papir)", etikett: "QR-kode som åpner spillet med koden" });
+        return Q.qrSvg(Q.lagQr(tekst, nivå || "M"), { mork: "var(--blekk)", lys: "var(--papir)", etikett: "QR-kode som åpner spillet med koden" });
       } catch (e) {
         return "";
       }
@@ -994,7 +1057,7 @@
     return `<section class="seksjon" id="spillerboks" data-min="${min}" data-max="${max}">
       <div class="seksjon-hode"><h2>${esc(o.tittel || "Hvem spiller?")}</h2><span class="tall">${antall} ${antall === 1 ? "spiller" : "spillere"}</span></div>
       <div class="spillere">${rader.join("")}</div>
-      <button class="legg-til" data-h="spiller-legg-til"${antall >= max ? " disabled" : ""}>+ Legg til spiller${antall >= max ? ` (maks ${max})` : ""}</button>
+      ${min === max ? "" : `<button class="legg-til" data-h="spiller-legg-til"${antall >= max ? " disabled" : ""}>+ Legg til spiller${antall >= max ? ` (maks ${max})` : ""}</button>`}
       ${o.hjelp ? `<p class="hjelp">${esc(o.hjelp)}</p>` : ""}
     </section>`;
   };
@@ -1084,7 +1147,7 @@
   };
 
   // Podium for the top three. rader as in poengliste. Equal points share a place (1, 1, 3).
-  ui.pall = (rader) => {
+  ui.pall = (rader, o = {}) => {
     const alle = rader.filter((r) => r.poeng > 0).sort((a, b) => b.poeng - a.poeng);
     if (alle.length < 2) return "";
     const s = alle.slice(0, 3);
@@ -1094,21 +1157,29 @@
       const n = rang(r);
       const navn = r.navn != null ? r.navn : r.lag != null ? "Lag " + R.LAG[r.lag % R.LAG.length].navn : R.navn(r.i);
       const merke = r.lag != null ? `<span class="avatar stor" style="--pf: ${R.LAG[r.lag % R.LAG.length].farge}" aria-hidden="true"></span>` : R.avatar(r.i || 0, "stor");
-      return `<div class="pall-plass p${Math.min(n, 3)}">${merke}<span class="navn">${esc(navn)}</span><span class="poeng">${esc(r.poeng)} p</span><span class="blokk">${n}</span></div>`;
+      return `<div class="pall-plass p${Math.min(n, 3)}">${merke}<span class="navn">${esc(navn)}</span><span class="poeng">${esc(r.poeng)} ${esc(o.enhet || "p")}</span><span class="blokk">${n}</span></div>`;
     };
     return `<div class="pall" aria-label="Pallen">${plass(s[1])}${plass(s[0])}${plass(s[2])}</div>`;
   };
 
   // Suggest other rusj games that fit the group (window.RUSJ_ANDRE is written by the build).
-  // o: { antall, tittel, maks }
+  // o: { antall, tittel, maks }. With antall 1 the heading becomes «Flere spill du kan spille alene».
   ui.flereSpill = (o = {}) => {
     const andre = (window.RUSJ_ANDRE || []).filter((g) => !o.antall || (o.antall >= g.spillere[0] && o.antall <= g.spillere[1]));
     if (!andre.length) return "";
     const dag = new Date();
     const fro = R.hash(((APP && APP.id) || "") + dag.getFullYear() + "-" + dag.getMonth() + "-" + dag.getDate());
-    const utvalg = R.stokk(andre, R.rng(fro)).slice(0, o.maks || 3);
+    const maks = o.maks || 3;
+    const r = R.rng(fro);
+    // After a drinking game: at most two other drinking games, the rest ordinary games (a pause).
+    const utvalg = meta().alder18
+      ? (() => {
+          const drikke = R.stokk(andre.filter((g) => g.alder18), r).slice(0, Math.min(2, maks - 1));
+          return [...drikke, ...R.stokk(andre.filter((g) => !g.alder18), r).slice(0, maks - drikke.length)];
+        })()
+      : R.stokk(andre, r).slice(0, maks);
     return `<section class="seksjon flere-spill" aria-labelledby="flere-tittel">
-      <h2 id="flere-tittel">${esc(o.tittel || "Spill noe annet med samme gjeng")}</h2>
+      <h2 id="flere-tittel">${esc(o.tittel || (o.antall === 1 ? "Flere spill du kan spille alene" : "Spill noe annet med samme gjeng"))}</h2>
       <div class="flere-liste">${utvalg
         .map(
           (g) => `<a class="flere-kort" href="/${esc(g.id)}/" style="--kf: ${esc(g.farge)}">
@@ -1137,6 +1208,7 @@
   let sisteSkjermbytte = -1e9;
   let sisteOmtegning = -1e9;
   let sisteKlikk = null;
+  let sisteKlikkPos = null;
   R.vakt = () => {
     const nr = skjermNr;
     return () => nr === skjermNr;
@@ -1184,7 +1256,7 @@
     $("#tilbake").hidden = hjem;
     const tittel = typeof sk.tittel === "function" ? sk.tittel(S) : sk.tittel;
     $("#topp-tittel").textContent = tittel == null ? (hjem ? "" : APP.navn) : tittel;
-    $("#reglerknapp").hidden = !APP.regler || S.skjerm === "regler";
+    $("#reglerknapp").hidden = !APP.regler || S.skjerm === "regler" || S.skjerm === "alder"; // no content before the 18+ answer
     const lyd = $("#lydknapp");
     lyd.setAttribute("aria-pressed", R.felles.lyd ? "true" : "false");
     lyd.setAttribute("aria-label", R.felles.lyd ? "Skru av lyd" : "Skru på lyd");
@@ -1291,7 +1363,8 @@
     if (mal === undefined) mal = APP.hjem || "hjem";
     if (mal === null) return;
     if (mal === "portal") {
-      location.href = "/";
+      if (S.skjerm === "alder") location.replace("/"); // never back into the 18+ gate
+      else location.href = "/";
       return;
     }
     R.gaTil(mal);
@@ -1303,7 +1376,9 @@
   let ignorerPop = false;
   function sikreHistorikk() {
     if (!APP) return;
-    const hjem = S.skjerm === (APP.hjem || "hjem");
+    // The 18+ gate counts as home: an extra entry there made the back button bounce between the
+    // front page and the gate forever.
+    const hjem = S.skjerm === (APP.hjem || "hjem") || S.skjerm === "alder";
     if (!hjem && !harHistorikk && !R.iRamme) {
       try {
         history.pushState({ rusj: 1 }, "");
@@ -1357,13 +1432,13 @@
     "installer-app": () => R._installer(),
     // The 18+ gate in front of drinking games (spill.json "alder18": true)
     "alder-ja": () => {
-      R.felles.over18 = true;
-      R.lagreFelles();
+      R.lagreFelles({ over18: true });
       R.statistikk("alder18");
       R.gaTil(APP.hjem || "hjem");
     },
     "alder-nei": () => {
-      location.href = "/";
+      // Replace, so «back» on the front page doesn't return to the gate.
+      location.replace("/");
     },
     "ark-svar": (el) => {
       const svar = arkSvar;
@@ -1549,10 +1624,13 @@
       // has in the same spot (e.g. the next player's secret). Real taps within 350 ms of a
       // screen change are ignored. (Scripted clicks in tests are not "trusted" and pass.)
       if (!iArk && e.isTrusted && performance.now() - sisteSkjermbytte < 350) return;
-      // Same after an in-place redraw (R.vis): a different button may now sit under the finger.
-      // Repeating the same action stays quick (steppers, flipping cards).
-      if (!iArk && e.isTrusted && performance.now() - sisteOmtegning < 350 && navn !== sisteKlikk) return;
+      // Same after an in-place redraw (R.vis): a different button may now sit under the finger —
+      // but only where the finger just was. Repeating the same action stays quick (steppers,
+      // flipping cards), and a deliberate tap elsewhere (a square, then «Fyr!») always counts.
+      const naer = sisteKlikkPos && e.detail > 0 && Math.hypot(e.clientX - sisteKlikkPos.x, e.clientY - sisteKlikkPos.y) < 40;
+      if (!iArk && e.isTrusted && performance.now() - sisteOmtegning < 350 && navn !== sisteKlikk && naer) return;
       sisteKlikk = navn;
+      sisteKlikkPos = e.detail > 0 ? { x: e.clientX, y: e.clientY } : null;
       if (!el.hasAttribute("data-stille")) R.lyd.klikk();
       const svar = h(el, e, S);
       if (svar && typeof svar.then === "function" && !iArk) {
@@ -1669,10 +1747,10 @@
     let forste = APP.hjem || "hjem";
     const hash = (location.hash || "").slice(1);
     let fraHash = null;
-    // A join code is short; anything longer (or malformed) is ignored rather than stored.
+    // Join links are codes (or a short list of names); anything huge or malformed is cut or ignored.
     const lesHash = (h) => {
       try {
-        return decodeURIComponent(h).slice(0, 64);
+        return decodeURIComponent(h).slice(0, 2000);
       } catch (e) {
         return "";
       }

@@ -1,6 +1,24 @@
 // Pekefingeren: set up with scoring, play a few cards (button, swipe, vote, undo, draw), check that a
 // running game is kept («Fortsett» first, «Nytt spill» asks), a ghost tap can't start a countdown,
 // and a 1–1 tie crowns both players.
+
+// Two real finger taps 90 ms apart on the same spot (a nervous double tap). The kit only drops a
+// second tap that lands near the first one, so a scripted click + a tap elsewhere is not a ghost tap.
+async function dobbeltrykk(t, sel) {
+  await t.js(`document.querySelector(${JSON.stringify(sel)}).scrollIntoView({ block: "center" })`);
+  await t.sov(120);
+  const p = await t.js(`(() => { const b = document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; })()`);
+  const under = [];
+  for (let i = 0; i < 2; i++) {
+    under.push(await t.js(`document.elementFromPoint(${p.x}, ${p.y})?.closest("[data-h]")?.dataset.h ?? null`));
+    await t.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: p.x, y: p.y }] });
+    await t.sov(30);
+    await t.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    if (i === 0) await t.sov(60);
+  }
+  return under; // the buttons under the finger at each tap
+}
+
 export default async function (t) {
   const pause = () => t.sov(420); // taps right after a screen change are ignored on purpose
   const enH1 = async (hvor) => t.sjekk((await t.antall("#skjerm h1")) === 1, `Skjermen «${hvor}» skal ha nøyaktig én h1`);
@@ -55,8 +73,9 @@ export default async function (t) {
   // A draw gives no points – and a ghost tap on the button that appears under the finger is ignored
   await t.klikk('[data-h="pek"]', 50);
   await t.vent("document.querySelector('[data-h=\"uavgjort\"]')", 8000);
-  await t.klikk('[data-h="uavgjort"]', 20);
-  await t.trykk('[data-h="pek"]'); // a real tap right after the redraw: the kit ignores it
+  await pause();
+  const under = await dobbeltrykk(t, '[data-h="uavgjort"]'); // the second tap lands on what the redraw put there
+  t.sjekk(under[0] === "uavgjort" && under[1] && under[1] !== "uavgjort", `Det andre trykket traff ingen ny knapp (${under.join(" → ")}), så spøketrykket ble ikke prøvd`);
   await t.sov(300);
   s = await t.tilstand();
   t.sjekk(s.spill.fase === "les" && (await t.finnes("#nedtelling[hidden]")), "Et spøketrykk rett etter «Uavgjort» startet nedtellingen");

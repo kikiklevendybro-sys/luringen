@@ -89,8 +89,10 @@ const scene = `background:
   #150c28;`;
 
 if (!bare.length) {
-  const alle = G.alle;
-  const figurer = alle.map((id, n) => `<div style="width:118px;transform:translateY(${n % 2 ? 14 : -6}px) rotate(${(n % 3) * 4 - 4}deg)">${G.svg(id)}</div>`).join("");
+  // A bold row of eleven well-known faces (old and new, no 18+ games) reads better in a small link
+  // preview than all the mascots shrunk to dots. The row is wider than the image, so it bleeds off.
+  const utvalg = ["bokstavtrollet", "varulven", "ordugla", "sauen", "nissen", "luringen", "sjakkhesten", "kunstneren", "spionen", "terninga", "mimen"].filter((id) => G.alle.includes(id));
+  const figurer = utvalg.map((id, n) => `<div style="width:118px;flex:none;transform:translateY(${n % 2 ? 14 : -6}px) rotate(${(n % 3) * 4 - 4}deg)">${G.svg(id)}</div>`).join("");
   await render(
     side(
       `<div style="width:1200px;height:630px;${scene};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;font-family:${FONT};color:#fff1dd;overflow:hidden">
@@ -118,7 +120,7 @@ for (const m of [luringen, ...spill]) {
         <div style="display:flex;flex-direction:column;align-items:flex-start;gap:20px">
           <div style="background:${m.farge};color:#170e2b;font-weight:900;font-size:34px;padding:10px 22px;border-radius:999px;transform:rotate(-2deg)">${esc(m.undertittel)}</div>
           <div style="font-weight:900;font-size:${Math.min(116, Math.floor(560 / (m.navn.length * 0.6)))}px;line-height:.95;letter-spacing:-2px;white-space:nowrap">${esc(m.navn)}</div>
-          <div style="font-weight:700;font-size:34px;color:#cdbce9;max-width:600px;line-height:1.25">${esc(m.kort)}</div>
+          <div style="font-weight:700;font-size:34px;color:#cdbce9;max-width:600px;line-height:1.25;text-wrap:pretty">${esc(m.kort)}</div>
           <div style="display:flex;align-items:center;gap:18px;margin-top:10px"><div style="width:150px">${G.logo()}</div><div style="font-weight:800;font-size:30px;color:#a08cc8">Gratis på rusj.no</div></div>
         </div>
       </div>`,

@@ -2,6 +2,24 @@
 // "everyone out at once doesn't count" rule, reload mid-game, back + continue (also during the heart
 // animation), a ghost tap after «Ingen har gjort det», and the crowning. Then «Bare kort» (next +
 // swipe + quit) and an early finish with a shared win.
+
+// Two real finger taps 90 ms apart on the same spot (a nervous double tap). The kit only drops a
+// second tap that lands near the first one, so a scripted click + a tap elsewhere is not a ghost tap.
+async function dobbeltrykk(t, sel) {
+  await t.js(`document.querySelector(${JSON.stringify(sel)}).scrollIntoView({ block: "center" })`);
+  await t.sov(120);
+  const p = await t.js(`(() => { const b = document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; })()`);
+  const under = [];
+  for (let i = 0; i < 2; i++) {
+    under.push(await t.js(`document.elementFromPoint(${p.x}, ${p.y})?.closest("[data-h]")?.dataset.h ?? null`));
+    await t.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: p.x, y: p.y }] });
+    await t.sov(30);
+    await t.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    if (i === 0) await t.sov(60);
+  }
+  return under; // the buttons under the finger at each tap
+}
+
 export default async function (t) {
   const pause = () => t.sov(420); // taps right after a screen change are ignored on purpose
   const liv = async () => (await t.tilstand()).spill.liv.join(",");
@@ -63,8 +81,9 @@ export default async function (t) {
 
   // «Ingen har gjort det» costs nothing, and a ghost tap on the button that appears under the finger is ignored
   await tilVelg();
-  await t.klikk('[data-h="ferdig"]', 20);
-  await t.trykk('[data-h="avslor-na"]'); // a real tap right after the redraw: the kit ignores it
+  await pause();
+  const under = await dobbeltrykk(t, '[data-h="ferdig"]'); // the second tap lands on what the redraw put there
+  t.sjekk(under[0] === "ferdig" && under[1] && under[1] !== "ferdig", `Det andre trykket traff ingen ny knapp (${under.join(" → ")}), så spøketrykket ble ikke prøvd`);
   await t.sov(300);
   s = await t.tilstand();
   t.sjekk(s.spill.fase === "les" && (await t.finnes("#nedtelling[hidden]")), "Et spøketrykk rett etter «Ingen har gjort det» startet nedtellingen");

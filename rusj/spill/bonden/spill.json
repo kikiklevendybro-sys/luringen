@@ -1,0 +1,13 @@
+{
+  "id": "bonden",
+  "navn": "Bonden",
+  "undertittel": "Bondesjakk",
+  "beskrivelse": "Gratis bondesjakk (kryss og bolle) på norsk: tre på rad eller fem på rad – mot en venn på samme mobil eller mot mobilen på tre nivåer.",
+  "kort": "Kryss eller bolle? Tre på rad vinner.",
+  "spillere": [1, 2],
+  "minutter": [1, 15],
+  "mobiler": "en",
+  "tagger": ["klassiker", "barn", "familie", "alene"],
+  "rekkefolge": 28,
+  "sok": ["tre på rad", "kryss og bolle", "tic tac toe", "fem på rad", "bondesjakk"]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "minesveiperen",
+  "navn": "Minesveiperen",
+  "undertittel": "Minesveiper",
+  "beskrivelse": "Gratis minesveiper på norsk. Første trykk er alltid trygt. Tre nivåer laget for mobilen, flagg med et langt trykk, og dine beste tider.",
+  "kort": "Finn de trygge rutene – første trykk er alltid trygt.",
+  "spillere": [1, 1],
+  "minutter": [2, 15],
+  "mobiler": "en",
+  "tagger": ["klassiker", "tenke", "alene"],
+  "rekkefolge": 29,
+  "farge": "#93a9ec",
+  "sok": ["minesveiper", "minesweeper", "miner", "finn minene"]
+}

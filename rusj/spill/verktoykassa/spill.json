@@ -1,0 +1,14 @@
+{
+  "id": "verktoykassa",
+  "navn": "Verktøykassa",
+  "undertittel": "Festverktøy",
+  "beskrivelse": "Gratis festverktøy på norsk: «Hvem starter?» med fingrene på skjermen, terninger, lagdeler, «Stein, saks, papir», kron eller mynt, tall, poengteller og klokke.",
+  "kort": "Hvem starter? Terninger, lag, mynt, poeng og klokke – alt på ett sted.",
+  "spillere": [1, 20],
+  "minutter": [1, 60],
+  "mobiler": "en",
+  "tagger": ["verktoy", "fest", "familie"],
+  "rekkefolge": 42,
+  "farge": "#ffb02e",
+  "sok": ["hvem starter", "hvem begynner", "finger velger", "kron eller mynt", "terning", "lagdeler", "stein saks papir", "poengteller", "stoppeklokke", "nedtelling", "tilfeldig tall"]
+}

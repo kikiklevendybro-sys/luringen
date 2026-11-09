@@ -1,0 +1,647 @@
+/* Admiralen: a night at sea. Blue accent, deep water with a faint grid, grey hulls with a pointed
+   bow, white splashes for misses and orange flashes for hits. */
+
+:root {
+  --ad-hav: #154a86;
+  --ad-hav-dyp: #0d2c55;
+  --ad-skrog: #b3c2d9;
+  --ad-skrog-dyp: #6f819e;
+}
+
+/* ---------- Boards ---------- */
+
+.ad-brett {
+  display: grid;
+  grid-template-columns: 18px repeat(var(--n), minmax(0, 1fr));
+  gap: 2px;
+  width: 100%;
+  margin-inline: auto;
+  padding: 8px 8px 8px 4px;
+  border-radius: var(--r-mid);
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 0%, rgba(120, 200, 255, 0.22), transparent 70%),
+    linear-gradient(165deg, var(--ad-hav), var(--ad-hav-dyp));
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08), 0 12px 28px var(--skygge);
+}
+
+.ad-merke {
+  display: grid;
+  place-items: center;
+  min-height: 16px;
+  color: rgba(222, 236, 255, 0.62);
+  font: 800 0.68rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ad-rute {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: var(--ad-vann, rgba(140, 205, 255, 0.14));
+  box-shadow: inset 0 0 0 1px rgba(160, 215, 255, 0.1);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+span.ad-rute {
+  cursor: default;
+}
+
+.ad-brett.mal {
+  --ad-vann: rgba(140, 205, 255, 0.1);
+}
+
+.ad-brett.mal button.ad-rute:not(.bom):not(.treff):not(.senket):not(.vann):active {
+  background: rgba(140, 205, 255, 0.3);
+}
+
+/* Hulls: grey, with a rounded bow and stern, joined across the cells. */
+.ad-rute.skip {
+  --skrog: var(--ad-skrog);
+  background: var(--skrog);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16);
+}
+
+.ad-rute.skip.h.forst,
+.ad-rute.skip.h.midt {
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16), 3px 0 0 var(--skrog);
+}
+
+.ad-rute.skip.v {
+  box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.16);
+}
+
+.ad-rute.skip.v.forst,
+.ad-rute.skip.v.midt {
+  box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.16), 0 3px 0 var(--skrog);
+}
+
+.ad-rute.skip.h.forst {
+  border-radius: 50% 3px 3px 50% / 50% 3px 3px 50%;
+}
+
+.ad-rute.skip.h.sist {
+  border-radius: 3px 50% 50% 3px / 3px 50% 50% 3px;
+}
+
+.ad-rute.skip.v.forst {
+  border-radius: 50% 50% 3px 3px / 50% 50% 3px 3px;
+}
+
+.ad-rute.skip.v.sist {
+  border-radius: 3px 3px 50% 50% / 3px 3px 50% 50%;
+}
+
+.ad-rute.skip.h.midt,
+.ad-rute.skip.v.midt {
+  border-radius: 3px;
+}
+
+/* A little deck light in the middle of each hull cell. */
+.ad-rute.skip::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22%;
+  height: 22%;
+  border-radius: 50%;
+  background: rgba(23, 14, 43, 0.28);
+  transform: translate(-50%, -50%);
+}
+
+.ad-rute.skip.valgt {
+  --skrog: var(--lampe);
+}
+
+.ad-plassering {
+  touch-action: none;
+}
+
+.ad-plassering.drar .ad-rute.skip.valgt {
+  opacity: 0.35;
+}
+
+.ad-rute.forslag.ok {
+  background: color-mix(in srgb, var(--mynte) 75%, transparent);
+  box-shadow: inset 0 0 0 2px var(--mynte);
+}
+
+.ad-rute.forslag.nei {
+  background: color-mix(in srgb, var(--rosa) 70%, transparent);
+  box-shadow: inset 0 0 0 2px var(--rosa);
+}
+
+/* Shots */
+.ad-rute.bom::before {
+  content: "";
+  position: absolute;
+  inset: 34%;
+  border-radius: 50%;
+  background: rgba(235, 245, 255, 0.85);
+}
+
+.ad-rute.vann {
+  background: rgba(10, 30, 60, 0.45);
+  box-shadow: none;
+}
+
+.ad-rute.vann::before {
+  content: "";
+  position: absolute;
+  inset: 44%;
+  border-radius: 50%;
+  background: rgba(235, 245, 255, 0.35);
+}
+
+.ad-rute.treff {
+  background: radial-gradient(circle at 50% 55%, #ffe17a 0 18%, var(--oransje) 42%, #c23b22 100%);
+  box-shadow: 0 0 10px rgba(255, 138, 61, 0.55);
+}
+
+.ad-rute.treff::before,
+.ad-rute.senket::before {
+  content: "";
+  position: absolute;
+  inset: 22%;
+  background:
+    linear-gradient(45deg, transparent 42%, rgba(23, 14, 43, 0.75) 42% 58%, transparent 58%),
+    linear-gradient(-45deg, transparent 42%, rgba(23, 14, 43, 0.75) 42% 58%, transparent 58%);
+}
+
+.ad-rute.senket {
+  background: linear-gradient(180deg, #7a3242, #4a1a29);
+  box-shadow: inset 0 0 0 1px rgba(255, 120, 120, 0.35);
+}
+
+.ad-rute.senket::before {
+  background:
+    linear-gradient(45deg, transparent 42%, rgba(255, 220, 220, 0.6) 42% 58%, transparent 58%),
+    linear-gradient(-45deg, transparent 42%, rgba(255, 220, 220, 0.6) 42% 58%, transparent 58%);
+}
+
+.ad-rute.skip.treff,
+.ad-rute.skip.senket {
+  border-radius: 5px;
+}
+
+.ad-rute.skip.treff::after,
+.ad-rute.skip.senket::after {
+  display: none;
+}
+
+/* Aiming: a pulsing crosshair. */
+.ad-rute.sikte {
+  z-index: 2;
+  background: rgba(255, 210, 63, 0.3);
+  box-shadow: inset 0 0 0 2.5px var(--lampe), 0 0 0 3px rgba(255, 210, 63, 0.35);
+  animation: ad-puls 0.9s ease-in-out infinite;
+}
+
+.ad-rute.sikte::before {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  background:
+    linear-gradient(var(--lampe), var(--lampe)) center / 2px 100% no-repeat,
+    linear-gradient(var(--lampe), var(--lampe)) center / 100% 2px no-repeat;
+  box-shadow: inset 0 0 0 2px var(--lampe);
+}
+
+@keyframes ad-puls {
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+/* The newest shot: a splash ring or a flash, once. */
+.ad-rute.ny-bom::after,
+.ad-rute.ny-treff::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  z-index: 3;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.ad-rute.ny-bom::after {
+  border: 2px solid rgba(220, 240, 255, 0.9);
+  animation: ad-plask 0.8s ease-out both;
+}
+
+.ad-rute.ny-treff::after {
+  display: block !important;
+  width: auto;
+  height: auto;
+  background: radial-gradient(circle, #fff6c2 0 20%, rgba(255, 138, 61, 0.8) 45%, transparent 70%);
+  transform: none;
+  animation: ad-smell 0.7s ease-out both;
+}
+
+.ad-rute.ny-senk {
+  animation: ad-synk 0.9s ease-in-out both;
+}
+
+@keyframes ad-plask {
+  from {
+    opacity: 1;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+@keyframes ad-smell {
+  from {
+    opacity: 1;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+@keyframes ad-synk {
+  30% {
+    transform: translateY(2px) rotate(-6deg);
+  }
+  60% {
+    transform: translateY(-1px) rotate(4deg);
+  }
+}
+
+/* Small boards: your own fleet next to the enemy's ships. */
+.ad-brett.liten {
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  gap: 1px;
+  padding: 5px;
+  border-radius: var(--r-liten);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.08);
+}
+
+.ad-brett.liten .ad-merke {
+  display: none;
+}
+
+.ad-brett.liten .ad-rute {
+  border-radius: 2px;
+}
+
+.ad-brett.liten .ad-rute.skip::after {
+  display: none;
+}
+
+/* ---------- Screens ---------- */
+
+.ad-hint {
+  font-size: 0.98rem;
+}
+
+.ad-melding {
+  min-height: 2.6em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  font: 800 1rem/1.25 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.ad-melding.treff {
+  background: color-mix(in srgb, var(--oransje) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--oransje);
+}
+
+.ad-melding.senk {
+  background: color-mix(in srgb, var(--rosa) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--rosa);
+  animation: ad-hopp 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.ad-melding.sikte {
+  box-shadow: inset 0 0 0 2px var(--lampe);
+}
+
+.ad-melding.venter {
+  color: var(--tekst-2);
+}
+
+@keyframes ad-hopp {
+  from {
+    transform: scale(0.9);
+  }
+}
+
+.ad-under {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+}
+
+.ad-egen,
+.ad-fiende {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ad-tall {
+  color: var(--tekst-2);
+  font-size: 0.86rem;
+}
+
+.ad-skipliste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ad-skipliste li,
+.ad-skipliste button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ad-skipliste li {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+.ad-skipliste li:has(button) {
+  padding: 0;
+}
+
+.ad-skipliste button {
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ad-skipliste li.valgt {
+  background: var(--lampe);
+  box-shadow: 0 3px 0 var(--lampe-dyp);
+  color: var(--blekk);
+}
+
+.ad-skiplengde {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.ad-skiplengde i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--ad-skrog);
+}
+
+.ad-skipliste li.valgt .ad-skiplengde i {
+  background: var(--blekk);
+}
+
+.ad-skipliste.liten {
+  display: grid;
+  gap: 5px;
+}
+
+.ad-skipliste.liten li {
+  justify-content: space-between;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+.ad-skipliste li.senket {
+  opacity: 0.5;
+}
+
+.ad-skipliste li.senket .ad-skipnavn {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.ad-skipliste li.senket .ad-skiplengde i {
+  background: var(--rosa);
+}
+
+.ad-to-linjer {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ad-to-linjer small {
+  font: 800 0.92rem/1.2 var(--font-display);
+  opacity: 0.72;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- The end ---------- */
+
+.ad-stilling {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  font: 800 1.1rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.ad-stilling b {
+  color: var(--aksent);
+  font-size: 1.6rem;
+}
+
+.ad-strek {
+  color: var(--tekst-3);
+}
+
+.ad-stat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.ad-statkort {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+}
+
+.ad-statkort.vinner {
+  background: color-mix(in srgb, var(--aksent) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--aksent);
+}
+
+.ad-statkort b {
+  color: var(--tekst);
+  font-family: var(--font-display);
+}
+
+.ad-statnavn {
+  margin-bottom: 4px;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+
+/* ---------- Short and narrow screens ---------- */
+
+/* A board is never taller than the screen: it stays square and above the dock. */
+.skjerm-plasser .ad-plassering {
+  width: min(100%, calc(100dvh - 236px));
+}
+
+/* ---------- Battle: the enemy waters, your own fleet and the enemy ships ---------- */
+
+.ad-kamp {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+}
+
+.ad-mal-boks {
+  grid-column: 1 / -1;
+}
+
+.ad-mal-boks .ad-brett,
+.ad-kamp.viser-egen .ad-egen .ad-brett {
+  width: min(100%, calc(100dvh - 280px));
+}
+
+/* While the computer fires, your own fleet glows so its shot can't be missed. */
+.ad-kamp.viser-egen .ad-egen .ad-brett {
+  box-shadow: 0 0 0 3px var(--oransje), 0 0 32px rgba(255, 138, 61, 0.45);
+}
+
+@media (max-width: 699px) {
+  /* Phones: your own fleet is small – except while the computer fires, then it takes the big board. */
+  .ad-kamp:not(.viser-egen) .ad-egen .ad-brett {
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    gap: 1px;
+    padding: 5px;
+    border-radius: var(--r-liten);
+  }
+
+  .ad-kamp:not(.viser-egen) .ad-egen .ad-merke {
+    display: none;
+  }
+
+  .ad-kamp:not(.viser-egen) .ad-egen .ad-rute {
+    border-radius: 2px;
+  }
+
+  .ad-kamp:not(.viser-egen) .ad-egen .ad-rute.skip::after {
+    display: none;
+  }
+
+  .ad-kamp.viser-egen .ad-mal-boks {
+    display: none;
+  }
+
+  .ad-kamp.viser-egen .ad-egen,
+  .ad-kamp.viser-egen .ad-fiende {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Tablets and laptops: both boards side by side. */
+@media (min-width: 700px) {
+  html.ad-vid .app {
+    max-width: 1040px;
+  }
+
+  .ad-kamp {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-areas:
+      "mal egen"
+      "mal fiende";
+  }
+
+  .ad-mal-boks {
+    grid-area: mal;
+    grid-column: auto;
+  }
+
+  .ad-egen {
+    grid-area: egen;
+  }
+
+  .ad-fiende {
+    grid-area: fiende;
+  }
+
+  .ad-mal-boks .ad-brett {
+    width: min(100%, calc(100dvh - 250px));
+  }
+
+  .ad-egen .ad-brett,
+  .ad-kamp.viser-egen .ad-egen .ad-brett {
+    width: min(100%, calc(100dvh - 420px));
+  }
+}
+
+@media (max-height: 700px) {
+  .ad-hint {
+    display: none;
+  }
+
+  .ad-melding {
+    min-height: 0;
+    padding-block: 6px;
+    font-size: 0.92rem;
+  }
+
+  .skjerm-kamp,
+  .skjerm-plasser {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 359px) {
+  .ad-brett {
+    grid-template-columns: 15px repeat(var(--n), minmax(0, 1fr));
+    gap: 1.5px;
+    padding: 6px 6px 6px 3px;
+  }
+
+  .ad-merke {
+    font-size: 0.6rem;
+  }
+
+}

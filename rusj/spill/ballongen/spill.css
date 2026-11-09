@@ -1,0 +1,1116 @@
+/* Ballongen — balloons, a wicker basket and a big friendly keyboard. Everything is prefixed bl-. */
+
+/* ---------- Setup ---------- */
+
+.bl-katknapp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bl-katknapp:active {
+  background: var(--natt-3);
+}
+
+.bl-kat-ikoner {
+  flex: none;
+  font-size: 1.15rem;
+  letter-spacing: -0.15em;
+}
+
+.bl-kat-tekst {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.bl-kat-tekst small {
+  color: var(--tekst-3);
+  font: 800 0.72rem/1.2 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bl-kat-tekst b {
+  overflow: hidden;
+  font: 900 1.05rem/1.25 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bl-kat-endre {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--aksent);
+  color: var(--blekk);
+  font: 900 0.85rem/1 var(--font-display);
+}
+
+#bl-kat .brikker {
+  max-height: 52vh;
+  overflow-y: auto;
+  padding: 2px 2px 18px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent);
+}
+
+/* ---------- Play screen ---------- */
+
+.skjerm-gjett {
+  gap: 12px;
+}
+
+.bl-hvem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  font: 800 1.05rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.bl-hvem > span:not(.avatar):not(.bl-hvem-poeng) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.bl-hvem b {
+  color: var(--aksent);
+}
+
+.bl-hvem-poeng {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 900 0.9rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Everything above the keyboard. The scene takes the room that is left, and on tall phones the
+   scene and its counter sit in the middle of the free space instead of leaving a hole. */
+.bl-spill {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.bl-midt {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-height: 0;
+}
+
+.bl-midt .bl-scene {
+  flex: 1 1 0;
+  min-height: 132px;
+  max-height: 340px;
+}
+
+.bl-scene {
+  position: relative;
+  /* A soft glow behind the balloons */
+  background: radial-gradient(ellipse 52% 56% at 50% 40%, color-mix(in srgb, var(--aksent) 15%, transparent), transparent 70%);
+}
+
+.bl-scene svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.bl-igjen {
+  align-self: center;
+  margin: 0;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 0.92rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.bl-igjen.fare {
+  background: color-mix(in srgb, var(--rosa) 18%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--rosa);
+  color: var(--papir);
+  animation: bl-puls 1.4s ease-in-out infinite;
+}
+
+@keyframes bl-puls {
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+/* ---------- Scene details (SVG) ---------- */
+
+.bl-himmel circle {
+  fill: var(--papir);
+  opacity: 0.45;
+  animation: bl-blink 3.2s ease-in-out infinite;
+}
+
+.bl-himmel circle:nth-child(2n) {
+  animation-delay: 1.1s;
+}
+
+.bl-himmel circle:nth-child(3n) {
+  animation-delay: 2.1s;
+}
+
+@keyframes bl-blink {
+  50% {
+    opacity: 0.1;
+  }
+}
+
+.bl-sky ellipse {
+  fill: var(--tekst-2);
+  opacity: 0.13;
+}
+
+.bl-sky1 {
+  animation: bl-sky 24s ease-in-out infinite alternate;
+}
+
+.bl-sky2 {
+  animation: bl-sky 30s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes bl-sky {
+  to {
+    transform: translateX(26px);
+  }
+}
+
+.bl-bakke {
+  fill: #2c1d50;
+  stroke: #47326f;
+  stroke-width: 2;
+}
+
+.bl-gress {
+  fill: none;
+  stroke: var(--mynte);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.55;
+}
+
+.bl-blomst circle:first-child {
+  fill: var(--lampe);
+}
+
+.bl-blomst circle:last-child {
+  fill: var(--rosa);
+}
+
+/* The bunch sways gently around the knot above the basket. */
+.bl-bunt {
+  transform-box: view-box;
+  transform-origin: 120px 124px;
+  animation: bl-gynge 5s ease-in-out infinite;
+}
+
+@keyframes bl-gynge {
+  0%,
+  100% {
+    transform: rotate(-2.2deg);
+  }
+  50% {
+    transform: rotate(2.2deg);
+  }
+}
+
+.bl-passasjer {
+  font-size: 22px;
+}
+
+/* A balloon pops: a burst and «PANG!» */
+.bl-pang {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bl-pang 0.8s ease-out forwards;
+}
+
+.bl-pang text {
+  fill: var(--lampe);
+  stroke: var(--blekk);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  font: 900 15px/1 var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+@keyframes bl-pang {
+  from {
+    opacity: 1;
+    transform: scale(0.35);
+  }
+  30% {
+    transform: scale(1.1);
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+/* «Angre» blows the balloon up again */
+.bl-blas {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: bl-blas 0.55s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes bl-blas {
+  from {
+    transform: scale(0.1);
+  }
+}
+
+/* Saved: the basket rises and stays high in the sky. */
+.bl-scene.reddet .bl-fly {
+  transform-box: view-box;
+  transform-origin: 120px 170px;
+  transform: translateY(-38px) scale(0.86);
+}
+
+.bl-scene.reddet.animer .bl-fly {
+  animation: bl-opp 1.7s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+
+@keyframes bl-opp {
+  from {
+    transform: none;
+  }
+  40% {
+    transform: translateY(-28px) scale(0.92) rotate(-3deg);
+  }
+  to {
+    transform: translateY(-38px) scale(0.86);
+  }
+}
+
+/* Landed: the parachute opens and the basket drifts down into the grass. */
+.bl-scene.landet.animer .bl-fly {
+  animation: bl-ned 1.5s cubic-bezier(0.25, 0.8, 0.35, 1) both;
+}
+
+@keyframes bl-ned {
+  from {
+    transform: translateY(-34px);
+  }
+  70% {
+    transform: translateY(2px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.bl-scene.landet.animer .bl-fallskjerm {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: bl-skjerm 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+@keyframes bl-skjerm {
+  from {
+    transform: scale(0.1, 0.2);
+  }
+}
+
+.bl-boble rect,
+.bl-boble path {
+  fill: var(--papir);
+  stroke: var(--blekk);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.bl-boble text {
+  fill: var(--blekk);
+  font: 900 12px/1 var(--font-display);
+}
+
+.bl-scene.animer .bl-boble {
+  transform-box: fill-box;
+  transform-origin: 0 100%;
+  animation: bl-boble 0.4s 0.9s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes bl-boble {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+/* ---------- Hints ---------- */
+
+.bl-hintrad {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 8px;
+}
+
+.bl-hintbrikke {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--lampe);
+  box-shadow: 0 3px 0 var(--lampe-dyp);
+  color: var(--blekk);
+  font: 800 0.92rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+  animation: bl-inn 0.4s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.bl-hintbrikke.tips {
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+}
+
+/* ---------- The word ---------- */
+
+.bl-ord {
+  --rute: min(44px, calc((min(100vw, 480px) - 32px) / var(--n) - 5px));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 16px;
+}
+
+@media (min-width: 768px) {
+  .bl-ord {
+    --rute: min(48px, calc(588px / var(--n) - 5px));
+  }
+}
+
+.bl-del {
+  display: flex;
+  gap: 5px;
+}
+
+.bl-rute {
+  display: grid;
+  place-items: center;
+  width: var(--rute);
+  height: calc(var(--rute) * 1.18);
+  border-radius: 9px;
+  background: rgba(255, 241, 221, 0.07);
+  box-shadow: inset 0 -4px 0 var(--papir);
+  color: var(--blekk);
+  font: 900 calc(var(--rute) * 0.64) / 1 var(--font-display);
+}
+
+.bl-rute.vist {
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+}
+
+.bl-rute.hint {
+  background: var(--lampe);
+  box-shadow: 0 4px 0 var(--lampe-dyp);
+}
+
+.bl-rute.ny {
+  animation: bl-inn 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.bl-rute.mistet {
+  background: color-mix(in srgb, var(--rosa) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--rosa);
+  color: var(--rosa);
+}
+
+.bl-rute.tegn {
+  width: auto;
+  min-width: calc(var(--rute) * 0.4);
+  background: none;
+  box-shadow: none;
+  color: var(--tekst-2);
+}
+
+@keyframes bl-inn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.6);
+  }
+}
+
+.bl-start-tips {
+  margin: -4px 0 -12px;
+  color: var(--aksent);
+  font: 800 1rem/1.2 var(--font-display);
+  text-align: center;
+  animation: bl-hopp 1.6s ease-in-out infinite;
+}
+
+@keyframes bl-hopp {
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+/* ---------- Keyboard (lives in the dock, under the thumb) ---------- */
+
+.skjerm-gjett .dokk,
+.skjerm-skriv .dokk {
+  padding-top: 16px;
+}
+
+.bl-tastatur {
+  display: grid;
+  gap: 6px;
+}
+
+.bl-rad {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.bl-tast {
+  position: relative;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 1.3rem/1 var(--font-display);
+  cursor: pointer;
+  transition: transform 0.06s, box-shadow 0.06s;
+}
+
+.bl-tast:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--papir-2);
+}
+
+.bl-tast:disabled {
+  cursor: default;
+}
+
+.bl-tast.riktig {
+  background: var(--mynte);
+  box-shadow: 0 4px 0 var(--mynte-dyp);
+}
+
+.bl-tast.hint {
+  background: var(--lampe);
+  box-shadow: 0 4px 0 var(--lampe-dyp);
+}
+
+.bl-tast.feil {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst-3);
+  text-decoration: line-through;
+  text-decoration-thickness: 3px;
+}
+
+.bl-tast.vid {
+  grid-column: span 2;
+  font-size: 1rem;
+}
+
+.bl-hintknapp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--lampe);
+  box-shadow: 0 4px 0 var(--lampe-dyp);
+}
+
+.bl-hintknapp i {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 2px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--lampe);
+  font: 900 0.75rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.skjerm-skriv .bl-tast:disabled {
+  opacity: 0.35;
+}
+
+.bl-angreknapp {
+  background: var(--natt-3);
+  box-shadow: 0 4px 0 var(--strek);
+  color: var(--tekst);
+  font-size: 1.4rem;
+}
+
+/* Used up or nothing to undo: an outline, like a used letter */
+.bl-hintknapp:disabled,
+.bl-angreknapp:disabled {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst-3);
+}
+
+.bl-hintknapp:disabled i {
+  display: none;
+}
+
+.skjerm-skriv .bl-tast.vid {
+  font-size: 0.86rem;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- The answer, in place ---------- */
+
+.bl-svar {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.bl-svar .stempel-sted {
+  min-height: 74px;
+}
+
+.bl-svar .stempel {
+  font-size: clamp(1.8rem, 9vw, 2.5rem);
+}
+
+.bl-svar .bl-scene {
+  flex: 1 1 0;
+  width: 100%;
+  min-height: 150px;
+  max-height: 280px;
+}
+
+.bl-svar .bl-ord {
+  width: 100%;
+}
+
+.bl-svar-kat {
+  color: var(--tekst-2);
+  font: 800 0.95rem/1.3 var(--font-display);
+}
+
+.bl-svar-tekst {
+  color: var(--tekst);
+  font: 800 1.12rem/1.35 var(--font-display);
+  text-wrap: balance;
+}
+
+.bl-bonus {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.bl-bonus b {
+  color: var(--aksent);
+}
+
+/* ---------- Making a word (Eget ord) ---------- */
+
+.skjerm-skriv {
+  gap: 14px;
+}
+
+/* Heading, the secret word and the hint sit in the middle of the room above the keyboard. */
+.bl-skriv-midt {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}
+
+.bl-skriv-hode {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.bl-skriv-hode h1 {
+  font-size: clamp(1.6rem, 7vw, 2rem);
+}
+
+.bl-skriver {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 4px 14px 4px 4px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  font: 800 0.95rem/1.2 var(--font-display);
+}
+
+.bl-skriver span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bl-hemmelig {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 84px;
+  padding: 10px 10px 10px 18px;
+  border-radius: var(--r-mid);
+  background: repeating-linear-gradient(-45deg, rgba(23, 14, 43, 0.04) 0 12px, transparent 12px 24px), var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2);
+  color: var(--blekk);
+}
+
+.bl-utkast {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+}
+
+.bl-utkast .bl-del {
+  gap: 2px;
+}
+
+.bl-prikk {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 34px;
+  font: 900 1.45rem/1 var(--font-display);
+}
+
+.bl-utkast-tom {
+  color: var(--blekk-2);
+  font: 700 1rem/1.2 var(--font-display);
+}
+
+.bl-oye {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 76px;
+  min-height: 60px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--blekk);
+  color: var(--papir);
+  cursor: pointer;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.bl-oye span {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.bl-oye small {
+  font: 800 0.68rem/1.1 var(--font-display);
+  text-align: center;
+}
+
+.bl-oye[aria-pressed="true"] {
+  background: var(--aksent);
+  color: var(--blekk);
+}
+
+.bl-teller {
+  margin: -6px 0 0;
+  color: var(--tekst-2);
+  font: 800 0.92rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.bl-velg-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
+}
+
+.skjerm-skriv .feil {
+  min-height: 0;
+  margin-top: -10px;
+}
+
+.skjerm-skriv .feil:empty {
+  display: none;
+}
+
+/* ---------- The end ---------- */
+
+.bl-vinner {
+  position: relative;
+  display: inline-block;
+}
+
+.bl-krone {
+  position: absolute;
+  top: -18px;
+  right: -12px;
+  font-size: 2.6rem;
+  transform: rotate(14deg);
+  animation: sveve 3s ease-in-out infinite;
+}
+
+.bl-delt {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.bl-stjerner {
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+  overflow-wrap: anywhere;
+}
+
+.bl-logg {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bl-logg li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-liten);
+  background: var(--natt-2);
+}
+
+.bl-logg li.landet {
+  opacity: 0.8;
+}
+
+.bl-logg b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font: 900 1.05rem/1.2 var(--font-display);
+}
+
+.bl-logg li > span:not(.vh):not(.bl-logg-merke) {
+  max-width: 46vw;
+  overflow: hidden;
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bl-logg-merke {
+  font-size: 1.2rem;
+}
+
+/* ---------- Short and narrow screens ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-gjett,
+  .skjerm-skriv {
+    gap: 8px;
+  }
+
+  .bl-midt .bl-scene {
+    min-height: 104px;
+  }
+
+  .bl-tast {
+    min-height: 40px;
+    border-radius: 9px;
+    font-size: 1.15rem;
+  }
+
+  .bl-rad {
+    gap: 4px;
+  }
+
+  .bl-tastatur {
+    gap: 5px;
+  }
+
+  .skjerm-gjett .dokk,
+  .skjerm-skriv .dokk {
+    padding-top: 10px;
+  }
+
+  .bl-ord {
+    --rute: min(36px, calc((min(100vw, 480px) - 32px) / var(--n) - 5px));
+    gap: 6px 14px;
+  }
+
+  .bl-igjen {
+    padding: 3px 12px;
+    font-size: 0.85rem;
+  }
+
+  .bl-hintbrikke {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
+
+  .bl-svar {
+    gap: 8px;
+  }
+
+  .bl-svar .stempel-sted {
+    min-height: 58px;
+  }
+
+  .bl-svar .bl-scene {
+    min-height: 104px;
+    max-height: 150px;
+  }
+
+  .bl-spill,
+  .bl-skriv-midt {
+    gap: 8px;
+  }
+
+  .bl-hemmelig {
+    min-height: 66px;
+  }
+
+  .bl-skriv-hode h1 {
+    font-size: 1.45rem;
+  }
+
+  .bl-oye {
+    min-height: 52px;
+  }
+
+  .bl-start-tips {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .bl-tast {
+    font-size: 1.05rem;
+  }
+
+  .bl-tast.vid {
+    font-size: 0.85rem;
+  }
+
+  .skjerm-skriv .bl-tast.vid {
+    font-size: 0.72rem;
+    letter-spacing: -0.02em;
+  }
+
+  .bl-hintknapp i {
+    display: none;
+  }
+}
+
+/* ---------- Review round: hint key spans three, used keys keep focus ---------- */
+
+.bl-tast.vid3 {
+  grid-column: span 3;
+  font-size: 1rem;
+}
+
+.bl-tast[aria-disabled="true"] {
+  cursor: default;
+}
+
+.bl-tast:active[aria-disabled="true"] {
+  transform: none;
+}
+
+.bl-hintknapp[aria-disabled="true"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst-3);
+}
+
+.bl-hintknapp[aria-disabled="true"] i {
+  display: none;
+}
+
+/* The link row under the keyboard keeps its height, so the keys never jump when «Angre» comes and goes. */
+.skjerm-gjett .dokk .lenkerad {
+  min-height: 38px;
+}
+
+.skjerm-oppsett .dokk .feil {
+  min-height: 0;
+}
+
+/* ---------- Phone on its side: the scene and the word left, the keyboard right ---------- */
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .skjerm-gjett,
+  .skjerm-skriv,
+  .skjerm-gi {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-content: center;
+    gap: 8px 20px;
+  }
+
+  .skjerm-gjett > .dokk,
+  .skjerm-skriv > .dokk,
+  .skjerm-gi > .dokk {
+    position: static;
+    grid-area: dokk;
+    align-self: center;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .skjerm-gjett {
+    grid-template-areas: "spill dokk";
+  }
+
+  .skjerm-gjett > .bl-spill {
+    grid-area: spill;
+    gap: 6px;
+  }
+
+  .bl-midt .bl-scene {
+    min-height: 120px;
+    max-height: 190px;
+  }
+
+  .bl-ord {
+    --rute: min(30px, calc((min(100vw, 620px) - 52px) / 2 / var(--n) - 5px));
+    gap: 6px 12px;
+  }
+
+  .skjerm-gjett.bl-ferdig {
+    grid-template-areas: "svar poeng" "svar dokk";
+  }
+
+  .skjerm-gjett.bl-ferdig > .bl-svar {
+    grid-area: svar;
+    gap: 6px;
+  }
+
+  .skjerm-gjett.bl-ferdig > .bl-poeng {
+    grid-area: poeng;
+    display: grid;
+    gap: 8px;
+  }
+
+  .bl-svar .stempel-sted {
+    min-height: 50px;
+  }
+
+  .bl-svar .stempel {
+    font-size: 1.6rem;
+  }
+
+  .bl-svar .bl-scene {
+    min-height: 100px;
+    max-height: 140px;
+  }
+
+  .bl-tast {
+    min-height: 38px;
+    font-size: 1.1rem;
+  }
+
+  .bl-start-tips {
+    display: none;
+  }
+
+  .skjerm-skriv {
+    grid-template-areas: "midt dokk";
+  }
+
+  .skjerm-skriv > .bl-skriv-midt {
+    grid-area: midt;
+    gap: 8px;
+  }
+
+  .skjerm-gi {
+    grid-template-areas: "prikk dokk" "gi dokk";
+  }
+
+  .skjerm-gi > .fremdrift {
+    grid-area: prikk;
+  }
+
+  .skjerm-gi > .gi-til {
+    grid-area: gi;
+    gap: 6px;
+    padding-block: 0;
+  }
+
+  .skjerm-gi .avatar.gigant {
+    width: 84px;
+    height: 84px;
+    font-size: 2.6rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  /* Two columns: the hill must not run under the keyboard or the score list. */
+  .bl-scene {
+    overflow: hidden;
+  }
+}

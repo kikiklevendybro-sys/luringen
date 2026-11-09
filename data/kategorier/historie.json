@@ -38,7 +38,7 @@
     { "o": "Brevdue", "n": 1, "h": "Beskjed", "l": "Morsekode" },
     { "o": "Runer", "n": 1, "h": "Bokstaver", "l": "Hieroglyfer" },
     { "o": "Ville vesten", "n": 1, "h": "Hatt", "l": "Gullrush" },
-    { "o": "Hieroglyfer", "n": 1, "h": "Tegn", "l": "Runer" },
+    { "o": "Hieroglyfer", "n": 2, "h": "Tegn", "l": "Runer" },
     { "o": "Mona Lisa", "n": 1, "h": "Smil", "l": "Hulemaleri" },
     { "o": "Steinøks", "n": 1, "h": "Flint", "l": "Spyd" },
     { "o": "Kongekrone", "n": 1, "h": "Juveler", "l": "Septer" },

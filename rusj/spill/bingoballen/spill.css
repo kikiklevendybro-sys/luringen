@@ -1,0 +1,699 @@
+/* Bingoballen: a bingo hall at night. Yellow accent, glossy balls in five colours (B blue, I red,
+   N white, G green, O orange), cards with round dauber marks. */
+
+.bb-ball,
+.bb-hode,
+.bb-tavla-b {
+  --bf: var(--himmel);
+  --bf-dyp: var(--himmel-dyp);
+}
+
+.b-I {
+  --bf: var(--rod);
+  --bf-dyp: var(--rod-dyp);
+}
+
+.b-N {
+  --bf: #ece4ff;
+  --bf-dyp: #a99bd0;
+}
+
+.b-G {
+  --bf: var(--mynte);
+  --bf-dyp: var(--mynte-dyp);
+}
+
+.b-O {
+  --bf: var(--oransje);
+  --bf-dyp: var(--oransje-dyp);
+}
+
+/* ---------- Pills, setup, share ---------- */
+
+.bb-piller {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.bb-piller span {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 0.84rem/1.2 var(--font-display);
+}
+
+.bb-info {
+  padding: 12px 14px;
+  border: 1.5px dashed var(--strek);
+  border-radius: var(--r-mid);
+  color: var(--tekst-2);
+  font-size: 0.93rem;
+}
+
+.bb-slik li {
+  padding-block: 10px;
+}
+
+.bb-kodeskjema {
+  flex: 1;
+}
+
+/* ---------- The ball ---------- */
+
+.bb-ball {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 30%),
+    radial-gradient(circle at 50% 50%, var(--bf) 55%, var(--bf-dyp) 100%);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 4px 10px var(--skygge);
+}
+
+.bb-ball-indre {
+  display: grid;
+  place-items: center;
+  width: 64%;
+  height: 64%;
+  border-radius: 50%;
+  background: #fffaf2;
+  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.08);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.bb-ball-indre small {
+  display: none;
+}
+
+.bb-ball-indre b {
+  font: 900 0.95rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.bb-ball.stor {
+  width: min(48vw, 190px);
+  height: min(48vw, 190px);
+  box-shadow: inset 0 -12px 0 rgba(0, 0, 0, 0.18), 0 22px 40px var(--skygge), 0 0 60px color-mix(in srgb, var(--bf) 35%, transparent);
+}
+
+.bb-ball.stor .bb-ball-indre {
+  align-content: center;
+  gap: 2px;
+}
+
+.bb-ball.stor small {
+  display: block;
+  font: 900 clamp(1.3rem, 6vw, 1.7rem) / 1 var(--font-display);
+  color: var(--bf-dyp);
+}
+
+.b-N.stor small {
+  color: var(--lilla-dyp);
+}
+
+.bb-ball.stor b {
+  font-size: clamp(3rem, 15vw, 4.4rem);
+  letter-spacing: -0.03em;
+}
+
+.bb-ball.stor.inn {
+  animation: bb-rull 0.75s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+}
+
+@keyframes bb-rull {
+  from {
+    transform: translateX(110vw) rotate(540deg);
+  }
+  75% {
+    transform: translateX(-6px) rotate(-8deg);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.bb-ball.liten {
+  width: 42px;
+  height: 42px;
+}
+
+.bb-ball.liten b {
+  font-size: 0.92rem;
+}
+
+/* ---------- Drawing screen ---------- */
+
+.bb-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bb-maal {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--aksent) 18%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px var(--aksent);
+  color: var(--tekst);
+  font: 800 0.9rem/1.2 var(--font-display);
+}
+
+.bb-maal b {
+  color: var(--aksent);
+}
+
+.bb-teller {
+  color: var(--tekst-2);
+  font: 800 1rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.bb-teller b {
+  color: var(--tekst);
+  font-size: 1.5rem;
+}
+
+.bb-scene {
+  display: grid;
+  place-items: center;
+  min-height: min(48vw, 190px);
+}
+
+.bb-trommel {
+  display: grid;
+  place-items: center;
+  width: min(48vw, 190px);
+  height: min(48vw, 190px);
+  border: 4px dashed var(--strek);
+  border-radius: 50%;
+  font-size: 4rem;
+  animation: bb-vugg 2.4s ease-in-out infinite;
+}
+
+@keyframes bb-vugg {
+  50% {
+    transform: rotate(-10deg) scale(1.03);
+  }
+}
+
+.bb-forste {
+  margin-top: -10px;
+}
+
+.bb-forrige {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.bb-forrige .bb-ball {
+  opacity: 0.9;
+}
+
+.bb-forrige .bb-ball:nth-child(n + 3) {
+  opacity: 0.6;
+}
+
+.bb-auto-bar {
+  overflow: hidden;
+  height: 6px;
+  margin-top: -10px;
+  border-radius: 999px;
+  background: var(--natt-3);
+}
+
+.bb-auto-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--aksent);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/* The board of all 75 numbers. */
+.bb-tavla {
+  display: grid;
+  grid-template-columns: 24px repeat(15, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.bb-tavla-b {
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--bf);
+  color: var(--blekk);
+  font: 900 0.8rem/1 var(--font-display);
+}
+
+.bb-t {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: var(--tekst-3);
+  font: 800 clamp(0.56rem, 2.6vw, 0.74rem) / 1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.bb-t.pa {
+  background: var(--aksent);
+  color: var(--blekk);
+}
+
+.bb-t.ny {
+  box-shadow: 0 0 0 2px var(--natt), 0 0 0 4px var(--rosa);
+}
+
+/* ---------- Cards ---------- */
+
+.bb-topp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bb-nr {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: clamp(1.9rem, 9vw, 2.4rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.bb-nr small {
+  color: var(--tekst-2);
+  font: 800 0.95rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bb-type {
+  min-width: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 0.88rem/1.2 var(--font-display);
+  text-align: right;
+}
+
+.bb-brett {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 8px 0 var(--papir-2), 0 20px 40px var(--skygge);
+  color: var(--blekk);
+}
+
+.bb-brett.fem {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.bb-brett.fire {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.bb-hode {
+  display: grid;
+  place-items: center;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--bf);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16);
+  color: var(--blekk);
+  font: 900 1.25rem/1 var(--font-display);
+}
+
+.bb-rute {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 0.92;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: #fffaf2;
+  box-shadow: inset 0 0 0 2px var(--papir-2);
+  color: var(--blekk);
+  font: 900 clamp(1.25rem, 6.4vw, 1.75rem) / 1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+span.bb-rute {
+  cursor: default;
+}
+
+/* The dauber: a round, slightly see-through stamp. */
+.bb-rute::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--rosa) 70%, #fff), var(--rosa));
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.15s, transform 0.2s cubic-bezier(0.3, 1.6, 0.5, 1);
+  mix-blend-mode: multiply;
+}
+
+.bb-rute.merket::after {
+  opacity: 0.62;
+  transform: scale(1);
+}
+
+.bb-rute.ny::after {
+  animation: bb-stempel 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes bb-stempel {
+  from {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+.bb-rute.fri {
+  background: var(--aksent);
+  box-shadow: inset 0 -3px 0 var(--aksent-dyp);
+  font-size: 1.6rem;
+}
+
+.bb-rute.fri::after {
+  display: none;
+}
+
+.bb-rute.linje {
+  background: color-mix(in srgb, var(--aksent) 45%, #fffaf2);
+  box-shadow: inset 0 0 0 3px var(--aksent-dyp);
+}
+
+.bb-rute:focus-visible {
+  outline: 3px solid var(--blekk);
+  outline-offset: 2px;
+}
+
+/* Party moments: an emoji and a short text in each cell. */
+.bb-rute.fest {
+  align-content: center;
+  gap: 4px;
+  aspect-ratio: auto;
+  min-height: 92px;
+  padding: 6px 4px;
+  font: 800 clamp(0.68rem, 3.1vw, 0.8rem) / 1.18 var(--font-display);
+  text-align: center;
+  overflow-wrap: break-word;
+  hyphens: manual;
+}
+
+.bb-rute.fest::after {
+  inset: 8% 10%;
+  border-radius: 46%;
+}
+
+.bb-rute.fest.merket::after {
+  opacity: 0.45;
+}
+
+.bb-ikon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.bb-tekst {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+}
+
+.bb-brett-hjelp {
+  margin-top: -6px;
+}
+
+/* A smaller, read-only card on the host's check screen. */
+.bb-brett.liten {
+  gap: 4px;
+  padding: 8px;
+}
+
+.bb-brett.liten .bb-hode {
+  height: 26px;
+  font-size: 1rem;
+}
+
+.bb-brett.liten .bb-rute {
+  font-size: clamp(1rem, 5vw, 1.35rem);
+}
+
+.bb-kort-ramme {
+  display: grid;
+  gap: 8px;
+}
+
+/* ---------- Checking a card ---------- */
+
+.bb-sjekkskjema {
+  display: grid;
+  gap: 10px;
+}
+
+.bb-svar {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+/* The stamp is tilted: give it room above and below, so it never covers the text. */
+.bb-svar .stempel-sted {
+  min-height: 0;
+  padding: 18px 0 16px;
+}
+
+.bb-svar .stempel {
+  font-size: clamp(1.6rem, 8vw, 2.3rem);
+  border-width: 5px;
+}
+
+.bb-sjekk-tittel {
+  overflow-wrap: anywhere;
+}
+
+.bb-svar-tekst {
+  font: 800 1.1rem/1.3 var(--font-display);
+}
+
+.bb-svar.nei .bb-svar-tekst {
+  color: var(--tekst-2);
+}
+
+/* ---------- Bingo! ---------- */
+
+.bb-rop {
+  color: var(--aksent);
+  font-size: clamp(2.6rem, 14vw, 3.6rem);
+  text-align: center;
+  text-shadow: 0 5px 0 var(--aksent-dyp);
+  animation: bb-hopp 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes bb-hopp {
+  from {
+    transform: scale(0.4) rotate(-8deg);
+  }
+}
+
+.bb-ark-nr {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 14px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  color: var(--blekk);
+}
+
+.bb-ark-nr small {
+  color: var(--blekk-2);
+  font: 800 0.8rem/1 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.bb-ark-nr b {
+  font: 900 3.4rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.bb-bevis {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bb-bevis li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 800 1.08rem/1.25 var(--font-display);
+}
+
+.bb-bevis li > span {
+  flex: none;
+  font-size: 1.5rem;
+}
+
+.bb-premier {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bb-premier li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 12px 16px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.bb-premie {
+  color: var(--aksent);
+  font: 900 0.95rem/1.2 var(--font-display);
+}
+
+.bb-vinner {
+  font: 800 1.05rem/1.25 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.bb-premier small {
+  color: var(--tekst-3);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---------- Short and narrow screens ---------- */
+
+/* Tablets and laptops: a ball you can read from across the room. */
+@media (min-width: 768px) and (min-height: 701px) {
+  .bb-ball.stor,
+  .bb-trommel {
+    width: 300px;
+    height: 300px;
+  }
+
+  .bb-scene {
+    min-height: 300px;
+  }
+
+  .bb-ball.stor small {
+    font-size: 2.4rem;
+  }
+
+  .bb-ball.stor b {
+    font-size: 6.6rem;
+  }
+}
+
+@media (max-height: 700px) {
+  .skjerm-kode .bb-piller {
+    display: none;
+  }
+
+  .bb-kodekort .qr {
+    width: min(44vw, 170px);
+  }
+
+  .bb-ball.stor,
+  .bb-trommel {
+    width: min(40vw, 150px);
+    height: min(40vw, 150px);
+  }
+
+  .bb-scene {
+    min-height: min(40vw, 150px);
+  }
+
+  .bb-ball.stor b {
+    font-size: clamp(2.6rem, 13vw, 3.4rem);
+  }
+
+  .bb-ball.liten {
+    width: 36px;
+    height: 36px;
+  }
+
+  .bb-brett {
+    gap: 5px;
+    padding: 8px;
+  }
+
+  .bb-hode {
+    height: 28px;
+  }
+
+  .bb-rute {
+    aspect-ratio: 1 / 0.8;
+  }
+
+  .bb-rute.fest {
+    min-height: 80px;
+  }
+
+  .bb-brett-hjelp {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .bb-rute.fest {
+    padding: 5px 2px;
+    font-size: 0.66rem;
+  }
+
+  .bb-ikon {
+    font-size: 1.15rem;
+  }
+
+  .bb-type {
+    font-size: 0.8rem;
+  }
+
+  .bb-tavla {
+    grid-template-columns: 20px repeat(15, minmax(0, 1fr));
+    gap: 2px;
+  }
+}

@@ -1,0 +1,458 @@
+/* Slangen — Snake. Everything is prefixed "sl-". The board is a canvas in a chunky frame; the arrow
+   cross sits under the thumb. */
+
+/* ---------- The play screen fills the phone exactly; swipes never scroll the page ---------- */
+
+html.sl-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.sl-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.sl-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.sl-fast main,
+html.sl-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.sl-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sl-spill .dokk {
+  padding-top: 2px;
+  background: none;
+}
+
+/* ---------- HUD ---------- */
+
+.sl-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.sl-stat {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 6px 7px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.sl-stat:first-child {
+  background: color-mix(in srgb, var(--aksent) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 50%, var(--strek));
+}
+
+.sl-stat small {
+  color: var(--tekst-3);
+  font: 800 0.64rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sl-stat b {
+  font: 900 1.35rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sl-stat:first-child b {
+  color: var(--aksent);
+}
+
+.sl-pause {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  cursor: pointer;
+}
+
+.sl-pause svg {
+  width: 22px;
+  height: 22px;
+  fill: var(--tekst);
+}
+
+.sl-pause .av,
+.sl-pause.pauset .pa {
+  display: none;
+}
+
+.sl-pause.pauset .av {
+  display: inline;
+}
+
+.sl-pause.pauset {
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+}
+
+.sl-pause.pauset svg {
+  fill: var(--blekk);
+}
+
+/* ---------- The board ---------- */
+
+.sl-flate {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+.sl-ramme {
+  position: relative;
+  padding: 5px;
+  border-radius: 18px;
+  background: #0f0820;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--aksent) 70%, var(--natt)),
+    0 9px 0 3px color-mix(in srgb, var(--aksent) 30%, var(--natt)),
+    0 22px 44px var(--skygge);
+}
+
+/* No walls: a dashed edge says «you can go through here» */
+.sl-ramme.fri {
+  box-shadow:
+    0 0 0 3px var(--natt-3),
+    0 22px 44px var(--skygge);
+}
+
+.sl-ramme.fri::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 3px dashed color-mix(in srgb, var(--aksent) 70%, var(--natt));
+  border-radius: 21px;
+  pointer-events: none;
+}
+
+.sl-lerret {
+  display: block;
+  border-radius: 13px;
+  touch-action: none;
+}
+
+.sl-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(15, 8, 32, 0.45);
+}
+
+.sl-status[hidden] {
+  display: none;
+}
+
+/* Ready: the snake must stay visible, so the card sits low on the board without dimming it. */
+.sl-status.klar {
+  align-items: end;
+  background: none;
+  pointer-events: none;
+}
+
+.sl-status.klar .sl-statuskort {
+  padding: 12px 16px;
+}
+
+.sl-status.klar .sl-stor {
+  font-size: 1.35rem;
+}
+
+.sl-statuskort p.sl-fri {
+  color: var(--aksent);
+  font-size: 0.88rem;
+}
+
+.sl-statuskort {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: min(100%, 290px);
+  padding: 18px 18px 14px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 18px 40px var(--skygge);
+  text-align: center;
+  animation: sl-inn 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+.sl-statuskort.klar {
+  background: color-mix(in srgb, var(--natt-2) 88%, transparent);
+  animation: sl-inn 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) both, sl-puls 1.8s ease-in-out 0.4s infinite;
+}
+
+@keyframes sl-inn {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}
+
+@keyframes sl-puls {
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.sl-statuskort p:not(.etikett):not(.sl-stor) {
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.sl-stor {
+  color: var(--aksent);
+  font: 900 1.7rem/1.1 var(--font-display);
+}
+
+.sl-statuskort .knapp {
+  margin-top: 4px;
+}
+
+.sl-statuskort .lenke {
+  min-height: 40px;
+  padding-block: 6px;
+}
+
+/* ---------- The arrow cross ---------- */
+
+.sl-tastatur {
+  display: none;
+  color: var(--tekst-3);
+  font: 700 0.86rem/1.3 var(--font-tekst);
+  text-align: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sl-tastatur {
+    display: block;
+  }
+}
+
+.sl-kryss {
+  display: grid;
+  grid-template-areas: ". opp ." "venstre ned hoyre";
+  grid-template-columns: repeat(3, minmax(0, 92px));
+  justify-content: center;
+  gap: 8px;
+}
+
+.sl-pil {
+  display: grid;
+  place-items: center;
+  height: 64px;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 5px 0 var(--natt-3);
+  color: var(--tekst);
+  cursor: pointer;
+  transition: transform 0.06s, background-color 0.1s;
+}
+
+.sl-pil.opp {
+  grid-area: opp;
+}
+
+.sl-pil.venstre {
+  grid-area: venstre;
+}
+
+.sl-pil.ned {
+  grid-area: ned;
+}
+
+.sl-pil.hoyre {
+  grid-area: hoyre;
+}
+
+.sl-pil svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sl-pil:active,
+.sl-pil.trykket {
+  background: color-mix(in srgb, var(--aksent) 30%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--aksent), 0 1px 0 var(--natt-3);
+  color: var(--aksent);
+  transform: translateY(4px);
+}
+
+/* ---------- Home and result ---------- */
+
+.sl-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  padding-bottom: 12px;
+}
+
+.sl-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sl-rekorder li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  font: 800 0.9rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sl-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.skjerm-oppsett .fliser .flis:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.sl-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.sl-tall {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 10px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.sl-tall b {
+  font: 900 2.5rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sl-tall span {
+  font: 800 0.78rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.sl-ny {
+  position: absolute;
+  top: -12px;
+  right: -4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+  animation: sl-slag 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both 0.7s;
+}
+
+@keyframes sl-slag {
+  from {
+    opacity: 0;
+    transform: rotate(8deg) scale(2.4);
+  }
+}
+
+/* ---------- Short and narrow phones ---------- */
+
+@media (max-height: 700px) {
+  .sl-spill {
+    gap: 8px;
+  }
+
+  .sl-stat {
+    padding: 5px 6px;
+  }
+
+  .sl-stat small {
+    font-size: 0.58rem;
+  }
+
+  .sl-stat b {
+    font-size: 1.15rem;
+  }
+
+  .sl-pil {
+    height: 50px;
+    border-radius: 16px;
+  }
+
+  .sl-kryss {
+    gap: 6px;
+  }
+}
+
+@media (min-height: 780px) {
+  .sl-pil {
+    height: 74px;
+  }
+
+  .sl-kryss {
+    grid-template-columns: repeat(3, minmax(0, 104px));
+    gap: 10px;
+  }
+}
+
+@media (max-width: 359px) {
+  .sl-kryss {
+    grid-template-columns: repeat(3, minmax(0, 80px));
+  }
+}

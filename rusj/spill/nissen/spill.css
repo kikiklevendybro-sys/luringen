@@ -1,0 +1,790 @@
+/* Nissen: Christmas in the rusj style. Red accent, a pine-green touch, gold string and slow snow
+   behind everything. */
+
+:root {
+  --ni-gran: #2fbf71;
+  --ni-gran-dyp: #1b7f4a;
+}
+
+/* ---------- Snow (in the background scene, behind all content) ---------- */
+
+.ni-sno {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.ni-sno i {
+  position: absolute;
+  top: -12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+  animation: ni-fall linear infinite;
+  will-change: transform;
+}
+
+@keyframes ni-fall {
+  from {
+    transform: translate3d(0, -20px, 0);
+  }
+  to {
+    transform: translate3d(var(--drift, 0px), 105vh, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ni-sno {
+    display: none;
+  }
+}
+
+/* ---------- Pills ---------- */
+
+.ni-piller {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ni-piller span {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 0.84rem/1.2 var(--font-display);
+}
+
+/* ---------- Setup ---------- */
+
+.ni-to {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.ni-to h2 {
+  font-size: 1.2rem;
+}
+
+.ni-to .teller {
+  padding: 6px;
+}
+
+.ni-to .teller button {
+  width: 42px;
+  height: 48px;
+  font-size: 1.5rem;
+}
+
+.ni-to .teller output {
+  font-size: 1.6rem;
+}
+
+.ni-to .teller output small {
+  font-size: 0.85rem;
+}
+
+.ni-dato {
+  min-height: 60px;
+  padding: 8px 10px;
+  font: 800 1rem/1.2 var(--font-display);
+}
+
+.ni-dato-fjern {
+  align-self: flex-start;
+  min-height: 32px;
+  margin-top: -6px;
+  padding: 4px 2px;
+  font-size: 0.9rem;
+}
+
+.ni-hjelp {
+  margin-top: -6px;
+  color: var(--tekst-3);
+  font-size: 0.92rem;
+}
+
+.ni-parliste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ni-par {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 4px 4px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--aksent) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+  font: 800 0.95rem/1.2 var(--font-display);
+}
+
+.ni-par > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ni-par-pil {
+  color: var(--aksent);
+}
+
+.ni-par button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tekst-2);
+  font: 900 1.1rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.ni-par button:active {
+  background: var(--natt-3);
+}
+
+.skjerm-oppsett .knapp-2.liten {
+  align-self: flex-start;
+}
+
+.ni-feil {
+  justify-self: center;
+  min-height: 0;
+  padding: 7px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--rosa) 55%, transparent);
+  color: var(--rosa);
+  font: 800 0.95rem/1.25 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.ni-feil:empty {
+  display: none;
+}
+
+.ni-parvelger {
+  max-height: 46vh;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+/* ---------- The draw (sack with flying slips) ---------- */
+
+.ni-trekk {
+  display: grid;
+  flex: 1;
+  align-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding-bottom: 40px;
+  text-align: center;
+}
+
+.ni-sekk {
+  position: relative;
+  width: min(62vw, 250px);
+  aspect-ratio: 1;
+  margin-top: 70px;
+}
+
+.ni-sekk svg {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform-origin: 50% 90%;
+  animation: ni-rist 0.5s ease-in-out infinite;
+}
+
+.ni-sekk-kropp {
+  fill: var(--aksent);
+  stroke: var(--blekk);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+
+.ni-sekk-munn {
+  fill: var(--blekk-2);
+  stroke: var(--blekk);
+  stroke-width: 6;
+}
+
+.ni-sekk-band {
+  fill: none;
+  stroke: var(--lampe);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.ni-sekk-sloyfe {
+  fill: var(--lampe);
+  stroke: var(--blekk);
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+
+.ni-sekk-glans {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.ni-sekk-lapp {
+  fill: color-mix(in srgb, var(--aksent) 70%, var(--blekk));
+  stroke: var(--papir);
+  stroke-width: 2.5;
+  stroke-dasharray: 5 4;
+}
+
+@keyframes ni-rist {
+  25% {
+    transform: rotate(-4deg);
+  }
+  75% {
+    transform: rotate(4deg);
+  }
+}
+
+.ni-lapp {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  z-index: 0;
+  max-width: 11ch;
+  overflow: hidden;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 0.8rem/1 var(--font-display);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0;
+  animation: ni-fly 1.7s cubic-bezier(0.2, 0.8, 0.3, 1) var(--d, 0s) infinite;
+}
+
+@keyframes ni-fly {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 30px) rotate(0deg) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--x, 0px)), -90px) rotate(var(--r, 0deg)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x, 0px)), -30px) rotate(var(--r, 0deg)) scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ni-lapp {
+    display: none;
+  }
+}
+
+/* ---------- One phone: pass it around ---------- */
+
+.ni-mottaker {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.ni-mottaker .spillernavn {
+  justify-content: center;
+}
+
+.spillernavn.ni-navn-l,
+.ni-hei.ni-navn-l {
+  font-size: clamp(1.75rem, 8vw, 2.35rem);
+}
+
+.spillernavn.ni-navn-xl,
+.ni-hei.ni-navn-xl {
+  font-size: clamp(1.35rem, 6.4vw, 1.95rem);
+}
+
+.ni-to-linjer {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ni-to-linjer small {
+  font: 800 0.92rem/1.2 var(--font-display);
+  opacity: 0.72;
+  overflow-wrap: anywhere;
+}
+
+/* The back of the card: a present with a ribbon. The text sits on a tag of its own, so the ribbon
+   only shows above and below it – never through the words. */
+.mappe-bakside.ni-kort {
+  gap: 0;
+  padding: 18px 16px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.45), transparent 60%),
+    linear-gradient(90deg, transparent calc(50% - 15px), color-mix(in srgb, var(--aksent) 30%, var(--papir)) calc(50% - 15px) calc(50% + 15px), transparent calc(50% + 15px)),
+    var(--papir);
+}
+
+.ni-kort-gave {
+  position: relative;
+  z-index: 1;
+  margin-bottom: -14px;
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(23, 14, 43, 0.12));
+}
+
+.ni-kort-plate {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 22px 14px 16px;
+  border-radius: var(--r-mid);
+  background: #fffaf2;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--aksent) 30%, var(--papir-2)), 0 6px 14px rgba(23, 14, 43, 0.12);
+}
+
+.ni-kort .kort-ord {
+  color: var(--rod-dyp);
+}
+
+.ni-kort-info {
+  padding: 8px 14px;
+  border: 2.5px dashed rgba(23, 14, 43, 0.25);
+  border-radius: var(--r-mid);
+  font: 800 0.98rem/1.35 var(--font-display);
+}
+
+/* ---------- Done / share ---------- */
+
+.ni-banner h1 {
+  color: var(--tekst);
+}
+
+.ni-info {
+  gap: 8px;
+  margin: 0;
+  padding: 16px 18px;
+  list-style: none;
+  font: 800 1.02rem/1.3 var(--font-display);
+}
+
+.ni-info li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ni-info li > span {
+  flex: none;
+  width: 1.6em;
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+/* The countdown to the gift day. */
+.ni-nedtelling {
+  align-self: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ni-gran) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ni-gran) 70%, transparent);
+  color: var(--tekst);
+  font: 800 1rem/1.25 var(--font-display);
+  text-align: center;
+}
+
+.hjem-knapper .ni-nedtelling {
+  margin-bottom: 2px;
+}
+
+/* The share screen: one personal link per person. */
+.ni-lenker {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ni-lenkerad {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 4px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.ni-lenkerad.sendt {
+  background: color-mix(in srgb, var(--ni-gran) 12%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ni-gran) 55%, var(--strek));
+}
+
+.ni-lenkenavn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: var(--r-liten);
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ni-lenkenavn > span:last-child {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ni-lenkenavn b {
+  font: 800 1rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.ni-lenkenavn small {
+  color: var(--tekst-3);
+  font-size: 0.8rem;
+}
+
+.ni-lenkerad.sendt .ni-lenkenavn small {
+  color: color-mix(in srgb, var(--ni-gran) 80%, var(--tekst));
+}
+
+.ni-lenkerad .knapp-2.liten {
+  flex: none;
+  min-height: 42px;
+  padding: 6px 12px;
+}
+
+.ni-aerlig {
+  padding: 12px 14px;
+  border: 1.5px dashed var(--strek);
+  border-radius: var(--r-mid);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+}
+
+.ni-kodekort {
+  gap: 10px;
+  padding-block: 16px;
+}
+
+.ni-kodekort .qr {
+  width: min(56vw, 210px);
+}
+
+.ni-ideer {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ni-ideer li {
+  position: relative;
+  padding: 14px 16px 14px 48px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 800 1.05rem/1.3 var(--font-display);
+}
+
+.ni-ideer li::before {
+  content: "🎁";
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  font-size: 1.3rem;
+  transform: translateY(-50%);
+}
+
+.ni-ideer.ny li {
+  animation: ni-inn 0.35s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+.ni-ideer.ny li:nth-child(2) {
+  animation-delay: 0.06s;
+}
+
+.ni-ideer.ny li:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+@keyframes ni-inn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+
+/* ---------- Guests ---------- */
+
+.ni-hei {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: clamp(1.8rem, 8vw, 2.3rem);
+  text-align: left;
+}
+
+.ni-hei span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.skjerm-gjest .mappe {
+  height: min(44vh, 360px);
+  min-height: 280px;
+}
+
+/* ---------- The reveal («Kåringen») ---------- */
+
+.ni-kaaring-tittel {
+  text-align: center;
+}
+
+.ni-sporsmal {
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.ni-sporsmal-navn {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  font: 900 clamp(1.4rem, 6.4vw, 1.85rem) / 1.2 var(--font-display);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.ni-sporsmal-navn b {
+  color: var(--rod-dyp);
+}
+
+.ni-sporsmal.spenning .avatar {
+  animation: ni-skjelv 0.4s ease-in-out infinite;
+}
+
+@keyframes ni-skjelv {
+  25% {
+    transform: rotate(-7deg) scale(1.04);
+  }
+  75% {
+    transform: rotate(7deg) scale(1.04);
+  }
+}
+
+.ni-kjede {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ni-kjede li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px 8px 8px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.ni-kjede-tekst {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ni-kjede-tekst > b {
+  color: var(--tekst);
+  font: 900 1.06rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.ni-kjede-tekst small {
+  color: var(--tekst-2);
+  font-size: 0.93rem;
+  line-height: 1.3;
+}
+
+.ni-kjede-tekst small b {
+  color: var(--tekst);
+  white-space: nowrap;
+}
+
+.ni-kjede.nyest li:first-child {
+  background: color-mix(in srgb, var(--aksent) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--aksent);
+}
+
+.ni-kjede li.ny {
+  animation: ni-slag 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+@keyframes ni-slag {
+  from {
+    opacity: 0;
+    transform: scale(1.3) rotate(-2deg);
+  }
+}
+
+.ni-arets h1 {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Short and narrow screens ---------- */
+
+@media (max-height: 720px) {
+  .ni-sekk {
+    width: min(48vw, 190px);
+    margin-top: 60px;
+  }
+}
+
+@media (max-height: 700px) {
+  /* The share screen: the list of links starts right away. */
+  .skjerm-del .ni-piller {
+    display: none;
+  }
+
+  .ni-kodekort .qr {
+    width: min(46vw, 180px);
+  }
+
+  .mappe-bakside.ni-kort {
+    padding: 12px 12px;
+  }
+
+  .ni-kort-gave {
+    margin-bottom: -10px;
+    font-size: 2.2rem;
+  }
+
+  .ni-kort-plate {
+    gap: 6px;
+    padding: 16px 10px 12px;
+  }
+
+  .ni-kort .kort-ord {
+    font-size: clamp(1.6rem, 9vw, 2.3rem);
+  }
+
+  .ni-kort-info {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+
+  .ni-kort .kort-fot {
+    font-size: 0.82rem;
+  }
+
+  .mappe-forside .figur-ramme {
+    width: 76px;
+  }
+
+  .mappe-finger svg {
+    width: 44px;
+    height: 44px;
+  }
+
+  .ni-banner .figur-ramme,
+  .ni-arets .figur-ramme {
+    width: 88px;
+  }
+}
+
+@media (max-height: 620px) {
+  .skjerm-vis,
+  .skjerm-gjest {
+    gap: 14px;
+  }
+
+  /* The card itself says what to do; the extra line would end up under the dock. */
+  .skjerm-vis > .hjelp,
+  .skjerm-gjest > .hjelp {
+    display: none;
+  }
+
+  .skjerm-vis .mappe,
+  .skjerm-gjest .mappe,
+  .ark .mappe {
+    height: 270px;
+    min-height: 0;
+  }
+
+  .mappe-forside .figur-ramme {
+    display: none;
+  }
+
+  .ni-mottaker .avatar.stor {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+
+  .skjerm-vis .fremdrift {
+    gap: 8px;
+  }
+
+  .skjerm-vis .prikk {
+    width: 9px;
+    height: 9px;
+  }
+}
+
+@media (max-width: 359px) {
+  .ni-to {
+    grid-template-columns: 1fr;
+  }
+
+  .ni-lenkerad .avatar {
+    display: none;
+  }
+
+  .ni-lenkerad .knapp-2.liten {
+    padding-inline: 9px;
+  }
+}

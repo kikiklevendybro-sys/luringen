@@ -1,0 +1,945 @@
+/* Tidsmaskinen: the drawn event card, the timeline with its gaps, drag & drop, the rolling year
+   and the verdict. The timeline is a rail with dark cards; the new card is paper. */
+
+.skjerm-tur {
+  gap: 14px;
+}
+
+/* ---------- Whose turn ---------- */
+
+.tm-hode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+}
+
+.tm-hode .avatar {
+  flex: none;
+}
+
+.tm-lagavatar {
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--pf) 55%, var(--natt));
+}
+
+.tm-hvem {
+  flex: 1;
+  min-width: 0;
+}
+
+.tm-hvem .etikett {
+  margin-bottom: 3px;
+}
+
+.tm-hvem h1 {
+  overflow: hidden;
+  font-size: clamp(1.45rem, 6.6vw, 1.95rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tm-mal {
+  display: grid;
+  flex: none;
+  justify-items: end;
+  gap: 6px;
+}
+
+.tm-pips {
+  display: flex;
+  gap: 3px;
+}
+
+.tm-pips i {
+  width: 8px;
+  height: 13px;
+  border-radius: 3px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.tm-pips i.fylt {
+  background: var(--aksent);
+  box-shadow: 0 2px 0 var(--aksent-dyp);
+}
+
+.tm-mal-tall {
+  font: 900 1.3rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.tm-mal-tall small {
+  color: var(--tekst-3);
+  font-size: 0.72em;
+}
+
+.tm-flamme {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--oransje) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--oransje) 60%, transparent);
+  font-size: 1.7rem;
+  animation: tm-flakk 2.4s ease-in-out infinite;
+}
+
+@keyframes tm-flakk {
+  50% {
+    transform: scale(1.06) rotate(-4deg);
+  }
+}
+
+.tm-best {
+  display: grid;
+  flex: none;
+  justify-items: end;
+  gap: 4px;
+  color: var(--tekst-3);
+  font: 800 0.72rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tm-best b {
+  color: var(--tekst);
+  font-size: 1.6rem;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- The drawn card ---------- */
+
+.tm-hand {
+  display: grid;
+  gap: 12px;
+}
+
+.tm-kort {
+  --kf: var(--aksent);
+  position: relative;
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px 16px 24px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 8px 0 var(--papir-2), 0 22px 40px var(--skygge);
+  color: var(--blekk);
+  cursor: grab;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  transform: rotate(-1.2deg);
+  animation: tm-trekk 0.55s cubic-bezier(0.2, 1.25, 0.4, 1) both;
+}
+
+/* A stripe in the category colour along the left edge */
+.tm-kort::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 0;
+  width: 7px;
+  border-radius: 0 7px 7px 0;
+  background: var(--kf);
+}
+
+@keyframes tm-trekk {
+  from {
+    opacity: 0;
+    transform: translateY(-34px) rotate(7deg) scale(0.9);
+  }
+}
+
+.tm-kort.tm-vrikk {
+  animation: tm-vrikk 0.5s ease-in-out;
+}
+
+@keyframes tm-vrikk {
+  25% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(2.5deg);
+  }
+  75% {
+    transform: rotate(-2deg);
+  }
+}
+
+.tm-kort.tm-loftet {
+  opacity: 0.25;
+  filter: saturate(0.4);
+  transition: opacity 0.15s;
+}
+
+.tm-kort-topp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tm-kat {
+  min-width: 0;
+  overflow: hidden;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--blekk);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--kf) 85%, transparent);
+  color: var(--papir);
+  font: 800 0.74rem/1 var(--font-display);
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tm-grep {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  color: var(--blekk-2);
+  font: 800 0.8rem/1 var(--font-display);
+  opacity: 0.75;
+}
+
+.tm-grep-ikon {
+  width: 9px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.tm-kort-tekst {
+  font: 900 clamp(1.3rem, 5.8vw, 1.62rem) / 1.14 var(--font-display);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.tm-kort-fot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tm-kort-hint {
+  color: var(--blekk-2);
+  font: 800 0.95rem/1.2 var(--font-display);
+}
+
+/* The hidden year: four little windows with a question mark */
+.tm-skjult {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.tm-skjult i {
+  display: grid;
+  place-items: center;
+  width: 0.95em;
+  height: 1.3em;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--lampe) 14%, var(--blekk));
+  color: var(--lampe);
+  font: 900 1em/1 var(--font-display);
+  font-style: normal;
+  animation: tm-blink 2.2s ease-in-out infinite;
+}
+
+.tm-skjult i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.tm-skjult i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.tm-skjult i:nth-child(4) {
+  animation-delay: 0.45s;
+}
+
+@keyframes tm-blink {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.tm-kort .tm-skjult {
+  padding: 5px;
+  border-radius: 12px;
+  background: var(--blekk);
+  font-size: 1.25rem;
+}
+
+/* Inside the year pill of a card in the timeline: four small slots that fit the pill */
+.tm-aar .tm-skjult {
+  gap: 2px;
+  font-size: 0.95rem;
+}
+
+.tm-aar .tm-skjult i {
+  width: 0.78em;
+  height: 1.25em;
+  border-radius: 4px;
+}
+
+.tm-hjelp {
+  color: var(--tekst-3);
+  font-size: 0.92rem;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.tm-hjelp b {
+  display: inline-grid;
+  place-items: center;
+  width: 1.45em;
+  height: 1.45em;
+  border: 2px dashed var(--aksent);
+  border-radius: 50%;
+  color: var(--aksent);
+  font: 900 0.95em/1 var(--font-display);
+  vertical-align: -0.15em;
+}
+
+.tm-hand-tom {
+  padding: 12px 14px;
+  border: 2px dashed var(--strek);
+  border-radius: var(--r-mid);
+}
+
+.tm-hand-tom .tm-hjelp {
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+/* ---------- The timeline ---------- */
+
+.tm-linje-boks {
+  display: grid;
+  gap: 8px;
+}
+
+.tm-linje-hode {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tm-linje-hode h2 {
+  color: var(--tekst-3);
+  font: 800 0.78rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tm-linje-hode .tall {
+  color: var(--tekst-3);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tm-linje {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The rail that runs through every year */
+.tm-linje::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 40px;
+  width: 4px;
+  border-radius: 4px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--aksent) 45%, var(--strek)), var(--strek) 70%);
+}
+
+.tm-linje.tm-ferdig {
+  gap: 8px;
+}
+
+.tm-rad {
+  --kf: var(--aksent);
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.tm-aar {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  padding: 0 4px;
+  border-radius: 12px;
+  background: var(--blekk);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--kf) 75%, transparent);
+  color: var(--lampe);
+  font: 900 1.14rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.tm-aar.lang {
+  font-size: 0.86rem;
+}
+
+.tm-rad-tekst {
+  min-width: 0;
+  color: var(--tekst);
+  font: 700 0.97rem/1.25 var(--font-tekst);
+  overflow-wrap: anywhere;
+}
+
+.tm-merke {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--mynte);
+  color: var(--blekk);
+  font: 900 1rem/1 var(--font-display);
+  animation: tm-pop 0.45s cubic-bezier(0.2, 1.8, 0.4, 1) both;
+}
+
+.tm-merke.feil {
+  background: var(--rod);
+  color: var(--papir);
+}
+
+@keyframes tm-pop {
+  from {
+    transform: scale(0);
+  }
+}
+
+/* A gap: tap it (or drop the card on it) */
+.tm-luke {
+  position: relative;
+  display: grid;
+}
+
+.tm-gap {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px 0 27px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: var(--tekst-3);
+  font: 800 0.86rem/1.1 var(--font-display);
+  text-align: left;
+  cursor: pointer;
+  transition: min-height 0.16s ease, background-color 0.16s;
+}
+
+.tm-gap::after {
+  content: "";
+  flex: 1;
+  height: 0;
+  border-top: 2px dashed color-mix(in srgb, var(--aksent) 28%, transparent);
+}
+
+.tm-pluss {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 2.5px dashed color-mix(in srgb, var(--aksent) 80%, transparent);
+  border-radius: 50%;
+  background: var(--natt);
+  color: var(--aksent);
+  font: 900 1.3rem/1 var(--font-display);
+  transition: transform 0.12s, background-color 0.12s;
+}
+
+.tm-gap-tekst {
+  flex: none;
+  color: var(--tekst-2);
+}
+
+@media (hover: hover) {
+  .tm-gap:hover .tm-pluss {
+    border-style: solid;
+    background: var(--aksent);
+    color: var(--blekk);
+  }
+}
+
+.tm-gap:active .tm-pluss {
+  border-style: solid;
+  background: var(--aksent);
+  color: var(--blekk);
+  transform: scale(0.92);
+}
+
+/* The card lying in the timeline, not checked yet */
+.tm-ny-kort {
+  margin: 4px 0;
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2), 0 14px 30px var(--skygge);
+  color: var(--blekk);
+  cursor: grab;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.tm-ny-kort .tm-rad-tekst {
+  color: var(--blekk);
+  font-weight: 800;
+}
+
+.tm-ny-kort .tm-grep {
+  color: var(--blekk-2);
+}
+
+.tm-ny-kort .tm-aar {
+  font-size: 1.2rem;
+}
+
+.tm-ny-kort .tm-aar.lang {
+  font-size: 0.9rem;
+}
+
+.tm-luke.tm-her .tm-gap {
+  display: none;
+}
+
+.tm-luke.tm-her.tm-loftet .tm-gap {
+  display: flex;
+}
+
+.tm-luke.tm-her.tm-loftet .tm-ny-kort {
+  display: none;
+}
+
+/* ---------- Drag & drop ---------- */
+
+html.tm-drar,
+html.tm-drar * {
+  cursor: grabbing !important;
+}
+
+html.tm-drar .tm-pluss {
+  border-style: solid;
+}
+
+.tm-luke.tm-mal .tm-gap {
+  min-height: var(--tm-slot, 64px);
+  background: color-mix(in srgb, var(--aksent) 12%, transparent);
+  outline: 2.5px dashed var(--aksent);
+  outline-offset: -3px;
+}
+
+.tm-luke.tm-mal .tm-gap::after {
+  border-top-color: transparent;
+}
+
+.tm-luke.tm-mal .tm-pluss {
+  background: var(--aksent);
+  color: var(--blekk);
+  transform: scale(1.12);
+}
+
+.tm-flyt {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.tm-flyt .tm-ny-kort {
+  margin: 0;
+  box-shadow: 0 0 0 3px var(--aksent), 0 20px 44px rgba(6, 2, 14, 0.65);
+}
+
+/* ---------- The reveal ---------- */
+
+.tm-rull {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.tm-hjul {
+  display: inline-block;
+  height: 1.1em;
+  overflow: hidden;
+}
+
+.tm-strimmel {
+  display: block;
+  transition: transform 1s cubic-bezier(0.12, 0.72, 0.18, 1);
+  will-change: transform;
+}
+
+.tm-strimmel i {
+  display: block;
+  height: 1.1em;
+  font-style: normal;
+  line-height: 1.1em;
+  text-align: center;
+}
+
+.tm-fkr {
+  margin-left: 0.25em;
+  font-size: 0.8em;
+  animation: tm-pop 0.3s 1s both;
+}
+
+.tm-ny-kort.tm-ruller {
+  box-shadow: 0 0 0 3px var(--lampe), 0 5px 0 var(--papir-2), 0 0 34px color-mix(in srgb, var(--lampe) 45%, transparent);
+}
+
+.tm-ny-kort.tm-ruller .tm-aar {
+  background: var(--blekk);
+  color: var(--lampe);
+}
+
+.tm-ny-kort.tm-riktig {
+  box-shadow: 0 0 0 3px var(--mynte), 0 5px 0 var(--mynte-dyp), 0 0 38px color-mix(in srgb, var(--mynte) 55%, transparent);
+  animation: tm-hopp 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.tm-ny-kort.tm-riktig .tm-aar {
+  background: var(--mynte);
+  color: var(--blekk);
+}
+
+.tm-ny-kort.tm-feil {
+  box-shadow: 0 0 0 3px var(--rod), 0 5px 0 var(--rod-dyp);
+  animation: rist 0.4s linear;
+}
+
+.tm-ny-kort.tm-feil .tm-aar {
+  background: var(--rod);
+  color: var(--papir);
+}
+
+@keyframes tm-hopp {
+  40% {
+    transform: translateY(-8px) scale(1.03);
+  }
+}
+
+/* After the reveal: the new card glows, a wrong card is crossed out next to where it belonged */
+.tm-rad.tm-fersk {
+  background: color-mix(in srgb, var(--mynte) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--mynte), 0 0 28px color-mix(in srgb, var(--mynte) 30%, transparent);
+}
+
+.tm-rad.tm-fersk .tm-aar {
+  background: var(--mynte);
+  color: var(--blekk);
+}
+
+.tm-kastet .tm-ny-kort {
+  margin: 0;
+  background: color-mix(in srgb, var(--rod) 10%, var(--papir));
+  animation: none;
+}
+
+.tm-kastet .tm-rad-tekst {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--rod) 70%, transparent);
+  text-decoration-thickness: 2px;
+}
+
+.tm-spokelse {
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 6px 12px 6px 6px;
+  border: 2.5px dashed var(--mynte);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--mynte) 10%, var(--natt));
+  color: var(--mynte);
+  font: 800 0.95rem/1.2 var(--font-display);
+  animation: tm-spok 1.3s ease-in-out infinite alternate;
+}
+
+.tm-spokelse .tm-aar {
+  background: var(--mynte);
+  box-shadow: none;
+  color: var(--blekk);
+}
+
+.tm-spokelse .tm-rad-tekst {
+  color: var(--mynte);
+  font: inherit;
+}
+
+@keyframes tm-spok {
+  to {
+    background: color-mix(in srgb, var(--mynte) 20%, var(--natt));
+  }
+}
+
+/* The verdict where the card was */
+.tm-dom {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  text-align: center;
+  animation: tm-dom-inn 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.tm-dom.riktig {
+  box-shadow: inset 0 0 0 2.5px var(--mynte);
+}
+
+.tm-dom.feil {
+  box-shadow: inset 0 0 0 2.5px var(--rod);
+}
+
+.tm-dom-ord {
+  font: 900 clamp(1.9rem, 9vw, 2.5rem) / 1 var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.tm-dom.riktig .tm-dom-ord {
+  color: var(--mynte);
+}
+
+.tm-dom.feil .tm-dom-ord {
+  color: var(--rod);
+}
+
+.tm-dom-tekst {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.tm-dom-aar {
+  color: var(--lampe);
+  font: 900 1.15em/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@keyframes tm-dom-inn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+#tm-sjekk.tm-venter {
+  pointer-events: none;
+  filter: saturate(0.6);
+}
+
+/* Not placed yet: a solid, quiet button (the timeline must not shine through the dock) */
+#tm-sjekk:disabled {
+  --f: var(--natt-3);
+  --f-dyp: var(--natt-2);
+  --t: var(--tekst-3);
+  opacity: 1;
+}
+
+/* ---------- Setup, end ---------- */
+
+.tm-lagrad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tm-rekordhjelp {
+  margin-top: -8px;
+}
+
+.tm-mini {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tm-mini li {
+  display: grid;
+  grid-template-columns: 4.6em minmax(0, 1fr);
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: var(--natt-2);
+}
+
+.tm-mini b {
+  color: var(--lampe);
+  font: 900 1rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tm-mini span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ark .tm-mini li {
+  background: var(--natt-3);
+}
+
+.tm-tavle {
+  display: grid;
+  gap: 8px;
+}
+
+.tm-tavle h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tm-tavle-navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tm-tavle .tall {
+  color: var(--tekst-2);
+  font: 700 0.9rem/1 var(--font-tekst);
+}
+
+.tm-glapp {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--rod) 12%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--rod) 60%, transparent);
+}
+
+.tm-glapp b {
+  margin-right: 6px;
+  color: var(--lampe);
+  font: 900 1.05rem/1 var(--font-display);
+}
+
+/* ---------- Short screens ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-tur {
+    gap: 10px;
+  }
+
+  .tm-hode {
+    min-height: 44px;
+  }
+
+  .tm-hode .avatar.mid,
+  .tm-flamme {
+    width: 44px;
+    height: 44px;
+    font-size: 1.35rem;
+  }
+
+  .tm-hvem h1 {
+    font-size: 1.4rem;
+  }
+
+  .tm-kort {
+    gap: 8px;
+    padding: 12px 16px 12px 22px;
+  }
+
+  .tm-kort-tekst {
+    font-size: clamp(1.15rem, 5.2vw, 1.4rem);
+  }
+
+  .tm-kort .tm-skjult {
+    font-size: 1.05rem;
+  }
+
+  .tm-hjelp {
+    font-size: 0.86rem;
+  }
+
+  .tm-dom {
+    padding: 12px 14px;
+  }
+
+  .tm-dom-ord {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 359px) {
+  .tm-rad,
+  .tm-spokelse {
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .tm-linje::before {
+    left: 36px;
+  }
+
+  .tm-gap {
+    padding-left: 23px;
+  }
+
+  .tm-aar {
+    font-size: 1.02rem;
+  }
+
+  .tm-rad-tekst {
+    font-size: 0.92rem;
+  }
+
+  .tm-pips i {
+    width: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-skjult i,
+  .tm-flamme,
+  .tm-spokelse {
+    animation: none;
+  }
+}

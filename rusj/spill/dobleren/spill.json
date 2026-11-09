@@ -1,0 +1,14 @@
+{
+  "id": "dobleren",
+  "navn": "Dobleren",
+  "undertittel": "2048",
+  "beskrivelse": "Gratis 2048 på norsk. Sveip brikkene, slå sammen like tall og nå 2048 – på 4 × 4 eller 5 × 5, med angreknapp og din egen rekord.",
+  "kort": "Sveip, slå sammen og doble. Klarer du 2048?",
+  "spillere": [1, 1],
+  "minutter": [3, 20],
+  "mobiler": "en",
+  "tagger": ["klassiker", "tenke", "alene"],
+  "rekkefolge": 30,
+  "farge": "#ffb26b",
+  "sok": ["2048", "tallspill", "slå sammen tall", "sveipespill"]
+}

@@ -1,0 +1,533 @@
+/* Blyanten — «Minikryss». Everything is prefixed "bly-". The crossword is paper squares on the
+   night background: the selected word is light blue (like the clue bar), the cell you write in is
+   the accent colour. */
+
+:root {
+  --bly-ord: #bfe3ff;
+  --bly-ord-dyp: #86bde6;
+  --bly-feil: #ffd0c8;
+  --bly-tast: #5d4c88;
+  --bly-tast-dyp: #35285c;
+}
+
+/* ---------- The crossword screen ---------- */
+
+.skjerm-kryss {
+  gap: 10px;
+}
+
+/* Fade in without the kit's slide: the 10 px slide left 9 px of stale scroll on short phones. */
+.skjerm-kryss.inn {
+  animation-name: bly-inn;
+}
+
+@keyframes bly-inn {
+  from {
+    opacity: 0;
+  }
+}
+
+.bly-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+
+.bly-tema {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tekst);
+  font: 900 1.08rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bly-tid {
+  flex: none;
+  color: var(--tekst-2);
+  font: 800 1rem/1 var(--font-display);
+}
+
+.bly-tid b {
+  display: inline-block;
+  min-width: 2.6em;
+  color: var(--tekst);
+  font-variant-numeric: tabular-nums;
+}
+
+.bly-info .knapp-2.liten {
+  flex: none;
+  min-height: 40px;
+  padding: 6px 14px;
+}
+
+.bly-bord {
+  display: grid;
+  flex: 1 1 auto;
+  place-items: center;
+  min-height: 0;
+}
+
+.bly-rutenett {
+  /* Starts small; tilpass() grows it to the room left. Starting big made short phones scroll 9 px. */
+  --s: 18px;
+  --gap: 3px;
+  display: grid;
+  grid-template-columns: repeat(var(--b), var(--s));
+  grid-auto-rows: var(--s);
+  gap: var(--gap);
+}
+
+.bly-tom {
+  width: var(--s);
+  height: var(--s);
+}
+
+.bly-celle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--s);
+  height: var(--s);
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--s) * 0.16);
+  background: var(--papir);
+  box-shadow: 0 2px 0 var(--papir-2);
+  color: var(--blekk);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.bly-b {
+  font: 900 calc(var(--s) * 0.56) / 1 var(--font-display);
+  text-transform: uppercase;
+}
+
+.bly-nr {
+  position: absolute;
+  top: calc(var(--s) * 0.05);
+  left: calc(var(--s) * 0.09);
+  color: var(--blekk-2);
+  font: 800 max(8px, calc(var(--s) * 0.27)) / 1 var(--font-tekst);
+}
+
+.bly-celle.ord {
+  background: var(--bly-ord);
+  box-shadow: 0 2px 0 var(--bly-ord-dyp);
+}
+
+.bly-celle.aktiv {
+  z-index: 1;
+  background: var(--aksent);
+  box-shadow: 0 2px 0 var(--aksent-dyp), 0 0 0 2.5px var(--papir);
+}
+
+.bly-celle.feil {
+  background: var(--bly-feil);
+}
+
+.bly-celle.feil .bly-b {
+  color: var(--rod-dyp);
+}
+
+.bly-celle.feil::after {
+  content: "";
+  position: absolute;
+  inset: 18% 14%;
+  background: linear-gradient(to top right, transparent calc(50% - 1.5px), var(--rod) calc(50% - 1.5px), var(--rod) calc(50% + 1.5px), transparent calc(50% + 1.5px));
+  pointer-events: none;
+}
+
+.bly-celle.rett .bly-b {
+  color: var(--mynte-dyp);
+}
+
+.bly-celle.vist .bly-b {
+  color: var(--himmel-dyp);
+}
+
+/* A small corner mark: this letter was given as help. */
+.bly-celle.vist::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-top: calc(var(--s) * 0.24) solid var(--himmel);
+  border-left: calc(var(--s) * 0.24) solid transparent;
+  border-top-right-radius: calc(var(--s) * 0.16);
+}
+
+.bly-rutenett.lost .bly-celle {
+  animation: bly-hopp 0.55s ease-out both;
+  animation-delay: calc(var(--n, 0) * 45ms);
+}
+
+/* ---------- Clue bar and keyboard ---------- */
+
+.bly-hintlinje {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  gap: 6px;
+  margin-inline: -8px;
+}
+
+.bly-pil {
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 900 1.8rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.bly-pil:active {
+  background: var(--strek);
+}
+
+.bly-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--bly-ord);
+  box-shadow: 0 3px 0 var(--bly-ord-dyp);
+  color: var(--blekk);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bly-hint-nr {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  gap: 1px;
+  font: 900 1.15rem/1 var(--font-display);
+}
+
+.bly-hint-nr i {
+  color: var(--blekk-2);
+  font-style: normal;
+  font-size: 1rem;
+}
+
+.bly-hint-tekst {
+  display: -webkit-box;
+  overflow: hidden;
+  font: 700 1.04rem/1.22 var(--font-tekst);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.bly-tastatur {
+  display: grid;
+  gap: 8px;
+  margin-inline: -8px;
+}
+
+.bly-tastrad {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.bly-tast {
+  display: grid;
+  flex: 1 1 0;
+  place-items: center;
+  min-width: 0;
+  max-width: 46px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--bly-tast);
+  box-shadow: 0 3px 0 var(--bly-tast-dyp);
+  color: var(--tekst);
+  font: 800 1.22rem/1 var(--font-display);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.06s;
+}
+
+.bly-tast:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--bly-tast-dyp);
+}
+
+.bly-tast.bred {
+  flex: 1.6 1 0;
+  max-width: 76px;
+}
+
+.bly-tast svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.1;
+}
+
+/* ---------- Sheets ---------- */
+
+.bly-h3 {
+  margin-top: 4px;
+}
+
+.bly-hintliste {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bly-hintvalg {
+  display: grid;
+  grid-template-columns: 2em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--r-liten);
+  background: var(--natt-3);
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bly-hintvalg b {
+  font: 900 1.05rem/1 var(--font-display);
+  text-align: center;
+}
+
+.bly-hintvalg span {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.bly-hintvalg small {
+  color: var(--tekst-3);
+  font: 800 0.85rem/1 var(--font-display);
+}
+
+.bly-hintvalg.na {
+  background: var(--bly-ord);
+  color: var(--blekk);
+}
+
+.bly-hintvalg.na small {
+  color: var(--blekk-2);
+}
+
+.bly-hintvalg.fylt:not(.na) span {
+  color: var(--tekst-3);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+.bly-fargeforklaring {
+  line-height: 1.8;
+}
+
+/* A small letter tile that explains the colours of checked, revealed and wrong letters. */
+.bly-merke {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  margin-right: 2px;
+  border-radius: 5px;
+  background: var(--papir);
+  font: 900 0.85rem/1 var(--font-display);
+  vertical-align: -0.35em;
+}
+
+.bly-merke.rett {
+  color: var(--mynte-dyp);
+}
+
+.bly-merke.vist {
+  overflow: hidden;
+  color: var(--himmel-dyp);
+}
+
+.bly-merke.vist::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-top: 7px solid var(--himmel);
+  border-left: 7px solid transparent;
+}
+
+.bly-merke.feil {
+  background: var(--bly-feil);
+  color: var(--rod-dyp);
+}
+
+.bly-deletekst {
+  min-height: 0;
+  font: 700 1rem/1.35 var(--font-tekst);
+}
+
+/* ---------- Result ---------- */
+
+.bly-banner .figur-ramme {
+  width: 104px;
+}
+
+.bly-banner h1 {
+  font-size: clamp(1.9rem, 8.6vw, 2.6rem);
+}
+
+.bly-fakta {
+  margin: 0;
+  padding: 2px 0 0;
+}
+
+.bly-losning {
+  display: grid;
+  place-items: center;
+}
+
+.bly-losning .bly-rutenett {
+  --s: min(30px, calc((100vw - 48px) / var(--b) - 3px));
+}
+
+.bly-rutenett.statisk .bly-celle {
+  cursor: default;
+}
+
+.bly-nedtelling {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.bly-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.bly-stat {
+  padding: 18px 16px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.bly-stat h2 {
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.bly-tall {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  text-align: center;
+}
+
+.bly-tall b {
+  display: block;
+  font: 900 1.55rem/1.1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bly-tall span {
+  display: block;
+  color: var(--tekst-2);
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+@keyframes bly-hopp {
+  35% {
+    transform: translateY(-8px) scale(1.08);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* ---------- Short and narrow phones ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-kryss {
+    gap: 8px;
+  }
+
+  .bly-info {
+    min-height: 36px;
+  }
+
+  .bly-info .knapp-2.liten {
+    min-height: 36px;
+    padding: 4px 12px;
+  }
+
+  .bly-hint {
+    min-height: 48px;
+    padding: 4px 10px;
+  }
+
+  .bly-hint-tekst {
+    font-size: 0.96rem;
+  }
+
+  .bly-tast {
+    height: 44px;
+  }
+
+  .bly-tastatur {
+    gap: 6px;
+  }
+}
+
+@media (max-height: 600px) {
+  .bly-tast {
+    height: 40px;
+  }
+}
+
+@media (max-width: 359px) {
+  .bly-tastatur,
+  .bly-hintlinje {
+    margin-inline: -11px;
+  }
+
+  .bly-tastrad {
+    gap: 4px;
+  }
+
+  .bly-tast {
+    border-radius: 8px;
+    font-size: 1.05rem;
+  }
+
+  .bly-hintlinje {
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    gap: 4px;
+  }
+
+  .bly-tall b {
+    font-size: 1.35rem;
+  }
+}

@@ -1,0 +1,819 @@
+/* Sjakkhesten — the board, the two player bars and the result. The board is sized by JS
+   (tilpass) so the board, both bars and the tools always fit on the screen without scrolling. */
+
+.skjerm-spill {
+  --sh-lys: #efe4d6;
+  --sh-mork: #8f78c2;
+  gap: 10px;
+}
+
+/* ---------- Player bars ---------- */
+
+.sh-spiller {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 6px 8px 6px 7px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  transition: box-shadow 0.25s, background 0.25s;
+}
+
+.sh-spiller.aktiv {
+  background: linear-gradient(100deg, color-mix(in srgb, var(--aksent) 18%, var(--natt-2)), var(--natt-2) 70%);
+  box-shadow: inset 0 0 0 2.5px var(--aksent), 0 0 24px color-mix(in srgb, var(--aksent) 22%, transparent);
+}
+
+.sh-spiller.i-sjakk {
+  background: linear-gradient(100deg, color-mix(in srgb, var(--rod) 22%, var(--natt-2)), var(--natt-2) 70%);
+  box-shadow: inset 0 0 0 2.5px var(--rod), 0 0 24px color-mix(in srgb, var(--rod) 25%, transparent);
+}
+
+.sh-spiller .avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 1.3rem;
+}
+
+.sh-maskin {
+  display: block;
+  width: 42px;
+  margin: -2px 0;
+}
+
+.sh-maskin .figur-ramme {
+  display: block;
+}
+
+.sh-navn {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.sh-navn b {
+  overflow: hidden;
+  font: 900 1.04rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-navn small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tekst-3);
+  font: 700 0.8rem/1.25 var(--font-tekst);
+  white-space: nowrap;
+}
+
+.sh-farge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Which colour: a small stone, light or dark */
+.sh-farge i {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #fff6e6;
+  box-shadow: 0 0 0 1.5px #0b0617;
+}
+
+.sh-farge.svart i {
+  background: #33244f;
+  box-shadow: 0 0 0 1.5px #f6e7cf;
+}
+
+.sh-status::before {
+  content: "·";
+  margin-right: 6px;
+  color: var(--tekst-3);
+}
+
+.sh-spiller.aktiv .sh-status {
+  color: var(--aksent);
+  font-weight: 800;
+}
+
+.sh-sjakk {
+  color: var(--rod);
+  font-weight: 900;
+}
+
+.sh-spiller.i-sjakk .sh-status {
+  color: var(--rod);
+}
+
+.sh-tenker i {
+  font-style: normal;
+  animation: sh-prikk 1.2s infinite both;
+}
+
+.sh-tenker i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.sh-tenker i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes sh-prikk {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+/* Captured pieces on a light tray (so dark pieces show); they overlap a little, with a small
+   gap between kinds. */
+.sh-fangst {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 3px 8px 3px 15px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #efe4d6 88%, var(--natt-2));
+}
+
+.sh-fanget {
+  flex: none;
+  width: 19px;
+  height: 19px;
+  margin-left: -8px;
+  filter: drop-shadow(0 1px 0 rgba(6, 2, 14, 0.5));
+}
+
+.sh-mellom {
+  flex: none;
+  width: 8px;
+}
+
+.sh-forsprang {
+  flex: none;
+  margin-left: 5px;
+  color: var(--blekk);
+  font: 900 0.82rem/1 var(--font-display);
+}
+
+.sh-fangst .sh-forsprang:first-child {
+  margin-left: -7px;
+}
+
+/* ---------- Move log: a strip on phones, a score sheet on wide screens ---------- */
+
+.sh-logg {
+  min-height: 34px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--natt-2) 70%, transparent);
+  color: var(--tekst-3);
+  font: 700 0.86rem/1 var(--font-tekst);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sh-logg::-webkit-scrollbar {
+  display: none;
+}
+
+.sh-logg.tom {
+  display: grid;
+  place-items: center;
+}
+
+.sh-logg ol {
+  display: flex;
+  gap: 14px;
+  width: max-content;
+  margin: 0;
+  padding: 10px 16px;
+  list-style: none;
+}
+
+.sh-logg li {
+  display: flex;
+  gap: 6px;
+}
+
+.sh-logg li span {
+  color: var(--tekst-2);
+}
+
+.sh-logg li .nr {
+  color: var(--tekst-3);
+}
+
+.sh-logg li .siste {
+  color: var(--aksent);
+  font-weight: 900;
+}
+
+/* Tall phones: the free height goes 2 : 3 above and below the board group (a little closer
+   to the thumb than the middle). */
+.sh-luft {
+  flex: 2 1 0;
+}
+
+.sh-luft.under {
+  flex-grow: 3;
+}
+
+.sh-klokke {
+  min-width: 64px;
+  padding: 8px 9px;
+  border-radius: 12px;
+  background: var(--natt-3);
+  color: var(--tekst-2);
+  font: 900 1.12rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.sh-klokke.gar {
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.sh-klokke.lite {
+  background: var(--oransje);
+  box-shadow: 0 3px 0 var(--oransje-dyp);
+  color: var(--blekk);
+}
+
+/* ---------- The board ---------- */
+
+.sh-brettramme {
+  display: flex;
+  justify-content: center;
+}
+
+.sh-brett {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--sh-mork);
+  box-shadow: 0 0 0 4px #0d0719, 0 0 0 6px color-mix(in srgb, var(--aksent) 40%, var(--strek)), 0 18px 34px var(--skygge);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sh-brett.snur {
+  animation: sh-snu 0.55s cubic-bezier(0.4, 0.1, 0.2, 1);
+}
+
+/* The board shrinks while it turns, so its corners never reach outside the screen. */
+@keyframes sh-snu {
+  from {
+    transform: rotate(180deg) scale(0.7);
+  }
+  70% {
+    transform: rotate(12deg) scale(0.7);
+  }
+}
+
+.sh-rute {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--sh-lys);
+  color: var(--sh-mork);
+  cursor: pointer;
+}
+
+.sh-rute.mork {
+  background: var(--sh-mork);
+  color: var(--sh-lys);
+}
+
+.sh-rute:focus-visible {
+  z-index: 4;
+  outline: 3px solid var(--blekk);
+  outline-offset: -3px;
+}
+
+/* Last move, selection and check are tints under the piece. */
+.sh-rute.sist::before,
+.sh-rute.valgt::before,
+.sh-rute.sjakk::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.sh-rute.sist::before {
+  background: rgba(255, 205, 60, 0.5);
+}
+
+.sh-rute.valgt::before {
+  background: rgba(61, 227, 176, 0.62);
+}
+
+.sh-rute.sjakk::before {
+  background: radial-gradient(circle, rgba(255, 70, 60, 0.95) 0 32%, rgba(255, 70, 60, 0.55) 55%, rgba(255, 70, 60, 0) 74%);
+  animation: sh-sjakk 1s ease-in-out infinite alternate;
+}
+
+@keyframes sh-sjakk {
+  to {
+    opacity: 0.65;
+  }
+}
+
+/* Against Lett: a red ring around own pieces that can be taken, a pulsing green frame for the tip. */
+.sh-rute.fare::after {
+  content: "";
+  position: absolute;
+  inset: 7%;
+  z-index: 2;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(232, 51, 64, 0.85), inset 0 0 10px rgba(232, 51, 64, 0.35);
+  pointer-events: none;
+  animation: sh-fare 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes sh-fare {
+  from {
+    opacity: 0.55;
+  }
+}
+
+.sh-rute.hint::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 4px var(--mynte);
+  background: rgba(61, 227, 176, 0.28);
+  animation: sh-hint 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes sh-hint {
+  from {
+    box-shadow: inset 0 0 0 2px var(--mynte);
+  }
+}
+
+/* Where the selected piece can go: a dot, or a ring around a piece that can be taken. */
+.sh-rute.mal::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  width: 32%;
+  height: 32%;
+  border-radius: 50%;
+  background: rgba(23, 14, 43, 0.36);
+  pointer-events: none;
+}
+
+.sh-rute.mal.slag::after {
+  width: 94%;
+  height: 94%;
+  background: none;
+  box-shadow: inset 0 0 0 5px rgba(23, 14, 43, 0.42);
+}
+
+.sh-rute.mal.over::after {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  background: rgba(23, 14, 43, 0.22);
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.7);
+}
+
+.sh-brikke {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 90%;
+  height: 90%;
+  filter: drop-shadow(0 2px 0 rgba(6, 2, 14, 0.28));
+  pointer-events: none;
+  will-change: transform;
+}
+
+.sh-rute.valgt .sh-brikke {
+  transform: translateY(-3%) scale(1.06);
+  transition: transform 0.12s;
+}
+
+.sh-koord {
+  position: absolute;
+  z-index: 1;
+  font: 800 clamp(0.5rem, 2.3vw, 0.72rem) / 1 var(--font-display);
+  pointer-events: none;
+}
+
+.sh-koord.fil {
+  right: 3px;
+  bottom: 2px;
+}
+
+.sh-koord.rad {
+  top: 3px;
+  left: 3px;
+}
+
+/* The piece under the finger while dragging */
+.sh-svever {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 70;
+  filter: drop-shadow(0 10px 12px rgba(6, 2, 14, 0.45));
+  pointer-events: none;
+}
+
+/* «Sjakkmatt!» stamped across the board */
+.sh-stempel {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  background: rgba(21, 12, 40, 0.28);
+  pointer-events: none;
+}
+
+.sh-stempel .stempel {
+  background: color-mix(in srgb, var(--natt) 78%, transparent);
+  font-size: clamp(1.8rem, 9vw, 3rem);
+}
+
+/* ---------- Tools in the dock ---------- */
+
+.sh-verktoy {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.sh-verktoy .knapp-2.liten {
+  width: 100%;
+}
+
+.sh-verktoy .knapp-2[aria-pressed="true"] {
+  border-color: var(--aksent);
+  color: var(--aksent);
+}
+
+.sh-verktoy .lenke:disabled,
+.sh-verktoy .knapp-2:disabled {
+  opacity: 0.35;
+}
+
+.sh-knappebrikke {
+  width: 1.5em;
+  height: 1.5em;
+  margin: -0.2em 0;
+}
+
+/* ---------- Promotion ---------- */
+
+.sh-forfrem {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sh-forfrem-valg {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 10px 4px 9px;
+  border: 2.5px solid var(--strek);
+  border-radius: var(--r-mid);
+  background: var(--sh-lys, #efe4d6);
+  color: var(--blekk);
+  font: 800 0.82rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.sh-forfrem-valg:first-child {
+  border-color: var(--aksent);
+  box-shadow: 0 0 0 2px var(--aksent);
+}
+
+.sh-forfrem-valg:active {
+  transform: scale(0.96);
+}
+
+.sh-forfrem-brikke {
+  width: 100%;
+  max-width: 64px;
+  aspect-ratio: 1;
+}
+
+#ark .sh-forfrem-valg {
+  --sh-lys: #efe4d6;
+}
+
+/* ---------- Home: results against the phone ---------- */
+
+.sh-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.sh-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-rekorder li,
+.sh-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-rekorder li b,
+.sh-rekordlinje b {
+  color: var(--tekst);
+}
+
+.sh-niva {
+  min-width: 5.5em;
+  font-family: var(--font-display);
+}
+
+.sh-rekordlinje {
+  align-self: center;
+  border-radius: var(--r-mid);
+}
+
+.sh-rekordlinje .etikett {
+  width: 100%;
+  text-align: center;
+}
+
+/* ---------- Result ---------- */
+
+.sh-banner .ingress {
+  max-width: 34ch;
+}
+
+.sh-vinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.sh-krone {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  transform: translateX(-50%) rotate(-12deg);
+  animation: sh-krone 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.3s;
+}
+
+@keyframes sh-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30px) rotate(-30deg) scale(0.4);
+  }
+}
+
+.sh-sluttbrett {
+  --sh-lys: #efe4d6;
+  --sh-mork: #8f78c2;
+  display: flex;
+  justify-content: center;
+}
+
+.sh-brett.liten {
+  width: min(78%, 300px);
+  border-radius: 8px;
+  box-shadow: 0 0 0 3px #0d0719, 0 0 0 5px color-mix(in srgb, var(--aksent) 35%, var(--strek)), 0 12px 24px var(--skygge);
+}
+
+.sh-brett.liten .sh-rute {
+  cursor: default;
+}
+
+.sh-brett.liten .sh-koord {
+  font-size: 0.5rem;
+}
+
+.sh-partiet {
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.sh-partiet summary {
+  min-height: 48px;
+  padding: 13px 16px;
+  color: var(--tekst-2);
+  font: 800 1rem/1.3 var(--font-display);
+  cursor: pointer;
+}
+
+.sh-partiet ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 2px 14px;
+  margin: 0;
+  padding: 0 16px 16px 2.6em;
+  color: var(--tekst-2);
+  font: 600 0.92rem/1.6 var(--font-tekst);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-partiet li::marker {
+  color: var(--tekst-3);
+}
+
+.sh-partiet li span {
+  display: inline-block;
+  min-width: 4.4em;
+  color: var(--tekst);
+}
+
+/* Exactly two players: no «add player» button. */
+.skjerm-oppsett .legg-til:disabled {
+  display: none;
+}
+
+/* ---------- Short and small screens ---------- */
+
+@media (max-height: 760px) {
+  .sh-logg {
+    display: none;
+  }
+}
+
+@media (max-height: 700px) {
+  .skjerm-spill {
+    gap: 7px;
+  }
+
+  .sh-spiller {
+    min-height: 44px;
+    padding-block: 3px;
+  }
+
+  .sh-spiller .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 1.05rem;
+  }
+
+  .sh-maskin {
+    width: 34px;
+  }
+
+  .sh-navn b {
+    font-size: 0.95rem;
+  }
+
+  .sh-klokke {
+    min-width: 56px;
+    padding: 6px 7px;
+    font-size: 1rem;
+  }
+
+  .skjerm-spill .dokk {
+    padding-top: 10px;
+  }
+
+  .sh-verktoy .knapp-2.liten {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 359px) {
+  .sh-spiller {
+    gap: 7px;
+  }
+
+  .sh-fanget {
+    width: 16px;
+    height: 16px;
+    margin-left: -7px;
+  }
+
+  .sh-verktoy {
+    gap: 6px;
+  }
+
+  .sh-verktoy .knapp-2.liten {
+    padding-inline: 8px;
+  }
+}
+
+/* ---------- Wide screens: the board on the left, bars and tools on the right ---------- */
+
+/* (also phones on their side: the board on the left, the bars and tools beside it) */
+@media (min-width: 900px) and (min-aspect-ratio: 5/4), (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="sjakkhesten"] .app:has(.skjerm-spill) {
+    max-width: 1100px;
+  }
+
+  .skjerm-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    column-gap: 32px;
+    row-gap: 14px;
+    align-content: start;
+    padding-bottom: 20px;
+  }
+
+  .sh-luft {
+    display: none;
+  }
+
+  .skjerm-spill > .sh-brettramme {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .skjerm-spill > .sh-spiller.topp {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .skjerm-spill > .sh-logg {
+    grid-column: 2;
+    grid-row: 2;
+    display: block;
+    min-height: 0;
+    overflow: hidden auto;
+    border-radius: var(--r-mid);
+    white-space: normal;
+  }
+
+  .sh-logg ol {
+    display: grid;
+    gap: 2px;
+    width: auto;
+    padding: 12px 14px;
+  }
+
+  .sh-logg li {
+    display: grid;
+    grid-template-columns: 2.8em 5.5em 5.5em;
+    gap: 6px;
+    padding: 4px 0;
+    font-size: 0.95rem;
+  }
+
+  .skjerm-spill > .sh-spiller.bunn {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .skjerm-spill > .dokk {
+    grid-column: 2;
+    grid-row: 4;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+}

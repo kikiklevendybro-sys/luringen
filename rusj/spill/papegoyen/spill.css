@@ -1,0 +1,679 @@
+/* Papegøyen — the parrot's chair, forbidden words and a squawk. Everything is prefixed pa-. */
+
+/* ---------- Setup ---------- */
+
+.pa-pakker .fliser {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pa-pakker .flis {
+  padding: 12px 10px;
+  padding-right: 34px;
+}
+
+.pa-pakker .flervalg .flis::after {
+  top: 10px;
+  right: 10px;
+}
+
+.pa-to {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.pa-to .seg button {
+  padding-inline: 2px;
+}
+
+/* ---------- Forbidden words ---------- */
+
+.pa-forbud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 8px;
+  margin: 0;
+}
+
+.pa-forbudt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rod) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--rod);
+  color: var(--papir);
+  font: 900 0.98rem/1.2 var(--font-display);
+}
+
+.pa-forbudt::before {
+  content: "";
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, transparent 43%, var(--rod) 43% 57%, transparent 57%);
+  box-shadow: inset 0 0 0 2.5px var(--rod);
+}
+
+.pa-forbudt.nikk {
+  font-weight: 800;
+}
+
+/* ---------- The chair (who's next) ---------- */
+
+.pa-stol {
+  gap: 10px;
+}
+
+.pa-stol-avatar {
+  position: relative;
+  display: inline-block;
+}
+
+.pa-stol-merke {
+  position: absolute;
+  right: -14px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--aksent);
+  box-shadow: 0 0 0 5px var(--natt);
+  font-size: 1.9rem;
+  animation: pa-vippe 2.4s ease-in-out infinite;
+}
+
+@keyframes pa-vippe {
+  50% {
+    transform: rotate(-12deg) translateY(-3px);
+  }
+}
+
+.pa-stol-tekst {
+  color: var(--tekst-2);
+  font: 800 1.1rem/1.3 var(--font-display);
+}
+
+/* ---------- The turn ---------- */
+
+.skjerm-spill {
+  gap: 14px;
+}
+
+.pa-topp {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.pa-hvem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pa-hvem > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+
+.pa-hvem small {
+  color: var(--tekst-3);
+  font: 800 0.75rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pa-hvem h1 {
+  font-size: clamp(1.3rem, 6.4vw, 2rem);
+  overflow-wrap: anywhere;
+}
+
+.pa-topp .timer {
+  padding: 0;
+  background: none;
+}
+
+.pa-topp .timer-ring {
+  width: 96px;
+  height: 96px;
+}
+
+.pa-topp .timer-tid {
+  font-size: 2.1rem;
+}
+
+.pa-topp .timer.pause .timer-ring {
+  opacity: 0.5;
+}
+
+/* The question card sits in the middle of the room between the rules and the buttons. */
+.pa-kortplass {
+  position: relative;
+  display: grid;
+  flex: 0 1 auto;
+  margin-block: auto;
+}
+
+.pa-kortplass .bunke {
+  min-height: min(44vh, 330px);
+}
+
+.pa-kort {
+  --kf: var(--papir);
+}
+
+/* Label row at the top, the question in the middle of the card */
+.bunke.kompakt .pa-kort .storkort-tekst {
+  margin: auto 0;
+  padding-bottom: 12px;
+  font-size: clamp(1.9rem, 8.4vw, 2.6rem);
+}
+
+.bunke.kompakt .pa-kort.pa-lang .storkort-tekst {
+  font-size: clamp(1.5rem, 6.6vw, 2.05rem);
+}
+
+.pa-kortplass.pauset .bunke {
+  opacity: 0.45;
+  filter: blur(1.5px);
+}
+
+.pa-pauseskilt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: var(--lampe);
+  box-shadow: 0 5px 0 var(--lampe-dyp);
+  color: var(--blekk);
+  font: 900 1.4rem/1 var(--font-display);
+  transform: translate(-50%, -50%) rotate(-3deg);
+}
+
+.pa-knapper {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
+  gap: 12px;
+}
+
+.pa-knapper .knapp {
+  min-height: 74px;
+  padding-inline: 12px;
+}
+
+/* ---------- The squawk ---------- */
+
+.pa-skrik,
+.pa-klarte {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.pa-skrik h1,
+.pa-klarte h1 {
+  font-size: clamp(1.7rem, 8vw, 2.3rem);
+  overflow-wrap: anywhere;
+}
+
+.pa-papegoye {
+  position: relative;
+  width: 156px;
+  margin: 18px 0 0 -70px;
+  animation: pa-skrik 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.pa-papegoye .figur-ramme {
+  display: block;
+  width: 100%;
+}
+
+@keyframes pa-skrik {
+  0% {
+    transform: scale(0.6) rotate(-10deg);
+  }
+  45% {
+    transform: scale(1.12) rotate(6deg);
+  }
+  70% {
+    transform: rotate(-4deg);
+  }
+}
+
+.pa-boble {
+  position: absolute;
+  top: -14px;
+  left: 118px;
+  width: max-content;
+  max-width: 44vw;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 1.12rem/1.15 var(--font-display);
+  text-align: left;
+  transform: rotate(4deg);
+  animation: pa-boble 0.45s 0.25s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.pa-boble::before {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  left: -12px;
+  border: 8px solid transparent;
+  border-right: 14px solid var(--papir);
+  border-left: 0;
+}
+
+@keyframes pa-boble {
+  from {
+    opacity: 0;
+    transform: rotate(4deg) scale(0.4);
+  }
+}
+
+.pa-fjar {
+  position: absolute;
+  top: 40%;
+  left: 40%;
+  font-size: 1.6rem;
+  opacity: 0;
+  animation: pa-fjar 1.5s ease-out forwards;
+}
+
+.pa-fjar.f1 {
+  --fx: -90px;
+  --fy: -40px;
+  --fr: -70deg;
+}
+
+.pa-fjar.f2 {
+  --fx: -60px;
+  --fy: 60px;
+  --fr: 40deg;
+  animation-delay: 0.08s;
+}
+
+.pa-fjar.f3 {
+  --fx: 70px;
+  --fy: 70px;
+  --fr: 110deg;
+  animation-delay: 0.15s;
+}
+
+@keyframes pa-fjar {
+  0% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--fx), var(--fy)) rotate(var(--fr));
+  }
+}
+
+.pa-klarte .stempel-sted {
+  min-height: 70px;
+}
+
+.pa-klarte .stempel {
+  font-size: clamp(1.8rem, 9vw, 2.5rem);
+}
+
+.pa-vinneravatar .avatar.gigant {
+  width: 112px;
+  height: 112px;
+  font-size: 3.6rem;
+}
+
+.pa-tall {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: -4px 0 0;
+}
+
+.pa-tall span {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.2 var(--font-display);
+}
+
+.pa-tall b {
+  color: var(--tekst);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scores are seconds */
+.pa-sek .sum::after {
+  content: " s";
+  font-size: 0.7em;
+  opacity: 0.75;
+}
+
+/* ---------- The end ---------- */
+
+.pa-vinner {
+  position: relative;
+  display: inline-block;
+}
+
+.pa-krone {
+  position: absolute;
+  top: -20px;
+  right: -16px;
+  font-size: 2.8rem;
+  transform: rotate(12deg);
+  animation: sveve 3s ease-in-out infinite;
+}
+
+.pa-delt {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.pa-delt-banner h1 {
+  font-size: clamp(1.8rem, 8vw, 2.4rem);
+  overflow-wrap: anywhere;
+}
+
+.pa-priser {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pa-priser li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.pa-pris-ikon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--papir);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.pa-priser span:last-child {
+  min-width: 0;
+}
+
+.pa-priser b {
+  display: block;
+  font: 900 1.02rem/1.2 var(--font-display);
+}
+
+.pa-priser small {
+  display: block;
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Short and narrow screens ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-spill {
+    gap: 10px;
+  }
+
+  .pa-topp .timer-ring {
+    width: 76px;
+    height: 76px;
+  }
+
+  .pa-topp .timer-tid {
+    font-size: 1.7rem;
+  }
+
+  .pa-hvem .avatar.mid {
+    width: 42px;
+    height: 42px;
+    font-size: 1.3rem;
+  }
+
+  .pa-forbudt {
+    padding: 3px 10px 3px 6px;
+    font-size: 0.88rem;
+  }
+
+  .pa-kortplass .bunke {
+    min-height: min(38vh, 300px);
+  }
+
+  .bunke.kompakt .pa-kort .storkort-tekst {
+    font-size: clamp(1.55rem, 7vw, 2rem);
+  }
+
+  .bunke.kompakt .pa-kort.pa-lang .storkort-tekst {
+    font-size: clamp(1.3rem, 5.8vw, 1.7rem);
+  }
+
+  .pa-knapper .knapp {
+    min-height: 60px;
+  }
+
+  .pa-papegoye {
+    width: 120px;
+    margin-top: 10px;
+  }
+
+  .pa-boble {
+    left: 92px;
+  }
+
+  .pa-stol .avatar.gigant {
+    width: 108px;
+    height: 108px;
+    font-size: 3.4rem;
+  }
+}
+
+@media (max-width: 359px) {
+  .pa-pakker .fliser {
+    grid-template-columns: 1fr;
+  }
+
+  .pa-to {
+    grid-template-columns: 1fr;
+  }
+
+  .pa-knapper .knapp {
+    padding-inline: 8px;
+    font-size: 1.05rem;
+  }
+}
+
+/* «Lurt av: «…»» under the squawk */
+.pa-lurt {
+  max-width: 34ch;
+  color: var(--tekst-2);
+  font: 700 1rem/1.35 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.pa-kort .storkort-fot {
+  font-style: italic;
+}
+
+.skjerm-oppsett .dokk .feil {
+  min-height: 0;
+}
+
+/* ---------- Phone on its side: content left, buttons right (never behind the dock) ---------- */
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .skjerm-stol,
+  .skjerm-spill,
+  .skjerm-ute {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-content: center;
+    gap: 10px 20px;
+  }
+
+  .skjerm-stol > .dokk,
+  .skjerm-spill > .dokk,
+  .skjerm-ute > .dokk {
+    position: static;
+    grid-area: dokk;
+    align-self: center;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .skjerm-stol {
+    grid-template-areas: "prikk dokk" "gi dokk";
+  }
+
+  .skjerm-stol > .fremdrift {
+    grid-area: prikk;
+  }
+
+  .skjerm-stol > .gi-til {
+    grid-area: gi;
+    gap: 6px;
+    padding-block: 0;
+  }
+
+  .pa-stol .avatar.gigant {
+    width: 84px;
+    height: 84px;
+    font-size: 2.6rem;
+  }
+
+  .pa-stol-merke {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+
+  .skjerm-spill {
+    grid-template-areas: "kort topp" "kort forbud" "kort dokk";
+  }
+
+  .skjerm-spill > .pa-topp {
+    grid-area: topp;
+  }
+
+  .skjerm-spill > .pa-forbud {
+    grid-area: forbud;
+  }
+
+  .skjerm-spill > .pa-kortplass {
+    grid-area: kort;
+    margin: 0;
+  }
+
+  .pa-kortplass .bunke {
+    min-height: min(68vh, 290px);
+  }
+
+  .pa-topp .timer-ring {
+    width: 72px;
+    height: 72px;
+  }
+
+  .pa-topp .timer-tid {
+    font-size: 1.6rem;
+  }
+
+  .pa-knapper .knapp {
+    min-height: 56px;
+  }
+
+  .skjerm-ute {
+    grid-template-areas: "topp liste" "tall dokk";
+  }
+
+  .skjerm-ute > .pa-skrik,
+  .skjerm-ute > .pa-klarte {
+    grid-area: topp;
+  }
+
+  .skjerm-ute > .pa-tall {
+    grid-area: tall;
+    margin: 0;
+  }
+
+  .skjerm-ute > .pa-stilling {
+    grid-area: liste;
+  }
+
+  .pa-papegoye {
+    width: 96px;
+    margin-top: 6px;
+  }
+
+  .pa-boble {
+    left: 76px;
+    font-size: 0.95rem;
+  }
+
+  .pa-skrik h1,
+  .pa-klarte h1 {
+    font-size: 1.4rem;
+  }
+
+  .pa-vinneravatar .avatar.gigant {
+    width: 72px;
+    height: 72px;
+    font-size: 2.3rem;
+  }
+
+  .pa-klarte .stempel-sted {
+    min-height: 50px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .pa-hvem .avatar {
+    display: none;
+  }
+
+  .pa-hvem h1 {
+    font-size: 1.25rem;
+    overflow-wrap: break-word;
+  }
+
+  .pa-knapper .knapp {
+    padding-inline: 8px;
+    font-size: 1.05rem;
+  }
+}

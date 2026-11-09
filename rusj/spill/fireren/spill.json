@@ -1,0 +1,13 @@
+{
+  "id": "fireren",
+  "navn": "Fireren",
+  "undertittel": "Fire på rad",
+  "beskrivelse": "Gratis fire på rad på norsk. Slipp brikkene og få fire på rad – mot en venn på samme mobil eller mot mobilen på tre nivåer.",
+  "kort": "Slipp brikkene – først til fire på rad vinner.",
+  "spillere": [1, 2],
+  "minutter": [2, 20],
+  "mobiler": "en",
+  "tagger": ["klassiker", "barn", "familie", "alene"],
+  "rekkefolge": 27,
+  "sok": ["fire på rad", "4 på rad", "connect four", "connect 4", "firepårad"]
+}

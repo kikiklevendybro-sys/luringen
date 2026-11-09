@@ -1,0 +1,14 @@
+{
+  "id": "ringen",
+  "navn": "Ringen",
+  "undertittel": "Kortringen",
+  "beskrivelse": "Gratis drikkelek med kort på norsk (18+). Trekk et kort fra ringen – hvert kort har sin regel. Bare små slurker, og alkoholfritt teller like mye.",
+  "kort": "Trekk et kort fra ringen – hvert kort har sin egen regel.",
+  "spillere": [3, 12],
+  "minutter": [15, 45],
+  "mobiler": "en",
+  "tagger": ["drikke", "fest"],
+  "rekkefolge": 43,
+  "alder18": true,
+  "sok": ["ring of fire", "kongens kopp", "kings cup", "drikkelek kort", "drikkeleker", "drikkespill med kort"]
+}

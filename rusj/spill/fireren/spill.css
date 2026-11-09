@@ -1,0 +1,639 @@
+/* Fireren — a 7 × 6 board: a blue slab with real holes (a CSS mask) in front of the discs, so a
+   falling disc is only seen through the holes. Players: 0 = rosa, 1 = gul. */
+
+.skjerm-spill {
+  --fi-panel: #2f5bd3;
+  --fi-panel-dyp: #1d3a9a;
+  --fi-hull: #0f0820;
+  gap: 12px;
+}
+
+.fi-disk {
+  --f: var(--rosa);
+  --f-dyp: var(--rosa-dyp);
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--f) 0 45%, var(--f-dyp) 48% 58%, var(--f) 62%);
+  box-shadow: 0 1.5px 0 rgba(6, 2, 14, 0.5);
+}
+
+.fi-disk.gul,
+.fi-brikke.gul,
+.fi-sikte.gul,
+.fi-spiller.gul {
+  --f: var(--lampe);
+  --f-dyp: var(--lampe-dyp);
+}
+
+/* ---------- Score ---------- */
+
+/* A scoreboard: each player with avatar and name, the score in the middle. */
+.fi-stilling {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.fi-tall {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  justify-items: center;
+  gap: 2px 8px;
+  font: 900 2.3rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.fi-tall span {
+  color: var(--tekst-3);
+  font-size: 1.4rem;
+}
+
+.fi-tall small {
+  grid-column: 1 / -1;
+  color: var(--tekst-3);
+  font: 700 0.72rem/1.2 var(--font-tekst);
+  white-space: nowrap;
+}
+
+.fi-spiller {
+  --f: var(--rosa);
+  --f-dyp: var(--rosa-dyp);
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 9px 8px 8px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  text-align: center;
+  transition: box-shadow 0.25s, background 0.25s, transform 0.25s;
+}
+
+.fi-spiller.aktiv {
+  background: color-mix(in srgb, var(--f) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--f), 0 0 22px color-mix(in srgb, var(--f) 30%, transparent);
+  transform: translateY(-2px);
+}
+
+.fi-spiller.vant {
+  background: var(--f);
+  box-shadow: 0 4px 0 var(--f-dyp);
+  color: var(--blekk);
+}
+
+.fi-merke {
+  position: relative;
+  display: block;
+}
+
+.fi-merke .avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 1.3rem;
+}
+
+.fi-merke .fi-disk {
+  position: absolute;
+  right: -5px;
+  bottom: -3px;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  box-shadow: 0 0 0 2.5px var(--natt-2);
+}
+
+.fi-spiller.aktiv .fi-merke .fi-disk {
+  box-shadow: 0 0 0 2.5px color-mix(in srgb, var(--f) 16%, var(--natt-2));
+}
+
+.fi-maskin {
+  display: block;
+  width: 42px;
+  margin: -2px 0;
+}
+
+.fi-maskin .figur-ramme {
+  display: block;
+}
+
+.fi-navn {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 0.98rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Message ---------- */
+
+.fi-melding {
+  --f: var(--rosa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 900 1.12rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.fi-melding.gul {
+  --f: var(--lampe);
+}
+
+.fi-melding.vinner {
+  background: var(--f);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--f) 55%, var(--natt));
+  color: var(--blekk);
+  animation: fi-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.fi-melding.uavgjort {
+  background: var(--natt-3);
+  color: var(--tekst);
+  animation: fi-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes fi-hopp {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+
+.fi-tenker i {
+  font-style: normal;
+  animation: fi-prikk 1.2s infinite both;
+}
+
+.fi-tenker i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.fi-tenker i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes fi-prikk {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+/* ---------- The board ---------- */
+
+.fi-luft {
+  flex: 2 1 0;
+}
+
+.fi-luft.under {
+  flex-grow: 3;
+}
+
+.fi-ramme {
+  --rand: 10px;
+  align-self: center;
+  width: 100%;
+  max-width: 100%;
+  /* room above the board for the disc you are aiming with (--celle is set by tilpass) */
+  padding: calc(var(--celle, 46px) + 4px) var(--rand) var(--rand);
+}
+
+.fi-brett {
+  position: relative;
+  aspect-ratio: 7 / 6;
+  border-radius: 6px;
+  background: var(--fi-hull);
+  box-shadow: 0 0 0 var(--rand) var(--fi-panel), 0 calc(var(--rand) + 6px) 0 0 var(--fi-panel-dyp), 0 22px 40px var(--skygge);
+}
+
+/* The top edge of the frame lies in front of the discs, so a disc slides in behind it. */
+.fi-brett::after {
+  content: "";
+  position: absolute;
+  top: calc(-1 * var(--rand));
+  right: calc(-1 * var(--rand));
+  left: calc(-1 * var(--rand));
+  z-index: 2;
+  height: var(--rand);
+  border-radius: 14px 14px 0 0;
+  background: var(--fi-panel);
+  pointer-events: none;
+}
+
+.fi-lag {
+  position: absolute;
+  inset: 0;
+}
+
+.fi-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(170deg, color-mix(in srgb, #fff 14%, var(--fi-panel)), var(--fi-panel) 40%, color-mix(in srgb, var(--fi-panel-dyp) 70%, var(--fi-panel)));
+  -webkit-mask: radial-gradient(circle closest-side, transparent 0 79%, #000 82%) 0 0 / calc(100% / 7) calc(100% / 6);
+  mask: radial-gradient(circle closest-side, transparent 0 79%, #000 82%) 0 0 / calc(100% / 7) calc(100% / 6);
+  pointer-events: none;
+}
+
+.fi-brikke {
+  --f: var(--rosa);
+  --f-dyp: var(--rosa-dyp);
+  position: absolute;
+  bottom: calc(var(--r) * 100% / 6);
+  left: calc(var(--k) * 100% / 7);
+  display: grid;
+  place-items: center;
+  width: calc(100% / 7);
+  height: calc(100% / 6);
+}
+
+.fi-brikke::before {
+  content: "";
+  width: 86%;
+  height: 86%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.45) 0 9%, transparent 10%), radial-gradient(circle, var(--f) 0 47%, var(--f-dyp) 50% 57%, var(--f) 60%);
+  transition: filter 0.4s;
+}
+
+.fi-brikke.fall {
+  animation: fi-fall var(--tid, 400ms) both;
+}
+
+@keyframes fi-fall {
+  0% {
+    transform: translateY(calc(var(--fra) * -100%));
+    animation-timing-function: cubic-bezier(0.5, 0, 1, 0.6);
+  }
+  72% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  86% {
+    transform: translateY(-13%);
+    animation-timing-function: cubic-bezier(0.6, 0, 1, 0.6);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.fi-brikke.sist::after {
+  content: "";
+  position: absolute;
+  width: 18%;
+  height: 18%;
+  border-radius: 50%;
+  background: rgba(23, 14, 43, 0.35);
+}
+
+.fi-brikke.dempet::before {
+  filter: saturate(0.45) brightness(0.55);
+}
+
+.fi-brikke.vinn::before {
+  animation: fi-vinn 0.75s ease-in-out infinite alternate;
+}
+
+@keyframes fi-vinn {
+  from {
+    transform: scale(0.86);
+  }
+  to {
+    transform: scale(1);
+    filter: brightness(1.15);
+  }
+}
+
+/* The winning line, drawn across the board */
+.fi-strek {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.fi-strek line {
+  stroke: var(--papir);
+  stroke-width: 15;
+  stroke-linecap: round;
+  stroke-dasharray: 800;
+  stroke-dashoffset: 800;
+  opacity: 0.92;
+  filter: drop-shadow(0 3px 0 rgba(6, 2, 14, 0.45));
+  animation: fi-strek 0.5s 0.35s ease-out forwards;
+}
+
+@keyframes fi-strek {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Columns: tap anywhere in a column (also above the board) */
+.fi-kolonner {
+  position: absolute;
+  top: calc(-100% / 6 - 4px - var(--rand));
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.fi-kol {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.fi-kol[aria-disabled="true"] {
+  cursor: default;
+}
+
+.fi-kol:focus-visible {
+  outline: 3px solid var(--papir);
+  outline-offset: -3px;
+}
+
+.fi-sikte {
+  --f: var(--rosa);
+  --f-dyp: var(--rosa-dyp);
+  position: absolute;
+  top: 0;
+  left: 7%;
+  width: 86%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--f) 0 47%, var(--f-dyp) 50% 57%, var(--f) 60%);
+  opacity: 0;
+  transform: translateY(6px) scale(0.9);
+  transition: opacity 0.15s, transform 0.15s;
+  pointer-events: none;
+}
+
+.fi-kolonner:not(.venter) .fi-kol:not([aria-disabled="true"]):hover .fi-sikte,
+.fi-kolonner:not(.venter) .fi-kol:not([aria-disabled="true"]):focus-visible .fi-sikte {
+  opacity: 0.85;
+  transform: none;
+}
+
+@media (hover: hover) {
+  .fi-kolonner:not(.venter) .fi-kol:not([aria-disabled="true"]):hover {
+    background: linear-gradient(to bottom, transparent calc(100% / 7 + 8px), rgba(255, 255, 255, 0.07) 0);
+  }
+}
+
+.fi-brett.ferdig .fi-kolonner {
+  pointer-events: none;
+}
+
+.fi-knappedisk {
+  display: inline-block;
+  width: 1.05em;
+  height: 1.05em;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--rosa) 0 45%, var(--rosa-dyp) 48% 58%, var(--rosa) 62%);
+  box-shadow: 0 2px 0 rgba(6, 2, 14, 0.35);
+}
+
+/* ---------- Home and result ---------- */
+
+.fi-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.fi-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fi-rekorder li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fi-rekorder li b {
+  color: var(--tekst);
+}
+
+.fi-niva {
+  min-width: 5.5em;
+  font-family: var(--font-display);
+}
+
+.fi-vinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.fi-krone {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  transform: translateX(-50%) rotate(-12deg);
+  animation: fi-krone 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.3s;
+}
+
+@keyframes fi-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30px) rotate(-30deg) scale(0.4);
+  }
+}
+
+/* Exactly two players: no «add player» button. */
+.skjerm-oppsett .legg-til:disabled {
+  display: none;
+}
+
+/* ---------- Short and narrow screens ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-spill {
+    gap: 8px;
+  }
+
+  .fi-spiller {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 7px;
+    padding: 5px 8px 5px 6px;
+    border-radius: 999px;
+  }
+
+  .fi-merke .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+
+  .fi-merke .fi-disk {
+    width: 14px;
+    height: 14px;
+  }
+
+  .fi-maskin {
+    width: 32px;
+  }
+
+  /* Names may take two short lines here, so they are not cut */
+  .fi-navn {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.86rem;
+    line-height: 1.1;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .fi-tall {
+    font-size: 1.8rem;
+  }
+
+  .fi-melding {
+    min-height: 36px;
+    padding-block: 5px;
+    font-size: 1rem;
+  }
+
+  .fi-ramme {
+    --rand: 8px;
+  }
+}
+
+@media (max-width: 359px) {
+  .fi-stilling {
+    gap: 5px;
+  }
+
+  .fi-tall {
+    gap: 2px 5px;
+  }
+}
+
+/* The smallest phones: a small avatar above a one-line name (no room beside it). */
+@media (max-width: 359px) and (max-height: 700px) {
+  .fi-spiller {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 3px;
+    padding: 5px 6px 4px;
+    border-radius: 14px;
+  }
+
+  .fi-merke .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+
+  .fi-merke .fi-disk {
+    width: 13px;
+    height: 13px;
+  }
+
+  .fi-maskin {
+    width: 28px;
+  }
+
+  .fi-navn {
+    display: block;
+    font-size: 0.8rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+}
+
+/* Phones on their side: the board on the left, the score, the message and the buttons beside it. */
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="fireren"] .app:has(.skjerm-spill) {
+    max-width: 1000px;
+  }
+
+  .skjerm-spill {
+    display: grid;
+    grid-template-columns: auto minmax(220px, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    column-gap: 22px;
+    row-gap: 10px;
+    align-content: start;
+    padding-bottom: 12px;
+  }
+
+  .skjerm-spill > .fi-ramme {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: start;
+  }
+
+  .skjerm-spill > .fi-stilling {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .skjerm-spill > .fi-melding {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .fi-luft {
+    display: none;
+  }
+
+  .skjerm-spill > .dokk {
+    grid-column: 2;
+    grid-row: 4;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+}

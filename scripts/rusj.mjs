@@ -213,7 +213,11 @@ ${o.css.map((c) => `<link rel="stylesheet" href="${c}">`).join("\n")}
       alder18: !!m.alder18,
     };
     // Drinking games only suggest each other; other games never suggest a drinking game.
-    const andre = alleSpillKort.filter((g) => g.id !== id && !!g.alder18 === !!m.alder18).map((g) => ({ id: g.id, navn: g.navn, undertittel: g.undertittel, spillere: g.spillere, farge: g.farge }));
+    // Other games to suggest on the end screen: never drinking games from an ordinary game; a drinking
+    // game also suggests ordinary ones (the kit mixes in at least one «pause» from the rest).
+    const andre = alleSpillKort
+      .filter((g) => g.id !== id && (m.alder18 || !g.alder18))
+      .map((g) => ({ id: g.id, navn: g.navn, undertittel: g.undertittel, spillere: g.spillere, farge: g.farge, ...(g.alder18 ? { alder18: true } : {}) }));
     const dataJs =
       "window.RUSJ_SPILL=" + JSON.stringify(meta) + ";\nwindow.RUSJ_ANDRE=" + JSON.stringify(andre).replace(/</g, "\\u003c") + ";\nwindow.RUSJ_DATA=" + JSON.stringify(data).replace(/</g, "\\u003c") + ";\n";
     const dataSti = skriv(`${id}/data.js`, dataJs);
@@ -293,34 +297,32 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
     undertittel: m.undertittel,
     kort: m.kort,
     spillere: m.spillere,
+    minutter: m.minutter,
     tagger: m.tagger,
     mobiler: m.mobiler,
+    farge: m.farge,
     alder18: !!m.alder18,
     sok: Array.isArray(m.sok) ? m.sok : [],
   }));
   const portalData = skriv("felles/spilliste.js", "window.RUSJ_SPILLISTE=" + JSON.stringify(spillData) + ";");
-  const MOBIL = { en: "Én mobil", hver: "Hver sin mobil", begge: "Én eller flere mobiler" };
+  // One card per game. «Alle spill» shows it as a compact row; portal.js copies it into the
+  // shelves (as a bigger tile), the «Fortsett» row, the parade and «Overrask meg».
+  const spillereLang = (m) => (m.spillere[1] === 1 ? "For én spiller." : `${spillereTekst(m)} spillere.`);
   const kort = alleKort
     .map(
-      (m, n) => `<li class="spillkort" data-id="${m.id}"${m.alder18 ? " data-alder18" : ""} style="--kf: ${m.farge}; --i: ${n}">
-        <a href="/${m.id}/" aria-label="${esc(`${m.navn}: ${m.undertittel}. ${m.kort}`)}">
-          <span class="kort-figur">${G.svg(m.id)}</span>
+      (m) => `<li class="spillkort" data-id="${m.id}"${m.alder18 ? " data-alder18" : ""} style="--kf: ${m.farge}">
+        <a href="/${m.id}/" aria-label="${esc(`${m.navn}: ${m.undertittel}. ${m.kort} ${spillereLang(m)}`)}">
+          <span class="kort-figur">${G.svg(m.id)}${m.alder18 ? '<span class="kort-18" aria-hidden="true">18+</span>' : ""}</span>
           <span class="kort-tekst">
             <span class="kort-sjanger">${esc(m.undertittel)}</span>
             <span class="kort-navn">${esc(m.navn)}</span>
             <span class="kort-linje">${esc(m.kort)}</span>
-            <span class="kort-fakta"><span>👥 ${spillereTekst(m)}</span><span>⏱ ${tidTekst(m)}</span><span>📱 ${MOBIL[m.mobiler]}</span></span>
           </span>
-          <span class="kort-fortsett" hidden>Fortsett</span>
-          ${m.alder18 ? '<span class="kort-18" aria-hidden="true">18+</span>' : ""}
+          <span class="kort-spillere"><span aria-hidden="true">👥</span> ${spillereTekst(m)}</span>
         </a>
       </li>`,
     )
     .join("\n");
-  const parade = alleKort
-    .filter((m) => !m.alder18)
-    .map((m) => `<a class="parade-figur" href="/${m.id}/" style="--kf: ${m.farge}" aria-label="${esc(m.navn)}">${G.svg(m.id)}</a>`)
-    .join("");
   const brukteTagger = Object.keys(TAGGER).filter((t) => alleKort.some((m) => m.tagger.includes(t)));
   const portalSide = `${hode({
     tittel: "rusj – gratis festspill på norsk, rett i nettleseren",
@@ -341,42 +343,49 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
   </ul>
   <div class="helt-knapper">
     <a class="knapp" href="#spill">Finn et spill</a>
-    <button class="knapp-2" id="overrask" type="button"><span aria-hidden="true">🎲</span> Overrask meg</button>
+    <button class="knapp-2" id="overrask" type="button" aria-haspopup="dialog"><span aria-hidden="true">🎲</span> Overrask meg</button>
   </div>
-  <span class="filter-vakt" aria-hidden="true"></span>
-  <nav class="parade" aria-label="Rusj-gjengen"><div class="parade-spor">${parade}${parade.replace(/<a /g, '<a tabindex="-1" aria-hidden="true" ')}</div></nav>
+  <div class="parade" aria-hidden="true"><div class="parade-spor" id="parade"></div></div>
 </header>
 <main class="portal-hoved">
+  <section class="fortsett" id="fortsett" hidden aria-labelledby="fortsett-tittel">
+    <h2 id="fortsett-tittel">Fortsett der dere slapp</h2>
+    <ul class="fortsett-rad" id="fortsett-rad"></ul>
+  </section>
   <div class="installtips" id="installtips" hidden>
     <span class="installtips-ikon" aria-hidden="true">📲</span>
-    <span class="installtips-tekst"><b>Tips:</b> Legg rusj på hjemskjermen – da starter spillene som en app og virker uten nett.</span>
+    <span class="installtips-tekst"><b>Ha rusj som app.</b> Den starter rett fra hjemskjermen og virker uten nett.</span>
     <button type="button" class="installtips-vis" id="installtips-vis">Vis meg</button>
     <button type="button" class="installtips-lukk" id="installtips-lukk" aria-label="Skjul tipset">×</button>
   </div>
   <section class="kveld" id="kveld" hidden aria-labelledby="kveld-tittel">
     <div class="kveld-topp"><h2 id="kveld-tittel">🏆 Kveldens gjeng</h2><span class="kveld-antall" id="kveld-antall"></span></div>
     <ol class="kveld-liste" id="kveld-liste"></ol>
-    <p class="kveld-fot">3 poeng for seier, 2 for andreplass og 1 for tredje – i alle spillene dere spiller i kveld.</p>
-    <button type="button" class="lenke" id="kveld-nullstill">Start en ny kveld</button>
+    <div class="kveld-knapper">
+      <button type="button" class="kveld-alle" id="kveld-alle" aria-expanded="false" aria-controls="kveld-liste" hidden>Vis alle</button>
+      <button type="button" class="lenke" id="kveld-nullstill">Start en ny kveld</button>
+    </div>
+    <p class="kveld-fot">3 poeng for seier, 2 for andreplass og 1 for tredjeplass – i alle spillene dere spiller i kveld.</p>
   </section>
   <h2 class="filter-overskrift" id="spill" tabindex="-1">Hva skal vi spille?</h2>
-  <div class="filter" role="region" aria-label="Søk og filter">
+  <div class="filter" id="filter" role="search">
     <div class="sok">
       <span class="sok-ikon" aria-hidden="true">🔎</span>
       <input type="search" id="sok" placeholder="Søk: quiz, kortspill, barn …" aria-label="Søk etter spill" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
       <button type="button" class="sok-tom" id="sok-tom" aria-label="Tøm søket" hidden>×</button>
     </div>
-    <div class="filter-rad">
-      <div class="antall" role="group" aria-label="Hvor mange spillere er dere?">
-        <span class="antall-tekst">Spillere</span>
-        <button type="button" class="antall-knapp" data-antall="-1" aria-label="Færre">−</button>
-        <output id="antall" aria-live="polite">alle</output>
-        <button type="button" class="antall-knapp" data-antall="1" aria-label="Flere">+</button>
-      </div>
-      <div class="brikker" id="tagger" role="group" aria-label="Type spill">
-        <button type="button" class="brikke alle" data-tagg="" aria-pressed="true">Alle</button>
-        ${brukteTagger.map((t) => `<button type="button" class="brikke" data-tagg="${t}" aria-pressed="false">${esc(TAGGER[t])}</button>`).join("")}
-      </div>
+    <button type="button" class="filter-knapp" id="filter-knapp" aria-controls="filtre"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.3"/><circle cx="9" cy="17" r="2.3"/></svg><span>Filter</span><span class="filter-antall" id="filter-antall" hidden></span></button>
+  </div>
+  <div class="filtre" id="filtre" role="group" aria-label="Filter">
+    <div class="antall" role="group" aria-label="Hvor mange spillere er dere?">
+      <span class="antall-tekst">Spillere</span>
+      <button type="button" class="antall-knapp" data-antall="-1" aria-label="Færre spillere">−</button>
+      <output id="antall" aria-live="polite">alle</output>
+      <button type="button" class="antall-knapp" data-antall="1" aria-label="Flere spillere">+</button>
+    </div>
+    <div class="brikker" id="tagger" role="group" aria-label="Type spill">
+      <button type="button" class="brikke alle" data-tagg="" aria-pressed="true">Alle</button>
+      ${brukteTagger.map((t) => `<button type="button" class="brikke" data-tagg="${t}" aria-pressed="false">${esc(TAGGER[t])}</button>`).join("")}
     </div>
   </div>
   <p class="treff" id="treff" aria-live="polite"></p>
@@ -387,6 +396,7 @@ ${kort}
   </ul>
   <p class="ingen-treff" id="ingen-treff" hidden>Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type.</p>
   <dialog class="dialog" id="dialog" aria-labelledby="dialog-tittel"></dialog>
+  <dialog class="dialog automat" id="automat" aria-labelledby="automat-tittel"></dialog>
 
   <section class="slik" aria-labelledby="slik-tittel">
     <h2 id="slik-tittel">Så enkelt er det</h2>

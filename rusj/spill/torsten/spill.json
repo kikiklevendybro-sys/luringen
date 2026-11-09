@@ -1,0 +1,14 @@
+{
+  "id": "torsten",
+  "navn": "Tørsten",
+  "undertittel": "Jeg har aldri – drikkeversjon",
+  "beskrivelse": "Gratis «Jeg har aldri» som drikkelek på norsk (18+). Over 450 kort i sju pakker. Har du gjort det, tar du en slurk – alkoholfritt teller like mye.",
+  "kort": "«Jeg har aldri …» – har du gjort det, løfter du glasset.",
+  "spillere": [3, 20],
+  "minutter": [10, 45],
+  "mobiler": "en",
+  "tagger": ["drikke", "fest"],
+  "rekkefolge": 47,
+  "alder18": true,
+  "sok": ["jeg har aldri", "never have I ever", "jeg har aldri drikkelek", "drikkeleker", "drikkespill"]
+}

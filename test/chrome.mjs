@@ -65,10 +65,19 @@ export async function startChrome(valg = {}) {
   let ws;
   let neste = 0;
   const ventende = new Map();
+  // A command Chrome never answers fails after two minutes instead of hanging the test run.
   const send = (method, params = {}) =>
     new Promise((resolve, reject) => {
       const id = ++neste;
-      ventende.set(id, (d) => (d.error ? reject(new Error(`${method}: ${d.error.message}`)) : resolve(d.result)));
+      const stopp = setTimeout(() => {
+        ventende.delete(id);
+        reject(new Error(`${method}: Chrome svarte ikke på 2 minutter`));
+      }, 120000);
+      ventende.set(id, (d) => {
+        clearTimeout(stopp);
+        if (d.error) reject(new Error(`${method}: ${d.error.message}`));
+        else resolve(d.result);
+      });
       ws.send(JSON.stringify({ id, method, params }));
     });
 
@@ -177,7 +186,9 @@ export async function startChrome(valg = {}) {
   async function skjermbilde(fil, valg = {}) {
     const v = { format: "png" };
     if (valg.helside) {
-      const h = await js("document.documentElement.scrollHeight");
+      // Capped: headless Chrome hangs on full-page images much taller than ~6 000 device pixels
+      // (the rusj front page with 47 games: 3 000 px worked at scale 2, 4 000 px never finished).
+      const h = Math.min(await js("document.documentElement.scrollHeight"), Math.floor(6000 / (await js("window.devicePixelRatio || 1"))));
       v.captureBeyondViewport = true;
       v.clip = { x: 0, y: 0, width: await js("window.innerWidth"), height: h, scale: 1 };
     } else if (valg.klipp) {

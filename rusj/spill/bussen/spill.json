@@ -1,0 +1,14 @@
+{
+  "id": "bussen",
+  "navn": "Bussen",
+  "undertittel": "Rød eller svart?",
+  "beskrivelse": "Gratis drikkespill på norsk (18+). Rød eller svart, høyere eller lavere – feil svar gir slurker, og den som bommer mest, tar bussen. Alkoholfritt teller.",
+  "kort": "Rød eller svart? Den som bommer mest, tar bussen.",
+  "spillere": [2, 10],
+  "minutter": [10, 25],
+  "mobiler": "en",
+  "tagger": ["drikke", "fest"],
+  "rekkefolge": 45,
+  "alder18": true,
+  "sok": ["ride the bus", "rød eller svart", "høyere lavere", "bussen drikkelek", "drikkelek kort"]
+}

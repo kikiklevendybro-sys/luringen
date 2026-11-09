@@ -1,0 +1,671 @@
+/* Bonden — kryss og bolle on a sheet of paper. The 3 × 3 grid and every mark are drawn with a
+   pen (SVG paths with pathLength 1, revealed by stroke-dashoffset). The 10 × 10 board is squared
+   paper. Player 0 draws kryss (rosa), player 1 bolle (blå). */
+
+.skjerm-spill {
+  --bo-kryss: #e8336f;
+  --bo-bolle: #2a76c9;
+  gap: 12px;
+}
+
+/* ---------- Marks ---------- */
+
+.bo-merke {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.bo-merke path {
+  fill: none;
+  stroke-width: 11;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bo-merke.kryss path {
+  stroke: var(--bo-kryss, #e8336f);
+}
+
+.bo-merke.bolle path {
+  stroke: var(--bo-bolle, #2a76c9);
+}
+
+.bo-merke.ny path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: bo-tegn 0.17s ease-out forwards;
+}
+
+.bo-merke.ny path.to {
+  animation-delay: 0.17s;
+}
+
+.bo-merke.ny.bolle path {
+  animation-duration: 0.34s;
+}
+
+@keyframes bo-tegn {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ---------- Score ---------- */
+
+.bo-stilling {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.bo-tall {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  justify-items: center;
+  gap: 2px 8px;
+  font: 900 2.3rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.bo-tall span {
+  color: var(--tekst-3);
+  font-size: 1.4rem;
+}
+
+.bo-tall small {
+  grid-column: 1 / -1;
+  color: var(--tekst-3);
+  font: 700 0.72rem/1.2 var(--font-tekst);
+  white-space: nowrap;
+}
+
+.bo-spiller {
+  --f: var(--rosa);
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 9px 8px 8px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  text-align: center;
+  transition: box-shadow 0.25s, background 0.25s, transform 0.25s;
+}
+
+.bo-spiller.bolle {
+  --f: var(--himmel);
+}
+
+.bo-spiller.aktiv {
+  background: color-mix(in srgb, var(--f) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--f), 0 0 22px color-mix(in srgb, var(--f) 30%, transparent);
+  transform: translateY(-2px);
+}
+
+.bo-spiller.vant {
+  background: var(--f);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--f) 55%, var(--natt));
+  color: var(--blekk);
+}
+
+.bo-figur {
+  position: relative;
+  display: block;
+}
+
+.bo-figur .avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 1.3rem;
+}
+
+.bo-maskin {
+  display: block;
+  width: 42px;
+  margin: -2px 0;
+}
+
+.bo-maskin .figur-ramme {
+  display: block;
+}
+
+/* The name, with the player's own mark drawn in coloured ink in front of it */
+.bo-navn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  max-width: 100%;
+  min-width: 0;
+  font: 900 0.98rem/1.15 var(--font-display);
+}
+
+.bo-navnetekst {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bo-navnetegn {
+  display: block;
+  flex: none;
+  width: 0.95em;
+  height: 0.95em;
+}
+
+.bo-navnetegn .bo-merke path {
+  stroke-width: 16;
+}
+
+/* On the dark cards the marks get the bright ink colours */
+.bo-spiller .bo-merke.kryss path {
+  stroke: var(--rosa);
+}
+
+.bo-spiller .bo-merke.bolle path {
+  stroke: var(--himmel);
+}
+
+.bo-spiller.vant .bo-merke path {
+  stroke: var(--blekk);
+}
+
+/* ---------- Message ---------- */
+
+.bo-melding {
+  --f: var(--rosa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  font: 900 1.12rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.bo-melding.bolle {
+  --f: var(--himmel);
+}
+
+/* Whose turn: the player's avatar (or the phone's mascot) in front of the text */
+.bo-meldingsfigur {
+  display: block;
+  flex: none;
+}
+
+.bo-meldingsfigur .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.95rem;
+}
+
+.bo-meldingsfigur .bo-maskin {
+  width: 32px;
+  margin: -4px 0;
+}
+
+.bo-melding.vinner {
+  background: var(--f);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--f) 55%, var(--natt));
+  color: var(--blekk);
+  animation: bo-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.bo-melding.uavgjort {
+  background: var(--natt-3);
+  animation: bo-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes bo-hopp {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+
+.bo-tenker i {
+  font-style: normal;
+  animation: bo-prikk 1.2s infinite both;
+}
+
+.bo-tenker i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.bo-tenker i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bo-prikk {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+/* ---------- The paper and the board ---------- */
+
+.bo-luft {
+  flex: 2 1 0;
+}
+
+.bo-luft.under {
+  flex-grow: 3;
+}
+
+.bo-papir {
+  align-self: center;
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 22px 40px var(--skygge);
+  transform: rotate(-0.6deg);
+}
+
+.bo-papir.fem {
+  padding: 10px;
+}
+
+.bo-brett {
+  position: relative;
+  aspect-ratio: 1;
+}
+
+/* Squared paper for five in a row */
+.bo-papir.fem .bo-brett {
+  background:
+    linear-gradient(to right, rgba(42, 118, 201, 0.28) 1.5px, transparent 1.5px) 0 0 / calc(100% / var(--n)) 100%,
+    linear-gradient(to bottom, rgba(42, 118, 201, 0.28) 1.5px, transparent 1.5px) 0 0 / 100% calc(100% / var(--n));
+  box-shadow: inset -1.5px -1.5px 0 rgba(42, 118, 201, 0.28);
+}
+
+.bo-rutenett {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.bo-rutenett path {
+  fill: none;
+  stroke: var(--blekk);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.bo-rutenett.tegn path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: bo-tegn 0.26s ease-out forwards;
+}
+
+.bo-rutenett.tegn path:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.bo-rutenett.tegn path:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+.bo-rutenett.tegn path:nth-child(4) {
+  animation-delay: 0.48s;
+}
+
+.bo-celler {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--n), minmax(0, 1fr));
+}
+
+.bo-celle {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 16%;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.bo-papir.fem .bo-celle {
+  padding: 13%;
+  border-radius: 3px;
+}
+
+.bo-papir.fem .bo-merke path {
+  stroke-width: 13;
+}
+
+.bo-celle[aria-disabled="true"] {
+  cursor: default;
+}
+
+.bo-celle:focus-visible {
+  outline: 3px solid var(--blekk);
+  outline-offset: -4px;
+}
+
+@media (hover: hover) {
+  .bo-celle:not([aria-disabled="true"]):hover {
+    background: rgba(23, 14, 43, 0.06);
+  }
+}
+
+.bo-celle.sist {
+  background: rgba(255, 210, 63, 0.32);
+}
+
+.bo-strek {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.bo-strek path {
+  fill: none;
+  stroke: var(--blekk);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0.85;
+  animation: bo-tegn 0.38s 0.55s ease-in-out forwards;
+}
+
+.bo-papir.fem .bo-strek path {
+  stroke-width: 5;
+}
+
+/* A yellow highlighter under the winning marks (multiplied with the paper and the grid) */
+.bo-penn {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.bo-penn path {
+  fill: none;
+  stroke: #ffd23f;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0.8;
+  animation: bo-tegn 0.32s 0.15s ease-out forwards;
+}
+
+/* The «X O» drawn on the buttons (kryss and bolle side by side, in pen) */
+.bo-knappetegn {
+  width: 2.1em;
+  height: 1.05em;
+  overflow: visible;
+}
+
+.bo-knappetegn path {
+  fill: none;
+  stroke-width: 13;
+  stroke-linecap: round;
+}
+
+.bo-knappetegn .x {
+  stroke: #c41f5c;
+}
+
+.bo-knappetegn .o {
+  stroke: #1c58a6;
+}
+
+/* Small cells: the first tap draws the mark faintly, the second for real */
+.bo-celle.forslag {
+  background: rgba(255, 210, 63, 0.35);
+  box-shadow: inset 0 0 0 2px rgba(23, 14, 43, 0.25);
+}
+
+.bo-celle.forslag .bo-merke {
+  opacity: 0.38;
+}
+
+/* ---------- Home and result ---------- */
+
+.bo-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.bo-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bo-rekorder li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.bo-rekorder li b {
+  color: var(--tekst);
+}
+
+.bo-niva {
+  font-family: var(--font-display);
+}
+
+.bo-vinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.bo-krone {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  transform: translateX(-50%) rotate(-12deg);
+  animation: bo-krone 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.3s;
+}
+
+@keyframes bo-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30px) rotate(-30deg) scale(0.4);
+  }
+}
+
+/* Exactly two players: no «add player» button. */
+.skjerm-oppsett .legg-til:disabled {
+  display: none;
+}
+
+/* ---------- Short and narrow screens ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-spill {
+    gap: 8px;
+  }
+
+  .bo-spiller {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 9px;
+    padding: 5px 8px 5px 6px;
+    border-radius: 999px;
+  }
+
+  .bo-figur .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+
+  .bo-maskin {
+    width: 32px;
+  }
+
+  /* Names may take two short lines here, so they are not cut */
+  .bo-navn {
+    justify-content: flex-start;
+    font-size: 0.86rem;
+    line-height: 1.1;
+  }
+
+  .bo-navnetekst {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .bo-meldingsfigur .avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.85rem;
+  }
+
+  .bo-tall {
+    font-size: 1.8rem;
+  }
+
+  .bo-melding {
+    min-height: 36px;
+    padding-block: 5px;
+    font-size: 1rem;
+  }
+
+  .bo-papir {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 359px) {
+  .bo-stilling {
+    gap: 5px;
+  }
+
+  .bo-tall {
+    gap: 2px 5px;
+  }
+}
+
+/* The smallest phones: a small avatar above a one-line name (no room beside it). */
+@media (max-width: 359px) and (max-height: 700px) {
+  .bo-spiller {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 3px;
+    padding: 5px 6px 4px;
+    border-radius: 14px;
+  }
+
+  .bo-figur .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+
+  .bo-maskin {
+    width: 28px;
+  }
+
+  .bo-navn {
+    justify-content: center;
+    font-size: 0.8rem;
+  }
+
+  .bo-navnetekst {
+    display: block;
+    white-space: nowrap;
+  }
+}
+
+/* Phones on their side: the board on the left, the score, the message and the buttons beside it. */
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="bonden"] .app:has(.skjerm-spill) {
+    max-width: 1000px;
+  }
+
+  .skjerm-spill {
+    display: grid;
+    grid-template-columns: auto minmax(220px, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    column-gap: 22px;
+    row-gap: 10px;
+    align-content: start;
+    padding-bottom: 12px;
+  }
+
+  .skjerm-spill > .bo-papir {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: start;
+  }
+
+  .skjerm-spill > .bo-stilling {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .skjerm-spill > .bo-melding {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .bo-luft {
+    display: none;
+  }
+
+  .skjerm-spill > .dokk {
+    grid-column: 2;
+    grid-row: 4;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+}

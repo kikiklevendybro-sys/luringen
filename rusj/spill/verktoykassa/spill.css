@@ -1,0 +1,1527 @@
+/* Verktøykassa: the toolbox home, the multi-touch «Hvem starter?» pad, 3D dice and coin, teams,
+   rock-paper-scissors, the number drum, the score counter and the clock. Prefix: vk-. */
+
+/* ---------- Home: the toolbox ---------- */
+
+.skjerm-hjem {
+  gap: 16px;
+}
+
+.vk-topp {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 2px;
+}
+
+.vk-topp .figur-ramme {
+  flex: none;
+  width: 86px;
+  animation: sveve 4.5s ease-in-out infinite;
+  filter: drop-shadow(0 12px 18px color-mix(in srgb, var(--aksent) 30%, transparent));
+}
+
+.vk-topp-tekst {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.vk-topp h1 {
+  font-size: clamp(2rem, 9.4vw, 2.6rem);
+  letter-spacing: -0.03em;
+  text-shadow: 0 4px 0 color-mix(in srgb, var(--aksent) 45%, var(--natt));
+}
+
+.vk-helt {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 112px;
+  padding: 16px 18px;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--r-stor);
+  background:
+    radial-gradient(circle at 18% 50%, color-mix(in srgb, var(--rosa) 40%, transparent), transparent 60%),
+    linear-gradient(120deg, color-mix(in srgb, var(--lilla) 35%, var(--natt-2)), var(--natt-2) 80%);
+  box-shadow: inset 0 0 0 2.5px color-mix(in srgb, var(--rosa) 60%, var(--strek)), 0 6px 0 color-mix(in srgb, var(--rosa-dyp) 60%, var(--natt));
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.vk-helt:active {
+  transform: translateY(3px);
+  box-shadow: inset 0 0 0 2.5px color-mix(in srgb, var(--rosa) 60%, var(--strek)), 0 3px 0 color-mix(in srgb, var(--rosa-dyp) 60%, var(--natt));
+}
+
+.vk-helt-fingre {
+  position: relative;
+  width: 84px;
+  height: 84px;
+}
+
+.vk-helt-fingre i {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--c), 0 0 16px 2px color-mix(in srgb, var(--c) 70%, transparent);
+  background: color-mix(in srgb, var(--c) 35%, transparent);
+  animation: vk-pust 2.4s ease-in-out infinite;
+}
+
+.vk-helt-fingre i:nth-child(1) { --c: var(--p4); top: 2px; left: 6px; }
+.vk-helt-fingre i:nth-child(2) { --c: var(--p9); top: 8px; right: 0; animation-delay: -0.6s; }
+.vk-helt-fingre i:nth-child(3) { --c: var(--p6); bottom: 2px; left: 0; animation-delay: -1.2s; }
+.vk-helt-fingre i:nth-child(4) { --c: var(--p7); bottom: 6px; right: 8px; animation-delay: -1.8s; }
+
+@keyframes vk-pust {
+  50% {
+    transform: scale(1.14);
+  }
+}
+
+.vk-helt-tekst {
+  display: grid;
+  gap: 4px;
+}
+
+.vk-helt-tekst b {
+  font: 900 1.55rem/1.1 var(--font-display);
+}
+
+.vk-helt-tekst span {
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.vk-verktoy {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* Icon on the left, name and a short line on the right */
+.vk-flis {
+  --vf: var(--aksent);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  column-gap: 11px;
+  row-gap: 2px;
+  min-width: 0;
+  min-height: 74px;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--vf) 14%, var(--natt-2)), var(--natt-2) 70%);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--vf) 42%, var(--strek));
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.vk-flis:active {
+  transform: scale(0.97);
+}
+
+.vk-flis:last-child {
+  grid-column: span 2;
+}
+
+.vk-flis-ikon {
+  display: grid;
+  grid-row: span 2;
+  place-items: center;
+  align-self: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--vf) 32%, var(--natt-3));
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.vk-flis b {
+  align-self: end;
+  font: 900 1.04rem/1.12 var(--font-display);
+}
+
+.vk-flis span:last-child {
+  align-self: start;
+  color: var(--tekst-2);
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+
+/* Narrower phones: icon on top, so the names keep whole words (the wide last tile stays as it is) */
+@media (max-width: 389px) {
+  .vk-flis:not(:last-child) {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    row-gap: 3px;
+    padding: 11px 12px 12px;
+  }
+
+  .vk-flis:not(:last-child) .vk-flis-ikon {
+    grid-row: auto;
+    width: 38px;
+    height: 38px;
+    margin-bottom: 4px;
+    border-radius: 12px;
+    font-size: 1.25rem;
+  }
+
+  .vk-flis:not(:last-child) b,
+  .vk-flis:not(:last-child) span:last-child {
+    align-self: auto;
+  }
+}
+
+.skjerm-hjem .merker {
+  padding-bottom: 12px;
+}
+
+/* ---------- «Hvem starter?» ---------- */
+
+.skjerm-starter {
+  gap: 12px;
+}
+
+.vk-pad {
+  position: relative;
+  flex: 1;
+  min-height: max(300px, calc(100vh - 230px));
+  overflow: hidden;
+  border-radius: var(--r-stor);
+  background:
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--aksent) 10%, transparent), transparent 65%),
+    repeating-radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 26px),
+    var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@supports (height: 100svh) {
+  .vk-pad {
+    min-height: max(300px, calc(100svh - 230px));
+  }
+}
+
+.vk-pad-hjelp {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--tekst-2);
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.vk-pad-hjelp b {
+  max-width: 16em;
+  color: var(--tekst);
+  font: 900 1.5rem/1.15 var(--font-display);
+}
+
+.vk-pad-hjelp span:last-child {
+  font: 700 1rem/1.3 var(--font-display);
+}
+
+.vk-pad.har-fingre .vk-pad-hjelp {
+  opacity: 0.5;
+}
+
+.vk-pad.har-fingre .vk-pad-ikon,
+.vk-pad.valgt .vk-pad-ikon {
+  display: none;
+}
+
+.vk-pad.valgt .vk-pad-hjelp {
+  align-content: end;
+  opacity: 1;
+}
+
+.vk-pad-ikon {
+  position: relative;
+  width: 120px;
+  height: 64px;
+  margin-bottom: 8px;
+}
+
+.vk-pad-ikon i {
+  position: absolute;
+  top: 8px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--c);
+  background: color-mix(in srgb, var(--c) 30%, transparent);
+  animation: vk-trykk 2.4s ease-in-out infinite;
+}
+
+.vk-pad-ikon i:nth-child(1) { --c: var(--p4); left: 0; }
+.vk-pad-ikon i:nth-child(2) { --c: var(--p6); left: 38px; animation-delay: 0.3s; }
+.vk-pad-ikon i:nth-child(3) { --c: var(--p9); left: 76px; animation-delay: 0.6s; }
+
+@keyframes vk-trykk {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  40% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+/* One finger: a glowing circle that follows it. The element sits at the finger (0 × 0). */
+.vk-finger {
+  --ff: var(--p4);
+  --d: 104px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.vk-finger::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--d) / -2);
+  left: calc(var(--d) / -2);
+  width: var(--d);
+  height: var(--d);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--ff) 55%, transparent) 0 35%, color-mix(in srgb, var(--ff) 18%, transparent) 70%);
+  box-shadow: 0 0 0 6px var(--ff), 0 0 34px 8px color-mix(in srgb, var(--ff) 55%, transparent);
+  animation: vk-finger-inn 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) both, vk-finger-puls 1.3s ease-in-out 0.35s infinite;
+}
+
+@keyframes vk-finger-inn {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@keyframes vk-finger-puls {
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.vk-finger.borte::before {
+  animation: vk-krymp 0.25s ease-in forwards;
+}
+
+.vk-finger-ring {
+  position: absolute;
+  top: calc(var(--d) * -0.66);
+  left: calc(var(--d) * -0.66);
+  width: calc(var(--d) * 1.32);
+  height: calc(var(--d) * 1.32);
+  overflow: visible;
+  transform: rotate(-90deg);
+  fill: none;
+  stroke: var(--ff);
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  stroke-linecap: round;
+  stroke-width: 4;
+  opacity: 0;
+}
+
+.vk-pad.teller .vk-finger-ring {
+  opacity: 1;
+  animation: vk-ring-fyll 1.5s linear forwards;
+}
+
+@keyframes vk-ring-fyll {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The pick */
+.vk-pad.valgt .vk-finger-ring {
+  opacity: 0;
+}
+
+.vk-pad.valgt .vk-finger.taper::before {
+  animation: vk-krymp 0.5s ease-in forwards;
+}
+
+@keyframes vk-krymp {
+  to {
+    opacity: 0;
+    transform: scale(0.25);
+  }
+}
+
+.vk-pad.valgt .vk-finger.vinner {
+  z-index: 3;
+}
+
+.vk-pad.valgt .vk-finger.vinner::before {
+  animation: vk-vinner 0.6s cubic-bezier(0.25, 1.6, 0.45, 1) forwards;
+}
+
+@keyframes vk-vinner {
+  to {
+    transform: scale(1.35);
+    box-shadow: 0 0 0 7px var(--ff), 0 0 0 14px color-mix(in srgb, var(--ff) 35%, transparent), 0 0 60px 20px color-mix(in srgb, var(--ff) 60%, transparent);
+  }
+}
+
+.vk-pad.valgt .vk-finger.vinner::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--d) / -2);
+  left: calc(var(--d) / -2);
+  width: var(--d);
+  height: var(--d);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--ff);
+  animation: vk-bolge 1.3s ease-out 0.3s infinite;
+}
+
+@keyframes vk-bolge {
+  from {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3.4);
+  }
+}
+
+/* Spotlight on the one who starts */
+.vk-pad[data-modus="en"].valgt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(circle at var(--vx, 50%) var(--vy, 50%), transparent 0 84px, rgba(6, 2, 14, 0.78) 150px);
+  pointer-events: none;
+  animation: tone 0.5s ease-out both;
+}
+
+.vk-resultat {
+  position: absolute;
+  top: calc(var(--d) * -0.95);
+  left: 0;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  animation: vk-merke-inn 0.45s cubic-bezier(0.25, 1.6, 0.45, 1) var(--forsinkelse, 0.15s) both;
+}
+
+.vk-resultat b {
+  display: block;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--ff);
+  box-shadow: 0 0 0 3px var(--blekk);
+  color: var(--blekk);
+  font: 900 1.15rem/1 var(--font-display);
+}
+
+.vk-finger.nede .vk-resultat {
+  top: calc(var(--d) * 0.95);
+}
+
+@keyframes vk-merke-inn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+}
+
+/* Order: a big number in every circle (nr 1 gets the crown colour) */
+.vk-finger.nummer .vk-resultat {
+  top: 0;
+}
+
+.vk-finger.nummer .vk-resultat b {
+  min-width: 1.6em;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--tekst);
+  font-size: 2.8rem;
+  text-align: center;
+  text-shadow: 0 3px 0 var(--blekk), 0 0 12px var(--blekk);
+}
+
+.vk-finger.nummer.vinner .vk-resultat b {
+  color: var(--lampe);
+}
+
+/* Teams: every circle takes its team colour */
+.vk-finger.lag {
+  --ff: var(--lf);
+}
+
+.vk-finger.lag::before {
+  transition: box-shadow 0.3s, background 0.3s;
+}
+
+/* «Trekk et navn» (sheet) */
+.vk-trekk {
+  min-height: 1.3em;
+  color: var(--aksent);
+  font: 900 clamp(1.8rem, 8vw, 2.4rem)/1.15 var(--font-display);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.vk-trekk.ferdig {
+  animation: pop 0.4s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+/* ---------- Dice ---------- */
+
+.vk-brett {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px;
+  min-height: 150px;
+  padding: 26px 14px 18px;
+  border-radius: 26px;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 40%, color-mix(in srgb, var(--aksent) 16%, transparent), transparent 75%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 3px, transparent 3px 7px),
+    color-mix(in srgb, var(--aksent) 18%, #1b0f33);
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--aksent) 40%, var(--natt)), inset 0 10px 22px rgba(6, 2, 14, 0.55);
+}
+
+.vk-t {
+  --s: 64px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(var(--s) * 1.3);
+  height: calc(var(--s) * 1.35);
+  perspective: 560px;
+}
+
+.vk-brett[style*="--n: 1"] .vk-t,
+.vk-brett[style*="--n: 2"] .vk-t {
+  --s: 84px;
+}
+
+.vk-hopp,
+.vk-kube {
+  position: relative;
+  display: block;
+  width: var(--s);
+  height: var(--s);
+  transform-style: preserve-3d;
+}
+
+.vk-kube {
+  position: absolute;
+  inset: 0;
+}
+
+.vk-side {
+  position: absolute;
+  inset: 0;
+  border-radius: 17%;
+  background: radial-gradient(circle at 30% 22%, #fffefa 0 28%, #f6e8d2 100%);
+  box-shadow: inset 0 0 0 max(2.4px, calc(var(--s) * 0.05)) #170e2b, inset 0 calc(var(--s) * -0.07) 0 rgba(23, 14, 43, 0.08);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.vk-side.s1 { transform: translateZ(calc(var(--s) / 2)); }
+.vk-side.s6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
+.vk-side.s2 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); }
+.vk-side.s5 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
+.vk-side.s3 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); }
+.vk-side.s4 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }
+
+.vk-side i {
+  position: absolute;
+  width: 20%;
+  height: 20%;
+  margin: -10% 0 0 -10%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #3b2b5c, #170e2b 70%);
+}
+
+.vk-side.s1 i {
+  width: 28%;
+  height: 28%;
+  margin: -14% 0 0 -14%;
+  background: radial-gradient(circle at 40% 35%, #ff6d80, #d42a45 70%);
+}
+
+.vk-side .p1 { left: 27%; top: 27%; }
+.vk-side .p3 { left: 73%; top: 27%; }
+.vk-side .p4 { left: 27%; top: 50%; }
+.vk-side .p5 { left: 50%; top: 50%; }
+.vk-side .p6 { left: 73%; top: 50%; }
+.vk-side .p7 { left: 27%; top: 73%; }
+.vk-side .p9 { left: 73%; top: 73%; }
+
+.vk-skygge {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: calc(var(--s) * 1.05);
+  height: calc(var(--s) * 0.3);
+  margin-left: calc(var(--s) * -0.525);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(6, 2, 14, 0.6), transparent);
+}
+
+.vk-sum {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.vk-sum b {
+  color: var(--aksent);
+  font: 900 clamp(3rem, 16vw, 4.2rem)/1 var(--font-display);
+  text-shadow: 0 5px 0 color-mix(in srgb, var(--aksent-dyp) 70%, var(--natt));
+  font-variant-numeric: tabular-nums;
+}
+
+.vk-sum b.skjult {
+  opacity: 0.25;
+}
+
+.vk-sum b.ny,
+.vk-tall.ny,
+.vk-mynt-res.ny {
+  animation: pop 0.45s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+.vk-historikk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--tekst-2);
+}
+
+.vk-historikk .etikett {
+  margin-right: 4px;
+}
+
+.vk-historikk span:not(.etikett) {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  font: 800 0.9rem/1.3 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.vk-historikk span:nth-child(2) {
+  box-shadow: inset 0 0 0 2px var(--aksent);
+  color: var(--tekst);
+}
+
+/* ---------- Teams ---------- */
+
+.vk-lagene {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 12px;
+}
+
+.vk-lag {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--lf) 12%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lf) 60%, var(--strek));
+  animation: vk-lag-inn 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) calc(var(--k) * 0.08s) both;
+}
+
+@keyframes vk-lag-inn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+}
+
+.vk-lag h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 1rem;
+}
+
+.vk-lag-antall {
+  color: var(--tekst-2);
+  font: 700 0.82rem/1 var(--font-tekst);
+}
+
+.vk-lag ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vk-lag li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  font-size: 0.93rem;
+  font-weight: 700;
+  line-height: 1.2;
+  animation: vk-medlem 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) calc(0.2s + var(--n) * 0.09s) both;
+}
+
+.vk-lag li span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@keyframes vk-medlem {
+  from {
+    opacity: 0;
+    transform: translateX(-14px) scale(0.9);
+  }
+}
+
+/* ---------- Rock, paper, scissors ---------- */
+
+.vk-ssp-stilling-rad {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  text-align: center;
+}
+
+.vk-ssp-stilling-rad span {
+  display: grid;
+  gap: 2px;
+}
+
+.vk-ssp-stilling-rad small {
+  color: var(--tekst-3);
+  font: 800 0.72rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.vk-ssp-stilling-rad b {
+  font: 900 2rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.vk-ssp-likt b {
+  color: var(--tekst-2);
+  font-size: 1.3rem;
+}
+
+.vk-arena {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  min-height: 170px;
+  margin-top: auto;
+  padding: 10px 0;
+}
+
+.vk-arena + .vk-ssp-res {
+  margin-bottom: auto;
+}
+
+.vk-hand-boks {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.vk-hand-boks small {
+  color: var(--tekst-3);
+  font: 800 0.78rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.vk-hand {
+  display: inline-block;
+  font-size: clamp(4.2rem, 24vw, 6.4rem);
+  line-height: 1;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.45));
+}
+
+.vk-hand.du {
+  transform: scaleX(-1);
+}
+
+.vk-arena.rist .vk-hand.du {
+  animation: vk-pump-du 0.36s ease-in-out;
+}
+
+.vk-arena.rist .vk-hand.mobil {
+  animation: vk-pump 0.36s ease-in-out;
+}
+
+@keyframes vk-pump {
+  45% {
+    transform: translateY(-34px) rotate(-12deg);
+  }
+}
+
+@keyframes vk-pump-du {
+  45% {
+    transform: scaleX(-1) translateY(-34px) rotate(-12deg);
+  }
+}
+
+.vk-arena.avslort .vk-hand {
+  animation: vk-avslor 0.45s cubic-bezier(0.25, 1.6, 0.45, 1);
+}
+
+.vk-arena.avslort .vk-hand.du {
+  animation-name: vk-avslor-du;
+}
+
+@keyframes vk-avslor {
+  from {
+    transform: scale(0.5);
+  }
+}
+
+@keyframes vk-avslor-du {
+  from {
+    transform: scaleX(-1) scale(0.5);
+  }
+}
+
+.vk-ssp-res {
+  min-height: 1.2em;
+  color: var(--tekst-2);
+  font: 900 clamp(1.6rem, 8vw, 2.2rem)/1.1 var(--font-display);
+  text-align: center;
+}
+
+.vk-ssp-res.vant {
+  color: var(--mynte);
+}
+
+.vk-ssp-res.tapte {
+  color: var(--rosa);
+}
+
+.vk-ssp-res.likt {
+  color: var(--lampe);
+}
+
+.vk-ssp-valg {
+  gap: 10px;
+}
+
+.vk-ssp-knapp {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  min-height: 92px;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2), 0 12px 24px var(--skygge);
+  color: var(--blekk);
+  cursor: pointer;
+}
+
+.vk-ssp-knapp span {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.vk-ssp-knapp small {
+  font: 900 0.95rem/1 var(--font-display);
+}
+
+.vk-ssp-knapp:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--papir-2);
+}
+
+.vk-ssp-knapp:disabled {
+  opacity: 0.5;
+}
+
+/* Two players face to face: the top half is turned for the one across the table */
+.skjerm-ssp {
+  gap: 12px;
+}
+
+.vk-ssp-to {
+  display: grid;
+  flex: 1;
+  grid-template-rows: 1fr auto 1fr;
+  gap: 10px;
+  min-height: max(420px, calc(100vh - 200px));
+  padding-bottom: 12px;
+}
+
+@supports (height: 100svh) {
+  .vk-ssp-to {
+    min-height: max(420px, calc(100svh - 200px));
+  }
+}
+
+.vk-ssp-halv {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  text-align: center;
+}
+
+.vk-ssp-halv.b {
+  transform: rotate(180deg);
+}
+
+.vk-ssp-halv .vk-ssp-valg {
+  width: 100%;
+}
+
+.vk-ssp-halv .vk-ssp-knapp {
+  min-height: 78px;
+}
+
+.vk-ssp-klar {
+  color: var(--mynte);
+  font: 900 1.8rem/1 var(--font-display);
+}
+
+.vk-ssp-avsl {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.vk-ssp-avsl .vk-hand {
+  font-size: 2.6rem;
+}
+
+.vk-ssp-avsl .vk-hand.stor {
+  font-size: 4rem;
+}
+
+.vk-mot {
+  color: var(--tekst-3);
+  font: 800 0.9rem/1 var(--font-display);
+}
+
+.vk-ssp-midt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 4px;
+}
+
+.vk-ssp-midt .knapp {
+  width: auto;
+  min-width: 60%;
+}
+
+.vk-ssp-hvem {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+}
+
+.vk-ssp-hvem b {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  font: 900 0.9rem/1.3 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Coin ---------- */
+
+.vk-mynt-scene {
+  display: grid;
+  place-items: center;
+  padding: 64px 0 18px;
+  perspective: 900px;
+}
+
+.vk-mynt {
+  position: relative;
+  width: min(54vw, 200px);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.vk-mynt-skygge {
+  position: absolute;
+  bottom: -15%;
+  left: 8%;
+  width: 84%;
+  height: 18%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(6, 2, 14, 0.6), transparent);
+}
+
+.vk-mynt-hopp,
+.vk-mynt-vipp,
+.vk-mynt-skive {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.vk-mynt-vipp {
+  transform: rotateX(22deg);
+}
+
+.vk-mynt-kant {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #b9800f;
+}
+
+.vk-mynt-side {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.85) 0 6%, transparent 22%),
+    radial-gradient(circle at 40% 35%, #fff2b0, #f6c94a 45%, #dc9d1f 100%);
+  box-shadow: inset 0 0 0 7px #c48a14, inset 0 0 0 11px #ffe28a, inset 0 0 0 13px #c48a14, 0 0 0 3px var(--blekk);
+  color: #7a4f00;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.vk-mynt-side.kron {
+  transform: translateZ(4px);
+}
+
+.vk-mynt-side.mynt {
+  transform: rotateX(180deg) translateZ(4px);
+}
+
+.vk-mynt-side svg {
+  width: 56%;
+}
+
+.vk-mynt-side b {
+  font: 900 clamp(4rem, 26vw, 5.6rem)/0.9 var(--font-display);
+}
+
+.vk-mynt-side small {
+  font: 900 0.8rem/1 var(--font-display);
+  letter-spacing: 0.22em;
+}
+
+.vk-mynt-res {
+  color: var(--aksent);
+  font: 900 clamp(2.2rem, 11vw, 3rem)/1 var(--font-display);
+  text-align: center;
+}
+
+.vk-mynt-tall {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.vk-mynt-tall span {
+  display: grid;
+  justify-items: center;
+  min-width: 96px;
+  padding: 8px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.vk-mynt-tall small {
+  color: var(--tekst-3);
+  font: 800 0.72rem/1.2 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.vk-mynt-tall b {
+  font: 900 1.8rem/1.1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.vk-mynt-rekke {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+}
+
+.vk-mynt-rekke i {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #fff2b0, #e9b237);
+  box-shadow: 0 0 0 1.5px var(--blekk);
+  color: #7a4f00;
+  font: 900 0.7rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.vk-mynt-rekke i:first-child {
+  box-shadow: 0 0 0 1.5px var(--blekk), 0 0 0 4px var(--aksent);
+}
+
+/* ---------- Random number ---------- */
+
+.vk-tall-vindu {
+  display: grid;
+  place-items: center;
+  min-height: 150px;
+  padding: 10px;
+  border-radius: var(--r-stor);
+  background:
+    linear-gradient(to bottom, rgba(6, 2, 14, 0.5), transparent 25%, transparent 75%, rgba(6, 2, 14, 0.5)),
+    var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.vk-tall {
+  max-width: 100%;
+  color: var(--aksent);
+  font: 900 clamp(3.6rem, 22vw, 6.4rem)/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  text-shadow: 0 6px 0 color-mix(in srgb, var(--aksent-dyp) 70%, var(--natt));
+  overflow-wrap: anywhere;
+}
+
+.vk-tall.ruller {
+  opacity: 0.75;
+  filter: blur(0.6px);
+}
+
+.vk-tall-felt {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.vk-tall-felt label {
+  display: grid;
+  gap: 6px;
+}
+
+.vk-tall-felt .tekstfelt {
+  min-height: 56px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* ---------- Score counter ---------- */
+
+.skjerm-poeng {
+  gap: 14px;
+}
+
+.vk-pt {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vk-pt-rad {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 6px;
+  border-radius: 22px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.vk-pt-rad.leder {
+  background: color-mix(in srgb, var(--aksent) 14%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--aksent);
+}
+
+.vk-pt-avatar {
+  position: relative;
+}
+
+.vk-pt-krone {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  font-size: 1.05rem;
+  transform: translateX(-50%) rotate(-10deg);
+}
+
+.vk-pt-navn {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font-weight: 800;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+}
+
+.vk-pt-navn::placeholder {
+  color: var(--tekst-3);
+  opacity: 1;
+}
+
+.vk-pt-navn:focus {
+  outline: none;
+  background: var(--natt-3);
+}
+
+.vk-pt-knapp {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--natt-3);
+  color: var(--tekst);
+  font: 900 1.6rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.vk-pt-knapp.pluss {
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.vk-pt-knapp:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.vk-pt-sum {
+  min-width: 2.2ch;
+  font: 900 1.7rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.vk-pt-sum.opp {
+  animation: vk-opp 0.4s cubic-bezier(0.3, 1.8, 0.5, 1);
+  color: var(--mynte);
+}
+
+.vk-pt-sum.ned {
+  animation: vk-ned 0.35s ease-out;
+  color: var(--rosa);
+}
+
+@keyframes vk-opp {
+  40% {
+    transform: translateY(-6px) scale(1.25);
+  }
+}
+
+@keyframes vk-ned {
+  40% {
+    transform: translateY(5px) scale(0.85);
+  }
+}
+
+.vk-pt-fjern {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tekst-3);
+  font: 900 1.05rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.vk-vinner {
+  position: relative;
+  display: inline-block;
+  margin-top: 18px;
+}
+
+.vk-krone {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  font-size: 3rem;
+  transform: translateX(-50%) rotate(-8deg);
+  animation: vk-krone 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) 0.2s both;
+}
+
+@keyframes vk-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30px) rotate(-30deg) scale(0.4);
+  }
+}
+
+/* ---------- Clock ---------- */
+
+.vk-ned {
+  display: grid;
+  place-items: center;
+  padding: 8px 0;
+}
+
+.vk-ned .timer.stor .timer-ring {
+  width: min(66vw, 260px);
+  height: min(66vw, 260px);
+}
+
+.vk-ned.ute .timer-ring {
+  animation: rist 0.4s linear 3;
+}
+
+.vk-ned.ute .timer-ring .fyll {
+  stroke: var(--rosa);
+}
+
+.vk-ned.ute .timer-tid {
+  color: var(--rosa);
+}
+
+.vk-ute {
+  color: var(--rosa);
+  font: 900 clamp(1.8rem, 9vw, 2.4rem)/1 var(--font-display);
+  text-align: center;
+  animation: blink 0.8s steps(2) 4;
+}
+
+.vk-klokke-valg {
+  justify-content: center;
+}
+
+.vk-stoppur {
+  display: block;
+  padding: 36px 0 18px;
+  font: 900 clamp(3.2rem, 19vw, 5.2rem)/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.vk-stoppur.gar {
+  color: var(--mynte);
+}
+
+.vk-runder {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vk-runder li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: baseline;
+  gap: 14px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: var(--natt-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.vk-runder span {
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.vk-runder b {
+  font: 900 1.1rem/1 var(--font-display);
+}
+
+.vk-runder small {
+  color: var(--tekst-3);
+}
+
+/* ---------- Short screens ---------- */
+
+@media (max-height: 700px) {
+  .vk-topp .figur-ramme {
+    width: 64px;
+  }
+
+  .vk-helt {
+    min-height: 92px;
+    padding: 12px 14px;
+  }
+
+  .vk-helt-fingre {
+    width: 64px;
+    height: 64px;
+  }
+
+  .vk-helt-fingre i {
+    width: 26px;
+    height: 26px;
+  }
+
+  .vk-pad {
+    min-height: max(260px, calc(100vh - 200px));
+  }
+
+  @supports (height: 100svh) {
+    .vk-pad {
+      min-height: max(260px, calc(100svh - 200px));
+    }
+  }
+
+  .vk-brett {
+    min-height: 120px;
+    padding: 18px 10px 12px;
+  }
+
+  .vk-t {
+    --s: 52px;
+  }
+
+  .vk-brett[style*="--n: 1"] .vk-t,
+  .vk-brett[style*="--n: 2"] .vk-t {
+    --s: 70px;
+  }
+
+  .vk-arena {
+    min-height: 120px;
+  }
+
+  .vk-ssp-knapp {
+    min-height: 76px;
+  }
+
+  .vk-ssp-knapp span {
+    font-size: 2rem;
+  }
+
+  .vk-mynt-scene {
+    padding: 40px 0 12px;
+  }
+
+  .vk-mynt {
+    width: min(44vw, 150px);
+  }
+
+  .vk-tall-vindu {
+    min-height: 110px;
+  }
+
+  .vk-stoppur {
+    padding: 18px 0 10px;
+  }
+
+  .vk-ned .timer.stor .timer-ring {
+    width: min(52vw, 190px);
+    height: min(52vw, 190px);
+  }
+}
+
+/* The smallest phones: the name gets the avatar's room (the colour stays as a stripe) */
+@media (max-width: 359px) {
+  .vk-pt-knapp {
+    width: 40px;
+    height: 40px;
+  }
+
+  .vk-pt-rad {
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+    gap: 4px;
+    padding-left: 12px;
+    box-shadow: inset 0 0 0 1.5px var(--strek), inset 5px 0 0 var(--pf);
+  }
+
+  .vk-pt-rad.leder {
+    box-shadow: inset 0 0 0 2px var(--aksent), inset 5px 0 0 var(--pf);
+  }
+
+  .vk-pt-avatar {
+    display: none;
+  }
+
+  .vk-pt-navn {
+    font-size: 0.95rem;
+  }
+
+  .vk-pt-sum {
+    font-size: 1.45rem;
+  }
+
+  .vk-t {
+    --s: 52px;
+  }
+}

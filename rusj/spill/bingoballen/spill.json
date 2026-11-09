@@ -1,0 +1,14 @@
+{
+  "id": "bingoballen",
+  "navn": "Bingoballen",
+  "undertittel": "Festbingo",
+  "beskrivelse": "Gratis bingo på norsk med brettet på mobilen: tallbingo med 75 baller, eller festbingo for julebord, bryllup, 17. mai og hyttetur.",
+  "kort": "Tallbingo eller festbingo – alle har brettet på sin egen mobil.",
+  "spillere": [3, 40],
+  "minutter": [10, 60],
+  "mobiler": "hver",
+  "tagger": ["fest", "familie"],
+  "rekkefolge": 41,
+  "qr": true,
+  "sok": ["bingo", "festbingo", "julebordbingo", "bryllupsbingo", "tallbingo", "bingobrett", "bingo på mobilen"]
+}

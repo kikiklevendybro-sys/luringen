@@ -1,0 +1,730 @@
+/* Dobleren — 2048. Everything is prefixed "db-". Tiles: an outer layer slides (translate with a
+   transition), an inner layer pops (scale animations). --c is the cell size, --gap the space. */
+
+/* ---------- The play screen fills the phone exactly; swipes never scroll the page ---------- */
+
+html.db-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.db-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.db-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.db-fast main,
+html.db-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.db-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.db-spill .dokk {
+  gap: 8px;
+  padding-top: 4px;
+  background: none;
+}
+
+/* ---------- HUD ---------- */
+
+.db-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.db-stat {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 6px 7px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.db-stat small {
+  color: var(--tekst-3);
+  font: 800 0.64rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.db-stat b {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 1.3rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.db-poengboks {
+  background: color-mix(in srgb, var(--aksent) 18%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+}
+
+.db-poengboks b {
+  color: var(--aksent);
+}
+
+.db-pluss {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  color: var(--aksent);
+  font: 900 1rem/1 var(--font-display);
+  pointer-events: none;
+  animation: db-pluss 0.7s ease-out forwards;
+}
+
+@keyframes db-pluss {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-26px);
+  }
+}
+
+.db-verk {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 0.76rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.db-verk svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.db-verk:active:not(:disabled) {
+  background: var(--natt-3);
+  transform: scale(0.95);
+}
+
+.db-verk:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+/* ---------- The board ---------- */
+
+.db-flate {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+.db-brett {
+  --c: 76px;
+  --gap: 10px;
+  position: relative;
+  padding: var(--gap);
+  border-radius: calc(var(--gap) + var(--c) * 0.2);
+  background: #0f0820;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--aksent) 65%, var(--natt)),
+    0 9px 0 3px color-mix(in srgb, var(--aksent) 32%, var(--natt)),
+    0 22px 44px var(--skygge);
+}
+
+.db-ruter {
+  display: grid;
+  grid-template-columns: repeat(var(--n), var(--c));
+  grid-auto-rows: var(--c);
+  gap: var(--gap);
+}
+
+.db-ruter i {
+  border-radius: calc(var(--c) * 0.17);
+  background: var(--natt-2);
+  box-shadow: inset 0 3px 0 rgba(6, 2, 14, 0.35);
+}
+
+.db-lag {
+  position: absolute;
+  inset: var(--gap);
+}
+
+.db-flis {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: var(--c);
+  height: var(--c);
+  transform: translate(calc(var(--x) * (var(--c) + var(--gap))), calc(var(--y) * (var(--c) + var(--gap))));
+  transition: transform 110ms cubic-bezier(0.25, 0.8, 0.35, 1);
+}
+
+.db-flis.borte {
+  z-index: 1;
+}
+
+.db-indre {
+  --f: var(--papir);
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: calc(var(--c) * 0.17);
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.45), transparent 42%),
+    var(--f);
+  box-shadow:
+    inset 0 calc(var(--c) * -0.07) 0 rgba(23, 14, 43, 0.22),
+    0 4px 10px rgba(6, 2, 14, 0.35);
+  color: var(--blekk);
+  font: 900 calc(var(--c) * 0.46) / 1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.db-indre.s3 {
+  font-size: calc(var(--c) * 0.38);
+}
+
+.db-indre.s4 {
+  font-size: calc(var(--c) * 0.3);
+}
+
+.db-indre.s5,
+.db-indre.s6 {
+  font-size: calc(var(--c) * 0.23);
+}
+
+.db-v2 {
+  --f: #fff1dd;
+}
+
+.db-v4 {
+  --f: #ffdcb0;
+}
+
+.db-v8 {
+  --f: #ffb26b;
+}
+
+.db-v16 {
+  --f: #ff8a3d;
+}
+
+.db-v32 {
+  --f: #ff6b57;
+}
+
+.db-v64 {
+  --f: #ff4f8b;
+}
+
+.db-v128 {
+  --f: #c9a2ff;
+}
+
+.db-v256 {
+  --f: #a47bff;
+}
+
+.db-v512 {
+  --f: #59b9ff;
+}
+
+.db-v1024 {
+  --f: #3de3b0;
+}
+
+.db-v2048 {
+  --f: linear-gradient(160deg, #fff3a6 0%, #ffd23f 45%, #ffaa1c 100%);
+}
+
+.db-indre.db-v2048 {
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.6), transparent 42%),
+    linear-gradient(160deg, #fff3a6 0%, #ffd23f 45%, #ffaa1c 100%);
+  box-shadow:
+    inset 0 calc(var(--c) * -0.07) 0 rgba(140, 80, 0, 0.35),
+    0 0 26px 4px rgba(255, 210, 63, 0.55);
+}
+
+.db-v4096,
+.db-vstor {
+  --f: #2a1b4f;
+}
+
+.db-indre.db-v4096,
+.db-indre.db-vstor {
+  box-shadow:
+    inset 0 0 0 3px var(--lampe),
+    0 0 22px 3px rgba(255, 210, 63, 0.35);
+  color: var(--lampe);
+}
+
+.db-indre.ny {
+  animation: db-ny 0.2s cubic-bezier(0.3, 1.5, 0.5, 1) 0.1s both;
+}
+
+@keyframes db-ny {
+  from {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+}
+
+.db-indre.slatt {
+  animation: db-slatt 0.24s cubic-bezier(0.3, 1.6, 0.5, 1) 0.08s both;
+}
+
+@keyframes db-slatt {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  1% {
+    opacity: 1;
+  }
+  45% {
+    transform: scale(1.22);
+  }
+}
+
+/* A swipe that moves nothing: the board nudges, so the swipe is never lost silently. */
+.db-brett.dytt[data-dytt="venstre"] {
+  animation: db-dytt-v 0.22s ease-out;
+}
+
+.db-brett.dytt[data-dytt="hoyre"] {
+  animation: db-dytt-h 0.22s ease-out;
+}
+
+.db-brett.dytt[data-dytt="opp"] {
+  animation: db-dytt-o 0.22s ease-out;
+}
+
+.db-brett.dytt[data-dytt="ned"] {
+  animation: db-dytt-n 0.22s ease-out;
+}
+
+@keyframes db-dytt-v {
+  40% {
+    transform: translateX(-7px);
+  }
+}
+
+@keyframes db-dytt-h {
+  40% {
+    transform: translateX(7px);
+  }
+}
+
+@keyframes db-dytt-o {
+  40% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes db-dytt-n {
+  40% {
+    transform: translateY(7px);
+  }
+}
+
+/* Messages on the board: 2048 reached, no more moves */
+.db-melding {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  border-radius: inherit;
+  background: rgba(15, 8, 32, 0.62);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  animation: db-tone 0.3s ease-out both;
+}
+
+.db-melding[hidden] {
+  display: none;
+}
+
+@keyframes db-tone {
+  from {
+    opacity: 0;
+  }
+}
+
+.db-meldingskort {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: min(100%, 300px);
+  padding: 20px 18px 16px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 18px 40px var(--skygge);
+  text-align: center;
+  animation: db-kort 0.45s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+@keyframes db-kort {
+  from {
+    opacity: 0;
+    transform: scale(0.7) rotate(-4deg);
+  }
+}
+
+.db-meldingskort h2 {
+  font-size: 1.6rem;
+}
+
+.db-meldingskort p:not(.etikett) {
+  color: var(--tekst-2);
+}
+
+.db-meldingskort.vant h2 {
+  color: var(--lampe);
+  font-size: 3rem;
+  text-shadow: 0 5px 0 var(--lampe-dyp);
+}
+
+.db-meldingskort .knapp {
+  margin-top: 6px;
+}
+
+/* ---------- Arrow buttons (for everyone who'd rather tap than swipe) ---------- */
+
+.db-tastatur {
+  display: none;
+  color: var(--tekst-3);
+  font: 700 0.86rem/1.3 var(--font-tekst);
+  text-align: center;
+}
+
+/* With a mouse and a keyboard: the keys instead of «sveip». */
+@media (hover: hover) and (pointer: fine) {
+  .db-tastatur {
+    display: block;
+  }
+
+  .db-tips {
+    display: none !important;
+  }
+}
+
+.db-tips {
+  color: var(--tekst-3);
+  font: 700 0.86rem/1.3 var(--font-tekst);
+  text-align: center;
+}
+
+.db-piler {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.db-piler button {
+  display: grid;
+  place-items: center;
+  min-height: 54px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 4px 0 var(--natt-3);
+  color: var(--tekst);
+  cursor: pointer;
+}
+
+.db-piler svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.db-piler button:active {
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 2px var(--aksent);
+  transform: translateY(3px);
+}
+
+/* ---------- Home and setup ---------- */
+
+.db-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  padding-bottom: 12px;
+}
+
+.db-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+.db-rekorder li {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  font: 800 0.9rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.db-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst-2);
+}
+
+.db-rekorder li small {
+  color: var(--tekst-3);
+  font-weight: 700;
+}
+
+.db-flisikon {
+  --s: calc(36px / var(--n));
+  display: grid;
+  grid-template-columns: repeat(var(--n), var(--s));
+  grid-auto-rows: var(--s);
+  gap: 2px;
+  place-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 9px;
+  background: #0f0820;
+}
+
+.db-flisikon i {
+  border-radius: 2px;
+  background: var(--natt-3);
+}
+
+.db-flisikon i:nth-child(3n + 1) {
+  background: #ffb26b;
+}
+
+.db-flisikon i:nth-child(5n + 2) {
+  background: #ff4f8b;
+}
+
+.db-flisikon i:nth-child(7n) {
+  background: var(--papir);
+}
+
+/* ---------- Result ---------- */
+
+.db-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.db-tall {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 6px;
+  padding: 16px 10px 14px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.db-tall b {
+  font: 900 2.2rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.db-tall span {
+  font: 800 0.76rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  opacity: 0.65;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.db-tallflis {
+  display: grid;
+  place-items: center;
+  min-width: 64px;
+  height: 52px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: var(--f);
+  box-shadow: inset 0 -4px 0 rgba(23, 14, 43, 0.22);
+}
+
+.db-tallflis.s4,
+.db-tallflis.s5 {
+  font-size: 1.6rem;
+}
+
+.db-ny {
+  position: absolute;
+  top: -12px;
+  right: -4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+  animation: db-slag 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both 0.7s;
+}
+
+@keyframes db-slag {
+  from {
+    opacity: 0;
+    transform: rotate(8deg) scale(2.4);
+  }
+}
+
+.db-mini {
+  display: grid;
+  grid-template-columns: repeat(var(--n), 44px);
+  grid-auto-rows: 44px;
+  gap: 5px;
+  align-self: center;
+  width: fit-content;
+  padding: 6px;
+  border-radius: 14px;
+  background: #0f0820;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--natt)), 0 10px 24px var(--skygge);
+  transform: rotate(-2deg);
+}
+
+.db-mini i {
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--f, var(--natt-2));
+  color: var(--blekk);
+  font: 900 1.05rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.db-mini i.s3 {
+  font-size: 0.9rem;
+}
+
+.db-mini i.s4,
+.db-mini i.s5 {
+  font-size: 0.72rem;
+}
+
+.db-mini i.db-v2048 {
+  background: linear-gradient(160deg, #fff3a6, #ffd23f 45%, #ffaa1c);
+}
+
+.db-mini i.db-v4096,
+.db-mini i.db-vstor {
+  color: var(--lampe);
+}
+
+/* ---------- Short and narrow phones ---------- */
+
+@media (max-height: 700px) {
+  .db-spill {
+    gap: 8px;
+  }
+
+  .db-stat {
+    padding: 5px 6px;
+  }
+
+  .db-stat small {
+    font-size: 0.58rem;
+  }
+
+  .db-stat b {
+    font-size: 1.1rem;
+  }
+
+  .db-verk span {
+    display: none;
+  }
+
+  .db-tips {
+    display: none;
+  }
+
+  .db-piler button {
+    min-height: 46px;
+  }
+}
+
+@media (max-width: 359px) {
+  .db-hud {
+    gap: 6px;
+  }
+
+  .db-stat b {
+    font-size: 1.08rem;
+  }
+
+  .db-verk {
+    font-size: 0.68rem;
+  }
+
+  .db-tall b {
+    font-size: 1.8rem;
+  }
+}

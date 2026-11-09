@@ -1,0 +1,14 @@
+{
+  "id": "hjulet",
+  "navn": "Hjulet",
+  "undertittel": "Snurr og skål",
+  "beskrivelse": "Gratis drikkelek på norsk (18+): Snurr det store hjulet og se hva det lander på. Lag egne husregler. Bare små slurker – alkoholfritt teller like mye.",
+  "kort": "Snurr hjulet – det bestemmer hva som skjer.",
+  "spillere": [3, 20],
+  "minutter": [10, 60],
+  "mobiler": "en",
+  "tagger": ["drikke", "fest"],
+  "rekkefolge": 46,
+  "alder18": true,
+  "sok": ["drikkehjul", "snurr hjulet", "lykkehjul", "spin the wheel", "drikkeleker", "drikkespill"]
+}

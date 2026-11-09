@@ -1,0 +1,934 @@
+/* Tallknuseren — Sudoku. Everything is prefixed "tk-". The board is a paper card with ink lines:
+   9 boxes (3 px dark gaps) of 9 cells (1 px light gaps); --c is the cell size, set from the space. */
+
+/* ---------- The play screen fills the phone exactly (no scroll, no rubber band, no zoom) ---------- */
+
+html.tk-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.tk-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.tk-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.tk-fast main,
+html.tk-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.tk-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.tk-spill .dokk {
+  gap: 10px;
+  padding-top: 4px;
+  background: none;
+}
+
+/* ---------- HUD ---------- */
+
+.tk-topp {
+  position: relative;
+}
+
+/* Messages (hints, tips) pop up over the score bar, never over the board. */
+.tk-melding {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  left: 0;
+  min-height: calc(100% + 8px);
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2), 0 14px 30px var(--skygge);
+  color: var(--blekk);
+  font: 800 0.98rem/1.25 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px) scale(0.92);
+  transition: opacity 0.18s, transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+  cursor: pointer;
+}
+
+.tk-melding.vis {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.tk-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.tk-stat,
+.tk-klokke {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 7px 4px 6px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+}
+
+.tk-stat small,
+.tk-klokke small {
+  color: var(--tekst-3);
+  font: 800 0.64rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tk-stat b,
+.tk-klokke b {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 1.12rem/1.05 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tk-stat:last-child b {
+  color: var(--lampe);
+}
+
+.tk-klokke {
+  position: relative;
+  grid-template-columns: auto auto;
+  column-gap: 7px;
+  cursor: pointer;
+}
+
+.tk-klokke small {
+  grid-column: 1 / -1;
+}
+
+.tk-pauseikon {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--aksent);
+}
+
+.tk-pauseikon svg {
+  width: 11px;
+  height: 11px;
+  fill: var(--blekk);
+}
+
+.tk-pauseikon .av,
+.tk-spill.pauset .tk-pauseikon .pa {
+  display: none;
+}
+
+.tk-spill.pauset .tk-pauseikon .av {
+  display: inline;
+}
+
+.tk-spill.pauset .tk-klokke {
+  box-shadow: inset 0 0 0 2.5px var(--aksent);
+}
+
+.tk-spill.pauset .dokk {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.tk-pokal {
+  display: none;
+}
+
+.tk-klokke:active {
+  transform: scale(0.96);
+}
+
+/* ---------- The board ---------- */
+
+.tk-flate {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+.tk-brett {
+  --c: 36px;
+  --linje: color-mix(in srgb, var(--blekk) 24%, var(--papir));
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 3px;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--blekk);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--aksent) 70%, var(--natt)),
+    0 9px 0 3px color-mix(in srgb, var(--aksent) 38%, var(--natt)),
+    0 22px 44px var(--skygge);
+  touch-action: none;
+}
+
+.tk-boks {
+  display: grid;
+  grid-template-columns: repeat(3, var(--c));
+  grid-auto-rows: var(--c);
+  gap: 1px;
+  overflow: hidden;
+  background: var(--linje);
+}
+
+.tk-boks:nth-child(1) {
+  border-top-left-radius: 12px;
+}
+
+.tk-boks:nth-child(3) {
+  border-top-right-radius: 12px;
+}
+
+.tk-boks:nth-child(7) {
+  border-bottom-left-radius: 12px;
+}
+
+.tk-boks:nth-child(9) {
+  border-bottom-right-radius: 12px;
+}
+
+.tk-celle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--c);
+  height: var(--c);
+  padding: 0;
+  border: 0;
+  background: var(--papir);
+  color: var(--blekk);
+  font: 800 calc(var(--c) * 0.62) / 1 var(--font-display);
+  cursor: pointer;
+  transition: background-color 0.12s;
+  touch-action: none;
+}
+
+.tk-celle.gitt {
+  font-weight: 900;
+}
+
+.tk-celle.bruker {
+  color: #13697a;
+}
+
+.tk-celle.hintet {
+  color: var(--lilla-dyp);
+}
+
+.tk-celle.linje {
+  background: color-mix(in srgb, var(--aksent) 22%, var(--papir));
+}
+
+.tk-celle.samme {
+  background: color-mix(in srgb, var(--aksent) 60%, var(--papir));
+}
+
+.tk-celle.valgt {
+  z-index: 1;
+  background: var(--aksent);
+  box-shadow: inset 0 0 0 2.5px var(--blekk);
+}
+
+.tk-celle.konflikt {
+  background: #ffd3cc;
+}
+
+.tk-celle.konflikt.linje {
+  background: #ffc4bb;
+}
+
+.tk-celle.konflikt.valgt {
+  background: #ff9c90;
+}
+
+.tk-celle.konflikt.bruker,
+.tk-celle.konflikt.hintet {
+  color: #cc2a22;
+}
+
+/* Keyboard focus follows the selection, which is already clearly marked. */
+.tk-celle:focus-visible {
+  outline: none;
+}
+
+.tk-brett:focus-within .tk-celle.valgt:focus-visible {
+  box-shadow: inset 0 0 0 3.5px var(--blekk);
+}
+
+.tk-v {
+  display: block;
+  transform-origin: 50% 60%;
+}
+
+.tk-celle.bruker .tk-v,
+.tk-celle.hintet .tk-v {
+  animation: tk-inn 0.22s cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+
+@keyframes tk-inn {
+  from {
+    opacity: 0.2;
+    transform: scale(0.45);
+  }
+}
+
+/* Pencil marks: a 3 × 3 grid of small numbers */
+.tk-not {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+}
+
+.tk-not i {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--blekk-2);
+  font: 800 calc(var(--c) * 0.3) / 1 var(--font-display);
+  font-style: normal;
+}
+
+.tk-not i.u {
+  background: var(--blekk);
+  color: var(--papir);
+}
+
+/* Motion: a finished row/column/box, a clash, the win */
+.tk-celle.blink {
+  animation: tk-blink 0.62s ease-out;
+}
+
+@keyframes tk-blink {
+  30% {
+    background: color-mix(in srgb, var(--lampe) 75%, var(--papir));
+    transform: scale(1.08);
+  }
+}
+
+.tk-celle.rist .tk-v {
+  animation: rist 0.4s linear;
+}
+
+.tk-brett.vant .tk-celle {
+  animation: tk-vant 0.8s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  animation-delay: var(--f, 0ms);
+}
+
+@keyframes tk-vant {
+  35% {
+    background: var(--aksent);
+    transform: scale(1.2) rotate(-7deg);
+  }
+  70% {
+    background: color-mix(in srgb, var(--aksent) 40%, var(--papir));
+  }
+}
+
+.tk-spill.pauset .tk-celle {
+  background: var(--papir);
+  box-shadow: none;
+  color: transparent;
+}
+
+.tk-spill.pauset .tk-not {
+  visibility: hidden;
+}
+
+.tk-spill.pauset .tk-brett {
+  filter: saturate(0.6) brightness(0.8);
+}
+
+.tk-brett.tilbake {
+  animation: tk-tilbake 0.35s ease-out;
+}
+
+@keyframes tk-tilbake {
+  from {
+    opacity: 0.4;
+    transform: scale(0.97);
+  }
+}
+
+.tk-pauseboks {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+}
+
+.tk-pauseboks[hidden] {
+  display: none;
+}
+
+.tk-pausekort {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 22px 24px 24px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 18px 40px var(--skygge);
+  animation: tk-tilbake 0.3s ease-out;
+}
+
+.tk-pausetekst {
+  font: 900 1.4rem/1.15 var(--font-display);
+}
+
+.tk-pausekort .knapp {
+  width: auto;
+  min-width: 200px;
+  margin-top: 8px;
+}
+
+/* ---------- Tools and number pad ---------- */
+
+.tk-verktoy {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tk-verk {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 4px 7px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 0.8rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.tk-verk svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tk-verk:active:not(:disabled) {
+  background: var(--natt-3);
+  transform: scale(0.95);
+}
+
+.tk-verk:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.tk-merke {
+  position: absolute;
+  top: -7px;
+  right: 6px;
+  min-width: 24px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  box-shadow: 0 0 0 2px var(--natt);
+  color: var(--tekst-2);
+  font: 900 0.66rem/1 var(--font-display);
+  font-style: normal;
+  text-align: center;
+}
+
+#tk-hint .tk-merke {
+  background: var(--lampe);
+  color: var(--blekk);
+}
+
+.tk-notatknapp[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--aksent) 24%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--aksent);
+  color: var(--aksent);
+}
+
+.tk-notatknapp[aria-pressed="true"] .tk-merke {
+  background: var(--aksent);
+  color: var(--blekk);
+}
+
+.tk-tall {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.tk-tast {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: 58px;
+  padding: 0;
+  border: 0;
+  border-radius: 13px;
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2), 0 10px 18px var(--skygge);
+  color: var(--blekk);
+  font: 900 1.75rem/1 var(--font-display);
+  cursor: pointer;
+  transition: transform 0.06s, box-shadow 0.06s, opacity 0.2s, background-color 0.15s;
+}
+
+.tk-tast small {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  color: var(--blekk-2);
+  font: 800 0.6rem/1 var(--font-display);
+  opacity: 0.8;
+}
+
+.tk-tast:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--papir-2), 0 4px 8px var(--skygge);
+}
+
+.tk-tast.aktiv {
+  background: var(--aksent);
+  box-shadow: 0 5px 0 var(--aksent-dyp), 0 10px 18px var(--skygge);
+}
+
+.tk-tast.ferdig {
+  opacity: 0.32;
+}
+
+.tk-tast.ferdig small {
+  color: var(--mynte-dyp);
+  font-size: 0.75rem;
+  opacity: 1;
+}
+
+.tk-tast.pop {
+  animation: tk-tastpop 0.55s cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+
+@keyframes tk-tastpop {
+  35% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.15);
+  }
+}
+
+/* Notes on: the keys turn into a pencil (small, outlined numbers) */
+.tk-tall.notat .tk-tast {
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--aksent), 0 5px 0 var(--natt-3);
+  color: var(--aksent);
+  font-size: 1.25rem;
+}
+
+.tk-tall.notat .tk-tast small {
+  color: var(--tekst-3);
+}
+
+/* ---------- Home ---------- */
+
+.hjem-knapper .knapp-2:has(.tk-dagknapp) {
+  justify-content: flex-start;
+  gap: 14px;
+  padding-block: 10px;
+  text-align: left;
+}
+
+.tk-dagknapp {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tk-dagknapp b {
+  font: 900 1.1rem/1.1 var(--font-display);
+}
+
+.tk-dagknapp small {
+  color: var(--tekst-2);
+  font: 700 0.86rem/1.2 var(--font-tekst);
+}
+
+/* A little calendar page with today's date */
+.tk-kal {
+  display: grid;
+  flex: none;
+  grid-template-rows: auto 1fr;
+  width: 40px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.tk-kal small {
+  padding: 2px 0 1px;
+  background: var(--rosa);
+  color: #fff;
+  font: 900 0.6rem/1.1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tk-kal b {
+  display: grid;
+  place-items: center;
+  font: 900 1.2rem/1 var(--font-display);
+}
+
+.tk-daglinje {
+  align-self: center;
+  max-width: 100%;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 60%, var(--strek));
+  color: var(--aksent);
+  font: 800 0.9rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.tk-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  padding-bottom: 12px;
+}
+
+.tk-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tk-rekorder li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 800 0.9rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.tk-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.tk-rekorder li small {
+  color: var(--tekst-3);
+  font-weight: 700;
+}
+
+/* ---------- Setup ---------- */
+
+.tk-styrke {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 24px;
+}
+
+.tk-styrke i {
+  width: 7px;
+  border-radius: 3px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.tk-styrke i:nth-child(1) {
+  height: 9px;
+}
+
+.tk-styrke i:nth-child(2) {
+  height: 14px;
+}
+
+.tk-styrke i:nth-child(3) {
+  height: 19px;
+}
+
+.tk-styrke i:nth-child(4) {
+  height: 24px;
+}
+
+.tk-styrke i.pa {
+  background: var(--nf, var(--aksent));
+  box-shadow: none;
+}
+
+/* ---------- Result ---------- */
+
+.tk-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.tk-tall-boks {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 10px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.tk-tall-boks b {
+  font: 900 2.4rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.tk-tall-boks span {
+  font: 800 0.78rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.tk-ny {
+  position: absolute;
+  top: -12px;
+  right: -4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+  animation: tk-slag 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both 0.7s;
+}
+
+@keyframes tk-slag {
+  from {
+    opacity: 0;
+    transform: rotate(8deg) scale(2.4);
+  }
+}
+
+.tk-dagboks {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.tk-rekke {
+  font: 900 1.4rem/1.1 var(--font-display);
+}
+
+.tk-dagboks .knapp-2 {
+  width: auto;
+}
+
+/* The solved grid in miniature */
+.tk-mini {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: center;
+  gap: 2px;
+  align-self: center;
+  width: fit-content;
+  margin: 4px 0 8px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--blekk);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--aksent) 60%, var(--natt)), 0 8px 20px var(--skygge);
+  transform: rotate(-2deg);
+}
+
+.tk-mini span {
+  display: grid;
+  grid-template-columns: repeat(3, 19px);
+  grid-auto-rows: 19px;
+  gap: 1px;
+  background: color-mix(in srgb, var(--blekk) 24%, var(--papir));
+}
+
+.tk-mini i {
+  display: grid;
+  place-items: center;
+  background: var(--papir);
+  color: #13697a;
+  font: 800 0.72rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.tk-mini i.g {
+  color: var(--blekk);
+  font-weight: 900;
+}
+
+.tk-mini i.h {
+  color: var(--lilla-dyp);
+}
+
+/* ---------- Tall, short and narrow phones ---------- */
+
+@media (min-height: 780px) {
+  .tk-tast {
+    height: 64px;
+    font-size: 1.9rem;
+  }
+
+  .tk-verk {
+    padding-block: 10px 9px;
+  }
+}
+
+@media (max-height: 700px) {
+  .tk-spill {
+    gap: 8px;
+  }
+
+  .tk-spill .dokk {
+    gap: 8px;
+  }
+
+  .tk-stat,
+  .tk-klokke {
+    padding: 5px 4px;
+    border-radius: 13px;
+  }
+
+  .tk-stat small,
+  .tk-klokke small {
+    display: none;
+  }
+
+  .tk-pokal {
+    display: inline;
+  }
+
+  .tk-klokke {
+    grid-template-columns: auto auto;
+  }
+
+  .tk-tast {
+    height: 48px;
+    border-radius: 11px;
+    font-size: 1.5rem;
+  }
+
+  .tk-verk {
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 4px;
+    border-radius: 13px;
+  }
+
+  .tk-verk svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 359px) {
+  .tk-tall {
+    gap: 4px;
+  }
+
+  .tk-tast {
+    border-radius: 10px;
+    font-size: 1.35rem;
+  }
+
+  .tk-tast small {
+    top: 3px;
+    right: 3px;
+    font-size: 0.55rem;
+  }
+
+  .tk-verk {
+    font-size: 0.72rem;
+  }
+
+  .tk-hud {
+    gap: 6px;
+  }
+
+  .tk-stat b,
+  .tk-klokke b {
+    font-size: 0.98rem;
+  }
+}
+
+@media (max-height: 700px) and (max-width: 359px) {
+  .tk-verk span {
+    display: none;
+  }
+}

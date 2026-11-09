@@ -1,0 +1,14 @@
+{
+  "id": "slangen",
+  "navn": "Slangen",
+  "undertittel": "Snake",
+  "beskrivelse": "Gratis Snake på norsk. Styr slangen med sveip, piler eller tastatur, spis frukt og voks – tre hastigheter, med eller uten vegger, og din egen rekord.",
+  "kort": "Spis, voks og sving – bare ikke bit deg selv i halen!",
+  "spillere": [1, 1],
+  "minutter": [2, 15],
+  "mobiler": "en",
+  "tagger": ["klassiker", "alene"],
+  "rekkefolge": 31,
+  "farge": "#6fe07a",
+  "sok": ["snake", "slangespill", "ormespill", "slange"]
+}

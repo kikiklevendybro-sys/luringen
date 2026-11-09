@@ -1,0 +1,995 @@
+/* Ringen: the ring of face-down cards, the playing card with its rule, the water break and the
+   crowning. Everything new is prefixed ring-. */
+
+/* ---------- Whose turn ---------- */
+
+.ring-tur {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ring-tur-tekst {
+  min-width: 0;
+}
+
+.ring-tur .etikett {
+  margin-bottom: 2px;
+}
+
+.ring-tur h1 {
+  font-size: clamp(1.6rem, 7.4vw, 2.2rem);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- The ring ---------- */
+
+.skjerm-ring {
+  gap: 14px;
+}
+
+/* The ring sits in the middle of the free space between the name and the dock */
+.ring-scene {
+  display: grid;
+  flex: 1 0 auto;
+  place-items: center;
+}
+
+.ring-knappkort {
+  display: block;
+  width: 1.45em;
+  height: 1.45em;
+  margin: -0.2em 0;
+}
+
+.ring-bord {
+  position: relative;
+  display: block;
+  width: min(100%, 390px, max(220px, calc(100vh - 330px)));
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  -webkit-touch-callout: none;
+}
+
+@supports (height: 100svh) {
+  .ring-bord {
+    width: min(100%, 390px, max(220px, calc(100svh - 330px)));
+  }
+}
+
+.ring-bord:disabled {
+  cursor: default;
+}
+
+/* Warm glow and a felt table under the cards */
+.ring-bord::before {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--aksent) 40%, transparent) 0 40%, transparent 72%);
+  filter: blur(18px);
+  opacity: 0.6;
+}
+
+.ring-filt {
+  position: absolute;
+  inset: 7%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 38%, #3b2a66, #1d1235 72%);
+  box-shadow: inset 0 0 0 4px var(--blekk), inset 0 0 0 9px color-mix(in srgb, var(--aksent) 30%, var(--natt-3)), 0 10px 0 var(--blekk), 0 18px 40px var(--skygge);
+}
+
+.ring-kortene {
+  position: absolute;
+  inset: 0;
+}
+
+/* A face-down card: long side pointing at the middle, like a real ring around a glass */
+.ring-rygg {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: 8.2%;
+  height: 12.4%;
+  border-radius: 5px;
+  background:
+    radial-gradient(circle at 50% 50%, var(--papir) 0 15%, transparent 16%),
+    repeating-linear-gradient(45deg, var(--aksent) 0 3px, var(--aksent-dyp) 3px 6px);
+  box-shadow: inset 0 0 0 2px var(--papir), 0 0 0 1.5px var(--blekk), 0 3px 4px rgba(6, 2, 14, 0.5);
+  transform: translate(-50%, -50%) rotate(var(--v));
+}
+
+.ring-bord:active:not(:disabled) .ring-kortene {
+  transform: scale(0.99);
+}
+
+/* The card that was picked flies to the middle of the table */
+.ring-rygg.trekkes {
+  z-index: 10;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(0deg) scale(2.8);
+  transition:
+    top 0.42s cubic-bezier(0.3, 1.25, 0.5, 1),
+    left 0.42s cubic-bezier(0.3, 1.25, 0.5, 1),
+    transform 0.42s cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+
+/* The crown in the middle: one gem per King drawn */
+.ring-midt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 46%;
+  transform: translate(-50%, -50%);
+}
+
+.ring-krone {
+  position: relative;
+  display: block;
+  width: 62%;
+  filter: drop-shadow(0 6px 0 rgba(6, 2, 14, 0.55));
+}
+
+.ring-krone-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.ring-steiner {
+  position: absolute;
+  right: 14%;
+  bottom: 21%;
+  left: 14%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ring-stein {
+  width: 15%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--natt-3);
+  box-shadow: 0 0 0 2.5px var(--blekk);
+}
+
+.ring-stein.fylt {
+  background: radial-gradient(circle at 35% 35%, #fff 0 18%, var(--rosa) 22%);
+  animation: ring-stein 0.6s cubic-bezier(0.3, 1.7, 0.5, 1) calc(var(--n) * 0.05s) both;
+}
+
+@keyframes ring-stein {
+  from {
+    transform: scale(0.2);
+  }
+}
+
+.ring-igjen {
+  color: var(--tekst-2);
+  font: 800 0.82rem/1.1 var(--font-display);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ring-igjen b {
+  display: block;
+  color: var(--tekst);
+  font-size: 1.5rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- What is in force now ---------- */
+
+.ring-hint {
+  color: var(--tekst-3);
+  font: 700 0.92rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.ring-roller {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px 12px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  cursor: pointer;
+}
+
+.ring-brikker {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.ring-brikke {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 5px 11px 5px 8px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  font: 800 0.86rem/1.15 var(--font-display);
+}
+
+.ring-brikke-navn {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- The drawn card ---------- */
+
+.skjerm-kort {
+  gap: 14px;
+}
+
+.ring-hvem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--tekst-2);
+  font: 700 1rem/1.2 var(--font-display);
+}
+
+.ring-hvem p {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ring-hvem b {
+  color: var(--tekst);
+}
+
+.ring-hvem-nr {
+  flex: none;
+  color: var(--tekst-3);
+  font: 800 0.85rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ring-kortplass {
+  perspective: 1100px;
+}
+
+.ring-spillkort {
+  position: relative;
+  display: grid;
+  /* Fills the free space above the dock (capped), but always grows with its content */
+  min-height: clamp(0px, calc(100vh - 340px), 520px);
+  overflow: hidden;
+  padding: 30px 22px 50px;
+  border-radius: 26px;
+  background: var(--papir);
+  box-shadow: 0 0 0 4px var(--blekk), 0 12px 0 var(--blekk), 0 26px 46px var(--skygge);
+  color: var(--blekk);
+  animation: ring-snu 0.55s cubic-bezier(0.2, 1, 0.3, 1) both;
+}
+
+@supports (height: 100svh) {
+  .ring-spillkort {
+    min-height: clamp(0px, calc(100svh - 340px), 520px);
+  }
+}
+
+@keyframes ring-snu {
+  from {
+    opacity: 0.3;
+    transform: rotateY(88deg) scale(0.7);
+  }
+}
+
+/* A big faint suit behind the text */
+.ring-spillkort::before {
+  content: attr(data-sort);
+  position: absolute;
+  right: -4%;
+  bottom: -12%;
+  color: var(--blekk);
+  font: 400 15rem/1 var(--font-tekst);
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.ring-spillkort.rod::before,
+.ring-spillkort.rod .ring-hjorne {
+  color: var(--rod-dyp);
+}
+
+.ring-hjorne {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  display: grid;
+  justify-items: center;
+  color: var(--blekk);
+  font: 900 1.5rem/1 var(--font-display);
+}
+
+.ring-hjorne-s {
+  font: 400 1.3rem/1.05 var(--font-tekst);
+}
+
+.ring-hjorne.bunn {
+  top: auto;
+  right: 16px;
+  bottom: 14px;
+  left: auto;
+  transform: rotate(180deg);
+}
+
+.ring-innhold {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+  padding-inline: 14px;
+  text-align: center;
+}
+
+.ring-ikon {
+  font-size: 3rem;
+  line-height: 1;
+  animation: ring-ikon 0.7s cubic-bezier(0.3, 1.7, 0.5, 1) 0.2s both;
+}
+
+@keyframes ring-ikon {
+  from {
+    opacity: 0;
+    transform: scale(0.3) rotate(-20deg);
+  }
+}
+
+.ring-kortnavn {
+  color: var(--blekk-2);
+  font: 800 0.78rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ring-spillkort h1 {
+  max-width: 100%;
+  font-size: clamp(1.9rem, 8.6vw, 2.5rem);
+  overflow-wrap: anywhere;
+}
+
+.ring-tekst {
+  max-width: 30ch;
+  font: 700 1.1rem/1.38 var(--font-display);
+  text-wrap: pretty;
+}
+
+/* Idea / suggestion strip */
+.ring-ide {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 8px 8px 14px;
+  border: 2px dashed color-mix(in srgb, var(--blekk) 28%, transparent);
+  border-radius: 16px;
+  font: 600 0.95rem/1.3 var(--font-tekst);
+  text-align: left;
+}
+
+/* On narrow cards the buttons move under the text instead of squeezing it */
+.ring-ide-tekst {
+  flex: 1 1 170px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ring-ide-knapper {
+  display: flex;
+  flex: none;
+  gap: 6px;
+}
+
+.ring-ide-knapp {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 800 0.92rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.ring-ide-knapp.terning {
+  padding: 0;
+  font-size: 1.25rem;
+}
+
+.ring-ide-knapp:active {
+  transform: scale(0.94);
+}
+
+/* Optional text for rules and toasts */
+.ring-skriv {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+}
+
+.ring-skriv .etikett {
+  color: var(--blekk-2);
+  letter-spacing: 0.08em;
+}
+
+.ring-valgfri {
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.85;
+}
+
+.ring-felt {
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 14px;
+  border: 2.5px solid color-mix(in srgb, var(--blekk) 35%, transparent);
+  border-radius: 14px;
+  background: #fffaf2;
+  color: var(--blekk);
+  font: 800 1.05rem/1.2 var(--font-display);
+}
+
+.ring-felt::placeholder {
+  color: var(--blekk-2);
+  opacity: 0.6;
+}
+
+.ring-felt:focus {
+  border-color: var(--aksent-dyp);
+  outline: none;
+}
+
+/* Choosing a mate */
+.ring-spillkort .knapp-2 {
+  width: auto;
+  border-color: var(--blekk);
+  background: var(--blekk);
+  color: var(--papir);
+}
+
+.ring-valgt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 10px;
+  max-width: 100%;
+  padding: 6px 8px 6px 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--aksent) 30%, var(--papir));
+  font: 700 1rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.ring-spillkort .lenke {
+  min-height: 40px;
+  padding-block: 6px;
+  color: var(--blekk-2);
+}
+
+/* The finale card */
+.ring-spillkort.finale {
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.55) 0 2px, transparent 3px),
+    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.5) 0 2px, transparent 3px),
+    radial-gradient(circle at 30% 85%, rgba(255, 255, 255, 0.5) 0 2px, transparent 3px),
+    linear-gradient(160deg, #ffe27a, var(--lampe) 55%, #ffb93f);
+}
+
+.ring-spillkort.finale .ring-ikon {
+  font-size: 3.4rem;
+}
+
+.ring-skaler {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ring-skaler li {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(23, 14, 43, 0.1);
+  font: 800 1rem/1.25 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.ring-skaler li:last-child {
+  background: var(--blekk);
+  color: var(--lampe);
+}
+
+.ring-skaler small {
+  font-size: 0.85rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+/* Kings so far: four little crown gems */
+.ring-kongetall {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 8px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--lampe);
+  font: 800 0.86rem/1 var(--font-display);
+}
+
+.ring-pips {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.ring-pips i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--lampe);
+}
+
+.ring-pips i.fylt {
+  background: var(--lampe);
+}
+
+.ring-fot {
+  color: var(--tekst-3);
+  font: 700 0.84rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+/* The dock never grows wider than the screen, whatever the names */
+html[data-spill="ringen"] .dokk {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* «X trekker neste» above the main button (long names wrap instead of pushing the button out) */
+.ring-neste-linje {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.ring-neste-linje .avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 0.85rem;
+}
+
+.ring-neste-linje span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ring-neste-linje b {
+  color: var(--tekst);
+}
+
+/* «Gjelder nå» in one line (short screens and landscape) */
+.ring-roller-linje {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  font: 800 0.88rem/1.2 var(--font-display);
+}
+
+.ring-roller-tekst {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Water break ---------- */
+
+.ring-vann {
+  display: grid;
+  flex: 1;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.ring-vannglass {
+  width: min(42vw, 170px);
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 14px 22px color-mix(in srgb, var(--himmel) 40%, transparent));
+}
+
+.ring-vannflate {
+  animation: ring-bolge 2.4s linear infinite;
+}
+
+@keyframes ring-bolge {
+  to {
+    transform: translateX(-60px);
+  }
+}
+
+.ring-boble {
+  animation: ring-boble 2.2s ease-in infinite;
+}
+
+.ring-boble.to {
+  animation-delay: 1.1s;
+}
+
+@keyframes ring-boble {
+  to {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+}
+
+.ring-vann h1 {
+  color: var(--himmel);
+  font-size: clamp(2.3rem, 11vw, 3.1rem);
+}
+
+.ring-vann .ingress {
+  max-width: 28ch;
+}
+
+/* ---------- The crowning ---------- */
+
+.ring-kronet {
+  position: relative;
+  display: inline-block;
+  margin-top: 30px;
+}
+
+.ring-kronet-krone {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  width: 92px;
+  transform: translateX(-50%) rotate(-8deg);
+  filter: drop-shadow(0 5px 0 rgba(6, 2, 14, 0.6));
+  animation: ring-krones 0.9s cubic-bezier(0.3, 1.5, 0.5, 1) 0.2s both;
+}
+
+@keyframes ring-krones {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-60px) rotate(-30deg) scale(0.6);
+  }
+}
+
+.ring-banner h1 {
+  overflow-wrap: anywhere;
+}
+
+.ring-liste ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0 0 0 20px;
+  font: 700 1.02rem/1.35 var(--font-display);
+}
+
+.ring-liste li {
+  overflow-wrap: anywhere;
+}
+
+.ring-av {
+  color: var(--blekk-2);
+  font-weight: 600;
+}
+
+.skjerm-slutt .merker {
+  margin: 0;
+  padding: 0;
+}
+
+.ring-hjem {
+  margin-top: -8px;
+}
+
+/* ---------- Sheets: roles and the card table ---------- */
+
+.ring-rolleliste,
+.ring-tabell {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ring-rolleliste li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px 10px 10px;
+  border-radius: var(--r-mid);
+  background: var(--natt-3);
+}
+
+.ring-rolleliste li > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ring-rolleliste b {
+  display: block;
+  font: 800 1.02rem/1.25 var(--font-display);
+}
+
+.ring-rolleliste small {
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+}
+
+.ring-rolle-ikon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--natt-2);
+  font-size: 1.3rem;
+}
+
+.ring-tabell li {
+  display: grid;
+  grid-template-columns: 34px 26px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.ring-tabell b {
+  color: var(--tekst);
+  font-family: var(--font-display);
+}
+
+.ring-tabell-v {
+  display: grid;
+  place-items: center;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--papir);
+  color: var(--blekk);
+  font: 900 0.98rem/1 var(--font-display);
+}
+
+.ring-tabell-ikon {
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+.ring-vett .tips {
+  color: var(--blekk-2);
+  font-weight: 600;
+}
+
+/* ---------- Short screens (≤ 700 px high, e.g. 375 × 560): content above the dock ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-ring,
+  .skjerm-kort {
+    gap: 10px;
+  }
+
+  .ring-tur .avatar.mid {
+    width: 42px;
+    height: 42px;
+    font-size: 1.3rem;
+  }
+
+  .ring-tur h1 {
+    font-size: clamp(1.4rem, 6.6vw, 1.8rem);
+  }
+
+  .ring-bord {
+    width: min(100%, 390px, max(200px, calc(100vh - 300px)));
+  }
+
+  .ring-spillkort {
+    padding: 22px 16px 34px;
+  }
+
+  /* «Gjelder nå» as one compact line with the roles written out */
+  .ring-roller {
+    padding: 9px 14px;
+  }
+
+  .ring-roller .etikett,
+  .ring-brikker {
+    display: none;
+  }
+
+  .ring-roller-linje {
+    display: flex;
+  }
+
+  .ring-neste-linje {
+    font-size: 0.86rem;
+  }
+
+  .ring-neste-linje .avatar {
+    width: 22px;
+    height: 22px;
+  }
+
+  .ring-innhold {
+    gap: 6px;
+  }
+
+  .ring-ikon {
+    font-size: 2.3rem;
+  }
+
+  .ring-spillkort h1 {
+    font-size: clamp(1.6rem, 7.4vw, 2rem);
+  }
+
+  .ring-tekst {
+    font-size: 1rem;
+    line-height: 1.32;
+  }
+
+  .ring-hjorne {
+    top: 10px;
+    left: 12px;
+    font-size: 1.2rem;
+  }
+
+  .ring-hjorne.bunn {
+    right: 12px;
+    bottom: 10px;
+  }
+
+  .ring-fot {
+    font-size: 0.78rem;
+  }
+
+  .ring-vannglass {
+    width: 110px;
+  }
+}
+
+@supports (height: 100svh) {
+  @media (max-height: 700px) {
+    .ring-bord {
+      width: min(100%, 390px, max(200px, calc(100svh - 300px)));
+    }
+  }
+}
+
+/* Tablets: a bigger table */
+@media (min-width: 768px) {
+  .ring-bord {
+    width: min(100%, 470px, max(220px, calc(100vh - 330px)));
+  }
+}
+
+/* ---------- Landscape phones (e.g. 844 × 390): the ring or card to the left, the rest to the right,
+   so nothing hides behind the dock ---------- */
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .skjerm-ring,
+  .skjerm-kort,
+  .skjerm-vann {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "vis topp"
+      "vis midt"
+      "vis dokk";
+    gap: 10px 22px;
+    padding-bottom: 12px;
+  }
+
+  .ring-tur,
+  .ring-hvem {
+    grid-area: topp;
+  }
+
+  .ring-scene,
+  .ring-kortplass,
+  .ring-vann {
+    grid-area: vis;
+    align-self: center;
+  }
+
+  .ring-roller,
+  .ring-hint,
+  .ring-fot {
+    grid-area: midt;
+    align-self: center;
+  }
+
+  .skjerm-ring .dokk,
+  .skjerm-kort .dokk,
+  .skjerm-vann .dokk {
+    grid-area: dokk;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .ring-bord {
+    width: min(100%, calc(100vh - 84px));
+  }
+
+  .ring-spillkort {
+    min-height: 0;
+  }
+
+  .ring-vann {
+    gap: 6px;
+  }
+
+  .ring-vannglass {
+    width: 90px;
+  }
+}
+
+@supports (height: 100svh) {
+  @media (orientation: landscape) and (max-height: 520px) {
+    .ring-bord {
+      width: min(100%, calc(100svh - 84px));
+    }
+  }
+}
