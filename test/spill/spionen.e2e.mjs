@@ -308,6 +308,7 @@ export default async function (t) {
   const vertTekst = await les(t, KORT("vert"));
   let f = await forventet(t, s.spill.r);
   sjekkKort(t, vertTekst, f[1], "Verten (nr. 2)");
+  t.sjekk(await t.finnes('[data-h="vert-plass"][data-v="0"]:disabled'), "Verten kan bytte nummer etter å ha sett kortet");
 
   const c2 = await startChrome({ bredde, hoyde });
   let nr = 0;
@@ -317,17 +318,31 @@ export default async function (t) {
     t.sjekk(bred <= 0, `Sidelengs scrolling på gjestens «${navn}»`);
     await c2.skjermbilde(join(BILDER, `g${++nr}-${navn}.png`));
   };
-  // Every seat on the second phone, compared with the host's round.
+  // Seats lock once a card is seen, so the test plays "a fresh phone" for every seat: it forgets
+  // this phone's game and locked seats, then joins again with the code.
+  const nyMobil = async (runde) => {
+    await c2.js(`(() => { for (const k of Object.keys(localStorage)) if (k.startsWith("rusj.spionen.v")) localStorage.removeItem(k); })()`);
+    await c2.lastSide("about:blank");
+    await c2.lastSide(`${t.side}#${kode}_${runde}`, "document.querySelector('.skjerm-plass')");
+  };
+  // Every seat, compared with the host's round.
   const sjekkAlleSeter = async (forv, runde) => {
     let spioner = 0;
     for (let i = 0; i < forv.length; i++) {
+      await nyMobil(runde);
       await c2.klikk(`[data-h="gjest-plass"][data-v="${i}"]`);
       await c2.vent(`document.querySelector('${KORT("gjest")}')`);
       t.sjekk((await c2.tekst("#skjerm h1")).includes(`nr. ${i + 1}`), `Gjesten ser ikke «Du er nr. ${i + 1}»`);
       const tekst = await les(c2, KORT("gjest"));
       if (/Spionen/.test(tekst)) spioner += 1;
       sjekkKort(t, tekst, forv[i], `Gjest nr. ${i + 1} i runde ${runde}`);
-      await c2.klikk('[data-h="bytt-plass"]');
+      // Cheating check: after seeing the card, the seat can't be changed (not even by rejoining).
+      t.sjekk(!(await c2.finnes('[data-h="bytt-plass"]')), "«Bytt nummer» finnes etter at kortet er sett");
+      await c2.klikk("#tilbake");
+      await c2.lastSide("about:blank");
+      await c2.lastSide(`${t.side}#${kode}_${runde}`, "document.querySelector('.skjerm-gjest, .skjerm-plass')");
+      t.sjekk(await c2.finnes(".skjerm-gjest"), "Samme kode på nytt slapp gjesten til å velge nytt nummer");
+      t.sjekk((await c2.tekst("#skjerm h1")).includes(`nr. ${i + 1}`), "Samme kode på nytt ga et annet nummer");
     }
     t.sjekk(spioner === 2, `Ventet 2 spionkort i runde ${runde}, fikk ${spioner}`);
   };
@@ -339,6 +354,7 @@ export default async function (t) {
     await bilde2("plass");
     await sjekkAlleSeter(f, 1);
     const starter = (await t.tilstand()).spill.r.starter;
+    await nyMobil(1);
     await c2.klikk('[data-h="gjest-plass"][data-v="3"]');
     t.sjekk((await c2.tekst(".skjerm-gjest")).includes(`Nr. ${starter + 1} spør først`), "Gjesten ser en annen startspiller enn verten");
     t.sjekk(await overDokken(c2, `${KORT("gjest")} .mappe-finger`), "Instruksen på gjestens kort ligger bak knappene nederst");
@@ -404,7 +420,6 @@ export default async function (t) {
     await bilde2("runde-2");
     await c2.lastSide(t.side, "document.querySelector('.skjerm-gjest')");
     t.sjekk(/Runde 2/i.test(await c2.tekst("#topp-tittel")), "Gjesten er ikke i runde 2 etter omlasting");
-    await c2.klikk('[data-h="bytt-plass"]');
     await sjekkAlleSeter(f, 2);
     t.feil && c2.feil.forEach((m) => t.feil(`Gjestens mobil: ${m}`));
   } finally {

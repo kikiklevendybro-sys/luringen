@@ -60,6 +60,7 @@
           nylige: S.nylige.slice(-400),
           spill: S.spill,
           gjest: S.gjest,
+          laste: S.laste,
         }),
       );
     } catch (e) {
@@ -77,6 +78,9 @@
     nylige: [],
     spill: null,
     gjest: null,
+    // Seats a guest has seen a card for, per game code: the seat can't be changed afterwards,
+    // also not by leaving and joining again with the same code.
+    laste: {},
     reglerFra: "hjem",
     velgKategorier: false,
   };
@@ -105,6 +109,9 @@
     // A saved game is only restored if it still matches the current word list.
     if (lagret.spill && lagret.spill.datahash === DATA.hash && lagret.spill.r) S.spill = lagret.spill;
     if (lagret.gjest && lagret.gjest.datahash === DATA.hash) S.gjest = lagret.gjest;
+    if (lagret.laste && typeof lagret.laste === "object") {
+      for (const [k, v] of Object.entries(lagret.laste).slice(-30)) if (Number.isInteger(v)) S.laste[k] = v;
+    }
     if (lagret.skjerm && SKJERMER[lagret.skjerm]) S.skjerm = lagret.skjerm;
   }
 
@@ -367,7 +374,7 @@
     const s = S.skjerm;
     if (s === "regler") return gaTil(S.reglerFra && S.reglerFra !== "regler" ? S.reglerFra : "hjem");
     if (s === "plass") return gaTil("bli-med");
-    if (s === "gjest") return gaTil("plass");
+    if (s === "gjest") return gaTil(S.gjest && S.gjest.sett ? "hjem" : "plass");
     if (s === "del" || s === "kode" || s === "diskusjon" || s === "pek" || s === "avslor" || s === "resultat") return gaTil("hjem");
     return gaTil("hjem");
   }
@@ -569,7 +576,7 @@
       }
     }
     const plasser = Array.from({ length: sp.oppsett.spillere }, (_, i) => `
-      <button class="plass" data-h="vert-plass" data-v="${i}" aria-pressed="${sp.vertPlass === i}">${avatar(i)}<span>${i + 1} · ${esc(navn(i))}</span></button>`).join("");
+      <button class="plass" data-h="vert-plass" data-v="${i}" aria-pressed="${sp.vertPlass === i}" ${sp.vertLaast && sp.vertPlass !== i ? "disabled" : ""}>${avatar(i)}<span>${i + 1} · ${esc(navn(i))}</span></button>`).join("");
     $("#s-kode").innerHTML = `
       <div class="piller"><span class="pille">Runde ${sp.runde}</span><span class="pille">${sp.oppsett.spillere} spillere</span><span class="pille">${NIVA_TEKST[sp.oppsett.niva].navn}</span></div>
       <h1>${sp.runde === 1 ? "Del koden med de andre" : `Runde ${sp.runde}: alle trykker «Neste runde»`}</h1>
@@ -910,19 +917,21 @@
       vibrer(120);
       return;
     }
-    S.gjest = { kode: svar.kode, oppsett: svar.oppsett, runde: 1, plass: null, datahash: DATA.hash };
+    const laast = S.laste[svar.kode];
+    S.gjest = { kode: svar.kode, oppsett: svar.oppsett, runde: 1, plass: laast != null ? laast : null, sett: laast != null, datahash: DATA.hash };
     holdVaken();
-    gaTil("plass");
+    gaTil(laast != null ? "gjest" : "plass");
   }
 
   function visPlass() {
     const g = S.gjest;
     if (!g) return gaTil("bli-med");
+    if (g.sett && g.plass != null) return gaTil("gjest"); // seat locked once the card was seen
     const o = g.oppsett;
     const kat = o.kategorier ? `${o.kategorier.length} ${o.kategorier.length === 1 ? "kategori" : "kategorier"}` : "Alle kategorier";
     $("#s-plass").innerHTML = `
       <h1>Hvilken plass er din?</h1>
-      <p class="ingress">Velg samme plass som verten har gitt deg. Én plass per person.</p>
+      <p class="ingress">Velg samme plass som verten har gitt deg. Plassen låses når du har sett kortet ditt.</p>
       <div class="piller"><span class="pille">${o.spillere} spillere</span><span class="pille">${NIVA_TEKST[o.niva].navn}</span><span class="pille">${kat}</span><span class="pille rosa">${o.luringer === 1 ? "1 luring" : o.luringer + " luringer"}</span></div>
       <div class="plasser">${Array.from({ length: o.spillere }, (_, i) => `<button class="plass" data-h="gjest-plass" data-v="${i}" aria-pressed="${g.plass === i}">${avatar(i)}<span>${plassNavn(i)}</span></button>`).join("")}</div>`;
   }
@@ -1054,6 +1063,16 @@
     bak.innerHTML = kortHtml(kort);
     m.classList.add("apen");
     apenMappe = m;
+    // Seeing a card (even a quick peek) locks the seat: no going back to look at other seats.
+    if (S.skjerm === "gjest" && S.gjest && S.gjest.plass != null && !S.gjest.sett) {
+      S.gjest.sett = true;
+      S.laste[S.gjest.kode] = S.gjest.plass;
+      lagre();
+    }
+    if (S.skjerm === "kode" && S.spill && S.spill.vertPlass != null && !S.spill.vertLaast && !m.closest("#ark")) {
+      S.spill.vertLaast = true; // the host's seat is fixed for the rest of the game
+      lagre();
+    }
     apnetTid = performance.now();
     Lyd.snu();
     vibrer(15);
@@ -1321,6 +1340,7 @@
     },
     "vert-plass": (el) => {
       const ny = Number(el.dataset.v);
+      if (S.spill.vertLaast && S.spill.vertPlass !== ny) return visToast("Plassen er låst når du har sett kortet");
       if (S.spill.vertPlass !== ny) S.spill.visning.sett = false;
       S.spill.vertPlass = ny;
       visKode();
@@ -1420,7 +1440,9 @@
       gaTil("oppsett");
     },
     "gjest-plass": (el) => {
-      S.gjest.plass = Number(el.dataset.v);
+      const g = S.gjest;
+      if (g.sett && g.plass != null && g.plass !== Number(el.dataset.v)) return visToast("Plassen er låst når du har sett kortet");
+      g.plass = Number(el.dataset.v);
       gaTil("gjest");
     },
     "gjest-runde": (el) => {

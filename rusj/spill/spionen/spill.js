@@ -70,6 +70,8 @@
     return STEDER.map((s, i) => i).filter((i) => valgt.has(STEDER[i].p));
   }
 
+  const laastPlass = (S, kode) => (S.laste && Number.isInteger(S.laste[kode]) ? S.laste[kode] : null);
+
   // Everything about one round. Same settings + seed + round number → the same round on every phone.
   function lagRunde(o, runde) {
     const rekke = R.stokk(utvalg(o.pakker), R.rng(R.hash("steder:" + o.fro)));
@@ -352,6 +354,8 @@
       antall: 4,
       oppsett: { modus: "en", spioner: 1, tid: 8, pakker: STANDARD_PAKKER.slice() },
       spill: null,
+      // Seats a guest has seen a card for, per code: locked, also after leaving and rejoining.
+      laste: {},
       gjest: null,
     }),
 
@@ -387,11 +391,24 @@
 
     hemmelig: {
       innhold(S, id) {
-        if (id === "gjest") return kortHtml(lagRunde(S.gjest, S.gjest.runde), S.gjest.plass);
-        if (id === "vert") return kortHtml(S.spill.r, S.spill.vertPlass);
+        // Seeing a card (even a quick peek) locks the seat, so nobody can look at other seats.
+        if (id === "gjest") {
+          (S.laste = S.laste || {})[S.gjest.kode] = S.gjest.plass;
+          R.lagre();
+          return kortHtml(lagRunde(S.gjest, S.gjest.runde), S.gjest.plass);
+        }
+        if (id === "vert") {
+          S.spill.vertLaast = true;
+          R.lagre();
+          return kortHtml(S.spill.r, S.spill.vertPlass);
+        }
         return kortHtml(S.spill.r, Number(String(id).slice(1)));
       },
       sett(S, id) {
+        if (id === "gjest" && S.skjerm === "gjest") {
+          R.vis(); // the seat is locked now: drop «Bytt nummer»
+          return;
+        }
         if (id === "vert" && S.skjerm === "vert") {
           S.spill.vertSett = true;
           R.vis();
@@ -413,7 +430,7 @@
         S.kodeFeil = kodeFeil(kodeDel);
         return "bli-med";
       }
-      if (!S.gjest || S.gjest.kode !== o.kode) S.gjest = Object.assign(o, { runde: 1, plass: null, kryss: [] });
+      if (!S.gjest || S.gjest.kode !== o.kode) S.gjest = Object.assign(o, { runde: 1, plass: laastPlass(S, o.kode), kryss: [] });
       const runde = Number(rundeDel);
       if (Number.isInteger(runde) && runde >= 1 && runde <= 999 && runde !== S.gjest.runde) {
         S.gjest.runde = runde;
@@ -452,7 +469,7 @@
         }
         S.kodeUtkast = "";
         S.kodeFeil = "";
-        if (!S.gjest || S.gjest.kode !== o.kode) S.gjest = Object.assign(o, { runde: 1, plass: null, kryss: [] });
+        if (!S.gjest || S.gjest.kode !== o.kode) S.gjest = Object.assign(o, { runde: 1, plass: laastPlass(S, o.kode), kryss: [] });
         R.lyd.riktig();
         R.holdVaken();
         R.gaTil(S.gjest.plass == null ? "plass" : "gjest");
@@ -593,7 +610,7 @@
               <div class="sp-plasser liste">${range(sp.antall)
                 .map(
                   (i) =>
-                    `<button class="sp-plass" data-h="vert-plass" data-v="${i}" aria-pressed="${sp.vertPlass === i}">${R.avatar(i)}<b>${i + 1}</b><span>${esc(R.navn(i))}</span></button>`,
+                    `<button class="sp-plass" data-h="vert-plass" data-v="${i}" aria-pressed="${sp.vertPlass === i}"${sp.vertLaast && sp.vertPlass !== i ? " disabled" : ""}>${R.avatar(i)}<b>${i + 1}</b><span>${esc(R.navn(i))}</span></button>`,
                 )
                 .join("")}</div>
             </section>`;
@@ -908,7 +925,7 @@
             <div class="sp-plasser stor">${range(g.antall)
               .map((i) => `<button class="sp-plass" data-h="gjest-plass" data-v="${i}" aria-pressed="${g.plass === i}" aria-label="Nummer ${i + 1}">${R.avatar(i)}<b>${i + 1}</b></button>`)
               .join("")}</div>
-            <p class="hjelp">Ett nummer per person – ellers blir kortene feil.</p>`;
+            <p class="hjelp">Ett nummer per person. Nummeret låses når du har sett kortet ditt.</p>`;
         },
       },
 
@@ -925,7 +942,7 @@
             <p class="hjelp"><b>Nr. ${r.starter + 1}</b> spør først.</p>
             ${R.ui.lenkerad(
               R.ui.lenke("Spørsmålsideer", "ide"),
-              R.ui.lenke("Bytt nummer", "bytt-plass"),
+              laastPlass(S, g.kode) == null ? R.ui.lenke("Bytt nummer", "bytt-plass") : "",
               g.runde > 1 ? R.ui.lenke(`Tilbake til runde ${g.runde - 1}`, "gjest-forrige") : "",
               R.ui.lenke("Forlat spillet", "forlat"),
             )}
@@ -991,7 +1008,9 @@
 
       // Own phones: the host
       "vert-plass"(el, e, S) {
-        S.spill.vertPlass = Number(el.dataset.v);
+        const ny = Number(el.dataset.v);
+        if (S.spill.vertLaast && S.spill.vertPlass !== ny) return R.toast("Nummeret er låst når du har sett kortet");
+        S.spill.vertPlass = ny;
         S.spill.vertSett = false;
         R.vis();
         const kort = R.$("#vertskort");
@@ -1157,6 +1176,8 @@
 
       // Own phones: the guests
       "gjest-plass"(el, e, S) {
+        const laast = laastPlass(S, S.gjest.kode);
+        if (laast != null && laast !== Number(el.dataset.v)) return R.toast("Nummeret er låst når du har sett kortet");
         S.gjest.plass = Number(el.dataset.v);
         S.gjest.kryss = [];
         R.lyd.pop();
@@ -1179,7 +1200,7 @@
         S.gjest.kryss = [];
         R.gaTil("gjest");
       },
-      "bytt-plass": () => R.gaTil("plass"),
+      "bytt-plass": (el, e, S) => (laastPlass(S, S.gjest.kode) != null ? R.toast("Nummeret er låst når du har sett kortet") : R.gaTil("plass")),
       async forlat(el, e, S) {
         const fortsatt = R.vakt();
         if ((await R.bekreft("Forlate spillet?", "Du kan bli med igjen med den samme koden.", "Forlat", "Bli")) && fortsatt()) {
