@@ -626,10 +626,10 @@ ${bunn(false)}
   // ---------- Pages about rusj: /personvern/ and /om/ ----------
   const SIDER_OPPDATERT = "2026-11-10";
   const datoTekst = (iso) => `${Number(iso.slice(8))}. ${["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"][Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
-  // NB: the address is a placeholder until the owner has confirmed it.
-  // The owner's public contact address. Empty until the owner has confirmed one: the pages then
-  // leave the contact line out instead of showing an address nobody reads.
-  const KONTAKT = "";
+  // The public contact details, confirmed by the owner 2026-11-10. With an empty KONTAKT the pages
+  // leave the contact line out.
+  const KONTAKT = "rusj@odkdigital.no";
+  const POSTADRESSE = ""; // the owner wants only the e-mail address shown
   const omSide = (o) => `${hodeMed({ tittel: o.tittel, ogTittel: o.ogTittel, beskrivelse: o.beskrivelse, sti: o.sti, ikon: ikoner.svg, deling: ikoner.deling, delingAlt: "rusj – gratis spill og selskapsleker på norsk", css: [felles.css, portalCss] })}
 <body class="portal">
 <div class="scene" aria-hidden="true"></div>
@@ -702,7 +702,7 @@ ${o.skript ? `<script src="${o.skript}"></script>` : ""}
 
   <section aria-labelledby="pv-kontakt">
     <h2 id="pv-kontakt">Spørsmål?</h2>
-    ${KONTAKT ? `<p>Kontakt: <a href="mailto:${KONTAKT}">${KONTAKT}</a>. Skriver du til oss, bruker vi e-postadressen din bare til å svare deg.</p>` : ""}
+    ${KONTAKT ? `<p>Kontakt: <a href="mailto:${KONTAKT}">${KONTAKT}</a>${POSTADRESSE ? ` eller rusj, ${esc(POSTADRESSE)}` : ""}. Skriver du til oss, bruker vi e-postadressen din bare til å svare deg.</p>` : ""}
     <p class="side-liten">Sist oppdatert ${datoTekst(SIDER_OPPDATERT)}.</p>
   </section>
   <dialog class="dialog" id="dialog" aria-labelledby="dialog-tittel"></dialog>`,
@@ -742,7 +742,7 @@ ${
       }
   <section aria-labelledby="om-kontakt">
     <h2 id="om-kontakt">Kontakt</h2>
-    ${KONTAKT ? `<p>Kontakt: <a href="mailto:${KONTAKT}">${KONTAKT}</a>. Si gjerne fra om feil, eller foreslå et spill.</p>` : ""}
+    ${KONTAKT ? `<p>Kontakt: <a href="mailto:${KONTAKT}">${KONTAKT}</a>${POSTADRESSE ? ` eller rusj, ${esc(POSTADRESSE)}` : ""}. Si gjerne fra om feil, eller foreslå et spill.</p>` : ""}
   </section>`,
     }),
   );
