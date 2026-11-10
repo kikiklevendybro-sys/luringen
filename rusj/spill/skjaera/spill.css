@@ -760,3 +760,24 @@
     font-size: 1.7rem;
   }
 }
+
+/* ---------- A phone on its side (the kit puts the dock in a column on the right) ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-brett {
+    gap: 6px;
+  }
+
+  /* Beside the board the dock can't push it around: no height kept free for the answers. */
+  html[data-liggende="side"] .skj-dokk {
+    min-height: 0 !important;
+  }
+
+  html[data-liggende="side"] .skj-valg-rad {
+    gap: 8px;
+  }
+
+  html[data-liggende="side"] .skj-valg {
+    min-height: 64px;
+  }
+}

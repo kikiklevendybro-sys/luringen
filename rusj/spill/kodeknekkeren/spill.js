@@ -675,6 +675,7 @@
       brett: {
         tittel: (S) => `Brett ${S.spill.brett + 1}`,
         tilbake: "hjem",
+        liggende: false, // landscape phones: the board has its own wide layout (html.kk-vid in spill.css)
         vis(S) {
           const sp = S.spill;
           const ferdig = sp.vinner != null;
@@ -716,6 +717,7 @@
       slutt: {
         tittel: "Kåringen",
         tilbake: "hjem",
+        liggende: false, // (as the board: its own wide layout)
         vis(S) {
           const sp = S.spill;
           const v = sp.vinner;

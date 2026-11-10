@@ -155,12 +155,26 @@
     const brett = R.$(".ele-brett");
     if (!brett) return;
     const n = Number(brett.dataset.n);
-    const kol = Number(brett.dataset.kol);
-    const rader = Math.ceil(n / kol);
+    let kol = Number(brett.dataset.kol);
     const gap = n >= 24 ? 7 : n >= 16 ? 9 : 11;
     const bredde = brett.clientWidth;
     const topp = brett.getBoundingClientRect().top + window.scrollY;
     const hoyde = window.innerHeight - topp - 20;
+    // A phone on its side: the screen is low and wide, so more columns fit better than more rows.
+    // Take the number of columns that gives the biggest cards (30 cards: 10 × 3 instead of 5 × 6).
+    if (window.innerWidth > window.innerHeight && window.innerHeight <= 500) {
+      let best = 0;
+      for (let k = kol; k <= n; k++) {
+        const r = Math.ceil(n / k);
+        const b = Math.min((bredde - gap * (k - 1)) / k, (hoyde - gap * (r - 1)) / r / FORHOLD, 128);
+        if (b > best + 0.5) {
+          best = b;
+          kol = k;
+        }
+      }
+    }
+    brett.style.setProperty("--kol", kol);
+    const rader = Math.ceil(n / kol);
     const fraBredde = (bredde - gap * (kol - 1)) / kol;
     const fraHoyde = (hoyde - gap * (rader - 1)) / rader / FORHOLD;
     const b = Math.floor(Math.max(44, Math.min(fraBredde, fraHoyde, 128)));

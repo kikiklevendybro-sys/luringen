@@ -365,7 +365,9 @@ export default async function (t) {
     const s = document.querySelector(".kunst-finale .stempel").getBoundingClientRect();
     const p = document.querySelector(".kunst-finale-par").getBoundingClientRect();
     const d = document.querySelector(".dokk").getBoundingClientRect();
-    return { stempel: s.top >= 0 && s.bottom <= d.top, par: p.bottom <= d.top, dokkKnapper: document.querySelectorAll(".dokk .knapp, .dokk .knapp-2").length };
+    // Above the dock — or, on a phone on its side where the dock is a column on the right, beside it and inside the screen.
+    const fri = (r) => (r.right <= d.left + 1 || r.left >= d.right - 1 ? r.bottom <= window.innerHeight + 1 : r.bottom <= d.top);
+    return { stempel: s.top >= 0 && fri(s), par: fri(p), dokkKnapper: document.querySelectorAll(".dokk .knapp, .dokk .knapp-2").length };
   })()`);
   t.sjekk(finale.stempel && finale.par && finale.dokkKnapper === 1, `Finalen havner under knappene (${JSON.stringify(finale)})`);
   t.sjekk(/1 av 2/.test(await t.tekst(".kunst-finale")), "Finalen teller ikke treffene");

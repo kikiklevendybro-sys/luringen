@@ -14,8 +14,9 @@ export default async function (t) {
     t.sjekk(ut <= 0, `Spørsmålskortet er ${ut}px for bredt på «${navn}»`);
   };
   // How far (px) an element reaches below the top of the sticky dock (> 0 means hidden behind it).
+  // On a phone on its side the dock is a column beside the content: then the bottom of the screen counts.
   const underDokka = (sel) =>
-    t.js(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); const d = document.querySelector("#skjerm .dokk .knapp"); if (!el || !d) return 999; return Math.round(el.getBoundingClientRect().bottom - d.getBoundingClientRect().top); })()`);
+    t.js(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); const d = document.querySelector("#skjerm .dokk .knapp"); if (!el || !d) return 999; const a = el.getBoundingClientRect(); const b = d.getBoundingClientRect(); const ved = a.right <= b.left + 1 || a.left >= b.right - 1; return Math.round(a.bottom - (ved ? window.innerHeight : b.top)); })()`);
   const overToppen = (sel) => t.js(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); return el ? Math.round(60 - el.getBoundingClientRect().top) : 999; })()`);
 
   // The runner may use another phone size (--bredde/--hoyde); adapt to it and restore it at the end.

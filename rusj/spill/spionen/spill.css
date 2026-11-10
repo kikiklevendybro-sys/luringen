@@ -632,3 +632,78 @@ button.sp-sted:active {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ---------- A phone on its side (the kit puts the button in a column on the right) ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Who gets the phone: label and name on one line, so the secret card gets the height. */
+  .sp-mottaker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0 14px;
+  }
+
+  .sp-mottaker .spillernavn {
+    font-size: 1.6rem;
+  }
+
+  .sp-mottaker .avatar.stor {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .skjerm-vis .fremdrift {
+    gap: 8px;
+    padding-block: 0;
+  }
+
+  /* The card takes the height that is left (the kit's rule) instead of a fixed one … */
+  .skjerm-vis .mappe,
+  .skjerm-gjest .mappe {
+    height: auto;
+    min-height: 184px;
+  }
+
+  /* (the host's card sits inside a section on a long page: a height of its own) */
+  .skjerm-vert .mappe {
+    height: 204px;
+  }
+
+  /* … and since it is wide and low here, its back has two columns: the place on the left, the
+     role on the right, the warning under both. */
+  .mappe-bakside.sp-kort {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    place-content: center;
+    place-items: center;
+    gap: 2px 18px;
+    padding: 12px 18px;
+  }
+
+  .sp-kort > .kort-etikett,
+  .sp-kort > .sp-kort-ikon,
+  .sp-kort > .kort-ord {
+    grid-column: 1;
+  }
+
+  .sp-kort > .sp-kort-ikon {
+    font-size: 2rem;
+  }
+
+  .sp-kort > .kort-ord {
+    font-size: clamp(1.3rem, 7.5vh, 1.8rem);
+  }
+
+  .sp-kort > .sp-rolle {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  .sp-kort > .kort-fot {
+    grid-column: 1 / -1;
+    margin-top: 2px;
+  }
+}

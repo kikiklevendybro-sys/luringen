@@ -4,7 +4,7 @@
 // finish line and the final round decides the winner.
 const S = "JSON.parse(localStorage.getItem('rusj.skravla.v1'))";
 // The screen's heading must be fully visible above the dock (short phones), measured from the top.
-const OVER_DOKK = `(() => { window.scrollTo(0, 0); const h = document.querySelector('#skjerm h1').getBoundingClientRect(); const d = document.querySelector('#skjerm .dokk').getBoundingClientRect(); return h.bottom <= d.top + 20; })()`;
+const OVER_DOKK = `(() => { window.scrollTo(0, 0); const h = document.querySelector('#skjerm h1').getBoundingClientRect(); const d = document.querySelector('#skjerm .dokk').getBoundingClientRect(); return h.right <= d.left + 1 || h.left >= d.right - 1 ? h.bottom <= innerHeight + 1 : h.bottom <= d.top + 20; })()`;
 
 // Waits until the round on screen has `antall` correct words.
 async function riktige(t, antall) {

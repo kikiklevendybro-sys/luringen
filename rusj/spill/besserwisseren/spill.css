@@ -633,3 +633,22 @@ button.bw-valg:active {
     font-size: 1.3rem;
   }
 }
+
+/* ---------- A phone on its side (the kit puts the button in a column on the right) ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-sporsmal {
+    gap: 10px;
+  }
+
+  /* Two answers beside each other: the question, all four answers and the fun fact fit the low
+     screen without scrolling. */
+  html[data-liggende="side"] .bw-valgliste {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  html[data-liggende="side"] .bw-valg {
+    min-height: 52px;
+  }
+}

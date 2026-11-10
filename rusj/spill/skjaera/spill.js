@@ -240,11 +240,13 @@
     const rader = Math.ceil(n / kol);
     const gap = n >= 16 ? 8 : 10;
     const dokk = R.$(".skj-dokk");
-    const reserve = (dokk ? parseFloat(dokk.style.minHeight) || 180 : 180) + 26 + 16 + 14;
+    // (On a phone on its side the kit puts the dock in a column beside the board: nothing to keep free under it.)
+    const reserve = R.liggende() === "side" ? 18 : (dokk ? parseFloat(dokk.style.minHeight) || 180 : 180) + 26 + 16 + 14;
     const topp = bord.getBoundingClientRect().top + window.scrollY;
     const hoyde = window.innerHeight - topp - reserve;
     const bredde = bord.clientWidth;
-    const b = Math.floor(Math.max(46, Math.min((bredde - gap * (kol - 1)) / kol, (hoyde - gap * (rader - 1)) / rader, 124)));
+    // (a little smaller at the least there, so a big level still fits a 360 px high screen)
+    const b = Math.floor(Math.max(R.liggende() === "side" ? 36 : 46, Math.min((bredde - gap * (kol - 1)) / kol, (hoyde - gap * (rader - 1)) / rader, 124)));
     brett.style.setProperty("--rb", b + "px");
     brett.style.setProperty("--gap", gap + "px");
   }
@@ -635,6 +637,7 @@
   R.start({
     id: "skjaera",
     versjon: 1,
+    liggende: true, // landscape phones: the kit may move every dock to the side column, also the one with the answers in it
     // A game (a solo level or a round with friends) is in progress until its result screen.
     pagar: (S) => !!(S.spill && !S.spill.ferdig),
 

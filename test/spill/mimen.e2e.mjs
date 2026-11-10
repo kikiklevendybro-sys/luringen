@@ -1,9 +1,10 @@
 // Mimen: everyone against everyone with three players (guess, pass, reload in the middle of a
 // turn, run out of time, a shared win), then a quick team game ended early.
 const S = "JSON.parse(localStorage.getItem('rusj.mimen.v1'))";
-// An element must be fully visible above the dock (short phones), measured from the top.
+// An element must be fully visible above the dock (short phones), measured from the top — or,
+// on a phone on its side where the dock is a column on the right, beside it and inside the screen.
 const overDokk = (sel) =>
-  `(() => { window.scrollTo(0, 0); const e = document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect(); const d = document.querySelector('#skjerm .dokk').getBoundingClientRect(); return e.bottom <= d.top + 20; })()`;
+  `(() => { window.scrollTo(0, 0); const e = document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect(); const d = document.querySelector('#skjerm .dokk').getBoundingClientRect(); return e.right <= d.left + 1 || e.left >= d.right - 1 ? e.bottom <= innerHeight + 1 : e.bottom <= d.top + 20; })()`;
 
 // From the pass-the-phone screen: read the task (hold the card) and start miming.
 async function mim(t, bilde) {

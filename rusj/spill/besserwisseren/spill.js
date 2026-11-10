@@ -245,7 +245,8 @@
     const riktig = R.$("#skjerm .bw-valg.riktig");
     const dokk = R.$("#skjerm .dokk");
     if (!fakta || !riktig) return;
-    const grense = (dokk ? dokk.getBoundingClientRect().top + 18 : window.innerHeight) - 6;
+    // (On a phone on its side the dock is a column beside the content: the screen's bottom is the limit.)
+    const grense = (dokk && R.liggende() !== "side" ? dokk.getBoundingClientRect().top + 18 : window.innerHeight) - 6;
     const mangler = fakta.getBoundingClientRect().bottom - grense;
     const rom = riktig.getBoundingClientRect().top - 72;
     const steg = Math.min(mangler, rom);
@@ -318,6 +319,7 @@
   R.start({
     id: "besserwisseren",
     versjon: 1,
+    liggende: true, // landscape phones: the kit may move every dock to the side column, also those with the game's own buttons in them
     pagar, // a quiz is in progress until the last question is answered
 
     tilstand: () => ({

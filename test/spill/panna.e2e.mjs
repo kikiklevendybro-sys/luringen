@@ -15,6 +15,10 @@ const flagg = (n, std) => {
   return (i > 0 && Number(process.argv[i + 1])) || std;
 };
 const STAAENDE = { width: flagg("--bredde", 390), height: flagg("--hoyde", 844), deviceScaleFactor: 2, mobile: true, screenOrientation: { type: "portraitPrimary", angle: 0 } };
+// Started on a phone on its side (--bredde 844 --hoyde 390): the browser has already turned the page,
+// so the stage must NOT turn itself (that is only for a portrait screen with the rotation lock on).
+const STARTER_LIGGENDE = STAAENDE.width > STAAENDE.height;
+const ROT_SIDELENGS = STARTER_LIGGENDE ? "0" : "-90";
 const LIGGENDE = { width: 844, height: 390, deviceScaleFactor: 2, mobile: true, screenOrientation: { type: "landscapePrimary", angle: 90 } };
 const LITEN_LIGGENDE = { width: 568, height: 320, deviceScaleFactor: 2, mobile: true, screenOrientation: { type: "landscapePrimary", angle: 90 } };
 const staaende = (b, h) => ({ width: b, height: h, deviceScaleFactor: 2, mobile: true, screenOrientation: { type: "portraitPrimary", angle: 0 } });
@@ -151,7 +155,10 @@ export default async function (t) {
   await t.bilde("nedtelling");
   await t.vent(fase("spill"), 6000);
   await t.sov(600);
-  t.sjekk((await t.js(`document.querySelector('#panna-scene').dataset.rot`)) === "-90", "Scenen snudde seg ikke med rotasjonslås på");
+  t.sjekk(
+    (await t.js(`document.querySelector('#panna-scene').dataset.rot`)) === ROT_SIDELENGS,
+    STARTER_LIGGENDE ? "Scenen snudde seg selv om skjermen alt ligger på siden" : "Scenen snudde seg ikke med rotasjonslås på",
+  );
   t.sjekk((await t.tekst("#panna-ord")).trim().length > 0, "Ingen ord på panna");
   await t.bilde("runde-rotert");
 
@@ -191,7 +198,7 @@ export default async function (t) {
   // Landscape: the browser rotates, the stage fills the screen
   await landskap("runde");
   // Back in portrait with the phone still sideways: the stage turns itself again after a moment
-  await t.vent(`document.querySelector('#panna-scene[data-rot="-90"]')`, 3000);
+  await t.vent(`document.querySelector('#panna-scene[data-rot="${ROT_SIDELENGS}"]')`, 3000);
 
   // Pause button, then a reload in the middle of the round
   await t.klikk(".panna-pauseknapp", 300);

@@ -643,3 +643,69 @@ html.vu-morgen .scene {
     font-size: 1.5rem;
   }
 }
+
+/* ---------- A phone on its side (the kit puts the button in a column on the right) ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Who gets the phone: label and name on one line, so the role card gets the height. */
+  .vu-mottaker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0 14px;
+  }
+
+  .vu-mottaker .spillernavn {
+    font-size: 1.6rem;
+  }
+
+  .vu-mottaker .avatar.stor {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .skjerm-roller .fremdrift {
+    gap: 6px;
+    padding-block: 0;
+  }
+
+  /* The card takes the height that is left (the kit's rule) instead of a fixed one … */
+  .skjerm-roller .mappe {
+    height: auto;
+    min-height: 184px;
+  }
+
+  /* … and since it is wide and low here, its back has two columns: the role on the left, what
+     it does on the right, the note under both. */
+  .mappe-bakside.vu-kort {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    place-content: center;
+    place-items: center;
+    gap: 2px 18px;
+    padding: 12px 18px;
+  }
+
+  .vu-kort > .kort-etikett,
+  .vu-kort > .vu-kort-ikon,
+  .vu-kort > .kort-ord {
+    grid-column: 1;
+  }
+
+  /* (a size that keeps «Landsbyboer» on one line in its half of the card) */
+  .vu-kort > .kort-ord {
+    font-size: clamp(1.3rem, 7.4vh, 1.8rem);
+  }
+
+  .vu-kort > .vu-kort-tekst {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  .vu-kort > .kort-fot {
+    grid-column: 1 / -1;
+    margin-top: 4px;
+  }
+}

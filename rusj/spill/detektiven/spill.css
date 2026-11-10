@@ -424,13 +424,10 @@
 /* ---------- Landscape phones (short screens) ---------- */
 
 @media (orientation: landscape) and (max-height: 540px) {
+  /* (The kit makes the top bar slimmer on landscape phones. This game keeps its own layout
+     there — `liggende: false` in spill.js: a slim dock at the bottom instead of the kit's side column.) */
   html[data-spill="detektiven"] .app {
     max-width: 860px;
-  }
-
-  html[data-spill="detektiven"] .topp {
-    min-height: 52px;
-    padding-block: 4px 0;
   }
 
   html[data-spill="detektiven"] .dokk {

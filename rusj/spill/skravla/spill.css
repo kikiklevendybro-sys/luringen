@@ -976,3 +976,18 @@
     display: none;
   }
 }
+
+/* ---------- A phone on its side (the kit puts the buttons in a column on the right) ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* The card is wide and low here: the word is sized by the height too, so the words that are
+     forbidden to say stay on the screen under it. */
+  .sk-ordet {
+    font-size: min(4.2rem, 13vh, calc(148cqi / var(--tegn, 8)));
+  }
+
+  .sk-tabu {
+    gap: 6px;
+    padding-top: 8px;
+  }
+}

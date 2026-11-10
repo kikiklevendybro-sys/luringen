@@ -589,6 +589,7 @@
   R.start({
     id: "vaghalsen",
     versjon: 1,
+    liggende: true, // landscape phones: the kit may move every dock to the side column, also those with the game's own buttons in them
     pagar: (S) => !!S.spill && S.skjerm !== "slutt",
 
     tilstand: () => ({

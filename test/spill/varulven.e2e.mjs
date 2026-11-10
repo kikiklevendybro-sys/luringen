@@ -28,7 +28,11 @@ const overDokken = (t, sel) =>
     window.scrollTo(0, 0);
     const el = document.querySelector(${JSON.stringify(sel)});
     const dokk = document.querySelector("#skjerm .dokk");
-    return !el || !dokk || el.getBoundingClientRect().bottom <= dokk.getBoundingClientRect().top + 1;
+    if (!el || !dokk) return true;
+    const a = el.getBoundingClientRect();
+    const d = dokk.getBoundingClientRect();
+    // Beside the dock (a phone on its side: the dock is a column on the right) is fine when it is inside the screen.
+    return a.right <= d.left + 1 || a.left >= d.right - 1 ? a.bottom <= window.innerHeight + 1 : a.bottom <= d.top + 1;
   })()`);
 
 // Two real finger taps 90 ms apart (like a nervous double tap).

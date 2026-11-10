@@ -1198,3 +1198,54 @@
     font-size: 1.6rem;
   }
 }
+
+/* ---------- A phone on its side (the kit puts the buttons in a column on the right) ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Ready for a round: the card as compact as during the round (letter beside the category) and
+     no troll on top of it, so who starts, the hint and everyone's hearts fit under it. */
+  .bt-klar .bt-trollramme {
+    display: none;
+  }
+
+  .bt-klar .bt-kort {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    justify-items: start;
+    gap: 4px 14px;
+    padding: 14px 16px 14px 20px;
+    text-align: left;
+  }
+
+  .bt-klar .bt-kort .bt-kat {
+    justify-content: flex-start;
+  }
+
+  .bt-klar .bt-kort .bt-pa {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .bt-klar .bt-kort .bt-bokstav {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 84px;
+    height: 84px;
+    margin: 0;
+    border-radius: 20px;
+    font-size: 3.5rem;
+  }
+
+  /* The round: the card and the whole troll on the low screen. */
+  .skjerm-bomba {
+    gap: 8px;
+  }
+
+  .bt-scene {
+    padding: 0;
+  }
+
+  .bt-scene .bt-trollramme {
+    width: min(30vh, 150px);
+  }
+}

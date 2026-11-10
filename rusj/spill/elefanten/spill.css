@@ -718,3 +718,18 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- A phone on its side ---------- */
+
+/* The board gets the whole width (the kit would keep one portrait column on a screen without a
+   dock); tilpass() in spill.js lays the cards out in more columns there. */
+@media (orientation: landscape) and (max-height: 500px) {
+  html[data-spill="elefanten"][data-liggende="uten"] main {
+    max-width: none;
+  }
+
+  .skjerm-spill {
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+}

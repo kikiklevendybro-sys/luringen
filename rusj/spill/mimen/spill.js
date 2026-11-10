@@ -255,6 +255,7 @@
   R.start({
     id: "mimen",
     versjon: 1,
+    liggende: true, // landscape phones: the kit may move every dock to the side column, also those with the game's own buttons in them
     pagar, // a game is running until the end screen (front-page badge, wake lock)
 
     // The player count starts at the number of names the group already typed in (any game).

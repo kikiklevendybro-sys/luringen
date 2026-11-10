@@ -776,3 +776,52 @@
     width: min(100%, 470px, max(236px, calc(100vh - 450px)));
   }
 }
+
+/* ---------- A phone on its side (the kit puts the buttons in a column on the right) ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* The table gets the whole height of the low screen; who it is and what to do stand beside it
+     instead of under it. (With a table that big the name tags around it don't run into each other.) */
+  html[data-liggende="side"] .skjerm-runde {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: center;
+    align-items: center;
+    column-gap: 16px;
+  }
+
+  .vh-scene {
+    padding: 24px 0 34px;
+  }
+
+  .vh-hjul {
+    width: clamp(180px, calc(100vh - 152px), 250px);
+  }
+
+  @supports (height: 100svh) {
+    .vh-hjul {
+      width: clamp(180px, calc(100svh - 152px), 250px);
+    }
+  }
+
+  .vh-info {
+    justify-items: start;
+    gap: 2px;
+    min-height: 0;
+    text-align: left;
+  }
+
+  .vh-info h1 {
+    font-size: 1.6rem;
+  }
+
+  /* Truth or dare, side by side in the narrow column. */
+  .vh-valg {
+    gap: 8px;
+  }
+
+  .vh-valg .knapp {
+    min-height: 84px;
+    font-size: 1.05rem;
+  }
+}

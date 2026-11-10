@@ -645,6 +645,7 @@
     id: "panna",
     versjon: 1,
     pagar, // a game is in progress (front page badge, screen kept awake)
+    liggende: false, // landscape phones: this game has its own layout (a slim dock at the bottom, see spill.css)
 
     tilstand: () => ({
       antall: 3,
@@ -709,6 +710,7 @@
     skjermer: {
       hjem: {
         tilbake: "portal",
+        liggende: true, // (the kit's landscape home: mascot left, buttons right)
         vis: (S) =>
           R.ui.spillhjem({
             slagordHtml: "Mobilen på panna. De andre gir hint.<br><em>Vipp ned når du har det!</em>",

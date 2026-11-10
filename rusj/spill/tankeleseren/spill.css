@@ -990,3 +990,34 @@
     padding-block: 4px;
   }
 }
+
+/* ---------- A phone on its side (the kit puts the buttons in a column on the right) ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-hint,
+  .skjerm-skive {
+    gap: 6px;
+  }
+
+  /* The dial has the column's whole height to share with the card over it and the result under
+     it (no dock below any more): sized so the stamp and the line under it fit the screen too. */
+  html[data-liggende="side"] .skjerm-skive .tl-skive,
+  html[data-liggende="side"] .skjerm-hint .tl-skive {
+    width: min(100%, calc((100vh - 268px) * 1.76));
+    width: min(100%, calc((100dvh - 268px) * 1.76));
+    min-width: 150px;
+  }
+
+  html[data-liggende="side"] .tl-resultat {
+    min-height: 0;
+    margin-top: -4px;
+  }
+
+  html[data-liggende="side"] .tl-resultat .stempel-sted {
+    min-height: 54px;
+  }
+
+  html[data-liggende="side"] .tl-resultat .stempel {
+    font-size: 1.9rem;
+  }
+}

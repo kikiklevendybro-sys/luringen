@@ -1783,6 +1783,9 @@
 
   // Every screen binds its canvases after a render and lets go of them when it is left.
   for (const sk of Object.values(SKJERMER)) {
+    // Drawing screens fill the phone and have their own landscape layout (sheet left, tools right):
+    // the kit's landscape layout stays off there.
+    if (sk.fast && sk.liggende === undefined) sk.liggende = false;
     const egenEtter = sk.etter;
     const egenUt = sk.ut;
     sk.etter = (S, rot) => {

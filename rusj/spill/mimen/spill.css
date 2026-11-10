@@ -473,3 +473,24 @@
     height: 44px;
   }
 }
+
+/* ---------- A phone on its side (the kit puts the buttons in a column on the right) ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* The glow behind the clock must not make the page taller than the screen. */
+  .mi-scene::before {
+    top: -12px;
+    width: 64vh;
+    height: 64vh;
+  }
+
+  /* The clock has the height to itself now: a bigger ring, and digits that stay inside it. */
+  .mi-scene .timer.stor .timer-ring {
+    width: min(33vh, 150px);
+    height: min(33vh, 150px);
+  }
+
+  .mi-scene .timer.stor .timer-tid {
+    font-size: clamp(1.6rem, 8.4vh, 2.3rem);
+  }
+}

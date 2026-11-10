@@ -1150,3 +1150,26 @@ button.kk-n:active {
     font-size: 0.98rem;
   }
 }
+
+/* ---------- A phone on its side: the key card (the kit puts the button in a column on the right) ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* The key needs five rows of words: a taller card than the kit's default, and words sized by
+     the low height (the card is wide here, so the width would make them far too big). */
+  .skjerm-nokkel > .mappe {
+    min-height: 232px;
+  }
+
+  .kk-bak .kk-n {
+    font-size: clamp(11px, 4.3vh, 18px);
+  }
+
+  .kk-bak .kk-n.k5 {
+    font-size: clamp(11px, 4.6vh, 19px);
+  }
+
+  .kk-bak .kk-n.k9,
+  .kk-bak .kk-n.k11 {
+    font-size: clamp(11px, 3.9vh, 16px);
+  }
+}
