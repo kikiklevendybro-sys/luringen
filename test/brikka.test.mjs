@@ -1,4 +1,4 @@
-// Brikka («Fia med knuff»): which moves are legal, knock-outs, star squares, exact finish, the
+// Brikka (ludo): which moves are legal, knock-outs, star squares, exact finish, the
 // three tries for a six, winning, and that the phone's choices are sensible. The rules are pure
 // functions in rusj/spill/brikka/spill.js, loaded in node:vm without the kit (window.RusjBrikka).
 import { test } from "node:test";

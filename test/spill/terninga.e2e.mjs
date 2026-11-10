@@ -1,6 +1,6 @@
 // Terninga (Yatzy): two players roll, hold and roll again, score a house, undo it, reload mid-turn,
 // back + continue, the pad sheet, a real double tap on «Kast», a forced Yatzy, then the whole game to
-// the crowning (fast, with reduced motion). Then a solo Maxi-Yatzy with six dice, saved rolls and an
+// the crowning (fast, with reduced motion). Then a solo six-dice Yatzy, saved rolls and an
 // early end, plus the smallest screens. Dice are forced by stubbing crypto.getRandomValues.
 const NAVN = ["Testspiller A", "Testspiller B"];
 
@@ -154,16 +154,16 @@ export default async function (t) {
   const kveld = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
   t.sjekk(kveld && kveld.spill.some((x) => x.id === "terninga"), "Kåringen ble ikke registrert i «Kveldens gjeng»");
 
-  // ---------- Solo Maxi-Yatzy: six dice, 20 boxes, saved rolls ----------
+  // ---------- Solo six-dice Yatzy: 20 boxes, saved rolls ----------
   await t.klikk('[data-h="endre"]');
   await t.klikk('[data-h="spiller-fjern"][data-v="1"]');
   await t.klikk('[data-h="variant"][data-v="maxi"]');
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelectorAll('#tg-brett .tg-t').length === 6");
-  t.sjekk((await t.antall('[data-h="sett"]')) === 20, "Maxi-Yatzy skal ha 20 felt");
+  t.sjekk((await t.antall('[data-h="sett"]')) === 20, "Yatzy med seks terninger skal ha 20 felt");
   await terninger([3, 3, 3, 3, 3, 3]);
   await kast();
-  t.sjekk((await verdi("yatzy")) === "100", "Maxi-Yatzy skal gi 100");
+  t.sjekk((await verdi("yatzy")) === "100", "Seks like skal gi 100");
   await t.sov(300);
   await t.bilde("maxi-yatzy");
   await t.klikk(felt("yatzy"), 100);

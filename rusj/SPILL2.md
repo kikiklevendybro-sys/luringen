@@ -96,9 +96,9 @@ sok: ["secret santa", "nissetrekning", "trekk julegaver", "hemmelig nisse"].
 Scandinavian Yatzy rules (15 categories: enere–seksere, bonus 50 at ≥ 63, ett par, to par, tre like,
 fire like, liten straight 1–5, stor straight 2–6, hus, sjanse, yatzy 50). Five 3D-feeling dice, tap to
 hold, three rolls, the scorecard shows what each open box would give, pass-the-phone between players,
-undo of a mistaken score (until the next roll), winner celebration, best score. Option: «Maxi-Yatzy».
+undo of a mistaken score (until the next roll), winner celebration, best score. Option: six dice.
 
-### brikka — Brikka · «Fia med knuff» · 2–4 players · tagger klassiker familie barn · rekkefolge 34
+### brikka — Brikka · «Ludo» · 2–4 players · tagger klassiker familie barn · rekkefolge 34
 Classic Norwegian board game: 4 pawns each, roll 6 to come out (house rules toggles: 6 gives an extra
 roll, exact roll to finish), knock opponents home, safe squares. Pass-and-play and computer players
 for empty seats. A clear board on a phone, animated moves, the pawns you can move pulse, one tap

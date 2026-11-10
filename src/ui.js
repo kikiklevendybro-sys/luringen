@@ -400,7 +400,7 @@
         ${pagaende}
         <button class="knapp-2" data-h="bli-med">Bli med i et spill</button>
         <button class="lenke" data-h="regler">Slik spiller du</button>
-        ${NETTSIDE ? '<a class="lenke" href="/">Flere festspill på rusj.no</a>' : ""}
+        ${NETTSIDE ? '<a class="lenke" href="/">Flere spill på rusj.no</a>' : ""}
       </div>
       <ul class="merker" aria-label="Om spillet">
         <li><b>3–10</b> spillere</li>

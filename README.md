@@ -1,6 +1,6 @@
 # rusj.no
 
-Gratis festspill og familiespill på norsk, rett i nettleseren. Ingen app, ingen konto, ingen reklame, ingen sporing.
+Gratis spill og selskapsleker på norsk, rett i nettleseren. Ingen app, ingen konto, ingen reklame, ingen sporing.
 
 21 spill, alle med sin egen figur i «rusj-gjengen»: Luringen, Spionen, Sladrehanken (Jeg har aldri), Pekefingeren (Hvem er mest sannsynlig?), Våghalsen (Sannhet eller konsekvens), Vinglepetter (Hva vil du helst?), Skravla (Forklar ordet), Panna, Kodeknekkeren, Besserwisseren (Festquiz), Detektiven (Hvem er jeg?), Mimen, Tankeleseren (Bølgelengde), Hviskeren (Bare ett hint), Løgnhalsen (To sannheter og en løgn), Kunstneren (Tegn og gjett), Sauen (Tenk som flokken), Varulven, Bokstavtrollet (Alfabetleken), Skjæra (Kims lek) og Elefanten (Memory).
 

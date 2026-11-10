@@ -4,7 +4,7 @@
 //   dist/web/             the website: front page, /luringen/, one folder per rusj game, offline support
 //   dist/luringen.html    Luringen as one page without <html>/<head> (for the Claude artifact)
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, rmSync, readdirSync } from "node:fs";
-import { byggRusj, CSP, DOMENE } from "./rusj.mjs";
+import { byggRusj, esc, hode as lagHode, lesSeo, seoFor, spillJsonLd } from "./rusj.mjs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
@@ -107,48 +107,6 @@ for (const fil of ["ikon.svg", "ikon-180.png", "ikon-192.png", "ikon-512.png", "
 }
 const lurDeling = join(ROT, "rusj/bilder/deling-luringen.png");
 if (existsSync(lurDeling)) copyFileSync(lurDeling, join(LUR, "deling.png"));
-const webHode = hode
-  .replace(/<meta name="claude:viewport-fit-sides"[^>]*>\n?/, "")
-  .replace("<title>Luringen</title>", "<title>Luringen – finn bløfferen | rusj</title>")
-  .replace("<style>/*STIL*/</style>", `<link rel="stylesheet" href="/luringen/luringen.css?v=${v(lurCss)}">`);
-const webKropp = kropp.replace("<script>/*SKRIPT*/</script>", `<script src="/luringen/luringen.js?v=${v(lurJs)}"></script>`);
-if (webHode.includes("/*STIL*/") || webKropp.includes("/*SKRIPT*/")) throw new Error("Fant ikke plassholderne i src/page.html");
-const index = `<!doctype html>
-<html lang="nb">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="${CSP}">
-<meta name="referrer" content="no-referrer">
-<link rel="canonical" href="${DOMENE}/luringen/">
-<meta name="theme-color" content="#150c28">
-<meta name="color-scheme" content="dark">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Luringen">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="rusj">
-<meta property="og:locale" content="nb_NO">
-<meta property="og:title" content="Luringen – finn bløfferen">
-<meta property="og:description" content="Alle får det hemmelige ordet. Nesten alle. Norsk festspill for 3–10 spillere.">
-<meta property="og:url" content="${DOMENE}/luringen/">
-${existsSync(lurDeling) ? `<meta property="og:image" content="${DOMENE}/luringen/deling.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">` : ""}
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" href="/luringen/ikon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/luringen/ikon-180.png">
-${webHode.trim()}
-</head>
-<body>
-${webKropp.trim()}
-</body>
-</html>
-`;
-writeFileSync(join(LUR, "index.html"), index);
-
 const LURINGEN_KORT = {
   id: "luringen",
   navn: "Luringen",
@@ -161,6 +119,46 @@ const LURINGEN_KORT = {
   farge: "#ff4f8b",
   rekkefolge: 1,
 };
+// Luringen's page gets the same <head> as every other page (title and description from
+// rusj/seo.json, link preview, icons, structured data), so the two can never drift apart.
+// Everything in the <head> of src/page.html is for the single-file version only.
+const hodeRest = hode
+  .replace(/<meta name="claude:viewport-fit-sides"[^>]*>\n?/, "")
+  .replace(/<title>[^<]*<\/title>\n?/, "")
+  .replace(/<meta name="description"[^>]*>\n?/, "")
+  .replace("<style>/*STIL*/</style>", "")
+  .trim();
+if (hodeRest) throw new Error("src/page.html: <head> har noe nettsiden ikke tar med: " + hodeRest.slice(0, 80));
+const lurSeo = seoFor(lesSeo(ROT), LURINGEN_KORT);
+const lurBilde = existsSync(lurDeling) ? "/luringen/deling.png" : null;
+// Something to read before the script has drawn the home screen (and for those who never run it):
+// the name as a heading and one sentence about the game. The script replaces it at once.
+const tomHjem = '<section class="skjerm" id="s-hjem" aria-labelledby="t-hjem"></section>';
+if (!kropp.includes(tomHjem) || !kropp.includes("<script>/*SKRIPT*/</script>")) throw new Error("Fant ikke plassholderne i src/page.html");
+const webKropp = kropp
+  .replace(tomHjem, () => `<section class="skjerm" id="s-hjem" aria-labelledby="t-hjem"><h1 id="t-hjem">Luringen</h1><p>${esc(lurSeo.beskrivelse)}</p></section>`)
+  .replace("<script>/*SKRIPT*/</script>", `<script src="/luringen/luringen.js?v=${v(lurJs)}"></script>`);
+const index = `${lagHode({
+  tittel: lurSeo.tittel,
+  ogTittel: lurSeo.ogTittel,
+  beskrivelse: lurSeo.beskrivelse,
+  sti: "/luringen/",
+  kortnavn: "Luringen",
+  ikon: "/luringen/ikon.svg",
+  pngIkon: "/luringen/ikon-192.png",
+  appleIkon: "/luringen/ikon-180.png",
+  deling: lurBilde,
+  delingAlt: `Luringen – ${lurSeo.frase}. Gratis på rusj.no`,
+  css: [`/luringen/luringen.css?v=${v(lurCss)}`],
+  jsonld: spillJsonLd(LURINGEN_KORT, lurSeo, lurBilde),
+})}
+<body>
+${webKropp.trim()}
+</body>
+</html>
+`;
+writeFileSync(join(LUR, "index.html"), index);
+
 const rusj = byggRusj({ ROT, WEB, ordData: data, utvalg, luringen: utvalg && !utvalg.includes("luringen") ? null : LURINGEN_KORT });
 
 // Offline support for the whole site (one service worker at the root).

@@ -1,4 +1,4 @@
-/* Brikka — «Fia med knuff» (Ludo) for 2–4 on one phone; the phone plays the empty seats.
+/* Brikka — ludo for 2–4 on one phone; the phone plays the empty seats.
    Roll a six to come out, go one round of the 40-square track and up your own colour into the goal.
    Land on someone and they go home (not on the star squares). One decision per roll: the pieces
    you can move pulse, one tap moves; a single option moves by itself. The rules are pure
@@ -716,7 +716,7 @@
     regler: {
       intro: "Få alle brikkene dine én runde rundt brettet og inn i mål i midten – før de andre.",
       steg: [
-        ["Slå seks for å komme ut", "Brikkae venter i hjørnet ditt. En sekser setter en brikke på startfeltet. Har du ingen ute, får du tre forsøk."],
+        ["Slå seks for å komme ut", "Brikkene venter i hjørnet ditt. En sekser setter en brikke på startfeltet. Har du ingen ute, får du tre forsøk."],
         ["Flytt – og knuff", "Trykk på brikka du vil flytte. Lander du på en annen spillers brikke, må den hjem igjen. På stjernene er alle trygge."],
         ["Inn i mål", "Gå en runde rundt, opp på din egen farge og inn i midten. Først med alle brikkene i mål vinner!"],
       ],

@@ -97,7 +97,7 @@ if (!bare.length) {
     side(
       `<div style="width:1200px;height:630px;${scene};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;font-family:${FONT};color:#fff1dd;overflow:hidden">
         <div style="width:420px">${G.logo()}</div>
-        <div style="font-weight:900;font-size:56px;letter-spacing:-1px">Festspill på norsk. <span style="color:#3de3b0">Rett i nettleseren.</span></div>
+        <div style="font-weight:900;font-size:56px;letter-spacing:-1px">Spill for hele gjengen. <span style="color:#3de3b0">Rett i nettleseren.</span></div>
         <div style="display:flex;gap:10px;width:1400px;justify-content:center;flex-wrap:nowrap">${figurer}</div>
       </div>`,
       1200,

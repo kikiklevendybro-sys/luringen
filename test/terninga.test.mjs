@@ -1,4 +1,4 @@
-// Terninga: Scandinavian Yatzy and Maxi-Yatzy scoring for every box, the bonus, totals and the
+// Terninga: Scandinavian Yatzy and six-dice Yatzy scoring for every box, the bonus, totals and the
 // Maxi rule that unused rolls are saved. The rules are pure functions in rusj/spill/terninga/spill.js;
 // the script is loaded in node:vm without the kit, so it only defines window.RusjTerninga.
 import { test } from "node:test";
@@ -123,7 +123,7 @@ test("every box in Yatzy scores by the Scandinavian rules", () => {
   for (const kat of Y.VARIANTER.vanlig.alle) assert.ok(VANLIG.some(([k]) => k === kat), `no test for ${kat}`);
 });
 
-test("every box in Maxi-Yatzy scores right with six dice", () => {
+test("every box in six-dice Yatzy scores right", () => {
   for (const [kat, t, ventet] of MAXI) assert.equal(p(kat, t), ventet, `${kat} ${t.join(",")}`);
   for (const kat of Y.VARIANTER.maxi.alle) assert.ok(MAXI.some(([k]) => k === kat) || VANLIG.some(([k]) => k === kat), `no test for ${kat}`);
 });
@@ -153,7 +153,7 @@ test("the bonus comes at 63 (Maxi: 84) and sums add up", () => {
   assert.equal(Y.fullt("vanlig", tre), false);
 });
 
-test("the best possible pad gives 374 in Yatzy and 649 in Maxi-Yatzy", () => {
+test("the best possible pad gives 374 in Yatzy and 649 with six dice", () => {
   const best = (variant, beste) => {
     const kort = {};
     for (const k of Y.VARIANTER[variant].alle) kort[k] = Math.max(...beste.map((t) => p(k, t)));

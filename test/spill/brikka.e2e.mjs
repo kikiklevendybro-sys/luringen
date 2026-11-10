@@ -1,4 +1,4 @@
-// Brikka (Fia med knuff): two players – no six (three tries), a six brings a piece out by itself and
+// Brikka (ludo): two players – no six (three tries), a six brings a piece out by itself and
 // gives another roll, a single option moves by itself, a real choice with target markers, reload
 // mid-choice, a knock-out, undo, back + continue, «Avslutt»; then one player against three phones
 // (reduced motion) that play by themselves, an exact roll into the goal and the crowning; small

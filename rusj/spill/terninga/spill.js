@@ -1,4 +1,4 @@
-/* Terninga — Yatzy with Scandinavian rules, plus Maxi-Yatzy.
+/* Terninga — Yatzy with Scandinavian rules, plus the six-dice variant («maxi»).
    Five (or six) 3D dice, three rolls, tap a die to hold it. The score pad shows what every open box
    would give; one tap scores, and «Angre» takes it back until the next roll. Pass the phone round
    the table. The rules are pure functions (window.RusjTerninga) so test/terninga.test.mjs can check
@@ -45,7 +45,7 @@
     },
     maxi: {
       id: "maxi",
-      navn: "Maxi-Yatzy",
+      navn: "Yatzy med seks terninger",
       terninger: 6,
       grense: 84,
       bonus: 100,
@@ -134,7 +134,7 @@
 
   const fullt = (variant, kort) => VARIANTER[variant].alle.every((k) => kort[k] != null);
 
-  // How many rolls are left this turn (Maxi-Yatzy adds the rolls saved from earlier turns).
+  // How many rolls are left this turn (the six-dice variant adds the rolls saved from earlier turns).
   const kastIgjen = (variant, kast, spart) => Math.max(0, KAST_PER_TUR - kast) + (VARIANTER[variant].spar ? spart || 0 : 0);
   // Rolls saved when a box is filled after `kast` rolls (Maxi only).
   const sparesVed = (variant, kast) => (VARIANTER[variant].spar ? Math.max(0, KAST_PER_TUR - kast) : 0);
@@ -153,7 +153,7 @@
   const tilfeldig = () => R.nyttFro() / 4294967296;
   const nyTerning = () => 1 + Math.floor(tilfeldig() * 6);
   const nyVri = () => Math.round(Math.random() * 36 - 18); // only looks: how twisted a die lands
-  const katNavn = (k, sp) => (k === "yatzy" && sp && sp.variant === "maxi" ? "Maxi-Yatzy" : KAT[k].navn);
+  const katNavn = (k, sp) => (k === "yatzy" && sp && sp.variant === "maxi" ? "Yatzy (seks like)" : KAT[k].navn);
 
   let H; // the actions
   let ruller = false; // dice in the air
@@ -431,11 +431,11 @@
     const kort = sp.kort[sp.tur];
     if (poeng("yatzy", t)) {
       sp.yatzyer = (sp.yatzyer || 0) + 1;
-      stempel(sp.variant === "maxi" ? "Maxi-Yatzy!" : "Yatzy!");
+      stempel(sp.variant === "maxi" ? "Seks like!" : "Yatzy!");
       R.lyd.fanfare();
       R.konfetti();
       R.vibrer([60, 40, 60, 40, 160]);
-      R.si(sp.variant === "maxi" ? "Maxi-Yatzy!" : "Yatzy!");
+      R.si(sp.variant === "maxi" ? "Seks like – Yatzy!" : "Yatzy!");
       return;
     }
     const fine = [
@@ -475,7 +475,7 @@
   // ---------- Rules sheet extra: what every box gives ----------
 
   const regelListe = (V) =>
-    `<h3>Hva feltene gir${V.id === "maxi" ? " i Maxi-Yatzy" : ""}</h3><ul class="tg-regelliste">
+    `<h3>Hva feltene gir${V.id === "maxi" ? " med seks terninger" : ""}</h3><ul class="tg-regelliste">
       <li><b>Enere–seksere</b><span>Summen av terningene med det tallet. ${V.grense} eller mer til sammen gir ${V.bonus} i bonus.</span></li>
       ${V.under
         .map((k) => `<li><b>${esc(katNavn(k, { variant: V.id }))}</b><span>${esc(k === "yatzy" ? (V.id === "maxi" ? "Seks like gir 100." : "Fem like gir 50.") : KAT[k].regel)}</span></li>`)
@@ -488,13 +488,13 @@
     steg: [
       ["Kast og hold", "Du har tre kast hver tur. Trykk på terningene du vil beholde, og kast resten på nytt."],
       ["Velg et felt", "Blokka viser hva hvert ledig felt gir. Trykk på ett – du må fylle et felt hver tur, også om det gir 0."],
-      ["Flest poeng vinner", "Når blokka er full, er spillet over. 63 poeng eller mer på enere–seksere gir 50 i bonus (i Maxi-Yatzy: 84 gir 100)."],
+      ["Flest poeng vinner", "Når blokka er full, er spillet over. 63 poeng eller mer på enere–seksere gir 50 i bonus (med seks terninger: 84 gir 100)."],
     ],
     tips: [
-      "I vanlig Yatzy gir tre av hver på enere–seksere akkurat 63 – og bonusen. I Maxi-Yatzy trengs fire av hver (84).",
+      "I vanlig Yatzy gir tre av hver på enere–seksere akkurat 63 – og bonusen. Med seks terninger trengs fire av hver (84).",
       "To par må være to ulike tall. Hus er tre like og to like av et annet tall.",
       "Trykket på feil felt? «Angre» tar det tilbake, helt til neste kast.",
-      "Maxi-Yatzy har seks terninger og 20 felt – og kast du ikke bruker, sparer du til senere.",
+      "Med seks terninger er det 20 felt – og kast du ikke bruker, sparer du til senere.",
     ],
     ekstraHtml: regelListe(VARIANTER.vanlig),
   };
@@ -589,7 +589,7 @@
               "variant",
               [
                 { v: "vanlig", tittel: "Yatzy", tekst: "5 terninger · 15 felt", ikon: `<span class="tg-flis-terninger">${ansikt(5)}${ansikt(3)}</span>` },
-                { v: "maxi", tittel: "Maxi-Yatzy", tekst: "6 terninger · 20 felt · spar kast", ikon: `<span class="tg-flis-terninger">${ansikt(6)}${ansikt(6)}${ansikt(6)}</span>` },
+                { v: "maxi", tittel: "Seks terninger", tekst: "20 felt · spar kast du ikke bruker", ikon: `<span class="tg-flis-terninger">${ansikt(6)}${ansikt(6)}${ansikt(6)}</span>` },
               ],
               S.oppsett.variant,
             )}
@@ -768,7 +768,7 @@
           R.toast("Alle terningene er holdt – slipp én, eller velg et felt");
           return;
         }
-        // A saved roll is used once the three rolls of the turn are gone (Maxi-Yatzy).
+        // A saved roll is used once the three rolls of the turn are gone (six-dice variant).
         if (sp.kast >= KAST_PER_TUR) sp.spart[sp.tur] = Math.max(0, (sp.spart[sp.tur] || 0) - 1);
         sp.kast += 1;
         sp.angre = null; // undo is possible until the next roll

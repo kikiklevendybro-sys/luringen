@@ -5,9 +5,12 @@
 (function () {
   "use strict";
 
-  // Old Luringen join links (rusj.no/#CODE) moved to /luringen/.
-  if (/^#([0-9A-Za-z]{8}|[0-9A-Za-z]{15})$/.test(location.hash || "")) {
-    location.replace("/luringen/" + location.hash);
+  // Old Luringen join links (rusj.no/#CODE) moved to /luringen/. Only real codes are sent on: eight
+  // or fifteen characters from Luringen's own alphabet (digits and capital letters without I, L, O
+  // and U) – never a place on this page (#fortsett, #overrask, #spill …).
+  const hash = location.hash || "";
+  if (/^#([0-9A-HJKMNP-TV-Z]{8}|[0-9A-HJKMNP-TV-Z]{15})$/.test(hash) && !document.getElementById(hash.slice(1))) {
+    location.replace("/luringen/" + hash);
     return;
   }
 
@@ -63,9 +66,9 @@
       d.innerHTML = `
         <h2 id="dialog-tittel">Er du 18 år eller eldre?</h2>
         <p>Drikkespillene er for voksne. Alkoholfritt teller like mye, ingen skal presses, og vann er alltid lov.</p>
-        <div class="dialog-knapper">
-          <button type="button" class="knapp-2" value="nei">Nei</button>
+        <div class="dialog-knapper stabel">
           <button type="button" class="knapp" value="ja">Ja, jeg er 18 eller eldre</button>
+          <button type="button" class="knapp-2" value="nei" autofocus>Nei</button>
         </div>`;
       const svar = (ja) => {
         d.close();
@@ -104,8 +107,11 @@
       .replace(/[^a-z0-9æøå ]+/g, " ")
       .replace(/\s+/g, " ")
       .trim();
+  // What a search looks in: the game's name, genre, one-liner and search words – and the words
+  // people use for its kind of game («selskapsleker», «vors», «bursdag» …), from rusj/seo.json.
+  const TAGGSOK = window.RUSJ_TAGGSOK || {};
   const HAYSTACK = new Map(
-    SPILL.map((s) => [s.id, ren([s.navn, s.undertittel, s.kort, ...(s.sok || []), ...s.tagger.map((t) => TAGG_NAVN[t] || t)].join(" "))]),
+    SPILL.map((s) => [s.id, ren([s.navn, s.undertittel, s.kort, ...(s.sok || []), ...s.tagger.map((t) => TAGG_NAVN[t] || t), ...s.tagger.flatMap((t) => TAGGSOK[t] || [])].join(" "))]),
   );
 
   const lagret = les("rusj.portal", {}) || {};
@@ -115,8 +121,8 @@
   if (tagg === "drikke" && !over18) tagg = "";
 
   const passerAntall = (s) => !antall || (antall >= s.spillere[0] && antall <= s.spillere[1]);
-  const passer = (s) => {
-    if (s.alder18 && !over18) return false;
+  // Search and filters, without the 18+ question.
+  const passerValg = (s) => {
     if (!passerAntall(s)) return false;
     if (tagg && !s.tagger.includes(tagg)) return false;
     if (sok) {
@@ -125,6 +131,7 @@
     }
     return true;
   };
+  const passer = (s) => (over18 || !s.alder18) && passerValg(s);
 
   const filterKnapp = $("#filter-knapp");
   const filtre = $("#filtre");
@@ -146,9 +153,24 @@
     }
     const filtrert = !!(sok || antall || tagg);
     $("#hyller").hidden = filtrert;
+    // With a search or filter on, the line «Viser 3 av 42 spill» is heading enough for the eye: the
+    // matches come right under it (and above the keyboard). Screen readers still get «Treff».
     $("#alle-tittel").textContent = filtrert ? (synlige ? "Treff" : "") : "Alle spill";
-    $("#ingen-treff").hidden = synlige > 0;
-    $("#treff").textContent = !filtrert ? `${tilgjengelige} spill – trykk på ett for å starte` : `Viser ${synlige} av ${tilgjengelige} spill`;
+    $("#alle-tittel").classList.toggle("vh", filtrert);
+    // A search that (also) fits drinking games, before anyone has said they are 18: one row
+    // «Drikkespill (18+)» that opens the question – not «no games fit».
+    const bakDora = !over18 && sok ? SPILL.filter((s) => s.alder18 && passerValg(s)).length : 0;
+    $("#atten-dor").hidden = !bakDora;
+    $("#atten-dor-antall").textContent = bakDora ? `${bakDora} spill for voksne – trykk for å vise` : "";
+    $("#ingen-treff").hidden = synlige > 0 || bakDora > 0;
+    // The numbers must add up with the badge in the hero (every game) and with «Overrask meg»
+    // (the games that can be shown now): while the drinking games are hidden, say so.
+    const voksne = SPILL.length - tilgjengelige;
+    $("#treff").textContent = filtrert
+      ? `Viser ${synlige} av ${tilgjengelige} spill` + (bakDora ? ` + ${bakDora} for voksne (18+)` : "")
+      : voksne
+        ? `${tilgjengelige} spill + ${voksne} for voksne (18+)`
+        : `${tilgjengelige} spill – trykk på ett for å starte`;
     // How many filters are on, on the button (the panel itself may be closed).
     const valgt = (antall ? 1 : 0) + (tagg ? 1 : 0);
     $("#filter-antall").hidden = !valgt;
@@ -156,6 +178,7 @@
     filterKnapp.classList.toggle("aktiv", valgt > 0);
     filterKnapp.setAttribute("aria-label", valgt ? `Filter, ${valgt} valgt` : "Filter");
     skriv("rusj.portal", { antall, tagg });
+    sjekkFastSnart(); // the list changed length: the search row may have come loose or stuck
   }
 
   function visFiltre(apen) {
@@ -204,8 +227,9 @@
     if (e.target.closest("[data-vis18]")) {
       if (await bekreft18()) {
         nyAlder();
-        // The button that was pressed is gone: go on to the first drinking game.
-        const forste = $(".hylle-18 .spillkort a");
+        // The button that was pressed is gone: go on to the first drinking game (on its shelf, or
+        // among the matches when a search or filter is on).
+        const forste = $("#hyller").hidden ? $("#spillgrid .spillkort[data-alder18]:not([hidden]) a") : $(".hylle-18 .spillkort a");
         (forste || $("#spill")).focus();
       }
       return;
@@ -220,16 +244,44 @@
       (h || $("#spill")).focus();
     }
   });
+  // On a phone the keyboard covers the lower half of the screen. Bring the search row to the top,
+  // so the matches right under it can be seen while typing. (This only scrolls the page; the bar
+  // itself never changes height, see .filter in portal.css.)
+  const beroring = navigator.maxTouchPoints > 0 || !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+  // ogsaOpp: also when the page is scrolled past the row (it sticks to the top then). A new search
+  // starts a new list, and its matches begin right under the row's own place in the page.
+  function sokTilTopps(ogsaOpp) {
+    const linje = $("#filter");
+    let topp = linje.getBoundingClientRect().top;
+    if (ogsaOpp && topp <= 1) {
+      // It sticks to the top now: find its own place in the page, where it would be if it did not.
+      linje.style.position = "static";
+      topp = linje.getBoundingClientRect().top;
+      linje.style.position = "";
+    }
+    if (Math.abs(topp) > 1) {
+      const langt = Math.abs(topp) > 2 * window.innerHeight;
+      window.scrollTo({ top: Math.max(0, topp + window.scrollY), behavior: rolig() || langt ? "auto" : "smooth" });
+    }
+  }
+  $("#sok").addEventListener("focus", () => {
+    // A little later, so the browser's own scrolling for the keyboard is done first.
+    if (beroring) setTimeout(() => document.activeElement === $("#sok") && sokTilTopps(false), 250);
+  });
   $("#sok").addEventListener("input", (e) => {
     sok = e.target.value.slice(0, 40);
+    // An open filter panel that fills much of what the keyboard leaves would hide the matches.
+    const synligHoyde = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    if (sok && !filtre.hidden && filtre.getBoundingClientRect().height > synligHoyde * 0.35) visFiltre(false);
     oppdater();
+    sokTilTopps(true);
   });
   $("#sok").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
+      // «Søk» on the keyboard: put it away; the matches stay right under the search row.
       e.preventDefault();
       e.target.blur();
-      const forste = $("#spillgrid .spillkort:not([hidden])");
-      if (forste) forste.scrollIntoView({ behavior: rolig() ? "auto" : "smooth", block: "center" });
+      sokTilTopps(true);
     }
   });
   $("#sok-tom").addEventListener("click", () => {
@@ -246,10 +298,10 @@
     { tagg: "familie", tittel: "Hele familien", ikon: "🏡" },
     { tagg: "barn", tittel: "For barna", ikon: "🧸" },
     { tagg: "daglig", tittel: "Dagens utfordringer", ikon: "📅" },
-    { tagg: "klassiker", tittel: "Klassikere", ikon: "♟️" },
+    { tagg: "klassiker", tittel: "Klassikere", ikon: "👑" },
     { tagg: "tenke", tittel: "Hjernetrim", ikon: "🧠" },
     { tagg: "alene", tittel: "Spill alene", ikon: "🙋" },
-    { tagg: "quiz", tittel: "Quiz og kunnskap", ikon: "🎓" },
+    { tagg: "quiz", tittel: "Quiz og kunnskap", ikon: "💡" },
     { tagg: "kort", tittel: "Kortspill", ikon: "🃏" },
     { tagg: "verktoy", tittel: "Nyttige verktøy", ikon: "🧰" },
     { tagg: "drikke", tittel: "Drikkespill 18+", ikon: "🍻", alder18: true },
@@ -304,8 +356,10 @@
     aktive.clear();
     for (const s of SPILL) {
       if (s.id === "luringen") {
+        // Luringen keeps its own state (with the time it was saved): in progress for 12 hours,
+        // like the rest. No time stamp = saved by an older version, long ago.
         const l = les("luringen.v1", null);
-        if (l && l.spill) aktive.set(s.id, l._tid || 0);
+        if (l && l.spill && l._tid && na - l._tid < 12 * 3600 * 1000) aktive.set(s.id, l._tid);
         continue;
       }
       const l = lagretSpill(s.id);
@@ -356,7 +410,8 @@
 
   // ---------- Kveldens gjeng ----------
 
-  const KVELD_TOPP = 5;
+  // Collapsed: the podium, the (up to) three best with points. «Vis alle» shows everyone.
+  const KVELD_TOPP = 3;
   let kveldAlle = false;
   function visKveld() {
     const k = les("rusj.kveld", null);
@@ -370,18 +425,23 @@
         poeng.set(r.navn, (poeng.get(r.navn) || 0) + p);
       }
     const tavle = Array.from(poeng, ([navn, p]) => ({ navn, p })).sort((a, b) => b.p - a.p);
+    let topp = tavle.filter((r) => r.p > 0).slice(0, KVELD_TOPP);
+    if (!topp.length) topp = tavle.slice(0, KVELD_TOPP); // nobody has points yet: never an empty board
     const medaljer = ["🥇", "🥈", "🥉"];
     $("#kveld-liste").innerHTML = tavle
-      .map((r, n) => {
+      .map((r) => {
         const plass = 1 + tavle.filter((x) => x.p > r.p).length;
-        const skjult = !kveldAlle && n >= KVELD_TOPP ? " hidden" : "";
-        return `<li class="${plass === 1 ? "leder" : ""}"${skjult}><span class="kveld-plass">${medaljer[plass - 1] || plass + "."}</span><span class="kveld-navn">${esc(r.navn)}</span><span class="kveld-poeng">${r.p}<span class="vh"> poeng</span></span></li>`;
+        const skjult = !kveldAlle && !topp.includes(r) ? " hidden" : "";
+        // Medals (and the leader's glow) are for points: nobody gets bronze for sharing third place with 0.
+        const merke = (r.p > 0 && medaljer[plass - 1]) || plass + ".";
+        return `<li class="${plass === 1 && r.p > 0 ? "leder" : ""}"${skjult}><span class="kveld-plass">${merke}</span><span class="kveld-navn">${esc(r.navn)}</span><span class="kveld-poeng">${r.p}<span class="vh"> poeng</span></span></li>`;
       })
       .join("");
     const alle = $("#kveld-alle");
-    alle.hidden = tavle.length <= KVELD_TOPP;
+    alle.hidden = tavle.length <= topp.length;
+    if (alle.hidden) kveldAlle = false;
     alle.setAttribute("aria-expanded", String(kveldAlle));
-    alle.textContent = kveldAlle ? "Vis bare topp 5" : `Vis alle ${tavle.length}`;
+    alle.textContent = kveldAlle ? "Vis færre" : `Vis alle ${tavle.length}`;
     const n = k.spill.length;
     $("#kveld-antall").textContent = `${n} spill i kveld`;
   }
@@ -514,15 +574,16 @@
   });
   async function installer_() {
     if (installer) {
-      installer.prompt();
-      try {
-        await installer.userChoice;
-      } catch (e) {
-        /* ignore */
-      }
+      const sporsmal = installer;
       installer = null;
       $("#installer-knapp").hidden = true;
-      return;
+      try {
+        await sporsmal.prompt();
+        await sporsmal.userChoice;
+        return;
+      } catch (e) {
+        /* the browser would not show its own question after all: show the steps instead */
+      }
     }
     const d = $("#dialog");
     d.innerHTML = `
@@ -565,20 +626,37 @@
     });
   }
 
-  // The search bar gets a solid background once its heading has scrolled away above it (it is
-  // stuck then). Only the background changes, never the height: see .filter.fast in portal.css.
-  if ("IntersectionObserver" in window) {
-    new IntersectionObserver(([o]) => $("#filter").classList.toggle("fast", !o.isIntersecting && o.boundingClientRect.top < 0)).observe($("#spill"));
+  // The search bar gets a solid background (and a soft shadow) once the page has scrolled in under
+  // it: when its heading is a little more than out of sight above. Not at the very point where it
+  // starts to stick – that is where a search puts it, and the line right below it must stay clear.
+  // Only the background changes, never the height: see .filter.fast in portal.css.
+  // (Read from the scroll position, once per frame. An IntersectionObserver on the heading misses a
+  // jump straight past it – the End key, a restored scroll position – and leaves the bar see-through.)
+  function sjekkFast() {
+    sjekkFast.venter = false;
+    $("#filter").classList.toggle("fast", $("#spill").getBoundingClientRect().bottom < -14);
   }
+  function sjekkFastSnart() {
+    if (sjekkFast.venter) return;
+    sjekkFast.venter = true;
+    requestAnimationFrame(sjekkFast);
+  }
+  window.addEventListener("scroll", sjekkFastSnart, { passive: true });
+  window.addEventListener("resize", sjekkFastSnart);
+  sjekkFast();
 
   // «Finn et spill» goes to the search field.
   const finn = $('a.knapp[href="#spill"]');
   if (finn)
     finn.addEventListener("click", (e) => {
       e.preventDefault();
-      $("#spill").scrollIntoView({ behavior: rolig() ? "auto" : "smooth", block: "start" });
+      // With an on-screen keyboard coming up, start at the search row itself; otherwise at its heading.
+      $(beroring ? "#filter" : "#spill").scrollIntoView({ behavior: rolig() ? "auto" : "smooth", block: "start" });
       setTimeout(() => $("#sok").focus({ preventScroll: true }), rolig() ? 0 : 450);
     });
+
+  // The badge in the hero counts every game (the build wrote the same number into the page).
+  if ($("#helt-antall")) $("#helt-antall").textContent = String(SPILL.length);
 
   byggParade();
   byggHyller();
@@ -601,6 +679,7 @@
     visFortsett();
     visKveld();
     oppdater();
+    sjekkFast();
   });
 
   if ("serviceWorker" in navigator && location.protocol === "https:") {
