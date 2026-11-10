@@ -106,6 +106,9 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
   every key the same `data-h` (e.g. `data-h="tast" data-v="a"`), or fast typing after a redraw is dropped.
 - **Short screens:** what the screen is about must be visible above the dock at 375×560; shrink
   boards, clocks and mascots under `@media (max-height: 700px)`.
+- **Landscape phones:** a phone on its side (844×390, 780×360) gets two columns from the kit — content
+  on the left, the dock as a column on the right. Nothing may hide behind the dock there either; see
+  «Landscape phones» below and test with `--bredde 844 --hoyde 390`.
 
 ## Newer kit features (use them)
 
@@ -119,6 +122,58 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
 - `R.visInstallTips()`: the kit shows the "install as app" tip itself after a finished game.
 - `R.dagligFerdig({ vunnet, rekke })`: daily puzzles call it when today's puzzle is done — the front page
   then shows «✓ i dag» and the streak on the game's card.
+- **Mascot moods:** `R.ui.figur(id?, { stemning: "jubel" | "lei" })` — «jubel» hops and sparkles (a win, a
+  great result), «lei» droops, tilts and loses colour (a loss, a weak result). No face is redrawn: the
+  classes `jubel` / `lei` work on any `.figur-ramme`, so `R.figur(null, "jubel")` in an existing banner is
+  enough. With reduced motion the pose stays and nothing moves.
+  `R.ui.banner({ tittel | tittelHtml, etikett, tekst | tekstHtml, klasse, stemning })` is the result banner
+  (`.banner` with mascot, label, `<h1>` and one line): the mascot celebrates unless you pass
+  `stemning: "lei"` or `""` — celebrate in proportion.
+- **Results on short screens:** `.banner` gets a smaller mascot at ≤ 700 px height (and in landscape), so
+  the podium or the score shows at first view; `R.ui.pall` centres itself when only two have points;
+  sheets (`R.ark`, rules, confirm) fade at the top edge while their content scrolls. Nothing to do in the game.
+- `R.kutt(tekst, n)`: the first n characters and never half of one (an emoji is one character) — use it
+  instead of `slice` on text a player typed. The kit cuts player names with it.
+- `R.kveld.registrer`: a game where nobody scored still counts for the evening, but gives nobody points.
+- **Safety net:** if a saved game can't be drawn at all (also not the home screen), the kit drops that
+  game's saved state and starts fresh with a toast. Still validate in `lastet(S)` — and bump `versjon`
+  when the shape of `S` changes.
+
+## Landscape phones
+
+On a phone on its side — `@media (orientation: landscape) and (max-height: 500px)`, e.g. 844×390 and
+780×360 — the kit lays every screen out by itself and writes how on `<html data-liggende="…">`
+(`R.liggende()` returns the same value, `""` in portrait):
+
+| Value | When | Layout |
+|---|---|---|
+| `side` | the screen has a dock made of the kit's own buttons, links and rows (`.knapp`, `.knapp-2`, `.lenke`, `.lenkerad`, `.knapprad`, lines of text) | content in a left column; the dock is a column on the right: fixed, centred, clear of the notch, scrolls by itself if it must |
+| `bunn` | the dock has the game's own things in it (a toolbar, a keyboard, more than 8 buttons), or there are several docks | one centred column as in portrait; the dock stays at the bottom, slimmer |
+| `hjem` | the home screen (`R.ui.spillhjem`, no dock) | mascot on the left; name, slogan and buttons on the right |
+| `uten` | no dock | one centred column as in portrait |
+| (none) | portrait, or a screen the game lays out itself | nothing but the slimmer top bar |
+
+Everywhere in landscape the top bar is slimmer and screens fade in without the slide; on the kit's own
+layouts headings, hold-cards (`.mappe`: mascot beside the finger), big cards and piles, timers, avatars,
+banners and the podium are sized to fit 390 and 360 px of height, and sheets are wider and lower.
+
+- **The side layout** gives the content about 500×330 px. It scrolls with the page; the dock does not.
+  The screen is still a flex column, so let the main thing take the height (`flex: 1`) instead of a fixed
+  height, and never rely on `dokk.offsetHeight` being room taken *under* the content — if you size a board
+  in JS, ask `R.liggende() === "side"`.
+- **Your own landscape layout** for a screen: write it in your `spill.css` under the same media query and
+  take the dock out of the kit's hands — in your grid, `.skjerm-spill > .dokk { position: static; margin: 0;
+  padding: 0; background: none; }`. The kit sees that the dock is no longer its own sticky one and leaves
+  that whole screen alone (also the width of `.app`, which is yours to set).
+  Or say it in code, on a screen (`skjermer.spill.liggende`) or for the whole game (`R.start({ liggende })`;
+  the screen's value wins): `false` = hands off; `true` = the side column also for docks with your own
+  buttons in them (up to 8 — look at them at 844×390 first); `"side"` / `"bunn"` forces one of the two.
+- **Adjusting the kit's layout:** the kit's landscape rules are no more specific than the portrait rules
+  they adjust (`html[data-liggende]` sits inside `:where()`), so whatever your CSS overrides in portrait it
+  overrides there too. To change something only in one layout, write
+  `html[data-liggende="side"] .mitt-brett { … }` under the media query.
+- **Tests:** «is it behind the dock?» must compare rectangles — in the side layout the dock is *beside*
+  the content, so `el.bottom <= dokk.top` is wrong there. Use `await t.friForDokk(".mitt-brett")`.
 
 ## The kit in one page (`window.Rusj`, here `R`)
 
@@ -185,6 +240,8 @@ R.start({
 | `R.ui.poengliste([{ i \| lag \| navn, poeng, pluss }])`, `R.ui.pall(rader)` | scoreboard, podium |
 | `R.ui.lagmerke(i)` | team badge (`R.LAG` = Rosa, Gul, Blå, Grønn) |
 | `R.figur(id?)` | a mascot (default: this game's) in a `.figur-ramme` |
+| `R.ui.figur(id?, { stemning })` | the mascot with a mood: `"jubel"` (a win) or `"lei"` (a loss) |
+| `R.ui.banner({ tittel, etikett, tekst, klasse, stemning })` | result banner: mascot (celebrating by default), label, `<h1>`, one line |
 | `R.avatar(i, "mid" \| "stor" \| "gigant")` | player avatar |
 
 Other helpers: `R.esc`, `R.navn(i)`, `R.rng(seed)`, `R.nyttFro()`, `R.stokk(liste, rng)`,
@@ -238,7 +295,9 @@ sideways scrolling, buttons have labels) and runs `test/spill/<id>.e2e.mjs`, whi
 game: setup → play several rounds → result, including edge cases (reload mid-game, back + continue).
 See `test/spill/pekefingeren.e2e.mjs` and the helper list in `test/chrome.mjs`
 (`t.start({ navn })`, `t.klikk`, `t.trykk`, `t.hold`, `t.sveip`, `t.skrivInn`, `t.vent`, `t.tekst`,
-`t.antall`, `t.finnes`, `t.tilstand()`, `t.bilde(navn, helside)`, `t.sjekk(ok, melding)`, `t.lastSide`).
+`t.antall`, `t.finnes`, `t.tilstand()`, `t.bilde(navn, helside)`, `t.sjekk(ok, melding)`, `t.lastSide`,
+`t.friForDokk(sel)` — is the element clear of the dock, in portrait and on a landscape phone).
+Run it on a phone on its side too: `--bredde 844 --hoyde 390` (and `--bredde 320 --hoyde 568` for the smallest).
 
 **Look at every screenshot** (open the PNGs) and fix anything that looks unpolished, cramped,
 misaligned, confusing or ugly. Iterate until it is genuinely great. Then run the tests again.

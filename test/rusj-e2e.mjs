@@ -91,6 +91,21 @@ for (const id of valgt) {
       await c.skjermbilde(join(mappe, `${String(++nr).padStart(2, "0")}-${navn}.png`), { helside });
     },
     tilstand: () => c.js(`JSON.parse(localStorage.getItem("rusj.${id}.v1") || "null")`),
+    // Is the element clear of the action area (the dock), with the page scrolled to the top?
+    // Portrait: it ends above the dock. Landscape phones, where the kit makes the dock a column on
+    // the right: it is beside the dock and inside the screen. `slakk` px of overlap are allowed.
+    // True when there is no such element or no dock. Use this instead of comparing only top and bottom.
+    friForDokk: (sel, slakk = 1) =>
+      c.js(`(() => {
+        window.scrollTo(0, 0);
+        const el = document.querySelector(${JSON.stringify(sel)});
+        const dokk = document.querySelector("#skjerm .dokk");
+        if (!el || !dokk) return true;
+        const a = el.getBoundingClientRect();
+        const d = dokk.getBoundingClientRect();
+        if (a.right <= d.left + ${Number(slakk)} || a.left >= d.right - ${Number(slakk)}) return a.bottom <= window.innerHeight + ${Number(slakk)};
+        return a.bottom <= d.top + ${Number(slakk)};
+      })()`),
     // Fresh start: empty storage, load the page, wait for the game to draw.
     async start(valg = {}) {
       await c.lastSide(t.side);

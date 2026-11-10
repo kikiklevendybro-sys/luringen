@@ -128,6 +128,32 @@
     }
   };
 
+  // The first n characters of a text, never half of one: whole graphemes where Intl.Segmenter
+  // exists (an emoji with a skin tone, a flag or a family is one character), else whole code points.
+  // A plain slice() counts UTF-16 units and can leave half an emoji behind.
+  let segmenter;
+  R.kutt = (tekst, n) => {
+    tekst = String(tekst == null ? "" : tekst);
+    if (tekst.length <= n) return tekst;
+    try {
+      if (segmenter === undefined) segmenter = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter("nb", { granularity: "grapheme" }) : null;
+      if (segmenter) {
+        let ut = "";
+        let antall = 0;
+        for (const del of segmenter.segment(tekst)) {
+          // (also a ceiling in code units, so sixteen "characters" of stacked accents can't get huge)
+          if (antall >= n || ut.length + del.segment.length > n * 4) break;
+          ut += del.segment;
+          antall++;
+        }
+        return ut;
+      }
+    } catch (e) {
+      /* fall through */
+    }
+    return Array.from(tekst).slice(0, n).join("");
+  };
+
   // Shared across all games: sound on/off and the player names (the same friends play several games).
   R.felles = Object.assign({ lyd: true, navn: [] }, R.les("felles", {}));
   if (!Array.isArray(R.felles.navn)) R.felles.navn = [];
@@ -138,7 +164,7 @@
     R.felles.over18 = endring && "over18" in endring ? !!endring.over18 : !!lagret.over18;
     R.skriv("felles", {
       lyd: !!R.felles.lyd,
-      navn: R.felles.navn.slice(0, 24).map((n) => String(n || "").slice(0, 16)),
+      navn: R.felles.navn.slice(0, 24).map((n) => R.kutt(n || "", 16)),
       over18: R.felles.over18,
       installTips: Number(R.felles.installTips) || 0,
     });
@@ -219,7 +245,10 @@
         const med = (rader || []).filter((r) => typeof r.poeng === "number");
         if (med.length < 2 && !(valg && valg.solo)) return;
         const sortert = med.slice().sort((a, b) => b.poeng - a.poeng);
-        const resultat = sortert.map((r) => ({ navn: navn(r).slice(0, 30), plass: 1 + sortert.filter((x) => x.poeng > r.poeng).length }));
+        // Nobody scored: the game counts for the evening, but nobody is placed (plass 0 gives no
+        // evening points) — otherwise everyone would share first place and get three points each.
+        const ingenPoeng = sortert.every((r) => r.poeng === 0);
+        const resultat = sortert.map((r) => ({ navn: R.kutt(navn(r), 30), plass: ingenPoeng ? 0 : 1 + sortert.filter((x) => x.poeng > r.poeng).length }));
         const k = R.kveld.les();
         k.spill.push({ id, tid: Date.now(), resultat });
         k.spill = k.spill.slice(-60);
@@ -601,8 +630,30 @@
     if (!t) return;
     t.style.top = "";
     t.style.bottom = "";
+    t.style.left = "";
+    t.style.right = "";
+    t.style.maxWidth = "";
     if ((toastValg && toastValg.topp) || R.arkApent()) return;
     const dokk = $("#skjerm .dokk");
+    if (dokk && R.liggende() === "side") {
+      // Landscape phones: the dock is a column on the right. The toast goes above the buttons
+      // there when it fits; otherwise it stays at the top.
+      const d = dokk.getBoundingClientRect();
+      t.style.left = Math.round(d.left) + "px";
+      t.style.right = Math.round(window.innerWidth - d.right) + "px";
+      t.style.maxWidth = Math.round(d.width) + "px";
+      const h = t.offsetHeight || 48;
+      const tak = ($(".topp") ? $(".topp").getBoundingClientRect().bottom : 0) + 4;
+      if (d.top - h - 10 >= Math.max(tak, 4)) {
+        t.style.top = "auto";
+        t.style.bottom = Math.round(window.innerHeight - d.top + 6) + "px";
+      } else {
+        t.style.left = "";
+        t.style.right = "";
+        t.style.maxWidth = "";
+      }
+      return;
+    }
     const topp = dokk ? dokk.getBoundingClientRect().top : 0;
     if (!dokk || topp <= 120 || topp >= window.innerHeight) return;
     const h = t.offsetHeight || 48;
@@ -1193,8 +1244,28 @@
       const merke = r.lag != null ? `<span class="avatar stor" style="--pf: ${R.LAG[r.lag % R.LAG.length].farge}" aria-hidden="true"></span>` : R.avatar(r.i || 0, "stor");
       return `<div class="pall-plass p${Math.min(n, 3)}">${merke}<span class="navn">${esc(navn)}</span><span class="poeng">${esc(r.poeng)} ${esc(o.enhet || "p")}</span><span class="blokk">${n}</span></div>`;
     };
+    // Two places: only those two, centred (no empty third column).
+    if (s.length < 3) return `<div class="pall to" aria-label="Pallen">${plass(s[1])}${plass(s[0])}</div>`;
     return `<div class="pall" aria-label="Pallen">${plass(s[1])}${plass(s[0])}${plass(s[2])}</div>`;
   };
+
+  // A mascot with a mood, for result screens: R.ui.figur(id?, { stemning: "jubel" | "lei" }).
+  // "jubel" hops and sparkles (a win, a great result); "lei" droops, tilts and loses colour (a loss).
+  // The same classes work on any .figur-ramme: R.figur(null, "jubel"). o: { stemning, klasse, tittel }
+  const STEMNINGER = { jubel: "jubel", lei: "lei" };
+  ui.figur = (id, o = {}) =>
+    R.figur(id, [o.klasse, STEMNINGER[o.stemning]].filter(Boolean).join(" "), o.tittel ? { tittel: o.tittel } : undefined);
+
+  // Result banner (the top of «Kåringen»): mascot, small label, headline and one line of text.
+  // The mascot celebrates unless told otherwise: stemning "lei" for a loss, "" for neither.
+  // o: { tittel | tittelHtml, etikett, tekst | tekstHtml, klasse ("aksent" | "rosa" | "mynte"),
+  //      stemning, figur (mascot id), utenFigur }
+  ui.banner = (o = {}) => `<div class="banner ${esc(o.klasse || "")}">
+      ${o.utenFigur ? "" : ui.figur(o.figur, { stemning: o.stemning == null ? "jubel" : o.stemning })}
+      ${o.etikett ? `<p class="etikett">${esc(o.etikett)}</p>` : ""}
+      <h1 id="skjerm-tittel">${o.tittelHtml || esc(o.tittel || "")}</h1>
+      ${o.tekstHtml || o.tekst ? `<p class="ingress">${o.tekstHtml || esc(o.tekst)}</p>` : ""}
+    </div>`;
 
   // Suggest other rusj games that fit the group (window.RUSJ_ANDRE is written by the build).
   // o: { antall, tittel, maks }. With antall 1 the heading becomes «Flere spill du kan spille alene».
@@ -1296,18 +1367,110 @@
     lyd.setAttribute("aria-label", R.felles.lyd ? "Skru av lyd" : "Skru på lyd");
   }
 
+  // ---------- Landscape phones ----------
+  // On a phone on its side (see LIGGENDE) the kit lays every screen out for the low height and says
+  // how on <html data-liggende="…">; rusj.css does the rest:
+  //   "side"  the screen has a dock of the kit's own buttons and links → content in a left column,
+  //           the dock as a column on the right
+  //   "bunn"  the dock has the game's own things in it (a toolbar, a keyboard), or there are
+  //           several docks → one column as in portrait, the dock stays at the bottom, slimmer
+  //   "hjem"  the game's home screen → mascot on the left, name and buttons on the right
+  //   "uten"  a screen without a dock → one centred column as in portrait
+  //   (none)  portrait — or a screen the game lays out itself; then only the top bar is slimmer
+  // The kit steps aside when the game's own CSS has taken the dock out of the kit's hands
+  // (position other than the kit's sticky, e.g. `position: static` in the game's landscape rules),
+  // or when the game sets the width of .app itself on a one-column screen.
+  // A game can also decide, on a screen (skjermer.x.liggende) or for the whole game
+  // (R.start({ liggende })): "side" | "bunn" forces one of the two, false = hands off, and
+  // true = the side column also for a dock with the game's own things in it (up to 8 buttons).
+  const LIGGENDE = "(orientation: landscape) and (max-height: 500px)";
+  const erLiggende = () => !!(window.matchMedia && window.matchMedia(LIGGENDE).matches);
+  function merkLiggende() {
+    const rot = document.documentElement;
+    const el = document.getElementById && document.getElementById("skjerm");
+    if (!el || !rot || !rot.setAttribute) return;
+    let modus = "";
+    if (erLiggende()) {
+      const sk = APP && S && S.skjerm && APP.skjermer[S.skjerm];
+      const onske = sk && sk.liggende !== undefined ? sk.liggende : APP ? APP.liggende : undefined;
+      const dokker = Array.from(el.querySelectorAll(".dokk")).filter((d) => d.getClientRects().length);
+      if (onske === false) modus = "";
+      else if (dokker.length) {
+        // Measured without the kit's own landscape layout: only the game's CSS can have moved the dock.
+        rot.removeAttribute("data-liggende");
+        if (dokker.some((d) => getComputedStyle(d).position !== "sticky")) modus = "";
+        else if (onske === "side" || onske === "bunn") modus = onske;
+        else {
+          // To the side by itself: one dock made only of the kit's own buttons, links and rows
+          // (and lines of text). A dock with the game's own things in it (a toolbar, a keyboard)
+          // is the game's design and stays at the bottom, unless the game says `liggende: true` —
+          // and a keyboard (more than 8 buttons) never fits a narrow column.
+          const d = dokker[0];
+          const kitsEgen = Array.from(d.children).every((b) => b.tagName === "P" || b.matches(".knapp, .knapp-2, .lenke, .lenkerad, .knapprad"));
+          const fa = d.querySelectorAll("button, a[href], input, select, textarea").length <= 8;
+          modus = dokker.length === 1 && fa && (kitsEgen || onske === true) ? "side" : "bunn";
+        }
+      } else modus = Array.from(el.children).some((b) => b.classList.contains("spillhjem")) ? "hjem" : "uten";
+      if (modus === "uten" || modus === "bunn") {
+        // One column: the kit keeps the portrait column inside a wider app. If the game's CSS sets
+        // the app's width on this screen (a wide board), that must stay as the game made it.
+        rot.setAttribute("data-liggende", modus);
+        const app = el.closest(".app");
+        const kit = getComputedStyle(rot).getPropertyValue("--app-liggende").trim();
+        if (app && kit && getComputedStyle(app).maxWidth !== kit) modus = "";
+      }
+    }
+    if (modus) rot.setAttribute("data-liggende", modus);
+    else rot.removeAttribute("data-liggende");
+  }
+  // "side" | "bunn" | "hjem" | "uten" — how the kit has laid out the current screen on a landscape
+  // phone; "" in portrait and on screens the game lays out itself.
+  R.liggende = () => (document.documentElement && document.documentElement.getAttribute && document.documentElement.getAttribute("data-liggende")) || "";
+  // Registered before any game's own resize handler, so games that measure the screen there see
+  // the right layout after the phone is turned.
+  window.addEventListener("resize", () => {
+    merkLiggende();
+    flyttToast();
+  });
+  merkLiggende(); // the page's first paint (the home screen in the HTML), before the game starts
+  // The screen's entrance animation is done: drop the class, so turning the phone (which changes
+  // the animation's name, see rusj.css) can never play it again in the middle of a game.
+  document.addEventListener("animationend", (e) => {
+    if (e.target && e.target.id === "skjerm") e.target.classList.remove("inn");
+  });
+
   function tegn(valg) {
     const sk = skjermDef(S.skjerm);
     const el = $("#skjerm");
     el.innerHTML = sk.vis(S);
     el.className = "skjerm skjerm-" + S.skjerm;
+    merkLiggende(); // before sk.etter: games measure the screen there
     if (valg.animer) {
       void el.offsetWidth;
       el.classList.add("inn");
     }
     oppdaterTopp();
-    if (sk.etter) sk.etter(S, el);
+    if (sk.etter) {
+      sk.etter(S, el);
+      merkIgjen();
+    }
     flyttToast();
+  }
+  // A game hook (etter, inn) may have switched the game's own layout on or off (a class on <html>).
+  // Look again; if that changed the kit's landscape layout, let the game measure once more —
+  // games that size boards in JS listen to resize for that. (Better: say `liggende: false` on
+  // such a screen, then the layout is right before the hook runs.)
+  function merkIgjen() {
+    if (!erLiggende()) return;
+    const forrige = R.liggende();
+    merkLiggende();
+    if (R.liggende() !== forrige) {
+      try {
+        window.dispatchEvent(new Event("resize"));
+      } catch (e) {
+        /* old browsers: the layout is right, only a JS-sized board may be a little off */
+      }
+    }
   }
 
   R.gaTil = (navn) => {
@@ -1353,7 +1516,10 @@
       }
     }
     const sk = skjermDef(navn);
-    if (sk.inn) sk.inn(S);
+    if (sk.inn) {
+      sk.inn(S);
+      merkIgjen();
+    }
     sikreHistorikk();
     R.lagre();
     // Keep the screen on while a game is in progress; let it sleep on the home screen.
@@ -1688,7 +1854,7 @@
       if (el.dataset && el.dataset.navn != null) {
         const i = Number(el.dataset.navn);
         while (R.felles.navn.length < i) R.felles.navn.push("");
-        R.felles.navn[i] = el.value.slice(0, 16);
+        R.felles.navn[i] = R.kutt(el.value, 16);
         R.lagreFelles();
         const fjern = el.parentElement && el.parentElement.querySelector(".fjern");
         if (fjern) fjern.setAttribute("aria-label", "Fjern " + R.navn(i));
@@ -1823,8 +1989,26 @@
     } catch (e) {
       // A saved screen that can't be drawn any more (old or broken state): start from home.
       console.warn("rusj: kunne ikke gjenoppta", forste, e);
-      S.skjerm = null;
-      R.gaTil(APP.hjem || "hjem");
+      try {
+        S.skjerm = null;
+        R.gaTil(APP.hjem || "hjem");
+      } catch (e2) {
+        // Last resort: the saved game can't even draw the home screen. Drop this game's saved
+        // state (names and sound are kept) and start fresh, instead of a blank page on every visit.
+        console.warn("rusj: lagret tilstand kan ikke tegnes – nullstiller", e2);
+        R.fjern(NOKKEL);
+        S = Object.assign({ skjerm: null }, def.tilstand ? def.tilstand() : {});
+        R.S = S;
+        if (APP.lastet) {
+          try {
+            APP.lastet(S);
+          } catch (e3) {
+            console.error(e3);
+          }
+        }
+        R.gaTil(APP.hjem || "hjem");
+        R.toast("Det lagrede spillet kunne ikke åpnes. Vi startet på nytt.", { topp: true });
+      }
     }
 
     window.addEventListener("hashchange", () => {

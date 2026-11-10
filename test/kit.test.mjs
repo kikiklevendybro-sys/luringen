@@ -153,3 +153,66 @@ test("time formatting", () => {
   assert.equal(R.formaterTid(59.2), "1:00");
   assert.equal(R.formaterTid(125), "2:05");
 });
+
+test("names are cut between whole characters, never through an emoji", () => {
+  const { R, lager } = lastKit();
+  assert.equal(R.kutt("Kari", 16), "Kari");
+  assert.equal(R.kutt("Abcdefghijklmnopqrstu", 16), "Abcdefghijklmnop");
+  // 15 letters + a Santa (two UTF-16 units): a plain slice(0, 16) would keep half of him.
+  const nisse = "Bestemor Solvei\u{1F385}";
+  assert.equal(nisse.length, 17);
+  assert.equal(R.kutt(nisse, 16), nisse, "16 visible characters fit");
+  assert.equal(R.kutt("Bestemor Solveig\u{1F385}", 16), "Bestemor Solveig");
+  // A family (seven code points, one character) stays whole or goes completely.
+  const familie = "\u{1F468}‍\u{1F469}‍\u{1F467}";
+  assert.equal(R.kutt("Abcdefghijklmno" + familie + "x", 16), "Abcdefghijklmno" + familie);
+  assert.equal(R.kutt("Abcdefghijklmnop" + familie, 16), "Abcdefghijklmnop");
+  for (const tekst of [nisse + nisse + nisse, familie.repeat(30), "é".repeat(40), "a".repeat(200)]) {
+    const ut = R.kutt(tekst, 16);
+    assert.ok(tekst.startsWith(ut) && ut.length <= 64, "a prefix with a ceiling");
+    assert.ok(!/[\uD800-\uDBFF]$/.test(ut), "no lone surrogate at the end");
+  }
+  // The shared names are stored that way.
+  R.felles.navn = [nisse, "x".repeat(40)];
+  R.lagreFelles();
+  assert.deepEqual(JSON.parse(lager.get("rusj.felles")).navn, [nisse, "x".repeat(16)]);
+});
+
+test("the evening's scoreboard: places give 3/2/1, and nobody is placed when nobody scored", () => {
+  const { R } = lastKit();
+  R.visInstallTips = () => {}; // needs a page
+  R.felles.navn = ["Ada", "Bo", "Cia", "Dag"];
+  const plasser = (n) => R.kveld.les().spill[n].resultat.map((r) => `${r.navn} ${r.plass}`).join(", "); // (strings: the kit's arrays belong to another realm)
+  R.kveld.registrer([{ i: 0, poeng: 5 }, { i: 1, poeng: 3 }, { i: 2, poeng: 3 }, { i: 3, poeng: 0 }]);
+  assert.equal(plasser(0), "Ada 1, Bo 2, Cia 2, Dag 4");
+  // A game where nobody got a point: it counts as played, but must not hand everyone a shared win.
+  R.kveld.registrer([{ i: 0, poeng: 0 }, { i: 1, poeng: 0 }, { i: 2, poeng: 0 }]);
+  assert.equal(plasser(1), "Ada 0, Bo 0, Cia 0");
+  assert.equal(R.kveld.tavle().map((r) => `${r.navn} ${r.poeng}`).join(", "), "Ada 3, Bo 2, Cia 2, Dag 0");
+  // A real tie with points is still a shared first place.
+  R.kveld.registrer([{ i: 0, poeng: 2 }, { i: 1, poeng: 2 }]);
+  assert.equal(plasser(2), "Ada 1, Bo 1");
+});
+
+test("podium: two places are centred without an empty third column; moods and the result banner", () => {
+  const { R } = lastKit();
+  R.felles.navn = ["Ada", "Bo", "Cia"];
+  const antall = (html, del) => html.split(del).length - 1;
+  const tre = R.ui.pall([{ i: 0, poeng: 3 }, { i: 1, poeng: 2 }, { i: 2, poeng: 1 }]);
+  assert.ok(/class="pall"/.test(tre) && antall(tre, "pall-plass") === 3);
+  const to = R.ui.pall([{ i: 0, poeng: 3 }, { i: 1, poeng: 2 }, { i: 2, poeng: 0 }]);
+  assert.ok(/class="pall to"/.test(to), "two places get the centred variant");
+  assert.equal(antall(to, "pall-plass"), 2);
+  assert.ok(!/<div><\/div>/.test(to), "no empty column");
+  assert.ok(to.indexOf("Bo") < to.indexOf("Ada"), "second place stands to the left of the winner");
+  assert.equal(antall(R.ui.pall([{ i: 0, poeng: 2 }, { i: 1, poeng: 2 }]), "pall-plass p1"), 2, "a shared first place");
+  assert.equal(R.ui.pall([{ i: 0, poeng: 3 }, { i: 1, poeng: 0 }]), "", "no podium for one");
+
+  assert.ok(/class="figur-ramme jubel"/.test(R.ui.figur(null, { stemning: "jubel" })));
+  assert.ok(/class="figur-ramme min lei"/.test(R.ui.figur("testspill", { stemning: "lei", klasse: "min" })));
+  assert.ok(/class="figur-ramme "/.test(R.ui.figur(null, { stemning: "<b>" })), "unknown moods add nothing");
+  const banner = R.ui.banner({ tittel: "A & B vinner!", etikett: "Kåringen", klasse: "aksent" });
+  assert.ok(/class="banner aksent"/.test(banner) && /figur-ramme jubel/.test(banner) && /A &amp; B vinner!/.test(banner));
+  assert.ok(/figur-ramme lei/.test(R.ui.banner({ tittel: "Uff", stemning: "lei" })));
+  assert.ok(!/jubel|lei/.test(R.ui.banner({ tittel: "Uavgjort", stemning: "" })));
+});
