@@ -127,6 +127,50 @@ html.ms-fast .skjerm {
   animation: ms-hopp 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) 2;
 }
 
+/* The face is the «new board» button: a small ↻ says so. */
+.ms-fjes {
+  position: relative;
+}
+
+.ms-omstart {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--aksent);
+  box-shadow: 0 0 0 2.5px var(--natt);
+}
+
+.ms-omstart svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: var(--blekk);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* After a win the flag waves. */
+.ms-vaie {
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+  animation: ms-vaie 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes ms-vaie {
+  from {
+    transform: skewY(-9deg) scaleX(0.94);
+  }
+  to {
+    transform: skewY(8deg);
+  }
+}
+
 @keyframes ms-hopp {
   35% {
     transform: translateY(-10px) rotate(-8deg) scale(1.08);
@@ -212,8 +256,13 @@ html.ms-fast .skjerm {
   opacity: 1;
 }
 
-/* Flag mode: a pink ring around the board window. */
-.ms-vindu.flaggmodus .ms-kanter {
+/* Flag mode: a pink ring around the board itself – or around the window when the board is
+   bigger than the window and is dragged around inside it. */
+.ms-vindu.flaggmodus:not(.stor) .ms-brett {
+  box-shadow: 0 0 0 3px var(--rosa), 0 14px 30px var(--skygge);
+}
+
+.ms-vindu.flaggmodus.stor .ms-kanter {
   box-shadow: inset 0 0 0 3px var(--rosa);
 }
 
@@ -809,6 +858,16 @@ html.ms-fast .skjerm {
     padding: 5px;
   }
 
+  .ms-omstart {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ms-omstart svg {
+    width: 12px;
+    height: 12px;
+  }
+
   .ms-stat {
     padding: 5px 6px;
   }
@@ -850,5 +909,58 @@ html.ms-fast .skjerm {
 
   .ms-tall b {
     font-size: 1.9rem;
+  }
+}
+
+/* ---------- Landscape phones: the board to the left, counters and controls to the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="minesveiperen"] .app:has(.ms-spill) {
+    max-width: 1000px;
+  }
+
+  .ms-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(210px, 250px);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 16px;
+    row-gap: 8px;
+  }
+
+  .ms-vindu {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    margin-bottom: 8px;
+  }
+
+  .ms-hud {
+    grid-column: 2;
+    grid-row: 1;
+    gap: 6px;
+  }
+
+  .ms-stat b {
+    font-size: 1.1rem;
+  }
+
+  .ms-spill .dokk {
+    position: static;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+    margin: 0;
+    padding: 0 0 max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .ms-kontroll.med-zoom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ms-zoom button {
+    width: auto;
+  }
+
+  .ms-tips {
+    display: block;
   }
 }

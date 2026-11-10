@@ -29,17 +29,30 @@ export default async function (t) {
   t.sjekk((await t.tekst("#skjerm h1")) === "Gjør klart", "Oppsettet heter ikke «Gjør klart»");
   t.sjekk(await t.finnes('[data-h="fart"][data-v="rolig"][aria-pressed="true"]'), "«Rolig» er ikke valgt første gang");
   t.sjekk(await t.finnes('[data-h="vegger"][aria-pressed="true"]'), "Vegger skal være på som standard");
+  t.sjekk(await t.js("new Set(Array.from(document.querySelectorAll('[data-h=\"fart\"]')).map((el) => Math.round(el.getBoundingClientRect().top))).size === 1"), "De tre hastighetene står ikke på én rad");
   await t.bilde("oppsett");
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('.sl-lerret')");
   await t.sov(400);
   t.sjekk((await live()).status === "klar" && (await t.finnes(".sl-status:not([hidden])")), "Slangen venter ikke på første trykk");
+  // The «Klar?» card sits low on the board; the first fruit is always above it.
+  t.sjekk(
+    await t.js(`(() => {
+      const sp = Rusj.S.spill;
+      const l = document.querySelector(".sl-lerret").getBoundingClientRect();
+      const kort = document.querySelector(".sl-statuskort").getBoundingClientRect();
+      return sp.mat.y < 7 && l.top + ((sp.mat.y + 1) / 17) * l.height <= kort.top;
+    })()`),
+    "«Klar?»-kortet skjuler den første frukten",
+  );
   await t.bilde("klar");
 
   // The first arrow (touch-down on the cross) starts it; food right ahead is eaten.
   await sett("sp.mat = { x: 9, y: sp.kropp[0][1], t: 0 }");
   await t.trykk(".sl-pil.hoyre", 40);
   await t.vent("Rusj.S.spill.poeng === 1", 3000);
+  // The next fruit is placed at random: park it in a far corner, so the turns below never eat it.
+  await sett("sp.mat = { x: 0, y: 16, t: 1 }");
   let s = await live();
   t.sjekk(s.status === "spiller" && s.kropp.length === 4, "Slangen vokste ikke da den spiste");
   t.sjekk((await t.tekst("#sl-poeng")) === "1", "Poenget vises ikke");
@@ -109,6 +122,8 @@ export default async function (t) {
   await t.bilde("slutt", true);
   s = await t.tilstand();
   t.sjekk(s.spill.ferdig && s.rekorder["rolig-vegg"] === 1, "Rekorden ble ikke lagret");
+  t.sjekk(await t.finnes(".sl-mini path[stroke='#ff5a4e']"), "Resultatet viser ikke brettet med kryss der slangen krasjet");
+  t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")), "Topplinja sier «Kåringen» på et soloresultat");
   t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
 
   // «Spill igjen» at once, the same setup.
@@ -152,4 +167,9 @@ export default async function (t) {
   }
   await t.send("Emulation.setDeviceMetricsOverride", { width: bredde0, height: hoyde0, deviceScaleFactor: 2, mobile: true });
   await t.sov(300);
+
+  // A tampered speed in the saved state ("__proto__") is not a speed: back to the default.
+  await t.js(`Rusj.S.oppsett = JSON.parse('{"fart":"__proto__","vegger":true}'); Rusj.S.spill = null; Rusj.lagre()`);
+  await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
+  t.sjekk(/Start spill · rolig/.test(await t.tekst('[data-h="nytt"]')), "En ugyldig hastighet i lagret tilstand ga ikke standardvalget");
 }

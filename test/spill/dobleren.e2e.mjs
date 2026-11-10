@@ -31,13 +31,10 @@ export default async function (t) {
   await t.start();
   // The install tip (shown at most twice per phone after a good result) would cover the screenshots.
   await t.js("Rusj.felles.installTips = 2; Rusj.lagreFelles()");
-  // The main button starts at once (the first time: 4 × 4); «Bytt nivå» opens the choice.
-  t.sjekk(/Start spill · 4 × 4/.test(await t.tekst('[data-h="nytt"]')), "Hovedknappen viser ikke størrelsen den starter");
-  await t.klikk('[data-h="bytt"]');
-  t.sjekk((await t.tekst("#skjerm h1")) === "Gjør klart", "Oppsettet heter ikke «Gjør klart»");
-  await t.klikk('[data-h="str"][data-v="4"]');
-  await t.bilde("oppsett");
-  await t.klikk('[data-h="start"]');
+  // Two boards, both one tap from home: «Start 4 × 4» (main) and «5 × 5» – no setup screen.
+  t.sjekk((await t.tekst('.knapp[data-h="nytt"][data-v="4"]')).trim() === "Start 4 × 4", "Hovedknappen er ikke «Start 4 × 4»");
+  t.sjekk(await t.finnes('.knapp-2[data-h="nytt"][data-v="5"]'), "Mangler knappen for 5 × 5 på hjem-skjermen");
+  await t.klikk('[data-h="nytt"][data-v="4"]');
   await t.vent("document.querySelectorAll('.db-flis').length === 2");
   t.sjekk((await t.antall(".db-ruter i")) === 16, "4 × 4 skal ha 16 ruter");
   await t.bilde("start");
@@ -105,6 +102,15 @@ export default async function (t) {
   await t.bilde("2048");
   t.sjekk((await spill()).vant === true, "2048 ble ikke registrert");
   t.sjekk(await t.js("document.activeElement && document.activeElement.dataset.h === 'fortsett-etter'"), "Tastaturet havner ikke på «Fortsett» i 2048-meldingen");
+  // The card sits under the board: the 2048 tile is in view and celebrated.
+  t.sjekk(
+    await t.js(`(() => {
+      const kort = document.querySelector(".db-meldingskort").getBoundingClientRect();
+      const flis = document.querySelector(".db-flis.feiret");
+      return !!flis && flis.getBoundingClientRect().bottom <= kort.top + 1 && getComputedStyle(document.querySelector(".db-melding")).backdropFilter === "none";
+    })()`),
+    "2048-brikken er dekket av meldingen eller ikke feiret",
+  );
   await t.klikk('[data-h="fortsett-etter"]');
   t.sjekk(await t.finnes(".db-melding[hidden]"), "Meldingen om 2048 forsvant ikke");
   const forEtter = (await spill()).trekk;
@@ -127,7 +133,9 @@ export default async function (t) {
   await t.bilde("slutt", true);
   s = await t.tilstand();
   t.sjekk(s.spill.ferdig && s.rekorder["4"] && s.rekorder["4"].poeng >= s.spill.poeng, "Rekorden ble ikke lagret");
-  t.sjekk(await t.finnes('[data-h="angre-slutt"]'), "Sluttskjermen tilbyr ikke å angre det siste trekket");
+  t.sjekk(await t.finnes('.knapp-2[data-h="angre-slutt"]'), "Sluttskjermen tilbyr ikke å angre det siste trekket");
+  t.sjekk((await t.antall(".dokk .lenkerad .lenke")) === 2, "Sluttskjermens lenker er ikke de to vanlige");
+  t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")), "Topplinja sier «Kåringen» på et soloresultat");
   t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
   await t.klikk('[data-h="angre-slutt"]');
   await t.vent("document.querySelectorAll('.db-flis').length === 16");
@@ -141,10 +149,8 @@ export default async function (t) {
   await t.klikk("#tilbake");
   t.sjekk(!(await t.finnes('[data-h="fortsett"]')), "Et ferdig spill tilbys som «Fortsett» etter tilbake");
 
-  // 5 × 5 from «Bytt nivå»
-  await t.klikk('[data-h="bytt"]');
-  await t.klikk('[data-h="str"][data-v="5"]');
-  await t.klikk('[data-h="start"]');
+  // 5 × 5 straight from home
+  await t.klikk('[data-h="nytt"][data-v="5"]');
   await t.vent("document.querySelectorAll('.db-ruter i').length === 25");
   await sveip(0, -160);
   await sveip(-160, 0);
@@ -161,10 +167,11 @@ export default async function (t) {
     const m = await t.js(`(() => {
       const b = document.querySelector(".db-brett").getBoundingClientRect();
       const p = document.querySelector(".db-piler").getBoundingClientRect();
-      return { side: document.documentElement.scrollHeight - innerHeight, bred: document.documentElement.scrollWidth - innerWidth, brett: b.width, brettBunn: b.bottom, pilTopp: p.top, pilBunn: p.bottom, h: innerHeight };
+      return { side: document.documentElement.scrollHeight - innerHeight, bred: document.documentElement.scrollWidth - innerWidth, brett: b.width, brettBunn: b.bottom, pilTopp: p.top, pilBunn: p.bottom, pilHoyde: document.querySelector(".db-piler button").getBoundingClientRect().height, h: innerHeight };
     })()`);
     t.sjekk(m.side <= 1 && m.bred <= 0, `${w}×${h}: siden kan scrolles`);
     t.sjekk(m.brett >= 220 && m.brettBunn <= m.pilTopp && m.pilBunn <= m.h, `${w}×${h}: brettet eller pilene får ikke plass`);
+    t.sjekk(m.pilHoyde >= 44, `${w}×${h}: pilknappene er lavere enn 44 px (${Math.round(m.pilHoyde)})`);
     await t.bilde(`5x5-${w}x${h}`);
   }
   await t.send("Emulation.setDeviceMetricsOverride", { width: bredde0, height: hoyde0, deviceScaleFactor: 2, mobile: true });

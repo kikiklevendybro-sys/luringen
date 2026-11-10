@@ -110,6 +110,8 @@ export default async function (t) {
   s = await t.tilstand();
   t.sjekk(s.rekorder.lett && s.rekorder.lett.tid > 0 && s.stat.lett.vunnet === 1, "Rekorden for Lett ble ikke lagret");
   t.sjekk(/Godt jobba|Ny rekord/.test(await t.tekst("#skjerm h1")), "Seieren vises ikke");
+  t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")) && /lett/i.test(await t.tekst("#topp-tittel")), "Topplinja på soloresultatet sier ikke hva som ble spilt");
+  t.sjekk(await t.finnes(".banner .ms-glad .ms-vaie"), "Maskoten er ikke glad etter seieren");
   t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
 
   // «Spill igjen», then step on a mine: Kabom!
@@ -125,16 +127,20 @@ export default async function (t) {
   await t.sov(600);
   t.sjekk(/Kabom/.test(await t.tekst("#skjerm h1")), "Tapet vises ikke som «Kabom!»");
   t.sjekk((await t.tilstand()).stat.lett.spilt === 2, "Tapet ble ikke telt");
+  t.sjekk(/av 10/.test(await t.tekst(".ms-resultat")), "Tapet viser ikke hvor mange miner som ble funnet");
   await t.bilde("tapt", true);
 
-  // Middels opens with the whole board on the screen («+» zooms in).
+  // Middels opens like Ekspert: finger-sized cells from the top-left corner, «−» shows the whole board.
   await t.klikk('[data-h="bytt"]');
   await t.klikk('[data-h="niva"][data-v="middels"]');
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelectorAll('.ms-c').length === 256");
   await t.sov(300);
-  t.sjekk(await t.js("(() => { const r = document.querySelector('.ms-rulle'); return r.scrollWidth <= r.clientWidth + 1 && r.scrollHeight <= r.clientHeight + 1; })()"), "Middels får ikke plass på skjermen når det starter");
+  t.sjekk(await t.js("(() => { const r = document.querySelector('.ms-rulle'); return Number(document.querySelector('.ms-brett').dataset.c) >= 30 && r.scrollLeft === 0 && r.scrollTop === 0; })()"), "Middels starter ikke med store ruter fra hjørnet oppe til venstre");
   await t.bilde("middels");
+  await t.klikk('[data-h="zoom"][data-v="-1"]', 250);
+  t.sjekk(await t.js("(() => { const r = document.querySelector('.ms-rulle'); return r.scrollWidth <= r.clientWidth + 1 && r.scrollHeight <= r.clientHeight + 1; })()"), "Helt utzoomet får ikke hele Middels-brettet plass");
+  await t.klikk('[data-h="zoom"][data-v="1"]', 250);
 
   // Ekspert: 16 × 30, scrolls inside its frame (never the page), starts in the top-left corner
   // with shaded edges where it goes on, and zooms.
@@ -190,4 +196,9 @@ export default async function (t) {
   }
   await t.send("Emulation.setDeviceMetricsOverride", { width: bredde0, height: hoyde0, deviceScaleFactor: 2, mobile: true });
   await t.sov(300);
+
+  // A tampered level name in the saved state ("__proto__") is not a level: back to the default.
+  await t.js(`Rusj.S.oppsett = JSON.parse('{"niva":"__proto__"}'); Rusj.S.spill = null; Rusj.lagre()`);
+  await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
+  t.sjekk(/Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Et ugyldig nivånavn i lagret tilstand ga ikke standardnivået");
 }

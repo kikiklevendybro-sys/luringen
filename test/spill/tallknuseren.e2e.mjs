@@ -27,12 +27,18 @@ export default async function (t) {
       const b = document.querySelector(".tk-brett").getBoundingClientRect();
       const tast = document.querySelector('.tk-tast[data-v="9"]').getBoundingClientRect();
       const verk = document.querySelector(".tk-verktoy").getBoundingClientRect();
-      return { rull: document.documentElement.scrollHeight - innerHeight, bred: document.documentElement.scrollWidth - innerWidth, brettTopp: b.top, brettBunn: b.bottom, brettBredde: b.width, verkTopp: verk.top, tastBunn: tast.bottom, h: innerHeight, w: innerWidth };
+      return { rull: document.documentElement.scrollHeight - innerHeight, bred: document.documentElement.scrollWidth - innerWidth, brettTopp: b.top, brettBunn: b.bottom, brettHoyre: b.right, brettBredde: b.width, verkTopp: verk.top, verkVenstre: verk.left, verkHoyde: document.querySelector(".tk-verk").getBoundingClientRect().height, tastBunn: tast.bottom, h: innerHeight, w: innerWidth };
     })()`);
     t.sjekk(m.rull <= 1 && m.bred <= 0, `${navn}: siden kan scrolles (${m.rull}px ned, ${m.bred}px sidelengs)`);
-    t.sjekk(m.brettTopp >= 0 && m.brettBunn <= m.verkTopp + 1, `${navn}: brettet overlapper knappene (${Math.round(m.brettBunn)} > ${Math.round(m.verkTopp)})`);
+    // Upright: the board above the tools. Lying down: the board to the left of them.
+    const liggende = m.w > m.h;
+    t.sjekk(
+      m.brettTopp >= 0 && (liggende ? m.brettHoyre <= m.verkVenstre + 1 && m.brettBunn <= m.h : m.brettBunn <= m.verkTopp + 1),
+      `${navn}: brettet overlapper knappene (${Math.round(liggende ? m.brettHoyre : m.brettBunn)} > ${Math.round(liggende ? m.verkVenstre : m.verkTopp)})`,
+    );
     t.sjekk(m.tastBunn <= m.h, `${navn}: talltastene er under skjermkanten`);
-    t.sjekk(m.brettBredde >= Math.min(m.w, 480) * 0.75, `${navn}: brettet er for lite (${Math.round(m.brettBredde)}px)`);
+    t.sjekk(m.brettBredde >= (liggende ? m.h * 0.7 : Math.min(m.w, 480) * 0.75), `${navn}: brettet er for lite (${Math.round(m.brettBredde)}px)`);
+    t.sjekk(m.verkHoyde >= 44, `${navn}: verktøyknappene er lavere enn 44 px (${Math.round(m.verkHoyde)})`);
   }
 
   await t.start();
@@ -107,6 +113,18 @@ export default async function (t) {
   s = await spill();
   t.sjekk(s.hintIgjen === 2 && s.hint.length === 1 && s.v[s.hint[0]] === los[s.hint[0]], "Hintet satte ikke et riktig tall");
   t.sjekk(await t.js("document.querySelector('.tk-melding.vis')?.textContent.length > 20"), "Hintet forklarer ikke hvorfor");
+  t.sjekk(await t.finnes(".tk-celle.hintmal"), "Ruta som fikk hintet, er ikke markert");
+  // The explanation never covers the board, and on a tall phone not the info row either.
+  t.sjekk(
+    await t.js(`(() => {
+      const m = document.querySelector(".tk-melding").getBoundingClientRect();
+      const b = document.querySelector(".tk-brett").getBoundingClientRect();
+      const h = document.querySelector(".tk-hud").getBoundingClientRect();
+      const fri = m.bottom <= b.top + 1 || m.left >= b.right - 1;
+      return fri && (innerHeight < 700 || innerWidth > innerHeight || m.top >= h.bottom - 1);
+    })()`),
+    "Hintforklaringen dekker brettet eller inforaden",
+  );
   await t.bilde("hint");
 
   // Reload mid-game: numbers, notes and hints are still there.
@@ -168,7 +186,12 @@ export default async function (t) {
   await losResten();
   await t.vent("document.querySelector('.skjerm-slutt')", 8000);
   await t.sov(900);
-  t.sjekk(await t.finnes('[data-h="del"]'), "Dagens sudoku mangler «Del resultatet»");
+  t.sjekk(await t.finnes('.dokk .knapp[data-h="del"]'), "«Del resultatet» er ikke hovedknappen etter dagens sudoku");
+  t.sjekk(/^\d{1,2}:\d\d:\d\d$/.test(await t.tekst(".tk-nedtelling b")), "Nedtellingen til neste sudoku vises ikke som t:mm:ss");
+  const ned1 = await t.tekst(".tk-nedtelling b");
+  await t.sov(1300);
+  t.sjekk((await t.tekst(".tk-nedtelling b")) !== ned1, "Nedtellingen står stille");
+  t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")), "Topplinja sier «Kåringen» på et soloresultat");
   s = await t.tilstand();
   t.sjekk(s.daglig.tider[forventet.dag] > 0 && s.daglig.rekke === 1, "Dagens sudoku ble ikke registrert som løst");
   const forside = await t.js(`JSON.parse(localStorage.getItem("rusj.daglig") || "{}").tallknuseren || null`);
@@ -226,4 +249,9 @@ export default async function (t) {
   }
   await t.send("Emulation.setDeviceMetricsOverride", { width: bredde0, height: hoyde0, deviceScaleFactor: 2, mobile: true });
   await t.sov(300);
+
+  // A tampered level name in the saved state ("__proto__") is not a level: back to the default.
+  await t.js(`Rusj.S.oppsett = JSON.parse('{"niva":"__proto__"}'); Rusj.S.spill = null; Rusj.lagre()`);
+  await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
+  t.sjekk(/Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Et ugyldig nivånavn i lagret tilstand ga ikke standardnivået");
 }

@@ -86,6 +86,13 @@ html.tk-fast .skjerm {
   transform: none;
 }
 
+/* Room above the board (tall phones): under the info row, which stays readable. */
+.tk-melding.under {
+  top: calc(100% + 8px);
+  min-height: 0;
+  padding-block: 10px;
+}
+
 .tk-hud {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
@@ -129,29 +136,37 @@ html.tk-fast .skjerm {
   color: var(--lampe);
 }
 
+/* The clock is the pause button: a round, raised pause key next to the time. */
 .tk-klokke {
   position: relative;
   grid-template-columns: auto auto;
-  column-gap: 7px;
+  align-items: center;
+  justify-content: center;
+  column-gap: 9px;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--strek));
   cursor: pointer;
 }
 
-.tk-klokke small {
-  grid-column: 1 / -1;
+.tk-klokketekst {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
 }
 
 .tk-pauseikon {
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
 }
 
 .tk-pauseikon svg {
-  width: 11px;
-  height: 11px;
+  width: 14px;
+  height: 14px;
   fill: var(--blekk);
 }
 
@@ -194,6 +209,7 @@ html.tk-fast .skjerm {
 .tk-brett {
   --c: 36px;
   --linje: color-mix(in srgb, var(--blekk) 24%, var(--papir));
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, auto);
   gap: 3px;
@@ -357,6 +373,35 @@ html.tk-fast .skjerm {
   animation: rist 0.4s linear;
 }
 
+/* A hint: a frame around the box, row or column it talks about, and a pulse on its cell. */
+.tk-hintramme {
+  position: absolute;
+  z-index: 3;
+  border-radius: 9px;
+  box-shadow: 0 0 0 3px var(--lampe), 0 0 16px 3px color-mix(in srgb, var(--lampe) 60%, transparent);
+  pointer-events: none;
+  animation: tk-ramme 0.3s ease-out both;
+}
+
+@keyframes tk-ramme {
+  from {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+
+.tk-celle.hintmal {
+  z-index: 2;
+  animation: tk-puls 0.9s ease-in-out 3;
+}
+
+@keyframes tk-puls {
+  50% {
+    background: color-mix(in srgb, var(--lampe) 80%, var(--papir));
+    transform: scale(1.14);
+  }
+}
+
 .tk-brett.vant .tk-celle {
   animation: tk-vant 0.8s cubic-bezier(0.3, 1.5, 0.5, 1) both;
   animation-delay: var(--f, 0ms);
@@ -504,7 +549,13 @@ html.tk-fast .skjerm {
   color: var(--aksent);
 }
 
+/* «PÅ» only while notes are on (an «AV» badge looked like a notification count). */
+.tk-notatknapp .tk-merke {
+  display: none;
+}
+
 .tk-notatknapp[aria-pressed="true"] .tk-merke {
+  display: block;
   background: var(--aksent);
   color: var(--blekk);
 }
@@ -534,11 +585,10 @@ html.tk-fast .skjerm {
 
 .tk-tast small {
   position: absolute;
-  top: 4px;
-  right: 5px;
+  top: 3px;
+  right: 4px;
   color: var(--blekk-2);
-  font: 800 0.6rem/1 var(--font-display);
-  opacity: 0.8;
+  font: 800 0.72rem/1 var(--font-display);
 }
 
 .tk-tast:active {
@@ -586,26 +636,39 @@ html.tk-fast .skjerm {
 
 /* ---------- Home ---------- */
 
-.hjem-knapper .knapp-2:has(.tk-dagknapp) {
-  justify-content: flex-start;
+/* Today's sudoku as the main button: the calendar page, the name and «mandag · lett». */
+.hjem-knapper .knapp:has(.tk-dagknapp) {
   gap: 14px;
   padding-block: 10px;
-  text-align: left;
 }
 
 .tk-dagknapp {
   display: grid;
   gap: 3px;
   min-width: 0;
+  text-align: left;
 }
 
 .tk-dagknapp b {
-  font: 900 1.1rem/1.1 var(--font-display);
+  font: 900 1.3rem/1.1 var(--font-display);
 }
 
 .tk-dagknapp small {
+  color: var(--blekk-2);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+/* «Ny sudoku om 5:12:33» – ticks every second */
+.tk-nedtelling {
   color: var(--tekst-2);
-  font: 700 0.86rem/1.2 var(--font-tekst);
+  font-weight: 700;
+  text-align: center;
+}
+
+.tk-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
 }
 
 /* A little calendar page with today's date */
@@ -789,10 +852,6 @@ html.tk-fast .skjerm {
   font: 900 1.4rem/1.1 var(--font-display);
 }
 
-.tk-dagboks .knapp-2 {
-  width: auto;
-}
-
 /* The solved grid in miniature */
 .tk-mini {
   display: grid;
@@ -872,8 +931,15 @@ html.tk-fast .skjerm {
     display: inline;
   }
 
-  .tk-klokke {
-    grid-template-columns: auto auto;
+  .tk-pauseikon {
+    width: 24px;
+    height: 24px;
+    box-shadow: 0 2px 0 var(--aksent-dyp);
+  }
+
+  .tk-pauseikon svg {
+    width: 12px;
+    height: 12px;
   }
 
   .tk-tast {
@@ -882,11 +948,13 @@ html.tk-fast .skjerm {
     font-size: 1.5rem;
   }
 
+  /* The tools keep a full 44 px touch target; the board gives up the space instead. */
   .tk-verk {
     grid-template-columns: auto auto;
     align-items: center;
     justify-content: center;
     gap: 5px;
+    min-height: 44px;
     padding: 6px 4px;
     border-radius: 13px;
   }
@@ -908,9 +976,9 @@ html.tk-fast .skjerm {
   }
 
   .tk-tast small {
-    top: 3px;
+    top: 2px;
     right: 3px;
-    font-size: 0.55rem;
+    font-size: 0.66rem;
   }
 
   .tk-verk {
@@ -930,5 +998,55 @@ html.tk-fast .skjerm {
 @media (max-height: 700px) and (max-width: 359px) {
   .tk-verk span {
     display: none;
+  }
+}
+
+/* ---------- Landscape phones: the board to the left, clock, tools and keys to the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="tallknuseren"] .app:has(.tk-spill) {
+    max-width: 1000px;
+  }
+
+  .tk-spill {
+    display: grid;
+    grid-template-columns: min(calc(100dvh - 72px), 52vw) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 20px;
+    row-gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .tk-flate {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .tk-topp {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .tk-spill .dokk {
+    position: static;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+    margin: 0;
+    padding: 0 0 max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Room for a real number pad: three rows of big keys. */
+  .tk-tall {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 11px 8px;
+  }
+
+  .tk-tast {
+    height: clamp(40px, calc((100dvh - 262px) / 3), 58px);
+  }
+
+  .tk-verk span {
+    display: inline;
   }
 }

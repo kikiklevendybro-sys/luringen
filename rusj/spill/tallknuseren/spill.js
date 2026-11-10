@@ -434,12 +434,13 @@
 
     // ---------- Levels ----------
     // mal: clues to stop at (0 = as few as possible) · grad: the grading the level accepts.
-    const NIVAER = {
+    // (No prototype: an unknown name such as "__proto__" is undefined, never a level.)
+    const NIVAER = Object.assign(Object.create(null), {
       lett: { mal: 36, grad: 1 },
       middels: { mal: 30, grad: 2 },
       vanskelig: { mal: 0, grad: 3 },
       ekspert: { mal: 0, grad: 4 },
-    };
+    });
     const MAKS_FORSOK = 600;
 
     // A puzzle for a level from a seed (the same seed always gives the same puzzle).
@@ -560,16 +561,16 @@
   const { RAD, KOL, BOKS, ENHETER, NABOER } = M;
 
   const NIVA_ID = ["lett", "middels", "vanskelig", "ekspert"];
-  const NIVA = {
+  // Without a prototype, so a saved or typed value like "__proto__" or "constructor" is simply
+  // not a level (NIVA[x] is undefined) instead of something that looks like one.
+  const NIVA = Object.assign(Object.create(null), {
     lett: { navn: "Lett", tekst: "En rolig start" },
     middels: { navn: "Middels", tekst: "Litt mer å tenke på" },
     vanskelig: { navn: "Vanskelig", tekst: "Krever smarte triks" },
     ekspert: { navn: "Ekspert", tekst: "For ekte tallknusere" },
-  };
+  });
   const UKEDAG = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
   const MANED = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
-  // «Dagens sudoku» grows harder through the week: easy on Monday, expert on Sunday.
-  const DAGNIVA = ["ekspert", "lett", "lett", "middels", "middels", "vanskelig", "vanskelig"];
   const HINT = 3;
   const MAKS_ANGRE = 400;
 
@@ -585,16 +586,42 @@
   function dagInfo(dag) {
     const [, m, d] = dag.tekst.split("-").map(Number);
     const u = ukedag(dag.nr);
-    return { tekst: dag.tekst, nr: dag.nr, niva: DAGNIVA[u], ukedag: UKEDAG[u], dato: `${d}. ${MANED[m - 1]}` };
+    return { tekst: dag.tekst, nr: dag.nr, niva: M.dagligNiva(dag.nr), ukedag: UKEDAG[u], dato: `${d}. ${MANED[m - 1]}` };
   }
   const idag = () => dagInfo(R.dag());
 
-  // Minutes until the next puzzle (midnight in Norway).
-  function tilImorgen() {
-    const deler = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
-    const t = Number(deler.find((p) => p.type === "hour").value);
-    const m = Number(deler.find((p) => p.type === "minute").value);
-    return Math.max(1, 24 * 60 - (t * 60 + m));
+  // ---------- Countdown to the next daily sudoku (midnight in Norway) ----------
+
+  function sekunderTilNy() {
+    const na = Date.now();
+    const deler = {};
+    new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+      .formatToParts(new Date(na))
+      .forEach((p) => (deler[p.type] = Number(p.value)));
+    let igjen = 86400 - ((deler.hour % 24) * 3600 + deler.minute * 60 + deler.second);
+    const dag = R.dag(new Date(na)).nr;
+    // The two nights a year the clocks change, the day is 23 or 25 hours long.
+    if (R.dag(new Date(na + igjen * 1000)).nr === dag) igjen += 3600;
+    else if (igjen > 3600 && R.dag(new Date(na + (igjen - 3600) * 1000)).nr !== dag) igjen -= 3600;
+    return Math.max(1, igjen);
+  }
+  const klokkeTekst = (s) => `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  const nedtellingHtml = () => `<p class="tk-nedtelling">Ny sudoku om <b>${klokkeTekst(sekunderTilNy())}</b></p>`;
+  // Ticks every second while a countdown is on the screen; at midnight the screen is drawn again.
+  let nedtellingId = null;
+  function startNedtelling() {
+    clearInterval(nedtellingId);
+    const dag = R.dag().nr;
+    nedtellingId = setInterval(() => {
+      const el = R.$(".tk-nedtelling b");
+      if (!el) return clearInterval(nedtellingId);
+      if (R.dag().nr !== dag) {
+        clearInterval(nedtellingId);
+        return R.vis();
+      }
+      el.textContent = klokkeTekst(sekunderTilNy());
+    }, 1000);
+    R.vedForlat(() => clearInterval(nedtellingId));
   }
 
   // ---------- Clock ----------
@@ -616,13 +643,6 @@
     const m = Math.floor(s / 60) % 60;
     return (t ? t + ":" + String(m).padStart(2, "0") : String(m)) + ":" + String(s % 60).padStart(2, "0");
   }
-  function langTid(sek) {
-    const m = Math.floor(sek / 60);
-    const s = sek % 60;
-    if (!m) return R.flertall(s, "sekund", "sekunder");
-    return `${R.flertall(m, "minutt", "minutter")}${s ? ` og ${R.flertall(s, "sekund", "sekunder")}` : ""}`;
-  }
-
   // ---------- A new puzzle ----------
 
   // valg: a level, or "dagens" for today's sudoku (made by the engine's frozen daily rules).
@@ -731,7 +751,7 @@
     const dag = sp.dagens ? dagInfo({ tekst: sp.dagens, nr: sp.dagNr }) : null;
     return `<div class="tk-hud">
       <span class="tk-stat"><small>${dag ? "Dagens" : "Nivå"}</small><b>${esc(NIVA[sp.niva].navn)}</b></span>
-      <button class="tk-klokke" data-h="pause" aria-label="${sp.pause ? "Fortsett" : "Pause"}"><small>Tid</small><b id="tk-tid">${visTid(tidMs(sp))}</b><span class="tk-pauseikon">${IKON.pause}</span></button>
+      <button class="tk-klokke" data-h="pause" aria-label="${sp.pause ? "Fortsett" : "Pause"}"><span class="tk-pauseikon">${IKON.pause}</span><span class="tk-klokketekst"><small>Tid</small><b id="tk-tid">${visTid(tidMs(sp))}</b></span></button>
       <span class="tk-stat tk-rekordchip"><small>Rekord</small><b><span class="tk-pokal" aria-hidden="true">🏆 </span>${rek ? visTid(rek.tid * 1000) : "–"}</b></span>
     </div>`;
   }
@@ -741,7 +761,7 @@
     return `<div class="tk-verktoy">
         <button class="tk-verk" data-h="angre" id="tk-angre" aria-label="Angre"${sp.angre.length ? "" : " disabled"}>${IKON.angre}<span>Angre</span></button>
         <button class="tk-verk" data-h="visk" id="tk-visk" aria-label="Visk ut">${IKON.visk}<span>Visk ut</span></button>
-        <button class="tk-verk tk-notatknapp" data-h="notater" id="tk-notater" aria-label="Notater" aria-pressed="${sp.notat}">${IKON.notat}<span>Notater</span><i class="tk-merke" aria-hidden="true">${sp.notat ? "PÅ" : "AV"}</i></button>
+        <button class="tk-verk tk-notatknapp" data-h="notater" id="tk-notater" aria-label="Notater" aria-pressed="${sp.notat}">${IKON.notat}<span>Notater</span><i class="tk-merke" aria-hidden="true">PÅ</i></button>
         <button class="tk-verk" data-h="hint" id="tk-hint"${sp.hintIgjen > 0 ? "" : " disabled"} aria-label="Hint, ${sp.hintIgjen} igjen">${IKON.hint}<span>Hint</span><i class="tk-merke" aria-hidden="true">${sp.hintIgjen}</i></button>
       </div>
       <div class="tk-tall${sp.notat ? " notat" : ""}" role="group" aria-label="Tall">
@@ -804,7 +824,6 @@
     const not = R.$("#tk-notater");
     if (not) {
       not.setAttribute("aria-pressed", String(sp.notat));
-      not.querySelector(".tk-merke").textContent = sp.notat ? "PÅ" : "AV";
     }
     const tall = R.$(".tk-tall");
     if (tall) tall.classList.toggle("notat", sp.notat);
@@ -845,6 +864,7 @@
   function velg(S, i, fokus) {
     const sp = S.spill;
     if (!sp || i < 0 || i > 80) return;
+    fjernHintmerker();
     sp.valgt = i;
     sp.uthev = 0;
     oppdater(S);
@@ -863,9 +883,14 @@
   function melding(tekst) {
     const m = R.$(".tk-melding");
     R.si(tekst);
-    if (!m) return R.toast(tekst);
+    if (!m) return R.toast(tekst, { topp: true });
     m.textContent = tekst;
-    m.classList.remove("vis");
+    m.classList.remove("vis", "under");
+    // Under the info row when there is room above the board; on short screens over the info
+    // row instead – never over the board.
+    const hud = R.$(".tk-hud");
+    const brett = R.$(".tk-brett");
+    if (hud && brett && brett.getBoundingClientRect().top - hud.getBoundingClientRect().bottom >= m.offsetHeight + 12) m.classList.add("under");
     void m.offsetWidth;
     m.classList.add("vis");
     clearTimeout(meldingId);
@@ -875,6 +900,34 @@
     clearTimeout(meldingId);
     const m = R.$(".tk-melding");
     if (m) m.classList.remove("vis");
+  }
+
+  // A hint shows what it talks about: a frame around the whole box, row or column («i denne
+  // boksen …») and a pulse on the cell that got its number.
+  let hintId = null;
+  function fjernHintmerker() {
+    clearTimeout(hintId);
+    R.$$(".tk-hintramme").forEach((el) => el.remove());
+    R.$$(".tk-celle.hintmal").forEach((el) => el.classList.remove("hintmal"));
+  }
+  function visHintmerker(enhet, i) {
+    fjernHintmerker();
+    const brett = R.$(".tk-brett");
+    if (!brett || !celler[i]) return;
+    celler[i].classList.add("hintmal");
+    if (enhet != null) {
+      const b = brett.getBoundingClientRect();
+      const a = celler[ENHETER[enhet][0]].getBoundingClientRect();
+      const z = celler[ENHETER[enhet][8]].getBoundingClientRect();
+      const ramme = document.createElement("div");
+      ramme.className = "tk-hintramme";
+      ramme.style.left = a.left - b.left - 2 + "px";
+      ramme.style.top = a.top - b.top - 2 + "px";
+      ramme.style.width = z.right - a.left + 4 + "px";
+      ramme.style.height = z.bottom - a.top + 4 + "px";
+      brett.appendChild(ramme);
+    }
+    hintId = setTimeout(fjernHintmerker, 4200);
   }
 
   // ---------- Moves ----------
@@ -1065,8 +1118,7 @@
     melding(HINTTEKST[grunn](d));
     const enhet = grunn === "boks" ? 18 + BOKS[i] : grunn === "rad" ? RAD[i] : grunn === "kolonne" ? 9 + KOL[i] : null;
     etterTall(S, i, d, true);
-    if (enhet != null && !sp.ferdig) flash(ENHETER[enhet].slice().sort((a, b) => avstand(a, i) - avstand(b, i)), 40);
-    else if (!sp.ferdig) flash([i]);
+    if (!sp.ferdig) visHintmerker(enhet, i);
   }
 
   function settPause(S, pa) {
@@ -1366,6 +1418,11 @@
         else {
           if (!Array.isArray(sp.hint)) sp.hint = [];
           if (!Array.isArray(sp.angre)) sp.angre = [];
+          // A daily puzzle is named by its date; anything else is an ordinary board.
+          if (typeof sp.dagens !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(sp.dagens) || !Number.isInteger(sp.dagNr)) {
+            sp.dagens = null;
+            sp.dagNr = null;
+          }
           sp.n = sp.n.map((x) => (Number.isInteger(x) ? x & 0x3fe : 0));
           sp.valgt = Number.isInteger(sp.valgt) && sp.valgt >= -1 && sp.valgt < 81 ? sp.valgt : -1;
           sp.hintIgjen = R.klamp(Number(sp.hintIgjen) || 0, 0, HINT);
@@ -1403,24 +1460,27 @@
             (n) => `<li><b>${esc(NIVA[n].navn)}</b> ${visTid(S.rekorder[n].tid * 1000)}<small> · ${R.flertall(S.rekorder[n].antall, "brett", "brett")}</small></li>`,
           );
           const r = rekke(S);
-          // Today's sudoku is one tap away until it is solved; then the streak shows instead.
-          const dagens = tid
-            ? `<p class="tk-daglinje">✓ Dagens sudoku er løst på ${visTid(tid * 1000)}${r > 1 ? ` · 🔥 ${r} dager på rad` : ""}</p>`
-            : sp && sp.dagens === d.tekst && !sp.ferdig
-              ? ""
-              : R.ui.knapp2("", "dagens", {
-                  tekstHtml: `${kalender(d)}<span class="tk-dagknapp"><b>Dagens sudoku</b><small>${esc(`${d.ukedag[0].toUpperCase() + d.ukedag.slice(1)} · ${NIVA[d.niva].navn.toLowerCase()}${r > 0 ? ` · 🔥 ${R.flertall(r, "dag", "dager")} på rad` : ""}`)}</small></span>`,
-                });
+          const niva = NIVA[S.oppsett.niva].navn.toLowerCase();
+          const dagTekst = `${d.ukedag[0].toUpperCase() + d.ukedag.slice(1)} · ${NIVA[d.niva].navn.toLowerCase()}${r > 0 ? ` · 🔥 ${R.flertall(r, "dag", "dager")} på rad` : ""}`;
+          const dagensIGang = aktiv && sp.dagens === d.tekst;
+          let knapper;
+          if (aktiv) {
+            knapper =
+              R.ui.knapp(`Fortsett · ${sp.dagens ? "dagens sudoku" : NIVA[sp.niva].navn.toLowerCase()} · ${visTid(sp.tid)}`, "fortsett") +
+              // A free board is running and today's sudoku still waits: the two side by side.
+              (!tid && !dagensIGang ? `<div class="knapprad">${R.ui.knapp2("Dagens sudoku", "dagens")}${R.ui.knapp2("Nytt spill", "nytt")}</div>` : R.ui.knapp2("Nytt spill", "nytt"));
+          } else if (!tid) {
+            // Today's sudoku is the main button until it is solved; a free board starts at once
+            // on the last level played («Bytt nivå» opens the choice).
+            knapper =
+              R.ui.knapp("", "dagens", { variant: "stor", tekstHtml: `${kalender(d)}<span class="tk-dagknapp"><b>Dagens sudoku</b><small>${esc(dagTekst)}</small></span>` }) +
+              R.ui.knapp2(`Start spill · ${niva}`, "nytt");
+          } else knapper = R.ui.knapp(`Start spill · ${niva}`, "nytt");
+          const lost = tid ? `<p class="tk-daglinje">✓ Dagens sudoku er løst på ${visTid(tid * 1000)}${r > 1 ? ` · 🔥 ${r} dager på rad` : ""}</p>${nedtellingHtml()}` : "";
           return (
             R.ui.spillhjem({
               slagordHtml: "Ett tall i hver rute.<br><em>Bare logikk – ingen regning.</em>",
-              knapperHtml: R.ui.startKnapper({
-                pagar: !!aktiv,
-                fortsettTekst: aktiv ? `Fortsett · ${sp.dagens ? "dagens sudoku" : NIVA[sp.niva].navn.toLowerCase()} · ${visTid(sp.tid)}` : "",
-                // Starts at once on the last level played; «Bytt nivå» opens the choice.
-                startTekst: `Start spill · ${NIVA[S.oppsett.niva].navn.toLowerCase()}`,
-                ekstraHtml: dagens + R.ui.lenkerad(R.ui.lenke("Bytt nivå", "bytt"), R.ui.lenke("Slik spiller du", "regler")),
-              }),
+              knapperHtml: knapper + lost + R.ui.lenkerad(R.ui.lenke("Bytt nivå", "bytt"), R.ui.lenke("Slik spiller du", "regler")),
               merker: [
                 ["4", "nivåer"],
                 ["1", "ny hver dag"],
@@ -1428,6 +1488,9 @@
               ],
             }) + (rek.length ? `<section class="tk-rekorder" aria-label="Dine beste tider"><p class="etikett">Dine beste tider</p><ul>${rek.join("")}</ul></section>` : "")
           );
+        },
+        inn(S) {
+          if (S.daglig.tider[R.dag().tekst]) startNedtelling();
         },
       },
 
@@ -1471,7 +1534,7 @@
                   <div class="tk-pausekort">
                     <p class="etikett">Pause</p>
                     <p class="tk-pausetekst">Brettet venter på deg.</p>
-                    ${R.ui.knapp("Fortsett", "fortsett-spill", { ikon: "▶" })}
+                    ${R.ui.knapp("Fortsett", "fortsett-spill")}
                   </div>
                 </div>
               </div>
@@ -1510,7 +1573,8 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        // A solo result: the top bar says what was played ("Kåringen" is for ranked players).
+        tittel: (S) => (S.spill && S.spill.dagens ? "Dagens sudoku" : S.spill && NIVA[S.spill.niva] ? `Sudoku · ${NIVA[S.spill.niva].navn.toLowerCase()}` : "Sudoku"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -1525,14 +1589,21 @@
           else if (r.nyRekord) linje = `Ny personlig rekord på ${navn.toLowerCase()}! Forrige: ${visTid(r.gml * 1000)}.`;
           else if (r.gml) linje = `Rekorden din på ${navn.toLowerCase()}: ${visTid(Math.min(r.gml, r.sek) * 1000)}.`;
           else linje = `Første brett på ${navn.toLowerCase()} – nå har du en rekord å slå!`;
-          const minutter = tilImorgen();
+          // The page may stay open past midnight: then a new daily sudoku is ready.
+          const gammel = !!dag && sp.dagens !== R.dag().tekst;
           const dagBoks = dag
             ? `<div class="tk-dagboks">
                 ${r.rekke ? `<p class="tk-rekke"><span aria-hidden="true">🔥</span> ${R.flertall(r.rekke, "dag", "dager")} på rad</p>` : ""}
-                <p class="hjelp">Ny sudoku om ${minutter >= 60 ? `${Math.floor(minutter / 60)} t ${minutter % 60} min` : `${minutter} min`}.</p>
-                ${R.ui.knapp2("Del resultatet", "del", { ikon: "📤" })}
+                ${gammel ? '<p class="tk-nedtelling"><b>En ny sudoku er klar!</b></p>' : nedtellingHtml()}
               </div>`
             : "";
+          // After the daily the main action is to share it; a fresh board is one tap away.
+          const dokk = dag
+            ? R.ui.dokk(
+                gammel ? R.ui.knapp("Dagens sudoku", "dagens") : R.ui.knapp("Del resultatet", "del"),
+                R.ui.lenkerad(R.ui.lenke(`Nytt brett · ${navn.toLowerCase()}`, "igjen"), '<a class="lenke" href="/">Alle spill</a>'),
+              )
+            : R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "bytt"), '<a class="lenke" href="/">Alle spill</a>'));
           return `
             <div class="banner aksent">
               ${R.figur()}
@@ -1547,11 +1618,12 @@
             ${dagBoks}
             ${miniBrett(sp)}
             ${R.ui.flereSpill({ antall: 1 })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "bytt"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${dokk}`;
         },
         inn(S) {
           const sp = S.spill;
           if (!sp) return;
+          if (sp.dagens && sp.dagens === R.dag().tekst) startNedtelling();
           const r = sp.resultat || {};
           // Celebrate in proportion: fanfare for a clean solve, a record or the daily; warm otherwise.
           if (r.hint === 0 || r.nyRekord || sp.dagens) {

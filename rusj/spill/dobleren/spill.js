@@ -12,14 +12,14 @@
   const esc = R.esc;
 
   const STORRELSER = [4, 5];
-  const NAVN = { 4: "Klassisk", 5: "Romslig" };
   const MAL = 2048;
-  const RETNINGER = {
+  // Without a prototype, so a value like "__proto__" is simply not a direction.
+  const RETNINGER = Object.assign(Object.create(null), {
     venstre: [-1, 0],
     hoyre: [1, 0],
     opp: [0, -1],
     ned: [0, 1],
-  };
+  });
   const SVEIP = 24; // px before a swipe counts
   const GLID = 110; // ms for a slide (keep in sync with spill.css)
 
@@ -342,17 +342,16 @@
     R.gaTil("slutt");
   }
 
+  // Messages sit under the board, over the arrow buttons: the board itself stays sharp, so the
+  // player sees the 2048 tile they just made (it pops and glows) or the full board that ended it.
   function visMelding(S, type) {
     const m = R.$(".db-melding");
     if (!m) return;
-    const sp = S.spill;
     if (type === "vant")
       m.innerHTML = `<div class="db-meldingskort vant">
-        <p class="etikett">${R.flertall(sp.trekk, "trekk", "trekk")}</p>
         <h2 id="db-melding-tittel">2048!</h2>
         <p>Du klarte det! Vil du se hvor langt du kommer?</p>
-        ${R.ui.knapp("Fortsett", "fortsett-etter", { ikon: "▶" })}
-        ${R.ui.lenke("Se resultatet", "ferdig")}
+        <div class="knapprad">${R.ui.knapp2("Se resultatet", "ferdig")}${R.ui.knapp("Fortsett", "fortsett-etter")}</div>
       </div>`;
     else
       m.innerHTML = `<div class="db-meldingskort">
@@ -364,6 +363,11 @@
     // Keyboard users land on «Fortsett» (the arrow keys wait while the message is up).
     const knapp = m.querySelector(".knapp");
     if (knapp) knapp.focus({ preventScroll: true });
+    if (type === "vant" && !R.rolig())
+      for (const [id, el] of elementer) {
+        const f = S.spill.fliser.find((x) => x.id === id);
+        if (f && f.v >= MAL) el.classList.add("feiret");
+      }
   }
   function skjulMelding() {
     const m = R.$(".db-melding");
@@ -371,6 +375,7 @@
       m.hidden = true;
       m.innerHTML = "";
     }
+    R.$$(".db-flis.feiret").forEach((el) => el.classList.remove("feiret"));
   }
 
   // ---------- Swipes and keys ----------
@@ -417,7 +422,7 @@
     });
   }
 
-  const TASTER = {
+  const TASTER = Object.assign(Object.create(null), {
     ArrowLeft: "venstre",
     ArrowRight: "hoyre",
     ArrowUp: "opp",
@@ -426,7 +431,7 @@
     d: "hoyre",
     w: "opp",
     s: "ned",
-  };
+  });
   document.addEventListener("keydown", (e) => {
     const S = R.S;
     if (!S || S.skjerm !== "spill" || !S.spill || R.arkApent() || e.altKey) return;
@@ -532,44 +537,23 @@
           const rek = STORRELSER.filter((n) => S.rekorder[n] && S.rekorder[n].poeng).map(
             (n) => `<li><b>${n} × ${n}</b> ${R.tall(S.rekorder[n].poeng)} poeng<small> · største ${S.rekorder[n].flis}</small></li>`,
           );
+          // Two boards and nothing else to choose: both start straight from here.
+          const knapper = aktiv
+            ? R.ui.knapp(`Fortsett · ${sp.str} × ${sp.str} · ${R.tall(sp.poeng)} poeng`, "fortsett") +
+              `<div class="knapprad">${R.ui.knapp2("Nytt 4 × 4", "nytt", { v: 4 })}${R.ui.knapp2("Nytt 5 × 5", "nytt", { v: 5 })}</div>`
+            : R.ui.knapp("Start 4 × 4", "nytt", { v: 4 }) + R.ui.knapp2("5 × 5 · mer plass", "nytt", { v: 5 });
           return (
             R.ui.spillhjem({
               slagordHtml: "Sveip, slå sammen og doble.<br><em>Klarer du 2048?</em>",
-              knapperHtml: R.ui.startKnapper({
-                pagar: aktiv,
-                fortsettTekst: aktiv ? `Fortsett · ${sp.str} × ${sp.str} · ${R.tall(sp.poeng)} poeng` : "",
-                startTekst: `Start spill · ${S.oppsett.str} × ${S.oppsett.str}`,
-                ekstraHtml: R.ui.lenkerad(R.ui.lenke("Bytt nivå", "bytt"), R.ui.lenke("Slik spiller du", "regler")),
-              }),
+              knapperHtml: knapper + R.ui.lenke("Slik spiller du", "regler"),
               merker: [
                 ["2", "brett"],
-                ["↶", "angre siste trekk"],
+                ["Angre", "siste trekk"],
                 ["0", "reklame"],
               ],
             }) + (rek.length ? `<section class="db-rekorder" aria-label="Dine rekorder"><p class="etikett">Dine rekorder</p><ul>${rek.join("")}</ul></section>` : "")
           );
         },
-      },
-
-      oppsett: {
-        tittel: "Nytt spill",
-        tilbake: "hjem",
-        vis: (S) => `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
-          <section class="seksjon">
-            ${R.ui.fliser(
-              "str",
-              STORRELSER.map((n) => ({
-                v: n,
-                tittel: `${n} × ${n}`,
-                tekst: `${NAVN[n]}${S.rekorder[n] && S.rekorder[n].poeng ? ` · rekord ${R.tall(S.rekorder[n].poeng)}` : n === 4 ? " · originalen" : " · mer plass"}`,
-                ikon: `<span class="db-flisikon" style="--n:${n}" aria-hidden="true">${"<i></i>".repeat(n * n)}</span>`,
-              })),
-              S.oppsett.str,
-            )}
-            <p class="hjelp">Sveip for å flytte. Du kan angre det siste trekket.</p>
-          </section>
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor" }))}`,
       },
 
       spill: {
@@ -583,7 +567,7 @@
             <div class="db-spill">
               <div class="db-hud">
                 <span class="db-stat db-poengboks"><small>Poeng</small><b id="db-poeng">${R.tall(sp.poeng)}</b></span>
-                <span class="db-stat"><small>Beste</small><b id="db-beste">${R.tall(Math.max(beste(S, n), sp.poeng))}</b></span>
+                <span class="db-stat"><small>Rekord</small><b id="db-beste">${R.tall(Math.max(beste(S, n), sp.poeng))}</b></span>
                 <button class="db-verk" data-h="angre" aria-label="Angre siste trekk"${sp.forrige ? "" : " disabled"}>${IKON.angre}<span>Angre</span></button>
                 <button class="db-verk" data-h="ny" aria-label="Start på nytt">${IKON.ny}<span>Ny</span></button>
               </div>
@@ -591,9 +575,9 @@
                 <div class="db-brett" style="--n:${n}" role="group" aria-label="Brettet">
                   <div class="db-ruter" aria-hidden="true">${"<i></i>".repeat(n * n)}</div>
                   <div class="db-lag" aria-hidden="true"></div>
-                  <div class="db-melding" hidden role="dialog" aria-labelledby="db-melding-tittel"></div>
                 </div>
               </div>
+              <div class="db-melding" hidden role="dialog" aria-labelledby="db-melding-tittel"></div>
               ${R.ui.dokk(`
                 <p class="db-tastatur">Piltaster eller WASD flytter · U angrer</p>
                 <p class="db-tips">${sp.trekk < 3 ? "Sveip hvor som helst for å flytte brikkene" : "Hold den største brikken i et hjørne"}</p>
@@ -630,7 +614,8 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        // A solo result: the top bar says what was played ("Kåringen" is for ranked players).
+        tittel: (S) => (S.spill ? `${S.spill.str} × ${S.spill.str}` : "2048"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -655,10 +640,11 @@
             </div>
             <p class="hjelp">${esc(linje)}</p>
             ${miniBrett(sp)}
+            ${sp.forrige ? `<div class="db-angrerad">${R.ui.knapp2("Angre siste trekk", "angre-slutt", { variant: "liten" })}</div>` : ""}
             ${R.ui.flereSpill({ antall: 1 })}
             ${R.ui.dokk(
               R.ui.knapp("Spill igjen", "igjen"),
-              R.ui.lenkerad(sp.forrige && r.flis < MAL * 64 ? R.ui.lenke("Angre siste trekk", "angre-slutt") : "", R.ui.lenke("Endre oppsett", "bytt"), '<a class="lenke" href="/">Alle spill</a>'),
+              R.ui.lenkerad(R.ui.lenke(`Bytt til ${n === 4 ? 5 : 4} × ${n === 4 ? 5 : 4}`, "nytt", { v: n === 4 ? 5 : 4 }), '<a class="lenke" href="/">Alle spill</a>'),
             )}`;
         },
         inn(S) {
@@ -679,25 +665,15 @@
     },
 
     handlinger: (H = {
-      // «Start spill» / «Nytt spill»: a new game at once, on the last size played.
+      // «Start 4 × 4», «5 × 5», «Nytt …»: a new game at once on that board (asks first if one is running).
       async nytt(el, e, S) {
+        const str = STORRELSER.includes(Number(el.dataset.v)) ? Number(el.dataset.v) : 4;
         const fortsatt = R.vakt();
         if (!(await R.bekreftNytt(!!(S.spill && !S.spill.ferdig))) || !fortsatt()) return;
-        nyttSpill(S, S.oppsett.str);
+        nyttSpill(S, str);
         R.gaTil("spill");
       },
-      bytt: () => R.gaTil("oppsett"),
       fortsett: (el, e, S) => R.gaTil(S.spill && !S.spill.ferdig ? "spill" : "hjem"),
-      str(el, e, S) {
-        S.oppsett.str = STORRELSER.includes(Number(el.dataset.v)) ? Number(el.dataset.v) : 4;
-        R.vis();
-      },
-      async start(el, e, S) {
-        const fortsatt = R.vakt();
-        if (!(await R.bekreftNytt(!!(S.spill && !S.spill.ferdig))) || !fortsatt()) return;
-        nyttSpill(S, S.oppsett.str);
-        R.gaTil("spill");
-      },
       igjen(el, e, S) {
         nyttSpill(S, S.spill ? S.spill.str : S.oppsett.str);
         R.gaTil("spill");

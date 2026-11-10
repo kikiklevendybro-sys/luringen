@@ -234,6 +234,7 @@ html.sl-fast .skjerm {
 .sl-statuskort p:not(.etikett):not(.sl-stor) {
   color: var(--tekst-2);
   font-weight: 700;
+  text-wrap: balance;
 }
 
 .sl-stor {
@@ -355,8 +356,59 @@ html.sl-fast .skjerm {
   font-weight: 700;
 }
 
-.skjerm-oppsett .fliser .flis:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
+/* Three speeds: three compact tiles in one row. */
+.sl-tre .fliser {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sl-tre .flis {
+  align-items: center;
+  gap: 4px;
+  padding: 12px 6px;
+  text-align: center;
+}
+
+.sl-tre .flis b {
+  font-size: 1.05rem;
+}
+
+.sl-tre .flis span:last-child {
+  font-size: 0.8rem;
+  text-wrap: balance;
+}
+
+/* The final board in miniature on the result screen */
+.sl-mini {
+  align-self: center;
+  width: 150px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--aksent) 65%, var(--natt)), 0 10px 24px var(--skygge);
+  transform: rotate(-2deg);
+}
+
+.sl-mini-kant,
+.sl-mini-kropp {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sl-mini-kant {
+  stroke: #170e2b;
+  stroke-width: 1;
+}
+
+.sl-mini-kropp {
+  stroke: #6fe07a;
+  stroke-width: 0.72;
+}
+
+.sl-mini-hode {
+  fill: #6fe07a;
+  stroke: #170e2b;
+  stroke-width: 0.14;
 }
 
 .sl-resultat {
@@ -454,5 +506,45 @@ html.sl-fast .skjerm {
 @media (max-width: 359px) {
   .sl-kryss {
     grid-template-columns: repeat(3, minmax(0, 80px));
+  }
+}
+
+/* ---------- Landscape phones: the board to the left, score and arrows to the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="slangen"] .app:has(.sl-spill) {
+    max-width: 1000px;
+  }
+
+  .sl-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(230px, 300px);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 20px;
+    row-gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .sl-flate {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .sl-hud {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .sl-spill .dokk {
+    position: static;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+    margin: 0;
+    padding: 0 0 max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .sl-pil {
+    height: 60px;
   }
 }

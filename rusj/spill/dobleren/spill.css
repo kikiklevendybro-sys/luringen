@@ -32,6 +32,7 @@ html.db-fast .skjerm {
 }
 
 .db-spill {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -373,48 +374,39 @@ html.db-fast .skjerm {
   }
 }
 
-/* Messages on the board: 2048 reached, no more moves */
+/* Messages (2048 reached, no more moves): a card at the bottom, over the arrow buttons. The board
+   stays sharp and in view, and the 2048 tile pops and glows. */
 .db-melding {
   position: absolute;
-  inset: 0;
-  z-index: 5;
+  right: 0;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  z-index: 6;
   display: grid;
-  place-items: center;
-  padding: 14px;
-  border-radius: inherit;
-  background: rgba(15, 8, 32, 0.62);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-  animation: db-tone 0.3s ease-out both;
+  justify-items: center;
 }
 
 .db-melding[hidden] {
   display: none;
 }
 
-@keyframes db-tone {
-  from {
-    opacity: 0;
-  }
-}
-
 .db-meldingskort {
   display: grid;
   justify-items: center;
-  gap: 8px;
-  width: min(100%, 300px);
-  padding: 20px 18px 16px;
+  gap: 6px;
+  width: 100%;
+  padding: 16px 16px 16px;
   border-radius: var(--r-stor);
   background: var(--natt-2);
-  box-shadow: inset 0 0 0 2px var(--strek), 0 18px 40px var(--skygge);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 -6px 30px 8px var(--natt), 0 18px 40px var(--skygge);
   text-align: center;
-  animation: db-kort 0.45s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  animation: db-kort 0.4s cubic-bezier(0.3, 1.4, 0.5, 1) both;
 }
 
 @keyframes db-kort {
   from {
     opacity: 0;
-    transform: scale(0.7) rotate(-4deg);
+    transform: translateY(40px);
   }
 }
 
@@ -422,18 +414,47 @@ html.db-fast .skjerm {
   font-size: 1.6rem;
 }
 
-.db-meldingskort p:not(.etikett) {
+.db-meldingskort p {
   color: var(--tekst-2);
+  text-wrap: balance;
+}
+
+.db-meldingskort.vant {
+  box-shadow: inset 0 0 0 2.5px var(--lampe), 0 -6px 30px 8px var(--natt), 0 18px 40px var(--skygge);
 }
 
 .db-meldingskort.vant h2 {
   color: var(--lampe);
-  font-size: 3rem;
-  text-shadow: 0 5px 0 var(--lampe-dyp);
+  font-size: 2.6rem;
+  line-height: 1;
+  text-shadow: 0 4px 0 var(--lampe-dyp);
 }
 
-.db-meldingskort .knapp {
+.db-meldingskort .knapprad {
+  width: 100%;
   margin-top: 6px;
+}
+
+.db-meldingskort .knapprad .knapp-2 {
+  min-height: 64px;
+}
+
+/* The tile that made it */
+.db-flis.feiret {
+  z-index: 4;
+}
+
+.db-flis.feiret .db-indre {
+  animation: db-feiret 0.9s cubic-bezier(0.3, 1.5, 0.5, 1) 3;
+}
+
+@keyframes db-feiret {
+  40% {
+    box-shadow:
+      inset 0 calc(var(--c) * -0.07) 0 rgba(140, 80, 0, 0.35),
+      0 0 40px 14px rgba(255, 210, 63, 0.9);
+    transform: scale(1.22) rotate(-4deg);
+  }
 }
 
 /* ---------- Arrow buttons (for everyone who'd rather tap than swipe) ---------- */
@@ -532,36 +553,6 @@ html.db-fast .skjerm {
 .db-rekorder li small {
   color: var(--tekst-3);
   font-weight: 700;
-}
-
-.db-flisikon {
-  --s: calc(36px / var(--n));
-  display: grid;
-  grid-template-columns: repeat(var(--n), var(--s));
-  grid-auto-rows: var(--s);
-  gap: 2px;
-  place-content: center;
-  width: 54px;
-  height: 54px;
-  border-radius: 9px;
-  background: #0f0820;
-}
-
-.db-flisikon i {
-  border-radius: 2px;
-  background: var(--natt-3);
-}
-
-.db-flisikon i:nth-child(3n + 1) {
-  background: #ffb26b;
-}
-
-.db-flisikon i:nth-child(5n + 2) {
-  background: #ff4f8b;
-}
-
-.db-flisikon i:nth-child(7n) {
-  background: var(--papir);
 }
 
 /* ---------- Result ---------- */
@@ -726,5 +717,70 @@ html.db-fast .skjerm {
 
   .db-tall b {
     font-size: 1.8rem;
+  }
+}
+
+/* «Angre siste trekk» under the final board */
+.db-angrerad {
+  display: grid;
+  justify-items: center;
+}
+
+/* ---------- Landscape phones: the board to the left, score, undo and arrows to the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="dobleren"] .app:has(.db-spill) {
+    max-width: 1000px;
+  }
+
+  .db-spill {
+    --venstre: min(calc(100dvh - 72px), 52vw);
+    display: grid;
+    grid-template-columns: var(--venstre) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 20px;
+    row-gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .db-flate {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .db-hud {
+    grid-column: 2;
+    grid-row: 1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .db-verk {
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+  }
+
+  .db-verk span {
+    display: inline;
+  }
+
+  .db-spill .dokk {
+    position: static;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+    margin: 0;
+    padding: 0 0 max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .db-tips {
+    display: block;
+  }
+
+  /* The message card covers the right column only. */
+  .db-melding {
+    left: calc(var(--venstre) + 20px);
   }
 }

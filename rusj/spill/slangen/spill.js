@@ -12,18 +12,20 @@
 
   const B = 15; // columns
   const H_ = 17; // rows
-  const FARTER = {
-    rolig: { navn: "Rolig", ms: 165, ikon: "🐢", tekst: "God tid til å svinge" },
-    normal: { navn: "Normal", ms: 120, ikon: "🐍", tekst: "Den klassiske farten" },
-    rask: { navn: "Rask", ms: 82, ikon: "⚡", tekst: "For kjappe fingrer" },
-  };
+  // Tables without a prototype, so a saved or typed value like "__proto__" is simply not an option.
+  const tabell = (o) => Object.assign(Object.create(null), o);
+  const FARTER = tabell({
+    rolig: { navn: "Rolig", ms: 165, ikon: "🐢", tekst: "God tid" },
+    normal: { navn: "Normal", ms: 120, ikon: "🐍", tekst: "Klassisk" },
+    rask: { navn: "Rask", ms: 82, ikon: "⚡", tekst: "Kjappe fingrer" },
+  });
   const FART_ID = ["rolig", "normal", "rask"];
-  const RETNING = { opp: [0, -1], ned: [0, 1], venstre: [-1, 0], hoyre: [1, 0] };
-  const MOTSATT = { opp: "ned", ned: "opp", venstre: "hoyre", hoyre: "venstre" };
+  const RETNING = tabell({ opp: [0, -1], ned: [0, 1], venstre: [-1, 0], hoyre: [1, 0] });
+  const MOTSATT = tabell({ opp: "ned", ned: "opp", venstre: "hoyre", hoyre: "venstre" });
+  // Warm colours only: they stand out on the purple field (a purple plum did not).
   const FRUKT = [
     { farge: "#ff5a4e", blad: "#3de3b0" },
     { farge: "#ff8a3d", blad: "#3de3b0" },
-    { farge: "#c9a2ff", blad: "#9be15d" },
     { farge: "#ffd23f", blad: "#3de3b0" },
     { farge: "#ff4f8b", blad: "#9be15d" },
   ];
@@ -57,15 +59,15 @@
       ferdig: false,
       resultat: null,
     };
-    nyMat(sp);
+    nyMat(sp, true);
     S.spill = sp;
     R.statistikk("start", { fart: sp.fart, vegger: sp.vegger });
   }
 
-  function nyMat(sp) {
+  function nyMat(sp, forste) {
     const opptatt = new Set(sp.kropp.map(([x, y]) => x + "," + y));
     const ledige = [];
-    for (let y = 0; y < H_; y++) for (let x = 0; x < B; x++) if (!opptatt.has(x + "," + y)) ledige.push([x, y]);
+    for (let y = 0; y < (forste ? 7 : H_); y++) for (let x = 0; x < B; x++) if (!opptatt.has(x + "," + y)) ledige.push([x, y]);
     if (!ledige.length) {
       sp.mat = null;
       return false;
@@ -95,11 +97,17 @@
     if (!sp.vegger) {
       x = (x + B) % B;
       y = (y + H_) % H_;
-    } else if (x < 0 || x >= B || y < 0 || y >= H_) return "krasj";
+    } else if (x < 0 || x >= B || y < 0 || y >= H_) {
+      sp.krasj = [x, y];
+      return "krasj";
+    }
     const spiser = sp.mat && sp.mat.x === x && sp.mat.y === y;
     // The tail moves away this step, so its cell is free – unless the snake grows.
     const kropp = spiser ? sp.kropp : sp.kropp.slice(0, -1);
-    if (kropp.some(([kx, ky]) => kx === x && ky === y)) return "krasj";
+    if (kropp.some(([kx, ky]) => kx === x && ky === y)) {
+      sp.krasj = [x, y];
+      return "krasj";
+    }
     sp.kropp.unshift([x, y]);
     if (spiser) {
       sp.poeng += 1;
@@ -422,13 +430,17 @@
         ctx.arc(p.x + p.vx * a * 40, p.y + p.vy * a * 40, p.r * (1 - a * 0.6), 0, Math.PI * 2);
         ctx.fill();
       }
-      this.tekster = this.tekster.filter((p) => na - p.start < 700);
+      this.tekster = this.tekster.filter((p) => na - p.start < 900);
       for (const p of this.tekster) {
-        const a = (na - p.start) / 700;
-        ctx.globalAlpha = 1 - a;
-        ctx.fillStyle = "#fff1dd";
-        ctx.font = `900 ${Math.round(this.c * 0.8)}px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", system-ui, sans-serif`;
+        const a = (na - p.start) / 900;
+        ctx.globalAlpha = a < 0.75 ? 1 : (1 - a) / 0.25;
+        ctx.font = `900 ${Math.round(this.c * 0.95)}px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", system-ui, sans-serif`;
         ctx.textAlign = "center";
+        ctx.lineJoin = "round";
+        ctx.lineWidth = Math.max(2.5, this.c * 0.15);
+        ctx.strokeStyle = "#170e2b";
+        ctx.strokeText(p.tekst, p.x, p.y - a * this.c * 1.4);
+        ctx.fillStyle = "#6fe07a";
         ctx.fillText(p.tekst, p.x, p.y - a * this.c * 1.4);
       }
       ctx.globalAlpha = 1;
@@ -580,7 +592,7 @@
     el.innerHTML =
       sp.status === "klar"
         ? `<div class="sl-statuskort klar"><p class="sl-stor">Klar?</p><p>Sveip eller trykk på en pil for å starte.</p>${sp.vegger ? "" : "<p class=\"sl-fri\">Uten vegger: Ut på én side, inn på den andre.</p>"}</div>`
-        : `<div class="sl-statuskort"><p class="etikett">Pause</p><p class="sl-stor">Slangen venter</p>${R.ui.knapp("Fortsett", "fortsett-spill", { ikon: "▶" })}${R.ui.lenke("Start på nytt", "ny")}</div>`;
+        : `<div class="sl-statuskort"><p class="etikett">Pause</p><p class="sl-stor">Slangen venter</p>${R.ui.knapp("Fortsett", "fortsett-spill")}${R.ui.lenke("Start på nytt", "ny")}</div>`;
   }
 
   function bindKontroll(S, rot) {
@@ -644,7 +656,7 @@
     });
   }
 
-  const TASTER = { ArrowUp: "opp", ArrowDown: "ned", ArrowLeft: "venstre", ArrowRight: "hoyre", w: "opp", s: "ned", a: "venstre", d: "hoyre" };
+  const TASTER = tabell({ ArrowUp: "opp", ArrowDown: "ned", ArrowLeft: "venstre", ArrowRight: "hoyre", w: "opp", s: "ned", a: "venstre", d: "hoyre" });
   document.addEventListener("keydown", (e) => {
     const S = R.S;
     if (!S || !S.spill || R.arkApent() || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -686,6 +698,43 @@
   };
   const PILNAVN = { opp: "Opp", ned: "Ned", venstre: "Til venstre", hoyre: "Til høyre" };
   const PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="pa" d="M7 5h3v14H7zM14 5h3v14h-3z"/><path class="av" d="M8 4.5v15l12-7.5z"/></svg>';
+
+  // The board as it ended, in miniature: the snake, the fruit it never got, and a ✕ where it crashed.
+  function miniBrett(sp) {
+    if (!Array.isArray(sp.kropp) || !sp.kropp.length) return "";
+    const pts = [];
+    let cur = [sp.kropp[0][0], sp.kropp[0][1]];
+    pts.push(cur);
+    for (let i = 1; i < sp.kropp.length; i++) {
+      const d = steg1(sp.kropp[i - 1], sp.kropp[i]);
+      cur = [cur[0] + d[0], cur[1] + d[1]];
+      pts.push(cur);
+    }
+    const linje = pts.map(([x, y], i) => `${i ? "L" : "M"}${x + 0.5} ${y + 0.5}`).join("") + (pts.length === 1 ? "h0.01" : "");
+    // Without walls the line may run past an edge: shifted copies bring it in on the other side.
+    const xs = pts.map((p) => p[0]);
+    const ys = pts.map((p) => p[1]);
+    const forskyv = [];
+    for (const ox of [0, Math.min(...xs) < 0 ? B : 0, Math.max(...xs) > B - 1 ? -B : 0])
+      for (const oy of [0, Math.min(...ys) < 0 ? H_ : 0, Math.max(...ys) > H_ - 1 ? -H_ : 0]) if (!forskyv.some(([a, b]) => a === ox && b === oy)) forskyv.push([ox, oy]);
+    const slange = forskyv
+      .map(([ox, oy]) => `<g transform="translate(${ox} ${oy})"><path class="sl-mini-kant" d="${linje}"/><path class="sl-mini-kropp" d="${linje}"/><circle class="sl-mini-hode" cx="${pts[0][0] + 0.5}" cy="${pts[0][1] + 0.5}" r="0.46"/></g>`)
+      .join("");
+    const f = sp.mat ? FRUKT[sp.mat.t] || FRUKT[0] : null;
+    const mat = f ? `<circle cx="${sp.mat.x + 0.5}" cy="${sp.mat.y + 0.5}" r="0.36" fill="${f.farge}" stroke="#170e2b" stroke-width="0.12"/>` : "";
+    let kryss = "";
+    if (Array.isArray(sp.krasj) && !sp.fylt) {
+      // A crash into a wall is marked on the edge it hit.
+      const kx = R.klamp(sp.krasj[0] + 0.5, 0.45, B - 0.45);
+      const ky = R.klamp(sp.krasj[1] + 0.5, 0.45, H_ - 0.45);
+      const d = `M${kx - 0.42} ${ky - 0.42}l0.84 0.84M${kx + 0.42} ${ky - 0.42}l-0.84 0.84`;
+      kryss = `<path d="${d}" stroke="#170e2b" stroke-width="0.5" stroke-linecap="round"/><path d="${d}" stroke="#ff5a4e" stroke-width="0.28" stroke-linecap="round"/>`;
+    }
+    return `<svg class="sl-mini" viewBox="0 0 ${B} ${H_}" role="img" aria-label="Brettet da spillet var slutt">
+      <defs><pattern id="sl-ruter" width="2" height="2" patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="#21143d"/><rect width="1" height="1" fill="#261848"/><rect x="1" y="1" width="1" height="1" fill="#261848"/></pattern></defs>
+      <rect width="${B}" height="${H_}" fill="url(#sl-ruter)"/>${mat}${slange}${kryss}
+    </svg>`;
+  }
 
   const oppsettTekst = (sp) => `${FARTER[sp.fart].navn} · ${sp.vegger ? "med vegger" : "uten vegger"}`;
 
@@ -766,7 +815,7 @@
               }),
               merker: [
                 ["3", "hastigheter"],
-                ["Med", "eller uten vegger"],
+                ["Vegger", "av/på"],
                 ["0", "reklame"],
               ],
             }) + (rek.length ? `<section class="sl-rekorder" aria-label="Dine rekorder"><p class="etikett">Dine rekorder</p><ul>${rek.join("")}</ul></section>` : "")
@@ -783,14 +832,14 @@
             <h1 id="skjerm-tittel">Gjør klart</h1>
             <section class="seksjon">
               <div class="seksjon-hode"><h2>Hvor fort?</h2></div>
-              ${R.ui.fliser(
+              <div class="sl-tre">${R.ui.fliser(
                 "fart",
                 FART_ID.map((f) => {
                   const p = S.rekorder[`${f}-${vegger ? "vegg" : "fri"}`];
                   return { v: f, tittel: FARTER[f].navn, tekst: p ? `Rekord ${p}` : FARTER[f].tekst, ikon: FARTER[f].ikon };
                 }),
                 S.oppsett.fart,
-              )}
+              )}</div>
             </section>
             <section class="seksjon">
               ${R.ui.bryter("vegger", vegger, "Vegger rundt brettet", vegger ? "Treffer slangen kanten, er det slutt." : "Slangen kommer ut på den andre siden.")}
@@ -848,7 +897,8 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        // A solo result: the top bar says what was played ("Kåringen" is for ranked players).
+        tittel: (S) => (S.spill && FARTER[S.spill.fart] ? FARTER[S.spill.fart].navn : "Snake"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -873,6 +923,7 @@
               <div class="sl-tall"><b>${r.lengde}</b><span>ledd lang</span></div>
             </div>
             <p class="hjelp">${esc(linje)}</p>
+            ${miniBrett(sp)}
             ${R.ui.flereSpill({ antall: 1 })}
             ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "bytt"), '<a class="lenke" href="/">Alle spill</a>'))}`;
         },

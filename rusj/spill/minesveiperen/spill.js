@@ -11,11 +11,12 @@
   const R = window.Rusj;
   const esc = R.esc;
 
-  const NIVAER = {
+  // Without a prototype, so a saved or typed value like "__proto__" is simply not a level.
+  const NIVAER = Object.assign(Object.create(null), {
     lett: { navn: "Lett", b: 9, h: 9, miner: 10 },
     middels: { navn: "Middels", b: 16, h: 16, miner: 40 },
     ekspert: { navn: "Ekspert", b: 16, h: 30, miner: 99 },
-  };
+  });
   const NIVA_ID = ["lett", "middels", "ekspert"];
   // Cell sizes for the zoom buttons (0 = the whole board on the screen).
   const ZOOM = [0, 30, 36, 44];
@@ -184,6 +185,10 @@
     const fjes = R.$(".ms-fjes");
     if (fjes) {
       fjes.classList.toggle("tapt", sp.ferdig && !sp.vunnet);
+      if (sp.ferdig && sp.vunnet && !fjes.classList.contains("vant")) {
+        const ramme = fjes.querySelector(".figur-ramme");
+        if (ramme) ramme.outerHTML = gladFigur();
+      }
       fjes.classList.toggle("vant", sp.ferdig && sp.vunnet);
     }
   }
@@ -226,7 +231,9 @@
     if (minus) minus.disabled = z <= 0;
     if (pluss) pluss.disabled = z >= ZOOM.length - 1;
     // A board bigger than the screen: say that it can be dragged.
-    rulle.classList.toggle("stor", rulle.scrollWidth > rulle.clientWidth + 1 || rulle.scrollHeight > rulle.clientHeight + 1);
+    const stor = rulle.scrollWidth > rulle.clientWidth + 1 || rulle.scrollHeight > rulle.clientHeight + 1;
+    rulle.classList.toggle("stor", stor);
+    if (rulle.parentElement) rulle.parentElement.classList.toggle("stor", stor);
     visTips(S);
     kanter();
   }
@@ -348,7 +355,11 @@
     sp.vunnet = false;
     sp.smell = i;
     const trygge = antallCeller(sp) - sp.miner;
-    sp.resultat = { sek: Math.round(sp.tid / 1000), andel: Math.floor((apneTrygge(sp) / trygge) * 100) };
+    sp.resultat = {
+      sek: Math.round(sp.tid / 1000),
+      andel: Math.floor((apneTrygge(sp) / trygge) * 100),
+      funnet: sp.flagg.reduce((s, f, k) => s + (f && sp.mine[k] ? 1 : 0), 0), // mines flagged correctly
+    };
     S.stat[sp.niva] = S.stat[sp.niva] || { spilt: 0, vunnet: 0 };
     S.stat[sp.niva].spilt += 1;
     R.statistikk("ferdig", { niva: sp.niva, vunnet: false, sek: sp.resultat.sek });
@@ -608,8 +619,8 @@
     const rek = S.rekorder[sp.niva];
     return `<div class="ms-hud">
       <span class="ms-stat"><small>Miner</small><b><span class="ms-bombe" aria-hidden="true"></span><span id="ms-igjen">${sp.miner - flaggTotalt(sp)}</span></b></span>
-      <button class="ms-fjes" data-h="ny" aria-label="Nytt brett">${R.figur()}</button>
-      <span class="ms-stat"><small>Tid${rek ? ` · 🏆 ${visTid(rek.tid * 1000)}` : ""}</small><b id="ms-tid">${visTid(tidMs(sp))}</b></span>
+      <button class="ms-fjes" data-h="ny" aria-label="Nytt brett">${R.figur()}<i class="ms-omstart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></i></button>
+      <span class="ms-stat"><small>Tid${rek ? ` · rekord ${visTid(rek.tid * 1000)}` : ""}</small><b id="ms-tid">${visTid(tidMs(sp))}</b></span>
     </div>`;
   }
 
@@ -645,6 +656,17 @@
     return `<div class="ms-mini" style="--kol:${sp.b}; --c:${c}px" aria-hidden="true">${html}</div>`;
   }
 
+  // The mascot after a win: a relieved smile, calm brows, no sweat drop, the flag waving. It is
+  // made from the mascot's own drawing; if that drawing changes, the usual face is shown.
+  function gladFigur() {
+    const svg = window.RusjGjengen.svg("minesveiperen")
+      .replace('d="M46 92 Q52 87 58 92 Q64 97 70 92 Q73 89 76 91"', 'd="M43 86 Q60 104 77 86"')
+      .replace('d="M28 46 Q38 40 50 38M92 46 Q82 40 70 38"', 'd="M28 43 Q39 35 50 40M92 43 Q81 35 70 40"')
+      .replace(/<path d="M98 38 q8 10 0 15 q-8 -5 0 -15z"[^>]*>/, "")
+      .replace('<path d="M62 -7 L88 1 L62 10Z"', '<path class="ms-vaie" d="M62 -7 L88 1 L62 10Z"');
+    return `<span class="figur-ramme ms-glad">${svg}</span>`;
+  }
+
   // A tiny board for the level tiles: bigger boards get more and smaller cells.
   function flisIkon(niva) {
     const [k, r, s] = { lett: [4, 4, 9], middels: [6, 6, 6], ekspert: [5, 9, 4] }[niva];
@@ -668,7 +690,7 @@
       oppsett: { niva: "lett" },
       rekorder: {},
       stat: {},
-      zoom: { middels: 0, ekspert: 1 },
+      zoom: { middels: 1, ekspert: 1 },
       flaggmodus: false,
       spill: null,
     }),
@@ -677,7 +699,7 @@
       if (!S.oppsett || !NIVAER[S.oppsett.niva]) S.oppsett = { niva: "lett" };
       if (!S.rekorder || typeof S.rekorder !== "object") S.rekorder = {};
       if (!S.stat || typeof S.stat !== "object") S.stat = {};
-      if (!S.zoom || typeof S.zoom !== "object") S.zoom = { middels: 0, ekspert: 1 };
+      if (!S.zoom || typeof S.zoom !== "object") S.zoom = { middels: 1, ekspert: 1 };
       S.flaggmodus = !!S.flaggmodus;
       const sp = S.spill;
       if (sp) {
@@ -726,6 +748,7 @@
           const rek = NIVA_ID.filter((n) => S.rekorder[n]).map((n) => `<li><b>${esc(NIVAER[n].navn)}</b> ${visTid(S.rekorder[n].tid * 1000)}</li>`);
           return (
             R.ui.spillhjem({
+              undertittel: "Logikk",
               slagordHtml: "Finn de trygge rutene.<br><em>Ikke trå på en mine!</em>",
               knapperHtml: R.ui.startKnapper({
                 pagar: aktiv,
@@ -842,7 +865,8 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        // A solo result: the top bar says what was played ("Kåringen" is for ranked players).
+        tittel: (S) => (S.spill && NIVAER[S.spill.niva] ? `${NIVAER[S.spill.niva].navn} · ${S.spill.b} × ${S.spill.h}` : "Minesveiper"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -860,13 +884,13 @@
                 : `Første seier på ${N.navn.toLowerCase()} – nå har du en rekord å slå!`;
             return `
               <div class="banner aksent">
-                ${R.figur()}
+                ${gladFigur()}
                 <p class="etikett">${esc(N.navn)} · ${N.b} × ${N.h} · ${N.miner} miner</p>
                 <h1 id="skjerm-tittel">${r.nyRekord ? "Ny rekord!" : "Godt jobba!"}</h1>
               </div>
               <div class="ms-resultat">
                 <div class="ms-tall${r.nyRekord ? " ny" : ""}"><b>${visTid(r.sek * 1000)}</b><span>tid</span>${r.nyRekord ? '<i class="ms-ny">Rekord!</i>' : ""}</div>
-                <div class="ms-tall"><b>${N.miner}</b><span>miner funnet</span></div>
+                <div class="ms-tall"><b>${visTid((r.gml ? Math.min(r.gml, r.sek) : r.sek) * 1000)}</b><span>rekord</span></div>
               </div>
               <p class="hjelp">${esc(linje)}</p>
               ${miniBrett(sp)}
@@ -880,9 +904,9 @@
             </div>
             <div class="ms-resultat">
               <div class="ms-tall"><b>${r.andel} %</b><span>ryddet</span></div>
-              <div class="ms-tall"><b>${visTid(r.sek * 1000)}</b><span>tid</span></div>
+              <div class="ms-tall"><b>${r.funnet || 0} av ${N.miner}</b><span>miner funnet</span></div>
             </div>
-            <p class="hjelp">${r.andel >= 80 ? "Det var nære på! Én mine skilte deg fra seieren." : "Minene gjemmer seg godt. Første trykk er alltid trygt – prøv igjen!"}</p>
+            <p class="hjelp">${r.andel >= 80 ? "Det var nære på! Én mine skilte deg fra seieren." : "Minene gjemmer seg godt. Neste brett kan bli ditt!"}</p>
             ${miniBrett(sp)}
             ${dokk}`;
         },
