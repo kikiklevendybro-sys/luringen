@@ -1,11 +1,15 @@
 /* Ordugla — «Dagens ord»: guess the day's five-letter Norwegian word in six tries.
-   Green = right letter in the right place, yellow = in the word but somewhere else, grey = not in
-   the word (orange/blue in the colour-blind palette). Everyone in Norway gets the same word each
-   day (R.dag), and practice mode gives a new word whenever you like. Statistics, the streak and the
-   game in progress stay on this phone.
+   rusj's own tile language (shape + colour, so it works without colour vision):
+     right letter, right place  → a solid mint tile
+     in the word, another place → a dark tile with a thick yellow ring
+     not in the word            → a flat, dim tile
+   The keyboard keys follow the same language. Everyone in Norway gets the same word each day
+   (R.dag), and practice mode gives a new word whenever you like. Statistics, the streak and the
+   game in progress stay on this phone. Results are shared as owls and moons (never the word).
    While playing, the board is updated in place (no R.vis per key press), so fast typing is never
    swallowed by the kit's ghost-tap guard, and the reveal animation runs undisturbed. Every key on
-   the on-screen keyboard is the same action ("tast"). */
+   the on-screen keyboard is the same action ("tast"). Feedback goes in the helper line under the
+   board, not in toasts. */
 (function () {
   "use strict";
 
@@ -18,6 +22,7 @@
   const REKKE = D.svar.dagens;
   const SVAR = REKKE; // every daily word is also a practice word
   const LOV = new Set(SVAR.concat(D.gyldige.ord.split(" "))); // every word you may guess
+  const BETYDNING = (D.betydning && D.betydning.ord) || {}; // word → a one-line meaning (optional)
   const L = 5; // letters
   const MAKS = 6; // tries
   const FORSTE_DAG = R.dag(new Date(Date.UTC(2026, 10, 9, 12))).nr; // the day of «Ordugla nr. 1»
@@ -25,17 +30,20 @@
   const ovStokk = R.kortstokk("ov", SVAR.length);
   const RADER = ["qwertyuiopå", "asdfghjkløæ", "zxcvbnm"];
   const BOKSTAV = /^[a-zæøå]$/;
-  const NAVN = { rett: "riktig plass", med: "med, men et annet sted", ikke: "ikke med" };
-  const RUTER = { rett: "🟩", med: "🟨", ikke: "⬛" };
-  const RUTER_K = { rett: "🟧", med: "🟦", ikke: "⬛" };
+  const NAVN = { rett: "riktig plass", med: "finnes et annet sted", ikke: "finnes ikke" };
+  // The share format: an owl found the letter, a moon means it is out there somewhere, a new moon is nothing.
+  const DELETEGN = { rett: "🦉", med: "🌙", ikke: "🌑" };
+  const DEL_URL = "https://rusj.no/ordugla/";
   const ROS = ["Genialt!", "Fantastisk!", "Kjempebra!", "Godt jobba!", "Bra!", "Puh, det holdt!"];
   const SLETT_IKON =
     '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8.5 5H20a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 20 19H8.5L2.5 12z"/><path d="M11.5 9.5l5 5M16.5 9.5l-5 5"/></svg>';
 
   let H; // the actions
   let avslorer = false; // the reveal animation is running: keys wait
+  let feirer = null; // the line shown under the board while a finished game celebrates (before the result)
   let nyFeiring = false; // celebrate once on the result screen right after a game
   let tikker = null; // countdown to tomorrow's word
+  let meldingId = null; // timer of a short message in the helper line
 
   // ---------- Words and days ----------
 
@@ -48,7 +56,8 @@
   };
   const stor = (o) => String(o).toLocaleUpperCase("nb");
 
-  // Wordle rules for repeated letters: greens first, then yellows while the answer has that letter left.
+  // Repeated letters: exact matches are marked first; a letter in another place is only marked
+  // while the answer still has that letter left.
   function vurder(gjett, svar) {
     const g = bokstaver(gjett);
     const s = bokstaver(svar);
@@ -149,7 +158,8 @@
     else if (igjen > 3600 && R.dag(new Date(na + (igjen - 3600) * 1000)).nr !== dag) igjen -= 3600;
     return Math.max(1, igjen);
   }
-  const klokke = (s) => `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  const to = (n) => String(n).padStart(2, "0");
+  const klokke = (s) => `${to(Math.floor(s / 3600))}:${to(Math.floor((s % 3600) / 60))}:${to(s % 60)}`; // HH:MM:SS
   const nedtellingHtml = () => `<p class="ou-nedtelling">Nytt ord om <b>${klokke(sekunderTilNyttOrd())}</b></p>`;
 
   function startNedtelling() {
@@ -187,21 +197,29 @@
     return `<div class="ou-rad${na ? " na" : ""}" data-rad="${r}"${na ? ` aria-label="Forsøk ${r + 1}"` : ' aria-hidden="true"'}>${Array.from({ length: L }, (_, i) => rutenHtml(b[i], b[i] ? "full" : "")).join("")}</div>`;
   }
 
-  function tastaturHtml(S) {
+  function tastaturHtml(S, av) {
     const sp = aktiv(S);
     const st = tastStatus(sp);
     const klar = sp && bokstaver(sp.rad).length === L;
     const tast = (b) =>
       `<button class="ou-tast${st[b] ? " " + st[b] : ""}" data-h="tast" data-v="${b}" data-stille aria-label="${esc(stor(b) + (st[b] ? ", " + NAVN[st[b]] : ""))}">${esc(b)}</button>`;
-    return `<div class="ou-tastatur" role="group" aria-label="Tastatur">
+    return `<div class="ou-tastatur${av ? " av" : ""}" role="group" aria-label="Tastatur"${av ? " inert" : ""}>
       <div class="ou-tastrad">${bokstaver(RADER[0]).map(tast).join("")}</div>
       <div class="ou-tastrad">${bokstaver(RADER[1]).map(tast).join("")}</div>
       <div class="ou-tastrad"><button class="ou-tast bred gjett${klar ? " klar" : ""}" data-h="tast" data-v="gjett" data-stille>Gjett</button>${bokstaver(RADER[2]).map(tast).join("")}<button class="ou-tast bred" data-h="tast" data-v="slett" data-stille aria-label="Slett">${SLETT_IKON}</button></div>
     </div>`;
   }
 
+  // The key to the tiles: three tiny tiles in the same language as the board.
   const forklaringHtml = () =>
-    `<span><i class="rett"></i>Riktig plass</span><span><i class="med"></i>Med, feil plass</span><span><i class="ikke"></i>Ikke med</span>`;
+    `<span class="ou-forklaring" aria-hidden="true"><span><i class="rett"></i>Riktig plass</span><span><i class="med"></i>Annet sted</span><span><i class="ikke"></i>Finnes ikke</span></span>`;
+
+  // The helper line under the board: how to start, then the key to the tiles.
+  function hjelpInnhold(S) {
+    const sp = aktiv(S);
+    return sp.gjett.length ? forklaringHtml() : `<span>Skriv et ord på fem bokstaver og trykk <b>Gjett</b>.</span>`;
+  }
+  const varselHtml = (tekst) => `<span class="ou-varsel">${esc(tekst)}</span>`;
 
   // The guesses in small tiles, with letters (the result screen).
   function miniHtml(sp) {
@@ -217,17 +235,27 @@
 
   const ordetHtml = (ord) => `<div class="ou-ordet" role="img" aria-label="${esc(stor(ord))}">${bokstaver(ord).map((b) => rutenHtml(b, "rett")).join("")}</div>`;
 
-  function statistikkHtml(S, uthev) {
+  // «Saldo: det som står igjen på en konto» – so an unknown answer is never just five letters.
+  function betydningHtml(ord) {
+    const b = BETYDNING[ord];
+    return b ? `<p class="ou-betydning"><b>${esc(stor(ord.charAt(0)) + ord.slice(1))}:</b> ${esc(b)}</p>` : "";
+  }
+
+  function tallHtml(S) {
     const st = S.stat;
     const prosent = st.spilt ? Math.round((st.vunnet / st.spilt) * 100) : 0;
-    const maks = Math.max(1, ...st.fordeling);
     return `<div class="ou-tall">
         <div><b>${R.tall(st.spilt)}</b><span>spilt</span></div>
         <div><b>${prosent} %</b><span>vunnet</span></div>
         <div><b>${R.tall(rekkeNa(S))}</b><span>på rad</span></div>
         <div><b>${R.tall(st.best)}</b><span>beste rekke</span></div>
-      </div>
-      <h3 class="ou-h3">Antall forsøk</h3>
+      </div>`;
+  }
+
+  function fordelingHtml(S, uthev) {
+    const st = S.stat;
+    const maks = Math.max(1, ...st.fordeling);
+    return `<h3 class="ou-h3">Antall forsøk</h3>
       <ol class="ou-fordeling">${st.fordeling
         .map(
           (n, i) =>
@@ -238,27 +266,28 @@
 
   function statistikkArk(S) {
     const ov = S.ovStat;
+    const d = S.dag && S.dag.nr === iDag() && S.dag.vunnet ? S.dag.gjett.length : 0; // today's bar stands out
     return `
       <h2 id="ark-tittel">Statistikk</h2>
-      ${S.stat.spilt ? statistikkHtml(S) : `<p class="ingress">Du har ikke spilt dagens ord ennå. Gjør det, så dukker statistikken opp her.</p>`}
+      ${S.stat.spilt ? tallHtml(S) + fordelingHtml(S, d) : `<p class="ingress">Du har ikke spilt dagens ord ennå. Gjør det, så dukker statistikken opp her.</p>`}
       ${ov.spilt ? `<p class="hjelp">Øving: ${esc(R.flertall(ov.spilt, "ord", "ord"))}, ${esc(R.flertall(ov.vunnet, "riktig", "riktige"))}.</p>` : ""}
       <button class="knapp" data-h="lukk-ark">Lukk</button>`;
   }
 
-  const fargeTekst = (kontrast) =>
-    kontrast
-      ? "Oransje: riktig bokstav på riktig plass. Blå: bokstaven er med, men et annet sted. Mørk: bokstaven er ikke med."
-      : "Grønn: riktig bokstav på riktig plass. Gul: bokstaven er med, men et annet sted. Mørk: bokstaven er ikke med.";
   const FLERE = { antall: 1 }; // the kit titles it «Flere spill du kan spille alene»
 
-  // An example row for the rules: one letter coloured, the rest plain.
+  // An example row for the rules: one letter marked, the rest plain.
   function eksempelHtml(ord, pos, klasse, tekst) {
     return `<div class="ou-eksempel"><div class="ou-rad" aria-hidden="true">${bokstaver(ord)
       .map((b, i) => rutenHtml(b, i === pos ? klasse : "full"))
       .join("")}</div><p>${tekst}</p></div>`;
   }
 
-  // ---------- Board size: six rows always fit above the keyboard ----------
+  // ---------- Board size: six rows always fit ----------
+  // Upright: above the helper line and the keyboard. Lying down (a phone in landscape): the board
+  // has the left half and the full height, the keyboard sits to the right (see spill.css).
+
+  const liggende = () => !!(window.matchMedia && window.matchMedia("(orientation: landscape) and (max-height: 500px)").matches);
 
   function tilpass() {
     const brett = R.$(".ou-brett");
@@ -270,10 +299,11 @@
     const dokk = R.$("#skjerm .dokk");
     const hjelp = R.$(".ou-hjelp");
     const topp = bord.getBoundingClientRect().top + window.scrollY;
-    const under = (dokk ? dokk.offsetHeight : 0) + (hjelp ? hjelp.offsetHeight + mellom : 0) + mellom;
+    const ved = liggende() && dokk && dokk.getBoundingClientRect().left > bord.getBoundingClientRect().left + 40; // side by side
+    const under = ved ? 14 : (dokk ? dokk.offsetHeight : 0) + (hjelp ? hjelp.offsetHeight + mellom : 0) + mellom;
     const hoyde = window.innerHeight - topp - under - 2;
     const bredde = bord.clientWidth;
-    const r = Math.floor(Math.max(30, Math.min((hoyde - gap * (MAKS - 1)) / MAKS, (bredde - gap * (L - 1)) / L, 64)));
+    const r = Math.floor(Math.max(26, Math.min((hoyde - gap * (MAKS - 1)) / MAKS, (bredde - gap * (L - 1)) / L, 64)));
     brett.style.setProperty("--ou-r", r + "px");
     brett.style.setProperty("--ou-gap", gap + "px");
   }
@@ -295,6 +325,23 @@
     },
   };
 
+  // A short message in the helper line (the line keeps its height, so nothing moves).
+  function skjulMelding(S) {
+    if (meldingId == null) return;
+    clearTimeout(meldingId);
+    meldingId = null;
+    const el = R.$(".ou-hjelp");
+    if (el && S.skjerm === "brett" && !feirer) el.innerHTML = hjelpInnhold(S);
+  }
+  function melding(S, tekst) {
+    const el = R.$(".ou-hjelp");
+    if (!el) return;
+    clearTimeout(meldingId);
+    el.innerHTML = varselHtml(tekst);
+    R.si(tekst);
+    meldingId = setTimeout(() => skjulMelding(R.S), 2200);
+  }
+
   // The row being typed, updated in place.
   function visRad(S, ny) {
     const sp = aktiv(S);
@@ -314,15 +361,14 @@
     if (g) g.classList.toggle("klar", b.length === L);
   }
 
-  function avvis(tekst) {
+  function avvis(S, tekst) {
     const rad = R.$(".ou-rad.na");
     if (rad && !R.rolig()) {
       rad.classList.remove("risting");
       void rad.offsetWidth;
       rad.classList.add("risting");
     }
-    R.toast(tekst);
-    R.si(tekst);
+    melding(S, tekst);
     lyd.nei();
     R.vibrer(50);
   }
@@ -331,6 +377,7 @@
     const sp = aktiv(S);
     if (!sp || sp.ferdig || avslorer || S.skjerm !== "brett") return;
     if (v === "gjett") return send(S);
+    skjulMelding(S);
     if (v === "slett") {
       if (!sp.rad) return;
       sp.rad = bokstaver(sp.rad).slice(0, -1).join("");
@@ -349,9 +396,10 @@
   function send(S) {
     const sp = aktiv(S);
     const ord = sp.rad;
-    if (bokstaver(ord).length < L) return avvis("For få bokstaver");
-    if (!LOV.has(ord)) return avvis("Ikke i ordlista");
-    if (sp.gjett.includes(ord)) return avvis("Det ordet har du prøvd");
+    if (bokstaver(ord).length < L) return avvis(S, "For få bokstaver");
+    if (!LOV.has(ord)) return avvis(S, "Ikke i ordlista");
+    if (sp.gjett.includes(ord)) return avvis(S, "Det ordet har du prøvd");
+    skjulMelding(S);
     sp.gjett.push(ord);
     sp.rad = "";
     const vant = ord === sp.ord;
@@ -370,7 +418,7 @@
     avslor(S, sp, sp.gjett.length - 1);
   }
 
-  // Flip the tiles one by one, then colour the keyboard.
+  // Flip the tiles one by one, then mark the keyboard.
   function avslor(S, sp, r) {
     avslorer = true;
     const fortsatt = R.vakt();
@@ -399,9 +447,11 @@
       () => {
         if (!fortsatt()) return;
         avslorer = false;
+        // A finished game keeps the keyboard in place while it celebrates: nothing jumps.
+        if (sp.ferdig) feirer = sp.vunnet ? ROS[sp.gjett.length - 1] : `Ordet var ${stor(sp.ord)}`;
         R.vis();
         const b = bokstaver(sp.gjett[r]);
-        R.si(`Forsøk ${r + 1}: ${b.map((x, i) => `${stor(x)} ${NAVN[res[i]]}`).join(", ")}.`);
+        R.si(`Forsøk ${r + 1}: ${b.map((x, i) => `${stor(x)} ${NAVN[res[i]]}`).join(", ")}.${feirer ? " " + feirer : ""}`);
         if (sp.ferdig) feire(S, sp);
       },
       rolig ? 60 : (L - 1) * steg + 560,
@@ -418,56 +468,33 @@
           el.style.setProperty("--i", i);
           el.classList.add("hopp");
         });
-      R.toast(ROS[sp.gjett.length - 1]);
       R.lyd.riktig();
       R.vibrer([30, 50, 30]);
     } else {
-      R.toast(`Ordet var ${stor(sp.ord)}`);
       lyd.tapt();
     }
     nyFeiring = true;
     setTimeout(
       () => {
         avslorer = false;
+        feirer = null;
         if (fortsatt()) R.gaTil("resultat");
       },
       R.rolig() ? 900 : sp.vunnet ? 1800 : 2400,
     );
   }
 
-  // Share the day's result as coloured squares (never the word itself).
+  // The day's result as owls and moons (never the word itself). R.del adds the link.
   function delTekst(S) {
     const sp = S.dag;
-    const ruter = S.kontrast ? RUTER_K : RUTER;
     const linjer = sp.gjett.map((g) =>
       vurder(g, sp.ord)
-        .map((r) => ruter[r])
+        .map((r) => DELETEGN[r])
         .join(""),
     );
-    return `Ordugla nr. ${nrFor(sp.nr)} · ${sp.vunnet ? sp.gjett.length : "X"}/${MAKS}\n\n${linjer.join("\n")}\n\nrusj.no/ordugla`;
-  }
-
-  async function del(S) {
-    const tekst = delTekst(S);
-    try {
-      if (navigator.share) {
-        await navigator.share({ text: tekst });
-        return;
-      }
-    } catch (e) {
-      if (e && e.name === "AbortError") return;
-    }
-    try {
-      await navigator.clipboard.writeText(tekst);
-      R.toast("Kopiert! Lim inn der du vil dele.");
-    } catch (e) {
-      // No clipboard (old browser or no permission): show the text so it can be copied by hand.
-      R.ark(`
-        <h2 id="ark-tittel">Del resultatet</h2>
-        <p class="ingress">Kopier teksten og lim den inn i en melding.</p>
-        <textarea class="tekstfelt ou-deletekst" readonly rows="${tekst.split("\n").length}" aria-label="Resultatet som tekst">${esc(tekst)}</textarea>
-        <button class="knapp" data-h="lukk-ark">Ferdig</button>`);
-    }
+    const rekke = rekkeNa(S);
+    const hode = `Ordugla nr. ${nrFor(sp.nr)} · ${sp.vunnet ? `${sp.gjett.length}/${MAKS}` : "ikke løst"}${sp.vunnet && rekke > 1 ? ` · 🔥 ${rekke} på rad` : ""}`;
+    return `${hode}\n\n${linjer.join("\n")}\n`;
   }
 
   // Physical keyboard (computers, tablets with a keyboard).
@@ -507,7 +534,6 @@
       ov: null, // the same without nr
       stat: tomStat(),
       ovStat: { spilt: 0, vunnet: 0 },
-      kontrast: false, // colour-blind palette
     }),
 
     lastet(S) {
@@ -545,36 +571,31 @@
       else if (S.dag && S.dag.ferdig && S.dag.nr === iDag()) R.dagligFerdig({ vunnet: S.dag.vunnet, rekke: S.dag.vunnet ? S.stat.rekke : 0 });
       const ov = S.ovStat && typeof S.ovStat === "object" ? S.ovStat : {};
       S.ovStat = { spilt: tall(ov.spilt), vunnet: tall(ov.vunnet) };
-      S.kontrast = !!S.kontrast;
+      delete S.kontrast; // an early colour option: the tiles now differ by shape as well
       const sp = aktiv(S);
       if ((S.skjerm === "brett" || S.skjerm === "resultat") && !sp) S.skjerm = "hjem";
       if (S.skjerm === "resultat" && sp && !sp.ferdig) S.skjerm = "brett";
-      document.documentElement.classList.toggle("ou-kontrast", S.kontrast);
     },
 
     regler: {
-      intro: "Gjett dagens ord på fem bokstaver. Du har seks forsøk – og fargene viser hvor nær du er.",
-      get steg() {
-        return [
-          ["Skriv et ord", "Bruk tastaturet og trykk «Gjett». Ordet må finnes i ordlista."],
-          ["Se på fargene", fargeTekst(R.S && R.S.kontrast)],
-          ["Finn ordet", "Bruk det du har lært i neste forsøk. Klarer du det på seks?"],
-        ];
-      },
+      intro: "Gjett dagens ord på fem bokstaver. Du har seks forsøk – og rutene viser hvor nær du er.",
+      steg: [
+        ["Skriv et ord", "Bruk tastaturet og trykk «Gjett». Ordet må finnes i ordlista."],
+        ["Se på rutene", "Hel, mintgrønn rute: riktig bokstav på riktig plass. Gul ring: bokstaven finnes et annet sted i ordet. Mørk og flat rute: bokstaven finnes ikke i ordet."],
+        ["Finn ordet", "Bruk det du har lært i neste forsøk. Klarer du det på seks?"],
+      ],
       tips: [
         "Alle får det samme ordet. Et nytt ord kommer ved midnatt.",
         "Svaret er alltid et vanlig ord i grunnform – for eksempel «hoppe», ikke «hoppet».",
         "Samme bokstav kan være med flere ganger.",
-        "Del resultatet som fargeruter – uten å røpe ordet.",
+        "Del resultatet som ugler og måner – uten å røpe ordet.",
         "Vil du spille mer? «Øv med flere ord» gir nye ord så lenge du vil.",
       ],
       get ekstraHtml() {
-        const S = R.S;
         return `<h3>Eksempler</h3>
-          ${eksempelHtml("fjell", 0, "rett", "<b>F</b> er med og står på riktig plass.")}
-          ${eksempelHtml("glede", 1, "med", "<b>L</b> er med, men et annet sted.")}
-          ${eksempelHtml("bobil", 3, "ikke", "<b>I</b> er ikke med i ordet.")}
-          ${R.ui.bryter("kontrast", S && S.kontrast, "Farger for fargeblinde", "Oransje og blått i stedet")}`;
+          ${eksempelHtml("fjell", 0, "rett", "<b>F</b> står på riktig plass.")}
+          ${eksempelHtml("glede", 1, "med", "<b>L</b> finnes i ordet, men et annet sted.")}
+          ${eksempelHtml("bobil", 3, "ikke", "<b>I</b> finnes ikke i ordet.")}`;
       },
     },
 
@@ -586,15 +607,16 @@
           const ferdig = !!(d && d.ferdig);
           const iGangD = iGang(d);
           const hoved = ferdig
-            ? R.ui.knapp("Se dagens resultat", "se-resultat", { ikon: d.vunnet ? "🏆" : "📊" })
-            : R.ui.knapp(iGangD ? `Fortsett dagens ord · ${d.gjett.length}/${MAKS}` : "Dagens ord", "dag", { ikon: iGangD ? "▶" : "☀️", variant: iGangD ? "" : "stor" });
+            ? R.ui.knapp("Se dagens resultat", "se-resultat")
+            : R.ui.knapp(iGangD ? `Fortsett dagens ord · ${d.gjett.length}/${MAKS}` : "Dagens ord", "dag", { variant: iGangD ? "" : "stor" });
           const rekke = rekkeNa(S);
           return R.ui.spillhjem({
+            undertittel: "Ordspill", // the button below already says «Dagens ord»
             slagordHtml: "Fem bokstaver. Seks forsøk.<br><em>Nytt ord hver dag.</em>",
             knapperHtml:
               hoved +
               (ferdig ? nedtellingHtml() : "") +
-              R.ui.knapp2(iGang(S.ov) ? "Fortsett øvingen" : "Øv med flere ord", "ov", { ikon: "🔁" }) +
+              R.ui.knapp2(iGang(S.ov) ? "Fortsett øvingen" : "Øv med flere ord", "ov") +
               R.ui.lenkerad(R.ui.lenke("Statistikk", "statistikk"), R.ui.lenke("Slik spiller du", "regler")),
             merker: [["5", "bokstaver"], ["6", "forsøk"], rekke ? [`🔥 ${rekke}`, rekke === 1 ? "dag på rad" : "dager på rad"] : [R.tall(SVAR.length), "ord"]],
           });
@@ -609,26 +631,31 @@
         tilbake: "hjem",
         vis(S) {
           const sp = aktiv(S);
+          const ov = S.modus === "ov";
           const rader = Array.from({ length: MAKS }, (_, r) => radHtml(sp, r)).join("");
-          const hjelp = sp.ferdig
-            ? ""
-            : sp.gjett.length
-              ? `<div class="ou-hjelp ou-forklaring"><span class="ou-fargeforklaring" aria-hidden="true">${forklaringHtml()}</span>${S.modus === "ov" ? R.ui.lenke("Gi opp", "gi-opp") : ""}</div>`
-              : `<p class="ou-hjelp">Skriv et ord på fem bokstaver og trykk <b>Gjett</b>.</p>`;
+          // The dock keeps the keyboard's height when the game is over, so the board never moves.
+          const dokk =
+            sp.ferdig && !feirer
+              ? `<div class="ou-ferdig">${R.ui.knapp("Se resultatet", "resultat")}</div>${ov ? R.ui.lenkerad(R.ui.lenke("Nytt ord", "nytt-ov")) : ""}`
+              : tastaturHtml(S, !!feirer) + (ov ? R.ui.lenkerad(R.ui.lenke("Gi opp ordet", "gi-opp")) : "");
           return `
-            <h1 class="vh" id="skjerm-tittel">${S.modus === "ov" ? "Øving" : "Dagens ord"}</h1>
+            <h1 class="vh" id="skjerm-tittel">${ov ? "Øving" : "Dagens ord"}</h1>
             <div class="ou-bord"><div class="ou-brett" role="group" aria-label="Brettet">${rader}</div></div>
-            ${hjelp}
-            ${R.ui.dokk(sp.ferdig ? R.ui.knapp("Se resultatet", "resultat", { ikon: sp.vunnet ? "🏆" : "📊" }) : tastaturHtml(S))}`;
+            <div class="ou-hjelp">${feirer ? varselHtml(feirer) : hjelpInnhold(S)}</div>
+            ${R.ui.dokk(dokk)}`;
         },
         etter() {
           tilpass();
         },
         inn() {
           avslorer = false;
+          feirer = null;
         },
         ut() {
           avslorer = false;
+          feirer = null;
+          clearTimeout(meldingId);
+          meldingId = null;
         },
       },
 
@@ -648,27 +675,30 @@
               <p class="etikett">${esc(etikett)}</p>
               <h1 id="skjerm-tittel">${esc(tittel)}${sp.vunnet ? "" : `<span class="vh"> ${esc(stor(sp.ord))}</span>`}</h1>
               ${sp.vunnet ? "" : ordetHtml(sp.ord)}
-              ${sp.vunnet || ov ? "" : `<p class="ingress">Ordet var vrient i dag. Nytt ord i morgen!</p>`}
+              ${ov ? "" : gammel ? `<p class="ou-nedtelling"><b>Et nytt ord er klart!</b></p>` : nedtellingHtml()}
             </div>`;
           if (ov) {
             const o = S.ovStat;
             const tally = o.vunnet ? `Du har klart ${R.tall(o.vunnet)} av ${R.tall(o.spilt)} øveord.` : "Øvelse gjør mester – prøv et nytt ord!";
             return `${banner}
               ${miniHtml(sp)}
+              ${betydningHtml(sp.ord)}
               <p class="hjelp">${esc(tally)}</p>
               ${R.ui.flereSpill(FLERE)}
-              ${R.ui.dokk(R.ui.knapp("Nytt ord", "nytt-ov", { ikon: "🔁" }), R.ui.lenkerad(R.ui.lenke("Til Ordugla", "hjem"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+              ${R.ui.dokk(R.ui.knapp("Nytt ord", "nytt-ov"), R.ui.lenkerad(R.ui.lenke("Til Ordugla", "hjem"), '<a class="lenke" href="/">Alle spill</a>'))}`;
           }
           return `${banner}
             ${miniHtml(sp)}
-            ${gammel ? `<p class="ou-nedtelling"><b>Et nytt ord er klart!</b></p>` : nedtellingHtml()}
+            ${betydningHtml(sp.ord)}
+            ${sp.vunnet ? "" : `<p class="hjelp">Ordet var vrient i dag. Nytt ord i morgen!</p>`}
             <section class="seksjon ou-stat" aria-labelledby="ou-stat-tittel">
               <h2 id="ou-stat-tittel">Statistikk</h2>
-              ${statistikkHtml(S, sp.vunnet ? n : 0)}
+              ${tallHtml(S)}
+              ${R.ui.lenke("Se antall forsøk", "statistikk")}
             </section>
             ${R.ui.flereSpill(FLERE)}
             ${R.ui.dokk(
-              gammel ? R.ui.knapp("Spill dagens ord", "dag", { ikon: "☀️" }) : R.ui.knapp("Del resultatet", "del", { ikon: "📤" }),
+              gammel ? R.ui.knapp("Spill dagens ord", "dag") : R.ui.knapp("Del resultatet", "del"),
               R.ui.lenkerad(R.ui.lenke("Øv med flere ord", "ov"), '<a class="lenke" href="/">Alle spill</a>'),
             )}`;
         },
@@ -739,17 +769,7 @@
         R.ark(statistikkArk(S));
       },
       del(el, e, S) {
-        if (S.dag && S.dag.ferdig) return del(S);
-      },
-      // The switch lives in the rules sheet: update it in place (the examples above it change colour).
-      kontrast(el, e, S) {
-        S.kontrast = !S.kontrast;
-        document.documentElement.classList.toggle("ou-kontrast", S.kontrast);
-        el.setAttribute("aria-pressed", String(S.kontrast));
-        const steg = R.$("#ark .steg li:nth-child(2) span");
-        if (steg) steg.textContent = fargeTekst(S.kontrast);
-        R.lagre();
-        R.si(S.kontrast ? "Farger for fargeblinde er på." : "Vanlige farger er på.");
+        if (S.dag && S.dag.ferdig) return R.del("Ordugla", delTekst(S), DEL_URL);
       },
     }),
   });

@@ -1,33 +1,27 @@
-/* Ordugla — «Dagens ord». Everything is prefixed "ou-". The tile colours live in tokens, so the
-   colour-blind palette (orange and blue, html.ou-kontrast) swaps them everywhere at once. */
+/* Ordugla — «Dagens ord». Everything is prefixed "ou-".
+   rusj's own tile language (shape + colour, so it also works without colour vision):
+     .rett  right letter, right place  → a solid mint tile with a darker edge
+     .med   in the word, another place → a dark tile with a thick yellow ring
+     .ikke  not in the word            → a flat, dim tile
+   The keys and the little key under the board use the same three looks. */
 
 :root {
-  --ou-rett: #45c46d;
-  --ou-rett-dyp: #2a8648;
-  --ou-med: #f2c230;
-  --ou-med-dyp: #b38a14;
-  --ou-ikke: #3a2d58;
-  --ou-ikke-tekst: #b3a3d6;
+  --ou-dim: #8473ad; /* the letter on a flat tile or key: about 4:1 against the dark background */
+  --ou-flat: rgba(255, 255, 255, 0.05);
   --ou-tast: #5d4c88;
   --ou-tast-dyp: #35285c;
-}
-
-:root.ou-kontrast {
-  --ou-rett: #ff8a3d;
-  --ou-rett-dyp: #c25a14;
-  --ou-med: #59b9ff;
-  --ou-med-dyp: #2a7cc4;
 }
 
 /* ---------- Tiles ---------- */
 
 .ou-rute {
+  position: relative;
   display: grid;
   place-items: center;
   width: var(--ou-r, 58px);
   height: var(--ou-r, 58px);
   border: 2.5px solid var(--strek);
-  border-radius: calc(var(--ou-r, 58px) * 0.18);
+  border-radius: calc(var(--ou-r, 58px) * 0.2);
   background: rgba(33, 20, 61, 0.5);
   color: var(--tekst);
   font: 900 calc(var(--ou-r, 58px) * 0.52) / 1 var(--font-display);
@@ -52,23 +46,31 @@
 }
 
 .ou-rute.rett {
-  border-color: var(--ou-rett);
-  background: var(--ou-rett);
-  box-shadow: 0 4px 0 var(--ou-rett-dyp);
+  border-color: var(--mynte);
+  background: var(--mynte);
+  box-shadow: 0 calc(var(--ou-r, 58px) * 0.075) 0 var(--mynte-dyp);
   color: var(--blekk);
 }
 
 .ou-rute.med {
-  border-color: var(--ou-med);
-  background: var(--ou-med);
-  box-shadow: 0 4px 0 var(--ou-med-dyp);
-  color: var(--blekk);
+  border-color: var(--natt-3);
+  background: var(--natt-3);
+  font-size: calc(var(--ou-r, 58px) * 0.47);
+}
+
+/* The ring: a circle just inside the tile, with the letter in the middle. */
+.ou-rute.med::before {
+  position: absolute;
+  inset: 2%;
+  border: calc(var(--ou-r, 58px) * 0.085) solid var(--lampe);
+  border-radius: 50%;
+  content: "";
 }
 
 .ou-rute.ikke {
-  border-color: var(--ou-ikke);
-  background: var(--ou-ikke);
-  color: var(--ou-ikke-tekst);
+  border-color: transparent;
+  background: var(--ou-flat);
+  color: var(--ou-dim);
 }
 
 .ou-rute.snu {
@@ -104,18 +106,23 @@
 /* ---------- Board ---------- */
 
 .skjerm-brett {
+  --ou-th: 56px; /* key height */
+  --ou-tg: 8px; /* gap between the key rows */
   gap: 14px;
 }
 
+/* Anchored to the top, with the helper line right under it: whatever happens below, the board
+   never moves. Spare room goes between the helper line and the keyboard. */
 .ou-bord {
   display: grid;
-  flex: 1 1 auto;
-  place-items: center;
-  min-height: 0;
+  flex: 0 0 auto;
+  align-content: start;
+  justify-items: center;
 }
 
 .ou-brett {
   display: grid;
+  align-content: start;
   gap: var(--ou-gap, 6px);
 }
 
@@ -129,15 +136,37 @@
   border-color: #5f4c8c;
 }
 
+/* The helper line: one fixed height for the tip, the key to the tiles and short messages. */
 .ou-hjelp {
+  display: grid;
+  place-items: center;
+  min-height: 34px;
   color: var(--tekst-2);
   font-size: 0.95rem;
   line-height: 1.3;
   text-align: center;
+  text-wrap: balance;
 }
 
 .ou-hjelp b {
   color: var(--tekst);
+}
+
+.ou-varsel {
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-weight: 800;
+  line-height: 1.25;
+  animation: ou-varsel 0.16s ease-out;
+}
+
+@keyframes ou-varsel {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
 }
 
 .ou-forklaring {
@@ -148,49 +177,53 @@
   gap: 2px 14px;
   font-size: 0.85rem;
   font-weight: 600;
-}
-
-.ou-fargeforklaring {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 2px 14px;
+  white-space: nowrap;
 }
 
 .ou-forklaring i {
+  position: relative;
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 15px;
+  height: 15px;
   margin-right: 6px;
-  border-radius: 3px;
-  vertical-align: -1px;
+  border-radius: 4px;
+  vertical-align: -2px;
 }
 
 .ou-forklaring i.rett {
-  background: var(--ou-rett);
+  background: var(--mynte);
+  box-shadow: 0 1.5px 0 var(--mynte-dyp);
 }
 
 .ou-forklaring i.med {
-  background: var(--ou-med);
+  background: var(--natt-3);
+}
+
+.ou-forklaring i.med::before {
+  position: absolute;
+  inset: 1px;
+  border: 2.5px solid var(--lampe);
+  border-radius: 50%;
+  content: "";
 }
 
 .ou-forklaring i.ikke {
-  background: var(--ou-ikke);
-  box-shadow: inset 0 0 0 1.5px var(--tekst-3);
-}
-
-.ou-forklaring .lenke {
-  min-height: 32px;
-  padding: 4px 6px;
-  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.13);
 }
 
 /* ---------- Keyboard ---------- */
 
 .ou-tastatur {
   display: grid;
-  gap: 8px;
+  gap: var(--ou-tg);
   margin-inline: -8px;
+  transition: opacity 0.2s;
+}
+
+/* The game is over: the keys stay where they are (so the board stays too), but rest. */
+.ou-tastatur.av {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .ou-tastrad {
@@ -200,17 +233,21 @@
 }
 
 .ou-tast {
+  --ou-kant: var(--ou-tast-dyp);
+  --ou-ring: transparent;
   display: grid;
   flex: 1 1 0;
   place-items: center;
   min-width: 0;
   max-width: 46px;
-  height: 56px;
+  height: var(--ou-th);
   padding: 0;
   border: 0;
   border-radius: 10px;
   background: var(--ou-tast);
-  box-shadow: 0 3px 0 var(--ou-tast-dyp);
+  box-shadow:
+    inset 0 0 0 3px var(--ou-ring),
+    0 3px 0 var(--ou-kant);
   color: var(--tekst);
   font: 800 1.22rem/1 var(--font-display);
   text-transform: uppercase;
@@ -220,7 +257,9 @@
 
 .ou-tast:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--ou-tast-dyp);
+  box-shadow:
+    inset 0 0 0 3px var(--ou-ring),
+    0 1px 0 var(--ou-kant);
 }
 
 .ou-tast.bred {
@@ -241,27 +280,34 @@
 }
 
 .ou-tast.rett {
-  background: var(--ou-rett);
-  box-shadow: 0 3px 0 var(--ou-rett-dyp);
+  --ou-kant: var(--mynte-dyp);
+  background: var(--mynte);
   color: var(--blekk);
 }
 
 .ou-tast.med {
-  background: var(--ou-med);
-  box-shadow: 0 3px 0 var(--ou-med-dyp);
-  color: var(--blekk);
+  --ou-kant: transparent;
+  --ou-ring: var(--lampe);
+  background: var(--natt-3);
 }
 
 .ou-tast.ikke {
-  background: #221838;
-  box-shadow: none;
-  color: #6c5a92;
+  --ou-kant: transparent;
+  background: #1d1433;
+  color: var(--ou-dim);
 }
 
 .ou-tast.gjett.klar {
+  --ou-kant: var(--papir-2);
   background: var(--papir);
-  box-shadow: 0 3px 0 var(--papir-2);
   color: var(--blekk);
+}
+
+/* A finished board: the button stands where the keyboard stood, in an area of the same height. */
+.ou-ferdig {
+  display: grid;
+  align-content: end;
+  min-height: calc(3 * var(--ou-th) + 2 * var(--ou-tg));
 }
 
 /* ---------- Home and result ---------- */
@@ -284,6 +330,7 @@
 
 .ou-banner h1 {
   font-size: clamp(1.8rem, 8.4vw, 2.5rem);
+  text-wrap: balance;
 }
 
 .ou-ordet,
@@ -298,24 +345,38 @@
   grid-template-columns: repeat(5, var(--ou-r));
   gap: 6px;
   margin-top: 4px;
+  padding-bottom: 4px;
 }
 
 .ou-mini {
-  --ou-r: 34px;
+  --ou-r: 36px;
   --ou-gap: 5px;
 }
 
 .ou-mini .ou-rute {
   border-width: 0;
   box-shadow: none;
-  font-size: 1.05rem;
+}
+
+.ou-betydning {
+  padding: 12px 16px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.ou-betydning b {
+  color: var(--tekst);
 }
 
 .ou-stat {
-  padding: 18px 16px;
+  padding: 18px 16px 8px;
   border-radius: var(--r-stor);
   background: var(--natt-2);
   box-shadow: inset 0 0 0 1.5px var(--strek);
+  text-align: center;
 }
 
 .ou-stat h2 {
@@ -374,21 +435,15 @@
   width: max(2.2em, calc(var(--andel) * 100%));
   padding: 4px 9px;
   border-radius: 7px;
-  background: var(--ou-ikke);
+  background: var(--natt-3);
   color: var(--tekst);
   font: 800 0.9rem/1.2 var(--font-display);
   text-align: right;
 }
 
 .ou-fordeling li.na .ou-stolpe {
-  background: var(--ou-rett);
+  background: var(--mynte);
   color: var(--blekk);
-}
-
-.ou-deletekst {
-  min-height: 0;
-  font: 700 1rem/1.35 var(--font-mono);
-  white-space: pre;
 }
 
 /* ---------- Rules sheet ---------- */
@@ -417,25 +472,24 @@
 
 @media (max-height: 700px) {
   .skjerm-brett {
+    --ou-th: 46px;
+    --ou-tg: 6px;
     gap: 10px;
   }
 
-  .ou-tast {
-    height: 46px;
-  }
-
-  .ou-tastatur {
-    gap: 6px;
-  }
-
   .ou-hjelp {
+    min-height: 30px;
     font-size: 0.85rem;
+  }
+
+  .ou-varsel {
+    padding-block: 4px;
   }
 }
 
 @media (max-height: 600px) {
-  .ou-tast {
-    height: 42px;
+  .skjerm-brett {
+    --ou-th: 42px;
   }
 
   .ou-forklaring {
@@ -465,7 +519,64 @@
     font-size: 1.45rem;
   }
 
+  .ou-hjelp {
+    font-size: 0.8rem;
+  }
+
   .ou-forklaring {
-    gap: 2px 10px;
+    gap: 2px 8px;
+    font-size: 0.76rem;
+  }
+
+  .ou-forklaring i {
+    width: 14px;
+    height: 14px;
+    margin-right: 5px;
+  }
+}
+
+/* ---------- A phone lying down: the board to the left, the keyboard to the right ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  @supports selector(:has(a)) {
+    html[data-spill="ordugla"] .app:has(.skjerm-brett) {
+      max-width: 900px;
+    }
+
+    .skjerm-brett {
+      --ou-th: 44px;
+      --ou-tg: 6px;
+      display: grid;
+      grid-template-rows: auto auto; /* the board spans both: helper line + keyboard end up centred beside it */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+      gap: 8px 20px;
+    }
+
+    .skjerm-brett .ou-bord {
+      grid-row: 1 / span 2;
+      grid-column: 1;
+      align-self: start; /* never stretched: the rows keep the tile size */
+    }
+
+    .skjerm-brett .ou-hjelp {
+      grid-row: 1;
+      grid-column: 2;
+      align-self: end;
+      padding-top: 6px;
+    }
+
+    .skjerm-brett .dokk {
+      position: static;
+      grid-row: 2;
+      grid-column: 2;
+      align-self: start;
+      margin: 0;
+      padding: 0 0 10px;
+      background: none;
+    }
+
+    .skjerm-brett .ou-tastatur {
+      margin-inline: 0;
+    }
   }
 }

@@ -1,9 +1,11 @@
 // Blyanten: an old unfinished crossword gives way to today's; typing moves to the next empty cell and
 // the next word; a cell tapped twice turns; the clue list jumps; check and reveal mark the cells;
 // overwriting clears a wrong mark; reload and back keep the crossword and the time; a real
-// keyboard types; solving shows the result with statistics and a share text without answers.
-// Then «Flere kryss»: setup (level and theme), give up and see the solution, a new crossword, and
-// an easy one filled with one wrong letter («Nesten!») that is then fixed.
+// keyboard types; solving shows the result with statistics, the countdown and a share text (a row
+// of pencils through R.del, never the answers). The result of a check stands in the clue bar, never
+// in a toast over the grid. Then «Flere kryss»: setup («Gjør klart», level, a handful of themes +
+// «Alle temaer (36)»), give up and see the solution, a new crossword, and an easy one filled with
+// one wrong letter («Nesten!») that is then fixed.
 export default async function (t) {
   const pause = () => t.sov(420); // taps right after a screen change are ignored on purpose
   const S = () => t.tilstand();
@@ -13,6 +15,9 @@ export default async function (t) {
   };
   const celler = (k, w) => Array.from(w.o).map((_, i) => (w.y + (w.r === "l" ? i : 0)) * k.b + w.x + (w.r === "v" ? i : 0));
   const tast = (b) => t.klikk(`.bly-tast[data-v="${b}"]`, 20);
+  // The message in the clue bar ("" when the clue is showing).
+  const varsel = (type) => t.js(`(() => { const el = document.querySelector(".bly-hintlinje .bly-varsel${type ? "." + type : ""} .bly-hint-tekst"); return el ? el.textContent : ""; })()`);
+  const trykket = (sel) => t.js(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); return el ? el.getAttribute("aria-pressed") : null; })()`);
   // Select word wi from the clue list and type the letters of its empty cells.
   async function fyllOrd(wi, feilBokstav) {
     const p = await sp();
@@ -91,9 +96,12 @@ export default async function (t) {
   const riktig = Array.from(wNed.o)[celler(k, wNed).indexOf(feilCelle)];
   await tast(riktig === "x" ? "y" : "x");
   await t.klikk('[data-h="hjelp"]', 150);
+  t.sjekk((await t.antall("#ark:not([hidden]) .bly-hjelpvalg .bly-hjelpknapp")) === 4, "Hjelpen skal være fire fliser");
   await t.bilde("hjelp");
   await t.klikk('#ark [data-h="sjekk-ord"]', 200);
   t.sjekk(await t.finnes(`.bly-celle.feil[data-v="${feilCelle}"]`), "«Sjekk ordet» merket ikke den gale bokstaven");
+  t.sjekk(/Én bokstav er feil/.test(await varsel("feil")), `Resultatet av «Sjekk ordet» skal stå i stikkordlinja («${await varsel()}»)`);
+  t.sjekk(!(await t.finnes("#toast.vis")), "«Sjekk ordet» skal ikke legge en toast over krysset");
   await t.bilde("sjekket");
   await t.klikk('[data-h="hjelp"]', 150);
   await t.klikk('#ark [data-h="vis-bokstav"]', 200);
@@ -115,7 +123,8 @@ export default async function (t) {
 
   // Back and continue
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett dagens kryss/.test(await t.tekst('.hjem-knapper [data-h="dag"]')), "Hjem viser ikke «Fortsett dagens kryss»");
+  // One line («… · 3/8 ord») where it fits; on narrow phones the progress stands on its own line.
+  t.sjekk(/Fortsett dagens kryss(?: · |\s+)\d\/8 ord/.test(await t.tekst('.hjem-knapper [data-h="dag"]')), `Hjem viser ikke «Fortsett dagens kryss · n/8 ord» («${await t.tekst('.hjem-knapper [data-h="dag"]')}»)`);
   await t.bilde("hjem-fortsett");
   await t.klikk('[data-h="dag"]');
   await t.vent("document.querySelector('.bly-tastatur')");
@@ -182,9 +191,11 @@ export default async function (t) {
   t.sjekk(/2/.test(await t.tekst(".bly-fakta")), "Antall hint vises ikke på resultatet");
   t.sjekk(s._aktiv === false, "Et løst kryss skal ikke være merket som pågående");
   t.sjekk(await t.finnes('#skjerm a.lenke[href="/"]'), "Mangler «Alle spill» på resultatet");
+  t.sjekk((await t.tekst(".dokk .knapp")).trim() === "Del resultatet", `Hovedknappen på dagens resultat skal være «Del resultatet» (${await t.tekst(".dokk .knapp")})`);
+  t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".skjerm-resultat .bly-nedtelling b")), "Nedtellingen (TT:MM:SS) mangler på resultatet");
   await t.bilde("resultat", true);
 
-  // Share text: no answers
+  // Share text through R.del: a row of pencils (a light bulb where letters were shown), the link, no answers
   await t.js(`(() => {
     window.__delt = null;
     Object.defineProperty(navigator, "share", { value: undefined, configurable: true });
@@ -192,21 +203,30 @@ export default async function (t) {
   })()`);
   await t.klikk('[data-h="del"]', 300);
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && /Blyanten · Dagens kryss/.test(delt) && /rusj\.no\/blyanten/.test(delt) && /2 hint/.test(delt), `Delingsteksten er feil: ${delt}`);
+  t.sjekk(delt && /^Blyanten nr\. \d+ · /.test(delt) && /\nLøst på \d+:\d\d med 2 hint\n\nhttps:\/\/rusj\.no\/blyanten\/$/.test(delt), `Delingsteksten er feil: ${delt}`);
+  const delRad = delt ? delt.split("\n")[1] : "";
+  t.sjekk(/^(?:\u270F\uFE0F?|\u{1F4A1}){8}$/u.test(delRad) && /\u{1F4A1}/u.test(delRad) && /\u270F/u.test(delRad), `Delingsteksten skal ha én blyant eller lyspære per ord: ${delt}`);
+  t.sjekk(/Kopiert/.test(await t.js(`document.querySelector("#toast.vis") ? document.querySelector("#toast").textContent : ""`)), "Mangler «Kopiert» etter deling");
   t.sjekk(delt && !k.ord.some((w) => w.o.length > 3 && delt.toLowerCase().includes(w.o)), "Delingsteksten røper et svar");
 
   // Home: today's crossword is done
   await t.klikk("#tilbake");
-  t.sjekk(await t.finnes('.hjem-knapper [data-h="se-resultat"]') && /^\d+:\d\d:\d\d$/.test(await t.tekst(".bly-nedtelling b")), "Hjem viser ikke dagens resultat og nedtellingen");
+  t.sjekk(await t.finnes('.hjem-knapper [data-h="se-resultat"]') && /^\d\d:\d\d:\d\d$/.test(await t.tekst(".bly-nedtelling b")), "Hjem viser ikke dagens resultat og nedtellingen");
   await t.bilde("hjem-ferdig");
 
   // «Flere kryss»: hard, one theme
   await t.klikk('[data-h="fri"]');
   await t.vent("document.querySelector('[data-h=\"start\"]')");
+  t.sjekk(/Gjør klart/.test(await t.tekst("#skjerm h1")), `Oppsettet skal hete «Gjør klart» («${await t.tekst("#skjerm h1")}»)`);
+  t.sjekk((await t.antall('.brikke[data-h="tema"]')) === 9 && /Alle temaer \(36\)/.test(await t.tekst('.brikke[data-v="*"]')) && (await trykket('.brikke[data-v="*"]')) === "true", "Oppsettet skal vise «Alle temaer (36)» (valgt) og åtte temaer");
   await t.klikk('[data-h="niva"][data-v="vanskelig"]');
-  await t.klikk('[data-h="tema"][data-v="*"]');
-  t.sjekk(await t.js("document.querySelector('[data-h=\"start\"]').disabled"), "Start skal være av uten tema");
+  await t.klikk('[data-h="alle-temaer"]');
+  t.sjekk((await t.antall('.brikke[data-h="tema"]')) === 37, `«Vis alle 36 temaene» viser ikke alle temaene (${await t.antall('.brikke[data-h="tema"]')})`);
+  await t.bilde("oppsett-alle", true);
+  await t.klikk('[data-h="alle-temaer"]');
   await t.klikk('[data-h="tema"][data-v="skogsdyr"]');
+  t.sjekk((await trykket('.brikke[data-v="skogsdyr"]')) === "true" && (await trykket('.brikke[data-v="*"]')) === "false", "Et valgt tema skal slå av «Alle temaer»");
+  t.sjekk(!(await t.js("document.querySelector('[data-h=\"start\"]').disabled")), "Start skal alltid kunne trykkes");
   await t.bilde("oppsett", true);
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('.bly-rutenett .bly-celle')");
@@ -222,6 +242,7 @@ export default async function (t) {
   await t.sov(400);
   s = await S();
   t.sjekk(s.fri.ferdig && s.fri.gaOpp && s.friStat.lost === 0 && /løsningen/.test(await t.tekst("#skjerm h1")), "«Gi opp» viste ikke løsningen");
+  t.sjekk(/Løsning vist/.test(await t.tekst(".bly-fakta")) && !/hint/.test(await t.tekst(".bly-fakta")), `Etter «Gi opp» skal det stå «Løsning vist», ikke antall hint («${await t.tekst(".bly-fakta")}»)`);
   await t.bilde("ga-opp");
 
   // A new one with the same settings
@@ -249,6 +270,7 @@ export default async function (t) {
   await t.klikk('#ark [data-h="sjekk-alt"]', 200);
   const feil = (await S()).fri.feil;
   t.sjekk(feil.length === 1 && (await t.finnes(".bly-celle.feil")), `«Vis meg feilene» merket ikke én feil (${feil.length})`);
+  t.sjekk(/Én bokstav er feil/.test(await varsel("feil")) && !(await t.finnes("#toast.vis")), "«Vis meg feilene» skal svare i stikkordlinja, ikke i en toast");
   const fk = (await S()).fri.kryss;
   const fc = feil[0];
   let fb = null;

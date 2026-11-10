@@ -1,6 +1,6 @@
 /* Blyanten — «Minikryss». Everything is prefixed "bly-". The crossword is paper squares on the
    night background: the selected word is light blue (like the clue bar), the cell you write in is
-   the accent colour. */
+   the accent colour. The result of a check stands in the clue bar for a moment (.bly-varsel). */
 
 :root {
   --bly-ord: #bfe3ff;
@@ -224,8 +224,54 @@
   display: -webkit-box;
   overflow: hidden;
   font: 700 1.04rem/1.22 var(--font-tekst);
+  text-wrap: balance;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+/* A short message where the clue stands (the result of a check): it never covers the grid. */
+.bly-varsel {
+  justify-content: center;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  animation: bly-varsel 0.18s ease-out;
+}
+
+.bly-varsel .bly-hint-tekst {
+  font-weight: 800;
+}
+
+.bly-varsel.feil {
+  background: var(--bly-feil);
+  box-shadow: 0 3px 0 #e59f93;
+}
+
+.bly-varsel.rett {
+  background: #c5f3e2;
+  box-shadow: 0 3px 0 #7fd3b6;
+}
+
+.bly-varsel-tegn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--mynte-dyp);
+  color: #fff;
+  font: 900 0.95rem/1 var(--font-display);
+}
+
+.bly-varsel.feil .bly-varsel-tegn {
+  background: var(--rod-dyp);
+}
+
+@keyframes bly-varsel {
+  from {
+    opacity: 0.4;
+    transform: scale(0.96);
+  }
 }
 
 .bly-tastatur {
@@ -343,6 +389,72 @@
   line-height: 1.8;
 }
 
+/* Help: four tiles, two by two. The letter tiles on top show what each kind of help does. */
+.bly-hjelpvalg {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.bly-hjelpknapp {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 8px;
+  min-height: 108px;
+  padding: 14px 8px 12px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 800 1rem/1.2 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+  cursor: pointer;
+}
+
+.bly-hjelpknapp:active {
+  background: var(--strek);
+}
+
+.bly-merker {
+  display: grid;
+  grid-auto-flow: column;
+  align-content: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 44px;
+}
+
+/* «The whole crossword»: a word across with a word down from its middle letter. */
+.bly-merker.kryss {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(3, auto);
+}
+
+.bly-merker.kryss .bly-merke:last-child {
+  grid-column: 2;
+}
+
+.bly-merker .bly-merke {
+  margin: 0;
+}
+
+/* The key to the colours (the rules sheet). */
+.bly-farger {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  color: var(--tekst-2);
+  list-style: none;
+}
+
+.bly-farger .bly-merke {
+  margin-right: 10px;
+}
+
 /* A small letter tile that explains the colours of checked, revealed and wrong letters. */
 .bly-merke {
   position: relative;
@@ -380,9 +492,26 @@
   color: var(--rod-dyp);
 }
 
-.bly-deletekst {
-  min-height: 0;
-  font: 700 1rem/1.35 var(--font-tekst);
+/* ---------- Home ---------- */
+
+/* «Fortsett dagens kryss · 3/8 ord»: one line where it fits, else the progress on its own line. */
+.bly-fremdrift {
+  white-space: nowrap;
+}
+
+.bly-fremdrift i {
+  font-style: normal;
+}
+
+@media (max-width: 389px) {
+  .bly-fremdrift {
+    display: block;
+    font-size: 0.8em;
+  }
+
+  .bly-fremdrift i {
+    display: none;
+  }
 }
 
 /* ---------- Result ---------- */
@@ -393,6 +522,11 @@
 
 .bly-banner h1 {
   font-size: clamp(1.9rem, 8.6vw, 2.6rem);
+  text-wrap: balance;
+}
+
+.bly-banner .bly-nedtelling {
+  margin-top: 2px;
 }
 
 .bly-fakta {
@@ -529,5 +663,57 @@
 
   .bly-tall b {
     font-size: 1.35rem;
+  }
+}
+
+/* ---------- A phone lying down: the grid to the left, clue bar and keyboard to the right ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  @supports selector(:has(a)) {
+    html[data-spill="blyanten"] .app:has(.skjerm-kryss) {
+      max-width: 900px;
+    }
+
+    .skjerm-kryss {
+      display: grid;
+      grid-template-rows: auto auto; /* the grid spans both: info row + keyboard end up centred beside it */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+      gap: 8px 20px;
+    }
+
+    .skjerm-kryss .bly-bord {
+      grid-row: 1 / span 2;
+      grid-column: 1;
+      align-self: start;
+    }
+
+    .skjerm-kryss .bly-info {
+      grid-row: 1;
+      grid-column: 2;
+      align-self: end;
+    }
+
+    .skjerm-kryss .dokk {
+      position: static;
+      grid-row: 2;
+      grid-column: 2;
+      align-self: start;
+      margin: 0;
+      padding: 0 0 10px;
+      background: none;
+    }
+
+    .skjerm-kryss .bly-tastatur,
+    .skjerm-kryss .bly-hintlinje {
+      margin-inline: 0;
+    }
+
+    .skjerm-kryss .bly-tast {
+      height: 40px;
+    }
+
+    .skjerm-kryss .bly-hint {
+      min-height: 46px;
+    }
   }
 }

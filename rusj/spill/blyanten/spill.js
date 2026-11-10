@@ -5,7 +5,9 @@
    (R.dag + a fixed seed); «Flere kryss» makes new ones by theme and level.
    The player types on an on-screen keyboard: tap a cell (twice to switch direction), tap the clue
    bar for all clues. While solving, the grid and the clue bar are redrawn in place (never R.vis),
-   so quick typing is never caught by the kit's ghost-tap guard. */
+   so quick typing is never caught by the kit's ghost-tap guard. The result of a check stands in
+   the clue bar for a moment (never in a toast on top of the grid). The day's result is shared as
+   a row of pencils, one per word (never the answers). */
 (function () {
   "use strict";
 
@@ -15,9 +17,9 @@
   const tema = (id) => TEMAER.find((t) => t.id === id);
   const ANTALL_ORD = new Set(TEMAER.flatMap((t) => t.ord.map(([o]) => o))).size;
   const NIVA = {
-    lett: { navn: "Lett", antall: 6, maksOrd: 6, maksB: 8, maksH: 8, tekst: "6 korte ord – fint for barn og nybegynnere" },
-    middels: { navn: "Middels", antall: 8, maksOrd: 8, maksB: 9, maksH: 9, tekst: "8 ord – like stort som dagens kryss" },
-    vanskelig: { navn: "Vanskelig", antall: 10, maksOrd: 9, maksB: 10, maksH: 10, tekst: "10 ord, også lange – for kryssordeksperter" },
+    lett: { navn: "Lett", antall: 6, maksOrd: 6, maksB: 8, maksH: 8, tekst: "6 korte ord\u00a0– fint for barn og nybegynnere" },
+    middels: { navn: "Middels", antall: 8, maksOrd: 8, maksB: 9, maksH: 9, tekst: "8 ord\u00a0– like stort som dagens kryss" },
+    vanskelig: { navn: "Vanskelig", antall: 10, maksOrd: 9, maksB: 10, maksH: 10, tekst: "10 ord, også lange\u00a0– for kryssordeksperter" },
   };
   const DAGENS_NIVA = "middels";
   const FORSTE_DAG = R.dag(new Date(Date.UTC(2026, 10, 9, 12))).nr; // the first «Dagens kryss»
@@ -33,6 +35,9 @@
   const SLETT_IKON =
     '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8.5 5H20a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 20 19H8.5L2.5 12z"/><path d="M11.5 9.5l5 5M16.5 9.5l-5 5"/></svg>';
   const FLERE = { antall: 1 }; // the kit titles it «Flere spill du kan spille alene»
+  const DEL_URL = "https://rusj.no/blyanten/";
+  // «Flere kryss» shows a handful of themes first; the rest are one tap away.
+  const UTVALGTE = ["garden", "skogsdyr", "mat", "hjemme", "sport", "musikk", "naturen", "eventyr"];
 
   let H; // the actions
   let nyFeiring = false; // celebrate once on the result screen right after solving
@@ -41,10 +46,14 @@
   let sistTikk = 0;
   let tikkTeller = 0;
   let tikker = null; // countdown to tomorrow's crossword
+  let varsel = null; // a short message in the clue bar: { tekst, type ("feil", "rett" or "") }
+  let varselId = null;
+  let alleTemaer = false; // the setup screen shows every theme
 
   const bokstaver = (o) => Array.from(String(o || ""));
   const stor = (o) => String(o).toLocaleUpperCase("nb");
   const iDag = () => R.dag().nr;
+  const nrFor = (dag) => dag - FORSTE_DAG + 1; // «Blyanten nr. 1» is the first daily
 
   // ---------- The generator ----------
   // Words are tried in a random order; each one is placed where it crosses the most letters and
@@ -328,11 +337,16 @@
 
   function hintlinjeHtml(sp) {
     const w = sp.kryss.ord[valgtOrd(sp)];
+    // A short message (the result of a check) takes the clue's place for a moment.
+    const tegn = varsel && varsel.type ? `<span class="bly-varsel-tegn" aria-hidden="true">${varsel.type === "feil" ? "✗" : "✓"}</span>` : "";
+    const midt = varsel
+      ? `<button class="bly-hint bly-varsel ${varsel.type}" data-h="hintliste" aria-label="${esc(`${varsel.tekst}. Trykk for alle stikkord`)}">${tegn}<span class="bly-hint-tekst">${esc(varsel.tekst)}</span></button>`
+      : `<button class="bly-hint" data-h="hintliste" aria-label="${esc(`${w.nr} ${RETNING[w.r]}: ${w.hint}. Trykk for alle stikkord`)}">
+        <span class="bly-hint-nr">${w.nr}<i>${PIL[w.r]}</i></span><span class="bly-hint-tekst">${esc(w.hint)}</span>
+      </button>`;
     return `<div class="bly-hintlinje">
       <button class="bly-pil" data-h="forrige" data-stille aria-label="Forrige stikkord">‹</button>
-      <button class="bly-hint" data-h="hintliste" aria-label="${esc(`${w.nr} ${RETNING[w.r]}: ${w.hint}. Trykk for alle stikkord`)}">
-        <span class="bly-hint-nr">${w.nr}<i>${PIL[w.r]}</i></span><span class="bly-hint-tekst">${esc(w.hint)}</span>
-      </button>
+      ${midt}
       <button class="bly-pil" data-h="neste" data-stille aria-label="Neste stikkord">›</button>
     </div>`;
   }
@@ -358,21 +372,26 @@
       <h3 class="bly-h3">Vannrett ${PIL.v}</h3>${liste("v")}
       <h3 class="bly-h3">Loddrett ${PIL.l}</h3>${liste("l")}
       <p class="hjelp">Tallet til høyre er antall bokstaver. Trykk på et stikkord for å hoppe dit.</p>
-      <button class="knapp-2" data-h="lukk-ark">Lukk</button>`;
+      <button class="knapp" data-h="lukk-ark">Lukk</button>`;
   }
 
+  // The four kinds of help as tiles. The little letter tiles are the icons: they show what each
+  // kind does to the grid (blue with a corner = shown, green = checked and right, red = wrong).
+  const merke = (b, type) => `<span class="bly-merke ${type}">${b}</span>`;
+  const HJELPVALG = [
+    ["vis-bokstav", "Vis én bokstav", merke("A", "vist"), ""],
+    ["vis-ord", "Vis hele ordet", merke("A", "vist") + merke("B", "vist") + merke("C", "vist"), ""],
+    ["sjekk-ord", "Sjekk ordet", merke("A", "rett") + merke("B", "feil") + merke("C", "rett"), ""],
+    ["sjekk-alt", "Sjekk hele krysset", merke("A", "rett") + merke("B", "rett") + merke("C", "feil") + merke("D", "rett"), " kryss"],
+  ];
   function hjelpArk(sp) {
     const w = sp.kryss.ord[valgtOrd(sp)];
     return `
       <h2 id="ark-tittel">Trenger du hjelp?</h2>
       <p class="ingress">Ordet du står på: <b>${w.nr} ${RETNING[w.r]}</b> – «${esc(w.hint)}».</p>
-      <div class="stabel">
-        ${R.ui.knapp2("Vis én bokstav", "vis-bokstav", { ikon: "🔤" })}
-        ${R.ui.knapp2("Sjekk ordet", "sjekk-ord", { ikon: "✅" })}
-        ${R.ui.knapp2("Vis hele ordet", "vis-ord", { ikon: "👀" })}
-        ${R.ui.knapp2("Sjekk hele krysset", "sjekk-alt", { ikon: "🔍" })}
+      <div class="bly-hjelpvalg">
+        ${HJELPVALG.map(([h, tekst, ikon, form]) => `<button class="bly-hjelpknapp" data-h="${h}"><span class="bly-merker${form}" aria-hidden="true">${ikon}</span>${tekst}</button>`).join("")}
       </div>
-      <p class="hjelp bly-fargeforklaring"><span class="bly-merke rett">A</span> grønn = sjekket og riktig · <span class="bly-merke vist">A</span> blå med hjørne = fått som hjelp · <span class="bly-merke feil">A</span> rød = feil</p>
       ${R.ui.lenkerad(R.ui.lenke("Gi opp og se løsningen", "vis-losning"), R.ui.lenke("Avbryt", "lukk-ark"))}`;
   }
 
@@ -391,8 +410,9 @@
 
   // Redraws the grid and the clue bar in place. Keyboard and screen-reader users keep their place:
   // focus in the grid follows the selected cell, focus on a clue-bar button comes back to it.
-  function oppdater(S) {
+  function oppdater(S, beholdVarsel) {
     const sp = aktiv(S);
+    if (!beholdVarsel) fjernVarsel(); // the next thing the player does brings the clue back
     const fokus = document.activeElement;
     const iNett = !!(fokus && fokus.closest && fokus.closest(".bly-rutenett"));
     const iLinje = fokus && fokus.closest && fokus.closest(".bly-hintlinje") ? fokus.dataset.h : null;
@@ -408,6 +428,23 @@
         /* ignore */
       }
     }
+  }
+
+  // A short message where the clue stands (the result of a check): it never covers the grid.
+  function fjernVarsel() {
+    clearTimeout(varselId);
+    varselId = null;
+    varsel = null;
+  }
+  function melding(S, tekst, type) {
+    fjernVarsel();
+    varsel = { tekst, type: type || "" };
+    oppdater(S, true);
+    R.si(tekst);
+    varselId = setTimeout(() => {
+      fjernVarsel();
+      if (R.S && R.S.skjerm === "kryss" && aktiv(R.S) && !ferdigNa) oppdater(R.S);
+    }, 3000);
   }
 
   function siOrd(sp) {
@@ -427,7 +464,9 @@
     const mellom = parseFloat(getComputedStyle(skjerm).rowGap) || 12;
     const dokk = R.$("#skjerm .dokk");
     const topp = bord.getBoundingClientRect().top + window.scrollY;
-    const hoyde = window.innerHeight - topp - (dokk ? dokk.offsetHeight : 0) - mellom - 2;
+    // A phone lying down: the keyboard sits beside the grid (see spill.css), so the grid gets the full height.
+    const ved = !!dokk && dokk.getBoundingClientRect().left > bord.getBoundingClientRect().left + 40;
+    const hoyde = window.innerHeight - topp - (ved ? 12 : (dokk ? dokk.offsetHeight : 0) + mellom) - 2;
     const bredde = bord.clientWidth;
     const s = Math.floor(Math.max(18, Math.min((bredde - gap * (k.b - 1)) / k.b, (hoyde - gap * (k.h - 1)) / k.h, 48)));
     nett.style.setProperty("--s", s + "px");
@@ -603,13 +642,13 @@
     const { tomme, feil } = telling(sp);
     if (tomme) return;
     if (!feil) return fullfor(S, sp, false);
-    if (sp.nestenVist) return R.toast("Noe er fortsatt feil");
+    if (sp.nestenVist) return melding(S, "Noe er fortsatt feil", "feil");
     sp.nestenVist = true;
     R.lagre();
     R.ark(`
       <h2 id="ark-tittel">Nesten!</h2>
       <p class="ingress">Alle rutene er fylt, men noe stemmer ikke helt.</p>
-      ${R.ui.knapp("Vis meg feilene", "sjekk-alt", { ikon: "🔍" })}
+      ${R.ui.knapp("Vis meg feilene", "sjekk-alt")}
       <button class="knapp-2" data-h="lukk-ark">Jeg finner dem selv</button>`);
   }
 
@@ -669,33 +708,20 @@
     );
   }
 
+  // The day's result as a row of pencils: one per word, a light bulb where letters were shown
+  // (a small square where the solution was shown after giving up). Never the answers.
+  // R.del adds the link.
   function delTekst(S) {
     const sp = S.dag;
-    const t = tema(sp.kryss.tema);
-    const linje = sp.gaOpp ? "✏️ Ga opp i dag – i morgen tar jeg det!" : `✏️ Løst på ${tidTekst(sp.tid)}${sp.hjelp ? ` med ${R.flertall(sp.hjelp, "hint", "hint")}` : " uten hjelp"}`;
-    return `Blyanten · Dagens kryss ${datoTekst(sp.nr)}${t ? `\n${t.ikon} ${t.navn}` : ""}\n${linje}\n\nrusj.no/blyanten`;
-  }
-
-  async function del(S) {
-    const tekst = delTekst(S);
-    try {
-      if (navigator.share) {
-        await navigator.share({ text: tekst });
-        return;
-      }
-    } catch (e) {
-      if (e && e.name === "AbortError") return;
-    }
-    try {
-      await navigator.clipboard.writeText(tekst);
-      R.toast("Kopiert! Lim inn der du vil dele.");
-    } catch (e) {
-      R.ark(`
-        <h2 id="ark-tittel">Del resultatet</h2>
-        <p class="ingress">Kopier teksten og lim den inn i en melding.</p>
-        <textarea class="tekstfelt bly-deletekst" readonly rows="${tekst.split("\n").length}" aria-label="Resultatet som tekst">${esc(tekst)}</textarea>
-        <button class="knapp" data-h="lukk-ark">Ferdig</button>`);
-    }
+    const k = sp.kryss;
+    const t = tema(k.tema);
+    const vist = new Set(sp.vist);
+    const rad = k.ord.map((w) => (cellerI(k, w).some((c) => vist.has(c)) ? (sp.gaOpp ? "▫️" : "💡") : "✏️")).join("");
+    const rekke = rekkeNa(S);
+    const linje = sp.gaOpp
+      ? "Ga opp i dag – i morgen tar jeg det!"
+      : `Løst på ${tidTekst(sp.tid)} ${sp.hjelp ? `med ${R.flertall(sp.hjelp, "hint", "hint")}` : "uten hjelp"}${rekke > 1 ? ` · 🔥 ${rekke} på rad` : ""}`;
+    return `Blyanten nr. ${nrFor(sp.nr)}${t ? ` · ${t.ikon} ${t.navn}` : ""}\n${rad}\n${linje}\n`;
   }
 
   // ---------- Countdown to tomorrow's crossword ----------
@@ -712,7 +738,8 @@
     else if (igjen > 3600 && R.dag(new Date(na + (igjen - 3600) * 1000)).nr !== dag) igjen -= 3600;
     return Math.max(1, igjen);
   }
-  const klokkeslett = (s) => `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  const to = (n) => String(n).padStart(2, "0");
+  const klokkeslett = (s) => `${to(Math.floor(s / 3600))}:${to(Math.floor((s % 3600) / 60))}:${to(s % 60)}`; // HH:MM:SS
   const nedtellingHtml = () => `<p class="bly-nedtelling">Nytt kryss om <b>${klokkeslett(sekunderTilNytt())}</b></p>`;
   function startNedtelling() {
     clearInterval(tikker);
@@ -829,7 +856,7 @@
       modus: "dag", // which crossword the screens show: "dag" or "fri"
       dag: null, // today's crossword in play: { nr, kryss, fylt, … }
       fri: null, // a crossword from «Flere kryss»
-      oppsett: { niva: "middels", temaer: TEMAER.map((t) => t.id) },
+      oppsett: { niva: "middels", temaer: [] }, // temaer: [] = all themes
       stat: { lost: 0, rekke: 0, best: 0, bestTid: null, sistLost: null, sistSpilt: null },
       friStat: { lost: 0 },
       sistTema: null,
@@ -843,8 +870,9 @@
       const o = S.oppsett && typeof S.oppsett === "object" ? S.oppsett : {};
       S.oppsett = {
         niva: NIVA[o.niva] ? o.niva : "middels",
-        temaer: Array.isArray(o.temaer) ? o.temaer.filter((id) => tema(id)) : TEMAER.map((t) => t.id),
+        temaer: Array.isArray(o.temaer) ? o.temaer.filter((id) => tema(id)) : [],
       };
+      if (S.oppsett.temaer.length >= TEMAER.length) S.oppsett.temaer = []; // every theme chosen = «Alle temaer»
       const st = S.stat && typeof S.stat === "object" ? S.stat : {};
       const heltall = (n) => (Number.isInteger(n) && n > 0 ? n : 0);
       S.stat = {
@@ -873,10 +901,17 @@
       tips: [
         "Står du fast? «Hjelp» viser en bokstav eller sjekker ordet ditt.",
         "Bokstavene der to ord krysser, hjelper deg med begge ordene.",
-        "Etter «Sjekk» blir riktige bokstaver grønne og feil bokstaver røde. Bokstaver du har fått som hjelp, er blå og har et blått hjørne.",
         "Dagens kryss er det samme for alle. Et nytt kryss kommer ved midnatt.",
         "«Flere kryss» lager nye kryss så lenge du vil – velg tema og nivå.",
       ],
+      get ekstraHtml() {
+        return `<h3>Fargene i krysset</h3>
+          <ul class="bly-farger">
+            <li>${merke("A", "rett")}Grønn bokstav: sjekket og riktig</li>
+            <li>${merke("A", "feil")}Rød rute: sjekket og feil</li>
+            <li>${merke("A", "vist")}Blå bokstav med hjørne: fått som hjelp</li>
+          </ul>`;
+      },
     },
 
     skjermer: {
@@ -886,9 +921,16 @@
           const d = S.dag && S.dag.nr === iDag() ? S.dag : null;
           const ferdig = !!(d && d.ferdig);
           const iGangD = !!(d && !d.ferdig && (harBokstaver(d) || d.tid > 0));
+          const fylte = iGangD ? d.kryss.ord.filter((_, wi) => ordFylt(d, wi)).length : 0;
           const hoved = ferdig
-            ? R.ui.knapp("Se dagens resultat", "se-resultat", { ikon: d.gaOpp ? "📖" : "🏆" })
-            : R.ui.knapp(iGangD ? "Fortsett dagens kryss" : "Dagens kryss", "dag", { ikon: iGangD ? "▶" : "✏️", variant: iGangD ? "" : "stor" });
+            ? R.ui.knapp("Se dagens resultat", "se-resultat")
+            : iGangD
+              ? // The progress moves to its own line on narrow phones (see .bly-fremdrift), never «… ·» alone at a line end.
+                R.ui.knapp("", "dag", {
+                  tekstHtml: `<span>Fortsett dagens kryss<span class="bly-fremdrift"><i> · </i>${fylte}/${d.kryss.ord.length} ord</span></span>`,
+                  etikett: `Fortsett dagens kryss, ${fylte} av ${d.kryss.ord.length} ord`,
+                })
+              : R.ui.knapp("Dagens kryss", "dag", { variant: "stor" });
           const fri = iGang(S.fri);
           const friTema = fri && tema(S.fri.kryss.tema);
           const rekke = rekkeNa(S);
@@ -897,7 +939,7 @@
             knapperHtml:
               hoved +
               (ferdig ? nedtellingHtml() : "") +
-              R.ui.knapp2(fri ? `Fortsett krysset${friTema ? ` · ${friTema.navn}` : ""}` : "Flere kryss", "fri", { ikon: fri ? "▶" : "🧩" }) +
+              R.ui.knapp2(fri ? `Fortsett krysset${friTema ? ` · ${friTema.navn}` : ""}` : "Flere kryss", "fri") +
               R.ui.lenkerad(fri ? R.ui.lenke("Nytt kryss", "oppsett") : "", R.ui.lenke("Statistikk", "statistikk"), R.ui.lenke("Slik spiller du", "regler")),
             merker: [
               [String(TEMAER.length), "temaer"],
@@ -915,9 +957,11 @@
         tittel: "Flere kryss",
         tilbake: "hjem",
         vis(S) {
-          const valgt = S.oppsett.temaer;
+          const valgt = S.oppsett.temaer; // [] = all themes
+          // A handful of themes first (and the ones already chosen); the rest are one tap away.
+          const vises = alleTemaer ? TEMAER : TEMAER.filter((t) => UTVALGTE.includes(t.id) || valgt.includes(t.id));
           return `
-            <h1 id="skjerm-tittel">Lag et kryss</h1>
+            <h1 id="skjerm-tittel">Gjør klart</h1>
             <section class="seksjon">
               <div class="seksjon-hode"><h2>Hvor vanskelig?</h2></div>
               ${R.ui.seg(
@@ -929,16 +973,20 @@
               <p class="hjelp">${esc(`${NIVA[S.oppsett.niva].navn}: ${NIVA[S.oppsett.niva].tekst}.`)}</p>
             </section>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Temaer</h2><span class="tall">${valgt.length === TEMAER.length ? "Alle" : `${valgt.length} valgt`}</span></div>
+              <div class="seksjon-hode"><h2>Tema</h2><span class="tall">${valgt.length ? `${valgt.length} valgt` : "Alle"}</span></div>
               ${R.ui.brikker(
                 "tema",
-                TEMAER.map((t) => ({ v: t.id, tekst: t.navn, ikon: esc(t.ikon) })),
-                valgt,
-                { alle: true, etikett: "Temaer" },
+                [{ v: "*", tekst: `Alle temaer (${TEMAER.length})`, ikon: "✨" }].concat(vises.map((t) => ({ v: t.id, tekst: t.navn, ikon: esc(t.ikon) }))),
+                valgt.length ? valgt : ["*"],
+                { etikett: "Tema" },
               )}
-              <p class="hjelp">Krysset lages av ett av temaene du har valgt.</p>
+              ${R.ui.lenkerad(R.ui.lenke(alleTemaer ? "Vis færre temaer" : `Vis alle ${TEMAER.length} temaene`, "alle-temaer"))}
+              <p class="hjelp">${valgt.length > 1 ? "Krysset lages av ett av temaene du har valgt." : valgt.length ? "Krysset lages av temaet du har valgt." : "Du får et kryss fra et tilfeldig tema."}</p>
             </section>
-            ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !valgt.length }))}`;
+            ${R.ui.dokk(R.ui.knapp("Start", "start"))}`;
+        },
+        ut() {
+          alleTemaer = false;
         },
       },
 
@@ -957,7 +1005,7 @@
               ${sp.ferdig ? "" : R.ui.knapp2("Hjelp", "hjelp", { variant: "liten", ikon: "💡" })}
             </div>
             <div class="bly-bord">${rutenett(sp)}</div>
-            ${R.ui.dokk(sp.ferdig ? R.ui.knapp("Se resultatet", "resultat", { ikon: sp.gaOpp ? "📖" : "🏆" }) : hintlinjeHtml(sp) + tastaturHtml())}`;
+            ${R.ui.dokk(sp.ferdig ? R.ui.knapp("Se resultatet", "resultat") : hintlinjeHtml(sp) + tastaturHtml())}`;
         },
         etter() {
           tilpass();
@@ -973,6 +1021,7 @@
         },
         ut() {
           ferdigNa = false;
+          fjernVarsel();
           R.slippVaken();
         },
       },
@@ -989,7 +1038,7 @@
           const tittel = sp.gaOpp ? "Her er løsningen" : "Krysset er løst!";
           const fakta = `<ul class="merker bly-fakta" aria-label="Resultat">
               <li>⏱ <b>${tidTekst(sp.tid)}</b></li>
-              <li>💡 <b>${sp.hjelp}</b> hint</li>
+              ${sp.gaOpp ? "<li>📖 Løsning vist</li>" : `<li>💡 <b>${sp.hjelp}</b> hint</li>`}
               ${t ? `<li>${esc(t.ikon)} ${esc(t.navn)}</li>` : ""}
             </ul>`;
           const banner = `
@@ -998,6 +1047,7 @@
               <p class="etikett">${esc(etikett)}</p>
               <h1 id="skjerm-tittel">${esc(tittel)}</h1>
               ${fakta}
+              ${fri ? "" : gammel ? `<p class="bly-nedtelling"><b>Et nytt kryss er klart!</b></p>` : nedtellingHtml()}
             </div>
             <div class="bly-losning">${rutenett(sp, { statisk: true, losning: true, etikett: "Løsningen" })}</div>
             ${sp.vist.length || sp.rett.length ? `<p class="hjelp bly-fargeforklaring">${sp.rett.length ? '<span class="bly-merke rett">A</span> grønn = sjekket og riktig' : ""}${sp.rett.length && sp.vist.length ? " · " : ""}${sp.vist.length ? '<span class="bly-merke vist">A</span> blå = fått som hjelp' : ""}</p>` : ""}`;
@@ -1006,17 +1056,16 @@
             return `${banner}
               ${n ? `<p class="hjelp">Du har løst ${esc(R.flertall(n, "kryss", "kryss"))} fra «Flere kryss».</p>` : ""}
               ${R.ui.flereSpill(FLERE)}
-              ${R.ui.dokk(R.ui.knapp("Nytt kryss", "igjen", { ikon: "🧩" }), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "oppsett"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+              ${R.ui.dokk(R.ui.knapp("Nytt kryss", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "oppsett"), '<a class="lenke" href="/">Alle spill</a>'))}`;
           }
           return `${banner}
-            ${gammel ? `<p class="bly-nedtelling"><b>Et nytt kryss er klart!</b></p>` : nedtellingHtml()}
             <section class="seksjon bly-stat" aria-labelledby="bly-stat-tittel">
               <h2 id="bly-stat-tittel">Dagens kryss</h2>
               ${statistikkHtml(S)}
             </section>
             ${R.ui.flereSpill(FLERE)}
             ${R.ui.dokk(
-              gammel ? R.ui.knapp("Løs dagens kryss", "dag", { ikon: "✏️" }) : R.ui.knapp("Del resultatet", "del", { ikon: "📤" }),
+              gammel ? R.ui.knapp("Løs dagens kryss", "dag") : R.ui.knapp("Del resultatet", "del"),
               R.ui.lenkerad(R.ui.lenke("Løs flere kryss", "fri"), '<a class="lenke" href="/">Alle spill</a>'),
             )}`;
         },
@@ -1074,13 +1123,18 @@
       },
       tema(el, e, S) {
         const v = el.dataset.v;
-        const alle = TEMAER.map((t) => t.id);
-        if (v === "*") S.oppsett.temaer = S.oppsett.temaer.length === alle.length ? [] : alle;
-        else if (tema(v)) S.oppsett.temaer = S.oppsett.temaer.includes(v) ? S.oppsett.temaer.filter((x) => x !== v) : alle.filter((x) => x === v || S.oppsett.temaer.includes(x));
+        const valgt = S.oppsett.temaer;
+        // «Alle temaer» is the empty list; taking away the last theme (or choosing every one) gives all again.
+        if (v === "*") S.oppsett.temaer = [];
+        else if (tema(v)) S.oppsett.temaer = valgt.includes(v) ? valgt.filter((x) => x !== v) : TEMAER.map((t) => t.id).filter((x) => x === v || valgt.includes(x));
+        if (S.oppsett.temaer.length >= TEMAER.length) S.oppsett.temaer = [];
+        R.vis();
+      },
+      "alle-temaer"() {
+        alleTemaer = !alleTemaer;
         R.vis();
       },
       async start(el, e, S) {
-        if (!S.oppsett.temaer.length) return;
         const fortsatt = R.vakt();
         if (!(await R.bekreftNytt(iGang(S.fri))) || !fortsatt()) return;
         const k = nyttFriKryss(S);
@@ -1117,7 +1171,9 @@
       },
       hintliste(el, e, S) {
         const sp = aktiv(S);
-        if (sp && !sp.ferdig) R.ark(hintlisteArk(sp));
+        if (!sp || sp.ferdig) return;
+        if (varsel) oppdater(S); // the clue comes back under the sheet
+        R.ark(hintlisteArk(sp));
       },
       "velg-ord"(el, e, S) {
         const sp = aktiv(S);
@@ -1142,7 +1198,7 @@
         // The selected cell, or else the first cell in the word that isn't right yet.
         const c = [sp.valgt.c, ...cs].find((x) => sp.fylt[x] !== I[x].b);
         R.lukkArk();
-        if (c == null) return R.toast("Ordet er allerede riktig!");
+        if (c == null) return melding(S, "Ordet er allerede riktig!", "rett");
         sp.fylt[c] = I[c].b;
         if (!sp.vist.includes(c)) sp.vist.push(c);
         sp.feil = sp.feil.filter((x) => x !== c);
@@ -1161,7 +1217,7 @@
         const wi = valgtOrd(sp);
         const cs = cellerI(sp.kryss, sp.kryss.ord[wi]).filter((c) => sp.fylt[c] !== I[c].b);
         R.lukkArk();
-        if (!cs.length) return R.toast("Ordet er allerede riktig!");
+        if (!cs.length) return melding(S, "Ordet er allerede riktig!", "rett");
         cs.forEach((c) => {
           sp.fylt[c] = I[c].b;
           if (!sp.vist.includes(c)) sp.vist.push(c);
@@ -1200,7 +1256,7 @@
           <button class="knapp" data-h="lukk-ark">Lukk</button>`);
       },
       del(el, e, S) {
-        if (S.dag && S.dag.ferdig) return del(S);
+        if (S.dag && S.dag.ferdig) return R.del("Blyanten", delTekst(S), DEL_URL);
       },
     }),
   });
@@ -1210,19 +1266,18 @@
     const I = info(sp.kryss);
     const fylte = celler.filter((c) => sp.fylt[c]);
     R.lukkArk();
-    if (!fylte.length) return R.toast(`Skriv noe først, så sjekker vi ${hva}`);
+    if (!fylte.length) return melding(S, `Skriv noe først, så sjekker vi ${hva}`);
     const feil = fylte.filter((c) => sp.fylt[c] !== I[c].b);
     sp.feil = [...new Set(sp.feil.concat(feil))];
     sp.rett = [...new Set(sp.rett.concat(fylte.filter((c) => sp.fylt[c] === I[c].b)))];
     sp.hjelp += 1;
-    oppdater(S);
     R.lagre();
     if (feil.length) {
       R.lyd.feil();
-      R.toast(feil.length === 1 ? "Én bokstav er feil" : `${feil.length} bokstaver er feil`);
+      melding(S, feil.length === 1 ? "Én bokstav er feil" : `${feil.length} bokstaver er feil`, "feil");
     } else {
       R.lyd.riktig();
-      R.toast(fylte.length < celler.length ? "Riktig så langt!" : "Alt riktig!");
+      melding(S, fylte.length < celler.length ? "Riktig så langt!" : "Alt riktig!", "rett");
     }
   }
 })();

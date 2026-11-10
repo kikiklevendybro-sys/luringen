@@ -9,5 +9,5 @@
   "mobiler": "en",
   "tagger": ["daglig", "ord", "alene", "tenke"],
   "rekkefolge": 22,
-  "sok": ["dagens ord", "ordspill", "fem bokstaver", "wordle"]
+  "sok": ["dagens ord", "ordspill", "fem bokstaver", "gjett ordet", "ordgåte"]
 }

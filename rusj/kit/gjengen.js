@@ -45,7 +45,6 @@
   const HIMMEL = "#59b9ff";
   const MYNT = "#3de3b0";
   const METALL = "#b8c2d6";
-  const GRONN = "#6fd46a"; // "right letter" green
   const MESSING = "#f0bd4f"; // brass
   const n1 = (v) => Math.round(v * 10) / 10;
 
@@ -459,7 +458,7 @@
         ${strek("M21 38 Q38 29 56 42M99 38 Q82 29 64 42", 5.5)}
         ${form("M52.5 66 Q60 62 67.5 66 L60 80Z", "#ff9f3a", 3.5)}
         ${kinn(84)}
-        ${flis(35, 101, "O", GRONN, -9)}${flis(60, 103, "R", LAMPE)}${flis(85, 101, "D", GRONN, 9)}`,
+        ${/* the game's own tiles: solid mint = right place, yellow ring = elsewhere */ ""}${flis(35, 101, "O", MYNT, -9)}<rect x="49" y="92" width="22" height="22" rx="4.5" fill="#2a1a4a" stroke="${B}" stroke-width="4"/><circle cx="60" cy="103" r="7.6" fill="none" stroke="${LAMPE}" stroke-width="2.6"/>${tekst(60, 107.2, "R", 11.5, "#fff1dd")}${flis(85, 101, "D", MYNT, 9)}`,
     },
 
     // Nissen (Secret Santa): a Norwegian nisse, red cap and grey beard.

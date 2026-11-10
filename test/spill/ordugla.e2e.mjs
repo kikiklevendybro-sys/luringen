@@ -1,9 +1,10 @@
 // Ordugla: an unfinished word from yesterday is dropped for today's word; invalid guesses (too
 // short, not a word, the same word twice) shake and don't count; guesses typed on the screen and on
 // a real keyboard; a reload keeps the typed letters; back + «Fortsett»; the right word wins (the
-// streak goes on from yesterday), the result screen shows statistics and shares squares without the
-// word; home shows the countdown. Then practice: six wrong guesses show the word, «Gi opp» on the
-// next one, and the colour-blind palette.
+// streak goes on from yesterday) without the board moving, the result screen shows the numbers and
+// the countdown and shares owls and moons through R.del (never the word, never coloured squares);
+// home shows the countdown. Then practice: six wrong guesses show the word, «Gi opp» on the next
+// one, and the rules explain rusj's own tile language (solid mint, yellow ring, flat and dim).
 export default async function (t) {
   const pause = () => t.sov(420); // taps right after a screen change are ignored on purpose
   const tilstand = () => t.tilstand();
@@ -16,10 +17,13 @@ export default async function (t) {
     await t.klikk('.ou-tast[data-v="gjett"]', 60);
     // Done when the guess is saved and the next row (or the end) is drawn after the flip.
     await t.vent(`(() => { const s = JSON.parse(localStorage.getItem("rusj.ordugla.v1")); const sp = s[s.modus]; return sp.gjett.length === ${for_ + 1}; })()`, 4000);
-    await t.vent(`!!document.querySelector('.ou-rad.na[data-rad="${for_ + 1}"]') || !!document.querySelector('.skjerm-resultat') || !document.querySelector('.ou-tastatur')`, 6000);
+    await t.vent(`!!document.querySelector('.ou-rad.na[data-rad="${for_ + 1}"]') || !!document.querySelector('.skjerm-resultat') || !!document.querySelector('.ou-tastatur.av')`, 6000);
     await t.sov(120);
   };
   const toast = () => t.js(`document.querySelector("#toast.vis") ? document.querySelector("#toast").textContent : ""`);
+  // Messages on the board stand in the helper line under it, never in a toast on top of it.
+  const varsel = () => t.js(`document.querySelector(".ou-hjelp .ou-varsel") ? document.querySelector(".ou-hjelp .ou-varsel").textContent : ""`);
+  const brettTopp = () => t.js("Math.round(document.querySelector('.ou-brett').getBoundingClientRect().top)");
   // Words that are allowed but are not the answer.
   const andreOrd = (svar, n) => t.js(`window.RUSJ_DATA.svar.dagens.filter((o) => o !== ${JSON.stringify(svar)} && new Set(o).size === 5).slice(40, 40 + ${n})`);
   const tast = async (key) => {
@@ -62,10 +66,11 @@ export default async function (t) {
   // Too short, not a word, then deleting
   await skriv("kat");
   await t.klikk('.ou-tast[data-v="gjett"]', 80);
-  t.sjekk(/For få bokstaver/.test(await toast()), "Mangler «For få bokstaver»");
+  t.sjekk(/For få bokstaver/.test(await varsel()), "Mangler «For få bokstaver» i hjelpelinja");
+  t.sjekk((await toast()) === "", "Meldinger på brettet skal ikke komme som toast");
   await skriv("qq");
   await t.klikk('.ou-tast[data-v="gjett"]', 80);
-  t.sjekk(/Ikke i ordlista/.test(await toast()), "Mangler «Ikke i ordlista»");
+  t.sjekk(/Ikke i ordlista/.test(await varsel()), "Mangler «Ikke i ordlista» i hjelpelinja");
   t.sjekk(await t.finnes(".ou-rad.na.risting"), "Raden rister ikke ved ugyldig ord");
   await t.bilde("ikke-i-ordlista");
   for (let i = 0; i < 5; i++) await t.klikk('.ou-tast[data-v="slett"]', 25);
@@ -81,11 +86,12 @@ export default async function (t) {
   await gjett(ord1);
   t.sjekk((await t.antall('.ou-rad[data-rad="0"] .ou-rute.rett, .ou-rad[data-rad="0"] .ou-rute.med, .ou-rad[data-rad="0"] .ou-rute.ikke')) === 5, "Første forsøk ble ikke farget");
   t.sjekk((await t.antall(".ou-tast.rett, .ou-tast.med, .ou-tast.ikke")) >= 3, "Tastaturet ble ikke farget");
+  t.sjekk((await t.antall(".ou-hjelp .ou-forklaring i")) === 3, "Forklaringen av rutene vises ikke under brettet etter første forsøk");
   await pause();
   // The same word twice
   await skriv(ord1);
   await t.klikk('.ou-tast[data-v="gjett"]', 80);
-  t.sjekk(/prøvd/.test(await toast()) && (await tilstand()).dag.gjett.length === 1, "Samme ord to ganger skal avvises");
+  t.sjekk(/prøvd/.test(await varsel()) && (await tilstand()).dag.gjett.length === 1, "Samme ord to ganger skal avvises");
   for (let i = 0; i < 5; i++) await t.klikk('.ou-tast[data-v="slett"]', 25);
 
   // A real keyboard: letters, Backspace and Enter
@@ -118,9 +124,14 @@ export default async function (t) {
   await pause();
 
   // The right word wins
+  const toppFor = await brettTopp();
   await skriv(svar);
   await t.klikk('.ou-tast[data-v="gjett"]', 60);
-  await t.sov(1500);
+  // The celebration: the keyboard rests in place, the praise stands in the helper line, nothing jumps.
+  await t.vent("document.querySelector('.ou-tastatur.av')", 5000);
+  t.sjekk(/Kjempebra!/.test(await varsel()), `Rosen skal stå i hjelpelinja (${await varsel()})`);
+  t.sjekk((await brettTopp()) === toppFor, `Brettet flyttet seg da ordet ble funnet (${toppFor} → ${await brettTopp()})`);
+  await t.sov(700);
   await t.bilde("vunnet-brett");
   await t.vent("document.querySelector('.skjerm-resultat')", 8000);
   await t.sov(600);
@@ -132,11 +143,17 @@ export default async function (t) {
   t.sjekk(s._aktiv === false, "Et ferdig dagens ord skal ikke være merket som pågående");
   t.sjekk(/Du fant ordet på 3 forsøk/.test(await t.tekst("#skjerm h1")), `Feil overskrift: «${await t.tekst("#skjerm h1")}»`);
   t.sjekk((await t.antall(".ou-mini .ou-rad")) === 3, "Forsøkene vises ikke på resultatet");
-  t.sjekk(await t.finnes(".ou-fordeling li.na"), "Dagens antall forsøk er ikke uthevet i statistikken");
+  t.sjekk((await t.antall(".skjerm-resultat .ou-tall > div")) === 4 && !(await t.finnes(".skjerm-resultat .ou-fordeling")), "Resultatet skal vise de fire tallene, og stolpene skal ligge i Statistikk-arket");
   t.sjekk(await t.finnes('#skjerm a.lenke[href="/"]'), "Mangler «Alle spill» på resultatet");
+  t.sjekk((await t.tekst(".dokk .knapp")).trim() === "Del resultatet", `Hovedknappen på dagens resultat skal være «Del resultatet» (${await t.tekst(".dokk .knapp")})`);
+  t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".skjerm-resultat .ou-nedtelling b")), "Nedtellingen (TT:MM:SS) mangler på resultatet");
   await t.bilde("resultat", true);
+  await t.klikk('.ou-stat [data-h="statistikk"]');
+  t.sjekk(await t.finnes("#ark:not([hidden]) .ou-fordeling li.na"), "Dagens antall forsøk er ikke uthevet i statistikken");
+  await t.bilde("statistikk");
+  await t.klikk('#ark [data-h="lukk-ark"]');
 
-  // Share: squares and the address, never the word
+  // Share: owls and moons and the address through R.del – never the word, never coloured squares
   await t.js(`(() => {
     window.__delt = null;
     Object.defineProperty(navigator, "share", { value: undefined, configurable: true });
@@ -144,19 +161,21 @@ export default async function (t) {
   })()`);
   await t.klikk('[data-h="del"]', 300);
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && /^Ordugla nr\. \d+ · 3\/6/.test(delt) && /rusj\.no\/ordugla/.test(delt) && (delt.match(/🟩/g) || []).length >= 5, `Delingsteksten er feil: ${delt}`);
+  t.sjekk(delt && /^Ordugla nr\. \d+ · 3\/6 · 🔥 4 på rad\n\n/.test(delt) && /\n🦉🦉🦉🦉🦉\n\nhttps:\/\/rusj\.no\/ordugla\/$/.test(delt), `Delingsteksten er feil: ${delt}`);
+  const delRader = delt ? delt.split("\n").slice(2, 5) : [];
+  t.sjekk(delRader.length === 3 && delRader.every((r) => /^(?:🦉|🌙|🌑){5}$/u.test(r)), `Delingsteksten skal ha tre rader med ugler og måner: ${delt}`);
+  t.sjekk(delt && !/[🟩🟨🟧🟦⬛⬜]/u.test(delt), "Delingsteksten skal ikke bruke fargede firkanter");
   t.sjekk(delt && !delt.toLowerCase().includes(svar), "Delingsteksten røper ordet");
   t.sjekk(/Kopiert/.test(await toast()), "Mangler «Kopiert» etter deling");
 
   // Home: today's result and the countdown
   await t.klikk("#tilbake");
   t.sjekk(await t.finnes('.hjem-knapper [data-h="se-resultat"]'), "Hjem viser ikke «Se dagens resultat»");
-  t.sjekk(/^\d+:\d\d:\d\d$/.test(await t.tekst(".ou-nedtelling b")), "Nedtellingen til neste ord vises ikke");
+  t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".ou-nedtelling b")), "Nedtellingen til neste ord vises ikke");
   t.sjekk(/4/.test(await t.tekst(".merker")), "Rekka på hjem-skjermen ble ikke 4");
   await t.bilde("hjem-ferdig");
   await t.klikk('[data-h="statistikk"]');
   t.sjekk(await t.finnes("#ark:not([hidden]) .ou-fordeling"), "Statistikken vises ikke");
-  await t.bilde("statistikk");
   await t.klikk('#ark [data-h="lukk-ark"]');
   await t.klikk('[data-h="se-resultat"]');
   t.sjekk(await t.finnes(".skjerm-resultat"), "«Se dagens resultat» viser ikke resultatet");
@@ -195,20 +214,21 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-resultat')", 6000);
   t.sjekk((await tilstand()).ovStat.spilt === 2, "«Gi opp» telte ikke som spilt øveord");
 
-  // Colour-blind palette from the rules sheet
+  // The rules explain rusj's own tile language: solid mint, a yellow ring on a dark tile, flat and dim
   await t.klikk("#reglerknapp");
-  await t.klikk('#ark [data-h="kontrast"]');
-  t.sjekk(await t.js("document.documentElement.classList.contains('ou-kontrast')"), "Fargeblind-fargene ble ikke slått på");
-  t.sjekk(/Oransje/.test(await t.tekst("#ark .steg")), "Reglene forklarer ikke de nye fargene");
-  await t.bilde("regler-kontrast");
+  t.sjekk(!(await t.finnes('#ark [data-h="kontrast"]')), "Fargeblind-valget skal være borte (rutene skilles på form)");
+  t.sjekk(/mintgrønn rute/.test(await t.tekst("#ark .steg")) && /Gul ring/.test(await t.tekst("#ark .steg")), "Reglene forklarer ikke rutene");
+  const stil = await t.js(`(() => {
+    const cs = (sel, p) => { const el = document.querySelector(sel); return el ? getComputedStyle(el, p) : null; };
+    const rett = cs("#ark .ou-eksempel .ou-rute.rett"), med = cs("#ark .ou-eksempel .ou-rute.med"), ring = cs("#ark .ou-eksempel .ou-rute.med", "::before"), ikke = cs("#ark .ou-eksempel .ou-rute.ikke");
+    return rett && med && ring && ikke ? { rett: rett.backgroundColor, med: med.backgroundColor, ring: ring.borderTopColor, rund: ring.borderTopLeftRadius, bredde: parseFloat(ring.borderTopWidth), ikke: ikke.borderTopColor } : null;
+  })()`);
+  t.sjekk(stil && stil.rett === "rgb(61, 227, 176)", `Riktig plass skal være en hel mynterute: ${JSON.stringify(stil)}`);
+  t.sjekk(stil && stil.ring === "rgb(255, 210, 63)" && stil.rund === "50%" && stil.bredde >= 3 && stil.med !== stil.ring, `Annet sted skal være en mørk rute med tykk gul ring: ${JSON.stringify(stil)}`);
+  t.sjekk(stil && /rgba\(0, 0, 0, 0\)|transparent/.test(stil.ikke), `Finnes ikke skal være en flat rute uten kant: ${JSON.stringify(stil)}`);
+  await t.bilde("regler");
+  await t.js("document.querySelector('#ark .ou-eksempel').scrollIntoView({ block: 'start' })");
+  await t.sov(200);
+  await t.bilde("regler-eksempler");
   await t.klikk('#ark [data-h="lukk-ark"]');
-  await t.klikk('[data-h="nytt-ov"]');
-  await t.vent("document.querySelector('.ou-tastatur')");
-  await pause();
-  const [ord5, ord6] = await andreOrd((await tilstand()).ov.ord, 2);
-  await gjett(ord5);
-  await gjett(ord6);
-  await t.bilde("brett-kontrast");
-  await t.lastSide(t.side, "document.querySelector('.ou-brett')");
-  t.sjekk(await t.js("document.documentElement.classList.contains('ou-kontrast')"), "Fargeblind-fargene ble ikke husket");
 }
