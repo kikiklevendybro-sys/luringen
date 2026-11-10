@@ -18,7 +18,8 @@ const BILDER = process.argv[2] || join(tmpdir(), "luringen-e2e");
 mkdirSync(BILDER, { recursive: true });
 
 // Serve dist/web over http, like a real website (enables the share link and the QR code).
-const WEB = join(ROT, "dist/web");
+// RUSJ_WEB=<dir> tests another build than dist/web (so a test run never has to rebuild dist/).
+const WEB = process.env.RUSJ_WEB ? join(ROT, process.env.RUSJ_WEB) : join(ROT, "dist/web");
 const TYPER = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
 const tjener = createServer((req, res) => {
   const sti = decodeURIComponent(new URL(req.url, "http://lokal").pathname);
@@ -50,6 +51,9 @@ const chrome = spawn(CHROME, [
 ], { stdio: "ignore" });
 
 const feil = [];
+const sjekk = (ok, melding) => {
+  if (!ok) feil.push(melding);
+};
 let ws;
 let neste = 0;
 const ventende = new Map();
@@ -241,7 +245,11 @@ try {
 
   // ---------- Each on their own phone: host ----------
   await klikk('[data-h="tilbake"]');
+  // A game is in progress: «Fortsett» is the main button, and «Nytt spill» asks before the points go.
+  sjekk(await js(`!!document.querySelector('.hjem-knapper .knapp[data-h="fortsett"]') && !!document.querySelector('.hjem-knapper .knapp-2[data-h="nytt"]')`), "Hjem viser ikke «Fortsett» først og «Nytt spill» som nummer to mens et spill pågår");
   await klikk('[data-h="nytt"]');
+  sjekk(/Starte nytt spill/.test(await js(`document.querySelector("#ark-tittel")?.textContent || ""`)), "«Nytt spill» spør ikke før poengene slettes");
+  await klikk('[data-h="ark-svar"][data-v="ja"]');
   await klikk('[data-h="modus"][data-v="hver"]');
   for (let i = 0; i < 2; i++) await klikk('[data-h="spillere"][data-d="1"]');
   await klikk('[data-h="niva"][data-v="3"]');

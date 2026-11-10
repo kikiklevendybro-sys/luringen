@@ -384,8 +384,7 @@
 
   function visHjem() {
     const pagaende = S.spill
-      ? `<button class="knapp-2" data-h="fortsett">Fortsett spillet · runde ${S.spill.runde}</button>
-         <button class="lenke" data-h="avslutt-spill">Avslutt spillet og start på nytt</button>`
+      ? `<button class="knapp-2" data-h="nytt">Nytt spill</button>`
       : S.gjest && S.gjest.plass != null
         ? `<button class="knapp-2" data-h="fortsett-gjest">Tilbake til kortet ditt</button>`
         : "";
@@ -396,7 +395,7 @@
         <p class="slagord">Alle får det hemmelige ordet.<br><em>Nesten alle.</em></p>
       </div>
       <div class="hjem-knapper">
-        <button class="knapp" data-h="nytt">Start spill</button>
+        ${S.spill ? `<button class="knapp" data-h="fortsett">Fortsett spillet · runde ${S.spill.runde}</button>` : `<button class="knapp" data-h="nytt">Start spill</button>`}
         ${pagaende}
         <button class="knapp-2" data-h="bli-med">Bli med i et spill</button>
         <button class="lenke" data-h="regler">Slik spiller du</button>
@@ -1008,6 +1007,9 @@
 
   function startSpill() {
     const o = S.oppsett;
+    // A game already in progress means we came here through «Endre oppsett»: keep the points
+    // (new players start at 0). A fresh start goes through «Nytt spill», which asks first.
+    const gamle = S.spill && Array.isArray(S.spill.poeng) ? S.spill.poeng : null;
     const oppsett = {
       spillere: o.spillere,
       luringer: Math.min(o.luringer, K.maksLuringer(o.spillere)),
@@ -1021,7 +1023,7 @@
       tid: o.tid,
       runde: 0,
       posisjon: -1,
-      poeng: new Array(o.spillere).fill(0),
+      poeng: Array.from({ length: o.spillere }, (_, i) => (gamle && gamle[i]) || 0),
       vertPlass: null,
       kode: o.modus === "hver" ? K.lagKode(oppsett, DATA) : null,
       datahash: DATA.hash,
@@ -1281,7 +1283,15 @@
       lagre();
       if (S.lyd) Lyd.klikk();
     },
-    nytt: () => gaTil("oppsett"),
+    nytt: async () => {
+      if (S.spill) {
+        const ok = await bekreft("Starte nytt spill?", "Poengene i spillet som pågår, slettes. Navn og innstillinger beholdes.", "Nytt spill", "Avbryt");
+        if (!ok) return;
+        S.spill = null;
+        lagre();
+      }
+      gaTil("oppsett");
+    },
     "bli-med": () => gaTil("bli-med"),
     regler: () => {
       S.reglerFra = S.skjerm;
