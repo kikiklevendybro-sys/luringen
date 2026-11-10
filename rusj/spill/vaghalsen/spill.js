@@ -722,6 +722,8 @@
                   sp.angre ? R.ui.lenke("Angre", "angre") : "",
                   sp.modus === "rekke" ? R.ui.lenke("Hopp over", "hopp") : R.ui.lenke("Snurr på nytt", "snurr-igjen"),
                   R.ui.lenke("Poeng", "poeng"),
+                  // «På rekke og rad» never shows the spin screen, so the way to Kåringen is here.
+                  sp.modus === "rekke" ? R.ui.lenke("Avslutt", "kaaring") : "",
                 ),
               )
             : R.ui.dokk(

@@ -63,11 +63,16 @@
   font: 900 clamp(1.28rem, 5.6vw, 1.6rem) / 1.14 var(--font-display);
   letter-spacing: -0.01em;
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 /* ---------- The ring ---------- */
 
 .ti-ring {
+  /* The width of the middle column, so a long name there can shrink to fit on one line */
+  --midt-b: calc((min(100vw, 480px) - 48px) * 0.29);
+  --inn: 0px; /* how far an answer leans in towards the middle */
+  --dyp: 4px; /* the thickness of the answers' lower edge */
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(96px, 0.82fr) minmax(0, 1fr);
@@ -148,7 +153,6 @@
 }
 
 .ti-brikke {
-  --inn: 0px;
   position: relative;
   z-index: 1;
   display: grid;
@@ -161,12 +165,14 @@
   border: 0;
   border-radius: 16px;
   background: var(--papir);
-  box-shadow: 0 4px 0 var(--papir-2), 0 10px 20px var(--skygge);
+  box-shadow: 0 var(--dyp) 0 var(--papir-2), 0 10px 20px var(--skygge);
   color: var(--blekk);
+  /* One size for all ten answers: long words break at the soft hyphens in the cards */
   font: 800 0.95rem/1.12 var(--font-display);
   text-align: center;
+  text-wrap: balance;
   overflow-wrap: anywhere;
-  hyphens: auto;
+  hyphens: manual;
   cursor: pointer;
   transform: translateX(var(--inn));
   transition: transform 0.16s cubic-bezier(0.2, 1.4, 0.4, 1), background-color 0.16s, box-shadow 0.16s;
@@ -177,22 +183,10 @@ button.ti-brikke:active {
   box-shadow: 0 1px 0 var(--papir-2), 0 6px 12px var(--skygge);
 }
 
-.ti-brikke.middels {
-  font-size: 0.86rem;
-}
-
-.ti-brikke.lang {
-  font-size: 0.78rem;
-}
-
-.ti-brikke.ekstra {
-  font-size: 0.7rem;
-}
-
 .ti-brikke[aria-pressed="true"] {
   z-index: 2;
   background: var(--aksent);
-  box-shadow: 0 4px 0 var(--aksent-dyp), 0 0 0 3px var(--papir), 0 14px 30px var(--skygge);
+  box-shadow: 0 var(--dyp) 0 var(--aksent-dyp), 0 0 0 3px var(--papir), 0 14px 30px var(--skygge);
   transform: translateX(var(--inn)) scale(1.07);
 }
 
@@ -205,25 +199,18 @@ button.ti-brikke:active {
 }
 
 .ti-b-tekst {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   line-height: 1.1;
   opacity: 0.85;
 }
 
-.ti-b-tekst.middels {
-  font-size: 0.76rem;
-}
-
-.ti-b-tekst.lang {
-  font-size: 0.7rem;
-}
-
-.ti-b-tekst.ekstra {
-  font-size: 0.64rem;
-}
-
 .ti-b-svar {
   font: 900 1rem/1.05 var(--font-display);
+}
+
+/* «Riktig:» in front of the answer on a wrong guess */
+.ti-b-svar small {
+  font: 800 0.74rem/1 var(--font-display);
 }
 
 .ti-b-hvem {
@@ -239,15 +226,40 @@ button.ti-brikke:active {
   box-shadow: 0 0 0 2px var(--natt);
 }
 
-.ti-brikke.riktig {
-  background: var(--mynte);
-  box-shadow: 0 4px 0 var(--mynte-dyp), 0 10px 20px var(--skygge);
+/* ✓ or ✕ in the other corner, so the colour is never the only sign */
+.ti-b-merke {
+  position: absolute;
+  top: -8px;
+  left: -6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--blekk);
+  box-shadow: 0 0 0 2px var(--natt);
+  color: var(--mynte);
+  font: 900 0.78rem/1 var(--font-display);
 }
 
+.ti-brikke.feil .ti-b-merke {
+  color: var(--rod);
+}
+
+.ti-brikke.riktig {
+  background: var(--mynte);
+  box-shadow: 0 var(--dyp) 0 var(--mynte-dyp), 0 10px 20px var(--skygge);
+}
+
+/* Dark text on the red (cream on red is too weak to read) */
 .ti-brikke.feil {
   background: var(--rod);
-  box-shadow: 0 4px 0 var(--rod-dyp), 0 10px 20px var(--skygge);
-  color: var(--papir);
+  box-shadow: 0 var(--dyp) 0 var(--rod-dyp), 0 10px 20px var(--skygge);
+  color: var(--blekk);
+}
+
+.ti-brikke.feil .ti-b-tekst {
+  opacity: 1;
 }
 
 .ti-brikke.fasit {
@@ -321,11 +333,14 @@ button.ti-brikke:active {
   }
 }
 
+/* The name shrinks with its length (--n) so it stays on one line; a very long one wraps evenly. */
 .ti-midt-navn {
   max-width: 100%;
   overflow: hidden;
   font: 900 1rem/1.15 var(--font-display);
+  font-size: clamp(var(--navn-min, 0.74rem), calc(var(--midt-b) / (var(--n, 8) * 0.62)), 1rem);
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 /* The pot: points won this round, lost on a wrong answer */
@@ -363,24 +378,46 @@ button.ti-brikke:active {
   color: var(--tekst-3);
 }
 
+/* A right answer: the pot bumps as it counts up. A wrong one: it shakes as it bursts. */
+.ti-potte.ti-hopp {
+  animation: ti-pott-hopp 0.55s cubic-bezier(0.2, 1.6, 0.4, 1) 0.1s both;
+}
+
+@keyframes ti-pott-hopp {
+  0% {
+    transform: scale(0.9);
+  }
+  45% {
+    transform: scale(1.3);
+  }
+}
+
+.ti-potte.ti-rist {
+  animation: ti-pott-rist 0.45s ease-in-out both;
+}
+
+@keyframes ti-pott-rist {
+  20% {
+    transform: translateX(-6px) rotate(-5deg);
+  }
+  40% {
+    transform: translateX(6px) rotate(5deg);
+  }
+  60% {
+    transform: translateX(-4px) rotate(-3deg);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
 .ti-midt-valgt {
   max-width: 100%;
   color: var(--aksent);
-  font: 900 1.12rem/1.1 var(--font-display);
+  font: 900 0.98rem/1.12 var(--font-display);
+  text-wrap: balance;
   overflow-wrap: anywhere;
-  hyphens: auto;
-}
-
-.ti-midt-valgt.middels {
-  font-size: 1rem;
-}
-
-.ti-midt-valgt.lang {
-  font-size: 0.88rem;
-}
-
-.ti-midt-valgt.ekstra {
-  font-size: 0.78rem;
+  hyphens: manual;
 }
 
 .ti-midt-liten {
@@ -416,7 +453,11 @@ button.ti-brikke:active {
 }
 
 .ti-utfall span {
-  font: 900 0.92rem/1.15 var(--font-display);
+  font: 900 0.98rem/1.15 var(--font-display);
+}
+
+.ti-utfall.riktig b {
+  font-size: 2.1rem;
 }
 
 .ti-utfall.riktig b,
@@ -608,6 +649,105 @@ button.ti-brikke:active {
   font-family: var(--font-display);
 }
 
+/* ---------- The award next to the winner ---------- */
+
+.ti-pris {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.ti-pris-ikon {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.ti-pris-navn {
+  font: 900 1.4rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.ti-pris p:last-child {
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+/* ---------- Setup: everything but the players folds into «Flere valg» ---------- */
+
+.ti-mer {
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.ti-mer-knapp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 62px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: none;
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ti-mer-knapp > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ti-mer-knapp b {
+  font: 900 1.1rem/1.1 var(--font-display);
+}
+
+.ti-mer-knapp small {
+  color: var(--tekst-3);
+  font-size: 0.85rem;
+  text-wrap: balance; /* no lonely last word on a narrow phone */
+}
+
+.ti-mer-knapp i {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin: -4px 4px 0 0;
+  border-right: 3px solid var(--tekst-2);
+  border-bottom: 3px solid var(--tekst-2);
+  transform: rotate(45deg);
+  transition: transform 0.2s;
+}
+
+.ti-mer.apen .ti-mer-knapp i {
+  margin-top: 4px;
+  transform: rotate(-135deg);
+}
+
+.ti-mer-innhold {
+  display: grid;
+  gap: 22px;
+  padding: 6px 16px 20px;
+}
+
+/* A category that is on is filled and ticked, so «on» can't be mistaken for «off» –
+   and «Alle» is filled like the rest when every category is on. */
+.skjerm-oppsett .brikke[aria-pressed="true"],
+.skjerm-oppsett .brikke.alle[aria-pressed="true"] {
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.skjerm-oppsett .brikke[aria-pressed="true"]::before {
+  content: "✓";
+  font: 900 0.9rem/1 var(--font-display);
+}
+
 /* ---------- Short and narrow screens ---------- */
 
 @media (max-height: 700px) {
@@ -660,44 +800,264 @@ button.ti-brikke:active {
     font-size: 0.95rem;
   }
 
-  .ti-midt-navn {
+  .ti-potte b {
+    font-size: 1.2rem;
+  }
+
+  /* The players as small pills with avatar and score: the name of the one whose turn it is
+     stands on the ring, and all of them in «Stillingen». */
+  .ti-seter {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .ti-sete {
+    flex: 0 1 84px;
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: center;
+    gap: 0 12px;
+    padding: 4px 12px 4px 5px;
+    border-radius: 999px;
+  }
+
+  .ti-sete .avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.92rem;
+  }
+
+  .ti-sete-navn {
+    display: none;
+  }
+
+  .ti-pott {
+    top: -6px;
+    right: -12px;
+    padding: 1px 5px;
+    font-size: 0.7rem;
+  }
+
+  .ti-sete-merke {
+    bottom: -6px;
+    left: -8px;
+    font-size: 0.82rem;
+  }
+}
+
+/* Really short (an older phone, or the browser's bars showing): the question, all ten answers
+   and «Stopp» must be in view at once. */
+@media (max-height: 600px) {
+  .skjerm-ring {
+    gap: 8px;
+    padding-top: 4px;
+  }
+
+  .ti-kort {
+    gap: 6px;
+    margin-bottom: 4px; /* room for the card's lower edge */
+    padding: 10px 14px 12px;
+  }
+
+  .ti-sporsmal {
+    font-size: clamp(1.05rem, 4.7vw, 1.2rem);
+  }
+
+  .ti-ring {
+    --dyp: 3px;
+    grid-template-rows: repeat(5, minmax(41px, auto));
+    gap: 6px;
+    padding: 2px 0;
+  }
+
+  .ti-brikke {
+    gap: 1px;
+    min-height: 41px;
+    padding: 4px 6px;
     font-size: 0.9rem;
   }
 
-  .ti-potte b {
-    font-size: 1.2rem;
+  /* A revealed answer (two lines) is no taller than an open one, so the ring keeps its height */
+  .ti-brikke.riktig,
+  .ti-brikke.feil,
+  .ti-brikke.fasit {
+    padding-top: 5px;
+  }
+
+  .ti-b-tekst {
+    font-size: 0.74rem;
+  }
+
+  .ti-b-svar {
+    font-size: 0.92rem;
+  }
+
+  .ti-midt {
+    gap: 4px;
+  }
+
+  .ti-midt .avatar.stor {
+    width: 48px;
+    height: 48px;
+    font-size: 1.45rem;
+  }
+
+  .skjerm-ring > .dokk {
+    gap: 6px;
+    padding-top: 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .skjerm-ring > .dokk:has(.ti-svar) {
+    padding-top: 12px;
+  }
+
+  .skjerm-ring > .dokk .knapp-2 {
+    min-height: 48px;
+    padding-block: 8px;
+  }
+
+  .skjerm-ring > .dokk .lenke {
+    min-height: 40px;
+    padding-block: 8px;
   }
 }
 
 @media (max-width: 359px) {
   .ti-ring {
+    --midt-b: 84px;
+    --navn-min: 0.68rem;
     grid-template-columns: minmax(0, 1fr) minmax(84px, 0.72fr) minmax(0, 1fr);
     gap: 6px;
   }
 
   .ti-brikke {
-    font-size: 0.86rem;
+    font-size: 0.84rem;
   }
 
-  .ti-brikke.middels {
-    font-size: 0.78rem;
+  .ti-b-tekst {
+    font-size: 0.74rem;
   }
 
-  .ti-brikke.lang {
-    font-size: 0.7rem;
+  .ti-b-svar {
+    font-size: 0.92rem;
   }
 
-  .ti-brikke.ekstra {
-    font-size: 0.62rem;
+  .ti-midt-valgt {
+    font-size: 0.88rem;
   }
 
   .ti-fasit-liste {
     grid-template-columns: 1fr;
   }
+
+  .ti-pris {
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .ti-pris-ikon {
+    font-size: 2.1rem;
+  }
+}
+
+@media (max-width: 359px) and (max-height: 600px) {
+  .ti-ring {
+    grid-template-rows: repeat(5, minmax(40px, auto));
+    gap: 5px;
+  }
+
+  .ti-brikke {
+    min-height: 40px;
+    font-size: 0.84rem;
+  }
+
+  .ti-b-tekst {
+    font-size: 0.72rem;
+  }
+
+  .ti-b-svar {
+    font-size: 0.9rem;
+  }
+}
+
+/* ---------- Phone on its side: question, players and buttons to the left, the ring to the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="tieren"] .app:has(.skjerm-ring) {
+    max-width: 940px;
+  }
+
+  .skjerm-ring {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    align-content: start;
+    gap: 8px 22px;
+    padding-bottom: 10px;
+  }
+
+  .skjerm-ring > .ti-kort {
+    grid-area: 1 / 1;
+  }
+
+  .skjerm-ring > .ti-ring {
+    --midt-b: 110px;
+    position: sticky;
+    top: 6px;
+    grid-area: 1 / 2 / 4 / 3;
+    align-self: start;
+    grid-template-columns: minmax(0, 1fr) minmax(110px, 0.7fr) minmax(0, 1fr);
+  }
+
+  .skjerm-ring > .ti-seter {
+    grid-area: 2 / 1;
+  }
+
+  /* The dock lies in the left column instead of over the board */
+  .skjerm-ring > .dokk {
+    position: static;
+    grid-area: 3 / 1;
+    align-self: start;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  /* Answering: the players make room for the answer buttons */
+  .skjerm-ring:has(.ti-svar) > .ti-seter {
+    display: none;
+  }
+
+  .skjerm-ring:has(.ti-svar) > .dokk {
+    grid-area: 2 / 1 / 4 / 2;
+    padding: 12px 12px 4px;
+    border-radius: var(--r-mid);
+    box-shadow: inset 0 0 0 1.5px var(--strek);
+    animation: none;
+  }
+
+  /* The round is over: «Neste runde» above the scoreboard, so it is in view at once */
+  .skjerm-ring > .ti-oppsummering {
+    grid-area: 3 / 1;
+  }
+
+  .skjerm-ring:has(.ti-oppsummering) > .dokk {
+    grid-area: 2 / 1;
+  }
+
+  .skjerm-ring > .dokk .knapp {
+    min-height: 54px;
+    font-size: 1.15rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ti-brikke.ti-spenning {
+  .ti-brikke.ti-spenning,
+  .ti-potte.ti-hopp,
+  .ti-potte.ti-rist {
     animation: none;
   }
 }

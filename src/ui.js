@@ -61,6 +61,7 @@
           spill: S.spill,
           gjest: S.gjest,
           laste: S.laste,
+          _tid: Date.now(), // lets the front page drop «Fortsett» for a game left long ago
         }),
       );
     } catch (e) {

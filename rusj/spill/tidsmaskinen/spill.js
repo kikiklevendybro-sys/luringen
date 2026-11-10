@@ -25,7 +25,10 @@
   const NIVAER = ["lett", "blandet", "vanskelig"];
   const MAL = [5, 7, 10];
   const ALLE_KAT = KATEGORIER.map((k) => k.id);
-  const standardOppsett = () => ({ modus: "spillere", lag: 2, kategorier: ALLE_KAT.slice(), niva: "blandet", mal: 10 });
+  const NIVANAVN = { lett: "Lett", blandet: "Blandet", vanskelig: "Vanskelig" };
+  const standardOppsett = () => ({ modus: "spillere", lag: 2, kategorier: ALLE_KAT.slice(), niva: "blandet", mal: 10, mer: false });
+  // A phone on its side: the card and the buttons to the left, the timeline to the right.
+  const LIGGENDE = window.matchMedia("(orientation: landscape) and (max-height: 600px) and (min-width: 560px)");
   // The reel behind each digit of the year: a question mark, then 0–9 three times.
   const STRIMMEL = "<i>?</i>" + "012345678901234567890123456789".replace(/\d/g, (d) => `<i>${d}</i>`);
   const SKJULT = '<span class="tm-skjult" aria-hidden="true"><i>?</i><i>?</i><i>?</i><i>?</i></span>';
@@ -39,6 +42,8 @@
   const erRekord = (sp) => sp.modus === "rekord";
   const lagNavn = (i) => "Lag " + R.LAG[i % R.LAG.length].navn;
   const deltaker = (sp, i) => (sp.modus === "lag" ? lagNavn(i) : R.navn(i));
+  // A team is the mascot on a disc in the team colour (as in Mimen and Nynneren).
+  const lagFigur = (i, klasse) => `<span class="tm-lagfigur${klasse ? " " + klasse : ""}" style="--lf: ${R.LAG[i % R.LAG.length].farge}" aria-hidden="true">${R.figur()}</span>`;
   const aarTekst = (a) => (a < 0 ? `${-a} f.Kr.` : String(a));
   const kortTekst = (n) => `${R.tall(n)} kort`;
   const rader = (sp) => sp.linjer.map((l, i) => (sp.modus === "lag" ? { lag: i, poeng: l.length } : { i, poeng: l.length }));
@@ -133,7 +138,7 @@
     }
     const i = sp.tur;
     const antall = sp.linjer[i].length;
-    const merke = sp.modus === "lag" ? `<span class="avatar mid tm-lagavatar" style="--pf: ${R.LAG[i].farge}" aria-hidden="true"></span>` : R.avatar(i, "mid");
+    const merke = sp.modus === "lag" ? lagFigur(i) : R.avatar(i, "mid");
     const pips = Array.from({ length: sp.mal }, (_, n) => `<i class="${n < antall ? "fylt" : ""}"></i>`).join("");
     return `<div class="tm-hode">
       ${merke}
@@ -146,15 +151,18 @@
     const h = ALLE[k];
     const kat = KAT[h.k];
     return `<article class="tm-kort" id="tm-hand" data-dra="hand" style="--kf: ${kat.farge}" aria-label="Kortet: ${esc(h.t)}. Året er skjult.">
-      <div class="tm-kort-topp"><span class="tm-kat"><span aria-hidden="true">${kat.ikon}</span> ${esc(kat.kort)}</span><span class="tm-grep" aria-hidden="true">${GREP}Dra meg</span></div>
+      <div class="tm-kort-topp"><span class="tm-kat"><span aria-hidden="true">${kat.ikon}</span> ${esc(kat.kort)}</span><span class="tm-grep" aria-hidden="true">${GREP}<span class="tm-grep-tekst">Dra meg</span></span></div>
       <p class="tm-kort-tekst">${esc(h.t)}</p>
       <div class="tm-kort-fot">${SKJULT}<span class="tm-kort-hint">Når skjedde det?</span></div>
     </article>`;
   }
 
   function handHtml(sp) {
-    if (sp.plass == null)
-      return `<section class="tm-hand" aria-label="Kortet du trakk">${handKortHtml(sp.kort)}<p class="tm-hjelp">Dra kortet inn i tidslinja – eller trykk på <b aria-hidden="true">+</b> der det skal ligge.</p></section>`;
+    if (sp.plass == null) {
+      // The how-to line is for a player's first card; after that the timeline gets the room.
+      const hjelp = sp.forsok[sp.tur] ? "" : `<p class="tm-hjelp">Dra kortet inn i tidslinja – eller trykk på <b aria-hidden="true">+</b> der det skal ligge.</p>`;
+      return `<section class="tm-hand" aria-label="Kortet du trakk">${handKortHtml(sp.kort)}${hjelp}</section>`;
+    }
     return `<section class="tm-hand tm-hand-tom" aria-label="Kortet du trakk"><p class="tm-hjelp"><span aria-hidden="true">↓</span> Kortet ligger i tidslinja. Flytt det – eller sjekk året!</p></section>`;
   }
 
@@ -168,9 +176,9 @@
       const mal = !erRekord(sp) && sp.linjer[sp.tur].length >= sp.mal;
       ord = mal ? "Mål!" : "Riktig!";
       if (mal) tekst = esc(`${deltaker(sp, sp.tur)} har ${kortTekst(sp.mal)}!${hvemNeste(sp) >= 0 ? " Runden spilles ferdig, så alle får like mange forsøk." : ""}`);
-      else tekst = `${hendelse}. ${erRekord(sp) ? "Rekka vokser!" : "Kortet blir liggende."}`;
+      else tekst = `${hendelse}. ${erRekord(sp) ? (sp.rekke % 5 === 0 ? `${sp.rekke} på rad – rekka vokser!` : "Rekka vokser!") : "Kortet blir liggende."}`;
     } else {
-      ord = s.naer ? "Nesten!" : "Feil plass!";
+      ord = "Nesten!"; // one word for every miss, in every mode
       tekst = `${hendelse}. Kortet kastes.`;
     }
     return `<div class="tm-dom ${s.riktig ? "riktig" : "feil"}" role="status"><span class="tm-dom-ord">${ord}</span><span class="tm-dom-tekst">${tekst}</span></div>`;
@@ -235,19 +243,31 @@
 
   function dokkHtml(sp) {
     const lenker = R.ui.lenkerad(erRekord(sp) ? "" : R.ui.lenke("Stillingen", "stilling"), R.ui.lenke("Avslutt", "avslutt"));
-    if (sp.fase === "plasser") return R.ui.dokk(R.ui.knapp("Sjekk året!", "sjekk", { ikon: "⏳", variant: "stor", id: "tm-sjekk", av: sp.plass == null }), lenker);
+    if (sp.fase === "plasser") return R.ui.dokk(R.ui.knapp("Sjekk året!", "sjekk", { variant: "stor", id: "tm-sjekk", av: sp.plass == null }), lenker);
     const neste = hvemNeste(sp);
-    let tekst = "Se kåringen";
-    let ikon = "🏆";
-    if (erRekord(sp)) [tekst, ikon] = sp.svar.riktig ? ["Trekk neste kort", "🃏"] : ["Se resultatet", "🏁"];
-    else if (neste >= 0) [tekst, ikon] = [`Neste: ${deltaker(sp, neste)}`, "→"];
-    return R.ui.dokk(R.ui.knapp(tekst, "neste", { ikon, id: "tm-neste" }), lenker);
+    let tekst = "Til kåringen";
+    if (erRekord(sp)) tekst = sp.svar.riktig ? "Trekk neste kort" : "Se resultatet";
+    else if (neste >= 0) tekst = `Neste: ${deltaker(sp, neste)}`;
+    return R.ui.dokk(R.ui.knapp(tekst, "neste", { id: "tm-neste" }), lenker);
   }
 
   const turSkjerm = (S) => {
     const sp = S.spill;
-    return `${hodeHtml(sp)}${sp.fase === "svar" ? domHtml(sp) : handHtml(sp)}${linjeHtml(sp)}${dokkHtml(sp)}`;
+    const topp = `${hodeHtml(sp)}${sp.fase === "svar" ? domHtml(sp) : handHtml(sp)}`;
+    // On its side, the card and the buttons are one column that follows the scrolling, next to
+    // the timeline. Upright, the buttons come last (and stick to the bottom).
+    return LIGGENDE.matches ? `<div class="tm-venstre">${topp}${dokkHtml(sp)}</div>${linjeHtml(sp)}` : `${topp}${linjeHtml(sp)}${dokkHtml(sp)}`;
   };
+
+  // Scroll so the element is in view: under the top bar and above what the dock covers.
+  function iSikte(el) {
+    if (!el) return;
+    const b = el.getBoundingClientRect();
+    const dokk = R.$("#skjerm .dokk");
+    const fast = dokk && getComputedStyle(dokk).position === "sticky";
+    const bunn = fast ? dokk.getBoundingClientRect().top : window.innerHeight;
+    if (b.top < 70 || b.bottom > bunn - 8) el.scrollIntoView({ block: "center", behavior: R.rolig() ? "auto" : "smooth" });
+  }
 
   // ---------- Moving the card: FLIP from where it was to where it lands ----------
 
@@ -269,8 +289,10 @@
 
   function plasser(sp, g, fra) {
     sp.plass = g;
+    R.skjulToast(); // «Dra kortet inn i tidslinja!» has done its job
     R.vis();
     const ny = R.$("#skjerm .tm-ny-kort");
+    iSikte(ny); // «Sjekk året!» has come into the dock: the card must not end up behind it
     flyFra(ny, fra);
     R.lyd.pop();
     R.vibrer(12);
@@ -334,17 +356,23 @@
     dra.lukeH = enLuke ? enLuke.getBoundingClientRect().height : 44;
     dra.slot = Math.max(dra.kh + 12, dra.lukeH);
     liste.style.setProperty("--tm-slot", dra.slot + "px");
+    // Where holding the card scrolls the page: near the top, and near the dock when it sticks to
+    // the bottom (on its side it lies beside the timeline, so the edge of the screen counts).
     const dokk = R.$("#skjerm .dokk");
-    dra.bunnSone = dokk ? dokk.getBoundingClientRect().top + 10 : window.innerHeight - 90;
+    const fast = dokk && getComputedStyle(dokk).position === "sticky";
+    dra.bunnSone = fast ? dokk.getBoundingClientRect().top + 10 : window.innerHeight;
+    dra.toppSone = Math.min(120, Math.round(window.innerHeight * 0.22));
+    // On its side the card comes from the column beside the timeline, so the copy follows the finger.
+    dra.fri = LIGGENDE.matches;
     R.lyd.pop();
     R.vibrer(12);
     dra.raf = requestAnimationFrame(autoRull);
     return true;
   }
 
-  // Which gap the card's middle (in page coordinates) points at, or null above the timeline.
+  // Which gap the card's middle (in page coordinates) points at, or null above (or beside) the timeline.
   function malFor(y) {
-    if (y < dra.topp - 24) return null;
+    if (y < dra.topp - 24 || (dra.fri && dra.x < dra.venstre - 30)) return null;
     const ekstra = dra.slot - dra.lukeH;
     let g = 0;
     dra.midt.forEach((m, k) => {
@@ -364,7 +392,7 @@
   }
 
   function flyttKlon() {
-    const x = dra.venstre + (dra.x - dra.x0) * 0.25;
+    const x = dra.fri ? R.klamp(dra.x - dra.ox, 4, Math.max(4, window.innerWidth - dra.kb - 4)) : dra.venstre + (dra.x - dra.x0) * 0.25;
     const y = dra.y - dra.kh / 2;
     dra.klon.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0) rotate(-1.5deg)`;
     settMal(malFor(dra.y + window.scrollY));
@@ -375,7 +403,7 @@
     if (!dra || !dra.aktiv) return;
     let v = 0;
     if (dra.y > dra.bunnSone - 40) v = Math.min(18, (dra.y - (dra.bunnSone - 40)) / 3 + 2);
-    else if (dra.y < 120) v = -Math.min(18, (120 - dra.y) / 3 + 2);
+    else if (dra.y < dra.toppSone) v = -Math.min(18, (dra.toppSone - dra.y) / 3 + 2);
     if (v) {
       const for0 = window.scrollY;
       window.scrollBy(0, v);
@@ -411,7 +439,14 @@
     dra = null;
     if (!d.aktiv) {
       if (e.type === "pointerup" && d.kilde === "hand") {
-        R.toast("Dra kortet inn i tidslinja!");
+        // A tap instead of a drag: the card wiggles and the how-to line under it lights up –
+        // or comes as a toast at the top when the line isn't there any more.
+        const hjelp = R.$("#skjerm .tm-hand .tm-hjelp");
+        if (hjelp) {
+          hjelp.classList.remove("tm-blunk");
+          void hjelp.offsetWidth;
+          hjelp.classList.add("tm-blunk");
+        } else R.toast("Dra kortet inn i tidslinja!", { topp: true });
         d.el.classList.remove("tm-vrikk");
         void d.el.offsetWidth;
         d.el.classList.add("tm-vrikk");
@@ -458,6 +493,17 @@
     if (e.target.closest && e.target.closest("[data-dra]")) e.preventDefault();
   });
 
+  // The phone is turned: draw the turn again with the layout that fits (not while the year rolls –
+  // the screen is drawn anew right after that anyway).
+  function snudd() {
+    const S = R.S;
+    if (!S || S.skjerm !== "tur" || !S.spill || opptatt) return;
+    avbrytDra();
+    R.vis();
+  }
+  if (LIGGENDE.addEventListener) LIGGENDE.addEventListener("change", snudd);
+  else if (LIGGENDE.addListener) LIGGENDE.addListener(snudd);
+
   // ---------- The reveal: the year rolls in, digit by digit ----------
 
   function rullInn(a, riktig) {
@@ -467,10 +513,7 @@
       if (!kort || !vindu) return ferdig();
       const knapp = R.$("#tm-sjekk");
       if (knapp) knapp.classList.add("tm-venter");
-      const b = kort.getBoundingClientRect();
-      const dokk = R.$("#skjerm .dokk");
-      const bunn = dokk ? dokk.getBoundingClientRect().top : window.innerHeight;
-      if (b.top < 70 || b.bottom > bunn - 8) kort.scrollIntoView({ block: "center", behavior: R.rolig() ? "auto" : "smooth" });
+      iSikte(kort);
       const siffer = String(Math.abs(a)).split("").map(Number);
       vindu.className = "tm-aar tm-vindu" + aarKlasse(a);
       vindu.innerHTML = `<span class="tm-rull" aria-hidden="true">${siffer.map(() => `<span class="tm-hjul"><span class="tm-strimmel">${STRIMMEL}</span></span>`).join("")}${a < 0 ? '<span class="tm-fkr">f.Kr.</span>' : ""}</span>`;
@@ -546,7 +589,7 @@
       .map((l, i) => ({ l, i }))
       .sort((x, y) => y.l.length - x.l.length)
       .map(({ l, i }) => {
-        const merke = sp.modus === "lag" ? `<span class="avatar" style="--pf: ${R.LAG[i].farge}" aria-hidden="true"></span>` : R.avatar(i);
+        const merke = sp.modus === "lag" ? lagFigur(i, "mini") : R.avatar(i);
         return `<section class="tm-tavle"><h3>${merke}<span class="tm-tavle-navn">${esc(deltaker(sp, i))}</span><span class="tall">${kortTekst(l.length)}</span></h3>${miniHtml(l)}</section>`;
       })
       .join("");
@@ -565,13 +608,32 @@
         : "";
     const linje = sp.linjer[0];
     return `
-      <div class="banner aksent">${R.figur()}<p class="etikett">Rekordjakt</p><h1 id="skjerm-tittel">${n === 0 ? "Første kort glapp!" : `${n} på rad!`}</h1><p class="ingress">${esc(vurdering(n))}</p></div>
+      <div class="banner aksent">${R.figur()}<p class="etikett">Rekka di</p><h1 id="skjerm-tittel">${n === 0 ? "Første kort glapp!" : `${n} på rad!`}</h1><p class="ingress">${esc(vurdering(n))}</p></div>
       ${stempel}
       ${om ? `<p class="hjelp">${esc(om)}</p>` : ""}
       ${glapp}
       <section class="seksjon"><div class="seksjon-hode"><h2>Tidslinja di</h2><span class="tall">${kortTekst(linje.length)}</span></div>${miniHtml(linje)}</section>
       ${R.ui.flereSpill({})}
-      ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen", { ikon: "🔁" }), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+      ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+  }
+
+  // An award next to the winner: the longest journey through time in one timeline.
+  function prisHtml(sp) {
+    const spenn = sp.linjer.map((l) => {
+      const fra = ALLE[l[0]].a;
+      const til = ALLE[l[l.length - 1]].a;
+      return til - fra - (fra < 0 && til > 0 ? 1 : 0); // there was no year 0
+    });
+    const lengst = Math.max(...spenn);
+    if (lengst <= 0) return "";
+    const hvem = spenn.map((s, i) => (s === lengst ? i : -1)).filter((i) => i >= 0);
+    const navn = hvem.length > 3 ? `${hvem.length} ${sp.modus === "lag" ? "lag" : "spillere"}` : R.ramsOpp(hvem.map((i) => deltaker(sp, i)));
+    const l = sp.linjer[hvem[0]];
+    const tekst = hvem.length === 1 ? `Fra ${aarTekst(ALLE[l[0]].a)} til ${aarTekst(ALLE[l[l.length - 1]].a)} – ${R.tall(lengst)} år.` : `${R.tall(lengst)} år fra første til siste kort.`;
+    return `<div class="papirboks tm-pris">
+      <span class="tm-pris-ikon" aria-hidden="true">⏳</span>
+      <div><p class="etikett">Lengste tidsreise</p><p class="tm-pris-navn">${esc(navn)}</p><p>${esc(tekst)}</p></div>
+    </div>`;
   }
 
   function sluttSkjerm(S) {
@@ -591,9 +653,10 @@
       <div class="banner aksent">${R.figur()}<p class="etikett">${esc(etikett)}</p><h1 id="skjerm-tittel">${esc(navn)} vinner!</h1><p class="ingress">${esc(ingress)}</p></div>
       ${R.ui.pall(rader(sp))}
       ${R.ui.poengliste(rader(sp))}
+      ${prisHtml(sp)}
       <div class="stabel">${R.ui.knapp2("Se tidslinjene", "tidslinjer", { ikon: "🗂️" })}</div>
       ${R.ui.flereSpill(sp.modus === "spillere" ? { antall: sp.deltakere } : {})}
-      ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen", { ikon: "🔁" }), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+      ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), `<a class="lenke" href="/">Alle spill</a>`))}`;
   }
 
   // Celebrate in proportion: fanfare and confetti for a win or a strong streak.
@@ -622,6 +685,7 @@
       o.kategorier = (Array.isArray(o.kategorier) ? o.kategorier : []).filter((id) => KAT[id]);
       if (!NIVAER.includes(o.niva)) o.niva = "blandet";
       o.mal = MAL.includes(Number(o.mal)) ? Number(o.mal) : 10;
+      o.mer = !!o.mer;
       const sp = S.spill;
       const kort = (k) => Number.isInteger(k) && k >= 0 && k < ALLE.length;
       const ok =
@@ -672,11 +736,12 @@
         vis: (S) => {
           const sp = S.spill;
           return R.ui.spillhjem({
-            slagordHtml: "Når skjedde det?<br><em>Legg hendelsen på riktig plass i tidslinja.</em>",
+            // Non-breaking spaces keep the last three words together, so «tidslinja.» never stands alone.
+            slagordHtml: "Når skjedde det?<br><em>Legg hendelsen på riktig plass&nbsp;i&nbsp;tidslinja.</em>",
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
               fortsettTekst: sp ? (erRekord(sp) ? `Fortsett · ${sp.rekke} på rad` : `Fortsett · runde ${sp.runde}`) : "",
-              ekstraHtml: (sp && sp.ferdig ? R.ui.knapp2(erRekord(sp) ? "Se resultatet" : "Se kåringen", "resultat") : "") + R.ui.lenke("Slik spiller du", "regler"),
+              ekstraHtml: (sp && sp.ferdig ? R.ui.knapp2(erRekord(sp) ? "Se resultatet" : "Til kåringen", "resultat") : "") + R.ui.lenke("Slik spiller du", "regler"),
             }),
             merker: [
               ["1–10", "spillere"],
@@ -693,6 +758,8 @@
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
+          const rekord = o.modus === "rekord";
+          // Under the three tiles: who plays, and what the chosen way of playing means.
           let hvem = "";
           if (o.modus === "spillere") hvem = R.ui.spillere({ min: 2, max: 10, hjelp: "Alle bygger hver sin tidslinje. Send mobilen videre etter hver tur." });
           else if (o.modus === "lag")
@@ -700,8 +767,19 @@
               <div class="seksjon-hode"><h2>Hvor mange lag?</h2></div>
               ${R.ui.teller("lag", o.lag, 2, 4, { enhet: "lag", minus: "Færre lag", pluss: "Flere lag" })}
               <div class="tm-lagrad">${Array.from({ length: o.lag }, (_, i) => R.ui.lagmerke(i)).join("")}</div>
+              <p class="hjelp">Hvert lag bygger sin egen tidslinje. Snakk sammen før dere sjekker året.</p>
             </section>`;
-          else hvem = `<p class="hjelp tm-rekordhjelp">Én tidslinje. Spill alene – eller hjelp hverandre. Første feil avslutter rekka.</p>`;
+          else {
+            const best = rekordFor(o.niva);
+            hvem = `<section class="seksjon tm-rekordvalg">
+              <p class="hjelp">Én tidslinje – hvor mange klarer du på rad? Spill alene eller hjelp hverandre. Første feil avslutter rekka.</p>
+              ${best ? `<p class="tm-rekordlinje"><span>Rekord · ${esc(NIVANAVN[o.niva])}</span><b>${best} på rad</b></p>` : ""}
+            </section>`;
+          }
+          const antall = o.kategorier.length;
+          const sammendrag = [antall === ALLE_KAT.length ? "Alle kategorier" : antall ? R.flertall(antall, "kategori", "kategorier") : "Ingen kategorier", NIVANAVN[o.niva]];
+          if (!rekord) sammendrag.push(`Først til ${o.mal}`);
+          // How to play and who plays come first; the rest has good defaults and folds into one row.
           return `
             <h1 id="skjerm-tittel">Gjør klart</h1>
             <section class="seksjon">
@@ -709,31 +787,40 @@
               ${R.ui.fliser(
                 "modus",
                 [
-                  { v: "spillere", ikon: "🙋", tittel: "Hver for seg", tekst: "Alle bygger sin egen tidslinje" },
-                  { v: "lag", ikon: "👥", tittel: "Lag mot lag", tekst: "2–4 lag med hver sin tidslinje" },
-                  { v: "rekord", ikon: "🔥", tittel: "Rekordjakt", tekst: "Hvor mange klarer du på rad?" },
+                  { v: "spillere", ikon: "🙋", tittel: "Hver for seg" },
+                  { v: "lag", ikon: "👥", tittel: "Lag mot lag" },
+                  { v: "rekord", ikon: "🔥", tittel: "Rekord­jakt" }, // may break at the soft hyphen on a narrow phone
                 ],
                 o.modus,
               )}
             </section>
             ${hvem}
-            <section class="seksjon">
-              <div class="seksjon-hode"><h2>Kategorier</h2><span class="tall">${kortTekst(antallI(o))}</span></div>
-              ${R.ui.brikker("kategori", KATEGORIER.map((k) => ({ v: k.id, tekst: k.navn, ikon: k.ikon })), o.kategorier, { alle: true, etikett: "Kategorier" })}
+            <section class="tm-mer${o.mer ? " apen" : ""}">
+              <button type="button" class="tm-mer-knapp" data-h="mer" aria-expanded="${o.mer}"><span><b>Flere valg</b><small>${esc(sammendrag.join(" · "))}</small></span><i aria-hidden="true"></i></button>
+              ${
+                o.mer
+                  ? `<div class="tm-mer-innhold">
+                <section class="seksjon">
+                  <div class="seksjon-hode"><h3>Kategorier</h3><span class="tall">${kortTekst(antallI(o))}</span></div>
+                  ${R.ui.brikker("kategori", KATEGORIER.map((k) => ({ v: k.id, tekst: k.navn, ikon: k.ikon })), o.kategorier, { alle: true, etikett: "Kategorier" })}
+                </section>
+                <section class="seksjon">
+                  <h3>Vanskelighet</h3>
+                  ${R.ui.seg("niva", NIVAER.map((n) => [n, NIVANAVN[n]]), o.niva, { etikett: "Vanskelighet" })}
+                </section>
+                ${
+                  rekord
+                    ? ""
+                    : `<section class="seksjon">
+                  <h3>Først til</h3>
+                  ${R.ui.seg("mal", MAL.map((n) => [n, `${n} kort`]), o.mal, { etikett: "Først til" })}
+                </section>`
+                }
+              </div>`
+                  : ""
+              }
             </section>
-            <section class="seksjon">
-              <div class="seksjon-hode"><h2>Vanskelighet</h2></div>
-              ${R.ui.seg("niva", [["lett", "Lett"], ["blandet", "Blandet"], ["vanskelig", "Vanskelig"]], o.niva, { etikett: "Vanskelighet" })}
-            </section>
-            ${
-              o.modus === "rekord"
-                ? ""
-                : `<section class="seksjon">
-              <div class="seksjon-hode"><h2>Først til</h2></div>
-              ${R.ui.seg("mal", MAL.map((n) => [n, `${n} kort`]), o.mal, { etikett: "Først til" })}
-            </section>`
-            }
-            ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !o.kategorier.length, ikon: "⏳" }), o.kategorier.length ? "" : `<p class="hjelp">Velg minst én kategori.</p>`)}`;
+            ${R.ui.dokk(antall ? "" : `<p class="hjelp">Velg minst én kategori under «Flere valg».</p>`, R.ui.knapp("Start", "start", { av: !antall }))}`;
         },
       },
 
@@ -749,7 +836,8 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        // «Kåringen» only when someone is ranked; a record hunt alone is named after the mode.
+        tittel: (S) => (S.spill && erRekord(S.spill) ? "Rekordjakt" : "Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis: sluttSkjerm,
@@ -799,6 +887,10 @@
         if (MAL.includes(n)) S.oppsett.mal = n;
         R.vis();
       },
+      mer(el, e, S) {
+        S.oppsett.mer = !S.oppsett.mer;
+        R.vis();
+      },
       start(el, e, S) {
         const o = S.oppsett;
         if (!o.kategorier.length) return;
@@ -835,7 +927,7 @@
         const [lo, hi] = luker(linje, h.a);
         const riktig = sp.plass >= lo && sp.plass <= hi;
         // Settle the result before the show, so a reload during it can't give a second try.
-        sp.svar = { kort: sp.kort, plass: sp.plass, lo, hi, riktig, naer: !riktig && (sp.plass === lo - 1 || sp.plass === hi + 1) };
+        sp.svar = { kort: sp.kort, plass: sp.plass, lo, hi, riktig };
         sp.forsok[t] += 1;
         if (riktig) {
           linje.splice(sp.plass, 0, sp.kort);
@@ -855,13 +947,7 @@
         R.vis();
         const mal = riktig && !erRekord(sp) && linje.length >= sp.mal;
         if (mal) R.lyd.fanfare();
-        if (erRekord(sp) && riktig && sp.rekke % 5 === 0) R.toast(`${sp.rekke} på rad! 🔥`);
-        const ny = R.$("#skjerm .tm-fersk, #skjerm .tm-spokelse");
-        if (ny) {
-          const b = ny.getBoundingClientRect();
-          const dokk = R.$("#skjerm .dokk");
-          if (b.top < 70 || b.bottom > (dokk ? dokk.getBoundingClientRect().top : window.innerHeight)) ny.scrollIntoView({ block: "center", behavior: R.rolig() ? "auto" : "smooth" });
-        }
+        iSikte(R.$("#skjerm .tm-fersk, #skjerm .tm-spokelse"));
         R.si(`${riktig ? "Riktig!" : "Feil plass."} ${h.t}: ${aarTekst(h.a)}.`);
       },
 

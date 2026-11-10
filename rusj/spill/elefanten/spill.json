@@ -1,13 +1,14 @@
 {
   "id": "elefanten",
   "navn": "Elefanten",
-  "undertittel": "Memory",
-  "beskrivelse": "Gratis memory på norsk. Snu to kort og finn parene – alene mot klokka eller opptil fire sammen. Dyr, mat, verdensrommet og rusj-gjengen.",
+  "undertittel": "Finn to like",
+  "beskrivelse": "Gratis huskespill på norsk. Snu to kort og finn to like – alene mot klokka eller opptil fire sammen. Dyr, mat, verdensrommet og rusj-gjengen.",
   "kort": "Snu to kort og finn parene. En elefant glemmer aldri!",
   "spillere": [1, 4],
   "minutter": [3, 15],
   "mobiler": "en",
   "tagger": ["barn", "familie", "hukommelse"],
   "rekkefolge": 21,
-  "farge": "#85a3ff"
+  "farge": "#85a3ff",
+  "sok": ["huskespill", "vendespill", "finn to like", "finn parene", "memory", "hukommelse"]
 }

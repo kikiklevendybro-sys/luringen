@@ -26,12 +26,13 @@
   const NIVAER = ["lett", "blandet", "vanskelig"];
   const RUNDER = [3, 5, 8];
   const ALLE_KAT = KATEGORIER.map((k) => k.id);
-  const standardOppsett = () => ({ kategorier: ALLE_KAT.slice(), niva: "blandet", runder: 5 });
+  const NIVANAVN = { lett: "Lett", blandet: "Blandet", vanskelig: "Vanskelig" };
+  const standardOppsett = () => ({ kategorier: ALLE_KAT.slice(), niva: "blandet", runder: 5, mer: false });
 
   let H; // the actions, so one action can call another
   let opptatt = false; // an answer is being revealed
-  let vistKaskade = "";
-  let sisteStopp = -1e9; // when «Stopp» was last tapped // which finished round has already flipped its answers
+  let vistKaskade = ""; // which finished round has already flipped its answers
+  let sisteStopp = -1e9; // when «Stopp» was last tapped
 
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
   const poengTekst = (n) => R.flertall(n, "poeng", "poeng");
@@ -65,11 +66,12 @@
     if (kort.t === "tall") return R.tall(x);
     return String(x);
   }
-  // Long single words get a smaller font on the ring, so nothing sticks out on a small phone.
-  const ordKlasse = (tekst) => {
-    const lengste = Math.max(...String(tekst).split(/[\s\-–]+/).map((o) => o.length));
-    return lengste > 14 ? " ekstra" : lengste > 11 ? " lang" : lengste > 9 ? " middels" : "";
-  };
+  // Long words on the cards carry soft hyphens (U+00AD), so they break in the right place on the
+  // ring and every answer can have the same size. Spoken texts are better without them.
+  const ren = (tekst) => String(tekst).replace(/\u00ad/g, "");
+  // A long player name gets a smaller font in the middle of the ring (CSS reads the length from --n),
+  // so it stays on one line.
+  const navnStil = (navn) => ` style="--n: ${R.klamp(String(navn).length, 6, 16)}"`;
 
   // ---------- Rounds ----------
 
@@ -104,7 +106,7 @@
     const kort = velgKort(o, o.runder);
     if (!kort.length) return false;
     const n = R.klamp(S.antall || 2, 2, 8);
-    const sp = { deltakere: n, runder: kort.length, kort, sum: Array(n).fill(0), logg: [], ferdig: false };
+    const sp = { deltakere: n, runder: kort.length, kort, sum: Array(n).fill(0), topp: Array(n).fill(0), logg: [], ferdig: false };
     startRunde(sp, 0);
     S.spill = sp;
     return true;
@@ -144,18 +146,25 @@
     </article>`;
   }
 
+  // A revealed answer: who took it, with ✓ or ✕ (so colour is never the only sign), and the right
+  // answer. After a wrong guess it says «Riktig: …», so the answer can't be read as the mistake.
+  function avslortHtml(kort, n, apen) {
+    const hvem = apen ? `<span class="ti-b-hvem">${R.avatar(apen.i)}</span><span class="ti-b-merke">${apen.riktig ? "✓" : "✕"}</span>` : "";
+    const svar = esc(fasitTekst(kort, n));
+    return `${hvem}<span class="ti-b-tekst" aria-hidden="true">${esc(kort.a[n][0])}</span><span class="ti-b-svar" aria-hidden="true">${apen && !apen.riktig ? `<small>Riktig:</small> ${svar}` : svar}</span>`;
+  }
+
   function brikkeHtml(sp, kort, pos) {
     const n = sp.ring[pos];
     const tekst = kort.a[n][0];
     const apen = sp.apne[pos];
     if (apen || sp.fase === "ferdig") {
       const klasse = apen ? (apen.riktig ? "riktig" : "feil") : "fasit";
-      const hvem = apen ? `<span class="ti-b-hvem">${R.avatar(apen.i)}</span>` : "";
       const lest = apen ? `${R.navn(apen.i)} svarte ${apen.riktig ? "riktig" : "feil"}. ` : "";
       const kaskade = !apen && vistKaskade !== kaskadeNokkel(sp) ? ` style="--d: ${pos * 70}ms"` : "";
-      return `<div class="ti-brikke ti-p${pos} ${klasse}${kaskade ? " ti-snus" : ""}"${kaskade} role="img" aria-label="${esc(`${tekst}: ${fasitTekst(kort, n)}. ${lest}`)}">${hvem}<span class="ti-b-tekst${ordKlasse(tekst)}" aria-hidden="true">${esc(tekst)}</span><span class="ti-b-svar" aria-hidden="true">${esc(fasitTekst(kort, n))}</span></div>`;
+      return `<div class="ti-brikke ti-p${pos} ${klasse}${kaskade ? " ti-snus" : ""}"${kaskade} role="img" aria-label="${esc(`${ren(tekst)}: ${ren(fasitTekst(kort, n))}. ${lest}`)}">${avslortHtml(kort, n, apen)}</div>`;
     }
-    return `<button class="ti-brikke ti-p${pos}${ordKlasse(tekst)}" data-h="velg" data-v="${pos}" aria-pressed="${sp.valgt === pos}">${esc(tekst)}</button>`;
+    return `<button class="ti-brikke ti-p${pos}" data-h="velg" data-v="${pos}" aria-pressed="${sp.valgt === pos}" aria-label="${esc(ren(tekst))}">${esc(tekst)}</button>`;
   }
 
   const kaskadeNokkel = (sp) => `${sp.kort.join(",")}:${sp.runde}`;
@@ -169,8 +178,8 @@
     const i = sp.tur;
     const pott = sp.pott[i];
     if (sp.valgt != null)
-      return `${R.avatar(i, "mid")}<p class="ti-midt-valgt${ordKlasse(kort.a[sp.ring[sp.valgt]][0])}">${esc(kort.a[sp.ring[sp.valgt]][0])}</p>`;
-    return `${R.avatar(i, "stor")}<p class="ti-midt-navn">${esc(R.navn(i))}</p><p class="ti-potte${pott ? "" : " tom"}"><b>${pott}</b><span>i potten</span></p>${pott ? "" : `<p class="ti-midt-liten">Velg et svar!</p>`}`;
+      return `${R.avatar(i, "mid")}<p class="ti-midt-valgt">${esc(kort.a[sp.ring[sp.valgt]][0])}</p>`;
+    return `${R.avatar(i, "stor")}<p class="ti-midt-navn"${navnStil(R.navn(i))}>${esc(R.navn(i))}</p><p class="ti-potte${pott ? "" : " tom"}"><b>${pott}</b><span>i potten</span></p>${pott ? "" : `<p class="ti-midt-liten">Velg et svar!</p>`}`;
   }
 
   function ringHtml(sp, kort) {
@@ -215,7 +224,7 @@
     const lenker = (...ekstra) => R.ui.lenkerad(...ekstra, R.ui.lenke("Stillingen", "stilling"), R.ui.lenke("Avslutt", "avslutt"));
     if (sp.fase === "ferdig") {
       const siste = sp.runde + 1 >= sp.runder;
-      return R.ui.dokk(R.ui.knapp(siste ? "Til kåringen" : "Neste runde", "nesteRunde", { ikon: siste ? "🏆" : "→", id: "ti-neste" }), lenker());
+      return R.ui.dokk(R.ui.knapp(siste ? "Til kåringen" : "Neste runde", "nesteRunde", { id: "ti-neste" }), lenker());
     }
     const i = sp.tur;
     const angre = sp.angre ? R.ui.lenke(`↶ Angre «Stopp» for ${R.navn(sp.angre.i)}`, "angre") : "";
@@ -253,7 +262,7 @@
 
   // ---------- The reveal of one answer ----------
 
-  function visSvar(pos, riktig, kort, n, i, tapt) {
+  function visSvar(pos, riktig, kort, n, i, tapt, pott) {
     return new Promise((ferdig) => {
       const b = R.$(`#skjerm .ti-brikke[data-v="${pos}"]`);
       const midt = R.$("#skjerm .ti-midt");
@@ -266,10 +275,11 @@
           R.lyd.feil();
           R.vibrer(140);
         }
+        // A short moment in the middle: the verdict, and the pot counting up (or bursting).
         if (midt)
           midt.innerHTML = riktig
-            ? `<p class="ti-utfall riktig"><b>+1</b><span>Riktig!</span></p>`
-            : `<p class="ti-utfall feil"><b aria-hidden="true">💥</b><span>${tapt > 0 ? `Feil! ${esc(poengTekst(tapt))} røk` : "Feil!"}</span></p>`;
+            ? `<p class="ti-utfall riktig"><span>Riktig!</span><b>+1</b></p><p class="ti-potte ti-hopp"><b>${pott}</b><span>i potten</span></p>`
+            : `<p class="ti-utfall feil"><b aria-hidden="true">💥</b><span>Feil!</span></p><p class="ti-potte tom${tapt > 0 ? " ti-rist" : ""}"><b>0</b><span>${tapt > 0 ? "potten røk" : "i potten"}</span></p>`;
       };
       if (!b || R.rolig()) {
         resultat();
@@ -282,10 +292,10 @@
         b.classList.remove("ti-spenning");
         b.classList.add("ti-vend");
         setTimeout(() => {
-          const tekst = kort.a[n][0];
           b.className = `ti-brikke ti-p${pos} ${riktig ? "riktig" : "feil"} ti-vendt`;
           b.removeAttribute("aria-pressed");
-          b.innerHTML = `<span class="ti-b-hvem">${R.avatar(i)}</span><span class="ti-b-tekst${ordKlasse(tekst)}">${esc(tekst)}</span><span class="ti-b-svar">${esc(fasitTekst(kort, n))}</span>`;
+          b.removeAttribute("aria-label");
+          b.innerHTML = avslortHtml(kort, n, { i, riktig });
           resultat();
           setTimeout(ferdig, 1150);
         }, 170);
@@ -316,6 +326,19 @@
     return `<h2 id="ark-tittel">Fasiten</h2>${runder}<button class="knapp" data-h="lukk-ark">Lukk</button>`;
   }
 
+  // An award next to the winner: the one who dared to hold the biggest pot (kept or lost).
+  function prisHtml(sp) {
+    const topp = sp.topp || [];
+    const n = Math.max(0, ...topp);
+    if (n < 2) return "";
+    const hvem = topp.map((p, i) => (p === n ? i : -1)).filter((i) => i >= 0);
+    const navn = hvem.length > 3 ? `${hvem.length} spillere` : R.ramsOpp(hvem.map((i) => R.navn(i)));
+    return `<div class="papirboks ti-pris">
+      <span class="ti-pris-ikon" aria-hidden="true">🦁</span>
+      <div><p class="etikett">Modigst</p><p class="ti-pris-navn">${esc(navn)}</p><p>Hadde ${n} i potten på det meste.</p></div>
+    </div>`;
+  }
+
   function sluttSkjerm(S) {
     const sp = S.spill;
     const v = sp.vinnere || [];
@@ -330,9 +353,10 @@
       ${banner}
       ${R.ui.pall(rader(sp))}
       ${R.ui.poengliste(rader(sp))}
+      ${prisHtml(sp)}
       <div class="stabel">${R.ui.knapp2("Se fasiten", "fasit", { ikon: "📋" })}</div>
       ${R.ui.flereSpill({ antall: sp.deltakere })}
-      ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen", { ikon: "🔁" }), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+      ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), `<a class="lenke" href="/">Alle spill</a>`))}`;
   }
 
   // ---------- The game ----------
@@ -350,6 +374,7 @@
       o.kategorier = (Array.isArray(o.kategorier) ? o.kategorier : []).filter((id) => KAT[id]);
       if (!NIVAER.includes(o.niva)) o.niva = "blandet";
       o.runder = RUNDER.includes(Number(o.runder)) ? Number(o.runder) : 5;
+      o.mer = !!o.mer;
       const sp = S.spill;
       const n = sp && sp.deltakere;
       const liste = (x, lengde) => Array.isArray(x) && x.length === lengde;
@@ -377,6 +402,7 @@
         (sp.valgt == null || (Number.isInteger(sp.valgt) && sp.valgt >= 0 && sp.valgt < 10 && !sp.apne[sp.valgt])) &&
         Array.isArray(sp.logg);
       if (!ok) S.spill = null;
+      else if (!liste(sp.topp, n)) sp.topp = Array(n).fill(0); // a game saved before «Modigst» existed
     },
 
     regler: {
@@ -422,22 +448,34 @@
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
+          const antall = o.kategorier.length;
+          const sammendrag = [antall === ALLE_KAT.length ? "Alle kategorier" : antall ? R.flertall(antall, "kategori", "kategorier") : "Ingen kategorier", NIVANAVN[o.niva], R.flertall(o.runder, "runde", "runder")];
+          // Players first; everything else has good defaults and folds into one row.
           return `
             <h1 id="skjerm-tittel">Gjør klart</h1>
             ${R.ui.spillere({ min: 2, max: 8, hjelp: "Mobilen går rundt – eller ligger midt på bordet." })}
-            <section class="seksjon">
-              <div class="seksjon-hode"><h2>Kategorier</h2><span class="tall">${R.flertall(antallI(o), "kort", "kort")}</span></div>
-              ${R.ui.brikker("kategori", KATEGORIER.map((k) => ({ v: k.id, tekst: k.navn, ikon: k.ikon })), o.kategorier, { alle: true, etikett: "Kategorier" })}
+            <section class="ti-mer${o.mer ? " apen" : ""}">
+              <button type="button" class="ti-mer-knapp" data-h="mer" aria-expanded="${o.mer}"><span><b>Flere valg</b><small>${esc(sammendrag.join(" · "))}</small></span><i aria-hidden="true"></i></button>
+              ${
+                o.mer
+                  ? `<div class="ti-mer-innhold">
+                <section class="seksjon">
+                  <div class="seksjon-hode"><h3>Kategorier</h3><span class="tall">${R.flertall(antallI(o), "kort", "kort")}</span></div>
+                  ${R.ui.brikker("kategori", KATEGORIER.map((k) => ({ v: k.id, tekst: k.navn, ikon: k.ikon })), o.kategorier, { alle: true, etikett: "Kategorier" })}
+                </section>
+                <section class="seksjon">
+                  <h3>Vanskelighet</h3>
+                  ${R.ui.seg("niva", NIVAER.map((n) => [n, NIVANAVN[n]]), o.niva, { etikett: "Vanskelighet" })}
+                </section>
+                <section class="seksjon">
+                  <h3>Antall runder</h3>
+                  ${R.ui.seg("runder", RUNDER.map((n) => [n, String(n)]), o.runder, { etikett: "Antall runder" })}
+                </section>
+              </div>`
+                  : ""
+              }
             </section>
-            <section class="seksjon">
-              <div class="seksjon-hode"><h2>Vanskelighet</h2></div>
-              ${R.ui.seg("niva", [["lett", "Lett"], ["blandet", "Blandet"], ["vanskelig", "Vanskelig"]], o.niva, { etikett: "Vanskelighet" })}
-            </section>
-            <section class="seksjon">
-              <div class="seksjon-hode"><h2>Antall runder</h2></div>
-              ${R.ui.seg("runder", RUNDER.map((n) => [n, String(n)]), o.runder, { etikett: "Antall runder" })}
-            </section>
-            ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !o.kategorier.length, ikon: "🔟" }), o.kategorier.length ? "" : `<p class="hjelp">Velg minst én kategori.</p>`)}`;
+            ${R.ui.dokk(o.kategorier.length ? "" : `<p class="hjelp">Velg minst én kategori under «Flere valg».</p>`, R.ui.knapp("Start", "start", { av: !o.kategorier.length }))}`;
         },
       },
 
@@ -495,6 +533,10 @@
         if (NIVAER.includes(el.dataset.v)) S.oppsett.niva = el.dataset.v;
         R.vis();
       },
+      mer(el, e, S) {
+        S.oppsett.mer = !S.oppsett.mer;
+        R.vis();
+      },
       runder(el, e, S) {
         const n = Number(el.dataset.v);
         if (RUNDER.includes(n)) S.oppsett.runder = n;
@@ -526,7 +568,7 @@
         R.vis();
         if (sp.valgt != null) {
           const kort = kortNa(sp);
-          R.si(`${kort.a[sp.ring[pos]][0]} – ${SPOR[kort.t]}`);
+          R.si(`${ren(kort.a[sp.ring[pos]][0])} – ${SPOR[kort.t]}`);
           const forste = R.$("#skjerm .ti-svarknapp");
           if (e && e.detail === 0 && forste) forste.focus(); // keyboard: straight to the answers
         }
@@ -545,8 +587,10 @@
         sp.apne[pos] = { i, svar: el.dataset.v, riktig };
         sp.valgt = null;
         sp.angre = null;
-        if (riktig) sp.pott[i] += 1;
-        else {
+        if (riktig) {
+          sp.pott[i] += 1;
+          sp.topp[i] = Math.max(sp.topp[i] || 0, sp.pott[i]); // for «Modigst» at the crowning
+        } else {
           sp.tapt[i] = sp.pott[i];
           sp.pott[i] = 0;
           sp.status[i] = "ute";
@@ -556,7 +600,7 @@
         opptatt = true;
         const fortsatt = R.vakt();
         try {
-          await visSvar(pos, riktig, kort, n, i, tapt);
+          await visSvar(pos, riktig, kort, n, i, tapt, sp.pott[i]);
         } finally {
           opptatt = false;
         }
@@ -565,7 +609,7 @@
         if (sp.fase === "ferdig") {
           R.lyd.pling();
           R.si(`Runden er over. ${R.ramsOpp(sp.logg[sp.logg.length - 1].pluss.map((p, k) => `${R.navn(k)} ${p > 0 ? "+" + p : "0"}`))}.`);
-        } else R.si(`${riktig ? "Riktig" : "Feil"}: ${kort.a[n][0]}, ${fasitTekst(kort, n)}. ${R.navn(sp.tur)} har tur.`);
+        } else R.si(`${riktig ? "Riktig" : "Feil"}: ${ren(kort.a[n][0])}, ${ren(fasitTekst(kort, n))}. ${R.navn(sp.tur)} har tur.`);
       },
 
       async stopp(el, e, S) {
@@ -589,8 +633,8 @@
         sp.angre = alene ? null : { i };
         R.lyd.takk();
         R.vibrer(20);
-        R.toast(`${R.navn(i)} tar med seg ${poengTekst(pott)}`);
-        R.vis();
+        R.vis(); // the ✋ and the «+N» on the player say it: no toast on top of the board
+        R.si(`${R.navn(i)} stopper og tar med seg ${poengTekst(pott)}.`);
       },
 
       // Undo a «Stopp» until the next player has picked an answer.
@@ -603,8 +647,8 @@
         sp.valgt = null;
         sp.angre = null;
         R.lyd.snu();
-        R.toast(`${R.navn(a.i)} er med igjen`);
         R.vis();
+        R.si(`${R.navn(a.i)} er med igjen.`);
       },
 
       nesteRunde(el, e, S) {

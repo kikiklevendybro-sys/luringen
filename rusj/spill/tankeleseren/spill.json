@@ -1,8 +1,8 @@
 {
   "id": "tankeleseren",
   "navn": "Tankeleseren",
-  "undertittel": "Bølgelengde",
-  "beskrivelse": "Gratis bølgelengdespill på norsk. Én ser målet på skiva og gir ett hint – de andre drar viseren dit de tror. Er dere på samme bølgelengde?",
+  "undertittel": "Er vi på bølgelengde?",
+  "beskrivelse": "Gratis gjettelek på norsk. Én ser målet på skiva og gir ett hint – de andre drar viseren dit de tror. Er dere på samme bølgelengde?",
   "kort": "Ett hint, én skive – er dere på samme bølgelengde?",
   "spillere": [2, 20],
   "minutter": [10, 40],

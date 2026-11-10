@@ -18,8 +18,32 @@
   flex: none;
 }
 
-.tm-lagavatar {
-  box-shadow: 0 3px 0 color-mix(in srgb, var(--pf) 55%, var(--natt));
+/* A team: the mascot on a disc in the team colour */
+.tm-lagfigur {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--lf) 70%, #fff), var(--lf) 70%);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.16);
+}
+
+.tm-lagfigur .figur-ramme {
+  width: 38px;
+  margin-top: 3px;
+}
+
+.tm-lagfigur.mini {
+  width: 36px;
+  height: 36px;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16);
+}
+
+.tm-lagfigur.mini .figur-ramme {
+  width: 27px;
+  margin-top: 2px;
 }
 
 .tm-hvem {
@@ -309,6 +333,19 @@
   vertical-align: -0.15em;
 }
 
+/* Tapped the card instead of dragging it: the how-to line lights up */
+.tm-hjelp.tm-blunk {
+  animation: tm-blunk 1.1s ease-out;
+}
+
+@keyframes tm-blunk {
+  0%,
+  55% {
+    color: var(--aksent);
+    transform: scale(1.04);
+  }
+}
+
 .tm-hand-tom {
   padding: 12px 14px;
   border: 2px dashed var(--strek);
@@ -424,9 +461,10 @@
   animation: tm-pop 0.45s cubic-bezier(0.2, 1.8, 0.4, 1) both;
 }
 
+/* Dark on the red: cream on it is too weak to read */
 .tm-merke.feil {
   background: var(--rod);
-  color: var(--papir);
+  color: var(--blekk);
 }
 
 @keyframes tm-pop {
@@ -644,7 +682,7 @@ html.tm-drar .tm-pluss {
 
 .tm-ny-kort.tm-feil .tm-aar {
   background: var(--rod);
-  color: var(--papir);
+  color: var(--blekk);
 }
 
 @keyframes tm-hopp {
@@ -783,7 +821,7 @@ html.tm-drar .tm-pluss {
   gap: 8px;
 }
 
-.tm-rekordhjelp {
+.tm-rekordvalg {
   margin-top: -8px;
 }
 
@@ -860,6 +898,147 @@ html.tm-drar .tm-pluss {
   font: 900 1.05rem/1 var(--font-display);
 }
 
+/* ---------- The award next to the winner ---------- */
+
+.tm-pris {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.tm-pris-ikon {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.tm-pris-navn {
+  font: 900 1.4rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.tm-pris p:last-child {
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+/* ---------- Setup ---------- */
+
+/* The three ways to play as three compact tiles in one row (icon over name), so the players
+   and «Flere valg» are in view at once. What the chosen one means is told right below. */
+.skjerm-oppsett .fliser {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.skjerm-oppsett .flis {
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 88px;
+  padding: 12px 4px 10px;
+  text-align: center;
+}
+
+.skjerm-oppsett .flis b {
+  font-size: 1rem;
+  text-wrap: balance;
+  hyphens: manual;
+}
+
+/* The record so far, under the help line for Rekordjakt */
+.tm-rekordlinje {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  color: var(--tekst-3);
+  font: 800 0.78rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tm-rekordlinje b {
+  color: var(--lampe);
+  font-size: 1.25rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Categories, difficulty and target fold into «Flere valg» */
+.tm-mer {
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.tm-mer-knapp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 62px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: none;
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.tm-mer-knapp > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tm-mer-knapp b {
+  font: 900 1.1rem/1.1 var(--font-display);
+}
+
+.tm-mer-knapp small {
+  color: var(--tekst-3);
+  font-size: 0.85rem;
+  text-wrap: balance; /* no lonely last word on a narrow phone */
+}
+
+.tm-mer-knapp i {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin: -4px 4px 0 0;
+  border-right: 3px solid var(--tekst-2);
+  border-bottom: 3px solid var(--tekst-2);
+  transform: rotate(45deg);
+  transition: transform 0.2s;
+}
+
+.tm-mer.apen .tm-mer-knapp i {
+  margin-top: 4px;
+  transform: rotate(-135deg);
+}
+
+.tm-mer-innhold {
+  display: grid;
+  gap: 22px;
+  padding: 6px 16px 20px;
+}
+
+/* A category that is on is filled and ticked, so «on» can't be mistaken for «off» –
+   and «Alle» is filled like the rest when every category is on. */
+.skjerm-oppsett .brikke[aria-pressed="true"],
+.skjerm-oppsett .brikke.alle[aria-pressed="true"] {
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.skjerm-oppsett .brikke[aria-pressed="true"]::before {
+  content: "✓";
+  font: 900 0.9rem/1 var(--font-display);
+}
+
 /* ---------- Short screens ---------- */
 
 @media (max-height: 700px) {
@@ -872,31 +1051,88 @@ html.tm-drar .tm-pluss {
   }
 
   .tm-hode .avatar.mid,
+  .tm-hode .tm-lagfigur,
   .tm-flamme {
     width: 44px;
     height: 44px;
     font-size: 1.35rem;
   }
 
+  .tm-hode .tm-lagfigur .figur-ramme {
+    width: 32px;
+  }
+
   .tm-hvem h1 {
     font-size: 1.4rem;
   }
 
+  .tm-hand {
+    gap: 8px;
+  }
+
+  /* The card in two rows, so the whole timeline is in view under it: the category and the
+     hidden year on one line, the event below. */
   .tm-kort {
+    grid-template-columns: minmax(0, auto) auto minmax(0, 1fr) auto;
+    grid-template-areas: "kat aar . grep" "tekst tekst tekst tekst";
+    align-items: center;
     gap: 8px;
     padding: 12px 16px 12px 22px;
   }
 
-  .tm-kort-tekst {
+  .tm-kort-topp {
+    display: contents;
+  }
+
+  .tm-kort .tm-kat {
+    grid-area: kat;
+  }
+
+  .tm-kort .tm-kort-fot {
+    grid-area: aar;
+  }
+
+  .tm-kort .tm-grep {
+    grid-area: grep;
+  }
+
+  .tm-kort .tm-kort-tekst {
+    grid-area: tekst;
     font-size: clamp(1.15rem, 5.2vw, 1.4rem);
   }
 
+  .tm-kort-hint,
+  .tm-grep-tekst {
+    display: none;
+  }
+
   .tm-kort .tm-skjult {
-    font-size: 1.05rem;
+    padding: 4px;
+    border-radius: 10px;
+    font-size: 0.98rem;
   }
 
   .tm-hjelp {
     font-size: 0.86rem;
+  }
+
+  /* A tighter timeline */
+  .tm-linje-boks {
+    gap: 6px;
+  }
+
+  .tm-rad,
+  .tm-spokelse {
+    min-height: 46px;
+    padding-block: 4px;
+  }
+
+  .tm-aar {
+    height: 36px;
+  }
+
+  .tm-gap {
+    min-height: 40px;
   }
 
   .tm-dom {
@@ -905,6 +1141,17 @@ html.tm-drar .tm-pluss {
 
   .tm-dom-ord {
     font-size: 1.8rem;
+  }
+
+  /* No button holding the space before the card is placed: the gaps under the last card must
+     be in view. It comes when there is something to check. */
+  #tm-sjekk:disabled {
+    display: none;
+  }
+
+  .skjerm-tur .dokk .knapp.stor {
+    min-height: 62px;
+    font-size: 1.36rem;
   }
 }
 
@@ -934,6 +1181,65 @@ html.tm-drar .tm-pluss {
   .tm-pips i {
     width: 6px;
   }
+
+  .skjerm-oppsett .fliser {
+    gap: 6px;
+  }
+
+  .skjerm-oppsett .flis b {
+    font-size: 0.88rem;
+  }
+
+  .tm-pris {
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .tm-pris-ikon {
+    font-size: 2.1rem;
+  }
+}
+
+@media (max-width: 359px) and (max-height: 700px) {
+  .tm-kort .tm-kort-tekst {
+    font-size: 1.08rem;
+  }
+
+  .tm-kort .tm-grep {
+    display: none;
+  }
+}
+
+/* ---------- Phone on its side: card and buttons to the left, the timeline to the right ---------- */
+/* (spill.js wraps the left column in .tm-venstre when the screen is wide and low.) */
+
+html[data-spill="tidsmaskinen"] .app:has(.tm-venstre) {
+  max-width: 940px;
+}
+
+.skjerm-tur:has(> .tm-venstre) {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1fr);
+  align-content: start;
+  align-items: start;
+  gap: 0 22px;
+  padding-bottom: 12px;
+}
+
+/* The left column follows along when a long timeline is scrolled */
+.tm-venstre {
+  position: sticky;
+  top: 6px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tm-venstre > .dokk {
+  position: static;
+  margin: 0;
+  padding: 0;
+  background: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -941,5 +1247,13 @@ html.tm-drar .tm-pluss {
   .tm-flamme,
   .tm-spokelse {
     animation: none;
+  }
+
+  /* Still a sign that the tap was noticed, without the movement */
+  @keyframes tm-blunk {
+    0%,
+    55% {
+      color: var(--aksent);
+    }
   }
 }

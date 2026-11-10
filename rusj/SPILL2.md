@@ -28,7 +28,7 @@ locally, countdown to tomorrow's word, plus an unlimited practice mode. Dark/col
 colours. Word lists: ≥ 1 500 common answer words (no inflected forms as answers, no proper nouns,
 nothing offensive) and ≥ 8 000 allowed guesses — validate with the macOS Norwegian spell checker
 (NSSpellChecker, language "nb") via a small Swift script, and keep the lists in data/.
-sok: ["dagens ord", "ordspill", "fem bokstaver", "wordle"].
+sok: ["dagens ord", "ordspill", "fem bokstaver"].
 
 ### blyanten — Blyanten · «Minikryss» · 1 player · tagger daglig ord alene tenke · rekkefolge 23
 Small crosswords made for a phone: a generator lays 6–10 words from a theme into a crossing grid

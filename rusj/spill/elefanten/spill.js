@@ -1,4 +1,4 @@
-/* Elefanten — Memory.
+/* Elefanten — a pairs game (find two alike).
    Turn two cards and find the pairs. Alone: beat your own record (moves and time) for each board
    size. 2–4 players: take turns, a pair gives another turn, most pairs wins.
    The board is drawn once per screen; flips are class changes so the 3D animations stay smooth. */
@@ -452,7 +452,7 @@
           const del = nyDeling && !R.rolig();
           nyDeling = false;
           return `
-            <h1 class="vh" id="skjerm-tittel">Memory – finn parene</h1>
+            <h1 class="vh" id="skjerm-tittel">Finn to like</h1>
             <div class="ele-topp">
               ${hudHtml(S)}
               <div class="ele-melding" id="ele-melding" aria-hidden="true"></div>

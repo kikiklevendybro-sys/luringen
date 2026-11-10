@@ -472,7 +472,7 @@
       tips: [
         "Siste ord når tiden er ute: alle lag kan gjette. Laget som tar det, får poenget.",
         "Ikke lov: peke på ting, rime, si ordet på engelsk eller «det begynner på …».",
-        "Tabu: to forbudte ord står under ordet. Sier du dem, må du hoppe over.",
+        "Forbudte ord: to ekstra ord står under ordet. Sier du dem, må du hoppe over.",
         "Bytt forklarer hver runde, så alle får prøve seg.",
       ],
     },
@@ -510,7 +510,7 @@
               "modus",
               [
                 { v: "klassisk", tittel: "Klassisk", tekst: "Forklar ordet med egne ord", ikon: "💬" },
-                { v: "tabu", tittel: "Tabu", tekst: "To ekstra ord er forbudt", ikon: "🚫" },
+                { v: "tabu", tittel: "Forbudte ord", tekst: "To ekstra ord du ikke får si", ikon: "🚫" },
               ],
               o.tabu ? "tabu" : "klassisk",
             )}

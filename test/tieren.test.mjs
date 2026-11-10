@@ -12,8 +12,12 @@ const KATEGORIER = les("kategorier.json");
 const FILER = readdirSync(MAPPE).filter((f) => f.startsWith("kort-") && f.endsWith(".json")).sort();
 const ALLE = FILER.flatMap((f) => les(f).map((k, i) => ({ ...k, hvor: `${f} #${i + 1}` })));
 const TYPER = ["ja", "tall", "gruppe", "rekke"];
-const normal = (t) => String(t).toLocaleLowerCase("nb").replace(/[^a-z0-9æøåéèäöüá]+/g, " ").trim();
-const lengsteOrd = (t) => Math.max(...String(t).split(/[\s\-–]+/).map((o) => o.length));
+// Long words carry soft hyphens (U+00AD) so they break in the right place on the ring.
+const MYK = /\u00ad/g;
+const synlig = (t) => String(t).replace(MYK, "");
+const normal = (t) => synlig(t).toLocaleLowerCase("nb").replace(/[^a-z0-9æøåéèäöüá]+/g, " ").trim();
+// The longest piece that cannot be broken: between spaces, hyphens and soft hyphens.
+const lengsteBit = (t) => Math.max(...String(t).split(/[\s\-–\u00ad]+/).map((o) => o.length));
 
 test("kategoriene har id, navn, kort navn, ikon og farge, og hver har sin egen fil", () => {
   const ider = KATEGORIER.map((k) => k.id);
@@ -55,8 +59,10 @@ test("hvert kort har riktig form", () => {
       assert.ok(Array.isArray(svar) && svar.length === 2, `${k.hvor}: svar må være [tekst, fasit]`);
       const [tekst] = svar;
       assert.ok(typeof tekst === "string" && tekst.trim() === tekst && tekst.length > 0, `${k.hvor}: tomt eller utrimmet svar`);
-      assert.ok(tekst.length <= 24, `${k.hvor}: «${tekst}» er for langt for ringen`);
-      assert.ok(lengsteOrd(tekst) <= 17, `${k.hvor}: «${tekst}» har et for langt ord for ringen`);
+      assert.ok(synlig(tekst).length <= 24, `${k.hvor}: «${synlig(tekst)}» er for langt for ringen`);
+      // Every answer has the same size on the ring, so a long word needs a soft hyphen (U+00AD) to break at.
+      assert.ok(lengsteBit(tekst) <= 11, `${k.hvor}: «${synlig(tekst)}» har et ord over 11 tegn uten myk bindestrek (\\u00ad)`);
+      assert.ok(!/^\u00ad|\u00ad$|\u00ad[\s\-–]|[\s\-–]\u00ad|\u00ad\u00ad/.test(tekst), `${k.hvor}: «${synlig(tekst)}» har en myk bindestrek på feil sted`);
     }
     assert.equal(new Set(k.a.map(([t]) => normal(t))).size, 10, `${k.hvor}: to like svar`);
     const fasit = k.a.map(([, f]) => f);
@@ -73,7 +79,7 @@ test("hvert kort har riktig form", () => {
     if (k.t === "gruppe") {
       assert.ok(Array.isArray(k.v) && k.v.length >= 2 && k.v.length <= 6, `${k.hvor}: gruppekort trenger 2–6 grupper`);
       assert.equal(new Set(k.v).size, k.v.length, `${k.hvor}: to like grupper`);
-      for (const g of k.v) assert.ok(typeof g === "string" && g.length <= 18, `${k.hvor}: gruppenavnet «${g}» er for langt`);
+      for (const g of k.v) assert.ok(typeof g === "string" && synlig(g).length <= 18 && lengsteBit(g) <= 11, `${k.hvor}: gruppenavnet «${g}» er for langt`);
       for (const f of fasit) assert.ok(k.v.includes(f), `${k.hvor}: fasiten «${f}» er ingen av gruppene`);
       for (const g of k.v) assert.ok(fasit.includes(g), `${k.hvor}: ingen svar hører til gruppen «${g}»`);
     }

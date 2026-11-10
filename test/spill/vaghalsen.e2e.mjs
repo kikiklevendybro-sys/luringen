@@ -187,6 +187,7 @@ export default async function (t) {
   await t.bilde("rekke-20-spillere");
   s = await t.tilstand();
   t.sjekk(s.spill.modus === "rekke" && s.spill.antall === 20, "Spillet startet ikke i rekkefølge med 20 spillere");
+  t.sjekk(await t.finnes('.dokk [data-h="kaaring"]'), "«På rekke og rad» har ingen vei til Kåringen («Avslutt» mangler)");
   const tur = s.spill.tur;
   // Double tap on «Konsekvens»: two real taps 90 ms apart. The second one lands where «Fullført!»
   // sits on the card screen — it must be ignored, so no points are given before the card is read.
