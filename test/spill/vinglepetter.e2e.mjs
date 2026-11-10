@@ -1,5 +1,26 @@
 // Vinglepetter: count votes (split bar + verdict), swipe, reload mid-game, back + continue, a ghost tap
 // after «Neste dilemma», the group's verdict at the end; then a round without counting, and quitting.
+// Two real finger taps on the same spot (a nervous double tap). The kit only drops a
+// second tap that lands near the first one, so a scripted click + a tap elsewhere is not a ghost tap.
+async function dobbeltrykk(t, sel) {
+  await t.js(`document.querySelector(${JSON.stringify(sel)}).scrollIntoView({ block: "center" })`);
+  await t.sov(120);
+  const p = await t.js(`(() => { const b = document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; })()`);
+  const under = [];
+  for (let i = 0; i < 2; i++) {
+    under.push(await t.js(`document.elementFromPoint(${p.x}, ${p.y})?.closest("[data-h]")?.dataset.h ?? null`));
+    await t.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: p.x, y: p.y }] });
+    await t.sov(30);
+    await t.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    // «Neste dilemma» redraws a moment later: the second tap comes as soon as another button is there.
+    for (let n = 0; i === 0 && n < 40; n++) {
+      await t.sov(20);
+      if ((await t.js(`document.elementFromPoint(${p.x}, ${p.y})?.closest("[data-h]")?.dataset.h ?? null`)) !== under[0]) break;
+    }
+  }
+  return under; // the buttons under the finger at each tap
+}
+
 export default async function (t) {
   const pause = () => t.sov(420); // taps right after a screen change are ignored on purpose
   const enH1 = async (hvor) => t.sjekk((await t.antall("#skjerm h1")) === 1, `Skjermen «${hvor}» skal ha nøyaktig én h1`);
@@ -48,8 +69,9 @@ export default async function (t) {
   t.sjekk(/75 %/.test(await t.tekst(".vingle-stolpe")), "Stolpen viser ikke 75 %");
 
   // A ghost tap on «3 · 2 · 1 – Velg!», which appears under the finger after «Neste dilemma», is ignored
-  await t.klikk('[data-h="neste"]', 220);
-  await t.trykk('[data-h="velg"]'); // a real tap right after the redraw: the kit ignores it
+  await pause();
+  const under = await dobbeltrykk(t, '[data-h="neste"]'); // the second tap lands on what the redraw put there
+  t.sjekk(under[0] === "neste" && under[1] && under[1] !== "neste", `Det andre trykket traff ingen ny knapp (${under.join(" → ")}), så spøketrykket ble ikke prøvd`);
   await t.sov(300);
   t.sjekk((await t.tilstand()).spill.fase === "les" && (await t.finnes("#nedtelling[hidden]")), "Et spøketrykk rett etter «Neste dilemma» startet nedtellingen");
 

@@ -487,6 +487,7 @@
     }
     $("#ark-innhold").innerHTML = html;
     $("#ark").hidden = false;
+    flyttToast();
     const forste = $("#ark-innhold h2") || $("#ark-innhold button, #ark-innhold input");
     if (forste) {
       if (forste.tagName === "H2") forste.setAttribute("tabindex", "-1");
@@ -568,29 +569,62 @@
     });
 
   let toastId = null;
+  let toastValg = null;
   R.skjulToast = () => {
     clearTimeout(toastId);
+    toastValg = null;
     const t = $("#toast");
     if (t) t.classList.remove("vis");
   };
-  // R.toast(tekst) or R.toast(tekst, { topp: true }) — the top variant for screens where the area
-  // above the dock is the game board.
+  // Is something of the screen (text, a button, a board, a card) painted inside this box?
+  function opptatt(f) {
+    const skjerm = $("#skjerm");
+    if (!skjerm) return false;
+    for (const el of skjerm.querySelectorAll("*")) {
+      const svg = el.closest("svg");
+      if ((svg && svg !== el) || el.closest(".dokk")) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2 || r.bottom <= f.topp || r.top >= f.bunn || r.right <= f.venstre || r.left >= f.hoyre) continue;
+      if (el.checkVisibility && !el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
+      if (svg || /^(BUTTON|INPUT|SELECT|TEXTAREA|CANVAS|IMG)$/.test(el.tagName)) return true;
+      if (Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.nodeValue.trim())) return true;
+      const stil = getComputedStyle(el);
+      if (stil.backgroundImage !== "none" || !/^(transparent|rgba\(0, 0, 0, 0\))$/.test(stil.backgroundColor) || parseFloat(stil.borderTopWidth) > 0) return true;
+    }
+    return false;
+  }
+  // The toast sits just above the action area when that spot is empty (near the thumb, never over
+  // the buttons). When the board, a helper line or a list reaches down there — or a sheet is open
+  // — it goes to the top, under the top bar, instead.
+  function plasserToast() {
+    const t = $("#toast");
+    if (!t) return;
+    t.style.top = "";
+    t.style.bottom = "";
+    if ((toastValg && toastValg.topp) || R.arkApent()) return;
+    const dokk = $("#skjerm .dokk");
+    const topp = dokk ? dokk.getBoundingClientRect().top : 0;
+    if (!dokk || topp <= 120 || topp >= window.innerHeight) return;
+    const h = t.offsetHeight || 48;
+    const b = t.offsetWidth || 220;
+    if (opptatt({ topp: topp - 14 - h, bunn: topp - 6, venstre: (window.innerWidth - b) / 2 - 4, hoyre: (window.innerWidth + b) / 2 + 4 })) return;
+    t.style.top = "auto";
+    t.style.bottom = Math.round(window.innerHeight - topp + 10) + "px";
+  }
+  // R.toast(tekst) or R.toast(tekst, { topp: true }) to always show it at the top.
   R.toast = (tekst, valg) => {
     const t = $("#toast");
     t.textContent = tekst;
-    // Just above the action area when the screen has one (never over the heading or the buttons).
-    const dokk = $("#skjerm .dokk");
-    const topp = dokk ? dokk.getBoundingClientRect().top : 0;
-    if (!(valg && valg.topp) && dokk && topp > 120 && topp < window.innerHeight) {
-      t.style.top = "auto";
-      t.style.bottom = Math.round(window.innerHeight - topp + 10) + "px";
-    } else {
-      t.style.top = "";
-      t.style.bottom = "";
-    }
+    toastValg = valg || {};
+    plasserToast();
     t.classList.add("vis");
     clearTimeout(toastId);
-    toastId = setTimeout(() => t.classList.remove("vis"), 2200);
+    toastId = setTimeout(R.skjulToast, 2200);
+  };
+  // A redraw or a sheet may have moved things under a toast that is showing: place it again.
+  const flyttToast = () => {
+    const t = $("#toast");
+    if (t && toastValg && t.classList.contains("vis")) plasserToast();
   };
 
   R.kopier = async (tekst) => {
@@ -1273,6 +1307,7 @@
     }
     oppdaterTopp();
     if (sk.etter) sk.etter(S, el);
+    flyttToast();
   }
 
   R.gaTil = (navn) => {

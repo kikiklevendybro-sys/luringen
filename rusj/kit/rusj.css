@@ -340,6 +340,7 @@ h2:focus {
 
 p {
   margin: 0;
+  text-wrap: pretty; /* avoids a single word alone on the last line where supported */
 }
 
 .ingress {
@@ -358,6 +359,7 @@ p {
   color: var(--tekst-3);
   font-size: 0.92rem;
   text-align: center;
+  text-wrap: balance; /* no lonely last word */
 }
 
 .midt {
@@ -643,6 +645,7 @@ p {
 .slagord {
   max-width: 30ch;
   color: var(--tekst-2);
+  text-wrap: balance;
   font: 700 1.15rem/1.35 var(--font-display);
 }
 
@@ -2237,7 +2240,7 @@ textarea.tekstfelt {
 /* At the top, under the top bar: never covers the main action under the thumb. */
 .toast {
   position: fixed;
-  top: calc(70px + env(safe-area-inset-top, 0px));
+  top: calc(60px + env(safe-area-inset-top, 0px));
   right: 0;
   left: 0;
   z-index: 60;
