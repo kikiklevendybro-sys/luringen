@@ -28,12 +28,16 @@
     "Den gikk ikke – bløff!"
   ],
   "vann": [
-    "Vannpause før neste rad! Alle tar en slurk vann.",
-    "Neste rad gir flere slurker. Ta en tår vann først.",
-    "Påfyll av vann? Pyramiden venter gjerne.",
-    "Pust ut og drikk et glass vann – toppen nærmer seg.",
+    "Alle tar en god slurk vann før neste rad. Pyramiden venter gjerne.",
+    "Halvveis opp! Pust ut og ta en tår vann – alle sammen.",
+    "Neste rad gir flere slurker. Fyll glasset med vann først.",
     "Vannrunde! Den som henter vann til alle, er kveldens helt.",
     "Husk vann mellom radene. Morgendagen sier takk."
+  ],
+  "vannTopp": [
+    "Bare toppkortet igjen. Alle tar en god slurk vann først.",
+    "Toppen venter – men først et glass vann til alle.",
+    "Ett kort igjen! Skyll ned litt vann før vi snur det."
   ],
   "fot": [
     "Små slurker. Alkoholfritt teller like mye.",

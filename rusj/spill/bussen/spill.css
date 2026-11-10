@@ -558,6 +558,18 @@
   width: 58px;
 }
 
+/* «Synsk»: four right answers of four */
+.bu-synsk {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--lilla) 20%, var(--natt-2)), var(--natt-2) 70%);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lilla) 45%, var(--strek));
+}
+
+.bu-synsk-ikon {
+  flex: none;
+  font-size: 1.9rem;
+  line-height: 1;
+}
+
 /* ---------- Short screens: smaller cards, so the question stays above the buttons ---------- */
 @media (max-height: 700px) {
   .skjerm-tur,
@@ -646,5 +658,196 @@
 
   .skjerm-intro .fremdrift {
     display: none;
+  }
+}
+
+/* ---------- Landscape phones (844 × 390 and the like): two columns, so the cards, the question and
+   the answer buttons are visible together. The dock becomes a normal block in the right column. ---------- */
+@media (orientation: landscape) and (max-height: 520px) {
+  .skjerm-intro,
+  .skjerm-tur,
+  .skjerm-buss,
+  .skjerm-bussvalg {
+    display: grid;
+    align-items: center;
+    gap: 8px 20px;
+  }
+
+  .skjerm-intro > .dokk,
+  .skjerm-tur > .dokk,
+  .skjerm-buss > .dokk,
+  .skjerm-bussvalg > .dokk {
+    position: static;
+    margin: 0;
+    padding: 0 0 10px;
+    background: none;
+  }
+
+  .skjerm-tur > .fremdrift {
+    display: none;
+  }
+
+  /* Round intro: what the round is about to the left, the water note and «Start» to the right */
+  .skjerm-intro {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: "intro vann" "intro dokk";
+  }
+
+  .skjerm-intro > .bu-intro {
+    grid-area: intro;
+    gap: 6px;
+  }
+
+  .skjerm-intro > .bu-vann {
+    grid-area: vann;
+    align-self: end;
+  }
+
+  .skjerm-intro > .dokk {
+    grid-area: dokk;
+    align-self: end;
+  }
+
+  .bu-intro h1 {
+    font-size: 1.7rem;
+  }
+
+  .bu-illustrasjon {
+    --kortbredde: 46px;
+    min-height: 70px;
+    padding: 0;
+  }
+
+  .bu-fire .bu-sort {
+    --str: 28px !important;
+    padding: 7px;
+  }
+
+  .bu-intro .ingress {
+    font-size: 0.92rem;
+  }
+
+  /* A turn: the player and the four cards to the left, the question and the answers to the right */
+  .skjerm-tur {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas: "hvem sp" "hand sp" "hand dokk";
+  }
+
+  .skjerm-tur > .bu-hvem {
+    grid-area: hvem;
+  }
+
+  .skjerm-tur > .bu-hand {
+    grid-area: hand;
+    align-self: start;
+  }
+
+  .skjerm-tur > .bu-sporsmal,
+  .skjerm-tur > .bu-utfall {
+    grid-area: sp;
+    align-self: end;
+  }
+
+  .skjerm-tur > .dokk {
+    grid-area: dokk;
+    align-self: start;
+  }
+
+  .bu-sortknapp {
+    min-height: 54px;
+    font-size: 0.72rem;
+  }
+
+  .bu-sortknapp .bu-sort {
+    --str: 24px !important;
+  }
+
+  /* Who takes the bus: the name to the left, how the bus works and «Kjør» to the right */
+  .skjerm-bussvalg {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: "banner regler" "vann dokk";
+  }
+
+  .skjerm-bussvalg > .banner {
+    grid-area: banner;
+    padding-top: 0;
+  }
+
+  .skjerm-bussvalg > .bu-regelboks {
+    grid-area: regler;
+  }
+
+  .skjerm-bussvalg > .bu-vann {
+    grid-area: vann;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .skjerm-bussvalg > .dokk {
+    grid-area: dokk;
+  }
+
+  .bu-stor-buss {
+    width: 64px;
+  }
+
+  .bu-billett h1 {
+    font-size: 1.6rem;
+  }
+
+  .bu-billett .ingress {
+    font-size: 0.92rem;
+  }
+
+  .bu-regelboks {
+    padding: 10px 14px;
+  }
+
+  .bu-regelboks .tips {
+    font-size: 0.8rem;
+  }
+
+  /* The bus ride: the rider and the route to the left, the question and the answers to the right */
+  .skjerm-buss {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "hvem sp" "vei sp" "vei dokk" "bom dokk";
+  }
+
+  .skjerm-buss > .bu-hvem {
+    grid-area: hvem;
+  }
+
+  .skjerm-buss > .bu-vei {
+    grid-area: vei;
+  }
+
+  .skjerm-buss > .bu-bom {
+    grid-area: bom;
+    margin: 0 0 12px;
+  }
+
+  .skjerm-buss > .bu-sporsmal,
+  .skjerm-buss > .bu-utfall {
+    grid-area: sp;
+    align-self: end;
+  }
+
+  .skjerm-buss > .dokk {
+    grid-area: dokk;
+    align-self: start;
+  }
+
+  .skjerm-buss .bu-svar {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .skjerm-buss .bu-svar .knapp {
+    flex-direction: row;
+    gap: 0.5em;
   }
 }

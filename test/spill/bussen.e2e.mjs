@@ -97,6 +97,7 @@ export default async function (t) {
         await t.sov(500);
         await t.bilde("svar");
         // «Angre»: the card goes back into the deck, the same player answers again
+        t.sjekk(/Angre – nytt kort/.test(await t.tekst('[data-h="angre"]')), "«Angre» sier ikke at det gir et nytt kort");
         await t.klikk('[data-h="angre"]');
         s = await tilstand();
         t.sjekk(s.spill.fase === "gjett" && s.spill.hender[i].length === 0 && s.spill.svar[i].length === 0, "«Angre» tok ikke tilbake svaret");
@@ -162,6 +163,7 @@ export default async function (t) {
           await t.bilde("buss-bom");
           // «Angre» on the bus: the miss is taken back and that stop gets a fresh card
           const gammelt = b.rute[b.vist];
+          t.sjekk(/Angre – nytt kort/.test(await t.tekst('[data-h="bussangre"]')), "«Angre» på bussen sier ikke at det gir et nytt kort");
           await t.klikk('[data-h="bussangre"]');
           const etter = (await tilstand()).spill.buss;
           t.sjekk(etter.fase === "gjett" && etter.bom === b.bom - 1 && etter.pos === b.pos, "«Angre» på bussen tok ikke tilbake bommet");
@@ -269,8 +271,9 @@ export default async function (t) {
   const sp2 = (await tilstand()).spill;
   sp2.runde = 4;
   sp2.fase = "bussvalg";
-  sp2.svar = [[{ riktig: false, slurker: 1 }], [{ riktig: true, slurker: 0 }]];
-  sp2.hender = [[5], [6]];
+  const rett = { riktig: true, likt: false, slurker: 0 };
+  sp2.svar = [[{ riktig: false, slurker: 1 }, rett, rett, rett], [rett, rett, rett, rett]];
+  sp2.hender = [[5, 20, 30, 40], [6, 21, 31, 41]];
   sp2.buss = { hvem: 0, kandidater: [0], maks: 1, rute: [], pos: 0, vist: 0, forsok: 0, bom: 0, slurker: 0, fase: "klar", utfall: null, sist: null, angre: null };
   await t.js(`localStorage.setItem("rusj.bussen.v1", ${JSON.stringify(JSON.stringify({ ...(await tilstand()), spill: sp2, skjerm: "bussvalg", _tid: Date.now() }))})`);
   await t.send("Emulation.setDeviceMetricsOverride", { width: Math.min(375, b0), height: 560, deviceScaleFactor: 2, mobile: true });
@@ -281,5 +284,51 @@ export default async function (t) {
   await t.vent("document.querySelector('.bu-rute')");
   await sjekkSkjerm("375x560", ".bu-sporsmal h2");
   await t.bilde("buss-375x560");
+
+  // 8. Landscape (844 × 390): the cards, the question and the answer buttons are on screen together
+  const iVinduet = (velger) =>
+    t.js(`(() => { const e = document.querySelector(${JSON.stringify(velger)}); if (!e) return false; const b = e.getBoundingClientRect(); return b.top >= 0 && b.bottom <= window.innerHeight + 1 && b.left >= 0 && b.right <= window.innerWidth + 1; })()`);
+  const liggende = async (hvor, velgere) => {
+    for (const v of velgere) t.sjekk(await iVinduet(v), `Liggende mobil, ${hvor}: «${v}» er ikke synlig uten å rulle`);
+  };
+  // (Screenshots only when the whole run is in landscape: the runner compares widths with its own.)
+  const bildeLiggende = async (navn) => {
+    if (b0 >= 844) await t.bilde(navn);
+  };
+  await t.send("Emulation.setDeviceMetricsOverride", { width: 844, height: 390, deviceScaleFactor: 2, mobile: true });
+  await t.sov(400);
+  await liggende("bussen", [".bu-rute", ".bu-sporsmal h2", '[data-h="buss"][data-v="hoyere"]', '[data-h="buss"][data-v="lavere"]']);
+  await bildeLiggende("liggende-buss");
+  // «Gå av bussen» is always there – and the crowning has the «Synsk» award for four of four
+  await t.klikk('[data-h="gaav"]');
+  await t.klikk('#ark [data-v="ja"]');
+  await t.vent("document.querySelector('.skjerm-slutt')");
+  t.sjekk(/Testspiller B/.test(await t.tekst(".bu-synsk")) && /alle fire/.test(await t.tekst(".bu-synsk")), "Kåringen mangler «Synsk» for fire av fire");
+  t.sjekk(/gikk av bussen – helt greit/.test(await t.tekst("#skjerm")), "Å gå av bussen skal omtales vennlig");
+  t.sjekk(!/\d+ slurk/.test(await t.tekst("#skjerm")), "Kåringen viser slurker");
+  await t.sov(500);
+  await bildeLiggende("liggende-kaaring");
+  await lukkTips();
+  // (The same crowning at the run's own size, so «Synsk» is in a picture at every size.)
+  await t.send("Emulation.setDeviceMetricsOverride", { width: b0, height: h0, deviceScaleFactor: 2, mobile: true });
+  await t.sov(300);
+  await t.bilde("kaaring-synsk", true);
+  await t.send("Emulation.setDeviceMetricsOverride", { width: 844, height: 390, deviceScaleFactor: 2, mobile: true });
+  await t.sov(300);
+  await t.klikk('[data-h="igjen"]');
+  await t.vent("document.querySelector('.bu-intro')");
+  await pause();
+  await liggende("rundeintro", [".bu-intro h1", ".bu-intro .ingress", ".bu-forst", '[data-h="runde"]']);
+  await bildeLiggende("liggende-intro");
+  await t.klikk('[data-h="runde"]');
+  await t.vent("document.querySelector('[data-h=\"gjett\"]')");
+  await liggende("tur", [".bu-hand", ".bu-sporsmal h2", '[data-h="gjett"][data-v="rod"]', '[data-h="gjett"][data-v="svart"]']);
+  await bildeLiggende("liggende-tur");
+  await pause();
+  await t.klikk('[data-h="gjett"][data-v="svart"]');
+  await t.vent("document.querySelector('.bu-utfall')");
+  await t.sov(500);
+  await liggende("svar", [".bu-hand", ".bu-utfall-tekst", '[data-h="neste"]']);
+  await bildeLiggende("liggende-svar");
   await t.send("Emulation.setDeviceMetricsOverride", { width: b0, height: h0, deviceScaleFactor: 2, mobile: true });
 }

@@ -328,7 +328,7 @@
       ],
       tips: [
         "Ess er høyest. Likt teller alltid som riktig.",
-        "Trykket feil? «Angre» stokker kortet inn i bunken igjen, så du får et nytt.",
+        "Trykket feil? «Angre – nytt kort» stokker kortet inn i bunken igjen, så du får et nytt.",
         "Velg «Rolig» hvis dere vil ta det med ro: 1 slurk per feil.",
         "Drikk vann mellom rundene, spis noe – og planlegg trygg vei hjem.",
       ],
@@ -427,9 +427,9 @@
             </div>`;
           }
           const sisteIRunden = sp.teller === sp.antall - 1;
-          const neste = sisteIRunden ? (sp.runde === 3 ? "Til bussen! 🚌" : `Videre til runde ${sp.runde + 2}`) : `Neste: ${R.navn((i + 1) % sp.antall)}`;
+          const neste = sisteIRunden ? (sp.runde === 3 ? "Til bussen!" : `Videre til runde ${sp.runde + 2}`) : `Neste: ${R.navn((i + 1) % sp.antall)}`;
           const dokk = svart
-            ? R.ui.dokk(R.ui.knapp(neste, "neste", { variant: "stor" }), R.ui.lenkerad(sp.angre ? R.ui.lenke("Angre", "angre") : "", R.ui.lenke("Avslutt", "avslutt")))
+            ? R.ui.dokk(R.ui.knapp(neste, "neste", { variant: "stor" }), R.ui.lenkerad(sp.angre ? R.ui.lenke("Angre – nytt kort", "angre") : "", R.ui.lenke("Avslutt", "avslutt")))
             : R.ui.dokk(svarKnapper(sp.runde), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")));
           return `
             ${R.ui.fremdrift(sp.antall, i, Array.from({ length: sp.teller }, (_, n) => (sp.forste + n) % sp.antall))}
@@ -521,7 +521,7 @@
               <p class="bu-slurk">Ta ${esc(slurkTekst(bussSlurker(sp)))}</p>
               <p class="bu-fot">${esc(MAKS_BOM - b.bom === 1 ? "Siste tur – sjåføren begynner å bli lei." : `${MAKS_BOM - b.bom} turer igjen før sjåføren gir seg.`)}</p>
             </div>`;
-            dokk = R.ui.dokk(R.ui.knapp("Ny tur med nye kort", "nytur", { variant: "stor" }), R.ui.lenkerad(b.angre ? R.ui.lenke("Angre", "bussangre") : "", R.ui.lenke("Gå av bussen", "gaav")));
+            dokk = R.ui.dokk(R.ui.knapp("Ny tur med nye kort", "nytur", { variant: "stor" }), R.ui.lenkerad(b.angre ? R.ui.lenke("Angre – nytt kort", "bussangre") : "", R.ui.lenke("Gå av bussen", "gaav")));
           } else {
             midt = `<div class="bu-sporsmal">
               <h2>Høyere eller lavere enn ${esc(VERDI_ORD[verdi(b.rute[b.pos])])}?</h2>
@@ -581,6 +581,7 @@
           const best = Math.max(...rader.map((r) => r.poeng));
           const vinnere = rader.filter((r) => r.poeng === best && best > 0).map((r) => r.i);
           const b = sp.buss;
+          const synske = rader.filter((x) => x.poeng === 4).map((x) => x.i); // four of four: a small award
           let buss = "";
           if (b && b.hvem != null) {
             const navn = esc(R.navn(b.hvem));
@@ -603,6 +604,7 @@
               <h1 id="skjerm-tittel">${vinnere.length ? esc(`${R.ramsOpp(vinnere.map((i) => R.navn(i)))} vinner!`) : "Kortene vant i kveld!"}</h1>
             </div>
             ${R.ui.pall(rader)}
+            ${synske.length ? `<div class="bu-oppsummering bu-synsk"><span class="bu-synsk-ikon" aria-hidden="true">🔮</span><p><b>Synsk:</b> ${esc(R.ramsOpp(synske.map((i) => R.navn(i))))} svarte riktig på alle fire.</p></div>` : ""}
             ${R.ui.poengliste(rader)}
             ${buss}
             <div class="bu-vann"><span aria-hidden="true">💧</span><p>Drikk et glass vann før neste spill!</p></div>

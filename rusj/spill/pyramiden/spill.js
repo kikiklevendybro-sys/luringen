@@ -1,10 +1,13 @@
 /* Pyramiden — a drinking game for 3–10 players (18+).
    Everyone gets four secret cards (pass the phone, hold to look – once). Fifteen cards lie face down
    in a pyramid and are turned one by one from the bottom row. Whoever has a card of the same value may
-   hand out sips (row 1 = 1 sip … the top = 5). The one who gets them accepts – or calls bluff: the app
-   knows every hand, and whoever is wrong takes two extra. At the end everyone tries to remember their
-   four cards. Small sips, anything in the glass counts, anyone can pass, water breaks between rows.
-   The app keeps track of who gave what. */
+   hand out sips (row 1 = 1 sip … the top = 5) – once per player per card. The one who gets them
+   accepts, passes – or calls bluff: the app knows every hand. The loser of that duel takes two extra
+   (never more than 5 sips at a time) and the winner gets a point, so a wrong call costs in the
+   standings, not only in the glass. A card shown as proof is swapped for a new secret card. Nobody can
+   be handed sips more than twice on the same card. Full-screen water breaks before row 3 and before
+   the top card. At the end everyone tries to remember their four cards. Points are for bluffing well,
+   never for drinking; the app keeps track of who gave to whom (no sip counts per person). */
 (function () {
   "use strict";
 
@@ -130,26 +133,37 @@
   const ANTALL_I_RAD = [5, 4, 3, 2, 1]; // row 1 (bottom) … row 5 (top)
   const FORSTE_I_RAD = [0, 5, 9, 12, 14];
   const ALLE = 15;
-  const STRAFF = 2; // extra sips for whoever is wrong about a bluff …
+  const STRAFF = 2; // extra sips for the loser of a bluff duel …
   const MAKS = 5; // … but never more than 5 sips at a time
+  const MAKS_FATT = 2; // nobody is handed sips more than twice on the same pyramid card
+  const RESERVE = 8; // spare cards for swapping proven cards; fewer left → two decks
+  const VANN_FOR = [9, 14]; // a water break before these cards: the first of row 3 and the top card
+  const VIS_KRAV = 2; // the pyramid screen lists the latest hand-outs on the card; «Hvem ga hva» has all
   const straff = (rad) => Math.min(MAKS, rad + STRAFF);
   const radFor = (n) => (n >= 14 ? 5 : n >= 12 ? 4 : n >= 9 ? 3 : n >= 5 ? 2 : 1);
+  const toStokker = (n) => n * 4 + ALLE + RESERVE > 52;
+  // One hand-out per player per pyramid card.
+  const harDeltUt = (sp, n, i) => sp.logg.some((x) => x.kort === n && x.fra === i);
+  // Guard against ganging up: handed sips (as the target) twice on this card → can't be picked again.
+  const skjermet = (sp, n, i) => sp.logg.filter((x) => x.kort === n && x.til === i && x.taker === i && x.slurker > 0).length >= MAKS_FATT;
   const slurkTekst = (n) => R.flertall(n, "slurk", "slurker");
   const art = (k) => KORT.MED_ARTIKKEL[KORT.verdiAv(k)]; // «en 7-er», «et ess»
   const uten = (k) => KORT.MED_ARTIKKEL[KORT.verdiAv(k)].replace(/^(en|et) /, ""); // «7-er», «ess»
   const harVerdi = (hand, k) => hand.some((x) => KORT.verdiAv(x) === KORT.verdiAv(k));
   const velg = (liste, n) => liste[Math.abs(n) % liste.length];
   const pagar = (S) => !!(S.spill && S.spill.fase !== "ferdig");
-  const SKJERM = { del: "vis", pyramide: "pyramide", krav: "krav", finale: "finale", ferdig: "slutt" };
+  const SKJERM = { del: "vis", pyramide: "pyramide", krav: "krav", nytt: "nytt", vann: "vann", finale: "finale", ferdig: "slutt" };
 
   let H; // the actions, so one can call another
   let snuNa = []; // ids of cards that should flip in on the next draw
   let spenning = false; // the bluff check is being revealed
 
+  const nyStokk = (antall) => R.stokk(Array.from({ length: antall }, (_, i) => i % 52), R.rng(R.nyttFro()));
+
   function nyttSpill(S) {
     const n = R.klamp(S.antall || 4, 3, 10);
-    const doble = n * 4 + ALLE > 52; // ten players: two decks
-    const stokk = R.stokk(Array.from({ length: doble ? 104 : 52 }, (_, i) => i % 52), R.rng(R.nyttFro()));
+    const doble = toStokker(n); // eight or more players: two decks
+    const stokk = nyStokk(doble ? 104 : 52);
     const hender = Array.from({ length: n }, (_, i) => stokk.slice(i * 4, i * 4 + 4));
     S.spill = {
       antall: n,
@@ -157,11 +171,14 @@
       doble,
       hender,
       pyramide: stokk.slice(n * 4, n * 4 + ALLE),
+      bunke: stokk.slice(n * 4 + ALLE), // spare cards: a proven card is swapped for one of these
       snudd: 0,
       fase: "del",
       del: { i: 0, sett: false },
       logg: [],
       krav: null,
+      nytt: null, // { i, plass, sett }: a swapped-in card its owner has yet to see
+      vann: [], // the water breaks taken (see VANN_FOR)
       angre: false,
       fin: { i: 0, steg: "spor", husket: [] },
       nr: R.heltall(0, 99),
@@ -170,16 +187,35 @@
     R.statistikk("start", { spillere: n, finale: !!S.oppsett.finale });
   }
 
-  // Bluff points from the log (no sip counts per person): 1 for each bluff nobody caught, 1 for each
-  // bluff you caught.
+  // A new secret card from the spare pile (a fresh deck if it ever runs out).
+  function trekkNytt(sp) {
+    if (!sp.bunke.length) sp.bunke = nyStokk(52);
+    return sp.bunke.pop();
+  }
+
+  // Points from the log – for bluffing well, never for drinking (no sip counts per person):
+  // 1 for each bluff nobody caught, 1 for each bluff you caught, and 1 each time you told the truth
+  // and were called a bluffer anyway.
   function regnskap(sp) {
-    const t = Array.from({ length: sp.antall }, () => ({ bloff: 0, avslort: 0, poeng: 0 }));
+    const t = Array.from({ length: sp.antall }, () => ({ bloff: 0, avslort: 0, mistrodd: 0, poeng: 0 }));
     for (const x of sp.logg) {
       if (!x.sant && !x.ropte) t[x.fra].bloff += 1;
       if (!x.sant && x.ropte) t[x.til].avslort += 1;
+      if (x.sant && x.ropte) t[x.fra].mistrodd += 1;
     }
-    t.forEach((x) => (x.poeng = x.bloff + x.avslort));
+    t.forEach((x) => (x.poeng = x.bloff + x.avslort + x.mistrodd));
     return t;
+  }
+
+  // Take the last hand-out off the log; a card swapped as proof goes back where it was.
+  function trekkTilbake(sp) {
+    const x = sp.logg.pop();
+    if (x && x.bytte) {
+      sp.hender[x.fra][x.bytte.plass] = x.bytte.gammelt;
+      sp.bunke.push(x.bytte.nytt);
+    }
+    sp.nytt = null;
+    return x;
   }
 
   // ---------- Markup ----------
@@ -204,13 +240,26 @@
     return `<div class="py-pyramide" aria-label="Pyramiden">${rader}</div>`;
   }
 
+  // One line per hand-out: who gave to whom, and how a bluff duel ended. Never how much anyone drank.
   function kravLinje(sp, x) {
     const fra = esc(R.navn(x.fra));
     const til = esc(R.navn(x.til));
-    if (!x.ropte) return `<li>${fra} <span aria-hidden="true">→</span><span class="vh">ga</span> ${til} · ${esc(slurkTekst(x.slurker))}</li>`;
-    if (x.sant) return `<li>${til} ropte bløff – men ${fra} hadde den!</li>`;
-    return `<li class="avslort">${fra} ble tatt i bløff av ${til}.</li>`;
+    if (!x.ropte) return `<li>${fra} <span aria-hidden="true">→</span><span class="vh">delte ut til</span> ${til}</li>`;
+    if (x.sant) return `<li>${til} ropte bløff – men ${fra} hadde kortet. +1 poeng til ${fra}.</li>`;
+    return `<li class="avslort">${fra} ble tatt i bløff av ${til}. +1 poeng til ${til}.</li>`;
   }
+
+  // The glass on the water break.
+  const VANNGLASS = `<svg class="py-vannglass" viewBox="0 0 120 150" aria-hidden="true" focusable="false">
+    <defs><clipPath id="py-glass-innside"><path d="M24 22 L34 132 Q35 140 44 140 H76 Q85 140 86 132 L96 22 Z"/></clipPath></defs>
+    <g clip-path="url(#py-glass-innside)">
+      <path class="py-vannflate" d="M-60 66 Q-45 58 -30 66 T0 66 T30 66 T60 66 T90 66 T120 66 T150 66 T180 66 V160 H-60 Z" fill="var(--himmel)"/>
+      <circle class="py-boble" cx="48" cy="122" r="4" fill="#fff" opacity=".7"/>
+      <circle class="py-boble to" cx="70" cy="130" r="3" fill="#fff" opacity=".6"/>
+    </g>
+    <path d="M20 18 L31 133 Q32 144 44 144 H76 Q88 144 89 133 L100 18 Z" fill="none" stroke="var(--papir)" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M36 34 L42 112" stroke="#fff" stroke-opacity=".5" stroke-width="5" stroke-linecap="round"/>
+  </svg>`;
 
   // Everything that happened so far, card by card («Hvem ga hva»).
   function loggHtml(sp) {
@@ -239,6 +288,17 @@
     snuNa = [];
   };
 
+  // After a card has been turned: sound, a word for screen readers, the question in view.
+  function etterSnu(S) {
+    const sp = S.spill;
+    R.lyd.snu();
+    R.vibrer(12);
+    const k = sp.pyramide[sp.snudd - 1];
+    R.si(`Rad ${radFor(sp.snudd - 1)}: ${KORT.Navn(k)}. Har noen ${art(k)}?`);
+    const h = R.$("#skjerm-tittel");
+    if (h) h.scrollIntoView({ block: "nearest", behavior: R.rolig() ? "auto" : "smooth" });
+  }
+
   // ---------- The game ----------
 
   R.start({
@@ -266,25 +326,40 @@
         if (!ok) S.spill = null;
         else {
           sp.logg = sp.logg.filter((x) => x && x.fra < sp.antall && x.til < sp.antall && x.taker < sp.antall && x.kort < sp.snudd);
+          // Games saved before cards could be swapped and before the water breaks were screens.
+          if (!Array.isArray(sp.bunke)) sp.bunke = [];
+          if (!Array.isArray(sp.vann)) sp.vann = [];
+          const ny = sp.nytt;
+          if (!(ny && Number.isInteger(ny.i) && ny.i < sp.antall && ny.plass >= 0 && ny.plass < 4)) sp.nytt = null;
           if (sp.fase === "krav" && !(sp.krav && sp.snudd > 0)) {
             sp.fase = "pyramide";
             sp.krav = null;
           }
+          if (sp.fase === "krav" && sp.krav.steg === "resultat" && !sp.logg.length) {
+            sp.fase = "pyramide";
+            sp.krav = null;
+          }
+          if (sp.fase === "nytt" && !sp.nytt) sp.fase = "pyramide";
+          if (sp.fase === "pyramide" && sp.nytt) sp.fase = "nytt"; // a swapped-in card is never skipped
+          if (sp.fase === "vann" && !(sp.snudd > 0 && sp.snudd < ALLE)) sp.fase = "pyramide";
         }
       }
-      if (["vis", "pyramide", "krav", "finale", "slutt"].includes(S.skjerm)) S.skjerm = S.spill ? SKJERM[S.spill.fase] : "hjem";
+      if (["vis", "pyramide", "krav", "nytt", "vann", "finale", "slutt"].includes(S.skjerm)) S.skjerm = S.spill ? SKJERM[S.spill.fase] : "hjem";
     },
 
     regler: {
       intro: "Fire hemmelige kort hver, femten kort i en pyramide – og en god porsjon bløff.",
       steg: [
         ["Se kortene dine", "Mobilen går rundt. Hold fingeren på kortet og husk de fire kortene dine – du får ikke se dem igjen før finalen."],
-        ["Snu pyramiden", "Kortene snus ett og ett nedenfra. Har du samme verdi, deler du ut slurker: 1 på nederste rad, 5 på toppen."],
-        ["Godta eller rop bløff", "Den som får slurkene, kan rope bløff. Mobilen vet alt: Den som tar feil, tar 2 ekstra – men aldri mer enn 5 slurker om gangen."],
+        ["Snu pyramiden", "Kortene snus ett og ett nedenfra. Har du samme verdi, deler du ut slurker: 1 på nederste rad, 5 på toppen. Hver spiller kan dele ut én gang per kort."],
+        ["Godta eller rop bløff", "Den som får slurkene, kan rope bløff – mobilen vet alt. Taperen av duellen tar to slurker ekstra, og vinneren får 1 poeng. Et kort som vises som bevis, byttes mot et nytt hemmelig kort."],
       ],
       tips: [
-        "Du kan bløffe selv om du ikke har kortet – det er halve moroa.",
+        "Du kan bløffe selv om du ikke har kortet. Slipper du unna, får du 1 poeng – det avsløres først på kåringen.",
+        "Roper du bløff og tar feil, får den andre poenget. Tenk deg om!",
+        "Aldri mer enn 5 slurker om gangen, og ingen kan få slurker fra mer enn to spillere på samme kort.",
         "Små slurker. Vann, brus og alkoholfritt teller like mye, og alle kan stå over.",
+        "Før rad 3 og før toppkortet er det vannpause for alle.",
         "«Hvem ga hva» viser alt som har skjedd, og «Angre» tar tilbake siste utdeling.",
         "I finalen sier alle kortene sine høyt. Hvert kort du har glemt, gir 1 slurk.",
       ],
@@ -294,6 +369,16 @@
       innhold(S, id) {
         const i = Number(String(id).slice(1));
         const hand = (S.spill && S.spill.hender[i]) || [];
+        // "n…": the one new card a player got after proving a claim.
+        if (String(id).charAt(0) === "n") {
+          const ny = S.spill && S.spill.nytt;
+          if (!ny || ny.i !== i) return { html: "" };
+          return {
+            html: `<span class="kort-etikett">Nytt kort til ${esc(R.navn(i))}</span>
+              <span class="py-hand py-hand-ett">${KORT.html(hand[ny.plass], { opp: true, stor: true })}</span>
+              <span class="py-husk">Husk det!</span>`,
+          };
+        }
         return {
           // Two layouts: four big classic cards (2 × 2), or one row of compact cards on short screens.
           html: `<span class="kort-etikett">Kortene til ${esc(R.navn(i))}</span>
@@ -304,7 +389,16 @@
       },
       sett(S, id) {
         const sp = S.spill;
-        if (!sp || S.skjerm !== "vis" || id !== "p" + sp.del.i || sp.del.sett) return;
+        if (!sp) return;
+        if (S.skjerm === "nytt" && sp.nytt && id === "n" + sp.nytt.i && !sp.nytt.sett) {
+          sp.nytt.sett = true;
+          sp.angre = false; // the new card has been seen: the hand-out stands
+          R.vis();
+          const ferdig = R.$('[data-h="nyttferdig"]');
+          if (ferdig) ferdig.classList.add("pop");
+          return;
+        }
+        if (S.skjerm !== "vis" || id !== "p" + sp.del.i || sp.del.sett) return;
         sp.del.sett = true;
         R.vis();
         const knapp = R.$('[data-h="vist"]');
@@ -336,7 +430,7 @@
         tilbake: "hjem",
         vis: (S) => `
           <h1 id="skjerm-tittel">Gjør klart</h1>
-          ${R.ui.spillere({ min: 3, max: 10, hjelp: (S.antall || 4) * 4 + ALLE > 52 ? "Med ti spillere bruker vi to kortstokker." : "Alle trenger et navn – mobilen holder styr på hvem som har hvilke kort." })}
+          ${R.ui.spillere({ min: 3, max: 10, hjelp: toStokker(R.klamp(S.antall || 4, 3, 10)) ? "Med åtte eller flere bruker vi to kortstokker." : "Alle trenger et navn – mobilen holder styr på hvem som har hvilke kort." })}
           ${R.ui.bryter("finale", S.oppsett.finale, "Hukommelsesfinale", "Til slutt sier alle kortene sine høyt. Hvert glemte kort gir 1 slurk.")}
           <p class="hjelp">Små slurker. Vann, brus og alkoholfritt teller like mye – og alle kan stå over.</p>
           ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor" }))}`,
@@ -381,28 +475,45 @@
             const k = sp.pyramide[n];
             const rad = radFor(n);
             const krav = sp.logg.filter((x) => x.kort === n);
-            const vann = n === 8 || n === 13 ? `<div class="py-vann"><span aria-hidden="true">💧</span><p>${esc(velg(T.vann, n + sp.nr))}</p></div>` : "";
+            // One hand-out per player per card: when everyone has had theirs, the card is done.
+            const alleHar = Array.from({ length: sp.antall }, (_, i) => i).every((i) => harDeltUt(sp, n, i));
+            // The latest hand-outs on this card (the rest are in «Hvem ga hva»); short and landscape
+            // screens get one line instead of the list, so the buttons never push the question away.
+            const flere = krav.length - VIS_KRAV;
+            const status = alleHar
+              ? `<p class="hjelp py-status">Alle har delt ut på dette kortet.</p>`
+              : krav.length
+                ? `<p class="hjelp py-status py-sum">${krav.length} av ${sp.antall} har delt ut på dette kortet.</p>`
+                : "";
             info = `<div class="py-info" aria-live="polite">
               <p class="etikett">Rad ${rad} · ${esc(slurkTekst(rad))}</p>
               <h1 id="skjerm-tittel">Har noen ${esc(art(k))}?</h1>
-              ${krav.length ? `<ul class="py-krav">${krav.map((x) => kravLinje(sp, x)).join("")}</ul>` : `<p class="hjelp">${esc(velg(T.sporsmal, n + sp.nr))}</p>`}
-              ${vann}
+              ${status}
+              ${
+                krav.length
+                  ? `<ul class="py-krav">${krav.slice(-VIS_KRAV).map((x) => kravLinje(sp, x)).join("")}</ul>${flere > 0 ? `<p class="hjelp py-flere">Og ${flere} til – se «Hvem ga hva».</p>` : ""}`
+                  : `<p class="hjelp">${esc(velg(T.sporsmal, n + sp.nr))}</p>`
+              }
             </div>`;
             const videre = n === ALLE - 1 ? R.ui.knapp(sp.finale ? "Til finalen" : "Til kåringen", "ferdig") : R.ui.knapp("Snu neste", "snu");
-            dokk = R.ui.dokk(`<div class="knapprad py-valg">${R.ui.knapp(`Jeg har ${art(k)}!`, "krav", { variant: "lilla", ikon: "🙋" })}${videre}</div>`, lenker);
+            dokk = R.ui.dokk(`<div class="knapprad py-valg">${R.ui.knapp(`Jeg har ${art(k)}!`, "krav", { variant: "lilla", ikon: "🙋", av: alleHar })}${videre}</div>`, lenker);
           }
           return `${pyramideHtml(sp)}${info}${dokk}`;
         },
         etter: flipp,
       },
 
-      // Someone claims the card: who, to whom, accept or bluff, and what it cost.
+      // Someone claims the card: who, to whom, accept / pass / bluff, and how it ended.
       krav: {
         tittel: (S) => `Rad ${radFor(S.spill.snudd - 1)} · ${slurkTekst(radFor(S.spill.snudd - 1))}`,
         tilbake: (S) => {
+          const sp = S.spill;
           spenning = false;
-          S.spill.krav = null;
-          S.spill.fase = "pyramide";
+          // A swapped-in card must be seen by its owner before the game goes on: from that verdict,
+          // back leads out to the game's home, and «Fortsett» comes back to the verdict.
+          if (sp.nytt && !sp.nytt.sett) return "hjem";
+          sp.krav = null;
+          sp.fase = "pyramide";
           return "pyramide";
         },
         vis(S) {
@@ -413,26 +524,36 @@
           const rad = radFor(n);
           const kortet = `<div class="py-krav-kort">${KORT.html(k, { opp: true, stor: true })}</div>`;
           const alle = Array.from({ length: sp.antall }, (_, i) => i);
-          if (kr.steg === "hvem")
+          const navn = (liste) => R.ramsOpp(liste.map((i) => R.navn(i)));
+          if (kr.steg === "hvem") {
+            // One hand-out per player per card.
+            const brukt = alle.filter((i) => harDeltUt(sp, n, i));
             return `
               <div class="py-krav-topp">${kortet}<div><p class="etikett">Rad ${rad} · ${esc(slurkTekst(rad))}</p><h1 id="skjerm-tittel">Hvem har ${esc(art(k))}?</h1></div></div>
-              ${R.ui.velgere("fra", alle, null)}
+              ${R.ui.velgere("fra", alle, null, { av: (i) => harDeltUt(sp, n, i) })}
+              ${brukt.length ? `<p class="hjelp py-regel">${esc(navn(brukt))} har delt ut på dette kortet. Én gang hver!</p>` : ""}
               ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke("Avbryt", "avbryt")))}`;
-          if (kr.steg === "til")
+          }
+          if (kr.steg === "til") {
+            // Nobody is handed sips more than twice on the same card.
+            const andre = alle.filter((i) => i !== kr.fra);
+            const fulle = andre.filter((i) => skjermet(sp, n, i));
             return `
               <div class="py-krav-topp">${kortet}<div><p class="etikett">${esc(R.navn(kr.fra))} deler ut</p><h1 id="skjerm-tittel">${esc(slurkTekst(rad))} – til hvem?</h1></div></div>
-              ${R.ui.velgere("til", alle.filter((i) => i !== kr.fra), null)}
+              ${R.ui.velgere("til", andre, null, { av: (i) => skjermet(sp, n, i) })}
+              ${fulle.length ? `<p class="hjelp py-regel">${esc(navn(fulle))} har fått slurker to ganger på dette kortet. Velg en annen!</p>` : ""}
               ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke("Tilbake", "kravtilbake"), R.ui.lenke("Avbryt", "avbryt")))}`;
+          }
           if (kr.steg === "svar")
             return `
               <div class="py-krav-topp">${kortet}<div><p class="etikett">${esc(R.navn(kr.til))}, tror du på det?</p><h1 id="skjerm-tittel">${esc(R.navn(kr.fra))} sier: «Jeg har ${esc(art(k))}!»</h1></div></div>
               <div class="py-duell">
                 <p><b>Godta:</b> ${esc(R.navn(kr.til))} tar ${esc(slurkTekst(rad))}.</p>
-                <p><b>Rop bløff:</b> Mobilen sjekker kortene. Den som tar feil, tar ${esc(slurkTekst(straff(rad)))}.</p>
+                <p><b>Rop bløff:</b> Mobilen sjekker kortene. Taperen tar ${esc(slurkTekst(straff(rad)))}, og vinneren får 1 poeng.</p>
               </div>
               ${R.ui.dokk(
                 `<div class="knapprad py-valg">${R.ui.knapp("Jeg tror det", "godta", { variant: "mynte", ikon: "🤝" })}${R.ui.knapp("Bløff!", "bloff", { variant: "rosa", ikon: "🕵️" })}</div>`,
-                R.ui.lenkerad(R.ui.lenke("Tilbake", "kravtilbake"), R.ui.lenke("Avbryt", "avbryt")),
+                R.ui.lenkerad(R.ui.lenke("Står over", "staover"), R.ui.lenke("Tilbake", "kravtilbake"), R.ui.lenke("Avbryt", "avbryt")),
               )}`;
           // Result
           const x = sp.logg[sp.logg.length - 1];
@@ -444,34 +565,103 @@
                 <div class="py-hand py-hand-skjult" aria-hidden="true">${sp.hender[x.fra].map(() => KORT.html(null)).join("")}</div>
               </div>
               ${R.ui.dokk("")}`;
+          const fraNavn = R.navn(x.fra);
+          const tilNavn = R.navn(x.til);
           let stempel;
           let tekst;
-          let vis = "";
-          if (!x.ropte) {
+          let bevisHtml = "";
+          let bytteHtml = "";
+          let poeng = "";
+          if (x.over) {
+            stempel = `<span class="stempel lampe">Står over</span>`;
+            tekst = `${tilNavn} står over – helt greit. Ingen slurker denne gangen.`;
+          } else if (!x.ropte) {
             stempel = `<span class="stempel mynte">Skål!</span>`;
-            tekst = `${velg(T.godtatt, n + sp.nr)} ${R.navn(x.til)} tar ${slurkTekst(x.slurker)}.`;
+            tekst = `${velg(T.godtatt, n + sp.nr)} ${tilNavn} tar ${slurkTekst(x.slurker)}.`;
           } else if (x.sant) {
+            // The duel was lost by the caller: the proof is shown, and that card leaves the hand.
             stempel = `<span class="stempel lampe">Sant!</span>`;
-            tekst = `${velg(T.sant, n + sp.nr)} ${R.navn(x.til)} tar ${slurkTekst(x.slurker)}.`;
-            const treff = sp.hender[x.fra].filter((y) => KORT.verdiAv(y) === KORT.verdiAv(k));
-            vis = `<div class="py-hand py-bevis">${treff.map((y, m) => KORT.html(y, { opp: true, stor: true, attr: ` id="py-bevis${m}"` })).join("")}</div>`;
+            tekst = `${velg(T.sant, n + sp.nr)} ${tilNavn} tar ${slurkTekst(x.slurker)}.`;
+            poeng = `+1 poeng til ${fraNavn}`;
+            const bevis = x.bytte ? x.bytte.gammelt : sp.hender[x.fra].find((y) => KORT.verdiAv(y) === KORT.verdiAv(k));
+            bevisHtml = bevis == null ? "" : `<div class="py-hand py-bevis">${KORT.html(bevis, { opp: true, stor: true, attr: ' id="py-bevis0"' })}</div>`;
+            bytteHtml = x.bytte ? `<p class="py-bytte">Kortet er brukt. ${esc(fraNavn)} får et nytt hemmelig kort.</p>` : "";
           } else {
             stempel = `<span class="stempel">Bløff!</span>`;
-            tekst = `${velg(T.bloff, n + sp.nr)} ${R.navn(x.fra)} har ingen ${uten(k)} og tar ${slurkTekst(x.slurker)} selv.`;
+            tekst = `${velg(T.bloff, n + sp.nr)} ${fraNavn} har ingen ${uten(k)} og tar ${slurkTekst(x.slurker)} selv.`;
+            poeng = `+1 poeng til ${tilNavn}`;
           }
+          const venter = sp.nytt && !sp.nytt.sett;
           return `
             <div class="py-krav-topp">${kortet}<div><p class="etikett">Rad ${rad} · ${esc(KORT.Navn(k))}</p>
-              <p class="py-par"><span class="py-person">${R.avatar(x.fra)}<span>${esc(R.navn(x.fra))}</span></span><b aria-label="ga til">→</b><span class="py-person">${R.avatar(x.til)}<span>${esc(R.navn(x.til))}</span></span></p></div></div>
+              <p class="py-par"><span class="py-person">${R.avatar(x.fra)}<span>${esc(fraNavn)}</span></span><b aria-label="delte ut til">→</b><span class="py-person">${R.avatar(x.til)}<span>${esc(tilNavn)}</span></span></p></div></div>
             <div class="py-resultat" role="status">
-              <h1 class="vh" id="skjerm-tittel">${esc(tekst)}</h1>
+              <h1 class="vh" id="skjerm-tittel">${esc(tekst)}${poeng ? ` ${esc(poeng)}.` : ""}</h1>
               <div class="stempel-sted">${stempel}</div>
-              ${vis}
+              ${bevisHtml}
               <p class="py-resultat-tekst">${esc(tekst)}</p>
-              <p class="py-fot">${esc(velg(T.fot, n + sp.nr))}</p>
+              ${poeng ? `<p class="py-poeng">${esc(poeng)}</p>` : ""}
+              ${bytteHtml}
+              ${x.over || poeng ? "" : `<p class="py-fot">${esc(velg(T.fot, n + sp.nr))}</p>`}
             </div>
-            ${R.ui.dokk(R.ui.knapp("Tilbake til pyramiden", "tilpyramiden", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke("Angre", "angre")))}`;
+            ${R.ui.dokk(
+              venter ? R.ui.knapp(`Gi mobilen til ${fraNavn}`, "tilnytt", { variant: "stor" }) : R.ui.knapp("Tilbake til pyramiden", "tilpyramiden", { variant: "stor" }),
+              sp.angre ? R.ui.lenkerad(R.ui.lenke("Angre", "angre")) : "",
+            )}`;
         },
         etter: flipp,
+      },
+
+      // After a proven claim: the owner alone sees the card that replaced the one shown as proof.
+      nytt: {
+        tittel: "Nytt kort",
+        // Not seen yet: back to the verdict, where «Angre» is. Seen: the hand-out stands.
+        tilbake: (S) => {
+          const sp = S.spill;
+          const x = sp.logg[sp.logg.length - 1];
+          if (!sp.nytt || sp.nytt.sett || !sp.angre || !x) return "hjem";
+          spenning = false;
+          sp.krav = { steg: "resultat", fra: x.fra, til: x.til };
+          sp.fase = "krav";
+          return "krav";
+        },
+        vis(S) {
+          const sp = S.spill;
+          const ny = sp.nytt;
+          const i = ny.i;
+          return `
+            <div class="py-mottaker">
+              <p class="etikett">Gi mobilen til</p>
+              <h1 id="skjerm-tittel" class="spillernavn">${R.avatar(i, "stor")}<span>${esc(R.navn(i))}</span></h1>
+            </div>
+            ${R.ui.mappe({ id: "n" + i, etikett: "Ditt nye kort", tekst: "Hold fingeren på kortet for å se", etikettAria: `Hold fingeren på kortet for å se det nye kortet til ${R.navn(i)}` })}
+            <p class="hjelp">${ny.sett ? "Husket det? Kortet du viste fram, er ute av spillet." : `Bare ${esc(R.navn(i))} skal se. Kortet som ble vist fram, er byttet ut.`}</p>
+            ${R.ui.dokk(R.ui.knapp("Ferdig – til pyramiden", "nyttferdig", { av: !ny.sett }))}`;
+        },
+      },
+
+      // A real pause: water for everyone before row 3 and before the top card.
+      vann: {
+        tittel: "Vannpause",
+        tilbake: "hjem",
+        vis(S) {
+          const sp = S.spill;
+          const topp = sp.snudd >= ALLE - 1;
+          return `
+            <div class="py-vannpause">
+              ${VANNGLASS}
+              <div class="py-vanntekst">
+                <p class="etikett">${topp ? "Før toppkortet" : `Før rad ${radFor(sp.snudd)}`}</p>
+                <h1 id="skjerm-tittel">Vannpause!</h1>
+                <p class="ingress">${esc(velg(topp ? T.vannTopp : T.vann, sp.nr))}</p>
+              </div>
+            </div>
+            ${R.ui.dokk(R.ui.knapp("Skål i vann!", "vannferdig", { variant: "himmel" }), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
+        },
+        inn() {
+          R.lyd.pop();
+          R.vibrer(20);
+        },
       },
 
       // Memory finale: everyone says their four cards out loud, then the cards are turned.
@@ -525,6 +715,7 @@
           };
           const bloff = topp("bloff");
           const avslort = topp("avslort");
+          const mistrodd = topp("mistrodd");
           const navn = (liste) => R.ramsOpp(liste.map((i) => R.navn(i)));
           const priser = [
             bloff
@@ -532,6 +723,9 @@
               : prisHtml("🎭", "Bløffmester", "Ingen", "Ingen slapp unna med en bløff i kveld. For en ærlig gjeng!", "var(--lilla)"),
             avslort
               ? prisHtml("🔍", "Skarpeste øye", navn(avslort.hvem), `Avslørte ${avslort.maks === 1 ? "én bløff" : `${avslort.maks} bløffer`}.`, "var(--himmel)")
+              : "",
+            mistrodd
+              ? prisHtml("😇", "Uskyldig dømt", navn(mistrodd.hvem), `Ble kalt bløffmaker ${mistrodd.maks === 1 ? "én gang" : `${mistrodd.maks} ganger`} – og hadde kortet.`, "var(--lampe)")
               : "",
           ];
           const husket = sp.fin.husket.map((h, i) => (typeof h === "number" ? { h, i } : null)).filter(Boolean);
@@ -543,15 +737,15 @@
           return `
             <div class="banner aksent">
               ${R.figur()}
-              <p class="etikett">Flest bløffpoeng${best ? ` · ${best}` : ""}</p>
+              <p class="etikett">Flest poeng${best ? ` · ${best}` : ""}</p>
               <h1 id="skjerm-tittel">${vinnere.length ? esc(`${R.ramsOpp(vinnere.map((i) => R.navn(i)))} vinner!`) : "Ingen vinner denne gangen"}</h1>
-              ${vinnere.length ? "" : `<p class="ingress">Ingen bløffet seg unna, og ingen avslørte en bløff. For en ærlig gjeng!</p>`}
+              ${vinnere.length ? "" : `<p class="ingress">Ingen bløffet seg unna, og ingen ropte bløff. For en ærlig gjeng!</p>`}
             </div>
             ${R.ui.pall(rader)}
             <ul class="py-priser">${priser.join("")}</ul>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Bløffpoeng</h2></div>
-              <p class="hjelp">1 poeng for hver bløff som slapp unna, og 1 for hver bløff du avslørte.</p>
+              <div class="seksjon-hode"><h2>Poeng</h2></div>
+              <p class="hjelp">1 poeng for hver bløff som slapp unna, hver bløff du avslørte, og hver gang du ble kalt bløffmaker uten grunn.</p>
               ${R.ui.poengliste(rader)}
               ${sp.logg.length ? R.ui.lenke("Se hvem som ga hva", "logg") : ""}
             </section>
@@ -610,23 +804,39 @@
         sp.fase = "pyramide";
         R.gaTil("pyramide");
       },
+      // Turn the next card – after the water break when one is due (before row 3 and the top card).
       snu(el, e, S) {
         const sp = S.spill;
         if (!sp || sp.fase !== "pyramide" || sp.snudd >= ALLE) return;
         sp.angre = false;
+        if (VANN_FOR.includes(sp.snudd) && !sp.vann.includes(sp.snudd)) {
+          sp.fase = "vann";
+          R.gaTil("vann");
+          return;
+        }
         sp.snudd += 1;
         snuNa = ["py-k" + (sp.snudd - 1)];
         R.vis();
-        R.lyd.snu();
-        R.vibrer(12);
-        const k = sp.pyramide[sp.snudd - 1];
-        R.si(`Rad ${radFor(sp.snudd - 1)}: ${KORT.Navn(k)}. Har noen ${art(k)}?`);
-        const h = R.$("#skjerm-tittel");
-        if (h) h.scrollIntoView({ block: "nearest", behavior: R.rolig() ? "auto" : "smooth" });
+        etterSnu(S);
+      },
+      // «Skål i vann!»: the break is over, and the card that was asked for is turned.
+      vannferdig(el, e, S) {
+        const sp = S.spill;
+        if (!sp || sp.fase !== "vann") return;
+        if (!sp.vann.includes(sp.snudd)) sp.vann.push(sp.snudd);
+        sp.fase = "pyramide";
+        if (sp.snudd < ALLE) {
+          sp.snudd += 1;
+          snuNa = ["py-k" + (sp.snudd - 1)];
+        }
+        R.gaTil("pyramide");
+        etterSnu(S);
       },
       krav(el, e, S) {
         const sp = S.spill;
         if (!sp || sp.fase !== "pyramide" || !sp.snudd) return;
+        const n = sp.snudd - 1;
+        if (Array.from({ length: sp.antall }, (_, i) => i).every((i) => harDeltUt(sp, n, i))) return;
         sp.angre = false;
         sp.krav = { steg: "hvem", fra: null, til: null };
         sp.fase = "krav";
@@ -634,56 +844,75 @@
         R.gaTil("krav");
       },
       fra(el, e, S) {
-        const kr = S.spill.krav;
+        const sp = S.spill;
+        const kr = sp.krav;
         if (!kr || kr.steg !== "hvem") return;
-        kr.fra = Number(el.dataset.v);
+        const fra = Number(el.dataset.v);
+        if (!(fra >= 0 && fra < sp.antall) || harDeltUt(sp, sp.snudd - 1, fra)) return; // one hand-out per card
+        kr.fra = fra;
         kr.steg = "til";
         R.gaTil("krav");
       },
       til(el, e, S) {
-        const kr = S.spill.krav;
+        const sp = S.spill;
+        const kr = sp.krav;
         if (!kr || kr.steg !== "til") return;
         const til = Number(el.dataset.v);
-        if (til === kr.fra) return;
+        if (!(til >= 0 && til < sp.antall) || til === kr.fra || skjermet(sp, sp.snudd - 1, til)) return; // no ganging up
         kr.til = til;
         kr.steg = "svar";
         R.gaTil("krav");
       },
       kravtilbake(el, e, S) {
         const kr = S.spill.krav;
-        if (!kr) return;
+        if (!kr || kr.steg === "resultat") return;
         kr.steg = kr.steg === "svar" ? "til" : "hvem";
         R.gaTil("krav");
       },
       avbryt(el, e, S) {
         const sp = S.spill;
+        if (sp.krav && sp.krav.steg === "resultat") return;
         sp.krav = null;
         sp.fase = "pyramide";
         R.gaTil("pyramide");
       },
-      godta(el, e, S) {
+      // Accept (take the row's sips) or pass (no sips): either way the claim stands unchecked, so a
+      // bluff that slipped through stays secret until the crowning.
+      godta(el, e, S, over) {
         const sp = S.spill;
         const kr = sp.krav;
         if (!kr || kr.steg !== "svar") return;
         const n = sp.snudd - 1;
         const rad = radFor(n);
         const sant = harVerdi(sp.hender[kr.fra], sp.pyramide[n]);
-        sp.logg.push({ kort: n, rad, fra: kr.fra, til: kr.til, sant, ropte: false, slurker: rad, taker: kr.til });
+        sp.logg.push({ kort: n, rad, fra: kr.fra, til: kr.til, sant, ropte: false, over: over === true, slurker: over === true ? 0 : rad, taker: kr.til, bytte: null });
         sp.angre = true;
         kr.steg = "resultat";
-        R.lyd.riktig();
+        if (over === true) R.lyd.pop();
+        else R.lyd.riktig();
         R.vibrer(20);
         R.gaTil("krav");
       },
-      // Call the bluff: a little suspense, then the truth (decided and saved at once).
+      staover: (el, e, S) => H.godta(el, e, S, true),
+      // Call the bluff: a little suspense, then the truth (decided and saved at once). The loser takes
+      // the sips (two extra, never more than five) and the winner gets a point. A card shown as proof
+      // is swapped for a new secret card straight away.
       async bloff(el, e, S) {
         const sp = S.spill;
         const kr = sp.krav;
         if (!kr || kr.steg !== "svar") return;
         const n = sp.snudd - 1;
         const rad = radFor(n);
-        const sant = harVerdi(sp.hender[kr.fra], sp.pyramide[n]);
-        sp.logg.push({ kort: n, rad, fra: kr.fra, til: kr.til, sant, ropte: true, slurker: straff(rad), taker: sant ? kr.til : kr.fra });
+        const hand = sp.hender[kr.fra];
+        const plass = hand.findIndex((y) => KORT.verdiAv(y) === KORT.verdiAv(sp.pyramide[n]));
+        const sant = plass >= 0;
+        let bytte = null;
+        if (sant) {
+          bytte = { plass, gammelt: hand[plass], nytt: trekkNytt(sp) };
+          hand[plass] = bytte.nytt;
+          sp.nytt = { i: kr.fra, plass, sett: false };
+        }
+        sp.logg.push({ kort: n, rad, fra: kr.fra, til: kr.til, sant, ropte: true, over: false, slurker: straff(rad), taker: sant ? kr.til : kr.fra, bytte });
         sp.angre = true;
         kr.steg = "resultat";
         spenning = !R.rolig();
@@ -694,33 +923,55 @@
           await R.vent(1250);
           spenning = false;
           if (!fortsatt()) return;
-          if (sant) snuNa = ["py-bevis0", "py-bevis1"];
+          if (sant) snuNa = ["py-bevis0"];
           R.vis();
         }
         if (sant) R.lyd.riktig();
         else R.lyd.latter();
         R.vibrer([30, 50, 90]);
         const x = sp.logg[sp.logg.length - 1];
-        R.si(sant ? `${R.navn(x.fra)} hadde kortet. ${R.navn(x.til)} tar ${slurkTekst(x.slurker)}.` : `Bløff! ${R.navn(x.fra)} tar ${slurkTekst(x.slurker)}.`);
+        R.si(
+          sant
+            ? `${R.navn(x.fra)} hadde kortet. ${R.navn(x.til)} tar ${slurkTekst(x.slurker)}, og ${R.navn(x.fra)} får 1 poeng og et nytt hemmelig kort.`
+            : `Bløff! ${R.navn(x.fra)} tar ${slurkTekst(x.slurker)}, og ${R.navn(x.til)} får 1 poeng.`,
+        );
+      },
+      // To the hold-to-see screen for the swapped-in card.
+      tilnytt(el, e, S) {
+        const sp = S.spill;
+        if (!sp || !sp.nytt) return H.tilpyramiden(el, e, S);
+        spenning = false;
+        sp.krav = null;
+        sp.fase = "nytt";
+        R.gaTil("nytt");
+      },
+      nyttferdig(el, e, S) {
+        const sp = S.spill;
+        if (!sp || sp.fase !== "nytt" || !sp.nytt || !sp.nytt.sett) return;
+        sp.nytt = null;
+        sp.fase = "pyramide";
+        R.gaTil("pyramide");
       },
       tilpyramiden(el, e, S) {
         const sp = S.spill;
         if (!sp) return;
+        if (sp.nytt && !sp.nytt.sett) return H.tilnytt(el, e, S);
         spenning = false;
         sp.krav = null;
         sp.fase = "pyramide";
         R.gaTil("pyramide");
       },
-      // Take back the last hand-out (until the next card is turned or a new claim starts).
+      // Take back the last hand-out (until the next card is turned, a new claim starts or a swapped-in
+      // card has been seen). A card swapped as proof goes back in the hand.
       angre(el, e, S) {
         const sp = S.spill;
         if (!sp || !sp.angre || !sp.logg.length) return;
-        sp.logg.pop();
+        trekkTilbake(sp);
         sp.angre = false;
         spenning = false;
         sp.krav = null;
         sp.fase = "pyramide";
-        R.toast("Angret – slurkene er tatt bort");
+        R.toast("Angret – utdelingen er tatt bort");
         R.gaTil("pyramide");
       },
       logg(el, e, S) {
