@@ -1,10 +1,12 @@
 // Nissen: set up a draw (names, a pair that must not draw each other, an impossible set of pairs,
 // budget and date), draw on one phone (pass it around, a reload and back + continue on the way),
 // look up a forgotten card, gift ideas, «Ferdig – vi ses på gavedagen» with a countdown, the reveal
-// only from the gift day on, and «årets nisse». Then «hver sin mobil»: one personal link per person.
-// A second, separate browser opens one person's link and must see exactly that person's receiver;
-// the link holds nobody else's name and not the draw; broken and old links are refused kindly; and
-// the host's own card locks to one name on the host's phone.
+// only from the gift day on, and «årets nisse». Then «hver sin mobil»: one personal link per person,
+// each one scrambled token that no name can be read off, and none of them lying in the page. A
+// second, separate browser (which knows nothing of the draw) opens one person's link and must
+// see exactly that person's receiver; another person's link asks before it replaces the card;
+// broken and readable links are refused kindly; the host's phone asks before it opens a card from
+// a link; and the host's own card locks to one name on the host's phone.
 import { startChrome } from "../chrome.mjs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -80,6 +82,15 @@ export default async function (t) {
   t.sjekk(/mangler/i.test(await t.tekst("#ni-feil")), "Ingen melding om navn som mangler");
   await t.skrivInn("#ni-navn-1", "testspiller a");
   t.sjekk(/To heter/.test(await t.tekst("#ni-feil")), "Ingen melding om to like navn");
+  // A name is cut between whole characters: an emoji that doesn't fit goes out whole, never in half
+  const felt1 = () => t.js("document.querySelector('#ni-navn-1').value");
+  await t.skrivInn("#ni-navn-1", "Bestemor Solveig🎅");
+  t.sjekk((await t.tilstand()).navn[1] === "Bestemor Solveig" && (await felt1()) === "Bestemor Solveig", "Navnet ble ikke kuttet mellom hele tegn");
+  await t.skrivInn("#ni-navn-1", "Bestemor Solvei🎅");
+  t.sjekk((await t.tilstand()).navn[1] === "Bestemor Solvei🎅" && !(await t.finnes('[data-h="start"]:disabled')), "En emoji som får plass, ble ikke godtatt");
+  // A name of invisible characters only is still a missing name
+  await t.skrivInn("#ni-navn-1", "\u200b\u2060");
+  t.sjekk(/mangler/i.test(await t.tekst("#ni-feil")), "Et usynlig navn ble godtatt");
   await t.skrivInn("#ni-navn-1", NAVN[1]);
   t.sjekk(!(await t.finnes('[data-h="start"]:disabled')), "«Start» er fortsatt låst etter at navnene er rettet");
 
@@ -225,18 +236,24 @@ export default async function (t) {
   t.sjekk(m2[0] !== 1 && m2[1] !== 0, "Paret ble ikke respektert i «hver sin mobil»");
   t.sjekk((await t.antall(".ni-lenkerad")) === 5, "Delingslista har ikke én rad per person");
   t.sjekk(!(await t.finnes('[data-h="glemt"]')), "«Glemt? Slå opp» finnes fortsatt i «hver sin mobil»");
-  const lenker = await t.js("Array.from(document.querySelectorAll('.ni-lenkerad')).map((li) => li.dataset.lenke)");
-  const pakk = (x) => encodeURIComponent(x).replace(/%20/g, "_");
-  lenker.forEach((lenke, i) => {
-    const andre = sp.navn.filter((x, j) => j !== i && j !== m2[i]);
-    t.sjekk(!andre.some((x) => lenke.includes(pakk(x))), `Lenken til ${sp.navn[i]} inneholder andre navn: ${lenke}`);
-    t.sjekk(!lenke.includes(String(sp.fro)), "Lenken inneholder trekningsfrøet");
-  });
+  // The host is told plainly that the draw lives on this phone only
+  t.sjekk(/Send lenkene nå/.test(await t.tekst("#ni-varsel")) && /bare på denne mobilen/.test(await t.tekst("#ni-varsel")), "Delingsskjermen sier ikke at trekningen bare ligger på denne mobilen");
   t.sjekk(/Del lenken til/.test(await t.tekst(".dokk .knapp")), "Hovedknappen er ikke «Del lenken til …»");
   await t.bilde("del", true);
+  // What is shared and copied is caught here (a headless browser has no share sheet or clipboard)
+  await t.js(`(() => {
+    window.__ut = [];
+    const fang = (x) => { window.__ut.push(typeof x === "string" ? x : [x.text, x.url].join("\\n")); return Promise.resolve(); };
+    Object.defineProperty(navigator, "clipboard", { value: { writeText: fang }, configurable: true });
+    Object.defineProperty(navigator, "share", { value: fang, configurable: true });
+  })()`);
+  const sist = () => t.js("window.__ut[window.__ut.length - 1] || ''");
   // The main button shares the next link; the list shows what has been sent
   await t.klikk(".dokk .knapp");
   t.sjekk((await t.tilstand()).spill.sendt[0] === 1, "Lenken til A ble ikke merket som delt");
+  const delt = await sist();
+  t.sjekk(/^Hei, /.test(delt) && /#2[0-9A-Z]+$/.test(delt), `Det som deles, er ikke en hilsen og en lenke: ${delt}`);
+  t.sjekk(!delt.includes(sp.navn[m2[0]]), "Meldingen som deles, røper hvem A skal gi til");
   t.sjekk(new RegExp(`Del lenken til ${sp.navn[1].replace(/[<>/]/g, ".")}`).test(await t.tekst(".dokk .knapp")) || sp.navn[1].includes("x-q"), "Hovedknappen gikk ikke videre til neste person");
   await t.klikk('.ni-lenkerad [data-h="kopier-en"][data-v="3"]');
   t.sjekk((await t.tilstand()).spill.sendt[3] === 2, "Lenken til D ble ikke merket som kopiert");
@@ -245,6 +262,26 @@ export default async function (t) {
   await t.vent("document.querySelector('#ark:not([hidden]) .qr svg')");
   await t.bilde("person-ark");
   await t.klikk('#ark [data-h="lukk-ark"]');
+  // Every person's link, as it is copied: one scrambled token that no name can be read off
+  const lenker = [];
+  for (let i = 0; i < 5; i++) {
+    await t.klikk(`.ni-lenkerad [data-h="kopier-en"][data-v="${i}"]`);
+    lenker.push(await sist());
+  }
+  const hashFor = (i) => String(lenker[i]).split("#")[1] || "";
+  const adresse = await t.js("location.origin + location.pathname");
+  lenker.forEach((lenke, i) => {
+    t.sjekk(lenke.split("#")[0] === adresse && /^2[0-9A-HJKMNP-TV-Z]{21,223}$/.test(hashFor(i)), `Lenken til ${sp.navn[i]} er ikke ett kodeord: ${lenke}`);
+    const lesbart = sp.navn.some((x) => x.split(/[^\p{L}\p{N}]+/u).some((ord) => ord.length > 2 && hashFor(i).toLowerCase().includes(ord.toLowerCase())));
+    t.sjekk(!lesbart, `Et navn kan leses ut av lenken til ${sp.navn[i]}: ${lenke}`);
+  });
+  t.sjekk(new Set(lenker).size === 5, "To personer fikk samme lenke");
+  // … and the links lie nowhere in the page
+  t.sjekk(!(await t.finnes("[data-lenke]")), "Lenkene ligger i sidens HTML (data-lenke)");
+  t.sjekk(!(await t.js(`${JSON.stringify(lenker.map((l) => String(l).split("#")[1] || "?"))}.some((x) => document.documentElement.innerHTML.includes(x))`)), "En lenke ligger i sidens HTML");
+  // All sent: the main button is «Ferdig», and the notice says where the draw is kept
+  t.sjekk(/vi ses på gavedagen/.test(await t.tekst(".dokk .knapp")), "Hovedknappen ble ikke «Ferdig» da alle lenkene var sendt");
+  t.sjekk(/Alle lenkene er sendt/.test(await t.tekst("#ni-varsel")) && /bare på denne mobilen/.test(await t.tekst("#ni-varsel")), "Varselet sier ikke at alle lenkene er sendt");
 
   const [bredde, hoyde] = await t.js("[window.innerWidth, window.innerHeight]");
   const c2 = await startChrome({ bredde, hoyde });
@@ -254,9 +291,12 @@ export default async function (t) {
     await c2.sov(350);
     const bred = await c2.js("document.documentElement.scrollWidth - window.innerWidth");
     t.sjekk(bred <= 0, `Sidelengs scrolling på gjestens «${navn}»`);
+    const injisert = await c2.js(`document.querySelectorAll("x-q").length`);
+    if (injisert) t.feil(`HTML-INJEKSJON på gjestens «${navn}»: et navn fra en lenke ble tolket som HTML (${injisert} element)`);
     await c2.skjermbilde(join(BILDER, `g${++nr}-${navn}.png`));
   };
-  const hashFor = (i) => lenker[i].split("#")[1];
+  // The card kept on the guest's phone (whose it is)
+  const kortet = () => c2.js(`((JSON.parse(localStorage.getItem("rusj.nissen.v1") || "{}") || {}).gjest || {}).navn || ""`);
   try {
     await c2.lastSide(t.side, "document.querySelector('#skjerm h1')");
     await c2.js(`localStorage.setItem("rusj.felles", JSON.stringify({ lyd: false, navn: [], installTips: 2 }))`);
@@ -285,20 +325,47 @@ export default async function (t) {
     await c2.lastSide("about:blank");
     await c2.lastSide(`${t.side}#${hashFor(3)}`, "document.querySelector('.skjerm-gjest')");
     t.sjekk((await les(c2, KORT("gjest"))).mottaker === sp.navn[m2[3]], "Lenken virket ikke igjen");
-    // A link cut off by a chat app, and a link from the old format, are refused kindly
+    // Another person's link on a phone that already has a card: it asks, and replaces nothing yet
+    await c2.lastSide("about:blank");
+    await c2.lastSide(`${t.side}#${hashFor(4)}`, "document.querySelector('.skjerm-nyttkort')");
+    t.sjekk(/allerede et nissekort/.test(await c2.tekst("#skjerm h1")), "Mobilen spurte ikke før kortet ble byttet");
+    t.sjekk((await kortet()) === sp.navn[3], "Kortet ble byttet før gjesten hadde svart");
+    await bilde2("nyttkort");
+    await c2.klikk('[data-h="behold-kort"]');
+    await c2.vent("document.querySelector('.skjerm-gjest')");
+    t.sjekk((await kortet()) === sp.navn[3] && (await les(c2, KORT("gjest"))).mottaker === sp.navn[m2[3]], "«Behold det gamle» byttet kortet likevel");
+    await c2.lastSide("about:blank");
+    await c2.lastSide(`${t.side}#${hashFor(4)}`, "document.querySelector('.skjerm-nyttkort')");
+    await c2.klikk('[data-h="apne-nytt"]');
+    await c2.vent("document.querySelector('.skjerm-gjest')");
+    t.sjekk((await kortet()) === sp.navn[4] && (await les(c2, KORT("gjest"))).mottaker === sp.navn[m2[4]], "«Åpne det nye kortet» viste ikke kortet til E");
+    // A link cut off by a chat app, and a link with readable names (the format from before the
+    // launch), are refused kindly – and the card that is kept is left alone
     await c2.lastSide("about:blank");
     await c2.lastSide(`${t.side}#${hashFor(1).slice(0, -3)}`, "document.querySelector('.skjerm-lenkefeil')");
     t.sjekk(/virker ikke/.test(await c2.tekst("#skjerm h1")), "En avkuttet lenke ble ikke avvist");
     await bilde2("lenkefeil");
     await c2.lastSide("about:blank");
-    await c2.lastSide(`${t.side}#2VBAJ2WKFK/Anna/Bo`, "document.querySelector('.skjerm-lenkefeil')");
-    t.sjekk(/tidligere utgave/.test(await c2.tekst("#skjerm .ingress")), "En gammel lenke fikk ikke riktig forklaring");
+    await c2.lastSide(`${t.side}#1/9EAT/7K2QX/200/1219/Testspiller_A/Testspiller_B`, "document.querySelector('.skjerm-lenkefeil')");
+    t.sjekk(/virker ikke/.test(await c2.tekst("#skjerm h1")), "En lenke med lesbare navn ble ikke avvist");
+    t.sjekk((await kortet()) === sp.navn[4], "En lenke som ikke virker, rørte kortet på mobilen");
     await c2.klikk('[data-h="hjem"]');
     await c2.vent("document.querySelector('.skjerm-hjem')");
     if (c2.feil.length) c2.feil.forEach((f) => t.feil(`Gjestens mobil: ${f}`));
   } finally {
     await c2.lukk();
   }
+
+  // The host's phone has a draw of its own: a link opened here asks before it shows a card
+  await t.lastSide(`${t.side}#${hashFor(1)}`, "document.querySelector('.skjerm-nyttkort')");
+  t.sjekk(/trekning på denne mobilen/.test(await t.tekst("#skjerm h1")), "Vertens mobil spurte ikke før den åpnet et kort fra en lenke");
+  t.sjekk((await t.tilstand()).gjest === null, "Et kort fra en lenke ble lagt på vertens mobil uten spørsmål");
+  await t.bilde("vert-lenke");
+  await t.klikk('[data-h="behold-kort"]');
+  await t.vent("document.querySelector('.skjerm-hjem')");
+  t.sjekk((await t.tilstand()).gjest === null && (await t.finnes('[data-h="fortsett"]')), "«Ikke nå» åpnet kortet eller mistet trekningen");
+  await t.klikk('[data-h="fortsett"]');
+  await t.vent("document.querySelector('.ni-lenker')");
 
   // The host is in the draw too: picks their own name once, then this phone shows only that card
   await t.klikk('[data-h="vert-gjest"]');

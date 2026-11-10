@@ -5,6 +5,8 @@
    - each on their own phone: the host sends every person a link of their own. A personal link
      carries only that person's name, whom they give to, the budget and the date – never the
      draw itself – so nobody can work out the others from their link. Nothing is sent via us.
+     The link is one scrambled token, so names can't be read off it at a glance. That is not
+     encryption: whoever has a link can open it (and the host has them all).
    «Ikke trekk hverandre» pairs are honoured by choosing a seed whose ring avoids them.
    Personal links must keep working for weeks: they are made and read with Nissen's own frozen
    helpers below (not the kit's, which may change), and never depend on the content files. */
@@ -31,11 +33,50 @@
   const STANDARD_BUDSJETT = 4; // 200 kr
   const HOLD = "Hold fingeren på kortet for å se";
   const range = (n) => Array.from({ length: n }, (_, i) => i);
-  const ren = (s) => String(s == null ? "" : s).replace(/\s+/g, " ").trim();
+
+  // Never part of a name: control characters, characters that can't be seen (zero width, blank
+  // look-alikes) and the ones that turn the reading direction – they could hide or reorder the text
+  // on a card, and "Kari" plus something invisible would count as another person. U+200C and
+  // U+200D stay inside a name: joined emoji (a family, Mx Claus) need them.
+  const USYNLIG = /[\u0000-\u0008\u000e-\u001f\u007f-\u009f\u00ad\u061c\u115f\u1160\u180e\u200b\u200e\u200f\u202a-\u202e\u2060-\u206f\u2800\u3164\ufeff\uffa0\ufff9-\ufffc]/g;
+  // A name as it is kept: composed letters (NFC), nothing invisible, no half emoji, single spaces.
+  const ren = (s) =>
+    String(s == null ? "" : s)
+      .normalize("NFC")
+      .replace(USYNLIG, "")
+      .replace(/[\ud800-\udfff]/gu, "")
+      .replace(/\s+/g, " ")
+      .replace(/^[ \u200c\u200d]+|[ \u200c\u200d]+$/g, "");
   const nokkel = (s) => ren(s).toLocaleLowerCase("nb");
 
-  // The kit hands vedHash at most 64 characters of a link; ours carry names, so the whole fragment
-  // is read here first (this listener is added before the kit's own).
+  // At most `n` characters (code points) – and never half an emoji: where the browser can tell
+  // whole characters (graphemes) apart, the cut is made between them. Counting code points keeps
+  // the limit the same in every browser, which the links depend on.
+  let segmenter = null;
+  function kutt(tekst, n) {
+    const s = String(tekst == null ? "" : tekst).replace(/[\ud800-\udfff]/gu, "");
+    if (s.length <= n) return s;
+    let biter;
+    try {
+      segmenter = segmenter || new Intl.Segmenter("nb", { granularity: "grapheme" });
+      biter = Array.from(segmenter.segment(s), (x) => x.segment);
+    } catch (e) {
+      biter = Array.from(s);
+    }
+    let ut = "";
+    let antall = 0;
+    for (const b of biter) {
+      antall += Array.from(b).length;
+      if (antall > n) break;
+      ut += b;
+    }
+    return ut;
+  }
+  // A typed name → the name used in the draw.
+  const rentNavn = (s) => ren(kutt(ren(s), MAKS_NAVN));
+
+  // The kit may cut or decode what it hands vedHash; a personal link is read whole and untouched
+  // here first (this listener is added before the kit's own).
   let raHash = "";
   try {
     raHash = (window.location && window.location.hash ? window.location.hash : "").slice(1);
@@ -197,63 +238,108 @@
   // The chain may be revealed from the gift day on (always, when no day was set).
   const gavedagNadd = (sp) => !sp.dato || dagerTil(sp.dato) <= 0;
 
-  // ---------- Personal links ----------
-  // …/nissen/#1/CHECK/ID/KR/MMDD/Giver/Receiver
-  //   1      format version
-  //   CHECK  4 characters over the rest (catches links cut off or changed by a chat app)
-  //   ID     5 characters: which draw (so this phone can tell draws apart)
-  //   KR     the budget in kroner (0 = free), MMDD the gift day (0 = none)
-  // Names: letters, digits, "." and "-" as they are, space as "_", anything else as "~hh"
-  // (Latin-1, so æ ø å cost three characters) or "~~hhhhhh" – only URL-safe characters, so chat
-  // apps and QR scanners leave the link alone.
+  // ---------- Personal links (format 2) ----------
+  // …/nissen/#2K7Q…: one token – "2" (the format), then the bytes below written five bits per
+  // character with ALFABET (digits and capital letters only, so chat apps and QR scanners leave
+  // the link alone).
+  //   4 bytes  the check: a hash of everything after it, as it is before the scrambling. A link
+  //            that was cut off or changed on the way is refused. The check also seeds the
+  //            scrambling, so every link looks different from all the others.
+  //   6 bytes  the draw's id (25 bits – so a phone can tell draws apart), the budget in kroner
+  //            (14 bits) and the gift day (month 4 bits, day 5 bits; 0 = none)
+  //   1 byte   how many bytes the giver's name takes
+  //   …        the giver's name, then the receiver's name (UTF-8)
+  // Everything after the check is XOR-ed with numbers drawn from the check. That keeps the names
+  // from being read off a link – in a chat preview, over a shoulder, in the address bar. It is NOT
+  // encryption: whoever has a link can open it, and anybody can write one (no server, no secret).
+  // So the reader takes only what the game itself could have written, and a phone that already
+  // holds a card asks before it takes a new one (vedHash).
+  // Frozen from the day it is live: a change here needs a new format number, and "2" must still
+  // be read. The name rules (ren, kutt, MAKS_NAVN) may only ever get looser.
 
-  const TRYGG = /[A-Za-z0-9.-]/;
-  function pakkNavn(navn) {
+  const KR_MAKS = 10000;
+  const ID_FORM = /^[0-9A-HJKMNP-TV-Z]{5}$/;
+  // "2", then 4 + 6 + 1 bytes and two names of at most MAKS_NAVN characters (four bytes each)
+  const MAKS_LENKE = 1 + Math.ceil(((11 + 8 * MAKS_NAVN) * 8) / 5);
+
+  function utf8(tekst) {
+    const ut = [];
+    for (const c of String(tekst)) {
+      const k = c.codePointAt(0);
+      if (k < 0x80) ut.push(k);
+      else if (k < 0x800) ut.push(0xc0 | (k >> 6), 0x80 | (k & 63));
+      else if (k < 0x10000) ut.push(0xe0 | (k >> 12), 0x80 | ((k >> 6) & 63), 0x80 | (k & 63));
+      else ut.push(0xf0 | (k >> 18), 0x80 | ((k >> 12) & 63), 0x80 | ((k >> 6) & 63), 0x80 | (k & 63));
+    }
+    return ut;
+  }
+
+  // Bytes → text, strictly: null unless they are valid UTF-8 in its shortest form.
+  function fraUtf8(bytes) {
     let ut = "";
-    for (const c of String(navn)) {
-      if (TRYGG.test(c)) ut += c;
-      else if (c === " ") ut += "_";
-      else {
-        const k = c.codePointAt(0);
-        ut += k < 256 ? "~" + k.toString(16).padStart(2, "0") : "~~" + k.toString(16).padStart(6, "0");
+    let i = 0;
+    while (i < bytes.length) {
+      const a = bytes[i++];
+      const n = a < 0x80 ? 0 : a < 0xc0 ? -1 : a < 0xe0 ? 1 : a < 0xf0 ? 2 : a < 0xf8 ? 3 : -1;
+      if (n < 0 || i + n > bytes.length) return null;
+      let k = n ? a & (0x3f >> n) : a;
+      for (let j = 0; j < n; j++) {
+        const b = bytes[i++];
+        if ((b & 0xc0) !== 0x80) return null;
+        k = (k << 6) | (b & 63);
+      }
+      if (k < [0, 0x80, 0x800, 0x10000][n] || k > 0x10ffff || (k >= 0xd800 && k <= 0xdfff)) return null;
+      ut += String.fromCodePoint(k);
+    }
+    return ut;
+  }
+
+  // Bytes ⇄ characters, five bits each (the last character is filled up with zero bits).
+  function tilTegn(bytes) {
+    let ut = "";
+    let rest = 0;
+    let bits = 0;
+    for (const b of bytes) {
+      rest = (rest << 8) | b;
+      bits += 8;
+      while (bits >= 5) {
+        bits -= 5;
+        ut += ALFABET[(rest >> bits) & 31];
+      }
+      rest &= (1 << bits) - 1;
+    }
+    return bits ? ut + ALFABET[(rest << (5 - bits)) & 31] : ut;
+  }
+  function fraTegn(tekst) {
+    const ut = [];
+    let rest = 0;
+    let bits = 0;
+    for (const c of tekst) {
+      const v = ALFABET.indexOf(c);
+      if (v < 0) return null;
+      rest = (rest << 5) | v;
+      bits += 5;
+      if (bits >= 8) {
+        bits -= 8;
+        ut.push((rest >> bits) & 255);
+        rest &= (1 << bits) - 1;
       }
     }
     return ut;
   }
 
-  function pakkUt(tekst) {
-    let ut = "";
-    let i = 0;
-    tekst = String(tekst || "");
-    while (i < tekst.length) {
-      const c = tekst[i];
-      if (c === "_") {
-        ut += " ";
-        i += 1;
-      } else if (c === "~") {
-        const lang = tekst[i + 1] === "~";
-        const hex = lang ? tekst.slice(i + 2, i + 8) : tekst.slice(i + 1, i + 3);
-        if (!(lang ? /^[0-9a-f]{6}$/i : /^[0-9a-f]{2}$/i).test(hex)) return null;
-        const k = parseInt(hex, 16);
-        if (k > 0x10ffff || (k >= 0xd800 && k <= 0xdfff)) return null;
-        ut += String.fromCodePoint(k);
-        i += lang ? 8 : 3;
-      } else if (TRYGG.test(c)) {
-        ut += c;
-        i += 1;
-      } else return null;
+  function sjekkAv(bytes) {
+    let h = fnv("nissen-lenke-2:");
+    for (const b of bytes) {
+      h ^= b;
+      h = Math.imul(h, 0x01000193);
     }
-    return ut;
+    return bland(h >>> 0);
   }
-
-  function sjekksum(tekst) {
-    let h = bland(fnv("nissen-lenke:" + tekst));
-    let ut = "";
-    for (let k = 0; k < 4; k++) {
-      ut += ALFABET[h & 31];
-      h >>>= 5;
-    }
-    return ut;
+  // Scrambles and unscrambles (XOR with the same numbers gives the bytes back).
+  function slor(bytes, sjekk) {
+    const t = tilfeldig(fnv("nissen-slor:" + sjekk));
+    return bytes.map((b) => b ^ Math.floor(t() * 256));
   }
 
   const nyId = () => {
@@ -266,28 +352,61 @@
     return ut;
   };
 
-  // { id, kr, dato, navn, mottaker } → "1/CHECK/ID/KR/MMDD/Giver/Receiver" (the part after #)
+  // { id, kr, dato, navn, mottaker } → the part after # ("" when it can't be written)
   function lagPersonlig(o) {
-    const mmdd = o.dato ? Math.floor(o.dato / 32) * 100 + (o.dato % 32) : 0;
-    const resten = [o.id, String(o.kr || 0), String(mmdd), pakkNavn(o.navn), pakkNavn(o.mottaker)].join("/");
-    return "1/" + sjekksum(resten) + "/" + resten;
+    const kr = o.kr || 0;
+    const dato = o.dato || 0;
+    if (!ID_FORM.test(o.id) || !Number.isInteger(kr) || kr < 0 || kr > KR_MAKS || !Number.isInteger(dato) || dato < 0 || !datoGyldig(dato)) return "";
+    let id = 0;
+    for (const c of String(o.id)) id = id * 32 + ALFABET.indexOf(c);
+    const hoy = id * 128 + (kr >> 7); // 32 bits: the id and the top seven bits of the budget
+    const lav = ((kr & 127) << 9) | dato; // 16 bits: the rest of the budget, the month and the day
+    const giver = utf8(o.navn);
+    if (giver.length > 255) return "";
+    const data = [hoy >>> 24, (hoy >>> 16) & 255, (hoy >>> 8) & 255, hoy & 255, lav >> 8, lav & 255, giver.length, ...giver, ...utf8(o.mottaker)];
+    const sjekk = sjekkAv(data);
+    return "2" + tilTegn([sjekk >>> 24, (sjekk >>> 16) & 255, (sjekk >>> 8) & 255, sjekk & 255, ...slor(data, sjekk)]);
+  }
+
+  // A name out of a link: only one the name field itself could have given (so no long texts, no
+  // invisible characters, nothing that turns the reading direction).
+  function lesNavn(bytes) {
+    const ra = fraUtf8(bytes);
+    if (!ra) return null;
+    const navn = rentNavn(ra);
+    return navn && navn === ra.normalize("NFC") ? navn : null;
   }
 
   // The part after # → { id, kr, dato, navn, mottaker }, or null when it isn't a whole, valid link.
   function lesPersonlig(hash) {
-    const deler = String(hash || "").split("/");
-    if (deler.length !== 7 || deler[0] !== "1") return null;
-    if (sjekksum(deler.slice(2).join("/")) !== deler[1]) return null;
-    const [id, krTekst, mmddTekst, a, b] = deler.slice(2);
-    if (!/^[0-9A-HJKMNP-TV-Z]{5}$/.test(id) || !/^\d{1,6}$/.test(krTekst) || !/^\d{1,4}$/.test(mmddTekst)) return null;
-    const mmdd = Number(mmddTekst);
-    const dato = mmdd ? Math.floor(mmdd / 100) * 32 + (mmdd % 100) : 0;
-    if (!datoGyldig(dato)) return null;
-    const navn = ren(pakkUt(a));
-    const mottaker = ren(pakkUt(b));
-    if (!navn || !mottaker || navn.length > 40 || mottaker.length > 40 || nokkel(navn) === nokkel(mottaker)) return null;
-    return { id, kr: Number(krTekst), dato, navn, mottaker };
+    const tekst = String(hash == null ? "" : hash).toUpperCase();
+    if (tekst[0] !== "2" || tekst.length > MAKS_LENKE) return null;
+    const bytes = fraTegn(tekst.slice(1));
+    // At least 13 bytes: the check, id/budget/day, the length and two names of one byte each
+    if (!bytes || bytes.length < 13 || "2" + tilTegn(bytes) !== tekst) return null;
+    const sjekk = ((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]) >>> 0;
+    const data = slor(bytes.slice(4), sjekk);
+    if (sjekkAv(data) !== sjekk) return null;
+    const hoy = ((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]) >>> 0;
+    const lav = (data[4] << 8) | data[5];
+    const kr = ((hoy & 127) << 7) | (lav >> 9);
+    const dato = lav & 511;
+    if (kr > KR_MAKS || !datoGyldig(dato)) return null;
+    let id = "";
+    for (let k = 4; k >= 0; k--) id += ALFABET[(hoy >>> (7 + 5 * k)) & 31];
+    const navn = lesNavn(data.slice(7, 7 + data[6]));
+    const mottaker = lesNavn(data.slice(7 + data[6]));
+    if (!navn || !mottaker || nokkel(navn) === nokkel(mottaker)) return null;
+    return { id, kr, dato, navn, mottaker };
   }
+
+  // The same card? (A card kept on the phone has more on it than the link holds: «vert».)
+  const likt = (a, b) => !!a && !!b && a.id === b.id && a.kr === b.kr && a.dato === b.dato && a.navn === b.navn && a.mottaker === b.mottaker;
+  // Can a link carry this name there and back?
+  const navnHolder = (x) => {
+    const o = { id: "00000", kr: 0, dato: 0, navn: x, mottaker: nokkel(x) === "a" ? "b" : "a" };
+    return likt(lesPersonlig(lagPersonlig(o)), o);
+  };
 
   const lenkeTil = (fragment) => location.origin + location.pathname + "#" + fragment;
   const personlig = (sp, i) => ({ id: sp.id, kr: BUDSJETT[sp.budsjett], dato: sp.dato, navn: sp.navn[i], mottaker: sp.navn[sp.mottaker[i]] });
@@ -430,13 +549,15 @@
 
   // What stops the draw, in words (or "" when it is ready).
   function oppsettFeil(S) {
-    const navn = S.navn.map(ren);
+    const navn = S.navn.map(rentNavn);
     const tomme = navn.filter((x) => !x).length;
     if (tomme) return tomme === 1 ? "Ett navn mangler." : `${tomme} navn mangler.`;
     const sett = new Map();
     for (const x of navn) {
       if (sett.has(nokkel(x))) return `To heter «${x}». Skriv for eksempel «${x} B.»`;
       sett.set(nokkel(x), true);
+      // Every name must survive the trip through a link, or two people would get one that won't open.
+      if (!navnHolder(x)) return `Navnet «${x}» kan ikke brukes. Prøv uten spesialtegn.`;
     }
     if (!ringMulig(navn.length, S.oppsett.par)) return "Det går ikke å trekke med alle disse parene. Fjern ett av dem.";
     return "";
@@ -493,8 +614,26 @@
 
   // ---------- Game flow ----------
 
+  // Ask the browser to keep what this site has stored: the draw must last until the gift day, and
+  // Safari clears sites that go unvisited for a week. Chrome and Safari answer without asking the
+  // player; Firefox would show a question, so it is left alone (it has no such weekly clearing).
+  function beholdLager() {
+    try {
+      const lager = navigator.storage;
+      if (lager && lager.persist && !/\bFirefox\//.test(navigator.userAgent || "")) lager.persist().catch(() => {});
+    } catch (e) {
+      /* not in this browser */
+    }
+  }
+
+  // Is the draw really kept on this phone? (Storage can be full, or blocked in private browsing.)
+  function erLagret(sp) {
+    const lagret = R.les("nissen.v" + DEF.versjon, null);
+    return !!(lagret && lagret.spill && lagret.spill.id === sp.id);
+  }
+
   function startTrekning(S) {
-    const navn = S.navn.map(ren);
+    const navn = S.navn.map(rentNavn);
     const n = navn.length;
     const par = S.oppsett.par.map((p) => p.slice());
     const fro = finnFro(n, par, R.nyttFro() % FRO_ANTALL);
@@ -523,6 +662,7 @@
       skjerm: null,
     };
     S.spill = sp;
+    beholdLager();
     R.statistikk("start", { modus: sp.modus, antall: n, par: par.length, budsjett: BUDSJETT[sp.budsjett], dato: !!sp.dato });
     R.gaTil("trekk");
   }
@@ -585,6 +725,8 @@
       laste: {},
       // A personal card from a link: { id, navn, mottaker, kr, dato, vert? }
       gjest: null,
+      // A card from a link that was opened while this phone already had one: waits for a yes.
+      nyttKort: null,
       lenkefeil: "",
     }),
 
@@ -593,9 +735,9 @@
       if (!["en", "hver"].includes(o.modus)) o.modus = "en";
       if (!(Number.isInteger(o.budsjett) && o.budsjett >= 0 && o.budsjett < BUDSJETT.length)) o.budsjett = STANDARD_BUDSJETT;
       if (!/^\d{4}-\d{2}-\d{2}$/.test(o.dato || "") || !datoGyldig(datoTall(o.dato))) o.dato = "";
-      S.navn = (Array.isArray(S.navn) ? S.navn : []).slice(0, MAKS).map((x) => String(x == null ? "" : x).slice(0, MAKS_NAVN));
+      S.navn = (Array.isArray(S.navn) ? S.navn : []).slice(0, MAKS).map((x) => kutt(x, MAKS_NAVN));
       // The first time: start from the gang's names (shared by all rusj games).
-      if (!S.navn.length) S.navn = R.felles.navn.map(ren).filter(Boolean).slice(0, MAKS).map((x) => x.slice(0, MAKS_NAVN));
+      if (!S.navn.length) S.navn = R.felles.navn.map(rentNavn).filter(Boolean).slice(0, MAKS);
       while (S.navn.length < MIN) S.navn.push("");
       const n = S.navn.length;
       o.par = (Array.isArray(o.par) ? o.par : [])
@@ -612,10 +754,13 @@
         (sp.versjon !== 2 || !/^[0-9A-Z]{5}$/.test(sp.id || "") || !Array.isArray(sp.navn) || sp.navn.length !== sp.n || !(sp.n >= MIN && sp.n <= MAKS) || !erRing(sp.mottaker, sp.n) || !sp.vis || !Array.isArray(sp.sendt))
       )
         S.spill = null;
-      const g = S.gjest;
-      if (g && !(g.id && lesPersonlig(lagPersonlig(g)))) S.gjest = null;
+      // A kept card must be one a link could hold (the same rules as for a link that is opened).
+      const helt = (g) => !!g && typeof g === "object" && likt(lesPersonlig(lagPersonlig(g)), g);
+      if (!helt(S.gjest)) S.gjest = null;
+      if (!helt(S.nyttKort)) S.nyttKort = null;
       if (!S.spill && SPILLSKJERMER.includes(S.skjerm)) S.skjerm = "hjem";
       if (!S.gjest && S.skjerm === "gjest") S.skjerm = "hjem";
+      if (!S.nyttKort && S.skjerm === "nyttkort") S.skjerm = "hjem";
       if (S.skjerm === "lenkefeil" && !S.lenkefeil) S.skjerm = "hjem";
     },
 
@@ -627,9 +772,9 @@
         ["Hysj til gavedagen", "Ingen trekker seg selv. På gavedagen kan dere avsløre hele nissekjeden og kåre årets nisse."],
       ],
       tips: [
-        "Hver sin mobil: lenken til hver person har bare navnet og hvem personen skal gi til. De andre kan ikke se den – men den som laget trekningen, kan åpne alle lenkene.",
+        "Hver sin mobil: Lenken til hver person har bare kortet til den personen. Navnene kan ikke leses rett ut av lenken, men den er ikke låst: Den som har en lenke, kan åpne kortet – og den som laget trekningen, kan åpne alle.",
         "Glemt hvem du skal gi til? Åpne lenken din igjen. Den som laget trekningen, kan sende den på nytt.",
-        "Lenkene sendes ikke via oss. Alt skjer på mobilene deres.",
+        "Ingenting sendes via oss. Trekningen ligger bare på mobilen den ble laget på, så send lenkene med en gang. De virker også om mobilen skulle glemme trekningen.",
         "Alle henger sammen i én stor ring. Fint for gaveutdelingen: den som nettopp fikk en gave, deler ut sin egen som neste.",
         "Trenger du hjelp? «Gaveideer» gir forslag som passer budsjettet.",
       ],
@@ -659,19 +804,26 @@
       },
     },
 
-    // Personal links: …/nissen/#1/CHECK/ID/KR/MMDD/Giver/Receiver
+    // Personal links: …/nissen/#2… (one token, see «Personal links» above)
     vedHash(S, kort) {
       const hash = raHash || kort;
       raHash = "";
       const o = lesPersonlig(hash);
+      S.nyttKort = null;
       if (!o) {
-        S.lenkefeil = /^[0-9A-Z]{10}(\/|$)/i.test(hash)
-          ? "Lenken er fra en tidligere utgave av Nissen. Be den som laget trekningen, om å sende deg en ny."
-          : "Lenken er ufullstendig eller endret – kanskje ble den kuttet da den ble sendt. Be den som laget trekningen, om å sende den på nytt.";
+        S.lenkefeil = "Lenken er ufullstendig eller endret – kanskje ble den kuttet da den ble sendt. Be den som laget trekningen, om å sende den på nytt.";
         return "lenkefeil";
       }
-      S.gjest = o;
       S.lenkefeil = "";
+      // The card this phone already has: just show it.
+      if (likt(S.gjest, o)) return "gjest";
+      // Anybody can write a link. So a card that is kept is never replaced without a yes, and a
+      // phone with a draw of its own asks before it opens somebody's card.
+      if (S.gjest || pagar(S)) {
+        S.nyttKort = o;
+        return "nyttkort";
+      }
+      S.gjest = o;
       return "gjest";
     },
 
@@ -679,7 +831,11 @@
       navn(S, el) {
         const i = Number(el.dataset.i);
         if (!(i >= 0 && i < S.navn.length)) return;
-        S.navn[i] = el.value.slice(0, MAKS_NAVN);
+        // Whole characters only (never half an emoji). A browser that counts the 16 in another way
+        // may have let more in: show what is kept.
+        const navn = kutt(el.value, MAKS_NAVN);
+        if (navn !== el.value) el.value = navn;
+        S.navn[i] = navn;
         const fjern = el.parentElement && el.parentElement.querySelector(".fjern");
         if (fjern) fjern.setAttribute("aria-label", "Fjern " + (ren(S.navn[i]) || "person " + (i + 1)));
         oppdaterFeil(S);
@@ -715,6 +871,10 @@
               ["0", "lapper i lua"],
             ],
           });
+        },
+        // A card that waited for a yes is dropped when the question is left unanswered.
+        inn(S) {
+          S.nyttKort = null;
         },
         etter: () => sno(),
       },
@@ -886,7 +1046,7 @@
           const rader = sp.navn
             .map((navn, i) => {
               const status = sp.sendt[i] === 2 ? "Lenken er kopiert" : sp.sendt[i] === 1 ? "Lenken er delt" : "Ikke sendt ennå";
-              return `<li class="ni-lenkerad${sp.sendt[i] ? " sendt" : ""}" data-lenke="${esc(personligLenke(sp, i))}">
+              return `<li class="ni-lenkerad${sp.sendt[i] ? " sendt" : ""}">
                 <button class="ni-lenkenavn" data-h="person" data-v="${i}" aria-label="${esc(navn)}: vis lenken og QR-koden">${R.avatar(i)}<span><b>${esc(navn)}</b><small>${sp.sendt[i] ? "✓ " : ""}${status}</small></span></button>
                 <button class="knapp-2 liten" data-h="del-en" data-v="${i}" aria-label="Del lenken til ${esc(navn)}">Del</button>
                 <button class="knapp-2 liten" data-h="kopier-en" data-v="${i}" aria-label="Kopier lenken til ${esc(navn)}">Kopier</button>
@@ -897,12 +1057,19 @@
             ${piller(BUDSJETT[sp.budsjett], sp.dato)}
             <h1 id="skjerm-tittel">Send lenkene</h1>
             <p class="ingress">Hver person får sin egen lenke. Den viser bare hvem den personen skal gi gave til.</p>
+            <p class="ni-varsel" id="ni-varsel">${
+              !erLagret(sp)
+                ? "<b>Send alle lenkene nå.</b> Denne mobilen lagrer ikke trekningen – den blir borte når du lukker siden."
+                : neste >= 0
+                  ? "<b>Send lenkene nå</b> – trekningen ligger bare på denne mobilen."
+                  : "Alle lenkene er sendt. Trekningen ligger bare på denne mobilen."
+            }</p>
             <section class="seksjon">
               <div class="seksjon-hode"><h2>Lenkene</h2><span class="tall">${delt} av ${sp.n} sendt</span></div>
               <ul class="ni-lenker">${rader}</ul>
             </section>
-            <p class="hjelp">Glemt hvem du skal gi til? Åpne lenken din igjen. Har noen mistet lenken, sender du den på nytt herfra.</p>
-            <p class="ni-aerlig">🔒 Lenkene sendes ikke via oss. Du som laget trekningen, kan åpne alle lenkene – de andre ser bare sin egen.</p>
+            <p class="hjelp">Lenkene virker også om mobilen skulle glemme trekningen. Har noen mistet lenken sin, sender du den på nytt herfra.</p>
+            <p class="ni-aerlig">Lenkene sendes ikke via oss. Navnene kan ikke leses rett ut av en lenke, men den er ikke låst: Den som har lenken, kan åpne kortet. Du som laget trekningen, kan åpne alle.</p>
             ${R.ui.lenkerad(R.ui.lenke("Er du med selv? Se kortet ditt", "vert-gjest"), avslorLenke(sp), R.ui.lenke("Avslutt", "avslutt"))}
             ${R.ui.dokk(
               neste >= 0 ? R.ui.knapp(`Del lenken til ${sp.navn[neste]}`, "del-en", { v: neste, ikon: "📨" }) : R.ui.knapp("Ferdig – vi ses på gavedagen", "ferdig", { ikon: "🎄" }),
@@ -997,6 +1164,43 @@
         etter: () => sno(),
       },
 
+      // A link was opened on a phone that already has a card, or a draw of its own: ask first.
+      // (The new card's receiver is never shown here – only whose card it is.)
+      nyttkort: {
+        tittel: "Nissetrekning",
+        tilbake: "hjem",
+        gjenoppta: "hjem",
+        vis(S) {
+          const ny = S.nyttKort;
+          const g = S.gjest;
+          const b = (navn) => `<b>${esc(navn)}</b>`;
+          if (!g) {
+            return `
+              <div class="banner ni-banner">
+                ${R.figur()}
+                <h1 id="skjerm-tittel">Du har en trekning på denne mobilen</h1>
+                <p class="ingress">Lenken du åpnet, er nissekortet til ${b(ny.navn)}. Vil du åpne det?</p>
+              </div>
+              <p class="hjelp">Trekningen din blir liggende som før. Kortet er bare ment for ${esc(ny.navn)}.</p>
+              ${R.ui.dokk(R.ui.knapp("Åpne kortet", "apne-nytt"), R.ui.lenkerad(R.ui.lenke("Ikke nå", "behold-kort")))}`;
+          }
+          const samme = nokkel(g.navn) === nokkel(ny.navn);
+          return `
+            <div class="banner ni-banner">
+              ${R.figur()}
+              <h1 id="skjerm-tittel">Du har allerede et nissekort</h1>
+              <p class="ingress">${
+                samme
+                  ? `Denne mobilen har allerede et kort til ${b(g.navn)}. Lenken du åpnet, er et annet kort til ${esc(ny.navn)}.`
+                  : `Denne mobilen har kortet til ${b(g.navn)}. Lenken du åpnet, er kortet til ${b(ny.navn)}.`
+              } Vil du åpne det nye?</p>
+            </div>
+            <p class="hjelp">Da forsvinner det gamle kortet fra denne mobilen. ${samme ? "Har dere trukket på nytt, er det nye kortet det riktige. " : ""}Er du usikker på lenken, så spør den som laget trekningen.</p>
+            ${R.ui.dokk(R.ui.knapp("Åpne det nye kortet", "apne-nytt"), R.ui.lenkerad(R.ui.lenke("Behold det gamle", "behold-kort")))}`;
+        },
+        etter: () => sno(),
+      },
+
       // A link that can't be read: say so kindly.
       lenkefeil: {
         tittel: "Nissetrekning",
@@ -1032,8 +1236,10 @@
       fortsett: (el, e, S) => R.gaTil(S.spill && SPILLSKJERMER.includes(S.spill.skjerm) && S.spill.skjerm !== "trekk" ? S.spill.skjerm : S.spill && S.spill.modus === "hver" ? "del" : "vis"),
       "til-gjest": (el, e, S) => (S.gjest ? R.gaTil("gjest") : null),
       ferdig(el, e, S) {
+        R.lagre();
+        const lagret = !!S.spill && erLagret(S.spill);
         R.gaTil("hjem");
-        R.toast("Trekningen er lagret på denne mobilen");
+        R.toast(lagret ? "Trekningen er lagret på denne mobilen" : "Denne mobilen lagrer ikke trekningen");
       },
 
       // Setup
@@ -1192,7 +1398,8 @@
         const i = Number(el.dataset.v);
         if (!sp || !(i >= 0 && i < sp.n)) return;
         const tillegg = [belop(sp.budsjett) ? `Budsjett: ${belop(sp.budsjett)}.` : "", sp.dato ? `Gavedag: ${datoTekst(sp.dato)}.` : ""].filter(Boolean).join(" ");
-        R.del("Nissetrekning", `Hei, ${sp.navn[i]}! Her er nissetrekningen din – bare du ser hvem du skal gi gave til. ${tillegg}`.trim(), personligLenke(sp, i));
+        // The link is scrambled, not locked: whoever has it can open the card. So the message says so.
+        R.del("Nissetrekning", `Hei, ${sp.navn[i]}! Her er lenken din til nissetrekningen. Åpne den for å se hvem du skal gi gave til – og ikke send den videre. ${tillegg}`.trim(), personligLenke(sp, i));
         R.lukkArk();
         merkSendt(S, i, 1);
       },
@@ -1221,6 +1428,18 @@
         R.gaTil("gjest");
       },
 
+      // A link opened on a phone that already has a card (or a draw of its own): the answer
+      "apne-nytt"(el, e, S) {
+        if (!S.nyttKort) return R.gaTil("hjem");
+        S.gjest = S.nyttKort;
+        S.nyttKort = null;
+        R.gaTil("gjest");
+      },
+      "behold-kort"(el, e, S) {
+        S.nyttKort = null;
+        R.gaTil(S.gjest ? "gjest" : "hjem");
+      },
+
       // A personal card
       async forlat(el, e, S) {
         const fortsatt = R.vakt();
@@ -1232,7 +1451,7 @@
     }),
 
     // The pure parts, for the unit tests (test/nissen.test.mjs).
-    kjerne: { trekk, holder, erRing, muligRing, finnFro, kjede, pakkNavn, pakkUt, lagPersonlig, lesPersonlig, sjekksum, datoTekst, datoTall, dagerTil, nedtelling, bandFor, qrSvg, BUDSJETT, MIN, MAKS },
+    kjerne: { trekk, holder, erRing, muligRing, finnFro, kjede, ren, kutt, rentNavn, lagPersonlig, lesPersonlig, datoTekst, datoTall, dagerTil, nedtelling, bandFor, qrSvg, BUDSJETT, MIN, MAKS, MAKS_NAVN },
   };
 
   // Enter in a name field jumps to the next one (the kit does this for its own player list).
