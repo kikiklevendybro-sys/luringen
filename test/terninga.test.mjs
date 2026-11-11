@@ -203,3 +203,72 @@ test("random rolls: every score is consistent with the dice", () => {
     assert.ok(p("par2", t) === 0 || p("par2", t) > p("par1", t), `two pairs beat one pair: ${t}`);
   }
 });
+
+// ---------- The phone as a player ----------
+
+function spillMed(variant, nivaa, fro) {
+  let a = fro;
+  const rng = () => ((a = (a * 1103515245 + 12345) % 2147483648) / 2147483648);
+  const V = Y.VARIANTER[variant];
+  const kort = {};
+  let spart = 0;
+  let treigest = 0;
+  while (!Y.fullt(variant, kort)) {
+    let t = Array.from({ length: V.terninger }, () => 1 + Math.floor(rng() * 6));
+    let kast = 1;
+    for (;;) {
+      const igjen = Y.kastIgjen(variant, kast, spart);
+      const start = performance.now();
+      const valg = Y.robotValg(variant, t, kort, igjen, nivaa, rng);
+      treigest = Math.max(treigest, performance.now() - start);
+      if (valg.felt) {
+        assert.ok(V.alle.includes(valg.felt) && kort[valg.felt] == null, `${nivaa} chose a filled or unknown box: ${valg.felt}`);
+        kort[valg.felt] = Y.poeng(valg.felt, t);
+        spart += Y.sparesVed(variant, kast);
+        break;
+      }
+      assert.ok(igjen > 0, `${nivaa} wanted to roll with no rolls left`);
+      assert.equal(valg.hold.length, t.length);
+      assert.ok(!valg.hold.every(Boolean), "holding every die is not a roll");
+      if (kast >= 3) spart -= 1;
+      kast += 1;
+      t = t.map((x, i) => (valg.hold[i] ? x : 1 + Math.floor(rng() * 6)));
+    }
+  }
+  return { total: Y.summer(variant, kort).total, treigest };
+}
+
+for (const variant of ["vanlig", "maxi"]) {
+  test(`the phone (${variant}): legal decisions, Vanskelig clearly beats Lett, decisions are quick`, () => {
+    const snitt = {};
+    let treigest = 0;
+    for (const nivaa of Y.NIVAER) {
+      let sum = 0;
+      const n = 60;
+      for (let k = 0; k < n; k++) {
+        const r = spillMed(variant, nivaa, 1000 + k);
+        sum += r.total;
+        treigest = Math.max(treigest, r.treigest);
+      }
+      snitt[nivaa] = sum / n;
+    }
+    assert.ok(snitt.vanskelig > snitt.lett + 40, `Vanskelig ${snitt.vanskelig.toFixed(0)} vs Lett ${snitt.lett.toFixed(0)}`);
+    assert.ok(snitt.middels > snitt.lett + 25, `Middels ${snitt.middels.toFixed(0)} vs Lett ${snitt.lett.toFixed(0)}`);
+    // (over 150+ games Vanskelig is 5–20 ahead of Middels; 60 games is too noisy to demand more)
+    assert.ok(snitt.vanskelig >= snitt.middels - 25, `Vanskelig ${snitt.vanskelig.toFixed(0)} vs Middels ${snitt.middels.toFixed(0)}`);
+    assert.ok(treigest < 60, `slowest decision ${treigest.toFixed(1)} ms (an old phone is ~4× slower; the budget there is 150 ms)`);
+  });
+}
+
+test("the phone keeps the obvious and fills the right box", () => {
+  const ingen = () => 0.5;
+  // Five sixes: score it as Yatzy straight away (every level).
+  for (const nivaa of Y.NIVAER) assert.deepEqual(JSON.parse(JSON.stringify(Y.robotValg("vanlig", [6, 6, 6, 6, 6], {}, 2, nivaa, ingen))), { felt: "yatzy" });
+  // A large straight on the first roll is taken by Middels and Vanskelig.
+  for (const nivaa of ["middels", "vanskelig"]) assert.equal(Y.robotValg("vanlig", [2, 3, 4, 5, 6], {}, 2, nivaa, ingen).felt, "stor");
+  // Four of a kind with two rolls left: keep the four, roll the odd one.
+  const v = Y.robotValg("vanlig", [5, 5, 1, 5, 5], {}, 2, "vanskelig", ingen);
+  assert.deepEqual([...v.hold], [true, true, false, true, true]);
+  // No rolls left: always a free box.
+  assert.ok(Y.robotValg("vanlig", [1, 2, 2, 4, 6], { yatzy: 0 }, 0, "lett", ingen).felt !== "yatzy");
+});

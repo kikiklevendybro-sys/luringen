@@ -186,7 +186,7 @@ export default async function (t) {
     await t.sov(500);
     await t.js("window.scrollTo(0, 0)");
     t.sjekk(await t.js("document.documentElement.scrollWidth <= window.innerWidth"), `Siden er for bred på ${b} px`);
-    const over = await t.js("(() => { const d = document.querySelector('.dokk .knapp').getBoundingClientRect().top; const brett = document.querySelector('#tg-brett').getBoundingClientRect(); const over = document.querySelector('.tg-over').getBoundingClientRect(); return brett.bottom <= d && over.bottom <= d; })()");
+    const over = (await t.friForDokk("#tg-brett")) && (await t.friForDokk(".tg-over"));
     t.sjekk(over, `Terningene eller blokka skjules bak knappen på ${b} × ${h}`);
     await t.bilde(`maxi-${b}x${h}`);
   }
@@ -210,4 +210,55 @@ export default async function (t) {
   await t.vent("document.querySelector('.tg-rekorder')");
   t.sjekk(/Yatzy/.test(await t.tekst(".tg-rekorder")), "Rekorden vises ikke på hjem-skjermen");
   await t.bilde("hjem-rekord");
+
+  // ---------- Against the phone: one person and «Robo» (Vanskelig) to the end ----------
+  await t.klikk('[data-h="nytt"]');
+  await t.klikk('[data-h="variant"][data-v="vanlig"]');
+  await t.klikk('[data-h="roboter"][data-v="1"]');
+  t.sjekk(await t.finnes('[data-h="nivaa"][data-v="middels"][aria-pressed="true"]'), "Middels skal være valgt fra start");
+  await t.klikk('[data-h="nivaa"][data-v="vanskelig"]');
+  await t.bilde("oppsett-mot-mobilen", true);
+  await t.klikk('[data-h="start"]');
+  await t.vent("document.querySelector('#tg-brett')");
+  s = await t.tilstand();
+  t.sjekk(s.spill.antall === 2 && s.spill.mennesker === 1 && s.spill.nivaa === "vanskelig", "Spillet mot mobilen ble ikke satt opp riktig");
+  // Our first box, then the phone's turn plays by itself (visibly: held dice, then rolls)
+  await kast();
+  await t.klikk('[data-h="sett"].mulig', 60);
+  await t.vent(`(JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill || {}).tur === 1`, 5000);
+  await t.vent("/Robo/.test(document.querySelector('#skjerm h1').textContent) && document.querySelector('[data-h=\"hopp-anim\"]')", 5000);
+  t.sjekk(await t.js(`document.querySelector('.dokk [data-h="kast"]').disabled`), "Kast-knappen skal være av mens mobilen spiller");
+  await t.klikk('[data-h="hold"][data-v="0"]');
+  t.sjekk(!(await t.tilstand()).spill.holdt[0] || (await t.tilstand()).spill.kast > 0, "Man kan ikke holde terninger for mobilen");
+  await t.vent(`JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill.kast >= 1 && !document.querySelector('#tg-brett[data-ruller]')`, 8000);
+  await t.sov(700);
+  await t.bilde("mobilen-spiller");
+  // Reload in the middle of the phone's turn: it carries on and finishes its box
+  await t.lastSide(t.side, "document.querySelector('#tg-brett')");
+  await t.vent(`(() => { const sp = JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill; return sp.tur === 0 && Object.keys(sp.kort[1]).length === 1; })()`, 20000);
+  // The rest quickly: «Hopp over animasjonen» on every phone turn, our own boxes as they come
+  await t.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
+  for (let n = 0; n < 800; n++) {
+    s = await t.tilstand();
+    if (s.spill.kort.every((k) => Object.keys(k).length === 15)) break;
+    if (s.spill.tur === 0 && !(await t.finnes("#tg-brett[data-ruller]")) && !(await t.finnes("#skjerm .tg-felt.ny"))) {
+      if (s.spill.kast === 0) await kast();
+      else if (await t.finnes('[data-h="sett"].mulig')) await t.klikk('[data-h="sett"].mulig', 60);
+    } else if (await t.finnes('[data-h="hopp-anim"]:not(:disabled)')) await t.klikk('[data-h="hopp-anim"]:not(:disabled)', 60);
+    await t.sov(150);
+  }
+  s = await t.tilstand();
+  t.sjekk(s.spill.kort.every((k) => Object.keys(k).length === 15), "Spillet mot mobilen ble ikke ferdig: " + JSON.stringify({ tur: s.spill.tur, kast: s.spill.kast, holdt: s.spill.holdt, fylt: s.spill.kort.map((k) => Object.keys(k).length) }) + " " + (await t.js("document.querySelector('.tg-felt.ny') ? 'ny' : '-'")));
+  await t.vent("document.querySelector('[data-h=\"kaaring\"]')", 8000);
+  const robo = await t.js(`RusjTerninga.summer("vanlig", JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill.kort[1]).total`);
+  t.sjekk(robo >= 120, `Vanskelig fikk bare ${robo} poeng`);
+  await t.klikk('[data-h="kaaring"]');
+  await t.vent("document.querySelector('.skjerm-slutt')");
+  await t.send("Emulation.setEmulatedMedia", { features: [] });
+  t.sjekk(/vinner!/.test(await t.tekst("#skjerm h1")), "Kåringen mot mobilen mangler vinner");
+  t.sjekk(/Robo/.test(await t.tekst(".poengliste")), "Robo står ikke i poenglista");
+  const kveld2 = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  t.sjekk(!kveld2 || !JSON.stringify(kveld2).includes("Robo"), "Mobilen skal ikke stå i Kveldens gjeng");
+  await t.sov(400);
+  await t.bilde("kaaring-mot-mobilen", true);
 }

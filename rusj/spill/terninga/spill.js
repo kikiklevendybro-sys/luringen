@@ -139,7 +139,188 @@
   // Rolls saved when a box is filled after `kast` rolls (Maxi only).
   const sparesVed = (variant, kast) => (VARIANTER[variant].spar ? Math.max(0, KAST_PER_TUR - kast) : 0);
 
-  const Regler = { OVER, KAT, VARIANTER, KAST_PER_TUR, tell, poeng, summer, fullt, kastIgjen, sparesVed };
+  // ---------- The phone as a player (pure) ----------
+  // Lett keeps the most common number and grabs the biggest score (now and then a box it should
+  // have saved). Middels values a box by its score minus what that box is usually worth, with an
+  // eye on the bonus, and holds the dice that give the best expected value after the next roll.
+  // Vanskelig does the same with a better value and looks two rolls ahead (exact expectimax over
+  // the dice multisets; with six dice one roll ahead), memoised so a decision takes a few ms.
+
+  const NIVAER = ["lett", "middels", "vanskelig"];
+  // What a box is typically worth when it is filled in a good game (its "cost" when used).
+  const VERDI = {
+    vanlig: { par1: 9, par2: 15, like3: 12, like4: 9, liten: 8, stor: 9, hus: 14, sjanse: 22, yatzy: 14 },
+    maxi: { par1: 10, par2: 17, par3: 17, like3: 13, like4: 10, like5: 6, liten: 9, stor: 10, full: 8, hus: 15, villa: 10, taarn: 10, sjanse: 25, yatzy: 12 },
+  };
+  const sortert = (t) => t.slice().sort((a, b) => a - b);
+
+  // How good it is to put these dice in box kat now (higher is better).
+  function feltVerdi(variant, kat, terninger, kort, nivaa) {
+    const V = VARIANTER[variant];
+    const p = poeng(kat, terninger);
+    const over = OVER.indexOf(kat);
+    if (over >= 0) {
+      const flate = over + 1;
+      const maal = V.terninger === 6 ? 4 : 3;
+      const s = summer(variant, kort);
+      const apen = !s.bonus && !s.bonusTapt;
+      // Above or below "par" for the bonus; the bonus matters less when it is out of reach.
+      const avvik = p - maal * flate;
+      const vekt = !apen ? 0 : nivaa === "vanskelig" ? 0.9 : 0.6;
+      return p + vekt * avvik - (nivaa === "vanskelig" ? 0.6 * flate * (maal - 1) : 0.4 * flate * maal);
+    }
+    const vanlig = VERDI[variant][kat] || 0;
+    return p - (nivaa === "vanskelig" ? 0.9 : 0.7) * vanlig;
+  }
+
+  const apneFelt = (variant, kort) => VARIANTER[variant].alle.filter((k) => kort[k] == null);
+
+  // The box to fill with these dice.
+  function velgFelt(variant, terninger, kort, nivaa, tilfeldig) {
+    const rng = tilfeldig || Math.random;
+    const apne = apneFelt(variant, kort);
+    if (!apne.length) return null;
+    if (nivaa === "lett") {
+      const med = apne.filter((k) => poeng(k, terninger) > 0);
+      if (!med.length || rng() < 0.12) return apne[Math.floor(rng() * apne.length)];
+      return med.reduce((a, b) => (poeng(b, terninger) > poeng(a, terninger) ? b : a));
+    }
+    let best = apne[0];
+    let bestV = -Infinity;
+    for (const k of apne) {
+      const v = feltVerdi(variant, k, terninger, kort, nivaa);
+      if (v > bestV) {
+        bestV = v;
+        best = k;
+      }
+    }
+    return best;
+  }
+
+  // Every multiset of k dice with its probability, as [counts per face 1–6, p].
+  const UTFALL = [];
+  (function () {
+    const fak = [1, 1, 2, 6, 24, 120, 720];
+    for (let k = 0; k <= 6; k++) {
+      const liste = [];
+      const c = [0, 0, 0, 0, 0, 0, 0];
+      (function rek(flate, igjen) {
+        if (flate === 6) {
+          c[6] = igjen;
+          let p = fak[k] / Math.pow(6, k);
+          for (let f = 1; f <= 6; f++) p /= fak[c[f]];
+          liste.push([c.slice(1), p]);
+          return;
+        }
+        for (let n = 0; n <= igjen; n++) {
+          c[flate] = n;
+          rek(flate + 1, igjen - n);
+        }
+      })(1, k);
+      UTFALL.push(liste);
+    }
+  })();
+
+  // All different "keep" choices for these dice: [kept dice sorted, how many to reroll].
+  function holdValg(terninger) {
+    const c = tell(terninger);
+    const ut = [];
+    (function rek(flate, holdt) {
+      if (flate === 7) {
+        ut.push(holdt.slice());
+        return;
+      }
+      for (let n = 0; n <= c[flate]; n++) {
+        for (let j = 0; j < n; j++) holdt.push(flate);
+        rek(flate + 1, holdt);
+        for (let j = 0; j < n; j++) holdt.pop();
+      }
+    })(1, []);
+    return ut;
+  }
+
+  // The keep that gives the best expected value with `kast` rolls left (Middels/Vanskelig).
+  function besteHold(variant, terninger, kort, nivaa, kast) {
+    const n = terninger.length;
+    const apne = apneFelt(variant, kort);
+    const memo = new Map();
+    const v0 = (t) => {
+      const nokkel = "0:" + t.join("");
+      if (memo.has(nokkel)) return memo.get(nokkel);
+      let best = -Infinity;
+      for (const k of apne) best = Math.max(best, feltVerdi(variant, k, t, kort, nivaa));
+      memo.set(nokkel, best);
+      return best;
+    };
+    // Value of standing on sorted dice t with r rolls left.
+    const verdi = (t, r) => {
+      if (r <= 0) return v0(t);
+      const nokkel = r + ":" + t.join("");
+      if (memo.has(nokkel)) return memo.get(nokkel);
+      let best = v0(t);
+      for (const holdt of holdValg(t)) best = Math.max(best, forventet(holdt, r));
+      memo.set(nokkel, best);
+      return best;
+    };
+    const forventet = (holdt, r) => {
+      const k = n - holdt.length;
+      if (!k) return -Infinity; // keeping everything is "stop", covered by v0
+      const nokkel = "h" + r + ":" + holdt.join(""); // many dice share the same keep: compute once
+      if (memo.has(nokkel)) return memo.get(nokkel);
+      let sum = 0;
+      for (const [cnt, p] of UTFALL[k]) {
+        const t = holdt.slice();
+        for (let f = 0; f < 6; f++) for (let j = 0; j < cnt[f]; j++) t.push(f + 1);
+        sum += p * verdi(sortert(t), r - 1);
+      }
+      memo.set(nokkel, sum);
+      return sum;
+    };
+    const dybde = nivaa === "vanskelig" ? Math.min(kast, n === 6 ? 1 : 2) : 1;
+    const t0 = sortert(terninger);
+    let best = null;
+    let bestV = v0(t0) + (nivaa === "vanskelig" ? 0.01 : 0.5); // stopping early needs a reason
+    let kandidater = holdValg(t0);
+    for (const holdt of kandidater) {
+      const v = forventet(holdt, dybde);
+      if (v > bestV) {
+        bestV = v;
+        best = holdt;
+      }
+    }
+    return best; // null = score now
+  }
+
+  // The phone's decision after a roll: { hold: [true/false per die] } or { felt: kat }.
+  function robotValg(variant, terninger, kort, kastIgjenNa, nivaa, tilfeldig) {
+    const rng = tilfeldig || Math.random;
+    const felt = () => ({ felt: velgFelt(variant, terninger, kort, nivaa, rng) });
+    if (kastIgjenNa <= 0) return felt();
+    let holdtVerdier;
+    if (nivaa === "lett") {
+      const c = tell(terninger);
+      if (["yatzy", "stor", "liten", "full", "hus"].some((k) => VARIANTER[variant].alle.includes(k) && kort[k] == null && poeng(k, terninger) > 0)) return felt();
+      let flate = 6;
+      for (let f = 6; f >= 1; f--) if (c[f] > c[flate]) flate = f;
+      if (rng() < 0.15) flate = 1 + Math.floor(rng() * 6);
+      holdtVerdier = Array(c[flate]).fill(flate);
+    } else {
+      holdtVerdier = besteHold(variant, terninger, kort, nivaa, Math.min(kastIgjenNa, KAST_PER_TUR));
+      if (!holdtVerdier) return felt();
+    }
+    // Turn the kept values into flags on the dice as they lie.
+    const igjenAa = holdtVerdier.slice();
+    const hold = terninger.map((v) => {
+      const j = igjenAa.indexOf(v);
+      if (j < 0) return false;
+      igjenAa.splice(j, 1);
+      return true;
+    });
+    if (hold.every(Boolean)) return felt();
+    return { hold };
+  }
+
+  const Regler = { OVER, KAT, VARIANTER, KAST_PER_TUR, NIVAER, tell, poeng, summer, fullt, kastIgjen, sparesVed, velgFelt, robotValg, besteHold };
   window.RusjTerninga = Regler;
 
   const R = window.Rusj;
@@ -155,17 +336,33 @@
   const nyVri = () => Math.round(Math.random() * 36 - 18); // only looks: how twisted a die lands
   const katNavn = (k, sp) => (k === "yatzy" && sp && sp.variant === "maxi" ? "Yatzy (seks like)" : KAT[k].navn);
 
+  // The phone players (as in Brikka). Seats 0…mennesker−1 are people, the rest are the phone.
+  const ROBOTER = ["Robo", "Bipp", "Bopp"];
+  const NIVANAVN = { lett: "Lett", middels: "Middels", vanskelig: "Vanskelig" };
+  const erRobot = (sp, i) => i >= (sp.mennesker == null ? sp.antall : sp.mennesker);
+  const navnFor = (sp, i) => (erRobot(sp, i) ? ROBOTER[i - sp.mennesker] || "Robo" : R.navn(i));
+  const avatarFor = (sp, i, storrelse) =>
+    erRobot(sp, i) ? `<span class="avatar tg-robot ${storrelse || ""}" style="--pf: var(--p${(i % 20) + 1})" aria-hidden="true">🤖</span>` : R.avatar(i, storrelse);
+  const folkIndekser = (sp) => Array.from({ length: sp.antall }, (_, i) => i).filter((i) => !erRobot(sp, i));
+
   let H; // the actions
+  let robotTrykk = false; // true while the phone presses its own buttons
+  let hoppAnim = false; // «Hopp over animasjonen»: the rest of this phone turn without waiting
+  let robotId = null; // the next step of the phone's turn
   let ruller = false; // dice in the air
   let laas = false; // a box was just filled; wait for the next turn to be drawn
 
   function nyttSpill(S) {
     const variant = VARIANTER[S.oppsett.variant] ? S.oppsett.variant : "vanlig";
     const n = VARIANTER[variant].terninger;
-    const antall = R.klamp(Number(S.antall) || 1, 1, 6);
+    const folk = R.klamp(Number(S.antall) || 1, 1, 6);
+    const roboter = R.klamp(Number(S.oppsett.roboter) || 0, 0, Math.min(3, 6 - folk));
+    const antall = folk + roboter;
     S.spill = {
       variant,
       antall,
+      mennesker: folk,
+      nivaa: NIVAER.includes(S.oppsett.nivaa) ? S.oppsett.nivaa : "middels",
       kort: Array.from({ length: antall }, () => ({})),
       spart: Array.from({ length: antall }, () => 0),
       tur: 0,
@@ -179,7 +376,7 @@
     };
     ruller = false;
     laas = false;
-    R.statistikk("start", { variant, spillere: antall });
+    R.statistikk("start", { variant, spillere: folk, roboter });
   }
 
   const totalFor = (sp, i) => summer(sp.variant, sp.kort[i]).total;
@@ -236,7 +433,7 @@
     return new Promise((ferdig) => {
       const knapper = R.$$("#tg-brett .tg-t");
       if (!knapper.length || !indekser.length) return ferdig();
-      const rolig = R.rolig();
+      const rolig = R.rolig() || hoppAnim;
       let lengst = 0;
       let forste = Infinity;
       indekser.forEach((i, n) => {
@@ -336,7 +533,7 @@
     const sum = summer(sp.variant, sp.kort[sp.tur]);
     const andel = Math.min(1, sum.over / V.grense);
     const bonusTekst = sum.bonus ? `+${sum.bonus}` : sum.bonusTapt ? "Ingen bonus" : `${sum.over}/${V.grense}`;
-    return `<section class="tg-blokk${sp.variant === "maxi" ? " maxi" : ""}" aria-label="Blokka til ${esc(R.navn(sp.tur))}">
+    return `<section class="tg-blokk${sp.variant === "maxi" ? " maxi" : ""}" aria-label="Blokka til ${esc(navnFor(sp, sp.tur))}">
       <div class="tg-over">${V.over.map((k) => feltHtml(sp, k, true)).join("")}</div>
       <div class="tg-bonus${sum.bonus ? " fatt" : ""}${sum.bonusTapt ? " tapt" : ""}">
         <span class="tg-bonus-navn">Bonus ${V.bonus}</span>
@@ -367,7 +564,7 @@
     ];
     return `<div class="tg-tabell-ramme"><table class="tg-tabell${n > 3 ? " mange" : ""}${n === 1 ? " en" : ""}">
       <thead><tr><th scope="col"><span class="vh">Felt</span></th>${alle(
-        (i) => `<th scope="col" class="${i === sp.tur && !o.slutt ? "na" : ""}">${R.avatar(i)}<span class="tg-tabell-navn">${esc(R.navn(i))}</span></th>`,
+        (i) => `<th scope="col" class="${i === sp.tur && !o.slutt ? "na" : ""}">${avatarFor(sp, i)}<span class="tg-tabell-navn">${esc(navnFor(sp, i))}</span></th>`,
       )}</tr></thead>
       <tbody>${rader.join("")}</tbody>
     </table></div>`;
@@ -379,7 +576,7 @@
     return `<ul class="tg-stilling" aria-label="Stillingen">${sp.kort
       .map(
         (_, i) =>
-          `<li class="${i === sp.tur ? "na" : ""}" style="--pf: var(--p${(i % 20) + 1})"><span class="vh">${esc(R.navn(i))}: </span>${R.avatar(i)}<b>${totalFor(sp, i)}</b></li>`,
+          `<li class="${i === sp.tur ? "na" : ""}" style="--pf: var(--p${(i % 20) + 1})"><span class="vh">${esc(navnFor(sp, i))}: </span>${avatarFor(sp, i)}<b>${totalFor(sp, i)}</b></li>`,
       )
       .join("")}</ul>`;
   }
@@ -392,6 +589,7 @@
       if (spart) return `Du har tre kast – og ${R.flertall(spart, "spart kast", "sparte kast")} i tillegg.`;
       return sp.antall > 1 ? "Tre kast. Lykke til!" : "Du har tre kast denne runden.";
     }
+    if (erRobot(sp, sp.tur)) return rest > 0 ? `${navnFor(sp, sp.tur)} velger hvilke terninger som skal holdes …` : `${navnFor(sp, sp.tur)} velger et felt …`;
     if (rest > 0) return "Trykk på terningene du vil holde";
     return "Velg et felt på blokka";
   }
@@ -411,7 +609,7 @@
   function angreLenke(sp) {
     if (!sp.angre) return "";
     const a = sp.angre;
-    const hvem = sp.antall > 1 ? ` for ${R.navn(a.tur)}` : "";
+    const hvem = sp.antall > 1 ? ` for ${navnFor(sp, a.tur)}` : "";
     return `<button class="lenke" data-h="angre" id="tg-angre" aria-label="${esc(`Angre ${katNavn(a.kat, sp)}${hvem}`)}">↶ Angre ${esc(katNavn(a.kat, sp))}</button>`;
   }
 
@@ -461,15 +659,15 @@
   function lagreRekord(S) {
     const sp = S.spill;
     const komplett = alleFulle(sp);
-    const rader = sp.kort.map((k, i) => ({ i, poeng: summer(sp.variant, k).total }));
+    const rader = folkIndekser(sp).map((i) => ({ i, poeng: summer(sp.variant, sp.kort[i]).total }));
     const best = rader.reduce((a, b) => (b.poeng > a.poeng ? b : a), rader[0]);
     const gml = (S.rekord || {})[sp.variant] || null;
     sp.resultat = { gml: gml ? gml.poeng : null, ny: komplett && (!gml || best.poeng > gml.poeng), best: best.poeng, komplett };
     if (sp.resultat.ny) {
       S.rekord = Object.assign({}, S.rekord, { [sp.variant]: { poeng: best.poeng, navn: R.navn(best.i).slice(0, 16) } });
     }
-    if (sp.antall > 1) R.kveld.registrer(rader);
-    R.statistikk("ferdig", { variant: sp.variant, spillere: sp.antall, poeng: best.poeng, yatzy: sp.yatzyer || 0, komplett });
+    if (rader.length > 1) R.kveld.registrer(rader); // the phone never takes a place in «Kveldens gjeng»
+    R.statistikk("ferdig", { variant: sp.variant, spillere: rader.length, roboter: sp.antall - rader.length, poeng: best.poeng, yatzy: sp.yatzyer || 0, komplett });
   }
 
   // ---------- Rules sheet extra: what every box gives ----------
@@ -502,6 +700,91 @@
     REGLER.ekstraHtml = regelListe(VARIANTER[variant] || VARIANTER.vanlig);
   };
 
+  // ---------- The phone's turn ----------
+  // One step at a time from the saved state (so a reload simply carries on): roll, show which dice it
+  // keeps, roll again or fill a box. Never while a sheet is open; «Hopp over animasjonen» skips the waits.
+
+  function motMobilenHtml(S) {
+    const folk = R.klamp(Number(S.antall) || 1, 1, 6);
+    const maks = Math.min(3, 6 - folk);
+    const r = Math.min(S.oppsett.roboter, maks);
+    return `<section class="seksjon">
+      <div class="seksjon-hode"><h2>Mot mobilen</h2><span class="tall">${r ? R.flertall(folk + r, "spiller", "spillere") + " i alt" : "Av"}</span></div>
+      ${R.ui.seg("roboter", [[0, "Ingen"], [1, "1"], [2, "2"], [3, "3"]], r, { etikett: "Hvor mange spillere mobilen er", av: (v) => Number(v) > maks })}
+      ${r ? R.ui.seg("nivaa", NIVAER.map((n) => [n, NIVANAVN[n]]), S.oppsett.nivaa, { etikett: "Hvor flink mobilen er" }) : ""}
+      <p class="hjelp">${r ? `Mobilen spiller som ${esc(R.ramsOpp(ROBOTER.slice(0, r)))} 🤖 – ${{ lett: "beholder det opplagte og bommer av og til", middels: "spiller fornuftig og passer på bonusen", vanskelig: "regner på hvert kast" }[S.oppsett.nivaa]}.` : "Legg til en motspiller som mobilen styrer."}</p>
+    </section>`;
+  }
+
+  // The kit's podium and scoreboard draw an animal for every row: the phone gets its robot instead.
+  function robotAvatarer(sp, html) {
+    for (let i = sp.mennesker; i < sp.antall; i++) {
+      html = html.split(R.avatar(i, "stor")).join(avatarFor(sp, i, "stor")).split(R.avatar(i)).join(avatarFor(sp, i));
+    }
+    return html;
+  }
+
+  function stoppRobot() {
+    clearTimeout(robotId);
+    robotId = null;
+  }
+
+  // Press one of the game's own buttons as the phone.
+  async function trykk(navn, el) {
+    robotTrykk = true;
+    try {
+      await H[navn](el, null, R.S);
+    } finally {
+      robotTrykk = false;
+    }
+  }
+
+  function driv() {
+    stoppRobot();
+    const S = R.S;
+    const sp = S && S.spill;
+    if (!sp || sp.ferdig || S.skjerm !== "spill" || !erRobot(sp, sp.tur) || alleFulle(sp)) return;
+    if (ruller || laas) return; // the step that runs now calls driv() when it is done
+    if (R.arkApent()) {
+      robotId = setTimeout(driv, 400);
+      return;
+    }
+    const pause = (ms) => (R.rolig() || hoppAnim ? 120 : ms);
+    if (sp.kast === 0) {
+      // Give a person a moment to take back the last box before the phone rolls.
+      robotId = setTimeout(() => trykk("kast"), pause(sp.angre ? 1600 : 900));
+      return;
+    }
+    const valg = robotValg(sp.variant, sp.terninger, sp.kort[sp.tur], igjen(sp), sp.nivaa, tilfeldig);
+    if (valg.felt) {
+      robotId = setTimeout(() => {
+        const el = R.$(`#skjerm [data-h="sett"][data-v="${valg.felt}"]`);
+        if (el) trykk("sett", el);
+      }, pause(900));
+      return;
+    }
+    // Show the dice it keeps one by one, then roll.
+    const endringer = valg.hold.map((h, i) => (h !== !!sp.holdt[i] ? i : -1)).filter((i) => i >= 0);
+    let n = 0;
+    const neste = () => {
+      robotId = null;
+      if (R.S.skjerm !== "spill" || R.S.spill !== sp) return;
+      if (n < endringer.length) {
+        const i = endringer[n++];
+        const el = R.$(`#skjerm [data-h="hold"][data-v="${i}"]`);
+        if (el) {
+          robotTrykk = true;
+          H.hold(el, null, R.S);
+          robotTrykk = false;
+        }
+        robotId = setTimeout(neste, pause(380));
+        return;
+      }
+      robotId = setTimeout(() => trykk("kast"), pause(650));
+    };
+    robotId = setTimeout(neste, pause(700));
+  }
+
   // ---------- Start ----------
 
   R.start({
@@ -511,14 +794,16 @@
 
     tilstand: () => ({
       antall: Math.max(1, Math.min(6, R.felles.navn.filter((n) => String(n || "").trim()).length || 2)),
-      oppsett: { variant: "vanlig" },
+      oppsett: { variant: "vanlig", roboter: 0, nivaa: "middels" },
       rekord: {},
       spill: null,
     }),
 
     lastet(S) {
-      S.oppsett = Object.assign({ variant: "vanlig" }, S.oppsett || {});
+      S.oppsett = Object.assign({ variant: "vanlig", roboter: 0, nivaa: "middels" }, S.oppsett || {});
       if (!VARIANTER[S.oppsett.variant]) S.oppsett.variant = "vanlig";
+      S.oppsett.roboter = R.klamp(Number(S.oppsett.roboter) || 0, 0, 3);
+      if (!NIVAER.includes(S.oppsett.nivaa)) S.oppsett.nivaa = "middels";
       if (!S.rekord || typeof S.rekord !== "object") S.rekord = {};
       S.antall = R.klamp(Number(S.antall) || 2, 1, 6);
       const sp = S.spill;
@@ -538,6 +823,8 @@
           if (!Array.isArray(sp.spart) || sp.spart.length !== sp.antall) sp.spart = sp.kort.map(() => 0);
           for (const k of sp.kort) for (const kat of Object.keys(k)) if (!V.alle.includes(kat) || typeof k[kat] !== "number") delete k[kat];
           if (sp.angre && !(V.alle.includes(sp.angre.kat) && sp.angre.tur < sp.antall)) sp.angre = null;
+          if (!(Number.isInteger(sp.mennesker) && sp.mennesker >= 1 && sp.mennesker <= sp.antall)) sp.mennesker = sp.antall;
+          if (!NIVAER.includes(sp.nivaa)) sp.nivaa = "middels";
         }
       }
       if (S.skjerm === "spill" && !S.spill) S.skjerm = "hjem";
@@ -598,8 +885,9 @@
             min: 1,
             max: 6,
             tittel: "Hvem spiller?",
-            hjelp: (S.antall || 1) > 1 ? "Send mobilen videre etter hver tur." : "Alene? Jakt på din egen rekord – eller legg til flere.",
+            hjelp: (S.antall || 1) > 1 ? "Send mobilen videre etter hver tur." : "Alene? Jakt på din egen rekord – eller spill mot mobilen.",
           })}
+          ${motMobilenHtml(S)}
           ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor", ikon: "🎲" }))}`,
       },
 
@@ -613,10 +901,10 @@
           const ferdig = alleFulle(sp);
           return `
             <div class="tg-hode">
-              ${R.avatar(sp.tur, "mid")}
+              ${avatarFor(sp, sp.tur, "mid")}
               <div class="tg-hvem">
-                <p class="etikett">${ferdig ? "Spillet er ferdig" : sp.antall > 1 ? "Din tur" : "Ditt kast"}</p>
-                <h1 id="skjerm-tittel">${esc(R.navn(sp.tur))}</h1>
+                <p class="etikett">${ferdig ? "Spillet er ferdig" : erRobot(sp, sp.tur) ? `Mobilen · ${NIVANAVN[sp.nivaa]}` : sp.antall > 1 ? "Din tur" : "Ditt kast"}</p>
+                <h1 id="skjerm-tittel">${esc(navnFor(sp, sp.tur))}</h1>
               </div>
               <p class="tg-total"><b>${total}</b><small>poeng</small></p>
             </div>
@@ -626,13 +914,22 @@
               <p class="tg-hint" id="tg-hint" aria-live="polite">${esc(hintTekst(sp))}</p>
             </div>
             ${blokkHtml(sp)}
-            ${R.ui.dokk(kastKnapp(sp), R.ui.lenkerad(angreLenke(sp), R.ui.lenke("Blokka", "blokka"), ferdig ? "" : R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${
+              !ferdig && erRobot(sp, sp.tur)
+                ? R.ui.dokk(
+                    R.ui.knapp(`${navnFor(sp, sp.tur)} spiller …`, "kast", { variant: "stor", av: true, ikon: "🤖" }),
+                    R.ui.lenkerad(angreLenke(sp), hoppAnim ? "" : R.ui.lenke("Hopp over animasjonen", "hopp-anim"), R.ui.lenke("Blokka", "blokka"), R.ui.lenke("Avslutt", "avslutt")),
+                  )
+                : R.ui.dokk(kastKnapp(sp), R.ui.lenkerad(angreLenke(sp), R.ui.lenke("Blokka", "blokka"), ferdig ? "" : R.ui.lenke("Avslutt", "avslutt")))
+            }`;
         },
         inn(S) {
           if (!S.spill) return R.gaTil("hjem");
           ruller = false;
           laas = false;
           R.holdVaken();
+          R.vedForlat(stoppRobot);
+          driv();
         },
       },
 
@@ -642,7 +939,7 @@
         gjenoppta: "hjem",
         vis(S) {
           const sp = S.spill;
-          const rader = sp.kort.map((k, i) => ({ i, poeng: summer(sp.variant, k).total }));
+          const rader = sp.kort.map((k, i) => ({ i, poeng: summer(sp.variant, k).total, ...(erRobot(sp, i) ? { navn: navnFor(sp, i) } : {}) }));
           const best = Math.max(...rader.map((r) => r.poeng));
           const vinnere = rader.filter((r) => r.poeng === best);
           const res = sp.resultat || {};
@@ -670,12 +967,11 @@
           }
           return `
             <div class="banner aksent">
-              ${vinnere.length === 1 ? `<span class="tg-vinner">${R.avatar(vinnere[0].i, "gigant")}<span class="tg-krone" aria-hidden="true">👑</span></span>` : R.figur()}
-              <h1 id="skjerm-tittel">${esc(R.ramsOpp(vinnere.map((r) => R.navn(r.i))))} vinner!</h1>
-              <p class="ingress">${vinnere.length > 1 ? `Likt med ${best} poeng hver.` : `${best} poeng${res.ny && res.gml != null ? " – ny rekord på denne mobilen!" : ""}`}</p>
+              ${vinnere.length === 1 ? `<span class="tg-vinner">${avatarFor(sp, vinnere[0].i, "gigant")}<span class="tg-krone" aria-hidden="true">👑</span></span>` : R.figur()}
+              <h1 id="skjerm-tittel">${esc(R.ramsOpp(vinnere.map((r) => navnFor(sp, r.i))))} vinner!</h1>
+              <p class="ingress">${vinnere.length > 1 ? `Likt med ${best} poeng hver.` : `${best} poeng${erRobot(sp, vinnere[0].i) ? " – mobilen vant denne gangen. Revansj?" : res.ny && res.gml != null ? " – ny rekord på denne mobilen!" : ""}`}</p>
             </div>
-            ${R.ui.pall(rader)}
-            ${R.ui.poengliste(rader)}
+            ${robotAvatarer(sp, R.ui.pall(rader) + R.ui.poengliste(rader))}
             ${blokk}
             ${R.ui.flereSpill({ antall: sp.antall })}
             ${dokk}`;
@@ -685,7 +981,9 @@
           if (!sp) return;
           const best = Math.max(...sp.kort.map((k) => summer(sp.variant, k).total));
           const res = sp.resultat || {};
-          if (sp.antall > 1 || (res.ny && res.gml != null) || best >= 200) {
+          const folkBest = Math.max(...folkIndekser(sp).map((i) => totalFor(sp, i)));
+          const mobilenVant = folkBest < best; // the phone won: warm words, no fanfare
+          if (!mobilenVant && (sp.antall > 1 || (res.ny && res.gml != null) || best >= 200)) {
             R.lyd.fanfare();
             R.vibrer([40, 60, 120]);
             R.konfetti();
@@ -723,9 +1021,26 @@
         R.gaTil("spill");
       },
 
+      roboter(el, e, S) {
+        S.oppsett.roboter = R.klamp(Number(el.dataset.v) || 0, 0, 3);
+        R.vis();
+      },
+      nivaa(el, e, S) {
+        S.oppsett.nivaa = NIVAER.includes(el.dataset.v) ? el.dataset.v : "middels";
+        R.vis();
+      },
+      "hopp-anim"(el, e, S) {
+        if (!S.spill || !erRobot(S.spill, S.spill.tur)) return;
+        hoppAnim = true;
+        const lenke = el.closest(".lenkerad") ? el : null;
+        if (lenke) lenke.remove();
+        driv(); // the next step at once
+      },
+
       hold(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || ruller || laas) return;
+        if (erRobot(sp, sp.tur) && !robotTrykk) return;
         const i = Number(el.dataset.v);
         if (!(i >= 0 && i < sp.terninger.length)) return;
         if (sp.kast === 0) {
@@ -753,6 +1068,7 @@
       async kast(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || ruller || laas || alleFulle(sp)) return;
+        if (erRobot(sp, sp.tur) && !robotTrykk) return;
         if (igjen(sp) <= 0) return;
         const fra = sp.terninger.slice();
         const fraVri = sp.vri.slice();
@@ -791,9 +1107,10 @@
         ruller = false;
         if (!fortsatt()) return;
         R.vis();
-        R.si(`Du kastet ${R.ramsOpp(sp.terninger.map(String))}.`);
-        feirKast(sp);
+        R.si(`${erRobot(sp, sp.tur) ? navnFor(sp, sp.tur) + " kastet" : "Du kastet"} ${R.ramsOpp(sp.terninger.map(String))}.`);
+        if (!hoppAnim) feirKast(sp);
         R.lagre();
+        driv();
       },
 
       async sett(el, e, S) {
@@ -803,6 +1120,8 @@
         const V = VAR(sp);
         const kort = sp.kort[sp.tur];
         if (!V.alle.includes(kat) || kort[kat] != null) return;
+        const robot = erRobot(sp, sp.tur);
+        if (robot && !robotTrykk) return;
         if (sp.kast === 0) {
           R.toast("Kast terningene først");
           el.classList.remove("risting");
@@ -831,7 +1150,7 @@
         const vEl = el.querySelector(".tg-verdi");
         if (vEl) vEl.textContent = verdi === 0 ? "–" : String(verdi);
         R.$$('#skjerm .dokk button, #skjerm [data-h="sett"], #skjerm [data-h="hold"]').forEach((b) => (b.disabled = true));
-        const hvem = R.navn(sp.tur);
+        const hvem = navnFor(sp, sp.tur);
         let melding;
         if (fikkBonus) {
           R.lyd.fanfare();
@@ -848,6 +1167,7 @@
         }
         R.si(verdi > 0 ? `${verdi} poeng på ${navn}.` : `${navn} er strøket.`);
 
+        if (robot) sp.angre = null; // only a person's own box can be taken back
         // Next turn (saved now, so a reload lands on the right player).
         if (!alleFulle(sp)) {
           sp.tur = (sp.tur + 1) % sp.antall;
@@ -857,9 +1177,10 @@
         R.lagre();
         laas = true;
         const fortsatt = R.vakt();
-        await R.vent(R.rolig() ? 250 : 750);
+        await R.vent(R.rolig() || hoppAnim ? 250 : 750);
         laas = false;
         if (!fortsatt()) return;
+        if (!erRobot(sp, sp.tur)) hoppAnim = false; // a person's turn: the phone shows its moves again next time
         R.vis();
         R.toast(melding); // after the redraw, so it sits above the new action area
         if (alleFulle(sp)) {
@@ -869,8 +1190,9 @@
           const hode = R.$(".tg-hode");
           if (hode) hode.classList.add("ny");
           R.lyd.pop();
-          R.si(`${R.navn(sp.tur)} sin tur.`);
+          R.si(`${navnFor(sp, sp.tur)} sin tur.`);
         }
+        driv();
       },
 
       // Take back the last box: the same player gets the same dice and rolls back.
@@ -886,10 +1208,11 @@
         sp.kast = a.kast;
         sp.spart[a.tur] = a.spart;
         sp.angre = null;
+        stoppRobot();
         R.lyd.snu();
         R.toast(`Angret – ${katNavn(a.kat, sp)} er ledig igjen`);
         R.vis();
-        R.si(`Angret. ${R.navn(sp.tur)} velger på nytt.`);
+        R.si(`Angret. ${navnFor(sp, sp.tur)} velger på nytt.`);
       },
 
       blokka(el, e, S) {
@@ -898,7 +1221,7 @@
         R.ark(`
           <h2 id="ark-tittel">Blokka</h2>
           ${tabellHtml(sp)}
-          ${VAR(sp).spar && sp.spart.some((n) => n) ? `<p class="hjelp">Sparte kast: ${sp.spart.map((n, i) => `${esc(R.navn(i))} ${n}`).join(" · ")}</p>` : ""}
+          ${VAR(sp).spar && sp.spart.some((n) => n) ? `<p class="hjelp">Sparte kast: ${sp.spart.map((n, i) => `${esc(navnFor(sp, i))} ${n}`).join(" · ")}</p>` : ""}
           <button class="knapp" data-h="lukk-ark">Spill videre</button>`);
       },
 
