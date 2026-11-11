@@ -320,3 +320,146 @@ test("de lagrede løsbare kabalene kan faktisk løses (stikkprøve, spilt helt u
     }
   }
 });
+
+// Plays solver moves through the real rules (drawing from the stock as needed); with `antall`, only
+// the first so many. Without it: to the end, and the rest goes home card by card.
+function spillLosning(st, trekk, antall) {
+  for (const m of trekk.slice(0, antall == null ? trekk.length : antall)) {
+    if (m.t === "tg" || m.t === "tb") {
+      const onsket = st.avfall.concat(st.bunke.slice().reverse())[m.q];
+      let vakt = 0;
+      while (st.avfall[st.avfall.length - 1] !== onsket) {
+        assert.ok(K.lovlig(st, { fra: "s" }));
+        K.utfor(st, { fra: "s" });
+        assert.ok(++vakt < 80, "kortet kom aldri fram fra bunken");
+      }
+      const t = m.t === "tg" ? { fra: "a", til: "g", j: Math.floor(onsket / 13) } : { fra: "a", til: "b", j: m.j };
+      assert.ok(K.lovlig(st, t), `ulovlig trekk i løsningen: ${JSON.stringify(t)}`);
+      K.utfor(st, t);
+    } else {
+      const t = K.forsteSteg(st, m);
+      assert.ok(K.lovlig(st, t), `ulovlig trekk i løsningen: ${JSON.stringify(t)}`);
+      K.utfor(st, t);
+    }
+  }
+  if (antall != null) return st;
+  let vakt = 0;
+  while (!K.vunnet(st)) {
+    const t = st.bord
+      .map((kol, i) => (kol.length ? { fra: "b", i, p: kol.length - 1, til: "g", j: Math.floor(kol[kol.length - 1] / 13) } : null))
+      .find((x) => x && K.lovlig(st, x));
+    assert.ok(t && ++vakt < 60, "kabalen ble ikke ferdig");
+    K.utfor(st, t);
+  }
+  return st;
+}
+
+// Nothing fits anywhere: only black cards on top (K♠ J♠ 9♠ 7♠ 5♠ 3♠ K♣), everything else face down.
+function laastStilling() {
+  const st = tom();
+  const topper = [kort(SPAR, 13), kort(SPAR, 11), kort(SPAR, 9), kort(SPAR, 7), kort(SPAR, 5), kort(SPAR, 3), kort(KLOVER, 13)];
+  const resten = Array.from({ length: 52 }, (_, k) => k).filter((k) => !topper.includes(k));
+  topper.forEach((k, i) => {
+    const skjulte = resten.splice(0, i === 6 ? resten.length : 6);
+    st.bord[i] = [...skjulte, k];
+    st.skjult[i] = skjulte.length;
+  });
+  assert.ok(K.gyldig(st));
+  return st;
+}
+
+test("løseren i små steg (så brettet aldri fryser) gir samme svar som i ett strekk", () => {
+  for (const [fro, modus] of [[LOSBARE.tre[0], 3], [LOSBARE.tre[1], 1], [LOSBARE.en[0], 1]]) {
+    const st = K.del(fro, 2, modus);
+    const hel = K.los(st, 60000);
+    const l = K.loser(st, 60000);
+    let runder = 0;
+    while (!l.kjor(250)) assert.ok(++runder < 2000, "søket ble aldri ferdig");
+    const r = l.resultat();
+    assert.equal(r.noder, hel.noder);
+    assert.deepEqual(ren(r.trekk), ren(hel.trekk));
+    assert.equal(l.kjor(1), true, "et ferdig søk er ferdig");
+  }
+  // A limit that is reached is no answer – and never «proven lost».
+  const kort = K.los(K.del(LOSBARE.tre[0], 0, 3), 5);
+  assert.equal(kort.trekk, null);
+  assert.equal(kort.uttomt, false);
+});
+
+test("det fulle søket: løsningen kan spilles etter reglene, og bare et tomt søk er et bevis på at kabalen er låst", () => {
+  for (const modus of [1, 3]) {
+    // A good way into a proven deal, then every line that could matter from there.
+    const start = K.del(LOSBARE.tre[3], 5, modus);
+    const vei = K.los(start, 400000);
+    assert.ok(vei.trekk);
+    const midt = spillLosning(start, vei.trekk, Math.floor(vei.trekk.length * 0.6));
+    const r = K.los(midt, 150000, { full: true });
+    assert.ok(r.trekk, `det fulle søket fant ingen vei (${modus} kort)`);
+    assert.equal(r.uttomt, false);
+    assert.ok(K.vunnet(spillLosning(midt, r.trekk)));
+  }
+  const laast = laastStilling();
+  for (const o of [undefined, { full: true }]) {
+    const r = K.los(laast, 1000, o);
+    assert.equal(r.trekk, null);
+    assert.equal(r.uttomt, true, "ingen trekk igjen: søket tømmes");
+  }
+  assert.equal(K.fast(laast), true);
+});
+
+test("en løsning funnet med tre kort gjelder også med ett kort (brukes når ett-kort-søket går seg bort)", () => {
+  const ett = K.del(LOSBARE.tre[4], 3, 1);
+  const somTre = K.los(Object.assign(K.kopi(ett), { modus: 3 }), 400000);
+  assert.ok(somTre.trekk);
+  assert.ok(K.vunnet(spillLosning(ett, somTre.trekk)), "tre-korts-løsningen kunne ikke spilles med ett kort");
+});
+
+test("dagens kabal: samme løsbare kabal for alle på en dato – fastlåst, og uten gjentakelser", () => {
+  // FROZEN: these must never change (players share their results for the day).
+  const fasit = { "2026-11-11": [974, 0], "2026-11-12": [2355, 1], "2026-12-24": [742, 3], "2027-01-01": [2267, 3] };
+  for (const [dato, [fro, variant]] of Object.entries(fasit)) {
+    assert.deepEqual(ren(K.dagens(dato, LOSBARE.tre)), { fro, variant }, `dagens kabal ${dato} er endret`);
+    assert.ok(K.los(K.del(fro, variant, 3), 400000).trekk, `dagens kabal ${dato} kan ikke løses med tre kort`);
+  }
+  const sett = new Set();
+  for (let i = 0; i < 1742 * 2; i++) {
+    const dato = new Date(Date.UTC(2026, 10, 11) + i * 86400000).toISOString().slice(0, 10);
+    const d = K.dagens(dato, LOSBARE.tre);
+    assert.ok(LOSBARE.tre.indexOf(d.fro) >= 0 && LOSBARE.tre.indexOf(d.fro) < 1742 && d.variant >= 0 && d.variant < 8);
+    sett.add(d.fro + "." + d.variant);
+  }
+  assert.equal(sett.size, 1742 * 2, "en dagens kabal kom igjen innen ni og et halvt år");
+  // A longer list later must not move the dailies.
+  assert.deepEqual(ren(K.dagens("2026-11-11", LOSBARE.tre.concat([999991, 999992]))), ren(K.dagens("2026-11-11", LOSBARE.tre)));
+});
+
+test("flere plasser: alle stedene et kort kan ligge – og hjem er ikke et valg når ingenting kan trenge kortet", () => {
+  const st = tom();
+  st.avfall = [kort(HJERTER, 7)];
+  st.vifte = 1;
+  st.bord[0] = [kort(SPAR, 8)];
+  st.bord[1] = [kort(KLOVER, 8)];
+  st.bord[2] = [kort(RUTER, 2), kort(SPAR, 13)];
+  st.skjult[2] = 1;
+  st.grunn = [0, 6, 0, 0];
+  st.bord[3] = [kort(HJERTER, 8)];
+  fyllUtenGrunn(st);
+  const mal = ren(K.alleMal(st, { fra: "a" }));
+  assert.deepEqual(mal.map((m) => m.til + m.j), ["g" + HJERTER, "b0", "b1"], "hjem først, så kolonnene der kortet bygger");
+  assert.equal(K.tryggHjem(st, kort(HJERTER, 7)), false, "en svart 6-er kan fortsatt trenge hjerter 7");
+  assert.equal(K.tryggHjem(st, kort(SPAR, 2)), true);
+  // A king on face-down cards: one empty column is enough as a choice (they are all alike).
+  assert.deepEqual(ren(K.alleMal(st, { fra: "b", i: 2, p: 1 })).map((m) => m.til + m.j), ["b4"]);
+  assert.deepEqual(ren(K.alleMal(st, { fra: "b", i: 0, p: 0 })), [], "spar 8 har ingen steder å gå");
+});
+
+// Like fyll(), for a position that already has cards on the foundations.
+function fyllUtenGrunn(st) {
+  const brukt = new Set([...st.bunke, ...st.avfall, ...st.bord.flat()]);
+  st.grunn.forEach((v, s) => {
+    for (let n = 0; n < v; n++) brukt.add(s * 13 + n);
+  });
+  for (let k = 0; k < 52; k++) if (!brukt.has(k)) st.bunke.unshift(k);
+  assert.ok(K.gyldig(st), "teststillingen er ugyldig");
+  return st;
+}

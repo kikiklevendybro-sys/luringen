@@ -108,6 +108,51 @@
   text-align: center;
 }
 
+/* «Dagens kabal» is solved: the result, the streak and the countdown to the next one */
+.kk-dagboks {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin-top: -6px;
+  padding: 12px 16px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--mynte) 10%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--mynte) 40%, var(--strek));
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.kk-dagboks b {
+  color: var(--tekst);
+}
+
+.kk-dag-hake svg {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  vertical-align: -2px;
+  fill: none;
+  stroke: var(--mynte);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.kk-dag-under {
+  font-size: 0.9rem;
+}
+
+.kk-nedtelling b {
+  color: var(--tekst);
+  font-variant-numeric: tabular-nums;
+}
+
+.kk-neste {
+  color: var(--tekst-2);
+  text-align: center;
+}
+
 .skjerm-hjem .hjem-knapper .lenkerad {
   margin-top: -4px;
 }
@@ -178,6 +223,51 @@
   stroke-width: 3;
 }
 
+/* «Kan fortsatt gå opp?»: the live chip. «Låst» is a button (it opens the note again). */
+.kk-status {
+  display: inline-flex;
+}
+
+.kk-status:empty {
+  display: none;
+}
+
+.kk-laast {
+  border: 0;
+  color: var(--rosa);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--rosa) 55%, var(--strek));
+  cursor: pointer;
+  animation: kk-inn 0.3s ease-out;
+}
+
+.kk-laast:focus-visible {
+  outline: 3px solid var(--aksent);
+  outline-offset: 2px;
+}
+
+.kk-uviss {
+  color: var(--tekst-3);
+}
+
+@keyframes kk-inn {
+  from {
+    scale: 0.8;
+    opacity: 0;
+  }
+}
+
+/* A button that is thinking (the hint, «Spol tilbake») */
+.venter {
+  pointer-events: none;
+  animation: kk-venter 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes kk-venter {
+  to {
+    opacity: 0.45;
+  }
+}
+
 /* The table: as wide as the phone (6 px edge), every card and place absolutely positioned. */
 .kk-brett {
   position: relative;
@@ -234,8 +324,18 @@
   width: var(--kortbredde);
   height: calc(var(--kortbredde) * 1.4);
   border-radius: calc(var(--kortbredde) * 0.1);
+  padding: 0;
+  border: 0;
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tekst-3) 32%, transparent);
   background: rgba(33, 20, 61, 0.35);
+  color: inherit;
+  font: inherit;
+}
+
+/* An empty place a picked card can go to (a button for as long as it is lit) */
+.kk-plass.kk-velg {
+  z-index: 6;
+  cursor: pointer;
 }
 
 .kk-grunn svg {
@@ -245,7 +345,7 @@
 }
 
 .kk-tom b {
-  color: color-mix(in srgb, var(--tekst-3) 55%, transparent);
+  color: color-mix(in srgb, var(--tekst-2) 62%, transparent);
   font: 900 calc(var(--kortbredde) * 0.42) / 1 var(--font-display);
 }
 
@@ -324,6 +424,34 @@
   outline-offset: 2px;
 }
 
+/* A card picked with a tap (lifted, golden rim) and the places it can go (pulsing green) */
+.kk-kort.kk-valgt {
+  scale: 1.06;
+  outline: 3px solid var(--lampe);
+  outline-offset: 1px;
+  border-radius: calc(var(--kortbredde) * 0.1);
+}
+
+.kk-velg {
+  border-radius: calc(var(--kortbredde) * 0.1);
+  animation: kk-velg 0.9s ease-in-out infinite;
+}
+
+@keyframes kk-velg {
+  50% {
+    outline-color: color-mix(in srgb, var(--mynte) 45%, transparent);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--mynte) 22%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kk-velg,
+  .venter,
+  .kk-laast {
+    animation: none;
+  }
+}
+
 .kk-nei {
   animation: kk-nei 0.4s ease-in-out;
 }
@@ -368,6 +496,10 @@
 .kk-fast-knapper {
   display: flex;
   gap: 8px;
+}
+
+.kk-fast-knapper [hidden] {
+  display: none;
 }
 
 /* Toolbar in the dock */
@@ -575,5 +707,61 @@
 
   .skjerm-spill .dokk {
     padding-top: 8px;
+  }
+}
+
+/* ---------- A phone on its side (844 × 390 and the like): the table to the left with the whole
+   height, the status chips and the four tools in a column to the right. The dock is an ordinary block
+   here, so the kit leaves the screen alone, and spill.js measures the table without a dock under it. ---------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 152px;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "brett hud" "brett dokk";
+    align-items: start;
+    gap: 10px 14px;
+  }
+
+  .skjerm-spill > .kk-hud {
+    grid-area: hud;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .skjerm-spill > .kk-brett {
+    grid-area: brett;
+    margin-inline: 0;
+  }
+
+  .skjerm-spill > .dokk {
+    grid-area: dokk;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .skjerm-spill .kk-verktoy {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .skjerm-spill .kk-knapp {
+    min-height: 56px;
+  }
+
+  /* Messages (a hint, «Spolt tilbake …») go under the tools: at the top they would cover the
+     foundations and the card the message is about. (The kit places the toast with inline styles.) */
+  html:has(.skjerm-spill) .toast {
+    top: auto !important;
+    right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    bottom: 10px !important;
+    left: auto !important;
+    max-width: 236px !important;
+    margin: 0;
+    border-radius: 18px;
+    padding: 9px 14px;
+    font-size: 0.9rem;
   }
 }

@@ -327,7 +327,15 @@
         else {
           sp.logg = sp.logg.filter((x) => x && x.fra < sp.antall && x.til < sp.antall && x.taker < sp.antall && x.kort < sp.snudd);
           // Games saved before cards could be swapped and before the water breaks were screens.
-          if (!Array.isArray(sp.bunke)) sp.bunke = [];
+          // The spare pile such a game never had: the cards of its deck(s) that are not in play.
+          if (!Array.isArray(sp.bunke)) {
+            const igjen = Array.from({ length: sp.doble ? 104 : 52 }, (_, i) => i % 52);
+            for (const k of [...sp.hender.flat(), ...sp.pyramide]) {
+              const p = igjen.indexOf(k);
+              if (p >= 0) igjen.splice(p, 1);
+            }
+            sp.bunke = R.stokk(igjen, R.rng(R.nyttFro()));
+          }
           if (!Array.isArray(sp.vann)) sp.vann = [];
           const ny = sp.nytt;
           if (!(ny && Number.isInteger(ny.i) && ny.i < sp.antall && ny.plass >= 0 && ny.plass < 4)) sp.nytt = null;

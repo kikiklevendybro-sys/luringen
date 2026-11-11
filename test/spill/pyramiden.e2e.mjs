@@ -502,4 +502,54 @@ export default async function (t) {
   await t.vent("document.querySelector('.mappe')");
   s = await tilstand();
   t.sjekk(s.spill.doble && s.spill.hender.length === 10 && s.spill.pyramide.length === 15 && s.spill.bunke.length === 104 - 40 - 15, "Ti spillere fikk ikke kort fra to kortstokker");
+
+  // 10. A game saved by the version before the rule changes – exactly the fields it wrote then (no
+  // spare pile, no water breaks, no «nytt», log lines without «over» and «bytte») – opens and plays on.
+  const gammel = {
+    antall: 4,
+    finale: true,
+    doble: false,
+    hender: HENDER,
+    pyramide: PYRAMIDE,
+    snudd: 9,
+    fase: "pyramide",
+    del: { i: 3, sett: true },
+    logg: [
+      { kort: 0, rad: 1, fra: A, til: B, sant: true, ropte: false, slurker: 1, taker: B },
+      { kort: 5, rad: 2, fra: C, til: D, sant: false, ropte: true, slurker: 4, taker: C },
+    ],
+    krav: null,
+    angre: false,
+    fin: { i: 0, steg: "spor", husket: [] },
+    nr: 7,
+    talt: false,
+  };
+  await lagre(gammel, "pyramide");
+  await t.lastSide(t.side, "document.querySelector('.py-pyramide')");
+  let g = await t.js("window.Rusj.S.spill");
+  const iSpill = (sp) => [...sp.bunke, ...sp.hender.flat(), ...sp.pyramide];
+  t.sjekk(g && g.snudd === 9 && g.logg.length === 2 && (await t.antall(".py-pyramide .sk-kort.sk-opp")) === 9, "Et spill lagret før regelendringene ble ikke åpnet der det slapp");
+  t.sjekk(Array.isArray(g.bunke) && g.bunke.length === 52 - 16 - 15 && new Set(iSpill(g)).size === 52, "Det gamle spillet fikk ikke en bunke med kortene som ikke er i bruk");
+  t.sjekk(Array.isArray(g.vann) && g.vann.length === 0 && g.nytt === null, "Det gamle spillet fikk ikke de nye feltene");
+  // The water break before row 3 is a screen now; then A proves a king and gets a card from the new pile
+  await pause();
+  await t.klikk('[data-h="snu"]');
+  await t.vent("document.querySelector('.skjerm-vann')");
+  await t.klikk('[data-h="vannferdig"]');
+  await t.vent("document.querySelector('.py-pyramide')");
+  await kravet(A, B, "bloff");
+  g = await t.js("window.Rusj.S.spill");
+  x = g.logg[g.logg.length - 1];
+  t.sjekk(x.sant && x.bytte && g.bunke.length === 20 && g.hender[A][2] === x.bytte.nytt && new Set([...iSpill(g), x.bytte.gammelt]).size === 52, "Et bevist kort ble ikke byttet mot et ledig kort i det gamle spillet");
+  // The old lines still read well in «Hvem ga hva», and the crowning counts them
+  await t.klikk('[data-h="tilnytt"]');
+  await t.vent("document.querySelector('.skjerm-nytt .mappe')");
+  const slipp4 = await t.hold(".mappe", 800);
+  await slipp4();
+  await pause();
+  await t.klikk('[data-h="nyttferdig"]');
+  await t.vent("document.querySelector('.py-pyramide')");
+  await t.klikk('[data-h="logg"]');
+  t.sjekk((await t.antall("#ark .py-logg li li")) === 3 && /tatt i bløff/.test(await t.tekst("#ark .py-logg")), "«Hvem ga hva» viser ikke linjene fra det gamle spillet");
+  await t.klikk('#ark [data-h="lukk-ark"]');
 }

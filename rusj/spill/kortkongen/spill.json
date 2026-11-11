@@ -2,12 +2,12 @@
   "id": "kortkongen",
   "navn": "Kortkongen",
   "undertittel": "Kabal",
-  "beskrivelse": "Gratis kabal på norsk – klassisk Klondike. Trekk ett eller tre kort, angre og få hint, og velg bare kabaler som kan gå opp. Ingen reklame.",
+  "beskrivelse": "Gratis kabal på norsk – klassisk Klondike med en ny «Dagens kabal» hver dag. Trekk ett eller tre kort, angre og få hint, og velg bare kabaler som kan gå opp. Ingen reklame.",
   "kort": "Ess til konge, rødt på svart. Går kabalen opp?",
   "spillere": [1, 1],
   "minutter": [3, 15],
   "mobiler": "en",
-  "tagger": ["klassiker", "kort", "alene", "tenke"],
+  "tagger": ["daglig", "klassiker", "kort", "alene", "tenke"],
   "rekkefolge": 25,
-  "sok": ["kabal", "klondike", "solitaire", "patience", "kortkabal", "kabal på nett"]
+  "sok": ["kabal", "klondike", "solitaire", "patience", "kortkabal", "kabal på nett", "dagens kabal"]
 }

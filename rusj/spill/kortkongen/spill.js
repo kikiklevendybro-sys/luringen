@@ -219,6 +219,49 @@
       return null;
     }
 
+    // Every place a picked-up card (or run) may go, best first: home, each column where it builds,
+    // and one empty column (they are all alike; none for a king that already stands alone).
+    function alleMal(st, fra) {
+      const rekke = loft(st, fra);
+      if (!rekke) return [];
+      const ut = [];
+      if (rekke.length === 1 && fra.fra !== "g") {
+        const t = { ...fra, til: "g", j: sortAv(rekke[0]) };
+        if (lovlig(st, t)) ut.push(t);
+      }
+      let tom = null;
+      for (let j = 0; j < 7; j++) {
+        if (fra.fra === "b" && j === fra.i) continue;
+        const t = { ...fra, til: "b", j };
+        if (!lovlig(st, t)) continue;
+        if (st.bord[j].length) ut.push(t);
+        else if (tom == null) tom = t;
+      }
+      if (tom && !(fra.fra === "b" && fra.p === 0)) ut.push(tom);
+      return ut;
+    }
+
+    // Is home always the right place for this card? (Nothing that could lie on it is left in play.)
+    function tryggHjem(st, k) {
+      const v = verdiAv(k);
+      if (v <= 2) return true;
+      const mot = rod(k) ? [0, 3] : [1, 2];
+      return st.grunn[mot[0]] >= v - 1 && st.grunn[mot[1]] >= v - 1;
+    }
+
+    // «Dagens kabal»: the same proven deal for everyone on a date ("2026-11-11"). FROZEN – the first
+    // 1 742 seeds of the «tre» list (solvable drawing three, so also drawing one) in the order they
+    // have: the list may grow at the end, but these are never moved or removed.
+    // The day number steps through the list in strides of 1 009 (shares no factor with 1 742), and
+    // the suit swap follows the day too: no deal comes back for nineteen years.
+    const DAGLIGE = 1742;
+    function dagens(dato, liste) {
+      const [a, m, d] = String(dato).split("-").map(Number);
+      const nr = Math.round(Date.UTC(a, m - 1, d) / 86400000);
+      const n = Math.min(DAGLIGE, liste.length);
+      return { fro: liste[(nr * 1009 + 311) % n], variant: nr % 8 };
+    }
+
     // Which talon cards can be played without changing anything else? The talon in drawing order has
     // L cards, the first p are in the waste. Draw 1: all of them (the stock can be turned forever).
     // Draw 3: the waste top, every third card further on in this pass, and every third after a turn.
@@ -245,8 +288,15 @@
     // in the current pass (and in the next ones). Returns the list of moves or null within `maks` nodes.
     // Solver moves: { t: "gb", i } column→foundation, { t: "tg", q } talon→foundation,
     // { t: "bb", i, p, j } column→column, { t: "tb", q, j } talon→column, { t: "gb2", s, j } foundation→column.
-    function los(st0, maks) {
+    //
+    // The search runs in steps, so the board never freezes: loser(st, maks, o) → { kjor(noder) → true
+    // when it is over, resultat() → { trekk | null, noder, uttomt } }. «uttomt»: the search ended
+    // without a solution and without reaching `maks`. The quick search skips lines that rarely help
+    // (splitting a run, emptying a column nobody waits for, taking cards back down), so only with
+    // o.full – every line that could matter – is an empty search proof that the position is lost.
+    function loser(st0, maks, o) {
       maks = maks || 60000;
+      const full = !!(o && o.full);
       const modus = st0.modus;
       const start = {
         D: st0.avfall.concat(st0.bunke.slice().reverse()), // the talon in drawing order
@@ -305,7 +355,8 @@
               igjen = true;
             }
           }
-          const plasser = modus === 1 ? nabare(n) : n.p > 0 ? [n.p - 1] : [];
+          // (Drawing three: playing a talon card changes which cards come up later, so the full search decides.)
+          const plasser = modus === 1 ? nabare(n) : full ? [] : n.p > 0 ? [n.p - 1] : [];
           for (const q of plasser) {
             const k = n.D[q];
             if (n.grunn[sortAv(k)] === verdiAv(k) - 1 && trygg(n, k)) {
@@ -343,7 +394,7 @@
           for (let p = h; p < kol.length; p++) {
             const k = kol[p];
             const hel = p === h; // the whole face-up run
-            if (!hel) {
+            if (!hel && !full) {
               // Splitting a run only helps when the card left behind can go home.
               const under = kol[p - 1];
               if (n.grunn[sortAv(under)] !== verdiAv(under) - 1) continue;
@@ -355,7 +406,7 @@
               if (!mal.length) {
                 if (p === 0) continue; // king from an empty base to an empty base
                 if (n.bord.findIndex((x) => !x.length) !== j) continue; // all empty columns are alike
-              } else if (hel && p === 0 && !kongeVenter) continue; // emptying a column nobody needs
+              } else if (hel && p === 0 && !kongeVenter && !full) continue; // emptying a column nobody needs
               ut.push({ t: "bb", i, p, j, pri: hel && h > 0 ? 80 + h : hel && p === 0 ? 40 : 60 });
             }
           }
@@ -373,12 +424,14 @@
             ut.push({ t: "tb", q, j, pri: 50 + (verdiAv(k) === 13 ? 5 : 0) });
           }
         }
-        // Foundation back to a column: only when some reachable card could then lie on it.
+        // Foundation back to a column: only when some reachable card could then lie on it
+        // (full: when a card that could lie on it is still in play).
         for (let s = 0; s < 4; s++) {
           const v = n.grunn[s];
           if (v < 3) continue;
           const k = s * 13 + v - 1;
-          const trengs = nab.some((q) => verdiAv(n.D[q]) === v - 1 && rod(n.D[q]) !== rod(k));
+          const mot = rod(k) ? [0, 3] : [1, 2];
+          const trengs = full ? n.grunn[mot[0]] < v - 1 || n.grunn[mot[1]] < v - 1 : nab.some((q) => verdiAv(n.D[q]) === v - 1 && rod(n.D[q]) !== rod(k));
           if (!trengs) continue;
           for (let j = 0; j < 7; j++) {
             const mal = n.bord[j];
@@ -409,31 +462,69 @@
         }
       }
 
-      function dfs(n) {
-        if (++noder > maks) return false;
-        const auto0 = auto(n);
+      // Depth first with its own stack (one frame per position on the current line).
+      const stakk = [];
+      const INGEN = [];
+      let startet = false;
+      let over = false; // the search has ended
+      let taket = false; // … because it reached `maks`
+
+      // Enters a position: true when it is solved, otherwise a frame with the moves to try.
+      function inn(n) {
+        if (++noder > maks) {
+          taket = true;
+          return false;
+        }
+        const base = sti.length;
+        auto(n);
         if (n.grunn.every((v) => v === 13) || (!n.D.length && n.skjult.every((h) => h === 0))) {
           losning = sti.slice();
           return true;
         }
         const k = nokkel(n);
+        let trekk = INGEN;
         if (!sett.has(k)) {
           sett.add(k);
-          for (const m of trekkListe(n)) {
-            const c = kopiN(n);
-            bruk(c, m);
-            sti.push(m);
-            if (dfs(c)) return true;
-            sti.pop();
-            if (noder > maks) break;
-          }
+          trekk = trekkListe(n);
         }
-        sti.length -= auto0;
+        stakk.push({ n, trekk, i: 0, base });
         return false;
       }
 
-      dfs(kopiN(start));
-      return losning ? { trekk: losning, noder } : { trekk: null, noder };
+      function kjor(antall) {
+        if (over) return true;
+        let igjen = antall == null ? Infinity : antall;
+        if (!startet) {
+          startet = true;
+          if (inn(kopiN(start))) return (over = true);
+        }
+        while (stakk.length && !taket) {
+          if (igjen-- <= 0) return false;
+          const f = stakk[stakk.length - 1];
+          if (f.i >= f.trekk.length) {
+            // Nothing more to try here: back up (the automatic moves, then the move that led here).
+            sti.length = f.base;
+            stakk.pop();
+            if (stakk.length) sti.pop();
+            continue;
+          }
+          const m = f.trekk[f.i++];
+          const c = kopiN(f.n);
+          bruk(c, m);
+          sti.push(m);
+          if (inn(c)) return (over = true);
+        }
+        stakk.length = 0;
+        return (over = true);
+      }
+
+      return { kjor, resultat: () => ({ trekk: losning, noder, uttomt: over && !losning && !taket }) };
+    }
+
+    function los(st0, maks, o) {
+      const l = loser(st0, maks, o);
+      l.kjor();
+      return l.resultat();
     }
 
     // The first step of a solver move, said as a UI move: draw from the stock, or a real move.
@@ -515,7 +606,7 @@
       return nyttigeFlytt(st).length === 0;
     }
 
-    return { naabare, nyttigeFlytt, sortAv, verdiAv, rod, tilfeldig, del, kopi, kanPaBord, kanPaGrunn, loft, lovlig, utfor, vunnet, alleOppe, kode, fraKode, gyldig, besteMal, los, forsteSteg, enkeltHint, fast };
+    return { naabare, nyttigeFlytt, sortAv, verdiAv, rod, tilfeldig, del, kopi, kanPaBord, kanPaGrunn, loft, lovlig, utfor, vunnet, alleOppe, kode, fraKode, gyldig, besteMal, alleMal, tryggHjem, dagens, los, loser, forsteSteg, enkeltHint, fast };
   })();
 
   // node:test loads this file without the kit: hand over the rules and stop.
@@ -650,7 +741,18 @@
   };
   const MAKS_ANGRE = 1500;
   const tomStat = () => ({ spilt: 0, vunnet: 0, rekke: 0, besteRekke: 0, besteTid: 0, faerrest: 0 });
-  const pagar = (S) => !!(S.spill && !S.spill.ferdig);
+  const tomDagstat = () => ({ rekke: 0, sist: 0, beste: 0, lost: 0 }); // «Dagens kabal»: days in a row, the last day solved
+
+  // Two games can be going at once and never share a slot: S.spill is the one on the table, S.annet
+  // waits beside it. «Dagens kabal» has `dag` (R.dag().nr) and `dato`; free play has neither.
+  const iDag = () => R.dag().nr;
+  const erDagens = (sp) => !!(sp && sp.dag != null);
+  const dagensSpill = (S) => [S.spill, S.annet].find((x) => x && x.dag === iDag()) || null;
+  const frittSpill = (S) => [S.spill, S.annet].find((x) => x && x.dag == null) || null;
+  const iGang = (sp) => !!(sp && !sp.ferdig);
+  const pagar = (S) => iGang(frittSpill(S)) || !!(iGang(dagensSpill(S)) && dagensSpill(S).startet);
+  // Days in a row with the daily solved, as it stands today (yesterday's streak still lives).
+  const dagrekke = (S) => (S.dstat && (S.dstat.sist === iDag() || S.dstat.sist === iDag() - 1) ? S.dstat.rekke : 0);
 
   let H; // the actions, so one can call another
   let st = null; // the position being played (parsed from S.spill.kode)
@@ -659,7 +761,8 @@
   let klokkeFra = null; // performance.now() when the clock last started
   let nyDeling = false; // deal with an animation on the next draw of the board
   let hintId = null;
-  let fastVist = null; // the position where «no more moves» was last shown
+  let laastVist = null; // the lost position the note «kan ikke gå opp herfra» was last shown for
+  let valgt = null; // a card picked with a tap that has more than one place to go: { fra, mal, kort }
   let nettoppSnudd = { k: -1, tid: -1e9 }; // the card a move just turned face up
   const forFersk = (k) => k === nettoppSnudd.k && performance.now() - nettoppSnudd.tid < 380;
 
@@ -680,6 +783,8 @@
   // swaps), without repeats on this phone. Otherwise any random deal.
   function nyttSpill(S, samme) {
     const o = S.oppsett;
+    if (samme && erDagens(S.spill)) return nyDagens(S, true);
+    leggFram(S, "fri");
     let fro;
     let variant = 0;
     let losbar = false;
@@ -698,19 +803,79 @@
     }
     if (fro == null) fro = R.nyttFro();
     const modus = samme && S.spill ? S.spill.modus : o.modus;
-    st = KABAL.del(fro, variant, modus);
-    const kode = KABAL.kode(st);
-    S.spill = { fro, variant, modus, losbar, kode, start: kode, angre: [], trekk: 0, tid: 0, hint: 0, startet: false, ferdig: false, vunnet: false, talt: false, resultat: null };
-    klokkeFra = null;
-    nyDeling = true;
-    fastVist = null;
+    S.spill = delUt(fro, variant, modus, losbar);
     R.statistikk("start", { modus: modus === 3 ? "tre" : "en", losbar });
   }
 
-  // Count a game in the statistics (once): a win, or a started game that was given up.
+  // A fresh game object, and its position in `st`. `ok` / `dod`: how many moves into the game the
+  // newest position known to be solvable / the first one proven lost lies (−1: not known). A deal
+  // from the proven list can be solved from the start.
+  function delUt(fro, variant, modus, losbar, ekstra) {
+    st = KABAL.del(fro, variant, modus);
+    const kode = KABAL.kode(st);
+    klokkeFra = null;
+    nyDeling = true;
+    laastVist = null;
+    return Object.assign(
+      { fro, variant, modus, losbar, kode, start: kode, angre: [], trekk: 0, tid: 0, hint: 0, spolt: 0, ok: losbar ? 0 : -1, dod: -1, startet: false, ferdig: false, vunnet: false, talt: false, resultat: null },
+      ekstra || {},
+    );
+  }
+
+  // Puts free play ("fri") or today's daily ("dag") on the table; the other one waits beside it.
+  // A daily from another day is dropped here. Returns the game now on the table (or null).
+  function leggFram(S, hva) {
+    const fri = frittSpill(S);
+    const dag = dagensSpill(S);
+    const frem = hva === "dag" ? dag : fri;
+    if (S.spill !== frem) {
+      stoppKlokke(S);
+      st = null;
+      laastVist = null;
+    }
+    S.spill = frem;
+    S.annet = hva === "dag" ? fri : dag;
+    if (S.spill && !st) st = KABAL.fraKode(S.spill.kode);
+    return S.spill;
+  }
+
+  // «Dagens kabal» dealt fresh: the first time today, or «start på nytt» (the same cards and the
+  // same number of cards drawn).
+  function nyDagens(S, bevarModus) {
+    const dag = R.dag();
+    const gammel = dagensSpill(S);
+    const fri = frittSpill(S);
+    const { fro, variant } = KABAL.dagens(dag.tekst, LOSBARE.tre);
+    const modus = bevarModus && gammel ? gammel.modus : S.oppsett.modus;
+    stoppKlokke(S);
+    S.annet = fri;
+    S.spill = delUt(fro, variant, modus, true, { dag: dag.nr, dato: dag.tekst });
+    R.statistikk("start", { modus: modus === 3 ? "tre" : "en", losbar: true, dagens: true });
+  }
+
+  // Today's daily on the table – dealt if this is the first visit today. Returns the screen to show.
+  function tilDagens(S) {
+    const d = dagensSpill(S);
+    // Not begun yet: it follows the setup (one or three cards).
+    if (!d || (!d.startet && !d.ferdig && d.modus !== S.oppsett.modus)) nyDagens(S);
+    else leggFram(S, "dag");
+    return S.spill.ferdig ? "slutt" : "spill";
+  }
+
+  // The front page's «I dag» strip (rusj/DAGLIG.md): solved today, or how far the daily has come.
+  const kortHjem = (kode) => kode.split(".")[2].split(",").reduce((a, b) => a + Number(b), 0);
+  function meldDagens(S) {
+    const d = dagensSpill(S);
+    if (!d) return;
+    if (d.ferdig && d.vunnet) R.dagligFerdig({ vunnet: true, rekke: dagrekke(S), res: visTid(((d.resultat && d.resultat.sek) || Math.round(d.tid / 1000)) * 1000) });
+    else if (d.startet && typeof R.dagligIGang === "function") R.dagligIGang({ tekst: `${kortHjem(d.kode)} av 52 hjem` });
+  }
+
+  // Count a game in the statistics (once): a win, or a started free game that was given up.
+  // (The daily can be tried again until midnight, so only solving it counts.)
   function registrer(S, vant) {
     const sp = S.spill;
-    if (!sp || sp.talt || (!vant && !sp.startet)) return null;
+    if (!sp || sp.talt || (!vant && (!sp.startet || erDagens(sp)))) return null;
     sp.talt = true;
     const s = (S.stat[sp.modus] = Object.assign(tomStat(), S.stat[sp.modus] || {}));
     const sek = Math.max(1, Math.round(sp.tid / 1000));
@@ -727,7 +892,19 @@
     } else s.rekke = 0;
     res.rekke = s.rekke;
     sp.resultat = res;
-    R.statistikk("ferdig", { vunnet: vant, sek, trekk: sp.trekk, modus: sp.modus === 3 ? "tre" : "en", hint: sp.hint });
+    if (vant && erDagens(sp)) {
+      // Days in a row: yesterday's streak goes on, anything older starts again at 1.
+      const d = (S.dstat = Object.assign(tomDagstat(), S.dstat || {}));
+      if (d.sist !== sp.dag) {
+        d.rekke = d.sist === sp.dag - 1 ? d.rekke + 1 : 1;
+        d.sist = sp.dag;
+        d.lost += 1;
+        d.beste = Math.max(d.beste, d.rekke);
+      }
+      res.dagrekke = d.rekke;
+      meldDagens(S);
+    }
+    R.statistikk("ferdig", { vunnet: vant, sek, trekk: sp.trekk, modus: sp.modus === 3 ? "tre" : "en", hint: sp.hint, dagens: erDagens(sp) });
     return res;
   }
 
@@ -741,7 +918,9 @@
     const skjerm = R.$("#skjerm");
     const mellom = skjerm ? parseFloat(getComputedStyle(skjerm).rowGap) || 0 : 0;
     const dokk = R.$("#skjerm .dokk");
-    const H = Math.max(200, Math.floor(window.innerHeight - topp - mellom - (dokk ? dokk.offsetHeight : 0) - 2));
+    // A phone on its side (see spill.css): the toolbar stands beside the table, not under it.
+    const under = dokk && getComputedStyle(dokk).position === "static" ? 10 : mellom + (dokk ? dokk.offsetHeight : 0);
+    const H = Math.max(200, Math.floor(window.innerHeight - topp - under - 2));
     const gap = W < 330 ? 4 : W < 430 ? 5 : 8;
     // As wide as the screen allows, but not so tall that a long column can't fit (landscape phones).
     const fraHoyde = Math.floor((H - 18) / 4.75 / 1.4);
@@ -807,6 +986,36 @@
     return `${navn}, lagt hjem`;
   }
 
+  // The cards and the stock in the order of the table – foundations, waste, stock, then the columns
+  // from the left, each from the top – so the keyboard and screen readers walk the table as it looks.
+  // Done when the cards have come to rest (moving an element stops its slide).
+  let ordneId = null;
+  function ordneSnart() {
+    clearTimeout(ordneId);
+    ordneId = setTimeout(ordne, 420);
+  }
+  function ordne() {
+    const brett = R.$("#kk-brett");
+    if (!brett || !st) return;
+    if (dra || laast) return ordneSnart();
+    const rekke = [];
+    st.grunn.forEach((v, s) => {
+      for (let n = 0; n < v; n++) rekke.push(kortEl(s * 13 + n));
+    });
+    st.avfall.forEach((k) => rekke.push(kortEl(k)));
+    rekke.push(R.$("#kk-bunke"));
+    st.bunke.forEach((k) => rekke.push(kortEl(k)));
+    st.bord.forEach((kol) => kol.forEach((k) => rekke.push(kortEl(k))));
+    const fokus = document.activeElement;
+    let forrige = R.$("#kk-b6");
+    for (const el of rekke) {
+      if (!el || !forrige) continue;
+      if (forrige.nextElementSibling !== el) forrige.after(el);
+      forrige = el;
+    }
+    if (fokus && fokus !== document.activeElement && brett.contains(fokus)) fokus.focus({ preventScroll: true });
+  }
+
   // Puts every card where it belongs. animer: slide (moved cards fly above the others).
   function plasser(o = {}) {
     const brett = R.$("#kk-brett");
@@ -857,6 +1066,7 @@
       void brett.offsetWidth;
       brett.classList.remove("kk-stille");
     }
+    ordneSnart();
   }
   function plassEl(id, x, y) {
     const el = document.getElementById(id);
@@ -903,7 +1113,21 @@
 
   function huskAngre(sp) {
     sp.angre.push(sp.kode + "|" + sp.trekk);
-    if (sp.angre.length > MAKS_ANGRE) sp.angre.splice(0, sp.angre.length - MAKS_ANGRE);
+    const forMange = sp.angre.length - MAKS_ANGRE;
+    if (forMange > 0) {
+      sp.angre.splice(0, forMange);
+      // The oldest steps are gone: what is known about the game moves with the list.
+      sp.ok = sp.ok >= forMange ? sp.ok - forMange : -1;
+      sp.dod = sp.dod < 0 ? -1 : Math.max(0, sp.dod - forMange);
+    }
+  }
+
+  // A move said aloud for screen readers: «Spar 7 til kolonne 3», «Trakk ruter 9».
+  function siTrekk(t, flyttet, snudd) {
+    if (t.fra === "s") return R.si(st.avfall.length ? `Trakk ${KORT.navn(st.avfall[st.avfall.length - 1])}` : "Kortene er lagt tilbake i bunken");
+    const kol = t.fra === "b" ? st.bord[t.i] : null;
+    const under = snudd && kol && kol.length ? `. ${KORT.Navn(kol[kol.length - 1])} ble snudd` : "";
+    R.si(`${KORT.Navn(flyttet[0])}${flyttet.length > 1 ? ` og ${R.flertall(flyttet.length - 1, "kort", "kort")} til` : ""} ${t.til === "g" ? "hjem" : `til kolonne ${t.j + 1}`}${under}`);
   }
 
   // Carries out a move from the player (or from auto-finish). Returns true when it was legal.
@@ -912,6 +1136,8 @@
     const sp = S.spill;
     if (!sp || sp.ferdig || !KABAL.lovlig(st, t)) return false;
     skjulHint();
+    opphevValg();
+    visLaast(false);
     if (!o.auto) huskAngre(sp);
     const flyttet = t.fra === "s" ? [] : KABAL.loft(st, t);
     const res = KABAL.utfor(st, t);
@@ -933,18 +1159,18 @@
       const kol = st.bord[t.i];
       nettoppSnudd = { k: kol[kol.length - 1], tid: performance.now() };
     }
+    if (!o.auto) siTrekk(t, flyttet, res.snudd);
     R.lagre();
     if (!o.auto) etterTrekk(S);
     return true;
   }
 
-  // After every move: won? solved (everything face up)? or out of moves?
+  // After every move: won? solved (everything face up)? Otherwise: can it still be solved?
   function etterTrekk(S) {
     if (KABAL.vunnet(st)) return vinn(S);
     const plan = fullforPlan(st);
     if (plan) return autoFullfor(S, plan);
-    const fastNa = KABAL.fast(st);
-    visFast(fastNa);
+    sjekkSnart(S);
   }
 
   // Everything face up: the moves that take all cards home (drawing from the stock as needed).
@@ -1010,15 +1236,25 @@
     if (KABAL.vunnet(st)) vinn(S);
   }
 
+  // A tap (or Enter) on a card. One place to go: it moves at once. Several: the card is picked, the
+  // places light up, and the next tap chooses – a place, or the card again for the best one.
   function trykkPa(fra) {
     if (laast || !st) return;
-    const t = KABAL.besteMal(st, fra);
-    if (t) {
-      gjor(t);
-      return;
+    if (valgt) {
+      const v = valgt;
+      const sammeKort = v.fra.fra === fra.fra && v.fra.i === fra.i && v.fra.p === fra.p;
+      // A tap on a card in a lit-up column (or on a lit-up foundation) puts the picked card there.
+      const her = fra.fra === "a" ? "a" : fra.fra + fra.i;
+      const dit = sammeKort ? v.mal[0] : v.mal.find((m) => m.til + m.j === her);
+      opphevValg();
+      if (dit) return void gjor(dit);
     }
-    // Nowhere to go: a little shake.
+    const mal = KABAL.alleMal(st, fra);
     const rekke = KABAL.loft(st, fra) || [];
+    // (Home is not a choice when nothing could ever need to lie on the card.)
+    if (mal.length === 1 || (mal.length && mal[0].til === "g" && KABAL.tryggHjem(st, rekke[0]))) return void gjor(mal[0]);
+    if (mal.length) return velg(fra, mal, rekke);
+    // Nowhere to go: a little shake.
     for (const k of rekke) {
       const el = kortEl(k);
       if (!el || R.rolig()) continue;
@@ -1029,6 +1265,54 @@
     }
     lyd.nei();
     if (rekke.length) R.si(`${KORT.Navn(rekke[0])} kan ikke flyttes nå`);
+  }
+
+  // Picks a card that has more than one place to go and lights the places up (an empty place is a
+  // button while it is lit).
+  function velg(fra, mal, rekke) {
+    valgt = { fra, mal, kort: rekke };
+    rekke.forEach((k) => kortEl(k) && kortEl(k).classList.add("kk-valgt"));
+    const steder = mal.map((m) => {
+      const el = malEl(m);
+      if (el) {
+        el.classList.add("kk-mal", "kk-velg");
+        if (el.classList.contains("kk-plass")) {
+          el.disabled = false;
+          el.tabIndex = 0;
+          el.removeAttribute("aria-hidden");
+        }
+      }
+      const kol = st.bord[m.j];
+      return m.til === "g" ? "hjem" : kol.length ? `på ${KORT.navn(kol[kol.length - 1])}` : "på den tomme plassen";
+    });
+    R.lyd.klikk();
+    const hvor = steder.length > 1 ? `${steder.slice(0, -1).join(", ")} eller ${steder[steder.length - 1]}` : steder[0];
+    R.si(`${KORT.Navn(rekke[0])} er valgt. Trykk der ${rekke.length > 1 ? "kortene" : "kortet"} skal ligge: ${hvor}. Eller trykk på kortet igjen.`);
+    const S = R.S;
+    if ((S.valgtips || 0) < 3) {
+      S.valgtips = (S.valgtips || 0) + 1;
+      R.toast("Trykk der kortet skal ligge – eller på kortet igjen");
+    }
+  }
+  function opphevValg() {
+    if (!valgt) return;
+    valgt = null;
+    R.$$("#kk-brett .kk-valgt").forEach((el) => el.classList.remove("kk-valgt"));
+    R.$$("#kk-brett .kk-velg").forEach((el) => {
+      el.classList.remove("kk-mal", "kk-velg");
+      if (el.classList.contains("kk-plass")) {
+        el.disabled = true;
+        el.tabIndex = -1;
+        el.setAttribute("aria-hidden", "true");
+      }
+    });
+  }
+  // A tap on a lit-up empty place.
+  function velgPlass(el) {
+    if (!valgt || laast) return;
+    const dit = valgt.mal.find((m) => "kk-" + m.til + m.j === el.id);
+    opphevValg();
+    if (dit) gjor(dit);
   }
 
   // The source a card belongs to, or null when it can't be picked up.
@@ -1043,7 +1327,7 @@
     return null;
   }
 
-  // ---------- Hints and «no more moves» ----------
+  // ---------- Hints and «can it still be solved?» ----------
 
   function skjulHint() {
     clearTimeout(hintId);
@@ -1059,18 +1343,215 @@
     return kol.length ? kortEl(kol[kol.length - 1]) : document.getElementById("kk-b" + t.j);
   }
 
-  function visHint(S) {
-    if (laast || !st) return;
+  // The solver answers for one position at a time, a few milliseconds per turn of the event loop, so
+  // the board never freezes: first the quick search; if that finds nothing, the full one, which can
+  // prove that the position is lost. → { s: "ok" | "dod" | "uviss", trekk } (null: overtaken)
+  const TAK_RASK = 20000;
+  const TAK_FULL = 150000;
+  const kjent = new Map(); // position code → answer (the newest 300)
+  let jobb = null;
+  function analyser(kode) {
+    if (kjent.has(kode)) return Promise.resolve(kjent.get(kode));
+    if (jobb && jobb.kode === kode && !jobb.avbrutt) return jobb.svar;
+    if (jobb) jobb.avbrutt = true;
+    const j = (jobb = { kode, avbrutt: false, svar: null });
+    j.svar = new Promise((ferdig) => {
+      const fra = KABAL.fraKode(kode);
+      if (!fra) return ferdig(null);
+      // Drawing one: a way to the end found with the stricter three-card rules holds here too, and
+      // the quick search often finds that one when its own order of moves leads it astray.
+      const sok = [
+        () => KABAL.loser(fra, fra.modus === 3 ? TAK_RASK * 3 : TAK_RASK),
+        fra.modus === 1 ? () => KABAL.loser(Object.assign(KABAL.kopi(fra), { modus: 3 }), TAK_RASK * 2) : null,
+        () => KABAL.loser(fra, TAK_FULL, { full: true }),
+      ].filter(Boolean);
+      let l = sok.shift()();
+      const steg = () => {
+        if (j.avbrutt) return ferdig(null);
+        const t0 = performance.now();
+        let over = false;
+        while (!over && performance.now() - t0 < 7) over = l.kjor(300);
+        if (!over) return setTimeout(steg, 0);
+        const r = l.resultat();
+        if (!r.trekk && sok.length) {
+          l = sok.shift()();
+          return setTimeout(steg, 0);
+        }
+        // (Only the last search, the full one, can say «lost».)
+        const svar = { s: r.trekk ? "ok" : r.uttomt ? "dod" : "uviss", trekk: r.trekk };
+        kjent.set(kode, svar);
+        if (kjent.size > 300) kjent.delete(kjent.keys().next().value);
+        if (jobb === j) jobb = null;
+        ferdig(svar);
+      };
+      setTimeout(steg, 0);
+    });
+    return j.svar;
+  }
+
+  // «Kan fortsatt gå opp?» – asked a moment after every move. Along one line of play the answer can
+  // only go from yes to no, so a game that is proven lost stays lost until moves are taken back.
+  let sjekkId = null;
+  function sjekkSnart(S, ms) {
+    clearTimeout(sjekkId);
+    sjekkId = setTimeout(() => sjekkStilling(R.S), ms == null ? 240 : ms);
+  }
+  function sjekkStilling(S) {
+    const sp = S && S.spill;
+    if (!sp || sp.ferdig || !st || S.skjerm !== "spill") return;
+    const kode = sp.kode;
+    const bruk = (svar) => {
+      if (!svar || R.S.spill !== sp || sp.kode !== kode || sp.ferdig || R.S.skjerm !== "spill") return;
+      const n = sp.angre.length;
+      if (svar.s === "ok") {
+        sp.ok = n;
+        sp.dod = -1;
+      } else if (svar.s === "dod" && (sp.dod < 0 || sp.dod > n)) sp.dod = n;
+      visStatus(svar.s);
+      if (svar.s === "dod") meldLaast(S);
+    };
+    const n = sp.angre.length;
+    if (sp.dod >= 0 && n >= sp.dod) return bruk({ s: "dod" });
+    if (sp.ok === n) return visStatus("ok");
+    analyser(kode).then(bruk);
+  }
+
+  // The chip in the top row: «Kan gå opp», «Låst» (a button: shows the note again) or «Uvisst».
+  function visStatus(s) {
+    const el = R.$("#kk-status");
+    if (!el || el.dataset.s === s) return;
+    el.dataset.s = s;
+    el.innerHTML =
+      s === "ok"
+        ? `<span class="kk-stat kk-losbar" title="Kabalen kan fortsatt gå opp">${IKON.hake}Kan gå opp</span>`
+        : s === "dod"
+          ? `<button class="kk-stat kk-laast" type="button" data-h="laast" aria-label="Låst: kabalen kan ikke gå opp herfra. Vis hva du kan gjøre.">${IKON.las}Låst</button>`
+          : s === "uviss"
+            ? `<span class="kk-stat kk-uviss" title="Vanskelig å si om kabalen kan gå opp herfra">Uvisst</span>`
+            : "";
+  }
+
+  // The note over the bottom of the table: the game is proven lost from here.
+  function visLaast(vis) {
+    const el = R.$("#kk-fast");
+    if (!el) return;
+    const sp = R.S.spill;
+    if (!vis || !sp) {
+      el.hidden = true;
+      return;
+    }
+    const fraStart = sp.dod === 0; // lost before the first move: nothing to go back to
+    R.$("#kk-fast-tekst").textContent = fraStart ? "Denne kabalen kan ikke gå opp." : "Herfra kan ikke kabalen gå opp.";
+    R.$("#kk-spol").hidden = fraStart;
+    el.hidden = false;
+  }
+  function meldLaast(S) {
+    const sp = S.spill;
+    const merke = sp.start + "|" + sp.dod;
+    if (laastVist === merke) return;
+    laastVist = merke;
+    visLaast(true);
+    lyd.nei();
+    R.si(sp.dod === 0 ? "Denne kabalen kan ikke gå opp." : "Herfra kan ikke kabalen gå opp. Du kan spole tilbake til siste stilling som kan gå opp.");
+  }
+
+  // Back to the newest position that can still be solved. The answer along a line of play only goes
+  // from yes to no, so the place is found by halving between the last known «yes» and the «no».
+  async function spolTilbake(S) {
+    const sp = S.spill;
+    if (laast || !sp || sp.ferdig || !st) return;
+    const n = sp.angre.length;
+    const kodeVed = (i) => (i >= n ? sp.kode : sp.angre[i].split("|")[0]);
+    const fortsatt = R.vakt();
+    const venter = (pa) => {
+      const knapp = R.$("#kk-spol");
+      if (knapp) knapp.classList.toggle("venter", pa);
+      laast = pa;
+      oppdaterHud();
+    };
+    let avbrutt = false;
+    const kan = async (i) => {
+      const svar = await analyser(kodeVed(i));
+      if (!svar || !fortsatt() || R.S.spill !== sp) avbrutt = true;
+      return !!svar && svar.s === "ok";
+    };
+    clearTimeout(sjekkId);
+    opphevValg();
     skjulHint();
-    const r = KABAL.los(st, 20000);
-    let t = r.trekk && r.trekk.length ? KABAL.forsteSteg(st, r.trekk[0]) : null;
+    venter(true);
+    let lo = Math.min(sp.ok, n);
+    let hi = sp.dod >= 0 ? Math.min(sp.dod, n) : n;
+    if (lo < 0 && hi > 0 && (await kan(0))) lo = 0;
+    while (!avbrutt && lo >= 0 && hi - lo > 1) {
+      const midt = (lo + hi) >> 1;
+      if (await kan(midt)) lo = midt;
+      else hi = midt;
+    }
+    if (avbrutt) {
+      if (R.S.spill === sp) venter(false);
+      return;
+    }
+    venter(false);
+    const ny = lo >= 0 && lo < n ? KABAL.fraKode(kodeVed(lo)) : null;
+    if (!ny) {
+      R.toast("Fant ingen stilling som kan gå opp. Prøv en ny kabal.");
+      return;
+    }
+    const tekst = `Spolt tilbake ${R.flertall(n - lo, "trekk", "trekk")}. Herfra kan kabalen gå opp.`;
+    st = ny;
+    sp.kode = kodeVed(lo);
+    sp.trekk = Number(sp.angre[lo].split("|")[1]) || 0;
+    sp.angre.length = lo;
+    sp.ok = lo;
+    sp.dod = -1;
+    sp.spolt = (sp.spolt || 0) + 1;
+    laastVist = null;
+    visLaast(false);
+    plasser({ animer: true });
+    visStatus("ok");
+    R.lyd.tone(600, 0, 0.08, "triangle", 0.07, 420);
+    R.lyd.tone(450, 0.09, 0.1, "triangle", 0.07, 320);
+    R.lagre();
+    R.toast(tekst);
+    R.si(tekst);
+  }
+
+  // A hint: the first move of a way to the end, from what the solver knows about this position.
+  // If it has not looked yet, it thinks in small steps while the button shows that it is working.
+  let hinter = false;
+  async function visHint(S) {
+    const sp = S.spill;
+    if (laast || !st || !sp || hinter) return;
+    skjulHint();
+    opphevValg();
+    const kode = sp.kode;
+    let svar = kjent.get(kode);
+    if (!svar) {
+      const knapp = () => R.$('#skjerm [data-h="hint"]');
+      hinter = true;
+      if (knapp()) knapp().classList.add("venter");
+      svar = await analyser(kode);
+      hinter = false;
+      if (knapp()) knapp().classList.remove("venter");
+      if (!svar || R.S.spill !== sp || sp.kode !== kode || R.S.skjerm !== "spill" || laast) return;
+    }
+    if (svar.s === "dod") {
+      // No way to the end from here: say so instead of pointing at a move that leads nowhere.
+      if (sp.dod < 0 || sp.dod > sp.angre.length) sp.dod = sp.angre.length;
+      visStatus("dod");
+      laastVist = sp.start + "|" + sp.dod;
+      visLaast(true);
+      R.toast(sp.dod === 0 ? "Denne kabalen kan ikke gå opp." : "Herfra kan ikke kabalen gå opp. Spol tilbake, så får du hint derfra.");
+      return;
+    }
+    let t = svar.trekk && svar.trekk.length ? KABAL.forsteSteg(st, svar.trekk[0]) : null;
     if (t && !KABAL.lovlig(st, t)) t = null;
     if (!t) t = KABAL.enkeltHint(st);
     if (!t) {
       R.toast("Ingen flere trekk. Angre, eller start en ny kabal.");
       return;
     }
-    S.spill.hint += 1;
+    sp.hint += 1;
     const el = [];
     let tekst;
     if (t.fra === "s") {
@@ -1089,16 +1570,6 @@
     R.lyd.pling();
     hintId = setTimeout(skjulHint, 2600);
     R.lagre();
-  }
-
-  function visFast(fast) {
-    const el = R.$("#kk-fast");
-    if (!el) return;
-    if (fast && fastVist !== R.S.spill.kode) {
-      fastVist = R.S.spill.kode;
-      el.hidden = false;
-      R.si("Ser ut som det er tomt for trekk. Angre, eller start en ny kabal.");
-    } else if (!fast) el.hidden = true;
   }
 
   // ---------- Dragging ----------
@@ -1130,6 +1601,7 @@
     const dy = e.clientY - dra.y0;
     if (!dra.aktiv) {
       if (Math.hypot(dx, dy) < (TERSKEL[dra.type] || 6)) return;
+      opphevValg();
       dra.aktiv = true;
       dra.el = dra.kort.map(kortEl);
       dra.base = dra.kort.map((k) => sistPos[k]);
@@ -1177,11 +1649,23 @@
 
   // Keyboard (Enter/space on a card) and other clicks without a pointer: the same as a tap.
   document.addEventListener("click", (e) => {
-    if (!paBrettet() || laast) return;
-    const el = e.target.closest && e.target.closest(".kk-kort");
-    if (!el || performance.now() - sistPeker < 600) return;
+    if (!paBrettet() || laast || !e.target.closest) return;
+    // A lit-up empty place takes the picked card; a tap beside the cards lets it go.
+    const plass = e.target.closest(".kk-plass.kk-velg");
+    if (plass) return velgPlass(plass);
+    const el = e.target.closest(".kk-kort");
+    if (!el) {
+      if (valgt && e.target.closest("#kk-brett") && !e.target.closest("[data-h]")) opphevValg();
+      return;
+    }
+    if (performance.now() - sistPeker < 600) return;
     const fra = kildeFor(Number(el.dataset.k));
     if (fra) trykkPa(fra);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !valgt || !paBrettet()) return;
+    opphevValg();
+    R.si("Kortet er sluppet");
   });
   document.addEventListener("contextmenu", (e) => {
     if (e.target.closest && e.target.closest("#kk-brett")) e.preventDefault();
@@ -1324,7 +1808,58 @@
     klokke: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg>',
     snu: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v4.5h-4.5"/></svg>',
     hake: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    las: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+    spol: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 7l-6 5 6 5zM20 7l-6 5 6 5z"/></svg>',
   };
+
+  // ---------- «Dagens kabal»: the date, the countdown to the next one, the text to share ----------
+
+  const MND = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
+  const datoLang = (dato) => `${Number(dato.slice(8))}. ${MND[Number(dato.slice(5, 7)) - 1] || ""}`; // "2026-11-11" → «11. november»
+  const datoKort = (dato) => `${Number(dato.slice(8))}.${Number(dato.slice(5, 7))}.`; // → «11.11.»
+  const DEL_URL = "https://rusj.no/kortkongen/";
+
+  // Seconds until midnight in Norway (the two nights a year the clocks change, the day is 23 or 25 hours).
+  function tilMidnatt() {
+    if (typeof R.tilMidnatt === "function") return R.tilMidnatt();
+    const na = Date.now();
+    const d = {};
+    try {
+      new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(new Date(na)).forEach((p) => (d[p.type] = Number(p.value)));
+    } catch (e) {
+      const n = new Date(na);
+      Object.assign(d, { hour: n.getHours(), minute: n.getMinutes(), second: n.getSeconds() });
+    }
+    let igjen = 86400 - ((d.hour % 24) * 3600 + d.minute * 60 + d.second);
+    const dag = R.dag(new Date(na)).nr;
+    if (R.dag(new Date(na + igjen * 1000)).nr === dag) igjen += 3600;
+    else if (igjen > 3600 && R.dag(new Date(na + (igjen - 3600) * 1000)).nr !== dag) igjen -= 3600;
+    return Math.max(1, igjen);
+  }
+  const to = (n) => String(n).padStart(2, "0");
+  const klokke = (s) => `${to(Math.floor(s / 3600))}:${to(Math.floor((s % 3600) / 60))}:${to(s % 60)}`; // HH:MM:SS
+  const nedtellingHtml = () => `<span class="kk-nedtelling">Ny kabal om <b>${klokke(tilMidnatt())}</b></span>`;
+  // Keeps every countdown on the screen alive; at midnight the screen is drawn again (a new daily).
+  function startNedtelling() {
+    const dag = iDag();
+    const id = setInterval(() => {
+      const el = R.$$("#skjerm .kk-nedtelling b");
+      if (iDag() !== dag) {
+        clearInterval(id);
+        return R.vis();
+      }
+      const tekst = klokke(tilMidnatt());
+      el.forEach((b) => (b.textContent = tekst));
+    }, 1000);
+    R.vedForlat(() => clearInterval(id));
+  }
+
+  // «Kortkongen 11.11. · gikk opp på 3:41 · 112 trekk» (R.del adds the link).
+  function delTekst(S, sp) {
+    const r = sp.resultat || { sek: Math.round(sp.tid / 1000), trekk: sp.trekk };
+    const rekke = dagrekke(S);
+    return `Kortkongen ${datoKort(sp.dato)} · gikk opp på ${visTid(r.sek * 1000)} · ${R.tall(r.trekk)} trekk${sp.modus === 3 ? " · tre kort" : ""}${rekke > 1 ? `\n🔥 ${rekke} dager på rad` : ""}`;
+  }
 
   // Small fanned cards for the mode tiles.
   const miniKort = (antall) =>
@@ -1356,18 +1891,24 @@
   function brettHtml(S) {
     const sp = S.spill;
     const kort = Array.from({ length: 52 }, (_, k) => KORT.html(k, { tag: "button", klasse: "kk-kort kk-av", attr: ` id="kk-k${k}" data-k="${k}" type="button" tabindex="-1" aria-hidden="true"` })).join("");
+    // The empty places are buttons that sleep (disabled, hidden from screen readers) until a picked
+    // card can be put there.
+    const sov = 'type="button" disabled tabindex="-1" aria-hidden="true"';
     const grunn = [0, 1, 2, 3]
-      .map((s) => `<span class="kk-plass kk-grunn" id="kk-g${s}" style="--sf:${KORT.SORTER[s].rod ? KORT.ROD : "#f4e9ff"}" aria-hidden="true"><svg viewBox="0 0 100 100">${KORT.symbol(s, 18, 18, 64)}</svg></span>`)
+      .map(
+        (s) =>
+          `<button class="kk-plass kk-grunn" id="kk-g${s}" ${sov} aria-label="Hjem, ${esc(KORT.SORTER[s].navn)}" style="--sf:${KORT.SORTER[s].rod ? KORT.ROD : "#f4e9ff"}"><svg viewBox="0 0 100 100" aria-hidden="true">${KORT.symbol(s, 18, 18, 64)}</svg></button>`,
+      )
       .join("");
-    const bord = Array.from({ length: 7 }, (_, i) => `<span class="kk-plass kk-tom" id="kk-b${i}" aria-hidden="true"><b>K</b></span>`).join("");
+    const bord = Array.from({ length: 7 }, (_, i) => `<button class="kk-plass kk-tom" id="kk-b${i}" ${sov} aria-label="Tom plass, kolonne ${i + 1}"><b aria-hidden="true">K</b></button>`).join("");
     return `<div class="kk-brett" id="kk-brett" role="group" aria-label="Kabalen" data-modus="${sp.modus}">
       ${grunn}<span class="kk-plass kk-avfall-plass" id="kk-avfall" aria-hidden="true"></span>${bord}
       <button class="kk-plass kk-bunke" id="kk-bunke" type="button" data-h="trekk" data-stille>${IKON.snu}</button>
       ${kort}
       <span class="kk-antall" id="kk-antall" aria-hidden="true"></span>
       <div class="kk-fast" id="kk-fast" hidden role="status">
-        <span>Ser ut som det er tomt for trekk.</span>
-        <span class="kk-fast-knapper">${R.ui.knapp2("Angre", "angre", { variant: "liten" })}${R.ui.knapp2("Ny kabal", "ny", { variant: "liten" })}</span>
+        <span id="kk-fast-tekst">Herfra kan ikke kabalen gå opp.</span>
+        <span class="kk-fast-knapper">${R.ui.knapp2("Spol tilbake", "spol", { variant: "liten", id: "kk-spol" })}${R.ui.knapp2(erDagens(sp) ? "Start på nytt" : "Ny kabal", "ny", { variant: "liten" })}</span>
       </div>
     </div>`;
   }
@@ -1389,30 +1930,55 @@
       S.oppsett.losbar = S.oppsett.losbar !== false;
       if (!S.stat || typeof S.stat !== "object") S.stat = {};
       for (const m of [1, 3]) if (S.stat[m]) S.stat[m] = Object.assign(tomStat(), S.stat[m]);
-      const sp = S.spill;
-      st = null;
-      if (sp) {
-        st = KABAL.fraKode(sp.kode);
-        if (!st || !Array.isArray(sp.angre) || ![1, 3].includes(sp.modus)) {
-          S.spill = null;
-          st = null;
-        } else {
-          // Undo steps that can't be read any more are dropped (never a broken position).
-          sp.angre = sp.angre.filter((a) => typeof a === "string" && KABAL.fraKode(a.split("|")[0]));
-          sp.trekk = Number(sp.trekk) || 0;
-          sp.tid = Number(sp.tid) || 0;
-          sp.hint = Number(sp.hint) || 0;
-        }
+      const d = Object.assign(tomDagstat(), S.dstat && typeof S.dstat === "object" ? S.dstat : {});
+      for (const felt of Object.keys(tomDagstat())) d[felt] = Math.max(0, Math.floor(Number(d[felt]) || 0));
+      S.dstat = d;
+      // One saved game: sound, or gone. Fields that came later are filled in.
+      const les = (sp) => {
+        if (!sp || typeof sp !== "object" || !KABAL.fraKode(sp.kode) || !Array.isArray(sp.angre) || ![1, 3].includes(sp.modus)) return null;
+        // Undo steps that can't be read any more are dropped (never a broken position).
+        const antall = sp.angre.length;
+        sp.angre = sp.angre.filter((a) => typeof a === "string" && KABAL.fraKode(a.split("|")[0]));
+        sp.trekk = Number(sp.trekk) || 0;
+        sp.tid = Number(sp.tid) || 0;
+        sp.hint = Number(sp.hint) || 0;
+        sp.spolt = Number(sp.spolt) || 0;
+        const hel = sp.angre.length === antall;
+        const indeks = (v) => (hel && Number.isInteger(v) && v >= 0 && v <= sp.angre.length ? v : -1);
+        // A game from before the board knew: a proven deal can be solved from its first position.
+        sp.ok = sp.ok == null && hel && sp.losbar && sp.angre.length < MAKS_ANGRE ? 0 : indeks(sp.ok);
+        sp.dod = indeks(sp.dod);
+        if (sp.dag != null && !(Number.isInteger(sp.dag) && typeof sp.dato === "string" && /^\d{4}-\d\d-\d\d$/.test(sp.dato))) return null;
+        return sp;
+      };
+      // Today's daily and free play each keep their slot; the one that was on the table stays there.
+      const a = les(S.spill);
+      const alle = [a, les(S.annet)].filter(Boolean);
+      const dag = alle.find((x) => x.dag === iDag()) || null;
+      const fri = alle.find((x) => x.dag == null) || null;
+      if (a && a === dag) {
+        S.spill = dag;
+        S.annet = fri;
+      } else {
+        S.spill = fri;
+        S.annet = dag;
       }
+      st = S.spill ? KABAL.fraKode(S.spill.kode) : null;
       if (S.skjerm === "spill" && !(S.spill && !S.spill.ferdig)) S.skjerm = S.spill ? "slutt" : "hjem";
       if (S.skjerm === "slutt" && !(S.spill && S.spill.ferdig)) S.skjerm = "hjem";
+      meldDagens(S);
+    },
+
+    // rusj.no/kortkongen/#dagens (the front page's «I dag» strip): straight to today's daily.
+    vedHash(S, hash) {
+      return String(hash).toLowerCase() === "dagens" ? tilDagens(S) : null;
     },
 
     regler: {
       intro: "Få alle kortene hjem i fire bunker – én for hver sort, fra ess til konge.",
       steg: [
         ["Bygg nedover på bordet", "Legg kortene i synkende rekkefølge, annenhver rød og svart: svart 8 på rød 9, rød 7 på svart 8."],
-        ["Trykk eller dra", "Trykk på et kort, så flytter det seg til beste plass. Eller dra det dit du vil – flere kort kan flyttes samtidig."],
+        ["Trykk eller dra", "Trykk på et kort, så flytter det seg dit det kan ligge. Kan det ligge flere steder, lyser plassene: trykk på den du vil ha – eller på kortet igjen for beste plass. Du kan også dra kortene."],
         ["Fra ess til konge", "Essene går hjem øverst til venstre. Bygg videre med samme sort: 2, 3, 4 … helt til kongen."],
       ],
       tips: [
@@ -1420,6 +1986,8 @@
         "Bare en konge kan legges på en tom plass.",
         "Snu kortene med baksiden opp så fort du kan – de skjuler ofte nøkkelen.",
         "«Hint» viser et lurt trekk, og «Angre» tar tilbake så mange trekk du vil.",
+        "Merket øverst sier om kabalen fortsatt kan gå opp. Står det «Låst», kan du spole tilbake til siste stilling som kan gå opp.",
+        "Dagens kabal er den samme for alle og kan alltid gå opp. Den kan prøves så mange ganger du vil – en ny kommer ved midnatt.",
         "Når alle kortene ligger med bildet opp, går resten hjem av seg selv.",
       ],
     },
@@ -1428,27 +1996,43 @@
       hjem: {
         tilbake: "portal",
         vis(S) {
-          const sp = S.spill;
-          const aktiv = pagar(S);
+          const fri = iGang(frittSpill(S)) ? frittSpill(S) : null;
+          const dag = dagensSpill(S);
+          const lost = !!(dag && dag.ferdig && dag.vunnet);
+          const rekke = dagrekke(S);
           const linje = statLinje(S.stat[S.oppsett.modus]);
+          // «Dagens kabal» is the main button until it is solved; then free play takes over, and the
+          // daily becomes a note with the result and the countdown to the next one.
+          const friKnapp = (hoved) => (hoved ? R.ui.knapp : R.ui.knapp2)(fri ? `Fortsett · ${R.flertall(fri.trekk, "trekk", "trekk")}` : `Ny kabal · ${MODUS[S.oppsett.modus].kort}`, fri ? "fortsett" : "nytt");
+          const dagKnapp = () =>
+            dag && dag.startet ? R.ui.knapp(`Fortsett dagens kabal · ${R.flertall(dag.trekk, "trekk", "trekk")}`, "dagens") : R.ui.knapp("Dagens kabal", "dagens", { variant: "stor" });
+          const r = lost ? dag.resultat || { sek: Math.round(dag.tid / 1000), trekk: dag.trekk } : null;
+          const dagLinje = lost
+            ? `<div class="kk-dagboks">
+                <p><span class="kk-dag-hake" aria-hidden="true">${IKON.hake}</span><b>Dagens kabal gikk opp</b> · ${visTid(r.sek * 1000)} · ${R.tall(r.trekk)} trekk</p>
+                <p class="kk-dag-under">${rekke > 1 ? `🔥 ${R.tall(rekke)} dager på rad · ` : ""}${nedtellingHtml()}</p>
+                ${R.ui.lenke("Se resultatet", "dagens")}
+              </div>`
+            : rekke > 0
+              ? `<p class="kk-hjemstat">🔥 ${rekke === 1 ? "Én dag" : `${R.tall(rekke)} dager`} på rad med dagens kabal – i dag også?</p>`
+              : "";
           return (
             R.ui.spillhjem({
               slagordHtml: "Ess til konge, rødt på svart.<br><em>Går kabalen opp?</em>",
-              knapperHtml: R.ui.startKnapper({
-                pagar: aktiv,
-                fortsettTekst: aktiv ? `Fortsett · ${R.flertall(sp.trekk, "trekk", "trekk")}` : "",
-                nyTekst: "Ny kabal",
-                startTekst: "Ny kabal",
-                ekstraHtml: R.ui.lenkerad(R.ui.lenke("Slik spiller du", "regler"), S.stat[1] || S.stat[3] ? R.ui.lenke("Statistikk", "statistikk") : ""),
-              }),
+              knapperHtml:
+                (lost ? friKnapp(true) : dagKnapp() + friKnapp(false)) +
+                R.ui.lenkerad(fri ? R.ui.lenke("Ny kabal", "nytt") : "", R.ui.lenke("Bytt oppsett", "endre"), R.ui.lenke("Slik spiller du", "regler"), S.stat[1] || S.stat[3] ? R.ui.lenke("Statistikk", "statistikk") : "") +
+                dagLinje,
               merker: [
-                ["1", "spiller"],
-                [R.tall((LOSBARE.tre.length + LOSBARE.en.length) * 8), "løsbare kabaler"],
+                ["📅", "ny kabal hver dag"],
+                [R.tall((S.oppsett.modus === 3 ? LOSBARE.tre.length : LOSBARE.tre.length + LOSBARE.en.length) * 8), "løsbare kabaler"],
                 ["0", "reklame"],
               ],
-            }) + (linje ? `<p class="kk-hjemstat">${esc(MODUS[S.oppsett.modus].navn)}: ${esc(linje)}</p>` : "")
+            }) +
+            (linje ? `<p class="kk-hjemstat">${esc(MODUS[S.oppsett.modus].navn)}: ${esc(linje)}</p>` : "")
           );
         },
+        inn: () => startNedtelling(),
       },
 
       oppsett: {
@@ -1465,26 +2049,27 @@
             )}
           </section>
           ${R.ui.bryter("losbar", S.oppsett.losbar, "Bare løsbare kabaler", "Hver kabal er sjekket på forhånd: den kan gå opp – hvis du spiller lurt.")}
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor" }))}`,
+          <p class="hjelp">${dagensSpill(S) && dagensSpill(S).startet ? "Dagens kabal er i gang og beholder kortene sine." : "Valget gjelder også dagens kabal."}</p>
+          ${R.ui.dokk(R.ui.knapp("Start", "nytt", { variant: "stor" }))}`,
       },
 
       spill: {
-        tittel: (S) => (S.spill ? MODUS[S.spill.modus].navn : "Kabal"),
+        tittel: (S) => (!S.spill ? "Kabal" : erDagens(S.spill) ? "Dagens kabal" : MODUS[S.spill.modus].navn),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           return `
-            <h1 class="vh" id="skjerm-tittel">Kabal</h1>
+            <h1 class="vh" id="skjerm-tittel">${erDagens(sp) ? `Dagens kabal, ${esc(datoLang(sp.dato))}` : "Kabal"}</h1>
             <div class="kk-hud">
               <span class="kk-stat" aria-label="Tid">${IKON.klokke}<b id="kk-tid">${visTid(tidMs(sp))}</b></span>
               <span class="kk-stat"><b id="kk-trekk">${sp.trekk}</b> trekk</span>
-              ${sp.losbar ? `<span class="kk-stat kk-losbar" title="Denne kabalen kan gå opp">${IKON.hake}Løsbar</span>` : ""}
+              <span class="kk-status" id="kk-status" aria-live="polite"></span>
             </div>
             ${brettHtml(S)}
             ${R.ui.dokk(`<div class="kk-verktoy">
               <button class="kk-knapp" id="kk-angre" data-h="angre" ${sp.angre.length ? "" : "disabled"}>${IKON.angre}<span>Angre</span></button>
               <button class="kk-knapp" data-h="hint">${IKON.hint}<span>Hint</span></button>
-              <button class="kk-knapp" data-h="ny">${IKON.ny}<span>Ny kabal</span></button>
+              <button class="kk-knapp" data-h="ny">${IKON.ny}<span>${erDagens(sp) ? "På nytt" : "Ny kabal"}</span></button>
               <button class="kk-knapp" data-h="avslutt">${IKON.slutt}<span>Avslutt</span></button>
             </div>`)}`;
         },
@@ -1535,6 +2120,7 @@
             nyDeling = false;
             plasser({ animer: false });
           }
+          sjekkSnart(S, 80);
         },
         inn(S) {
           if (!S.spill) return R.gaTil("hjem");
@@ -1544,18 +2130,21 @@
             if (el && R.S.spill) el.textContent = visTid(tidMs(R.S.spill));
           }, 500);
           R.vedForlat(() => clearInterval(id));
-          if (S.spill.startet && st && !KABAL.vunnet(st)) {
-            const plan = fullforPlan(st);
-            if (plan) setTimeout(() => R.S.skjerm === "spill" && autoFullfor(R.S, plan), 500);
-            else visFast(KABAL.fast(st));
-          }
+          const plan = S.spill.startet && st && !KABAL.vunnet(st) ? fullforPlan(st) : null;
+          if (plan) setTimeout(() => R.S.skjerm === "spill" && autoFullfor(R.S, plan), 500);
         },
         ut(S) {
           stoppKlokke(S);
           skjulHint();
+          opphevValg();
+          clearTimeout(sjekkId);
+          clearTimeout(ordneId);
+          if (jobb) jobb.avbrutt = true;
+          hinter = false;
           dra = null;
           laast = false;
           R.$$(".kk-kaskade").forEach((el) => el.remove());
+          meldDagens(S);
         },
       },
 
@@ -1567,10 +2156,39 @@
           const sp = S.spill;
           const r = sp.resultat || { vunnet: sp.vunnet, sek: Math.round(sp.tid / 1000), trekk: sp.trekk, hjem: 0 };
           const s = Object.assign(tomStat(), S.stat[sp.modus] || {});
+          const dagLost = !!(dagensSpill(S) && dagensSpill(S).ferdig);
           const dokk =
             R.ui.flereSpill({ antall: 1 }) +
-            R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), '<a class="lenke" href="/">Alle spill</a>'));
+            R.ui.dokk(
+              R.ui.knapp("Spill igjen", "igjen"),
+              R.ui.lenkerad(dagLost ? "" : R.ui.lenke("Dagens kabal", "dagens"), R.ui.lenke("Endre oppsett", "endre"), '<a class="lenke" href="/">Alle spill</a>'),
+            );
           const statHtml = `<p class="kk-sluttstat">${esc(MODUS[sp.modus].navn)}: vunnet ${R.tall(s.vunnet)} av ${R.tall(s.spilt)}${s.rekke > 1 ? ` · ${R.tall(s.rekke)} på rad` : ""}${s.besteRekke > 1 ? ` · rekord ${R.tall(s.besteRekke)} på rad` : ""}</p>`;
+          const tallHtml = `<div class="kk-resultat">
+                <div class="kk-tall-kort${r.nyTid ? " ny" : ""}"><b>${visTid(r.sek * 1000)}</b><span>tid</span>${r.nyTid ? '<i class="kk-ny">Rekord!</i>' : ""}</div>
+                <div class="kk-tall-kort${r.nyTrekk ? " ny" : ""}"><b>${R.tall(r.trekk)}</b><span>trekk</span>${r.nyTrekk ? '<i class="kk-ny">Rekord!</i>' : ""}</div>
+              </div>`;
+          if (erDagens(sp)) {
+            // «Dagens kabal» is solved: the result, the days in a row, something to share – and
+            // when the next one comes (or that it is here, if midnight has passed).
+            const rekke = dagrekke(S);
+            const gammel = sp.dag !== iDag();
+            return `
+              <div class="banner aksent">
+                ${R.figur(null, "jubel")}
+                <p class="etikett">Dagens kabal · ${esc(datoLang(sp.dato))}</p>
+                <h1 id="skjerm-tittel">Dagens kabal gikk opp!</h1>
+                <p class="ingress">${rekke > 1 ? `🔥 ${R.tall(rekke)} dager på rad!` : "Første dag i en ny rekke – kom tilbake i morgen."}</p>
+              </div>
+              ${tallHtml}
+              <p class="kk-neste">${gammel ? "<b>En ny kabal er klar!</b>" : nedtellingHtml()}</p>
+              <p class="kk-sluttstat">${esc(MODUS[sp.modus].navn)}${S.dstat.lost > 1 ? ` · ${R.tall(S.dstat.lost)} dagskabaler løst` : ""}${S.dstat.beste > 1 ? ` · lengste rekke ${R.tall(S.dstat.beste)} dager` : ""}</p>
+              ${R.ui.flereSpill({ antall: 1 })}
+              ${R.ui.dokk(
+                gammel ? R.ui.knapp("Dagens kabal", "dagens") : R.ui.knapp("Del resultatet", "del"),
+                R.ui.lenkerad(R.ui.lenke(iGang(frittSpill(S)) ? "Fortsett kabalen" : "Ny kabal", iGang(frittSpill(S)) ? "fortsett" : "nytt"), '<a class="lenke" href="/">Alle spill</a>'),
+              )}`;
+          }
           if (r.vunnet) {
             const rekord = r.nyTid || r.nyTrekk;
             return `
@@ -1580,10 +2198,7 @@
                 <h1 id="skjerm-tittel">Kabalen gikk opp!</h1>
                 <p class="ingress">Godt jobba!${r.rekke > 1 ? ` Det er ${R.tall(r.rekke)} på rad.` : ""}</p>
               </div>
-              <div class="kk-resultat">
-                <div class="kk-tall-kort${r.nyTid ? " ny" : ""}"><b>${visTid(r.sek * 1000)}</b><span>tid</span>${r.nyTid ? '<i class="kk-ny">Rekord!</i>' : ""}</div>
-                <div class="kk-tall-kort${r.nyTrekk ? " ny" : ""}"><b>${R.tall(r.trekk)}</b><span>trekk</span>${r.nyTrekk ? '<i class="kk-ny">Rekord!</i>' : ""}</div>
-              </div>
+              ${tallHtml}
               <p class="hjelp">${
                 rekord
                   ? `Ny personlig rekord! Forrige: ${r.forrigeTid ? visTid(r.forrigeTid * 1000) : "–"} · ${r.forrigeTrekk ? R.tall(r.forrigeTrekk) + " trekk" : "–"}`
@@ -1607,6 +2222,7 @@
         },
         inn(S) {
           const sp = S.spill;
+          startNedtelling();
           if (sp && sp.vunnet) {
             R.konfetti();
             const fortsatt = R.vakt();
@@ -1620,17 +2236,27 @@
     },
 
     handlinger: (H = {
+      // A new free game, dealt at once with the setup from last time («Bytt oppsett» changes it).
       async nytt(el, e, S) {
         const fortsatt = R.vakt();
-        if (!(await R.bekreftNytt(pagar(S))) || !fortsatt()) return;
-        if (pagar(S)) registrer(S, false);
-        // The old game is over now (counted once): never resume it.
-        S.spill = null;
-        st = null;
-        R.gaTil("oppsett");
+        if (!(await R.bekreftNytt(iGang(frittSpill(S)), true)) || !fortsatt()) return;
+        leggFram(S, "fri");
+        if (iGang(S.spill)) registrer(S, false); // the old game is over now (counted once)
+        nyttSpill(S);
+        R.gaTil("spill");
       },
       fortsett(el, e, S) {
-        if (pagar(S)) R.gaTil("spill");
+        if (iGang(leggFram(S, "fri"))) R.gaTil("spill");
+      },
+      dagens: (el, e, S) => R.gaTil(tilDagens(S)),
+      del(el, e, S) {
+        const sp = S.spill;
+        if (erDagens(sp) && sp.vunnet) R.del("Kortkongen", delTekst(S, sp), DEL_URL);
+      },
+      spol: (el, e, S) => spolTilbake(S),
+      laast() {
+        const el = R.$("#kk-fast");
+        if (el) visLaast(el.hidden);
       },
       statistikk(el, e, S) {
         R.ark(`
@@ -1656,10 +2282,6 @@
         S.oppsett.losbar = !S.oppsett.losbar;
         R.vis();
       },
-      start(el, e, S) {
-        nyttSpill(S);
-        R.gaTil("spill");
-      },
       igjen(el, e, S) {
         nyttSpill(S);
         R.gaTil("spill");
@@ -1683,17 +2305,33 @@
         st = ny;
         sp.kode = kode;
         sp.trekk = Number(trekk) || 0;
+        const n = sp.angre.length;
+        if (sp.ok > n) sp.ok = n; // what led to a position that can be solved, can be solved
+        if (sp.dod > n) {
+          sp.dod = -1;
+          laastVist = null;
+        }
+        opphevValg();
+        visLaast(false);
         plasser({ animer: true });
         R.lyd.tone(600, 0, 0.08, "triangle", 0.07, 420);
         R.lagre();
-        visFast(false);
         R.si("Angret");
+        sjekkSnart(S);
       },
       hint: (el, e, S) => visHint(S),
       async ny(el, e, S) {
         if (laast) return;
         const sp = S.spill;
         const fortsatt = R.vakt();
+        if (erDagens(sp)) {
+          // The daily is the same cards all day: it can only be started again.
+          const ja = await R.bekreft("Starte dagens kabal på nytt?", "Kortene er de samme. Tid og trekk begynner på null.", "Start på nytt", "Spill videre");
+          if (!ja || !fortsatt() || S.spill !== sp) return;
+          nyDagens(S, true);
+          R.gaTil("spill");
+          return;
+        }
         const valg = await R.velgIArk(
           "Ny kabal?",
           [
@@ -1711,6 +2349,12 @@
         if (laast) return;
         const sp = S.spill;
         const fortsatt = R.vakt();
+        if (erDagens(sp)) {
+          // Nothing is lost: the daily waits where it was left, and can be solved until midnight.
+          const bort = await R.bekreft("Legge bort dagens kabal?", "Den ligger klar der du slapp – helt til midnatt.", "Legg bort", "Spill videre");
+          if (bort && fortsatt()) R.gaTil("hjem");
+          return;
+        }
         const ja = await R.bekreft("Avslutte kabalen?", sp.startet ? "Den teller som tapt i statistikken." : "Du kan alltid starte en ny.", "Avslutt", "Spill videre");
         if (!ja || !fortsatt() || !S.spill) return;
         if (S.spill.startet) {
