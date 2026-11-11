@@ -44,4 +44,4 @@ namespace_id = "1001"
 # Only when Cloudflare Access protects /admin: the «Application Audience (AUD) Tag» of that
 # Access application (64 characters, not a secret). Empty = Access is not trusted and the admin
 # page asks for the key instead.
-ACCESS_AUD = ""
+ACCESS_AUD = "837d482a16db0dd9f2bd98f3565a800ea70b6437d7d24c555c7c16cd71b31e3b"
