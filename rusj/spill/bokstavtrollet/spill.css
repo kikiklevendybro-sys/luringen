@@ -1358,3 +1358,30 @@
     width: min(30vh, 150px);
   }
 }
+
+/* The score legend: full sentences, or one compact row on short screens, so the rows that still
+   need points stay above the buttons. */
+.bt-forklaring .kort {
+  display: none;
+}
+
+@media (max-height: 620px) {
+  .bt-poengkort .bt-ki {
+    display: none;
+  }
+
+  .bt-forklaring {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .bt-forklaring .lang {
+    display: none;
+  }
+
+  .bt-forklaring .kort {
+    display: inline;
+  }
+}

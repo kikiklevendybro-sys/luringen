@@ -843,9 +843,9 @@
               <p class="etikett">Les opp svarene!</p>
               <h1 id="skjerm-tittel"><span class="bt-ki" aria-hidden="true">${esc(KAT[k].i)}</span>${esc(KAT[k].t)} <span class="bt-pa-bokstav">på ${esc(r.b)}</span></h1>
               <ul class="bt-forklaring" aria-label="Poeng">
-                <li><b>2</b> Ingen andre hadde ordet</li>
-                <li><b>1</b> Flere hadde samme ord</li>
-                <li><b>0</b> Ikke noe ord</li>
+                <li><b>2</b> <span class="lang">Ingen andre hadde ordet</span><span class="kort">bare du</span></li>
+                <li><b>1</b> <span class="lang">Flere hadde samme ord</span><span class="kort">flere</span></li>
+                <li><b>0</b> <span class="lang">Ikke noe ord</span><span class="kort">ingen</span></li>
               </ul>
             </div>
             <ul class="bt-poengrader">${Array.from({ length: sp.antall }, (_, i) => {
