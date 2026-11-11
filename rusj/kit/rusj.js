@@ -346,19 +346,54 @@
 
   // ---------- Sound (synthesised, no files) ----------
 
+  // The «Vanndråpe» palette (chosen by the owner 2026-11-11): every note is a water drop — a quick
+  // chirp up, a ringing surface and a smaller drop after it — through a little warmth and a short
+  // room. Nothing is identical twice (pitch, level and timing vary slightly), which is what keeps
+  // synthesised sound from feeling digital. R.lyd.tone and R.lyd.stoy keep their signatures, so the
+  // games' own melodies move to the new sound without changes.
   R.lyd = (() => {
     let ctx = null;
     let hoved = null;
+    const litt = (x, andel) => x * (1 + (Math.random() - 0.5) * 2 * andel);
     function sikre() {
       if (!R.felles.lyd) return null;
       try {
         if (!ctx) {
           const AC = window.AudioContext || window.webkitAudioContext;
           if (!AC) return null;
+          // Play like media: on iPhone the sound then follows the volume buttons (where supported).
+          try {
+            if (navigator.audioSession) navigator.audioSession.type = "playback";
+          } catch (e) {
+            /* not supported */
+          }
           ctx = new AC();
+          const metning = ctx.createWaveShaper();
+          const kurve = new Float32Array(1024);
+          for (let i = 0; i < 1024; i++) kurve[i] = Math.tanh(1.6 * (i / 511.5 - 1)) / Math.tanh(1.6);
+          metning.curve = kurve;
+          const lp = ctx.createBiquadFilter();
+          lp.type = "lowpass";
+          lp.frequency.value = 8200;
+          const komp = ctx.createDynamicsCompressor();
+          komp.threshold.value = -16;
+          komp.ratio.value = 3;
+          komp.attack.value = 0.004;
+          komp.release.value = 0.2;
           hoved = ctx.createGain();
-          hoved.gain.value = 0.55;
-          hoved.connect(ctx.destination);
+          hoved.gain.value = 0.8;
+          hoved.connect(metning).connect(lp).connect(komp).connect(ctx.destination);
+          const rom = ctx.createConvolver();
+          const n = Math.floor(ctx.sampleRate * 1.1);
+          const ir = ctx.createBuffer(2, n, ctx.sampleRate);
+          for (let k = 0; k < 2; k++) {
+            const d = ir.getChannelData(k);
+            for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3);
+          }
+          rom.buffer = ir;
+          const send = ctx.createGain();
+          send.gain.value = 0.16;
+          hoved.connect(send).connect(rom).connect(komp);
         }
         if (ctx.state === "suspended") ctx.resume();
         return ctx;
@@ -366,104 +401,169 @@
         return null;
       }
     }
-    function tone(frekvens, start, varighet, type, styrke, tilFrekvens) {
-      const c = sikre();
-      if (!c) return;
-      const t0 = c.currentTime + start;
-      const o = c.createOscillator();
-      const g = c.createGain();
-      o.type = type || "sine";
-      o.frequency.setValueAtTime(frekvens, t0);
-      if (tilFrekvens) o.frequency.exponentialRampToValueAtTime(tilFrekvens, t0 + varighet);
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(styrke || 0.2, t0 + 0.012);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + varighet);
-      o.connect(g).connect(hoved);
-      o.start(t0);
-      o.stop(t0 + varighet + 0.05);
-    }
     let stoyBuffer = null;
-    function stoy(start, varighet, styrke, filterFrekvens, type) {
-      const c = sikre();
-      if (!c) return;
+    function stoyKilde(c) {
       if (!stoyBuffer) {
         stoyBuffer = c.createBuffer(1, c.sampleRate, c.sampleRate);
         const d = stoyBuffer.getChannelData(0);
         for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       }
-      const t0 = c.currentTime + start;
-      const kilde = c.createBufferSource();
-      kilde.buffer = stoyBuffer;
+      const s = c.createBufferSource();
+      s.buffer = stoyBuffer;
+      return s;
+    }
+    // A plain sine with a soft attack, optionally gliding (bubbles, thumps, low tones).
+    function sinus(c, f, t0, varighet, styrke, tilF, glid, angrep) {
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.frequency.setValueAtTime(f, t0);
+      if (tilF) o.frequency.exponentialRampToValueAtTime(tilF, t0 + (glid || Math.min(varighet, 0.12)));
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(styrke, t0 + (angrep || 0.004));
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + varighet);
+      o.connect(g).connect(hoved);
+      o.start(t0);
+      o.stop(t0 + varighet + 0.05);
+    }
+    // A struck surface: a tiny burst of noise rings a narrow filter.
+    function slag(c, f, t0, styrke, q, varighet) {
+      const s = stoyKilde(c);
+      const filter = c.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = f;
+      filter.Q.value = q;
+      const inn = c.createGain();
+      inn.gain.setValueAtTime(1, t0);
+      inn.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.006);
+      const g = c.createGain();
+      g.gain.setValueAtTime(styrke * q * 0.5, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + varighet);
+      s.connect(inn).connect(filter).connect(g).connect(hoved);
+      s.start(t0, Math.random() * 0.4);
+      s.stop(t0 + 0.03);
+    }
+    // One water drop at pitch f.
+    function drape(c, f, t0, varighet, styrke) {
+      f = litt(f, 0.01);
+      styrke = litt(styrke, 0.1);
+      const l = Math.max(varighet * 1.8, 0.2);
+      sinus(c, f * 0.55, t0, l, styrke, f * 1.06, 0.045, 0.004);
+      slag(c, Math.min(f * 2.1, 9000), t0 + 0.002, styrke * 0.5, 28, 0.16);
+      sinus(c, f * 0.9, t0 + litt(0.07, 0.2), 0.07, styrke * 0.22, f * 1.6, 0.03, 0.003);
+    }
+    // tone(frequency, start, duration, type, level, toFrequency) — kept for the games' own melodies.
+    // Notes become drops; glides become soft bubbles; low notes stay round sine thumps; the harsh
+    // waveforms (square, sawtooth) are never used any more.
+    function tone(frekvens, start, varighet, type, styrke, tilFrekvens) {
+      const c = sikre();
+      if (!c || !(frekvens > 0)) return;
+      const t0 = c.currentTime + Math.max(0, start || 0);
+      const v = styrke || 0.2;
+      const harde = type === "square" || type === "sawtooth";
+      if (frekvens < 220 || varighet > 0.8) sinus(c, frekvens, t0, varighet, v * (harde ? 0.8 : 1), tilFrekvens, varighet, 0.01);
+      else if (tilFrekvens) sinus(c, frekvens, t0, Math.max(varighet, 0.08), v * (harde ? 0.9 : 1.1), tilFrekvens, varighet * 0.8, 0.006);
+      else drape(c, frekvens, t0, varighet, v * (harde ? 1.4 : 1.2));
+    }
+    function stoy(start, varighet, styrke, filterFrekvens, type) {
+      const c = sikre();
+      if (!c) return;
+      const t0 = c.currentTime + Math.max(0, start || 0);
+      const kilde = stoyKilde(c);
       const f = c.createBiquadFilter();
       f.type = type || "bandpass";
-      f.frequency.value = filterFrekvens || 1800;
+      f.frequency.value = litt(filterFrekvens || 1800, 0.06);
       f.Q.value = 0.8;
       const g = c.createGain();
-      g.gain.setValueAtTime(styrke || 0.3, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(styrke || 0.3, t0 + 0.005);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + varighet);
       kilde.connect(f).connect(g).connect(hoved);
-      kilde.start(t0);
+      kilde.start(t0, Math.random() * 0.4);
       kilde.stop(t0 + varighet + 0.05);
     }
+    const C5 = 523.25;
+    const E5 = 659.25;
+    const G5 = 783.99;
+    const A5 = 880;
+    const C6 = 1046.5;
+    const E6 = 1318.5;
+    const G6 = 1568;
+    // Runs a sound only when audio is on; d(f, t, length, level) plays a drop t seconds from now.
+    const spill = (fn) => () => {
+      const c = sikre();
+      if (!c) return;
+      const n = c.currentTime + 0.01;
+      fn((f, t, l, s) => drape(c, f, n + t, l, s), c, n);
+    };
     return {
       lasOpp: sikre,
       tone: tone,
       stoy: stoy,
-      klikk: () => tone(720, 0, 0.06, "triangle", 0.12),
-      pop: () => tone(520, 0, 0.09, "sine", 0.22, 980),
-      snu: () => {
-        tone(300, 0, 0.14, "triangle", 0.16, 620);
-        stoy(0, 0.08, 0.08, 3000);
-      },
-      sveip: () => stoy(0, 0.22, 0.18, 2400),
-      tikk: () => tone(880, 0, 0.12, "square", 0.09),
-      takk: () => tone(660, 0, 0.1, "square", 0.08),
-      pek: () => {
-        tone(196, 0, 0.35, "sawtooth", 0.18, 392);
-        stoy(0, 0.25, 0.25, 900);
-      },
-      riktig: () => {
-        tone(660, 0, 0.12, "triangle", 0.16);
-        tone(990, 0.1, 0.22, "triangle", 0.16);
-      },
-      feil: () => {
-        tone(180, 0, 0.28, "sawtooth", 0.12, 120);
-      },
-      pling: () => tone(1320, 0, 0.3, "sine", 0.16),
+      klikk: spill((d, c, n) => {
+        sinus(c, litt(820, 0.08), n, 0.05, 0.16, 1500, 0.03, 0.003);
+        slag(c, litt(2600, 0.08), n, 0.1, 22, 0.07);
+      }),
+      pop: spill((d, c, n) => sinus(c, litt(330, 0.05), n, 0.14, 0.26, 640, 0.05, 0.004)),
+      snu: spill((d, c, n) => {
+        stoy(0, 0.13, 0.11, 1600);
+        d(G5 / 2, 0.09, 0.08, 0.16);
+      }),
+      sveip: () => stoy(0, 0.24, 0.13, 1800),
+      tikk: spill((d) => d(A5, 0, 0.06, 0.14)),
+      takk: spill((d) => d(E5, 0, 0.06, 0.12)),
+      pek: spill((d, c, n) => {
+        sinus(c, 220, n, 0.32, 0.22, 440, 0.25, 0.01);
+        d(A5, 0.24, 0.12, 0.2);
+      }),
+      riktig: spill((d) => {
+        d(E5, 0, 0.12, 0.26);
+        d(A5, 0.11, 0.18, 0.28);
+      }),
+      feil: spill((d, c, n) => {
+        sinus(c, 300, n, 0.3, 0.2, 165, 0.18, 0.008);
+        sinus(c, 235, n + 0.17, 0.36, 0.2, 125, 0.2, 0.008);
+        slag(c, 420, n, 0.08, 10, 0.12);
+      }),
+      pling: spill((d) => {
+        d(C6, 0, 0.16, 0.24);
+        d(G6, 0.06, 0.12, 0.1);
+      }),
       trommevirvel: (sekunder) => {
+        const c = sikre();
+        if (!c) return;
+        const n = c.currentTime + 0.01;
         let t = 0;
         let avstand = 0.07;
         while (t < sekunder) {
-          stoy(t, 0.06, 0.12 + (t / sekunder) * 0.22, 1400);
-          t += avstand;
+          stoy(t, 0.05, litt(0.1 + (t / sekunder) * 0.18, 0.2), 900);
+          sinus(c, litt(170, 0.05), n + t, 0.06, 0.09, 130, 0.04);
+          t += litt(avstand, 0.08);
           avstand = Math.max(0.035, avstand * 0.97);
         }
-        stoy(sekunder, 0.9, 0.35, 5200);
-        tone(98, sekunder, 0.5, "sine", 0.4, 60);
+        stoy(sekunder, 0.4, 0.22, 2000);
+        drape(c, C5, n + sekunder, 0.4, 0.26);
+        drape(c, G5, n + sekunder + 0.01, 0.4, 0.2);
       },
-      fanfare: () => {
-        [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.11, i === 3 ? 0.6 : 0.16, "square", 0.08));
-        [523.25, 659.25, 783.99].forEach((f) => tone(f, 0.44, 0.6, "triangle", 0.07));
-      },
-      buu: () => {
-        tone(392, 0, 0.32, "sawtooth", 0.1, 370);
-        tone(370, 0.34, 0.32, "sawtooth", 0.1, 349);
-        tone(349, 0.68, 0.7, "sawtooth", 0.1, 262);
-      },
-      latter: () => {
-        [0, 0.13, 0.26, 0.39].forEach((t, i) => tone(520 - i * 30, t, 0.1, "square", 0.07, 680 - i * 40));
-      },
-      alarm: () => {
-        [0, 0.22, 0.44].forEach((t) => tone(1046, t, 0.15, "square", 0.1));
-      },
-      bom: () => {
-        stoy(0, 1.1, 0.6, 400, "lowpass");
-        tone(110, 0, 0.9, "sine", 0.5, 40);
-      },
-      hjerteslag: () => {
-        tone(70, 0, 0.12, "sine", 0.5, 50);
-        tone(70, 0.16, 0.12, "sine", 0.4, 50);
-      },
+      fanfare: spill((d) => {
+        [C5, E5, G5, C6].forEach((f, i) => d(f, i * 0.105 + (i % 2) * 0.012, 0.14, 0.24));
+        [C5, E5, G5, C6, E6].forEach((f, i) => d(f, 0.5 + i * 0.012, 0.5, 0.17));
+        [G6, E6, G6].forEach((f, i) => d(f, 0.74 + i * 0.1, 0.1, 0.09));
+      }),
+      buu: spill((d, c, n) => {
+        sinus(c, 392, n, 0.32, 0.16, 370, 0.3, 0.02);
+        sinus(c, 370, n + 0.34, 0.32, 0.16, 349, 0.3, 0.02);
+        sinus(c, 349, n + 0.68, 0.7, 0.16, 262, 0.6, 0.02);
+      }),
+      latter: spill((d) => [0, 0.12, 0.24, 0.36].forEach((t, i) => d(G5 - i * 40, t, 0.08, 0.16))),
+      alarm: spill((d) => [0, 0.22, 0.44].forEach((t) => d(C6, t, 0.1, 0.24))),
+      bom: spill((d, c, n) => {
+        stoy(0, 1.1, 0.5, 400, "lowpass");
+        sinus(c, 110, n, 0.9, 0.5, 40, 0.8, 0.01);
+      }),
+      hjerteslag: spill((d, c, n) => {
+        sinus(c, 70, n, 0.14, 0.5, 50, 0.12, 0.01);
+        sinus(c, 70, n + 0.16, 0.14, 0.4, 50, 0.12, 0.01);
+      }),
     };
   })();
 
