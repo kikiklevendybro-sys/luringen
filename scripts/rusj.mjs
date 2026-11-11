@@ -114,8 +114,14 @@ export function seoFor(seo, m) {
 // ---------- <head>, the same for every page (also Luringen, see scripts/bygg.mjs) ----------
 
 // o: tittel, ogTittel, beskrivelse, sti (leave out for a page that must not be indexed), noindex,
-// kortnavn, ikon (svg), pngIkon, appleIkon, deling (share image) + delingAlt, css [], htmlAttr,
-// jsonld (structured data: printed as an inline data block, which the CSP allows – it is not run).
+// kortnavn, ikon (svg), pngIkon, appleIkon, deling (share image) + delingAlt, css [], skript [],
+// htmlAttr, jsonld (structured data: printed as an inline data block, which the CSP allows – it is
+// not run).
+// Scripts go in the <head> with `defer`, never at the end of <body>: the Content-Security-Policy
+// <meta> switches off the browser's look-ahead loading for everything after it, so scripts at the
+// end of the page were fetched one at a time, each waiting for the one before (a game was playable
+// 1.7–2.9 s later on a slow phone link). Deferred scripts are all found at once, load side by
+// side, and still run in this order after the page has been read – exactly when they ran before.
 export function hode(o) {
   const url = o.sti ? `${DOMENE}${o.sti}` : null;
   const linjer = [
@@ -150,6 +156,7 @@ export function hode(o) {
     o.ikon && `<link rel="icon" href="${o.ikon}" type="image/svg+xml">`,
     o.appleIkon && `<link rel="apple-touch-icon" href="${o.appleIkon}">`,
     ...(o.css || []).map((c) => `<link rel="stylesheet" href="${c}">`),
+    ...(o.skript || []).map((s) => `<script defer src="${s}"></script>`),
     o.jsonld && `<script type="application/ld+json">${JSON.stringify(o.jsonld).replace(/</g, "\\u003c")}</script>`,
   ];
   return `<!doctype html>\n<html lang="nb"${o.htmlAttr || ""}>\n<head>\n${linjer.filter(Boolean).join("\n")}\n</head>`;
@@ -331,7 +338,6 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
 
   const spill = lesSpill(ROT, utvalg);
   const LOGO = G.logo();
-  const spillFiler = []; // every game page and its files, stored by the service worker on install
   // Every game can suggest the others (also those not built in a partial test build).
   const alleSpillKort = [...(luringen ? [luringen] : []), ...lesSpill(ROT, null)].sort((a, b) => a.rekkefolge - b.rekkefolge);
 
@@ -389,7 +395,6 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
     if (existsSync(join(m.mappe, "spill.css"))) css.push(skriv(`${id}/spill.css`, readFileSync(join(m.mappe, "spill.css"), "utf8")));
     const ikon = skriv(`${id}/ikon.svg`, ikonSvg(G, id));
     const deling = existsSync(join(BILDER, `deling-${id}.png`)) ? kopier(join(BILDER, `deling-${id}.png`), `${id}/deling.png`) : ikoner.deling;
-    spillFiler.push(`/${id}/`, dataSti, spillSti, ...css.slice(1), ikon); // offline: the whole game
 
     const skript = [felles.gjengen, felles.js];
     if (m.qr) skript.push(felles.qr);
@@ -410,6 +415,7 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
       deling,
       delingAlt: `${m.navn} – ${sd.frase}. Gratis på rusj.no`,
       css,
+      skript,
       htmlAttr: ` data-spill="${id}" style="--aksent: ${m.farge}; --aksent-dyp: ${dyp}"`,
       jsonld: spillJsonLd(m, sd, deling),
     })}
@@ -443,7 +449,6 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="vh" id="si" aria-live="polite"></div>
 ${STEMPEL_FILTER}
-${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
 </body>
 </html>
 `;
@@ -515,6 +520,7 @@ ${skript.map((s) => `<script src="${s}"></script>`).join("\n")}
     deling: ikoner.deling,
     delingAlt: "rusj – gratis spill og selskapsleker på norsk",
     css: [felles.css, portalCss],
+    skript: [portalData, portalJs],
     jsonld: {
       "@context": "https://schema.org",
       "@graph": [
@@ -616,8 +622,6 @@ ${kort}
   </section>
 </main>
 ${bunn(false)}
-<script src="${portalData}"></script>
-<script src="${portalJs}"></script>
 </body>
 </html>
 `;
@@ -630,7 +634,7 @@ ${bunn(false)}
   // leave the contact line out.
   const KONTAKT = "rusj@odkdigital.no";
   const POSTADRESSE = ""; // the owner wants only the e-mail address shown
-  const omSide = (o) => `${hodeMed({ tittel: o.tittel, ogTittel: o.ogTittel, beskrivelse: o.beskrivelse, sti: o.sti, ikon: ikoner.svg, deling: ikoner.deling, delingAlt: "rusj – gratis spill og selskapsleker på norsk", css: [felles.css, portalCss] })}
+  const omSide = (o) => `${hodeMed({ tittel: o.tittel, ogTittel: o.ogTittel, beskrivelse: o.beskrivelse, sti: o.sti, ikon: ikoner.svg, deling: ikoner.deling, delingAlt: "rusj – gratis spill og selskapsleker på norsk", css: [felles.css, portalCss], skript: o.skript ? [o.skript] : [] })}
 <body class="portal">
 <div class="scene" aria-hidden="true"></div>
 <header class="side-topp"><a class="side-hjem" href="/" aria-label="rusj – til alle spillene">${G.logo()}</a></header>
@@ -639,7 +643,6 @@ ${bunn(false)}
 ${o.innhold}
 </main>
 ${bunn(true)}
-${o.skript ? `<script src="${o.skript}"></script>` : ""}
 </body>
 </html>
 `;
@@ -668,7 +671,7 @@ ${o.skript ? `<script src="${o.skript}"></script>` : ""}
 
   <section aria-labelledby="pv-nett">
     <h2 id="pv-nett">Spillene lastes ned for bruk uten nett</h2>
-    <p>Når du åpner rusj, laster nettleseren ned en kopi av alle spillene og lagrer den på enheten, slik at de virker også uten nett. Kopien byttes ut når spillene oppdateres.</p>
+    <p>Når du åpner rusj, lagrer nettleseren en kopi av siden du er på. Resten av spillene lastes ned litt etter litt mens mobilen står i ro (ikke på svært tregt nett eller med datasparing på), slik at de virker også uten nett. Kopien byttes ut når spillene oppdateres.</p>
   </section>
 
   <section aria-labelledby="pv-vert">
@@ -765,20 +768,34 @@ ${
   );
 
   // ---------- Manifest, favicon, robots, sitemap ----------
+  // Shortcuts (long press on the app icon): the three daily puzzles and «Overrask meg». Only games
+  // that are in this build. No `orientation`: the games lay themselves out on a phone on its side.
+  // (No `screenshots` yet: they need images made for the purpose and committed in rusj/bilder.)
+  const snarvei = (navn, beskrivelse, url, ikon) => ({ name: navn, description: beskrivelse, url, icons: [{ src: ikon, sizes: "any", type: "image/svg+xml" }] });
+  const harSpill = (id) => spill.some((m) => m.id === id);
+  const snarveier = [
+    harSpill("ordugla") && snarvei("Dagens ord", "Gjett dagens ord på fem bokstaver", "/ordugla/", "/ordugla/ikon.svg"),
+    harSpill("blyanten") && snarvei("Dagens kryss", "Løs dagens lille kryssord", "/blyanten/", "/blyanten/ikon.svg"),
+    harSpill("tallknuseren") && snarvei("Sudoku", "Dagens sudoku, eller så mange du vil", "/tallknuseren/", "/tallknuseren/ikon.svg"),
+    ikoner.svg && snarvei("Overrask meg", "La rusj velge et spill", "/#overrask", ikoner.svg.split("?")[0]),
+  ].filter(Boolean);
   skriv(
     "manifest.webmanifest",
     JSON.stringify(
       {
+        id: "/",
         name: "rusj – spill for hele gjengen",
         short_name: "rusj",
         description: "Gratis spill og selskapsleker på norsk, rett i nettleseren.",
         lang: "nb",
+        dir: "ltr",
+        categories: ["games", "entertainment"],
         start_url: "/",
         scope: "/",
         display: "standalone",
-        orientation: "portrait",
         background_color: "#150c28",
         theme_color: "#150c28",
+        shortcuts: snarveier,
         icons: [
           ikoner.p192 && { src: ikoner.p192.split("?")[0], sizes: "192x192", type: "image/png" },
           ikoner.p512 && { src: ikoner.p512.split("?")[0], sizes: "512x512", type: "image/png" },
@@ -826,7 +843,10 @@ ${
   return {
     spill,
     filer,
-    forhand: [...Object.values(felles), portalCss, portalJs, portalData, siderJs, "/om/", "/personvern/", ...Object.values(ikoner).filter((f) => f && !/deling/.test(f)), ...spillFiler],
+    // What the service worker keeps for playing without a connection: every page, the front page
+    // first, then the games in front-page order. Which files a page needs, the worker reads from
+    // the page itself (every address with ?v=), so there is no second list to keep in step.
+    sider: ["/", ...alleKort.map((m) => `/${m.id}/`), "/om/", "/personvern/"],
   };
 }
 

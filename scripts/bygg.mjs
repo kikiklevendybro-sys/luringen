@@ -3,8 +3,11 @@
 //   build/ord.json        merged word list (used by the tests and several games)
 //   dist/web/             the website: front page, /luringen/, one folder per rusj game, offline support
 //   dist/luringen.html    Luringen as one page without <html>/<head> (for the Claude artifact)
+// Options: --ut <dir> (build somewhere else), --spill id1,id2 (only these games),
+//          --sw-av (emergency: publish a service worker that removes itself; the same happens
+//          when the file rusj/SW-AV exists, so the brake can be pulled with a commit – rusj/DRIFT.md)
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, rmSync, readdirSync } from "node:fs";
-import { byggRusj, esc, hode as lagHode, lesSeo, seoFor, spillJsonLd } from "./rusj.mjs";
+import { byggRusj, esc, hode as lagHode, lesSeo, seoFor, spillJsonLd, DOMENE } from "./rusj.mjs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
@@ -137,7 +140,7 @@ const tomHjem = '<section class="skjerm" id="s-hjem" aria-labelledby="t-hjem"></
 if (!kropp.includes(tomHjem) || !kropp.includes("<script>/*SKRIPT*/</script>")) throw new Error("Fant ikke plassholderne i src/page.html");
 const webKropp = kropp
   .replace(tomHjem, () => `<section class="skjerm" id="s-hjem" aria-labelledby="t-hjem"><h1 id="t-hjem">Luringen</h1><p>${esc(lurSeo.beskrivelse)}</p></section>`)
-  .replace("<script>/*SKRIPT*/</script>", `<script src="/luringen/luringen.js?v=${v(lurJs)}"></script>`);
+  .replace("<script>/*SKRIPT*/</script>", ""); // on the website the script is a file, deferred in the <head> (see hode() in rusj.mjs)
 const index = `${lagHode({
   tittel: lurSeo.tittel,
   ogTittel: lurSeo.ogTittel,
@@ -150,6 +153,7 @@ const index = `${lagHode({
   deling: lurBilde,
   delingAlt: `Luringen – ${lurSeo.frase}. Gratis på rusj.no`,
   css: [`/luringen/luringen.css?v=${v(lurCss)}`],
+  skript: [`/luringen/luringen.js?v=${v(lurJs)}`],
   jsonld: spillJsonLd(LURINGEN_KORT, lurSeo, lurBilde),
 })}
 <body>
@@ -161,18 +165,57 @@ writeFileSync(join(LUR, "index.html"), index);
 
 const rusj = byggRusj({ ROT, WEB, ordData: data, utvalg, luringen: utvalg && !utvalg.includes("luringen") ? null : LURINGEN_KORT });
 
-// Offline support for the whole site (one service worker at the root).
-// Every page and file is stored on install, so all games work offline — also ones never opened.
-const swFiler = [
-  "/",
-  "/manifest.webmanifest",
-  ...rusj.forhand,
-  "/luringen/",
-  `/luringen/luringen.css?v=${v(lurCss)}`,
-  `/luringen/luringen.js?v=${v(lurJs)}`,
-  "/luringen/ikon.svg",
-  "/luringen/ikon-180.png",
-];
+// ---------- Offline support: one service worker at the root (rusj/kit/sw.js) ----------
+// The worker gets three things from the build:
+//   SIDER   every page with a hash of its content, the front page first, then the games in
+//           front-page order. The worker stores the front page at once, the page being visited,
+//           and the rest when the phone is idle (not on Save-Data or 2G). Which files a page needs
+//           it reads from the page itself (every address with ?v=<content hash>).
+//   EKSTRA  the few other files without a hash in their address (manifest, Luringen's icons).
+//   VERSJON a hash of every published file. It is what makes sw.js differ from the last build, and
+//           that difference is what makes browsers install the new worker (they compare the bytes
+//           of sw.js on every visit). The hashes in SIDER then tell the worker exactly which pages
+//           changed – only those are fetched again.
+// Hashes are FNV-1a over the bytes of the file; the worker computes the same over what it fetched.
+const innholdHash = (sti) => hashTekst(readFileSync(join(WEB, sti.endsWith("/") ? sti + "index.html" : sti)).toString("latin1")).toString(36);
+const medHash = (stier) => stier.filter((sti) => existsSync(join(WEB, sti.endsWith("/") ? sti + "index.html" : sti))).map((sti) => [sti, innholdHash(sti)]);
+const swSider = medHash([...new Set([...rusj.sider, "/luringen/"])]);
+const swEkstra = medHash(["/manifest.webmanifest", "/luringen/ikon.svg", "/luringen/ikon-180.png"]);
+
+// The page the worker shows when a page is neither stored nor reachable. It travels inside sw.js as
+// a string, so it needs no stored file and no request: styles inline, no script, no images.
+const frakoblet = `<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#150c28">
+<meta name="color-scheme" content="dark">
+<title>Uten nett | rusj</title>
+<style>
+html{height:100%;background:#150c28;color:#fff1dd;font:400 1.05rem/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{min-height:100%;margin:0;display:flex;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));box-sizing:border-box;text-align:center}
+main{max-width:26rem}
+h1{margin:0 0 .4em;font:900 2rem/1.15 ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",system-ui,sans-serif;letter-spacing:-.02em}
+p{margin:0 0 1.4em;color:#cdbce9}
+a{color:#ffd23f;font-weight:700}
+a.knapp{display:inline-block;padding:14px 26px;border-radius:18px;background:#ffd23f;box-shadow:0 5px 0 #c4930f;color:#170e2b;font:900 1.1rem/1.2 ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",system-ui,sans-serif;text-decoration:none}
+a:focus-visible{outline:3px solid #ffd23f;outline-offset:3px}
+</style>
+</head>
+<body>
+<main>
+<h1>Du er uten nett</h1>
+<p>Denne siden er ikke lagret på enheten ennå. Spill du har åpnet før, virker fortsatt.</p>
+<p><a class="knapp" href="/">Til forsiden</a></p>
+<p><a href="">Prøv igjen</a></p>
+</main>
+</body>
+</html>
+`;
+
 // The version follows the content of every published file (a change of the same length counts too).
 const swVersjon = hashTekst(
   readdirSync(WEB, { recursive: true })
@@ -189,7 +232,40 @@ const swVersjon = hashTekst(
     })
     .join("|"),
 ).toString(36);
-writeFileSync(join(WEB, "sw.js"), kilde("../rusj/kit/sw.js").replace("__VERSJON__", swVersjon).replace("__FILER__", JSON.stringify(swFiler)));
+
+// Emergency brake (--sw-av, or a file rusj/SW-AV in the repository): a worker that deletes what rusj
+// has stored for offline use and removes itself. Publish it when a faulty worker is out; publish a
+// normal build again afterwards. The procedure is in rusj/DRIFT.md.
+const swAv = process.argv.includes("--sw-av") || existsSync(join(ROT, "rusj/SW-AV"));
+const SW_AV = `// rusj: emergency worker (built ${new Date().toISOString().slice(0, 10)} with --sw-av). It deletes the offline copy and removes
+// itself; the pages then load straight from ${DOMENE}. See rusj/DRIFT.md.
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (e) => {
+  e.waitUntil(
+    (async () => {
+      const lagre = await caches.keys();
+      for (const navn of lagre) await caches.delete(navn);
+      const sider = await self.clients.matchAll({ type: "window" });
+      await self.registration.unregister();
+      // Pages that ran on the stored copy are reloaded once, so they get their files from the host.
+      // Only when there was a copy to delete: every page registers /sw.js again when it loads, and
+      // that must never become a reload loop.
+      if (lagre.length) for (const k of sider) k.navigate(k.url).catch(() => {});
+    })(),
+  );
+});
+`;
+const swKilde = kilde("../rusj/kit/sw.js");
+for (const merke of ["__VERSJON__", "__SIDER__", "__EKSTRA__", "__FRAKOBLET__"]) if (swKilde.split(merke).length !== 2) throw new Error(`rusj/kit/sw.js: ${merke} skal stå nøyaktig én gang`);
+const sw = swAv
+  ? SW_AV
+  : swKilde
+      .replace("__VERSJON__", () => swVersjon)
+      .replace("__SIDER__", () => JSON.stringify(swSider))
+      .replace("__EKSTRA__", () => JSON.stringify(swEkstra))
+      .replace("__FRAKOBLET__", () => JSON.stringify(frakoblet));
+writeFileSync(join(WEB, "sw.js"), sw);
+if (swAv) console.log("⚠ sw.js er NØDBREMSEN: den sletter kopien for bruk uten nett og fjerner seg selv (rusj/DRIFT.md)");
 
 const kb = (fil) => Math.round(readFileSync(fil).length / 1024);
 console.log(`✓ ${antall} ord i ${kategorier.length} kategorier (hash ${data.hash})`);

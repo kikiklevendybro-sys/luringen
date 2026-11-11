@@ -213,7 +213,7 @@ test("structured data parses and agrees with the page: the front page lists the 
 test("the pages about rusj: the delete button and what the privacy page must say; a contact line", () => {
   const pv = sider.find((s) => s.sti === "/personvern/").html;
   assert.match(pv, /<button type="button" class="knapp rod" id="slett-alt">Slett alt rusj har lagret på denne enheten<\/button>/);
-  assert.match(pv, /<script src="\/felles\/sider\.js\?v=[a-z0-9]+"><\/script>/);
+  assert.match(pv, /<script defer src="\/felles\/sider\.js\?v=[a-z0-9]+"><\/script>/);
   for (const ord of ["localStorage", "informasjonskapsler", "GitHub Pages", "IP-adressen", "utenfor EU/EØS", "uten nett", "Ingen konto", "sporing", "reklame"]) assert.ok(pv.includes(ord), `personvernsiden mangler «${ord}»`);
   const om = sider.find((s) => s.sti === "/om/").html;
   // The contact line is only printed once the owner has set a real address; never a placeholder.
