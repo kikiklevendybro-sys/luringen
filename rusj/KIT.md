@@ -139,6 +139,37 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
   game's saved state and starts fresh with a toast. Still validate in `lastet(S)` — and bump `versjon`
   when the shape of `S` changes.
 
+## Accessibility the kit does for you (and how not to undo it)
+
+- **Secret card (`R.ui.mappe`):** a finger holds it, as before. A keyboard, a screen reader's
+  double tap, a switch or voice control shows it with **one press** and hides it with the next (no
+  timing); Escape, leaving it with Tab, or a press elsewhere also hide it. The back is
+  `aria-hidden` and never part of the button's name: while it shows, its text is a line in `#si`
+  (only the player's own screen reader reads it) and that line is removed when it hides.
+  `hemmelig.sett` is called on hide either way. Rules: never put the secret in `etikettAria`;
+  if the back's text reads badly (icons, stars), return `si: "plain sentence"` from
+  `hemmelig.innhold` next to `html`. Don't build your own peek button — use the card.
+- **One voice (`R.si`):** `#si` is the only polite live region. `R.si(tekst)` queues a line (two
+  calls in a row are both spoken). Status lines inside the screen (`aria-live="polite"`,
+  `role="status"`, `<output>`, or mark one with `data-si`) are switched off by the kit and read out
+  through `#si` **when their text changes** — a redraw no longer makes them silent or double. Don't
+  call `R.si` with the same text as your status line; do call it for news that has no line on screen.
+  Toasts are read out too, and stay 2.2–8 s depending on length.
+- **Focus survives redraws:** after `R.vis`, the countdown, a closed sheet or any change of
+  `#skjerm`, focus goes back to the same control, else to the element with `data-fokus` (mark the
+  natural next control, e.g. the cell just played), else to one of the same kind, else to the h1.
+- **Dock:** `--dokk-h` + `scroll-padding-bottom` keep the focused control clear of the dock.
+- **Focus ring:** two tones (accent ring + ink band). On a light board of your own set
+  `--fokus: var(--blekk); --fokus-2: transparent;` — the kit also swaps the ring to ink/cream by
+  itself where the accent would be under 3:1.
+- **Contrast:** `--tekst-3`, `--rosa`, `--mynte`, `--lampe` are for the dark page only. On paper use
+  `--blekk`, `--blekk-2`, `--rosa-dyp`, `--rod-dyp`, `#0f6e54` (green), `#1f66a8` (blue); on tinted or
+  lit surfaces use `--tekst-2`. Stamps on paper switch to the deep colours by themselves.
+- Sheets and the countdown make `.app` inert. A failed save gives one calm toast. An exception after
+  the first screen gives a sheet with «Prøv videre» / «Start spillet på nytt».
+- Check it: `node test/rusj-e2e.mjs … --a11y build/a11y-navn id` then
+  `node test/a11y/sammendrag.mjs build/a11y-navn` (findings and key numbers; never fails a run).
+
 ## Landscape phones
 
 On a phone on its side — `@media (orientation: landscape) and (max-height: 500px)`, e.g. 844×390 and

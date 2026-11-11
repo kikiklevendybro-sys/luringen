@@ -12,8 +12,21 @@ export default async function (t) {
   await t.start({ navn: NAVN });
   await t.klikk('[data-h="nytt"]');
   t.sjekk((await t.antall(".spiller")) === 4, "Oppsettet viser ikke de fire lagrede spillerne");
+  // The kit's stepper is drawn anew by every press. Focus must stay with it — on the other button
+  // when the one that was pressed has reached its limit — and the new number is read out through
+  // the kit's one live region (the number on the screen is switched off: it would say nothing).
+  await t.js(`document.querySelector('[data-h="runder"][data-v="-1"]').focus()`);
   await t.klikk('[data-h="runder"][data-v="-1"]');
   t.sjekk((await t.tilstand()).oppsett.runder === 1, "Antall runder endret seg ikke");
+  t.sjekk(await t.js(`!!document.activeElement && document.activeElement.dataset.h === "runder" && document.activeElement.dataset.v === "1"`), "Fokus ble ikke med til «Flere runder» da «Færre runder» nådde bunnen");
+  t.sjekk(await t.js(`document.querySelector(".teller output").getAttribute("aria-live") === "off"`), "Tallet i telleren er fortsatt en egen live-region (leses to ganger, eller aldri)");
+  let lest = true;
+  try {
+    await t.vent(`/1 runde/.test(document.querySelector("#si").textContent)`, 2000);
+  } catch (e) {
+    lest = false;
+  }
+  t.sjekk(lest, "Det nye tallet i telleren ble ikke lest opp (#si)");
   await t.bilde("oppsett", true);
   await t.klikk('[data-h="vis-temaer"]');
   await t.klikk('#ark [data-h="temavalg"][data-v="mat"]');

@@ -113,11 +113,30 @@
       return standard;
     }
   };
+  // A browser that will not save (private mode, storage switched off, or full): the game still
+  // works, it just forgets. That is said once, calmly, when a game is on the screen — see
+  // meldLagring. Returns true when the value was saved.
+  let lagringFeilet = false;
+  let lagringMeldt = false;
+  let spillVises = false; // true from the game's first screen: before that there is no toast to show it in
+  const LAGRING_TEKST = "Nettleseren lar oss ikke lagre – spillet virker, men huskes ikke";
+  function meldLagring() {
+    if (!lagringFeilet || lagringMeldt || !spillVises) return;
+    lagringMeldt = true;
+    try {
+      R.toast(LAGRING_TEKST);
+    } catch (e) {
+      lagringMeldt = false;
+    }
+  }
   R.skriv = (nokkel, verdi) => {
     try {
       localStorage.setItem(PREFIKS + nokkel, JSON.stringify(verdi));
+      return true;
     } catch (e) {
-      /* private mode or full: the game still works, it just forgets */
+      lagringFeilet = true;
+      meldLagring();
+      return false;
     }
   };
   R.fjern = (nokkel) => {
@@ -489,17 +508,293 @@
   };
 
   // ---------- Live announcements for screen readers ----------
+  // One polite region (#si, in the page from the start, never redrawn) is the kit's only voice.
+  // Every message is a line of its own in it: two messages in a row are both spoken, and a line
+  // is taken away again when a screen reader has had time to read it.
 
-  R.si = (tekst) => {
-    const el = $("#si");
-    if (!el) return;
-    el.textContent = "";
-    setTimeout(() => {
-      el.textContent = tekst;
-    }, 30);
+  const siNorm = (t) => String(t == null ? "" : t).replace(/\s+/g, " ").trim();
+  let siITur = false; // the game spoke for itself in this turn of the event loop
+  let siSagt = []; // what was said in the last second and a half: [text, time, by the kit itself?]
+  const siNylig = (tekst, avKit) => {
+    const na = performance.now();
+    siSagt = siSagt.filter((s) => na - s[1] < 1500);
+    return siSagt.some((s) => s[0] === tekst && (avKit == null || s[2] === avKit));
   };
+  // varig: the line stays until the caller removes it (the back of a secret card, while it shows).
+  function siLinje(tekst, varig) {
+    const el = $("#si");
+    tekst = siNorm(tekst);
+    if (!el || !tekst) return null;
+    const p = document.createElement("p");
+    p.textContent = tekst;
+    el.appendChild(p);
+    while (el.children.length > 8) el.firstElementChild.remove();
+    if (!varig) setTimeout(() => p.remove(), Math.min(15000, 4000 + 70 * tekst.length));
+    return p;
+  }
+  R.si = (tekst) => {
+    tekst = siNorm(tekst);
+    if (!tekst) return;
+    siITur = true;
+    setTimeout(() => {
+      siITur = false;
+    }, 0);
+    // The kit said the very same thing a moment ago (a status line, a toast): once is enough.
+    if (siNylig(tekst, true)) return;
+    siSagt.push([tekst, performance.now(), false]);
+    // (A moment later: a message said just before a change of screen is for the new screen, and
+    // R.gaTil empties #si as it leaves the old one.)
+    setTimeout(() => siLinje(tekst), 30);
+  };
+  // The kit's own messages (status lines, toasts): never twice, and not on top of the game's own words.
+  function siKit(tekst) {
+    tekst = siNorm(tekst);
+    if (!tekst || siNylig(tekst)) return null;
+    siSagt.push([tekst, performance.now(), true]);
+    return siLinje(tekst);
+  }
+
+  // ---------- Status lines: one voice ----------
+  // A status line inside the screen (aria-live="polite", role="status", <output>, or data-si) is
+  // made anew by every redraw, and a live region that arrives with its text already in it is not
+  // read by most screen readers. So the kit reads them out itself: it switches the regions off
+  // (aria-live="off", so nothing is ever said twice), remembers what each one said, and says what
+  // changed through #si. Assertive regions and role="alert" are left as the game made them.
+  // A game that says something itself with R.si during the same action is not talked over.
+
+  const STATUS = '[aria-live="polite"], [role="status"]:not([aria-live]), output:not([aria-live]), [data-si]:not([aria-live])';
+  const statusMinne = new Map(); // key → what that line says now
+  const statusLinje = new Map(); // key → its line in #si, so a newer text replaces an unread older one
+  let statusVenter = 0;
+  let statusStille = false;
+  const statusRotter = () => [$("#skjerm"), $("#ark-innhold")].filter(Boolean);
+  // The regions that have come since last time: off for the screen reader, marked as the kit's.
+  function statusOverta() {
+    for (const rot of statusRotter())
+      for (const el of rot.querySelectorAll(STATUS)) {
+        el.setAttribute("aria-live", "off");
+        el.setAttribute("data-si", "");
+      }
+  }
+  function statusLes() {
+    const ut = [];
+    statusOverta();
+    for (const rot of statusRotter()) {
+      const sett = new Map();
+      for (const el of rot.querySelectorAll("[data-si]")) {
+        if (el.closest('[hidden], [aria-hidden="true"]')) continue;
+        const slag = rot.id + " " + (el.id ? "#" + el.id : el.tagName + "." + (el.classList[0] || ""));
+        const nr = (sett.get(slag) || 0) + 1;
+        sett.set(slag, nr);
+        ut.push([slag + " " + nr, siNorm(el.textContent)]);
+      }
+    }
+    return ut;
+  }
+  // stille: only remember what the lines say (a new screen or sheet: its heading gets focus and is
+  // read; what is on it from the start is not news).
+  function statusSjekk(stille) {
+    clearTimeout(statusVenter);
+    statusVenter = 0;
+    const hopp = stille || statusStille;
+    statusStille = false;
+    const na = statusLes();
+    const nytt = hopp ? [] : na.filter(([nokkel, tekst]) => tekst && statusMinne.get(nokkel) !== tekst);
+    statusMinne.clear();
+    for (const [nokkel, tekst] of na) statusMinne.set(nokkel, tekst);
+    for (const [nokkel, tekst] of nytt) {
+      const forrige = statusLinje.get(nokkel);
+      if (forrige) forrige.remove();
+      const linje = siKit(tekst);
+      if (linje) statusLinje.set(nokkel, linje);
+      else statusLinje.delete(nokkel);
+    }
+  }
+  // Something in the screen changed. Wait a moment, so a row of quick changes (several redraws in
+  // one action, a number counting up) is read once, as it ended.
+  function statusEndret() {
+    if (siITur) statusStille = true;
+    if (!statusVenter) statusVenter = setTimeout(() => statusSjekk(false), 120);
+  }
+
+  // ---------- Focus that survives ----------
+  // A redraw replaces the control that had focus, and the browser then drops focus to <body>: a
+  // screen-reader user is thrown to the top of the page, a keyboard user tabs from the start.
+  // The kit puts focus back: on the same control when it is still there, else where the game
+  // points (data-fokus on the natural next control), else on a control of the same kind, else on
+  // the screen's heading. It only does so when focus was in the screen and was lost — never when
+  // nothing had focus, or when it was put down on purpose.
+
+  let sistFokus = null; // the control that last had focus inside the screen or the sheet
+  const iBruk = (el) => !!el && el.isConnected && !el.disabled && !el.closest("[inert], [hidden]");
+  const kanFokuseres = (el) => iBruk(el) && el.getClientRects().length > 0;
+  function beskrivFokus(el) {
+    const rot = el && el.closest ? el.closest("#ark-innhold, #skjerm") : null;
+    if (!rot) return null;
+    const d = el.dataset || {};
+    // (Its kind — tag and first class — and its number among those, for controls with no name.)
+    const slag = el.tagName.toLowerCase() + (el.classList && el.classList[0] ? "." + CSS.escape(el.classList[0]) : "");
+    const like = $$(slag, rot);
+    return {
+      el,
+      rot: rot.id,
+      id: el.id,
+      h: d.h,
+      data: Object.keys(d).map((k) => [k, d[k]]),
+      nr: d.h != null ? $$(`[data-h="${CSS.escape(d.h)}"]`, rot).indexOf(el) : -1,
+      slag,
+      slagNr: like.indexOf(el),
+      slagAntall: like.length,
+    };
+  }
+  // The same control in the screen as it is now (after a redraw), or null.
+  function finnIgjen(f) {
+    const rot = f && document.getElementById(f.rot);
+    if (!rot) return null;
+    const ok = (el) => (el && rot.contains(el) && kanFokuseres(el) ? el : null);
+    let ny = f.id ? ok(document.getElementById(f.id)) : null;
+    if (!ny && f.h != null) {
+      const like = $$(`[data-h="${CSS.escape(f.h)}"]`, rot);
+      ny = ok(like.find((k) => Object.keys(k.dataset).length === f.data.length && f.data.every(([n, v]) => k.dataset[n] === v)));
+      const v = f.data.find(([n]) => n === "v");
+      if (!ny && v) ny = ok(like.find((k) => k.dataset.v === v[1]));
+    }
+    if (!ny && f.h == null) {
+      // A secret card, a name field, a field of the game's own: found again by what it is for.
+      const egen = f.data.find(([n]) => n === "mappe" || n === "navn" || n === "felt");
+      if (egen) ny = ok(rot.querySelector(`[data-${egen[0]}="${CSS.escape(egen[1])}"]`));
+      // A control the game handles itself: the same one of its kind, when there are as many as before.
+      if (!ny && !egen && f.slagNr >= 0) {
+        const like = $$(f.slag, rot);
+        if (like.length === f.slagAntall) ny = ok(like[f.slagNr]);
+      }
+    }
+    return ny;
+  }
+  // Where focus goes when the control is gone (f may be null: then the game's wish or the heading).
+  function fokusReserve(f, rotId) {
+    const rot = document.getElementById((f && f.rot) || rotId || "skjerm");
+    if (!rot || rot.closest("[inert], [hidden]")) return null;
+    let ny = $$("[data-fokus]", rot).find(kanFokuseres) || null;
+    if (!ny && f && f.h != null && f.nr >= 0) {
+      const like = $$(`[data-h="${CSS.escape(f.h)}"]`, rot).filter(kanFokuseres);
+      ny = like[Math.min(f.nr, like.length - 1)] || null;
+    }
+    return ny || rot.querySelector("h1, h2") || rot;
+  }
+  function fokuser(el) {
+    if (!el) return;
+    try {
+      // (A heading or the screen itself takes focus from a script, never from the Tab key.)
+      if (el.tabIndex < 0 && !el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+      el.focus({ preventScroll: true });
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  const utenFokus = () => {
+    const a = document.activeElement;
+    return !a || a === document.body || a === document.documentElement || !iBruk(a);
+  };
+  // Called after every change in the screen: give focus back if the change took it away.
+  function reddFokus() {
+    const f = sistFokus;
+    if (!f || !utenFokus() || nedteller) return; // (the countdown gives focus back itself)
+    if (iBruk(f.el)) return; // still there: focus was put down on purpose
+    fokuser(finnIgjen(f) || fokusReserve(f));
+  }
+  document.addEventListener(
+    "focusin",
+    (e) => {
+      sistFokus = beskrivFokus(e.target);
+      fokusring(e.target);
+    },
+    true,
+  );
+
+  // ---------- A focus ring that shows on any ground ----------
+  // The ring is the game's accent colour, made for the dark page (rusj.css adds a band of ink
+  // inside it). On a paper card or a coloured board the accent can vanish: yellow on cream, blue
+  // on blue. So when a control takes keyboard focus, the kit looks at the colour behind it, and
+  // where the accent does not stand out (3:1) the ring is drawn in ink or in cream instead,
+  // whichever shows best. A surface can also say it itself in CSS: --fokus (and --fokus-2).
+  function lesFarge(tekst) {
+    // "rgb(21, 12, 40)", "rgba(33, 20, 61, 0.6)" or — from color-mix() — "color(srgb 0.2 0.1 0.3 / 0.5)"
+    const m = /^(rgba?|color)\(([^)]*)\)/.exec(String(tekst || "").trim());
+    if (!m) return null;
+    const d = m[2].replace(/^srgb\s+/, "").split(/[\s,/]+/).filter(Boolean).map(Number);
+    if (d.length < 3 || d.some((v) => !isFinite(v))) return null;
+    const f = m[1] === "color" ? 255 : 1;
+    return [d[0] * f, d[1] * f, d[2] * f, d.length > 3 ? d[3] : 1];
+  }
+  const lys = (c) => {
+    const l = (v) => ((v /= 255) <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * l(c[0]) + 0.7152 * l(c[1]) + 0.0722 * l(c[2]);
+  };
+  const kontrast = (a, b) => (Math.max(lys(a), lys(b)) + 0.05) / (Math.min(lys(a), lys(b)) + 0.05);
+  // The colour behind an element: the backgrounds of its ancestors laid on top of each other, down
+  // to the page. null when a picture or a gradient without a colour under it is in the way.
+  function grunnfarge(el) {
+    const lag = [];
+    for (let e = el; e && e.nodeType === 1; e = e.parentElement) {
+      const s = getComputedStyle(e);
+      const f = lesFarge(s.backgroundColor);
+      if (f && f[3] > 0.02) {
+        lag.push(f);
+        if (f[3] >= 0.98) break;
+      } else if (s.backgroundImage && s.backgroundImage !== "none" && e !== document.body && e !== document.documentElement) return null;
+    }
+    let farge = [21, 12, 40]; // --natt, the page
+    for (let i = lag.length - 1; i >= 0; i--) farge = farge.map((v, k) => lag[i][k] * lag[i][3] + v * (1 - lag[i][3]));
+    return farge;
+  }
+  const BLEKK = [23, 14, 43];
+  const PAPIR = [255, 241, 221];
+  const ringSatt = typeof WeakSet !== "undefined" ? new WeakSet() : null; // controls whose ring colour the kit has set
+  function fokusring(el) {
+    try {
+      if (!ringSatt || !el || !el.matches || !el.matches(":focus-visible")) return;
+      if (ringSatt.has(el)) {
+        el.style.removeProperty("outline-color"); // judged anew every time
+        ringSatt.delete(el);
+      }
+      const s = getComputedStyle(el);
+      if (s.outlineStyle === "none" || !(parseFloat(s.outlineWidth) > 0)) return; // no ring: the control shows focus its own way
+      const ring = lesFarge(s.outlineColor);
+      // The ring is drawn outside the control (on what is behind it) unless it is pulled inside.
+      const bak = grunnfarge(parseFloat(s.outlineOffset) < 0 ? el : el.parentElement);
+      if (!ring || !bak || kontrast(ring, bak) >= 3) return;
+      el.style.outlineColor = kontrast(BLEKK, bak) >= kontrast(PAPIR, bak) ? "#170e2b" : "#fff1dd";
+      ringSatt.add(el);
+    } catch (e) {
+      /* the ring stays as the stylesheet made it */
+    }
+  }
+  document.addEventListener(
+    "focusout",
+    (e) => {
+      // Put down on purpose (blur(), a tap beside the buttons): nothing to give back later. Looked
+      // at a moment after, because a control that is being removed loses focus the same way —
+      // and that is the loss to mend.
+      const el = e.target;
+      if (e.relatedTarget) return;
+      setTimeout(() => {
+        if (sistFokus && sistFokus.el === el && iBruk(el)) sistFokus = null;
+      }, 0);
+    },
+    true,
+  );
 
   // ---------- Sheet, confirm, toast ----------
+
+  // While a sheet or the countdown covers the page, the page behind it is out of reach for
+  // everyone: no tabbing into it, and a screen reader cannot wander out of the dialog (TalkBack
+  // does not stop at aria-modal). The toast, #si and the sheet itself are outside .app.
+  let nedteller = false; // the countdown overlay is up
+  function settInert() {
+    const app = $(".app");
+    if (app) app.inert = nedteller || R.arkApent();
+  }
 
   let arkSvar = null;
   let arkFokus = null;
@@ -512,11 +807,14 @@
     const aktiv = document.activeElement;
     if (aktiv && aktiv !== document.body && !aktiv.closest("#ark")) {
       // Remember the element and how to find it again if the screen is redrawn meanwhile.
-      arkFokus = { el: aktiv, id: aktiv.id, h: aktiv.dataset && aktiv.dataset.h, v: aktiv.dataset && aktiv.dataset.v };
+      arkFokus = { el: aktiv, id: aktiv.id, f: beskrivFokus(aktiv) };
     }
+    if (apenMappe && apenMappe.closest("#ark")) lukkMappe(true); // a card in the sheet that is being replaced
     $("#ark-innhold").innerHTML = html;
     $("#ark").hidden = false;
+    settInert();
     flyttToast();
+    statusSjekk(true);
     const forste = $("#ark-innhold h2") || $("#ark-innhold button, #ark-innhold input");
     if (forste) {
       if (forste.tagName === "H2") forste.setAttribute("tabindex", "-1");
@@ -526,21 +824,18 @@
   R.lukkArk = () => {
     const ark = $("#ark");
     if (!ark || ark.hidden) return;
+    if (apenMappe && apenMappe.closest("#ark")) lukkMappe(true); // a secret card in the sheet goes with it
     ark.hidden = true;
     $("#ark-innhold").innerHTML = "";
+    settInert();
     const husk = arkFokus;
     arkFokus = null;
     if (husk) {
-      let mal = document.contains(husk.el) ? husk.el : null;
+      // Back to where the sheet was opened from — or, when that control is gone, as after a redraw.
+      let mal = kanFokuseres(husk.el) ? husk.el : null;
       if (!mal && husk.id) mal = document.getElementById(husk.id);
-      if (!mal && husk.h) mal = $(`#skjerm [data-h="${CSS.escape(husk.h)}"]${husk.v != null ? `[data-v="${CSS.escape(husk.v)}"]` : ""}`);
-      if (mal) {
-        try {
-          mal.focus({ preventScroll: true });
-        } catch (e) {
-          /* ignore */
-        }
-      }
+      if (!mal || !kanFokuseres(mal)) mal = husk.f ? finnIgjen(husk.f) || fokusReserve(husk.f) : null;
+      fokuser(mal);
     }
     if (arkSvar) {
       const svar = arkSvar;
@@ -558,7 +853,8 @@
     if (!$("#ark-innhold").contains(document.activeElement)) {
       e.preventDefault();
       forste.focus();
-    } else if (e.shiftKey && document.activeElement === forste) {
+    } else if (e.shiftKey && (document.activeElement === forste || document.activeElement.tagName === "H2")) {
+      // (Backwards from the first control — or from the heading, where focus starts — is the last one.)
       e.preventDefault();
       siste.focus();
     } else if (!e.shiftKey && document.activeElement === siste) {
@@ -599,11 +895,23 @@
 
   let toastId = null;
   let toastValg = null;
+  let toastVist = 0; // when the toast that is showing came up
+  // A toast stays long enough to be read: 2.2 s for a word or two, longer for a sentence
+  // (about 70 ms a character), at most 8 s.
+  const toastTid = (tekst) => Math.min(8000, Math.max(2200, 1500 + 70 * String(tekst).length));
+  R._toastTid = toastTid;
+  // The note about saving was cut short (a new screen, another toast): let it come once more.
+  const toastSlutt = (t) => {
+    if (t && t.textContent === LAGRING_TEKST && performance.now() - toastVist < 2500) lagringMeldt = false;
+  };
   R.skjulToast = () => {
     clearTimeout(toastId);
     toastValg = null;
     const t = $("#toast");
-    if (t) t.classList.remove("vis");
+    if (!t || !t.classList.contains("vis")) return;
+    toastSlutt(t);
+    t.classList.remove("vis");
+    t.setAttribute("aria-hidden", "true"); // gone for the eye, so gone for a screen reader too
   };
   // Is something of the screen (text, a button, a board, a card) painted inside this box?
   function opptatt(f) {
@@ -665,12 +973,23 @@
   // R.toast(tekst) or R.toast(tekst, { topp: true }) to always show it at the top.
   R.toast = (tekst, valg) => {
     const t = $("#toast");
+    if (!t) return;
+    if (t.classList.contains("vis")) toastSlutt(t);
+    // The toast is for the eye. A screen reader gets the text through #si like everything else:
+    // one voice, and a toast that comes again later is said again.
+    if (t.getAttribute("aria-live") !== "off") {
+      t.setAttribute("aria-live", "off");
+      t.removeAttribute("role");
+    }
+    t.removeAttribute("aria-hidden");
     t.textContent = tekst;
     toastValg = valg || {};
+    toastVist = performance.now();
     plasserToast();
     t.classList.add("vis");
     clearTimeout(toastId);
-    toastId = setTimeout(R.skjulToast, 2200);
+    toastId = setTimeout(R.skjulToast, toastTid(tekst));
+    siKit(tekst);
   };
   // A redraw or a sheet may have moved things under a toast that is showing: place it again.
   const flyttToast = () => {
@@ -712,10 +1031,12 @@
     ms = ms || 800;
     const fortsatt = R.vakt();
     const el = $("#nedtelling");
-    const hoved = $("#hoved");
+    // Where focus is now: it comes back there when the countdown is over.
+    const fokus = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
+    const husk = fokus ? { el: fokus, f: beskrivFokus(fokus) } : null;
     el.hidden = false;
-    if (hoved) hoved.inert = true; // no tabbing to buttons behind the countdown
-    const fokus = document.activeElement;
+    nedteller = true;
+    settInert(); // no tabbing to anything behind the countdown, the top bar included
     if (fokus && fokus.blur) fokus.blur(); // Enter/space must not re-trigger the button meanwhile
     for (let i = 0; i < liste.length; i++) {
       if (!fortsatt()) return false; // the screen changed: R.gaTil already hid the overlay
@@ -724,12 +1045,15 @@
       if (i < liste.length - 1 || /^\d+$/.test(t)) R.lyd.tikk();
       else R.lyd.pling();
       R.vibrer(20);
-      await R.vent(R.rolig() ? Math.min(ms, 500) : ms);
+      // (The same pace with «reduce motion»: the numbers are also spoken, and that takes its time.)
+      await R.vent(ms);
     }
     if (!fortsatt()) return false; // don't hide a newer countdown on the new screen
     el.hidden = true;
     el.innerHTML = "";
-    if (hoved) hoved.inert = false;
+    nedteller = false;
+    settInert();
+    if (husk && utenFokus()) fokuser(kanFokuseres(husk.el) ? husk.el : husk.f ? finnIgjen(husk.f) || fokusReserve(husk.f) : null);
     return true;
   };
 
@@ -1180,18 +1504,30 @@
     ).join("")}</div>`;
   };
 
-  // Hold-to-reveal card. The back is filled by def.hemmelig.innhold(S, id) while held.
-  ui.mappe = (o = {}) => `
-    <button class="mappe" data-mappe="${esc(o.id != null ? o.id : "kort")}" aria-label="${esc(o.etikettAria || "Hold inne for å se det hemmelige kortet")}">
+  // Hold-to-reveal card. The back is filled by def.hemmelig.innhold(S, id) while it shows.
+  // A finger holds it; a keyboard, a screen reader or a switch shows it with one press and hides
+  // it with the next (see «Hold-to-reveal» below). The back is never part of the button for a
+  // screen reader: what is on it is read out through #si, only while it shows.
+  ui.mappe = (o = {}) => {
+    const etikett = o.etikett || "Hemmelig";
+    const tekst = o.tekst || "Hold inne for å se";
+    // The name a screen reader says. The words printed on the card are part of it (so «trykk
+    // Topphemmelig» works with voice control): they are put in front when the game's own name
+    // for the card (etikettAria) leaves them out.
+    let navn = o.etikettAria || (o.etikett || o.tekst ? tekst : "Hold inne for å se det hemmelige kortet");
+    for (const del of [tekst, etikett]) if (!R.normaliser(navn).includes(R.normaliser(del))) navn = del + (/[.!?]$/.test(del) ? " " : ". ") + navn;
+    return `
+    <button class="mappe" data-mappe="${esc(o.id != null ? o.id : "kort")}" aria-expanded="false" aria-describedby="mappe-hint" aria-label="${esc(navn)}">
       <span class="mappe-indre">
         <span class="mappe-forside">
-          <span class="mappe-etikett">${esc(o.etikett || "Hemmelig")}</span>
+          <span class="mappe-etikett">${esc(etikett)}</span>
           ${R.figur(o.figur)}
-          <span class="mappe-finger">${FINGER}<span>${esc(o.tekst || "Hold inne for å se")}</span></span>
+          <span class="mappe-finger">${FINGER}<span>${esc(tekst)}</span></span>
         </span>
-        <span class="mappe-bakside" aria-live="polite"></span>
+        <span class="mappe-bakside" aria-hidden="true"></span>
       </span>
     </button>`;
+  };
 
   // Big card for question decks. o: { tekst | tekstHtml, etikett, nr, fot, klasse, sveip, kompakt }
   ui.storkort = (o = {}) => {
@@ -1335,8 +1671,9 @@
     });
   }
 
+  let startesPaNytt = false; // «Start spillet på nytt» was pressed: nothing is saved on the way out
   R.lagre = () => {
-    if (!APP) return;
+    if (!APP || startesPaNytt) return;
     S._tid = Date.now();
     // For the front page's «Fortsett» badge: is a game in progress? (APP.pagar decides if given.)
     try {
@@ -1430,6 +1767,7 @@
   // the right layout after the phone is turned.
   window.addEventListener("resize", () => {
     merkLiggende();
+    maalDokk();
     flyttToast();
   });
   merkLiggende(); // the page's first paint (the home screen in the HTML), before the game starts
@@ -1439,11 +1777,49 @@
     if (e.target && e.target.id === "skjerm") e.target.classList.remove("inn");
   });
 
+  // ---------- The dock never hides what has focus ----------
+  // The action area sticks to the bottom of the screen, on top of the page. The browser is told
+  // how much it covers (scroll-padding-bottom on <html>, see rusj.css), so a control that takes
+  // focus — Tab, a screen reader, a switch — is scrolled clear of it. Nothing is added when the
+  // dock is a column beside the content (landscape phones) or does not float at all.
+  let dokkVakt = null;
+  function maalDokk() {
+    const rot = document.documentElement;
+    const el = document.getElementById && document.getElementById("skjerm");
+    if (!el || !rot || !rot.style) return;
+    let h = 0;
+    if (R.liggende() !== "side") {
+      for (const d of el.querySelectorAll(".dokk")) {
+        const pos = getComputedStyle(d).position;
+        if (pos !== "sticky" && pos !== "fixed") continue;
+        const r = d.getBoundingClientRect();
+        if (r.width >= window.innerWidth * 0.6) h = Math.max(h, Math.round(r.height));
+      }
+    }
+    rot.style.setProperty("--dokk-h", h + "px");
+  }
+  // The dock of the screen that was just drawn: measured now, and again whenever it changes size.
+  let sisteDokk = null;
+  function folgDokk(el) {
+    sisteDokk = el.querySelector(".dokk");
+    maalDokk();
+    if (typeof ResizeObserver === "undefined") return;
+    if (!dokkVakt) dokkVakt = new ResizeObserver(maalDokk);
+    dokkVakt.disconnect();
+    for (const d of el.querySelectorAll(".dokk")) dokkVakt.observe(d);
+  }
+  // (A game that swaps the dock itself, outside a redraw: follow the new one.)
+  function finnDokk() {
+    const el = $("#skjerm");
+    if (el && el.querySelector(".dokk") !== sisteDokk) folgDokk(el);
+  }
+
   function tegn(valg) {
     const sk = skjermDef(S.skjerm);
     const el = $("#skjerm");
     el.innerHTML = sk.vis(S);
     el.className = "skjerm skjerm-" + S.skjerm;
+    statusOverta(); // the status lines of the screen are the kit's to read out
     merkLiggende(); // before sk.etter: games measure the screen there
     if (valg.animer) {
       void el.offsetWidth;
@@ -1454,6 +1830,8 @@
       sk.etter(S, el);
       merkIgjen();
     }
+    mappeEtterTegn(el);
+    folgDokk(el);
     flyttToast();
   }
   // A game hook (etter, inn) may have switched the game's own layout on or off (a class on <html>).
@@ -1486,10 +1864,11 @@
       ned.hidden = true;
       ned.innerHTML = "";
     }
-    const hoved = $("#hoved");
-    if (hoved) hoved.inert = false;
+    nedteller = false;
+    settInert();
     const si = $("#si");
     if (si) si.textContent = ""; // a screen-reader message (maybe a secret) must not outlive its screen
+    statusLinje.clear();
     skjermDef(navn);
     S.skjerm = navn;
     sisteSkjermbytte = performance.now(); // see the ghost-tap guard in the click handler
@@ -1506,7 +1885,8 @@
     }
     tegn({ animer: true });
     window.scrollTo(0, 0);
-    const h = $("#skjerm h1, #skjerm h2");
+    // A new screen is read from its heading (or from its top, on a screen without one).
+    const h = $("#skjerm h1, #skjerm h2") || $("#skjerm");
     if (h) {
       h.setAttribute("tabindex", "-1");
       try {
@@ -1519,7 +1899,9 @@
     if (sk.inn) {
       sk.inn(S);
       merkIgjen();
+      maalDokk();
     }
+    statusSjekk(true); // what the new screen says from the start is not news
     sikreHistorikk();
     R.lagre();
     // Keep the screen on while a game is in progress; let it sleep on the home screen.
@@ -1534,20 +1916,30 @@
   // Re-draw the current screen in place (after a state change), keeping scroll and focus.
   R.vis = () => {
     sisteOmtegning = performance.now();
+    // The control that has focus is made anew by the redraw: remember what it is, and where the
+    // text cursor is in a field.
     const aktiv = document.activeElement;
-    const fokusId = aktiv && aktiv.id;
-    const fokusH = aktiv && aktiv.dataset && aktiv.dataset.h;
-    const fokusV = aktiv && aktiv.dataset && aktiv.dataset.v;
+    const f = aktiv && aktiv !== document.body ? beskrivFokus(aktiv) : null;
+    let merket = null;
+    if (f && f.rot === "skjerm" && typeof aktiv.selectionStart === "number") {
+      try {
+        merket = [aktiv.selectionStart, aktiv.selectionEnd];
+      } catch (e) {
+        /* a field without a text cursor */
+      }
+    }
     const y = window.scrollY;
     tegn({ animer: false });
     window.scrollTo(0, y);
-    let ny = fokusId ? document.getElementById(fokusId) : null;
-    if (!ny && fokusH) ny = $(`#skjerm [data-h="${CSS.escape(fokusH)}"]${fokusV != null ? `[data-v="${CSS.escape(fokusV)}"]` : ""}`);
-    if (ny && ny !== document.body) {
-      try {
-        ny.focus({ preventScroll: true });
-      } catch (e) {
-        /* ignore */
+    if (f && f.rot === "skjerm") {
+      const ny = finnIgjen(f);
+      fokuser(ny || fokusReserve(f));
+      if (ny && merket && ny !== aktiv) {
+        try {
+          ny.setSelectionRange(merket[0], merket[1]);
+        } catch (e) {
+          /* ignore */
+        }
       }
     }
     R.lagre();
@@ -1641,6 +2033,13 @@
       // Replace, so «back» on the front page doesn't return to the gate.
       location.replace("/");
     },
+    // The way out after an error (see «Last resort»): forget this game's saved state — names and
+    // sound are kept — and load the page again.
+    "start-pa-nytt": () => {
+      startesPaNytt = true;
+      R.fjern(NOKKEL);
+      location.reload();
+    },
     "ark-svar": (el) => {
       const svar = arkSvar;
       arkSvar = null;
@@ -1685,19 +2084,59 @@
   }
 
   // ---------- Hold-to-reveal ----------
+  // A finger holds the card to see its back and lets go to hide it, so a secret never stays on
+  // the table. Everything that is not a finger — Enter or Space, the press of a screen reader,
+  // a switch or voice control — shows the card with one press and hides it with the next: no
+  // holding and no timing. A card shown that way is also hidden by Escape, when focus leaves it,
+  // and by any touch on the screen.
+  // While the back shows, what is on it is a line in #si: the player's own screen reader reads
+  // it, and it is taken out the moment the card is hidden. It is never part of the button.
 
   let apenMappe = null;
   let apnetTid = 0;
-  function apneMappe(m) {
-    if (apenMappe || !APP.hemmelig) return;
-    const id = m.dataset.mappe;
-    const kort = APP.hemmelig.innhold(S, id) || {};
+  let apenMed = ""; // "hold": a finger is on it · "trykk": shown until the next press
+  let hemmeligLinje = null; // the back's text in #si, while it shows
+  let mappePeker = null; // the pointer that went down on a card: { id, tid }
+  let mappeSlipp = -1e9; // when it was lifted: the click that follows belongs to it
+  let mappeTast = -1e9; // when a key press on a card was handled: likewise
+  const SKJUL_HINT = "Trykk en gang til for å skjule kortet.";
+  // What is on the back, as sentences: one for each line of the card, in the words as they were
+  // written (a label set in capitals by the stylesheet is not spelled out letter by letter).
+  function kortTekst(bak) {
+    const linjer = [""];
+    const ga = (n) => {
+      if (n.nodeType === 3) linjer[linjer.length - 1] += n.nodeValue;
+      if (n.nodeType !== 1 || n.hidden || n.getAttribute("aria-hidden") === "true" || /^svg$/i.test(n.tagName)) return;
+      if (n.tagName === "IMG") linjer[linjer.length - 1] += " " + (n.getAttribute("alt") || "");
+      const egenLinje = n.tagName === "BR" || !/^(inline|contents)/.test(getComputedStyle(n).display);
+      if (egenLinje) linjer.push("");
+      n.childNodes.forEach(ga);
+      if (egenLinje) linjer.push("");
+    };
+    bak.childNodes.forEach(ga);
+    return linjer
+      .map(siNorm)
+      .filter(Boolean)
+      .map((l) => (/[.!?:…]$/.test(l) ? l : l + "."))
+      .join(" ");
+  }
+  function fyllMappe(m) {
+    const kort = APP.hemmelig.innhold(S, m.dataset.mappe) || {};
     const bak = m.querySelector(".mappe-bakside");
     bak.className = "mappe-bakside" + (kort.klasse ? " " + kort.klasse : "");
     bak.innerHTML = kort.html || "";
     m.classList.add("apen");
+    m.setAttribute("aria-expanded", "true");
+    return kort.si != null ? siNorm(kort.si) : kortTekst(bak);
+  }
+  function apneMappe(m, med) {
+    if (apenMappe || !APP.hemmelig) return;
+    const tekst = fyllMappe(m);
     apenMappe = m;
-    apnetTid = performance.now();
+    apenMed = med === "trykk" ? "trykk" : "hold";
+    // Shown with a press, it counts as seen whenever it is hidden; held, after a moment's look.
+    apnetTid = apenMed === "trykk" ? -1e9 : performance.now();
+    hemmeligLinje = siLinje(tekst + (apenMed === "trykk" ? " " + SKJUL_HINT : ""), true);
     R.lyd.snu();
     R.vibrer(15);
   }
@@ -1705,7 +2144,11 @@
     const m = apenMappe;
     if (!m) return;
     apenMappe = null;
+    apenMed = "";
     m.classList.remove("apen");
+    m.setAttribute("aria-expanded", "false");
+    if (hemmeligLinje) hemmeligLinje.remove();
+    hemmeligLinje = null;
     const holdt = performance.now() - apnetTid;
     setTimeout(() => {
       if (!m.classList.contains("apen")) {
@@ -1723,6 +2166,42 @@
     }
     if (APP.hemmelig && APP.hemmelig.sett) APP.hemmelig.sett(S, m.dataset.mappe, m);
   }
+  // One press (a key, or a click that no finger made): show the card, or hide it again.
+  function veksleMappe(m) {
+    if (apenMappe === m) {
+      lukkMappe();
+      return;
+    }
+    if (apenMappe) lukkMappe();
+    if (!m.isConnected) return; // the game redrew the screen when the other card was hidden
+    apneMappe(m, "trykk");
+    if (apenMappe === m && document.activeElement !== m) fokuser(m); // so that leaving it hides it
+  }
+  // A card that was held still shows, but no finger is on it (see pointerup): keep it until the next press.
+  function beholdMappe() {
+    if (!apenMappe) return;
+    apenMed = "trykk";
+    apnetTid = -1e9;
+    siLinje(SKJUL_HINT);
+    if (document.activeElement !== apenMappe) fokuser(apenMappe);
+  }
+  // The screen was redrawn in place while a card showed. Shown with a press, it stays shown (the
+  // new copy of it); held, it is as before: the finger's release hides and counts it.
+  function mappeEtterTegn(el) {
+    const gammel = apenMappe;
+    if (!gammel || gammel.isConnected || apenMed !== "trykk") return;
+    const ny = Array.from(el.querySelectorAll(".mappe")).find((k) => k.dataset.mappe === gammel.dataset.mappe);
+    if (!ny || !APP.hemmelig) {
+      lukkMappe(true);
+      return;
+    }
+    fyllMappe(ny);
+    apenMappe = ny;
+  }
+  // A press from a screen reader comes as pointer events too, but without a finger's size
+  // (VoiceOver on iOS: no width or height; on Android a finger's size may itself be reported as
+  // nothing, so nothing is concluded there — see the same test in React Aria).
+  const kunstigPeker = (e) => e.width === 0 && e.height === 0 && !/Android/i.test(navigator.userAgent || "");
 
   // ---------- Swipe cards ----------
 
@@ -1783,6 +2262,37 @@
       setTimeout(resolve, 200);
     });
 
+  // ---------- Last resort ----------
+  // An exception in a game after its first screen must not leave a dead page: the player gets a
+  // calm sheet with a way on and a way out. At most one sheet for each thing the player does.
+  let feilMeldt = false;
+  const erNekt = (feil) => typeof DOMException !== "undefined" && feil instanceof DOMException;
+  function vedFeil() {
+    if (!APP || !spillVises || feilMeldt || startesPaNytt) return;
+    feilMeldt = true;
+    try {
+      R.ark(`
+        <h2 id="ark-tittel">Oi, her gikk noe galt</h2>
+        <p class="ingress">Spillet snublet. Prøv en gang til. Står det fast, kan dere starte spillet på nytt – navnene huskes, men denne omgangen blir borte.</p>
+        <div class="stabel">
+          <button class="knapp" data-h="lukk-ark">Prøv videre</button>
+          <button class="knapp-2" data-h="start-pa-nytt">Start spillet på nytt</button>
+        </div>`);
+    } catch (e) {
+      /* not even the sheet can be shown: nothing more to do */
+    }
+  }
+  window.addEventListener("error", (e) => {
+    // Only what the game's own code threw: not a picture that failed to load, not the trouble of
+    // a script from somewhere else (a browser extension).
+    if (e && e.error && String(e.filename || "").startsWith(location.origin)) vedFeil();
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    // A promise the game left alone. What the browser refuses (sharing was cancelled, sound or
+    // the clipboard is not allowed) is a DOMException, and no fault in the game.
+    if (e && e.reason instanceof Error && !erNekt(e.reason)) vedFeil();
+  });
+
   // ---------- Start ----------
 
   R.start = (def) => {
@@ -1809,6 +2319,22 @@
 
     document.documentElement.lang = "nb";
 
+    // What a screen reader says about every secret card, after its name (aria-describedby).
+    if (!$("#mappe-hint")) document.body.insertAdjacentHTML("beforeend", '<p id="mappe-hint" hidden>Trykk for å vise kortet, og en gang til for å skjule det.</p>');
+
+    // Every change inside the screen or the sheet — the kit's redraws and a game's own — is looked
+    // at once: focus that the change took away is given back, new status lines are taken over and
+    // changed ones read out, and the dock is found again.
+    if (typeof MutationObserver !== "undefined") {
+      const vakt = new MutationObserver(() => {
+        reddFokus();
+        statusOverta();
+        statusEndret();
+        finnDokk();
+      });
+      for (const rot of statusRotter()) vakt.observe(rot, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["disabled", "hidden"] });
+    }
+
     // A double tap must not run the same async action twice (skip two cards, start two countdowns).
     // The same action is ignored while it is still running, for at most 0.6 s; other actions and
     // sheets are never blocked.
@@ -1833,6 +2359,7 @@
       sisteKlikk = navn;
       sisteKlikkPos = e.detail > 0 ? { x: e.clientX, y: e.clientY } : null;
       if (!el.hasAttribute("data-stille")) R.lyd.klikk();
+      if (!iArk) feilMeldt = false; // a new thing is tried: if it fails too, the player is told again
       const svar = h(el, e, S);
       if (svar && typeof svar.then === "function" && !iArk) {
         opptatt = navn;
@@ -1843,6 +2370,7 @@
         svar.then(slipp, (feil) => {
           slipp();
           console.error(feil);
+          if (!erNekt(feil)) vedFeil();
         });
       }
     });
@@ -1869,17 +2397,53 @@
         if (neste) neste.focus();
         else el.blur();
       }
-      if (e.key === "Escape" && R.arkApent()) R.lukkArk();
+      // Escape hides a secret card that is showing; otherwise it closes the sheet.
+      if (e.key === "Escape" && apenMappe) {
+        e.preventDefault();
+        lukkMappe();
+      } else if (e.key === "Escape" && R.arkApent()) R.lukkArk();
+      // Enter or Space on a secret card: one press shows it, the next hides it. However long the
+      // key is held makes no difference (and the browser's own click for the key is not wanted).
       if ((e.key === " " || e.key === "Enter") && el.classList && el.classList.contains("mappe")) {
         e.preventDefault();
-        if (!e.repeat) apneMappe(el);
+        mappeTast = performance.now();
+        if (!e.repeat) veksleMappe(el);
       }
     });
     document.addEventListener("keyup", (e) => {
-      if ((e.key === " " || e.key === "Enter") && apenMappe) {
+      if ((e.key === " " || e.key === "Enter") && e.target.classList && e.target.classList.contains("mappe")) {
         e.preventDefault();
-        lukkMappe();
+        mappeTast = performance.now();
       }
+    });
+    // A click on a secret card that no finger made — a screen reader's double tap, a switch, voice
+    // control, a script: the same as a key press. (A finger's hold or tap ends in a click too:
+    // that one belongs to the pointer and is left alone.)
+    document.addEventListener("click", (e) => {
+      const m = e.target.closest ? e.target.closest(".mappe") : null;
+      if (!m || mappePeker) return;
+      const na = performance.now();
+      if (na - mappeSlipp < 500 || na - mappeTast < 100) return;
+      if (e.isTrusted && na - sisteSkjermbytte < 350) return; // the second press of a double press, on a new screen
+      veksleMappe(m);
+    });
+    // A press anywhere else hides a card that was shown with a press — before the press does its
+    // own thing (capture), so the secret is gone and the game has counted it as seen.
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (apenMappe && apenMed === "trykk" && !(e.target.closest && e.target.closest(".mappe"))) lukkMappe();
+      },
+      true,
+    );
+    // Focus left a card that was shown with a press: hide it. (When focus has landed, so that a
+    // redraw in the game's `sett` can keep it where it went.)
+    document.addEventListener("focusout", (e) => {
+      const m = apenMappe;
+      if (!m || apenMed !== "trykk" || e.target !== m) return;
+      setTimeout(() => {
+        if (apenMappe === m && apenMed === "trykk" && document.activeElement !== m) lukkMappe();
+      }, 0);
     });
     document.addEventListener("submit", (e) => {
       const f = e.target;
@@ -1890,14 +2454,21 @@
     document.addEventListener("pointerdown", (e) => {
       R.lyd.lasOpp();
       const m = e.target.closest(".mappe");
+      if (m && kunstigPeker(e)) return; // a screen reader's press: the click that follows does it
       if (m) {
         e.preventDefault();
+        // A card that was shown with a press: a finger on a card hides it, and that is all this
+        // touch does (its click must not show the card again).
+        const vist = !!apenMappe && apenMed === "trykk";
+        if (vist) lukkMappe();
+        mappePeker = { id: e.pointerId, tid: e.timeStamp, brukt: vist };
+        if (vist || !m.isConnected) return;
         try {
           m.setPointerCapture(e.pointerId);
         } catch (feil) {
           /* not all pointers can be captured */
         }
-        apneMappe(m);
+        apneMappe(m, "hold");
         return;
       }
       const kort = e.target.closest(".storkort[data-sveip]");
@@ -1906,7 +2477,15 @@
     document.addEventListener("pointermove", sveipFlytt);
     ["pointerup", "pointercancel"].forEach((t) =>
       document.addEventListener(t, (e) => {
-        lukkMappe();
+        const p = mappePeker && mappePeker.id === e.pointerId ? mappePeker : null;
+        if (p) {
+          mappePeker = null;
+          mappeSlipp = performance.now();
+        }
+        // Down and up in the same instant is no finger: assistive technology pressed the card.
+        // It stays shown until the next press. Otherwise, as always: letting go hides the card.
+        if (p && !p.brukt && t === "pointerup" && apenMed === "hold" && e.timeStamp - p.tid < 3) beholdMappe();
+        else if (apenMed === "hold") lukkMappe();
         sveipSlutt(e);
       }),
     );
@@ -1925,12 +2504,14 @@
         tittel: "18+",
         tilbake: "portal",
         gjenoppta: false,
+        // The game's name is the heading (five drinking games must not be five identical pages to
+        // a search engine or a screen reader); the question has the front page's wording.
         vis: () => `
-          <div class="spillhjem">
+          <div class="spillhjem alder-port">
             ${R.figur()}
-            <h1 id="skjerm-tittel">Er du over 18?</h1>
-            <span class="undertittel">Drikkespill · 18+</span>
-            <p class="slagord">${esc(APP.navn)} er et drikkespill for voksne. Du må være over 18 år for å spille.</p>
+            <h1 id="skjerm-tittel">${esc(APP.navn)} <span class="undertittel">Drikkespill · 18+</span></h1>
+            <h2 class="alder-spor">Er du 18 år eller eldre?</h2>
+            <p class="slagord">Dette spillet er bare for voksne.</p>
           </div>
           <div class="papirboks alder-boks">
             <p class="etikett">Drikk med vett</p>
@@ -1940,7 +2521,7 @@
               <li>Spis, drikk vann, og sørg for trygg vei hjem.</li>
             </ul>
           </div>
-          ${R.ui.dokk(R.ui.knapp("Ja, jeg er over 18", "alder-ja"), R.ui.lenkerad(R.ui.lenke("Nei, ta meg tilbake", "alder-nei")))}`,
+          ${R.ui.dokk(R.ui.knapp("Ja, jeg er 18 eller eldre", "alder-ja"), R.ui.lenkerad(R.ui.lenke("Nei, ta meg tilbake", "alder-nei")))}`,
       };
     }
 
@@ -2010,6 +2591,10 @@
         R.toast("Det lagrede spillet kunne ikke åpnes. Vi startet på nytt.", { topp: true });
       }
     }
+    // The first screen is up: from here on a save that fails is said (once), and an exception
+    // gets the «Last resort» sheet.
+    spillVises = true;
+    meldLagring();
 
     window.addEventListener("hashchange", () => {
       const h = (location.hash || "").slice(1);

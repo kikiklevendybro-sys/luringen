@@ -58,6 +58,56 @@ const overDokken = (c, sel) =>
     return a.right <= d.left + 1 || a.left >= d.right - 1 ? a.bottom <= window.innerHeight + 1 : a.bottom <= d.top + 1;
   })()`);
 
+// The kit's secret card without a finger — a keyboard, a screen reader, a switch: one press shows
+// it and reads it out to the player's own screen reader (#si), the next press hides it. No holding
+// and no timing. The secret is never part of the button, and is gone from #si when the card is
+// hidden. `tekst` is what the back says (read while a finger held the card).
+async function utenFinger(t, sel, tekst) {
+  await t.send("Emulation.setFocusEmulationEnabled", { enabled: true }); // a headless page has no focus: keys need it
+  const kort = () =>
+    t.js(`(() => { const m = document.querySelector(${JSON.stringify(sel)}); return { apen: m.classList.contains("apen"), utvidet: m.getAttribute("aria-expanded"), navn: m.getAttribute("aria-label") || "", si: document.querySelector("#si").textContent, bak: m.querySelector(".mappe-bakside").getAttribute("aria-hidden"), fokus: document.activeElement === m, hint: (document.getElementById(m.getAttribute("aria-describedby") || "") || {}).textContent || "" }; })()`);
+  const tast = async (key, vk, ms = 30) => {
+    const felles = { key, code: key === " " ? "Space" : key, windowsVirtualKeyCode: vk };
+    await t.send("Input.dispatchKeyEvent", { type: "keyDown", ...felles, ...(key === "Enter" ? { text: "\r" } : key === " " ? { text: " " } : {}) });
+    await t.sov(ms);
+    await t.send("Input.dispatchKeyEvent", { type: "keyUp", ...felles });
+    await t.sov(150);
+  };
+  // The longest word on the back stands for the secret.
+  const ord = ren(tekst).split(/[^\p{L}]+/u).sort((a, b) => b.length - a.length)[0] || "";
+  const har = (hvor) => ren(hvor).toLowerCase().includes(ord.toLowerCase());
+  let k = await kort();
+  t.sjekk(!k.apen && k.utvidet === "false" && k.bak === "true", "Kortet sier ikke at det er lukket (aria-expanded), eller baksiden er ikke skjult for skjermlesere");
+  t.sjekk(/trykk/i.test(k.hint), "Kortet forklarer ikke at et trykk viser og skjuler det (aria-describedby)");
+  await t.klikk(sel); // what a screen reader's double tap sends
+  k = await kort();
+  t.sjekk(k.apen && k.utvidet === "true", "Et vanlig klikk (skjermleser, bryter) viser ikke kortet");
+  t.sjekk(ord.length > 3 && har(k.si), `Kortet leses ikke opp mens det vises (#si: «${k.si}», ventet «${ord}»)`);
+  t.sjekk(!har(k.navn), "Det hemmelige står i knappens navn");
+  t.sjekk(k.fokus, "Kortet har ikke fokus mens det vises etter et klikk");
+  await t.klikk(sel);
+  k = await kort();
+  t.sjekk(!k.apen && k.utvidet === "false", "Et klikk til skjuler ikke kortet");
+  t.sjekk(!har(k.si), "Det hemmelige ble liggende i skjermleser-meldingen etter at kortet ble skjult");
+  t.sjekk(k.fokus, "Fokus ble ikke med kortet da skjermen ble tegnet på nytt");
+  // Keys: a short press of Enter shows it and Escape hides it; a long press of Space shows it just
+  // the same (letting go of the key hides nothing), and leaving the card with Tab hides it.
+  await tast("Enter", 13);
+  t.sjekk((await kort()).apen, "Et kort trykk på Enter viser ikke kortet (uten å holde)");
+  await tast("Escape", 27);
+  t.sjekk(!(await kort()).apen, "Escape skjuler ikke kortet");
+  await tast(" ", 32, 500);
+  k = await kort();
+  t.sjekk(k.apen && har(k.si), "Mellomrom viser ikke kortet (eller det lukket seg da tasten ble sluppet)");
+  await tast("Tab", 9);
+  k = await kort();
+  t.sjekk(!k.apen && !har(k.si), "Kortet skjules ikke når fokus forlater det");
+  t.sjekk(await t.js(`!!document.activeElement && document.activeElement !== document.body`), "Fokus ble borte da kortet ble skjult");
+  // A finger's quick tap is still not enough (the card must be held): it only gives the hint.
+  await t.trykk(sel, 60);
+  t.sjekk(!(await kort()).apen, "Et kjapt fingertrykk lot kortet stå åpent");
+}
+
 // One phone: pass it around, every player holds their card. Returns the texts.
 // o.tilbakeUnderNedtelling: tap «back» during «3 2 1 SPØR!» – the round must not start by itself.
 async function sendRundt(t, bildeAvForste, o = {}) {
@@ -74,6 +124,7 @@ async function sendRundt(t, bildeAvForste, o = {}) {
       if (await erKlipt(t, KORT("p0"))) klipte.push(KORT("p0"));
       await t.bilde("kortet");
       await slipp();
+      await utenFinger(t, KORT("p0"), tekster[0]);
     } else {
       tekster.push(await les(t, KORT("p" + i)));
     }

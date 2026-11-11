@@ -87,9 +87,22 @@ button {
   touch-action: manipulation;
 }
 
+/* The focus ring is the lamp yellow, made for the dark page. On paper it is ink (--fokus). */
 :focus-visible {
-  outline: 3px solid var(--lampe);
+  outline: 3px solid var(--fokus, var(--lampe));
   outline-offset: 3px;
+}
+
+.kodekort,
+.ordboks,
+.mappe-bakside {
+  --fokus: var(--blekk);
+}
+
+/* The dock floats over the bottom of the page: a control that takes focus is scrolled clear of
+   it. --dokk-h is how much the dock covers (set in ui.js for what is showing). */
+html {
+  scroll-padding-bottom: var(--dokk-h, 0px);
 }
 
 [hidden] {
@@ -1034,9 +1047,10 @@ p {
   top: 22px;
   right: 18px;
   padding: 6px 10px;
-  border: 3px solid var(--luring);
+  /* (The deep pink: the light one is 2.8:1 on the cream folder.) */
+  border: 3px solid var(--luring-dyp);
   border-radius: 8px;
-  color: var(--luring);
+  color: var(--luring-dyp);
   font: 900 0.95rem/1 var(--font-display);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1194,10 +1208,12 @@ p {
   font: 800 0.85rem/1.1 var(--font-display);
 }
 
+/* (A lighter pink for the words: the stage light behind the pill lifts its ground, and the
+   brand pink drops to 4:1 on it.) */
 .pille.rosa {
   background: rgba(255, 79, 139, 0.14);
   box-shadow: inset 0 0 0 1.5px var(--luring);
-  color: var(--luring);
+  color: #ff8fb4;
 }
 
 .starter {
@@ -1358,7 +1374,7 @@ p {
   bottom: 0;
   left: 9px;
   overflow: hidden;
-  color: var(--tekst-3);
+  color: var(--tekst-2);
   font: 700 0.62rem/66px var(--font-mono);
   white-space: pre;
 }
@@ -1588,6 +1604,10 @@ p {
   background: var(--papir);
   color: var(--blekk);
   text-align: center;
+}
+
+.ordboks .etikett {
+  color: var(--blekk-2);
 }
 
 .ordboks .kort-ord {

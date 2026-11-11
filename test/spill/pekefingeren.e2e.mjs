@@ -104,4 +104,6 @@ export default async function (t) {
   await t.klikk('[data-h="nytt"]');
   t.sjekk(!(await t.finnes("#ark:not([hidden])")), "«Endre oppsett» etter kåringen skal ikke spørre");
   await t.vent("document.querySelector('[data-h=\"start\"]')");
+
+  await (await import("../a11y/kit-sjekk.mjs")).default(t); // the kit's accessibility promises
 }

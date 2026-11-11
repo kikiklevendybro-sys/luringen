@@ -110,9 +110,33 @@ a {
   color: inherit;
 }
 
+/* The focus ring has two tones, so it shows on any ground: the ring itself (--fokus: the game's
+   accent, light, made for the dark page) and a band of ink between the control and the ring
+   (--fokus-2). A light surface turns it round in one line — an ink ring and no band:
+     .mitt-brett { --fokus: var(--blekk); --fokus-2: transparent; }
+   The kit's own paper surfaces do (below), and for everything else rusj.js looks at the colour
+   behind the control that takes focus and changes the ring where the accent would not show.
+   The band is a box-shadow without specificity, on buttons and links only: a control with a
+   shadow of its own keeps that and has the ring alone, and text fields show focus their own way. */
 :focus-visible {
-  outline: 3px solid var(--aksent);
+  outline: 3px solid var(--fokus, var(--aksent));
   outline-offset: 3px;
+}
+
+:where(a, button, summary, [role="button"], [tabindex]:not([tabindex="-1"])):where(:focus-visible) {
+  box-shadow: 0 0 0 3px var(--fokus-2, var(--natt));
+}
+
+:where(.papirboks, .kodekort, .storkort, .mappe-bakside, .toast) {
+  --fokus: var(--blekk);
+  --fokus-2: transparent;
+}
+
+/* The dock floats over the bottom of the page: a control that takes focus is scrolled clear of it.
+   --dokk-h is how much the dock covers, set by the kit for every screen (0 when the dock is
+   beside the content, or does not float). */
+html {
+  scroll-padding-bottom: var(--dokk-h, 0px);
 }
 
 [hidden] {
@@ -335,8 +359,11 @@ h3 {
   font: 900 1.12rem/1.2 var(--font-display);
 }
 
+/* (Focus is put on a heading — or, on a screen without one, on the screen itself — by the kit, so
+   that a screen reader starts reading there. Nothing to show for the eye.) */
 h1:focus,
-h2:focus {
+h2:focus,
+.skjerm:focus {
   outline: none;
 }
 
@@ -1031,7 +1058,7 @@ p {
 }
 
 .brikke .antall {
-  opacity: 0.6;
+  opacity: 0.85;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1376,7 +1403,8 @@ p {
   gap: 8px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(255, 79, 139, 0.14);
+  /* (Opaque, the same shade as before on the dark page: also readable on a lit scene.) */
+  background: color-mix(in srgb, var(--rosa) 14%, var(--natt));
   color: var(--rosa);
   font: 800 0.9rem/1.2 var(--font-display);
 }
@@ -1521,7 +1549,7 @@ p {
 .kort-etikett {
   font: 800 0.8rem/1.2 var(--font-display);
   letter-spacing: 0.16em;
-  opacity: 0.7;
+  opacity: 0.85;
   text-transform: uppercase;
 }
 
@@ -1552,7 +1580,7 @@ p {
 .kort-fot {
   margin-top: 4px;
   font: 700 0.9rem/1.25 var(--font-tekst);
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 /* ---------- Big card deck (question games) ---------- */
@@ -1691,7 +1719,7 @@ p {
 .storkort-nr {
   font: 800 0.85rem/1 var(--font-display);
   font-variant-numeric: tabular-nums;
-  opacity: 0.6;
+  opacity: 0.85;
 }
 
 .storkort-tekst {
@@ -1715,7 +1743,7 @@ p {
 
 .storkort-fot {
   font: 700 0.92rem/1.3 var(--font-tekst);
-  opacity: 0.72;
+  opacity: 0.85;
 }
 
 .sveip-hint {
@@ -1882,6 +1910,11 @@ p {
   text-align: center;
 }
 
+/* (--tekst-3 is for the dark page: on the leader’s tinted row it drops under 4.5:1.) */
+.poengliste li.leder .plass-nr {
+  color: var(--tekst-2);
+}
+
 .poengliste .navn {
   flex: 1;
   min-width: 0;
@@ -2000,6 +2033,21 @@ p {
 
 .stempel.aksent {
   --st: var(--aksent);
+}
+
+/* A stamp on paper: the stamp colours are light, made for the dark page (mint and yellow are
+   under 1.5:1 on cream). On a paper surface they are the deep versions. A game with a paper
+   surface of its own sets --st the same way. */
+:where(.papirboks, .kodekort, .mappe-bakside) .stempel {
+  --st: var(--rosa-dyp);
+}
+
+:where(.papirboks, .kodekort, .mappe-bakside) .stempel.mynte {
+  --st: #0f6e54;
+}
+
+:where(.papirboks, .kodekort, .mappe-bakside) .stempel.lampe {
+  --st: #7a5a00;
 }
 
 @keyframes slag {
@@ -2175,7 +2223,7 @@ textarea.tekstfelt {
 .kodefelt::placeholder,
 .tekstfelt::placeholder {
   color: var(--tekst-3);
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .kodefelt:focus,
@@ -2679,6 +2727,16 @@ textarea.tekstfelt {
     width: min(26vh, 110px);
   }
 
+  /* The 18+ gate: the pill under the name, on the same left edge; a smaller question. */
+  :where(html[data-liggende="side"]) .alder-port h1 .undertittel {
+    margin: 8px 0 0;
+  }
+
+  :where(html[data-liggende]) .alder-spor {
+    margin-top: 0;
+    font-size: 1.3rem;
+  }
+
   /* --- hjem: mascot left, name, slogan and buttons right --- */
 
   :where(html[data-liggende="hjem"]) .skjerm {
@@ -2975,6 +3033,21 @@ textarea.tekstfelt {
 }
 
 /* ---------- 18+ gate ---------- */
+
+/* The game's name is the heading, with the «Drikkespill · 18+» pill under it; then the question. */
+.alder-port h1 .undertittel {
+  display: block;
+  width: fit-content;
+  margin: 12px auto 0;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+.alder-spor {
+  margin-top: 4px;
+  font-size: clamp(1.45rem, 6.6vw, 1.75rem);
+  text-wrap: balance;
+}
 
 .alder-boks .tips {
   color: var(--blekk-2);
