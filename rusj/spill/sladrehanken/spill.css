@@ -12,7 +12,11 @@ html[data-spill="sladrehanken"] .skjerm-kort > .bunke:not(.kompakt) {
   margin-bottom: 12px;
   font: 800 1.05rem/1.25 var(--font-display);
   letter-spacing: 0;
-  opacity: 0.6;
+  opacity: 0.78; /* readable on the paper and on the orange card (4.5:1 and more) */
+}
+
+.storkort.sladre .storkort-nr {
+  opacity: 0.85;
 }
 
 .storkort.sladre .storkort-tekst,
@@ -41,6 +45,55 @@ html[data-spill="sladrehanken"] .skjerm-kort > .bunke:not(.kompakt) {
 .bunke.kompakt .storkort.sladre .prefiks {
   margin-bottom: 4px;
   font-size: 0.9rem;
+}
+
+/* «Finn på et selv»: the reader makes up the rest of the sentence. */
+.storkort.sladre.sladre-egen .storkort-tekst .prefiks {
+  opacity: 1;
+  color: var(--rosa-dyp);
+}
+
+.storkort.sladre.sladre-egen.aksent .storkort-tekst .prefiks {
+  color: inherit;
+}
+
+/* Under the card: who reads it, and what to do. */
+.sladre-under {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.sladre-leser {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 4px 14px 4px 4px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.2 var(--font-tekst);
+}
+
+.sladre-leser .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 0.95rem;
+}
+
+.sladre-leser span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sladre-leser b {
+  color: var(--tekst);
+  font-family: var(--font-display);
+  font-weight: 900;
 }
 
 .sladre-hint {
@@ -236,6 +289,81 @@ html[data-spill="sladrehanken"] .skjerm-kort > .bunke:not(.kompakt) {
   cursor: default;
 }
 
+/* Two or more exposed: something to talk about while the hands are still up. */
+.sladre-prat {
+  justify-self: center;
+  align-self: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--aksent) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+  color: var(--tekst);
+  font: 800 0.98rem/1.25 var(--font-display);
+  text-align: center;
+  animation: sladre-vink 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+/* ---------- Alone in having done it: the story ---------- */
+.sladre-historie {
+  flex: 1 1 auto;
+  align-content: center;
+  gap: 8px;
+}
+
+.sladre-historie > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.sladre-historie-figur {
+  position: relative;
+  display: inline-grid;
+  margin: 6px 0 8px;
+}
+
+.sladre-historie-figur .avatar.gigant {
+  width: 108px;
+  height: 108px;
+  font-size: 3.4rem;
+  box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.18), 0 0 0 5px var(--natt), 0 0 0 8px var(--pf, var(--p1));
+}
+
+.sladre-mikrofon {
+  position: absolute;
+  right: -18px;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--papir);
+  box-shadow: 0 0 0 4px var(--natt), 0 4px 0 var(--papir-2);
+  font-size: 1.5rem;
+  line-height: 1;
+  animation: sladre-vink 0.45s 0.15s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.sladre-historie h1 {
+  font-size: clamp(1.8rem, 8.4vw, 2.5rem);
+}
+
+.sladre-historie .sladre-hjerter i {
+  width: 22px;
+  height: 22px;
+}
+
+.sladre-historie .ingress {
+  max-width: 24em;
+  text-wrap: balance;
+}
+
+/* The two answers side by side: «Videre» is as easy to reach as the bonus. */
+.skjerm-kort .dokk .knapprad {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: stretch;
+}
+
 .sladre-ute-rad {
   display: flex;
   flex-wrap: wrap;
@@ -361,9 +489,123 @@ html[data-spill="sladrehanken"] .skjerm-kort > .bunke:not(.kompakt) {
   white-space: nowrap;
 }
 
+@media (max-height: 700px) {
+  .sladre-historie {
+    gap: 5px;
+  }
+
+  .sladre-historie-figur .avatar.gigant {
+    width: 76px;
+    height: 76px;
+    font-size: 2.4rem;
+    box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.18), 0 0 0 4px var(--natt), 0 0 0 6px var(--pf, var(--p1));
+  }
+
+  .sladre-mikrofon {
+    right: -14px;
+    bottom: 0;
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
+
+  .sladre-historie .ingress {
+    font-size: 0.98rem;
+  }
+
+  .sladre-under {
+    gap: 4px;
+  }
+
+  .sladre-hint {
+    font-size: 0.9rem;
+  }
+}
+
 @media (max-height: 640px) {
   html[data-spill="sladrehanken"] .skjerm-kort > .bunke:not(.kompakt) {
     min-height: 240px;
+  }
+}
+
+/* A phone on its side: a slim card, and the avatar beside the name, so the whole spotlight shows
+   beside the buttons without scrolling. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .sladre-historie-kort .storkort-topp {
+    display: none;
+  }
+
+  .sladre-historie-kort .bunke.kompakt .storkort {
+    gap: 4px;
+    padding: 12px 20px;
+  }
+
+  .sladre-historie {
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-items: start;
+    align-items: center;
+    column-gap: 18px;
+    row-gap: 3px;
+    padding-top: 0;
+    text-align: left;
+  }
+
+  .sladre-historie-figur {
+    grid-row: 1 / span 3;
+    margin: 0 8px 0 4px;
+  }
+
+  .sladre-historie .ingress {
+    grid-column: 1 / -1;
+    max-width: none;
+    margin-top: 4px;
+  }
+
+  .sladre-historie-figur .avatar.gigant {
+    width: 56px;
+    height: 56px;
+    font-size: 1.8rem;
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 0 0 3px var(--natt), 0 0 0 5px var(--pf, var(--p1));
+  }
+
+  .sladre-mikrofon {
+    right: -14px;
+    bottom: 0;
+    width: 30px;
+    height: 30px;
+    box-shadow: 0 0 0 3px var(--natt);
+    font-size: 0.95rem;
+  }
+
+  .sladre-historie h1 {
+    font-size: 1.6rem;
+  }
+
+  .sladre-historie .sladre-hjerter i {
+    width: 17px;
+    height: 17px;
+  }
+
+  .sladre-historie .ingress {
+    font-size: 0.92rem;
+  }
+
+  .sladre-under {
+    gap: 2px;
+  }
+
+  .sladre-leser {
+    font-size: 0.88rem;
+  }
+
+  .sladre-leser .avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+
+  .sladre-hint {
+    font-size: 0.86rem;
   }
 }
 

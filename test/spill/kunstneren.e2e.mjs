@@ -1,8 +1,12 @@
-// Kunstneren: play "Tegn og gjett" with real mouse and touch strokes (tools, undo/redo/clear,
-// saved = drawn pixel check, peek, reload mid-drawing, time up, give up, back + continue, final
-// exhibition + share picture), then a full "Hviskeleken" chain (secrets behind "Jeg er …" after a
-// reload, escaping, the stroke-by-stroke replay gallery), team mode, two players, small and
-// sideways screens.
+// Kunstneren: play "Tegn og gjett" with real mouse and touch strokes — three screens per turn
+// (hand-over with the secret card, the drawing, the answer with the chips for who guessed): tools,
+// undo/redo/clear, saved = drawn pixel check, peek (finger, keyboard, screen reader), reload
+// mid-drawing, time up, give up, back + continue, Kåringen (podium, exhibition, share picture,
+// statistics, «Kveldens gjeng», record). Then "Hviskeleken": a full chain for four (secrets behind
+// "Jeg er …" after a reload, escaping, the stroke-by-stroke gallery), «Avslutt» in the middle of
+// a chain, an odd chain where the whole table makes the last guess, and the mode switched off
+// below four players. Team mode, two players playing together for a record, finished drawings
+// in their own storage keys, small and sideways screens.
 
 // Points as fractions of the sheet (0–1).
 const sirkel = (cx, cy, r, n = 28) => Array.from({ length: n + 1 }, (_, i) => [cx + r * Math.cos((i / n) * 2 * Math.PI), cy + r * Math.sin((i / n) * 2 * Math.PI)]);
@@ -80,27 +84,116 @@ async function tegnHus(t, { touch = false } = {}) {
   await strek(t, sti([0.42, 0.86], [0.42, 0.68], [0.56, 0.68], [0.56, 0.86]), { touch });
 }
 
+// What the game has in memory (the saved copy leaves finished drawings out, see below).
+const minne = (t, uttrykk) => t.js(`(() => { const sp = Rusj.S.spill; return ${uttrykk}; })()`);
+const lagretNokkel = (t, nokkel) => t.js(`JSON.parse(localStorage.getItem(${JSON.stringify("rusj." + nokkel)}) || "null")`);
+const hendelser = (t, navn) => t.js(`Rusj._statKo.filter((e) => e.h === ${JSON.stringify(navn)}).map((e) => e.d)`);
+const tast = async (t, key, vk, text) => {
+  await t.send("Input.dispatchKeyEvent", { type: "keyDown", key, code: key, windowsVirtualKeyCode: vk, ...(text ? { text } : {}) });
+  await t.send("Input.dispatchKeyEvent", { type: "keyUp", key, code: key, windowsVirtualKeyCode: vk });
+  await t.sov(80);
+};
+// No "install as an app" sheet in the scripted run (the kit offers it after a finished game).
+// Written straight to storage and loaded again: the kit's own save would cut the long test name.
+async function utenInstallTips(t) {
+  await t.js(`(() => { const f = JSON.parse(localStorage.getItem("rusj.felles")); f.installTips = 2; localStorage.setItem("rusj.felles", JSON.stringify(f)); })()`);
+  await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
+}
+
+// «Neste» with the dice held at one value while the next turn is dealt (0 gives a «Kunstnerkrav»
+// whenever the rules allow one). The action runs inside the click, so nothing else sees the held dice.
+const nesteMedTerning = (t, verdi) =>
+  t.js(`(() => { const ekte = Math.random; Math.random = () => ${Number(verdi)}; try { document.querySelector('[data-h="neste"]').click(); } finally { Math.random = ekte; } })()`);
+
+// One step of a Hviskeleken chain: through the hand-over, then a quick drawing or a typed guess.
+async function kjedesteg(t, k, gjetning) {
+  await t.vent("document.querySelector('[data-h=\"hjeg\"]')");
+  t.sjekk(await t.finnes('[data-h="avslutt"]'), `«Avslutt» mangler på overleveringen til steg ${k + 1} i Hviskeleken`);
+  await t.klikk('[data-h="hjeg"]');
+  if (k % 2 === 0) {
+    await t.vent("document.querySelector('.kunst-lerret')");
+    await t.sov(300);
+    await strek(t, sirkel(0.5, 0.45, 0.22));
+    await t.klikk('[data-h="hferdig"]');
+  } else {
+    await t.vent("document.querySelector('#kunst-gjett')");
+    await t.skrivInn("#kunst-gjett", gjetning || `gjetning ${k}`);
+    await t.klikk("#kunst-send");
+  }
+}
+
 export default async function (t) {
+  const skjerm = await t.js("({ b: window.innerWidth, h: window.innerHeight })"); // the phone this run plays on
+
+  // ---------- The gang decides the defaults: how many players, and how many rounds ----------
+  await t.start({ navn: ["Testspiller A", "Testspiller B", "Testspiller C", "Testspiller D", "Testspiller E", "Testspiller F", "Testspiller G"] });
+  await t.klikk('[data-h="nytt"]');
+  t.sjekk((await t.antall(".spiller")) === 7, `Sju navn er lagret, men oppsettet viser ${await t.antall(".spiller")} spillere`);
+  t.sjekk(/^7 tegninger/.test(await t.tekst(".kunst-estimat")), `Sju spillere skal få én runde som standard («${await t.tekst(".kunst-estimat")}»)`);
+  // The chain rule for every group size, one and two rounds: everyone is in it equally often and
+  // nobody sits out, it ends on a guess (by the whole table when the number of steps is odd), nobody
+  // is handed a drawing of their own guess, and the one who saw the secret word never guesses last.
+  const kjedefeil = await t.js(`(() => {
+    const S = Rusj.S;
+    const feil = [];
+    for (const lengde of [1, 2]) {
+      for (let n = 4; n <= 20; n++) {
+        S.antall = n;
+        S.oppsett.modus = "hvisk";
+        S.oppsett.lengde = lengde;
+        Rusj.app.handlinger.start(null, null, S);
+        const r = S.spill.rekke;
+        const L = r.length;
+        const ganger = {};
+        for (const i of r) if (i >= 0) ganger[i] = (ganger[i] || 0) + 1;
+        const alleMed = Object.keys(ganger).length === n && Object.values(ganger).every((g) => g === lengde);
+        const bord = r.indexOf(-1);
+        let egen = false;
+        for (let k = 2; k < L; k++) if (r[k] >= 0 && (r[k] === r[k - 1] || r[k] === r[k - 2])) egen = true;
+        const ok = S.spill.modus === "hvisk" && L % 2 === 0 && alleMed && !egen && r[L - 1] !== r[0] && (bord === -1 ? (n * lengde) % 2 === 0 : bord === L - 1 && (n * lengde) % 2 === 1);
+        if (!ok) feil.push(n + " spillere, " + lengde + " runde(r): " + r.join(","));
+      }
+    }
+    return feil;
+  })()`);
+  t.sjekk(kjedefeil.length === 0, `Kjederegelen i Hviskeleken holder ikke: ${kjedefeil.join(" | ")}`);
+
+  await t.start({ navn: ["Testspiller A", "Testspiller B"] });
+  await t.klikk('[data-h="nytt"]');
+  t.sjekk((await t.antall(".spiller")) === 2 && /^6 tegninger/.test(await t.tekst(".kunst-estimat")), `To spillere skal få tre runder som standard («${await t.tekst(".kunst-estimat")}»)`);
+  t.sjekk(await t.js(`document.querySelector('[data-h="modus"][data-v="hvisk"]').disabled`), "Hviskeleken skal ikke kunne velges med to spillere");
+
   // Player D has a very long name: every screen must wrap or shorten it, never overflow.
   await t.start({ navn: ["Testspiller A", "Testspiller B", "Testspiller C", "Testspiller Dobbeltnavn-Langnavnesen"] });
+  await utenInstallTips(t);
 
   // ---------- Setup ----------
   await t.klikk('[data-h="nytt"]');
   t.sjekk((await t.antall(".spiller")) === 4, "Spillerlista viser ikke fire spillere");
+  t.sjekk(/^8 tegninger/.test(await t.tekst(".kunst-estimat")), `Fire spillere skal få to runder som standard («${await t.tekst(".kunst-estimat")}»)`);
+  t.sjekk(!(await t.js(`document.querySelector('[data-h="modus"][data-v="hvisk"]').disabled`)), "Hviskeleken skal kunne velges med fire spillere");
   await t.bilde("oppsett", true);
   await t.klikk('[data-h="mer"]');
+  t.sjekk((await t.js(`document.querySelector('[data-h="runder"][data-v="2"]').getAttribute("aria-pressed")`)) === "true", "«Flere valg» viser ikke rundene som faktisk gjelder");
   await t.klikk('[data-h="runder"][data-v="1"]');
   t.sjekk(await t.finnes(".kunst-mer.apen"), "«Flere valg» lukket seg etter et valg");
   await t.klikk('[data-h="kategori"][data-v="*"]');
   t.sjekk(await t.js("document.querySelector('[data-h=\"start\"]').disabled"), "Start skulle være av uten kategorier");
   await t.klikk('[data-h="kategori"][data-v="*"]');
+  // «Kunstnerkrav»: off until asked for
+  t.sjekk((await t.js(`document.querySelector('[data-h="krav"]').getAttribute("aria-pressed")`)) === "false", "«Kunstnerkrav» skal være av som standard");
+  await t.klikk('[data-h="krav"]');
+  t.sjekk((await t.tilstand()).oppsett.krav === true, "«Kunstnerkrav» lot seg ikke slå på");
   await t.bilde("oppsett-flere-valg", true);
   await t.klikk('[data-h="start"]');
 
-  // ---------- Tegn og gjett: the secret word ----------
+  // ---------- Tegn og gjett, screen 1 of 3: the hand-over with the secret word on it ----------
   await t.vent("document.querySelector('.mappe')");
+  t.sjekk(!(await t.finnes(".kunst-krav")), "Første tegning i et spill skal aldri ha et kunstnerkrav");
   t.sjekk(await t.js("document.querySelector('[data-h=\"tegn-start\"]').disabled"), "Tegningen kan startes uten å ha sett ordet");
   t.sjekk((await t.js("document.getElementById('topp-tittel').textContent")) === "Tegning 1/4", "Tittelen øverst skal være kort («Tegning 1/4»)");
+  t.sjekk(/Testspiller A/.test(await t.tekst("#skjerm h1")), "Første spill skal begynne med første spiller");
+  t.sjekk((await hendelser(t, "start")).some((d) => d.modus === "tegn" && d.spillere === 4 && d.tegninger === 4), "Statistikken fikk ikke vite at et spill startet");
   await t.bilde("gi-mobilen");
   const forsteOrd = (await t.tilstand()).spill.ord.o;
   await t.klikk('[data-h="bytt-ord"]');
@@ -111,12 +204,13 @@ export default async function (t) {
   await t.bilde("ordet");
   await slipp();
   t.sjekk((await t.tilstand()).spill.sett === true, "Ordet ble ikke merket som sett");
+  t.sjekk(!/[^\s\wæøåÆØÅ–]/.test((await t.tekst('[data-h="tegn-start"]')).replace(/\d+ s/, "")), `Startknappen skal være ren tekst («${await t.tekst('[data-h="tegn-start"]')}»)`);
   await t.klikk('[data-h="tegn-start"]', 50);
   await t.vent("document.querySelector('.kunst-lerret') && document.getElementById('nedtelling').hidden", 8000);
   await t.sov(400);
   await t.bilde("tomt-ark");
 
-  // ---------- Drawing: mouse, touch, tools ----------
+  // ---------- Screen 2: drawing — mouse, touch, tools ----------
   t.sjekk((await t.js("getComputedStyle(document.querySelector('.kunst-lerret')).touchAction")) === "none", "Lerretet mangler touch-action: none");
   t.sjekk((await t.js("document.documentElement.scrollHeight <= window.innerHeight + 1")), "Tegneskjermen kan scrolles");
   t.sjekk(await t.js("(() => { const c = document.querySelector('.kunst-lerret'); return c.width >= c.getBoundingClientRect().width * 1.9; })()"), "Lerretet er ikke skarpt på retina (for få piksler)");
@@ -181,6 +275,26 @@ export default async function (t) {
   await t.bilde("titt");
   await slippTitt();
   t.sjekk(await t.js("document.getElementById('kunst-titt-boble').hidden"), "Ordet forsvant ikke da øyet ble sluppet");
+  // Without a finger to hold with (keyboard, screen reader) the eye is a switch that says its state.
+  // (What is announced is caught at the kit's R.si, whatever the kit does with it on the page.)
+  await t.js(`window.__sagt = []; (() => { const si = Rusj.si; Rusj.si = (tekst) => { window.__sagt.push(String(tekst)); return si(tekst); }; })()`);
+  const tittTilstand = () => t.js(`({ skjult: document.getElementById("kunst-titt-boble").hidden, trykket: document.getElementById("kunst-titt").getAttribute("aria-pressed"), sagt: window.__sagt[window.__sagt.length - 1] || "" })`);
+  await t.sov(600); // (the click that follows a hold is not a switch)
+  await t.send("Emulation.setFocusEmulationEnabled", { enabled: true });
+  await t.js(`document.getElementById("kunst-titt").focus()`);
+  await tast(t, "Enter", 13, "\r");
+  let oye = await tittTilstand();
+  t.sjekk(!oye.skjult && oye.trykket === "true" && /Ordet vises/.test(oye.sagt), `Enter på øyet viser ikke ordet og sier fra (${JSON.stringify(oye)})`);
+  t.sjekk(!(await t.js(`window.__sagt.join(" ")`)).toLowerCase().includes(andreOrd.toLowerCase()), "Det hemmelige ordet skal aldri leses opp av seg selv");
+  await tast(t, "Escape", 27);
+  oye = await tittTilstand();
+  t.sjekk(oye.skjult && oye.trykket === "false" && /skjult/.test(oye.sagt), `Escape skjuler ikke ordet igjen (${JSON.stringify(oye)})`);
+  await t.js(`document.getElementById("kunst-titt").click()`); // a screen reader's activation: a click with no pointer
+  t.sjekk(!(await tittTilstand()).skjult, "Et klikk uten finger (skjermleser) viser ikke ordet");
+  await t.js(`document.getElementById("kunst-titt").click()`);
+  t.sjekk((await tittTilstand()).skjult, "Et nytt klikk skjuler ikke ordet igjen");
+  await t.js(`document.activeElement && document.activeElement.blur()`);
+  await t.send("Emulation.setFocusEmulationEnabled", { enabled: false });
   await t.bilde("tegning");
 
   // ---------- Reload in the middle of the drawing ----------
@@ -197,32 +311,57 @@ export default async function (t) {
   await strek(t, linje(0.5, 0.12, 0.5, 0.2, 4));
   t.sjekk((await antallStreker(t)) === forReload + 1, "Kan ikke tegne videre etter omlasting");
 
-  // ---------- Guessed! ----------
+  // ---------- Screen 3: the answer, where the table taps who guessed ----------
   await t.klikk('[data-h="gjettet"]');
-  await t.vent("document.querySelector('[data-h=\"gjetter\"]')");
-  t.sjekk(!(await t.finnes('[data-h="gjetter"][data-v="0"]')), "Tegneren kan velges som gjetter");
-  await t.bilde("hvem-gjettet");
-  await t.klikk('[data-h="gjetter"][data-v="1"]');
   await t.vent("document.querySelector('.kunst-resultat')");
+  t.sjekk((await t.js("document.querySelector('#skjerm').className")).includes("skjerm-resultat") && (await t.tekst("#skjerm h1")).toLowerCase() === andreOrd.toLowerCase(), "«Gjettet!» skal gå rett til svaret (tre skjermer per tur)");
+  t.sjekk((await t.antall('[data-h="gjetter"]')) === 3 && !(await t.finnes('[data-h="gjetter"][data-v="0"]')), "Svarskjermen skal ha en brikke for hver som kan ha gjettet – ikke tegneren");
+  t.sjekk(await t.js(`document.querySelector(".dokk .knapp").disabled`), "«Neste» skal vente til det er valgt hvem som gjettet");
+  t.sjekk(await t.friForDokk(".kunst-hvem-valg .velger:last-child"), "Brikkene for hvem som gjettet, havner bak knappene");
   let tilst = await t.tilstand();
-  t.sjekk(tilst.spill.poeng[1] === 1 && tilst.spill.poeng[0] === 1, "Gjetter og tegner fikk ikke 1 poeng hver");
-  t.sjekk(tilst.spill.historikk[0].s.length === forReload + 1, "Tegningen ble ikke lagret i historikken");
+  t.sjekk(tilst.spill.poeng.join() === "1,0,0,0", `Tegneren skal ha fått poenget sitt med en gang (${tilst.spill.poeng.join()})`);
+  t.sjekk((await t.js(`getComputedStyle(document.querySelector(".kunst-innramming .stempel")).color`)) === "rgb(15, 110, 84)", "«Riktig!»-stempelet på papir er ikke mørkt nok til å leses");
+  await t.bilde("hvem-gjettet");
+  // A wrong name is put right by tapping the right one: the point moves.
+  await t.klikk('[data-h="gjetter"][data-v="2"]');
+  t.sjekk((await t.tilstand()).spill.poeng.join() === "1,0,1,0", "Brikken ga ikke poeng til den som gjettet");
+  await t.klikk('[data-h="gjetter"][data-v="1"]');
+  tilst = await t.tilstand();
+  t.sjekk(tilst.spill.poeng.join() === "1,1,0,0" && tilst.spill.historikk[0].g === 1, `Poenget flyttet seg ikke da en annen brikke ble valgt (${tilst.spill.poeng.join()})`);
+  t.sjekk((await t.js(`document.querySelector('[data-h="gjetter"][data-v="1"]').getAttribute("aria-pressed")`)) === "true" && !(await t.js(`document.querySelector(".dokk .knapp").disabled`)), "Valgt gjetter vises ikke, eller «Neste» åpnet seg ikke");
+  t.sjekk(/Neste: Testspiller B/.test(await t.tekst(".dokk .knapp")), `Hovedknappen skal være «Neste: Testspiller B» i ren tekst («${await t.tekst(".dokk .knapp")}»)`);
+  // The finished drawing has its own storage key and is left out of the save made on every stroke.
+  const egen = await lagretNokkel(t, "kunstneren.tegn.0");
+  t.sjekk(tilst.spill.historikk[0].s === null && egen && egen.id === tilst.spill.id && egen.s.length === forReload + 1, "Den ferdige tegningen ligger ikke i sin egen nøkkel");
+  t.sjekk((await minne(t, "sp.historikk[0].s.length")) === forReload + 1, "Tegningen ble ikke lagret i historikken");
   t.sjekk((await blekk(t, ".kunst-resultat canvas")) > 50, "Tegningen vises ikke på resultatet");
   await t.bilde("resultat");
-  // «Angre» takes the points back and returns to the choice
+  await t.lastSide(t.side, "document.querySelector('.kunst-resultat canvas')");
+  await t.sov(300);
+  t.sjekk((await blekk(t, ".kunst-resultat canvas")) > 50 && (await minne(t, "sp.historikk[0].s.length")) === forReload + 1, "Den ferdige tegningen kom ikke tilbake etter omlasting");
+  // «Angre» takes the points back and returns to the drawing (paused)
   await t.klikk('[data-h="angre-poeng"]');
-  await t.vent("document.querySelector('[data-h=\"gjetter\"]')");
+  await t.vent("document.querySelector('.kunst-lerret')");
   tilst = await t.tilstand();
   t.sjekk(tilst.spill.poeng.every((p) => p === 0) && !tilst.spill.historikk.length && tilst.spill.strek.length === forReload + 1, "«Angre» tok ikke poengene tilbake");
+  t.sjekk(await t.finnes('.kunst-slor [data-h="fortsett-tegning"]'), "Etter «Angre» skal tegningen stå på pause");
+  await t.klikk('[data-h="gjettet"]');
+  await t.vent("document.querySelector('[data-h=\"gjetter\"]')");
   await t.klikk('[data-h="gjetter"][data-v="1"]');
-  await t.vent("document.querySelector('.kunst-resultat')");
   t.sjekk((await t.tilstand()).spill.poeng.join() === "1,1,0,0", "Poengene ble ikke gitt på nytt etter «Angre»");
   t.sjekk(/Godt jobba! \+1 til Testspiller B og Testspiller A – gjettet på \d+ sekund/.test(await t.tekst(".kunst-pluss")), "Resultatlinja følger ikke felles ordbruk");
+  t.sjekk((await lagretNokkel(t, "kunstneren.tegn.0")).s.length === forReload + 1, "Tegningen ble ikke skrevet på nytt etter «Angre»");
 
-  // ---------- Time runs out ----------
-  await t.klikk('[data-h="neste"]');
+  // ---------- Time runs out — on a drawing with a «Kunstnerkrav» (the dice are held for the test) ----------
+  await nesteMedTerning(t, 0);
+  await t.vent("document.querySelector('.mappe')");
   t.sjekk(/Testspiller B/.test(await t.tekst("#skjerm h1")), "Neste tegner er ikke Testspiller B");
+  t.sjekk(/Tegn med feil hånd/.test(await t.tekst(".kunst-krav")) && (await t.tilstand()).spill.krav === 0, "Kunstnerkravet vises ikke på overleveringen");
+  t.sjekk(await t.friForDokk(".mappe"), "Kortet med ordet havner bak knappene når et kunstnerkrav vises");
+  await t.bilde("gi-mobilen-krav");
   await startTegning(t);
+  t.sjekk(/Feil hånd/i.test(await t.tekst(".kunst-hvem small")), "Kunstnerkravet står ikke på tegneskjermen");
+  await t.bilde("tegning-krav");
   await tegnHus(t, { touch: true });
   await t.js("Rusj.timer('kunst-tid').leggTil(-200)");
   await t.vent("document.querySelector('.kunst-slor.ute')", 4000);
@@ -230,10 +369,14 @@ export default async function (t) {
   const forLas = await antallStreker(t);
   await strek(t, linje(0.2, 0.2, 0.8, 0.8, 6), { touch: true });
   t.sjekk((await antallStreker(t)) === forLas, "Man kan tegne etter at tiden er ute");
+  t.sjekk((await t.js(`getComputedStyle(document.querySelector(".kunst-slor.ute .stempel")).color`)) === "rgb(181, 35, 88)", "«Tiden er ute!»-stempelet på papir er ikke mørkt nok til å leses");
   await t.bilde("tiden-ute");
   await t.klikk('[data-h="ingen"]');
   await t.vent("document.querySelector('.kunst-resultat')");
   t.sjekk(/Uløst/i.test(await t.tekst(".kunst-resultat")), "Mangler «Uløst» når ingen gjettet");
+  t.sjekk(!(await t.finnes('[data-h="gjetter"]')) && !(await t.js(`document.querySelector(".dokk .knapp").disabled`)), "Ingen gjettet: da skal det ikke spørres om hvem, og «Neste» skal være klar");
+  t.sjekk((await t.js(`getComputedStyle(document.querySelector(".kunst-innramming .stempel")).color`)) === "rgb(181, 35, 88)", "«Uløst»-stempelet på papir er ikke mørkt nok til å leses");
+  t.sjekk(/feil hånd/.test(await t.tekst(".kunst-kravlinje")) && (await t.tilstand()).spill.historikk[1].krav === 0, "Svarskjermen forteller ikke hvilket kunstnerkrav tegningen hadde");
   await t.bilde("ingen-gjettet");
 
   // ---------- Back + continue ----------
@@ -244,7 +387,9 @@ export default async function (t) {
   await t.vent("document.querySelector('.kunst-resultat')");
 
   // ---------- Give up (with confirmation) ----------
-  await t.klikk('[data-h="neste"]');
+  await nesteMedTerning(t, 0);
+  await t.vent("document.querySelector('.mappe')");
+  t.sjekk((await t.tilstand()).spill.krav === -1 && !(await t.finnes(".kunst-krav")), "To tegninger på rad skal aldri få kunstnerkrav");
   await startTegning(t);
   await strek(t, sirkel(0.5, 0.5, 0.3), { touch: true });
   await t.klikk('[data-h="ingen"]');
@@ -257,8 +402,9 @@ export default async function (t) {
   t.sjekk(!(await t.finnes('[data-h="slutt"]')), "Lenken for å avslutte skal hete «Avslutt» og spørre først");
   await t.klikk('[data-h="avslutt"]');
   await t.vent("document.querySelector('#ark:not([hidden]) [data-v=\"nei\"]')");
+  t.sjekk((await t.tekst('#ark [data-v="nei"]')) === "Spill videre" && (await t.tekst('#ark [data-v="ja"]')) === "Avslutt", "Arket for «Avslutt» skal ha knappene «Avslutt» og «Spill videre»");
   await t.klikk('#ark [data-v="nei"]');
-  t.sjekk(await t.finnes(".kunst-resultat") && !(await t.tilstand()).spill.ferdig, "«Fortsett» i Avslutt-arket avsluttet likevel");
+  t.sjekk(await t.finnes(".kunst-resultat") && !(await t.tilstand()).spill.ferdig, "«Spill videre» i Avslutt-arket avsluttet likevel");
   await t.klikk('[data-h="avslutt"]');
   await t.vent("document.querySelector('#ark:not([hidden]) [data-v=\"ja\"]')");
   await t.klikk('#ark [data-v="ja"]');
@@ -266,23 +412,43 @@ export default async function (t) {
   t.sjekk((await t.js("document.getElementById('topp-tittel').textContent")) === "Kåringen", "Sluttskjermen heter ikke «Kåringen»");
   t.sjekk(/Testspiller A og Testspiller B/.test(await t.tekst("#skjerm h1")), "Delt seier vises ikke");
   t.sjekk((await t.antall(".kunst-galleri .kunst-flis")) === 3, "Utstillingen viser ikke tre tegninger");
+  t.sjekk((await t.antall(".kunst-flis-krav")) === 1 && /Feil hånd/.test(await t.tekst(".kunst-flis-krav")), "Utstillingen merker ikke tegningen som hadde et kunstnerkrav");
   t.sjekk(/vinner!/.test(await t.tekst("#skjerm h1")), "Vinnerlinja sier ikke «… vinner!»");
   t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Mangler «Alle spill» på sluttskjermen");
+  t.sjekk(await t.finnes(".banner .figur-ramme.jubel"), "Figuren jubler ikke for vinnerne");
+  // The share button sits in the page after the scoreboard; the dock has «Spill igjen» and the links.
+  t.sjekk((await t.finnes('#skjerm > [data-h="lag-bilde"]')) && !(await t.finnes('.dokk [data-h="lag-bilde"]')) && (await t.antall(".dokk .knapp, .dokk .knapp-2")) === 1, "Deleknappen skal stå i innholdet, og dokken bare ha «Spill igjen» og lenkene");
+  // The game is reported once: statistics, the evening's scoreboard and the record.
+  const ferdig = await hendelser(t, "ferdig");
+  t.sjekk(ferdig.length === 1 && ferdig[0].modus === "tegn" && ferdig[0].tegninger === 3 && ferdig[0].gjettet === 1, `Statistikken fikk ikke ett «ferdig» med riktige tall (${JSON.stringify(ferdig)})`);
+  const kveld = await lagretNokkel(t, "kveld");
+  t.sjekk(kveld && kveld.spill.length === 1 && kveld.spill[0].id === "kunstneren" && kveld.spill[0].resultat.length === 4 && kveld.spill[0].resultat.filter((r) => r.plass === 1).length === 2, `Kåringen ble ikke meldt til «Kveldens gjeng» (${JSON.stringify(kveld && kveld.spill)})`);
+  const rekord = await lagretNokkel(t, "kunstneren.rekord");
+  t.sjekk(rekord && rekord.raskest && rekord.raskest.sek >= 1 && rekord.raskest.ord.toLowerCase() === andreOrd.toLowerCase(), `Raskeste gjetning ble ikke lagret som rekord (${JSON.stringify(rekord)})`);
   await t.klikk('.kunst-flis[data-v="t0"]', 600);
   t.sjekk(await t.finnes(".kunst-flis .kunst-ark.spiller"), "Tegningen spilles ikke av");
   await t.sov(5000);
   t.sjekk((await blekk(t, '.kunst-ark[data-ark="t0"] canvas')) > 50, "Avspillingen tegnet ikke ferdig");
   await t.bilde("slutt", true);
   await delBilde(t, "utstilling-bilde");
+  // Kåringen is final: no way back into the game, and the record is on the home screen.
+  await t.klikk("#tilbake");
+  t.sjekk(!(await t.finnes('[data-h="fortsett"]')) && (await t.tilstand())._aktiv === false, "Etter kåringen skal spillet være ferdig – uten «Fortsett» på hjem-skjermen");
+  t.sjekk(new RegExp(`${rekord && rekord.raskest ? rekord.raskest.sek : "x"} s\\s+rekord`, "i").test(await t.tekst(".merker")), `Hjem-skjermen viser ikke rekorden («${(await t.tekst(".merker")).replace(/\s+/g, " ")}»)`);
+  await t.bilde("hjem-rekord");
 
   // ---------- Hviskeleken ----------
   await t.klikk('[data-h="nytt"]');
   t.sjekk(!(await t.finnes("#ark:not([hidden])")), "Et ferdig spill skal ikke kreve bekreftelse");
   await t.klikk('[data-h="modus"][data-v="hvisk"]');
+  t.sjekk((await t.tilstand()).oppsett.htid === 30, "Hviskeleken skal ha 30 sekunder per tegning som standard");
   await t.bilde("oppsett-hviskeleken", true);
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('[data-h=\"hjeg\"]')");
-  t.sjekk((await t.tilstand()).spill.rekke.length === 4, "Kjeden med fire spillere skal ha fire steg");
+  // Four players: everyone once, and the next player in the list starts this game.
+  t.sjekk((await t.tilstand()).spill.rekke.join() === "1,2,3,0", `Kjeden med fire spillere skal ha fire steg, alle én gang, og neste spiller skal begynne (${(await t.tilstand()).spill.rekke.join()})`);
+  t.sjekk(/Testspiller B/.test(await t.tekst("#skjerm h1")) && (await t.finnes('[data-h="avslutt"]')), "Kjeden starter ikke hos Testspiller B, eller «Avslutt» mangler");
+  t.sjekk((await lagretNokkel(t, "kunstneren.tegn.0")) === null, "Tegningene fra forrige spill ble ikke ryddet bort da et nytt startet");
   await t.bilde("h-gi-mobilen");
   await t.klikk('[data-h="hjeg"]');
   await t.vent("document.querySelector('.kunst-lerret')");
@@ -299,7 +465,10 @@ export default async function (t) {
   await t.bilde("h-tegn");
   await t.klikk('[data-h="hferdig"]');
   await t.vent("document.querySelector('[data-h=\"hjeg\"]')");
-  t.sjekk(/Testspiller B/.test(await t.tekst("#skjerm h1")), "Mobilen går ikke videre til Testspiller B");
+  t.sjekk(/Testspiller C/.test(await t.tekst("#skjerm h1")), "Mobilen går ikke videre til Testspiller C");
+  t.sjekk(await t.finnes('[data-h="avslutt"]'), "«Avslutt» skal finnes på hver overlevering i Hviskeleken, ikke bare den første");
+  tilst = await t.tilstand();
+  t.sjekk(tilst.spill.steg[0].s === null && ((await lagretNokkel(t, "kunstneren.tegn.0")) || {}).id === tilst.spill.id, "Tegningen i kjeden ligger ikke i sin egen nøkkel");
   await t.klikk('[data-h="hjeg"]');
   await t.vent("document.querySelector('#kunst-gjett')");
   await t.sov(400);
@@ -326,6 +495,7 @@ export default async function (t) {
   await t.vent("document.querySelector('.kunst-lerret')");
   await t.sov(300);
   t.sjekk((await antallStreker(t)) === 3 && (await blekk(t)) > 50, "Hviskeleken-tegningen overlevde ikke omlasting");
+  t.sjekk((await minne(t, "sp.steg[0].s.length")) === 3, "Den første tegningen i kjeden kom ikke tilbake etter omlasting");
   await t.klikk('[data-h="hferdig"]');
   await t.vent("document.querySelector('[data-h=\"hjeg\"]')");
   await t.klikk('[data-h="hjeg"]');
@@ -372,19 +542,40 @@ export default async function (t) {
   t.sjekk(finale.stempel && finale.par && finale.dokkKnapper === 1, `Finalen havner under knappene (${JSON.stringify(finale)})`);
   t.sjekk(/1 av 2/.test(await t.tekst(".kunst-finale")), "Finalen teller ikke treffene");
   t.sjekk((await t.tilstand()).spill.ferdig === true, "Kjeden er ikke ferdig etter kåringen");
+  t.sjekk((await hendelser(t, "ferdig")).some((d) => d.modus === "hvisk" && d.steg === 4 && d.traff === 1), "Statistikken fikk ikke vite at kjeden ble ferdig");
+  t.sjekk((await lagretNokkel(t, "kveld")).spill.length === 1, "En kjede har ingen rangering og skal ikke meldes til «Kveldens gjeng»");
   await t.bilde("h-kaaring", true);
   await delBilde(t, "kjede-bilde");
   await t.klikk('[data-h="hny"]');
   await t.vent("document.querySelector('[data-h=\"hjeg\"]')");
-  t.sjekk(/Testspiller B/.test(await t.tekst("#skjerm h1")), "Ny kjede starter ikke med neste spiller");
+  t.sjekk(/Testspiller C/.test(await t.tekst("#skjerm h1")), "Ny kjede starter ikke med neste spiller");
 
-  // ---------- Team mode ----------
+  // ---------- A game in progress is kept; «Avslutt» in a chain shows it as far as it came ----------
   await t.klikk("#tilbake");
   t.sjekk(/Fortsett/.test(await t.tekst(".hjem-knapper .knapp")), "«Fortsett» er ikke hovedknappen mens et spill pågår");
   await t.klikk('[data-h="nytt"]');
   t.sjekk(await t.finnes('#ark:not([hidden]) [data-v="nei"]'), "«Nytt spill» spør ikke før et pågående spill kastes");
   await t.klikk('#ark [data-v="nei"]');
   t.sjekk((await t.tilstand()).spill && (await t.tilstand()).spill.modus === "hvisk", "«Avbryt» kastet spillet likevel");
+  await t.klikk('[data-h="fortsett"]');
+  await kjedesteg(t, 0);
+  await kjedesteg(t, 1, "en liten sol");
+  await t.vent("document.querySelector('[data-h=\"hjeg\"]')");
+  await t.klikk('[data-h="avslutt"]');
+  await t.vent("document.querySelector('#ark:not([hidden]) [data-v=\"ja\"]')");
+  t.sjekk(/så langt/.test(await t.tekst("#ark")) && (await t.tekst('#ark [data-v="nei"]')) === "Spill videre", "«Avslutt» midt i en kjede skal tilby å vise kjeden så langt, og «Spill videre»");
+  await t.klikk('#ark [data-v="ja"]');
+  await t.vent("document.querySelector('.kunst-kjede')");
+  tilst = await t.tilstand();
+  t.sjekk(tilst.spill.rekke.join() === "2,3" && tilst.spill.steg.length === 2, `En avbrutt kjede skal vises med stegene som ble spilt (${tilst.spill.rekke.join()})`);
+  await t.klikk('[data-h="vis-neste"]', 300);
+  await t.klikk('[data-h="vis-neste"]', 900);
+  await t.klikk('[data-h="hkaring"]');
+  await t.vent("document.querySelector('.kunst-finale')");
+  t.sjekk(/Så langt kom kjeden/i.test(await t.tekst(".kunst-finale")) && /en liten sol/.test(await t.tekst(".kunst-finale")), "Finalen for en avbrutt kjede viser ikke det siste svaret");
+
+  // ---------- Team mode ----------
+  await t.klikk("#tilbake");
   await nyttSpill(t);
   await t.klikk('[data-h="modus"][data-v="tegn"]');
   if (!(await t.finnes(".kunst-mer.apen"))) await t.klikk('[data-h="mer"]');
@@ -397,29 +588,61 @@ export default async function (t) {
   await t.klikk('[data-h="gjettet"]');
   await t.vent("document.querySelector('.kunst-resultat')");
   tilst = await t.tilstand();
-  t.sjekk(tilst.spill.lag === 2 && tilst.spill.poeng[0] === 1, "Laget fikk ikke poeng");
+  // The fourth game of the evening: the fourth player draws first, for her team (Lag Gul).
+  t.sjekk(tilst.spill.lag === 2 && tilst.spill.tegner === 3 && tilst.spill.poeng.join() === "0,1", `Laget til tegneren fikk ikke poenget, eller tegneren roterte ikke (${JSON.stringify({ tegner: tilst.spill.tegner, poeng: tilst.spill.poeng })})`);
+  t.sjekk(!(await t.finnes('[data-h="gjetter"]')) && !(await t.js(`document.querySelector(".dokk .knapp").disabled`)), "Med lag skal det ikke spørres om hvem som gjettet");
   await t.bilde("lag-resultat");
 
-  // ---------- Odd counts: the one who saw the secret word never makes the last guess ----------
+  // ---------- Hviskeleken with an odd number: everyone once, and the table takes the last guess ----------
   await t.klikk("#tilbake");
   await nyttSpill(t);
   await t.klikk('[data-h="spiller-legg-til"]');
   await t.klikk('[data-h="modus"][data-v="hvisk"]');
+  t.sjekk(/^3 tegninger og 3 gjetninger/.test(await t.tekst(".kunst-estimat")) && /hele bordet/.test(await t.tekst("#spillerboks .hjelp")), `Oppsettet for fem spillere forteller ikke om bordets gjetning («${await t.tekst(".kunst-estimat")}»)`);
   await t.klikk('[data-h="start"]');
-  t.sjekk((await t.tilstand()).spill.rekke.join() === "0,1,2,3", "Med fem spillere skal én stå over (fire steg)");
-  await t.klikk("#tilbake");
-  await nyttSpill(t);
-  await t.klikk('[data-h="spiller-fjern"][data-v="4"]');
-  await t.klikk('[data-h="spiller-fjern"][data-v="3"]');
-  await t.klikk('[data-h="start"]');
-  t.sjekk((await t.tilstand()).spill.rekke.join() === "0,1,2,1", "Med tre spillere skal første gjetter ta siste steg");
+  const femkjede = (await t.tilstand()).spill.rekke;
+  t.sjekk(femkjede.length === 6 && femkjede[5] === -1 && new Set(femkjede.slice(0, 5)).size === 5, `Med fem spillere skal alle være med én gang, og bordet ta siste gjetning (${femkjede.join()})`);
+  for (let k = 0; k < 5; k++) await kjedesteg(t, k);
+  await t.vent("document.querySelector('[data-h=\"hjeg\"]')");
+  t.sjekk(/Samle gjengen/.test(await t.tekst("#skjerm h1")) && /Vis tegningen/.test(await t.tekst('[data-h="hjeg"]')) && (await t.finnes('[data-h="avslutt"]')), "Siste tegning skal gå til hele bordet («Samle gjengen!»)");
+  await t.bilde("h-bordet-samles");
+  await t.klikk('[data-h="hjeg"]');
+  await t.vent("document.querySelector('#kunst-gjett')");
+  await t.sov(400);
+  t.sjekk(/Hva tror dere dette er\?/.test(await t.tekst("#skjerm h1")) && /holder tett/.test(await t.tekst(".kunst-vet")), "Bordets gjetning spør ikke «Hva tror dere dette er?»");
+  t.sjekk((await blekk(t, ".kunst-gjettbilde canvas")) > 50, "Bordet ser ikke den siste tegningen");
+  await t.bilde("h-bordet-gjetter");
+  await t.skrivInn("#kunst-gjett", "en rund ting");
+  await t.klikk("#kunst-send");
+  await t.vent("document.querySelector('.kunst-kjede')"); // everyone is gathered already: straight to the chain
+  for (let k = 0; k < 6; k++) await t.klikk('[data-h="vis-neste"]', 250);
+  t.sjekk((await t.antall(".kunst-ledd")) === 7 && /Hele bordet\s+gjettet/.test(await t.tekst(".kunst-ledd:last-child")) && /en rund ting/.test(await t.tekst(".kunst-ledd:last-child")), "Bordets gjetning er ikke siste ledd i kjeden");
+  await t.sov(900);
+  await t.bilde("h-galleri-bordet", true);
+  await t.klikk('[data-h="hkaring"]');
+  await t.vent("document.querySelector('.kunst-finale')");
+  t.sjekk(/en rund ting/.test(await t.tekst(".kunst-finale")) && /gjetning/.test(await t.tekst(".kunst-dom")), "Finalen bruker ikke bordets gjetning som siste svar");
+  await delBilde(t, "kjede-bilde-bordet");
 
-  // ---------- Two players: "Gjettet!" goes straight to the other one ----------
-  await t.klikk("#tilbake");
-  await nyttSpill(t);
-  await t.klikk('[data-h="modus"][data-v="tegn"]');
+  // ---------- Fewer than four: Hviskeleken is switched off (it used to hand a guesser a drawing of their own guess) ----------
+  await t.klikk('[data-h="nytt"]');
+  await t.vent("document.querySelector('[data-h=\"start\"]')");
+  await t.klikk('[data-h="spiller-fjern"][data-v="4"]');
+  t.sjekk((await t.tilstand()).oppsett.modus === "hvisk", "Med fire spillere skal Hviskeleken fortsatt være valgt");
+  await t.klikk('[data-h="spiller-fjern"][data-v="3"]');
+  tilst = await t.tilstand();
+  const flis = await t.js(`(() => { const f = document.querySelector('[data-h="modus"][data-v="hvisk"]'); return { av: f.disabled, tekst: f.innerText, valgt: document.querySelector('[data-h="modus"][data-v="tegn"]').getAttribute("aria-pressed") }; })()`);
+  t.sjekk(tilst.oppsett.modus === "tegn" && flis.av && /Trenger fire eller flere/.test(flis.tekst) && flis.valgt === "true", `Med tre spillere skal Hviskeleken være slått av, og Tegn og gjett valgt (${JSON.stringify(flis)})`);
+  t.sjekk(/fire spillere/.test(await t.tekst("#toast")), "Det sies ikke fra om at Hviskeleken trenger fire spillere");
+  await t.js(`document.querySelector('[data-h="modus"][data-v="hvisk"]').click()`);
+  t.sjekk((await t.tilstand()).oppsett.modus === "tegn" && /tegninger · ca\./.test(await t.tekst(".kunst-estimat")), "Hviskeleken lot seg velge med tre spillere");
+  await t.bilde("oppsett-tre-spillere", true);
+
+  // ---------- Two players play together: no shared «win», a record to beat instead ----------
   await t.klikk('[data-h="spiller-fjern"][data-v="2"]');
   t.sjekk((await t.tilstand()).oppsett.lag === 0, "Lag ble ikke slått av med for få spillere");
+  t.sjekk(/spiller sammen/.test(await t.tekst("#spillerboks .hjelp")), "Oppsettet sier ikke at to spillere spiller sammen");
+  await t.bilde("oppsett-to-spillere", true);
   await t.klikk('[data-h="start"]');
   await startTegning(t);
   await strek(t, sirkel(0.5, 0.4, 0.2), { touch: true });
@@ -432,8 +655,35 @@ export default async function (t) {
   await t.klikk('[data-h="gjettet"]');
   await t.vent("document.querySelector('.kunst-resultat')");
   tilst = await t.tilstand();
-  t.sjekk(tilst.spill.antall === 2 && tilst.spill.poeng.join() === "1,1", "To spillere: begge skulle fått 1 poeng");
+  t.sjekk(tilst.spill.antall === 2 && tilst.spill.samarbeid === true && tilst.spill.poeng.join() === "0,0", `To spillere skal spille sammen, uten poeng til hver (${tilst.spill.poeng.join()})`);
+  t.sjekk(!(await t.finnes('[data-h="gjetter"]')) && !(await t.finnes(".poengliste")) && (await t.tekst(".kunst-duo-tall b")) === "1", "Svarskjermen for to skal vise hva de har klart sammen, ikke en poengliste");
   t.sjekk(JSON.stringify(tilst).length < 30000, `Tilstanden er for stor (${JSON.stringify(tilst).length} tegn)`);
+  await t.bilde("duo-svar");
+  await t.klikk('[data-h="neste"]');
+  await startTegning(t);
+  await strek(t, sirkel(0.5, 0.5, 0.25), { touch: true });
+  await t.klikk('[data-h="ingen"]');
+  await t.vent("document.querySelector('#ark:not([hidden]) [data-v=\"ja\"]')");
+  await t.klikk('#ark [data-v="ja"]');
+  await t.vent("document.querySelector('.kunst-resultat')");
+  t.sjekk(/Til kåringen/.test(await t.tekst(".dokk .knapp")), `Etter siste tegning skal hovedknappen hete «Til kåringen» («${await t.tekst(".dokk .knapp")}»)`);
+  await t.klikk('[data-h="slutt"]');
+  await t.vent("document.querySelector('.banner')");
+  let duo = await t.tekst("#skjerm h1");
+  t.sjekk(/Dere klarte 1 av 2/.test(duo) && !/vinner/.test(await t.tekst(".banner")) && !(await t.finnes(".pall")) && !(await t.finnes(".poengliste")), `To spillere skal ikke ende i delt seier («${duo}»)`);
+  t.sjekk(/rekord å slå/.test(await t.tekst(".banner")), "Første spill for to skal gi en rekord å slå");
+  t.sjekk(((await lagretNokkel(t, "kunstneren.rekord")).duo || {})["2-60"] === 1, `Rekorden for to ble ikke lagret (${JSON.stringify(await lagretNokkel(t, "kunstneren.rekord"))})`);
+  t.sjekk((await lagretNokkel(t, "kveld")).spill.length === 1, "Et spill for to har ingen vinner og skal ikke meldes til «Kveldens gjeng»");
+  t.sjekk((await t.js("document.getElementById('topp-tittel').textContent")) === "Kåringen" && (await t.tilstand())._aktiv === false, "Spillet for to endte ikke i en ferdig kåring");
+  await t.bilde("duo-kaaring", true);
+
+  // Once more — both drawings guessed this time — with the small and sideways screens on the way.
+  await t.klikk('[data-h="igjen"]');
+  await startTegning(t);
+  await strek(t, sirkel(0.5, 0.4, 0.2), { touch: true });
+  await t.klikk('[data-h="gjettet"]');
+  await t.vent("document.querySelector('.kunst-resultat')");
+  t.sjekk(/Rekorden deres: 1 av 2/.test(await t.tekst(".kunst-duo")), "Svarskjermen for to viser ikke rekorden de jakter på");
 
   // ---------- Small and sideways screens ----------
   await t.klikk('[data-h="neste"]');
@@ -468,7 +718,17 @@ export default async function (t) {
     return { ark: Math.round(a.height), dokk: d.bottom - innerHeight, enRad: (() => { const y = Array.from(document.querySelectorAll(".kunst-palett button")).map((b) => b.getBoundingClientRect().top); return Math.max(...y) - Math.min(...y) < 12 ? 1 : 2; })(), utenfor: knapper.filter((b) => b.right > innerWidth || b.bottom > innerHeight).length };
   })()`);
   t.sjekk(pc.ark >= 600 && pc.dokk <= 1 && pc.enRad === 1 && !pc.utenfor, `Tegneskjermen på PC er ikke som den skal (${JSON.stringify(pc)})`);
-  await t.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+  await t.send("Emulation.setDeviceMetricsOverride", { width: skjerm.b, height: skjerm.h, deviceScaleFactor: 2, mobile: true }); // back to the size of this run
   await t.sov(400);
   t.sjekk((await blekk(t)) > 50, "Tegningen forsvant da skjermen ble snudd");
+
+  // ---------- …and the two beat their record ----------
+  await t.klikk('[data-h="gjettet"]');
+  await t.vent("document.querySelector('.kunst-resultat')");
+  await t.klikk('[data-h="slutt"]');
+  await t.vent("document.querySelector('.banner')");
+  duo = await t.tekst(".banner");
+  t.sjekk(/Dere klarte 2 av 2/.test(duo) && /Ny rekord!/i.test(duo) && (await t.finnes(".banner .figur-ramme.jubel")), `Ny rekord for to ble ikke feiret («${duo.replace(/\s+/g, " ")}»)`);
+  t.sjekk((await lagretNokkel(t, "kunstneren.rekord")).duo["2-60"] === 2, "Den nye rekorden for to ble ikke lagret");
+  await t.bilde("duo-rekord", true);
 }

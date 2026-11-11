@@ -23,6 +23,12 @@
   gap: 8px;
 }
 
+/* «8 turer · ca. 12 min» under the start button, «60 sekunder – …» on the hand-over */
+.mi-estimat {
+  margin-bottom: -2px;
+  color: var(--tekst-2);
+}
+
 /* ---------- Team badge: the mime on a disc in the team colour ---------- */
 
 .mi-lagfigur {
@@ -93,12 +99,14 @@
   overflow-wrap: anywhere;
 }
 
-/* ---------- The secret card ---------- */
+/* ---------- Hand-over ---------- */
 
-.mi-instruks {
-  font-size: clamp(1.7rem, 7.5vw, 2.1rem);
-  text-align: center;
+.mi-gi-tekst {
+  max-width: 30ch;
+  text-wrap: balance;
 }
+
+/* ---------- The secret card (Én om gangen: right on the hand-over screen) ---------- */
 
 /* The back of the card wears the mime's striped shirt, with the task on a paper label. */
 .mappe-bakside.mi-bak {
@@ -120,9 +128,15 @@
   box-shadow: 0 0 0 4px var(--blekk);
 }
 
+/* Category and stars: full-strength ink on the paper label (readable contrast) */
+.mi-panel .kort-etikett {
+  color: var(--blekk-2);
+  opacity: 1;
+}
+
 .mi-stjerner {
   margin-left: 4px;
-  color: var(--rod);
+  color: var(--rod-dyp);
   letter-spacing: 0.08em;
 }
 
@@ -130,7 +144,62 @@
   text-wrap: balance;
 }
 
-/* ---------- Miming: the clock on stage ---------- */
+/* Two tasks to choose between: two paper labels on the striped shirt, each with what it is worth. */
+.mappe-bakside.mi-bak.mi-bak-to {
+  padding: 14px 12px;
+}
+
+.mi-valg {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+}
+
+.mi-panel.mi-valgpanel {
+  gap: 8px;
+  min-height: 0;
+  padding: 12px 14px;
+  border-radius: 18px;
+  box-shadow: 0 0 0 3px var(--blekk);
+}
+
+.mi-verdi {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 800 0.8rem/1 var(--font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mi-verdi .mi-stjerner {
+  color: var(--lampe);
+}
+
+.mi-valgpanel .kort-ord {
+  font-size: clamp(1.5rem, 7.4vw, 2.2rem);
+  line-height: 1.05;
+}
+
+.mi-valgpanel .kort-ord.lang {
+  font-size: clamp(1.3rem, 6.2vw, 1.8rem);
+}
+
+.mi-valgpanel .kort-ord.ekstra-lang {
+  font-size: clamp(1.1rem, 5.2vw, 1.45rem);
+}
+
+.mi-valgpanel .kort-etikett {
+  font-size: 0.68rem;
+}
+
+/* ---------- Miming, one task at a time: the clock on stage ---------- */
 
 /* Who mimes, readable from across the table */
 .mi-mimer {
@@ -289,21 +358,7 @@
   min-height: 74px;
 }
 
-/* ---------- Who guessed it ---------- */
-
-.mi-hvem {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  text-align: center;
-}
-
-.mi-hvem .stempel {
-  margin-bottom: 4px;
-  font-size: clamp(1.8rem, 9vw, 2.4rem);
-}
-
-/* ---------- The answer ---------- */
+/* ---------- The answer (and who guessed it) ---------- */
 
 .mi-svar {
   display: grid;
@@ -342,6 +397,365 @@
   color: var(--tekst-2);
   font: 700 1.05rem/1.4 var(--font-display);
   text-align: center;
+  text-wrap: balance;
+}
+
+/* ---------- Hurtigmim: the phone is a card in the mimer's hand ---------- */
+
+/* The round screen fills the phone exactly and never scrolls: the big zones stay under the thumb. */
+html.mi-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.mi-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.mi-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.mi-fast main,
+html.mi-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-hurtig {
+  gap: 12px;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Clock, who mimes, how many so far */
+.mi-hstatus {
+  display: grid;
+  flex: none;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.mi-hstatus .timer {
+  gap: 0;
+  padding: 0;
+  background: none;
+}
+
+.mi-hstatus .timer-ring {
+  width: 66px;
+  height: 66px;
+}
+
+.mi-hstatus .timer-ring circle {
+  stroke-width: 14;
+}
+
+.mi-hstatus .timer-ring .fyll {
+  stroke: var(--papir);
+}
+
+.mi-hstatus .timer.lite .fyll {
+  stroke: var(--rod);
+}
+
+.mi-hstatus .timer-tid {
+  font-size: 1.45rem;
+}
+
+.mi-hmimer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mi-hmimer > span:last-child {
+  min-width: 0;
+}
+
+.mi-hmimer b {
+  display: block;
+  overflow: hidden;
+  font: 900 1.1rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mi-hmimer small {
+  color: var(--tekst-2);
+  font: 700 0.82rem/1.2 var(--font-display);
+}
+
+.mi-teller {
+  display: grid;
+  justify-items: center;
+  min-width: 70px;
+  padding: 8px 10px 7px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.mi-teller b {
+  color: var(--mynte);
+  font: 900 1.9rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.mi-teller small {
+  color: var(--tekst-2);
+  font: 700 0.72rem/1.2 var(--font-display);
+}
+
+.mi-teller.popp b {
+  animation: mi-popp 0.45s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+@keyframes mi-popp {
+  35% {
+    transform: scale(1.35);
+  }
+}
+
+/* The task: a paper card with big type */
+.mi-hkort {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 0;
+  margin-bottom: 8px;
+  padding: 18px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 8px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+  /* a thumb resting on the card must not select the text or open a menu */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.mi-hetikett {
+  color: var(--blekk-2);
+  font: 800 0.8rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mi-hord {
+  max-width: 100%;
+  font: 900 clamp(2.3rem, 11.5vw, 3.4rem) / 1.02 var(--font-display);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  text-wrap: balance;
+}
+
+.mi-hord.lang {
+  font-size: clamp(1.9rem, 9.4vw, 2.8rem);
+}
+
+.mi-hord.ekstra-lang {
+  font-size: clamp(1.5rem, 7.2vw, 2.15rem);
+  line-height: 1.08;
+}
+
+.mi-hregel {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 700 0.85rem/1.1 var(--font-tekst);
+}
+
+/* A tap is answered at once: the new card flashes green (guessed) or slips in (passed). */
+.mi-hkort.blink-riktig {
+  animation: mi-blink-riktig 0.5s ease-out;
+}
+
+.mi-hkort.blink-pass {
+  animation: mi-blink-pass 0.32s ease-out;
+}
+
+@keyframes mi-blink-riktig {
+  from {
+    background: var(--mynte);
+    box-shadow: 0 8px 0 var(--mynte-dyp);
+    transform: scale(0.96);
+  }
+}
+
+@keyframes mi-blink-pass {
+  from {
+    opacity: 0.2;
+    transform: translateX(-18px);
+  }
+}
+
+/* Paused: the task is hidden */
+.mi-hkort.pause {
+  flex: 1 1 auto;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.mi-hkort.pause .figur-ramme {
+  width: 96px;
+}
+
+.mi-hkort.pause p {
+  max-width: 26ch;
+  color: var(--blekk-2);
+  font: 700 1rem/1.35 var(--font-tekst);
+  text-wrap: balance;
+}
+
+/* One big «Riktig» zone, and a narrow «Pass» strip under it */
+.mi-riktig {
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 104px;
+  border-radius: var(--r-stor);
+  font-size: clamp(2rem, 9.5vw, 2.8rem);
+  touch-action: manipulation;
+}
+
+.mi-riktig .mi-hake {
+  font-size: 1.5em;
+  line-height: 0.9;
+}
+
+.mi-riktig small {
+  font: 700 0.95rem/1.2 var(--font-tekst);
+  letter-spacing: 0;
+}
+
+.mi-pass {
+  flex: none;
+  min-height: 58px;
+  touch-action: manipulation;
+}
+
+.skjerm-hurtig > .lenkerad {
+  flex: none;
+}
+
+/* ---------- Hurtigmim: the check list after the turn ---------- */
+
+.mi-resultat {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.mi-resultat .stempel-sted {
+  min-height: 74px;
+}
+
+.mi-resultat .stempel {
+  font-size: clamp(1.6rem, 8vw, 2.3rem);
+}
+
+.mi-resultat .etikett {
+  color: var(--tekst-2);
+  overflow-wrap: anywhere;
+}
+
+.mi-resultat h1 {
+  font-size: clamp(2.3rem, 11vw, 3.1rem);
+}
+
+.mi-resultat h1 b {
+  color: var(--mynte);
+}
+
+.mi-dom {
+  color: var(--tekst-2);
+  font: 800 1.1rem/1.3 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.mi-dom.rekord {
+  color: var(--lampe);
+}
+
+.mi-ordliste {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mi-ord {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 7px 16px 7px 7px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 1.08rem/1.2 var(--font-display);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mi-ord i {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--natt-3);
+  color: var(--tekst-2);
+  font: 900 1.15rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.mi-ord span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.mi-ord small {
+  flex: none;
+  color: var(--tekst-3);
+  font: 700 0.82rem/1 var(--font-tekst);
+}
+
+.mi-ord[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--mynte) 13%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--mynte);
+  color: var(--tekst);
+}
+
+.mi-ord[aria-pressed="true"] i {
+  background: var(--mynte);
+  color: var(--blekk);
+}
+
+.mi-ord[aria-pressed="true"] small {
+  color: var(--mynte);
+  font: 900 1rem/1 var(--font-display);
 }
 
 /* ---------- The end ---------- */
@@ -392,13 +806,16 @@
   overflow-wrap: anywhere;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .mi-hkort.blink-riktig,
+  .mi-hkort.blink-pass,
+  .mi-teller.popp b {
+    animation: none;
+  }
+}
+
 @media (max-width: 359px) {
   .mi-to {
-    grid-template-columns: 1fr;
-  }
-
-  /* Names must be readable when picking who guessed */
-  .skjerm-hvem .velgere {
     grid-template-columns: 1fr;
   }
 }
@@ -445,32 +862,142 @@
     height: 76px;
   }
 
-  /* The secret card and its instruction must clear the dock on short phones. */
-  .skjerm-se {
-    gap: 16px;
+  /* Hurtigmim on short phones: a slimmer status row and card, so the «Riktig» zone stays big */
+  .skjerm-hurtig {
+    gap: 10px;
   }
 
-  .skjerm-se .mi-instruks {
-    font-size: 1.45rem;
+  .mi-hstatus .timer-ring {
+    width: 56px;
+    height: 56px;
   }
 
-  .skjerm-se .mappe {
-    height: 252px;
+  .mi-hstatus .timer-tid {
+    font-size: 1.25rem;
+  }
+
+  .mi-teller {
+    min-width: 62px;
+    padding: 6px 8px 5px;
+  }
+
+  .mi-teller b {
+    font-size: 1.6rem;
+  }
+
+  .mi-hkort {
+    gap: 8px;
+    padding: 14px 14px;
+  }
+
+  .mi-hregel {
+    font-size: 0.8rem;
+  }
+
+  .mi-riktig {
+    min-height: 92px;
+  }
+
+  .mi-riktig small {
+    display: none;
+  }
+
+  .mi-pass {
+    min-height: 50px;
+  }
+
+  .skjerm-hurtig > .lenkerad .lenke {
+    min-height: 36px;
+    padding-block: 6px;
+  }
+
+  .mi-resultat .stempel-sted {
+    min-height: 60px;
+  }
+}
+
+/* Short phones held upright. Én om gangen: who mimes, the secret card and its instruction must
+   clear the dock. (On its side the kit sizes the card to the height that is left.) */
+@media (max-height: 700px) and (orientation: portrait) {
+  .skjerm-gi {
+    gap: 12px;
+  }
+
+  .skjerm-gi > .mi-tett {
+    margin-top: -6px;
+  }
+
+  .skjerm-gi > .mappe {
+    height: clamp(200px, calc(100vh - 336px), 252px);
+    height: clamp(200px, calc(100dvh - 336px), 252px);
     min-height: 0;
   }
 
-  .skjerm-se .mappe-forside {
+  .skjerm-gi > .mappe .mappe-forside {
     gap: 10px;
-    padding: 18px;
+    padding: 16px;
   }
 
-  .skjerm-se .mappe-forside .figur-ramme {
-    width: 76px;
+  .skjerm-gi > .mappe .mappe-forside .figur-ramme {
+    width: 72px;
   }
 
-  .skjerm-se .mappe-finger svg {
+  .skjerm-gi > .mappe .mappe-finger svg {
     width: 44px;
     height: 44px;
+  }
+
+  .mappe-bakside.mi-bak.mi-bak-to {
+    padding: 10px;
+  }
+
+  .mi-valg {
+    gap: 8px;
+  }
+
+  .mi-panel.mi-valgpanel {
+    gap: 5px;
+    padding: 8px 12px;
+    border-radius: 14px;
+  }
+
+}
+
+/* The smallest phones: the hand-over (who, what to do, «only the mimer sees the screen») must
+   clear the dock. */
+@media (max-height: 600px) and (orientation: portrait) {
+  .skjerm-gi > .fremdrift {
+    display: none;
+  }
+
+  .skjerm-gi .gi-til {
+    gap: 8px;
+    padding-block: 4px;
+  }
+
+  .skjerm-gi .avatar.gigant {
+    width: 96px;
+    height: 96px;
+    font-size: 3rem;
+    box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.18), 0 0 0 5px var(--natt), 0 0 0 7px var(--pf, var(--p1));
+  }
+
+  .skjerm-gi .mi-lagfigur.stor {
+    width: 108px;
+    height: 108px;
+  }
+
+  .skjerm-gi .mi-lagfigur.stor .figur-ramme {
+    width: 80px;
+  }
+
+  .mi-gi-tekst {
+    font-size: 0.98rem;
+  }
+
+  /* (two tasks on the low card: no room for the category under each) */
+  .mi-valgpanel .kort-etikett {
+    display: none;
   }
 }
 
@@ -492,5 +1019,112 @@
 
   .mi-scene .timer.stor .timer-tid {
     font-size: clamp(1.6rem, 8.4vh, 2.3rem);
+  }
+
+  /* Two tasks to choose between: side by side on the low, wide card. */
+  .mi-valg {
+    grid-template-rows: none;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .mi-valgpanel .kort-ord {
+    font-size: clamp(1.4rem, 9.5vh, 2rem);
+  }
+
+  .mi-valgpanel .kort-ord.lang {
+    font-size: clamp(1.2rem, 8vh, 1.7rem);
+  }
+
+  .mi-valgpanel .kort-ord.ekstra-lang {
+    font-size: clamp(1.05rem, 6.6vh, 1.4rem);
+  }
+
+  /* Hurtigmim keeps its own layout: the status and the task on the left, the big «Riktig» zone,
+     the «Pass» strip and the links in a column on the right. */
+  html.mi-fast .app {
+    max-width: 920px;
+  }
+
+  .skjerm-hurtig {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "status riktig"
+      "kort riktig"
+      "kort pass"
+      "kort lenker";
+    gap: 8px 18px;
+    padding-top: 4px;
+  }
+
+  .skjerm-hurtig > .mi-hstatus {
+    grid-area: status;
+  }
+
+  .skjerm-hurtig > .mi-hkort {
+    grid-area: kort;
+    padding: 12px 16px;
+  }
+
+  .skjerm-hurtig > .mi-riktig {
+    grid-area: riktig;
+    min-height: 0;
+    font-size: clamp(1.8rem, 11vh, 2.6rem);
+  }
+
+  .skjerm-hurtig > .mi-pass {
+    grid-area: pass;
+    min-height: 48px;
+  }
+
+  .skjerm-hurtig > .lenkerad {
+    grid-area: lenker;
+  }
+
+  .skjerm-hurtig > .lenkerad .lenke {
+    min-height: 34px;
+    padding-block: 5px;
+  }
+
+  /* Paused: the button column takes the right side. */
+  .skjerm-hurtig > .dokk {
+    position: static;
+    grid-area: 1 / 2 / -1 / 3;
+    align-self: center;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .mi-hord {
+    font-size: clamp(1.9rem, 13vh, 3rem);
+  }
+
+  .mi-hord.lang {
+    font-size: clamp(1.6rem, 10.5vh, 2.4rem);
+  }
+
+  .mi-hord.ekstra-lang {
+    font-size: clamp(1.3rem, 8.4vh, 1.9rem);
+  }
+
+  .mi-hkort.pause .figur-ramme {
+    width: 72px;
+  }
+
+  /* Stamps: small enough that a tilted «Tiden er ute!» stays clear of the line under it. */
+  .mi-svar .stempel-sted,
+  .mi-resultat .stempel-sted {
+    min-height: 70px;
+  }
+
+  .mi-svar .stempel,
+  .mi-resultat .stempel {
+    font-size: clamp(1.3rem, 7vh, 1.9rem);
+  }
+
+  .mi-resultat h1 {
+    font-size: clamp(1.9rem, 11vh, 2.6rem);
   }
 }

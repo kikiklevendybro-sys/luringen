@@ -1,8 +1,11 @@
 /* Sladrehanken — «Jeg har aldri …»
    A card says "Jeg har aldri …" (I have never …). Everyone who HAS done it is exposed.
    Two modes: "Fem liv" (everyone starts with five lives; on «AVSLØR!» those who have done it raise
-   a hand and lose a life; the last one with lives left is crowned the most innocent) and
-   "Bare kort" (read, laugh, swipe). Not a drinking game. */
+   a hand and lose a life) and "Bare kort" (read, laugh, swipe). Not a drinking game.
+   "Fem liv" ends when the first player runs out of lives (nobody sits and watches) or, if the
+   group chooses, when one player is left. A player who is alone in having done something gets the
+   spotlight: tell the story, and the table may give the life back. About every sixth card the
+   reader makes up the statement, and the phone goes round: a new reader for every card. */
 (function () {
   "use strict";
 
@@ -11,12 +14,19 @@
   const esc = R.esc;
   const LIV = 5;
 
-  // All cards in one list so the deck can remember what has been shown across sessions.
+  // All cards in one list so the deck can remember what has been shown across sessions. The order
+  // follows the data file (new packs are added last there), so the remembered numbers stay valid.
   const ALLE = [];
   D.pakker.forEach((p) => p.kort.forEach((t) => ALLE.push({ p: p.id, t })));
-  const PAKKER = D.pakker;
-  const pakke = (id) => PAKKER.find((p) => p.id === id);
-  const STANDARD = PAKKER.filter((p) => !p.voksen).map((p) => p.id);
+  const pakke = (id) => D.pakker.find((p) => p.id === id);
+  // The Christmas pack is listed first while it is the season (1 Nov – 6 Jan), otherwise last.
+  const julesesong = (d = new Date()) => d.getMonth() >= 10 || (d.getMonth() === 0 && d.getDate() <= 6);
+  const PAKKER = (() => {
+    const jul = D.pakker.filter((p) => p.id === "jul");
+    const andre = D.pakker.filter((p) => p.id !== "jul");
+    return julesesong() ? [...jul, ...andre] : [...andre, ...jul];
+  })();
+  const STANDARD = D.pakker.filter((p) => !p.voksen && p.id !== "jul").map((p) => p.id);
   const stokk = R.kortstokk("kort", ALLE.length);
   let H; // the actions, so one action can reuse another
   let knekker = null; // players whose heart is breaking right now (animation only, never saved)
@@ -33,6 +43,13 @@
   const pagar = (S) => !!(S.spill && S.spill.fase !== "ferdig");
   const ganger = (n) => (n === 1 ? "én gang" : `${n} ganger`);
   const navneliste = (liste) => R.ramsOpp(liste.map((i) => R.navn(i))); // «A, B og C»
+  const iSpill = (sp, i) => Number.isInteger(i) && i >= 0 && i < sp.antall;
+
+  // «Spillet varer til …»: the first player is out ("forste") or one player is left ("siste").
+  // Until the group chooses, big groups end at the first knock-out (otherwise the ones with the
+  // best stories sit and watch for half the game) and small groups play it out as before.
+  const REGLER = ["forste", "siste"];
+  const regelFor = (o, antall) => (REGLER.includes(o.regel) ? o.regel : antall >= 5 ? "forste" : "siste");
 
   // Five hearts. `truet` marks the one that will be lost, `knekk` breaks it (animation).
   function hjerter(liv, o = {}) {
@@ -45,40 +62,70 @@
     return `<span class="sladre-hjerter" role="img" aria-label="${liv} av ${LIV} liv">${html}</span>`;
   }
 
-  function nyttKort(S) {
+  // A new card. `bytte`: the card on the table was skipped, so the same reader gets another one.
+  // About every sixth card that is played, the reader makes up the statement (cards 4, 10, 16 …).
+  function nyttKort(S, bytte) {
     const sp = S.spill;
-    const valgt = new Set(sp.pakker);
-    let i = stokk.neste((n) => valgt.has(ALLE[n].p));
-    if (i < 0) i = stokk.neste();
-    sp.kort = i;
+    const harSpillere = sp.modus === "liv";
+    if (!bytte && sp.nr > 0) {
+      if (harSpillere) sp.leser = (sp.leser + 1) % sp.antall;
+      sp.sidenEgen = sp.egen ? 0 : sp.sidenEgen + 1;
+    } else if (bytte && sp.egen) sp.sidenEgen = 0;
     sp.nr += 1;
     sp.fase = "les";
     sp.valgt = [];
+    sp.historie = null;
+    if (!bytte && sp.sidenEgen >= 5) {
+      sp.egen = true;
+      sp.kort = null;
+      return;
+    }
+    const valgt = new Set(sp.pakker);
+    let i = stokk.neste((n) => valgt.has(ALLE[n].p));
+    if (i < 0) i = stokk.neste();
+    sp.egen = false;
+    sp.kort = i;
   }
 
+  // Who makes up the statement on a «Finn på et selv» card.
+  const finnerPa = (sp) => (sp.modus === "liv" ? R.navn(sp.leser) : "Den som leser");
+  // The card as one sentence (for the hidden heading and screen readers).
+  const kortSetning = (sp) => (sp.egen ? `${finnerPa(sp)} finner på resten: ${D.prefiks}` : `${D.prefiks} ${setning(ALLE[sp.kort].t)}`);
+
   // Screen readers don't announce a card that is redrawn in place, so say it.
-  const siKort = (S) => R.si(`Kort ${S.spill.nr}. ${D.prefiks.replace(" …", "")} ${setning(ALLE[S.spill.kort].t)}`);
+  const siKort = (S) => {
+    const sp = S.spill;
+    R.si(`Kort ${sp.nr}. ${sp.modus === "liv" && !sp.egen ? `${R.navn(sp.leser)} leser. ` : ""}${kortSetning(sp).replace(" …", "")}`);
+  };
 
   function nyttSpill(S) {
+    const o = S.oppsett;
     const antall = R.klamp(S.antall || 4, 2, 20);
     S.spill = {
-      modus: S.oppsett.modus,
-      pakker: S.oppsett.pakker.slice(),
+      modus: o.modus,
+      regel: regelFor(o, antall),
+      pakker: o.pakker.slice(),
       antall,
       liv: Array(antall).fill(LIV),
       avslort: Array(antall).fill(0), // cards each player has done (and confessed)
       uteNr: Array(antall).fill(0), // the card a player went out on (0 = still in)
+      historier: Array(antall).fill(0), // good stories (each gave a life back)
       erfarne: [], // the first one(s) out
       sisteUte: [], // knocked out by the last card
       spilt: 0, // cards that counted
-      topp: null, // { k, n, av }: the card that exposed the most players
-      slutt: false,
+      topp: null, // { k, egen, n, av }: the card that exposed the most players
+      slutt: false, // the game is over after the knock-out screen
       angre: null, // what the last lost lives changed, so it can be undone until the next action
       nr: 0,
       kort: null,
-      fase: "les",
+      egen: false, // the card on the table is a «Finn på et selv» card (then kort is null)
+      sidenEgen: 2, // cards played since the last such card (the first one is card 4)
+      leser: (S.lesere || 0) % antall, // who reads the card on the table; a new reader for every card
+      historie: null, // { i }: the player in the spotlight, while the table decides about the story
+      fase: "les", // les → velg → (historie) → (ute) → ferdig
       valgt: [],
     };
+    S.lesere = ((S.lesere || 0) + 1) % 1000; // the next game starts with the next reader
     nyttKort(S);
   }
 
@@ -94,16 +141,75 @@
     );
   }
   const likt = (sp, a, b) => sp.uteNr[a] === sp.uteNr[b] && sp.liv[a] === sp.liv[b] && sp.avslort[a] === sp.avslort[b];
+  // The place of everyone in `rang` (equal results share a place: 1, 1, 3).
+  function plasser(sp, rang) {
+    const ut = {};
+    let plass = 0;
+    rang.forEach((i, n) => {
+      if (n === 0 || !likt(sp, i, rang[n - 1])) plass = n + 1;
+      ut[i] = plass;
+    });
+    return ut;
+  }
   function kaaring(sp) {
     const rang = rangering(sp);
     const vinnere = rang.filter((i) => likt(sp, i, rang[0]));
     let erfarne = sp.erfarne.length ? sp.erfarne.slice() : rang.filter((i) => likt(sp, i, rang[rang.length - 1]));
     if (erfarne.some((i) => vinnere.includes(i))) erfarne = [];
-    return { rang, vinnere, erfarne };
+    const flest = Math.max(0, ...sp.historier);
+    const fortellere = flest > 0 ? alle(sp).filter((i) => sp.historier[i] === flest) : [];
+    return { rang, vinnere, erfarne, fortellere, flest };
+  }
+  // The card that exposed the most players, as text.
+  const toppTekst = (sp) => (sp.topp.egen ? "Et kort dere fant på selv." : `${D.prefiks} ${setning(ALLE[sp.topp.k].t)}`);
+  const harTopp = (sp) => !!(sp.topp && sp.topp.n > 1 && (sp.topp.egen || ALLE[sp.topp.k]));
+
+  // The game is over: titles for the most innocent and the most experienced, and the evening's table.
+  function tilSlutt(S, tidlig) {
+    const sp = S.spill;
+    sp.fase = "ferdig";
+    sp.angre = null;
+    sp.historie = null;
+    const rang = rangering(sp);
+    const plass = plasser(sp, rang);
+    R.statistikk("ferdig", { modus: "liv", regel: sp.regel, spillere: sp.antall, kort: sp.spilt, historier: sp.historier.reduce((a, b) => a + b, 0), tidlig: !!tidlig });
+    // The ranking of the result list, as points for «Kveldens gjeng» (best = most).
+    R.kveld.registrer(rang.map((i) => ({ i, poeng: sp.antall + 1 - plass[i] })));
+    R.slippVaken();
+    R.gaTil("slutt");
+  }
+
+  // After a card has taken its lives: someone is out (the knock-out screen), or on to the next card.
+  function etterKort(S, blirUte, melding) {
+    const sp = S.spill;
+    sp.historie = null;
+    if (blirUte.length) {
+      if (!sp.erfarne.length) sp.erfarne = blirUte.slice();
+      sp.sisteUte = blirUte.slice();
+      sp.slutt = sp.regel === "forste" || levende(sp).length <= 1;
+      sp.fase = "ute";
+      R.gaTil("ute");
+      return;
+    }
+    nyttKort(S);
+    R.gaTil("kort");
+    if (melding) R.toast(melding);
+    siKort(S);
   }
 
   function kortet(S, kompakt) {
     const sp = S.spill;
+    if (sp.egen) {
+      return R.ui.storkort({
+        etikett: "✍️ Finn på et selv",
+        nr: `#${sp.nr}`,
+        tekstHtml: `<span class="prefiks">${esc(finnerPa(sp))} finner på resten:</span>${esc(D.prefiks)}`,
+        klasse: `sladre sladre-kort sladre-egen${kompakt ? " aksent" : ""}`,
+        sveip: kompakt ? null : "neste",
+        fot: kompakt ? null : "Noe du tror noen her har gjort?",
+        kompakt,
+      });
+    }
     const k = ALLE[sp.kort];
     const p = pakke(k.p);
     return R.ui.storkort({
@@ -146,19 +252,35 @@
       .join("")}</ul>`;
   }
 
-  // «↶ Angre» until the next action, after lives were lost by mistake.
-  function angreLenke(sp) {
-    const a = sp.angre;
-    if (!a) return "";
-    const hvem = a.valgt.length === 1 ? `${R.navn(a.valgt[0])} mistet et liv` : `${a.valgt.length} mistet et liv`;
-    return R.ui.lenke(`↶ Angre: ${hvem}`, "angre");
-  }
+  // «↶ Angre» until the next action, after lives were lost (or given back) by mistake.
+  // (Short on purpose: with a name in it the links wrap and the big button jumps.)
+  const angreLenke = (sp) => (sp.angre ? R.ui.lenke("↶ Angre", "angre", { id: "angre" }) : "");
 
   function knappTekst(sp) {
     const n = sp.valgt.length;
     if (!n) return "Ingen har gjort det";
     if (n === 1) return `${R.navn(sp.valgt[0])} mister et liv`;
     return `${n} mister et liv`;
+  }
+
+  // Alone in having done it: the story gets the spotlight, and the table may give the life back.
+  function historien(S) {
+    const sp = S.spill;
+    const i = sp.historie.i;
+    const tom = sp.liv[i] === 0;
+    return `
+      <div class="sladre-historie-kort">${kortet(S, true)}</div>
+      <div class="banner sladre-historie">
+        <span class="sladre-historie-figur">${R.avatar(i, "gigant")}<span class="sladre-mikrofon" aria-hidden="true">🎤</span></span>
+        <p class="etikett">${tom ? "Alene om det – og tom for liv!" : "Alene om det!"}</p>
+        <h1 id="skjerm-tittel">${esc(R.navn(i))} – fortell!</h1>
+        ${hjerter(sp.liv[i])}
+        <p class="ingress">${tom ? "En god historie redder deg." : "Kortversjonen holder, og en god historie gir livet tilbake."} Det er lov å si pass.</p>
+      </div>
+      ${R.ui.dokk(
+        `<div class="knapprad">${R.ui.knapp2("Videre", "historie-videre")}${R.ui.knapp("God historie! +1 liv", "historie-god", { variant: "mynte" })}</div>`,
+        R.ui.lenkerad(angreLenke(sp), R.ui.lenke("Avslutt", "avslutt")),
+      )}`;
   }
 
   R.start({
@@ -168,20 +290,23 @@
 
     tilstand: () => ({
       antall: R.klamp(R.felles.navn.filter((n) => String(n || "").trim()).length || 4, 2, 20),
-      oppsett: { modus: "liv", pakker: STANDARD.slice() },
+      oppsett: { modus: "liv", regel: "auto", pakker: STANDARD.slice() },
+      lesere: 0,
       spill: null,
     }),
 
-    // Drop saved settings or games that no longer fit the content.
+    // Drop saved settings or games that no longer fit the content, and give games saved by an
+    // earlier version what they lack.
     lastet(S) {
-      const o = (S.oppsett = Object.assign({ modus: "liv", pakker: [] }, S.oppsett));
+      const o = (S.oppsett = Object.assign({ modus: "liv", regel: "auto", pakker: [] }, S.oppsett));
       if (o.modus !== "liv" && o.modus !== "kort") o.modus = "liv";
+      if (!REGLER.includes(o.regel)) o.regel = "auto";
       o.pakker = (Array.isArray(o.pakker) ? o.pakker : []).filter((id) => pakke(id));
       if (!o.pakker.length) o.pakker = STANDARD.slice();
       const sp = S.spill;
       const ok =
         sp &&
-        ALLE[sp.kort] &&
+        (sp.egen === true || ALLE[sp.kort]) &&
         Array.isArray(sp.pakker) &&
         Array.isArray(sp.liv) &&
         sp.liv.length === sp.antall &&
@@ -189,23 +314,44 @@
         Array.isArray(sp.uteNr) &&
         Array.isArray(sp.avslort);
       if (!ok) S.spill = null;
-      if (S.spill && S.spill.angre && !(Array.isArray(S.spill.angre.liv) && ALLE[S.spill.angre.kort])) S.spill.angre = null;
+      else {
+        if (!REGLER.includes(sp.regel)) sp.regel = "siste"; // a game from before the choice existed
+        sp.egen = sp.egen === true;
+        if (!Number.isInteger(sp.sidenEgen)) sp.sidenEgen = 0;
+        if (!iSpill(sp, sp.leser)) sp.leser = 0;
+        if (!Array.isArray(sp.historier) || sp.historier.length !== sp.antall) sp.historier = Array(sp.antall).fill(0);
+        if (!Array.isArray(sp.erfarne)) sp.erfarne = [];
+        if (!Array.isArray(sp.sisteUte)) sp.sisteUte = [];
+        if (sp.topp && !(sp.topp.egen || ALLE[sp.topp.k])) sp.topp = null;
+        if (sp.angre && !(Array.isArray(sp.angre.liv) && (sp.angre.egen === true || ALLE[sp.angre.kort]))) sp.angre = null;
+        if (!["les", "velg", "historie", "ute", "ferdig"].includes(sp.fase)) sp.fase = "les";
+        if (sp.fase === "historie" && !(sp.historie && iSpill(sp, sp.historie.i))) sp.fase = "les";
+        if (sp.fase !== "historie") sp.historie = null;
+      }
       if (!S.spill && ["kort", "ute", "slutt"].includes(S.skjerm)) S.skjerm = "hjem";
+    },
+
+    // rusj.no/sladrehanken/#jul opens «Gjør klart» with only the Christmas pack chosen.
+    vedHash(S, hash) {
+      if (String(hash).trim().toLowerCase() !== "jul" || !pakke("jul") || pagar(S)) return null;
+      S.oppsett.pakker = ["jul"];
+      return "oppsett";
     },
 
     regler: {
       intro: "Hvert kort begynner med «Jeg har aldri …». Har du gjort det likevel, er du avslørt – og historien må gjerne fram.",
       steg: [
-        ["Les kortet høyt", "Én leser hele kortet: «Jeg har aldri …»"],
+        ["Les kortet høyt", "Den som har mobilen, leser hele kortet: «Jeg har aldri …» Så går mobilen videre til nestemann."],
         ["Avslør dere", "Trykk på knappen. På «AVSLØR!» rekker alle som HAR gjort det, opp hånda – samtidig."],
-        ["Mist et liv", "Trykk på alle som rakte opp hånda. De mister et liv. Den siste med liv igjen er den uskyldigste."],
+        ["Mist et liv", "Trykk på alle som rakte opp hånda. De mister et liv. Når den første går tom, er spillet over – og den med flest liv igjen er uskyldigst."],
       ],
       tips: [
-        "Den som blir avslørt, forteller gjerne hva som skjedde. Kortversjonen holder!",
+        "Er du alene om det, må historien fram. Er den god, gir gjengen deg livet tilbake.",
         "Ingen trenger å fortelle mer enn de vil. Det er lov å si pass.",
+        "Av og til finner dere på resten av setningen selv. Sikt gjerne på noen rundt bordet!",
+        "Vil dere spille til bare én står igjen? Velg det under «Spillet varer til …».",
         "Velg «Bare kort» hvis dere vil lese og prate uten å telle liv.",
         "Festpakken er for voksne og er ikke med før dere velger den.",
-        "Sveip kortet til siden for å hoppe over det.",
       ],
     },
 
@@ -234,7 +380,8 @@
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
-          const antallKort = PAKKER.filter((p) => o.pakker.includes(p.id)).reduce((s, p) => s + p.kort.length, 0);
+          const antallKort = D.pakker.filter((p) => o.pakker.includes(p.id)).reduce((s, p) => s + p.kort.length, 0);
+          const regel = regelFor(o, R.klamp(S.antall || 4, 2, 20));
           return `
           <h1 id="skjerm-tittel">Gjør klart</h1>
           <section class="seksjon">
@@ -242,12 +389,25 @@
             ${R.ui.fliser(
               "modus",
               [
-                { v: "liv", tittel: "Fem liv", tekst: "Mist et liv hver gang du er avslørt. Sist igjen vinner.", ikon: "❤️" },
+                { v: "liv", tittel: "Fem liv", tekst: "Mist et liv hver gang du er avslørt. Flest liv til slutt vinner.", ikon: "❤️" },
                 { v: "kort", tittel: "Bare kort", tekst: "Les, le og sveip videre. Ingen poeng.", ikon: "🃏" },
               ],
               o.modus,
             )}
           </section>
+          ${
+            o.modus === "liv"
+              ? `<section class="seksjon">
+                  <h2>Spillet varer til …</h2>
+                  ${R.ui.seg("regel", [["forste", "Første er ute"], ["siste", "Én står igjen"]], regel, { etikett: "Spillet varer til" })}
+                  <p class="hjelp">${
+                    regel === "forste"
+                      ? "Ingen blir sittende og se på: Når den første går tom for liv, er det kåring."
+                      : "Den som går tom for liv, er ute. Den siste med liv igjen vinner."
+                  }</p>
+                </section>`
+              : ""
+          }
           <section class="seksjon">
             <div class="seksjon-hode"><h2>Velg pakker</h2><span class="tall">${antallKort} kort</span></div>
             ${R.ui.fliser(
@@ -266,22 +426,23 @@
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
-          const tittel = `<h1 class="vh" id="skjerm-tittel">Kort ${sp.nr}: ${esc(D.prefiks)} ${esc(ALLE[sp.kort].t)}</h1>`;
+          if (sp.fase === "historie") return historien(S);
+          const tittel = `<h1 class="vh" id="skjerm-tittel">Kort ${sp.nr}: ${esc(kortSetning(sp))}</h1>`;
           if (sp.modus === "kort") {
             return `
               ${tittel}
               ${kortet(S, false)}
               <p class="sladre-hint"><span aria-hidden="true">✋</span> Har du gjort det? Rekk opp hånda!</p>
-              ${R.ui.dokk(
-                R.ui.knapp("Neste kort", "neste", { variant: "stor", ikon: "👉" }),
-                R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")),
-              )}`;
+              ${R.ui.dokk(R.ui.knapp("Neste kort", "neste", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
           }
           if (sp.fase !== "velg") {
             return `
               ${tittel}
               ${kortet(S, false)}
-              <p class="sladre-hint"><span aria-hidden="true">✋</span> Har du gjort det? Rekk opp hånda på «AVSLØR!»</p>
+              <div class="sladre-under">
+                <p class="sladre-leser">${R.avatar(sp.leser)}<span>Leser: <b>${esc(R.navn(sp.leser))}</b></span></p>
+                <p class="sladre-hint"><span aria-hidden="true">✋</span> Har du gjort det? Rekk opp hånda på «AVSLØR!»</p>
+              </div>
               ${R.ui.dokk(
                 R.ui.knapp("3 · 2 · 1 – Avslør!", "avslor-na", { variant: "stor", ikon: "✋" }),
                 R.ui.lenkerad(angreLenke(sp), R.ui.lenke("Hopp over kortet", "neste"), R.ui.lenke("Avslutt", "avslutt")),
@@ -294,9 +455,10 @@
               <div class="seksjon-hode"><h2 id="skjerm-tittel">Hvem har gjort det?</h2><span class="tall">${sp.valgt.length} avslørt</span></div>
               <p class="sladre-hjelp">Trykk på alle som rakte opp hånda.</p>
               ${velgere(sp)}
+              ${sp.valgt.length > 1 ? `<p class="sladre-prat"><span aria-hidden="true">💬</span> Hvem har den beste historien?</p>` : ""}
               ${uteRad(sp)}
             </section>
-            ${R.ui.dokk(R.ui.knapp(knappTekst(sp), "ferdig", { variant: sp.valgt.length ? "" : "mynte", av: opptatt }))}`;
+            ${R.ui.dokk(R.ui.knapp(knappTekst(sp), "ferdig", { variant: sp.valgt.length ? "" : "mynte", av: opptatt }), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
         },
         inn() {
           R.holdVaken();
@@ -312,11 +474,12 @@
           const forst = sp.erfarne.length && sp.erfarne.every((i) => ute.includes(i)) && ute.every((i) => sp.erfarne.includes(i));
           const mange = ute.length > 1;
           const igjen = levende(sp);
-          const fortsatt = igjen.length > 1;
+          const over = sp.slutt || igjen.length <= 1; // the crowning is next
+          const forsteUte = sp.regel === "forste";
           return `
             <div class="banner rosa sladre-ute">
               <div class="sladre-ute-figurer">${ute.map((i) => R.avatar(i, mange ? "stor" : "gigant")).join("")}</div>
-              <p class="etikett">${mange ? "Avslørt og ute – alle sammen" : "Avslørt og ute"}</p>
+              <p class="etikett">${forsteUte ? (mange ? "Tomme for liv – samtidig" : "Første tom for liv") : mange ? "Avslørt og ute – alle sammen" : "Avslørt og ute"}</p>
               <h1 id="skjerm-tittel">${ute.length > 3 ? `${ute.length} på én gang` : esc(navneliste(ute))}</h1>
               <div class="stempel-sted"><span class="stempel">Ute!</span></div>
               <p class="ingress">${
@@ -336,17 +499,15 @@
                 : ""
             }
             ${
-              fortsatt
+              !over
                 ? `<section class="seksjon"><div class="seksjon-hode"><h2>Fortsatt med</h2><span class="tall">${igjen.length} igjen</span></div>${stilling(sp)}</section>`
-                : `<p class="ingress midt">Bare én er igjen …</p>`
+                : `<p class="ingress midt">${forsteUte && igjen.length > 1 ? "Dermed er spillet over. Hvem er uskyldigst?" : "Bare én er igjen …"}</p>`
             }
-            ${R.ui.dokk(
-              fortsatt ? R.ui.knapp("Neste kort", "videre", { ikon: "👉" }) : R.ui.knapp("Hvem vant?", "videre", { ikon: "🏆", variant: "stor" }),
-              sp.angre ? R.ui.lenkerad(angreLenke(sp)) : "",
-            )}`;
+            ${R.ui.dokk(R.ui.knapp(over ? "Til kåringen" : "Neste kort", "videre"), R.ui.lenkerad(angreLenke(sp), over ? "" : R.ui.lenke("Avslutt", "avslutt")))}`;
         },
         inn() {
-          R.lyd.buu();
+          // A drum roll for the title «Mest erfaren» — never a boo: the player was honest.
+          R.lyd.trommevirvel(0.4);
           R.vibrer([80, 60, 180]);
         },
       },
@@ -354,9 +515,10 @@
       slutt: {
         tittel: "Kåringen",
         tilbake: "hjem",
+        gjenoppta: "hjem",
         vis(S) {
           const sp = S.spill;
-          const { rang, vinnere, erfarne } = kaaring(sp);
+          const { rang, vinnere, erfarne, fortellere, flest } = kaaring(sp);
           const v = vinnere[0];
           const delt = vinnere.length > 1;
           const x = sp.avslort[v];
@@ -365,37 +527,31 @@
             : x === 0
               ? `Ikke avslørt én eneste gang på ${sp.spilt} kort. Engel – eller bare flink til å lyve?`
               : `Avslørt bare ${ganger(x)} på ${sp.spilt} kort. Mistenkelig uskyldig!`;
-          const topp = sp.topp && ALLE[sp.topp.k];
-          let plass = 0;
+          const plass = plasser(sp, rang);
           const rader = rang
-            .map((i, n) => {
-              if (n === 0 || !likt(sp, i, rang[n - 1])) plass = n + 1;
-              const hoyre = inne(sp, i) ? hjerter(sp.liv[i]) : `<span class="sladre-ute-merke">Ute på kort ${sp.uteNr[i]}</span>`;
-              return `<li class="${plass === 1 ? "leder" : ""}"><span class="plass-nr">${plass}</span>${R.avatar(i)}<span class="navn">${esc(R.navn(i))}</span>${hoyre}</li>`;
+            .map((i) => {
+              const hoyre = inne(sp, i) ? hjerter(sp.liv[i]) : `<span class="sladre-ute-merke">${sp.regel === "forste" ? "Tom for liv" : `Ute på kort ${sp.uteNr[i]}`}</span>`;
+              return `<li class="${plass[i] === 1 ? "leder" : ""}"><span class="plass-nr">${plass[i]}</span>${R.avatar(i)}<span class="navn">${esc(R.navn(i))}</span>${hoyre}</li>`;
             })
             .join("");
+          const tittelboks = (ikon, etikett, hvem, tekst) => `<div class="papirboks sladre-tittel">
+              <span class="sladre-tittel-ikon" aria-hidden="true">${ikon}</span>
+              <div><p class="etikett">${etikett}</p><p class="sladre-tittel-navn">${hvem.length > 3 ? `${hvem.length} spillere` : esc(navneliste(hvem))}</p><p>${tekst}</p></div>
+            </div>`;
           return `
-            <div class="banner aksent${delt ? " sladre-delt" : ""}">
-              ${R.figur()}
-              <p class="etikett">${delt ? "Delt seier – uskyldigst" : "Uskyldigst 😇"}</p>
-              <h1 id="skjerm-tittel">${vinnere.length > 3 ? `${vinnere.length} spillere vinner!` : `${esc(navneliste(vinnere))} vinner!`}</h1>
-              <p class="ingress">${esc(linje)}</p>
-            </div>
+            ${R.ui.banner({
+              klasse: `aksent${delt ? " sladre-delt" : ""}`,
+              etikett: delt ? "Delt seier – uskyldigst" : "Uskyldigst 😇",
+              tittel: vinnere.length > 3 ? `${vinnere.length} spillere vinner!` : `${navneliste(vinnere)} vinner!`,
+              tekst: linje,
+            })}
+            ${erfarne.length ? tittelboks("😎", "Mest erfaren", erfarne, sp.erfarne.length ? "Først ute. Her er det mange historier å hente!" : "Avslørt flest ganger. Her er det mange historier å hente!") : ""}
+            ${fortellere.length ? tittelboks("🎤", "Beste forteller", fortellere, flest === 1 ? "Fikk livet tilbake for en god historie." : `Fikk livet tilbake for ${flest} gode historier.`) : ""}
             ${
-              erfarne.length
-                ? `<div class="papirboks sladre-tittel">
-                    <span class="sladre-tittel-ikon" aria-hidden="true">😎</span>
-                    <div><p class="etikett">Mest erfaren</p><p class="sladre-tittel-navn">${erfarne.length > 3 ? `${erfarne.length} spillere` : esc(navneliste(erfarne))}</p><p>${
-                      sp.erfarne.length ? "Først ute. Her er det mange historier å hente!" : "Avslørt flest ganger. Her er det mange historier å hente!"
-                    }</p></div>
-                  </div>`
-                : ""
-            }
-            ${
-              topp && sp.topp.n > 1
+              harTopp(sp)
                 ? `<div class="papirboks sladre-topp">
                     <p class="etikett">Kortet som avslørte flest</p>
-                    <p class="sladre-topp-tekst">${esc(D.prefiks)} ${esc(setning(topp.t))}</p>
+                    <p class="sladre-topp-tekst">${esc(toppTekst(sp))}</p>
                     <p>${sp.topp.n} av ${sp.topp.av} hadde gjort det.</p>
                   </div>`
                 : ""
@@ -403,6 +559,7 @@
             <section class="seksjon">
               <h2>Resultatliste</h2>
               <ol class="poengliste sladre-rang">${rader}</ol>
+              ${R.ui.knapp2("Del kåringen", "del")}
             </section>
             ${R.ui.flereSpill({ antall: sp.antall })}
             ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`))}`;
@@ -430,6 +587,10 @@
         S.oppsett.modus = el.dataset.v === "kort" ? "kort" : "liv";
         R.vis();
       },
+      regel(el, e, S) {
+        S.oppsett.regel = el.dataset.v === "siste" ? "siste" : "forste";
+        R.vis();
+      },
       pakke(el, e, S) {
         const id = el.dataset.v;
         const liste = S.oppsett.pakker;
@@ -437,25 +598,28 @@
         R.vis();
       },
       start(el, e, S) {
-        if (!S.oppsett.pakker.length) return;
+        const o = S.oppsett;
+        if (!o.pakker.length) return;
         nyttSpill(S);
+        const sp = S.spill;
+        R.statistikk("start", { modus: sp.modus, regel: sp.modus === "liv" ? sp.regel : "", spillere: sp.modus === "liv" ? sp.antall : 0, pakker: o.pakker.length, jul: o.pakker.includes("jul") });
         R.holdVaken();
         R.gaTil("kort");
       },
       // Next card ("Bare kort") or skip this one ("Fem liv"). Also called by swiping the card.
       async neste(el, e, S) {
-        if (opptatt || !pagar(S)) return;
+        if (opptatt || !pagar(S) || S.spill.fase !== "les") return;
         S.spill.angre = null;
         const fortsatt = R.vakt();
         if (!(el && el.classList && el.classList.contains("storkort"))) await R.kastKort(-1);
         if (!fortsatt()) return;
-        nyttKort(S);
+        nyttKort(S, S.spill.modus === "liv");
         R.vis();
         window.scrollTo(0, 0);
         siKort(S);
       },
       async "avslor-na"(el, e, S) {
-        if (opptatt || !pagar(S) || S.spill.fase !== "les") return;
+        if (opptatt || !pagar(S) || S.spill.modus !== "liv" || S.spill.fase !== "les") return;
         S.spill.angre = null;
         opptatt = true;
         let ferdigTelt = false;
@@ -477,8 +641,9 @@
       avslor(el, e, S) {
         if (opptatt) return;
         const sp = S.spill;
+        if (!sp || sp.fase !== "velg") return;
         const i = Number(el.dataset.v);
-        if (!inne(sp, i)) return;
+        if (!iSpill(sp, i) || !inne(sp, i)) return;
         const pa = sp.valgt.includes(i);
         sp.valgt = pa ? sp.valgt.filter((x) => x !== i) : [...sp.valgt, i];
         if (pa) R.lyd.klikk();
@@ -521,7 +686,7 @@
         if (blirUte.length === igjenFor.length) {
           // Everyone left would be out at once: this card doesn't count.
           R.toast("Alle ville røket ut samtidig – kortet teller ikke!");
-          nyttKort(S);
+          nyttKort(S, true);
           R.vis();
           window.scrollTo(0, 0);
           siKort(S);
@@ -529,11 +694,15 @@
         }
         sp.angre = {
           kort: sp.kort,
+          egen: sp.egen,
           nr: sp.nr,
+          leser: sp.leser,
+          sidenEgen: sp.sidenEgen,
           valgt: valgt.slice(),
           liv: sp.liv.slice(),
           avslort: sp.avslort.slice(),
           uteNr: sp.uteNr.slice(),
+          historier: sp.historier.slice(),
           erfarne: sp.erfarne.slice(),
           spilt: sp.spilt,
           topp: sp.topp,
@@ -544,76 +713,108 @@
           sp.avslort[i] += 1;
           if (sp.liv[i] === 0) sp.uteNr[i] = sp.nr;
         });
-        if (!sp.topp || valgt.length > sp.topp.n) sp.topp = { k: sp.kort, n: valgt.length, av: igjenFor.length };
-        if (blirUte.length) {
-          if (!sp.erfarne.length) sp.erfarne = blirUte.slice();
-          sp.sisteUte = blirUte;
-          sp.slutt = igjenFor.length - blirUte.length <= 1;
-          sp.fase = "ute";
-          R.gaTil("ute");
+        if (!sp.topp || valgt.length > sp.topp.n) sp.topp = { k: sp.egen ? -1 : sp.kort, egen: sp.egen, n: valgt.length, av: igjenFor.length };
+        if (valgt.length === 1) {
+          // Alone in having done it: the story first. A good one gives the life back — also the last one.
+          sp.fase = "historie";
+          sp.historie = { i: valgt[0] };
+          R.gaTil("kort");
+          R.lyd.pling();
+          R.si(`${R.navn(valgt[0])} er alene om det og mistet et liv. Fortell! En god historie gir livet tilbake.`);
           return;
         }
-        R.toast(valgt.length === 1 ? `${R.navn(valgt[0])} mistet et liv` : `${valgt.length} mistet et liv`);
-        nyttKort(S);
-        R.vis();
-        window.scrollTo(0, 0);
-        siKort(S);
+        etterKort(S, blirUte, `${valgt.length} mistet et liv`);
       },
-      // Take back the last lost lives: the card comes back to «Hvem har gjort det?» with the same choice.
+      // The table liked the story: the life comes back (and a player on zero is in again).
+      "historie-god"(el, e, S) {
+        const sp = S.spill;
+        if (!sp || sp.fase !== "historie" || !sp.historie) return;
+        const i = sp.historie.i;
+        sp.liv[i] = Math.min(LIV, sp.liv[i] + 1);
+        sp.uteNr[i] = 0;
+        sp.historier[i] += 1;
+        R.lyd.riktig();
+        R.vibrer(30);
+        etterKort(S, [], `${R.navn(i)} fikk livet tilbake`);
+      },
+      // No story (or not this time): on to the next card — or out, if that was the last life.
+      "historie-videre"(el, e, S) {
+        const sp = S.spill;
+        if (!sp || sp.fase !== "historie" || !sp.historie) return;
+        const i = sp.historie.i;
+        etterKort(S, sp.liv[i] === 0 ? [i] : []);
+      },
+      // Take back the last card: lives, stories and titles are as before, and the card comes back
+      // to «Hvem har gjort det?» with the same choice.
       angre(el, e, S) {
         const sp = S.spill;
         const a = sp && sp.angre;
-        if (!a || opptatt) return;
-        Object.assign(sp, { kort: a.kort, nr: a.nr, valgt: a.valgt, liv: a.liv, avslort: a.avslort, uteNr: a.uteNr, erfarne: a.erfarne, spilt: a.spilt, topp: a.topp });
+        if (!a || opptatt || !pagar(S)) return;
+        Object.assign(sp, {
+          kort: a.kort,
+          egen: a.egen === true,
+          nr: a.nr,
+          valgt: a.valgt,
+          liv: a.liv,
+          avslort: a.avslort,
+          uteNr: a.uteNr,
+          erfarne: a.erfarne,
+          spilt: a.spilt,
+          topp: a.topp,
+        });
+        if (iSpill(sp, a.leser)) sp.leser = a.leser;
+        if (Number.isInteger(a.sidenEgen)) sp.sidenEgen = a.sidenEgen;
+        if (Array.isArray(a.historier) && a.historier.length === sp.antall) sp.historier = a.historier;
         sp.sisteUte = [];
         sp.slutt = false;
+        sp.historie = null;
         sp.fase = "velg";
         sp.angre = null;
         R.lyd.snu();
-        R.toast("Angret – velg på nytt");
         R.gaTil("kort");
+        R.toast("Angret – velg på nytt");
       },
-      // From the knock-out screen: the next card, or the crowning when only one is left.
+      // From the knock-out screen: the next card, or the crowning when the game is over.
       videre(el, e, S) {
         const sp = S.spill;
-        if (!sp) return;
-        if (sp.slutt || levende(sp).length <= 1) {
-          sp.fase = "ferdig";
-          sp.angre = null;
-          R.slippVaken();
-          R.gaTil("slutt");
-          return;
-        }
+        if (!sp || sp.fase !== "ute") return;
+        if (sp.slutt || levende(sp).length <= 1) return tilSlutt(S);
         sp.sisteUte = [];
+        sp.angre = null;
         nyttKort(S);
         R.gaTil("kort");
+        siKort(S);
       },
+      // «Avslutt»: with lives at stake straight to the crowning (the sheet says so), otherwise home.
       async avslutt(el, e, S) {
         const sp = S.spill;
+        if (!pagar(S)) return;
         const fortsatt = R.vakt();
-        if (sp && sp.modus === "liv" && sp.spilt > 0) {
-          const svar = await R.velgIArk("Avslutte spillet?", [
-            { v: "kar", tekst: "Kår den uskyldigste nå" },
-            { v: "slett", tekst: "Avslutt uten kåring" },
-          ], "Den med flest liv igjen blir kåret.");
-          if (!fortsatt()) return;
-          if (svar === "kar") {
-            sp.fase = "ferdig";
-            sp.angre = null;
-            R.slippVaken();
-            R.gaTil("slutt");
-          } else if (svar === "slett") {
-            S.spill = null;
-            R.slippVaken();
-            R.gaTil("hjem");
-          }
-          return;
+        const medKaaring = sp.modus === "liv" && sp.spilt > 0;
+        const ja = await R.bekreft("Avslutte spillet?", medKaaring ? "Dere går rett til kåringen. Den med flest liv igjen er uskyldigst." : "Dere kan alltid starte et nytt.", "Avslutt", "Spill videre");
+        if (!ja || !fortsatt() || !pagar(S)) return;
+        if (medKaaring) {
+          // A player in the spotlight on zero lives never got the story: out, as «Videre» would say.
+          if (sp.fase === "historie" && sp.historie && sp.liv[sp.historie.i] === 0 && !sp.erfarne.length) sp.erfarne = [sp.historie.i];
+          return tilSlutt(S, true);
         }
-        if ((await R.bekreft("Avslutte spillet?", "Dere kan alltid starte et nytt.", "Avslutt", "Fortsett")) && fortsatt()) {
-          S.spill = null;
-          R.slippVaken();
-          R.gaTil("hjem");
-        }
+        R.statistikk("ferdig", { modus: sp.modus, regel: "", spillere: 0, kort: Math.max(0, sp.nr - 1), historier: 0, tidlig: true });
+        S.spill = null;
+        R.slippVaken();
+        R.gaTil("hjem");
+      },
+      // The crowning as text, for the group chat.
+      del(el, e, S) {
+        const sp = S.spill;
+        if (!sp || sp.modus !== "liv" || sp.fase !== "ferdig") return;
+        const { vinnere, erfarne, fortellere } = kaaring(sp);
+        const navn = (liste) => (liste.length > 3 ? `${liste.length} spillere` : navneliste(liste));
+        const deler = [`${navn(vinnere)} er uskyldigst 😇`];
+        if (erfarne.length) deler.push(`${navn(erfarne)} er mest erfaren 😎`);
+        if (fortellere.length) deler.push(`${navn(fortellere)} er beste forteller 🎤`);
+        let tekst = `Kåringen i Sladrehanken: ${R.ramsOpp(deler)}.`;
+        if (harTopp(sp)) tekst += sp.topp.egen ? " Kortet som avslørte flest, fant vi på selv." : ` Kortet som avslørte flest: «${D.prefiks.replace(" …", "")} ${setning(ALLE[sp.topp.k].t).replace(/[.]$/, "")}».`;
+        R.del("Sladrehanken", tekst, location.origin + "/sladrehanken/");
       },
       // Play again with the same mode as the game that just ended.
       igjen(el, e, S) {

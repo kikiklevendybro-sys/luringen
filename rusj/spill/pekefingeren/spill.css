@@ -4,5 +4,263 @@
   margin-bottom: 10px;
   font: 800 1.02rem/1.25 var(--font-display);
   letter-spacing: 0;
-  opacity: 0.62;
+  opacity: 0.7;
+}
+
+/* «3 av 20» is information, not decoration: readable on the paper and on the yellow card. */
+.storkort .storkort-nr {
+  opacity: 0.85;
+}
+
+/* An odd number of packs: the Christmas pack (first in the season, otherwise last) takes the
+   whole row, so no tile is left alone on the last one. */
+.fliser.flervalg .flis[data-v="jul"]:first-child:nth-last-child(odd),
+.fliser.flervalg .flis[data-v="jul"]:last-child:nth-child(odd) {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 2px;
+}
+
+.fliser.flervalg .flis[data-v="jul"]:first-child:nth-last-child(odd) .flis-ikon,
+.fliser.flervalg .flis[data-v="jul"]:last-child:nth-child(odd) .flis-ikon {
+  grid-row: 1 / span 2;
+  font-size: 2.1rem;
+}
+
+.peke-hjelp {
+  margin-top: -4px;
+  color: var(--tekst-2);
+}
+
+/* ---------- The spotlight after a vote ---------- */
+.peke-kaaret {
+  flex: 1 1 auto;
+  align-content: center;
+  gap: 12px;
+  padding-block: 8px;
+}
+
+.peke-kaaret > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.peke-kaaret-figurer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 10px;
+}
+
+.peke-kaaret-figurer .avatar {
+  animation: peke-zoom 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.peke-kaaret-figurer .avatar.stor {
+  width: 84px;
+  height: 84px;
+  font-size: 2.6rem;
+  box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.18), 0 0 0 4px var(--natt), 0 0 0 6px var(--pf, var(--p1));
+}
+
+.peke-kaaret-figurer .avatar:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.peke-kaaret-figurer .avatar:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+.peke-kaaret-figurer .avatar:nth-child(n + 4) {
+  animation-delay: 0.24s;
+}
+
+@keyframes peke-zoom {
+  from {
+    opacity: 0;
+    transform: scale(0.3) rotate(-12deg);
+  }
+}
+
+/* The stamp lands when the drum roll ends. */
+.peke-kaaret .stempel-sted {
+  min-height: 84px;
+}
+
+.peke-kaaret .stempel {
+  font-size: clamp(1.25rem, 6.4vw, 2rem);
+  white-space: nowrap;
+  animation-delay: 0.45s;
+}
+
+.peke-kaaret.delt .stempel {
+  font-size: clamp(2rem, 10vw, 2.8rem);
+}
+
+.peke-kaaret-til {
+  max-width: 22em;
+  color: var(--tekst);
+  font: 800 1.2rem/1.3 var(--font-display);
+  text-wrap: balance;
+}
+
+.peke-kaaret-linje {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  color: var(--tekst-2);
+  font: 700 1.08rem/1.3 var(--font-tekst);
+  text-wrap: balance;
+}
+
+.peke-kaaret-linje b {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+  font: 900 0.95rem/1.1 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Diplomas on the crowning ---------- */
+.peke-diplomliste {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.peke-diplom {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px 20px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2);
+  color: var(--blekk);
+}
+
+/* A thin frame inside the edge, as on a paper diploma. */
+.peke-diplom::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 2px dashed color-mix(in srgb, var(--blekk-2) 45%, transparent);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.peke-diplom-hode {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font: 900 1.2rem/1.15 var(--font-display);
+}
+
+.peke-diplom-hode b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.peke-diplom .etikett {
+  margin-top: 2px;
+  color: var(--blekk-2);
+}
+
+.peke-diplom-tekst {
+  font: 700 1.02rem/1.35 var(--font-tekst);
+}
+
+@media (max-height: 700px) {
+  .peke-kaaret {
+    gap: 8px;
+  }
+
+  .peke-kaaret-figurer {
+    padding-top: 4px;
+  }
+
+  .peke-kaaret-figurer .avatar.gigant {
+    width: 96px;
+    height: 96px;
+    font-size: 3rem;
+    box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.18), 0 0 0 4px var(--natt), 0 0 0 6px var(--pf, var(--p1));
+  }
+
+  .peke-kaaret-figurer .avatar.stor {
+    width: 64px;
+    height: 64px;
+    font-size: 2rem;
+  }
+
+  .peke-kaaret .stempel-sted {
+    min-height: 70px;
+  }
+
+  .peke-kaaret-til {
+    font-size: 1.08rem;
+  }
+}
+
+/* A phone on its side: the avatar beside the name would not fit either, so everything is smaller. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .peke-kaaret {
+    gap: 4px;
+    padding-block: 0;
+  }
+
+  .peke-kaaret-figurer {
+    padding-top: 6px;
+  }
+
+  .peke-kaaret-figurer .avatar.gigant,
+  .peke-kaaret-figurer .avatar.stor {
+    width: 60px;
+    height: 60px;
+    font-size: 1.9rem;
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 0 0 3px var(--natt), 0 0 0 5px var(--pf, var(--p1));
+  }
+
+  .peke-kaaret h1 {
+    font-size: 1.7rem;
+  }
+
+  /* (A long stamp at an angle is taller than its letters: room for the corners.) */
+  .peke-kaaret .stempel-sted {
+    min-height: 64px;
+  }
+
+  .peke-kaaret .stempel {
+    border-width: 4px;
+    font-size: 1.2rem;
+  }
+
+  .peke-kaaret.delt .stempel-sted {
+    min-height: 58px;
+  }
+
+  .peke-kaaret.delt .stempel {
+    font-size: 1.6rem;
+  }
+
+  .peke-kaaret-til {
+    font-size: 1.02rem;
+  }
+
+  .peke-kaaret-linje {
+    grid-auto-flow: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 2px;
+    font-size: 0.95rem;
+  }
 }

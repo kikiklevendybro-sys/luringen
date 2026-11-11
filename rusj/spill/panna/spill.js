@@ -3,7 +3,12 @@
    Tilt down = correct, tilt up = pass (DeviceOrientation, with the iOS permission prompt).
    Tap zones always work too: right half = correct, left half = pass.
    The round runs on a fixed full-screen stage. If the browser doesn't rotate (rotation lock on),
-   the stage turns itself with the motion sensor so the word still reads the right way. */
+   the stage turns itself with the motion sensor so the word still reads the right way.
+   The holder can't see the screen, and a silenced iPhone neither sounds nor vibrates — so every
+   answer, the last seconds and the end of the round are shown so the OTHERS see it from across a
+   table (full-screen flash with symbol and word, a trail of marks, big last seconds). Sound and
+   vibration are extras.
+   Decks have a record and up to three stars per round length (this phone only, «panna.rekord»). */
 (function () {
   "use strict";
 
@@ -20,50 +25,115 @@
   const STANDARD = ["dyr", "mat", "yrker"];
   const GRENSE = 35; // degrees away from the calibrated neutral position that count as a tilt
   const NOYTRAL = 15; // back within this = ready for the next tilt
+  // Right answers in one round for one, two and three stars (5 / 8 / 11 in 60 s, scaled).
+  const TERSKLER = { 30: [3, 4, 6], 60: [5, 8, 11], 90: [8, 12, 17] };
+  const SISTE = 5; // the last seconds are counted down in big digits
   let H; // the actions
 
   // ---------- Words ----------
   // One list for everything, so the deck remembers what has been shown (across sessions).
-  // Word-bank words that already exist in a themed deck are skipped.
+  // Saved games and that memory point into the list by number, so its order is fixed: the first
+  // decks, then the word bank, then the decks added later («etterOrdbank» in the data). New decks
+  // go last in the file with that mark; new words go last in a deck that has it.
+  // Word-bank words that already exist in one of the first decks are skipped. A word-bank word
+  // that a later deck also has stays in the list, but is left out while that deck is chosen (w.d).
+  // Decks with their own way of giving clues («slik»: mime, sounds, voices) share words freely —
+  // a dog to explain and a dog to bark are two different cards.
   const ALLE = [];
   (function () {
     const sett = new Set();
-    STOKKER.forEach((s) =>
-      s.ord.forEach((t) => {
-        sett.add(R.normaliser(t));
-        ALLE.push({ k: s.id, t });
-      }),
-    );
+    const iBanken = new Map();
+    const leggTil = (s) => s.ord.forEach((t) => ALLE.push({ k: s.id, t, x: R.normaliser(t) }));
+    STOKKER.filter((s) => !s.etterOrdbank).forEach((s) => {
+      s.ord.forEach((t) => sett.add(R.normaliser(t)));
+      leggTil(s);
+    });
     ORDBANK.forEach((kat) =>
       kat.ord.forEach((o) => {
         const nokkel = R.normaliser(o[0]);
         if (sett.has(nokkel)) return;
         sett.add(nokkel);
-        ALLE.push({ k: "ob:" + kat.id, t: o[0], n: o[1] });
+        iBanken.set(nokkel, ALLE.length);
+        ALLE.push({ k: "ob:" + kat.id, t: o[0], n: o[1], x: nokkel });
       }),
     );
+    STOKKER.filter((s) => s.etterOrdbank).forEach((s) => {
+      if (!s.slik)
+        s.ord.forEach((t) => {
+          const w = ALLE[iBanken.get(R.normaliser(t))];
+          if (w) (w.d = w.d || []).push(s.id);
+        });
+      leggTil(s);
+    });
   })();
   const kortstokk = R.kortstokk("ord", ALLE.length);
   const stokk = (id) => STOKKER.find((s) => s.id === id);
   const obKat = (id) => ORDBANK.find((k) => k.id === id);
-  const iUtvalg = (o, w) => (w.k.startsWith("ob:") ? o.ordbank.includes(w.k.slice(3)) && w.n <= o.nivaa : o.stokker.includes(w.k));
+  const iUtvalg = (o, w) =>
+    w.k.startsWith("ob:") ? o.ordbank.includes(w.k.slice(3)) && w.n <= o.nivaa && !(w.d && w.d.some((id) => o.stokker.includes(id))) : o.stokker.includes(w.k);
   const antallOrd = (o) => ALLE.reduce((n, w) => n + (iUtvalg(o, w) ? 1 : 0), 0);
   const antallOb = (id, nivaa) => ALLE.reduce((n, w) => n + (w.k === "ob:" + id && w.n <= nivaa ? 1 : 0), 0);
   function kilde(w) {
     if (w.k.startsWith("ob:")) {
       const kat = obKat(w.k.slice(3));
-      return { navn: kat ? kat.navn : "Ordbanken", ikon: kat ? kat.ikon : "📚" };
+      return { navn: kat ? kat.navn : "Ordbanken", ikon: kat ? kat.ikon : "📚", slik: false };
     }
     const s = stokk(w.k);
-    return { navn: s.navn, ikon: s.ikon };
+    return { navn: s.navn, ikon: s.ikon, slik: !!s.slik };
   }
+
+  // The season's deck is listed first while it is the season (1 November – 6 January), else last.
+  const iDag = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const erJuletid = () => {
+    const mmdd = iDag().slice(5);
+    return mmdd >= "11-01" || mmdd <= "01-06";
+  };
+  const visteStokker = () => {
+    const jul = stokk("jul");
+    const andre = STOKKER.filter((s) => s !== jul);
+    return !jul ? andre : erJuletid() ? [jul, ...andre] : [...andre, jul];
+  };
+
+  // What the helpers do in this round. Most decks are explained; some have their own way («slik»).
+  function hjelperTekst(o) {
+    const mater = new Set(o.stokker.map((id) => stokk(id)).filter(Boolean).map((s) => s.slik || ""));
+    if (o.ordbank.length) mater.add("");
+    if (mater.size > 1) return { tekst: "Sjekk merkelappen øverst på hvert kort.", slik: true };
+    const slik = Array.from(mater)[0];
+    return slik ? { tekst: slik, slik: true } : { tekst: "De andre gir hint – uten å si ordet.", slik: false };
+  }
+
+  // ---------- Records and stars (this phone only) ----------
+  // { "dyr:60": 11, "miks:60": 9 }: the most right answers in one round, per deck and round length.
+  // A round counts for a deck when that deck alone was chosen; everything else is «miks».
+  const terskler = (tid) => TERSKLER[tid] || TERSKLER[60].map((n) => Math.max(1, Math.round((n * tid) / 60)));
+  const stjerner = (n, tid) => terskler(tid).filter((t) => n >= t).length;
+  function rekorder() {
+    const lest = R.les("panna.rekord", {});
+    const ut = {};
+    if (lest && typeof lest === "object")
+      for (const [k, v] of Object.entries(lest)) if (/^[a-z0-9]{1,20}:\d{1,3}$/.test(k) && Number.isInteger(v) && v > 0 && v < 1000) ut[k] = v;
+    return ut;
+  }
+  const rekordNokkel = (o) => (o.stokker.length === 1 && !o.ordbank.length && stokk(o.stokker[0]) ? o.stokker[0] : "miks");
+  const stokkStjerner = (id, alle) => TIDER.reduce((best, tid) => Math.max(best, stjerner(alle[`${id}:${tid}`] || 0, tid)), 0);
+  const sumStjerner = (alle) => STOKKER.reduce((sum, s) => sum + stokkStjerner(s.id, alle), 0);
+  const besteRekord = (alle) => Object.values(alle).reduce((best, n) => Math.max(best, n), 0);
+  const stjerneHtml = (n, klasse) =>
+    `<span class="panna-stjerner ${klasse || ""}" aria-hidden="true">${[1, 2, 3].map((i) => `<i${i <= n ? ' class="pa"' : ""}>★</i>`).join("")}</span>`;
+  const stjerneTekst = (n) => `${n} av 3 stjerner`;
 
   // ---------- Turns and points ----------
   const pagar = (S) => !!S.spill && !S.spill.ferdig; // a game that «Nytt spill» would throw away
-  const navneliste = (navn) => (navn.length < 2 ? navn.join("") : navn.slice(0, -1).join(", ") + " og " + navn[navn.length - 1]);
-  const spiller = (sp) => (sp.poeng ? sp.historikk.length % sp.antall : -1);
+  // The first player changes from game to game (sp.start), then the phone goes round.
+  const spiller = (sp) => (sp.poeng ? ((sp.start || 0) + sp.historikk.length) % sp.antall : -1);
   const sisteRunde = (sp) => sp.poeng && sp.historikk.length >= sp.antall * sp.runder;
   const riktige = (h) => h.ord.filter((o) => o.ok).length;
+  // Who has had the phone in the lap that is being played (for the progress dots).
+  const ferdigeILaget = (sp) => sp.historikk.slice(Math.floor(sp.historikk.length / sp.antall) * sp.antall).map((h) => h.i);
   function poengRader(sp, pluss) {
     const sum = Array.from({ length: sp.antall }, () => 0);
     sp.historikk.forEach((h) => {
@@ -71,24 +141,63 @@
     });
     return sum.map((poeng, i) => ({ i, poeng, pluss: pluss && pluss.i === i ? pluss.n : 0 }));
   }
+  // The crowning: who won, the best single round and the total.
+  function kaaring(sp) {
+    const rader = poengRader(sp);
+    const sortert = rader.slice().sort((a, b) => b.poeng - a.poeng);
+    const topp = sortert[0] ? sortert[0].poeng : 0;
+    const best = sp.historikk.reduce((b, h) => (h.i >= 0 && riktige(h) > 0 && (!b || riktige(h) > riktige(b)) ? h : b), null);
+    return { rader, sortert, topp, vinnere: sortert.filter((r) => r.poeng === topp && topp > 0), best, totalt: sp.historikk.reduce((s, h) => s + riktige(h), 0) };
+  }
+  // The game is over (once): the evening's scoreboard and the statistics hear about it here.
+  function avsluttSpill(S) {
+    const sp = S.spill;
+    if (!sp || sp.ferdig) return;
+    sp.ferdig = true;
+    if (!sp.historikk.length) return; // (given up before the first round: nothing to tell)
+    const totalt = sp.historikk.reduce((s, h) => s + riktige(h), 0);
+    R.statistikk("ferdig", { poeng: !!sp.poeng, spillere: sp.antall, runder: sp.historikk.length, ord: totalt });
+    if (sp.poeng) R.kveld.registrer(poengRader(sp).map((r) => ({ i: r.i, poeng: r.poeng })));
+  }
   function rundeTittel(sp) {
     if (!sp) return "Panna";
     if (sp.poeng) return `Runde ${Math.min(sp.runder, Math.floor(sp.historikk.length / sp.antall) + 1)} av ${sp.runder}`;
     return `Runde ${sp.historikk.length + 1}`;
   }
   function fortsettTekst(sp) {
-    if (sp.poeng && sisteRunde(sp)) return "Fortsett · se vinneren";
+    if (sp.poeng && sisteRunde(sp)) return "Fortsett · til kåringen";
     if (sp.poeng) return `Fortsett · ${R.navn(spiller(sp))} står for tur`;
     return `Fortsett · runde ${sp.historikk.length + 1}`;
   }
-  function kommentar(n) {
+  // Praise in proportion to the round length: seven in 30 s is something else than seven in 90 s.
+  function kommentar(n, tid) {
+    const per60 = (n * 60) / (tid || 60);
     if (n === 0) return "Panna tok seg en pause. Neste gang!";
-    if (n <= 2) return "Det er lov å varme opp.";
-    if (n <= 4) return "Ikke verst i det hele tatt!";
-    if (n <= 6) return "Godt jobba!";
-    if (n <= 9) return "Sterk panne!";
-    if (n <= 12) return "Panneproff!";
+    if (per60 <= 2) return "Det er lov å varme opp.";
+    if (per60 <= 4) return "Ikke verst i det hele tatt!";
+    if (per60 <= 6) return "Godt jobba!";
+    if (per60 <= 9) return "Sterk panne!";
+    if (per60 <= 12) return "Panneproff!";
     return "Er du synsk, eller?!";
+  }
+
+  // What a finished round says about records and stars. gml = the record before this round.
+  function rekordInfo(h, tidStd) {
+    const tid = h.tid || tidStd;
+    const n = riktige(h);
+    const gml = Number(h.gml) || 0;
+    const s = h.rk && h.rk !== "miks" ? stokk(h.rk) : null;
+    return { rk: h.rk || "", tid, n, gml, s, ny: n > gml && gml > 0, rekord: Math.max(gml, n), stjerner: s ? stjerner(n, tid) : 0, neste: s ? terskler(tid).find((t) => n < t) || 0 : 0 };
+  }
+  // Keep the stored record in step with the round (also when a word is corrected afterwards).
+  function lagreRekord(h, tidStd) {
+    if (!h || !h.rk) return;
+    const alle = rekorder();
+    const nokkel = `${h.rk}:${h.tid || tidStd}`;
+    const ny = Math.max(Number(h.gml) || 0, riktige(h));
+    if (ny > 0) alle[nokkel] = ny;
+    else delete alle[nokkel];
+    R.skriv("panna.rekord", alle);
   }
 
   // ---------- Motion sensor ----------
@@ -288,7 +397,10 @@
   function trekk(S) {
     const r = S.spill.runde;
     const brukt = new Set(r.ord.map((o) => o.n));
-    let i = kortstokk.neste((n) => iUtvalg(S.oppsett, ALLE[n]) && !brukt.has(n));
+    // (The same word from two decks — a dog to explain and a dog to bark — only once per round.)
+    const tekster = new Set(r.ord.map((o) => ALLE[o.n].x));
+    let i = kortstokk.neste((n) => iUtvalg(S.oppsett, ALLE[n]) && !brukt.has(n) && !tekster.has(ALLE[n].x));
+    if (i < 0) i = kortstokk.neste((n) => iUtvalg(S.oppsett, ALLE[n]) && !brukt.has(n));
     if (i < 0) i = kortstokk.neste((n) => iUtvalg(S.oppsett, ALLE[n]) && n !== (gjeldende(r) || {}).n);
     // Nothing selected (old saved state): any word not shown in this round, so it never repeats.
     if (i < 0) i = kortstokk.neste((n) => !brukt.has(n));
@@ -362,11 +474,24 @@
       id: "panna-tid",
       sekunder: Math.max(0.5, r.igjen),
       visning: "sek",
-      vedTikk: () => {
+      vedTikk: (sek) => {
         if (!klokke || !iRunde(S, r)) return;
         r.igjen = klokke.igjen;
         const scene = R.$("#panna-scene");
-        if (scene) scene.classList.toggle("lite", r.igjen <= 10);
+        if (scene) {
+          scene.classList.toggle("lite", r.igjen <= 10);
+          // The last seconds in big digits behind the word, and the frame beats once a second:
+          // the others can see that time is running out, with or without sound.
+          const siste = sek > 0 && sek <= SISTE;
+          scene.classList.toggle("siste", siste);
+          const tall = R.$("#panna-siste");
+          if (tall) tall.textContent = siste ? String(sek) : "";
+          if (siste) {
+            scene.classList.remove("tikk");
+            void scene.offsetWidth;
+            scene.classList.add("tikk");
+          }
+        }
         R.lagre();
       },
       vedSlutt: () => tidenErUte(S, r),
@@ -402,6 +527,8 @@
     R.si(riktig ? "Riktig" : "Pass");
     const p = R.$("#panna-poeng");
     if (p) p.textContent = "✓ " + r.ord.filter((o) => o.ok).length;
+    const spor = R.$("#panna-spor");
+    if (spor) spor.innerHTML = sporHtml(r, true);
     R.lagre();
     planlegg(() => {
       if (r.fase !== "spill") return;
@@ -414,6 +541,9 @@
     }, 650);
   }
 
+  // The answer, big enough to be seen from across a table: the whole stage in one colour with a
+  // symbol and the word (a tick in a circle on green, a double arrow in a square on orange).
+  // At most one flash per answer, and answers are at least 0.65 s apart.
   function blink(riktig) {
     const el = R.$("#panna-blink");
     if (!el) return;
@@ -421,7 +551,15 @@
     el.querySelector("b").textContent = riktig ? "Riktig!" : "Pass";
     el.className = "panna-blink vis " + (riktig ? "riktig" : "pass");
     clearTimeout(blinkId);
-    blinkId = setTimeout(() => el.classList.remove("vis"), 480);
+    blinkId = setTimeout(() => el.classList.remove("vis"), 560);
+  }
+
+  // The trail: one mark per answer so far in the round (the last six), newest to the right.
+  // It stays on the card, so nobody has to catch the flash to know that an answer was counted.
+  function sporHtml(r, ny) {
+    const svart = r.ord.filter((o) => o.ok !== null);
+    const vist = svart.slice(-6);
+    return vist.map((o, i) => `<i class="${o.ok ? "r" : "p"}${ny && i === vist.length - 1 ? " ny" : ""}">${o.ok ? "✓" : "»"}</i>`).join("");
   }
 
   function visOrd(S) {
@@ -436,7 +574,10 @@
     }
     const k = kilde(w);
     const st = R.$("#panna-kilde");
-    if (st) st.innerHTML = kildeHtml(k);
+    if (st) {
+      st.innerHTML = kildeHtml(k);
+      st.classList.toggle("slik", k.slik);
+    }
     tilpassOrd();
   }
 
@@ -472,12 +613,15 @@
       sist.ok = false;
       sist.ute = true;
     }
+    // The whole stage says so, long enough for everyone to look up (the alarm is an extra).
     R.vis();
+    const n = r.ord.filter((o) => o.ok).length;
+    R.si(`Tiden er ute. ${n} ${n === 1 ? "riktig" : "riktige"}.`);
     planlegg(() => {
       if (!iRunde(S, r)) return;
       avsluttRunde(S);
       R.gaTil("resultat");
-    }, 1900);
+    }, 2600);
   }
 
   function pause(S) {
@@ -508,12 +652,18 @@
     sp.runde = null;
     if (!r.ord.length) return false;
     const ord = r.ord.filter((o) => o.ok !== null).map((o) => (o.ute ? { n: o.n, ok: false, ute: true } : { n: o.n, ok: !!o.ok }));
-    sp.historikk.push({ i: spiller(sp), ord });
+    // tid and rk say which record the round counts for; gml is that record before this round.
+    const rk = typeof r.rk === "string" && (r.rk === "miks" || stokk(r.rk)) ? r.rk : "miks";
+    const h = { i: spiller(sp), ord, tid: r.tid, rk, gml: rekorder()[`${rk}:${r.tid}`] || 0 };
+    sp.historikk.push(h);
+    lagreRekord(h, r.tid);
+    R.statistikk("runde", { stokk: rk, tid: r.tid, riktige: riktige(h), pass: ord.length - riktige(h), vipp: !!(S.oppsett.vipp && Vipp.status === "aktiv") });
     return true;
   }
 
   // Leaving the round in any way: stop everything that runs.
   function ryddRunde() {
+    document.documentElement.classList.remove("panna-pa-scenen");
     window.removeEventListener("resize", vedStorrelse);
     document.removeEventListener("visibilitychange", vedSynlighet);
     document.removeEventListener("keydown", vedTast);
@@ -546,15 +696,26 @@
   }
 
   // ---------- Pieces of markup ----------
-  function stokkGrid(o) {
-    return `<div class="panna-stokker" role="group" aria-label="Kortstokker">${STOKKER.map(
-      (s) => `<button class="panna-stokk" data-h="stokk" data-v="${s.id}" aria-pressed="${o.stokker.includes(s.id)}" title="${esc(s.tekst)}" style="--sf: var(--${s.farge}); --sf-dyp: var(--${s.farge}-dyp)">
-        <span class="panna-stokk-ikon" aria-hidden="true">${s.ikon}</span><b>${esc(s.navn)}</b><small>${s.ord.length} ord</small>
-      </button>`,
-    ).join("")}</div>`;
+  // The deck tiles: stars (the best round at any length) and the record at the chosen round
+  // length; «Ny» on a deck that was added lately and hasn't been played yet.
+  function stokkGrid(o, sisteHtml) {
+    const alle = rekorder();
+    const dag = iDag();
+    return `<div class="panna-stokker" role="group" aria-label="Kortstokker">${visteStokker()
+      .map((s) => {
+        const st = stokkStjerner(s.id, alle);
+        const rek = alle[`${s.id}:${o.tid}`] || 0;
+        const ny = !!s.ny && dag <= s.ny && !TIDER.some((t) => alle[`${s.id}:${t}`]);
+        return `<button class="panna-stokk" data-h="stokk" data-v="${s.id}" aria-pressed="${o.stokker.includes(s.id)}" title="${esc(s.tekst)}" style="--sf: var(--${s.farge}); --sf-dyp: var(--${s.farge}-dyp)">
+        ${ny ? `<span class="panna-ny">Ny</span>` : ""}<span class="panna-stokk-ikon" aria-hidden="true">${s.ikon}</span><b>${esc(s.navn)}</b>${stjerneHtml(st)}<small>${rek ? `rekord ${rek}` : `${s.ord.length} ord`}</small><span class="vh">, ${stjerneTekst(st)}</span>
+      </button>`;
+      })
+      .join("")}${sisteHtml || ""}</div>`;
   }
   function valgteStokker(o) {
-    const deler = o.stokker.map((id) => stokk(id)).filter(Boolean).map((s) => `<li>${s.ikon} ${esc(s.navn)}</li>`);
+    const alene = rekordNokkel(o);
+    const rek = alene !== "miks" ? rekorder()[`${alene}:${o.tid}`] || 0 : 0;
+    const deler = o.stokker.map((id) => stokk(id)).filter(Boolean).map((s) => `<li>${s.ikon} ${esc(s.navn)}${rek ? ` · rekord ${rek}` : ""}</li>`);
     o.ordbank.forEach((id) => {
       const k = obKat(id);
       if (k) deler.push(`<li>${k.ikon} ${esc(k.navn)}</li>`);
@@ -587,6 +748,8 @@
   const DEMO_VIPP = `<div class="panna-demo" aria-hidden="true">${R.figur()}<span class="panna-demo-merke ned">✓ Riktig</span><span class="panna-demo-merke opp">» Pass</span></div>`;
   const DEMO_TRYKK = `<div class="panna-demo trykk" aria-hidden="true"><div class="panna-mini"><span class="pass">◀<br>Pass</span><span class="riktig">Riktig<br>▶</span></div></div>`;
   const PAUSE_IKON = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>`;
+  // A stopwatch at zero, for «Tiden er ute!»
+  const KLOKKE_IKON = `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="27" r="15"/><path d="M24 27V17"/><path d="M19 5h10M24 5v7M36.5 14.5l2.5-2.5"/></svg>`;
 
   const kildeHtml = (k) => `<span aria-hidden="true">${k.ikon}</span> <span class="panna-kilde-navn">${esc(k.navn)}</span>`;
 
@@ -598,10 +761,13 @@
     const antallRiktige = r.ord.filter((o) => o.ok).length;
     let lag = "";
     if (r.fase === "plasser" || r.fase === "nedtelling") {
+      // While the phone is lifted: a word to the holder. During the countdown the screen faces the
+      // others, so that is where they are told what to do (explain, mime, make the sound …).
+      const hjelp = hjelperTekst(S.oppsett);
       lag = `<div class="panna-lag panna-klargjor">
         ${r.fase === "nedtelling" ? `<p class="panna-tall hopp" id="panna-tall" aria-live="assertive">3</p>` : `<div class="panna-plasser-figur">${R.figur()}</div>`}
         <p class="panna-beskjed">Mobilen på panna!</p>
-        <p class="panna-under">${r.fase === "nedtelling" && r.ord.length ? "Gjør deg klar …" : "Skjermen skal peke ut mot de andre."}</p>
+        ${r.fase === "nedtelling" ? `<p class="panna-under${hjelp.slik ? " slik" : ""}">${esc(hjelp.tekst)}</p>` : `<p class="panna-under">Skjermen skal peke ut mot de andre.</p>`}
       </div>`;
     } else if (r.fase === "pause") {
       const startet = r.ord.length > 0;
@@ -611,21 +777,29 @@
         <div class="panna-pause-knapper">${R.ui.knapp2(startet ? "Avslutt runden" : "Avbryt", "avslutt-runde")}${R.ui.knapp(startet ? "Fortsett" : "Start", "fortsett-runde", { ikon: "▶" })}</div>
       </div>`;
     } else if (r.fase === "slutt") {
-      lag = `<div class="panna-lag panna-ute"><p class="panna-ute-tekst">Tiden er ute!</p><p class="panna-under">${antallRiktige} ${antallRiktige === 1 ? "riktig" : "riktige"}</p></div>`;
+      lag = `<div class="panna-lag panna-ute">
+        <span class="panna-ute-ikon" aria-hidden="true">${KLOKKE_IKON}</span>
+        <p class="panna-ute-tekst">Tiden er ute!</p>
+        <p class="panna-under">${antallRiktige} ${antallRiktige === 1 ? "riktig" : "riktige"}</p>
+      </div>`;
     }
     const spilles = r.fase === "spill";
+    const siste = spilles && r.igjen > 0 && r.igjen <= SISTE;
     return `
       <h1 class="vh" id="skjerm-tittel">Panna – runden er i gang</h1>
-      <div class="panna-scene${r.igjen <= 10 ? " lite" : ""}${S.oppsett.vipp && Vipp.status === "aktiv" ? " vipp" : ""}" id="panna-scene" data-fase="${r.fase}" data-rot="${rot.na}">
+      <div class="panna-scene${r.igjen <= 10 ? " lite" : ""}${siste ? " siste" : ""}${S.oppsett.vipp && Vipp.status === "aktiv" ? " vipp" : ""}" id="panna-scene" data-fase="${r.fase}" data-rot="${rot.na}">
         <div class="panna-flate">
           <div class="panna-kort">
             <div class="panna-topp">
-              <span class="panna-kilde" id="panna-kilde">${k ? kildeHtml(k) : ""}</span>
+              <span class="panna-kilde${k && k.slik ? " slik" : ""}" id="panna-kilde">${k ? kildeHtml(k) : ""}</span>
               <span class="panna-poeng" id="panna-poeng">✓ ${antallRiktige}</span>
               <span class="panna-tid" id="panna-tid" aria-label="Sekunder igjen"><span class="timer-tid">${Math.ceil(r.igjen)}</span></span>
             </div>
-            <div class="panna-ordboks"><p class="panna-ord" id="panna-ord" aria-live="polite">${w && (spilles || r.fase === "slutt") ? esc(w.t) : ""}</p></div>
-            <div class="panna-bunn" aria-hidden="true"><span class="pass">◀ Pass</span><span class="riktig">Riktig ▶</span></div>
+            <div class="panna-ordboks">
+              <span class="panna-siste" id="panna-siste" aria-hidden="true">${siste ? Math.ceil(r.igjen) : ""}</span>
+              <p class="panna-ord" id="panna-ord" aria-live="polite">${w && (spilles || r.fase === "slutt") ? esc(w.t) : ""}</p>
+            </div>
+            <div class="panna-bunn" aria-hidden="true"><span class="pass">◀ Pass</span><span class="panna-spor" id="panna-spor">${sporHtml(r)}</span><span class="riktig">Riktig ▶</span></div>
             <div class="panna-bar"><i id="panna-bar" style="transform: scaleX(${Math.max(0, r.igjen / r.tid)})"></i></div>
           </div>
           ${
@@ -648,12 +822,26 @@
     liggende: false, // landscape phones: this game has its own layout (a slim dock at the bottom, see spill.css)
 
     tilstand: () => ({
-      antall: 3,
+      // As many as the gang has already typed names for (in another game), else three.
+      antall: R.klamp(R.felles.navn.filter((n) => String(n || "").trim()).length || 3, 2, 20),
       oppsett: { stokker: STANDARD.slice(), ordbank: [], nivaa: 2, tid: 60, vipp: true, poeng: true, runder: 2, visOb: false },
+      nesteStart: 0, // who gets the phone first in the next game with points
       spill: null,
     }),
 
+    // A link to one deck: rusj.no/panna/#jul chooses that deck alone and opens «Gjør klart».
+    // (Not while a game is running — that game comes first.)
+    vedHash(S, hash) {
+      const id = String(hash || "").trim().toLowerCase();
+      if (pagar(S) || !/^[a-z0-9]{1,20}$/.test(id) || !stokk(id)) return null;
+      S.oppsett.stokker = [id];
+      S.oppsett.ordbank = [];
+      return "oppsett";
+    },
+
     lastet(S) {
+      S.antall = R.klamp(Math.round(Number(S.antall)) || 3, 2, 20);
+      S.nesteStart = Math.max(0, Math.round(Number(S.nesteStart)) || 0) % 20;
       const o = (S.oppsett = Object.assign({ stokker: [], ordbank: [], nivaa: 2, tid: 60, vipp: true, poeng: true, runder: 2, visOb: false }, S.oppsett));
       o.stokker = (Array.isArray(o.stokker) ? o.stokker : []).filter((id) => stokk(id));
       o.ordbank = (Array.isArray(o.ordbank) ? o.ordbank : []).filter((id) => obKat(id));
@@ -670,6 +858,8 @@
           (!sp.poeng || (sp.antall >= 2 && sp.antall <= 20)) &&
           (!sp.runde || (gyldig(sp.runde.ord) && sp.runde.tid > 0));
         if (!ok) S.spill = null;
+        // (Games saved before the first player rotated: player 1 started.)
+        else sp.start = sp.poeng ? R.klamp(Math.round(Number(sp.start)) || 0, 0, sp.antall - 1) : 0;
       }
       // A reload in the middle of a round: never start the clock by itself.
       if (S.spill && S.spill.runde) {
@@ -701,6 +891,9 @@
       ],
       tips: [
         "Uten vipping: La en av de andre trykke – høyre side er riktig, venstre er pass.",
+        "Skjermen blinker grønt for riktig og oransje for pass, så de andre ser at svaret ble talt – også når lyden er av.",
+        "I «Mim det!», «Lag lyden!» og «Si det som …» gir de andre hint på én bestemt måte. Merkelappen øverst på kortet sier hvilken.",
+        "Spill med én kortstokk om gangen for å samle stjerner og slå rekorden.",
         "Etter runden kan dere trykke på et ord for å rette opp en feil.",
         "På iPhone må du tillate bevegelse første gang. Trykk «Tillat» når mobilen spør.",
         "Skal bare de minste spille? Velg kortstokken «Barn».",
@@ -711,20 +904,25 @@
       hjem: {
         tilbake: "portal",
         liggende: true, // (the kit's landscape home: mascot left, buttons right)
-        vis: (S) =>
-          R.ui.spillhjem({
+        vis(S) {
+          // Something to beat: the best round and the stars collected so far on this phone.
+          const alle = rekorder();
+          const best = besteRekord(alle);
+          const st = sumStjerner(alle);
+          return R.ui.spillhjem({
             slagordHtml: "Mobilen på panna. De andre gir hint.<br><em>Vipp ned når du har det!</em>",
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: S.spill ? fortsettTekst(S.spill) : "",
+              fortsettTekst: pagar(S) ? fortsettTekst(S.spill) : "",
               ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
             }),
             merker: [
               ["2–20", "spillere"],
-              [String(STOKKER.length), "kortstokker"],
-              [R.tall(ALLE.length), "ord"],
+              st ? [`${st} av ${STOKKER.length * 3}`, "stjerner"] : [String(STOKKER.length), "kortstokker"],
+              best ? [String(best), "rekord"] : [R.tall(ALLE.length), "ord"],
             ],
-          }),
+          });
+        },
       },
 
       oppsett: {
@@ -733,14 +931,19 @@
         vis(S) {
           const o = S.oppsett;
           const n = antallOrd(o);
+          const t = terskler(o.tid);
           return `
             <h1 id="skjerm-tittel">Gjør klart</h1>
             <section class="seksjon">
               <div class="seksjon-hode"><h2>Velg kortstokker</h2><span class="tall" id="ord-antall">${R.tall(n)} ord</span></div>
-              ${stokkGrid(o)}
-              <button class="panna-mer" data-h="vis-ob" aria-expanded="${!!o.visOb}">
-                <span aria-hidden="true">📚</span> Flere ord fra ordbanken${o.ordbank.length ? ` · ${o.ordbank.length} valgt` : ""}<i aria-hidden="true">${o.visOb ? "▴" : "▾"}</i>
-              </button>
+              ${stokkGrid(
+                o,
+                // (The word bank is the last tile, two tiles wide: it fills the last row of sixteen decks.)
+                `<button class="panna-mer${o.ordbank.length ? " valgt" : ""}" data-h="vis-ob" aria-expanded="${!!o.visOb}">
+                  <span class="panna-stokk-ikon" aria-hidden="true">📚</span><b>Flere ord fra ordbanken</b><small>${o.ordbank.length ? `${o.ordbank.length} valgt` : `${ORDBANK.length} kategorier`} <i aria-hidden="true">${o.visOb ? "▴" : "▾"}</i></small>
+                </button>`,
+              )}
+              <p class="hjelp panna-stjernehjelp">Spill med én kortstokk for å samle stjerner: <span>★ ${t[0]}</span> · <span>★★ ${t[1]}</span> · <span>★★★ ${t[2]}</span> riktige på ${o.tid} s.</p>
               ${
                 o.visOb
                   ? `<div class="boks panna-ob">
@@ -809,7 +1012,7 @@
                   ["👆", "En av de andre trykker", "Høyre side er riktig, venstre er pass."],
                 ];
           const hode = sp.poeng
-            ? `${R.ui.fremdrift(sp.antall, i)}
+            ? `${R.ui.fremdrift(sp.antall, i, ferdigeILaget(sp))}
               <div class="panna-tur">${R.avatar(i, "stor")}<div><p class="etikett">Mobilen til</p><h1 id="skjerm-tittel">${esc(R.navn(i))}</h1></div></div>`
             : `<div class="panna-tur"><div><p class="etikett">Gi mobilen til den som skal gjette</p><h1 id="skjerm-tittel">Klar for panna?</h1></div></div>`;
           return `
@@ -824,8 +1027,12 @@
               </div>
             </div>
             ${R.ui.dokk(
-              R.ui.knapp("Start runden", "kjor", { variant: "stor", ikon: "▶" }),
-              R.ui.lenkerad(R.ui.lenke("Bytt kortstokk", "bytt"), sp.poeng && sp.historikk.length ? R.ui.lenke("Se stillingen", "stilling") : ""),
+              R.ui.knapp("Start runden", "kjor", { variant: "stor" }),
+              R.ui.lenkerad(
+                R.ui.lenke("Bytt kortstokk", "bytt"),
+                sp.poeng && sp.historikk.length ? R.ui.lenke("Stillingen", "stilling") : "",
+                R.ui.lenke("Avslutt", "avslutt"),
+              ),
             )}`;
         },
         inn(S) {
@@ -867,6 +1074,9 @@
           }
           S.spill.skjerm = "runde";
           forberedVipp(S);
+          // The stage covers the top bar: its buttons must not take focus from behind it
+          // (pause is on the stage, and Escape pauses too).
+          document.documentElement.classList.add("panna-pa-scenen");
           window.addEventListener("resize", vedStorrelse);
           document.addEventListener("visibilitychange", vedSynlighet);
           document.addEventListener("keydown", vedTast);
@@ -892,8 +1102,20 @@
           const pass = h.ord.length - n;
           const ferdig = sisteRunde(sp);
           const neste = ferdig
-            ? R.ui.knapp("Se vinneren", "neste", { variant: "stor", ikon: "🏆" })
+            ? R.ui.knapp("Til kåringen", "neste", { variant: "stor" })
             : R.ui.knapp(sp.poeng ? `Neste: ${R.navn(spiller(sp))}` : "Neste spiller", "neste", { variant: "stor" });
+          // Record and stars: «Dyr» alone counts for Dyr; several decks count as a mix.
+          const rek = rekordInfo(h, S.oppsett.tid);
+          const hvor = `<span class="panna-rek-hvor">${rek.s ? `<span aria-hidden="true">${rek.s.ikon}</span> ${esc(rek.s.navn)}` : "Flere kortstokker"} · ${rek.tid} s</span>`;
+          const mangler = rek.neste ? `${rek.neste - n} til for ${["én stjerne", "to stjerner", "tre stjerner"][rek.stjerner]}` : rek.s ? "Tre stjerner – full pott!" : "";
+          const rekord =
+            rek.rk && (rek.rekord > 0 || rek.s)
+              ? `<div class="panna-rek${rek.ny ? " ny" : ""}">
+                  ${rek.s ? `${stjerneHtml(rek.stjerner, "stor")}<span class="vh">${stjerneTekst(rek.stjerner)}.</span>` : ""}
+                  ${rek.rekord > 0 ? `<p class="panna-rek-linje"><b>${rek.ny ? "Ny rekord!" : `Rekord ${rek.rekord}`}</b> ${hvor}</p>` : ""}
+                  ${mangler ? `<p class="panna-rek-hint">${esc(mangler)}</p>` : ""}
+                </div>`
+              : "";
           const ordliste = h.ord.length
             ? `<ul class="panna-ordliste">${h.ord
                 .map(
@@ -908,11 +1130,13 @@
                 <div class="banner panna-banner">
                   ${h.i >= 0 ? `<p class="etikett">${R.avatar(h.i)} ${esc(R.navn(h.i))}</p>` : `<p class="etikett">${esc(`Runde ${sp.historikk.length}`)}</p>`}
                   <h1 id="skjerm-tittel"><span class="panna-stortall">${n}</span> ${n === 1 ? "riktig" : "riktige"}</h1>
-                  <p class="ingress">${esc(kommentar(n))}${pass ? ` <span class="panna-pass-tall">${pass} pass</span>` : ""}</p>
+                  <p class="ingress">${esc(kommentar(n, rek.tid))}${pass ? ` <span class="panna-pass-tall">${pass} pass</span>` : ""}</p>
+                  ${rekord}
                 </div>
                 <section class="seksjon">
                   <div class="seksjon-hode"><h2>Ordene</h2><span class="tall">Trykk på et ord for å rette</span></div>
                   ${ordliste}
+                  ${n > 0 ? `<div class="panna-utfordre">${R.ui.knapp2("Utfordre noen", "utfordre", { variant: "liten" })}</div>` : ""}
                 </section>
               </div>
               ${
@@ -929,12 +1153,16 @@
         inn(S) {
           S.spill.skjerm = "resultat";
           const h = S.spill.historikk[S.spill.historikk.length - 1];
-          const n = h ? riktige(h) : 0;
-          if (n >= 8) {
+          const rek = h ? rekordInfo(h, S.oppsett.tid) : null;
+          const n = rek ? rek.n : 0;
+          // Celebrate in proportion to the round length: the two-star line (8 in 60 s, 4 in 30 s,
+          // 12 in 90 s) or a beaten record that is worth at least one star.
+          if (n > 0 && (n >= terskler(rek.tid)[1] || (rek.ny && n >= terskler(rek.tid)[0]))) {
             R.lyd.fanfare();
             R.konfetti();
           } else if (n > 0) R.lyd.pling();
           else R.lyd.pop();
+          if (rek && rek.ny) R.si(`Ny rekord: ${n} riktige.`);
         },
       },
 
@@ -944,32 +1172,28 @@
         gjenoppta: "hjem",
         vis(S) {
           const sp = S.spill;
-          const rader = poengRader(sp);
-          const sortert = rader.slice().sort((a, b) => b.poeng - a.poeng);
-          const topp = sortert[0] ? sortert[0].poeng : 0;
-          const vinnere = sortert.filter((r) => r.poeng === topp && topp > 0);
-          const best = sp.historikk.reduce((b, h) => (h.i >= 0 && (!b || riktige(h) > riktige(b)) ? h : b), null);
-          const totalt = sp.historikk.reduce((s, h) => s + riktige(h), 0);
+          const k = kaaring(sp);
           return `
-            <div class="banner aksent">
-              ${R.figur()}
-              <p class="etikett">${vinnere.length > 1 ? "Like sterke panner" : vinnere.length ? "Sterkeste panne" : "Ferdig!"}</p>
-              <h1 id="skjerm-tittel">${vinnere.length ? `${esc(navneliste(vinnere.map((r) => R.navn(r.i))))} vinner!` : "Ingen poeng denne gangen"}</h1>
-              <p class="ingress">${totalt} ord gjettet til sammen${best && riktige(best) ? `. Beste runde: ${esc(R.navn(best.i))} med ${riktige(best)} riktige.` : "."}</p>
-            </div>
-            ${R.ui.pall(rader)}
-            ${R.ui.poengliste(rader)}
+            ${R.ui.banner({
+              klasse: "aksent",
+              etikett: k.vinnere.length > 1 ? "Like sterke panner" : k.vinnere.length ? "Sterkeste panne" : "Ferdig!",
+              tittel: !k.vinnere.length ? "Ingen poeng denne gangen" : k.vinnere.length > 3 ? `${k.vinnere.length} spillere vinner!` : `${R.ramsOpp(k.vinnere.map((r) => R.navn(r.i)))} vinner!`,
+              tekst: `${k.totalt} ord gjettet til sammen${k.best ? `. Beste runde: ${R.navn(k.best.i)} med ${riktige(k.best)} riktige.` : "."}`,
+              stemning: k.vinnere.length ? "jubel" : "",
+            })}
+            ${R.ui.pall(k.rader)}
+            ${R.ui.poengliste(k.rader)}
+            ${k.vinnere.length ? R.ui.knapp2("Del kåringen", "del") : ""}
             ${R.ui.flereSpill({ antall: sp.antall })}
             ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`))}`;
         },
         inn(S) {
           S.spill.skjerm = "slutt";
-          S.spill.ferdig = true;
           R.slippVaken();
           if (poengRader(S.spill).some((r) => r.poeng > 0)) {
             R.lyd.fanfare();
             R.konfetti();
-          }
+          } else R.lyd.pling();
         },
       },
     },
@@ -984,7 +1208,7 @@
       },
       fortsett(el, e, S) {
         const sp = S.spill;
-        if (!sp) return R.gaTil("oppsett");
+        if (!pagar(S)) return R.gaTil("oppsett"); // (after the crowning there is nothing to go back into)
         let mal = sp.runde ? "runde" : sp.skjerm;
         if (mal === "runde" && !sp.runde) mal = "klar"; // the round was dropped (e.g. reopened hours later)
         if (mal === "resultat" && !sp.historikk.length) mal = "klar";
@@ -1052,7 +1276,12 @@
       start(el, e, S) {
         if (!antallOrd(S.oppsett)) return;
         const o = S.oppsett;
-        S.spill = { poeng: o.poeng, antall: o.poeng ? R.klamp(S.antall, 2, 20) : 0, runder: o.runder, historikk: [], runde: null, skjerm: "klar" };
+        const antall = o.poeng ? R.klamp(S.antall, 2, 20) : 0;
+        // The phone starts with a new player in every game (player 1 in the first one).
+        const start = antall ? (S.nesteStart || 0) % antall : 0;
+        if (antall) S.nesteStart = (start + 1) % antall;
+        S.spill = { poeng: o.poeng, antall, runder: o.runder, start, historikk: [], runde: null, skjerm: "klar", ferdig: false };
+        R.statistikk("start", { poeng: !!o.poeng, spillere: antall, tid: o.tid, runder: o.runder, stokker: o.stokker.length + o.ordbank.length, vipp: !!o.vipp });
         R.gaTil("klar"); // the kit keeps the screen awake while pagar(S) is true
       },
 
@@ -1068,7 +1297,7 @@
         // Ask for the motion sensor and full screen right here: both need the tap.
         const p = S.oppsett.vipp ? beOmVipp(false) : null;
         fullskjerm();
-        const r = (S.spill.runde = { fase: "plasser", ord: [], tid: S.oppsett.tid, igjen: S.oppsett.tid });
+        const r = (S.spill.runde = { fase: "plasser", ord: [], tid: S.oppsett.tid, igjen: S.oppsett.tid, rk: rekordNokkel(S.oppsett) });
         nyStart = true;
         Promise.resolve(p).then(() => {
           if (fortsatt() && S.spill && S.spill.runde === r) return R.gaTil("runde");
@@ -1111,21 +1340,49 @@
       rett(el, e, S) {
         const h = S.spill.historikk[S.spill.historikk.length - 1];
         const o = h && h.ord[Number(el.dataset.v)];
-        if (!o) return;
+        if (!o || S.spill.ferdig) return;
         o.ok = !o.ok;
         if (o.ok) R.lyd.riktig();
+        lagreRekord(h, S.oppsett.tid); // the record follows the corrected round, up or down
         R.vis();
       },
       neste(el, e, S) {
-        if (sisteRunde(S.spill)) R.gaTil("slutt");
-        else R.gaTil("klar");
+        if (!pagar(S)) return;
+        if (sisteRunde(S.spill)) {
+          avsluttSpill(S);
+          R.gaTil("slutt");
+        } else R.gaTil("klar");
+      },
+      // «Utfordre noen»: the round as a message, with a link that opens the same deck.
+      utfordre(el, e, S) {
+        const sp = S.spill;
+        const h = sp && sp.historikk[sp.historikk.length - 1];
+        if (!h || !riktige(h)) return;
+        const rek = rekordInfo(h, S.oppsett.tid);
+        const hvem = h.i >= 0 ? R.navn(h.i) : "Vi";
+        const hva = rek.s ? `${rek.n} i ${rek.s.ikon} ${rek.s.navn}` : `${rek.n} ${rek.n === 1 ? "riktig" : "riktige"}`;
+        R.del("Panna", `${hvem} klarte ${hva} på ${rek.tid} s i Panna. Klarer du flere?`, `${location.origin}/panna/${rek.s ? "#" + rek.s.id : ""}`);
+      },
+      // «Del kåringen»
+      del(el, e, S) {
+        const sp = S.spill;
+        if (!sp || !sp.poeng) return;
+        const k = kaaring(sp);
+        if (!k.vinnere.length) return;
+        const vinnere = k.vinnere.map((r) => R.navn(r.i));
+        const andre = k.sortert.filter((r) => r.poeng < k.topp).slice(0, 5);
+        const deler = [`${R.ramsOpp(vinnere)} vant Panna med ${k.topp} ${k.topp === 1 ? "riktig" : "riktige"}.`];
+        if (andre.length) deler.push(`${andre.map((r) => `${R.navn(r.i)} ${r.poeng}`).join(", ")}.`);
+        if (k.best) deler.push(`Beste runde: ${R.navn(k.best.i)} med ${riktige(k.best)} på ${k.best.tid || S.oppsett.tid} s.`);
+        deler.push("Klarer dere flere?");
+        R.del("Panna", deler.join(" "), `${location.origin}/panna/`);
       },
       bytt(el, e, S) {
         R.ark(`
           <div class="seksjon-hode"><h2 id="ark-tittel">Bytt kortstokk</h2><span class="tall" id="bytt-antall">${R.tall(antallOrd(S.oppsett))} ord</span></div>
           <p class="ingress">Velg én eller flere. Poengene beholdes.</p>
-          ${stokkGrid(S.oppsett)}
-          <button class="knapp" data-h="bytt-ferdig">Ferdig</button>`);
+          ${stokkGrid(S.oppsett, `<p class="panna-stokkhint">Én kortstokk alene gir stjerner <span aria-hidden="true">★</span></p>`)}
+          <div class="panna-ark-bunn"><button class="knapp" data-h="bytt-ferdig">Ferdig</button></div>`);
       },
       "bytt-ferdig"(el, e, S) {
         if (!antallOrd(S.oppsett)) {
@@ -1142,13 +1399,17 @@
           ${R.ui.poengliste(poengRader(S.spill))}
           <button class="knapp" data-h="lukk-ark">Lukk</button>`);
       },
+      // «Avslutt»: with points and at least one round played, straight to the crowning.
       async avslutt(el, e, S) {
         const fortsatt = R.vakt();
-        const medPoeng = S.spill && S.spill.poeng;
+        const sp = S.spill;
+        if (!pagar(S)) return;
+        const medPoeng = !!(sp.poeng && sp.historikk.length);
         const ja = medPoeng
           ? await R.bekreft("Avslutte spillet?", "Dere går rett til kåringen og ser hvem som vant.", "Avslutt", "Spill videre")
           : await R.bekreft("Avslutte spillet?", "Dere kan alltid starte et nytt.", "Avslutt", "Spill videre");
-        if (!ja || !fortsatt() || !S.spill) return;
+        if (!ja || !fortsatt() || S.spill !== sp || sp.ferdig) return;
+        avsluttSpill(S);
         if (medPoeng) return R.gaTil("slutt");
         S.spill = null;
         R.slippVaken();

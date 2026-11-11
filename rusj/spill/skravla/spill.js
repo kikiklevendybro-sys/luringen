@@ -3,7 +3,9 @@
    rest of the team guesses. Every correct word moves the team's token one field along the race
    track. When a team reaches the goal, the round is played out so all teams get the same number
    of turns; most points wins (a tie at the top means one more round).
-   Words come from the shared word bank (window.RUSJ_ORD). */
+   Words come from the shared word bank (window.RUSJ_ORD). In «Forbudte ord» every word also has
+   three or four words the explainer may not say (data/forbudt.json); only words with such a list
+   are drawn then, and the opponents have a button for the slip (−1, next word). */
 (function () {
   "use strict";
 
@@ -13,9 +15,34 @@
   const KAT = window.RUSJ_ORD.kategorier;
   const katMedId = (id) => KAT.find((k) => k.id === id);
 
+  // The forbidden words, by word (lower case): { kategori: { "Tannlege": ["tenner", "hull", …] } }.
+  // They are the words everybody would say first — not the word bank's oblique hints.
+  const ordNokkel = (o) => String(o).trim().toLocaleLowerCase("nb");
+  const FORBUDT = new Map();
+  const forbudtData = window.RUSJ_DATA.forbudt || {};
+  Object.keys(forbudtData).forEach((gruppe) =>
+    Object.keys(forbudtData[gruppe] || {}).forEach((o) => {
+      const liste = forbudtData[gruppe][o];
+      if (Array.isArray(liste) && liste.length >= 3) FORBUDT.set(ordNokkel(o), liste.slice(0, 4).map(String));
+    }),
+  );
+  const forbudtFor = (o) => FORBUDT.get(ordNokkel(o)) || null;
+  // «Forbudte ord» needs this many words in the chosen categories and level (a game uses about 70).
+  const MIN_FORBUDT = 30;
+
+  // A theme is a hand-picked list of words from all over the bank (data/tema.json). While one is
+  // chosen, it takes the place of the categories. So far: «Jul» (Christmas and winter).
+  const temaData = window.RUSJ_DATA.tema || {};
+  const TEMA = {};
+  Object.keys(temaData).forEach((id) => {
+    const t = temaData[id];
+    if (t && Array.isArray(t.ord)) TEMA[id] = { id, navn: String(t.navn || id), ikon: String(t.ikon || ""), tekst: String(t.tekst || ""), ord: new Set(t.ord.map(ordNokkel)) };
+  });
+  const temaFor = (id) => (id && Object.prototype.hasOwnProperty.call(TEMA, id) ? TEMA[id] : null);
+
   // Every word in one list, so the deck remembers what this device has already shown.
   const ALLE = [];
-  KAT.forEach((k) => k.ord.forEach((o) => ALLE.push({ k: k.id, o: o[0], n: o[1], h: o[2], l: o[3] })));
+  KAT.forEach((k) => k.ord.forEach((o) => ALLE.push({ k: k.id, o: o[0], n: o[1], f: FORBUDT.has(ordNokkel(o[0])), nk: ordNokkel(o[0]) })));
   const stokk = R.kortstokk("ord", ALLE.length);
 
   // The three choices and which word-bank levels (n = 1–3) each one draws from.
@@ -39,13 +66,17 @@
   let startetNa = false; // the round screen was entered from the countdown: start the clock
   let opptatt = false; // a card is flying out or the countdown runs: ignore extra taps
   let poppTeller = false; // the next draw of the round screen makes the counter pop
+  let feireNa = false; // the end screen was entered from the action that ended the game: fanfare
 
   // ---------- Words ----------
 
+  // o: the setup or a running game (both have niva, kat, tema and tabu). A theme takes the place
+  // of the categories. In «Forbudte ord» only words with a list of forbidden words count.
   function filter(o) {
     const lov = new Set(niva(o.niva).n);
-    const kat = o.kat ? new Set(o.kat) : null;
-    return (i) => lov.has(ALLE[i].n) && (!kat || kat.has(ALLE[i].k));
+    const t = temaFor(o.tema);
+    const kat = !t && o.kat ? new Set(o.kat) : null;
+    return (i) => lov.has(ALLE[i].n) && (t ? t.ord.has(ALLE[i].nk) : !kat || kat.has(ALLE[i].k)) && (!o.tabu || ALLE[i].f);
   }
   function tellOrd(o) {
     const f = filter(o);
@@ -53,32 +84,72 @@
     for (let i = 0; i < ALLE.length; i++) if (f(i)) n++;
     return n;
   }
-  function tellKat(id, nivaV) {
+  function tellKat(id, nivaV, tabu) {
     const lov = niva(nivaV).n;
     const k = katMedId(id);
-    return k ? k.ord.filter((o) => lov.includes(o[1])).length : 0;
+    return k ? k.ord.filter((o) => lov.includes(o[1]) && (!tabu || FORBUDT.has(ordNokkel(o[0])))).length : 0;
   }
+  // How many words «Forbudte ord» would have with these categories (or this theme) and this level.
+  const tellForbudt = (o) => tellOrd({ niva: o.niva, kat: o.kat, tema: o.tema, tabu: true });
   function nyttOrd(sp) {
-    const i = stokk.neste(filter(sp));
+    let i = stokk.neste(filter(sp));
+    // (A game saved before the lists existed may have categories without any: take any word with a list.)
+    if (i < 0 && sp.tabu) i = stokk.neste((n) => ALLE[n].f);
     const w = ALLE[i >= 0 ? i : 0];
-    sp.runde.ord.push({ o: w.o, k: w.k, h: w.h, l: w.l, s: null });
+    sp.runde.ord.push({ o: w.o, k: w.k, s: null });
   }
   // The word on screen (not answered yet), if any.
   const ubesvart = (r) => {
     const w = r.ord[r.ord.length - 1];
     return w && w.s === null ? w : null;
   };
-  // Points for the team that explained: +1 per correct word, −1 per skip if that rule is on,
-  // +1 if the team itself took the last word.
+  // A word's state: null = on screen, 1 = correct, 0 = skipped, −1 = a forbidden word was said.
+  // Points for the team that explained: +1 per correct word, −1 per forbidden word that slipped
+  // out, −1 per skip if that rule is on, +1 if the team itself took the last word.
   function rundePoeng(sp, r) {
     let p = 0;
     r.ord.forEach((w) => {
       if (w.s === 1) p++;
+      else if (w.s === -1) p--;
       else if (w.s === 0 && sp.straff) p--;
     });
     if (ubesvart(r) && r.siste === r.lag) p++;
     return p;
   }
+  // Words the team got in the round (the record counts these, not the points).
+  const rundeRiktige = (r) => r.ord.filter((w) => w.s === 1).length + (ubesvart(r) && r.siste === r.lag ? 1 : 0);
+
+  // ---------- Record: the most words in one round, per time setting, kept on this phone ----------
+  // Classic and «Forbudte ord» have their own records ("k60", "f60"): the second one is much harder.
+
+  const REKORD = "skravla.rekord";
+  const rekorder = () => {
+    const r = R.les(REKORD, {});
+    return r && typeof r === "object" && !Array.isArray(r) ? r : {};
+  };
+  const rekordNokkel = (tabu, tid) => (tabu ? "f" : "k") + tid;
+  const somRekord = (n) => (Number.isFinite(Number(n)) && Number(n) > 0 ? Math.min(999, Math.floor(Number(n))) : 0);
+  const rekord = (tabu, tid) => {
+    const alle = rekorder();
+    const k = rekordNokkel(tabu, tid);
+    return Object.prototype.hasOwnProperty.call(alle, k) ? somRekord(alle[k]) : 0;
+  };
+  function settRekord(tabu, tid, n) {
+    const alle = rekorder();
+    const k = rekordNokkel(tabu, tid);
+    if (n > 0) alle[k] = n;
+    else delete alle[k];
+    R.skriv(REKORD, alle);
+  }
+  // For the home screen: the record for the way the next game is set up, else the best of them all.
+  function hjemRekord(S) {
+    const o = S.oppsett;
+    const her = rekord(o.tabu, o.tid);
+    if (her) return her;
+    const alle = rekorder();
+    return Math.max(0, ...Object.keys(alle).map((k) => (/^[kf](45|60|90)$/.test(k) ? somRekord(alle[k]) : 0)));
+  }
+  const rekordTekst = (sp, n) => `${n} ord på ${sp.tid} s`;
   function domTekst(p, t) {
     const gruppe = TEKST.dommer.find((d) => p <= d.til) || TEKST.dommer[TEKST.dommer.length - 1];
     return gruppe.tekster[Math.floor((t || 0) * gruppe.tekster.length) % gruppe.tekster.length];
@@ -229,6 +300,34 @@
     }
     if (fortsatt()) R.vis();
   }
+  // A round that beat the phone's record is celebrated once, when the tokens have landed.
+  function feirRekord(S) {
+    const sp = S.spill;
+    if (!sp || !sp.nyRekord || sp.nyRekord.feiret || S.skjerm !== "tavla") return;
+    sp.nyRekord.feiret = true;
+    R.lagre();
+    R.si(`Ny rekord! ${rekordTekst(sp, sp.nyRekord.ord)}.`);
+    if (sp.vinner != null) return; // the winner's fanfare and confetti are already playing
+    R.lyd.fanfare();
+    R.konfetti(["--lampe", "--rosa", "--himmel", "--mynte"]);
+  }
+  // The record on the track screen: a line under the heading on tall phones, and a few words in
+  // the small label on short ones (there is no room for another line there).
+  function rekordLinjer(sp) {
+    const ny = sp.nyRekord;
+    const n = rekord(sp.tabu, sp.tid);
+    if (ny) {
+      return {
+        kort: `<span class="sk-rekord-kort ny"> · ny rekord: ${ny.ord}!</span>`,
+        linje: `<p class="sk-rekord ny"><span aria-hidden="true">★</span> Ny rekord! ${esc(lagNavn(ny.lag))}: ${esc(rekordTekst(sp, ny.ord))}</p>`,
+      };
+    }
+    if (!n) return { kort: "", linje: "" };
+    return {
+      kort: `<span class="sk-rekord-kort"> · rekord ${n}</span>`,
+      linje: `<p class="sk-rekord"><span aria-hidden="true">★</span> Rekord: ${esc(rekordTekst(sp, n))}</p>`,
+    };
+  }
 
   // ---------- The clock ----------
 
@@ -285,22 +384,45 @@
     if (document.hidden && S && S.skjerm === "runde") pause(S);
   });
 
-  async function svar(S, riktig, fraSveip) {
+  // The opponents' horn: two short, low blasts.
+  function tut() {
+    [0, 0.2].forEach((t) => {
+      R.lyd.tone(196, t, 0.16, "sawtooth", 0.15);
+      R.lyd.tone(247, t, 0.16, "sawtooth", 0.12);
+    });
+  }
+  // A red stamp across the word card while the horn sounds, then the card flies away.
+  async function forbudtStempel() {
+    const kort = R.$("#skjerm .storkort.sk-kort");
+    if (!kort) return;
+    kort.classList.add("sk-brudd");
+    kort.insertAdjacentHTML("beforeend", `<span class="sk-brudd-stempel" aria-hidden="true">Forbudt! <b>−1</b></span>`);
+    await R.vent(R.rolig() ? 380 : 520);
+  }
+
+  // utfall: 1 = correct, 0 = skipped, −1 = the explainer said a forbidden word.
+  async function svar(S, utfall, fraSveip) {
     const sp = S.spill;
     const r = sp && sp.runde;
     if (opptatt || !r || r.ute || r.pause) return;
     const w = ubesvart(r);
     if (!w) return;
     opptatt = true;
-    w.s = riktig ? 1 : 0;
-    if (riktig) {
+    w.s = utfall;
+    if (utfall === 1) {
       R.lyd.riktig();
       R.vibrer(25);
       poppTeller = true;
+    } else if (utfall === -1) {
+      tut();
+      R.vibrer([60, 40, 120]);
+      R.si("Forbudt ord! Minus ett poeng.");
     } else R.vibrer(10);
     const fortsatt = R.vakt();
     try {
-      if (!fraSveip) await R.kastKort(riktig ? 1 : -1);
+      if (utfall === -1) await forbudtStempel();
+      // (Time may have run out during the stamp, or someone paused: then there is no word card to fly.)
+      if (!fraSveip && !r.ute && !r.pause && fortsatt()) await R.kastKort(utfall === 1 ? 1 : -1);
       // The next word goes into the round even if the players left meanwhile (it resumes paused).
       if (!r.ute) nyttOrd(sp);
     } finally {
@@ -314,24 +436,39 @@
 
   function status(sp, r) {
     const riktige = r.ord.filter((w) => w.s === 1).length;
+    // Past the phone's record in the middle of the round: the counter turns gold.
+    const rek = rekord(sp.tabu, sp.tid);
+    const over = rek > 0 && riktige > rek;
     return `<div class="sk-status">
       ${R.ui.timer({ id: "sk-tid", sekunder: r.igjen })}
       <div class="sk-status-lag">${klump(r.lag)}<span><b>${esc(lagNavn(r.lag))}</b><small>gjetter</small></span></div>
-      <div class="sk-teller${poppTeller ? " popp" : ""}" aria-label="${riktige} riktige"><b>${riktige}</b><small>riktige</small></div>
+      <div class="sk-teller${poppTeller ? " popp" : ""}${over ? " rekord" : ""}" role="img" aria-label="${riktige} riktige${over ? ", over rekorden" : ""}"><b>${riktige}</b><small>${over ? "★ rekord" : "riktige"}</small></div>
     </div>`;
   }
 
-  const tabuHtml = (w) =>
-    `<span class="sk-tabu"><span class="sk-tabu-tittel">Forbudt å si</span><span class="sk-tabu-ord"><span>${esc(w.h)}</span><span>${esc(w.l)}</span></span></span>`;
+  // The words the explainer may not say, as chips under the word («» when the word has no list).
+  const storForbokstav = (t) => t.charAt(0).toLocaleUpperCase("nb") + t.slice(1);
+  function forbudtHtml(w, klasse) {
+    const liste = forbudtFor(w.o);
+    if (!liste) return "";
+    // Four words stand two and two (never three and one alone); a wide card puts them on one line.
+    const rader = liste.length === 4 ? [liste.slice(0, 2), liste.slice(2)] : [liste];
+    return `<span class="sk-tabu ${klasse || ""}"><span class="sk-tabu-tittel">Forbudt å si</span><span class="sk-tabu-ord">${rader
+      .map((rad) => `<span class="sk-tabu-rad">${rad.map((f) => `<b>${esc(storForbokstav(f))}</b>`).join("")}</span>`)
+      .join("")}</span></span>`;
+  }
 
   function uteVis(sp, r) {
     const w = ubesvart(r);
+    // The last word is still explained, so its forbidden words stay in sight.
+    const forbudte = w && sp.tabu ? forbudtHtml(w, "liten") : "";
     const topp = w
       ? `<div class="sk-ute">
           <h1 id="skjerm-tittel" class="stempel sk-stempel">Tiden er ute!</h1>
-          <div class="bunke"><article class="storkort sk-siste">
+          <div class="bunke"><article class="storkort sk-siste${forbudte ? " sk-med-forbudt" : ""}">
             <p class="etikett">Siste ord</p>
             <p class="storkort-tekst">${ordHtml(w.o)}</p>
+            ${forbudte}
             <p class="sk-siste-tekst">Nå kan alle lag gjette! Hvem tok det?</p>
           </article></div>
         </div>`
@@ -353,7 +490,7 @@
         <h1 id="skjerm-tittel">Pause</h1>
         <p class="sk-pause-tekst">Ordet er skjult. Fortsett når ${esc(lagNavn(r.lag))} er klare.</p>
       </article></div>
-      ${R.ui.dokk(R.ui.knapp("Fortsett", "fortsett-runde", { ikon: "▶" }), R.ui.lenkerad(R.ui.lenke("Avbryt runden", "avbryt-runde")))}`;
+      ${R.ui.dokk(R.ui.knapp("Fortsett", "fortsett-runde"), R.ui.lenkerad(R.ui.lenke("Avbryt runden", "avbryt-runde"), R.ui.lenke("Avslutt", "avslutt")))}`;
   }
 
   // ---------- Setup pieces ----------
@@ -364,9 +501,18 @@
     if (o.kat.length <= 2) return o.kat.map((id) => katMedId(id).navn).join(" · ");
     return `${o.kat.length} av ${KAT.length} kategorier`;
   }
+  // Why «Forbudte ord» can't be played with these categories and this level («» when it can).
+  function forFaForbudt(o) {
+    const n = tellForbudt(o);
+    if (n >= MIN_FORBUDT) return "";
+    const hva = temaFor(o.tema) ? "Velg et annet nivå eller «Alle ord»" : o.kat ? "Velg flere kategorier" : "Velg et annet nivå";
+    return `«Forbudte ord» har bare ${R.flertall(n, "ord", "ord")} her, og trenger minst ${MIN_FORBUDT}. ${hva}.`;
+  }
   function katInfo(o) {
+    if (o.kat && !o.kat.length) return "Velg minst én kategori.";
+    if (o.tabu && forFaForbudt(o)) return forFaForbudt(o);
     const n = tellOrd(o);
-    return n ? `${R.tall(n)} ord på nivå ${niva(o.niva).navn.toLowerCase()}.` : "Velg minst én kategori.";
+    return n ? `${R.tall(n)} ord ${o.tabu ? "med forbudte ord " : ""}på nivå ${niva(o.niva).navn.toLowerCase()}.` : "Velg minst én kategori.";
   }
   function katArk(S) {
     const o = S.oppsett;
@@ -375,7 +521,7 @@
       <p class="ingress" id="sk-katinfo">${esc(katInfo(o))}</p>
       ${R.ui.brikker(
         "kat",
-        KAT.map((k) => ({ v: k.id, tekst: k.navn, ikon: k.ikon, antall: tellKat(k.id, o.niva) })),
+        KAT.map((k) => ({ v: k.id, tekst: k.navn, ikon: k.ikon, antall: tellKat(k.id, o.niva, o.tabu) })),
         valgt,
         { alle: true, etikett: "Kategorier" },
       )}
@@ -419,6 +565,96 @@
     return sp.poeng.filter((p) => p === maks).length === 1 ? sp.poeng.indexOf(maks) : null;
   }
 
+  // ---------- Counting a round, and ending the game ----------
+
+  // The round is over and checked: add the points, remember what to animate, advance the turn and
+  // look for a winner. Everything it changes is kept in sp.angre, so «Angre» can put it back.
+  function brukRunde(sp) {
+    const r = sp.runde;
+    sp.angre = JSON.parse(JSON.stringify({ runde: r, poeng: sp.poeng, stat: sp.stat, tur: sp.tur, malgang: sp.malgang, uavgjort: sp.uavgjort, vinner: sp.vinner, sist: sp.sist, nyRekord: null }));
+    sp.angreRekord = null;
+    const p = rundePoeng(sp, r);
+    const sist = ubesvart(r);
+    const fra = sp.poeng.slice();
+    sp.poeng[r.lag] = Math.max(0, sp.poeng[r.lag] + p);
+    const flytt = [{ lag: r.lag, fra: fra[r.lag], til: sp.poeng[r.lag] }];
+    sp.sist = [{ lag: r.lag, poeng: sp.poeng[r.lag] - fra[r.lag] }];
+    if (sist && r.siste >= 0 && r.siste !== r.lag) {
+      sp.poeng[r.siste] += 1;
+      flytt.push({ lag: r.siste, fra: fra[r.siste], til: sp.poeng[r.siste] });
+      sp.sist.push({ lag: r.siste, poeng: 1 });
+    }
+    sp.sist = sp.sist.filter((x) => x.poeng !== 0);
+    const riktige = rundeRiktige(r);
+    sp.stat.riktig[r.lag] += riktige;
+    sp.stat.hopp[r.lag] += r.ord.filter((w) => w.s === 0).length;
+    sp.stat.forbudt = (sp.stat.forbudt || 0) + r.ord.filter((w) => w.s === -1).length;
+    if (!sp.stat.beste || riktige > sp.stat.beste.ord) sp.stat.beste = { lag: r.lag, ord: riktige };
+    r.ord.forEach((w) => {
+      if (w.s === 0) sp.stat.hoppet.push(w.o);
+    });
+    sp.stat.hoppet = sp.stat.hoppet.slice(-40);
+    // The phone's record for this time setting. The very first round only sets it; from then on
+    // a better round is «Ny rekord!». (sp.angreRekord lets «Angre» put the old record back.)
+    const gml = rekord(sp.tabu, sp.tid);
+    sp.nyRekord = null;
+    if (riktige > gml) {
+      settRekord(sp.tabu, sp.tid, riktige);
+      sp.angreRekord = { gml };
+      if (gml > 0) {
+        sp.nyRekord = { lag: r.lag, ord: riktige };
+        sp.stat.rekord = true;
+      }
+    }
+    sp.flytt = flytt.filter((f) => f.fra !== f.til);
+    sp.runde = null;
+    sp.tur += 1;
+    sp.uavgjort = false;
+    if (sp.poeng.some((x) => x >= sp.mal)) sp.malgang = true;
+    if (sp.malgang && sp.tur % sp.lag === 0) {
+      const v = leder(sp);
+      if (v != null) sp.vinner = v;
+      else sp.uavgjort = true;
+    }
+  }
+
+  // The game is over (exactly once per game): the evening's scoreboard and the statistics get it.
+  function avsluttSpill(S, tidlig) {
+    const sp = S.spill;
+    if (!sp || sp.ferdig) return;
+    sp.ferdig = true;
+    sp.angre = null;
+    sp.angreRekord = null;
+    sp.flytt = null;
+    feireNa = true;
+    R.statistikk("ferdig", {
+      lag: sp.lag,
+      runder: Math.ceil(sp.tur / sp.lag),
+      riktige: sp.stat.riktig.reduce((a, b) => a + b, 0),
+      forbudt: !!sp.tabu,
+      tidlig: !!tidlig,
+      rekord: !!sp.stat.rekord,
+    });
+    R.kveld.registrer(sp.poeng.map((poeng, lag) => ({ lag, poeng })));
+  }
+
+  // What «Del kåringen» sends: who won, the score and the best round. No link in the text.
+  function delTekst(sp) {
+    const topp = ledere(sp);
+    const andre = sp.poeng.map((p, i) => ({ p, i })).filter((x) => !topp.includes(x.i)).sort((a, b) => b.p - a.p);
+    let tekst;
+    if (topp.length === 1) {
+      tekst =
+        sp.lag === 2
+          ? `${lagNavn(topp[0])} vant ${sp.poeng[topp[0]]}–${andre[0].p} over ${lagNavn(andre[0].i)}`
+          : `${lagNavn(topp[0])} vant med ${sp.poeng[topp[0]]} poeng, foran ${liste(andre.map((x) => `${lagNavn(x.i)} (${x.p})`))}`;
+    } else tekst = `${liste(topp.map(lagNavn))} delte seieren med ${sp.poeng[topp[0]]} poeng`;
+    tekst = `Skravla${sp.tabu ? " med forbudte ord" : ""}: ${tekst}.`;
+    const beste = sp.stat.beste;
+    if (beste && beste.ord > 0) tekst += ` Beste runde: ${beste.ord} ord på ${sp.tid} s${sp.stat.rekord ? " – ny rekord!" : "."} Klarer dere flere?`;
+    return tekst;
+  }
+
   // ---------- The game ----------
 
   R.start({
@@ -428,13 +664,13 @@
     pagar, // a game is running until the end screen (front-page badge, wake lock)
 
     tilstand: () => ({
-      oppsett: { lag: 2, tid: 60, mal: 30, niva: 2, kat: null, tabu: false, straff: false },
+      oppsett: { lag: 2, tid: 60, mal: 30, niva: 2, kat: null, tema: "", tabu: false, straff: false },
       spill: null,
     }),
 
     // Repair saved settings and drop a saved game that doesn't fit this version.
     lastet(S) {
-      const o = (S.oppsett = Object.assign({ lag: 2, tid: 60, mal: 30, niva: 2, kat: null, tabu: false, straff: false }, S.oppsett));
+      const o = (S.oppsett = Object.assign({ lag: 2, tid: 60, mal: 30, niva: 2, kat: null, tema: "", tabu: false, straff: false }, S.oppsett));
       if (![2, 3, 4].includes(o.lag)) o.lag = 2;
       if (!TIDER.includes(o.tid)) o.tid = 60;
       if (!MAL.includes(o.mal)) o.mal = 30;
@@ -443,6 +679,7 @@
         o.kat = Array.isArray(o.kat) ? o.kat.filter((id) => katMedId(id)) : null;
         if (o.kat && (!o.kat.length || o.kat.length === KAT.length)) o.kat = null;
       }
+      o.tema = temaFor(o.tema) ? o.tema : "";
       o.tabu = !!o.tabu;
       o.straff = !!o.straff;
       const sp = S.spill;
@@ -459,8 +696,25 @@
         S.spill = null;
         return;
       }
+      // Fields that came later (a game saved by an older version of Skravla keeps working).
+      sp.tabu = !!sp.tabu;
+      sp.tema = temaFor(sp.tema) ? sp.tema : "";
+      sp.stat.forbudt = Number(sp.stat.forbudt) || 0;
+      if (!Array.isArray(sp.stat.hopp)) sp.stat.hopp = Array(sp.lag).fill(0);
+      if (!Array.isArray(sp.stat.hoppet)) sp.stat.hoppet = [];
+      if (!(sp.nyRekord && typeof sp.nyRekord === "object" && sp.nyRekord.ord > 0 && sp.nyRekord.lag < sp.lag)) sp.nyRekord = null;
+      if (!(sp.angre && sp.angreRekord && typeof sp.angreRekord === "object")) sp.angreRekord = null;
       if (sp.runde && !(Array.isArray(sp.runde.ord) && sp.runde.ord.length && sp.runde.lag < sp.lag)) sp.runde = null;
+      if (sp.runde) sp.runde.ord.forEach((w) => (w.s = [1, 0, -1].includes(w.s) ? w.s : null));
       if (!sp.runde && (sp.skjerm === "runde" || sp.skjerm === "sjekk")) sp.skjerm = "tavla";
+    },
+
+    // rusj.no/skravla/#jul opens «Gjør klart» with the Christmas words chosen (not in the middle of a game).
+    vedHash(S, hash) {
+      const id = String(hash || "").trim().toLowerCase();
+      if (!temaFor(id) || pagar(S)) return null;
+      S.oppsett.tema = id;
+      return "oppsett";
     },
 
     regler: {
@@ -473,7 +727,8 @@
       tips: [
         "Siste ord når tiden er ute: alle lag kan gjette. Laget som tar det, får poenget.",
         "Ikke lov: peke på ting, rime, si ordet på engelsk eller «det begynner på …».",
-        "Forbudte ord: to ekstra ord står under ordet. Sier du dem, må du hoppe over.",
+        "Forbudte ord: under ordet står ordene alle ville sagt først. De er forbudt, i alle former. En motstander følger med over skulderen og trykker «Forbudt ord!» når det glipper – da ryker ordet og ett poeng.",
+        "Trykket noen feil? Rett det i lista etter runden.",
         "Bytt forklarer hver runde, så alle får prøve seg.",
       ],
     },
@@ -481,20 +736,19 @@
     skjermer: {
       hjem: {
         tilbake: "portal",
-        vis: (S) =>
-          R.ui.spillhjem({
+        vis(S) {
+          const best = hjemRekord(S);
+          return R.ui.spillhjem({
             slagordHtml: "Forklar ordet – uten å si det.<br><em>Første lag i mål vinner.</em>",
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
               fortsettTekst: pagar(S) ? `Fortsett · runde ${rundeNr(S.spill)}` : "",
               ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
             }),
-            merker: [
-              ["2–4", "lag"],
-              [R.tall(ALLE.length), "ord"],
-              ["0", "reklame"],
-            ],
-          }),
+            // The record (most words in one round) takes the place of «0 reklame» once there is one.
+            merker: [["2–4", "lag"], [R.tall(ALLE.length), "ord"], best ? [String(best), "rekord"] : ["0", "reklame"]],
+          });
+        },
       },
 
       oppsett: {
@@ -503,6 +757,12 @@
         vis(S) {
           const o = S.oppsett;
           const antall = tellOrd(o);
+          // «Forbudte ord» only draws words that have a list of forbidden words. With too few of
+          // them in the chosen categories the tile is greyed — or, if the mode is already on,
+          // «Start» waits — and a line says why.
+          const forFa = forFaForbudt(o);
+          const temaer = Object.keys(TEMA).map((id) => TEMA[id]);
+          const valgtTema = temaFor(o.tema);
           return `
             <h1 id="skjerm-tittel">Gjør klart</h1>
             <section class="seksjon">
@@ -511,10 +771,11 @@
               "modus",
               [
                 { v: "klassisk", tittel: "Klassisk", tekst: "Forklar ordet med egne ord", ikon: "💬" },
-                { v: "tabu", tittel: "Forbudte ord", tekst: "To ekstra ord du ikke får si", ikon: "🚫" },
+                { v: "tabu", tittel: "Forbudte ord", tekst: "De opplagte ordene er forbudt", ikon: "🚫", av: !!forFa && !o.tabu },
               ],
               o.tabu ? "tabu" : "klassisk",
             )}
+            ${forFa ? `<p class="hjelp${o.tabu ? " sk-advarsel" : ""}" id="sk-forfa">${esc(forFa)}</p>` : ""}
             </section>
             <section class="seksjon">
               <h2>Hvor mange lag?</h2>
@@ -528,12 +789,17 @@
             </div>
             <section class="seksjon">
               <div class="seksjon-hode"><h2>Ordene</h2><span class="tall">${R.tall(antall)} ord</span></div>
+              ${temaer.length ? R.ui.seg("tema", [["", "Alle ord"], ...temaer.map((x) => [x.id, `${x.ikon} ${x.navn}`.trim()])], o.tema || "", { etikett: "Tema" }) : ""}
               ${R.ui.seg("niva", NIVAER.map((n) => [n.v, n.navn]), o.niva, { etikett: "Vanskelighet" })}
               <p class="hjelp">${esc(niva(o.niva).tekst)}</p>
-              <button class="sk-katknapp" data-h="kategorier"><span class="sk-katikon" aria-hidden="true">🗂️</span><span><b>Kategorier</b><small>${esc(katTekst(o))}</small></span><i>Endre</i></button>
+              ${
+                valgtTema
+                  ? `<div class="sk-katknapp sk-temaboks"><span class="sk-katikon" aria-hidden="true">${esc(valgtTema.ikon)}</span><span><b>${esc(valgtTema.tekst || valgtTema.navn)}</b><small>Bare ord fra temaet. Kategoriene hviler.</small></span></div>`
+                  : `<button class="sk-katknapp" data-h="kategorier"><span class="sk-katikon" aria-hidden="true">🗂️</span><span><b>Kategorier</b><small>${esc(katTekst(o))}</small></span><i>Endre</i></button>`
+              }
             </section>
             ${R.ui.bryter("straff", o.straff, "Hopp over koster ett poeng", "For dem som liker det tøft.")}
-            ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !antall }))}`;
+            ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !antall || (o.tabu && !!forFa) }))}`;
         },
       },
 
@@ -548,14 +814,16 @@
             if (fra[f.lag] == null) fra[f.lag] = f.fra;
           });
           const topp = bane(sp, fra) + stilling(sp);
+          const rek = rekordLinjer(sp);
           if (sp.vinner != null) {
             return `${topp}
               <div class="sk-neste vunnet" style="--lf: ${R.LAG[sp.vinner].farge}">
-                <p class="etikett">Først i mål</p>
+                <p class="etikett">Først i mål${sp.nyRekord ? rek.kort : ""}</p>
                 <h1 id="skjerm-tittel"><span>${esc(lagNavn(sp.vinner))}</span> vinner!</h1>
+                ${sp.nyRekord ? rek.linje : ""}
                 <p class="sk-neste-tekst">${sp.poeng[sp.vinner]} poeng. Klare for kåringen?</p>
               </div>
-              ${R.ui.dokk(R.ui.knapp("Til kåringen", "kar", { ikon: "🏆" }), sp.angre ? R.ui.lenkerad(R.ui.lenke("Angre", "angre-flytt")) : "")}`;
+              ${R.ui.dokk(R.ui.knapp("Til kåringen", "kar"), sp.angre ? R.ui.lenkerad(R.ui.lenke("Angre", "angre-flytt")) : "")}`;
           }
           const neste = sp.tur % sp.lag;
           const imal = sp.poeng.map((p, i) => (p >= sp.mal ? lagNavn(i) : null)).filter(Boolean);
@@ -567,9 +835,12 @@
           return `${topp}
             <div class="sk-neste" style="--lf: ${R.LAG[neste].farge}">
               ${melding ? `<p class="sk-melding">${melding}</p>` : ""}
-              <p class="etikett">${esc(etikett)}</p>
+              <p class="etikett">${esc(etikett)}${rek.kort}</p>
               <h1 id="skjerm-tittel"><span>${esc(lagNavn(neste))}:</span> hvem forklarer?</h1>
-              <p class="sk-neste-tekst">Den som forklarer, tar mobilen. Resten av laget gjetter.</p>
+              ${rek.linje}
+              <p class="sk-neste-tekst">${
+                sp.tabu ? "Den som forklarer, tar mobilen. En motstander følger med på de forbudte ordene." : "Den som forklarer, tar mobilen. Resten av laget gjetter."
+              }</p>
             </div>
             ${R.ui.dokk(
               R.ui.knapp(`Start runden – ${lagNavn(neste)}`, "start-runde"),
@@ -578,7 +849,8 @@
         },
         inn(S) {
           S.spill.skjerm = "tavla";
-          animer(S);
+          const fortsatt = R.vakt();
+          animer(S).then(() => fortsatt() && feirRekord(S));
         },
       },
 
@@ -592,6 +864,7 @@
           if (r.pause || (!startetNa && !klokke())) return status(sp, r) + pauseVis(r);
           const w = ubesvart(r);
           const k = katMedId(w.k);
+          const forbudte = sp.tabu ? forbudtHtml(w) : "";
           return `
             <h1 class="vh" id="skjerm-tittel">${esc(lagNavn(r.lag))} gjetter</h1>
             ${status(sp, r)}
@@ -599,14 +872,19 @@
               etikett: k ? `${k.ikon} ${k.navn}` : "Forklar",
               nr: `#${r.ord.length}`,
               tekstHtml: ordHtml(w.o),
-              fotHtml: sp.tabu ? tabuHtml(w) : r.ord.length === 1 ? `<span class="sk-hint">Forklar – uten å si ordet!</span>` : "",
-              klasse: "sk-kort " + KORTFARGE[r.lag],
+              fotHtml: forbudte || (r.ord.length === 1 ? `<span class="sk-hint">Forklar – uten å si ordet!</span>` : ""),
+              klasse: "sk-kort " + KORTFARGE[r.lag] + (forbudte ? " sk-med-forbudt" : ""),
               sveip: "sveip",
             })}</div>
             <p class="sveip-hint" aria-hidden="true">← Hopp over · Riktig →</p>
             ${R.ui.dokk(
               `<div class="sk-svarknapper">${R.ui.knapp("Hopp over", "hopp", { variant: "papir", stille: true })}${R.ui.knapp("Riktig ✓", "riktig", { variant: "mynte", stille: true })}</div>`,
-              R.ui.lenkerad(r.ord.length > 1 ? R.ui.lenke("Angre", "angre-ord") : "", R.ui.lenke("Pause", "pause")),
+              // The opponents' button sits between the two links: a red pill, out of the explainer's way.
+              R.ui.lenkerad(
+                r.ord.length > 1 ? R.ui.lenke("Angre", "angre-ord") : "",
+                sp.tabu ? `<button class="sk-buzz" data-h="forbudt" data-stille aria-label="Forbudt ord sagt: minus ett poeng">Forbudt ord! <b aria-hidden="true">−1</b></button>` : "",
+                R.ui.lenke("Pause", "pause"),
+              ),
             )}`;
         },
         etter() {
@@ -651,12 +929,22 @@
           const sist = ubesvart(r);
           const besvart = r.ord.filter((w) => w.s !== null);
           const stjeler = sist && r.siste >= 0 && r.siste !== r.lag ? r.siste : null;
+          // The record follows the list as it is corrected; it is only written when the token moves.
+          const riktige = rundeRiktige(r);
+          const gml = rekord(sp.tabu, sp.tid);
+          const rekordHtml =
+            gml && riktige > gml
+              ? `<p class="sk-rekord ny"><span aria-hidden="true">★</span> Ny rekord! ${esc(rekordTekst(sp, riktige))}</p>`
+              : gml
+                ? `<p class="sk-rekord"><span aria-hidden="true">★</span> Rekord: ${esc(rekordTekst(sp, gml))}</p>`
+                : "";
           return `
             <div class="sk-resultat" style="--lf: ${R.LAG[r.lag].farge}">
               ${klump(r.lag, "stor")}
               <p class="etikett">${esc(lagNavn(r.lag))} fikk</p>
               <h1 id="skjerm-tittel"><b>${p > 0 ? "+" : p < 0 ? "−" : ""}${Math.abs(p)}</b> poeng</h1>
               <p class="sk-dom">${esc(domTekst(p, r.tilfeldig))}</p>
+              ${rekordHtml}
             </div>
             ${
               besvart.length
@@ -666,9 +954,9 @@
                       .map((w, i) =>
                         w.s === null
                           ? ""
-                          : `<li><button class="sk-ord" data-h="veksle" data-v="${i}" aria-pressed="${w.s === 1}"><i aria-hidden="true">${w.s === 1 ? "✓" : "↷"}</i><span>${esc(w.o)}</span><small>${
-                              w.s === 1 ? "+1" : sp.straff ? "−1" : "hoppet over"
-                            }</small></button></li>`,
+                          : `<li><button class="sk-ord${w.s === -1 ? " brudd" : ""}" data-h="veksle" data-v="${i}" aria-pressed="${w.s === 1}"><i aria-hidden="true">${
+                              w.s === 1 ? "✓" : w.s === -1 ? "✕" : "↷"
+                            }</i><span>${esc(w.o)}</span><small>${w.s === 1 ? "+1" : w.s === -1 ? "forbudt ord −1" : sp.straff ? "−1" : "hoppet over"}</small></button></li>`,
                       )
                       .join("")}</ul>
                   </section>`
@@ -683,7 +971,7 @@
                   </section>`
                 : ""
             }
-            ${R.ui.dokk(R.ui.knapp(p > 0 ? `Flytt ${p} felt fram` : "Videre til løypa", "flytt"))}`;
+            ${R.ui.dokk(R.ui.knapp(p > 0 ? `Flytt ${p} felt fram` : "Videre til løypa", "flytt"), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
         },
         inn(S) {
           S.spill.skjerm = "sjekk";
@@ -702,7 +990,9 @@
           const sorter = sp.poeng.slice().sort((a, b) => b - a);
           const margin = sorter[0] - sorter[1];
           const runder = Math.max(1, Math.ceil(sp.tur / sp.lag));
-          let figur = R.figur();
+          const beste = sp.stat.beste && sp.stat.beste.ord > 0 ? sp.stat.beste : null;
+          const rek = rekord(sp.tabu, sp.tid);
+          let figur = R.ui.figur(null, { stemning: "lei" });
           let etikett = "Ingen vinner";
           let tittel = "Ingen fikk poeng";
           let ingress = "Neste gang tar dere av!";
@@ -724,13 +1014,23 @@
               <h1 id="skjerm-tittel">${esc(tittel)}</h1>
               <p class="ingress">${esc(ingress)}</p>
             </div>
-            ${topp.length ? pall(sp) + lagListe(sp) : ""}
+            ${topp.length ? pall(sp) + lagListe(sp) + `<div class="sk-del">${R.ui.knapp2("Del kåringen", "del")}</div>` : ""}
             <ul class="sk-fakta">
               <li><b>${sumRiktig}</b><span>ord forklart</span></li>
               <li><b>${sumHopp}</b><span>hoppet over</span></li>
-              <li><b>${runder}</b><span>${runder === 1 ? "runde" : "runder"}</span></li>
+              ${
+                sp.tabu
+                  ? `<li><b>${sp.stat.forbudt || 0}</b><span>${(sp.stat.forbudt || 0) === 1 ? "forbudt ord sagt" : "forbudte ord sagt"}</span></li>`
+                  : `<li><b>${runder}</b><span>${runder === 1 ? "runde" : "runder"}</span></li>`
+              }
             </ul>
-            ${sp.stat.beste && sp.stat.beste.ord > 0 ? `<p class="hjelp">Beste runde: ${esc(lagNavn(sp.stat.beste.lag))} med ${sp.stat.beste.ord} ord.</p>` : ""}
+            ${
+              beste
+                ? `<p class="hjelp${sp.stat.rekord ? " sk-rekordlinje" : ""}">Beste runde: ${esc(lagNavn(beste.lag))} med ${beste.ord} ord${
+                    sp.stat.rekord ? ` – ny rekord på ${sp.tid} s!` : rek > beste.ord ? `. Rekorden på ${sp.tid} s er ${rek}.` : "."
+                  }</p>`
+                : ""
+            }
             ${
               hoppet.length
                 ? `<section class="seksjon"><h2>Ordene dere hoppet over</h2><p class="hjelp sk-venstre">Klarer dere å forklare dem nå?</p><ul class="sk-hoppet">${hoppet
@@ -743,9 +1043,11 @@
         },
         inn(S) {
           const sp = S.spill;
-          const forste = !sp.ferdig;
-          sp.ferdig = true;
-          sp.angre = null;
+          // The actions that end a game («Til kåringen», «Avslutt») have already closed it and
+          // reported it; this only catches a game that got here some other way.
+          if (!sp.ferdig) avsluttSpill(S, false);
+          const forste = feireNa;
+          feireNa = false;
           sp.skjerm = "slutt";
           R.slippVaken();
           R.lagre();
@@ -784,6 +1086,15 @@
       modus(el, e, S) {
         S.oppsett.tabu = el.dataset.v === "tabu";
         R.vis();
+      },
+      // «Alle ord» or a theme (the theme takes the place of the categories).
+      tema(el, e, S) {
+        S.oppsett.tema = temaFor(el.dataset.v) ? el.dataset.v : "";
+        R.vis();
+      },
+      // Share the result with the phone's share sheet (or copy it).
+      del(el, e, S) {
+        if (S.spill && S.spill.ferdig) R.del("Skravla", delTekst(S.spill), location.origin + "/skravla/");
       },
       lag(el, e, S) {
         S.oppsett.lag = Number(el.dataset.v);
@@ -827,7 +1138,7 @@
       "kat-ferdig": () => R.lukkArk(),
       async start(el, e, S) {
         const o = S.oppsett;
-        if (!tellOrd(o)) return;
+        if (!tellOrd(o) || (o.tabu && forFaForbudt(o))) return;
         const fortsatt = R.vakt();
         if (!(await R.bekreftNytt(pagar(S))) || !fortsatt()) return;
         S.spill = {
@@ -836,6 +1147,7 @@
           mal: o.mal,
           niva: o.niva,
           kat: o.kat ? o.kat.slice() : null,
+          tema: o.tema || "",
           tabu: o.tabu,
           straff: o.straff,
           poeng: Array(o.lag).fill(0),
@@ -847,11 +1159,14 @@
           runde: null,
           flytt: null,
           angre: null,
+          angreRekord: null,
+          nyRekord: null,
           sist: null,
           skjerm: "tavla",
           fro: R.nyttFro(),
-          stat: { riktig: Array(o.lag).fill(0), hopp: Array(o.lag).fill(0), beste: null, hoppet: [] },
+          stat: { riktig: Array(o.lag).fill(0), hopp: Array(o.lag).fill(0), forbudt: 0, beste: null, hoppet: [], rekord: false },
         };
+        R.statistikk("start", { lag: o.lag, tid: o.tid, mal: o.mal, niva: o.niva, forbudt: !!o.tabu, tema: o.tema || "alle" });
         R.holdVaken();
         R.gaTil("tavla");
       },
@@ -873,14 +1188,18 @@
         sp.runde = { lag: sp.tur % sp.lag, ord: [], igjen: sp.tid, pause: false, ute: false, siste: -1, tilfeldig: Math.random() };
         sp.sist = null;
         sp.angre = null;
+        sp.angreRekord = null;
+        sp.nyRekord = null;
         nyttOrd(sp);
         startetNa = true;
         R.gaTil("runde");
       },
-      riktig: (el, e, S) => svar(S, true, false),
-      hopp: (el, e, S) => svar(S, false, false),
+      riktig: (el, e, S) => svar(S, 1, false),
+      hopp: (el, e, S) => svar(S, 0, false),
+      // The opponents heard a forbidden word: the word is lost and costs a point.
+      forbudt: (el, e, S) => (S.spill && S.spill.tabu ? svar(S, -1, false) : undefined),
       // Swiped card: right is correct, left is skip.
-      sveip: (el, e, S) => svar(S, el.dataset.retning === "hoyre", true),
+      sveip: (el, e, S) => svar(S, el.dataset.retning === "hoyre" ? 1 : 0, true),
       // Undo the last «Riktig» or «Hopp over»: that word comes back on the card.
       "angre-ord"(el, e, S) {
         const r = S.spill && S.spill.runde;
@@ -894,7 +1213,7 @@
       "fortsett-runde": (el, e, S) => fortsettRunde(S),
       async "avbryt-runde"(el, e, S) {
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avbryte runden?", "Ordene i denne runden teller ikke. Laget kan starte runden på nytt.", "Avbryt runden", "Fortsett");
+        const ja = await R.bekreft("Avbryte runden?", "Ordene i denne runden teller ikke. Laget kan starte runden på nytt.", "Avbryt runden", "Spill videre");
         if (!ja || !fortsatt() || !S.spill) return;
         S.spill.runde = null;
         R.gaTil("tavla");
@@ -906,11 +1225,15 @@
         if (r.siste >= 0) R.lyd.riktig();
         R.gaTil("sjekk");
       },
+      // Correct a tap in the list: ✓ ↔ skipped. «Forbudte ord» has a third state, and the taps go
+      // ✓ → forbidden word → skipped → ✓ (a skipped word is still one tap from correct).
       veksle(el, e, S) {
-        const r = S.spill.runde;
+        const sp = S.spill;
+        const r = sp && sp.runde;
         const w = r && r.ord[Number(el.dataset.v)];
         if (!w || w.s === null) return;
-        w.s = w.s === 1 ? 0 : 1;
+        if (sp.tabu) w.s = w.s === 1 ? -1 : w.s === -1 ? 0 : 1;
+        else w.s = w.s === 1 ? 0 : 1;
         if (w.s === 1) R.lyd.pop();
         R.vis();
       },
@@ -918,70 +1241,53 @@
         S.spill.runde.siste = Number(el.dataset.v);
         R.vis();
       },
-      // Add the points, remember what to animate, advance the turn and check for a winner.
+      // Add the points and move the token.
       flytt(el, e, S) {
         const sp = S.spill;
-        const r = sp.runde;
-        if (!r || !r.ute) return;
-        // Everything this move changes, so «Angre» on the track can put it back.
-        sp.angre = JSON.parse(JSON.stringify({ runde: r, poeng: sp.poeng, stat: sp.stat, tur: sp.tur, malgang: sp.malgang, uavgjort: sp.uavgjort, vinner: sp.vinner, sist: sp.sist }));
-        const p = rundePoeng(sp, r);
-        const sist = ubesvart(r);
-        const fra = sp.poeng.slice();
-        sp.poeng[r.lag] = Math.max(0, sp.poeng[r.lag] + p);
-        const flytt = [{ lag: r.lag, fra: fra[r.lag], til: sp.poeng[r.lag] }];
-        sp.sist = [{ lag: r.lag, poeng: sp.poeng[r.lag] - fra[r.lag] }];
-        if (sist && r.siste >= 0 && r.siste !== r.lag) {
-          sp.poeng[r.siste] += 1;
-          flytt.push({ lag: r.siste, fra: fra[r.siste], til: sp.poeng[r.siste] });
-          sp.sist.push({ lag: r.siste, poeng: 1 });
-        }
-        sp.sist = sp.sist.filter((x) => x.poeng !== 0);
-        const riktige = r.ord.filter((w) => w.s === 1).length + (sist && r.siste === r.lag ? 1 : 0);
-        sp.stat.riktig[r.lag] += riktige;
-        sp.stat.hopp[r.lag] += r.ord.filter((w) => w.s === 0).length;
-        if (!sp.stat.beste || riktige > sp.stat.beste.ord) sp.stat.beste = { lag: r.lag, ord: riktige };
-        r.ord.forEach((w) => {
-          if (w.s === 0) sp.stat.hoppet.push(w.o);
-        });
-        sp.stat.hoppet = sp.stat.hoppet.slice(-40);
-        sp.flytt = flytt.filter((f) => f.fra !== f.til);
-        sp.runde = null;
-        sp.tur += 1;
-        sp.uavgjort = false;
-        if (sp.poeng.some((x) => x >= sp.mal)) sp.malgang = true;
-        if (sp.malgang && sp.tur % sp.lag === 0) {
-          const v = leder(sp);
-          if (v != null) sp.vinner = v;
-          else sp.uavgjort = true;
-        }
+        if (!sp || !sp.runde || !sp.runde.ute) return;
+        brukRunde(sp);
         R.gaTil("tavla");
       },
+      // Take the move back: points, turn and statistics — and the record, if that round set one.
       "angre-flytt"(el, e, S) {
         const sp = S.spill;
         if (!sp || !sp.angre) return;
+        if (sp.angreRekord) settRekord(sp.tabu, sp.tid, somRekord(sp.angreRekord.gml));
         Object.assign(sp, sp.angre);
         sp.angre = null;
+        sp.angreRekord = null;
         sp.flytt = null;
         R.lyd.snu();
         R.gaTil("sjekk");
       },
-      kar: () => R.gaTil("slutt"),
+      kar(el, e, S) {
+        if (!S.spill || S.spill.vinner == null) return;
+        avsluttSpill(S, false);
+        R.gaTil("slutt");
+      },
+      // «Avslutt»: from the track the team in the lead wins. From the list after a round that
+      // round is counted first; a round that is still running (paused) is dropped.
       async avslutt(el, e, S) {
         const sp = S.spill;
         if (!sp) return;
-        const harPoeng = sp.poeng.some((p) => p > 0);
+        const r = sp.runde;
+        const iRunde = !!(r && !r.ute);
+        const iSjekk = !!(r && r.ute && S.skjerm === "sjekk");
+        const harPoeng = sp.poeng.some((p) => p > 0) || (iSjekk && (rundePoeng(sp, r) > 0 || (!!ubesvart(r) && r.siste >= 0)));
+        const tekst = !harPoeng ? "Ingen har fått poeng ennå." : iRunde ? "Runden som pågår, teller ikke. Laget som leder, vinner." : "Laget som leder nå, vinner.";
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avslutte spillet?", harPoeng ? "Laget som leder nå, vinner." : "Ingen har fått poeng ennå.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft("Avslutte spillet?", tekst, "Avslutt", "Spill videre");
         if (!ja || !fortsatt() || S.spill !== sp) return;
-        if (!harPoeng) {
+        if (sp.runde && sp.runde.ute && S.skjerm === "sjekk") brukRunde(sp);
+        else sp.runde = null;
+        if (!sp.poeng.some((p) => p > 0)) {
           S.spill = null;
           R.slippVaken();
           R.gaTil("hjem");
           return;
         }
         sp.vinner = leder(sp);
-        sp.angre = null;
+        avsluttSpill(S, true);
         R.gaTil("slutt");
       },
       igjen(el, e, S) {

@@ -370,6 +370,50 @@
   color: var(--tekst-2);
 }
 
+/* The small label sits on the team-tinted box: the lighter text colour keeps it readable. */
+.sk-neste .etikett {
+  color: var(--tekst-2);
+}
+
+/* The phone's record (most words in one round). Tall phones get a line of their own; short ones
+   get a few words in the small label instead — see the max-height block. */
+.sk-rekord {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tekst-2);
+  font: 800 0.92rem/1.2 var(--font-display);
+}
+
+.sk-rekord > span {
+  color: var(--lampe);
+}
+
+.sk-rekord.ny {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--lampe);
+  color: var(--blekk);
+  font-size: 0.98rem;
+  animation: sk-sprett 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.sk-rekord.ny > span {
+  color: inherit;
+}
+
+.sk-rekord-kort {
+  display: none;
+}
+
+.sk-rekord-kort.ny {
+  color: var(--lampe);
+}
+
+.sk-resultat .sk-rekord {
+  margin-top: 6px;
+}
+
 .sk-melding {
   padding: 6px 12px;
   border-radius: 999px;
@@ -460,7 +504,7 @@
 
 .sk-hint {
   font: 800 1rem/1.3 var(--font-display);
-  opacity: 0.65;
+  opacity: 0.8;
 }
 
 .sk-teller b {
@@ -472,6 +516,16 @@
 .sk-teller small {
   color: var(--tekst-2);
   font: 700 0.72rem/1.2 var(--font-display);
+}
+
+/* More words than the phone's record, in the middle of the round */
+.sk-teller.rekord {
+  box-shadow: inset 0 0 0 2px var(--lampe);
+}
+
+.sk-teller.rekord b,
+.sk-teller.rekord small {
+  color: var(--lampe);
 }
 
 .sk-kort {
@@ -509,38 +563,184 @@
 .sk-tabu-tittel {
   font: 900 0.74rem/1 var(--font-display);
   letter-spacing: 0.16em;
-  opacity: 0.75;
+  opacity: 0.85;
   text-transform: uppercase;
 }
 
+/* Three or four words. Four stand two and two on a phone (never three and one alone); where the
+   card is wide enough for all four, the rows dissolve into one line. */
 .sk-tabu-ord {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
+  max-width: 100%;
 }
 
-.sk-tabu-ord span {
+.sk-tabu-rad {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+}
+
+@container (min-width: 440px) {
+  .sk-tabu-rad {
+    display: contents;
+  }
+}
+
+@container (min-width: 330px) {
+  .sk-tabu.liten .sk-tabu-rad {
+    display: contents;
+  }
+}
+
+.sk-tabu-ord b {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 7px 14px 7px 9px;
+  gap: 6px;
+  min-width: 0;
+  padding: 6px 12px 6px 8px;
   border-radius: 999px;
   background: var(--blekk);
   color: var(--papir);
-  font: 800 1.02rem/1.1 var(--font-display);
+  font: 800 0.98rem/1.1 var(--font-display);
+  overflow-wrap: anywhere;
 }
 
-.sk-tabu-ord span::before {
+.sk-tabu-ord b::before {
   content: "✕";
   display: grid;
+  flex: none;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: var(--rod);
   color: var(--blekk);
-  font: 900 0.72rem/1 var(--font-display);
+  font: 900 0.68rem/1 var(--font-display);
+}
+
+/* On the «last word» card, where the word, the question and the team buttons share the screen */
+.sk-tabu.liten {
+  gap: 6px;
+  padding-top: 10px;
+}
+
+.sk-tabu.liten .sk-tabu-ord {
+  gap: 5px;
+}
+
+.sk-tabu.liten .sk-tabu-ord b {
+  padding: 4px 10px 4px 6px;
+  font-size: 0.86rem;
+}
+
+.sk-tabu.liten .sk-tabu-ord b::before {
+  width: 15px;
+  height: 15px;
+  font-size: 0.6rem;
+}
+
+/* The opponents' button: a red pill between «Angre» and «Pause». */
+.sk-buzz {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--rod);
+  box-shadow: 0 4px 0 var(--rod-dyp);
+  color: var(--blekk);
+  font: 900 1rem/1.1 var(--font-display);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.sk-buzz b {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font-size: 0.85rem;
+}
+
+.sk-buzz:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--rod-dyp);
+}
+
+.skjerm-runde .lenkerad {
+  align-items: center;
+}
+
+/* A forbidden word slipped out: the card shakes under a red stamp, then flies away. */
+.sk-kort.sk-brudd {
+  animation: sk-rist 0.42s ease-in-out;
+}
+
+.sk-brudd-stempel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border: 5px solid var(--blekk);
+  border-radius: 16px;
+  background: var(--rod);
+  box-shadow: 0 8px 0 rgba(23, 14, 43, 0.35);
+  color: var(--blekk);
+  font: 900 clamp(1.7rem, 8.5vw, 2.4rem) / 1 var(--font-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  animation: sk-stemple 0.28s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.sk-brudd-stempel b {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font-size: 0.7em;
+}
+
+@keyframes sk-rist {
+  20% {
+    transform: translateX(-9px) rotate(-1.5deg);
+  }
+  40% {
+    transform: translateX(8px) rotate(1.5deg);
+  }
+  60% {
+    transform: translateX(-6px) rotate(-1deg);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes sk-stemple {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-8deg) scale(2.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-kort.sk-brudd,
+  .sk-brudd-stempel {
+    animation: none;
+  }
 }
 
 .sk-svarknapper {
@@ -734,6 +934,23 @@
   font: 900 1rem/1 var(--font-display);
 }
 
+/* A word lost to a forbidden word (−1) */
+.sk-ord.brudd {
+  background: color-mix(in srgb, var(--rod) 12%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--rod);
+  color: var(--tekst);
+}
+
+.sk-ord.brudd i {
+  background: var(--rod);
+  color: var(--blekk);
+}
+
+.sk-ord.brudd small {
+  color: var(--rod);
+  font: 900 0.86rem/1.1 var(--font-display);
+}
+
 .sk-sisteord h2 {
   overflow-wrap: anywhere;
 }
@@ -804,6 +1021,23 @@
   text-align: left;
 }
 
+/* «Del kåringen» right under the score list */
+.sk-del {
+  display: grid;
+}
+
+/* The game's best round was a new record */
+.sk-rekordlinje {
+  color: var(--lampe);
+  font-weight: 700;
+}
+
+/* Setup: «Forbudte ord» is chosen, but the categories have too few words for it */
+.sk-advarsel {
+  color: var(--lampe);
+  font-weight: 700;
+}
+
 .sk-hoppet {
   display: flex;
   flex-wrap: wrap;
@@ -827,8 +1061,16 @@
     grid-template-columns: 1fr;
   }
 
+  /* Three teams on a narrow phone: two and two, with «Ingen tok det» as the fourth — half the
+     height of four buttons on top of each other, so the last word stays in sight. */
   .sk-lagknapper.k3 {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sk-lagknapper.k3 .sk-ingen {
+    grid-column: auto;
+    padding-inline: 6px;
+    font-size: 1rem;
   }
 
   .sk-svarknapper .knapp {
@@ -874,7 +1116,22 @@
   }
 
   .sk-tabu {
+    gap: 6px;
     padding-top: 10px;
+  }
+
+  /* Four forbidden words take two rows: smaller chips and a lower word keep the card on screen. */
+  .sk-tabu-ord {
+    gap: 6px;
+  }
+
+  .sk-tabu-ord b {
+    padding: 5px 10px 5px 7px;
+    font-size: 0.9rem;
+  }
+
+  .skjerm-runde .sk-med-forbudt .storkort-tekst {
+    min-height: 64px;
   }
 
   .skjerm-runde .sveip-hint {
@@ -897,8 +1154,17 @@
     margin-top: -30px;
   }
 
+  /* (Room under the stamp, so it does not lie across «Siste ord».) */
   .sk-siste {
-    padding: 44px 16px 18px;
+    padding: 54px 16px 18px;
+  }
+
+  .skjerm-runde .sk-siste .storkort-tekst {
+    min-height: 76px;
+  }
+
+  .skjerm-runde .sk-siste.sk-med-forbudt .storkort-tekst {
+    min-height: 0;
   }
 
   .sk-lagknapper {
@@ -919,6 +1185,15 @@
 
   .sk-neste-tekst {
     display: none;
+  }
+
+  /* No room for a line of its own: the record is a few words in the small label instead. */
+  .sk-neste .sk-rekord {
+    display: none;
+  }
+
+  .sk-neste .sk-rekord-kort {
+    display: inline;
   }
 
   /* The track shrinks so «Lag X: hvem forklarer?» and the scores stay above the dock. */
@@ -990,4 +1265,34 @@
     gap: 6px;
     padding-top: 8px;
   }
+
+  /* Time's up: a smaller stamp, so it rests on the card's edge and not across «Siste ord». */
+  .sk-stempel {
+    font-size: 1.6rem;
+  }
+
+  .sk-ute .bunke {
+    margin-top: -26px;
+  }
+
+  /* Three teams in the side column: two and two with «Ingen tok det» as the fourth («Lag Rosa»
+     broke over two lines in three narrow columns). */
+  html[data-liggende="side"] .sk-lagknapper.k3 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  html[data-liggende="side"] .sk-lagknapper.k3 .sk-ingen {
+    grid-column: auto;
+    padding-inline: 6px;
+  }
+}
+
+/* ---------- Theme (e.g. «Jul») chosen: a box where the category button was ---------- */
+
+.sk-temaboks {
+  cursor: default;
+}
+
+.sk-temaboks:active {
+  background: var(--natt-2);
 }
