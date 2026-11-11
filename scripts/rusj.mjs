@@ -10,6 +10,9 @@ const require = createRequire(import.meta.url);
 
 export const DOMENE = "https://rusj.no";
 
+// Renamed games: old id → new id. The build writes /<old>/ as a page that sends visitors on.
+export const OMDOPT = { besserwisseren: "bedreviteren" };
+
 // Content Security Policy: only files from rusj.no itself; no inline scripts, no outside requests.
 export const CSP = [
   "default-src 'self'",
@@ -496,6 +499,7 @@ ${STEMPEL_FILTER}
     id: m.id,
     navn: m.navn,
     undertittel: m.undertittel,
+    ...(m.dagnavn ? { dagnavn: String(m.dagnavn).slice(0, 24) } : {}), // the name in the «I dag» strip
     kort: m.kort,
     spillere: m.spillere,
     minutter: m.minutter,
@@ -816,6 +820,35 @@ ${
 </html>
 `,
   );
+
+  // ---------- Old addresses of renamed games ----------
+  // A tiny page that sends the visitor on (meta refresh, no script under the CSP), points search
+  // engines to the new address and is left out of the sitemap and the offline list.
+  for (const [gammel, ny] of Object.entries(OMDOPT)) {
+    const m = spill.find((x) => x.id === ny);
+    if (!m) continue;
+    skriv(
+      `${gammel}/index.html`,
+      `<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="${CSP}">
+<meta name="robots" content="noindex">
+<title>${esc(m.navn)} | rusj</title>
+<link rel="canonical" href="${DOMENE}/${ny}/">
+<meta http-equiv="refresh" content="0; url=/${ny}/">
+<style>body{background:#150c28;color:#fff1dd;font:1.1rem/1.5 system-ui,sans-serif;text-align:center;padding:3rem 1rem}a{color:#ffd23f}</style>
+</head>
+<body>
+<p>Spillet heter nå ${esc(m.navn)}.</p>
+<p><a href="/${ny}/">Gå til ${esc(m.navn)}</a></p>
+</body>
+</html>
+`,
+    );
+  }
 
   // ---------- Manifest, favicon, robots, sitemap ----------
   // Shortcuts (long press on the app icon): the three daily puzzles and «Overrask meg». Only games

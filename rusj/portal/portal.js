@@ -446,9 +446,9 @@
     // ✓), in the words under it and in the link's name: «Dagens ord, løst, 4 av 6».
     const fliser = hvert
       .map(
-        ({ x, s, t }) => `<li><a class="idag-flis t-${x.tilstand}${x.tilstand === "ferdig" && !x.vunnet ? " t-ikke-lost" : ""}" href="/${s.id}/#dagens" style="--kf: ${s.farge}" aria-label="${esc(`${s.undertittel}, ${t.lang}`)}">
+        ({ x, s, t }) => `<li><a class="idag-flis t-${x.tilstand}${x.tilstand === "ferdig" && !x.vunnet ? " t-ikke-lost" : ""}" href="/${s.id}/#dagens" style="--kf: ${s.farge}" aria-label="${esc(`${s.dagnavn || s.undertittel}, ${t.lang}`)}">
           <span class="idag-figur">${figur(s.id)}${x.tilstand === "ferdig" ? '<span class="idag-hake">✓</span>' : ""}</span>
-          <span class="idag-navn">${esc(s.undertittel)}</span>
+          <span class="idag-navn">${esc(s.dagnavn || s.undertittel)}</span>
           <span class="idag-res">${esc(t.kort)}</span>
         </a></li>`,
       )
@@ -459,7 +459,7 @@
     const del = (klasse) => `<button type="button" class="${klasse}" id="idag-del">Del dagen</button>`;
     const knapper = alt
       ? del("knapp mynte")
-      : `<a class="knapp rosa" id="idag-neste" href="/${neste.s.id}/#dagens">${neste.x.tilstand === "pagar" ? "Fortsett" : st.ferdige ? "Neste" : "Start"}: ${esc(neste.s.undertittel)}</a>` + (st.ferdige ? del("knapp-2") : "");
+      : `<a class="knapp rosa" id="idag-neste" href="/${neste.s.id}/#dagens">${neste.x.tilstand === "pagar" ? "Fortsett" : st.ferdige ? "Neste" : "Start"}: ${esc(neste.s.dagnavn || neste.s.undertittel)}</a>` + (st.ferdige ? del("knapp-2") : "");
     // Drawn again on return from a game: keep the keyboard where it was.
     const fokus = idag.contains(document.activeElement) ? document.activeElement.id : "";
     idag.classList.toggle("i-boks", alt);
@@ -524,7 +524,7 @@
   // share sheet if there is one, else the clipboard, else the text itself to mark and copy.
   async function delDagen() {
     const { iDag, st, r } = lesIdag();
-    const tekst = D.delTekst({ iDag, rekke: r.rekke, linjer: st.spill.map((x) => ({ navn: dagligSpill(x.id).undertittel, tilstand: x.tilstand, vunnet: x.vunnet, res: x.res })) });
+    const tekst = D.delTekst({ iDag, rekke: r.rekke, linjer: st.spill.map((x) => ({ navn: dagligSpill(x.id).dagnavn || dagligSpill(x.id).undertittel, tilstand: x.tilstand, vunnet: x.vunnet, res: x.res })) });
     const url = "https://rusj.no/";
     try {
       if (navigator.share) {

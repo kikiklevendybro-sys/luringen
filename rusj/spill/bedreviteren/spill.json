@@ -1,12 +1,26 @@
 {
-  "id": "besserwisseren",
-  "navn": "Besserwisseren",
+  "id": "bedreviteren",
+  "navn": "Bedreviteren",
   "undertittel": "Festquiz",
-  "beskrivelse": "Gratis festquiz på norsk med over 500 spørsmål om Norge, natur, sport, historie og mye mer. Én mobil og én quizmaster – alene, hver for seg eller lag mot lag.",
+  "beskrivelse": "Gratis festquiz på norsk med over 600 spørsmål og faktabiter. Dagens fem hver dag – eller quiz for hele gjengen, hver for seg eller lag mot lag.",
   "kort": "Fire svar, ett er riktig – og en faktabit på kjøpet.",
-  "spillere": [1, 20],
-  "minutter": [10, 40],
+  "spillere": [
+    1,
+    20
+  ],
+  "minutter": [
+    10,
+    40
+  ],
   "mobiler": "en",
-  "tagger": ["quiz", "familie", "fest", "lag", "barn"],
-  "rekkefolge": 10
+  "tagger": [
+    "quiz",
+    "familie",
+    "fest",
+    "lag",
+    "barn",
+    "daglig"
+  ],
+  "rekkefolge": 10,
+  "dagnavn": "Dagens fem"
 }

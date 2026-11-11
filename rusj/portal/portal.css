@@ -2378,7 +2378,7 @@ body:not(.over18) .spillkort[data-alder18] {
     width: 52px;
   }
 
-  /* The longest names (Besserwisseren, Bokstavtrollet) on one line beside the player count */
+  /* The longest names (Bokstavtrollet, Kodeknekkeren) on one line beside the player count */
   .kort-navn {
     font-size: 1rem;
   }
@@ -2732,9 +2732,25 @@ body:not(.over18) .spillkort[data-alder18] {
     padding: 12px 4px 6px;
   }
 
+  /* Seven or more daily games: narrower tiles, so they fit in two rows */
+  .idag-spill:has(> :nth-child(7)) {
+    grid-template-columns: repeat(auto-fit, minmax(68px, 1fr));
+    gap: 6px;
+  }
+
+  .idag-spill:has(> :nth-child(7)) .idag-flis {
+    padding: 8px 2px 5px;
+    font-size: 0.86em;
+  }
+
   .idag-figur {
     width: 46px;
     margin-bottom: 8px;
+  }
+
+  .idag-spill:has(> :nth-child(7)) .idag-figur {
+    width: 38px;
+    margin-bottom: 6px;
   }
 
   .idag .knapp,

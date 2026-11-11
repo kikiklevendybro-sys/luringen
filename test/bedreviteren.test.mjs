@@ -1,11 +1,11 @@
-// Checks the Besserwisseren question bank: shape of every question, no duplicates, enough of each.
+// Checks the Bedreviteren question bank: shape of every question, no duplicates, enough of each.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const MAPPE = join(dirname(fileURLToPath(import.meta.url)), "../rusj/spill/besserwisseren/data");
+const MAPPE = join(dirname(fileURLToPath(import.meta.url)), "../rusj/spill/bedreviteren/data");
 const les = (fil) => JSON.parse(readFileSync(join(MAPPE, fil), "utf8"));
 const KATEGORIER = les("kategorier.json");
 const FILER = readdirSync(MAPPE).filter((f) => f.startsWith("sporsmal-") && f.endsWith(".json")).sort();
@@ -75,4 +75,15 @@ test("fasiten er spredt på alle fire plasser i dataene", () => {
   const telling = [0, 0, 0, 0];
   for (const q of ALLE) telling[q.r] += 1;
   for (const n of telling) assert.ok(n >= ALLE.length * 0.15, `fasit-plassene er skjevt fordelt: ${telling.join("/")}`);
+});
+
+test("«Dagens fem» har nok spørsmål til minst 110 dager uten gjentakelse", () => {
+  // The daily round uses every question except the children's ones, once per cycle of
+  // floor(n / 5) days (see dagensSporsmal in spill.js).
+  const voksne = ALLE.filter((q) => q.k !== "barn");
+  const dager = Math.floor(voksne.length / 5);
+  assert.ok(dager >= 110, `bare ${dager} dager`);
+  // A day goes from easy to hard: at least one easy and (nearly always) one hard question a day.
+  assert.ok(voksne.filter((q) => q.n === 1).length >= dager, "for få lette spørsmål");
+  assert.ok(voksne.filter((q) => q.n === 3).length >= dager * 0.8, "for få vanskelige spørsmål");
 });

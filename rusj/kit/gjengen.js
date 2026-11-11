@@ -247,7 +247,7 @@
         <rect x="93" y="101" width="8" height="8" rx="1.5" fill="#59b9ff"/><rect x="105" y="101" width="8" height="8" rx="1.5" fill="${B}"/>`,
     },
 
-    besserwisseren: {
+    bedreviteren: {
       farge: "#6f8bff",
       tegn: (f) => `
         ${hode(f)}

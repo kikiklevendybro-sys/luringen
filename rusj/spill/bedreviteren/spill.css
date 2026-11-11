@@ -1,4 +1,4 @@
-/* Besserwisseren: question card, the four answers (A–D), the reveal, the fun fact and a small clock. */
+/* Bedreviteren: question card, the four answers (A–D), the reveal, the fun fact and a small clock. */
 
 .skjerm-sporsmal {
   gap: 16px;
@@ -651,4 +651,51 @@ button.bw-valg:active {
   html[data-liggende="side"] .bw-valg {
     min-height: 52px;
   }
+}
+
+/* «Dagens fem»: five dots with ✓/✗, the streak and the countdown to the next round */
+.bw-prikker {
+  align-self: center;
+  gap: 8px;
+  margin: 2px auto 0;
+}
+
+.bw-prikker li {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--tekst-2);
+  font: 900 1.15rem/1 var(--font-display);
+}
+
+.bw-prikker li.ja {
+  color: var(--natt);
+}
+
+.bw-prikker li.nei {
+  background: var(--rod);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+  color: var(--natt);
+}
+
+.bw-dagens-rekke {
+  margin: 0;
+  color: var(--tekst);
+  font: 800 1.1rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.bw-nedtelling {
+  margin: 0;
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.bw-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
 }

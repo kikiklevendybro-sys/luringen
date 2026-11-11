@@ -9,7 +9,7 @@ import { mkdtempSync, mkdirSync, rmSync, readFileSync, readdirSync, existsSync, 
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { lesSeo, merkeI, TITTEL_MAKS, BESKRIVELSE_GRENSER, DOMENE } from "../scripts/rusj.mjs";
+import { lesSeo, merkeI, TITTEL_MAKS, BESKRIVELSE_GRENSER, DOMENE, OMDOPT } from "../scripts/rusj.mjs";
 
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ferdigBygget = process.env.RUSJ_WEB ? resolve(process.env.RUSJ_WEB) : null;
@@ -18,6 +18,7 @@ const WEB = ferdigBygget || join(midlertidig, "web");
 
 let sider = []; // { sti, html, tittel, beskrivelse, kanonisk, robots, og: {…}, jsonld: [tekst, …] }
 let spillIder = [];
+const videresend = new Map(); // old address of a renamed game → its html
 
 const tekst = (s) => s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 function lesSide(sti, fil) {
@@ -53,6 +54,10 @@ before(() => {
     if (!mappe.isDirectory()) continue;
     const fil = join(WEB, mappe.name, "index.html");
     if (!existsSync(fil)) continue;
+    if (mappe.name in OMDOPT) {
+      videresend.set(mappe.name, readFileSync(fil, "utf8"));
+      continue;
+    }
     sider.push(lesSide(`/${mappe.name}/`, fil));
     if (existsSync(join(WEB, mappe.name, "data.js")) || mappe.name === "luringen") spillIder.push(mappe.name);
   }
@@ -66,6 +71,20 @@ test("the build has the front page, the games and the pages about rusj", () => {
   assert.ok(spillIder.length >= 40, `bare ${spillIder.length} spill i bygget`);
   for (const sti of ["/", "/luringen/", "/om/", "/personvern/"]) assert.ok(sider.some((s) => s.sti === sti), `mangler ${sti}`);
   assert.equal(sider.length, spillIder.length + 3, "andre sider enn forsiden, spillene, /om/ og /personvern/ – legg dem til i testen");
+});
+
+test("renamed games: the old address sends the visitor on, no script, not indexed, not in the sitemap", () => {
+  for (const [gammel, ny] of Object.entries(OMDOPT)) {
+    if (!spillIder.includes(ny)) continue;
+    const html = videresend.get(gammel);
+    assert.ok(html, `mangler /${gammel}/`);
+    assert.match(html, new RegExp(`<meta http-equiv="refresh" content="0; url=/${ny}/">`), `/${gammel}/: sender ikke videre`);
+    assert.match(html, new RegExp(`<link rel="canonical" href="${DOMENE}/${ny}/">`), `/${gammel}/: canonical`);
+    assert.match(html, /<meta name="robots" content="noindex">/, `/${gammel}/: skal ikke indekseres`);
+    assert.match(html, new RegExp(`<a href="/${ny}/">`), `/${gammel}/: mangler lenke`);
+    assert.ok(!/<script/i.test(html), `/${gammel}/: har script`);
+    assert.ok(!readFileSync(join(WEB, "sitemap.xml"), "utf8").includes(`/${gammel}/`), `/${gammel}/ står i sitemap.xml`);
+  }
 });
 
 test("every page has its own title of a sensible length, search phrase before « | rusj»", () => {

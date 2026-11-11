@@ -89,7 +89,7 @@ Two teams (Rosa vs Blå), each with a code master. Our own take on the classic w
   team colour), "Ferdig med runden" button, win/lose detection, undo last tap (in case of mis-tap).
 - Optional turn timer. End screen with the full key revealed.
 
-## besserwisseren — Besserwisseren · «Festquiz» · rekkefolge 10 · 1–20 · mobiler "en"
+## bedreviteren — Bedreviteren (was Besserwisseren) · «Festquiz» · rekkefolge 10 · 1–20 · mobiler "en"
 - Quizmaster mode on one phone: question + 4 options (A–D) big; optional 20 s timer with ticking;
   "Vis svaret" → correct option lights up + a short fun fact; then tap who answered right (players or
   teams) → points. Rounds of 10/15/20 questions, category and difficulty choice, final podium.

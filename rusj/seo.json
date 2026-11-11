@@ -91,11 +91,11 @@
       "beskrivelse": "Gratis kodeordspill på norsk for to lag: kodemesteren gir ett ord og et tall – finn agentene deres og unngå fella. 4–20 spillere, én eller flere mobiler.",
       "sok": ["kodeordspill", "kodenavn", "agentspill", "agenter", "codenames"]
     },
-    "besserwisseren": {
+    "bedreviteren": {
       "tittel": "Quiz på nett – over 600 spørsmål med svar, gratis",
       "frase": "Quiz på nett",
-      "beskrivelse": "Gratis quiz på norsk med over 600 spørsmål og svar om Norge, natur, sport, historie og mer – og egne barnespørsmål. Alene, hver for seg eller lag mot lag.",
-      "sok": ["quiz spørsmål", "quiz på nett", "quiz for barn", "spørrelek", "allmennkunnskap", "kahoot", "trivial pursuit"]
+      "beskrivelse": "Gratis quiz på norsk med over 600 spørsmål og svar om Norge, natur, sport og historie. Dagens fem hver dag – eller quiz for hele gjengen, også lag mot lag.",
+      "sok": ["quiz spørsmål", "quiz på nett", "quiz for barn", "dagens quiz", "daglig quiz", "spørrelek", "allmennkunnskap", "kahoot", "trivial pursuit", "besserwisseren"]
     },
     "detektiven": {
       "tittel": "20 spørsmål og «Hvem er jeg?» – gratis gjettelek",

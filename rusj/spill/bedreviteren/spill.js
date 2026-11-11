@@ -1,14 +1,41 @@
-/* Besserwisseren — a party quiz on one phone.
+/* Bedreviteren (until November 2026 «Besserwisseren») — a party quiz on one phone.
    The quizmaster reads the question and four options aloud and everyone answers. «Vis svaret»
    lights up the right option with a short fun fact; then (when playing for points) the next step
    asks who – or which team – got it right. Harder questions give more points, and the last
-   scoring can be undone. Playing alone? Tap your answer directly. */
+   scoring can be undone. Playing alone? Tap your answer directly.
+   «Dagens fem»: five questions a day, the same on every phone, answered alone. */
 (function () {
   "use strict";
 
   const R = window.Rusj;
   const D = window.RUSJ_DATA;
   const esc = R.esc;
+  const ID = "bedreviteren";
+
+  // The game was called «Besserwisseren» (id besserwisseren). Carry this phone's saved quiz, used
+  // questions, records and evening scoreboard over once, before anything reads them.
+  (function flyttFraGammeltNavn() {
+    const GML = "besserwisseren";
+    for (const del of ["v1", "brukt.sporsmal", "rekord"]) {
+      const v = R.les(`${GML}.${del}`, null);
+      if (v == null) continue;
+      if (R.les(`${ID}.${del}`, null) == null) {
+        // Old records were per round length only; they count as «blandet» (the default level).
+        let ny = v;
+        if (del === "rekord" && v && typeof v === "object") {
+          ny = {};
+          for (const [k, n] of Object.entries(v)) ny[/^\d+$/.test(k) ? `blandet.${k}` : k] = n;
+        }
+        R.skriv(`${ID}.${del}`, ny);
+      }
+      R.fjern(`${GML}.${del}`);
+    }
+    const kveld = R.les("kveld", null);
+    if (kveld && Array.isArray(kveld.spill) && kveld.spill.some((s) => s && s.id === GML)) {
+      kveld.spill.forEach((s) => s && s.id === GML && (s.id = ID));
+      R.skriv("kveld", kveld);
+    }
+  })();
 
   const KATEGORIER = D.kategorier;
   const kategori = (id) => KATEGORIER.find((k) => k.id === id);
@@ -22,6 +49,7 @@
 
   const BOKSTAVER = ["A", "B", "C", "D"];
   const NIVA = { 1: "Lett", 2: "Middels", 3: "Vanskelig" };
+  const NIVA_ORD = { blandet: "blandet", 1: "lett", 2: "middels", 3: "vanskelig" }; // mid-sentence: «rekord på middels»
   const MODUSER = ["spillere", "lag", "fri"];
   const NIVAER = ["blandet", "1", "2", "3"];
   const LENGDER = [10, 15, 20];
@@ -49,11 +77,11 @@
     const m = /^(-?\d[\d\s ]*(?:,\d+)?)(.*)$/.exec(String(t).trim());
     return m ? { v: Number(m[1].replace(/[\s ]/g, "").replace(",", ".")), enhet: m[2].trim() } : null;
   }
-  function rekkefolge(q) {
+  function rekkefolge(q, tilfeldig) {
     const tall = q.a.map(somTall);
     const idx = [0, 1, 2, 3];
     if (tall.every((t) => t && !Number.isNaN(t.v) && t.enhet === tall[0].enhet)) return idx.sort((x, y) => tall[x].v - tall[y].v);
-    return R.stokk(idx);
+    return R.stokk(idx, tilfeldig);
   }
 
   // Pick the questions for a round. "Blandet" goes from easy to hard (about 30/40/30 %).
@@ -82,6 +110,7 @@
     const deltakere = o.modus === "spillere" ? R.klamp(S.antall || 1, 1, 20) : o.modus === "lag" ? o.lag : 0;
     S.spill = {
       modus: o.modus,
+      niva: o.niva,
       deltakere,
       klokke: !!o.klokke,
       liste,
@@ -101,6 +130,148 @@
 
   function rader(sp) {
     return Array.from({ length: sp.deltakere }, (_, i) => (sp.modus === "lag" ? { lag: i, poeng: sp.poeng[i] } : { i, poeng: sp.poeng[i] }));
+  }
+
+  // ---------- Tie-break ----------
+  // Equal top scores after the last question: the leaders get one more question (a hard one if
+  // there is one left); only they can score on it. Still equal after three: a shared win.
+  const MAKS_UTSLAG = 3;
+  function delteLedere(sp) {
+    if (!girPoeng(sp)) return [];
+    const topp = Math.max(...sp.poeng);
+    const like = sp.poeng.map((p, i) => (p === topp ? i : -1)).filter((i) => i >= 0);
+    return topp > 0 && like.length > 1 ? like : [];
+  }
+  function leggTilUtslag(sp, o) {
+    const valgt = new Set((o && o.kategorier) || []);
+    const ny = (x) => !sp.liste.includes(x);
+    let i = stokk.neste((x) => ny(x) && valgt.has(ALLE[x].k) && ALLE[x].n === 3);
+    if (i < 0 || !ny(i)) i = stokk.neste((x) => ny(x) && valgt.has(ALLE[x].k));
+    if (i < 0 || !ny(i)) i = stokk.neste(ny);
+    if (i < 0 || !ny(i)) return false;
+    sp.liste.push(i);
+    sp.rekke.push(rekkefolge(ALLE[i]));
+    return true;
+  }
+  const erUtslag = (sp) => !!(sp.utslag && sp.utslagNr && sp.nr >= sp.liste.length - sp.utslagNr);
+
+  // ---------- «Dagens fem»: five questions a day, the same on every phone ----------
+  // Every question except the children's ones, by level (each level shuffled once with a fixed
+  // seed), cut into five columns of SYKLUS questions. Day j of a cycle takes question j of every
+  // column, so a day goes from easy to hard and each question is used once per cycle. In cycle c
+  // column s is shifted c·s days, so the same five never meet again and a question comes back after
+  // SYKLUS − 4 days at the earliest. (New questions in the data reshuffle the days to come.)
+  const DAGENS_START = 20768; // 11 November 2026 = «Dagens fem nr. 1»
+  const DAGENS_ANTALL = 5;
+  const DAGENS_URL = "https://rusj.no/bedreviteren/";
+  const DAGENS_REKKE = (() => {
+    const tilfeldig = R.rng(DAGENS_START);
+    const niva = (n) => ALLE.map((q, i) => i).filter((i) => ALLE[i].n === n && ALLE[i].k !== "barn");
+    return [].concat(...[1, 2, 3].map((n) => R.stokk(niva(n), tilfeldig)));
+  })();
+  const SYKLUS = Math.floor(DAGENS_REKKE.length / DAGENS_ANTALL);
+  function dagensSporsmal(nr) {
+    const k = Math.max(0, nr - DAGENS_START);
+    const c = Math.floor(k / SYKLUS);
+    const j = k % SYKLUS;
+    return Array.from({ length: DAGENS_ANTALL }, (_, s) => DAGENS_REKKE[s * SYKLUS + ((j + c * s) % SYKLUS)]);
+  }
+  const iDag = () => R.dag().nr;
+  const dagensNr = (nr) => nr - DAGENS_START + 1;
+
+  // Its own save slot (never part of a party quiz): { dag: today's round, stat: the streak }.
+  const DAGENS_NOKKEL = ID + ".dagens";
+  function lesDagens() {
+    const v = R.les(DAGENS_NOKKEL, null) || {};
+    const st = v.stat && typeof v.stat === "object" ? v.stat : {};
+    const stat = { rekke: Math.max(0, Math.floor(Number(st.rekke)) || 0), sistVunnet: Number.isInteger(st.sistVunnet) ? st.sistVunnet : null, spilt: Math.max(0, Math.floor(Number(st.spilt)) || 0) };
+    const d = v.dag;
+    const ok =
+      d &&
+      Number.isInteger(d.nr) &&
+      Array.isArray(d.liste) &&
+      d.liste.length === DAGENS_ANTALL &&
+      d.liste.every((i) => ALLE[i]) &&
+      Array.isArray(d.rekke) &&
+      d.rekke.length === DAGENS_ANTALL &&
+      Array.isArray(d.svar) &&
+      d.svar.length <= DAGENS_ANTALL &&
+      d.svar.every((s) => s && typeof s.ok === "boolean") &&
+      Number.isInteger(d.i) &&
+      d.i >= 0 &&
+      d.i < DAGENS_ANTALL;
+    return { dag: ok ? d : null, stat };
+  }
+  const DG = lesDagens();
+  const lagreDagens = () => R.skriv(DAGENS_NOKKEL, DG);
+  // Today's round (made when it is first needed; yesterday's unfinished one gives way).
+  function sikreDagens() {
+    const nr = iDag();
+    if (DG.dag && DG.dag.nr === nr) return DG.dag;
+    const liste = dagensSporsmal(nr);
+    const tilfeldig = R.rng(nr * 7 + 3); // the options in the same order on every phone
+    DG.dag = { nr, liste, rekke: liste.map((i) => rekkefolge(ALLE[i], tilfeldig)), i: 0, svar: [], ferdig: false };
+    lagreDagens();
+    return DG.dag;
+  }
+  const dagensIDag = () => (DG.dag && DG.dag.nr === iDag() ? DG.dag : null);
+  const dagensRiktige = (d) => d.svar.filter((s) => s.ok).length;
+  const dagensVunnet = (d) => dagensRiktige(d) >= 3;
+  const dagensRes = (d) => `${dagensRiktige(d)}/${DAGENS_ANTALL}`;
+  // The streak shown today: days in a row with at least 3 right, broken once a whole day has passed.
+  const rekkeNa = () => (DG.stat.sistVunnet != null && DG.stat.sistVunnet >= iDag() - 1 ? DG.stat.rekke : 0);
+  const rekkeTekst = (n) => `🔥 ${n} ${n === 1 ? "dag" : "dager"} på rad`;
+  function meldDagens(d) {
+    if (d.nr !== iDag()) return;
+    if (d.ferdig) R.dagligFerdig({ vunnet: dagensVunnet(d), rekke: dagensVunnet(d) ? DG.stat.rekke : 0, res: dagensRes(d) });
+    else if (d.svar.length) R.dagligIGang({ tekst: `${d.svar.length}/${DAGENS_ANTALL}` });
+  }
+  function fullforDagens(d) {
+    if (d.ferdig) return;
+    d.ferdig = true;
+    const st = DG.stat;
+    if (dagensVunnet(d)) {
+      st.rekke = st.sistVunnet === d.nr - 1 ? st.rekke + 1 : st.sistVunnet === d.nr ? st.rekke : 1;
+      st.sistVunnet = d.nr;
+    } else st.rekke = 0;
+    st.spilt += 1;
+    lagreDagens();
+    meldDagens(d);
+    R.statistikk("ferdig", { modus: "dagens", riktige: dagensRiktige(d) });
+  }
+  // Shared text: the number, the score and the dots – never a question or an answer.
+  const delTekst = (d) => `Bedreviteren · Dagens fem nr. ${dagensNr(d.nr)} · ${dagensRes(d)} ${d.svar.map((s) => (s.ok ? "🟢" : "🔴")).join("")}`;
+
+  // Countdown to the next round (midnight in Norway; 23 or 25 hours the nights the clocks change).
+  function sekunderTilNeste() {
+    const na = Date.now();
+    const deler = {};
+    new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+      .formatToParts(new Date(na))
+      .forEach((p) => (deler[p.type] = Number(p.value)));
+    let igjen = 86400 - ((deler.hour % 24) * 3600 + deler.minute * 60 + deler.second);
+    const dag = R.dag(new Date(na)).nr;
+    if (R.dag(new Date(na + igjen * 1000)).nr === dag) igjen += 3600;
+    else if (igjen > 3600 && R.dag(new Date(na + (igjen - 3600) * 1000)).nr !== dag) igjen -= 3600;
+    return Math.max(1, igjen);
+  }
+  const to = (n) => String(n).padStart(2, "0");
+  const klokkeslett = (s) => `${to(Math.floor(s / 3600))}:${to(Math.floor((s % 3600) / 60))}:${to(s % 60)}`;
+  const nedtellingHtml = () => `<p class="bw-nedtelling">Nye spørsmål om <b>${klokkeslett(sekunderTilNeste())}</b></p>`;
+  let tikker = null;
+  function startNedtelling() {
+    clearInterval(tikker);
+    const dag = iDag();
+    tikker = setInterval(() => {
+      const el = R.$(".bw-nedtelling b");
+      if (!el) return clearInterval(tikker);
+      if (iDag() !== dag) {
+        clearInterval(tikker);
+        return R.S.skjerm === "dagensSlutt" ? R.gaTil("hjem") : R.vis(); // a new round is ready
+      }
+      el.textContent = klokkeslett(sekunderTilNeste());
+    }, 1000);
+    R.vedForlat(() => clearInterval(tikker));
   }
 
   // ---------- The clock (optional, 20 s per question) ----------
@@ -123,9 +294,9 @@
       vedSlutt() {
         const tid = R.$("#bw-klokke .bw-tid");
         if (tid) tid.textContent = "0";
+        // Time is up: the answer is shown (alone: the question counts as unanswered).
         R.toast("Tiden er ute!");
-        const knapp = R.$('#skjerm [data-h="vis"]');
-        if (knapp) knapp.classList.add("bw-puls");
+        H.vis(null, null, R.S);
       },
     }).start();
   }
@@ -153,7 +324,7 @@
     </article>`;
   }
 
-  function valgHtml(sp, q) {
+  function valgHtml(sp, q, h = "svar") {
     const svar = sp.fase !== "sporsmal";
     const trykkbar = !svar && erSolo(sp);
     const kort = q.a.every((a) => a.length <= KORT_SVAR) ? " kort-svar" : "";
@@ -171,7 +342,7 @@
           } else klasse += " dempet";
         }
         const indre = `<span class="bw-bokstav" aria-hidden="true">${BOKSTAVER[vis]}</span><span class="bw-tekst"><span class="vh">${BOKSTAVER[vis]}: </span>${esc(q.a[ai])}</span>${merke}`;
-        return `<li>${trykkbar ? `<button class="${klasse}" data-h="svar" data-v="${vis}">${indre}</button>` : `<div class="${klasse}">${indre}</div>`}</li>`;
+        return `<li>${trykkbar ? `<button class="${klasse}" data-h="${h}" data-v="${vis}">${indre}</button>` : `<div class="${klasse}">${indre}</div>`}</li>`;
       })
       .join("")}</ol>`;
   }
@@ -192,7 +363,8 @@
   function hvemSkjerm(sp, q) {
     const riktigVis = sp.rekke[sp.nr].indexOf(q.r);
     const lag = sp.modus === "lag";
-    const knapper = Array.from({ length: sp.deltakere }, (_, i) => {
+    const hvem = erUtslag(sp) ? sp.utslag : Array.from({ length: sp.deltakere }, (_, i) => i);
+    const knapper = hvem.map((i) => {
       const merke = lag ? `<span class="avatar" style="--pf: ${R.LAG[i].farge}" aria-hidden="true"></span>` : R.avatar(i);
       return `<button class="velger bw-hvem" data-h="riktig" data-v="${i}" aria-pressed="${sp.riktige.includes(i)}">${merke}<span>${esc(deltakerNavn(sp, i))}</span></button>`;
     }).join("");
@@ -223,7 +395,8 @@
     let under = "";
     let dokk = "";
     if (sp.fase === "sporsmal") {
-      if (erSolo(sp)) under = `<p class="hjelp bw-hint">Trykk på svaret ditt – eller se fasiten.</p>`;
+      if (erUtslag(sp)) under = `<p class="hjelp bw-hint"><b>Utslagsspørsmål!</b> ${esc(oppramsing(sp.utslag.map((i) => deltakerNavn(sp, i))))} har like mange poeng. Bare de kan få poeng nå.</p>`;
+      else if (erSolo(sp)) under = `<p class="hjelp bw-hint">Trykk på svaret ditt – eller se fasiten.</p>`;
       else if (sp.nr === 0) under = `<p class="hjelp bw-hint">Les spørsmålet og de fire svarene høyt. Når alle har svart, trykker du «Vis svaret».</p>`;
       dokk = R.ui.dokk(
         erSolo(sp) ? R.ui.knapp("Jeg vet ikke – vis svaret", "vis", { variant: "papir" }) : R.ui.knapp("Vis svaret", "vis", { variant: "stor", ikon: "👀" }),
@@ -256,9 +429,9 @@
   // ---------- Results ----------
 
   function vurdering(andel) {
-    if (andel >= 1) return "Feilfritt! Du er en ekte besserwisser.";
+    if (andel >= 1) return "Feilfritt! Du er en ekte bedreviter.";
     if (andel >= 0.8) return "Imponerende! Du vet nesten alt.";
-    if (andel >= 0.6) return "Sterkt! Litt besserwisser er du.";
+    if (andel >= 0.6) return "Sterkt! Litt bedreviter er du.";
     if (andel >= 0.4) return "Godt jobba – og nå vet du litt mer!";
     return "Det var noen tøffe spørsmål! Nå vet du i alle fall mer enn i stad.";
   }
@@ -274,7 +447,7 @@
         rek.ny && rek.forrige > 0
           ? `<div class="stempel-sted"><span class="stempel mynte">Ny rekord!</span></div>`
           : rek.forrige > 0
-            ? `<p class="hjelp">Rekorden din på ${antall} spørsmål: ${rek.forrige} riktige</p>`
+            ? `<p class="hjelp">Rekorden din på ${NIVA_ORD[sp.niva] || "blandet"} med ${antall} spørsmål: ${rek.forrige} riktige</p>`
             : "";
       const rekke = `<ol class="bw-rekke" aria-label="Svarene dine">${sp.logg
         .map((l, n) => `<li class="${l.riktige.length ? "ja" : "nei"}" style="animation-delay: ${n * 70}ms"><span class="vh">Spørsmål ${n + 1}: ${l.riktige.length ? "riktig" : "feil"}</span></li>`)
@@ -286,8 +459,11 @@
     if (topp <= 0)
       return `<div class="banner">${R.figur()}<p class="etikett">Kåringen</p><h1 id="skjerm-tittel">Ingen poeng i dag</h1><p class="ingress">Kanskje en lettere runde neste gang?</p></div>`;
     const navn = vinnere.map((i) => deltakerNavn(sp, i));
-    const etikett = vinnere.length > 1 ? "Delt seier!" : sp.modus === "lag" ? "Vinnerlaget" : "Dagens besserwisser";
-    const ingress = vinnere.length > 1 ? `Like mange poeng: ${topp}.` : `${poengTekst(topp)} og ${sp.treff[vinnere[0]]} av ${antall} riktige.`;
+    const etikett = vinnere.length > 1 ? "Delt seier!" : sp.modus === "lag" ? "Vinnerlaget" : "Rundens bedreviter";
+    const ingress =
+      vinnere.length > 1
+        ? `Like mange poeng: ${topp}.`
+        : `${poengTekst(topp)} og ${sp.treff[vinnere[0]]} av ${antall} riktige${sp.utslagNr ? " – avgjort på utslagsspørsmål" : ""}.`;
     return `<div class="banner aksent">${R.figur()}<p class="etikett">${etikett}</p><h1 id="skjerm-tittel">${esc(oppramsing(navn))} vinner!</h1><p class="ingress">${esc(ingress)}</p></div>`;
   }
 
@@ -314,10 +490,102 @@
     } else R.lyd.pling();
   }
 
+  // ---------- «Dagens fem»: screens ----------
+
+  // The question card and options of the party quiz, drawn from today's round.
+  function dagensVisning(d) {
+    const svart = d.svar.length > d.i;
+    return { modus: "spillere", deltakere: 1, fase: svart ? "svar" : "sporsmal", liste: d.liste, rekke: d.rekke, nr: d.i, valgt: svart ? d.svar[d.i].v : null, klokke: false, angre: null };
+  }
+
+  function dagensSkjerm() {
+    const d = sikreDagens();
+    if (d.ferdig) return dagensSluttSkjerm();
+    const sp = dagensVisning(d);
+    const q = naa(sp);
+    const siste = d.i + 1 >= DAGENS_ANTALL;
+    let under = "";
+    let dokk = "";
+    if (sp.fase === "sporsmal") {
+      if (d.i === 0) under = `<p class="hjelp bw-hint">Fem spørsmål, fra lett til vanskelig. Trykk på svaret ditt.</p>`;
+      dokk = R.ui.dokk(R.ui.knapp("Jeg vet ikke – vis svaret", "dvis", { variant: "papir" }));
+    } else {
+      const s = d.svar[d.i];
+      const riktigVis = d.rekke[d.i].indexOf(q.r);
+      const dom = s.ok
+        ? `<p class="bw-dom riktig" role="status"><span class="bw-dom-ord">Riktig!</span></p>`
+        : `<p class="bw-dom${s.v == null ? "" : " feil"}" role="status"><span class="bw-dom-ord">${s.v == null ? "Fasit" : "Feil"}</span> <span>Riktig svar er ${BOKSTAVER[riktigVis]}: ${esc(q.a[q.r])}</span></p>`;
+      under = dom + (q.fakta ? faktaHtml(q) : "");
+      dokk = R.ui.dokk(R.ui.knapp(siste ? "Se resultatet" : "Neste spørsmål", "dneste", { ikon: siste ? "🏁" : "→" }));
+    }
+    return `${statusHtml(sp)}${kortHtml(sp, q)}${valgHtml(sp, q, "dsvar")}${under}${dokk}`;
+  }
+
+  function dagensSluttSkjerm() {
+    const d = sikreDagens();
+    if (!d.ferdig) return dagensSkjerm();
+    const r = dagensRiktige(d);
+    const rekke = dagensVunnet(d) ? rekkeNa() : 0;
+    const prikker = `<ol class="bw-rekke bw-prikker" aria-label="Svarene dine">${d.svar
+      .map((s, n) => `<li class="${s.ok ? "ja" : "nei"}" style="animation-delay: ${n * 90}ms"><span aria-hidden="true">${s.ok ? "✓" : "✗"}</span><span class="vh">Spørsmål ${n + 1}: ${s.ok ? "riktig" : "feil"}</span></li>`)
+      .join("")}</ol>`;
+    return `
+      ${R.ui.banner({
+        klasse: "aksent",
+        etikett: `Dagens fem nr. ${dagensNr(d.nr)}`,
+        tittel: `${r} av ${DAGENS_ANTALL} riktige`,
+        tekst: vurdering(r / DAGENS_ANTALL),
+        stemning: r >= 3 ? "jubel" : r <= 1 ? "lei" : "",
+      })}
+      ${prikker}
+      ${rekke ? `<p class="bw-dagens-rekke">${rekkeTekst(rekke)}</p>` : ""}
+      ${nedtellingHtml()}
+      <div class="stabel">${R.ui.knapp2("Se fasiten", "dfasit", { ikon: "📋" })}</div>
+      ${R.ui.flereSpill({ antall: 1 })}
+      ${R.ui.dokk(R.ui.knapp("Del resultatet", "ddel", { ikon: "📤" }), R.ui.lenkerad(R.ui.lenke("Til Bedreviteren", "tilbake"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+  }
+
+  function dagensFasit(d) {
+    const punkt = d.liste
+      .map((qi, n) => {
+        const q = ALLE[qi];
+        const s = d.svar[n];
+        return `<li><span class="bw-fasit-nr">${n + 1}</span><div><p class="bw-fasit-s">${esc(q.s)}</p><p class="bw-fasit-a">✓ ${esc(q.a[q.r])}</p>${
+          s ? `<p class="bw-fasit-hvem">${s.ok ? "Du hadde rett" : s.v == null ? "Ikke svart" : "Du svarte: " + esc(q.a[d.rekke[n][s.v]])}</p>` : ""
+        }</div></li>`;
+      })
+      .join("");
+    return `<h2 id="ark-tittel">Fasiten</h2><ol class="bw-fasit">${punkt}</ol><button class="knapp" data-h="lukk-ark">Lukk</button>`;
+  }
+
+  // Answer today's current question (vis = the option's place on screen, null = «Jeg vet ikke»).
+  function dagensSvar(vis) {
+    const d = dagensIDag();
+    if (!d || d.ferdig || d.svar.length > d.i) return;
+    const q = ALLE[d.liste[d.i]];
+    const riktigVis = d.rekke[d.i].indexOf(q.r);
+    const ok = vis === riktigVis;
+    if (!d.svar.length) R.statistikk("start", { modus: "dagens" });
+    d.svar.push({ v: vis, ok });
+    lagreDagens();
+    meldDagens(d);
+    if (ok) {
+      R.lyd.riktig();
+      R.vibrer([30, 40, 60]);
+    } else if (vis != null) {
+      R.lyd.feil();
+      R.vibrer(120);
+    } else R.lyd.pling();
+    R.vis();
+    visFakta();
+    R.si(`Riktig svar: ${BOKSTAVER[riktigVis]}, ${q.a[q.r]}. ${q.fakta || ""}`);
+  }
+
   // ---------- The game ----------
 
   R.start({
-    id: "besserwisseren",
+    id: ID,
+    _dagens: { sporsmal: dagensSporsmal, syklus: SYKLUS, start: DAGENS_START, delTekst }, // for test/spill/bedreviteren.e2e.mjs
     versjon: 1,
     liggende: true, // landscape phones: the kit may move every dock to the side column, also those with the game's own buttons in them
     pagar, // a quiz is in progress until the last question is answered
@@ -357,6 +625,15 @@
         Array.isArray(sp.riktige) &&
         Array.isArray(sp.logg);
       if (!ok) S.spill = null;
+      // Today's «Dagens fem» tells the front page again on every load (the kit keeps it idempotent).
+      const d = dagensIDag();
+      if (d) meldDagens(d);
+    },
+
+    // rusj.no/bedreviteren/#dagens (the front page's «I dag»): today's round, or its result.
+    vedHash(S, hash) {
+      if (hash !== "dagens") return null;
+      return sikreDagens().ferdig ? "dagensSlutt" : "dagens";
     },
 
     regler: {
@@ -372,6 +649,7 @@
         "Den som leser, kan godt være med – svaret vises ikke før dere trykker.",
         "Trykket feil? «Angre» øverst på neste spørsmål tar poengene tilbake.",
         "«Blandet» starter lett og blir vanskeligere mot slutten.",
+        "Dagens fem: fem nye spørsmål hver dag, de samme for alle. Når du deler resultatet, røper du ikke svarene.",
       ],
     },
 
@@ -380,21 +658,40 @@
         tilbake: "portal",
         vis: (S) => {
           const sp = S.spill;
+          // «Dagens fem» is the main button until today's round is done (a running party quiz
+          // keeps «Fortsett» on top); then its score, the streak and the time to the next one.
+          const d = dagensIDag();
+          const rekke = rekkeNa();
+          const dagensForst = !pagar(S) && !(d && d.ferdig);
+          const knapp = dagensForst ? R.ui.knapp : R.ui.knapp2;
+          const dagens =
+            d && d.ferdig
+              ? R.ui.knapp2(`✓ ${dagensRiktige(d)} av ${DAGENS_ANTALL}${rekke ? " · " + rekkeTekst(rekke) : ""}`, "dagens") + nedtellingHtml()
+              : d && d.svar.length
+                ? knapp(`Fortsett dagens fem · ${d.svar.length}/${DAGENS_ANTALL}`, "dagens")
+                : knapp("Dagens fem", "dagens", { variant: dagensForst ? "stor" : "", ikon: "📅" });
+          const ekstra = (sp && sp.ferdig ? R.ui.knapp2("Se kåringen", "resultat") : "") + R.ui.lenke("Slik spiller du", "regler");
           return R.ui.spillhjem({
-            slagordHtml: "Fire svar. Bare ett er riktig.<br><em>Hvem er den største besserwisseren?</em>",
-            knapperHtml:
-              R.ui.startKnapper({
-                pagar: pagar(S),
-                fortsettTekst: sp ? `Fortsett · spørsmål ${sp.nr + 1} av ${sp.liste.length}` : "",
-                startTekst: "Start quiz",
-                ekstraHtml: (sp && sp.ferdig ? R.ui.knapp2("Se kåringen", "resultat") : "") + R.ui.lenke("Slik spiller du", "regler"),
-              }),
+            slagordHtml: "Fire svar. Bare ett er riktig.<br><em>Hvem er den største bedreviteren?</em>",
+            knapperHtml: dagensForst
+              ? dagens + R.ui.knapp2("Start quiz", "nytt") + ekstra
+              : R.ui.startKnapper({
+                  pagar: pagar(S),
+                  fortsettTekst: sp ? `Fortsett · spørsmål ${sp.nr + 1} av ${sp.liste.length}` : "",
+                  startTekst: "Start quiz",
+                }) +
+                dagens +
+                ekstra,
             merker: [
               ["1–20", "spillere"],
               [String(ALLE.length), "spørsmål"],
               ["0", "reklame"],
             ],
           });
+        },
+        inn() {
+          const d = dagensIDag();
+          if (d && d.ferdig) startNedtelling();
         },
       },
 
@@ -446,12 +743,40 @@
 
       sporsmal: {
         // Short title on narrow phones, so it isn't cut off between the buttons.
-        tittel: (S) => (window.innerWidth < 380 ? `${S.spill.nr + 1}/${S.spill.liste.length}` : `Spørsmål ${S.spill.nr + 1} av ${S.spill.liste.length}`),
+        tittel: (S) =>
+          erUtslag(S.spill) ? "Utslag" : window.innerWidth < 380 ? `${S.spill.nr + 1}/${S.spill.liste.length}` : `Spørsmål ${S.spill.nr + 1} av ${S.spill.liste.length}`,
         tilbake: "hjem",
         vis: sporsmalSkjerm,
         inn(S) {
           R.holdVaken();
           startKlokke(S);
+        },
+      },
+
+      dagens: {
+        tittel: () => `Dagens fem · ${Math.min((dagensIDag() || sikreDagens()).i + 1, DAGENS_ANTALL)}/${DAGENS_ANTALL}`,
+        tilbake: "hjem",
+        vis: dagensSkjerm,
+      },
+
+      dagensSlutt: {
+        tittel: "Dagens fem", // the banner below says which number
+        tilbake: "hjem",
+        gjenoppta: "hjem",
+        vis: dagensSluttSkjerm,
+        inn() {
+          const d = sikreDagens();
+          if (d.ferdig) startNedtelling();
+          if (!d.ferdig || d.feiret) return;
+          // Celebrate once, in proportion.
+          d.feiret = true;
+          lagreDagens();
+          const r = dagensRiktige(d);
+          if (r >= 4) {
+            R.lyd.fanfare();
+            R.konfetti();
+          } else if (r >= 3) R.lyd.riktig();
+          else R.lyd.pling();
         },
       },
 
@@ -480,6 +805,37 @@
     },
 
     handlinger: (H = {
+      dagens() {
+        const d = sikreDagens();
+        R.gaTil(d.ferdig ? "dagensSlutt" : "dagens");
+      },
+      dsvar(el) {
+        dagensSvar(Number(el.dataset.v));
+      },
+      dvis() {
+        dagensSvar(null);
+      },
+      dneste() {
+        const d = dagensIDag();
+        if (!d) return R.gaTil("hjem");
+        if (d.ferdig || d.svar.length <= d.i) return;
+        if (d.i + 1 >= DAGENS_ANTALL) {
+          fullforDagens(d);
+          R.gaTil("dagensSlutt");
+          return;
+        }
+        d.i += 1;
+        lagreDagens();
+        R.gaTil("dagens");
+      },
+      ddel() {
+        const d = dagensIDag();
+        if (d && d.ferdig) R.del("Bedreviteren", delTekst(d), DAGENS_URL);
+      },
+      dfasit() {
+        const d = dagensIDag();
+        if (d && d.ferdig) R.ark(dagensFasit(d));
+      },
       async nytt(el, e, S) {
         const fortsatt = R.vakt();
         if (!(await R.bekreftNytt(pagar(S))) || !fortsatt()) return;
@@ -523,6 +879,7 @@
           R.toast("Fant ingen spørsmål – velg flere kategorier");
           return;
         }
+        R.statistikk("start", { modus: S.spill.modus, sporsmal: S.spill.liste.length });
         if (S.spill.liste.length < S.oppsett.lengde) R.toast(`Bare ${S.spill.liste.length} spørsmål passet – kjør på!`);
         R.lyd.pop();
         R.gaTil("sporsmal");
@@ -601,7 +958,7 @@
         if (!sp || (sp.fase !== "hvem" && !(sp.fase === "svar" && !girPoeng(sp)))) return;
         const q = naa(sp);
         // Remember the scores before this question, so the scoring can be undone («Angre»).
-        sp.angre = { nr: sp.nr, riktige: sp.riktige.slice(), valgt: sp.valgt, poeng: sp.poeng.slice(), treff: sp.treff.slice() };
+        sp.angre = { nr: sp.nr, riktige: sp.riktige.slice(), valgt: sp.valgt, poeng: sp.poeng.slice(), treff: sp.treff.slice(), lengde: sp.liste.length, utslag: sp.utslag || null };
         if (sp.modus !== "fri") {
           for (const i of sp.riktige) {
             sp.poeng[i] += q.n;
@@ -611,17 +968,31 @@
         }
         sp.logg.push({ q: sp.liste[sp.nr], riktige: sp.riktige.slice(), valgt: sp.valgt });
         if (sp.nr + 1 >= sp.liste.length) {
-          sp.ferdig = true;
-          if (erSolo(sp)) {
-            // Personal best per round length, on this device only.
-            const rekorder = R.les("besserwisseren.rekord", {}) || {};
-            const nokkel = String(sp.liste.length);
-            const forrige = Number(rekorder[nokkel]) || 0;
-            sp.rekord = { forrige, ny: sp.treff[0] > forrige };
-            if (sp.rekord.ny) R.skriv("besserwisseren.rekord", Object.assign({}, rekorder, { [nokkel]: sp.treff[0] }));
+          // A shared lead after the last question: one tie-break question for the leaders (up to three).
+          const like = delteLedere(sp);
+          if (like.length > 1 && (sp.utslagNr || 0) < MAKS_UTSLAG && leggTilUtslag(sp, S.oppsett)) {
+            sp.utslag = like;
+            sp.utslagNr = (sp.utslagNr || 0) + 1;
+            R.toast(`Uavgjort! ${oppramsing(like.map((i) => deltakerNavn(sp, i)))} får et utslagsspørsmål`);
+          } else {
+            sp.ferdig = true;
+            if (erSolo(sp)) {
+              // Personal best per level and round length, on this device only.
+              const rekorder = R.les(ID + ".rekord", {}) || {};
+              const nokkel = `${sp.niva || "blandet"}.${sp.liste.length}`;
+              const forrige = Number(rekorder[nokkel]) || 0;
+              sp.rekord = { forrige, ny: sp.treff[0] > forrige };
+              if (sp.rekord.ny) R.skriv(ID + ".rekord", Object.assign({}, rekorder, { [nokkel]: sp.treff[0] }));
+            }
+            // «Kveldens gjeng» on the front page: once per finished quiz with points.
+            if (girPoeng(sp) && !sp.kveld) {
+              sp.kveld = true;
+              R.kveld.registrer(rader(sp));
+            }
+            R.statistikk("ferdig", { modus: sp.modus, sporsmal: sp.logg.length });
+            R.gaTil("slutt");
+            return;
           }
-          R.gaTil("slutt");
-          return;
         }
         sp.nr += 1;
         sp.fase = "sporsmal";
@@ -637,6 +1008,13 @@
         sp.poeng = a.poeng;
         sp.treff = a.treff;
         sp.logg.pop();
+        if (a.lengde && sp.liste.length > a.lengde) {
+          // Undoing the scoring that led to a tie-break question takes that question away again.
+          sp.liste.length = a.lengde;
+          sp.rekke.length = a.lengde;
+          sp.utslagNr = Math.max(0, (sp.utslagNr || 1) - 1);
+        }
+        sp.utslag = a.utslag || null;
         sp.nr = a.nr;
         sp.fase = "hvem";
         sp.riktige = a.riktige;

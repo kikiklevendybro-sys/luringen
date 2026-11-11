@@ -184,7 +184,7 @@ for (const id of valgt) {
       // «Dagens rusj», new visitor: no strip – one slim row under the buttons that says how many
       // daily puzzles there are (counted from the games tagged «daglig», never a fixed number) and
       // leads to the shelf with them.
-      const daglige = await c.js(`(window.RUSJ_SPILLISTE || []).filter((s) => s.tagger.includes("daglig") && !s.alder18).map((s) => ({ id: s.id, navn: s.undertittel }))`);
+      const daglige = await c.js(`(window.RUSJ_SPILLISTE || []).filter((s) => s.tagger.includes("daglig") && !s.alder18).map((s) => ({ id: s.id, navn: s.dagnavn || s.undertittel }))`);
       const TALLORD = ["null", "én", "to", "tre", "fire", "fem", "seks", "sju", "åtte", "ni", "ti", "elleve", "tolv"];
       const tallord = (n) => TALLORD[n] || String(n);
       const stor = (tekst) => tekst.charAt(0).toUpperCase() + tekst.slice(1);
