@@ -138,7 +138,7 @@
       st.rekke = 0;
     }
     // The front page shows «✓ i dag» and the streak.
-    if (sp.nr === iDag()) R.dagligFerdig({ vunnet: sp.vunnet, rekke: st.rekke });
+    if (sp.nr === iDag()) R.dagligFerdig({ vunnet: sp.vunnet, rekke: st.rekke, res: `${sp.vunnet ? sp.gjett.length : "X"}/${MAKS}` });
   }
   // The streak shown today: it is broken once a whole day has passed without a win.
   const rekkeNa = (S) => (S.stat.sistVunnet != null && S.stat.sistVunnet >= iDag() - 1 ? S.stat.rekke : 0);
@@ -403,6 +403,7 @@
     sp.gjett.push(ord);
     sp.rad = "";
     const vant = ord === sp.ord;
+    if (S.modus === "dag" && sp.nr === iDag() && !vant && sp.gjett.length < MAKS) R.dagligIGang({ tekst: `${sp.gjett.length}/${MAKS}` });
     // Decided and saved right away; the animation is only the show.
     if (vant || sp.gjett.length >= MAKS) {
       sp.ferdig = true;
@@ -568,7 +569,7 @@
       // A finished day that was never counted (should not happen, but never lose a result).
       if (S.dag && S.dag.ferdig && S.stat.sistSpilt !== S.dag.nr) registrerDag(S, S.dag);
       // Keep the front page's «✓ i dag» in step (also for days finished before this existed).
-      else if (S.dag && S.dag.ferdig && S.dag.nr === iDag()) R.dagligFerdig({ vunnet: S.dag.vunnet, rekke: S.dag.vunnet ? S.stat.rekke : 0 });
+      else if (S.dag && S.dag.ferdig && S.dag.nr === iDag()) R.dagligFerdig({ vunnet: S.dag.vunnet, rekke: S.dag.vunnet ? S.stat.rekke : 0, res: `${S.dag.vunnet ? S.dag.gjett.length : "X"}/${MAKS}` });
       const ov = S.ovStat && typeof S.ovStat === "object" ? S.ovStat : {};
       S.ovStat = { spilt: tall(ov.spilt), vunnet: tall(ov.vunnet) };
       delete S.kontrast; // an early colour option: the tiles now differ by shape as well
@@ -722,6 +723,13 @@
       },
     },
 
+    // rusj.no/ordugla/#dagens (the front page's «I dag»): today's board, or its result if finished.
+    vedHash(S, hash) {
+      if (hash !== "dagens") return null;
+      if (!S.dag || S.dag.nr !== iDag()) nyttDagspill(S);
+      S.modus = "dag";
+      return S.dag.ferdig ? "resultat" : "brett";
+    },
     handlinger: (H = {
       dag(el, e, S) {
         if (!S.dag || S.dag.nr !== iDag()) nyttDagspill(S);

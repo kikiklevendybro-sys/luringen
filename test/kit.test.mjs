@@ -216,3 +216,23 @@ test("podium: two places are centred without an empty third column; moods and th
   assert.ok(/figur-ramme lei/.test(R.ui.banner({ tittel: "Uff", stemning: "lei" })));
   assert.ok(!/jubel|lei/.test(R.ui.banner({ tittel: "Uavgjort", stemning: "" })));
 });
+
+// The daily report the front page's «I dag» strip reads (format: rusj/DAGLIG.md).
+test("daily results: result text, progress, the site log, idempotent", () => {
+  const { R, lager } = lastKit();
+  const les = () => JSON.parse(lager.get("rusj.daglig"));
+  const nr = R.dag().nr;
+  lager.set("rusj.daglig", JSON.stringify({ annet: { nr: nr - 1, vunnet: true, rekke: 3 }, _: { v: 1, dager: { [nr - 1]: ["annet"] }, ny: 1 } }));
+  R.dagligIGang({ tekst: "2/6" });
+  assert.deepEqual(les().testspill.pagar, { nr, tekst: "2/6" });
+  R.dagligFerdig({ vunnet: true, rekke: 4, res: "4/6 med en veldig lang tekst" });
+  const a = les();
+  assert.deepEqual({ ...a.testspill }, { nr, vunnet: true, rekke: 4, res: "4/6 med en vel" });
+  assert.deepEqual(a._.dager[nr], ["testspill"]);
+  assert.deepEqual(a._.dager[nr - 1], ["annet"], "other games and days are kept");
+  assert.equal(a._.ny, 1, "unknown fields are kept");
+  R.dagligFerdig({ vunnet: true, rekke: 4, res: "4/6 med en veldig lang tekst" });
+  assert.equal(JSON.stringify(les()), JSON.stringify(a), "a second call changes nothing");
+  R.dagligIGang({ tekst: "5/6" });
+  assert.equal(les().testspill.pagar, undefined, "progress after finishing today is ignored");
+});

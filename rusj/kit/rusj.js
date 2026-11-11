@@ -214,13 +214,48 @@
     return { tekst: `${a}-${to(m)}-${to(d)}`, nr: Math.floor(Date.UTC(a, m - 1, d) / 86400000) };
   };
 
-  // Daily puzzles call R.dagligFerdig({ vunnet, rekke }) when today's puzzle is done (won or not).
-  // The front page shows «✓ i dag» and the streak (🔥) on the game's card. This phone only.
+  // Daily puzzles report to the front page's «I dag» strip (format: rusj/DAGLIG.md). This phone only.
+  // R.dagligFerdig({ vunnet, rekke, res }) when today's puzzle is finished (won, lost or given up);
+  // R.dagligIGang({ tekst }) when it has progress but is not finished. Both are safe to call again
+  // with the same values (games call them on every load).
+  const dagligKort = (v) => (typeof v === "string" ? Array.from(v.trim()).slice(0, 14).join("") : "");
+  const dagligLes = () => {
+    const alle = R.les("daglig", {});
+    return alle && typeof alle === "object" && !Array.isArray(alle) ? alle : {};
+  };
   R.dagligFerdig = (info) => {
     try {
       const id = (APP && APP.id) || meta().id;
-      const alle = R.les("daglig", {}) || {};
-      alle[id] = { nr: R.dag().nr, vunnet: !!(info && info.vunnet), rekke: Math.max(0, Math.min(9999, Number(info && info.rekke) || 0)) };
+      const nr = R.dag().nr;
+      const alle = dagligLes();
+      const ny = { nr, vunnet: !!(info && info.vunnet), rekke: Math.max(0, Math.min(9999, Math.floor(Number(info && info.rekke) || 0))) };
+      const res = dagligKort(info && info.res);
+      if (res) ny.res = res;
+      const gml = alle[id] && typeof alle[id] === "object" ? alle[id] : {};
+      const rest = {};
+      for (const k of Object.keys(gml)) if (!["nr", "vunnet", "rekke", "res", "pagar"].includes(k)) rest[k] = gml[k]; // fields from later versions
+      alle[id] = Object.assign(rest, ny);
+      // The site log: which daily games were finished on which day (the 400 newest days).
+      const logg = alle._ && typeof alle._ === "object" ? alle._ : (alle._ = { v: 1, dager: {} });
+      if (!logg.dager || typeof logg.dager !== "object") logg.dager = {};
+      logg.v = 1;
+      const liste = Array.isArray(logg.dager[nr]) ? logg.dager[nr] : (logg.dager[nr] = []);
+      if (!liste.includes(id)) liste.push(id);
+      const dager = Object.keys(logg.dager).filter((k) => /^\d+$/.test(k)).sort((a, b) => a - b);
+      for (const k of dager.slice(0, Math.max(0, dager.length - 400))) delete logg.dager[k];
+      R.skriv("daglig", alle);
+    } catch (e) {
+      /* never break a game for this */
+    }
+  };
+  R.dagligIGang = (info) => {
+    try {
+      const id = (APP && APP.id) || meta().id;
+      const nr = R.dag().nr;
+      const alle = dagligLes();
+      const gml = alle[id] && typeof alle[id] === "object" ? alle[id] : {};
+      if (gml.nr === nr) return; // already finished today
+      alle[id] = Object.assign({}, gml, { pagar: { nr, tekst: dagligKort(info && info.tekst) } });
       R.skriv("daglig", alle);
     } catch (e) {
       /* never break a game for this */

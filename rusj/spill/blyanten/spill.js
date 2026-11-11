@@ -640,6 +640,14 @@
 
   function sjekkFerdig(S, sp) {
     const { tomme, feil } = telling(sp);
+    // Today's crossword in progress: the front page's «I dag» shows how many words are done.
+    if (sp === S.dag && sp.nr === iDag() && !sp.ferdig) {
+      const ferdigeOrd = sp.kryss.ord.filter((w, wi) => ordFylt(sp, wi)).length;
+      if (ferdigeOrd !== sp.sistMeldt) {
+        sp.sistMeldt = ferdigeOrd;
+        R.dagligIGang({ tekst: `${ferdigeOrd} av ${sp.kryss.ord.length} ord` });
+      }
+    }
     if (tomme) return;
     if (!feil) return fullfor(S, sp, false);
     if (sp.nestenVist) return melding(S, "Noe er fortsatt feil", "feil");
@@ -665,7 +673,7 @@
       if (!sp.hjelp && (st.bestTid == null || sp.tid < st.bestTid)) st.bestTid = sp.tid;
     }
     // The front page shows «✓ i dag» and the streak.
-    if (sp.nr === iDag()) R.dagligFerdig({ vunnet: !sp.gaOpp, rekke: st.rekke });
+    if (sp.nr === iDag()) R.dagligFerdig({ vunnet: !sp.gaOpp, rekke: st.rekke, res: sp.gaOpp ? "Gitt opp" : tidTekst(sp.tid) });
   }
   const rekkeNa = (S) => (S.stat.sistLost != null && S.stat.sistLost >= iDag() - 1 ? S.stat.rekke : 0);
 
@@ -885,7 +893,7 @@
       };
       S.friStat = { lost: heltall(S.friStat && S.friStat.lost) };
       // Keep the front page's «✓ i dag» in step (also for days finished before this existed).
-      if (S.dag && S.dag.ferdig && S.dag.nr === iDag()) R.dagligFerdig({ vunnet: !S.dag.gaOpp, rekke: S.dag.gaOpp ? 0 : S.stat.rekke });
+      if (S.dag && S.dag.ferdig && S.dag.nr === iDag()) R.dagligFerdig({ vunnet: !S.dag.gaOpp, rekke: S.dag.gaOpp ? 0 : S.stat.rekke, res: S.dag.gaOpp ? "Gitt opp" : tidTekst(S.dag.tid) });
       const sp = aktiv(S);
       if ((S.skjerm === "kryss" || S.skjerm === "resultat") && !sp) S.skjerm = "hjem";
       if (S.skjerm === "resultat" && sp && !sp.ferdig) S.skjerm = "kryss";
@@ -1091,6 +1099,17 @@
       },
     },
 
+    // rusj.no/blyanten/#dagens (the front page's «I dag»): today's crossword, or its result.
+    vedHash(S, hash) {
+      if (hash !== "dagens") return null;
+      if (!S.dag || S.dag.nr !== iDag()) {
+        const k = dagensKryss(iDag());
+        if (!k) return null;
+        S.dag = nyttSpill(k, { nr: iDag() });
+      }
+      S.modus = "dag";
+      return S.dag.ferdig ? "resultat" : "kryss";
+    },
     handlinger: (H = {
       dag(el, e, S) {
         if (!S.dag || S.dag.nr !== iDag()) {

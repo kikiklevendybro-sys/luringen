@@ -150,11 +150,11 @@ no `res`), the count, the week dots and a site streak built from the games' own 
 
 ## For the kit owner
 
-- [ ] `R.dagligFerdig` takes `res`, keeps unknown keys, logs the day in `_.dager` (≤ 400),
+- [x] `R.dagligFerdig` takes `res`, keeps unknown keys, logs the day in `_.dager` (≤ 400),
       updates `_.best`, and is idempotent.
-- [ ] `R.dagligIGang({ tekst })`.
-- [ ] Each daily game passes `res` and reports progress: Ordugla `"4/6"` and `"2/6"`, Blyanten
+- [x] `R.dagligIGang({ tekst })`.
+- [x] Each daily game passes `res` and reports progress: Ordugla `"4/6"` and `"2/6"`, Blyanten
       `"0:52"` and `"5 av 8 ord"`, Tallknuseren `"6:10"` and `"4:12"`.
-- [ ] `#dagens` opens today's puzzle (or its result) in every daily game.
+- [x] `#dagens` opens today's puzzle (or its result) in every daily game.
 - [ ] If the kit shows the site streak (result screens), it uses `rekke()` above with the same
       played days as «What a reader does».
