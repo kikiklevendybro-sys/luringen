@@ -1,9 +1,12 @@
 // End-to-end check of rusj.no in headless Google Chrome on a phone-sized screen.
 // For every game: loads the page, checks the basics (title, no errors, no sideways scrolling),
 // then plays it through with test/spill/<id>.e2e.mjs if that file exists. Saves screenshots.
-// Usage: node test/rusj-e2e.mjs [--web dist/web] [--bilder dir] [id ...]
+// Usage: node test/rusj-e2e.mjs [--web dist/web] [--bilder dir] [--a11y dir] [id ...]
 //   ids: game ids, "forside" (front page) or "luringen". Default: everything that was built.
-import { readdirSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+//   --a11y dir: also run the accessibility checker (test/a11y/) on every screenshot and write what
+//   it finds to dir/funn/<id>.json. Findings are data: they never fail the run.
+//   Then: node test/a11y/sammendrag.mjs dir
+import { readdirSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { tmpdir } from "node:os";
@@ -27,6 +30,15 @@ if (PROBE) args.splice(args.indexOf("--probe"), 1);
 // --bredde / --hoyde: phone size (default 390×844; try 320 568 for the smallest phones).
 const BREDDE = Number(flagg("--bredde")) || 390;
 const HOYDE = Number(flagg("--hoyde")) || 844;
+// --a11y dir: the accessibility checker rides along (loaded only then). One file per page, so two
+// runs at the same time can share a folder.
+const A11Y = flagg("--a11y");
+const A11Y_MAPPE = A11Y ? resolve(A11Y) : null;
+const lagA11y = A11Y_MAPPE ? (await import("./a11y/a11y.mjs")).lagA11y : null;
+if (A11Y_MAPPE) {
+  mkdirSync(join(A11Y_MAPPE, "funn"), { recursive: true });
+  writeFileSync(join(A11Y_MAPPE, "meta.json"), JSON.stringify({ dato: new Date().toISOString(), web: WEB, bredde: BREDDE, hoyde: HOYDE }, null, 1));
+}
 if (!existsSync(join(WEB, "index.html"))) {
   console.error(`Fant ikke ${WEB}/index.html – kjør node scripts/bygg.mjs først.`);
   process.exit(1);
@@ -46,8 +58,12 @@ function meta(id) {
 for (const id of valgt) {
   const mappe = join(BILDER, id);
   mkdirSync(mappe, { recursive: true });
-  const c = await startChrome({ bredde: BREDDE, hoyde: HOYDE });
+  const c0 = await startChrome({ bredde: BREDDE, hoyde: HOYDE });
+  // With --a11y the same helpers, with clicks and gestures observed.
+  const a11y = lagA11y ? await lagA11y(c0, { id, axMappe: join(A11Y_MAPPE, "ax", id) }) : null;
+  const c = a11y ? a11y.chrome : c0;
   const feil = [];
+  const a11yNotater = []; // what stopped an a11y-only walk: written with the findings, never a failure
   let nr = 0;
   const t = {
     ...c,
@@ -89,6 +105,7 @@ for (const id of valgt) {
       const tomme = await c.js(`Array.from(document.querySelectorAll("button, a")).filter(b => b.offsetParent && !b.innerText.trim() && !b.getAttribute("aria-label") && !b.querySelector("svg, img")).length`);
       if (tomme) feil.push(`${tomme} knapp(er) uten tekst eller aria-label på «${navn}»`);
       await c.skjermbilde(join(mappe, `${String(++nr).padStart(2, "0")}-${navn}.png`), { helside });
+      if (a11y) await a11y.sjekk(navn); // findings are collected, never a test failure
     },
     tilstand: () => c.js(`JSON.parse(localStorage.getItem("rusj.${id}.v1") || "null")`),
     // Is the element clear of the action area (the dock), with the page scrolled to the top?
@@ -538,16 +555,31 @@ for (const id of valgt) {
       t.sjekk(await c.finnes('a[href="/"]'), "Luringen mangler lenke tilbake til rusj.no");
       await c.klikk('[data-h="nytt"]');
       await t.bilde("luringen-oppsett");
+      // With --a11y: the rest of Luringen's screens (its own play-through is test/e2e.mjs). What
+      // goes wrong on this extra walk is a note in the findings, never a failure of the run.
+      if (a11y) {
+        const fra = feil.length;
+        const logget = c.feil.length;
+        try {
+          await (await import("./a11y/luringen.a11y.mjs")).default(t);
+        } catch (e) {
+          feil.push(`a11y-runden stoppet: ${e.message}`);
+        }
+        a11yNotater.push(...feil.splice(fra), ...c.feil.splice(logget));
+      }
     } else {
       const m = meta(id);
       await t.start();
       if (m.alder18) {
         // Drinking games: the kit's 18+ gate comes first; "Nei" leads away, "Ja" opens the game.
-        t.sjekk(/18/.test(await c.tekst("#skjerm h1")), "18+-porten vises ikke først i et drikkespill");
+        // The gate's heading is the game's name (with «18+»), and it asks as the front page does.
+        const port = await c.tekst("#skjerm h1");
+        t.sjekk(/18/.test(port) && port.includes(m.navn), `18+-porten vises ikke først i et drikkespill, eller har ikke spillets navn som overskrift («${port.replace(/\s+/g, " ")}»)`);
+        t.sjekk(/Er du 18 år eller eldre\?/.test(await c.tekst("#skjerm h2")), "18+-porten spør ikke «Er du 18 år eller eldre?»");
         t.sjekk(await c.finnes('[data-h="alder-ja"]') && (await c.finnes('[data-h="alder-nei"]')), "18+-porten mangler Ja/Nei");
         await t.bilde("alder");
         await c.klikk('[data-h="alder-ja"]');
-        await c.vent("document.querySelector('#skjerm h1') && !/18\\?/.test(document.querySelector('#skjerm h1').textContent)");
+        await c.vent("document.querySelector('#skjerm h1') && !document.querySelector('[data-h=\"alder-ja\"]')");
       }
       const h1 = await c.tekst("#skjerm h1");
       t.sjekk(h1.trim() === m.navn, `Hjem-skjermen har overskriften «${h1}», ventet «${m.navn}»`);
@@ -588,13 +620,21 @@ for (const id of valgt) {
   }
   await c.lukk();
   resultat.push({ id, feil, bilder: nr });
-  console.log(`${feil.length ? "✗" : "✓"} ${id}${feil.length ? "" : ` (${nr} skjermbilder)`}`);
+  let a11yTekst = "";
+  if (a11y) {
+    const funnet = a11y.resultat();
+    writeFileSync(join(A11Y_MAPPE, "funn", `${id}.json`), JSON.stringify({ feil: [...feil, ...a11yNotater], ...funnet }, null, 1));
+    a11yTekst = ` · a11y: ${funnet.skjermer.reduce((s, sk) => s + sk.funn.length, 0)} funn på ${funnet.skjermer.length} skjermer`;
+  }
+  console.log(`${feil.length ? "✗" : "✓"} ${id}${feil.length ? "" : ` (${nr} skjermbilder)`}${a11yTekst}`);
   for (const f of feil) console.log(`    – ${f}`);
+  for (const f of a11yNotater) console.log(`    · ${f}`);
 }
 
 tjener.lukk();
 const antallFeil = resultat.reduce((s, r) => s + r.feil.length, 0);
 console.log(`\nSkjermbilder: ${BILDER}`);
+if (A11Y_MAPPE) console.log(`a11y-funn: ${A11Y_MAPPE} (node test/a11y/sammendrag.mjs ${A11Y} gir rangert liste og nøkkeltall)`);
 if (antallFeil) {
   console.log(`${antallFeil} feil i ${resultat.filter((r) => r.feil.length).length} av ${resultat.length}`);
   process.exit(1);
