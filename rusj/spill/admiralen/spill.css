@@ -645,3 +645,133 @@ span.ad-rute {
   }
 
 }
+
+/* ---------- A phone on its side (the kit puts the button in a column on the right) ---------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Placing the fleet: the board as tall as the screen on the left, the ships and buttons beside it. */
+  html[data-liggende="side"] .skjerm-plasser {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-auto-rows: min-content;
+    align-content: start;
+    gap: 8px 14px;
+  }
+
+  html[data-liggende="side"] .skjerm-plasser > :not(.dokk) {
+    grid-column: 2;
+  }
+
+  html[data-liggende="side"] .skjerm-plasser > h1 {
+    margin: 0;
+    font-size: 1.3rem;
+  }
+
+  html[data-liggende="side"] .skjerm-plasser > .ad-plassering {
+    grid-column: 1;
+    grid-row: 1 / span 4;
+    align-self: start; /* (stretched to the rows beside it, its own rows would grow too) */
+    width: calc(100dvh - 72px);
+    margin: 0;
+  }
+
+  html[data-liggende="side"] .skjerm-plasser .ad-skipliste {
+    display: grid;
+    gap: 4px;
+  }
+
+  html[data-liggende="side"] .skjerm-plasser .ad-skipliste button {
+    justify-content: space-between;
+    width: 100%;
+    min-height: 36px;
+    padding: 4px 12px;
+    font-size: 0.82rem;
+  }
+
+  html[data-liggende="side"] .skjerm-plasser .knapprad {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  html[data-liggende="side"] .skjerm-plasser .knapprad .knapp-2 {
+    min-height: 44px;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  /* The battle: the enemy waters as tall as the screen on the left; your own fleet (small) and the
+     enemy ships on the right. While the computer fires, your own fleet takes the big place. */
+  html[data-liggende="side"] .skjerm-kamp {
+    gap: 8px;
+  }
+
+  html[data-liggende="side"] .ad-kamp {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "mal egen"
+      "mal fiende";
+    gap: 8px 14px;
+  }
+
+  html[data-liggende="side"] .ad-mal-boks {
+    grid-area: mal;
+    grid-column: auto;
+  }
+
+  html[data-liggende="side"] .ad-egen {
+    grid-area: egen;
+  }
+
+  html[data-liggende="side"] .ad-fiende {
+    grid-area: fiende;
+  }
+
+  html[data-liggende="side"] .ad-mal-boks .ad-brett {
+    width: calc(100dvh - 108px);
+    margin: 0;
+  }
+
+  /* (it has its label above it) */
+  html[data-liggende="side"] .ad-kamp.viser-egen .ad-egen .ad-brett {
+    width: calc(100dvh - 134px);
+    margin: 0;
+  }
+
+  html[data-liggende="side"] .ad-kamp:not(.viser-egen) .ad-egen .ad-brett {
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    gap: 1px;
+    width: min(100%, 132px);
+    margin: 0;
+    padding: 5px;
+    border-radius: var(--r-liten);
+  }
+
+  html[data-liggende="side"] .ad-kamp:not(.viser-egen) .ad-egen .ad-merke {
+    display: none;
+  }
+
+  html[data-liggende="side"] .ad-kamp:not(.viser-egen) .ad-egen .ad-rute {
+    border-radius: 2px;
+  }
+
+  html[data-liggende="side"] .ad-kamp:not(.viser-egen) .ad-egen .ad-rute.skip::after {
+    display: none;
+  }
+
+  html[data-liggende="side"] .ad-kamp.viser-egen .ad-mal-boks {
+    display: none;
+  }
+
+  html[data-liggende="side"] .ad-kamp.viser-egen .ad-egen {
+    grid-area: mal;
+  }
+
+  html[data-liggende="side"] .ad-kamp .etikett {
+    margin: 0 0 4px;
+  }
+
+  html[data-liggende="side"] .ad-fiende .ad-skipliste.liten li {
+    padding: 2px 10px;
+    font-size: 0.76rem;
+  }
+}

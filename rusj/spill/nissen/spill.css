@@ -799,3 +799,88 @@
     padding-inline: 9px;
   }
 }
+
+/* ---------- A phone on its side ---------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-vis,
+  .skjerm-gjest {
+    gap: 10px;
+  }
+
+  /* Who gets the phone, and the guest's greeting: one low line, so the card gets the height. */
+  .ni-mottaker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0 14px;
+  }
+
+  .ni-mottaker .spillernavn,
+  .ni-hei,
+  .ni-hei.ni-navn-l,
+  .ni-hei.ni-navn-xl {
+    font-size: 1.6rem;
+  }
+
+  .ni-mottaker .avatar.stor,
+  .ni-hei .avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .skjerm-vis .fremdrift {
+    padding-block: 0;
+  }
+
+  /* The card takes the height that is left (the kit's rule) instead of the fixed one above. */
+  .skjerm-vis .mappe,
+  .skjerm-gjest .mappe {
+    height: auto;
+    min-height: 176px;
+  }
+
+  .ark .mappe {
+    height: clamp(160px, calc(100dvh - 200px), 280px);
+    min-height: 0;
+  }
+
+  /* The back of the card is wide and low here: the name on the left, budget and day on the
+     right, the «hysj» under both. The present on top would take a whole line: left out. */
+  .mappe-bakside.ni-kort {
+    padding: 10px 14px;
+  }
+
+  .ni-kort-gave {
+    display: none;
+  }
+
+  .ni-kort-plate {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 16px;
+    padding: 10px 14px;
+  }
+
+  .ni-kort-plate > .kort-etikett,
+  .ni-kort-plate > .kort-ord {
+    grid-column: 1;
+  }
+
+  .ni-kort .kort-ord {
+    font-size: clamp(1.3rem, 8vh, 1.9rem);
+  }
+
+  .ni-kort-info {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  .ni-kort .kort-fot {
+    grid-column: 1 / -1;
+    font-size: 0.8rem;
+  }
+}

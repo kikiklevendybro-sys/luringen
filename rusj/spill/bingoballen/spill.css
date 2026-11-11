@@ -697,3 +697,66 @@ span.bb-rute {
     gap: 2px;
   }
 }
+
+/* ---------- A phone on its side: the card fits the height beside BINGO! ---------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  html[data-liggende="side"] .skjerm-brett .bb-nr {
+    font-size: 1.7rem;
+  }
+
+  html[data-liggende="side"] .skjerm-brett .bb-type {
+    padding: 4px 10px;
+  }
+
+  /* The card takes the height under its number; the cells give up being square instead. */
+  html[data-liggende="side"] .skjerm-brett .bb-brett {
+    height: calc(100dvh - 116px);
+    min-height: 220px;
+    gap: 4px;
+    padding: 6px;
+    box-shadow: 0 5px 0 var(--papir-2), 0 12px 24px var(--skygge);
+  }
+
+  html[data-liggende="side"] .skjerm-brett .bb-brett.fem {
+    grid-template-rows: 22px repeat(5, minmax(0, 1fr));
+  }
+
+  html[data-liggende="side"] .skjerm-brett .bb-brett.fire {
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+  }
+
+  html[data-liggende="side"] .skjerm-brett .bb-hode {
+    height: 22px;
+    font-size: 1rem;
+  }
+
+  html[data-liggende="side"] .skjerm-brett .bb-rute {
+    aspect-ratio: auto;
+    min-height: 0;
+    font-size: 1.3rem;
+  }
+
+  html[data-liggende="side"] .skjerm-brett .bb-rute.fri {
+    font-size: 1.2rem;
+  }
+
+  /* Party moments: the emoji beside the text, so two lines of text still fit a low cell. */
+  html[data-liggende="side"] .skjerm-brett .bb-rute.fest {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 2px 4px;
+    font-size: 0.7rem;
+    line-height: 1.1;
+  }
+
+  html[data-liggende="side"] .skjerm-brett .bb-ikon {
+    flex: none;
+    font-size: 1rem;
+  }
+
+  html[data-liggende="side"] .skjerm-brett .bb-brett-hjelp {
+    display: none;
+  }
+}

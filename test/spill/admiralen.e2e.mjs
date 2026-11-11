@@ -14,7 +14,12 @@ const overDokken = (t, sel) =>
     window.scrollTo(0, 0);
     const el = document.querySelector(${JSON.stringify(sel)});
     const dokk = document.querySelector("#skjerm .dokk");
-    return !el || !dokk || el.getBoundingClientRect().bottom <= dokk.getBoundingClientRect().top + 1;
+    if (!el || !dokk) return true;
+    // Like t.friForDokk: on a landscape phone the dock may stand beside the content instead of under it
+    const a = el.getBoundingClientRect();
+    const d = dokk.getBoundingClientRect();
+    if (a.right <= d.left + 1 || a.left >= d.right - 1) return a.bottom <= window.innerHeight + 1;
+    return a.bottom <= d.top + 1;
   })()`);
 
 async function ja(t) {
