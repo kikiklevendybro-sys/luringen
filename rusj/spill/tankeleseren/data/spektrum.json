@@ -328,6 +328,46 @@
         ["Kan ikke fly", "Flyr høyt"],
         ["Tidlig om morgenen", "Sent om kvelden"]
       ]
+    },
+    {
+      "id": "jul",
+      "navn": "Jul",
+      "ikon": "🎄",
+      "tekst": "Advent, julebord og romjul",
+      "par": [
+        ["Dårlig julegave", "Perfekt julegave"],
+        ["Hører ikke hjemme på julebordet", "Må med på julebordet"],
+        ["Julesang som tømmer rommet", "Julesang alle synger"],
+        ["Lett å pakke inn", "Umulig å pakke inn"],
+        ["Gave du gjetter gjennom papiret", "Gave som er umulig å gjette"],
+        ["Står på barnas ønskeliste", "Står på de voksnes ønskeliste"],
+        ["Lett å finne gave til", "Umulig å finne gave til"],
+        ["Gave ingen stjeler i pakkeleken", "Gave alle slåss om i pakkeleken"],
+        ["Skuffelse i kalenderluka", "Jubel i kalenderluka"],
+        ["Julemat for de modige", "Julemat alle liker"],
+        ["Ligger igjen i godteskåla", "Forsvinner først fra godteskåla"],
+        ["Småkake man kan hoppe over", "Småkake det ikke blir jul uten"],
+        ["Ødelegger julegrøten", "Løfter julegrøten"],
+        ["Lukter ikke jul", "Lukter jul lang vei"],
+        ["Altfor tidlig for julemusikk", "På høy tid med julemusikk"],
+        ["Julefilm man sovner av", "Julefilm man må se hvert år"],
+        ["Diskré julepynt", "Julepynt som synes fra månen"],
+        ["Rart å henge på juletreet", "Må henge på juletreet"],
+        ["Havner på nissens slemme liste", "Havner på nissens snille liste"],
+        ["Grønn jul", "Hvit jul"],
+        ["Typisk førjulsstress", "Ren julefred"],
+        ["Lat romjul", "Sprek romjul"],
+        ["Glemt innslag på julebordet", "Høydepunktet på julebordet"],
+        ["For lite pyntet til julebordet", "For mye pyntet til julebordet"],
+        ["Skaper krangel i jula", "Skaper fred i jula"],
+        ["Første tegn på jul", "Siste rest av jula"],
+        ["Kleint på julekortet", "Fint på julekortet"],
+        ["Forsett som ryker 2. januar", "Forsett som faktisk holder"],
+        ["Skummel juleskikkelse", "Koselig juleskikkelse"],
+        ["Kan vente til romjula", "Må skje på selve julaften"],
+        ["Dreper julestemningen", "Gir julestemning på sekunder"],
+        ["Juletradisjon vi kan droppe", "Juletradisjon som er hellig"]
+      ]
     }
   ]
 }

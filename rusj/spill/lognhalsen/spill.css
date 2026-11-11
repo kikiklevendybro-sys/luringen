@@ -1,5 +1,6 @@
-/* Løgnhalsen: theme card, the three numbers / claims, the «LØGN!» reveal, the typing screen and
-   the growing nose. Everything new is prefixed lh-. */
+/* Løgnhalsen: theme card with the coach line, the three numbers / claims, the «LØGN!» reveal,
+   «who was fooled?», the typing screen, the growing nose, the story line, the awards and the
+   challenge screens. Everything is prefixed lh-. */
 
 /* ---------- Who is telling ---------- */
 
@@ -62,6 +63,35 @@
 .lh-temakort .storkort-fot b {
   color: var(--blekk);
   font-weight: 800;
+}
+
+/* The coach line («Tips: …») fades in after about three seconds. Its room is always there, so
+   the card does not move when it comes. */
+.lh-tips {
+  display: block;
+  min-height: 2.6em;
+  margin-top: 10px;
+  color: var(--blekk-2);
+  font: 600 0.88rem/1.3 var(--font-tekst);
+  text-wrap: balance;
+  animation: lh-tips-inn 0.7s ease-out both;
+}
+
+.lh-tips b {
+  color: var(--blekk);
+  font-weight: 800;
+}
+
+/* (already shown when the screen is redrawn, e.g. after «Nytt tema») */
+.lh-tips.vist {
+  animation: none;
+}
+
+@keyframes lh-tips-inn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 
 .lh-oppskrift {
@@ -146,8 +176,12 @@
   background: var(--papir);
   box-shadow: 0 7px 0 var(--papir-2), 0 18px 30px var(--skygge);
   color: var(--blekk);
-  cursor: pointer;
   transition: transform 0.08s, box-shadow 0.08s, opacity 0.3s;
+}
+
+/* Only the buttons are controls; the revealed numbers are not. */
+button.lh-tall {
+  cursor: pointer;
 }
 
 button.lh-tall:active {
@@ -254,8 +288,10 @@ button.lh-tall:active {
   }
 }
 
-.lh-pastand p {
+.lh-pastand p,
+.lh-ptekst {
   min-width: 0;
+  overflow: hidden; /* typed text (also from a link): nothing may spill over the cards around it */
   font: 800 clamp(1.08rem, 4.8vw, 1.28rem) / 1.25 var(--font-display);
   overflow-wrap: anywhere;
 }
@@ -320,6 +356,17 @@ button.lh-tall:active {
   text-align: left;
 }
 
+/* «Alle» / «Ingen» above the names (or above the stepper in «Stor gjeng») */
+.lh-hurtig .brikke {
+  min-width: 76px;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.lh-hvem .bryter {
+  margin-top: 4px;
+}
+
 /* ---------- Typing in secret ---------- */
 
 .lh-skriv-topp {
@@ -349,6 +396,37 @@ button.lh-tall:active {
 .lh-merke {
   color: var(--lf);
   font: 900 0.95rem/1.2 var(--font-display);
+}
+
+.lh-felt.navn {
+  --lf: var(--tekst-3);
+}
+
+.lh-merke small {
+  color: var(--tekst-3);
+  font-size: 0.85em;
+  font-weight: 700;
+}
+
+.lh-felt input {
+  width: 100%;
+  min-height: 54px;
+  padding: 10px 14px;
+  border: 3px solid color-mix(in srgb, var(--lf) 45%, var(--strek));
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 700 1.08rem/1.3 var(--font-display);
+}
+
+.lh-felt input::placeholder {
+  color: var(--tekst-3);
+  opacity: 0.8;
+}
+
+.lh-felt input:focus {
+  border-color: var(--tekst);
+  outline: none;
 }
 
 .lh-felt textarea {
@@ -397,6 +475,40 @@ button.lh-tall:active {
 
 .lh-resultat .ingress {
   max-width: 34ch;
+}
+
+/* «🎤 Kari: fortell historien bak nr. 2!» */
+.lh-historie {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 12px 12px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--aksent) 14%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 60%, var(--strek));
+  font: 700 1.05rem/1.3 var(--font-display);
+  text-wrap: balance;
+}
+
+.lh-historie > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.lh-historie-ikon {
+  flex: none;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.lh-historie b {
+  font-weight: 900;
+}
+
+.lh-historie em {
+  color: var(--aksent);
+  font-style: normal;
 }
 
 /* The nose grows with how many were fooled */
@@ -469,6 +581,24 @@ button.lh-tall:active {
   box-shadow: 0 6px 0 var(--papir-2);
   color: var(--blekk);
   animation: lh-inn 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+.lh-pris {
+  position: relative;
+}
+
+.lh-rekord {
+  position: absolute;
+  top: -10px;
+  right: 14px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--lampe);
+  box-shadow: 0 0 0 2.5px var(--blekk);
+  color: var(--blekk);
+  font: 900 0.78rem/1.2 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .lh-pris:nth-child(2) {
@@ -545,9 +675,10 @@ button.lh-tall:active {
 /* ---------- Theme on the typing screen and in the setup ---------- */
 
 .lh-temaboks {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: 0 12px;
   padding: 14px 14px 14px 18px;
   border-radius: var(--r-mid);
   background: var(--papir);
@@ -557,9 +688,12 @@ button.lh-tall:active {
 
 .lh-temaboks-tekst {
   display: grid;
-  flex: 1;
   gap: 4px;
   min-width: 0;
+}
+
+.lh-temaboks .lh-tips {
+  grid-column: 1 / -1;
 }
 
 .lh-temaboks .etikett {
@@ -598,6 +732,95 @@ button.lh-tall:active {
   font: 900 0.95rem/1 var(--font-display);
 }
 
+/* ---------- «Lag en utfordring»: the link is made ---------- */
+
+.lh-melding {
+  gap: 6px;
+  min-width: 0;
+}
+
+.lh-melding-tekst {
+  font: 800 1.15rem/1.3 var(--font-display);
+  text-wrap: balance;
+}
+
+/* The address is long: one line, cut with … (it is copied and shared whole) */
+.lh-lenke {
+  overflow: hidden;
+  color: var(--blekk-2);
+  font: 600 0.85rem/1.4 var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- A challenge from a friend ---------- */
+
+.lh-fra .avatar.gigant {
+  width: 104px;
+  height: 104px;
+  font-size: 3.3rem;
+}
+
+/* The question is not a result yet: plain heading until the answer is given */
+.lh-fra:not(.svart) h1 {
+  color: var(--tekst);
+}
+
+.lh-fra .ingress b {
+  color: var(--tekst);
+  overflow-wrap: anywhere;
+}
+
+.lh-valg li {
+  display: grid;
+  min-width: 0;
+}
+
+.lh-valg .lh-pastand {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.lh-valg .lh-pastand:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--papir-2), 0 8px 14px var(--skygge);
+}
+
+.lh-valg li:nth-child(2) .lh-pastand {
+  animation-delay: 0.08s;
+}
+
+.lh-valg li:nth-child(3) .lh-pastand {
+  animation-delay: 0.16s;
+}
+
+/* The card the receiver tapped */
+.lh-mitt {
+  position: absolute;
+  top: -9px;
+  left: 14px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--papir);
+  box-shadow: 0 0 0 2.5px var(--blekk);
+  color: var(--blekk);
+  font: 900 0.78rem/1.2 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lh-pastand.sant.valgt {
+  margin-top: 6px;
+}
+
+.lh-skrevet {
+  overflow-wrap: anywhere;
+}
+
 /* ---------- Short screens (≤ 700 px high, e.g. 375 × 560 or 320 × 568) ---------- */
 
 @media (max-height: 700px) {
@@ -614,8 +837,51 @@ button.lh-tall:active {
     min-height: 150px;
   }
 
+  /* The turn screen: the theme card also holds the coach line, so everything around it is a
+     little tighter — «Nytt tema» and «Avslutt» must stay clear of the dock at 375 × 560. */
+  .skjerm-tur {
+    gap: 10px;
+  }
+
+  .skjerm-tur .lh-teller .avatar.stor {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+
+  .skjerm-tur .lh-teller h1 {
+    font-size: clamp(1.5rem, 6.6vw, 1.9rem);
+  }
+
+  .lh-temakort .storkort {
+    gap: 8px;
+    padding: 16px 20px 12px;
+  }
+
+  .lh-temakort .storkort-tekst {
+    font-size: clamp(1.45rem, 6.8vw, 1.8rem);
+  }
+
+  .lh-temakort .lh-langt .storkort-tekst {
+    font-size: clamp(1.15rem, 5.4vw, 1.3rem);
+  }
+
+  .lh-tips {
+    margin-top: 6px;
+  }
+
+  .skjerm-tur .lenkerad .lenke {
+    min-height: 38px;
+    padding-block: 6px;
+  }
+
   .lh-figur {
     min-height: 0;
+  }
+
+  /* «Klar til å sendes!»: three things in the dock, so no mascot above the message */
+  .skjerm-sendt .banner .figur-ramme {
+    display: none;
   }
 
   .lh-figur .figur-ramme {
@@ -633,5 +899,41 @@ button.lh-tall:active {
 @media (max-width: 360px) {
   #lh-pek {
     font-size: 1.14rem;
+  }
+}
+
+/* ---------- Landscape phones (844 × 390): the kit lays the screens out; these fit them ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* The revealed numbers become a low row, so the question under them («Hvem pekte på …?»,
+     «Hvor mange ble lurt?») and its controls are in view beside the dock. */
+  html[data-liggende="side"] .lh-tall-rad.avslort .lh-tall {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    height: 88px;
+    padding: 0;
+    aspect-ratio: auto;
+  }
+
+  html[data-liggende="side"] .lh-tall-rad.avslort .lh-siffer {
+    font-size: 3.2rem;
+  }
+
+  html[data-liggende="side"] .lh-tall-rad.avslort .lh-stempel,
+  html[data-liggende="side"] .lh-tall-rad.avslort .lh-sant {
+    position: static;
+  }
+
+  /* Home screen with a game in progress: three buttons fill the column, and the rules are
+     behind «?» in the top bar. */
+  html[data-liggende="hjem"] .hjem-knapper > .knapp-2 + .knapp-2 + .lenke {
+    display: none;
+  }
+
+  /* Four facts would need two rows under the mascot: «0 reklame» gives way to the record. */
+  html[data-liggende="hjem"] .merker li:nth-child(4) {
+    display: none;
   }
 }

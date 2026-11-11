@@ -4,7 +4,8 @@
    - one phone passed around the table (hold-to-reveal cards), or
    - each on their own phone: the host shows a join code + QR; every phone picks its seat and
      computes the same round from the code alone (seed, player count, spy count and packs,
-     salted with a hash of the place list). Nothing is sent anywhere. */
+     salted with a hash of the place list). Nothing is sent anywhere.
+   A game is 3 or 5 rounds (or «Fri»: until someone ends it), then «Kåringen». */
 (function () {
   "use strict";
 
@@ -12,30 +13,66 @@
   const D = window.RUSJ_DATA;
   const esc = R.esc;
 
+  // The packs in data order. New packs are added at the END of steder.json, so every place keeps
+  // its number (saved games and the deck of played places store numbers).
   const PAKKER = D.steder.pakker;
   const STEDER = [];
   PAKKER.forEach((p) => p.steder.forEach((s) => STEDER.push({ p: p.id, navn: s.navn, ikon: s.ikon, roller: s.roller })));
-  const SPORSMAL = D.sporsmal;
   const pakke = (id) => PAKKER.find((p) => p.id === id);
+  // A place's name without the soft hyphens (they only say where a long name may break).
+  const rentNavn = (i) => STEDER[i].navn.replace(/\u00ad/g, "");
+
+  // Question ideas: about the place, about the roles, and easy ones for children.
+  const IDEGRUPPER = [
+    ["sted", "Om stedet"],
+    ["rolle", "Om rollen din"],
+    ["lett", "Lette spørsmål"],
+  ];
+  const SPORSMAL = IDEGRUPPER.flatMap(([id]) => D.sporsmal[id]);
+  const sporsmalstokk = R.kortstokk("sporsmal", SPORSMAL.length);
+  const nesteSporsmal = () => Math.max(0, sporsmalstokk.neste());
 
   const HOLD = "Hold fingeren på kortet for å se";
   const MIN = 3;
   const MAKS = 12;
   const TIDER = [5, 8, 10];
+  const RUNDER = [3, 5, 0]; // 0 = «Fri»: the game goes on until someone ends it
   const STANDARD_PAKKER = ["hverdag", "norge"];
   const maksSpioner = (n) => (n >= 7 ? 2 : 1);
+  // Minutes that suit the group — used until the players choose the minutes themselves.
+  const tidFor = (n) => (n <= 5 ? 5 : n <= 8 ? 8 : 10);
   const range = (n) => Array.from({ length: n }, (_, i) => i);
-  const stokk = R.kortstokk("steder", STEDER.length);
+  const nuller = (n) => range(n).map(() => 0);
+  const heltall = (v, min, max) => Number.isInteger(v) && v >= min && v <= max;
+  const tallrekke = (l, n) => Array.isArray(l) && l.length === n && l.every((v) => Number.isFinite(v));
+  const objekt = (x) => (x && typeof x === "object" && !Array.isArray(x) ? x : {});
   let H; // the actions, so one action can reuse another
 
+  // ---------- The «Jul» pack: in season from 1 November to 6 January (Oslo time) ----------
+
+  // The year the season started (2026 also in January 2027), or 0 outside the season.
+  function julesesong() {
+    const [aar, mnd, dag] = R.dag().tekst.split("-").map(Number);
+    if (mnd >= 11) return aar;
+    return mnd === 1 && dag <= 6 ? aar - 1 : 0;
+  }
+  // In season «Jul» is the first pack on the setup screen and in «Stedspasset».
+  const pakkerekke = () => (julesesong() && pakke("jul") ? [pakke("jul"), ...PAKKER.filter((p) => p.id !== "jul")] : PAKKER);
+  const standardPakker = () => (julesesong() && pakke("jul") ? ["jul", STANDARD_PAKKER[0]] : STANDARD_PAKKER.slice());
+
   // ---------- Join codes ----------
-  // players-3 (4 bits) | spies-1 (1) | one bit per pack | seed (24), plus two check symbols → 9
-  // characters. The check symbols catch almost every typo, and they are salted with a hash of the
-  // place list, so a phone with other content rejects the code instead of showing another place.
+  // players-3 (4 bits) | spies-1 (1) | one bit per pack | seed (24), plus two check symbols.
+  // The check symbols catch almost every typo, and they are salted with a hash of the place
+  // list, so a phone with other content rejects the code instead of showing another place.
   const BREDDER = [4, 1, PAKKER.length, 24];
   const SJEKK = 2;
   const SALT = R.hash(JSON.stringify(PAKKER));
   const KODELENGDE = R.kode.lengde(BREDDER, SJEKK);
+  // The place list as it was before the «Jul» pack came. «Julebordet» (then number 21) moved into
+  // the new pack and «Søndagsturen» took its number; every other place is where it was, so a
+  // one-phone game that was in progress carries on.
+  const SALT_FOR_JUL = 2161112527;
+  const FLYTTET = { nr: 21, navn: "Julebordet" };
 
   function lagKode(o) {
     const maske = PAKKER.reduce((m, p, i) => (o.pakker.includes(p.id) ? m + 2 ** (PAKKER.length - 1 - i) : m), 0);
@@ -58,9 +95,34 @@
   function kodeFeil(tekst) {
     const ren = R.kode.normaliser(tekst);
     if (!ren) return "Skriv inn koden først.";
+    if (ren.length > KODELENGDE * 2) return `Det der er ikke en spillkode. Koden har ${KODELENGDE} tegn.`;
     if (ren.length !== KODELENGDE) return `Koden har ${KODELENGDE} tegn – du har skrevet ${ren.length}.`;
     return "Koden stemmer ikke. Sjekk skrivefeil – og at alle har lastet inn siden på nytt.";
   }
+
+  // Only what a code can be made of is kept as the draft in the code field (a join link may
+  // carry anything after the #).
+  const kodeUtkast = (tekst) => R.kode.formater(R.kode.normaliser(String(tekst == null ? "" : tekst).slice(0, 200)).slice(0, KODELENGDE));
+
+  // ---------- Seats ----------
+  // A seat is locked to this phone once its card has been seen, per code — also after leaving and
+  // joining again. The host's own seat is locked the same way (see hemmelig.innhold).
+
+  const laastPlass = (S, kode) => (S.laste && Number.isInteger(S.laste[kode]) ? S.laste[kode] : null);
+
+  function laas(S, kode, plass) {
+    const l = (S.laste = objekt(S.laste));
+    if (l[kode] === plass) return;
+    delete l[kode];
+    l[kode] = plass;
+    // Old codes are games long finished: keep the list short.
+    const koder = Object.keys(l);
+    for (const k of koder.slice(0, Math.max(0, koder.length - 40))) delete l[k];
+  }
+
+  // Does this phone host the game with this code? Then it has a seat there already, and joining
+  // as a guest would give the host a second card to look at.
+  const erVertFor = (S, kode) => !!(S.spill && S.spill.modus === "hver" && S.spill.kode === kode);
 
   // ---------- Rounds ----------
 
@@ -70,11 +132,12 @@
     return STEDER.map((s, i) => i).filter((i) => valgt.has(STEDER[i].p));
   }
 
-  const laastPlass = (S, kode) => (S.laste && Number.isInteger(S.laste[kode]) ? S.laste[kode] : null);
+  // The order of the places for a seed: the same on every phone.
+  const stedrekke = (pool, fro) => R.stokk(pool, R.rng(R.hash("steder:" + fro)));
 
   // Everything about one round. Same settings + seed + round number → the same round on every phone.
   function lagRunde(o, runde) {
-    const rekke = R.stokk(utvalg(o.pakker), R.rng(R.hash("steder:" + o.fro)));
+    const rekke = stedrekke(utvalg(o.pakker), o.fro);
     const t = R.rng(R.hash("runde:" + o.fro + ":" + runde));
     const spioner = R.stokk(range(o.antall), t)
       .slice(0, o.spioner)
@@ -112,10 +175,113 @@
       html: `
         <span class="kort-etikett">📍 Stedet er</span>
         <span class="sp-kort-ikon" aria-hidden="true">${esc(s.ikon)}</span>
-        <span class="kort-ord ${R.lengdeKlasse(s.navn.replace(/\u00ad/g, ""))}">${esc(s.navn)}</span>
+        <span class="kort-ord ${R.lengdeKlasse(rentNavn(r.sted))}">${esc(s.navn)}</span>
         <span class="sp-rolle"><small>Du er</small>${esc(rolleFor(r, plass))}</span>
         <span class="kort-fot">Ikke si stedet høyt!</span>`,
     };
+  }
+
+  // ---------- The deck of places (this phone) ----------
+  // The places played since the deck last started over, oldest first. The game keeps the list
+  // itself: R.kortstokk can deal a card, but not mark one that a join code picked. (Same key and
+  // format as the R.kortstokk("steder") this game used before, so a phone's deck carries on.)
+
+  const STOKK = "spionen.brukt.steder";
+
+  function lesStokk() {
+    const l = R.les(STOKK, []);
+    return Array.isArray(l) ? l.filter((i, n) => heltall(i, 0, STEDER.length - 1) && l.indexOf(i) === n) : [];
+  }
+
+  function merkSpilt(i) {
+    const l = lesStokk().filter((x) => x !== i);
+    l.push(i);
+    R.skriv(STOKK, l);
+  }
+
+  const ledige = (pool) => {
+    const brukt = new Set(lesStokk());
+    return pool.filter((i) => !brukt.has(i));
+  };
+
+  // The deck for these places starts over. The `behold` most recently played of them stay out, so
+  // a place never comes straight back.
+  function nyStokk(pool, behold) {
+    const med = new Set(pool);
+    const brukt = lesStokk();
+    const mine = brukt.filter((i) => med.has(i));
+    const ute = new Set(behold > 0 ? mine.slice(-behold) : []);
+    R.skriv(STOKK, brukt.filter((i) => !med.has(i) || ute.has(i)));
+  }
+
+  // One phone: a place nobody has had since the deck started over.
+  function trekkSted(pakker) {
+    const pool = utvalg(pakker);
+    let fri = ledige(pool);
+    if (!fri.length) {
+      nyStokk(pool, Math.min(5, pool.length >> 1));
+      fri = ledige(pool);
+    }
+    const i = R.velg(fri.length ? fri : pool);
+    merkSpilt(i);
+    return i;
+  }
+
+  // «Hver sin mobil»: every phone works out the places from the code, so the deck can't deal
+  // them. The host tries seeds instead, until the game's first rounds are places this phone
+  // hasn't played. (Each round's place is marked as played when the round starts.)
+  function nyttFro(pakker, runder) {
+    const pool = utvalg(pakker);
+    const antall = Math.min(runder || 6, pool.length);
+    // The chance that a random order starts with `antall` fresh places when n are fresh.
+    const sjanse = (n) => range(antall).reduce((p, j) => (p * Math.max(0, n - j)) / (pool.length - j), 1);
+    let fri = ledige(pool);
+    if (sjanse(fri.length) < 1 / 150) {
+      // Too few fresh places left for a quick search: the deck starts over.
+      nyStokk(pool, Math.min(antall, pool.length - antall));
+      fri = ledige(pool);
+    }
+    const ferske = new Set(fri);
+    let beste = R.nyttFro() % 2 ** 24;
+    let flest = -1;
+    for (let n = 0; n < 1500 && flest < antall; n++) {
+      const fro = R.nyttFro() % 2 ** 24;
+      const rekke = stedrekke(pool, fro);
+      let treff = 0;
+      while (treff < antall && ferske.has(rekke[treff])) treff++;
+      if (treff > flest) {
+        beste = fro;
+        flest = treff;
+      }
+    }
+    return beste;
+  }
+
+  // ---------- «Stedspasset»: the places this phone has played ----------
+  // Kept by name, not by number, so the stamps survive new packs and a new order.
+
+  const PASS = "spionen.pass";
+
+  function lesPass() {
+    const l = R.les(PASS, null);
+    return Array.isArray(l) ? l.filter((n, i) => typeof n === "string" && n.length < 80 && l.indexOf(n) === i).slice(0, 600) : null;
+  }
+
+  // The first visit with a passport: the places still in this phone's deck have been played here,
+  // so they are stamped from the start. (Done before anything is dealt: the numbers in the deck
+  // are from the old place list.)
+  if (!lesPass()) R.skriv(PASS, lesStokk().map((i) => (i === FLYTTET.nr ? FLYTTET.navn : rentNavn(i))));
+
+  function besokte() {
+    const navn = new Set(lesPass() || []);
+    return new Set(range(STEDER.length).filter((i) => navn.has(rentNavn(i))));
+  }
+
+  function stemple(i) {
+    const navn = lesPass() || [];
+    if (navn.includes(rentNavn(i))) return;
+    navn.push(rentNavn(i));
+    R.skriv(PASS, navn);
   }
 
   // ---------- Clock (survives reloads: the end time is saved in S) ----------
@@ -181,6 +347,9 @@
     R.vedForlat(avbrytHopp);
   }
 
+  // The list of places on the play screen scrolls by itself; its position is kept across redraws.
+  let stedrull = 0;
+
   // ---------- Small building blocks ----------
 
   // Big player names shrink a little when a single word is long, so they never break mid-word.
@@ -195,20 +364,24 @@
     return `<div class="sp-piller">${liste.filter(Boolean).map((t) => `<span>${esc(t)}</span>`).join("")}</div>`;
   }
   const spionTekst = (n) => (n > 1 ? `${n} spioner` : "1 spion");
-  // "A", "A og B", "A, B og C"
-  const liste = (navn) => R.ramsOpp(navn);
+  const rundeTittel = (sp) => (sp.runder ? `Runde ${sp.runde} av ${sp.runder}` : `Runde ${sp.runde}`);
+  const sisteRunde = (sp) => !!sp.runder && sp.runde >= sp.runder;
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
+  // The minutes for the next game: the players' own choice, or what suits the group.
+  const minutter = (S) => (S.oppsett.tidValgt ? S.oppsett.tid : tidFor(R.klamp(S.antall, MIN, MAKS)));
 
   function navnerad(liste) {
     return `<span class="sp-navnerad">${liste.map((i) => `<span>${R.avatar(i)}${esc(R.navn(i))}</span>`).join("")}</span>`;
   }
 
-  // All places in the chosen packs, grouped by pack. o.h makes them buttons (guess / cross out).
+  // All places in the chosen packs, grouped by pack. o.h makes them buttons (guess / cross out);
+  // o.nivaa is the heading level of the pack names (2 on a screen, 3 in a sheet).
   function stedListe(pakker, o = {}) {
-    return pakker
-      .map((id) => {
-        const p = pakke(id);
-        const rader = utvalg([id])
+    const hn = "h" + (o.nivaa || 3);
+    return pakkerekke()
+      .filter((p) => pakker.includes(p.id))
+      .map((p) => {
+        const rader = utvalg([p.id])
           .map((i) => {
             const s = STEDER[i];
             const innhold = `<span class="sp-sted-ikon" aria-hidden="true">${esc(s.ikon)}</span><span>${esc(s.navn)}</span>`;
@@ -218,32 +391,73 @@
           })
           .join("");
         return `<section class="sp-stedgruppe">
-          <h3><span aria-hidden="true">${esc(p.ikon)}</span> ${esc(p.navn)}</h3>
+          <${hn}><span aria-hidden="true">${esc(p.ikon)}</span> ${esc(p.navn)}</${hn}>
           ${o.h ? `<div class="sp-steder">${rader}</div>` : `<ul class="sp-steder">${rader}</ul>`}
         </section>`;
       })
       .join("");
   }
 
-  function visSteder(S, gjest) {
-    const pakker = gjest ? S.gjest.pakker : S.spill.pakker;
-    const antall = utvalg(pakker).length;
+  // A guest's own list of the places, with cross-out.
+  function visSteder(S) {
+    const g = S.gjest;
     R.ark(`
       <h2 id="ark-tittel">Mulige steder</h2>
-      <p class="ingress">Ett av disse ${antall} stedene er stedet dere er på.${gjest ? " Trykk på et sted for å krysse det ut." : ""}</p>
-      ${stedListe(pakker, gjest ? { h: "kryss", kryss: S.gjest.kryss || [] } : {})}
+      <p class="ingress">Ett av disse ${utvalg(g.pakker).length} stedene er stedet dere er på. Trykk på et sted for å krysse det ut.</p>
+      ${stedListe(g.pakker, { h: "kryss", kryss: g.kryss || [] })}
       <button class="knapp" data-h="lukk-ark">Lukk</button>`);
   }
 
-  function visIde() {
+  // «Spørsmålsideer»: a handful from each group; «Vis andre» draws again.
+  function visIdeer() {
     R.ark(`
-      <h2 id="ark-tittel">Trenger du et spørsmål?</h2>
-      <p class="sp-ide">«${esc(R.velg(SPORSMAL))}»</p>
-      <p class="hjelp">Still det til hvem som helst. Svar ærlig – men ikke så tydelig at spionen skjønner stedet.</p>
+      <h2 id="ark-tittel">Spørsmålsideer</h2>
+      <p class="ingress">Still dem til hvem som helst. Svar ærlig – men ikke så tydelig at spionen skjønner stedet.</p>
+      ${IDEGRUPPER.map(
+        ([id, navn]) => `<section class="sp-idegruppe">
+          <h3>${esc(navn)}</h3>
+          <ul class="sp-ideer">${R.stokk(D.sporsmal[id])
+            .slice(0, 4)
+            .map((q) => `<li>${esc(q)}</li>`)
+            .join("")}</ul>
+        </section>`,
+      ).join("")}
       <div class="knapprad">
-        ${R.ui.knapp2("Et annet", "ide")}
-        ${R.ui.knapp("Takk!", "lukk-ark")}
+        ${R.ui.knapp2("Vis andre", "ide")}
+        ${R.ui.knapp("Lukk", "lukk-ark")}
       </div>`);
+  }
+
+  // «Stedspasset»: one page per pack, a stamp for every place played on this phone.
+  function visPass() {
+    const sett = besokte();
+    R.ark(`
+      <h2 id="ark-tittel">Stedspasset</h2>
+      <p class="ingress">${
+        sett.size ? `${sett.size} av ${STEDER.length} steder besøkt på denne mobilen.` : "Ingen stempler ennå."
+      } Et sted får stempel når dere har spilt en runde der.</p>
+      ${pakkerekke()
+        .map((p) => {
+          const steder = utvalg([p.id]);
+          const antall = steder.filter((i) => sett.has(i)).length;
+          const full = antall === steder.length;
+          return `<section class="sp-pass${full ? " full" : ""}">
+            <div class="sp-pass-hode">
+              <h3><span aria-hidden="true">${esc(p.ikon)}</span> ${esc(p.navn)}</h3>
+              ${full ? `<span class="sp-pass-full">Alle ${steder.length}</span>` : `<span class="sp-pass-tall">${antall} av ${steder.length}</span>`}
+            </div>
+            <ul class="sp-stempler">${steder
+              .map(
+                (i) =>
+                  `<li class="${sett.has(i) ? "tatt" : ""}"><span class="sp-sted-ikon" aria-hidden="true">${esc(STEDER[i].ikon)}</span><span>${esc(STEDER[i].navn)}<span class="vh">${
+                    sett.has(i) ? " – besøkt" : " – ikke besøkt ennå"
+                  }</span></span></li>`,
+              )
+              .join("")}</ul>
+          </section>`;
+        })
+        .join("")}
+      <button class="knapp" data-h="lukk-ark">Lukk</button>`);
   }
 
   // ---------- Game flow ----------
@@ -251,20 +465,28 @@
   function startSpill(S) {
     const o = S.oppsett;
     const antall = R.klamp(S.antall, MIN, MAKS);
+    const pakker = PAKKER.map((p) => p.id).filter((id) => o.pakker.includes(id));
+    const hver = o.modus === "hver";
     const sp = {
       salt: SALT,
       modus: o.modus,
       antall,
       spioner: Math.min(o.spioner, maksSpioner(antall)),
-      tid: o.tid,
-      pakker: PAKKER.map((p) => p.id).filter((id) => o.pakker.includes(id)),
-      fro: R.nyttFro() % 2 ** 24,
+      tid: minutter(S),
+      runder: o.runder,
+      pakker,
+      fro: hver ? nyttFro(pakker, o.runder) : R.nyttFro() % 2 ** 24,
       runde: 0,
-      poeng: range(antall).map(() => 0),
+      spilt: 0, // rounds with a result
+      poeng: nuller(antall),
+      seire: nuller(antall), // rounds won as spy: the tie-break on «Kåringen»
+      fangst: nuller(antall), // times a player called stop and was right
+      logg: [], // per finished round: did the spy win?
       vertPlass: null,
     };
-    if (sp.modus === "hver") sp.kode = lagKode(sp);
+    if (hver) sp.kode = lagKode(sp);
     S.spill = sp;
+    R.statistikk("start", { modus: sp.modus, spillere: antall, runder: sp.runder, spioner: sp.spioner, steder: utvalg(pakker).length });
     R.holdVaken();
     nyRunde(S);
   }
@@ -274,12 +496,13 @@
     sp.runde += 1;
     if (sp.modus === "hver") {
       sp.r = lagRunde(sp, sp.runde);
+      merkSpilt(sp.r.sted);
     } else {
-      // One phone: real randomness every round, and a deck that avoids repeating places.
+      // One phone: real randomness every round, and the place comes from the deck.
       sp.r = lagRunde(Object.assign({}, sp, { fro: R.nyttFro() }), 1);
-      const pool = new Set(utvalg(sp.pakker));
-      sp.r.sted = stokk.neste((i) => pool.has(i));
+      sp.r.sted = trekkSted(sp.pakker);
     }
+    sp.sporsmal = nesteSporsmal();
     sp.vis = { i: 0, sett: false };
     sp.vertSett = false;
     sp.klokke = { total: sp.tid * 60, igjen: sp.tid * 60 * 1000, slutt: null, gaar: true };
@@ -314,35 +537,189 @@
     R.gaTil("runde");
   }
 
+  // Adds (fortegn 1) or takes back (−1) what the round gave: the points, and the counts behind
+  // the tie-break and the awards.
+  function bokfor(sp, fortegn) {
+    const u = sp.utfall;
+    sp.poeng = sp.poeng.map((p, i) => p + fortegn * (u.pluss[i] + (u.stoppet === i ? 1 : 0)));
+    if (u.spionVant) sp.r.spioner.forEach((i) => (sp.seire[i] += fortegn));
+    if (u.stoppet != null) sp.fangst[u.stoppet] += fortegn;
+    sp.spilt += fortegn;
+    if (fortegn > 0) sp.logg.push(!!u.spionVant);
+    else sp.logg.pop();
+  }
+
+  // The scoring: every spy win gives the spy 2 — but 3 to the bold spy who stops the clock and
+  // names the place. When the spy loses, everyone else gets 1 (and whoever called stop 1 more:
+  // see the «stoppet» action).
   function ferdigRunde(S, spionVant, grunn) {
     const sp = S.spill;
     if (!sp.utfall) {
-      const pluss = range(sp.antall).map((i) => (erSpion(sp.r, i) ? (spionVant ? 2 : 0) : spionVant ? 0 : 1));
-      sp.poeng = sp.poeng.map((p, i) => p + pluss[i]);
-      sp.utfall = { spionVant, grunn, pluss };
+      const modig = spionVant && grunn === "gjettet" && sp.gjetter === "frivillig";
+      const pluss = range(sp.antall).map((i) => (erSpion(sp.r, i) ? (spionVant ? (modig ? 3 : 2) : 0) : spionVant ? 0 : 1));
+      sp.utfall = { spionVant, grunn, pluss, modig, stoppet: null };
+      bokfor(sp, 1);
+      stemple(sp.r.sted); // the place is in the open now
     }
     R.gaTil("resultat");
   }
 
+  // Someone called stop, the group caught the spy and the spy's last guess missed: then one
+  // player can get the accuser's extra point.
+  const kanStoppe = (sp) => !!(sp.utfall && !sp.utfall.spionVant && sp.gjetter === "tatt" && sp.anklaget != null);
+
   function grunnTekst(sp) {
     const u = sp.utfall;
     const flere = sp.r.spioner.length > 1;
-    const spion = flere ? "Spionene" : "Spionen";
-    const gjett = sp.gjett != null ? STEDER[sp.gjett].navn : "";
+    const spion = flere ? "spionene" : "spionen";
+    const gjett = sp.gjett != null ? rentNavn(sp.gjett) : "";
     switch (u.grunn) {
       case "gjettet":
-        return sp.gjetter === "tatt" ? `Dere tok spionen – men spionen gjettet riktig: ${gjett}.` : `Spionen avslørte seg og gjettet riktig: ${gjett}.`;
+        return sp.gjetter === "tatt" ? `Dere tok spionen – men spionen gjettet riktig: ${gjett}.` : `Spionen stoppet klokka selv og gjettet riktig: ${gjett}.`;
       case "feilgjett":
-        return sp.gjetter === "tatt" ? `Spionen ble tatt og gjettet feil: ${gjett}.` : `Spionen avslørte seg, men gjettet feil: ${gjett}.`;
+        return sp.gjetter === "tatt" ? `Spionen ble tatt og gjettet feil: ${gjett}.` : `Spionen stoppet klokka selv, men gjettet feil: ${gjett}.`;
       case "uskyldig":
-        return `${R.navn(sp.anklaget)} var uskyldig, så ${spion.toLowerCase()} slapp unna.`;
+        return `${sp.anklaget != null ? R.navn(sp.anklaget) : "Den dere pekte på"} var uskyldig, så ${spion} slapp unna.`;
       default:
-        return `Dere ble ikke enige før tiden var ute, så ${spion.toLowerCase()} slapp unna.`;
+        return `Dere ble ikke enige før tiden var ute, så ${spion} slapp unna.`;
     }
   }
 
+  // ---------- «Kåringen» ----------
+
+  // Most points first; equal points → most rounds won as spy. `plass` is shared only when both are equal.
+  function rangering(sp) {
+    const rader = range(sp.antall)
+      .map((i) => ({ i, poeng: sp.poeng[i], seire: sp.seire[i] }))
+      .sort((a, b) => b.poeng - a.poeng || b.seire - a.seire || a.i - b.i);
+    rader.forEach((r) => (r.plass = 1 + rader.filter((x) => x.poeng > r.poeng || (x.poeng === r.poeng && x.seire > r.seire)).length));
+    return rader;
+  }
+
+  // The podium and the list follow the game's own ranking; R.ui.pall and R.ui.poengliste only
+  // know points. Same markup and classes as the kit's.
+  function pall(rader) {
+    const med = rader.filter((r) => r.poeng > 0);
+    if (med.length < 2) return "";
+    const s = med.slice(0, 3);
+    const plass = (r) =>
+      r
+        ? `<div class="pall-plass p${Math.min(r.plass, 3)}">${R.avatar(r.i, "stor")}<span class="navn">${esc(R.navn(r.i))}</span><span class="poeng">${r.poeng} p</span><span class="blokk">${r.plass}</span></div>`
+        : "<div></div>";
+    return s.length < 3 ? `<div class="pall to" aria-label="Pallen">${plass(s[1])}${plass(s[0])}</div>` : `<div class="pall" aria-label="Pallen">${plass(s[1])}${plass(s[0])}${plass(s[2])}</div>`;
+  }
+
+  function sluttliste(rader) {
+    return `<ol class="poengliste">${rader
+      .map(
+        (r) =>
+          `<li class="${r.plass === 1 && r.poeng > 0 ? "leder" : ""}"><span class="plass-nr">${r.plass}</span>${R.avatar(r.i)}<span class="navn">${esc(R.navn(r.i))}</span>${
+            r.seire > 0 ? `<span class="sp-seire"><span aria-hidden="true">🕵️</span><span class="vh">Runder vunnet som spion: </span>${r.seire}</span>` : ""
+          }<span class="sum">${r.poeng}</span></li>`,
+      )
+      .join("")}</ol>`;
+  }
+
+  // The evening's awards: only when one or two players stand out.
+  function priser(sp) {
+    const ut = [];
+    const legg = (liste, ikon, tittel, tekst) => {
+      const topp = Math.max(...liste);
+      const hvem = range(sp.antall).filter((i) => liste[i] === topp);
+      if (topp > 0 && hvem.length <= 2) ut.push({ ikon, tittel, hvem, tekst: tekst(topp) });
+    };
+    legg(sp.seire, "🕵️", "Mesterspion", (n) => `Vant ${R.flertall(n, "runde", "runder")} som spion`);
+    legg(sp.fangst, "🔎", "Spionjeger", (n) => `Ropte stopp og tok spionen ${R.flertall(n, "gang", "ganger")}`);
+    return ut;
+  }
+
+  // One or two short lines for the share sheet: the result in numbers, a row with one sign per
+  // round, and the award holders' names. Nothing else that a player has typed.
+  function deletekst(sp) {
+    const rader = rangering(sp);
+    const vinnere = rader.filter((r) => r.plass === 1 && r.poeng > 0);
+    const runder = R.flertall(sp.spilt, "runde", "runder");
+    const linjer = [
+      vinnere.length
+        ? `${R.ramsOpp(vinnere.map((r) => R.navn(r.i)))} vant Spionen med ${vinnere[0].poeng} poeng etter ${runder}.`
+        : `Vi spilte ${runder} av Spionen – og ingen fikk poeng.`,
+    ];
+    const rekke = sp.logg.map((vant) => (vant ? "🕵️" : "🔎")).join("");
+    const pris = priser(sp)
+      .map((p) => `${p.tittel}: ${R.ramsOpp(p.hvem.map(R.navn))}.`)
+      .join(" ");
+    if (rekke || pris) linjer.push([rekke, pris].filter(Boolean).join(" "));
+    return linjer.join("\n");
+  }
+
+  // ---------- Saved state ----------
+
   // Screens that belong to a running game: "Fortsett" brings you back to the one you left.
   const SPILLSKJERMER = ["vis", "kode", "vert", "runde", "anklage", "avslor", "gjett", "svar", "resultat", "slutt"];
+
+  // Does the saved game have what this screen draws?
+  function kanVises(sp, skjerm) {
+    if (skjerm === "vis") return sp.modus === "en";
+    if (skjerm === "kode" || skjerm === "vert") return sp.modus === "hver";
+    if (skjerm === "avslor") return sp.anklaget != null;
+    if (skjerm === "svar") return sp.gjett != null;
+    if (skjerm === "resultat") return !!sp.utfall;
+    return SPILLSKJERMER.includes(skjerm);
+  }
+
+  // Is the saved game one this version can draw? Also fills in what older versions didn't save.
+  function gyldigSpill(sp) {
+    if (!sp || typeof sp !== "object") return false;
+    const r = sp.r;
+    const k = sp.klokke;
+    const n = sp.antall;
+    if (!r || typeof r !== "object" || !k || typeof k !== "object") return false;
+    // A one-phone game from before the «Jul» pack plays on (see SALT_FOR_JUL).
+    if (sp.salt === SALT_FOR_JUL && sp.modus === "en" && r.sted !== FLYTTET.nr) sp.salt = SALT;
+    if (sp.salt !== SALT || !["en", "hver"].includes(sp.modus)) return false;
+    if (!heltall(n, MIN, MAKS) || !heltall(sp.spioner, 1, maksSpioner(n)) || !heltall(sp.runde, 1, 9999) || !heltall(sp.fro, 0, 2 ** 32)) return false;
+    if (!Number.isFinite(sp.tid) || sp.tid <= 0 || !tallrekke(sp.poeng, n)) return false;
+    if (!Array.isArray(sp.pakker) || !sp.pakker.length || !sp.pakker.every((id) => typeof id === "string" && pakke(id))) return false;
+    if (!STEDER[r.sted] || !sp.pakker.includes(STEDER[r.sted].p) || !heltall(r.starter, 0, n - 1)) return false;
+    if (!Array.isArray(r.spioner) || !r.spioner.length || !r.spioner.every((i) => heltall(i, 0, n - 1))) return false;
+    if (!Array.isArray(r.roller) || r.roller.length !== n || !r.roller.every((x) => heltall(x, -1, 99))) return false;
+    if (!Number.isFinite(k.total) || !Number.isFinite(k.igjen) || !(k.slutt == null || Number.isFinite(k.slutt))) return false;
+    if (sp.modus === "hver") {
+      const o = typeof sp.kode === "string" ? lesKode(sp.kode) : null;
+      if (!o || o.kode !== sp.kode || o.fro !== sp.fro || o.antall !== n) return false;
+      if (!heltall(sp.vertPlass, 0, n - 1)) sp.vertPlass = null;
+    }
+    // Newer fields. A game from before the rounds had a number plays on as «Fri».
+    if (!RUNDER.includes(sp.runder)) sp.runder = 0;
+    if (!tallrekke(sp.seire, n)) sp.seire = nuller(n);
+    if (!tallrekke(sp.fangst, n)) sp.fangst = nuller(n);
+    sp.logg = Array.isArray(sp.logg) ? sp.logg.map(Boolean) : [];
+    const u = sp.utfall;
+    if (u && typeof u === "object" && tallrekke(u.pluss, n) && typeof u.grunn === "string") {
+      u.spionVant = !!u.spionVant;
+      u.modig = !!u.modig;
+      if (!heltall(u.stoppet, 0, n - 1)) u.stoppet = null;
+    } else sp.utfall = null;
+    if (!heltall(sp.spilt, 0, 9999)) sp.spilt = sp.runde - (sp.utfall ? 0 : 1);
+    if (!heltall(sp.sporsmal, 0, SPORSMAL.length - 1)) sp.sporsmal = 0;
+    if (!sp.vis || typeof sp.vis !== "object" || !heltall(sp.vis.i, 0, n - 1)) sp.vis = { i: 0, sett: false };
+    if (!heltall(sp.anklaget, 0, n - 1)) sp.anklaget = null;
+    if (!heltall(sp.gjett, 0, STEDER.length - 1)) sp.gjett = null;
+    if (!["tatt", "frivillig"].includes(sp.gjetter)) sp.gjetter = null;
+    if (!kanVises(sp, sp.skjerm)) sp.skjerm = "runde";
+    return true;
+  }
+
+  // A guest's seat: everything about the game is read from the code again.
+  function gyldigGjest(g) {
+    const o = g && typeof g === "object" && typeof g.kode === "string" ? lesKode(g.kode) : null;
+    if (!o) return false;
+    Object.assign(g, o);
+    if (!heltall(g.runde, 1, 999)) g.runde = 1;
+    if (!heltall(g.plass, 0, g.antall - 1)) g.plass = null;
+    g.kryss = Array.isArray(g.kryss) ? g.kryss.filter((i) => heltall(i, 0, STEDER.length - 1)) : [];
+    return true;
+  }
 
   const DEF = {
     id: "spionen",
@@ -351,26 +728,60 @@
     pagar: (S) => pagar(S) || !!(S.gjest && S.gjest.plass != null),
 
     tilstand: () => ({
-      antall: 4,
-      oppsett: { modus: "en", spioner: 1, tid: 8, pakker: STANDARD_PAKKER.slice() },
+      antall: R.klamp(R.felles.navn.filter((n) => String(n || "").trim()).length || 4, MIN, MAKS),
+      oppsett: { modus: "en", spioner: 1, tid: 8, tidValgt: false, runder: 5, pakker: standardPakker() },
       spill: null,
-      // Seats a guest has seen a card for, per code: locked, also after leaving and rejoining.
+      // Seats this phone has seen a card for, per code: locked, also after leaving and rejoining.
       laste: {},
       gjest: null,
+      // The season (its first year) in which «Jul» was last switched on by itself; null = never looked.
+      jul: null,
     }),
 
     lastet(S) {
-      const o = (S.oppsett = Object.assign({ modus: "en", spioner: 1, tid: 8, pakker: [] }, S.oppsett));
+      const fersk = S.skjerm == null; // nothing was saved: tilstand() has just chosen everything
+      S.antall = R.klamp(Math.round(Number(S.antall)) || 4, MIN, MAKS);
+      const o = (S.oppsett = Object.assign({ modus: "en", spioner: 1, tid: 8, runder: 5, pakker: [] }, objekt(S.oppsett)));
       if (!["en", "hver"].includes(o.modus)) o.modus = "en";
-      if (!TIDER.includes(o.tid)) o.tid = 8;
       if (![1, 2].includes(o.spioner)) o.spioner = 1;
-      o.pakker = (o.pakker || []).filter(pakke);
-      if (!o.pakker.length) o.pakker = STANDARD_PAKKER.slice();
-      const sp = S.spill;
-      if (sp && (sp.salt !== SALT || !sp.r || !STEDER[sp.r.sted] || !sp.klokke)) S.spill = null;
-      if (S.gjest && !lesKode(S.gjest.kode)) S.gjest = null;
-      if (!S.spill && SPILLSKJERMER.includes(S.skjerm)) S.skjerm = "hjem";
+      // (8 was the fixed default before the minutes followed the group: only 5 and 10 were choices)
+      if (typeof o.tidValgt !== "boolean") o.tidValgt = TIDER.includes(o.tid) && o.tid !== 8;
+      if (!TIDER.includes(o.tid)) {
+        o.tid = 8;
+        o.tidValgt = false;
+      }
+      if (!RUNDER.includes(o.runder)) o.runder = 5;
+      const valgt = Array.isArray(o.pakker) ? o.pakker : [];
+      o.pakker = PAKKER.map((p) => p.id).filter((id) => valgt.includes(id));
+
+      // «Jul» is switched on once when its season starts and off again when it is over. In between
+      // the players decide: switched off in December it stays off, switched on in June it stays on.
+      const aar = julesesong();
+      if (fersk) S.jul = aar;
+      else if (aar && S.jul !== aar && pakke("jul")) {
+        if (!o.pakker.includes("jul")) o.pakker.push("jul");
+        S.jul = aar;
+      } else if (!aar && S.jul) {
+        o.pakker = o.pakker.filter((id) => id !== "jul");
+        // (what the season's own default leaves behind is one pack: back to the usual two)
+        if (o.pakker.every((id) => id === STANDARD_PAKKER[0])) o.pakker = STANDARD_PAKKER.slice();
+        S.jul = 0;
+      }
+      if (!Number.isInteger(S.jul)) S.jul = 0;
+      if (!o.pakker.length) o.pakker = standardPakker();
+
+      const laste = {};
+      for (const [kode, plass] of Object.entries(objekt(S.laste))) if (heltall(plass, 0, MAKS - 1)) laste[kode] = plass;
+      S.laste = laste;
+      S.kodeUtkast = typeof S.kodeUtkast === "string" ? R.kutt(S.kodeUtkast, 20) : "";
+      S.kodeFeil = typeof S.kodeFeil === "string" ? R.kutt(S.kodeFeil, 120) : "";
+
+      if (!gyldigSpill(S.spill)) S.spill = null;
+      if (!gyldigGjest(S.gjest)) S.gjest = null;
+      if (S.gjest && erVertFor(S, S.gjest.kode)) S.gjest = null;
+      if (SPILLSKJERMER.includes(S.skjerm) && !(S.spill && kanVises(S.spill, S.skjerm))) S.skjerm = "hjem";
       if (!S.gjest && ["plass", "gjest"].includes(S.skjerm)) S.skjerm = "hjem";
+      if (S.gjest && S.gjest.plass == null && S.skjerm === "gjest") S.skjerm = "plass";
     },
 
     regler: {
@@ -378,14 +789,16 @@
       steg: [
         ["Se kortet ditt", "Alle får samme sted og en rolle der. Spionen får bare beskjeden «Du er spionen»."],
         ["Still spørsmål", "Den som starter, spør en annen om stedet. Den som svarer, spør neste. Ikke for tydelig – spionen lytter!"],
-        ["Anklag eller gjett", "Trykk «Stopp» og pek på den dere mistenker. Spionen kan når som helst avsløre seg og gjette stedet."],
+        ["Anklag eller gjett", "Trykk «Stopp» og pek på den dere mistenker. Spionen kan når som helst stoppe klokka selv og gjette stedet."],
       ],
       tips: [
-        "Tar dere spionen, får alle andre 1 poeng. Slipper spionen unna eller gjetter stedet, får spionen 2.",
+        "Slipper spionen unna, eller gjetter stedet etter å ha blitt tatt, får spionen 2 poeng. Stopper spionen klokka selv og gjetter riktig, blir det 3 – modig spion!",
+        "Taper spionen, får alle andre 1 poeng. Den som ropte stopp og anklaget spionen, får 1 ekstra.",
         "Blir spionen tatt, får spionen likevel ett forsøk på å gjette stedet.",
-        "Trykk «Steder» for å se alle mulige steder – nyttig for spionen, og for å bløffe.",
+        "Står det likt til slutt, vinner den som har vunnet flest runder som spion.",
+        "De mulige stedene står under klokka hele runden – nyttig for spionen, og for å bløffe.",
         "Hver sin mobil: én lager en kode, de andre trykker «Bli med i et spill» og velger nummeret sitt.",
-        "Svar gjerne i rollen din. Det er lov å overdrive!",
+        "Svar gjerne i rollen din. Det er lov å overdrive! Tre kan spille, men spillet er best fra fire.",
       ],
     },
 
@@ -393,12 +806,24 @@
       innhold(S, id) {
         // Seeing a card (even a quick peek) locks the seat, so nobody can look at other seats.
         if (id === "gjest") {
-          (S.laste = S.laste || {})[S.gjest.kode] = S.gjest.plass;
+          const g = S.gjest;
+          const laast = laastPlass(S, g.kode);
+          if (laast != null && laast < g.antall) g.plass = laast;
+          laas(S, g.kode, g.plass);
+          const r = lagRunde(g, g.runde);
+          // A place this phone has shown counts as played here (the deck and «Stedspasset»).
+          if (!erSpion(r, g.plass)) {
+            merkSpilt(r.sted);
+            stemple(r.sted);
+          }
           R.lagre();
-          return kortHtml(lagRunde(S.gjest, S.gjest.runde), S.gjest.plass);
+          return kortHtml(r, g.plass);
         }
         if (id === "vert") {
+          // The host's seat is locked on the guest side too, so it outlives the game: joining a
+          // code this phone hosts — or has hosted — must never give a second seat.
           S.spill.vertLaast = true;
+          laas(S, S.spill.kode, S.spill.vertPlass);
           R.lagre();
           return kortHtml(S.spill.r, S.spill.vertPlass);
         }
@@ -426,9 +851,14 @@
       const [kodeDel, rundeDel] = String(hash).split("_");
       const o = lesKode(kodeDel);
       if (!o) {
-        S.kodeUtkast = kodeDel;
+        S.kodeUtkast = kodeUtkast(kodeDel);
         S.kodeFeil = kodeFeil(kodeDel);
         return "bli-med";
+      }
+      if (erVertFor(S, o.kode)) {
+        // (after the screen change, which hides toasts)
+        setTimeout(() => R.toast("Du er verten i dette spillet"), 0);
+        return S.spill.skjerm;
       }
       if (!S.gjest || S.gjest.kode !== o.kode) S.gjest = Object.assign(o, { runde: 1, plass: laastPlass(S, o.kode), kryss: [] });
       const runde = Number(rundeDel);
@@ -446,7 +876,7 @@
 
     felt: {
       kode(S, el) {
-        S.kodeUtkast = el.value;
+        S.kodeUtkast = R.kutt(el.value, 20);
       },
     },
 
@@ -455,7 +885,7 @@
         const felt = form.querySelector("#kodefelt");
         const o = lesKode(felt.value);
         if (!o) {
-          S.kodeUtkast = felt.value;
+          S.kodeUtkast = R.kutt(felt.value, 20);
           S.kodeFeil = kodeFeil(felt.value);
           R.vis();
           const nytt = R.$("#kodefelt");
@@ -469,6 +899,11 @@
         }
         S.kodeUtkast = "";
         S.kodeFeil = "";
+        if (erVertFor(S, o.kode)) {
+          R.gaTil(S.spill.skjerm);
+          R.toast("Du er verten i dette spillet");
+          return;
+        }
         if (!S.gjest || S.gjest.kode !== o.kode) S.gjest = Object.assign(o, { runde: 1, plass: laastPlass(S, o.kode), kryss: [] });
         R.lyd.riktig();
         R.holdVaken();
@@ -479,8 +914,10 @@
     skjermer: {
       hjem: {
         tilbake: "portal",
-        vis: (S) =>
-          R.ui.spillhjem({
+        vis(S) {
+          const besokt = besokte().size;
+          // The first chip opens «Stedspasset» (the kit's own chips are plain text, hence the markup here).
+          return `${R.ui.spillhjem({
             slagordHtml: "Alle vet hvor dere er.<br><em>Bortsett fra spionen.</em>",
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
@@ -490,12 +927,15 @@
                 R.ui.knapp2("Bli med i et spill", "bli-med", { ikon: "📲" }) +
                 R.ui.lenke("Slik spiller du", "regler"),
             }),
-            merker: [
-              ["3–12", "spillere"],
-              [String(STEDER.length), "steder"],
-              ["0", "reklame"],
-            ],
-          }),
+          })}
+          <ul class="merker" aria-label="Om spillet">
+            <li class="sp-passmerke"><button data-h="pass" aria-label="Stedspasset: ${besokt} av ${STEDER.length} steder besøkt"><b>${
+              besokt ? `${besokt} av ${STEDER.length}` : STEDER.length
+            }</b> steder <span aria-hidden="true">›</span></button></li>
+            <li><b>3–12</b> spillere</li>
+            <li><b>0</b> reklame</li>
+          </ul>`;
+        },
       },
 
       oppsett: {
@@ -505,6 +945,8 @@
           const o = S.oppsett;
           const maks = maksSpioner(S.antall);
           const hver = o.modus === "hver";
+          const tid = minutter(S);
+          const lengde = o.runder ? `ca. ${Math.round((o.runder * (tid + 2)) / 5) * 5} min` : "til dere avslutter";
           return `
             <h1 id="skjerm-tittel">Gjør klart</h1>
             <section class="seksjon">
@@ -521,16 +963,25 @@
             ${R.ui.spillere({
               min: MIN,
               max: MAKS,
-              hjelp: hver ? "Navnene trengs bare på denne mobilen. De andre velger nummeret sitt." : "Skriv navn – eller spill som Spiller 1, 2, 3 …",
+              hjelp:
+                S.antall === MIN
+                  ? "Tre går fint – men spillet er best fra fire."
+                  : hver
+                    ? "Navnene trengs bare på denne mobilen. De andre velger nummeret sitt."
+                    : "Skriv navn – eller spill som Spiller 1, 2, 3 …",
             })}
             <section class="seksjon">
               <div class="seksjon-hode"><h2>Steder</h2><span class="tall">${utvalg(o.pakker).length} steder</span></div>
-              ${R.ui.fliser(
+              <div class="sp-pakker${PAKKER.length % 2 ? " odde" : ""}">${R.ui.fliser(
                 "pakke",
-                PAKKER.map((p) => ({ v: p.id, tittel: p.navn, tekst: p.tekst, ikon: p.ikon })),
+                pakkerekke().map((p) => ({ v: p.id, tittel: p.navn, tekst: p.tekst, ikon: p.ikon })),
                 o.pakker,
-              )}
+              )}</div>
               ${o.pakker.length ? "" : '<p class="hjelp">Velg minst én pakke.</p>'}
+            </section>
+            <section class="seksjon">
+              <div class="seksjon-hode"><h2>Antall runder</h2><span class="tall">${lengde}</span></div>
+              ${R.ui.seg("runder", [[3, "3"], [5, "5"], [0, "Fri"]], o.runder, { etikett: "Antall runder" })}
             </section>
             <div class="sp-to">
               <section class="seksjon">
@@ -539,7 +990,7 @@
               </section>
               <section class="seksjon">
                 <h2>Minutter</h2>
-                ${R.ui.seg("tid", TIDER.map((t) => [t, String(t)]), o.tid, { etikett: "Minutter per runde" })}
+                ${R.ui.seg("tid", TIDER.map((t) => [t, String(t)]), tid, { etikett: "Minutter per runde" })}
               </section>
             </div>
             <p class="hjelp">${maks < 2 ? "2 spioner kan velges fra 7 spillere." : "Med 2 spioner vet ingen av dem hvem den andre er."}</p>
@@ -549,7 +1000,7 @@
 
       // One phone: the phone goes around, everyone holds to see their card.
       vis: {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: (S) => rundeTittel(S.spill),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -567,7 +1018,6 @@
         },
       },
 
-      // Each on their own phone: the host shares the code, picks a seat and sees their card.
       // Each on their own phone, step 1: share the code.
       kode: {
         tittel: "Del koden",
@@ -584,7 +1034,7 @@
               <span class="etikett">Koden til spillet</span>
               <span class="kode" id="spillkode">${esc(R.kode.formater(sp.kode))}</span>
               ${qr ? `<div class="qr">${qr}</div>` : ""}
-              <div class="knapprad">${R.ui.knapp2("Kopier kode", "kopier", { variant: "liten" })}${R.ui.knapp2("Del lenke", "del", { variant: "liten" })}</div>
+              <div class="knapprad">${R.ui.knapp2("Kopier kode", "kopier", { variant: "liten" })}${R.ui.knapp2("Del lenke", "del-lenke", { variant: "liten" })}</div>
             </div>
             ${
               forste
@@ -600,7 +1050,7 @@
 
       // Each on their own phone, step 2: the host picks a seat and sees their own card.
       vert: {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: (S) => rundeTittel(S.spill),
         tilbake: (S) => (S.spill.runde === 1 ? "kode" : "hjem"),
         vis(S) {
           const sp = S.spill;
@@ -634,48 +1084,58 @@
         },
       },
 
+      // The round: the clock, who asks first, a question to borrow — and every possible place in
+      // the open, so the spy can study the list without giving anything away.
       runde: {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: "Still spørsmål",
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
-          const s = sp.r.starter;
           const k = sp.klokke;
-          const glemt = sp.modus === "en" || sp.vertPlass != null;
+          const hode = sp.tidUte
+            ? `<p class="sp-tid-ute"><span aria-hidden="true">⏰</span> Tiden er ute!</p>
+               <p class="sp-topp-hjelp">Pek på den dere mistenker – eller gi dere ett minutt til.</p>`
+            : `<p class="sp-status"><span class="sp-rundemerke">${esc(rundeTittel(sp))}</span><span>${esc(spionTekst(sp.r.spioner.length))}</span></p>
+               <p class="sp-starter-navn"><b>${esc(R.navn(sp.r.starter))}</b> spør først!</p>`;
           return `
-            <h1 class="vh" id="skjerm-tittel">Runde ${sp.runde}: still spørsmål</h1>
-            ${
-              sp.tidUte
-                ? `<div class="sp-tid-ute-boks"><p class="sp-tid-ute"><span aria-hidden="true">⏰</span> Tiden er ute!</p><p class="hjelp">Pek på den dere mistenker – eller gi dere ett minutt til.</p></div>`
-                : `<div class="sp-starter">
-                    ${R.avatar(s, "stor")}
-                    <div>
-                      <p class="etikett">${spionTekst(sp.r.spioner.length)} blant dere</p>
-                      <p class="sp-starter-navn"><b>${esc(R.navn(s))}</b> spør først!</p>
-                      <p class="sp-starter-hjelp">Spør hvem du vil om stedet. Den som svarer, spør videre.</p>
-                    </div>
-                  </div>`
-            }
-            ${R.ui.timer({
-              id: "klokke",
-              sekunder: Math.ceil(igjenMs(k) / 1000),
-              stor: true,
-              kontrollHtml: `<div class="knapprad">
-                <button class="knapp-2 liten" data-h="pause" data-timer-pause>${k.gaar ? "Pause" : "Fortsett"}</button>
-                ${R.ui.knapp2("+1 min", "pluss-min", { variant: "liten" })}
-              </div>`,
-            })}
-            ${R.ui.lenkerad(R.ui.lenke("Spørsmålsideer", "ide"), glemt ? R.ui.lenke("Glemt kortet ditt?", "se-igjen") : "")}
+            <h1 class="vh" id="skjerm-tittel">${esc(rundeTittel(sp))}: still spørsmål</h1>
+            <div class="sp-topp">
+              ${R.ui.timer({ id: "klokke", sekunder: Math.ceil(igjenMs(k) / 1000), alene: true })}
+              <div class="sp-topp-tekst">
+                ${hode}
+                <div class="sp-klokkeknapper">
+                  ${sp.tidUte ? "" : `<button class="knapp-2 liten" data-h="pause" id="pauseknapp">${k.gaar ? "Pause" : "Fortsett"}</button>`}
+                  ${R.ui.knapp2("+1 min", "pluss-min", { variant: "liten" })}
+                </div>
+              </div>
+            </div>
+            <div class="sp-forslag">
+              <p class="etikett">Spør for eksempel</p>
+              <p class="sp-forslag-tekst" id="sp-forslag" aria-live="polite">«${esc(SPORSMAL[sp.sporsmal])}»</p>
+              <button class="sp-nytt" data-h="nytt-forslag" aria-label="Nytt forslag til spørsmål"><span aria-hidden="true">↻</span> Nytt</button>
+            </div>
+            <section class="sp-apent" id="sp-apent" tabindex="0" aria-label="Mulige steder">
+              <p class="hjelp">Dere er på ett av disse ${utvalg(sp.pakker).length} stedene.</p>
+              ${stedListe(sp.pakker, { nivaa: 2 })}
+              ${R.ui.lenkerad(R.ui.lenke("Spørsmålsideer", "ide"), R.ui.lenke("Avslutt", "avslutt"))}
+            </section>
             ${R.ui.dokk(
-              R.ui.knapp(sp.tidUte ? "Hvem er spionen?" : "Stopp – vi anklager noen!", "anklag", { variant: "rosa", ikon: "✋" }),
-              `<div class="knapprad sp-verktoy">${R.ui.knapp2("Steder", "steder", { ikon: "📍" })}${R.ui.knapp2("Spionen gjetter", "spion-gjetter", { ikon: "🕵️" })}</div>`,
+              R.ui.knapp(sp.tidUte ? "Hvem er spionen?" : "Stopp – vi anklager noen!", "anklag", { variant: "rosa" }),
+              `<div class="knapprad">${R.ui.knapp2("Glemt kortet?", "se-igjen")}${R.ui.knapp2("Spionen gjetter", "spion-gjetter")}</div>`,
             )}`;
         },
         inn: (S) => startKlokke(S),
-        ut: (S) => stoppKlokke(S),
-        etter() {
+        ut(S) {
+          stoppKlokke(S);
+          stedrull = 0;
+        },
+        etter(S, rot) {
           const t = R.timer("klokke");
           if (t) t.tegn();
+          const liste = rot.querySelector("#sp-apent");
+          if (!liste) return;
+          liste.scrollTop = stedrull;
+          liste.addEventListener("scroll", () => (stedrull = liste.scrollTop), { passive: true });
         },
       },
 
@@ -715,7 +1175,7 @@
           let dokk = "";
           if (sp.avslort && spion) {
             tekst = `<p class="ingress midt"><b>Men vent …</b> Spionen får én sjanse til. Gjetter ${esc(R.navn(a))} stedet, vinner spionen likevel.</p>`;
-            dokk = R.ui.knapp(`Gi mobilen til ${R.navn(a)}`, "til-gjett", { ikon: "🕵️" });
+            dokk = R.ui.knapp(`Gi mobilen til ${R.navn(a)}`, "til-gjett");
           } else if (sp.avslort) {
             const andre = sp.r.spioner;
             tekst = `<div class="papirboks sp-fasit"><span class="etikett">${flere ? "Spionene var" : "Spionen var"}</span>${navnerad(andre)}</div>`;
@@ -756,6 +1216,7 @@
         },
       },
 
+      // The spy's guess: the same list, in the same order, as on the play screen.
       gjett: {
         tittel: "Spionen gjetter",
         tilbake: (S) => (S.spill.gjetter === "frivillig" ? "runde" : "hjem"),
@@ -766,10 +1227,10 @@
               ${R.figur()}
               <div>
                 <h1 id="skjerm-tittel">Hvor er dere?</h1>
-                <p class="ingress">${sp.gjetter === "tatt" ? `${esc(R.navn(sp.anklaget))} velger ett sted.` : "Spionen velger ett sted."} Riktig svar gir seier – feil svar gir tap.</p>
+                <p class="ingress">${sp.gjetter === "tatt" && sp.anklaget != null ? `${esc(R.navn(sp.anklaget))} velger ett sted.` : "Spionen velger ett sted."} Riktig svar gir seier – feil svar gir tap.</p>
               </div>
             </div>
-            ${stedListe(sp.pakker, { h: "gjett-sted" })}`;
+            ${stedListe(sp.pakker, { h: "gjett-sted", nivaa: 2 })}`;
         },
       },
 
@@ -818,14 +1279,15 @@
       },
 
       resultat: {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: (S) => rundeTittel(S.spill),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const u = sp.utfall;
           const flere = sp.r.spioner.length > 1;
           const fasit = STEDER[sp.r.sted];
-          const rader = range(sp.antall).map((i) => ({ i, poeng: sp.poeng[i], pluss: u.pluss[i] }));
+          const siste = sisteRunde(sp);
+          const rader = range(sp.antall).map((i) => ({ i, poeng: sp.poeng[i], pluss: u.pluss[i] + (u.stoppet === i ? 1 : 0) }));
           const roller = range(sp.antall)
             .map(
               (i) => `<li class="${erSpion(sp.r, i) ? "spion" : ""}">${R.avatar(i)}<span><b>${esc(R.navn(i))}</b>${
@@ -833,26 +1295,52 @@
               }</span></li>`,
             )
             .join("");
+          // One tap gives the accuser's extra point; another tap (or «Ingen bestemt») takes it back.
+          const stopp = kanStoppe(sp)
+            ? `<div class="sp-stopp">
+                <h3 id="stopp-tittel">Hvem ropte stopp?</h3>
+                <p>Den som anklaget spionen, får 1 poeng ekstra.</p>
+                <div class="velgere" role="group" aria-labelledby="stopp-tittel">
+                  ${range(sp.antall)
+                    .filter((i) => i !== sp.anklaget)
+                    .map((i) => `<button class="velger" data-h="stoppet" data-v="${i}" aria-pressed="${u.stoppet === i}">${R.avatar(i)}<span>${esc(R.navn(i))}</span></button>`)
+                    .join("")}
+                  <button class="velger sp-ingen" data-h="stoppet" data-v="ingen" aria-pressed="${u.stoppet == null}"><span>Ingen bestemt</span></button>
+                </div>
+              </div>`
+            : "";
+          const regel = u.modig
+            ? "Modig spion: 3 poeng for å stoppe klokka selv og gjette riktig."
+            : u.spionVant
+              ? flere
+                ? "2 poeng til hver spion."
+                : "2 poeng til spionen."
+              : "1 poeng til alle som ikke var spion.";
           return `
-            <div class="banner ${u.spionVant ? "rosa" : "mynte"}">
-              ${R.figur()}
-              <h1 id="skjerm-tittel">${u.spionVant ? (flere ? "Spionene vinner!" : "Spionen vinner!") : flere ? "Dere slo spionene!" : "Dere tok spionen!"}</h1>
-              <p class="ingress">${esc(grunnTekst(sp))}</p>
-            </div>
+            ${R.ui.banner({
+              tittel: u.modig ? "Modig spion!" : u.spionVant ? (flere ? "Spionene vinner!" : "Spionen vinner!") : flere ? "Dere slo spionene!" : "Dere tok spionen!",
+              tekst: grunnTekst(sp),
+              klasse: u.spionVant ? "rosa" : "mynte",
+              stemning: u.spionVant ? "jubel" : "lei",
+            })}
             <div class="papirboks sp-fasit">
               <div><span class="etikett">Stedet var</span><strong>${esc(fasit.ikon)} ${esc(fasit.navn)}</strong></div>
               <div><span class="etikett">${flere ? "Spionene var" : "Spionen var"}</span>${navnerad(sp.r.spioner)}</div>
             </div>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Poeng</h2><span class="tall">etter ${sp.runde} ${sp.runde === 1 ? "runde" : "runder"}</span></div>
+              <div class="seksjon-hode"><h2>Poeng</h2><span class="tall">etter ${R.flertall(sp.spilt, "runde", "runder")}</span></div>
+              ${stopp}
               ${R.ui.poengliste(rader)}
-              <p class="hjelp">Dere tar spionen: +1 til alle andre. Spionen vinner: +2.</p>
+              <p class="hjelp">${regel}</p>
             </section>
             <section class="seksjon">
               <h2>Hvem var hvem?</h2>
               <ul class="sp-rolleliste">${roller}</ul>
             </section>
-            ${R.ui.dokk(R.ui.knapp("Ny runde", "ny-runde"), R.ui.lenkerad(R.ui.lenke("Angre poengene", "angre-poeng"), R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${R.ui.dokk(
+              siste ? R.ui.knapp("Til kåringen", "til-slutt") : R.ui.knapp("Ny runde", "ny-runde"),
+              R.ui.lenkerad(R.ui.lenke("Angre poengene", "angre-poeng"), siste ? "" : R.ui.lenke("Avslutt", "avslutt")),
+            )}`;
         },
         // One round is a small win: a short sound. The fanfare and confetti are saved for the end.
         inn(S) {
@@ -870,26 +1358,53 @@
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
-          const rader = range(sp.antall).map((i) => ({ i, poeng: sp.poeng[i] }));
-          const topp = Math.max(...sp.poeng);
-          const vinnere = topp > 0 ? rader.filter((r) => r.poeng === topp).map((r) => r.i) : [];
+          const rader = rangering(sp);
+          const vinnere = rader.filter((r) => r.plass === 1 && r.poeng > 0);
+          // Did the rounds won as spy decide who is on top?
+          const avgjort = vinnere.length > 0 && rader.some((r) => r.plass > 1 && r.poeng === vinnere[0].poeng);
+          const utmerkelser = priser(sp);
+          const besokt = besokte().size;
           return `
-            <div class="banner aksent">
-              ${R.figur()}
-              <p class="etikett">Etter ${sp.runde} ${sp.runde === 1 ? "runde" : "runder"}</p>
-              <h1 id="skjerm-tittel">${vinnere.length ? `${esc(liste(vinnere.map(R.navn)))} vinner!` : "Ingen poeng denne gangen"}</h1>
-            </div>
-            ${vinnere.length ? R.ui.pall(rader) : ""}
-            ${R.ui.poengliste(rader)}
+            ${R.ui.banner({
+              etikett: sp.spilt ? `Etter ${R.flertall(sp.spilt, "runde", "runder")}` : "",
+              tittel: vinnere.length ? `${R.ramsOpp(vinnere.map((r) => R.navn(r.i)))} vinner!` : "Ingen poeng denne gangen",
+              tekst: !sp.spilt ? "Dere avsluttet før første runde var ferdig." : avgjort ? "Likt på poeng – flest runder vunnet som spion avgjorde." : "",
+              klasse: "aksent",
+              stemning: vinnere.length ? "jubel" : "",
+            })}
+            ${pall(rader)}
+            ${sluttliste(rader)}
+            ${
+              utmerkelser.length
+                ? `<section class="seksjon">
+                    <h2>Kveldens agenter</h2>
+                    <ul class="sp-priser">${utmerkelser
+                      .map(
+                        (p) =>
+                          `<li><span class="sp-pris-ikon" aria-hidden="true">${p.ikon}</span><span><b>${esc(p.tittel)}</b><strong>${esc(R.ramsOpp(p.hvem.map(R.navn)))}</strong><small>${esc(p.tekst)}</small></span></li>`,
+                      )
+                      .join("")}</ul>
+                  </section>`
+                : ""
+            }
+            ${sp.spilt ? R.ui.knapp2("Del resultatet", "del") : ""}
+            ${besokt ? R.ui.lenke(`Stedspasset: ${besokt} av ${STEDER.length} steder`, "pass") : ""}
             ${R.ui.flereSpill({ antall: sp.antall })}
             ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), '<a class="lenke" href="/">Alle spill</a>'))}`;
         },
+        // The first time «Kåringen» is shown the game is over: the result goes to «Kveldens gjeng»
+        // once (not again after a reload or a visit to the home screen).
         inn(S) {
           const sp = S.spill;
           if (sp.ferdig) return;
           sp.ferdig = true;
           R.lagre();
           R.slippVaken();
+          R.statistikk("ferdig", { runder: sp.spilt, avbrutt: !!sp.runder && sp.spilt < sp.runder });
+          if (sp.spilt) {
+            // Points decide the evening's places too, with the same tie-break as on the screen.
+            R.kveld.registrer(rangering(sp).map((r) => ({ i: r.i, poeng: r.poeng * 100 + r.seire })));
+          }
           if (Math.max(...sp.poeng) > 0) {
             R.lyd.fanfare();
             R.konfetti();
@@ -907,7 +1422,9 @@
           <p class="ingress">Skriv koden fra mobilen til den som startet spillet – eller skann QR-koden med kameraet.</p>
           <form class="seksjon sp-kodeskjema" data-skjema="kode" autocomplete="off" novalidate>
             <label class="vh" for="kodefelt">Spillkode</label>
-            <input class="kodefelt" id="kodefelt" data-felt="kode" name="kode" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="20" placeholder="ABCD EFGH J" value="${esc(S.kodeUtkast || "")}">
+            <input class="kodefelt" id="kodefelt" data-felt="kode" name="kode" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="20" placeholder="${esc(
+              R.kode.formater("ABCDEFGHJKMNPQRS".slice(0, KODELENGDE)),
+            )}" value="${esc(S.kodeUtkast || "")}">
             <p class="feil" id="kodefeil" role="alert">${esc(S.kodeFeil || "")}</p>
             ${R.ui.dokk('<button class="knapp" type="submit">Bli med</button>')}
           </form>`,
@@ -946,7 +1463,7 @@
               g.runde > 1 ? R.ui.lenke(`Tilbake til runde ${g.runde - 1}`, "gjest-forrige") : "",
               R.ui.lenke("Forlat spillet", "forlat"),
             )}
-            ${R.ui.dokk(R.ui.knapp("Steder", "steder", { ikon: "📍" }), R.ui.knapp2(`Til runde ${g.runde + 1}`, "gjest-neste", { variant: "liten" }))}`;
+            ${R.ui.dokk(R.ui.knapp("Steder", "steder"), R.ui.knapp2(`Til runde ${g.runde + 1}`, "gjest-neste", { variant: "liten" }))}`;
         },
       },
     },
@@ -960,7 +1477,7 @@
         R.gaTil("oppsett");
       },
       hjem: () => R.gaTil("hjem"),
-      fortsett: (el, e, S) => R.gaTil(S.spill.skjerm && SPILLSKJERMER.includes(S.spill.skjerm) ? S.spill.skjerm : "runde"),
+      fortsett: (el, e, S) => R.gaTil(S.spill.skjerm),
       "til-gjest": () => R.gaTil("gjest"),
       "bli-med"(el, e, S) {
         S.kodeFeil = "";
@@ -968,6 +1485,7 @@
         const felt = R.$("#kodefelt");
         if (felt) felt.focus();
       },
+      pass: () => visPass(),
 
       // Setup
       modus(el, e, S) {
@@ -984,8 +1502,14 @@
         S.oppsett.spioner = Number(el.dataset.v);
         R.vis();
       },
+      // From the first tap the minutes are the players' own choice and no longer follow the group.
       tid(el, e, S) {
         S.oppsett.tid = Number(el.dataset.v);
+        S.oppsett.tidValgt = true;
+        R.vis();
+      },
+      runder(el, e, S) {
+        S.oppsett.runder = Number(el.dataset.v);
         R.vis();
       },
       start(el, e, S) {
@@ -1022,7 +1546,7 @@
       "til-vert": () => R.gaTil("vert"),
       "vis-kode": () => R.gaTil("kode"),
       kopier: (el, e, S) => R.kopier(R.kode.formater(S.spill.kode)),
-      del: (el, e, S) => R.del("Spionen", `Bli med i Spionen! Koden er ${R.kode.formater(S.spill.kode)}.`, lenkeFor(S.spill)),
+      "del-lenke": (el, e, S) => R.del("Spionen", `Bli med i Spionen! Koden er ${R.kode.formater(S.spill.kode)}.`, lenkeFor(S.spill)),
 
       // Play
       pause(el, e, S) {
@@ -1039,6 +1563,8 @@
           k.slutt = Date.now() + k.igjen;
           if (t) t.start();
         }
+        const knapp = R.$("#pauseknapp");
+        if (knapp) knapp.textContent = k.gaar ? "Pause" : "Fortsett";
         R.lagre();
       },
       "pluss-min"(el, e, S) {
@@ -1064,10 +1590,21 @@
           }
           R.lagre();
         }
-        R.toast("+1 minutt");
       },
-      steder: (el, e, S) => visSteder(S, S.skjerm === "gjest"),
-      ide: () => visIde(),
+      // Another question on the table. Drawn in place: a redraw would scroll the list of places.
+      "nytt-forslag"(el, e, S) {
+        S.spill.sporsmal = nesteSporsmal();
+        const p = R.$("#sp-forslag");
+        if (p) {
+          p.textContent = `«${SPORSMAL[S.spill.sporsmal]}»`;
+          p.classList.remove("ny");
+          void p.offsetWidth;
+          p.classList.add("ny");
+        }
+        R.lagre();
+      },
+      steder: (el, e, S) => visSteder(S),
+      ide: () => visIdeer(),
       async "se-igjen"(el, e, S) {
         const sp = S.spill;
         let i = sp.vertPlass;
@@ -1079,6 +1616,7 @@
           );
           if (i == null || !fortsatt()) return;
         }
+        if (i == null) return;
         R.ark(`
           <h2 id="ark-tittel">Kortet til ${esc(R.navn(i))}</h2>
           ${R.ui.mappe({ id: sp.modus === "en" ? "p" + i : "vert", etikett: "Topphemmelig", tekst: HOLD })}
@@ -1104,7 +1642,7 @@
         const flere = S.spill.r.spioner.length > 1;
         const tekst = flere ? "Da slipper spionene unna og får 2 poeng hver." : "Da slipper spionen unna og får 2 poeng.";
         const fortsatt = R.vakt();
-        if ((await R.bekreft("Ble dere ikke enige?", tekst, flere ? "Ja, spionene slapp unna" : "Ja, spionen slapp unna", "Avbryt")) && fortsatt()) {
+        if ((await R.bekreft("Ble dere ikke enige?", tekst, flere ? "Ja, spionene slapp unna" : "Ja, spionen slapp unna", "Spill videre")) && fortsatt()) {
           ferdigRunde(S, true, "uenige");
         }
       },
@@ -1122,9 +1660,9 @@
         const fortsatt = R.vakt();
         const ja = await R.bekreft(
           "Er du spionen?",
-          "Da avslører du deg nå og gjetter stedet. Riktig svar: spionen vinner. Feil svar: de andre vinner.",
+          "Da stopper du klokka og gjetter stedet. Riktig svar gir deg 3 poeng. Feil svar: de andre vinner.",
           "Ja, jeg vil gjette",
-          "Avbryt",
+          "Spill videre",
         );
         if (!ja || !fortsatt()) return;
         avbrytHopp();
@@ -1136,7 +1674,7 @@
         const s = STEDER[i];
         if (!s) return;
         const fortsatt = R.vakt();
-        const ja = await R.bekreft(`${s.ikon} ${s.navn}?`, "Spionen har bare ett forsøk.", "Ja, det er svaret", "Avbryt");
+        const ja = await R.bekreft(`${s.ikon} ${rentNavn(i)}?`, "Spionen har bare ett forsøk.", "Ja, det er svaret", "Velg et annet");
         if (!ja || !fortsatt()) return;
         S.spill.gjett = i;
         S.spill.svart = false;
@@ -1147,13 +1685,28 @@
         const riktig = sp.gjett === sp.r.sted;
         ferdigRunde(S, riktig, riktig ? "gjettet" : "feilgjett");
       },
+      // «Hvem ropte stopp?»: the accuser's extra point. Tapping the same name again, or «Ingen
+      // bestemt», takes it back.
+      stoppet(el, e, S) {
+        const sp = S.spill;
+        if (!kanStoppe(sp)) return;
+        const valgt = el.dataset.v === "ingen" ? null : Number(el.dataset.v);
+        const ny = valgt === sp.utfall.stoppet || !heltall(valgt, 0, sp.antall - 1) || valgt === sp.anklaget ? null : valgt;
+        if (ny === sp.utfall.stoppet) return;
+        bokfor(sp, -1);
+        sp.utfall.stoppet = ny;
+        bokfor(sp, 1);
+        if (ny != null) R.lyd.pling();
+        R.vis();
+      },
       "ny-runde": (el, e, S) => nyRunde(S),
+      "til-slutt": () => R.gaTil("slutt"),
       // Undo the round's points (a mis-tap) and go back to where the outcome was decided.
       "angre-poeng"(el, e, S) {
         const sp = S.spill;
         const u = sp.utfall;
         if (!u) return;
-        sp.poeng = sp.poeng.map((p, i) => p - u.pluss[i]);
+        bokfor(sp, -1);
         sp.utfall = null;
         sp.feiret = false;
         R.toast("Poengene er tatt tilbake");
@@ -1168,11 +1721,18 @@
         }
       },
       async avslutt(el, e, S) {
+        const midt = !S.spill.utfall; // in the middle of a round: it doesn't count
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avslutte spillet?", "Dere går til kåringen med poengene så langt.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(
+          "Avslutte spillet?",
+          midt ? "Runden dere er i, teller ikke. Dere går til kåringen med poengene så langt." : "Dere går til kåringen med poengene så langt.",
+          "Avslutt",
+          "Spill videre",
+        );
         if (ja && fortsatt()) R.gaTil("slutt");
       },
       igjen: (el, e, S) => startSpill(S),
+      del: (el, e, S) => R.del("Spionen", deletekst(S.spill), location.origin + "/spionen/"),
 
       // Own phones: the guests
       "gjest-plass"(el, e, S) {
@@ -1189,11 +1749,10 @@
         const fortsatt = R.vakt();
         const ja = await R.bekreft(`Har verten startet runde ${neste}?`, "Trykk bare når den som laget koden har startet en ny runde. Da får du et nytt kort.", `Ja, vis runde ${neste}`, "Ikke ennå");
         if (!ja || !fortsatt() || !S.gjest) return;
-        S.gjest.runde = neste;
+        S.gjest.runde = Math.min(999, neste);
         S.gjest.kryss = [];
         R.lyd.pop();
         R.gaTil("gjest");
-        R.toast(`Runde ${neste}`);
       },
       "gjest-forrige"(el, e, S) {
         S.gjest.runde = Math.max(1, S.gjest.runde - 1);
@@ -1203,7 +1762,7 @@
       "bytt-plass": (el, e, S) => (laastPlass(S, S.gjest.kode) != null ? R.toast("Nummeret er låst når du har sett kortet") : R.gaTil("plass")),
       async forlat(el, e, S) {
         const fortsatt = R.vakt();
-        if ((await R.bekreft("Forlate spillet?", "Du kan bli med igjen med den samme koden.", "Forlat", "Bli")) && fortsatt()) {
+        if ((await R.bekreft("Forlate spillet?", "Du kan bli med igjen med den samme koden.", "Forlat", "Spill videre")) && fortsatt()) {
           S.gjest = null;
           R.slippVaken();
           R.gaTil("hjem");

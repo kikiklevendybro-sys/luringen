@@ -311,7 +311,7 @@
     {
       "id": "hoytid",
       "navn": "Høytider og fester",
-      "ikon": "🎄",
+      "ikon": "🥳",
       "kort": [
         ["En jul du husker", "En jul …"],
         ["En 17. mai", "En 17. mai …"],
@@ -363,6 +363,60 @@
         ["Noe du har gjort sammen med en besteforelder", "Sammen med bestefar har jeg …"],
         ["En gave du har laget til noen", "Jeg har laget …"]
       ]
+    },
+    {
+      "id": "jul",
+      "navn": "Jul",
+      "ikon": "🎄",
+      "kort": [
+        ["Den rareste julegaven du har fått", "Den rareste julegaven jeg har fått, er …"],
+        ["En julegave du tjuvtittet på", "En gang tjuvtittet jeg på …"],
+        ["Julegaver i siste liten", "En gang kjøpte jeg julegavene …"],
+        ["En julegave du byttet eller ga videre", "Jeg har byttet en julegave og fått … i stedet."],
+        ["Oppgaven din på julaften", "På julaften er det alltid jeg som …"],
+        ["Juletreet hjemme hos dere", "På juletreet vårt henger det …"],
+        ["Mandelen i grøten", "Jeg har fått mandelen …"],
+        ["Et møte med julenissen", "En gang møtte jeg julenissen …"],
+        ["En julekalender du har hatt", "I julekalenderen min har jeg fått …"],
+        ["Noe du har laget på juleverksted", "På juleverksted har jeg laget …"],
+        ["Å gå rundt juletreet", "Når vi går rundt juletreet, …"],
+        ["Et julebord du har vært på", "På et julebord har jeg …"],
+        ["Pakkeleken", "I pakkeleken endte jeg opp med …"],
+        ["En jul et annet sted enn hjemme", "Jeg har feiret jul …"],
+        ["Lucia, julespill eller juleavslutning", "I julespillet var jeg …"],
+        ["Noe du ser på tv hver jul", "Hver jul ser jeg …"],
+        ["Noe du bare spiser til jul", "Det er bare til jul jeg spiser …"],
+        ["Klementiner, pepperkaker eller marsipan", "Jeg har spist … på én dag."],
+        ["Noe du gjør i romjula", "I romjula pleier jeg å …"],
+        ["Et nyttårsforsett du har hatt", "Et år lovet jeg meg selv å …"],
+        ["Noe du gjorde for første gang i år", "I år har jeg for første gang …"]
+      ]
     }
-  ]
+  ],
+  "tips": {
+    "felles": [
+      "bytt ut én detalj i en sann historie.",
+      "la den sprøeste være sann.",
+      "si løgnen like kjedelig som sannhetene.",
+      "små løgner er vanskeligst å avsløre.",
+      "gi løgnen én liten, rar detalj.",
+      "bruk tall og navn. Detaljer høres ekte ut.",
+      "lån en historie fra noen du kjenner.",
+      "lyv om noe de andre ikke kan vite.",
+      "nesten sant er bedre enn helt vilt.",
+      "tenk ut sannhetene først. Løgnen skal ligne på dem.",
+      "en sannhet som høres ut som skryt, blir fort mistenkt.",
+      "velg sannheter de andre ikke har hørt før."
+    ],
+    "hoyt": [
+      "si alle tre i samme tempo og tonefall.",
+      "ikke legg løgnen til slutt hver gang.",
+      "hold maska: smil like mye til alle tre."
+    ],
+    "skriv": [
+      "skriv alle tre omtrent like lange.",
+      "skriv løgnen like detaljert som sannhetene.",
+      "skriv sånn du pleier. Nye ord avslører deg."
+    ]
+  }
 }

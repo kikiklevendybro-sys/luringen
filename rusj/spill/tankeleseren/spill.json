@@ -8,5 +8,6 @@
   "minutter": [10, 40],
   "mobiler": "en",
   "tagger": ["fest", "familie", "lag", "sporsmal"],
-  "rekkefolge": 13
+  "rekkefolge": 13,
+  "sok": ["wavelength", "skala", "på samme bølgelengde", "tankelesing", "utfordre en venn", "julebordsleker"]
 }

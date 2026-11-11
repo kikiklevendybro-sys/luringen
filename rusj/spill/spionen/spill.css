@@ -183,55 +183,198 @@
 
 /* ---------- Play screen ---------- */
 
-.sp-starter {
+/* The play screen fills the phone exactly and never scrolls: the list of places does, between
+   the question and the buttons. (Where :has() is unknown the screen is an ordinary page that
+   scrolls under the dock, like every other screen.) */
+html:has(.skjerm-runde) body {
+  height: 100%;
+}
+
+html:has(.skjerm-runde) body > .app {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+html:has(.skjerm-runde) main,
+.skjerm-runde {
+  min-height: 0;
+}
+
+/* The clock, and beside it who asks first. */
+.sp-topp {
   display: flex;
+  flex: none;
   align-items: center;
   gap: 14px;
-  padding: 12px 18px 12px 12px;
+  padding: 12px 16px 12px 12px;
   border-radius: var(--r-stor);
   background: var(--natt-2);
   box-shadow: inset 0 0 0 2px var(--strek);
 }
 
-.sp-starter > div {
+.sp-topp .timer {
+  flex: none;
+}
+
+.sp-topp .timer-ring {
+  width: 96px;
+  height: 96px;
+}
+
+.sp-topp .timer-tid {
+  font-size: 1.7rem;
+}
+
+.sp-topp-tekst {
   display: grid;
-  gap: 4px;
+  flex: 1;
+  justify-items: start;
+  gap: 6px;
   min-width: 0;
 }
 
+.sp-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  color: var(--tekst-3);
+  font: 800 0.76rem/1.2 var(--font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sp-rundemerke {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  color: var(--tekst);
+  white-space: nowrap;
+}
+
 .sp-starter-navn {
-  font: 800 1.3rem/1.2 var(--font-display);
+  font: 800 1.25rem/1.2 var(--font-display);
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .sp-starter-navn b {
   color: var(--aksent);
 }
 
-.sp-starter-hjelp {
+.sp-topp-hjelp {
   color: var(--tekst-2);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   line-height: 1.3;
+  text-wrap: balance;
 }
 
-.skjerm-runde .timer.stor .timer-ring {
-  width: min(56vw, 224px);
-  height: min(56vw, 224px);
+.sp-topp .sp-tid-ute {
+  align-self: auto;
 }
 
-.skjerm-runde .timer-kontroll {
-  width: min(100%, 300px);
+.sp-klokkeknapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
 }
 
-.skjerm-runde > .lenkerad {
-  margin-top: -8px;
-}
-
-.sp-tid-ute-boks {
+/* A question to borrow, in large type on paper. */
+.sp-forslag {
   display: grid;
-  justify-items: center;
+  flex: none;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 12px;
+  padding: 12px 12px 14px 18px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2);
+  color: var(--blekk);
+}
+
+.sp-forslag .etikett {
+  color: var(--blekk-2);
+}
+
+.sp-forslag-tekst {
+  grid-column: 1;
+  font: 900 1.3rem/1.2 var(--font-display);
+  text-wrap: balance;
+}
+
+.sp-forslag-tekst.ny {
+  animation: sp-nytt 0.28s ease-out;
+}
+
+@keyframes sp-nytt {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.sp-nytt {
+  display: inline-flex;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-items: center;
   gap: 6px;
-  text-align: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 2.5px solid var(--blekk);
+  border-radius: 999px;
+  background: none;
+  color: var(--blekk);
+  font: 900 0.95rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.sp-nytt span {
+  font-size: 1.25em;
+  line-height: 0.8;
+}
+
+.sp-nytt:active {
+  background: var(--papir-2);
+}
+
+.sp-nytt:focus-visible {
+  outline-color: var(--blekk);
+}
+
+/* Every possible place, always in the open. The list takes the height that is left and scrolls
+   by itself; it fades out at the bottom edge, where more is waiting. */
+.sp-apent {
+  display: grid;
+  flex: 1 1 0;
+  align-content: start;
+  gap: 12px;
+  min-height: 96px;
+  margin-inline: -4px;
+  padding: 2px 4px 30px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 30px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 30px), transparent);
+}
+
+.sp-apent:focus-visible {
+  outline-offset: -3px;
+}
+
+.sp-apent > .hjelp {
+  text-align: left;
+}
+
+.sp-apent .sp-stedgruppe {
+  gap: 8px;
+}
+
+.sp-apent .sp-sted {
+  min-height: 44px;
+  background: var(--natt-2);
 }
 
 /* ---------- Guest phone ---------- */
@@ -476,21 +619,265 @@ button.sp-sted:active {
   box-shadow: inset 0 0 0 2px var(--rosa);
 }
 
-/* ---------- Question ideas, setup, joining ---------- */
+/* ---------- «Hvem ropte stopp?», «Kåringen» ---------- */
 
-.sp-ide {
-  padding: 22px 18px;
+.sp-stopp {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
   border-radius: var(--r-mid);
-  background: var(--papir);
-  box-shadow: 0 6px 0 var(--papir-2);
-  color: var(--blekk);
-  font: 900 1.45rem/1.25 var(--font-display);
-  text-align: center;
-  text-wrap: balance;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
 }
 
-.sp-verktoy {
+.sp-stopp p {
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+}
+
+.sp-stopp .velger[aria-pressed="false"] {
+  background: var(--natt-3);
+}
+
+.sp-stopp .sp-ingen {
+  justify-content: center;
+  padding-inline: 14px;
+}
+
+.sp-stopp .sp-ingen[aria-pressed="false"] {
+  color: var(--tekst-2);
+}
+
+/* Rounds won as spy, beside the points: what decides between equal points. */
+.sp-seire {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  color: var(--tekst-2);
+  font: 800 0.92rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-priser {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sp-priser li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2);
+  color: var(--blekk);
+}
+
+.sp-pris-ikon {
+  flex: none;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.sp-priser li > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sp-priser b {
+  color: var(--blekk-2);
+  font: 800 0.74rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sp-priser strong {
+  font: 900 1.2rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.sp-priser small {
+  color: var(--blekk-2);
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+/* ---------- «Stedspasset» ---------- */
+
+/* The first chip on the home screen opens the passport. */
+.merker li.sp-passmerke {
+  padding: 0;
+  border-color: var(--aksent);
+}
+
+.sp-passmerke button {
+  position: relative;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--tekst-2);
+  cursor: pointer;
+}
+
+/* (a finger-sized target around the small chip) */
+.sp-passmerke button::after {
+  content: "";
+  position: absolute;
+  inset: -8px -4px;
+}
+
+.sp-passmerke button > span {
+  color: var(--aksent);
+  font-weight: 900;
+}
+
+/* One paper page per pack; a place that has been played is stamped. */
+.sp-pass {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2);
+  color: var(--blekk);
+}
+
+.sp-pass-hode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sp-pass-hode h3 {
+  font-size: 1.1rem;
+}
+
+.sp-pass-tall {
+  color: var(--blekk-2);
+  font: 800 0.85rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sp-pass-full {
+  padding: 4px 8px;
+  border: 2.5px solid var(--rosa-dyp);
+  border-radius: 8px;
+  color: var(--rosa-dyp);
+  font: 900 0.8rem/1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: rotate(-4deg);
+  filter: url(#stempel-ruff);
+}
+
+.sp-stempler {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sp-stempler li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 5px 8px;
+  border: 2px dashed rgba(23, 14, 43, 0.3);
+  border-radius: 10px;
+  color: var(--blekk-2);
+  font: 700 0.84rem/1.15 var(--font-tekst);
+}
+
+.sp-stempler li > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sp-stempler .sp-sted-ikon {
+  font-size: 1.1rem;
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.sp-stempler li.tatt {
+  --st: var(--rosa-dyp);
+  border: 2.5px solid var(--st);
+  background: color-mix(in srgb, var(--st) 12%, transparent);
+  color: var(--blekk);
+  font-weight: 800;
+  transform: rotate(-0.8deg);
+}
+
+.sp-stempler li.tatt:nth-child(3n) {
+  --st: var(--himmel-dyp);
+  transform: rotate(1deg);
+}
+
+.sp-stempler li.tatt:nth-child(3n + 1) {
+  --st: var(--lilla-dyp);
+  transform: rotate(-0.4deg);
+}
+
+.sp-stempler li.tatt .sp-sted-ikon {
+  opacity: 1;
+  filter: none;
+}
+
+/* ---------- Question ideas, setup, joining ---------- */
+
+.sp-idegruppe {
+  display: grid;
+  gap: 8px;
+}
+
+.sp-idegruppe h3 {
+  color: var(--tekst-2);
+  font-size: 1rem;
+}
+
+.sp-ideer {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sp-ideer li {
+  padding: 10px 14px;
+  border-radius: var(--r-liten);
+  background: var(--papir);
+  color: var(--blekk);
+  font: 800 1rem/1.25 var(--font-display);
+}
+
+/* An odd number of packs: «Jul» gets a row of its own (first in season, last out of it), so
+   no pack is left alone in half a row. */
+.sp-pakker.odde .flis[data-v="jul"] {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 2px 12px;
+}
+
+.sp-pakker.odde .flis[data-v="jul"] .flis-ikon {
+  grid-row: 1 / span 2;
+  font-size: 2rem;
 }
 
 .sp-to {
@@ -511,18 +898,37 @@ button.sp-sted:active {
   flex: 1;
 }
 
+/* Shorter phones: a smaller clock and tighter type, so the list of places keeps its room. */
 @media (max-height: 720px) {
-  .skjerm-runde .timer.stor .timer-ring {
-    width: 150px;
-    height: 150px;
+  .sp-topp {
+    gap: 12px;
+    padding: 10px 14px 10px 10px;
   }
 
-  .skjerm-runde .timer.stor .timer-tid {
-    font-size: 2.6rem;
+  .sp-topp .timer-ring {
+    width: 80px;
+    height: 80px;
   }
 
-  .sp-starter-hjelp {
-    display: none;
+  .sp-topp .timer-tid {
+    font-size: 1.45rem;
+  }
+
+  .sp-starter-navn {
+    font-size: 1.12rem;
+  }
+
+  .sp-klokkeknapper .knapp-2.liten {
+    min-height: 40px;
+    padding-block: 6px;
+  }
+
+  .sp-forslag {
+    padding: 10px 10px 11px 16px;
+  }
+
+  .sp-forslag-tekst {
+    font-size: 1.14rem;
   }
 }
 
@@ -593,24 +999,73 @@ button.sp-sted:active {
     display: none;
   }
 
-  .sp-mottaker .avatar.stor,
-  .sp-starter .avatar.stor {
+  .sp-mottaker .avatar.stor {
     width: 48px;
     height: 48px;
     font-size: 1.5rem;
   }
 
-  .sp-starter {
-    padding-block: 8px;
+  .sp-topp .timer-ring {
+    width: 68px;
+    height: 68px;
   }
 
-  .skjerm-runde .timer.stor .timer-ring {
-    width: 124px;
-    height: 124px;
+  .sp-topp .timer-tid {
+    font-size: 1.25rem;
   }
 
-  .skjerm-runde .timer.stor .timer-tid {
-    font-size: 2.2rem;
+  .sp-topp-tekst {
+    gap: 4px;
+  }
+
+  .sp-forslag .etikett {
+    display: none;
+  }
+
+  .sp-forslag-tekst {
+    grid-row: 1 / span 2;
+  }
+
+  .sp-apent {
+    gap: 8px;
+    min-height: 72px;
+    padding-bottom: 22px;
+  }
+
+  /* (the list says what it is by itself here: the line above it gives its room to the places) */
+  .sp-apent > .hjelp {
+    display: none;
+  }
+
+  .sp-topp {
+    gap: 10px;
+    padding: 8px 12px 8px 8px;
+  }
+
+  .sp-status {
+    font-size: 0.7rem;
+  }
+
+  .sp-starter-navn {
+    font-size: 1rem;
+  }
+
+  .sp-klokkeknapper .knapp-2.liten {
+    min-height: 36px;
+    padding-block: 4px;
+  }
+
+  .sp-forslag {
+    padding: 8px 8px 9px 14px;
+  }
+
+  .sp-forslag-tekst {
+    font-size: 1rem;
+  }
+
+  .sp-nytt {
+    min-height: 40px;
+    padding: 6px 12px;
   }
 
   .skjerm-runde .dokk .knapp-2 {
@@ -619,17 +1074,52 @@ button.sp-sted:active {
 }
 
 @media (max-width: 359px) {
+  /* In sheets and on the guess screen: one place per row. */
   .sp-steder {
     grid-template-columns: 1fr;
   }
 
-  .skjerm-runde .dokk .knapp .ikon,
-  .sp-verktoy .knapp-2 .ikon {
-    display: none;
+  /* On the play screen the list keeps two columns (it has little height), with smaller type. */
+  .sp-apent .sp-steder {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .sp-apent .sp-sted {
+    gap: 6px;
+    padding: 6px 8px;
+    font-size: 0.82rem;
+  }
+
+  .sp-apent .sp-sted-ikon {
+    font-size: 1.1rem;
+  }
+
+  .sp-topp {
+    gap: 10px;
+    padding-right: 10px;
+  }
+
+  .sp-klokkeknapper {
+    gap: 6px;
+  }
+
+  .sp-klokkeknapper .knapp-2.liten {
+    padding-inline: 12px;
+    font-size: 0.9rem;
+  }
+
+  .sp-nytt {
+    padding-inline: 12px;
   }
 
   .sp-plasser.stor {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sp-stempler li {
+    padding-inline: 6px;
+    font-size: 0.8rem;
   }
 }
 
@@ -705,5 +1195,111 @@ button.sp-sted:active {
   .sp-kort > .kort-fot {
     grid-column: 1 / -1;
     margin-top: 2px;
+  }
+
+  /* The play screen: the clock, who asks first and the question on the left, the list of places
+     beside them, as tall as the screen. (The buttons are the kit's column on the right.) */
+  .skjerm-runde {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 10px 14px;
+  }
+
+  .skjerm-runde > .sp-topp {
+    display: grid;
+    grid-column: 1;
+    grid-row: 1;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px 10px;
+    padding: 8px 10px;
+    border-radius: var(--r-mid);
+  }
+
+  .sp-topp .timer {
+    grid-row: 1 / span 2;
+  }
+
+  .sp-topp .timer-ring {
+    width: 64px;
+    height: 64px;
+  }
+
+  .sp-topp .timer-tid {
+    font-size: 1.15rem;
+  }
+
+  /* (the lines beside the clock are placed one by one: the buttons go under both columns) */
+  .sp-topp-tekst {
+    display: contents;
+  }
+
+  .sp-starter-navn {
+    font-size: 1.05rem;
+  }
+
+  .sp-topp-hjelp {
+    font-size: 0.84rem;
+  }
+
+  .sp-klokkeknapper {
+    grid-column: 1 / -1;
+    flex-wrap: nowrap;
+    margin: 0;
+  }
+
+  .sp-klokkeknapper .knapp-2.liten {
+    flex: 1;
+    min-height: 38px;
+    padding: 5px 8px;
+  }
+
+  .skjerm-runde > .sp-forslag {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    gap: 4px 8px;
+    padding: 8px 10px 10px 14px;
+  }
+
+  .sp-forslag .etikett {
+    display: block;
+    align-self: center;
+  }
+
+  .sp-forslag-tekst {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    font-size: 1.05rem;
+  }
+
+  .sp-nytt {
+    grid-row: 1;
+    min-height: 34px;
+    padding: 4px 12px;
+    font-size: 0.86rem;
+  }
+
+  .skjerm-runde > .sp-apent {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    gap: 8px;
+    min-height: 0;
+    padding-bottom: 24px;
+  }
+
+  .sp-apent .sp-steder {
+    gap: 6px;
+  }
+
+  .sp-apent .sp-sted {
+    gap: 6px;
+    min-height: 40px;
+    padding: 5px 6px;
+    font-size: 0.8rem;
+  }
+
+  .sp-apent .sp-sted-ikon {
+    font-size: 1.1rem;
   }
 }

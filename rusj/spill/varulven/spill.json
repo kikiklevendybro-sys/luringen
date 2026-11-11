@@ -2,11 +2,12 @@
   "id": "varulven",
   "navn": "Varulven",
   "undertittel": "Varulv",
-  "beskrivelse": "Gratis «Varulv» på norsk – uten spilleder. Mobilen går rundt og styrer natta. Varulver, synsk, lege og jeger for 6–18 spillere.",
-  "kort": "Noen i landsbyen er varulver. Mobilen er spillederen.",
-  "spillere": [6, 18],
-  "minutter": [15, 45],
+  "beskrivelse": "Gratis «Varulv» på norsk – uten spilleder. Klassisk med netter og avstemninger for 6–12, eller «Én natt» på sju minutter for 4–10. Mobilen styrer natta.",
+  "kort": "Finn varulvene – klassisk, eller «Én natt» på sju minutter.",
+  "spillere": [4, 12],
+  "minutter": [7, 40],
   "mobiler": "en",
   "tagger": ["fest", "blof", "lag"],
+  "sok": ["én natt", "en natt", "one night", "varulvspill"],
   "rekkefolge": 18
 }

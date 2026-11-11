@@ -22,6 +22,28 @@
   filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.45));
 }
 
+/* The last winners: a chip that may wrap (two long names) instead of sticking out. */
+.merker li.sau-sist {
+  max-width: 100%;
+  border-color: color-mix(in srgb, var(--aksent) 55%, var(--strek));
+  overflow-wrap: anywhere;
+  text-align: center;
+  white-space: normal;
+}
+
+/* ---------- Setup ---------- */
+
+/* Four targets in one row: room for «12 poeng» on the narrowest phones. */
+.sau-mal .seg button {
+  padding-inline: 2px;
+}
+
+@media (max-width: 359px) {
+  .sau-mal .seg button {
+    font-size: 0.9rem;
+  }
+}
+
 /* ---------- The black sheep badge on an avatar ---------- */
 
 .sau-ramme {
@@ -80,6 +102,78 @@
   text-underline-offset: 3px;
 }
 
+/* «Alle samtidig»: the clock is the foot of the card — ink on paper. The kit's timer with the
+   ring on the left; the line of help and «Pause» are its controls on the right. */
+.sau-klokke .timer {
+  gap: 14px;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.sau-klokke .timer-ring {
+  width: 88px;
+  height: 88px;
+}
+
+.sau-klokke .timer-ring circle {
+  stroke-width: 13;
+}
+
+.sau-klokke .timer-ring .spor {
+  stroke: var(--papir-2);
+}
+
+.sau-klokke .timer-ring .fyll,
+.sau-klokke .timer.lite .fyll {
+  stroke: var(--blekk);
+}
+
+.sau-klokke .timer-tid {
+  color: var(--blekk);
+  font-size: 2rem;
+}
+
+/* The last five seconds (the kit ticks then) and the end */
+.sau-klokke .timer.snart .fyll {
+  stroke: var(--rosa-dyp);
+}
+
+.sau-klokke .timer.snart .timer-tid,
+.sau-klokke .timer.ferdig .timer-tid {
+  color: var(--rosa-dyp);
+}
+
+.sau-klokke .timer.pause .timer-ring {
+  opacity: 0.45;
+}
+
+.sau-klokke .timer-kontroll {
+  justify-items: start;
+  min-width: 0;
+}
+
+.sau-klokke .timer-kontroll p {
+  font: 700 0.92rem/1.3 var(--font-tekst);
+  opacity: 0.85;
+  text-wrap: balance;
+}
+
+.sau-klokke .timer-kontroll em {
+  font-style: normal;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.sau-klokke .timer-kontroll .knapp-2.liten {
+  width: auto;
+  min-width: 108px;
+  border-color: var(--blekk);
+  background: transparent;
+  color: var(--blekk);
+}
+
 .sau-holder {
   display: flex;
   align-items: center;
@@ -94,6 +188,11 @@
   overflow-wrap: anywhere;
 }
 
+.sau-holder > span:last-child {
+  min-width: 0;
+  text-wrap: balance;
+}
+
 .sau-minne {
   padding: 12px 16px;
   border-radius: var(--r-mid);
@@ -102,6 +201,7 @@
   color: var(--blekk);
   font: 900 1.25rem/1.2 var(--font-display);
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .sau-minne.liten {
@@ -121,33 +221,46 @@
   gap: 12px;
 }
 
-.sau-skriv-hode {
+/* Whose turn: the avatar with a ring in the player's colour, and the name as the heading.
+   Compact on purpose — with the keyboard open, the name, the field and «Ferdig» must all show. */
+.sau-tur {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 18px;
   min-width: 0;
+  padding: 7px 0 3px 7px;
 }
 
-.sau-skriv-hode h1 {
+.sau-tur .avatar {
+  width: 76px;
+  height: 76px;
+  box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.18), 0 0 0 4px var(--natt), 0 0 0 7px var(--pf, var(--p1));
+  font-size: 2.4rem;
+}
+
+.sau-tur-tekst {
   display: grid;
+  gap: 4px;
   min-width: 0;
-  font-size: clamp(1.7rem, 7.5vw, 2.1rem);
 }
 
-.sau-skriv-hode h1 small {
-  overflow: hidden;
-  color: var(--tekst-2);
-  font: 800 1rem/1.3 var(--font-display);
-  letter-spacing: 0;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.sau-tur h1 {
+  font-size: clamp(1.9rem, 8.6vw, 2.5rem);
+  overflow-wrap: anywhere;
 }
 
+/* (a border and a placeholder that can be seen: 3.7:1 and 5.8:1 on the field) */
 .sau-felt {
   min-height: 68px;
+  border-color: #7d68b3;
   font-size: 1.45rem;
   text-align: center;
   scroll-margin: 90px 0 140px;
+}
+
+.sau-felt::placeholder {
+  font-size: 1.1rem;
+  opacity: 1;
 }
 
 .sau-felt[aria-invalid="true"] {
@@ -172,6 +285,7 @@
   color: var(--tekst-2);
   font: 700 0.95rem/1.3 var(--font-display);
   text-align: center;
+  text-wrap: balance;
 }
 
 /* Before the first group: the sheep waits */
@@ -454,6 +568,122 @@
   transform: scale(0.92);
 }
 
+/* ---------- «Alle samtidig»: get ready ---------- */
+
+/* The sheep only where there is room for it: the three steps come first. */
+.sau-klar-figur {
+  display: none;
+}
+
+@media (orientation: portrait) and (min-height: 760px) {
+  .sau-klar-figur {
+    display: grid;
+    justify-items: center;
+    margin-bottom: -6px;
+  }
+
+  .sau-klar-figur .figur-ramme {
+    width: 112px;
+    animation: sveve 4.5s ease-in-out infinite;
+  }
+}
+
+/* ---------- «Alle samtidig»: who is in the flock, who stood alone ---------- */
+
+/* Two columns also on the narrowest phones (long names wrap), three when there is room. */
+.sau-velg {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (min-width: 600px) {
+  .sau-velg {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* «Sto noen helt alene?» often has only two to choose from: in the middle, under the question. */
+  .skjerm-alene .sau-velg {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 200px));
+    justify-content: center;
+  }
+}
+
+/* Chosen: a check mark on the avatar (beside the name it would push long names onto two lines). */
+.sau-velg .velger .avatar {
+  position: relative;
+}
+
+.sau-velg .velger[aria-pressed="true"] .avatar::after {
+  content: "✓";
+  position: absolute;
+  right: -5px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--blekk);
+  box-shadow: 0 0 0 2px var(--aksent);
+  color: var(--papir);
+  font: 900 0.7rem/1 var(--font-display);
+}
+
+@media (max-width: 359px) {
+  .sau-velg .velger {
+    gap: 8px;
+    padding: 5px 10px 5px 5px;
+    font-size: 0.95rem;
+  }
+
+  .sau-velg .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+}
+
+/* The two results without a flock: one tap each */
+.sau-utfall {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sau-utfall button {
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 58px;
+  padding: 8px 14px;
+  border: 2.5px solid var(--strek);
+  border-radius: var(--r-mid);
+  background: rgba(33, 20, 61, 0.6);
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sau-utfall button:active {
+  background: var(--natt-3);
+}
+
+.sau-utfall b {
+  font: 800 1.02rem/1.15 var(--font-display);
+}
+
+.sau-utfall span {
+  color: var(--tekst-2);
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.skjerm-alene .sau-avslor-hode .sau-merke {
+  margin-bottom: -4px;
+}
+
 /* ---------- Round result ---------- */
 
 .skjerm-poeng .banner {
@@ -506,6 +736,7 @@
 .sau-nyhet p {
   color: var(--tekst-2);
   font: 700 1rem/1.35 var(--font-display);
+  overflow-wrap: anywhere;
 }
 
 .sau-nyhet p b {
@@ -514,7 +745,7 @@
 
 .sau-nyhet .etikett {
   margin-bottom: 2px;
-  color: var(--tekst-3);
+  color: var(--tekst-2);
 }
 
 /* ---------- Scoreboard ---------- */
@@ -674,5 +905,183 @@
 
   .sau-venter .figur-ramme {
     width: 110px;
+  }
+
+  .sau-klokke .timer-ring {
+    width: 68px;
+    height: 68px;
+  }
+
+  .sau-klokke .timer-tid {
+    font-size: 1.6rem;
+  }
+
+  /* The card with the clock in it: less air, so a three-line question clears the buttons. */
+  .sau-kort:has(.sau-klokke) {
+    gap: 10px;
+    padding: 18px 20px 16px;
+  }
+
+  .sau-klokke .timer {
+    gap: 12px;
+  }
+
+  .sau-klokke .timer-kontroll {
+    gap: 6px;
+  }
+
+  .sau-klokke .timer-kontroll p {
+    font-size: 0.86rem;
+    line-height: 1.25;
+  }
+
+  .sau-klokke .timer-kontroll .knapp-2.liten {
+    min-height: 40px;
+    padding-block: 6px;
+  }
+
+  /* «Finn fram lapper»: the three steps above the button */
+  .skjerm-klar .ingress {
+    font-size: 0.98rem;
+  }
+
+  .sau-klar {
+    gap: 6px;
+  }
+
+  .sau-klar li {
+    padding: 7px 12px 8px 50px;
+  }
+
+  .sau-klar li::before {
+    top: 8px;
+    left: 11px;
+  }
+
+  .sau-klar li span {
+    font-size: 0.9rem;
+  }
+
+  .sau-tur .avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 1.9rem;
+  }
+
+  /* «Sto noen helt alene?»: the players before the picture */
+  .skjerm-alene .sau-avslor-hode .sau-merke {
+    display: none;
+  }
+
+  /* Five players and both results without a flock above the button on the shortest phones */
+  .sau-velg .velger {
+    min-height: 46px;
+    padding-block: 4px;
+  }
+
+  .sau-utfall button {
+    min-height: 52px;
+    padding-block: 6px;
+  }
+}
+
+/* A phone on its side: everything a little lower. */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Home: the kit floats one mascot in the left part of the screen. Here that is the pair — the
+     white sheep with the black one at its side — above the facts (two rows of them with «SIST»). */
+  html[data-liggende="hjem"] .spillhjem .sau-duo {
+    --sau: min(22vw, 44vh, 180px);
+    position: absolute;
+    top: 0;
+    bottom: 58px;
+    left: 0;
+    align-items: center;
+    width: 42%;
+    padding-left: calc(var(--sau) * 0.14);
+  }
+
+  html[data-liggende="hjem"] .skjerm-hjem:has(.sau-sist) .sau-duo {
+    bottom: 92px;
+  }
+
+  html[data-liggende="hjem"] .spillhjem .sau-duo .figur-ramme {
+    position: static;
+    display: block;
+    width: var(--sau);
+  }
+
+  html[data-liggende="hjem"] .spillhjem .sau-duo .figur-ramme svg.figur {
+    width: 100%;
+  }
+
+  html[data-liggende="hjem"] .spillhjem .sau-duo .sau-svart {
+    width: calc(var(--sau) * 0.51);
+    margin-top: calc(var(--sau) * 0.49);
+    margin-left: calc(var(--sau) * -0.16);
+  }
+
+  /* «Finn fram lapper»: three steps in the height of the screen */
+  .sau-klar {
+    gap: 6px;
+  }
+
+  .sau-klar li {
+    padding: 7px 12px 8px 50px;
+  }
+
+  .sau-klar li::before {
+    top: 8px;
+    left: 11px;
+  }
+
+  .sau-kort {
+    min-height: 0;
+  }
+
+  .sau-klokke .timer-ring {
+    width: 64px;
+    height: 64px;
+  }
+
+  .sau-klokke .timer-tid {
+    font-size: 1.5rem;
+  }
+
+  .sau-klokke .timer-kontroll {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .sau-skriv {
+    gap: 8px;
+  }
+
+  .sau-tur {
+    padding-block: 5px 1px;
+  }
+
+  .sau-tur .avatar {
+    width: 48px;
+    height: 48px;
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 0 0 3px var(--natt), 0 0 0 5px var(--pf, var(--p1));
+    font-size: 1.5rem;
+  }
+
+  .sau-skriv .sau-minne {
+    padding-block: 8px;
+    font-size: 1.05rem;
+  }
+
+  .sau-felt {
+    min-height: 54px;
+  }
+
+  .sau-skriv .knapp {
+    min-height: 52px;
+    padding-block: 8px;
+  }
+
+  .skjerm-alene .sau-avslor-hode .sau-merke {
+    display: none;
   }
 }

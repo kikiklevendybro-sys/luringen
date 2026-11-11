@@ -1,8 +1,18 @@
 /* Tankeleseren — the spectrum card, the dial (the star of the game) and the scores. */
 
 .skjerm-hint,
-.skjerm-skive {
+.skjerm-skive,
+.skjerm-lag,
+.skjerm-utf {
   gap: 16px;
+}
+
+/* The hint and the card: one under the other with the screen's own gap (side by side on a
+   phone on its side, see the end of this file). */
+.tl-kortrad {
+  display: flex;
+  flex-direction: column;
+  gap: inherit;
 }
 
 /* ---------- Spectrum card: two coloured ends ---------- */
@@ -352,6 +362,133 @@
   text-align: center;
 }
 
+/* ---------- The hint over the dial ----------
+   A slip with a small label on its top edge. While the hint can be typed it holds a field
+   (dashed frame until something is written); afterwards — and for a hint from a link — plain
+   text in the same place. */
+
+.tl-hint {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  margin: 0;
+  padding: 4px 14px 2px;
+  border: 2.5px dashed color-mix(in srgb, var(--aksent) 60%, var(--strek));
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--aksent) 8%, var(--natt-2));
+}
+
+.tl-hint.har,
+.tl-hint.vist,
+.tl-hint:focus-within {
+  border-style: solid;
+}
+
+.tl-hint:focus-within {
+  border-color: var(--aksent);
+}
+
+.tl-hint-merke {
+  position: absolute;
+  top: -10px;
+  left: 14px;
+  max-width: calc(100% - 28px);
+  padding: 2px 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--aksent);
+  color: var(--blekk);
+  font: 900 0.66rem/1.3 var(--font-display);
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tl-hint-felt {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--tekst);
+  font: 900 1.4rem/1.1 var(--font-display);
+  text-align: center;
+  text-overflow: ellipsis;
+}
+
+.tl-hint-felt:focus {
+  outline: none; /* the frame of the slip shows the focus */
+}
+
+.tl-hint-felt::placeholder {
+  color: var(--tekst-3);
+  font-size: 1rem;
+  font-weight: 700;
+  opacity: 1;
+}
+
+.tl-hint-tekst {
+  min-width: 0;
+  padding: 6px 0;
+  color: var(--tekst);
+  font: 900 1.4rem/1.15 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.tl-hint.lang1 .tl-hint-felt,
+.tl-hint.lang1 .tl-hint-tekst {
+  font-size: 1.15rem;
+}
+
+.tl-hint.lang2 .tl-hint-felt,
+.tl-hint.lang2 .tl-hint-tekst {
+  font-size: 1rem;
+}
+
+/* The round's other card, in the dock: one tap swaps the two */
+.knapp-2.tl-bytt {
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  min-height: 48px;
+  padding: 8px 14px;
+  border-style: dashed;
+  font-size: 0.98rem;
+}
+
+.tl-bytt-merke {
+  flex: none;
+  color: var(--tekst-3);
+  font: 800 0.7rem/1.3 var(--font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tl-bytt-par {
+  min-width: 0;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.tl-bytt-par i {
+  color: var(--aksent);
+  font-style: normal;
+}
+
+/* An example for the very first hint (under the hold button) */
+.tl-eksempel {
+  display: block;
+  margin-top: 3px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
 /* ---------- Headings on the play screens ---------- */
 
 .tl-hint-topp {
@@ -376,6 +513,11 @@
 
 .tl-under b {
   color: var(--tekst);
+}
+
+/* (under a heading in the same block: the block's own gap is enough) */
+.tl-hint-topp .tl-under {
+  margin-top: 0;
 }
 
 .tl-farge.rosa {
@@ -603,6 +745,21 @@
   color: var(--mynte);
 }
 
+/* The catch-up rule: full marks and still behind */
+.tl-igjen {
+  --lf: var(--rosa);
+  color: var(--tekst-2);
+  text-wrap: balance;
+}
+
+.tl-igjen.bla {
+  --lf: var(--himmel);
+}
+
+.tl-igjen b {
+  color: var(--lf);
+}
+
 .tl-resultat.venter {
   align-content: center;
 }
@@ -685,6 +842,13 @@
   width: 104px;
 }
 
+/* The sum (or the standing) and the line of words share the banner's last paragraph */
+.tl-banner .ingress {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
 .tl-total {
   color: var(--tekst-2);
   font: 800 1.1rem/1 var(--font-display);
@@ -727,6 +891,32 @@
 
 .tl-strek {
   color: var(--tekst-3);
+}
+
+.tl-vinnernavn {
+  color: var(--tekst-2);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* The record under the banner («Sammen») */
+.tl-rekord {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  margin-top: -8px;
+}
+
+.tl-rekord b {
+  color: var(--tekst);
+}
+
+.tl-rekord .stempel-sted {
+  min-height: 64px;
+}
+
+.tl-rekord .stempel {
+  font-size: clamp(1.5rem, 7.5vw, 2rem);
 }
 
 .tl-logg {
@@ -800,6 +990,18 @@
 .tl-logg-tekst small {
   color: var(--tekst-3);
   font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+/* The hint that was written down for the round */
+.tl-logg-hint {
+  color: var(--tekst);
+  font-weight: 700;
+}
+
+/* «Del resultatet» sits between the rounds and the other games */
+.skjerm-slutt > .knapp-2 {
+  margin-top: -6px;
 }
 
 .tl-logg-poeng {
@@ -812,9 +1014,31 @@
   font: 900 1rem/1 var(--font-display);
 }
 
+/* Room beside the card (tablets, computers and phones on their side): the hint sits to the
+   right of the card and takes no height from the dial. */
+@media (min-width: 768px), (orientation: landscape) and (max-height: 500px) {
+  .tl-kortrad {
+    flex-direction: row-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .tl-kortrad > .tl-kort {
+    flex: 2.2 1 0;
+    min-width: 0;
+  }
+
+  .tl-kortrad > .tl-hint {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+  }
+}
+
 /* Tablets and computers (the kit column is 620 px): keep the whole dial and its buttons on screen. */
 @media (min-width: 768px) {
-  .skjerm-skive .tl-skive {
+  .skjerm-skive .tl-skive,
+  .skjerm-utf .tl-skive {
     width: min(100%, calc((100vh - 530px) * 1.76));
     width: min(100%, calc((100dvh - 530px) * 1.76));
     min-width: 300px;
@@ -822,14 +1046,26 @@
   }
 
   .skjerm-hint .tl-skive {
-    width: min(100%, calc((100vh - 560px) * 1.76));
-    width: min(100%, calc((100dvh - 560px) * 1.76));
+    width: min(100%, calc((100vh - 566px) * 1.76));
+    width: min(100%, calc((100dvh - 566px) * 1.76));
     min-width: 300px;
+    align-self: center;
+  }
+
+  .skjerm-lag .tl-skive {
+    width: min(100%, calc((100vh - 640px) * 1.76));
+    width: min(100%, calc((100dvh - 640px) * 1.76));
+    min-width: 240px;
     align-self: center;
   }
 
   .tl-kort {
     font-size: 1.35rem;
+  }
+
+  /* (a card that shares its row with the hint: smaller letters, so no word has to break) */
+  .tl-kortrad > .tl-hint + .tl-kort {
+    font-size: 1.1rem;
   }
 }
 
@@ -864,12 +1100,19 @@
   .tl-mot {
     display: none;
   }
+
+  .tl-hint {
+    padding-inline: 10px;
+  }
 }
 
-/* Short phones: keep the dial and the ◀ ▶ buttons above the dock. */
+/* Short phones (a phone in the browser shows about 390 × 660): keep the dial, what is under it
+   and the hint field above the dock. */
 @media (max-height: 700px) {
   .skjerm-hint,
-  .skjerm-skive {
+  .skjerm-skive,
+  .skjerm-lag,
+  .skjerm-utf {
     gap: 10px;
   }
 
@@ -881,6 +1124,11 @@
   .tl-under {
     margin-top: -6px;
     font-size: 0.9rem;
+  }
+
+  /* The hint field asks the same thing («Hva sa …?») */
+  .skjerm-skive .tl-under.gjett {
+    display: none;
   }
 
   .tl-kort {
@@ -896,9 +1144,39 @@
     margin-top: -4px;
   }
 
+  .tl-hint {
+    min-height: 48px;
+  }
+
+  .tl-hint-felt {
+    height: 38px;
+    font-size: 1.3rem;
+  }
+
+  .tl-hint-tekst {
+    padding-block: 4px;
+    font-size: 1.3rem;
+  }
+
+  .tl-hint.lang1 .tl-hint-felt,
+  .tl-hint.lang1 .tl-hint-tekst {
+    font-size: 1.1rem;
+  }
+
+  .tl-hint.lang2 .tl-hint-felt,
+  .tl-hint.lang2 .tl-hint-tekst {
+    font-size: 1rem;
+  }
+
   .skjerm-hint .tl-skive {
     width: min(100%, calc((100vh - 390px) * 1.76));
     width: min(100%, calc((100dvh - 390px) * 1.76));
+    align-self: center;
+  }
+
+  .skjerm-lag .tl-skive {
+    width: min(100%, calc((100vh - 420px) * 1.76));
+    width: min(100%, calc((100dvh - 420px) * 1.76));
     align-self: center;
   }
 
@@ -906,13 +1184,19 @@
     min-height: 50px;
   }
 
-  .skjerm-hint .hjelp {
+  .skjerm-hint .hjelp,
+  .skjerm-lag .hjelp {
     font-size: 0.85rem;
   }
 
-  .skjerm-hint .dokk .lenke {
-    min-height: 36px;
-    padding-block: 6px;
+  /* Where every row counts, the first-time example stands alone */
+  .tl-lede {
+    display: none;
+  }
+
+  /* «Lag en utfordring»: the field is the last row; the button says what is missing */
+  .skjerm-lag #tl-kikk-hjelp {
+    display: none;
   }
 
   .tl-finknapp {
@@ -924,34 +1208,106 @@
   }
 
   .skjerm-skive .dokk,
-  .skjerm-hint .dokk {
+  .skjerm-hint .dokk,
+  .skjerm-lag .dokk,
+  .skjerm-utf .dokk {
     padding-top: 14px;
+  }
+}
+
+/* Short phones held upright: the result and the buttons under the dial need the row the hint
+   would take once it can no longer be typed (it comes back on «Kåringen»). */
+@media (max-height: 700px) and (max-width: 767px) and (orientation: portrait) {
+  .skjerm-skive .tl-hint.vist {
+    display: none;
+  }
+
+  /* Home: «Send en utfordring» and the record chip fit a phone in the browser (390 × 664) */
+  .skjerm-hjem .spillhjem .figur-ramme {
+    width: min(34vw, 128px);
+  }
+
+  .skjerm-hjem .hjem-knapper {
+    gap: 10px;
+  }
+
+  .skjerm-hjem .hjem-knapper .knapp-2 {
+    min-height: 50px;
+    padding-block: 8px;
+  }
+
+  .skjerm-hjem .hjem-knapper .lenke {
+    min-height: 38px;
+    padding-block: 6px;
+  }
+
+  .skjerm-hjem .merker {
+    padding-bottom: 12px;
   }
 }
 
 /* Very short screens (375 × 560): a smaller dial, so it and its buttons stay above the dock. */
 @media (max-height: 600px) {
-  .skjerm-skive .tl-skive,
-  .skjerm-hint .tl-skive {
+  .skjerm-skive .tl-skive {
     width: min(100%, calc((100vh - 330px) * 1.76));
     width: min(100%, calc((100dvh - 330px) * 1.76));
     min-width: 230px;
     align-self: center;
   }
 
-  .tl-hint-topp .etikett {
+  .skjerm-hint .tl-skive {
+    width: min(100%, calc((100vh - 380px) * 1.76));
+    width: min(100%, calc((100dvh - 380px) * 1.76));
+    min-width: 230px;
+    align-self: center;
+  }
+
+  /* (room for the field, and for a «Bytt til» button with a long card on it) */
+  .skjerm-lag .tl-skive {
+    width: min(100%, calc((100vh - 426px) * 1.76));
+    width: min(100%, calc((100dvh - 426px) * 1.76));
+    min-width: 220px;
+    align-self: center;
+  }
+
+  /* (the hint, two buttons side by side and a link: a little less dial) */
+  .skjerm-utf .tl-skive {
+    width: min(100%, calc((100vh - 420px) * 1.76));
+    width: min(100%, calc((100dvh - 420px) * 1.76));
+    min-width: 230px;
+    align-self: center;
+  }
+
+  .tl-hint-topp .etikett,
+  .tl-hint-topp .tl-under {
     display: none;
+  }
+}
+
+/* … and there the question over the dial gives its row to the hint field (the heading is
+   still there for screen readers; the top bar says whose round it is). */
+@media (max-height: 600px) and (orientation: portrait) {
+  .skjerm-skive .tl-sporsmal.gjett {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 
 /* The smallest phones (about 320 × 568): every pixel of height counts. */
 @media (max-height: 640px) {
   .skjerm-hint,
-  .skjerm-skive {
+  .skjerm-skive,
+  .skjerm-lag,
+  .skjerm-utf {
     gap: 8px;
   }
 
-  .skjerm-skive .tl-under {
+  .skjerm-skive .tl-under,
+  .skjerm-utf .tl-under {
     display: none;
   }
 
@@ -964,6 +1320,19 @@
     padding: 6px 10px;
   }
 
+  .tl-hint {
+    min-height: 44px;
+  }
+
+  .tl-hint-felt {
+    height: 34px;
+    font-size: 1.2rem;
+  }
+
+  .tl-hint-tekst {
+    font-size: 1.2rem;
+  }
+
   .tl-lagpoeng {
     padding: 6px 10px 9px;
   }
@@ -972,22 +1341,39 @@
     font-size: 1.25rem;
   }
 
+  /* (the second sentence under the hold button: «Hold inne igjen så ofte du vil.») */
+  .tl-mer {
+    display: none;
+  }
+
   .skjerm-skive .dokk,
-  .skjerm-hint .dokk {
+  .skjerm-hint .dokk,
+  .skjerm-lag .dokk,
+  .skjerm-utf .dokk {
     gap: 2px;
     padding-top: 10px;
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   }
 
   .skjerm-skive .dokk .knapp,
-  .skjerm-hint .dokk .knapp {
+  .skjerm-hint .dokk .knapp,
+  .skjerm-lag .dokk .knapp,
+  .skjerm-utf .dokk .knapp {
     min-height: 54px;
   }
 
   .skjerm-skive .dokk .lenke,
-  .skjerm-hint .dokk .lenke {
+  .skjerm-lag .dokk .lenke,
+  .skjerm-utf .dokk .lenke {
     min-height: 32px;
     padding-block: 4px;
+  }
+
+  .skjerm-hint .dokk .tl-bytt,
+  .skjerm-lag .dokk .tl-bytt {
+    min-height: 44px;
+    margin-top: 4px;
+    padding-block: 6px;
   }
 }
 
@@ -995,17 +1381,42 @@
 
 @media (orientation: landscape) and (max-height: 500px) {
   .skjerm-hint,
-  .skjerm-skive {
+  .skjerm-skive,
+  .skjerm-lag,
+  .skjerm-utf {
     gap: 6px;
+  }
+
+  /* The card shares its row with the hint here: letters that fit a narrow card */
+  .tl-kort,
+  .tl-kortrad > .tl-hint + .tl-kort {
+    font-size: 0.88rem;
+  }
+
+  .tl-hint .tl-hint-felt,
+  .tl-hint .tl-hint-tekst {
+    font-size: 1rem;
   }
 
   /* The dial has the column's whole height to share with the card over it and the result under
      it (no dock below any more): sized so the stamp and the line under it fit the screen too. */
   html[data-liggende="side"] .skjerm-skive .tl-skive,
-  html[data-liggende="side"] .skjerm-hint .tl-skive {
+  html[data-liggende="side"] .skjerm-hint .tl-skive,
+  html[data-liggende="side"] .skjerm-utf .tl-skive {
     width: min(100%, calc((100vh - 268px) * 1.76));
     width: min(100%, calc((100dvh - 268px) * 1.76));
     min-width: 150px;
+  }
+
+  /* (one row more here: the field for the hint) */
+  html[data-liggende="side"] .skjerm-lag .tl-skive {
+    width: min(100%, calc((100vh - 286px) * 1.76));
+    width: min(100%, calc((100dvh - 286px) * 1.76));
+    min-width: 150px;
+  }
+
+  html[data-liggende="side"] .skjerm-lag .tl-holdknapp {
+    min-height: 44px;
   }
 
   html[data-liggende="side"] .tl-resultat {

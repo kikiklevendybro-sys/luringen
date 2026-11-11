@@ -2,7 +2,11 @@
    The teller gets a theme, thinks of two true things and one lie, and either says them out loud
    or types them in secret (the app shuffles them into numbered cards). 3 · 2 · 1 – everyone
    shows 1, 2 or 3 fingers. The lie gets a big «LØGN!» stamp, everyone who guessed right gets a
-   point, and the teller gets a point for each player fooled — and a nose that grows. */
+   point, and the teller gets a point for each player fooled — and a nose that grows. Then the
+   teller is asked for the story behind one of the true claims.
+   «Lag en utfordring»: the same three claims packed into a link (…/lognhalsen/#u=…) for a friend
+   who is not in the room. Nothing is sent to a server, and a link that comes in is treated as
+   hostile text (see «A challenge in a link»). */
 (function () {
   "use strict";
 
@@ -11,21 +15,32 @@
   const esc = R.esc;
 
   const TEMAER = D.temaer;
-  const ALLE_TEMAER = TEMAER.map((t) => t.id);
   const tema = (id) => TEMAER.find((t) => t.id === id);
   const ALLE = [];
   TEMAER.forEach((t) => t.kort.forEach(([tekst, start]) => ALLE.push({ t: t.id, tekst, start })));
   const STOKK = R.kortstokk("temaer", ALLE.length);
   const MAKS = 100; // characters per typed claim
+  const MAKS_NAVN = 16;
+  const MANGE = 4; // listeners: from here «Hvem pekte på …?» gets the chips «Alle» / «Ingen» and the switch
+  const STOR_FRA = 9; // players: from here the setup offers «Stor gjeng»
+  const TIPS_ETTER = 3000; // ms before the coach line fades in
+  const JUL = "jul";
   // Which screen shows each phase of a turn. The private typing screen is never resumed
   // directly (after a reload or "Fortsett"): the phone is handed over again first.
   const SKJERM_FOR = { tema: "tur", gi: "gi", skriv: "gi", pek: "pek", velg: "avslor", klar: "avslor", hvem: "avslor", resultat: "resultat" };
 
   let H; // the actions, so one can call another
   let opptatt = false; // a countdown or reveal is running
+  let feire = false; // «Kåringen» is about to be shown for the first time
+  let nyssSvart = false; // a challenge was answered just now (sound on the reveal)
+  let ugyldigLenke = false; // a challenge link could not be read: say so on the home screen
 
   // ---------- Helpers ----------
 
+  const erObjekt = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  const heltall = (v, min, max) => Number.isInteger(v) && v >= min && v <= max;
+  const sum = (liste) => liste.reduce((s, v) => s + v, 0);
+  const pagar = (S) => !!S.spill && !S.spill.ferdig;
   const tellerAv = (sp) => (sp.start + sp.k) % sp.antall;
   const totalt = (sp) => sp.runder * sp.antall;
   const rundeNr = (sp) => Math.floor(sp.k / sp.antall) + 1;
@@ -33,16 +48,58 @@
     const t = tellerAv(sp);
     return Array.from({ length: sp.antall }, (_, i) => i).filter((i) => i !== t);
   };
-  const navneliste = (indekser) => {
-    const navn = indekser.map((i) => R.navn(i));
-    return navn.length < 2 ? navn.join("") : navn.slice(0, -1).join(", ") + " og " + navn[navn.length - 1];
-  };
+  const navneliste = (indekser) => R.ramsOpp(indekser.map((i) => R.navn(i)));
+  const rader = (sp) => Array.from({ length: sp.antall }, (_, i) => ({ i, poeng: sp.poeng[i] }));
   const ferdigSpilt = (sp) => sp.fase === "resultat" && sp.k + 1 >= totalt(sp);
   const tittel = (S) => (S.spill ? `Runde ${rundeNr(S.spill)} av ${S.spill.runder}` : "Løgnhalsen");
 
   function standardAntall() {
     const lagret = R.felles.navn.filter((n) => String(n || "").trim()).length;
     return R.klamp(lagret || 4, 3, 20);
+  }
+
+  // Up to five players tell twice, six or more once — until the stepper is used.
+  const standardRunder = (antall) => (antall >= 6 ? 1 : 2);
+  const runderFor = (S) => (S.oppsett.runderValgt ? S.oppsett.runder : standardRunder(S.antall));
+  // About two minutes a turn: «ca. 25 min», «ca. 1,5 timer».
+  function tidTekst(turer) {
+    const min = turer * 2;
+    if (min < 55) return `ca. ${Math.max(5, Math.round(min / 5) * 5)} min`;
+    const timer = Math.round(min / 30) / 2;
+    return `ca. ${String(timer).replace(".", ",")} ${timer === 1 ? "time" : "timer"}`;
+  }
+
+  // ---------- Themes and the «Jul» season ----------
+
+  // 1 November – 6 January (the date in Oslo, "YYYY-MM-DD"): the year the season started, else 0.
+  function julesesong(dag) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dag || ""));
+    if (!m) return 0;
+    const ar = Number(m[1]);
+    const mnd = Number(m[2]);
+    if (mnd >= 11) return ar;
+    return mnd === 1 && Number(m[3]) <= 6 ? ar - 1 : 0;
+  }
+  const sesong = () => julesesong(R.dag().tekst);
+  const standardTemaer = () => TEMAER.map((t) => t.id).filter((id) => id !== JUL);
+  // The order of the chips: «Jul» first during the season, last the rest of the year.
+  function temaRekke() {
+    const jul = tema(JUL);
+    const andre = TEMAER.filter((t) => t.id !== JUL);
+    return !jul ? andre : sesong() ? [jul, ...andre] : [...andre, jul];
+  }
+  // «Jul» is switched on once when the season starts (whoever switches it off keeps it off) and
+  // off again when the season is over (whoever switches it on by hand in June keeps it).
+  function julRegel(S) {
+    const ar = tema(JUL) ? sesong() : 0;
+    if (ar && S.jul !== ar) {
+      if (!S.oppsett.temaer.includes(JUL)) S.oppsett.temaer.push(JUL);
+      S.jul = ar;
+    } else if (!ar && S.jul) {
+      S.oppsett.temaer = S.oppsett.temaer.filter((id) => id !== JUL);
+      if (!S.oppsett.temaer.length) S.oppsett.temaer = standardTemaer();
+      S.jul = 0;
+    }
   }
 
   function trekkTema(sp) {
@@ -57,6 +114,7 @@
     sp.kort = null;
     sp.logn = null;
     sp.riktige = [];
+    sp.lurtAntall = 0;
     sp.fase = sp.modus === "skriv" ? "gi" : "tema";
     R.gaTil(sp.modus === "skriv" ? "gi" : "tur");
   }
@@ -69,14 +127,30 @@
     return R.ui.fremdrift(sp.antall, tellerAv(sp), ferdige);
   }
 
+  // The coach line: one tip per turn, in an order that is shuffled once per game. It fades in
+  // about three seconds after the teller got the theme, in room that is already there (nothing
+  // moves). A redraw of the same screen (a new theme) must not hide it again, so the time is
+  // counted from when the screen was entered (tur.ut / skriv.ut reset it).
+  let tipsFra = 0;
+  function tipsFor(sp) {
+    const liste = [...D.tips.felles, ...(D.tips[sp.modus] || [])];
+    const rekke = R.stokk(liste.map((_, i) => i), R.rng(sp.tipsFro >>> 0));
+    return liste[rekke[sp.k % liste.length]];
+  }
+  function tipsHtml(sp) {
+    if (!tipsFra) tipsFra = performance.now();
+    const igjen = Math.round(TIPS_ETTER - (performance.now() - tipsFra));
+    return `<span class="lh-tips${igjen <= 0 ? " vist" : ""}"${igjen > 0 ? ` style="animation-delay: ${igjen}ms"` : ""}><b>Tips:</b> ${esc(tipsFor(sp))}</span>`;
+  }
+
   function temaKort(sp) {
     const k = ALLE[sp.tema];
     const t = tema(k.t);
     return `<div class="lh-temakort">${R.ui.storkort({
       etikett: `${t.ikon} ${t.navn}`,
       tekst: k.tekst,
-      fotHtml: `Begynn for eksempel sånn: <b>«${esc(k.start)}»</b>`,
-      klasse: "lh-tema",
+      fotHtml: `Begynn for eksempel sånn: <b>«${esc(k.start)}»</b>${tipsHtml(sp)}`,
+      klasse: k.tekst.length > 34 ? "lh-tema lh-langt" : "lh-tema",
     })}</div>`;
   }
 
@@ -87,33 +161,39 @@
     return `<div class="lh-temaboks">
       <div class="lh-temaboks-tekst"><span class="etikett">${t.ikon} ${esc(t.navn)}</span><p>${esc(k.tekst)}</p></div>
       <button class="knapp-2 liten" data-h="nytt-tema" aria-label="Nytt tema"><span aria-hidden="true">🎲</span> Nytt</button>
+      ${tipsHtml(sp)}
     </div>`;
   }
 
   function temaSammendrag(S) {
-    const valgt = S.oppsett.temaer;
-    if (valgt.length === TEMAER.length) return "🎲 Alle temaer";
-    return valgt.map((id) => `${tema(id).ikon} ${tema(id).navn}`).join(" · ");
+    const rekke = temaRekke();
+    const valgt = rekke.filter((t) => S.oppsett.temaer.includes(t.id));
+    const uten = rekke.filter((t) => !S.oppsett.temaer.includes(t.id));
+    if (!uten.length) return "🎲 Alle temaer";
+    if (uten.length <= 2 && valgt.length > 2) return `🎲 Alle unntatt ${R.ramsOpp(uten.map((t) => t.navn))}`;
+    return valgt.map((t) => `${t.ikon} ${t.navn}`).join(" · ");
   }
 
   function temaArk(S) {
     return `
       <h2 id="ark-tittel">Velg temaer</h2>
       <p class="ingress">Temaene gir fortelleren noe å snakke om. Velg så mange dere vil.</p>
-      ${R.ui.brikker("temavalg", TEMAER.map((t) => ({ v: t.id, tekst: t.navn, ikon: t.ikon, antall: t.kort.length })), S.oppsett.temaer, { alle: true, etikett: "Temaer" })}
+      ${R.ui.brikker("temavalg", temaRekke().map((t) => ({ v: t.id, tekst: t.navn, ikon: t.ikon, antall: t.kort.length })), S.oppsett.temaer, { alle: true, etikett: "Temaer" })}
       <button class="knapp" data-h="lukk-ark">Ferdig</button>`;
   }
 
   // The three typed claims as numbered cards; after the reveal the lie gets the stamp.
-  function pastanderHtml(sp, avslort) {
+  // valgt: the card the receiver of a challenge tapped.
+  function pastanderHtml(sp, avslort, valgt) {
     return `<ol class="lh-pastander${avslort ? " avslort" : ""}">${sp.kort
       .map((tekst, i) => {
         const logn = avslort && i === sp.logn;
         const sant = avslort && i !== sp.logn;
-        return `<li class="lh-pastand${logn ? " logn" : ""}${sant ? " sant" : ""}">
+        const mitt = valgt === i;
+        return `<li class="lh-pastand${logn ? " logn" : ""}${sant ? " sant" : ""}${mitt ? " valgt" : ""}">
           <span class="lh-nr" aria-hidden="true">${i + 1}</span>
-          <p><span class="vh">Nummer ${i + 1}${logn ? ", løgnen" : sant ? ", sant" : ""}: </span>${esc(tekst)}</p>
-          ${logn ? `<span class="stempel lh-stempel" aria-hidden="true">Løgn!</span>` : ""}${sant ? `<span class="lh-sant" aria-hidden="true">Sant</span>` : ""}
+          <p><span class="vh">Nummer ${i + 1}${logn ? ", løgnen" : sant ? ", sant" : ""}${mitt ? ", ditt valg" : ""}: </span>${esc(tekst)}</p>
+          ${logn ? `<span class="stempel lh-stempel" aria-hidden="true">Løgn!</span>` : ""}${sant ? `<span class="lh-sant" aria-hidden="true">Sant</span>` : ""}${mitt ? `<span class="lh-mitt" aria-hidden="true">Ditt valg</span>` : ""}
         </li>`;
       })
       .join("")}</ol>`;
@@ -139,13 +219,73 @@
     }</span>`;
   }
 
-  function ferdigTekst(sp) {
-    const n = sp.riktige.length;
+  // ---------- Who was fooled? ----------
+  // Three ways to enter the same thing: tap those who guessed right, tap those who were fooled
+  // (the switch, remembered in the settings), or — «Stor gjeng» — just count the fooled.
+  // sp.riktige always holds the listeners who guessed right.
+
+  const erOmvendt = (S) => !!S.oppsett.lurte && !S.spill.stor && lyttere(S.spill).length >= MANGE;
+  const tomtValg = (S) => (erOmvendt(S) ? lyttere(S.spill) : []);
+  const antallLurt = (sp) => (sp.stor ? sp.lurtAntall : lyttere(sp).length - sp.riktige.length);
+
+  function ferdigTekst(S) {
+    const sp = S.spill;
     const alle = lyttere(sp).length;
-    if (!n) return "Ferdig – ingen hadde rett";
-    if (n === alle) return "Ferdig – alle hadde rett";
-    return `Ferdig – ${n} hadde rett`;
+    if (sp.stor || erOmvendt(S)) {
+      const n = antallLurt(sp);
+      return !n ? "Ferdig – ingen ble lurt" : n === alle ? "Ferdig – alle ble lurt" : `Ferdig – ${n} ble lurt`;
+    }
+    const n = sp.riktige.length;
+    return !n ? "Ferdig – ingen hadde rett" : n === alle ? "Ferdig – alle hadde rett" : `Ferdig – ${n} hadde rett`;
   }
+
+  const hurtigHtml = (alle, ingen) => `<div class="brikker lh-hurtig" role="group" aria-label="Hurtigvalg">
+      <button class="brikke" data-h="hurtig" data-v="alle" aria-pressed="${alle}">Alle</button>
+      <button class="brikke" data-h="hurtig" data-v="ingen" aria-pressed="${ingen}">Ingen</button>
+    </div>`;
+
+  function hvemHtml(S) {
+    const sp = S.spill;
+    const alle = lyttere(sp);
+    if (sp.stor) {
+      const n = sp.lurtAntall;
+      return `
+        <h1 id="skjerm-tittel">Hvor mange ble lurt?</h1>
+        <p class="hjelp">Alle som pekte på feil nummer, rekker opp hånda. Tell hendene.</p>
+        ${hurtigHtml(n === alle.length, n === 0)}
+        ${R.ui.teller("lurt-antall", n, 0, alle.length, { enhet: `av ${alle.length}`, minus: "Færre ble lurt", pluss: "Flere ble lurt" })}`;
+    }
+    const omvendt = erOmvendt(S);
+    const mange = alle.length >= MANGE;
+    const trykket = alle.filter((i) => sp.riktige.includes(i) !== omvendt);
+    // The switch sits under a short list of names and over a long one: in view either way.
+    const bryter = mange ? R.ui.bryter("lurte", omvendt, "Trykk heller på dem som ble lurt") : "";
+    const langListe = alle.length > 8;
+    return `
+      <h1 id="skjerm-tittel">${omvendt ? "Hvem ble lurt?" : `Hvem pekte på nr. ${sp.logn + 1}?`}</h1>
+      <p class="hjelp">${omvendt ? "Trykk på alle som pekte på feil nummer." : "Trykk på alle som gjettet riktig."}</p>
+      ${langListe ? bryter : ""}
+      ${mange ? hurtigHtml(trykket.length === alle.length, !trykket.length) : ""}
+      ${R.ui.velgere("riktig", alle, trykket)}
+      ${langListe ? "" : bryter}`;
+  }
+
+  // Redraw only the question under the reveal (a full redraw would stamp «LØGN!» again on every
+  // tap), keep the focus on the control that was tapped, and save.
+  function tegnHvem(S, el) {
+    const boks = R.$("#lh-hvem");
+    if (!boks) return R.vis();
+    boks.innerHTML = hvemHtml(S);
+    const knapp = R.$("#lh-ferdig-tur");
+    if (knapp) knapp.textContent = ferdigTekst(S);
+    if (el && el.dataset && el.dataset.h) {
+      const igjen = boks.querySelector(`[data-h="${CSS.escape(el.dataset.h)}"]${el.dataset.v != null ? `[data-v="${CSS.escape(el.dataset.v)}"]` : ""}`);
+      if (igjen && !igjen.disabled) igjen.focus({ preventScroll: true });
+    }
+    R.lagre();
+  }
+
+  // ---------- «Kåringen» ----------
 
   function topp(liste, minst) {
     const verdier = liste.filter((v) => v != null);
@@ -159,19 +299,216 @@
     return { verdi: mal, hvem };
   }
 
-  function prisHtml(ikon, overskrift, vinner, tekst, farge) {
+  function prisHtml(ikon, overskrift, vinner, tekst, farge, merke) {
     return `<li class="lh-pris" style="--vf: ${farge}">
       <span class="lh-pris-ikon" aria-hidden="true">${ikon}</span>
       <span class="lh-pris-tekst"><span class="etikett">${esc(overskrift)}</span><b>${esc(vinner)}</b><span>${esc(tekst)}</span></span>
+      ${merke ? `<span class="lh-rekord">${esc(merke)}</span>` : ""}
     </li>`;
   }
 
-  // Enter in a claim field moves on to the next one (the last one closes the keyboard).
+  // The game is over (played to the end or ended early): from now on it is not «in progress».
+  // Runs once per game, before «Kåringen» is shown the first time: statistics, the evening's
+  // scoreboard and the record (the most people one player has fooled in one game on this phone).
+  function fullfor(S) {
+    const sp = S.spill;
+    if (!sp || sp.feiret) return;
+    sp.ferdig = true;
+    sp.feiret = true;
+    const turer = sum(sp.fortalt);
+    R.statistikk("ferdig", { runder: Math.floor(turer / sp.antall), turer, avbrutt: turer < totalt(sp), modus: sp.modus, spillere: sp.antall, stor: !!sp.stor });
+    feire = true;
+    if (!turer) return;
+    R.kveld.registrer(rader(sp));
+    const best = Math.max(...sp.lurt);
+    sp.gmlRekord = S.rekord;
+    sp.rekord = S.rekord > 0 && best > S.rekord; // the very first game sets the record quietly
+    if (best > S.rekord) S.rekord = best;
+  }
+
+  // One or two short lines: the winner and the awards. First names only — never a claim.
+  function delTekst(sp) {
+    const navn = (hvem) => (hvem.length > 3 ? `${hvem.slice(0, 2).map((i) => R.navn(i)).join(", ")} og ${hvem.length - 2} til` : navneliste(hvem));
+    const vinner = topp(sp.poeng);
+    const mester = topp(sp.lurt);
+    const detektiv = sp.stor ? null : topp(sp.treff);
+    const linjer = [`Løgnhalsen 🤥 ${vinner ? `${navn(vinner.hvem)} vant med ${R.flertall(vinner.verdi, "poeng", "poeng")}.` : "Ingen ble lurt i dag."}`];
+    const priser = [];
+    if (mester) priser.push(`Mesterløgner: ${navn(mester.hvem)} – lurte ${mester.verdi}`);
+    if (detektiv) priser.push(`Løgndetektor: ${navn(detektiv.hvem)} – avslørte ${detektiv.verdi}`);
+    if (priser.length) linjer.push(priser.join(" · "));
+    return linjer.join("\n");
+  }
+
+  // ---------- A challenge in a link ----------
+  // …/lognhalsen/#u=<base64url>. Bytes: the version, four check bytes, then the body XOR-ed with
+  // a stream seeded by the check — so neither the claims nor the lie's place can be read in the
+  // address. Body: the lie's place (0–2), then name, claim 1, claim 2 and claim 3 as UTF-8 with a
+  // line feed between them. The claims are shuffled when the link is made.
+  // FROZEN: links that are already sent must keep working. Never change these helpers or the
+  // layout of version 1 — add a version instead.
+
+  const U_VER = 1;
+  const U_MAKS = 1900; // characters after «u=» (the kit hands vedHash at most 2 000)
+  const U_BYTES = 320; // UTF-8 bytes per claim when a link is made (100 emoji would be 400)
+  const U_TEKST = "To sannheter og en løgn om meg 🤥 Finner du løgnen?";
+
+  function uSjekk(bytes) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < bytes.length; i++) {
+      h ^= bytes[i];
+      h = Math.imul(h, 0x01000193);
+    }
+    h ^= 0x4c48; // "LH": a check from another game's link never fits
+    h = Math.imul(h, 0x01000193);
+    h ^= h >>> 16;
+    h = Math.imul(h, 0x85ebca6b);
+    h ^= h >>> 13;
+    h = Math.imul(h, 0xc2b2ae35);
+    h ^= h >>> 16;
+    return h >>> 0;
+  }
+  function uMaske(bytes, fro) {
+    let a = fro >>> 0;
+    const ut = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      ut[i] = bytes[i] ^ (((t ^ (t >>> 14)) >>> 0) & 255);
+    }
+    return ut;
+  }
+  function tilB64(bytes) {
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function fraB64(tekst) {
+    try {
+      const bin = atob(tekst.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((tekst.length + 3) % 4));
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return bytes;
+    } catch (e) {
+      return null;
+    }
+  }
+  const utf8 = (tekst) => new TextEncoder().encode(tekst);
+
+  // Text that somebody typed — here or in a link from anywhere — before it is packed or shown:
+  // no control or invisible formatting characters (line breaks, direction overrides, zero-width
+  // and tag characters, private use, blank fillers), no towers of combining marks, single spaces,
+  // at most `maks` characters. The joiner inside an emoji (U+200D, as in «woman astronaut») is
+  // kept where the browser can tell. The result is still only text: every screen writes it with
+  // esc(), never as a link.
+  // (None of these characters is written in this file. They are made from their numbers, so an
+  // editor can neither hide nor drop them.)
+  const LIM = String.fromCodePoint(0x200d); // the zero-width joiner
+  const MERKE = String.fromCodePoint(0xe000); // private use: free as a marker once those are removed
+  const ALLE_LIM = new RegExp(LIM, "g");
+  const ALLE_MERKER = new RegExp(MERKE, "g");
+  let USYNLIG;
+  let TARN = null;
+  let EMOJI_LIM = null;
+  let IKKE_NAVN;
+  try {
+    USYNLIG = new RegExp("(?!\\u200D)[\\p{Cc}\\p{Cf}\\p{Co}\\p{Cs}\\p{Zl}\\p{Zp}\\u115F\\u1160\\u2800\\u3164\\uFFA0\\uFFFC\\uFE00-\\uFE0E\\u{E0100}-\\u{E01EF}]", "gu");
+    TARN = new RegExp("(\\p{M}{3})\\p{M}+", "gu");
+    EMOJI_LIM = new RegExp("(\\p{Extended_Pictographic}[\\uFE0F\\u{1F3FB}-\\u{1F3FF}]?)\\u200D(?=\\p{Extended_Pictographic})", "gu");
+    // A first name: letters, marks, emoji, space, hyphen and apostrophe — no dots, slashes or digits.
+    IKKE_NAVN = new RegExp("[^\\p{L}\\p{M}\\p{Extended_Pictographic}\\u200D\\uFE0F\\u{1F3FB}-\\u{1F3FF} '\\u2019-]", "gu");
+  } catch (e) {
+    // A browser without Unicode properties in regular expressions: the ranges that matter.
+    // (The joiner is dealt with in rens(); without EMOJI_LIM every one of them is removed.)
+    USYNLIG = new RegExp("[\\u0000-\\u001f\\u007f-\\u009f\\u00ad\\u061c\\u115f\\u1160\\u180e\\u200b\\u200c\\u200e\\u200f\\u2028-\\u202e\\u2060-\\u206f\\u2800\\u3164\\ue000-\\uf8ff\\ufe00-\\ufe0e\\ufeff\\uffa0\\ufff0-\\ufffc]", "g");
+    IKKE_NAVN = new RegExp("[\\u0021-\\u0026\\u0028-\\u002c\\u002e-\\u0040\\u005b-\\u0060\\u007b-\\u00bf\\u2000-\\u2018\\u201a-\\u2bff]", "g");
+  }
+  function rens(tekst, maks) {
+    let t = String(tekst == null ? "" : tekst);
+    try {
+      t = t.normalize("NFC");
+    } catch (e) {
+      /* keep it as it is */
+    }
+    t = t.replace(/\s+/g, " ").replace(USYNLIG, "");
+    // What is left of the joiner: keep it inside an emoji, drop it everywhere else.
+    if (EMOJI_LIM) t = t.replace(EMOJI_LIM, "$1" + MERKE);
+    t = t.replace(ALLE_LIM, "").replace(ALLE_MERKER, LIM);
+    if (TARN) t = t.replace(TARN, "$1");
+    return R.kutt(t.replace(/ {2,}/g, " ").trim(), maks).trim();
+  }
+  const rensNavn = (tekst) => R.kutt(rens(tekst, 40).replace(IKKE_NAVN, "").replace(/ {2,}/g, " ").trim(), MAKS_NAVN).trim();
+  // Whole characters only, until the text fits in `maks` UTF-8 bytes.
+  function kuttBytes(tekst, maks) {
+    let t = tekst;
+    for (let n = Array.from(t).length; n > 0 && utf8(t).length > maks; n--) t = R.kutt(t, n - 1).trim();
+    return t;
+  }
+
+  // { navn, kort: [three claims in the order they are shown], logn: 0–2 } → "u=…"
+  function lagUtfordring(u) {
+    const tekst = utf8([u.navn, ...u.kort].join("\n"));
+    const kropp = new Uint8Array(tekst.length + 1);
+    kropp[0] = u.logn;
+    kropp.set(tekst, 1);
+    const medVersjon = new Uint8Array(kropp.length + 1);
+    medVersjon[0] = U_VER;
+    medVersjon.set(kropp, 1);
+    const sjekk = uSjekk(medVersjon);
+    const ut = new Uint8Array(kropp.length + 5);
+    ut[0] = U_VER;
+    ut[1] = sjekk >>> 24;
+    ut[2] = (sjekk >>> 16) & 255;
+    ut[3] = (sjekk >>> 8) & 255;
+    ut[4] = sjekk & 255;
+    ut.set(uMaske(kropp, sjekk), 5);
+    return "u=" + tilB64(ut);
+  }
+
+  // "u=…" → { v (the link's own text), navn, kort, logn }, or null for anything that is not a
+  // whole, valid link. Punctuation that a chat app glued to the end is ignored.
+  function lesUtfordring(fragment) {
+    const m = /^u=([A-Za-z0-9_-]{16,})[\s.,;:!?)\]}>»"']*$/.exec(String(fragment == null ? "" : fragment));
+    if (!m || m[1].length > U_MAKS) return null;
+    const bytes = fraB64(m[1]);
+    if (!bytes || bytes.length < 12 || bytes[0] !== U_VER || tilB64(bytes) !== m[1]) return null;
+    const sjekk = ((bytes[1] << 24) | (bytes[2] << 16) | (bytes[3] << 8) | bytes[4]) >>> 0;
+    const kropp = uMaske(bytes.subarray(5), sjekk);
+    const medVersjon = new Uint8Array(kropp.length + 1);
+    medVersjon[0] = U_VER;
+    medVersjon.set(kropp, 1);
+    if (uSjekk(medVersjon) !== sjekk || kropp[0] > 2) return null;
+    let tekst;
+    try {
+      tekst = new TextDecoder("utf-8", { fatal: true }).decode(kropp.subarray(1));
+    } catch (e) {
+      return null;
+    }
+    const deler = tekst.split("\n");
+    if (deler.length !== 4) return null;
+    const kort = deler.slice(1).map((t) => rens(t, MAKS));
+    if (kort.some((t) => !t)) return null;
+    return { v: "u=" + m[1], navn: rensNavn(deler[0]), kort, logn: kropp[0] };
+  }
+
+  const lenkeTil = (v) => location.origin + location.pathname + "#" + v;
+  const delUtfordring = (S) => R.del("Løgnhalsen", U_TEKST, lenkeTil(S.utf.lenke));
+  // The three claims of the draft as they will be sent, or a message about what is missing.
+  function utkastKlart(S) {
+    const kort = S.utf.utkast.t.map((t) => kuttBytes(rens(t, MAKS), U_BYTES));
+    if (kort.some((t) => !t)) return { feil: "Skriv alle tre påstandene først" };
+    if (new Set(kort.map((t) => R.normaliser(t) || t)).size < 3) return { feil: "To av påstandene er like" };
+    return { kort };
+  }
+
+  // Enter in a claim field moves on to the next field (the last one closes the keyboard).
   document.addEventListener("keydown", (e) => {
     const el = e.target;
-    if (e.key !== "Enter" || e.shiftKey || !el || !el.matches || !el.matches(".lh-felt textarea")) return;
+    if (e.key !== "Enter" || e.shiftKey || !el || !el.matches || !el.matches(".lh-felt textarea, .lh-felt input")) return;
     e.preventDefault();
-    const neste = document.getElementById(`lh-felt-${Number(el.dataset.i) + 1}`);
+    const felter = R.$$(".lh-felt textarea, .lh-felt input");
+    const neste = felter[felter.indexOf(el) + 1];
     if (neste) neste.focus();
     else el.blur();
   });
@@ -182,45 +519,90 @@
     id: "lognhalsen",
     versjon: 1,
     liggende: true, // landscape phones: the kit may move every dock to the side column, also those with the game's own buttons in them
-    pagar: (S) => !!S.spill && S.skjerm !== "slutt" && !ferdigSpilt(S.spill),
+    pagar,
 
     tilstand: () => ({
       antall: standardAntall(),
-      oppsett: { modus: "hoyt", runder: 2, temaer: ALLE_TEMAER.slice() },
+      oppsett: { modus: "hoyt", runder: 2, runderValgt: false, stor: false, lurte: false, temaer: standardTemaer() },
+      jul: 0, // the year of the «Jul» season that has switched the pack on (see julRegel)
+      rekord: 0, // the most people one player has fooled in one game on this phone
+      // Challenges live apart from the party game: opening or making one never touches S.spill.
+      utf: { utkast: { t: ["", "", ""], navn: "" }, lenke: "", mottatt: null },
       spill: null,
     }),
 
     lastet(S) {
-      S.oppsett = Object.assign({ modus: "hoyt", runder: 2, temaer: ALLE_TEMAER.slice() }, S.oppsett || {});
-      if (!["hoyt", "skriv"].includes(S.oppsett.modus)) S.oppsett.modus = "hoyt";
-      S.oppsett.runder = R.klamp(Number(S.oppsett.runder) || 2, 1, 5);
-      S.oppsett.temaer = (Array.isArray(S.oppsett.temaer) ? S.oppsett.temaer : []).filter((id) => tema(id));
-      if (!S.oppsett.temaer.length) S.oppsett.temaer = ALLE_TEMAER.slice();
-      S.antall = R.klamp(Number(S.antall) || standardAntall(), 3, 20);
+      const o = (S.oppsett = Object.assign({ modus: "hoyt", runder: 2, stor: false, lurte: false, temaer: standardTemaer() }, erObjekt(S.oppsett) ? S.oppsett : {}));
+      if (!["hoyt", "skriv"].includes(o.modus)) o.modus = "hoyt";
+      o.runder = R.klamp(Math.round(Number(o.runder)) || 2, 1, 5);
+      // Saved before the rounds followed the group size: 2 was the default, anything else was chosen.
+      if (typeof o.runderValgt !== "boolean") o.runderValgt = o.runder !== 2;
+      o.stor = o.stor === true;
+      o.lurte = o.lurte === true;
+      o.temaer = Array.from(new Set((Array.isArray(o.temaer) ? o.temaer : []).filter((id) => tema(id))));
+      if (!o.temaer.length) o.temaer = standardTemaer();
+      S.jul = heltall(S.jul, 1, 9999) ? S.jul : 0;
+      julRegel(S);
+      S.antall = R.klamp(Math.round(Number(S.antall)) || standardAntall(), 3, 20);
+      S.rekord = heltall(S.rekord, 1, 999) ? S.rekord : 0;
+
+      // Challenges: the draft is plain text; a link (made or received) is kept as the link's own
+      // text and read through lesUtfordring every time, so there is one place that validates it.
+      const u = erObjekt(S.utf) ? S.utf : {};
+      const utkast = erObjekt(u.utkast) ? u.utkast : {};
+      const tekster = Array.isArray(utkast.t) ? utkast.t : [];
+      S.utf = {
+        utkast: { t: [0, 1, 2].map((i) => R.kutt(typeof tekster[i] === "string" ? tekster[i] : "", MAKS)), navn: R.kutt(typeof utkast.navn === "string" ? utkast.navn : "", MAKS_NAVN) },
+        lenke: typeof u.lenke === "string" && lesUtfordring(u.lenke) ? u.lenke : "",
+        mottatt: erObjekt(u.mottatt) && typeof u.mottatt.v === "string" && lesUtfordring(u.mottatt.v) ? { v: u.mottatt.v, valgt: heltall(u.mottatt.valgt, 0, 2) ? u.mottatt.valgt : null } : null,
+      };
+
       const sp = S.spill;
       if (sp) {
-        const lister = ["poeng", "lurt", "treff", "fortalt"].every((n) => Array.isArray(sp[n]) && sp[n].length === sp.antall);
+        const lister = erObjekt(sp) && ["poeng", "lurt", "treff", "fortalt"].every((n) => Array.isArray(sp[n]) && sp[n].length === sp.antall && sp[n].every((v) => heltall(v, 0, 9999)));
         const ok =
-          Number.isInteger(sp.antall) && sp.antall >= 3 && sp.antall <= 20 && ["hoyt", "skriv"].includes(sp.modus) &&
-          Number.isInteger(sp.runder) && Number.isInteger(sp.k) && sp.k >= 0 && sp.k < sp.runder * sp.antall &&
-          Number.isInteger(sp.start) && lister && !!ALLE[sp.tema] && Array.isArray(sp.temaer);
+          lister && heltall(sp.antall, 3, 20) && ["hoyt", "skriv"].includes(sp.modus) && heltall(sp.runder, 1, 5) && heltall(sp.k, 0, sp.runder * sp.antall - 1) &&
+          heltall(sp.start, 0, sp.antall - 1) && !!ALLE[sp.tema] && Array.isArray(sp.temaer) && typeof sp.fase === "string" && !!SKJERM_FOR[sp.fase];
         if (!ok) S.spill = null;
         else {
           sp.temaer = sp.temaer.filter((id) => tema(id));
-          if (!sp.temaer.length) sp.temaer = ALLE_TEMAER.slice();
-          sp.riktige = (Array.isArray(sp.riktige) ? sp.riktige : []).filter((i) => Number.isInteger(i) && i >= 0 && i < sp.antall);
-          const harKort = Array.isArray(sp.kort) && sp.kort.length === 3 && sp.logn >= 0 && sp.logn <= 2;
+          if (!sp.temaer.length) sp.temaer = standardTemaer();
+          sp.ferdig = sp.ferdig === true;
+          sp.feiret = sp.feiret === true;
+          sp.stor = sp.stor === true && sp.antall >= STOR_FRA;
+          if (!Number.isInteger(sp.tipsFro)) sp.tipsFro = 1;
+          const alle = lyttere(sp);
+          sp.riktige = Array.from(new Set(Array.isArray(sp.riktige) ? sp.riktige : [])).filter((i) => alle.includes(i));
+          sp.lurtAntall = heltall(sp.lurtAntall, 0, alle.length) ? sp.lurtAntall : 0;
+          const harLogn = heltall(sp.logn, 0, 2);
+          const harKort = harLogn && Array.isArray(sp.kort) && sp.kort.length === 3 && sp.kort.every((t) => typeof t === "string" && !!t);
+          if (harKort) sp.kort = sp.kort.map((t) => R.kutt(t, MAKS));
+          else sp.kort = null;
+          // A phase that does not belong to the mode starts the turn again.
+          if (sp.modus === "hoyt" && ["gi", "skriv", "pek", "klar"].includes(sp.fase)) sp.fase = "tema";
+          if (sp.modus === "skriv" && ["tema", "velg"].includes(sp.fase)) sp.fase = "gi";
           // A typed round without its cards (or the private typing screen) goes back to the hand-over.
           if (sp.modus === "skriv" && ["pek", "klar", "hvem"].includes(sp.fase) && !harKort) sp.fase = "gi";
-          if (sp.modus === "hoyt" && sp.fase === "hvem" && !(sp.logn >= 0 && sp.logn <= 2)) sp.fase = "velg";
+          if (sp.modus === "hoyt" && sp.fase === "hvem" && !harLogn) sp.fase = "velg";
+          const r = sp.siste;
+          const sisteOk = erObjekt(r) && heltall(r.teller, 0, sp.antall - 1) && heltall(r.av, 1, sp.antall - 1) && heltall(r.lurt, 0, r.av) && Array.isArray(r.riktige) && r.riktige.every((i) => heltall(i, 0, sp.antall - 1));
+          if (!sisteOk) sp.siste = null;
+          // The story line needs a true claim: its number, and in "Skriv inn" the cards too.
+          else if (!(heltall(r.sann, 0, 2) && harLogn && r.sann !== sp.logn && (sp.modus === "hoyt" || harKort))) r.sann = null;
           if (sp.fase === "resultat" && !sp.siste) sp.fase = sp.modus === "skriv" ? "gi" : "tema";
-          if (!Array.isArray(sp.utkast) || sp.utkast.length !== 3) sp.utkast = ["", "", ""];
+          sp.utkast = [0, 1, 2].map((i) => R.kutt(Array.isArray(sp.utkast) && typeof sp.utkast[i] === "string" ? sp.utkast[i] : "", MAKS));
+          sp.rekord = sp.rekord === true;
+          sp.gmlRekord = heltall(sp.gmlRekord, 0, 999) ? sp.gmlRekord : 0;
         }
       }
       // Keep the saved screen in step with the turn (the private typing screen itself is sent
       // back to the hand-over by its gjenoppta: "gi").
-      if (["tur", "gi", "pek", "avslor", "resultat"].includes(S.skjerm)) S.skjerm = S.spill ? SKJERM_FOR[S.spill.fase] || "hjem" : "hjem";
+      if (["tur", "gi", "skriv", "pek", "avslor", "resultat"].includes(S.skjerm)) S.skjerm = pagar(S) ? SKJERM_FOR[S.spill.fase] || "hjem" : "hjem";
       if (S.skjerm === "slutt" && !S.spill) S.skjerm = "hjem";
+      // Saved on «Kåringen» before a game was marked as finished there: it is finished.
+      if (S.skjerm === "slutt" && S.spill && !S.spill.ferdig) S.spill.ferdig = S.spill.feiret = true;
+      if (S.skjerm === "sendt" && !S.utf.lenke) S.skjerm = "hjem";
+      if (S.skjerm === "svar" && !S.utf.mottatt) S.skjerm = "hjem";
     },
 
     regler: {
@@ -232,10 +614,29 @@
       ],
       tips: [
         "Den beste løgnen er nesten sann. Den beste sannheten høres helt sprø ut.",
+        "Etter hver tur ber appen om historien bak en av de sanne påstandene – det er ofte det morsomste.",
         "Liker du ikke temaet? Trykk «Nytt tema».",
-        "Fortell gjerne historien bak de sanne påstandene etterpå – det er ofte det morsomste.",
+        "Er dere mange? Fra ni spillere kan dere velge «Stor gjeng» og bare telle hvor mange som ble lurt.",
+        "Vil du lure noen som ikke er her? Trykk «Lag en utfordring» og send lenken.",
         "Du trenger ikke fortelle noe du ikke vil. Hold det hyggelig.",
       ],
+    },
+
+    // A challenge link: …/lognhalsen/#u=… (anything else after # is not ours and is left alone).
+    vedHash(S, hash) {
+      const ra = (location.hash || "").slice(1);
+      if (!/^u=/.test(hash) && !/^u(=|%3d)/i.test(ra)) return null;
+      const u = lesUtfordring(hash);
+      if (!u) {
+        ugyldigLenke = true;
+        return "hjem";
+      }
+      // The same link again shows the answer that was given; a new one replaces the old.
+      if (!S.utf.mottatt || S.utf.mottatt.v !== u.v) {
+        S.utf.mottatt = { v: u.v, valgt: null };
+        R.statistikk("utfordring", { steg: "apnet" });
+      }
+      return "svar";
     },
 
     skjermer: {
@@ -245,22 +646,26 @@
           R.ui.spillhjem({
             slagordHtml: "Si tre ting om deg selv.<br>To er sanne. <em>Én er løgn.</em>",
             knapperHtml: R.ui.startKnapper({
-              pagar: !!S.spill && !ferdigSpilt(S.spill),
-              fortsettTekst: S.spill ? `Fortsett · runde ${rundeNr(S.spill)} av ${S.spill.runder}` : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              pagar: pagar(S),
+              fortsettTekst: pagar(S) ? `Fortsett · runde ${rundeNr(S.spill)} av ${S.spill.runder}` : "",
+              ekstraHtml: R.ui.knapp2("Lag en utfordring", "utfordre") + R.ui.lenke("Slik spiller du", "regler"),
             }),
-            merker: [
-              ["3–20", "spillere"],
-              [String(ALLE.length), "kort"],
-              ["0", "reklame"],
-            ],
+            merker: [...(S.rekord ? [["REKORD", `lurte ${S.rekord}`]] : []), ["3–20", "spillere"], [String(ALLE.length), "kort"], ["0", "reklame"]],
           }),
+        inn() {
+          if (!ugyldigLenke) return;
+          ugyldigLenke = false;
+          R.toast("Lenken er ikke gyldig");
+        },
       },
 
       oppsett: {
         tittel: "Nytt spill",
         tilbake: "hjem",
-        vis: (S) => `
+        vis(S) {
+          const runder = runderFor(S);
+          const turer = runder * S.antall;
+          return `
           <h1 id="skjerm-tittel">Gjør klart</h1>
           <section class="seksjon">
             <h2>Hvordan forteller dere?</h2>
@@ -274,16 +679,18 @@
             )}
           </section>
           ${R.ui.spillere({ min: 3, max: 20 })}
+          ${S.antall >= STOR_FRA ? R.ui.bryter("stor", S.oppsett.stor, "Stor gjeng", "Tell bare hvor mange som ble lurt – ingen navn å trykke på. Da er det bare fortelleren som får poeng.") : ""}
           <section class="seksjon">
-            <div class="seksjon-hode"><h2>Antall runder</h2><span class="tall">${S.oppsett.runder * S.antall} turer</span></div>
-            ${R.ui.teller("runder", S.oppsett.runder, 1, 5, { enhet: S.oppsett.runder === 1 ? "runde" : "runder", minus: "Færre runder", pluss: "Flere runder" })}
+            <div class="seksjon-hode"><h2>Runder</h2><span class="tall" id="lh-lengde">${R.flertall(turer, "tur", "turer")} · ${tidTekst(turer)}</span></div>
+            ${R.ui.teller("runder", runder, 1, 5, { enhet: runder === 1 ? "runde" : "runder", minus: "Færre runder", pluss: "Flere runder" })}
             <p class="hjelp">Alle forteller én gang per runde.</p>
           </section>
           <section class="seksjon">
             <div class="seksjon-hode"><h2>Temaer</h2><span class="tall">${S.oppsett.temaer.length} av ${TEMAER.length}</span></div>
             <button class="knapp-2 lh-temaknapp" data-h="vis-temaer"><span class="lh-temaknapp-tekst">${esc(temaSammendrag(S))}</span><span class="lh-endre">Endre</span></button>
           </section>
-          ${R.ui.dokk(R.ui.knapp("Start", "start"))}`,
+          ${R.ui.dokk(R.ui.knapp("Start", "start"))}`;
+        },
       },
 
       // "Si det høyt": the teller sees the theme, thinks, says the three claims out loud.
@@ -297,7 +704,7 @@
             ${fremdrift(sp)}
             <div class="lh-teller">${R.avatar(t, "stor")}<div><p class="etikett">Nå forteller</p><h1 id="skjerm-tittel">${esc(R.navn(t))}</h1></div></div>
             ${temaKort(sp)}
-            ${R.ui.lenkerad(R.ui.lenke("🎲 Nytt tema", "nytt-tema"))}
+            ${R.ui.lenkerad(R.ui.lenke("🎲 Nytt tema", "nytt-tema"), R.ui.lenke("Avslutt", "avslutt"))}
             <div class="lh-oppskrift" aria-hidden="true"><span>1</span><span>2</span><span>3</span></div>
             ${R.ui.dokk(
               `<p class="hjelp">Tenk ut to sanne ting og en løgn. Si dem høyt som nummer 1, 2 og 3.</p>`,
@@ -306,6 +713,9 @@
         },
         inn(S) {
           S.spill.skjerm = "tur";
+        },
+        ut() {
+          tipsFra = 0;
         },
       },
 
@@ -316,7 +726,10 @@
         vis(S) {
           const sp = S.spill;
           const t = tellerAv(sp);
-          return `${fremdrift(sp)}${R.ui.giTil({ i: t, h: "jeg-er", tekst: "Gi mobilen til", knapp: `Jeg er ${R.navn(t)}`, advarsel: "De andre ser bort mens du skriver" })}`;
+          const html = `${fremdrift(sp)}${R.ui.giTil({ i: t, h: "jeg-er", tekst: "Gi mobilen til", knapp: `Jeg er ${R.navn(t)}`, advarsel: "De andre ser bort mens du skriver" })}`;
+          // «Avslutt» under the kit's own button: the dock is the last thing in the kit's markup.
+          const slutt = html.lastIndexOf("</div>");
+          return html.slice(0, slutt) + R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")) + html.slice(slutt);
         },
         inn(S) {
           S.spill.skjerm = "gi";
@@ -351,6 +764,9 @@
         },
         inn(S) {
           S.spill.skjerm = "skriv";
+        },
+        ut() {
+          tipsFra = 0;
         },
       },
 
@@ -398,17 +814,13 @@
               <div class="lh-teller liten">${R.avatar(t, "mid")}<div><p class="etikett">${esc(R.navn(t))} forteller</p><p class="lh-tema-linje">${esc(ALLE[sp.tema].tekst)}</p></div></div>
               <h1 id="skjerm-tittel">Fingrene opp!</h1>
               ${pastanderHtml(sp, false)}
-              ${R.ui.dokk(R.ui.knapp("Vis løgnen!", "vis-logn", { variant: "stor", ikon: "🤥" }))}`;
+              ${R.ui.dokk(R.ui.knapp("Vis løgnen!", "vis-logn", { variant: "stor" }))}`;
           }
           return `
             ${sp.modus === "skriv" ? pastanderHtml(sp, true) : tallHtml(sp)}
-            <section class="seksjon lh-hvem">
-              <h1 id="skjerm-tittel">Hvem pekte på nr. ${sp.logn + 1}?</h1>
-              <p class="hjelp">Trykk på alle som gjettet riktig.</p>
-              ${R.ui.velgere("riktig", lyttere(sp), sp.riktige)}
-            </section>
+            <section class="seksjon lh-hvem" id="lh-hvem">${hvemHtml(S)}</section>
             ${R.ui.dokk(
-              R.ui.knapp(ferdigTekst(sp), "ferdig", { id: "lh-ferdig-tur" }),
+              R.ui.knapp(ferdigTekst(S), "ferdig", { id: "lh-ferdig-tur" }),
               sp.modus === "hoyt" ? R.ui.lenkerad(R.ui.lenke("Feil nummer? Velg på nytt", "angre-logn")) : "",
             )}`;
         },
@@ -427,20 +839,24 @@
           const overskrift = r.lurt === 0 ? "Avslørt!" : r.lurt === r.av ? "Lurte alle sammen!" : `Lurte ${r.lurt} av ${r.av}!`;
           const deler = [];
           if (r.lurt) deler.push(`${R.navn(t)} får ${r.lurt} poeng`);
-          if (r.riktige.length) deler.push(`${navneliste(r.riktige)} får 1 poeng${r.riktige.length > 1 ? " hver" : ""}`);
-          const rader = Array.from({ length: sp.antall }, (_, i) => ({ i, poeng: sp.poeng[i], pluss: i === t ? r.lurt : r.riktige.includes(i) ? 1 : 0 }));
+          if (r.riktige.length > 3) deler.push(`De ${r.riktige.length} som gjettet riktig, får 1 poeng hver`);
+          else if (r.riktige.length) deler.push(`${navneliste(r.riktige)} får 1 poeng${r.riktige.length > 1 ? " hver" : ""}`);
+          const poengliste = rader(sp).map((rad) => ({ i: rad.i, poeng: rad.poeng, pluss: rad.i === t ? r.lurt : r.riktige.includes(rad.i) ? 1 : 0 }));
           const sist = sp.k + 1 >= totalt(sp);
           const neste = (sp.start + sp.k + 1) % sp.antall;
+          // The story behind one of the two true claims: the laugh gets its minute.
+          const bak = r.sann == null ? "" : sp.modus === "skriv" ? `<em>«${esc(sp.kort[r.sann])}»</em>` : `nr. ${r.sann + 1}`;
           return `
             <div class="lh-resultat${r.lurt === 0 ? " avslort" : ""}">
               ${neseHtml(t, r.av ? r.lurt / r.av : 0)}
               <p class="etikett">${esc(R.navn(t))}</p>
               <h1 id="skjerm-tittel">${esc(overskrift)}</h1>
-              <p class="ingress">${esc(deler.join(". ") + ".")}</p>
+              <p class="ingress">${esc(deler.length ? deler.join(". ") + "." : "Ingen poeng denne gangen.")}</p>
             </div>
-            ${R.ui.poengliste(rader)}
+            ${bak ? `<p class="lh-historie"><span class="lh-historie-ikon" aria-hidden="true">🎤</span><span><b>${esc(R.navn(t))}:</b> fortell historien bak ${bak}!</span></p>` : ""}
+            ${R.ui.poengliste(poengliste)}
             ${R.ui.dokk(
-              sist ? R.ui.knapp("Se kåringen!", "slutt", { ikon: "🏆" }) : R.ui.knapp(`Neste: ${R.navn(neste)}`, "neste"),
+              sist ? R.ui.knapp("Til kåringen", "slutt") : R.ui.knapp(`Neste: ${R.navn(neste)}`, "neste"),
               R.ui.lenkerad(R.ui.lenke("Angre", "angre"), sist ? "" : R.ui.lenke("Avslutt", "avslutt")),
             )}`;
         },
@@ -462,7 +878,7 @@
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
-          const rader = Array.from({ length: sp.antall }, (_, i) => ({ i, poeng: sp.poeng[i] }));
+          const turer = sum(sp.fortalt);
           const vinner = topp(sp.poeng);
           const mester = topp(sp.lurt);
           const detektiv = topp(sp.treff);
@@ -470,38 +886,159 @@
           const fortalte = sp.lurt.map((v, i) => (sp.fortalt[i] && v <= (sp.fortalt[i] * (sp.antall - 1)) / 2 ? v : null));
           const aerlig = topp(fortalte, true);
           const priser = [];
-          priser.push(
-            mester
-              ? prisHtml("🤥", "Mesterløgner", navneliste(mester.hvem), `Lurte ${mester.verdi} ${mester.verdi === 1 ? "person" : "personer"} til sammen. Se på den nesen!`, "var(--aksent)")
-              : prisHtml("🤥", "Mesterløgner", "Ingen!", "Ingen klarte å lure noen. For en ærlig gjeng!", "var(--aksent)"),
-          );
-          priser.push(
-            detektiv
-              ? prisHtml("🔍", "Løgndetektor", navneliste(detektiv.hvem), `Avslørte ${detektiv.verdi} ${detektiv.verdi === 1 ? "løgn" : "løgner"}. Ingenting slipper unna!`, "var(--himmel)")
-              : prisHtml("🔍", "Løgndetektor", "Ingen!", "Ingen gjettet riktig. Dere er altfor godtroende!", "var(--himmel)"),
-          );
-          if (aerlig && mester && !aerlig.hvem.some((i) => mester.hvem.includes(i))) {
+          if (turer) {
             priser.push(
-              prisHtml("😇", "Ærligste fjes", navneliste(aerlig.hvem), aerlig.verdi ? `Lurte bare ${aerlig.verdi}. Et ærlig fjes er gull verdt.` : "Lurte ingen. Et ærlig fjes er gull verdt.", "var(--mynte)"),
+              mester
+                ? prisHtml(
+                    "🤥",
+                    "Mesterløgner",
+                    navneliste(mester.hvem),
+                    sp.rekord ? `Lurte ${R.flertall(mester.verdi, "person", "personer")} til sammen. Den forrige rekorden var ${sp.gmlRekord}.` : `Lurte ${R.flertall(mester.verdi, "person", "personer")} til sammen. Se på den nesen!`,
+                    "var(--aksent)",
+                    sp.rekord ? "Ny rekord!" : "",
+                  )
+                : prisHtml("🤥", "Mesterløgner", "Ingen!", "Ingen klarte å lure noen. For en ærlig gjeng!", "var(--aksent)"),
             );
+            // «Stor gjeng» counts only the fooled, so nobody can be the best detector there.
+            if (!sp.stor) {
+              priser.push(
+                detektiv
+                  ? prisHtml("🔍", "Løgndetektor", navneliste(detektiv.hvem), `Avslørte ${R.flertall(detektiv.verdi, "løgn", "løgner")}. Ingenting slipper unna!`, "var(--himmel)")
+                  : prisHtml("🔍", "Løgndetektor", "Ingen!", "Ingen gjettet riktig. Dere er altfor godtroende!", "var(--himmel)"),
+              );
+            }
+            if (aerlig && mester && !aerlig.hvem.some((i) => mester.hvem.includes(i))) {
+              priser.push(
+                prisHtml("😇", "Ærligste fjes", navneliste(aerlig.hvem), aerlig.verdi ? `Lurte bare ${aerlig.verdi}. Et ærlig fjes er gull verdt.` : "Lurte ingen. Et ærlig fjes er gull verdt.", "var(--mynte)"),
+              );
+            }
           }
+          const banner = vinner
+            ? R.ui.banner({ tittel: `${navneliste(vinner.hvem)} vinner!`, tekst: `${R.flertall(vinner.verdi, "poeng", "poeng")} etter ${R.flertall(turer, "tur", "turer")}`, klasse: "aksent" })
+            : turer
+              ? R.ui.banner({ tittel: "Ingen ble lurt!", tekst: "Alle løgnene ble avslørt, så ingen fikk poeng.", klasse: "aksent", stemning: "" })
+              : R.ui.banner({ tittel: "Ingen poeng ennå", tekst: "Ingen rakk å fortelle noe. Spill en runde, så blir det kåring!", klasse: "aksent", stemning: "" });
           return `
-            <div class="banner aksent">
-              ${R.figur()}
-              <h1 id="skjerm-tittel">${vinner ? `${esc(navneliste(vinner.hvem))} vinner!` : "Ingen poeng ennå"}</h1>
-              <p class="ingress">${vinner ? `${vinner.verdi} poeng etter ${sp.k + 1} ${sp.k === 0 ? "tur" : "turer"}` : "Spill noen turer først – så blir det kåring!"}</p>
-            </div>
-            ${vinner ? R.ui.pall(rader) : ""}
-            <ul class="lh-priser">${priser.join("")}</ul>
-            ${R.ui.poengliste(rader)}
+            ${banner}
+            ${vinner ? R.ui.pall(rader(sp)) : ""}
+            ${vinner ? R.ui.poengliste(rader(sp)) : ""}
+            ${priser.length ? `<ul class="lh-priser">${priser.join("")}</ul>` : ""}
+            ${turer ? R.ui.knapp2("Del resultatet", "del") : ""}
             ${R.ui.flereSpill({ antall: sp.antall })}
             ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), '<a class="lenke" href="/">Alle spill</a>'))}`;
         },
         inn(S) {
           S.spill.skjerm = "slutt";
+          if (!feire) return; // back on the screen, or after a reload: the party was held already
+          feire = false;
           if (topp(S.spill.poeng)) {
             R.lyd.fanfare();
             R.konfetti();
+          } else R.lyd.pling();
+        },
+      },
+
+      // ---------- «Lag en utfordring» ----------
+
+      // The maker's private form. Never resumed directly: it shows which claim is the lie.
+      utfordre: {
+        tittel: "Utfordring",
+        gjenoppta: "hjem",
+        tilbake: "hjem",
+        vis(S) {
+          const u = S.utf.utkast;
+          const felt = (i, merke, klasse, eksempel) => `
+            <label class="lh-felt ${klasse}" for="lh-u-${i}">
+              <span class="lh-merke">${merke}</span>
+              <textarea id="lh-u-${i}" data-felt="uutkast" data-i="${i}" rows="2" maxlength="${MAKS}" placeholder="${esc(eksempel)}" autocomplete="off" autocapitalize="sentences" enterkeyhint="next">${esc(u.t[i])}</textarea>
+            </label>`;
+          return `
+            <div class="lh-skriv-topp">
+              <p class="etikett">🤫 Bare du ser dette</p>
+              <h1 id="skjerm-tittel">Lag en utfordring</h1>
+            </div>
+            <p class="ingress">Skriv to sanne ting og en løgn om deg selv. Send lenken til en venn, som skal finne løgnen.</p>
+            <div class="lh-felter">
+              ${felt(0, "✅ Sant", "sant", "Jeg har …")}
+              ${felt(1, "✅ Også sant", "sant", "Jeg kan …")}
+              ${felt(2, "🤥 Løgnen", "logn", "Jeg har aldri …")}
+              <label class="lh-felt navn" for="lh-u-navn">
+                <span class="lh-merke">Fornavnet ditt <small>(valgfritt)</small></span>
+                <input id="lh-u-navn" data-felt="unavn" value="${esc(u.navn)}" maxlength="${MAKS_NAVN}" placeholder="Fra en venn" autocomplete="given-name" autocapitalize="words" enterkeyhint="done">
+              </label>
+            </div>
+            <p class="hjelp">Påstandene blandes før de vises. Alt ligger i selve lenken – ingenting lagres hos rusj.no.</p>
+            ${R.ui.dokk(R.ui.knapp("Del utfordringen", "utf-del", { id: "lh-u-del", av: !!utkastKlart(S).feil }))}`;
+        },
+      },
+
+      // The link is made: share it again, copy it, change the claims or start over.
+      sendt: {
+        tittel: "Utfordring",
+        tilbake: "hjem",
+        vis: (S) => `
+          ${R.ui.banner({ tittel: "Klar til å sendes!", tekst: "Send lenken til en venn – eller til hele gruppechatten.", klasse: "aksent", stemning: "" })}
+          <div class="papirboks lh-melding">
+            <p class="etikett">Meldingen</p>
+            <p class="lh-melding-tekst">${esc(U_TEKST)}</p>
+            <p class="lh-lenke" id="lh-lenke">${esc(lenkeTil(S.utf.lenke))}</p>
+          </div>
+          <p class="hjelp">Den som åpner lenken, ser påstandene i tilfeldig rekkefølge og trykker på løgnen. Be om å få høre hvordan det gikk!</p>
+          ${R.ui.dokk(R.ui.knapp("Del utfordringen", "utf-del-igjen"), R.ui.knapp2("Kopier lenken", "utf-kopier"), R.ui.lenkerad(R.ui.lenke("Endre", "utf-endre"), R.ui.lenke("Lag en ny", "utf-ny")))}`,
+      },
+
+      // A challenge that came in a link. Everything in it was typed by somebody else: it is
+      // shown as plain text between «Fra en venn» and «… skrev dette – ikke rusj.no».
+      svar: {
+        tittel: "Utfordring",
+        tilbake: "hjem",
+        vis(S) {
+          const m = S.utf.mottatt;
+          const u = m && lesUtfordring(m.v);
+          if (!u) return `<h1 id="skjerm-tittel">Lenken er ikke gyldig</h1>${R.ui.dokk(R.ui.knapp("Til Løgnhalsen", "hjem"))}`;
+          const svart = m.valgt != null;
+          const riktig = svart && m.valgt === u.logn;
+          const fjes = R.hash(u.navn || u.kort[0]) % 20;
+          const hvem = u.navn ? `<b>${esc(u.navn)}</b>` : "En venn";
+          const skrevet = `<p class="hjelp lh-skrevet">${u.navn ? `«${esc(u.navn)}»` : "Avsenderen"} skrev dette – ikke rusj.no.</p>`;
+          if (!svart) {
+            return `
+              <div class="lh-resultat lh-fra">
+                ${neseHtml(fjes, 0)}
+                <p class="etikett">Fra en venn</p>
+                <h1 id="skjerm-tittel">Hvilken er løgnen?</h1>
+                <p class="ingress">${hvem} har sendt deg to sannheter og en løgn. Trykk på den du tror er løgn.</p>
+              </div>
+              <ol class="lh-pastander lh-valg">${u.kort
+                .map(
+                  (tekst, i) =>
+                    `<li><button class="lh-pastand" data-h="svar-velg" data-v="${i}"><span class="lh-nr" aria-hidden="true">${i + 1}</span><span class="lh-ptekst"><span class="vh">Nummer ${i + 1}: </span>${esc(tekst)}</span></button></li>`,
+                )
+                .join("")}</ol>
+              ${skrevet}`;
+          }
+          return `
+            <div class="lh-resultat lh-fra svart${riktig ? " avslort" : ""}">
+              ${neseHtml(fjes, riktig ? 0 : 1)}
+              <p class="etikett">Fra en venn</p>
+              <h1 id="skjerm-tittel">${riktig ? "Avslørt!" : "Lurt!"}</h1>
+              <p class="ingress">${riktig ? `Du fant løgnen${u.navn ? ` til <b>${esc(u.navn)}</b>` : ""}.` : `${hvem} lurte deg. Løgnen var nr. ${u.logn + 1}.`}</p>
+            </div>
+            ${pastanderHtml(u, true, m.valgt)}
+            ${skrevet}
+            ${R.ui.dokk(R.ui.knapp("Send en tilbake", "utfordre"), R.ui.knapp2("Spill med flere", "hjem"), R.ui.lenkerad(R.ui.lenke("Del svaret", "svar-del")))}`;
+        },
+        inn(S) {
+          if (!nyssSvart) return;
+          nyssSvart = false;
+          const m = S.utf.mottatt;
+          const u = m && lesUtfordring(m.v);
+          if (!u) return;
+          R.vibrer([80, 40, 140]);
+          if (m.valgt === u.logn) R.lyd.riktig();
+          else {
+            R.lyd.latter();
+            setTimeout(() => R.lyd.tone(260, 0, 0.55, "triangle", 0.12, 780), 300);
           }
         },
       },
@@ -511,9 +1048,19 @@
       utkast(S, el) {
         const sp = S.spill;
         if (!sp) return;
-        sp.utkast[Number(el.dataset.i)] = el.value.slice(0, MAKS);
+        sp.utkast[R.klamp(Number(el.dataset.i) || 0, 0, 2)] = R.kutt(el.value, MAKS);
         const knapp = R.$("#lh-ferdig");
         if (knapp) knapp.disabled = sp.utkast.some((t) => !String(t || "").trim());
+        R.lagre();
+      },
+      uutkast(S, el) {
+        S.utf.utkast.t[R.klamp(Number(el.dataset.i) || 0, 0, 2)] = R.kutt(el.value, MAKS);
+        const knapp = R.$("#lh-u-del");
+        if (knapp) knapp.disabled = !!utkastKlart(S).feil;
+        R.lagre();
+      },
+      unavn(S, el) {
+        S.utf.utkast.navn = R.kutt(el.value, MAKS_NAVN);
         R.lagre();
       },
     },
@@ -522,32 +1069,36 @@
       // A running game is never thrown away without asking.
       async nytt(el, e, S) {
         const fortsatt = R.vakt();
-        if (!(await R.bekreftNytt(!!S.spill && !ferdigSpilt(S.spill))) || !fortsatt()) return;
+        if (!(await R.bekreftNytt(pagar(S))) || !fortsatt()) return;
         S.spill = null;
         R.gaTil("oppsett");
       },
       endre: () => R.gaTil("oppsett"),
       hjem: () => R.gaTil("hjem"),
       fortsett(el, e, S) {
-        const sp = S.spill;
-        R.gaTil(ferdigSpilt(sp) ? "slutt" : SKJERM_FOR[sp.fase] || "hjem");
+        R.gaTil(pagar(S) ? SKJERM_FOR[S.spill.fase] || "hjem" : "hjem");
       },
       modus(el, e, S) {
         S.oppsett.modus = el.dataset.v === "skriv" ? "skriv" : "hoyt";
         R.vis();
       },
       runder(el, e, S) {
-        S.oppsett.runder = R.klamp(S.oppsett.runder + Number(el.dataset.v), 1, 5);
+        S.oppsett.runder = R.klamp(runderFor(S) + (Number(el.dataset.v) || 0), 1, 5);
+        S.oppsett.runderValgt = true;
+        R.vis();
+      },
+      stor(el, e, S) {
+        S.oppsett.stor = !S.oppsett.stor;
         R.vis();
       },
       "vis-temaer": (el, e, S) => R.ark(temaArk(S)),
       temavalg(el, e, S) {
         const v = el.dataset.v;
-        if (v === "*") S.oppsett.temaer = ALLE_TEMAER.slice();
+        if (v === "*") S.oppsett.temaer = TEMAER.map((t) => t.id);
         else if (S.oppsett.temaer.includes(v)) {
           if (S.oppsett.temaer.length === 1) return R.toast("Velg minst ett tema");
           S.oppsett.temaer = S.oppsett.temaer.filter((x) => x !== v);
-        } else S.oppsett.temaer = [...S.oppsett.temaer, v];
+        } else if (tema(v)) S.oppsett.temaer = [...S.oppsett.temaer, v];
         // Update the open sheet in place (keeping focus on the chip), then the screen behind it.
         const ark = R.$("#ark-innhold");
         if (ark && R.arkApent()) {
@@ -562,23 +1113,31 @@
         S.spill = {
           antall: n,
           modus: S.oppsett.modus,
-          runder: S.oppsett.runder,
+          runder: runderFor(S),
+          stor: S.oppsett.stor && n >= STOR_FRA,
           temaer: S.oppsett.temaer.slice(),
           start: R.heltall(0, n - 1),
           k: 0,
           fase: "tema",
           skjerm: null,
           tema: 0,
+          tipsFro: R.nyttFro(),
           utkast: ["", "", ""],
           kort: null,
           logn: null,
           riktige: [],
+          lurtAntall: 0,
           siste: null,
           poeng: Array(n).fill(0),
           lurt: Array(n).fill(0),
           treff: Array(n).fill(0),
           fortalt: Array(n).fill(0),
+          ferdig: false,
+          feiret: false,
+          rekord: false,
+          gmlRekord: 0,
         };
+        R.statistikk("start", { modus: S.spill.modus, spillere: n, runder: S.spill.runder, stor: S.spill.stor });
         nyTur(S);
       },
       "nytt-tema"(el, e, S) {
@@ -594,7 +1153,7 @@
         const sp = S.spill;
         const tekster = sp.utkast.map((t) => String(t || "").trim().replace(/\s+/g, " "));
         if (tekster.some((t) => !t)) return R.toast("Skriv alle tre påstandene først");
-        if (new Set(tekster.map((t) => R.normaliser(t))).size < 3) return R.toast("To av påstandene er like");
+        if (new Set(tekster.map((t) => R.normaliser(t) || t)).size < 3) return R.toast("To av påstandene er like");
         const rekkefolge = R.stokk([0, 1, 2], R.rng(R.nyttFro()));
         sp.kort = rekkefolge.map((i) => tekster[i]);
         sp.logn = rekkefolge.indexOf(2);
@@ -619,8 +1178,9 @@
         const sp = S.spill;
         if (sp.fase !== "velg") return;
         sp.logn = R.klamp(Number(el.dataset.v), 0, 2);
-        sp.riktige = [];
         sp.fase = "hvem";
+        sp.riktige = tomtValg(S);
+        sp.lurtAntall = 0;
         R.vis();
         R.lyd.bom();
         R.vibrer([80, 40, 140]);
@@ -637,8 +1197,9 @@
         await R.vent(R.rolig() ? 300 : 1300);
         opptatt = false;
         if (!fortsatt()) return;
-        sp.riktige = [];
         sp.fase = "hvem";
+        sp.riktige = tomtValg(S);
+        sp.lurtAntall = 0;
         R.vis();
         R.vibrer([80, 40, 140]);
         R.si(`Løgnen var nummer ${sp.logn + 1}: ${sp.kort[sp.logn]}`);
@@ -648,33 +1209,62 @@
         const sp = S.spill;
         sp.logn = null;
         sp.riktige = [];
+        sp.lurtAntall = 0;
         sp.fase = "velg";
         R.vis();
       },
+      // A name: tap again to take it back (it means «guessed right», or «was fooled» with the switch on).
       riktig(el, e, S) {
         const sp = S.spill;
         const i = Number(el.dataset.v);
+        if (!sp || sp.fase !== "hvem" || sp.stor || !lyttere(sp).includes(i)) return;
         sp.riktige = sp.riktige.includes(i) ? sp.riktige.filter((x) => x !== i) : [...sp.riktige, i];
-        el.setAttribute("aria-pressed", String(sp.riktige.includes(i)));
-        const knapp = R.$("#lh-ferdig-tur");
-        if (knapp) knapp.textContent = ferdigTekst(sp);
-        R.lagre();
+        tegnHvem(S, el);
+      },
+      // «Alle» / «Ingen»: every name (or the whole count) in one tap.
+      hurtig(el, e, S) {
+        const sp = S.spill;
+        if (!sp || sp.fase !== "hvem") return;
+        const alle = el.dataset.v === "alle";
+        if (sp.stor) sp.lurtAntall = alle ? lyttere(sp).length : 0;
+        else sp.riktige = alle !== erOmvendt(S) ? lyttere(sp) : [];
+        tegnHvem(S, el);
+      },
+      // «Trykk heller på dem som ble lurt». With nothing tapped yet the list starts empty the new
+      // way; otherwise the answer stays the same and is shown the other way round.
+      lurte(el, e, S) {
+        const sp = S.spill;
+        if (!sp || sp.fase !== "hvem" || sp.stor) return;
+        const forrige = erOmvendt(S);
+        const trykket = lyttere(sp).filter((i) => sp.riktige.includes(i) !== forrige).length;
+        S.oppsett.lurte = !S.oppsett.lurte;
+        if (!trykket) sp.riktige = tomtValg(S);
+        tegnHvem(S, el);
+      },
+      // «Stor gjeng»: how many were fooled.
+      "lurt-antall"(el, e, S) {
+        const sp = S.spill;
+        if (!sp || sp.fase !== "hvem" || !sp.stor) return;
+        sp.lurtAntall = R.klamp(sp.lurtAntall + (Number(el.dataset.v) || 0), 0, lyttere(sp).length);
+        tegnHvem(S, el);
       },
       ferdig(el, e, S) {
         const sp = S.spill;
         if (sp.fase !== "hvem") return;
         const t = tellerAv(sp);
         const kandidater = lyttere(sp);
-        const riktige = sp.riktige.filter((i) => kandidater.includes(i)).sort((a, b) => a - b);
+        const riktige = sp.stor ? [] : sp.riktige.filter((i) => kandidater.includes(i)).sort((a, b) => a - b);
         riktige.forEach((i) => {
           sp.poeng[i] += 1;
           sp.treff[i] += 1;
         });
-        const lurt = kandidater.length - riktige.length;
+        const lurt = sp.stor ? R.klamp(sp.lurtAntall, 0, kandidater.length) : kandidater.length - riktige.length;
         sp.poeng[t] += lurt;
         sp.lurt[t] += lurt;
         sp.fortalt[t] += 1;
-        sp.siste = { teller: t, lurt, riktige, av: kandidater.length };
+        // One of the two true claims, for «fortell historien bak …» (kept, so a reload shows the same).
+        const sanne = [0, 1, 2].filter((i) => i !== sp.logn);
+        sp.siste = { teller: t, lurt, riktige, av: kandidater.length, sann: sanne[R.heltall(0, sanne.length - 1)] };
         sp.fase = "resultat";
         R.gaTil("resultat");
       },
@@ -691,6 +1281,7 @@
         sp.lurt[r.teller] -= r.lurt;
         sp.fortalt[r.teller] -= 1;
         sp.riktige = r.riktige.slice();
+        sp.lurtAntall = r.lurt;
         sp.siste = null;
         sp.fase = "hvem";
         R.toast("Angret – poengene er tatt bort");
@@ -698,19 +1289,78 @@
       },
       neste(el, e, S) {
         const sp = S.spill;
-        if (sp.k + 1 >= totalt(sp)) return R.gaTil("slutt");
+        if (sp.fase !== "resultat") return;
+        if (sp.k + 1 >= totalt(sp)) return H.slutt(el, e, S);
         sp.k += 1;
+        sp.siste = null;
         nyTur(S);
       },
-      slutt: () => R.gaTil("slutt"),
+      // The last turn is played: on to «Kåringen».
+      slutt(el, e, S) {
+        if (!S.spill) return;
+        fullfor(S);
+        R.gaTil("slutt");
+      },
+      // Ending early also ends in «Kåringen», with the score so far — and the game is finished.
       async avslutt(el, e, S) {
         const fortsatt = R.vakt();
         const ja = await R.bekreft("Avslutte spillet?", "Dere får se kåringen med stillingen så langt.", "Avslutt", "Spill videre");
-        if (ja && fortsatt()) R.gaTil("slutt");
+        if (!ja || !fortsatt() || !S.spill) return;
+        fullfor(S);
+        R.gaTil("slutt");
       },
       igjen(el, e, S) {
         S.spill = null;
         H.start(el, e, S);
+      },
+      del(el, e, S) {
+        if (S.spill) R.del("Løgnhalsen", delTekst(S.spill), location.origin + "/lognhalsen/");
+      },
+
+      // ---------- «Lag en utfordring» ----------
+
+      // From the home screen (and «Send en tilbake»). A draft that is not sent yet is kept; one
+      // that was sent is not shown again — it says which claim is the lie.
+      utfordre(el, e, S) {
+        if (S.utf.lenke) {
+          S.utf.utkast.t = ["", "", ""];
+          S.utf.lenke = "";
+        }
+        R.gaTil("utfordre");
+      },
+      "utf-del"(el, e, S) {
+        const klart = utkastKlart(S);
+        if (klart.feil) return R.toast(klart.feil);
+        const rekkefolge = R.stokk([0, 1, 2], R.rng(R.nyttFro()));
+        const lenke = lagUtfordring({ navn: kuttBytes(rensNavn(S.utf.utkast.navn), 64), kort: rekkefolge.map((i) => klart.kort[i]), logn: rekkefolge.indexOf(2) });
+        if (!lesUtfordring(lenke)) return R.toast("Det gikk ikke å lage lenken. Prøv med kortere tekst.");
+        S.utf.lenke = lenke;
+        R.statistikk("utfordring", { steg: "laget" });
+        R.gaTil("sendt");
+        delUtfordring(S); // in the same tap, or the phone will not open its share sheet
+      },
+      "utf-del-igjen": (el, e, S) => delUtfordring(S),
+      "utf-kopier": (el, e, S) => R.kopier(lenkeTil(S.utf.lenke)),
+      "utf-endre": () => R.gaTil("utfordre"),
+      "utf-ny"(el, e, S) {
+        S.utf.utkast.t = ["", "", ""];
+        S.utf.lenke = "";
+        R.gaTil("utfordre");
+      },
+      "svar-velg"(el, e, S) {
+        const m = S.utf.mottatt;
+        if (!m || m.valgt != null || !lesUtfordring(m.v)) return;
+        m.valgt = R.klamp(Number(el.dataset.v) || 0, 0, 2);
+        nyssSvart = true;
+        R.statistikk("utfordring", { steg: "svart" });
+        R.gaTil("svar");
+      },
+      // Only how it went — never anything from the challenge itself.
+      "svar-del"(el, e, S) {
+        const m = S.utf.mottatt;
+        const u = m && lesUtfordring(m.v);
+        if (!u || m.valgt == null) return;
+        R.del("Løgnhalsen", m.valgt === u.logn ? "Jeg avslørte løgnen din! 🕵️" : "Du lurte meg! 🤥", location.origin + "/lognhalsen/");
       },
     }),
   });

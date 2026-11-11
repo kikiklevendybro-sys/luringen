@@ -1,4 +1,5 @@
-/* Kodeknekkeren — a 5×5 word board for two teams, and the key for the code masters.
+/* Kodeknekkeren — a 5×5 word board for two teams (or one team against the trap), and the key
+   for the code masters.
    The board screens set html.kk-vid so the stage can grow on tablets and laptops; on wide
    landscape screens the board gets the left side and the status + actions a column on the right. */
 
@@ -38,6 +39,10 @@ html.kk-vid .app {
   --lf: var(--himmel);
 }
 
+.kk-status.sammen {
+  --lf: var(--aksent);
+}
+
 .kk-lag {
   --lf: var(--rosa);
   --lf-dyp: var(--rosa-dyp);
@@ -60,6 +65,21 @@ html.kk-vid .app {
   --lf-dyp: var(--himmel-dyp);
 }
 
+/* «Sammen mot fella»: agents left, and hints left after this one */
+.kk-lag.agent {
+  --lf: var(--aksent);
+  --lf-dyp: var(--aksent-dyp);
+}
+
+.kk-lag.hintboks {
+  --lf: var(--lampe);
+  --lf-dyp: var(--lampe-dyp);
+}
+
+.kk-lag.hintboks.tom {
+  --lf: var(--oransje);
+}
+
 .kk-lag.aktiv {
   background: var(--lf);
   box-shadow: 0 5px 0 var(--lf-dyp), 0 10px 26px color-mix(in srgb, var(--lf) 35%, transparent);
@@ -79,9 +99,9 @@ html.kk-vid .app {
   font-variant-numeric: tabular-nums;
 }
 
+/* (Full colour: 5.5:1 on the dark box and 6:1 on the active one; never below 11.5 px.) */
 .kk-lag-tekst {
   font: 700 0.72rem/1.1 var(--font-tekst);
-  opacity: 0.8;
 }
 
 .kk-tur {
@@ -235,6 +255,10 @@ html.kk-vid .app {
   --lf: var(--himmel);
 }
 
+.kk-brett.sammen {
+  --lf: var(--aksent);
+}
+
 .kk-brett.med-fasit {
   --lf: var(--strek);
 }
@@ -341,10 +365,18 @@ html.kk-vid .app {
 }
 
 .kk-kort.t0 {
+  --tf: var(--rosa);
+  --tf-dyp: var(--rosa-dyp);
   background:
     repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.17) 0 6px, transparent 6px 12px),
-    var(--rosa);
-  box-shadow: 0 3px 0 var(--rosa-dyp);
+    var(--tf);
+  box-shadow: 0 3px 0 var(--tf-dyp);
+}
+
+/* «Sammen mot fella»: the agents have the game's own colour */
+.sammen .kk-kort.t0 {
+  --tf: var(--aksent);
+  --tf-dyp: var(--aksent-dyp);
 }
 
 .kk-kort.t1 {
@@ -404,7 +436,7 @@ html.kk-vid .app {
 }
 
 .kk-kort.fasit.t0 {
-  --fk: var(--rosa);
+  --fk: var(--tf);
 }
 
 .kk-kort.fasit.t1 {
@@ -488,8 +520,14 @@ html.kk-vid .app {
   }
 }
 
+/* (Four links when there are hints to look at: tighter, so they stay on one row on most phones.) */
 .kk-verktoy {
-  gap: 2px 14px;
+  gap: 2px 8px;
+}
+
+.kk-verktoy .lenke {
+  padding-inline: 6px;
+  white-space: nowrap;
 }
 
 /* ---------- Key: join code, QR and the hold-to-reveal card ---------- */
@@ -588,6 +626,10 @@ html.kk-vid .app {
   --lf: var(--himmel);
 }
 
+.kk-starter.sammen {
+  --lf: var(--aksent);
+}
+
 .kk-nokkel {
   container-type: inline-size;
   display: grid;
@@ -597,6 +639,7 @@ html.kk-vid .app {
 }
 
 .kk-n {
+  position: relative;
   display: grid;
   place-items: center;
   min-width: 0;
@@ -622,7 +665,11 @@ html.kk-vid .app {
 .kk-n.t0 {
   background:
     repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.18) 0 5px, transparent 5px 10px),
-    var(--rosa);
+    var(--tf, var(--rosa));
+}
+
+.sammen .kk-n.t0 {
+  --tf: var(--aksent);
 }
 
 .kk-n.t1 {
@@ -668,13 +715,18 @@ button.kk-n:active {
   opacity: 0.85;
 }
 
+/* The squares carry the same letter as the words in the key (R, B, A or ✕). */
 .kk-fordeling i {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
   margin-right: 5px;
-  border-radius: 3px;
-  vertical-align: -1px;
+  border-radius: 4px;
+  color: var(--blekk);
+  font: 900 9px/1 var(--font-display);
+  font-style: normal;
+  vertical-align: -2px;
 }
 
 .kk-fordeling i.t0,
@@ -696,6 +748,12 @@ button.kk-n:active {
 .kk-gruppe.t3 h2 i {
   background: var(--blekk);
   box-shadow: inset 0 0 0 2px var(--rod);
+  color: var(--rod);
+}
+
+.kk-fordeling.sammen i.t0,
+.kk-grupper.sammen .kk-gruppe.t0 h2 i {
+  background: var(--aksent);
 }
 
 /* ---------- The code master's phone ---------- */
@@ -732,9 +790,15 @@ button.kk-n:active {
 }
 
 .kk-gruppe h2 i {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  color: var(--blekk);
+  font: 900 0.72rem/1 var(--font-display);
+  font-style: normal;
 }
 
 .kk-gruppe h2 span {
@@ -819,6 +883,10 @@ button.kk-n:active {
   color: var(--himmel);
 }
 
+.kk-banner.sammen h1 {
+  color: var(--aksent);
+}
+
 .kk-stilling {
   display: flex;
   align-items: baseline;
@@ -849,11 +917,664 @@ button.kk-n:active {
   margin-top: -8px;
 }
 
+/* ---------- A letter in the corner: the key never depends on telling colours apart ---------- */
+
+.kk-b {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 1.45em;
+  height: 1.45em;
+  padding: 0 0.2em;
+  border-radius: 0.4em;
+  background: rgba(23, 14, 43, 0.82);
+  color: #fff;
+  font: 900 clamp(9px, 2.3cqi, 15px) / 1 var(--font-display);
+  font-style: normal;
+  letter-spacing: 0;
+  pointer-events: none;
+}
+
+.t3 > .kk-b {
+  background: var(--rod);
+  color: var(--blekk);
+}
+
+/* ---------- The hint strip above the board ---------- */
+
+.kk-hint {
+  --lf: var(--rosa);
+  --lf-dyp: var(--rosa-dyp);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin: 0;
+  padding: 4px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.kk-hint.lag-bla {
+  --lf: var(--himmel);
+  --lf-dyp: var(--himmel-dyp);
+}
+
+.kk-hint.sammen {
+  --lf: var(--aksent);
+  --lf-dyp: var(--aksent-dyp);
+}
+
+/* (16 px: with smaller text an iPhone zooms the page when the field gets focus.) */
+.kk-hintfelt {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--natt);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 1rem/1 var(--font-display);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.kk-hintfelt::placeholder {
+  color: var(--tekst-3);
+  letter-spacing: 0;
+  opacity: 1;
+  text-transform: none;
+}
+
+.kk-hintfelt:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2.5px var(--lf);
+}
+
+.kk-tall {
+  display: flex;
+  flex: none;
+  gap: 4px;
+}
+
+.kk-tall button {
+  width: 32px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: var(--natt-3);
+  color: var(--tekst);
+  font: 900 1.05rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.kk-tall button:active {
+  background: var(--strek);
+}
+
+.kk-tall button[aria-pressed="true"] {
+  background: var(--lf);
+  box-shadow: 0 3px 0 var(--lf-dyp);
+  color: var(--blekk);
+}
+
+/* The hint that is on: «HAV · 2» and what is left of it. A tap opens it for a change. */
+.kk-hint-vis {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px 10px 6px 12px;
+  border: 0;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--lf) 12%, var(--natt));
+  color: var(--tekst-2);
+  font: 700 0.92rem/1.2 var(--font-tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.kk-hint-vis b {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--lf);
+  font: 900 1.12rem/1.2 var(--font-display);
+  letter-spacing: 0.03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kk-hint-vis span {
+  flex: none;
+  white-space: nowrap;
+}
+
+.kk-hint-vis i {
+  margin-left: auto;
+  color: var(--tekst-3);
+  font-style: normal;
+}
+
+.kk-hint.brukt .kk-hint-vis {
+  background: color-mix(in srgb, var(--lf) 26%, var(--natt));
+}
+
+.kk-hint.brukt .kk-hint-vis span {
+  color: var(--tekst);
+  font-weight: 800;
+}
+
+/* The guesses of the hint are used: the main button asks to be pressed. */
+.knapp.kk-klar {
+  box-shadow: 0 6px 0 var(--f-dyp), 0 0 0 4px color-mix(in srgb, var(--f) 45%, transparent), 0 16px 30px var(--skygge);
+  animation: kk-klar 1.3s ease-in-out infinite;
+}
+
+@keyframes kk-klar {
+  50% {
+    box-shadow: 0 6px 0 var(--f-dyp), 0 0 0 8px color-mix(in srgb, var(--f) 22%, transparent), 0 16px 30px var(--skygge);
+  }
+}
+
+/* «Hintene så langt» (a sheet) */
+.kk-logg {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kk-logg li {
+  --lf: var(--rosa);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 10px 12px 10px 16px;
+  border-radius: var(--r-liten);
+  background: var(--natt-3);
+  box-shadow: inset 5px 0 0 var(--lf);
+}
+
+.kk-logg li.bla {
+  --lf: var(--himmel);
+}
+
+.kk-logg li.sammen {
+  --lf: var(--aksent);
+}
+
+.kk-logg-hvem {
+  color: var(--lf);
+  font: 900 0.8rem/1.2 var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.kk-logg b {
+  font: 900 1.1rem/1.2 var(--font-display);
+  letter-spacing: 0.03em;
+  overflow-wrap: anywhere;
+}
+
+.kk-logg-kort {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 2px 12px;
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+}
+
+/* ---------- The first board on a phone: three frames that show a turn ---------- */
+
+.kk-eks {
+  --lf: var(--rosa);
+  display: grid;
+  gap: 6px;
+  padding: 8px 10px 10px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.kk-eks.lag-bla {
+  --lf: var(--himmel);
+}
+
+.kk-eks.sammen {
+  --lf: var(--aksent);
+}
+
+.kk-eks-hode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kk-eks-lukk {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin: -3px -4px -3px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--natt-3);
+  color: var(--tekst-2);
+  font: 900 0.85rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.kk-eks ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kk-eks li {
+  display: grid;
+  grid-template-rows: 40px auto;
+  gap: 5px;
+  min-width: 0;
+  text-align: center;
+}
+
+.kk-eks-bilde {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.kk-eks-bilde i {
+  overflow: hidden;
+  padding: 3px 1px;
+  border-radius: 5px;
+  background: var(--papir);
+  color: var(--blekk);
+  font: 800 9px/1.15 var(--font-tekst);
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.kk-eks-bilde i.lys {
+  box-shadow: 0 0 0 2px var(--lampe), 0 0 12px var(--lampe);
+}
+
+.kk-eks-bilde i.tatt {
+  background: var(--lf);
+}
+
+.kk-eks-boble {
+  position: relative;
+  grid-column: 1 / -1;
+  justify-self: center;
+  padding: 6px 12px;
+  border-radius: 13px;
+  background: var(--papir);
+  color: var(--blekk);
+  font: 900 1rem/1.1 var(--font-display);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.kk-eks-boble::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 14px;
+  width: 11px;
+  height: 11px;
+  border-radius: 0 0 0 9px;
+  background: var(--papir);
+  transform: skewX(-24deg);
+}
+
+.kk-eks-tekst {
+  color: var(--tekst-2);
+  font: 700 0.72rem/1.2 var(--font-tekst);
+  text-wrap: balance;
+}
+
+/* ---------- The start as three dots: Lag → Nøkkel → Brett ---------- */
+
+.kk-vei {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: -10px 0 0;
+  padding: 0;
+  color: var(--tekst-3);
+  font: 800 0.82rem/1 var(--font-display);
+  list-style: none;
+}
+
+.kk-vei li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.kk-vei li + li::before {
+  content: "";
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--strek);
+}
+
+.kk-vei i {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--strek);
+  font-size: 0.72rem;
+  font-style: normal;
+}
+
+.kk-vei li.na {
+  color: var(--tekst);
+}
+
+.kk-vei li.na i {
+  background: var(--aksent);
+  box-shadow: 0 2px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.kk-vei li.ferdig i {
+  background: var(--natt-3);
+  box-shadow: none;
+  color: var(--aksent);
+}
+
+/* ---------- Setup: the two teams ---------- */
+
+.kk-lagene {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.kk-lagkol {
+  --lf: var(--rosa);
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--lf) 10%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lf) 55%, transparent);
+}
+
+.kk-lagkol.bla {
+  --lf: var(--himmel);
+}
+
+.kk-lagkol h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 2px 4px 4px;
+  color: var(--lf);
+}
+
+.kk-lagkol h3 span {
+  color: var(--tekst-3);
+  font-size: 0.9rem;
+}
+
+.kk-lagspiller {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 4px 10px 4px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.kk-lagspiller span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kk-lagspiller .avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+}
+
+.kk-tips {
+  margin-top: -4px;
+}
+
+/* The teams on the key screen: who is with whom, the code masters first */
+.kk-lagliste {
+  display: grid;
+  gap: 6px;
+}
+
+.kk-lagliste p {
+  --lf: var(--rosa);
+  padding: 8px 12px;
+  border-radius: var(--r-liten);
+  background: color-mix(in srgb, var(--lf) 10%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--lf) 55%, transparent);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.kk-lagliste p.bla {
+  --lf: var(--himmel);
+}
+
+.kk-lagliste b {
+  margin-right: 6px;
+  color: var(--lf);
+  font: 900 0.95rem/1.2 var(--font-display);
+  white-space: nowrap;
+}
+
+/* ---------- «Kåringen» ---------- */
+
+.kk-lagkortene {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.kk-lagkort {
+  --lf: var(--rosa);
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 10px 16px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--lf) 8%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lf) 45%, transparent);
+  text-align: center;
+}
+
+.kk-lagkort.bla {
+  --lf: var(--himmel);
+}
+
+.kk-lagkort.vinner {
+  background: color-mix(in srgb, var(--lf) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 3px var(--lf), 0 10px 26px color-mix(in srgb, var(--lf) 22%, transparent);
+}
+
+.kk-lagkort h2 {
+  color: var(--lf);
+  font-size: 1.15rem;
+}
+
+.kk-lagkort-tall {
+  color: var(--tekst-2);
+  font: 800 0.9rem/1 var(--font-display);
+}
+
+.kk-lagkort-tall b {
+  display: block;
+  color: var(--tekst);
+  font: 900 2.8rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.kk-lagkort-navn {
+  max-width: 100%;
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.kk-pris {
+  gap: 4px;
+  text-align: center;
+}
+
+.kk-pris p:last-child {
+  color: var(--tekst-2);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.kk-pris b {
+  color: var(--aksent);
+  font: 900 1.15rem/1.2 var(--font-display);
+  letter-spacing: 0.03em;
+}
+
+/* «Sammen mot fella»: nine agents as a row, the record, and the titles to reach for */
+.kk-pips {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: -6px;
+}
+
+.kk-pips i {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.kk-pips i.funnet {
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+}
+
+.kk-pips i.felle {
+  display: grid;
+  place-items: center;
+  margin-left: 4px;
+  background: var(--blekk);
+  box-shadow: inset 0 0 0 2px var(--rod);
+  color: var(--rod);
+  font: 900 0.8rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.kk-rekord {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.kk-rekord.ny {
+  color: var(--lampe);
+  font: 900 1.6rem/1.1 var(--font-display);
+}
+
+.kk-stige {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kk-stige li {
+  display: grid;
+  grid-template-columns: 2.6em minmax(0, 1fr);
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 9px 14px;
+  border-radius: var(--r-liten);
+  background: var(--natt-2);
+  color: var(--tekst-3);
+}
+
+.kk-stige li span {
+  font: 800 0.85rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.kk-stige li b {
+  font: 900 1rem/1.2 var(--font-display);
+}
+
+.kk-stige li small {
+  grid-column: 2;
+  color: var(--tekst-2);
+  font-size: 0.88rem;
+}
+
+.kk-stige li.na {
+  background: color-mix(in srgb, var(--aksent) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--aksent);
+  color: var(--tekst);
+}
+
+.kk-stige li.na b {
+  color: var(--aksent);
+}
+
 /* ---------- Bigger screens ---------- */
 
 @media (min-width: 640px) {
   html.kk-vid .skjerm-brett,
-  html.kk-vid .skjerm-slutt {
+  html.kk-vid .skjerm-resultat {
     gap: 18px;
   }
 
@@ -873,7 +1594,7 @@ button.kk-n:active {
   }
 
   html.kk-vid .kk-kort.t0 {
-    box-shadow: 0 5px 0 var(--rosa-dyp);
+    box-shadow: 0 5px 0 var(--tf-dyp);
   }
 
   html.kk-vid .kk-kort.t1 {
@@ -894,8 +1615,10 @@ button.kk-n:active {
 
   html.kk-vid .kk-status,
   html.kk-vid .kk-melding,
+  html.kk-vid .kk-hint,
+  html.kk-vid .kk-eks,
   html.kk-vid .skjerm-brett .dokk > *,
-  html.kk-vid .skjerm-slutt .dokk > * {
+  html.kk-vid .skjerm-resultat .dokk > * {
     width: min(100%, 620px);
     justify-self: center;
     align-self: center;
@@ -925,7 +1648,7 @@ button.kk-n:active {
 /* Landscape tablets, laptops and phones on their side: board left, everything else right. */
 @media (min-width: 900px) and (min-aspect-ratio: 5/4), (min-width: 660px) and (max-height: 560px) and (orientation: landscape) {
   html.kk-vid .skjerm-brett,
-  html.kk-vid .skjerm-slutt {
+  html.kk-vid .skjerm-resultat {
     display: grid;
     grid-template-columns: minmax(0, 1fr) clamp(250px, 27vw, 340px);
     grid-template-rows: auto auto auto 1fr auto;
@@ -937,13 +1660,13 @@ button.kk-n:active {
   }
 
   html.kk-vid .skjerm-brett > *,
-  html.kk-vid .skjerm-slutt > * {
+  html.kk-vid .skjerm-resultat > * {
     grid-column: 2;
     width: 100%;
   }
 
   html.kk-vid .skjerm-brett > .kk-brett,
-  html.kk-vid .skjerm-slutt > .kk-brett {
+  html.kk-vid .skjerm-resultat > .kk-brett {
     grid-column: 1;
     grid-row: 1 / -1;
     width: min(100%, calc((100vh - 128px) * 1.6));
@@ -953,7 +1676,7 @@ button.kk-n:active {
   }
 
   html.kk-vid .skjerm-brett .dokk,
-  html.kk-vid .skjerm-slutt .dokk {
+  html.kk-vid .skjerm-resultat .dokk {
     grid-row: 5;
     position: static;
     margin: 0;
@@ -962,7 +1685,7 @@ button.kk-n:active {
   }
 
   html.kk-vid .skjerm-brett .dokk > *,
-  html.kk-vid .skjerm-slutt .dokk > * {
+  html.kk-vid .skjerm-resultat .dokk > * {
     width: 100%;
   }
 
@@ -1000,6 +1723,51 @@ button.kk-n:active {
     min-height: 4.2em;
   }
 
+  /* The hint strip in the narrow column: the word on its own row, the numbers under it */
+  html.kk-vid .kk-hint,
+  html.kk-vid .kk-eks {
+    width: 100%;
+  }
+
+  html.kk-vid .kk-hint:not(.satt) {
+    flex-wrap: wrap;
+  }
+
+  html.kk-vid .kk-hint:not(.satt) .kk-hintfelt {
+    flex-basis: 100%;
+  }
+
+  html.kk-vid .kk-tall {
+    flex: 1 1 100%;
+  }
+
+  html.kk-vid .kk-tall button {
+    flex: 1;
+    width: auto;
+  }
+
+  html.kk-vid .kk-hint-vis {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  /* The example: the three frames under each other, picture left and text right */
+  html.kk-vid .kk-eks ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html.kk-vid .kk-eks li {
+    grid-template-columns: 104px minmax(0, 1fr);
+    grid-template-rows: none;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+  }
+
+  html.kk-vid .kk-eks-tekst {
+    font-size: 0.85rem;
+  }
+
   html.kk-vid .kk-banner .figur-ramme {
     width: 84px;
   }
@@ -1012,7 +1780,7 @@ button.kk-n:active {
 /* 4:3 tablets in landscape have height to spare: taller cards. */
 @media (min-width: 900px) and (min-aspect-ratio: 5/4) and (max-aspect-ratio: 3/2) {
   html.kk-vid .skjerm-brett > .kk-brett,
-  html.kk-vid .skjerm-slutt > .kk-brett {
+  html.kk-vid .skjerm-resultat > .kk-brett {
     width: min(100%, calc((100vh - 128px) * 1.25));
     width: min(100%, calc((100dvh - 128px) * 1.25));
   }
@@ -1056,12 +1824,103 @@ button.kk-n:active {
     min-height: 40px;
     padding-block: 8px;
   }
+
+  html.kk-vid .kk-hint {
+    min-height: 40px;
+    padding: 3px;
+  }
+
+  html.kk-vid .kk-hintfelt,
+  html.kk-vid .kk-tall button {
+    height: 34px;
+  }
+
+  html.kk-vid .kk-hint-vis {
+    min-height: 34px;
+    padding-block: 5px;
+  }
+
+  html.kk-vid .kk-eks {
+    padding: 6px 10px 8px;
+  }
+
+  html.kk-vid .kk-eks li {
+    grid-template-rows: 36px auto;
+    gap: 3px;
+  }
+}
+
+/* The shortest phones in portrait (a small iPhone in the browser shows about 550 px): the status
+   row is one line of text beside each number, so the hint strip and the whole board still fit. */
+@media (max-height: 640px) and (orientation: portrait) {
+  html.kk-vid .skjerm-brett {
+    gap: 8px;
+  }
+
+  html.kk-vid .kk-lag {
+    grid-template-columns: auto auto;
+    justify-content: center;
+    align-items: center;
+    column-gap: 6px;
+    row-gap: 1px;
+    padding: 5px 4px 6px;
+  }
+
+  html.kk-vid .kk-lag-navn {
+    grid-column: 1 / -1;
+  }
+
+  html.kk-vid .kk-lag-tall {
+    font-size: 1.5rem;
+  }
+
+  html.kk-vid .kk-lag-tekst {
+    max-width: 4.2em;
+    text-align: left;
+  }
+
+  html.kk-vid .kk-tur {
+    gap: 4px;
+  }
+
+  html.kk-vid .kk-tur-pil {
+    display: none;
+  }
+
+  html.kk-vid .kk-timer {
+    min-height: 28px;
+    padding-block: 2px;
+  }
+
+  html.kk-vid .kk-timer svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  html.kk-vid .kk-melding {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
+
+  html.kk-vid .skjerm-brett .dokk {
+    padding-top: 10px;
+  }
+
+  html.kk-vid .skjerm-brett .dokk .knapp {
+    min-height: 50px;
+    padding-block: 6px;
+  }
+
+  html.kk-vid .skjerm-brett .dokk .lenke {
+    min-height: 36px;
+    padding-block: 6px;
+  }
 }
 
 /* Phones on their side have very little height: tighten everything. */
 @media (max-height: 560px) and (orientation: landscape) {
   html.kk-vid .skjerm-brett,
-  html.kk-vid .skjerm-slutt {
+  html.kk-vid .skjerm-resultat {
     row-gap: 8px;
     padding-top: 2px;
   }
@@ -1097,19 +1956,19 @@ button.kk-n:active {
   }
 
   html.kk-vid .skjerm-brett .dokk,
-  html.kk-vid .skjerm-slutt .dokk {
+  html.kk-vid .skjerm-resultat .dokk {
     gap: 2px;
   }
 
   html.kk-vid .skjerm-brett .dokk .knapp,
-  html.kk-vid .skjerm-slutt .dokk .knapp {
+  html.kk-vid .skjerm-resultat .dokk .knapp {
     min-height: 46px;
     padding-block: 8px;
     font-size: 1.02rem;
   }
 
   html.kk-vid .skjerm-brett .dokk .lenke,
-  html.kk-vid .skjerm-slutt .dokk .lenke {
+  html.kk-vid .skjerm-resultat .dokk .lenke {
     min-height: 36px;
     padding: 6px 4px;
     font-size: 0.88rem;
@@ -1122,6 +1981,94 @@ button.kk-n:active {
 
   html.kk-vid .kk-banner h1 {
     font-size: 1.7rem;
+  }
+
+  /* A slightly wider column on the right, so the hint strip is one row there too. */
+  html.kk-vid .skjerm-brett,
+  html.kk-vid .skjerm-resultat {
+    grid-template-columns: minmax(0, 1fr) clamp(250px, 35vw, 340px);
+  }
+
+  /* The clock beside «Lag Rosa sin tur», not under it */
+  html.kk-vid .kk-tur {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 2px 10px;
+  }
+
+  html.kk-vid .kk-timer {
+    min-height: 26px;
+    padding-block: 1px;
+    background: rgba(23, 14, 43, 0.82);
+  }
+
+  html.kk-vid .kk-timer svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  html.kk-vid .kk-hint {
+    min-height: 0;
+    padding: 3px;
+  }
+
+  html.kk-vid .kk-hint:not(.satt) {
+    flex-wrap: nowrap;
+  }
+
+  html.kk-vid .kk-hint:not(.satt) .kk-hintfelt {
+    flex-basis: 0;
+    height: 32px;
+    padding-inline: 8px;
+  }
+
+  html.kk-vid .kk-tall {
+    flex: none;
+    gap: 3px;
+  }
+
+  html.kk-vid .kk-tall button {
+    flex: none;
+    width: 28px;
+    height: 32px;
+  }
+
+  html.kk-vid .kk-hint-vis {
+    flex-wrap: nowrap;
+    min-height: 32px;
+    padding-block: 4px;
+  }
+
+  /* The example without its pictures: three short lines */
+  html.kk-vid .kk-eks {
+    gap: 4px;
+    padding: 6px 10px 8px;
+  }
+
+  html.kk-vid .kk-eks ol {
+    gap: 3px;
+    counter-reset: kk-eks;
+  }
+
+  html.kk-vid .kk-eks li {
+    grid-template-columns: minmax(0, 1fr);
+    counter-increment: kk-eks;
+  }
+
+  html.kk-vid .kk-eks-bilde {
+    display: none;
+  }
+
+  html.kk-vid .kk-eks-tekst {
+    font-size: 0.8rem;
+  }
+
+  html.kk-vid .kk-eks-tekst::before {
+    content: counter(kk-eks) ". ";
+    color: var(--tekst-3);
+    font-weight: 900;
   }
 }
 
@@ -1142,12 +2089,46 @@ button.kk-n:active {
 }
 
 @media (max-width: 359px) {
+  /* Room for «agenter igjen» at its full size in the team boxes */
+  .kk-status {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .kk-lag {
+    padding-inline: 2px;
+  }
+
   .kk-lag-tekst {
-    font-size: 0.66rem;
+    letter-spacing: -0.01em;
   }
 
   .kk-tur b {
     font-size: 0.98rem;
+  }
+
+  .kk-hint {
+    gap: 4px;
+  }
+
+  .kk-tall {
+    gap: 3px;
+  }
+
+  .kk-tall button {
+    width: 28px;
+  }
+
+  .kk-hintfelt {
+    padding-inline: 8px;
+  }
+
+  .kk-eks ol {
+    gap: 5px;
+  }
+
+  .kk-pips {
+    gap: 4px;
   }
 }
 
@@ -1171,5 +2152,13 @@ button.kk-n:active {
   .kk-bak .kk-n.k9,
   .kk-bak .kk-n.k11 {
     font-size: clamp(11px, 3.9vh, 16px);
+  }
+}
+
+/* The shortest portrait phones (375×560, 320×568): a lower board, so the board, the main button
+   and the links all fit above the fold even with a hint on the strip and a message line. */
+@media (max-width: 639px) and (max-height: 600px) and (orientation: portrait) {
+  .skjerm-brett > .kk-brett {
+    min-height: calc((100vw - 32px) * 0.49);
   }
 }

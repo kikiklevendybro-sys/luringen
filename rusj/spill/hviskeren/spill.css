@@ -66,7 +66,8 @@
   padding: 7px 14px;
   border-radius: 999px;
   background: rgba(255, 79, 139, 0.14);
-  color: var(--rosa);
+  /* (a shade lighter than --rosa: readable on the tinted pill also where the page glows) */
+  color: color-mix(in srgb, var(--rosa) 78%, #fff);
   font: 800 0.9rem/1.2 var(--font-display);
 }
 
@@ -85,6 +86,15 @@
   color: var(--blekk);
 }
 
+.hv-ordkort .storkort-nr {
+  opacity: 0.85;
+}
+
+/* (the cards behind the pile poke out below it: keep the line under the pile clear of them) */
+.skjerm-ordet .bunke {
+  margin-bottom: 8px;
+}
+
 .hv-ordkort.stille {
   animation: none;
 }
@@ -99,6 +109,41 @@
     opacity: 0.35;
     transform: scale(0.9);
   }
+}
+
+/* Hard mode: the hint that is not allowed, printed on the word card. */
+.hv-forbudt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-self: center;
+  justify-content: center;
+  gap: 2px 10px;
+  max-width: 100%;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 900 1.15rem/1.2 var(--font-display);
+}
+
+.hv-forbudt span,
+.hv-nei small {
+  color: #ff9d95; /* a light red that reads on ink */
+  font: 800 0.72rem/1.2 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hv-forbudt span::before,
+.hv-nei small::before {
+  content: "🚫 ";
+  content: "🚫 " / "";
+}
+
+.hv-forbudt b {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .hv-ser-bort {
@@ -116,33 +161,47 @@
   overflow-wrap: anywhere;
 }
 
-/* ---------- Writing a hint ---------- */
+/* ---------- One phone: the hand-over and the hint field on one screen ---------- */
 
 .hv-skriv {
   display: grid;
   gap: 12px;
 }
 
-.hv-skriv-hode {
+/* Who the phone goes to now. It slides in from the side for every new hint giver, so the one who
+   just tapped «Ferdig» sees that the screen is no longer theirs. */
+.hv-tur {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 18px;
   min-width: 0;
+  padding: 6px 4px 4px 8px;
+  animation: hv-tur-inn 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
-.hv-skriv-hode h1 {
+@keyframes hv-tur-inn {
+  from {
+    opacity: 0;
+    transform: translateX(34px) scale(0.94);
+  }
+}
+
+.hv-tur .avatar {
+  width: 80px;
+  height: 80px;
+  font-size: 2.6rem;
+  box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.18), 0 0 0 4px var(--natt), 0 0 0 7px var(--pf, var(--p1));
+}
+
+.hv-tur-tekst {
   display: grid;
+  gap: 4px;
   min-width: 0;
-  font-size: clamp(1.7rem, 7.5vw, 2.1rem);
 }
 
-.hv-skriv-hode h1 small {
-  overflow: hidden;
-  color: var(--tekst-2);
-  font: 800 1rem/1.3 var(--font-display);
-  letter-spacing: 0;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.hv-tur h1 {
+  font-size: clamp(1.9rem, 8.6vw, 2.5rem);
+  overflow-wrap: anywhere;
 }
 
 .hv-minne {
@@ -157,10 +216,10 @@
   color: var(--blekk);
 }
 
-.hv-minne span {
+.hv-minne > span {
   font: 800 0.78rem/1.2 var(--font-display);
   letter-spacing: 0.12em;
-  opacity: 0.7;
+  opacity: 0.8;
   text-transform: uppercase;
 }
 
@@ -172,13 +231,35 @@
 
 .hv-minne.liten {
   align-self: flex-start;
+  max-width: 100%;
   padding: 8px 14px;
-  border-radius: 999px;
+  border-radius: 21px;
   box-shadow: 0 3px 0 var(--aksent-dyp);
 }
 
 .hv-minne.liten b {
   font-size: 1.1rem;
+}
+
+/* Hard mode: the forbidden hint sits beside the word wherever the hint givers are reminded of it. */
+.hv-nei {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 7px;
+  min-width: 0;
+  margin-left: auto;
+  padding: 4px 11px;
+  border-radius: 14px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 900 1rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.hv-minne.liten .hv-nei {
+  margin-left: 4px;
+  font-size: 0.95rem;
 }
 
 .hv-felt {
@@ -188,8 +269,20 @@
   scroll-margin: 90px 0 140px;
 }
 
+/* A refused hint: a red field. Focus is still shown, as a ring outside the red border. */
 .hv-felt[aria-invalid="true"] {
   border-color: var(--rosa);
+  background: color-mix(in srgb, var(--rosa) 10%, var(--natt-2));
+}
+
+.hv-felt[aria-invalid="true"]:focus {
+  outline: 3px solid var(--aksent);
+  outline-offset: 3px;
+}
+
+.hv-skriv .feil {
+  color: color-mix(in srgb, var(--rosa) 78%, #fff);
+  text-wrap: balance;
 }
 
 .hv-skriv .feil:empty {
@@ -304,7 +397,7 @@ button.hv-lapp:active {
   padding: 2px 8px;
   border: 2px solid var(--rod);
   border-radius: 7px;
-  color: var(--rod-dyp);
+  color: #a32b23; /* --rod-dyp a shade darker: 5:1 on the dimmed paper */
   font: 900 0.72rem/1.1 var(--font-display);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -320,7 +413,7 @@ button.hv-lapp:active {
 
 .hv-lapp[aria-pressed="true"] .hv-lapp-tekst,
 .hv-lapp.strok .hv-lapp-tekst {
-  color: color-mix(in srgb, var(--blekk) 55%, var(--papir-2));
+  color: color-mix(in srgb, var(--blekk) 66%, var(--papir-2));
   text-decoration: line-through;
   text-decoration-color: color-mix(in srgb, var(--rod) 75%, transparent);
   text-decoration-thickness: 2px;
@@ -328,7 +421,7 @@ button.hv-lapp:active {
 
 .hv-lapp[aria-pressed="true"] .hv-lapp-fra,
 .hv-lapp.strok .hv-lapp-fra {
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .hv-lapp[aria-pressed="true"]::before,
@@ -413,6 +506,8 @@ button.hv-lapp:active {
   color: var(--tekst-2);
   font: 700 0.95rem/1.3 var(--font-display);
   text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .hv-status b {
@@ -430,6 +525,7 @@ button.hv-lapp:active {
 .hv-sporsmal {
   font: 900 1.5rem/1.2 var(--font-display);
   text-align: center;
+  text-wrap: balance;
   overflow-wrap: anywhere;
 }
 
@@ -438,6 +534,7 @@ button.hv-lapp:active {
   color: var(--tekst-2);
   font: 700 1.02rem/1.35 var(--font-display);
   text-align: center;
+  text-wrap: balance;
 }
 
 .hv-stand {
@@ -461,7 +558,81 @@ button.hv-lapp:active {
   margin-top: -6px;
 }
 
+/* ---------- «Alle samtidig»: the writing time and the comparing ---------- */
+
+.hv-tid {
+  display: grid;
+  flex: 1;
+  align-content: center;
+  justify-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.hv-tid .timer.stor .timer-ring {
+  width: min(56vw, 220px);
+  height: min(56vw, 220px);
+}
+
+.hv-tid .timer-kontroll .knapp-2.liten {
+  min-width: 132px;
+}
+
+.hv-tid-tekst {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.hv-tid-tekst .ingress {
+  max-width: 32ch;
+  text-wrap: balance;
+}
+
+/* (the heading stays on one line on the narrowest phones) */
+.skjerm-lapper h1 {
+  font-size: clamp(1.5rem, 7.4vw, 2.3rem);
+}
+
+.hv-steg li {
+  padding-block: 11px;
+}
+
+.hv-steg li {
+  text-wrap: pretty;
+}
+
+.hv-steg li b,
+.hv-steg li span {
+  overflow-wrap: anywhere;
+}
+
 /* ---------- Setup ---------- */
+
+.hv-modus-hjelp {
+  min-height: 2.6em; /* two lines for either text, so the page doesn't jump when the mode changes */
+}
+
+/* From eight players on one phone: a nudge towards «Alle samtidig», right under the player list. */
+.hv-forslag {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  margin-top: -8px;
+  padding: 14px 16px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--aksent) 12%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--natt));
+}
+
+.hv-forslag p {
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+}
+
+.hv-forslag b {
+  color: var(--tekst);
+}
 
 .hv-katknapp {
   display: flex;
@@ -527,9 +698,48 @@ button.hv-lapp:active {
 
 /* ---------- Result ---------- */
 
+.hv-rekord {
+  align-self: center;
+  max-width: 100%;
+  margin-top: -8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--aksent) 16%, transparent);
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.3 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.hv-rekord b {
+  color: var(--tekst);
+}
+
+.hv-rekord.ny {
+  background: var(--lampe);
+  box-shadow: 0 4px 0 var(--lampe-dyp);
+  color: var(--blekk);
+  transform: rotate(-1.5deg);
+  animation: hv-rekord-inn 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) 0.35s both;
+}
+
+.hv-rekord.ny b {
+  color: inherit;
+  font-size: 1.14em;
+  font-weight: 900;
+}
+
+@keyframes hv-rekord-inn {
+  from {
+    opacity: 0;
+    transform: rotate(-1.5deg) scale(1.9);
+  }
+}
+
+/* The recap: every word with its hints as small notes, the struck ones struck. */
 .hv-logg {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -537,28 +747,74 @@ button.hv-lapp:active {
 
 .hv-logg li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   min-width: 0;
-  padding: 8px 14px 8px 8px;
-  border-radius: 999px;
+  padding: 8px 14px 9px 8px;
+  border-radius: 23px;
   background: var(--natt-2);
 }
 
-.hv-logg b {
+.hv-logg-tekst {
+  display: grid;
+  flex: 1;
+  gap: 6px;
+  min-width: 0;
+  padding-bottom: 1px;
+}
+
+.hv-logg-ord {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+}
+
+.hv-logg-ord b {
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
   font: 900 1.02rem/1.2 var(--font-display);
 }
 
-.hv-logg li > span:not(.hv-logg-merke):not(.vh) {
-  max-width: 40%;
+.hv-logg-hvem {
+  flex: none;
+  max-width: 42%;
   overflow: hidden;
   color: var(--tekst-3);
   font-size: 0.85rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.hv-logg-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.hv-pil {
+  color: var(--tekst-3);
+  font: 900 0.95rem/1 var(--font-display);
+}
+
+.hv-hint {
+  max-width: 100%;
+  padding: 3px 8px 4px;
+  border-radius: 3px 3px 9px 3px;
+  background: var(--papir);
+  color: var(--blekk);
+  font: 800 0.88rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+s.hv-hint {
+  background: color-mix(in srgb, var(--papir-2) 55%, var(--natt-2));
+  text-decoration: line-through;
+  text-decoration-color: var(--rod-dyp);
+  text-decoration-thickness: 2px;
 }
 
 .hv-logg-merke {
@@ -585,13 +841,33 @@ button.hv-lapp:active {
   font-size: 0.8em;
 }
 
+.skjerm-slutt > .knapp-2 {
+  flex: none;
+}
+
 @media (max-width: 350px) {
   .hv-lapper {
     gap: 14px 8px;
   }
+
+  /* («Alle kategorier» must fit on the button) */
+  .hv-kat-ikoner {
+    display: none;
+  }
+
+  .hv-tur {
+    gap: 14px;
+  }
+
+  .hv-tur .avatar {
+    width: 68px;
+    height: 68px;
+    font-size: 2.2rem;
+  }
 }
 
-/* Short screens: the word and the hints must stay visible above the dock. */
+/* Short screens: the word, the field and the hints must stay visible above the dock (and above
+   the keyboard). */
 @media (max-height: 700px) {
   .hv-ordkort {
     min-height: 150px;
@@ -608,5 +884,178 @@ button.hv-lapp:active {
 
   .skjerm-gjett .tom .figur-ramme {
     width: 80px;
+  }
+
+  /* (the top bar already says «Hint 2 av 4»: the dots give their row to the field, which must
+     end above the keyboard on the smallest phones) */
+  .skjerm-skriv .fremdrift {
+    display: none;
+  }
+
+  .hv-skriv {
+    gap: 10px;
+  }
+
+  .hv-tur {
+    padding-block: 4px 2px;
+  }
+
+  .hv-tur .avatar {
+    width: 62px;
+    height: 62px;
+    font-size: 2rem;
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 0 0 3px var(--natt), 0 0 0 6px var(--pf, var(--p1));
+  }
+
+  .hv-tid {
+    gap: 10px;
+  }
+
+  .hv-tid .timer.stor .timer-ring {
+    width: min(42vw, 164px);
+    height: min(42vw, 164px);
+  }
+
+  .hv-tid .timer.stor .timer-tid {
+    font-size: clamp(2.4rem, 12vw, 3.2rem);
+  }
+
+  /* The pause button moves up beside the clock, so the whole screen fits above «Ferdig». */
+  .hv-tid .timer.alene {
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .hv-tid .timer-kontroll .knapp-2.liten {
+    min-width: 104px;
+  }
+
+  .hv-steg {
+    gap: 7px;
+  }
+
+  .hv-steg li {
+    padding-block: 7px;
+  }
+
+  .hv-steg li::before {
+    top: 8px;
+  }
+}
+
+/* A phone on its side. */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* The hint field: everything down to «Ferdig» on the first screenful. */
+  .skjerm-skriv .fremdrift {
+    padding-block: 0;
+  }
+
+  .hv-skriv {
+    gap: 9px;
+  }
+
+  .hv-tur {
+    padding-block: 2px;
+  }
+
+  .hv-tur .avatar {
+    width: 54px;
+    height: 54px;
+    font-size: 1.7rem;
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 0 0 3px var(--natt), 0 0 0 5px var(--pf, var(--p1));
+  }
+
+  .hv-minne:not(.liten) {
+    padding-block: 9px;
+  }
+
+  .hv-minne:not(.liten) b {
+    font-size: 1.3rem;
+  }
+
+  .hv-felt {
+    min-height: 58px;
+    padding-block: 8px;
+    font-size: 1.35rem;
+  }
+
+  .hv-skriv > .knapp {
+    min-height: 54px;
+    padding-block: 10px;
+    font-size: 1.16rem;
+  }
+
+  .hv-ordkort {
+    min-height: 0;
+  }
+
+  /* The lines under the stamp keep their distance where the screen's own gaps are small. */
+  .hv-utfall,
+  .hv-stand {
+    margin-top: 0;
+  }
+
+  /* Checking the hints: three notes in a row, so more of them show beside the button. */
+  .skjerm-sjekk .hv-lapper {
+    gap: 14px 10px;
+  }
+
+  .skjerm-sjekk .hv-lapper > .hv-lapp {
+    flex-basis: calc(33.33% - 7px);
+    min-height: 78px;
+    padding: 16px 8px 10px;
+  }
+
+  /* The writing time: the clock on the left, what to do on the right. */
+  html[data-liggende="side"] .hv-tid {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 22px;
+    text-align: left;
+  }
+
+  html[data-liggende="side"] .hv-tid-tekst {
+    justify-items: start;
+  }
+
+  html[data-liggende="side"] .hv-tid .timer.alene {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 8px;
+  }
+
+  html[data-liggende="side"] .hv-tid .timer.stor .timer-ring {
+    width: min(38vh, 150px);
+    height: min(38vh, 150px);
+  }
+
+  html[data-liggende="side"] .hv-tid .timer.stor .timer-tid {
+    font-size: clamp(2rem, 11vh, 2.8rem);
+  }
+
+  .hv-steg {
+    gap: 6px;
+  }
+
+  .hv-steg li {
+    padding-block: 6px;
+  }
+
+  .hv-steg li::before {
+    top: 7px;
+  }
+
+  /* Three verdict buttons don't fit side by side in the narrow column: one under the other,
+     «Riktig!» on top. */
+  html[data-liggende="side"] .skjerm-lapper .dokk .knapprad.tre {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  html[data-liggende="side"] .skjerm-lapper .dokk .knapprad.tre .mynte {
+    order: -1;
   }
 }

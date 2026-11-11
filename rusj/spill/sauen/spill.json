@@ -2,10 +2,10 @@
   "id": "sauen",
   "navn": "Sauen",
   "undertittel": "Tenk som flokken",
-  "beskrivelse": "Gratis norsk festspill: svar det samme som flest mulig, men ikke bli den svarte sauen! Send mobilen rundt. 3–12 spillere, nesten 400 spørsmål.",
+  "beskrivelse": "Gratis selskapslek på norsk: svar det samme som flest mulig – men ikke bli den svarte sauen. Over 400 spørsmål, 3–12 spillere, én mobil eller alle samtidig.",
   "kort": "Svar det samme som flest mulig – og ikke bli den svarte sauen.",
   "spillere": [3, 12],
-  "minutter": [15, 40],
+  "minutter": [10, 40],
   "mobiler": "en",
   "tagger": ["fest", "familie", "sporsmal"],
   "rekkefolge": 17

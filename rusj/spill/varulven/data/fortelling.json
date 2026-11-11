@@ -13,6 +13,20 @@
     "Vinden uler i pipa – eller er det noe annet?",
     "Stearinlysene blafrer og slukner. Natta har kommet."
   ],
+  "sanger": [
+    "Mikkel Rev",
+    "Bjørnen sover",
+    "Bæ, bæ, lille lam",
+    "Lisa gikk til skolen",
+    "Ro, ro til fiskeskjær",
+    "Per Spelmann",
+    "Pål sine høner",
+    "Kjerringa med staven",
+    "Fola, fola Blakken",
+    "Lille Petter Edderkopp",
+    "Se min kjole",
+    "Jeg gikk en tur på stien"
+  ],
   "morgen": [
     "Hanen galer. Landsbyen våkner – men våkner alle?",
     "Sola titter fram over åsen. Alle åpner øynene.",
@@ -22,6 +36,12 @@
     "Et nytt døgn. Hvem mangler ved frokostbordet?",
     "Kirkeklokkene ringer. Det er tid for å telle hoder.",
     "Duggen ligger tung på gresset, og noen spor leder inn i skogen …"
+  ],
+  "fredelig": [
+    "Den første natta var fredelig. Fra i natt jakter ulvene på ordentlig.",
+    "Ulvene snuste bare rundt i natt. Neste natt blir det alvor.",
+    "Ingen spor i snøen, ingen tomme senger. Nyt det – det varer ikke.",
+    "Alle er på plass ved frokostbordet. Enn så lenge."
   ],
   "dag": [
     "Hvem var ute i natt? Hvem har sett noe rart? Snakk sammen!",
@@ -64,5 +84,28 @@
     "Ulveflokken uler mot månen. De lurte dere alle sammen.",
     "Månen lyser over en stille landsby. Ulvene vant.",
     "Landsbyen sov for tungt. Nå er det ulvenes landsby."
+  ],
+  "enNatt": [
+    "Én natt er alt dere får. Lukk øynene – noen kommer til å bytte plass.",
+    "Månen er oppe, og i natt er ingenting sikkert. Ikke engang hvem du selv er.",
+    "Landsbyen sovner. Noen sniker seg rundt og bytter om på ting.",
+    "Det er mørkt, og noen har lange fingrer i natt.",
+    "En kort natt, mange hemmeligheter. Lukk øynene.",
+    "I natt kan alt skje. I morgen må noen ta skylda."
+  ],
+  "enMorgen": [
+    "Hanen galer. Alle er her – men er alle de samme som i går kveld?",
+    "Sola står opp. Noen våkner som en helt annen.",
+    "God morgen! Kjenn etter: Føler du deg litt … hårete?",
+    "Landsbyen våkner. I natt skjedde det noe – og noen vet hva.",
+    "Ingen mangler ved frokostbordet. Men minst én av dere er varulv."
+  ],
+  "enDag": [
+    "Hvem gjorde hva i natt? Fortell – eller finn på noe.",
+    "Alle sier de er landsbyboere. Noen lyver.",
+    "Spør den synske. Hvis det er den synske, da.",
+    "Rollen du så i natt, er kanskje ikke din lenger.",
+    "Fire minutter. Én varulv er nok.",
+    "Den som snakker mest, har ikke alltid mest å skjule. Eller?"
   ]
 }

@@ -142,6 +142,17 @@ html.vu-morgen .scene {
   text-wrap: balance;
 }
 
+.vu-merke {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(163, 173, 255, 0.14);
+  color: var(--aksent);
+  font: 800 0.9rem/1.2 var(--font-display);
+}
+
 .vu-slik li {
   background: rgba(8, 16, 46, 0.72);
   box-shadow: inset 0 0 0 1.5px rgba(163, 173, 255, 0.22);
@@ -179,14 +190,18 @@ html.vu-morgen .scene {
   box-shadow: inset 0 0 0 2px rgba(163, 173, 255, 0.32);
 }
 
-.vu-oppdrag h1 {
-  font-size: clamp(1.5rem, 6.6vw, 1.85rem);
-  line-height: 1.12;
-}
-
 .vu-oppdrag p {
   color: var(--tekst-2);
   line-height: 1.4;
+}
+
+/* The question. (The heading of a night turn is only the player's name: that is what gets the
+   focus, and what a screen reader on speaker says to the whole room.) */
+.vu-oppdrag p.vu-sporsmal {
+  color: var(--tekst);
+  font: 900 clamp(1.5rem, 6.6vw, 1.85rem) / 1.12 var(--font-display);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 .vu-oppdrag p b {
@@ -200,11 +215,17 @@ html.vu-morgen .scene {
   min-width: 0;
 }
 
-.vu-hvem span:last-child {
+.vu-hvem > div {
   min-width: 0;
   color: var(--tekst-2);
   font: 800 0.95rem/1.2 var(--font-display);
   overflow-wrap: anywhere;
+}
+
+.vu-hvem h1 {
+  display: inline;
+  font: inherit;
+  letter-spacing: 0;
 }
 
 .vu-velgere .velger > span:last-child {
@@ -260,13 +281,25 @@ html.vu-morgen .scene {
   line-height: 1;
 }
 
-.vu-svar h1 {
+/* The player's name: a small label on the card (the heading of the screen). */
+.vu-svar-navn {
   max-width: 100%;
-  font-size: clamp(1.6rem, 7.4vw, 2.1rem);
+  color: var(--blekk-2);
+  font: 800 0.78rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
   overflow-wrap: anywhere;
+  text-transform: uppercase;
 }
 
-.vu-svar p {
+.vu-svar-hoved {
+  max-width: 100%;
+  font: 900 clamp(1.6rem, 7.4vw, 2.1rem) / 1.04 var(--font-display);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.vu-svar-under {
   max-width: 32ch;
   font: 700 1rem/1.4 var(--font-tekst);
   opacity: 0.75;
@@ -289,7 +322,7 @@ html.vu-morgen .scene {
   background: var(--blekk);
   opacity: 0.35;
   transform-origin: left;
-  animation: vu-fyll var(--vent, 2200ms) linear both;
+  animation: vu-fyll var(--vent, 1500ms) linear both;
 }
 
 @keyframes vu-fyll {
@@ -362,6 +395,30 @@ html.vu-morgen .scene {
 
 .vu-dod .avatar {
   filter: grayscale(1) brightness(0.8);
+}
+
+.vu-jobb {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 36ch;
+  padding: 14px 16px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2);
+  color: var(--blekk);
+  font-size: 0.98rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.vu-jobb-ikon {
+  font-size: 1.6rem;
+  line-height: 1.1;
+}
+
+.vu-jobb b {
+  font: 900 1.02rem/1.3 var(--font-display);
 }
 
 .vu-jeger-topp {
@@ -467,6 +524,42 @@ html.vu-morgen .scene {
 
 /* ---------- The end ---------- */
 
+.skjerm-slutt .banner .ingress {
+  max-width: 32ch;
+  color: var(--tekst-2);
+  font: italic 700 1.1rem/1.4 var(--font-display);
+  text-wrap: balance;
+}
+
+/* «Landsbyen 3 – 2 Varulvene»: games won by each side on this phone. */
+.vu-stilling {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  text-align: center;
+}
+
+.vu-stilling-tall {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px 12px;
+  color: var(--tekst-2);
+  font: 800 1.05rem/1.2 var(--font-display);
+}
+
+.vu-stilling-tall b {
+  color: var(--tekst);
+  font: 900 1.7rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .vu-rolleliste,
 .vu-stat,
 .vu-historikk {
@@ -566,11 +659,100 @@ html.vu-morgen .scene {
   font: 900 1rem/1.3 var(--font-display);
 }
 
+/* ---------- «Én natt» ---------- */
+
+/* The night turn: the role is new to the player here, so it is the biggest thing in the frame.
+   (The same colour for every role: nothing on this screen can be read from across the room.) */
+.vu-en-oppdrag {
+  gap: 8px;
+}
+
+.vu-oppdrag p.vu-rolle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--aksent);
+  font: 900 clamp(2rem, 9vw, 2.5rem) / 1.05 var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.vu-en-oppdrag p.vu-sporsmal {
+  font-size: clamp(1.2rem, 5.4vw, 1.45rem);
+}
+
+.seksjon > .vu-stokk {
+  margin-top: 0;
+}
+
+/* The reveal: those who were pointed out, each with the role they ended the night with. */
+.vu-pekte {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 18px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+ul.vu-pekte li {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+ul.vu-pekte li b {
+  max-width: 100%;
+  font: 900 1.25rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+/* Several were pointed out (a tie): equal columns, so the names wrap the same way. */
+ul.vu-pekte.flere {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  align-items: start;
+  width: 100%;
+}
+
+ul.vu-pekte.flere li b {
+  font-size: 1.05rem;
+}
+
+.vu-spotlys ul.vu-pekte.flere .stempel {
+  border-width: 4px;
+  font-size: clamp(0.95rem, 4.4vw, 1.3rem);
+}
+
+.vu-dom.mynte {
+  color: var(--mynte);
+}
+
+.vu-dom.rosa {
+  color: var(--rosa);
+}
+
 @media (max-height: 700px) {
-  .vu-port .avatar.gigant {
+  .vu-port .avatar.gigant,
+  .vu-pekte .avatar.gigant {
     width: 104px;
     height: 104px;
     font-size: 3.3rem;
+  }
+}
+
+@media (max-height: 620px) {
+  .vu-pekte .avatar.gigant {
+    width: 80px;
+    height: 80px;
+    font-size: 2.5rem;
+  }
+
+  .vu-oppdrag p.vu-rolle {
+    font-size: 1.8rem;
   }
 }
 
@@ -615,7 +797,7 @@ html.vu-morgen .scene {
     gap: 14px;
   }
 
-  /* Up to 18 players: the progress dots stay on one row. */
+  /* Up to 12 players: the progress dots stay on one row. */
   .skjerm-roller .fremdrift,
   .skjerm-natt .fremdrift {
     gap: 6px;
@@ -707,5 +889,38 @@ html.vu-morgen .scene {
   .vu-kort > .kort-fot {
     grid-column: 1 / -1;
     margin-top: 4px;
+  }
+}
+
+/* The first one out gets a job on the reveal screen: on short screens the avatar and the stamp
+   make room, so the job note stays above (or beside) the dock. */
+@media (max-height: 700px) {
+  .vu-spotlys:has(.vu-jobb) {
+    gap: 8px;
+    padding-top: 0;
+  }
+
+  .vu-spotlys:has(.vu-jobb) .avatar.gigant {
+    width: 76px;
+    height: 76px;
+    font-size: 2.4rem;
+    box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.18), 0 0 0 4px var(--natt), 0 0 0 6px var(--pf, var(--p1));
+  }
+
+  .vu-spotlys:has(.vu-jobb) h1 {
+    font-size: clamp(1.5rem, 7vw, 1.9rem);
+  }
+
+  .vu-spotlys:has(.vu-jobb) .stempel-sted {
+    min-height: 64px;
+  }
+
+  .vu-spotlys:has(.vu-jobb) .stempel {
+    font-size: clamp(1.2rem, 6vw, 1.6rem);
+  }
+
+  .vu-jobb {
+    padding: 10px 12px;
+    font-size: 0.92rem;
   }
 }
