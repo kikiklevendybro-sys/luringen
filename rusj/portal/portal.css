@@ -2802,3 +2802,68 @@ body:not(.over18) .spillkort[data-alder18] {
     width: 104px;
   }
 }
+
+/* ---------- Card rows with a mouse: arrows and drag (shown only for a fine pointer) ---------- */
+
+.rad-piler {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: -4px 0 -2px;
+}
+
+.hylle-topp .rad-piler {
+  margin: 0 0 0 auto;
+}
+
+.hylle-topp .rad-piler + .hylle-alle {
+  margin-left: 0;
+}
+
+.rad-piler[hidden] {
+  display: none;
+}
+
+.rad-piler button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0 0 3px;
+  border: 2px solid var(--kant, rgba(255, 241, 221, 0.25));
+  border-radius: 999px;
+  background: var(--natt-2, #21143f);
+  color: var(--papir, #fff1dd);
+  font: 900 1.5rem/1 var(--font-display, inherit);
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.rad-piler button:hover:not(:disabled) {
+  background: var(--papir, #fff1dd);
+  color: var(--blekk, #170e2b);
+}
+
+.rad-piler button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hylle-rad,
+  .fortsett-rad {
+    cursor: grab;
+  }
+
+  .hylle-rad.drar,
+  .fortsett-rad.drar {
+    cursor: grabbing;
+    scroll-snap-type: none;
+    user-select: none;
+  }
+
+  .hylle-rad.drar a,
+  .fortsett-rad.drar a {
+    pointer-events: none;
+  }
+}

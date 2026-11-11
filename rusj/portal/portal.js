@@ -848,6 +848,81 @@
   // The badge in the hero counts every game (the build wrote the same number into the page).
   if ($("#helt-antall")) $("#helt-antall").textContent = String(SPILL.length);
 
+  // ---------- Card rows for mouse users ----------
+  // The rows scroll sideways with a finger or a trackpad, but a mouse wheel only scrolls the page.
+  // With a mouse: arrow buttons on each row (shown when there is more to see that way), and
+  // click-and-drag that never turns into a click on a card.
+  const RADER = ".hylle-rad, .fortsett-rad";
+  const finPeker = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const pilerFor = new WeakMap(); // row → its arrows
+  const radFor = new WeakMap(); // arrows → their row
+  function oppdaterPiler(rad) {
+    const p = pilerFor.get(rad);
+    if (!p || !p.isConnected) return;
+    const mer = rad.scrollWidth - rad.clientWidth > 4;
+    p.hidden = !mer || !finPeker.matches;
+    p.querySelector("[data-rull='-1']").disabled = rad.scrollLeft <= 2;
+    p.querySelector("[data-rull='1']").disabled = rad.scrollLeft >= rad.scrollWidth - rad.clientWidth - 2;
+  }
+  function lagPiler() {
+    for (const rad of $$(RADER)) {
+      if (!(pilerFor.get(rad) && pilerFor.get(rad).isConnected)) {
+        const navn = (rad.closest("section") && rad.closest("section").getAttribute("aria-label")) || "raden";
+        const p = document.createElement("div");
+        p.className = "rad-piler";
+        p.hidden = true;
+        p.innerHTML = `<button type="button" data-rull="-1" aria-label="Bla tilbake i ${esc(navn)}">‹</button><button type="button" data-rull="1" aria-label="Bla videre i ${esc(navn)}">›</button>`;
+        // In a shelf the arrows sit in its header, next to «Se alle»; elsewhere just above the row.
+        const topp = rad.closest(".hylle") && rad.closest(".hylle").querySelector(".hylle-topp");
+        if (topp) topp.insertBefore(p, topp.querySelector(".hylle-alle"));
+        else rad.before(p);
+        pilerFor.set(rad, p);
+        radFor.set(p, rad);
+        rad.addEventListener("scroll", () => oppdaterPiler(rad), { passive: true });
+      }
+      oppdaterPiler(rad);
+    }
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".rad-piler [data-rull]");
+    if (!b) return;
+    const rad = radFor.get(b.parentElement);
+    if (!rad) return;
+    rad.scrollBy({ left: Number(b.dataset.rull) * Math.max(160, rad.clientWidth * 0.85), behavior: rolig() ? "auto" : "smooth" });
+  });
+  let dra = null;
+  document.addEventListener("pointerdown", (e) => {
+    const rad = e.pointerType === "mouse" && e.button === 0 && e.target.closest(RADER);
+    if (rad) dra = { rad, x: e.clientX, start: rad.scrollLeft, flyttet: false };
+  });
+  document.addEventListener("pointermove", (e) => {
+    if (!dra) return;
+    const dx = e.clientX - dra.x;
+    if (!dra.flyttet && Math.abs(dx) < 6) return;
+    if (!dra.flyttet) {
+      dra.flyttet = true;
+      dra.rad.classList.add("drar");
+    }
+    dra.rad.scrollLeft = dra.start - dx;
+  });
+  const slipp = () => {
+    if (!dra) return;
+    const var_ = dra;
+    dra = null;
+    var_.rad.classList.remove("drar");
+    // A drag must not also open the card it started on.
+    if (var_.flyttet) document.addEventListener("click", (e) => (e.preventDefault(), e.stopPropagation()), { capture: true, once: true });
+  };
+  document.addEventListener("pointerup", slipp);
+  document.addEventListener("pointercancel", slipp);
+  document.addEventListener("dragstart", (e) => {
+    if (e.target.closest && e.target.closest(RADER)) e.preventDefault(); // links and images would start a browser drag
+  });
+  const radObservator = new MutationObserver(lagPiler);
+  for (const el of [$("#hyller"), $("#fortsett-rad")]) if (el) radObservator.observe(el, { childList: true, subtree: true });
+  window.addEventListener("resize", () => $$(RADER).forEach(oppdaterPiler));
+  if (finPeker.addEventListener) finPeker.addEventListener("change", () => $$(RADER).forEach(oppdaterPiler));
+
   byggParade();
   visIdag(); // before the shelves: it decides whether «Dagens utfordringer» is one of them
   byggHyller();
