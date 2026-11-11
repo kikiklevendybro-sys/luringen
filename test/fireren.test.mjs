@@ -133,7 +133,8 @@ test("engine: Vanskelig beats Middels, as first and as second player", () => {
     let s = 1;
     let vinner = 0;
     for (let n = 0; n < 42 && !vinner; n++) {
-      const k = Motor.velg(b, s, s === sterk ? 3 : 2, r, s === sterk ? 900 : 300);
+      // A fixed node budget (about 0.6 s of thinking on a laptop) instead of the clock.
+      const k = Motor.velg(b, s, s === sterk ? 3 : 2, r, 1e9, s === sterk ? 800000 : 0);
       const rad = Fire.slipp(b, k, s);
       if (Fire.linjer(b, k, rad).length) vinner = s;
       s = 3 - s;

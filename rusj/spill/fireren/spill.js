@@ -274,6 +274,7 @@
     function* rot(b, s, valg, resultat) {
       if (!tt) tt = lagTt();
       const ctx = { noder: 0, pause: 0 };
+      resultat.teller = ctx; // live node count (tests stop on nodes, not on the clock)
       const tilfeldig = valg.tilfeldig || Math.random;
       const ms = REKKE.filter((k) => kan(b, k));
       resultat.kolonne = ms[0];
@@ -362,8 +363,9 @@
       return kjor(rot(kopi, s, valg, resultat), valg, () => ferdig(resultat.kolonne, resultat));
     }
 
-    // Without slices (tests): to the end, or until `tid` ms.
-    function velg(b, s, niva, tilfeldig, tid) {
+    // Without slices (tests): to the end, or until `tid` ms — or, with maksNoder, after that many
+    // nodes (the same answer on a busy machine as on an idle one).
+    function velg(b, s, niva, tilfeldig, tid, maksNoder) {
       const valg = Object.assign({ tilfeldig }, NIVA[niva] || NIVA[2]);
       if (valg.lett) return lett(b, s, tilfeldig || Math.random);
       const kopi = { c: Int8Array.from(b.c), h: Int8Array.from(b.h), n: b.n, h1: b.h1, h2: b.h2 };
@@ -375,7 +377,7 @@
       do {
         r = gen.next();
         skiver++;
-      } while (!r.done && performance.now() < slutt);
+      } while (!r.done && (maksNoder ? resultat.teller.noder < maksNoder : performance.now() < slutt));
       resultat.skiver = skiver;
       return resultat.kolonne;
     }
@@ -511,7 +513,7 @@
       telRekord(S, null);
       R.si("Brettet er fullt. Uavgjort!");
       setTimeout(() => fortsatt() && R.lyd.pling(), tid + 120);
-    } else R.si(`${navn(sp, hvem)} la i kolonne ${k + 1}. ${navn(sp, tur(S))} sin tur.`);
+    } else R.si(`${navn(sp, hvem)} la i kolonne ${k + 1}. ${tur(S) === 0 && sp.modus === "mobil" ? "Din tur" : `${navn(sp, tur(S))} sin tur`}.`);
     R.vis();
     if (!sp.resultat) startTenking(S);
   }
@@ -581,7 +583,7 @@
   // ---------- Markup ----------
 
   // Under the score: the goal of the match and the draws so far.
-  const tallTekst = (sp) => [sp.mal ? `først til ${sp.mal}` : "", sp.uavgjort ? R.flertall(sp.uavgjort, "uavgjort", "uavgjort") : ""].filter(Boolean).join(" · ");
+  const tallTekst = (sp) => [sp.mal ? `først til ${sp.mal}` : "", sp.uavgjort ? R.flertall(sp.uavgjort, "uavgjort", "uavgjort") : ""].filter(Boolean).join("<br>");
 
   function poengHtml(S) {
     const sp = S.spill;
@@ -609,7 +611,7 @@
     const i = tur(S);
     const forste = sp.trekk.length === 0;
     let tekst;
-    if (erMaskin(sp, i)) tekst = `<span class="fi-tenker">Mobilen tenker<i>.</i><i>.</i><i>.</i></span>`;
+    if (erMaskin(sp, i)) tekst = `<span class="fi-tenker">Mobilen ${forste ? "begynner" : "tenker"}<i>.</i><i>.</i><i>.</i></span>`;
     else if (sp.modus === "mobil") tekst = forste ? "Du begynner! Trykk på en kolonne." : "Din tur";
     else tekst = esc(`${navn(sp, i)} ${forste ? "begynner!" : "sin tur"}`);
     return `<p class="fi-melding ${FARGE[i]}"><i class="fi-disk ${FARGE[i]}" aria-hidden="true"></i><span>${tekst}</span></p>`;
@@ -649,7 +651,10 @@
     const kolonner = o.interaktiv
       ? `<div class="fi-kolonner${kanTrykke ? "" : " venter"}" role="group" aria-label="Kolonnene">${Array.from({ length: KOL }, (_, k) => {
           const ledige = RAD - b.h[k];
-          return `<button class="fi-kol" data-h="slipp" data-v="${k}" data-stille aria-label="Kolonne ${k + 1}${ledige ? `, ${ledige} ledige` : ", full"}"${ledige && kanTrykke ? "" : ' aria-disabled="true"'}><i class="fi-sikte ${FARGE[naa]}" aria-hidden="true"></i></button>`;
+          // The column as words, from the bottom up, so the board can be read without seeing it.
+          const innhold = Array.from({ length: b.h[k] }, (_, r) => FARGE[spillerFor(sp, b.c[k * RAD + r])]);
+          const tekst = `Kolonne ${k + 1}: ${innhold.length ? `${innhold.join(", ")} nedenfra` : "tom"}${ledige ? (innhold.length ? `, ${ledige} ledige` : "") : ", full"}`;
+          return `<button class="fi-kol" data-h="slipp" data-v="${k}" data-stille aria-label="${tekst}"${ledige && kanTrykke ? "" : ' aria-disabled="true"'}><i class="fi-sikte ${FARGE[naa]}" aria-hidden="true"></i></button>`;
         }).join("")}</div>`
       : "";
     return `<div class="fi-ramme${o.liten ? " liten" : ""}">
@@ -664,6 +669,12 @@
 
   // ---------- Setup and flow ----------
 
+  function forsteStarter(S) {
+    const i = S.nesteStarter === 0 || S.nesteStarter === 1 ? S.nesteStarter : R.nyttFro() % 2;
+    S.nesteStarter = 1 - i;
+    return i;
+  }
+
   function nyKamp(S) {
     const o = S.oppsett;
     S.spill = {
@@ -671,7 +682,9 @@
       modus: o.modus,
       niva: o.niva,
       mal: o.mal,
-      starter: 0,
+      // Who opens round 1 takes turns from match to match (the first time: chance), so nobody
+      // always gets three of five openings in «Først til 3».
+      starter: forsteStarter(S),
       trekk: [],
       poeng: [0, 0],
       uavgjort: 0,
@@ -1051,6 +1064,9 @@
   document.addEventListener("keydown", (e) => {
     const S = R.S;
     if (!S || S.skjerm !== "spill" || R.arkApent() || e.repeat || e.altKey || e.ctrlKey || e.metaKey) return;
+    // Digits only while the board has focus (or nothing has), never from another control.
+    const fokus = document.activeElement;
+    if (fokus && fokus !== document.body && !fokus.closest(".fi-brett")) return;
     const k = Number(e.key) - 1;
     if (!(k >= 0 && k < KOL)) return;
     const knapp = R.$(`.fi-kol[data-v="${k}"]`);

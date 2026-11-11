@@ -185,18 +185,18 @@ test("saved games replay from UCI and refuse illegal lists", () => {
 
 test("engine: finds mate in one and takes a free queen at every level", () => {
   const matt = parti("6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1");
-  for (const n of [2, 3]) {
+  for (const n of [2, 3, 4]) {
     const r = Motor.velg(matt, { ...Motor.valgFor(n, matt), tilfeldig: seededRng(n), tid: 3000 });
     assert.equal(Sjakk.uci(r.trekk), "a1a8", `nivå ${n} ser matt i ett`);
   }
   const dronning = parti("4k3/8/8/3q4/8/8/8/3QK3 w - - 0 1");
-  for (const n of [1, 2, 3]) {
+  for (const n of [1, 2, 3, 4]) {
     const r = Motor.velg(dronning, { ...Motor.valgFor(n, dronning), tilfeldig: seededRng(7), tid: 3000 });
     assert.equal(Sjakk.uci(r.trekk), "d1d5", `nivå ${n} tar dronningen`);
   }
   // Doesn't take a guarded pawn with the queen at Middels and Vanskelig
   const felle = parti("4k3/2p5/3p4/8/8/8/8/3QK3 w - - 0 1");
-  for (const n of [2, 3]) {
+  for (const n of [3, 4]) {
     const r = Motor.velg(felle, { ...Motor.valgFor(n, felle), tilfeldig: seededRng(3), tid: 3000 });
     assert.notEqual(Sjakk.uci(r.trekk), "d1d6", `nivå ${n} slår ikke en dekket bonde med dronningen`);
   }
@@ -205,7 +205,7 @@ test("engine: finds mate in one and takes a free queen at every level", () => {
 test("engine: mates with king and queen instead of stalemating", () => {
   const p = parti("8/8/8/4k3/8/8/8/3QK3 w - - 0 1");
   for (let n = 0; n < 60 && !Sjakk.status(p).slutt; n++) {
-    const r = Motor.velg(p, { ...Motor.valgFor(3, p), tid: 250 });
+    const r = Motor.velg(p, { ...Motor.valgFor(4, p), tid: 250 });
     assert.ok(p.lovlige.includes(r.trekk), "the engine only plays legal moves");
     Sjakk.spill(p, r.trekk);
     if (Sjakk.status(p).slutt) break;
@@ -235,7 +235,7 @@ test("engine: tenk() runs in slices with setTimeout and answers within its time 
     pauser++;
   }, 1);
   const t0 = performance.now();
-  const svar = await new Promise((ok) => Motor.tenk(p, { ...Motor.NIVA[3], tid: 700 }, ok));
+  const svar = await new Promise((ok) => Motor.tenk(p, { ...Motor.NIVA[4], tid: 700 }, ok));
   const brukt = performance.now() - t0;
   clearInterval(vakt);
   assert.ok(p.lovlige.includes(svar.trekk), "a legal move");
@@ -246,7 +246,7 @@ test("engine: tenk() runs in slices with setTimeout and answers within its time 
 test("engine: stopping a search means no answer", async () => {
   const p = parti(Sjakk.START);
   let svart = false;
-  const stopp = Motor.tenk(p, { ...Motor.NIVA[3], tid: 400 }, () => (svart = true));
+  const stopp = Motor.tenk(p, { ...Motor.NIVA[4], tid: 400 }, () => (svart = true));
   stopp();
   await new Promise((ok) => setTimeout(ok, 600));
   assert.equal(svart, false);

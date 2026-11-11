@@ -247,8 +247,11 @@
     }
     // Victory by continuous fours: a chain of fours (each forces the one block) that ends in two
     // threats of five at once. Returns the first move of such a chain, or −1.
+    // teller: one budget shared by every search for this move ({ n, slutt }): at most 3000 nodes
+    // and ~25 ms, so even a rare, tangled position never holds up the page.
     function vcf(b, s, dybde, teller) {
       if (dybde <= 0 || teller.n++ > 3000) return -1;
+      if ((teller.n & 31) === 0 && performance.now() > teller.slutt) teller.n = 1e9;
       const o = 3 - s;
       const egne = trusler(b, s);
       if (egne.fem.size) return egne.fem.values().next().value;
@@ -293,13 +296,17 @@
       const o = 3 - s;
       const motFem = trusler(b, o).fem;
       if (motFem.size) return motFem.values().next().value;
-      const egen = vcf(b, s, 10, { n: 0 });
+      const budsjett = () => ({ n: 0, slutt: performance.now() + 12 });
+      const egen = vcf(b, s, 10, budsjett());
       if (egen >= 0) return egen;
-      const deres = vcf(b, o, 8, { n: 0 });
+      const deres = vcf(b, o, 8, budsjett());
       if (deres >= 0) {
+        const felles = { n: 0, slutt: performance.now() + 12 };
         for (const kand of [{ i: deres }, ...liste.slice(0, 6)]) {
+          if (felles.n > 3000 || performance.now() > felles.slutt) break; // out of time: block the start
           b[kand.i] = s;
-          const fortsatt = vcf(b, o, 8, { n: 0 }) >= 0;
+          const fortsatt = vcf(b, o, 8, { n: 0, slutt: felles.slutt }) >= 0;
+          felles.n += 400;
           b[kand.i] = 0;
           if (!fortsatt) return kand.i;
         }
@@ -433,7 +440,7 @@
     R.statistikk("ferdig", { modus: sp.modus, variant: sp.variant, niva: sp.modus === "mobil" ? sp.niva : 0, runder: sp.poeng[0] + sp.poeng[1] + sp.uavgjort, uavgjort: sp.uavgjort, mal: sp.mal || 0 });
     R.gaTil("slutt");
   }
-  const tallTekst = (sp) => [sp.mal ? `først til ${sp.mal}` : "", sp.uavgjort ? R.flertall(sp.uavgjort, "uavgjort", "uavgjort") : ""].filter(Boolean).join(" · ");
+  const tallTekst = (sp) => [sp.mal ? `først til ${sp.mal}` : "", sp.uavgjort ? R.flertall(sp.uavgjort, "uavgjort", "uavgjort") : ""].filter(Boolean).join("<br>");
 
   function settMerke(S, i) {
     const sp = S.spill;
@@ -463,7 +470,7 @@
       telRekord(S, null);
       R.si("Uavgjort!");
       setTimeout(() => fortsatt() && R.lyd.pling(), 450);
-    } else R.si(`${navn(sp, hvem)} tegnet ${hvem === 0 ? "kryss" : "bolle"}. ${navn(sp, tur(S))} sin tur.`);
+    } else R.si(`${navn(sp, hvem)} tegnet ${hvem === 0 ? "kryss" : "bolle"}. ${tur(S) === 0 && sp.modus === "mobil" ? "Din tur" : `${navn(sp, tur(S))} sin tur`}.`);
     R.vis();
     if (!sp.resultat) startTenking(S);
   }
@@ -552,7 +559,7 @@
     const forste = sp.trekk.length === 0;
     const merke = i === 0 ? "kryss" : "bolle";
     let tekst;
-    if (erMaskin(sp, i)) tekst = `<span class="bo-tenker">Mobilen tenker<i>.</i><i>.</i><i>.</i></span>`;
+    if (erMaskin(sp, i)) tekst = `<span class="bo-tenker">Mobilen ${forste ? "begynner" : "tenker"}<i>.</i><i>.</i><i>.</i></span>`;
     else if (forslag >= 0) tekst = "Trykk en gang til for å tegne";
     else if (sp.modus === "mobil") tekst = forste ? `Du begynner – tegn ${merke}!` : `Din tur – tegn ${merke}`;
     else tekst = esc(forste ? `${navn(sp, i)} begynner med ${merke}!` : `${navn(sp, i)} sin tur`);
@@ -622,6 +629,12 @@
 
   // ---------- Setup and flow ----------
 
+  function forsteStarter(S) {
+    const i = S.nesteStarter === 0 || S.nesteStarter === 1 ? S.nesteStarter : R.nyttFro() % 2;
+    S.nesteStarter = 1 - i;
+    return i;
+  }
+
   function nyKamp(S) {
     const o = S.oppsett;
     S.spill = {
@@ -630,7 +643,9 @@
       variant: o.variant,
       niva: o.niva,
       mal: o.mal,
-      starter: 0,
+      // Who opens round 1 takes turns from match to match (the first time: chance), so nobody
+      // always gets three of five openings in «Først til 3».
+      starter: forsteStarter(S),
       trekk: [],
       poeng: [0, 0],
       uavgjort: 0,

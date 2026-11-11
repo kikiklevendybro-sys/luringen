@@ -189,7 +189,7 @@ export default async function (t) {
   // Against the phone (Vanskelig, white): it answers in time, and the page keeps breathing
   await t.klikk('[data-h="nytt"]');
   await t.klikk('[data-h="modus"][data-v="mobil"]');
-  await t.klikk('[data-h="niva"][data-v="3"]');
+  await t.klikk('[data-h="niva"][data-v="4"]');
   await t.klikk('[data-h="farge"][data-v="hvit"]');
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelectorAll('.sh-rute').length === 64");
@@ -234,11 +234,11 @@ export default async function (t) {
   await flytt("h5", "f7", 300);
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
   t.sjekk(/Du vinner/.test(await t.tekst("#skjerm h1")), `Seier mot mobilen vises ikke: «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk((await t.tilstand()).rekord[3].seier === 1, "Seieren ble ikke telt mot Vanskelig");
+  t.sjekk((await t.tilstand()).rekord[4].seier === 1, "Seieren ble ikke telt mot Vanskelig");
   await t.bilde("du-vinner", true);
   await t.klikk('.dokk [data-h="angre"]');
   await t.vent("document.querySelectorAll('.sh-rute').length === 64");
-  t.sjekk((await trekk()).length === 6 && (await t.tilstand()).rekord[3].seier === 0 && !(await t.tilstand()).spill.ferdig, "«Angre» på sluttskjermen tok ikke tilbake matten");
+  t.sjekk((await trekk()).length === 6 && (await t.tilstand()).rekord[4].seier === 0 && !(await t.tilstand()).spill.ferdig, "«Angre» på sluttskjermen tok ikke tilbake matten");
 
   // Small phones: everything fits
   await storrelse(t, "brett", 375, 560);

@@ -74,6 +74,7 @@ export default async function (t) {
   await t.bilde("oppsett-mobil", true);
   await t.klikk('[data-h="modus"][data-v="to"]');
   await t.bilde("oppsett-to", true);
+  await t.js("Rusj.S.nesteStarter = 0"); // who opens round 1 alternates; the test wants player 1
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelectorAll('.fi-kol').length === 7");
   await t.sov(300);
@@ -155,6 +156,7 @@ export default async function (t) {
   await t.klikk('[data-h="nytt"]');
   await t.klikk('[data-h="modus"][data-v="mobil"]');
   await t.klikk('[data-h="niva"][data-v="3"]');
+  await t.js("Rusj.S.nesteStarter = 0"); // who opens round 1 alternates; the test wants player 1
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelectorAll('.fi-kol').length === 7");
   await t.js(`window.__gap = 0; window.__sist = performance.now(); window.__probe = setInterval(() => { const n = performance.now(); window.__gap = Math.max(window.__gap, n - window.__sist); window.__sist = n; }, 8);`);

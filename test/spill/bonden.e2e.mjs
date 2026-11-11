@@ -52,6 +52,7 @@ export default async function (t) {
   await t.bilde("oppsett-mobil", true);
   await t.klikk('[data-h="modus"][data-v="to"]');
   await t.bilde("oppsett-to", true);
+  await t.js("Rusj.S.nesteStarter = 0"); // who opens round 1 alternates; the test wants player 1
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelectorAll('.bo-celle').length === 9");
   await t.sov(700);
@@ -111,6 +112,7 @@ export default async function (t) {
   await t.klikk('[data-h="nytt"]');
   await t.klikk('[data-h="variant"][data-v="fem"]');
   await t.klikk('[data-h="mal"][data-v="0"]');
+  await t.js("Rusj.S.nesteStarter = 0"); // who opens round 1 alternates; the test wants player 1
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelectorAll('.bo-celle').length === 100");
   // Small cells: a real finger tap first shows a faint mark, the second tap draws it
@@ -140,6 +142,7 @@ export default async function (t) {
   await t.klikk('[data-h="variant"][data-v="tre"]');
   await t.klikk('[data-h="niva"][data-v="3"]');
   await t.bilde("oppsett-uslaelig", true);
+  await t.js("Rusj.S.nesteStarter = 0"); // who opens round 1 alternates; the test wants player 1
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelectorAll('.bo-celle').length === 9");
   for (let n = 0; n < 5; n++) {
@@ -172,6 +175,7 @@ export default async function (t) {
   await t.klikk('[data-h="nytt"]');
   await t.klikk('[data-h="variant"][data-v="fem"]');
   await t.klikk('[data-h="niva"][data-v="3"]');
+  await t.js("Rusj.S.nesteStarter = 0"); // who opens round 1 alternates; the test wants player 1
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelectorAll('.bo-celle').length === 100");
   await merk(55, 100);

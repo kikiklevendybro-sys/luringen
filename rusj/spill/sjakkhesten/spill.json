@@ -2,12 +2,13 @@
   "id": "sjakkhesten",
   "navn": "Sjakkhesten",
   "undertittel": "Sjakk",
-  "beskrivelse": "Gratis sjakk på norsk. Spill mot mobilen på tre nivåer eller mot en venn på samme mobil – med rokade, en passant, sjakklokke og angre.",
+  "beskrivelse": "Gratis sjakk på norsk. Spill mot mobilen på fire nivåer eller mot en venn på samme mobil – med rokade, en passant, sjakklokke og angre.",
   "kort": "Ekte sjakk – mot en venn eller mot mobilen.",
   "spillere": [1, 2],
   "minutter": [5, 60],
   "mobiler": "en",
   "tagger": ["klassiker", "tenke", "alene"],
   "rekkefolge": 26,
-  "sok": ["sjakk", "chess", "sjakk på nett", "sjakk mot data", "sjakkspill", "spill sjakk"]
+  "sok": ["sjakk", "chess", "sjakk på nett", "sjakk mot data", "sjakkspill", "spill sjakk"],
+  "motMobilen": true
 }

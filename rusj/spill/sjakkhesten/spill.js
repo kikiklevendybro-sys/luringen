@@ -684,8 +684,13 @@
       return ms[i];
     }
 
-    function qsok(pos, alfa, beta, ply, ctx) {
+    function* qsok(pos, alfa, beta, ply, ctx) {
       ctx.noder++;
+      // Captures can chain for a while: let the scheduler look at the clock here too.
+      if (ctx.noder - ctx.sistPause >= 384) {
+        ctx.sistPause = ctx.noder;
+        yield;
+      }
       const staa = evaluer(pos);
       if (staa >= beta || ply >= MAKS_PLY) return staa;
       if (staa > alfa) alfa = staa;
@@ -704,7 +709,7 @@
           angre(pos);
           continue;
         }
-        const v = -qsok(pos, -beta, -alfa, ply + 1, ctx);
+        const v = -(yield* qsok(pos, -beta, -alfa, ply + 1, ctx));
         angre(pos);
         if (v > best) {
           best = v;
@@ -721,7 +726,7 @@
       const side = pos.side;
       const sjakk = angrepet(pos, pos.konge[side], side ^ 1);
       if (sjakk && ply < MAKS_PLY - 8) dybde++; // check extension: never stop the search in check
-      if (dybde <= 0) return ctx.qsok ? qsok(pos, alfa, beta, ply, ctx) : evaluer(pos);
+      if (dybde <= 0) return ctx.qsok ? yield* qsok(pos, alfa, beta, ply, ctx) : evaluer(pos);
       ctx.noder++;
       // Let the scheduler look at the clock every few hundred nodes (quiescence nodes count too).
       if (ctx.noder - ctx.sistPause >= 384) {
@@ -902,14 +907,15 @@
     // Middels: sees replies and captures. Vanskelig: as deep as ~1.5 s allows.
     const NIVA = {
       1: { dybde: 1, qsok: false, stoy: 45, fullVindu: true, villTrekk: 0.12, tid: 600 },
-      2: { dybde: 3, qsok: true, stoy: 18, fullVindu: true, tid: 1200 },
-      3: { dybde: 64, qsok: true, stoy: 0, forakt: 15, tid: 1500 },
+      2: { dybde: 2, qsok: true, stoy: 70, fullVindu: true, villTrekk: 0.05, tid: 900 },
+      3: { dybde: 3, qsok: true, stoy: 40, fullVindu: true, tid: 1200 },
+      4: { dybde: 64, qsok: true, stoy: 0, forakt: 15, tid: 1500 },
     };
     // Options for a level in this game: the strongest level varies its first moves a little,
     // so no two games start the same way.
     function valgFor(niva, p) {
-      const v = Object.assign({}, NIVA[niva] || NIVA[2]);
-      if (niva === 3 && p.trekk.length < 8) Object.assign(v, { stoy: 14, fullVindu: true, dybde: 4 });
+      const v = Object.assign({}, NIVA[niva] || NIVA[3]);
+      if (niva === 4 && p.trekk.length < 8) Object.assign(v, { stoy: 14, fullVindu: true, dybde: 4 });
       return v;
     }
 
@@ -930,12 +936,15 @@
   const FARGENAVN = ["Hvit", "Svart"];
   const BRIKKENAVN = ["", "bonde", "springer", "løper", "tårn", "dronning", "konge"];
   const BESTEMT = ["", "Denne bonden", "Denne springeren", "Denne løperen", "Dette tårnet", "Denne dronningen", "Denne kongen"];
-  const NIVANAVN = { 1: "Lett", 2: "Middels", 3: "Vanskelig" };
+  // Four steps: each one beats the one below most of the time (measured in self-play).
+  const NIVANAVN = { 1: "Nybegynner", 2: "Lett", 3: "Middels", 4: "Vanskelig" };
   const NIVATEKST = {
-    1: "Mobilen gjør ofte tabber. Fint for å lære.",
-    2: "Ser noen trekk fram. Passe utfordring.",
-    3: "Tenker dypt. Klarer du å slå den?",
+    1: "Mobilen gjør mange tabber og lar brikker stå i fare. Fint for å lære.",
+    2: "Mobilen slår når den kan, men ser ikke langt. Fin første motstander.",
+    3: "Ser noen trekk fram og straffer feil. Passe utfordring.",
+    4: "Tenker dypt. Klarer du å slå den?",
   };
+  const NIVAER = [1, 2, 3, 4];
   const KLOKKER = [0, 5, 10, 15];
   const MIN_TENK = 550; // ms: the phone's move never comes faster than this (feels natural)
   let H;
@@ -1149,11 +1158,13 @@
       tilSluttOm(st.grunn === "matt" ? 2100 : 1700);
       return;
     }
-    startKlokke(S);
+    // Two players with «snu»: turn the board when the move has landed — and only then start the
+    // next player's clock (nobody can move while the board turns).
+    const snur = sp.modus === "to" && onsketBunn(S) !== bunnVist;
+    if (!snur) startKlokke(S);
     R.vis();
     if (st.sjakk) R.toast("Sjakk!");
-    // Two players with «snu»: turn the board when the move has landed.
-    if (sp.modus === "to" && onsketBunn(S) !== bunnVist) {
+    if (snur) {
       clearTimeout(snuId);
       const fortsatt = R.vakt();
       snuId = setTimeout(() => {
@@ -1161,6 +1172,7 @@
         bunnVist = onsketBunn(R.S);
         snuAnimasjon = true;
         R.vis();
+        snuId = setTimeout(() => fortsatt() && R.S.spill && !R.S.spill.ferdig && (startKlokke(R.S), R.vis()), R.rolig() ? 0 : 560);
       }, R.rolig() ? 150 : 520);
     }
     startTenking(S);
@@ -1314,7 +1326,7 @@
   }
   const hjelpVises = (S, p) => {
     const sp = S.spill;
-    return sp.modus === "mobil" && sp.niva === 1 && !sp.ferdig && p.pos.side === sp.meg;
+    return sp.modus === "mobil" && sp.niva <= 2 && !sp.ferdig && p.pos.side === sp.meg;
   };
   function stoppHint() {
     if (hintStopp) hintStopp();
@@ -1452,6 +1464,7 @@
       const tilEl = rot.querySelector(`.sh-rute[data-v="${Sjakk.navn(til)}"]`);
       if (!el || !fraEl || !tilEl) return;
       const f = fraEl.getBoundingClientRect(), t = tilEl.getBoundingClientRect();
+      el.style.willChange = "transform"; // a layer only for the piece that moves
       el.style.transition = "none";
       el.style.transform = `translate(${f.left - t.left}px, ${f.top - t.top}px)`;
       el.style.zIndex = "3";
@@ -1461,6 +1474,7 @@
       setTimeout(() => {
         el.style.zIndex = "";
         el.style.transition = "";
+        el.style.willChange = "";
       }, 260);
     };
     flytt(a.fra, a.til);
@@ -1666,16 +1680,30 @@
 
     tilstand: () => ({
       antall: 2,
-      oppsett: { modus: "mobil", niva: 1, farge: "hvit", klokke: 0, snu: true },
+      oppsett: { modus: "mobil", niva: 2, farge: "hvit", klokke: 0, snu: true },
+      nivaer4: true,
       spill: null,
       rekord: {},
       stilling: { seire: [0, 0], remis: 0 },
     }),
 
     lastet(S) {
-      const o = (S.oppsett = Object.assign({ modus: "mobil", niva: 1, farge: "hvit", klokke: 0, snu: true }, S.oppsett));
+      const o = (S.oppsett = Object.assign({ modus: "mobil", niva: 2, farge: "hvit", klokke: 0, snu: true }, S.oppsett));
       if (!["mobil", "to"].includes(o.modus)) o.modus = "mobil";
-      if (![1, 2, 3].includes(o.niva)) o.niva = 2;
+      // Saved with three levels (Lett, Middels, Vanskelig): the old Lett is now Nybegynner, and
+      // Middels and Vanskelig move one step up. Records follow their level.
+      if (!S.nivaer4) {
+        const ny = { 1: 1, 2: 3, 3: 4 };
+        if (ny[o.niva]) o.niva = ny[o.niva];
+        if (S.spill && ny[S.spill.niva]) S.spill.niva = ny[S.spill.niva];
+        if (S.rekord && typeof S.rekord === "object") {
+          const gml = S.rekord;
+          S.rekord = {};
+          for (const [n, r] of Object.entries(gml)) if (ny[n]) S.rekord[ny[n]] = r;
+        }
+        S.nivaer4 = true;
+      }
+      if (!NIVAER.includes(o.niva)) o.niva = 2;
       if (!["hvit", "svart", "tilfeldig"].includes(o.farge)) o.farge = "hvit";
       if (!KLOKKER.includes(o.klokke)) o.klokke = 0;
       o.snu = !!o.snu;
@@ -1691,7 +1719,7 @@
     },
 
     regler: {
-      intro: "Sjakk for to på samme mobil – eller mot mobilen på tre nivåer. Den som setter kongen matt, vinner.",
+      intro: "Sjakk for to på samme mobil – eller mot mobilen på fire nivåer. Den som setter kongen matt, vinner.",
       steg: [
         ["Flytt en brikke", "Trykk på en brikke. Prikkene viser hvor den kan gå. Trykk på ruta du vil til – eller dra brikka dit."],
         ["Slå brikker", "Flytt til en rute med en av motstanderens brikker, så er den slått. En ring viser hva du kan slå."],
@@ -1702,7 +1730,7 @@
         "En passant: Går en bonde to ruter fram og havner ved siden av en av motstanderens bønder, kan den slås som om den bare gikk én rute – men bare i trekket rett etter.",
         "Kommer en bonde helt fram, velger du hva den skal bli – som oftest en dronning.",
         "Remis (uavgjort): patt, samme stilling tre ganger, 50 trekk uten slag eller bondetrekk, eller for få brikker igjen.",
-        "Mot mobilen på lett viser røde ringer brikkene dine som kan bli slått, og «Tips» foreslår et trekk.",
+        "Mot mobilen på nybegynner og lett viser røde ringer brikkene dine som kan bli slått, og «Tips» foreslår et trekk.",
         "Trykket feil? «Angre» tar tilbake trekket.",
       ],
     },
@@ -1713,7 +1741,7 @@
         vis(S) {
           const sp = S.spill;
           const aktiv = pagar(S);
-          const rek = [1, 2, 3].map((n) => [n, rekordHtml(S, n)]).filter(([, h]) => h);
+          const rek = NIVAER.map((n) => [n, rekordHtml(S, n)]).filter(([, h]) => h);
           return (
             R.ui.spillhjem({
               slagordHtml: "Tenk et trekk fram.<br><em>Sett kongen sjakkmatt!</em>",
@@ -1724,7 +1752,7 @@
               }),
               merker: [
                 ["1–2", "spillere"],
-                ["3", "nivåer"],
+                ["4", "nivåer"],
                 ["0", "reklame"],
               ],
             }) + (rek.length ? `<section class="sh-rekorder" aria-label="Mot mobilen"><p class="etikett">Mot mobilen</p><ul>${rek.map(([n, h]) => `<li><b class="sh-niva">${NIVANAVN[n]}</b>${h}</li>`).join("")}</ul></section>` : "")
@@ -1749,7 +1777,7 @@
               ${R.ui.fliser(
                 "modus",
                 [
-                  { v: "mobil", ikon: "🤖", tittel: "Mot mobilen", tekst: "Tre nivåer" },
+                  { v: "mobil", ikon: "🤖", tittel: "Mot mobilen", tekst: "Fire nivåer" },
                   { v: "to", ikon: "👥", tittel: "To spillere", tekst: "På samme mobil" },
                 ],
                 o.modus,
@@ -1759,7 +1787,7 @@
               mot
                 ? `<section class="seksjon">
                     <h2>Hvor flink er mobilen?</h2>
-                    ${R.ui.seg("niva", [[1, "Lett"], [2, "Middels"], [3, "Vanskelig"]], o.niva, { etikett: "Nivå" })}
+                    ${R.ui.seg("niva", NIVAER.map((n) => [n, NIVANAVN[n]]), o.niva, { etikett: "Nivå" })}
                     <p class="hjelp">${esc(NIVATEKST[o.niva])}</p>
                   </section>
                   <section class="seksjon">
@@ -1794,9 +1822,9 @@
           const snu = snuAnimasjon && !R.rolig();
           snuAnimasjon = false;
           const kanAngre = angreAntall(S) > 0;
-          const medHint = sp.modus === "mobil" && sp.niva === 1;
+          const medHint = sp.modus === "mobil" && sp.niva <= 2;
           return `
-            <h1 class="vh" id="skjerm-tittel">Sjakk: ${sp.ferdig ? "partiet er ferdig" : `${esc(tur)} sin tur${st.sjakk ? ", sjakk" : ""}`}</h1>
+            <h1 class="vh" id="skjerm-tittel">Sjakk: ${sp.ferdig ? "partiet er ferdig" : `${tur === "Du" ? "din tur" : `${esc(tur)} sin tur`}${st.sjakk ? ", sjakk" : ""}`}</h1>
             <span class="sh-luft" aria-hidden="true"></span>
             ${spillerHtml(S, p, bunn ^ 1, "topp")}
             <div class="sh-brettramme">${brettHtml(S, p, { bunn, interaktiv: !sp.ferdig, stempel, snu })}</div>
@@ -1913,7 +1941,7 @@
         R.vis();
       },
       niva(el, e, S) {
-        S.oppsett.niva = R.klamp(Number(el.dataset.v) || 2, 1, 3);
+        S.oppsett.niva = R.klamp(Number(el.dataset.v) || 2, 1, 4);
         R.vis();
       },
       farge(el, e, S) {
@@ -1993,7 +2021,7 @@
         if (!hjelpVises(S, p)) return;
         const fortsatt = R.vakt();
         const nokkel = sp.id + ":" + sp.trekk.length;
-        hintStopp = Motor.tenk(p, Object.assign({}, Motor.NIVA[2], { stoy: 0, tid: 700 }), (svar) => {
+        hintStopp = Motor.tenk(p, Object.assign({}, Motor.NIVA[3], { stoy: 0, tid: 700 }), (svar) => {
           hintStopp = null;
           if (!fortsatt() || !R.S.spill || R.S.spill.id + ":" + R.S.spill.trekk.length !== nokkel) return;
           const q = hentParti(R.S);

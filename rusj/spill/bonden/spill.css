@@ -76,11 +76,13 @@
   font-size: 1.4rem;
 }
 
+/* «først til 3 · 1 uavgjort» wraps under the score instead of pushing the names aside */
 .bo-tall small {
   grid-column: 1 / -1;
+  max-width: 6.2em;
   color: var(--tekst-3);
   font: 700 0.72rem/1.2 var(--font-tekst);
-  white-space: nowrap;
+  text-align: center;
 }
 
 .bo-spiller {
