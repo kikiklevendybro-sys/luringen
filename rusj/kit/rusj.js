@@ -240,13 +240,38 @@
       if (!logg.dager || typeof logg.dager !== "object") logg.dager = {};
       logg.v = 1;
       const liste = Array.isArray(logg.dager[nr]) ? logg.dager[nr] : (logg.dager[nr] = []);
-      if (!liste.includes(id)) liste.push(id);
+      const forsteGang = !liste.includes(id);
+      if (forsteGang) liste.push(id);
       const dager = Object.keys(logg.dager).filter((k) => /^\d+$/.test(k)).sort((a, b) => a - b);
       for (const k of dager.slice(0, Math.max(0, dager.length - 400))) delete logg.dager[k];
       R.skriv("daglig", alle);
+      // Anonymous statistics: once per game and day — how many of today's dailies this phone has
+      // finished, and the site streak (stat.js turns it into a coarse group).
+      if (forsteGang && window.RusjStat) window.RusjStat.daglig(liste.length, dagligRekke(alle, nr));
     } catch (e) {
       /* never break a game for this */
     }
+  };
+  // The site streak, the same rule as rekke() in rusj/portal/daglig.js (see rusj/DAGLIG.md): days in a
+  // row with a finished daily, one missed day per week (Monday–Sunday) forgiven.
+  const dagligRekke = (alle, iDag) => {
+    const spilt = new Set();
+    const logg = alle._ && alle._.dager && typeof alle._.dager === "object" ? alle._.dager : {};
+    for (const k of Object.keys(logg)) if (/^\d+$/.test(k) && Array.isArray(logg[k]) && logg[k].length) spilt.add(Number(k));
+    for (const k of Object.keys(alle)) {
+      const e = alle[k];
+      if (k === "_" || !e || typeof e !== "object" || !Number.isInteger(e.nr)) continue;
+      for (let i = 0; i < Math.min(4000, Math.max(1, Number(e.rekke) || 0)); i++) spilt.add(e.nr - i);
+    }
+    const uke = (d) => Math.floor((d + 3) / 7);
+    const bruktUke = new Set();
+    let n = 0;
+    for (let d = spilt.has(iDag) ? iDag : iDag - 1, i = 0; d > 0 && i < 4000; d--, i++) {
+      if (spilt.has(d)) n++;
+      else if (bruktUke.has(uke(d))) break;
+      else bruktUke.add(uke(d));
+    }
+    return n;
   };
   R.dagligIGang = (info) => {
     try {
@@ -265,8 +290,9 @@
   // ---------- Statistics (anonymous) ----------
   // Games report a few events: R.statistikk("start", { modus: "lag" }) when a game starts,
   // R.statistikk("ferdig", { runder: 3 }) when it ends. No names, no free text, nothing personal.
-  // The kit also reports page views and time on page. Sending only happens if the site is
-  // configured with a statistics endpoint (window.RUSJ_STAT); until then this does nothing.
+  // Only the event name of "start" and "ferdig" ever leaves the phone, through /felles/stat.js
+  // (rusj/kit/stat.js), which also counts page views and time on screen. That file is only on the
+  // page when the site is built with STAT_ADRESSE (scripts/rusj.mjs); until then nothing is sent.
   const statKo = [];
   R.statistikk = (hendelse, data) => {
     if (typeof hendelse !== "string" || hendelse.length > 24) return;
@@ -279,7 +305,11 @@
     }
     statKo.push({ h: hendelse, d: ren, t: Date.now() });
     if (statKo.length > 50) statKo.shift();
-    if (R.statSend) R.statSend();
+    try {
+      if (window.RusjStat) window.RusjStat.hendelse(hendelse);
+    } catch (e) {
+      /* statistics never break a game */
+    }
   };
   R._statKo = statKo;
 
@@ -2390,7 +2420,7 @@
       ${r.steg ? `<ol class="steg">${r.steg.map(([t, x]) => `<li><b>${esc(t)}</b><span>${esc(x)}</span></li>`).join("")}</ol>` : ""}
       ${r.tips && r.tips.length ? `<h3>Tips</h3><ul class="tips">${r.tips.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : ""}
       ${r.ekstraHtml || ""}
-      <p class="personvern">Alt skjer på denne mobilen. Ingen konto, ingen reklame, og ingenting sendes noe sted.</p>
+      <p class="personvern">${window.RUSJ_STAT ? "Det dere skriver inn, blir på denne mobilen. Ingen konto og ingen reklame. Vi teller bare anonymt hvor mange som spiller." : "Alt skjer på denne mobilen. Ingen konto, ingen reklame, og ingenting sendes noe sted."}</p>
       <button class="knapp" data-h="lukk-ark">Skjønner!</button>`);
   };
 

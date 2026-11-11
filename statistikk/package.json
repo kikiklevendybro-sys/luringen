@@ -1,0 +1,9 @@
+{
+  "name": "rusj-statistikk",
+  "private": true,
+  "type": "module",
+  "description": "Anonymous counters for rusj.no (Cloudflare Worker + D1 in the EU). No dependencies.",
+  "scripts": {
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.mjs"
+  }
+}

@@ -1,0 +1,47 @@
+# rusj-statistikk — anonymous counters for rusj.no (Cloudflare Worker + D1 in the EU).
+# No secrets in this file. The admin key is set with:  npx wrangler secret put ADMIN_NOKKEL
+# The steps for going live are in README.md.
+
+name = "rusj-statistikk"
+main = "src/index.js"
+compatibility_date = "2026-11-11"
+
+# The Worker answers at https://rusj-statistikk.<account>.workers.dev
+workers_dev = true
+preview_urls = false
+
+# Cloudflare's own request logs for this Worker stay off: nothing about single requests is kept.
+[observability]
+enabled = false
+
+# The counters. The EU jurisdiction is chosen when the database is created and can never be
+# changed afterwards:
+#   npx wrangler d1 create rusj-statistikk --jurisdiction=eu
+# That command prints a database_id; put it here.
+[[d1_databases]]
+binding = "DB"
+database_name = "rusj-statistikk"
+database_id = "SETT-INN-DATABASE-ID-HER"
+
+# Retention: once a night the Worker deletes counters older than 25 months.
+# (Cron times are UTC: 03:17 is 04:17 in Norway in winter, 05:17 in summer.)
+[triggers]
+crons = ["17 3 * * *"]
+
+# A brake on POST /t: at most 600 requests a minute per Cloudflare data centre, counted for the
+# endpoint as a whole (the key is a constant — nobody's address is used). Above that, requests get
+# 429 and the phones drop them. Needs Wrangler 4.36 or newer. To run without the brake, delete
+# these lines; the Worker then skips it.
+[[ratelimits]]
+name = "FART"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 600
+  period = 60
+
+[vars]
+# Only when Cloudflare Access protects /admin: the «Application Audience (AUD) Tag» of that
+# Access application (64 characters, not a secret). Empty = Access is not trusted and the admin
+# page asks for the key instead.
+ACCESS_AUD = ""

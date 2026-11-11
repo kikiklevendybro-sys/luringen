@@ -2,7 +2,8 @@
 // /felles/, offline support (sw.js), manifest, sitemap and 404 page. No dependencies.
 // Called from scripts/bygg.mjs.
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, copyFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
 
@@ -13,14 +14,34 @@ export const DOMENE = "https://rusj.no";
 // Renamed games: old id → new id. The build writes /<old>/ as a page that sends visitors on.
 export const OMDOPT = { besserwisseren: "bedreviteren" };
 
-// Content Security Policy: only files from rusj.no itself; no inline scripts, no outside requests.
-export const CSP = [
+// Anonymous statistics (see statistikk/README.md and statistikk/KLIENT.md). The address of the
+// statistics Worker, e.g. "https://rusj-statistikk.<konto>.workers.dev". Empty = switched off:
+// then nothing is sent, the CSP is unchanged and the privacy texts say what they always said.
+// When set, the build adds the address to connect-src, publishes /felles/stat.js (which sets
+// window.RUSJ_STAT) on every page, and the footer and /personvern/ describe the counting.
+export const STAT_ADRESSE = "";
+
+// Checks the address and returns its origin ("" when off). Throws on anything that is not a plain
+// https origin (or http://localhost / 127.0.0.1 for tests), so a typo cannot reach the CSP.
+export function statOpprinnelse(adresse = STAT_ADRESSE) {
+  if (!adresse) return "";
+  const u = new URL(adresse);
+  const lokal = u.protocol === "http:" && /^(localhost|127\.0\.0\.1)$/.test(u.hostname);
+  if ((u.protocol !== "https:" && !lokal) || u.username || u.password || u.search || u.hash || (u.pathname !== "/" && u.pathname !== "")) {
+    throw new Error(`STAT_ADRESSE må være bare en adresse som https://navn.workers.dev, ikke «${adresse}»`);
+  }
+  return u.origin;
+}
+
+// Content Security Policy: only files from rusj.no itself; no inline scripts. The only outside
+// request ever allowed is to the statistics Worker, and only when STAT_ADRESSE is set.
+export const lagCsp = (stat = statOpprinnelse()) => [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  "connect-src 'self'",
+  stat ? `connect-src 'self' ${stat}` : "connect-src 'self'",
   "media-src 'self' data: blob:",
   "worker-src 'self'",
   "manifest-src 'self'",
@@ -28,6 +49,30 @@ export const CSP = [
   "base-uri 'none'",
   "form-action 'none'",
 ].join("; ");
+export const CSP = lagCsp();
+
+// /felles/stat.js: the address, then the sender from the kit. Made here (not in byggRusj) because
+// Luringen's page head is written before the rest of the site, and every page names this file.
+export function statFil(rot, stat = statOpprinnelse()) {
+  if (!stat) return null;
+  const innhold = `window.RUSJ_STAT=${JSON.stringify(stat)};\n` + readFileSync(join(rot, "rusj/kit/stat.js"), "utf8");
+  return { innhold, sti: "/felles/stat.js?v=" + hashTekst(innhold) };
+}
+const STAT_FIL = statFil(join(dirname(fileURLToPath(import.meta.url)), ".."));
+
+// /personvern/: the section that describes the counting (only when STAT_ADRESSE is set).
+const PV_TELLING = `
+
+  <section aria-labelledby="pv-telling">
+    <h2 id="pv-telling">Anonym telling</h2>
+    <p>For å vite om rusj blir brukt, teller vi anonymt. Nettleseren sender noen korte ord fra en fast liste, for eksempel «en side ble åpnet: Ordugla», «et spill ble startet» eller «var her også i går». Vi lagrer bare summen per dag, for eksempel «i går ble Ordugla startet 214 ganger».</p>
+    <ul>
+      <li><b>Det som telles:</b> hvilke sider og spill som åpnes, startes og spilles ferdig, om nettleseren var innom i går, siste uke, lenger siden eller aldri før, om rusj er åpnet fra hjemskjermen, omtrent hvor lenge et besøk varer (under 1, 1–3, 3–10, 10–30 eller over 30 minutter), og hvor mange av dagens oppgaver som er løst og hvor mange dager på rad (i grupper).</li>
+      <li><b>Det som ikke telles:</b> navn, det dere skriver, svar, poeng, klokkeslett eller noe om enheten din. Det finnes ingen ID, ingen informasjonskapsler og ingen måte å følge én person fra dag til dag.</li>
+      <li><b>Hvor:</b> tallene lagres hos Cloudflare, i en database som ligger i EU. Når nettleseren sender, ser Cloudflare IP-adressen din, slik alle nettsteder gjør, men vi lagrer den ikke og har slått av loggene. Tall eldre enn 25 måneder slettes.</li>
+      <li><b>Slik slår du det av:</b> har du slått på «Ikke spor» (<span lang="en">Do Not Track</span> eller <span lang="en">Global Privacy Control</span>) eller datasparing i nettleseren, sender rusj ingenting.</li>
+    </ul>
+  </section>`;
 
 export const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
@@ -159,7 +204,7 @@ export function hode(o) {
     o.ikon && `<link rel="icon" href="${o.ikon}" type="image/svg+xml">`,
     o.appleIkon && `<link rel="apple-touch-icon" href="${o.appleIkon}">`,
     ...(o.css || []).map((c) => `<link rel="stylesheet" href="${c}">`),
-    ...(o.skript || []).map((s) => `<script defer src="${s}"></script>`),
+    ...[...(STAT_FIL ? [STAT_FIL.sti] : []), ...(o.skript || [])].map((s) => `<script defer src="${s}"></script>`),
     o.jsonld && `<script type="application/ld+json">${JSON.stringify(o.jsonld).replace(/</g, "\\u003c")}</script>`,
   ];
   return `<!doctype html>\n<html lang="nb"${o.htmlAttr || ""}>\n<head>\n${linjer.filter(Boolean).join("\n")}\n</head>`;
@@ -346,6 +391,7 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
     css: skriv("felles/rusj.css", kilde("rusj/kit/rusj.css")),
     gjengen: skriv("felles/gjengen.js", kilde("rusj/kit/gjengen.js")),
     js: skriv("felles/rusj.js", kilde("rusj/kit/rusj.js")),
+    stat: STAT_FIL && skriv("felles/stat.js", STAT_FIL.innhold),
     qr: skriv("felles/qr.js", kilde("src/qr.js")),
     ord: skriv("felles/ord.js", "window.RUSJ_ORD=" + JSON.stringify(ordData).replace(/</g, "\\u003c") + ";"),
   };
@@ -559,7 +605,11 @@ ${STEMPEL_FILTER}
   // purpose: what is typed stays in the browser – the page itself is of course fetched from a host.
   const bunn = (medHjem) => `<footer class="bunn">
   <p class="bunn-logo">${G.logo()}</p>
-  <p><b>Ingen konto. Ingen sporing. Ingen reklame.</b><br>Det dere skriver inn, lagres bare i nettleseren på denne enheten. Vi har ingen server som tar imot det.</p>
+  <p><b>Ingen konto. Ingen sporing. Ingen reklame.</b><br>${
+    STAT_FIL
+      ? "Det dere skriver inn, lagres bare i nettleseren på denne enheten. Vi teller bare anonymt hvor mange som er innom og hvilke spill som åpnes – uten informasjonskapsler og uten personopplysninger."
+      : "Det dere skriver inn, lagres bare i nettleseren på denne enheten. Vi har ingen server som tar imot det."
+  }</p>
   <nav class="bunn-lenker" aria-label="Om rusj">${medHjem ? '<a href="/">Alle spill</a>' : ""}<a href="/om/">Om rusj</a><a href="/personvern/">Personvern</a></nav>
   <p class="bunn-liten">rusj.no · laget i Norge</p>
 </footer>`;
@@ -719,7 +769,7 @@ ${bunn(true)}
       beskrivelse: "rusj har ingen konto, ingen informasjonskapsler, ingen sporing og ingen reklame. Se nøyaktig hva som lagres i nettleseren din – og slett alt med ett trykk.",
       skript: siderJs,
       innhold: `  <h1>Personvern</h1>
-  <p class="side-ingress">Kort sagt: rusj har ingen konto, ingen informasjonskapsler, ingen sporing og ingen reklame. Det dere skriver inn i spillene, blir i nettleseren på enheten deres.</p>
+  <p class="side-ingress">Kort sagt: rusj har ingen konto, ingen informasjonskapsler, ingen sporing og ingen reklame. Det dere skriver inn i spillene, blir i nettleseren på enheten deres.${STAT_FIL ? " Vi teller bare anonymt hvor mange som bruker rusj, og hvilke spill som åpnes." : ""}</p>
 
   <section aria-labelledby="pv-lagres">
     <h2 id="pv-lagres">Dette lagres i nettleseren din</h2>
@@ -727,10 +777,13 @@ ${bunn(true)}
     <ul>
       <li><b>Navn</b> dere skriver inn, så dere slipper å skrive dem på nytt i neste spill.</li>
       <li><b>Innstillinger:</b> lyd av eller på, filteret du valgte på forsiden, svaret på «18 år eller eldre?» og om du har sett eller lukket et tips.</li>
-      <li><b>Spill:</b> runden dere holder på med, så dere kan fortsette der dere slapp – også det dere har skrevet eller tegnet underveis, egne regler og en nissetrekning. I tillegg hvilke kort som er brukt, rekorder, hvilke av dagens oppgaver du har løst, og kveldens poengtavle.</li>
+      <li><b>Spill:</b> runden dere holder på med, så dere kan fortsette der dere slapp – også det dere har skrevet eller tegnet underveis, egne regler og en nissetrekning. I tillegg hvilke kort som er brukt, rekorder, hvilke av dagens oppgaver du har løst, og kveldens poengtavle.</li>${
+      STAT_FIL ? `
+      <li><b>Telling:</b> hvilken dag du sist var innom og hvor lenge besøket har vart. Da kan nettleseren selv si «var her i går» uten at vi får vite hvem du er.</li>` : ""
+    }
     </ul>
-    <p>Alt dette ligger bare i denne nettleseren på denne enheten. Vi har ingen server som tar imot det, og vi kan ikke se det.</p>
-  </section>
+    <p>Alt dette ligger bare i denne nettleseren på denne enheten. ${STAT_FIL ? "Ingenting av det sendes til oss, og vi kan ikke se det." : "Vi har ingen server som tar imot det, og vi kan ikke se det."}</p>
+  </section>${STAT_FIL ? PV_TELLING : ""}
 
   <section aria-labelledby="pv-nett">
     <h2 id="pv-nett">Spillene lastes ned for bruk uten nett</h2>
@@ -747,7 +800,7 @@ ${bunn(true)}
     <ul>
       <li>Ingen konto og ingen innlogging.</li>
       <li>Ingen informasjonskapsler (cookies).</li>
-      <li>Ingen sporing, statistikk eller måling av hva du gjør.</li>
+      <li>${STAT_FIL ? "Ingen sporing av enkeltpersoner. Vi teller bare anonyme tall per dag (se «Anonym telling»)." : "Ingen sporing, statistikk eller måling av hva du gjør."}</li>
       <li>Ingen reklame, og ingenting som hentes fra andre nettsteder.</li>
     </ul>
   </section>

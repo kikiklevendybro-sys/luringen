@@ -170,7 +170,8 @@ test("the front page: «Dagens rusj» is wired in, and every card carries its fa
   assert.match(f.html, /<section class="idag" id="idag" aria-labelledby="idag-tittel" hidden><\/section>/);
   assert.match(f.html, /<a class="idag-ny" id="idag-ny" href="#hylle-daglig" hidden>/);
   const skript = [...f.html.matchAll(/<script defer src="\/felles\/([a-z]+)\.js\?v=[a-z0-9]+"><\/script>/g)].map((m) => m[1]);
-  assert.deepEqual(skript, ["spilliste", "daglig", "portal"]);
+  // (stat.js comes first on every page when anonymous statistics are on: see STAT_ADRESSE.)
+  assert.deepEqual(skript.filter((s) => s !== "stat"), ["spilliste", "daglig", "portal"]);
   assert.ok(existsSync(join(WEB, "felles/daglig.js")));
   // One card per game: players, phones and time, and the same in the link's name.
   const kort = [...f.html.matchAll(/<li class="spillkort" data-id="([a-z]+)"[\s\S]*?<\/li>/g)];
