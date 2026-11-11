@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><title></title>
+<style>
+  body { margin: 0; background: #150c28; color: #fff1dd; font: 16px/1.4 system-ui; }
+  .lav { color: #5a4a7a; }
+  .grad { background: linear-gradient(90deg, #fff, #eee); color: #ddd; padding: 8px; }
+  .liten { width: 20px; height: 20px; padding: 0; }
+  .dokk { position: sticky; bottom: 0; background: #150c28; height: 120px; }
+  .uten:focus { outline: none; }
+  .klipp { height: 12px; overflow: hidden; }
+</style></head>
+<body>
+<h1>En</h1><h1>To</h1><h3>Hopp</h3><h2></h2>
+<button id="b1"></button>
+<button id="b2">×</button>
+<button id="b3" class="liten">a</button><button id="b4" class="liten">b</button>
+<p class="lav">Lav kontrast tekst</p>
+<p class="grad">Tekst på gradient</p>
+<input id="i1"><input id="i2" placeholder="Bare plassholder"><input id="i3" aria-label="Usynlig etikett">
+<div tabindex="3">positiv</div>
+<div aria-pressed="true">ikke knapp</div>
+<div aria-hidden="true"><button>skjult men fokuserbar</button></div>
+<span id="dup">a</span><span id="dup">b</span>
+<svg width="30" height="30"><circle cx="15" cy="15" r="10" fill="red"/></svg>
+<img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" width="20" height="20">
+<canvas width="50" height="20"></canvas>
+<div data-h="noe" style="cursor:pointer">klikkbar div</div>
+<div role="button">rolle uten fokus</div>
+<div role="tulleball">ugyldig rolle</div>
+<div aria-label="Etikett på div">innhold</div>
+<button aria-label="Lukk">Avbryt alt</button>
+<p aria-labelledby="finnes-ikke">ref</p>
+<a href="#x"><button>nestet</button></a>
+<div id="skjerm" class="skjerm skjerm-test"><output aria-live="polite">3</output><p aria-live="assertive">Viktig</p><button><span aria-live="polite">i knapp</span></button></div>
+<p>Game over, next player</p>
+<p class="klipp">Denne teksten er klippet av en boks som er for lav</p>
+<button class="uten">uten fokusring</button>
+<div style="height:900px"></div>
+<button id="under">under dokken</button>
+<div class="dokk"><button>Start</button></div>
+</body></html>

@@ -333,10 +333,34 @@
 
   let avslorNummer = 0;
 
+  // The dock floats over the bottom of the page: tell the browser how much it covers
+  // (scroll-padding-bottom on <html>, see style.css), so a control that takes focus — Tab, a
+  // screen reader, a switch — is scrolled clear of it.
+  let dokkVakt = null;
+  let sisteDokk = null;
+  const synligDokk = () => $(".skjerm:not([hidden]) .dokk");
+  function maalDokk() {
+    const dokk = synligDokk();
+    document.documentElement.style.setProperty("--dokk-h", (dokk && getComputedStyle(dokk).position === "sticky" ? Math.round(dokk.getBoundingClientRect().height) : 0) + "px");
+  }
+  // The dock of what is showing now: measured, and measured again whenever it changes size.
+  function folgDokk() {
+    sisteDokk = synligDokk();
+    maalDokk();
+    if (typeof ResizeObserver === "undefined") return;
+    if (!dokkVakt) dokkVakt = new ResizeObserver(maalDokk);
+    dokkVakt.disconnect();
+    if (sisteDokk) dokkVakt.observe(sisteDokk);
+  }
+  window.addEventListener("resize", maalDokk);
+
   function gaTil(navnet) {
     stoppTimer();
     avslorNummer++;
+    lukkMappe(true); // a card that is showing goes with its screen
     lukkArk();
+    const siEl = $("#si");
+    if (siEl) siEl.textContent = ""; // a screen-reader message (maybe a secret) must not outlive its screen
     S.skjerm = navnet;
     if (S.spill && SPILLSKJERMER.includes(navnet)) S.spill.skjerm = navnet;
     // Only the visible screen keeps its markup, so ids are never duplicated in hidden screens.
@@ -347,6 +371,7 @@
     });
     SKJERMER[navnet]();
     oppdaterTopp();
+    folgDokk();
     window.scrollTo(0, 0);
     const h = $(`#s-${navnet} h1`);
     if (h) {
@@ -445,7 +470,7 @@
         <h2 class="etikett">Spillere</h2>
         <div class="teller">
           <button data-h="spillere" data-d="-1" aria-label="Færre spillere" ${o.spillere <= K.MIN_SPILLERE ? "disabled" : ""}>−</button>
-          <output aria-live="polite">${o.spillere} <small>spillere</small></output>
+          <output aria-live="off">${o.spillere} <small>spillere</small></output>
           <button data-h="spillere" data-d="1" aria-label="Flere spillere" ${o.spillere >= K.MAKS_SPILLERE ? "disabled" : ""}>+</button>
         </div>
         <div class="spillere">${spillere}</div>
@@ -490,8 +515,11 @@
 
   function mappeHtml(plass) {
     const sak = String(((S.spill && S.spill.oppsett.seed) || (S.gjest && S.gjest.oppsett.seed) || 0) % 9000 + 1000);
+    // A finger holds the card; a keyboard, a screen reader or a switch shows it with one press and
+    // hides it with the next (see «Dossier card»). The back is never part of the button for a
+    // screen reader: what is on it is read out through #si, only while it shows.
     return `
-      <button class="mappe" data-mappe="${plass}" aria-describedby="mappe-hjelp" aria-label="Hold inne for å se kortet ditt">
+      <button class="mappe" data-mappe="${plass}" aria-expanded="false" aria-describedby="mappe-hjelp mappe-trykk" aria-label="Sak ${sak}, hemmelig. Hold inne for å se kortet ditt">
         <span class="mappe-indre">
           <span class="mappe-forside" aria-hidden="true">
             <span class="mappe-fane">Sak ${sak}</span>
@@ -502,9 +530,15 @@
             <span class="sladd" style="--b: 40%"></span>
             <span class="mappe-finger">${FINGER}<span>Hold inne</span></span>
           </span>
-          <span class="mappe-bakside"></span>
+          <span class="mappe-bakside" aria-hidden="true"></span>
         </span>
       </button>`;
+  }
+
+  // The card as a screen reader says it (the same facts as kortHtml).
+  function kortTekst(kort) {
+    if (kort.type === "ord") return `Det hemmelige ordet er ${kort.ord}. Kategori: ${kort.kategori.navn}. Ikke si ordet høyt!`;
+    return `Du er luringen.${kort.kategori ? ` Kategori: ${kort.kategori.navn}.` : ""}${kort.hint ? ` Hint: ${kort.hint}.` : ""}${kort.kategori ? "" : " Ingen hint denne gangen."} Lytt godt, og bløff deg gjennom!`;
   }
 
   function kortHtml(kort) {
@@ -731,19 +765,25 @@
 
   async function nedtelling() {
     const el = $("#nedtelling");
+    const mitt = avslorNummer;
+    const fokus = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
     el.hidden = false;
+    $("#app").inert = true; // nothing behind the countdown can be reached, and focus comes back after it
+    // (The same pace with «reduce motion»: the numbers are also spoken, and that takes its time.)
     for (const t of ["3", "2", "1"]) {
       el.innerHTML = `<span>${t}</span>`;
       Lyd.tikk();
       vibrer(30);
-      await vent(rolig() ? 400 : 800);
+      await vent(800);
     }
     el.innerHTML = '<span class="pek">PEK!</span>';
     Lyd.pek();
     vibrer([80, 40, 160]);
-    await vent(rolig() ? 600 : 1100);
+    await vent(1100);
     el.hidden = true;
     el.innerHTML = "";
+    $("#app").inert = !$("#ark").hidden;
+    if (fokus && mitt === avslorNummer && (!document.activeElement || document.activeElement === document.body)) fokuser(iBruk(fokus) ? fokus : finnFokus(null));
   }
 
   // ---------- Reveal ----------
@@ -771,6 +811,7 @@
         <div class="avslor-tekst"><p>${flere ? "Luringene var:" : "Luringen var:"}</p>${luringerHtml()}</div>
         <div class="dokk"><button class="knapp" data-h="ferdig" data-v="luring">Se resultatet</button></div>`;
       Lyd.latter();
+      si(`Slapp unna! ${flere ? "Luringene" : "Luringen"} var ${sp.r.luringer.map((i) => navn(i)).join(" og ")}.`);
       return;
     }
 
@@ -812,6 +853,8 @@
       tekst.innerHTML = `<p>${esc(navn(m))} var uskyldig. ${flere ? "Luringene" : "Luringen"} var:</p>${luringerHtml()}`;
       dokk.innerHTML = '<button class="knapp rosa" data-h="ferdig" data-v="luring">Se resultatet</button>';
     }
+    // The moment of the round, also for the one who listens to the screen.
+    si((erLuring ? "Avslørt! " : "Uskyldig! ") + tekst.textContent.replace(/\s+/g, " ").trim());
   }
 
   function visOrdetForGjetting() {
@@ -828,6 +871,7 @@
         <button class="knapp mynte" data-h="ferdig" data-v="gruppa">Nei, feil</button>
       </div>`;
     Lyd.snu();
+    si(`Det hemmelige ordet var ${sp.r.ord}. Gjettet ${navn(sp.mistenkt)} riktig?`);
   }
 
   function ferdigRunde(luringVant) {
@@ -1053,11 +1097,37 @@
   }
 
   // ---------- Dossier card: hold to reveal ----------
+  // A finger holds the card to see its back and lets go to hide it, so the word never stays on the
+  // table. Everything that is not a finger — Enter or Space, the press of a screen reader, a
+  // switch or voice control — shows the card with one press and hides it with the next: no
+  // holding and no timing. A card shown that way is also hidden by Escape, when focus leaves it,
+  // and by a press anywhere else.
+  // While the back shows, what is on it is a line in #si: the player's own screen reader reads
+  // it, and it is taken out the moment the card is hidden. It is never part of the button.
+  // (The same behaviour as the hold-to-reveal card in rusj/kit/rusj.js.)
 
   let apenMappe = null;
   let apnetTid = 0;
+  let apenMed = ""; // "hold": a finger is on it · "trykk": shown until the next press
+  let hemmeligLinje = null; // the card's text in #si, while it shows
+  let mappePeker = null; // the pointer that went down on a card: { id, tid, brukt }
+  let mappeSlipp = -1e9; // when it was lifted: the click that follows belongs to it
+  let mappeTast = -1e9; // when a key press on a card was handled: likewise
+  const SKJUL_HINT = "Trykk en gang til for å skjule kortet.";
 
-  function apneMappe(m) {
+  // A line for the screen reader in #si. varig: it stays until the caller removes it.
+  function si(tekst, varig) {
+    const el = $("#si");
+    if (!el || !tekst) return null;
+    const p = document.createElement("p");
+    p.textContent = tekst;
+    el.appendChild(p);
+    while (el.children.length > 8) el.firstElementChild.remove();
+    if (!varig) setTimeout(() => p.remove(), Math.min(15000, 4000 + 70 * tekst.length));
+    return p;
+  }
+
+  function apneMappe(m, med) {
     if (apenMappe) return;
     const plass = Number(m.dataset.mappe);
     const kort = kortForPlass(plass);
@@ -1065,7 +1135,10 @@
     bak.className = "mappe-bakside" + (kort.type === "luring" ? " luring" : "");
     bak.innerHTML = kortHtml(kort);
     m.classList.add("apen");
+    m.setAttribute("aria-expanded", "true");
     apenMappe = m;
+    apenMed = med === "trykk" ? "trykk" : "hold";
+    hemmeligLinje = si(kortTekst(kort) + (apenMed === "trykk" ? " " + SKJUL_HINT : ""), true);
     // Seeing a card (even a quick peek) locks the seat: no going back to look at other seats.
     if (S.skjerm === "gjest" && S.gjest && S.gjest.plass != null && !S.gjest.sett) {
       S.gjest.sett = true;
@@ -1076,16 +1149,22 @@
       S.spill.vertLaast = true; // the host's seat is fixed for the rest of the game
       lagre();
     }
-    apnetTid = performance.now();
+    // Shown with a press, it counts as seen whenever it is hidden; held, after a moment's look.
+    apnetTid = apenMed === "trykk" ? -1e9 : performance.now();
     Lyd.snu();
     vibrer(15);
   }
 
-  function lukkMappe() {
+  // stille: only hide it (the screen or the sheet it is on is going away).
+  function lukkMappe(stille) {
     const m = apenMappe;
     if (!m) return;
     apenMappe = null;
+    apenMed = "";
     m.classList.remove("apen");
+    m.setAttribute("aria-expanded", "false");
+    if (hemmeligLinje) hemmeligLinje.remove();
+    hemmeligLinje = null;
     const holdt = performance.now() - apnetTid;
     setTimeout(() => {
       if (!m.classList.contains("apen")) {
@@ -1096,6 +1175,7 @@
         }
       }
     }, 450);
+    if (stille === true) return;
     if (holdt < 350) {
       visToast("Hold litt lenger for å lese");
       return;
@@ -1112,20 +1192,59 @@
     }
   }
 
+  // One press (a key, or a click that no finger made): show the card, or hide it again.
+  function veksleMappe(m) {
+    if (apenMappe === m) {
+      lukkMappe();
+      return;
+    }
+    if (apenMappe) lukkMappe();
+    if (!m.isConnected) return;
+    apneMappe(m, "trykk");
+    if (apenMappe === m && document.activeElement !== m) m.focus({ preventScroll: true }); // so that leaving it hides it
+  }
+
+  // A press from a screen reader comes as pointer events too, but without a finger's size
+  // (VoiceOver on iOS: no width or height; on Android a finger's size may itself be reported as
+  // nothing, so nothing is concluded there).
+  const kunstigPeker = (e) => e.width === 0 && e.height === 0 && !/Android/i.test(navigator.userAgent || "");
+
   document.addEventListener("pointerdown", (e) => {
     Lyd.lasOpp();
     const m = e.target.closest(".mappe");
-    if (!m) return;
+    if (!m || kunstigPeker(e)) return; // (a screen reader's press: the click that follows does it)
     e.preventDefault();
+    // A card that was shown with a press: a finger on a card hides it, and that is all this touch
+    // does (its click must not show the card again).
+    const vist = !!apenMappe && apenMed === "trykk";
+    if (vist) lukkMappe();
+    mappePeker = { id: e.pointerId, tid: e.timeStamp, brukt: vist };
+    if (vist || !m.isConnected) return;
     try {
       m.setPointerCapture(e.pointerId);
     } catch (feil) {
       /* not all pointers can be captured */
     }
-    apneMappe(m);
+    apneMappe(m, "hold");
   });
-  ["pointerup", "pointercancel"].forEach((t) => document.addEventListener(t, lukkMappe));
-  window.addEventListener("blur", lukkMappe);
+  ["pointerup", "pointercancel"].forEach((t) =>
+    document.addEventListener(t, (e) => {
+      const p = mappePeker && mappePeker.id === e.pointerId ? mappePeker : null;
+      if (p) {
+        mappePeker = null;
+        mappeSlipp = performance.now();
+      }
+      // Down and up in the same instant is no finger: assistive technology pressed the card. It
+      // stays shown until the next press. Otherwise, as always: letting go hides the card.
+      if (p && !p.brukt && t === "pointerup" && apenMappe && apenMed === "hold" && e.timeStamp - p.tid < 3) {
+        apenMed = "trykk";
+        apnetTid = -1e9;
+        si(SKJUL_HINT);
+        if (document.activeElement !== apenMappe) apenMappe.focus({ preventScroll: true });
+      } else if (apenMed === "hold") lukkMappe();
+    }),
+  );
+  window.addEventListener("blur", () => lukkMappe());
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) lukkMappe();
     else if (S.spill || S.gjest) holdVaken();
@@ -1134,40 +1253,179 @@
     if (e.target.closest(".mappe")) e.preventDefault();
   });
   document.addEventListener("keydown", (e) => {
-    if ((e.key === " " || e.key === "Enter") && e.target.classList && e.target.classList.contains("mappe")) {
-      e.preventDefault();
-      if (!e.repeat) apneMappe(e.target);
-    }
-    if (e.key === "Escape" && !$("#ark").hidden) lukkArk();
-  });
-  document.addEventListener("keyup", (e) => {
-    if ((e.key === " " || e.key === "Enter") && apenMappe) {
+    // Escape hides a card that is showing; otherwise it closes the sheet.
+    if (e.key === "Escape" && apenMappe) {
       e.preventDefault();
       lukkMappe();
+    } else if (e.key === "Escape" && !$("#ark").hidden) lukkArk();
+    // Enter or Space on a card: one press shows it, the next hides it. However long the key is
+    // held makes no difference (and the browser's own click for the key is not wanted).
+    if ((e.key === " " || e.key === "Enter") && e.target.classList && e.target.classList.contains("mappe")) {
+      e.preventDefault();
+      mappeTast = performance.now();
+      if (!e.repeat) veksleMappe(e.target);
     }
+  });
+  document.addEventListener("keyup", (e) => {
+    if ((e.key === " " || e.key === "Enter") && e.target.classList && e.target.classList.contains("mappe")) {
+      e.preventDefault();
+      mappeTast = performance.now();
+    }
+  });
+  // A click on a card that no finger made — a screen reader's double tap, a switch, voice control:
+  // the same as a key press. (A finger's hold or tap ends in a click too: that one belongs to the
+  // pointer and is left alone.) A press anywhere else hides a card that was shown with a press,
+  // before the press does its own thing.
+  document.addEventListener(
+    "click",
+    (e) => {
+      const m = e.target.closest ? e.target.closest(".mappe") : null;
+      if (!m) {
+        if (apenMappe && apenMed === "trykk") lukkMappe();
+        return;
+      }
+      const na = performance.now();
+      if (mappePeker || na - mappeSlipp < 500 || na - mappeTast < 100) return;
+      veksleMappe(m);
+    },
+    true,
+  );
+  // Focus left a card that was shown with a press: hide it.
+  document.addEventListener("focusout", (e) => {
+    const m = apenMappe;
+    if (!m || apenMed !== "trykk" || e.target !== m) return;
+    setTimeout(() => {
+      if (apenMappe === m && apenMed === "trykk" && document.activeElement !== m) lukkMappe();
+    }, 0);
   });
 
   // ---------- Sheet, confirm, toast ----------
 
   let arkSvar = null;
+  let arkFokus = null; // where focus was when the sheet opened: it goes back there
 
+  // The sheet is a modal dialog: focus moves into it (to its heading, so a screen reader reads
+  // that first), Tab stays inside, and the page behind is out of reach for everyone while it is
+  // open (inert: TalkBack does not stop at aria-modal).
   function apneArk(html) {
+    const aktiv = document.activeElement;
+    if (aktiv && aktiv !== document.body && !aktiv.closest("#ark")) arkFokus = { el: aktiv, nokkel: fokusNokkel(aktiv) };
+    if (apenMappe && apenMappe.closest("#ark")) lukkMappe(true); // a card in the sheet that is being replaced
     $("#ark-innhold").innerHTML = html;
     $("#ark").hidden = false;
-    const forste = $("#ark-innhold button, #ark-innhold input");
-    if (forste) forste.focus();
+    $("#app").inert = true;
+    const forste = $("#ark-innhold h2") || $("#ark-innhold button, #ark-innhold input");
+    if (forste) {
+      if (forste.tagName === "H2") forste.setAttribute("tabindex", "-1");
+      forste.focus({ preventScroll: true });
+    }
   }
 
   function lukkArk() {
     const ark = $("#ark");
     if (!ark || ark.hidden) return;
+    if (apenMappe && apenMappe.closest("#ark")) lukkMappe(true); // a card in the sheet goes with it
     ark.hidden = true;
     $("#ark-innhold").innerHTML = "";
+    $("#app").inert = false;
+    const husk = arkFokus;
+    arkFokus = null;
+    if (husk) fokuser(iBruk(husk.el) ? husk.el : finnFokus(husk.nokkel));
     if (arkSvar) {
       const svar = arkSvar;
       arkSvar = null;
       svar(false);
     }
+  }
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab" || $("#ark").hidden) return;
+    const fokuserbare = $$("#ark-innhold button:not([disabled]), #ark-innhold a[href], #ark-innhold input:not([disabled])").filter((el) => el.offsetParent !== null);
+    if (!fokuserbare.length) return;
+    const forste = fokuserbare[0];
+    const siste = fokuserbare[fokuserbare.length - 1];
+    if (!$("#ark-innhold").contains(document.activeElement)) {
+      e.preventDefault();
+      forste.focus();
+    } else if (e.shiftKey && (document.activeElement === forste || document.activeElement.tagName === "H2")) {
+      e.preventDefault();
+      siste.focus();
+    } else if (!e.shiftKey && document.activeElement === siste) {
+      e.preventDefault();
+      forste.focus();
+    }
+  });
+
+  // ---------- Focus that survives ----------
+  // A redraw replaces the control that had focus, and the browser then drops focus to <body>: a
+  // screen-reader user is thrown to the top of the page, a keyboard user tabs from the start.
+  // Focus is put back: on the same control when it is still there, else on another of its kind
+  // (the other half of a stepper), else on the heading of what is showing. Only when focus was in
+  // the screen and a change took it away — never when it was put down on purpose.
+
+  let sistFokus = null; // { el, nokkel }: the control that last had focus in a screen or the sheet
+  const iBruk = (el) => !!el && el.isConnected && !el.disabled && !el.closest("[inert], [hidden]");
+  function fokuser(el) {
+    if (!el) return;
+    try {
+      if (el.tabIndex < 0 && !el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+      el.focus({ preventScroll: true });
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  // What finds the same control again after a redraw: [exact selector, the action alone].
+  function fokusNokkel(el) {
+    if (!el || !el.closest || !el.closest(".skjerm, #ark-innhold")) return null;
+    if (el.id) return ["#" + CSS.escape(el.id), ""];
+    const d = el.dataset || {};
+    if (d.h == null) return [d.mappe != null ? `[data-mappe="${CSS.escape(d.mappe)}"]` : "", ""];
+    const h = `[data-h="${CSS.escape(d.h)}"]`;
+    return [h + ["v", "id", "d"].filter((k) => d[k] != null).map((k) => `[data-${k}="${CSS.escape(d[k])}"]`).join(""), h];
+  }
+  function finnFokus(nokkel) {
+    const rot = $("#ark").hidden ? $(".skjerm:not([hidden])") : $("#ark-innhold");
+    if (!rot || rot.closest("[inert]")) return null;
+    let mal = null;
+    for (const sel of nokkel || []) if (!mal && sel) mal = $$(sel, rot).find(iBruk) || null;
+    return mal || rot.querySelector("h1, h2") || rot;
+  }
+  function reddFokus() {
+    const a = document.activeElement;
+    if (a && a !== document.body && iBruk(a)) return;
+    const f = sistFokus;
+    if (!f || iBruk(f.el) || !$("#nedtelling").hidden) return;
+    fokuser(finnFokus(f.nokkel));
+  }
+  document.addEventListener(
+    "focusin",
+    (e) => {
+      const nokkel = fokusNokkel(e.target);
+      sistFokus = nokkel ? { el: e.target, nokkel } : null;
+    },
+    true,
+  );
+  document.addEventListener(
+    "focusout",
+    (e) => {
+      // Put down on purpose (blur(), a tap beside the buttons): nothing to give back later. Looked
+      // at a moment after, because a control that is being removed loses focus the same way —
+      // and that is the loss to mend.
+      const el = e.target;
+      if (e.relatedTarget) return;
+      setTimeout(() => {
+        if (sistFokus && sistFokus.el === el && iBruk(el)) sistFokus = null;
+      }, 0);
+    },
+    true,
+  );
+  if (typeof MutationObserver !== "undefined") {
+    // Every change in a screen or the sheet: give focus back if the change took it, and follow
+    // the dock if the screen was drawn again.
+    const vakt = new MutationObserver(() => {
+      reddFokus();
+      if (synligDokk() !== sisteDokk) folgDokk();
+    });
+    for (const rot of [$("#hoved"), $("#ark-innhold")]) if (rot) vakt.observe(rot, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled", "hidden"] });
   }
 
   function bekreft(tittel, tekst, ja, nei) {
@@ -1196,13 +1454,16 @@
       <button class="knapp-2" data-h="lukk-ark">Lukk</button>`);
   }
 
+  // A toast stays long enough to be read: 2.2 s for a word or two, longer for a sentence (about
+  // 70 ms a character), at most 8 s. It is for the eye; a screen reader gets the text through #si.
   let toastId = null;
   function visToast(tekst) {
     const t = $("#toast");
     t.textContent = tekst;
     t.classList.add("vis");
     clearTimeout(toastId);
-    toastId = setTimeout(() => t.classList.remove("vis"), 2200);
+    toastId = setTimeout(() => t.classList.remove("vis"), Math.min(8000, Math.max(2200, 1500 + 70 * String(tekst).length)));
+    si(tekst);
   }
 
   async function kopier(tekst) {
@@ -1308,6 +1569,7 @@
       o.spillere = Math.min(K.MAKS_SPILLERE, Math.max(K.MIN_SPILLERE, o.spillere + Number(el.dataset.d)));
       o.luringer = Math.min(o.luringer, K.maksLuringer(o.spillere));
       oppfriskOppsett();
+      si(`${o.spillere} spillere`); // (the number on the screen is drawn anew, so it says nothing by itself)
     },
     niva: (el) => {
       S.oppsett.niva = Number(el.dataset.v);
@@ -1402,7 +1664,7 @@
     "se-igjen": () => seIgjen(),
     "se-igjen-velg": (el) => {
       const i = Number(el.dataset.v);
-      $("#ark-innhold").innerHTML = `<h2 id="ark-tittel">${esc(navn(i))}</h2>${mappeHtml(i)}<p class="hjelp" id="mappe-hjelp">Hold inne for å se.</p><button class="knapp-2" data-h="lukk-ark">Lukk</button>`;
+      apneArk(`<h2 id="ark-tittel">${esc(navn(i))}</h2>${mappeHtml(i)}<p class="hjelp" id="mappe-hjelp">Hold inne for å se.</p><button class="knapp-2" data-h="lukk-ark">Lukk</button>`);
     },
     "lukk-ark": () => lukkArk(),
     "ark-svar": (el) => {

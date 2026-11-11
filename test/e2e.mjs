@@ -123,6 +123,15 @@ async function bilde(navn, helside = false) {
   return fil;
 }
 
+// A real key press (down, held for ms, up), to whatever has focus.
+async function tast(key, vk, ms = 30) {
+  const felles = { key, code: key === " " ? "Space" : key, windowsVirtualKeyCode: vk };
+  await send("Input.dispatchKeyEvent", { type: "keyDown", ...felles, ...(key === "Enter" ? { text: "\r" } : key === " " ? { text: " " } : {}) });
+  await sov(ms);
+  await send("Input.dispatchKeyEvent", { type: "keyUp", ...felles });
+  await sov(120);
+}
+
 const tilstand = () => js(`JSON.parse(localStorage.getItem("luringen.v1"))`);
 const tekst = (sel) => js(`document.querySelector(${JSON.stringify(sel)})?.innerText ?? ""`);
 
@@ -161,6 +170,7 @@ try {
   await send("Runtime.enable");
   await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
   await send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
+  await send("Emulation.setFocusEmulationEnabled", { enabled: true }); // a headless page has no focus: keys and focus events need it
 
   // ---------- One phone, 4 players, level Lett ----------
   await lastSide(SIDE);
@@ -183,6 +193,44 @@ try {
   const runde1 = st.spill.r;
   if (st.spill.oppsett.spillere !== 4) feil.push("Feil antall spillere");
   if (runde1.vanske !== 1) feil.push(`Lett skal gi vanskelighet 1, fikk ${runde1.vanske}`);
+
+  // The card without a finger (keyboard, screen reader, switch): one press shows it and reads it
+  // out to the player's own screen reader, the next hides it — no holding, no timing. The secret
+  // is never in the button's name, and is gone from the announcement when the card is hidden.
+  {
+    const KORT = ".skjerm:not([hidden]) .mappe";
+    const hemmelig = (runde1.luringer.includes(0) ? "luringen" : runde1.ord).toLowerCase();
+    const kort = () =>
+      js(`(() => { const m = document.querySelector(${JSON.stringify(KORT)}); return { apen: m.classList.contains("apen"), utvidet: m.getAttribute("aria-expanded"), navn: (m.getAttribute("aria-label") || "").toLowerCase(), si: document.querySelector("#si").textContent.toLowerCase(), bak: m.querySelector(".mappe-bakside").getAttribute("aria-hidden"), neste: !document.querySelector("#neste-spiller").disabled, fokus: document.activeElement === m }; })()`);
+    let k = await kort();
+    sjekk(!k.apen && k.utvidet === "false", "Kortet sier ikke at det er lukket (aria-expanded) før det er vist");
+    await klikk(KORT); // what a screen reader's double tap sends
+    k = await kort();
+    sjekk(k.apen && k.utvidet === "true", "Et vanlig klikk (skjermleser, bryter) viser ikke kortet");
+    sjekk(k.si.includes(hemmelig), `Kortet leses ikke opp mens det vises (#si: «${k.si}»)`);
+    // (The label's own words — «Sak 1234, hemmelig. Hold inne for å se kortet ditt» — prove nothing.)
+    const egneOrd = ["sak", "hemmelig", "hold", "inne", "for", "å", "se", "kortet", "ditt"];
+    sjekk(k.bak === "true" && (egneOrd.includes(hemmelig) || !k.navn.split(/[^a-zæøå0-9]+/).includes(hemmelig)), "Det hemmelige er en del av knappen for en skjermleser");
+    sjekk(k.fokus, "Kortet har ikke fokus mens det vises etter et klikk");
+    await klikk(KORT);
+    k = await kort();
+    sjekk(!k.apen && k.utvidet === "false", "Et klikk til skjuler ikke kortet");
+    sjekk(!k.si.includes(hemmelig), "Det hemmelige ble liggende i skjermleser-meldingen etter at kortet ble skjult");
+    sjekk(k.neste, "Kortet teller ikke som sett når det er vist og skjult uten å holde");
+    // Keys: a short press of Enter shows it, Escape hides it; Space shows it, and leaving it hides it.
+    await js(`document.querySelector(${JSON.stringify(KORT)}).focus()`);
+    await tast("Enter", 13);
+    sjekk((await kort()).apen, "Et kort trykk på Enter viser ikke kortet (uten å holde)");
+    await tast("Escape", 27);
+    sjekk(!(await kort()).apen, "Escape skjuler ikke kortet");
+    await tast(" ", 32, 500);
+    k = await kort();
+    sjekk(k.apen, "Mellomrom viser ikke kortet (eller kortet lukket seg da tasten ble sluppet)");
+    await tast("Tab", 9);
+    await sov(100);
+    k = await kort();
+    sjekk(!k.apen && !k.si.includes(hemmelig), "Kortet skjules ikke når fokus forlater det");
+  }
 
   for (let i = 0; i < 4; i++) {
     const slipp = await hold(".skjerm:not([hidden]) .mappe");
@@ -234,14 +282,24 @@ try {
     await slipp();
     await klikk('[data-h="neste-spiller"]');
   }
+  // The sheet is a modal dialog: focus goes into it and stays there, the page behind is out of
+  // reach, and focus comes back to the button that opened it.
+  const iArket = () => js(`document.querySelector("#ark-innhold").contains(document.activeElement)`);
+  await js(`document.querySelector('[data-h="se-igjen"]').focus()`);
   await klikk('[data-h="se-igjen"]');
+  sjekk(await iArket(), "Fokus ble ikke flyttet inn i arket da det åpnet");
+  sjekk(await js(`document.querySelector("#app").inert === true`), "Siden bak arket kan fortsatt nås (ikke inert)");
+  for (let i = 0; i < 7; i++) await tast("Tab", 9, 10);
+  sjekk(await iArket(), "Tab førte fokus ut av arket");
   await klikk('[data-h="se-igjen-velg"][data-v="1"]');
+  sjekk(await iArket(), "Fokus forsvant da arket byttet innhold");
   const slippArk = await hold("#ark .mappe", 600);
   const arkKort = await tekst("#ark .mappe-bakside");
   if (!arkKort.trim()) feil.push("«Se igjen» viste ikke noe kort");
   await bilde("se-igjen");
   await slippArk();
   await klikk('[data-h="lukk-ark"]');
+  sjekk(await js(`document.activeElement === document.querySelector('[data-h="se-igjen"]') && !document.querySelector("#app").inert`), "Fokus kom ikke tilbake til «Se kortet igjen» da arket ble lukket");
 
   // ---------- Each on their own phone: host ----------
   await klikk('[data-h="tilbake"]');
@@ -251,8 +309,19 @@ try {
   sjekk(/Starte nytt spill/.test(await js(`document.querySelector("#ark-tittel")?.textContent || ""`)), "«Nytt spill» spør ikke før poengene slettes");
   await klikk('[data-h="ark-svar"][data-v="ja"]');
   await klikk('[data-h="modus"][data-v="hver"]');
+  // Every change on the set-up screen draws it again: focus must stay on the control that was pressed.
+  const fokusPa = (h, attr, v) => js(`!!document.activeElement && document.activeElement.dataset.h === ${JSON.stringify(h)} && document.activeElement.dataset.${attr} === ${JSON.stringify(v)}`);
+  await js(`document.querySelector('[data-h="spillere"][data-d="1"]').focus()`);
   for (let i = 0; i < 2; i++) await klikk('[data-h="spillere"][data-d="1"]');
+  sjekk(await fokusPa("spillere", "d", "1"), "Fokus forsvant fra «Flere spillere» da oppsettet ble tegnet på nytt");
+  await js(`document.querySelector('[data-h="niva"][data-v="3"]').focus()`);
   await klikk('[data-h="niva"][data-v="3"]');
+  sjekk(await fokusPa("niva", "v", "3"), "Fokus forsvant fra nivået som ble valgt");
+  // The dock floats over the page: a control that takes focus is scrolled clear of it.
+  sjekk(
+    await js(`(() => { const el = Array.from(document.querySelectorAll('[data-h="tid"]')).pop(); el.focus(); const a = el.getBoundingClientRect(); const d = document.querySelector(".skjerm:not([hidden]) .dokk").getBoundingClientRect(); return a.bottom <= d.top + 1 && a.top >= 0; })()`),
+    "En kontroll som får fokus, blir liggende bak knappen nederst",
+  );
   await klikk('[data-h="luringer"][data-v="2"]');
   // Pick two categories: the pot shrinks and the code becomes the long version
   const fullPott = await tekst(".seksjon-hode .tall");

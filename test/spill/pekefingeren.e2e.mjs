@@ -270,4 +270,11 @@ export default async function (t) {
   await t.sov(300);
   s = await t.tilstand();
   t.sjekk(s.spill && s.spill.ferdig === false && s.skjerm !== "oppsett", "#jul skal ikke avbryte et spill som pågår");
+  // The kit check runs on the set-up screen: leave the game above and start from a clean slate.
+  await t.js(`(() => { for (const k of Object.keys(localStorage)) if (k.startsWith("rusj.pekefingeren.v")) localStorage.removeItem(k); })()`);
+  await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
+  await t.klikk('[data-h="nytt"]');
+  await t.vent("document.querySelector('[data-h=\"start\"]')");
+  await pause();
+  await (await import("../a11y/kit-sjekk.mjs")).default(t); // the kit's accessibility promises
 }

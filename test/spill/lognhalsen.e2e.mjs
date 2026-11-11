@@ -85,8 +85,15 @@ export default async function (t) {
   await t.klikk('[data-h="runder"][data-v="1"]');
   await t.klikk('[data-h="spiller-fjern"][data-v="5"]');
   t.sjekk((await lengde()) === "3 runder / 15 turer · ca. 30 min", `Runder valgt for hånd skal bli stående: «${await lengde()}»`);
+  // The kit's stepper is drawn anew by every press. Focus must stay with it — on the other button
+  // when the one that was pressed has reached its limit — and the new number is read out through
+  // the kit's one live region (the number on the screen is switched off: it would say nothing).
+  await t.js(`document.querySelector('[data-h="runder"][data-v="-1"]').focus()`);
   await t.klikk('[data-h="runder"][data-v="-1"]');
   await t.klikk('[data-h="runder"][data-v="-1"]');
+  t.sjekk(await t.js(`!!document.activeElement && document.activeElement.dataset.h === "runder" && document.activeElement.dataset.v === "1"`), "Fokus ble ikke med til «Flere runder» da «Færre runder» nådde bunnen");
+  t.sjekk(await t.js(`document.querySelector(".teller output").getAttribute("aria-live") === "off"`), "Tallet i telleren er fortsatt en egen live-region (leses to ganger, eller aldri)");
+  // TODO: Løgnhalsen updates the stepper in place, so the kit's status voice (#si) does not read it yet.
   s = await t.tilstand();
   t.sjekk(s.oppsett.runder === 1 && s.oppsett.runderValgt === true, "Antall runder endret seg ikke");
   t.sjekk(!(await t.finnes('[data-h="stor"]')), "«Stor gjeng» tilbys med færre enn ni spillere");

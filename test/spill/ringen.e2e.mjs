@@ -16,7 +16,7 @@ async function aldersport(t, sjekkNei) {
   }
   t.sjekk(await t.finnes('[data-h="alder-ja"]'), "18-årsgrensen vises ikke før spillet");
   if (sjekkNei) {
-    t.sjekk(/over 18/i.test(await t.tekst("#skjerm h1")), "Aldersgrensen spør ikke om man er over 18");
+    t.sjekk(/18 år eller eldre|over 18/i.test(await t.tekst("#skjerm")), "Aldersgrensen spør ikke om man er 18 år eller eldre");
     t.sjekk(/alkoholfritt/i.test(await t.tekst("#skjerm")), "Aldersgrensen nevner ikke at alkoholfritt teller");
     await t.bilde("aldersgrense");
     await t.klikk('[data-h="alder-nei"]', 50);
