@@ -1015,6 +1015,17 @@
     bussen: ["#ff5577", "B"],
     hjulet: ["#56e0d0", "H"],
     torsten: ["#c77dff", "T"],
+    // Part 3 (rusj/SPILL3.md): placeholders until each game's own drawing is merged.
+    hatten: ["#ff8fab", "H"],
+    femmeren: ["#ffd23f", "5"],
+    meyer: ["#e85d75", "M"],
+    firklover: ["#3de3b0", "4"],
+    dam: ["#c98b5a", "D"],
+    reversi: ["#7dd3a8", "R"],
+    vriatter: ["#ff6b6b", "8"],
+    stigespillet: ["#ffb347", "S"],
+    blokka: ["#6c8cff", "B"],
+    skronemakeren: ["#b48cff", "S"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

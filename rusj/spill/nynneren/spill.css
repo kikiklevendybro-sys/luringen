@@ -81,9 +81,15 @@
 
 /* ---------- The secret card: the song on a record sleeve ---------- */
 
-.ny-instruks {
-  font-size: clamp(1.7rem, 7.5vw, 2.1rem);
-  text-align: center;
+/* «8 turer · ca. 12 min» under the start button, «60 sekunder – …» on the hand-over */
+.ny-estimat {
+  margin-bottom: -2px;
+  color: var(--tekst-2);
+}
+
+.ny-gi-tekst {
+  max-width: 30ch;
+  text-wrap: balance;
 }
 
 .mappe-bakside.ny-bak {
@@ -387,18 +393,390 @@
   min-height: 74px;
 }
 
-/* ---------- Who guessed it ---------- */
+/* ---------- Hurtignynn: the phone is in the hummer's hand ---------- */
 
-.ny-hvem {
+/* The round screen fills the phone exactly and never scrolls: the big zones stay under the thumb. */
+html.ny-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.ny-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.ny-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.ny-fast main,
+html.ny-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-hurtig {
+  gap: 12px;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Clock (a small record), who hums, how many so far */
+.ny-hstatus {
+  display: grid;
+  flex: none;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.ny-hstatus .timer {
+  gap: 0;
+  padding: 0;
+  background: none;
+}
+
+.ny-hstatus .timer-ring {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, #1b1230 0 2px, #2b1d48 2px 4px);
+}
+
+.ny-hstatus .timer-ring circle {
+  stroke-width: 14;
+}
+
+.ny-hstatus .timer-ring .fyll {
+  stroke: var(--aksent);
+}
+
+.ny-hstatus .timer.lite .fyll {
+  stroke: var(--rod);
+}
+
+.ny-hstatus .timer-tid {
+  font-size: 1.45rem;
+}
+
+.ny-hnynner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ny-hnynner > span:last-child {
+  min-width: 0;
+}
+
+.ny-hnynner b {
+  display: block;
+  overflow: hidden;
+  font: 900 1.1rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ny-hnynner small {
+  color: var(--tekst-2);
+  font: 700 0.82rem/1.2 var(--font-display);
+}
+
+.ny-teller {
   display: grid;
   justify-items: center;
-  gap: 10px;
+  min-width: 70px;
+  padding: 8px 10px 7px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.ny-teller b {
+  color: var(--mynte);
+  font: 900 1.9rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ny-teller small {
+  color: var(--tekst-2);
+  font: 700 0.72rem/1.2 var(--font-display);
+}
+
+.ny-teller.popp b {
+  animation: ny-popp 0.45s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+@keyframes ny-popp {
+  35% {
+    transform: scale(1.35);
+  }
+}
+
+/* The song: a paper record label with big type */
+.ny-hkort {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 0;
+  margin-bottom: 8px;
+  padding: 18px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 8px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+  /* a thumb resting on the card must not select the text or open a menu */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ny-hetikett {
+  color: var(--blekk-2);
+  font: 800 0.8rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ny-hord {
+  max-width: 100%;
+  font: 900 clamp(2.1rem, 10.5vw, 3.2rem) / 1.04 var(--font-display);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  text-wrap: balance;
+}
+
+.ny-hord.lang {
+  font-size: clamp(1.8rem, 8.8vw, 2.6rem);
+}
+
+.ny-hord.ekstra-lang {
+  font-size: clamp(1.45rem, 7vw, 2.05rem);
+  line-height: 1.08;
+}
+
+.ny-hartist {
+  color: var(--blekk-2);
+  font: 800 1.02rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.ny-hregel {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 700 0.85rem/1.15 var(--font-tekst);
+  text-wrap: balance;
+}
+
+/* A tap is answered at once: the new card flashes green (guessed) or slips in (passed). */
+.ny-hkort.blink-riktig {
+  animation: ny-blink-riktig 0.5s ease-out;
+}
+
+.ny-hkort.blink-pass {
+  animation: ny-blink-pass 0.32s ease-out;
+}
+
+@keyframes ny-blink-riktig {
+  from {
+    background: var(--mynte);
+    box-shadow: 0 8px 0 var(--mynte-dyp);
+    transform: scale(0.96);
+  }
+}
+
+@keyframes ny-blink-pass {
+  from {
+    opacity: 0.2;
+    transform: translateX(-18px);
+  }
+}
+
+/* Paused: the song is hidden */
+.ny-hkort.pause {
+  flex: 1 1 auto;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.ny-hkort.pause .figur-ramme {
+  width: 96px;
+}
+
+.ny-hkort.pause p {
+  max-width: 26ch;
+  color: var(--blekk-2);
+  font: 700 1rem/1.35 var(--font-tekst);
+  text-wrap: balance;
+}
+
+/* One big «Riktig» zone, and a narrow «Pass» strip under it */
+.ny-riktig {
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 104px;
+  border-radius: var(--r-stor);
+  font-size: clamp(2rem, 9.5vw, 2.8rem);
+  touch-action: manipulation;
+}
+
+.ny-riktig .ny-hake {
+  font-size: 1.5em;
+  line-height: 0.9;
+}
+
+.ny-riktig small {
+  font: 700 0.95rem/1.2 var(--font-tekst);
+  letter-spacing: 0;
+}
+
+.ny-pass {
+  flex: none;
+  min-height: 58px;
+  touch-action: manipulation;
+}
+
+.skjerm-hurtig > .lenkerad {
+  flex: none;
+}
+
+/* ---------- Hurtignynn: the check list after the turn ---------- */
+
+.ny-resultat {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
   text-align: center;
 }
 
-.ny-hvem .stempel {
-  margin-bottom: 4px;
-  font-size: clamp(1.8rem, 9vw, 2.4rem);
+.ny-resultat .stempel-sted {
+  min-height: 74px;
+}
+
+.ny-resultat .stempel {
+  font-size: clamp(1.6rem, 8vw, 2.3rem);
+}
+
+.ny-resultat .etikett {
+  color: var(--tekst-2);
+  overflow-wrap: anywhere;
+}
+
+.ny-resultat h1 {
+  font-size: clamp(2.3rem, 11vw, 3.1rem);
+}
+
+.ny-resultat h1 b {
+  color: var(--mynte);
+}
+
+.ny-dom {
+  color: var(--tekst-2);
+  font: 800 1.1rem/1.3 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.ny-dom.rekord {
+  color: var(--lampe);
+}
+
+.ny-ordliste {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ny-ord {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 7px 16px 7px 7px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 1.05rem/1.2 var(--font-display);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ny-ord i {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--natt-3);
+  color: var(--tekst-2);
+  font: 900 1.15rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.ny-ord span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ny-ord em {
+  display: block;
+  color: var(--tekst-3);
+  font: 700 0.82rem/1.25 var(--font-tekst);
+  font-style: normal;
+}
+
+.ny-ord small {
+  flex: none;
+  color: var(--tekst-3);
+  font: 700 0.82rem/1 var(--font-tekst);
+}
+
+.ny-ord[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--mynte) 13%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--mynte);
+  color: var(--tekst);
+}
+
+.ny-ord[aria-pressed="true"] i {
+  background: var(--mynte);
+  color: var(--blekk);
+}
+
+.ny-ord[aria-pressed="true"] em {
+  color: var(--tekst-2);
+}
+
+.ny-ord[aria-pressed="true"] small {
+  color: var(--mynte);
+  font: 900 1rem/1 var(--font-display);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ny-hkort.blink-riktig,
+  .ny-hkort.blink-pass,
+  .ny-teller.popp b {
+    animation: none;
+  }
 }
 
 /* ---------- The answer: a record sleeve with the record peeking out ---------- */
@@ -564,7 +942,7 @@
     grid-template-columns: 1fr;
   }
 
-  .skjerm-hvem .velgere {
+  .ny-hvem .velgere {
     grid-template-columns: 1fr;
   }
 }
@@ -621,63 +999,99 @@
     height: 76px;
   }
 
-  .skjerm-se {
-    gap: 16px;
+  /* (the low peek card has room for the title only) */
+  .ny-titt .kort-etikett,
+  .ny-titt .ny-artist {
+    display: none;
   }
 
-  .skjerm-se .ny-instruks {
-    font-size: 1.45rem;
-  }
-
-  .skjerm-se .mappe {
-    height: clamp(244px, calc(100vh - 300px), 330px);
-    min-height: 0;
-  }
-
-  /* Title, rule and twist must all fit on the small card */
-  .skjerm-se .mappe-bakside.ny-bak {
+  /* Title, artist, rule and twist must all fit on the secret card */
+  .skjerm-gi .mappe-bakside.ny-bak {
     padding: 12px 10px;
   }
 
-  .skjerm-se .ny-panel {
+  .skjerm-gi .ny-panel {
     gap: 7px;
     min-height: 0;
     padding: 12px 10px;
   }
 
-  .skjerm-se .ny-panel .kort-etikett {
+  .skjerm-gi .ny-panel .kort-etikett {
     font-size: 0.66rem;
     text-align: center;
   }
 
-  .skjerm-se .ny-panel .kort-ord,
-  .skjerm-se .ny-panel .kort-ord.lang,
-  .skjerm-se .ny-panel .kort-ord.ekstra-lang {
+  .skjerm-gi .ny-panel .kort-ord,
+  .skjerm-gi .ny-panel .kort-ord.lang,
+  .skjerm-gi .ny-panel .kort-ord.ekstra-lang {
     font-size: clamp(1.35rem, 6.6vw, 1.9rem);
   }
 
-  .skjerm-se .ny-panel .kort-pille {
+  .skjerm-gi .ny-panel .kort-pille {
     padding: 5px 10px;
     font-size: 0.78rem;
   }
 
-  .skjerm-se .ny-vri {
+  .skjerm-gi .ny-vri {
     padding: 5px 10px;
     font-size: 0.84rem;
   }
 
-  .skjerm-se .mappe-forside {
+  /* Hurtignynn on short phones: a slimmer status row and card, so the «Riktig» zone stays big */
+  .skjerm-hurtig {
     gap: 10px;
-    padding: 18px;
   }
 
-  .skjerm-se .mappe-forside .figur-ramme {
-    width: 76px;
+  .ny-hstatus .timer-ring {
+    width: 56px;
+    height: 56px;
   }
 
-  .skjerm-se .mappe-finger svg {
-    width: 44px;
-    height: 44px;
+  .ny-hstatus .timer-tid {
+    font-size: 1.25rem;
+  }
+
+  .ny-teller {
+    min-width: 62px;
+    padding: 6px 8px 5px;
+  }
+
+  .ny-teller b {
+    font-size: 1.6rem;
+  }
+
+  .ny-hkort {
+    gap: 6px;
+    padding: 12px 14px;
+  }
+
+  .ny-hartist {
+    font-size: 0.92rem;
+  }
+
+  .ny-hregel {
+    font-size: 0.8rem;
+  }
+
+  .ny-riktig {
+    min-height: 92px;
+  }
+
+  .ny-riktig small {
+    display: none;
+  }
+
+  .ny-pass {
+    min-height: 50px;
+  }
+
+  .skjerm-hurtig > .lenkerad .lenke {
+    min-height: 36px;
+    padding-block: 6px;
+  }
+
+  .ny-resultat .stempel-sted {
+    min-height: 60px;
   }
 
   .ny-svar {
@@ -729,139 +1143,205 @@
   min-height: 0;
 }
 
-/* ---------- Phone on its side: content left, buttons right (never behind the dock) ---------- */
-
-@media (orientation: landscape) and (max-height: 520px) {
-  .skjerm-gi,
-  .skjerm-se,
-  .skjerm-nynn,
-  .skjerm-svar {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    align-content: center;
-    gap: 8px 20px;
+/* Short phones held upright. Én om gangen: who hums, the secret card and its instruction must
+   clear the dock. (On its side the kit sizes the card to the height that is left.) */
+@media (max-height: 700px) and (orientation: portrait) {
+  .skjerm-gi {
+    gap: 12px;
   }
 
-  .skjerm-gi > .dokk,
-  .skjerm-se > .dokk,
-  .skjerm-nynn > .dokk,
-  .skjerm-svar > .dokk {
+  .skjerm-gi > .ny-tett {
+    margin-top: -6px;
+  }
+
+  .skjerm-gi > .mappe {
+    height: clamp(200px, calc(100vh - 336px), 260px);
+    height: clamp(200px, calc(100dvh - 336px), 260px);
+    min-height: 0;
+  }
+
+  .skjerm-gi > .mappe .mappe-forside {
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .skjerm-gi > .mappe .mappe-forside .figur-ramme {
+    width: 72px;
+  }
+
+  .skjerm-gi > .mappe .mappe-finger svg {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* The smallest phones: the hand-over (who, what to do, «only the hummer sees the screen») must
+   clear the dock. */
+@media (max-height: 600px) and (orientation: portrait) {
+  .skjerm-gi > .fremdrift {
+    display: none;
+  }
+
+  .skjerm-gi .gi-til {
+    gap: 8px;
+    padding-block: 4px;
+  }
+
+  .skjerm-gi .avatar.gigant {
+    width: 96px;
+    height: 96px;
+    font-size: 3rem;
+    box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.18), 0 0 0 5px var(--natt), 0 0 0 7px var(--pf, var(--p1));
+  }
+
+  .skjerm-gi .ny-lagfigur.stor {
+    width: 108px;
+    height: 108px;
+  }
+
+  .skjerm-gi .ny-lagfigur.stor .figur-ramme {
+    width: 80px;
+  }
+
+  .ny-gi-tekst {
+    font-size: 0.98rem;
+  }
+
+  /* Humming: a smaller record, so the peek card (a slim strip) clears the buttons */
+  .ny-scene .timer.stor .timer-ring {
+    width: min(40vw, 24vh, 150px);
+    height: min(40vw, 24vh, 150px);
+  }
+
+  .ny-titt .mappe {
+    height: 60px;
+  }
+}
+
+/* ---------- A phone on its side (the kit puts the buttons in a column on the right) ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* The glow behind the record must not make the page taller than the screen. */
+  .ny-scene::before {
+    top: -12px;
+    width: 64vh;
+    height: 64vh;
+  }
+
+  /* Name, record, sign, hint and peek card all within the height of the screen. */
+  .ny-midt,
+  .ny-scene {
+    gap: 6px;
+  }
+
+  .ny-scene .timer.stor .timer-ring {
+    width: min(30vh, 120px);
+    height: min(30vh, 120px);
+  }
+
+  .ny-scene .ny-plate .timer.stor .timer-tid {
+    font-size: clamp(1.2rem, 6.6vh, 1.7rem);
+  }
+
+  .ny-skilt {
+    padding: 5px 14px;
+    font-size: 0.95rem;
+  }
+
+  .ny-titt .mappe {
+    height: 56px;
+  }
+
+  /* Hurtignynn keeps its own layout: the status and the song on the left, the big «Riktig» zone,
+     the «Pass» strip and the links in a column on the right. */
+  html.ny-fast .app {
+    max-width: 920px;
+  }
+
+  .skjerm-hurtig {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "status riktig"
+      "kort riktig"
+      "kort pass"
+      "kort lenker";
+    gap: 8px 18px;
+    padding-top: 4px;
+  }
+
+  .skjerm-hurtig > .ny-hstatus {
+    grid-area: status;
+  }
+
+  .skjerm-hurtig > .ny-hkort {
+    grid-area: kort;
+    padding: 10px 14px;
+  }
+
+  .skjerm-hurtig > .ny-riktig {
+    grid-area: riktig;
+    min-height: 0;
+    font-size: clamp(1.8rem, 11vh, 2.6rem);
+  }
+
+  .skjerm-hurtig > .ny-pass {
+    grid-area: pass;
+    min-height: 48px;
+  }
+
+  .skjerm-hurtig > .lenkerad {
+    grid-area: lenker;
+  }
+
+  .skjerm-hurtig > .lenkerad .lenke {
+    min-height: 34px;
+    padding-block: 5px;
+  }
+
+  /* Paused: the button column takes the right side. */
+  .skjerm-hurtig > .dokk {
     position: static;
-    grid-area: dokk;
+    grid-area: 1 / 2 / -1 / 3;
     align-self: center;
     margin: 0;
     padding: 0;
     background: none;
   }
 
-  .skjerm-gi {
-    grid-template-areas: "prikk dokk" "gi dokk";
+  .ny-hord {
+    font-size: clamp(1.7rem, 11.5vh, 2.7rem);
   }
 
-  .skjerm-gi > .fremdrift {
-    grid-area: prikk;
+  .ny-hord.lang {
+    font-size: clamp(1.45rem, 9.5vh, 2.2rem);
   }
 
-  .skjerm-gi > .gi-til {
-    grid-area: gi;
-    gap: 6px;
-    padding-block: 0;
+  .ny-hord.ekstra-lang {
+    font-size: clamp(1.2rem, 7.6vh, 1.75rem);
   }
 
-  .skjerm-gi .avatar.gigant,
-  .skjerm-gi .ny-lagfigur.stor {
-    width: 84px;
-    height: 84px;
-    font-size: 2.6rem;
+  .ny-hkort.pause .figur-ramme {
+    width: 72px;
   }
 
-  .skjerm-gi .ny-lagfigur.stor .figur-ramme {
-    width: 60px;
+  /* Stamps: small enough that a tilted «Tiden er ute!» stays clear of the line under it. */
+  .ny-svar .stempel-sted,
+  .ny-resultat .stempel-sted {
+    min-height: 70px;
   }
 
-  .skjerm-se {
-    grid-template-areas: "tittel dokk" "hjelp dokk" "kort dokk";
+  .ny-svar .stempel,
+  .ny-resultat .stempel {
+    font-size: clamp(1.3rem, 7vh, 1.9rem);
   }
 
-  .skjerm-se > .ny-instruks {
-    grid-area: tittel;
-    font-size: 1.4rem;
-  }
-
-  .skjerm-se > .hjelp {
-    grid-area: hjelp;
-    margin: 0;
-  }
-
-  .skjerm-se > .mappe {
-    grid-area: kort;
-    height: min(62vh, 250px);
-    min-height: 0;
-  }
-
-  .skjerm-se .mappe-forside .figur-ramme {
-    width: 64px;
-  }
-
-  .skjerm-nynn {
-    grid-template-areas: "navn dokk" "midt dokk";
-  }
-
-  .skjerm-nynn > .ny-nynner {
-    grid-area: navn;
-    font-size: 1.2rem;
-  }
-
-  .skjerm-nynn > .ny-midt {
-    grid-area: midt;
-    margin: 0;
-  }
-
-  .ny-scene {
-    gap: 8px;
-  }
-
-  .ny-scene .timer.stor .timer-ring {
-    width: min(42vh, 160px);
-    height: min(42vh, 160px);
-  }
-
-  .ny-scene .ny-plate .timer.stor .timer-tid {
-    font-size: 1.9rem;
-  }
-
-  .ny-svarknapper .knapp {
-    min-height: 58px;
-  }
-
-  .skjerm-svar {
-    grid-template-areas: "svar liste" "svar dokk";
-  }
-
-  .skjerm-svar > .ny-svar {
-    grid-area: svar;
-    gap: 8px;
-  }
-
-  .skjerm-svar > .ny-stilling {
-    grid-area: liste;
-  }
-
-  .ny-svar .stempel-sted {
-    min-height: 54px;
-  }
-
-  .ny-svar .stempel {
-    font-size: 1.8rem;
+  .ny-resultat h1 {
+    font-size: clamp(1.9rem, 11vh, 2.6rem);
   }
 
   .ny-fasit-tekst {
-    font-size: 1.5rem;
-  }
-}
-
-@media (orientation: landscape) and (max-height: 520px) {
-  .ny-scene .ny-plate .timer.stor .timer-tid {
-    font-size: 1.45rem;
+    font-size: clamp(1.3rem, 8vh, 1.8rem);
   }
 }
