@@ -21,7 +21,7 @@ enabled = false
 [[d1_databases]]
 binding = "DB"
 database_name = "rusj-statistikk"
-database_id = "SETT-INN-DATABASE-ID-HER"
+database_id = "41237cf0-280c-477e-86ff-ab77debbf202"
 
 # Retention: once a night the Worker deletes counters older than 25 months.
 # (Cron times are UTC: 03:17 is 04:17 in Norway in winter, 05:17 in summer.)

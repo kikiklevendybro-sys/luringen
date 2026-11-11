@@ -37,5 +37,5 @@ Nye kategorier i ordbanken må legges sist i listen `REKKEFOLGE` i `scripts/bygg
 ## Sikkerhet og personvern
 
 - Streng Content Security Policy: sidene laster bare filer fra rusj.no selv, og kjører ingen innebygd kode.
-- Ingen informasjonskapsler, ingen analyse, ingenting sendes noe sted. Navn og spill lagres bare i nettleseren på enheten (localStorage, nøkler som begynner med `rusj.`).
+- Ingen informasjonskapsler og ingen sporing av personer. Sida teller anonymt hvor mange som besøker den og hvilke spill som åpnes (bare tall per dag, lagret i EU hos Cloudflare, se statistikk/). Navn og spill lagres bare i nettleseren på enheten (localStorage, nøkler som begynner med `rusj.`).
 - Kodene for «hver sin mobil» inneholder bare innstillinger og et tilfeldig tall; hver mobil regner ut det samme for seg.

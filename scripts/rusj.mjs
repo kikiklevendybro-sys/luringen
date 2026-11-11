@@ -19,7 +19,7 @@ export const OMDOPT = { besserwisseren: "bedreviteren" };
 // then nothing is sent, the CSP is unchanged and the privacy texts say what they always said.
 // When set, the build adds the address to connect-src, publishes /felles/stat.js (which sets
 // window.RUSJ_STAT) on every page, and the footer and /personvern/ describe the counting.
-export const STAT_ADRESSE = "";
+export const STAT_ADRESSE = "https://rusj-statistikk.kikiklevendybro.workers.dev";
 
 // Checks the address and returns its origin ("" when off). Throws on anything that is not a plain
 // https origin (or http://localhost / 127.0.0.1 for tests), so a typo cannot reach the CSP.
