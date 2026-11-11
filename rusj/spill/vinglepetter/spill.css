@@ -1,5 +1,6 @@
 /* Vinglepetter: a card split in two halves — ☝️ on top (mint), ✌️ below (lilac) — with «ELLER»
-   stamped on the seam; vote counters, the animated split bar and the group's verdict. */
+   stamped on the seam; the one-tap vote count, the animated split bar, the defence speech, the
+   chair mode («I vinglestolen») and the verdicts. */
 
 /* ---------- The split card ---------- */
 /* The card grows into the free space above the dock (up to a point). */
@@ -54,9 +55,96 @@ html[data-spill="vinglepetter"] .skjerm-kort > .bunke:not(.kompakt) {
 }
 
 .vingle-sporsmal {
+  display: block;
   font: 800 1.02rem/1.2 var(--font-display);
   opacity: 0.62;
 }
+
+/* «I vinglestolen»: the halves are the buttons. Both look and react exactly alike — a press must
+   not show the others which half was chosen. */
+button.vingle-halv {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.vingle-halv:focus-visible {
+  outline-offset: -6px;
+}
+
+/* How far the session has come: thin segments along the top edge of the card. */
+.vingle-gang {
+  position: absolute;
+  top: 9px;
+  right: 22px;
+  left: 22px;
+  z-index: 1;
+  display: flex;
+  gap: 3px;
+  height: 4px;
+  pointer-events: none;
+}
+
+.vingle-gang i {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 2px;
+  background: rgba(23, 14, 43, 0.16);
+}
+
+.vingle-gang i.ferdig {
+  background: rgba(23, 14, 43, 0.5);
+}
+
+.vingle-gang i.na {
+  background: var(--blekk);
+}
+
+.bunke.kompakt .vingle-gang {
+  top: 6px;
+  right: 18px;
+  left: 18px;
+}
+
+/* The truth is out: the chosen half is lit and named, the other one steps back. */
+.vingle-halv.ikke {
+  filter: saturate(0.3) brightness(0.72);
+}
+
+.vingle-halv.ikke .vingle-valg {
+  opacity: 0.6;
+}
+
+.vingle-halv.valgt {
+  animation: vingle-lys 0.7s ease-out both;
+}
+
+@keyframes vingle-lys {
+  from {
+    filter: brightness(1.5);
+  }
+}
+
+/* In the flow of the half (under its text, to the right), so it never lies on top of a long option. */
+.vingle-valgt-merke {
+  align-self: flex-end;
+  max-width: 100%;
+  margin-bottom: -8px;
+  overflow: hidden;
+  padding: 5px 11px 6px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 800 0.82rem/1.1 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  animation: vingle-inn 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) 0.25s both;
+}
+
 
 .vingle-valg {
   display: flex;
@@ -188,73 +276,114 @@ html[data-spill="vinglepetter"] .skjerm-kort > .bunke:not(.kompakt) {
   }
 }
 
-/* ---------- Counting the votes ---------- */
+/* ---------- Counting the votes: one tap on how many chose ☝️ ---------- */
 .vingle-telling {
   gap: 10px;
 }
 
-.vingle-tellere {
+.vingle-tall {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(var(--kol, 6), minmax(0, 1fr));
+  gap: 8px;
 }
 
-.vingle-teller {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 8px 8px 12px;
-  border-radius: var(--r-mid);
-  background: color-mix(in srgb, var(--vf) 15%, var(--natt-2));
-  box-shadow: inset 0 0 0 2px var(--vf);
-}
-
-.vingle-teller.a {
-  --vf: var(--mynte);
-}
-
-.vingle-teller.b {
-  --vf: var(--lilla);
-}
-
-.vingle-teller-merke {
-  font-size: 1.7rem;
-  line-height: 1;
-}
-
-.vingle-teller-tekst {
-  display: -webkit-box;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-  color: var(--tekst);
-  font: 800 0.95rem/1.2 var(--font-display);
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.vingle-teller .teller {
-  gap: 4px;
+.vingle-tall button {
+  min-height: 58px;
   padding: 0;
-  background: none;
-  box-shadow: none;
+  border: 0;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--mynte) 14%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--mynte) 60%, var(--natt-2));
+  color: var(--tekst);
+  font: 900 1.7rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
 }
 
-.vingle-teller .teller button {
-  width: 52px;
-  height: 52px;
-  background: var(--natt-3);
+.vingle-tall.mange button {
+  min-height: 48px;
+  font-size: 1.35rem;
 }
 
-.vingle-teller .teller button[data-v="1"] {
-  background: var(--vf);
-  box-shadow: 0 3px 0 color-mix(in srgb, var(--vf) 55%, var(--natt));
+.vingle-tall button[aria-pressed="true"] {
+  background: var(--mynte);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--mynte) 55%, var(--natt));
   color: var(--blekk);
 }
 
-.vingle-teller .teller output {
-  justify-content: center;
-  min-width: 2.2ch;
-  font-size: 2rem;
+.vingle-tall button:disabled:not([aria-pressed="true"]) {
+  opacity: 0.35;
+}
+
+.vingle-tall-hjelp {
+  margin-top: 2px;
+}
+
+/* ---------- The defence speech ---------- */
+.vingle-forsvar {
+  display: grid;
+  justify-items: center;
+}
+
+.vingle-tale {
+  align-items: center;
+  gap: 10px;
+  margin-block: auto;
+  text-align: center;
+}
+
+.vingle-tale-hvem {
+  max-width: 100%;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 800 1rem/1.25 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.vingle-tale .timer-ring {
+  width: 128px;
+  height: 128px;
+}
+
+/* ---------- «I vinglestolen» ---------- */
+.vingle-stol {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.vingle-stol > div {
+  min-width: 0;
+}
+
+.vingle-stol .etikett {
+  margin-bottom: 3px;
+}
+
+.vingle-stol h1 {
+  font-size: clamp(1.5rem, 7vw, 2.1rem);
+  overflow-wrap: anywhere;
+}
+
+.vingle-valgt {
+  flex: none;
+  margin-left: auto;
+  padding: 8px 13px 9px;
+  border-radius: 999px;
+  background: var(--mynte);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--mynte) 55%, var(--natt));
+  color: var(--blekk);
+  font: 900 0.95rem/1 var(--font-display);
+  white-space: nowrap;
+  animation: vingle-inn 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+.vingle-hint b {
+  color: var(--tekst);
 }
 
 /* ---------- The result ---------- */
@@ -312,7 +441,7 @@ html[data-spill="vinglepetter"] .skjerm-kort > .bunke:not(.kompakt) {
 
 @keyframes vingle-fordel {
   from {
-    flex-basis: 50%;
+    flex-basis: var(--fra, 50%);
   }
 }
 
@@ -378,6 +507,54 @@ html[data-spill="vinglepetter"] .skjerm-kort > .bunke:not(.kompakt) {
   text-align: right;
 }
 
+.vingle-pris {
+  gap: 4px;
+}
+
+.vingle-pris-navn {
+  font: 900 1.35rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.vingle-pris-tekst {
+  color: var(--blekk-2);
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.vingle-liste {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vingle-liste li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 8px 16px 8px 10px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  font-weight: 700;
+}
+
+.vingle-liste .navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vingle-liste b {
+  flex: none;
+  font: 900 1.05rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- Small screens ---------- */
 .vingle-telling .seksjon-hode .tall {
   white-space: nowrap;
@@ -399,47 +576,9 @@ html[data-spill="vinglepetter"] .skjerm-kort > .bunke:not(.kompakt) {
   }
 }
 
-/* Low or narrow screens: the two counters side by side and a shorter card, so the counters
-   never end up under the dock. */
+/* Low or narrow screens: a shorter card and smaller parts, so the number buttons, the result and
+   the clock never end up under the dock. */
 @media (max-height: 700px), (max-width: 359px) {
-  .vingle-tellere {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .vingle-teller {
-    grid-template-areas: "merke tekst" "teller teller";
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: start;
-    gap: 6px 8px;
-    padding: 8px;
-  }
-
-  .vingle-teller-merke {
-    grid-area: merke;
-    font-size: 1.3rem;
-  }
-
-  .vingle-teller-tekst {
-    grid-area: tekst;
-    font-size: 0.86rem;
-  }
-
-  .vingle-teller .teller {
-    grid-area: teller;
-    justify-self: center;
-  }
-
-  .vingle-teller .teller button {
-    width: 42px;
-    height: 42px;
-    font-size: 1.5rem;
-  }
-
-  .vingle-teller .teller output {
-    font-size: 1.6rem;
-  }
-
   .bunke.kompakt .vingle-halv.a .storkort-topp {
     display: none;
   }
@@ -448,8 +587,94 @@ html[data-spill="vinglepetter"] .skjerm-kort > .bunke:not(.kompakt) {
     padding-top: 16px;
   }
 
+  .vingle-tall {
+    gap: 6px;
+  }
+
+  .vingle-tall button {
+    min-height: 50px;
+    font-size: 1.5rem;
+  }
+
+  .vingle-tall.mange button {
+    min-height: 44px;
+    font-size: 1.25rem;
+  }
+
+  .vingle-stolpe {
+    height: 56px;
+  }
+
   .vingle-dom {
-    min-height: 80px;
-    padding-block: 16px 4px;
+    min-height: 72px;
+    padding-block: 14px 4px;
+  }
+
+  .vingle-tale .timer-ring {
+    width: 104px;
+    height: 104px;
+  }
+
+  .vingle-tale .timer-tid {
+    font-size: 2rem;
+  }
+
+  .vingle-stol .avatar.mid {
+    width: 44px;
+    height: 44px;
+    font-size: 1.35rem;
+  }
+}
+
+/* ---------- A phone on its side (the kit puts the buttons in a column on the right) ---------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* The small card on the left; the count, the result or the clock beside it — nothing below the fold. */
+  html[data-liggende="side"] .skjerm-kort:has(> .bunke.kompakt) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-content: center;
+    align-items: center;
+    gap: 10px 16px;
+  }
+
+  html[data-liggende="side"] .skjerm-kort:has(> .bunke.kompakt) > .vingle-stol {
+    grid-column: 1 / -1;
+  }
+
+  .vingle-svar,
+  .vingle-tale {
+    margin-block: 0;
+  }
+
+  .vingle-stolpe {
+    height: 48px;
+  }
+
+  .vingle-del {
+    font-size: 1.2rem;
+  }
+
+  .vingle-dom {
+    min-height: 0;
+    padding-block: 10px 2px;
+  }
+
+  .vingle-dom .stempel {
+    font-size: 1.2rem;
+  }
+
+  .vingle-tale .timer-ring {
+    width: 92px;
+    height: 92px;
+  }
+
+  .vingle-tale .timer-tid {
+    font-size: 1.8rem;
+  }
+
+  .vingle-tall button,
+  .vingle-tall.mange button {
+    min-height: 44px;
+    font-size: 1.25rem;
   }
 }

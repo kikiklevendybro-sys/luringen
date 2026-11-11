@@ -1760,6 +1760,239 @@
           "aldri få være med på nachspiel"
         ]
       ]
+    },
+    {
+      "id": "jul",
+      "navn": "Jul",
+      "ikon": "🎄",
+      "tekst": "Jul og julebord",
+      "sesong": true,
+      "dilemmaer": [
+        [
+          "pakke inn hundre gaver",
+          "skrive hundre julekort for hånd"
+        ],
+        [
+          "få én stor gave",
+          "få ti små gaver"
+        ],
+        [
+          "åpne alle gavene om morgenen",
+          "vente med gavene til midnatt"
+        ],
+        [
+          "ha juletre i stua hele året",
+          "aldri ha juletre igjen"
+        ],
+        [
+          "bare spise pepperkaker i hele desember",
+          "bare spise klementiner i hele desember"
+        ],
+        [
+          "finne mandelen hvert eneste år",
+          "få den største pakken hvert eneste år"
+        ],
+        [
+          "være julenissen i ett døgn",
+          "være rampenisse i en hel måned"
+        ],
+        [
+          "ha et reinsdyr som kan fly",
+          "ha en slede som kjører av seg selv"
+        ],
+        [
+          "gå rundt juletreet i en hel time",
+          "synge alle versene i en julesang helt alene"
+        ],
+        [
+          "ha nisselue på hver dag i desember",
+          "ha julegenser på hver dag i desember"
+        ],
+        [
+          "holde talen på julebordet",
+          "lede allsangen på julebordet"
+        ],
+        [
+          "sitte ved siden av sjefen på julebordet",
+          "sitte ved siden av den som snakker mest"
+        ],
+        [
+          "få sokker i alle pakkene",
+          "få den samme boka i alle pakkene"
+        ],
+        [
+          "ha julekalender med sjokolade",
+          "ha julekalender med små gaver"
+        ],
+        [
+          "bake sju slag julekaker",
+          "pynte hele huset alene"
+        ],
+        [
+          "vaske hele huset til jul",
+          "lage julemiddag til tjue gjester"
+        ],
+        [
+          "ha hvit jul uten gaver",
+          "ha regn hele jula og masse gaver"
+        ],
+        [
+          "gå julebukk hos alle naboene",
+          "synge solo på juleavslutningen"
+        ],
+        [
+          "spise risgrøt til middag hele romjula",
+          "spise julemiddag til frokost hele romjula"
+        ],
+        [
+          "få besøk av nissen",
+          "få besøke nissens verksted"
+        ],
+        [
+          "være hemmelig nisse for én du ikke kjenner",
+          "være hemmelig nisse for ti du kjenner godt"
+        ],
+        [
+          "ha jul uten julemat",
+          "ha jul uten julepynt"
+        ],
+        [
+          "feire hele jula i pysjen",
+          "feire hele jula i finstasen"
+        ],
+        [
+          "måtte danse først på julebordet",
+          "måtte synge først på julebordet"
+        ],
+        [
+          "være med i en julefilm",
+          "være med i et julespill på scenen"
+        ],
+        [
+          "ha en snømann som kan snakke",
+          "ha et juletre som kan danse"
+        ],
+        [
+          "få julegavene i november",
+          "få julegavene i januar"
+        ],
+        [
+          "pakke opp alle gavene med votter på",
+          "pakke inn alle gavene med votter på"
+        ],
+        [
+          "ha julemiddag med tjue slektninger",
+          "ha julemiddag med bare én du velger selv"
+        ],
+        [
+          "spise opp hele pepperkakehuset selv",
+          "bygge et pepperkakehus du aldri får smake på"
+        ],
+        [
+          "være den som deler ut gavene",
+          "være den som får åpne først"
+        ],
+        [
+          "ha julelys som blinker i takt med musikken",
+          "ha et juletre som dufter av nybakte boller"
+        ],
+        [
+          "ha romjul som varer i en måned",
+          "ha sommerferie som varer en uke lenger"
+        ],
+        [
+          "få en gave du ønsket deg i fjor",
+          "få en gave du kommer til å ønske deg neste år"
+        ],
+        [
+          "kjøre slede med nissen én natt",
+          "låne nissens gavesekk i ett døgn"
+        ],
+        [
+          "spise marsipan til alle måltider i jula",
+          "aldri smake marsipan igjen"
+        ],
+        [
+          "bare få ønske deg tre ting",
+          "ikke få ønske deg noe selv"
+        ],
+        [
+          "få en hjemmestrikket genser hvert år",
+          "få et gavekort hvert år"
+        ],
+        [
+          "måtte holde tale hver gang noen sier «takk for maten»",
+          "måtte synge hver gang noen sier «god jul»"
+        ],
+        [
+          "rydde opp alt gavepapiret hvert år",
+          "ta hele oppvasken hver julaften"
+        ],
+        [
+          "ha julebord på en fjelltopp",
+          "ha julebord på en båt"
+        ],
+        [
+          "gå på julemarked hver dag i desember",
+          "aldri gå på julemarked igjen"
+        ],
+        [
+          "ha nyttårsaften uten raketter",
+          "ha julaften uten juletre"
+        ],
+        [
+          "ha en nisselue du ikke får av før nyttår",
+          "ha en rød nese som lyser til nyttår"
+        ],
+        [
+          "bli vekket av bjelleklang hver morgen",
+          "bli sunget i søvn av et kor hver kveld"
+        ],
+        [
+          "se den samme julefilmen fem ganger",
+          "se fem julefilmer du aldri har hørt om"
+        ],
+        [
+          "ha pinnekjøtt med ketsjup",
+          "ha riskrem med brun saus"
+        ],
+        [
+          "alltid komme for sent til julemiddagen",
+          "alltid måtte dra før desserten"
+        ],
+        [
+          "pynte juletreet helt alene",
+          "la en treåring bestemme all pynten"
+        ],
+        [
+          "få en overraskelsesreise i julegave",
+          "få akkurat det du har ønsket deg"
+        ],
+        [
+          "være dommer i pepperkakehus-konkurransen",
+          "være prøvesmaker for alt julegodteriet"
+        ],
+        [
+          "ha en nisse som gjør rampestreker hver dag",
+          "ha en nisse som spiser all grøten din"
+        ],
+        [
+          "feire nyttår klokka ni og legge deg",
+          "holde deg våken til sola står opp"
+        ],
+        [
+          "planlegge julebordet for hele jobben",
+          "lede hele kvelden fra scenen"
+        ],
+        [
+          "ha en julestrømpe som aldri blir tom",
+          "ha en julekalender med hundre luker"
+        ],
+        [
+          "gi bort den fineste gaven du har fått",
+          "aldri få vite hva som var i den største pakken"
+        ]
+      ]
     }
   ]
 }

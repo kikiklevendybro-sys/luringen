@@ -159,9 +159,10 @@
   }
 }
 
+/* Three calm blinks when the bottle stops (2.8 per second: never faster than three flashes a second). */
 .vh-hjul.stoppet .vh-lys.en {
   stroke-dasharray: 0 12;
-  animation: vh-blink 0.16s steps(1) 7;
+  animation: vh-blink 0.36s steps(1) 3;
 }
 
 .vh-hjul.stoppet .vh-lys.to {
@@ -173,6 +174,21 @@
   50% {
     opacity: 0.15;
   }
+}
+
+/* At the finish line the lights run round the table and the glow stays on. */
+.vh-hjul.fest::before {
+  opacity: 1;
+}
+
+.vh-hjul.fest .vh-lys.en {
+  stroke-dasharray: 0 12;
+  animation: vh-jag 0.7s linear infinite;
+}
+
+.vh-hjul.fest .vh-lys.to {
+  opacity: 0;
+  animation: none;
 }
 
 /* ---------- Players around the table ---------- */
@@ -210,6 +226,40 @@
     max-width: min(var(--skilt, 90px), 44cqw);
     font-size: clamp(0.66rem, 3.4cqw, 0.74rem);
   }
+
+  /* (The base .vh-navn rule comes later in this file; on a small table the width limit must win,
+     or the two top tags run into each other.) */
+  .vh-hjul .vh-plass:not(.valgt) .vh-navn {
+    max-width: min(var(--skilt, 90px), 44cqw);
+  }
+}
+
+/* How far each player has come towards the goal: the dark outline of the avatar fills up with
+   yellow (turns taken, or points on the way to ten). --fr is 0–1. */
+.vh-plass.med-mal .avatar {
+  position: relative;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18), 0 0 0 5px var(--blekk);
+}
+
+.vh-plass.med-mal .avatar::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  background: conic-gradient(var(--lampe) calc(var(--fr, 0) * 360deg), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5.5px), #000 calc(100% - 5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 5.5px), #000 calc(100% - 5px));
+  pointer-events: none;
+}
+
+.vh-hjul.mange .vh-plass.med-mal .avatar {
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18), 0 0 0 3px var(--blekk);
+}
+
+.vh-hjul.mange .vh-plass.med-mal .avatar::after {
+  inset: -3px;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
 }
 
 /* Only the avatar grows; the name tag keeps its size and steps aside */
@@ -228,6 +278,23 @@
 
 .vh-plass.valgt .avatar {
   transform: scale(1.24);
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18),
+    0 0 0 3px var(--blekk),
+    0 0 0 7px var(--pf),
+    0 0 34px 8px color-mix(in srgb, var(--pf) 55%, transparent);
+}
+
+/* (with a goal the dark outline is wider, to hold the yellow progress ring) */
+.vh-plass.med-mal.valgt .avatar {
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18),
+    0 0 0 5px var(--blekk),
+    0 0 0 9px var(--pf),
+    0 0 34px 8px color-mix(in srgb, var(--pf) 55%, transparent);
+}
+
+.vh-hjul.mange .vh-plass.med-mal.valgt .avatar {
   box-shadow:
     inset 0 -3px 0 rgba(0, 0, 0, 0.18),
     0 0 0 3px var(--blekk),
@@ -477,6 +544,60 @@
   }
 }
 
+.vh-info.mal h1 {
+  color: var(--lampe);
+}
+
+/* «Gjelder nå»: dares that last until the player's next turn. One row under the name (it takes
+   the place of the helper line); more chips than fit can be scrolled sideways. */
+.vh-brikker {
+  display: flex;
+  gap: 8px;
+  max-width: 100%;
+  margin: 2px 0 0;
+  padding: 2px;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.vh-brikker::-webkit-scrollbar {
+  display: none;
+}
+
+.vh-brikker li {
+  flex: none;
+}
+
+.vh-brikke {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 6px 13px 6px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pf) 20%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--pf);
+  color: var(--tekst);
+  font: 800 0.86rem/1.1 var(--font-display);
+  white-space: nowrap;
+  cursor: pointer;
+  animation: vh-brikke-inn 0.45s cubic-bezier(0.25, 1.5, 0.45, 1) both;
+}
+
+.vh-brikke > span:first-child {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+@keyframes vh-brikke-inn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.85);
+  }
+}
+
 .vh-snurrikon {
   width: 1.15em;
   height: 1.15em;
@@ -501,6 +622,16 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+/* Up to four links under the buttons («Angre», «Hopp over», «Poeng», «Avslutt»): closer together,
+   so they share one row on most phones. */
+.skjerm-runde .dokk .lenkerad {
+  gap: 4px 8px;
+}
+
+.skjerm-runde .dokk .lenke {
+  padding-inline: 8px;
 }
 
 .vh-valg .knapp {
@@ -545,6 +676,82 @@
 .vh-hvem h1 {
   font-size: clamp(1.6rem, 7.4vw, 2.2rem);
   overflow-wrap: anywhere;
+}
+
+/* The clock on a card with a duration («i 20 sekunder»): a round button with the kit's ring.
+   Before the start it shows ▶ and the time; then it counts down. */
+.vh-klokke {
+  flex: none;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--natt-2);
+  color: var(--tekst);
+  cursor: pointer;
+}
+
+.vh-klokke .timer-ring {
+  width: 60px;
+  height: 60px;
+}
+
+.vh-klokke .timer-ring .spor {
+  stroke: var(--natt-3);
+}
+
+.vh-klokke-midt {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+}
+
+.vh-klokke-start {
+  width: 0;
+  height: 0;
+  margin-left: 3px;
+  border-block: 6px solid transparent;
+  border-left: 10px solid var(--aksent);
+}
+
+.vh-klokke-tall {
+  font: 900 0.86rem/1 var(--font-display);
+  white-space: nowrap;
+}
+
+.vh-klokke .timer-tid {
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.vh-klokke.startet .vh-klokke-start,
+.vh-klokke.startet .vh-klokke-s {
+  display: none;
+}
+
+.vh-klokke.startet .vh-klokke-tall {
+  font-size: 1.5rem;
+}
+
+.vh-klokke.pause .fyll {
+  opacity: 0.5;
+}
+
+.vh-klokke.lite .fyll,
+.vh-klokke.ferdig .spor {
+  stroke: var(--rosa);
+}
+
+.vh-klokke.ferdig .timer-tid {
+  color: var(--rosa);
+  animation: vh-klokke-ute 0.8s steps(2) 3;
+}
+
+@keyframes vh-klokke-ute {
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .storkort-tekst em.vh-andre {
@@ -617,9 +824,14 @@
   font-size: 0.95rem;
 }
 
+/* Where «Bytt kort (én gang)» was, once the card has been swapped. */
 .vh-byttet {
+  display: inline-flex;
+  align-items: center;
   min-height: 44px;
-  padding-top: 10px;
+  padding: 10px 12px;
+  color: var(--tekst-3);
+  font: 700 0.98rem/1.2 var(--font-tekst);
 }
 
 /* ---------- Awards ---------- */
@@ -718,6 +930,11 @@
   gap: 4px 16px;
 }
 
+.vh-del {
+  display: grid;
+  margin-top: 6px;
+}
+
 /* ---------- Mode tile ---------- */
 
 .vh-mini-flaske {
@@ -759,12 +976,31 @@
   .vh-valg-ikon {
     font-size: 1.4rem;
   }
+
+  /* The chip row is a little taller than the line it replaces: the table gives that up. */
+  .vh-brikker {
+    margin-top: 0;
+  }
+
+  .vh-brikke {
+    min-height: 34px;
+    padding-block: 4px;
+    font-size: 0.82rem;
+  }
+
+  .vh-scene.med-brikker .vh-hjul {
+    width: min(100%, 380px, max(156px, calc(100vh - 414px)));
+  }
 }
 
 @supports (height: 100svh) {
   @media (max-height: 700px) {
     .vh-hjul {
       width: min(100%, 380px, max(196px, calc(100svh - 372px)));
+    }
+
+    .vh-scene.med-brikker .vh-hjul {
+      width: min(100%, 380px, max(156px, calc(100svh - 414px)));
     }
   }
 }
@@ -794,12 +1030,15 @@
     padding: 24px 0 34px;
   }
 
-  .vh-hjul {
+  /* (also with «Gjelder nå» chips: beside the table they cost no height) */
+  .vh-hjul,
+  .vh-scene.med-brikker .vh-hjul {
     width: clamp(180px, calc(100vh - 152px), 250px);
   }
 
   @supports (height: 100svh) {
-    .vh-hjul {
+    .vh-hjul,
+    .vh-scene.med-brikker .vh-hjul {
       width: clamp(180px, calc(100svh - 152px), 250px);
     }
   }
@@ -813,6 +1052,24 @@
 
   .vh-info h1 {
     font-size: 1.6rem;
+  }
+
+  /* Beside the table there is room for the chips under each other. */
+  .vh-brikker {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .vh-brikker li {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .vh-brikke {
+    max-width: 100%;
+    min-height: 34px;
+    white-space: normal;
+    text-align: left;
   }
 
   /* Truth or dare, side by side in the narrow column. */

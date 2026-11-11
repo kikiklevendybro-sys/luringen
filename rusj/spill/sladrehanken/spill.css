@@ -528,6 +528,52 @@ html[data-spill="sladrehanken"] .skjerm-kort > .bunke:not(.kompakt) {
   }
 }
 
+/* The smallest phones (320×568): a long card plus the spotlight must still end above the buttons. */
+@media (orientation: portrait) and (max-height: 600px) {
+  .sladre-historie-kort .storkort-topp {
+    margin-bottom: 2px;
+  }
+
+  .sladre-historie-kort .bunke.kompakt .storkort {
+    padding-block: 12px 14px;
+  }
+
+  .sladre-historie-kort .storkort-tekst {
+    font-size: 1.08rem;
+  }
+
+  .sladre-historie {
+    gap: 3px;
+    padding-block: 0;
+  }
+
+  .sladre-historie-figur {
+    margin: 2px 0 4px;
+  }
+
+  .sladre-historie-figur .avatar.gigant {
+    width: 54px;
+    height: 54px;
+    font-size: 1.75rem;
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 0 0 3px var(--natt), 0 0 0 5px var(--pf, var(--p1));
+  }
+
+  .sladre-mikrofon {
+    right: -12px;
+    width: 28px;
+    height: 28px;
+    font-size: 0.92rem;
+  }
+
+  .sladre-historie h1 {
+    font-size: 1.55rem;
+  }
+
+  .sladre-historie .ingress {
+    font-size: 0.92rem;
+  }
+}
+
 /* A phone on its side: a slim card, and the avatar beside the name, so the whole spotlight shows
    beside the buttons without scrolling. */
 @media (orientation: landscape) and (max-height: 500px) {

@@ -71,7 +71,11 @@
       ],
       "konsekvens": [
         "Gå som en pingvin rundt i rommet.",
-        "Snakk som en robot til det er din tur igjen.",
+        {
+          "t": "Snakk som en robot til det er din tur igjen.",
+          "varer": "snakker som en robot",
+          "ikon": "🤖"
+        },
         "Lag den rareste lyden du klarer.",
         "Lat som du er en hund som akkurat har sett et ekorn.",
         "Syng «Bæ, bæ, lille lam» med operastemme.",
@@ -81,7 +85,11 @@
         "Lag en dans som heter «Melkekartongen som ble rockestjerne», og vis den.",
         "Gi {spiller} en high five på fem forskjellige måter.",
         "Lat som du er en vaskemaskin som sentrifugerer.",
-        "Snakk bare i spørsmål til det er din tur igjen.",
+        {
+          "t": "Snakk bare i spørsmål til det er din tur igjen.",
+          "varer": "snakker bare i spørsmål",
+          "ikon": "❓"
+        },
         "Lag ansiktet til en som har bitt i en sur sitron.",
         "Fortell en vits – og le av den selv før du kommer til poenget.",
         "Stå stille som en statue i 30 sekunder mens de andre prøver å få deg til å le (uten å ta på deg).",
@@ -98,7 +106,11 @@
         "Si navnet ditt baklengs.",
         "Lag en kort sang om {spiller} som rimer.",
         "Lat som du går på månen.",
-        "Balanser en pute på hodet til det er din tur igjen.",
+        {
+          "t": "Balanser en pute på hodet til det er din tur igjen.",
+          "varer": "balanserer en pute på hodet",
+          "ikon": "🤹"
+        },
         "Vis tre forskjellige rare måter å gå på.",
         "Lag lyden til et dyr som ingen har hørt om, og fortell hva det heter.",
         "Si fem ting som er gule – på ti sekunder.",
@@ -121,16 +133,28 @@
         "Syng navnene til alle i rommet.",
         "Lat som du er en robot som går tom for batteri.",
         "Fortell et eventyr som begynner med «Det var en gang en sokk …»",
-        "Snakk som en sjørøver til det er din tur igjen.",
+        {
+          "t": "Snakk som en sjørøver til det er din tur igjen.",
+          "varer": "snakker som en sjørøver",
+          "ikon": "🏴‍☠️"
+        },
         "La {spiller} bestemme et dyr du skal være i 20 sekunder.",
         "Lag den mest dramatiske nysingen i verden.",
         "Vis hvordan en snegle danser.",
-        "Hvisk alt du sier til det er din tur igjen.",
+        {
+          "t": "Hvisk alt du sier til det er din tur igjen.",
+          "varer": "hvisker alt",
+          "ikon": "🤫"
+        },
         "Lat som du er en kenguru med hikke.",
         "Finn på en egen lyd for hver person i rommet.",
         "Gjør ditt beste trylletriks – eller lat som.",
         "Tell til ti på et språk du finner på selv.",
-        "Lag en hatt av noe du finner i rommet, og ha den på til det er din tur igjen.",
+        {
+          "t": "Lag en hatt av noe du finner i rommet, og ha den på til det er din tur igjen.",
+          "varer": "har hjemmelaget hatt på",
+          "ikon": "🎩"
+        },
         "Lat som du er en sommerfugl som ikke helt har lært å fly ennå."
       ]
     },
@@ -208,14 +232,22 @@
         "Les værmeldingen for stua som en ekte meteorolog.",
         "Syng refrenget av en julesang, men bytt ut alle ordene med «pølse».",
         "Fortell et eventyr der {spiller} er helten.",
-        "Snakk med fransk aksent til det er din tur igjen.",
+        {
+          "t": "Snakk med fransk aksent til det er din tur igjen.",
+          "varer": "snakker med fransk aksent",
+          "ikon": "🥐"
+        },
         "Lag en tv-reklame for sofaen.",
         "Gi {spiller} et kompliment på rim.",
         "Les opp en bruksanvisning eller en innholdsliste fra noe i nærheten, som om det er dramatisk poesi.",
         "Vær kommentator mens {spiller} går fra den ene siden av rommet til den andre.",
         "Lag en ny familiehilsen sammen med {spiller}, og vis den fram.",
         "Finn på en yogastilling, gi den et navn, og hold den i ti sekunder.",
-        "Snakk som en nyhetsoppleser til det er din tur igjen.",
+        {
+          "t": "Snakk som en nyhetsoppleser til det er din tur igjen.",
+          "varer": "snakker som en nyhetsoppleser",
+          "ikon": "📺"
+        },
         "Vær omviser, og vis de andre rundt i rommet som om det er et museum.",
         "Fortell en vits med så dårlig timing som mulig.",
         "Syng bursdagssangen for {spiller} – selv om det ikke er bursdag.",
@@ -226,7 +258,11 @@
         "Hold en takketale for {spiller}, som nettopp har vunnet prisen for årets beste sofasitter.",
         "Lag en lyd du hører hjemme, og la de andre gjette hva det er.",
         "Lat som du er en gammel radio som ikke finner kanalen.",
-        "Snakk på rim til det er din tur igjen.",
+        {
+          "t": "Snakk på rim til det er din tur igjen.",
+          "varer": "snakker på rim",
+          "ikon": "🎤"
+        },
         "Vis hvordan du danset da du var tolv år.",
         "Forklar hvordan man smører en brødskive, som om det er det vanskeligste i verden.",
         "Lat som du er en katt som vil ha oppmerksomhet.",
@@ -235,7 +271,11 @@
         "Gi alle i rommet et nytt kallenavn.",
         "Si noe hyggelig om hver person i rommet.",
         "Lag lyden av et tog, og kjør en runde rundt i rommet.",
-        "Snakk en annen dialekt til det er din tur igjen.",
+        {
+          "t": "Snakk en annen dialekt til det er din tur igjen.",
+          "varer": "snakker en annen dialekt",
+          "ikon": "🗣️"
+        },
         "Vis tre forskjellige måter å vinke på.",
         "Lag en sang om favorittmaten din.",
         "Fortell hva du har gjort i dag, som om det var en skrekkfilm.",
@@ -244,7 +284,12 @@
         "Vær speilbildet til {spiller} i 20 sekunder.",
         "Si navnene til alle i rommet baklengs.",
         "Hold en appell om hvorfor det bør være taco hver dag.",
-        "Finn på en ny regel som gjelder til det er din tur igjen.",
+        {
+          "t": "Finn på en ny regel som gjelder til det er din tur igjen.",
+          "varer": "har funnet på en regel for alle",
+          "ikon": "📜",
+          "alle": true
+        },
         "Lat som du er en turist som aldri har sett en sofa før.",
         "Si «Fem flate fisker fløt forbi fyrtårnet» tre ganger fort.",
         "Mim en film – de andre skal gjette hvilken.",
@@ -253,13 +298,21 @@
         "Fortell et kjent eventyr på 20 sekunder.",
         "Hils til «alle hjemme» som om du er på direktesendt tv.",
         "Finn på et nytt produkt, og selg det til {spiller}.",
-        "Vær et ekko: Gjenta det siste ordet {spiller} sier, til det er din tur igjen.",
+        {
+          "t": "Vær et ekko: Gjenta det siste ordet {spiller} sier, til det er din tur igjen.",
+          "varer": "er ekkoet til {spiller}",
+          "ikon": "🔁"
+        },
         "Vis hvordan du kommer til å danse når du er 90 år.",
         "Spill tre roller i en kort scene: en kokk, en ku og en konge.",
         "Les opp en beskjed som på togstasjonen: «Toget til kjøkkenet er dessverre forsinket.»",
         "Lag en fanfare med munnen, og gjør en stor entré i rommet.",
         "Nynn en sang de andre velger, mens du står på ett bein.",
-        "Bytt plass med {spiller}, og vær {spiller} til det er din tur igjen.",
+        {
+          "t": "Bytt plass med {spiller}, og vær {spiller} til det er din tur igjen.",
+          "varer": "er {spiller}",
+          "ikon": "🎭"
+        },
         "Lag et kunstverk av ting du finner i rommet, og presenter det.",
         "Lat som du er en robotstøvsuger som har kjørt seg fast.",
         "Si en setning med så mange ord som rimer på «katt» som mulig.",
@@ -340,19 +393,35 @@
       "konsekvens": [
         "Lat som du er {spiller} som våkner en mandag morgen.",
         "Vis hvilken emoji du har brukt mest, og forklar hvorfor.",
-        "Snakk som en programleder på barne-tv til det er din tur igjen.",
+        {
+          "t": "Snakk som en programleder på barne-tv til det er din tur igjen.",
+          "varer": "snakker som en programleder på barne-tv",
+          "ikon": "🎈"
+        },
         "Hold en motivasjonstale for {spiller} – på ti sekunder.",
         "Syng refrenget av en sang de andre velger.",
         "Hold en dramatisk monolog om hvorfor du ikke har ryddet.",
         "Lag en rap om {spiller} på 20 sekunder.",
         "Ta ti knebøy mens du forteller om dagen din.",
-        "Ta på deg genseren eller jakka baklengs, og ha den slik til det er din tur igjen.",
+        {
+          "t": "Ta på deg genseren eller jakka baklengs, og ha den slik til det er din tur igjen.",
+          "varer": "har genseren eller jakka baklengs",
+          "ikon": "🧥"
+        },
         "Lat som du er influenser, og presenter en tilfeldig ting i rommet.",
         "Gå catwalk mens {spiller} kommenterer.",
-        "Snakk med lukkede øyne til det er din tur igjen.",
+        {
+          "t": "Snakk med lukkede øyne til det er din tur igjen.",
+          "varer": "snakker med lukkede øyne",
+          "ikon": "🙈"
+        },
         "Fortell en flau historie om deg selv – på 30 sekunder.",
         "Lat som du er med i et realityprogram, og fortell «kameraet» hvordan kvelden går.",
-        "Spør {spiller} om dere kan bytte lue eller sokker til det er din tur igjen.",
+        {
+          "t": "Spør {spiller} om dere kan bytte lue eller sokker til det er din tur igjen.",
+          "varer": "har byttet lue eller sokker med {spiller}",
+          "ikon": "🧦"
+        },
         "Gi en kjærlighetserklæring til det nærmeste møbelet.",
         "Lag en tv-reklame der {spiller} er produktet.",
         "Snakk i 30 sekunder uten å bruke bokstaven «e».",
@@ -360,13 +429,21 @@
         "Vis den kleineste dansen du kan.",
         "Hold en rørende tale til ære for {spiller}.",
         "Vis tre forskjellige måter å le på.",
-        "La de andre bestemme en ny stemme du skal snakke med til det er din tur igjen.",
+        {
+          "t": "La de andre bestemme en ny stemme du skal snakke med til det er din tur igjen.",
+          "varer": "snakker med ny stemme",
+          "ikon": "🎙️"
+        },
         "Vær GPS, og gi en veibeskrivelse til kjøleskapet.",
         "Finn på et motiverende sitat, og si det som en dyp filosof.",
         "Mim morgenrutinen din.",
         "Beskriv {spiller} som om du var stemmen i en naturdokumentar.",
         "Stå i planken så lenge du klarer, mens de andre heier.",
-        "Snakk som om du er 90 år til det er din tur igjen.",
+        {
+          "t": "Snakk som om du er 90 år til det er din tur igjen.",
+          "varer": "snakker som en 90-åring",
+          "ikon": "👵"
+        },
         "Spill en scene der du og {spiller} møtes igjen etter 20 år.",
         "Lag en reklamejingle om vennegjengen.",
         "Prøv å få {spiller} til å le på 20 sekunder – uten å kile.",
@@ -395,7 +472,11 @@
         "Lag et dikt om {spiller} – fire linjer som rimer.",
         "Lat som du er en robot som lærer å danse.",
         "Ta imot tre komplimenter fra de andre – uten å protestere.",
-        "Vær DJ: Lag en lydeffekt hver gang noen snakker, til det er din tur igjen.",
+        {
+          "t": "Vær DJ: Lag en lydeffekt hver gang noen snakker, til det er din tur igjen.",
+          "varer": "er DJ og lager lydeffekter",
+          "ikon": "🎧"
+        },
         "Intervju {spiller} på direkten om noe helt vanlig, som hvordan man koker egg.",
         "Vis hvordan du ville gått inn på en scene foran ti tusen fans.",
         "Bytt plass med den som sitter lengst unna deg.",
@@ -506,7 +587,11 @@
         "Vis hvordan du danser når du tror ingen ser deg.",
         "Flørt med ditt eget speilbilde i et vindu eller en skjerm.",
         "Lag en hjerteform med hendene, og send den til {spiller} med et blunk.",
-        "Snakk som en romantisk fransk kelner til det er din tur igjen.",
+        {
+          "t": "Snakk som en romantisk fransk kelner til det er din tur igjen.",
+          "varer": "snakker som en romantisk fransk kelner",
+          "ikon": "🌹"
+        },
         "Dans tango med en kost eller en pute.",
         "Hold et foredrag på 30 sekunder: «Derfor er jeg en fantastisk date».",
         "Si en kjærlighetserklæring på tre språk – eller lat som.",
@@ -534,6 +619,89 @@
         "Fortell om drømmedaten med {spiller} som om det var et eventyr.",
         "Spill en romantisk filmscene der en tekanne har hovedrollen.",
         "Gi {spiller} en rose – eller noe som ligner – og si en replikk som i et datingprogram."
+      ]
+    },
+    {
+      "id": "jul",
+      "navn": "Jul",
+      "ikon": "🎄",
+      "tekst": "Jul og julebord",
+      "sesong": true,
+      "sannhet": [
+        "Hva er den rareste julegaven du har fått?",
+        "Har du noen gang gitt bort en gave du selv hadde fått – og til hvem?",
+        "Hvilken julesang orker du ikke å høre én gang til?",
+        "Hva er det lureste du har gjort for å finne ut hva du skulle få til jul?",
+        "Hvem i rommet tror du bruker lengst tid på å pakke inn gaver?",
+        "Har du noen gang smugspist av julekakene før gjestene kom?",
+        "Hva må stå på bordet for at det skal bli jul for deg?",
+        "Hva er den største tabben du har gjort i et juleselskap eller på et julebord?",
+        "Hva er det lureste du har gjort for å holde deg på nissens gode side?",
+        "Hvilken juletradisjon synes du i all hemmelighet er litt slitsom?",
+        "Har du noen gang kjøpt en julegave i aller siste liten – og hva ble det?",
+        "Hva ønsker du deg mest til jul i år – helt ærlig?",
+        "Hvem i rommet er vanskeligst å finne gave til?",
+        "Hva er det flaueste antrekket du har hatt på deg i jula?",
+        "Har du noen gang sovnet før gavene var delt ut?",
+        "Hvilken julefilm må du se hvert eneste år?",
+        "Hva er den dårligste gaven du har gitt noen?",
+        "Hvem i rommet ville blitt den beste julenissen – og hvorfor?",
+        "Har du noen gang gjemt mandelen i munnen for å holde på spenningen?",
+        "Hva er det første du gjør når juleferien starter?",
+        "Hvilken julekake kunne du spist en hel boks av?",
+        "Har du noen gang åpnet en pakke som ikke var din?",
+        "Hva er det fineste noen har gjort for deg i jula?",
+        "Hva i jula synes du egentlig er oppskrytt?",
+        "Hva ville du gitt {spiller} i julegave hvis du bare hadde femti kroner?",
+        "Hva er det rareste som har skjedd på en julaften du har vært med på?",
+        "Har du noen gang jukset med julekalenderen og åpnet flere luker på én dag?",
+        "Hvilket nyttårsforsett holdt du kortest – og hvor lenge varte det?",
+        "Hva er den beste unnskyldningen din for å slippe å gå rundt juletreet?",
+        "Hvem i rommet fortjener å stå øverst på nissens liste over snille – og hvorfor?"
+      ],
+      "konsekvens": [
+        "Hold takk for maten-talen etter et julebord der det bare ble servert knekkebrød.",
+        "Gå rundt et usynlig juletre mens du synger – og spør om {spiller} vil være med.",
+        "Pakk inn noe du finner i rommet, med det du har for hånden, og gi det høytidelig til {spiller}.",
+        "Vær en nisse som har gått seg vill i stua, og spør om veien til Nordpolen.",
+        "Syng «Glade jul» som en operasanger.",
+        {
+          "t": "Si «ho, ho, ho» før alt du sier, til det er din tur igjen.",
+          "varer": "sier «ho, ho, ho» før alt",
+          "ikon": "🔔"
+        },
+        "Les opp ønskelista di som om det er kveldens viktigste nyhet.",
+        "Vær et juletre i 20 sekunder mens {spiller} pynter deg med ting fra rommet.",
+        "Lag lyden av reinsdyr som lander på taket.",
+        "Hold en tale til en marsipangris – på rim.",
+        "Dans som en pepperkakemann som nettopp har kommet ut av ovnen.",
+        "Mim at du åpner en altfor stor pakke – de andre gjetter hva som er inni.",
+        "Vær sjefen som holder årets juletale på julebordet. Temaet er binders.",
+        "Nynn en julesang – de andre har 20 sekunder på å gjette hvilken.",
+        "Gi alle i rommet en usynlig julegave, og fortell hva det er.",
+        "Fortell om verdens korteste julebord – på ti sekunder.",
+        "Lat som du er en julekule som er livredd for katten.",
+        "Si så mange ord som rimer på «jul» som du klarer på ti sekunder.",
+        "Meld hvit jul som en værmelder med stor innlevelse – uansett hvordan det ser ut ute.",
+        {
+          "t": "Finn noe du kan bruke som nisselue, og ha det på til det er din tur igjen.",
+          "varer": "har nisselue på",
+          "ikon": "🎅"
+        },
+        "Vær toastmaster, og presenter {spiller} som kveldens neste taler.",
+        "Vær en snømann som sakte smelter – helt ned til gulvet.",
+        "Vær julenissens strenge sjef, og ta en medarbeidersamtale med {spiller}.",
+        "Lag en reklame for årets julegave: én helt vanlig vott.",
+        {
+          "t": "Snakk som en veldig sliten julenisse til det er din tur igjen.",
+          "varer": "snakker som en sliten julenisse",
+          "ikon": "🥱"
+        },
+        "Del ut prisen «årets kollega» til {spiller}, og begrunn det grundig.",
+        "Vis hvordan du danser når favorittsangen din kommer på julebordet.",
+        "Syng «På låven sitter nissen», men bytt ut nissen med {spiller}.",
+        "Lag et juledikt om {spiller} med minst to rim.",
+        "Si «God jul» på fem måter: sint, forelsket, søvnig, redd og kjempeglad."
       ]
     }
   ]
