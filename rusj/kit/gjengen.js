@@ -955,7 +955,30 @@
         ${form("M82 72 H117 L112 118 Q99 122 87 118Z", "rgba(196,236,255,.3)", 4)}
         ${form("M114 72 a10 10 0 0 1 -16 -8 h16z", LAMPE, 3)}`,
     },
-  };
+
+    // Julekalenderen (Advent calendar): a green calendar page in a nisse cap with a star on the tip.
+    julekalenderen: {
+      farge: "#4cc38a",
+      tegn: (f) => {
+        const stjerne = [];
+        for (let i = 0; i < 10; i++) {
+          const r = i % 2 ? 6 : 14;
+          const v = -Math.PI / 2 + (i * Math.PI) / 5;
+          stjerne.push(`${n1(104 + Math.cos(v) * r)} ${n1(4 + Math.sin(v) * r)}`);
+        }
+        return `
+          <rect x="12" y="26" width="96" height="88" rx="18" fill="${f}" stroke="${B}" stroke-width="5"/>
+          ${form("M22 36 C30 6 70 -6 98 6 Q90 16 92 30Z", "#e8414f")}
+          ${form("M10 38 Q12 28 24 28 H88 Q100 28 102 38 Q100 46 88 46 H24 Q12 46 10 38Z", P, 4.5)}
+          ${form(`M${stjerne.join(" L")}Z`, LAMPE, 3.5)}
+          ${oyne({ y: 66, r: 11, pr: 5.2, dy: 1 })}
+          ${kinn(82)}
+          ${smil(84, 11)}
+          <rect x="20" y="92" width="22" height="16" rx="4" fill="${P}" stroke="${B}" stroke-width="3.5"/>${tekst(31, 104.5, "1", 11, B)}
+          <rect x="78" y="92" width="22" height="16" rx="4" fill="#2a1a4a" stroke="${B}" stroke-width="3.5"/>${tekst(89, 105, "★", 11, LAMPE)}
+          ${form("M78 92 L70 95 V111 L78 108Z", P, 3)}`;
+      },
+    },  };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on
   // the forehead. Only fills ids missing from FIGURER (all of these are drawn above now), so a new

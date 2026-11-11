@@ -1,0 +1,13 @@
+{
+  "id": "julekalenderen",
+  "navn": "Julekalenderen",
+  "undertittel": "Adventskalender",
+  "beskrivelse": "Gratis julekalender på nett med 24 luker: julenøtter, quiz, julesanger, ordgåter og koselige ideer for hele familien. Én ny luke hver dag i desember.",
+  "kort": "24 luker med nøtter, quiz og julekos – én ny hver dag i desember.",
+  "spillere": [1, 20],
+  "minutter": [2, 5],
+  "mobiler": "en",
+  "tagger": ["familie", "barn", "fest"],
+  "rekkefolge": 48,
+  "sok": ["julekalender", "adventskalender", "luke", "jul", "desember", "julenøtter"]
+}

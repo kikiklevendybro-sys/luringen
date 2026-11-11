@@ -232,6 +232,12 @@
       "sok": ["hemmelig venn", "julebord", "jul", "julegaver"],
       "type": "WebApplication"
     },
+    "julekalenderen": {
+      "tittel": "Julekalender på nett – 24 luker for hele familien",
+      "frase": "Julekalender",
+      "beskrivelse": "Gratis julekalender med 24 luker: julenøtter, quiz, gjett julesangen, ordgåter og koselige ideer. Én ny luke hver dag i desember, uten konto.",
+      "sok": ["adventskalender", "julekalender for barn", "julenøtter"]
+    },
     "terninga": {
       "tittel": "Yatzy på nett – gratis for 1–6 på samme mobil",
       "frase": "Yatzy",
