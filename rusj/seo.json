@@ -8,6 +8,8 @@
     "  beskrivelse (meta description and link preview, 100–160 characters, unique),",
     "  sok (extra words for the front-page search, added to the game's own; optional),",
     "  type (structured-data type when it is not a game, e.g. WebApplication; optional), samarbeid (true for co-op games).",
+    "  motMobilen (true when one player can play against the phone – the «Mot mobilen» badge on the front page;",
+    "    a game's own spill.json may say \"motMobilen\": true or false instead, and that wins),",
     "Names: generic and folk names anywhere (Yatzy, Ludo, Kabal, Ring of Fire, Secret Santa, imposter …).",
     "Other companies' game brands ONLY in sok, never in tittel, frase or beskrivelse – the build stops if they turn up there."
   ],
@@ -158,6 +160,7 @@
       "sok": ["hva mangler", "kims lek på nett"]
     },
     "elefanten": {
+      "motMobilen": true,
       "tittel": "Vendespill på nett – finn to like, gratis for barn",
       "frase": "Vendespill – finn to like",
       "beskrivelse": "Gratis vendespill (huskespill) på norsk: snu to kort og finn to like – alene mot klokka eller opptil fire sammen. Dyr, mat, verdensrommet og mer.",
@@ -188,17 +191,20 @@
       "sok": ["7-kabal", "sjukabal", "gratis kabal"]
     },
     "sjakkhesten": {
+      "motMobilen": true,
       "tittel": "Sjakk på nett – mot datamaskinen eller en venn",
       "frase": "Sjakk",
       "beskrivelse": "Spill sjakk gratis på norsk: mot datamaskinen på tre nivåer, eller to på samme mobil – med alle regler, sjakklokke og angreknapp. Uten konto.",
       "sok": ["sjakk mot datamaskin", "sjakk mot pc", "sjakk for to"]
     },
     "fireren": {
+      "motMobilen": true,
       "tittel": "Fire på rad – gratis mot en venn eller mobilen",
       "frase": "Fire på rad",
       "beskrivelse": "Gratis fire på rad på norsk. Slipp brikkene og få fire på rad – mot en venn på samme mobil eller mot mobilen på tre nivåer."
     },
     "bonden": {
+      "motMobilen": true,
       "tittel": "Bondesjakk – tre på rad og fem på rad, gratis",
       "frase": "Bondesjakk",
       "beskrivelse": "Gratis bondesjakk (tre på rad, tripp-trapp-tresko) på norsk – eller fem på rad på stort brett. Mot en venn på samme mobil eller mot mobilen.",
@@ -233,6 +239,7 @@
       "sok": ["yatzy på nett", "yatzy gratis", "yatzy blokk", "yatzy regler"]
     },
     "brikka": {
+      "motMobilen": true,
       "tittel": "Ludo på nett – gratis for 1–4 på samme mobil",
       "frase": "Ludo",
       "beskrivelse": "Gratis Ludo på norsk: slå seks, kom deg ut – og send de andre hjem! 1–4 spillere på én mobil, og mobilen spiller på de ledige plassene. Uten reklame.",
@@ -250,6 +257,7 @@
       "beskrivelse": "Gratis quizspill på norsk: ti svar ligger rundt en ring. Svar riktig og samle poeng i potten – men ett feil svar, og alt ryker. Tør du ta ett til?"
     },
     "admiralen": {
+      "motMobilen": true,
       "tittel": "Slagskip på nett – senk skipene, gratis",
       "frase": "Slagskip",
       "beskrivelse": "Gratis slagskip på norsk: plasser flåten og senk fiendens skip – mot mobilen på tre nivåer, eller to spillere på én mobil."

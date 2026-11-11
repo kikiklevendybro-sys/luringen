@@ -298,6 +298,30 @@ export function tidTekst(m) {
   return a === b ? `${a} min` : `${a}–${b} min`;
 }
 
+// How many phones a game needs, from «mobiler» in spill.json: on a list row (tekst), on the small
+// shelf tile (kort) and read aloud (lest).
+export const MOBILER = {
+  en: { tekst: "1 mobil", kort: "1", lest: "én mobil" },
+  hver: { tekst: "Hver sin mobil", kort: "flere", lest: "hver sin mobil" },
+  begge: { tekst: "1 eller flere mobiler", kort: "1+", lest: "én eller flere mobiler" },
+};
+// The facts of a game as one sentence for screen readers:
+// «3 til 10 spillere, én mobil, 10 til 20 minutter» (+ what the badges say).
+export function faktaLest(m, motMobilen) {
+  const [a, b] = m.spillere;
+  const [fra, til] = m.minutter;
+  return [
+    a === b ? (a === 1 ? "én spiller" : `${a} spillere`) : `${a} til ${b} spillere`,
+    MOBILER[m.mobiler].lest,
+    fra === til ? `${fra} minutter` : `${fra} til ${til} minutter`,
+    m.tagger.includes("daglig") && "ny oppgave hver dag",
+    motMobilen && "kan spilles mot mobilen",
+    m.alder18 && "for voksne over 18 år",
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
 export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
   const G = require(join(ROT, "rusj/kit/gjengen.js"));
   const kilde = (sti) => readFileSync(join(ROT, sti), "utf8");
@@ -461,8 +485,13 @@ ${STEMPEL_FILTER}
   alleKort.push(...spill);
   alleKort.sort((a, b) => a.rekkefolge - b.rekkefolge);
 
+  // One player against the phone? The game's own spill.json decides; until the games say it
+  // themselves, rusj/seo.json does. (It cannot be read from the number of players: a quiz or a
+  // memory game for 1–4 is played alone, but not against anyone.)
+  const motMobilen = (m) => (typeof m.motMobilen === "boolean" ? m.motMobilen : !!(seo.spill[m.id] || {}).motMobilen);
   const portalCss = skriv("felles/portal.css", kilde("rusj/portal/portal.css"));
   const portalJs = skriv("felles/portal.js", kilde("rusj/portal/portal.js"));
+  const dagligJs = skriv("felles/daglig.js", kilde("rusj/portal/daglig.js")); // «Dagens rusj»: see rusj/DAGLIG.md
   const spillData = alleKort.map((m) => ({
     id: m.id,
     navn: m.navn,
@@ -474,6 +503,7 @@ ${STEMPEL_FILTER}
     mobiler: m.mobiler,
     farge: m.farge,
     alder18: !!m.alder18,
+    ...(motMobilen(m) ? { motMobilen: true } : {}),
     // The game's own search words plus the ones in rusj/seo.json (what people call the game).
     sok: [...new Set([...(Array.isArray(m.sok) ? m.sok : []), ...sokedata(m).sok])],
   }));
@@ -483,21 +513,38 @@ ${STEMPEL_FILTER}
   const siderJs = skriv("felles/sider.js", kilde("rusj/portal/sider.js"));
   // One card per game. «Alle spill» shows it as a compact row; portal.js copies it into the
   // shelves (as a bigger tile), the «Fortsett» row, the parade and «Overrask meg».
-  const spillereLang = (m) => (m.spillere[1] === 1 ? "For én spiller." : `${spillereTekst(m)} spillere.`);
+  // The facts on every card: players, phones and time (from spill.json), and small badges for a
+  // daily puzzle and for games one can play against the phone. The link's name says the same in
+  // one sentence. On the shelf tiles the phones are shown in their short form, and the time not.
+  const stor = (tekst) => tekst.charAt(0).toLocaleUpperCase("nb") + tekst.slice(1);
+  // Small line icons in the text colour (drawn once, used by every card): emoji phones and
+  // stopwatches are dark on some phones and would disappear on the night background.
+  const IKONER = `<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-spillere" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.4 3-5 6-5s5.4 1.6 6 5"/><circle cx="17.2" cy="9.2" r="2.4"/><path d="M17 14.2c2.3.3 3.7 1.7 4.1 4.3"/></symbol>
+  <symbol id="i-mobil" viewBox="0 0 24 24"><rect x="7" y="2.8" width="10" height="18.4" rx="2.6"/><path d="M11 17.6h2"/></symbol>
+  <symbol id="i-tid" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.6"/><path d="M12 9v4.2l2.7 1.7M9.8 2.8h4.4"/></symbol>
+</svg>`;
+  const ikon = (navn) => `<svg class="fakta-ikon" aria-hidden="true" focusable="false"><use href="#i-${navn}"/></svg>`;
   const kort = alleKort
-    .map(
-      (m) => `<li class="spillkort" data-id="${m.id}"${m.alder18 ? " data-alder18" : ""} style="--kf: ${m.farge}">
-        <a href="/${m.id}/" aria-label="${esc(`${m.navn}: ${m.undertittel}. ${m.kort} ${spillereLang(m)}`)}">
+    .map((m) => {
+      const mob = MOBILER[m.mobiler];
+      const merker = [m.tagger.includes("daglig") && '<span class="kort-merke dagens">Dagens</span>', motMobilen(m) && '<span class="kort-merke">Mot mobilen</span>'].filter(Boolean).join("");
+      return `<li class="spillkort" data-id="${m.id}"${m.alder18 ? " data-alder18" : ""} style="--kf: ${m.farge}">
+        <a href="/${m.id}/" aria-label="${esc(`${m.navn}: ${m.undertittel}. ${m.kort} ${stor(faktaLest(m, motMobilen(m)))}.`)}">
           <span class="kort-figur">${G.svg(m.id)}${m.alder18 ? '<span class="kort-18" aria-hidden="true">18+</span>' : ""}</span>
           <span class="kort-tekst">
-            <span class="kort-sjanger">${esc(m.undertittel)}</span>
+            <span class="kort-topp"><span class="kort-sjanger">${esc(m.undertittel)}</span>${merker ? `<span class="kort-merker">${merker}</span>` : ""}</span>
             <span class="kort-navn">${esc(m.navn)}</span>
             <span class="kort-linje">${esc(m.kort)}</span>
           </span>
-          <span class="kort-spillere"><span aria-hidden="true">👥</span> ${spillereTekst(m)}</span>
+          <span class="kort-fakta">
+            <span class="kort-spillere">${ikon("spillere")}${spillereTekst(m)}</span>
+            <span class="kort-mobiler">${ikon("mobil")}<span class="fakta-lang">${mob.tekst}</span><span class="fakta-kort">${mob.kort}</span></span>
+            <span class="kort-tid">${ikon("tid")}${tidTekst(m)}</span>
+          </span>
         </a>
-      </li>`,
-    )
+      </li>`;
+    })
     .join("\n");
   const brukteTagger = Object.keys(TAGGER).filter((t) => alleKort.some((m) => m.tagger.includes(t)));
   const antall18 = alleKort.filter((m) => m.alder18).length;
@@ -520,7 +567,7 @@ ${STEMPEL_FILTER}
     deling: ikoner.deling,
     delingAlt: "rusj – gratis spill og selskapsleker på norsk",
     css: [felles.css, portalCss],
-    skript: [portalData, portalJs],
+    skript: [portalData, dagligJs, portalJs],
     jsonld: {
       "@context": "https://schema.org",
       "@graph": [
@@ -537,9 +584,11 @@ ${STEMPEL_FILTER}
   })}
 <body class="portal">
 <div class="scene" aria-hidden="true"></div>
+${IKONER}
 <header class="helt">
   <h1 class="helt-logo"><span class="vh">${esc(forsideTittel)}</span>${G.logo({ klasse: "tegnes" })}</h1>
   <div class="helt-tekst">
+    <section class="idag" id="idag" aria-labelledby="idag-tittel" hidden></section>
     <p class="helt-slagord">Spill for hele gjengen. <br><em>Rett i nettleseren.</em></p>
     <ul class="helt-fakta" aria-label="Om rusj">
       <li><b id="helt-antall">${alleKort.length}</b> spill</li><li><b>0</b> kr</li><li><b>0</b> reklame</li><li><b>Ingen</b> konto</li>
@@ -548,6 +597,7 @@ ${STEMPEL_FILTER}
       <a class="knapp" href="#spill">Finn et spill</a>
       <button class="knapp-2" id="overrask" type="button" aria-haspopup="dialog"><span aria-hidden="true">🎲</span> Overrask meg</button>
     </div>
+    <a class="idag-ny" id="idag-ny" href="#hylle-daglig" hidden><span class="idag-ny-figurer" id="idag-ny-figurer" aria-hidden="true"></span><span class="idag-ny-tekst" id="idag-ny-tekst"></span><span class="idag-ny-pil" aria-hidden="true">›</span></a>
   </div>
 </header>
 <div class="parade" aria-hidden="true"><div class="parade-spor" id="parade"></div></div>

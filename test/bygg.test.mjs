@@ -144,6 +144,33 @@ test("the front page: the words people search for – and not «festspill» (an 
   for (const id of spillIder) assert.ok(f.html.includes(`href="/${id}/"`), `forsiden lenker ikke til /${id}/`);
 });
 
+test("the front page: «Dagens rusj» is wired in, and every card carries its facts", () => {
+  const f = sider.find((s) => s.sti === "/");
+  // The strip (returning players) and the slim row (new visitors) are empty and hidden until
+  // portal.js fills one of them; the helpers load before it.
+  assert.match(f.html, /<section class="idag" id="idag" aria-labelledby="idag-tittel" hidden><\/section>/);
+  assert.match(f.html, /<a class="idag-ny" id="idag-ny" href="#hylle-daglig" hidden>/);
+  const skript = [...f.html.matchAll(/<script defer src="\/felles\/([a-z]+)\.js\?v=[a-z0-9]+"><\/script>/g)].map((m) => m[1]);
+  assert.deepEqual(skript, ["spilliste", "daglig", "portal"]);
+  assert.ok(existsSync(join(WEB, "felles/daglig.js")));
+  // One card per game: players, phones and time, and the same in the link's name.
+  const kort = [...f.html.matchAll(/<li class="spillkort" data-id="([a-z]+)"[\s\S]*?<\/li>/g)];
+  assert.equal(kort.length, spillIder.length);
+  for (const [html, id] of kort) {
+    for (const klasse of ["kort-spillere", "kort-mobiler", "kort-tid"]) assert.equal(html.split(`class="${klasse}"`).length, 2, `${id}: ${klasse}`);
+    assert.match(html, /aria-label="[^"]*(spiller|spillere), (én mobil|hver sin mobil|én eller flere mobiler), \d+( til \d+)? minutter[^"]*\."/, `${id}: lenkenavnet sier ikke fakta`);
+    assert.match(html, /<span class="fakta-lang">(1 mobil|Hver sin mobil|1 eller flere mobiler)<\/span><span class="fakta-kort">(1|flere|1\+)<\/span>/, `${id}: mobiler`);
+  }
+  // «Mot mobilen» is said by the games (or rusj/seo.json), not guessed from the number of players.
+  const seo = lesSeo(ROT);
+  const liste = readFileSync(join(WEB, "felles/spilliste.js"), "utf8");
+  for (const [html, id] of kort) {
+    const sagt = new RegExp(`"id":"${id}"[^}]*"motMobilen":true`).test(liste);
+    assert.equal(html.includes('<span class="kort-merke">Mot mobilen</span>'), sagt, `${id}: merket «Mot mobilen»`);
+    if ((seo.spill[id] || {}).motMobilen) assert.ok(sagt, `${id}: motMobilen i rusj/seo.json kom ikke med i spillista`);
+  }
+});
+
 test("the 404 page is not indexed and has no address of its own", () => {
   const s = lesSide("/404.html", join(WEB, "404.html"));
   assert.equal(s.robots, "noindex");
