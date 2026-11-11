@@ -548,3 +548,54 @@ html.sl-fast .skjerm {
     height: 60px;
   }
 }
+
+/* ---------- After a crash: the board stays, and one swipe starts the next run ---------- */
+
+/* A small card low on the board (at the top when the snake crashed in the lower half). Swipes go
+   through the overlay, and may start on the card too. */
+.sl-status.over {
+  align-items: end;
+  padding: 12px;
+  background: none;
+  pointer-events: none;
+}
+
+.sl-status.over.oppe {
+  align-items: start;
+}
+
+.sl-statuskort.over {
+  gap: 2px;
+  width: min(100%, 320px);
+  padding: 10px 14px 2px;
+  background: color-mix(in srgb, var(--natt-2) 94%, transparent);
+  pointer-events: auto;
+}
+
+.sl-statuskort.over .sl-stor {
+  font-size: 1.45rem;
+}
+
+.sl-statuskort.over .lenke {
+  min-height: 44px;
+}
+
+/* «sveip …» on a phone, «piltast …» with a keyboard and a mouse */
+.sl-tast {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sl-finger {
+    display: none;
+  }
+
+  .sl-tast {
+    display: inline;
+  }
+}
+
+/* The small labels over the counters: light enough to read at this size */
+.sl-stat small {
+  color: var(--tekst-2);
+}

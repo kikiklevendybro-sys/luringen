@@ -1,7 +1,10 @@
-// Minesveiperen (minesweeper): on Lett the first tap is always safe and opens an area, a long press
-// flags, flag mode, chording on a number, reload and back + continue mid-game, the face restarts
-// (asking first), a win with a record; a lost game («Bom!»); Ekspert scrolls inside its own frame
-// and zooms, and the controls stay on screen at 320×568 and 375×560.
+// Minesveiperen (minesweeper): «Dagens minefelt» (the same board for everyone, a given first cell,
+// a lost try and a new one on the same board, solved → streak, countdown and share) beside a free
+// board (two games under way at once), and #dagens. On Lett the first tap is always safe and opens
+// an area and the board needs no guess, a long press flags, flag mode, chording on a number, reload
+// and back + continue mid-game, the face restarts (asking first), a win with a record; a lost game
+// («Kabom!»); Middels and Ekspert scroll inside their own frame, and zoomed all the way out the
+// board is a map where a tap zooms in; the controls stay on screen at 320×568 and 375×560.
 export default async function (t) {
   const celle = (i) => `.ms-c[data-i="${i}"]`;
   const spill = async () => (await t.tilstand()).spill;
@@ -17,28 +20,125 @@ export default async function (t) {
   const tall = (sp, i) => naboer(sp, i).filter((j) => sp.mine[j]).length;
   // Scripted activation of a cell (like Enter on a focused cell).
   const aktiver = (liste) => t.js(`${JSON.stringify(liste)}.forEach((i) => document.querySelector('.ms-c[data-i="' + i + '"]').click())`);
+  const antallCeller = () => t.js("Rusj.S.spill.b * Rusj.S.spill.h");
+  const brettKlart = () => t.vent("Rusj.S.spill && document.querySelectorAll('.ms-c').length === Rusj.S.spill.b * Rusj.S.spill.h");
 
   await t.start();
   // The install tip (shown at most twice per phone after a good result) would cover the screenshots.
   await t.js("Rusj.felles.installTips = 2; Rusj.lagreFelles()");
-  // The main button starts at once (the first time: lett); «Bytt nivå» opens the choice.
-  t.sjekk(/Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Hovedknappen viser ikke nivået den starter");
+  // Today's minefield is the main button; a free board starts at once (the first time: lett).
+  t.sjekk(await t.finnes('.hjem-knapper .knapp[data-h="dagens"] .ms-kal'), "Dagens minefelt er ikke hovedknappen på hjemskjermen");
+  t.sjekk(/Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Knappen for et fritt brett viser ikke nivået den starter");
   await t.klikk('[data-h="bytt"]');
   t.sjekk((await t.tekst("#skjerm h1")) === "Gjør klart", "Oppsettet heter ikke «Gjør klart»");
+  t.sjekk(await t.finnes('.bryter[data-h="uten"][aria-pressed="true"]'), "«Uten gjetting» er ikke på fra start");
   await t.bilde("oppsett");
   await t.klikk("#tilbake");
+
+  // ----- Dagens minefelt -----
+  await t.klikk('[data-h="dagens"]');
+  await brettKlart();
+  await t.sov(400);
+  let s = await spill();
+  const dag = await t.js("Rusj.dag()");
+  t.sjekk(s.dagens === dag.tekst && s.dagNr === dag.nr && s.forsok === 1, "Dagens minefelt har ikke dagens dato");
+  t.sjekk(Array.isArray(s.mine) && !s.mine[s.start] && naboer(s, s.start).every((j) => !s.mine[j]), "Startruta på dagens minefelt er ikke trygg");
+  t.sjekk(await t.js(`document.querySelector('.ms-c.start') && Number(document.querySelector('.ms-c.start').dataset.i) === ${s.start}`), "Startruta er ikke merket");
+  t.sjekk(await t.js(`(() => { const a = document.querySelectorAll('.ms-c[tabindex="0"]'); return a.length === 1 && Number(a[0].dataset.i) === ${s.start}; })()`), "Tab går ikke til startruta");
+  t.sjekk(await t.js("!document.querySelector('.ms-merke').hidden"), "Dagens minefelt sier ikke «Uten gjetting»");
+  t.sjekk(/dagens minefelt/i.test(await t.tekst("#topp-tittel")), "Topplinja sier ikke «Dagens minefelt»");
+  const dagensMiner = s.mine.join("");
+  await t.bilde("dagens");
+  // The same board on every phone: the engine gives the same mines again.
+  t.sjekk(await t.js(`(() => { const d = Rusj.dag(); const o = Minesveiperen.lagDaglig(d.tekst, d.nr); return o.trygg && o.start === Rusj.S.spill.start && o.mine.join("") === Rusj.S.spill.mine.join(""); })()`), "Dagens brett er ikke det motoren lager for datoen");
+  // The first tap opens the given cell, wherever the finger lands (here: a corner far from it).
+  const hjorne = s.start === 0 ? s.b * s.h - 1 : 0;
+  await t.trykk(celle(hjorne));
+  s = await spill();
+  t.sjekk(s.startet && s.apen[s.start] === 1 && s.apen.filter((x) => x).length >= 9, "Første trykk åpnet ikke området rundt startruta");
+  t.sjekk(!(await t.finnes(".ms-c.start")), "Startmerket ble ikke borte etter første trykk");
+  await t.bilde("dagens-apnet");
+  // A mine: «Kabom!», and the same board waits for a second try.
+  await aktiver([s.mine.indexOf(1)]);
+  await t.vent("document.querySelector('.skjerm-slutt')", 8000);
+  await t.sov(600);
+  t.sjekk(/Kabom/.test(await t.tekst("#skjerm h1")) && /Prøv igjen/.test(await t.tekst('.dokk [data-h="dagens"]')), "Et tapt forsøk på dagens minefelt tilbyr ikke «Prøv igjen»");
+  let alt = await t.tilstand();
+  t.sjekk(alt.daglig.forsok && alt.daglig.forsok.n === 1 && !alt.daglig.dager[dag.tekst] && !alt.stat.lett, "Forsøket på dagens minefelt ble ikke telt riktig");
+  await t.bilde("dagens-tapt", true);
+  await t.klikk('.dokk [data-h="dagens"]');
+  await brettKlart();
+  s = await spill();
+  t.sjekk(s.mine.join("") === dagensMiner && s.forsok === 2 && !s.startet, "Andre forsøk er ikke det samme brettet");
+  await t.trykk(celle(s.start));
+  t.sjekk(/2\. forsøk/.test(await t.js("document.querySelector('.ms-hud').textContent")), "Brettet viser ikke at det er andre forsøk");
+
+  // A free board beside it: neither wipes the other.
+  await t.klikk("#tilbake");
+  t.sjekk(/Fortsett dagens/.test(await t.tekst('[data-h="dagens"]')), "Hjemskjermen tilbyr ikke å fortsette dagens minefelt");
   await t.klikk('[data-h="nytt"]');
-  await t.vent("document.querySelectorAll('.ms-c').length === 81");
+  t.sjekk(!(await t.finnes("#ark:not([hidden])")), "Et fritt brett spurte om å kaste dagens minefelt");
+  await t.vent("Rusj.S.spill && !Rusj.S.spill.dagens && document.querySelectorAll('.ms-c').length === 81");
   await t.sov(400);
   t.sjekk(await t.js("document.documentElement.scrollHeight <= innerHeight + 1"), "Siden kan scrolles på Lett");
+  t.sjekk(await t.js(`document.querySelectorAll('.ms-c[tabindex="0"]').length === 1`), "Brettet har ikke ett tabulatorstopp");
   await t.bilde("lett");
 
-  // The first tap (a real finger) is safe and opens an area.
+  // The first tap (a real finger) is safe and opens an area; the board then needs no guess.
   await t.trykk(celle(40));
-  let s = await spill();
+  s = await spill();
   t.sjekk(s.mine && !s.mine[40] && naboer(s, 40).every((j) => !s.mine[j]), "Første trykk var ikke trygt");
   t.sjekk(s.apen.filter((x) => x).length >= 9, "Første trykk åpnet ikke et område");
   t.sjekk(s.mine.reduce((a, b) => a + b, 0) === 10, "Lett skal ha 10 miner");
+  t.sjekk(s.trygg === true && (await t.js("!document.querySelector('.ms-merke').hidden")), "Brettet er ikke merket «Uten gjetting»");
+  alt = await t.tilstand();
+  t.sjekk(alt.annet && alt.annet.dagens === dag.tekst && alt.annet.startet && !alt.annet.ferdig, "Dagens minefelt ble borte da et fritt brett startet");
+
+  await t.klikk("#tilbake");
+  t.sjekk(/Fortsett dagens/.test(await t.tekst('[data-h="dagens"]')) && /Fortsett · lett/.test(await t.tekst('[data-h="fortsett"]')), "Hjemskjermen viser ikke begge spillene som er i gang");
+  await t.bilde("hjem-to-spill");
+
+  // Solve today's minefield: time, try number, streak, countdown and share.
+  await t.klikk('[data-h="dagens"]');
+  await t.vent("Rusj.S.spill && Rusj.S.spill.dagens && document.querySelectorAll('.ms-c').length === Rusj.S.spill.b * Rusj.S.spill.h");
+  s = await spill();
+  t.sjekk(s.forsok === 2 && s.startet, "«Fortsett dagens» åpnet ikke brettet som var i gang");
+  await aktiver(s.mine.map((m, i) => i).filter((i) => !s.mine[i] && !s.apen[i]));
+  await t.vent("document.querySelector('.skjerm-slutt')", 8000);
+  await t.sov(900);
+  alt = await t.tilstand();
+  t.sjekk(alt.daglig.dager[dag.tekst] && alt.daglig.dager[dag.tekst].forsok === 2 && alt.daglig.rekke === 1, "Dagens minefelt ble ikke lagret som løst");
+  t.sjekk(!alt.rekorder.lett && !alt.stat.lett, "Dagens minefelt skal ikke telle i nivårekordene");
+  t.sjekk(alt.annet && !alt.annet.dagens && alt.annet.startet, "Det frie brettet ble borte da dagens ble løst");
+  const felles = await t.js(`JSON.parse(localStorage.getItem("rusj.daglig") || "{}").minesveiperen`);
+  t.sjekk(felles && felles.nr === dag.nr && felles.vunnet === true && felles.rekke === 1, "Forsiden får ikke vite at dagens minefelt er løst");
+  t.sjekk(!felles || felles.res === undefined || /^\d+:\d\d$/.test(felles.res), "Resultatet til forsiden er ikke en tid");
+  t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".ms-nedtelling b")), "Nedtellingen til neste minefelt mangler");
+  t.sjekk(/1 dag på rad/.test(await t.tekst(".ms-rekke")), "Rekka vises ikke");
+  t.sjekk(/2\./.test(await t.tekst(".ms-resultat")), "Resultatet viser ikke hvilket forsøk det var");
+  await t.js("window.__delt = null; navigator.share = (d) => { window.__delt = d; return Promise.resolve(); }");
+  await t.klikk('.dokk [data-h="del"]', 300);
+  const delt = await t.js("window.__delt");
+  t.sjekk(delt && delt.url === "https://rusj.no/minesveiperen/" && /Minesveiperen \d+\.\d+ · \d+:\d\d på 2\. forsøk/.test(delt.text), `«Del resultatet» deler ikke resultatet (${JSON.stringify(delt)})`);
+  await t.bilde("dagens-lost", true);
+
+  // Home: solved, a live countdown, and the free board is the main button now.
+  await t.klikk("#tilbake");
+  t.sjekk(/ryddet på \d+:\d\d/.test(await t.tekst(".ms-daglinje")) && (await t.finnes(".ms-nedtelling b")), "Hjemskjermen viser ikke at dagens minefelt er løst");
+  t.sjekk(!(await t.finnes('[data-h="dagens"]')) && (await t.finnes('.knapp[data-h="fortsett"]')), "Hovedknappen ble ikke det frie brettet etter at dagens var løst");
+  const n1 = await t.tekst(".ms-nedtelling b");
+  await t.sov(1300);
+  t.sjekk((await t.tekst(".ms-nedtelling b")) !== n1, "Nedtellingen står stille");
+  await t.bilde("hjem-lost");
+  // The front page's link: #dagens opens the result of the solved minefield.
+  await t.lastSide(t.side + "#dagens", "document.querySelector('.skjerm-slutt')");
+  t.sjekk(/dagens minefelt/i.test(await t.tekst("#topp-tittel")) && (await t.finnes('.dokk [data-h="del"]')), "#dagens åpnet ikke resultatet for dagens minefelt");
+  await t.klikk("#tilbake");
+
+  // ----- The free board -----
+  await t.klikk('[data-h="fortsett"]');
+  await t.vent("Rusj.S.spill && !Rusj.S.spill.dagens && document.querySelectorAll('.ms-c').length === 81");
+  s = await spill();
 
   // A long press on a closed mine next to the open area plants a flag.
   const kant = s.mine.map((m, i) => i).filter((i) => s.mine[i] && naboer(s, i).some((j) => s.apen[j]));
@@ -46,6 +146,8 @@ export default async function (t) {
   s = await spill();
   t.sjekk(s.flagg[kant[0]] === 1 && !s.apen[kant[0]], "Et langt trykk satte ikke flagg");
   t.sjekk((await t.tekst("#ms-igjen")) === "9", "Minetelleren teller ikke ned for flagget");
+  await t.sov(80);
+  t.sjekk(/Flagg satt på rad \d+, kolonne \d+\. 9 miner igjen/.test(await t.js("document.querySelector('#si').textContent")), "Flagget ble ikke lest opp for skjermleser");
   await t.bilde("flagg");
 
   // Flag mode: a tap flags; then back to opening.
@@ -72,6 +174,8 @@ export default async function (t) {
     await t.trykk(celle(tallCelle));
     s = await spill();
     t.sjekk(trygge.every((j) => s.apen[j]), "Et trykk på tallet åpnet ikke resten rundt det");
+    await t.sov(80);
+    t.sjekk(/rundt|åpnet|tom/.test(await t.js("document.querySelector('#si').textContent")), "Åpnede ruter ble ikke lest opp for skjermleser");
     await t.bilde("akkord");
   }
 
@@ -130,7 +234,9 @@ export default async function (t) {
   t.sjekk(/av 10/.test(await t.tekst(".ms-resultat")), "Tapet viser ikke hvor mange miner som ble funnet");
   await t.bilde("tapt", true);
 
-  // Middels opens like Ekspert: finger-sized cells from the top-left corner, «−» shows the whole board.
+  // Middels opens like Ekspert: finger-sized cells from the top-left corner. «−» shows the whole
+  // board; where that makes the cells too small for a finger the board is a map, and a tap on it
+  // zooms in instead of opening a cell.
   await t.klikk('[data-h="bytt"]');
   await t.klikk('[data-h="niva"][data-v="middels"]');
   await t.klikk('[data-h="start"]');
@@ -140,7 +246,14 @@ export default async function (t) {
   await t.bilde("middels");
   await t.klikk('[data-h="zoom"][data-v="-1"]', 250);
   t.sjekk(await t.js("(() => { const r = document.querySelector('.ms-rulle'); return r.scrollWidth <= r.clientWidth + 1 && r.scrollHeight <= r.clientHeight + 1; })()"), "Helt utzoomet får ikke hele Middels-brettet plass");
-  await t.klikk('[data-h="zoom"][data-v="1"]', 250);
+  if (await t.js("Number(document.querySelector('.ms-brett').dataset.c) < 24")) {
+    t.sjekk(await t.js("document.querySelector('.ms-brett').inert && !document.querySelector('.ms-lupe').hidden && document.querySelector('.ms-vindu.oversikt') !== null"), "Små ruter (under 24 px) kan fortsatt trykkes på i oversikten");
+    await t.bilde("middels-oversikt");
+    await t.trykk(".ms-lupe");
+    await t.sov(250);
+    s = await spill();
+    t.sjekk(!s.startet && (await t.js("Number(document.querySelector('.ms-brett').dataset.c) >= 30 && !document.querySelector('.ms-brett').inert && document.querySelector('.ms-lupe').hidden")), "Et trykk på oversikten zoomet ikke inn (eller åpnet en rute)");
+  } else await t.klikk('[data-h="zoom"][data-v="1"]', 250);
 
   // Ekspert: 16 × 30, scrolls inside its frame (never the page), starts in the top-left corner
   // with shaded edges where it goes on, and zooms.
@@ -170,6 +283,7 @@ export default async function (t) {
   await t.trykk(celle(midt));
   s = await spill();
   t.sjekk(s.mine.reduce((a, b) => a + b, 0) === 99 && !s.mine[midt], "Ekspert skal ha 99 miner, og første trykk skal være trygt");
+  t.sjekk(s.trygg === true, "Ekspert-brettet ble ikke laget uten gjetting");
   await t.bilde("ekspert-apnet");
   for (let k = 0; k < 4; k++) if (!(await t.js(`document.querySelector('[data-h="zoom"][data-v="-1"]').disabled`))) await t.klikk('[data-h="zoom"][data-v="-1"]', 200);
   const m2 = await t.js(`(() => { const r = document.querySelector(".ms-rulle"); return { h: r.scrollHeight - r.clientHeight, w: r.scrollWidth - r.clientWidth }; })()`);
@@ -197,8 +311,21 @@ export default async function (t) {
   await t.send("Emulation.setDeviceMetricsOverride", { width: bredde0, height: hoyde0, deviceScaleFactor: 2, mobile: true });
   await t.sov(300);
 
+  // «Uten gjetting» off: the classic board, laid by the seed alone and not marked.
+  await t.klikk("#tilbake");
+  await t.klikk('[data-h="bytt"]');
+  await t.klikk('[data-h="niva"][data-v="lett"]');
+  await t.klikk('.bryter[data-h="uten"]');
+  t.sjekk(await t.finnes('.bryter[data-h="uten"][aria-pressed="false"]'), "«Uten gjetting» lot seg ikke slå av");
+  await t.klikk('[data-h="start"]');
+  if (await t.finnes('#ark:not([hidden]) [data-h="ark-svar"][data-v="ja"]')) await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
+  await t.vent("Rusj.S.spill && Rusj.S.spill.niva === 'lett' && document.querySelectorAll('.ms-c').length === 81");
+  await aktiver([40]);
+  s = await spill();
+  t.sjekk(s.startet && s.trygg === false && s.uten === false && (await t.js("document.querySelector('.ms-merke').hidden")), "Et klassisk brett er merket «Uten gjetting»");
+
   // A tampered level name in the saved state ("__proto__") is not a level: back to the default.
-  await t.js(`Rusj.S.oppsett = JSON.parse('{"niva":"__proto__"}'); Rusj.S.spill = null; Rusj.lagre()`);
+  await t.js(`Rusj.S.oppsett = JSON.parse('{"niva":"__proto__"}'); Rusj.S.spill = null; Rusj.S.annet = null; Rusj.lagre()`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   t.sjekk(/Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Et ugyldig nivånavn i lagret tilstand ga ikke standardnivået");
 }

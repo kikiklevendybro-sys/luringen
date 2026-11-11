@@ -1,8 +1,9 @@
 // Slangen (snake): the setup (speed, walls), the first arrow starts the snake, it eats (food put in
 // its way), it turns with a real swipe, the arrow cross (on touch-down) and the keyboard; a hidden
 // tab pauses it; a reload mid-game waits in pause and «Fortsett» counts down; back + continue; with
-// walls it crashes into the edge and the result screen saves the record; without walls it comes
-// out on the other side; the board and the cross fit at 320×568 and 375×560.
+// walls it crashes into the edge: the board stays with a small card, and one swipe starts the next
+// run at once («Se resultatet» opens the result; a new record goes there by itself); without walls
+// it comes out on the other side; the board and the cross fit at 320×568 and 375×560.
 export default async function (t) {
   const live = () => t.js("JSON.parse(JSON.stringify(Rusj.S.spill))");
   const sett = (kode) => t.js(`(() => { const sp = Rusj.S.spill; ${kode}; })()`);
@@ -113,10 +114,35 @@ export default async function (t) {
   await t.klikk('[data-h="fortsett-spill"]');
   await t.vent("Rusj.S.spill.status === 'spiller'", 4000);
 
-  // Straight into the top wall: crash, then the result with a first record.
+  // Straight into the top wall: crash. The board stays, and a small card comes up low on it.
   await sett("sp.kropp = [[7, 0], [7, 1], [7, 2], [7, 3]]; sp.retning = 'opp'; sp.ko = []; sp.mat = { x: 1, y: 14, t: 1 }");
   await t.vent("Rusj.S.spill.status === 'over'", 3000);
   t.sjekk((await t.tilstand()).spill.ferdig === true, "Krasjet ble ikke lagret som ferdig med en gang");
+  await t.vent("document.querySelector('.sl-status.over:not([hidden]) .sl-statuskort.over')", 3000);
+  await t.sov(450);
+  t.sjekk(!(await t.finnes(".skjerm-slutt")) && /1 poeng/.test(await t.tekst(".sl-statuskort.over")), "Etter krasjet står ikke brettet igjen med poengene");
+  t.sjekk(
+    await t.js(`(() => {
+      const kort = document.querySelector(".sl-statuskort.over").getBoundingClientRect();
+      const l = document.querySelector(".sl-lerret").getBoundingClientRect();
+      return kort.top > l.top + l.height * 0.45 && kort.bottom <= l.bottom + 1;
+    })()`),
+    "Kortet etter krasjet dekker stedet der slangen krasjet",
+  );
+  t.sjekk(/Krasj! 1 poeng\. Sveip/.test(await t.js("document.querySelector('#si').textContent")), "Krasjet ble ikke lest opp for skjermleser");
+  await t.bilde("krasj");
+  // One swipe: a new snake with the same setup, already on its way that way.
+  await sveip(0, 120);
+  await t.vent("Rusj.S.spill.status === 'spiller' && Rusj.S.spill.poeng === 0", 2000);
+  s = await live();
+  t.sjekk(s.retning === "ned" && !s.ferdig && s.fart === "rolig" && s.vegger && s.kropp.length === 3, "Ett sveip etter krasjet startet ikke en ny runde");
+  t.sjekk((await t.finnes(".sl-status[hidden]")) && (await t.tekst("#sl-poeng")) === "0" && (await t.tekst("#sl-beste")) === "1", "Brettet ble ikke nullstilt for den nye runden");
+  t.sjekk((await t.tilstand()).rekorder["rolig-vegg"] === 1, "Rekorden fra runden før ble ikke lagret");
+  // Crash again without a point: the card, and «Se resultatet» opens the result screen.
+  await sett("sp.kropp = [[7, 0], [7, 1], [7, 2]]; sp.retning = 'opp'; sp.ko = []; sp.mat = { x: 1, y: 14, t: 1 }");
+  await t.vent("document.querySelector('.sl-status.over:not([hidden]) [data-h=\"resultat\"]')", 4000);
+  t.sjekk(/Rekord 1/.test(await t.tekst(".sl-statuskort.over")), "Kortet etter krasjet viser ikke rekorden");
+  await t.klikk('[data-h="resultat"]');
   await t.vent("document.querySelector('.skjerm-slutt')", 5000);
   await t.sov(900);
   await t.bilde("slutt", true);
@@ -131,6 +157,15 @@ export default async function (t) {
   await t.vent("document.querySelector('.sl-lerret')");
   s = await live();
   t.sjekk(s.status === "klar" && s.fart === "rolig" && s.vegger && s.poeng === 0, "«Spill igjen» ga ikke en ny slange med samme oppsett");
+  // A new record goes to the result screen by itself.
+  await t.trykk(".sl-pil.hoyre", 40);
+  await t.vent("Rusj.S.spill.status === 'spiller'", 2000);
+  await sett("sp.poeng = 5; sp.kropp = [[7, 0], [7, 1], [7, 2], [7, 3]]; sp.retning = 'opp'; sp.ko = []; sp.mat = { x: 1, y: 14, t: 1 }");
+  await t.vent("document.querySelector('.skjerm-slutt')", 6000);
+  await t.sov(500);
+  t.sjekk(/Ny rekord/.test(await t.tekst("#skjerm h1")) && (await t.tilstand()).rekorder["rolig-vegg"] === 5, "En ny rekord gikk ikke til resultatskjermen");
+  await t.klikk('[data-h="igjen"]');
+  await t.vent("document.querySelector('.sl-lerret')");
 
   // Without walls: out at the left edge, in at the right.
   await t.klikk("#tilbake");

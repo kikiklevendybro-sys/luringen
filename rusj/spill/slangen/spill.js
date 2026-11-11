@@ -61,6 +61,7 @@
     };
     nyMat(sp, true);
     S.spill = sp;
+    omstartKlar = false;
     R.statistikk("start", { fart: sp.fart, vegger: sp.vegger });
   }
 
@@ -478,6 +479,10 @@
     avslutt(S);
   }
 
+  // After a crash the board stays, and a small card comes up on it. From then on the next swipe
+  // or arrow starts a new run at once (for an arcade game the way back in is the game).
+  let omstartKlar = false;
+
   function krasj(S, m) {
     const sp = S.spill;
     sp.status = "over";
@@ -491,7 +496,45 @@
     ferdigstill(S);
     R.lagre();
     const fortsatt = R.vakt();
-    setTimeout(() => fortsatt() && R.gaTil("slutt"), R.rolig() ? 700 : 1100);
+    const r = sp.resultat;
+    // A new record gets the whole result screen, with the fanfare.
+    if (r.nyRekord) {
+      R.si(`Krasj! ${R.flertall(r.poeng, "poeng", "poeng")} – ny rekord.`);
+      setTimeout(() => fortsatt() && R.gaTil("slutt"), R.rolig() ? 700 : 1100);
+      return;
+    }
+    // Otherwise: a short breath (so the swipe that caused the crash never starts a new run by
+    // itself), then the card.
+    omstartKlar = false;
+    setTimeout(
+      () => {
+        if (!fortsatt() || S.spill !== sp) return;
+        omstartKlar = true;
+        visStatus(S);
+        R.si(`Krasj! ${R.flertall(r.poeng, "poeng", "poeng")}. Sveip eller trykk på en pil for å prøve igjen.`);
+      },
+      R.rolig() ? 400 : 600,
+    );
+  }
+
+  // One swipe or arrow after a crash: a fresh snake with the same setup, already on its way.
+  function nyRunde(S, r) {
+    const gml = S.spill;
+    if (gml) S.oppsett = { fart: gml.fart, vegger: gml.vegger };
+    nyttSpill(S);
+    if (motor) {
+      motor.dod = null;
+      motor.partikler = [];
+      motor.tekster = [];
+      motor.fra = null;
+      motor.akk = 0;
+      motor.matInn = performance.now();
+      motor.vekk();
+    }
+    const ramme = R.$(".sl-ramme");
+    if (ramme) ramme.classList.remove("risting");
+    oppdaterHud(S);
+    styr(S, r);
   }
 
   // The result and the record (also used when a reload lands in the middle of the crash).
@@ -513,7 +556,11 @@
 
   function styr(S, r) {
     const sp = S.spill;
-    if (!sp || sp.ferdig || sp.status === "over" || !RETNING[r]) return;
+    if (!sp || !RETNING[r]) return;
+    if (sp.ferdig || sp.status === "over") {
+      if (omstartKlar && S.skjerm === "spill") nyRunde(S, r);
+      return;
+    }
     if (sp.status === "pause") return;
     if (sp.status === "klar") {
       // The first press decides the way – also backwards: the snake simply turns around.
@@ -583,6 +630,23 @@
       knapp.setAttribute("aria-label", sp.status === "pause" ? "Fortsett" : "Pause");
       knapp.classList.toggle("pauset", sp.status === "pause");
     }
+    if (sp.status === "over" && omstartKlar && !skjul) {
+      // The crash card: the score, the record to beat and how to go again. It sits low on the
+      // board and lets swipes through.
+      const r = sp.resultat || { poeng: sp.poeng };
+      el.hidden = false;
+      el.classList.remove("klar");
+      el.classList.add("over");
+      // Away from the head: at the top when the snake crashed in the lower half.
+      el.classList.toggle("oppe", sp.kropp[0][1] > H_ / 2);
+      el.innerHTML = `<div class="sl-statuskort over">
+        <p class="sl-stor">${R.flertall(r.poeng, "poeng", "poeng")}</p>
+        <p>${r.forste ? "Din første rekord!" : `Rekord ${Math.max(beste(S, sp), r.poeng)}.`} <span class="sl-finger">Sveip for å prøve igjen.</span><span class="sl-tast">Trykk på en piltast for å prøve igjen.</span></p>
+        ${R.ui.lenke("Se resultatet", "resultat")}
+      </div>`;
+      return;
+    }
+    el.classList.remove("over", "oppe");
     if (skjul || sp.status === "spiller" || sp.status === "over") {
       el.hidden = true;
       return;
@@ -665,6 +729,11 @@
       return H.igjen(null, e, S);
     }
     if (S.skjerm !== "spill") return;
+    // The letter keys (W, A, S, D and P) only work with nothing focused or from the board, so
+    // they never get in the way of a button, a link or speech control. The arrow keys always work.
+    const m = e.target;
+    const fritt = m === document.body || m === document.documentElement || !!(m && m.closest && m.closest(".sl-flate"));
+    if (e.key.length === 1 && e.key !== " " && !fritt) return;
     const r = TASTER[e.key.length === 1 ? e.key.toLowerCase() : e.key];
     if (r) {
       e.preventDefault();
@@ -788,6 +857,8 @@
         "Sving i god tid. Du kan trykke to svinger raskt etter hverandre, så husker slangen begge.",
         "Hold deg langs kantene når slangen blir lang, så får du plass i midten.",
         "Spillet tar pause av seg selv hvis du bytter app. Mellomrom eller P gir pause med tastatur.",
+        "Krasjet du? Sveip en gang til, så er en ny slange i gang med det samme. Slår du rekorden, får du se hele resultatet.",
+        "Slangen går i sanntid og kan dessverre ikke spilles med skjermleser.",
       ],
     },
 
@@ -890,6 +961,7 @@
         },
         ut(S) {
           const sp = S.spill;
+          omstartKlar = false;
           if (sp && sp.status === "spiller") sp.status = "pause";
           fastSide(false);
           R.slippVaken();
@@ -977,6 +1049,10 @@
         if (S.spill) S.oppsett = { fart: S.spill.fart, vegger: S.spill.vegger };
         nyttSpill(S);
         R.gaTil("spill");
+      },
+      // From the crash card: the whole result screen after all.
+      resultat(el, e, S) {
+        if (S.spill && S.spill.ferdig) R.gaTil("slutt");
       },
       pause: (el, e, S) => pause(S, S.spill.status !== "pause"),
       "fortsett-spill": (el, e, S) => pause(S, false),

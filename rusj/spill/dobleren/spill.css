@@ -784,3 +784,179 @@ html.db-fast .skjerm {
     left: calc(var(--venstre) + 20px);
   }
 }
+
+/* ---------- «Dagens lynrunde» ---------- */
+
+/* The sprint's HUD: score, the best try today and which try this is (no undo, no restart) */
+.db-hud.dag {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.db-hud.dag .db-stat b {
+  white-space: nowrap;
+}
+
+/* Today's sprint as the main button on the home screen: the calendar page, the name and a line */
+.hjem-knapper .knapp:has(.db-dagknapp) {
+  gap: 14px;
+  padding-block: 10px;
+}
+
+.db-dagknapp {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+
+.db-dagknapp b {
+  font: 900 1.3rem/1.1 var(--font-display);
+}
+
+.db-dagknapp small {
+  color: var(--blekk-2);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+.db-kal {
+  display: grid;
+  flex: none;
+  grid-template-rows: auto 1fr;
+  width: 40px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.db-kal small {
+  padding: 2px 0 1px;
+  background: var(--rosa);
+  color: #fff;
+  font: 900 0.6rem/1.1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.db-kal b {
+  display: grid;
+  place-items: center;
+  font: 900 1.2rem/1 var(--font-display);
+}
+
+.db-daglinje {
+  align-self: center;
+  max-width: 100%;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 60%, var(--strek));
+  color: var(--aksent);
+  font: 800 0.9rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+/* «Ny lynrunde om 05:12:33» – ticks every second */
+.db-nedtelling {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.db-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.db-dagboks {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.db-rekke {
+  font: 900 1.4rem/1.1 var(--font-display);
+}
+
+/* The medals of the sprint: the 32-, 64- and 128-tile */
+.db-medaljer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.db-medaljer li {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  min-width: 84px;
+  padding: 10px 8px 8px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-3);
+}
+
+.db-medaljer b {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--strek);
+  font: 900 0.9rem/1 var(--font-display);
+}
+
+.db-medaljer span {
+  font: 800 0.68rem/1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.db-medaljer i {
+  font-style: normal;
+}
+
+.db-medaljer li.tatt {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+  color: var(--tekst);
+}
+
+.db-medaljer li.tatt b {
+  box-shadow: inset 0 -3px 0 rgba(23, 14, 43, 0.28);
+  color: var(--blekk);
+}
+
+.db-medaljer li.tatt.bronse b {
+  background: #e09a5c;
+}
+
+.db-medaljer li.tatt.solv b {
+  background: #dfe3ee;
+}
+
+.db-medaljer li.tatt.gull b {
+  background: var(--lampe);
+}
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  .db-hud.dag {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .db-hud.dag .db-stat:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The small labels over the counters: light enough to read at this size */
+.db-stat small {
+  color: var(--tekst-2);
+}

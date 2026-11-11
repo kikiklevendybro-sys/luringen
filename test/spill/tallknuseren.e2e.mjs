@@ -74,6 +74,16 @@ export default async function (t) {
   t.sjekk((await spill()).valgt === i0, "Et trykk på ruta valgte den ikke");
   await t.klikk(tast(krasj));
   t.sjekk(await t.finnes(`${celle(i0)}.konflikt`), "Et tall som krasjer, blir ikke rødt");
+  // Not by colour alone: both cells say «konflikt», carry a «!» badge, and the clash is read out.
+  t.sjekk(
+    await t.js(`(() => {
+      const alle = Array.from(document.querySelectorAll(".tk-celle.konflikt"));
+      return alle.length === 2 && alle.every((el) => /, konflikt$/.test(el.getAttribute("aria-label")) && getComputedStyle(el, "::after").content.includes("!"));
+    })()`),
+    "Konflikten vises bare med farge (mangler i etiketten eller som merke)",
+  );
+  await t.sov(80);
+  t.sjekk(new RegExp(`^${krasj} i rad \\d, kolonne \\d\\. Står allerede i raden`).test(await t.js("document.querySelector('#si').textContent")), "Konflikten ble ikke lest opp for skjermleser");
   await t.bilde("konflikt");
   await t.klikk('[data-h="angre"]');
   t.sjekk((await spill()).v[i0] === 0 && !(await t.finnes(".tk-celle.konflikt")), "Angre fjernet ikke tallet som krasjet");
@@ -113,6 +123,7 @@ export default async function (t) {
   s = await spill();
   t.sjekk(s.hintIgjen === 2 && s.hint.length === 1 && s.v[s.hint[0]] === los[s.hint[0]], "Hintet satte ikke et riktig tall");
   t.sjekk(await t.js("document.querySelector('.tk-melding.vis')?.textContent.length > 20"), "Hintet forklarer ikke hvorfor");
+  t.sjekk(await t.js("(() => { const m = document.querySelector('.tk-melding'); return m.tagName === 'BUTTON' && m.tabIndex === 0 && !m.hasAttribute('aria-hidden'); })()"), "Hintforklaringen kan ikke lukkes med tastaturet");
   t.sjekk(await t.finnes(".tk-celle.hintmal"), "Ruta som fikk hintet, er ikke markert");
   // The explanation never covers the board, and on a tall phone not the info row either.
   t.sjekk(
@@ -138,8 +149,28 @@ export default async function (t) {
   await t.klikk("#tilbake");
   t.sjekk(await t.finnes('[data-h="fortsett"]'), "Mangler «Fortsett» etter å ha gått tilbake");
   await t.bilde("hjem-fortsett");
+
+  // Today's sudoku beside the free board: neither wipes the other, and nothing asks.
+  const friFor = await spill();
+  await t.klikk('[data-h="dagens"]');
+  t.sjekk(!(await t.finnes("#ark:not([hidden])")), "Dagens sudoku spurte om å kaste brettet som var i gang");
+  await t.vent("Rusj.S.spill && Rusj.S.spill.dagens && document.querySelectorAll('.tk-celle').length === 81");
+  let alt = await t.tilstand();
+  t.sjekk(alt.annet && !alt.annet.dagens && alt.annet.v.join() === friFor.v.join() && alt.annet.n.join() === friFor.n.join(), "Det frie brettet ble borte da dagens sudoku startet");
+  const d0 = alt.spill.v.findIndex((x) => !x);
+  await t.trykk(celle(d0));
+  await t.klikk(tast(Number(alt.spill.losning[d0])));
+  await t.klikk("#tilbake");
+  t.sjekk(/Fortsett dagens/.test(await t.tekst('[data-h="dagens"]')) && /Fortsett · lett/.test(await t.tekst('[data-h="fortsett"]')), "Hjemskjermen viser ikke begge brettene som er i gang");
+  await t.bilde("hjem-to-brett");
   await t.klikk('[data-h="fortsett"]');
-  await t.vent("document.querySelectorAll('.tk-celle').length === 81");
+  await t.vent("Rusj.S.spill && !Rusj.S.spill.dagens && document.querySelectorAll('.tk-celle').length === 81");
+  alt = await t.tilstand();
+  t.sjekk(alt.spill.v.join() === friFor.v.join() && alt.annet && alt.annet.dagens && alt.annet.v[d0] === Number(alt.annet.losning[d0]), "Brettene ble ikke holdt fra hverandre");
+  // Tab into the board: the cell that gets the focus becomes the selected one.
+  const f0 = alt.spill.v.findIndex((x, i) => !x && i !== alt.spill.valgt);
+  await t.js(`document.querySelector('.tk-celle[data-i="${f0}"]').focus()`);
+  t.sjekk(await t.js(`document.activeElement !== document.querySelector('.tk-celle[data-i="${f0}"]') || Rusj.S.spill.valgt === ${f0}`), "Ruta som fikk fokus, ble ikke valgt");
 
   // Pause hides the board and stops the clock.
   await t.klikk('[data-h="pause"]');
@@ -172,9 +203,11 @@ export default async function (t) {
   await t.bilde("hjem-rekord");
 
   // Today's sudoku: made from the date, the same on every phone, and the level follows the weekday.
+  // It is the one started earlier: the number set then is still there.
   await t.klikk('[data-h="dagens"]');
-  await t.vent("document.querySelectorAll('.tk-celle').length === 81");
+  await t.vent("Rusj.S.spill && Rusj.S.spill.dagens && document.querySelectorAll('.tk-celle').length === 81");
   s = await spill();
+  t.sjekk(s.v[d0] === Number(s.losning[d0]), "Dagens sudoku begynte forfra");
   const forventet = await t.js(`(() => {
     const d = Rusj.dag();
     const niva = ["ekspert", "lett", "lett", "middels", "middels", "vanskelig", "vanskelig"][(d.nr + 4) % 7];
@@ -196,6 +229,7 @@ export default async function (t) {
   t.sjekk(s.daglig.tider[forventet.dag] > 0 && s.daglig.rekke === 1, "Dagens sudoku ble ikke registrert som løst");
   const forside = await t.js(`JSON.parse(localStorage.getItem("rusj.daglig") || "{}").tallknuseren || null`);
   t.sjekk(forside && forside.vunnet && forside.rekke === 1 && forside.nr === forventet.nr, "Forsiden får ikke vite at dagens sudoku er løst (R.dagligFerdig)");
+  t.sjekk(!forside || forside.res === undefined || /^\d+:\d\d$/.test(forside.res), "Resultatet til forsiden er ikke en tid");
   await t.bilde("dagens-slutt", true);
 
   // «Spill igjen» gives a new board at the same level at once.
@@ -203,6 +237,11 @@ export default async function (t) {
   await t.vent("document.querySelectorAll('.tk-celle').length === 81");
   s = await spill();
   t.sjekk(s.niva === forventet.niva && !s.dagens && s.gitt !== forventet.gitt, "«Spill igjen» ga ikke et nytt brett");
+  // The front page's link: #dagens opens the result of the solved sudoku (the new board waits).
+  await t.lastSide(t.side + "#dagens", "document.querySelector('.skjerm-slutt')");
+  t.sjekk(/dagens sudoku/i.test(await t.tekst("#topp-tittel")) && (await t.finnes('.dokk [data-h="del"]')), "#dagens åpnet ikke resultatet for dagens sudoku");
+  alt = await t.tilstand();
+  t.sjekk(alt.annet && !alt.annet.dagens && !alt.annet.ferdig && alt.annet.gitt === s.gitt, "Det nye brettet ble borte da resultatet for dagens ble åpnet");
 
   // Every level is made quickly, with exactly one solution.
   const fart = await t.js(`(() => {
@@ -251,7 +290,7 @@ export default async function (t) {
   await t.sov(300);
 
   // A tampered level name in the saved state ("__proto__") is not a level: back to the default.
-  await t.js(`Rusj.S.oppsett = JSON.parse('{"niva":"__proto__"}'); Rusj.S.spill = null; Rusj.lagre()`);
+  await t.js(`Rusj.S.oppsett = JSON.parse('{"niva":"__proto__"}'); Rusj.S.spill = null; Rusj.S.annet = null; Rusj.lagre()`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   t.sjekk(/Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Et ugyldig nivånavn i lagret tilstand ga ikke standardnivået");
 }

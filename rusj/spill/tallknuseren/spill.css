@@ -1050,3 +1050,39 @@ html.tk-fast .skjerm {
     display: inline;
   }
 }
+
+/* ---------- Conflicts are marked with more than colour ---------- */
+
+/* A red badge with «!» in the corner of every cell whose number stands twice in a row, column or box. */
+.tk-celle.konflikt::after {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  display: grid;
+  place-items: center;
+  width: 36%;
+  height: 36%;
+  border-radius: 50%;
+  background: #c4261e;
+  color: #fff;
+  font: 900 calc(var(--c) * 0.27) / 1 var(--font-display);
+  content: "!";
+  pointer-events: none;
+}
+
+/* The message bubble is a button while it shows (Tab reaches it; Enter or a tap puts it away). */
+button.tk-melding {
+  width: 100%;
+  border: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+button.tk-melding:focus-visible {
+  outline: 3px solid var(--blekk);
+  outline-offset: -5px;
+}
+
+.tk-melding[hidden] {
+  display: none;
+}

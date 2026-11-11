@@ -2,13 +2,13 @@
   "id": "minesveiperen",
   "navn": "Minesveiperen",
   "undertittel": "Minesveiper",
-  "beskrivelse": "Gratis minesveiper på norsk. Første trykk er alltid trygt. Tre nivåer laget for mobilen, flagg med et langt trykk, og dine beste tider.",
-  "kort": "Finn de trygge rutene – første trykk er alltid trygt.",
+  "beskrivelse": "Gratis minesveiper på norsk – uten gjetting: hvert brett kan ryddes med logikk. Dagens minefelt for hele landet, tre nivåer laget for mobilen og dine beste tider.",
+  "kort": "Finn de trygge rutene – helt uten å gjette.",
   "spillere": [1, 1],
   "minutter": [2, 15],
   "mobiler": "en",
-  "tagger": ["klassiker", "tenke", "alene"],
+  "tagger": ["klassiker", "tenke", "alene", "daglig"],
   "rekkefolge": 29,
   "farge": "#93a9ec",
-  "sok": ["minesveiper", "minesweeper", "miner", "finn minene"]
+  "sok": ["minesveiper", "minesweeper", "miner", "finn minene", "dagens minefelt", "uten gjetting"]
 }

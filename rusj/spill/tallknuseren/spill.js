@@ -579,6 +579,7 @@
   let las = false; // input locked while the winning wave plays
   let celler = []; // the 81 cell buttons of the current board
   let tegnet = []; // what each cell shows now (to skip unchanged ones)
+  let navnet = []; // what each cell is called now (its aria-label)
 
   // ---------- Days ----------
 
@@ -605,7 +606,7 @@
     else if (igjen > 3600 && R.dag(new Date(na + (igjen - 3600) * 1000)).nr !== dag) igjen -= 3600;
     return Math.max(1, igjen);
   }
-  const klokkeTekst = (s) => `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  const klokkeTekst = (s) => `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
   const nedtellingHtml = () => `<p class="tk-nedtelling">Ny sudoku om <b>${klokkeTekst(sekunderTilNy())}</b></p>`;
   // Ticks every second while a countdown is on the screen; at midnight the screen is drawn again.
   let nedtellingId = null;
@@ -643,6 +644,64 @@
     const m = Math.floor(s / 60) % 60;
     return (t ? t + ":" + String(m).padStart(2, "0") : String(m)) + ":" + String(s % 60).padStart(2, "0");
   }
+  // ---------- Two puzzles at once ----------
+  // Today's sudoku and a free board can both be under way. S.spill is the one on the screen; the
+  // other one waits in S.annet (never two of the same kind).
+
+  const erDag = (sp) => !!(sp && sp.dagens);
+  const iGang = (sp) => !!(sp && !sp.ferdig);
+  const finn = (S, dag) => (S.spill && erDag(S.spill) === dag ? S.spill : S.annet && erDag(S.annet) === dag ? S.annet : null);
+  // Worth keeping while it waits: a puzzle under way, and the solved daily (its result can be shown again).
+  const verdt = (sp) => !!sp && (!sp.ferdig || erDag(sp));
+  // Puts the daily (dag = true) or the free board on the screen. False when there is none.
+  function hent(S, dag) {
+    if (S.spill && erDag(S.spill) === dag) return true;
+    if (!S.annet || erDag(S.annet) !== dag) return false;
+    const t = S.spill;
+    S.spill = S.annet;
+    S.annet = verdt(t) ? t : null;
+    return true;
+  }
+  // Makes room for a new puzzle of one kind; a puzzle of the other kind is kept.
+  function ryddFor(S, dag) {
+    const andre = finn(S, !dag);
+    S.annet = verdt(andre) ? andre : null;
+    S.spill = null;
+  }
+  // A daily sudoku from another day: unfinished, it lives on as an ordinary board (when no other
+  // free board is under way – else it waits until today's sudoku is started); solved, it is gone.
+  function ryddGammel(S) {
+    const sp = finn(S, true);
+    if (!sp || sp.dagens === R.dag().tekst) return;
+    const fri = finn(S, false);
+    if (!sp.ferdig && iGang(fri)) return;
+    if (!sp.ferdig) {
+      sp.dagens = null;
+      sp.dagNr = null;
+      S.spill = sp;
+    } else S.spill = fri;
+    S.annet = null;
+  }
+  // Today's sudoku: the board (new, or the one under way) – or its result when it is solved.
+  // Returns the screen to show.
+  function apneDagens(S) {
+    const d = R.dag();
+    const sp = finn(S, true);
+    if (sp && sp.dagens === d.tekst) {
+      hent(S, true);
+      return sp.ferdig ? "slutt" : "spill";
+    }
+    if (S.daglig.tider[d.tekst]) return "hjem";
+    nyttSpill(S, "dagens");
+    return "spill";
+  }
+  // The front page shows how far today's sudoku has come (rusj/DAGLIG.md).
+  function meldIGang(S) {
+    const sp = S.spill;
+    if (!sp || sp.ferdig || sp.dagens !== R.dag().tekst || S.daglig.tider[sp.dagens] || typeof R.dagligIGang !== "function") return;
+    R.dagligIGang({ tekst: visTid(sp.tid) });
+  }
+
   // ---------- A new puzzle ----------
 
   // valg: a level, or "dagens" for today's sudoku (made by the engine's frozen daily rules).
@@ -662,6 +721,7 @@
       o = M.lag(niva, R.nyttFro());
       S.oppsett.niva = niva;
     }
+    ryddFor(S, valg === "dagens");
     S.spill = {
       niva,
       dagens,
@@ -719,19 +779,21 @@
     if (!n) return "";
     return `<span class="tk-not">${NOTE.map((d) => (n & (1 << d) ? `<i${d === uthev ? ' class="u"' : ""}>${d}</i>` : "<i></i>")).join("")}</span>`;
   }
-  function etikett(sp, i) {
+  // konflikt: the number also stands elsewhere in the row, column or box (said, not only shown).
+  function etikett(sp, i, konflikt) {
     const x = sp.v[i];
     const sted = `Rad ${RAD[i] + 1}, kolonne ${KOL[i] + 1}`;
-    if (x) return `${sted}: ${x}${erGitt(sp, i) ? " (gitt)" : sp.hint.includes(i) ? " (hint)" : ""}`;
+    if (x) return `${sted}: ${x}${erGitt(sp, i) ? " (gitt)" : sp.hint.includes(i) ? " (hint)" : ""}${konflikt ? ", konflikt" : ""}`;
     const n = NOTE.filter((d) => sp.n[i] & (1 << d));
     return `${sted}: tom${n.length ? `, notater ${n.join(" ")}` : ""}`;
   }
 
   function brettHtml(sp) {
+    const konf = konflikter(sp.v);
     let html = "";
     for (let b = 0; b < 9; b++) {
       html += `<div class="tk-boks">`;
-      for (const i of ENHETER[18 + b]) html += `<button class="tk-celle" data-i="${i}" tabindex="-1" aria-label="${esc(etikett(sp, i))}">${innhold(sp, i, 0)}</button>`;
+      for (const i of ENHETER[18 + b]) html += `<button class="tk-celle" data-i="${i}" tabindex="-1" aria-label="${esc(etikett(sp, i, konf[i]))}">${innhold(sp, i, 0)}</button>`;
       html += `</div>`;
     }
     return html;
@@ -798,7 +860,12 @@
       if (tegnet[i] !== inn) {
         el.innerHTML = inn;
         tegnet[i] = inn;
-        el.setAttribute("aria-label", etikett(sp, i));
+      }
+      // The label follows the content and the conflict (which changes when another cell does).
+      const navn = etikett(sp, i, konf[i]);
+      if (navnet[i] !== navn) {
+        el.setAttribute("aria-label", navn);
+        navnet[i] = navn;
       }
       el.tabIndex = i === (valgt >= 0 ? valgt : 0) ? 0 : -1;
     }
@@ -880,11 +947,17 @@
 
   // Short messages (hints, tips) in a bubble over the score bar, never over the board.
   let meldingId = null;
+  let gjemId = null;
   function melding(tekst) {
     const m = R.$(".tk-melding");
     R.si(tekst);
     if (!m) return R.toast(tekst, { topp: true });
     m.textContent = tekst;
+    // A real button while it shows: Tab reaches it, and Enter or a tap puts it away.
+    clearTimeout(gjemId);
+    m.hidden = false;
+    m.tabIndex = 0;
+    m.removeAttribute("aria-hidden");
     m.classList.remove("vis", "under");
     // Under the info row when there is room above the board; on short screens over the info
     // row instead – never over the board.
@@ -894,12 +967,27 @@
     void m.offsetWidth;
     m.classList.add("vis");
     clearTimeout(meldingId);
-    meldingId = setTimeout(() => m.classList.remove("vis"), Math.max(2600, tekst.length * 55));
+    meldingId = setTimeout(skjulMelding, Math.max(2600, tekst.length * 55));
   }
   function skjulMelding() {
     clearTimeout(meldingId);
     const m = R.$(".tk-melding");
-    if (m) m.classList.remove("vis");
+    if (!m) return;
+    m.classList.remove("vis");
+    m.tabIndex = -1;
+    m.setAttribute("aria-hidden", "true");
+    // Out of the page once it has faded: an empty button is never left behind.
+    clearTimeout(gjemId);
+    gjemId = setTimeout(() => {
+      if (!m.classList.contains("vis")) m.hidden = true;
+    }, 260);
+    // Focus never stays on a bubble that is gone: back to the selected cell.
+    if (document.activeElement === m) {
+      const sp = R.S && R.S.spill;
+      const el = sp && celler[sp.valgt >= 0 ? sp.valgt : 0];
+      if (el) el.focus({ preventScroll: true });
+      else m.blur();
+    }
   }
 
   // A hint shows what it talks about: a frame around the whole box, row or column («i denne
@@ -940,6 +1028,8 @@
     if (sp.angre.length > MAKS_ANGRE) sp.angre.shift();
   }
 
+  const sted = (i) => `Rad ${RAD[i] + 1}, kolonne ${KOL[i] + 1}`;
+
   function settTall(S, d) {
     const sp = S.spill;
     if (!sp || sp.ferdig || sp.pause || las) return;
@@ -956,6 +1046,7 @@
       const bit = 1 << d;
       endre(S, [[i, 0, sp.n[i]]]);
       sp.n[i] ^= bit;
+      R.si(`Notat ${d} ${sp.n[i] & bit ? "lagt til" : "fjernet"}.`);
       R.lyd.tone(sp.n[i] & bit ? 1180 : 760, 0, 0.05, "triangle", 0.07);
       R.vibrer(5);
       oppdater(S);
@@ -972,6 +1063,7 @@
       sp.v[i] = 0;
       endre(S, endringer);
       R.lyd.tone(520, 0, 0.06, "triangle", 0.08, 380);
+      R.si(`${sted(i)} er tom.`);
       oppdater(S);
       R.lagre();
       return;
@@ -999,7 +1091,16 @@
         R.lyd.tone(240, 0, 0.16, "triangle", 0.11, 170);
         R.vibrer([12, 40, 12]);
       }
-      if (!tomme(sp)) melding("Brettet er fullt, men noe stemmer ikke. Se etter de røde tallene.");
+      // Said too, not only shown in red: where the same number already stands.
+      const hvor = [
+        [RAD[i], "raden"],
+        [9 + KOL[i], "kolonnen"],
+        [18 + BOKS[i], "boksen"],
+      ]
+        .filter(([u]) => ENHETER[u].some((j) => j !== i && sp.v[j] === d))
+        .map(([, navn]) => navn);
+      R.si(`${d} i rad ${RAD[i] + 1}, kolonne ${KOL[i] + 1}. Står allerede i ${hvor.join(" og ")}.`);
+      if (!tomme(sp)) melding("Brettet er fullt, men noe stemmer ikke. Se etter tallene som er merket med utropstegn.");
       const el = celler[i];
       if (el && !R.rolig()) {
         el.classList.remove("rist");
@@ -1011,7 +1112,8 @@
       return;
     }
     if (sp.v.every((x, k) => x === Number(sp.losning[k]))) return vinn(S, i);
-    if (!tomme(sp)) melding("Brettet er fullt, men noe stemmer ikke. Se etter de røde tallene.");
+    if (!stille) R.si(`${d} i rad ${RAD[i] + 1}, kolonne ${KOL[i] + 1}.`);
+    if (!tomme(sp)) melding("Brettet er fullt, men noe stemmer ikke. Se etter tallene som er merket med utropstegn.");
     // A row, column or box that is now complete (and without conflicts) gets a little wave.
     const ferdige = [];
     for (const u of [RAD[i], 9 + KOL[i], 18 + BOKS[i]]) {
@@ -1052,6 +1154,7 @@
     endre(S, [[i, sp.v[i], sp.n[i]]]);
     if (sp.v[i]) sp.v[i] = 0;
     else sp.n[i] = 0;
+    R.si(`${sted(i)} er tom.`);
     R.lyd.tone(420, 0, 0.08, "triangle", 0.08, 300);
     oppdater(S);
     R.lagre();
@@ -1068,6 +1171,7 @@
     }
     sp.valgt = endringer[0][0];
     sp.uthev = 0;
+    R.si(`Angret. ${sted(sp.valgt)}: ${sp.v[sp.valgt] || "tom"}.`);
     R.lyd.tone(500, 0, 0.08, "triangle", 0.08, 420);
     oppdater(S);
     R.lagre();
@@ -1188,12 +1292,12 @@
         else if (d.sistNr !== sp.dagNr) d.rekke = 1;
         d.sistNr = Math.max(d.sistNr || 0, sp.dagNr);
         d.beste = Math.max(d.beste || 0, d.rekke);
-        // Keep the last 60 days.
+        // Keep the last 400 days.
         const dager = Object.keys(d.tider).sort();
-        for (const k of dager.slice(0, Math.max(0, dager.length - 60))) delete d.tider[k];
+        for (const k of dager.slice(0, Math.max(0, dager.length - 400))) delete d.tider[k];
         // The front page shows «✓ i dag» and the streak – only for today's puzzle (one started
         // before midnight and solved after it does not count for the new day).
-        if (sp.dagens === R.dag().tekst) R.dagligFerdig({ vunnet: true, rekke: d.rekke });
+        if (sp.dagens === R.dag().tekst) R.dagligFerdig({ vunnet: true, rekke: d.rekke, res: visTid(sek * 1000) });
       }
       res.rekke = d.rekke;
     }
@@ -1230,10 +1334,12 @@
   function bindBrett(S, rot) {
     celler = [];
     tegnet = [];
+    navnet = [];
     R.$$(".tk-celle", rot).forEach((el) => {
       const i = Number(el.dataset.i);
       celler[i] = el;
       tegnet[i] = el.innerHTML;
+      navnet[i] = el.getAttribute("aria-label");
     });
     const brett = R.$(".tk-brett", rot);
     if (!brett) return;
@@ -1256,6 +1362,15 @@
     const nei = (e) => {
       if (e.cancelable) e.preventDefault();
     };
+    // Tab into the board: the cell that gets the focus is selected, so the focus is always seen.
+    const fokusInn = (e) => {
+      const el = e.target.closest(".tk-celle");
+      const sp = R.S.spill;
+      if (!el || !sp || sp.ferdig || sp.pause || las) return;
+      const i = Number(el.dataset.i);
+      if (sp.valgt !== i) velg(R.S, i);
+    };
+    brett.addEventListener("focusin", fokusInn);
     brett.addEventListener("pointerdown", ned);
     brett.addEventListener("click", klikk);
     brett.addEventListener("contextmenu", nei);
@@ -1268,6 +1383,7 @@
       fast.addEventListener("gesturestart", nei);
     }
     R.vedForlat(() => {
+      brett.removeEventListener("focusin", fokusInn);
       brett.removeEventListener("pointerdown", ned);
       brett.removeEventListener("click", klikk);
       brett.removeEventListener("contextmenu", nei);
@@ -1329,6 +1445,7 @@
     if (!S || S.skjerm !== "spill" || !S.spill) return;
     if (document.hidden) {
       stoppKlokke(S);
+      meldIGang(S);
       R.lagre();
     } else startKlokke(S);
   });
@@ -1380,13 +1497,14 @@
   R.start({
     id: "tallknuseren",
     versjon: 1,
-    pagar: (S) => !!(S.spill && !S.spill.ferdig),
+    pagar: (S) => iGang(S.spill) || iGang(S.annet),
 
     tilstand: () => ({
       oppsett: { niva: "lett" },
       rekorder: {},
       daglig: { tider: {}, rekke: 0, beste: 0, sistNr: 0 },
       spill: null,
+      annet: null,
     }),
 
     lastet(S) {
@@ -1400,8 +1518,9 @@
       }
       const d = S.daglig;
       if (!d || typeof d !== "object" || typeof d.tider !== "object" || !d.tider) S.daglig = { tider: {}, rekke: 0, beste: 0, sistNr: 0 };
-      const sp = S.spill;
-      if (sp) {
+      // A saved puzzle must be a whole board that agrees with its own clues.
+      const gyldig = (sp) => {
+        if (!sp || typeof sp !== "object") return false;
         const ok =
           NIVA[sp.niva] &&
           typeof sp.gitt === "string" &&
@@ -1414,30 +1533,45 @@
           Array.isArray(sp.n) &&
           sp.n.length === 81 &&
           sp.v.every((x, i) => sp.gitt[i] === "0" || x === Number(sp.gitt[i]));
-        if (!ok) S.spill = null;
-        else {
-          if (!Array.isArray(sp.hint)) sp.hint = [];
-          if (!Array.isArray(sp.angre)) sp.angre = [];
-          // A daily puzzle is named by its date; anything else is an ordinary board.
-          if (typeof sp.dagens !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(sp.dagens) || !Number.isInteger(sp.dagNr)) {
-            sp.dagens = null;
-            sp.dagNr = null;
-          }
-          sp.n = sp.n.map((x) => (Number.isInteger(x) ? x & 0x3fe : 0));
-          sp.valgt = Number.isInteger(sp.valgt) && sp.valgt >= -1 && sp.valgt < 81 ? sp.valgt : -1;
-          sp.hintIgjen = R.klamp(Number(sp.hintIgjen) || 0, 0, HINT);
-          sp.tid = Number(sp.tid) || 0;
+        if (!ok) return false;
+        if (!Array.isArray(sp.hint)) sp.hint = [];
+        if (!Array.isArray(sp.angre)) sp.angre = [];
+        // A daily puzzle is named by its date; anything else is an ordinary board.
+        if (typeof sp.dagens !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(sp.dagens) || !Number.isInteger(sp.dagNr)) {
+          sp.dagens = null;
+          sp.dagNr = null;
         }
+        sp.n = sp.n.map((x) => (Number.isInteger(x) ? x & 0x3fe : 0));
+        sp.valgt = Number.isInteger(sp.valgt) && sp.valgt >= -1 && sp.valgt < 81 ? sp.valgt : -1;
+        sp.hintIgjen = R.klamp(Number(sp.hintIgjen) || 0, 0, HINT);
+        sp.tid = Number(sp.tid) || 0;
+        return true;
+      };
+      if (!gyldig(S.spill)) S.spill = null;
+      if (!gyldig(S.annet) || (S.spill && erDag(S.spill) === erDag(S.annet))) S.annet = null;
+      if (!S.spill && S.annet) {
+        S.spill = S.annet;
+        S.annet = null;
       }
+      // A sudoku on the result screen (shown again as the home screen) is not «another day's» yet.
+      if (S.skjerm !== "spill") ryddGammel(S);
       if (S.skjerm === "slutt" && (!S.spill || !S.spill.ferdig)) S.skjerm = "hjem";
       if (S.skjerm === "spill" && (!S.spill || S.spill.ferdig)) S.skjerm = S.spill ? "slutt" : "hjem";
+      // The front page reads the daily from the kit's own key: say it again on every load, so a
+      // solve that crossed midnight or an older version of the page never leaves it behind.
+      const idag = R.dag();
+      const tid = S.daglig.tider[idag.tekst];
+      if (tid && S.daglig.sistNr === idag.nr) R.dagligFerdig({ vunnet: true, rekke: S.daglig.rekke, res: visTid(tid * 1000) });
     },
+
+    // rusj.no/tallknuseren/#dagens (the front page's «I dag») opens today's sudoku.
+    vedHash: (S, hash) => (hash === "dagens" ? apneDagens(S) : null),
 
     regler: {
       intro: "Fyll brettet med tall fra 1 til 9. Hvert tall skal stå nøyaktig én gang i hver rad, hver kolonne og hver boks på 3 × 3.",
       steg: [
         ["Velg en rute", "Trykk på en tom rute, og trykk på tallet som skal stå der."],
-        ["Én av hver", "Samme tall kan ikke stå to ganger i en rad, en kolonne eller en boks. Står samme tall to ganger, blir begge røde."],
+        ["Én av hver", "Samme tall kan ikke stå to ganger i en rad, en kolonne eller en boks. Står samme tall to ganger, blir begge røde og merket med et utropstegn."],
         ["Bruk notater", "Usikker? Slå på Notater og skriv små tall i ruta. De rydder seg selv når du setter et tall."],
       ],
       tips: [
@@ -1445,6 +1579,7 @@
         "De små tallene på tastene viser hvor mange av hvert tall som mangler. ✓ betyr at alle ni står.",
         "Står du fast? Du har tre hint per brett, og hintet forteller hvorfor tallet skal stå der.",
         "Dagens sudoku er den samme for alle i hele landet: lett på mandag, ekspert på søndag.",
+        "Dagens sudoku og et vanlig brett kan være i gang samtidig – ingen av dem forsvinner når du åpner det andre.",
         "Med tastatur: piltaster, tallene 1–9, Backspace, N for notater og P for pause.",
       ],
     },
@@ -1453,8 +1588,10 @@
       hjem: {
         tilbake: "portal",
         vis(S) {
-          const sp = S.spill;
-          const aktiv = sp && !sp.ferdig;
+          ryddGammel(S);
+          const fri = finn(S, false);
+          const friAktiv = iGang(fri);
+          const dagSp = finn(S, true);
           const { d, tid } = dagensStatus(S);
           const rek = NIVA_ID.filter((n) => S.rekorder[n]).map(
             (n) => `<li><b>${esc(NIVA[n].navn)}</b> ${visTid(S.rekorder[n].tid * 1000)}<small> · ${R.flertall(S.rekorder[n].antall, "brett", "brett")}</small></li>`,
@@ -1462,25 +1599,25 @@
           const r = rekke(S);
           const niva = NIVA[S.oppsett.niva].navn.toLowerCase();
           const dagTekst = `${d.ukedag[0].toUpperCase() + d.ukedag.slice(1)} · ${NIVA[d.niva].navn.toLowerCase()}${r > 0 ? ` · 🔥 ${R.flertall(r, "dag", "dager")} på rad` : ""}`;
-          const dagensIGang = aktiv && sp.dagens === d.tekst;
+          const dagensIGang = iGang(dagSp) && dagSp.dagens === d.tekst;
+          // The free board: go on with it, or start one at once on the last level played.
+          const friKnapp = (knapp) => (friAktiv ? knapp(`Fortsett · ${NIVA[fri.niva].navn.toLowerCase()} · ${visTid(fri.tid)}`, "fortsett") : knapp(`Start spill · ${niva}`, "nytt"));
           let knapper;
-          if (aktiv) {
+          if (!tid) {
+            // Today's sudoku is the main button until it is solved – also while it is under way.
+            // It has its own place: a free board beside it never wipes it, and the other way round.
             knapper =
-              R.ui.knapp(`Fortsett · ${sp.dagens ? "dagens sudoku" : NIVA[sp.niva].navn.toLowerCase()} · ${visTid(sp.tid)}`, "fortsett") +
-              // A free board is running and today's sudoku still waits: the two side by side.
-              (!tid && !dagensIGang ? `<div class="knapprad">${R.ui.knapp2("Dagens sudoku", "dagens")}${R.ui.knapp2("Nytt spill", "nytt")}</div>` : R.ui.knapp2("Nytt spill", "nytt"));
-          } else if (!tid) {
-            // Today's sudoku is the main button until it is solved; a free board starts at once
-            // on the last level played («Bytt nivå» opens the choice).
-            knapper =
-              R.ui.knapp("", "dagens", { variant: "stor", tekstHtml: `${kalender(d)}<span class="tk-dagknapp"><b>Dagens sudoku</b><small>${esc(dagTekst)}</small></span>` }) +
-              R.ui.knapp2(`Start spill · ${niva}`, "nytt");
-          } else knapper = R.ui.knapp(`Start spill · ${niva}`, "nytt");
+              R.ui.knapp("", "dagens", {
+                variant: "stor",
+                tekstHtml: `${kalender(d)}<span class="tk-dagknapp"><b>${dagensIGang ? `Fortsett dagens · ${visTid(dagSp.tid)}` : "Dagens sudoku"}</b><small>${esc(dagTekst)}</small></span>`,
+              }) + friKnapp(R.ui.knapp2);
+          } else knapper = friKnapp(R.ui.knapp);
           const lost = tid ? `<p class="tk-daglinje">✓ Dagens sudoku er løst på ${visTid(tid * 1000)}${r > 1 ? ` · 🔥 ${r} dager på rad` : ""}</p>${nedtellingHtml()}` : "";
           return (
             R.ui.spillhjem({
               slagordHtml: "Ett tall i hver rute.<br><em>Bare logikk – ingen regning.</em>",
-              knapperHtml: knapper + lost + R.ui.lenkerad(R.ui.lenke("Bytt nivå", "bytt"), R.ui.lenke("Slik spiller du", "regler")),
+              // With a free board under way, «Nytt spill» goes by the level choice.
+              knapperHtml: knapper + lost + R.ui.lenkerad(R.ui.lenke(friAktiv ? "Nytt spill" : "Bytt nivå", "bytt"), R.ui.lenke("Slik spiller du", "regler")),
               merker: [
                 ["4", "nivåer"],
                 ["1", "ny hver dag"],
@@ -1527,7 +1664,7 @@
           return `
             <h1 class="vh" id="skjerm-tittel">Sudoku, ${esc(NIVA[sp.niva].navn.toLowerCase())}</h1>
             <div class="tk-spill${sp.pause ? " pauset" : ""}">
-              <div class="tk-topp">${hudHtml(S)}<p class="tk-melding" data-h="skjul-melding" data-stille aria-hidden="true"></p></div>
+              <div class="tk-topp">${hudHtml(S)}<button type="button" class="tk-melding" data-h="skjul-melding" data-stille tabindex="-1" aria-hidden="true" hidden></button></div>
               <div class="tk-flate">
                 <div class="tk-brett" role="group" aria-label="Brettet">${brettHtml(sp)}</div>
                 <div class="tk-pauseboks"${sp.pause ? "" : " hidden"}>
@@ -1563,10 +1700,12 @@
         },
         ut(S) {
           stoppKlokke(S);
+          meldIGang(S);
           arkPause = false;
           las = false;
           celler = [];
           tegnet = [];
+          navnet = [];
           fastSide(false);
           R.slippVaken();
         },
@@ -1642,28 +1781,24 @@
 
     handlinger: (H = {
       // «Start spill» / «Nytt spill»: a new board at once, on the last level played.
+      // Only a free board under way is lost to a new one: today's sudoku has its own place.
       async nytt(el, e, S) {
         const fortsatt = R.vakt();
-        if (!(await R.bekreftNytt(!!(S.spill && !S.spill.ferdig))) || !fortsatt()) return;
+        if (!(await R.bekreftNytt(iGang(finn(S, false)))) || !fortsatt()) return;
         nyttSpill(S, S.oppsett.niva);
         R.gaTil("spill");
       },
       bytt: () => R.gaTil("oppsett"),
-      fortsett: (el, e, S) => R.gaTil(S.spill && !S.spill.ferdig ? "spill" : "hjem"),
-      // Straight to today's sudoku from the home screen.
-      async dagens(el, e, S) {
-        const fortsatt = R.vakt();
-        if (!(await R.bekreftNytt(!!(S.spill && !S.spill.ferdig))) || !fortsatt()) return;
-        nyttSpill(S, "dagens");
-        R.gaTil("spill");
-      },
+      fortsett: (el, e, S) => R.gaTil(hent(S, false) && !S.spill.ferdig ? "spill" : "hjem"),
+      // Today's sudoku: start it, go on with it, or see how it went. Nothing is lost by it.
+      dagens: (el, e, S) => R.gaTil(apneDagens(S)),
       niva(el, e, S) {
         S.oppsett.niva = NIVA[el.dataset.v] ? el.dataset.v : "lett";
         R.vis();
       },
       async start(el, e, S) {
         const fortsatt = R.vakt();
-        if (!(await R.bekreftNytt(!!(S.spill && !S.spill.ferdig))) || !fortsatt()) return;
+        if (!(await R.bekreftNytt(iGang(finn(S, false)))) || !fortsatt()) return;
         nyttSpill(S, S.oppsett.niva);
         R.gaTil("spill");
       },
