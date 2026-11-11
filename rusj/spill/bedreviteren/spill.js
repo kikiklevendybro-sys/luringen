@@ -830,7 +830,7 @@
       },
       ddel() {
         const d = dagensIDag();
-        if (d && d.ferdig) R.del("Bedreviteren", delTekst(d), DAGENS_URL);
+        if (d && d.ferdig) R.del("Bedreviteren", delTekst(d), DAGENS_URL + "#utfordring", { kort: { tittel: `Dagens fem nr. ${dagensNr(d.nr)}`, linjer: [`${dagensRes(d)} riktige`, d.svar.map((s) => (s.ok ? "🟢" : "🔴")).join("")] } });
       },
       dfasit() {
         const d = dagensIDag();

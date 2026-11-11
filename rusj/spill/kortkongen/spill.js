@@ -2251,7 +2251,7 @@
       dagens: (el, e, S) => R.gaTil(tilDagens(S)),
       del(el, e, S) {
         const sp = S.spill;
-        if (erDagens(sp) && sp.vunnet) R.del("Kortkongen", delTekst(S, sp), DEL_URL);
+        if (erDagens(sp) && sp.vunnet) R.del("Kortkongen", delTekst(S, sp), DEL_URL, { kort: { tittel: `Dagens kabal ${datoKort(sp.dato)}`, linjer: [`Gikk opp på ${visTid(((sp.resultat && sp.resultat.sek) || Math.round(sp.tid / 1000)) * 1000)}`, `${R.tall((sp.resultat && sp.resultat.trekk) || sp.trekk)} trekk`] } });
       },
       spol: (el, e, S) => spolTilbake(S),
       laast() {

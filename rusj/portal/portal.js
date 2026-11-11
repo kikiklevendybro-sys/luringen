@@ -752,6 +752,8 @@
 
   const installert = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone;
   const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  // Inside an app's own browser (Instagram, Facebook, Snapchat, TikTok): see «Send rusj til gjengen» below.
+  const innebygd = D && D.innebygdNettleser ? D.innebygdNettleser(navigator.userAgent) : "";
   let installer = null;
   if (installert) $("#installer").hidden = true;
   // The quick tip at the top: until it's dismissed or rusj is installed.
@@ -759,6 +761,7 @@
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     installer = e;
+    if (innebygd) return; // the app's browser can't install rusj, whatever it says
     $("#installer-knapp").hidden = false;
     $("#installer-tekst").textContent = "Legg rusj på hjemskjermen, så starter spillene som en app – og de virker uten nett.";
   });
@@ -796,6 +799,77 @@
     $("#spill").focus({ preventScroll: true });
   });
 
+  // ---------- «Send rusj til gjengen»: a big QR code for the table, and the link ----------
+
+  // Inside Instagram/Facebook/Snapchat/TikTok a page can't be installed: say so instead of the steps.
+  if (innebygd && !installert) $("#installer-tekst").textContent = `Du er inne i ${innebygd}. Åpne rusj.no i nettleseren for å installere og lagre.`;
+  // The QR encoder is loaded the first time the sheet opens, not with the page.
+  let qrLaster = null;
+  const lastQr = (src) => {
+    if (window.LuringenQr) return Promise.resolve(window.LuringenQr);
+    if (!qrLaster)
+      qrLaster = new Promise((ok) => {
+        const el = document.createElement("script");
+        el.src = src;
+        el.onload = () => ok(window.LuringenQr || null);
+        el.onerror = () => {
+          qrLaster = null;
+          ok(null);
+        };
+        document.head.appendChild(el);
+      });
+    return qrLaster;
+  };
+  const sendKnapp = $("#send-rusj");
+  if (sendKnapp)
+    sendKnapp.addEventListener("click", async () => {
+      const d = $("#dialog");
+      if (d.open) return;
+      const Q = await lastQr(sendKnapp.dataset.qr);
+      let qr = "";
+      try {
+        qr = Q ? Q.qrSvg(Q.lagQr("https://rusj.no/", "M"), { mork: "var(--blekk)", lys: "var(--papir)", kant: 2, etikett: "QR-kode som åpner rusj.no" }) : "";
+      } catch (e) {
+        qr = "";
+      }
+      if (d.open) return;
+      d.innerHTML = `
+        <div class="qr-ark">
+          <h2 id="dialog-tittel">Send rusj til gjengen</h2>
+          ${qr ? `<div class="qr-stor">${qr}</div>` : `<b class="qr-adresse">rusj.no</b>`}
+          <p class="qr-tekst">Skann for å bli med</p>
+          ${innebygd ? `<p class="innebygd-tips">Åpne i nettleseren for å installere og lagre.</p>` : ""}
+          <p class="qr-melding" id="qr-melding" role="status"></p>
+          <div class="dialog-knapper">
+            <button type="button" class="knapp-2" value="ok">Lukk</button>
+            <button type="button" class="knapp" id="del-lenken">Del lenken</button>
+          </div>
+        </div>`;
+      d.querySelector('[value="ok"]').addEventListener("click", () => d.close());
+      d.querySelector("#del-lenken").addEventListener("click", async () => {
+        const url = "https://rusj.no/";
+        try {
+          if (navigator.share) {
+            await navigator.share({ title: "rusj", text: "Bli med på rusj – gratis spill for hele gjengen, rett i nettleseren.", url });
+            return;
+          }
+        } catch (e) {
+          if (e && e.name === "AbortError") return;
+        }
+        let ok = false;
+        try {
+          await navigator.clipboard.writeText(url);
+          ok = true;
+        } catch (e) {
+          ok = false;
+        }
+        $("#qr-melding").textContent = ok ? "Lenken er kopiert. Lim den inn i gruppechatten." : "Kopier lenken: rusj.no";
+      });
+      d.addEventListener("close", () => sendKnapp.focus(), { once: true });
+      d.showModal();
+      d.querySelector("#del-lenken").focus();
+    });
+
   // ---------- Reveal sections on scroll ----------
 
   if ("IntersectionObserver" in window && !rolig()) {
@@ -810,7 +884,7 @@
       },
       { rootMargin: "0px 0px -10% 0px" },
     );
-    $$(".slik, .installer, .bunn").forEach((el) => {
+    $$(".slik, .gjengen, .installer, .bunn").forEach((el) => {
       el.classList.add("avdekk");
       obs.observe(el);
     });

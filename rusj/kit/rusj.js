@@ -1149,7 +1149,25 @@
   };
 
   // Share a link with the phone's share sheet, or copy it.
-  R.del = async (tittel, tekst, url) => {
+  // valg.kort = { tittel, linjer }: when the phone can share files, the share carries a picture of
+  // the result too (see R.delKort). Only results go on the card: never an answer, never typed text.
+  R.del = async (tittel, tekst, url, valg) => {
+    const kort = valg && valg.kort;
+    if (kort && kanDeleBilde()) {
+      const fil = await kortFil(Object.assign({ url }, kort)).catch(() => null);
+      if (fil && navigator.canShare({ files: [fil] })) {
+        // With a file, the link goes in the text: several apps drop the url field next to a file.
+        const data = { files: [fil], title: tittel, text: [tekst, url].filter(Boolean).join("\n") };
+        try {
+          await navigator.share(data);
+          return;
+        } catch (e) {
+          if (e && e.name === "AbortError") return;
+          // Drawing took longer than the browser lets a tap count: one more tap shares the same picture.
+          if (e && e.name === "NotAllowedError") return visDelArk(data);
+        }
+      }
+    }
     try {
       if (navigator.share) {
         await navigator.share({ title: tittel, text: tekst, url: url });
@@ -1161,6 +1179,226 @@
     // No share sheet: copy the whole thing (e.g. a result with coloured squares), not just the link.
     R.kopier([tekst, url].filter(Boolean).join("\n"));
   };
+
+  // ---------- Share card (a picture of the result) ----------
+  // R.delKort({ tittel, linjer, id, url, tekst }): draws a 1080×1350 card – dark night, a paper card
+  // with the game's mascot, the result in big letters, the rusj logo and «rusj.no/<id>» – and shares
+  // it as a PNG with the text and link. Falls back to R.del's text share when files can't be shared.
+  // linjer[0] is the big result line («4/6»); the rest are smaller (squares, streak). First names at
+  // most: never an answer and never other text a player typed.
+  const KORT_B = 1080;
+  const KORT_H = 1350;
+  const KORT_FONT = 'ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Nunito", system-ui, sans-serif';
+  const KORT_FARGER = { natt: "#150c28", natt2: "#2e1e52", papir: "#fff1dd", blekk: "#170e2b", blekk2: "#4a3a66", lampe: "#ffd23f" };
+  // The paper card and the text column inside it.
+  const KORT_RAMME = { x: 90, y: 370, b: 900, h: 800, tekstB: 780 };
+
+  // «https://rusj.no/ordugla/#utfordring» → «rusj.no/ordugla».
+  const kortAdresse = (url, id) => {
+    const fra = String(url || "").replace(/^[a-z]+:\/\//i, "").replace(/[?#].*$/, "").replace(/\/+$/, "");
+    if (/^rusj\.no(\/[\w-]+)?$/.test(fra)) return fra;
+    return id ? `rusj.no/${id}` : "rusj.no";
+  };
+
+  // Pure layout: what is written where. mal(tekst, px) measures a line at that font size (the
+  // canvas in the browser, a fake in the tests). Long lines shrink, then end in «…»; lines that
+  // don't fit the card are left out.
+  function kortOppsett(o, mal) {
+    const ren = (s) => String(s == null ? "" : s).replace(/\s+/g, " ").trim().slice(0, 80);
+    const W = KORT_RAMME.tekstB;
+    const pass = (tekst, start, min) => {
+      let px = start;
+      while (px > min && mal(tekst, px) > W) px -= 2;
+      let t = tekst;
+      while (t.length > 1 && mal(t, px) > W) t = Array.from(t).slice(0, -2).join("") + "…";
+      return { tekst: t, px };
+    };
+    const linjer = (Array.isArray(o.linjer) ? o.linjer : [o.linjer]).map(ren).filter(Boolean).slice(0, 8);
+    const ut = { tittel: null, linjer: [], adresse: kortAdresse(o.url, o.id || meta().id) };
+    const topp = KORT_RAMME.y + 170; // under the mascot
+    let y = topp;
+    const bunn = KORT_RAMME.y + KORT_RAMME.h - 50;
+    if (ren(o.tittel)) {
+      ut.tittel = pass(ren(o.tittel), 64, 34);
+      y += ut.tittel.px;
+      ut.tittel.y = y;
+      y += 30;
+    }
+    // Room left for the rest: the big line gets up to 150 px, the others share what is left.
+    linjer.forEach((t, i) => {
+      const stor = i === 0;
+      const igjen = linjer.length - i;
+      const plass = bunn - y;
+      const maks = stor ? Math.min(150, Math.floor(plass / (1 + Math.max(0, igjen - 1) * 0.45) / 1.15)) : Math.min(64, Math.floor(plass / igjen / 1.25));
+      if (maks < 24) return;
+      const l = pass(t, maks, stor ? 48 : 24);
+      if (y + l.px * (stor ? 1.05 : 1.2) > bunn + 1) return;
+      y += l.px * (stor ? 1.05 : 1.2);
+      l.y = Math.round(y);
+      l.stor = stor;
+      ut.linjer.push(l);
+      if (stor) y += 24;
+    });
+    // Centre the block in the room under the mascot.
+    const slakk = Math.max(0, Math.floor((bunn - y) / 2));
+    if (ut.tittel) ut.tittel.y += slakk;
+    for (const l of ut.linjer) l.y += slakk;
+    return ut;
+  }
+
+  // An SVG string as a drawable image (data: URL – allowed by the CSP), or null after 1.5 s.
+  function svgBilde(svg, b, h) {
+    return new Promise((ok) => {
+      const img = new Image();
+      const t = setTimeout(() => ok(null), 1500);
+      img.onload = () => {
+        clearTimeout(t);
+        ok(img);
+      };
+      img.onerror = () => {
+        clearTimeout(t);
+        ok(null);
+      };
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg.replace("<svg ", `<svg width="${b}" height="${h}" `));
+    });
+  }
+
+  function rundRekt(ctx, x, y, b, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + b, y, x + b, y + h, r);
+    ctx.arcTo(x + b, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + b, y, r);
+    ctx.closePath();
+  }
+
+  // Draws the card; resolves to a PNG Blob (or null when the browser can't).
+  async function tegnKort(o) {
+    const id = o.id || meta().id;
+    const F = KORT_FARGER;
+    const fargeId = G && G.farge && id ? G.farge(id) : "";
+    const farge = /^#[0-9a-f]{6}$/i.test(fargeId) ? fargeId : "#ff4f8b";
+    const lerret = document.createElement("canvas");
+    lerret.width = KORT_B;
+    lerret.height = KORT_H;
+    const ctx = lerret.getContext("2d");
+    if (!ctx) return null;
+    // Both pictures load at the same time; a missing one leaves its place empty.
+    const logoSvg = G && G.logo ? G.logo({ fil: true }) : "";
+    const vb = /viewBox="[-\d.]+ [-\d.]+ ([\d.]+) ([\d.]+)"/.exec(logoSvg);
+    const logoB = 250;
+    const logoH = vb ? Math.round((logoB * Number(vb[2])) / Number(vb[1])) : 120;
+    const [figur, logo] = await Promise.all([
+      G && id && G.finnes && G.finnes(id) ? svgBilde(G.fil(id), 512, 512) : null,
+      logoSvg ? svgBilde(logoSvg, logoB * 2, logoH * 2) : null,
+    ]);
+
+    // Night with a glow in the game's colour.
+    ctx.fillStyle = F.natt;
+    ctx.fillRect(0, 0, KORT_B, KORT_H);
+    const glod = ctx.createRadialGradient(KORT_B / 2, 520, 40, KORT_B / 2, 520, 820);
+    glod.addColorStop(0, farge + "66");
+    glod.addColorStop(1, farge + "00");
+    ctx.fillStyle = glod;
+    ctx.fillRect(0, 0, KORT_B, KORT_H);
+    if (logo) ctx.drawImage(logo, (KORT_B - logoB) / 2, 40, logoB, logoH);
+
+    // The paper card with the ink outline and a 3D edge in the game's colour.
+    const R_ = KORT_RAMME;
+    rundRekt(ctx, R_.x, R_.y + 18, R_.b, R_.h, 48);
+    ctx.fillStyle = F.blekk;
+    ctx.fill();
+    rundRekt(ctx, R_.x, R_.y, R_.b, R_.h, 48);
+    ctx.fillStyle = F.papir;
+    ctx.fill();
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = F.blekk;
+    ctx.stroke();
+    if (figur) ctx.drawImage(figur, (KORT_B - 280) / 2, R_.y - 130, 280, 280);
+
+    const oppsett = kortOppsett(o, (t, px) => {
+      ctx.font = `900 ${px}px ${KORT_FONT}`;
+      return ctx.measureText(t).width;
+    });
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    if (oppsett.tittel) {
+      ctx.font = `900 ${oppsett.tittel.px}px ${KORT_FONT}`;
+      ctx.fillStyle = F.blekk2;
+      ctx.fillText(oppsett.tittel.tekst, KORT_B / 2, oppsett.tittel.y);
+    }
+    for (const l of oppsett.linjer) {
+      ctx.font = `900 ${l.px}px ${KORT_FONT}`;
+      ctx.fillStyle = F.blekk;
+      ctx.fillText(l.tekst, KORT_B / 2, l.y);
+    }
+    // The address under the card, in lamp yellow.
+    ctx.font = `900 64px ${KORT_FONT}`;
+    ctx.fillStyle = F.lampe;
+    ctx.fillText(oppsett.adresse, KORT_B / 2, KORT_H - 70);
+
+    return new Promise((ok) => {
+      try {
+        lerret.toBlob((b) => ok(b), "image/png");
+      } catch (e) {
+        ok(null); // a tainted or unsupported canvas: the text share takes over
+      }
+    });
+  }
+
+  // One drawing per card: a second tap shares the same file without drawing again.
+  const kortLager = new Map();
+  function kortFil(o) {
+    const nokkel = JSON.stringify([o.tittel, o.linjer, o.id, o.url]);
+    if (!kortLager.has(nokkel)) {
+      const navn = `rusj-${(o.id || meta().id || "resultat").replace(/[^\w-]/g, "")}.png`;
+      kortLager.set(
+        nokkel,
+        tegnKort(o).then((b) => (b ? new File([b], navn, { type: "image/png" }) : null)),
+      );
+    }
+    return kortLager.get(nokkel);
+  }
+  function kanDeleBilde() {
+    try {
+      return !!(navigator.canShare && navigator.share && typeof File === "function" && navigator.canShare({ files: [new File(["x"], "x.png", { type: "image/png" })] }));
+    } catch (e) {
+      return false;
+    }
+  }
+  let ventendeDeling = null;
+  function visDelArk(data) {
+    ventendeDeling = data;
+    R.ark(`
+      <h2 id="ark-tittel">Bildet er klart</h2>
+      <p class="ingress">Trykk for å dele resultatet som bilde.</p>
+      <div class="stabel">
+        <button class="knapp" data-h="del-bilde">Del bildet</button>
+        <button class="lenke" data-h="lukk-ark">Avbryt</button>
+      </div>`);
+  }
+  async function delVentende() {
+    const data = ventendeDeling;
+    R.lukkArk();
+    ventendeDeling = null;
+    if (!data) return;
+    try {
+      await navigator.share(data);
+    } catch (e) {
+      if (!e || e.name !== "AbortError") R.kopier(data.text);
+    }
+  }
+
+  R.delKort = (o) => {
+    o = o || {};
+    const navn = meta().navn || "rusj";
+    const tekst = o.tekst || [o.tittel, ...(o.linjer || [])].filter(Boolean).join("\n");
+    return R.del(o.delTittel || navn, tekst, o.url, { kort: { tittel: o.tittel, linjer: o.linjer, id: o.id } });
+  };
+  R.delKort.oppsett = kortOppsett; // for the tests
+  R.delKort.adresse = kortAdresse;
+  R.delKort.tegn = tegnKort; // → Promise<Blob | null>
 
   // ---------- Countdown overlay ----------
 
@@ -1523,6 +1761,10 @@
   ui.dokk = (...deler) => `<div class="dokk">${deler.filter(Boolean).join("")}</div>`;
   ui.lenkerad = (...deler) => `<div class="lenkerad">${deler.filter(Boolean).join("")}</div>`;
 
+  // A challenge link (…/#utfordring, see «Slå meg» in KIT.md) shows this once, above the main button.
+  const UTFORDRING_HTML = `<p class="utfordring"><span aria-hidden="true">⚔️</span> Noen utfordret deg på dagens oppgave – klarer du det bedre?</p>`;
+  R.utfordret = false;
+
   // Standard game home: mascot, name, genre label, slogan, buttons and facts.
   ui.spillhjem = (o = {}) => {
     const navn = o.navn || (APP && APP.navn) || meta().navn;
@@ -1535,7 +1777,7 @@
         ${under ? `<span class="undertittel">${esc(under)}</span>` : ""}
         ${o.slagordHtml ? `<p class="slagord">${o.slagordHtml}</p>` : ""}
       </div>
-      <div class="hjem-knapper">${o.knapperHtml || ""}</div>
+      <div class="hjem-knapper">${R.utfordret ? UTFORDRING_HTML : ""}${o.knapperHtml || ""}</div>
       ${merker.length ? `<ul class="merker" aria-label="Om spillet">${merker.map(([b, t]) => `<li><b>${esc(b)}</b> ${esc(t)}</li>`).join("")}</ul>` : ""}`;
   };
 
@@ -2010,6 +2252,7 @@
     if (si) si.textContent = ""; // a screen-reader message (maybe a secret) must not outlive its screen
     statusLinje.clear();
     skjermDef(navn);
+    if (navn !== (APP.hjem || "hjem")) R.utfordret = false; // the challenge banner shows once
     S.skjerm = navn;
     sisteSkjermbytte = performance.now(); // see the ghost-tap guard in the click handler
     // Back on the game's home screen: drop our extra history entry, so the phone's back button
@@ -2162,6 +2405,7 @@
     },
     regler: () => R.visRegler(),
     "lukk-ark": () => R.lukkArk(),
+    "del-bilde": () => delVentende(),
     "installer-app": () => R._installer(),
     // The 18+ gate in front of drinking games (spill.json "alder18": true)
     "alder-ja": () => {
@@ -2683,7 +2927,15 @@
     } catch (e) {
       harHistorikk = false;
     }
-    if (hash && APP.vedHash) {
+    if (hash === "utfordring") {
+      // A challenge link: no data in it, just «someone dared you» on the home screen.
+      R.utfordret = true;
+      try {
+        history.replaceState(history.state, "", location.pathname + location.search);
+      } catch (e) {
+        /* ignore */
+      }
+    } else if (hash && APP.vedHash) {
       try {
         fraHash = APP.vedHash(S, lesHash(hash));
       } catch (e) {
@@ -2697,7 +2949,8 @@
     }
     const nylig = S._tid && Date.now() - S._tid < 3 * 60 * 60 * 1000;
     const forrige = S.skjerm && APP.skjermer[S.skjerm];
-    if (fraHash && APP.skjermer[fraHash]) forste = fraHash;
+    if (R.utfordret) forste = APP.hjem || "hjem";
+    else if (fraHash && APP.skjermer[fraHash]) forste = fraHash;
     // gjenoppta: "skjerm" redirects (e.g. away from a screen that shows a secret); older than
     // 3 hours, every game starts on its home screen (with «Fortsett» there).
     else if (nylig && forrige && typeof forrige.gjenoppta === "string" && APP.skjermer[forrige.gjenoppta]) forste = forrige.gjenoppta;
@@ -2738,6 +2991,17 @@
 
     window.addEventListener("hashchange", () => {
       const h = (location.hash || "").slice(1);
+      if (h === "utfordring") {
+        try {
+          history.replaceState(history.state, "", location.pathname + location.search);
+        } catch (e) {
+          /* ignore */
+        }
+        R.utfordret = true;
+        if (S.skjerm === (APP.hjem || "hjem")) tegn({});
+        else R.gaTil(APP.hjem || "hjem");
+        return;
+      }
       if (!h || !APP.vedHash) return;
       let sk = null;
       try {

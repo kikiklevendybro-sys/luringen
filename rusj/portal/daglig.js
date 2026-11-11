@@ -233,7 +233,19 @@
     return ut.join("\n");
   }
 
-  const api = { dag, ukedag, uke, datoTekst, sekunderTilMidnatt, klokke, status, rekke, ukeprikker, ukeTekst, tallord, stor, lesbart, tilstandTekst, statuslinje, delTekst, MAKS_DAGER };
+  // Opened inside an app's own browser (Instagram, Facebook, Snapchat, TikTok)? There a page can't be
+  // installed and storage may vanish, so the front page suggests the real browser. Only the
+  // user-agent string, read on the device; nothing is stored or sent. Returns the app's name or "".
+  function innebygdNettleser(ua) {
+    const u = String(ua || "");
+    if (/Instagram/i.test(u)) return "Instagram";
+    if (/\bFBAN\/|\bFBAV\/|\bFB_IAB\/|\bFBIOS\b|\[FB/i.test(u)) return "Facebook";
+    if (/Snapchat/i.test(u)) return "Snapchat";
+    if (/TikTok|musical_ly|BytedanceWebview|\btrill_/i.test(u)) return "TikTok";
+    return "";
+  }
+
+  const api = { innebygdNettleser, dag, ukedag, uke, datoTekst, sekunderTilMidnatt, klokke, status, rekke, ukeprikker, ukeTekst, tallord, stor, lesbart, tilstandTekst, statuslinje, delTekst, MAKS_DAGER };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.RusjDaglig = api;
 })(typeof self !== "undefined" ? self : this);

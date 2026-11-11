@@ -690,6 +690,25 @@ p {
   margin-top: 4px;
 }
 
+/* «Noen utfordret deg …»: a challenge link (#utfordring) opened the game. Shown once. */
+.utfordring {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+  border: 2px solid var(--lampe);
+  border-radius: var(--r-mid);
+  background: rgba(255, 210, 63, 0.12);
+  color: var(--tekst);
+  font: 800 0.98rem/1.3 var(--font-display);
+  text-align: left;
+}
+
+.utfordring > span {
+  flex: none;
+  font-size: 1.3rem;
+}
+
 .merker {
   display: flex;
   flex-wrap: wrap;

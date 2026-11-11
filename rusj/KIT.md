@@ -285,7 +285,22 @@ Other helpers: `R.esc`, `R.navn(i)`, `R.rng(seed)`, `R.nyttFro()`, `R.stokk(list
 `R.konfetti()`, `R.toast(tekst)`, `R.si(tekst)` (screen-reader announcement),
 `await R.bekreft(tittel, tekst, ja, nei)`, `await R.velgIArk(tittel, [{ v, tekst }])`, `R.ark(html)`,
 `await R.nedtelling(["3","2","1","KJØR!"])`, `await R.kastKort(-1)` (fly the big card out),
-`R.del(tittel, tekst, url)` (share sheet; without one it copies text + link), `R.kopier(tekst)`, `R.vedForlat(fn)` (cleanup on leave).
+`R.del(tittel, tekst, url, { kort })` (share sheet; without one it copies text + link), `R.kopier(tekst)`, `R.vedForlat(fn)` (cleanup on leave).
+
+**Share cards and challenge links (the «Stafettpinnen», see KONSEPT.md):**
+- `R.del(tittel, tekst, url, { kort: { tittel, linjer } })`: on a phone that can share files
+  (`navigator.canShare({ files })`), the share carries a 1080×1350 PNG of the result – night background,
+  paper card, the game's mascot, `linjer[0]` big («4/6»), the other lines smaller (up to 8 in all), the
+  rusj logo and «rusj.no/<id>» – and the text with the link. Elsewhere the text share as before. The card
+  is drawn once per result (a second tap reuses it); if the browser stops counting the tap while it
+  draws, a sheet «Bildet er klart» asks for one more tap. `R.delKort({ tittel, linjer, id, url, tekst })`
+  is the same as a single call. **Only results on the card**: never the answer, never text a player
+  typed (first names at most). Ordugla and Bedreviteren pass `kort`; the other daily games share text only
+  until they add it to their `R.del` call.
+- Daily puzzles append **`#utfordring`** to the shared address (`…/ordugla/#utfordring`). Opened with it,
+  the kit cleans the address and `R.ui.spillhjem` shows «Noen utfordret deg på dagens oppgave – klarer du
+  det bedre?» above the buttons, once (gone after leaving home or reloading). Never put scores or names
+  in the address. Nothing to do in the game beyond the URL.
 
 CSS: use the kit classes (`.seksjon`, `.seksjon-hode`, `.ingress`, `.etikett`, `.hjelp`, `.boks`,
 `.papirboks`, `.stabel`, `.rad`, `.banner`, `.stempel`, `.risting`, `.kort-ord`, `.knapprad`…) and

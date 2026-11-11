@@ -517,6 +517,47 @@ for (const id of valgt) {
       t.sjekk(await c.js("!document.querySelector('#automat').open"), "Escape lukker ikke automaten");
       t.sjekk(await c.js("document.activeElement && document.activeElement.id === 'overrask'"), "Fokus går ikke tilbake til «Overrask meg»");
 
+      // «Send rusj til gjengen»: a sheet with a big QR code for rusj.no, «Skann for å bli med» and
+      // «Del lenken»; it fits the screen, closes, and focus goes back to the button. Inside an app's
+      // own browser (here Instagram's user agent) a slim hint says to open the real browser.
+      const qrArk = async () => {
+        await c.js(`document.querySelector("#send-rusj").scrollIntoView({ block: "center" })`);
+        await c.klikk("#send-rusj");
+        await c.vent("document.querySelector('#dialog').open && document.querySelector('#dialog .qr-ark')", 5000);
+        return c.js(`(() => {
+          const d = document.querySelector("#dialog");
+          const svg = d.querySelector(".qr-stor svg");
+          const b = d.getBoundingClientRect();
+          const q = svg ? svg.getBoundingClientRect() : { width: 0 };
+          return { svg: !!svg && !!svg.querySelector("path"), qrBredde: Math.round(q.width), tekst: d.innerText, tips: !!d.querySelector(".innebygd-tips"), del: !!d.querySelector("#del-lenken"), fokus: document.activeElement && document.activeElement.id, topp: Math.round(b.top), bunn: Math.round(b.bottom), vh: innerHeight };
+        })()`);
+      };
+      const qr = await qrArk();
+      t.sjekk(qr.svg && qr.qrBredde >= Math.min(200, qr.vh * 0.4), `QR-koden i «Send rusj til gjengen» mangler eller er for liten (${qr.qrBredde} px)`);
+      t.sjekk(/Skann for å bli med/.test(qr.tekst) && qr.del && !qr.tips, `«Send rusj til gjengen» mangler tekst eller «Del lenken», eller viser app-tipset i en vanlig nettleser: ${qr.tekst}`);
+      t.sjekk(qr.topp >= 0 && qr.bunn <= qr.vh, `«Send rusj til gjengen» får ikke plass på skjermen (${qr.topp}–${qr.bunn} av ${qr.vh} px)`);
+      t.sjekk(qr.fokus === "del-lenken", `Fokus starter ikke på «Del lenken» (${qr.fokus})`);
+      await t.bilde("forside-send-rusj");
+      await c.js(`window.__delt = null; navigator.share = undefined; Object.defineProperty(navigator, "clipboard", { value: { writeText: (x) => { window.__delt = x; return Promise.resolve(); } }, configurable: true })`);
+      await c.klikk("#del-lenken");
+      await c.sov(150);
+      t.sjekk((await c.js("window.__delt")) === "https://rusj.no/" && /kopiert/.test(await c.tekst("#qr-melding")), "«Del lenken» kopierer ikke rusj.no uten delingsmeny");
+      await c.klikk('#dialog [value="ok"]');
+      await c.sov(150);
+      t.sjekk(await c.js("!document.querySelector('#dialog').open && document.activeElement && document.activeElement.id === 'send-rusj'"), "«Lukk» lukker ikke arket, eller fokus går ikke tilbake til «Send rusj til gjengen»");
+      const vanligUa = await c.js("navigator.userAgent");
+      await c.send("Emulation.setUserAgentOverride", { userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 356.0.0.21.107" });
+      await c.lastSide(t.side, "document.querySelector('.spillgrid')");
+      const qrApp = await qrArk();
+      t.sjekk(qrApp.tips && /Åpne i nettleseren for å installere og lagre/.test(qrApp.tekst), "Tipset for app-nettlesere mangler inne i Instagram");
+      t.sjekk(/Instagram/.test(await c.tekst("#installer-tekst")), "«Ha rusj på hjemskjermen» viser installeringsstegene inne i Instagram");
+      await t.bilde("forside-send-rusj-instagram");
+      await tast("Escape", 27);
+      await c.sov(150);
+      t.sjekk(await c.js("!document.querySelector('#dialog').open && document.activeElement && document.activeElement.id === 'send-rusj'"), "Escape lukker ikke «Send rusj til gjengen», eller fokus går ikke tilbake");
+      await c.send("Emulation.setUserAgentOverride", { userAgent: vanligUa });
+      await c.lastSide(t.side, "document.querySelector('.spillgrid')");
+
       // «Fortsett der dere slapp» shows a game with saved, in-progress state (two lines of text and
       // a «Fortsett» badge in ordinary case). «Kveldens gjeng» shows the three best, and everyone
       // on «Vis alle».

@@ -666,6 +666,15 @@ ${kort}
     </ol>
   </section>
 
+  <section class="gjengen" id="gjengen" aria-labelledby="gjengen-tittel">
+    <span class="gjengen-figur" aria-hidden="true">${G.svg("skravla")}</span>
+    <div>
+      <h2 id="gjengen-tittel">Få med gjengen</h2>
+      <p>Vis QR-koden på mobilen din, så er alle med på sekunder.</p>
+      <button class="knapp-2 liten" id="send-rusj" type="button" aria-haspopup="dialog" data-qr="${felles.qr}"><span aria-hidden="true">📣</span> Send rusj til gjengen</button>
+    </div>
+  </section>
+
   <section class="installer" id="installer" aria-labelledby="installer-tittel">
     <span class="installer-figur" aria-hidden="true">${G.svg("panna")}</span>
     <div>

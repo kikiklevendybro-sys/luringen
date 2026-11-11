@@ -125,13 +125,37 @@ export default async function (t) {
   t.sjekk(daglig.nr === iDag && daglig.vunnet === true && daglig.rekke === 1 && daglig.res === "3/5" && !daglig.pagar, `rusj.daglig er feil: ${JSON.stringify(daglig)}`);
   await t.bilde("dagens-resultat", true);
   // Share: the number, the score and the dots – never a question or an answer
-  await t.js("window.__delt = null; navigator.share = (d) => { window.__delt = d; return Promise.resolve(); }");
+  await t.js("window.__delt = null; navigator.canShare = undefined; navigator.share = (d) => { window.__delt = d; return Promise.resolve(); }");
   await t.klikk('.dokk [data-h="ddel"]', 300);
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && delt.url === "https://rusj.no/bedreviteren/" && /^Bedreviteren · Dagens fem nr\. \d+ · 3\/5 (?:🟢|🔴){5}$/u.test(delt.text), `Delingsteksten er feil: ${JSON.stringify(delt)}`);
+  t.sjekk(delt && delt.url === "https://rusj.no/bedreviteren/#utfordring" && /^Bedreviteren · Dagens fem nr\. \d+ · 3\/5 (?:🟢|🔴){5}$/u.test(delt.text), `Delingsteksten er feil: ${JSON.stringify(delt)}`);
   t.sjekk(delt && delt.text.endsWith("🟢🔴🔴🟢🟢"), `Prikkene i delingen er i feil rekkefølge: ${delt && delt.text}`);
   const fasit = await t.js(`${JSON.stringify(fem)}.flatMap((i) => [${ALLE}[i].s, ...${ALLE}[i].a].filter((x) => x.length > 3))`);
   t.sjekk(delt && !fasit.some((x) => delt.text.includes(x)), "Delingsteksten røper et spørsmål eller svar");
+  // A phone that shares files: the result goes as a 1080×1350 PNG card, with the text and the link.
+  await t.js("window.__delt = null; navigator.canShare = (d) => !!(d && d.files && d.files.length); navigator.share = (d) => { window.__delt = d; return Promise.resolve(); }");
+  const fr = Date.now();
+  await t.klikk('.dokk [data-h="ddel"]', 100);
+  await t.vent("window.__delt", 5000);
+  const ms = Date.now() - fr;
+  const kort = await t.js(`(async () => {
+    const d = window.__delt;
+    const f = d.files && d.files[0];
+    if (!f) return { feil: "ingen fil", d: JSON.stringify(d) };
+    const bm = await createImageBitmap(f);
+    const b64 = await new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.readAsDataURL(f); });
+    return { navn: f.name, type: f.type, b: bm.width, h: bm.height, tekst: d.text, url: d.url || "", b64 };
+  })()`);
+  t.sjekk(kort && kort.type === "image/png" && kort.b === 1080 && kort.h === 1350 && kort.navn === "rusj-bedreviteren.png", `Delingskortet er ikke en PNG på 1080×1350: ${JSON.stringify({ ...kort, b64: undefined })}`);
+  t.sjekk(kort && /^Bedreviteren · Dagens fem nr\. \d+ · 3\/5 (?:🟢|🔴){5}\nhttps:\/\/rusj\.no\/bedreviteren\/#utfordring$/u.test(kort.tekst), `Teksten ved bildet er feil: ${kort && kort.tekst}`);
+  t.sjekk(kort && !fasit.some((x) => kort.tekst.includes(x)), "Teksten ved bildet røper et spørsmål eller svar");
+  if (kort && kort.b64) {
+    const { writeFileSync, mkdirSync } = await import("node:fs");
+    const mappe = new URL("../../build/", import.meta.url);
+    mkdirSync(mappe, { recursive: true });
+    writeFileSync(new URL("delkort-bedreviteren.png", mappe), Buffer.from(kort.b64, "base64"));
+  }
+  t.sjekk(ms < 3000, `Delingskortet tok ${ms} ms`);
   await t.klikk('[data-h="dfasit"]');
   t.sjekk((await t.antall("#ark .bw-fasit li")) === 5, "Fasiten for dagens fem viser ikke fem spørsmål");
   await t.klikk('#ark [data-h="lukk-ark"]');
@@ -145,6 +169,19 @@ export default async function (t) {
   t.sjekk(/^\d\d:\d\d:\d\d$/.test(tid1) && tid1 !== (await t.tekst(".bw-nedtelling b")), "Nedtellingen på hjem går ikke");
   t.sjekk(await t.finnes('.hjem-knapper .knapp[data-h="nytt"]'), "«Start quiz» skal være hovedknappen når dagens fem er ferdig");
   await t.bilde("hjem-dagens-ferdig");
+  // A challenge link (#utfordring): a banner above the main button on home, once.
+  await t.lastSide(t.side + "#utfordring", "document.querySelector('.hjem-knapper .utfordring')");
+  const utf = await t.js(`(() => { const b = document.querySelector(".hjem-knapper .utfordring"); return { forst: b === document.querySelector(".hjem-knapper").firstElementChild, tekst: b.textContent.trim(), hash: location.hash }; })()`);
+  t.sjekk(utf.forst && /Noen utfordret deg på dagens oppgave – klarer du det bedre\?/.test(utf.tekst) && utf.hash === "", `Utfordringsbanneret er feil: ${JSON.stringify(utf)}`);
+  await t.bilde("hjem-utfordring");
+  await t.sov(420);
+  await t.klikk('.hjem-knapper [data-h="dagens"]');
+  await t.sov(420);
+  await t.klikk("#tilbake");
+  await t.vent("document.querySelector('.hjem-knapper')");
+  t.sjekk(!(await t.finnes(".utfordring")), "Utfordringsbanneret vises igjen etter at hjem-skjermen er forlatt");
+  await t.lastSide(t.side, "document.querySelector('.hjem-knapper')");
+  t.sjekk(!(await t.finnes(".utfordring")), "Utfordringsbanneret vises igjen etter omlasting");
   // #dagens on a fresh phone opens today's first question
   await t.start();
   await t.lastSide(t.side + "#dagens", "document.querySelector('[data-h=\"dsvar\"]')");

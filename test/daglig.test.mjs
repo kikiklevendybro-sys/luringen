@@ -223,3 +223,19 @@ test("«Del dagen»: results without answers, the count, and the streak when the
   assert.equal(D.delTekst({ iDag, linjer: noen, rekke: 1 }), "rusj i dag · onsdag 11. november\nDagens ord: 4/6\n1 av 3 i dag");
   assert.equal(D.delTekst({ iDag, linjer: [{ navn: "Dagens ord", tilstand: "ferdig", vunnet: false, res: "" }], rekke: 0 }), "rusj i dag · onsdag 11. november\nDagens ord: ferdig\nDagen er i boks – 1 av 1");
 });
+
+test("in-app browsers (Instagram, Facebook, Snapchat, TikTok) are recognised from the user agent alone", () => {
+  const ios = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148";
+  const android = "Mozilla/5.0 (Linux; Android 14; Pixel 8; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.0.0 Mobile Safari/537.36";
+  assert.equal(D.innebygdNettleser(`${ios} Instagram 356.0.0.21.107 (iPhone15,2; iOS 18_1; nb_NO; nb)`), "Instagram");
+  assert.equal(D.innebygdNettleser(`${ios} [FBAN/FBIOS;FBAV/489.0.0.40.104;FBBV/123]`), "Facebook");
+  assert.equal(D.innebygdNettleser(`${android} [FB_IAB/FB4A;FBAV/489.0.0.40.104;]`), "Facebook");
+  assert.equal(D.innebygdNettleser(`${ios} Snapchat/13.20.0.43 (like Safari/8618.1.15.10.15, panda)`), "Snapchat");
+  assert.equal(D.innebygdNettleser(`${android} trill_380003 BytedanceWebview/d8a21c6`), "TikTok");
+  assert.equal(D.innebygdNettleser(`${ios} musical_ly_37.5.0 JsSdk/2.0 NetType/WIFI Channel/App Store`), "TikTok");
+  // Ordinary browsers – also Chrome's own WebView without an app name – are not in-app browsers.
+  assert.equal(D.innebygdNettleser(`${ios} Version/18.1 Safari/604.1`), "");
+  assert.equal(D.innebygdNettleser("Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"), "");
+  assert.equal(D.innebygdNettleser(android), "");
+  assert.equal(D.innebygdNettleser(undefined), "");
+});

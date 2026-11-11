@@ -68,9 +68,9 @@ Status oppdateres underveis. Rekkefølgen følger fasene over.
 | 3 | Flere daglige spill (kabal, minesveiper, 2048, quiz) | 1 | Kabal, minesveiper og 2048 bygges nå. Quiz etter navnebyttet |
 | 4 | Klistremerkebok | 4 | Venter på fase 1 |
 | 5 | Julekalender 1.–24. desember | 5 | Starter rett etter fase 1 |
-| 6 | Utfordre en venn med lenke | 2 | Venter |
-| 7 | Delingskort som bilde | 2 | Venter |
-| 8 | «Send rusj til gjengen» med QR-kode | 2 | Venter |
+| 6 | Utfordre en venn med lenke | 2 | Ferdig i Ordugla og Bedreviteren |
+| 7 | Delingskort som bilde | 2 | Ferdig i alle dagsspill |
+| 8 | «Send rusj til gjengen» med QR-kode | 2 | Ferdig |
 | 9 | Løfte fram spill for flere mobiler i desember | 5 | Sammen med julekalenderen |
 | 10 | Sesongsider (julebord, nyttår, 17. mai, bursdag, hyttetur) | 6 | Venter |
 | 11 | «Slik spiller du»-tekst som Google kan lese | 6 | Venter |

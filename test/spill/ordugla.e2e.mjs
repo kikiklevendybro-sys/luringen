@@ -161,7 +161,7 @@ export default async function (t) {
   })()`);
   await t.klikk('[data-h="del"]', 300);
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && /^Ordugla nr\. \d+ · 3\/6 · 🔥 4 på rad\n\n/.test(delt) && /\n🦉🦉🦉🦉🦉\n\nhttps:\/\/rusj\.no\/ordugla\/$/.test(delt), `Delingsteksten er feil: ${delt}`);
+  t.sjekk(delt && /^Ordugla nr\. \d+ · 3\/6 · 🔥 4 på rad\n\n/.test(delt) && /\n🦉🦉🦉🦉🦉\n\nhttps:\/\/rusj\.no\/ordugla\/#utfordring$/.test(delt), `Delingsteksten er feil: ${delt}`);
   const delRader = delt ? delt.split("\n").slice(2, 5) : [];
   t.sjekk(delRader.length === 3 && delRader.every((r) => /^(?:🦉|🌙|🌑){5}$/u.test(r)), `Delingsteksten skal ha tre rader med ugler og måner: ${delt}`);
   t.sjekk(delt && !/[🟩🟨🟧🟦⬛⬜]/u.test(delt), "Delingsteksten skal ikke bruke fargede firkanter");
@@ -174,6 +174,21 @@ export default async function (t) {
   t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".ou-nedtelling b")), "Nedtellingen til neste ord vises ikke");
   t.sjekk(/4/.test(await t.tekst(".merker")), "Rekka på hjem-skjermen ble ikke 4");
   await t.bilde("hjem-ferdig");
+
+  // A challenge link («Slå meg»: the shared address ends in #utfordring): a banner above the main
+  // button on home, once – gone after leaving home and after a reload; the address is cleaned.
+  await t.lastSide(t.side + "#utfordring", "document.querySelector('.hjem-knapper .utfordring')");
+  const utf = await t.js(`(() => { const b = document.querySelector(".hjem-knapper .utfordring"); return { forst: b === document.querySelector(".hjem-knapper").firstElementChild, tekst: b.textContent.trim(), hash: location.hash }; })()`);
+  t.sjekk(utf.forst && /Noen utfordret deg på dagens oppgave – klarer du det bedre\?/.test(utf.tekst) && utf.hash === "", `Utfordringsbanneret er feil: ${JSON.stringify(utf)}`);
+  await t.bilde("hjem-utfordring");
+  await pause();
+  await t.klikk('[data-h="se-resultat"]');
+  await pause();
+  await t.klikk("#tilbake");
+  await t.vent("document.querySelector('.hjem-knapper')");
+  t.sjekk(!(await t.finnes(".utfordring")), "Utfordringsbanneret vises igjen etter at hjem-skjermen er forlatt");
+  await t.lastSide(t.side, "document.querySelector('.hjem-knapper')");
+  t.sjekk(!(await t.finnes(".utfordring")), "Utfordringsbanneret vises igjen etter omlasting");
   await t.klikk('[data-h="statistikk"]');
   t.sjekk(await t.finnes("#ark:not([hidden]) .ou-fordeling"), "Statistikken vises ikke");
   await t.klikk('#ark [data-h="lukk-ark"]');

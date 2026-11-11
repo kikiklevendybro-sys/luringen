@@ -236,3 +236,30 @@ test("daily results: result text, progress, the site log, idempotent", () => {
   R.dagligIGang({ tekst: "5/6" });
   assert.equal(les().testspill.pagar, undefined, "progress after finishing today is ignored");
 });
+
+test("share card layout: title, big result line, smaller lines, the address – all inside the card", () => {
+  const { R } = lastKit();
+  // A fake ruler: every character is 0.6 em wide.
+  const mal = (t, px) => Array.from(t).length * px * 0.6;
+  const o = R.delKort.oppsett({ tittel: "Ordugla nr. 12", linjer: ["4/6", "🦉🌙🌑🌑🦉", "🦉🦉🦉🦉🦉", "🔥 3 på rad"], id: "ordugla", url: "https://rusj.no/ordugla/#utfordring" }, mal);
+  assert.equal(o.adresse, "rusj.no/ordugla");
+  assert.equal(o.tittel.tekst, "Ordugla nr. 12");
+  assert.equal(o.linjer.map((l) => l.tekst).join("|"), "4/6|🦉🌙🌑🌑🦉|🦉🦉🦉🦉🦉|🔥 3 på rad");
+  assert.ok(o.linjer[0].stor && o.linjer[0].px > o.linjer[1].px, "the result line is the big one");
+  const ys = [o.tittel.y, ...o.linjer.map((l) => l.y)];
+  assert.deepEqual([...ys].sort((a, b) => a - b), ys, "lines go downwards");
+  assert.ok(ys[ys.length - 1] <= 370 + 800 - 50, "the last line stays inside the paper card");
+  for (const l of [o.tittel, ...o.linjer]) assert.ok(mal(l.tekst, l.px) <= 780, `«${l.tekst}» is wider than the card`);
+
+  // Long lines shrink and end in «…»; empty lines and lines past eight are left out.
+  const lang = R.delKort.oppsett({ tittel: "x".repeat(90), linjer: ["Løst på 12:34 uten hjelp og med en veldig lang forklaring her", "", null, ...Array(12).fill("🦉🦉🦉🦉🦉")] }, mal);
+  assert.ok(lang.tittel.tekst.endsWith("…") && mal(lang.tittel.tekst, lang.tittel.px) <= 780);
+  assert.ok(lang.linjer.length <= 8 && lang.linjer.length >= 3);
+  assert.ok(lang.linjer.every((l) => l.y <= 370 + 800 - 50 && mal(l.tekst, l.px) <= 780));
+  assert.equal(lang.adresse, "rusj.no/testspill", "without a url: the game's own address");
+
+  // The address never carries anything but rusj.no/<id>.
+  assert.equal(R.delKort.adresse("https://rusj.no/", ""), "rusj.no");
+  assert.equal(R.delKort.adresse("http://localhost:8080/ordugla/?x=1", "ordugla"), "rusj.no/ordugla");
+  assert.equal(R.delKort.adresse("https://rusj.no/bedreviteren/#utfordring", "bedreviteren"), "rusj.no/bedreviteren");
+});

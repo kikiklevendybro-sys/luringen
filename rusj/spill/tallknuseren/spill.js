@@ -1830,7 +1830,7 @@
         const r = sp.resultat;
         const tid = visTid((r.dagForrige || r.sek) * 1000);
         const tekst = `Dagens sudoku (${dag.ukedag} ${dag.dato}, ${NIVA[sp.niva].navn.toLowerCase()}): løst på ${tid}${r.hint ? "" : " uten hint"}${r.rekke > 1 ? ` · 🔥 ${r.rekke} dager på rad` : ""}. Klarer du den?`;
-        R.del("Tallknuseren – dagens sudoku", tekst, location.origin + "/tallknuseren/");
+        R.del("Tallknuseren – dagens sudoku", tekst, location.origin + "/tallknuseren/", { kort: { tittel: `Dagens sudoku ${dag.dato}`, linjer: [`Løst på ${tid}`, `${NIVA[sp.niva].navn}${r.rekke > 1 ? ` · 🔥 ${r.rekke} på rad` : ""}`] } });
       },
     }),
   });

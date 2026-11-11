@@ -119,7 +119,7 @@ export default async function (t) {
   await t.js("window.__delt = null; navigator.share = (d) => { window.__delt = d; return Promise.resolve(); }");
   await t.klikk('.dokk [data-h="del"]', 300);
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && delt.url === "https://rusj.no/minesveiperen/" && /Minesveiperen \d+\.\d+ · \d+:\d\d på 2\. forsøk/.test(delt.text), `«Del resultatet» deler ikke resultatet (${JSON.stringify(delt)})`);
+  t.sjekk(delt && (delt.url === "https://rusj.no/minesveiperen/" || String(delt.text).includes("https://rusj.no/minesveiperen/")) && /Minesveiperen \d+\.\d+ · \d+:\d\d på 2\. forsøk/.test(delt.text), `«Del resultatet» deler ikke resultatet (${JSON.stringify(delt)})`);
   await t.bilde("dagens-lost", true);
 
   // Home: solved, a live countdown, and the free board is the main button now.

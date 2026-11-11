@@ -1602,7 +1602,7 @@
         const r = sp.resultat;
         const dato = `${Number(sp.dagens.slice(8, 10))}.${Number(sp.dagens.slice(5, 7))}`;
         const tekst = `💣 Minesveiperen ${dato} · ${visTid(r.sek * 1000)} på ${r.forsok > 1 ? `${r.forsok}.` : "første"} forsøk${r.rekke > 1 ? ` · 🔥 ${r.rekke} dager på rad` : ""}. Klarer du dagens minefelt?`;
-        R.del("Minesveiperen – dagens minefelt", tekst, "https://rusj.no/minesveiperen/");
+        R.del("Minesveiperen – dagens minefelt", tekst, "https://rusj.no/minesveiperen/", { kort: { tittel: `Dagens minefelt ${dato}`, linjer: [visTid(r.sek * 1000), `${r.forsok > 1 ? `${r.forsok}. forsøk` : "Første forsøk"}${r.rekke > 1 ? ` · 🔥 ${r.rekke} på rad` : ""}`] } });
       },
       modus(el, e, S) {
         S.flaggmodus = el.dataset.v === "flagg";

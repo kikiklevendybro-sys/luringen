@@ -1080,7 +1080,7 @@
         const m = medalje(best.flis);
         const dato = `${Number(sp.dagens.slice(8, 10))}.${Number(sp.dagens.slice(5, 7))}`;
         const tekst = `🟧 Dobleren ${dato} · ${best.flis}-brikke${m ? " " + m[2] : ""} · ${R.tall(best.poeng)} poeng${r.rekke > 1 ? ` · 🔥 ${r.rekke} dager på rad` : ""}. Klarer du mer på dagens lynrunde?`;
-        R.del("Dobleren – dagens lynrunde", tekst, "https://rusj.no/dobleren/");
+        R.del("Dobleren – dagens lynrunde", tekst, "https://rusj.no/dobleren/", { kort: { tittel: `Dagens lynrunde ${dato}`, linjer: [`${R.tall(best.poeng)} poeng`, `${best.flis}-brikke${r.rekke > 1 ? ` · 🔥 ${r.rekke} på rad` : ""}`] } });
       },
     }),
   });

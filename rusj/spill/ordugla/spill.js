@@ -497,6 +497,13 @@
     const hode = `Ordugla nr. ${nrFor(sp.nr)} · ${sp.vunnet ? `${sp.gjett.length}/${MAKS}` : "ikke løst"}${sp.vunnet && rekke > 1 ? ` · 🔥 ${rekke} på rad` : ""}`;
     return `${hode}\n\n${linjer.join("\n")}\n`;
   }
+  // The same result as a picture (R.del's kort): squares only, never the word.
+  function delKort(S) {
+    const sp = S.dag;
+    const rekke = rekkeNa(S);
+    const rader = sp.gjett.map((g) => vurder(g, sp.ord).map((r) => DELETEGN[r]).join(""));
+    return { tittel: `Ordugla nr. ${nrFor(sp.nr)}`, linjer: [sp.vunnet ? `${sp.gjett.length}/${MAKS}` : "Ikke løst i dag", ...rader, sp.vunnet && rekke > 1 ? `🔥 ${rekke} på rad` : ""] };
+  }
 
   // Physical keyboard (computers, tablets with a keyboard).
   document.addEventListener("keydown", (e) => {
@@ -777,7 +784,7 @@
         R.ark(statistikkArk(S));
       },
       del(el, e, S) {
-        if (S.dag && S.dag.ferdig) return R.del("Ordugla", delTekst(S), DEL_URL);
+        if (S.dag && S.dag.ferdig) return R.del("Ordugla", delTekst(S), DEL_URL + "#utfordring", { kort: delKort(S) });
       },
     }),
   });

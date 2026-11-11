@@ -1275,7 +1275,7 @@
           <button class="knapp" data-h="lukk-ark">Lukk</button>`);
       },
       del(el, e, S) {
-        if (S.dag && S.dag.ferdig) return R.del("Blyanten", delTekst(S), DEL_URL);
+        if (S.dag && S.dag.ferdig) return R.del("Blyanten", delTekst(S), DEL_URL, { kort: { tittel: "Dagens kryss", linjer: [S.dag.gaOpp ? "Ga opp i dag" : `Løst på ${tidTekst(S.dag.tid)}`, S.dag.kryss.ord.map((w) => (cellerI(S.dag.kryss, w).some((c) => S.dag.vist.includes(c)) ? "💡" : "✏️")).join("")] } });
       },
     }),
   });

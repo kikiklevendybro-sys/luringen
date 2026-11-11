@@ -108,7 +108,7 @@ export default async function (t) {
   await t.js("window.__delt = null; navigator.share = (d) => { window.__delt = d; return Promise.resolve(); }");
   await t.klikk('.dokk [data-h="del"]', 300);
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && delt.url === "https://rusj.no/dobleren/" && /Dobleren \d+\.\d+ · 64-brikke 🥈 · \d+ poeng/.test(delt.text), `«Del resultatet» deler ikke resultatet (${JSON.stringify(delt)})`);
+  t.sjekk(delt && (delt.url === "https://rusj.no/dobleren/" || String(delt.text).includes("https://rusj.no/dobleren/")) && /Dobleren \d+\.\d+ · 64-brikke 🥈 · \d+ poeng/.test(delt.text), `«Del resultatet» deler ikke resultatet (${JSON.stringify(delt)})`);
   await t.bilde("dagens-resultat", true);
   // The front page's link: #dagens shows the result of the finished try.
   await t.lastSide(t.side + "#dagens", "document.querySelector('.skjerm-slutt')");
