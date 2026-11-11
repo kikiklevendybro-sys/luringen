@@ -669,7 +669,12 @@
   }
   R.si = (tekst) => {
     tekst = siNorm(tekst);
-    if (!tekst) return;
+    if (!tekst) {
+      // R.si("") takes back what was said (a secret that is hidden again must not stay readable).
+      const el = $("#si");
+      if (el) el.textContent = "";
+      return;
+    }
     siITur = true;
     setTimeout(() => {
       siITur = false;

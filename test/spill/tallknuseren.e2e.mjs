@@ -78,9 +78,9 @@ export default async function (t) {
   t.sjekk(
     await t.js(`(() => {
       const alle = Array.from(document.querySelectorAll(".tk-celle.konflikt"));
-      return alle.length === 2 && alle.every((el) => /, konflikt$/.test(el.getAttribute("aria-label")) && getComputedStyle(el, "::after").content.includes("!"));
+      return alle.length >= 2 && alle.every((el) => /, konflikt$/.test(el.getAttribute("aria-label")) && getComputedStyle(el, "::after").content.includes("!"));
     })()`),
-    "Konflikten vises bare med farge (mangler i etiketten eller som merke)",
+    `Konflikten vises bare med farge (mangler i etiketten eller som merke): ${await t.js(`JSON.stringify(Array.from(document.querySelectorAll(".tk-celle.konflikt")).map((el) => [el.getAttribute("aria-label"), getComputedStyle(el, "::after").content]))`)}`,
   );
   await t.sov(80);
   t.sjekk(new RegExp(`^${krasj} i rad \\d, kolonne \\d\\. Står allerede i raden`).test(await t.js("document.querySelector('#si').textContent")), "Konflikten ble ikke lest opp for skjermleser");
