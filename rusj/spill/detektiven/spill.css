@@ -14,9 +14,52 @@
   overflow-wrap: break-word;
 }
 
+/* The top of the page is lit: the pink pill and the helper line need lighter text there (4.5:1). */
+.detektiv-hode .ikke-se,
+.skjerm-gi .ikke-se {
+  color: #ffa9c6;
+}
+
+/* ---------- Setup: three ways to play, one compact row each ---------- */
+
+.skjerm-oppsett .fliser.en .flis {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 2px 14px;
+}
+
+.skjerm-oppsett .fliser.en .flis-ikon {
+  grid-row: 1 / span 2;
+  font-size: 1.9rem;
+}
+
+.skjerm-hemmelig > .hjelp {
+  color: var(--tekst-2);
+}
+
+/* ---------- Home: this phone's record ---------- */
+
+.detektiv-rekord {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 10px;
+  color: var(--tekst-2);
+  text-align: center;
+}
+
+.detektiv-rekord b {
+  color: var(--lampe);
+  font: 900 1rem/1.25 var(--font-display);
+}
+
 /* ---------- Questioning: the magnifying glass ---------- */
 
 .detektiv-avhor {
+  --lupe: min(80vw, 330px);
+  position: relative;
   display: grid;
   justify-items: center;
   gap: 18px;
@@ -26,8 +69,43 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: min(80vw, 330px);
+  width: var(--lupe);
   container-type: inline-size;
+}
+
+/* «Angre» belongs to the meter: at the foot of the magnifier, in the corner the glass leaves free.
+   (In the markup it comes after the answers, where it also sits on a phone on its side.) */
+.detektiv-angre {
+  position: absolute;
+  top: calc(var(--lupe) - 34px);
+  left: max(0px, calc(50% - var(--lupe) / 2 - 40px));
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 0.88rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.detektiv-angre svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.detektiv-angre:active {
+  transform: translateY(1px);
 }
 
 .detektiv-lupe {
@@ -265,6 +343,11 @@
   overflow-wrap: break-word;
 }
 
+/* (Focus lands here after «Vis hint» so a screen reader stays in place; it is not a control.) */
+.detektiv-hintkort:focus {
+  outline: none;
+}
+
 @keyframes detektiv-inn {
   from {
     opacity: 0;
@@ -370,14 +453,87 @@
   white-space: nowrap;
 }
 
+/* The reason is never cut: it wraps under itself when the row is narrow. */
 .detektiv-pluss-liste .grunn {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
   color: var(--tekst-2);
   font-size: 0.85rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+
+.detektiv-pluss-liste li:has(.grunn) {
+  border-radius: 28px;
+}
+
+.detektiv-ingen-poeng {
+  padding: 12px 16px;
+  border: 1.5px dashed var(--strek);
+  border-radius: var(--r-mid);
+  color: var(--tekst-2);
+  text-align: center;
+}
+
+/* A record was beaten with this secret */
+.detektiv-nyrekord {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--lampe) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--lampe) 55%, transparent);
+  color: var(--tekst);
+  font: 800 0.95rem/1.3 var(--font-display);
+}
+
+/* ---------- Without points: the secrets of the game, solved or not ---------- */
+
+.detektiv-saker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detektiv-saker li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 10px 10px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.detektiv-merke {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--mynte);
+  color: var(--blekk);
+  font: 900 1rem/1 var(--font-display);
+}
+
+.detektiv-saker li.uopp .detektiv-merke {
+  background: var(--rosa);
+}
+
+.detektiv-saker .navn {
+  flex: 1;
+  min-width: 0;
+  font: 900 1.05rem/1.2 var(--font-display);
+  overflow-wrap: break-word;
+}
+
+.detektiv-saker .res {
+  flex: none;
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .detektiv-pluss-liste b {
@@ -456,13 +612,65 @@
   }
 
   .detektiv-avhor {
+    --lupe: min(54vh, 230px);
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
     gap: 28px;
   }
 
-  .detektiv-lupe-sted {
-    width: min(54vh, 230px);
+  /* «Angre» shares the line of the status text, so the column is no taller than before. */
+  .detektiv-styring {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 10px;
+    align-items: center;
+  }
+
+  /* Answers and hints are a little lower here, so two hint lines still end above the buttons. */
+  .detektiv-svar .knapp {
+    min-height: 52px;
+  }
+
+  .detektiv-hint {
+    gap: 6px;
+  }
+
+  .detektiv-hintkort {
+    padding: 7px 14px;
+  }
+
+  .detektiv-hintkort b {
+    font-size: 1.1rem;
+  }
+
+  .detektiv-hint-laast {
+    padding: 6px 12px;
+    font-size: 0.88rem;
+  }
+
+  .detektiv-hint .knapp-2 {
+    min-height: 44px;
+  }
+
+  /* All 20 used: «… gjettet det!», «Ingen klarte det» and the links side by side. */
+  html[data-spill="detektiven"] .dokk.detektiv-dokk-tre {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .detektiv-styring > * {
+    grid-column: 1 / -1;
+  }
+
+  .detektiv-styring > .detektiv-status {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  .detektiv-styring > .detektiv-angre {
+    position: static;
+    grid-row: 1;
+    grid-column: 2;
+    min-height: 32px;
+    padding-block: 2px;
   }
 
   .detektiv-avsloring {
@@ -477,8 +685,8 @@
 }
 
 @media (max-height: 700px) and (orientation: portrait) {
-  .detektiv-lupe-sted {
-    width: min(70vw, 270px);
+  .detektiv-avhor {
+    --lupe: min(70vw, 270px);
   }
 }
 
@@ -488,8 +696,9 @@
     gap: 14px;
   }
 
+  /* (the card gives way a little on the very shortest screens, so the line under it shows too) */
   .skjerm-hemmelig .mappe {
-    height: 262px;
+    height: min(262px, calc(100vh - 318px));
     min-height: 0;
   }
 
@@ -512,8 +721,17 @@
     gap: 10px;
   }
 
-  .detektiv-lupe-sted {
-    width: min(56vw, 190px);
+  .detektiv-avhor {
+    --lupe: min(56vw, 190px);
+  }
+
+  .detektiv-angre {
+    top: calc(var(--lupe) - 36px);
+    /* the glass is small here: «Angre» moves to the screen's left edge, clear of the ring */
+    left: 0;
+    min-height: 40px;
+    padding: 4px 11px;
+    font-size: 0.8rem;
   }
 
   .detektiv-status {

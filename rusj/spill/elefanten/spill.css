@@ -1,17 +1,24 @@
-/* Elefanten — memory. Everything is prefixed "ele-". The 3D flip: the button holds a hopping layer
-   (.ele-hopp: lift, shake, cheer) with perspective, which holds the turning layer (.ele-indre). */
+/* Elefanten — find two alike. Everything is prefixed "ele-". The 3D flip: the button holds a hopping
+   layer (.ele-hopp: lift, shake, cheer) with perspective, which holds the turning layer (.ele-indre). */
 
 /* ---------- Home ---------- */
 
+/* What there is to beat, right under the buttons: wins against the elephant and the best games alone. */
 .ele-rekorder {
   display: grid;
   justify-items: center;
   gap: 8px;
-  margin-top: -6px;
+  margin-top: 2px;
+}
+
+.ele-rekorder ul + .etikett {
+  margin-top: 6px;
 }
 
 .ele-rekorder ul {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
   margin: 0;
   padding: 0;
@@ -35,7 +42,7 @@
 
 /* ---------- Setup ---------- */
 
-.skjerm-oppsett .fliser .flis:last-child:nth-child(odd) {
+.ele-temaer .fliser .flis:last-child:nth-child(odd) {
   grid-column: 1 / -1;
 }
 
@@ -44,6 +51,54 @@
   max-width: 100%;
   hyphens: auto;
   overflow-wrap: anywhere;
+}
+
+/* How to play, and how strong the elephant is: three compact tiles in one row. */
+.ele-tre .fliser {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ele-tre .flis {
+  align-items: center;
+  gap: 4px;
+  padding: 12px 6px;
+  text-align: center;
+}
+
+.ele-tre .flis b {
+  font-size: 1rem;
+}
+
+.ele-tre .flis > span:last-child {
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.ele-tre .flis-ikon {
+  display: grid;
+  place-items: center;
+  height: 40px;
+}
+
+.ele-tre .ele-flisfigurer svg {
+  margin-right: 0;
+}
+
+/* The calf, the elephant and the old elephant: the same face, growing. */
+.ele-tre .ele-str.s1 svg {
+  width: 24px;
+  height: 24px;
+}
+
+.ele-tre .ele-str.s2 svg {
+  width: 32px;
+  height: 32px;
+}
+
+.ele-tre .ele-str.s3 svg {
+  width: 40px;
+  height: 40px;
 }
 
 .ele-flisfigurer {
@@ -175,6 +230,23 @@
   transform: translateY(-2px);
 }
 
+/* A tie-break: those who don't share the lead only watch. */
+.ele-spiller.ute {
+  opacity: 0.5;
+}
+
+/* The elephant as a player: the mascot where the others have their animal. */
+.avatar.ele-elefant {
+  background: color-mix(in srgb, var(--aksent) 35%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--aksent);
+}
+
+.avatar.ele-elefant svg {
+  display: block;
+  width: 84%;
+  height: 84%;
+}
+
 /* Long names wrap to a second line instead of being cut. */
 .ele-navn {
   display: -webkit-box;
@@ -268,19 +340,22 @@
 
 /* ---------- The board ---------- */
 
+/* Rows of --kol cards; a last row that is not full is centred. */
 .ele-brett {
   --kb: 72px;
   --gap: 10px;
-  display: grid;
-  grid-template-columns: repeat(var(--kol), var(--kb));
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: var(--gap);
-  padding-top: 2px;
+  width: calc(var(--kol) * var(--kb) + (var(--kol) - 1) * var(--gap));
+  margin: 2px auto 0;
 }
 
 .ele-kort {
   position: relative;
   display: block;
+  flex: none;
   width: var(--kb);
   height: calc(var(--kb) * var(--forhold, 1.22));
   padding: 0;
@@ -579,8 +654,7 @@
 }
 
 .ele-stjerner span {
-  color: var(--natt-3);
-  text-shadow: 0 4px 0 var(--natt-2);
+  color: var(--tekst-3);
 }
 
 .ele-stjerner span.pa {
@@ -647,6 +721,29 @@
     opacity: 0;
     transform: rotate(8deg) scale(2.4);
   }
+}
+
+/* «Del resultatet» and «Prøv mot …» under the result: buttons as wide as their words. */
+.skjerm-slutt > .knapp-2 {
+  align-self: center;
+  width: auto;
+  min-width: min(100%, 240px);
+}
+
+.ele-seirer {
+  align-self: center;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 0.95rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.ele-seirer b {
+  color: var(--lampe);
+  font-variant-numeric: tabular-nums;
 }
 
 .ele-vinner {

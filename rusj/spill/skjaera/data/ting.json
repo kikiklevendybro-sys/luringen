@@ -164,5 +164,15 @@
         ["✉️", "Brev"]
       ]
     }
-  ]
+  ],
+  "jul": {
+    "navn": "Jul",
+    "ting": [
+      ["🎄", "Juletre"], ["🎅", "Julenisse"], ["🤶", "Nissemor"], ["🦌", "Reinsdyr"], ["🎁", "Julegave"], ["🔔", "Juleklokke"],
+      ["🕯️", "Julelys"], ["⛄", "Snømann"], ["❄️", "Snøfnugg"], ["🧦", "Julestrømpe"], ["🍪", "Pepperkake"], ["⭐", "Julestjerne"],
+      ["👼", "Engel"], ["⛪", "Kirke"], ["🛷", "Kjelke"], ["🧣", "Skjerf"], ["🧤", "Hansker"], ["🍊", "Klementin"],
+      ["🥜", "Nøtter"], ["🍬", "Godteri"], ["🎇", "Stjerneskudd"], ["🧶", "Garnnøste"], ["🪵", "Vedkubbe"], ["🎿", "Ski"],
+      ["⛸️", "Skøyter"], ["🥣", "Julegrøt"], ["☕", "Kakao"], ["🎆", "Fyrverkeri"], ["🧸", "Bamse"], ["🎀", "Sløyfe"]
+    ]
+  }
 }

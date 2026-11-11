@@ -1,9 +1,13 @@
 /* Bokstavtrollet — the alphabet game ("Alfabetleken"). Two modes:
-   Bomba: the troll draws a category and a letter. Say a word that fits and pass the phone on. A
-   hidden timer runs while the troll sleeps and its heartbeat speeds up; when it wakes (roar, shake,
-   red flash) whoever holds the phone loses a heart. Three hearts each; the last one standing wins.
+   Bomba: say a word and pass the phone on before the troll wakes. What the word has to fit is chosen
+   in the setup: a category, a letter or both. The letter is new on every pass, so each player needs
+   one word for a letter of their own. A hidden timer runs while the troll sleeps and its heartbeat
+   speeds up; when it wakes (roar, shake, red flash) whoever holds the phone loses a heart. Nobody is
+   out: the game stops when someone loses the last of three hearts, and most hearts wins – a tie at
+   the top is settled by a sudden-death final. «Sistemann igjen» is the knock-out rule for adults.
    Bokstavjakt: one letter and five categories, everyone writes on paper against the clock, then the
-   app walks through the categories so the group can score them (2 unique, 1 shared, 0 nothing). */
+   app walks through the categories so the group can score them (2 unique, 1 shared, 0 nothing).
+   Three or five rounds, or first to 30; a tie at the top gives one extra round. */
 (function () {
   "use strict";
 
@@ -22,11 +26,40 @@
   const ALFABET = "ABCDEFGHIJKLMNOPRSTUVWYZÆØÅ".split("");
   const SOVN = { tungt: [25, 50], normalt: [15, 45], lett: [8, 25] };
   const LIV = 3;
+  // What a word must fit in Bomba. Until someone chooses, the level decides: children get a letter
+  // only (any word will do), everyone else a category and a letter.
+  const KRAV = [
+    ["kategori", "Kategori"],
+    ["bokstav", "Bokstav"],
+    ["begge", "Begge"],
+  ];
+  const KRAV_TEKST = {
+    kategori: "Trollet velger en kategori – si noe som passer. Fra 4 år.",
+    bokstav: "Trollet velger en bokstav – si et ord som begynner på den. Fra 6 år.",
+    begge: "Kategori og bokstav, for eksempel «Dyr på K». Fra 9 år.",
+  };
+  const erKrav = (k) => KRAV.some(([v]) => v === k);
+  const kravFor = (o) => (erKrav(o.krav) ? o.krav : o.niva === "barn" ? "bokstav" : "begge");
+  // Bokstavjakt ends by itself: after three or five rounds, or when someone reaches 30 points.
+  const LENGDER = [
+    ["3", "3 runder"],
+    ["5", "5 runder"],
+    ["30", "Først til 30"],
+  ];
   const FARGE = G.farge("bokstavtrollet");
+  const REKORD = "bokstavtrollet.rekord"; // most words before the troll woke, on this phone
+  const DEL_URL = "https://rusj.no/bokstavtrollet/";
   const kortstokk = R.kortstokk("kategorier", KAT.length);
 
   let H; // actions
   let nyttKort = false; // spin the letter on the next draw
+  let bytter = false; // «Bytt bokstav» is spinning: the phone cannot be passed on meanwhile
+
+  const lesRekord = () => {
+    const r = R.les(REKORD, null);
+    return { ord: r && Number.isInteger(r.ord) && r.ord > 0 ? r.ord : 0 };
+  };
+  const ordTekst = (n) => R.flertall(n, "ord", "ord");
 
   // ---------- The troll (drawn like the mascot in gjengen.js, with a sleeping and a roaring face) ----------
 
@@ -105,14 +138,45 @@
     return valgt;
   }
 
-  const passer = (sp, unntak) => (i) => KAT[i].n <= NIVA[sp.niva] && !(KAT[i].kun && KAT[i].kun !== sp.modus) && !(unntak || []).includes(i);
+  // Which categories a game draws from: the level, the mode («Hva som helst» is only for Bomba) and
+  // the Christmas set (jul: 1 = only with the switch on, 2 = also an ordinary category). The chain in
+  // Bomba needs wide categories, or the words run out after a few turns: b: 1 = many answers (fine
+  // without a letter), b: 2 = many answers on almost every letter (fine with a new letter per pass).
+  const passer = (sp, unntak) => (i) => {
+    const k = KAT[i];
+    if (k.n > NIVA[sp.niva] || (k.kun && k.kun !== sp.modus) || (unntak || []).includes(i)) return false;
+    if (sp.jul ? !k.jul : k.jul === 1) return false;
+    if (sp.modus !== "bomba") return true;
+    return sp.krav === "begge" ? k.b === 2 : sp.krav === "kategori" ? k.b >= 1 && !k.kun : false;
+  };
   const trekkKategori = (sp, unntak) => kortstokk.neste(passer(sp, unntak));
+  const antallKat = (sp) => KAT.reduce((s, k, i) => s + (passer(sp)(i) ? 1 : 0), 0);
 
-  function kortHtml(k, b, o = {}) {
-    return `<h1 class="bt-kort${o.liten ? " liten" : ""}${o.nytt ? " nytt" : ""}" id="skjerm-tittel">
-      <span class="bt-kat"><span class="bt-kat-ikon" aria-hidden="true">${esc(KAT[k].i)}</span><span class="bt-kat-navn">${esc(KAT[k].t)}</span></span>
+  // A new card for a round of Bomba: a category (never the same twice in a row), a letter, or both.
+  function trekkKort(sp) {
+    let k = -1;
+    if (sp.krav !== "bokstav") {
+      k = trekkKategori(sp, sp.kort && sp.kort.k >= 0 ? [sp.kort.k] : []);
+      if (k < 0) k = trekkKategori(sp);
+      if (k < 0) k = 0;
+    }
+    return { k, b: sp.krav === "kategori" ? "" : trekkBokstav(sp) };
+  }
+
+  function kortHtml(kort, o = {}) {
+    const k = kort.k >= 0 ? KAT[kort.k] : null;
+    const klasse = `bt-kort${o.liten ? " liten" : ""}${o.nytt ? " nytt" : ""}`;
+    // Category only: the category's own picture sits where the letter block would be.
+    if (!kort.b && k)
+      return `<h1 class="${klasse}" id="skjerm-tittel">
+        <span class="bt-kat"><span class="bt-kat-navn">${esc(k.t)}</span></span>
+        <span class="bt-pa">si noe som passer</span>
+        <span class="bt-bokstav bilde" aria-hidden="true"><span>${esc(k.i)}</span></span>
+      </h1>`;
+    return `<h1 class="${klasse}" id="skjerm-tittel">
+      <span class="bt-kat">${k ? `<span class="bt-kat-ikon" aria-hidden="true">${esc(k.i)}</span><span class="bt-kat-navn">${esc(k.t)}</span>` : `<span class="bt-kat-navn">Et ord</span>`}</span>
       <span class="bt-pa">som begynner på</span>
-      <span class="bt-bokstav" data-bokstav="${esc(b)}"><span>${esc(b)}</span></span>
+      <span class="bt-bokstav" data-bokstav="${esc(kort.b)}"><span>${esc(kort.b)}</span></span>
     </h1>`;
   }
 
@@ -152,24 +216,37 @@
 
   // ---------- Players and hearts ----------
 
-  const levende = (sp) => sp.liv.map((l, i) => (l > 0 ? i : -1)).filter((i) => i >= 0);
-  function nesteLevende(sp, i) {
+  // Who the phone goes round between: everyone with a heart left – or, in the final, the finalists.
+  const aktive = (sp) => (sp.finale ? sp.finale.slice() : sp.liv.map((l, i) => (l > 0 ? i : -1)).filter((i) => i >= 0));
+  function nesteAktiv(sp, i) {
+    const a = aktive(sp);
     for (let n = 1; n <= sp.antall; n++) {
       const j = (i + n) % sp.antall;
-      if (sp.liv[j] > 0) return j;
+      if (a.includes(j)) return j;
     }
     return i;
   }
+  // Those with the most hearts.
+  const flest = (sp) => {
+    const topp = Math.max(...sp.liv);
+    return sp.liv.map((l, i) => (l === topp ? i : -1)).filter((i) => i >= 0);
+  };
+  // Nobody is out: when someone has lost the last heart the game is over, and several players with
+  // the most hearts play a final.
+  const noenTom = (sp) => sp.liv.some((l) => l <= 0);
+  const trengerFinale = (sp) => !sp.sistemann && !sp.finale && noenTom(sp) && flest(sp).length > 1;
   const hjerter = (l, maks) =>
-    `<span class="bt-hjerter" aria-label="${l} av ${maks} hjerter">${Array.from({ length: maks }, (_, n) => `<i class="${n < l ? "pa" : ""}">♥</i>`).join("")}</span>`;
+    `<span class="bt-hjerter" role="img" aria-label="${l} av ${maks} hjerter">${Array.from({ length: maks }, (_, n) => `<i class="${n < l ? "pa" : ""}" aria-hidden="true">♥</i>`).join("")}</span>`;
 
   function livRad(sp, o = {}) {
-    return `<ul class="bt-liv${sp.antall > 6 ? " mange" : ""}" aria-label="Hjerter">${sp.liv
-      .map(
-        (l, i) => `<li class="${l > 0 ? "" : "ute"}${o.na === i ? " na" : ""}" style="--pf: var(--p${(i % 20) + 1})">
-          ${R.avatar(i)}<span class="bt-liv-navn">${esc(R.navn(i))}</span>${l > 0 ? hjerter(l, LIV) : '<span class="bt-ute">👻<span class="bt-ute-tekst"> Ute</span></span>'}
-        </li>`,
-      )
+    const hvem = sp.finale ? sp.finale : sp.liv.map((_, i) => i);
+    return `<ul class="bt-liv${hvem.length > 6 ? " mange" : ""}" aria-label="${sp.finale ? "Finalistene" : "Hjerter"}">${hvem
+      .map((i) => {
+        const l = sp.liv[i];
+        return `<li class="${l > 0 ? "" : "ute"}${o.na === i ? " na" : ""}" style="--pf: var(--p${(i % 20) + 1})">
+          ${R.avatar(i)}<span class="bt-liv-navn">${esc(R.navn(i))}</span>${l > 0 || !sp.sistemann ? hjerter(l, LIV) : '<span class="bt-ute">👻<span class="bt-ute-tekst"> Ute</span></span>'}
+        </li>`;
+      })
       .join("")}</ul>`;
   }
 
@@ -228,6 +305,11 @@
     stoppBomba();
     sp.slutt = 0;
     sp.fase = "vakna";
+    // The record: most words (passes) in one round before the troll woke.
+    const rekord = lesRekord().ord;
+    sp.nyRekord = rekord > 0 && sp.ord > rekord;
+    if (sp.ord > rekord) R.skriv(REKORD, { ord: sp.ord });
+    sp.best = Math.max(sp.best || 0, sp.ord);
     R.lagre();
     const fortsatt = R.vakt();
     const ramme = R.$(".bt-trollramme");
@@ -287,6 +369,17 @@
 
   // The screen that belongs to a phase of a Bokstavjakt round.
   const jaktSkjerm = (r) => (r.fase === "poeng" ? "jakt-poeng" : r.fase === "ferdig" ? "jakt-stilling" : "jakt");
+  // How many rounds a game is (0 = no fixed number: «Først til 30», or a game from the first version).
+  const jaktRunder = (sp) => (sp.lengde === "3" || sp.lengde === "5" ? Number(sp.lengde) : 0);
+  // After a round is scored: "" = play on, "ekstra" = the game is over but the top is tied (one extra
+  // round decides), "ferdig" = to «Kåringen».
+  function jaktStatus(sp) {
+    const topp = Math.max(...sp.poeng);
+    const naadd = sp.lengde === "30" ? topp >= 30 : jaktRunder(sp) > 0 && (sp.spilt || 0) >= jaktRunder(sp);
+    if (!naadd) return "";
+    return sp.poeng.filter((p) => p === topp).length > 1 && !sp.ekstra ? "ekstra" : "ferdig";
+  }
+  const jaktTittel = (sp) => (sp.ekstra ? "Ekstrarunde" : `Runde ${sp.runde}${jaktRunder(sp) ? ` av ${jaktRunder(sp)}` : ""}`);
 
   function jaktSlutt(S, tidUte) {
     const sp = S.spill;
@@ -310,26 +403,33 @@
 
   // ---------- Results ----------
 
-  function rangering(sp) {
-    if (sp.modus === "bomba") {
-      const vinner = levende(sp);
-      return [...vinner, ...sp.ute.slice().reverse()];
-    }
-    return sp.poeng.map((p, i) => ({ i, p })).sort((a, b) => b.p - a.p).map((r) => r.i);
+  // Bomba's ranking, best first: [{ i, plass }]. Most hearts first; the final sorts its players (the
+  // one left wins, then last out first); in a knock-out game those who are out come in the order
+  // they left, last out first. What is still equal shares a place (a game that was ended early).
+  function bombaRangering(sp) {
+    const ut = sp.finaleUt || [];
+    const verdi = (i) => sp.liv[i] * 1000 + (sp.finale && sp.finale.includes(i) ? 500 : 0) + (ut.indexOf(i) + 1) * 10 + (sp.liv[i] > 0 ? 0 : sp.ute.indexOf(i) + 1);
+    const rad = sp.liv.map((_, i) => ({ i, v: verdi(i) })).sort((a, b) => b.v - a.v || a.i - b.i);
+    rad.forEach((r, n) => {
+      r.plass = n && rad[n - 1].v === r.v ? rad[n - 1].plass : n + 1;
+    });
+    return rad;
   }
 
   function nySpill(S) {
     const o = S.oppsett;
     const antall = R.klamp(S.antall || 2, 2, 12);
-    const sp = { modus: o.modus, antall, niva: o.niva, vanskelig: !!o.vanskelig, brukt: [], runde: 1, ferdig: false };
+    const sp = { modus: o.modus, antall, niva: o.niva, vanskelig: !!o.vanskelig, jul: !!o.jul, brukt: [], runde: 1, ferdig: false };
     if (o.modus === "bomba") {
-      Object.assign(sp, { sovn: o.sovn, liv: Array.from({ length: antall }, () => LIV), ute: [], start: R.heltall(0, antall - 1), ord: 0, slutt: 0 });
+      Object.assign(sp, { krav: kravFor(o), sistemann: !!o.sistemann, sovn: o.sovn, liv: Array.from({ length: antall }, () => LIV), ute: [], finale: null, finaleUt: [], start: R.heltall(0, antall - 1), ord: 0, best: 0, slutt: 0 });
+      if (sp.krav === "bokstav") sp.jul = false; // no categories in play
       sp.holder = sp.start;
-      sp.kort = { k: trekkKategori(sp), b: trekkBokstav(sp) };
+      sp.kort = trekkKort(sp);
     } else {
-      Object.assign(sp, { tid: o.tid, poeng: Array.from({ length: antall }, () => 0), rundePoeng: Array.from({ length: antall }, () => 0), r: null });
+      Object.assign(sp, { tid: o.tid, lengde: o.lengde, ekstra: false, poeng: Array.from({ length: antall }, () => 0), rundePoeng: Array.from({ length: antall }, () => 0), r: null });
     }
     S.spill = sp;
+    R.statistikk("start", { modus: sp.modus, spillere: antall, niva: sp.niva, krav: sp.krav || "", jul: sp.jul, lengde: sp.lengde || (sp.sistemann ? "sistemann" : "hjerter") });
     return sp;
   }
 
@@ -343,24 +443,50 @@
 
     tilstand: () => ({
       antall: 3,
-      oppsett: { modus: "bomba", niva: "barn", vanskelig: false, sovn: "normalt", tid: 90 },
+      oppsett: { modus: "bomba", niva: "barn", vanskelig: false, sovn: "normalt", tid: 90, krav: null, sistemann: false, jul: false, lengde: "3" },
       spill: null,
     }),
 
     lastet(S) {
-      const o = (S.oppsett = Object.assign({ modus: "bomba", niva: "barn", vanskelig: false, sovn: "normalt", tid: 90 }, S.oppsett || {}));
+      const o = (S.oppsett = Object.assign({ modus: "bomba", niva: "barn", vanskelig: false, sovn: "normalt", tid: 90, krav: null, sistemann: false, jul: false, lengde: "3" }, S.oppsett || {}));
       if (!["bomba", "jakt"].includes(o.modus)) o.modus = "bomba";
       if (!(o.niva in NIVA)) o.niva = "barn";
       if (!(o.sovn in SOVN)) o.sovn = "normalt";
       if (![60, 90, 120].includes(o.tid)) o.tid = 90;
+      if (!erKrav(o.krav)) o.krav = null;
+      if (!LENGDER.some(([v]) => v === o.lengde)) o.lengde = "3";
+      o.sistemann = !!o.sistemann;
+      o.jul = !!o.jul;
       S.antall = R.klamp(Number(S.antall) || 3, 2, 12);
       const sp = S.spill;
       if (sp) {
         const godKat = (i) => Number.isInteger(i) && KAT[i];
-        let ok = (sp.modus === "bomba" || sp.modus === "jakt") && Number.isInteger(sp.antall) && sp.antall >= 2 && Array.isArray(sp.brukt);
-        if (ok && sp.modus === "bomba") ok = Array.isArray(sp.liv) && sp.liv.length === sp.antall && sp.kort && godKat(sp.kort.k) && Array.isArray(sp.ute);
+        let ok = (sp.modus === "bomba" || sp.modus === "jakt") && Number.isInteger(sp.antall) && sp.antall >= 2 && Array.isArray(sp.brukt) && sp.niva in NIVA;
+        if (ok && sp.modus === "bomba") ok = Array.isArray(sp.liv) && sp.liv.length === sp.antall && sp.kort && (godKat(sp.kort.k) || sp.kort.k === -1) && Array.isArray(sp.ute);
         if (ok && sp.modus === "jakt") ok = Array.isArray(sp.poeng) && sp.poeng.length === sp.antall && (!sp.r || (Array.isArray(sp.r.k) && sp.r.k.every(godKat)));
         if (!ok) S.spill = null;
+        else if (sp.modus === "bomba") {
+          // A game saved by the first version keeps its own rules: category and letter, last one standing.
+          if (!erKrav(sp.krav)) {
+            sp.krav = "begge";
+            sp.sistemann = true;
+          }
+          sp.sistemann = !!sp.sistemann;
+          sp.jul = !!sp.jul;
+          const spiller = (i) => Number.isInteger(i) && i >= 0 && i < sp.antall;
+          sp.finale = Array.isArray(sp.finale) && sp.finale.length && sp.finale.every(spiller) ? sp.finale : null;
+          sp.finaleUt = Array.isArray(sp.finaleUt) ? sp.finaleUt.filter(spiller) : [];
+          if (!spiller(sp.start)) sp.start = 0;
+          if (!spiller(sp.holder)) sp.holder = sp.start;
+          if (sp.krav === "bokstav") sp.kort.k = -1;
+          else if (!godKat(sp.kort.k)) sp.kort.k = Math.max(0, trekkKategori(sp));
+          if (sp.krav === "kategori") sp.kort.b = "";
+          else if (typeof sp.kort.b !== "string" || !sp.kort.b) sp.kort.b = trekkBokstav(sp);
+        } else {
+          if (!LENGDER.some(([v]) => v === sp.lengde)) sp.lengde = ""; // (the first version had no end)
+          sp.ekstra = !!sp.ekstra;
+          sp.jul = !!sp.jul;
+        }
       }
       // A round of Bomba is never resumed half-way: back to the card, with a fresh hidden timer
       // (unless the troll had already woken up – then someone still has to lose a heart).
@@ -378,15 +504,16 @@
     regler: {
       intro: "To leker med bokstaver: Bomba, der dere sender mobilen før trollet våkner, og Bokstavjakt med blyant og papir.",
       steg: [
-        ["Bomba: si et ord", "Trollet trekker en kategori og en bokstav, for eksempel «Dyr på B». Si et ord som passer, og send mobilen videre."],
-        ["Ikke vekk trollet!", "Trollet kan våkne når som helst. Den som holder mobilen da, mister et hjerte. Den som er igjen til slutt, vinner."],
+        ["Bomba: si et ord", "Trollet gir deg en bokstav, en kategori – eller begge deler, som «Dyr på B». Si et ord som passer, og send mobilen videre. Neste spiller får en ny bokstav."],
+        ["Ikke vekk trollet!", "Trollet kan våkne når som helst. Den som holder mobilen da, mister et hjerte. Når noen har mistet alle tre, er spillet slutt – og den med flest hjerter vinner."],
         ["Bokstavjakt: skriv ord", "Alle skriver ett ord til hver av de fem kategoriene. Les opp etterpå: et ord ingen andre har, gir 2 poeng. Likt ord gir 1."],
       ],
       tips: [
         "Ordet er allerede sagt? Da må du finne et nytt.",
-        "Er kortet helt umulig? Trykk «Nytt kort» før dere starter.",
-        "Vanskelige bokstaver (C, W, Y, Z, Æ, Ø og Å) skrur du på i oppsettet.",
-        "Små barn kan få hjelp av en voksen – eller si et hvilket som helst ord på bokstaven, uten kategori.",
+        "Umulig bokstav? Trykk «Bytt bokstav» – men det koster et par dyrebare sekunder.",
+        "Har flere like mange hjerter til slutt, blir det finale: Den som holder mobilen når trollet våkner, ryker ut.",
+        "For de minste: Velg «Kategori» i oppsettet – da trengs ingen bokstav.",
+        "Vil dere spille til bare én står igjen? Skru på «Sistemann igjen». Vanskelige bokstaver (C, W, Y, Z, Æ, Ø og Å) skrur dere også på der.",
       ],
     },
 
@@ -396,7 +523,8 @@
         vis(S) {
           const sp = S.spill;
           const aktiv = sp && !sp.ferdig;
-          const fortsett = aktiv ? R.ui.knapp(sp.modus === "bomba" ? `Fortsett Bomba · runde ${sp.runde}` : `Fortsett Bokstavjakt · runde ${sp.runde}`, "fortsett", { ikon: "▶" }) : "";
+          const fortsett = aktiv ? R.ui.knapp(sp.modus === "bomba" ? (sp.finale ? "Fortsett Bomba · finalen" : `Fortsett Bomba · runde ${sp.runde}`) : `Fortsett Bokstavjakt · ${jaktTittel(sp).toLowerCase()}`, "fortsett") : "";
+          const rekord = lesRekord().ord;
           return R.ui.spillhjem({
             slagordHtml: "Si et ord på bokstaven.<br><em>Ikke vekk trollet!</em>",
             knapperHtml: `${fortsett}
@@ -404,6 +532,7 @@
                 <button class="bt-modus bomba" data-h="velg-modus" data-v="bomba"><span class="bt-modus-ikon" aria-hidden="true">💣</span><b>Bomba</b><span>Send mobilen før trollet våkner</span></button>
                 <button class="bt-modus jakt" data-h="velg-modus" data-v="jakt"><span class="bt-modus-ikon" aria-hidden="true">✏️</span><b>Bokstavjakt</b><span>Skriv ord med blyant og papir</span></button>
               </div>
+              ${rekord ? `<p class="bt-rekord"><span class="etikett">Rekord</span> <b>${esc(ordTekst(rekord))}</b> <span>før trollet våknet</span></p>` : ""}
               ${R.ui.lenke("Slik spiller du", "regler")}`,
             merker: [
               ["2–12", "spillere"],
@@ -420,16 +549,34 @@
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
+          const bomba = o.modus === "bomba";
+          const krav = kravFor(o);
+          const medKategori = !bomba || krav !== "bokstav";
+          const utvalg = { modus: o.modus, niva: o.niva, krav, jul: o.jul };
+          const nivaTekst = `${D.nivaer.find((n) => n.id === o.niva).tekst} · ${antallKat(utvalg)} kategorier`;
           return `
-            <h1 id="skjerm-tittel" class="bt-oppsett-tittel"><span aria-hidden="true">${o.modus === "jakt" ? "✏️" : "💣"}</span> Gjør klart til ${o.modus === "jakt" ? "Bokstavjakt" : "Bomba"}</h1>
-            ${R.ui.spillere({ min: 2, max: 12, tittel: "Hvem spiller?", hjelp: o.modus === "bomba" ? "Sitt i ring, i samme rekkefølge som her." : "Alle trenger et ark og en blyant." })}
-            <section class="seksjon">
-              <div class="seksjon-hode"><h2>Nivå</h2></div>
-              ${R.ui.seg("niva", D.nivaer.map((n) => [n.id, n.navn]), o.niva, { etikett: "Nivå" })}
-              <p class="hjelp">${esc(D.nivaer.find((n) => n.id === o.niva).tekst)} · ${KAT.filter((k) => k.n <= NIVA[o.niva] && !(k.kun && k.kun !== o.modus)).length} kategorier</p>
-            </section>
+            <h1 id="skjerm-tittel" class="bt-oppsett-tittel"><span aria-hidden="true">${bomba ? "💣" : "✏️"}</span> Gjør klart til ${bomba ? "Bomba" : "Bokstavjakt"}</h1>
+            ${R.ui.spillere({ min: 2, max: 12, tittel: "Hvem spiller?", hjelp: bomba ? "Sitt i ring, i samme rekkefølge som her." : "Alle trenger et ark og en blyant." })}
             ${
-              o.modus === "bomba"
+              bomba
+                ? `<section class="seksjon">
+                    <div class="seksjon-hode"><h2>Hva må ordet passe?</h2></div>
+                    ${R.ui.seg("krav", KRAV, krav, { etikett: "Hva må ordet passe?" })}
+                    <p class="hjelp">${esc(KRAV_TEKST[krav])}</p>
+                  </section>`
+                : ""
+            }
+            ${
+              medKategori
+                ? `<section class="seksjon">
+                    <div class="seksjon-hode"><h2>${bomba ? "Kategorier" : "Nivå"}</h2></div>
+                    ${R.ui.seg("niva", D.nivaer.map((n) => [n.id, n.navn]), o.niva, { etikett: bomba ? "Kategorier" : "Nivå" })}
+                    <p class="hjelp">${esc(nivaTekst)}</p>
+                  </section>`
+                : ""
+            }
+            ${
+              bomba
                 ? `<section class="seksjon">
                     <div class="seksjon-hode"><h2>Hvor tungt sover trollet?</h2></div>
                     ${R.ui.seg("sovn", [["tungt", "😴 Tungt"], ["normalt", "Normalt"], ["lett", "👂 Lett"]], o.sovn, { etikett: "Søvn" })}
@@ -438,57 +585,68 @@
                 : `<section class="seksjon">
                     <div class="seksjon-hode"><h2>Tid til å skrive</h2></div>
                     ${R.ui.seg("tid", [[60, "1 min"], [90, "1½ min"], [120, "2 min"]], o.tid, { etikett: "Tid" })}
+                  </section>
+                  <section class="seksjon">
+                    <div class="seksjon-hode"><h2>Lengde</h2></div>
+                    ${R.ui.seg("lengde", LENGDER, o.lengde, { etikett: "Lengde" })}
+                    <p class="hjelp">${o.lengde === "30" ? "Spill til noen har 30 poeng." : "Flest poeng til slutt vinner."} Står det likt, blir det én ekstrarunde.</p>
                   </section>`
             }
-            ${R.ui.bryter("vanskelig", o.vanskelig, "Vanskelige bokstaver", "C, W, Y, Z, Æ, Ø og Å kan også komme.")}
-            ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor", ikon: o.modus === "bomba" ? "💣" : "✏️" }))}`;
+            ${medKategori ? R.ui.bryter("jul", o.jul, "Julekategorier 🎄", "Bare kategorier om jul og vinter.") : ""}
+            ${!bomba || krav !== "kategori" ? R.ui.bryter("vanskelig", o.vanskelig, "Vanskelige bokstaver", "C, W, Y, Z, Æ, Ø og Å kan også komme.") : ""}
+            ${bomba ? R.ui.bryter("sistemann", o.sistemann, "Sistemann igjen", o.sistemann ? "Den som mister alle hjertene, er ute. Den siste som er igjen, vinner." : "Av: Ingen går ut. Spillet slutter når noen mister det siste hjertet.") : ""}
+            ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor" }))}`;
         },
       },
 
       // ---------- Bomba ----------
 
       klar: {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: (S) => (S.spill.finale ? "Finalen" : `Runde ${S.spill.runde}`),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const ny = nyttKort;
           nyttKort = false;
+          const hint = sp.krav === "kategori" ? "Si noe som passer <span aria-hidden=\"true\">➜</span> trykk «Send videre» og gi mobilen til neste" : `Si et ord ${sp.krav === "bokstav" ? "på bokstaven" : "som passer"} <span aria-hidden="true">➜</span> trykk «Send videre» – neste får en ny bokstav`;
           return `
+            ${sp.finale ? `<p class="bt-finale"><b>Finale!</b> <span>Den som holder mobilen når trollet våkner, ryker ut.</span></p>` : ""}
             <div class="bt-klar">
               ${sovendeTroll()}
-              ${kortHtml(sp.kort.k, sp.kort.b, { nytt: ny })}
+              ${kortHtml(sp.kort, { nytt: ny })}
             </div>
             <p class="bt-forst">${R.avatar(sp.start)}<span><b>${esc(R.navn(sp.start))}</b> begynner</span></p>
-            ${sp.runde === 1 ? '<p class="bt-hint"><span aria-hidden="true">🗣️</span> Si et ord som passer <span aria-hidden="true">➜</span> trykk «Send videre» og gi mobilen til neste</p>' : ""}
+            ${sp.runde === 1 ? `<p class="bt-hint"><span aria-hidden="true">🗣️</span> ${hint}</p>` : ""}
             ${livRad(sp, { na: sp.start })}
-            ${R.ui.dokk(R.ui.knapp("Start runden", "bomba-start", { variant: "stor", ikon: "💣" }), R.ui.lenkerad(R.ui.lenke("Nytt kort", "nytt-kort"), R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${R.ui.dokk(R.ui.knapp("Start runden", "bomba-start", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke(sp.krav === "bokstav" ? "Ny bokstav" : "Nytt kort", "nytt-kort"), R.ui.lenke("Avslutt", "avslutt")))}`;
         },
         inn(S) {
-          const el = R.$(".bt-kort.nytt .bt-bokstav");
+          const el = R.$(".bt-kort.nytt .bt-bokstav:not(.bilde)");
           if (el) spinn(el, S.spill.kort.b);
         },
       },
 
       bomba: {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: (S) => (S.spill.finale ? "Finalen" : `Runde ${S.spill.runde}`),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           return `
-            ${kortHtml(sp.kort.k, sp.kort.b, { liten: true })}
+            ${kortHtml(sp.kort, { liten: true })}
             <div class="bt-scene">
               ${sovendeTroll()}
               <span class="bt-puls" aria-hidden="true">♥</span>
             </div>
-            <p class="bt-holder"><span class="bt-mobil" aria-hidden="true">📱</span><span class="bt-holder-navn" aria-live="polite">${R.avatar(sp.holder)}<b>${esc(R.navn(sp.holder))}</b></span><span class="bt-ord">${sp.ord} ord</span></p>
+            <p class="bt-holder"><span class="bt-mobil" aria-hidden="true">📱</span><span class="bt-holder-navn">${R.avatar(sp.holder)}<b>${esc(R.navn(sp.holder))}</b></span><span class="bt-ord">${esc(ordTekst(sp.ord))}</span></p>
             <div class="bt-fare" aria-hidden="true"></div>
-            ${R.ui.dokk(R.ui.knapp("Send videre", "send", { variant: "stor", ikon: "➜" }), `<p class="bt-hvisk">Pssst … ikke vekk trollet!</p>`)}`;
+            ${R.ui.dokk(R.ui.knapp("Send videre", "send", { variant: "stor" }), sp.kort.b ? R.ui.lenkerad(R.ui.lenke("Bytt bokstav", "bytt-bokstav")) : `<p class="bt-hvisk">Pssst … ikke vekk trollet!</p>`)}`;
         },
         inn(S) {
           const sp = S.spill;
           R.holdVaken();
-          const [min, maks] = SOVN[sp.sovn] || SOVN.normalt;
+          bytter = false;
+          // The final is quick: the troll sleeps lightly.
+          const [min, maks] = sp.finale ? SOVN.lett : SOVN[sp.sovn] || SOVN.normalt;
           sp.varighet = Math.round((min + Math.random() * (maks - min)) * 1000);
           sp.slutt = Date.now() + sp.varighet;
           sp.pauset = 0;
@@ -496,6 +654,7 @@
         },
         ut(S) {
           stoppBomba();
+          bytter = false;
           if (S.spill) S.spill.slutt = 0;
           const skjerm = R.$("#skjerm");
           if (skjerm) {
@@ -506,12 +665,12 @@
       },
 
       vakna: {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: (S) => (S.spill.finale ? "Finalen" : `Runde ${S.spill.runde}`),
         tilbake: "hjem",
         // The phone's best guess (from the "Send videre" taps) is one big button; the others below.
         vis(S) {
           const sp = S.spill;
-          const liste = levende(sp);
+          const liste = aktive(sp);
           const gjett = liste.includes(sp.holder) ? sp.holder : -1;
           const andre = liste.filter((i) => i !== gjett);
           const knapp = (i, stor) => `<button class="bt-spiller${stor ? " trolig" : ""}" data-h="taper" data-v="${i}" style="--pf: var(--p${(i % 20) + 1})">
@@ -529,31 +688,55 @@
       },
 
       tap: {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: (S) => (S.spill.finale ? "Finalen" : `Runde ${S.spill.runde}`),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const i = sp.taper;
           const l = sp.liv[i];
-          const ferdig = levende(sp).length <= 1;
-          const tekst =
-            l > 0
-              ? R.velg(["Trollet gjesper og sovner igjen …", "Det var nære på!", "Trollet knurrer fornøyd.", "Pass deg neste gang!", "Trollet smatter og sover videre."])
-              : R.velg(["Trollet tok deg med hjem til hula!", "Nå må du heie på de andre!", "Ute – men du var tøff!"]);
+          const navn = R.navn(i);
+          let tittel, tekst, knapp, merke;
+          if (sp.finale) {
+            // The final takes no hearts: whoever held the phone is out of it.
+            const igjen = sp.finale.length > 1;
+            tittel = `${navn} røk ut av finalen!`;
+            tekst = igjen ? "Finalen fortsetter med dem som er igjen." : "Da er det bare én igjen …";
+            knapp = igjen ? R.ui.knapp("Neste finalerunde", "neste-runde") : R.ui.knapp("Til kåringen", "bomba-vinner");
+            merke = "👋";
+          } else if (l > 0) {
+            tittel = `${navn} mistet et hjerte!`;
+            tekst = R.velg(["Trollet gjesper og sovner igjen …", "Det var nære på!", "Trollet knurrer fornøyd.", "Pass deg neste gang!", "Trollet smatter og sover videre."]);
+            knapp = R.ui.knapp("Neste runde", "neste-runde");
+            merke = "💔";
+          } else if (sp.sistemann) {
+            const slutt = aktive(sp).length <= 1;
+            tittel = `${navn} er ute!`;
+            tekst = R.velg(["Trollet tok deg med hjem til hula!", "Nå må du heie på de andre!", "Ute – men du var tøff!"]);
+            knapp = slutt ? R.ui.knapp("Til kåringen", "bomba-vinner") : R.ui.knapp("Neste runde", "neste-runde");
+            merke = "💔";
+          } else {
+            const finale = trengerFinale(sp);
+            tittel = `${navn} mistet det siste hjertet!`;
+            tekst = finale ? `Da er spillet slutt. ${R.ramsOpp(flest(sp).map((x) => R.navn(x)))} har like mange hjerter – det blir finale!` : "Da er spillet slutt – nå telles hjertene.";
+            knapp = finale ? R.ui.knapp("Til finalen", "finale") : R.ui.knapp("Til kåringen", "bomba-vinner");
+            merke = "💔";
+          }
           return `
             <div class="bt-tap">
-              <span class="bt-tap-avatar">${R.avatar(i, "gigant")}<span class="bt-knust" aria-hidden="true">💔</span></span>
-              <h1 id="skjerm-tittel">${esc(l > 0 ? `${R.navn(i)} mistet et hjerte!` : `${R.navn(i)} er ute!`)}</h1>
-              ${l > 0 ? `<p class="bt-stor-hjerter">${hjerter(l, LIV)}</p>` : `<p class="bt-stor-ute" aria-hidden="true">👻</p>`}
+              <span class="bt-tap-avatar">${R.avatar(i, "gigant")}<span class="bt-knust" aria-hidden="true">${merke}</span></span>
+              <h1 id="skjerm-tittel">${esc(tittel)}</h1>
+              ${sp.finale ? "" : l > 0 || !sp.sistemann ? `<p class="bt-stor-hjerter">${hjerter(l, LIV)}</p>` : `<p class="bt-stor-ute" aria-hidden="true">👻</p>`}
               <p class="ingress">${esc(tekst)}</p>
+              ${sp.ord > 0 ? `<p class="bt-rundeord${sp.nyRekord ? " rekord" : ""}">${sp.nyRekord ? `<b>Ny rekord!</b> ` : ""}${esc(ordTekst(sp.ord))} før trollet våknet</p>` : ""}
             </div>
             ${livRad(sp)}
-            ${R.ui.dokk(R.ui.knapp(ferdig ? "Se vinneren" : "Neste runde", ferdig ? "bomba-vinner" : "neste-runde", { ikon: ferdig ? "🏆" : "➜" }), R.ui.lenkerad(R.ui.lenke("Angre – det var feil person", "angre")))}`;
+            ${R.ui.dokk(knapp, R.ui.lenkerad(R.ui.lenke("Angre – det var feil person", "angre")))}`;
         },
-        // A soft "uff" for a lost heart (no booing at children); a deeper thud when someone is out.
+        // A soft "uff" for a lost heart (no booing at children); a deeper thud when someone is out
+        // or the game is over.
         inn(S) {
           const sp = S.spill;
-          if (sp.liv[sp.taper] > 0) {
+          if (!sp.finale && sp.liv[sp.taper] > 0) {
             R.lyd.tone(392, 0, 0.18, "triangle", 0.12, 330);
             R.lyd.tone(294, 0.16, 0.32, "triangle", 0.11, 220);
           } else {
@@ -566,24 +749,24 @@
       // ---------- Bokstavjakt ----------
 
       "jakt-klar": {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: (S) => jaktTittel(S.spill),
         tilbake: "hjem",
         vis: (S) => `
           <div class="bt-jakt-start">
             <span class="bt-trollramme glad">${troll("glad", "?")}</span>
-            <p class="etikett">Bokstavjakt · runde ${S.spill.runde}</p>
-            <h1 id="skjerm-tittel">Finn fram blyant og papir!</h1>
+            <p class="etikett">Bokstavjakt · ${esc(jaktTittel(S.spill).toLowerCase())}</p>
+            <h1 id="skjerm-tittel">${S.spill.ekstra ? "Det står likt – denne runden avgjør!" : "Finn fram blyant og papir!"}</h1>
             <ol class="bt-forbered">
               <li><span aria-hidden="true">📝</span>Skriv 1 til 5 nedover arket</li>
               <li><span aria-hidden="true">🔤</span>Trollet trekker en bokstav</li>
               <li><span aria-hidden="true">⏱️</span>${S.spill.tid} sekunder – skriv et ord til hver kategori</li>
             </ol>
           </div>
-          ${R.ui.dokk(R.ui.knapp("Trekk bokstav!", "jakt-trekk", { variant: "stor", ikon: "🔤" }), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`,
+          ${R.ui.dokk(R.ui.knapp("Trekk bokstav", "jakt-trekk", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`,
       },
 
       jakt: {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: (S) => jaktTittel(S.spill),
         tilbake: "hjem",
         vis(S) {
           const r = S.spill.r;
@@ -600,7 +783,7 @@
               .map((k, n) => `<li style="--n:${n}"><span class="bt-nr">${n + 1}</span><span class="bt-ki" aria-hidden="true">${esc(KAT[k].i)}</span><span class="bt-kn">${esc(KAT[k].t)}</span></li>`)
               .join("")}</ol>
             <span class="bt-trollramme bt-jakt-troll glad" aria-hidden="true">${troll("glad", r.b)}</span>
-            ${R.ui.dokk(R.ui.knapp("Alle er ferdige!", "jakt-ferdig", { ikon: "✋", av: trekk }))}`;
+            ${R.ui.dokk(R.ui.knapp("Alle er ferdige", "jakt-ferdig", { av: trekk }))}`;
         },
         async inn(S) {
           const fortsatt = R.vakt();
@@ -654,6 +837,7 @@
           const r = sp.r;
           const k = r.k[r.nr];
           const siste = r.nr === r.k.length - 1;
+          const mangler = r.mangler ? r.score.filter((rad) => rad[r.nr] == null).length : 0;
           return `
             <div class="bt-poengkort">
               <p class="etikett">Les opp svarene!</p>
@@ -666,13 +850,16 @@
             </div>
             <ul class="bt-poengrader">${Array.from({ length: sp.antall }, (_, i) => {
               const v = r.score[i][r.nr];
-              return `<li style="--pf: var(--p${(i % 20) + 1})">${R.avatar(i)}<span class="bt-pr-navn">${esc(R.navn(i))}</span>
+              // A row nobody has scored is marked when the group tries to move on (never a silent 0).
+              const tom = r.mangler && v == null;
+              return `<li class="${tom ? "mangler" : ""}" style="--pf: var(--p${(i % 20) + 1})">${R.avatar(i)}<span class="bt-pr-navn">${esc(R.navn(i))}${tom ? '<small class="bt-mangler">Mangler poeng</small>' : ""}</span>
                 <div class="seg bt-pseg" role="group" aria-label="Poeng til ${esc(R.navn(i))}">${[0, 1, 2]
                   .map((p) => `<button data-h="poeng" data-v="${i}:${p}" aria-pressed="${v === p}">${p}</button>`)
                   .join("")}</div></li>`;
             }).join("")}</ul>
             ${R.ui.dokk(
-              R.ui.knapp(siste ? "Se poengene" : "Neste kategori", "kat-neste", { ikon: siste ? "🏆" : "➜" }),
+              mangler ? `<p class="bt-mangler-linje" role="status">Sett 0, 1 eller 2 for ${mangler === 1 ? "den siste" : "alle"} før dere går videre.</p>` : "",
+              R.ui.knapp(siste ? "Se poengene" : "Neste kategori", "kat-neste"),
               r.nr > 0 ? R.ui.lenkerad(R.ui.lenke("Forrige kategori", "kat-forrige")) : "",
             )}`;
         },
@@ -686,18 +873,18 @@
           const rader = sp.poeng.map((p, i) => ({ i, poeng: p, pluss: sp.rundePoeng[i] || 0 }));
           const best = Math.max(...sp.poeng);
           const ledere = rader.filter((r) => r.poeng === best).map((r) => R.navn(r.i));
-          const tittel = best === 0 ? "Alle står likt" : ledere.length === sp.antall ? "Helt likt!" : `${R.ramsOpp(ledere)} leder!`;
+          const status = jaktStatus(sp);
+          const tittel = status === "ekstra" ? `${R.ramsOpp(ledere)} står likt!` : best === 0 ? "Alle står likt" : ledere.length === sp.antall ? "Helt likt!" : `${R.ramsOpp(ledere)} leder!`;
+          const knapp = status === "ferdig" ? R.ui.knapp("Til kåringen", "jakt-karing") : R.ui.knapp(status === "ekstra" ? "Ekstrarunde" : "Ny runde", "jakt-ny-runde");
           return `
             <div class="banner">
               <span class="bt-trollramme glad">${troll("glad", sp.r ? sp.r.b : "A")}</span>
-              <p class="etikett">Runde ${sp.runde} er ferdig</p>
+              <p class="etikett">${status ? "Siste runde er ferdig" : `${esc(jaktTittel(sp))} er ferdig`}</p>
               <h1 id="skjerm-tittel">${esc(tittel)}</h1>
+              ${status === "ekstra" ? `<p class="ingress">Én ekstrarunde avgjør.</p>` : sp.lengde === "30" && !status ? `<p class="ingress">Første til 30 poeng vinner.</p>` : ""}
             </div>
             ${R.ui.poengliste(rader)}
-            ${R.ui.dokk(
-              R.ui.knapp("Ny runde", "jakt-ny-runde", { ikon: "✏️" }),
-              R.ui.lenkerad(R.ui.lenke("Endre poengene", "endre-poeng"), R.ui.lenke("Avslutt", "avslutt")),
-            )}`;
+            ${R.ui.dokk(knapp, R.ui.lenkerad(R.ui.lenke("Endre poengene", "endre-poeng"), status === "ferdig" ? "" : R.ui.lenke("Avslutt", "avslutt")))}`;
         },
       },
 
@@ -709,18 +896,29 @@
           const sp = S.spill;
           const dokk = R.ui.flereSpill({ antall: sp.antall }) + R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), '<a class="lenke" href="/">Alle spill</a>'));
           if (sp.modus === "bomba") {
-            const rekke = rangering(sp);
-            const v = rekke[0];
+            const rad = bombaRangering(sp);
+            const vant = rad.filter((r) => r.plass === 1);
+            const alene = vant.length === 1;
+            const v = vant[0].i;
+            // Worth telling others about: this game holds the phone's record.
+            const rekord = lesRekord().ord;
+            const del = (sp.best || 0) >= 5 && sp.best >= rekord;
             return `
               <div class="banner aksent">
-                <span class="bt-vinner">${R.avatar(v, "gigant")}<span class="bt-krone" aria-hidden="true">👑</span></span>
-                <p class="etikett">Lurte trollet til slutt</p>
-                <h1 id="skjerm-tittel">${esc(R.navn(v))} vinner!</h1>
+                ${alene ? `<span class="bt-vinner">${R.avatar(v, "gigant")}<span class="bt-krone" aria-hidden="true">👑</span></span>` : `<span class="bt-trollramme glad">${troll("glad", "A")}</span>`}
+                <p class="etikett">${alene ? (sp.finaleUt && sp.finaleUt.length ? "Vant finalen" : "Lurte trollet til slutt") : "Like mange hjerter"}</p>
+                <h1 id="skjerm-tittel">${esc(`${R.ramsOpp(vant.map((r) => R.navn(r.i)))} vinner!`)}</h1>
                 <p class="bt-stor-hjerter">${hjerter(sp.liv[v], LIV)}</p>
               </div>
-              <ol class="bt-rekke">${rekke
-                .map((i, n) => `<li style="--pf: var(--p${(i % 20) + 1})"><span class="bt-plass">${n + 1}</span>${R.avatar(i)}<span class="bt-pr-navn">${esc(R.navn(i))}</span>${n === 0 ? "🏆" : "👻"}</li>`)
+              <ol class="bt-rekke">${rad
+                .map(
+                  (r) =>
+                    `<li class="${r.plass === 1 ? "vinner" : ""}" style="--pf: var(--p${(r.i % 20) + 1})"><span class="bt-plass">${r.plass}</span>${R.avatar(r.i)}<span class="bt-pr-navn">${esc(R.navn(r.i))}</span>${
+                      sp.liv[r.i] > 0 || !sp.sistemann ? hjerter(sp.liv[r.i], LIV) : '<span aria-hidden="true">👻</span>'
+                    }</li>`,
+                )
                 .join("")}</ol>
+              ${del ? `<p class="bt-rundeord rekord"><b>Rekord!</b> ${esc(ordTekst(sp.best))} før trollet våknet</p>${R.ui.knapp2("Del rekorden", "del")}` : ""}
               ${dokk}`;
           }
           const rader = sp.poeng.map((p, i) => ({ i, poeng: p }));
@@ -737,7 +935,15 @@
             ${R.ui.poengliste(rader)}
             ${dokk}`;
         },
-        inn() {
+        inn(S) {
+          const sp = S.spill;
+          if (!sp.meldt) {
+            // Once per game: «Kveldens gjeng» and the statistics. Bomba is ranked by place (the final
+            // and the order of leaving count), Bokstavjakt by points.
+            sp.meldt = true;
+            R.statistikk("ferdig", { modus: sp.modus, runder: sp.modus === "bomba" ? sp.runde : sp.spilt || 0 });
+            R.kveld.registrer(sp.modus === "bomba" ? bombaRangering(sp).map((r) => ({ i: r.i, poeng: 100 - r.plass })) : sp.poeng.map((p, i) => ({ i, poeng: p })));
+          }
           R.lyd.fanfare();
           R.konfetti();
         },
@@ -758,8 +964,12 @@
         if (!sp.r || sp.r.fase === "ferdig") return R.gaTil(sp.r ? "jakt-stilling" : "jakt-klar");
         R.gaTil(sp.r.fase === "poeng" ? "jakt-poeng" : "jakt");
       },
+      krav(el, e, S) {
+        if (erKrav(el.dataset.v)) S.oppsett.krav = el.dataset.v;
+        R.vis();
+      },
       niva(el, e, S) {
-        S.oppsett.niva = el.dataset.v;
+        if (el.dataset.v in NIVA) S.oppsett.niva = el.dataset.v;
         R.vis();
       },
       sovn(el, e, S) {
@@ -770,8 +980,20 @@
         S.oppsett.tid = Number(el.dataset.v);
         R.vis();
       },
+      lengde(el, e, S) {
+        if (LENGDER.some(([v]) => v === el.dataset.v)) S.oppsett.lengde = el.dataset.v;
+        R.vis();
+      },
       vanskelig(el, e, S) {
         S.oppsett.vanskelig = !S.oppsett.vanskelig;
+        R.vis();
+      },
+      jul(el, e, S) {
+        S.oppsett.jul = !S.oppsett.jul;
+        R.vis();
+      },
+      sistemann(el, e, S) {
+        S.oppsett.sistemann = !S.oppsett.sistemann;
         R.vis();
       },
       // Every action that awaits checks R.vakt() afterwards: if the screen changed meanwhile, it stops.
@@ -786,13 +1008,13 @@
       igjen(el, e, S) {
         H.start(el, e, S);
       },
-      // Ending early is always just «Avslutt»; the sheet says what happens. Bokstavjakt with points
-      // goes to «Kåringen» (most points wins); otherwise the game is cleared.
+      // Ending early is always just «Avslutt»; the sheet says what happens. With something to rank
+      // (a heart lost, a round scored) it goes to «Kåringen»; otherwise the game is cleared.
       async avslutt(el, e, S) {
         const sp = S.spill;
         if (!sp) return R.gaTil("hjem");
-        const karing = sp.modus === "jakt" && (sp.spilt || 0) > 0;
-        const tekst = karing ? "Den som har flest poeng nå, vinner." : sp.modus === "bomba" ? "Hjertene og runden forsvinner." : "Runden forsvinner.";
+        const karing = sp.modus === "jakt" ? (sp.spilt || 0) > 0 : sp.liv.some((l) => l < LIV) || !!sp.finale;
+        const tekst = !karing ? "Spillet blir borte – ingen har vunnet noe ennå." : sp.modus === "jakt" ? "Den som har flest poeng nå, vinner." : "Den som har flest hjerter nå, vinner.";
         const fortsatt = R.vakt();
         if (!(await R.bekreft("Avslutte spillet?", tekst, "Avslutt", "Spill videre")) || !fortsatt()) return;
         R.slippVaken();
@@ -808,16 +1030,17 @@
       // Bomba
       "nytt-kort"(el, e, S) {
         const sp = S.spill;
-        sp.kort = { k: trekkKategori(sp, [sp.kort.k]), b: trekkBokstav(sp) };
+        sp.kort = trekkKort(sp);
         nyttKort = true;
         R.vis();
-        const ny = R.$(".bt-kort.nytt .bt-bokstav");
+        const ny = R.$(".bt-kort.nytt .bt-bokstav:not(.bilde)");
         if (ny) spinn(ny, sp.kort.b);
       },
       async "bomba-start"(el, e, S) {
         const sp = S.spill;
         sp.holder = sp.start;
         sp.ord = 0;
+        sp.nyRekord = false;
         // Back during the countdown: stay where the player went (no hidden clock behind their back).
         if (!(await R.nedtelling(["3", "2", "1", "Si et ord!"], 650))) return;
         sp.fase = "bomba";
@@ -825,9 +1048,9 @@
       },
       send(el, e, S) {
         const sp = S.spill;
-        if (!sp.slutt || Date.now() - sistSendt < 350) return;
+        if (!sp.slutt || bytter || Date.now() - sistSendt < 350) return;
         sistSendt = Date.now();
-        sp.holder = nesteLevende(sp, sp.holder);
+        sp.holder = nesteAktiv(sp, sp.holder);
         sp.ord += 1;
         R.lyd.sveip();
         R.vibrer(12);
@@ -841,15 +1064,60 @@
           }
         }
         const ord = R.$(".bt-ord");
-        if (ord) ord.textContent = `${sp.ord} ord`;
+        if (ord) ord.textContent = ordTekst(sp.ord);
+        // A new letter for the next player (the category stays for the whole round): every turn
+        // needs one word for one letter, so the chain never runs dry.
+        if (sp.kort.b) {
+          sp.kort.b = trekkBokstav(sp);
+          const blokk = R.$(".bt-kort .bt-bokstav");
+          if (blokk) {
+            blokk.dataset.bokstav = sp.kort.b;
+            blokk.querySelector("span").textContent = sp.kort.b;
+            if (!R.rolig()) {
+              blokk.classList.remove("vendt", "landet");
+              void blokk.offsetWidth;
+              blokk.classList.add("vendt");
+            }
+          }
+          setTimeout(() => R.lyd.tikk(), 120);
+        }
+        R.si(sp.kort.b ? `${R.navn(sp.holder)}: ${sp.kort.b}` : R.navn(sp.holder));
+      },
+      // A new letter for the one who holds the phone. It spins for about two seconds: the price is time.
+      async "bytt-bokstav"(el, e, S) {
+        const sp = S.spill;
+        if (!sp.slutt || !sp.kort.b || bytter) return;
+        bytter = true;
+        const send = R.$('#skjerm [data-h="send"]');
+        if (send) send.disabled = true;
+        sp.kort.b = trekkBokstav(sp);
+        const ny = sp.kort.b;
+        const blokk = R.$(".bt-kort .bt-bokstav");
+        if (blokk) {
+          blokk.dataset.bokstav = ny;
+          blokk.classList.remove("vendt", "landet");
+        }
+        R.si("Bytter bokstav");
+        if (R.rolig()) await R.vent(1500); // no spinning with reduced motion, but the same price
+        await spinn(blokk, ny);
+        bytter = false;
+        const send2 = R.$('#skjerm [data-h="send"]');
+        if (send2) send2.disabled = false;
+        if (S.spill === sp && sp.slutt) R.si(`Ny bokstav: ${ny}`);
       },
       taper(el, e, S) {
         const sp = S.spill;
         const i = Number(el.dataset.v);
-        if (!(sp.liv[i] > 0)) return;
-        sp.sist = { i, liv: sp.liv[i] };
-        sp.liv[i] -= 1;
-        if (sp.liv[i] === 0) sp.ute.push(i);
+        if (!aktive(sp).includes(i)) return;
+        if (sp.finale) {
+          sp.sist = { i, finale: sp.finale.slice() };
+          sp.finale = sp.finale.filter((x) => x !== i);
+          sp.finaleUt.push(i);
+        } else {
+          sp.sist = { i, liv: sp.liv[i] };
+          sp.liv[i] -= 1;
+          if (sp.liv[i] === 0) sp.ute.push(i);
+        }
         sp.taper = i;
         sp.fase = "tap";
         R.gaTil("tap");
@@ -857,9 +1125,14 @@
       angre(el, e, S) {
         const sp = S.spill;
         if (!sp.sist) return R.gaTil("vakna");
-        const { i, liv } = sp.sist;
-        sp.liv[i] = liv;
-        sp.ute = sp.ute.filter((x) => x !== i);
+        const { i } = sp.sist;
+        if (sp.sist.finale) {
+          sp.finale = sp.sist.finale;
+          sp.finaleUt = sp.finaleUt.filter((x) => x !== i);
+        } else {
+          sp.liv[i] = sp.sist.liv;
+          sp.ute = sp.ute.filter((x) => x !== i);
+        }
         sp.sist = null;
         sp.taper = null;
         sp.fase = "vakna";
@@ -869,20 +1142,34 @@
         const sp = S.spill;
         const t = sp.taper;
         sp.runde += 1;
-        sp.start = sp.liv[t] > 0 ? t : nesteLevende(sp, t);
+        // The one who lost the heart begins – or the next one who is still in.
+        sp.start = aktive(sp).includes(t) ? t : nesteAktiv(sp, t);
         sp.holder = sp.start;
         sp.ord = 0;
+        sp.nyRekord = false;
         sp.sist = null;
         sp.taper = null;
         sp.fase = "klar";
-        sp.kort = { k: trekkKategori(sp, [sp.kort.k]), b: trekkBokstav(sp) };
+        sp.kort = trekkKort(sp);
         nyttKort = true;
         R.gaTil("klar");
+      },
+      // Several players have the most hearts: they play on alone until one is left.
+      finale(el, e, S) {
+        const sp = S.spill;
+        if (!trengerFinale(sp)) return;
+        sp.finale = flest(sp);
+        sp.finaleUt = [];
+        H["neste-runde"](el, e, S);
       },
       "bomba-vinner"(el, e, S) {
         S.spill.ferdig = true;
         R.slippVaken();
         R.gaTil("vinner");
+      },
+      del(el, e, S) {
+        const sp = S.spill;
+        if (sp && sp.best) R.del("Bokstavtrollet", `Bokstavtrollet 💣 Vi rakk ${ordTekst(sp.best)} før trollet våknet! Klarer dere flere?`, DEL_URL);
       },
 
       // Bokstavjakt
@@ -910,11 +1197,23 @@
       "kat-forrige"(el, e, S) {
         const r = S.spill.r;
         r.nr = Math.max(0, r.nr - 1);
+        r.mangler = false;
         R.gaTil("jakt-poeng");
       },
       "kat-neste"(el, e, S) {
         const sp = S.spill;
         const r = sp.r;
+        // Everyone gets 0, 1 or 2 before the group moves on: a row nobody touched is not a silent 0.
+        const uten = r.score.map((rad, i) => (rad[r.nr] == null ? i : -1)).filter((i) => i >= 0);
+        if (uten.length) {
+          r.mangler = true;
+          R.vis();
+          R.lyd.tikk();
+          R.vibrer(30);
+          R.si(`Mangler poeng for ${R.ramsOpp(uten.map((i) => R.navn(i)))}.`);
+          return;
+        }
+        r.mangler = false;
         if (r.nr < r.k.length - 1) {
           r.nr += 1;
           R.gaTil("jakt-poeng");
@@ -941,10 +1240,17 @@
       },
       "jakt-ny-runde"(el, e, S) {
         const sp = S.spill;
+        if (jaktStatus(sp) === "ferdig") return H["jakt-karing"](el, e, S);
+        if (jaktStatus(sp) === "ekstra") sp.ekstra = true;
         sp.runde += 1;
         sp.r = null;
         sp.rundePoeng = sp.rundePoeng.map(() => 0);
         R.gaTil("jakt-klar");
+      },
+      "jakt-karing"(el, e, S) {
+        S.spill.ferdig = true;
+        R.slippVaken();
+        R.gaTil("vinner");
       },
     }),
   });

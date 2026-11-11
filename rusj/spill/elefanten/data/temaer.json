@@ -74,6 +74,19 @@
       ]
     },
     {
+      "id": "jul",
+      "navn": "Jul",
+      "ikon": "🎄",
+      "ting": [
+        ["🎄", "Juletre"], ["🎅", "Julenisse"], ["🤶", "Nissemor"], ["🦌", "Reinsdyr"], ["🎁", "Julegave"],
+        ["🔔", "Juleklokke"], ["🕯️", "Julelys"], ["⛄", "Snømann"], ["❄️", "Snøfnugg"], ["🧦", "Julestrømpe"],
+        ["🍪", "Pepperkake"], ["⭐", "Julestjerne"], ["👼", "Engel"], ["⛪", "Kirke"], ["🛷", "Kjelke"],
+        ["🧣", "Skjerf"], ["🧤", "Hansker"], ["🍊", "Klementin"], ["🥜", "Nøtter"], ["🍬", "Godteri"],
+        ["🎇", "Stjerneskudd"], ["🧶", "Garnnøste"], ["🪵", "Vedkubbe"], ["🎿", "Ski"], ["⛸️", "Skøyter"],
+        ["🥣", "Julegrøt"], ["☕", "Kakao"], ["🎆", "Fyrverkeri"]
+      ]
+    },
+    {
       "id": "gjengen",
       "navn": "Rusj-gjengen",
       "tekst": "Alle figurene fra rusj"

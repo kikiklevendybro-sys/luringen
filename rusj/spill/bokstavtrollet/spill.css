@@ -56,6 +56,22 @@
   opacity: 0.8;
 }
 
+/* This phone's record: most words in one round before the troll woke */
+.bt-rekord {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px 8px;
+  color: var(--tekst-2);
+  text-align: center;
+}
+
+.bt-rekord b {
+  color: var(--lampe);
+  font: 900 1.15rem/1.2 var(--font-display);
+}
+
 /* ---------- Hearts ---------- */
 
 .bt-hjerter {
@@ -144,8 +160,15 @@
   box-shadow: inset 0 0 0 2.5px var(--pf);
 }
 
+/* No hearts left: toned down, but the name stays readable (4.5:1). */
 .bt-liv li.ute {
-  opacity: 0.45;
+  background: var(--natt);
+  color: var(--tekst-2);
+}
+
+.bt-liv li.ute .avatar {
+  filter: grayscale(0.7);
+  opacity: 0.75;
 }
 
 .bt-ute {
@@ -232,6 +255,29 @@
   transform: rotate(-4deg);
 }
 
+/* «Kategori» without a letter: the category's own picture sits in the block. */
+.bt-bokstav.bilde {
+  font-size: 4.2rem;
+}
+
+.bt-kort.liten .bt-bokstav.bilde {
+  font-size: 3rem;
+}
+
+/* A new letter for the next player: the block flips in. */
+.bt-bokstav.vendt {
+  animation: bt-vendt 0.28s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+@keyframes bt-vendt {
+  0% {
+    transform: rotate(-4deg) rotateX(88deg) scale(0.9);
+  }
+  100% {
+    transform: rotate(-4deg) rotateX(0) scale(1);
+  }
+}
+
 .bt-bokstav.spinner span {
   filter: blur(0.6px);
   opacity: 0.85;
@@ -276,6 +322,25 @@
   margin: 0;
   border-radius: 22px;
   font-size: 3.9rem;
+}
+
+/* The final: those with the most hearts play on alone */
+.bt-finale {
+  display: grid;
+  gap: 2px;
+  padding: 10px 16px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--lampe) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--lampe);
+  color: var(--tekst);
+  font: 700 0.92rem/1.3 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.bt-finale b {
+  color: var(--lampe);
+  font-size: 1.25rem;
 }
 
 .bt-forst {
@@ -509,12 +574,12 @@
 }
 
 .bt-ord {
-  color: var(--tekst-3);
+  color: var(--tekst);
   font: 800 0.9rem/1 var(--font-display);
 }
 
 .bt-hvisk {
-  color: var(--tekst-3);
+  color: var(--tekst-2);
   font: 800 0.9rem/1.2 var(--font-display);
   text-align: center;
 }
@@ -737,6 +802,29 @@
   line-height: 1;
 }
 
+/* How many words the round lasted (and a record, when it is one) */
+.bt-rundeord {
+  color: var(--tekst-2);
+  font: 800 0.92rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.bt-rundeord.rekord {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--lampe) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--lampe) 55%, transparent);
+  color: var(--tekst);
+}
+
+.bt-rundeord.rekord b {
+  color: var(--lampe);
+}
+
+.skjerm-vinner .bt-rundeord.rekord {
+  align-self: center;
+}
+
 /* ---------- Bokstavjakt ---------- */
 
 .bt-jakt-start {
@@ -812,7 +900,7 @@
 }
 
 .bt-jakt-topp .timer-kontroll .knapp-2.liten {
-  min-height: 40px;
+  min-height: 44px;
   padding: 6px 10px;
   font-size: 0.85rem;
 }
@@ -976,6 +1064,23 @@
   white-space: nowrap;
 }
 
+.bt-poengrader li.mangler {
+  box-shadow: inset 0 0 0 2.5px var(--lampe);
+}
+
+.bt-mangler {
+  display: block;
+  color: var(--lampe);
+  font: 800 0.75rem/1.3 var(--font-display);
+}
+
+.bt-mangler-linje {
+  color: var(--tekst);
+  font: 800 0.92rem/1.3 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
 .bt-pseg {
   flex: none;
   grid-auto-columns: 48px;
@@ -1059,14 +1164,18 @@
   background: var(--natt-2);
 }
 
-.bt-rekke li:first-child {
+.bt-rekke li.vinner {
   background: color-mix(in srgb, var(--aksent) 20%, var(--natt-2));
   box-shadow: inset 0 0 0 2px var(--aksent);
 }
 
+.bt-rekke .bt-hjerter {
+  font-size: 1.05rem;
+}
+
 .bt-plass {
   width: 2ch;
-  color: var(--tekst-3);
+  color: var(--tekst-2);
   font: 900 0.95rem/1 var(--font-display);
   text-align: center;
 }

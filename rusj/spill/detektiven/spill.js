@@ -1,17 +1,30 @@
-/* Detektiven — «Hvem er jeg? – 20 spørsmål».
-   One player gets a secret (hold to see). The others are detectives and ask yes/no questions out
-   loud; the phone counts them on a magnifying-glass meter (Ja / Nei / Kanskje or a plain +1).
-   Hints after 10 and 15 questions. Points: a correct guess gives the guesser 2, and the keeper 1
-   if it took more than 10 questions; if nobody gets it within 20, the keeper gets 3.
-   Everyone keeps a secret once (or more), then the podium. */
+/* Detektiven — «Hvem er jeg? – 20 spørsmål». Three small modes on one engine:
+   20 spørsmål ("spm"): one player keeps a secret (hold to see); the others are detectives and ask
+     yes/no questions out loud. A correct guess gives 2 points, and 1 to every other detective when
+     it took 10 questions or fewer; the keeper gets 1 when the secret lasts 15 questions, 2 when it
+     lasts all 20 and 3 when nobody finds it.
+   Hvem er jeg? ("jeg"): the reverse – the player on turn looks away while the others see the card,
+     then asks about itself. 3 points for 10 questions or fewer, 2 for 15, 1 for 20.
+   Alle mot hemmeligheten ("sammen"): 20 questions as a team, no points.
+   The phone counts the questions on a magnifying-glass meter (Ja / Nei / Kanskje or a plain +1),
+   offers hints after 10 and 15, and remembers this phone's record: secrets solved in a row and the
+   fastest solve. A game is a number of secrets; the role goes round the table. */
 (function () {
   "use strict";
 
   const R = window.Rusj;
   const esc = R.esc;
   const KAT = window.RUSJ_DATA.hemmeligheter.kategorier;
-  const MAKS = 20;
+  const MAKS = 20; // questions per secret
+  const MAKS_H = 20; // secrets in one game
   const HINT_VED = [10, 15];
+  const DEL_URL = "https://rusj.no/detektiven/";
+  const STAT = "detektiven.stat"; // this phone's record, kept outside the saved game
+  const MODUSER = [
+    { v: "spm", tittel: "20 spørsmål", ikon: "🔎", tekst: "Én har hemmeligheten. Detektivene spør – og kjemper om poengene." },
+    { v: "jeg", tittel: "Hvem er jeg?", ikon: "🤔", tekst: "Du vet ikke hva du er! De andre vet det – og svarer." },
+    { v: "sammen", tittel: "Alle mot hemmeligheten", ikon: "🤝", tekst: "Samarbeid uten poeng. Hvor få spørsmål trenger dere?" },
+  ];
   const NIVAER = [
     [1, "Lett"],
     [2, "Middels"],
@@ -34,17 +47,46 @@
 
   // ---------- Game helpers ----------
   const pagar = (S) => !!S.spill && !S.spill.ferdig; // a game that «Nytt spill» would throw away
-  const navneliste = (navn) => (navn.length < 2 ? navn.join("") : navn.slice(0, -1).join(", ") + " og " + navn[navn.length - 1]);
-  const holder = (sp) => sp.logg.length % sp.antall; // who keeps the secret this round
-  const totalt = (sp) => sp.antall * sp.runder;
-  const ferdig = (sp) => sp.logg.length >= totalt(sp);
+  const erModus = (m) => MODUSER.some((x) => x.v === m);
+  const rangert = (sp) => sp.modus !== "sammen"; // points and a «Kåring»
+  // Whose secret it is: the keeper – or, in «Hvem er jeg?», the one who guesses.
+  const tur = (sp) => (sp.start + sp.logg.length) % sp.antall;
+  const ferdig = (sp) => sp.logg.length >= sp.totalt;
+  // How many questions a solve took: those on the meter plus the winning guess (the last chance
+  // after question 20 is free). The same number decides every text and every point.
+  const medGjett = (spm) => Math.min(MAKS, spm + 1);
+  const brukt = (l) => (l.lost ? medGjett(l.spm) : l.spm);
+  const spmTekst = (n) => R.flertall(n, "spørsmål", "spørsmål");
+  // What a secret has earned its keeper so far in «20 spørsmål» (3 only when all 20 are used up).
+  const holdtPoeng = (spm) => (spm >= MAKS ? 2 : spm >= 15 ? 1 : 0);
+
+  // The length of a game is a number of secrets. Until someone picks a number it follows the group:
+  // one each (at most eight) with points, one each in «Hvem er jeg?», five as a team.
+  const autoAntall = (modus, n) => (modus === "sammen" ? 5 : modus === "jeg" ? n : Math.min(n, 8));
+  const spillere = (S) => R.klamp(Number(S.antall) || 2, 2, 20);
+  const antallH = (S) => (S.oppsett.antallH ? R.klamp(S.oppsett.antallH, 1, MAKS_H) : autoAntall(S.oppsett.modus, spillere(S)));
+  const GANGER = ["", "én gang", "to ganger", "tre ganger"];
+  function lengdeTekst(modus, t, n) {
+    if (modus === "sammen") return "Hemmeligheten går på rundgang, og alle de andre spør.";
+    const jeg = modus === "jeg";
+    if (t % n === 0) return `Alle får ${jeg ? "gjette" : "ha hemmeligheten"} ${GANGER[t / n] || `${t / n} ganger`}.`;
+    if (t < n) return jeg ? `${t} av ${n} rekker å gjette – bare de er med i kåringen.` : `${t} av ${n} rekker å ha hemmeligheten.`;
+    return `Ikke alle får ${jeg ? "gjette" : "ha hemmeligheten"} like mange ganger.`;
+  }
+
+  const lesStat = () => {
+    const lagret = R.les(STAT, null);
+    const st = Object.assign({ lost: 0, rad: 0, bestRad: 0, raskest: 0 }, lagret && typeof lagret === "object" ? lagret : {});
+    for (const n of ["lost", "rad", "bestRad", "raskest"]) st[n] = Number.isInteger(st[n]) && st[n] >= 0 ? st[n] : 0;
+    return st;
+  };
 
   function trekk(S) {
     const sp = S.spill;
     const o = { kategorier: sp.kategorier, nivaa: sp.nivaa };
-    const brukt = new Set(sp.logg.map((l) => l.h));
-    if (sp.runde) brukt.add(sp.runde.h);
-    let i = stokk.neste((n) => iUtvalg(o, ALLE[n]) && !brukt.has(n));
+    const tatt = new Set(sp.logg.map((l) => l.h));
+    if (sp.runde) tatt.add(sp.runde.h);
+    let i = stokk.neste((n) => iUtvalg(o, ALLE[n]) && !tatt.has(n));
     if (i < 0) i = stokk.neste((n) => iUtvalg(o, ALLE[n]));
     return i < 0 ? 0 : i;
   }
@@ -65,22 +107,115 @@
     return liste.slice(0, HINT_VED.length);
   }
 
-  function avslutt(S, gjetter) {
+  // The points of a finished secret. utfall: { lost, g (who guessed it, −1 for nobody in particular), opp (gave up) }
+  function poengFor(sp, r, utfall) {
+    const k = tur(sp);
+    const pluss = {};
+    if (sp.modus === "sammen") return pluss;
+    const n = medGjett(r.spm);
+    if (sp.modus === "jeg") {
+      if (utfall.lost) pluss[k] = n <= 10 ? 3 : n <= 15 ? 2 : 1;
+      return pluss;
+    }
+    if (utfall.lost) {
+      pluss[utfall.g] = 2;
+      // Good questions pay: a quick solve gives every other detective a point too.
+      if (n <= 10) for (let i = 0; i < sp.antall; i++) if (i !== k && i !== utfall.g) pluss[i] = 1;
+    }
+    // Giving up never pays more than the questions have earned – not 3 points after one question.
+    const holdt = !utfall.lost && !utfall.opp && r.spm >= MAKS ? 3 : holdtPoeng(r.spm);
+    if (holdt) pluss[k] = holdt;
+    return pluss;
+  }
+
+  function avsluttRunde(S, utfall) {
     const sp = S.spill;
     const r = sp.runde;
     if (!r) return;
-    const k = holder(sp);
-    const pluss = {};
-    if (gjetter >= 0) {
-      pluss[gjetter] = 2;
-      // The winning guess is a question too: 10 counted + the guess = over 10.
-      if (r.spm >= 10) pluss[k] = 1;
-    } else {
-      pluss[k] = 3;
-    }
+    const pluss = poengFor(sp, r, utfall);
     Object.keys(pluss).forEach((i) => (sp.poeng[i] += pluss[i]));
-    sp.logg.push({ k, h: r.h, spm: r.spm, g: gjetter, pluss, svar: r.svar.slice(), hint: r.hint });
+    const l = { k: tur(sp), h: r.h, spm: r.spm, lost: !!utfall.lost, g: utfall.lost && utfall.g >= 0 ? utfall.g : -1, opp: !!utfall.opp, pluss, svar: r.svar.slice(), hint: r.hint, ny: "" };
+    // This phone's record. The old numbers are kept so «Angre» can put them back.
+    const st = lesStat();
+    sp.statFor = Object.assign({}, st);
+    if (l.lost) {
+      const n = brukt(l);
+      st.lost += 1;
+      st.rad += 1;
+      if (st.rad > st.bestRad) {
+        if (st.bestRad >= 2) l.ny = "rad";
+        st.bestRad = st.rad;
+      }
+      if (!st.raskest || n < st.raskest) {
+        if (st.raskest) l.ny = "raskest";
+        st.raskest = n;
+      }
+    } else st.rad = 0;
+    R.skriv(STAT, st);
+    sp.logg.push(l);
     sp.runde = null;
+  }
+
+  // ---------- The result ----------
+  // Who is ranked: everyone in «20 spørsmål»; in «Hvem er jeg?» those who have had a secret of their own.
+  const deltakere = (sp) => Array.from({ length: sp.antall }, (_, i) => i).filter((i) => sp.modus !== "jeg" || sp.logg.some((l) => l.k === i));
+  // Equal points are common, so a tie is broken by the detective work itself: the fastest solve
+  // («20 spørsmål») or the fewest questions per secret («Hvem er jeg?»). Still equal = a shared place.
+  function rangering(sp) {
+    const rad = deltakere(sp).map((i) => {
+      let tb;
+      if (sp.modus === "jeg") {
+        const mine = sp.logg.filter((l) => l.k === i);
+        tb = mine.reduce((s, l) => s + (l.lost ? brukt(l) : MAKS + 5), 0) / (mine.length || 1);
+      } else {
+        const mine = sp.logg.filter((l) => l.lost && l.g === i).map(brukt);
+        tb = mine.length ? Math.min(...mine) : 99;
+      }
+      return { i, poeng: sp.poeng[i], tb };
+    });
+    rad.sort((a, b) => b.poeng - a.poeng || a.tb - b.tb || a.i - b.i);
+    rad.forEach((r, n) => {
+      const f = rad[n - 1];
+      r.plass = f && f.poeng === r.poeng && f.tb === r.tb ? f.plass : n + 1;
+    });
+    return rad;
+  }
+  const vinnere = (rad) => (rad.length && rad[0].poeng > 0 ? rad.filter((r) => r.plass === 1) : []);
+  // «Kveldens gjeng» ranks by points alone, so it gets the places as points (a tie-break counts there too).
+  const kveldRader = (rad) => rad.map((r) => ({ i: r.i, poeng: vinnere(rad).length ? 100 - r.plass : 0 }));
+
+  // The kit's podium shares a place on equal points; this one shows the places after the tie-break.
+  function pallHtml(rad) {
+    const alle = rad.filter((r) => r.poeng > 0);
+    if (alle.length < 2) return "";
+    const s = alle.slice(0, 3);
+    const plass = (r) =>
+      r ? `<div class="pall-plass p${Math.min(r.plass, 3)}">${R.avatar(r.i, "stor")}<span class="navn">${esc(R.navn(r.i))}</span><span class="poeng">${r.poeng} p</span><span class="blokk">${r.plass}</span></div>` : "<div></div>";
+    return s.length < 3 ? `<div class="pall to" role="group" aria-label="Pallen">${plass(s[1])}${plass(s[0])}</div>` : `<div class="pall" role="group" aria-label="Pallen">${plass(s[1])}${plass(s[0])}${plass(s[2])}</div>`;
+  }
+  // The kit's scoreboard in our order, with only the real winner(s) lit.
+  function listeHtml(rad) {
+    let html = R.ui.poengliste(rad.map((r) => ({ i: r.i, poeng: r.poeng })), { utenLeder: true });
+    for (let n = vinnere(rad).length; n > 0; n--) html = html.replace('<li class="">', '<li class="leder">');
+    return html;
+  }
+
+  // Every secret of a game without points: solved or not, and on how many questions.
+  const sakerHtml = (sp) =>
+    `<ol class="detektiv-saker">${sp.logg
+      .map(
+        (l) =>
+          `<li class="${l.lost ? "lost" : "uopp"}"><span class="detektiv-merke" aria-hidden="true">${l.lost ? "✓" : "✕"}</span><span class="navn">${esc(ALLE[l.h].navn)}</span><span class="res">${l.lost ? esc(spmTekst(brukt(l))) : "uoppklart"}</span></li>`,
+      )
+      .join("")}</ol>`;
+
+  const rekordTekst = (st) => [st.bestRad >= 2 ? `${st.bestRad} løst på rad` : "", st.raskest ? `raskest på ${spmTekst(st.raskest)}` : ""].filter(Boolean).join(" · ");
+
+  function delTekst(sp) {
+    const lost = sp.logg.filter((l) => l.lost);
+    const raskest = lost.length ? Math.min(...lost.map(brukt)) : 0;
+    const hode = lost.length ? `Vi oppklarte ${lost.length} av ${R.flertall(sp.logg.length, "hemmelighet", "hemmeligheter")} – raskest på ${spmTekst(raskest)}!` : `Ingen av ${R.flertall(sp.logg.length, "hemmelighet", "hemmeligheter")} ble oppklart. Klarer dere det bedre?`;
+    return `Detektiven 🔎 ${hode}\n${sp.logg.map((l) => (l.lost ? "🟩" : "🟥")).join("")}`;
   }
 
   // ---------- The magnifying-glass meter ----------
@@ -109,7 +244,8 @@
       <path class="glans" d="M${C - 46} ${C - 22} A52 52 0 0 1 ${C - 14} ${C - 50}"/>
     </svg>`;
     const fullt = r.spm >= MAKS;
-    return `<button class="detektiv-lupe" data-h="spm" data-stille${fullt ? " disabled" : ""} aria-label="${fullt ? "Alle 20 spørsmålene er brukt" : `Legg til ett spørsmål. ${r.spm} av ${MAKS} er brukt.`}">
+    // The name starts with the words on the button («+1 spørsmål»), so voice control finds it.
+    return `<button class="detektiv-lupe" id="detektiv-lupe" data-h="spm" data-stille${fullt ? " disabled" : ""} aria-label="${fullt ? "Alle 20 spørsmålene er brukt" : `+1 spørsmål. ${r.spm} av ${MAKS} er brukt.`}">
       ${svg}
       <span class="detektiv-tall"><b>${r.spm}</b><small>av ${MAKS}</small></span>
       ${fullt ? "" : `<span class="detektiv-pluss" aria-hidden="true">+1 spørsmål</span>`}
@@ -117,8 +253,8 @@
   }
 
   // The magnifier is the only counter (1 … 20); this line just sets the mood, without numbers.
-  function statusTekst(r) {
-    if (r.spm === 0) return ["", "Detektivene spør – du svarer med knappene."];
+  function statusTekst(sp, r) {
+    if (r.spm === 0) return ["", sp.modus === "jeg" ? `${R.navn(tur(sp))} spør – dere andre svarer med knappene.` : "Detektivene spør – du svarer med knappene."];
     if (r.spm >= MAKS) return ["slutt", "Siste sjanse! Én gjetning til."];
     if (r.spm >= 17) return ["varsel", "Snart tomt for spørsmål!"];
     if (r.spm === 10) return ["", "Halvveis!"];
@@ -171,20 +307,21 @@
     } else R.lyd.tikk();
     R.vibrer(12);
     if (v !== "x") stempel(v);
+    // A hint just became available: the button under the answers lights up (no toast on top of it).
     const liste = sp.hint ? hintListe(sp, r.h) : [];
-    if (sp.hint && HINT_VED.indexOf(r.spm) >= r.hint && HINT_VED.indexOf(r.spm) < liste.length) {
-      R.toast("💡 Hint klart!");
-      setTimeout(() => R.lyd.pling(), 180);
-    }
+    const hintKlart = sp.hint && HINT_VED.indexOf(r.spm) >= r.hint && HINT_VED.indexOf(r.spm) < liste.length;
+    if (hintKlart) setTimeout(() => R.lyd.pling(), 180);
     if (r.spm === MAKS) {
       R.lyd.alarm();
       R.vibrer([120, 60, 120]);
       R.si("Alle 20 spørsmålene er brukt. Siste sjanse til å gjette.");
-    } else R.si(`${r.spm} av ${MAKS}`);
+    } else R.si(`${r.spm} av ${MAKS}${hintKlart ? ". Et hint er klart." : ""}`);
   }
 
-  let dramatikk = false; // the next reveal gets a drum roll (only right after an unsolved round)
-  let starter = false; // the countdown before the questioning is running
+  const ANGRE_IKON =
+    '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8.5 4.5 3.5 9.5l5 5"/><path d="M4 9.5h10.5a5.5 5.5 0 0 1 0 11H10"/></svg>';
+
+  let dramatikk = false; // the next reveal gets a drum roll (only right after an unsolved secret)
 
   R.start({
     id: "detektiven",
@@ -194,36 +331,61 @@
 
     tilstand: () => ({
       antall: 3,
-      oppsett: { kategorier: KAT.map((k) => k.id), nivaa: 2, runder: 1, hint: true },
+      oppsett: { modus: "spm", kategorier: KAT.map((k) => k.id), nivaa: 2, antallH: null, hint: true, katV: 2 },
       spill: null,
     }),
 
     lastet(S) {
-      const o = (S.oppsett = Object.assign({ kategorier: [], nivaa: 2, runder: 1, hint: true }, S.oppsett));
+      const o = (S.oppsett = Object.assign({ modus: "spm", kategorier: [], nivaa: 2, antallH: null, hint: true }, S.oppsett));
+      if (!erModus(o.modus)) o.modus = "spm";
       o.kategorier = (Array.isArray(o.kategorier) ? o.kategorier : []).filter((id) => kat(id));
+      // «Jul» arrived later: a phone that had every category switched on gets it too (once).
+      if (o.katV !== 2) {
+        if (KAT.every((k) => k.id === "jul" || o.kategorier.includes(k.id)) && !o.kategorier.includes("jul")) o.kategorier.push("jul");
+        o.katV = 2;
+      }
       if (!o.kategorier.length) o.kategorier = KAT.map((k) => k.id);
       if (![1, 2, 3].includes(o.nivaa)) o.nivaa = 2;
-      if (![1, 2, 3].includes(o.runder)) o.runder = 1;
+      o.antallH = Number.isInteger(o.antallH) && o.antallH >= 1 && o.antallH <= MAKS_H ? o.antallH : null;
+      delete o.runder; // (the length used to be «én/to/tre hver»)
       o.hint = o.hint !== false;
       const sp = S.spill;
       if (sp) {
         const gyldigH = (h) => Number.isInteger(h) && h >= 0 && h < ALLE.length;
         const ok =
+          Number.isInteger(sp.antall) &&
           sp.antall >= 2 &&
           sp.antall <= 20 &&
           Array.isArray(sp.poeng) &&
           sp.poeng.length === sp.antall &&
           Array.isArray(sp.logg) &&
-          sp.logg.every((l) => l && gyldigH(l.h) && l.pluss) &&
+          sp.logg.every((l) => l && gyldigH(l.h) && l.pluss && typeof l.pluss === "object") &&
           Array.isArray(sp.kategorier) &&
           sp.kategorier.every((id) => kat(id)) &&
           (!sp.runde || (gyldigH(sp.runde.h) && Array.isArray(sp.runde.svar)));
         if (!ok) S.spill = null;
+        else {
+          // A game saved by the first version: 20 spørsmål, «n hver», keepers from the first player.
+          if (!erModus(sp.modus)) sp.modus = "spm";
+          if (!Number.isInteger(sp.start) || sp.start < 0 || sp.start >= sp.antall) sp.start = 0;
+          if (!Number.isInteger(sp.totalt) || sp.totalt < 1) sp.totalt = sp.antall * ([1, 2, 3].includes(sp.runder) ? sp.runder : 1);
+          sp.logg.forEach((l) => {
+            if (typeof l.lost !== "boolean") l.lost = l.g >= 0;
+            if (!Number.isInteger(l.g)) l.g = -1;
+            if (!Number.isInteger(l.k) || l.k < 0 || l.k >= sp.antall) l.k = 0;
+            l.spm = R.klamp(Number(l.spm) || 0, 0, MAKS);
+          });
+          if (sp.runde) {
+            sp.runde.svar = sp.runde.svar.slice(0, MAKS);
+            sp.runde.spm = sp.runde.svar.length;
+            sp.runde.hint = R.klamp(Number(sp.runde.hint) || 0, 0, HINT_VED.length);
+          }
+        }
       }
       const spillSkjerm = ["gi", "hemmelig", "avhor", "hvem", "avsloring", "slutt"];
       if (!S.spill && spillSkjerm.includes(S.skjerm)) S.skjerm = "hjem";
       if (S.spill && !S.spill.runde && ["gi", "hemmelig", "avhor", "hvem"].includes(S.skjerm)) {
-        if (ferdig(S.spill)) S.skjerm = "slutt";
+        if (ferdig(S.spill) || S.spill.ferdig) S.skjerm = S.spill.logg.length ? "slutt" : "hjem";
         else {
           nyRunde(S);
           S.skjerm = "gi";
@@ -233,29 +395,32 @@
     },
 
     regler: {
-      intro: "Én spiller får en hemmelighet. De andre er detektiver og har 20 ja/nei-spørsmål på seg til å finne ut hva det er.",
+      intro: "Noen har en hemmelighet – og den skal finnes med ja/nei-spørsmål. Høyst 20!",
       steg: [
-        ["Se hemmeligheten", "Den som har mobilen, holder inne kortet og ser hemmeligheten. De andre ser bort."],
-        ["Still ja/nei-spørsmål", "Detektivene spør etter tur: «Er du et dyr?» Svar Ja, Nei eller Kanskje – mobilen teller."],
-        ["Gjett!", "Tror du at du vet svaret? Gjett – det teller også som et spørsmål. Riktig? Trykk «Noen gjettet det!»."],
+        ["Se hemmeligheten", "I «20 spørsmål» holder én inne kortet og ser hemmeligheten selv. I «Hvem er jeg?» er det omvendt: Alle ser kortet – unntatt den som skal gjette."],
+        ["Still ja/nei-spørsmål", "Spør etter tur: «Er det et dyr?» Svar Ja, Nei eller Kanskje – mobilen teller spørsmålene."],
+        ["Gjett!", "Tror du at du vet svaret? Gjett – det teller også som et spørsmål. Riktig? Trykk på den store knappen."],
       ],
       tips: [
-        "Poeng: Riktig gjetning gir 2. Den med hemmeligheten får 1 hvis det tok over 10 spørsmål – og 3 hvis ingen klarte det på 20.",
-        "Etter 10 og 15 spørsmål kan detektivene få et hint.",
-        "Usikker på svaret? Trykk «Kanskje». På kortet står det litt om hemmeligheten som hjelp.",
-        "Kjenner du ikke hemmeligheten din? Trekk en ny før avhøret starter.",
+        "I «20 spørsmål» gir riktig gjetning 2 poeng. Løst på 10 spørsmål eller færre? Da får de andre detektivene 1 poeng hver.",
+        "Den med hemmeligheten får 1 poeng hvis den holder i 15 spørsmål, 2 hvis den holder i alle 20 – og 3 hvis ingen klarer det.",
+        "I «Hvem er jeg?» får den som gjetter, 3 poeng for å klare det på 10 spørsmål, 2 på 15 og 1 på 20.",
+        "«Alle mot hemmeligheten» er uten poeng: Dere samarbeider om å bruke færrest mulig spørsmål.",
+        "Gjetter du feil, står du over neste spørsmål. Da lønner det seg ikke å gjette vilt.",
+        "Etter 10 og 15 spørsmål kan dere få et hint. Usikker på svaret? Trykk «Kanskje».",
       ],
     },
 
     hemmelig: {
       innhold(S) {
-        const r = S.spill && S.spill.runde;
+        const sp = S.spill;
+        const r = sp && sp.runde;
         if (!r) return { html: "" };
         const w = ALLE[r.h];
         const k = kat(w.k);
         return {
           klasse: "aksent",
-          html: `<span class="kort-etikett">Du er</span>
+          html: `<span class="kort-etikett">${sp.modus === "jeg" ? `${esc(R.navn(tur(sp)))} er` : "Du er"}</span>
             <span class="kort-ord ${R.lengdeKlasse(w.navn)}">${esc(w.navn)}</span>
             <span class="kort-pille">${k.ikon} ${esc(k.navn)}</span>
             <span class="kort-fot">${esc(w.hjelp)}</span>`,
@@ -265,6 +430,7 @@
         const r = S.spill && S.spill.runde;
         if (!r || r.sett) return;
         r.sett = true;
+        r.ny = false;
         if (S.skjerm === "hemmelig") R.vis();
         else R.lagre();
       },
@@ -281,15 +447,19 @@
             : sp.runde && sp.runde.spm
               ? `Fortsett · spørsmål ${sp.runde.spm} av ${MAKS}`
               : ferdig(sp)
-                ? "Fortsett · se vinneren"
-                : `Fortsett · runde ${Math.min(sp.logg.length + 1, totalt(sp))} av ${totalt(sp)}`;
+                ? rangert(sp)
+                  ? "Fortsett · se vinneren"
+                  : "Fortsett · se rapporten"
+                : `Fortsett · hemmelighet ${Math.min(sp.logg.length + 1, sp.totalt)} av ${sp.totalt}`;
+          const st = lesStat();
+          const rekord = rekordTekst(st);
           return R.ui.spillhjem({
             slagordHtml: "Én har en hemmelighet.<br><em>De andre har 20 spørsmål.</em>",
-            knapperHtml: R.ui.startKnapper({ pagar: pagar(S), fortsettTekst, ekstraHtml: R.ui.lenke("Slik spiller du", "regler") }),
-            merker: [
-              ["2–20", "spillere"],
-              [String(ALLE.length), "hemmeligheter"],
-            ],
+            knapperHtml:
+              R.ui.startKnapper({ pagar: pagar(S), fortsettTekst }) +
+              (rekord ? `<p class="detektiv-rekord"><span class="etikett">Rekord</span> <b>${esc(rekord)}</b></p>` : "") +
+              R.ui.lenke("Slik spiller du", "regler"),
+            merker: [["2–20", "spillere"], [String(ALLE.length), "hemmeligheter"]].concat(st.lost ? [[R.tall(st.lost), "oppklart"]] : []),
           });
         },
       },
@@ -300,9 +470,19 @@
         vis(S) {
           const o = S.oppsett;
           const n = antallI(o);
+          const t = antallH(S);
           return `
             <h1 id="skjerm-tittel">Gjør klart</h1>
-            ${R.ui.spillere({ min: 2, max: 20, hjelp: "Alle får ha hemmeligheten etter tur." })}
+            <section class="seksjon">
+              <h2>Hvordan spiller dere?</h2>
+              ${R.ui.fliser("modus", MODUSER, o.modus, { en: true })}
+            </section>
+            ${R.ui.spillere({ min: 2, max: 20, hjelp: o.modus === "jeg" ? "Alle gjetter etter tur." : "Hemmeligheten går på rundgang." })}
+            <section class="seksjon">
+              <h2>Lengde</h2>
+              ${R.ui.teller("antall-h", t, 1, MAKS_H, { enhet: t === 1 ? "hemmelighet" : "hemmeligheter", minus: "Færre hemmeligheter", pluss: "Flere hemmeligheter" })}
+              <p class="hjelp">${esc(lengdeTekst(o.modus, t, spillere(S)))}</p>
+            </section>
             <section class="seksjon">
               <div class="seksjon-hode"><h2>Kategorier</h2><span class="tall">${n} hemmeligheter</span></div>
               ${R.ui.brikker(
@@ -317,31 +497,30 @@
               ${R.ui.seg("nivaa", NIVAER, o.nivaa, { etikett: "Vanskelighet" })}
               <p class="hjelp">${esc(NIVA_TEKST[o.nivaa])}</p>
             </section>
-            <section class="seksjon">
-              <div class="seksjon-hode"><h2>Runder</h2><span class="tall">${R.klamp(S.antall, 2, 20) * o.runder} hemmeligheter i alt</span></div>
-              ${R.ui.seg(
-                "runder",
-                [
-                  [1, "Én hver"],
-                  [2, "To hver"],
-                  [3, "Tre hver"],
-                ],
-                o.runder,
-                { etikett: "Hvor mange ganger hver" },
-              )}
-            </section>
             ${R.ui.bryter("hint-valg", o.hint, "Hint underveis", "Etter 10 og 15 spørsmål kan detektivene få et lite hint.")}
             ${R.ui.dokk(n ? "" : `<p class="hjelp">Velg minst én kategori.</p>`, R.ui.knapp("Start", "start", { av: !n }))}`;
         },
       },
 
+      // Who gets the phone – or, in «Hvem er jeg?», who has to look away.
       gi: {
-        tittel: (S) => `Runde ${S.spill.logg.length + 1} av ${totalt(S.spill)}`,
+        tittel: (S) => `Hemmelighet ${S.spill.logg.length + 1} av ${S.spill.totalt}`,
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
-          const k = holder(sp);
-          return R.ui.giTil({ i: k, h: "jeg-er", tekst: "Hemmeligheten går til", knapp: `Jeg er ${R.navn(k)}`, advarsel: "De andre ser bort", merkeHtml: "🤫", prikker: [sp.antall, k] });
+          const k = tur(sp);
+          const jeg = sp.modus === "jeg";
+          // The dots are the players: who has had the role in this lap, and whose turn it is.
+          const runde = sp.logg.slice(Math.floor(sp.logg.length / sp.antall) * sp.antall).map((l) => l.k);
+          return `
+            ${R.ui.fremdrift(sp.antall, k, runde)}
+            <div class="gi-til">
+              <span class="gi-til-avatar">${R.avatar(k, "gigant")}<span class="gi-til-merke">${jeg ? "🙈" : "🤫"}</span></span>
+              <p class="etikett">${jeg ? "Nå skal denne gjette" : "Hemmeligheten går til"}</p>
+              <h1 id="skjerm-tittel">${esc(R.navn(k))}</h1>
+              <p class="ikke-se">🙈 ${jeg ? `${esc(R.navn(k))} ser bort` : "De andre ser bort"}</p>
+            </div>
+            ${R.ui.dokk(R.ui.knapp(jeg ? "Vis kortet til de andre" : `Jeg er ${R.navn(k)}`, "jeg-er"), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
         },
         inn(S) {
           S.spill.skjerm = "gi";
@@ -353,18 +532,30 @@
         tilbake: "gi",
         gjenoppta: "gi",
         vis(S) {
-          const r = S.spill.runde;
-          const k = holder(S.spill);
+          const sp = S.spill;
+          const r = sp.runde;
+          const navn = R.navn(tur(sp));
+          const jeg = sp.modus === "jeg";
+          // One short line: it has to fit between the card and the buttons on the smallest phones.
+          const hjelp = r.ny
+            ? "Ny hemmelighet – hold for å se den."
+            : jeg
+              ? r.sett
+                ? "Klart? Da kan gjetteren snu seg."
+                : "Alle unntatt gjetteren får se."
+              : r.sett
+                ? "Husk den godt – og hold pokerfjes!"
+                : "Slipp, så skjules det igjen.";
           return `
             <div class="detektiv-hode">
-              <p class="ikke-se">🙈 Bare ${esc(R.navn(k))} ser</p>
-              <h1 id="skjerm-tittel">Din hemmelighet</h1>
+              <p class="ikke-se">🙈 ${jeg ? `${esc(navn)} må ikke se!` : `Bare ${esc(navn)} ser`}</p>
+              <h1 id="skjerm-tittel">${jeg ? `Hvem er ${esc(navn)}?` : "Din hemmelighet"}</h1>
             </div>
             ${R.ui.mappe({ id: "kort", etikett: "Topphemmelig", tekst: "Hold fingeren på kortet for å se" })}
-            <p class="hjelp">${r.sett ? "Husk den godt – og hold pokerfjes!" : "Hold fingeren på kortet. Slipp, så skjules det igjen."}</p>
+            <p class="hjelp">${esc(hjelp)}</p>
             ${R.ui.dokk(
-              R.ui.knapp(r.sett ? "Start avhøret" : "Se kortet først", "start-avhor", { av: !r.sett, ikon: "🔎" }),
-              R.ui.lenkerad(R.ui.lenke("Kjenner du den ikke? Trekk en ny", "ny-hemmelighet")),
+              R.ui.knapp(r.sett ? "Start avhøret" : "Se kortet først", "start-avhor", { av: !r.sett }),
+              R.ui.lenkerad(R.ui.lenke(jeg ? "Ukjent for dere? Trekk en ny" : "Kjenner du den ikke? Trekk en ny", "ny-hemmelighet")),
             )}`;
         },
         inn(S) {
@@ -378,10 +569,14 @@
         vis(S) {
           const sp = S.spill;
           const r = sp.runde;
-          const [klasse, status] = statusTekst(r);
+          const k = tur(sp);
+          const jeg = sp.modus === "jeg";
+          const [klasse, status] = statusTekst(sp, r);
           const fullt = r.spm >= MAKS;
           // stille: the answer has its own sound, so no kit click on top of it.
-          const svar = (tekst, v, variant) => R.ui.knapp(tekst, "svar", { v, variant, av: fullt, stille: true, etikett: `${tekst} – teller som ett spørsmål` });
+          const svar = (tekst, v, variant) => R.ui.knapp(tekst, "svar", { v, variant, stille: true, etikett: `${tekst} – teller som ett spørsmål` });
+          // With one possible guesser the button names that player, and no «Hvem gjettet det?» follows.
+          const gjettet = jeg ? `${R.navn(k)} gjettet det!` : sp.modus === "spm" && sp.antall === 2 ? `${R.navn((k + 1) % 2)} gjettet det!` : "Noen gjettet det!";
           return `
             <h1 class="vh" id="skjerm-tittel">Avhøret: ${r.spm} av ${MAKS} spørsmål brukt</h1>
             <div class="detektiv-avhor">
@@ -391,37 +586,43 @@
               </div>
               <div class="detektiv-styring">
                 <p class="detektiv-status ${klasse}">${esc(status)}</p>
-                <div class="knapprad tre detektiv-svar">${svar("Ja", "j", "mynte")}${svar("Nei", "n", "rosa")}${svar("Kanskje", "k", "lampe")}</div>
+                ${fullt ? "" : `<div class="knapprad tre detektiv-svar">${svar("Ja", "j", "mynte")}${svar("Nei", "n", "rosa")}${svar("Kanskje", "k", "lampe")}</div>`}
+                ${r.spm ? `<button class="detektiv-angre" id="detektiv-angre" data-h="angre" aria-label="Angre siste spørsmål">${ANGRE_IKON}Angre</button>` : ""}
                 ${hintHtml(sp, r)}
               </div>
             </div>
-            ${R.ui.dokk(
-              R.ui.knapp("Noen gjettet det!", "gjettet", { ikon: "🎉" }),
-              fullt ? R.ui.knapp2("Ingen klarte det", "ingen") : "",
-              R.ui.lenkerad(r.spm ? R.ui.lenke("Angre", "angre") : "", R.ui.lenke("Se kortet", "se-kortet"), fullt ? "" : R.ui.lenke("Gi opp", "gi-opp")),
-            )}`;
+            <div class="dokk${fullt ? " detektiv-dokk-tre" : ""}">
+              ${R.ui.knapp(gjettet, "gjettet")}
+              ${fullt ? R.ui.knapp2(jeg ? `${R.navn(k)} klarte det ikke` : "Ingen klarte det", "ingen") : ""}
+              ${R.ui.lenkerad(R.ui.lenke("Se kortet", "se-kortet"), fullt ? "" : R.ui.lenke("Gi opp", "gi-opp"), R.ui.lenke("Avslutt", "avslutt"))}
+            </div>`;
         },
         inn(S) {
           S.spill.skjerm = "avhor";
         },
       },
 
+      // «20 spørsmål» with three or more: which detective said it?
       hvem: {
         tittel: "Avhøret",
         tilbake: "avhor",
         vis(S) {
           const sp = S.spill;
           const r = sp.runde;
-          const k = holder(sp);
+          const k = tur(sp);
           const andre = Array.from({ length: sp.antall }, (_, i) => i).filter((i) => i !== k);
+          const n = medGjett(r.spm);
+          const holdt = holdtPoeng(r.spm);
           return `
             <div class="banner aksent">
               ${R.figur()}
-              <p class="etikett">Løst etter ${r.spm} spørsmål</p>
+              <p class="etikett">Løst på ${esc(spmTekst(n))}</p>
               <h1 id="skjerm-tittel">Hvem gjettet det?</h1>
             </div>
             ${R.ui.velgere("gjetter", andre, null)}
-            <p class="hjelp">${r.spm >= 10 ? `Riktig svar gir 2 poeng – og ${esc(R.navn(k))} får 1 fordi det tok over 10 spørsmål.` : "Riktig svar gir 2 poeng."}</p>
+            <p class="hjelp">Riktig svar gir 2 poeng.${n <= 10 ? " De andre detektivene får 1 hver for godt samarbeid." : ""}${
+              holdt ? ` ${esc(R.navn(k))} får ${holdt} for å ha holdt ut i ${r.spm >= MAKS ? "alle 20" : "15"} spørsmål.` : ""
+            }</p>
             ${R.ui.dokk(R.ui.knapp2("Ingen likevel – spill videre", "tilbake-avhor"))}`;
         },
         inn(S) {
@@ -437,44 +638,61 @@
           const l = sp.logg[sp.logg.length - 1];
           const w = ALLE[l.h];
           const k = kat(w.k);
-          const lost = l.g >= 0;
-          const rader = sp.poeng.map((poeng, i) => ({ i, poeng, pluss: l.pluss[i] || 0 }));
-          const grunn = (i) => (lost ? (Number(i) === l.g ? "riktig gjetning" : "holdt ut i over 10 spørsmål") : "ingen klarte det");
-          const plussListe = Object.keys(l.pluss)
-            .sort((a, b) => l.pluss[b] - l.pluss[a])
-            .map((i) => `<li>${R.avatar(Number(i))}<span class="navn">${esc(R.navn(Number(i)))}</span><span class="grunn">${grunn(i)}</span><b>+${l.pluss[i]}</b></li>`)
-            .join("");
-          const neste = ferdig(sp)
-            ? R.ui.knapp("Se vinneren", "neste", { variant: "stor", ikon: "🏆" })
-            : R.ui.knapp(`Neste: ${R.navn(holder(sp))}`, "neste", { variant: "stor" });
+          const n = brukt(l);
+          const jeg = sp.modus === "jeg";
+          const sammen = sp.modus === "sammen";
+          const neste = ferdig(sp) ? R.ui.knapp(sammen ? "Til rapporten" : "Til kåringen", "neste", { variant: "stor" }) : R.ui.knapp(`Neste: ${R.navn(tur(sp))}`, "neste", { variant: "stor" });
           if (dramatikk) {
             return `
               <div class="detektiv-avsloring spenning">
-                <p class="etikett">Ingen klarte det!</p>
+                <p class="etikett">${l.opp ? "Avsløringen kommer …" : jeg ? `${esc(R.navn(l.k))} klarte det ikke!` : "Ingen klarte det!"}</p>
                 <h1 id="skjerm-tittel">${esc(R.navn(l.k))} var …</h1>
                 <div class="papirboks detektiv-fasit" aria-hidden="true"><span class="detektiv-spm-tegn">?</span></div>
               </div>`;
           }
+          const tittel = l.lost ? (sammen ? `Løst på ${spmTekst(n)}!` : `${R.navn(l.g)} klarte det!`) : jeg ? `${R.navn(l.k)} fant det ikke ut` : "Hemmeligheten holdt!";
+          const ingress = l.lost ? (sammen ? "" : `Løst på ${spmTekst(n)}.`) : l.opp ? `Avslørt etter ${spmTekst(l.spm)}.` : `Alle ${MAKS} spørsmålene ble brukt.`;
+          const st = lesStat();
+          const rekord = l.ny === "raskest" ? `⚡ Ny rekord: løst på ${spmTekst(n)}!` : l.ny === "rad" ? `🔥 Ny rekord: ${st.rad} løst på rad!` : sammen && l.lost && st.rad >= 2 ? `🔥 ${st.rad} løst på rad` : "";
+          const grunn = (i) => {
+            if (jeg) return `fant det ut på ${spmTekst(n)}`;
+            if (l.lost && i === l.g) return "riktig gjetning";
+            if (i === l.k) return !l.lost && !l.opp ? "ingen klarte det" : l.spm >= MAKS ? "holdt ut i alle 20 spørsmålene" : "holdt ut i 15 spørsmål";
+            return "godt samarbeid";
+          };
+          const plussListe = Object.keys(l.pluss)
+            .map(Number)
+            .sort((a, b) => l.pluss[b] - l.pluss[a] || a - b)
+            .map((i) => `<li>${R.avatar(i)}<span class="navn">${esc(R.navn(i))}</span><span class="grunn">${esc(grunn(i))}</span><b>+${l.pluss[i]}</b></li>`)
+            .join("");
+          const rader = sp.poeng.map((poeng, i) => ({ i, poeng, pluss: l.pluss[i] || 0 }));
+          const resten = sammen
+            ? `<section class="seksjon">
+                <div class="seksjon-hode"><h2>Så langt</h2><span class="tall">${sp.logg.length} av ${R.flertall(sp.totalt, "hemmelighet", "hemmeligheter")}</span></div>
+                ${sakerHtml(sp)}
+              </section>`
+            : `<section class="seksjon">
+                <h2>Poeng denne runden</h2>
+                ${plussListe ? `<ul class="detektiv-pluss-liste">${plussListe}</ul>` : `<p class="detektiv-ingen-poeng">Ingen poeng denne runden.</p>`}
+              </section>
+              <section class="seksjon">
+                <div class="seksjon-hode"><h2>Stillingen</h2><span class="tall">${sp.logg.length} av ${R.flertall(sp.totalt, "hemmelighet", "hemmeligheter")}</span></div>
+                ${R.ui.poengliste(rader)}
+              </section>`;
           return `
-            <div class="detektiv-avsloring ${lost ? "lost" : "uopp"}">
-              <div class="stempel-sted"><span class="stempel ${lost ? "mynte" : ""}">${lost ? "Løst!" : "Uoppklart"}</span></div>
-              <h1 id="skjerm-tittel">${lost ? `${esc(R.navn(l.g))} klarte det!` : "Hemmeligheten holdt!"}</h1>
+            <div class="detektiv-avsloring ${l.lost ? "lost" : "uopp"}">
+              <div class="stempel-sted"><span class="stempel ${l.lost ? "mynte" : ""}">${l.lost ? "Løst!" : "Uoppklart"}</span></div>
+              <h1 id="skjerm-tittel">${esc(tittel)}</h1>
               <div class="papirboks detektiv-fasit">
                 <span class="etikett">${esc(R.navn(l.k))} var</span>
                 <span class="kort-ord ${R.lengdeKlasse(w.navn)}">${esc(w.navn)}</span>
                 <span class="kort-pille">${k.ikon} ${esc(k.navn)}</span>
               </div>
-              <p class="ingress">${lost ? `Løst etter ${l.spm} spørsmål.` : `${l.spm} spørsmål, og ingen fant svaret.`}</p>
+              ${ingress ? `<p class="ingress">${esc(ingress)}</p>` : ""}
+              ${rekord ? `<p class="detektiv-nyrekord">${esc(rekord)}</p>` : ""}
             </div>
-            <section class="seksjon">
-              <h2>Poeng denne runden</h2>
-              <ul class="detektiv-pluss-liste">${plussListe}</ul>
-            </section>
-            <section class="seksjon">
-              <div class="seksjon-hode"><h2>Stillingen</h2><span class="tall">${sp.logg.length} av ${totalt(sp)} runder</span></div>
-              ${R.ui.poengliste(rader)}
-            </section>
-            ${R.ui.dokk(neste, R.ui.lenkerad(R.ui.lenke("Angre poengene", "angre-poeng"), ferdig(sp) ? "" : R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${resten}
+            ${R.ui.dokk(neste, R.ui.lenkerad(R.ui.lenke(sammen ? "Angre" : "Angre poengene", "angre-poeng"), ferdig(sp) ? "" : R.ui.lenke("Avslutt", "avslutt")))}`;
         },
         inn(S) {
           S.spill.skjerm = "avsloring";
@@ -489,50 +707,84 @@
               R.vis();
               R.vibrer([60, 40, 120]);
             }, 1300);
-          } else if (l && l.g >= 0) {
+          } else if (l && l.lost) {
             R.lyd.riktig();
-            if (l.spm <= 5) R.konfetti();
+            if (brukt(l) <= 5) R.konfetti();
           }
         },
       },
 
+      // «Kåringen» when there are points; the report of the case when the group played as one.
       slutt: {
-        tittel: "Kåringen",
+        tittel: (S) => (rangert(S.spill) ? "Kåringen" : "Rapporten"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
           const sp = S.spill;
-          const rader = sp.poeng.map((poeng, i) => ({ i, poeng }));
-          const topp = Math.max(...sp.poeng);
-          const vinnere = rader.filter((r) => r.poeng === topp && topp > 0);
-          const losteRunder = sp.logg.filter((l) => l.g >= 0).sort((a, b) => a.spm - b.spm);
-          const holdte = sp.logg.filter((l) => l.g < 0);
+          const dokk = R.ui.flereSpill({ antall: sp.antall }) + R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`));
+          const losteRunder = sp.logg.filter((l) => l.lost).sort((a, b) => brukt(a) - brukt(b));
+          const holdte = sp.logg.filter((l) => !l.lost).sort((a, b) => b.spm - a.spm);
+          const st = lesStat();
           const fakta = [];
+          if (!rangert(sp)) {
+            const alle = losteRunder.length === sp.logg.length;
+            const snitt = losteRunder.length ? Math.round((losteRunder.reduce((s, l) => s + brukt(l), 0) / losteRunder.length) * 10) / 10 : 0;
+            if (losteRunder.length) fakta.push(["⚡", "Raskeste oppklaring", `«${ALLE[losteRunder[0].h].navn}» på ${spmTekst(brukt(losteRunder[0]))}`]);
+            if (rekordTekst(st)) fakta.push(["🏆", "Rekord på denne mobilen", rekordTekst(st)]);
+            return `
+              ${R.ui.banner({
+                klasse: "aksent",
+                etikett: "Alle mot hemmeligheten",
+                tittel: !losteRunder.length ? "Ingen oppklart denne gangen" : alle && sp.logg.length > 1 ? `Alle ${sp.logg.length} oppklart!` : `${losteRunder.length} av ${sp.logg.length} oppklart!`,
+                tekst: losteRunder.length ? `I snitt ${R.tall(snitt)} spørsmål per oppklaring.` : "Hemmelighetene holdt. Prøv igjen – nå kjenner dere knepene!",
+                stemning: !losteRunder.length ? "lei" : alle ? "jubel" : "",
+              })}
+              ${sakerHtml(sp)}
+              ${fakta.length ? `<ul class="detektiv-fakta">${fakta.map(([ikon, t, x]) => `<li><span aria-hidden="true">${ikon}</span><p><b>${esc(t)}</b> ${esc(x)}</p></li>`).join("")}</ul>` : ""}
+              ${R.ui.knapp2("Del resultatet", "del")}
+              ${dokk}`;
+          }
+          const rad = rangering(sp);
+          const vant = vinnere(rad);
+          const avgjort = vant.length === 1 && rad.length > 1 && rad[1].poeng === rad[0].poeng; // equal points, decided by the tie-break
+          const jeg = sp.modus === "jeg";
           if (losteRunder.length) {
             const l = losteRunder[0];
-            fakta.push(["⚡", "Raskeste oppklaring", `${R.navn(l.g)} fant «${ALLE[l.h].navn}» etter ${l.spm} spørsmål`]);
+            fakta.push(["⚡", "Raskeste oppklaring", `${R.navn(l.g)} fant «${ALLE[l.h].navn}» på ${spmTekst(brukt(l))}`]);
           }
-          if (holdte.length) fakta.push(["🔒", "Best bevarte hemmelighet", `${R.navn(holdte[0].k)} som «${ALLE[holdte[0].h].navn}»`]);
+          if (holdte.length) fakta.push(jeg ? ["🔒", "Vanskeligste nøtt", `«${ALLE[holdte[0].h].navn}» – ${R.navn(holdte[0].k)} fant det ikke ut`] : ["🔒", "Best bevarte hemmelighet", `${R.navn(holdte[0].k)} som «${ALLE[holdte[0].h].navn}»`]);
+          const utenTur = jeg && rad.length < sp.antall;
           return `
-            <div class="banner aksent">
-              ${R.figur()}
-              <p class="etikett">${vinnere.length > 1 ? "Like gode detektiver" : vinnere.length ? "Mesterdetektiven" : "Ferdig!"}</p>
-              <h1 id="skjerm-tittel">${vinnere.length ? `${esc(navneliste(vinnere.map((r) => R.navn(r.i))))} vinner!` : "Ingen poeng denne gangen"}</h1>
-            </div>
-            ${R.ui.pall(rader)}
-            ${R.ui.poengliste(rader)}
+            ${R.ui.banner({
+              klasse: "aksent",
+              etikett: vant.length > 1 ? "Like gode detektiver" : vant.length ? "Mesterdetektiven" : "Ferdig!",
+              tittel: vant.length ? `${R.ramsOpp(vant.map((r) => R.navn(r.i)))} vinner!` : "Ingen poeng denne gangen",
+              tekst: avgjort ? (jeg ? `Likt på poeng – ${R.navn(vant[0].i)} brukte færrest spørsmål.` : "Likt på poeng – raskeste oppklaring avgjorde.") : "",
+              stemning: vant.length ? "jubel" : "",
+            })}
+            ${pallHtml(rad)}
+            ${listeHtml(rad)}
+            ${utenTur ? `<p class="hjelp">Bare de som rakk å gjette, er med i kåringen.</p>` : ""}
             ${fakta.length ? `<ul class="detektiv-fakta">${fakta.map(([ikon, t, x]) => `<li><span aria-hidden="true">${ikon}</span><p><b>${esc(t)}</b> ${esc(x)}</p></li>`).join("")}</ul>` : ""}
-            ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+            ${dokk}`;
         },
         inn(S) {
-          S.spill.skjerm = "slutt";
-          S.spill.ferdig = true;
+          const sp = S.spill;
+          sp.skjerm = "slutt";
+          sp.ferdig = true;
           R.slippVaken();
-          if (S.spill.poeng.some((p) => p > 0)) {
+          const lost = sp.logg.filter((l) => l.lost).length;
+          if (!sp.meldt) {
+            // Once per game: the evening's scoreboard (only when players are ranked) and the statistics.
+            sp.meldt = true;
+            R.statistikk("ferdig", { modus: sp.modus, runder: sp.logg.length, lost });
+            if (rangert(sp)) R.kveld.registrer(kveldRader(rangering(sp)));
+          }
+          // Celebrate in proportion: a winner, or every secret solved together.
+          if (rangert(sp) ? sp.poeng.some((p) => p > 0) : lost === sp.logg.length) {
             R.lyd.fanfare();
             R.konfetti();
-          }
+          } else if (lost) R.lyd.riktig();
         },
       },
     },
@@ -553,6 +805,18 @@
       },
 
       // --- setup ---
+      modus(el, e, S) {
+        if (!erModus(el.dataset.v)) return;
+        S.oppsett.modus = el.dataset.v;
+        S.oppsett.antallH = null; // the natural length differs from mode to mode
+        R.vis();
+      },
+      "antall-h"(el, e, S) {
+        const n = R.klamp(antallH(S) + Number(el.dataset.v), 1, MAKS_H);
+        // Back on the natural length: follow the group again when players come and go.
+        S.oppsett.antallH = n === autoAntall(S.oppsett.modus, spillere(S)) ? null : n;
+        R.vis();
+      },
       kat(el, e, S) {
         const o = S.oppsett;
         const id = el.dataset.v;
@@ -564,32 +828,20 @@
         S.oppsett.nivaa = Number(el.dataset.v);
         R.vis();
       },
-      runder(el, e, S) {
-        S.oppsett.runder = Number(el.dataset.v);
-        R.vis();
-      },
       "hint-valg"(el, e, S) {
         S.oppsett.hint = !S.oppsett.hint;
         R.vis();
       },
-      hint(el, e, S) {
-        const sp = S.spill;
-        const r = sp && sp.runde;
-        if (!r) return;
-        const liste = hintListe(sp, r.h);
-        if (r.hint >= liste.length || r.spm < HINT_VED[r.hint]) return;
-        r.hint += 1;
-        R.vis();
-        R.lyd.pling();
-        R.si(`Hint: ${liste[r.hint - 1].etikett}: ${liste[r.hint - 1].tekst}`);
-      },
       start(el, e, S) {
         const o = S.oppsett;
         if (!antallI(o)) return;
-        const antall = R.klamp(S.antall, 2, 20);
+        const antall = spillere(S);
+        const forrige = S.spill; // «Spill igjen»: the role goes on round the table from where it stopped
         S.spill = {
+          modus: o.modus,
           antall,
-          runder: o.runder,
+          totalt: antallH(S),
+          start: forrige && forrige.antall === antall && Number.isInteger(forrige.start) ? (forrige.start + forrige.logg.length) % antall : 0,
           kategorier: o.kategorier.slice(),
           nivaa: o.nivaa,
           hint: o.hint,
@@ -599,6 +851,7 @@
           skjerm: "gi",
         };
         nyRunde(S);
+        R.statistikk("start", { modus: o.modus, spillere: antall, hemmeligheter: S.spill.totalt, nivaa: o.nivaa });
         R.gaTil("gi"); // the kit keeps the screen awake while pagar(S) is true
       },
 
@@ -609,18 +862,15 @@
         if (!r || r.spm) return;
         r.h = trekk(S);
         r.sett = false;
+        r.ny = true; // said in the line under the card (a toast would cover the heading)
         R.vis();
         R.lyd.snu();
-        R.toast("Ny hemmelighet trukket!");
+        R.si("Ny hemmelighet trukket.");
       },
-      async "start-avhor"(el, e, S) {
+      // No countdown: nothing is timed, so the first question can come right away.
+      "start-avhor"(el, e, S) {
         const r = S.spill && S.spill.runde;
-        if (!r || !r.sett || starter) return;
-        starter = true;
-        const ferdigTalt = await R.nedtelling(["3", "2", "1", "Spør!"], 560);
-        starter = false;
-        // false = the screen changed during the countdown (e.g. «Tilbake»): stay where we are.
-        if (!ferdigTalt || S.spill.runde !== r) return;
+        if (!r || !r.sett) return;
         R.gaTil("avhor");
       },
 
@@ -633,26 +883,60 @@
         r.svar.pop();
         r.spm = r.svar.length;
         R.vis();
-        R.toast("Ett spørsmål mindre");
+        // The undo button is gone when the meter is back at zero: hand the focus to the meter.
+        if (!r.spm && !R.$("#detektiv-angre")) {
+          const lupeEl = R.$("#detektiv-lupe");
+          if (lupeEl && document.activeElement === document.body) lupeEl.focus({ preventScroll: true });
+        }
+        R.si(`Angret. ${r.spm} av ${MAKS}`);
       },
-      "se-kortet"() {
+      hint(el, e, S) {
+        const sp = S.spill;
+        const r = sp && sp.runde;
+        if (!r) return;
+        const liste = hintListe(sp, r.h);
+        if (r.hint >= liste.length || r.spm < HINT_VED[r.hint]) return;
+        r.hint += 1;
+        R.vis();
+        R.lyd.pling();
+        // The button that was pressed is gone: put the focus on the hint it gave.
+        const kort = R.$$(".detektiv-hintkort").pop();
+        if (kort && !R.$('#skjerm [data-h="hint"]')) {
+          kort.setAttribute("tabindex", "-1");
+          kort.focus({ preventScroll: true });
+        }
+        R.si(`Hint: ${liste[r.hint - 1].etikett}: ${liste[r.hint - 1].tekst}`);
+      },
+      "se-kortet"(el, e, S) {
+        const sp = S.spill;
         R.ark(`
-          <h2 id="ark-tittel">Kortet ditt</h2>
-          <p class="ingress">Bare for den som har hemmeligheten!</p>
+          <h2 id="ark-tittel">${sp && sp.modus === "jeg" ? "Kortet" : "Kortet ditt"}</h2>
+          <p class="ingress">${sp && sp.modus === "jeg" ? `Bare for dere som svarer – ${esc(R.navn(tur(sp)))} ser bort!` : "Bare for den som har hemmeligheten!"}</p>
           ${R.ui.mappe({ id: "kort", etikett: "Topphemmelig", tekst: "Hold fingeren på kortet for å se" })}
           <button class="knapp" data-h="lukk-ark">Ferdig</button>`);
       },
-      gjettet: () => R.gaTil("hvem"),
+      gjettet(el, e, S) {
+        const sp = S.spill;
+        if (!sp || !sp.runde) return;
+        if (sp.modus === "spm" && sp.antall > 2) return R.gaTil("hvem");
+        // One possible guesser: the one on turn («Hvem er jeg?») or the only detective (two players).
+        const k = tur(sp);
+        avsluttRunde(S, { lost: true, g: sp.modus === "jeg" ? k : sp.modus === "spm" ? (k + 1) % 2 : -1 });
+        dramatikk = false;
+        R.gaTil("avsloring");
+      },
       "tilbake-avhor": () => R.gaTil("avhor"),
       gjetter(el, e, S) {
-        if (!S.spill || !S.spill.runde) return;
-        avslutt(S, Number(el.dataset.v));
+        const sp = S.spill;
+        const g = Number(el.dataset.v);
+        if (!sp || !sp.runde || !(g >= 0 && g < sp.antall) || g === tur(sp)) return;
+        avsluttRunde(S, { lost: true, g });
         dramatikk = false;
         R.gaTil("avsloring");
       },
       ingen(el, e, S) {
         if (!S.spill || !S.spill.runde) return;
-        avslutt(S, -1);
+        avsluttRunde(S, { lost: false });
         dramatikk = true;
         R.gaTil("avsloring");
       },
@@ -661,13 +945,38 @@
         if (!sp || !sp.runde) return;
         const fortsatt = R.vakt();
         const r = sp.runde;
-        const ja = await R.bekreft("Gi opp?", `Hemmeligheten blir avslørt, og ${R.navn(holder(sp))} får 3 poeng.`, "Avslør den", "Spill videre");
-        if (ja && fortsatt() && S.spill === sp && sp.runde === r) H.ingen(el, e, S);
+        const navn = R.navn(tur(sp));
+        const holdt = holdtPoeng(r.spm);
+        const tekst =
+          sp.modus === "spm"
+            ? holdt
+              ? `Hemmeligheten blir avslørt. ${navn} får ${holdt} poeng for å ha holdt ut i 15 spørsmål.`
+              : "Hemmeligheten blir avslørt, og ingen får poeng for den."
+            : sp.modus === "jeg"
+              ? `Hemmeligheten blir avslørt, og ${navn} får ingen poeng for den.`
+              : "Hemmeligheten blir avslørt og teller som uoppklart.";
+        const ja = await R.bekreft("Gi opp?", tekst, "Avslør den", "Spill videre");
+        if (!ja || !fortsatt() || S.spill !== sp || sp.runde !== r) return;
+        avsluttRunde(S, { lost: false, opp: true });
+        dramatikk = true;
+        R.gaTil("avsloring");
       },
+      // Ending early is always just «Avslutt»: the secret in play does not count, the rest does.
       async avslutt(el, e, S) {
+        const sp = S.spill;
+        if (!sp) return R.gaTil("hjem");
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avslutte spillet?", "Dere går rett til kåringen og ser hvem som vant.", "Avslutt", "Spill videre");
-        if (ja && fortsatt() && S.spill) R.gaTil("slutt");
+        const hvor = rangert(sp) ? "kåringen" : "rapporten";
+        const tekst = !sp.logg.length ? "Ingen hemmeligheter er avslørt ennå, så spillet blir bare borte." : sp.runde ? `Hemmeligheten dere holder på med, teller ikke. Dere går rett til ${hvor}.` : `Dere går rett til ${hvor}.`;
+        const ja = await R.bekreft("Avslutte spillet?", tekst, "Avslutt", "Spill videre");
+        if (!ja || !fortsatt() || S.spill !== sp) return;
+        if (!sp.logg.length) {
+          S.spill = null;
+          R.slippVaken();
+          return R.gaTil("hjem");
+        }
+        sp.runde = null;
+        R.gaTil("slutt");
       },
 
       // --- after the round ---
@@ -676,8 +985,10 @@
         const l = sp && sp.logg.pop();
         if (!l) return;
         Object.keys(l.pluss).forEach((i) => (sp.poeng[i] -= l.pluss[i]));
+        if (sp.statFor) R.skriv(STAT, sp.statFor);
+        sp.statFor = null;
         sp.runde = { h: l.h, sett: true, spm: l.spm, svar: l.svar || [], hint: l.hint || 0 };
-        R.toast("Poengene er tatt tilbake");
+        R.toast(rangert(sp) ? "Poengene er tatt tilbake" : "Avhøret fortsetter");
         R.gaTil("avhor");
       },
       neste(el, e, S) {
@@ -686,9 +997,9 @@
         nyRunde(S);
         R.gaTil("gi");
       },
-      igjen(el, e, S) {
-        S.spill = null;
-        H.start(el, e, S);
+      igjen: (el, e, S) => H.start(el, e, S),
+      del(el, e, S) {
+        if (S.spill) R.del("Detektiven", delTekst(S.spill), DEL_URL);
       },
     }),
   });
