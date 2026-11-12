@@ -108,6 +108,12 @@
       "tittel": "Fire på stribe – gratis mod en ven eller mobilen",
       "frase": "Fire på stribe",
       "beskrivelse": "Gratis fire på stribe på dansk. Slip brikkerne og få fire på stribe – mod en ven på samme mobil eller mod mobilen på tre niveauer."
+    },
+    "admiralen": {
+      "motMobilen": true,
+      "tittel": "Sænke slagskibe online – sænk flåden, gratis",
+      "frase": "Sænke slagskibe",
+      "beskrivelse": "Gratis sænke slagskibe på dansk: placér flåden, og sænk fjendens skibe – mod mobilen på tre niveauer eller to spillere på én mobil."
     }
   }
 }

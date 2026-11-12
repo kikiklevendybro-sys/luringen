@@ -100,6 +100,12 @@
       "tittel": "Four in a row – free against a friend or the phone",
       "frase": "Four in a row",
       "beskrivelse": "Free four in a row in your browser. Drop your discs and line up four – against a friend on the same phone, or against the phone at three levels."
+    },
+    "admiralen": {
+      "motMobilen": true,
+      "tittel": "Sea battle online – sink the enemy fleet, free",
+      "frase": "Sea battle",
+      "beskrivelse": "Free sea battle game in your browser: place your fleet and sink the enemy ships – against the phone at three levels, or two players on one phone."
     }
   }
 }

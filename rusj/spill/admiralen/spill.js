@@ -35,19 +35,20 @@
       ["torpedo", 2],
     ],
   };
-  // [definite form, indefinite form, possessive («fregatten din», «slagskipet ditt»)]
+  // [definite form, indefinite form, «yours» («fregatten din», «slagskipet ditt»)]. Every text goes
+  // through R.t (rusj/SPRAK.md): the key is the Norwegian text, and each language bends the names its own way.
   const SKIPSNAVN = {
-    hangar: ["Hangarskipet", "Hangarskip", "ditt"],
-    slag: ["Slagskipet", "Slagskip", "ditt"],
-    fregatt: ["Fregatten", "Fregatt", "din"],
-    ubat: ["Ubåten", "Ubåt", "din"],
-    torpedo: ["Torpedobåten", "Torpedobåt", "din"],
+    hangar: [R.t("hangarskipet"), R.t("Hangarskip"), R.t("hangarskipet ditt")],
+    slag: [R.t("slagskipet"), R.t("Slagskip"), R.t("slagskipet ditt")],
+    fregatt: [R.t("fregatten"), R.t("Fregatt"), R.t("fregatten din")],
+    ubat: [R.t("ubåten"), R.t("Ubåt"), R.t("ubåten din")],
+    torpedo: [R.t("torpedobåten"), R.t("Torpedobåt"), R.t("torpedobåten din")],
   };
-  const bestemt = (id) => SKIPSNAVN[id][0].toLocaleLowerCase("nb");
+  const bestemt = (id) => SKIPSNAVN[id][0];
   const NIVAER = [
-    ["lett", "Lett"],
-    ["middels", "Middels"],
-    ["vanskelig", "Vanskelig"],
+    ["lett", R.t("Lett")],
+    ["middels", R.t("Middels")],
+    ["vanskelig", R.t("Vanskelig")],
   ];
   const range = (n) => Array.from({ length: n }, (_, i) => i);
   const rute = (i, n) => BOKSTAV[i % n] + (Math.floor(i / n) + 1);
@@ -277,17 +278,17 @@
             if (o.sikte === i) klasser.push("sikte");
             if (o.fersk && o.fersk.i === i) klasser.push("ny-" + o.fersk.type);
             if (o.fersk && o.fersk.senk && o.fersk.senk.includes(i)) klasser.push("ny-senk");
-            const tilstand = v === 1 ? "bom" : v === 2 ? "treff" : v === 3 ? "senket skip" : v === 4 ? "vann" : sk && !t ? SKIPSNAVN[o.flate[sk.k].id][1] : sk ? "eget skip" : "";
+            const tilstand = v === 1 ? R.t("bom") : v === 2 ? R.t("treff") : v === 3 ? R.t("senket skip") : v === 4 ? R.t("vann") : sk && !t ? SKIPSNAVN[o.flate[sk.k].id][1] : sk ? R.t("eget skip") : "";
             const etikett = `${rute(i, n)}${tilstand ? ", " + tilstand : ""}`;
             if (!o.knapp || o.liten) return `<span class="${klasser.filter(Boolean).join(" ")}" data-celle="${i}"></span>`;
             const av = o.knapp === "sikt" && v !== 0;
-            return `<button class="${klasser.filter(Boolean).join(" ")}" data-h="${o.knapp}" data-v="${i}" data-celle="${i}" aria-label="${etikett}"${av ? ' aria-disabled="true" data-stille' : ""}${o.sikte === i ? ' aria-pressed="true"' : ""}></button>`;
+            return `<button class="${klasser.filter(Boolean).join(" ")}" data-h="${o.knapp}" data-v="${i}" data-celle="${i}" aria-label="${esc(etikett)}"${av ? ' aria-disabled="true" data-stille' : ""}${o.sikte === i ? ' aria-pressed="true"' : ""}></button>`;
           })
           .join("");
         return `<span class="ad-merke" aria-hidden="true">${y + 1}</span>${ruter}`;
       })
       .join("");
-    return `<div class="ad-brett${o.liten ? " liten" : ""}${o.mal ? " mal" : ""}${o.plassering ? " ad-plassering" : ""}" style="--n: ${n}" role="group" aria-label="${esc(o.etikett || "Brettet")}">
+    return `<div class="ad-brett${o.liten ? " liten" : ""}${o.mal ? " mal" : ""}${o.plassering ? " ad-plassering" : ""}" style="--n: ${n}" role="group" aria-label="${esc(o.etikett || R.t("Brettet"))}">
       <span class="ad-merke hjorne" aria-hidden="true"></span>${kol}${rader}
     </div>`;
   }
@@ -298,7 +299,7 @@
         (s, k) =>
           `<li class="${senket && senket[k] ? "senket" : ""}${o.valgt === k ? " valgt" : ""}">${
             o.h ? `<button data-h="${o.h}" data-v="${k}" aria-pressed="${o.valgt === k}">` : ""
-          }<span class="ad-skipnavn">${SKIPSNAVN[s.id][1]}</span><span class="ad-skiplengde" aria-label="${s.lengde} ruter">${"<i></i>".repeat(s.lengde)}</span>${o.h ? "</button>" : ""}</li>`,
+          }<span class="ad-skipnavn">${SKIPSNAVN[s.id][1]}</span><span class="ad-skiplengde" aria-label="${esc(R.t("{n} ruter", { n: s.lengde }))}">${"<i></i>".repeat(s.lengde)}</span>${o.h ? "</button>" : ""}</li>`,
       )
       .join("")}</ul>`;
   }
@@ -315,7 +316,7 @@
     const o = S.oppsett;
     const n = o.brett;
     const forrige = S.spill;
-    const navn = o.modus === "maskin" ? [R.navn(0), "Mobilen"] : [R.navn(0), R.navn(1)];
+    const navn = o.modus === "maskin" ? [R.navn(0), R.t("Mobilen")] : [R.navn(0), R.navn(1)];
     // Who fires first alternates from game to game.
     const starter = forrige && forrige.modus === o.modus ? 1 - (forrige.starter || 0) : 0;
     const sp = {
@@ -370,15 +371,15 @@
         type: type === "bom" ? "bom" : "treff",
         tekst:
           type === "bom"
-            ? `Mobilen bommet på ${navn}.`
+            ? R.t("Mobilen bommet på {rute}.", { rute: navn })
             : type === "senk"
-              ? `Mobilen senket ${bestemt(skip.id)} ${SKIPSNAVN[skip.id][2]}!`
-              : `Mobilen traff ${bestemt(skip.id)} ${SKIPSNAVN[skip.id][2]} på ${navn}!`,
+              ? R.t("Mobilen senket {skip}!", { skip: SKIPSNAVN[skip.id][2] })
+              : R.t("Mobilen traff {skip} på {rute}!", { skip: SKIPSNAVN[skip.id][2], rute: navn }),
       };
     } else {
       sp.melding = {
         type: type === "bom" ? "bom" : type,
-        tekst: type === "bom" ? `Plask! Bom på ${navn}.` : type === "senk" ? `Du senket ${bestemt(skip.id)}!` : `Treff på ${navn}!`,
+        tekst: type === "bom" ? R.t("Plask! Bom på {rute}.", { rute: navn }) : type === "senk" ? R.t("Du senket {skip}!", { skip: bestemt(skip.id) }) : R.t("Treff på {rute}!", { rute: navn }),
       };
     }
     if (type === "bom") LYD.bom();
@@ -416,7 +417,7 @@
     const fortsatt = R.vakt();
     try {
       while (sp.tur === MASKIN && sp.vinner == null) {
-        sp.melding = { type: "venter", tekst: "Mobilen sikter …" };
+        sp.melding = { type: "venter", tekst: R.t("Mobilen sikter …") };
         sp.visEgen = true; // on a phone your own fleet takes the big board while the computer fires
         R.vis();
         await R.vent(R.rolig() ? 400 : 950);
@@ -438,7 +439,7 @@
       await R.vent(R.rolig() ? 300 : 1100); // let the shot be seen on your own fleet
       if (!fortsatt() || S.spill !== sp) return;
       sp.visEgen = false;
-      if (sp.tur === 0 && sp.vinner == null && sp.melding) sp.melding.tekst += " Din tur!";
+      if (sp.tur === 0 && sp.vinner == null && sp.melding) sp.melding.tekst += " " + R.t("Din tur!");
       R.vis();
     } finally {
       maskinKjorer = false;
@@ -517,7 +518,7 @@
       R.lyd.pop();
     } else {
       R.lyd.feil();
-      R.toast("Skipene kan ikke ligge inntil hverandre");
+      R.toast(R.t("Skipene kan ikke ligge inntil hverandre"));
     }
     R.vis();
   }
@@ -613,18 +614,18 @@
     },
 
     regler: {
-      intro: "Plasser flåten din i det skjulte og senk motstanderens skip før dine egne går til bunns.",
+      intro: R.t("Plasser flåten din i det skjulte og senk motstanderens skip før dine egne går til bunns."),
       steg: [
-        ["Plasser flåten", "Dra skipene dit du vil, eller trykk på «Tilfeldig». Skipene kan ikke ligge inntil hverandre – heller ikke på skrå."],
-        ["Sikt og fyr", "Trykk på en rute i fiendens farvann og så på «Fyr!». Plask betyr bom, smell betyr treff."],
-        ["Senk alle", "Når alle rutene til et skip er truffet, synker det. Den som senker hele flåten til den andre først, vinner."],
+        [R.t("Plasser flåten"), R.t("Dra skipene dit du vil, eller trykk på «Tilfeldig». Skipene kan ikke ligge inntil hverandre – heller ikke på skrå.")],
+        [R.t("Sikt og fyr"), R.t("Trykk på en rute i fiendens farvann og så på «Fyr!». Plask betyr bom, smell betyr treff.")],
+        [R.t("Senk alle"), R.t("Når alle rutene til et skip er truffet, synker det. Den som senker hele flåten til den andre først, vinner.")],
       ],
       tips: [
-        "Rundt et senket skip er det bare vann – de rutene blir merket med en gang.",
-        "Trykk på samme rute to ganger for å fyre med en gang.",
-        "Treffer du et skip, prøv rutene ved siden av. Skipene ligger alltid rett.",
-        "To spillere: gi mobilen videre etter hvert skudd, og se bort mens den andre plasserer.",
-        "Mobilen ser bare sine egne skudd – den jukser aldri.",
+        R.t("Rundt et senket skip er det bare vann – de rutene blir merket med en gang."),
+        R.t("Trykk på samme rute to ganger for å fyre med en gang."),
+        R.t("Treffer du et skip, prøv rutene ved siden av. Skipene ligger alltid rett."),
+        R.t("To spillere: gi mobilen videre etter hvert skudd, og se bort mens den andre plasserer."),
+        R.t("Mobilen ser bare sine egne skudd – den jukser aldri."),
       ],
     },
 
@@ -633,34 +634,34 @@
         tilbake: "portal",
         vis: (S) =>
           R.ui.spillhjem({
-            slagordHtml: "Plasser flåten.<br><em>Senk fienden først!</em>",
+            slagordHtml: `${esc(R.t("Plasser flåten."))}<br><em>${esc(R.t("Senk fienden først!"))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: "Fortsett slaget",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              fortsettTekst: R.t("Fortsett slaget"),
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
-              ["1–2", "spillere"],
-              ["5", "skip"],
-              ["3", "nivåer"],
+              ["1–2", R.t("spillere")],
+              ["5", R.t("skip")],
+              ["3", R.t("nivåer")],
             ],
           }),
       },
 
       oppsett: {
-        tittel: "Nytt slag",
+        tittel: R.t("Nytt slag"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
           return `
-            <h1 id="skjerm-tittel">Gjør klart</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
             <section class="seksjon">
-              <h2>Hvem spiller?</h2>
+              <h2>${esc(R.t("Hvem spiller?"))}</h2>
               ${R.ui.fliser(
                 "modus",
                 [
-                  { v: "maskin", tittel: "Mot mobilen", tekst: "Du alene mot mobilen", ikon: "🤖" },
-                  { v: "to", tittel: "To spillere", tekst: "Send mobilen mellom dere", ikon: "👥" },
+                  { v: "maskin", tittel: R.t("Mot mobilen"), tekst: R.t("Du alene mot mobilen"), ikon: "🤖" },
+                  { v: "to", tittel: R.t("To spillere"), tekst: R.t("Send mobilen mellom dere"), ikon: "👥" },
                 ],
                 o.modus,
               )}
@@ -668,33 +669,33 @@
             ${
               o.modus === "maskin"
                 ? `<section class="seksjon">
-                    <h2>Hvor flink er mobilen?</h2>
-                    ${R.ui.seg("niva", NIVAER, o.niva, { etikett: "Nivå" })}
-                    <p class="hjelp">${o.niva === "lett" ? "Skyter litt i blinde. Fin for de minste." : o.niva === "middels" ? "Leter i et mønster og følger opp treff." : "Regner ut hvor skipene mest sannsynlig ligger. Lykke til!"}</p>
+                    <h2>${esc(R.t("Hvor flink er mobilen?"))}</h2>
+                    ${R.ui.seg("niva", NIVAER, o.niva, { etikett: R.t("Nivå") })}
+                    <p class="hjelp">${esc(o.niva === "lett" ? R.t("Skyter litt i blinde. Fin for de minste.") : o.niva === "middels" ? R.t("Leter i et mønster og følger opp treff.") : R.t("Regner ut hvor skipene mest sannsynlig ligger. Lykke til!"))}</p>
                   </section>`
-                : R.ui.spillere({ min: 2, max: 2, tittel: "Hvem spiller?", hjelp: "Den som står først, plasserer først." })
+                : R.ui.spillere({ min: 2, max: 2, tittel: R.t("Hvem spiller?"), hjelp: R.t("Den som står først, plasserer først.") })
             }
             <section class="seksjon">
-              <h2>Havet</h2>
+              <h2>${esc(R.t("Havet"))}</h2>
               ${R.ui.seg(
                 "brett",
                 [
-                  [10, "Klassisk 10 × 10"],
-                  [8, "Rask 8 × 8"],
+                  [10, R.t("Klassisk 10 × 10")],
+                  [8, R.t("Rask 8 × 8")],
                 ],
                 o.brett,
-                { etikett: "Brettstørrelse" },
+                { etikett: R.t("Brettstørrelse") },
               )}
-              <p class="hjelp">${o.brett === 10 ? "Fem skip: hangarskip, slagskip, fregatt, ubåt og torpedobåt." : "Fire skip på et mindre hav – raskere slag."}</p>
+              <p class="hjelp">${esc(o.brett === 10 ? R.t("Fem skip: hangarskip, slagskip, fregatt, ubåt og torpedobåt.") : R.t("Fire skip på et mindre hav – raskere slag."))}</p>
             </section>
-            ${R.ui.bryter("ekstra", o.ekstra, "Treff gir et skudd til", "Den som treffer, fyrer igjen")}
-            ${R.ui.dokk(R.ui.knapp("Start", "start"))}`;
+            ${R.ui.bryter("ekstra", o.ekstra, R.t("Treff gir et skudd til"), R.t("Den som treffer, fyrer igjen"))}
+            ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start"))}`;
         },
       },
 
       // «Gi mobilen til …» (two players)
       gi: {
-        tittel: "Admiralen",
+        tittel: () => R.app.navn,
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -703,31 +704,31 @@
             i: s,
             h: "jeg-er",
             v: s,
-            tekst: sp.gate.neste === "plasser" ? "Plasser flåten – gi mobilen til" : "Gi mobilen til",
-            knapp: `Jeg er ${navnFor(sp, s)}`,
-            advarsel: `${navnFor(sp, 1 - s)} ser bort`,
+            tekst: sp.gate.neste === "plasser" ? R.t("Plasser flåten – gi mobilen til") : R.t("Gi mobilen til"),
+            knapp: R.t("Jeg er {navn}", { navn: navnFor(sp, s) }),
+            advarsel: R.t("{navn} ser bort", { navn: navnFor(sp, 1 - s) }),
             ikon: "🙈",
           });
         },
       },
 
       plasser: {
-        tittel: (S) => (maskin(S.spill) ? "Din flåte" : navnFor(S.spill, S.spill.plasserer)),
+        tittel: (S) => (maskin(S.spill) ? R.t("Din flåte") : navnFor(S.spill, S.spill.plasserer)),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const flate = sp.flate[sp.plasserer];
           const valgt = sp.valgt;
           return `
-            <h1 id="skjerm-tittel">Plasser flåten${maskin(sp) ? "" : `, ${esc(navnFor(sp, sp.plasserer))}`}</h1>
-            <p class="ingress ad-hint">Dra et skip dit du vil – eller trykk på skipet og så på en ny rute. Trykk to ganger for å snu det.</p>
-            ${brettHtml(sp.n, { flate, valgt, knapp: "plass-celle", plassering: true, etikett: "Din flåte" })}
+            <h1 id="skjerm-tittel">${esc(maskin(sp) ? R.t("Plasser flåten") : R.t("Plasser flåten, {navn}", { navn: navnFor(sp, sp.plasserer) }))}</h1>
+            <p class="ingress ad-hint">${esc(R.t("Dra et skip dit du vil – eller trykk på skipet og så på en ny rute. Trykk to ganger for å snu det."))}</p>
+            ${brettHtml(sp.n, { flate, valgt, knapp: "plass-celle", plassering: true, etikett: R.t("Din flåte") })}
             ${skipListe(flate, null, { h: "velg-skip", valgt })}
             <div class="knapprad">
-              ${R.ui.knapp2("Snu skipet", "snu", { ikon: "↻", av: valgt == null })}
-              ${R.ui.knapp2("Tilfeldig", "tilfeldig", { ikon: "🎲" })}
+              ${R.ui.knapp2(R.t("Snu skipet"), "snu", { ikon: "↻", av: valgt == null })}
+              ${R.ui.knapp2(R.t("Tilfeldig"), "tilfeldig", { ikon: "🎲" })}
             </div>
-            ${R.ui.dokk(R.ui.knapp("Klar!", "klar", { ikon: "⚓" }))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Klar!"), "klar", { ikon: "⚓" }))}`;
         },
         etter() {
           fersk = null;
@@ -735,7 +736,7 @@
       },
 
       kamp: {
-        tittel: (S) => (maskin(S.spill) ? `Nivå: ${NIVAER.find(([v]) => v === S.spill.niva)[1]}` : navnFor(S.spill, S.spill.ser)),
+        tittel: (S) => (maskin(S.spill) ? R.t("Nivå: {niva}", { niva: NIVAER.find(([v]) => v === S.spill.niva)[1] }) : navnFor(S.spill, S.spill.ser)),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -750,37 +751,37 @@
           if (!melding || (minTur && sp.sikte != null)) {
             melding = minTur
               ? sp.sikte != null
-                ? { type: "sikte", tekst: `Sikter på ${rute(sp.sikte, sp.n)}. Trykk «Fyr!» – eller på ruta en gang til.` }
-                : { type: "tur", tekst: `${maskin(sp) ? "Din tur" : navnFor(sp, v) + ", din tur"}! Trykk på en rute i fiendens farvann.` }
+                ? { type: "sikte", tekst: R.t("Sikter på {rute}. Trykk «Fyr!» – eller på ruta en gang til.", { rute: rute(sp.sikte, sp.n) }) }
+                : { type: "tur", tekst: maskin(sp) ? R.t("Din tur! Trykk på en rute i fiendens farvann.") : R.t("{navn}, din tur! Trykk på en rute i fiendens farvann.", { navn: navnFor(sp, v) }) }
               : melding;
           }
           const ferskMal = fersk && fersk.side === mot ? fersk : null;
           const ferskEgen = fersk && fersk.side === v ? fersk : null;
           const knapp = ferdig
-            ? R.ui.knapp(sp.vinner === v || !maskin(sp) ? "Til kåringen" : "Se kåringen", "til-slutt", { ikon: "🏆" })
+            ? R.ui.knapp(sp.vinner === v || !maskin(sp) ? R.t("Til kåringen") : R.t("Se kåringen"), "til-slutt", { ikon: "🏆" })
             : venterPaMaskin
-              ? R.ui.knapp("Mobilen sikter …", "fyr", { av: true })
+              ? R.ui.knapp(R.t("Mobilen sikter …"), "fyr", { av: true })
               : minTur
-                ? R.ui.knapp(sp.sikte != null ? `Fyr på ${rute(sp.sikte, sp.n)}!` : "Fyr!", "fyr", { av: sp.sikte == null, variant: "rod", ikon: "🎯" })
-                : R.ui.knapp("", "bytt", { tekstHtml: `<span class="ad-to-linjer"><b>Ferdig</b><small>Gi mobilen til ${esc(navnFor(sp, sp.tur))}</small></span>` });
+                ? R.ui.knapp(sp.sikte != null ? R.t("Fyr på {rute}!", { rute: rute(sp.sikte, sp.n) }) : R.t("Fyr!"), "fyr", { av: sp.sikte == null, variant: "rod", ikon: "🎯" })
+                : R.ui.knapp("", "bytt", { tekstHtml: `<span class="ad-to-linjer"><b>${esc(R.t("Ferdig"))}</b><small>${esc(R.t("Gi mobilen til {navn}", { navn: navnFor(sp, sp.tur) }))}</small></span>` });
           return `
-            <h1 class="vh" id="skjerm-tittel">${maskin(sp) ? "Slaget mot mobilen" : `Slaget til ${esc(navnFor(sp, v))}`}</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(maskin(sp) ? R.t("Slaget mot mobilen") : R.t("Slaget til {navn}", { navn: navnFor(sp, v) }))}</h1>
             <p class="ad-melding ${melding ? esc(melding.type) : ""}" aria-live="polite">${melding ? esc(melding.tekst) : ""}</p>
             <div class="ad-kamp${sp.visEgen ? " viser-egen" : ""}">
               <div class="ad-mal-boks">
-                ${brettHtml(sp.n, { t: mal.t, sikte: minTur && !ferdig ? sp.sikte : null, knapp: minTur && !ferdig ? "sikt" : null, mal: true, fersk: ferskMal, etikett: "Fiendens farvann" })}
+                ${brettHtml(sp.n, { t: mal.t, sikte: minTur && !ferdig ? sp.sikte : null, knapp: minTur && !ferdig ? "sikt" : null, mal: true, fersk: ferskMal, etikett: R.t("Fiendens farvann") })}
               </div>
               <div class="ad-egen">
-                <p class="etikett">${maskin(sp) ? "Din flåte" : `Flåten til ${esc(navnFor(sp, v))}`}</p>
-                ${brettHtml(sp.n, { flate: sp.flate[v], t: egen.t.map((x) => (x === 4 ? 0 : x)), fersk: ferskEgen, etikett: "Din flåte" })}
+                <p class="etikett">${esc(maskin(sp) ? R.t("Din flåte") : R.t("Flåten til {navn}", { navn: navnFor(sp, v) }))}</p>
+                ${brettHtml(sp.n, { flate: sp.flate[v], t: egen.t.map((x) => (x === 4 ? 0 : x)), fersk: ferskEgen, etikett: R.t("Din flåte") })}
               </div>
               <div class="ad-fiende">
-                <p class="etikett">${maskin(sp) ? "Fiendens skip" : `Skipene til ${esc(navnFor(sp, mot))}`}</p>
+                <p class="etikett">${esc(maskin(sp) ? R.t("Fiendens skip") : R.t("Skipene til {navn}", { navn: navnFor(sp, mot) }))}</p>
                 ${skipListe(sp.flate[mot], mal.senket, { liten: true })}
-                <p class="ad-tall">${R.flertall(sp.skudd[v].length, "skudd", "skudd")} · ${R.flertall(sp.skudd[v].filter((i) => mal.t[i] >= 2).length, "treff", "treff")}</p>
+                <p class="ad-tall">${esc(R.flertall(sp.skudd[v].length, "skudd", "skudd"))} · ${esc(R.flertall(sp.skudd[v].filter((i) => mal.t[i] >= 2).length, "treff", "treff"))}</p>
               </div>
             </div>
-            ${R.ui.dokk(knapp, ferdig ? "" : R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${R.ui.dokk(knapp, ferdig ? "" : R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
         inn(S) {
           bred(true);
@@ -801,50 +802,50 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const v = sp.vinner;
           const duVant = maskin(sp) && v === 0;
           const st = S.stilling[stillingNokkel(sp)] || [0, 0];
-          const visNavn = (s) => (maskin(sp) && s === 0 ? "Du" : navnFor(sp, s));
+          const visNavn = (s) => (maskin(sp) && s === 0 ? R.t("Du") : navnFor(sp, s));
           const kort = (s) => {
             const t = tavle(sp.flate[1 - s], sp.skudd[s], sp.n);
             const treff = sp.skudd[s].filter((i) => t.t[i] >= 2).length;
             const skudd = sp.skudd[s].length;
             return `<div class="ad-statkort${s === v ? " vinner" : ""}">
               <b class="ad-statnavn">${s === v ? "🏆 " : ""}${esc(visNavn(s))}</b>
-              <span><b>${skudd}</b> skudd</span>
-              <span><b>${treff}</b> treff</span>
-              <span><b>${skudd ? Math.round((100 * treff) / skudd) : 0} %</b> treffsikkerhet</span>
-              <span><b>${t.senket.filter(Boolean).length}</b> av ${sp.flate[1 - s].length} skip senket</span>
+              <span><b>${skudd}</b> ${esc(R.t("skudd|skudd", { n: skudd }))}</span>
+              <span><b>${treff}</b> ${esc(R.t("treff|treff", { n: treff }))}</span>
+              <span><b>${skudd ? Math.round((100 * treff) / skudd) : 0} %</b> ${esc(R.t("treffsikkerhet"))}</span>
+              <span><b>${t.senket.filter(Boolean).length}</b> ${esc(R.t("av {n} skip senket", { n: sp.flate[1 - s].length }))}</span>
             </div>`;
           };
           const tekst = maskin(sp)
             ? duVant
-              ? `Hele flåten til mobilen ligger på bunnen. Godt jobba, admiral!`
-              : "Mobilen var skarp i dag. Godt forsøk – ta revansj!"
-            : `${esc(navnFor(sp, v))} senket hele flåten til ${esc(navnFor(sp, 1 - v))}.`;
-          const flateBoks = (s) => `<div class="ad-egen"><p class="etikett">${maskin(sp) && s === 0 ? "Din flåte" : `Flåten til ${esc(navnFor(sp, s))}`}</p>${brettHtml(sp.n, { flate: sp.flate[s], t: tavle(sp.flate[s], sp.skudd[1 - s], sp.n).t.map((x) => (x === 4 ? 0 : x)), liten: true })}</div>`;
+              ? esc(R.t("Hele flåten til mobilen ligger på bunnen. Godt jobba, admiral!"))
+              : esc(R.t("Mobilen var skarp i dag. Godt forsøk – ta revansj!"))
+            : esc(R.t("{a} senket hele flåten til {b}.", { a: navnFor(sp, v), b: navnFor(sp, 1 - v) }));
+          const flateBoks = (s) => `<div class="ad-egen"><p class="etikett">${esc(maskin(sp) && s === 0 ? R.t("Din flåte") : R.t("Flåten til {navn}", { navn: navnFor(sp, s) }))}</p>${brettHtml(sp.n, { flate: sp.flate[s], t: tavle(sp.flate[s], sp.skudd[1 - s], sp.n).t.map((x) => (x === 4 ? 0 : x)), liten: true })}</div>`;
           return `
             <div class="banner ${duVant || !maskin(sp) ? "aksent" : ""}">
               ${R.figur()}
-              <p class="etikett">${maskin(sp) ? `Mot mobilen · ${NIVAER.find(([x]) => x === sp.niva)[1].toLocaleLowerCase("nb")}` : "To spillere"}</p>
-              <h1 id="skjerm-tittel">${maskin(sp) ? (duVant ? "Du vinner!" : "Mobilen vinner!") : `${esc(navnFor(sp, v))} vinner!`}</h1>
+              <p class="etikett">${esc(maskin(sp) ? R.t("Mot mobilen · {niva}", { niva: NIVAER.find(([x]) => x === sp.niva)[1].toLocaleLowerCase(R.lokale) }) : R.t("To spillere"))}</p>
+              <h1 id="skjerm-tittel">${esc(maskin(sp) ? (duVant ? R.t("Du vinner!") : R.t("Mobilen vinner!")) : R.t("{navn} vinner!", { navn: navnFor(sp, v) }))}</h1>
               <p class="ingress">${tekst}</p>
             </div>
-            <p class="ad-stilling" aria-label="Stillingen: ${esc(navnFor(sp, 0))} ${st[0]}, ${esc(navnFor(sp, 1))} ${st[1]}"><span>${esc(maskin(sp) ? "Du" : navnFor(sp, 0))} <b>${st[0]}</b></span><span class="ad-strek">–</span><span><b>${st[1]}</b> ${esc(maskin(sp) ? "Mobilen" : navnFor(sp, 1))}</span></p>
+            <p class="ad-stilling" aria-label="${esc(R.t("Stillingen: {a} {pa}, {b} {pb}", { a: navnFor(sp, 0), pa: st[0], b: navnFor(sp, 1), pb: st[1] }))}"><span>${esc(maskin(sp) ? R.t("Du") : navnFor(sp, 0))} <b>${st[0]}</b></span><span class="ad-strek">–</span><span><b>${st[1]}</b> ${esc(maskin(sp) ? R.t("Mobilen") : navnFor(sp, 1))}</span></p>
             <section class="seksjon">
-              <h2>Slik gikk det</h2>
+              <h2>${esc(R.t("Slik gikk det"))}</h2>
               <div class="ad-stat">${kort(0)}${kort(1)}</div>
             </section>
             <section class="seksjon">
-              <h2>Flåtene</h2>
+              <h2>${esc(R.t("Flåtene"))}</h2>
               <div class="ad-under">${flateBoks(0)}${flateBoks(1)}</div>
             </section>
             ${R.ui.flereSpill({ antall: 2 })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -942,13 +943,13 @@
           return;
         }
         if (sp.valgt == null) {
-          R.toast("Trykk på et skip først – eller dra det");
+          R.toast(R.t("Trykk på et skip først – eller dra det"));
           return;
         }
         const ny = plasserHvisMulig(flate, sp.valgt, { ...flate[sp.valgt], x: i % n, y: Math.floor(i / n) }, n);
         if (!ny) {
           R.lyd.feil();
-          R.toast("Skipene kan ikke ligge inntil hverandre");
+          R.toast(R.t("Skipene kan ikke ligge inntil hverandre"));
           return;
         }
         flate[sp.valgt] = ny;
@@ -969,7 +970,7 @@
         const ny = plasserHvisMulig(flate, sp.valgt, { ...s, r: s.r === "h" ? "v" : "h" }, sp.n);
         if (!ny) {
           R.lyd.feil();
-          R.toast("Ikke plass til å snu skipet her");
+          R.toast(R.t("Ikke plass til å snu skipet her"));
           return;
         }
         flate[sp.valgt] = ny;
@@ -1015,7 +1016,7 @@
         if (sp.vinner != null || sp.tur !== sp.ser || (maskin(sp) && sp.tur === MASKIN)) return;
         const t = tavle(sp.flate[1 - sp.ser], sp.skudd[sp.ser], sp.n).t;
         if (t[i] !== 0) {
-          R.toast(t[i] === 4 ? "Det er bare vann rundt et senket skip" : "Du har allerede skutt der");
+          R.toast(t[i] === 4 ? R.t("Det er bare vann rundt et senket skip") : R.t("Du har allerede skutt der"));
           return;
         }
         if (sp.sikte === i) return H.fyr(el, e, S);
@@ -1048,7 +1049,7 @@
       "til-slutt": (el, e, S) => R.gaTil("slutt"),
       async avslutt(el, e, S) {
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avslutte slaget?", "Slaget blir borte. Stillingen fra tidligere slag er lagret.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte slaget?"), R.t("Slaget blir borte. Stillingen fra tidligere slag er lagret."), R.t("Avslutt"), R.t("Spill videre"));
         if (!ja || !fortsatt()) return;
         S.spill = null;
         R.slippVaken();
