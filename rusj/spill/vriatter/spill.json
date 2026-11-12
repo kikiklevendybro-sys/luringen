@@ -1,0 +1,15 @@
+{
+  "id": "vriatter",
+  "navn": "Vri åtter",
+  "undertittel": "Vri åtter",
+  "beskrivelse": "Gratis vri åtter på norsk. Følg farge eller tall, og la åtteren vri. Spill mot mobilen på tre nivåer, eller 2–4 på samme mobil.",
+  "kort": "Følg farge eller tall – åtteren vrir alt.",
+  "spillere": [1, 4],
+  "minutter": [5, 20],
+  "mobiler": "en",
+  "tagger": ["klassiker", "kort", "familie"],
+  "rekkefolge": 55,
+  "farge": "#ff6b6b",
+  "sok": ["vri åtter", "vri 8", "vriåtter", "vri åttern", "crazy eights", "kortspill", "kortspill for to", "kortspill på nett"],
+  "motMobilen": true
+}

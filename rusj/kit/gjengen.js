@@ -1117,6 +1117,25 @@
         </g>
         ${glimt(16, 20, 6)}`,
     },
+
+    // Vri åtter: a lively red fellow who has just turned a big eight on its side to change the colour.
+    vriatter: {
+      farge: "#ff6b6b",
+      tegn: (f) => `
+        ${hode(f)}
+        ${kinn(80)}
+        ${oyne({ y: 56, dx: 4, dy: 2 })}
+        ${strek("M28 38 Q40 31 52 37M68 35 Q80 29 92 34", 5)}
+        ${form("M44 84 Q60 100 78 82Z", B, 4)}<path d="M52 91 Q61 87 70 89 Q62 96 52 91Z" fill="${ROSA}"/>
+        <g transform="rotate(-18 96 104)">
+          <rect x="80" y="80" width="32" height="44" rx="5" fill="${P}" stroke="${B}" stroke-width="4"/>
+          ${tekst(96, 110, "8", 26, ROD)}
+          ${hjerte(87, 89, 3.5)}
+        </g>
+        ${strek("M8 40 Q2 22 16 10", 4, LAMPE)}${form("M10 6 L20 9 L13 17Z", LAMPE, 3)}
+        ${vifte(22, 122, [[-20, spar(22, 102, 5)], [4, hjerte(22, 102, 5, ROSA)]])}
+        ${glimt(108, 18, 7)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

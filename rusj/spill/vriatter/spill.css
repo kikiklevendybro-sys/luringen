@@ -1,0 +1,760 @@
+/* Vri åtter. Game styles are prefixed "vr-"; the shared playing cards "sk-". */
+
+/* ---------- Playing cards (the same look in Kortkongen, Bussen and Pyramiden) ----------
+   .sk-kort takes its width from --kortbredde (or --kb on the card itself); the face is an SVG that
+   scales with it. The back uses the game's accent colour. Flip: add .sk-opp. */
+.sk-kort {
+  --kb: var(--kortbredde, 64px);
+  --sk-r: calc(var(--kb) * 0.1);
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--kb);
+  height: calc(var(--kb) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sk-r);
+  background: none;
+  color: inherit;
+  font: inherit;
+  perspective: calc(var(--kb) * 9);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sk-indre {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.3, 1.25, 0.45, 1);
+}
+
+.sk-kort.sk-opp .sk-indre {
+  transform: rotateY(180deg);
+}
+
+.sk-side {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--sk-r);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sk-for {
+  background: linear-gradient(170deg, #fffdf8 0%, #fff8ec 55%, #f9eedd 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 18, 48, 0.16),
+    inset 0 calc(var(--kb) * -0.035) 0 rgba(27, 18, 48, 0.06),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+  transform: rotateY(180deg);
+}
+
+.sk-ansikt {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sk-ansikt text {
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* The back: a woven pattern in the game's colour, a paper rim and the rusj blob in the middle. */
+.sk-bak {
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.32), transparent 46%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    linear-gradient(160deg, color-mix(in srgb, var(--aksent) 82%, #fff) 0%, var(--aksent) 42%, color-mix(in srgb, var(--aksent) 62%, var(--natt)) 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.045) #fff8ec,
+    inset 0 0 0 calc(var(--kb) * 0.065) rgba(27, 18, 48, 0.18),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+}
+
+.sk-bak::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44%;
+  aspect-ratio: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-14 -14 28 28'%3E%3Cpath d='M0 -11 C7 -12 12 -6 11 1 C10 8 5 12 -1 11 C-8 10 -12 5 -11 -2 C-10 -8 -6 -10 0 -11Z' fill='%23fff8ec' stroke='%231b1230' stroke-opacity='.25' stroke-width='1.6'/%3E%3Cpath d='M-4.5 -3.5 C-3 -6.5 1 -7.5 3.5 -6' fill='none' stroke='%231b1230' stroke-opacity='.2' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: translate(-50%, -50%) rotate(-10deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-indre {
+    transition-duration: 0.01ms !important;
+  }
+}
+/* ---------- end of playing cards ---------- */
+
+
+/* ---------- The table ---------- */
+
+.skjerm-spill {
+  --kb-haug: 84px;
+  --kb-hand: 64px;
+}
+
+.vr-andre {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.vr-plass {
+  display: flex;
+  flex: 0 1 150px;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 18px;
+  background: var(--natt-2);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.vr-plass.aktiv {
+  box-shadow: 0 0 0 3px var(--aksent);
+  transform: translateY(-2px);
+}
+
+.vr-plass.vant {
+  box-shadow: 0 0 0 3px var(--lampe);
+}
+
+.vr-ava {
+  position: relative;
+  flex: none;
+}
+
+.vr-info {
+  display: grid;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.vr-navn {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.vr-antall,
+.vr-p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tekst-2);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.vr-rygger {
+  display: inline-flex;
+  flex: none;
+  width: calc(10px + (var(--n) - 1) * 4px);
+  height: 14px;
+}
+
+.vr-rygger i {
+  flex: none;
+  width: 10px;
+  height: 14px;
+  margin-right: -6px;
+  border-radius: 2px;
+  background: var(--aksent);
+  box-shadow: inset 0 0 0 1.5px #fff8ec;
+}
+
+.vr-tenker {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  display: flex;
+  gap: 2px;
+  padding: 3px 4px;
+  border-radius: 999px;
+  background: var(--papir);
+}
+
+.vr-tenker i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--blekk);
+  animation: vr-prikk 1s infinite ease-in-out;
+}
+
+.vr-tenker i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.vr-tenker i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes vr-prikk {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+.vr-bord {
+  position: relative;
+  display: flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  min-height: calc(var(--kb-haug) * 1.4 + 24px);
+  margin: 4px 0;
+  padding: 10px 0;
+  border-radius: 28px;
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, #1e8a62 46%, var(--natt)) 0%, color-mix(in srgb, #1e8a62 22%, var(--natt)) 70%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.06);
+}
+
+.vr-stokk {
+  position: relative;
+  display: block;
+  width: calc(var(--kb-haug) * 0.84);
+  height: calc(var(--kb-haug) * 0.84 * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  --kortbredde: calc(var(--kb-haug) * 0.84);
+}
+
+.vr-stokk .sk-kort {
+  box-shadow:
+    3px 3px 0 -1px rgba(255, 248, 236, 0.75),
+    6px 6px 0 -2px rgba(255, 248, 236, 0.45);
+}
+
+.vr-stokk[aria-disabled="true"] {
+  opacity: 0.8;
+}
+
+.vr-stokk.klar .sk-kort {
+  animation: vr-puls 1.4s infinite ease-in-out;
+}
+
+@keyframes vr-puls {
+  50% {
+    transform: translateY(-4px);
+    filter: brightness(1.12);
+  }
+}
+
+.vr-tom {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.vr-tall {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  min-width: 26px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 0 rgba(6, 2, 14, 0.35);
+}
+
+.vr-haug {
+  position: relative;
+  width: var(--kb-haug);
+  height: calc(var(--kb-haug) * 1.4);
+  --kortbredde: var(--kb-haug);
+  border-radius: 10px;
+  transition: box-shadow 0.15s;
+}
+
+.vr-haug.mal {
+  box-shadow: 0 0 0 4px var(--lampe), 0 0 30px rgba(255, 210, 63, 0.5);
+}
+
+.vr-haug > .sk-kort {
+  position: absolute;
+  inset: 0;
+}
+
+.vr-under {
+  transform: rotate(-9deg) translate(-4px, 2px);
+  opacity: 0.85;
+}
+
+.vr-topp.ny.fra-hand {
+  animation: vr-fra-hand 0.38s cubic-bezier(0.2, 1.1, 0.4, 1) both;
+}
+
+.vr-topp.ny.fra-topp {
+  animation: vr-fra-topp 0.42s cubic-bezier(0.2, 1.1, 0.4, 1) both;
+}
+
+.vr-topp.ny.fra-dra {
+  animation: vr-dra-inn 0.22s ease-out both;
+}
+
+@keyframes vr-fra-hand {
+  from {
+    transform: translateY(160px) rotate(10deg) scale(0.8);
+    opacity: 0.4;
+  }
+}
+
+@keyframes vr-fra-topp {
+  from {
+    transform: translateY(-150px) rotate(-14deg) scale(0.7);
+    opacity: 0.3;
+  }
+}
+
+@keyframes vr-dra-inn {
+  from {
+    transform: scale(1.08);
+  }
+}
+
+.vr-vridd {
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px 3px 6px;
+  border-radius: 999px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 rgba(6, 2, 14, 0.4);
+  transform: translateX(-50%);
+  animation: vr-pop 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes vr-pop {
+  from {
+    transform: translateX(-50%) scale(0.4);
+    opacity: 0;
+  }
+}
+
+.vr-ikon {
+  display: block;
+  flex: none;
+  width: var(--str, 20px);
+  height: var(--str, 20px);
+}
+
+/* Choosing the colour after an eight: four big buttons over the table. */
+.vr-velg {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: inherit;
+  background: rgba(14, 8, 30, 0.82);
+  animation: vr-inn 0.2s ease-out both;
+}
+
+.vr-velg h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.vr-velg-rad {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 76px));
+  gap: 8px;
+}
+
+.vr-farge {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 10px 2px 8px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--papir);
+  color: var(--blekk);
+  font: inherit;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  box-shadow: 0 4px 0 rgba(6, 2, 14, 0.45);
+}
+
+.vr-farge:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(6, 2, 14, 0.45);
+}
+
+@keyframes vr-inn {
+  from {
+    opacity: 0;
+  }
+}
+
+.vr-melding {
+  display: grid;
+  gap: 2px;
+  min-height: 3.1em;
+  margin: 8px 0 4px;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.vr-melding b {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.vr-melding.din b {
+  color: var(--lampe);
+}
+
+.vr-melding.ferdig b {
+  color: var(--lampe);
+  font-size: 1.2rem;
+}
+
+.vr-sist {
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+}
+
+/* ---------- The hand: a fan that always fits the width ---------- */
+
+.vr-hand {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  min-height: calc(var(--kb-hand) * 1.4 + 14px);
+  padding: 12px 0 2px;
+  --kortbredde: var(--kb-hand);
+}
+
+.vr-hk {
+  position: relative;
+  flex: 0 1 var(--kb-hand);
+  min-width: calc(var(--kb-hand) * 0.24);
+  height: calc(var(--kb-hand) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  touch-action: none;
+  z-index: var(--i);
+}
+
+.vr-hk:last-child {
+  flex-shrink: 0;
+}
+
+.vr-hk .sk-kort {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: transform 0.18s ease-out, filter 0.18s;
+}
+
+.vr-hand.min-tur .vr-hk.lovlig .sk-kort {
+  transform: translateY(-10px);
+}
+
+.vr-hand.min-tur .vr-hk:not(.lovlig) .sk-kort {
+  filter: brightness(0.62) saturate(0.6);
+}
+
+.vr-hk:focus-visible {
+  outline: none;
+}
+
+.vr-hk:focus-visible .sk-kort {
+  outline: 3px solid var(--lampe);
+  outline-offset: 2px;
+  border-radius: var(--sk-r);
+}
+
+.vr-hk.drar {
+  z-index: 60;
+}
+
+.vr-hk.drar .sk-kort {
+  transition: none;
+  filter: drop-shadow(0 10px 14px rgba(6, 2, 14, 0.55));
+}
+
+.vr-hk.ny .sk-kort {
+  animation: vr-trukket 0.4s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+
+@keyframes vr-trukket {
+  from {
+    opacity: 0;
+    transform: translate(-40px, -90px) rotate(-12deg) scale(0.8);
+  }
+}
+
+
+.vr-stilling {
+  margin: 4px 0 0;
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ---------- End of a round ---------- */
+
+.vr-resultat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vr-resultat li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 16px;
+  background: var(--natt-2);
+}
+
+.vr-resultat li.vant {
+  box-shadow: 0 0 0 3px var(--lampe);
+}
+
+.vr-resultat b {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.vr-rest {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+  min-width: 0;
+  --kortbredde: 26px;
+}
+
+.vr-rest .sk-kort {
+  flex-shrink: 1;
+  min-width: 8px;
+}
+
+.vr-rest .sk-kort:last-child {
+  flex-shrink: 0;
+}
+
+.vr-ut {
+  margin-left: auto;
+  color: var(--lampe);
+  font-family: var(--font-display);
+}
+
+.vr-pt {
+  flex: none;
+  min-width: 2.2em;
+  color: var(--tekst-2);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.vr-sist-port {
+  margin: 0 0 4px;
+  color: var(--tekst-2);
+  text-align: center;
+}
+
+/* ---------- Home and the crowning ---------- */
+
+.vr-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.vr-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vr-rekorder li,
+.vr-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.vr-rekorder li b,
+.vr-rekordlinje b {
+  color: var(--tekst);
+}
+
+.vr-rekordlinje {
+  margin: 12px auto 0;
+  width: fit-content;
+}
+
+.vr-niva {
+  min-width: 5.5em;
+  font-family: var(--font-display);
+}
+
+/* ---------- Taller and smaller screens ---------- */
+
+@media (min-height: 780px) and (orientation: portrait) {
+  .skjerm-spill {
+    --kb-haug: 96px;
+    --kb-hand: 72px;
+  }
+}
+
+
+@media (max-height: 700px) {
+  .skjerm-spill {
+    --kb-haug: 64px;
+    --kb-hand: 54px;
+  }
+  .vr-plass {
+    padding: 4px 8px 4px 4px;
+  }
+  .vr-bord {
+    gap: 22px;
+    padding: 6px 0;
+  }
+  .vr-melding {
+    margin: 4px 0 2px;
+  }
+  .vr-sist {
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .vr-plass .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+  .vr-plass {
+    gap: 5px;
+  }
+  .vr-navn {
+    font-size: 0.85rem;
+  }
+}
+
+/* A phone on its side: the opponents in a slim row, the pile and the hand smaller. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-spill {
+    --kb-haug: 50px;
+    --kb-hand: 48px;
+  }
+  .vr-andre {
+    margin-bottom: 2px;
+  }
+  .vr-plass {
+    padding: 2px 8px 2px 2px;
+  }
+  .vr-plass .avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.95rem;
+  }
+  .vr-bord {
+    min-height: calc(var(--kb-haug) * 1.4 + 14px);
+    margin: 2px 0;
+    padding: 6px 0;
+  }
+  .vr-velg {
+    grid-auto-flow: column;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+  }
+  .vr-velg-rad {
+    grid-template-columns: repeat(4, 58px);
+  }
+  .vr-farge {
+    padding: 6px 2px 4px;
+  }
+  .vr-melding {
+    min-height: 2.4em;
+    margin: 2px 0;
+  }
+  .vr-melding b {
+    font-size: 0.95rem;
+  }
+  .vr-sist {
+    font-size: 0.8rem;
+  }
+  .vr-hand {
+    padding-top: 10px;
+  }
+  .vr-stilling {
+    display: none;
+  }
+}
