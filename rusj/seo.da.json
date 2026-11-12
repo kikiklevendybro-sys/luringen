@@ -1,0 +1,113 @@
+{
+  "_om": [
+    "Søgedata for den danske udgave (rusj.no/da/), samme form og regler som rusj/seo.json.",
+    "Rigsdansk. Titler højst 55 tegn (« | rusj» lægges til), beskrivelser 100–160 tegn, unikke.",
+    "Andre firmaers spilmærker kun i sok, aldrig i tittel, frase eller beskrivelse."
+  ],
+  "forside": {
+    "tittel": "rusj – gratis spil og selskabslege på dansk",
+    "beskrivelse": "Gratis spil og selskabslege direkte i browseren: spil med venner og familie på én mobil, eller alene. Ingen app, ingen konto, ingen reklamer."
+  },
+  "tagger": {
+    "fest": [
+      "selskabslege",
+      "selskabsleg",
+      "festlege",
+      "festspil",
+      "partyspil",
+      "forfest",
+      "voksne"
+    ],
+    "familie": [
+      "familiespil",
+      "familielege",
+      "jul",
+      "juleaften",
+      "ferie",
+      "sommerhus"
+    ],
+    "barn": [
+      "børnespil",
+      "børnelege",
+      "lege til børnefødselsdag",
+      "fødselsdag",
+      "klassefest",
+      "skole"
+    ],
+    "sporsmal": [
+      "lær hinanden at kende",
+      "samtale",
+      "spørgsmål",
+      "biltur"
+    ],
+    "lag": [
+      "holdspil",
+      "holdkonkurrence",
+      "teambuilding"
+    ],
+    "blof": [
+      "bluffspil",
+      "skjult rolle"
+    ],
+    "ord": [
+      "ordspil",
+      "ordleg",
+      "ordlege"
+    ],
+    "quiz": [
+      "quiz",
+      "spørgekonkurrence",
+      "paratviden"
+    ],
+    "tegning": [
+      "tegne",
+      "tegnespil"
+    ],
+    "hukommelse": [
+      "huskespil",
+      "hukommelsesspil",
+      "vendespil"
+    ],
+    "klassiker": [
+      "klassiske spil",
+      "brætspil"
+    ],
+    "daglig": [
+      "daglig",
+      "hver dag",
+      "dagens opgave"
+    ],
+    "tenke": [
+      "logik",
+      "hjernetræning",
+      "tænkespil"
+    ],
+    "alene": [
+      "solo",
+      "én spiller",
+      "en spiller"
+    ],
+    "kort": [
+      "kortspil",
+      "spillekort"
+    ],
+    "verktoy": [
+      "hjælpemidler",
+      "værktøjer"
+    ],
+    "drikke": [
+      "drukspil",
+      "drukleg",
+      "drukspil med kort",
+      "forfest"
+    ]
+  },
+  "spill": {
+    "fireren": {
+      "motMobilen": true,
+      "tittel": "Fire på stribe – gratis mod en ven eller mobilen",
+      "frase": "Fire på stribe",
+      "beskrivelse": "Gratis fire på stribe på dansk. Slip brikkerne og få fire på stribe – mod en ven på samme mobil eller mod mobilen på tre niveauer."
+    }
+  }
+}

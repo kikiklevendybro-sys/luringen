@@ -3423,6 +3423,49 @@ html[data-skjerm]:not([data-skjerm="hjem"]):not([data-skjerm="alder"]) .om-spill
   text-underline-offset: 3px;
 }
 
+/* The language switch under every page (rusj/SPRAK.md): small and quiet, «Norsk · English · Dansk». */
+.sprakvalg {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0 10px;
+  margin: 18px 0 0;
+  color: var(--tekst-3);
+  font-size: 0.88rem;
+}
+.sprakvalg a,
+.sprakvalg b {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+}
+/* the dot between two names: part of the next one, never underlined, silent for screen readers */
+.sprakvalg > * + *::before {
+  content: "·" / "";
+  margin-right: 10px;
+  color: var(--tekst-3);
+}
+.sprakvalg a {
+  color: var(--tekst-2);
+  text-decoration: none;
+}
+.sprakvalg a:hover,
+.sprakvalg a:focus-visible {
+  color: var(--tekst);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.sprakvalg [aria-current] {
+  color: var(--tekst);
+  font-weight: 800;
+}
+.om-spillet .sprakvalg {
+  justify-content: flex-start;
+  margin-top: 20px;
+}
+
 .om-lenker {
   display: flex;
   flex-wrap: wrap;

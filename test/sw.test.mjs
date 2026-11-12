@@ -667,7 +667,7 @@ test("the build: every page names files that exist, and every script and style c
   const ekstra = JSON.parse(sw.match(/const EKSTRA = (\[.*?\]); \/\//)[1]);
   assert.ok(sider.length >= 45 && sider[0][0] === "/", "forsiden skal stå først i SIDER");
   for (const sti of ["/om/", "/personvern/", "/luringen/", "/ordugla/"]) assert.ok(sider.some((s) => s[0] === sti), `SIDER mangler ${sti}`);
-  assert.deepEqual(ekstra.map((e) => e[0]), ["/manifest.webmanifest", "/luringen/ikon.svg", "/luringen/ikon-180.png"]);
+  assert.deepEqual(ekstra.map((e) => e[0]), ["/manifest.webmanifest", "/en/manifest.webmanifest", "/da/manifest.webmanifest", "/luringen/ikon.svg", "/luringen/ikon-180.png"]);
   const sett = new Set();
   for (const [sti, hash] of [...sider, ...ekstra]) {
     const fil = join(WEB, sti.endsWith("/") ? sti + "index.html" : sti);
@@ -712,7 +712,8 @@ test("the real site: a first visit is cheap, the idle download brings every page
   n.vert.nede = true;
   n.nullstillLogg();
   const sider = JSON.parse(readFileSync(join(WEB, "sw.js"), "utf8").match(/const SIDER = (\[.*?\]); \/\//)[1]);
-  for (const [sti] of sider) {
+  // (a Norwegian visitor: the other editions are fetched only for those who use them – see below)
+  for (const [sti] of sider.filter(([s]) => !/^\/(en|da)\//.test(s))) {
     const { svar } = await sw.naviger(sti);
     assert.equal(svar.status, 200, sti);
     const html = await tekst(svar);

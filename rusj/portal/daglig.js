@@ -6,6 +6,13 @@
 (function (root) {
   "use strict";
 
+  // The page's edition (rusj/SPRAK.md): /felles/tekst.js is loaded first in the browser. In Node
+  // (the tests) there is none, and everything is Norwegian as before.
+  const T = root.RusjTekst || null;
+  const NB = !T || T.sprak === "nb";
+  const TIDSSONE = T ? T.tidssone : "Europe/Oslo";
+  const t = (nokkel, verdier) => (T ? T.t(nokkel, verdier) : verdier ? nokkel.replace(/\{(\w+)\}/g, (h, k) => (k in verdier ? String(verdier[k]) : h)) : nokkel);
+
   const MAKS_DAGER = 400; // how far back a streak can be read
   const UKEDAGER = ["mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag", "søndag"];
   const MANEDER = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
@@ -19,7 +26,7 @@
     let a, m, d;
     try {
       const deler = {};
-      for (const p of new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", year: "numeric", month: "numeric", day: "numeric" }).formatToParts(naa)) deler[p.type] = Number(p.value);
+      for (const p of new Intl.DateTimeFormat("en-GB", { timeZone: TIDSSONE, year: "numeric", month: "numeric", day: "numeric" }).formatToParts(naa)) deler[p.type] = Number(p.value);
       a = deler.year;
       m = deler.month;
       d = deler.day;
@@ -39,7 +46,16 @@
   const uke = (nr) => Math.floor((nr + 3) / 7); // Monday–Sunday
 
   // «onsdag 11. november»
-  const datoTekst = (iDag) => `${UKEDAGER[iDag.ukedag]} ${iDag.d}. ${MANEDER[iDag.m - 1]}`;
+  const datoTekst = (iDag) => {
+    if (!NB) {
+      try {
+        return new Intl.DateTimeFormat(T.lokale, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(iDag.a, iDag.m - 1, iDag.d)));
+      } catch (e) {
+        /* fall through */
+      }
+    }
+    return `${UKEDAGER[iDag.ukedag]} ${iDag.d}. ${MANEDER[iDag.m - 1]}`;
+  };
 
   // Seconds until the next day begins in Norway (at least 1). The two nights a year the clocks
   // change, the day is 23 or 25 hours long.
@@ -47,7 +63,7 @@
     const na = (dato || new Date()).getTime();
     const deler = {};
     try {
-      new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+      new Intl.DateTimeFormat("en-GB", { timeZone: TIDSSONE, hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
         .formatToParts(new Date(na))
         .forEach((p) => (deler[p.type] = Number(p.value)));
     } catch (e) {
@@ -162,38 +178,46 @@
   // → [{ nr, navn, tilstand: "spilt" | "hvile" | "tom" | "kommer", iDag: boolean }]
   function ukeprikker(dager, hvile, iDag) {
     const mandag = iDag - ukedag(iDag);
-    return UKEDAGER.map((navn, i) => {
+    return UKEDAGER.map((nbNavn, i) => {
       const nr = mandag + i;
+      let navn = nbNavn;
+      if (!NB) {
+        try {
+          navn = new Intl.DateTimeFormat(T.lokale, { weekday: "long", timeZone: "UTC" }).format(new Date(nr * 86400000));
+        } catch (e) {
+          /* keep it */
+        }
+      }
       const tilstand = dager.has(nr) && nr <= iDag ? "spilt" : hvile.includes(nr) ? "hvile" : nr > iDag ? "kommer" : "tom";
       return { nr, navn, tilstand, iDag: nr === iDag };
     });
   }
   // For screen readers: what was done – never a list of what was not.
   function ukeTekst(prikker) {
-    const liste = (a) => (a.length > 1 ? a.slice(0, -1).join(", ") + " og " + a[a.length - 1] : a[0]);
+    const liste = (a) => (a.length > 1 && T ? T.ramsOpp(a) : a.length > 1 ? a.slice(0, -1).join(", ") + " og " + a[a.length - 1] : a[0]);
     const spilt = prikker.filter((p) => p.tilstand === "spilt").map((p) => p.navn);
     const hvile = prikker.filter((p) => p.tilstand === "hvile").map((p) => p.navn);
-    return "Denne uka: " + (spilt.length ? "spilt " + liste(spilt) : "ingen dager ennå") + "." + (hvile.length ? " Hviledag " + liste(hvile) + "." : "");
+    return t("Denne uka:") + " " + (spilt.length ? t("spilt {dager}", { dager: liste(spilt) }) : t("ingen dager ennå")) + "." + (hvile.length ? " " + t("Hviledag {dager}.", { dager: liste(hvile) }) : "");
   }
 
   // ---------- Words ----------
 
   const TALLORD = ["null", "én", "to", "tre", "fire", "fem", "seks", "sju", "åtte", "ni", "ti", "elleve", "tolv"];
-  const tallord = (n) => TALLORD[n] || String(n);
-  const stor = (s) => s.charAt(0).toLocaleUpperCase("nb") + s.slice(1);
+  const tallord = (n) => (NB && TALLORD[n]) || String(n);
+  const stor = (s) => s.charAt(0).toLocaleUpperCase(NB ? "nb" : T.lokale) + s.slice(1);
 
   // A result as it should be read aloud: «4/6» → «4 av 6», «3:42» → «3 minutter og 42 sekunder».
   function lesbart(res) {
     let m = /^(\d+)\/(\d+)$/.exec(res);
-    if (m) return `${m[1]} av ${m[2]}`;
+    if (m) return t("{n} av {alle}", { n: m[1], alle: m[2] });
     m = /^(\d+):(\d\d)$/.exec(res);
     if (m) {
       const min = Number(m[1]);
       const sek = Number(m[2]);
       const deler = [];
-      if (min) deler.push(`${min} ${min === 1 ? "minutt" : "minutter"}`);
-      if (sek || !min) deler.push(`${sek} ${sek === 1 ? "sekund" : "sekunder"}`);
-      return deler.join(" og ");
+      if (min) deler.push(T ? T.flertall(min, "minutt", "minutter") : `${min} ${min === 1 ? "minutt" : "minutter"}`);
+      if (sek || !min) deler.push(T ? T.flertall(sek, "sekund", "sekunder") : `${sek} ${sek === 1 ? "sekund" : "sekunder"}`);
+      return T ? T.ramsOpp(deler) : deler.join(" og ");
     }
     return res;
   }
@@ -201,35 +225,35 @@
   // The state of one daily as words: for the eye (kort) and for the ear (lang).
   function tilstandTekst(s) {
     if (s.tilstand === "ferdig") {
-      const ord = s.vunnet ? "løst" : "ferdig";
+      const ord = s.vunnet ? t("løst") : t("ferdig");
       return { kort: s.res || stor(ord), lang: ord + (s.res ? ", " + lesbart(s.res) : "") };
     }
-    if (s.tilstand === "pagar") return { kort: s.tekst ? "I gang · " + s.tekst : "I gang", lang: "i gang" + (s.tekst ? ", " + lesbart(s.tekst) : "") };
-    return { kort: "Ny", lang: "ny" };
+    if (s.tilstand === "pagar") return { kort: s.tekst ? t("I gang") + " · " + s.tekst : t("I gang"), lang: t("i gang") + (s.tekst ? ", " + lesbart(s.tekst) : "") };
+    return { kort: t("Ny"), lang: t("ny") };
   }
 
   // The one line under the week: where the day stands. Calm – a broken streak is a new start.
   // → { tekst, klokke: true when the countdown to the next day belongs after the text }
   function statuslinje(st, r) {
-    if (st.antall && st.ferdige === st.antall) return { tekst: "Nye oppgaver om", klokke: true };
+    if (st.antall && st.ferdige === st.antall) return { tekst: t("Nye oppgaver om"), klokke: true };
     if (r.spiltIDag) {
       const igjen = st.antall - st.ferdige;
-      return { tekst: `${stor(tallord(igjen))} igjen i dag.`, klokke: false };
+      return { tekst: t("{n} igjen i dag.", { n: stor(tallord(igjen)) }), klokke: false };
     }
-    if (r.rekke >= 2) return { tekst: "Én oppgave i dag holder rekka i gang.", klokke: false };
-    if (r.rekke === 1) return { tekst: "Én oppgave i dag, så er det to dager på rad.", klokke: false };
-    return { tekst: "Ny rekke starter i dag.", klokke: false };
+    if (r.rekke >= 2) return { tekst: t("Én oppgave i dag holder rekka i gang."), klokke: false };
+    if (r.rekke === 1) return { tekst: t("Én oppgave i dag, så er det to dager på rad."), klokke: false };
+    return { tekst: t("Ny rekke starter i dag."), klokke: false };
   }
 
   // «Del dagen»: one text with today's results – never an answer – ready for a chat.
   // linjer: [{ navn, tilstand, vunnet, res }] for the day's dailies (finished ones are listed).
   function delTekst(o) {
     const ferdige = o.linjer.filter((l) => l.tilstand === "ferdig");
-    const ut = [`rusj i dag · ${datoTekst(o.iDag)}`];
-    for (const l of ferdige) ut.push(`${l.navn}: ${l.res || (l.vunnet ? "løst" : "ferdig")}`);
+    const ut = [t("rusj i dag · {dato}", { dato: datoTekst(o.iDag) })];
+    for (const l of ferdige) ut.push(`${l.navn}: ${l.res || (l.vunnet ? t("løst") : t("ferdig"))}`);
     const alle = ferdige.length === o.linjer.length;
-    const sum = alle ? `Dagen er i boks – ${ferdige.length} av ${o.linjer.length}` : `${ferdige.length} av ${o.linjer.length} i dag`;
-    ut.push(sum + (o.rekke >= 2 ? ` · 🔥 ${o.rekke} dager på rad` : ""));
+    const sum = alle ? t("Dagen er i boks – {n} av {alle}", { n: ferdige.length, alle: o.linjer.length }) : t("{n} av {alle} i dag", { n: ferdige.length, alle: o.linjer.length });
+    ut.push(sum + (o.rekke >= 2 ? " · 🔥 " + t("{n} dager på rad", { n: o.rekke }) : ""));
     return ut.join("\n");
   }
 

@@ -1,0 +1,105 @@
+{
+  "_om": [
+    "Search data for the English edition (rusj.no/en/), the same shape and rules as rusj/seo.json.",
+    "British English. Titles at most 55 characters (« | rusj» is added), descriptions 100–160, unique.",
+    "Other companies' game brands only in sok, never in tittel, frase or beskrivelse."
+  ],
+  "forside": {
+    "tittel": "rusj – free games and party games in your browser",
+    "beskrivelse": "Free games and party games right in your browser: play with friends and family on one phone, or on your own. No app, no account, no ads."
+  },
+  "tagger": {
+    "fest": [
+      "party games",
+      "party game",
+      "games for parties",
+      "pre-drinks",
+      "adults"
+    ],
+    "familie": [
+      "family games",
+      "family game night",
+      "christmas",
+      "holiday games"
+    ],
+    "barn": [
+      "kids games",
+      "children's games",
+      "games for kids",
+      "birthday party games",
+      "school"
+    ],
+    "sporsmal": [
+      "getting to know you",
+      "icebreakers",
+      "conversation",
+      "questions",
+      "road trip"
+    ],
+    "lag": [
+      "team games",
+      "team building"
+    ],
+    "blof": [
+      "bluffing games",
+      "hidden role"
+    ],
+    "ord": [
+      "word games",
+      "word game"
+    ],
+    "quiz": [
+      "quiz",
+      "pub quiz",
+      "trivia"
+    ],
+    "tegning": [
+      "drawing",
+      "drawing games"
+    ],
+    "hukommelse": [
+      "memory games",
+      "memory game"
+    ],
+    "klassiker": [
+      "classic games",
+      "board games"
+    ],
+    "daglig": [
+      "daily",
+      "every day",
+      "daily puzzle"
+    ],
+    "tenke": [
+      "logic",
+      "brain training",
+      "puzzles"
+    ],
+    "alene": [
+      "solo",
+      "single player",
+      "one player",
+      "1 player"
+    ],
+    "kort": [
+      "card games",
+      "deck of cards"
+    ],
+    "verktoy": [
+      "tools"
+    ],
+    "drikke": [
+      "drinking games",
+      "drinking game",
+      "pre-drinks"
+    ]
+  },
+  "spill": {
+    "fireren": {
+      "motMobilen": true,
+      "tittel": "Four in a row – free against a friend or the phone",
+      "frase": "Four in a row",
+      "beskrivelse": "Free four in a row in your browser. Drop your discs and line up four – against a friend on the same phone, or against the phone at three levels."
+    }
+  }
+}

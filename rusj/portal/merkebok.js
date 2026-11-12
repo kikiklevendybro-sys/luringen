@@ -8,11 +8,15 @@
   const M = window.RusjMerker;
   const K = window.RUSJ_MERKER;
   if (!M || !K) return;
+  const T = window.RusjTekst;
+  const t = T.t;
   const $ = (s) => document.querySelector(s);
+  // Another edition keeps its own book (rusj.en.merker …), as the kit does.
+  const k = (n) => "rusj." + (T.sprak === "nb" ? "" : T.sprak + ".") + n;
 
   const les = (n, standard) => {
     try {
-      const v = localStorage.getItem("rusj." + n);
+      const v = localStorage.getItem(k(n));
       return v == null ? standard : JSON.parse(v);
     } catch (e) {
       return standard;
@@ -20,26 +24,27 @@
   };
   const skriv = (n, v) => {
     try {
-      localStorage.setItem("rusj." + n, JSON.stringify(v));
+      localStorage.setItem(k(n), JSON.stringify(v));
     } catch (e) {
       /* the book just isn't remembered */
     }
   };
   const fjern = (n) => {
     try {
-      localStorage.removeItem("rusj." + n);
+      localStorage.removeItem(k(n));
     } catch (e) {
       /* ignore */
     }
   };
 
-  // Today in Norway as a day number (days since 1970 of the Oslo date), as R.dag() in the kit.
+  // Today in Norway as a day number (days since 1970 of the Oslo date), as R.dag() in the kit
+  // (London or Copenhagen time in the other editions).
   function iDag() {
     const naa = new Date();
     let a, m, d;
     try {
       const deler = {};
-      for (const p of new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", year: "numeric", month: "numeric", day: "numeric" }).formatToParts(naa)) deler[p.type] = Number(p.value);
+      for (const p of new Intl.DateTimeFormat("en-GB", { timeZone: T.tidssone, year: "numeric", month: "numeric", day: "numeric" }).formatToParts(naa)) deler[p.type] = Number(p.value);
       a = deler.year;
       m = deler.month;
       d = deler.day;
@@ -55,11 +60,18 @@
   }
   const MANEDER = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
   function datoTekst(nr, idag) {
-    if (nr === idag) return "Fått i dag";
-    if (nr === idag - 1) return "Fått i går";
+    if (nr === idag) return t("Fått i dag");
+    if (nr === idag - 1) return t("Fått i går");
     const d = new Date(nr * 86400000);
-    const ar = d.getUTCFullYear() !== new Date(idag * 86400000).getUTCFullYear() ? " " + d.getUTCFullYear() : "";
-    return `Fått ${d.getUTCDate()}. ${MANEDER[d.getUTCMonth()]}${ar}`;
+    const iAr = d.getUTCFullYear() === new Date(idag * 86400000).getUTCFullYear();
+    if (T.sprak !== "nb") {
+      try {
+        return t("Fått {dato}", { dato: new Intl.DateTimeFormat(T.lokale, { day: "numeric", month: "long", year: iAr ? undefined : "numeric", timeZone: "UTC" }).format(d) });
+      } catch (e) {
+        /* fall through */
+      }
+    }
+    return `Fått ${d.getUTCDate()}. ${MANEDER[d.getUTCMonth()]}${iAr ? "" : " " + d.getUTCFullYear()}`;
   }
 
   const lesListe = (n) => {
@@ -89,12 +101,12 @@
       const dato = li.querySelector(".bok-dato");
       dato.hidden = !fatt;
       dato.textContent = fatt ? datoTekst(nr, idag) : "";
-      li.setAttribute("aria-label", `${li.querySelector(".bok-navn").textContent}: ${fatt ? dato.textContent.toLowerCase() : "ikke fått ennå. " + li.querySelector(".bok-hvordan").textContent}`);
+      li.setAttribute("aria-label", `${li.querySelector(".bok-navn").textContent}: ${fatt ? dato.textContent.toLowerCase() : t("ikke fått ennå.") + " " + li.querySelector(".bok-hvordan").textContent}`);
     }
     for (const el of document.querySelectorAll(".bok-gruppe-antall")) {
       const i = K.merker.filter((m) => m.gruppe === el.dataset.gruppe);
       const n = i.filter((m) => bok[m.id]).length;
-      el.textContent = `${n} av ${i.length}`;
+      el.textContent = t("{n} av {alle}", { n, alle: i.length });
       el.classList.toggle("full", n === i.length);
     }
     $("#bok-antall").textContent = antall;
@@ -108,18 +120,18 @@
   let antall = tegn();
   // Another tab (a game) earned one: draw again.
   window.addEventListener("storage", (e) => {
-    if (e.key && e.key.startsWith("rusj.")) antall = tegn();
+    if (e.key && e.key.startsWith(k(""))) antall = tegn();
   });
 
   // «Del boka»: only the count – no names, nothing personal.
   $("#bok-del").addEventListener("click", async () => {
-    const url = location.origin && location.origin.startsWith("http") ? location.origin + "/merker/" : "https://rusj.no/merker/";
-    const tekst = `Jeg har samlet ${antall} av ${K.merker.length} klistremerker på rusj 📒✨ Hvor mange har du?`;
+    const url = (location.origin && location.origin.startsWith("http") ? location.origin : "https://rusj.no") + T.side("merker");
+    const tekst = t("Jeg har samlet {n} av {alle} klistremerker på rusj 📒✨ Hvor mange har du?", { n: antall, alle: K.merker.length });
     const status = $("#bok-delt");
     status.textContent = "";
     try {
       if (navigator.share) {
-        await navigator.share({ title: "Klistremerkeboka på rusj", text: tekst, url });
+        await navigator.share({ title: t("Klistremerkeboka på rusj"), text: tekst, url });
         return;
       }
     } catch (e) {
@@ -127,7 +139,7 @@
     }
     try {
       await navigator.clipboard.writeText(`${tekst} ${url}`);
-      status.textContent = "Kopiert! Lim inn der du vil dele.";
+      status.textContent = t("Kopiert! Lim inn der du vil dele.");
     } catch (e) {
       status.textContent = `${tekst} ${url}`;
     }
