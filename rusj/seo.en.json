@@ -105,6 +105,11 @@
       "tittel": "Snakes and ladders, with slides – free for kids",
       "frase": "Ladders and slides",
       "beskrivelse": "Free ladders and slides in your browser: roll the dice, climb the ladders and whizz down the slides. Three boards, big buttons, and the phone fills empty seats."
+    },
+    "reversi": {
+      "tittel": "Reversi online – free against the phone or a friend",
+      "frase": "Reversi",
+      "beskrivelse": "Play reversi free in your browser: trap the discs and flip them. Against the phone at four levels or two on one phone – with hints and undo. No account."
     }
   }
 }
