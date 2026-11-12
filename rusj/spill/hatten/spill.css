@@ -1,0 +1,801 @@
+/* Hatten — game styles (prefix ha-). The kit does the rest. */
+
+.ha-prikk {
+  display: inline-block;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--lf);
+  box-shadow: 0 0 0 2.5px var(--natt), 0 0 0 4px var(--lf);
+}
+
+/* ---------- Setup ---------- */
+
+.ha-to {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+
+.ha-to .seg button {
+  padding-inline: 4px;
+}
+
+.ha-lagene {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ha-lagkol {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--lf) 10%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lf) 55%, transparent);
+}
+
+.ha-lagkol h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0;
+  padding: 2px 4px 4px;
+  color: var(--lf);
+  font: 900 1.05rem/1.2 var(--font-display);
+}
+
+.ha-lagkol h3 span {
+  color: var(--tekst-3);
+  font-size: 0.9rem;
+}
+
+.ha-lagspiller {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 4px 10px 4px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ha-lagspiller span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ha-lagspiller .avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+}
+
+.ha-advarsel {
+  color: var(--lampe);
+  font-weight: 700;
+  text-align: center;
+}
+
+.ha-sist {
+  margin: 6px 0 0;
+  text-align: center;
+}
+
+/* ---------- «Skriv selv» ---------- */
+
+.ha-skriv-topp {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+}
+
+.ha-skriv-topp h1 {
+  font-size: clamp(1.9rem, 8.5vw, 2.5rem);
+}
+
+.ha-skriv {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.ha-skriv input {
+  min-width: 0;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: inset 0 0 0 2.5px var(--blekk), 0 5px 0 color-mix(in srgb, var(--blekk) 70%, transparent);
+  color: var(--blekk);
+  font: 800 1.25rem/1.2 var(--font-display);
+}
+
+.ha-skriv input::placeholder {
+  color: color-mix(in srgb, var(--blekk) 50%, transparent);
+}
+
+.ha-skriv input:disabled {
+  opacity: 0.6;
+}
+
+.ha-skriv .knapp {
+  min-height: 56px;
+  padding-inline: 18px;
+}
+
+.ha-lapper-rad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 14px;
+}
+
+.ha-lapper {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ha-lapper li {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 30px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst-3);
+  font: 900 0.95rem/1 var(--font-display);
+  transform: rotate(-3deg);
+}
+
+.ha-lapper li:nth-child(even) {
+  transform: rotate(4deg);
+}
+
+.ha-lapper li.fylt {
+  background: var(--papir);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--blekk) 60%, transparent);
+  color: #0f6e54;
+}
+
+.ha-lapper-tekst {
+  margin: 0;
+  color: var(--tekst-2);
+  font: 800 1rem/1.2 var(--font-display);
+}
+
+.ha-mine {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ha-mine b {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--blekk) 8%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--blekk) 25%, transparent);
+  color: var(--blekk);
+  font: 900 1.1rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+/* The hold-to-see card with the player's own words: smaller than the kit's, under the field. */
+.skjerm-skriv .mappe {
+  height: min(36vh, 280px);
+  min-height: 190px;
+}
+
+.skjerm-skriv .mappe-forside {
+  gap: 10px;
+  padding: 16px;
+}
+
+.skjerm-skriv .mappe-forside .figur-ramme {
+  width: 76px;
+}
+
+/* ---------- Between turns ---------- */
+
+.ha-runde {
+  display: grid;
+  gap: 8px;
+}
+
+.ha-steg {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ha-steg li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 7px 4px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-3);
+  font: 800 0.88rem/1.1 var(--font-display);
+  white-space: nowrap;
+}
+
+.ha-steg li.ferdig {
+  color: var(--tekst-2);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.ha-steg li.na {
+  background: var(--lampe);
+  box-shadow: 0 4px 0 var(--lampe-dyp);
+  color: var(--blekk);
+}
+
+.ha-regel {
+  margin: 0;
+  color: var(--tekst-2);
+  font: 700 0.98rem/1.35 var(--font-tekst);
+  text-align: center;
+}
+
+.ha-stilling {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ha-stilling.k3 {
+  --n: 3;
+}
+
+.ha-stilling.k4 {
+  --n: 4;
+}
+
+.ha-stilling li {
+  display: grid;
+  justify-items: center;
+  padding: 6px 4px 7px;
+  border-radius: var(--r-mid);
+  background: color-mix(in srgb, var(--lf) 12%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lf) 60%, transparent);
+}
+
+.ha-stilling b {
+  color: var(--lf);
+  font: 900 1.6rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ha-stilling small {
+  color: var(--tekst-2);
+  font: 700 0.8rem/1.2 var(--font-display);
+}
+
+.ha-hatt {
+  margin: 0;
+  color: var(--tekst-2);
+  font: 800 0.95rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.ha-gi {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin-top: auto;
+  padding: 18px 14px 16px;
+  border-radius: var(--r-stor);
+  background: color-mix(in srgb, var(--lf) 9%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--lf);
+  text-align: center;
+}
+
+.ha-gi-avatar .avatar {
+  box-shadow: 0 0 0 4px var(--natt-2), 0 0 0 7px var(--lf);
+}
+
+.ha-gi .etikett {
+  margin-top: 6px;
+  color: var(--lf);
+}
+
+.ha-gi h1 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.9rem, 9vw, 2.6rem);
+}
+
+.ha-gi-tekst {
+  margin: 0;
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+}
+
+/* ---------- The turn ---------- */
+
+.ha-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.ha-status .timer {
+  gap: 0;
+  padding: 0;
+  background: none;
+}
+
+.ha-status .timer-ring {
+  width: 70px;
+  height: 70px;
+}
+
+.ha-status .timer-ring circle {
+  stroke-width: 14;
+}
+
+.ha-status .timer-tid {
+  font-size: 1.2rem;
+}
+
+.ha-status-lag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding-left: 4px;
+}
+
+.ha-status-lag > span {
+  min-width: 0;
+}
+
+.ha-status-lag b {
+  display: block;
+  overflow: hidden;
+  font: 900 1.1rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ha-status-lag small {
+  display: block;
+  overflow: hidden;
+  color: var(--tekst-2);
+  font: 700 0.82rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ha-teller {
+  display: grid;
+  justify-items: center;
+  min-width: 70px;
+  padding: 8px 10px 7px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.ha-teller b {
+  color: var(--mynte);
+  font: 900 1.9rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ha-teller small {
+  color: var(--tekst-2);
+  font: 700 0.72rem/1.2 var(--font-display);
+}
+
+.ha-teller.popp b {
+  animation: ha-popp 0.45s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+@keyframes ha-popp {
+  35% {
+    transform: scale(1.35);
+  }
+}
+
+.ha-kort {
+  container-type: inline-size;
+  text-align: center;
+}
+
+.ha-kort .storkort-tekst {
+  display: grid;
+  place-items: center;
+  margin: auto 0;
+}
+
+.ha-ordet {
+  display: block;
+  max-width: 100%;
+  font: 900 min(4.2rem, calc(148cqi / var(--tegn, 8))) / 1.02 var(--font-display);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.ha-kort .storkort-fot {
+  opacity: 1;
+}
+
+.ha-hint {
+  font: 800 1rem/1.3 var(--font-display);
+  opacity: 0.8;
+}
+
+.ha-svar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 12px;
+}
+
+.ha-svar .knapp {
+  min-height: 74px;
+  padding-inline: 10px;
+}
+
+.ha-pausekort {
+  align-items: center;
+  gap: 12px;
+}
+
+.ha-pausekort .figur-ramme {
+  width: 112px;
+}
+
+.ha-pausekort h1 {
+  font-size: clamp(2.2rem, 10vw, 3rem);
+}
+
+.ha-pause-tekst {
+  margin: 0;
+  font: 800 1.05rem/1.35 var(--font-display);
+}
+
+/* After the turn */
+.ha-resultat {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.ha-resultat h1 {
+  font-size: clamp(2.3rem, 11vw, 3.1rem);
+}
+
+.ha-resultat h1 b {
+  color: var(--lf);
+}
+
+.ha-resultat .etikett {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.ha-stempel {
+  margin: 4px 0 12px;
+  padding: 0.1em 0.35em;
+  font-size: clamp(1.6rem, 8vw, 2.2rem);
+  white-space: nowrap;
+}
+
+.ha-ordliste {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ha-ord {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 7px 16px 7px 7px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 1.08rem/1.2 var(--font-display);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ha-ord i {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--natt-3);
+  color: var(--tekst-2);
+  font: 900 1.15rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.ha-ord span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ha-ord small {
+  flex: none;
+  color: var(--tekst-2);
+  font: 700 0.82rem/1 var(--font-tekst);
+}
+
+.ha-ord[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--mynte) 13%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--mynte);
+  color: var(--tekst);
+}
+
+.ha-ord[aria-pressed="true"] i {
+  background: var(--mynte);
+  color: var(--blekk);
+}
+
+.ha-ord[aria-pressed="true"] small {
+  color: var(--mynte);
+  font: 900 1rem/1 var(--font-display);
+}
+
+/* ---------- Round over ---------- */
+
+.ha-tom {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.ha-tom h1.ha-stempel {
+  font-size: clamp(1.9rem, 9vw, 2.5rem);
+}
+
+.ha-neste {
+  display: grid;
+  gap: 6px;
+  text-align: center;
+}
+
+.ha-neste h2 {
+  margin: 0;
+  color: var(--blekk);
+  font: 900 1.7rem/1.1 var(--font-display);
+}
+
+.ha-neste p {
+  margin: 0;
+}
+
+/* ---------- Kåringen ---------- */
+
+.ha-tabell {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ha-tabell th,
+.ha-tabell td {
+  padding: 8px 6px;
+  text-align: center;
+}
+
+.ha-tabell thead th {
+  padding-block: 0 2px;
+  color: var(--tekst-2);
+  font: 800 0.85rem/1.2 var(--font-display);
+}
+
+.ha-tabell thead th:first-child,
+.ha-tabell tbody th {
+  text-align: left;
+}
+
+.ha-tabell tbody th,
+.ha-tabell tbody td {
+  background: var(--natt-2);
+}
+
+.ha-tabell tbody th {
+  border-radius: var(--r-mid) 0 0 var(--r-mid);
+  padding-left: 12px;
+}
+
+.ha-tabell tbody td:last-child {
+  border-radius: 0 var(--r-mid) var(--r-mid) 0;
+  padding-right: 12px;
+}
+
+.ha-tabell tbody tr.leder th,
+.ha-tabell tbody tr.leder td {
+  background: color-mix(in srgb, var(--lampe) 14%, var(--natt-2));
+}
+
+.ha-tabell tbody th .ha-prikk {
+  margin-right: 8px;
+  vertical-align: -1px;
+}
+
+.ha-lagnavn {
+  font: 900 1.05rem/1.2 var(--font-display);
+}
+
+.ha-tabell tbody th small {
+  display: block;
+  margin-top: 2px;
+  color: var(--tekst-2);
+  font: 600 0.78rem/1.3 var(--font-tekst);
+  overflow-wrap: anywhere;
+}
+
+.ha-tabell td {
+  font: 800 1.05rem/1 var(--font-display);
+}
+
+.ha-tabell td b {
+  color: var(--lampe);
+  font-size: 1.25rem;
+}
+
+.ha-beste {
+  text-align: center;
+}
+
+.ha-del {
+  display: grid;
+  justify-items: center;
+}
+
+/* ---------- Small and short phones ---------- */
+
+@media (max-width: 359px) {
+  .ha-stempel,
+  .ha-tom h1.ha-stempel {
+    font-size: 1.45rem;
+  }
+
+  .ha-steg li {
+    font-size: 0.78rem;
+  }
+
+  .ha-svar .knapp {
+    font-size: 1.12rem;
+  }
+
+  .ha-lagene.k3,
+  .ha-lagene.k4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 700px) {
+  .skjerm-tur,
+  .skjerm-tavle {
+    gap: 12px;
+  }
+
+  .ha-status .timer-ring {
+    width: 58px;
+    height: 58px;
+  }
+
+  .ha-status .timer-tid {
+    font-size: 1.05rem;
+  }
+
+  .ha-teller {
+    min-width: 60px;
+    padding: 6px 8px;
+  }
+
+  .ha-teller b {
+    font-size: 1.5rem;
+  }
+
+  .skjerm-tur .bunke {
+    min-height: 0;
+  }
+
+  .skjerm-tur .storkort {
+    gap: 12px;
+    padding: 18px 18px 16px;
+  }
+
+  .skjerm-tur .storkort-tekst {
+    min-height: 90px;
+  }
+
+  .ha-svar .knapp {
+    min-height: 62px;
+  }
+
+  .ha-gi {
+    padding: 12px 12px 12px;
+  }
+
+  .ha-gi-avatar .avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 1.7rem;
+  }
+
+  .ha-gi-tekst,
+  .ha-regel {
+    font-size: 0.88rem;
+  }
+
+  .ha-pausekort .figur-ramme {
+    width: 80px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .ha-ordet {
+    font-size: min(4.2rem, 14vh, calc(148cqi / var(--tegn, 8)));
+  }
+
+  .ha-gi {
+    margin-top: 0;
+    padding: 10px 12px;
+  }
+
+  .ha-gi-avatar .avatar {
+    width: 52px;
+    height: 52px;
+    font-size: 1.4rem;
+  }
+
+  .ha-regel {
+    display: none;
+  }
+
+  .skjerm-tur .storkort-tekst {
+    min-height: 70px;
+  }
+}

@@ -723,6 +723,18 @@
         "vri åtter gratis",
         "kortspill vri åtter"
       ]
+    },
+    "hatten": {
+      "tittel": "Ord i hatten – forklar, ett ord, mim (lagspill)",
+      "frase": "Ord i hatten",
+      "beskrivelse": "Lagspillet med lapper i hatten: forklar, si bare ett ord, så mim – de samme ordene tre runder. Gratis på norsk for 4–20, over 600 ord eller deres egne.",
+      "sok": [
+        "fishbowl",
+        "hatteleken",
+        "lapper i hatten",
+        "ordlek lag",
+        "celebrity spill"
+      ]
     }
   }
 }

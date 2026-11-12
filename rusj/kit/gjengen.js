@@ -1136,6 +1136,25 @@
         ${vifte(22, 122, [[-20, spar(22, 102, 5)], [4, hjerte(22, 102, 5, ROSA)]])}
         ${glimt(108, 18, 7)}`,
     },
+
+    // Hatten: a round fellow under a tall hat, with paper slips flying out of it.
+    hatten: {
+      farge: "#ffb347",
+      tegn: (f) => `
+        ${hode(f)}
+        ${kinn(82)}
+        ${oyne({ y: 64, dx: 2, dy: -3 })}
+        ${smil(90, 13)}
+        <g transform="rotate(-24 14 22)"><rect x="1" y="12" width="26" height="17" rx="2.5" fill="${P}" stroke="${B}" stroke-width="3.5"/>${strek("M7 18.5 H21M7 23.5 H16", 2.5)}</g>
+        <g transform="rotate(18 106 14)"><rect x="93" y="4" width="26" height="17" rx="2.5" fill="${P}" stroke="${B}" stroke-width="3.5"/>${strek("M99 10.5 H113M99 15.5 H108", 2.5)}</g>
+        <g transform="rotate(-6 60 30)">
+          ${form("M38 34 L41 -4 H79 L82 34 Z", "#46327a")}
+          <path d="M39.5 22 H80.5 L81.3 31 H38.7Z" fill="${ROSA}"/>
+          ${glans("M47 2 L45.5 16", 3.5)}
+          ${form("M16 36 Q60 26 104 36 Q60 47 16 36Z", "#46327a")}
+        </g>
+        ${glimt(30, 6, 6)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on
@@ -1174,7 +1193,7 @@
     hjulet: ["#56e0d0", "H"],
     torsten: ["#c77dff", "T"],
     // Part 3 (rusj/SPILL3.md): placeholders until each game's own drawing is merged.
-    hatten: ["#ff8fab", "H"],
+    hatten: ["#ffb347", "H"],
     femmeren: ["#ffd23f", "5"],
     meyer: ["#e85d75", "M"],
     firklover: ["#7bd88f", "F"],

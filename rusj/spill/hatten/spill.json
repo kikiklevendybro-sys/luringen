@@ -1,0 +1,14 @@
+{
+  "id": "hatten",
+  "navn": "Hatten",
+  "undertittel": "Tre runder, samme ord",
+  "beskrivelse": "Gratis ordlek for lag på én mobil: forklar, si bare ett ord og mim – de samme ordene tre ganger. Over 600 ord, eller skriv deres egne.",
+  "kort": "Forklar, ett ord, mim — de samme ordene tre ganger.",
+  "spillere": [4, 20],
+  "minutter": [20, 45],
+  "mobiler": "en",
+  "tagger": ["fest", "lag", "ord"],
+  "rekkefolge": 49,
+  "farge": "#ffb347",
+  "sok": ["fishbowl", "hatteleken", "ord i hatten", "lapper i hatten", "forklar ett ord mim", "celebrity"]
+}
