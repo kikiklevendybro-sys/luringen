@@ -978,7 +978,25 @@
           <rect x="78" y="92" width="22" height="16" rx="4" fill="#2a1a4a" stroke="${B}" stroke-width="3.5"/>${tekst(89, 105, "★", 11, LAMPE)}
           ${form("M78 92 L70 95 V111 L78 108Z", P, 3)}`;
       },
-    },  };
+    },
+
+    // Firkløveren (daily word groups): a round clover head with four heart leaves peeking out,
+    // one leaf in each of the game's level colours.
+    firklover: {
+      farge: "#7bd88f",
+      tegn: (f) => {
+        const blad = (x, y, v, farge) =>
+          `<path transform="translate(${x} ${y}) rotate(${v}) scale(1.55)" d="M0 14 C-14 4 -20 -8 -12 -16 C-6 -21 0 -16 0 -11 C0 -16 6 -21 12 -16 C20 -8 14 4 0 14Z" fill="${farge}" stroke="${B}" stroke-width="3"/>`;
+        return `
+          ${blad(22, 24, -45, MYNT)}${blad(98, 24, 45, HIMMEL)}${blad(22, 104, -135, LAMPE)}${blad(98, 104, 135, ROSA)}
+          ${hode(f)}
+          ${strek("M60 16 Q62 8 70 4", 5)}
+          ${oyne({ y: 58, r: 12, pr: 5.8, dx: 1, dy: 1 })}
+          ${kinn(80)}
+          ${smil(88, 15)}`;
+      },
+    },
+  };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on
   // the forehead. Only fills ids missing from FIGURER (all of these are drawn above now), so a new
@@ -1019,7 +1037,7 @@
     hatten: ["#ff8fab", "H"],
     femmeren: ["#ffd23f", "5"],
     meyer: ["#e85d75", "M"],
-    firklover: ["#3de3b0", "4"],
+    firklover: ["#7bd88f", "F"],
     dam: ["#c98b5a", "D"],
     reversi: ["#7dd3a8", "R"],
     vriatter: ["#ff6b6b", "8"],

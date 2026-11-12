@@ -18,184 +18,425 @@
     "beskrivelse": "{antall} gratis spill på norsk rett i nettleseren: selskapsleker, quiz, drikkeleker (18+), kabal, sudoku, yatzy og dagens ord. Ingen app, ingen konto, ingen reklame."
   },
   "tagger": {
-    "fest": ["selskapsleker", "selskapslek", "selskapsspill", "festleker", "festlek", "partyspill", "partyleker", "leker til fest", "vors", "vorspiel", "nachspiel", "julebord", "russ", "voksne", "ungdom"],
-    "familie": ["familiespill", "familieleker", "hyttetur", "julaften", "jul", "17. mai", "påske", "ferie"],
-    "barn": ["barnespill", "barneleker", "leker til barnebursdag", "bursdag", "bursdagsleker", "klassefest", "skole"],
-    "sporsmal": ["bli kjent", "bli kjent-leker", "samtale", "spørsmål", "biltur", "bilturen", "reise"],
-    "lag": ["lagspill", "lagkonkurranse", "teambuilding"],
-    "blof": ["bløffespill", "lureri", "hemmelig rolle"],
-    "ord": ["ordspill", "ordlek", "ordleker"],
-    "quiz": ["spørrekonkurranse", "kunnskap"],
-    "tegning": ["tegne", "tegnespill"],
-    "hukommelse": ["huskespill", "huskelek", "hukommelsesspill"],
-    "klassiker": ["klassiske spill", "brettspill"],
-    "daglig": ["daglig", "hver dag", "dagens oppgave"],
-    "tenke": ["logikk", "hjernetrening", "tankespill"],
-    "alene": ["solo", "én spiller", "en spiller"],
-    "kort": ["kortstokk"],
-    "verktoy": ["hjelpemidler"],
-    "drikke": ["drikkeleker", "drikkelek", "drikkespill", "drikkeleker med kort", "vors", "vorspiel", "nachspiel"]
+    "fest": [
+      "selskapsleker",
+      "selskapslek",
+      "selskapsspill",
+      "festleker",
+      "festlek",
+      "partyspill",
+      "partyleker",
+      "leker til fest",
+      "vors",
+      "vorspiel",
+      "nachspiel",
+      "julebord",
+      "russ",
+      "voksne",
+      "ungdom"
+    ],
+    "familie": [
+      "familiespill",
+      "familieleker",
+      "hyttetur",
+      "julaften",
+      "jul",
+      "17. mai",
+      "påske",
+      "ferie"
+    ],
+    "barn": [
+      "barnespill",
+      "barneleker",
+      "leker til barnebursdag",
+      "bursdag",
+      "bursdagsleker",
+      "klassefest",
+      "skole"
+    ],
+    "sporsmal": [
+      "bli kjent",
+      "bli kjent-leker",
+      "samtale",
+      "spørsmål",
+      "biltur",
+      "bilturen",
+      "reise"
+    ],
+    "lag": [
+      "lagspill",
+      "lagkonkurranse",
+      "teambuilding"
+    ],
+    "blof": [
+      "bløffespill",
+      "lureri",
+      "hemmelig rolle"
+    ],
+    "ord": [
+      "ordspill",
+      "ordlek",
+      "ordleker"
+    ],
+    "quiz": [
+      "spørrekonkurranse",
+      "kunnskap"
+    ],
+    "tegning": [
+      "tegne",
+      "tegnespill"
+    ],
+    "hukommelse": [
+      "huskespill",
+      "huskelek",
+      "hukommelsesspill"
+    ],
+    "klassiker": [
+      "klassiske spill",
+      "brettspill"
+    ],
+    "daglig": [
+      "daglig",
+      "hver dag",
+      "dagens oppgave"
+    ],
+    "tenke": [
+      "logikk",
+      "hjernetrening",
+      "tankespill"
+    ],
+    "alene": [
+      "solo",
+      "én spiller",
+      "en spiller"
+    ],
+    "kort": [
+      "kortstokk"
+    ],
+    "verktoy": [
+      "hjelpemidler"
+    ],
+    "drikke": [
+      "drikkeleker",
+      "drikkelek",
+      "drikkespill",
+      "drikkeleker med kort",
+      "vors",
+      "vorspiel",
+      "nachspiel"
+    ]
   },
   "spill": {
     "luringen": {
       "tittel": "Luringen – imposter-spillet på norsk, helt gratis",
       "frase": "Imposter-spill på norsk",
       "beskrivelse": "Alle får samme hemmelige ord – bortsett fra luringen. Gratis imposter-spill på norsk for 3–10 spillere, på én mobil eller hver sin. Over 3000 ord.",
-      "sok": ["imposter", "imposter spill", "hvem er imposteren", "bløffespill", "hemmelig ord", "luring"]
+      "sok": [
+        "imposter",
+        "imposter spill",
+        "hvem er imposteren",
+        "bløffespill",
+        "hemmelig ord",
+        "luring"
+      ]
     },
     "spionen": {
       "tittel": "Finn spionen – gratis spionspill for 3–12 spillere",
       "frase": "Finn spionen",
       "beskrivelse": "Alle vet hvor dere er – bortsett fra spionen. Still lure spørsmål og avslør spionen før stedet blir gjettet. 84 steder, gratis, én eller flere mobiler.",
-      "sok": ["spionspill", "spion", "hvem er spionen", "spyfall"]
+      "sok": [
+        "spionspill",
+        "spion",
+        "hvem er spionen",
+        "spyfall"
+      ]
     },
     "sladrehanken": {
       "tittel": "Jeg har aldri – 500 spørsmål på norsk, gratis",
       "frase": "Jeg har aldri",
       "beskrivelse": "Spill «Jeg har aldri» rett på mobilen: over 500 spørsmål for venner, familie, reise og fest. Les kortet høyt – har du gjort det, er du avslørt. Gratis.",
-      "sok": ["jeg har aldri", "jeg har aldri spørsmål", "jeg har aldri leken", "never have i ever", "sladre"]
+      "sok": [
+        "jeg har aldri",
+        "jeg har aldri spørsmål",
+        "jeg har aldri leken",
+        "never have i ever",
+        "sladre"
+      ]
     },
     "pekefingeren": {
       "tittel": "Pekeleken – hvem er mest sannsynlig til å …?",
       "frase": "Pekeleken",
       "beskrivelse": "Pekeleken på norsk: les utsagnet, tell ned – og alle peker samtidig. Over 400 «hvem er mest sannsynlig»-spørsmål for fest, venner og familie. Gratis.",
-      "sok": ["pekeleken", "pekelek", "pekeleken spørsmål", "mest sannsynlig til å", "most likely to", "peke"]
+      "sok": [
+        "pekeleken",
+        "pekelek",
+        "pekeleken spørsmål",
+        "mest sannsynlig til å",
+        "most likely to",
+        "peke"
+      ]
     },
     "vaghalsen": {
       "tittel": "Nødt eller sannhet – nesten 500 spørsmål og nødt",
       "frase": "Nødt eller sannhet",
       "beskrivelse": "Nødt eller sannhet (sannhet eller konsekvens) på norsk: snurr flaska og velg. Nesten 500 spørsmål og utfordringer for barn, familie, venner og fest.",
-      "sok": ["nødt", "nødt eller sannhet", "sannhet eller nødt", "flasketuten peker på", "flasketuten", "snurr flaska", "truth or dare", "utfordringer"]
+      "sok": [
+        "nødt",
+        "nødt eller sannhet",
+        "sannhet eller nødt",
+        "flasketuten peker på",
+        "flasketuten",
+        "snurr flaska",
+        "truth or dare",
+        "utfordringer"
+      ]
     },
     "vinglepetter": {
       "tittel": "Hva vil du helst? 400 dilemmaer på norsk, gratis",
       "frase": "Hva vil du helst?",
       "beskrivelse": "«Hva vil du helst?» på norsk: over 400 morsomme dilemmaer for barn, familie, venner og fest. To valg, tell ned – og alle velger samtidig. Gratis.",
-      "sok": ["vil du heller", "dilemma", "dilemmaer", "would you rather", "enten eller"]
+      "sok": [
+        "vil du heller",
+        "dilemma",
+        "dilemmaer",
+        "would you rather",
+        "enten eller"
+      ]
     },
     "skravla": {
       "tittel": "Forklar ordet – ordspill lag mot lag, 3000 ord",
       "frase": "Forklar ordet",
       "beskrivelse": "Forklar ordet uten å si det! Gratis ordforklaringsspill på norsk for 4–20 spillere: lag mot lag med over 3000 ord, klokke og spillebrett på mobilen.",
-      "sok": ["ordforklaring", "ordforklaringslek", "forklaringslek", "forbudte ord", "alias", "tabu"]
+      "sok": [
+        "ordforklaring",
+        "ordforklaringslek",
+        "forklaringslek",
+        "forbudte ord",
+        "alias",
+        "tabu"
+      ]
     },
     "panna": {
       "tittel": "Gjett ordet på panna – gratis på norsk, uten app",
       "frase": "Gjett ordet på panna",
       "beskrivelse": "Hold mobilen mot panna, de andre gir hint – vipp ned når du har gjettet. Gratis «gjett ordet på panna»-spill på norsk, med 12 kortstokker og uten app.",
-      "sok": ["ordet på panna", "pannelek", "pannespill", "hvem er jeg", "heads up", "charades"]
+      "sok": [
+        "ordet på panna",
+        "pannelek",
+        "pannespill",
+        "hvem er jeg",
+        "heads up",
+        "charades"
+      ]
     },
     "kodeknekkeren": {
       "tittel": "Kodeord – lagspillet med 25 ord og hemmelige agenter",
       "frase": "Kodeord",
       "beskrivelse": "Gratis kodeordspill på norsk for to lag: kodemesteren gir ett ord og et tall – finn agentene deres og unngå fella. 4–20 spillere, én eller flere mobiler.",
-      "sok": ["kodeordspill", "kodenavn", "agentspill", "agenter", "codenames"]
+      "sok": [
+        "kodeordspill",
+        "kodenavn",
+        "agentspill",
+        "agenter",
+        "codenames"
+      ]
     },
     "bedreviteren": {
       "tittel": "Quiz på nett – over 600 spørsmål med svar, gratis",
       "frase": "Quiz på nett",
       "beskrivelse": "Gratis quiz på norsk med over 600 spørsmål og svar om Norge, natur, sport og historie. Dagens fem hver dag – eller quiz for hele gjengen, også lag mot lag.",
-      "sok": ["quiz spørsmål", "quiz på nett", "quiz for barn", "dagens quiz", "daglig quiz", "spørrelek", "allmennkunnskap", "kahoot", "trivial pursuit", "besserwisseren"]
+      "sok": [
+        "quiz spørsmål",
+        "quiz på nett",
+        "quiz for barn",
+        "dagens quiz",
+        "daglig quiz",
+        "spørrelek",
+        "allmennkunnskap",
+        "kahoot",
+        "trivial pursuit",
+        "besserwisseren"
+      ]
     },
     "detektiven": {
       "tittel": "20 spørsmål og «Hvem er jeg?» – gratis gjettelek",
       "frase": "20 spørsmål og «Hvem er jeg?»",
       "beskrivelse": "Én har en hemmelighet – de andre har 20 ja/nei-spørsmål på å gjette den. Gratis gjettelek på norsk med over 450 forslag: dyr, ting, yrker og steder.",
-      "sok": ["gjettelek", "gjetteleken", "hvem er jeg forslag", "ja eller nei", "tjue spørsmål"]
+      "sok": [
+        "gjettelek",
+        "gjetteleken",
+        "hvem er jeg forslag",
+        "ja eller nei",
+        "tjue spørsmål"
+      ]
     },
     "mimen": {
       "tittel": "Mimeleken – 540 ord og oppgaver, gratis på norsk",
       "frase": "Mimeleken",
       "beskrivelse": "Mimeleken på mobilen: over 540 ord og oppgaver i ni kategorier, også egne for barn. Alle mot alle eller lag mot lag, med klokke og poeng. Gratis.",
-      "sok": ["mimelek", "mime", "mimeleken ord", "mimelek forslag", "charades"]
+      "sok": [
+        "mimelek",
+        "mime",
+        "mimeleken ord",
+        "mimelek forslag",
+        "charades"
+      ]
     },
     "tankeleseren": {
       "tittel": "På samme bølgelengde? Tankeleser-spill for 2–20",
       "frase": "På samme bølgelengde",
       "beskrivelse": "Gratis bølgelengdespill på norsk: én ser målet på skiva og gir ett hint – de andre drar viseren dit de tror. 265 skalaer for venner, familie og lag.",
-      "sok": ["bølgelengde", "bølgelengdespill", "tankeleser", "samarbeidsspill", "wavelength"],
+      "sok": [
+        "bølgelengde",
+        "bølgelengdespill",
+        "tankeleser",
+        "samarbeidsspill",
+        "wavelength"
+      ],
       "samarbeid": true
     },
     "hviskeren": {
       "tittel": "Bare ett hint – samarbeidsspill med ord for 3–10",
       "frase": "Bare ett hint",
       "beskrivelse": "Gratis samarbeidsspill på norsk: alle gir ett hint i hemmelighet, men like hint strykes. Klarer gjetteren ordet? 3–10 spillere, én mobil, over 3000 ord.",
-      "sok": ["ett hint", "samarbeidsspill", "hint", "gjett ordet", "just one"],
+      "sok": [
+        "ett hint",
+        "samarbeidsspill",
+        "hint",
+        "gjett ordet",
+        "just one"
+      ],
       "samarbeid": true
     },
     "lognhalsen": {
       "tittel": "To sannheter og en løgn – bli kjent-lek, gratis",
       "frase": "To sannheter og en løgn",
       "beskrivelse": "«To sannheter og en løgn» på norsk: få et tema, si tre ting om deg selv – og la de andre avsløre løgnen. Gratis bli kjent-lek for 3–20, med over 270 kort.",
-      "sok": ["to sannheter og en løgn eksempler", "bli kjent-lek", "løgn", "klassefest", "two truths and a lie"]
+      "sok": [
+        "to sannheter og en løgn eksempler",
+        "bli kjent-lek",
+        "løgn",
+        "klassefest",
+        "two truths and a lie"
+      ]
     },
     "kunstneren": {
       "tittel": "Tegn og gjett – gratis tegnelek på én mobil",
       "frase": "Tegn og gjett",
       "beskrivelse": "Tegn og gjett på norsk: tegn ordet med fingeren før tiden går ut – de andre gjetter. Over 700 ord, pluss Hviskeleken der tegningene sporer helt av.",
-      "sok": ["tegnelek", "tegneleken", "tegn og gjett ord", "hviskeleken", "pictionary", "skribbl", "gartic phone"]
+      "sok": [
+        "tegnelek",
+        "tegneleken",
+        "tegn og gjett ord",
+        "hviskeleken",
+        "pictionary",
+        "skribbl",
+        "gartic phone"
+      ]
     },
     "sauen": {
       "tittel": "Tenk som flokken – ikke bli den svarte sauen!",
       "frase": "Tenk som flokken",
       "beskrivelse": "Gratis selskapslek på norsk: svar det samme som flest mulig – men ikke bli den svarte sauen. Nesten 400 spørsmål, 3–12 spillere, én mobil går rundt.",
-      "sok": ["svarte sauen", "flokk", "tenk likt", "herd mentality"]
+      "sok": [
+        "svarte sauen",
+        "flokk",
+        "tenk likt",
+        "herd mentality"
+      ]
     },
     "varulven": {
       "tittel": "Varulv – spill uten spilleder, mobilen styrer natta",
       "frase": "Varulv",
       "beskrivelse": "Varulv (mafia-leken) på norsk – uten spilleder og uten kort: mobilen går rundt og styrer natta. Varulver, synsk, lege og jeger. Gratis, 6–18 spillere.",
-      "sok": ["varulv regler", "varulv roller", "mafia", "mafialeken", "landsbyen", "werewolf"]
+      "sok": [
+        "varulv regler",
+        "varulv roller",
+        "mafia",
+        "mafialeken",
+        "landsbyen",
+        "werewolf"
+      ]
     },
     "bokstavtrollet": {
       "tittel": "Alfabetleken – si et ord på bokstaven! Gratis",
       "frase": "Alfabetleken",
       "beskrivelse": "Gratis alfabetlek på norsk. Si et ord på bokstaven og send mobilen før trollet våkner – eller jakt på ord med blyant og papir. For barn og familie.",
-      "sok": ["alfabetlek", "bokstavlek", "ord på bokstav", "kategorilek", "scattergories"]
+      "sok": [
+        "alfabetlek",
+        "bokstavlek",
+        "ord på bokstav",
+        "kategorilek",
+        "scattergories"
+      ]
     },
     "skjaera": {
       "tittel": "Kims lek på nett – hva mangler? Huskelek for barn",
       "frase": "Kims lek",
       "beskrivelse": "Gratis Kims lek på norsk: se godt på tingene – så stjeler skjæra noe. Hva mangler? 12 nivåer og nesten 300 ting, for barn og familie, alene eller sammen.",
-      "sok": ["hva mangler", "kims lek på nett"]
+      "sok": [
+        "hva mangler",
+        "kims lek på nett"
+      ]
     },
     "elefanten": {
       "motMobilen": true,
       "tittel": "Vendespill på nett – finn to like, gratis for barn",
       "frase": "Vendespill – finn to like",
       "beskrivelse": "Gratis vendespill (huskespill) på norsk: snu to kort og finn to like – alene mot klokka eller opptil fire sammen. Dyr, mat, verdensrommet og mer.",
-      "sok": ["vendespill på nett", "parspill"]
+      "sok": [
+        "vendespill på nett",
+        "parspill"
+      ]
     },
     "ordugla": {
       "tittel": "Dagens ord – gjett ordet på fem bokstaver, gratis",
       "frase": "Dagens ord",
       "beskrivelse": "Norsk ordspill: gjett dagens ord på fem bokstaver i seks forsøk. Samme ord for alle hver dag, med æ, ø og å – og øv så mye du vil. Gratis, uten reklame.",
-      "sok": ["gjett ordet", "ordgåte"]
+      "sok": [
+        "gjett ordet",
+        "ordgåte"
+      ]
     },
     "blyanten": {
       "tittel": "Minikryssord – dagens kryssord på mobilen, gratis",
       "frase": "Minikryssord",
       "beskrivelse": "Gratis kryssord på nett, laget for mobilen: dagens minikryss er likt for alle, og du kan lage nye kryss om dyr, mat, sport og over 30 andre temaer.",
-      "sok": ["dagens kryssord", "lett kryssord", "minikryssord"]
+      "sok": [
+        "dagens kryssord",
+        "lett kryssord",
+        "minikryssord"
+      ]
     },
     "tallknuseren": {
       "tittel": "Sudoku gratis – dagens sudoku, uten reklame",
       "frase": "Sudoku",
       "beskrivelse": "Gratis sudoku på norsk uten reklame: nye brett i fire nivåer, alltid med bare én løsning. Dagens sudoku for hele landet, notater, hint og beste tider.",
-      "sok": ["sudoku gratis", "sudoku på nett"]
+      "sok": [
+        "sudoku gratis",
+        "sudoku på nett"
+      ]
     },
     "kortkongen": {
       "tittel": "Kabal gratis – klassisk 7-kabal uten reklame",
       "frase": "Kabal",
       "beskrivelse": "Gratis kabal på nett uten reklame – klassisk 7-kabal (Klondike). Trekk ett eller tre kort, angre og få hint, og velg bare kabaler som kan gå opp.",
-      "sok": ["7-kabal", "sjukabal", "gratis kabal"]
+      "sok": [
+        "7-kabal",
+        "sjukabal",
+        "gratis kabal"
+      ]
     },
     "sjakkhesten": {
       "motMobilen": true,
       "tittel": "Sjakk på nett – mot datamaskinen eller en venn",
       "frase": "Sjakk",
       "beskrivelse": "Spill sjakk gratis på norsk: mot datamaskinen på tre nivåer, eller to på samme mobil – med alle regler, sjakklokke og angreknapp. Uten konto.",
-      "sok": ["sjakk mot datamaskin", "sjakk mot pc", "sjakk for to"]
+      "sok": [
+        "sjakk mot datamaskin",
+        "sjakk mot pc",
+        "sjakk for to"
+      ]
     },
     "fireren": {
       "motMobilen": true,
@@ -208,7 +449,10 @@
       "tittel": "Bondesjakk – tre på rad og fem på rad, gratis",
       "frase": "Bondesjakk",
       "beskrivelse": "Gratis bondesjakk (tre på rad, tripp-trapp-tresko) på norsk – eller fem på rad på stort brett. Mot en venn på samme mobil eller mot mobilen.",
-      "sok": ["tripp trapp tresko", "tripp-trapp-tresko"]
+      "sok": [
+        "tripp trapp tresko",
+        "tripp-trapp-tresko"
+      ]
     },
     "minesveiperen": {
       "tittel": "Minesveiper gratis – laget for mobil, uten reklame",
@@ -229,33 +473,53 @@
       "tittel": "Nissetrekning (Secret Santa) – gratis, uten konto",
       "frase": "Nissetrekning",
       "beskrivelse": "Trekk hemmelig nisse (Secret Santa) på ett minutt: skriv navnene, trekk – og send hver sin hemmelige lenke. Gratis, uten e-post, konto og reklame.",
-      "sok": ["hemmelig venn", "julebord", "jul", "julegaver"],
+      "sok": [
+        "hemmelig venn",
+        "julebord",
+        "jul",
+        "julegaver"
+      ],
       "type": "WebApplication"
     },
     "julekalenderen": {
       "tittel": "Julekalender på nett – 24 luker for hele familien",
       "frase": "Julekalender",
       "beskrivelse": "Gratis julekalender med 24 luker: julenøtter, quiz, gjett julesangen, ordgåter og koselige ideer. Én ny luke hver dag i desember, uten konto.",
-      "sok": ["adventskalender", "julekalender for barn", "julenøtter"]
+      "sok": [
+        "adventskalender",
+        "julekalender for barn",
+        "julenøtter"
+      ]
     },
     "terninga": {
       "tittel": "Yatzy på nett – gratis for 1–6 på samme mobil",
       "frase": "Yatzy",
       "beskrivelse": "Spill Yatzy gratis på norsk: fem terninger, tre kast og hele blokka på mobilen. 1–6 spillere – vanlig Yatzy eller med seks terninger. Uten reklame.",
-      "sok": ["yatzy på nett", "yatzy gratis", "yatzy blokk", "yatzy regler"]
+      "sok": [
+        "yatzy på nett",
+        "yatzy gratis",
+        "yatzy blokk",
+        "yatzy regler"
+      ]
     },
     "brikka": {
       "motMobilen": true,
       "tittel": "Ludo på nett – gratis for 1–4 på samme mobil",
       "frase": "Ludo",
       "beskrivelse": "Gratis Ludo på norsk: slå seks, kom deg ut – og send de andre hjem! 1–4 spillere på én mobil, og mobilen spiller på de ledige plassene. Uten reklame.",
-      "sok": ["ludo på nett", "ludospill"]
+      "sok": [
+        "ludo på nett",
+        "ludospill"
+      ]
     },
     "tidsmaskinen": {
       "tittel": "Tidslinja – når skjedde det? Historiespill for 1–10",
       "frase": "Tidslinja",
       "beskrivelse": "Gratis tidslinjespill på norsk: legg hendelsen på riktig plass i tidslinja. Over 400 hendelser fra Norge og verden – oppfinnelser, vitenskap, kultur og sport.",
-      "sok": ["historie", "historiespill"]
+      "sok": [
+        "historie",
+        "historiespill"
+      ]
     },
     "tieren": {
       "tittel": "Ti svar – quizspillet der ett feil svar velter alt",
@@ -277,7 +541,13 @@
       "tittel": "Nynn låta – gjett sangen! 550 låter, gratis",
       "frase": "Nynn låta",
       "beskrivelse": "Gratis nynnelek på norsk med over 500 låter – barnesanger, julesanger, allsang, filmmusikk og popklassikere. Nynn uten ord, de andre gjetter!",
-      "sok": ["musikk", "musikklek", "musikkquiz", "sang", "julesanger"]
+      "sok": [
+        "musikk",
+        "musikklek",
+        "musikkquiz",
+        "sang",
+        "julesanger"
+      ]
     },
     "papegoyen": {
       "tittel": "Ja- og nei-leken – ikke si ja eller nei! Gratis",
@@ -288,20 +558,37 @@
       "tittel": "Bingo på mobilen – tallbingo og festbingo, gratis",
       "frase": "Bingo",
       "beskrivelse": "Gratis bingo på norsk med brettet på mobilen: tallbingo med 75 baller, eller festbingo for julebord, julaften, bryllup, 17. mai, bursdag og hyttetur.",
-      "sok": ["julebingo", "bingo generator", "julaften", "17. mai", "bursdag", "hyttetur", "bryllup", "konfirmasjon"]
+      "sok": [
+        "julebingo",
+        "bingo generator",
+        "julaften",
+        "17. mai",
+        "bursdag",
+        "hyttetur",
+        "bryllup",
+        "konfirmasjon"
+      ]
     },
     "verktoykassa": {
       "tittel": "Hvem starter? Terning, laggenerator, mynt og klokke",
       "frase": "Hvem starter?",
       "beskrivelse": "Gratis verktøy til spillkvelden: «Hvem starter?» med fingrene på skjermen, terninger, laggenerator, stein–saks–papir, kron eller mynt og poengteller.",
-      "sok": ["laggenerator", "terning på nett", "timer", "tidtaker"],
+      "sok": [
+        "laggenerator",
+        "terning på nett",
+        "timer",
+        "tidtaker"
+      ],
       "type": "WebApplication"
     },
     "ringen": {
       "tittel": "Ring of Fire – drikkelek med kort og regler (18+)",
       "frase": "Ring of Fire",
       "beskrivelse": "Ring of Fire (kortringen) på mobilen – drikkelek for voksne (18+): trekk et kort, hvert kort har sin regel. Små slurker – alkoholfritt teller like mye.",
-      "sok": ["ring of fire regler", "kortringen"]
+      "sok": [
+        "ring of fire regler",
+        "kortringen"
+      ]
     },
     "pyramiden": {
       "tittel": "Pyramiden – drikkelek med kort og bløff (18+)",
@@ -312,7 +599,10 @@
       "tittel": "Bussen – drikkelek: rød eller svart? (18+)",
       "frase": "Bussen – drikkelek med kort",
       "beskrivelse": "Bussen (busstur) som drikkelek for voksne (18+): rød eller svart, høyere eller lavere – og den som bommer mest, tar bussen. Alkoholfritt teller like mye.",
-      "sok": ["busstur", "bussjåfør"]
+      "sok": [
+        "busstur",
+        "bussjåfør"
+      ]
     },
     "hjulet": {
       "tittel": "Drikkehjulet – snurr hjulet, egne regler (18+)",
@@ -323,6 +613,17 @@
       "tittel": "Jeg har aldri som drikkelek – 450 kort (18+)",
       "frase": "Jeg har aldri – drikkelek",
       "beskrivelse": "Gratis «Jeg har aldri» som drikkelek på norsk (18+). Over 450 kort i sju pakker. Har du gjort det, tar du en slurk – alkoholfritt teller like mye."
+    },
+    "firklover": {
+      "tittel": "Fire grupper – dagens ordgåte på norsk, gratis",
+      "frase": "Fire grupper",
+      "beskrivelse": "Gratis ordgåte på norsk: finn fire grupper med fire ord i hver blant seksten ord. Samme kløver for alle hver dag, med fire feil lov – og øv på eldre kløvere.",
+      "sok": [
+        "finn fire grupper",
+        "koble sammen ord",
+        "ordgrupper",
+        "sammenheng mellom ord"
+      ]
     }
   }
 }
