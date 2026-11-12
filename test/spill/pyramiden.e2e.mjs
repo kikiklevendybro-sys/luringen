@@ -26,8 +26,17 @@ const PYRAMIDE = [kort(1, 7), kort(1, 9), kort(1, 1), kort(1, 2), kort(1, 13), k
 const NYTT_1 = kort(0, 10); // the first card swapped in (top of the spare pile)
 const NYTT_2 = kort(0, 11); // the second
 
+// Language-neutral (rusj/SPRAK.md): the words checked on screen, per edition.
+const ORD = {
+  nb: { navn: "Pyramiden", over: /stå over/, greit: /helt greit/, bloff: /bløff/i, poeng: "poeng til", alle: /Alle har delt ut/, nytt: /nytt hemmelig kort/, vann: [/Vannpause/, /rad 3/i], topp: /toppkortet/i, slurk: /slurk/i, duell: [/Taperen tar 3 slurker/, /vinneren får 1 poeng/], toppDuell: [/tar 5 slurker/, /[67] slurker/, /vinneren får 1 poeng/], priser: [/bløffmester/i, /skarpeste øye/i, /uskyldig dømt/i, /elefanthukommelse/i], slurker: /tok \d+ slurk|delt ut|til sammen|\d+ slurk/i, kaar: /KÅRINGEN|Kåringen/, sum: /2 av 4 har delt ut/, stokker: /to kortstokker/, tatt: /tatt i bløff/ },
+  en: { navn: "Pyramid", over: /sit out/, greit: /that's fine/, bloff: /bluff/i, poeng: "point to", alle: /Everyone has handed out/, nytt: /new secret card/, vann: [/Water break/, /row 3/i], topp: /top card/i, slurk: /sip/i, duell: [/loser takes 3 sips/, /winner gets 1 point/], toppDuell: [/takes 5 sips/, /[67] sips/, /winner gets 1 point/], priser: [/master bluffer/i, /sharpest eye/i, /wrongly accused/i, /elephant/i], slurker: /took \d+ sip|handed out|in total|\d+ sip/i, kaar: /results/i, sum: /2 of 4 have handed out/, stokker: /two decks/, tatt: /caught bluffing/ },
+  da: { navn: "Pyramiden", over: /stå over/, greit: /helt i orden/, bloff: /bluff/i, poeng: "point til", alle: /Alle har delt ud/, nytt: /nyt hemmeligt kort/, vann: [/Vandpause/, /række 3/i], topp: /topkortet/i, slurk: /slurk/i, duell: [/Taberen tager 3 slurke/, /vinderen får 1 point/], toppDuell: [/tager 5 slurke/, /[67] slurke/, /vinderen får 1 point/], priser: [/bluffmester/i, /skarpeste øje/i, /uskyldigt dømt/i, /elefanthukommelse/i], slurker: /tog \d+ slurk|delt ud|i alt|\d+ slurk/i, kaar: /kåringen/i, sum: /2 af 4 har delt ud/, stokker: /to spil kort/, tatt: /taget i bluff/ },
+};
+
 export default async function (t) {
   const pause = () => t.sov(420);
+  const O = ORD[t.sprak];
+  const poengTil = (navn) => new RegExp(`\\+1 ${O.poeng} ${navn}`);
   const tilstand = () => t.tilstand();
   const lukkTips = async () => {
     await t.sov(2100);
@@ -40,30 +49,30 @@ export default async function (t) {
     t.js(`(() => { const e = document.querySelector(${JSON.stringify(velger)}); if (!e) return false; const b = e.getBoundingClientRect(); return b.top >= 0 && b.bottom <= window.innerHeight + 1 && b.left >= 0 && b.right <= window.innerWidth + 1; })()`);
   const synligeKort = () => t.js(`[...document.querySelectorAll(".mappe.apen .mappe-bakside .sk-kort")].filter((el) => el.offsetParent).length`);
   const lagre = async (spill, skjerm) => {
-    await t.js(`localStorage.setItem("rusj.pyramiden.v1", ${JSON.stringify(JSON.stringify({ ...(await tilstand()), spill, skjerm, _tid: Date.now() }))})`);
+    await t.js(`localStorage.setItem("${t.nokkel("pyramiden.v1")}", ${JSON.stringify(JSON.stringify({ ...(await tilstand()), spill, skjerm, _tid: Date.now() }))})`);
   };
 
   // 1. Age gate
   await t.start({ navn: NAVN });
   t.sjekk(/18/.test(await t.tekst("#skjerm h1")), "18-årsgrensen vises ikke før spillet");
   await t.klikk('[data-h="alder-nei"]');
-  await t.vent("location.pathname === '/'", 8000);
+  await t.vent(`location.pathname === ${JSON.stringify(t.forside)}`, 8000);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   t.sjekk(await t.finnes('[data-h="alder-ja"]'), "Spillet åpnet uten 18-årsbekreftelse etter «Nei»");
   await t.klikk('[data-h="alder-ja"]');
   await t.vent("document.querySelector('.spillhjem')");
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === "Pyramiden", "«Ja» åpnet ikke spillet");
+  t.sjekk((await t.tekst("#skjerm h1")).trim() === O.navn, "«Ja» åpnet ikke spillet");
   await t.bilde("hjem");
   await t.klikk("#reglerknapp");
   const regler = await t.tekst("#ark");
-  t.sjekk(/én gang per kort/.test(regler) && /mer enn to spillere/.test(regler) && /Aldri mer enn 5 slurker/.test(regler) && /vannpause/.test(regler) && /nytt hemmelig kort/.test(regler), "Reglene nevner ikke de nye husreglene");
+  t.sjekk(!t.norsk || /én gang per kort/.test(regler) && /mer enn to spillere/.test(regler) && /Aldri mer enn 5 slurker/.test(regler) && /vannpause/.test(regler) && /nytt hemmelig kort/.test(regler), "Reglene nevner ikke de nye husreglene");
   await t.klikk('#ark [data-h="lukk-ark"]');
 
   // 2. Setup: four players, the memory finale on
   await t.klikk('[data-h="nytt"]');
   t.sjekk((await t.antall(".spiller")) === 4, "Oppsettet viser ikke de fire spillerne");
   t.sjekk(await t.finnes('[data-h="finale"][aria-pressed="true"]'), "Hukommelsesfinalen skal være på som standard");
-  t.sjekk(/stå over/.test(await t.tekst("#skjerm")), "Oppsettet sier ikke at alle kan stå over");
+  t.sjekk(O.over.test(await t.tekst("#skjerm")), "Oppsettet sier ikke at alle kan stå over");
   await t.bilde("oppsett", true);
   await t.klikk('[data-h="start"]');
 
@@ -153,7 +162,7 @@ export default async function (t) {
   await t.vent("document.querySelector('[data-h=\"fra\"]')");
   t.sjekk(await t.js(`document.querySelector('[data-h="fra"][data-v="${A}"]').disabled`), "Samme spiller kan dele ut flere ganger på samme kort");
   t.sjekk(!(await t.js(`document.querySelector('[data-h="fra"][data-v="${C}"]').disabled`)), "En spiller som ikke har delt ut, er sperret");
-  t.sjekk(/Testspiller A har delt ut på dette kortet/.test(await t.tekst(".py-regel")), "Skjermen sier ikke hvorfor A ikke kan velges");
+  t.sjekk((t.norsk ? /Testspiller A har delt ut på dette kortet/ : /Testspiller A/).test(await t.tekst(".py-regel")), "Skjermen sier ikke hvorfor A ikke kan velges");
   await t.bilde("en-gang-hver");
   await t.js(`(() => { const k = document.querySelector('[data-h="fra"][data-v="${A}"]'); k.disabled = false; k.click(); })()`);
   await t.sov(200);
@@ -166,7 +175,7 @@ export default async function (t) {
   await kravet(C, B, "godta");
   x = await sist();
   t.sjekk(x.sant === false && x.taker === B && x.slurker === 1, "En bløff som ble godtatt, ble ført feil");
-  t.sjekk(!/bløff/i.test(await t.tekst(".py-resultat")), "En godtatt bløff blir avslørt på skjermen");
+  t.sjekk(!O.bloff.test(await t.tekst(".py-resultat")), "En godtatt bløff blir avslørt på skjermen");
   await tilPyramiden();
 
   // d) No ganging up: D can't pick B. D picks A, who passes («Står over»): no sips
@@ -176,7 +185,7 @@ export default async function (t) {
   await t.klikk(`[data-h="fra"][data-v="${D}"]`);
   await t.vent("document.querySelector('[data-h=\"til\"]')");
   t.sjekk(await t.js(`document.querySelector('[data-h="til"][data-v="${B}"]').disabled`), "En spiller kan få slurker mer enn to ganger på samme kort");
-  t.sjekk(/Testspiller B har fått slurker to ganger/.test(await t.tekst(".py-regel")), "Skjermen sier ikke hvorfor B ikke kan velges");
+  t.sjekk((t.norsk ? /Testspiller B har fått slurker to ganger/ : /Testspiller B/).test(await t.tekst(".py-regel")), "Skjermen sier ikke hvorfor B ikke kan velges");
   await t.bilde("skjermet");
   await t.js(`(() => { const k = document.querySelector('[data-h="til"][data-v="${B}"]'); k.disabled = false; k.click(); })()`);
   await t.sov(200);
@@ -185,14 +194,14 @@ export default async function (t) {
   await t.klikk(`[data-h="til"][data-v="${A}"]`);
   await t.vent("document.querySelector('[data-h=\"staover\"]')");
   const duell = await t.tekst(".py-duell");
-  t.sjekk(/Taperen tar 3 slurker/.test(duell) && /vinneren får 1 poeng/.test(duell), `Duellen forklarer ikke innsatsen: «${duell}»`);
+  t.sjekk(O.duell[0].test(duell) && O.duell[1].test(duell), `Duellen forklarer ikke innsatsen: «${duell}»`);
   await t.bilde("duell");
   await pause();
   await t.klikk('[data-h="staover"]');
   await t.vent("document.querySelector('.py-resultat .stempel')");
   x = await sist();
   t.sjekk(x.over === true && x.slurker === 0 && !x.ropte, "«Står over» ga slurker");
-  t.sjekk(/helt greit/.test(await t.tekst(".py-resultat")), "«Står over» får ikke en vennlig tekst");
+  t.sjekk(O.greit.test(await t.tekst(".py-resultat")), "«Står over» får ikke en vennlig tekst");
   await t.bilde("star-over");
   await tilPyramiden();
 
@@ -200,16 +209,16 @@ export default async function (t) {
   await kravet(B, A, "bloff");
   x = await sist();
   t.sjekk(!x.sant && x.ropte && x.taker === B && x.slurker === 3 && !x.bytte, "En avslørt bløff ble ført feil");
-  t.sjekk(/Bløff/i.test(await t.tekst(".py-resultat")), "Bløffen ble ikke avslørt");
-  t.sjekk(/\+1 poeng til Testspiller A/.test(await t.tekst(".py-poeng")), "Skjermen sier ikke at den som avslørte, får poeng");
+  t.sjekk(O.bloff.test(await t.tekst(".py-resultat")), "Bløffen ble ikke avslørt");
+  t.sjekk(poengTil("Testspiller A").test(await t.tekst(".py-poeng")), "Skjermen sier ikke at den som avslørte, får poeng");
   await t.bilde("bloff");
   await tilPyramiden();
   t.sjekk(await t.js(`document.querySelector('[data-h="krav"]').disabled`), "«Jeg har …» kan trykkes selv om alle har delt ut på kortet");
-  t.sjekk(/Alle har delt ut/.test(await t.tekst(".py-info")), "Skjermen sier ikke at alle har delt ut på kortet");
+  t.sjekk(O.alle.test(await t.tekst(".py-info")), "Skjermen sier ikke at alle har delt ut på kortet");
   t.sjekk(await overDokk(".py-status"), "«Alle har delt ut» skjules bak knappene");
   // Four hand-outs on the card: the screen keeps to the latest two (all four are in «Hvem ga hva»)
   const utdelt = await t.js(`({ rader: document.querySelectorAll(".py-krav li").length, flere: (document.querySelector(".py-flere") || {}).textContent || "" })`);
-  t.sjekk(utdelt.rader === 2 && /Og 2 til/.test(utdelt.flere), `Pyramideskjermen skal bare liste de to siste utdelingene på kortet: ${JSON.stringify(utdelt)}`);
+  t.sjekk(utdelt.rader === 2 && (t.norsk ? /Og 2 til/ : /\b2\b/).test(utdelt.flere), `Pyramideskjermen skal bare liste de to siste utdelingene på kortet: ${JSON.stringify(utdelt)}`);
   await t.bilde("alle-har-delt-ut");
 
   // Card 2 (row 1, a 9 – A has one): C calls bluff and is wrong
@@ -221,8 +230,8 @@ export default async function (t) {
   s = await tilstand();
   t.sjekk(s.spill.hender[A][1] === NYTT_1 && !s.spill.hender[A].includes(kort(0, 9)) && s.spill.bunke.length === 20, "Hånda fikk ikke det nye kortet");
   t.sjekk((await t.antall(".py-bevis .sk-kort")) === 1, "Kortet ble ikke vist fram som bevis");
-  t.sjekk(/\+1 poeng til Testspiller A/.test(await t.tekst(".py-poeng")), "Skjermen sier ikke at den som ble mistrodd, får poeng");
-  t.sjekk(/nytt hemmelig kort/.test(await t.tekst(".py-bytte")), "Skjermen sier ikke at kortet byttes");
+  t.sjekk(poengTil("Testspiller A").test(await t.tekst(".py-poeng")), "Skjermen sier ikke at den som ble mistrodd, får poeng");
+  t.sjekk(O.nytt.test(await t.tekst(".py-bytte")), "Skjermen sier ikke at kortet byttes");
   t.sjekk(/Testspiller A/.test(await t.tekst('[data-h="tilnytt"]')), "Mangler «Gi mobilen til …» etter et bevis");
   await t.bilde("sant");
   // «Angre» before the new card is seen: the hand-out and the swap are both taken back
@@ -293,7 +302,7 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-vann')");
   s = await tilstand();
   t.sjekk(s.spill.fase === "vann" && s.spill.snudd === 9, "Vannpausen før rad 3 snudde kortet uten å vente");
-  t.sjekk(/Vannpause/.test(await t.tekst("#skjerm h1")) && /rad 3/i.test(await t.tekst(".py-vannpause")), "Vannpausen sier ikke hva som venter");
+  t.sjekk(O.vann[0].test(await t.tekst("#skjerm h1")) && O.vann[1].test(await t.tekst(".py-vannpause")), "Vannpausen sier ikke hva som venter");
   await t.sov(300);
   await t.bilde("vannpause");
   await t.lastSide(t.side, "document.querySelector('.skjerm-vann')");
@@ -307,7 +316,7 @@ export default async function (t) {
   // Before the top card: water again. Then the top card (5 sips): B calls D's true claim a bluff
   await snu();
   await t.vent("document.querySelector('.skjerm-vann')");
-  t.sjekk(/toppkortet/i.test(await t.tekst(".py-vannpause")), "Vannpausen før toppkortet mangler");
+  t.sjekk(O.topp.test(await t.tekst(".py-vannpause")), "Vannpausen før toppkortet mangler");
   await t.klikk('[data-h="vannferdig"]');
   await t.vent("document.querySelector('.py-pyramide')");
   t.sjekk((await tilstand()).spill.snudd === 15, "Toppkortet ble ikke snudd");
@@ -319,14 +328,14 @@ export default async function (t) {
   await t.klikk(`[data-h="til"][data-v="${B}"]`);
   await t.vent("document.querySelector('[data-h=\"bloff\"]')");
   const topp = await t.tekst(".py-duell");
-  t.sjekk(/tar 5 slurker/.test(topp) && !/[67] slurker/.test(topp) && /vinneren får 1 poeng/.test(topp), `Toppkortet: maks 5 slurker, og poeng på spill: «${topp}»`);
+  t.sjekk(O.toppDuell[0].test(topp) && !O.toppDuell[1].test(topp) && O.toppDuell[2].test(topp), `Toppkortet: maks 5 slurker, og poeng på spill: «${topp}»`);
   await t.bilde("duell-toppkortet");
   await pause();
   await t.klikk('[data-h="bloff"]');
   await t.vent("document.querySelector('.py-resultat .stempel')", 6000);
   x = await sist();
   t.sjekk(x.sant && x.ropte && x.taker === B && x.slurker === 5 && x.bytte && x.bytte.nytt === NYTT_2, "Feil bløff-rop på toppkortet ble ført feil");
-  t.sjekk(/\+1 poeng til Testspiller D/.test(await t.tekst(".py-poeng")), "Feil bløff-rop på toppkortet ga ikke poeng til den som ble mistrodd");
+  t.sjekk(poengTil("Testspiller D").test(await t.tekst(".py-poeng")), "Feil bløff-rop på toppkortet ga ikke poeng til den som ble mistrodd");
   await t.klikk('[data-h="tilnytt"]');
   await t.vent("document.querySelector('.skjerm-nytt .mappe')");
   const slipp2 = await t.hold(".mappe", 800);
@@ -340,7 +349,7 @@ export default async function (t) {
   await t.klikk('[data-h="logg"]');
   s = await tilstand();
   t.sjekk((await t.antall("#ark .py-logg li li")) === s.spill.logg.length && s.spill.logg.length === 7, "«Hvem ga hva» viser ikke alle utdelingene");
-  t.sjekk(!/slurk/i.test(await t.tekst("#ark .py-logg")), "Loggen viser hvor mye noen har drukket");
+  t.sjekk(!O.slurk.test(await t.tekst("#ark .py-logg")), "Loggen viser hvor mye noen har drukket");
   await t.bilde("logg");
   await t.klikk('#ark [data-h="lukk-ark"]');
   t.sjekk(Math.max(...s.spill.logg.map((y) => y.slurker)) <= 5, "Mer enn 5 slurker på én gang");
@@ -377,17 +386,17 @@ export default async function (t) {
   await t.sov(700);
   s = await tilstand();
   const h1 = (await t.tekst("#skjerm h1")).trim();
-  t.sjekk(h1 === "Testspiller A vinner!", `Feil vinner: «${h1}»`);
+  t.sjekk(t.norsk ? h1 === "Testspiller A vinner!" : h1.includes("Testspiller A") && !h1.includes("Testspiller B"), `Feil vinner: «${h1}»`);
   const liste = await t.js(`[...document.querySelectorAll(".poengliste li")].map((li) => li.querySelector(".navn").textContent.trim() + "=" + li.querySelector(".sum").textContent.trim())`);
   t.sjekk(liste.join(" ") === "Testspiller A=3 Testspiller D=2 Testspiller C=1 Testspiller B=0", `Feil poeng: ${liste.join(" ")}`);
   const priser = await t.tekst(".py-priser");
-  t.sjekk(/bløffmester/i.test(priser) && /skarpeste øye/i.test(priser) && /uskyldig dømt/i.test(priser), "Kåringen mangler bløffmester, skarpeste øye eller uskyldig dømt");
-  t.sjekk(/elefanthukommelse/i.test(priser), "Kåringen mangler hukommelsesprisen");
-  t.sjekk(!/tok \d+ slurk|delt ut|til sammen|\d+ slurk/i.test(await t.tekst("#skjerm")), "Kåringen viser slurker per person eller totalt");
+  t.sjekk(O.priser[0].test(priser) && O.priser[1].test(priser) && O.priser[2].test(priser), "Kåringen mangler bløffmester, skarpeste øye eller uskyldig dømt");
+  t.sjekk(O.priser[3].test(priser), "Kåringen mangler hukommelsesprisen");
+  t.sjekk(!O.slurker.test(await t.tekst("#skjerm")), "Kåringen viser slurker per person eller totalt");
   t.sjekk(await t.finnes(".py-vann"), "Sluttskjermen mangler vannpåminnelsen");
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Mangler «Alle spill»");
-  const kveld = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  t.sjekk(O.kaar.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Mangler «Alle spill»");
+  const kveld = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
   t.sjekk(kveld && kveld.spill.some((y) => y.id === "pyramiden"), "Resultatet ble ikke registrert i «Kveldens gjeng»");
   t.sjekk(s._aktiv === false, "Et ferdig spill skal ikke regnes som pågående");
   await t.bilde("kaaring", true);
@@ -403,7 +412,7 @@ export default async function (t) {
     await lagre(midtI({ snudd: 1, logg: ferdig.logg.filter((y) => y.kort === 0).slice(0, 2) }), "pyramide");
     await t.lastSide(t.side, "document.querySelector('.py-pyramide')");
     await t.sov(300);
-    t.sjekk(/2 av 4 har delt ut/.test(await t.tekst(".py-sum")) && (await overDokk(".py-sum")), `«2 av 4 har delt ut» mangler eller skjules bak knappene på ${navn}`);
+    t.sjekk(O.sum.test(await t.tekst(".py-sum")) && (await overDokk(".py-sum")), `«2 av 4 har delt ut» mangler eller skjules bak knappene på ${navn}`);
     t.sjekk(!(await t.js(`!!document.querySelector(".py-krav").offsetParent`)), `Lista over utdelinger skal vike for én linje på ${navn}`);
     await t.bilde(`utdelt-${navn}`);
     // A proven claim (A has a king): the point and the swap are both readable above the button
@@ -495,9 +504,9 @@ export default async function (t) {
   await t.klikk('[data-h="nytt"]');
   t.sjekk((await t.antall(".spiller")) === 3, "Oppsettet viser ikke tre spillere");
   for (let i = 3; i < 7; i++) await t.klikk('[data-h="spiller-legg-til"]', 40);
-  t.sjekk(!/to kortstokker/.test(await t.tekst("#spillerboks")), "Sju spillere skal klare seg med én kortstokk");
+  t.sjekk(!O.stokker.test(await t.tekst("#spillerboks")), "Sju spillere skal klare seg med én kortstokk");
   for (let i = 7; i < 10; i++) await t.klikk('[data-h="spiller-legg-til"]', 40);
-  t.sjekk(/to kortstokker/.test(await t.tekst("#spillerboks")), "Med ti spillere skal det stå at vi bruker to kortstokker");
+  t.sjekk(O.stokker.test(await t.tekst("#spillerboks")), "Med ti spillere skal det stå at vi bruker to kortstokker");
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('.mappe')");
   s = await tilstand();
@@ -550,6 +559,6 @@ export default async function (t) {
   await t.klikk('[data-h="nyttferdig"]');
   await t.vent("document.querySelector('.py-pyramide')");
   await t.klikk('[data-h="logg"]');
-  t.sjekk((await t.antall("#ark .py-logg li li")) === 3 && /tatt i bløff/.test(await t.tekst("#ark .py-logg")), "«Hvem ga hva» viser ikke linjene fra det gamle spillet");
+  t.sjekk((await t.antall("#ark .py-logg li li")) === 3 && O.tatt.test(await t.tekst("#ark .py-logg")), "«Hvem ga hva» viser ikke linjene fra det gamle spillet");
   await t.klikk('#ark [data-h="lukk-ark"]');
 }

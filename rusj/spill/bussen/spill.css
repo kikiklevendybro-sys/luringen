@@ -405,9 +405,11 @@
   box-shadow: 0 2px 0 var(--papir-2);
 }
 
+/* Long suit names (English «Diamonds») shrink on narrow phones instead of breaking mid-word. */
 .bu-sortknapp span {
   max-width: 100%;
   overflow-wrap: anywhere;
+  font-size: min(1em, 3.5vw);
 }
 
 /* ---------- The bus ---------- */

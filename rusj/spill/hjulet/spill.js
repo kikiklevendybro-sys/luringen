@@ -134,7 +134,7 @@
     const vinkel = sp ? sp.vinkel : o.vinkel || 0;
     const f = o.valgt != null ? feltInfo(S, o.valgt) : null;
     return `
-      <div class="hjul${o.vent ? " vent" : ""}${f ? " har-valgt" : ""}" id="hjul" role="img" aria-label="${esc(f ? `Hjulet står på ${f.navn}` : "Lykkehjul med tolv felt")}">
+      <div class="hjul${o.vent ? " vent" : ""}${f ? " har-valgt" : ""}" id="hjul" role="img" aria-label="${esc(f ? R.t("Hjulet står på {navn}", { navn: f.navn }) : R.t("Lykkehjul med tolv felt"))}">
         <div class="hjul-roter" data-roter style="transform: rotate(${vinkel.toFixed(2)}deg)">${hjulSvg(S, o)}</div>
         ${GLANS}
         <span class="hjul-peker" id="hjul-peker">${PEKERSVG}</span>
@@ -245,7 +245,7 @@
     }
     R.$$('#skjerm [data-h="snurr"]').forEach((b) => (b.disabled = true));
     const etikett = R.$("#hjul-info .etikett");
-    if (etikett) etikett.textContent = "Hjulet snurrer …";
+    if (etikett) etikett.textContent = R.t("Hjulet snurrer …");
     R.lyd.sveip();
     R.vibrer(15);
     animasjon = animer({
@@ -302,7 +302,7 @@
     R.lyd.pop();
     R.lyd.pling();
     R.vibrer([30, 50, 90]);
-    R.si(`Hjulet stoppet på ${f.navn}.`);
+    R.si(R.t("Hjulet stoppet på {navn}.", { navn: f.navn }));
     laast = true;
     const fortsatt = R.vakt();
     await R.vent(R.rolig() ? 350 : 1150);
@@ -396,7 +396,7 @@
     if (Math.abs(fart) >= 200) return snurr(Math.sign(fart), Math.min(Math.abs(fart), 3600), d.a);
     S.spill.vinkel = norm(d.a);
     R.lagre();
-    R.toast("Gi det mer fart – eller trykk på knappen!");
+    R.toast(R.t("Gi det mer fart – eller trykk på knappen!"));
   }
   document.addEventListener("pointerdown", draStart);
   document.addEventListener("pointermove", draFlytt);
@@ -443,33 +443,33 @@
     if (f.id === "sannhet" || f.id === "utfordring") {
       return `<div class="hjul-oppgave">
         <p class="hjul-oppgave-tekst">${esc(ide)}</p>
-        <button class="hjul-ny" data-h="ide" aria-label="${f.id === "sannhet" ? "Nytt spørsmål" : "Ny utfordring"}"><span aria-hidden="true">🎲</span></button>
+        <button class="hjul-ny" data-h="ide" aria-label="${esc(f.id === "sannhet" ? R.t("Nytt spørsmål") : R.t("Ny utfordring"))}"><span aria-hidden="true">🎲</span></button>
       </div>`;
     }
     if (f.id === "kategori") {
       return `<div class="hjul-oppgave">
-        <p class="hjul-oppgave-tekst"><span class="hjul-forslag">Kategori:</span> ${esc(ide)}</p>
-        <button class="hjul-ny" data-h="ide" aria-label="Ny kategori"><span aria-hidden="true">🎲</span></button>
+        <p class="hjul-oppgave-tekst"><span class="hjul-forslag">${esc(R.t("Kategori:"))}</span> ${esc(ide)}</p>
+        <button class="hjul-ny" data-h="ide" aria-label="${esc(R.t("Ny kategori"))}"><span aria-hidden="true">🎲</span></button>
       </div>`;
     }
     if (f.id === "regel") {
       return `<form class="hjul-skriv" data-skjema="utkast" autocomplete="off">
-          <label class="etikett" for="hjul-utkast">Regelen <span class="hjul-valgfri">(valgfritt)</span></label>
-          <input class="hjul-felt" id="hjul-utkast" data-felt="utkast" maxlength="80" value="${esc(sp.utkast || "")}" placeholder="Skriv regelen – mobilen husker den" enterkeyhint="done" autocapitalize="sentences">
+          <label class="etikett" for="hjul-utkast">${esc(R.t("Regelen"))} <span class="hjul-valgfri">(${esc(R.t("valgfritt"))})</span></label>
+          <input class="hjul-felt" id="hjul-utkast" data-felt="utkast" maxlength="80" value="${esc(sp.utkast || "")}" placeholder="${esc(R.t("Skriv regelen – mobilen husker den"))}" enterkeyhint="done" autocapitalize="sentences">
         </form>
         <div class="hjul-ide">
-          <span class="hjul-ide-tekst"><b>Idé:</b> ${esc(ide)}</span>
+          <span class="hjul-ide-tekst"><b>${esc(R.t("Idé:"))}</b> ${esc(ide)}</span>
           <span class="hjul-ide-knapper">
-            <button class="hjul-ide-knapp" data-h="ide-bruk">Bruk</button>
-            <button class="hjul-ide-knapp terning" data-h="ide" aria-label="Ny idé"><span aria-hidden="true">🎲</span></button>
+            <button class="hjul-ide-knapp" data-h="ide-bruk">${esc(R.t("Bruk"))}</button>
+            <button class="hjul-ide-knapp terning" data-h="ide" aria-label="${esc(R.t("Ny idé"))}"><span aria-hidden="true">🎲</span></button>
           </span>
         </div>`;
     }
     if (f.id === "kompis") {
       const k = sp.kompis;
       return k && k[0] === sp.tur
-        ? `<div class="hjul-valgt"><span aria-hidden="true">🤝</span><span>Kompis: <b>${esc(R.navn(k[1]))}</b></span>${R.ui.lenke("Bytt", "kompis")}</div>`
-        : R.ui.knapp2("Velg kompis", "kompis", { ikon: "🤝", variant: "liten hjul-kompisknapp" });
+        ? `<div class="hjul-valgt"><span aria-hidden="true">🤝</span><span>${esc(R.t("Kompis: {navn}")).replace("{navn}", `<b>${esc(R.navn(k[1]))}</b>`)}</span>${R.ui.lenke(R.t("Bytt"), "kompis")}</div>`
+        : R.ui.knapp2(R.t("Velg kompis"), "kompis", { ikon: "🤝", variant: "liten hjul-kompisknapp" });
     }
     return "";
   }
@@ -478,12 +478,12 @@
   // Chips (tall screens) or one compact line (short screens and landscape), roles written out.
   function statusHtml(sp) {
     const deler = [];
-    if (sp.kompis) deler.push({ ikon: "🤝", tekst: `Kompis: ${R.navn(sp.kompis[0])} + ${R.navn(sp.kompis[1])}` });
+    if (sp.kompis) deler.push({ ikon: "🤝", tekst: R.t("Kompis: {a} + {b}", { a: R.navn(sp.kompis[0]), b: R.navn(sp.kompis[1]) }) });
     if (sp.regler.length) deler.push({ ikon: "📜", tekst: R.flertall(sp.regler.length, "regel", "regler") });
-    if (!deler.length) return `<p class="hjul-hint">Trykk på knappen – eller gi hjulet et spinn med fingeren.</p>`;
+    if (!deler.length) return `<p class="hjul-hint">${esc(R.t("Trykk på knappen – eller gi hjulet et spinn med fingeren."))}</p>`;
     const brikker = deler.map((d) => `<span class="hjul-brikke"><span aria-hidden="true">${d.ikon}</span><span class="hjul-brikke-navn">${esc(d.tekst)}</span></span>`);
-    const linje = `Gjelder nå: ${deler.map((d) => `${d.ikon} ${d.tekst}`).join(" · ")}`;
-    return `<button class="hjul-status" data-h="status" aria-label="Se kompiser og regler"><span class="etikett">Gjelder nå</span><span class="hjul-brikker">${brikker.join("")}</span>
+    const linje = R.t("Gjelder nå: {liste}", { liste: deler.map((d) => `${d.ikon} ${d.tekst}`).join(" · ") });
+    return `<button class="hjul-status" data-h="status" aria-label="${esc(R.t("Se kompiser og regler"))}"><span class="etikett">${esc(R.t("Gjelder nå"))}</span><span class="hjul-brikker">${brikker.join("")}</span>
       <span class="hjul-status-linje"><span class="hjul-status-tekst">${esc(linje)}</span><span aria-hidden="true">›</span></span></button>`;
   }
 
@@ -493,10 +493,10 @@
     const sp = S.spill;
     const PRISER = [
       // Never a prize for sips – only luck, rules, truths and challenges.
-      { id: "fritak", ikon: "🛡️", tittel: "Heldiggrisen", tekst: (n) => `Fikk fritak ${n === 1 ? "én gang" : `${n} ganger`}.`, farge: "var(--mynte)" },
-      { id: "regel", ikon: "📜", tittel: "Lovgiveren", tekst: (n) => `Laget ${R.flertall(n, "regel", "regler")}.`, farge: "var(--lilla)" },
-      { id: "sannhet", ikon: "😇", tittel: "Flest sannheter", tekst: (n) => `Fikk ${n === 1 ? "ett sannhetsspørsmål" : `${n} sannhetsspørsmål`}.`, farge: "var(--lilla)" },
-      { id: "utfordring", ikon: "🔥", tittel: "Flest utfordringer", tekst: (n) => `Fikk ${R.flertall(n, "utfordring", "utfordringer")}.`, farge: "var(--oransje)" },
+      { id: "fritak", ikon: "🛡️", tittel: R.t("Heldiggrisen"), tekst: (n) => R.t("Fikk fritak {ganger}.", { ganger: R.t("én gang|{n} ganger", { n }) }), farge: "var(--mynte)" },
+      { id: "regel", ikon: "📜", tittel: R.t("Lovgiveren"), tekst: (n) => R.t("Laget {regler}.", { regler: R.flertall(n, "regel", "regler") }), farge: "var(--lilla)" },
+      { id: "sannhet", ikon: "😇", tittel: R.t("Flest sannheter"), tekst: (n) => R.t("Fikk ett sannhetsspørsmål.|Fikk {n} sannhetsspørsmål.", { n }), farge: "var(--lilla)" },
+      { id: "utfordring", ikon: "🔥", tittel: R.t("Flest utfordringer"), tekst: (n) => R.t("Fikk {utfordringer}.", { utfordringer: R.flertall(n, "utfordring", "utfordringer") }), farge: "var(--oransje)" },
     ];
     const ut = [];
     for (const p of PRISER) {
@@ -597,18 +597,18 @@
     },
 
     regler: {
-      intro: "Hjulet bestemmer! Dere snurrer etter tur, og feltet det stopper på, sier hva som skjer. Bare små slurker – og alkoholfritt teller like mye.",
+      intro: R.t("Hjulet bestemmer! Dere snurrer etter tur, og feltet det stopper på, sier hva som skjer. Bare små slurker – og alkoholfritt teller like mye."),
       steg: [
-        ["Snurr hjulet", "Trykk på knappen, trykk på hjulet eller gi det et spinn med fingeren."],
-        ["Gjør som feltet sier", "Les feltet høyt. En slurk er en liten slurk av det du drikker – vann og brus teller like mye."],
-        ["Gi mobilen videre", "Neste spiller snurrer. Når dere avslutter, kårer hjulet sin favoritt."],
+        [R.t("Snurr hjulet"), R.t("Trykk på knappen, trykk på hjulet eller gi det et spinn med fingeren.")],
+        [R.t("Gjør som feltet sier"), R.t("Les feltet høyt. En slurk er en liten slurk av det du drikker – vann og brus teller like mye.")],
+        [R.t("Gi mobilen videre"), R.t("Neste spiller snurrer. Når dere avslutter, kårer hjulet sin favoritt.")],
       ],
       tips: [
-        "Alle kan stå over – også slurken. Ingen trenger å forklare seg.",
-        "Etter hvert tiende snurr er det vannpause, og hjulet har et eget vannfelt.",
-        "Lag husregler: Gi feltene egne navn og oppgaver. Mobilen husker dem til neste gang.",
-        "Utfordringene er trygge og passer i en stue. Passer den ikke, trykk 🎲 for en ny.",
-        "Spis og drikk vann underveis, og sørg for trygg vei hjem.",
+        R.t("Alle kan stå over – også slurken. Ingen trenger å forklare seg."),
+        R.t("Etter hvert tiende snurr er det vannpause, og hjulet har et eget vannfelt."),
+        R.t("Lag husregler: Gi feltene egne navn og oppgaver. Mobilen husker dem til neste gang."),
+        R.t("Utfordringene er trygge og passer i en stue. Passer den ikke, trykk 🎲 for en ny."),
+        R.t("Spis og drikk vann underveis, og sørg for trygg vei hjem."),
       ],
     },
 
@@ -617,53 +617,53 @@
         tilbake: "portal",
         vis: (S) =>
           R.ui.spillhjem({
-            slagordHtml: "Snurr det store hjulet.<br><em>Det bestemmer hva som skjer.</em>",
+            slagordHtml: `${esc(R.t("Snurr det store hjulet."))}<br><em>${esc(R.t("Det bestemmer hva som skjer."))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: pagar(S) ? `Fortsett · snurr ${S.spill.nr + (S.spill.fase === "felt" ? 0 : 1)}` : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              fortsettTekst: pagar(S) ? R.t("Fortsett · snurr {n}", { n: S.spill.nr + (S.spill.fase === "felt" ? 0 : 1) }) : "",
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
-              ["3–20", "spillere"],
-              ["12", "felt"],
-              ["0", "reklame"],
+              ["3–20", R.t("spillere")],
+              ["12", R.t("felt")],
+              ["0", R.t("reklame")],
             ],
           }),
         inn: () => R.slippVaken(),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const egne = antallEgne(S);
           return `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
-          ${R.ui.spillere({ min: 3, max: 20, hjelp: "Sett dere i samme rekkefølge som lista. Mobilen går til venstre." })}
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
+          ${R.ui.spillere({ min: 3, max: 20, hjelp: R.t("Sett dere i samme rekkefølge som lista. Mobilen går til venstre.") })}
           <section class="seksjon">
-            <div class="seksjon-hode"><h2>Hjulet</h2><span class="tall">${egne ? `${egne} av 12 felt er endret` : "12 felt"}</span></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Hjulet"))}</h2><span class="tall">${esc(egne ? R.t("{n} av 12 felt er endret", { n: egne }) : R.t("12 felt"))}</span></div>
             <div class="hjul-oppsett">
               <div class="hjul-mini">${hjulHtml(S, { vinkel: -GRAD / 2 })}</div>
               <div class="hjul-oppsett-tekst">
-                <p>Gi feltene egne navn og regler – mobilen husker dem.</p>
-                ${R.ui.knapp2("Husregler", "husregler", { ikon: "✏️", variant: "liten" })}
+                <p>${esc(R.t("Gi feltene egne navn og regler – mobilen husker dem."))}</p>
+                ${R.ui.knapp2(R.t("Husregler"), "husregler", { ikon: "✏️", variant: "liten" })}
               </div>
             </div>
           </section>
           <div class="papirboks hjul-vett">
-            <p class="etikett">Slik er slurkene</p>
+            <p class="etikett">${esc(R.t("Slik er slurkene"))}</p>
             <ul class="tips">
-              <li>En slurk er en liten slurk – aldri mer.</li>
-              <li>Alkoholfritt teller like mye, og alle kan stå over.</li>
-              <li>Etter hvert tiende snurr tar alle en vannpause.</li>
+              <li>${esc(R.t("En slurk er en liten slurk – aldri mer."))}</li>
+              <li>${esc(R.t("Alkoholfritt teller like mye, og alle kan stå over."))}</li>
+              <li>${esc(R.t("Etter hvert tiende snurr tar alle en vannpause."))}</li>
             </ul>
           </div>
-          ${R.ui.dokk(R.ui.knapp("Start", "start"))}`;
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start"))}`;
         },
       },
 
       husregler: {
-        tittel: "Husregler",
+        tittel: R.t("Husregler"),
         tilbake: (S) => (pagar(S) ? fasen(S) : "oppsett"),
         vis(S) {
           const rader = FELT.map((f, i) => {
@@ -671,39 +671,39 @@
             return `<li class="hus-rad" style="--kf: var(--${f.farge})">
               <span class="hus-ikon" aria-hidden="true">${f.ikon}</span>
               <div class="hus-felt">
-                <label class="vh" for="hus-navn-${i}">Navn på feltet «${esc(f.navn)}», maks ${MAKS_NAVN} tegn</label>
+                <label class="vh" for="hus-navn-${i}">${esc(R.t("Navn på feltet «{navn}», maks {n} tegn", { navn: f.navn, n: MAKS_NAVN }))}</label>
                 <span class="hus-navnrad">
                   <input class="hus-navn" id="hus-navn-${i}" data-felt="husnavn" data-id="${f.id}" data-i="${i}" maxlength="${MAKS_NAVN}" value="${esc(e.navn || "")}" placeholder="${esc(f.navn)}" autocomplete="off" autocapitalize="sentences" enterkeyhint="next">
                   <span class="hus-teller" id="hus-teller-${i}" aria-hidden="true">${Array.from(e.navn || "").length}/${MAKS_NAVN}</span>
                 </span>
-                <label class="vh" for="hus-tekst-${i}">Hva skal skje på «${esc(f.navn)}»?</label>
+                <label class="vh" for="hus-tekst-${i}">${esc(R.t("Hva skal skje på «{navn}»?", { navn: f.navn }))}</label>
                 <textarea class="hus-tekst" id="hus-tekst-${i}" data-felt="hustekst" data-id="${f.id}" maxlength="${MAKS_TEKST}" rows="${f.tekst.length > 64 ? 3 : 2}" placeholder="${esc(f.tekst)}">${esc(e.tekst || "")}</textarea>
               </div>
             </li>`;
           }).join("");
           return `
-            <h1 id="skjerm-tittel">Husregler</h1>
-            <p class="ingress">Skriv over navnet eller teksten på feltene dere vil endre. Får et felt ny tekst, viser hjulet bare den – uten forslag. Sannhet og Utfordring beholder spørsmålene når dere bare bytter navn.</p>
+            <h1 id="skjerm-tittel">${esc(R.t("Husregler"))}</h1>
+            <p class="ingress">${esc(R.t("Skriv over navnet eller teksten på feltene dere vil endre. Får et felt ny tekst, viser hjulet bare den – uten forslag. Sannhet og Utfordring beholder spørsmålene når dere bare bytter navn."))}</p>
             <ol class="hus-liste">${rader}</ol>
-            ${R.ui.dokk(R.ui.knapp("Ferdig", "hus-ferdig"), R.ui.lenkerad(R.ui.lenke("Tilbakestill alle", "hus-nullstill")))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Ferdig"), "hus-ferdig"), R.ui.lenkerad(R.ui.lenke(R.t("Tilbakestill alle"), "hus-nullstill")))}`;
         },
       },
 
       hjul: {
-        tittel: (S) => `Snurr ${S.spill.nr + 1}`,
+        tittel: (S) => R.t("Snurr {n}", { n: S.spill.nr + 1 }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           return `
             <div class="hjul-tur" id="hjul-info">
               ${R.avatar(sp.tur, "mid")}
-              <div class="hjul-tur-tekst"><p class="etikett">${sp.igjen ? "Snurr igjen!" : "Din tur"}</p><h1 id="skjerm-tittel">${esc(R.navn(sp.tur))}</h1></div>
+              <div class="hjul-tur-tekst"><p class="etikett">${esc(sp.igjen ? R.t("Snurr igjen!") : R.t("Din tur"))}</p><h1 id="skjerm-tittel">${esc(R.navn(sp.tur))}</h1></div>
             </div>
             <div class="hjul-scene">${hjulHtml(S, { vent: true })}</div>
             ${statusHtml(sp)}
             ${R.ui.dokk(
-              R.ui.knapp(sp.igjen ? "Snurr igjen!" : "Snurr hjulet!", "snurr", { variant: "stor", ikon: SNURR_IKON, id: "hjul-snurrknapp" }),
-              R.ui.lenkerad(R.ui.lenke("Husregler", "husregler"), R.ui.lenke("Avslutt", "avslutt")),
+              R.ui.knapp(sp.igjen ? R.t("Snurr igjen!") : R.t("Snurr hjulet!"), "snurr", { variant: "stor", ikon: SNURR_IKON, id: "hjul-snurrknapp" }),
+              R.ui.lenkerad(R.ui.lenke(R.t("Husregler"), "husregler"), R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn() {
@@ -714,7 +714,7 @@
       },
 
       felt: {
-        tittel: (S) => `Snurr ${S.spill.nr}`,
+        tittel: (S) => R.t("Snurr {n}", { n: S.spill.nr }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -724,7 +724,7 @@
           return `
             <div class="hjul-hvem">
               ${R.avatar(sp.tur)}
-              <p><b>${esc(R.navn(sp.tur))}</b> fikk</p>
+              <p>${esc(R.t("{navn} fikk")).replace("{navn}", `<b>${esc(R.navn(sp.tur))}</b>`)}</p>
             </div>
             <article class="hjul-kort f-${f.id}${f.eget ? " eget" : ""}" id="hjul-kort" style="--kf: var(--${f.farge}); --kf-dyp: var(--${f.farge}-dyp)">
               <span class="hjul-kort-ikon" aria-hidden="true">${f.ikon}</span>
@@ -732,11 +732,11 @@
               ${f.tekst ? `<p class="hjul-kort-tekst">${esc(f.tekst)}</p>` : ""}
               ${ekstraHtml(S)}
             </article>
-            <p class="hjul-fot"><span aria-hidden="true">🥤</span> Alkoholfritt teller like mye · alle kan stå over</p>
+            <p class="hjul-fot"><span aria-hidden="true">🥤</span> ${esc(R.t("Alkoholfritt teller like mye · alle kan stå over"))}</p>
             ${R.ui.dokk(
-              igjen ? "" : `<p class="hjul-neste-linje">${R.avatar(neste)}<span><b>${esc(R.navn(neste))}</b> snurrer neste</span></p>`,
-              igjen ? R.ui.knapp("Snurr igjen!", "igjen-snurr", { variant: "stor", ikon: SNURR_IKON }) : R.ui.knapp("Neste snurr", "neste"),
-              R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")),
+              igjen ? "" : `<p class="hjul-neste-linje">${R.avatar(neste)}<span>${esc(R.t("{navn} snurrer neste")).replace("{navn}", `<b>${esc(R.navn(neste))}</b>`)}</span></p>`,
+              igjen ? R.ui.knapp(R.t("Snurr igjen!"), "igjen-snurr", { variant: "stor", ikon: SNURR_IKON }) : R.ui.knapp(R.t("Neste snurr"), "neste"),
+              R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn(S) {
@@ -747,7 +747,7 @@
       },
 
       vann: {
-        tittel: "Vannpause",
+        tittel: R.t("Vannpause"),
         tilbake: "hjem",
         vis: (S) => `
           <div class="hjul-vann">
@@ -761,11 +761,11 @@
               <path d="M20 18 L31 133 Q32 144 44 144 H76 Q88 144 89 133 L100 18 Z" fill="none" stroke="var(--papir)" stroke-width="6" stroke-linejoin="round"/>
               <path d="M36 34 L42 112" stroke="#fff" stroke-opacity=".5" stroke-width="5" stroke-linecap="round"/>
             </svg>
-            <p class="etikett">Etter ${S.spill.nr} snurr</p>
-            <h1 id="skjerm-tittel">Vannpause!</h1>
-            <p class="ingress">Alle tar en god slurk vann før hjulet snurrer igjen. Kroppen takker – og kvelden varer lenger.</p>
+            <p class="etikett">${esc(R.t("Etter {snurr}", { snurr: R.flertall(S.spill.nr, "snurr", "snurr") }))}</p>
+            <h1 id="skjerm-tittel">${esc(R.t("Vannpause!"))}</h1>
+            <p class="ingress">${esc(R.t("Alle tar en god slurk vann før hjulet snurrer igjen. Kroppen takker – og kvelden varer lenger."))}</p>
           </div>
-          ${R.ui.dokk(R.ui.knapp("Skål i vann!", "vann-ferdig", { variant: "himmel", ikon: "💧" }), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`,
+          ${R.ui.dokk(R.ui.knapp(R.t("Skål i vann!"), "vann-ferdig", { variant: "himmel", ikon: "💧" }), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`,
         inn() {
           R.lyd.pop();
           R.vibrer(20);
@@ -773,7 +773,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -787,14 +787,15 @@
             .sort((a, b) => b.n - a.n || a.f.i - b.f.i);
           const maks = totalt.length ? totalt[0].n : 1;
           const navn = R.ramsOpp(fav.map((i) => R.navn(i)));
+          const vannpauser = sp.vann + sp.tell.reduce((s, t) => s + (feltInfo(S, indeks("vann")).eget ? 0 : t[indeks("vann")]), 0);
           return `
             <div class="banner aksent hjul-banner">
               ${fav.length === 1 ? `<div class="hjul-fav">${R.avatar(fav[0], "gigant")}<span class="hjul-fav-stjerne" aria-hidden="true">🍀</span></div>` : R.figur()}
-              <p class="etikett">Hjulet har talt</p>
-              <h1 id="skjerm-tittel">${
-                !fav.length ? "Skål for gjengen!" : fav.length > 3 ? `${fav.length} spillere er hjulets favoritter!` : `${esc(navn)} ${fav.length === 1 ? "er hjulets favoritt" : "er hjulets favoritter"}!`
-              }</h1>
-              <p class="ingress">${esc(R.flertall(sp.nr, "snurr", "snurr"))} og ${esc(R.flertall(sp.vann + sp.tell.reduce((s, t) => s + (feltInfo(S, indeks("vann")).eget ? 0 : t[indeks("vann")]), 0), "vannpause", "vannpauser"))}. ${fav.length ? "Mest flaks på hjulet – skål for gjengen!" : "Takk for laget!"}</p>
+              <p class="etikett">${esc(R.t("Hjulet har talt"))}</p>
+              <h1 id="skjerm-tittel">${esc(
+                !fav.length ? R.t("Skål for gjengen!") : fav.length > 3 ? R.t("{n} spillere er hjulets favoritter!", { n: fav.length }) : R.t("{navn} er hjulets favoritt!|{navn} er hjulets favoritter!", { navn, n: fav.length }),
+              )}</h1>
+              <p class="ingress">${esc(R.t("{snurr} og {vann}.", { snurr: R.flertall(sp.nr, "snurr", "snurr"), vann: R.flertall(vannpauser, "vannpause", "vannpauser") }))} ${esc(fav.length ? R.t("Mest flaks på hjulet – skål for gjengen!") : R.t("Takk for laget!"))}</p>
             </div>
             ${
               pris.length
@@ -802,7 +803,7 @@
                     .map(
                       (p) => `<li class="hjul-pris" style="--vf: ${p.farge}">
                         <span class="hjul-pris-ikon" aria-hidden="true">${p.ikon}</span>
-                        <span class="hjul-pris-tekst"><span class="etikett">${esc(p.tittel)}</span><b>${esc(p.hvem.length > 3 ? `${p.hvem.length} spillere` : R.ramsOpp(p.hvem.map((i) => R.navn(i))))}</b><span>${esc(p.tekst(p.n))}</span></span>
+                        <span class="hjul-pris-tekst"><span class="etikett">${esc(p.tittel)}</span><b>${esc(p.hvem.length > 3 ? R.t("{n} spillere", { n: p.hvem.length }) : R.ramsOpp(p.hvem.map((i) => R.navn(i))))}</b><span>${esc(p.tekst(p.n))}</span></span>
                       </li>`,
                     )
                     .join("")}</ul>`
@@ -810,7 +811,7 @@
             }
             ${
               totalt.length
-                ? `<section class="seksjon"><h2>Hjulet bød på</h2><ul class="hjul-stat">${totalt
+                ? `<section class="seksjon"><h2>${esc(R.t("Hjulet bød på"))}</h2><ul class="hjul-stat">${totalt
                     .map(
                       (x) => `<li style="--kf: var(--${x.f.farge}); --andel: ${((x.n / maks) * 100).toFixed(1)}%">
                         <span class="hjul-stat-navn"><span aria-hidden="true">${x.f.ikon}</span> ${esc(x.f.navn)}</span>
@@ -823,15 +824,15 @@
             }
             ${
               sp.regler.some((r) => r.t)
-                ? `<div class="papirboks hjul-liste"><p class="etikett">Reglene dere laget</p><ul>${sp.regler
+                ? `<div class="papirboks hjul-liste"><p class="etikett">${esc(R.t("Reglene dere laget"))}</p><ul>${sp.regler
                     .filter((r) => r.t)
                     .map((r) => `<li>${esc(r.t)} <span class="hjul-av">– ${esc(R.navn(r.i))}</span></li>`)
                     .join("")}</ul></div>`
                 : ""
             }
-            <p class="hjelp">💧 Husk vann, mat og trygg vei hjem.</p>
+            <p class="hjelp">💧 ${esc(R.t("Husk vann, mat og trygg vei hjem."))}</p>
             ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           if (favoritter(S).length) {
@@ -896,10 +897,10 @@
       "hus-ferdig": (el, e, S) => (pagar(S) ? tilFase(S) : R.gaTil("oppsett")),
       async "hus-nullstill"(el, e, S) {
         const fortsatt = R.vakt();
-        if (!(await R.bekreft("Tilbakestille hjulet?", "Alle feltene får tilbake sine vanlige navn og regler.", "Tilbakestill", "Avbryt")) || !fortsatt()) return;
+        if (!(await R.bekreft(R.t("Tilbakestille hjulet?"), R.t("Alle feltene får tilbake sine vanlige navn og regler."), R.t("Tilbakestill"), R.t("Avbryt"))) || !fortsatt()) return;
         S.oppsett.felt = {};
         R.vis();
-        R.toast("Hjulet er som nytt");
+        R.toast(R.t("Hjulet er som nytt"));
       },
       snurr: (el, e, S) => {
         if (kanSnurre(S)) snurr(1, null, S.spill.vinkel);
@@ -923,26 +924,26 @@
         if (!pagar(S) || sp.fase !== "felt") return;
         const fortsatt = R.vakt();
         const andre = Array.from({ length: sp.antall }, (_, i) => i).filter((i) => i !== sp.tur);
-        const valgt = await R.velgIArk("Velg en kompis", andre.map((i) => ({ v: i, tekst: R.navn(i) })), "Dere drikker sammen til hjulet lander på Kompis igjen.");
+        const valgt = await R.velgIArk(R.t("Velg en kompis"), andre.map((i) => ({ v: i, tekst: R.navn(i) })), R.t("Dere drikker sammen til hjulet lander på Kompis igjen."));
         if (valgt == null || !fortsatt() || S.spill !== sp || sp.fase !== "felt") return;
         sp.kompis = [sp.tur, valgt];
         R.lyd.pop();
         R.vibrer(15);
         R.vis();
-        R.si(`${R.navn(valgt)} er kompisen din.`);
+        R.si(R.t("{navn} er kompisen din.", { navn: R.navn(valgt) }));
       },
       status(el, e, S) {
         const sp = S.spill;
         if (!sp) return;
         const rader = [];
-        if (sp.kompis) rader.push(`<li><span class="hjul-rolle-ikon" aria-hidden="true">🤝</span><span><b>${esc(`Kompiser: ${R.ramsOpp(sp.kompis.map((i) => R.navn(i)))}`)}</b><small>Til hjulet lander på Kompis igjen</small></span></li>`);
+        if (sp.kompis) rader.push(`<li><span class="hjul-rolle-ikon" aria-hidden="true">🤝</span><span><b>${esc(R.t("Kompiser: {navn}", { navn: R.ramsOpp(sp.kompis.map((i) => R.navn(i))) }))}</b><small>${esc(R.t("Til hjulet lander på Kompis igjen"))}</small></span></li>`);
         sp.regler.forEach((r, n) =>
-          rader.push(`<li><span class="hjul-rolle-ikon" aria-hidden="true">📜</span><span><b>${r.t ? esc(r.t) : `Regel ${n + 1} (sagt høyt)`}</b><small>Laget av ${esc(R.navn(r.i))}</small></span></li>`),
+          rader.push(`<li><span class="hjul-rolle-ikon" aria-hidden="true">📜</span><span><b>${r.t ? esc(r.t) : esc(R.t("Regel {n} (sagt høyt)", { n: n + 1 }))}</b><small>${esc(R.t("Laget av {navn}", { navn: R.navn(r.i) }))}</small></span></li>`),
         );
         R.ark(`
-          <h2 id="ark-tittel">Gjelder nå</h2>
-          ${rader.length ? `<ul class="hjul-rolleliste">${rader.join("")}</ul>` : `<p class="ingress">Ingen kompiser eller regler ennå.</p>`}
-          <button class="knapp" data-h="lukk-ark">Spill videre</button>`);
+          <h2 id="ark-tittel">${esc(R.t("Gjelder nå"))}</h2>
+          ${rader.length ? `<ul class="hjul-rolleliste">${rader.join("")}</ul>` : `<p class="ingress">${esc(R.t("Ingen kompiser eller regler ennå."))}</p>`}
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Spill videre"))}</button>`);
       },
       neste(el, e, S) {
         const sp = S.spill;
@@ -982,13 +983,13 @@
         if (!sp) return;
         const fortsatt = R.vakt();
         if (sp.nr === 0) {
-          if ((await R.bekreft("Avslutte spillet?", "Dere kan alltid starte et nytt.", "Avslutt", "Spill videre")) && fortsatt()) {
+          if ((await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere kan alltid starte et nytt."), R.t("Avslutt"), R.t("Spill videre"))) && fortsatt()) {
             S.spill = null;
             R.gaTil("hjem");
           }
           return;
         }
-        const ja = await R.bekreft("Avslutte spillet?", "Dere går rett til kåringen.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere går rett til kåringen."), R.t("Avslutt"), R.t("Spill videre"));
         if (!ja || !fortsatt() || S.spill !== sp) return;
         stoppAnimasjon();
         if (sp.snurr) brukResultat(S);

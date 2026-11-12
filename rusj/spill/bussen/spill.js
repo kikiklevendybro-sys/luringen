@@ -18,15 +18,15 @@
   // it the compact face for small cards: a big index on top, one big symbol below.
   const KORT = (() => {
     const SORTER = [
-      { navn: "spar", rod: false },
-      { navn: "hjerter", rod: true },
-      { navn: "ruter", rod: true },
-      { navn: "kløver", rod: false },
+      { navn: R.t("spar"), rod: false },
+      { navn: R.t("hjerter"), rod: true },
+      { navn: R.t("ruter"), rod: true },
+      { navn: R.t("kløver"), rod: false },
     ];
     const BOKSTAV = ["", "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-    const VERDINAVN = ["", "ess", "2", "3", "4", "5", "6", "7", "8", "9", "10", "knekt", "dame", "konge"];
+    const VERDINAVN = ["", R.t("ess"), "2", "3", "4", "5", "6", "7", "8", "9", "10", R.t("knekt"), R.t("dame"), R.t("konge")];
     // «en 7-er», «et ess», «en dame»: for questions like «Har noen en 7-er?»
-    const MED_ARTIKKEL = ["", "et ess", "en 2-er", "en 3-er", "en 4-er", "en 5-er", "en 6-er", "en 7-er", "en 8-er", "en 9-er", "en 10-er", "en knekt", "en dame", "en konge"];
+    const MED_ARTIKKEL = ["", "et ess", "en 2-er", "en 3-er", "en 4-er", "en 5-er", "en 6-er", "en 7-er", "en 8-er", "en 9-er", "en 10-er", "en knekt", "en dame", "en konge"]; // sprak-ok (not shown in Bussen)
     // Suit outlines in a 100 × 100 box. Every part runs clockwise, so they fill the same everywhere.
     const FORM = [
       "M50 6C62 24 92 38 92 62C92 76 81 84 70 84C62 84 56 80 53 74C54 83 58 89 66 95L34 95C42 89 46 83 47 74C44 80 38 84 30 84C19 84 8 76 8 62C8 38 38 24 50 6Z",
@@ -41,7 +41,7 @@
     const verdiAv = (k) => (k % 13) + 1;
     const erRod = (k) => SORTER[sortAv(k)].rod;
     const farge = (k) => (erRod(k) ? ROD : SVART);
-    const navn = (k) => `${SORTER[sortAv(k)].navn} ${VERDINAVN[verdiAv(k)]}`;
+    const navn = (k) => R.t("{sort} {verdi}", { sort: SORTER[sortAv(k)].navn, verdi: VERDINAVN[verdiAv(k)] });
     const Navn = (k) => navn(k).charAt(0).toUpperCase() + navn(k).slice(1);
 
     // A suit symbol of size str with its top-left corner at (x, y); upside down when snu.
@@ -126,19 +126,19 @@
   // ---------- Rules ----------
 
   const RUNDER = [
-    { navn: "Rød eller svart?", kort: "Farge", forklaring: "Gjett fargen på kortet du får.", hjelp: "Hjerter og ruter er røde, spar og kløver svarte." },
-    { navn: "Høyere eller lavere?", kort: "Høyere?", forklaring: "Blir det nye kortet høyere eller lavere enn det første kortet ditt?", hjelp: "Ess er høyest. Likt teller som riktig." },
-    { navn: "Innenfor eller utenfor?", kort: "Innenfor?", forklaring: "Havner det nye kortet mellom de to første kortene dine – eller utenfor?", hjelp: "Likt med et av dem teller som riktig." },
-    { navn: "Hvilken sort?", kort: "Sort", forklaring: "Hjerter, ruter, spar eller kløver? Den vanskeligste av dem alle.", hjelp: "Én av fire – lykke til!" },
+    { navn: R.t("Rød eller svart?"), kort: R.t("Farge"), forklaring: R.t("Gjett fargen på kortet du får."), hjelp: R.t("Hjerter og ruter er røde, spar og kløver svarte.") },
+    { navn: R.t("Høyere eller lavere?"), kort: R.t("Høyere?"), forklaring: R.t("Blir det nye kortet høyere eller lavere enn det første kortet ditt?"), hjelp: R.t("Ess er høyest. Likt teller som riktig.") },
+    { navn: R.t("Innenfor eller utenfor?"), kort: R.t("Innenfor?"), forklaring: R.t("Havner det nye kortet mellom de to første kortene dine – eller utenfor?"), hjelp: R.t("Likt med et av dem teller som riktig.") },
+    { navn: R.t("Hvilken sort?"), kort: R.t("Sort"), forklaring: R.t("Hjerter, ruter, spar eller kløver? Den vanskeligste av dem alle."), hjelp: R.t("Én av fire – lykke til!") },
   ];
   const NIVA = {
-    rolig: { navn: "Rolig", tekst: "1 slurk for hvert feil svar.", ikon: "🙂" },
-    klassisk: { navn: "Klassisk", tekst: "1, 2, 3 og 4 slurker – én mer for hver runde.", ikon: "🃏" },
+    rolig: { navn: R.t("Rolig"), tekst: R.t("1 slurk for hvert feil svar."), ikon: "🙂" },
+    klassisk: { navn: R.t("Klassisk"), tekst: R.t("1, 2, 3 og 4 slurker – én mer for hver runde."), ikon: "🃏" },
   };
   const STOPP = 5; // stops on the bus ride
   const MAKS_BOM = 3; // misses before the driver gives up
   const verdi = (k) => (KORT.verdiAv(k) === 1 ? 14 : KORT.verdiAv(k)); // ess er høyest
-  const VERDI_ORD = ["", "", "2", "3", "4", "5", "6", "7", "8", "9", "10", "knekt", "dame", "konge", "ess"];
+  const VERDI_ORD = ["", "", "2", "3", "4", "5", "6", "7", "8", "9", "10", R.t("knekt"), R.t("dame"), R.t("konge"), R.t("ess")];
   const slurker = (sp, runde) => (sp.niva === "klassisk" ? runde + 1 : 1);
   const bussSlurker = (sp) => (sp.niva === "klassisk" ? 2 : 1);
   const slurkTekst = (n) => R.flertall(n, "slurk", "slurker");
@@ -246,12 +246,12 @@
   // later rounds as empty places with what they are about.
   function handHtml(sp, i, aktiv) {
     const hand = sp.hender[i];
-    return `<div class="bu-hand" role="list" aria-label="Kortene til ${esc(R.navn(i))}">${RUNDER.map((r, n) => {
+    return `<div class="bu-hand" role="list" aria-label="${esc(R.t("Kortene til {navn}", { navn: R.navn(i) }))}">${RUNDER.map((r, n) => {
       let innhold;
       if (n < hand.length) innhold = KORT.html(hand[n], { opp: true, stor: true, attr: ` id="bu-k${n}"` });
       else if (aktiv && n === sp.runde) innhold = KORT.html(null, { klasse: "bu-ny", attr: ` id="bu-k${n}"` });
       else innhold = `<span class="bu-tom" aria-hidden="true">${n + 1}</span>`;
-      const tekst = n < hand.length ? KORT.Navn(hand[n]) : n === sp.runde && aktiv ? "Kortet ditt – ikke snudd ennå" : `Runde ${n + 1}`;
+      const tekst = n < hand.length ? KORT.Navn(hand[n]) : n === sp.runde && aktiv ? R.t("Kortet ditt – ikke snudd ennå") : R.t("Runde {n}", { n: n + 1 });
       return `<div class="bu-plass${n === sp.runde && aktiv ? " na" : ""}" role="listitem" aria-label="${esc(tekst)}">${innhold}<span class="bu-tekst" aria-hidden="true">${esc(r.kort)}</span></div>`;
     }).join("")}</div>`;
   }
@@ -260,10 +260,10 @@
   function sporsmal(sp, i) {
     const hand = sp.hender[i];
     const r = sp.runde;
-    if (r === 1) return { tittel: `Høyere eller lavere enn ${VERDI_ORD[verdi(hand[0])]}?`, hjelp: RUNDER[1].hjelp };
+    if (r === 1) return { tittel: R.t("Høyere eller lavere enn {kort}?", { kort: VERDI_ORD[verdi(hand[0])] }), hjelp: RUNDER[1].hjelp };
     if (r === 2) {
       const [a, b] = [verdi(hand[0]), verdi(hand[1])].sort((x, y) => x - y);
-      return a === b ? { tittel: `Innenfor eller utenfor ${VERDI_ORD[a]}?`, hjelp: `Begge kortene er ${VERDI_ORD[a]} – bare en ${VERDI_ORD[a]} til teller som innenfor.` } : { tittel: `Innenfor eller utenfor ${VERDI_ORD[a]} og ${VERDI_ORD[b]}?`, hjelp: RUNDER[2].hjelp };
+      return a === b ? { tittel: R.t("Innenfor eller utenfor {kort}?", { kort: VERDI_ORD[a] }), hjelp: R.t("Begge kortene er {kort} – bare en {kort} til teller som innenfor.", { kort: VERDI_ORD[a] }) } : { tittel: R.t("Innenfor eller utenfor {a} og {b}?", { a: VERDI_ORD[a], b: VERDI_ORD[b] }), hjelp: RUNDER[2].hjelp };
     }
     return { tittel: RUNDER[r].navn, hjelp: RUNDER[r].hjelp };
   }
@@ -271,18 +271,18 @@
   function svarKnapper(r) {
     if (r === 0)
       return `<div class="knapprad bu-svar">
-        <button class="knapp bu-rod" data-h="gjett" data-v="rod">${SORT_IKON(1, 20)}Rød</button>
-        <button class="knapp bu-svart" data-h="gjett" data-v="svart">${SORT_IKON(0, 20).replace(KORT.SVART, "#fff8ec")}Svart</button>
+        <button class="knapp bu-rod" data-h="gjett" data-v="rod">${SORT_IKON(1, 20)}${esc(R.t("Rød"))}</button>
+        <button class="knapp bu-svart" data-h="gjett" data-v="svart">${SORT_IKON(0, 20).replace(KORT.SVART, "#fff8ec")}${esc(R.t("Svart"))}</button>
       </div>`;
     if (r === 1)
       return `<div class="knapprad bu-svar">
-        <button class="knapp lilla" data-h="gjett" data-v="hoyere"><span class="bu-pil" aria-hidden="true">▲</span>Høyere</button>
-        <button class="knapp himmel" data-h="gjett" data-v="lavere"><span class="bu-pil" aria-hidden="true">▼</span>Lavere</button>
+        <button class="knapp lilla" data-h="gjett" data-v="hoyere"><span class="bu-pil" aria-hidden="true">▲</span>${esc(R.t("Høyere"))}</button>
+        <button class="knapp himmel" data-h="gjett" data-v="lavere"><span class="bu-pil" aria-hidden="true">▼</span>${esc(R.t("Lavere"))}</button>
       </div>`;
     if (r === 2)
       return `<div class="knapprad bu-svar">
-        <button class="knapp mynte" data-h="gjett" data-v="innenfor"><span class="bu-pil" aria-hidden="true">→←</span>Innenfor</button>
-        <button class="knapp lampe" data-h="gjett" data-v="utenfor"><span class="bu-pil" aria-hidden="true">←→</span>Utenfor</button>
+        <button class="knapp mynte" data-h="gjett" data-v="innenfor"><span class="bu-pil" aria-hidden="true">→←</span>${esc(R.t("Innenfor"))}</button>
+        <button class="knapp lampe" data-h="gjett" data-v="utenfor"><span class="bu-pil" aria-hidden="true">←→</span>${esc(R.t("Utenfor"))}</button>
       </div>`;
     return `<div class="bu-sorter">${[1, 2, 0, 3].map((s) => `<button class="bu-sortknapp" data-h="gjett" data-v="${s}">${SORT_IKON(s, 30)}<span>${esc(KORT.SORTER[s].navn.charAt(0).toUpperCase() + KORT.SORTER[s].navn.slice(1))}</span></button>`).join("")}</div>`;
   }
@@ -320,17 +320,17 @@
     },
 
     regler: {
-      intro: "Fire runder med kort – og feil svar gir slurker. Den som bommer mest, tar bussen til slutt.",
+      intro: R.t("Fire runder med kort – og feil svar gir slurker. Den som bommer mest, tar bussen til slutt."),
       steg: [
-        ["Gjett kortet ditt", "Rød eller svart? Høyere eller lavere? Innenfor eller utenfor? Og til slutt: hvilken sort? Alle svarer etter tur, ett kort hver runde."],
-        ["Feil svar gir slurker", "Små slurker – eller ingen. Brus, vann og alkoholfritt teller like mye, og alle kan stå over."],
-        ["Bussturen", "Den med flest feil tar bussen: fem holdeplasser med høyere eller lavere. Bom betyr ny tur – men etter tre bom gir sjåføren seg."],
+        [R.t("Gjett kortet ditt"), R.t("Rød eller svart? Høyere eller lavere? Innenfor eller utenfor? Og til slutt: hvilken sort? Alle svarer etter tur, ett kort hver runde.")],
+        [R.t("Feil svar gir slurker"), R.t("Små slurker – eller ingen. Brus, vann og alkoholfritt teller like mye, og alle kan stå over.")],
+        [R.t("Bussturen"), R.t("Den med flest feil tar bussen: fem holdeplasser med høyere eller lavere. Bom betyr ny tur – men etter tre bom gir sjåføren seg.")],
       ],
       tips: [
-        "Ess er høyest. Likt teller alltid som riktig.",
-        "Trykket feil? «Angre – nytt kort» stokker kortet inn i bunken igjen, så du får et nytt.",
-        "Velg «Rolig» hvis dere vil ta det med ro: 1 slurk per feil.",
-        "Drikk vann mellom rundene, spis noe – og planlegg trygg vei hjem.",
+        R.t("Ess er høyest. Likt teller alltid som riktig."),
+        R.t("Trykket feil? «Angre – nytt kort» stokker kortet inn i bunken igjen, så du får et nytt."),
+        R.t("Velg «Rolig» hvis dere vil ta det med ro: 1 slurk per feil."),
+        R.t("Drikk vann mellom rundene, spis noe – og planlegg trygg vei hjem."),
       ],
     },
 
@@ -339,40 +339,40 @@
         tilbake: "portal",
         vis: (S) =>
           R.ui.spillhjem({
-            slagordHtml: "Rød eller svart? Høyere eller lavere?<br><em>Den som bommer mest, tar bussen.</em>",
+            slagordHtml: `${esc(R.t("Rød eller svart? Høyere eller lavere?"))}<br><em>${esc(R.t("Den som bommer mest, tar bussen."))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: pagar(S) ? (S.spill.fase === "buss" || S.spill.fase === "bussvalg" ? "Fortsett · bussturen" : `Fortsett · runde ${Math.min(4, S.spill.runde + 1)}`) : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              fortsettTekst: pagar(S) ? (S.spill.fase === "buss" || S.spill.fase === "bussvalg" ? R.t("Fortsett · bussturen") : R.t("Fortsett · runde {n}", { n: Math.min(4, S.spill.runde + 1) })) : "",
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
-              ["2–10", "spillere"],
-              ["4", "runder"],
-              ["🥤", "alkoholfritt teller"],
+              ["2–10", R.t("spillere")],
+              ["4", R.t("runder")],
+              ["🥤", R.t("alkoholfritt teller")],
             ],
           }),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis: (S) => `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           <section class="seksjon">
-            <h2>Hvor mange slurker?</h2>
+            <h2>${esc(R.t("Hvor mange slurker?"))}</h2>
             ${R.ui.fliser(
               "niva",
               Object.entries(NIVA).map(([v, n]) => ({ v, tittel: n.navn, tekst: n.tekst, ikon: n.ikon })),
               S.oppsett.niva,
             )}
-            <p class="hjelp">Små slurker. Vann, brus og alkoholfritt teller like mye – og alle kan stå over.</p>
+            <p class="hjelp">${esc(R.t("Små slurker. Vann, brus og alkoholfritt teller like mye – og alle kan stå over."))}</p>
           </section>
-          ${R.ui.spillere({ min: 2, max: 10, hjelp: "Dere svarer etter tur, så legg gjerne mobilen midt på bordet." })}
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor" }))}`,
+          ${R.ui.spillere({ min: 2, max: 10, hjelp: R.t("Dere svarer etter tur, så legg gjerne mobilen midt på bordet.") })}
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { variant: "stor" }))}`,
       },
 
       intro: {
-        tittel: (S) => `Runde ${S.spill.runde + 1} av 4`,
+        tittel: (S) => R.t("Runde {n} av 4", { n: S.spill.runde + 1 }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -391,11 +391,11 @@
               <h1 id="skjerm-tittel">${esc(RUNDER[r].navn)}</h1>
               <div class="bu-illustrasjon bu-ill-${r}" aria-hidden="true">${bilde}</div>
               <p class="ingress">${esc(RUNDER[r].forklaring)} ${esc(RUNDER[r].hjelp)}</p>
-              <p class="bu-pris">Feil svar: <b>${esc(slurkTekst(n))}</b></p>
-              <p class="bu-forst">${R.avatar(sp.forste)}<span><b>${esc(R.navn(sp.forste))}</b> begynner</span></p>
+              <p class="bu-pris">${esc(R.t("Feil svar: {slurker}")).replace("{slurker}", `<b>${esc(slurkTekst(n))}</b>`)}</p>
+              <p class="bu-forst">${R.avatar(sp.forste)}<span>${esc(R.t("{navn} begynner")).replace("{navn}", `<b>${esc(R.navn(sp.forste))}</b>`)}</span></p>
             </div>
             ${vann}
-            ${R.ui.dokk(R.ui.knapp(`Start runde ${r + 1}`, "runde", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Start runde {n}", { n: r + 1 }), "runde", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
         inn() {
           R.lyd.pop();
@@ -403,7 +403,7 @@
       },
 
       tur: {
-        tittel: (S) => `Runde ${S.spill.runde + 1} · ${RUNDER[Math.min(3, S.spill.runde)].kort}`,
+        tittel: (S) => `${R.t("Runde {n}", { n: S.spill.runde + 1 })} · ${RUNDER[Math.min(3, S.spill.runde)].kort}`,
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -414,26 +414,26 @@
           if (svart && sist) {
             const tekst = sist.riktig ? (sist.likt ? velg(T.likt, sp.nr) : velg(T.riktig, sp.nr)) : velg(T.feil, sp.nr);
             midt = `<div class="bu-utfall ${sist.riktig ? "riktig" : "feil"}" role="status">
-              <span class="stempel ${sist.riktig ? "mynte" : ""}">${sist.riktig ? "Riktig" : "Feil"}</span>
+              <span class="stempel ${sist.riktig ? "mynte" : ""}">${esc(sist.riktig ? R.t("Riktig") : R.t("Feil"))}</span>
               <p class="bu-utfall-tekst">${esc(tekst)}</p>
-              ${sist.riktig ? `<p class="bu-slurk-info">Ingen slurker på deg – skål for flaksen!</p>` : `<p class="bu-slurk">Ta ${esc(slurkTekst(sist.slurker))}</p><p class="bu-fot">${esc(velg(T.fot, sp.nr))}</p>`}
+              ${sist.riktig ? `<p class="bu-slurk-info">${esc(R.t("Ingen slurker på deg – skål for flaksen!"))}</p>` : `<p class="bu-slurk">${esc(R.t("Ta {slurker}", { slurker: slurkTekst(sist.slurker) }))}</p><p class="bu-fot">${esc(velg(T.fot, sp.nr))}</p>`}
             </div>`;
           } else {
             const q = sporsmal(sp, i);
             midt = `<div class="bu-sporsmal">
               <h2>${esc(q.tittel)}</h2>
               <p class="hjelp">${esc(q.hjelp)}</p>
-              <p class="bu-pris">Feil: ${esc(slurkTekst(slurker(sp, sp.runde)))}</p>
+              <p class="bu-pris">${esc(R.t("Feil: {slurker}", { slurker: slurkTekst(slurker(sp, sp.runde)) }))}</p>
             </div>`;
           }
           const sisteIRunden = sp.teller === sp.antall - 1;
-          const neste = sisteIRunden ? (sp.runde === 3 ? "Til bussen!" : `Videre til runde ${sp.runde + 2}`) : `Neste: ${R.navn((i + 1) % sp.antall)}`;
+          const neste = sisteIRunden ? (sp.runde === 3 ? R.t("Til bussen!") : R.t("Videre til runde {n}", { n: sp.runde + 2 })) : R.t("Neste: {navn}", { navn: R.navn((i + 1) % sp.antall) });
           const dokk = svart
-            ? R.ui.dokk(R.ui.knapp(neste, "neste", { variant: "stor" }), R.ui.lenkerad(sp.angre ? R.ui.lenke("Angre – nytt kort", "angre") : "", R.ui.lenke("Avslutt", "avslutt")))
-            : R.ui.dokk(svarKnapper(sp.runde), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")));
+            ? R.ui.dokk(R.ui.knapp(neste, "neste", { variant: "stor" }), R.ui.lenkerad(sp.angre ? R.ui.lenke(R.t("Angre – nytt kort"), "angre") : "", R.ui.lenke(R.t("Avslutt"), "avslutt")))
+            : R.ui.dokk(svarKnapper(sp.runde), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")));
           return `
             ${R.ui.fremdrift(sp.antall, i, Array.from({ length: sp.teller }, (_, n) => (sp.forste + n) % sp.antall))}
-            <div class="bu-hvem">${R.avatar(i, "mid")}<div><p class="etikett">${svart ? "Svaret ditt" : "Din tur"}</p><h1 id="skjerm-tittel">${esc(R.navn(i))}</h1></div></div>
+            <div class="bu-hvem">${R.avatar(i, "mid")}<div><p class="etikett">${esc(svart ? R.t("Svaret ditt") : R.t("Din tur"))}</p><h1 id="skjerm-tittel">${esc(R.navn(i))}</h1></div></div>
             ${handHtml(sp, i, true)}
             ${midt}
             ${dokk}`;
@@ -452,7 +452,7 @@
       },
 
       bussvalg: {
-        tittel: "Bussturen",
+        tittel: R.t("Bussturen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -461,29 +461,29 @@
             return `
               <div class="banner aksent">
                 <span class="bu-stor-buss">${BUSS_SVG}</span>
-                <p class="etikett">Bussturen</p>
-                <h1 id="skjerm-tittel">Bussen kjører tom!</h1>
-                <p class="ingress">Ingen svarte feil en eneste gang. Det har vi aldri sett før!</p>
+                <p class="etikett">${esc(R.t("Bussturen"))}</p>
+                <h1 id="skjerm-tittel">${esc(R.t("Bussen kjører tom!"))}</h1>
+                <p class="ingress">${esc(R.t("Ingen svarte feil en eneste gang. Det har vi aldri sett før!"))}</p>
               </div>
-              ${R.ui.dokk(R.ui.knapp("Til kåringen", "kaaring", { variant: "stor" }))}`;
+              ${R.ui.dokk(R.ui.knapp(R.t("Til kåringen"), "kaaring", { variant: "stor" }))}`;
           const delt = b.kandidater.length > 1;
           return `
             <div class="banner aksent bu-billett">
               <span class="bu-stor-buss">${BUSS_SVG}</span>
-              <p class="etikett">${delt ? `Delt førsteplass i bom – mobilen trakk` : "Flest feil svar"}</p>
-              <h1 id="skjerm-tittel">${esc(R.navn(b.hvem))} tar bussen!</h1>
-              <p class="ingress">${esc(R.flertall(b.maks, "feil svar", "feil svar"))} i fire runder. Nå venter ${STOPP} holdeplasser.</p>
+              <p class="etikett">${esc(delt ? R.t("Delt førsteplass i bom – mobilen trakk") : R.t("Flest feil svar"))}</p>
+              <h1 id="skjerm-tittel">${esc(R.t("{navn} tar bussen!", { navn: R.navn(b.hvem) }))}</h1>
+              <p class="ingress">${esc(R.t("{feil} i fire runder. Nå venter {n} holdeplasser.", { feil: R.flertall(b.maks, "feil svar", "feil svar"), n: STOPP }))}</p>
             </div>
             <div class="papirboks bu-regelboks">
-              <p class="etikett">Slik kjører bussen</p>
+              <p class="etikett">${esc(R.t("Slik kjører bussen"))}</p>
               <ul class="tips">
-                <li>Gjett om neste kort er høyere eller lavere. Riktig: én holdeplass fram.</li>
-                <li>Bom: ${esc(slurkTekst(bussSlurker(sp)))} og tilbake til start med nye kort.</li>
-                <li>Etter ${MAKS_BOM} bom gir sjåføren seg – da er du framme likevel.</li>
+                <li>${esc(R.t("Gjett om neste kort er høyere eller lavere. Riktig: én holdeplass fram."))}</li>
+                <li>${esc(R.t("Bom: {slurker} og tilbake til start med nye kort.", { slurker: slurkTekst(bussSlurker(sp)) }))}</li>
+                <li>${esc(R.t("Etter {n} bom gir sjåføren seg – da er du framme likevel.", { n: MAKS_BOM }))}</li>
               </ul>
             </div>
             <div class="bu-vann"><span aria-hidden="true">💧</span><p>${esc(velg(T.vannBuss, sp.nr))}</p></div>
-            ${R.ui.dokk(R.ui.knapp("Kjør bussen!", "kjor", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke("Hopp over bussen", "kaaring")))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Kjør bussen!"), "kjor", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke(R.t("Hopp over bussen"), "kaaring")))}`;
         },
         inn(S) {
           if (S.spill.buss && S.spill.buss.hvem != null) {
@@ -494,7 +494,7 @@
       },
 
       buss: {
-        tittel: "Bussturen",
+        tittel: R.t("Bussturen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -503,45 +503,45 @@
             .map((k, n) => {
               const opp = n <= b.pos || n === b.vist;
               const bom = n === b.vist && n > b.pos;
-              return `<div class="bu-stopp${n === 0 ? " start" : ""}${n <= b.pos ? " passert" : ""}${bom ? " bom" : ""}">${KORT.html(k, { opp, stor: true, attr: ` id="bu-r${n}"` })}<span class="bu-tekst" aria-hidden="true">${n === 0 ? "Start" : n}</span></div>`;
+              return `<div class="bu-stopp${n === 0 ? " start" : ""}${n <= b.pos ? " passert" : ""}${bom ? " bom" : ""}">${KORT.html(k, { opp, stor: true, attr: ` id="bu-r${n}"` })}<span class="bu-tekst" aria-hidden="true">${n === 0 ? esc(R.t("Start")) : n}</span></div>`;
             })
             .join("");
           let midt;
           let dokk;
           if (b.fase === "framme" || b.fase === "sjafor") {
             midt = `<div class="bu-utfall ${b.fase === "framme" ? "riktig" : ""}" role="status">
-              <span class="stempel ${b.fase === "framme" ? "mynte" : "lampe"}">${b.fase === "framme" ? "Framme!" : "Ferdig!"}</span>
+              <span class="stempel ${b.fase === "framme" ? "mynte" : "lampe"}">${esc(b.fase === "framme" ? R.t("Framme!") : R.t("Ferdig!"))}</span>
               <p class="bu-utfall-tekst">${esc(velg(b.fase === "framme" ? T.framme : T.sjafor, sp.nr))}</p>
             </div>`;
-            dokk = R.ui.dokk(R.ui.knapp("Til kåringen", "kaaring", { variant: "stor" }));
+            dokk = R.ui.dokk(R.ui.knapp(R.t("Til kåringen"), "kaaring", { variant: "stor" }));
           } else if (b.fase === "bom") {
             midt = `<div class="bu-utfall feil" role="status">
-              <span class="stempel">Bom</span>
-              <p class="bu-utfall-tekst">${esc(velg(T.feil, sp.nr))} Tilbake til start.</p>
-              <p class="bu-slurk">Ta ${esc(slurkTekst(bussSlurker(sp)))}</p>
-              <p class="bu-fot">${esc(MAKS_BOM - b.bom === 1 ? "Siste tur – sjåføren begynner å bli lei." : `${MAKS_BOM - b.bom} turer igjen før sjåføren gir seg.`)}</p>
+              <span class="stempel">${esc(R.t("Bom"))}</span>
+              <p class="bu-utfall-tekst">${esc(velg(T.feil, sp.nr))} ${esc(R.t("Tilbake til start."))}</p>
+              <p class="bu-slurk">${esc(R.t("Ta {slurker}", { slurker: slurkTekst(bussSlurker(sp)) }))}</p>
+              <p class="bu-fot">${esc(MAKS_BOM - b.bom === 1 ? R.t("Siste tur – sjåføren begynner å bli lei.") : R.t("{n} turer igjen før sjåføren gir seg.", { n: MAKS_BOM - b.bom }))}</p>
             </div>`;
-            dokk = R.ui.dokk(R.ui.knapp("Ny tur med nye kort", "nytur", { variant: "stor" }), R.ui.lenkerad(b.angre ? R.ui.lenke("Angre – nytt kort", "bussangre") : "", R.ui.lenke("Gå av bussen", "gaav")));
+            dokk = R.ui.dokk(R.ui.knapp(R.t("Ny tur med nye kort"), "nytur", { variant: "stor" }), R.ui.lenkerad(b.angre ? R.ui.lenke(R.t("Angre – nytt kort"), "bussangre") : "", R.ui.lenke(R.t("Gå av bussen"), "gaav")));
           } else {
             midt = `<div class="bu-sporsmal">
-              <h2>Høyere eller lavere enn ${esc(VERDI_ORD[verdi(b.rute[b.pos])])}?</h2>
-              <p class="hjelp">Holdeplass ${b.pos + 1} av ${STOPP}. Ess er høyest, likt teller som riktig.</p>
+              <h2>${esc(R.t("Høyere eller lavere enn {kort}?", { kort: VERDI_ORD[verdi(b.rute[b.pos])] }))}</h2>
+              <p class="hjelp">${esc(R.t("Holdeplass {n} av {alle}. Ess er høyest, likt teller som riktig.", { n: b.pos + 1, alle: STOPP }))}</p>
             </div>`;
             dokk = R.ui.dokk(
               `<div class="knapprad bu-svar">
-                <button class="knapp lilla" data-h="buss" data-v="hoyere"><span class="bu-pil" aria-hidden="true">▲</span>Høyere</button>
-                <button class="knapp himmel" data-h="buss" data-v="lavere"><span class="bu-pil" aria-hidden="true">▼</span>Lavere</button>
+                <button class="knapp lilla" data-h="buss" data-v="hoyere"><span class="bu-pil" aria-hidden="true">▲</span>${esc(R.t("Høyere"))}</button>
+                <button class="knapp himmel" data-h="buss" data-v="lavere"><span class="bu-pil" aria-hidden="true">▼</span>${esc(R.t("Lavere"))}</button>
               </div>`,
-              R.ui.lenkerad(R.ui.lenke("Gå av bussen", "gaav")),
+              R.ui.lenkerad(R.ui.lenke(R.t("Gå av bussen"), "gaav")),
             );
           }
           return `
-            <div class="bu-hvem">${R.avatar(b.hvem, "mid")}<div><p class="etikett">På bussen · tur ${b.forsok} av ${MAKS_BOM}</p><h1 id="skjerm-tittel">${esc(R.navn(b.hvem))}</h1></div></div>
+            <div class="bu-hvem">${R.avatar(b.hvem, "mid")}<div><p class="etikett">${esc(R.t("På bussen · tur {n} av {alle}", { n: b.forsok, alle: MAKS_BOM }))}</p><h1 id="skjerm-tittel">${esc(R.navn(b.hvem))}</h1></div></div>
             <div class="bu-vei">
               <span class="bu-buss" id="bu-buss" style="--pos:${b.pos}">${BUSS_SVG}</span>
               <div class="bu-rute" style="--pos:${b.pos}">${kort}</div>
             </div>
-            <p class="bu-bom" aria-label="${esc(`${b.bom} av ${MAKS_BOM} bom`)}"><span class="bu-bom-tekst" aria-hidden="true">Bom</span>${Array.from({ length: MAKS_BOM }, (_, n) => `<i class="${n < b.bom ? "brukt" : ""}"></i>`).join("")}</p>
+            <p class="bu-bom" aria-label="${esc(R.t("{n} av {alle} bom", { n: b.bom, alle: MAKS_BOM }))}"><span class="bu-bom-tekst" aria-hidden="true">${esc(R.t("Bom"))}</span>${Array.from({ length: MAKS_BOM }, (_, n) => `<i class="${n < b.bom ? "brukt" : ""}"></i>`).join("")}</p>
             ${midt}
             ${dokk}`;
         },
@@ -572,7 +572,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -588,28 +588,32 @@
             const hva =
               b.utfall === "framme"
                 ? b.forsok === 1
-                  ? "kom seg gjennom alle holdeplassene på første forsøk. Imponerende!"
-                  : `kom seg av på ${["", "første", "andre", "tredje"][b.forsok] || b.forsok + "."} forsøk.`
+                  ? R.t("{navn} kom seg gjennom alle holdeplassene på første forsøk. Imponerende!")
+                  : b.forsok === 2
+                    ? R.t("{navn} kom seg av på andre forsøk.")
+                    : b.forsok === 3
+                      ? R.t("{navn} kom seg av på tredje forsøk.")
+                      : R.t("{navn} kom seg av på {n}. forsøk.", { n: b.forsok })
                 : b.utfall === "sjafor"
-                  ? "kjørte til sjåføren ga seg. Framme likevel!"
+                  ? R.t("{navn} kjørte til sjåføren ga seg. Framme likevel!")
                   : b.utfall === "gikk-av"
-                    ? "gikk av bussen – helt greit!"
-                    : "slapp bussen denne gangen.";
-            buss = `<div class="bu-oppsummering"><span class="bu-liten-buss">${BUSS_SVG}</span><p><b>${navn}</b> ${esc(hva)}</p></div>`;
+                    ? R.t("{navn} gikk av bussen – helt greit!")
+                    : R.t("{navn} slapp bussen denne gangen.");
+            buss = `<div class="bu-oppsummering"><span class="bu-liten-buss">${BUSS_SVG}</span><p>${esc(hva).replace("{navn}", `<b>${navn}</b>`)}</p></div>`;
           }
           return `
             <div class="banner aksent">
               ${R.figur()}
-              <p class="etikett">Flest riktige svar${best ? ` · ${best} av 4` : ""}</p>
-              <h1 id="skjerm-tittel">${vinnere.length ? esc(`${R.ramsOpp(vinnere.map((i) => R.navn(i)))} vinner!`) : "Kortene vant i kveld!"}</h1>
+              <p class="etikett">${esc(R.t("Flest riktige svar"))}${best ? ` · ${esc(R.t("{n} av 4", { n: best }))}` : ""}</p>
+              <h1 id="skjerm-tittel">${vinnere.length ? esc(R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(vinnere.map((i) => R.navn(i))), n: vinnere.length })) : esc(R.t("Kortene vant i kveld!"))}</h1>
             </div>
             ${R.ui.pall(rader)}
-            ${synske.length ? `<div class="bu-oppsummering bu-synsk"><span class="bu-synsk-ikon" aria-hidden="true">🔮</span><p><b>Synsk:</b> ${esc(R.ramsOpp(synske.map((i) => R.navn(i))))} svarte riktig på alle fire.</p></div>` : ""}
+            ${synske.length ? `<div class="bu-oppsummering bu-synsk"><span class="bu-synsk-ikon" aria-hidden="true">🔮</span><p><b>${esc(R.t("Synsk:"))}</b> ${esc(R.t("{navn} svarte riktig på alle fire.", { navn: R.ramsOpp(synske.map((i) => R.navn(i))) }))}</p></div>` : ""}
             ${R.ui.poengliste(rader)}
             ${buss}
-            <div class="bu-vann"><span aria-hidden="true">💧</span><p>Drikk et glass vann før neste spill!</p></div>
+            <div class="bu-vann"><span aria-hidden="true">💧</span><p>${esc(R.t("Drikk et glass vann før neste spill!"))}</p></div>
             ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -687,7 +691,7 @@
             R.vibrer([20, 40, 20]);
           }
         }, 260);
-        R.si(`${KORT.Navn(k)}. ${riktig ? "Riktig!" : `Feil. Ta ${slurkTekst(n)}.`}`);
+        R.si(`${KORT.Navn(k)}. ${riktig ? R.t("Riktig!") : R.t("Feil. Ta {slurker}.", { slurker: slurkTekst(n) })}`);
       },
       // Take back the last guess: the card goes back into the deck, which is shuffled again.
       angre(el, e, S) {
@@ -697,7 +701,7 @@
         gammel.stokk = R.stokk(gammel.stokk, R.rng(R.nyttFro()));
         gammel.nr = sp.nr;
         S.spill = gammel;
-        R.toast("Angret – kortet er stokket inn i bunken igjen");
+        R.toast(R.t("Angret – kortet er stokket inn i bunken igjen"));
         R.lyd.snu();
         R.vis();
       },
@@ -766,7 +770,7 @@
               R.vibrer(20);
             }
           }, 420);
-          R.si(`${KORT.Navn(k)}. Riktig!${b.fase === "framme" ? " Du er framme!" : ""}`);
+          R.si(`${KORT.Navn(k)}. ${R.t("Riktig!")}${b.fase === "framme" ? ` ${R.t("Du er framme!")}` : ""}`);
           return;
         }
         b.bom += 1;
@@ -781,7 +785,7 @@
           R.lyd.tone(240, 0.12, 0.2, "triangle", 0.09, 160);
           R.vibrer([20, 40, 20]);
         }, 300);
-        R.si(`${KORT.Navn(k)}. Bom! Ta ${slurkTekst(bussSlurker(sp))}.`);
+        R.si(`${KORT.Navn(k)}. ${R.t("Bom! Ta {slurker}.", { slurker: slurkTekst(bussSlurker(sp)) })}`);
       },
       // Take back the last miss: the card at that stop is swapped for a fresh one from the deck.
       bussangre(el, e, S) {
@@ -794,7 +798,7 @@
         sp.stokk = R.stokk(sp.stokk, R.rng(R.nyttFro()));
         gammel.rute[plass] = trekkKort(sp);
         sp.buss = gammel;
-        R.toast("Angret – du får et nytt kort på den holdeplassen");
+        R.toast(R.t("Angret – du får et nytt kort på den holdeplassen"));
         R.vis();
       },
       nytur(el, e, S) {
@@ -807,7 +811,7 @@
       async gaav(el, e, S) {
         const sp = S.spill;
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Gå av bussen?", "Helt greit! Dere går rett til kåringen.", "Gå av", "Kjør videre");
+        const ja = await R.bekreft(R.t("Gå av bussen?"), R.t("Helt greit! Dere går rett til kåringen."), R.t("Gå av"), R.t("Kjør videre"));
         if (!ja || !fortsatt() || !sp.buss) return;
         sp.buss.utfall = "gikk-av";
         H.kaaring(el, e, S);
@@ -821,7 +825,7 @@
       },
       async avslutt(el, e, S) {
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avslutte spillet?", "Dere går rett til kåringen med stillingen så langt.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere går rett til kåringen med stillingen så langt."), R.t("Avslutt"), R.t("Spill videre"));
         if (!ja || !fortsatt() || !S.spill) return;
         S.spill.fase = "ferdig";
         R.gaTil("slutt");

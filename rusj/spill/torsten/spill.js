@@ -77,7 +77,7 @@
     R.gaTil("kort");
   }
 
-  const siKort = (S) => R.si(`${R.navn(S.spill.leser)} leser. ${D.prefiks.replace(" …", "")} ${setning(ALLE[S.spill.kort].t)}`);
+  const siKort = (S) => R.si(`${R.t("{navn} leser.", { navn: R.navn(S.spill.leser) })} ${D.prefiks.replace(" …", "")} ${setning(ALLE[S.spill.kort].t)}`);
 
   function kortHtml(S) {
     const sp = S.spill;
@@ -94,8 +94,8 @@
       kompakt: skal,
       id: "torst-kort",
       fotHtml: `<span class="torst-fot">${
-        sp.vriKort ? `<span class="torst-vri-merke"><span aria-hidden="true">🗣️</span> Drikk eller fortell</span>` : `<span></span>`
-      }<button class="torst-stjerne" data-h="favoritt" aria-pressed="${fav}" aria-label="${fav ? "Fjern fra favoritter" : "Merk som favoritt"}"><span aria-hidden="true">${fav ? "★" : "☆"}</span></button></span>`,
+        sp.vriKort ? `<span class="torst-vri-merke"><span aria-hidden="true">🗣️</span> ${esc(R.t("Drikk eller fortell"))}</span>` : `<span></span>`
+      }<button class="torst-stjerne" data-h="favoritt" aria-pressed="${fav}" aria-label="${esc(fav ? R.t("Fjern fra favoritter") : R.t("Merk som favoritt"))}"><span aria-hidden="true">${fav ? "★" : "☆"}</span></button></span>`,
     });
   }
 
@@ -142,18 +142,18 @@
     },
 
     regler: {
-      intro: "Hvert kort begynner med «Jeg har aldri …». Har du gjort det likevel, tar du en liten slurk – samtidig med alle andre som har gjort det.",
+      intro: R.t("Hvert kort begynner med «Jeg har aldri …». Har du gjort det likevel, tar du en liten slurk – samtidig med alle andre som har gjort det."),
       steg: [
-        ["Les kortet høyt", "Mobilen viser hvem som leser. Les hele kortet: «Jeg har aldri …»"],
-        ["Tell ned og skål", "Trykk på knappen. På «SKÅL!» løfter alle som HAR gjort det glasset og tar en liten slurk."],
-        ["Drikk eller fortell", "Med vrien på kan dere på noen kort fortelle historien i stedet for å drikke. Til slutt kårer dere kveldens beste historie."],
+        [R.t("Les kortet høyt"), R.t("Mobilen viser hvem som leser. Les hele kortet: «Jeg har aldri …»")],
+        [R.t("Tell ned og skål"), R.t("Trykk på knappen. På «SKÅL!» løfter alle som HAR gjort det glasset og tar en liten slurk.")],
+        [R.t("Drikk eller fortell"), R.t("Med vrien på kan dere på noen kort fortelle historien i stedet for å drikke. Til slutt kårer dere kveldens beste historie.")],
       ],
       tips: [
-        "Alkoholfritt teller like mye, og alle kan stå over – uten å forklare seg.",
-        "Hvert tiende kort er et vannkort. Da tar alle en slurk vann.",
-        "Du forteller bare så mye du vil.",
-        "Trykk på stjerna på kort som ga en god historie. De dukker opp på kåringen.",
-        "Sveip kortet til siden for å hoppe over det.",
+        R.t("Alkoholfritt teller like mye, og alle kan stå over – uten å forklare seg."),
+        R.t("Hvert tiende kort er et vannkort. Da tar alle en slurk vann."),
+        R.t("Du forteller bare så mye du vil."),
+        R.t("Trykk på stjerna på kort som ga en god historie. De dukker opp på kåringen."),
+        R.t("Sveip kortet til siden for å hoppe over det."),
       ],
     },
 
@@ -162,90 +162,90 @@
         tilbake: "portal",
         vis: (S) =>
           R.ui.spillhjem({
-            slagordHtml: "«Jeg har aldri …»<br><em>Har du gjort det, løfter du glasset.</em>",
+            slagordHtml: `${esc(R.t("«Jeg har aldri …»"))}<br><em>${esc(R.t("Har du gjort det, løfter du glasset."))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: pagar(S) ? `Fortsett · kort ${Math.max(1, S.spill.nr)}` : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              fortsettTekst: pagar(S) ? R.t("Fortsett · kort {n}", { n: Math.max(1, S.spill.nr) }) : "",
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
-              ["3–20", "spillere"],
-              [String(ALLE.length), "kort"],
-              ["0", "reklame"],
+              ["3–20", R.t("spillere")],
+              [String(ALLE.length), R.t("kort")],
+              ["0", R.t("reklame")],
             ],
           }),
         inn: () => R.slippVaken(),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
           const antallKort = PAKKER.filter((p) => o.pakker.includes(p.id)).reduce((s, p) => s + p.kort.length, 0);
           return `
-            <h1 id="skjerm-tittel">Gjør klart</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Velg pakker</h2><span class="tall">${antallKort} kort</span></div>
+              <div class="seksjon-hode"><h2>${esc(R.t("Velg pakker"))}</h2><span class="tall">${esc(R.flertall(antallKort, "kort", "kort"))}</span></div>
               ${R.ui.fliser(
                 "pakke",
                 PAKKER.map((p) => ({ v: p.id, tittel: p.navn, tekst: `${p.tekst} · ${p.kort.length}`, ikon: p.ikon })),
                 o.pakker,
               )}
             </section>
-            ${R.ui.bryter("vri", o.vri, "Drikk eller fortell", "På noen kort kan dere fortelle historien i stedet for å ta en slurk.")}
-            ${R.ui.spillere({ min: 3, max: 20, hjelp: "Dere bytter på å lese kortene høyt." })}
+            ${R.ui.bryter("vri", o.vri, R.t("Drikk eller fortell"), R.t("På noen kort kan dere fortelle historien i stedet for å ta en slurk."))}
+            ${R.ui.spillere({ min: 3, max: 20, hjelp: R.t("Dere bytter på å lese kortene høyt.") })}
             <div class="papirboks torst-vett">
-              <p class="etikett">Slik er slurkene</p>
+              <p class="etikett">${esc(R.t("Slik er slurkene"))}</p>
               <ul class="tips">
-                <li>En slurk er en liten slurk – aldri mer.</li>
-                <li>Alkoholfritt teller like mye, og alle kan stå over.</li>
-                <li>Hvert tiende kort er et vannkort.</li>
+                <li>${esc(R.t("En slurk er en liten slurk – aldri mer."))}</li>
+                <li>${esc(R.t("Alkoholfritt teller like mye, og alle kan stå over."))}</li>
+                <li>${esc(R.t("Hvert tiende kort er et vannkort."))}</li>
               </ul>
             </div>
-            ${R.ui.dokk(o.pakker.length ? "" : `<p class="hjelp">Velg minst én pakke.</p>`, R.ui.knapp("Start", "start", { av: !o.pakker.length }))}`;
+            ${R.ui.dokk(o.pakker.length ? "" : `<p class="hjelp">${esc(R.t("Velg minst én pakke."))}</p>`, R.ui.knapp(R.t("Start"), "start", { av: !o.pakker.length }))}`;
         },
       },
 
       kort: {
-        tittel: (S) => `Kort ${S.spill.nr}`,
+        tittel: (S) => R.t("Kort {n}", { n: S.spill.nr }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const skal = sp.fase === "skal";
           const neste = nesteLeser(sp);
-          const tittel = `<h1 class="vh" id="skjerm-tittel">Kort ${sp.nr}: ${esc(D.prefiks)} ${esc(setning(ALLE[sp.kort].t))}</h1>`;
+          const tittel = `<h1 class="vh" id="skjerm-tittel">${esc(R.t("Kort {n}", { n: sp.nr }))}: ${esc(D.prefiks)} ${esc(setning(ALLE[sp.kort].t))}</h1>`;
           const leser = `<div class="torst-leser">
               ${R.avatar(sp.leser)}
-              <p><b>${esc(R.navn(sp.leser))}</b> leser</p>
+              <p>${esc(R.t("{navn} leser")).replace("{navn}", `<b>${esc(R.navn(sp.leser))}</b>`)}</p>
             </div>`;
           if (!skal) {
             return `
               ${tittel}
               ${leser}
               ${kortHtml(S)}
-              <p class="torst-hint"><span aria-hidden="true">✋</span> Har du gjort det? Løft glasset på «SKÅL!»</p>
-              <p class="torst-fot-linje"><span aria-hidden="true">🥤</span> Alkoholfritt teller like mye · alle kan stå over</p>
+              <p class="torst-hint"><span aria-hidden="true">✋</span> ${esc(R.t("Har du gjort det? Løft glasset på «SKÅL!»"))}</p>
+              <p class="torst-fot-linje"><span aria-hidden="true">🥤</span> ${esc(R.t("Alkoholfritt teller like mye · alle kan stå over"))}</p>
               ${R.ui.dokk(
-                R.ui.knapp("3 · 2 · 1 – Skål!", "skal", { variant: "stor", ikon: "🥂" }),
-                R.ui.lenkerad(R.ui.lenke("Hopp over", "hopp"), R.ui.lenke("Avslutt", "avslutt")),
+                R.ui.knapp(R.t("3 · 2 · 1 – Skål!"), "skal", { variant: "stor", ikon: "🥂" }),
+                R.ui.lenkerad(R.ui.lenke(R.t("Hopp over"), "hopp"), R.ui.lenke(R.t("Avslutt"), "avslutt")),
               )}`;
           }
           return `
             ${tittel}
             ${leser}
             ${kortHtml(S)}
-            <div class="torst-feiring" aria-hidden="true">${GLASS}<span class="stempel aksent">Skål!</span></div>
+            <div class="torst-feiring" aria-hidden="true">${GLASS}<span class="stempel aksent">${esc(R.t("Skål!"))}</span></div>
             <p class="torst-etter${sp.vriKort ? " vri" : ""}">${
               sp.vriKort
-                ? "Har du gjort det? <b>Drikk – eller fortell historien!</b>"
-                : "Har du gjort det? <b>Ta en liten slurk.</b>"
+                ? `${esc(R.t("Har du gjort det?"))} <b>${esc(R.t("Drikk – eller fortell historien!"))}</b>`
+                : `${esc(R.t("Har du gjort det?"))} <b>${esc(R.t("Ta en liten slurk."))}</b>`
             }</p>
-            <p class="torst-fot-linje"><span aria-hidden="true">🥤</span> Alkoholfritt teller like mye · alle kan stå over</p>
+            <p class="torst-fot-linje"><span aria-hidden="true">🥤</span> ${esc(R.t("Alkoholfritt teller like mye · alle kan stå over"))}</p>
             ${R.ui.dokk(
-              `<p class="torst-neste-linje">${R.avatar(neste)}<span><b>${esc(R.navn(neste))}</b> leser neste</span></p>`,
-              R.ui.knapp("Neste kort", "neste"),
-              R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")),
+              `<p class="torst-neste-linje">${R.avatar(neste)}<span>${esc(R.t("{navn} leser neste")).replace("{navn}", `<b>${esc(R.navn(neste))}</b>`)}</span></p>`,
+              R.ui.knapp(R.t("Neste kort"), "neste"),
+              R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn() {
@@ -254,7 +254,7 @@
       },
 
       vann: {
-        tittel: "Vannkort",
+        tittel: R.t("Vannkort"),
         tilbake: "hjem",
         vis: (S) => `
           <div class="torst-vann">
@@ -268,11 +268,11 @@
               <path d="M20 18 L31 133 Q32 144 44 144 H76 Q88 144 89 133 L100 18 Z" fill="none" stroke="var(--papir)" stroke-width="6" stroke-linejoin="round"/>
               <path d="M36 34 L42 112" stroke="#fff" stroke-opacity=".5" stroke-width="5" stroke-linecap="round"/>
             </svg>
-            <p class="etikett">Vannkort · etter ${S.spill.nr} kort</p>
-            <h1 id="skjerm-tittel">Alle tar en slurk vann!</h1>
-            <p class="ingress">Skål i vann – kroppen takker, og kvelden varer lenger.</p>
+            <p class="etikett">${esc(R.t("Vannkort · etter {n} kort", { n: S.spill.nr }))}</p>
+            <h1 id="skjerm-tittel">${esc(R.t("Alle tar en slurk vann!"))}</h1>
+            <p class="ingress">${esc(R.t("Skål i vann – kroppen takker, og kvelden varer lenger."))}</p>
           </div>
-          ${R.ui.dokk(R.ui.knapp("Skål i vann!", "vann-ferdig", { variant: "himmel", ikon: "💧" }), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`,
+          ${R.ui.dokk(R.ui.knapp(R.t("Skål i vann!"), "vann-ferdig", { variant: "himmel", ikon: "💧" }), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`,
         inn() {
           R.lyd.pop();
           R.vibrer(20);
@@ -280,7 +280,7 @@
       },
 
       stem: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         // Back from the vote: the game goes on where it was.
         tilbake: (S) => {
           const sp = S.spill;
@@ -292,47 +292,47 @@
         vis: (S) => `
           <div class="torst-stem-topp">
             <span class="torst-stem-ikon" aria-hidden="true">🎤</span>
-            <h1 id="skjerm-tittel">Hvem fortalte kveldens beste historie?</h1>
-            <p class="ingress">Tell til tre og pek samtidig. Trykk på den som fikk flest fingrer.</p>
+            <h1 id="skjerm-tittel">${esc(R.t("Hvem fortalte kveldens beste historie?"))}</h1>
+            <p class="ingress">${esc(R.t("Tell til tre og pek samtidig. Trykk på den som fikk flest fingrer."))}</p>
           </div>
           ${R.ui.velgere("kaar", Array.from({ length: S.spill.antall }, (_, i) => i), null)}
-          ${R.ui.dokk(R.ui.knapp2("Ingen kåring – bare skål", "kaar", { v: "-1" }))}`,
+          ${R.ui.dokk(R.ui.knapp2(R.t("Ingen kåring – bare skål"), "kaar", { v: "-1" }))}`,
         inn() {
           R.lyd.trommevirvel(1.2);
         },
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
           const sp = S.spill;
           const v = sp.vinner;
           const fav = sp.fav.filter((i) => ALLE[i]);
-          const pakkeNavn = sp.pakker.length === PAKKER.length ? "alle pakkene" : R.ramsOpp(sp.pakker.map((id) => pakke(id).navn));
+          const pakkeNavn = sp.pakker.length === PAKKER.length ? R.t("alle pakkene") : R.ramsOpp(sp.pakker.map((id) => pakke(id).navn));
           return `
             <div class="banner aksent torst-banner">
               ${
                 v != null && v >= 0
                   ? `<div class="torst-vinner">${R.avatar(v, "gigant")}<span class="torst-mikrofon" aria-hidden="true">🎤</span></div>
-                     <p class="etikett">Kveldens beste historie</p>
-                     <h1 id="skjerm-tittel">${esc(R.navn(v))} vinner!</h1>`
-                  : `${R.figur()}<p class="etikett">Takk for i kveld</p><h1 id="skjerm-tittel">Skål for gjengen!</h1>`
+                     <p class="etikett">${esc(R.t("Kveldens beste historie"))}</p>
+                     <h1 id="skjerm-tittel">${esc(R.t("{navn} vinner!", { navn: R.navn(v) }))}</h1>`
+                  : `${R.figur()}<p class="etikett">${esc(R.t("Takk for i kveld"))}</p><h1 id="skjerm-tittel">${esc(R.t("Skål for gjengen!"))}</h1>`
               }
-              <p class="ingress">${esc(R.flertall(sp.nr, "kort", "kort"))} fra ${esc(pakkeNavn)}.${sp.vann ? ` ${esc(R.flertall(sp.vann, "vannkort", "vannkort"))} underveis.` : ""}</p>
+              <p class="ingress">${esc(R.t("{kort} fra {pakker}.", { kort: R.flertall(sp.nr, "kort", "kort"), pakker: pakkeNavn }))}${sp.vann ? ` ${esc(R.t("{vann} underveis.", { vann: R.flertall(sp.vann, "vannkort", "vannkort") }))}` : ""}</p>
             </div>
             ${
               fav.length
                 ? `<div class="papirboks torst-favoritter">
-                    <p class="etikett">★ Kveldens favorittkort</p>
+                    <p class="etikett">★ ${esc(R.t("Kveldens favorittkort"))}</p>
                     <ul>${fav.map((i) => `<li>${esc(D.prefiks.replace(" …", ""))} ${esc(setning(ALLE[i].t))}</li>`).join("")}</ul>
                   </div>`
                 : ""
             }
-            <p class="hjelp">💧 Husk vann, mat og trygg vei hjem.</p>
+            <p class="hjelp">💧 ${esc(R.t("Husk vann, mat og trygg vei hjem."))}</p>
             ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           if (S.spill.vinner != null && S.spill.vinner >= 0) {
@@ -397,7 +397,7 @@
         opptatt = true;
         let ferdig = false;
         try {
-          ferdig = await R.nedtelling(["3", "2", "1", "SKÅL!"], 650);
+          ferdig = await R.nedtelling(["3", "2", "1", R.t("SKÅL!")], 650);
         } finally {
           opptatt = false;
         }
@@ -406,7 +406,7 @@
         klirr();
         R.vibrer([40, 30, 90]);
         R.vis();
-        R.si(sp.vriKort ? "Skål! Har du gjort det: drikk – eller fortell historien." : "Skål! Har du gjort det, tar du en liten slurk.");
+        R.si(sp.vriKort ? R.t("Skål! Har du gjort det: drikk – eller fortell historien.") : R.t("Skål! Har du gjort det, tar du en liten slurk."));
       },
       neste(el, e, S) {
         const sp = S.spill;
@@ -436,7 +436,7 @@
           R.vibrer(15);
         }
         R.vis();
-        R.toast(pa ? "Fjernet fra favoritter" : "★ Lagt til i favoritter");
+        R.toast(pa ? R.t("Fjernet fra favoritter") : `★ ${R.t("Lagt til i favoritter")}`);
       },
       "vann-ferdig"(el, e, S) {
         const sp = S.spill;
@@ -449,13 +449,13 @@
         if (!sp) return;
         const fortsatt = R.vakt();
         if (sp.nr <= 1 && sp.fase === "les") {
-          if ((await R.bekreft("Avslutte spillet?", "Dere kan alltid starte et nytt.", "Avslutt", "Spill videre")) && fortsatt()) {
+          if ((await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere kan alltid starte et nytt."), R.t("Avslutt"), R.t("Spill videre"))) && fortsatt()) {
             S.spill = null;
             R.gaTil("hjem");
           }
           return;
         }
-        const ja = await R.bekreft("Avslutte runden?", sp.vri ? "Til slutt kårer dere kveldens beste historie." : "Dere går rett til kåringen.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte runden?"), sp.vri ? R.t("Til slutt kårer dere kveldens beste historie.") : R.t("Dere går rett til kåringen."), R.t("Avslutt"), R.t("Spill videre"));
         if (!ja || !fortsatt() || S.spill !== sp) return;
         // Without «Drikk eller fortell» nobody has told stories: no vote, straight to the toast.
         if (!sp.vri) {

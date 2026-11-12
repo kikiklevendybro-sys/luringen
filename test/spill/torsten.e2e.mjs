@@ -3,8 +3,13 @@
 // tap after «Neste kort», a twist card, the water card after ten cards, reload mid-card, back +
 // continue, «Nytt spill» asks first, small screens (375 × 560 and 320 × 568), the vote for the
 // evening's best story (back from it keeps the game), «Spill igjen» and a crowning without a vote.
+// Language-neutral (rusj/SPRAK.md): words are checked per edition through ORD.
 const NAVN = ["Testspiller A", "Testspiller B", "Testspiller C", "Testspiller D"];
-const NOKKEL = "rusj.torsten.v1";
+const ORD = {
+  nb: { navn: "Tørsten", alkfri: /alkoholfritt/i, over: /stå over/i, fot: /alle kan stå over/, vann: /vann/i, kaar: /KÅRINGEN|Kåringen/, skal: "Skål for gjengen!" },
+  en: { navn: "Thirsty", alkfri: /alcohol-free/i, over: /sit .*out/i, fot: /anyone can sit out/, vann: /water/i, kaar: /results/i, skal: "Cheers to the crew!" },
+  da: { navn: "Tørsten", alkfri: /alkoholfrit/i, over: /stå over/i, fot: /alle kan stå over/, vann: /vand/i, kaar: /kåringen/i, skal: "Skål for banden!" },
+};
 const KORT = "document.querySelector('#torst-kort') && !document.querySelector('#nedtelling:not([hidden])')";
 
 async function aldersport(t, sjekkNei) {
@@ -16,8 +21,8 @@ async function aldersport(t, sjekkNei) {
   if (sjekkNei) {
     await t.bilde("aldersgrense");
     await t.klikk('[data-h="alder-nei"]', 50);
-    await t.vent("location.pathname === '/' && document.readyState === 'complete'", 8000);
-    t.sjekk(!/\/torsten\//.test(await t.js("location.pathname")), "«Nei, ta meg tilbake» ble på spillsiden");
+    await t.vent(`location.pathname === ${JSON.stringify(t.forside)} && document.readyState === 'complete'`, 8000);
+    t.sjekk((await t.js("location.pathname")) === t.forside, "«Nei, ta meg tilbake» ble på spillsiden");
     await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
     t.sjekk(await t.finnes('[data-h="alder-ja"]'), "Etter «Nei» skal aldersgrensen vises igjen");
   }
@@ -27,6 +32,7 @@ async function aldersport(t, sjekkNei) {
 
 // Change the saved game and reload (to reach a twist card or the water card without luck).
 async function endre(t, kode, vent = KORT) {
+  const NOKKEL = t.nokkel("torsten.v1");
   await t.js(`(() => { const s = JSON.parse(localStorage.getItem(${JSON.stringify(NOKKEL)})); ${kode}; localStorage.setItem(${JSON.stringify(NOKKEL)}, JSON.stringify(s)); })()`);
   await t.lastSide(t.side, vent);
   await t.sov(420);
@@ -35,6 +41,7 @@ async function endre(t, kode, vent = KORT) {
 export default async function (t) {
   const pause = () => t.sov(420);
   const s = () => t.tilstand();
+  const O = ORD[t.sprak];
   const skal = async () => {
     await pause();
     await t.klikk('[data-h="skal"]', 50);
@@ -43,11 +50,11 @@ export default async function (t) {
 
   // ---------- 18+ gate, home ----------
   await aldersport(t, true);
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === "Tørsten", "Hjem-skjermen viser ikke «Tørsten» etter aldersgrensen");
+  t.sjekk((await t.tekst("#skjerm h1")).trim() === O.navn, "Hjem-skjermen viser ikke «Tørsten» etter aldersgrensen");
   t.sjekk(await t.finnes("#tilportal:not([hidden])"), "Mangler rusj-knappen øverst på hjem-skjermen");
   await t.bilde("hjem-etter-18");
   await t.klikk("#reglerknapp");
-  t.sjekk(/alkoholfritt/i.test(await t.tekst("#ark")) && /stå over/i.test(await t.tekst("#ark")), "Reglene sier ikke at alkoholfritt teller og at alle kan stå over");
+  t.sjekk(O.alkfri.test(await t.tekst("#ark")) && O.over.test(await t.tekst("#ark")), "Reglene sier ikke at alkoholfritt teller og at alle kan stå over");
   await t.klikk('#ark [data-h="lukk-ark"]');
 
   // ---------- Setup ----------
@@ -69,7 +76,8 @@ export default async function (t) {
   await t.vent(KORT);
   st = await s();
   t.sjekk(st._aktiv === true, "Et pågående spill er ikke merket som aktivt");
-  t.sjekk(/^Jeg har aldri/.test(await t.tekst(".storkort-tekst")), "Kortet begynner ikke med «Jeg har aldri»");
+  const prefiks = await t.js("window.RUSJ_DATA.kort.prefiks");
+  t.sjekk((await t.tekst(".storkort-tekst")).trim().startsWith(prefiks.replace(" …", "")), "Kortet begynner ikke med «Jeg har aldri»");
   t.sjekk((await t.tekst(".torst-leser")).includes(NAVN[st.spill.leser]), "Kortet viser ikke hvem som leser");
   t.sjekk(["vors", "pinlig", "flort"].some((p) => st.spill.pakker.includes(p)) && st.spill.pakker.length === 3, "Spillet bruker ikke de valgte pakkene");
   await t.sov(400);
@@ -98,14 +106,14 @@ export default async function (t) {
   t.sjekk(!(await s()).spill.fav.length, "Stjerna kunne ikke skrus av igjen");
   await t.klikk('[data-h="favoritt"]');
   const favKort = (await s()).spill.kort;
-  const favTekst = (await t.tekst(".storkort-tekst")).replace(/^Jeg har aldri …\s*/, "").trim();
+  const favTekst = (await t.tekst(".storkort-tekst")).trim().slice(prefiks.length).trim();
 
   // ---------- «SKÅL!» ----------
   await skal();
   st = await s();
   t.sjekk(st.spill.fase === "skal", "Nedtellingen endte ikke i «Skål»");
-  t.sjekk((st.spill.vriKort ? /fortell/i : /slurk/i).test(await t.tekst(".torst-etter")), "Etter «Skål» står det ikke hva som skal skje");
-  t.sjekk(/Jeg har aldri/.test(await t.tekst(".storkort-tekst")), "Kortteksten skal fortsatt synes etter «Skål»");
+  t.sjekk((t.norsk ? (st.spill.vriKort ? /fortell/i : /slurk/i) : /\S/).test(await t.tekst(".torst-etter")), "Etter «Skål» står det ikke hva som skal skje");
+  t.sjekk((await t.tekst(".storkort-tekst")).includes(prefiks.replace(" …", "")), "Kortteksten skal fortsatt synes etter «Skål»");
   await t.sov(600);
   await t.bilde("skal");
   // A ghost tap right after «Neste kort» (the new screen's «Skål»-button under the finger) is ignored
@@ -122,7 +130,7 @@ export default async function (t) {
   t.sjekk(await t.finnes(".torst-vri-merke"), "Vri-kortet viser ikke «Drikk eller fortell»");
   await t.bilde("vri-kort");
   await skal();
-  t.sjekk(/fortell/i.test(await t.tekst(".torst-etter")), "Vri-kortet sier ikke at man kan fortelle i stedet");
+  t.sjekk(!t.norsk || /fortell/i.test(await t.tekst(".torst-etter")), "Vri-kortet sier ikke at man kan fortelle i stedet");
   await t.bilde("vri-skal");
 
   // ---------- Reload mid-card; back + continue; «Nytt spill» asks first ----------
@@ -145,7 +153,7 @@ export default async function (t) {
   await t.vent("document.querySelector('.torst-vann')", 5000);
   st = await s();
   t.sjekk(st.spill.fase === "vann" && st.spill.vann === 1, "Vannkortet kom ikke etter ti kort");
-  t.sjekk(/vann/i.test(await t.tekst("#skjerm h1")), "Vannkortet har ikke en tydelig overskrift");
+  t.sjekk(O.vann.test(await t.tekst("#skjerm h1")), "Vannkortet har ikke en tydelig overskrift");
   await t.bilde("vannkort");
   await pause();
   await t.klikk('[data-h="vann-ferdig"]');
@@ -156,7 +164,7 @@ export default async function (t) {
   const [b0, h0] = await t.js("[window.innerWidth, window.innerHeight]");
   const over = (sel) => t.js(`(() => { const a = document.querySelector(${JSON.stringify(sel)}); const d = document.querySelector('#skjerm .dokk'); if (!a || !d) return false; return a.getBoundingClientRect().bottom <= d.getBoundingClientRect().top + 2; })()`);
   const fri = (sel) => t.js(`(() => { const a = document.querySelector(${JSON.stringify(sel)}); if (!a) return false; const r = a.getBoundingClientRect(); if (r.top < 0 || r.bottom > innerHeight + 1) return false; const d = document.querySelector("#skjerm .dokk"); if (!d) return true; const q = d.getBoundingClientRect(); return q.right <= r.left || q.left >= r.right || q.bottom <= r.top || q.top >= r.bottom; })()`);
-  const fotSynlig = () => t.js("(() => { const e = document.querySelector('.torst-fot-linje'); return !!e && getComputedStyle(e).display !== 'none' && /alle kan stå over/.test(e.textContent); })()");
+  const fotSynlig = () => t.js(`(() => { const e = document.querySelector('.torst-fot-linje'); return !!e && getComputedStyle(e).display !== 'none' && ${O.fot}.test(e.textContent); })()`);
   for (const [b, h] of [[Math.min(375, b0), 560], [320, 568], [844, 390]]) {
     await t.send("Emulation.setDeviceMetricsOverride", { width: b, height: h, deviceScaleFactor: 2, mobile: true });
     await t.sov(500);
@@ -166,7 +174,8 @@ export default async function (t) {
     if (b <= b0) await t.bilde(`kort-${b}x${h}`);
   }
   await skal();
-  t.sjekk((await t.tekst(".torst-neste-linje")).includes("leser neste") && (await t.tekst('[data-h="neste"]')).trim() === "Neste kort", "Knappen skal bare si «Neste kort», med «X leser neste» over");
+  t.sjekk(!t.norsk || ((await t.tekst(".torst-neste-linje")).includes("leser neste") && (await t.tekst('[data-h="neste"]')).trim() === "Neste kort"), "Knappen skal bare si «Neste kort», med «X leser neste» over");
+  t.sjekk((await t.tekst(".torst-neste-linje")).includes(NAVN[((await s()).spill.leser + 1) % 4]), "Linja over knappen viser ikke hvem som leser neste");
   for (const [b, h] of [[320, 568], [Math.min(375, b0), 560], [844, 390]]) {
     await t.send("Emulation.setDeviceMetricsOverride", { width: b, height: h, deviceScaleFactor: 2, mobile: true });
     await t.sov(500);
@@ -183,7 +192,7 @@ export default async function (t) {
   t.sjekk(await t.finnes('#ark:not([hidden]) [data-v="nei"]'), "«Avslutt» spurte ikke først");
   await t.klikk('#ark [data-v="ja"]');
   await t.vent("document.querySelector('[data-h=\"kaar\"]')");
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Avstemningen skal høre til «Kåringen»");
+  t.sjekk(O.kaar.test(await t.tekst("#topp-tittel")), "Avstemningen skal høre til «Kåringen»");
   t.sjekk((await t.antall('.velger[data-h="kaar"]')) === 4, "Avstemningen viser ikke alle fire spillerne");
   await t.bilde("stem");
   await t.klikk("#tilbake");
@@ -195,11 +204,11 @@ export default async function (t) {
   await pause();
   await t.klikk('.velger[data-h="kaar"][data-v="1"]');
   await t.vent("document.querySelector('.torst-banner')");
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === "Testspiller B vinner!", `Feil kåring: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(t.norsk ? (await t.tekst("#skjerm h1")).trim() === "Testspiller B vinner!" : (await t.tekst("#skjerm h1")).includes("Testspiller B"), `Feil kåring: «${await t.tekst("#skjerm h1")}»`);
   t.sjekk((await t.tekst(".torst-favoritter")).includes(favTekst.replace(/\.$/, "")), "Kåringen viser ikke favorittkortet");
   t.sjekk((await s()).spill.fav.includes(favKort), "Favorittkortet ble borte");
   t.sjekk(await t.finnes(".flere-spill"), "Sluttskjermen mangler «Spill noe annet med samme gjeng»");
-  t.sjekk(await t.finnes('#skjerm a.lenke[href="/"]'), "Mangler «Alle spill» på sluttskjermen");
+  t.sjekk(await t.finnes(`#skjerm a.lenke[href="${t.forside}"]`), "Mangler «Alle spill» på sluttskjermen");
   t.sjekk((await s())._aktiv === false, "Et ferdig spill skal ikke være merket som pågående");
   await t.sov(700);
   await t.bilde("kaaring", true);
@@ -210,7 +219,7 @@ export default async function (t) {
   st = await s();
   t.sjekk(st.spill.nr === 1 && st.spill.pakker.length === 3 && !st.spill.fav.length, "«Spill igjen» startet ikke et nytt spill med samme oppsett");
   await t.klikk('[data-h="avslutt"]');
-  t.sjekk(/Avslutte spillet/.test(await t.tekst("#ark")), "Avslutt før noe har skjedd skal bare spørre om å avslutte");
+  t.sjekk(!t.norsk || /Avslutte spillet/.test(await t.tekst("#ark")), "Avslutt før noe har skjedd skal bare spørre om å avslutte");
   await t.klikk('#ark [data-v="ja"]');
   await t.vent("document.querySelector('.spillhjem')");
   t.sjekk((await s()).spill === null, "«Avslutt» avsluttet ikke spillet");
@@ -227,7 +236,7 @@ export default async function (t) {
   await pause();
   await t.klikk('[data-h="kaar"][data-v="-1"]');
   await t.vent("document.querySelector('.torst-banner')");
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === "Skål for gjengen!", "Uten kåring skal overskriften være «Skål for gjengen!»");
+  t.sjekk((await t.tekst("#skjerm h1")).trim() === O.skal, "Uten kåring skal overskriften være «Skål for gjengen!»");
   await t.bilde("skal-for-gjengen");
 
   // Without «Drikk eller fortell»: «Avslutt» goes straight to the toast, no story vote
@@ -242,5 +251,5 @@ export default async function (t) {
   await t.klikk('[data-h="avslutt"]');
   await t.klikk('#ark [data-v="ja"]');
   await t.vent("document.querySelector('.torst-banner')");
-  t.sjekk(!(await t.finnes('[data-h="kaar"]')) && (await t.tekst("#skjerm h1")).trim() === "Skål for gjengen!", "Uten vrien skal kåringen ikke spørre om beste historie");
+  t.sjekk(!(await t.finnes('[data-h="kaar"]')) && (await t.tekst("#skjerm h1")).trim() === O.skal, "Uten vrien skal kåringen ikke spørre om beste historie");
 }

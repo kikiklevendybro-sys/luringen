@@ -288,6 +288,23 @@ export function eksemplerFor(m, data) {
 // checked 2026-11-12. Its phone is open on weekdays.
 export const RUSINFO = { navn: "RUSinfo", url: "https://rusinfo.no/", telefon: "915 08 588" };
 
+// The other editions' own public help line, under their drinking games (rusj/SPRAK.md); checked
+// 2026-11-12, the owner checks them again before publishing. English: Drinkline, the national
+// alcohol helpline on the NHS page below and on drinkaware.co.uk (0300 123 1110, weekdays 9am–8pm,
+// weekends 11am–4pm – the hours are in the English sentence). Danish: Alkolinjen, run by Alkohol &
+// Samfund and Sundhedsstyrelsen (borger.dk), free and anonymous on 80 200 500; its hours are not
+// published, so the sentence gives none. The sentence itself is in the shared tables.
+export const HJELPELINJE = {
+  en: { navn: "Drinkline", telefon: "0300 123 1110", url: "https://www.nhs.uk/live-well/alcohol-advice/alcohol-support/", lenke: "nhs.uk" },
+  da: { navn: "Alkolinjen", telefon: "80 200 500", url: "https://alkolinjen.dk/", lenke: "alkolinjen.dk" },
+};
+
+// The edition's help line: the sentence from the shared table, the link put in afterwards.
+function hjelpelinje(U, h) {
+  const lenke = `<a href="${esc(h.url)}" rel="noopener">${esc(h.lenke)}</a>`;
+  return esc(U.t("Lurer du på noe om alkohol, for deg selv eller noen andre? {navn} svarer på telefon {telefon} og på {lenke}.", { navn: h.navn, telefon: h.telefon })).replace("{lenke}", lenke);
+}
+
 // The block itself. o: regler, eksempler, frase, lenker ([[href, tekst]]), sprak (the edition, from
 // byggRusj: { t, forside }; left out = Norwegian), sprakvalg (the language switch, markup).
 export function omSpilletHtml(m, o) {
@@ -318,8 +335,9 @@ export function omSpilletHtml(m, o) {
       `      <li>${esc(t("Ta små slurker. Ingen skal presses, og alle kan stå over."))}</li>`,
       `      <li>${esc(t("Spis, drikk vann, og sørg for trygg vei hjem. Trenger noen akutt hjelp, ring 113."))}</li>`,
       `    </ul>`,
-      // RUSinfo is a Norwegian service: another edition needs its own (rusj/SPRAK.md).
+      // RUSinfo is a Norwegian service: another edition has its own (HJELPELINJE) or none.
       !o.sprak || o.sprak.sprak === "nb" ? `    <p>Lurer du på noe om alkohol, for deg selv eller noen andre? ${RUSINFO.navn} svarer på telefon ${RUSINFO.telefon} (hverdager) og anonymt på <a href="${RUSINFO.url}" rel="noopener">rusinfo.no</a>.</p>` : "", // sprak-ok
+      o.sprak && HJELPELINJE[o.sprak.sprak] ? `    <p>${hjelpelinje(o.sprak, HJELPELINJE[o.sprak.sprak])}</p>` : "",
       `  </div>`,
     );
   } else if (o.eksempler) {

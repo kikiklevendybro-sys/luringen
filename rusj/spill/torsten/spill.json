@@ -11,5 +11,23 @@
   "rekkefolge": 47,
   "alder18": true,
   "sok": ["jeg har aldri", "never have I ever", "jeg har aldri drikkelek", "drikkeleker", "drikkespill"],
-  "alias": ["tørsten"]
+  "alias": ["tørsten"],
+  "i18n": {
+    "en": {
+      "navn": "Thirsty",
+      "undertittel": "Never have I ever – drinking version",
+      "kort": "‘Never have I ever …’ – if you have, raise your glass.",
+      "beskrivelse": "Free ‘Never have I ever’ drinking game (18+). Over 500 cards in nine packs. If you have done it, take a small sip – alcohol-free counts just as much.",
+      "slug": "thirsty",
+      "sok": ["never have i ever", "never have i ever drinking game", "never have i ever questions", "drinking games", "drinking game app", "party games for adults"]
+    },
+    "da": {
+      "navn": "Tørsten",
+      "undertittel": "Jeg har aldrig – drukversion",
+      "kort": "»Jeg har aldrig …« – har du gjort det, løfter du glasset.",
+      "beskrivelse": "Gratis »Jeg har aldrig« som drukspil på dansk (18+). Over 500 kort i ni pakker. Har du gjort det, tager du en slurk – alkoholfrit tæller lige så meget.",
+      "slug": "torsten",
+      "sok": ["jeg har aldrig", "jeg har aldrig drukspil", "jeg har aldrig spørgsmål", "never have i ever", "drukspil", "drukspil til fest"]
+    }
+  }
 }

@@ -17,10 +17,10 @@
   const VANN_HVERT = 12; // a water break after every 12th card
   const VERDI = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
   const SORTER = [
-    { tegn: "♥", navn: "Hjerter", rod: true },
-    { tegn: "♠", navn: "Spar", rod: false },
-    { tegn: "♦", navn: "Ruter", rod: true },
-    { tegn: "♣", navn: "Kløver", rod: false },
+    { tegn: "♥", navn: R.t("Hjerter"), rod: true },
+    { tegn: "♠", navn: R.t("Spar"), rod: false },
+    { tegn: "♦", navn: R.t("Ruter"), rod: true },
+    { tegn: "♣", navn: R.t("Kløver"), rod: false },
   ];
   const KONGE = 12;
   // Which idea list helps which rule (and whether the player may type something the game keeps).
@@ -33,7 +33,7 @@
   const kortNavn = (id) => {
     const v = verdi(id);
     const navn = v === 0 || v >= 10 ? D.regler[v].navn : VERDI[v];
-    return `${sortAv(id).navn} ${navn}`;
+    return R.t("{sort} {verdi}", { sort: sortAv(id).navn, verdi: navn });
   };
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
   const igjen = (sp) => sp.ring.filter((k) => k >= 0).length;
@@ -90,12 +90,12 @@
     });
     const n = igjen(sp);
     return `
-      <button class="ring-bord" id="ring-bord" data-h="trekk" data-stille aria-label="Trekk et kort fra ringen. ${n} kort igjen, ${sp.konger} av 4 konger er trukket.">
+      <button class="ring-bord" id="ring-bord" data-h="trekk" data-stille aria-label="${esc(R.t("Trekk et kort fra ringen. {n} kort igjen, {konger} av 4 konger er trukket.", { n, konger: sp.konger }))}">
         <span class="ring-filt" aria-hidden="true"></span>
         <span class="ring-kortene" aria-hidden="true">${kort.join("")}</span>
         <span class="ring-midt" aria-hidden="true">
           ${kroneHtml(sp.konger)}
-          <span class="ring-igjen"><b>${n}</b> kort igjen</span>
+          <span class="ring-igjen">${esc(R.t("{n} kort igjen", { n })).replace(String(n), `<b>${n}</b>`)}</span>
         </span>
       </button>`;
   }
@@ -104,9 +104,9 @@
   function rollerListe(sp) {
     const r = sp.roller;
     const liste = [];
-    if (r.tommel != null) liste.push({ ikon: "👍", kort: `Tommel: ${R.navn(r.tommel)}`, lang: `Tommelmester: ${R.navn(r.tommel)}`, til: "Til neste femmer" });
-    if (r.sporsmal != null) liste.push({ ikon: "❓", kort: `Spørsmål: ${R.navn(r.sporsmal)}`, lang: `Spørsmålsmester: ${R.navn(r.sporsmal)}`, til: "Til neste dame" });
-    if (r.kompis) liste.push({ ikon: "🤝", kort: `Kompis: ${R.navn(r.kompis[0])} + ${R.navn(r.kompis[1])}`, lang: `Kompiser: ${R.ramsOpp(r.kompis.map((i) => R.navn(i)))}`, til: "Til neste åtter" });
+    if (r.tommel != null) liste.push({ ikon: "👍", kort: R.t("Tommel: {navn}", { navn: R.navn(r.tommel) }), lang: R.t("Tommelmester: {navn}", { navn: R.navn(r.tommel) }), til: R.t("Til neste femmer") });
+    if (r.sporsmal != null) liste.push({ ikon: "❓", kort: R.t("Spørsmål: {navn}", { navn: R.navn(r.sporsmal) }), lang: R.t("Spørsmålsmester: {navn}", { navn: R.navn(r.sporsmal) }), til: R.t("Til neste dame") });
+    if (r.kompis) liste.push({ ikon: "🤝", kort: R.t("Kompis: {a} + {b}", { a: R.navn(r.kompis[0]), b: R.navn(r.kompis[1]) }), lang: R.t("Kompiser: {navn}", { navn: R.ramsOpp(r.kompis.map((i) => R.navn(i))) }), til: R.t("Til neste åtter") });
     return liste;
   }
 
@@ -116,15 +116,15 @@
     const regler = sp.regler.length;
     const skaler = sp.skaler.length;
     if (!roller.length && !regler && !skaler) {
-      return `<p class="ring-hint">Trykk på et kort i ringen – eller på knappen.</p>`;
+      return `<p class="ring-hint">${esc(R.t("Trykk på et kort i ringen – eller på knappen."))}</p>`;
     }
     const deler = roller.map((r) => ({ ikon: r.ikon, tekst: r.kort }));
     if (regler) deler.push({ ikon: "📜", tekst: R.flertall(regler, "regel", "regler") });
     if (skaler) deler.push({ ikon: "👑", tekst: R.flertall(skaler, "skål", "skåler") });
     const brikker = deler.map((d) => `<span class="ring-brikke"><span aria-hidden="true">${d.ikon}</span><span class="ring-brikke-navn">${esc(d.tekst)}</span></span>`);
-    const linje = `Gjelder nå: ${deler.map((d) => `${d.ikon} ${d.tekst}`).join(" · ")}`;
-    return `<button class="ring-roller" data-h="roller" aria-label="Se hva som gjelder nå">
-      <span class="etikett">Gjelder nå</span><span class="ring-brikker">${brikker.join("")}</span>
+    const linje = R.t("Gjelder nå: {liste}", { liste: deler.map((d) => `${d.ikon} ${d.tekst}`).join(" · ") });
+    return `<button class="ring-roller" data-h="roller" aria-label="${esc(R.t("Se hva som gjelder nå"))}">
+      <span class="etikett">${esc(R.t("Gjelder nå"))}</span><span class="ring-brikker">${brikker.join("")}</span>
       <span class="ring-roller-linje"><span class="ring-roller-tekst">${esc(linje)}</span><span aria-hidden="true">›</span></span>
     </button>`;
   }
@@ -153,8 +153,8 @@
     if (!liste || sp.ide == null || !liste[sp.ide]) return "";
     const t = liste[sp.ide];
     const id = regelFor(sp.kort).id;
-    if (id === "rim") return `«${t}»`;
-    if (id === "aldri") return `«Jeg har aldri ${t}.»`;
+    if (id === "rim") return R.t("«{ord}»", { ord: t });
+    if (id === "aldri") return R.t("«Jeg har aldri {ting}.»", { ting: t });
     return t;
   }
 
@@ -167,24 +167,24 @@
     if (id === "kompis") {
       const k = sp.roller.kompis;
       html += k
-        ? `<div class="ring-valgt"><span aria-hidden="true">🤝</span><span>Kompis: <b>${esc(R.navn(k[1]))}</b></span>${R.ui.lenke("Bytt", "kompis")}</div>`
-        : R.ui.knapp2("Velg kompis", "kompis", { ikon: "🤝", variant: "liten ring-kompisknapp" });
+        ? `<div class="ring-valgt"><span aria-hidden="true">🤝</span><span>${esc(R.t("Kompis: {navn}")).replace("{navn}", `<b>${esc(R.navn(k[1]))}</b>`)}</span>${R.ui.lenke(R.t("Bytt"), "kompis")}</div>`
+        : R.ui.knapp2(R.t("Velg kompis"), "kompis", { ikon: "🤝", variant: "liten ring-kompisknapp" });
     }
     if (SKRIV[id]) {
-      const etikett = id === "regel" ? "Regelen" : "Skålen";
-      const plass = id === "regel" ? "Skriv regelen – mobilen husker den" : "Skål for … (mobilen husker den)";
+      const etikett = id === "regel" ? R.t("Regelen") : R.t("Skålen");
+      const plass = id === "regel" ? R.t("Skriv regelen – mobilen husker den") : R.t("Skål for … (mobilen husker den)");
       html += `<form class="ring-skriv" data-skjema="utkast" autocomplete="off">
-        <label class="etikett" for="ring-utkast">${etikett} <span class="ring-valgfri">(valgfritt)</span></label>
+        <label class="etikett" for="ring-utkast">${esc(etikett)} <span class="ring-valgfri">(${esc(R.t("valgfritt"))})</span></label>
         <input class="ring-felt" id="ring-utkast" data-felt="utkast" maxlength="80" value="${esc(sp.utkast || "")}" placeholder="${esc(plass)}" enterkeyhint="done" autocapitalize="sentences">
       </form>`;
     }
     const ide = ideTekst(sp);
     if (ide) {
       html += `<div class="ring-ide">
-        <span class="ring-ide-tekst"><b>${SKRIV[id] ? "Idé" : "Forslag"}:</b> ${esc(ide)}</span>
+        <span class="ring-ide-tekst"><b>${esc(SKRIV[id] ? R.t("Idé:") : R.t("Forslag:"))}</b> ${esc(ide)}</span>
         <span class="ring-ide-knapper">
-          ${SKRIV[id] ? `<button class="ring-ide-knapp" data-h="ide-bruk">Bruk</button>` : ""}
-          <button class="ring-ide-knapp terning" data-h="ide" aria-label="Nytt forslag"><span aria-hidden="true">🎲</span></button>
+          ${SKRIV[id] ? `<button class="ring-ide-knapp" data-h="ide-bruk">${esc(R.t("Bruk"))}</button>` : ""}
+          <button class="ring-ide-knapp terning" data-h="ide" aria-label="${esc(R.t("Nytt forslag"))}"><span aria-hidden="true">🎲</span></button>
         </span>
       </div>`;
     }
@@ -196,14 +196,14 @@
     // «Ta finalen nå»: a gold card without a playing-card face.
     if (sp.tidlig) {
       const linjer = sp.skaler.map((s) =>
-        s.t ? `<li>${esc(s.t)} <small>– ${esc(R.navn(s.i))}</small></li>` : `<li>Skålen til ${esc(R.navn(s.i))}</li>`,
+        s.t ? `<li>${esc(s.t)} <small>– ${esc(R.navn(s.i))}</small></li>` : `<li>${esc(R.t("Skålen til {navn}", { navn: R.navn(s.i) }))}</li>`,
       );
-      linjer.push(`<li>${sp.skaler.length ? "Og skål for gjengen!" : "Skål for gjengen!"}</li>`);
+      linjer.push(`<li>${esc(sp.skaler.length ? R.t("Og skål for gjengen!") : R.t("Skål for gjengen!"))}</li>`);
       return `
         <article class="ring-spillkort finale tidlig" id="ring-kort" data-sort="👑">
           <div class="ring-innhold">
             <span class="ring-ikon" aria-hidden="true">${D.finale.ikon}</span>
-            <p class="ring-kortnavn">Etter ${esc(R.flertall(sp.nr, "kort", "kort"))}</p>
+            <p class="ring-kortnavn">${esc(R.t("Etter {kort}", { kort: R.flertall(sp.nr, "kort", "kort") }))}</p>
             <h1 id="skjerm-tittel">${esc(D.finale.tittel)}</h1>
             <p class="ring-tekst">${esc(D.finale.tidlig)}</p>
             <ul class="ring-skaler">${linjer.join("")}</ul>
@@ -220,9 +220,9 @@
     if (finale) {
       // Every King's toast in order (the ones only said out loud are named after who made them).
       const linjer = sp.skaler.map((s) =>
-        s.t ? `<li>${esc(s.t)} <small>– ${esc(R.navn(s.i))}</small></li>` : `<li>Skålen til ${esc(R.navn(s.i))}</li>`,
+        s.t ? `<li>${esc(s.t)} <small>– ${esc(R.navn(s.i))}</small></li>` : `<li>${esc(R.t("Skålen til {navn}", { navn: R.navn(s.i) }))}</li>`,
       );
-      linjer.push(`<li>${sp.skaler.length ? "Og skål for gjengen!" : "Skål for gjengen!"}</li>`);
+      linjer.push(`<li>${esc(sp.skaler.length ? R.t("Og skål for gjengen!") : R.t("Skål for gjengen!"))}</li>`);
       under = `<ul class="ring-skaler">${linjer.join("")}</ul>`;
     } else {
       under = ekstraHtml(sp);
@@ -230,7 +230,7 @@
     // Kings: how far we are towards the finale.
     const kongetall =
       !finale && verdi(id) === KONGE
-        ? `<p class="ring-kongetall"><span class="ring-pips" aria-hidden="true">${[0, 1, 2, 3].map((n) => `<i${n < sp.konger ? ' class="fylt"' : ""}></i>`).join("")}</span>Konge ${sp.konger} av 4</p>`
+        ? `<p class="ring-kongetall"><span class="ring-pips" aria-hidden="true">${[0, 1, 2, 3].map((n) => `<i${n < sp.konger ? ' class="fylt"' : ""}></i>`).join("")}</span>${esc(R.t("Konge {n} av 4", { n: sp.konger }))}</p>`
         : "";
     const hjorne = `<span class="ring-hjorne-v">${VERDI[verdi(id)]}</span><span class="ring-hjorne-s">${sort.tegn}</span>`;
     return `
@@ -375,20 +375,20 @@
     },
 
     regler: {
-      intro: "Kortene ligger i en ring. Dere trekker etter tur, og hvert kort har sin egen regel. Bare små slurker – og alkoholfritt teller like mye.",
+      intro: R.t("Kortene ligger i en ring. Dere trekker etter tur, og hvert kort har sin egen regel. Bare små slurker – og alkoholfritt teller like mye."),
       steg: [
-        ["Trekk et kort", "Den som har tur, trykker på et kort i ringen. Mobilen viser regelen."],
-        ["Gjør som kortet sier", "Les regelen høyt og gjør det sammen. En slurk er en liten slurk av det du drikker – vann og brus teller like mye."],
-        ["Fjerde konge = finale", "Hver konge legger til en skål. Den som trekker den fjerde kongen, blir kronet og leder den felles skålen."],
+        [R.t("Trekk et kort"), R.t("Den som har tur, trykker på et kort i ringen. Mobilen viser regelen.")],
+        [R.t("Gjør som kortet sier"), R.t("Les regelen høyt og gjør det sammen. En slurk er en liten slurk av det du drikker – vann og brus teller like mye.")],
+        [R.t("Fjerde konge = finale"), R.t("Hver konge legger til en skål. Den som trekker den fjerde kongen, blir kronet og leder den felles skålen.")],
       ],
       tips: [
-        "Alle kan stå over – helt uten forklaring.",
-        "Etter hvert tolvte kort er det vannpause for alle.",
-        "Roller som tommelmester gjelder til neste kort med samme verdi. Trykk på «Gjelder nå» for å se hvem som har hva.",
-        "Skriv inn regler og skåler, så husker mobilen dem til finalen.",
-        "Spis og drikk vann underveis, og sørg for trygg vei hjem.",
+        R.t("Alle kan stå over – helt uten forklaring."),
+        R.t("Etter hvert tolvte kort er det vannpause for alle."),
+        R.t("Roller som tommelmester gjelder til neste kort med samme verdi. Trykk på «Gjelder nå» for å se hvem som har hva."),
+        R.t("Skriv inn regler og skåler, så husker mobilen dem til finalen."),
+        R.t("Spis og drikk vann underveis, og sørg for trygg vei hjem."),
       ],
-      ekstraHtml: `<h3>Kortene</h3><ul class="ring-tabell">${D.regler
+      ekstraHtml: `<h3>${esc(R.t("Kortene"))}</h3><ul class="ring-tabell">${D.regler
         .map((r, v) => `<li><span class="ring-tabell-v">${VERDI[v]}</span><span class="ring-tabell-ikon" aria-hidden="true">${r.ikon}</span><span><b>${esc(r.tittel)}</b> ${esc(r.kort)}</span></li>`)
         .join("")}</ul>`,
     },
@@ -398,60 +398,60 @@
         tilbake: "portal",
         vis: (S) =>
           R.ui.spillhjem({
-            slagordHtml: "Trekk et kort fra ringen.<br><em>Hvert kort har sin egen regel.</em>",
+            slagordHtml: `${esc(R.t("Trekk et kort fra ringen."))}<br><em>${esc(R.t("Hvert kort har sin egen regel."))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: pagar(S) ? `Fortsett · ${igjen(S.spill)} kort igjen` : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              fortsettTekst: pagar(S) ? R.t("Fortsett · {n} kort igjen", { n: igjen(S.spill) }) : "",
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
-              ["3–12", "spillere"],
-              ["52", "kort"],
-              ["0", "reklame"],
+              ["3–12", R.t("spillere")],
+              ["52", R.t("kort")],
+              ["0", R.t("reklame")],
             ],
           }),
         inn: () => R.slippVaken(),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis: () => `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
-          ${R.ui.spillere({ min: 3, max: 12, hjelp: "Sett dere i ring i samme rekkefølge som lista. Turen går til venstre." })}
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
+          ${R.ui.spillere({ min: 3, max: 12, hjelp: R.t("Sett dere i ring i samme rekkefølge som lista. Turen går til venstre.") })}
           <div class="papirboks ring-vett">
-            <p class="etikett">Slik er slurkene</p>
+            <p class="etikett">${esc(R.t("Slik er slurkene"))}</p>
             <ul class="tips">
-              <li>En slurk er en liten slurk – aldri mer.</li>
-              <li>Alkoholfritt teller like mye, og alle kan stå over.</li>
-              <li>Etter hvert tolvte kort tar alle en vannpause.</li>
+              <li>${esc(R.t("En slurk er en liten slurk – aldri mer."))}</li>
+              <li>${esc(R.t("Alkoholfritt teller like mye, og alle kan stå over."))}</li>
+              <li>${esc(R.t("Etter hvert tolvte kort tar alle en vannpause."))}</li>
             </ul>
           </div>
-          ${R.ui.dokk(R.ui.knapp("Start", "start"))}`,
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start"))}`,
       },
 
       ring: {
-        tittel: (S) => `Kort ${S.spill.nr + 1}`,
+        tittel: (S) => R.t("Kort {n}", { n: S.spill.nr + 1 }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           return `
             <div class="ring-tur">
               ${R.avatar(sp.tur, "mid")}
-              <div class="ring-tur-tekst"><p class="etikett">Din tur</p><h1 id="skjerm-tittel">${esc(R.navn(sp.tur))}</h1></div>
+              <div class="ring-tur-tekst"><p class="etikett">${esc(R.t("Din tur"))}</p><h1 id="skjerm-tittel">${esc(R.navn(sp.tur))}</h1></div>
             </div>
             <div class="ring-scene">${ringHtml(sp)}</div>
             ${rollerHtml(sp)}
             ${R.ui.dokk(
-              R.ui.knapp("Trekk et kort", "trekk", { variant: "stor", ikon: KNAPPKORT, id: "ring-trekk" }),
-              R.ui.lenkerad(R.ui.lenke("Kortene", "regler"), R.ui.lenke("Avslutt", "avslutt")),
+              R.ui.knapp(R.t("Trekk et kort"), "trekk", { variant: "stor", ikon: KNAPPKORT, id: "ring-trekk" }),
+              R.ui.lenkerad(R.ui.lenke(R.t("Kortene"), "regler"), R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn: () => R.holdVaken(),
       },
 
       kort: {
-        tittel: (S) => `Kort ${S.spill.nr}`,
+        tittel: (S) => R.t("Kort {n}", { n: S.spill.nr }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -460,15 +460,15 @@
           return `
             <div class="ring-hvem">
               ${R.avatar(sp.tur)}
-              <p><b>${esc(R.navn(sp.tur))}</b> ${sp.tidlig ? "leser skålene" : "trakk"}</p>
-              ${sp.tidlig ? "" : `<span class="ring-hvem-nr">${sp.nr} av 52</span>`}
+              <p>${esc(sp.tidlig ? R.t("{navn} leser skålene") : R.t("{navn} trakk")).replace("{navn}", `<b>${esc(R.navn(sp.tur))}</b>`)}</p>
+              ${sp.tidlig ? "" : `<span class="ring-hvem-nr">${esc(R.t("{n} av 52", { n: sp.nr }))}</span>`}
             </div>
             <div class="ring-kortplass">${spillkortHtml(sp)}</div>
-            <p class="ring-fot"><span aria-hidden="true">🥤</span> Alkoholfritt teller like mye · alle kan stå over</p>
+            <p class="ring-fot"><span aria-hidden="true">🥤</span> ${esc(R.t("Alkoholfritt teller like mye · alle kan stå over"))}</p>
             ${R.ui.dokk(
-              finale ? "" : `<p class="ring-neste-linje">${R.avatar(neste)}<span><b>${esc(R.navn(neste))}</b> trekker neste</span></p>`,
-              finale ? R.ui.knapp("Til kåringen", "neste", { variant: "stor", ikon: "👑" }) : R.ui.knapp("Neste kort", "neste"),
-              finale ? "" : R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")),
+              finale ? "" : `<p class="ring-neste-linje">${R.avatar(neste)}<span>${esc(R.t("{navn} trekker neste")).replace("{navn}", `<b>${esc(R.navn(neste))}</b>`)}</span></p>`,
+              finale ? R.ui.knapp(R.t("Til kåringen"), "neste", { variant: "stor", ikon: "👑" }) : R.ui.knapp(R.t("Neste kort"), "neste"),
+              finale ? "" : R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn(S) {
@@ -486,7 +486,7 @@
       },
 
       vann: {
-        tittel: "Vannpause",
+        tittel: R.t("Vannpause"),
         tilbake: "hjem",
         vis: (S) => `
           <div class="ring-vann">
@@ -500,11 +500,11 @@
               <path d="M20 18 L31 133 Q32 144 44 144 H76 Q88 144 89 133 L100 18 Z" fill="none" stroke="var(--papir)" stroke-width="6" stroke-linejoin="round"/>
               <path d="M36 34 L42 112" stroke="#fff" stroke-opacity=".5" stroke-width="5" stroke-linecap="round"/>
             </svg>
-            <p class="etikett">Etter ${S.spill.nr} kort</p>
-            <h1 id="skjerm-tittel">Vannpause!</h1>
-            <p class="ingress">Alle tar en god slurk vann før neste kort. Kroppen takker – og kvelden varer lenger.</p>
+            <p class="etikett">${esc(R.t("Etter {kort}", { kort: R.flertall(S.spill.nr, "kort", "kort") }))}</p>
+            <h1 id="skjerm-tittel">${esc(R.t("Vannpause!"))}</h1>
+            <p class="ingress">${esc(R.t("Alle tar en god slurk vann før neste kort. Kroppen takker – og kvelden varer lenger."))}</p>
           </div>
-          ${R.ui.dokk(R.ui.knapp("Skål i vann!", "vann-ferdig", { variant: "himmel", ikon: "💧" }), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`,
+          ${R.ui.dokk(R.ui.knapp(R.t("Skål i vann!"), "vann-ferdig", { variant: "himmel", ikon: "💧" }), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`,
         inn() {
           R.lyd.pop();
           R.vibrer(20);
@@ -512,7 +512,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -523,28 +523,28 @@
           return `
             <div class="banner aksent ring-banner">
               <div class="ring-kronet">${R.avatar(k, "gigant")}<span class="ring-kronet-krone">${KRONE}</span></div>
-              <p class="etikett">${sp.tidlig ? "Finalen" : "Den fjerde kongen"}</p>
-              <h1 id="skjerm-tittel">${esc(R.navn(k))} ble kronet!</h1>
-              <p class="ingress">${sp.tidlig ? "Dere tok finalen" : "Ringen er brutt"} etter ${esc(R.flertall(sp.nr, "kort", "kort"))}. Skål for gjengen – og takk for laget!</p>
+              <p class="etikett">${esc(sp.tidlig ? R.t("Finalen") : R.t("Den fjerde kongen"))}</p>
+              <h1 id="skjerm-tittel">${esc(R.t("{navn} ble kronet!", { navn: R.navn(k) }))}</h1>
+              <p class="ingress">${esc(sp.tidlig ? R.t("Dere tok finalen etter {kort}. Skål for gjengen – og takk for laget!", { kort: R.flertall(sp.nr, "kort", "kort") }) : R.t("Ringen er brutt etter {kort}. Skål for gjengen – og takk for laget!", { kort: R.flertall(sp.nr, "kort", "kort") }))}</p>
             </div>
             ${
               skaler.length
-                ? `<div class="papirboks ring-liste"><p class="etikett">Kveldens skåler</p><ul>${skaler.map((s) => `<li>${esc(s.t)} <span class="ring-av">– ${esc(R.navn(s.i))}</span></li>`).join("")}</ul></div>`
+                ? `<div class="papirboks ring-liste"><p class="etikett">${esc(R.t("Kveldens skåler"))}</p><ul>${skaler.map((s) => `<li>${esc(s.t)} <span class="ring-av">– ${esc(R.navn(s.i))}</span></li>`).join("")}</ul></div>`
                 : ""
             }
             ${
               regler.length
-                ? `<div class="papirboks ring-liste"><p class="etikett">Reglene dere laget</p><ul>${regler.map((r) => `<li>${esc(r.t)} <span class="ring-av">– ${esc(R.navn(r.i))}</span></li>`).join("")}</ul></div>`
+                ? `<div class="papirboks ring-liste"><p class="etikett">${esc(R.t("Reglene dere laget"))}</p><ul>${regler.map((r) => `<li>${esc(r.t)} <span class="ring-av">– ${esc(R.navn(r.i))}</span></li>`).join("")}</ul></div>`
                 : ""
             }
             ${R.ui.merker([
-              [String(sp.nr), "kort"],
-              [String(sp.regler.length), sp.regler.length === 1 ? "regel" : "regler"],
-              [String(sp.vann), sp.vann === 1 ? "vannpause" : "vannpauser"],
+              [String(sp.nr), R.t("kort|kort", { n: sp.nr })],
+              [String(sp.regler.length), R.t("regel|regler", { n: sp.regler.length })],
+              [String(sp.vann), R.t("vannpause|vannpauser", { n: sp.vann })],
             ])}
-            <p class="hjelp ring-hjem">💧 Husk vann, mat og trygg vei hjem.</p>
+            <p class="hjelp ring-hjem">💧 ${esc(R.t("Husk vann, mat og trygg vei hjem."))}</p>
             ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn() {
           R.lyd.fanfare();
@@ -626,13 +626,13 @@
         if (!pagar(S) || sp.fase !== "kort" || regelFor(sp.kort).id !== "kompis") return;
         const fortsatt = R.vakt();
         const andre = Array.from({ length: sp.antall }, (_, i) => i).filter((i) => i !== sp.tur);
-        const valgt = await R.velgIArk("Velg en kompis", andre.map((i) => ({ v: i, tekst: R.navn(i) })), "Dere drikker sammen til neste åtter.");
+        const valgt = await R.velgIArk(R.t("Velg en kompis"), andre.map((i) => ({ v: i, tekst: R.navn(i) })), R.t("Dere drikker sammen til neste åtter."));
         if (valgt == null || !fortsatt() || S.spill !== sp || sp.fase !== "kort") return;
         sp.roller.kompis = [sp.tur, valgt];
         R.lyd.pop();
         R.vibrer(15);
         R.vis();
-        R.si(`${R.navn(valgt)} er kompisen din.`);
+        R.si(R.t("{navn} er kompisen din.", { navn: R.navn(valgt) }));
       },
       roller(el, e, S) {
         const sp = S.spill;
@@ -640,15 +640,15 @@
         const roller = rollerListe(sp);
         const rader = roller.map((r) => `<li><span class="ring-rolle-ikon" aria-hidden="true">${r.ikon}</span><span><b>${esc(r.lang)}</b><small>${esc(r.til)}</small></span></li>`);
         sp.regler.forEach((r, n) =>
-          rader.push(`<li><span class="ring-rolle-ikon" aria-hidden="true">📜</span><span><b>${r.t ? esc(r.t) : `Regel ${n + 1} (sagt høyt)`}</b><small>Laget av ${esc(R.navn(r.i))} · gjelder resten av spillet</small></span></li>`),
+          rader.push(`<li><span class="ring-rolle-ikon" aria-hidden="true">📜</span><span><b>${r.t ? esc(r.t) : esc(R.t("Regel {n} (sagt høyt)", { n: n + 1 }))}</b><small>${esc(R.t("Laget av {navn} · gjelder resten av spillet", { navn: R.navn(r.i) }))}</small></span></li>`),
         );
         sp.skaler.forEach((s) =>
-          rader.push(`<li><span class="ring-rolle-ikon" aria-hidden="true">👑</span><span><b>${s.t ? esc(s.t) : `Skålen til ${esc(R.navn(s.i))} (sagt høyt)`}</b><small>${s.t ? `Fra ${esc(R.navn(s.i))} · ` : ""}til finalen</small></span></li>`),
+          rader.push(`<li><span class="ring-rolle-ikon" aria-hidden="true">👑</span><span><b>${s.t ? esc(s.t) : esc(R.t("Skålen til {navn} (sagt høyt)", { navn: R.navn(s.i) }))}</b><small>${esc(s.t ? R.t("Fra {navn} · til finalen", { navn: R.navn(s.i) }) : R.t("til finalen"))}</small></span></li>`),
         );
         R.ark(`
-          <h2 id="ark-tittel">Gjelder nå</h2>
-          ${rader.length ? `<ul class="ring-rolleliste">${rader.join("")}</ul>` : `<p class="ingress">Ingen roller eller regler ennå.</p>`}
-          <button class="knapp" data-h="lukk-ark">Spill videre</button>`);
+          <h2 id="ark-tittel">${esc(R.t("Gjelder nå"))}</h2>
+          ${rader.length ? `<ul class="ring-rolleliste">${rader.join("")}</ul>` : `<p class="ingress">${esc(R.t("Ingen roller eller regler ennå."))}</p>`}
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Spill videre"))}</button>`);
       },
       neste(el, e, S) {
         const sp = S.spill;
@@ -686,17 +686,17 @@
         if (!pagar(S)) return;
         if (sp.nr === 0) {
           const fortsatt = R.vakt();
-          if ((await R.bekreft("Avslutte ringen?", "Dere kan alltid starte en ny ring.", "Avslutt", "Spill videre")) && fortsatt() && S.spill === sp) H["avslutt-uten"](el, e, S);
+          if ((await R.bekreft(R.t("Avslutte ringen?"), R.t("Dere kan alltid starte en ny ring."), R.t("Avslutt"), R.t("Spill videre"))) && fortsatt() && S.spill === sp) H["avslutt-uten"](el, e, S);
           return;
         }
         R.ark(`
-          <h2 id="ark-tittel">Avslutte ringen?</h2>
-          <p class="ingress">Ta finalen nå, så skåler dere for ${sp.skaler.length ? "skålene dere har laget" : "gjengen"} og kårer en konge. Eller avslutt uten finale.</p>
+          <h2 id="ark-tittel">${esc(R.t("Avslutte ringen?"))}</h2>
+          <p class="ingress">${esc(sp.skaler.length ? R.t("Ta finalen nå, så skåler dere for skålene dere har laget og kårer en konge. Eller avslutt uten finale.") : R.t("Ta finalen nå, så skåler dere for gjengen og kårer en konge. Eller avslutt uten finale."))}</p>
           <div class="stabel">
-            ${R.ui.knapp("Ta finalen nå", "finale-na", { ikon: "👑" })}
-            ${R.ui.knapp2("Avslutt", "avslutt-uten")}
+            ${R.ui.knapp(R.t("Ta finalen nå"), "finale-na", { ikon: "👑" })}
+            ${R.ui.knapp2(R.t("Avslutt"), "avslutt-uten")}
           </div>
-          <button class="lenke" data-h="lukk-ark">Spill videre</button>`);
+          <button class="lenke" data-h="lukk-ark">${esc(R.t("Spill videre"))}</button>`);
       },
       "finale-na"(el, e, S) {
         const sp = S.spill;

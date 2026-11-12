@@ -23,15 +23,15 @@
   // it the compact face for small cards: a big index on top, one big symbol below.
   const KORT = (() => {
     const SORTER = [
-      { navn: "spar", rod: false },
-      { navn: "hjerter", rod: true },
-      { navn: "ruter", rod: true },
-      { navn: "kløver", rod: false },
+      { navn: R.t("spar"), rod: false },
+      { navn: R.t("hjerter"), rod: true },
+      { navn: R.t("ruter"), rod: true },
+      { navn: R.t("kløver"), rod: false },
     ];
     const BOKSTAV = ["", "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-    const VERDINAVN = ["", "ess", "2", "3", "4", "5", "6", "7", "8", "9", "10", "knekt", "dame", "konge"];
+    const VERDINAVN = ["", R.t("ess"), "2", "3", "4", "5", "6", "7", "8", "9", "10", R.t("knekt"), R.t("dame"), R.t("konge")];
     // «en 7-er», «et ess», «en dame»: for questions like «Har noen en 7-er?»
-    const MED_ARTIKKEL = ["", "et ess", "en 2-er", "en 3-er", "en 4-er", "en 5-er", "en 6-er", "en 7-er", "en 8-er", "en 9-er", "en 10-er", "en knekt", "en dame", "en konge"];
+    const MED_ARTIKKEL = ["", R.t("et ess"), R.t("en 2-er"), R.t("en 3-er"), R.t("en 4-er"), R.t("en 5-er"), R.t("en 6-er"), R.t("en 7-er"), R.t("en 8-er"), R.t("en 9-er"), R.t("en 10-er"), R.t("en knekt"), R.t("en dame"), R.t("en konge")];
     // Suit outlines in a 100 × 100 box. Every part runs clockwise, so they fill the same everywhere.
     const FORM = [
       "M50 6C62 24 92 38 92 62C92 76 81 84 70 84C62 84 56 80 53 74C54 83 58 89 66 95L34 95C42 89 46 83 47 74C44 80 38 84 30 84C19 84 8 76 8 62C8 38 38 24 50 6Z",
@@ -46,7 +46,7 @@
     const verdiAv = (k) => (k % 13) + 1;
     const erRod = (k) => SORTER[sortAv(k)].rod;
     const farge = (k) => (erRod(k) ? ROD : SVART);
-    const navn = (k) => `${SORTER[sortAv(k)].navn} ${VERDINAVN[verdiAv(k)]}`;
+    const navn = (k) => R.t("{sort} {verdi}", { sort: SORTER[sortAv(k)].navn, verdi: VERDINAVN[verdiAv(k)] });
     const Navn = (k) => navn(k).charAt(0).toUpperCase() + navn(k).slice(1);
 
     // A suit symbol of size str with its top-left corner at (x, y); upside down when snu.
@@ -148,7 +148,7 @@
   const skjermet = (sp, n, i) => sp.logg.filter((x) => x.kort === n && x.til === i && x.taker === i && x.slurker > 0).length >= MAKS_FATT;
   const slurkTekst = (n) => R.flertall(n, "slurk", "slurker");
   const art = (k) => KORT.MED_ARTIKKEL[KORT.verdiAv(k)]; // «en 7-er», «et ess»
-  const uten = (k) => KORT.MED_ARTIKKEL[KORT.verdiAv(k)].replace(/^(en|et) /, ""); // «7-er», «ess»
+  const uten = (k) => KORT.MED_ARTIKKEL[KORT.verdiAv(k)].replace(/^(en|et|an|a) /, ""); // «7-er», «ess» (English «a 7», «an ace»)
   const harVerdi = (hand, k) => hand.some((x) => KORT.verdiAv(x) === KORT.verdiAv(k));
   const velg = (liste, n) => liste[Math.abs(n) % liste.length];
   const pagar = (S) => !!(S.spill && S.spill.fase !== "ferdig");
@@ -228,7 +228,7 @@
         const n = FORSTE_I_RAD[r - 1] + j;
         const opp = n < sp.snudd;
         const na = n === sp.snudd - 1;
-        const etikett = opp ? `${KORT.Navn(sp.pyramide[n])}, rad ${r}` : `Rad ${r}, ikke snudd`;
+        const etikett = opp ? R.t("{kort}, rad {r}", { kort: KORT.Navn(sp.pyramide[n]), r }) : R.t("Rad {r}, ikke snudd", { r });
         rader += KORT.html(opp ? sp.pyramide[n] : null, {
           opp,
           klasse: `py-kort${na ? " na" : ""}${opp && !na ? " brukt" : ""}`,
@@ -237,16 +237,16 @@
       }
       rader += "</div>";
     }
-    return `<div class="py-pyramide" aria-label="Pyramiden">${rader}</div>`;
+    return `<div class="py-pyramide" aria-label="${esc(R.t("Pyramiden"))}">${rader}</div>`;
   }
 
   // One line per hand-out: who gave to whom, and how a bluff duel ended. Never how much anyone drank.
   function kravLinje(sp, x) {
     const fra = esc(R.navn(x.fra));
     const til = esc(R.navn(x.til));
-    if (!x.ropte) return `<li>${fra} <span aria-hidden="true">→</span><span class="vh">delte ut til</span> ${til}</li>`;
-    if (x.sant) return `<li>${til} ropte bløff – men ${fra} hadde kortet. +1 poeng til ${fra}.</li>`;
-    return `<li class="avslort">${fra} ble tatt i bløff av ${til}. +1 poeng til ${til}.</li>`;
+    if (!x.ropte) return `<li>${fra} <span aria-hidden="true">→</span><span class="vh">${esc(R.t("delte ut til"))}</span> ${til}</li>`;
+    if (x.sant) return `<li>${esc(R.t("{til} ropte bløff – men {fra} hadde kortet. +1 poeng til {fra}.", { til: R.navn(x.til), fra: R.navn(x.fra) }))}</li>`;
+    return `<li class="avslort">${esc(R.t("{fra} ble tatt i bløff av {til}. +1 poeng til {til}.", { fra: R.navn(x.fra), til: R.navn(x.til) }))}</li>`;
   }
 
   // The glass on the water break.
@@ -263,10 +263,10 @@
 
   // Everything that happened so far, card by card («Hvem ga hva»).
   function loggHtml(sp) {
-    if (!sp.logg.length) return `<p class="hjelp">Ingen har delt ut noe ennå.</p>`;
+    if (!sp.logg.length) return `<p class="hjelp">${esc(R.t("Ingen har delt ut noe ennå."))}</p>`;
     const kort = [...new Set(sp.logg.map((x) => x.kort))];
     return `<ol class="py-logg">${kort
-      .map((n) => `<li><b>Rad ${radFor(n)} · ${esc(KORT.Navn(sp.pyramide[n]))}</b><ul>${sp.logg.filter((x) => x.kort === n).map((x) => kravLinje(sp, x)).join("")}</ul></li>`)
+      .map((n) => `<li><b>${esc(R.t("Rad {r}", { r: radFor(n) }))} · ${esc(KORT.Navn(sp.pyramide[n]))}</b><ul>${sp.logg.filter((x) => x.kort === n).map((x) => kravLinje(sp, x)).join("")}</ul></li>`)
       .join("")}</ol>`;
   }
 
@@ -294,7 +294,7 @@
     R.lyd.snu();
     R.vibrer(12);
     const k = sp.pyramide[sp.snudd - 1];
-    R.si(`Rad ${radFor(sp.snudd - 1)}: ${KORT.Navn(k)}. Har noen ${art(k)}?`);
+    R.si(R.t("Rad {r}: {kort}. Har noen {art}?", { r: radFor(sp.snudd - 1), kort: KORT.Navn(k), art: art(k) }));
     const h = R.$("#skjerm-tittel");
     if (h) h.scrollIntoView({ block: "nearest", behavior: R.rolig() ? "auto" : "smooth" });
   }
@@ -356,20 +356,20 @@
     },
 
     regler: {
-      intro: "Fire hemmelige kort hver, femten kort i en pyramide – og en god porsjon bløff.",
+      intro: R.t("Fire hemmelige kort hver, femten kort i en pyramide – og en god porsjon bløff."),
       steg: [
-        ["Se kortene dine", "Mobilen går rundt. Hold fingeren på kortet og husk de fire kortene dine – du får ikke se dem igjen før finalen."],
-        ["Snu pyramiden", "Kortene snus ett og ett nedenfra. Har du samme verdi, deler du ut slurker: 1 på nederste rad, 5 på toppen. Hver spiller kan dele ut én gang per kort."],
-        ["Godta eller rop bløff", "Den som får slurkene, kan rope bløff – mobilen vet alt. Taperen av duellen tar to slurker ekstra, og vinneren får 1 poeng. Et kort som vises som bevis, byttes mot et nytt hemmelig kort."],
+        [R.t("Se kortene dine"), R.t("Mobilen går rundt. Hold fingeren på kortet og husk de fire kortene dine – du får ikke se dem igjen før finalen.")],
+        [R.t("Snu pyramiden"), R.t("Kortene snus ett og ett nedenfra. Har du samme verdi, deler du ut slurker: 1 på nederste rad, 5 på toppen. Hver spiller kan dele ut én gang per kort.")],
+        [R.t("Godta eller rop bløff"), R.t("Den som får slurkene, kan rope bløff – mobilen vet alt. Taperen av duellen tar to slurker ekstra, og vinneren får 1 poeng. Et kort som vises som bevis, byttes mot et nytt hemmelig kort.")],
       ],
       tips: [
-        "Du kan bløffe selv om du ikke har kortet. Slipper du unna, får du 1 poeng – det avsløres først på kåringen.",
-        "Roper du bløff og tar feil, får den andre poenget. Tenk deg om!",
-        "Aldri mer enn 5 slurker om gangen, og ingen kan få slurker fra mer enn to spillere på samme kort.",
-        "Små slurker. Vann, brus og alkoholfritt teller like mye, og alle kan stå over.",
-        "Før rad 3 og før toppkortet er det vannpause for alle.",
-        "«Hvem ga hva» viser alt som har skjedd, og «Angre» tar tilbake siste utdeling.",
-        "I finalen sier alle kortene sine høyt. Hvert kort du har glemt, gir 1 slurk.",
+        R.t("Du kan bløffe selv om du ikke har kortet. Slipper du unna, får du 1 poeng – det avsløres først på kåringen."),
+        R.t("Roper du bløff og tar feil, får den andre poenget. Tenk deg om!"),
+        R.t("Aldri mer enn 5 slurker om gangen, og ingen kan få slurker fra mer enn to spillere på samme kort."),
+        R.t("Små slurker. Vann, brus og alkoholfritt teller like mye, og alle kan stå over."),
+        R.t("Før rad 3 og før toppkortet er det vannpause for alle."),
+        R.t("«Hvem ga hva» viser alt som har skjedd, og «Angre» tar tilbake siste utdeling."),
+        R.t("I finalen sier alle kortene sine høyt. Hvert kort du har glemt, gir 1 slurk."),
       ],
     },
 
@@ -382,17 +382,17 @@
           const ny = S.spill && S.spill.nytt;
           if (!ny || ny.i !== i) return { html: "" };
           return {
-            html: `<span class="kort-etikett">Nytt kort til ${esc(R.navn(i))}</span>
+            html: `<span class="kort-etikett">${esc(R.t("Nytt kort til {navn}", { navn: R.navn(i) }))}</span>
               <span class="py-hand py-hand-ett">${KORT.html(hand[ny.plass], { opp: true, stor: true })}</span>
-              <span class="py-husk">Husk det!</span>`,
+              <span class="py-husk">${esc(R.t("Husk det!"))}</span>`,
           };
         }
         return {
           // Two layouts: four big classic cards (2 × 2), or one row of compact cards on short screens.
-          html: `<span class="kort-etikett">Kortene til ${esc(R.navn(i))}</span>
+          html: `<span class="kort-etikett">${esc(R.t("Kortene til {navn}", { navn: R.navn(i) }))}</span>
             <span class="py-hand py-hand-stor">${hand.map((k) => KORT.html(k, { opp: true, stor: true })).join("")}</span>
             <span class="py-hand py-hand-liten">${hand.map((k) => KORT.html(k, { opp: true })).join("")}</span>
-            <span class="py-husk">Husk dem!</span>`,
+            <span class="py-husk">${esc(R.t("Husk dem!"))}</span>`,
         };
       },
       sett(S, id) {
@@ -419,34 +419,34 @@
         tilbake: "portal",
         vis: (S) =>
           R.ui.spillhjem({
-            slagordHtml: "Fire hemmelige kort. Femten i pyramiden.<br><em>Bløff deg gjennom pyramiden!</em>",
+            slagordHtml: `${esc(R.t("Fire hemmelige kort. Femten i pyramiden."))}<br><em>${esc(R.t("Bløff deg gjennom pyramiden!"))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: pagar(S) ? (S.spill.fase === "del" ? "Fortsett · utdelingen" : S.spill.fase === "finale" ? "Fortsett · finalen" : `Fortsett · ${S.spill.snudd} av ${ALLE} kort`) : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              fortsettTekst: pagar(S) ? (S.spill.fase === "del" ? R.t("Fortsett · utdelingen") : S.spill.fase === "finale" ? R.t("Fortsett · finalen") : R.t("Fortsett · {n} av {alle} kort", { n: S.spill.snudd, alle: ALLE })) : "",
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
-              ["3–10", "spillere"],
-              ["15", "kort i pyramiden"],
-              ["🥤", "alkoholfritt teller"],
+              ["3–10", R.t("spillere")],
+              ["15", R.t("kort i pyramiden")],
+              ["🥤", R.t("alkoholfritt teller")],
             ],
           }),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis: (S) => `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
-          ${R.ui.spillere({ min: 3, max: 10, hjelp: toStokker(R.klamp(S.antall || 4, 3, 10)) ? "Med åtte eller flere bruker vi to kortstokker." : "Alle trenger et navn – mobilen holder styr på hvem som har hvilke kort." })}
-          ${R.ui.bryter("finale", S.oppsett.finale, "Hukommelsesfinale", "Til slutt sier alle kortene sine høyt. Hvert glemte kort gir 1 slurk.")}
-          <p class="hjelp">Små slurker. Vann, brus og alkoholfritt teller like mye – og alle kan stå over.</p>
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor" }))}`,
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
+          ${R.ui.spillere({ min: 3, max: 10, hjelp: toStokker(R.klamp(S.antall || 4, 3, 10)) ? R.t("Med åtte eller flere bruker vi to kortstokker.") : R.t("Alle trenger et navn – mobilen holder styr på hvem som har hvilke kort.") })}
+          ${R.ui.bryter("finale", S.oppsett.finale, R.t("Hukommelsesfinale"), R.t("Til slutt sier alle kortene sine høyt. Hvert glemte kort gir 1 slurk."))}
+          <p class="hjelp">${esc(R.t("Små slurker. Vann, brus og alkoholfritt teller like mye – og alle kan stå over."))}</p>
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { variant: "stor" }))}`,
       },
 
       // Pass the phone: everyone holds to see their four cards, once.
       vis: {
-        tittel: "Del ut kortene",
+        tittel: R.t("Del ut kortene"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -455,30 +455,30 @@
           return `
             ${R.ui.fremdrift(sp.antall, i)}
             <div class="py-mottaker">
-              <p class="etikett">Gi mobilen til</p>
+              <p class="etikett">${esc(R.t("Gi mobilen til"))}</p>
               <h1 id="skjerm-tittel" class="spillernavn">${R.avatar(i, "stor")}<span>${esc(R.navn(i))}</span></h1>
             </div>
-            ${R.ui.mappe({ id: "p" + i, etikett: "Dine fire kort", tekst: "Hold fingeren på kortet for å se", etikettAria: `Hold fingeren på kortet for å se kortene til ${R.navn(i)}` })}
-            <p class="hjelp">${sp.del.sett ? "Husket alle fire? Trykk «Ferdig» og gi mobilen videre." : `Bare ${esc(R.navn(i))} skal se. ${esc(velg(T.husk, i))}`}</p>
-            ${R.ui.dokk(R.ui.knapp(siste ? "Alle har sett – til pyramiden!" : `Ferdig – gi til ${R.navn(i + 1)}`, "vist", { av: !sp.del.sett }))}`;
+            ${R.ui.mappe({ id: "p" + i, etikett: R.t("Dine fire kort"), tekst: R.t("Hold fingeren på kortet for å se"), etikettAria: R.t("Hold fingeren på kortet for å se kortene til {navn}", { navn: R.navn(i) }) })}
+            <p class="hjelp">${sp.del.sett ? esc(R.t("Husket alle fire? Trykk «Ferdig» og gi mobilen videre.")) : `${esc(R.t("Bare {navn} skal se.", { navn: R.navn(i) }))} ${esc(velg(T.husk, i))}`}</p>
+            ${R.ui.dokk(R.ui.knapp(siste ? R.t("Alle har sett – til pyramiden!") : R.t("Ferdig – gi til {navn}", { navn: R.navn(i + 1) }), "vist", { av: !sp.del.sett }))}`;
         },
       },
 
       pyramide: {
-        tittel: (S) => (S.spill.snudd ? `Rad ${radFor(S.spill.snudd - 1)} av 5` : "Pyramiden"),
+        tittel: (S) => (S.spill.snudd ? R.t("Rad {r} av 5", { r: radFor(S.spill.snudd - 1) }) : R.t("Pyramiden")),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const n = sp.snudd - 1;
           let info;
           let dokk;
-          const lenker = R.ui.lenkerad(sp.angre ? R.ui.lenke("Angre", "angre") : "", sp.logg.length ? R.ui.lenke("Hvem ga hva", "logg") : "", R.ui.lenke("Avslutt", "avslutt"));
+          const lenker = R.ui.lenkerad(sp.angre ? R.ui.lenke(R.t("Angre"), "angre") : "", sp.logg.length ? R.ui.lenke(R.t("Hvem ga hva"), "logg") : "", R.ui.lenke(R.t("Avslutt"), "avslutt"));
           if (n < 0) {
             info = `<div class="py-info">
-              <h1 id="skjerm-tittel">Klar for pyramiden?</h1>
-              <p class="hjelp">Kortene snus ett og ett, nederste rad først. Har du samme verdi på hånda – del ut slurker! Eller bløff.</p>
+              <h1 id="skjerm-tittel">${esc(R.t("Klar for pyramiden?"))}</h1>
+              <p class="hjelp">${esc(R.t("Kortene snus ett og ett, nederste rad først. Har du samme verdi på hånda – del ut slurker! Eller bløff."))}</p>
             </div>`;
-            dokk = R.ui.dokk(R.ui.knapp("Snu første kort", "snu", { variant: "stor" }), lenker);
+            dokk = R.ui.dokk(R.ui.knapp(R.t("Snu første kort"), "snu", { variant: "stor" }), lenker);
           } else {
             const k = sp.pyramide[n];
             const rad = radFor(n);
@@ -489,22 +489,22 @@
             // screens get one line instead of the list, so the buttons never push the question away.
             const flere = krav.length - VIS_KRAV;
             const status = alleHar
-              ? `<p class="hjelp py-status">Alle har delt ut på dette kortet.</p>`
+              ? `<p class="hjelp py-status">${esc(R.t("Alle har delt ut på dette kortet."))}</p>`
               : krav.length
-                ? `<p class="hjelp py-status py-sum">${krav.length} av ${sp.antall} har delt ut på dette kortet.</p>`
+                ? `<p class="hjelp py-status py-sum">${esc(R.t("{n} av {alle} har delt ut på dette kortet.", { n: krav.length, alle: sp.antall }))}</p>`
                 : "";
             info = `<div class="py-info" aria-live="polite">
-              <p class="etikett">Rad ${rad} · ${esc(slurkTekst(rad))}</p>
-              <h1 id="skjerm-tittel">Har noen ${esc(art(k))}?</h1>
+              <p class="etikett">${esc(R.t("Rad {r}", { r: rad }))} · ${esc(slurkTekst(rad))}</p>
+              <h1 id="skjerm-tittel">${esc(R.t("Har noen {art}?", { art: art(k) }))}</h1>
               ${status}
               ${
                 krav.length
-                  ? `<ul class="py-krav">${krav.slice(-VIS_KRAV).map((x) => kravLinje(sp, x)).join("")}</ul>${flere > 0 ? `<p class="hjelp py-flere">Og ${flere} til – se «Hvem ga hva».</p>` : ""}`
+                  ? `<ul class="py-krav">${krav.slice(-VIS_KRAV).map((x) => kravLinje(sp, x)).join("")}</ul>${flere > 0 ? `<p class="hjelp py-flere">${esc(R.t("Og {n} til – se «Hvem ga hva».", { n: flere }))}</p>` : ""}`
                   : `<p class="hjelp">${esc(velg(T.sporsmal, n + sp.nr))}</p>`
               }
             </div>`;
-            const videre = n === ALLE - 1 ? R.ui.knapp(sp.finale ? "Til finalen" : "Til kåringen", "ferdig") : R.ui.knapp("Snu neste", "snu");
-            dokk = R.ui.dokk(`<div class="knapprad py-valg">${R.ui.knapp(`Jeg har ${art(k)}!`, "krav", { variant: "lilla", ikon: "🙋", av: alleHar })}${videre}</div>`, lenker);
+            const videre = n === ALLE - 1 ? R.ui.knapp(sp.finale ? R.t("Til finalen") : R.t("Til kåringen"), "ferdig") : R.ui.knapp(R.t("Snu neste"), "snu");
+            dokk = R.ui.dokk(`<div class="knapprad py-valg">${R.ui.knapp(R.t("Jeg har {art}!", { art: art(k) }), "krav", { variant: "lilla", ikon: "🙋", av: alleHar })}${videre}</div>`, lenker);
           }
           return `${pyramideHtml(sp)}${info}${dokk}`;
         },
@@ -513,7 +513,7 @@
 
       // Someone claims the card: who, to whom, accept / pass / bluff, and how it ended.
       krav: {
-        tittel: (S) => `Rad ${radFor(S.spill.snudd - 1)} · ${slurkTekst(radFor(S.spill.snudd - 1))}`,
+        tittel: (S) => `${R.t("Rad {r}", { r: radFor(S.spill.snudd - 1) })} · ${slurkTekst(radFor(S.spill.snudd - 1))}`,
         tilbake: (S) => {
           const sp = S.spill;
           spenning = false;
@@ -537,39 +537,39 @@
             // One hand-out per player per card.
             const brukt = alle.filter((i) => harDeltUt(sp, n, i));
             return `
-              <div class="py-krav-topp">${kortet}<div><p class="etikett">Rad ${rad} · ${esc(slurkTekst(rad))}</p><h1 id="skjerm-tittel">Hvem har ${esc(art(k))}?</h1></div></div>
+              <div class="py-krav-topp">${kortet}<div><p class="etikett">${esc(R.t("Rad {r}", { r: rad }))} · ${esc(slurkTekst(rad))}</p><h1 id="skjerm-tittel">${esc(R.t("Hvem har {art}?", { art: art(k) }))}</h1></div></div>
               ${R.ui.velgere("fra", alle, null, { av: (i) => harDeltUt(sp, n, i) })}
-              ${brukt.length ? `<p class="hjelp py-regel">${esc(navn(brukt))} har delt ut på dette kortet. Én gang hver!</p>` : ""}
-              ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke("Avbryt", "avbryt")))}`;
+              ${brukt.length ? `<p class="hjelp py-regel">${esc(R.t("{navn} har delt ut på dette kortet. Én gang hver!", { navn: navn(brukt) }))}</p>` : ""}
+              ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke(R.t("Avbryt"), "avbryt")))}`;
           }
           if (kr.steg === "til") {
             // Nobody is handed sips more than twice on the same card.
             const andre = alle.filter((i) => i !== kr.fra);
             const fulle = andre.filter((i) => skjermet(sp, n, i));
             return `
-              <div class="py-krav-topp">${kortet}<div><p class="etikett">${esc(R.navn(kr.fra))} deler ut</p><h1 id="skjerm-tittel">${esc(slurkTekst(rad))} – til hvem?</h1></div></div>
+              <div class="py-krav-topp">${kortet}<div><p class="etikett">${esc(R.t("{navn} deler ut", { navn: R.navn(kr.fra) }))}</p><h1 id="skjerm-tittel">${esc(R.t("{slurker} – til hvem?", { slurker: slurkTekst(rad) }))}</h1></div></div>
               ${R.ui.velgere("til", andre, null, { av: (i) => skjermet(sp, n, i) })}
-              ${fulle.length ? `<p class="hjelp py-regel">${esc(navn(fulle))} har fått slurker to ganger på dette kortet. Velg en annen!</p>` : ""}
-              ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke("Tilbake", "kravtilbake"), R.ui.lenke("Avbryt", "avbryt")))}`;
+              ${fulle.length ? `<p class="hjelp py-regel">${esc(R.t("{navn} har fått slurker to ganger på dette kortet. Velg en annen!", { navn: navn(fulle) }))}</p>` : ""}
+              ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke(R.t("Tilbake"), "kravtilbake"), R.ui.lenke(R.t("Avbryt"), "avbryt")))}`;
           }
           if (kr.steg === "svar")
             return `
-              <div class="py-krav-topp">${kortet}<div><p class="etikett">${esc(R.navn(kr.til))}, tror du på det?</p><h1 id="skjerm-tittel">${esc(R.navn(kr.fra))} sier: «Jeg har ${esc(art(k))}!»</h1></div></div>
+              <div class="py-krav-topp">${kortet}<div><p class="etikett">${esc(R.t("{navn}, tror du på det?", { navn: R.navn(kr.til) }))}</p><h1 id="skjerm-tittel">${esc(R.t("{navn} sier: «Jeg har {art}!»", { navn: R.navn(kr.fra), art: art(k) }))}</h1></div></div>
               <div class="py-duell">
-                <p><b>Godta:</b> ${esc(R.navn(kr.til))} tar ${esc(slurkTekst(rad))}.</p>
-                <p><b>Rop bløff:</b> Mobilen sjekker kortene. Taperen tar ${esc(slurkTekst(straff(rad)))}, og vinneren får 1 poeng.</p>
+                <p><b>${esc(R.t("Godta:"))}</b> ${esc(R.t("{navn} tar {slurker}.", { navn: R.navn(kr.til), slurker: slurkTekst(rad) }))}</p>
+                <p><b>${esc(R.t("Rop bløff:"))}</b> ${esc(R.t("Mobilen sjekker kortene. Taperen tar {slurker}, og vinneren får 1 poeng.", { slurker: slurkTekst(straff(rad)) }))}</p>
               </div>
               ${R.ui.dokk(
-                `<div class="knapprad py-valg">${R.ui.knapp("Jeg tror det", "godta", { variant: "mynte", ikon: "🤝" })}${R.ui.knapp("Bløff!", "bloff", { variant: "rosa", ikon: "🕵️" })}</div>`,
-                R.ui.lenkerad(R.ui.lenke("Står over", "staover"), R.ui.lenke("Tilbake", "kravtilbake"), R.ui.lenke("Avbryt", "avbryt")),
+                `<div class="knapprad py-valg">${R.ui.knapp(R.t("Jeg tror det"), "godta", { variant: "mynte", ikon: "🤝" })}${R.ui.knapp(R.t("Bløff!"), "bloff", { variant: "rosa", ikon: "🕵️" })}</div>`,
+                R.ui.lenkerad(R.ui.lenke(R.t("Står over"), "staover"), R.ui.lenke(R.t("Tilbake"), "kravtilbake"), R.ui.lenke(R.t("Avbryt"), "avbryt")),
               )}`;
           // Result
           const x = sp.logg[sp.logg.length - 1];
           if (spenning)
             return `
               <div class="py-sjekk">
-                <p class="etikett">Mobilen sjekker kortene til ${esc(R.navn(x.fra))} …</p>
-                <h1 id="skjerm-tittel">Har ${esc(R.navn(x.fra))} ${esc(art(k))}?</h1>
+                <p class="etikett">${esc(R.t("Mobilen sjekker kortene til {navn} …", { navn: R.navn(x.fra) }))}</p>
+                <h1 id="skjerm-tittel">${esc(R.t("Har {navn} {art}?", { navn: R.navn(x.fra), art: art(k) }))}</h1>
                 <div class="py-hand py-hand-skjult" aria-hidden="true">${sp.hender[x.fra].map(() => KORT.html(null)).join("")}</div>
               </div>
               ${R.ui.dokk("")}`;
@@ -581,28 +581,28 @@
           let bytteHtml = "";
           let poeng = "";
           if (x.over) {
-            stempel = `<span class="stempel lampe">Står over</span>`;
-            tekst = `${tilNavn} står over – helt greit. Ingen slurker denne gangen.`;
+            stempel = `<span class="stempel lampe">${esc(R.t("Står over"))}</span>`;
+            tekst = R.t("{navn} står over – helt greit. Ingen slurker denne gangen.", { navn: tilNavn });
           } else if (!x.ropte) {
-            stempel = `<span class="stempel mynte">Skål!</span>`;
-            tekst = `${velg(T.godtatt, n + sp.nr)} ${tilNavn} tar ${slurkTekst(x.slurker)}.`;
+            stempel = `<span class="stempel mynte">${esc(R.t("Skål!"))}</span>`;
+            tekst = `${velg(T.godtatt, n + sp.nr)} ${R.t("{navn} tar {slurker}.", { navn: tilNavn, slurker: slurkTekst(x.slurker) })}`;
           } else if (x.sant) {
             // The duel was lost by the caller: the proof is shown, and that card leaves the hand.
-            stempel = `<span class="stempel lampe">Sant!</span>`;
-            tekst = `${velg(T.sant, n + sp.nr)} ${tilNavn} tar ${slurkTekst(x.slurker)}.`;
-            poeng = `+1 poeng til ${fraNavn}`;
+            stempel = `<span class="stempel lampe">${esc(R.t("Sant!"))}</span>`;
+            tekst = `${velg(T.sant, n + sp.nr)} ${R.t("{navn} tar {slurker}.", { navn: tilNavn, slurker: slurkTekst(x.slurker) })}`;
+            poeng = R.t("+1 poeng til {navn}", { navn: fraNavn });
             const bevis = x.bytte ? x.bytte.gammelt : sp.hender[x.fra].find((y) => KORT.verdiAv(y) === KORT.verdiAv(k));
             bevisHtml = bevis == null ? "" : `<div class="py-hand py-bevis">${KORT.html(bevis, { opp: true, stor: true, attr: ' id="py-bevis0"' })}</div>`;
-            bytteHtml = x.bytte ? `<p class="py-bytte">Kortet er brukt. ${esc(fraNavn)} får et nytt hemmelig kort.</p>` : "";
+            bytteHtml = x.bytte ? `<p class="py-bytte">${esc(R.t("Kortet er brukt. {navn} får et nytt hemmelig kort.", { navn: fraNavn }))}</p>` : "";
           } else {
-            stempel = `<span class="stempel">Bløff!</span>`;
-            tekst = `${velg(T.bloff, n + sp.nr)} ${fraNavn} har ingen ${uten(k)} og tar ${slurkTekst(x.slurker)} selv.`;
-            poeng = `+1 poeng til ${tilNavn}`;
+            stempel = `<span class="stempel">${esc(R.t("Bløff!"))}</span>`;
+            tekst = `${velg(T.bloff, n + sp.nr)} ${R.t("{navn} har ingen {kort} og tar {slurker} selv.", { navn: fraNavn, kort: uten(k), slurker: slurkTekst(x.slurker) })}`;
+            poeng = R.t("+1 poeng til {navn}", { navn: tilNavn });
           }
           const venter = sp.nytt && !sp.nytt.sett;
           return `
-            <div class="py-krav-topp">${kortet}<div><p class="etikett">Rad ${rad} · ${esc(KORT.Navn(k))}</p>
-              <p class="py-par"><span class="py-person">${R.avatar(x.fra)}<span>${esc(fraNavn)}</span></span><b aria-label="delte ut til">→</b><span class="py-person">${R.avatar(x.til)}<span>${esc(tilNavn)}</span></span></p></div></div>
+            <div class="py-krav-topp">${kortet}<div><p class="etikett">${esc(R.t("Rad {r}", { r: rad }))} · ${esc(KORT.Navn(k))}</p>
+              <p class="py-par"><span class="py-person">${R.avatar(x.fra)}<span>${esc(fraNavn)}</span></span><b aria-label="${esc(R.t("delte ut til"))}">→</b><span class="py-person">${R.avatar(x.til)}<span>${esc(tilNavn)}</span></span></p></div></div>
             <div class="py-resultat" role="status">
               <h1 class="vh" id="skjerm-tittel">${esc(tekst)}${poeng ? ` ${esc(poeng)}.` : ""}</h1>
               <div class="stempel-sted">${stempel}</div>
@@ -613,8 +613,8 @@
               ${x.over || poeng ? "" : `<p class="py-fot">${esc(velg(T.fot, n + sp.nr))}</p>`}
             </div>
             ${R.ui.dokk(
-              venter ? R.ui.knapp(`Gi mobilen til ${fraNavn}`, "tilnytt", { variant: "stor" }) : R.ui.knapp("Tilbake til pyramiden", "tilpyramiden", { variant: "stor" }),
-              sp.angre ? R.ui.lenkerad(R.ui.lenke("Angre", "angre")) : "",
+              venter ? R.ui.knapp(R.t("Gi mobilen til {navn}", { navn: fraNavn }), "tilnytt", { variant: "stor" }) : R.ui.knapp(R.t("Tilbake til pyramiden"), "tilpyramiden", { variant: "stor" }),
+              sp.angre ? R.ui.lenkerad(R.ui.lenke(R.t("Angre"), "angre")) : "",
             )}`;
         },
         etter: flipp,
@@ -622,7 +622,7 @@
 
       // After a proven claim: the owner alone sees the card that replaced the one shown as proof.
       nytt: {
-        tittel: "Nytt kort",
+        tittel: R.t("Nytt kort"),
         // Not seen yet: back to the verdict, where «Angre» is. Seen: the hand-out stands.
         tilbake: (S) => {
           const sp = S.spill;
@@ -639,18 +639,18 @@
           const i = ny.i;
           return `
             <div class="py-mottaker">
-              <p class="etikett">Gi mobilen til</p>
+              <p class="etikett">${esc(R.t("Gi mobilen til"))}</p>
               <h1 id="skjerm-tittel" class="spillernavn">${R.avatar(i, "stor")}<span>${esc(R.navn(i))}</span></h1>
             </div>
-            ${R.ui.mappe({ id: "n" + i, etikett: "Ditt nye kort", tekst: "Hold fingeren på kortet for å se", etikettAria: `Hold fingeren på kortet for å se det nye kortet til ${R.navn(i)}` })}
-            <p class="hjelp">${ny.sett ? "Husket det? Kortet du viste fram, er ute av spillet." : `Bare ${esc(R.navn(i))} skal se. Kortet som ble vist fram, er byttet ut.`}</p>
-            ${R.ui.dokk(R.ui.knapp("Ferdig – til pyramiden", "nyttferdig", { av: !ny.sett }))}`;
+            ${R.ui.mappe({ id: "n" + i, etikett: R.t("Ditt nye kort"), tekst: R.t("Hold fingeren på kortet for å se"), etikettAria: R.t("Hold fingeren på kortet for å se det nye kortet til {navn}", { navn: R.navn(i) }) })}
+            <p class="hjelp">${esc(ny.sett ? R.t("Husket det? Kortet du viste fram, er ute av spillet.") : R.t("Bare {navn} skal se. Kortet som ble vist fram, er byttet ut.", { navn: R.navn(i) }))}</p>
+            ${R.ui.dokk(R.ui.knapp(R.t("Ferdig – til pyramiden"), "nyttferdig", { av: !ny.sett }))}`;
         },
       },
 
       // A real pause: water for everyone before row 3 and before the top card.
       vann: {
-        tittel: "Vannpause",
+        tittel: R.t("Vannpause"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -659,12 +659,12 @@
             <div class="py-vannpause">
               ${VANNGLASS}
               <div class="py-vanntekst">
-                <p class="etikett">${topp ? "Før toppkortet" : `Før rad ${radFor(sp.snudd)}`}</p>
-                <h1 id="skjerm-tittel">Vannpause!</h1>
+                <p class="etikett">${esc(topp ? R.t("Før toppkortet") : R.t("Før rad {r}", { r: radFor(sp.snudd) }))}</p>
+                <h1 id="skjerm-tittel">${esc(R.t("Vannpause!"))}</h1>
                 <p class="ingress">${esc(velg(topp ? T.vannTopp : T.vann, sp.nr))}</p>
               </div>
             </div>
-            ${R.ui.dokk(R.ui.knapp("Skål i vann!", "vannferdig", { variant: "himmel" }), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Skål i vann!"), "vannferdig", { variant: "himmel" }), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
         inn() {
           R.lyd.pop();
@@ -674,7 +674,7 @@
 
       // Memory finale: everyone says their four cards out loud, then the cards are turned.
       finale: {
-        tittel: "Finalen",
+        tittel: R.t("Finalen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -683,32 +683,32 @@
           const hand = sp.hender[i];
           const opp = f.steg !== "spor";
           const kort = `<div class="py-hand py-finale-hand">${hand.map((k, n) => KORT.html(k, { opp, stor: true, attr: ` id="py-f${n}"` })).join("")}</div>`;
-          const topp = `${R.ui.fremdrift(sp.antall, i)}<div class="py-hvem">${R.avatar(i, "mid")}<div><p class="etikett">Husker du kortene dine?</p><h1 id="skjerm-tittel">${esc(R.navn(i))}</h1></div></div>`;
+          const topp = `${R.ui.fremdrift(sp.antall, i)}<div class="py-hvem">${R.avatar(i, "mid")}<div><p class="etikett">${esc(R.t("Husker du kortene dine?"))}</p><h1 id="skjerm-tittel">${esc(R.navn(i))}</h1></div></div>`;
           if (f.steg === "spor")
             return `${topp}
               ${kort}
-              <p class="ingress py-midt">Si alle fire kortene høyt – så snur vi dem. Hvert glemte kort gir 1 slurk.</p>
-              ${R.ui.dokk(R.ui.knapp(`Snu kortene til ${R.navn(i)}`, "visfasit", { variant: "stor" }), i === 0 ? R.ui.lenkerad(R.ui.lenke("Hopp over finalen", "kaaring")) : "")}`;
+              <p class="ingress py-midt">${esc(R.t("Si alle fire kortene høyt – så snur vi dem. Hvert glemte kort gir 1 slurk."))}</p>
+              ${R.ui.dokk(R.ui.knapp(R.t("Snu kortene til {navn}", { navn: R.navn(i) }), "visfasit", { variant: "stor" }), i === 0 ? R.ui.lenkerad(R.ui.lenke(R.t("Hopp over finalen"), "kaaring")) : "")}`;
           if (f.steg === "vis")
             return `${topp}
               ${kort}
-              <h2 class="py-midt">Hvor mange husket ${esc(R.navn(i))}?</h2>
-              ${R.ui.dokk(`<div class="py-tall">${[0, 1, 2, 3, 4].map((t) => `<button class="knapp-2" data-h="husket" data-v="${t}" aria-label="${t} av 4">${t}</button>`).join("")}</div>`)}`;
+              <h2 class="py-midt">${esc(R.t("Hvor mange husket {navn}?", { navn: R.navn(i) }))}</h2>
+              ${R.ui.dokk(`<div class="py-tall">${[0, 1, 2, 3, 4].map((t) => `<button class="knapp-2" data-h="husket" data-v="${t}" aria-label="${esc(R.t("{n} av 4", { n: t }))}">${t}</button>`).join("")}</div>`)}`;
           const h = f.husket[i];
           const siste = i === sp.antall - 1;
           return `${topp}
             ${kort}
             <div class="py-resultat" role="status">
-              <div class="stempel-sted"><span class="stempel ${h === 4 ? "mynte" : "lampe"}">${h} av 4</span></div>
-              <p class="py-resultat-tekst">${esc(h === 4 ? velg(T.elefant, i + sp.nr) : `${R.navn(i)} glemte ${4 - h} – ta ${slurkTekst(4 - h)}.`)}</p>
+              <div class="stempel-sted"><span class="stempel ${h === 4 ? "mynte" : "lampe"}">${esc(R.t("{n} av 4", { n: h }))}</span></div>
+              <p class="py-resultat-tekst">${esc(h === 4 ? velg(T.elefant, i + sp.nr) : R.t("{navn} glemte {n} – ta {slurker}.", { navn: R.navn(i), n: 4 - h, slurker: slurkTekst(4 - h) }))}</p>
             </div>
-            ${R.ui.dokk(R.ui.knapp(siste ? "Til kåringen" : `Neste: ${R.navn(i + 1)}`, "nestefinale", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke("Angre", "angrefinale")))}`;
+            ${R.ui.dokk(R.ui.knapp(siste ? R.t("Til kåringen") : R.t("Neste: {navn}", { navn: R.navn(i + 1) }), "nestefinale", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke(R.t("Angre"), "angrefinale")))}`;
         },
         etter: flipp,
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -727,39 +727,39 @@
           const navn = (liste) => R.ramsOpp(liste.map((i) => R.navn(i)));
           const priser = [
             bloff
-              ? prisHtml("🎭", "Bløffmester", navn(bloff.hvem), `Bløffet ${bloff.maks === 1 ? "én gang" : `${bloff.maks} ganger`} uten å bli tatt. Nå vet dere det!`, "var(--lilla)")
-              : prisHtml("🎭", "Bløffmester", "Ingen", "Ingen slapp unna med en bløff i kveld. For en ærlig gjeng!", "var(--lilla)"),
+              ? prisHtml("🎭", R.t("Bløffmester"), navn(bloff.hvem), R.t("Bløffet {ganger} uten å bli tatt. Nå vet dere det!", { ganger: R.t("én gang|{n} ganger", { n: bloff.maks }) }), "var(--lilla)")
+              : prisHtml("🎭", R.t("Bløffmester"), R.t("Ingen"), R.t("Ingen slapp unna med en bløff i kveld. For en ærlig gjeng!"), "var(--lilla)"),
             avslort
-              ? prisHtml("🔍", "Skarpeste øye", navn(avslort.hvem), `Avslørte ${avslort.maks === 1 ? "én bløff" : `${avslort.maks} bløffer`}.`, "var(--himmel)")
+              ? prisHtml("🔍", R.t("Skarpeste øye"), navn(avslort.hvem), R.t("Avslørte én bløff.|Avslørte {n} bløffer.", { n: avslort.maks }), "var(--himmel)")
               : "",
             mistrodd
-              ? prisHtml("😇", "Uskyldig dømt", navn(mistrodd.hvem), `Ble kalt bløffmaker ${mistrodd.maks === 1 ? "én gang" : `${mistrodd.maks} ganger`} – og hadde kortet.`, "var(--lampe)")
+              ? prisHtml("😇", R.t("Uskyldig dømt"), navn(mistrodd.hvem), R.t("Ble kalt bløffmaker {ganger} – og hadde kortet.", { ganger: R.t("én gang|{n} ganger", { n: mistrodd.maks }) }), "var(--lampe)")
               : "",
           ];
           const husket = sp.fin.husket.map((h, i) => (typeof h === "number" ? { h, i } : null)).filter(Boolean);
           if (husket.length) {
             const maks = Math.max(...husket.map((x) => x.h));
             const hvem = husket.filter((x) => x.h === maks).map((x) => x.i);
-            priser.push(prisHtml("🐘", "Elefanthukommelse", navn(hvem), maks === 4 ? "Husket alle fire kortene sine." : `Husket ${maks} av 4 kort.`, "var(--mynte)"));
+            priser.push(prisHtml("🐘", R.t("Elefanthukommelse"), navn(hvem), maks === 4 ? R.t("Husket alle fire kortene sine.") : R.t("Husket {n} av 4 kort.", { n: maks }), "var(--mynte)"));
           }
           return `
             <div class="banner aksent">
               ${R.figur()}
-              <p class="etikett">Flest poeng${best ? ` · ${best}` : ""}</p>
-              <h1 id="skjerm-tittel">${vinnere.length ? esc(`${R.ramsOpp(vinnere.map((i) => R.navn(i)))} vinner!`) : "Ingen vinner denne gangen"}</h1>
-              ${vinnere.length ? "" : `<p class="ingress">Ingen bløffet seg unna, og ingen ropte bløff. For en ærlig gjeng!</p>`}
+              <p class="etikett">${esc(R.t("Flest poeng"))}${best ? ` · ${best}` : ""}</p>
+              <h1 id="skjerm-tittel">${vinnere.length ? esc(R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(vinnere.map((i) => R.navn(i))), n: vinnere.length })) : esc(R.t("Ingen vinner denne gangen"))}</h1>
+              ${vinnere.length ? "" : `<p class="ingress">${esc(R.t("Ingen bløffet seg unna, og ingen ropte bløff. For en ærlig gjeng!"))}</p>`}
             </div>
             ${R.ui.pall(rader)}
             <ul class="py-priser">${priser.join("")}</ul>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Poeng</h2></div>
-              <p class="hjelp">1 poeng for hver bløff som slapp unna, hver bløff du avslørte, og hver gang du ble kalt bløffmaker uten grunn.</p>
+              <div class="seksjon-hode"><h2>${esc(R.t("Poeng"))}</h2></div>
+              <p class="hjelp">${esc(R.t("1 poeng for hver bløff som slapp unna, hver bløff du avslørte, og hver gang du ble kalt bløffmaker uten grunn."))}</p>
               ${R.ui.poengliste(rader)}
-              ${sp.logg.length ? R.ui.lenke("Se hvem som ga hva", "logg") : ""}
+              ${sp.logg.length ? R.ui.lenke(R.t("Se hvem som ga hva"), "logg") : ""}
             </section>
-            <div class="py-vann"><span aria-hidden="true">💧</span><p>Drikk et glass vann før neste spill!</p></div>
+            <div class="py-vann"><span aria-hidden="true">💧</span><p>${esc(R.t("Drikk et glass vann før neste spill!"))}</p></div>
             ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -940,8 +940,8 @@
         const x = sp.logg[sp.logg.length - 1];
         R.si(
           sant
-            ? `${R.navn(x.fra)} hadde kortet. ${R.navn(x.til)} tar ${slurkTekst(x.slurker)}, og ${R.navn(x.fra)} får 1 poeng og et nytt hemmelig kort.`
-            : `Bløff! ${R.navn(x.fra)} tar ${slurkTekst(x.slurker)}, og ${R.navn(x.til)} får 1 poeng.`,
+            ? R.t("{fra} hadde kortet. {til} tar {slurker}, og {fra} får 1 poeng og et nytt hemmelig kort.", { fra: R.navn(x.fra), til: R.navn(x.til), slurker: slurkTekst(x.slurker) })
+            : R.t("Bløff! {fra} tar {slurker}, og {til} får 1 poeng.", { fra: R.navn(x.fra), til: R.navn(x.til), slurker: slurkTekst(x.slurker) }),
         );
       },
       // To the hold-to-see screen for the swapped-in card.
@@ -979,14 +979,14 @@
         spenning = false;
         sp.krav = null;
         sp.fase = "pyramide";
-        R.toast("Angret – utdelingen er tatt bort");
+        R.toast(R.t("Angret – utdelingen er tatt bort"));
         R.gaTil("pyramide");
       },
       logg(el, e, S) {
         R.ark(`
-          <h2 id="ark-tittel">Hvem ga hva</h2>
+          <h2 id="ark-tittel">${esc(R.t("Hvem ga hva"))}</h2>
           ${loggHtml(S.spill)}
-          <button class="knapp" data-h="lukk-ark">Lukk</button>`);
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Lukk"))}</button>`);
       },
       ferdig(el, e, S) {
         const sp = S.spill;
@@ -1043,7 +1043,7 @@
       },
       async avslutt(el, e, S) {
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avslutte spillet?", "Dere går rett til kåringen med stillingen så langt.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere går rett til kåringen med stillingen så langt."), R.t("Avslutt"), R.t("Spill videre"));
         if (!ja || !fortsatt() || !S.spill) return;
         H.kaaring(el, e, S);
       },

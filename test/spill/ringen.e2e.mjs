@@ -4,7 +4,11 @@
 // asks first, three King toasts and the finale with the crowning, then small screens (375 × 560 and
 // 320 × 568), «Spill igjen» and «Avslutt».
 const NAVN = ["Testspiller A", "Testspiller B", "Testspiller C", "Testspiller D"];
-const NOKKEL = "rusj.ringen.v1";
+// Language-neutral (rusj/SPRAK.md): the saved game's key per edition, rule titles from the edition's data.
+const NOKKEL = (t) => t.nokkel("ringen.v1");
+const NAVNET = { nb: "Ringen", en: "Ringleader", da: "Ringen" };
+const ROLLER = { nb: [/Tommelmester/, /Kompiser/], en: [/Thumb master/, /Mates/], da: [/Tommelmester/, /Makkere/] };
+const tittel = (t, v) => t.js(`window.RUSJ_DATA.kort.regler[${v}].tittel`);
 const RING = "document.querySelector('#ring-bord') && !document.querySelector('#nedtelling:not([hidden])')";
 const KORT = "document.querySelector('#ring-kort')";
 
@@ -16,12 +20,12 @@ async function aldersport(t, sjekkNei) {
   }
   t.sjekk(await t.finnes('[data-h="alder-ja"]'), "18-årsgrensen vises ikke før spillet");
   if (sjekkNei) {
-    t.sjekk(/18 år eller eldre|over 18/i.test(await t.tekst("#skjerm")), "Aldersgrensen spør ikke om man er 18 år eller eldre");
-    t.sjekk(/alkoholfritt/i.test(await t.tekst("#skjerm")), "Aldersgrensen nevner ikke at alkoholfritt teller");
+    t.sjekk(/18 år eller eldre|over 18|18 or over|18 år eller ældre/i.test(await t.tekst("#skjerm")), "Aldersgrensen spør ikke om man er 18 år eller eldre");
+    t.sjekk(/alkoholfrit|alcohol-free/i.test(await t.tekst("#skjerm")), "Aldersgrensen nevner ikke at alkoholfritt teller");
     await t.bilde("aldersgrense");
     await t.klikk('[data-h="alder-nei"]', 50);
-    await t.vent("location.pathname === '/' && document.readyState === 'complete'", 8000);
-    t.sjekk(!/\/ringen\//.test(await t.js("location.pathname")), "«Nei, ta meg tilbake» ble på spillsiden");
+    await t.vent(`location.pathname === ${JSON.stringify(t.forside)} && document.readyState === 'complete'`, 8000);
+    t.sjekk((await t.js("location.pathname")) === t.forside, "«Nei, ta meg tilbake» ble på spillsiden");
     await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
     t.sjekk(await t.finnes('[data-h="alder-ja"]'), "Etter «Nei» skal aldersgrensen vises igjen");
   }
@@ -33,7 +37,7 @@ async function aldersport(t, sjekkNei) {
 // deck), then reload. plasser: [[pos, value 0–12], ...]
 async function leggKort(t, plasser) {
   const ok = await t.js(`(() => {
-    const s = JSON.parse(localStorage.getItem(${JSON.stringify(NOKKEL)}));
+    const s = JSON.parse(localStorage.getItem(${JSON.stringify(NOKKEL(t))}));
     const r = s.spill.ring;
     const satt = new Set();
     for (const [pos, v] of ${JSON.stringify(plasser)}) {
@@ -42,7 +46,7 @@ async function leggKort(t, plasser) {
       [r[pos], r[j]] = [r[j], r[pos]];
       satt.add(pos);
     }
-    localStorage.setItem(${JSON.stringify(NOKKEL)}, JSON.stringify(s));
+    localStorage.setItem(${JSON.stringify(NOKKEL(t))}, JSON.stringify(s));
     return true;
   })()`);
   t.sjekk(ok, `Fant ikke kortene ${JSON.stringify(plasser)} i ringen`);
@@ -53,17 +57,20 @@ async function leggKort(t, plasser) {
 export default async function (t) {
   const pause = () => t.sov(420); // taps right after a screen change are ignored on purpose
   const s = () => t.tilstand();
+  // Text the players type (escaped, never markup), in words that fit the edition.
+  const REGEL = t.norsk ? "Ingen får si <x-q>ja</x-q>" : "Test rule <x-q>X</x-q>";
+  const SKAL = t.norsk ? "Skål for testgjengen!" : "Test toast!";
 
   // ---------- 18+ gate and home ----------
   await aldersport(t, true);
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === "Ringen", "Hjem-skjermen viser ikke «Ringen» etter aldersgrensen");
+  t.sjekk((await t.tekst("#skjerm h1")).trim() === NAVNET[t.sprak], "Hjem-skjermen viser ikke «Ringen» etter aldersgrensen");
   t.sjekk(await t.finnes("#tilportal:not([hidden])"), "Mangler rusj-knappen øverst på hjem-skjermen");
   await t.bilde("hjem-etter-18");
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   t.sjekk(!(await t.finnes('[data-h="alder-ja"]')), "Aldersgrensen kom tilbake selv om den var godkjent");
   await t.klikk("#reglerknapp");
   t.sjekk((await t.antall("#ark .ring-tabell li")) === 13, "Reglene viser ikke alle de 13 kortverdiene");
-  t.sjekk(/alkoholfritt/i.test(await t.tekst("#ark")), "Reglene sier ikke at alkoholfritt teller like mye");
+  t.sjekk(/alkoholfrit|alcohol-free/i.test(await t.tekst("#ark")), "Reglene sier ikke at alkoholfritt teller like mye");
   await t.bilde("regler-kortene");
   await t.klikk('#ark [data-h="lukk-ark"]');
 
@@ -72,7 +79,7 @@ export default async function (t) {
   await aldersport(t, false);
   await t.klikk('[data-h="nytt"]');
   t.sjekk((await t.antall(".spiller")) === 4, "Oppsettet viser ikke de fire lagrede spillerne");
-  t.sjekk(/alle kan stå over/i.test(await t.tekst("#skjerm")), "Oppsettet sier ikke at alle kan stå over");
+  t.sjekk(/alle kan stå over|anyone can sit/i.test(await t.tekst("#skjerm")), "Oppsettet sier ikke at alle kan stå over");
   await t.bilde("oppsett", true);
   await t.klikk('[data-h="start"]');
   await t.vent(RING);
@@ -106,27 +113,27 @@ export default async function (t) {
   await leggKort(t, [[0, 10], [26, 7], [39, 4]]);
   await t.trykk('#ring-bord [data-pos="0"]');
   await t.vent(KORT, 5000);
-  t.sjekk(/Regel/.test(await t.tekst("#ring-kort h1")), "Knekt skal gi «Regel»");
+  t.sjekk((await t.tekst("#ring-kort h1")).includes(await tittel(t, 10)), "Knekt skal gi «Regel»");
   const ide1 = await t.tekst(".ring-ide-tekst");
   for (let n = 0; n < 3 && (await t.tekst(".ring-ide-tekst")) === ide1; n++) await t.klikk('[data-h="ide"]');
   t.sjekk((await t.tekst(".ring-ide-tekst")) !== ide1, "🎲 ga ikke et nytt forslag");
   await t.klikk('[data-h="ide-bruk"]');
   t.sjekk((await t.js("document.querySelector('#ring-utkast').value")).length > 3, "«Bruk» fylte ikke inn forslaget");
-  await t.skrivInn("#ring-utkast", "Ingen får si <x-q>ja</x-q>");
+  await t.skrivInn("#ring-utkast", REGEL);
   await t.bilde("regel");
   await t.lastSide(t.side, KORT);
-  t.sjekk((await t.js("document.querySelector('#ring-utkast').value")) === "Ingen får si <x-q>ja</x-q>", "Regelteksten forsvant ved omlasting");
+  t.sjekk((await t.js("document.querySelector('#ring-utkast').value")) === REGEL, "Regelteksten forsvant ved omlasting");
   await pause();
   await t.klikk('[data-h="neste"]');
   await t.vent(RING);
   st = await s();
-  t.sjekk(st.spill.regler.length >= 1 && st.spill.regler[st.spill.regler.length - 1].t === "Ingen får si <x-q>ja</x-q>", "Regelen ble ikke lagret");
+  t.sjekk(st.spill.regler.length >= 1 && st.spill.regler[st.spill.regler.length - 1].t === REGEL, "Regelen ble ikke lagret");
 
   // ---------- A mate, picked in a sheet ----------
   await pause();
   await t.trykk('#ring-bord [data-pos="26"]');
   await t.vent(KORT, 5000);
-  t.sjekk(/Kompis/.test(await t.tekst("#ring-kort h1")), "Åtter skal gi «Kompis»");
+  t.sjekk((await t.tekst("#ring-kort h1")).includes(await tittel(t, 7)), "Åtter skal gi «Kompis»");
   const kompisTur = (await s()).spill.tur;
   await t.klikk('[data-h="kompis"]');
   t.sjekk((await t.antall('#ark [data-h="ark-svar"]')) === 3, "Kompis-arket skal vise de tre andre spillerne");
@@ -144,7 +151,7 @@ export default async function (t) {
   await t.trykk('#ring-bord [data-pos="39"]');
   await t.vent(KORT, 5000);
   st = await s();
-  t.sjekk(/Tommelmester/.test(await t.tekst("#ring-kort h1")) && st.spill.roller.tommel === st.spill.tur, "Femmer skal gjøre spilleren til tommelmester");
+  t.sjekk((await t.tekst("#ring-kort h1")).includes(await tittel(t, 4)) && st.spill.roller.tommel === st.spill.tur, "Femmer skal gjøre spilleren til tommelmester");
   await pause();
   await t.klikk('[data-h="neste"]');
   await t.vent(RING);
@@ -152,7 +159,7 @@ export default async function (t) {
   await t.bilde("ring-med-roller");
   await t.klikk('[data-h="roller"]');
   const ark = await t.tekst("#ark");
-  t.sjekk(/Tommelmester/.test(ark) && /Kompiser/.test(ark) && ark.includes("Ingen får si <x-q>ja</x-q>"), "«Gjelder nå» viser ikke roller og regler");
+  t.sjekk(ROLLER[t.sprak].every((r) => r.test(ark)) && ark.includes(REGEL), "«Gjelder nå» viser ikke roller og regler");
   t.sjekk(!(await t.finnes("x-q")), "Regelteksten ble tolket som HTML");
   await t.bilde("gjelder-na");
   await t.klikk('#ark [data-h="lukk-ark"]');
@@ -170,7 +177,7 @@ export default async function (t) {
   }
   st = await s();
   t.sjekk(st.spill.fase === "vann" && st.spill.nr === 12, `Vannpausen kom ikke etter 12 kort (fase ${st.spill.fase}, kort ${st.spill.nr})`);
-  t.sjekk(/vann/i.test(await t.tekst("#skjerm h1")), "Vannpausen har ikke en tydelig overskrift");
+  t.sjekk(/vann|water|vand/i.test(await t.tekst("#skjerm h1")), "Vannpausen har ikke en tydelig overskrift");
   await t.bilde("vannpause");
   await pause();
   await t.klikk('[data-h="vann-ferdig"]');
@@ -201,7 +208,8 @@ export default async function (t) {
   // Landscape (844 × 390): the card and the ring sit beside the dock, never under it
   const fri = (sel) => t.js(`(() => { const a = document.querySelector(${JSON.stringify(sel)}); if (!a) return false; const r = a.getBoundingClientRect(); if (r.top < 0 || r.bottom > innerHeight + 1) return false; const d = document.querySelector('#skjerm .dokk'); if (!d) return true; const q = d.getBoundingClientRect(); return q.right <= r.left || q.left >= r.right || q.bottom <= r.top || q.top >= r.bottom; })()`);
   const synlig = (sel) => t.js(`(() => { const a = document.querySelector(${JSON.stringify(sel)}); return !!a && getComputedStyle(a).display !== "none" && a.getBoundingClientRect().height > 0; })()`);
-  t.sjekk((await t.tekst(".ring-neste-linje")).includes("trekker neste") && (await t.tekst('[data-h="neste"]')).trim() === "Neste kort", "Kortet viser ikke «X trekker neste» over «Neste kort»");
+  t.sjekk(!t.norsk || ((await t.tekst(".ring-neste-linje")).includes("trekker neste") && (await t.tekst('[data-h="neste"]')).trim() === "Neste kort"), "Kortet viser ikke «X trekker neste» over «Neste kort»");
+  t.sjekk(/Testspiller/.test(await t.tekst(".ring-neste-linje")), "Kortet viser ikke hvem som trekker neste");
   for (const [b, h] of [[Math.min(375, b0), 560], [320, 568], [844, 390]]) {
     await t.send("Emulation.setDeviceMetricsOverride", { width: b, height: h, deviceScaleFactor: 2, mobile: true });
     await t.sov(500);
@@ -232,7 +240,7 @@ export default async function (t) {
       t.sjekk(await over("#skjerm h1"), `Navnet skjules bak knappene på ${b} × ${h}`);
     }
     // Short screens: «Gjelder nå» is one line with the role written out
-    t.sjekk(await synlig(".ring-roller-linje") && /Tommel: /.test(await t.tekst(".ring-roller-linje")), `«Gjelder nå» er ikke én linje med rollen skrevet ut på ${b} × ${h}`);
+    t.sjekk(await synlig(".ring-roller-linje") && ({ nb: /Tommel: /, en: /Thumb: /, da: /Tommel: / })[t.sprak].test(await t.tekst(".ring-roller-linje")), `«Gjelder nå» er ikke én linje med rollen skrevet ut på ${b} × ${h}`);
     if (b <= b0) await t.bilde(`ring-${b}x${h}`);
   }
   await t.send("Emulation.setDeviceMetricsOverride", { width: b0, height: h0, deviceScaleFactor: 2, mobile: true });
@@ -251,10 +259,10 @@ export default async function (t) {
     await t.vent(KORT, 5000);
     st = await s();
     if (st.spill.konger < 4) {
-      t.sjekk(/Kongeskål/.test(await t.tekst("#ring-kort h1")), "Kongen skal gi «Kongeskål»");
+      t.sjekk((await t.tekst("#ring-kort h1")).includes(await tittel(t, 12)), "Kongen skal gi «Kongeskål»");
       if (!skrevSkal) {
         skrevSkal = true;
-        await t.skrivInn("#ring-utkast", "Skål for testgjengen!");
+        await t.skrivInn("#ring-utkast", SKAL);
         await t.bilde("kongeskal");
       }
       await pause();
@@ -270,7 +278,7 @@ export default async function (t) {
   st = await s();
   t.sjekk(st.spill.konger === 4 && st.spill.kronet === st.spill.tur, "Den fjerde kongen ga ikke finale");
   t.sjekk(await t.finnes("#ring-kort.finale"), "Finalekortet vises ikke");
-  t.sjekk(!skrevSkal || (await t.tekst(".ring-skaler")).includes("Skål for testgjengen!"), "Finalen viser ikke skålene");
+  t.sjekk(!skrevSkal || (await t.tekst(".ring-skaler")).includes(SKAL), "Finalen viser ikke skålene");
   t.sjekk(!/drikk (opp|ut)|hele glasset|chug|shot/i.test(await t.tekst("#ring-kort")), "Finalen må aldri be noen drikke opp");
   await t.sov(400);
   await t.bilde("finale");
@@ -278,11 +286,11 @@ export default async function (t) {
   await pause();
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.ring-banner')");
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === `${NAVN[kronet]} ble kronet!`, `Feil kåring: «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk(!skrevSkal || (await t.tekst("#skjerm")).includes("Skål for testgjengen!"), "Kåringen viser ikke kveldens skåler");
+  t.sjekk(/KÅRINGEN|Kåringen|results/i.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk(t.norsk ? (await t.tekst("#skjerm h1")).trim() === `${NAVN[kronet]} ble kronet!` : (await t.tekst("#skjerm h1")).includes(NAVN[kronet]), `Feil kåring: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(!skrevSkal || (await t.tekst("#skjerm")).includes(SKAL), "Kåringen viser ikke kveldens skåler");
   t.sjekk(await t.finnes(".flere-spill"), "Sluttskjermen mangler «Spill noe annet med samme gjeng»");
-  t.sjekk(await t.finnes('#skjerm a.lenke[href="/"]'), "Mangler «Alle spill» på sluttskjermen");
+  t.sjekk(await t.finnes(`#skjerm a.lenke[href="${t.forside}"]`), "Mangler «Alle spill» på sluttskjermen");
   t.sjekk((await s())._aktiv === false, "Et ferdig spill skal ikke være merket som pågående");
   t.sjekk(!(await t.finnes("x-q")), "Brukertekst ble tolket som HTML på kåringen");
   await t.sov(600);
@@ -340,7 +348,7 @@ export default async function (t) {
   await pause();
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.ring-banner')");
-  t.sjekk(/ble kronet!/.test(await t.tekst("#skjerm h1")) && /Finalen/i.test(await t.tekst(".ring-banner .etikett")), "Tidlig finale ga ikke kåring");
+  t.sjekk(t.norsk ? /ble kronet!/.test(await t.tekst("#skjerm h1")) && /Finalen/i.test(await t.tekst(".ring-banner .etikett")) : /Testspiller/.test(await t.tekst("#skjerm h1")), "Tidlig finale ga ikke kåring");
   await t.bilde("kaaring-tidlig", true);
 
   // ---------- «Avslutt» → «Avslutt» ends without a finale ----------
@@ -358,7 +366,7 @@ export default async function (t) {
 
 // Give the turn to player i (and reload), for a predictable "next" player.
 async function endreTur(t, i) {
-  await t.js(`(() => { const s = JSON.parse(localStorage.getItem(${JSON.stringify(NOKKEL)})); s.spill.tur = ${i}; localStorage.setItem(${JSON.stringify(NOKKEL)}, JSON.stringify(s)); })()`);
+  await t.js(`(() => { const s = JSON.parse(localStorage.getItem(${JSON.stringify(NOKKEL(t))})); s.spill.tur = ${i}; localStorage.setItem(${JSON.stringify(NOKKEL(t))}, JSON.stringify(s)); })()`);
   await t.lastSide(t.side, RING);
   await t.sov(420);
 }

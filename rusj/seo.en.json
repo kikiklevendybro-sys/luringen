@@ -395,6 +395,31 @@
         "mafia party game",
         "one night werewolf"
       ]
+    },
+    "torsten": {
+      "tittel": "Never have I ever drinking game – 500 cards (18+)",
+      "frase": "Never have I ever – drinking game",
+      "beskrivelse": "Play ‘Never have I ever’ as a drinking game for adults (18+): over 500 cards in nine packs, small sips only, and alcohol-free counts just as much."
+    },
+    "ringen": {
+      "tittel": "Ring of Fire card drinking game – free (18+)",
+      "frase": "Card ring drinking game",
+      "beskrivelse": "A card ring drinking game for adults (18+), like Ring of Fire: draw a card and follow its rule. Small sips only – alcohol-free counts the same."
+    },
+    "pyramiden": {
+      "tittel": "Pyramid drinking game – cards and bluffing (18+)",
+      "frase": "Pyramid – card drinking game",
+      "beskrivelse": "Pyramid, the card drinking game for adults (18+): four secret cards, fifteen in a pyramid – hand out sips or bluff. The phone keeps track."
+    },
+    "bussen": {
+      "tittel": "Ride the bus drinking game – red or black? (18+)",
+      "frase": "Ride the bus – card drinking game",
+      "beskrivelse": "Ride the bus as a drinking game for adults (18+): red or black, higher or lower – and whoever misses most rides the bus. Alcohol-free counts the same."
+    },
+    "hjulet": {
+      "tittel": "Drinking wheel – spin it, make house rules (18+)",
+      "frase": "Drinking wheel",
+      "beskrivelse": "Spin the big drinking wheel (18+): truths, safe challenges, toasts and your own house rules. Small sips only – alcohol-free counts just as much."
     }
   }
 }

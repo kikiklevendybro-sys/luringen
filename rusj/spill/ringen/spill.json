@@ -10,5 +10,23 @@
   "tagger": ["drikke", "fest"],
   "rekkefolge": 43,
   "alder18": true,
-  "sok": ["ring of fire", "kongens kopp", "kings cup", "drikkelek kort", "drikkeleker", "drikkespill med kort"]
+  "sok": ["ring of fire", "kongens kopp", "kings cup", "drikkelek kort", "drikkeleker", "drikkespill med kort"],
+  "i18n": {
+    "en": {
+      "navn": "Ringleader",
+      "undertittel": "The card ring",
+      "kort": "Draw a card from the ring – every card has its own rule.",
+      "beskrivelse": "Free card drinking game (18+). Draw a card from the ring – every card has its own rule. Small sips only, and alcohol-free counts just as much.",
+      "slug": "ringleader",
+      "sok": ["ring of fire", "ring of fire rules", "kings cup", "kings drinking game", "card drinking game", "drinking games with cards", "drinking games"]
+    },
+    "da": {
+      "navn": "Ringen",
+      "undertittel": "Kortringen",
+      "kort": "Træk et kort fra ringen – hvert kort har sin egen regel.",
+      "beskrivelse": "Gratis drukspil med kort på dansk (18+). Træk et kort fra ringen – hvert kort har sin regel. Kun små slurke, og alkoholfrit tæller lige så meget.",
+      "slug": "ringen",
+      "sok": ["ring of fire", "ring of fire regler", "kings cup", "drukspil med kort", "drukspil", "kortspil med druk"]
+    }
+  }
 }
