@@ -111,6 +111,11 @@
       "tittel": "Snake – the classic snake game, free",
       "frase": "Snake",
       "beskrivelse": "Free Snake in your browser. Steer with swipes, arrows or the keyboard, eat fruit and grow – three speeds, with or without walls, and your own best score."
+    },
+    "dobleren": {
+      "tittel": "2048 – play free in your browser, no ads",
+      "frase": "2048",
+      "beskrivelse": "Free 2048 in your browser. Swipe the tiles, merge matching numbers and reach 2048 – on 4 × 4 or 5 × 5, with an undo button and your own high score."
     }
   }
 }

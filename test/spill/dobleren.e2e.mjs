@@ -6,6 +6,8 @@
 // back); a swipe that moves nothing nudges the board; reload and back + continue; 2048 is celebrated
 // and the game goes on; a full board ends the game and the result screen can take the last move
 // back; a game left for a new one keeps its score as the record; 5 × 5; the board and the arrow
+// (Runs in every edition: node test/rusj-e2e.mjs --sprak en dobleren. The texts are checked in
+// Norwegian only (t.norsk); elsewhere the numbers, the state, the address and the links.)
 // buttons fit at 320×568 and 375×560 without scrolling the page.
 export default async function (t) {
   const spill = async () => (await t.tilstand()).spill;
@@ -45,10 +47,11 @@ export default async function (t) {
   await t.vent("document.querySelectorAll('.db-flis').length === 2");
   let s = await spill();
   t.sjekk(s.str === 3 && s.dagens === dag.tekst && s.forsok === 1 && (await t.antall(".db-ruter i")) === 9, "Dagens lynrunde er ikke 3 × 3 med dagens dato");
-  t.sjekk(/dagens lynrunde/i.test(await t.tekst("#topp-tittel")) && !(await t.finnes('[data-h="angre"]')), "Lynrunden skal hete «Dagens lynrunde» og ikke ha angreknapp");
+  t.sjekk((!t.norsk || /dagens lynrunde/i.test(await t.tekst("#topp-tittel"))) && !(await t.finnes('[data-h="angre"]')), "Lynrunden skal hete «Dagens lynrunde» og ikke ha angreknapp");
   const lesTabell = () => t.js(`Array.from(document.querySelectorAll(".db-tabell tr")).map((tr) => Array.from(tr.children).map((td) => td.textContent).join(",")).join(";")`);
+  const TOM = { nb: "tom", en: "empty", da: "tom" }[t.sprak]; // an empty cell, read aloud
   const somTabell = (sp) =>
-    Array.from({ length: sp.str }, (_, y) => Array.from({ length: sp.str }, (_, x) => (sp.fliser.find((f) => f.x === x && f.y === y) || { v: "tom" }).v).join(",")).join(";");
+    Array.from({ length: sp.str }, (_, y) => Array.from({ length: sp.str }, (_, x) => (sp.fliser.find((f) => f.x === x && f.y === y) || { v: TOM }).v).join(",")).join(";");
   t.sjekk((await lesTabell()) === somTabell(s) && (await t.js("!document.querySelector('.db-tabell').closest('[aria-hidden]')")), "Brettet finnes ikke som tabell for skjermleser");
   const dagStart = brett(s);
   await t.bilde("dagens");
@@ -62,14 +65,14 @@ export default async function (t) {
   let alt = await t.tilstand();
   t.sjekk(s.trekk === 1 && alt.daglig.forsok && alt.daglig.forsok.n === 1 && s.forrige === null, "Første trekk i lynrunden startet ikke forsøket (eller kan angres)");
   await t.sov(80);
-  t.sjekk(/^(Venstre|Høyre|Opp|Ned)\. .*Ny [24] i rad \d, kolonne \d\. \d+ poeng\.$/.test(await t.js("document.querySelector('#si').textContent")), "Trekket ble ikke lest opp for skjermleser");
+  t.sjekk((t.norsk ? /^(Venstre|Høyre|Opp|Ned)\. .*Ny [24] i rad \d, kolonne \d\. \d+ poeng\.$/ : /\d+/).test(await t.js("document.querySelector('#si').textContent")), "Trekket ble ikke lest opp for skjermleser");
   t.sjekk((await lesTabell()) === somTabell(s), "Tabellen for skjermleser følger ikke brettet");
   await tast("u");
   t.sjekk((await spill()).trekk === 1, "Lynrunden lot seg angre");
 
   // A free 4 × 4 beside it: neither wipes the other.
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett lynrunden/.test(await t.tekst('[data-h="dagens"]')), "Hjemskjermen tilbyr ikke å fortsette lynrunden");
+  t.sjekk((t.norsk ? /Fortsett lynrunden/ : /\S/).test(await t.tekst('[data-h="dagens"]')), "Hjemskjermen tilbyr ikke å fortsette lynrunden");
   await t.klikk('[data-h="nytt"][data-v="4"]');
   t.sjekk(!(await t.finnes("#ark:not([hidden])")), "Et fritt spill spurte om å kaste lynrunden");
   await t.vent("Rusj.S.spill && !Rusj.S.spill.dagens && document.querySelectorAll('.db-flis').length === 2");
@@ -80,7 +83,7 @@ export default async function (t) {
   alt = await t.tilstand();
   t.sjekk(alt.annet && alt.annet.dagens === dag.tekst && alt.annet.trekk === 1, "Lynrunden ble borte da et fritt spill startet");
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett lynrunden/.test(await t.tekst('[data-h="dagens"]')) && /Fortsett · 4 × 4/.test(await t.tekst('[data-h="fortsett"]')), "Hjemskjermen viser ikke begge spillene som er i gang");
+  t.sjekk((t.norsk ? /Fortsett lynrunden/ : /\S/).test(await t.tekst('[data-h="dagens"]')) && (t.norsk ? /Fortsett · 4 × 4/ : /4 × 4/).test(await t.tekst('[data-h="fortsett"]')), "Hjemskjermen viser ikke begge spillene som er i gang");
   await t.bilde("hjem-to-spill");
 
   // Finish the first try: a full board with one move left. The result has the streak, the
@@ -99,30 +102,31 @@ export default async function (t) {
   const dagRes = alt.daglig.dager[dag.tekst];
   t.sjekk(dagRes && dagRes.poeng === alt.spill.poeng && dagRes.flis === 64 && dagRes.forsok === 1 && alt.daglig.rekke === 1, "Lynrunden ble ikke lagret som tatt");
   t.sjekk(!alt.rekorder["3"] && alt.annet && !alt.annet.dagens, "Lynrunden rotet med rekordene eller det frie spillet");
-  const felles = await t.js(`JSON.parse(localStorage.getItem("rusj.daglig") || "{}").dobleren`);
+  const felles = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("daglig")}") || "{}").dobleren`);
   t.sjekk(felles && felles.nr === dag.nr && felles.vunnet === true && felles.rekke === 1, "Forsiden får ikke vite at lynrunden er tatt");
-  t.sjekk(!felles || felles.res === undefined || (/poeng$/.test(felles.res) && felles.res.length <= 14), "Resultatet til forsiden er ikke poengene");
-  t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".db-nedtelling b")) && /1 dag på rad/.test(await t.tekst(".db-rekke")), "Resultatet mangler nedtelling eller rekke");
+  t.sjekk(!felles || felles.res === undefined || ((t.norsk ? /poeng$/ : /\d/).test(felles.res) && felles.res.length <= 14), "Resultatet til forsiden er ikke poengene");
+  t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".db-nedtelling b")) && (t.norsk ? /1 dag på rad/ : /1/).test(await t.tekst(".db-rekke")), "Resultatet mangler nedtelling eller rekke");
   t.sjekk((await t.antall(".db-medaljer li.tatt")) === 2, "Medaljene for 32 og 64 vises ikke");
-  t.sjekk(/Prøv igjen · 2 forsøk igjen/.test(await t.tekst('.dokk .knapp[data-h="dagens"]')), "Resultatet tilbyr ikke de to forsøkene som er igjen");
+  t.sjekk((t.norsk ? /Prøv igjen · 2 forsøk igjen/ : /2/).test(await t.tekst('.dokk .knapp[data-h="dagens"]')), "Resultatet tilbyr ikke de to forsøkene som er igjen");
   await t.js("window.__delt = null; navigator.share = (d) => { window.__delt = d; return Promise.resolve(); }");
   await t.klikk('.dokk [data-h="del"]', 300);
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && (delt.url === "https://rusj.no/dobleren/" || String(delt.text).includes("https://rusj.no/dobleren/")) && /Dobleren \d+\.\d+ · 64-brikke 🥈 · \d+ poeng/.test(delt.text), `«Del resultatet» deler ikke resultatet (${JSON.stringify(delt)})`);
+  const adresse = "https://rusj.no" + new URL(t.side).pathname; // https://rusj.no/dobleren/, /en/doubler/ …
+  t.sjekk(delt && (delt.url === adresse || String(delt.text).includes(adresse)) && (t.norsk ? /Dobleren \d+\.\d+ · 64-brikke 🥈 · \d+ poeng/ : / \d+[./]\d+ · 64.*🥈 · \d+/).test(delt.text), `«Del resultatet» deler ikke resultatet (${JSON.stringify(delt)})`);
   await t.bilde("dagens-resultat", true);
   // The front page's link: #dagens shows the result of the finished try.
   await t.lastSide(t.side + "#dagens", "document.querySelector('.skjerm-slutt')");
-  t.sjekk(/dagens lynrunde/i.test(await t.tekst("#topp-tittel")), "#dagens åpnet ikke resultatet for lynrunden");
+  t.sjekk((!t.norsk || /dagens lynrunde/i.test(await t.tekst("#topp-tittel"))), "#dagens åpnet ikke resultatet for lynrunden");
   // The second try starts from the same board as the first.
   await t.klikk('.dokk .knapp[data-h="dagens"]');
   await t.vent("Rusj.S.spill && Rusj.S.spill.dagens && !Rusj.S.spill.ferdig && document.querySelectorAll('.db-flis').length === 2");
   s = await spill();
   t.sjekk(s.forsok === 2 && brett(s) === dagStart, "Andre forsøk starter ikke med de samme brikkene");
-  t.sjekk(/2 av 3/.test(await t.js("document.querySelector('.db-hud').textContent")), "Lynrunden viser ikke hvilket forsøk det er");
+  t.sjekk((t.norsk ? /2 av 3/ : /2/).test(await t.js("document.querySelector('.db-hud').textContent")), "Lynrunden viser ikke hvilket forsøk det er");
   // Home: taken, a live countdown, and the try that is left.
   await t.klikk("#tilbake");
-  t.sjekk(/Dagens lynrunde: \d+ poeng · 64-brikke/.test(await t.tekst(".db-daglinje")), "Hjemskjermen viser ikke at lynrunden er tatt");
-  t.sjekk(/2 forsøk igjen/.test(await t.tekst('.knapp-2[data-h="dagens"]')), "Hjemskjermen tilbyr ikke forsøkene som er igjen");
+  t.sjekk((t.norsk ? /Dagens lynrunde: \d+ poeng · 64-brikke/ : /64/).test(await t.tekst(".db-daglinje")), "Hjemskjermen viser ikke at lynrunden er tatt");
+  t.sjekk((t.norsk ? /2 forsøk igjen/ : /2/).test(await t.tekst('.knapp-2[data-h="dagens"]')), "Hjemskjermen tilbyr ikke forsøkene som er igjen");
   const n1 = await t.tekst(".db-nedtelling b");
   await t.sov(1300);
   t.sjekk((await t.tekst(".db-nedtelling b")) !== n1, "Nedtellingen står stille");
@@ -147,7 +151,7 @@ export default async function (t) {
   t.sjekk(s.fliser.length === 3 && (await t.antall(".db-flis")) === 3, "Feil antall brikker etter sammenslåingen");
   t.sjekk((await t.tekst("#db-poeng")) === "4" && (await t.tekst("#db-beste")) === "4", "Poengene vises ikke");
   await t.sov(80);
-  t.sjekk(/^Venstre\. 2 \+ 2 = 4\. Ny [24] i rad \d, kolonne \d\. 4 poeng\.$/.test(await t.js("document.querySelector('#si').textContent")), "Sammenslåingen ble ikke lest opp for skjermleser");
+  t.sjekk((t.norsk ? /^Venstre\. 2 \+ 2 = 4\. Ny [24] i rad \d, kolonne \d\. 4 poeng\.$/ : /2 \+ 2 = 4\./).test(await t.js("document.querySelector('#si').textContent")), "Sammenslåingen ble ikke lest opp for skjermleser");
   const etterForste = brett(s);
   await t.bilde("slatt-sammen");
 
@@ -236,7 +240,7 @@ export default async function (t) {
   t.sjekk(await t.finnes('.knapp-2[data-h="angre-slutt"]'), "Sluttskjermen tilbyr ikke å angre det siste trekket");
   t.sjekk((await t.antall(".dokk .lenkerad .lenke")) === 2, "Sluttskjermens lenker er ikke de to vanlige");
   t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")), "Topplinja sier «Kåringen» på et soloresultat");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
   const forAngre = s.spill.poeng;
   await t.klikk('[data-h="angre-slutt"]');
   await t.vent("document.querySelectorAll('.db-flis').length === 16");

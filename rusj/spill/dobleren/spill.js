@@ -19,13 +19,19 @@
   // «Dagens lynrunde»
   const DAG_STR = 3;
   const DAG_FORSOK = 3;
+  // Every text goes through R.t (rusj/SPRAK.md): the key is the Norwegian text. The medal ids are
+  // class names; MEDALJENAVN is what is shown.
   const MEDALJER = [
     [32, "bronse", "🥉"],
-    [64, "sølv", "🥈"],
+    [64, "sølv", "🥈"], // sprak-ok
     [128, "gull", "🥇"],
   ];
-  const UKEDAG = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
-  const MANED = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
+  const MEDALJENAVN = { bronse: R.t("bronse"), sølv: R.t("sølv"), gull: R.t("gull") };
+  // Norwegian dates by hand (as before); the other editions ask Intl in their own language.
+  const UKEDAG = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"]; // sprak-ok
+  const MANED = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"]; // sprak-ok
+  const iDato = (tekst) => new Date(tekst + "T12:00:00Z");
+  const manedNavn = (tekst) => (R.sprak === "nb" ? MANED[Number(tekst.slice(5, 7)) - 1] : new Intl.DateTimeFormat(R.lokale, { month: "long", timeZone: "UTC" }).format(iDato(tekst)));
   // Without a prototype, so a value like "__proto__" is simply not a direction.
   const RETNINGER = Object.assign(Object.create(null), {
     venstre: [-1, 0],
@@ -169,12 +175,12 @@
     R.dagligIGang({ tekst: `${R.tall(sp.poeng)} poeng` });
   }
 
-  // ---------- Countdown to the next sprint (midnight in Norway) ----------
+  // ---------- Countdown to the next sprint (midnight in the edition's country) ----------
 
   function sekunderTilNy() {
     const na = Date.now();
     const deler = {};
-    new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    new Intl.DateTimeFormat("en-GB", { timeZone: R.tidssone, hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
       .formatToParts(new Date(na))
       .forEach((p) => (deler[p.type] = Number(p.value)));
     let igjen = 86400 - ((deler.hour % 24) * 3600 + deler.minute * 60 + deler.second);
@@ -185,7 +191,7 @@
     return Math.max(1, igjen);
   }
   const klokkeTekst = (s) => `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-  const nedtellingHtml = () => `<p class="db-nedtelling">Ny lynrunde om <b>${klokkeTekst(sekunderTilNy())}</b></p>`;
+  const nedtellingHtml = () => `<p class="db-nedtelling">${esc(R.t("Ny lynrunde om {tid}")).replace("{tid}", `<b>${klokkeTekst(sekunderTilNy())}</b>`)}</p>`;
   // Ticks every second while a countdown is on the screen; at midnight the screen is drawn again.
   let nedtellingId = null;
   function startNedtelling() {
@@ -370,7 +376,7 @@
       html += "<tr>";
       for (let x = 0; x < sp.str; x++) {
         const f = sp.fliser.find((t) => t.x === x && t.y === y);
-        html += `<td>${f ? f.v : "tom"}</td>`;
+        html += `<td>${f ? f.v : esc(R.t("tom"))}</td>`;
       }
       html += "</tr>";
     }
@@ -378,17 +384,17 @@
   }
 
   // A move in a sentence: «Venstre. 4 + 4 = 8. Ny 2 i rad 3, kolonne 1. 12 poeng.»
-  const RETNINGSNAVN = { venstre: "Venstre", hoyre: "Høyre", opp: "Opp", ned: "Ned" };
+  const RETNINGSNAVN = { venstre: R.t("Venstre"), hoyre: R.t("Høyre"), opp: R.t("Opp"), ned: R.t("Ned") };
   function lesOpp(sp, retning, info) {
     const slatt = Array.from(info.slatt)
       .map((id) => (sp.fliser.find((f) => f.id === id) || {}).v || 0)
       .sort((a, b) => b - a);
     const deler = [RETNINGSNAVN[retning] + "."];
-    if (slatt.length > 3) deler.push(`${slatt.length} sammenslåinger, den største ${slatt[0]}.`);
+    if (slatt.length > 3) deler.push(R.t("{n} sammenslåinger, den største {v}.", { n: slatt.length, v: slatt[0] }));
     else for (const v of slatt) deler.push(`${v / 2} + ${v / 2} = ${v}.`);
     const ny = sp.fliser.find((f) => f.id === info.ny);
-    if (ny) deler.push(`Ny ${ny.v} i rad ${ny.y + 1}, kolonne ${ny.x + 1}.`);
-    deler.push(`${R.tall(sp.poeng)} poeng.`);
+    if (ny) deler.push(R.t("Ny {v} i rad {r}, kolonne {k}.", { v: ny.v, r: ny.y + 1, k: ny.x + 1 }));
+    deler.push(R.t("{poeng} poeng.", { poeng: R.tall(sp.poeng) }));
     R.si(deler.join(" "));
   }
 
@@ -442,7 +448,7 @@
         void brett.offsetWidth;
         brett.classList.add("dytt");
       }
-      R.si("Ingenting flyttet seg.");
+      R.si(R.t("Ingenting flyttet seg."));
       return;
     }
     if (sp.dagens) {
@@ -488,7 +494,7 @@
     tegnPaNytt(S);
     skjulMelding();
     R.lyd.tone(520, 0, 0.1, "triangle", 0.09, 330);
-    R.si(`Angret. ${R.tall(sp.poeng)} poeng.`);
+    R.si(R.t("Angret. {poeng} poeng.", { poeng: R.tall(sp.poeng) }));
     R.lagre();
   }
 
@@ -501,7 +507,7 @@
     las = true;
     R.lyd.tone(330, 0.05, 0.22, "triangle", 0.1, 220);
     R.vibrer([60, 40, 60]);
-    R.si(`Tomt for trekk. ${R.tall(sp.poeng)} poeng.`);
+    R.si(R.t("Tomt for trekk. {poeng} poeng.", { poeng: R.tall(sp.poeng) }));
     const fortsatt = R.vakt();
     setTimeout(() => {
       if (!fortsatt()) return;
@@ -539,7 +545,7 @@
       for (const k of dager.slice(0, Math.max(0, dager.length - 400))) delete d.dager[k];
       sp.resultat = { poeng: sp.poeng, flis: storste(sp), forsok: sp.forsok, gml: gml ? gml.poeng : 0, bedre: !!gml && sp.poeng > gml.poeng, forste: !gml, rekke: d.rekke };
       // Only today's sprint counts for today (one finished after midnight does not).
-      if (sp.dagens === R.dag().tekst) R.dagligFerdig({ vunnet: true, rekke: d.rekke, res: `${R.tall(na.poeng)} poeng` });
+      if (sp.dagens === R.dag().tekst) R.dagligFerdig({ vunnet: true, rekke: d.rekke, res: R.t("{poeng} poeng", { poeng: R.tall(na.poeng) }) });
     } else {
       const gml = sp.startBeste || 0;
       sp.resultat = { poeng: sp.poeng, flis: storste(sp), nyRekord: sp.poeng > gml && gml > 0, forste: !gml, gml };
@@ -563,13 +569,13 @@
     if (type === "vant")
       m.innerHTML = `<div class="db-meldingskort vant">
         <h2 id="db-melding-tittel">2048!</h2>
-        <p>Du klarte det! Vil du se hvor langt du kommer?</p>
-        <div class="knapprad">${R.ui.knapp2("Se resultatet", "ferdig")}${R.ui.knapp("Fortsett", "fortsett-etter")}</div>
+        <p>${esc(R.t("Du klarte det! Vil du se hvor langt du kommer?"))}</p>
+        <div class="knapprad">${R.ui.knapp2(R.t("Se resultatet"), "ferdig")}${R.ui.knapp(R.t("Fortsett"), "fortsett-etter")}</div>
       </div>`;
     else
       m.innerHTML = `<div class="db-meldingskort">
-        <h2 id="db-melding-tittel">Tomt for trekk!</h2>
-        <p>Ingen brikker kan flytte seg.</p>
+        <h2 id="db-melding-tittel">${esc(R.t("Tomt for trekk!"))}</h2>
+        <p>${esc(R.t("Ingen brikker kan flytte seg."))}</p>
       </div>`;
     m.hidden = false;
     m.className = "db-melding " + type;
@@ -679,7 +685,7 @@
     ned: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg>',
     hoyre: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
   };
-  const PILNAVN = { venstre: "Til venstre", opp: "Opp", ned: "Ned", hoyre: "Til høyre" };
+  const PILNAVN = { venstre: R.t("Til venstre"), opp: R.t("Opp"), ned: R.t("Ned"), hoyre: R.t("Til høyre") };
   const IKON = {
     angre: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
     ny: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>',
@@ -696,15 +702,17 @@
   }
 
   // A little calendar page with today's date, and the date in words.
-  const kalender = (d) => `<span class="db-kal" aria-hidden="true"><small>${esc(MANED[Number(d.tekst.slice(5, 7)) - 1].slice(0, 3))}</small><b>${Number(d.tekst.slice(8, 10))}</b></span>`;
-  const ukedag = (nr) => UKEDAG[(((nr + 4) % 7) + 7) % 7]; // day 0 (1 Jan 1970) was a Thursday
-  const datoTekst = (tekst) => `${Number(tekst.slice(8, 10))}. ${MANED[Number(tekst.slice(5, 7)) - 1]}`;
+  const kalender = (d) => `<span class="db-kal" aria-hidden="true"><small>${esc(manedNavn(d.tekst).slice(0, 3))}</small><b>${Number(d.tekst.slice(8, 10))}</b></span>`;
+  // day 0 (1 Jan 1970) was a Thursday
+  const ukedag = (nr) => (R.sprak === "nb" ? UKEDAG[(((nr + 4) % 7) + 7) % 7] : new Intl.DateTimeFormat(R.lokale, { weekday: "long", timeZone: "UTC" }).format(new Date(nr * 86400000)));
+  // «12. november» / «12 November» / «12. november»
+  const datoTekst = (tekst) => (R.sprak === "nb" ? `${Number(tekst.slice(8, 10))}. ${MANED[Number(tekst.slice(5, 7)) - 1]}` : new Intl.DateTimeFormat(R.lokale, { day: "numeric", month: "long", timeZone: "UTC" }).format(iDato(tekst)));
   // The medals of the sprint: the 32-, 64- and 128-tile.
   const medalje = (flis) => MEDALJER.filter(([v]) => flis >= v).pop() || null;
   function medaljerHtml(flis) {
     const tatt = MEDALJER.filter(([v]) => flis >= v).length;
-    return `<ul class="db-medaljer" aria-label="Medaljer: ${tatt} av 3">${MEDALJER.map(
-      ([v, navn]) => `<li class="${navn === "sølv" ? "solv" : navn}${flis >= v ? " tatt" : ""}"><b>${v}</b><span>${navn}${flis >= v ? ' <i aria-hidden="true">✓</i><i class="vh"> tatt</i>' : ""}</span></li>`,
+    return `<ul class="db-medaljer" aria-label="${esc(R.t("Medaljer: {n} av 3", { n: tatt }))}">${MEDALJER.map(
+      ([v, navn]) => `<li class="${navn === "sølv" ? "solv" : navn}${flis >= v ? " tatt" : ""}"><b>${v}</b><span>${esc(MEDALJENAVN[navn])}${flis >= v ? ` <i aria-hidden="true">✓</i><i class="vh"> ${esc(R.t("tatt"))}</i>` : ""}</span></li>`, // sprak-ok
     ).join("")}</ul>`;
   }
 
@@ -772,26 +780,26 @@
       if (S.skjerm === "spill" && (!S.spill || S.spill.ferdig)) S.skjerm = S.spill ? "slutt" : "hjem";
       // The front page reads the daily from the kit's own key: say it again on every load.
       const lost = S.daglig.dager[idag];
-      if (lost) R.dagligFerdig({ vunnet: true, rekke: S.daglig.rekke, res: `${R.tall(lost.poeng)} poeng` });
+      if (lost) R.dagligFerdig({ vunnet: true, rekke: S.daglig.rekke, res: R.t("{poeng} poeng", { poeng: R.tall(lost.poeng) }) });
     },
 
     // rusj.no/dobleren/#dagens (the front page's «I dag») opens today's sprint.
     vedHash: (S, hash) => (hash === "dagens" ? apneDagens(S, true) : null),
 
     regler: {
-      intro: "Skyv brikkene. To like brikker som møtes, blir til én – med dobbelt så høyt tall. Klarer du å lage 2048?",
+      intro: R.t("Skyv brikkene. To like brikker som møtes, blir til én – med dobbelt så høyt tall. Klarer du å lage 2048?"),
       steg: [
-        ["Sveip", "Sveip i en retning, så glir alle brikkene så langt de kan. Piltastene og pilknappene virker også."],
-        ["Slå sammen", "2 og 2 blir 4, 4 og 4 blir 8 … Hver sammenslåing gir poeng. Etter hvert trekk kommer en ny brikke."],
-        ["Ikke gå tom for plass", "Er brettet fullt og ingen brikker kan slås sammen, er spillet over."],
+        [R.t("Sveip"), R.t("Sveip i en retning, så glir alle brikkene så langt de kan. Piltastene og pilknappene virker også.")],
+        [R.t("Slå sammen"), R.t("2 og 2 blir 4, 4 og 4 blir 8 … Hver sammenslåing gir poeng. Etter hvert trekk kommer en ny brikke.")],
+        [R.t("Ikke gå tom for plass"), R.t("Er brettet fullt og ingen brikker kan slås sammen, er spillet over.")],
       ],
       tips: [
-        "Hold den største brikken i et hjørne, og bygg opp tallene langs kanten.",
-        "Bruk helst bare tre retninger – da blir hjørnet ditt liggende i fred.",
-        "Gjorde du et dumt trekk? Du kan angre det siste trekket (men ikke to på rad).",
-        "5 × 5 gir mer plass og er litt lettere. Rekordene teller hver for seg.",
-        "Dagens lynrunde er et lite brett på 3 × 3 med de samme brikkene for alle i hele landet. Du har tre forsøk, og det beste teller. Her kan du ikke angre.",
-        "Med tastatur: piltastene (eller W, A, S og D) flytter brikkene, og U angrer.",
+        R.t("Hold den største brikken i et hjørne, og bygg opp tallene langs kanten."),
+        R.t("Bruk helst bare tre retninger – da blir hjørnet ditt liggende i fred."),
+        R.t("Gjorde du et dumt trekk? Du kan angre det siste trekket (men ikke to på rad)."),
+        R.t("5 × 5 gir mer plass og er litt lettere. Rekordene teller hver for seg."),
+        R.t("Dagens lynrunde er et lite brett på 3 × 3 med de samme brikkene for alle i hele landet. Du har tre forsøk, og det beste teller. Her kan du ikke angre."),
+        R.t("Med tastatur: piltastene (eller W, A, S og D) flytter brikkene, og U angrer."),
       ],
     },
 
@@ -808,50 +816,50 @@
           const brukt = forsokBrukt(S);
           const r = rekke(S);
           const rek = STORRELSER.filter((n) => S.rekorder[n] && S.rekorder[n].poeng).map(
-            (n) => `<li><b>${n} × ${n}</b> ${R.tall(S.rekorder[n].poeng)} poeng<small> · største ${S.rekorder[n].flis}</small></li>`,
+            (n) => `<li><b>${n} × ${n}</b> ${esc(R.t("{poeng} poeng", { poeng: R.tall(S.rekorder[n].poeng) }))}<small> · ${esc(R.t("største {n}", { n: S.rekorder[n].flis }))}</small></li>`,
           );
-          const fortsett = friAktiv ? `Fortsett · ${fri.str} × ${fri.str} · ${R.tall(fri.poeng)} poeng` : "";
-          const regler = R.ui.lenke("Slik spiller du", "regler");
+          const fortsett = friAktiv ? R.t("Fortsett · {brett} · {poeng} poeng", { brett: `${fri.str} × ${fri.str}`, poeng: R.tall(fri.poeng) }) : "";
+          const regler = R.ui.lenke(R.t("Slik spiller du"), "regler");
           let knapper;
           if (!lost) {
             // Today's sprint is the main button until a try is finished; the two boards are one tap away.
             const navn = ukedag(d.nr);
             const under = dagAktiv
-              ? `${R.tall(dag.poeng)} poeng · forsøk ${dag.forsok} av ${DAG_FORSOK}`
-              : `${navn[0].toUpperCase() + navn.slice(1)} · 3 × 3 · ${r > 0 ? `🔥 ${R.flertall(r, "dag", "dager")} på rad` : "tre forsøk"}`;
+              ? R.t("{poeng} poeng · forsøk {n} av {av}", { poeng: R.tall(dag.poeng), n: dag.forsok, av: DAG_FORSOK })
+              : `${navn[0].toUpperCase() + navn.slice(1)} · 3 × 3 · ${r > 0 ? `🔥 ${R.t("{dager} på rad", { dager: R.flertall(r, "dag", "dager") })}` : R.t("tre forsøk")}`;
             knapper =
               R.ui.knapp("", "dagens", {
                 variant: "stor",
-                tekstHtml: `${kalender(d)}<span class="db-dagknapp"><b>${dagAktiv ? "Fortsett lynrunden" : "Dagens lynrunde"}</b><small>${esc(under)}</small></span>`,
+                tekstHtml: `${kalender(d)}<span class="db-dagknapp"><b>${esc(dagAktiv ? R.t("Fortsett lynrunden") : R.t("Dagens lynrunde"))}</b><small>${esc(under)}</small></span>`,
               }) +
               (friAktiv
-                ? R.ui.knapp2(fortsett, "fortsett") + R.ui.lenkerad(R.ui.lenke("Nytt 4 × 4", "nytt", { v: 4 }), R.ui.lenke("Nytt 5 × 5", "nytt", { v: 5 }), regler)
-                : `<div class="knapprad">${R.ui.knapp2("Start 4 × 4", "nytt", { v: 4 })}${R.ui.knapp2("Start 5 × 5", "nytt", { v: 5 })}</div>` + regler);
+                ? R.ui.knapp2(fortsett, "fortsett") + R.ui.lenkerad(R.ui.lenke(R.t("Nytt 4 × 4"), "nytt", { v: 4 }), R.ui.lenke(R.t("Nytt 5 × 5"), "nytt", { v: 5 }), regler)
+                : `<div class="knapprad">${R.ui.knapp2(R.t("Start 4 × 4"), "nytt", { v: 4 })}${R.ui.knapp2(R.t("Start 5 × 5"), "nytt", { v: 5 })}</div>` + regler);
           } else {
             const igjen = DAG_FORSOK - brukt;
             knapper =
               (friAktiv
-                ? R.ui.knapp(fortsett, "fortsett") + `<div class="knapprad">${R.ui.knapp2("Nytt 4 × 4", "nytt", { v: 4 })}${R.ui.knapp2("Nytt 5 × 5", "nytt", { v: 5 })}</div>`
-                : R.ui.knapp("Start 4 × 4", "nytt", { v: 4 }) + R.ui.knapp2("5 × 5 · mer plass", "nytt", { v: 5 })) +
-              `<p class="db-daglinje">✓ Dagens lynrunde: ${R.tall(lost.poeng)} poeng · ${lost.flis}-brikke${r > 1 ? ` · 🔥 ${r} dager på rad` : ""}</p>` +
+                ? R.ui.knapp(fortsett, "fortsett") + `<div class="knapprad">${R.ui.knapp2(R.t("Nytt 4 × 4"), "nytt", { v: 4 })}${R.ui.knapp2(R.t("Nytt 5 × 5"), "nytt", { v: 5 })}</div>`
+                : R.ui.knapp(R.t("Start 4 × 4"), "nytt", { v: 4 }) + R.ui.knapp2(R.t("5 × 5 · mer plass"), "nytt", { v: 5 })) +
+              `<p class="db-daglinje">✓ ${esc(R.t("Dagens lynrunde: {poeng} poeng · {flis}-brikke", { poeng: R.tall(lost.poeng), flis: lost.flis }))}${r > 1 ? ` · 🔥 ${esc(R.t("{dager} på rad", { dager: R.flertall(r, "dag", "dager") }))}` : ""}</p>` +
               (dagAktiv
-                ? R.ui.knapp2(`Fortsett lynrunden · forsøk ${dag.forsok} av ${DAG_FORSOK}`, "dagens", { variant: "liten" })
+                ? R.ui.knapp2(R.t("Fortsett lynrunden · forsøk {n} av {av}", { n: dag.forsok, av: DAG_FORSOK }), "dagens", { variant: "liten" })
                 : igjen > 0
-                  ? R.ui.knapp2(`Prøv igjen · ${R.flertall(igjen, "forsøk", "forsøk")} igjen`, "dagens", { variant: "liten" })
+                  ? R.ui.knapp2(R.t("Prøv igjen · {forsok} igjen", { forsok: R.flertall(igjen, "forsøk", "forsøk") }), "dagens", { variant: "liten" })
                   : "") +
               nedtellingHtml() +
               regler;
           }
           return (
             R.ui.spillhjem({
-              slagordHtml: "Sveip, slå sammen og doble.<br><em>Klarer du 2048?</em>",
+              slagordHtml: `${esc(R.t("Sveip, slå sammen og doble."))}<br><em>${esc(R.t("Klarer du 2048?"))}</em>`,
               knapperHtml: knapper,
               merker: [
-                ["3", "brett"],
-                ["1", "ny hver dag"],
-                ["0", "reklame"],
+                ["3", R.t("brett")],
+                ["1", R.t("ny hver dag")],
+                ["0", R.t("reklame")],
               ],
-            }) + (rek.length ? `<section class="db-rekorder" aria-label="Dine rekorder"><p class="etikett">Dine rekorder</p><ul>${rek.join("")}</ul></section>` : "")
+            }) + (rek.length ? `<section class="db-rekorder" aria-label="${esc(R.t("Dine rekorder"))}"><p class="etikett">${esc(R.t("Dine rekorder"))}</p><ul>${rek.join("")}</ul></section>` : "")
           );
         },
         inn(S) {
@@ -860,38 +868,38 @@
       },
 
       spill: {
-        tittel: (S) => (S.spill.dagens ? "Dagens lynrunde" : `${S.spill.str} × ${S.spill.str}`),
+        tittel: (S) => (S.spill.dagens ? R.t("Dagens lynrunde") : `${S.spill.str} × ${S.spill.str}`),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const n = sp.str;
           const dag = !!sp.dagens;
           return `
-            <h1 class="vh" id="skjerm-tittel">${dag ? "Dagens lynrunde, 3 ganger 3" : `2048 på ${n} ganger ${n}`}</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(dag ? R.t("Dagens lynrunde, 3 ganger 3") : R.t("2048 på {n} ganger {n}", { n }))}</h1>
             <div class="db-spill">
               <div class="db-hud${dag ? " dag" : ""}">
-                <span class="db-stat db-poengboks"><small>Poeng</small><b id="db-poeng">${R.tall(sp.poeng)}</b></span>
-                <span class="db-stat"><small>${dag ? "Beste i dag" : "Rekord"}</small><b id="db-beste">${R.tall(Math.max(malet(S, sp), sp.poeng))}</b></span>
+                <span class="db-stat db-poengboks"><small>${esc(R.t("Poeng"))}</small><b id="db-poeng">${R.tall(sp.poeng)}</b></span>
+                <span class="db-stat"><small>${esc(dag ? R.t("Beste i dag") : R.t("Rekord"))}</small><b id="db-beste">${R.tall(Math.max(malet(S, sp), sp.poeng))}</b></span>
                 ${
                   dag
-                    ? `<span class="db-stat"><small>Forsøk</small><b>${sp.forsok} av ${DAG_FORSOK}</b></span>`
-                    : `<button class="db-verk" data-h="angre" aria-label="Angre siste trekk"${sp.forrige ? "" : " disabled"}>${IKON.angre}<span>Angre</span></button>
-                <button class="db-verk" data-h="ny" aria-label="Start på nytt">${IKON.ny}<span>Ny</span></button>`
+                    ? `<span class="db-stat"><small>${esc(R.t("Forsøk"))}</small><b>${esc(R.t("{n} av {alle}", { n: sp.forsok, alle: DAG_FORSOK }))}</b></span>`
+                    : `<button class="db-verk" data-h="angre" aria-label="${esc(R.t("Angre siste trekk"))}"${sp.forrige ? "" : " disabled"}>${IKON.angre}<span>${esc(R.t("Angre"))}</span></button>
+                <button class="db-verk" data-h="ny" aria-label="${esc(R.t("Start på nytt"))}">${IKON.ny}<span>${esc(R.t("Ny"))}</span></button>`
                 }
               </div>
               <div class="db-flate">
                 <div class="db-brett" style="--n:${n}">
                   <div class="db-ruter" aria-hidden="true">${"<i></i>".repeat(n * n)}</div>
                   <div class="db-lag" aria-hidden="true"></div>
-                  <table class="vh db-tabell" aria-label="Brettet"><tbody></tbody></table>
+                  <table class="vh db-tabell" aria-label="${esc(R.t("Brettet"))}"><tbody></tbody></table>
                 </div>
               </div>
               <div class="db-melding" hidden role="dialog" aria-labelledby="db-melding-tittel"></div>
               ${R.ui.dokk(`
-                <p class="db-tastatur">${dag ? "Piltaster eller WASD flytter · tre forsøk, det beste teller" : "Piltaster eller WASD flytter · U angrer"}</p>
-                <p class="db-tips">${dag ? "Tre forsøk – det beste teller" : sp.trekk < 3 ? "Sveip hvor som helst for å flytte brikkene" : "Hold den største brikken i et hjørne"}</p>
-                <div class="db-piler" role="group" aria-label="Flytt brikkene">
-                  ${["venstre", "opp", "ned", "hoyre"].map((r) => `<button data-h="flytt" data-v="${r}" data-stille aria-label="${PILNAVN[r]}">${PIL[r]}</button>`).join("")}
+                <p class="db-tastatur">${esc(dag ? R.t("Piltaster eller WASD flytter · tre forsøk, det beste teller") : R.t("Piltaster eller WASD flytter · U angrer"))}</p>
+                <p class="db-tips">${esc(dag ? R.t("Tre forsøk – det beste teller") : sp.trekk < 3 ? R.t("Sveip hvor som helst for å flytte brikkene") : R.t("Hold den største brikken i et hjørne"))}</p>
+                <div class="db-piler" role="group" aria-label="${esc(R.t("Flytt brikkene"))}">
+                  ${["venstre", "opp", "ned", "hoyre"].map((r) => `<button data-h="flytt" data-v="${r}" data-stille aria-label="${esc(PILNAVN[r])}">${PIL[r]}</button>`).join("")}
                 </div>`)}
             </div>`;
         },
@@ -925,56 +933,57 @@
 
       slutt: {
         // A solo result: the top bar says what was played ("Kåringen" is for ranked players).
-        tittel: (S) => (S.spill && S.spill.dagens ? "Dagens lynrunde" : S.spill ? `${S.spill.str} × ${S.spill.str}` : "2048"),
+        tittel: (S) => (S.spill && S.spill.dagens ? R.t("Dagens lynrunde") : S.spill ? `${S.spill.str} × ${S.spill.str}` : "2048"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
           const sp = S.spill;
           const r = sp.resultat || { poeng: sp.poeng, flis: storste(sp) };
           const n = sp.str;
-          const alle = '<a class="lenke" href="/">Alle spill</a>';
+          const alle = `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`;
           if (sp.dagens) {
             const idag = sp.dagens === R.dag().tekst; // the page may stay open past midnight
             const best = S.daglig.dager[sp.dagens] || { poeng: r.poeng, flis: r.flis };
             const igjen = idag ? DAG_FORSOK - forsokBrukt(S) : 0;
-            const tittel = r.bedre ? "Ny toppscore!" : r.forste ? "Godt jobba!" : "Godt forsøk!";
+            const tittel = r.bedre ? R.t("Ny toppscore!") : r.forste ? R.t("Godt jobba!") : R.t("Godt forsøk!");
             const linje = r.forste
-              ? "Dagens lynrunde er tatt! Det beste av tre forsøk teller."
+              ? R.t("Dagens lynrunde er tatt! Det beste av tre forsøk teller.")
               : r.bedre
-                ? `Det slo ditt forrige forsøk på ${R.tall(r.gml)} poeng.`
-                : `Ditt beste i dag er ${R.tall(best.poeng)} poeng.`;
+                ? R.t("Det slo ditt forrige forsøk på {poeng} poeng.", { poeng: R.tall(r.gml) })
+                : R.t("Ditt beste i dag er {poeng} poeng.", { poeng: R.tall(best.poeng) });
             return `
               <div class="banner aksent">
                 ${R.figur()}
-                <p class="etikett">Dagens lynrunde · ${esc(ukedag(sp.dagNr))} ${esc(datoTekst(sp.dagens))}</p>
+                <p class="etikett">${esc(R.t("Dagens lynrunde · {dato}", { dato: `${ukedag(sp.dagNr)} ${datoTekst(sp.dagens)}` }))}</p>
                 <h1 id="skjerm-tittel">${esc(tittel)}</h1>
               </div>
               <div class="db-resultat">
-                <div class="db-tall${r.bedre ? " ny" : ""}"><b>${R.tall(r.poeng)}</b><span>poeng</span>${r.bedre ? '<i class="db-ny">Best i dag!</i>' : ""}</div>
-                <div class="db-tall"><b class="db-tallflis ${klasse(r.flis)} s${sifre(r.flis)}">${r.flis}</b><span>største brikke</span></div>
+                <div class="db-tall${r.bedre ? " ny" : ""}"><b>${R.tall(r.poeng)}</b><span>${esc(R.t("poeng|poeng", { n: r.poeng }))}</span>${r.bedre ? `<i class="db-ny">${esc(R.t("Best i dag!"))}</i>` : ""}</div>
+                <div class="db-tall"><b class="db-tallflis ${klasse(r.flis)} s${sifre(r.flis)}">${r.flis}</b><span>${esc(R.t("største brikke"))}</span></div>
               </div>
-              <p class="hjelp">Forsøk ${r.forsok || sp.forsok} av ${DAG_FORSOK}. ${esc(linje)}</p>
+              <p class="hjelp">${esc(R.t("Forsøk {n} av {av}.", { n: r.forsok || sp.forsok, av: DAG_FORSOK }))} ${esc(linje)}</p>
               ${medaljerHtml(best.flis)}
               <div class="db-dagboks">
-                ${r.rekke ? `<p class="db-rekke"><span aria-hidden="true">🔥</span> ${R.flertall(r.rekke, "dag", "dager")} på rad</p>` : ""}
-                ${idag ? nedtellingHtml() : '<p class="db-nedtelling"><b>En ny lynrunde er klar!</b></p>'}
+                ${r.rekke ? `<p class="db-rekke"><span aria-hidden="true">🔥</span> ${esc(R.t("{dager} på rad", { dager: R.flertall(r.rekke, "dag", "dager") }))}</p>` : ""}
+                ${idag ? nedtellingHtml() : `<p class="db-nedtelling"><b>${esc(R.t("En ny lynrunde er klar!"))}</b></p>`}
               </div>
               ${miniBrett(sp)}
               ${R.ui.flereSpill({ antall: 1 })}
               ${
                 !idag
-                  ? R.ui.dokk(R.ui.knapp("Dagens lynrunde", "dagens"), R.ui.lenkerad(alle))
+                  ? R.ui.dokk(R.ui.knapp(R.t("Dagens lynrunde"), "dagens"), R.ui.lenkerad(alle))
                   : igjen > 0
-                    ? R.ui.dokk(R.ui.knapp(`Prøv igjen · ${R.flertall(igjen, "forsøk", "forsøk")} igjen`, "dagens"), R.ui.lenkerad(R.ui.lenke("Del resultatet", "del"), alle))
-                    : R.ui.dokk(R.ui.knapp("Del resultatet", "del"), R.ui.lenkerad(R.ui.lenke("Spill 4 × 4", "nytt", { v: 4 }), alle))
+                    ? R.ui.dokk(R.ui.knapp(R.t("Prøv igjen · {forsok} igjen", { forsok: R.flertall(igjen, "forsøk", "forsøk") }), "dagens"), R.ui.lenkerad(R.ui.lenke(R.t("Del resultatet"), "del"), alle))
+                    : R.ui.dokk(R.ui.knapp(R.t("Del resultatet"), "del"), R.ui.lenkerad(R.ui.lenke(R.t("Spill 4 × 4"), "nytt", { v: 4 }), alle))
               }`;
           }
-          const tittel = r.flis >= MAL ? `Du klarte ${R.tall(r.flis)}!` : r.nyRekord ? "Ny rekord!" : "Godt jobba!";
+          const tittel = r.flis >= MAL ? R.t("Du klarte {n}!", { n: R.tall(r.flis) }) : r.nyRekord ? R.t("Ny rekord!") : R.t("Godt jobba!");
+          const brett = `${n} × ${n}`;
           const linje = r.nyRekord
-            ? `Ny personlig rekord på ${n} × ${n}! Forrige: ${R.tall(r.gml)} poeng.`
+            ? R.t("Ny personlig rekord på {brett}! Forrige: {poeng} poeng.", { brett, poeng: R.tall(r.gml) })
             : r.forste
-              ? `Første runde på ${n} × ${n} – nå har du en rekord å slå!`
-              : `Rekorden din på ${n} × ${n}: ${R.tall(beste(S, n))} poeng.`;
+              ? R.t("Første runde på {brett} – nå har du en rekord å slå!", { brett })
+              : R.t("Rekorden din på {brett}: {poeng} poeng.", { brett, poeng: R.tall(beste(S, n)) });
           return `
             <div class="banner aksent">
               ${R.figur()}
@@ -982,16 +991,16 @@
               <h1 id="skjerm-tittel">${esc(tittel)}</h1>
             </div>
             <div class="db-resultat">
-              <div class="db-tall${r.nyRekord ? " ny" : ""}"><b>${R.tall(r.poeng)}</b><span>poeng</span>${r.nyRekord ? '<i class="db-ny">Rekord!</i>' : ""}</div>
-              <div class="db-tall"><b class="db-tallflis ${klasse(r.flis)} s${sifre(r.flis)}">${r.flis}</b><span>største brikke</span></div>
+              <div class="db-tall${r.nyRekord ? " ny" : ""}"><b>${R.tall(r.poeng)}</b><span>${esc(R.t("poeng|poeng", { n: r.poeng }))}</span>${r.nyRekord ? `<i class="db-ny">${esc(R.t("Rekord!"))}</i>` : ""}</div>
+              <div class="db-tall"><b class="db-tallflis ${klasse(r.flis)} s${sifre(r.flis)}">${r.flis}</b><span>${esc(R.t("største brikke"))}</span></div>
             </div>
             <p class="hjelp">${esc(linje)}</p>
             ${miniBrett(sp)}
-            ${sp.forrige ? `<div class="db-angrerad">${R.ui.knapp2("Angre siste trekk", "angre-slutt", { variant: "liten" })}</div>` : ""}
+            ${sp.forrige ? `<div class="db-angrerad">${R.ui.knapp2(R.t("Angre siste trekk"), "angre-slutt", { variant: "liten" })}</div>` : ""}
             ${R.ui.flereSpill({ antall: 1 })}
             ${R.ui.dokk(
-              R.ui.knapp("Spill igjen", "igjen"),
-              R.ui.lenkerad(R.ui.lenke(`Bytt til ${n === 4 ? 5 : 4} × ${n === 4 ? 5 : 4}`, "nytt", { v: n === 4 ? 5 : 4 }), alle),
+              R.ui.knapp(R.t("Spill igjen"), "igjen"),
+              R.ui.lenkerad(R.ui.lenke(R.t("Bytt til {brett}", { brett: `${n === 4 ? 5 : 4} × ${n === 4 ? 5 : 4}` }), "nytt", { v: n === 4 ? 5 : 4 }), alle),
             )}`;
         },
         inn(S) {
@@ -1036,7 +1045,7 @@
         const sp = S.spill;
         if (sp && !sp.ferdig && sp.poeng > 0) {
           const fortsatt = R.vakt();
-          if (!(await R.bekreft("Starte på nytt?", "Brettet og poengene du har nå, forsvinner.", "Start på nytt", "Avbryt")) || !fortsatt()) return;
+          if (!(await R.bekreft(R.t("Starte på nytt?"), R.t("Brettet og poengene du har nå, forsvinner."), R.t("Start på nytt"), R.t("Avbryt"))) || !fortsatt()) return;
         }
         nyttSpill(S, sp ? sp.str : S.oppsett.str);
         R.lyd.sveip();
@@ -1078,9 +1087,15 @@
         if (!best) return;
         const r = sp.resultat || {};
         const m = medalje(best.flis);
-        const dato = `${Number(sp.dagens.slice(8, 10))}.${Number(sp.dagens.slice(5, 7))}`;
-        const tekst = `🟧 Dobleren ${dato} · ${best.flis}-brikke${m ? " " + m[2] : ""} · ${R.tall(best.poeng)} poeng${r.rekke > 1 ? ` · 🔥 ${r.rekke} dager på rad` : ""}. Klarer du mer på dagens lynrunde?`;
-        R.del("Dobleren – dagens lynrunde", tekst, "https://rusj.no/dobleren/", { kort: { tittel: `Dagens lynrunde ${dato}`, linjer: [`${R.tall(best.poeng)} poeng`, `${best.flis}-brikke${r.rekke > 1 ? ` · 🔥 ${r.rekke} på rad` : ""}`] } });
+        // «12.11» (English «12/11»); the game's name and address in this edition.
+        const dato = R.t("{dag}.{maned}", { dag: Number(sp.dagens.slice(8, 10)), maned: Number(sp.dagens.slice(5, 7)) });
+        const spill = window.RUSJ_SPILL || {};
+        const navn = spill.navn || "Dobleren";
+        const adresse = `https://rusj.no${R.forside}${spill.slug || "dobleren"}/`;
+        const flis = R.t("{flis}-brikke", { flis: best.flis });
+        const poeng = R.t("{poeng} poeng", { poeng: R.tall(best.poeng) });
+        const tekst = `🟧 ${navn} ${dato} · ${flis}${m ? " " + m[2] : ""} · ${poeng}${r.rekke > 1 ? ` · 🔥 ${R.t("{n} dager på rad", { n: r.rekke })}` : ""}. ${R.t("Klarer du mer på dagens lynrunde?")}`;
+        R.del(R.t("{navn} – dagens lynrunde", { navn }), tekst, adresse, { kort: { tittel: R.t("Dagens lynrunde {dato}", { dato }), linjer: [poeng, `${flis}${r.rekke > 1 ? ` · 🔥 ${R.t("{n} på rad", { n: r.rekke })}` : ""}`] } });
       },
     }),
   });

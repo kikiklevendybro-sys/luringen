@@ -119,6 +119,11 @@
       "tittel": "Snake – det klassiske slangespil, gratis",
       "frase": "Snake",
       "beskrivelse": "Gratis Snake på dansk. Styr slangen med swipe, pile eller tastatur, spis frugt og voks – tre hastigheder, med eller uden vægge, og din egen rekord."
+    },
+    "dobleren": {
+      "tittel": "2048 – spil gratis på dansk, uden reklamer",
+      "frase": "2048",
+      "beskrivelse": "Gratis 2048 på dansk. Stryg brikkerne, slå ens tal sammen og nå 2048 – på 4 × 4 eller 5 × 5, med fortryd-knap og din egen rekord."
     }
   }
 }
