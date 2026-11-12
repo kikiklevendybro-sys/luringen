@@ -396,15 +396,17 @@
 
   const esc = R.esc;
   const { KOL, RAD } = Fire;
-  const NIVANAVN = { 1: "Lett", 2: "Middels", 3: "Vanskelig" };
+  // Every text goes through R.t (rusj/SPRAK.md): the key is the Norwegian text.
+  const NIVANAVN = { 1: R.t("Lett"), 2: R.t("Middels"), 3: R.t("Vanskelig") };
   const MAL = [3, 5, 0]; // «Først til 3», «Først til 5», «Uten slutt»
   const LIGGENDE = "(orientation: landscape) and (max-height: 600px) and (min-width: 560px)"; // phones on their side
   const NIVATEKST = {
-    1: "Mobilen legger litt hulter til bulter. Fint for de minste.",
-    2: "Mobilen ser noen trekk fram. Passe utfordring.",
-    3: "Mobilen tenker dypt. Klarer du å slå den?",
+    1: R.t("Mobilen legger litt hulter til bulter. Fint for de minste."),
+    2: R.t("Mobilen ser noen trekk fram. Passe utfordring."),
+    3: R.t("Mobilen tenker dypt. Klarer du å slå den?"),
   };
-  const FARGE = ["rosa", "gul"];
+  const FARGE = ["rosa", "gul"]; // class names // sprak-ok
+  const FARGENAVN = [R.t("rosa"), R.t("gul")]; // the same, read aloud
   const MIN_TENK = 650;
   let H;
 
@@ -412,7 +414,7 @@
   //   poeng [p0, p1], uavgjort, runde, resultat (this round) { vinner, linjer }, ferdig (match over) }
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
   const erMaskin = (sp, i) => sp.modus === "mobil" && i === 1;
-  const navn = (sp, i) => (sp.modus === "mobil" ? (i === 1 ? "Mobilen" : "Du") : R.navn(i));
+  const navn = (sp, i) => (sp.modus === "mobil" ? (i === 1 ? R.t("Mobilen") : R.t("Du")) : R.navn(i));
   // Player index (0/1) of the disc number d (1 = the one who started).
   const spillerFor = (sp, d) => (d === 1 ? sp.starter : 1 - sp.starter);
   const discFor = (sp, i) => (i === sp.starter ? 1 : 2);
@@ -502,7 +504,11 @@
       sp.poeng[hvem]++;
       telRekord(S, hvem);
       if (sp.modus === "mobil" && hvem === 0) R.merke("klassiker-fireren");
-      R.si(`${navn(sp, hvem)} får fire på rad!${kampVunnet(sp) ? ` ${navn(sp, hvem)} vinner kampen.` : ""}`);
+      const mobil = sp.modus === "mobil";
+      R.si(
+        (mobil ? (hvem === 0 ? R.t("Du får fire på rad!") : R.t("Mobilen får fire på rad!")) : R.t("{navn} får fire på rad!", { navn: navn(sp, hvem) })) +
+          (kampVunnet(sp) ? " " + (mobil ? (hvem === 0 ? R.t("Du vinner kampen.") : R.t("Mobilen vinner kampen.")) : R.t("{navn} vinner kampen.", { navn: navn(sp, hvem) })) : ""),
+      );
       setTimeout(() => {
         if (!fortsatt() || !R.S.spill || R.S.spill.runde !== runde || !R.S.spill.resultat) return;
         feir(R.S);
@@ -512,9 +518,13 @@
       sp.resultat = { vinner: null, linjer: [] };
       sp.uavgjort++;
       telRekord(S, null);
-      R.si("Brettet er fullt. Uavgjort!");
+      R.si(R.t("Brettet er fullt. Uavgjort!"));
       setTimeout(() => fortsatt() && R.lyd.pling(), tid + 120);
-    } else R.si(`${navn(sp, hvem)} la i kolonne ${k + 1}. ${tur(S) === 0 && sp.modus === "mobil" ? "Din tur" : `${navn(sp, tur(S))} sin tur`}.`);
+    } else {
+      const la = sp.modus === "mobil" ? (hvem === 0 ? R.t("Du la i kolonne {n}.", { n: k + 1 }) : R.t("Mobilen la i kolonne {n}.", { n: k + 1 })) : R.t("{navn} la i kolonne {n}.", { navn: navn(sp, hvem), n: k + 1 });
+      const neste = sp.modus === "mobil" ? (tur(S) === 0 ? R.t("Din tur.") : R.t("Mobilen sin tur.")) : R.t("{navn} sin tur.", { navn: navn(sp, tur(S)) });
+      R.si(`${la} ${neste}`);
+    }
     R.vis();
     if (!sp.resultat) startTenking(S);
   }
@@ -584,7 +594,7 @@
   // ---------- Markup ----------
 
   // Under the score: the goal of the match and the draws so far.
-  const tallTekst = (sp) => [sp.mal ? `først til ${sp.mal}` : "", sp.uavgjort ? R.flertall(sp.uavgjort, "uavgjort", "uavgjort") : ""].filter(Boolean).join("<br>");
+  const tallTekst = (sp) => [sp.mal ? esc(R.t("først til {n}", { n: sp.mal })) : "", sp.uavgjort ? esc(R.flertall(sp.uavgjort, "uavgjort", "uavgjort")) : ""].filter(Boolean).join("<br>");
 
   function poengHtml(S) {
     const sp = S.spill;
@@ -593,7 +603,7 @@
         <span class="fi-merke" aria-hidden="true">${erMaskin(sp, i) ? `<span class="fi-maskin">${R.figur()}</span>` : R.avatar(i)}<i class="fi-disk ${FARGE[i]}"></i></span>
         <b class="fi-navn">${esc(navn(sp, i))}</b>
       </div>`;
-    return `<div class="fi-stilling" role="group" aria-label="Stillingen: ${esc(navn(sp, 0))} ${sp.poeng[0]}, ${esc(navn(sp, 1))} ${sp.poeng[1]}">
+    return `<div class="fi-stilling" role="group" aria-label="${esc(R.t("Stillingen: {a} {pa}, {b} {pb}", { a: navn(sp, 0), pa: sp.poeng[0], b: navn(sp, 1), pb: sp.poeng[1] }))}">
       ${kort(0)}
       <div class="fi-tall" aria-hidden="true"><b>${sp.poeng[0]}</b><span>–</span><b>${sp.poeng[1]}</b>${tallTekst(sp) ? `<small>${tallTekst(sp)}</small>` : ""}</div>
       ${kort(1)}
@@ -604,17 +614,17 @@
     const sp = S.spill;
     if (sp.resultat) {
       const v = sp.resultat.vinner;
-      if (v == null) return `<p class="fi-melding uavgjort"><span>Brettet er fullt – uavgjort!</span></p>`;
-      let tekst = sp.modus === "mobil" ? (v === 0 ? "Du vinner! Fire på rad!" : "Mobilen vinner denne gangen!") : `${navn(sp, v)} vinner!`;
-      if (kampVunnet(sp)) tekst = sp.modus === "mobil" ? (v === 0 ? `Du vinner kampen – først til ${sp.mal}!` : "Mobilen vinner kampen!") : `${navn(sp, v)} vinner kampen!`;
+      if (v == null) return `<p class="fi-melding uavgjort"><span>${esc(R.t("Brettet er fullt – uavgjort!"))}</span></p>`;
+      let tekst = sp.modus === "mobil" ? (v === 0 ? R.t("Du vinner! Fire på rad!") : R.t("Mobilen vinner denne gangen!")) : R.t("{navn} vinner!", { navn: navn(sp, v) });
+      if (kampVunnet(sp)) tekst = sp.modus === "mobil" ? (v === 0 ? R.t("Du vinner kampen – først til {n}!", { n: sp.mal }) : R.t("Mobilen vinner kampen!")) : R.t("{navn} vinner kampen!", { navn: navn(sp, v) });
       return `<p class="fi-melding vinner ${FARGE[v]}"><span>${esc(tekst)}</span></p>`;
     }
     const i = tur(S);
     const forste = sp.trekk.length === 0;
     let tekst;
-    if (erMaskin(sp, i)) tekst = `<span class="fi-tenker">Mobilen ${forste ? "begynner" : "tenker"}<i>.</i><i>.</i><i>.</i></span>`;
-    else if (sp.modus === "mobil") tekst = forste ? "Du begynner! Trykk på en kolonne." : "Din tur";
-    else tekst = esc(`${navn(sp, i)} ${forste ? "begynner!" : "sin tur"}`);
+    if (erMaskin(sp, i)) tekst = `<span class="fi-tenker">${esc(forste ? R.t("Mobilen begynner") : R.t("Mobilen tenker"))}<i>.</i><i>.</i><i>.</i></span>`;
+    else if (sp.modus === "mobil") tekst = esc(forste ? R.t("Du begynner! Trykk på en kolonne.") : R.t("Din tur"));
+    else tekst = esc(forste ? R.t("{navn} begynner!", { navn: navn(sp, i) }) : R.t("{navn} sin tur", { navn: navn(sp, i) }));
     return `<p class="fi-melding ${FARGE[i]}"><i class="fi-disk ${FARGE[i]}" aria-hidden="true"></i><span>${tekst}</span></p>`;
   }
 
@@ -650,12 +660,16 @@
     const kanTrykke = o.interaktiv && !sp.resultat && !erMaskin(sp, tur(S));
     const naa = sp.resultat ? 0 : tur(S);
     const kolonner = o.interaktiv
-      ? `<div class="fi-kolonner${kanTrykke ? "" : " venter"}" role="group" aria-label="Kolonnene">${Array.from({ length: KOL }, (_, k) => {
+      ? `<div class="fi-kolonner${kanTrykke ? "" : " venter"}" role="group" aria-label="${esc(R.t("Kolonnene"))}">${Array.from({ length: KOL }, (_, k) => {
           const ledige = RAD - b.h[k];
           // The column as words, from the bottom up, so the board can be read without seeing it.
-          const innhold = Array.from({ length: b.h[k] }, (_, r) => FARGE[spillerFor(sp, b.c[k * RAD + r])]);
-          const tekst = `Kolonne ${k + 1}: ${innhold.length ? `${innhold.join(", ")} nedenfra` : "tom"}${ledige ? (innhold.length ? `, ${ledige} ledige` : "") : ", full"}`;
-          return `<button class="fi-kol" data-h="slipp" data-v="${k}" data-stille aria-label="${tekst}"${ledige && kanTrykke ? "" : ' aria-disabled="true"'}><i class="fi-sikte ${FARGE[naa]}" aria-hidden="true"></i></button>`;
+          const innhold = Array.from({ length: b.h[k] }, (_, r) => FARGENAVN[spillerFor(sp, b.c[k * RAD + r])]);
+          const tekst =
+            R.t("Kolonne {n}", { n: k + 1 }) +
+            ": " +
+            (innhold.length ? R.t("{brikker} nedenfra", { brikker: innhold.join(", ") }) : R.t("tom")) +
+            (ledige ? (innhold.length ? ", " + R.t("{n} ledige", { n: ledige }) : "") : ", " + R.t("full"));
+          return `<button class="fi-kol" data-h="slipp" data-v="${k}" data-stille aria-label="${esc(tekst)}"${ledige && kanTrykke ? "" : ' aria-disabled="true"'}><i class="fi-sikte ${FARGE[naa]}" aria-hidden="true"></i></button>`;
         }).join("")}</div>`
       : "";
     return `<div class="fi-ramme${o.liten ? " liten" : ""}">
@@ -714,7 +728,7 @@
   function rekordHtml(S, niva) {
     const r = S.rekord[niva];
     if (!r || !(r.seier + r.uavgjort + r.tap)) return "";
-    return `<span><b>${r.seier}</b> ${r.seier === 1 ? "seier" : "seirer"}</span><span><b>${r.uavgjort}</b> uavgjort</span><span><b>${r.tap}</b> tap</span>`;
+    return `<span><b>${r.seier}</b> ${esc(R.t("seier|seirer", { n: r.seier }))}</span><span><b>${r.uavgjort}</b> ${esc(R.t("uavgjort|uavgjort", { n: r.uavgjort }))}</span><span><b>${r.tap}</b> ${esc(R.t("tap|tap", { n: r.tap }))}</span>`;
   }
 
   const DISK_IKON = '<span class="fi-knappedisk" aria-hidden="true"></span>';
@@ -756,18 +770,18 @@
     },
 
     regler: {
-      intro: "Slipp brikkene ned i brettet. Den som først får fire på rad, vinner runden.",
+      intro: R.t("Slipp brikkene ned i brettet. Den som først får fire på rad, vinner runden."),
       steg: [
-        ["Slipp en brikke", "Trykk på en kolonne. Brikka faller ned til den nederste ledige plassen."],
-        ["Fire på rad", "Få fire brikker etter hverandre – bortover, oppover eller på skrå."],
-        ["Stopp motstanderen", "Har den andre tre på rad med en ledig plass? Legg brikka di der før det er for sent!"],
+        [R.t("Slipp en brikke"), R.t("Trykk på en kolonne. Brikka faller ned til den nederste ledige plassen.")],
+        [R.t("Fire på rad"), R.t("Få fire brikker etter hverandre – bortover, oppover eller på skrå.")],
+        [R.t("Stopp motstanderen"), R.t("Har den andre tre på rad med en ledig plass? Legg brikka di der før det er for sent!")],
       ],
       tips: [
-        "Midten er gull: Den midterste kolonnen er med i flest mulige rekker.",
-        "Dere bytter på å begynne.",
-        "Først til 3: Den som først vinner tre runder, vinner kampen. Velg «Uten slutt» hvis dere bare vil spille videre.",
-        "Lag to trusler samtidig, så klarer ikke motstanderen å stoppe begge.",
-        "Trykket feil? «Angre» tar tilbake brikka.",
+        R.t("Midten er gull: Den midterste kolonnen er med i flest mulige rekker."),
+        R.t("Dere bytter på å begynne."),
+        R.t("Først til 3: Den som først vinner tre runder, vinner kampen. Velg «Uten slutt» hvis dere bare vil spille videre."),
+        R.t("Lag to trusler samtidig, så klarer ikke motstanderen å stoppe begge."),
+        R.t("Trykket feil? «Angre» tar tilbake brikka."),
       ],
     },
 
@@ -780,37 +794,37 @@
           const rek = [1, 2, 3].map((n) => [n, rekordHtml(S, n)]).filter(([, h]) => h);
           return (
             R.ui.spillhjem({
-              slagordHtml: "Slipp brikka. Klonk!<br><em>Først til fire på rad vinner.</em>",
+              slagordHtml: `${esc(R.t("Slipp brikka. Klonk!"))}<br><em>${esc(R.t("Først til fire på rad vinner."))}</em>`,
               knapperHtml: R.ui.startKnapper({
                 pagar: aktiv,
-                fortsettTekst: aktiv ? `Fortsett · ${sp.poeng[0]}–${sp.poeng[1]}` : "",
-                ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+                fortsettTekst: aktiv ? R.t("Fortsett · {stilling}", { stilling: `${sp.poeng[0]}–${sp.poeng[1]}` }) : "",
+                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [
-                ["1–2", "spillere"],
-                ["3", "nivåer"],
-                ["0", "reklame"],
+                ["1–2", R.t("spillere")],
+                ["3", R.t("nivåer")],
+                ["0", R.t("reklame")],
               ],
-            }) + (rek.length ? `<section class="fi-rekorder" aria-label="Mot mobilen"><p class="etikett">Mot mobilen</p><ul>${rek.map(([n, h]) => `<li><b class="fi-niva">${NIVANAVN[n]}</b>${h}</li>`).join("")}</ul></section>` : "")
+            }) + (rek.length ? `<section class="fi-rekorder" aria-label="${esc(R.t("Mot mobilen"))}"><p class="etikett">${esc(R.t("Mot mobilen"))}</p><ul>${rek.map(([n, h]) => `<li><b class="fi-niva">${NIVANAVN[n]}</b>${h}</li>`).join("")}</ul></section>` : "")
           );
         },
         inn: () => R.slippVaken(),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
           return `
-            <h1 id="skjerm-tittel">Gjør klart</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
             <section class="seksjon">
-              <h2>Hvordan vil du spille?</h2>
+              <h2>${esc(R.t("Hvordan vil du spille?"))}</h2>
               ${R.ui.fliser(
                 "modus",
                 [
-                  { v: "mobil", ikon: "🤖", tittel: "Mot mobilen", tekst: "Tre nivåer" },
-                  { v: "to", ikon: "👥", tittel: "To spillere", tekst: "På samme mobil" },
+                  { v: "mobil", ikon: "🤖", tittel: R.t("Mot mobilen"), tekst: R.t("Tre nivåer") },
+                  { v: "to", ikon: "👥", tittel: R.t("To spillere"), tekst: R.t("På samme mobil") },
                 ],
                 o.modus,
               )}
@@ -818,41 +832,41 @@
             ${
               o.modus === "mobil"
                 ? `<section class="seksjon">
-                    <h2>Hvor flink er mobilen?</h2>
-                    ${R.ui.seg("niva", [[1, "Lett"], [2, "Middels"], [3, "Vanskelig"]], o.niva, { etikett: "Nivå" })}
+                    <h2>${esc(R.t("Hvor flink er mobilen?"))}</h2>
+                    ${R.ui.seg("niva", [[1, NIVANAVN[1]], [2, NIVANAVN[2]], [3, NIVANAVN[3]]], o.niva, { etikett: R.t("Nivå") })}
                     <p class="hjelp">${esc(NIVATEKST[o.niva])}</p>
                   </section>
-                  <p class="hjelp">Du har de rosa brikkene. Du og mobilen bytter på å begynne.</p>`
-                : `${R.ui.spillere({ min: 2, max: 2, tittel: "Spillerne", hjelp: "Spiller 1 har rosa, spiller 2 gul. Dere bytter på å begynne." })}`
+                  <p class="hjelp">${esc(R.t("Du har de rosa brikkene. Du og mobilen bytter på å begynne."))}</p>`
+                : `${R.ui.spillere({ min: 2, max: 2, tittel: R.t("Spillerne"), hjelp: R.t("Spiller 1 har rosa, spiller 2 gul. Dere bytter på å begynne.") })}`
             }
             <section class="seksjon">
-              <h2>Hvor lenge?</h2>
-              ${R.ui.seg("mal", MAL.map((m) => [m, m ? `Først til ${m}` : "Uten slutt"]), o.mal, { etikett: "Hvor lenge" })}
-              <p class="hjelp">${o.mal ? `Den som først vinner ${o.mal} runder, vinner kampen.` : "Dere spiller så mange runder dere vil, og avslutter når dere vil."}</p>
+              <h2>${esc(R.t("Hvor lenge?"))}</h2>
+              ${R.ui.seg("mal", MAL.map((m) => [m, m ? R.t("Først til {n}", { n: m }) : R.t("Uten slutt")]), o.mal, { etikett: R.t("Hvor lenge") })}
+              <p class="hjelp">${esc(o.mal ? R.t("Den som først vinner {n} runder, vinner kampen.", { n: o.mal }) : R.t("Dere spiller så mange runder dere vil, og avslutter når dere vil."))}</p>
             </section>
-            ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor", ikon: DISK_IKON }))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { variant: "stor", ikon: DISK_IKON }))}`;
         },
       },
 
       spill: {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: (S) => R.t("Runde {n}", { n: S.spill.runde }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const ferdig = rundeFerdig(S);
           const kanAngre = sp.trekk.length > 0 && !(sp.modus === "mobil" && sp.starter === 1 && sp.trekk.length === 1 && !ferdig);
           return `
-            <h1 class="vh" id="skjerm-tittel">Fire på rad, runde ${sp.runde}</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("Fire på rad, runde {n}", { n: sp.runde }))}</h1>
             ${poengHtml(S)}
             ${meldingHtml(S)}
             <span class="fi-luft" aria-hidden="true"></span>
             ${brettHtml(S, { interaktiv: true })}
             <span class="fi-luft under" aria-hidden="true"></span>
             ${R.ui.dokk(
-              ferdig ? (kampVunnet(sp) ? R.ui.knapp("Se kåringen", "kaaring", { ikon: "🏆" }) : R.ui.knapp("Ny runde", "runde", { ikon: DISK_IKON })) : "",
+              ferdig ? (kampVunnet(sp) ? R.ui.knapp(R.t("Se kåringen"), "kaaring", { ikon: "🏆" }) : R.ui.knapp(R.t("Ny runde"), "runde", { ikon: DISK_IKON })) : "",
               R.ui.lenkerad(
-                `<button class="lenke" data-h="angre"${kanAngre ? "" : " disabled"}>↶ Angre</button>`,
-                R.ui.lenke("Avslutt", "avslutt"),
+                `<button class="lenke" data-h="angre"${kanAngre ? "" : " disabled"}>↶ ${esc(R.t("Angre"))}</button>`,
+                R.ui.lenke(R.t("Avslutt"), "avslutt"),
               ),
             )}`;
         },
@@ -873,7 +887,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -881,14 +895,14 @@
           const [a, b] = sp.poeng;
           const vinner = a === b ? null : a > b ? 0 : 1;
           let tittel;
-          if (vinner == null) tittel = a === 0 ? "Ingen vinner denne gangen" : "Uavgjort!";
-          else if (sp.modus === "mobil") tittel = vinner === 0 ? "Du vinner!" : "Mobilen vinner!";
-          else tittel = `${navn(sp, vinner)} vinner!`;
+          if (vinner == null) tittel = a === 0 ? R.t("Ingen vinner denne gangen") : R.t("Uavgjort!");
+          else if (sp.modus === "mobil") tittel = vinner === 0 ? R.t("Du vinner!") : R.t("Mobilen vinner!");
+          else tittel = R.t("{navn} vinner!", { navn: navn(sp, vinner) });
           const runder = a + b + sp.uavgjort;
-          const etikett = `${R.flertall(runder, "runde", "runder")}${sp.uavgjort ? ` · ${sp.uavgjort} uavgjort` : ""}`;
+          const etikett = `${R.flertall(runder, "runde", "runder")}${sp.uavgjort ? ` · ${R.flertall(sp.uavgjort, "uavgjort", "uavgjort")}` : ""}`;
           const figur = vinner != null && !(sp.modus === "mobil" && vinner === 1) ? `<span class="fi-vinner">${R.avatar(vinner, "gigant")}<span class="fi-krone" aria-hidden="true">👑</span></span>` : R.figur();
           const tekst =
-            sp.modus === "mobil" && vinner === 1 ? "Godt kjempa! Prøv igjen – du blir bedre for hver runde." : vinner == null && a > 0 ? "Like mange seirer hver. Det får avgjøres neste gang!" : "";
+            sp.modus === "mobil" && vinner === 1 ? R.t("Godt kjempa! Prøv igjen – du blir bedre for hver runde.") : vinner == null && a > 0 ? R.t("Like mange seirer hver. Det får avgjøres neste gang!") : "";
           return `
             <div class="banner ${sp.modus === "mobil" && vinner === 1 ? "" : "aksent"}">
               ${figur}
@@ -898,7 +912,7 @@
             </div>
             ${R.ui.poengliste(rader)}
             ${R.ui.flereSpill({ antall: sp.modus === "to" ? 2 : 1 })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen", { ikon: DISK_IKON }), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: DISK_IKON }), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -965,7 +979,7 @@
         const sp = S.spill;
         if (!sp || sp.ferdig || rundeFerdig(S)) return;
         if (erMaskin(sp, tur(S))) {
-          R.toast("Vent litt – mobilen tenker");
+          R.toast(R.t("Vent litt – mobilen tenker"));
           return;
         }
         if (performance.now() < lasTil) return; // the last disc is still falling
@@ -1005,7 +1019,7 @@
         stilling = null;
         nyBrikke = null;
         R.lyd.snu();
-        R.toast(n === 2 ? "Angret – din tur igjen" : "Angret");
+        R.toast(n === 2 ? R.t("Angret – din tur igjen") : R.t("Angret"));
         R.vis();
         startTenking(S);
       },
@@ -1017,10 +1031,10 @@
         // The phone waits while the sheet is open (it must not decide a round behind it).
         stoppTenking();
         const ja = await R.bekreft(
-          "Avslutte spillet?",
-          runder ? `Dere går til kåringen. Stillingen er ${sp.poeng[0]}–${sp.poeng[1]}.` : "Dere kan alltid starte et nytt.",
-          "Avslutt",
-          "Spill videre",
+          R.t("Avslutte spillet?"),
+          runder ? R.t("Dere går til kåringen. Stillingen er {stilling}.", { stilling: `${sp.poeng[0]}–${sp.poeng[1]}` }) : R.t("Dere kan alltid starte et nytt."),
+          R.t("Avslutt"),
+          R.t("Spill videre"),
         );
         if (!fortsatt() || S.spill !== sp || sp.ferdig) return;
         if (!ja) return startTenking(S); // «Spill videre»: the phone thinks on
