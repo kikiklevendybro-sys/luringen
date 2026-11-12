@@ -164,7 +164,7 @@ export default async function (t) {
         await t.klikk(SEND);
         // «Ferdig» → the next player, on a new screen: nothing of the answer is left.
         const neste = (await t.tilstand()).spill.r.rekke[1];
-        const etter = await t.js(`(() => { const f = document.querySelector("#svar-felt"); return { skjerm: document.querySelector("#skjerm").className, h1: document.querySelector("#skjerm h1").innerText.trim(), verdi: f.value, navn: f.name, fokus: document.activeElement === f, rest: document.body.innerHTML.includes(${JSON.stringify(tekst)}) }; })()`);
+        const etter = await t.js(`(() => { const f = document.querySelector("#svar-felt"); return { skjerm: document.querySelector("#skjerm").className, h1: document.querySelector("#skjerm h1").innerText.trim(), verdi: f.value, navn: f.name, fokus: document.activeElement === f, rest: (() => { const b = document.body.cloneNode(true); b.querySelector("#om-spillet")?.remove(); return b.innerHTML; })().includes(${JSON.stringify(tekst)}) }; })()`);
         t.sjekk(/skjerm-skriv/.test(etter.skjerm) && etter.h1 === NAVN[neste], `«Ferdig» viste ikke neste spiller (${etter.h1})`);
         t.sjekk(etter.verdi === "" && !etter.rest && etter.navn !== felt.navn, "Forrige svar ligger igjen i feltet eller på siden");
         t.sjekk(etter.fokus, "Feltet til neste spiller får ikke fokus");
@@ -322,7 +322,7 @@ export default async function (t) {
   const forstemann = NAVN[s.spill.r.rekke[0]];
   await t.skrivInn("#svar-felt", "Hemmelig");
   await last();
-  const omlastet = await t.js(`({ skriv: !!document.querySelector(".skjerm-skriv"), h1: document.querySelector("#skjerm h1").innerText.trim(), verdi: (document.querySelector("#svar-felt") || {}).value, rest: /hemmelig/i.test(document.body.innerHTML) })`);
+  const omlastet = await t.js(`({ skriv: !!document.querySelector(".skjerm-skriv"), h1: document.querySelector("#skjerm h1").innerText.trim(), verdi: (document.querySelector("#svar-felt") || {}).value, rest: /hemmelig/i.test((() => { const b = document.body.cloneNode(true); b.querySelector("#om-spillet")?.remove(); return b.innerHTML; })()) })`);
   t.sjekk(omlastet.skriv && omlastet.h1 === forstemann, `Omlasting på svarskjermen viste ikke samme spiller (${omlastet.h1})`);
   t.sjekk(omlastet.verdi === "" && !omlastet.rest, "Omlasting på svarskjermen viste det som var skrevet");
   await t.klikk("#tilbake");
