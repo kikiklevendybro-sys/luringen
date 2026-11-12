@@ -265,7 +265,8 @@ export function serNorskUt(raa) {
   if (/^(https?:|\/|\.\/|rusj\.|data:|#)/.test(tekst) || /[{};]\s*$/.test(tekst) && /:/.test(tekst)) return false;
   if (/[æøåÆØÅ]/.test(tekst)) return true;
   const ord = tekst.toLocaleLowerCase("nb").match(/[a-zæøå]+/g) || [];
-  return ord.length >= 2 && ord.some((o) => NORSKE_ORD.has(o));
+  if (ord.length === 1) return ENKELTORD.has(ord[0]) && /[A-ZÆØÅ]/.test(tekst); // «× Lukk»
+  return ord.some((o) => NORSKE_ORD.has(o));
 }
 
 // Literals in a source that look like Norwegian UI text and are not keys. A line with
@@ -431,7 +432,7 @@ export function sjekkSpill(rot, id, sprak, kilde = null, fellesTabell = undefine
 }
 
 // The whole check. o: { rot, spill: [ids] | null, sprak: [langs] | null, alle: show the shared
-// unwrapped strings too }. Returns { feil, varsler, publisert: { en: [ids], … } }.
+// unwrapped strings too, bygg: called from the build (no summary of those) }. Returns { feil, varsler, publisert: { en: [ids], … } }.
 export function sjekkSprak(o = {}) {
   const rot = o.rot || ROT_HER;
   const sprakene = o.sprak || SPRAK;
@@ -440,7 +441,7 @@ export function sjekkSprak(o = {}) {
   const publisert = {};
   const { krevd, varsler: fellesVarsler } = felleskrav(rot);
   if (o.alle) varsler.push(...fellesVarsler);
-  else if (fellesVarsler.length) varsler.push(`${fellesVarsler.length} tekster i kit/forside/maler ser norske ut og er ikke pakket inn (node scripts/sprak.mjs --alle)`);
+  else if (fellesVarsler.length && !o.bygg) varsler.push(`${fellesVarsler.length} tekster i kit/forside/maler ser norske ut og er ikke pakket inn (node scripts/sprak.mjs --alle)`);
   const ider = o.spill || readdirSync(join(rot, "rusj/spill")).filter((d) => existsSync(join(rot, "rusj/spill", d, "spill.json")));
   const katalog = katalogNokler(rot);
   for (const sprak of sprakene) {
@@ -487,6 +488,16 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const r = sjekkSprak({ spill, sprak, alle: process.argv.includes("--alle") || !!spill });
   // With --spill, the shared warnings are noise: show only that game's own lines.
   for (const v of spill ? r.varsler.filter((v) => !/^(rusj|scripts)\//.test(v)) : r.varsler) console.log("⚠ " + v);
+  // A game that is not converted yet: what is left to wrap, as a to-do list (rusj/SPRAK.md).
+  for (const id of spill || []) {
+    const fil = join(ROT_HER, "rusj/spill", id, "spill.js");
+    if (!existsSync(fil)) continue;
+    const m = JSON.parse(readFileSync(join(ROT_HER, "rusj/spill", id, "spill.json"), "utf8"));
+    if (m.i18n) continue;
+    const igjen = uoversatt(readFileSync(fil, "utf8"));
+    for (const u of igjen) console.log(`⚠ ${id}/spill.js:${u.linje} ikke oversatt: «${u.tekst}»`);
+    console.log(`  ${id}: ${igjen.length} tekster igjen å pakke inn i R.t (spill.json har ingen "i18n" ennå)`);
+  }
   for (const f of r.feil) console.log("✗ " + f);
   for (const [s, ider] of Object.entries(r.publisert)) console.log(`✓ ${s}: ${ider.length} spill publiseres${ider.length ? " (" + ider.join(", ") + ")" : ""}`);
   process.exit(r.feil.length ? 1 : 0);

@@ -474,7 +474,7 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
   // Norwegian at the root, every other edition under /<lang>/, from the same templates: every text
   // goes through t() (the key is the Norwegian text, so Norwegian is unchanged). The tables are
   // checked first: a missing or unused key stops the build (node scripts/sprak.mjs says the same).
-  const sjekk = sjekkSprak({ rot: ROT, spill: utvalg ? utvalg.filter((id) => id !== "luringen") : null });
+  const sjekk = sjekkSprak({ rot: ROT, spill: utvalg ? utvalg.filter((id) => id !== "luringen") : null, bygg: true });
   if (sjekk.feil.length) throw new Error("Språktabellene har feil (node scripts/sprak.mjs viser dem):\n  " + sjekk.feil.join("\n  "));
   for (const v of sjekk.varsler) console.warn("  ⚠ " + v);
   const kitTabell = Object.fromEntries(SPRAK.map((s) => [s, lesTabell(join(ROT, `rusj/kit/tekst.${s}.json`)) || {}]));
