@@ -5,7 +5,10 @@
 // the countdown and shares owls and moons through R.del (never the word, never coloured squares);
 // home shows the countdown. Then practice: six wrong guesses show the word, «Gi opp» on the next
 // one, and the rules explain rusj's own tile language (solid mint, yellow ring, flat and dim).
+// Language-neutral (rusj/SPRAK.md): texts are checked only in Norwegian; the words come from the
+// edition's own lists, and the keyboard is the edition's (English a–z, Danish … æ ø, Norwegian … ø æ).
 export default async function (t) {
+  const LAGER = t.nokkel("ordugla.v1");
   const pause = () => t.sov(420); // taps right after a screen change are ignored on purpose
   const tilstand = () => t.tilstand();
   const skriv = async (ord) => {
@@ -16,7 +19,7 @@ export default async function (t) {
     await skriv(ord);
     await t.klikk('.ou-tast[data-v="gjett"]', 60);
     // Done when the guess is saved and the next row (or the end) is drawn after the flip.
-    await t.vent(`(() => { const s = JSON.parse(localStorage.getItem("rusj.ordugla.v1")); const sp = s[s.modus]; return sp.gjett.length === ${for_ + 1}; })()`, 4000);
+    await t.vent(`(() => { const s = JSON.parse(localStorage.getItem("${LAGER}")); const sp = s[s.modus]; return sp.gjett.length === ${for_ + 1}; })()`, 4000);
     await t.vent(`!!document.querySelector('.ou-rad.na[data-rad="${for_ + 1}"]') || !!document.querySelector('.skjerm-resultat') || !!document.querySelector('.ou-tastatur.av')`, 6000);
     await t.sov(120);
   };
@@ -39,16 +42,21 @@ export default async function (t) {
   await t.js(`(() => {
     const S = Rusj.S;
     S.stat = { spilt: 3, vunnet: 3, rekke: 3, best: 3, fordeling: [0, 0, 1, 1, 1, 0], sistVunnet: ${iDag - 1}, sistSpilt: ${iDag - 1} };
-    S.dag = { nr: ${iDag - 2}, ord: "fjell", gjett: ["glede"], rad: "", ferdig: false, vunnet: false };
+    S.dag = { nr: ${iDag - 2}, ord: RUSJ_DATA.svar.dagens[2], gjett: [RUSJ_DATA.svar.dagens[0]], rad: "", ferdig: false, vunnet: false };
     Rusj.lagre();
   })()`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
-  t.sjekk(/Dagens ord/.test(await t.tekst('.hjem-knapper [data-h="dag"]')) && !/Fortsett/.test(await t.tekst(".hjem-knapper")), "Et uferdig ord fra en annen dag skal ikke gi «Fortsett» i dag");
+  t.sjekk((await t.finnes('.hjem-knapper .knapp.stor[data-h="dag"]')) && (!t.norsk || (/Dagens ord/.test(await t.tekst('.hjem-knapper [data-h="dag"]')) && !/Fortsett/.test(await t.tekst(".hjem-knapper")))), "Et uferdig ord fra en annen dag skal ikke gi «Fortsett» i dag");
+  // The edition's keyboard: English has no æ ø å; Danish ends its middle row in æ ø, Norwegian in ø æ.
+  const midtrad = await t.js(`(() => { const r = document.querySelectorAll(".ou-tastrad"); return r.length ? Array.from(r[1].querySelectorAll(".ou-tast")).map((k) => k.dataset.v).join("") : ""; })()`);
+  if (midtrad) t.sjekk(midtrad === { nb: "asdfghjkløæ", da: "asdfghjklæø", en: "asdfghjkl" }[t.sprak], `Feil tastatur for ${t.sprak}: ${midtrad}`);
   t.sjekk(/3/.test(await t.tekst(".merker")), "Rekka (3 dager på rad) vises ikke på hjem-skjermen");
   await t.bilde("hjem-rekke");
 
   await t.klikk('[data-h="dag"]');
   await t.vent("document.querySelector('.ou-tastatur')");
+  const tastene = await t.js(`Array.from(document.querySelectorAll(".ou-tast[data-v]")).map((k) => k.dataset.v).filter((v) => v.length === 1).join("")`);
+  t.sjekk(tastene === { nb: "qwertyuiopåasdfghjkløæzxcvbnm", da: "qwertyuiopåasdfghjklæøzxcvbnm", en: "qwertyuiopasdfghjklzxcvbnm" }[t.sprak], `Feil tastatur for ${t.sprak}: ${tastene}`);
   let s = await tilstand();
   t.sjekk(s.dag.nr === iDag && s.dag.gjett.length === 0, "Dagens ord startet ikke på nytt");
   t.sjekk((await t.antall(".ou-rad")) === 6 && (await t.antall(".ou-rad .ou-rute")) === 30, "Brettet skal ha seks rader med fem ruter");
@@ -56,7 +64,11 @@ export default async function (t) {
   t.sjekk(svar === (await t.js(`Rusj.app._dagensOrd(${iDag})`)), "Dagens ord kommer ikke fra den faste rekka");
   // Frozen daily order: these must never change (data/svar.json «dagens» is append-only).
   const forste = await t.js("Rusj.dag(new Date(Date.UTC(2026, 10, 9, 12))).nr");
-  const fast = { 0: "glede", 1: "pizza", 2: "fjell", 3: "banan", 4: "sykle", 5: "kaffe", 6: "bjørn", 7: "hytte", 8: "gitar", 9: "jakke", 30: "langs", 100: "dusin", 364: "uenig" };
+  const fast = {
+    nb: { 0: "glede", 1: "pizza", 2: "fjell", 3: "banan", 4: "sykle", 5: "kaffe", 6: "bjørn", 7: "hytte", 8: "gitar", 9: "jakke", 30: "langs", 100: "dusin", 364: "uenig" },
+    en: { 0: "smile", 1: "pizza", 2: "beach", 3: "tiger", 4: "bread", 5: "cloud", 6: "house", 7: "happy", 8: "piano", 9: "lemon", 30: "solve", 100: "union", 364: "thick", 729: "grant" },
+    da: { 0: "hygge", 1: "pizza", 2: "kaffe", 3: "bjørn", 4: "hytte", 5: "jakke", 6: "skole", 7: "tiger", 8: "frost", 9: "kanin", 30: "skade", 100: "fæste", 364: "lunge", 729: "tømme" },
+  }[t.sprak];
   for (const [k, o] of Object.entries(fast)) {
     const fakt = await t.js(`Rusj.app._dagensOrd(${forste} + ${k})`);
     t.sjekk(fakt === o, `Dagens ord dag ${Number(k) + 1} skal være «${o}», er «${fakt}» – rekkefølgen er endret`);
@@ -66,11 +78,11 @@ export default async function (t) {
   // Too short, not a word, then deleting
   await skriv("kat");
   await t.klikk('.ou-tast[data-v="gjett"]', 80);
-  t.sjekk(/For få bokstaver/.test(await varsel()), "Mangler «For få bokstaver» i hjelpelinja");
+  t.sjekk(t.norsk ? /For få bokstaver/.test(await varsel()) : !!(await varsel()), "Mangler «For få bokstaver» i hjelpelinja");
   t.sjekk((await toast()) === "", "Meldinger på brettet skal ikke komme som toast");
   await skriv("qq");
   await t.klikk('.ou-tast[data-v="gjett"]', 80);
-  t.sjekk(/Ikke i ordlista/.test(await varsel()), "Mangler «Ikke i ordlista» i hjelpelinja");
+  t.sjekk(t.norsk ? /Ikke i ordlista/.test(await varsel()) : !!(await varsel()), "Mangler «Ikke i ordlista» i hjelpelinja");
   t.sjekk(await t.finnes(".ou-rad.na.risting"), "Raden rister ikke ved ugyldig ord");
   await t.bilde("ikke-i-ordlista");
   for (let i = 0; i < 5; i++) await t.klikk('.ou-tast[data-v="slett"]', 25);
@@ -91,7 +103,7 @@ export default async function (t) {
   // The same word twice
   await skriv(ord1);
   await t.klikk('.ou-tast[data-v="gjett"]', 80);
-  t.sjekk(/prøvd/.test(await varsel()) && (await tilstand()).dag.gjett.length === 1, "Samme ord to ganger skal avvises");
+  t.sjekk((t.norsk ? /prøvd/.test(await varsel()) : !!(await varsel())) && (await tilstand()).dag.gjett.length === 1, "Samme ord to ganger skal avvises");
   for (let i = 0; i < 5; i++) await t.klikk('.ou-tast[data-v="slett"]', 25);
 
   // A real keyboard: letters, Backspace and Enter
@@ -101,7 +113,7 @@ export default async function (t) {
   await tast(ord2[4]);
   await tast("x"); // a sixth letter is ignored
   await tast("Enter");
-  await t.vent(`JSON.parse(localStorage.getItem("rusj.ordugla.v1")).dag.gjett.length === 2`, 4000);
+  await t.vent(`JSON.parse(localStorage.getItem("${LAGER}")).dag.gjett.length === 2`, 4000);
   await t.vent(`!!document.querySelector('.ou-rad.na[data-rad="2"]')`, 6000);
   t.sjekk((await tilstand()).dag.gjett[1] === ord2, "Et ord skrevet på et ekte tastatur ble ikke gjettet");
   await t.bilde("to-forsok");
@@ -116,7 +128,7 @@ export default async function (t) {
 
   // Back to home and continue
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett dagens ord · 2\/6/.test(await t.tekst('.hjem-knapper [data-h="dag"]')), "Hjem viser ikke «Fortsett dagens ord · 2/6»");
+  t.sjekk((t.norsk ? /Fortsett dagens ord · 2\/6/ : /2\/6/).test(await t.tekst('.hjem-knapper [data-h="dag"]')), "Hjem viser ikke «Fortsett dagens ord · 2/6»");
   t.sjekk((await tilstand())._aktiv === true, "Et påbegynt dagens ord er ikke merket som pågående");
   await t.bilde("hjem-fortsett");
   await t.klikk('[data-h="dag"]');
@@ -129,7 +141,7 @@ export default async function (t) {
   await t.klikk('.ou-tast[data-v="gjett"]', 60);
   // The celebration: the keyboard rests in place, the praise stands in the helper line, nothing jumps.
   await t.vent("document.querySelector('.ou-tastatur.av')", 5000);
-  t.sjekk(/Kjempebra!/.test(await varsel()), `Rosen skal stå i hjelpelinja (${await varsel()})`);
+  t.sjekk(t.norsk ? /Kjempebra!/.test(await varsel()) : !!(await varsel()), `Rosen skal stå i hjelpelinja (${await varsel()})`);
   t.sjekk((await brettTopp()) === toppFor, `Brettet flyttet seg da ordet ble funnet (${toppFor} → ${await brettTopp()})`);
   await t.sov(700);
   await t.bilde("vunnet-brett");
@@ -137,15 +149,15 @@ export default async function (t) {
   await t.sov(600);
   s = await tilstand();
   t.sjekk(s.dag.ferdig && s.dag.vunnet, "Riktig ord ble ikke vunnet");
-  const daglig = await t.js(`JSON.parse(localStorage.getItem("rusj.daglig") || "{}").ordugla || null`);
+  const daglig = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("daglig")}") || "{}").ordugla || null`);
   t.sjekk(daglig && daglig.nr === iDag && daglig.vunnet === true && daglig.rekke === 4, `R.dagligFerdig ble ikke kalt riktig: ${JSON.stringify(daglig)}`);
   t.sjekk(s.stat.spilt === 4 && s.stat.vunnet === 4 && s.stat.rekke === 4 && s.stat.best === 4 && s.stat.fordeling[2] === 2, `Statistikken er feil: ${JSON.stringify(s.stat)}`);
   t.sjekk(s._aktiv === false, "Et ferdig dagens ord skal ikke være merket som pågående");
-  t.sjekk(/Du fant ordet på 3 forsøk/.test(await t.tekst("#skjerm h1")), `Feil overskrift: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk((t.norsk ? /Du fant ordet på 3 forsøk/ : /3/).test(await t.tekst("#skjerm h1")), `Feil overskrift: «${await t.tekst("#skjerm h1")}»`);
   t.sjekk((await t.antall(".ou-mini .ou-rad")) === 3, "Forsøkene vises ikke på resultatet");
   t.sjekk((await t.antall(".skjerm-resultat .ou-tall > div")) === 4 && !(await t.finnes(".skjerm-resultat .ou-fordeling")), "Resultatet skal vise de fire tallene, og stolpene skal ligge i Statistikk-arket");
-  t.sjekk(await t.finnes('#skjerm a.lenke[href="/"]'), "Mangler «Alle spill» på resultatet");
-  t.sjekk((await t.tekst(".dokk .knapp")).trim() === "Del resultatet", `Hovedknappen på dagens resultat skal være «Del resultatet» (${await t.tekst(".dokk .knapp")})`);
+  t.sjekk(await t.finnes(`#skjerm a.lenke[href="${t.forside}"]`), "Mangler «Alle spill» på resultatet");
+  t.sjekk((await t.finnes('.dokk .knapp[data-h="del"]')) && (!t.norsk || (await t.tekst(".dokk .knapp")).trim() === "Del resultatet"), `Hovedknappen på dagens resultat skal være «Del resultatet» (${await t.tekst(".dokk .knapp")})`);
   t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".skjerm-resultat .ou-nedtelling b")), "Nedtellingen (TT:MM:SS) mangler på resultatet");
   await t.bilde("resultat", true);
   await t.klikk('.ou-stat [data-h="statistikk"]');
@@ -161,12 +173,16 @@ export default async function (t) {
   })()`);
   await t.klikk('[data-h="del"]', 300);
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && /^Ordugla nr\. \d+ · 3\/6 · 🔥 4 på rad\n\n/.test(delt) && /\n🦉🦉🦉🦉🦉\n\nhttps:\/\/rusj\.no\/ordugla\/#utfordring$/.test(delt), `Delingsteksten er feil: ${delt}`);
+  // The edition's name and address: «Ordugla nr. 4 · 3/6 · 🔥 4 på rad», «Word Owl #4 · 3/6 · 🔥 4 in a row» …
+  const adresse = "https://rusj.no" + (await t.js("location.pathname")) + "#utfordring";
+  const navn = await t.js("window.RUSJ_SPILL.navn");
+  t.sjekk(delt && delt.startsWith(navn + " ") && /^[^\n]* · 3\/6 · 🔥 4 [^\n]+\n\n/.test(delt) && delt.endsWith("\n🦉🦉🦉🦉🦉\n\n" + adresse), `Delingsteksten er feil: ${delt}`);
+  if (t.norsk) t.sjekk(delt && /^Ordugla nr\. \d+ · 3\/6 · 🔥 4 på rad\n\n/.test(delt) && /\n🦉🦉🦉🦉🦉\n\nhttps:\/\/rusj\.no\/ordugla\/#utfordring$/.test(delt), `Delingsteksten er feil: ${delt}`);
   const delRader = delt ? delt.split("\n").slice(2, 5) : [];
   t.sjekk(delRader.length === 3 && delRader.every((r) => /^(?:🦉|🌙|🌑){5}$/u.test(r)), `Delingsteksten skal ha tre rader med ugler og måner: ${delt}`);
   t.sjekk(delt && !/[🟩🟨🟧🟦⬛⬜]/u.test(delt), "Delingsteksten skal ikke bruke fargede firkanter");
   t.sjekk(delt && !delt.toLowerCase().includes(svar), "Delingsteksten røper ordet");
-  t.sjekk(/Kopiert/.test(await toast()), "Mangler «Kopiert» etter deling");
+  t.sjekk(t.norsk ? /Kopiert/.test(await toast()) : !!(await toast()), "Mangler «Kopiert» etter deling");
 
   // Home: today's result and the countdown
   await t.klikk("#tilbake");
@@ -179,7 +195,7 @@ export default async function (t) {
   // button on home, once – gone after leaving home and after a reload; the address is cleaned.
   await t.lastSide(t.side + "#utfordring", "document.querySelector('.hjem-knapper .utfordring')");
   const utf = await t.js(`(() => { const b = document.querySelector(".hjem-knapper .utfordring"); return { forst: b === document.querySelector(".hjem-knapper").firstElementChild, tekst: b.textContent.trim(), hash: location.hash }; })()`);
-  t.sjekk(utf.forst && /Noen utfordret deg på dagens oppgave – klarer du det bedre\?/.test(utf.tekst) && utf.hash === "", `Utfordringsbanneret er feil: ${JSON.stringify(utf)}`);
+  t.sjekk(utf.forst && (!t.norsk || /Noen utfordret deg på dagens oppgave – klarer du det bedre\?/.test(utf.tekst)) && !!utf.tekst && utf.hash === "", `Utfordringsbanneret er feil: ${JSON.stringify(utf)}`);
   await t.bilde("hjem-utfordring");
   await pause();
   await t.klikk('[data-h="se-resultat"]');
@@ -200,7 +216,7 @@ export default async function (t) {
   await t.vent("document.querySelector('.ou-tastatur')");
   s = await tilstand();
   t.sjekk(s.modus === "ov" && s.ov && s.ov.ord !== svar, "Øving startet ikke med et annet ord enn dagens");
-  t.sjekk(/ØVING|Øving/.test(await t.tekst("#topp-tittel")), "Øvingen er ikke merket «Øving»");
+  if (t.norsk) t.sjekk(/ØVING|Øving/.test(await t.tekst("#topp-tittel")), "Øvingen er ikke merket «Øving»");
   const ovSvar = s.ov.ord;
   t.sjekk(!(await t.js(`Rusj.app._kommendeDagsord().includes(${JSON.stringify(ovSvar)})`)), `Øveordet «${ovSvar}» er et av de neste 365 dagsordene`);
   const feil = await andreOrd(ovSvar, 6);
@@ -232,7 +248,10 @@ export default async function (t) {
   // The rules explain rusj's own tile language: solid mint, a yellow ring on a dark tile, flat and dim
   await t.klikk("#reglerknapp");
   t.sjekk(!(await t.finnes('#ark [data-h="kontrast"]')), "Fargeblind-valget skal være borte (rutene skilles på form)");
-  t.sjekk(/mintgrønn rute/.test(await t.tekst("#ark .steg")) && /Gul ring/.test(await t.tekst("#ark .steg")), "Reglene forklarer ikke rutene");
+  if (t.norsk) t.sjekk(/mintgrønn rute/.test(await t.tekst("#ark .steg")) && /Gul ring/.test(await t.tekst("#ark .steg")), "Reglene forklarer ikke rutene");
+  // The examples use the edition's own words, with the marked letter in bold.
+  const eks = await t.js(`Array.from(document.querySelectorAll("#ark .ou-eksempel")).map((e) => Array.from(e.querySelectorAll(".ou-rute")).map((r) => r.textContent).join("") + ":" + (e.querySelector("p b") || {}).textContent)`);
+  t.sjekk(eks.join(" ") === { nb: "fjell:F glede:L bobil:I", en: "plant:P smile:M lunch:C", da: "fjeld:F glæde:L kanin:I" }[t.sprak], `Eksemplene i reglene er feil: ${eks.join(" ")}`);
   const stil = await t.js(`(() => {
     const cs = (sel, p) => { const el = document.querySelector(sel); return el ? getComputedStyle(el, p) : null; };
     const rett = cs("#ark .ou-eksempel .ou-rute.rett"), med = cs("#ark .ou-eksempel .ou-rute.med"), ring = cs("#ark .ou-eksempel .ou-rute.med", "::before"), ikke = cs("#ark .ou-eksempel .ou-rute.ikke");

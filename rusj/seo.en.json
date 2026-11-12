@@ -420,6 +420,16 @@
       "tittel": "Drinking wheel – spin it, make house rules (18+)",
       "frase": "Drinking wheel",
       "beskrivelse": "Spin the big drinking wheel (18+): truths, safe challenges, toasts and your own house rules. Small sips only – alcohol-free counts just as much."
+    },
+    "ordugla": {
+      "tittel": "Word of the day – guess the five-letter word, free",
+      "frase": "Word of the day",
+      "beskrivelse": "A free daily word game in British English: guess the five-letter word in six tries. The same word for everyone each day – and practise as much as you like.",
+      "sok": [
+        "five letter word game",
+        "daily word puzzle",
+        "guess the word"
+      ]
     }
   }
 }

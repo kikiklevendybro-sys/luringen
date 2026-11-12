@@ -435,6 +435,16 @@
       "tittel": "Drukhjulet – snur hjulet, egne regler (18+)",
       "frase": "Drukhjulet",
       "beskrivelse": "Snur det store drukhjul (18+): sandheder, trygge udfordringer, skåler og jeres egne husregler. Kun små slurke – alkoholfrit tæller lige så meget."
+    },
+    "ordugla": {
+      "tittel": "Dagens ord – gæt ordet på fem bogstaver, gratis",
+      "frase": "Dagens ord",
+      "beskrivelse": "Dansk ordspil: gæt dagens ord på fem bogstaver i seks forsøg. Samme ord for alle hver dag, med æ, ø og å – og øv dig, så meget du vil. Gratis, uden reklamer.",
+      "sok": [
+        "gæt ordet",
+        "ordgåde",
+        "ord på fem bogstaver"
+      ]
     }
   }
 }

@@ -10,5 +10,23 @@
   "tagger": ["daglig", "ord", "alene", "tenke"],
   "rekkefolge": 22,
   "sok": ["dagens ord", "ordspill", "fem bokstaver", "gjett ordet", "ordgåte"],
-  "alias": ["dagens-ord"]
+  "alias": ["dagens-ord"],
+  "i18n": {
+    "en": {
+      "navn": "Word Owl",
+      "undertittel": "Today's word",
+      "kort": "Guess today's five-letter word. You have six tries.",
+      "beskrivelse": "Free word game in English: guess the day's five-letter word in six tries. The same word for everyone each day – and practise with new words as much as you like.",
+      "slug": "word-owl",
+      "sok": ["word of the day", "five letter word", "daily word game", "guess the word", "word puzzle", "five letters six guesses", "wordle", "wordle unlimited"]
+    },
+    "da": {
+      "navn": "Orduglen",
+      "undertittel": "Dagens ord",
+      "kort": "Gæt dagens ord på fem bogstaver. Du har seks forsøg.",
+      "beskrivelse": "Gratis ordspil på dansk: gæt dagens ord på fem bogstaver i seks forsøg. Samme ord for alle hver dag – og øv dig med nye ord, så meget du vil.",
+      "slug": "orduglen",
+      "sok": ["dagens ord", "ordspil", "fem bogstaver", "gæt ordet", "ordgåde", "dagligt ordspil", "wordle på dansk", "wordle"]
+    }
+  }
 }
