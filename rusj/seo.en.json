@@ -426,6 +426,12 @@
       "frase": "History order game",
       "beskrivelse": "Put history in order: drag each event to its right place, oldest to newest. Over 600 events from Britain and the world. Free, for 1–10 players.",
       "sok": ["history", "history game"]
+    },
+    "julekalenderen": {
+      "tittel": "Online Advent calendar – 24 doors for the family",
+      "frase": "Advent calendar",
+      "beskrivelse": "Free Advent calendar with 24 doors: Christmas riddles, a quiz, guess the carol, word puzzles and cosy ideas. A new door every day in December, no account.",
+      "sok": ["advent calendar for kids", "christmas riddles"]
     }
   }
 }

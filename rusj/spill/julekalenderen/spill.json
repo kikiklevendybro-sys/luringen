@@ -10,5 +10,23 @@
   "tagger": ["familie", "barn", "fest"],
   "rekkefolge": 48,
   "sok": ["julekalender", "adventskalender", "luke", "jul", "desember", "julenøtter"],
-  "alias": ["adventskalender"]
+  "alias": ["adventskalender"],
+  "i18n": {
+    "en": {
+      "navn": "Advent Calendar",
+      "undertittel": "24 doors to Christmas",
+      "kort": "24 doors with riddles, quizzes and Christmas fun – a new one every day in December.",
+      "beskrivelse": "Free online Advent calendar with 24 doors: Christmas riddles, quizzes, carols, word puzzles and cosy ideas for the whole family. A new door every day in December.",
+      "slug": "advent-calendar",
+      "sok": ["advent calendar", "online advent calendar", "christmas calendar", "advent", "christmas", "december", "christmas riddles", "advent calendar for kids"]
+    },
+    "da": {
+      "navn": "Julekalenderen",
+      "undertittel": "24 låger til jul",
+      "kort": "24 låger med gåder, quiz og julehygge – en ny hver dag i december.",
+      "beskrivelse": "Gratis julekalender på nettet med 24 låger: julegåder, quiz, julesange, ordgåder og hyggelige idéer til hele familien. En ny låge hver dag i december.",
+      "slug": "julekalenderen",
+      "sok": ["julekalender", "adventskalender", "låge", "jul", "december", "julegåder", "julekalender for børn"]
+    }
+  }
 }

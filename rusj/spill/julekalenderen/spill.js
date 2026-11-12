@@ -7,10 +7,18 @@
   const R = window.Rusj;
   const D = window.RUSJ_DATA;
   const LUKER = D.luker;
-  const DEL_URL = "https://rusj.no/julekalenderen/";
+  // The address of this game in the edition (the share text links to it).
+  const DEL_URL = "https://rusj.no" + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "julekalenderen") + "/";
   // The fixed, shuffled order of the doors on the calendar (door 24 is the big one).
   const REKKEFOLGE = [9, 17, 3, 21, 12, 6, 1, 14, 23, 19, 11, 24, 4, 7, 15, 8, 20, 2, 13, 18, 5, 22, 10, 16];
-  const TYPENAVN = { quiz: "Julequiz", nott: "Julenøtt", sang: "Gjett julesangen", ord: "Ordgåte", utfordring: "Dagens utfordring", kos: "Julekos" };
+  const TYPENAVN = {
+    quiz: R.t("Julequiz"),
+    nott: R.t("Julenøtt"),
+    sang: R.t("Gjett julesangen"),
+    ord: R.t("Ordgåte"),
+    utfordring: R.t("Dagens utfordring"),
+    kos: R.t("Julekos"),
+  };
   let H;
   let apner = false; // a door is swinging open (short animation before its screen)
 
@@ -40,7 +48,7 @@
   }
   function meldFerdig(S) {
     const f = fase();
-    if (f.fase === "aktiv" && erFerdig(S, f.dag)) R.dagligFerdig({ vunnet: true, rekke: rekke(S, f.dag), res: `Luke ${f.dag}` });
+    if (f.fase === "aktiv" && erFerdig(S, f.dag)) R.dagligFerdig({ vunnet: true, rekke: rekke(S, f.dag), res: R.t("Luke {n}", { n: f.dag }) });
   }
   // Marks a door's task as done (once) and reports today's door.
   function ferdig(S, d) {
@@ -56,7 +64,7 @@
 
   const merkeHtml = (d, klasse = "") => {
     const L = LUKER[d - 1];
-    return `<span class="jk-merke ${klasse}" role="img" aria-label="Klistremerke: ${R.esc(L.merkeNavn)}"><span aria-hidden="true">${R.esc(L.merke)}</span></span>`;
+    return `<span class="jk-merke ${klasse}" role="img" aria-label="${R.esc(R.t("Klistremerke: {navn}", { navn: L.merkeNavn }))}"><span aria-hidden="true">${R.esc(L.merke)}</span></span>`;
   };
 
   function dorHtml(S, d, f) {
@@ -64,17 +72,19 @@
     const kan = kanApnes(d, f);
     const idag = f.fase === "aktiv" && d === f.dag;
     const klasse = ["jk-luke", d === 24 ? "jk-stor" : "", apen ? "jk-apen" : kan ? "jk-klar" : "jk-last", idag ? "jk-idag" : ""].join(" ");
-    const navn = `Luke ${d}, ${apen ? "åpnet" : kan ? (idag ? "dagens luke" : "klar til å åpnes") : "låst"}`;
+    const navn = R.t("Luke {n}, {status}", { n: d, status: apen ? R.t("åpnet") : kan ? (idag ? R.t("dagens luke") : R.t("klar til å åpnes")) : R.t("låst") });
     const inni = apen ? `<span class="jk-hull" aria-hidden="true">${R.esc(LUKER[d - 1].merke)}</span>` : "";
-    return `<button class="${klasse}" data-h="luke" data-v="${d}" aria-label="${navn}">${inni}<span class="jk-dor" aria-hidden="true"><span class="jk-nr">${d}</span></span></button>`;
+    return `<button class="${klasse}" data-h="luke" data-v="${d}" aria-label="${R.esc(navn)}">${inni}<span class="jk-dor" aria-hidden="true"><span class="jk-nr">${d}</span></span></button>`;
   }
 
   function statusHtml(S, f) {
     if (f.fase === "for")
-      return `<p class="jk-status"><b>Kalenderen åpner 1. desember</b><span>${f.igjen === 1 ? "I morgen!" : `Om ${f.igjen} dager`}</span></p>`;
-    if (f.fase === "etter") return `<p class="jk-status"><b>God jul!</b><span>Alle lukene er åpne.</span></p>`;
+      return `<p class="jk-status"><b>${R.esc(R.t("Kalenderen åpner 1. desember"))}</b><span>${R.esc(f.igjen === 1 ? R.t("I morgen!") : R.t("Om {n} dager", { n: f.igjen }))}</span></p>`;
+    if (f.fase === "etter") return `<p class="jk-status"><b>${R.esc(R.t("God jul!"))}</b><span>${R.esc(R.t("Alle lukene er åpne."))}</span></p>`;
     const apen = !!S.luker[f.dag];
-    return `<p class="jk-status"><b>${f.dag === 24 ? "Julaften!" : `${f.dag}. desember`}</b><span>${apen ? (f.dag === 24 ? "God jul!" : "Ny luke i morgen") : `Luke ${f.dag} er klar!`}</span></p>`;
+    return `<p class="jk-status"><b>${R.esc(f.dag === 24 ? R.t("Julaften!") : R.t("{n}. desember", { n: f.dag }))}</b><span>${R.esc(
+      apen ? (f.dag === 24 ? R.t("God jul!") : R.t("Ny luke i morgen")) : R.t("Luke {n} er klar!", { n: f.dag }),
+    )}</span></p>`;
   }
 
   // ---------- Opening a door ----------
@@ -88,7 +98,7 @@
         void el.offsetWidth;
         el.classList.add("risting");
       }
-      R.toast(`Luke ${d} åpner ${d}. desember`);
+      R.toast(R.t("Luke {n} åpner {n}. desember", { n: d }));
       return;
     }
     if (S.luker[d]) {
@@ -146,15 +156,15 @@
       .join("");
     const brikker = l.ferdig
       ? ""
-      : `<div class="jk-brikker" role="group" aria-label="Bokstaver">${b
+      : `<div class="jk-brikker" role="group" aria-label="${R.esc(R.t("Bokstaver"))}">${b
           .map((bokstav, i) => `<button class="jk-brikke" data-h="bokstav" data-v="${i}"${valgt.includes(i) ? " disabled" : ""} aria-label="${R.esc(bokstav)}">${R.esc(bokstav)}</button>`)
           .join("")}</div>`;
     return `
-      <p class="jk-tekst">Sett bokstavene i riktig rekkefølge og finn juleordet.</p>
-      <p class="jk-hint"><b>Hint:</b> ${R.esc(L.hint)}</p>
-      <div class="jk-ruter${l.feil ? " risting" : ""}" aria-label="Ordet ditt: ${R.esc(valgt.map((i) => b[i]).join(""))}" role="img">${ruter}</div>
+      <p class="jk-tekst">${R.esc(R.t("Sett bokstavene i riktig rekkefølge og finn juleordet."))}</p>
+      <p class="jk-hint"><b>${R.esc(R.t("Hint:"))}</b> ${R.esc(L.hint)}</p>
+      <div class="jk-ruter${l.feil ? " risting" : ""}" aria-label="${R.esc(R.t("Ordet ditt: {ord}", { ord: valgt.map((i) => b[i]).join("") }))}" role="img">${ruter}</div>
       ${brikker}
-      ${l.ferdig ? `<p class="jk-resultat ${l.vist ? "" : "ja"}" role="status">${l.vist ? `Svaret er «${R.esc(L.ord)}».` : "Riktig! Godt jobba!"}</p>` : ""}`;
+      ${l.ferdig ? `<p class="jk-resultat ${l.vist ? "" : "ja"}" role="status">${R.esc(l.vist ? R.t("Svaret er «{svar}».", { svar: L.ord }) : R.t("Riktig! Godt jobba!"))}</p>` : ""}`;
   }
 
   // ---------- Door content ----------
@@ -170,7 +180,9 @@
       })
       .join("");
     const res = svart
-      ? `<p class="jk-resultat ${l.svar === L.riktig ? "ja" : ""}" role="status">${l.svar === L.riktig ? "Riktig! Godt jobba!" : `Nesten! Svaret er «${R.esc(L.valg[L.riktig])}».`}${L.fakta ? `<span>${R.esc(L.fakta)}</span>` : ""}</p>`
+      ? `<p class="jk-resultat ${l.svar === L.riktig ? "ja" : ""}" role="status">${R.esc(l.svar === L.riktig ? R.t("Riktig! Godt jobba!") : R.t("Nesten! Svaret er «{svar}».", { svar: L.valg[L.riktig] }))}${
+          L.fakta ? `<span>${R.esc(L.fakta)}</span>` : ""
+        }</p>`
       : "";
     return `<div class="jk-valgliste">${knapper}</div>${res}`;
   }
@@ -182,9 +194,11 @@
       case "quiz":
         return `<p class="jk-sporsmal">${R.esc(L.tekst)}</p>${valgHtml(S, d, L)}`;
       case "sang":
-        return `<p class="jk-hint"><b>Hint:</b> ${R.esc(L.tekst)}</p><p class="jk-tekst">Hvilken julesang er det?</p>${valgHtml(S, d, L)}`;
+        return `<p class="jk-hint"><b>${R.esc(R.t("Hint:"))}</b> ${R.esc(L.tekst)}</p><p class="jk-tekst">${R.esc(R.t("Hvilken julesang er det?"))}</p>${valgHtml(S, d, L)}`;
       case "nott":
-        return `<p class="jk-sporsmal">${R.esc(L.tekst)}</p>${l.ferdig ? `<p class="jk-resultat ja" role="status">${R.esc(L.svar)}</p>` : '<p class="jk-tekst jk-tenk">Tenk deg om – og trykk når du vil se svaret.</p>'}`;
+        return `<p class="jk-sporsmal">${R.esc(L.tekst)}</p>${
+          l.ferdig ? `<p class="jk-resultat ja" role="status">${R.esc(L.svar)}</p>` : `<p class="jk-tekst jk-tenk">${R.esc(R.t("Tenk deg om – og trykk når du vil se svaret."))}</p>`
+        }`;
       case "ord":
         return ordHtml(S, d, L);
       default:
@@ -195,14 +209,14 @@
   function dokkHtml(S, d) {
     const L = LUKER[d - 1];
     const l = S.luker[d];
-    const til = R.ui.lenke("Til kalenderen", "hjem");
-    if (L.type === "nott" && !l.ferdig) return R.ui.dokk(R.ui.knapp("Vis svaret", "vis-svar"), R.ui.lenkerad(til));
+    const til = R.ui.lenke(R.t("Til kalenderen"), "hjem");
+    if (L.type === "nott" && !l.ferdig) return R.ui.dokk(R.ui.knapp(R.t("Vis svaret"), "vis-svar"), R.ui.lenkerad(til));
     if (L.type === "ord" && !l.ferdig)
-      return R.ui.dokk(R.ui.lenkerad(R.ui.lenke("Visk ut", "visk"), R.ui.lenke("Vis svaret", "vis-svar"), til));
+      return R.ui.dokk(R.ui.lenkerad(R.ui.lenke(R.t("Visk ut"), "visk"), R.ui.lenke(R.t("Vis svaret"), "vis-svar"), til));
     if (L.type === "utfordring")
       return R.ui.dokk(`<a class="knapp" href="${R.esc(L.lenke)}">${R.esc(L.lenkeTekst)}</a>`, R.ui.lenkerad(til));
     if ((L.type === "quiz" || L.type === "sang") && !l.ferdig) return R.ui.dokk(R.ui.lenkerad(til));
-    return R.ui.dokk(R.ui.knapp("Til kalenderen", "hjem"));
+    return R.ui.dokk(R.ui.knapp(R.t("Til kalenderen"), "hjem"));
   }
 
   // ---------- The game ----------
@@ -239,17 +253,17 @@
     },
 
     regler: {
-      intro: "En julekalender med 24 luker. Én ny luke åpner hver dag fra 1. til 24. desember.",
+      intro: R.t("En julekalender med 24 luker. Én ny luke åpner hver dag fra 1. til 24. desember."),
       steg: [
-        ["Finn dagens luke", "Lukene står hulter til bulter, som i en ekte kalender. Dagens luke lyser."],
-        ["Åpne den", "Bak luka er det en julenøtt, en quiz, en julesang, en ordgåte, en utfordring eller en kos-idé."],
-        ["Samle klistremerker", "Hver luke du åpner, gir et klistremerke. Klarer du alle 24?"],
+        [R.t("Finn dagens luke"), R.t("Lukene står hulter til bulter, som i en ekte kalender. Dagens luke lyser.")],
+        [R.t("Åpne den"), R.t("Bak luka er det en julenøtt, en quiz, en julesang, en ordgåte, en utfordring eller en kos-idé.")],
+        [R.t("Samle klistremerker"), R.t("Hver luke du åpner, gir et klistremerke. Klarer du alle 24?")],
       ],
       tips: [
-        "Har du glemt en dag? Gamle luker kan åpnes når som helst.",
-        "Lukene kan ikke åpnes før sin dag – da får du bare vente litt.",
-        "Fin å åpne sammen, for eksempel ved frokosten.",
-        "Kalenderen husker lukene dine på denne mobilen.",
+        R.t("Har du glemt en dag? Gamle luker kan åpnes når som helst."),
+        R.t("Lukene kan ikke åpnes før sin dag – da får du bare vente litt."),
+        R.t("Fin å åpne sammen, for eksempel ved frokosten."),
+        R.t("Kalenderen husker lukene dine på denne mobilen."),
       ],
     },
 
@@ -268,32 +282,36 @@
           const idagApen = f.fase === "aktiv" && S.luker[f.dag];
           const hoved =
             f.fase === "aktiv"
-              ? R.ui.knapp(idagApen ? `Se luke ${f.dag}` : `Åpne luke ${f.dag}`, "dagens", { variant: idagApen ? "" : "lampe" })
-              : R.ui.knapp("Del kalenderen", "del", { variant: "papir" });
-          const lenker = f.fase === "aktiv" ? R.ui.lenkerad(R.ui.lenke("Del kalenderen", "del")) : "";
+              ? R.ui.knapp(idagApen ? R.t("Se luke {n}", { n: f.dag }) : R.t("Åpne luke {n}", { n: f.dag }), "dagens", { variant: idagApen ? "" : "lampe" })
+              : R.ui.knapp(R.t("Del kalenderen"), "del", { variant: "papir" });
+          const lenker = f.fase === "aktiv" ? R.ui.lenkerad(R.ui.lenke(R.t("Del kalenderen"), "del")) : "";
           return `
             <div class="jk-hode">
               ${R.figur(null, "jk-figur")}
               <div class="jk-tittel">
-                <h1>Julekalenderen</h1>
+                <h1>${R.esc(R.t("Julekalenderen"))}</h1>
                 ${statusHtml(S, f)}
               </div>
             </div>
-            <div class="jk-kalender${f.fase === "for" ? " jk-stengt" : ""}" role="group" aria-label="Kalenderen med 24 luker">
+            <div class="jk-kalender${f.fase === "for" ? " jk-stengt" : ""}" role="group" aria-label="${R.esc(R.t("Kalenderen med 24 luker"))}">
               <span class="jk-sno" aria-hidden="true"></span>
               <div class="jk-rutenett">${dorer}</div>
             </div>
             <div class="jk-samling">
-              <p class="jk-telling"><b>${n} av 24</b> luker åpnet</p>
+              <p class="jk-telling">${R.esc(R.t("{antall} luker åpnet", { n })).replace("{antall}", `<b>${R.esc(R.t("{n} av 24", { n }))}</b>`)}</p>
               <div class="jk-linje" aria-hidden="true"><span style="width:${Math.round((n / 24) * 100)}%"></span></div>
-              ${n ? `<div class="jk-merker" aria-label="Klistremerkene dine">${merker}</div>` : `<p class="hjelp">${f.fase === "for" ? "Her samler du klistremerkene fra lukene." : "Åpne en luke og få ditt første klistremerke."}</p>`}
+              ${
+                n
+                  ? `<div class="jk-merker" aria-label="${R.esc(R.t("Klistremerkene dine"))}">${merker}</div>`
+                  : `<p class="hjelp">${R.esc(f.fase === "for" ? R.t("Her samler du klistremerkene fra lukene.") : R.t("Åpne en luke og få ditt første klistremerke."))}</p>`
+              }
             </div>
             ${R.ui.dokk(hoved, lenker)}`;
         },
       },
 
       luke: {
-        tittel: (S) => `Luke ${S.aktiv}`,
+        tittel: (S) => R.t("Luke {n}", { n: S.aktiv }),
         tilbake: "hjem",
         vis(S) {
           const d = S.aktiv;
@@ -307,7 +325,7 @@
                 <div>
                   ${overskrift !== TYPENAVN[L.type] ? `<span class="etikett">${R.esc(TYPENAVN[L.type])}</span>` : ""}
                   <h1>${R.esc(overskrift)}</h1>
-                  ${ny ? `<p class="jk-fikk">Du fikk et klistremerke!</p>` : ""}
+                  ${ny ? `<p class="jk-fikk">${R.esc(R.t("Du fikk et klistremerke!"))}</p>` : ""}
                 </div>
               </div>
               <div class="jk-kort">${innholdHtml(S, d)}</div>
@@ -392,7 +410,7 @@
             l.valgt = [];
             l.feil = true;
             R.lyd.feil();
-            R.toast("Ikke helt – prøv en gang til!");
+            R.toast(R.t("Ikke helt – prøv en gang til!"));
           }
         }
         R.vis();
@@ -406,7 +424,7 @@
       },
       del(el, e, S) {
         const n = antallApnet(S);
-        return R.del("Julekalenderen", `Jeg har åpnet ${n} av 24 luker i rusj-julekalenderen`, DEL_URL);
+        return R.del(R.t("Julekalenderen"), R.t("Jeg har åpnet {n} av 24 luker i rusj-julekalenderen", { n }), DEL_URL);
       },
     }),
   });

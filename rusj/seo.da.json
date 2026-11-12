@@ -441,6 +441,12 @@
       "frase": "Tidslinjen",
       "beskrivelse": "Sæt historien i rækkefølge: træk hver begivenhed hen på den rigtige plads på tidslinjen. Over 600 begivenheder fra Danmark og verden. Gratis for 1–10.",
       "sok": ["historie", "historiespil"]
+    },
+    "julekalenderen": {
+      "tittel": "Julekalender på nettet – 24 låger for hele familien",
+      "frase": "Julekalender",
+      "beskrivelse": "Gratis julekalender med 24 låger: julegåder, quiz, gæt julesangen, ordgåder og hyggelige idéer. En ny låge hver dag i december, uden konto.",
+      "sok": ["adventskalender", "julekalender for børn", "julegåder"]
     }
   }
 }
