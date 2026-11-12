@@ -1,0 +1,3855 @@
+{
+  "pakker": [
+    {
+      "id": "barn",
+      "navn": "Kids",
+      "ikon": "🧸",
+      "tekst": "For the little ones",
+      "dilemmaer": [
+        [
+          "have summer holidays all year",
+          "have your birthday every month"
+        ],
+        [
+          "live in a treehouse",
+          "live in a castle"
+        ],
+        [
+          "have a dog that can talk",
+          "have a cat that can fly"
+        ],
+        [
+          "be able to breathe underwater",
+          "be able to jump as high as a house"
+        ],
+        [
+          "have a swimming pool in the garden",
+          "have a funfair in the cellar"
+        ],
+        [
+          "be a dinosaur for a day",
+          "be a dragon for a day"
+        ],
+        [
+          "eat ice cream for every meal",
+          "eat pancakes for every meal"
+        ],
+        [
+          "have a pet unicorn",
+          "have a pet dragon"
+        ],
+        [
+          "be the fastest runner in the world",
+          "be the best swimmer in the world"
+        ],
+        [
+          "go to school on a bike",
+          "go to school on a horse"
+        ],
+        [
+          "be able to talk to animals",
+          "be able to talk to toys"
+        ],
+        [
+          "have a slide from your bedroom to the kitchen",
+          "have a trampoline instead of a floor"
+        ],
+        [
+          "be a pirate",
+          "be a knight"
+        ],
+        [
+          "have a robot that tidies your room",
+          "have a robot that does your homework"
+        ],
+        [
+          "live at the seaside",
+          "live in the mountains"
+        ],
+        [
+          "never have to go to bed",
+          "never have to have a bath"
+        ],
+        [
+          "be as small as a mouse",
+          "be as big as a giraffe"
+        ],
+        [
+          "have a magic wand",
+          "have a flying carpet"
+        ],
+        [
+          "always have sticky fingers",
+          "always have muddy knees"
+        ],
+        [
+          "be invisible",
+          "be able to fly"
+        ],
+        [
+          "go to the moon",
+          "go to the bottom of the sea"
+        ],
+        [
+          "have a snowball fight",
+          "have a water fight"
+        ],
+        [
+          "only eat sweet things",
+          "only eat salty things"
+        ],
+        [
+          "have a pet penguin",
+          "have a pet monkey"
+        ],
+        [
+          "live in a sweet shop",
+          "live in a toy shop"
+        ],
+        [
+          "be a superhero",
+          "be a famous footballer"
+        ],
+        [
+          "have rainbow hair",
+          "have glow-in-the-dark teeth"
+        ],
+        [
+          "ride an elephant",
+          "ride a camel"
+        ],
+        [
+          "have a sleepover every weekend",
+          "have a party every weekend"
+        ],
+        [
+          "build the biggest sandcastle",
+          "build the biggest snowman"
+        ],
+        [
+          "be able to see in the dark",
+          "be able to hear through walls"
+        ],
+        [
+          "have a talking teddy",
+          "have a teddy that can dance"
+        ],
+        [
+          "go to a farm",
+          "go to a zoo"
+        ],
+        [
+          "be the teacher for a day",
+          "be the head teacher for a day"
+        ],
+        [
+          "have a secret den",
+          "have a secret tunnel"
+        ],
+        [
+          "eat a cake as big as a house",
+          "eat a sweet as big as a football"
+        ],
+        [
+          "never have to brush your teeth",
+          "never have to put your shoes on"
+        ],
+        [
+          "be a mermaid or merman",
+          "be a fairy"
+        ],
+        [
+          "have a bath full of jelly",
+          "have a bath full of bubbles"
+        ],
+        [
+          "only be able to hop",
+          "only be able to skip"
+        ],
+        [
+          "have a house made of chocolate",
+          "have a house made of building bricks"
+        ],
+        [
+          "be able to stop time",
+          "be able to rewind time"
+        ],
+        [
+          "have a grandad who’s a wizard",
+          "have a grandma who’s an astronaut"
+        ],
+        [
+          "live on a boat",
+          "live in a caravan"
+        ],
+        [
+          "sing everything you say",
+          "dance everywhere you go"
+        ],
+        [
+          "have a pet dinosaur that is tiny",
+          "have a pet hamster that is huge"
+        ],
+        [
+          "fly in a hot-air balloon",
+          "go down a giant water slide"
+        ],
+        [
+          "have a bedroom full of balls",
+          "have a bedroom full of pillows"
+        ],
+        [
+          "be a cat",
+          "be a dog"
+        ],
+        [
+          "only wear pyjamas",
+          "only wear fancy dress"
+        ],
+        [
+          "go on holiday to the North Pole",
+          "go on holiday to the jungle"
+        ],
+        [
+          "have three arms",
+          "have three legs"
+        ],
+        [
+          "be a famous singer",
+          "be a famous dancer"
+        ],
+        [
+          "have a never-ending bag of crisps",
+          "have a never-ending bag of sweets"
+        ],
+        [
+          "always win at hide and seek",
+          "always win at tag"
+        ],
+        [
+          "be able to change colour like a chameleon",
+          "be able to grow a tail"
+        ],
+        [
+          "live in an igloo",
+          "live in a tent"
+        ],
+        [
+          "have spaghetti for hair",
+          "have marshmallows for toes"
+        ],
+        [
+          "be best friends with a dragon",
+          "be best friends with a robot"
+        ],
+        [
+          "go to school in space",
+          "go to school under the sea"
+        ],
+        [
+          "have a rocket",
+          "have a submarine"
+        ],
+        [
+          "never have to eat vegetables",
+          "never have to tidy your room"
+        ],
+        [
+          "be able to read really fast",
+          "be able to draw anything perfectly"
+        ],
+        [
+          "have a giant pet rabbit",
+          "have a tiny pet elephant"
+        ],
+        [
+          "play in the snow all day",
+          "play on the beach all day"
+        ],
+        [
+          "be the king or queen of the playground",
+          "be the king or queen of the swimming pool"
+        ],
+        [
+          "go on a pirate ship",
+          "go on a space ship"
+        ],
+        [
+          "have a garden full of flowers",
+          "have a garden full of trees to climb"
+        ],
+        [
+          "hear a story every night",
+          "sing a song every night"
+        ],
+        [
+          "have a pet that’s a ghost",
+          "have a pet that’s a monster"
+        ],
+        [
+          "paint your bedroom any colour",
+          "choose the dinner every day"
+        ],
+        [
+          "be a chef who makes sweets",
+          "be a vet who looks after puppies"
+        ],
+        [
+          "have a never-ending bubble machine",
+          "have a never-ending glitter machine"
+        ],
+        [
+          "jump in puddles all day",
+          "roll down hills all day"
+        ],
+        [
+          "have super-long legs",
+          "have super-long arms"
+        ],
+        [
+          "meet Father Christmas",
+          "meet the Easter Bunny"
+        ],
+        [
+          "have a birthday party at a zoo",
+          "have a birthday party at a swimming pool"
+        ],
+        [
+          "have your own ice cream van",
+          "have your own fire engine"
+        ],
+        [
+          "be able to make it snow",
+          "be able to make it sunny"
+        ],
+        [
+          "swim with dolphins",
+          "ride a horse on the beach"
+        ],
+        [
+          "have a bike that can fly",
+          "have a scooter that can swim"
+        ],
+        [
+          "be a detective",
+          "be an explorer"
+        ],
+        [
+          "have a pet owl",
+          "have a pet fox"
+        ],
+        [
+          "live in a lighthouse",
+          "live in a windmill"
+        ],
+        [
+          "eat breakfast for dinner",
+          "eat dinner for breakfast"
+        ],
+        [
+          "always have hiccups",
+          "always have the giggles"
+        ],
+        [
+          "have a bouncy castle in your bedroom",
+          "have a ball pit in your bedroom"
+        ],
+        [
+          "be a famous artist",
+          "be a famous inventor"
+        ],
+        [
+          "live where it’s always winter",
+          "live where it’s always summer"
+        ],
+        [
+          "have a pet that talks back",
+          "have a pet that does tricks"
+        ],
+        [
+          "go camping in the garden",
+          "go camping in the woods"
+        ]
+      ]
+    },
+    {
+      "id": "familie",
+      "navn": "Family",
+      "ikon": "🏡",
+      "tekst": "For all ages",
+      "dilemmaer": [
+        [
+          "never have to do the washing-up again",
+          "never have to fold laundry again"
+        ],
+        [
+          "have a cottage in the mountains",
+          "have a cottage by the sea"
+        ],
+        [
+          "celebrate Christmas on a hot beach",
+          "celebrate Christmas in a snowy log cabin"
+        ],
+        [
+          "have summer all year",
+          "have winter all year"
+        ],
+        [
+          "only be able to whisper",
+          "only be able to shout"
+        ],
+        [
+          "live in the city",
+          "live in the countryside"
+        ],
+        [
+          "be able to cook any meal perfectly",
+          "be able to fix anything that’s broken"
+        ],
+        [
+          "have breakfast in bed every Sunday",
+          "have a takeaway every Friday"
+        ],
+        [
+          "go on a family holiday abroad",
+          "go on a family holiday in Britain"
+        ],
+        [
+          "have a big family",
+          "have a small family"
+        ],
+        [
+          "always be ten minutes early",
+          "always be ten minutes late"
+        ],
+        [
+          "never have to wait in a queue",
+          "never have to sit in traffic"
+        ],
+        [
+          "watch a film at home",
+          "go to the cinema"
+        ],
+        [
+          "have a dog",
+          "have a cat"
+        ],
+        [
+          "live in a house with a huge garden",
+          "live in a flat with an amazing view"
+        ],
+        [
+          "know every language in the world",
+          "be able to play every instrument"
+        ],
+        [
+          "have a robot butler",
+          "have a self-driving car"
+        ],
+        [
+          "play a board game",
+          "play charades"
+        ],
+        [
+          "go for a walk in the rain",
+          "go for a walk in the snow"
+        ],
+        [
+          "have a Sunday roast every week",
+          "have fish and chips every week"
+        ],
+        [
+          "always have the TV remote",
+          "always get the front seat in the car"
+        ],
+        [
+          "be famous",
+          "be rich"
+        ],
+        [
+          "have a perfect memory",
+          "be able to forget anything you like"
+        ],
+        [
+          "live next door to grandma and grandad",
+          "live next door to your best friend"
+        ],
+        [
+          "spend a day at a theme park",
+          "spend a day at the beach"
+        ],
+        [
+          "have a swimming pool",
+          "have a cinema room"
+        ],
+        [
+          "travel by train",
+          "travel by plane"
+        ],
+        [
+          "be the oldest sibling",
+          "be the youngest sibling"
+        ],
+        [
+          "be twins",
+          "be triplets"
+        ],
+        [
+          "always be too hot",
+          "always be too cold"
+        ],
+        [
+          "read the book",
+          "watch the film"
+        ],
+        [
+          "have a picnic",
+          "have a barbecue"
+        ],
+        [
+          "camp in a tent",
+          "stay in a fancy hotel"
+        ],
+        [
+          "learn to surf",
+          "learn to ski"
+        ],
+        [
+          "spend a week without your phone",
+          "spend a week without TV"
+        ],
+        [
+          "go back in time to meet your grandparents as children",
+          "go forward in time to meet your grandchildren"
+        ],
+        [
+          "have the house always tidy",
+          "have the fridge always full"
+        ],
+        [
+          "win the family quiz",
+          "win the family football match"
+        ],
+        [
+          "have a pet tortoise that lives 100 years",
+          "have a parrot that never stops talking"
+        ],
+        [
+          "always get the last word",
+          "always get the last biscuit"
+        ],
+        [
+          "live in a castle with no Wi-Fi",
+          "live in a tiny flat with superfast Wi-Fi"
+        ],
+        [
+          "have your own theme tune",
+          "have your own catchphrase"
+        ],
+        [
+          "plan the family holiday",
+          "plan the family Christmas"
+        ],
+        [
+          "go to bed at eight",
+          "get up at five"
+        ],
+        [
+          "eat dinner in silence",
+          "eat dinner while everyone talks at once"
+        ],
+        [
+          "have a snow day",
+          "have a heatwave day off"
+        ],
+        [
+          "be the best cook in the family",
+          "be the funniest in the family"
+        ],
+        [
+          "visit every country in Europe",
+          "visit every county in Britain"
+        ],
+        [
+          "have a family band",
+          "have a family football team"
+        ],
+        [
+          "always know what time it is",
+          "always know which way is north"
+        ],
+        [
+          "have the wedding of your dreams",
+          "have the holiday of your dreams"
+        ],
+        [
+          "live in a houseboat",
+          "live in a windmill"
+        ],
+        [
+          "get a new phone every year",
+          "get a holiday every year"
+        ],
+        [
+          "spend Christmas Day in your pyjamas",
+          "spend Christmas Day dressed up smart"
+        ],
+        [
+          "have a never-ending supply of tea",
+          "have a never-ending supply of biscuits"
+        ],
+        [
+          "be great at DIY",
+          "be great at gardening"
+        ],
+        [
+          "never have to clean the bathroom",
+          "never have to hoover again"
+        ],
+        [
+          "be able to speak to the dog",
+          "be able to read the cat’s mind"
+        ],
+        [
+          "have a family photo taken every year",
+          "have a family video made every year"
+        ],
+        [
+          "live without music",
+          "live without films"
+        ],
+        [
+          "go on a road trip around Scotland",
+          "go on a road trip around Cornwall"
+        ],
+        [
+          "have a giant Christmas tree",
+          "have a giant Easter egg hunt"
+        ],
+        [
+          "be on a quiz show",
+          "be on a cooking show"
+        ],
+        [
+          "have ten cousins your age",
+          "have a twin"
+        ],
+        [
+          "always have to walk",
+          "always have to cycle"
+        ],
+        [
+          "grow your own vegetables",
+          "keep your own chickens"
+        ],
+        [
+          "be a famous author",
+          "be a famous actor"
+        ],
+        [
+          "move house every year",
+          "never move house"
+        ],
+        [
+          "have a holiday cottage",
+          "have a camper van"
+        ],
+        [
+          "celebrate every birthday with a huge party",
+          "celebrate every birthday with a trip"
+        ],
+        [
+          "be good at every sport",
+          "be good at every musical instrument"
+        ],
+        [
+          "have your dinner cooked for you every night",
+          "have your house cleaned for you every week"
+        ],
+        [
+          "always choose the film",
+          "always choose the dinner"
+        ],
+        [
+          "win the lottery",
+          "find buried treasure in the garden"
+        ],
+        [
+          "spend a day as your mum or dad",
+          "spend a day as your child or grandchild"
+        ],
+        [
+          "have a sleepover at a museum",
+          "have a sleepover at an aquarium"
+        ],
+        [
+          "sing in a choir",
+          "dance in a show"
+        ],
+        [
+          "never get a cold again",
+          "never get stuck in traffic again"
+        ],
+        [
+          "lose your keys every day",
+          "lose your phone every day"
+        ],
+        [
+          "have a long weekend every week",
+          "have a month’s holiday every summer"
+        ],
+        [
+          "eat outside every day",
+          "eat in front of the telly every day"
+        ],
+        [
+          "know the end of every film",
+          "know the plot of every book"
+        ],
+        [
+          "spend a day at a castle",
+          "spend a day at a safari park"
+        ],
+        [
+          "have a family motto",
+          "have a family coat of arms"
+        ],
+        [
+          "always be late for the bus",
+          "always miss the start of the film"
+        ],
+        [
+          "go on a cruise",
+          "go on a train journey across Europe"
+        ],
+        [
+          "have a house with a secret room",
+          "have a house with a slide"
+        ],
+        [
+          "be the one who plans everything",
+          "be the one who just turns up"
+        ]
+      ]
+    },
+    {
+      "id": "mat",
+      "navn": "Food",
+      "ikon": "🍕",
+      "tekst": "Tasty and terrible",
+      "dilemmaer": [
+        [
+          "only be able to eat pizza for the rest of your life",
+          "only be able to eat curry for the rest of your life"
+        ],
+        [
+          "never eat chocolate again",
+          "never eat crisps again"
+        ],
+        [
+          "have turkey every Christmas",
+          "have roast beef every Christmas"
+        ],
+        [
+          "only have butter on your toast",
+          "only have jam on your toast"
+        ],
+        [
+          "eat scones with jam first",
+          "eat scones with cream first"
+        ],
+        [
+          "have fish and chips every Friday",
+          "have a Sunday roast every Sunday"
+        ],
+        [
+          "never eat cheese again",
+          "never eat bread again"
+        ],
+        [
+          "eat a full English every morning",
+          "eat porridge every morning"
+        ],
+        [
+          "only drink tea",
+          "only drink coffee"
+        ],
+        [
+          "eat cold baked beans",
+          "eat cold soup"
+        ],
+        [
+          "give up puddings",
+          "give up sauces"
+        ],
+        [
+          "have gravy on everything",
+          "have ketchup on everything"
+        ],
+        [
+          "eat a sprout-flavoured ice cream",
+          "eat a fish-flavoured cake"
+        ],
+        [
+          "eat a whole lemon",
+          "eat a whole raw onion"
+        ],
+        [
+          "only eat with chopsticks",
+          "only eat with a spoon"
+        ],
+        [
+          "have unlimited pizza",
+          "have unlimited burgers"
+        ],
+        [
+          "never eat sweets again",
+          "never eat ice cream again"
+        ],
+        [
+          "eat a pie at the football",
+          "eat a hot dog at the cinema"
+        ],
+        [
+          "only eat food that’s green",
+          "only eat food that’s orange"
+        ],
+        [
+          "cook every meal yourself",
+          "never be allowed to cook again"
+        ],
+        [
+          "have a chip butty",
+          "have a crisp sandwich"
+        ],
+        [
+          "eat at a fancy restaurant",
+          "eat at your favourite chippy"
+        ],
+        [
+          "have a picnic in the rain",
+          "have a barbecue in the snow"
+        ],
+        [
+          "eat curry for breakfast",
+          "eat cereal for dinner"
+        ],
+        [
+          "have a never-ending cup of tea",
+          "have a never-ending plate of biscuits"
+        ],
+        [
+          "eat a whole jar of mustard",
+          "eat a whole jar of pickled onions"
+        ],
+        [
+          "only eat sandwiches",
+          "only eat soup"
+        ],
+        [
+          "eat a crumpet",
+          "eat a muffin"
+        ],
+        [
+          "only have vanilla ice cream",
+          "only have chocolate ice cream"
+        ],
+        [
+          "give up tea",
+          "give up toast"
+        ],
+        [
+          "eat the same breakfast forever",
+          "eat the same dinner forever"
+        ],
+        [
+          "eat a cake that tastes of cheese",
+          "eat cheese that tastes of cake"
+        ],
+        [
+          "have custard with everything",
+          "have cream with everything"
+        ],
+        [
+          "eat a jacket potato every day",
+          "eat pasta every day"
+        ],
+        [
+          "have pancakes on Pancake Day only",
+          "have pancakes every day but never with toppings"
+        ],
+        [
+          "eat only cold food",
+          "eat only hot food"
+        ],
+        [
+          "eat a sausage roll",
+          "eat a Cornish pasty"
+        ],
+        [
+          "go to an all-you-can-eat buffet",
+          "go to a ten-course tasting menu"
+        ],
+        [
+          "eat a bowl of jelly",
+          "eat a bowl of trifle"
+        ],
+        [
+          "only drink squash",
+          "only drink fizzy water"
+        ],
+        [
+          "have crumble",
+          "have cheesecake"
+        ],
+        [
+          "make your own pizza",
+          "make your own sushi"
+        ],
+        [
+          "eat dessert first",
+          "eat dessert last"
+        ],
+        [
+          "have a takeaway every night",
+          "cook a roast every night"
+        ],
+        [
+          "eat black pudding",
+          "eat haggis"
+        ],
+        [
+          "only eat crunchy food",
+          "only eat soft food"
+        ],
+        [
+          "eat mushy peas with everything",
+          "eat beans with everything"
+        ],
+        [
+          "have a chocolate fountain at home",
+          "have an ice cream machine at home"
+        ],
+        [
+          "eat a mince pie in July",
+          "eat a hot cross bun in December"
+        ],
+        [
+          "have toast without butter",
+          "have tea without milk"
+        ],
+        [
+          "taste everything twice as strong",
+          "taste nothing at all"
+        ],
+        [
+          "eat a whole birthday cake alone",
+          "share one sweet with ten people"
+        ],
+        [
+          "eat a spoonful of hot sauce",
+          "eat a spoonful of salt"
+        ],
+        [
+          "only eat sweet popcorn",
+          "only eat salty popcorn"
+        ],
+        [
+          "never eat potatoes again",
+          "never eat rice again"
+        ],
+        [
+          "eat a pickled egg",
+          "eat a jellied eel"
+        ],
+        [
+          "have a picnic on a mountain",
+          "have a picnic on a boat"
+        ],
+        [
+          "grow all your own vegetables",
+          "catch all your own fish"
+        ],
+        [
+          "eat a cream tea every afternoon",
+          "eat a bacon sandwich every morning"
+        ],
+        [
+          "have a cuppa that’s too hot",
+          "have a cuppa that’s gone cold"
+        ],
+        [
+          "only eat with your hands",
+          "only eat with a knife"
+        ],
+        [
+          "have chips with everything",
+          "have salad with everything"
+        ],
+        [
+          "eat the crusts",
+          "leave the crusts"
+        ],
+        [
+          "drink a milkshake",
+          "drink a smoothie"
+        ],
+        [
+          "eat beans on toast",
+          "eat cheese on toast"
+        ],
+        [
+          "be a famous chef",
+          "be a famous food critic"
+        ],
+        [
+          "eat a meal deal",
+          "eat a packed lunch"
+        ],
+        [
+          "have doughnuts every Friday",
+          "have cake every Monday"
+        ],
+        [
+          "eat an apple with the core",
+          "eat a banana with the skin"
+        ],
+        [
+          "have breakfast at midnight",
+          "have dinner at dawn"
+        ],
+        [
+          "only drink hot chocolate",
+          "only drink lemonade"
+        ],
+        [
+          "make toast in the fireplace",
+          "make toast in the toaster that always burns it"
+        ],
+        [
+          "give up crisps",
+          "give up biscuits"
+        ],
+        [
+          "eat a giant Yorkshire pudding",
+          "eat a giant Victoria sponge"
+        ],
+        [
+          "eat something that looks gross but tastes great",
+          "eat something that looks great but tastes gross"
+        ],
+        [
+          "only have cereal with water",
+          "only have toast without anything on it"
+        ],
+        [
+          "always get the burnt bit of the lasagne",
+          "never get the crispy bit of the lasagne"
+        ],
+        [
+          "only eat food from the freezer",
+          "only eat food from a tin"
+        ],
+        [
+          "eat a raw carrot every hour",
+          "eat a spoonful of honey every hour"
+        ],
+        [
+          "have a vegetable patch",
+          "have a fruit tree"
+        ],
+        [
+          "eat a curry that’s too hot",
+          "eat a curry that’s too mild"
+        ]
+      ]
+    },
+    {
+      "id": "fantasi",
+      "navn": "Superpowers and fantasy",
+      "ikon": "🦄",
+      "tekst": "Flying, magic and time travel",
+      "dilemmaer": [
+        [
+          "be able to fly",
+          "be able to become invisible"
+        ],
+        [
+          "be able to read minds",
+          "be able to see the future"
+        ],
+        [
+          "be able to teleport",
+          "be able to travel in time"
+        ],
+        [
+          "have super strength",
+          "have super speed"
+        ],
+        [
+          "never feel cold",
+          "never feel tired"
+        ],
+        [
+          "be able to talk to animals",
+          "be able to speak every language"
+        ],
+        [
+          "breathe underwater",
+          "walk through walls"
+        ],
+        [
+          "control the weather",
+          "control time"
+        ],
+        [
+          "have a dragon",
+          "have a unicorn"
+        ],
+        [
+          "be a wizard",
+          "be a superhero"
+        ],
+        [
+          "shrink to the size of an ant",
+          "grow as tall as a tree"
+        ],
+        [
+          "live in a castle in the clouds",
+          "live in a palace under the sea"
+        ],
+        [
+          "have a magic carpet",
+          "have a time machine"
+        ],
+        [
+          "be able to freeze things",
+          "be able to set things on fire"
+        ],
+        [
+          "have an invisible friend who’s real",
+          "have a talking shadow"
+        ],
+        [
+          "be a vampire",
+          "be a werewolf"
+        ],
+        [
+          "have a pet phoenix",
+          "have a pet griffin"
+        ],
+        [
+          "copy anyone’s voice",
+          "copy anyone’s face"
+        ],
+        [
+          "know every answer in a quiz",
+          "always win at board games"
+        ],
+        [
+          "be able to stop time",
+          "be able to rewind time by one minute"
+        ],
+        [
+          "live on the moon",
+          "live on Mars"
+        ],
+        [
+          "make anything you draw come alive",
+          "make anything you write come true"
+        ],
+        [
+          "heal any wound",
+          "never get ill"
+        ],
+        [
+          "have X-ray vision",
+          "have night vision"
+        ],
+        [
+          "be a mermaid or merman",
+          "be a centaur"
+        ],
+        [
+          "have wings",
+          "have a tail"
+        ],
+        [
+          "move things with your mind",
+          "light things up with your hands"
+        ],
+        [
+          "be able to jump to the top of any building",
+          "be able to run up walls"
+        ],
+        [
+          "meet your future self",
+          "meet your past self"
+        ],
+        [
+          "have a robot best friend",
+          "have an alien best friend"
+        ],
+        [
+          "visit a world made of sweets",
+          "visit a world made of toys"
+        ],
+        [
+          "be able to change your size at will",
+          "be able to change your age at will"
+        ],
+        [
+          "understand babies",
+          "understand cats"
+        ],
+        [
+          "be a ghost for a day",
+          "be a giant for a day"
+        ],
+        [
+          "have a cloak of invisibility",
+          "have boots that let you walk on water"
+        ],
+        [
+          "grant three wishes to someone else",
+          "get one wish for yourself"
+        ],
+        [
+          "live in a fairy tale",
+          "live in a video game"
+        ],
+        [
+          "be able to hold your breath for an hour",
+          "be able to stay awake for a week"
+        ],
+        [
+          "have a pocket that’s always full of money",
+          "have a fridge that’s always full of food"
+        ],
+        [
+          "see in the dark",
+          "hear from a mile away"
+        ],
+        [
+          "be the strongest person in the world",
+          "be the cleverest person in the world"
+        ],
+        [
+          "fly a dragon",
+          "drive a spaceship"
+        ],
+        [
+          "have a talking sword",
+          "have a magic shield"
+        ],
+        [
+          "turn invisible but not be able to turn back for an hour",
+          "fly but only one metre off the ground"
+        ],
+        [
+          "always know when someone is lying",
+          "never be lied to"
+        ],
+        [
+          "be able to sing so well that people cry",
+          "be able to dance so well that people faint"
+        ],
+        [
+          "live in an enchanted forest",
+          "live in a wizard school"
+        ],
+        [
+          "have hair that changes colour with your mood",
+          "have a voice that changes with your mood"
+        ],
+        [
+          "make it snow whenever you like",
+          "make it sunny whenever you like"
+        ],
+        [
+          "speak to plants",
+          "speak to the sea"
+        ],
+        [
+          "have nine lives",
+          "have one life that lasts 500 years"
+        ],
+        [
+          "be famous in the past",
+          "be famous in the future"
+        ],
+        [
+          "travel to the age of dinosaurs",
+          "travel to the year 3000"
+        ],
+        [
+          "have a house that can walk",
+          "have a car that can fly"
+        ],
+        [
+          "duplicate yourself",
+          "swap bodies with anyone"
+        ],
+        [
+          "know the ending of every story",
+          "be in every story"
+        ],
+        [
+          "be a knight",
+          "be a dragon"
+        ],
+        [
+          "have unlimited energy",
+          "never need to sleep"
+        ],
+        [
+          "have a superpower nobody knows about",
+          "have a useless superpower everybody knows about"
+        ],
+        [
+          "breathe fire",
+          "shoot ice from your hands"
+        ],
+        [
+          "be able to talk to the dead",
+          "be able to talk to the future"
+        ],
+        [
+          "own a castle in Scotland",
+          "own an island in the Pacific"
+        ],
+        [
+          "have super hearing",
+          "have super smell"
+        ],
+        [
+          "be granted one wish now",
+          "be granted three wishes when you’re eighty"
+        ],
+        [
+          "fight a hundred duck-sized horses",
+          "fight one horse-sized duck"
+        ],
+        [
+          "live forever as you are now",
+          "live a normal life with superpowers"
+        ],
+        [
+          "be a genie",
+          "have a genie"
+        ],
+        [
+          "glow in the dark",
+          "be able to make others glow"
+        ],
+        [
+          "travel through mirrors",
+          "travel through puddles"
+        ],
+        [
+          "always land on your feet",
+          "always find what you’ve lost"
+        ],
+        [
+          "make any plant grow instantly",
+          "make any animal your friend"
+        ],
+        [
+          "have a jetpack",
+          "have a hoverboard"
+        ],
+        [
+          "be the hero",
+          "be the villain"
+        ],
+        [
+          "know every secret in the world",
+          "have nobody know your secrets"
+        ],
+        [
+          "live in a world with no gravity",
+          "live in a world with double gravity"
+        ],
+        [
+          "turn into any animal",
+          "turn into any object"
+        ],
+        [
+          "visit the inside of a volcano",
+          "visit the inside of an iceberg"
+        ],
+        [
+          "be the last person on Earth",
+          "be the first person on Mars"
+        ],
+        [
+          "be a magician who can really do magic",
+          "be an inventor who can build anything"
+        ],
+        [
+          "have a door that opens to anywhere",
+          "have a window that shows any time"
+        ],
+        [
+          "speak like a robot forever",
+          "speak like a pirate forever"
+        ],
+        [
+          "have a sidekick",
+          "be a sidekick"
+        ],
+        [
+          "be able to taste colours",
+          "be able to see music"
+        ],
+        [
+          "find a dragon egg",
+          "find a treasure map"
+        ],
+        [
+          "never get lost",
+          "never get bored"
+        ]
+      ]
+    },
+    {
+      "id": "ekkelt",
+      "navn": "Gross",
+      "ikon": "🤢",
+      "tekst": "Snot, slime and shudders",
+      "dilemmaer": [
+        [
+          "eat a worm",
+          "eat a spider"
+        ],
+        [
+          "swim in a pool full of spaghetti",
+          "swim in a pool full of porridge"
+        ],
+        [
+          "have socks that smell of fish",
+          "have shoes that smell of old cheese"
+        ],
+        [
+          "never brush your teeth again",
+          "never wash your hair again"
+        ],
+        [
+          "have hiccups for the rest of your life",
+          "sneeze every five minutes for the rest of your life"
+        ],
+        [
+          "lick a frog",
+          "kiss a slug"
+        ],
+        [
+          "have a nose that drips all the time",
+          "have ears that are always itchy"
+        ],
+        [
+          "sleep in a bed of slime",
+          "sleep in a bed of mud"
+        ],
+        [
+          "smell like a bin",
+          "smell like a wet dog"
+        ],
+        [
+          "eat a bogey",
+          "eat a scab"
+        ],
+        [
+          "drink sour milk",
+          "eat mouldy bread"
+        ],
+        [
+          "step in dog poo with bare feet",
+          "sit on chewing gum"
+        ],
+        [
+          "have a pet cockroach",
+          "have a pet rat"
+        ],
+        [
+          "burp every time you speak",
+          "fart every time you laugh"
+        ],
+        [
+          "have hairy hands",
+          "have hairy feet"
+        ],
+        [
+          "wear the same pants for a week",
+          "wear the same socks for a month"
+        ],
+        [
+          "find a hair in your soup",
+          "find a fly in your drink"
+        ],
+        [
+          "eat a raw egg",
+          "eat a raw fish"
+        ],
+        [
+          "have toenails that grow really fast",
+          "have nose hair that grows really fast"
+        ],
+        [
+          "smell other people’s armpits",
+          "smell other people’s feet"
+        ],
+        [
+          "fall into a muddy pond",
+          "fall into a pile of leaves full of slugs"
+        ],
+        [
+          "eat cat food",
+          "eat dog food"
+        ],
+        [
+          "have slime coming out of your ears",
+          "have bubbles coming out of your nose"
+        ],
+        [
+          "take a bath in baked beans",
+          "take a bath in custard"
+        ],
+        [
+          "have a snot bubble that never pops",
+          "have a burp that never ends"
+        ],
+        [
+          "hold a slimy snail",
+          "hold a hairy spider"
+        ],
+        [
+          "lick the floor of a bus",
+          "lick the handrail of an escalator"
+        ],
+        [
+          "eat a sandwich someone dropped in the sand",
+          "eat a biscuit someone dropped on the floor"
+        ],
+        [
+          "sit next to someone who never stops burping",
+          "sit next to someone who never stops sniffing"
+        ],
+        [
+          "smell rotten eggs all day",
+          "smell old trainers all day"
+        ],
+        [
+          "have a tongue that’s always furry",
+          "have teeth that are always sticky"
+        ],
+        [
+          "sweat glue",
+          "cry ketchup"
+        ],
+        [
+          "get sneezed on",
+          "get coughed on"
+        ],
+        [
+          "drink pond water",
+          "drink bath water"
+        ],
+        [
+          "walk barefoot through a cowfield",
+          "walk barefoot through a fish market"
+        ],
+        [
+          "wear a hat full of jelly",
+          "wear gloves full of mud"
+        ],
+        [
+          "eat a sprout that’s been chewed",
+          "eat a chip that’s been licked"
+        ],
+        [
+          "clean a toilet with a toothbrush",
+          "clean a fridge that’s been off for a month"
+        ],
+        [
+          "have a nose as big as a banana",
+          "have ears as big as plates"
+        ],
+        [
+          "keep a jar of your own toenail clippings",
+          "keep a jar of your own hair"
+        ],
+        [
+          "share a toothbrush",
+          "share a pair of pants"
+        ],
+        [
+          "have a sneeze that sounds like a duck",
+          "have a laugh that sounds like a pig"
+        ],
+        [
+          "find a worm in your apple",
+          "find half a worm in your apple"
+        ],
+        [
+          "have dandruff like snow",
+          "have eyebrows that never stop growing"
+        ],
+        [
+          "eat a cake made of earwax",
+          "drink a smoothie made of sweat"
+        ],
+        [
+          "sleep with a smelly dog",
+          "sleep with a snoring grandad"
+        ],
+        [
+          "swim in a pool after a hundred people",
+          "take a bath after a muddy rugby team"
+        ],
+        [
+          "eat a slice of pizza with a toenail on it",
+          "eat a sandwich with a plaster in it"
+        ],
+        [
+          "burp the alphabet in front of the King",
+          "fart during a minute’s silence"
+        ],
+        [
+          "have spots that glow",
+          "have warts that sing"
+        ],
+        [
+          "touch a jellyfish",
+          "touch an eel"
+        ],
+        [
+          "have breath that smells of garlic forever",
+          "have feet that smell of cheese forever"
+        ],
+        [
+          "drink a glass of gravy",
+          "drink a glass of vinegar"
+        ],
+        [
+          "walk through a cobweb with your face",
+          "step on a slug with bare feet"
+        ],
+        [
+          "clean out a hamster cage",
+          "clean out a fish tank"
+        ],
+        [
+          "have bogeys that taste of chocolate",
+          "have tears that taste of lemon"
+        ],
+        [
+          "eat an onion like an apple",
+          "eat a lemon like an orange"
+        ],
+        [
+          "never be able to blow your nose",
+          "never be able to scratch an itch"
+        ],
+        [
+          "have to smell every bin you pass",
+          "have to lick every lamp post you pass"
+        ],
+        [
+          "eat a spoonful of hair",
+          "eat a spoonful of sand"
+        ],
+        [
+          "have a fly that follows you everywhere",
+          "have a wasp that follows you everywhere"
+        ],
+        [
+          "wear wet socks forever",
+          "wear sandy pants forever"
+        ],
+        [
+          "eat a fish eye",
+          "eat a sheep’s eye"
+        ],
+        [
+          "be covered in slime",
+          "be covered in feathers"
+        ],
+        [
+          "have a nose that whistles",
+          "have knees that creak"
+        ],
+        [
+          "sit in a bath of cold soup",
+          "stand in a puddle of warm custard"
+        ],
+        [
+          "have a pet that’s always sick",
+          "have a pet that’s always smelly"
+        ],
+        [
+          "burp up bubbles",
+          "sneeze glitter"
+        ],
+        [
+          "eat something from the bottom of a handbag",
+          "eat something from under the sofa"
+        ],
+        [
+          "wear a jumper made of hair",
+          "wear a hat made of cheese"
+        ],
+        [
+          "have a mouth full of marbles",
+          "have a mouth full of beetles"
+        ],
+        [
+          "hold a dead fish",
+          "hold a live slug"
+        ],
+        [
+          "smell like a sewer",
+          "look like you’ve been in one"
+        ],
+        [
+          "eat a mouldy cheese on purpose",
+          "eat a mouldy cake by accident"
+        ],
+        [
+          "have a bath with a frog",
+          "have a shower with a snake"
+        ],
+        [
+          "find something furry in the fridge",
+          "find something wriggly in your shoe"
+        ],
+        [
+          "lick a stranger’s shoe",
+          "lick your own armpit"
+        ],
+        [
+          "have bad breath",
+          "have smelly feet"
+        ],
+        [
+          "eat a meal at a bin",
+          "eat a meal in a toilet"
+        ],
+        [
+          "have a mosquito bite on your eyelid",
+          "have a nettle sting on your bottom"
+        ],
+        [
+          "drink a cup of tea with a dead fly in it",
+          "eat a biscuit with an ant on it"
+        ],
+        [
+          "have a cold that lasts a year",
+          "have a sore toe that lasts a year"
+        ],
+        [
+          "step on a plug",
+          "step on a building brick"
+        ]
+      ]
+    },
+    {
+      "id": "venner",
+      "navn": "Friends",
+      "ikon": "😎",
+      "tekst": "Everyday fun",
+      "dilemmaer": [
+        [
+          "always have to say what you’re thinking",
+          "never be able to say what you mean"
+        ],
+        [
+          "have a thousand friends you don’t know well",
+          "have two friends you know really well"
+        ],
+        [
+          "know everything your friends say about you",
+          "never know any of it"
+        ],
+        [
+          "read all your best friend’s messages",
+          "let your best friend read all yours"
+        ],
+        [
+          "have your phone on one per cent for the rest of your life",
+          "have a cracked screen for the rest of your life"
+        ],
+        [
+          "be famous on the internet",
+          "be famous on the telly"
+        ],
+        [
+          "always be the funniest in the group",
+          "always be the cleverest in the group"
+        ],
+        [
+          "lose all your photos",
+          "lose all your messages"
+        ],
+        [
+          "never use social media again",
+          "never watch a film again"
+        ],
+        [
+          "go on holiday with your friends",
+          "go on holiday with your family"
+        ],
+        [
+          "be stuck in a lift with your ex",
+          "be stuck in a lift with your boss"
+        ],
+        [
+          "always be ten minutes late",
+          "always be half an hour early"
+        ],
+        [
+          "have a friend who always borrows money",
+          "have a friend who always borrows clothes"
+        ],
+        [
+          "only text",
+          "only call"
+        ],
+        [
+          "have a friend who tells you the truth",
+          "have a friend who always makes you feel good"
+        ],
+        [
+          "go to a festival",
+          "go to a spa weekend"
+        ],
+        [
+          "have your search history made public",
+          "have your messages made public"
+        ],
+        [
+          "be the best at karaoke",
+          "be the best at dancing"
+        ],
+        [
+          "sing every time you speak",
+          "rhyme every time you speak"
+        ],
+        [
+          "have to post every photo you take",
+          "never be able to post a photo again"
+        ],
+        [
+          "go to a concert of your favourite band alone",
+          "go to a concert of a band you hate with friends"
+        ],
+        [
+          "have a group chat that never stops",
+          "have no group chats at all"
+        ],
+        [
+          "know how every film ends",
+          "never be able to finish a film"
+        ],
+        [
+          "be a famous influencer",
+          "be a famous footballer"
+        ],
+        [
+          "spend a day without your phone",
+          "spend a day without speaking"
+        ],
+        [
+          "be stuck on a desert island with your best friend",
+          "be stuck with a stranger who has a boat"
+        ],
+        [
+          "go to every party",
+          "throw every party"
+        ],
+        [
+          "always laugh at the wrong moment",
+          "always cry at the wrong moment"
+        ],
+        [
+          "have a friend who never replies",
+          "have a friend who replies with voice notes only"
+        ],
+        [
+          "win a pub quiz",
+          "win a dance-off"
+        ],
+        [
+          "be the friend who organises everything",
+          "be the friend who forgets everything"
+        ],
+        [
+          "get a tattoo picked by your friends",
+          "get a haircut picked by your friends"
+        ],
+        [
+          "eat the same takeaway every Friday",
+          "try a new takeaway every Friday"
+        ],
+        [
+          "have the best playlist",
+          "have the best stories"
+        ],
+        [
+          "never be able to watch the end of a series",
+          "only be able to watch the last episode"
+        ],
+        [
+          "move to another country with friends",
+          "stay at home with family"
+        ],
+        [
+          "have a free cinema pass",
+          "have a free gym pass"
+        ],
+        [
+          "always be the one taking the photos",
+          "always be in the photos"
+        ],
+        [
+          "know a secret about everyone",
+          "have nobody know your secrets"
+        ],
+        [
+          "binge a whole series in a day",
+          "watch one episode a week"
+        ],
+        [
+          "always be underdressed",
+          "always be overdressed"
+        ],
+        [
+          "have to reply to every message within a minute",
+          "only be allowed to reply once a day"
+        ],
+        [
+          "spend a weekend camping",
+          "spend a weekend in a city"
+        ],
+        [
+          "have a podcast",
+          "have a video channel"
+        ],
+        [
+          "be the best at board games",
+          "be the best at video games"
+        ],
+        [
+          "go to a fancy-dress party as your best friend",
+          "go as your worst enemy"
+        ],
+        [
+          "lose your keys",
+          "lose your wallet"
+        ],
+        [
+          "have your diary read out in public",
+          "have your browser history read out in public"
+        ],
+        [
+          "meet your favourite celebrity",
+          "meet a friend you lost touch with"
+        ],
+        [
+          "go on a road trip",
+          "go on a city break"
+        ],
+        [
+          "only be able to wear one colour",
+          "only be able to wear stripes"
+        ],
+        [
+          "never be able to use emojis",
+          "only be able to use emojis"
+        ],
+        [
+          "have the ability to make anyone laugh",
+          "have the ability to make anyone agree with you"
+        ],
+        [
+          "always have the last word",
+          "always have the first word"
+        ],
+        [
+          "be stuck in traffic for an hour",
+          "be stuck in a queue for an hour"
+        ],
+        [
+          "be the oldest in your group",
+          "be the youngest in your group"
+        ],
+        [
+          "live with your best friend",
+          "live next door to your best friend"
+        ],
+        [
+          "spend a day in the past with your friends",
+          "spend a day in the future with your friends"
+        ],
+        [
+          "always get the best seat",
+          "always get the biggest slice"
+        ],
+        [
+          "be terrible at texting",
+          "be terrible at calling"
+        ],
+        [
+          "have a friend who’s always late",
+          "have a friend who always cancels"
+        ],
+        [
+          "go to the gym together",
+          "go to the pub together"
+        ],
+        [
+          "have a surprise party",
+          "plan a surprise party"
+        ],
+        [
+          "always forget names",
+          "always forget birthdays"
+        ],
+        [
+          "sing at a wedding",
+          "give a speech at a wedding"
+        ],
+        [
+          "go viral for something embarrassing",
+          "never go viral"
+        ],
+        [
+          "have perfect hair forever",
+          "have perfect skin forever"
+        ],
+        [
+          "be on a reality TV show",
+          "be on a quiz show"
+        ],
+        [
+          "learn every dance trend",
+          "know every song lyric"
+        ],
+        [
+          "be able to pause real life",
+          "be able to skip boring bits of real life"
+        ],
+        [
+          "always have to tell the truth",
+          "always have to lie"
+        ],
+        [
+          "have a long voice note",
+          "have a long text"
+        ],
+        [
+          "go on a group holiday where nobody plans anything",
+          "go on one where everything is planned to the minute"
+        ],
+        [
+          "get the giggles at a funeral",
+          "cry at a comedy show"
+        ],
+        [
+          "have a friend who’s a famous chef",
+          "have a friend who’s a famous musician"
+        ],
+        [
+          "be stuck at a wedding where you know nobody",
+          "be stuck at a party where you know everybody"
+        ],
+        [
+          "never have to queue again",
+          "never have to pay for delivery again"
+        ],
+        [
+          "know a famous person’s secret",
+          "have a famous person know yours"
+        ],
+        [
+          "always have a full battery",
+          "always have perfect Wi-Fi"
+        ],
+        [
+          "have one amazing night out a year",
+          "have a quiet night in every weekend"
+        ]
+      ]
+    },
+    {
+      "id": "fest",
+      "navn": "Party",
+      "ikon": "🎉",
+      "tekst": "A bit more cheeky (18+)",
+      "voksen": true,
+      "dilemmaer": [
+        [
+          "have a date in a lift that’s stuck",
+          "have a date on a Ferris wheel that’s stuck"
+        ],
+        [
+          "get a declaration of love on a big screen",
+          "get a declaration of love on the radio"
+        ],
+        [
+          "always have to dance when music plays",
+          "never be allowed to dance"
+        ],
+        [
+          "show your mum all the messages on your phone",
+          "show your boss all the messages on your phone"
+        ],
+        [
+          "have your first date on a hill walk",
+          "have your first date at a karaoke bar"
+        ],
+        [
+          "kiss a frog",
+          "kiss someone with garlic breath"
+        ],
+        [
+          "go on a blind date",
+          "let your friends pick your date"
+        ],
+        [
+          "have a terrible first kiss",
+          "have no first kiss at all"
+        ],
+        [
+          "date someone who’s always late",
+          "date someone who’s always on their phone"
+        ],
+        [
+          "have your ex at your wedding",
+          "have your boss at your wedding"
+        ],
+        [
+          "go to a club",
+          "go to a house party"
+        ],
+        [
+          "have a hangover every Sunday",
+          "never drink again"
+        ],
+        [
+          "dance on the table",
+          "sing on the bar"
+        ],
+        [
+          "have your parents read your dating profile",
+          "have your friends write it"
+        ],
+        [
+          "always say what you’re thinking on a date",
+          "never be able to speak on a date"
+        ],
+        [
+          "have a partner who snores",
+          "have a partner who steals the duvet"
+        ],
+        [
+          "go on a date to a fancy restaurant",
+          "go on a date to a chippy"
+        ],
+        [
+          "go on a stag or hen do abroad",
+          "go on one in a field"
+        ],
+        [
+          "date someone who loves your friends",
+          "date someone your family loves"
+        ],
+        [
+          "wear a wedding dress or suit to a club",
+          "wear a onesie to a wedding"
+        ],
+        [
+          "be with someone who’s a terrible dancer",
+          "be with someone who’s a terrible cook"
+        ],
+        [
+          "kiss in the rain",
+          "kiss under the mistletoe"
+        ],
+        [
+          "get caught singing in the shower",
+          "get caught dancing in the mirror"
+        ],
+        [
+          "forget your date’s name",
+          "call your date by your ex’s name"
+        ],
+        [
+          "have your nan see your dating app",
+          "have your boss see your dating app"
+        ],
+        [
+          "spend the night in a club",
+          "spend the night talking in a kitchen"
+        ],
+        [
+          "have a holiday romance",
+          "have a slow-burn romance"
+        ],
+        [
+          "date a famous actor",
+          "date a famous athlete"
+        ],
+        [
+          "have a first date at a funfair",
+          "have a first date at a museum"
+        ],
+        [
+          "be serenaded in public",
+          "be proposed to in public"
+        ],
+        [
+          "go to a speed-dating night",
+          "go to a singles’ cruise"
+        ],
+        [
+          "have a partner who’s always cold",
+          "have a partner who’s always hot"
+        ],
+        [
+          "wake up next to someone who snores",
+          "wake up next to someone who talks in their sleep"
+        ],
+        [
+          "never be able to flirt",
+          "only be able to flirt"
+        ],
+        [
+          "have your love life on reality TV",
+          "have your love life in a song"
+        ],
+        [
+          "go on a date with someone who only talks about their ex",
+          "go on a date with someone who only talks about themselves"
+        ],
+        [
+          "get drunk on two drinks",
+          "never get drunk at all"
+        ],
+        [
+          "be the last to leave every party",
+          "be the first to leave every party"
+        ],
+        [
+          "go skinny-dipping",
+          "go streaking"
+        ],
+        [
+          "have a one-night stand",
+          "have a ten-year relationship with no spark"
+        ],
+        [
+          "have a karaoke duet with your crush",
+          "have a slow dance with your crush"
+        ],
+        [
+          "date someone your parents hate",
+          "date someone your friends hate"
+        ],
+        [
+          "send a love letter",
+          "get a love letter"
+        ],
+        [
+          "have a partner who loves romantic films",
+          "have a partner who loves horror films"
+        ],
+        [
+          "have a perfect first kiss",
+          "have a perfect last kiss"
+        ],
+        [
+          "be texted by your ex every Friday",
+          "never hear from them again"
+        ],
+        [
+          "have a hen or stag do with your parents",
+          "have a hen or stag do with your colleagues"
+        ],
+        [
+          "always be overdressed on dates",
+          "always be underdressed on dates"
+        ],
+        [
+          "kiss someone you’ve just met",
+          "never kiss anyone new"
+        ],
+        [
+          "have a wedding in a castle",
+          "have a wedding on a beach"
+        ],
+        [
+          "dance badly in public",
+          "sing badly in public"
+        ],
+        [
+          "give a best man’s speech",
+          "give a maid of honour’s speech"
+        ],
+        [
+          "date someone much older",
+          "date someone much younger"
+        ],
+        [
+          "go on a date with someone who chews loudly",
+          "go on a date with someone who never stops checking their phone"
+        ],
+        [
+          "have a love bite at a job interview",
+          "have a hangover at a job interview"
+        ],
+        [
+          "always fall for the wrong person",
+          "never fall in love"
+        ],
+        [
+          "be with someone who’s messy",
+          "be with someone who’s too tidy"
+        ],
+        [
+          "have a cheesy chat-up line that works",
+          "have a perfect chat-up line that never works"
+        ],
+        [
+          "party in Ibiza",
+          "party in Edinburgh at Hogmanay"
+        ],
+        [
+          "lose your phone on a night out",
+          "lose your keys on a night out"
+        ],
+        [
+          "eat a kebab at three in the morning",
+          "eat a full English at noon"
+        ],
+        [
+          "wear your partner’s clothes for a week",
+          "let your partner pick your clothes for a week"
+        ],
+        [
+          "date someone with a terrible laugh",
+          "date someone with no sense of humour"
+        ],
+        [
+          "have your first date filmed",
+          "have your wedding livestreamed"
+        ],
+        [
+          "go to a party where you know nobody",
+          "go to a party where you know everybody’s secrets"
+        ],
+        [
+          "have a partner who’s always early",
+          "have a partner who’s always late"
+        ],
+        [
+          "kiss with your eyes open",
+          "kiss with everyone watching"
+        ],
+        [
+          "have your browser history shown on a date",
+          "have your dating app chats shown at work"
+        ],
+        [
+          "never drink alcohol again",
+          "never eat chocolate again"
+        ],
+        [
+          "have a hangover that lasts two days",
+          "have a headache that lasts a week"
+        ],
+        [
+          "always tell your partner everything",
+          "keep one big secret forever"
+        ],
+        [
+          "go on a date to a football match",
+          "go on a date to the ballet"
+        ],
+        [
+          "be with someone who loves camping",
+          "be with someone who loves five-star hotels"
+        ],
+        [
+          "have a wedding with five guests",
+          "have a wedding with five hundred guests"
+        ],
+        [
+          "be the best kisser",
+          "be the best dancer"
+        ],
+        [
+          "get married in Las Vegas",
+          "get married in your local pub"
+        ],
+        [
+          "have a partner who sings badly all the time",
+          "have one who whistles all the time"
+        ],
+        [
+          "fall asleep on a date",
+          "laugh uncontrollably on a date"
+        ],
+        [
+          "date a celebrity in secret",
+          "date a stranger in public"
+        ],
+        [
+          "win the dance-off at a wedding",
+          "catch the bouquet"
+        ],
+        [
+          "always say the wrong thing at parties",
+          "never say anything at parties"
+        ],
+        [
+          "have a hot tub at home",
+          "have a bar at home"
+        ],
+        [
+          "spend New Year’s Eve at a huge party",
+          "spend it at home with one person"
+        ],
+        [
+          "have a partner who loves your mum too much",
+          "have one your mum doesn’t like"
+        ],
+        [
+          "be in a long-distance relationship",
+          "live with your partner after a week"
+        ],
+        [
+          "go to a toga party",
+          "go to a pyjama party"
+        ]
+      ]
+    },
+    {
+      "id": "jul",
+      "navn": "Christmas",
+      "ikon": "🎄",
+      "tekst": "Christmas and the office party",
+      "sesong": true,
+      "dilemmaer": [
+        [
+          "wrap a hundred presents",
+          "write a hundred Christmas cards by hand"
+        ],
+        [
+          "get one big present",
+          "get ten small presents"
+        ],
+        [
+          "open all the presents in the morning",
+          "wait until the evening"
+        ],
+        [
+          "have a Christmas tree up all year",
+          "never have a Christmas tree again"
+        ],
+        [
+          "only eat mince pies all December",
+          "only eat satsumas all December"
+        ],
+        [
+          "have turkey every Christmas",
+          "have a different dinner every Christmas"
+        ],
+        [
+          "spend Christmas at home",
+          "spend Christmas abroad"
+        ],
+        [
+          "pull a cracker with the King",
+          "pull a cracker with Father Christmas"
+        ],
+        [
+          "wear a Christmas jumper every day in December",
+          "wear a paper hat every day in December"
+        ],
+        [
+          "have snow on Christmas Day",
+          "have sunshine on Christmas Day"
+        ],
+        [
+          "be an elf",
+          "be a reindeer"
+        ],
+        [
+          "watch the same Christmas film every year",
+          "never watch a Christmas film again"
+        ],
+        [
+          "eat Christmas pudding",
+          "eat Christmas cake"
+        ],
+        [
+          "have a real tree",
+          "have a fake tree"
+        ],
+        [
+          "get socks every Christmas",
+          "get a jigsaw every Christmas"
+        ],
+        [
+          "go carol singing",
+          "go to a pantomime"
+        ],
+        [
+          "open one present on Christmas Eve",
+          "save them all until Christmas Day"
+        ],
+        [
+          "have the office party in a pub",
+          "have the office party in a fancy hotel"
+        ],
+        [
+          "do Secret Santa at work",
+          "skip presents at work altogether"
+        ],
+        [
+          "eat Brussels sprouts at every meal in December",
+          "never eat roast potatoes again"
+        ],
+        [
+          "spend Boxing Day at the sales",
+          "spend Boxing Day on the sofa"
+        ],
+        [
+          "have a Christmas with no telly",
+          "have a Christmas with no presents"
+        ],
+        [
+          "be Father Christmas for a day",
+          "be the grumpiest grump for a day"
+        ],
+        [
+          "decorate the house with a million lights",
+          "decorate it with just one star"
+        ],
+        [
+          "have a white Christmas",
+          "have a sunny Christmas at the beach"
+        ],
+        [
+          "build a gingerbread house",
+          "build a snowman"
+        ],
+        [
+          "go ice skating",
+          "go sledging"
+        ],
+        [
+          "listen to Christmas songs from November",
+          "never hear a Christmas song again"
+        ],
+        [
+          "get a present you hate from someone you love",
+          "get a present you love from someone you hate"
+        ],
+        [
+          "eat leftover turkey for a week",
+          "have no leftovers at all"
+        ],
+        [
+          "have Christmas dinner at lunchtime",
+          "have it in the evening"
+        ],
+        [
+          "get a stocking full of chocolate",
+          "get a stocking full of small toys"
+        ],
+        [
+          "wake up at five on Christmas morning",
+          "sleep until noon"
+        ],
+        [
+          "have a quiet Christmas",
+          "have a huge family Christmas"
+        ],
+        [
+          "win at charades",
+          "win at the Christmas quiz"
+        ],
+        [
+          "have all your presents wrapped badly",
+          "have all your presents in gift bags"
+        ],
+        [
+          "find the coin in the pudding",
+          "get the best cracker joke"
+        ],
+        [
+          "play board games all Christmas",
+          "go for long walks all Christmas"
+        ],
+        [
+          "have a real fire on Christmas Eve",
+          "have a hot chocolate fountain"
+        ],
+        [
+          "dance at the office party",
+          "give a speech at the office party"
+        ],
+        [
+          "wear a reindeer onesie",
+          "wear an elf costume"
+        ],
+        [
+          "have a tree that touches the ceiling",
+          "have a tiny tree on the table"
+        ],
+        [
+          "spend Christmas in Lapland",
+          "spend Christmas in Australia"
+        ],
+        [
+          "get a puppy for Christmas",
+          "get a holiday for Christmas"
+        ],
+        [
+          "eat mince pies with cream",
+          "eat them with brandy butter"
+        ],
+        [
+          "sing carols in a choir",
+          "sing at a karaoke Christmas party"
+        ],
+        [
+          "open your advent calendar all at once",
+          "open one door a day"
+        ],
+        [
+          "be in the nativity play as Mary or Joseph",
+          "be the donkey"
+        ],
+        [
+          "host Christmas dinner",
+          "be a guest"
+        ],
+        [
+          "buy all your presents online",
+          "buy them all on the high street"
+        ],
+        [
+          "have Christmas every month",
+          "have your birthday every week"
+        ],
+        [
+          "make your own decorations",
+          "buy all new decorations"
+        ],
+        [
+          "send cards to everyone",
+          "send no cards at all"
+        ],
+        [
+          "spend New Year’s Eve at a party",
+          "spend it at home watching the fireworks on TV"
+        ],
+        [
+          "stay up until midnight on Christmas Eve",
+          "go to bed early to wake up first"
+        ],
+        [
+          "have a Christmas pudding on fire",
+          "have a Christmas cake with marzipan"
+        ],
+        [
+          "watch the King’s speech",
+          "watch a Christmas film instead"
+        ],
+        [
+          "get a homemade present",
+          "get a shop-bought present"
+        ],
+        [
+          "have the job of untangling the lights",
+          "have the job of putting up the tree"
+        ],
+        [
+          "go to midnight mass",
+          "go to the pub on Christmas Eve"
+        ],
+        [
+          "ice the Christmas cake",
+          "stuff the turkey"
+        ],
+        [
+          "eat roast potatoes",
+          "eat pigs in blankets"
+        ],
+        [
+          "make paper chains",
+          "make paper snowflakes"
+        ],
+        [
+          "spend Christmas with a famous family",
+          "spend it with your own"
+        ],
+        [
+          "get a sack of coal",
+          "get a stocking full of sprouts"
+        ],
+        [
+          "have a Christmas jumper that lights up",
+          "have one that plays music"
+        ]
+      ]
+    },
+    {
+      "id": "sport",
+      "navn": "Sport",
+      "ikon": "⚽",
+      "tekst": "Matches, training and the terraces",
+      "dilemmaer": [
+        [
+          "win the World Cup with England, Scotland or Wales",
+          "win Olympic gold in the 100 metres"
+        ],
+        [
+          "be the world’s best goalkeeper",
+          "be the world’s best striker"
+        ],
+        [
+          "run a marathon",
+          "cycle from Land’s End to John o’ Groats"
+        ],
+        [
+          "play one match for your national team",
+          "manage your national team for a season"
+        ],
+        [
+          "only be able to play football",
+          "only be able to play cricket"
+        ],
+        [
+          "win Wimbledon",
+          "win the Open at golf"
+        ],
+        [
+          "score the winning goal in a cup final",
+          "save a penalty in a cup final"
+        ],
+        [
+          "be a famous jockey",
+          "be a famous racing driver"
+        ],
+        [
+          "swim the Channel",
+          "climb Ben Nevis in winter"
+        ],
+        [
+          "watch the match in the stadium",
+          "watch it in the pub"
+        ],
+        [
+          "be the captain",
+          "be the top scorer"
+        ],
+        [
+          "play rugby against the All Blacks",
+          "play cricket against Australia"
+        ],
+        [
+          "win a gold medal",
+          "set a world record without winning"
+        ],
+        [
+          "train every day for a year",
+          "never be allowed to exercise again"
+        ],
+        [
+          "be a referee",
+          "be a linesman"
+        ],
+        [
+          "play in the rain every match",
+          "play in the heat every match"
+        ],
+        [
+          "have your team win the league",
+          "have your team win the cup"
+        ],
+        [
+          "play darts at the world championship",
+          "play snooker at the Crucible"
+        ],
+        [
+          "be a famous boxer",
+          "be a famous wrestler"
+        ],
+        [
+          "run the London Marathon in fancy dress",
+          "run it in record time"
+        ],
+        [
+          "watch a five-day Test match",
+          "watch a ninety-minute football match"
+        ],
+        [
+          "win the Boat Race",
+          "win the Tour de France"
+        ],
+        [
+          "play for your favourite team",
+          "coach your favourite team"
+        ],
+        [
+          "be a famous gymnast",
+          "be a famous diver"
+        ],
+        [
+          "score a hat-trick",
+          "keep a clean sheet"
+        ],
+        [
+          "lose on penalties",
+          "lose by five goals"
+        ],
+        [
+          "have a stadium named after you",
+          "have a statue outside the stadium"
+        ],
+        [
+          "play netball",
+          "play hockey"
+        ],
+        [
+          "be good at every sport",
+          "be the best in the world at one"
+        ],
+        [
+          "go to the Olympics as an athlete",
+          "go as a commentator"
+        ],
+        [
+          "ride a horse in the Grand National",
+          "drive a car at Silverstone"
+        ],
+        [
+          "only be able to swim breaststroke",
+          "only be able to swim backstroke"
+        ],
+        [
+          "win the egg-and-spoon race",
+          "win the sack race"
+        ],
+        [
+          "have a season ticket",
+          "have a box at the stadium"
+        ],
+        [
+          "play in goal",
+          "play up front"
+        ],
+        [
+          "be famous for a goal celebration",
+          "be famous for a great save"
+        ],
+        [
+          "learn to paddleboard",
+          "learn to rock climb"
+        ],
+        [
+          "play tennis at Wimbledon in the rain",
+          "play golf at St Andrews in the wind"
+        ],
+        [
+          "be a sports commentator",
+          "be a sports pundit"
+        ],
+        [
+          "run a mile in four minutes",
+          "hold your breath for four minutes"
+        ],
+        [
+          "win a medal at the Commonwealth Games",
+          "win a medal at the Olympics"
+        ],
+        [
+          "watch your team lose in the final",
+          "not reach the final at all"
+        ],
+        [
+          "always be picked first",
+          "always be the captain"
+        ],
+        [
+          "be a famous mountain climber",
+          "be a famous sailor"
+        ],
+        [
+          "have perfect aim",
+          "have perfect speed"
+        ],
+        [
+          "play sport in the snow",
+          "play sport on the beach"
+        ],
+        [
+          "be on the winning side every time",
+          "play brilliantly but always lose"
+        ],
+        [
+          "go to a cricket match with a picnic",
+          "go to a football match with a pie"
+        ],
+        [
+          "be a famous skateboarder",
+          "be a famous BMX rider"
+        ],
+        [
+          "win a 5k fun run",
+          "finish a triathlon"
+        ],
+        [
+          "dive from the highest board",
+          "swim the longest race"
+        ],
+        [
+          "have the loudest chant",
+          "have the best flag"
+        ],
+        [
+          "meet your sports hero",
+          "play against your sports hero"
+        ],
+        [
+          "play in a stadium with no fans",
+          "play in a park full of fans"
+        ],
+        [
+          "coach a children’s team",
+          "be the mascot for a professional team"
+        ],
+        [
+          "win a medal for your country",
+          "win a trophy for your town"
+        ],
+        [
+          "be a world-famous darts player",
+          "be a world-famous snooker player"
+        ],
+        [
+          "always miss the bus to training",
+          "always forget your boots"
+        ],
+        [
+          "get a red card in a final",
+          "score an own goal in a final"
+        ]
+      ]
+    },
+    {
+      "id": "sommer",
+      "navn": "Travel and summer",
+      "ikon": "☀️",
+      "tekst": "Beaches, caravans and long drives",
+      "dilemmaer": [
+        [
+          "have a summer holiday in Britain",
+          "have a summer holiday in the sun abroad"
+        ],
+        [
+          "stay in a tent for a week",
+          "stay in a caravan for a week"
+        ],
+        [
+          "have sunshine every day all summer",
+          "have a summer with no wasps"
+        ],
+        [
+          "swim in the freezing sea",
+          "swim in a pool that’s far too warm"
+        ],
+        [
+          "eat ice cream every day of the holidays",
+          "eat strawberries every day of the holidays"
+        ],
+        [
+          "go to the seaside",
+          "go to the countryside"
+        ],
+        [
+          "drive for ten hours",
+          "fly for ten hours"
+        ],
+        [
+          "stay in a castle",
+          "stay in a treehouse"
+        ],
+        [
+          "go on a holiday you planned",
+          "go on a surprise holiday"
+        ],
+        [
+          "visit a big city",
+          "visit a tiny island"
+        ],
+        [
+          "go camping in the rain",
+          "go camping in a heatwave"
+        ],
+        [
+          "take the ferry",
+          "take the tunnel"
+        ],
+        [
+          "explore a cave",
+          "explore a rainforest"
+        ],
+        [
+          "stay in a hostel",
+          "stay in a five-star hotel"
+        ],
+        [
+          "go to a theme park",
+          "go to a water park"
+        ],
+        [
+          "have a picnic on the beach",
+          "have a picnic in a field"
+        ],
+        [
+          "eat fish and chips on the pier",
+          "eat paella in Spain"
+        ],
+        [
+          "spend a week in Cornwall",
+          "spend a week in the Lake District"
+        ],
+        [
+          "spend a week in the Highlands",
+          "spend a week in Wales"
+        ],
+        [
+          "learn to sail",
+          "learn to surf"
+        ],
+        [
+          "go on a cruise",
+          "go interrailing"
+        ],
+        [
+          "go to a festival",
+          "go to a beach resort"
+        ],
+        [
+          "travel with only hand luggage",
+          "travel with three suitcases"
+        ],
+        [
+          "sleep on the beach",
+          "sleep under the stars in a field"
+        ],
+        [
+          "see the Northern Lights",
+          "see the midnight sun"
+        ],
+        [
+          "go on safari",
+          "go diving on a coral reef"
+        ],
+        [
+          "visit Paris",
+          "visit Rome"
+        ],
+        [
+          "have a road trip with no music",
+          "have one with only one song"
+        ],
+        [
+          "have a summer of rain",
+          "have a summer of heatwaves"
+        ],
+        [
+          "stay at home all summer",
+          "travel all summer"
+        ],
+        [
+          "drive a camper van",
+          "ride a bike across a country"
+        ],
+        [
+          "always forget the sun cream",
+          "always forget the swimming costume"
+        ],
+        [
+          "eat a 99 every day",
+          "eat a lolly every day"
+        ],
+        [
+          "build a sandcastle",
+          "build a raft"
+        ],
+        [
+          "travel by train across Europe",
+          "travel by car across America"
+        ],
+        [
+          "go somewhere hot",
+          "go somewhere snowy"
+        ],
+        [
+          "stay in the same place every year",
+          "go somewhere new every year"
+        ],
+        [
+          "have a sea view",
+          "have a mountain view"
+        ],
+        [
+          "visit every castle in Wales",
+          "visit every island in Scotland"
+        ],
+        [
+          "be stuck at the airport for a day",
+          "be stuck in traffic for a day"
+        ],
+        [
+          "have a holiday with no Wi-Fi",
+          "have a holiday with no beach"
+        ],
+        [
+          "go fishing",
+          "go crabbing"
+        ],
+        [
+          "always get car sick",
+          "always get seasick"
+        ],
+        [
+          "holiday on a canal boat",
+          "holiday in a lighthouse"
+        ],
+        [
+          "walk the whole coast path",
+          "cycle the whole coast road"
+        ],
+        [
+          "spend a summer working abroad",
+          "spend a summer volunteering at home"
+        ],
+        [
+          "play crazy golf",
+          "play beach volleyball"
+        ],
+        [
+          "have a barbecue every night",
+          "eat out every night"
+        ],
+        [
+          "see dolphins",
+          "see puffins"
+        ],
+        [
+          "take the night train",
+          "take the morning flight"
+        ],
+        [
+          "go to a fancy-dress beach party",
+          "go to a sunset party"
+        ],
+        [
+          "visit a country where you don’t speak the language",
+          "visit one where everyone speaks English"
+        ],
+        [
+          "pack a day early",
+          "pack an hour before leaving"
+        ],
+        [
+          "sit in the front seat",
+          "choose the music"
+        ],
+        [
+          "always win at I spy",
+          "always be the one to spot the sea first"
+        ],
+        [
+          "stay in a glamping pod",
+          "stay in a shepherd’s hut"
+        ],
+        [
+          "go on a boat trip",
+          "go on a helicopter ride"
+        ],
+        [
+          "climb a mountain",
+          "swim across a lake"
+        ],
+        [
+          "holiday by the sea in winter",
+          "holiday in the mountains in summer"
+        ],
+        [
+          "visit a vineyard",
+          "visit a chocolate factory"
+        ],
+        [
+          "have the whole beach to yourself",
+          "have the best spot at a busy beach"
+        ]
+      ]
+    },
+    {
+      "id": "jobb",
+      "navn": "Work and school",
+      "ikon": "💼",
+      "tekst": "Office, classroom and canteen",
+      "dilemmaer": [
+        [
+          "work four long days a week",
+          "work five short days a week"
+        ],
+        [
+          "work from home every day",
+          "work in the office every day"
+        ],
+        [
+          "have a boss who’s always happy",
+          "have a boss who always gives you time off"
+        ],
+        [
+          "have an office with a view",
+          "have an office with its own coffee machine"
+        ],
+        [
+          "do a job you love for low pay",
+          "do a boring job for high pay"
+        ],
+        [
+          "have a long lunch break",
+          "finish work an hour early"
+        ],
+        [
+          "never have another meeting",
+          "never write another email"
+        ],
+        [
+          "work in a team",
+          "work alone"
+        ],
+        [
+          "sit next to someone who talks all day",
+          "sit next to someone who eats crisps all day"
+        ],
+        [
+          "have a four-day school week",
+          "have a two-month summer holiday"
+        ],
+        [
+          "be the teacher",
+          "be the head teacher"
+        ],
+        [
+          "have school dinners every day",
+          "bring a packed lunch every day"
+        ],
+        [
+          "do your homework at school",
+          "never have homework at all"
+        ],
+        [
+          "have one exam at the end of the year",
+          "have tests every week"
+        ],
+        [
+          "learn maths",
+          "learn art"
+        ],
+        [
+          "go on a school trip to a museum",
+          "go on a school trip to a farm"
+        ],
+        [
+          "wear a uniform",
+          "wear whatever you like"
+        ],
+        [
+          "start school at ten",
+          "finish school at two"
+        ],
+        [
+          "be the class clown",
+          "be the teacher’s pet"
+        ],
+        [
+          "have a desk by the window",
+          "have a desk by the radiator"
+        ],
+        [
+          "be famous at work for your cakes",
+          "be famous for your jokes"
+        ],
+        [
+          "always be asked to take notes",
+          "always be asked to make the tea"
+        ],
+        [
+          "work at a theme park",
+          "work at a zoo"
+        ],
+        [
+          "be a famous chef",
+          "be a famous scientist"
+        ],
+        [
+          "have a job that’s outside all day",
+          "have a job inside all day"
+        ],
+        [
+          "travel for work every week",
+          "never leave your town for work"
+        ],
+        [
+          "have a standing desk",
+          "have a desk with a treadmill"
+        ],
+        [
+          "have the Christmas party at work",
+          "have a summer party at work"
+        ],
+        [
+          "reply to all your emails",
+          "never check your emails"
+        ],
+        [
+          "be the boss",
+          "be the boss’s favourite"
+        ],
+        [
+          "get a pay rise",
+          "get an extra week of holiday"
+        ],
+        [
+          "have a four-hour working day",
+          "have a three-day weekend"
+        ],
+        [
+          "work at night",
+          "work at the weekend"
+        ],
+        [
+          "be in charge of the office playlist",
+          "be in charge of the office biscuits"
+        ],
+        [
+          "have a colleague who always microwaves fish",
+          "have one who always takes your pen"
+        ],
+        [
+          "be good at maths",
+          "be good at spelling"
+        ],
+        [
+          "do a presentation to the whole school",
+          "do a presentation to the whole company"
+        ],
+        [
+          "have PE every day",
+          "have no PE ever"
+        ],
+        [
+          "go to university",
+          "start working straight away"
+        ],
+        [
+          "learn to code",
+          "learn a new language"
+        ],
+        [
+          "retire at fifty",
+          "work until you’re eighty doing what you love"
+        ],
+        [
+          "have a job where you wear a suit",
+          "have a job where you wear a uniform"
+        ],
+        [
+          "be an astronaut",
+          "be a deep-sea diver"
+        ],
+        [
+          "be a vet",
+          "be a doctor"
+        ],
+        [
+          "sit your driving test tomorrow",
+          "sit your maths exam tomorrow"
+        ],
+        [
+          "be the best at sports day",
+          "be the best at the spelling test"
+        ],
+        [
+          "work in a shop at Christmas",
+          "work in a café in summer"
+        ],
+        [
+          "have a short commute",
+          "have a big salary"
+        ],
+        [
+          "get a gold star",
+          "get a certificate in assembly"
+        ],
+        [
+          "be a lollipop person",
+          "be a school caretaker"
+        ],
+        [
+          "work for a famous company",
+          "start your own company"
+        ],
+        [
+          "have a work phone",
+          "have a work car"
+        ],
+        [
+          "always have the printer break",
+          "always have the Wi-Fi drop"
+        ],
+        [
+          "lead every meeting",
+          "never speak in a meeting"
+        ],
+        [
+          "have unlimited holiday",
+          "have a four-day week"
+        ],
+        [
+          "be on a video call with the camera stuck on",
+          "be on one with the microphone stuck on"
+        ],
+        [
+          "learn everything from books",
+          "learn everything from videos"
+        ],
+        [
+          "be the oldest in the class",
+          "be the youngest in the class"
+        ],
+        [
+          "have a really long summer holiday",
+          "have lots of short holidays"
+        ],
+        [
+          "always arrive early",
+          "always leave late"
+        ]
+      ]
+    },
+    {
+      "id": "par",
+      "navn": "Couples",
+      "ikon": "💕",
+      "tekst": "For partners and live-in loves (18+)",
+      "voksen": true,
+      "dilemmaer": [
+        [
+          "go on a weekend away to a big city",
+          "go on a weekend away to a cottage"
+        ],
+        [
+          "have a date night every week",
+          "have a long holiday together every year"
+        ],
+        [
+          "cook dinner together",
+          "go out to eat"
+        ],
+        [
+          "watch a film on the sofa",
+          "go to the cinema"
+        ],
+        [
+          "always get the last bite",
+          "always get to choose the film"
+        ],
+        [
+          "have breakfast in bed",
+          "have dinner by candlelight"
+        ],
+        [
+          "go dancing together",
+          "go for a long walk together"
+        ],
+        [
+          "get matching tattoos",
+          "get matching jumpers"
+        ],
+        [
+          "have a big wedding",
+          "have a tiny wedding"
+        ],
+        [
+          "live by a busy high street",
+          "live up a quiet country lane"
+        ],
+        [
+          "have a partner who loves surprises",
+          "have a partner who hates surprises"
+        ],
+        [
+          "always agree",
+          "always have fun arguing"
+        ],
+        [
+          "have the bed to yourself",
+          "have your partner hog the duvet"
+        ],
+        [
+          "go to bed at the same time",
+          "go to bed when you like"
+        ],
+        [
+          "share a bank account",
+          "keep everything separate"
+        ],
+        [
+          "have a dog together",
+          "have a cat together"
+        ],
+        [
+          "travel the world together",
+          "build a home together"
+        ],
+        [
+          "write each other love letters",
+          "make each other playlists"
+        ],
+        [
+          "plan every holiday",
+          "go wherever the wind takes you"
+        ],
+        [
+          "sleep with the window open",
+          "sleep with the window closed"
+        ],
+        [
+          "have a quiet night in",
+          "have a big night out"
+        ],
+        [
+          "have your partner cook",
+          "do the cooking yourself"
+        ],
+        [
+          "get a surprise every week",
+          "get one big surprise a year"
+        ],
+        [
+          "always know what your partner is thinking",
+          "always surprise your partner"
+        ],
+        [
+          "dance in the kitchen",
+          "sing in the car"
+        ],
+        [
+          "go on a romantic picnic",
+          "go on a romantic boat trip"
+        ],
+        [
+          "renew your vows every year",
+          "have one perfect wedding"
+        ],
+        [
+          "have a partner who’s great at DIY",
+          "have a partner who’s great at gardening"
+        ],
+        [
+          "share all your passwords",
+          "keep one password secret"
+        ],
+        [
+          "have your partner choose your clothes",
+          "choose your partner’s clothes"
+        ],
+        [
+          "always do the washing-up",
+          "always do the laundry"
+        ],
+        [
+          "spend Christmas with your family",
+          "spend Christmas with your partner’s family"
+        ],
+        [
+          "go on a camping holiday",
+          "go on a spa break"
+        ],
+        [
+          "watch a box set together",
+          "read the same book together"
+        ],
+        [
+          "have one long kiss",
+          "have lots of little kisses"
+        ],
+        [
+          "go to a concert together",
+          "go to a comedy show together"
+        ],
+        [
+          "have a house full of kids",
+          "have a house full of pets"
+        ],
+        [
+          "remember every anniversary",
+          "forget every anniversary but make up for it"
+        ],
+        [
+          "be the big spoon",
+          "be the little spoon"
+        ],
+        [
+          "always say ‘I love you’ first",
+          "always hear it first"
+        ]
+      ]
+    },
+    {
+      "id": "blikjent",
+      "navn": "Getting to know you",
+      "ikon": "👋",
+      "tekst": "Easy choices for new groups",
+      "dilemmaer": [
+        [
+          "be an early bird",
+          "be a night owl"
+        ],
+        [
+          "drink coffee",
+          "drink tea"
+        ],
+        [
+          "read a good book",
+          "watch a good film"
+        ],
+        [
+          "walk a dog every morning",
+          "feed a cat every evening"
+        ],
+        [
+          "go on a holiday in the sun",
+          "go on a holiday in the snow"
+        ],
+        [
+          "live in a city",
+          "live in the countryside"
+        ],
+        [
+          "eat something sweet",
+          "eat something savoury"
+        ],
+        [
+          "go to a concert",
+          "go to the theatre"
+        ],
+        [
+          "be able to sing",
+          "be able to dance"
+        ],
+        [
+          "have a big party",
+          "have a small dinner"
+        ],
+        [
+          "go to the beach",
+          "go to the mountains"
+        ],
+        [
+          "play a board game",
+          "play a video game"
+        ],
+        [
+          "spend a day outside",
+          "spend a day inside"
+        ],
+        [
+          "listen to music",
+          "listen to a podcast"
+        ],
+        [
+          "have breakfast",
+          "skip breakfast"
+        ],
+        [
+          "travel by train",
+          "travel by car"
+        ],
+        [
+          "be the first to arrive",
+          "be the last to leave"
+        ],
+        [
+          "text",
+          "call"
+        ],
+        [
+          "have a shower in the morning",
+          "have a bath in the evening"
+        ],
+        [
+          "watch sport",
+          "play sport"
+        ],
+        [
+          "cook",
+          "bake"
+        ],
+        [
+          "read the news",
+          "never read the news"
+        ],
+        [
+          "have a tidy desk",
+          "have a creative mess"
+        ],
+        [
+          "plan ahead",
+          "go with the flow"
+        ],
+        [
+          "go swimming in summer",
+          "go sledging in winter"
+        ],
+        [
+          "see the spring blossom",
+          "see the autumn leaves"
+        ],
+        [
+          "watch the sunrise",
+          "watch the sunset"
+        ],
+        [
+          "eat pizza",
+          "eat pasta"
+        ],
+        [
+          "snack on chocolate",
+          "snack on crisps"
+        ],
+        [
+          "meet a famous person",
+          "meet a famous animal"
+        ],
+        [
+          "go on a city break",
+          "go on a beach holiday"
+        ],
+        [
+          "only have hot drinks",
+          "only have cold drinks"
+        ],
+        [
+          "watch a film",
+          "watch a series"
+        ],
+        [
+          "read a novel",
+          "read a true story"
+        ],
+        [
+          "spend a day at a museum",
+          "spend a day at a theme park"
+        ],
+        [
+          "walk in the hills",
+          "walk round a lake"
+        ],
+        [
+          "swim in the sea",
+          "swim in a pool"
+        ],
+        [
+          "walk",
+          "cycle"
+        ],
+        [
+          "listen to the radio",
+          "watch TV"
+        ],
+        [
+          "read a paper book",
+          "read on a screen"
+        ],
+        [
+          "write by hand",
+          "type everything"
+        ],
+        [
+          "watch fireworks",
+          "sit by a bonfire"
+        ],
+        [
+          "laugh until you cry",
+          "cry until you laugh"
+        ],
+        [
+          "talk",
+          "listen"
+        ],
+        [
+          "take photos",
+          "be in photos"
+        ],
+        [
+          "learn a language",
+          "learn an instrument"
+        ],
+        [
+          "stay in",
+          "go out"
+        ],
+        [
+          "meet new people",
+          "hang out with old friends"
+        ],
+        [
+          "have a long lie-in",
+          "get up early and make the most of the day"
+        ],
+        [
+          "start a day with music",
+          "start a day with silence"
+        ],
+        [
+          "be really organised",
+          "be really spontaneous"
+        ],
+        [
+          "win a quiz",
+          "win a race"
+        ],
+        [
+          "eat at a café",
+          "eat at a restaurant"
+        ],
+        [
+          "go on holiday for a week",
+          "go on two long weekends"
+        ],
+        [
+          "write a letter",
+          "send a voice note"
+        ],
+        [
+          "eat outside in the rain",
+          "eat inside on a sunny day"
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,3871 @@
+{
+  "pakker": [
+    {
+      "id": "barn",
+      "navn": "Børn",
+      "ikon": "🧸",
+      "tekst": "For de mindste",
+      "dilemmaer": [
+        [
+          "have sommerferie hele året",
+          "have fødselsdag hver måned"
+        ],
+        [
+          "bo i et træhus",
+          "bo på et slot"
+        ],
+        [
+          "have en hund, der kan tale",
+          "have en kat, der kan flyve"
+        ],
+        [
+          "kunne trække vejret under vand",
+          "kunne hoppe lige så højt som et hus"
+        ],
+        [
+          "have et badeland i haven",
+          "have en forlystelsespark i kælderen"
+        ],
+        [
+          "være en dinosaur i en dag",
+          "være en drage i en dag"
+        ],
+        [
+          "spise is til alle måltider",
+          "spise pandekager til alle måltider"
+        ],
+        [
+          "have en enhjørning som kæledyr",
+          "have en drage som kæledyr"
+        ],
+        [
+          "være verdens hurtigste løber",
+          "være verdens bedste svømmer"
+        ],
+        [
+          "cykle i skole",
+          "ride i skole"
+        ],
+        [
+          "kunne tale med dyr",
+          "kunne tale med legetøj"
+        ],
+        [
+          "have en rutsjebane fra dit værelse til køkkenet",
+          "have en trampolin i stedet for gulv"
+        ],
+        [
+          "være sørøver",
+          "være ridder"
+        ],
+        [
+          "have en robot, der rydder op på dit værelse",
+          "have en robot, der laver dine lektier"
+        ],
+        [
+          "bo ved havet",
+          "bo i bjergene"
+        ],
+        [
+          "aldrig skulle i seng",
+          "aldrig skulle i bad"
+        ],
+        [
+          "være lige så lille som en mus",
+          "være lige så stor som en giraf"
+        ],
+        [
+          "have en tryllestav",
+          "have et flyvende tæppe"
+        ],
+        [
+          "altid have klistrede fingre",
+          "altid have mudrede knæ"
+        ],
+        [
+          "være usynlig",
+          "kunne flyve"
+        ],
+        [
+          "rejse til månen",
+          "rejse til bunden af havet"
+        ],
+        [
+          "have sneboldkamp",
+          "have vandkamp"
+        ],
+        [
+          "kun spise søde ting",
+          "kun spise salte ting"
+        ],
+        [
+          "have en pingvin som kæledyr",
+          "have en abe som kæledyr"
+        ],
+        [
+          "bo i en slikbutik",
+          "bo i en legetøjsbutik"
+        ],
+        [
+          "være superhelt",
+          "være en kendt fodboldspiller"
+        ],
+        [
+          "have regnbuefarvet hår",
+          "have tænder, der lyser i mørket"
+        ],
+        [
+          "ride på en elefant",
+          "ride på en kamel"
+        ],
+        [
+          "holde overnatning hver weekend",
+          "holde fest hver weekend"
+        ],
+        [
+          "bygge det største sandslot",
+          "bygge den største snemand"
+        ],
+        [
+          "kunne se i mørke",
+          "kunne høre gennem vægge"
+        ],
+        [
+          "have en bamse, der kan tale",
+          "have en bamse, der kan danse"
+        ],
+        [
+          "tage på bondegård",
+          "tage i zoologisk have"
+        ],
+        [
+          "være lærer i en dag",
+          "være skoleleder i en dag"
+        ],
+        [
+          "have en hemmelig hule",
+          "have en hemmelig tunnel"
+        ],
+        [
+          "spise en kage så stor som et hus",
+          "spise et bolsje så stort som en fodbold"
+        ],
+        [
+          "aldrig skulle børste tænder",
+          "aldrig skulle tage sko på"
+        ],
+        [
+          "være havfrue eller havmand",
+          "være fe"
+        ],
+        [
+          "have et badekar fuldt af gele",
+          "have et badekar fuldt af skum"
+        ],
+        [
+          "kun kunne hoppe",
+          "kun kunne hinke"
+        ],
+        [
+          "have et hus af chokolade",
+          "have et hus af byggeklodser"
+        ],
+        [
+          "kunne stoppe tiden",
+          "kunne spole tiden tilbage"
+        ],
+        [
+          "have en morfar, der er troldmand",
+          "have en mormor, der er astronaut"
+        ],
+        [
+          "bo på en båd",
+          "bo i en campingvogn"
+        ],
+        [
+          "synge alt, hvad du siger",
+          "danse alle steder, du går hen"
+        ],
+        [
+          "have en lillebitte dinosaur som kæledyr",
+          "have en kæmpestor hamster som kæledyr"
+        ],
+        [
+          "flyve i luftballon",
+          "suse ned ad en kæmpe vandrutsjebane"
+        ],
+        [
+          "have et værelse fyldt med bolde",
+          "have et værelse fyldt med puder"
+        ],
+        [
+          "være en kat",
+          "være en hund"
+        ],
+        [
+          "kun gå i nattøj",
+          "kun gå udklædt"
+        ],
+        [
+          "holde ferie på Nordpolen",
+          "holde ferie i junglen"
+        ],
+        [
+          "have tre arme",
+          "have tre ben"
+        ],
+        [
+          "være en kendt sanger",
+          "være en kendt danser"
+        ],
+        [
+          "have en pose chips, der aldrig bliver tom",
+          "have en pose vingummi, der aldrig bliver tom"
+        ],
+        [
+          "altid vinde i gemmeleg",
+          "altid vinde i tagfat"
+        ],
+        [
+          "kunne skifte farve som en kamæleon",
+          "kunne få en hale"
+        ],
+        [
+          "bo i en iglo",
+          "bo i et telt"
+        ],
+        [
+          "have spaghetti som hår",
+          "have skumfiduser som tæer"
+        ],
+        [
+          "være bedste venner med en drage",
+          "være bedste venner med en robot"
+        ],
+        [
+          "gå i skole i rummet",
+          "gå i skole under havet"
+        ],
+        [
+          "have en raket",
+          "have en ubåd"
+        ],
+        [
+          "aldrig skulle spise grøntsager",
+          "aldrig skulle rydde op"
+        ],
+        [
+          "kunne læse rigtig hurtigt",
+          "kunne tegne alt helt perfekt"
+        ],
+        [
+          "have en kæmpe kanin",
+          "have en lillebitte elefant"
+        ],
+        [
+          "lege i sneen hele dagen",
+          "lege på stranden hele dagen"
+        ],
+        [
+          "være konge eller dronning af legepladsen",
+          "være konge eller dronning af svømmehallen"
+        ],
+        [
+          "sejle på et sørøverskib",
+          "flyve i et rumskib"
+        ],
+        [
+          "have en have fuld af blomster",
+          "have en have fuld af træer at klatre i"
+        ],
+        [
+          "høre en historie hver aften",
+          "synge en sang hver aften"
+        ],
+        [
+          "have et spøgelse som kæledyr",
+          "have et monster som kæledyr"
+        ],
+        [
+          "male dit værelse i hvilken som helst farve",
+          "vælge aftensmaden hver dag"
+        ],
+        [
+          "være kok, der laver slikkepinde",
+          "være dyrlæge, der passer hvalpe"
+        ],
+        [
+          "have en sæbeboblemaskine, der aldrig stopper",
+          "have en glimmermaskine, der aldrig stopper"
+        ],
+        [
+          "hoppe i vandpytter hele dagen",
+          "trille ned ad bakker hele dagen"
+        ],
+        [
+          "have kæmpelange ben",
+          "have kæmpelange arme"
+        ],
+        [
+          "møde julemanden",
+          "møde påskeharen"
+        ],
+        [
+          "holde fødselsdag i zoologisk have",
+          "holde fødselsdag i svømmehallen"
+        ],
+        [
+          "have din egen isbil",
+          "have din egen brandbil"
+        ],
+        [
+          "kunne få det til at sne",
+          "kunne få solen frem"
+        ],
+        [
+          "svømme med delfiner",
+          "ride på en hest på stranden"
+        ],
+        [
+          "have en cykel, der kan flyve",
+          "have et løbehjul, der kan svømme"
+        ],
+        [
+          "være detektiv",
+          "være eventyrer"
+        ],
+        [
+          "have en ugle som kæledyr",
+          "have en ræv som kæledyr"
+        ],
+        [
+          "bo i et fyrtårn",
+          "bo i en vindmølle"
+        ],
+        [
+          "spise morgenmad til aftensmad",
+          "spise aftensmad til morgenmad"
+        ],
+        [
+          "altid have hikke",
+          "altid have grineflip"
+        ],
+        [
+          "have en hoppeborg på dit værelse",
+          "have et boldbassin på dit værelse"
+        ],
+        [
+          "være en kendt kunstner",
+          "være en kendt opfinder"
+        ],
+        [
+          "bo et sted, hvor det altid er vinter",
+          "bo et sted, hvor det altid er sommer"
+        ],
+        [
+          "have et kæledyr, der svarer igen",
+          "have et kæledyr, der kan lave tricks"
+        ],
+        [
+          "sove i telt i haven",
+          "sove i telt i skoven"
+        ],
+        [
+          "være kattekonge til fastelavn",
+          "være kattedronning til fastelavn"
+        ]
+      ]
+    },
+    {
+      "id": "familie",
+      "navn": "Familie",
+      "ikon": "🏡",
+      "tekst": "For alle aldre",
+      "dilemmaer": [
+        [
+          "aldrig mere skulle tage opvasken",
+          "aldrig mere skulle lægge tøj sammen"
+        ],
+        [
+          "have sommerhus ved Vesterhavet",
+          "have sommerhus ved en sø i skoven"
+        ],
+        [
+          "holde jul på en varm strand",
+          "holde jul i en hytte dybt inde i sneen"
+        ],
+        [
+          "have sommer hele året",
+          "have vinter hele året"
+        ],
+        [
+          "kun kunne hviske",
+          "kun kunne råbe"
+        ],
+        [
+          "bo i byen",
+          "bo på landet"
+        ],
+        [
+          "kunne lave enhver ret perfekt",
+          "kunne reparere alt, der går i stykker"
+        ],
+        [
+          "få morgenmad på sengen hver søndag",
+          "få takeaway hver fredag"
+        ],
+        [
+          "holde familieferie i udlandet",
+          "holde familieferie i Danmark"
+        ],
+        [
+          "have en stor familie",
+          "have en lille familie"
+        ],
+        [
+          "altid komme ti minutter for tidligt",
+          "altid komme ti minutter for sent"
+        ],
+        [
+          "aldrig skulle stå i kø",
+          "aldrig skulle holde i kø"
+        ],
+        [
+          "se en film derhjemme",
+          "tage i biografen"
+        ],
+        [
+          "have en hund",
+          "have en kat"
+        ],
+        [
+          "bo i et hus med en kæmpe have",
+          "bo i en lejlighed med en fantastisk udsigt"
+        ],
+        [
+          "kunne alle verdens sprog",
+          "kunne spille alle instrumenter"
+        ],
+        [
+          "have en robotbutler",
+          "have en selvkørende bil"
+        ],
+        [
+          "spille brætspil",
+          "spille charader"
+        ],
+        [
+          "gå en tur i regnvejr",
+          "gå en tur i sne"
+        ],
+        [
+          "få flæskesteg hver søndag",
+          "få frikadeller hver mandag"
+        ],
+        [
+          "altid have fjernbetjeningen",
+          "altid sidde på forsædet i bilen"
+        ],
+        [
+          "være berømt",
+          "være rig"
+        ],
+        [
+          "have en perfekt hukommelse",
+          "kunne glemme alt, hvad du vil"
+        ],
+        [
+          "bo ved siden af mormor og morfar",
+          "bo ved siden af din bedste ven"
+        ],
+        [
+          "tilbringe en dag i en forlystelsespark",
+          "tilbringe en dag på stranden"
+        ],
+        [
+          "have en swimmingpool",
+          "have en biografsal"
+        ],
+        [
+          "rejse med tog",
+          "rejse med fly"
+        ],
+        [
+          "være den ældste søskende",
+          "være den yngste søskende"
+        ],
+        [
+          "være tvillinger",
+          "være trillinger"
+        ],
+        [
+          "altid have det for varmt",
+          "altid have det for koldt"
+        ],
+        [
+          "læse bogen",
+          "se filmen"
+        ],
+        [
+          "holde picnic",
+          "holde grillfest"
+        ],
+        [
+          "sove i telt",
+          "bo på et fint hotel"
+        ],
+        [
+          "lære at surfe",
+          "lære at stå på ski"
+        ],
+        [
+          "være en uge uden mobil",
+          "være en uge uden fjernsyn"
+        ],
+        [
+          "rejse tilbage i tiden og møde dine bedsteforældre som børn",
+          "rejse frem i tiden og møde dine børnebørn"
+        ],
+        [
+          "have et hus, der altid er ryddeligt",
+          "have et køleskab, der altid er fyldt"
+        ],
+        [
+          "vinde familiens quiz",
+          "vinde familiens fodboldkamp"
+        ],
+        [
+          "have en skildpadde, der bliver 100 år",
+          "have en papegøje, der aldrig holder mund"
+        ],
+        [
+          "altid få det sidste ord",
+          "altid få den sidste småkage"
+        ],
+        [
+          "bo på et slot uden internet",
+          "bo i en lillebitte lejlighed med lynhurtigt internet"
+        ],
+        [
+          "have din egen kendingsmelodi",
+          "have dit eget slogan"
+        ],
+        [
+          "planlægge familieferien",
+          "planlægge familiens jul"
+        ],
+        [
+          "gå i seng klokken otte",
+          "stå op klokken fem"
+        ],
+        [
+          "spise aftensmad i stilhed",
+          "spise aftensmad, mens alle taler på én gang"
+        ],
+        [
+          "få en snefridag",
+          "få en hedebølgefridag"
+        ],
+        [
+          "være den bedste kok i familien",
+          "være den sjoveste i familien"
+        ],
+        [
+          "besøge alle lande i Europa",
+          "besøge alle kommuner i Danmark"
+        ],
+        [
+          "have et familieband",
+          "have et familiefodboldhold"
+        ],
+        [
+          "altid vide, hvad klokken er",
+          "altid vide, hvor nord er"
+        ],
+        [
+          "holde dit drømmebryllup",
+          "tage på din drømmeferie"
+        ],
+        [
+          "bo i en husbåd",
+          "bo i en vindmølle"
+        ],
+        [
+          "få en ny mobil hvert år",
+          "få en ferie hvert år"
+        ],
+        [
+          "tilbringe juleaften i nattøj",
+          "tilbringe juleaften i fint tøj"
+        ],
+        [
+          "have uendelig meget kaffe",
+          "have uendelig mange småkager"
+        ],
+        [
+          "være god til gør det selv",
+          "være god til havearbejde"
+        ],
+        [
+          "aldrig skulle gøre badeværelset rent",
+          "aldrig skulle støvsuge igen"
+        ],
+        [
+          "kunne tale med hunden",
+          "kunne læse kattens tanker"
+        ],
+        [
+          "få taget et familiebillede hvert år",
+          "få lavet en familievideo hvert år"
+        ],
+        [
+          "leve uden musik",
+          "leve uden film"
+        ],
+        [
+          "tage på biltur rundt om Limfjorden",
+          "tage på biltur rundt på Fyn"
+        ],
+        [
+          "have et kæmpe juletræ",
+          "have en kæmpe påskeægsjagt"
+        ],
+        [
+          "være med i et quizprogram",
+          "være med i et madprogram"
+        ],
+        [
+          "have ti fætre og kusiner på din alder",
+          "have en tvilling"
+        ],
+        [
+          "altid skulle gå",
+          "altid skulle cykle"
+        ],
+        [
+          "dyrke dine egne grøntsager",
+          "have dine egne høns"
+        ],
+        [
+          "være en kendt forfatter",
+          "være en kendt skuespiller"
+        ],
+        [
+          "flytte hvert år",
+          "aldrig flytte"
+        ],
+        [
+          "have et sommerhus",
+          "have en autocamper"
+        ],
+        [
+          "fejre hver fødselsdag med en kæmpe fest",
+          "fejre hver fødselsdag med en tur"
+        ],
+        [
+          "være god til alle sportsgrene",
+          "være god til alle instrumenter"
+        ],
+        [
+          "få lavet aftensmad hver aften",
+          "få gjort rent hver uge"
+        ],
+        [
+          "altid vælge filmen",
+          "altid vælge aftensmaden"
+        ],
+        [
+          "vinde i lotto",
+          "finde en skat begravet i haven"
+        ],
+        [
+          "være din mor eller far i en dag",
+          "være dit barn eller barnebarn i en dag"
+        ],
+        [
+          "overnatte på et museum",
+          "overnatte i et akvarium"
+        ],
+        [
+          "synge i kor",
+          "danse i en forestilling"
+        ],
+        [
+          "aldrig blive forkølet igen",
+          "aldrig holde i kø igen"
+        ],
+        [
+          "miste dine nøgler hver dag",
+          "miste din mobil hver dag"
+        ],
+        [
+          "have en forlænget weekend hver uge",
+          "have en måneds ferie hver sommer"
+        ],
+        [
+          "spise udenfor hver dag",
+          "spise foran fjernsynet hver dag"
+        ],
+        [
+          "kende slutningen på alle film",
+          "kende handlingen i alle bøger"
+        ],
+        [
+          "tilbringe en dag på et slot",
+          "tilbringe en dag i en safaripark"
+        ],
+        [
+          "have et familiemotto",
+          "have et familievåben"
+        ],
+        [
+          "altid komme for sent til bussen",
+          "altid misse starten på filmen"
+        ],
+        [
+          "tage på krydstogt",
+          "tage på togrejse gennem Europa"
+        ],
+        [
+          "have et hus med et hemmeligt rum",
+          "have et hus med en rutsjebane"
+        ],
+        [
+          "være den, der planlægger alt",
+          "være den, der bare dukker op"
+        ]
+      ]
+    },
+    {
+      "id": "mat",
+      "navn": "Mad",
+      "ikon": "🍕",
+      "tekst": "Smag og gys",
+      "dilemmaer": [
+        [
+          "kun kunne spise pizza resten af livet",
+          "kun kunne spise tacos resten af livet"
+        ],
+        [
+          "aldrig mere spise chokolade",
+          "aldrig mere spise chips"
+        ],
+        [
+          "få flæskesteg hver juleaften",
+          "få and hver juleaften"
+        ],
+        [
+          "kun have smør på rugbrødet",
+          "kun have leverpostej på rugbrødet"
+        ],
+        [
+          "spise æbleskiver med syltetøj",
+          "spise æbleskiver med flormelis"
+        ],
+        [
+          "få frikadeller hver mandag",
+          "få stegt flæsk hver fredag"
+        ],
+        [
+          "aldrig mere spise ost",
+          "aldrig mere spise brød"
+        ],
+        [
+          "spise havregrød hver morgen",
+          "spise rundstykker hver morgen"
+        ],
+        [
+          "kun drikke te",
+          "kun drikke kaffe"
+        ],
+        [
+          "spise kolde frikadeller",
+          "spise kold suppe"
+        ],
+        [
+          "opgive desserter",
+          "opgive sovs"
+        ],
+        [
+          "have remoulade på alt",
+          "have ketchup på alt"
+        ],
+        [
+          "spise is med sildesmag",
+          "spise kage med leverpostejsmag"
+        ],
+        [
+          "spise en hel citron",
+          "spise et helt råt løg"
+        ],
+        [
+          "kun spise med pinde",
+          "kun spise med ske"
+        ],
+        [
+          "have uendelig meget pizza",
+          "have uendelig mange burgere"
+        ],
+        [
+          "aldrig mere spise vingummi",
+          "aldrig mere spise is"
+        ],
+        [
+          "spise en rød pølse fra en pølsevogn",
+          "spise en hotdog i biografen"
+        ],
+        [
+          "kun spise grøn mad",
+          "kun spise orange mad"
+        ],
+        [
+          "lave al mad selv",
+          "aldrig mere få lov at lave mad"
+        ],
+        [
+          "spise smørrebrød til morgenmad",
+          "spise havregryn til aftensmad"
+        ],
+        [
+          "spise på en fin restaurant",
+          "spise på din yndlingsgrillbar"
+        ],
+        [
+          "holde picnic i regnvejr",
+          "holde grillfest i sne"
+        ],
+        [
+          "spise karry til morgenmad",
+          "spise cornflakes til aftensmad"
+        ],
+        [
+          "have en kop kaffe, der aldrig bliver tom",
+          "have en tallerken småkager, der aldrig bliver tom"
+        ],
+        [
+          "spise et helt glas sennep",
+          "spise et helt glas syltede rødbeder"
+        ],
+        [
+          "kun spise rugbrødsmadder",
+          "kun spise suppe"
+        ],
+        [
+          "spise en flødebolle",
+          "spise et wienerbrød"
+        ],
+        [
+          "kun have vaniljeis",
+          "kun have chokoladeis"
+        ],
+        [
+          "opgive kaffe",
+          "opgive franskbrød"
+        ],
+        [
+          "spise den samme morgenmad for evigt",
+          "spise den samme aftensmad for evigt"
+        ],
+        [
+          "spise kage, der smager af ost",
+          "spise ost, der smager af kage"
+        ],
+        [
+          "have rødkål til alt",
+          "have agurkesalat til alt"
+        ],
+        [
+          "spise kartofler hver dag",
+          "spise pasta hver dag"
+        ],
+        [
+          "kun spise kold mad",
+          "kun spise varm mad"
+        ],
+        [
+          "spise en fiskefrikadelle",
+          "spise en kyllingefrikadelle"
+        ],
+        [
+          "tage til en buffet, hvor du kan spise alt, hvad du kan",
+          "tage til en ti retters menu"
+        ],
+        [
+          "spise en skål koldskål",
+          "spise en skål risengrød"
+        ],
+        [
+          "kun drikke saftevand",
+          "kun drikke danskvand"
+        ],
+        [
+          "få æblekage",
+          "få drømmekage"
+        ],
+        [
+          "lave din egen pizza",
+          "lave din egen sushi"
+        ],
+        [
+          "spise dessert først",
+          "spise dessert sidst"
+        ],
+        [
+          "få takeaway hver aften",
+          "lave flæskesteg hver aften"
+        ],
+        [
+          "spise sylte",
+          "spise sild"
+        ],
+        [
+          "kun spise sprød mad",
+          "kun spise blød mad"
+        ],
+        [
+          "have brun sovs til alt",
+          "have persillesovs til alt"
+        ],
+        [
+          "have et chokoladespringvand derhjemme",
+          "have en softicemaskine derhjemme"
+        ],
+        [
+          "spise risalamande i juli",
+          "spise jordbær i december"
+        ],
+        [
+          "spise rugbrød uden smør",
+          "drikke kaffe uden mælk"
+        ],
+        [
+          "smage alt dobbelt så kraftigt",
+          "ikke smage noget som helst"
+        ],
+        [
+          "spise en hel lagkage alene",
+          "dele én flødebolle med ti personer"
+        ],
+        [
+          "spise en skefuld chilisovs",
+          "spise en skefuld salt"
+        ],
+        [
+          "kun spise sød popcorn",
+          "kun spise salt popcorn"
+        ],
+        [
+          "aldrig mere spise kartofler",
+          "aldrig mere spise ris"
+        ],
+        [
+          "spise en syltet sild",
+          "spise en ål"
+        ],
+        [
+          "holde picnic på en klit",
+          "holde picnic i en båd"
+        ],
+        [
+          "dyrke alle dine egne grøntsager",
+          "fange alle dine egne fisk"
+        ],
+        [
+          "spise smørrebrød hver frokost",
+          "spise et rundstykke hver morgen"
+        ],
+        [
+          "få kaffe, der er for varm",
+          "få kaffe, der er blevet kold"
+        ],
+        [
+          "kun spise med hænderne",
+          "kun spise med kniv"
+        ],
+        [
+          "have pommes frites til alt",
+          "have salat til alt"
+        ],
+        [
+          "spise skorperne",
+          "lade skorperne ligge"
+        ],
+        [
+          "drikke en milkshake",
+          "drikke en smoothie"
+        ],
+        [
+          "spise toast med ost",
+          "spise rugbrød med ost"
+        ],
+        [
+          "være en kendt kok",
+          "være en kendt madanmelder"
+        ],
+        [
+          "spise en madpakke",
+          "spise i kantinen"
+        ],
+        [
+          "få kage hver fredag",
+          "få boller hver mandag"
+        ],
+        [
+          "spise et æble med kernehus",
+          "spise en banan med skræl"
+        ],
+        [
+          "spise morgenmad ved midnat",
+          "spise aftensmad ved daggry"
+        ],
+        [
+          "kun drikke kakao",
+          "kun drikke sodavand"
+        ],
+        [
+          "riste brød over bål",
+          "riste brød i en brødrister, der altid brænder det"
+        ],
+        [
+          "opgive chips",
+          "opgive småkager"
+        ],
+        [
+          "spise en kæmpe kanelsnegl",
+          "spise en kæmpe lagkage"
+        ],
+        [
+          "spise noget, der ser ulækkert ud, men smager godt",
+          "spise noget, der ser lækkert ud, men smager grimt"
+        ],
+        [
+          "kun få cornflakes med vand",
+          "kun få franskbrød uden noget på"
+        ],
+        [
+          "altid få det brændte stykke af lasagnen",
+          "aldrig få det sprøde stykke af lasagnen"
+        ],
+        [
+          "kun spise mad fra fryseren",
+          "kun spise mad fra dåse"
+        ],
+        [
+          "spise en rå gulerod hver time",
+          "spise en skefuld honning hver time"
+        ],
+        [
+          "have en køkkenhave",
+          "have et frugttræ"
+        ],
+        [
+          "spise en karry, der er for stærk",
+          "spise en karry, der er for mild"
+        ],
+        [
+          "få stjerneskud hver fredag",
+          "få tarteletter hver søndag"
+        ]
+      ]
+    },
+    {
+      "id": "fantasi",
+      "navn": "Superkræfter og fantasi",
+      "ikon": "🦄",
+      "tekst": "Flyve, trylle og tidsrejser",
+      "dilemmaer": [
+        [
+          "kunne flyve",
+          "kunne blive usynlig"
+        ],
+        [
+          "kunne læse tanker",
+          "kunne se fremtiden"
+        ],
+        [
+          "kunne teleportere dig",
+          "kunne rejse i tiden"
+        ],
+        [
+          "have superstyrke",
+          "have superfart"
+        ],
+        [
+          "aldrig fryse",
+          "aldrig blive træt"
+        ],
+        [
+          "kunne tale med dyr",
+          "kunne tale alle sprog"
+        ],
+        [
+          "trække vejret under vand",
+          "gå gennem vægge"
+        ],
+        [
+          "styre vejret",
+          "styre tiden"
+        ],
+        [
+          "have en drage",
+          "have en enhjørning"
+        ],
+        [
+          "være troldmand",
+          "være superhelt"
+        ],
+        [
+          "skrumpe til en myres størrelse",
+          "vokse dig lige så høj som et træ"
+        ],
+        [
+          "bo i et slot i skyerne",
+          "bo i et palads under havet"
+        ],
+        [
+          "have et flyvende tæppe",
+          "have en tidsmaskine"
+        ],
+        [
+          "kunne fryse ting",
+          "kunne sætte ild til ting"
+        ],
+        [
+          "have en usynlig ven, der er virkelig",
+          "have en skygge, der kan tale"
+        ],
+        [
+          "være vampyr",
+          "være varulv"
+        ],
+        [
+          "have en fugl Føniks som kæledyr",
+          "have en grif som kæledyr"
+        ],
+        [
+          "efterligne alles stemmer",
+          "efterligne alles ansigter"
+        ],
+        [
+          "kende alle svar i en quiz",
+          "altid vinde i brætspil"
+        ],
+        [
+          "kunne stoppe tiden",
+          "kunne spole tiden ét minut tilbage"
+        ],
+        [
+          "bo på månen",
+          "bo på Mars"
+        ],
+        [
+          "få alt, hvad du tegner, til at blive levende",
+          "få alt, hvad du skriver, til at gå i opfyldelse"
+        ],
+        [
+          "kunne hele alle sår",
+          "aldrig blive syg"
+        ],
+        [
+          "have røntgensyn",
+          "have nattesyn"
+        ],
+        [
+          "være havfrue eller havmand",
+          "være kentaur"
+        ],
+        [
+          "have vinger",
+          "have en hale"
+        ],
+        [
+          "flytte ting med tankerne",
+          "få ting til at lyse med hænderne"
+        ],
+        [
+          "kunne hoppe op på toppen af enhver bygning",
+          "kunne løbe op ad vægge"
+        ],
+        [
+          "møde dit fremtidige jeg",
+          "møde dit tidligere jeg"
+        ],
+        [
+          "have en robot som bedste ven",
+          "have et rumvæsen som bedste ven"
+        ],
+        [
+          "besøge en verden lavet af slikkepinde",
+          "besøge en verden lavet af legetøj"
+        ],
+        [
+          "kunne ændre din størrelse, når du vil",
+          "kunne ændre din alder, når du vil"
+        ],
+        [
+          "forstå babyer",
+          "forstå katte"
+        ],
+        [
+          "være et spøgelse i en dag",
+          "være en kæmpe i en dag"
+        ],
+        [
+          "have en usynlighedskappe",
+          "have støvler, du kan gå på vandet med"
+        ],
+        [
+          "give en anden tre ønsker",
+          "få ét ønske selv"
+        ],
+        [
+          "leve i et eventyr",
+          "leve i et computerspil"
+        ],
+        [
+          "kunne holde vejret i en time",
+          "kunne holde dig vågen i en uge"
+        ],
+        [
+          "have en lomme, der altid er fuld af penge",
+          "have et køleskab, der altid er fuldt af mad"
+        ],
+        [
+          "se i mørke",
+          "høre på en kilometers afstand"
+        ],
+        [
+          "være verdens stærkeste",
+          "være verdens klogeste"
+        ],
+        [
+          "flyve på en drage",
+          "styre et rumskib"
+        ],
+        [
+          "have et sværd, der kan tale",
+          "have et magisk skjold"
+        ],
+        [
+          "blive usynlig, men ikke kunne blive synlig igen i en time",
+          "kunne flyve, men kun en meter over jorden"
+        ],
+        [
+          "altid vide, når nogen lyver",
+          "aldrig blive løjet for"
+        ],
+        [
+          "synge så godt, at folk græder",
+          "danse så godt, at folk besvimer"
+        ],
+        [
+          "bo i en fortryllet skov",
+          "gå på en troldmandsskole"
+        ],
+        [
+          "have hår, der skifter farve efter humøret",
+          "have en stemme, der skifter efter humøret"
+        ],
+        [
+          "få det til at sne, når du vil",
+          "få solen frem, når du vil"
+        ],
+        [
+          "tale med planter",
+          "tale med havet"
+        ],
+        [
+          "have ni liv",
+          "have ét liv, der varer 500 år"
+        ],
+        [
+          "være berømt i fortiden",
+          "være berømt i fremtiden"
+        ],
+        [
+          "rejse tilbage til dinosaurernes tid",
+          "rejse frem til år 3000"
+        ],
+        [
+          "have et hus, der kan gå",
+          "have en bil, der kan flyve"
+        ],
+        [
+          "kunne kopiere dig selv",
+          "kunne bytte krop med hvem som helst"
+        ],
+        [
+          "kende slutningen på alle historier",
+          "være med i alle historier"
+        ],
+        [
+          "være ridder",
+          "være drage"
+        ],
+        [
+          "have uendelig energi",
+          "aldrig have brug for søvn"
+        ],
+        [
+          "have en superkraft, ingen kender til",
+          "have en ubrugelig superkraft, alle kender til"
+        ],
+        [
+          "spy ild",
+          "skyde is ud af hænderne"
+        ],
+        [
+          "kunne tale med de døde",
+          "kunne tale med fremtiden"
+        ],
+        [
+          "eje et slot i Skotland",
+          "eje en ø i Stillehavet"
+        ],
+        [
+          "have superhørelse",
+          "have superlugtesans"
+        ],
+        [
+          "få ét ønske nu",
+          "få tre ønsker, når du er firs"
+        ],
+        [
+          "kæmpe mod hundrede heste på størrelse med ænder",
+          "kæmpe mod én and på størrelse med en hest"
+        ],
+        [
+          "leve for evigt, som du er nu",
+          "leve et normalt liv med superkræfter"
+        ],
+        [
+          "være en ånd i en lampe",
+          "have en ånd i en lampe"
+        ],
+        [
+          "lyse i mørket",
+          "kunne få andre til at lyse"
+        ],
+        [
+          "rejse gennem spejle",
+          "rejse gennem vandpytter"
+        ],
+        [
+          "altid lande på benene",
+          "altid finde det, du har mistet"
+        ],
+        [
+          "få enhver plante til at vokse med det samme",
+          "gøre ethvert dyr til din ven"
+        ],
+        [
+          "have en jetpack",
+          "have et svævebræt"
+        ],
+        [
+          "være helten",
+          "være skurken"
+        ],
+        [
+          "kende alle verdens hemmeligheder",
+          "have ingen, der kender dine hemmeligheder"
+        ],
+        [
+          "leve i en verden uden tyngdekraft",
+          "leve i en verden med dobbelt tyngdekraft"
+        ],
+        [
+          "forvandle dig til ethvert dyr",
+          "forvandle dig til enhver ting"
+        ],
+        [
+          "besøge indersiden af en vulkan",
+          "besøge indersiden af et isbjerg"
+        ],
+        [
+          "være det sidste menneske på Jorden",
+          "være det første menneske på Mars"
+        ],
+        [
+          "være en tryllekunstner, der kan rigtig magi",
+          "være en opfinder, der kan bygge alt"
+        ],
+        [
+          "have en dør, der fører hvor som helst hen",
+          "have et vindue, der viser enhver tid"
+        ],
+        [
+          "tale som en robot for evigt",
+          "tale som en sørøver for evigt"
+        ],
+        [
+          "have en hjælper",
+          "være en hjælper"
+        ],
+        [
+          "kunne smage farver",
+          "kunne se musik"
+        ],
+        [
+          "finde et drageæg",
+          "finde et skattekort"
+        ],
+        [
+          "aldrig fare vild",
+          "aldrig kede dig"
+        ],
+        [
+          "være nissekonge",
+          "være troldedronning"
+        ]
+      ]
+    },
+    {
+      "id": "ekkelt",
+      "navn": "Ulækkert",
+      "ikon": "🤢",
+      "tekst": "Snot, slim og gys",
+      "dilemmaer": [
+        [
+          "spise en regnorm",
+          "spise en edderkop"
+        ],
+        [
+          "bade i et bassin fuldt af spaghetti",
+          "bade i et bassin fuldt af havregrød"
+        ],
+        [
+          "have strømper, der lugter af fisk",
+          "have sko, der lugter af gammel ost"
+        ],
+        [
+          "aldrig børste tænder igen",
+          "aldrig vaske hår igen"
+        ],
+        [
+          "have hikke resten af livet",
+          "nyse hvert femte minut resten af livet"
+        ],
+        [
+          "slikke på en frø",
+          "kysse en snegl"
+        ],
+        [
+          "have en næse, der altid løber",
+          "have ører, der altid klør"
+        ],
+        [
+          "sove i en seng af slim",
+          "sove i en seng af mudder"
+        ],
+        [
+          "lugte som en skraldespand",
+          "lugte som en våd hund"
+        ],
+        [
+          "spise en bussemand",
+          "spise en skorpe fra et sår"
+        ],
+        [
+          "drikke sur mælk",
+          "spise muggent brød"
+        ],
+        [
+          "træde i hundelort med bare tæer",
+          "sætte dig på et tyggegummi"
+        ],
+        [
+          "have en kakerlak som kæledyr",
+          "have en rotte som kæledyr"
+        ],
+        [
+          "bøvse, hver gang du taler",
+          "prutte, hver gang du griner"
+        ],
+        [
+          "have behårede hænder",
+          "have behårede fødder"
+        ],
+        [
+          "have de samme underbukser på i en uge",
+          "have de samme strømper på i en måned"
+        ],
+        [
+          "finde et hår i suppen",
+          "finde en flue i drinken"
+        ],
+        [
+          "spise et råt æg",
+          "spise en rå fisk"
+        ],
+        [
+          "have tånegle, der vokser rigtig hurtigt",
+          "have næsehår, der vokser rigtig hurtigt"
+        ],
+        [
+          "lugte til andres armhuler",
+          "lugte til andres fødder"
+        ],
+        [
+          "falde i en mudret sø",
+          "falde i en bunke blade fuld af snegle"
+        ],
+        [
+          "spise kattemad",
+          "spise hundemad"
+        ],
+        [
+          "have slim, der kommer ud af ørerne",
+          "have bobler, der kommer ud af næsen"
+        ],
+        [
+          "tage bad i bønner i tomatsovs",
+          "tage bad i vaniljecreme"
+        ],
+        [
+          "have en snotboble, der aldrig springer",
+          "have et bøvs, der aldrig stopper"
+        ],
+        [
+          "holde en slimet snegl",
+          "holde en behåret edderkop"
+        ],
+        [
+          "slikke på gulvet i en bus",
+          "slikke på gelænderet på en rulletrappe"
+        ],
+        [
+          "spise en sandwich, der er tabt i sandet",
+          "spise en småkage, der er tabt på gulvet"
+        ],
+        [
+          "sidde ved siden af en, der aldrig holder op med at bøvse",
+          "sidde ved siden af en, der aldrig holder op med at snøfte"
+        ],
+        [
+          "lugte rådne æg hele dagen",
+          "lugte gamle sneakers hele dagen"
+        ],
+        [
+          "have en tunge, der altid er lodden",
+          "have tænder, der altid er klistrede"
+        ],
+        [
+          "svede lim",
+          "græde ketchup"
+        ],
+        [
+          "blive nyst på",
+          "blive hostet på"
+        ],
+        [
+          "drikke vand fra et vandhul",
+          "drikke badevand"
+        ],
+        [
+          "gå barfodet gennem en kofold",
+          "gå barfodet gennem en fiskehal"
+        ],
+        [
+          "have en hue fuld af gele på",
+          "have handsker fulde af mudder på"
+        ],
+        [
+          "spise en rosenkål, der har været tygget",
+          "spise en pommes frite, der har været slikket på"
+        ],
+        [
+          "gøre et toilet rent med en tandbørste",
+          "gøre et køleskab rent, der har været slukket i en måned"
+        ],
+        [
+          "have en næse så stor som en banan",
+          "have ører så store som tallerkener"
+        ],
+        [
+          "gemme en krukke med dine egne afklippede tånegle",
+          "gemme en krukke med dit eget hår"
+        ],
+        [
+          "dele tandbørste",
+          "dele underbukser"
+        ],
+        [
+          "have et nys, der lyder som en and",
+          "have en latter, der lyder som en gris"
+        ],
+        [
+          "finde en orm i dit æble",
+          "finde en halv orm i dit æble"
+        ],
+        [
+          "have skæl som sne",
+          "have øjenbryn, der aldrig holder op med at vokse"
+        ],
+        [
+          "spise en kage lavet af ørevoks",
+          "drikke en smoothie lavet af sved"
+        ],
+        [
+          "sove med en hund, der lugter",
+          "sove ved siden af en morfar, der snorker"
+        ],
+        [
+          "svømme i et bassin efter hundrede mennesker",
+          "tage bad efter et mudret fodboldhold"
+        ],
+        [
+          "spise et stykke pizza med en tånegl på",
+          "spise en sandwich med et plaster i"
+        ],
+        [
+          "bøvse alfabetet foran kongen",
+          "prutte under et minuts stilhed"
+        ],
+        [
+          "have bumser, der lyser",
+          "have vorter, der synger"
+        ],
+        [
+          "røre ved en vandmand",
+          "røre ved en ål"
+        ],
+        [
+          "have ånde, der lugter af hvidløg for evigt",
+          "have fødder, der lugter af ost for evigt"
+        ],
+        [
+          "drikke et glas brun sovs",
+          "drikke et glas eddike"
+        ],
+        [
+          "gå ind i et spindelvæv med ansigtet",
+          "træde på en snegl med bare tæer"
+        ],
+        [
+          "gøre et hamsterbur rent",
+          "gøre et akvarium rent"
+        ],
+        [
+          "have bussemænd, der smager af chokolade",
+          "have tårer, der smager af citron"
+        ],
+        [
+          "spise et løg som et æble",
+          "spise en citron som en appelsin"
+        ],
+        [
+          "aldrig kunne pudse næse",
+          "aldrig kunne klø dig, når det klør"
+        ],
+        [
+          "skulle lugte til hver skraldespand, du går forbi",
+          "skulle slikke på hver lygtepæl, du går forbi"
+        ],
+        [
+          "spise en skefuld hår",
+          "spise en skefuld sand"
+        ],
+        [
+          "have en flue, der følger efter dig overalt",
+          "have en hveps, der følger efter dig overalt"
+        ],
+        [
+          "gå med våde strømper for evigt",
+          "gå med underbukser fulde af sand for evigt"
+        ],
+        [
+          "spise et fiskeøje",
+          "spise et fåreøje"
+        ],
+        [
+          "være dækket af slim",
+          "være dækket af fjer"
+        ],
+        [
+          "have en næse, der fløjter",
+          "have knæ, der knirker"
+        ],
+        [
+          "sidde i et badekar med kold suppe",
+          "stå i en pyt med varm vaniljecreme"
+        ],
+        [
+          "have et kæledyr, der altid kaster op",
+          "have et kæledyr, der altid lugter"
+        ],
+        [
+          "bøvse sæbebobler",
+          "nyse glimmer"
+        ],
+        [
+          "spise noget fra bunden af en håndtaske",
+          "spise noget fra under sofaen"
+        ],
+        [
+          "gå med en trøje lavet af hår",
+          "gå med en hat lavet af ost"
+        ],
+        [
+          "have munden fuld af glaskugler",
+          "have munden fuld af biller"
+        ],
+        [
+          "holde en død fisk",
+          "holde en levende snegl"
+        ],
+        [
+          "lugte som en kloak",
+          "se ud, som om du har været i én"
+        ],
+        [
+          "spise en muggen ost med vilje",
+          "spise en muggen kage ved et uheld"
+        ],
+        [
+          "tage bad med en frø",
+          "tage brusebad med en slange"
+        ],
+        [
+          "finde noget pelset i køleskabet",
+          "finde noget, der kravler, i din sko"
+        ],
+        [
+          "slikke på en fremmeds sko",
+          "slikke dig selv i armhulen"
+        ],
+        [
+          "have dårlig ånde",
+          "have fødder, der lugter"
+        ],
+        [
+          "spise et måltid ved en skraldespand",
+          "spise et måltid på et toilet"
+        ],
+        [
+          "have et myggestik på øjenlåget",
+          "blive brændt af en brændenælde på numsen"
+        ],
+        [
+          "drikke en kop te med en død flue i",
+          "spise en småkage med en myre på"
+        ],
+        [
+          "have en forkølelse, der varer et år",
+          "have en øm tå, der varer et år"
+        ],
+        [
+          "træde på en stikprop",
+          "træde på en byggeklods"
+        ]
+      ]
+    },
+    {
+      "id": "venner",
+      "navn": "Venner",
+      "ikon": "😎",
+      "tekst": "Hverdagssjov",
+      "dilemmaer": [
+        [
+          "altid skulle sige, hvad du tænker",
+          "aldrig kunne sige, hvad du mener"
+        ],
+        [
+          "have tusind venner, du ikke kender godt",
+          "have to venner, du kender rigtig godt"
+        ],
+        [
+          "vide alt, hvad dine venner siger om dig",
+          "aldrig få noget af det at vide"
+        ],
+        [
+          "læse alle din bedste vens beskeder",
+          "lade din bedste ven læse alle dine"
+        ],
+        [
+          "have mobilen på én procent resten af livet",
+          "have en revnet skærm resten af livet"
+        ],
+        [
+          "være berømt på nettet",
+          "være berømt i fjernsynet"
+        ],
+        [
+          "altid være den sjoveste i gruppen",
+          "altid være den klogeste i gruppen"
+        ],
+        [
+          "miste alle dine billeder",
+          "miste alle dine beskeder"
+        ],
+        [
+          "aldrig bruge sociale medier igen",
+          "aldrig se en film igen"
+        ],
+        [
+          "tage på ferie med dine venner",
+          "tage på ferie med din familie"
+        ],
+        [
+          "sidde fast i en elevator med din eks",
+          "sidde fast i en elevator med din chef"
+        ],
+        [
+          "altid komme ti minutter for sent",
+          "altid komme en halv time for tidligt"
+        ],
+        [
+          "have en ven, der altid låner penge",
+          "have en ven, der altid låner tøj"
+        ],
+        [
+          "kun skrive",
+          "kun ringe"
+        ],
+        [
+          "have en ven, der siger sandheden",
+          "have en ven, der altid får dig til at have det godt"
+        ],
+        [
+          "tage på festival",
+          "tage på spaweekend"
+        ],
+        [
+          "få din søgehistorik offentliggjort",
+          "få dine beskeder offentliggjort"
+        ],
+        [
+          "være bedst til karaoke",
+          "være bedst til at danse"
+        ],
+        [
+          "synge, hver gang du taler",
+          "rime, hver gang du taler"
+        ],
+        [
+          "skulle lægge alle dine billeder op",
+          "aldrig kunne lægge et billede op igen"
+        ],
+        [
+          "gå til koncert med dit yndlingsband alene",
+          "gå til koncert med et band, du hader, sammen med vennerne"
+        ],
+        [
+          "have en gruppechat, der aldrig stopper",
+          "ikke have nogen gruppechats"
+        ],
+        [
+          "kende slutningen på alle film",
+          "aldrig kunne se en film færdig"
+        ],
+        [
+          "være en kendt influencer",
+          "være en kendt fodboldspiller"
+        ],
+        [
+          "være en dag uden mobil",
+          "være en dag uden at sige noget"
+        ],
+        [
+          "være strandet på en øde ø med din bedste ven",
+          "være strandet med en fremmed, der har en båd"
+        ],
+        [
+          "tage til alle fester",
+          "holde alle fester"
+        ],
+        [
+          "altid grine på det forkerte tidspunkt",
+          "altid græde på det forkerte tidspunkt"
+        ],
+        [
+          "have en ven, der aldrig svarer",
+          "have en ven, der kun svarer med talebeskeder"
+        ],
+        [
+          "vinde en pubquiz",
+          "vinde en danseduel"
+        ],
+        [
+          "være vennen, der planlægger alt",
+          "være vennen, der glemmer alt"
+        ],
+        [
+          "få en tatovering, som dine venner vælger",
+          "få en frisure, som dine venner vælger"
+        ],
+        [
+          "spise den samme takeaway hver fredag",
+          "prøve en ny takeaway hver fredag"
+        ],
+        [
+          "have den bedste playliste",
+          "have de bedste historier"
+        ],
+        [
+          "aldrig kunne se slutningen af en serie",
+          "kun kunne se sidste afsnit"
+        ],
+        [
+          "flytte til udlandet med vennerne",
+          "blive hjemme med familien"
+        ],
+        [
+          "have et gratis biografkort",
+          "have et gratis fitnesskort"
+        ],
+        [
+          "altid være den, der tager billederne",
+          "altid være med på billederne"
+        ],
+        [
+          "kende en hemmelighed om alle",
+          "have ingen, der kender dine hemmeligheder"
+        ],
+        [
+          "se en hel serie på én dag",
+          "se ét afsnit om ugen"
+        ],
+        [
+          "altid være for lidt klædt på",
+          "altid være for fint klædt på"
+        ],
+        [
+          "skulle svare på alle beskeder inden for et minut",
+          "kun måtte svare én gang om dagen"
+        ],
+        [
+          "tage en weekend i telt",
+          "tage en weekend i en storby"
+        ],
+        [
+          "have en podcast",
+          "have en videokanal"
+        ],
+        [
+          "være bedst til brætspil",
+          "være bedst til computerspil"
+        ],
+        [
+          "gå til udklædningsfest som din bedste ven",
+          "gå som din værste fjende"
+        ],
+        [
+          "miste dine nøgler",
+          "miste din pung"
+        ],
+        [
+          "få din dagbog læst op offentligt",
+          "få din browserhistorik læst op offentligt"
+        ],
+        [
+          "møde din yndlingskendis",
+          "møde en ven, du har mistet kontakten med"
+        ],
+        [
+          "tage på roadtrip",
+          "tage på storbyferie"
+        ],
+        [
+          "kun kunne gå i én farve",
+          "kun kunne gå i striber"
+        ],
+        [
+          "aldrig kunne bruge emojis",
+          "kun kunne bruge emojis"
+        ],
+        [
+          "kunne få alle til at grine",
+          "kunne få alle til at give dig ret"
+        ],
+        [
+          "altid få det sidste ord",
+          "altid få det første ord"
+        ],
+        [
+          "holde i kø en time",
+          "stå i kø en time"
+        ],
+        [
+          "være den ældste i gruppen",
+          "være den yngste i gruppen"
+        ],
+        [
+          "bo sammen med din bedste ven",
+          "bo ved siden af din bedste ven"
+        ],
+        [
+          "tilbringe en dag i fortiden med vennerne",
+          "tilbringe en dag i fremtiden med vennerne"
+        ],
+        [
+          "altid få den bedste plads",
+          "altid få det største stykke"
+        ],
+        [
+          "være elendig til at skrive beskeder",
+          "være elendig til at ringe"
+        ],
+        [
+          "have en ven, der altid kommer for sent",
+          "have en ven, der altid aflyser"
+        ],
+        [
+          "træne sammen",
+          "tage på værtshus sammen"
+        ],
+        [
+          "få en overraskelsesfest",
+          "planlægge en overraskelsesfest"
+        ],
+        [
+          "altid glemme navne",
+          "altid glemme fødselsdage"
+        ],
+        [
+          "synge til et bryllup",
+          "holde tale til et bryllup"
+        ],
+        [
+          "gå viralt for noget pinligt",
+          "aldrig gå viralt"
+        ],
+        [
+          "have perfekt hår for evigt",
+          "have perfekt hud for evigt"
+        ],
+        [
+          "være med i et realityprogram",
+          "være med i et quizprogram"
+        ],
+        [
+          "kunne alle nye danse",
+          "kunne alle sangtekster"
+        ],
+        [
+          "kunne sætte det virkelige liv på pause",
+          "kunne springe de kedelige dele af livet over"
+        ],
+        [
+          "altid skulle sige sandheden",
+          "altid skulle lyve"
+        ],
+        [
+          "få en lang talebesked",
+          "få en lang sms"
+        ],
+        [
+          "tage på venneferie, hvor ingen planlægger noget",
+          "tage på en, hvor alt er planlagt ned til minuttet"
+        ],
+        [
+          "få et grineflip til en begravelse",
+          "græde til et komikshow"
+        ],
+        [
+          "have en ven, der er en kendt kok",
+          "have en ven, der er en kendt musiker"
+        ],
+        [
+          "sidde fast til et bryllup, hvor du ikke kender nogen",
+          "sidde fast til en fest, hvor du kender alle"
+        ],
+        [
+          "aldrig mere stå i kø",
+          "aldrig mere betale for levering"
+        ],
+        [
+          "kende en kendis' hemmelighed",
+          "have en kendis, der kender din"
+        ],
+        [
+          "altid have fuldt batteri",
+          "altid have perfekt internet"
+        ],
+        [
+          "have én fantastisk bytur om året",
+          "have en hyggelig aften hjemme hver weekend"
+        ]
+      ]
+    },
+    {
+      "id": "fest",
+      "navn": "Fest",
+      "ikon": "🎉",
+      "tekst": "Lidt mere frækt (18+)",
+      "voksen": true,
+      "dilemmaer": [
+        [
+          "have en date i en elevator, der sidder fast",
+          "have en date i et pariserhjul, der sidder fast"
+        ],
+        [
+          "få en kærlighedserklæring på storskærm",
+          "få en kærlighedserklæring i radioen"
+        ],
+        [
+          "altid skulle danse, når der er musik",
+          "aldrig få lov at danse"
+        ],
+        [
+          "vise din mor alle beskederne på din mobil",
+          "vise din chef alle beskederne på din mobil"
+        ],
+        [
+          "have første date på en vandretur",
+          "have første date på en karaokebar"
+        ],
+        [
+          "kysse en frø",
+          "kysse en med hvidløgsånde"
+        ],
+        [
+          "tage på blind date",
+          "lade dine venner vælge din date"
+        ],
+        [
+          "få et elendigt første kys",
+          "slet ikke få et første kys"
+        ],
+        [
+          "date en, der altid kommer for sent",
+          "date en, der altid sidder med mobilen"
+        ],
+        [
+          "have din eks med til dit bryllup",
+          "have din chef med til dit bryllup"
+        ],
+        [
+          "tage på diskotek",
+          "tage til privatfest"
+        ],
+        [
+          "have tømmermænd hver søndag",
+          "aldrig drikke igen"
+        ],
+        [
+          "danse på bordet",
+          "synge på bardisken"
+        ],
+        [
+          "lade dine forældre læse din datingprofil",
+          "lade dine venner skrive den"
+        ],
+        [
+          "altid sige, hvad du tænker, på en date",
+          "aldrig kunne sige noget på en date"
+        ],
+        [
+          "have en kæreste, der snorker",
+          "have en kæreste, der stjæler dynen"
+        ],
+        [
+          "tage på date på en fin restaurant",
+          "tage på date på en grillbar"
+        ],
+        [
+          "holde polterabend i udlandet",
+          "holde polterabend på en mark"
+        ],
+        [
+          "date en, der elsker dine venner",
+          "date en, som din familie elsker"
+        ],
+        [
+          "gå i brudekjole eller jakkesæt på diskotek",
+          "gå i heldragt til et bryllup"
+        ],
+        [
+          "være sammen med en, der danser elendigt",
+          "være sammen med en, der laver elendig mad"
+        ],
+        [
+          "kysse i regnvejr",
+          "kysse under misteltenen"
+        ],
+        [
+          "blive taget i at synge i badet",
+          "blive taget i at danse foran spejlet"
+        ],
+        [
+          "glemme din dates navn",
+          "kalde din date ved din eks' navn"
+        ],
+        [
+          "lade din mormor se din datingapp",
+          "lade din chef se din datingapp"
+        ],
+        [
+          "tilbringe natten på et diskotek",
+          "tilbringe natten med at snakke i et køkken"
+        ],
+        [
+          "have en ferieflirt",
+          "have en langsom forelskelse"
+        ],
+        [
+          "date en kendt skuespiller",
+          "date en kendt sportsstjerne"
+        ],
+        [
+          "have første date i en forlystelsespark",
+          "have første date på et museum"
+        ],
+        [
+          "blive sunget for offentligt",
+          "blive friet til offentligt"
+        ],
+        [
+          "tage til speeddating",
+          "tage på singlekrydstogt"
+        ],
+        [
+          "have en kæreste, der altid fryser",
+          "have en kæreste, der altid har det varmt"
+        ],
+        [
+          "vågne ved siden af en, der snorker",
+          "vågne ved siden af en, der taler i søvne"
+        ],
+        [
+          "aldrig kunne flirte",
+          "kun kunne flirte"
+        ],
+        [
+          "få dit kærlighedsliv i et realityprogram",
+          "få dit kærlighedsliv i en sang"
+        ],
+        [
+          "tage på date med en, der kun taler om sin eks",
+          "tage på date med en, der kun taler om sig selv"
+        ],
+        [
+          "blive fuld af to drinks",
+          "aldrig blive fuld"
+        ],
+        [
+          "altid være den sidste, der går fra festen",
+          "altid være den første, der går"
+        ],
+        [
+          "nøgenbade",
+          "streake"
+        ],
+        [
+          "have en one-night stand",
+          "have et tiårigt forhold uden gnist"
+        ],
+        [
+          "synge karaokeduet med din crush",
+          "danse en langsom dans med din crush"
+        ],
+        [
+          "date en, dine forældre hader",
+          "date en, dine venner hader"
+        ],
+        [
+          "sende et kærlighedsbrev",
+          "få et kærlighedsbrev"
+        ],
+        [
+          "have en kæreste, der elsker romantiske film",
+          "have en kæreste, der elsker gysere"
+        ],
+        [
+          "få et perfekt første kys",
+          "få et perfekt sidste kys"
+        ],
+        [
+          "få en besked fra din eks hver fredag",
+          "aldrig høre fra din eks igen"
+        ],
+        [
+          "holde polterabend med dine forældre",
+          "holde polterabend med dine kolleger"
+        ],
+        [
+          "altid være for fint klædt på til dates",
+          "altid være for lidt klædt på til dates"
+        ],
+        [
+          "kysse en, du lige har mødt",
+          "aldrig kysse nogen ny"
+        ],
+        [
+          "holde bryllup på et slot",
+          "holde bryllup på en strand"
+        ],
+        [
+          "danse dårligt offentligt",
+          "synge dårligt offentligt"
+        ],
+        [
+          "holde forlovertale",
+          "holde brudepigetale"
+        ],
+        [
+          "date en, der er meget ældre",
+          "date en, der er meget yngre"
+        ],
+        [
+          "tage på date med en, der smasker",
+          "tage på date med en, der hele tiden tjekker mobilen"
+        ],
+        [
+          "have et sugemærke til en jobsamtale",
+          "have tømmermænd til en jobsamtale"
+        ],
+        [
+          "altid forelske dig i den forkerte",
+          "aldrig forelske dig"
+        ],
+        [
+          "være sammen med en, der roder",
+          "være sammen med en, der er alt for ryddelig"
+        ],
+        [
+          "have en kikset scorereplik, der virker",
+          "have en perfekt scorereplik, der aldrig virker"
+        ],
+        [
+          "feste på Ibiza",
+          "feste på Roskilde Festival"
+        ],
+        [
+          "miste mobilen i byen",
+          "miste nøglerne i byen"
+        ],
+        [
+          "spise en durum klokken tre om natten",
+          "spise brunch klokken tolv"
+        ],
+        [
+          "gå i din kærestes tøj i en uge",
+          "lade din kæreste vælge dit tøj i en uge"
+        ],
+        [
+          "date en med en elendig latter",
+          "date en uden humor"
+        ],
+        [
+          "få din første date filmet",
+          "få dit bryllup streamet"
+        ],
+        [
+          "tage til en fest, hvor du ikke kender nogen",
+          "tage til en fest, hvor du kender alles hemmeligheder"
+        ],
+        [
+          "have en kæreste, der altid er for tidligt på den",
+          "have en kæreste, der altid er for sent på den"
+        ],
+        [
+          "kysse med åbne øjne",
+          "kysse, mens alle kigger"
+        ],
+        [
+          "få din browserhistorik vist på en date",
+          "få dine datingbeskeder vist på arbejdet"
+        ],
+        [
+          "aldrig drikke alkohol igen",
+          "aldrig spise chokolade igen"
+        ],
+        [
+          "have tømmermænd i to dage",
+          "have hovedpine i en uge"
+        ],
+        [
+          "altid fortælle din kæreste alt",
+          "holde én stor hemmelighed for evigt"
+        ],
+        [
+          "tage på date til en fodboldkamp",
+          "tage på date i balletten"
+        ],
+        [
+          "være sammen med en, der elsker camping",
+          "være sammen med en, der elsker femstjernede hoteller"
+        ],
+        [
+          "holde bryllup med fem gæster",
+          "holde bryllup med fem hundrede gæster"
+        ],
+        [
+          "være den bedste til at kysse",
+          "være den bedste til at danse"
+        ],
+        [
+          "blive gift i Las Vegas",
+          "blive gift på dit stamværtshus"
+        ],
+        [
+          "have en kæreste, der hele tiden synger falsk",
+          "have en kæreste, der hele tiden fløjter"
+        ],
+        [
+          "falde i søvn på en date",
+          "få et grineflip på en date"
+        ],
+        [
+          "date en kendis i hemmelighed",
+          "date en fremmed helt åbent"
+        ],
+        [
+          "vinde danseduellen til et bryllup",
+          "gribe buketten"
+        ],
+        [
+          "altid sige det forkerte til fester",
+          "aldrig sige noget til fester"
+        ],
+        [
+          "have en spabad derhjemme",
+          "have en bar derhjemme"
+        ],
+        [
+          "holde nytårsaften til en kæmpe fest",
+          "holde den derhjemme med én person"
+        ],
+        [
+          "have en kæreste, der elsker din mor lidt for meget",
+          "have en kæreste, som din mor ikke kan lide"
+        ],
+        [
+          "have et langdistanceforhold",
+          "flytte sammen efter en uge"
+        ],
+        [
+          "tage til togafest",
+          "tage til pyjamasfest"
+        ]
+      ]
+    },
+    {
+      "id": "jul",
+      "navn": "Jul",
+      "ikon": "🎄",
+      "tekst": "Jul og julefrokost",
+      "sesong": true,
+      "dilemmaer": [
+        [
+          "pakke hundrede gaver ind",
+          "skrive hundrede julekort i hånden"
+        ],
+        [
+          "få én stor gave",
+          "få ti små gaver"
+        ],
+        [
+          "åbne alle gaverne om morgenen",
+          "vente med gaverne til efter risalamanden"
+        ],
+        [
+          "have juletræ i stuen hele året",
+          "aldrig have juletræ igen"
+        ],
+        [
+          "kun spise brunkager i hele december",
+          "kun spise klementiner i hele december"
+        ],
+        [
+          "få flæskesteg hver jul",
+          "få noget nyt hver jul"
+        ],
+        [
+          "holde jul derhjemme",
+          "holde jul i udlandet"
+        ],
+        [
+          "danse om juletræet med kongen",
+          "danse om juletræet med julemanden"
+        ],
+        [
+          "gå med julesweater hver dag i december",
+          "gå med nissehue hver dag i december"
+        ],
+        [
+          "have sne juleaften",
+          "have solskin juleaften"
+        ],
+        [
+          "være nisse",
+          "være rensdyr"
+        ],
+        [
+          "se den samme julefilm hvert år",
+          "aldrig se en julefilm igen"
+        ],
+        [
+          "spise risalamande med kirsebærsovs",
+          "spise risalamande med chokoladesovs"
+        ],
+        [
+          "have et rigtigt juletræ",
+          "have et kunstigt juletræ"
+        ],
+        [
+          "få sokker hver jul",
+          "få et puslespil hver jul"
+        ],
+        [
+          "synge julesange fra dør til dør",
+          "tage til juleforestilling"
+        ],
+        [
+          "åbne én gave den 23. december",
+          "gemme dem alle til juleaften"
+        ],
+        [
+          "holde julefrokost på et værtshus",
+          "holde julefrokost på et fint hotel"
+        ],
+        [
+          "holde pakkeleg på arbejdet",
+          "droppe gaver på arbejdet"
+        ],
+        [
+          "spise rødkål til alle måltider i december",
+          "aldrig spise brunede kartofler igen"
+        ],
+        [
+          "tilbringe anden juledag i juleudsalget",
+          "tilbringe anden juledag på sofaen"
+        ],
+        [
+          "holde jul uden fjernsyn",
+          "holde jul uden gaver"
+        ],
+        [
+          "være julemand i en dag",
+          "være julens største gnavpot i en dag"
+        ],
+        [
+          "pynte huset med en million lys",
+          "pynte det med én enkelt stjerne"
+        ],
+        [
+          "få en hvid jul",
+          "få en solrig jul på stranden"
+        ],
+        [
+          "bygge et peberkagehus",
+          "bygge en snemand"
+        ],
+        [
+          "løbe på skøjter",
+          "kælke"
+        ],
+        [
+          "høre julemusik fra november",
+          "aldrig høre en julesang igen"
+        ],
+        [
+          "få en gave, du hader, fra en, du elsker",
+          "få en gave, du elsker, fra en, du hader"
+        ],
+        [
+          "spise rester af and i en uge",
+          "ikke have nogen rester"
+        ],
+        [
+          "holde julefrokost med familien",
+          "holde julefrokost med kollegerne"
+        ],
+        [
+          "få en julesok fuld af chokolade",
+          "få en julesok fuld af små legetøjsting"
+        ],
+        [
+          "vågne klokken fem juledag",
+          "sove til middag juledag"
+        ],
+        [
+          "holde en stille jul",
+          "holde en kæmpe familiejul"
+        ],
+        [
+          "vinde mandelgaven",
+          "vinde pakkelegen"
+        ],
+        [
+          "få alle gaverne dårligt pakket ind",
+          "få alle gaverne i gaveposer"
+        ],
+        [
+          "spille brætspil hele julen",
+          "gå lange ture hele julen"
+        ],
+        [
+          "tænde op i brændeovnen juleaften",
+          "have et chokoladespringvand juleaften"
+        ],
+        [
+          "danse til julefrokosten",
+          "holde tale til julefrokosten"
+        ],
+        [
+          "gå i en rensdyrheldragt",
+          "gå i nissekostume"
+        ],
+        [
+          "have et juletræ, der når loftet",
+          "have et lillebitte juletræ på bordet"
+        ],
+        [
+          "holde jul i Lapland",
+          "holde jul i Australien"
+        ],
+        [
+          "få en hvalp i julegave",
+          "få en rejse i julegave"
+        ],
+        [
+          "spise klejner",
+          "spise pebernødder"
+        ],
+        [
+          "synge julesange i kor",
+          "synge til en julekaraoke"
+        ],
+        [
+          "åbne hele julekalenderen på én gang",
+          "åbne én låge om dagen"
+        ],
+        [
+          "være Josef eller Maria i krybbespillet",
+          "være æslet"
+        ],
+        [
+          "være vært for juleaften",
+          "være gæst juleaften"
+        ],
+        [
+          "købe alle gaverne på nettet",
+          "købe dem alle på Strøget"
+        ],
+        [
+          "have jul hver måned",
+          "have fødselsdag hver uge"
+        ],
+        [
+          "lave din egen julepynt",
+          "købe helt ny julepynt"
+        ],
+        [
+          "sende julekort til alle",
+          "ikke sende nogen julekort"
+        ],
+        [
+          "holde nytår til fest",
+          "holde nytår derhjemme og se fyrværkeriet i fjernsynet"
+        ],
+        [
+          "holde dig vågen til midnat den 23. december",
+          "gå tidligt i seng for at vågne først"
+        ],
+        [
+          "spise kransekage nytårsaften",
+          "spise lagkage nytårsaften"
+        ],
+        [
+          "se kongens nytårstale",
+          "se en film i stedet"
+        ],
+        [
+          "få en hjemmelavet gave",
+          "få en købt gave"
+        ],
+        [
+          "have jobbet med at rede lyskæden ud",
+          "have jobbet med at sætte juletræet op"
+        ],
+        [
+          "gå i kirke juleaften",
+          "tage på værtshus den 23. december"
+        ],
+        [
+          "pynte brunkagerne",
+          "flette julehjerterne"
+        ],
+        [
+          "spise brunede kartofler",
+          "spise flæskesvær"
+        ],
+        [
+          "klippe papirkæder",
+          "klippe snefnug af papir"
+        ],
+        [
+          "holde jul med en kendt familie",
+          "holde jul med din egen"
+        ],
+        [
+          "få en sæk kul",
+          "få en julesok fuld af rosenkål"
+        ],
+        [
+          "have en julesweater, der lyser",
+          "have en, der spiller musik"
+        ],
+        [
+          "drikke gløgg",
+          "drikke juleøl"
+        ]
+      ]
+    },
+    {
+      "id": "sport",
+      "navn": "Sport",
+      "ikon": "⚽",
+      "tekst": "Kamp, træning og tribune",
+      "dilemmaer": [
+        [
+          "vinde VM i fodbold med Danmark",
+          "vinde OL-guld i håndbold"
+        ],
+        [
+          "være verdens bedste målmand",
+          "være verdens bedste angriber"
+        ],
+        [
+          "løbe et maraton",
+          "cykle fra Skagen til Gedser"
+        ],
+        [
+          "spille én landskamp",
+          "være landstræner i én sæson"
+        ],
+        [
+          "kun kunne spille fodbold",
+          "kun kunne spille håndbold"
+        ],
+        [
+          "vinde Wimbledon",
+          "vinde Tour de France"
+        ],
+        [
+          "score sejrsmålet i en pokalfinale",
+          "redde et straffespark i en pokalfinale"
+        ],
+        [
+          "være en kendt jockey",
+          "være en kendt racerkører"
+        ],
+        [
+          "svømme over Storebælt",
+          "bestige Himmelbjerget i snestorm"
+        ],
+        [
+          "se kampen på stadion",
+          "se den på værtshus"
+        ],
+        [
+          "være anfører",
+          "være topscorer"
+        ],
+        [
+          "spille mod Brasilien",
+          "spille mod Tyskland"
+        ],
+        [
+          "vinde en guldmedalje",
+          "sætte verdensrekord uden at vinde"
+        ],
+        [
+          "træne hver dag i et år",
+          "aldrig få lov at motionere igen"
+        ],
+        [
+          "være dommer",
+          "være linjedommer"
+        ],
+        [
+          "spille i regn til hver kamp",
+          "spille i hedebølge til hver kamp"
+        ],
+        [
+          "få dit hold til at vinde Superligaen",
+          "få dit hold til at vinde pokalen"
+        ],
+        [
+          "spille dart til VM",
+          "spille snooker til VM"
+        ],
+        [
+          "være en kendt bokser",
+          "være en kendt bryder"
+        ],
+        [
+          "løbe et maraton udklædt",
+          "løbe et maraton på rekordtid"
+        ],
+        [
+          "se en hel dag med cykelløb",
+          "se en halvfems minutters fodboldkamp"
+        ],
+        [
+          "vinde et kapsejladsløb",
+          "vinde en etape i Tour de France"
+        ],
+        [
+          "spille for dit yndlingshold",
+          "træne dit yndlingshold"
+        ],
+        [
+          "være en kendt gymnast",
+          "være en kendt udspringer"
+        ],
+        [
+          "score hattrick",
+          "holde buret rent"
+        ],
+        [
+          "tabe på straffespark",
+          "tabe med fem mål"
+        ],
+        [
+          "have et stadion opkaldt efter dig",
+          "have en statue uden for stadion"
+        ],
+        [
+          "spille håndbold",
+          "spille badminton"
+        ],
+        [
+          "være god til alle sportsgrene",
+          "være verdens bedste til én"
+        ],
+        [
+          "tage til OL som atlet",
+          "tage med som kommentator"
+        ],
+        [
+          "ride i et stort travløb",
+          "køre i en racerbil på en bane"
+        ],
+        [
+          "kun kunne svømme brystsvømning",
+          "kun kunne svømme rygsvømning"
+        ],
+        [
+          "vinde æggeløbet",
+          "vinde sækkeløbet"
+        ],
+        [
+          "have sæsonkort",
+          "have en loge på stadion"
+        ],
+        [
+          "stå på mål",
+          "spille angriber"
+        ],
+        [
+          "blive kendt for en målfejring",
+          "blive kendt for en fantastisk redning"
+        ],
+        [
+          "lære at surfe i Klitmøller",
+          "lære at stå på ski i Norge"
+        ],
+        [
+          "spille tennis i regnvejr",
+          "spille golf i blæsevejr"
+        ],
+        [
+          "være sportskommentator",
+          "være ekspert i studiet"
+        ],
+        [
+          "løbe en kilometer på tre minutter",
+          "holde vejret i tre minutter"
+        ],
+        [
+          "vinde en medalje ved EM",
+          "vinde en medalje ved OL"
+        ],
+        [
+          "se dit hold tabe finalen",
+          "slet ikke nå finalen"
+        ],
+        [
+          "altid blive valgt først",
+          "altid være anfører"
+        ],
+        [
+          "være en kendt bjergbestiger",
+          "være en kendt sejler"
+        ],
+        [
+          "have perfekt sigte",
+          "have perfekt fart"
+        ],
+        [
+          "dyrke sport i sne",
+          "dyrke sport på stranden"
+        ],
+        [
+          "altid være på det vindende hold",
+          "spille genialt, men altid tabe"
+        ],
+        [
+          "tage til håndboldkamp med madpakke",
+          "tage til fodboldkamp med en pølse"
+        ],
+        [
+          "være en kendt skateboarder",
+          "være en kendt BMX-rytter"
+        ],
+        [
+          "vinde et motionsløb",
+          "gennemføre en triatlon"
+        ],
+        [
+          "springe fra den højeste vippe",
+          "svømme det længste løb"
+        ],
+        [
+          "have det højeste kampråb",
+          "have det største flag"
+        ],
+        [
+          "møde dit sportsidol",
+          "spille mod dit sportsidol"
+        ],
+        [
+          "spille på et stadion uden fans",
+          "spille i en park fuld af fans"
+        ],
+        [
+          "træne et børnehold",
+          "være maskot for et professionelt hold"
+        ],
+        [
+          "vinde en medalje for Danmark",
+          "vinde en pokal for din by"
+        ],
+        [
+          "være en verdensberømt dartspiller",
+          "være en verdensberømt badmintonspiller"
+        ],
+        [
+          "altid misse bussen til træning",
+          "altid glemme fodboldstøvlerne"
+        ],
+        [
+          "få et rødt kort i en finale",
+          "score selvmål i en finale"
+        ],
+        [
+          "cykle Paris–Roubaix",
+          "cykle Mont Ventoux op"
+        ]
+      ]
+    },
+    {
+      "id": "sommer",
+      "navn": "Rejser og sommer",
+      "ikon": "☀️",
+      "tekst": "Strand, sommerhus og lange bilture",
+      "dilemmaer": [
+        [
+          "holde sommerferie i Danmark",
+          "holde sommerferie sydpå"
+        ],
+        [
+          "bo i telt en uge",
+          "bo i campingvogn en uge"
+        ],
+        [
+          "have sol hver dag hele sommeren",
+          "have en sommer uden hvepse"
+        ],
+        [
+          "bade i det iskolde Vesterhav",
+          "bade i en alt for varm pool"
+        ],
+        [
+          "spise is hver dag i ferien",
+          "spise jordbær hver dag i ferien"
+        ],
+        [
+          "tage til stranden",
+          "tage på landet"
+        ],
+        [
+          "køre bil i ti timer",
+          "flyve i ti timer"
+        ],
+        [
+          "bo på et slot",
+          "bo i et træhus"
+        ],
+        [
+          "tage på ferie med vennerne",
+          "tage på ferie med familien"
+        ],
+        [
+          "besøge en storby",
+          "besøge en lillebitte ø"
+        ],
+        [
+          "tage på camping i regnvejr",
+          "tage på camping i hedebølge"
+        ],
+        [
+          "tage færgen",
+          "køre over broen"
+        ],
+        [
+          "udforske en grotte",
+          "udforske en regnskov"
+        ],
+        [
+          "bo på et vandrerhjem",
+          "bo på et femstjernet hotel"
+        ],
+        [
+          "tage i forlystelsespark",
+          "tage i vandland"
+        ],
+        [
+          "holde picnic på stranden",
+          "holde picnic på en eng"
+        ],
+        [
+          "spise fiskefilet på havnen",
+          "spise paella i Spanien"
+        ],
+        [
+          "tage en uge til Skagen",
+          "tage en uge til Bornholm"
+        ],
+        [
+          "tage en uge til Ærø",
+          "tage en uge til Fanø"
+        ],
+        [
+          "lære at sejle",
+          "lære at surfe"
+        ],
+        [
+          "tage på krydstogt",
+          "tage på interrail"
+        ],
+        [
+          "tage på festival",
+          "tage på badeferie"
+        ],
+        [
+          "rejse med kun håndbagage",
+          "rejse med tre kufferter"
+        ],
+        [
+          "sove på stranden",
+          "sove under stjernerne på en mark"
+        ],
+        [
+          "se nordlys",
+          "se midnatssol"
+        ],
+        [
+          "tage på safari",
+          "dykke ved et koralrev"
+        ],
+        [
+          "besøge Paris",
+          "besøge Rom"
+        ],
+        [
+          "tage på roadtrip uden musik",
+          "tage på roadtrip med kun én sang"
+        ],
+        [
+          "få en sommer med regn",
+          "få en sommer med hedebølger"
+        ],
+        [
+          "blive hjemme hele sommeren",
+          "rejse hele sommeren"
+        ],
+        [
+          "køre i autocamper",
+          "cykle gennem et land"
+        ],
+        [
+          "altid glemme solcremen",
+          "altid glemme badetøjet"
+        ],
+        [
+          "spise softice hver dag",
+          "spise en ispind hver dag"
+        ],
+        [
+          "bygge et sandslot",
+          "bygge en tømmerflåde"
+        ],
+        [
+          "tage toget gennem Europa",
+          "køre bil gennem USA"
+        ],
+        [
+          "tage et varmt sted hen",
+          "tage et sted med sne hen"
+        ],
+        [
+          "tage det samme sted hen hvert år",
+          "tage et nyt sted hen hvert år"
+        ],
+        [
+          "have havudsigt",
+          "have udsigt til bjerge"
+        ],
+        [
+          "besøge alle slotte i Danmark",
+          "besøge alle øer i Danmark"
+        ],
+        [
+          "sidde fast i lufthavnen en dag",
+          "sidde fast i en kø på motorvejen en dag"
+        ],
+        [
+          "holde ferie uden internet",
+          "holde ferie uden strand"
+        ],
+        [
+          "tage på fisketur",
+          "fange krabber fra molen"
+        ],
+        [
+          "altid blive køresyg",
+          "altid blive søsyg"
+        ],
+        [
+          "holde ferie i en husbåd",
+          "holde ferie i et fyrtårn"
+        ],
+        [
+          "gå hele Vestkysten",
+          "cykle hele Vestkysten"
+        ],
+        [
+          "arbejde i udlandet en sommer",
+          "lave frivilligt arbejde herhjemme en sommer"
+        ],
+        [
+          "spille minigolf",
+          "spille beachvolley"
+        ],
+        [
+          "grille hver aften",
+          "spise ude hver aften"
+        ],
+        [
+          "se delfiner",
+          "se sæler"
+        ],
+        [
+          "tage nattoget",
+          "tage morgenflyet"
+        ],
+        [
+          "tage til udklædningsfest på stranden",
+          "tage til solnedgangsfest"
+        ],
+        [
+          "besøge et land, hvor du ikke kan sproget",
+          "besøge et land, hvor alle taler engelsk"
+        ],
+        [
+          "pakke en dag før",
+          "pakke en time før afgang"
+        ],
+        [
+          "sidde på forsædet",
+          "vælge musikken"
+        ],
+        [
+          "altid vinde »jeg ser noget, som du ikke ser«",
+          "altid være den første, der får øje på havet"
+        ],
+        [
+          "sove i en shelter",
+          "sove i en hyrdevogn"
+        ],
+        [
+          "tage på bådtur",
+          "tage på helikoptertur"
+        ],
+        [
+          "bestige et bjerg",
+          "svømme over en sø"
+        ],
+        [
+          "holde ferie ved havet om vinteren",
+          "holde ferie i bjergene om sommeren"
+        ],
+        [
+          "besøge en vingård",
+          "besøge en chokoladefabrik"
+        ],
+        [
+          "have hele stranden for dig selv",
+          "have den bedste plads på en fyldt strand"
+        ]
+      ]
+    },
+    {
+      "id": "jobb",
+      "navn": "Arbejde og skole",
+      "ikon": "💼",
+      "tekst": "Kontor, klasseværelse og kantine",
+      "dilemmaer": [
+        [
+          "arbejde fire lange dage om ugen",
+          "arbejde fem korte dage om ugen"
+        ],
+        [
+          "arbejde hjemmefra hver dag",
+          "arbejde på kontoret hver dag"
+        ],
+        [
+          "have en chef, der altid er glad",
+          "have en chef, der altid giver dig fri"
+        ],
+        [
+          "have et kontor med udsigt",
+          "have et kontor med egen kaffemaskine"
+        ],
+        [
+          "lave noget, du elsker, for lav løn",
+          "lave noget kedeligt for høj løn"
+        ],
+        [
+          "have en lang frokostpause",
+          "få fri en time tidligere"
+        ],
+        [
+          "aldrig holde møde igen",
+          "aldrig skrive en mail igen"
+        ],
+        [
+          "arbejde i et team",
+          "arbejde alene"
+        ],
+        [
+          "sidde ved siden af en, der snakker hele dagen",
+          "sidde ved siden af en, der spiser chips hele dagen"
+        ],
+        [
+          "have en firedages skoleuge",
+          "have to måneders sommerferie"
+        ],
+        [
+          "være lærer",
+          "være skoleleder"
+        ],
+        [
+          "få skolemad hver dag",
+          "have madpakke med hver dag"
+        ],
+        [
+          "lave lektier i skolen",
+          "slet ikke have lektier"
+        ],
+        [
+          "have én eksamen i slutningen af året",
+          "have prøver hver uge"
+        ],
+        [
+          "lære matematik",
+          "lære billedkunst"
+        ],
+        [
+          "tage på skoleudflugt til et museum",
+          "tage på skoleudflugt til en bondegård"
+        ],
+        [
+          "gå i skoleuniform",
+          "gå i hvad du vil"
+        ],
+        [
+          "starte i skole klokken ti",
+          "få fri klokken to"
+        ],
+        [
+          "være klassens klovn",
+          "være lærerens yndling"
+        ],
+        [
+          "have et bord ved vinduet",
+          "have et bord ved radiatoren"
+        ],
+        [
+          "være kendt på arbejdet for dine kager",
+          "være kendt for dine vittigheder"
+        ],
+        [
+          "altid skulle tage referat",
+          "altid skulle lave kaffe"
+        ],
+        [
+          "arbejde i en forlystelsespark",
+          "arbejde i zoologisk have"
+        ],
+        [
+          "være en kendt kok",
+          "være en kendt forsker"
+        ],
+        [
+          "have et job udenfor hele dagen",
+          "have et job indenfor hele dagen"
+        ],
+        [
+          "rejse med arbejdet hver uge",
+          "aldrig forlade byen for arbejdet"
+        ],
+        [
+          "have et hæve-sænke-bord",
+          "have et bord med løbebånd"
+        ],
+        [
+          "holde julefrokost på arbejdet",
+          "holde sommerfest på arbejdet"
+        ],
+        [
+          "svare på alle dine mails",
+          "aldrig tjekke dine mails"
+        ],
+        [
+          "være chefen",
+          "være chefens yndling"
+        ],
+        [
+          "få lønforhøjelse",
+          "få en ekstra uges ferie"
+        ],
+        [
+          "have en arbejdsdag på fire timer",
+          "have en treddages weekend"
+        ],
+        [
+          "arbejde om natten",
+          "arbejde i weekenden"
+        ],
+        [
+          "stå for kontorets playliste",
+          "stå for kontorets kage"
+        ],
+        [
+          "have en kollega, der altid varmer fisk",
+          "have en, der altid tager din kuglepen"
+        ],
+        [
+          "være god til matematik",
+          "være god til retstavning"
+        ],
+        [
+          "holde oplæg for hele skolen",
+          "holde oplæg for hele firmaet"
+        ],
+        [
+          "have idræt hver dag",
+          "aldrig have idræt"
+        ],
+        [
+          "tage på universitetet",
+          "begynde at arbejde med det samme"
+        ],
+        [
+          "lære at kode",
+          "lære et nyt sprog"
+        ],
+        [
+          "gå på pension som halvtredsårig",
+          "arbejde til du er firs med det, du elsker"
+        ],
+        [
+          "have et job i jakkesæt",
+          "have et job i uniform"
+        ],
+        [
+          "være astronaut",
+          "være dybhavsdykker"
+        ],
+        [
+          "være dyrlæge",
+          "være læge"
+        ],
+        [
+          "tage køreprøve i morgen",
+          "tage matematikeksamen i morgen"
+        ],
+        [
+          "være bedst til idrætsdagen",
+          "være bedst til diktaten"
+        ],
+        [
+          "arbejde i en butik i julehandlen",
+          "arbejde på en café om sommeren"
+        ],
+        [
+          "have kort transporttid",
+          "have en høj løn"
+        ],
+        [
+          "få en guldstjerne",
+          "få et diplom til morgensang"
+        ],
+        [
+          "være skolepatrulje",
+          "være skolens pedel"
+        ],
+        [
+          "arbejde for et kendt firma",
+          "starte dit eget firma"
+        ],
+        [
+          "have en arbejdsmobil",
+          "have en firmabil"
+        ],
+        [
+          "altid have en printer, der driller",
+          "altid have et internet, der falder ud"
+        ],
+        [
+          "lede alle møder",
+          "aldrig sige noget til møder"
+        ],
+        [
+          "have ubegrænset ferie",
+          "have firedagesuge"
+        ],
+        [
+          "være til videomøde med kameraet låst tændt",
+          "være til et med mikrofonen låst tændt"
+        ],
+        [
+          "lære alt fra bøger",
+          "lære alt fra videoer"
+        ],
+        [
+          "være den ældste i klassen",
+          "være den yngste i klassen"
+        ],
+        [
+          "have en rigtig lang sommerferie",
+          "have mange korte ferier"
+        ],
+        [
+          "altid komme tidligt",
+          "altid gå sent"
+        ],
+        [
+          "være med til fredagsbar hver uge",
+          "holde kagedag hver uge"
+        ]
+      ]
+    },
+    {
+      "id": "par",
+      "navn": "Par",
+      "ikon": "💕",
+      "tekst": "For kærester og samlevere",
+      "voksen": true,
+      "dilemmaer": [
+        [
+          "tage på weekendtur til en storby",
+          "tage på weekendtur i et sommerhus"
+        ],
+        [
+          "have datingaften hver uge",
+          "have en lang ferie sammen hvert år"
+        ],
+        [
+          "lave aftensmad sammen",
+          "gå ud og spise"
+        ],
+        [
+          "se en film i sofaen",
+          "tage i biografen"
+        ],
+        [
+          "altid få den sidste bid",
+          "altid få lov at vælge film"
+        ],
+        [
+          "få morgenmad på sengen",
+          "få middag ved levende lys"
+        ],
+        [
+          "tage ud at danse sammen",
+          "gå en lang tur sammen"
+        ],
+        [
+          "få matchende tatoveringer",
+          "få matchende trøjer"
+        ],
+        [
+          "holde et stort bryllup",
+          "holde et lillebitte bryllup"
+        ],
+        [
+          "bo ved en travl gågade",
+          "bo for enden af en stille grusvej"
+        ],
+        [
+          "have en kæreste, der altid er for tidligt på den",
+          "have en kæreste, der altid er forsinket"
+        ],
+        [
+          "altid være enige",
+          "altid have det sjovt med at diskutere"
+        ],
+        [
+          "have sengen for dig selv",
+          "have en kæreste, der stjæler dynen"
+        ],
+        [
+          "gå i seng samtidig",
+          "gå i seng, når du har lyst"
+        ],
+        [
+          "have fælles konto",
+          "have hver sin økonomi"
+        ],
+        [
+          "have en hund sammen",
+          "have en kat sammen"
+        ],
+        [
+          "rejse verden rundt sammen",
+          "bygge et hjem sammen"
+        ],
+        [
+          "skrive kærlighedsbreve til hinanden",
+          "lave playlister til hinanden"
+        ],
+        [
+          "planlægge hver ferie",
+          "tage derhen, hvor vinden blæser"
+        ],
+        [
+          "sove med vinduet åbent",
+          "sove med vinduet lukket"
+        ],
+        [
+          "have en hyggelig aften hjemme",
+          "tage i byen"
+        ],
+        [
+          "lade din kæreste lave mad",
+          "lave maden selv"
+        ],
+        [
+          "få en overraskelse hver uge",
+          "få én stor overraskelse om året"
+        ],
+        [
+          "altid vide, hvad din kæreste tænker",
+          "altid kunne overraske din kæreste"
+        ],
+        [
+          "danse i køkkenet",
+          "synge i bilen"
+        ],
+        [
+          "tage på romantisk picnic",
+          "tage på romantisk bådtur"
+        ],
+        [
+          "forny jeres løfter hvert år",
+          "holde ét perfekt bryllup"
+        ],
+        [
+          "have en kæreste, der er god til gør det selv",
+          "have en kæreste, der er god til havearbejde"
+        ],
+        [
+          "dele alle jeres koder",
+          "holde én kode hemmelig"
+        ],
+        [
+          "lade din kæreste vælge dit tøj",
+          "vælge din kærestes tøj"
+        ],
+        [
+          "altid tage opvasken",
+          "altid tage vasketøjet"
+        ],
+        [
+          "holde jul med din familie",
+          "holde jul med din kærestes familie"
+        ],
+        [
+          "tage på campingferie",
+          "tage på spaophold"
+        ],
+        [
+          "se en serie sammen",
+          "læse den samme bog sammen"
+        ],
+        [
+          "få ét langt kys",
+          "få mange små kys"
+        ],
+        [
+          "gå til koncert sammen",
+          "gå til standup sammen"
+        ],
+        [
+          "have et hus fuldt af børn",
+          "have et hus fuldt af kæledyr"
+        ],
+        [
+          "huske hver bryllupsdag",
+          "glemme hver bryllupsdag, men gøre det godt igen"
+        ],
+        [
+          "være den store ske",
+          "være den lille ske"
+        ],
+        [
+          "altid sige »jeg elsker dig« først",
+          "altid høre det først"
+        ]
+      ]
+    },
+    {
+      "id": "blikjent",
+      "navn": "Lær hinanden at kende",
+      "ikon": "👋",
+      "tekst": "Lette valg til nye grupper",
+      "dilemmaer": [
+        [
+          "være morgenmenneske",
+          "være natteravn"
+        ],
+        [
+          "drikke kaffe",
+          "drikke te"
+        ],
+        [
+          "læse en god bog",
+          "se en god film"
+        ],
+        [
+          "have hund",
+          "have kat"
+        ],
+        [
+          "holde ferie i varmen",
+          "holde ferie i sneen"
+        ],
+        [
+          "bo i en by",
+          "bo på landet"
+        ],
+        [
+          "spise noget sødt",
+          "spise noget salt"
+        ],
+        [
+          "gå til koncert",
+          "gå i teatret"
+        ],
+        [
+          "kunne synge",
+          "kunne danse"
+        ],
+        [
+          "holde en stor fest",
+          "holde en lille middag"
+        ],
+        [
+          "tage til stranden",
+          "tage til bjergene"
+        ],
+        [
+          "spille brætspil",
+          "spille computerspil"
+        ],
+        [
+          "tilbringe en dag udenfor",
+          "tilbringe en dag indenfor"
+        ],
+        [
+          "lytte til musik",
+          "lytte til en podcast"
+        ],
+        [
+          "spise morgenmad",
+          "springe morgenmaden over"
+        ],
+        [
+          "rejse med tog",
+          "rejse med bil"
+        ],
+        [
+          "være den første, der kommer",
+          "være den sidste, der går"
+        ],
+        [
+          "skrive",
+          "ringe"
+        ],
+        [
+          "gå i bad om morgenen",
+          "tage karbad om aftenen"
+        ],
+        [
+          "se sport",
+          "dyrke sport"
+        ],
+        [
+          "lave mad",
+          "bage"
+        ],
+        [
+          "læse nyheder",
+          "aldrig læse nyheder"
+        ],
+        [
+          "have et ryddeligt skrivebord",
+          "have et kreativt rod"
+        ],
+        [
+          "planlægge i god tid",
+          "tage det, som det kommer"
+        ],
+        [
+          "bade om sommeren",
+          "kælke om vinteren"
+        ],
+        [
+          "se forårets blomster",
+          "se efterårets blade"
+        ],
+        [
+          "se solopgangen",
+          "se solnedgangen"
+        ],
+        [
+          "spise pizza",
+          "spise pasta"
+        ],
+        [
+          "spise chokolade",
+          "spise chips"
+        ],
+        [
+          "møde en kendt person",
+          "møde et kendt dyr"
+        ],
+        [
+          "tage på storbyferie",
+          "tage på badeferie"
+        ],
+        [
+          "kun drikke varme drikke",
+          "kun drikke kolde drikke"
+        ],
+        [
+          "se en film",
+          "se en serie"
+        ],
+        [
+          "læse en roman",
+          "læse en sand historie"
+        ],
+        [
+          "tilbringe en dag på et museum",
+          "tilbringe en dag i en forlystelsespark"
+        ],
+        [
+          "gå tur i skoven",
+          "gå tur langs vandet"
+        ],
+        [
+          "høre radio",
+          "se fjernsyn"
+        ],
+        [
+          "læse en papirbog",
+          "læse på en skærm"
+        ],
+        [
+          "skrive i hånden",
+          "skrive på computer"
+        ],
+        [
+          "se fyrværkeri",
+          "sidde ved et bål"
+        ],
+        [
+          "grine, til du græder",
+          "græde, til du griner"
+        ],
+        [
+          "snakke",
+          "lytte"
+        ],
+        [
+          "tage billeder",
+          "være med på billederne"
+        ],
+        [
+          "lære et sprog",
+          "lære et instrument"
+        ],
+        [
+          "blive hjemme",
+          "gå ud"
+        ],
+        [
+          "møde nye mennesker",
+          "hygge med gamle venner"
+        ],
+        [
+          "sove længe",
+          "stå tidligt op og få det meste ud af dagen"
+        ],
+        [
+          "starte dagen med musik",
+          "starte dagen i stilhed"
+        ],
+        [
+          "være rigtig organiseret",
+          "være rigtig spontan"
+        ],
+        [
+          "vinde en quiz",
+          "vinde et løb"
+        ],
+        [
+          "spise på en café",
+          "spise på en restaurant"
+        ],
+        [
+          "holde ferie i en uge",
+          "holde to lange weekender"
+        ],
+        [
+          "skrive et brev",
+          "sende en talebesked"
+        ],
+        [
+          "spise udenfor i regnvejr",
+          "spise indenfor på en solskinsdag"
+        ],
+        [
+          "svømme i havet",
+          "svømme i et bassin"
+        ],
+        [
+          "gå",
+          "cykle"
+        ]
+      ]
+    }
+  ]
+}

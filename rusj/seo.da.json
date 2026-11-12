@@ -267,6 +267,17 @@
         "truth or dare",
         "udfordringer"
       ]
+    },
+    "vinglepetter": {
+      "tittel": "Hvad vil du helst? 900 dilemmaer på dansk, gratis",
+      "frase": "Hvad vil du helst?",
+      "beskrivelse": "»Hvad vil du helst?« på dansk: over 900 sjove dilemmaer til børn, familie, venner og fest. To valg, tæl ned – og alle vælger på samme tid. Gratis.",
+      "sok": [
+        "hvad vil du helst",
+        "would you rather",
+        "dilemma",
+        "enten eller"
+      ]
     }
   }
 }

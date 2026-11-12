@@ -52,30 +52,30 @@
   const runderFor = (S) => ([1, 2, 3].includes(S.oppsett.runder) ? S.oppsett.runder : R.klamp(S.antall, 2, MAKS_STOL) <= 6 ? 2 : 1);
 
   const PROMPTER = [
-    "Forsvar valget ditt!",
-    "Hvem valgte annerledes? Forklar!",
-    "De som valgte ✌️, forklarer først!",
-    "De som valgte ☝️, forklarer først!",
-    "Noen som vil bytte side?",
-    "Ingen vingling – stå for valget!",
-    "Hvem var raskest til å velge?",
+    R.t("Forsvar valget ditt!"),
+    R.t("Hvem valgte annerledes? Forklar!"),
+    R.t("De som valgte ✌️, forklarer først!"),
+    R.t("De som valgte ☝️, forklarer først!"),
+    R.t("Noen som vil bytte side?"),
+    R.t("Ingen vingling – stå for valget!"),
+    R.t("Hvem var raskest til å velge?"),
   ];
 
   // A playful one-line verdict for the split.
   function dom(a, b, nokkel) {
     const t = a + b;
     const min = Math.min(a, b);
-    if (t === 1) return plukk(["Én stemme – og den bestemmer!", "Bare én har stemt. Det får holde!"], nokkel);
-    if (min === 0) return plukk(["Enstemmig!", "Alle som én!", "Full enighet!"], nokkel);
-    if (a === b) return plukk(["Delt på midten!", "Dødt løp!", "Helt likt – nå må dere diskutere!"], nokkel);
-    if (min === 1) return plukk(["Bare én vinglepetter …", "Én mot resten – forsvar deg!", "En ensom ulv!"], nokkel);
-    if (Math.abs(a - b) === 1) return plukk(["Knepent!", "På hengende håret!", "Jevnt løp!"], nokkel);
-    if (Math.max(a, b) / t >= 0.75) return plukk(["Klart flertall!", "Ingen tvil her!"], nokkel);
-    return plukk(["Flertallet har talt!", "Ganske delt!"], nokkel);
+    if (t === 1) return plukk([R.t("Én stemme – og den bestemmer!"), R.t("Bare én har stemt. Det får holde!")], nokkel);
+    if (min === 0) return plukk([R.t("Enstemmig!"), R.t("Alle som én!"), R.t("Full enighet!")], nokkel);
+    if (a === b) return plukk([R.t("Delt på midten!"), R.t("Dødt løp!"), R.t("Helt likt – nå må dere diskutere!")], nokkel);
+    if (min === 1) return plukk([R.t("Bare én vinglepetter …"), R.t("Én mot resten – forsvar deg!"), R.t("En ensom ulv!")], nokkel);
+    if (Math.abs(a - b) === 1) return plukk([R.t("Knepent!"), R.t("På hengende håret!"), R.t("Jevnt løp!")], nokkel);
+    if (Math.max(a, b) / t >= 0.75) return plukk([R.t("Klart flertall!"), R.t("Ingen tvil her!")], nokkel);
+    return plukk([R.t("Flertallet har talt!"), R.t("Ganske delt!")], nokkel);
   }
 
   // After the defence speech: how many changed sides.
-  const bytteDom = (n) => (n === 0 ? "Ingen lot seg rikke!" : n === 1 ? "Én byttet side!" : `${n} byttet side!`);
+  const bytteDom = (n) => (n === 0 ? R.t("Ingen lot seg rikke!") : n === 1 ? R.t("Én byttet side!") : R.t("{n} byttet side!", { n }));
 
   // The verdict for the whole group, from how big the majorities were on average.
   function gruppedom(logg) {
@@ -83,10 +83,10 @@
     if (!talte.length) return null;
     const snitt = talte.reduce((s, l) => s + Math.max(l.a, l.b) / (l.a + l.b), 0) / talte.length;
     const felles = { prosent: Math.round(snitt * 100), antall: talte.length };
-    if (snitt >= 0.85) return Object.assign(felles, { tittel: "Tvillingsjeler!", tekst: "Dere er enige om nesten alt. Er dere sikre på at dere ikke er samme person?" });
-    if (snitt >= 0.72) return Object.assign(felles, { tittel: "Godt samkjørte!", tekst: "Stort sett enige – med noen herlige vinglepettere innimellom." });
-    if (snitt >= 0.6) return Object.assign(felles, { tittel: "Passe uenige!", tekst: "Akkurat nok uenighet til at det ble gøy å diskutere." });
-    return Object.assign(felles, { tittel: "Ekte vinglepettere!", tekst: "Dere er uenige om nesten alt. Lykke til med å velge pizza!" });
+    if (snitt >= 0.85) return Object.assign(felles, { tittel: R.t("Tvillingsjeler!"), tekst: R.t("Dere er enige om nesten alt. Er dere sikre på at dere ikke er samme person?") });
+    if (snitt >= 0.72) return Object.assign(felles, { tittel: R.t("Godt samkjørte!"), tekst: R.t("Stort sett enige – med noen herlige vinglepettere innimellom.") });
+    if (snitt >= 0.6) return Object.assign(felles, { tittel: R.t("Passe uenige!"), tekst: R.t("Akkurat nok uenighet til at det ble gøy å diskutere.") });
+    return Object.assign(felles, { tittel: R.t("Ekte vinglepettere!"), tekst: R.t("Dere er uenige om nesten alt. Lykke til med å velge pizza!") });
   }
 
   // The dilemmas the group was most split on and most agreed on (for the verdict and for sharing).
@@ -131,10 +131,10 @@
   }
 
   function stoldom(andel) {
-    if (andel >= 0.8) return { tittel: "Tankelesere!", tekst: "Dere kjenner hverandre ut og inn." };
-    if (andel >= 0.6) return { tittel: "Godt kjent!", tekst: "Gjengen leser hverandre ganske godt." };
-    if (andel >= 0.4) return { tittel: "Halvveis synske!", tekst: "Noen er åpne bøker, andre er rene gåter." };
-    return { tittel: "Fulle av overraskelser!", tekst: "Her er det ingen som er lette å lese." };
+    if (andel >= 0.8) return { tittel: R.t("Tankelesere!"), tekst: R.t("Dere kjenner hverandre ut og inn.") };
+    if (andel >= 0.6) return { tittel: R.t("Godt kjent!"), tekst: R.t("Gjengen leser hverandre ganske godt.") };
+    if (andel >= 0.4) return { tittel: R.t("Halvveis synske!"), tekst: R.t("Noen er åpne bøker, andre er rene gåter.") };
+    return { tittel: R.t("Fulle av overraskelser!"), tekst: R.t("Her er det ingen som er lette å lese.") };
   }
 
   // nyttNr: the dilemma before this one was played, so this is the next one of the session
@@ -166,7 +166,7 @@
       o.knapp
         ? `<button class="vingle-halv ${side}" data-h="${o.knapp}" data-v="${side}">${innhold}</button>`
         : `<div class="vingle-halv ${side}${o.vist ? (o.vist === side ? " valgt" : " ikke") : ""}">${innhold}${
-            o.vist === side ? `<span class="vingle-valgt-merke">✓ ${esc(o.vistNavn || "Valgt")}</span>` : ""
+            o.vist === side ? `<span class="vingle-valgt-merke">✓ ${esc(o.vistNavn || R.t("Valgt"))}</span>` : ""
           }</div>`;
     const valg = (merke, tekst, slutt) =>
       `<span class="vingle-valg ${lengde(tekst)}"><span class="vingle-merke" aria-hidden="true">${merke}</span><span>${esc(stor(tekst))}${slutt}</span></span>`;
@@ -175,11 +175,11 @@
         ${gang}
         ${halv(
           "a",
-          `<span class="storkort-topp"><span class="storkort-etikett">${p.ikon} ${esc(p.navn)}</span><span class="storkort-nr">${total ? `${sp.nr} av ${total}` : `#${sp.nr}`}</span></span>
-          <span class="vingle-sporsmal">Hva vil du helst …</span>
+          `<span class="storkort-topp"><span class="storkort-etikett">${p.ikon} ${esc(p.navn)}</span><span class="storkort-nr">${total ? esc(R.t("{n} av {alle}", { n: sp.nr, alle: total })) : `#${sp.nr}`}</span></span>
+          <span class="vingle-sporsmal">${esc(R.t("Hva vil du helst …"))}</span>
           ${valg("☝️", k.a, "")}`,
         )}
-        <div class="vingle-eller"><span>eller</span></div>
+        <div class="vingle-eller"><span>${esc(R.t("eller"))}</span></div>
         ${halv("b", valg("✌️", k.b, "?"))}
       </article>
     </div>`;
@@ -205,9 +205,9 @@
   function tallknapper(sp, valgt) {
     const n = sp.antall;
     const merket = opptatt && trykket != null ? trykket : valgt;
-    return `<div class="vingle-tall${n > 5 ? " mange" : ""}" role="group" aria-label="Hvor mange valgte én finger?" style="--kol: ${Math.min(n + 1, 6)}">${Array.from(
+    return `<div class="vingle-tall${n > 5 ? " mange" : ""}" role="group" aria-label="${esc(R.t("Hvor mange valgte én finger?"))}" style="--kol: ${Math.min(n + 1, 6)}">${Array.from(
       { length: n + 1 },
-      (_, i) => `<button data-h="tell" data-v="${i}" aria-pressed="${merket === i}" aria-label="${i} valgte én finger, ${n - i} valgte to"${opptatt ? " disabled" : ""}>${i}</button>`,
+      (_, i) => `<button data-h="tell" data-v="${i}" aria-pressed="${merket === i}" aria-label="${esc(R.t("{a} valgte én finger, {b} valgte to", { a: i, b: n - i }))}"${opptatt ? " disabled" : ""}>${i}</button>`,
     ).join("")}</div>`;
   }
 
@@ -223,7 +223,7 @@
       p > 0 ? `<span class="vingle-del ${side}${p < 20 ? " smal" : ""}" style="--andel: ${p}%; --fra: ${f}%">${p >= 20 ? `<b>${p} %</b>` : ""}</span>` : "";
     const tekst = sp.for ? bytteDom(Math.abs(a - sp.for.a)) : dom(a, b, sp.kort);
     return `
-      <div class="vingle-fordeling" role="img" aria-label="${stemmer(a)} for ☝️ (${pa} prosent) og ${stemmer(b)} for ✌️ (${pb} prosent)">
+      <div class="vingle-fordeling" role="img" aria-label="${esc(R.t("{a} for ☝️ ({pa} prosent) og {b} for ✌️ ({pb} prosent)", { a: stemmer(a), pa, b: stemmer(b), pb }))}">
         <div class="vingle-stolpe">${del("a", pa, fra)}${del("b", pb, 100 - fra)}</div>
         <div class="vingle-stemmer" aria-hidden="true"><span>☝️ ${stemmer(a)}</span><span>${stemmer(b)} ✌️</span></div>
       </div>
@@ -254,7 +254,7 @@
     if (!pagar(S) || S.spill.fase !== "tale") return;
     S.spill.fase = "bytte";
     R.vis();
-    R.si("Bytter noen side?");
+    R.si(R.t("Bytter noen side?"));
     visBunn();
   }
   function startTale() {
@@ -288,17 +288,17 @@
       const navn = (liste) => R.ramsOpp(liste.map((s) => R.navn(s.i)));
       if (sp.antall === 2) {
         const [x, y] = r.rader;
-        return `Vinglepetter – hvor godt kjenner vi hverandre? ${R.navn(0)} gjettet riktig ${x.poeng} av ${r.med.find((s) => s.i === 1) ? r.med.find((s) => s.i === 1).ganger : 0} ganger, ${R.navn(1)} ${y.poeng} av ${r.med.find((s) => s.i === 0) ? r.med.find((s) => s.i === 0).ganger : 0}.`;
+        return R.t("{spill} – hvor godt kjenner vi hverandre? {navn1} gjettet riktig {x} av {xav} ganger, {navn2} {y} av {yav}.", { spill: R.app.navn, navn1: R.navn(0), x: x.poeng, xav: r.med.find((s) => s.i === 1) ? r.med.find((s) => s.i === 1).ganger : 0, navn2: R.navn(1), y: y.poeng, yav: r.med.find((s) => s.i === 0) ? r.med.find((s) => s.i === 0).ganger : 0 });
       }
-      const deler = [`I vinglestolen: ${stoldom(r.andel).tittel} Gjengen gjettet riktig ${r.treff} av ${sp.logg.length} ganger.`];
-      if (r.apen.length) deler.push(`Åpen bok 📖: ${navn(r.apen)}.`);
-      if (r.mysterium.length) deler.push(`Mysteriet 🕵️: ${navn(r.mysterium)}.`);
-      return `Vinglepetter – ${deler.join(" ")}`;
+      const deler = [R.t("I vinglestolen: {tittel} Gjengen gjettet riktig {n} av {alle} ganger.", { tittel: stoldom(r.andel).tittel, n: r.treff, alle: sp.logg.length })];
+      if (r.apen.length) deler.push(R.t("Åpen bok 📖: {navn}.", { navn: navn(r.apen) }));
+      if (r.mysterium.length) deler.push(R.t("Mysteriet 🕵️: {navn}.", { navn: navn(r.mysterium) }));
+      return `${R.app.navn} – ${deler.join(" ")}`;
     }
     const g = gruppedom(sp.logg);
     const { splittet } = ytterpunkter(sp.logg);
     const k = splittet && ALLE[splittet.k];
-    return `Vinglepetter – dommen over gjengen: ${g.tittel} ${g.prosent} % enige på ${R.flertall(g.antall, "dilemma", "dilemmaer")}.${k ? ` Mest uenige om: «${stor(k.a)} eller ${k.b}?»` : ""}`;
+    return R.t("{spill} – dommen over gjengen: {tittel} {prosent} % enige på {antall}.", { spill: R.app.navn, tittel: g.tittel, prosent: g.prosent, antall: R.flertall(g.antall, "dilemma", "dilemmaer") }) + (k ? " " + R.t("Mest uenige om: «{a} eller {b}?»", { a: stor(k.a), b: k.b }) : "");
   }
 
   // ---------- Screens of the two modes ----------
@@ -306,23 +306,23 @@
   function visAlle(S) {
     const sp = S.spill;
     const k = ALLE[sp.kort];
-    const avslutt = R.ui.lenke("Avslutt", "avslutt");
-    const vh = (medId) => `<h1 class="vh"${medId ? ' id="skjerm-tittel"' : ""}>Hva vil du helst: ${esc(k.a)}, eller ${esc(k.b)}?</h1>`;
+    const avslutt = R.ui.lenke(R.t("Avslutt"), "avslutt");
+    const vh = (medId) => `<h1 class="vh"${medId ? ' id="skjerm-tittel"' : ""}>${esc(R.t("Hva vil du helst: {a}, eller {b}?", { a: k.a, b: k.b }))}</h1>`;
     const siste = erSiste(sp);
-    const videre = siste ? R.ui.knapp("Til kåringen", "til-kaaring") : R.ui.knapp("Neste dilemma", "neste");
+    const videre = siste ? R.ui.knapp(R.t("Til kåringen"), "til-kaaring") : R.ui.knapp(R.t("Neste dilemma"), "neste");
     if (sp.fase === "tell" || sp.fase === "bytte") {
       const bytte = sp.fase === "bytte";
       return `
         ${vh(false)}
         ${kortet(S, { kompakt: true })}
         <section class="seksjon vingle-telling">
-          <div class="seksjon-hode"><h2 id="skjerm-tittel">${bytte ? "Bytter noen side?" : "Hvor mange valgte ☝️?"}</h2><span class="tall">av ${sp.antall}</span></div>
+          <div class="seksjon-hode"><h2 id="skjerm-tittel">${esc(bytte ? R.t("Bytter noen side?") : R.t("Hvor mange valgte ☝️?"))}</h2><span class="tall">${esc(R.t("av {n}", { n: sp.antall }))}</span></div>
           ${tallknapper(sp, bytte ? sp.for.a : null)}
-          <p class="hjelp vingle-tall-hjelp">${bytte ? `Hvor mange velger ☝️ nå? Før var det ${sp.for.a}.` : "Resten valgte ✌️. Ett trykk, så kommer resultatet."}</p>
+          <p class="hjelp vingle-tall-hjelp">${esc(bytte ? R.t("Hvor mange velger ☝️ nå? Før var det {n}.", { n: sp.for.a }) : R.t("Resten valgte ✌️. Ett trykk, så kommer resultatet."))}</p>
         </section>
         ${R.ui.dokk(
-          bytte ? R.ui.knapp("Ingen bytter", "tell", { v: sp.for.a, av: opptatt }) : "",
-          R.ui.lenkerad(bytte ? "" : R.ui.lenke("Hopp over tellingen", "neste"), R.ui.lenke(`Er dere ikke ${sp.antall}?`, "antall-ark"), avslutt),
+          bytte ? R.ui.knapp(R.t("Ingen bytter"), "tell", { v: sp.for.a, av: opptatt }) : "",
+          R.ui.lenkerad(bytte ? "" : R.ui.lenke(R.t("Hopp over tellingen"), "neste"), R.ui.lenke(R.t("Er dere ikke {n}?", { n: sp.antall }), "antall-ark"), avslutt),
         )}`;
     }
     if (sp.fase === "tale") {
@@ -332,11 +332,11 @@
         ${vh(false)}
         ${kortet(S, { kompakt: true })}
         <section class="seksjon vingle-tale">
-          <h2 id="skjerm-tittel">Mindretallet har ordet!</h2>
+          <h2 id="skjerm-tittel">${esc(R.t("Mindretallet har ordet!"))}</h2>
           <p class="vingle-tale-hvem"><span aria-hidden="true">${a ? "☝️" : "✌️"}</span> ${esc(a ? ta : tb)}</p>
           ${R.ui.timer({ id: "vingle-klokke", sekunder: TALETID, alene: true, visning: "sek" })}
         </section>
-        ${R.ui.dokk(R.ui.knapp("Ferdig snakket", "tale-ferdig"), R.ui.lenkerad(avslutt))}`;
+        ${R.ui.dokk(R.ui.knapp(R.t("Ferdig snakket"), "tale-ferdig"), R.ui.lenkerad(avslutt))}`;
     }
     if (sp.fase === "svar") {
       const kanForsvare = !sp.for && Math.min(sp.a, sp.b) >= 1 && sp.a !== sp.b;
@@ -344,24 +344,24 @@
         ${vh(false)}
         ${kortet(S, { kompakt: true, sveip: siste ? null : "neste" })}
         <section class="seksjon vingle-svar">
-          <h2 class="vh" id="skjerm-tittel">Resultatet</h2>
+          <h2 class="vh" id="skjerm-tittel">${esc(R.t("Resultatet"))}</h2>
           ${fordeling(S)}
-          ${kanForsvare ? `<div class="vingle-forsvar">${R.ui.knapp2(`Forsvarstale – ${TALETID} s`, "forsvar", { variant: "liten" })}</div>` : ""}
+          ${kanForsvare ? `<div class="vingle-forsvar">${R.ui.knapp2(R.t("Forsvarstale – {n} s", { n: TALETID }), "forsvar", { variant: "liten" })}</div>` : ""}
         </section>
-        ${R.ui.dokk(videre, R.ui.lenkerad(R.ui.lenke("Endre tallet", "endre-tall"), avslutt))}`;
+        ${R.ui.dokk(videre, R.ui.lenkerad(R.ui.lenke(R.t("Endre tallet"), "endre-tall"), avslutt))}`;
     }
     if (sp.fase === "valgt") {
       return `
         ${vh(true)}
         ${kortet(S, { sveip: "neste" })}
         <p class="vingle-prompt"><span aria-hidden="true">💬</span> ${esc(plukk(PROMPTER, sp.kort * 7 + sp.nr))}</p>
-        ${R.ui.dokk(R.ui.knapp("Neste dilemma", "neste"), R.ui.lenkerad(avslutt))}`;
+        ${R.ui.dokk(R.ui.knapp(R.t("Neste dilemma"), "neste"), R.ui.lenkerad(avslutt))}`;
     }
     return `
       ${vh(true)}
       ${kortet(S, { sveip: "neste" })}
-      <p class="vingle-hint">På «VELG!» holder alle opp <span class="vingle-hint-merke">☝️ én</span> eller <span class="vingle-hint-merke">✌️ to</span> fingrer</p>
-      ${R.ui.dokk(R.ui.knapp("3 · 2 · 1 – Velg!", "velg", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke("Hopp over", "neste"), avslutt))}`;
+      <p class="vingle-hint">${esc(R.t("På «VELG!» holder alle opp {en} eller {to} fingrer")).replace("{en}", `<span class="vingle-hint-merke">☝️ ${esc(R.t("én"))}</span>`).replace("{to}", `<span class="vingle-hint-merke">✌️ ${esc(R.t("to"))}</span>`)}</p>
+      ${R.ui.dokk(R.ui.knapp(R.t("3 · 2 · 1 – Velg!"), "velg", { variant: "stor" }), R.ui.lenkerad(R.ui.lenke(R.t("Hopp over"), "neste"), avslutt))}`;
   }
 
   function visStol(S) {
@@ -370,49 +370,49 @@
     const to = sp.antall === 2;
     const annen = (i + 1) % sp.antall; // the one who guesses when two play
     const navn = esc(R.navn(i));
-    const avslutt = R.ui.lenke("Avslutt", "avslutt");
+    const avslutt = R.ui.lenke(R.t("Avslutt"), "avslutt");
     const hode = (hvem, etikett, valgt) => `
       <div class="vingle-stol">
         ${R.avatar(hvem, "mid")}
-        <div><p class="etikett">${etikett}</p><h1 id="skjerm-tittel">${esc(R.navn(hvem))}</h1></div>
-        ${valgt ? `<span class="vingle-valgt">Valgt ✓</span>` : ""}
+        <div><p class="etikett">${esc(etikett)}</p><h1 id="skjerm-tittel">${esc(R.navn(hvem))}</h1></div>
+        ${valgt ? `<span class="vingle-valgt">${esc(R.t("Valgt ✓"))}</span>` : ""}
       </div>`;
     if (sp.fase === "stol") {
       return `
-        ${hode(i, "I vinglestolen")}
+        ${hode(i, R.t("I vinglestolen"))}
         ${kortet(S, { knapp: "stol-velg" })}
-        <p class="vingle-hint">Trykk på det du ville valgt – <b>i hemmelighet</b>. De andre ser bort.</p>
-        ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke("Bytt dilemma", "bytt"), avslutt))}`;
+        <p class="vingle-hint">${esc(R.t("Trykk på det du ville valgt – {hemmelig}. De andre ser bort.")).replace("{hemmelig}", `<b>${esc(R.t("i hemmelighet"))}</b>`)}</p>
+        ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke(R.t("Bytt dilemma"), "bytt"), avslutt))}`;
     }
     if (sp.fase === "gjett") {
       return `
-        ${hode(i, "I vinglestolen", true)}
+        ${hode(i, R.t("I vinglestolen"), true)}
         ${kortet(S)}
-        <p class="vingle-hint">Hva tror dere ${navn} valgte? På «GJETT!» holder alle andre opp <span class="vingle-hint-merke">☝️ én</span> eller <span class="vingle-hint-merke">✌️ to</span> fingrer</p>
-        ${R.ui.dokk(R.ui.knapp("3 · 2 · 1 – Gjett!", "gjett", { variant: "stor" }), R.ui.lenkerad(avslutt))}`;
+        <p class="vingle-hint">${esc(R.t("Hva tror dere {navn} valgte? På «GJETT!» holder alle andre opp {en} eller {to} fingrer")).replace("{en}", `<span class="vingle-hint-merke">☝️ ${esc(R.t("én"))}</span>`).replace("{to}", `<span class="vingle-hint-merke">✌️ ${esc(R.t("to"))}</span>`).replace("{navn}", navn)}</p>
+        ${R.ui.dokk(R.ui.knapp(R.t("3 · 2 · 1 – Gjett!"), "gjett", { variant: "stor" }), R.ui.lenkerad(avslutt))}`;
     }
     if (sp.fase === "flertall") {
       // An even number of guessers can split down the middle.
       const kanDeles = !to && (sp.antall - 1) % 2 === 0;
       return `
-        ${to ? hode(annen, "Din tur til å gjette") : hode(i, "I vinglestolen", true)}
+        ${to ? hode(annen, R.t("Din tur til å gjette")) : hode(i, R.t("I vinglestolen"), true)}
         ${kortet(S, { knapp: "flertall" })}
-        <p class="vingle-hint">${to ? `Hva tror du ${navn} valgte? Trykk på det.` : "Hva gjettet flertallet? Trykk på det."}</p>
-        ${R.ui.dokk(kanDeles ? R.ui.knapp2("Like mange på hver", "flertall", { v: "delt" }) : "", R.ui.lenkerad(avslutt))}`;
+        <p class="vingle-hint">${esc(to ? R.t("Hva tror du {navn} valgte? Trykk på det.", { navn: R.navn(i) }) : R.t("Hva gjettet flertallet? Trykk på det."))}</p>
+        ${R.ui.dokk(kanDeles ? R.ui.knapp2(R.t("Like mange på hver"), "flertall", { v: "delt" }) : "", R.ui.lenkerad(avslutt))}`;
     }
     const delt = sp.gjett === "delt";
     const traff = sp.gjett === sp.valg;
     const stempel = delt
-      ? ["vingle-b", "Delt gjeng!"]
+      ? ["vingle-b", R.t("Delt gjeng!")]
       : traff
-        ? ["aksent", to ? `${R.navn(annen)} traff!` : "Gjengen traff!"]
-        : ["lampe", to ? `${R.navn(i)} lurte ${R.navn(annen)}!` : `${R.navn(i)} lurte dere!`];
-    const videre = sp.nr >= totaltStol(sp) ? R.ui.knapp("Til kåringen", "til-kaaring") : R.ui.knapp(`Neste: ${R.navn(annen)} i stolen`, "neste-stol");
+        ? ["aksent", to ? R.t("{navn} traff!", { navn: R.navn(annen) }) : R.t("Gjengen traff!")]
+        : ["lampe", to ? R.t("{navn} lurte {annen}!", { navn: R.navn(i), annen: R.navn(annen) }) : R.t("{navn} lurte dere!", { navn: R.navn(i) })];
+    const videre = sp.nr >= totaltStol(sp) ? R.ui.knapp(R.t("Til kåringen"), "til-kaaring") : R.ui.knapp(R.t("Neste: {navn} i stolen", { navn: R.navn(annen) }), "neste-stol");
     return `
-      ${hode(i, "I vinglestolen")}
+      ${hode(i, R.t("I vinglestolen"))}
       ${kortet(S, { vist: sp.valg, vistNavn: R.navn(i), kompakt: true })}
       <div class="vingle-dom"><span class="stempel ${stempel[0]}">${esc(stempel[1])}</span></div>
-      ${R.ui.dokk(videre, R.ui.lenkerad(R.ui.lenke("Endre", "endre-gjett"), avslutt))}`;
+      ${R.ui.dokk(videre, R.ui.lenkerad(R.ui.lenke(R.t("Endre"), "endre-gjett"), avslutt))}`;
   }
 
   function sluttAlle(S) {
@@ -425,19 +425,19 @@
     return `
       ${R.ui.banner({
         klasse: "aksent",
-        etikett: "Dommen over gjengen",
+        etikett: R.t("Dommen over gjengen"),
         stemning: g ? "jubel" : "",
-        tittel: g ? g.tittel : "Takk for nå!",
-        tekst: g ? g.tekst : "Tell stemmene fra flere spillere, så får dere en dom over gjengen.",
+        tittel: g ? g.tittel : R.t("Takk for nå!"),
+        tekst: g ? g.tekst : R.t("Tell stemmene fra flere spillere, så får dere en dom over gjengen."),
       })}
       ${R.ui.merker([
-        [String(logg.length), logg.length === 1 ? "dilemma" : "dilemmaer"],
-        [String(enstemmige), enstemmige === 1 ? "enstemmig" : "enstemmige"],
-        [String(delte), "delt på midten"],
+        [String(logg.length), logg.length === 1 ? R.t("dilemma") : R.t("dilemmaer")],
+        [String(enstemmige), enstemmige === 1 ? R.t("enstemmig") : R.t("enstemmige")],
+        [String(delte), R.t("delt på midten")],
       ])}
-      ${splittet ? loggBoks("Mest uenige", splittet) : ""}
-      ${enige ? loggBoks("Mest enige", enige) : ""}
-      ${g ? R.ui.knapp2("Del dommen", "del") : ""}
+      ${splittet ? loggBoks(R.t("Mest uenige"), splittet) : ""}
+      ${enige ? loggBoks(R.t("Mest enige"), enige) : ""}
+      ${g ? R.ui.knapp2(R.t("Del dommen"), "del") : ""}
       ${R.ui.flereSpill({ antall: sp.antall || logg.reduce((m, l) => Math.max(m, l.a + l.b), 0) || undefined })}`;
   }
 
@@ -445,7 +445,7 @@
     const sp = S.spill;
     const r = stolResultat(sp);
     const navn = (liste) => R.ramsOpp(liste.map((s) => R.navn(s.i)));
-    const av = (s) => `${Number.isInteger(s.treff) ? s.treff : String(s.treff).replace(".", ",")} av ${s.ganger}`;
+    const av = (s) => R.t("{n} av {alle}", { n: Number.isInteger(s.treff) ? s.treff : R.tall(s.treff), alle: s.ganger });
     if (sp.antall === 2) {
       const [x, y] = r.rader;
       const ganger = (i) => (r.med.find((s) => s.i === i) || { ganger: 0 }).ganger;
@@ -453,36 +453,36 @@
       return `
         ${R.ui.banner({
           klasse: "aksent",
-          etikett: "Hvem kjenner hvem best?",
+          etikett: R.t("Hvem kjenner hvem best?"),
           stemning: x.poeng + y.poeng > 0 ? "jubel" : "",
-          tittel: vinner == null ? "Like godt kjent!" : `${R.navn(vinner)} vinner!`,
-          tekst: `${R.navn(0)} gjettet riktig ${x.poeng} av ${ganger(1)} ganger, ${R.navn(1)} ${y.poeng} av ${ganger(0)}.`,
+          tittel: vinner == null ? R.t("Like godt kjent!") : R.t("{navn} vinner!", { navn: R.navn(vinner) }),
+          tekst: R.t("{navn1} gjettet riktig {x} av {xav} ganger, {navn2} {y} av {yav}.", { navn1: R.navn(0), x: x.poeng, xav: ganger(1), navn2: R.navn(1), y: y.poeng, yav: ganger(0) }),
         })}
-        ${R.ui.pall(r.rader, { enhet: "riktige" })}
+        ${R.ui.pall(r.rader, { enhet: R.t("riktige") })}
         ${R.ui.poengliste(r.rader)}
-        ${R.ui.knapp2("Del kåringen", "del")}
+        ${R.ui.knapp2(R.t("Del kåringen"), "del")}
         ${R.ui.flereSpill({ antall: 2 })}`;
     }
     const d = stoldom(r.andel);
     const pris = (ikon, tittel, hvem, tekst) => `<div class="papirboks vingle-boks vingle-pris">
-        <p class="etikett">${tittel} <span aria-hidden="true">${ikon}</span></p>
+        <p class="etikett">${esc(tittel)} <span aria-hidden="true">${ikon}</span></p>
         <p class="vingle-pris-navn">${esc(navn(hvem))}</p>
         <p class="vingle-pris-tekst">${esc(tekst)}</p>
       </div>`;
     return `
-      ${R.ui.banner({ klasse: "aksent", etikett: "I vinglestolen", stemning: r.andel >= 0.4 ? "jubel" : "", tittel: d.tittel, tekst: `${d.tekst} Gjengen gjettet riktig ${r.treff} av ${sp.logg.length} ganger.` })}
-      ${r.apen.length ? pris("📖", "Åpen bok", r.apen, `Lettest å lese: Gjengen traff ${av(r.apen[0])}.`) : ""}
-      ${r.mysterium.length ? pris("🕵️", "Mysteriet", r.mysterium, `Vanskeligst å lese: Gjengen traff ${av(r.mysterium[0])}.`) : ""}
-      ${!r.apen.length && r.med.length > 1 ? pris("⚖️", "Like lette å lese", r.med, `Gjengen traff ${av(r.med[0])} på hver av dere.`) : ""}
+      ${R.ui.banner({ klasse: "aksent", etikett: R.t("I vinglestolen"), stemning: r.andel >= 0.4 ? "jubel" : "", tittel: d.tittel, tekst: `${d.tekst} ${R.t("Gjengen gjettet riktig {n} av {alle} ganger.", { n: r.treff, alle: sp.logg.length })}` })}
+      ${r.apen.length ? pris("📖", R.t("Åpen bok"), r.apen, R.t("Lettest å lese: Gjengen traff {av}.", { av: av(r.apen[0]) })) : ""}
+      ${r.mysterium.length ? pris("🕵️", R.t("Mysteriet"), r.mysterium, R.t("Vanskeligst å lese: Gjengen traff {av}.", { av: av(r.mysterium[0]) })) : ""}
+      ${!r.apen.length && r.med.length > 1 ? pris("⚖️", R.t("Like lette å lese"), r.med, R.t("Gjengen traff {av} på hver av dere.", { av: av(r.med[0]) })) : ""}
       <section class="seksjon">
-        <h2>Så ofte traff gjengen</h2>
+        <h2>${esc(R.t("Så ofte traff gjengen"))}</h2>
         <ul class="vingle-liste">${r.med
           .slice()
           .sort((a, b) => b.andel - a.andel || a.i - b.i)
-          .map((s) => `<li>${R.avatar(s.i)}<span class="navn">${esc(R.navn(s.i))}</span><b>${av(s)}</b></li>`)
+          .map((s) => `<li>${R.avatar(s.i)}<span class="navn">${esc(R.navn(s.i))}</span><b>${esc(av(s))}</b></li>`)
           .join("")}</ul>
       </section>
-      ${R.ui.knapp2("Del kåringen", "del")}
+      ${R.ui.knapp2(R.t("Del kåringen"), "del")}
       ${R.ui.flereSpill({ antall: sp.antall })}`;
   }
 
@@ -563,19 +563,19 @@
     },
 
     regler: {
-      intro: "To valg – begge fristende, eller begge forferdelige. Alle må velge ett. Ingen vingling!",
+      intro: R.t("To valg – begge fristende, eller begge forferdelige. Alle må velge ett. Ingen vingling!"),
       steg: [
-        ["Les begge valgene", "Én leser høyt: «Hva vil du helst … eller …?»"],
-        ["3 · 2 · 1 – Velg!", "Trykk på knappen. På «VELG!» holder alle opp én finger ☝️ eller to fingrer ✌️ – samtidig."],
-        ["Se hvem som er enige", "Trykk på hvor mange som valgte ☝️, så viser mobilen fordelingen. Mindretallet får forsvare seg!"],
+        [R.t("Les begge valgene"), R.t("Én leser høyt: «Hva vil du helst … eller …?»")],
+        [R.t("3 · 2 · 1 – Velg!"), R.t("Trykk på knappen. På «VELG!» holder alle opp én finger ☝️ eller to fingrer ✌️ – samtidig.")],
+        [R.t("Se hvem som er enige"), R.t("Trykk på hvor mange som valgte ☝️, så viser mobilen fordelingen. Mindretallet får forsvare seg!")],
       ],
       tips: [
-        "Det finnes ingen riktige svar – bare gode begrunnelser.",
-        "I vinglestolen: Én velger i hemmelighet, og resten gjetter hva det ble. Hvem er en åpen bok?",
-        "Ujevnt resultat? Gi mindretallet en forsvarstale på 20 sekunder – kanskje noen bytter side.",
-        "Skru av «Tell stemmer» hvis dere bare vil diskutere.",
-        "Sveip kortet til siden for et nytt dilemma.",
-        "Festpakken er for voksne og er ikke med før dere velger den.",
+        R.t("Det finnes ingen riktige svar – bare gode begrunnelser."),
+        R.t("I vinglestolen: Én velger i hemmelighet, og resten gjetter hva det ble. Hvem er en åpen bok?"),
+        R.t("Ujevnt resultat? Gi mindretallet en forsvarstale på 20 sekunder – kanskje noen bytter side."),
+        R.t("Skru av «Tell stemmer» hvis dere bare vil diskutere."),
+        R.t("Sveip kortet til siden for et nytt dilemma."),
+        R.t("Festpakken er for voksne og er ikke med før dere velger den."),
       ],
     },
 
@@ -584,23 +584,23 @@
         tilbake: "portal",
         vis: (S) =>
           R.ui.spillhjem({
-            slagordHtml: "To valg. Begge fristende.<br><em>Du må velge ett!</em>",
+            slagordHtml: `${esc(R.t("To valg. Begge fristende."))}<br><em>${esc(R.t("Du må velge ett!"))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: pagar(S) ? `Fortsett · ${S.spill.modus === "stol" ? "runde" : "dilemma"} ${S.spill.nr}` : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              fortsettTekst: pagar(S) ? (S.spill.modus === "stol" ? R.t("Fortsett · runde {nr}", { nr: S.spill.nr }) : R.t("Fortsett · dilemma {nr}", { nr: S.spill.nr })) : "",
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
-              ["2–20", "spillere"],
-              [String(ALLE.length), "dilemmaer"],
-              ["0", "reklame"],
+              ["2–20", R.t("spillere")],
+              [String(ALLE.length), R.t("dilemmaer")],
+              ["0", R.t("reklame")],
             ],
           }),
         inn: () => R.slippVaken(),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
@@ -609,20 +609,20 @@
           const n = R.klamp(S.antall, 2, stol ? MAKS_STOL : 20);
           const runder = runderFor(S);
           return `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           <section class="seksjon">
-            <h2>Hvordan vil dere spille?</h2>
+            <h2>${esc(R.t("Hvordan vil dere spille?"))}</h2>
             ${R.ui.fliser(
               "modus",
               [
-                { v: "alle", tittel: "Alle velger", tekst: "Alle stemmer samtidig. Er dere enige?", ikon: "✌️" },
-                { v: "stol", tittel: "I vinglestolen", tekst: "Én velger i hemmelighet. Resten gjetter.", ikon: "🪑" },
+                { v: "alle", tittel: R.t("Alle velger"), tekst: R.t("Alle stemmer samtidig. Er dere enige?"), ikon: "✌️" },
+                { v: "stol", tittel: R.t("I vinglestolen"), tekst: R.t("Én velger i hemmelighet. Resten gjetter."), ikon: "🪑" },
               ],
               o.modus,
             )}
           </section>
           <section class="seksjon">
-            <div class="seksjon-hode"><h2>Velg pakker</h2><span class="tall">${antall} dilemmaer</span></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Velg pakker"))}</h2><span class="tall">${esc(R.t("{n} dilemmaer", { n: antall }))}</span></div>
             ${R.ui.fliser(
               "pakke",
               PAKKER_VIST.map((p) => ({ v: p.id, tittel: p.navn, tekst: `${p.tekst} · ${p.dilemmaer.length}`, ikon: p.ikon })),
@@ -631,37 +631,37 @@
           </section>
           ${
             stol
-              ? `${R.ui.spillere({ min: 2, max: MAKS_STOL, hjelp: "Mobilen går på rundgang, og alle sitter i vinglestolen etter tur." })}
+              ? `${R.ui.spillere({ min: 2, max: MAKS_STOL, hjelp: R.t("Mobilen går på rundgang, og alle sitter i vinglestolen etter tur.") })}
           <section class="seksjon">
-            <h2>Hvor mange runder?</h2>
-            ${R.ui.seg("runder", [[1, "1 runde"], [2, "2 runder"], [3, "3 runder"]], runder, { etikett: "Runder i vinglestolen" })}
-            <p class="hjelp">Alle sitter i stolen én gang per runde: ${n * runder} dilemmaer i alt.</p>
+            <h2>${esc(R.t("Hvor mange runder?"))}</h2>
+            ${R.ui.seg("runder", [[1, R.t("1 runde")], [2, R.t("2 runder")], [3, R.t("3 runder")]], runder, { etikett: R.t("Runder i vinglestolen") })}
+            <p class="hjelp">${esc(R.t("Alle sitter i stolen én gang per runde: {n} dilemmaer i alt.", { n: n * runder }))}</p>
           </section>`
-              : `${R.ui.bryter("telle", o.telle, "Tell stemmer", "Se hvor delt dere er på hvert dilemma – og få dommen over gjengen til slutt.")}
+              : `${R.ui.bryter("telle", o.telle, R.t("Tell stemmer"), R.t("Se hvor delt dere er på hvert dilemma – og få dommen over gjengen til slutt."))}
           ${
             o.telle
               ? `<section class="seksjon">
-            <h2>Hvor mange er dere?</h2>
-            ${R.ui.teller("antall", n, 2, 20, { id: "vingle-antall", enhet: "spillere", minus: "Færre spillere", pluss: "Flere spillere" })}
-            <p class="hjelp">Da holder det å telle den ene siden.</p>
+            <h2>${esc(R.t("Hvor mange er dere?"))}</h2>
+            ${R.ui.teller("antall", n, 2, 20, { id: "vingle-antall", enhet: R.t("spillere"), minus: R.t("Færre spillere"), pluss: R.t("Flere spillere") })}
+            <p class="hjelp">${esc(R.t("Da holder det å telle den ene siden."))}</p>
           </section>
           <section class="seksjon">
-            <h2>Hvor mange dilemmaer?</h2>
-            ${R.ui.seg("lengde", [[10, "10"], [20, "20"], [0, "Fritt"]], o.lengde, { etikett: "Hvor mange dilemmaer" })}
-            <p class="hjelp">${o.lengde ? `Etter ${o.lengde} dilemmaer kommer dommen over gjengen.` : "Spill så lenge dere vil. «Avslutt» gir dommen over gjengen."}</p>
+            <h2>${esc(R.t("Hvor mange dilemmaer?"))}</h2>
+            ${R.ui.seg("lengde", [[10, "10"], [20, "20"], [0, R.t("Fritt")]], o.lengde, { etikett: R.t("Hvor mange dilemmaer") })}
+            <p class="hjelp">${esc(o.lengde ? R.t("Etter {n} dilemmaer kommer dommen over gjengen.", { n: o.lengde }) : R.t("Spill så lenge dere vil. «Avslutt» gir dommen over gjengen."))}</p>
           </section>`
               : ""
           }`
           }
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !o.pakker.length }))}`;
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { av: !o.pakker.length }))}`;
         },
       },
 
       kort: {
         tittel: (S) => {
           const sp = S.spill;
-          if (sp.modus === "stol") return `Runde ${sp.nr} av ${totaltStol(sp)}`;
-          return sp.lengde ? `Dilemma ${sp.nr} av ${sp.lengde}` : `Dilemma ${sp.nr}`;
+          if (sp.modus === "stol") return R.t("Runde {nr} av {alle}", { nr: sp.nr, alle: totaltStol(sp) });
+          return sp.lengde ? R.t("Dilemma {nr} av {alle}", { nr: sp.nr, alle: sp.lengde }) : R.t("Dilemma {nr}", { nr: sp.nr });
         },
         tilbake: "hjem",
         vis: (S) => (S.spill.modus === "stol" ? visStol(S) : visAlle(S)),
@@ -673,11 +673,11 @@
 
       // Final: back leads home, and the game is no longer «in progress».
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         vis: (S) => `
           ${S.spill.modus === "stol" ? sluttStol(S) : sluttAlle(S)}
-          ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`))}`,
+          ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`,
         inn(S) {
           if (S.spill && S.spill.logg.length) {
             R.lyd.fanfare();
@@ -762,14 +762,14 @@
         R.vis();
         window.scrollTo(0, 0);
         const k = ALLE[sp.kort];
-        R.si(`Dilemma ${sp.nr}. Hva vil du helst: ${k.a}, eller ${k.b}?`);
+        R.si(`${R.t("Dilemma {nr}.", { nr: sp.nr })} ${R.t("Hva vil du helst: {a}, eller {b}?", { a: k.a, b: k.b })}`);
       },
       async velg(el, e, S) {
         if (opptatt || !pagar(S) || S.spill.modus !== "alle" || S.spill.fase !== "les") return;
         opptatt = true;
         let ferdigTelt = false;
         try {
-          ferdigTelt = await R.nedtelling(["3", "2", "1", "VELG!"], 650);
+          ferdigTelt = await R.nedtelling(["3", "2", "1", R.t("VELG!")], 650);
         } finally {
           opptatt = false;
         }
@@ -782,7 +782,7 @@
         sp.b = 0;
         R.vis();
         if (sp.fase === "tell") {
-          R.si(`Hvor mange valgte én finger? Dere er ${sp.antall}.`);
+          R.si(R.t("Hvor mange valgte én finger? Dere er {n}.", { n: sp.antall }));
           visBunn();
         }
       },
@@ -823,7 +823,7 @@
           R.konfetti(sp.a ? ["--mynte", "--papir"] : ["--lilla", "--papir"]);
         } else if (min === 1 && sp.antall >= 3) R.lyd.latter();
         else R.lyd.pling();
-        R.si(`${bytte ? bytteDom(Math.abs(sp.a - sp.for.a)) : dom(sp.a, sp.b, sp.kort)} ${stemmer(sp.a)} for én finger og ${stemmer(sp.b)} for to.`);
+        R.si(`${bytte ? bytteDom(Math.abs(sp.a - sp.for.a)) : dom(sp.a, sp.b, sp.kort)} ${R.t("{a} for én finger og {b} for to.", { a: stemmer(sp.a), b: stemmer(sp.b) })}`);
         window.scrollTo(0, 0);
         visBunn();
       },
@@ -834,7 +834,7 @@
         sp.logg.pop();
         Object.assign(sp, { fase: "tell", for: null });
         R.vis();
-        R.si("Hvor mange valgte én finger?");
+        R.si(R.t("Hvor mange valgte én finger?"));
         visBunn();
       },
       // «Er dere ikke 8?»: change how many are voting, in a sheet with a stepper.
@@ -842,10 +842,10 @@
         const sp = S.spill;
         if (opptatt || !pagar(S) || sp.modus !== "alle") return;
         R.ark(`
-          <h2 id="ark-tittel">Hvor mange er dere?</h2>
-          <p class="ingress">Tell alle som er med og stemmer.</p>
-          ${R.ui.teller("antall-spill", sp.antall, 2, 20, { enhet: "spillere", minus: "Færre spillere", pluss: "Flere spillere" })}
-          <button class="knapp" data-h="lukk-ark">Ferdig</button>`);
+          <h2 id="ark-tittel">${esc(R.t("Hvor mange er dere?"))}</h2>
+          <p class="ingress">${esc(R.t("Tell alle som er med og stemmer."))}</p>
+          ${R.ui.teller("antall-spill", sp.antall, 2, 20, { enhet: R.t("spillere"), minus: R.t("Færre spillere"), pluss: R.t("Flere spillere") })}
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Ferdig"))}</button>`);
       },
       "antall-spill"(el, e, S) {
         const sp = S.spill;
@@ -855,7 +855,7 @@
         // Update the stepper in place (the sheet keeps its focus), then the buttons behind it.
         const boks = el.closest(".teller");
         if (boks) {
-          boks.querySelector("output").innerHTML = `${sp.antall} <small>spillere</small>`;
+          boks.querySelector("output").innerHTML = `${sp.antall} <small>${esc(R.t("spillere"))}</small>`;
           boks.querySelector('[data-v="-1"]').disabled = sp.antall <= 2;
           boks.querySelector('[data-v="1"]').disabled = sp.antall >= 20;
         }
@@ -869,7 +869,7 @@
         sp.fase = "tale";
         R.vis();
         startTale();
-        R.si(`Mindretallet har ordet i ${TALETID} sekunder.`);
+        R.si(R.t("Mindretallet har ordet i {n} sekunder.", { n: TALETID }));
         visBunn();
       },
       "tale-ferdig": (el, e, S) => tilBytte(S),
@@ -884,7 +884,7 @@
         sp.fase = sp.antall === 2 ? "flertall" : "gjett";
         R.vis();
         window.scrollTo(0, 0);
-        R.si(sp.antall === 2 ? `Valgt. ${R.navn((iStolen(sp) + 1) % 2)} gjetter.` : "Valgt. Nå gjetter de andre.");
+        R.si(sp.antall === 2 ? R.t("Valgt. {navn} gjetter.", { navn: R.navn((iStolen(sp) + 1) % 2) }) : R.t("Valgt. Nå gjetter de andre."));
       },
       // Another dilemma for the same player (nothing has been chosen yet).
       async bytt(el, e, S) {
@@ -901,7 +901,7 @@
         opptatt = true;
         let ferdigTelt = false;
         try {
-          ferdigTelt = await R.nedtelling(["3", "2", "1", "GJETT!"], 650);
+          ferdigTelt = await R.nedtelling(["3", "2", "1", R.t("GJETT!")], 650);
         } finally {
           opptatt = false;
         }
@@ -910,7 +910,7 @@
         R.vibrer([60, 40, 120]);
         S.spill.fase = "flertall";
         R.vis();
-        R.si("Hva gjettet flertallet?");
+        R.si(R.t("Hva gjettet flertallet?"));
       },
       // What most of the others guessed (or the one other player): drum roll, and the truth.
       async flertall(el, e, S) {
@@ -938,7 +938,7 @@
           R.konfetti(sp.valg === "a" ? ["--mynte", "--papir"] : ["--lilla", "--papir"]);
         } else if (gjett === "delt") R.lyd.pling();
         else R.lyd.latter();
-        R.si(`${navn} valgte: ${sp.valg === "a" ? k.a : k.b}. ${gjett === sp.valg ? "Riktig gjettet!" : gjett === "delt" ? "Gjengen var delt." : "Feil gjettet!"}`);
+        R.si(`${R.t("{navn} valgte: {valg}.", { navn, valg: sp.valg === "a" ? k.a : k.b })} ${gjett === sp.valg ? R.t("Riktig gjettet!") : gjett === "delt" ? R.t("Gjengen var delt.") : R.t("Feil gjettet!")}`);
         visBunn();
       },
       // Wrong tap: back to «Hva gjettet flertallet?» (the logged round goes away).
@@ -959,7 +959,7 @@
         nyttKort(S, true);
         R.vis();
         window.scrollTo(0, 0);
-        R.si(`Runde ${sp.nr}. ${R.navn(iStolen(sp))} sitter i vinglestolen.`);
+        R.si(R.t("Runde {nr}. {navn} sitter i vinglestolen.", { nr: sp.nr, navn: R.navn(iStolen(sp)) }));
       },
 
       // ----- The end -----
@@ -975,12 +975,12 @@
         const sp = S.spill;
         const stol = !!sp && sp.modus === "stol";
         if (sp && sp.logg.length) {
-          const tekst = stol ? "Dere går rett til kåringen med rundene dere har spilt." : "Dere går rett til kåringen og får dommen over gjengen.";
-          if (!(await R.bekreft("Avslutte spillet?", tekst, "Avslutt", "Spill videre")) || !fortsatt() || !pagar(S)) return;
+          const tekst = stol ? R.t("Dere går rett til kåringen med rundene dere har spilt.") : R.t("Dere går rett til kåringen og får dommen over gjengen.");
+          if (!(await R.bekreft(R.t("Avslutte spillet?"), tekst, R.t("Avslutt"), R.t("Spill videre"))) || !fortsatt() || !pagar(S)) return;
           tilKaaring(S);
           return;
         }
-        if ((await R.bekreft("Avslutte spillet?", "Dere kan alltid starte et nytt.", "Avslutt", "Spill videre")) && fortsatt()) {
+        if ((await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere kan alltid starte et nytt."), R.t("Avslutt"), R.t("Spill videre"))) && fortsatt()) {
           stoppTale();
           S.spill = null;
           R.slippVaken();
@@ -990,7 +990,7 @@
       del(el, e, S) {
         const sp = S.spill;
         if (!sp || !sp.logg.length || (sp.modus !== "stol" && !gruppedom(sp.logg))) return;
-        R.del("Vinglepetter", delTekst(sp), location.origin + "/vinglepetter/");
+        R.del(R.app.navn, delTekst(sp), location.origin + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "vinglepetter") + "/");
       },
       igjen(el, e, S) {
         H.start(el, e, S);
