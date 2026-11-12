@@ -10,5 +10,23 @@
   "tagger": ["ord", "familie", "fest"],
   "rekkefolge": 14,
   "ordbank": true,
-  "sok": ["bare ett hint", "ett hint", "hint", "samarbeidsspill", "gjett ordet", "ordlek"]
+  "sok": ["bare ett hint", "ett hint", "hint", "samarbeidsspill", "gjett ordet", "ordlek"],
+  "i18n": {
+    "en": {
+      "navn": "Whisperer",
+      "undertittel": "One clue each",
+      "kort": "Everyone gives one secret clue – but matching clues are struck out.",
+      "beskrivelse": "A free team word game: everyone gives one secret clue, but matching clues are struck out. Can the guesser get the word? 3–10 players, one phone.",
+      "slug": "whisperer",
+      "sok": ["just one", "one clue", "one word clue game", "cooperative word game", "team word game", "guess the word", "clue game"]
+    },
+    "da": {
+      "navn": "Hviskeren",
+      "undertittel": "Kun ét hint",
+      "kort": "Alle giver ét hint i hemmelighed – men ens hints bliver streget ud.",
+      "beskrivelse": "Gratis samarbejdsspil på dansk: alle giver ét hint i hemmelighed, men ens hints bliver streget ud. Kan gætteren ordet? 3–10 spillere, én mobil.",
+      "slug": "hviskeren",
+      "sok": ["kun ét hint", "ét hint", "just one", "samarbejdsspil", "gæt ordet", "ordleg", "hintspil"]
+    }
+  }
 }

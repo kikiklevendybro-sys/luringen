@@ -446,6 +446,18 @@
         "hængt mand",
         "gæt ordet"
       ]
+    },
+    "hviskeren": {
+      "tittel": "Kun ét hint – samarbejdsspil med ord for 3–10",
+      "frase": "Kun ét hint",
+      "beskrivelse": "Gratis samarbejdsspil på dansk: alle giver ét hint i hemmelighed, men ens hints bliver streget ud. Kan gætteren ordet? 3–10 spillere, én mobil.",
+      "sok": [
+        "ét hint",
+        "samarbejdsspil",
+        "gæt ordet",
+        "just one"
+      ],
+      "samarbeid": true
     }
   }
 }

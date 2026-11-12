@@ -431,6 +431,18 @@
         "guess the word game",
         "spelling game for kids"
       ]
+    },
+    "hviskeren": {
+      "tittel": "One-clue word game – a team game for 3–10",
+      "frase": "One secret clue each",
+      "beskrivelse": "A free team word game: everyone gives one secret clue, but matching clues are struck out. Can the guesser get the word? 3–10 players, one phone.",
+      "sok": [
+        "just one",
+        "one clue game",
+        "cooperative word game",
+        "team word game"
+      ],
+      "samarbeid": true
     }
   }
 }
