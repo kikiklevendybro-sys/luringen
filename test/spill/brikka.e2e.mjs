@@ -3,8 +3,10 @@
 // mid-choice, a knock-out, undo, back + continue, «Avslutt»; then one player against three phones
 // (reduced motion) that play by themselves, an exact roll into the goal and the crowning; small
 // screens. Dice are forced by stubbing crypto.getRandomValues; positions are set up through Rusj.S.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en brikka): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the state, the names and the links (t.forside, t.nokkel).
 const NAVN = ["Testspiller A", "Testspiller B"];
-const SP = `JSON.parse(localStorage.getItem("rusj.brikka.v1")).spill`;
+const SP = (t) => `JSON.parse(localStorage.getItem("${t.nokkel("brikka.v1")}")).spill`;
 
 export default async function (t) {
   const terninger = (verdier) =>
@@ -42,17 +44,17 @@ export default async function (t) {
   // ---------- No six: try again (three tries with nothing out) ----------
   await terninger([3]);
   await kast();
-  await t.vent(`${SP}.kast === null && ${SP}.forsok === 1`, 7000);
+  await t.vent(`${SP(t)}.kast === null && ${SP(t)}.forsok === 1`, 7000);
   s = await t.tilstand();
   t.sjekk(s.spill.tur === A, "Uten brikker ute skal man få prøve igjen");
-  t.sjekk(/forsøk/.test(await t.tekst("#bk-status")), "Statuslinja forteller ikke om forsøkene");
-  t.sjekk(/Prøv igjen/.test(await t.tekst(".dokk .knapp")), "Knappen skal si «Prøv igjen»");
+  t.sjekk(!t.norsk || /forsøk/.test(await t.tekst("#bk-status")), "Statuslinja forteller ikke om forsøkene");
+  t.sjekk(!t.norsk || /Prøv igjen/.test(await t.tekst(".dokk .knapp")), "Knappen skal si «Prøv igjen»");
   await t.bilde("ikke-seks");
 
   // ---------- A six: out by itself, and another roll ----------
   await terninger([6]);
   await kast();
-  await t.vent(`${SP}.brikker[${A}].includes(0) && ${SP}.kast === null`, 7000);
+  await t.vent(`${SP(t)}.brikker[${A}].includes(0) && ${SP(t)}.kast === null`, 7000);
   s = await t.tilstand();
   t.sjekk(s.spill.tur === A && s.spill.ekstra, "En sekser skal gi et ekstra kast");
   await t.sov(400);
@@ -61,7 +63,7 @@ export default async function (t) {
   // ---------- One piece out: it moves by itself (onto the star square), then the turn passes ----------
   await terninger([4]);
   await kast();
-  await t.vent(`${SP}.tur === ${B} && ${SP}.kast === null`, 8000);
+  await t.vent(`${SP(t)}.tur === ${B} && ${SP(t)}.kast === null`, 8000);
   s = await t.tilstand();
   t.sjekk(s.spill.brikker[A].includes(4), `Brikken flyttet ikke fire felt (${s.spill.brikker[A]})`);
   t.sjekk(!(await t.finnes('[data-h="angre"]')), "Et trekk mobilen gjorde selv, skal ikke kunne angres");
@@ -80,13 +82,13 @@ export default async function (t) {
   await kast();
   await t.vent("document.querySelectorAll('#bk-brett .bk-brikke.kan').length === 2", 7000);
   t.sjekk(await t.finnes(".bk-mal-merke.knuff"), "Målet som gir knuff, er ikke merket");
-  t.sjekk(/Velg en brikke/.test(await t.tekst("#bk-status")), "Statuslinja ber ikke om å velge en brikke");
+  t.sjekk(!t.norsk || /Velg en brikke/.test(await t.tekst("#bk-status")), "Statuslinja ber ikke om å velge en brikke");
   await t.bilde("velg-brikke");
   await t.lastSide(t.side, "document.querySelector('#bk-brett .bk-bunn')");
   s = await t.tilstand();
   t.sjekk(s.spill.kast === 3 && (await t.antall("#bk-brett .bk-brikke.kan")) === 2, "Valget forsvant etter omlasting");
   await t.klikk(`#bk-brett .bk-brikke.kan[data-v="${A}:0"]`, 60);
-  await t.vent(`${SP}.brikker[${B}][0] === -1 && ${SP}.tur === ${B}`, 7000);
+  await t.vent(`${SP(t)}.brikker[${B}][0] === -1 && ${SP(t)}.tur === ${B}`, 7000);
   await stille();
   await t.sov(200);
   await t.bilde("knuff");
@@ -95,7 +97,7 @@ export default async function (t) {
   s = await t.tilstand();
   t.sjekk(s.spill.tur === A && s.spill.kast === 3 && s.spill.brikker[A][0] === 8 && s.spill.brikker[B][0] !== -1, "«Angre» satte ikke brikkene tilbake");
   await t.klikk(`#bk-brett .bk-mal-merke[data-v="${A}:1"]`, 60);
-  await t.vent(`${SP}.brikker[${A}][1] === 23 && ${SP}.tur === ${B}`, 7000);
+  await t.vent(`${SP(t)}.brikker[${A}][1] === 23 && ${SP(t)}.tur === ${B}`, 7000);
   s = await t.tilstand();
   t.sjekk(s.spill.brikker[B][0] !== -1, "Den andre brikken skulle ikke knuffet noen");
   await stille();
@@ -112,18 +114,18 @@ export default async function (t) {
   await t.vent("document.querySelector('#bk-brett .bk-bunn')");
 
   // «Avslutt» asks, and the one who has come furthest is crowned
-  t.sjekk((await t.tekst('[data-h="avslutt"]')).trim() === "Avslutt", "Lenken for å avslutte skal hete «Avslutt»");
+  t.sjekk(!t.norsk || (await t.tekst('[data-h="avslutt"]')).trim() === "Avslutt", "Lenken for å avslutte skal hete «Avslutt»");
   await t.klikk('[data-h="avslutt"]');
   await t.klikk('#ark [data-v="ja"]');
   await t.vent("document.querySelector('.skjerm-slutt')");
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === `${navnA} vinner!`, `Den som har kommet lengst, skal kåres: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(t.norsk ? (await t.tekst("#skjerm h1")).trim() === `${navnA} vinner!` : (await t.tekst("#skjerm h1")).includes(navnA), `Den som har kommet lengst, skal kåres: «${await t.tekst("#skjerm h1")}»`);
   t.sjekk((await t.tilstand())._aktiv === false, "Et avsluttet spill skal ikke være merket som pågående");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
   await t.bilde("avsluttet", true);
   // The kit offers «Ha rusj som app» a moment after a crowning with points: close it.
   await t.sov(2000);
   if (await t.finnes('#ark:not([hidden]) [data-h="lukk-ark"]')) await t.klikk('#ark [data-h="lukk-ark"]');
-  const kveld = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  const kveld = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
   t.sjekk(kveld && kveld.spill.some((x) => x.id === "brikka"), "Kåringen ble ikke registrert i «Kveldens gjeng»");
 
   // ---------- One player against three phones ----------
@@ -155,9 +157,9 @@ export default async function (t) {
   await t.js(`(() => { const sp = Rusj.S.spill; sp.brikker[0] = [44, 44, 44, 40]; sp.kast = null; sp.forsok = 0; sp.ekstra = false; Rusj.vis(); })()`);
   await terninger([5]);
   await kast();
-  await t.vent(`${SP}.kast === null && ${SP}.tur !== 0`, 8000);
+  await t.vent(`${SP(t)}.kast === null && ${SP(t)}.tur !== 0`, 8000);
   t.sjekk((await t.tilstand()).spill.brikker[0][3] === 40, "5 fra felt 40 skulle ikke kunne gå i mål (nøyaktig kast)");
-  await t.vent(`${SP}.tur === 0 && ${SP}.kast === null`, 30000);
+  await t.vent(`${SP(t)}.tur === 0 && ${SP(t)}.kast === null`, 30000);
   await stille();
   await t.js(`(() => { const sp = Rusj.S.spill; sp.brikker[0] = [44, 44, 44, 40]; Rusj.vis(); })()`);
   await terninger([4]);
@@ -167,7 +169,7 @@ export default async function (t) {
   await t.send("Emulation.setEmulatedMedia", { features: [] });
   await t.sov(700);
   await t.bilde("kaaring", true);
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === "Testspiller A vinner!", `Vinneren vises ikke: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(t.norsk ? (await t.tekst("#skjerm h1")).trim() === "Testspiller A vinner!" : (await t.tekst("#skjerm h1")).includes("Testspiller A"), `Vinneren vises ikke: «${await t.tekst("#skjerm h1")}»`);
   t.sjekk((await t.antall(".bk-rang li")) === 4, "Rangeringen skal vise alle fire");
 
   // ---------- Small screens: the whole board above the dock ----------

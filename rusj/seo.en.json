@@ -112,6 +112,12 @@
       "tittel": "Five-dice game online – Scandinavian scoring, free",
       "frase": "Five-dice game",
       "beskrivelse": "Free five-dice game with Scandinavian scoring: roll three times and chase pairs, straights and Yatzy – solo, with friends or against the phone."
+    },
+    "brikka": {
+      "motMobilen": true,
+      "tittel": "Ludo online – free for 1–4 players on one phone",
+      "frase": "Ludo",
+      "beskrivelse": "Free ludo in your browser. Roll a six, get your counters out and bump the others back to base! 2–4 players on one phone, and the phone can join in."
     }
   }
 }

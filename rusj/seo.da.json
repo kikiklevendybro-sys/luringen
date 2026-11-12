@@ -120,6 +120,12 @@
       "tittel": "Yatzy online – gratis med blok og terninger",
       "frase": "Yatzy",
       "beskrivelse": "Gratis Yatzy på dansk: fem terninger, tre kast og hele blokken på mobilen. Spil alene, sammen eller mod mobilen – med fem eller seks terninger."
+    },
+    "brikka": {
+      "motMobilen": true,
+      "tittel": "Ludo online – gratis for 1–4 spillere på én mobil",
+      "frase": "Ludo",
+      "beskrivelse": "Gratis ludo på dansk. Slå en sekser, kom ud, og slå de andre hjem! 2–4 spillere på én mobil – mobilen kan spille på de ledige pladser."
     }
   }
 }
