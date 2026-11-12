@@ -1098,6 +1098,25 @@
         ${oyne({ y: 58, dx: 2, dy: -3 })}
         ${smil(84, 15)}`,
     },
+
+    // Skrønemakeren: a sly storyteller with a feather quill behind the ear, one eyebrow up and a
+    // little paper slip with a big question mark — is it true, or a tall tale?
+    skronemakeren: {
+      farge: "#b48cff",
+      tegn: (f) => `
+        ${hode(f)}
+        ${kinn(80)}
+        ${oyne({ y: 58, dx: 4, dy: -1 })}
+        ${strek("M27 38 Q38 30 50 38M70 36 Q82 40 93 34", 6)}
+        ${strek("M44 90 Q56 98 78 86", 5)}
+        ${form("M88 6 Q112 -2 116 10 Q106 30 92 44 Q90 26 88 6Z", "#fff1dd", 4)}
+        ${strek("M90 42 L110 6M96 30 L104 26M99 22 L108 18", 2.5)}
+        <g transform="rotate(-14 22 98)">
+          <rect x="4" y="84" width="34" height="30" rx="3" fill="${P}" stroke="${B}" stroke-width="4"/>
+          ${tekst(21, 108, "?", 24, "#7a4fd6")}
+        </g>
+        ${glimt(16, 20, 6)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

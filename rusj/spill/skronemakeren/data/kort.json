@@ -1,0 +1,1946 @@
+{
+ "pakker": [
+  {
+   "id": "ord",
+   "navn": "Rare ord",
+   "ikon": "📖",
+   "tekst": "Gamle og sjeldne ord",
+   "kort": [
+    {
+     "s": "Hva betyr «slikekjake»?",
+     "a": "Et kjevebein av ku eller hest til å glatte klær med",
+     "g": [
+      "kjevebein"
+     ]
+    },
+    {
+     "s": "Hva betyr «ljore»?",
+     "a": "Et røykhull i taket på gamle hus",
+     "g": [
+      "røykhull"
+     ]
+    },
+    {
+     "s": "Hva betyr «årestue»?",
+     "a": "Ei stue med åpent ildsted midt på gulvet"
+    },
+    {
+     "s": "Hva betyr «tvare»?",
+     "a": "En kjepp med greiner i enden til å røre i gryta med",
+     "g": [
+      "visp"
+     ]
+    },
+    {
+     "s": "Hva betyr «hesje»?",
+     "a": "Et stativ av stokker og streng til å tørke høy på"
+    },
+    {
+     "s": "Hva betyr «sennegras»?",
+     "a": "Tørket gras man stappet i skoene for å holde varmen"
+    },
+    {
+     "s": "Hva betyr «komager»?",
+     "a": "Samiske skinnsko med oppbrettet tupp"
+    },
+    {
+     "s": "Hva betyr «kipe»?",
+     "a": "En kurv man bærer på ryggen",
+     "g": [
+      "ryggkurv"
+     ]
+    },
+    {
+     "s": "Hva betyr «truger»?",
+     "a": "Rammer under skoene så man ikke synker i snøen",
+     "g": [
+      "snøsko"
+     ]
+    },
+    {
+     "s": "Hva betyr «kubbestol»?",
+     "a": "En stol hogd ut av en hel trestamme"
+    },
+    {
+     "s": "Hva betyr «færing»?",
+     "a": "En båt med fire årer"
+    },
+    {
+     "s": "Hva betyr «sodd»?",
+     "a": "Ei suppe med kjøttboller fra Trøndelag"
+    },
+    {
+     "s": "Hva betyr «mølje»?",
+     "a": "Kokt torsk med lever og rogn"
+    },
+    {
+     "s": "Hva betyr «bidos»?",
+     "a": "Ei samisk gryte med reinkjøtt"
+    },
+    {
+     "s": "Hva betyr «smalahove»?",
+     "a": "Et svidd og kokt sauehode",
+     "g": [
+      "sauehode"
+     ]
+    },
+    {
+     "s": "Hva er en «fattigmann» på julebordet?",
+     "a": "En sprø julekake stekt i fett",
+     "g": [
+      "julekake"
+     ]
+    },
+    {
+     "s": "Hva betyr «goro»?",
+     "a": "En tynn julekake stekt i et jern med mønster",
+     "g": [
+      "julekake"
+     ]
+    },
+    {
+     "s": "Hva betyr «prim»?",
+     "a": "Myk, smørbar brunost",
+     "g": [
+      "mysesmør"
+     ]
+    },
+    {
+     "s": "Hva betyr «myse»?",
+     "a": "Væska som blir igjen når man lager ost"
+    },
+    {
+     "s": "Hva betyr «tjukkmjølk»?",
+     "a": "Tykk, sur melk",
+     "g": [
+      "surmelk",
+      "kulturmelk"
+     ]
+    },
+    {
+     "s": "Hva betyr «dugurd»?",
+     "a": "Et måltid midt på formiddagen"
+    },
+    {
+     "s": "Hva var «non» på gården i gamle dager?",
+     "a": "Et måltid midt på ettermiddagen"
+    },
+    {
+     "s": "Hva betyr «skavl»?",
+     "a": "En snøkant som henger ut over en fjellkant"
+    },
+    {
+     "s": "Hva betyr «jøkul»?",
+     "a": "En isbre",
+     "g": [
+      "bre",
+      "isbre"
+     ]
+    },
+    {
+     "s": "Hva betyr «jutul»?",
+     "a": "En kjempe eller et troll",
+     "g": [
+      "troll",
+      "kjempe",
+      "jotun"
+     ]
+    },
+    {
+     "s": "Hva betyr «draug»?",
+     "a": "Et sjøspøkelse som varsler drukning"
+    },
+    {
+     "s": "Hva betyr «nøkk»?",
+     "a": "Et vannvesen som lokker folk ut i vannet"
+    },
+    {
+     "s": "Hva betyr «mare»?",
+     "a": "Et vesen som rir folk om natta"
+    },
+    {
+     "s": "Hva betyr «lindorm»?",
+     "a": "En kjempeslange i folketroen"
+    },
+    {
+     "s": "Hva betyr «vette»?",
+     "a": "Et usynlig vesen som passer på et sted"
+    },
+    {
+     "s": "Hva betyr «tusse»?",
+     "a": "Et lite vesen som bor under jorda"
+    },
+    {
+     "s": "Hva betyr «kverulant»?",
+     "a": "En som stadig klager og krangler"
+    },
+    {
+     "s": "Hva betyr «skokk»?",
+     "a": "En stor flokk",
+     "g": [
+      "flokk",
+      "mengde"
+     ]
+    },
+    {
+     "s": "Hva betyr «kløne»?",
+     "a": "En klossete person"
+    },
+    {
+     "s": "Hva betyr «tufs»?",
+     "a": "En tosk",
+     "g": [
+      "tosk",
+      "dust"
+     ]
+    },
+    {
+     "s": "Hva betyr «pjokk»?",
+     "a": "En liten gutt"
+    },
+    {
+     "s": "Hva betyr «skolt»?",
+     "a": "Hodeskallen",
+     "g": [
+      "skalle",
+      "hodeskalle"
+     ]
+    },
+    {
+     "s": "Hva betyr «tinning»?",
+     "a": "Siden av hodet mellom øyet og øret"
+    },
+    {
+     "s": "Hva betyr «vrist»?",
+     "a": "Oversiden av foten"
+    },
+    {
+     "s": "Hva betyr «knehase»?",
+     "a": "Baksiden av kneet"
+    },
+    {
+     "s": "Hva betyr «hybelkanin»?",
+     "a": "En støvdott under senga",
+     "g": [
+      "støvdott",
+      "støvdotter"
+     ]
+    },
+    {
+     "s": "Hva betyr «lommerusk»?",
+     "a": "Smuler og lo nederst i lomma"
+    },
+    {
+     "s": "Hva betyr «smørøye»?",
+     "a": "En smørklatt midt i grøten"
+    },
+    {
+     "s": "Hva betyr «klegg»?",
+     "a": "Ei stor flue som stikker",
+     "g": [
+      "blindflue"
+     ]
+    },
+    {
+     "s": "Hva betyr «knott»?",
+     "a": "Bittesmå mygg som biter"
+    },
+    {
+     "s": "Hva betyr «bøkker»?",
+     "a": "En som lager tønner",
+     "g": [
+      "tønnemaker"
+     ]
+    },
+    {
+     "s": "Hva betyr «salmaker»?",
+     "a": "En som lager saler og seletøy"
+    },
+    {
+     "s": "Hva betyr «reipslager»?",
+     "a": "En som lager tau",
+     "g": [
+      "taumaker"
+     ]
+    },
+    {
+     "s": "Hva betyr «tjærebrenner»?",
+     "a": "En som brenner tjære av furu"
+    },
+    {
+     "s": "Hva betyr «kramkar»?",
+     "a": "En omreisende selger av småvarer"
+    },
+    {
+     "s": "Hva betyr «omgangsskole»?",
+     "a": "En skole som flyttet fra gård til gård"
+    },
+    {
+     "s": "Hva betyr «føderåd»?",
+     "a": "Mat og bolig de gamle fikk da barna tok over gården",
+     "g": [
+      "kår"
+     ]
+    },
+    {
+     "s": "Hva betyr «husmann»?",
+     "a": "En som leide et lite bruk og betalte med arbeid"
+    },
+    {
+     "s": "Hva betyr «budeie»?",
+     "a": "Ei jente som stelte dyra på setra"
+    },
+    {
+     "s": "Hva betyr «skysstasjon»?",
+     "a": "Et sted der reisende kunne bytte hest"
+    },
+    {
+     "s": "Hva betyr «bautastein»?",
+     "a": "En høy stein reist til minne om noen"
+    },
+    {
+     "s": "Hva betyr «leidang»?",
+     "a": "Bøndenes plikt til å stille skip og menn for kongen"
+    },
+    {
+     "s": "Hva betyr «lurk»?",
+     "a": "En kraftig kjepp",
+     "g": [
+      "kølle",
+      "kjepp"
+     ]
+    },
+    {
+     "s": "Hva betyr «tust»?",
+     "a": "En liten dott av hår eller gras"
+    },
+    {
+     "s": "Hva betyr «kav»?",
+     "a": "Strev og mas",
+     "g": [
+      "strev",
+      "slit"
+     ]
+    },
+    {
+     "s": "Hva betyr «ljå»?",
+     "a": "Et langt redskap med krumt blad til å slå gras"
+    },
+    {
+     "s": "Hva betyr «sigd»?",
+     "a": "Et lite, krumt redskap til å skjære korn"
+    },
+    {
+     "s": "Hva betyr «vadmel»?",
+     "a": "Tykt, tovet ullstoff"
+    },
+    {
+     "s": "Hva betyr «snusfornuftig»?",
+     "a": "Overdrevent og kjedelig fornuftig"
+    },
+    {
+     "s": "Hva betyr «smålåten»?",
+     "a": "Beskjeden",
+     "g": [
+      "beskjeden"
+     ]
+    },
+    {
+     "s": "Hva betyr «gnål»?",
+     "a": "Mas og sutring",
+     "g": [
+      "mas",
+      "sutring"
+     ]
+    },
+    {
+     "s": "Hva betyr «skvalder»?",
+     "a": "Tomt prat",
+     "g": [
+      "prat",
+      "skravling"
+     ]
+    },
+    {
+     "s": "Hva betyr «pjatt»?",
+     "a": "Tull og fjas",
+     "g": [
+      "tull",
+      "fjas",
+      "tøys"
+     ]
+    },
+    {
+     "s": "Hva betyr «kjøkemester»?",
+     "a": "En som styrte kjøkkenet på et slott eller en herregård"
+    },
+    {
+     "s": "Hva betyr «dreng»?",
+     "a": "En gårdsarbeider",
+     "g": [
+      "gårdsgutt",
+      "gårdsarbeider"
+     ]
+    },
+    {
+     "s": "Hva betyr «hird»?",
+     "a": "Kongens faste følge av krigere"
+    },
+    {
+     "s": "Hva betyr «odel»?",
+     "a": "Retten til å arve og løse inn slektsgården"
+    },
+    {
+     "s": "Hva betyr «bislag»?",
+     "a": "Et lite, overbygd inngangsparti"
+    },
+    {
+     "s": "Hva betyr «svalgang»?",
+     "a": "En åpen gang langs veggen på et tømmerhus"
+    },
+    {
+     "s": "Hva betyr «grue»?",
+     "a": "Et åpent ildsted",
+     "g": [
+      "peis",
+      "ildsted"
+     ]
+    },
+    {
+     "s": "Hva betyr «kyse»?",
+     "a": "Ei lue som knyttes under haka"
+    },
+    {
+     "s": "Hva betyr «stakk»?",
+     "a": "Et skjørt",
+     "g": [
+      "skjørt"
+     ]
+    },
+    {
+     "s": "Hva betyr «kalesje»?",
+     "a": "Et sammenleggbart tak på en vogn"
+    },
+    {
+     "s": "Hva betyr «karjol»?",
+     "a": "Ei lett vogn på to hjul for én person"
+    },
+    {
+     "s": "Hva betyr «tranlampe»?",
+     "a": "En lampe som brant fiskeolje"
+    },
+    {
+     "s": "Hva betyr «talglys»?",
+     "a": "Lys laget av dyrefett"
+    },
+    {
+     "s": "Hva betyr «tine»?",
+     "a": "Ei oval treeske med lokk"
+    },
+    {
+     "s": "Hva betyr «rokk»?",
+     "a": "Et hjul til å spinne ull til garn",
+     "g": [
+      "spinnerokk"
+     ]
+    },
+    {
+     "s": "Hva betyr «karde»?",
+     "a": "Et redskap til å greie ull"
+    },
+    {
+     "s": "Det engelske ordet «slalom» kommer fra norsk «slalåm». Hva betydde det opprinnelig?",
+     "a": "Et skrånende skispor",
+     "g": [
+      "skrånende spor"
+     ]
+    },
+    {
+     "s": "Ordet «ski» kommer fra norrønt «skíð». Hva betydde det?",
+     "a": "Et kløyvd vedstykke",
+     "g": [
+      "vedstykke",
+      "trestykke"
+     ]
+    },
+    {
+     "s": "Ordet «vindu» kommer fra norrønt. Hva betydde det opprinnelig?",
+     "a": "Vindøye",
+     "g": [
+      "vindens øye",
+      "vind øye"
+     ]
+    },
+    {
+     "s": "Hva betydde «lørdag» opprinnelig?",
+     "a": "Vaskedag",
+     "g": [
+      "badedag",
+      "vaskedagen"
+     ]
+    },
+    {
+     "s": "Hvem er onsdag oppkalt etter?",
+     "a": "Odin",
+     "g": [
+      "odin"
+     ]
+    },
+    {
+     "s": "Ordet «robot» kommer fra et ord for tvangsarbeid. Fra hvilket språk?",
+     "a": "Tsjekkisk"
+    },
+    {
+     "s": "Ordet «sjampo» kommer fra hindi. Hva betyr det der?",
+     "a": "Å massere",
+     "g": [
+      "massere",
+      "massasje"
+     ]
+    },
+    {
+     "s": "Sjømonsteret «kraken» har fått navnet sitt fra hvilket språk?",
+     "a": "Norsk"
+    }
+   ]
+  },
+  {
+   "id": "fakta",
+   "navn": "Rare fakta",
+   "ikon": "🤯",
+   "tekst": "Sant, men sprøtt",
+   "kort": [
+    {
+     "s": "Hver jul siden 1947 har Norge sendt et stort … til London.",
+     "a": "Juletre",
+     "g": [
+      "et juletre"
+     ]
+    },
+    {
+     "s": "En … i en dyrehage i Skottland har høy offisersgrad i Kongens garde.",
+     "a": "Pingvin",
+     "g": [
+      "kongepingvin"
+     ]
+    },
+    {
+     "s": "Det var et norsk eksportprosjekt på 1980-tallet som fikk japanerne til å bruke … i sushi.",
+     "a": "Laks"
+    },
+    {
+     "s": "Under krigen gikk mange nordmenn med … på jakkeslaget som et stille protestmerke.",
+     "a": "Binders",
+     "g": [
+      "en binders"
+     ]
+    },
+    {
+     "s": "I 1941 måtte de fleste nordmenn levere fra seg … til okkupasjonsmakten.",
+     "a": "Radioen sin",
+     "g": [
+      "radio",
+      "radioer",
+      "radioen",
+      "radioapparat"
+     ]
+    },
+    {
+     "s": "Helt fram til 1960 måtte nordmenn ha … for å kjøpe ny bil.",
+     "a": "Tillatelse fra staten",
+     "g": [
+      "tillatelse",
+      "kjøpetillatelse"
+     ]
+    },
+    {
+     "s": "Under oljekrisa vinteren 1973–74 var det forbudt å … i helgene i Norge.",
+     "a": "Kjøre bil",
+     "g": [
+      "kjøre",
+      "bilkjøring"
+     ]
+    },
+    {
+     "s": "Fra 1916 til 1927 var det forbudt å selge … i Norge.",
+     "a": "Brennevin",
+     "g": [
+      "sprit"
+     ]
+    },
+    {
+     "s": "Hurtigruta gikk sin første tur i år …",
+     "a": "1893"
+    },
+    {
+     "s": "Den første offisielle TV-sendingen i Norge var i år …",
+     "a": "1960"
+    },
+    {
+     "s": "Før 1925 het Oslo …",
+     "a": "Kristiania",
+     "g": [
+      "christiania"
+     ]
+    },
+    {
+     "s": "I middelalderen het Trondheim …",
+     "a": "Nidaros"
+    },
+    {
+     "s": "Det er forbudt å ta med seg … til Svalbard.",
+     "a": "Katt",
+     "g": [
+      "katter"
+     ]
+    },
+    {
+     "s": "Kirkegården i Longyearbyen har nesten ikke tatt imot kister siden 1950-tallet fordi …",
+     "a": "De døde ikke råtner i den frosne bakken"
+    },
+    {
+     "s": "Lærdalstunnelen er verdens lengste veitunnel. Den er … lang.",
+     "a": "24,5 kilometer",
+     "g": [
+      "24 5 km",
+      "24 5"
+     ]
+    },
+    {
+     "s": "Inne i Lærdalstunnelen er det tre store fjellhaller med … for at sjåførene skal holde seg våkne.",
+     "a": "Blått lys",
+     "g": [
+      "blått og gult lys"
+     ]
+    },
+    {
+     "s": "Botanisk sett er bananen et …",
+     "a": "Bær"
+    },
+    {
+     "s": "Honning som er tett lukket, kan holde seg i …",
+     "a": "Tusenvis av år"
+    },
+    {
+     "s": "Keiser Napoleon 3. hadde bestikk av … fordi det var finere enn gull.",
+     "a": "Aluminium"
+    },
+    {
+     "s": "Eiffeltårnet kan bli … høyere om sommeren.",
+     "a": "Rundt 15 centimeter",
+     "g": [
+      "15 cm",
+      "15 centimeter"
+     ]
+    },
+    {
+     "s": "Lyset fra sola bruker omtrent … på å nå jorda.",
+     "a": "Åtte minutter",
+     "g": [
+      "8 minutter"
+     ]
+    },
+    {
+     "s": "Det finnes flere … på jorda enn stjerner i Melkeveien.",
+     "a": "Trær"
+    },
+    {
+     "s": "Universitetet i Oxford er eldre enn …",
+     "a": "Aztekerriket",
+     "g": [
+      "aztekerne"
+     ]
+    },
+    {
+     "s": "Kleopatra levde nærmere i tid … enn byggingen av den store pyramiden.",
+     "a": "Månelandingen"
+    },
+    {
+     "s": "Det fantes fortsatt levende mammuter da … ble bygd.",
+     "a": "Pyramidene i Egypt",
+     "g": [
+      "pyramidene"
+     ]
+    },
+    {
+     "s": "Verdens korteste krig varte under en time. Den var mellom Storbritannia og …",
+     "a": "Zanzibar"
+    },
+    {
+     "s": "Den norske kronen ble innført i år …",
+     "a": "1875"
+    },
+    {
+     "s": "Før kronen hadde Norge en mynt som het …",
+     "a": "Speciedaler",
+     "g": [
+      "spesidaler",
+      "daler"
+     ]
+    },
+    {
+     "s": "Byen som regnes som Norges eldste, er …",
+     "a": "Tønsberg"
+    },
+    {
+     "s": "Det norske flagget ble tegnet i år …",
+     "a": "1821"
+    },
+    {
+     "s": "Norske kvinner fikk alminnelig stemmerett i år …",
+     "a": "1913"
+    },
+    {
+     "s": "Fridtjof Nansen fikk Nobels fredspris for …",
+     "a": "Hjelpen til flyktninger og krigsfanger",
+     "g": [
+      "flyktninghjelp"
+     ]
+    },
+    {
+     "s": "Roald Amundsen var den første som seilte gjennom …",
+     "a": "Nordvestpassasjen"
+    },
+    {
+     "s": "Flåten Kon-Tiki som krysset Stillehavet i 1947, var laget av …",
+     "a": "Balsatre",
+     "g": [
+      "balsa"
+     ]
+    },
+    {
+     "s": "Vigelandsparken i Oslo har over … skulpturer.",
+     "a": "200",
+     "g": [
+      "over 200"
+     ]
+    },
+    {
+     "s": "Statuen «Sinnataggen» i Vigelandsparken forestiller …",
+     "a": "En sint liten gutt"
+    },
+    {
+     "s": "Det første hopprennet i Holmenkollen var i år …",
+     "a": "1892"
+    },
+    {
+     "s": "Den fete, søte brunosten ble laget første gang i 1863 av ei budeie i …",
+     "a": "Gudbrandsdalen"
+    },
+    {
+     "s": "Under oljekrisa ble kong Olav fotografert mens han tok … til skituren.",
+     "a": "Holmenkollbanen",
+     "g": [
+      "trikken",
+      "t banen"
+     ]
+    },
+    {
+     "s": "Ordet «kiosk» kommer fra et ord for …",
+     "a": "Paviljong",
+     "g": [
+      "hagepaviljong"
+     ]
+    },
+    {
+     "s": "Lyn er varmere enn …",
+     "a": "Overflaten på sola",
+     "g": [
+      "sola"
+     ]
+    },
+    {
+     "s": "På 1800-tallet eksporterte Norge store mengder … til England.",
+     "a": "Is",
+     "g": [
+      "isblokker"
+     ]
+    },
+    {
+     "s": "Fram til 1842 var det forbudt i Norge å holde … uten prest.",
+     "a": "Religiøse møter",
+     "g": [
+      "bønnemøter",
+      "andakter"
+     ]
+    },
+    {
+     "s": "I de første moderne olympiske lekene i 1896 fikk vinnerne …",
+     "a": "Sølvmedalje",
+     "g": [
+      "sølv"
+     ]
+    },
+    {
+     "s": "Fra 1912 til 1948 var det olympiske medaljer i …",
+     "a": "Kunst",
+     "g": [
+      "maling",
+      "kunstkonkurranser"
+     ]
+    },
+    {
+     "s": "Tautrekking var en olympisk øvelse fram til år …",
+     "a": "1920"
+    }
+   ]
+  },
+  {
+   "id": "steder",
+   "navn": "Stedsnavn",
+   "ikon": "🗺️",
+   "tekst": "Rare steder",
+   "kort": [
+    {
+     "s": "Hvor ligger tettstedet Hell?",
+     "a": "I Stjørdal i Trøndelag",
+     "g": [
+      "stjørdal",
+      "trøndelag"
+     ]
+    },
+    {
+     "s": "Hvor ligger bygda Å, med et av Norges korteste stedsnavn?",
+     "a": "Ytterst i Lofoten",
+     "g": [
+      "lofoten",
+      "moskenes"
+     ]
+    },
+    {
+     "s": "Hvilken norsk by fikk store speil på fjellet for å få sol om vinteren?",
+     "a": "Rjukan"
+    },
+    {
+     "s": "Hvilket fjell ble kåret til Norges nasjonalfjell i 2002?",
+     "a": "Stetind"
+    },
+    {
+     "s": "Hva heter Europas dypeste innsjø, som ligger i Norge?",
+     "a": "Hornindalsvatnet"
+    },
+    {
+     "s": "Hvilken liten svensk landsby har gitt navn til fire grunnstoffer?",
+     "a": "Ytterby"
+    },
+    {
+     "s": "Byen Boring i USA har en vennskapsby i Skottland. Hva heter den?",
+     "a": "Dull"
+    },
+    {
+     "s": "Hva er spesielt med stedsnavnet «Saint-Louis-du-Ha! Ha!» i Canada?",
+     "a": "Det har to utropstegn",
+     "g": [
+      "to utropstegn",
+      "utropstegn"
+     ]
+    },
+    {
+     "s": "Hvor ligger byen Batman?",
+     "a": "I Tyrkia",
+     "g": [
+      "tyrkia"
+     ]
+    },
+    {
+     "s": "Hvilket land har en kommune som heter Ii?",
+     "a": "Finland"
+    },
+    {
+     "s": "I hvilket land ligger landsbyen Y?",
+     "a": "Frankrike"
+    },
+    {
+     "s": "I hvilket land ligger byen Wagga Wagga?",
+     "a": "Australia"
+    },
+    {
+     "s": "I hvilket land ligger Timbuktu?",
+     "a": "Mali"
+    },
+    {
+     "s": "Byen Truth or Consequences i USA byttet navn i 1950. Hva het den før?",
+     "a": "Hot Springs"
+    },
+    {
+     "s": "Hva heter Europas nordligste punkt på fastlandet?",
+     "a": "Kinnarodden"
+    },
+    {
+     "s": "Hva regnes som verdens mest avsidesliggende øy?",
+     "a": "Bouvetøya",
+     "g": [
+      "bouvetoya"
+     ]
+    },
+    {
+     "s": "Hva heter vulkanen på Jan Mayen?",
+     "a": "Beerenberg"
+    },
+    {
+     "s": "Hvilken by blir ofte kalt «Nordens Paris»?",
+     "a": "Tromsø"
+    },
+    {
+     "s": "Bergen kalles byen mellom de … fjell.",
+     "a": "Sju",
+     "g": [
+      "syv",
+      "7"
+     ]
+    },
+    {
+     "s": "Hvilken norsk kommune har færrest innbyggere?",
+     "a": "Utsira"
+    },
+    {
+     "s": "Hvor mange bokstaver har det lengste offisielle navnet på landsbyen Llanfair PG i Wales?",
+     "a": "58"
+    },
+    {
+     "s": "I hvilken amerikansk delstat ligger byen North Pole?",
+     "a": "Alaska"
+    },
+    {
+     "s": "I hvilken amerikansk delstat ligger byen Santa Claus?",
+     "a": "Indiana"
+    },
+    {
+     "s": "Hva heter øya ved Antarktis som Norge gjør krav på, oppkalt etter en russisk tsar?",
+     "a": "Peter I Øy",
+     "g": [
+      "peter den første",
+      "peter 1 øy"
+     ]
+    },
+    {
+     "s": "Hvor ligger Kjeragbolten, steinen som sitter fast i en fjellsprekk?",
+     "a": "Ved Lysefjorden i Rogaland",
+     "g": [
+      "lysefjorden",
+      "rogaland"
+     ]
+    },
+    {
+     "s": "Hvor ligger Trolltunga?",
+     "a": "I Hardanger, ved Odda",
+     "g": [
+      "hardanger",
+      "odda"
+     ]
+    },
+    {
+     "s": "Hva heter tidevannsstrømmen ved Bodø som er blant verdens sterkeste?",
+     "a": "Saltstraumen"
+    },
+    {
+     "s": "Hvilken strøm i Norge inspirerte Edgar Allan Poe til en novelle om en malstrøm?",
+     "a": "Moskstraumen i Lofoten",
+     "g": [
+      "moskstraumen"
+     ]
+    },
+    {
+     "s": "Hva er Norges sørligste punkt på fastlandet?",
+     "a": "Lindesnes",
+     "g": [
+      "lindesnes fyr"
+     ]
+    },
+    {
+     "s": "Hvor ligger stedet Verdens Ende?",
+     "a": "På Tjøme i Vestfold",
+     "g": [
+      "tjøme",
+      "vestfold",
+      "færder"
+     ]
+    },
+    {
+     "s": "I hvilken dal ligger bygda Ål?",
+     "a": "Hallingdal",
+     "g": [
+      "hallingdalen"
+     ]
+    },
+    {
+     "s": "Hvor ligger Ski?",
+     "a": "I Follo, sør for Oslo",
+     "g": [
+      "follo",
+      "nordre follo",
+      "akershus"
+     ]
+    },
+    {
+     "s": "Hva er hovedstaden i Burkina Faso?",
+     "a": "Ouagadougou"
+    },
+    {
+     "s": "Hva er hovedstaden i Bhutan?",
+     "a": "Thimphu"
+    },
+    {
+     "s": "Hvilket land har flest innsjøer i verden?",
+     "a": "Canada"
+    },
+    {
+     "s": "Hva heter den lille byen i Kansas som var midtpunktet i USA før Alaska og Hawaii kom med?",
+     "a": "Lebanon"
+    },
+    {
+     "s": "Hva heter Norges lengste elv?",
+     "a": "Glomma",
+     "g": [
+      "glåma"
+     ]
+    },
+    {
+     "s": "Hvilken landsby i Nederland er kjent for å ha kanaler i stedet for veier?",
+     "a": "Giethoorn"
+    },
+    {
+     "s": "Hvilken by ligger på to kontinenter?",
+     "a": "Istanbul"
+    },
+    {
+     "s": "Hvilket land har et flagg som ikke er firkantet?",
+     "a": "Nepal"
+    },
+    {
+     "s": "Hvilket land ligger helt omsluttet av Sør-Afrika?",
+     "a": "Lesotho"
+    },
+    {
+     "s": "Hva heter Norges største øy, når Svalbard ikke er med?",
+     "a": "Hinnøya"
+    },
+    {
+     "s": "Hva heter øya i Lofoten der Svolvær og Kabelvåg ligger?",
+     "a": "Austvågøya"
+    },
+    {
+     "s": "Hvilken gammel gruveby kalles «Bergstaden» og står på UNESCOs verdensarvliste?",
+     "a": "Røros"
+    },
+    {
+     "s": "Hva heter øygruppa mellom Norge og Island som hører til Danmark?",
+     "a": "Færøyene"
+    },
+    {
+     "s": "Hva heter Norges største innsjø?",
+     "a": "Mjøsa"
+    }
+   ]
+  },
+  {
+   "id": "dyr",
+   "navn": "Dyr og natur",
+   "ikon": "🦔",
+   "tekst": "Merkelige skapninger",
+   "kort": [
+    {
+     "s": "Vombaten er kjent for at den bæsjer …",
+     "a": "Firkantet",
+     "g": [
+      "firkanter",
+      "terninger",
+      "kuber",
+      "firkantede",
+      "som terninger"
+     ]
+    },
+    {
+     "s": "Nebbdyret er et pattedyr som …",
+     "a": "Legger egg"
+    },
+    {
+     "s": "Nebbdyrhannen har … på bakbeina.",
+     "a": "Giftige sporer",
+     "g": [
+      "giftpigger",
+      "giftige pigger"
+     ]
+    },
+    {
+     "s": "Salamanderen aksolotl kan …",
+     "a": "Gro ut igjen bein den har mistet"
+    },
+    {
+     "s": "De bittesmå bjørnedyrene har overlevd …",
+     "a": "Ute i verdensrommet",
+     "g": [
+      "i verdensrommet",
+      "verdensrommet"
+     ]
+    },
+    {
+     "s": "Fossekallen kan …",
+     "a": "Gå på bunnen av elva",
+     "g": [
+      "gå under vann",
+      "gå på bunnen"
+     ]
+    },
+    {
+     "s": "Norges nasjonalfugl er …",
+     "a": "Fossekallen"
+    },
+    {
+     "s": "Hva kalles røyskatten når den har hvit vinterpels?",
+     "a": "Hermelin"
+    },
+    {
+     "s": "Hva kaller mange de myke, grå blomstene på selja om våren?",
+     "a": "Gåsunger"
+    },
+    {
+     "s": "Narhvalens lange horn er egentlig en …",
+     "a": "Tann",
+     "g": [
+      "stor tann"
+     ]
+    },
+    {
+     "s": "Spekkhoggeren er egentlig en stor …",
+     "a": "Delfin"
+    },
+    {
+     "s": "Hvithvalen blir ofte kalt havets …",
+     "a": "Kanarifugl"
+    },
+    {
+     "s": "Grønlandshaien kan bli …",
+     "a": "Flere hundre år gammel",
+     "g": [
+      "flere hundre år"
+     ]
+    },
+    {
+     "s": "Norge har tre slangearter: hoggorm, buorm og …",
+     "a": "Slettsnok"
+    },
+    {
+     "s": "Gaupa er det eneste ville … i Norge.",
+     "a": "Kattedyret",
+     "g": [
+      "katt",
+      "kattedyr"
+     ]
+    },
+    {
+     "s": "Moskusoksene på Dovrefjell ble hentet fra …",
+     "a": "Grønland"
+    },
+    {
+     "s": "Fjesingen er en fisk langs norskekysten som har …",
+     "a": "Giftige pigger",
+     "g": [
+      "giftpigger"
+     ]
+    },
+    {
+     "s": "Breiflabben lokker til seg mat med …",
+     "a": "En slags fiskestang på hodet",
+     "g": [
+      "fiskestang"
+     ]
+    },
+    {
+     "s": "Rognkjeks brukes i fiskeoppdrett til å …",
+     "a": "Spise lus av laksen",
+     "g": [
+      "spise lakselus"
+     ]
+    },
+    {
+     "s": "Vandrefalken kan stupe i over …",
+     "a": "300 km/t",
+     "g": [
+      "300",
+      "300 km i timen"
+     ]
+    },
+    {
+     "s": "Gjøken legger eggene sine …",
+     "a": "I reiret til andre fugler"
+    },
+    {
+     "s": "Kråker kan kjenne igjen …",
+     "a": "Menneskeansikter",
+     "g": [
+      "ansikter"
+     ]
+    },
+    {
+     "s": "Hummeren har … blod.",
+     "a": "Blått",
+     "g": [
+      "blått blod"
+     ]
+    },
+    {
+     "s": "Dovendyr har ofte … som vokser i pelsen.",
+     "a": "Alger"
+    },
+    {
+     "s": "Sekretærfuglen dreper slanger ved å …",
+     "a": "Trampe på dem",
+     "g": [
+      "trampe"
+     ]
+    },
+    {
+     "s": "Lyrefuglen kan herme etter …",
+     "a": "Motorsager og kameraer",
+     "g": [
+      "motorsag"
+     ]
+    },
+    {
+     "s": "Bombarderbillen forsvarer seg ved å …",
+     "a": "Sprute kokende varm væske"
+    },
+    {
+     "s": "Pistolreka slår klørne sammen så fort at det …",
+     "a": "Smeller så byttet blir bedøvd",
+     "g": [
+      "smeller"
+     ]
+    },
+    {
+     "s": "Mantisreka slår så hardt at den kan …",
+     "a": "Knuse akvarieglass"
+    },
+    {
+     "s": "Okapien er i nær slekt med …",
+     "a": "Sjiraffen",
+     "g": [
+      "sjiraff"
+     ]
+    },
+    {
+     "s": "Nakenrotta kan bli over …",
+     "a": "30 år gammel",
+     "g": [
+      "30 år"
+     ]
+    },
+    {
+     "s": "Snøaper i Japan holder varmen om vinteren ved å …",
+     "a": "Bade i varme kilder"
+    },
+    {
+     "s": "Når bestanden er stor, er lemen kjent for å …",
+     "a": "Vandre i store mengder"
+    },
+    {
+     "s": "Lundefuglen kan bære … i nebbet på en gang.",
+     "a": "Mange småfisk",
+     "g": [
+      "mange fisker"
+     ]
+    },
+    {
+     "s": "Havørna har et vingespenn på …",
+     "a": "Over to meter",
+     "g": [
+      "2 meter",
+      "to meter"
+     ]
+    },
+    {
+     "s": "Elgen er den største arten av …",
+     "a": "Hjortedyr"
+    },
+    {
+     "s": "Rabarbrabladene er …",
+     "a": "Giftige"
+    },
+    {
+     "s": "Om våren kan sevja fra … drikkes.",
+     "a": "Bjørka",
+     "g": [
+      "bjørk"
+     ]
+    },
+    {
+     "s": "Moltebær vokser på …",
+     "a": "Myra",
+     "g": [
+      "myr",
+      "myrer"
+     ]
+    },
+    {
+     "s": "Om vinteren spiser reinen mest …",
+     "a": "Reinlav",
+     "g": [
+      "lav"
+     ]
+    },
+    {
+     "s": "Hestehoven blomstrer om våren før …",
+     "a": "Bladene kommer"
+    },
+    {
+     "s": "Torvmose kan holde på … sin egen vekt i vann.",
+     "a": "Opptil 20 ganger",
+     "g": [
+      "20 ganger"
+     ]
+    },
+    {
+     "s": "Hjorten feller … hvert år.",
+     "a": "Geviret",
+     "g": [
+      "gevir",
+      "hornene"
+     ]
+    },
+    {
+     "s": "Kolibrien kan fly …",
+     "a": "Baklengs"
+    },
+    {
+     "s": "Strutsen har øyne som er større enn …",
+     "a": "Hjernen"
+    },
+    {
+     "s": "Ugla kan snu hodet omtrent …",
+     "a": "270 grader",
+     "g": [
+      "270"
+     ]
+    },
+    {
+     "s": "Delfiner sover med … om gangen.",
+     "a": "Halve hjernen",
+     "g": [
+      "en hjernehalvdel"
+     ]
+    },
+    {
+     "s": "Hos sjøhesten er det … som går gravid.",
+     "a": "Hannen",
+     "g": [
+      "pappaen",
+      "faren"
+     ]
+    },
+    {
+     "s": "Hagesnegler har …",
+     "a": "Tusenvis av bittesmå tenner",
+     "g": [
+      "tusenvis av tenner"
+     ]
+    },
+    {
+     "s": "Sebraen har … hud under stripene.",
+     "a": "Svart",
+     "g": [
+      "mørk"
+     ]
+    },
+    {
+     "s": "Sjiraffen har like mange … i halsen som et menneske.",
+     "a": "Nakkevirvler",
+     "g": [
+      "virvler",
+      "halsvirvler"
+     ]
+    },
+    {
+     "s": "Verdens største fisk er …",
+     "a": "Hvalhaien",
+     "g": [
+      "hvalhai"
+     ]
+    },
+    {
+     "s": "Isbjørnens pels er egentlig …",
+     "a": "Gjennomsiktig",
+     "g": [
+      "fargeløs"
+     ]
+    },
+    {
+     "s": "Snøugla har … under føttene.",
+     "a": "Fjær"
+    },
+    {
+     "s": "Fjellreven skifter pels. Om vinteren er den som regel …",
+     "a": "Hvit",
+     "g": [
+      "hvit pels"
+     ]
+    },
+    {
+     "s": "Hvilken fugl har unger som hopper ned fra fuglefjellet før de kan fly?",
+     "a": "Lomvien",
+     "g": [
+      "lomvi"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "oppfinnelser",
+   "navn": "Gamle oppfinnelser",
+   "ikon": "⚙️",
+   "tekst": "Og gamle lover",
+   "kort": [
+    {
+     "s": "Ostehøvelen ble oppfunnet i 1925 av en snekker fra …",
+     "a": "Lillehammer"
+    },
+    {
+     "s": "Nordmannen Erik Rotheim fikk patent på … i 1920-årene.",
+     "a": "Sprayboksen",
+     "g": [
+      "spray",
+      "sprayboks",
+      "aerosolboks"
+     ]
+    },
+    {
+     "s": "Nordmannen Johan Vaaler fikk patent på en type … rundt år 1900.",
+     "a": "Binders"
+    },
+    {
+     "s": "Bobleplast ble først laget for å bli …",
+     "a": "Tapet"
+    },
+    {
+     "s": "Borrelåsen ble funnet opp etter at noen så … som hang fast i hundepelsen.",
+     "a": "Borrer",
+     "g": [
+      "borre",
+      "kardeborre"
+     ]
+    },
+    {
+     "s": "Mikrobølgeovnen ble oppdaget etter at … smeltet i lomma på en ingeniør.",
+     "a": "En sjokoladebit",
+     "g": [
+      "sjokolade"
+     ]
+    },
+    {
+     "s": "Den første datamusa var laget av …",
+     "a": "Tre"
+    },
+    {
+     "s": "Det første trafikklyset sto i London i 1868 og gikk på …",
+     "a": "Gass"
+    },
+    {
+     "s": "De første passasjerene i en varmluftsballong i 1783 var …",
+     "a": "En sau, en and og en hane",
+     "g": [
+      "dyr"
+     ]
+    },
+    {
+     "s": "De første levende vesenene sendt ut i verdensrommet var …",
+     "a": "Bananfluer"
+    },
+    {
+     "s": "Hermetikkboksen ble oppfunnet omtrent 50 år før …",
+     "a": "Boksåpneren"
+    },
+    {
+     "s": "Oppvaskmaskinen ble oppfunnet av en kvinne som var lei av at …",
+     "a": "Tjenerne knuste porselenet hennes"
+    },
+    {
+     "s": "Vindusviskeren ble oppfunnet i 1903 etter at oppfinneren så …",
+     "a": "En sjåfør som måtte stikke hodet ut av vinduet"
+    },
+    {
+     "s": "Sjakkmaskinen «Tyrkeren» fra 1770 hadde … inni seg.",
+     "a": "En sjakkspiller som gjemte seg"
+    },
+    {
+     "s": "I Kina for over 500 år siden ble tannbørster laget av …",
+     "a": "Grisebust",
+     "g": [
+      "bust fra gris"
+     ]
+    },
+    {
+     "s": "Sikkerhetsfyrstikken ble oppfunnet i …",
+     "a": "Sverige"
+    },
+    {
+     "s": "Den første parkeringsautomaten ble satt opp i 1935 i …",
+     "a": "USA",
+     "g": [
+      "oklahoma"
+     ]
+    },
+    {
+     "s": "De første rulleskøytene ble laget på …",
+     "a": "1700-tallet",
+     "g": [
+      "1700"
+     ]
+    },
+    {
+     "s": "Teddybjørnen er oppkalt etter …",
+     "a": "En amerikansk president",
+     "g": [
+      "president"
+     ]
+    },
+    {
+     "s": "Sandwichen er oppkalt etter …",
+     "a": "En engelsk jarl",
+     "g": [
+      "jarl"
+     ]
+    },
+    {
+     "s": "På 1830-tallet ble tomatketchup solgt som …",
+     "a": "Medisin"
+    },
+    {
+     "s": "Det eldste fotografiet som finnes i dag, viser …",
+     "a": "Utsikten fra et vindu"
+    },
+    {
+     "s": "Den første bilen til Karl Benz fra 1886 hadde …",
+     "a": "Tre hjul"
+    },
+    {
+     "s": "På den første lange biltur i 1888 kjøpte sjåføren drivstoff på …",
+     "a": "Et apotek",
+     "g": [
+      "apotek"
+     ]
+    },
+    {
+     "s": "Heisoppfinneren Elisha Otis viste at heisen var trygg ved å …",
+     "a": "Kutte tauet mens han sto i den"
+    },
+    {
+     "s": "Den første vekkerklokka fra 1787 kunne bare ringe …",
+     "a": "Klokka fire om morgenen",
+     "g": [
+      "klokka 4"
+     ]
+    },
+    {
+     "s": "Før viskelæret visket man ut blyant med …",
+     "a": "Brødsmuler",
+     "g": [
+      "brød"
+     ]
+    },
+    {
+     "s": "Stetoskopet ble oppfunnet fordi legen syntes det var pinlig å …",
+     "a": "Legge øret på brystet til pasienten"
+    },
+    {
+     "s": "De første kontaktlinsene fra 1888 var laget av …",
+     "a": "Glass"
+    },
+    {
+     "s": "Det første lydopptaket Thomas Edison gjorde, var et …",
+     "a": "Barnerim",
+     "g": [
+      "dikt",
+      "barnesang"
+     ]
+    },
+    {
+     "s": "Oppfinneren av telefonen ville at man skulle svare med …",
+     "a": "«Ohoi»",
+     "g": [
+      "ahoy",
+      "ohoi"
+     ]
+    },
+    {
+     "s": "Trampolinen ble oppfunnet av en turner som fikk ideen av …",
+     "a": "Sikkerhetsnettet til trapesartister"
+    },
+    {
+     "s": "Paraplyer ble først brukt for å skjerme seg mot …",
+     "a": "Sola",
+     "g": [
+      "sol"
+     ]
+    },
+    {
+     "s": "Høye hæler ble først brukt av …",
+     "a": "Menn som red",
+     "g": [
+      "menn",
+      "ryttere"
+     ]
+    },
+    {
+     "s": "Blyanter er ikke laget av bly, men av …",
+     "a": "Grafitt og leire",
+     "g": [
+      "grafitt"
+     ]
+    },
+    {
+     "s": "Termosflaska ble først laget for å …",
+     "a": "Holde ting kalde i laboratorier"
+    },
+    {
+     "s": "Før kjøleskapet holdt folk maten kald med …",
+     "a": "Is fra innsjøer",
+     "g": [
+      "is",
+      "isblokker"
+     ]
+    },
+    {
+     "s": "Den første moderne sykkelen uten pedaler fra 1817 ble kalt …",
+     "a": "Løpemaskin",
+     "g": [
+      "løpesykkel",
+      "sparkesykkel"
+     ]
+    },
+    {
+     "s": "Den første kjente salgsautomaten, fra oldtidens Alexandria, solgte …",
+     "a": "Vievann",
+     "g": [
+      "hellig vann"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "barn",
+   "navn": "Barn",
+   "ikon": "🧸",
+   "tekst": "For de minste",
+   "kort": [
+    {
+     "s": "Blekkspruten har … hjerter.",
+     "a": "Tre",
+     "g": [
+      "3"
+     ]
+    },
+    {
+     "s": "Sommerfugler smaker med …",
+     "a": "Føttene",
+     "g": [
+      "beina"
+     ]
+    },
+    {
+     "s": "Under den hvite pelsen har isbjørnen … hud.",
+     "a": "Svart",
+     "g": [
+      "mørk"
+     ]
+    },
+    {
+     "s": "Sjøstjerna har ikke …",
+     "a": "Hjerne"
+    },
+    {
+     "s": "Hos sjøhesten er det pappaen som …",
+     "a": "Bærer ungene i magen",
+     "g": [
+      "føder ungene",
+      "bærer ungene"
+     ]
+    },
+    {
+     "s": "Kamelen har ikke vann i pukkelen, men …",
+     "a": "Fett"
+    },
+    {
+     "s": "Hester kan sove …",
+     "a": "Stående"
+    },
+    {
+     "s": "Krokodiller kan ikke …",
+     "a": "Rekke ut tunga"
+    },
+    {
+     "s": "Noen pingviner frier med en …",
+     "a": "Stein"
+    },
+    {
+     "s": "Bier forteller hverandre hvor blomstene er ved å …",
+     "a": "Danse"
+    },
+    {
+     "s": "Dyret med de største øynene i verden er …",
+     "a": "Kjempeblekkspruten",
+     "g": [
+      "blekksprut",
+      "kjempeblekksprut"
+     ]
+    },
+    {
+     "s": "Det største dyret som noen gang har levd, er …",
+     "a": "Blåhvalen",
+     "g": [
+      "blåhval"
+     ]
+    },
+    {
+     "s": "Magen til kua har … rom.",
+     "a": "Fire",
+     "g": [
+      "4"
+     ]
+    },
+    {
+     "s": "Pandaen spiser nesten bare …",
+     "a": "Bambus"
+    },
+    {
+     "s": "Kyllingen hakker seg ut av egget med …",
+     "a": "En liten eggtann på nebbet",
+     "g": [
+      "eggtann",
+      "nebbet"
+     ]
+    },
+    {
+     "s": "Gullfisker kan huske ting i …",
+     "a": "Flere måneder",
+     "g": [
+      "måneder"
+     ]
+    },
+    {
+     "s": "Planeten Saturn er så lett at den kunne ha fløtet i …",
+     "a": "Et kjempestort badekar",
+     "g": [
+      "badekar",
+      "vann"
+     ]
+    },
+    {
+     "s": "På Venus er ett døgn lengre enn ett …",
+     "a": "År"
+    },
+    {
+     "s": "Fotsporene på månen blir liggende fordi det ikke er …",
+     "a": "Vind",
+     "g": [
+      "vind der"
+     ]
+    },
+    {
+     "s": "Snøkrystaller har alltid … armer.",
+     "a": "Seks",
+     "g": [
+      "6"
+     ]
+    },
+    {
+     "s": "Hjertet ditt er omtrent like stort som …",
+     "a": "Knyttneven din",
+     "g": [
+      "knyttneve",
+      "neven"
+     ]
+    },
+    {
+     "s": "Babyer har flere … enn voksne.",
+     "a": "Bein i kroppen",
+     "g": [
+      "bein",
+      "knokler"
+     ]
+    },
+    {
+     "s": "Det minste beinet i kroppen din sitter i …",
+     "a": "Øret"
+    },
+    {
+     "s": "Neglene vokser fortere på … enn på tærne.",
+     "a": "Fingrene",
+     "g": [
+      "fingrer"
+     ]
+    },
+    {
+     "s": "Froskeunger heter …",
+     "a": "Rumpetroll"
+    },
+    {
+     "s": "Flamingoen blir rosa av …",
+     "a": "Maten den spiser",
+     "g": [
+      "maten"
+     ]
+    },
+    {
+     "s": "Delfiner sover med …",
+     "a": "Ett øye åpent",
+     "g": [
+      "ett øye",
+      "det ene øyet åpent"
+     ]
+    },
+    {
+     "s": "Ugla kan snu hodet …",
+     "a": "Nesten helt rundt"
+    },
+    {
+     "s": "Haien har ikke bein i kroppen, men …",
+     "a": "Brusk"
+    },
+    {
+     "s": "Elefanter kan ikke …",
+     "a": "Hoppe"
+    },
+    {
+     "s": "Hos reinsdyr har både mor og far …",
+     "a": "Gevir",
+     "g": [
+      "horn"
+     ]
+    },
+    {
+     "s": "Snøleoparden bruker … som skjerf.",
+     "a": "Halen",
+     "g": [
+      "halen sin"
+     ]
+    },
+    {
+     "s": "Havoterne holder hverandre i … når de sover.",
+     "a": "Labbene",
+     "g": [
+      "hendene",
+      "potene",
+      "hånda"
+     ]
+    },
+    {
+     "s": "Dovendyret klatrer bare ned fra treet for å …",
+     "a": "Gå på do",
+     "g": [
+      "bæsje",
+      "tisse"
+     ]
+    },
+    {
+     "s": "Sjiraffens tunge er …",
+     "a": "Blålilla",
+     "g": [
+      "lilla",
+      "blå",
+      "mørk"
+     ]
+    },
+    {
+     "s": "Koalaen har … nesten som et menneske.",
+     "a": "Fingeravtrykk"
+    },
+    {
+     "s": "En maur kan løfte mange ganger …",
+     "a": "Sin egen vekt"
+    },
+    {
+     "s": "Edderkopper er ikke insekter, for de har …",
+     "a": "Åtte bein",
+     "g": [
+      "8 bein"
+     ]
+    },
+    {
+     "s": "Det er helt stille i verdensrommet, fordi det ikke er …",
+     "a": "Luft"
+    },
+    {
+     "s": "Astronauter blir litt … ute i verdensrommet.",
+     "a": "Høyere",
+     "g": [
+      "lengre"
+     ]
+    },
+    {
+     "s": "Bananplanten er egentlig ikke et tre, men …",
+     "a": "En kjempestor urt",
+     "g": [
+      "urt",
+      "plante"
+     ]
+    },
+    {
+     "s": "De første gulrøttene var ikke oransje, men …",
+     "a": "Lilla og gule",
+     "g": [
+      "lilla",
+      "gule"
+     ]
+    },
+    {
+     "s": "De dyra som er i nærmest slekt med dinosaurene i dag, er …",
+     "a": "Fuglene",
+     "g": [
+      "fugler"
+     ]
+    },
+    {
+     "s": "Barn har … melketenner.",
+     "a": "20",
+     "g": [
+      "tjue"
+     ]
+    },
+    {
+     "s": "Ekornet gjemmer nøtter og glemmer mange av dem. Da kan det vokse opp …",
+     "a": "Nye trær",
+     "g": [
+      "trær"
+     ]
+    },
+    {
+     "s": "Pinnsvinet sover gjennom …",
+     "a": "Hele vinteren",
+     "g": [
+      "vinteren"
+     ]
+    },
+    {
+     "s": "Bevere bygger … for å lage en dam.",
+     "a": "Demninger",
+     "g": [
+      "demning"
+     ]
+    },
+    {
+     "s": "Kenguruungen bor de første månedene i …",
+     "a": "En pung på magen til mora",
+     "g": [
+      "pung",
+      "pungen"
+     ]
+    },
+    {
+     "s": "Månen lyser fordi …",
+     "a": "Den speiler lyset fra sola"
+    },
+    {
+     "s": "Den varmeste planeten i solsystemet er …",
+     "a": "Venus"
+    },
+    {
+     "s": "Hjertet til en blåhval er så stort som …",
+     "a": "En radiobil",
+     "g": [
+      "radiobil"
+     ]
+    }
+   ]
+  }
+ ]
+}

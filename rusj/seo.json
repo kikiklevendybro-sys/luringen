@@ -698,6 +698,20 @@
         "puslespill med blokker",
         "daglig puslespill"
       ]
+    },
+    "skronemakeren": {
+      "tittel": "Skrønemakeren – dikt en forklaring, finn den ekte",
+      "frase": "Skrønemakeren",
+      "beskrivelse": "Bløffspillet der alle dikter en forklaring på et rart ord, et stedsnavn eller et sprøtt faktum – og dere skal finne den ekte. Gratis for 3–10, én mobil.",
+      "sok": [
+        "bløffspill",
+        "ordbløff",
+        "ordbokleken",
+        "finn det ekte svaret",
+        "dikt en forklaring",
+        "hva betyr ordet",
+        "falske svar spill"
+      ]
     }
   }
 }

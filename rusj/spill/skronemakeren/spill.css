@@ -1,0 +1,391 @@
+/* Skrønemakeren — typing, voting and the reveal. Everything prefixed skrone-. */
+
+.skrone-hjelp {
+  text-align: center;
+  margin: 4px 8px 0;
+}
+
+/* Who holds the phone (private screens) */
+.skrone-topp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.skrone-topp > div {
+  min-width: 0;
+}
+.skrone-topp h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 7vw, 2rem);
+}
+.skrone-topp .etikett {
+  overflow-wrap: anywhere;
+}
+
+.skrone-skriv {
+  display: grid;
+  gap: 12px;
+}
+.skrone-felt textarea {
+  width: 100%;
+  min-height: 84px;
+  font-size: 1.15rem;
+  resize: none;
+}
+.skrone-teller {
+  margin: -6px 4px 0;
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--tekst-3);
+}
+.skrone-skriv .feil:empty {
+  display: none;
+}
+.skrone-truffet {
+  display: block;
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  animation: skrone-inn 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+/* The question as a line */
+.skrone-sporsmal {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  font: 800 1.12rem / 1.3 var(--font-display);
+  overflow-wrap: anywhere;
+}
+.skrone-sporsmal.liten {
+  font-size: 0.98rem;
+  padding: 8px 12px;
+}
+
+/* Letter badges */
+.skrone-bokstav {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--aksent);
+  color: var(--blekk);
+  font: 900 1rem / 1 var(--font-display);
+}
+
+/* The list everyone reads */
+.skrone-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.skrone-liste li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  color: var(--blekk);
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  animation: skrone-inn 0.35s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.skrone-liste li:nth-child(2) { animation-delay: 0.06s; }
+.skrone-liste li:nth-child(3) { animation-delay: 0.12s; }
+.skrone-liste li:nth-child(4) { animation-delay: 0.18s; }
+.skrone-liste li:nth-child(5) { animation-delay: 0.24s; }
+.skrone-liste li:nth-child(n + 6) { animation-delay: 0.3s; }
+.skrone-liste li span:last-child,
+.skrone-alt-tekst {
+  padding-top: 4px;
+  min-width: 0;
+}
+.skrone-fant {
+  padding: 12px 16px;
+  font-weight: 700;
+}
+
+/* Voting */
+.skrone-valg {
+  display: grid;
+  gap: 8px;
+}
+.skrone-alt {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  color: var(--blekk);
+  font: 700 1rem / 1.3 var(--font-body, inherit);
+  text-align: left;
+  overflow-wrap: anywhere;
+  box-shadow: 0 4px 0 var(--papir-2);
+  cursor: pointer;
+  --fokus: var(--blekk);
+  --fokus-2: transparent;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.skrone-alt:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--papir-2);
+}
+.skrone-alt.valgt {
+  background: var(--lampe);
+  box-shadow: 0 4px 0 #c99a00, 0 0 0 3px var(--blekk) inset;
+}
+.skrone-alt.valgt .skrone-bokstav {
+  background: var(--blekk);
+  color: var(--lampe);
+}
+.skrone-alt.egen {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.skrone-alt-tekst {
+  flex: 1;
+}
+.skrone-din {
+  flex: none;
+  align-self: center;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--blekk);
+  color: var(--papir);
+  font-size: 0.78rem;
+}
+
+/* The reveal */
+.skrone-venter {
+  display: grid;
+  place-items: center;
+  padding: 6px 0;
+}
+.skrone-venter .figur-ramme {
+  width: min(42vw, 170px);
+  animation: skrone-vugg 1.6s ease-in-out infinite;
+}
+.skrone-ingress {
+  text-align: center;
+}
+.skrone-avslort {
+  position: relative;
+  gap: 10px;
+  padding: 16px 16px 14px;
+  overflow: hidden;
+}
+.skrone-avslort.ny {
+  animation: skrone-snu 0.55s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+.skrone-avslort.sann {
+  background: #e3fff3;
+  box-shadow: 0 8px 0 #9fe6c8, 0 0 0 3px #0f6e54 inset;
+}
+.skrone-tekst {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  font: 800 1.2rem / 1.3 var(--font-display);
+  overflow-wrap: anywhere;
+}
+.skrone-tekst > span:last-child {
+  padding-top: 3px;
+  min-width: 0;
+}
+.skrone-stemte {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.skrone-stemme {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  font-weight: 700;
+  font-size: 0.92rem;
+  animation: skrone-pop 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+  animation-delay: calc(0.35s + var(--n, 0) * 0.12s);
+}
+.skrone-stemme-navn {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 9em;
+}
+.skrone-ingen {
+  margin: 0;
+  color: var(--blekk-2);
+  font-style: italic;
+}
+.skrone-av {
+  margin: 0;
+  color: var(--blekk-2);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.skrone-av.sann {
+  color: #0f6e54;
+}
+.skrone-stempel {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 1.3rem;
+  border-width: 4px;
+  --st: var(--rosa-dyp, #c2185b);
+  pointer-events: none;
+  animation: slag 0.42s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+  animation-delay: 0.9s;
+}
+.skrone-avslort.sann .skrone-stempel {
+  --st: #0f6e54;
+}
+.skrone-avslort .skrone-tekst {
+  padding-right: 92px;
+}
+.skrone-avslort:not(.ny) .skrone-stempel,
+.skrone-avslort:not(.ny) .skrone-stemme {
+  animation: none;
+}
+.skrone-tidligere {
+  display: grid;
+  gap: 10px;
+  opacity: 0.8;
+}
+.skrone-tidligere .skrone-avslort {
+  padding: 10px 12px;
+}
+.skrone-tidligere .skrone-tekst {
+  font-size: 1rem;
+}
+
+/* The round's result */
+.skrone-fasit {
+  gap: 6px;
+}
+.skrone-fasit .etikett {
+  overflow-wrap: anywhere;
+}
+.skrone-fasit-svar {
+  margin: 0;
+  font: 800 1.2rem / 1.3 var(--font-display);
+  overflow-wrap: anywhere;
+}
+.skrone-runde-linje {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.skrone-alle {
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  padding: 4px 14px;
+}
+.skrone-alle summary {
+  padding: 10px 0;
+  font-weight: 800;
+  cursor: pointer;
+}
+.skrone-alle ul {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.skrone-alle li {
+  display: grid;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+.skrone-alle li.sann span {
+  color: var(--mynte);
+  font-weight: 800;
+}
+.skrone-alle small {
+  color: var(--tekst-2);
+}
+
+/* Kåringen: the awards */
+.skrone-priser {
+  display: grid;
+  gap: 10px;
+}
+.skrone-pris {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  color: var(--blekk);
+  box-shadow: 0 6px 0 var(--papir-2);
+}
+.skrone-pris > div {
+  min-width: 0;
+}
+.skrone-pris .etikett,
+.skrone-pris .hjelp {
+  margin: 0;
+  color: var(--blekk-2);
+}
+.skrone-pris-ikon {
+  font-size: 2.2rem;
+}
+.skrone-pris-navn {
+  margin: 2px 0;
+  font: 900 1.25rem / 1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+.skrone-del {
+  display: grid;
+}
+
+@keyframes skrone-inn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+}
+@keyframes skrone-pop {
+  from { opacity: 0; transform: scale(0.3); }
+}
+@keyframes skrone-snu {
+  from { opacity: 0; transform: perspective(700px) rotateX(-70deg) translateY(-10px); }
+}
+@keyframes skrone-vugg {
+  50% { transform: rotate(-4deg) translateY(-4px); }
+}
+
+@media (max-height: 700px) {
+  .skrone-venter .figur-ramme {
+    width: 110px;
+  }
+  .skrone-felt textarea {
+    min-height: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skrone-liste li,
+  .skrone-avslort.ny,
+  .skrone-stemme,
+  .skrone-stempel,
+  .skrone-venter .figur-ramme,
+  .skrone-truffet {
+    animation: none;
+  }
+}

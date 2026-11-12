@@ -1,0 +1,14 @@
+{
+  "id": "skronemakeren",
+  "navn": "Skrønemakeren",
+  "undertittel": "Finn den ekte forklaringen",
+  "beskrivelse": "Gratis bløffspill på norsk: alle dikter en forklaring på et rart ord eller en sprø fakta – finner dere den ekte? 3–10 spillere, én mobil, over 300 kort.",
+  "kort": "Alle dikter en forklaring. Finner dere den ekte?",
+  "spillere": [3, 10],
+  "minutter": [15, 45],
+  "mobiler": "en",
+  "tagger": ["fest", "ord", "blof"],
+  "rekkefolge": 58,
+  "farge": "#b48cff",
+  "sok": ["bløffspill", "ordbløff", "finn det ekte svaret", "dikt en forklaring", "falske svar", "hva betyr ordet", "løgn eller sannhet", "ordbokleken"]
+}
