@@ -10,5 +10,23 @@
   "tagger": ["barn", "familie", "fest"],
   "rekkefolge": 40,
   "sok": ["ja og nei", "ja-nei-leken", "ikke si ja eller nei", "ja nei forbudt", "yes no game"],
-  "alias": ["ja-og-nei", "papegøyen"]
+  "alias": ["ja-og-nei", "papegøyen"],
+  "i18n": {
+    "en": {
+      "navn": "Polly",
+      "undertittel": "The yes/no game",
+      "kort": "Answer everything – but never ‘yes’ or ‘no’!",
+      "beskrivelse": "The free yes/no game for your phone: answer tricky questions without saying ‘yes’ or ‘no’. Over 650 questions for kids, family and grown-ups.",
+      "slug": "polly",
+      "sok": ["yes no game", "the yes no game", "don't say yes or no", "yes and no game", "word games", "party games for kids"]
+    },
+    "da": {
+      "navn": "Papegøjen",
+      "undertittel": "Ja- og nej-legen",
+      "kort": "Svar på alt – men aldrig »ja« eller »nej«!",
+      "beskrivelse": "Gratis ja- og nej-leg på dansk: svar på snedige spørgsmål uden at sige »ja« eller »nej«. Over 650 spørgsmål til børn, familie og voksne.",
+      "slug": "papegojen",
+      "sok": ["ja og nej", "ja og nej-legen", "sig ikke ja eller nej", "ja nej forbudt", "yes no game", "selskabslege"]
+    }
+  }
 }
