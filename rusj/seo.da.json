@@ -254,6 +254,29 @@
         "sedler i hatten",
         "ordleg for hold"
       ]
+    },
+    "mimen": {
+      "tittel": "Mimeleg – over 700 ord og opgaver, gratis på dansk",
+      "frase": "Mimeleg",
+      "beskrivelse": "Mimeleg på mobilen: over 700 ord og opgaver i ni kategorier, også nogle til børn. Alle mod alle eller hold mod hold, med ur og point. Gratis.",
+      "sok": [
+        "mimeleg",
+        "mime",
+        "mimeleg ord",
+        "mimeleg forslag",
+        "charades"
+      ]
+    },
+    "panna": {
+      "tittel": "Gæt ordet på panden – gratis på dansk, uden app",
+      "frase": "Gæt ordet på panden",
+      "beskrivelse": "Hold mobilen op mod panden, de andre giver hints – vip ned, når du har gættet det. Gratis »gæt ordet på panden«-spil med 16 kortbunker og uden app.",
+      "sok": [
+        "ordet på panden",
+        "pandeleg",
+        "hvem er jeg",
+        "heads up"
+      ]
     }
   }
 }

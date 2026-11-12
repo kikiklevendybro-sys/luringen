@@ -245,6 +245,28 @@
         "names in a hat",
         "team word game"
       ]
+    },
+    "mimen": {
+      "tittel": "Charades – over 700 cards to act out, free",
+      "frase": "Charades",
+      "beskrivelse": "Charades on your phone: over 700 cards in nine categories, including ones just for kids. Everyone for themselves or teams, with a clock and scores. Free.",
+      "sok": [
+        "charades ideas",
+        "charades for kids",
+        "mime game",
+        "acting game"
+      ]
+    },
+    "panna": {
+      "tittel": "Forehead game – guess the word, free, no app",
+      "frase": "Guess the word on your forehead",
+      "beskrivelse": "Hold the phone to your forehead, the others give clues – tilt down when you've guessed it. A free forehead guessing game with 16 decks and no app.",
+      "sok": [
+        "forehead game",
+        "phone on forehead game",
+        "who am i game",
+        "heads up"
+      ]
     }
   }
 }
