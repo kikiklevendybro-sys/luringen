@@ -920,7 +920,7 @@ for (const id of valgt) {
         // The gate's heading is the game's name (with «18+»), and it asks as the front page does.
         const port = await c.tekst("#skjerm h1");
         t.sjekk(/18/.test(port) && port.includes(m.navn), `18+-porten vises ikke først i et drikkespill, eller har ikke spillets navn som overskrift («${port.replace(/\s+/g, " ")}»)`);
-        t.sjekk(/Er du 18 år eller eldre\?/.test(await c.tekst("#skjerm h2")), "18+-porten spør ikke «Er du 18 år eller eldre?»");
+        t.sjekk({ nb: /Er du 18 år eller eldre\?/, en: /Are you 18 or over\?/, da: /Er du 18 år eller ældre\?/ }[t.sprak].test(await c.tekst("#skjerm h2")), "18+-porten spør ikke «Er du 18 år eller eldre?»");
         t.sjekk(await c.finnes('[data-h="alder-ja"]') && (await c.finnes('[data-h="alder-nei"]')), "18+-porten mangler Ja/Nei");
         await t.bilde("alder");
         await c.klikk('[data-h="alder-ja"]');
