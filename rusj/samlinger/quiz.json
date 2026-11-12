@@ -1,0 +1,67 @@
+{
+  "rekkefolge": 8,
+  "tittel": "Quiz på nett – gratis quiz for familie og venner",
+  "navn": "Quiz",
+  "h1": "Quiz på nett",
+  "undertittel": "Quizspørsmål for familie, venner og lag",
+  "beskrivelse": "Gratis quiz på nett: over 1 200 quizspørsmål med svar, dagens quiz, tidslinjequiz, musikkquiz og en julekalender med nøtter. Uten app og reklame.",
+  "ingress": [
+    "En quiz fungerer like godt alene på bussen som lag mot lag i stua. Her er quizene på rusj: klassiske spørsmål med fire svaralternativer, en tidslinje der dere skal plassere hendelser i riktig rekkefølge, og quiz der dere må finne alle de riktige svarene på ringen.",
+    "Spørsmålene er skrevet på norsk, om Norge, natur, historie, sport, mat, språk og kultur – med egne spørsmål for barn. Mobilen teller poeng og gir en faktabit etter hvert svar."
+  ],
+  "spill": [
+    [
+      "bedreviteren",
+      "Over 1 200 spørsmål med fire svaralternativer og en faktabit. Spill alene, i lag – eller ta dagens quiz."
+    ],
+    [
+      "tieren",
+      "Ti svar på ringen: hvilke er riktige? Ta ett til – eller stopp mens du leder."
+    ],
+    [
+      "tidsmaskinen",
+      "Når skjedde det? Legg hendelsene på riktig plass i tidslinja."
+    ],
+    [
+      "nynneren",
+      "Musikkquiz uten musikk: nynn låta, de andre gjetter."
+    ],
+    [
+      "julekalenderen",
+      "En adventskalender med nøtter og quiz – én ny luke hver dag i desember."
+    ]
+  ],
+  "kvelden": [
+    [
+      "Lag lag",
+      "Del dere i lag med en quizmaster som holder mobilen. Bedreviteren holder poengene for hvert lag."
+    ],
+    [
+      "Bland typene",
+      "Ta en runde Bedreviteren, en runde Tidsmaskinen og en runde Tieren, så får alle typer kunnskap sjansen."
+    ],
+    [
+      "Avslutt med musikk",
+      "Nynneren er en morsom finale – her vinner ofte den som kan minst om historie."
+    ]
+  ],
+  "faq": [
+    [
+      "Finnes det quiz for barn?",
+      "Ja. Bedreviteren har egne spørsmål for barn, og Tidsmaskinen har lette hendelser å begynne med."
+    ],
+    [
+      "Hvor mange spørsmål er det?",
+      "Bedreviteren har over 1 200, Tidsmaskinen over 700 hendelser og Tieren over 270 kort med ti svar hver."
+    ],
+    [
+      "Kan vi spille quiz alene?",
+      "Ja. Bedreviteren og Tidsmaskinen kan spilles alene, og Bedreviteren har en ny dagens quiz hver dag."
+    ]
+  ],
+  "naboer": [
+    "selskapsleker",
+    "spill-alene",
+    "ordspill"
+  ]
+}

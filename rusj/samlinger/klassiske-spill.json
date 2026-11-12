@@ -1,0 +1,103 @@
+{
+  "rekkefolge": 10,
+  "tittel": "Klassiske spill – kortspill, brettspill og terninger",
+  "navn": "Klassiske spill",
+  "h1": "Klassiske spill",
+  "undertittel": "Kortspill, brettspill og terninger – uten reklame",
+  "beskrivelse": "Klassiske spill gratis og uten reklame: kabal, vri åtter, sjakk, dam, ludo, fire på rad, slagskip, minesveiper og terningspill. Mot mobilen eller hverandre.",
+  "ingress": [
+    "Noen spill blir aldri gamle. Her er klassikerne – kortspillene, brettspillene og terningspillene mange av oss lærte ved kjøkkenbordet eller på hytta – laget for mobilen og nettbrettet, uten reklame mellom rundene.",
+    "Mange av dem kan spilles mot mobilen på flere nivåer, eller mot hverandre på samme skjerm. Spillene husker hvor dere slapp, så det er bare å fortsette neste kveld."
+  ],
+  "spill": [
+    [
+      "kortkongen",
+      "Kabal: få alle kortene hjem, fra ess til konge. Med dagens kabal og rekorder."
+    ],
+    [
+      "vriatter",
+      "Vri åtter mot mobilen eller venner – følg farge eller tall, åtteren vrir alt."
+    ],
+    [
+      "sjakkhesten",
+      "Ekte sjakk mot en venn eller mot mobilen på fire nivåer."
+    ],
+    [
+      "dam",
+      "Dam på mobilen: hopp over brikkene og bli dame."
+    ],
+    [
+      "reversi",
+      "Snu brikkene til din farge – mot mobilen eller en venn."
+    ],
+    [
+      "brikka",
+      "Ludo for opptil fire: slå seks, kom deg ut og knuff de andre hjem."
+    ],
+    [
+      "terninga",
+      "Terningspillet med fem terninger og tre kast, med blokka regnet ut."
+    ],
+    [
+      "meyer",
+      "Terningbløff for to til ti: slå, si et tall og håp at ingen sjekker."
+    ],
+    [
+      "fireren",
+      "Fire på rad mot mobilen eller hverandre."
+    ],
+    [
+      "bonden",
+      "Bondesjakk: kryss eller bolle, tre på rad vinner."
+    ],
+    [
+      "admiralen",
+      "Slagskip: plasser flåten og senk skipene."
+    ],
+    [
+      "minesveiperen",
+      "Minesveiper der du aldri må gjette – det finnes alltid et trygt trekk."
+    ],
+    [
+      "stigespillet",
+      "Stiger og sklier for hele familien."
+    ],
+    [
+      "slangen",
+      "Snake: spis, voks og sving – bare ikke bit deg selv i halen."
+    ]
+  ],
+  "kvelden": [
+    [
+      "Alene med kaffen",
+      "Kabal, Minesveiper og Snake er gode pauser – og de husker rekordene dine."
+    ],
+    [
+      "To ved bordet",
+      "Sjakk, Dam, Reversi og Fire på rad deler én mobil mellom dere."
+    ],
+    [
+      "Hele familien",
+      "Ludo, Stigespillet og terningspillet passer når alle vil være med."
+    ]
+  ],
+  "faq": [
+    [
+      "Er det reklame i spillene?",
+      "Nei. Ingen reklame, ingen konto og ingen kjøp i spillene."
+    ],
+    [
+      "Kan jeg spille mot datamaskinen?",
+      "Ja. Sjakk, Dam, Reversi, Fire på rad, Bondesjakk, Slagskip, Vri åtter og terningspillet kan spilles mot mobilen."
+    ],
+    [
+      "Virker spillene på nettbrett og PC?",
+      "Ja. Alt virker i nettleseren, på mobil, nettbrett og datamaskin."
+    ]
+  ],
+  "naboer": [
+    "spill-for-to",
+    "spill-alene",
+    "spill-for-barn"
+  ]
+}

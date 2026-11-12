@@ -6,7 +6,8 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
-import { lesRegler, eksemplerFor, omSpilletHtml } from "./om-spillet.mjs";
+import { lesRegler, eksemplerFor, omSpilletHtml, RUSINFO } from "./om-spillet.mjs";
+import { lesSamlinger, samlingInnhold, samlingJsonLd } from "./samlinger.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -268,7 +269,7 @@ export function spillJsonLd(m, s, bilde) {
 function sistEndret(rot) {
   const datoer = new Map(); // first path segment(s) -> YYYY-MM-DD
   try {
-    const ut = execFileSync("git", ["log", "-n", "500", "--format=@%cs", "--name-only", "--", "rusj/spill", "rusj/portal", "rusj/seo.json", "src", "data"], {
+    const ut = execFileSync("git", ["log", "-n", "500", "--format=@%cs", "--name-only", "--", "rusj/spill", "rusj/portal", "rusj/seo.json", "rusj/samlinger", "src", "data"], {
       cwd: rot,
       encoding: "utf8",
       maxBuffer: 32 * 1024 * 1024,
@@ -446,6 +447,17 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
   felles.merker = skriv("felles/merker.js", "window.RUSJ_MERKER=" + JSON.stringify(merkeData).replace(/</g, "\\u003c") + ";\n" + kilde("rusj/kit/merker.js"));
 
   const seo = lesSeo(ROT);
+  // Collection pages (rusj/samlinger/*.json): read before the games, so every game page can link to
+  // the collections it is in. Checked against every game, also those left out of a test build.
+  const samlinger = lesSamlinger({
+    rot: ROT,
+    spillIder: ["luringen", ...lesSpill(ROT, null).map((g) => g.id)],
+    atten: lesSpill(ROT, null).filter((g) => g.alder18).map((g) => g.id),
+    tittelMaks: TITTEL_MAKS,
+    beskrivelse: BESKRIVELSE_GRENSER,
+    merke: merkeSynlig,
+  });
+  const samlingerMed = (id) => samlinger.filter((s) => s.spill.some(([x]) => x === id)).map((s) => [`/${s.slug}/`, s.navn]);
   const seoAv = new Map(); // one lookup per game (and one warning, if a game has no entry yet)
   const sokedata = (m) => {
     if (!seoAv.has(m.id)) seoAv.set(m.id, seoFor(seo, m));
@@ -514,7 +526,7 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
     // never draws over it; the kit hides it on every screen but the home screen and the age gate.
     const lest = lesRegler({ m, spillJs, data, ordData, G });
     if (lest.feil) console.warn(`  ⚠ ${id}: ${lest.feil} – siden får ingen «Slik spiller dere»-blokk`);
-    const omHtml = lest.regler ? omSpilletHtml(m, { regler: lest.regler, eksempler: eksemplerFor(m, data), frase: merkeSynlig(sd.frase) ? m.undertittel : sd.frase, lenker: [] }) : "";
+    const omHtml = lest.regler ? omSpilletHtml(m, { regler: lest.regler, eksempler: eksemplerFor(m, data), frase: merkeSynlig(sd.frase) ? m.undertittel : sd.frase, lenker: samlingerMed(id) }) : "";
     const side = `${hodeMed({
       tittel: sd.tittel,
       ogTittel: sd.ogTittel,
@@ -786,7 +798,7 @@ ${bunn(false)}
   // leave the contact line out.
   const KONTAKT = "rusj@odkdigital.no";
   const POSTADRESSE = ""; // the owner wants only the e-mail address shown
-  const omSide = (o) => `${hodeMed({ tittel: o.tittel, ogTittel: o.ogTittel, beskrivelse: o.beskrivelse, sti: o.sti, ikon: ikoner.svg, deling: ikoner.deling, delingAlt: "rusj – gratis spill og selskapsleker på norsk", css: [felles.css, portalCss], skript: o.skript ? [].concat(o.skript) : [] })}
+  const omSide = (o) => `${hodeMed({ tittel: o.tittel, ogTittel: o.ogTittel, beskrivelse: o.beskrivelse, sti: o.sti, ikon: ikoner.svg, deling: ikoner.deling, delingAlt: "rusj – gratis spill og selskapsleker på norsk", css: [felles.css, portalCss, ...(o.css || [])], skript: o.skript ? [].concat(o.skript) : [], jsonld: o.jsonld })}
 <body class="portal${o.klasse ? " " + o.klasse : ""}">
 <div class="scene" aria-hidden="true"></div>
 <header class="side-topp"><a class="side-hjem" href="/" aria-label="rusj – til alle spillene">${G.logo()}</a></header>
@@ -957,6 +969,32 @@ ${album}
     }),
   );
 
+  // ---------- Collections: /julebordleker/, /spill-for-to/ … (rusj/samlinger, scripts/samlinger.mjs) ----------
+  // A hand-written page per occasion or kind of game, with the games that fit and why. The 18+ hub
+  // only names the drinking games and links to their rules; every game keeps its own age gate.
+  const samlingCss = samlinger.length ? skriv("felles/samling.css", kilde("rusj/samlinger/samling.css")) : null;
+  const spillAv = new Map(alleSpillKort.map((g) => [g.id, g]));
+  const fraseAv = (g) => {
+    const f = sokedata(g).frase;
+    return merkeSynlig(f) ? g.undertittel : f;
+  };
+  for (const s of samlinger) {
+    skriv(
+      `${s.slug}/index.html`,
+      omSide({
+        sti: `/${s.slug}/`,
+        navn: s.navn,
+        tittel: `${s.tittel} | rusj`,
+        ogTittel: s.alder18 && !s.h1.includes("18+") ? `${s.h1} (18+)` : s.h1,
+        beskrivelse: s.beskrivelse,
+        css: [samlingCss],
+        klasse: "samling",
+        jsonld: samlingJsonLd(s, { domene: DOMENE, spill: spillAv, utgiver: UTGIVER }),
+        innhold: samlingInnhold(s, { spill: spillAv, frase: fraseAv, figur: (id) => G.svg(id), naboer: (n) => samlinger.find((x) => x.slug === n), rusinfo: RUSINFO }),
+      }),
+    );
+  }
+
   // ---------- 404 (never indexed: no canonical address) ----------
   skriv(
     "404.html",
@@ -1071,6 +1109,7 @@ ${album}
     ["/om/", SIDER_OPPDATERT],
     ["/personvern/", SIDER_OPPDATERT],
     ["/merker/", nyeste(datoer.get("rusj/merker.json"))],
+    ...samlinger.map((s) => [`/${s.slug}/`, nyeste(datoer.get("rusj/samlinger"), ...s.spill.map(([id]) => spillAv.get(id)).filter(Boolean).map(spillDato))]),
   ];
   skriv(
     "sitemap.xml",
@@ -1083,7 +1122,8 @@ ${album}
     // What the service worker keeps for playing without a connection: every page, the front page
     // first, then the games in front-page order. Which files a page needs, the worker reads from
     // the page itself (every address with ?v=), so there is no second list to keep in step.
-    sider: ["/", ...alleKort.map((m) => `/${m.id}/`), "/om/", "/personvern/", "/merker/"],
+    sider: ["/", ...alleKort.map((m) => `/${m.id}/`), "/om/", "/personvern/", "/merker/", ...samlinger.map((s) => `/${s.slug}/`)],
+    samlinger: samlinger.map((s) => s.slug),
   };
 }
 

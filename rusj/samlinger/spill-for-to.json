@@ -1,0 +1,91 @@
+{
+  "rekkefolge": 6,
+  "tittel": "Spill for to – gratis spill for to personer på mobilen",
+  "navn": "Spill for to",
+  "h1": "Spill for to",
+  "undertittel": "På samme mobil, ved samme bord",
+  "beskrivelse": "Spill for to personer på samme mobil: sjakk, dam, fire på rad, slagskip, ludo og vri åtter – eller samtaleleker for par og venner. Gratis og uten reklame.",
+  "ingress": [
+    "Det trengs ikke en hel gjeng for en god spillkveld. Her er spillene som fungerer når dere er to: klassiske brettspill der dere sitter med samme mobil mellom dere, og samtaleleker for par, søsken og bestevenner.",
+    "Brettspillene kan også spilles mot mobilen, så den ene kan øve mens den andre lager kaffe. Ingen konto og ingen reklame – bare å sette i gang."
+  ],
+  "spill": [
+    [
+      "sjakkhesten",
+      "Ekte sjakk for to på samme mobil, eller mot mobilen på fire nivåer."
+    ],
+    [
+      "dam",
+      "Hopp over brikkene og bli dame. Klassisk dam for to."
+    ],
+    [
+      "reversi",
+      "Klem brikkene inne og snu dem til din farge. Lett å lære, vanskelig å mestre."
+    ],
+    [
+      "fireren",
+      "Fire på rad: rask, enkel og perfekt for to."
+    ],
+    [
+      "admiralen",
+      "Slagskip: plasser flåten i hemmelighet og senk den andres skip."
+    ],
+    [
+      "bonden",
+      "Bondesjakk for to – runder på under et minutt."
+    ],
+    [
+      "vriatter",
+      "Kortspillet vri åtter for to, uten kortstokk."
+    ],
+    [
+      "terninga",
+      "Terningspillet med fem terninger, og blokka regnet ut for dere."
+    ],
+    [
+      "brikka",
+      "Ludo for to, tre eller fire – slå seks og knuff de andre hjem."
+    ],
+    [
+      "vinglepetter",
+      "Hva vil du helst? Fine samtaler for to, med egne pakker for par og venner."
+    ],
+    [
+      "sladrehanken",
+      "«Jeg har aldri …» fungerer overraskende godt for to – dere lærer noe nytt om hverandre."
+    ],
+    [
+      "tankeleseren",
+      "Er dere på samme bølgelengde? Samarbeid for to om å treffe på skalaen."
+    ]
+  ],
+  "kvelden": [
+    [
+      "Velg tempo",
+      "Bondesjakk og Fire på rad er raske runder. Sjakk, Dam og Reversi kan ta hele kvelden."
+    ],
+    [
+      "Del én mobil",
+      "Legg mobilen mellom dere på bordet og bytt på å trekke. Mobilen passer på reglene."
+    ],
+    [
+      "Bytt til prat",
+      "Når hjernen er sliten, gir Vinglepetter og Sladrehanken samtaler i stedet for trekk."
+    ]
+  ],
+  "faq": [
+    [
+      "Kan vi spille på hver vår mobil?",
+      "Brettspillene er laget for én mobil dere deler. Vil en av dere spille alene, kan dere velge å spille mot mobilen."
+    ],
+    [
+      "Hvilket spill er best for to som ikke har spilt før?",
+      "Fire på rad og Bondesjakk forstår alle med en gang. Reversi er neste steg."
+    ]
+  ],
+  "naboer": [
+    "klassiske-spill",
+    "spill-alene",
+    "spill-for-barn"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "rekkefolge": 7,
+  "alder18": true,
+  "tittel": "Drikkeleker (18+) – regler for kortleker og drikkehjul",
+  "navn": "Drikkeleker (18+)",
+  "h1": "Drikkeleker (18+)",
+  "undertittel": "Bare for voksne – alkoholfritt teller like mye",
+  "beskrivelse": "Drikkeleker for voksne over 18: kortringen, pyramiden, bussen, drikkehjulet og en drikkeversjon av «Jeg har aldri». Regler, og drikk med vett.",
+  "ingress": [
+    "Her er de fem drikkelekene på rusj, for voksne over 18 år. Hvert spill spør om alderen før det starter, og reglene står på spillets egen side. Mobilen holder styr på kortene og reglene, så dere slipper å krangle om dem.",
+    "Alkoholfritt teller like mye, og ingen skal presses. Vil dere ha det gøy uten noe i glasset i det hele tatt, finner dere mange flere leker blant selskapslekene og festlekene."
+  ],
+  "spillTittel": "Fem drikkeleker",
+  "spill": [
+    [
+      "ringen",
+      "Kortringen: trekk et kort fra ringen – hvert kort har sin egen regel."
+    ],
+    [
+      "pyramiden",
+      "Fire hemmelige kort hver, femten i pyramiden – og mye bløff."
+    ],
+    [
+      "bussen",
+      "Rød eller svart? Den som bommer mest, tar bussen."
+    ],
+    [
+      "hjulet",
+      "Snurr hjulet – det bestemmer hva som skjer, fra skåler til nye regler."
+    ],
+    [
+      "torsten",
+      "«Jeg har aldri …» i drikkeversjon: har du gjort det, løfter du glasset."
+    ]
+  ],
+  "kveldenTittel": "Slik holder dere det hyggelig",
+  "kvelden": [
+    [
+      "Avtal reglene før dere starter",
+      "Bestem sammen hvor store slurkene er, og at alle når som helst kan bytte til vann eller brus."
+    ],
+    [
+      "Ta pauser",
+      "Flere av spillene legger inn vannpauser av seg selv. Spis underveis, og ta gjerne en vanlig lek innimellom."
+    ],
+    [
+      "Sørg for trygg vei hjem",
+      "Ingen kjører etter festen. Pass på hverandre, og ring 113 hvis noen trenger akutt hjelp."
+    ]
+  ],
+  "faq": [
+    [
+      "Må man drikke alkohol?",
+      "Nei. Vann, brus og alkoholfritt teller like mye, og alle kan stå over. Spillene sier det selv underveis."
+    ],
+    [
+      "Hvorfor må jeg bekrefte at jeg er 18?",
+      "Drikkelekene er bare for voksne. Hvert spill spør én gang på enheten, og svaret kan tas tilbake fra forsiden."
+    ]
+  ],
+  "naboer": [
+    "festleker",
+    "selskapsleker"
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "rekkefolge": 9,
+  "tittel": "Ordspill og ordleker på norsk – gratis på mobilen",
+  "navn": "Ordspill",
+  "h1": "Ordspill og ordleker",
+  "undertittel": "Forklar, gjett og finn ord – på norsk",
+  "beskrivelse": "Gratis ordspill og ordleker på norsk: forklar ordet, gjett ordet på panna, alfabetleken, dagens ord, minikryssord og galgen. Uten app og reklame.",
+  "ingress": [
+    "Ord er det beste spillebrettet som finnes: alle har det med seg, og ingen runde blir lik. Her er ordspillene på rusj – fra høylytte lagleker der dere forklarer og gjetter, til rolige oppgaver for deg alene med kaffekoppen.",
+    "Ordene er norske og håndplukket: tusenvis av ord fra hverdagen, naturen, maten og eventyrene, og egne lette lister for barn. Daglige oppgaver er like for alle, så dere kan sammenligne resultatene etterpå."
+  ],
+  "spill": [
+    [
+      "skravla",
+      "Forklar ordet uten å si de forbudte ordene – første lag i mål vinner."
+    ],
+    [
+      "panna",
+      "Mobilen på panna, de andre gir hint. Vipp når du har det."
+    ],
+    [
+      "hatten",
+      "Samme ord i tre runder: forklar, ett ord, mim."
+    ],
+    [
+      "kodeknekkeren",
+      "Ett ord og et tall – led laget ditt til de riktige ordene."
+    ],
+    [
+      "hviskeren",
+      "Alle gir ett hint i hemmelighet, men like hint blir strøket."
+    ],
+    [
+      "bokstavtrollet",
+      "Alfabetleken: si et ord på bokstaven før trollet våkner."
+    ],
+    [
+      "femmeren",
+      "Nevn tre ting på fem sekunder."
+    ],
+    [
+      "skronemakeren",
+      "Dikt en forklaring på et sjeldent ord – og finn den ekte."
+    ],
+    [
+      "ordugla",
+      "Gjett dagens ord på fem bokstaver. Seks forsøk, nytt ord hver dag."
+    ],
+    [
+      "blyanten",
+      "Små kryssord laget for mobilen – nytt kryss hver dag."
+    ],
+    [
+      "firklover",
+      "Seksten ord, fire grupper: finn sammenhengen."
+    ],
+    [
+      "ballongen",
+      "Galgen for barn – gjett ordet før ballongene sprekker."
+    ]
+  ],
+  "kvelden": [
+    [
+      "Alene: dagens ord",
+      "Start dagen med Ordugla, Blyanten og Firkløveren. Nye oppgaver hver dag, og de er like for alle."
+    ],
+    [
+      "Sammen: lag mot lag",
+      "Skravla, Panna og Hatten er best med fire eller flere, delt i to lag."
+    ],
+    [
+      "For de yngste",
+      "Bokstavtrollet og Ballongen har lette ord og passer fra skolealder."
+    ]
+  ],
+  "faq": [
+    [
+      "Er ordene på norsk?",
+      "Ja. Alle ordene er norske og skrevet for spillene, med egne lister for barn."
+    ],
+    [
+      "Hvilket ordspill passer for mange?",
+      "Skravla og Hatten fungerer for store grupper delt i lag. Kodeknekkeren kan spilles med hver sin mobil."
+    ]
+  ],
+  "naboer": [
+    "quiz",
+    "spill-alene",
+    "festleker"
+  ]
+}

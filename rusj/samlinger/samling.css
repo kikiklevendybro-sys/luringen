@@ -1,0 +1,217 @@
+/* Collection pages (/julebordleker/, /spill-for-to/ …): built by scripts/samlinger.mjs on top of
+   the page frame of /om/ and /personvern/ (.side in portal.css). Only what those pages lack. */
+
+.samling-under {
+  display: block;
+  margin-top: 6px;
+  color: var(--tekst-2);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.samling-avsnitt {
+  color: var(--tekst-2);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* --- The games: one card each, the whole card is the link --- */
+
+.side section.samling-spill {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.side .samling-spill h2 {
+  margin: 8px 0 12px;
+}
+
+.side ul.samling-kort {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.samling-kort a {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 14px 16px 14px 12px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow:
+    inset 0 0 0 1.5px var(--strek),
+    inset 4px 0 0 var(--kf, var(--lampe));
+  color: var(--tekst);
+  text-decoration: none;
+}
+
+.side section .samling-kort a {
+  color: var(--tekst);
+}
+
+.samling-kort a:hover {
+  background: var(--natt-3);
+}
+
+.samling-figur {
+  display: block;
+  width: 64px;
+}
+
+.samling-tekst {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.samling-navn {
+  font: 900 1.2rem/1.2 var(--font-display);
+}
+
+.samling-sjanger {
+  color: var(--kf, var(--lampe));
+  font: 800 0.8rem/1.3 var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.samling-hvorfor {
+  margin-top: 4px;
+  color: var(--tekst-2);
+  line-height: 1.45;
+}
+
+.samling-fakta {
+  margin-top: 4px;
+  color: var(--tekst-3);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+@media (max-width: 360px) {
+  .samling-kort a {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 12px;
+    padding-right: 14px;
+  }
+
+  .samling-figur {
+    width: 48px;
+  }
+}
+
+/* --- The 18+ hub: names, one line and the way to the rules; no cards --- */
+
+.side ul.samling-liste {
+  gap: 12px;
+}
+
+.samling-liste a {
+  display: inline-block;
+  margin-top: 2px;
+  font-weight: 700;
+}
+
+.side section.samling-vett {
+  box-shadow: inset 0 0 0 2px var(--lampe-dyp);
+}
+
+/* --- The evening in three steps --- */
+
+.side ol.samling-steg {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: samling-steg;
+}
+
+.samling-steg li {
+  position: relative;
+  min-height: 34px;
+  padding: 4px 0 0 46px;
+  color: var(--tekst-2);
+  line-height: 1.5;
+  counter-increment: samling-steg;
+}
+
+.samling-steg li::before {
+  content: counter(samling-steg);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--lampe);
+  color: var(--natt);
+  font: 900 1rem/1 var(--font-display);
+}
+
+.samling-steg b {
+  display: block;
+}
+
+/* --- Questions and answers --- */
+
+.samling-faq {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.samling-faq dt {
+  margin-top: 10px;
+  color: var(--tekst);
+  font: 800 1.02rem/1.35 var(--font-display);
+}
+
+.samling-faq dt:first-child {
+  margin-top: 0;
+}
+
+.samling-faq dd {
+  margin: 0;
+  color: var(--tekst-2);
+  line-height: 1.55;
+}
+
+/* --- Neighbouring collections --- */
+
+.samling-naboer h2 {
+  margin-bottom: 10px;
+}
+
+.side .samling-naboer ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.samling-naboer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 800 0.95rem/1.2 var(--font-display);
+  text-decoration: none;
+}
+
+.samling-naboer a:hover {
+  background: var(--natt-3);
+}
