@@ -167,10 +167,9 @@ test("the front page: the words people search for – and not «festspill» (an 
 
 test("the front page: «Dagens rusj» is wired in, and every card carries its facts", () => {
   const f = sider.find((s) => s.sti === "/");
-  // The strip (returning players) and the slim row (new visitors) are empty and hidden until
-  // portal.js fills one of them; the helpers load before it.
-  assert.match(f.html, /<section class="idag" id="idag" aria-labelledby="idag-tittel" hidden><\/section>/);
-  assert.match(f.html, /<a class="idag-ny" id="idag-ny" href="#hylle-daglig" hidden>/);
+  // Today's state is drawn by portal.js on the shelf «Dagens utfordringer» (the old «I dag» strip
+  // and its slim row are gone); the helpers load before it.
+  assert.doesNotMatch(f.html, /id="idag(-ny)?"/);
   const skript = [...f.html.matchAll(/<script defer src="\/felles\/([a-z]+)\.js\?v=[a-z0-9]+"><\/script>/g)].map((m) => m[1]);
   // (stat.js comes first on every page when anonymous statistics are on: see STAT_ADRESSE.)
   assert.deepEqual(skript.filter((s) => s !== "stat"), ["spilliste", "daglig", "portal"]);

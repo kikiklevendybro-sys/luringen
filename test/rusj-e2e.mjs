@@ -181,21 +181,36 @@ for (const id of valgt) {
       const fakta = (await c.tekst(".helt-fakta")).replace(/\s+/g, " ");
       t.sjekk(/Ingen konto/.test(fakta) && !/apper/.test(fakta), `Faktaene under logoen: «${fakta}»`);
 
-      // «Dagens rusj», new visitor: no strip – one slim row under the buttons that says how many
-      // daily puzzles there are (counted from the games tagged «daglig», never a fixed number) and
-      // leads to the shelf with them.
-      const daglige = await c.js(`(window.RUSJ_SPILLISTE || []).filter((s) => s.tagger.includes("daglig") && !s.alder18).map((s) => ({ id: s.id, navn: s.dagnavn || s.undertittel }))`);
-      const TALLORD = ["null", "én", "to", "tre", "fire", "fem", "seks", "sju", "åtte", "ni", "ti", "elleve", "tolv"];
-      const tallord = (n) => TALLORD[n] || String(n);
-      const stor = (tekst) => tekst.charAt(0).toUpperCase() + tekst.slice(1);
-      if (daglige.length) {
-        const ny = await c.js(`(() => { const rad = document.querySelector("#idag-ny"); const b = rad.getBoundingClientRect(); const k = document.querySelector(".helt-knapper").getBoundingClientRect(); return { stripe: !document.querySelector("#idag").hidden, synlig: !!rad.offsetParent, tekst: rad.querySelector("#idag-ny-tekst").innerText.replace(/\\s+/g, " ").trim(), figurer: rad.querySelectorAll(".idag-ny-figurer svg").length, hoyde: Math.round(b.height), topp: Math.round(b.top), bunn: Math.round(b.bottom), knapperBunn: Math.round(k.bottom), bredde: Math.round(b.right), vw: innerWidth, vh: innerHeight, hylle: !!document.querySelector("#hylle-daglig"), klasse: document.body.classList.contains("daglig-spiller") }; })()`);
-        const ventetTekst = `I dag: ${daglige.length === 1 ? "én ny oppgave" : `${tallord(daglige.length)} nye oppgaver`}`;
-        t.sjekk(!ny.stripe && ny.synlig && !ny.klasse, "En ny besøkende får «I dag»-stripa i stedet for den slanke raden");
-        t.sjekk(ny.tekst.startsWith(ventetTekst), `Den slanke raden sier «${ny.tekst}», ventet «${ventetTekst}»`);
-        t.sjekk(ny.figurer === Math.min(daglige.length, 4), `Den slanke raden viser ${ny.figurer} figurer for ${daglige.length} dagsspill`);
-        t.sjekk(ny.hoyde <= 44 && ny.topp >= ny.knapperBunn && ny.bunn <= ny.vh && ny.bredde <= ny.vw, `Den slanke «I dag»-raden er ikke én lav rad under knappene på første skjerm (${ny.hoyde} px høy, ${ny.topp}–${ny.bunn} av ${ny.vh} px)`);
-        t.sjekk(ny.hylle === daglige.length >= 2, "Hylla «Dagens utfordringer» mangler for en ny besøkende");
+      // «Dagens utfordringer», new visitor: the shelf stands where it always has (not first), with
+      // no badges and no streak. The old «I dag» strip and its slim row are gone.
+      const daglige = await c.js(`(window.RUSJ_SPILLISTE || []).filter((s) => s.tagger.includes("daglig") && !s.alder18).map((s) => ({ id: s.id, navn: s.navn }))`);
+      const dagligHylle = () =>
+        c.js(`(() => {
+          const hyller = Array.from(document.querySelectorAll("#hyller > .hylle")).map((s) => s.id);
+          const gammel = !!document.querySelector("#idag, #idag-ny, .idag, .idag-ny");
+          const h = document.querySelector("#hylle-daglig");
+          if (!h) return { finnes: false, hyller, gammel, kort: [] };
+          const rad = h.querySelector(".hylle-rad");
+          const kort = Array.from(rad.querySelectorAll(".spillkort")).map((k) => {
+            const a = k.querySelector("a");
+            const m = k.querySelector(".kort-dagens");
+            const f = k.querySelector(".kort-figur").getBoundingClientRect();
+            const b = a.getBoundingClientRect();
+            const mb = m ? m.getBoundingClientRect() : f;
+            return { id: k.dataset.id, navn: a.getAttribute("aria-label") || "", merke: m ? m.textContent : null, ferdig: !!(m && m.classList.contains("ferdig")), skjult: !m || m.getAttribute("aria-hidden") === "true", inni: mb.left >= f.left - 0.5 && mb.right <= f.right + 0.5 && mb.top >= f.top - 0.5 && mb.bottom <= f.bottom + 0.5, storrelse: Math.round(b.width) + "×" + Math.round(b.height) };
+          });
+          const flamme = h.querySelector(".hylle-rekke");
+          const topp = h.querySelector(".hylle-topp").getBoundingClientRect();
+          return { finnes: true, hyller, gammel, kort, flamme: flamme ? { navn: flamme.getAttribute("aria-label"), tekst: flamme.textContent.trim() } : null, rulles: getComputedStyle(rad).overflowX, ute: topp.right > innerWidth + 1 || topp.left < -1 || document.documentElement.scrollWidth > innerWidth };
+        })()`);
+      const STATUS = / – (ferdig i dag|i gang)/;
+      let nyStorrelse = "";
+      if (daglige.length >= 2) {
+        const h = await dagligHylle();
+        nyStorrelse = h.kort.map((k) => k.storrelse).join(" ");
+        t.sjekk(h.finnes && h.hyller.indexOf("hylle-daglig") > 0, `Ny besøkende: hylla «Dagens utfordringer» skal stå der den alltid har stått, ikke først (${h.hyller.join(", ")})`);
+        t.sjekk(h.kort.length === daglige.length && h.kort.every((k) => k.merke === null && !STATUS.test(k.navn)) && !h.flamme, "Ny besøkende: dagens utfordringer har merker eller rekke");
+        t.sjekk(!h.gammel, "«I dag»-stripa eller den slanke raden finnes fortsatt");
       }
 
       // The numbers agree: the hero counts every game; the line over the list says how many show now
@@ -305,7 +320,7 @@ for (const id of valgt) {
           await c.js(`(() => { const e = document.activeElement; const s = getComputedStyle(e); const ring = (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2) || (e.id === "sok" && s.borderTopColor === "rgb(255, 210, 63)"); return (e.id ? "#" + e.id : e.matches('a[href="#spill"]') ? "finn" : String(e.className).split(" ")[0] || e.tagName) + (ring ? "" : " (uten synlig fokus)"); })()`),
         );
       }
-      const ventetStopp = ["finn", "#overrask", ...(daglige.length ? ["#idag-ny"] : []), "#installtips-vis", "#installtips-lukk", "#sok", "#filter-knapp", "hylle-alle"].slice(0, 8);
+      const ventetStopp = ["finn", "#overrask", "#installtips-vis", "#installtips-lukk", "#sok", "#filter-knapp", "hylle-alle", "A"].slice(0, 8); // A: the first card on the first shelf
       t.sjekk(stopp.join(" → ") === ventetStopp.join(" → "), `Tab-rekkefølgen på forsiden: ${stopp.join(" → ")}`);
       // Backwards from the last game: what gets focus is scrolled to the top of the screen, and must
       // not end up under the search row that sticks there.
@@ -322,15 +337,6 @@ for (const id of valgt) {
       t.sjekk(dekket.length === 0, `Fokus havner under søkelinja når man tabber bakover: ${dekket.join(", ")}`);
       await c.js("document.activeElement.blur(); scrollTo(0, 0)");
       await c.sov(400);
-
-      // The slim «I dag» row leads to the shelf with today's puzzles, and puts the keyboard there.
-      if (daglige.length >= 2) {
-        await c.klikk("#idag-ny", 700);
-        const etter = await c.js(`(() => { const h = document.querySelector("#hylle-daglig"); const b = h.getBoundingClientRect(); return { fokus: !!document.activeElement.closest("#hylle-daglig"), synlig: b.top >= 0 && b.top < innerHeight, sti: location.pathname }; })()`);
-        t.sjekk(etter.sti === "/" && etter.fokus && etter.synlig, "Den slanke «I dag»-raden fører ikke til hylla med dagens oppgaver");
-        await c.js("document.activeElement.blur(); scrollTo(0, 0)");
-        await c.sov(400);
-      }
 
       // The search row sticks to the top. It must never change height there, and the page must not
       // jump as it passes that point (that once made slow scrolling get stuck). Once the page has
@@ -619,13 +625,11 @@ for (const id of valgt) {
         await c.sov(300);
         await t.bilde("forside-liste");
       }
-      // «Dagens rusj», returning players: the «I dag» strip. Storage is seeded in the format of
-      // rusj/DAGLIG.md (new and old); every number comes from the games tagged «daglig».
+      // «Dagens utfordringer», returning players: the shelf comes first, each daily card says how
+      // today went, and the streak stands beside the heading. Storage is seeded in the format of
+      // rusj/DAGLIG.md; every number comes from the games tagged «daglig».
       if (daglige.length >= 2) {
         const T = await c.js("window.RusjDaglig.dag().nr"); // today in Norway, as the page counts it
-        const ukedag = await c.js("window.RusjDaglig.dag().ukedag"); // 0 = Monday
-        const UKEDAGER = ["mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag", "søndag"];
-        const n = daglige.length;
         const [a, b] = daglige;
         // In --probe the texts from storage carry markup: it must come out as text, never as an element.
         const merk = (tekst) => (PROBE ? `<x-q>${tekst.slice(0, 3)}</x-q>` : tekst);
@@ -636,166 +640,61 @@ for (const id of valgt) {
           else await c.lastSide(t.side, "document.querySelector('.spillgrid')");
           await c.sov(somRetur ? 200 : 900);
         };
-        const stripe = () =>
-          c.js(`(() => {
-            const s = document.querySelector("#idag");
-            const tekst = (sel) => { const e = s.querySelector(sel); return e ? e.innerText.replace(/\\s+/g, " ").trim() : ""; };
-            const boks = (e) => { const r = e.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top), Math.round(r.right), Math.round(r.bottom)]; };
-            const ute = Array.from(s.querySelectorAll("*")).filter((e) => { const r = e.getBoundingClientRect(); const k = s.getBoundingClientRect(); return r.width && r.height && !e.closest("svg") && !e.classList.contains("vh") && (r.left < k.left - 1 || r.right > k.right + 1 || r.right > innerWidth + 1 || r.left < -1); }).map((e) => e.className || e.tagName);
-            const fliser = Array.from(s.querySelectorAll(".idag-flis"));
-            const bokser = fliser.map(boks);
-            const overlapp = bokser.some((x, i) => bokser.some((y, j) => j > i && x[0] < y[2] - 1 && y[0] < x[2] - 1 && x[1] < y[3] - 1 && y[1] < x[3] - 1));
-            const knapper = document.querySelector(".helt-knapper").getBoundingClientRect();
-            return {
-              vises: !s.hidden && !!s.offsetParent,
-              slank: !document.querySelector("#idag-ny").hidden,
-              hylle: !!document.querySelector("#hylle-daglig"),
-              slagord: !!document.querySelector(".helt-slagord").offsetParent,
-              tittel: tekst("#idag-tittel"),
-              fliser: fliser.map((f) => ({ navn: f.getAttribute("aria-label"), sti: f.getAttribute("href"), tilstand: (/\\bt-(ny|pagar|ferdig)\\b/.exec(f.className) || [])[1], hake: !!f.querySelector(".idag-hake"), vist: f.querySelector(".idag-res").innerText.trim(), figur: !!f.querySelector("svg") })),
-              antall: tekst(".idag-antall"),
-              rekke: tekst(".idag-rekke .vh"),
-              flamme: !!s.querySelector(".idag-flamme"),
-              uke: (s.querySelector(".idag-uke") || { getAttribute: () => "" }).getAttribute("aria-label"),
-              prikker: Array.from(s.querySelectorAll(".idag-prikk")).map((p) => (/\\bp-(spilt|hvile|tom|kommer)\\b/.exec(p.className) || [])[1] + (p.classList.contains("p-i-dag") ? "*" : "")),
-              status: tekst("#idag-status"),
-              klokke: tekst("#idag-klokke"),
-              neste: tekst("#idag-neste"),
-              nesteSti: (s.querySelector("#idag-neste") || { getAttribute: () => "" }).getAttribute("href"),
-              del: !!s.querySelector("#idag-del"),
-              iBoks: s.classList.contains("i-boks"),
-              alt: s.innerText,
-              ute,
-              overlapp,
-              bunn: Math.round(s.getBoundingClientRect().bottom),
-              knapperBunn: Math.round(knapper.bottom),
-              vh: innerHeight,
-            };
-          })()`);
-        // What the week row must show, counted here on its own: Monday to Sunday of this week.
-        const ventetUke = (spilt, hvile) => Array.from({ length: 7 }, (_, i) => { const nr = T - ukedag + i; return (spilt.includes(nr) ? "spilt" : hvile.includes(nr) ? "hvile" : nr > T ? "kommer" : "tom") + (nr === T ? "*" : ""); });
-        const utseende = (st, hva) => {
-          t.sjekk(st.ute.length === 0, `«I dag» (${hva}): noe stikker utenfor stripa eller skjermen: ${st.ute.slice(0, 3).join(", ")}`);
-          t.sjekk(!st.overlapp, `«I dag» (${hva}): flisene ligger oppå hverandre`);
-          t.sjekk(st.fliser.length === n && st.fliser.every((f) => f.figur), `«I dag» (${hva}): ${st.fliser.length} fliser for ${n} dagsspill`);
-          t.sjekk(st.prikker.length === 7 && st.prikker.filter((p) => p.endsWith("*")).length === 1 && st.prikker[ukedag].endsWith("*"), `«I dag» (${hva}): ukeprikkene er ${st.prikker.join(" ")}`);
-          t.sjekk(st.vises && !st.slank && !st.hylle && !st.slagord, `«I dag» (${hva}): stripa skal vises alene – uten den slanke raden, hylla «Dagens utfordringer» og slagordet`);
-          // On a phone on its side the two buttons under the strip are still on the first screen.
-          if (HOYDE < 500) t.sjekk(st.knapperBunn <= st.vh, `«I dag» (${hva}): knappene under stripa havner utenfor første skjerm (${st.knapperBunn} av ${st.vh} px)`);
+        const kort = (h, id) => h.kort.find((k) => k.id === id) || {};
+        const utseende = (h, hva, forst = true) => {
+          t.sjekk(h.finnes && (forst ? h.hyller[0] === "hylle-daglig" : h.hyller.indexOf("hylle-daglig") > 0), `Dagens utfordringer (${hva}): hylla står ${forst ? "ikke først" : "først for en ny besøkende"} (${h.hyller.join(", ")})`);
+          t.sjekk(h.kort.length === daglige.length && h.kort.every((k) => k.inni && k.skjult), `Dagens utfordringer (${hva}): et merke stikker ut av bildet eller leses opp for seg`);
+          t.sjekk(h.kort.map((k) => k.storrelse).join(" ") === nyStorrelse, `Dagens utfordringer (${hva}): kortene har endret størrelse (${h.kort.map((k) => k.storrelse).join(" ")}, før ${nyStorrelse})`);
+          t.sjekk(h.rulles === "auto" && !h.ute && !h.gammel, `Dagens utfordringer (${hva}): raden ruller ikke sidelengs, noe stikker ut, eller den gamle stripa er der`);
         };
 
-        // (a) One of the puzzles finished, one in progress – new format. Two days in a row.
-        await medDaglig({ [a.id]: { nr: T, vunnet: true, rekke: 2, res: merk("4/6") }, [b.id]: { nr: T - 9, vunnet: true, rekke: 1, res: "0:52", pagar: { nr: T, tekst: merk("5 av 8 ord") } }, _: { v: 1, dager: { [T]: [a.id], [T - 1]: [a.id], [T - 9]: [b.id] } } });
-        let st = await stripe();
-        utseende(st, "én ferdig");
-        t.sjekk(st.tittel === "I dag" && !st.iBoks, `«I dag» (én ferdig): overskriften er «${st.tittel}»`);
-        t.sjekk(st.fliser[0].navn === `${a.navn}, løst, 4 av 6` && st.fliser[0].tilstand === "ferdig" && st.fliser[0].hake && st.fliser[0].vist === "4/6", `«I dag»: den ferdige flisa heter «${st.fliser[0].navn}» og viser «${st.fliser[0].vist}»`);
-        t.sjekk(st.fliser[1].navn === `${b.navn}, i gang, 5 av 8 ord` && st.fliser[1].tilstand === "pagar" && !st.fliser[1].hake, `«I dag»: flisa som er i gang, heter «${st.fliser[1].navn}»`);
-        t.sjekk(st.fliser.slice(2).every((f, i) => f.navn === `${daglige[i + 2].navn}, ny` && f.tilstand === "ny" && f.vist === "Ny"), "«I dag»: de urørte flisene sier ikke «ny»");
-        t.sjekk(st.fliser.every((f, i) => f.sti === `/${daglige[i].id}/#dagens`), "«I dag»: flisene lenker ikke til /<spill>/#dagens");
-        t.sjekk(st.antall === `1 av ${n} i dag`, `«I dag»: telleren sier «${st.antall}», ventet «1 av ${n} i dag»`);
-        t.sjekk(st.rekke === "2 dager på rad" && st.flamme, `«I dag»: rekka sier «${st.rekke}» (flamme: ${st.flamme})`);
-        t.sjekk(st.status === `${stor(tallord(n - 1))} igjen i dag.` && !st.klokke, `«I dag»: linja under uka sier «${st.status}»`);
-        t.sjekk(st.neste === `Fortsett: ${b.navn}` && st.nesteSti === `/${b.id}/#dagens` && st.del, `«I dag»: knappen sier «${st.neste}» (del-knapp: ${st.del})`);
-        t.sjekk(st.prikker.join(" ") === ventetUke([T, T - 1], []).join(" "), `«I dag»: ukeprikkene er ${st.prikker.join(" ")}, ventet ${ventetUke([T, T - 1], []).join(" ")}`);
-        // Keyboard: the strip comes first, tile by tile, then its button – with a ring that shows on paper.
-        const stopp2 = [];
-        for (let i = 0; i < n + 2; i++) {
-          await tast("Tab", 9);
-          await c.sov(80);
-          stopp2.push(await c.js(`(() => { const e = document.activeElement; const s = getComputedStyle(e); return (e.id ? "#" + e.id : e.getAttribute("href")) + (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2 && s.outlineColor === "rgb(23, 14, 43)" ? "" : " (uten mørk fokusring)"); })()`));
-        }
-        const ventet2 = [...daglige.map((d) => `/${d.id}/#dagens`), "#idag-neste", "#idag-del"];
-        t.sjekk(stopp2.join(" → ") === ventet2.join(" → "), `Tab-rekkefølgen i «I dag»-stripa: ${stopp2.join(" → ")}`);
-        await c.js("document.activeElement.blur(); scrollTo(0, 0)");
-        await t.bilde("forside-idag");
+        // (a) One daily finished today (4/6), one in progress, the rest new. Three days in a row.
+        const enFerdig = { [a.id]: { nr: T, vunnet: true, rekke: 3, res: merk("4/6") }, [b.id]: { nr: T - 9, vunnet: true, rekke: 1, res: "0:52", pagar: { nr: T, tekst: merk("5 av 8 ord") } } };
+        const logg = { [T]: [a.id], [T - 1]: [a.id], [T - 2]: [a.id], [T - 9]: [b.id] };
+        await medDaglig({ ...enFerdig, _: { v: 1, dager: logg } });
+        let h = await dagligHylle();
+        utseende(h, "én ferdig, én i gang");
+        const ka = kort(h, a.id);
+        const kb = kort(h, b.id);
+        t.sjekk(ka.merke === "✓ " + merk("4/6") && ka.ferdig && ka.navn.endsWith(" – ferdig i dag, " + (PROBE ? merk("4/6") : "4 av 6")), `Dagens utfordringer: det ferdige kortet viser «${ka.merke}» og heter «${ka.navn}»`);
+        t.sjekk(kb.merke === "I gang" && !kb.ferdig && kb.navn.endsWith(" – i gang"), `Dagens utfordringer: kortet som er i gang, viser «${kb.merke}» og heter «${kb.navn}»`);
+        t.sjekk(h.kort.filter((k) => k.id !== a.id && k.id !== b.id).every((k) => k.merke === null && !STATUS.test(k.navn)), "Dagens utfordringer: urørte kort har merke");
+        t.sjekk(h.flamme && h.flamme.navn === "3 dager på rad" && /🔥\s*3$/.test(h.flamme.tekst), `Dagens utfordringer: rekka er ${JSON.stringify(h.flamme)}`);
+        await t.bilde("forside-vendt");
+        await c.js(`document.querySelector("#hylle-daglig").scrollIntoView({ block: "center" })`);
+        await t.bilde("forside-dagens");
 
-        // (b) Back from the last puzzle (the page comes from the browser's memory): the day is done.
-        // The last one is finished but not solved; the first two have a result text.
-        const fasit = daglige.map((d, i) => ({ ...d, vunnet: i !== n - 1, res: i === 0 ? "3/6" : i === 1 ? "0:52" : "" }));
-        const LEST = { "3/6": "3 av 6", "0:52": "52 sekunder" };
-        const alleFerdig = Object.fromEntries(fasit.map((d, i) => [d.id, { nr: T, vunnet: d.vunnet, rekke: d.vunnet ? 3 : 0, res: i === 0 ? merk(d.res) : d.res }]));
-        await medDaglig({ ...alleFerdig, _: { v: 1, dager: { [T]: daglige.map((d) => d.id), [T - 1]: [a.id], [T - 2]: [a.id] } } }, true);
-        st = await stripe();
-        utseende(st, "alt ferdig");
-        t.sjekk(st.tittel === "Dagen er i boks" && st.iBoks, `«I dag» (alt ferdig): overskriften er «${st.tittel}»`);
-        t.sjekk(st.antall === `${n} av ${n} i dag` && st.fliser.every((f) => f.tilstand === "ferdig" && f.hake), `«I dag» (alt ferdig): telleren sier «${st.antall}»`);
-        const ventetNavn = fasit.map((d) => `${d.navn}, ${d.vunnet ? "løst" : "ferdig"}${d.res ? ", " + LEST[d.res] : ""}`);
-        if (!PROBE) t.sjekk(st.fliser.map((f) => f.navn).join(" | ") === ventetNavn.join(" | "), `«I dag» (alt ferdig): flisene heter ${st.fliser.map((f) => f.navn).join(" | ")}, ventet ${ventetNavn.join(" | ")}`);
-        t.sjekk(st.fliser.every((f, i) => i === 0 || f.vist === (fasit[i].res || (fasit[i].vunnet ? "Løst" : "Ferdig"))), `«I dag» (alt ferdig): flisene viser ${st.fliser.map((f) => f.vist).join(" | ")}`);
-        t.sjekk(st.rekke === "3 dager på rad", `«I dag» (alt ferdig): rekka sier «${st.rekke}»`);
-        t.sjekk(/^Nye oppgaver om \d\d:\d\d:\d\d$/.test(st.status) && !st.neste && st.del, `«I dag» (alt ferdig): linja sier «${st.status}»`);
-        // The countdown to the next day is alive – and not read out every second.
-        const klokke1 = st.klokke;
-        t.sjekk(await venter(`document.querySelector("#idag-klokke").textContent !== ${JSON.stringify(klokke1)}`, 2500), "Nedtellingen til neste dag står stille");
-        const sek = (k) => k.split(":").reduce((sum, del) => sum * 60 + Number(del), 0);
-        const igjen = sek(await c.tekst("#idag-klokke"));
-        t.sjekk(igjen > 0 && igjen <= 25 * 3600 && sek(klokke1) - igjen >= 1 && sek(klokke1) - igjen <= 5, `Nedtellingen gikk fra ${klokke1} til ${igjen} sekunder`);
-        t.sjekk(await c.js(`(() => { const k = document.querySelector("#idag-klokke"); return k.getAttribute("role") === "timer" && !k.closest("[aria-live], [role=status]"); })()`), "Nedtellingen er et område som leses opp ved hver endring");
-        await t.bilde("forside-i-boks");
+        // (b) Back from a game (the page comes from the browser's memory): the second one is finished
+        // too – lost. The badges change in place; the row keeps where it was scrolled to.
+        const rulletFor = await c.js(`(() => { const r = document.querySelector("#hylle-daglig .hylle-rad"); r.scrollLeft = 60; return r.scrollLeft; })()`);
+        await medDaglig({ ...enFerdig, [b.id]: { nr: T, vunnet: false, rekke: 0, res: "X/6" }, _: { v: 1, dager: { ...logg, [T]: [a.id, b.id] } } }, true);
+        h = await dagligHylle();
+        utseende(h, "tilbake fra et spill");
+        const kb2 = kort(h, b.id);
+        t.sjekk(kb2.merke === "✓ X/6" && kb2.ferdig && kb2.navn.endsWith(" – ferdig i dag, X/6") && kort(h, a.id).ferdig, `Dagens utfordringer (tilbake): kortet viser «${kb2.merke}» og heter «${kb2.navn}»`);
+        t.sjekk((await c.js(`document.querySelector("#hylle-daglig .hylle-rad").scrollLeft`)) === rulletFor, "Dagens utfordringer (tilbake): raden hoppet tilbake til start");
+        await c.js(`(() => { document.querySelector("#hylle-daglig .hylle-rad").scrollLeft = 0; document.querySelector("#hylle-daglig").scrollIntoView({ block: "center" }); })()`);
+        await t.bilde("forside-dagens-ferdig");
 
-        // «Del dagen»: one text with the results and the address – through the phone's share sheet,
-        // else the clipboard, else the text itself.
-        await c.js(`Object.defineProperty(navigator, "share", { configurable: true, value: async (d) => { window.__delt = d; } })`);
-        await c.klikk("#idag-del");
-        const delt = await c.js("window.__delt || null");
-        const linjer = delt ? String(delt.text).split("\n") : [];
-        t.sjekk(delt && delt.url === "https://rusj.no/" && !/https?:/.test(delt.text), `«Del dagen» deler ikke adressen https://rusj.no/ for seg (${delt && delt.url})`);
-        t.sjekk(linjer.length === n + 2 && /^rusj i dag · /.test(linjer[0]) && daglige.every((d, i) => linjer[i + 1].startsWith(d.navn + ": ")) && linjer[n + 1] === `Dagen er i boks – ${n} av ${n} · 🔥 3 dager på rad`, `«Del dagen» deler: ${linjer.join(" / ")}`);
-        const ventetLinjer = fasit.map((d) => `${d.navn}: ${d.res || (d.vunnet ? "løst" : "ferdig")}`);
-        if (!PROBE) t.sjekk(linjer.slice(1, n + 1).join(" / ") === ventetLinjer.join(" / "), `«Del dagen»: resultatlinjene er ${linjer.slice(1, n + 1).join(" / ")}, ventet ${ventetLinjer.join(" / ")}`);
-        await c.js(`Object.defineProperty(navigator, "share", { configurable: true, value: undefined }); navigator.clipboard.writeText = async (tekst) => { window.__kopiert = tekst; };`);
-        await c.klikk("#idag-del");
-        const kopiert = await c.js("window.__kopiert || ''");
-        t.sjekk(delt && kopiert === delt.text + "\nhttps://rusj.no/" && /Kopiert/.test(await c.tekst("#idag-melding")), `«Del dagen» uten delingsark kopierer ikke tekst og adresse (${kopiert.split("\n").length} linjer)`);
-        await c.js(`navigator.clipboard.writeText = async () => { throw new Error("ikke lov"); };`);
-        await c.klikk("#idag-del");
-        const felt = await c.js(`(() => { const d = document.querySelector("#dialog"); const f = d.querySelector("textarea"); return { apen: d.open, tekst: f ? f.value : "", fokus: document.activeElement === f }; })()`);
-        t.sjekk(delt && felt.apen && felt.tekst === delt.text + "\nhttps://rusj.no/" && felt.fokus, "«Del dagen» uten delingsark og utklippstavle viser ikke teksten i et felt");
-        await t.bilde("forside-del");
-        await c.klikk('#dialog [value="ok"]');
+        // (c) The format the games wrote before (no result text, no day log): just «✓». One day: no streak.
+        await medDaglig({ [a.id]: { nr: T, vunnet: true, rekke: 1 } });
+        h = await dagligHylle();
+        utseende(h, "gammelt format");
+        t.sjekk(kort(h, a.id).merke === "✓" && kort(h, a.id).navn.endsWith(" – ferdig i dag") && !h.flamme, `Dagens utfordringer (gammelt format): «${kort(h, a.id).merke}», «${kort(h, a.id).navn}», rekke ${JSON.stringify(h.flamme)}`);
 
-        // (c) A streak held together by a rest day: the day before yesterday was missed. Nothing done today.
-        await medDaglig({ [a.id]: { nr: T - 1, vunnet: true, rekke: 1, res: "5/6" }, _: { v: 1, dager: { [T - 1]: [a.id], [T - 3]: [a.id], [T - 4]: [a.id, b.id] } } });
-        st = await stripe();
-        utseende(st, "hviledag");
-        t.sjekk(st.rekke === "3 dager på rad" && st.flamme, `«I dag» (hviledag): rekka sier «${st.rekke}», ventet 3 dager med én hviledag imellom`);
-        t.sjekk(st.prikker.join(" ") === ventetUke([T - 1, T - 3, T - 4], [T - 2]).join(" "), `«I dag» (hviledag): ukeprikkene er ${st.prikker.join(" ")}, ventet ${ventetUke([T - 1, T - 3, T - 4], [T - 2]).join(" ")}`);
-        t.sjekk(ukedag >= 2 ? st.uke.includes(`Hviledag ${UKEDAGER[ukedag - 2]}.`) : !/Hviledag/.test(st.uke), `«I dag» (hviledag): uka leses som «${st.uke}»`);
-        t.sjekk(st.antall === `0 av ${n} i dag` && st.fliser.every((f) => f.tilstand === "ny"), `«I dag» (hviledag): telleren sier «${st.antall}»`);
-        t.sjekk(st.status === "Én oppgave i dag holder rekka i gang." && st.neste === `Start: ${a.navn}` && !st.del, `«I dag» (hviledag): linja sier «${st.status}», knappen «${st.neste}»`);
-        await t.bilde("forside-hviledag");
+        // (d) Storage blocked: the page reads as for a new visitor, without an error.
+        await c.js(`Object.defineProperty(window, "localStorage", { configurable: true, get() { throw new DOMException("blokkert", "SecurityError"); } }); window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }))`);
+        await c.sov(200);
+        h = await dagligHylle();
+        utseende(h, "lagring blokkert", false);
+        t.sjekk(h.kort.every((k) => k.merke === null) && !h.flamme, "Dagens utfordringer (lagring blokkert): merker eller rekke vises");
+        await c.lastSide(t.side, "document.querySelector('.spillgrid')"); // storage back
 
-        // (d) A streak that ended days ago: a new start, said calmly – nothing about what was lost.
-        await medDaglig({ [a.id]: { nr: T - 6, vunnet: true, rekke: 4, res: "4/6" } }, true);
-        st = await stripe();
-        utseende(st, "ny rekke");
-        t.sjekk(!st.rekke && !st.flamme && st.status === "Ny rekke starter i dag.", `«I dag» (ny rekke): linja sier «${st.status}», rekka «${st.rekke}»`);
-        t.sjekk(!/mist|brutt|tapt|dessverre|synd|røk/i.test(st.alt), `«I dag» (ny rekke): stripa skammer: «${st.alt.replace(/\s+/g, " ").slice(0, 120)}»`);
-
-        // (e) Data in the format the games write today (no result text, no day log): finished or
-        // new, and a streak built from the games' own streaks.
-        await medDaglig({ [a.id]: { nr: T, vunnet: true, rekke: 5 }, [b.id]: { nr: T - 1, vunnet: true, rekke: 2 } });
-        st = await stripe();
-        utseende(st, "gammelt format");
-        t.sjekk(st.fliser[0].navn === `${a.navn}, løst` && st.fliser[0].vist === "Løst" && st.fliser[0].hake && st.fliser[1].tilstand === "ny", `«I dag» (gammelt format): flisene heter ${st.fliser.map((f) => f.navn).join(" | ")}`);
-        t.sjekk(st.antall === `1 av ${n} i dag` && st.rekke === "5 dager på rad", `«I dag» (gammelt format): «${st.antall}», «${st.rekke}»`);
-        t.sjekk(st.prikker.join(" ") === ventetUke([T, T - 1, T - 2, T - 3, T - 4], []).join(" "), `«I dag» (gammelt format): ukeprikkene er ${st.prikker.join(" ")}`);
-        t.sjekk(st.neste === `Neste: ${b.navn}`, `«I dag» (gammelt format): knappen sier «${st.neste}»`);
-        await t.bilde("forside-gammelt-format");
-
-        // (f) Less motion asked for: the strip is simply there, and the day still counts down.
-        await c.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
-        await medDaglig({ ...alleFerdig });
-        await c.sov(300);
-        const rolig = await c.js(`(() => { const s = document.querySelector("#idag"); return { synlig: getComputedStyle(s).opacity === "1", varighet: parseFloat(getComputedStyle(s).animationDuration), klokke: !!document.querySelector("#idag-klokke") }; })()`);
-        t.sjekk(rolig.synlig && rolig.varighet < 0.01 && rolig.klokke, `«I dag» med redusert bevegelse: synlig ${rolig.synlig}, animasjon ${rolig.varighet} s`);
-        await c.send("Emulation.setEmulatedMedia", { features: [] });
-
-        // (g) Rubbish in storage: the page treats the visitor as new, without an error.
+        // (e) Rubbish in storage: the page treats the visitor as new, without an error.
         for (const rot of ["{ødelagt", "[1,2,3]", JSON.stringify({ [a.id]: "x", _: 7 })]) {
           await medDaglig(rot);
-          t.sjekk(await c.js(`document.querySelector("#idag").hidden && !document.querySelector("#idag-ny").hidden && !!document.querySelector("#hylle-daglig")`), `Søppel i lagringen (${rot.slice(0, 12)}) gir ikke forsiden for en ny besøkende`);
+          h = await dagligHylle();
+          t.sjekk(h.finnes && h.hyller[0] !== "hylle-daglig" && h.kort.every((k) => k.merke === null) && !h.flamme, `Søppel i lagringen (${rot.slice(0, 12)}) gir ikke forsiden for en ny besøkende`);
         }
         await c.js(`localStorage.removeItem("rusj.daglig")`);
       }
@@ -854,7 +753,8 @@ for (const id of valgt) {
       t.sjekk(/^Fått \d+\. [a-zæøå]+$/.test(bok.dato) && !("finnes-ikke" in bok.lagret) && Number.isInteger(bok.lagret["dagens-rekke-7"]), `Dato eller lagring i klistremerkeboka: «${bok.dato}», ${JSON.stringify(bok.lagret)}`);
       t.sjekk((await utenfor()).length === 0, `Tekst stikker utenfor skjermen i klistremerkeboka: ${(await utenfor()).join(", ")}`);
       await t.bilde("merker");
-      await t.bilde("merker-hel", true);
+      // The full-page shot of the album hangs Chrome in landscape; portrait is enough.
+      if (BREDDE < HOYDE) await t.bilde("merker-hel", true);
       await c.js(`localStorage.clear()`);
       await c.lastSide(`${tjener.url}/personvern/`, "document.querySelector('#slett-alt')");
       const pv = await c.js(`({ h1: document.querySelector("h1").innerText, tekst: document.querySelector("main").innerText, knapp: document.querySelector("#slett-alt").innerText.trim() })`);

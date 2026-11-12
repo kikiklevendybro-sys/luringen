@@ -1,5 +1,5 @@
-/* rusj.no front page: «Dagens rusj» (the «I dag» strip with today's puzzles and the streak), search,
-   category shelves, filters by player count and type, the 18+ gate for drinking games, «Kveldens
+/* rusj.no front page: search, category shelves («Dagens utfordringer» with what is done today and
+   the streak), filters by player count and type, the 18+ gate for drinking games, «Kveldens
    gjeng» (the evening's scoreboard), «Overrask meg» (a slot machine), «Fortsett der dere slapp»,
    the mascot parade and the install-as-app tip.
    Reads window.RUSJ_SPILLISTE (written by the build). Nothing leaves the device. */
@@ -324,9 +324,10 @@
 
   function byggHyller() {
     const ut = [];
-    for (const h of HYLLER) {
-      // The «I dag» strip already shows today's puzzles: one of the two, not both.
-      if (h.tagg === "daglig" && stripeVises) continue;
+    // Returning players (a daily finished or started before) get «Dagens utfordringer» first.
+    const dag = lesDagens();
+    const hyller = dag && dag.vendt ? [...HYLLER.filter((h) => h.tagg === "daglig"), ...HYLLER.filter((h) => h.tagg !== "daglig")] : HYLLER;
+    for (const h of hyller) {
       // Games where this category is their main thing come first (e.g. a party game on «Til festen»).
       const spill = SPILL.filter((s) => s.tagger.includes(h.tagg) && (h.alder18 || !s.alder18))
         .map((s, n) => ({ s, n, vekt: s.tagger.indexOf(h.tagg) }))
@@ -342,12 +343,12 @@
       // Shown drinking games can be hidden again (a shared family tablet).
       const skjul = h.alder18 && over18 ? `<button type="button" class="hylle-alle hylle-skjul" data-skjul18>Skjul</button>` : "";
       ut.push(`<section class="hylle${h.alder18 ? " hylle-18" : ""}" id="hylle-${h.tagg}" aria-label="${esc(h.tittel)}">
-        <div class="hylle-topp"><h3${h.alder18 || h.tagg === "daglig" ? ' tabindex="-1"' : ""}><span aria-hidden="true">${h.ikon}</span> ${esc(h.tittel)}</h3>${skjul}<button type="button" class="hylle-alle" data-tagg="${h.tagg}" aria-label="Se alle: ${esc(h.tittel)}">Se alle</button></div>
+        <div class="hylle-topp"><h3${h.alder18 ? ' tabindex="-1"' : ""}><span aria-hidden="true">${h.ikon}</span> ${esc(h.tittel)}</h3>${skjul}<button type="button" class="hylle-alle" data-tagg="${h.tagg}" aria-label="Se alle: ${esc(h.tittel)}">Se alle</button></div>
         <ul class="hylle-rad">${innhold}</ul>
       </section>`);
     }
     $("#hyller").innerHTML = ut.join("");
-    merkFortsett();
+    merkDagens();
   }
 
   // ---------- Fortsett (games left in the middle) ----------
@@ -394,7 +395,7 @@
       const a = $("a", k);
       if (!a) continue;
       if (a.dataset.etikett == null) a.dataset.etikett = a.getAttribute("aria-label") || "";
-      a.setAttribute("aria-label", (pa ? "Fortsett. " : "") + a.dataset.etikett);
+      a.setAttribute("aria-label", (pa ? "Fortsett. " : "") + a.dataset.etikett + (a.dataset.dagens || ""));
       let merke = $(".kort-fortsett", k);
       if (pa && !merke) {
         merke = document.createElement("span");
@@ -415,178 +416,87 @@
     merkFortsett();
   }
 
-  // ---------- Dagens rusj: the «I dag» strip ----------
-  // Today's puzzles, what is done, the week and the streak – read from «rusj.daglig», which the
-  // games write through the kit (the format is in rusj/DAGLIG.md; the counting in daglig.js).
-  // Returning players get the strip at the top; a new visitor gets one slim row under the buttons.
+  // ---------- «Dagens utfordringer»: today on the daily cards ----------
+  // What is done today and the streak, read from «rusj.daglig», which the games write through the
+  // kit (the format is in rusj/DAGLIG.md; the reading and the counting in daglig.js). Only the
+  // phone's own storage: when it is blocked, the page reads as for a new visitor.
 
   const D = window.RusjDaglig;
-  // The daily puzzles: every game with the tag «daglig» (never a drinking game).
-  const DAGLIGE = D ? SPILL.filter((s) => s.tagger.includes("daglig") && !s.alder18 && kilde(s.id)) : [];
-  const idag = $("#idag");
-  const idagNy = $("#idag-ny");
-  const MND = ["JAN", "FEB", "MAR", "APR", "MAI", "JUN", "JUL", "AUG", "SEP", "OKT", "NOV", "DES"];
-  let stripeVises = false; // the strip is shown – then the shelf «Dagens utfordringer» is left out
-  let tegnetDag = 0; // the day the strip was last drawn for
-  let idagTikker = null;
+  let dagens = null; // { nr, st, rekke, vendt }: what the shelf was last drawn from
 
-  function lesIdag() {
-    const iDag = D.dag();
-    const st = D.status(les("rusj.daglig", null), DAGLIGE.map((s) => s.id), iDag.nr);
-    return { iDag, st, r: D.rekke(st.dager, iDag.nr) };
-  }
-  const dagligSpill = (id) => DAGLIGE.find((s) => s.id === id);
-
-  function tegnIdag({ iDag, st, r }) {
-    const alt = st.ferdige === st.antall;
-    const hvert = st.spill.map((x) => ({ x, s: dagligSpill(x.id), t: D.tilstandTekst(x) }));
-    const neste = hvert.find((h) => h.x.tilstand === "pagar") || hvert.find((h) => h.x.tilstand === "ny");
-    // One round mascot per puzzle (state classes are prefixed: bare words like «tom» mean other
-    // things in the kit's stylesheet). The state is in the shape (dashed ring, half ring, ring with a
-    // ✓), in the words under it and in the link's name: «Dagens ord, løst, 4 av 6».
-    const fliser = hvert
-      .map(
-        ({ x, s, t }) => `<li><a class="idag-flis t-${x.tilstand}${x.tilstand === "ferdig" && !x.vunnet ? " t-ikke-lost" : ""}" href="/${s.id}/#dagens" style="--kf: ${s.farge}" aria-label="${esc(`${s.dagnavn || s.undertittel}, ${t.lang}`)}">
-          <span class="idag-figur">${figur(s.id)}${x.tilstand === "ferdig" ? '<span class="idag-hake">✓</span>' : ""}</span>
-          <span class="idag-navn">${esc(s.dagnavn || s.undertittel)}</span>
-          <span class="idag-res">${esc(t.kort)}</span>
-        </a></li>`,
-      )
-      .join("");
-    const prikker = D.ukeprikker(st.dager, r.hvile, iDag.nr);
-    const uke = prikker.map((p) => `<span class="idag-prikk p-${p.tilstand}${p.iDag ? " p-i-dag" : ""}"><i></i>${p.navn.charAt(0).toUpperCase()}</span>`).join("");
-    const linje = D.statuslinje(st, r);
-    const del = (klasse) => `<button type="button" class="${klasse}" id="idag-del">Del dagen</button>`;
-    const knapper = alt
-      ? del("knapp mynte")
-      : `<a class="knapp rosa" id="idag-neste" href="/${neste.s.id}/#dagens">${neste.x.tilstand === "pagar" ? "Fortsett" : st.ferdige ? "Neste" : "Start"}: ${esc(neste.s.dagnavn || neste.s.undertittel)}</a>` + (st.ferdige ? del("knapp-2") : "");
-    // Drawn again on return from a game: keep the keyboard where it was.
-    const fokus = idag.contains(document.activeElement) ? document.activeElement.id : "";
-    idag.classList.toggle("i-boks", alt);
-    idag.innerHTML = `
-      <div class="idag-topp">
-        <span class="idag-dato" aria-hidden="true"><b>${MND[iDag.m - 1]}</b><i>${iDag.d}</i></span>
-        <div class="idag-overskrift"><h2 id="idag-tittel">${alt ? "Dagen er i boks" : "I dag"}</h2><p>${esc(D.datoTekst(iDag))}</p></div>
-        ${r.rekke >= 2 ? `<p class="idag-rekke"><span class="vh">${r.rekke} dager på rad</span><span class="idag-flamme" aria-hidden="true">🔥</span><b aria-hidden="true">${r.rekke}</b><span class="idag-rekke-tekst" aria-hidden="true"><i>dager </i>på rad</span></p>` : ""}
-      </div>
-      <ul class="idag-spill">${fliser}</ul>
-      <div class="idag-bunn">
-        <div class="idag-uke" role="img" aria-label="${esc(D.ukeTekst(prikker))}">${uke}</div>
-        <p class="idag-antall"><b>${st.ferdige} av ${st.antall}</b> i dag</p>
-      </div>
-      <p class="idag-status" id="idag-status">${esc(linje.tekst)}${linje.klokke ? ` <b id="idag-klokke" role="timer">${D.klokke(D.sekunderTilMidnatt())}</b>` : ""}</p>
-      <div class="idag-knapper">${knapper}</div>
-      <p class="idag-melding" id="idag-melding" role="status"></p>`;
-    if (fokus && $("#" + fokus, idag)) $("#" + fokus, idag).focus({ preventScroll: true });
+  function lesDagens() {
+    if (!D) return (dagens = null);
+    const nr = D.dag().nr;
+    const ider = SPILL.filter((s) => s.tagger.includes("daglig") && !s.alder18).map((s) => s.id);
+    const st = D.status(les("rusj.daglig", null), ider, nr);
+    // A returning player has finished a daily before, or is in the middle of one.
+    return (dagens = { nr, st, rekke: D.rekke(st.dager, nr).rekke, vendt: st.noenGang || st.pagar > 0 });
   }
 
-  // New visitors: one slim row, «I dag: tre nye oppgaver», that leads to the shelf with them.
-  function tegnIdagNy(st) {
-    $("#idag-ny-figurer").innerHTML = DAGLIGE.slice(0, 4)
-      .map((s) => `<span style="--kf: ${s.farge}">${figur(s.id)}</span>`)
-      .join("");
-    $("#idag-ny-tekst").innerHTML = `<b>I dag:</b> ${st.antall === 1 ? "én ny oppgave" : `${esc(D.tallord(st.antall))} nye oppgaver`}`;
-    // A shelf needs two games; with a single daily puzzle the row goes straight to it.
-    idagNy.setAttribute("href", DAGLIGE.length >= 2 ? "#hylle-daglig" : `/${DAGLIGE[0].id}/#dagens`);
-  }
+  // A small badge on the picture of each daily card – «✓ 4/6» or «I gang» – and the same in its
+  // link name; the streak beside the shelf's heading. Texts from storage only ever go in as text.
+  function merkDagens() {
+    const hylle = $("#hylle-daglig");
+    if (hylle && dagens) {
+      const topp = $(".hylle-topp", hylle);
+      let flamme = $(".hylle-rekke", topp);
+      if (dagens.rekke >= 2) {
+        if (!flamme) {
+          flamme = document.createElement("span");
+          flamme.className = "hylle-rekke";
+          flamme.setAttribute("role", "img");
+          $("h3", topp).after(flamme);
+        }
+        flamme.setAttribute("aria-label", `${dagens.rekke} dager på rad`);
+        flamme.innerHTML = `<span aria-hidden="true">🔥</span>${dagens.rekke}`;
+      } else if (flamme) flamme.remove();
 
-  function visIdag() {
-    clearInterval(idagTikker);
-    idagTikker = null;
-    if (!DAGLIGE.length || !idag || !idagNy) return;
-    const na = lesIdag();
-    tegnetDag = na.iDag.nr;
-    // The strip is for those who have finished a daily puzzle before, or are in the middle of one.
-    stripeVises = na.st.noenGang || na.st.pagar > 0;
-    document.body.classList.toggle("daglig-spiller", stripeVises);
-    idag.hidden = !stripeVises;
-    idagNy.hidden = stripeVises;
-    if (stripeVises) tegnIdag(na);
-    else tegnIdagNy(na.st);
-    // The clock: every second while the countdown to the next day is on the page, otherwise now
-    // and then – only to notice that a new day has begun. Never while the page is out of sight.
-    if (!document.hidden) idagTikker = setInterval(idagTikk, $("#idag-klokke") ? 1000 : 30000);
-  }
-  function idagTikk() {
-    if (D.dag().nr !== tegnetDag) return oppdaterIdag(); // midnight: new puzzles
-    const k = $("#idag-klokke");
-    if (k) k.textContent = D.klokke(D.sekunderTilMidnatt());
-  }
-  // After anything that may have changed the day's state: draw again, and give the shelf «Dagens
-  // utfordringer» back or take it away if the strip came or went.
-  function oppdaterIdag() {
-    const for_ = stripeVises;
-    visIdag();
-    if (for_ !== stripeVises) byggHyller();
-  }
-
-  // «Del dagen»: one text with today's results (never an answer) and the address. The phone's
-  // share sheet if there is one, else the clipboard, else the text itself to mark and copy.
-  async function delDagen() {
-    const { iDag, st, r } = lesIdag();
-    const tekst = D.delTekst({ iDag, rekke: r.rekke, linjer: st.spill.map((x) => ({ navn: dagligSpill(x.id).dagnavn || dagligSpill(x.id).undertittel, tilstand: x.tilstand, vunnet: x.vunnet, res: x.res })) });
-    const url = "https://rusj.no/";
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "rusj i dag", text: tekst, url });
-        return;
+      const stand = new Map(dagens.st.spill.map((x) => [x.id, x]));
+      for (const k of $$(".spillkort[data-id]", hylle)) {
+        const a = $("a", k);
+        const x = stand.get(k.dataset.id);
+        if (!a || !x) continue;
+        // Straight to today's round, as the old «I dag» strip did (rusj/DAGLIG.md: #dagens).
+        const href = a.getAttribute("href") || "";
+        if (href && !href.includes("#")) a.setAttribute("href", href + "#dagens");
+        const ferdig = x.tilstand === "ferdig";
+        a.dataset.dagens = ferdig ? ` – ferdig i dag${x.res ? ", " + D.lesbart(x.res) : ""}` : x.tilstand === "pagar" ? " – i gang" : "";
+        let merke = $(".kort-dagens", k);
+        if (!a.dataset.dagens) {
+          if (merke) merke.remove();
+          continue;
+        }
+        if (!merke) {
+          merke = document.createElement("span");
+          merke.className = "kort-dagens";
+          merke.setAttribute("aria-hidden", "true");
+          $(".kort-figur", a).append(merke);
+        }
+        merke.classList.toggle("ferdig", ferdig);
+        merke.textContent = ferdig ? "✓" + (x.res ? " " + x.res : "") : "I gang";
       }
-    } catch (e) {
-      if (e && e.name === "AbortError") return; // the share sheet was closed
     }
-    const hele = tekst + "\n" + url;
-    try {
-      await navigator.clipboard.writeText(hele);
-      const m = $("#idag-melding");
-      if (m) m.textContent = "Kopiert! Lim inn der du vil dele.";
-    } catch (e) {
-      const d = $("#dialog");
-      d.innerHTML = `
-        <h2 id="dialog-tittel">Del dagen</h2>
-        <p>Marker teksten og kopier den dit du vil dele.</p>
-        <textarea class="dialog-tekst" id="dialog-tekst" readonly rows="6" aria-label="Dagens resultat">${esc(hele)}</textarea>
-        <div class="dialog-knapper"><button type="button" class="knapp" value="ok">Ferdig</button></div>`;
-      d.querySelector('[value="ok"]').addEventListener("click", () => d.close());
-      d.showModal();
-      d.querySelector("textarea").focus();
-      d.querySelector("textarea").select();
-    }
+    merkFortsett(); // writes the link names, with today's state in them
   }
-  if (idag)
-    idag.addEventListener("click", (e) => {
-      if (e.target.closest("#idag-del")) delDagen();
-    });
 
-  if (idagNy)
-    idagNy.addEventListener("click", (e) => {
-      const hylle = $("#hylle-daglig");
-      if (!hylle) return; // a single daily puzzle: the link goes straight to the game
-      e.preventDefault();
-      if ($("#hyller").hidden) {
-        // A filter from last time hides the shelves: show the daily puzzles in the list instead.
-        tagg = "daglig";
-        sok = "";
-        $("#sok").value = "";
-        oppdater();
-        visFiltre(true);
-        $("#spill").focus({ preventScroll: true });
-        $("#spill").scrollIntoView({ behavior: rolig() ? "auto" : "smooth", block: "start" });
-        return;
-      }
-      $("h3", hylle).focus({ preventScroll: true });
-      hylle.scrollIntoView({ behavior: rolig() ? "auto" : "smooth", block: "center" });
-    });
-
-  // Out of sight: no clock. Back in sight, or changed in another tab: up to date.
+  // Back from a game, changed in another tab, a new day: up to date. The shelves are built anew
+  // only when «Dagens utfordringer» has to move (that would reset how far each row is scrolled).
+  function oppdaterDagens() {
+    const for_ = !!(dagens && dagens.vendt);
+    lesDagens();
+    if (dagens && dagens.vendt !== for_) byggHyller();
+    else merkDagens();
+  }
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      clearInterval(idagTikker);
-      idagTikker = null;
-    } else oppdaterIdag();
+    if (!document.hidden) oppdaterDagens();
   });
   window.addEventListener("storage", (e) => {
-    if (e.key === "rusj.daglig") oppdaterIdag();
+    if (e.key === "rusj.daglig") oppdaterDagens();
   });
+  // A page left open past midnight: yesterday's ticks go away.
+  setInterval(() => {
+    if (D && dagens && !document.hidden && D.dag().nr !== dagens.nr) oppdaterDagens();
+  }, 60000);
 
   // ---------- Mascot parade under the hero (never drinking games) ----------
 
@@ -998,7 +908,6 @@
   if (finPeker.addEventListener) finPeker.addEventListener("change", () => $$(RADER).forEach(oppdaterPiler));
 
   byggParade();
-  visIdag(); // before the shelves: it decides whether «Dagens utfordringer» is one of them
   byggHyller();
   visFortsett();
   visKveld();
@@ -1027,7 +936,7 @@
       byggHyller();
     }
     finnAktive();
-    oppdaterIdag(); // a daily puzzle may be finished since the page was left
+    oppdaterDagens(); // a daily puzzle may be finished since the page was left
     visFortsett();
     visKveld();
     oppdater();

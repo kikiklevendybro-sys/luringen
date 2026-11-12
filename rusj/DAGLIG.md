@@ -1,11 +1,12 @@
 # `rusj.daglig` – the storage contract for «Dagens rusj»
 
 One `localStorage` key carries everything the daily ritual needs. **The kit writes it** (from the
-daily games), **the front page reads it** (the «I dag» strip). Nothing leaves the phone.
+daily games), **the front page reads it** (the shelf «Dagens utfordringer»). Nothing leaves the phone.
 
 - Writer: `rusj/kit/rusj.js` (`R.dagligFerdig`, and the new `R.dagligIGang`).
 - Reader: `rusj/portal/daglig.js` (pure functions, unit-tested in `test/daglig.test.mjs`) and
-  `rusj/portal/portal.js` (the strip).
+  `rusj/portal/portal.js` (the shelf: first for returning players, a «✓ 4/6» / «I gang» badge on
+  each daily card, and the streak beside its heading from two days in a row).
 - A **daily game** is a game with the tag `daglig` in its `spill.json`. Nothing here is tied to the
   three that exist today.
 
@@ -144,9 +145,8 @@ Examples (week: Mon 20766, Tue 20767, **Wed 20768**, Thu 20769, Fri 20770; `P` =
 ## Old data
 
 Today's format – `{ "ordugla": { "nr": 20768, "vunnet": true, "rekke": 12 } }` – is a valid
-value of the new one. From it the front page shows *ferdig*/*ny* per game («Løst» where there is
-no `res`), the count, the week dots and a site streak built from the games' own streaks.
-*I gang* and the result texts appear when the kit starts writing `pagar` and `res`.
+value of the new one. From it the front page shows *ferdig* per game (just «✓» where there is
+no `res`) and a site streak built from the games' own streaks.
 
 ## For the kit owner
 

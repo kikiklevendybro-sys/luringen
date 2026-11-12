@@ -570,7 +570,6 @@ ${STEMPEL_FILTER}
     id: m.id,
     navn: m.navn,
     undertittel: m.undertittel,
-    ...(m.dagnavn ? { dagnavn: String(m.dagnavn).slice(0, 24) } : {}), // the name in the «I dag» strip
     kort: m.kort,
     spillere: m.spillere,
     minutter: m.minutter,
@@ -667,7 +666,6 @@ ${IKONER}
 <header class="helt">
   <h1 class="helt-logo"><span class="vh">${esc(forsideTittel)}</span>${G.logo({ klasse: "tegnes" })}</h1>
   <div class="helt-tekst">
-    <section class="idag" id="idag" aria-labelledby="idag-tittel" hidden></section>
     <p class="helt-slagord">Spill for hele gjengen. <br><em>Rett i nettleseren.</em></p>
     <ul class="helt-fakta" aria-label="Om rusj">
       <li><b id="helt-antall">${alleKort.length}</b> spill</li><li><b>0</b> kr</li><li><b>0</b> reklame</li><li><b>Ingen</b> konto</li>
@@ -676,7 +674,6 @@ ${IKONER}
       <a class="knapp" href="#spill">Finn et spill</a>
       <button class="knapp-2" id="overrask" type="button" aria-haspopup="dialog"><span aria-hidden="true">🎲</span> Overrask meg</button>
     </div>
-    <a class="idag-ny" id="idag-ny" href="#hylle-daglig" hidden><span class="idag-ny-figurer" id="idag-ny-figurer" aria-hidden="true"></span><span class="idag-ny-tekst" id="idag-ny-tekst"></span><span class="idag-ny-pil" aria-hidden="true">›</span></a>
   </div>
 </header>
 <div class="parade" aria-hidden="true"><div class="parade-spor" id="parade"></div></div>
