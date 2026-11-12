@@ -435,6 +435,23 @@
       "tittel": "Drukhjulet – snur hjulet, egne regler (18+)",
       "frase": "Drukhjulet",
       "beskrivelse": "Snur det store drukhjul (18+): sandheder, trygge udfordringer, skåler og jeres egne husregler. Kun små slurke – alkoholfrit tæller lige så meget."
+    },
+    "bedreviteren": {
+      "tittel": "Quiz på nettet – næsten 800 spørgsmål med svar, gratis",
+      "frase": "Quiz på nettet",
+      "beskrivelse": "Gratis quiz på dansk med næsten 800 spørgsmål og svar om Danmark, natur, sport og historie. Dagens fem hver dag – eller quiz for hele banden, hold mod hold.",
+      "sok": [
+        "quizspørgsmål",
+        "quiz på nettet",
+        "quiz for børn",
+        "dagens quiz",
+        "daglig quiz",
+        "paratviden",
+        "spørgeleg",
+        "kahoot",
+        "bezzerwizzer",
+        "trivial pursuit"
+      ]
     }
   }
 }
