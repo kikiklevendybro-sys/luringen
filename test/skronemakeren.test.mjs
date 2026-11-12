@@ -4,7 +4,7 @@
 // 300, six packs, no duplicates, short true answers written like a player's.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
@@ -204,3 +204,52 @@ test("kortene: husets skrivemåter, ingen varemerker og ingen sjangernavn fra an
   const barn = D.pakker.find((p) => p.id === "barn");
   assert.ok(!/brennevin|sprit|\bøl\b|\bvin\b|drikke|\bdød/i.test(JSON.stringify(barn)), "Barn-pakken skal være for de minste");
 });
+
+// ---------- The English and Danish editions ----------
+
+test("småordene følger utgavens språk (a/an/the på engelsk, en/et/den på dansk)", () => {
+  const lastMed = (sprak) => {
+    // The rules read the edition (two reads); after that the kit is "missing", so only the rules load.
+    let lest = 0;
+    const w = {};
+    Object.defineProperty(w, "Rusj", { get: () => (lest++ < 2 ? { sprak } : undefined) });
+    vm.runInNewContext(readFileSync(join(ROT, "rusj/spill/skronemakeren/spill.js"), "utf8"), { window: w, console });
+    return w.RusjSkrone;
+  };
+  const en = lastMed("en");
+  assert.equal(en.nokkel("A towel"), en.nokkel("towel"));
+  assert.equal(en.nokkel("The kind of jaw"), en.nokkel("jaw"));
+  const da = lastMed("da");
+  assert.equal(da.nokkel("Et håndklæde"), da.nokkel("håndklæde"));
+  assert.equal(da.nokkel("Noget fnug"), da.nokkel("fnug"));
+  // Norwegian is unchanged when the kit says nb.
+  assert.equal(lastMed("nb").nokkel("en slags kjeve"), M.nokkel("kjeve"));
+});
+
+for (const mappe of ["data.en", "data.da"]) {
+  const fil = join(ROT, "rusj/spill/skronemakeren", mappe, "kort.json");
+  if (!existsSync(fil)) continue;
+  const U = JSON.parse(readFileSync(fil, "utf8"));
+  test(`kortene (${mappe}): de samme seks pakkene, minst 30 i hver, korte svar og ingen like spørsmål`, () => {
+    assert.deepEqual(U.pakker.map((p) => p.id), PAKKER);
+    const sett = new Set();
+    for (const p of U.pakker) {
+      assert.ok(p.navn && p.ikon && p.tekst, `${p.id} mangler navn, ikon eller tekst`);
+      assert.ok(p.kort.length >= 30, `${p.id} har bare ${p.kort.length} kort`);
+      for (const k of p.kort) {
+        assert.deepEqual(Object.keys(k).filter((n) => !["s", "a", "g"].includes(n)), [], `ukjent felt: «${k.s}»`);
+        const n = M.nokkel(k.s);
+        assert.ok(!sett.has(n), `samme kort to ganger: «${k.s}»`);
+        sett.add(n);
+        assert.ok(typeof k.s === "string" && k.s.length >= 12 && k.s.length <= 140 && /[?…]/.test(k.s), `rart spørsmål: «${k.s}»`);
+        assert.ok(typeof k.a === "string" && k.a.trim() === k.a && Array.from(k.a).length <= 60, `svaret er for langt: «${k.a}»`);
+        assert.equal(M.rens(k.a), k.a, `svaret må overleve rens(): «${k.a}»`);
+        assert.ok(/^[A-ZÆØÅ0-9]/.test(k.a) && !/[.!]$/.test(k.a), `svaret skal starte med stor bokstav og ikke slutte med punktum: «${k.a}»`);
+        if (k.g) assert.ok(Array.isArray(k.g) && k.g.every((x) => typeof x === "string" && M.nokkel(x)), `rare godtatte svar: «${k.s}»`);
+        assert.ok(!/<|>|&/.test(k.s + k.a), `markup i kortet: «${k.s}»`);
+      }
+    }
+    assert.ok(!/balderdash|fibbage|thermos|velcro|post-it|bubble wrap/i.test(JSON.stringify(U)), "varemerke i kortene");
+    if (mappe === "data.en") assert.ok(!/[æøå]/i.test(JSON.stringify(U)), "æ, ø eller å i den engelske kortstokken");
+  });
+}

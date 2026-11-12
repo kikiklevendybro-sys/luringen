@@ -447,6 +447,12 @@
       "frase": "Julekalender",
       "beskrivelse": "Gratis julekalender med 24 låger: julegåder, quiz, gæt julesangen, ordgåder og hyggelige idéer. En ny låge hver dag i december, uden konto.",
       "sok": ["adventskalender", "julekalender for børn", "julegåder"]
+    },
+    "skronemakeren": {
+      "tittel": "Skrønemageren – digt en forklaring, find den ægte",
+      "frase": "Skrønemageren",
+      "beskrivelse": "Bluffespillet, hvor alle digter en forklaring på et mærkeligt ord, et stednavn eller et skørt faktum – og I skal finde den ægte. Gratis for 3–10, én mobil.",
+      "sok": ["bluffespil", "ordbluf", "find det rigtige svar"]
     }
   }
 }

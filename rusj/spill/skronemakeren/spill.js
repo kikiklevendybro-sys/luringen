@@ -35,8 +35,15 @@
       .replace(/[^a-z0-9æøå ]+/g, " ")
       .replace(/\s+/g, " ")
       .trim();
-  // Small words that don't change what an answer means («en kjeve» = «kjeve»).
-  const SMAAORD = new Set(["en", "et", "ei", "å", "den", "det", "de", "som", "noe", "noen", "slags", "type", "sorts"]);
+  // Small words that don't change what an answer means («en kjeve» = «kjeve»), in the edition's
+  // language (Norwegian when the kit isn't there, as in the unit tests).
+  const SPRAK = (typeof window !== "undefined" && window.Rusj && window.Rusj.sprak) || "nb";
+  const SMAAORD = new Set(
+    {
+      en: ["a", "an", "the", "some", "kind", "sort", "type", "of"],
+      da: ["en", "et", "den", "det", "de", "som", "noget", "nogle", "slags", "type", "sags"],
+    }[SPRAK] || ["en", "et", "ei", "å", "den", "det", "de", "som", "noe", "noen", "slags", "type", "sorts"], // sprak-ok
+  );
   // The comparison key: normalised, small words out, no spaces. "" = nothing to compare.
   const nokkel = (tekst) =>
     normaliser(tekst)
@@ -265,8 +272,13 @@
     if (i < 0) i = stokken.neste();
     return i;
   }
-  const tittel = (S) => (S.spill ? `Runde ${Math.min(S.spill.rn + 1, S.spill.runder)} av ${S.spill.runder}` : "Skrønemakeren");
+  const tittel = (S) => (S.spill ? R.t("Runde {n} av {av}", { n: Math.min(S.spill.rn + 1, S.spill.runder), av: S.spill.runder }) : R.t("Skrønemakeren"));
+  // The address of this game in the edition (the share text links to it).
+  const ADRESSE = location.origin + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "skronemakeren") + "/";
   const navneliste = (indekser) => R.ramsOpp(indekser.map((i) => R.navn(i)));
+  const stemmeTekst = (n) => R.flertall(n, "stemme", "stemmer");
+  // «A vinner!» / «A and B win!» / «4 spillere vinner!»
+  const vinnerTekst = (v) => (v.length > 3 ? R.t("{n} spillere vinner!", { n: v.length }) : R.t("{navn} vinner!|{navn} vinner!", { navn: navneliste(v), n: v.length }));
 
   function kortet(sp, o = {}) {
     const k = ALLE[sp.kort];
@@ -284,7 +296,7 @@
   // «Avslutt» under the kit's own button on the hand-over screen (the dock is the last element).
   function medAvslutt(html, ekstra = "") {
     const slutt = html.lastIndexOf("</div>");
-    return html.slice(0, slutt) + R.ui.lenkerad(ekstra, R.ui.lenke("Avslutt", "avslutt")) + html.slice(slutt);
+    return html.slice(0, slutt) + R.ui.lenkerad(ekstra, R.ui.lenke(R.t("Avslutt"), "avslutt")) + html.slice(slutt);
   }
 
   // The letter badge of an option.
@@ -337,16 +349,16 @@
     const stemte = M.stemmerPa(r, k);
     const avatarer = stemte.length
       ? `<div class="skrone-stemte">${stemte.map((i, n) => `<span class="skrone-stemme" style="--n: ${n}" title="${esc(R.navn(i))}">${R.avatar(i, "mid")}<span class="skrone-stemme-navn">${esc(R.navn(i))}</span></span>`).join("")}</div>`
-      : `<p class="skrone-ingen">Ingen stemte på denne.</p>`;
+      : `<p class="skrone-ingen">${esc(R.t("Ingen stemte på denne."))}</p>`;
     const hvem = v.sann
-      ? `<p class="skrone-av sann">${stemte.length ? `+${SANN} til ${esc(navneliste(stemte))}` : "Ingen fant sannheten!"}</p>`
-      : `<p class="skrone-av">Skrøne av <b>${esc(navneliste(v.av))}</b>${stemte.length ? ` · +${stemte.length * LURT}` : ""}</p>`;
+      ? `<p class="skrone-av sann">${esc(stemte.length ? R.t("+{n} til {navn}", { n: SANN, navn: navneliste(stemte) }) : R.t("Ingen fant sannheten!"))}</p>`
+      : `<p class="skrone-av">${esc(R.t("Skrøne av {navn}")).replace("{navn}", `<b>${esc(navneliste(v.av))}</b>`)}${stemte.length ? ` · +${stemte.length * LURT}` : ""}</p>`;
     return `
-      <article class="skrone-avslort papirboks${v.sann ? " sann" : ""}${o.ny ? " ny" : ""}" aria-label="${esc(v.sann ? "Det ekte svaret" : "En skrøne")}">
+      <article class="skrone-avslort papirboks${v.sann ? " sann" : ""}${o.ny ? " ny" : ""}" aria-label="${esc(v.sann ? R.t("Det ekte svaret") : R.t("En skrøne"))}">
         <p class="skrone-tekst">${bokstav(k)}<span>${esc(v.t)}</span></p>
         ${avatarer}
         ${hvem}
-        <span class="skrone-stempel stempel" aria-hidden="true">${v.sann ? "SANT!" : "SKRØNE"}</span>
+        <span class="skrone-stempel stempel" aria-hidden="true">${esc(v.sann ? R.t("SANT!") : R.t("SKRØNE"))}</span>
       </article>`;
   }
 
@@ -432,18 +444,18 @@
     },
 
     regler: {
-      intro: "Et kort viser noe rart, men ekte. Alle dikter et svar som høres sant ut – så gjelder det å finne det ekte.",
+      intro: R.t("Et kort viser noe rart, men ekte. Alle dikter et svar som høres sant ut – så gjelder det å finne det ekte."),
       steg: [
-        ["Dikt en skrøne", "Mobilen går rundt. Hver av dere skriver i hemmelighet et svar som høres ekte ut."],
-        ["Finn sannheten", "Skrønene blandes med det ekte svaret. Mobilen går rundt igjen, og alle stemmer på det de tror er sant."],
-        ["Poeng", `Finner du sannheten, får du ${SANN} poeng. Hver gang noen går på skrønen din, får du ${LURT}.`],
+        [R.t("Dikt en skrøne"), R.t("Mobilen går rundt. Hver av dere skriver i hemmelighet et svar som høres ekte ut.")],
+        [R.t("Finn sannheten"), R.t("Skrønene blandes med det ekte svaret. Mobilen går rundt igjen, og alle stemmer på det de tror er sant.")],
+        [R.t("Poeng"), R.t("Finner du sannheten, får du {sann} poeng. Hver gang noen går på skrønen din, får du {lurt}.", { sann: SANN, lurt: LURT })],
       ],
       tips: [
-        "Skriv kort og kjedelig – som en ordbok. De beste skrønene høres ut som noe man har lest et sted.",
-        `Skriver du tilfeldigvis det ekte svaret, får du ${BONUS} poeng i bonus. Da skriver du en skrøne til og står over stemmingen.`,
-        "Like skrøner slås sammen. Stemmer noen på den, får alle som skrev den, poeng.",
-        "Du kan ikke stemme på din egen skrøne.",
-        "Kjenner noen kortet fra før? Trykk «Bytt kort» før dere begynner å skrive.",
+        R.t("Skriv kort og kjedelig – som en ordbok. De beste skrønene høres ut som noe man har lest et sted."),
+        R.t("Skriver du tilfeldigvis det ekte svaret, får du {bonus} poeng i bonus. Da skriver du en skrøne til og står over stemmingen.", { bonus: BONUS }),
+        R.t("Like skrøner slås sammen. Stemmer noen på den, får alle som skrev den, poeng."),
+        R.t("Du kan ikke stemme på din egen skrøne."),
+        R.t("Kjenner noen kortet fra før? Trykk «Bytt kort» før dere begynner å skrive."),
       ],
     },
 
@@ -452,27 +464,27 @@
         tilbake: "portal",
         vis(S) {
           return R.ui.spillhjem({
-            slagordHtml: "Alle dikter en forklaring.<br><em>Finner dere den ekte?</em>",
+            slagordHtml: `${esc(R.t("Alle dikter en forklaring."))}<br><em>${esc(R.t("Finner dere den ekte?"))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: pagar(S) ? `Fortsett · ${tittel(S).toLowerCase()}` : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              fortsettTekst: pagar(S) ? R.t("Fortsett · {runde}", { runde: tittel(S).toLocaleLowerCase(R.lokale) }) : "",
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
-            merker: [["3–10", "spillere"], [String(ALLE.length), "kort"], ["1", "mobil"]],
+            merker: [["3–10", R.t("spillere")], [String(ALLE.length), R.t("kort")], ["1", R.t("mobil")]],
           });
         },
         inn: () => R.slippVaken(),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
           return `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           <section class="seksjon">
-            <div class="seksjon-hode"><h2>Velg pakker</h2><span class="tall">${o.pakker.length} valgt</span></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Velg pakker"))}</h2><span class="tall">${esc(R.t("{n} valgt", { n: o.pakker.length }))}</span></div>
             ${R.ui.fliser(
               "pakke",
               D.pakker.map((p) => ({ v: p.id, tittel: p.navn, tekst: `${p.tekst} · ${p.kort.length}`, ikon: p.ikon })),
@@ -480,12 +492,12 @@
             )}
           </section>
           <section class="seksjon">
-            <h2>Runder</h2>
-            ${R.ui.seg("runder", RUNDER.map((n) => [String(n), String(n)]), String(o.runder), { etikett: "Runder" })}
-            <p class="hjelp">Alle skriver og stemmer i hver runde. ${o.runder === 3 ? "Kjapt og godt." : o.runder === 8 ? "En lang kveld med skrøner." : "Passe lenge."}</p>
+            <h2>${esc(R.t("Runder"))}</h2>
+            ${R.ui.seg("runder", RUNDER.map((n) => [String(n), String(n)]), String(o.runder), { etikett: R.t("Runder") })}
+            <p class="hjelp">${esc(R.t("Alle skriver og stemmer i hver runde."))} ${esc(o.runder === 3 ? R.t("Kjapt og godt.") : o.runder === 8 ? R.t("En lang kveld med skrøner.") : R.t("Passe lenge."))}</p>
           </section>
           ${R.ui.spillere({ min: 3, max: 10 })}
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !o.pakker.length }))}`;
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { av: !o.pakker.length }))}`;
         },
       },
 
@@ -498,10 +510,10 @@
           return `
             <h1 class="vh" id="skjerm-tittel">${esc(tittel(S))}</h1>
             ${kortet(sp)}
-            <p class="hjelp skrone-hjelp">Les kortet høyt. Alle dikter et svar som høres ekte ut – det ekte svaret blandes inn.</p>
+            <p class="hjelp skrone-hjelp">${esc(R.t("Les kortet høyt. Alle dikter et svar som høres ekte ut – det ekte svaret blandes inn."))}</p>
             ${R.ui.dokk(
-              R.ui.knapp("Skriv skrøner", "begynn", { variant: "stor", ikon: "✍️" }),
-              R.ui.lenkerad(R.ui.lenke("Bytt kort", "bytt"), R.ui.lenke("Avslutt", "avslutt")),
+              R.ui.knapp(R.t("Skriv skrøner"), "begynn", { variant: "stor", ikon: "✍️" }),
+              R.ui.lenkerad(R.ui.lenke(R.t("Bytt kort"), "bytt"), R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn() {
@@ -518,14 +530,23 @@
           const r = sp.r;
           if (sp.fase === "stem") {
             const i = r.srekke[r.sna];
-            const forrige = r.sna > 0 ? R.ui.lenke(`↶ Angre stemmen til ${R.navn(r.srekke[r.sna - 1])}`, "angre-stemme") : "";
+            const forrige = r.sna > 0 ? R.ui.lenke(`↶ ${R.t("Angre stemmen til {navn}", { navn: R.navn(r.srekke[r.sna - 1]) })}`, "angre-stemme") : "";
             return medAvslutt(
-              R.ui.giTil({ i, h: "jeg-er", tekst: "Stem i hemmelighet", knapp: `Jeg er ${R.navn(i)}`, advarsel: "De andre ser bort mens du stemmer", prikker: [r.srekke.length, r.sna] }),
+              R.ui.giTil({
+                i,
+                h: "jeg-er",
+                tekst: R.t("Stem i hemmelighet"),
+                knapp: R.t("Jeg er {navn}", { navn: R.navn(i) }),
+                advarsel: R.t("De andre ser bort mens du stemmer"),
+                prikker: [r.srekke.length, r.sna],
+              }),
               forrige,
             );
           }
           const i = r.rekke[r.na];
-          return medAvslutt(R.ui.giTil({ i, h: "jeg-er", tekst: "Gi mobilen til", knapp: `Jeg er ${R.navn(i)}`, advarsel: "De andre ser bort mens du skriver", prikker: [r.rekke.length, r.na] }));
+          return medAvslutt(
+            R.ui.giTil({ i, h: "jeg-er", tekst: R.t("Gi mobilen til"), knapp: R.t("Jeg er {navn}", { navn: R.navn(i) }), advarsel: R.t("De andre ser bort mens du skriver"), prikker: [r.rekke.length, r.na] }),
+          );
         },
         inn(S) {
           R.holdVaken();
@@ -534,7 +555,7 @@
 
       // Private: the player types a fake.
       skriv: {
-        tittel: "Hemmelig",
+        tittel: R.t("Hemmelig"),
         tilbake: "hjem",
         gjenoppta: "gi",
         vis(S) {
@@ -547,21 +568,21 @@
             <form class="skrone-skriv" data-skjema="skrone" autocomplete="off" novalidate>
               <div class="skrone-topp">
                 ${R.avatar(i, "mid")}
-                <div><p class="etikett">🤫 Bare ${esc(navn)} ser dette</p><h1 id="skjerm-tittel">${igjen ? "Skriv en skrøne til" : "Dikt en skrøne"}</h1></div>
+                <div><p class="etikett">🤫 ${esc(R.t("Bare {navn} ser dette", { navn }))}</p><h1 id="skjerm-tittel">${esc(igjen ? R.t("Skriv en skrøne til") : R.t("Dikt en skrøne"))}</h1></div>
               </div>
               ${kortet(sp, { kompakt: true })}
               ${
                 igjen
-                  ? `<p class="papirboks skrone-truffet" role="status">🎯 <b>Det var det ekte svaret!</b> Du får ${BONUS} poeng i bonus. Skriv en skrøne til, så de andre har noe å gå på.</p>`
+                  ? `<p class="papirboks skrone-truffet" role="status">🎯 <b>${esc(R.t("Det var det ekte svaret!"))}</b> ${esc(R.t("Du får {bonus} poeng i bonus. Skriv en skrøne til, så de andre har noe å gå på.", { bonus: BONUS }))}</p>`
                   : ""
               }
               <label class="skrone-felt" for="skrone-felt">
-                <span class="vh">Skrønen til ${esc(navn)}</span>
-                <textarea id="skrone-felt" class="tekstfelt" data-felt="utkast" name="skrone-${sp.rn}-${r.na}" rows="2" maxlength="${MAKS}" placeholder="Skriv et svar som høres ekte ut …" autocomplete="off" autocapitalize="sentences" spellcheck="false" enterkeyhint="done" aria-describedby="skrone-feil skrone-igjen">${esc(r.utkast)}</textarea>
+                <span class="vh">${esc(R.t("Skrønen til {navn}", { navn }))}</span>
+                <textarea id="skrone-felt" class="tekstfelt" data-felt="utkast" name="skrone-${sp.rn}-${r.na}" rows="2" maxlength="${MAKS}" placeholder="${esc(R.t("Skriv et svar som høres ekte ut …"))}" autocomplete="off" autocapitalize="sentences" spellcheck="false" enterkeyhint="done" aria-describedby="skrone-feil skrone-igjen">${esc(r.utkast)}</textarea>
               </label>
               <p class="skrone-teller" id="skrone-igjen" aria-hidden="true">${Array.from(r.utkast).length}/${MAKS}</p>
               <p class="feil" id="skrone-feil" aria-live="assertive"></p>
-              ${R.ui.dokk(`<button class="knapp" type="submit" id="skrone-ferdig">Ferdig</button>`)}
+              ${R.ui.dokk(`<button class="knapp" type="submit" id="skrone-ferdig">${esc(R.t("Ferdig"))}</button>`)}
             </form>`;
         },
         inn() {
@@ -586,15 +607,23 @@
           const fant = r.rekke.filter((i) => r.sann[i]);
           const alle = !r.srekke.length;
           return `
-            <h1 id="skjerm-tittel">Hva er sant?</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Hva er sant?"))}</h1>
             <p class="skrone-sporsmal">${esc(ALLE[sp.kort].s)}</p>
             <ol class="skrone-liste">
               ${r.valg.map((v, k) => `<li>${bokstav(k)}<span>${esc(v.t)}</span></li>`).join("")}
             </ol>
-            ${fant.length ? `<p class="papirboks skrone-fant">🎯 ${esc(navneliste(fant))} skrev det ekte svaret og får ${BONUS} poeng i bonus${alle ? "" : " – og står over stemmingen"}.</p>` : ""}
+            ${
+              fant.length
+                ? `<p class="papirboks skrone-fant">🎯 ${esc(
+                    alle
+                      ? R.t("{navn} skrev det ekte svaret og får {bonus} poeng i bonus.", { navn: navneliste(fant), bonus: BONUS, n: fant.length })
+                      : R.t("{navn} skrev det ekte svaret og får {bonus} poeng i bonus – og står over stemmingen.", { navn: navneliste(fant), bonus: BONUS, n: fant.length }),
+                  )}</p>`
+                : ""
+            }
             ${R.ui.dokk(
-              alle ? R.ui.knapp("Avslør svarene", "avslor-na") : R.ui.knapp("Send mobilen rundt og stem", "stem-start"),
-              R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")),
+              alle ? R.ui.knapp(R.t("Avslør svarene"), "avslor-na") : R.ui.knapp(R.t("Send mobilen rundt og stem"), "stem-start"),
+              R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn(S) {
@@ -605,7 +634,7 @@
 
       // Private: the player votes.
       stem: {
-        tittel: "Hemmelig",
+        tittel: R.t("Hemmelig"),
         tilbake: "hjem",
         gjenoppta: "gi",
         vis(S) {
@@ -616,24 +645,24 @@
           return `
             <div class="skrone-topp">
               ${R.avatar(i, "mid")}
-              <div><p class="etikett">🤫 Bare ${esc(navn)} ser dette</p><h1 id="skjerm-tittel">Hva er sant?</h1></div>
+              <div><p class="etikett">🤫 ${esc(R.t("Bare {navn} ser dette", { navn }))}</p><h1 id="skjerm-tittel">${esc(R.t("Hva er sant?"))}</h1></div>
             </div>
             <p class="skrone-sporsmal">${esc(ALLE[sp.kort].s)}</p>
-            <div class="skrone-valg" role="group" aria-label="Svarene">
+            <div class="skrone-valg" role="group" aria-label="${esc(R.t("Svarene"))}">
               ${r.valg
                 .map((v, k) => {
                   const egen = v.av.includes(i);
-                  return `<button class="skrone-alt${egen ? " egen" : ""}${r.valgt === k ? " valgt" : ""}" data-h="velg" data-v="${k}" aria-pressed="${r.valgt === k}"${egen ? " disabled" : ""}>${bokstav(k)}<span class="skrone-alt-tekst">${esc(v.t)}</span>${egen ? `<span class="skrone-din">Din</span>` : ""}</button>`;
+                  return `<button class="skrone-alt${egen ? " egen" : ""}${r.valgt === k ? " valgt" : ""}" data-h="velg" data-v="${k}" aria-pressed="${r.valgt === k}"${egen ? " disabled" : ""}>${bokstav(k)}<span class="skrone-alt-tekst">${esc(v.t)}</span>${egen ? `<span class="skrone-din">${esc(R.t("Din"))}</span>` : ""}</button>`; // sprak-ok
                 })
                 .join("")}
             </div>
-            ${R.ui.dokk(R.ui.knapp(r.valgt >= 0 ? `Stem på ${BOKSTAV[r.valgt]}` : "Velg et svar", "stem", { id: "skrone-stem", av: r.valgt < 0 }))}`;
+            ${R.ui.dokk(R.ui.knapp(r.valgt >= 0 ? R.t("Stem på {bokstav}", { bokstav: BOKSTAV[r.valgt] }) : R.t("Velg et svar"), "stem", { id: "skrone-stem", av: r.valgt < 0 }))}`;
         },
       },
 
       // Everyone: the fakes one by one, the truth last.
       avslor: {
-        tittel: "Avsløringen",
+        tittel: R.t("Avsløringen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -642,20 +671,20 @@
           const vist = R.klamp(r.vist, 0, rekke.length);
           if (!vist) {
             return `
-              <h1 id="skjerm-tittel">Avsløringen</h1>
+              <h1 id="skjerm-tittel">${esc(R.t("Avsløringen"))}</h1>
               <p class="skrone-sporsmal">${esc(ALLE[sp.kort].s)}</p>
               <div class="skrone-venter">${R.figur()}</div>
-              <p class="ingress skrone-ingress">Samle dere rundt mobilen. ${rekke.length > 1 ? "Først skrønene noen gikk på – det ekte svaret til slutt." : "Ingen gikk på en skrøne. Hva var det ekte svaret?"}</p>
-              ${R.ui.dokk(R.ui.knapp(rekke.length > 1 ? "Vis første skrøne" : "Vis det ekte svaret", "vis-neste"), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
+              <p class="ingress skrone-ingress">${esc(R.t("Samle dere rundt mobilen."))} ${esc(rekke.length > 1 ? R.t("Først skrønene noen gikk på – det ekte svaret til slutt.") : R.t("Ingen gikk på en skrøne. Hva var det ekte svaret?"))}</p>
+              ${R.ui.dokk(R.ui.knapp(rekke.length > 1 ? R.t("Vis første skrøne") : R.t("Vis det ekte svaret"), "vis-neste"), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
           }
           const siste = vist === rekke.length;
           const tidligere = rekke.slice(0, vist - 1).reverse();
           return `
-            <h1 id="skjerm-tittel">${siste ? "Det ekte svaret" : `Skrøne ${vist} av ${rekke.length - 1}`}</h1>
+            <h1 id="skjerm-tittel">${esc(siste ? R.t("Det ekte svaret") : R.t("Skrøne {n} av {av}", { n: vist, av: rekke.length - 1 }))}</h1>
             <p class="skrone-sporsmal liten">${esc(ALLE[sp.kort].s)}</p>
             ${avslortKort(S, rekke[vist - 1], { ny: true })}
             ${tidligere.length ? `<div class="skrone-tidligere">${tidligere.map((k) => avslortKort(S, k)).join("")}</div>` : ""}
-            ${R.ui.dokk(R.ui.knapp(siste ? "Se poengene" : vist === rekke.length - 1 ? "Vis det ekte svaret" : "Vis neste skrøne", "vis-neste"))}`;
+            ${R.ui.dokk(R.ui.knapp(siste ? R.t("Se poengene") : vist === rekke.length - 1 ? R.t("Vis det ekte svaret") : R.t("Vis neste skrøne"), "vis-neste"))}`;
         },
         inn(S) {
           R.holdVaken();
@@ -674,20 +703,27 @@
           const lurere = M.toppen(r.lurt);
           const ekte = ALLE[sp.kort];
           return `
-            <h1 id="skjerm-tittel">${M.sisteRunde(sp) ? "Siste runde er ferdig" : `Runde ${sp.rn + 1} er ferdig`}</h1>
+            <h1 id="skjerm-tittel">${esc(M.sisteRunde(sp) ? R.t("Siste runde er ferdig") : R.t("Runde {n} er ferdig", { n: sp.rn + 1 }))}</h1>
             <div class="papirboks skrone-fasit">
               <p class="etikett">${esc(ekte.s)}</p>
               <p class="skrone-fasit-svar">✅ ${esc(r.valg[sannK].t)}</p>
-              ${lurere.length ? `<p class="skrone-runde-linje">Rundens skrønemaker: <b>${esc(navneliste(lurere))}</b></p>` : `<p class="skrone-runde-linje">Ingen gikk på en skrøne denne runden.</p>`}
+              ${
+                lurere.length
+                  ? `<p class="skrone-runde-linje">${esc(R.t("Rundens skrønemaker: {navn}")).replace("{navn}", `<b>${esc(navneliste(lurere))}</b>`)}</p>`
+                  : `<p class="skrone-runde-linje">${esc(R.t("Ingen gikk på en skrøne denne runden."))}</p>`
+              }
             </div>
             ${R.ui.poengliste(rader)}
             <details class="skrone-alle">
-              <summary>Alle svarene</summary>
+              <summary>${esc(R.t("Alle svarene"))}</summary>
               <ul>${r.valg
-                .map((v, k) => `<li class="${v.sann ? "sann" : ""}"><span>${esc(v.t)}</span><small>${v.sann ? "Det ekte svaret" : `${esc(navneliste(v.av))}`} · ${R.flertall(M.stemmerPa(r, k).length, "stemme", "stemmer")}</small></li>`)
+                .map(
+                  (v, k) =>
+                    `<li class="${v.sann ? "sann" : ""}"><span>${esc(v.t)}</span><small>${esc(v.sann ? R.t("Det ekte svaret") : navneliste(v.av))} · ${esc(stemmeTekst(M.stemmerPa(r, k).length))}</small></li>`,
+                )
                 .join("")}</ul>
             </details>
-            ${R.ui.dokk(R.ui.knapp(M.sisteRunde(sp) ? "Til kåringen" : "Neste runde", "videre"), R.ui.lenkerad(M.sisteRunde(sp) ? "" : R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${R.ui.dokk(R.ui.knapp(M.sisteRunde(sp) ? R.t("Til kåringen") : R.t("Neste runde"), "videre"), R.ui.lenkerad(M.sisteRunde(sp) ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
         inn(S) {
           S.spill.fase = "resultat";
@@ -695,7 +731,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -704,21 +740,29 @@
           const v = M.vinnere(sp);
           const skrone = M.toppen(sp.lurt);
           const jeger = M.toppen(sp.funnet);
-          const h1 = !v.length ? "Ingen poeng denne gangen" : v.length > 3 ? `${v.length} spillere vinner!` : `${R.ramsOpp(v.map((i) => R.navn(i)))} vinner!`;
+          const h1 = !v.length ? R.t("Ingen poeng denne gangen") : vinnerTekst(v);
           const pris = (ikon, navn, hvem, linje) =>
-            `<div class="skrone-pris"><span class="skrone-pris-ikon" aria-hidden="true">${ikon}</span><div><p class="etikett">${esc(navn)}</p><p class="skrone-pris-navn">${esc(hvem.length > 3 ? `${hvem.length} spillere` : navneliste(hvem))}</p><p class="hjelp">${esc(linje)}</p></div></div>`;
+            `<div class="skrone-pris"><span class="skrone-pris-ikon" aria-hidden="true">${ikon}</span><div><p class="etikett">${esc(navn)}</p><p class="skrone-pris-navn">${esc(
+              hvem.length > 3 ? R.flertall(hvem.length, "spiller", "spillere") : navneliste(hvem),
+            )}</p><p class="hjelp">${esc(linje)}</p></div></div>`;
           const priser = [
-            skrone.length ? pris("🎭", "Beste skrønemaker", skrone, `Lurte gjengen ${R.flertall(sp.lurt[skrone[0]], "gang", "ganger")}`) : "",
-            jeger.length ? pris("🔎", "Sannhetsjeger", jeger, `Fant sannheten ${R.flertall(sp.funnet[jeger[0]], "gang", "ganger")}`) : "",
+            skrone.length ? pris("🎭", R.t("Beste skrønemaker"), skrone, R.t("Lurte gjengen {ganger}", { ganger: R.flertall(sp.lurt[skrone[0]], "gang", "ganger") })) : "",
+            jeger.length ? pris("🔎", R.t("Sannhetsjeger"), jeger, R.t("Fant sannheten {ganger}", { ganger: R.flertall(sp.funnet[jeger[0]], "gang", "ganger") })) : "",
           ].join("");
           return `
-            ${R.ui.banner({ klasse: "aksent", etikett: R.flertall(sp.spilt, "runde", "runder"), tittel: h1, tekst: v.length ? "Godt jobba! Skrønene satt som støpt." : "Dere er for ærlige til dette.", stemning: v.length ? "jubel" : "" })}
+            ${R.ui.banner({
+              klasse: "aksent",
+              etikett: R.flertall(sp.spilt, "runde", "runder"),
+              tittel: h1,
+              tekst: v.length ? R.t("Godt jobba! Skrønene satt som støpt.") : R.t("Dere er for ærlige til dette."),
+              stemning: v.length ? "jubel" : "",
+            })}
             ${v.length ? R.ui.pall(rader) : ""}
             ${R.ui.poengliste(rader)}
             ${priser ? `<section class="skrone-priser">${priser}</section>` : ""}
-            ${v.length ? `<div class="skrone-del">${R.ui.knapp2("Del resultatet", "del", { ikon: "📣" })}</div>` : ""}
+            ${v.length ? `<div class="skrone-del">${R.ui.knapp2(R.t("Del resultatet"), "del", { ikon: "📣" })}</div>` : ""}
             ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           if (!feire) return;
@@ -740,7 +784,7 @@
         const i = r.rekke[r.na];
         const svar = M.skriv(r, ALLE[sp.kort], felt.value);
         if (svar === "tom") {
-          R.$("#skrone-feil").textContent = String(felt.value || "").trim() ? "Skrønen må ha bokstaver eller tall." : "Skriv en skrøne først.";
+          R.$("#skrone-feil").textContent = String(felt.value || "").trim() ? R.t("Skrønen må ha bokstaver eller tall.") : R.t("Skriv en skrøne først.");
           felt.classList.remove("risting");
           void felt.offsetWidth;
           felt.classList.add("risting");
@@ -756,7 +800,7 @@
           R.vis();
           const f = R.$("#skrone-felt");
           if (f) f.focus();
-          R.si(`Det var det ekte svaret! ${BONUS} poeng i bonus til ${R.navn(i)}. Skriv en skrøne til.`);
+          R.si(R.t("Det var det ekte svaret! {bonus} poeng i bonus til {navn}. Skriv en skrøne til.", { bonus: BONUS, navn: R.navn(i) }));
           return;
         }
         R.lyd.pop();
@@ -820,7 +864,7 @@
         sp.kort = trekk(sp.pakker);
         R.lyd.snu();
         R.vis();
-        R.si(`Nytt kort. ${ALLE[sp.kort].s}`);
+        R.si(`${R.t("Nytt kort.")} ${ALLE[sp.kort].s}`);
       },
       // From the card: the phone goes round for the fakes.
       begynn(el, e, S) {
@@ -875,7 +919,7 @@
         if (!pagar(S) || sp.fase !== "stem" || !M.angreStemme(sp.r)) return;
         R.lyd.snu();
         R.gaTil("gi");
-        R.toast(`${R.navn(sp.r.srekke[sp.r.sna])} stemmer på nytt`);
+        R.toast(R.t("{navn} stemmer på nytt", { navn: R.navn(sp.r.srekke[sp.r.sna]) }));
       },
       "vis-neste"(el, e, S) {
         const sp = S.spill;
@@ -896,11 +940,11 @@
           R.lyd.riktig();
           if (stemte.length) R.konfetti(["--mynte", "--papir", "--lampe"]);
           R.vibrer([30, 40, 80]);
-          R.si(`Det ekte svaret: ${v.t}. ${stemte.length ? `${navneliste(stemte)} fant det.` : "Ingen fant det."}`);
+          R.si(`${R.t("Det ekte svaret: {svar}.", { svar: v.t })} ${stemte.length ? R.t("{navn} fant det.", { navn: navneliste(stemte), n: stemte.length }) : R.t("Ingen fant det.")}`);
         } else {
           setTimeout(() => R.lyd.latter(), 520);
           R.vibrer(40);
-          R.si(`${v.t} – en skrøne av ${navneliste(v.av)}. ${navneliste(stemte)} gikk på den.`);
+          R.si(`${R.t("{svar} – en skrøne av {navn}.", { svar: v.t, navn: navneliste(v.av) })} ${R.t("{navn} gikk på den.", { navn: navneliste(stemte), n: stemte.length })}`);
         }
       },
       videre(el, e, S) {
@@ -912,7 +956,12 @@
       async avslutt(el, e, S) {
         const fortsatt = R.vakt();
         const avslort = ["avslor", "resultat"].includes(S.spill && S.spill.fase);
-        const ja = await R.bekreft("Avslutte spillet?", avslort ? "Dere går rett til kåringen." : "Dere går rett til kåringen. Runden dere er i nå, gir ingen poeng.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(
+          R.t("Avslutte spillet?"),
+          avslort ? R.t("Dere går rett til kåringen.") : R.t("Dere går rett til kåringen. Runden dere er i nå, gir ingen poeng."),
+          R.t("Avslutt"),
+          R.t("Spill videre"),
+        );
         if (!ja || !fortsatt() || !pagar(S)) return;
         tilSlutt(S, true); // a round that is not revealed yet gave no points
       },
@@ -927,10 +976,9 @@
           .slice(0, 3)
           .map((r) => `${R.navn(r.i)}: ${R.flertall(r.poeng, "poeng", "poeng")}`);
         const skrone = M.toppen(sp.lurt);
-        const vinner = v.length > 3 ? `${v.length} spillere vinner!` : `${R.ramsOpp(v.map((i) => R.navn(i)))} vinner!`;
-        const linjer = [vinner, ...topp, ...(skrone.length && skrone.length <= 2 ? [`Beste skrønemaker: ${navneliste(skrone)}`] : [])];
-        R.del("Skrønemakeren", ["Skrønemakeren – finn den ekte forklaringen 🎭", ...linjer].join("\n"), location.origin + "/skronemakeren/", {
-          kort: { tittel: "Skrønemakeren", linjer },
+        const linjer = [vinnerTekst(v), ...topp, ...(skrone.length && skrone.length <= 2 ? [R.t("Beste skrønemaker: {navn}", { navn: navneliste(skrone) })] : [])];
+        R.del(R.t("Skrønemakeren"), [R.t("Skrønemakeren – finn den ekte forklaringen 🎭"), ...linjer].join("\n"), ADRESSE, {
+          kort: { tittel: R.t("Skrønemakeren"), linjer },
         });
       },
       igjen(el, e, S) {
