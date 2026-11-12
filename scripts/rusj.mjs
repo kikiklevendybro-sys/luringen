@@ -842,7 +842,7 @@ ${bunn(false)}
   skriv("index.html", portalSide);
 
   // ---------- Pages about rusj: /personvern/ and /om/ ----------
-  const SIDER_OPPDATERT = "2026-11-10";
+  const SIDER_OPPDATERT = "2026-11-12";
   const datoTekst = (iso) => `${Number(iso.slice(8))}. ${["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"][Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
   // The public contact details, confirmed by the owner 2026-11-10. With an empty KONTAKT the pages
   // leave the contact line out.
