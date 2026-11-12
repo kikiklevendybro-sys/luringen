@@ -420,6 +420,27 @@
       "tittel": "Drinking wheel – spin it, make house rules (18+)",
       "frase": "Drinking wheel",
       "beskrivelse": "Spin the big drinking wheel (18+): truths, safe challenges, toasts and your own house rules. Small sips only – alcohol-free counts just as much."
+    },
+    "bedreviteren": {
+      "tittel": "Online quiz – over 800 questions and answers, free",
+      "frase": "Online quiz",
+      "beskrivelse": "Free quiz with over 800 questions and answers about Britain, nature, sport and history. Today's five every day – or a quiz for the whole crew, in teams too.",
+      "sok": [
+        "quiz questions",
+        "online quiz",
+        "pub quiz",
+        "quiz for kids",
+        "daily quiz",
+        "general knowledge quiz",
+        "trivia questions",
+        "kahoot",
+        "trivial pursuit"
+      ]
+    },
+    "tieren": {
+      "tittel": "Ten answers – the quiz where one slip busts it all",
+      "frase": "Ten answers",
+      "beskrivelse": "Free quiz game: ten answers sit around a ring. Get them right and fill your pot – but one wrong answer and it all goes bust. Dare you take one more?"
     }
   }
 }

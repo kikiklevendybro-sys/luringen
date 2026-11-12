@@ -48,8 +48,8 @@
   const stokk = R.kortstokk("sporsmal", ALLE.length);
 
   const BOKSTAVER = ["A", "B", "C", "D"];
-  const NIVA = { 1: "Lett", 2: "Middels", 3: "Vanskelig" };
-  const NIVA_ORD = { blandet: "blandet", 1: "lett", 2: "middels", 3: "vanskelig" }; // mid-sentence: «rekord på middels»
+  const NIVA = { 1: R.t("Lett"), 2: R.t("Middels"), 3: R.t("Vanskelig") };
+  const NIVA_ORD = { blandet: R.t("blandet"), 1: R.t("lett"), 2: R.t("middels"), 3: R.t("vanskelig") }; // mid-sentence: «rekord på middels»
   const MODUSER = ["spillere", "lag", "fri"];
   const NIVAER = ["blandet", "1", "2", "3"];
   const LENGDER = [10, 15, 20];
@@ -61,8 +61,8 @@
 
   const antallI = (kat) => ALLE.filter((q) => kat.includes(q.k)).length;
   const stjerner = (n) => "★".repeat(n) + "☆".repeat(3 - n);
-  const poengTekst = (n) => (n === 1 ? "1 poeng" : `${n} poeng`);
-  const lagNavn = (i) => "Lag " + R.LAG[i].navn;
+  const poengTekst = (n) => R.flertall(n, "poeng", "poeng");
+  const lagNavn = (i) => R.lagNavn(i);
   const deltakerNavn = (sp, i) => (sp.modus === "lag" ? lagNavn(i) : R.navn(i));
   const erSolo = (sp) => sp.modus === "spillere" && sp.deltakere === 1;
   const girPoeng = (sp) => sp.modus !== "fri" && !erSolo(sp); // the quizmaster hands out points
@@ -73,8 +73,14 @@
 
   // "1814" or "5 dager": options that are numbers with the same unit are shown in rising order;
   // all other options are shuffled so the right answer can be anywhere.
+  // English writes 1,000 and 2.5, Danish 1.000 and 2,5: read them as the Norwegian 1 000 and 2,5.
+  const TALLFORM = {
+    en: (s) => s.replace(/(\d),(?=\d{3}(?!\d))/g, "$1 ").replace(/(\d)\.(?=\d)/g, "$1,"),
+    da: (s) => s.replace(/(\d)\.(?=\d{3}(?!\d))/g, "$1 "),
+  };
   function somTall(t) {
-    const m = /^(-?\d[\d\s ]*(?:,\d+)?)(.*)$/.exec(String(t).trim());
+    const s = String(t).trim();
+    const m = /^(-?\d[\d\s ]*(?:,\d+)?)(.*)$/.exec(TALLFORM[R.sprak] ? TALLFORM[R.sprak](s) : s);
     return m ? { v: Number(m[1].replace(/[\s ]/g, "").replace(",", ".")), enhet: m[2].trim() } : null;
   }
   function rekkefolge(q, tilfeldig) {
@@ -163,7 +169,8 @@
   // SYKLUS − 4 days at the earliest. (New questions in the data reshuffle the days to come.)
   const DAGENS_START = 20768; // 11 November 2026 = «Dagens fem nr. 1»
   const DAGENS_ANTALL = 5;
-  const DAGENS_URL = "https://rusj.no/bedreviteren/";
+  // The edition's own address (rusj.no/en/<slug>/ in English).
+  const DAGENS_URL = (document.querySelector('link[rel="canonical"]') || { href: "https://rusj.no/bedreviteren/" }).href;
   const DAGENS_REKKE = (() => {
     const tilfeldig = R.rng(DAGENS_START);
     const niva = (n) => ALLE.map((q, i) => i).filter((i) => ALLE[i].n === n && ALLE[i].k !== "barn");
@@ -220,7 +227,7 @@
   const dagensRes = (d) => `${dagensRiktige(d)}/${DAGENS_ANTALL}`;
   // The streak shown today: days in a row with at least 3 right, broken once a whole day has passed.
   const rekkeNa = () => (DG.stat.sistVunnet != null && DG.stat.sistVunnet >= iDag() - 1 ? DG.stat.rekke : 0);
-  const rekkeTekst = (n) => `🔥 ${n} ${n === 1 ? "dag" : "dager"} på rad`;
+  const rekkeTekst = (n) => "🔥 " + R.t("{n} dag på rad|{n} dager på rad", { n });
   function meldDagens(d) {
     if (d.nr !== iDag()) return;
     if (d.ferdig) R.dagligFerdig({ vunnet: dagensVunnet(d), rekke: dagensVunnet(d) ? DG.stat.rekke : 0, res: dagensRes(d) });
@@ -240,13 +247,13 @@
     R.statistikk("ferdig", { modus: "dagens", riktige: dagensRiktige(d) });
   }
   // Shared text: the number, the score and the dots – never a question or an answer.
-  const delTekst = (d) => `Bedreviteren · Dagens fem nr. ${dagensNr(d.nr)} · ${dagensRes(d)} ${d.svar.map((s) => (s.ok ? "🟢" : "🔴")).join("")}`;
+  const delTekst = (d) => `${R.t("Bedreviteren · Dagens fem nr. {nr}", { nr: dagensNr(d.nr) })} · ${dagensRes(d)} ${d.svar.map((s) => (s.ok ? "🟢" : "🔴")).join("")}`;
 
-  // Countdown to the next round (midnight in Norway; 23 or 25 hours the nights the clocks change).
+  // Countdown to the next round (midnight in the edition's time zone; 23 or 25 hours the nights the clocks change).
   function sekunderTilNeste() {
     const na = Date.now();
     const deler = {};
-    new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    new Intl.DateTimeFormat("en-GB", { timeZone: R.tidssone, hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
       .formatToParts(new Date(na))
       .forEach((p) => (deler[p.type] = Number(p.value)));
     let igjen = 86400 - ((deler.hour % 24) * 3600 + deler.minute * 60 + deler.second);
@@ -257,7 +264,7 @@
   }
   const to = (n) => String(n).padStart(2, "0");
   const klokkeslett = (s) => `${to(Math.floor(s / 3600))}:${to(Math.floor((s % 3600) / 60))}:${to(s % 60)}`;
-  const nedtellingHtml = () => `<p class="bw-nedtelling">Nye spørsmål om <b>${klokkeslett(sekunderTilNeste())}</b></p>`;
+  const nedtellingHtml = () => `<p class="bw-nedtelling">${esc(R.t("Nye spørsmål om"))} <b>${klokkeslett(sekunderTilNeste())}</b></p>`;
   let tikker = null;
   function startNedtelling() {
     clearInterval(tikker);
@@ -277,7 +284,7 @@
   // ---------- The clock (optional, 20 s per question) ----------
 
   function klokkeHtml() {
-    return `<button class="bw-klokke" id="bw-klokke" data-h="timer-veksle" data-v="bw-klokke" data-stille aria-label="Klokke, ${SEKUNDER} sekunder. Trykk for pause.">
+    return `<button class="bw-klokke" id="bw-klokke" data-h="timer-veksle" data-v="bw-klokke" data-stille aria-label="${esc(R.t("Klokke, {n} sekunder. Trykk for pause.", { n: SEKUNDER }))}">
       <span class="timer-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="spor" cx="60" cy="60" r="54"/><circle class="fyll" cx="60" cy="60" r="54"/></svg><span class="bw-tid">${SEKUNDER}</span></span>
     </button>`;
   }
@@ -295,7 +302,7 @@
         const tid = R.$("#bw-klokke .bw-tid");
         if (tid) tid.textContent = "0";
         // Time is up: the answer is shown (alone: the question counts as unanswered).
-        R.toast("Tiden er ute!");
+        R.toast(R.t("Tiden er ute!"));
         H.vis(null, null, R.S);
       },
     }).start();
@@ -306,8 +313,8 @@
   function statusHtml(sp) {
     const ferdige = sp.nr + (sp.fase === "sporsmal" ? 0 : 1);
     return `<div class="bw-status">
-      <div class="bw-fremdrift" role="progressbar" aria-label="Fremdrift" aria-valuemin="0" aria-valuemax="${sp.liste.length}" aria-valuenow="${ferdige}"><i style="--andel: ${Math.round((ferdige / sp.liste.length) * 100)}%"></i></div>
-      ${sp.fase === "sporsmal" && kanAngre(sp) ? `<button class="bw-angre" data-h="angre" aria-label="Angre poengene fra forrige spørsmål"><span aria-hidden="true">↩</span> Angre</button>` : ""}
+      <div class="bw-fremdrift" role="progressbar" aria-label="${esc(R.t("Fremdrift"))}" aria-valuemin="0" aria-valuemax="${sp.liste.length}" aria-valuenow="${ferdige}"><i style="--andel: ${Math.round((ferdige / sp.liste.length) * 100)}%"></i></div>
+      ${sp.fase === "sporsmal" && kanAngre(sp) ? `<button class="bw-angre" data-h="angre" aria-label="${esc(R.t("Angre poengene fra forrige spørsmål"))}"><span aria-hidden="true">↩</span> ${esc(R.t("Angre"))}</button>` : ""}
       ${sp.klokke && sp.fase === "sporsmal" ? klokkeHtml() : ""}
     </div>`;
   }
@@ -328,17 +335,17 @@
     const svar = sp.fase !== "sporsmal";
     const trykkbar = !svar && erSolo(sp);
     const kort = q.a.every((a) => a.length <= KORT_SVAR) ? " kort-svar" : "";
-    return `<ol class="bw-valgliste${kort}${svar ? " avslort" : ""}" aria-label="Svaralternativer">${sp.rekke[sp.nr]
+    return `<ol class="bw-valgliste${kort}${svar ? " avslort" : ""}" aria-label="${esc(R.t("Svaralternativer"))}">${sp.rekke[sp.nr]
       .map((ai, vis) => {
         let klasse = `bw-valg v${vis}`;
         let merke = "";
         if (svar) {
           if (ai === q.r) {
             klasse += " riktig";
-            merke = `<span class="bw-merke" aria-hidden="true">✓</span><span class="vh"> – riktig svar</span>`;
+            merke = `<span class="bw-merke" aria-hidden="true">✓</span><span class="vh"> – ${esc(R.t("riktig svar"))}</span>`;
           } else if (sp.valgt === vis) {
             klasse += " feil";
-            merke = `<span class="bw-merke" aria-hidden="true">✗</span><span class="vh"> – ditt svar</span>`;
+            merke = `<span class="bw-merke" aria-hidden="true">✗</span><span class="vh"> – ${esc(R.t("ditt svar"))}</span>`;
           } else klasse += " dempet";
         }
         const indre = `<span class="bw-bokstav" aria-hidden="true">${BOKSTAVER[vis]}</span><span class="bw-tekst"><span class="vh">${BOKSTAVER[vis]}: </span>${esc(q.a[ai])}</span>${merke}`;
@@ -348,16 +355,16 @@
   }
 
   const faktaHtml = (q) =>
-    `<aside class="bw-fakta" aria-label="Visste du?"><p class="etikett"><span aria-hidden="true">💡</span> Visste du?</p><p>${esc(q.fakta)}</p></aside>`;
+    `<aside class="bw-fakta" aria-label="${esc(R.t("Visste du?"))}"><p class="etikett"><span aria-hidden="true">💡</span> ${esc(R.t("Visste du?"))}</p><p>${esc(q.fakta)}</p></aside>`;
 
   function soloHtml(sp, q) {
-    if (sp.riktige.includes(0)) return `<p class="bw-dom riktig" role="status"><span class="bw-dom-ord">Riktig!</span> <span>+${poengTekst(q.n)}</span></p>`;
-    if (sp.valgt == null) return `<p class="bw-dom" role="status"><span class="bw-dom-ord">Fasit</span> <span>Ingen poeng denne gangen</span></p>`;
-    return `<p class="bw-dom feil" role="status"><span class="bw-dom-ord">Feil</span> <span>Riktig svar er ${BOKSTAVER[sp.rekke[sp.nr].indexOf(q.r)]}</span></p>`;
+    if (sp.riktige.includes(0)) return `<p class="bw-dom riktig" role="status"><span class="bw-dom-ord">${esc(R.t("Riktig!"))}</span> <span>+${poengTekst(q.n)}</span></p>`;
+    if (sp.valgt == null) return `<p class="bw-dom" role="status"><span class="bw-dom-ord">${esc(R.t("Fasit"))}</span> <span>${esc(R.t("Ingen poeng denne gangen"))}</span></p>`;
+    return `<p class="bw-dom feil" role="status"><span class="bw-dom-ord">${esc(R.t("Feil"))}</span> <span>${esc(R.t("Riktig svar er {bokstav}", { bokstav: BOKSTAVER[sp.rekke[sp.nr].indexOf(q.r)] }))}</span></p>`;
   }
 
   const kanAngre = (sp) => !!(sp.angre && girPoeng(sp) && sp.angre.riktige.length);
-  const angreLenke = (sp) => (kanAngre(sp) ? R.ui.lenke("Angre poengene", "angre") : "");
+  const angreLenke = (sp) => (kanAngre(sp) ? R.ui.lenke(R.t("Angre poengene"), "angre") : "");
 
   // Step 3 (points): the right answer in short, then who got it.
   function hvemSkjerm(sp, q) {
@@ -373,17 +380,17 @@
       ${statusHtml(sp)}
       <div class="bw-fasitlinje">
         <span class="bw-bokstav" aria-hidden="true">${BOKSTAVER[riktigVis]}</span>
-        <p><span class="etikett">Riktig svar</span><b>${esc(q.a[q.r])}</b></p>
-        <button class="lenke" data-h="tilbakeSvar">Se igjen</button>
+        <p><span class="etikett">${esc(R.t("Riktig svar"))}</span><b>${esc(q.a[q.r])}</b></p>
+        <button class="lenke" data-h="tilbakeSvar">${esc(R.t("Se igjen"))}</button>
       </div>
       <section class="seksjon bw-hvem-seksjon">
-        <div class="seksjon-hode"><h1 id="skjerm-tittel">${lag ? "Hvilke lag hadde rett?" : "Hvem hadde rett?"}</h1><span class="tall">+${poengTekst(q.n)}</span></div>
+        <div class="seksjon-hode"><h1 id="skjerm-tittel">${esc(lag ? R.t("Hvilke lag hadde rett?") : R.t("Hvem hadde rett?"))}</h1><span class="tall">+${poengTekst(q.n)}</span></div>
         <div class="velgere">${knapper}</div>
-        <p class="hjelp">Trykk på alle som hadde rett – eller gå rett videre.</p>
+        <p class="hjelp">${esc(R.t("Trykk på alle som hadde rett – eller gå rett videre."))}</p>
       </section>
       ${R.ui.dokk(
-        R.ui.knapp(siste ? "Se kåringen" : "Neste spørsmål", "neste", { ikon: siste ? "🏆" : "→" }),
-        R.ui.lenkerad(R.ui.lenke("Stillingen", "stilling"), R.ui.lenke("Avslutt", "avslutt")),
+        R.ui.knapp(siste ? R.t("Se kåringen") : R.t("Neste spørsmål"), "neste", { ikon: siste ? "🏆" : "→" }),
+        R.ui.lenkerad(R.ui.lenke(R.t("Stillingen"), "stilling"), R.ui.lenke(R.t("Avslutt"), "avslutt")),
       )}`;
   }
 
@@ -395,18 +402,19 @@
     let under = "";
     let dokk = "";
     if (sp.fase === "sporsmal") {
-      if (erUtslag(sp)) under = `<p class="hjelp bw-hint"><b>Utslagsspørsmål!</b> ${esc(oppramsing(sp.utslag.map((i) => deltakerNavn(sp, i))))} har like mange poeng. Bare de kan få poeng nå.</p>`;
-      else if (erSolo(sp)) under = `<p class="hjelp bw-hint">Trykk på svaret ditt – eller se fasiten.</p>`;
-      else if (sp.nr === 0) under = `<p class="hjelp bw-hint">Les spørsmålet og de fire svarene høyt. Når alle har svart, trykker du «Vis svaret».</p>`;
+      if (erUtslag(sp))
+        under = `<p class="hjelp bw-hint"><b>${esc(R.t("Utslagsspørsmål!"))}</b> ${esc(R.t("{navn} har like mange poeng. Bare de kan få poeng nå.", { navn: oppramsing(sp.utslag.map((i) => deltakerNavn(sp, i))) }))}</p>`;
+      else if (erSolo(sp)) under = `<p class="hjelp bw-hint">${esc(R.t("Trykk på svaret ditt – eller se fasiten."))}</p>`;
+      else if (sp.nr === 0) under = `<p class="hjelp bw-hint">${esc(R.t("Les spørsmålet og de fire svarene høyt. Når alle har svart, trykker du «Vis svaret»."))}</p>`;
       dokk = R.ui.dokk(
-        erSolo(sp) ? R.ui.knapp("Jeg vet ikke – vis svaret", "vis", { variant: "papir" }) : R.ui.knapp("Vis svaret", "vis", { variant: "stor", ikon: "👀" }),
+        erSolo(sp) ? R.ui.knapp(R.t("Jeg vet ikke – vis svaret"), "vis", { variant: "papir" }) : R.ui.knapp(R.t("Vis svaret"), "vis", { variant: "stor", ikon: "👀" }),
       );
     } else {
       under = (erSolo(sp) ? soloHtml(sp, q) : "") + faktaHtml(q);
       const videre = girPoeng(sp)
-        ? R.ui.knapp("Hvem hadde rett?", "hvem", { ikon: "✋" })
-        : R.ui.knapp(siste ? "Se kåringen" : "Neste spørsmål", "neste", { ikon: siste ? "🏆" : "→" });
-      dokk = R.ui.dokk(videre, `<div class="bw-valgfri">${R.ui.lenkerad(girPoeng(sp) ? R.ui.lenke("Stillingen", "stilling") : "", R.ui.lenke("Avslutt", "avslutt"))}</div>`);
+        ? R.ui.knapp(R.t("Hvem hadde rett?"), "hvem", { ikon: "✋" })
+        : R.ui.knapp(siste ? R.t("Se kåringen") : R.t("Neste spørsmål"), "neste", { ikon: siste ? "🏆" : "→" });
+      dokk = R.ui.dokk(videre, `<div class="bw-valgfri">${R.ui.lenkerad(girPoeng(sp) ? R.ui.lenke(R.t("Stillingen"), "stilling") : "", R.ui.lenke(R.t("Avslutt"), "avslutt"))}</div>`);
     }
     return `${statusHtml(sp)}${kortHtml(sp, q)}${valgHtml(sp, q)}${under}${dokk}`;
   }
@@ -429,55 +437,58 @@
   // ---------- Results ----------
 
   function vurdering(andel) {
-    if (andel >= 1) return "Feilfritt! Du er en ekte bedreviter.";
-    if (andel >= 0.8) return "Imponerende! Du vet nesten alt.";
-    if (andel >= 0.6) return "Sterkt! Litt bedreviter er du.";
-    if (andel >= 0.4) return "Godt jobba – og nå vet du litt mer!";
-    return "Det var noen tøffe spørsmål! Nå vet du i alle fall mer enn i stad.";
+    if (andel >= 1) return R.t("Feilfritt! Du er en ekte bedreviter.");
+    if (andel >= 0.8) return R.t("Imponerende! Du vet nesten alt.");
+    if (andel >= 0.6) return R.t("Sterkt! Litt bedreviter er du.");
+    if (andel >= 0.4) return R.t("Godt jobba – og nå vet du litt mer!");
+    return R.t("Det var noen tøffe spørsmål! Nå vet du i alle fall mer enn i stad.");
   }
 
   function bannerHtml(sp) {
     const antall = sp.logg.length;
     if (sp.modus === "fri")
-      return `<div class="banner aksent">${R.figur()}<p class="etikett">Quizen er ferdig</p><h1 id="skjerm-tittel">Godt jobba!</h1><p class="ingress">Dere kom gjennom ${antall} spørsmål. Nå vet dere mer enn i stad.</p></div>`;
+      return `<div class="banner aksent">${R.figur()}<p class="etikett">${esc(R.t("Quizen er ferdig"))}</p><h1 id="skjerm-tittel">${esc(R.t("Godt jobba!"))}</h1><p class="ingress">${esc(R.t("Dere kom gjennom {n} spørsmål. Nå vet dere mer enn i stad.", { n: antall }))}</p></div>`;
     if (erSolo(sp)) {
       const riktige = sp.treff[0];
       const rek = sp.rekord || {};
       const rekord =
         rek.ny && rek.forrige > 0
-          ? `<div class="stempel-sted"><span class="stempel mynte">Ny rekord!</span></div>`
+          ? `<div class="stempel-sted"><span class="stempel mynte">${esc(R.t("Ny rekord!"))}</span></div>`
           : rek.forrige > 0
-            ? `<p class="hjelp">Rekorden din på ${NIVA_ORD[sp.niva] || "blandet"} med ${antall} spørsmål: ${rek.forrige} riktige</p>`
+            ? `<p class="hjelp">${esc(R.t("Rekorden din på {niva} med {antall} spørsmål: {n} riktige", { niva: NIVA_ORD[sp.niva] || NIVA_ORD.blandet, antall, n: rek.forrige }))}</p>`
             : "";
-      const rekke = `<ol class="bw-rekke" aria-label="Svarene dine">${sp.logg
-        .map((l, n) => `<li class="${l.riktige.length ? "ja" : "nei"}" style="animation-delay: ${n * 70}ms"><span class="vh">Spørsmål ${n + 1}: ${l.riktige.length ? "riktig" : "feil"}</span></li>`)
+      const rekke = `<ol class="bw-rekke" aria-label="${esc(R.t("Svarene dine"))}">${sp.logg
+        .map((l, n) => `<li class="${l.riktige.length ? "ja" : "nei"}" style="animation-delay: ${n * 70}ms"><span class="vh">${esc(l.riktige.length ? R.t("Spørsmål {n}: riktig", { n: n + 1 }) : R.t("Spørsmål {n}: feil", { n: n + 1 }))}</span></li>`)
         .join("")}</ol>`;
-      return `<div class="banner aksent">${R.figur()}<p class="etikett">${esc(R.navn(0))} fikk</p><h1 id="skjerm-tittel">${riktige} av ${antall} riktige</h1><p class="ingress">${vurdering(antall ? riktige / antall : 0)} <b class="bw-sum">${poengTekst(sp.poeng[0])}</b></p>${rekke}</div>${rekord}`;
+      return `<div class="banner aksent">${R.figur()}<p class="etikett">${esc(R.t("{navn} fikk", { navn: R.navn(0) }))}</p><h1 id="skjerm-tittel">${esc(R.t("{n} av {antall} riktige", { n: riktige, antall }))}</h1><p class="ingress">${esc(vurdering(antall ? riktige / antall : 0))} <b class="bw-sum">${poengTekst(sp.poeng[0])}</b></p>${rekke}</div>${rekord}`;
     }
     const topp = Math.max(...sp.poeng);
     const vinnere = sp.poeng.map((p, i) => (p === topp ? i : -1)).filter((i) => i >= 0);
     if (topp <= 0)
-      return `<div class="banner">${R.figur()}<p class="etikett">Kåringen</p><h1 id="skjerm-tittel">Ingen poeng i dag</h1><p class="ingress">Kanskje en lettere runde neste gang?</p></div>`;
+      return `<div class="banner">${R.figur()}<p class="etikett">${esc(R.t("Kåringen"))}</p><h1 id="skjerm-tittel">${esc(R.t("Ingen poeng i dag"))}</h1><p class="ingress">${esc(R.t("Kanskje en lettere runde neste gang?"))}</p></div>`;
     const navn = vinnere.map((i) => deltakerNavn(sp, i));
-    const etikett = vinnere.length > 1 ? "Delt seier!" : sp.modus === "lag" ? "Vinnerlaget" : "Rundens bedreviter";
+    const etikett = vinnere.length > 1 ? R.t("Delt seier!") : sp.modus === "lag" ? R.t("Vinnerlaget") : R.t("Rundens bedreviter");
+    const verdier = { poeng: poengTekst(topp), n: sp.treff[vinnere[0]], antall };
     const ingress =
       vinnere.length > 1
-        ? `Like mange poeng: ${topp}.`
-        : `${poengTekst(topp)} og ${sp.treff[vinnere[0]]} av ${antall} riktige${sp.utslagNr ? " – avgjort på utslagsspørsmål" : ""}.`;
-    return `<div class="banner aksent">${R.figur()}<p class="etikett">${etikett}</p><h1 id="skjerm-tittel">${esc(oppramsing(navn))} vinner!</h1><p class="ingress">${esc(ingress)}</p></div>`;
+        ? R.t("Like mange poeng: {n}.", { n: topp })
+        : sp.utslagNr
+          ? R.t("{poeng} og {n} av {antall} riktige – avgjort på utslagsspørsmål.", verdier)
+          : R.t("{poeng} og {n} av {antall} riktige.", verdier);
+    return `<div class="banner aksent">${R.figur()}<p class="etikett">${esc(etikett)}</p><h1 id="skjerm-tittel">${esc(R.t("{navn} vinner!", { navn: oppramsing(navn), n: navn.length }))}</h1><p class="ingress">${esc(ingress)}</p></div>`;
   }
 
   function fasitHtml(sp) {
     const punkt = sp.logg
       .map((l, n) => {
         const q = ALLE[l.q];
-        const hvem = sp.modus === "fri" ? "" : l.riktige.length ? oppramsing(l.riktige.map((i) => deltakerNavn(sp, i))) : "Ingen";
+        const hvem = sp.modus === "fri" ? "" : l.riktige.length ? oppramsing(l.riktige.map((i) => deltakerNavn(sp, i))) : R.t("Ingen");
         return `<li><span class="bw-fasit-nr">${n + 1}</span><div><p class="bw-fasit-s">${esc(q.s)}</p><p class="bw-fasit-a">✓ ${esc(q.a[q.r])}</p>${
-          hvem ? `<p class="bw-fasit-hvem">${erSolo(sp) ? (l.riktige.length ? "Du hadde rett" : "Bom") : "Riktig: " + esc(hvem)}</p>` : ""
+          hvem ? `<p class="bw-fasit-hvem">${esc(erSolo(sp) ? (l.riktige.length ? R.t("Du hadde rett") : R.t("Bom")) : R.t("Riktig: {navn}", { navn: hvem }))}</p>` : ""
         }</div></li>`;
       })
       .join("");
-    return `<h2 id="ark-tittel">Fasiten</h2><ol class="bw-fasit">${punkt}</ol><button class="knapp" data-h="lukk-ark">Lukk</button>`;
+    return `<h2 id="ark-tittel">${esc(R.t("Fasiten"))}</h2><ol class="bw-fasit">${punkt}</ol><button class="knapp" data-h="lukk-ark">${esc(R.t("Lukk"))}</button>`;
   }
 
   // Celebrate in proportion: fanfare + confetti for a winner or a strong solo round.
@@ -507,16 +518,16 @@
     let under = "";
     let dokk = "";
     if (sp.fase === "sporsmal") {
-      if (d.i === 0) under = `<p class="hjelp bw-hint">Fem spørsmål, fra lett til vanskelig. Trykk på svaret ditt.</p>`;
-      dokk = R.ui.dokk(R.ui.knapp("Jeg vet ikke – vis svaret", "dvis", { variant: "papir" }));
+      if (d.i === 0) under = `<p class="hjelp bw-hint">${esc(R.t("Fem spørsmål, fra lett til vanskelig. Trykk på svaret ditt."))}</p>`;
+      dokk = R.ui.dokk(R.ui.knapp(R.t("Jeg vet ikke – vis svaret"), "dvis", { variant: "papir" }));
     } else {
       const s = d.svar[d.i];
       const riktigVis = d.rekke[d.i].indexOf(q.r);
       const dom = s.ok
-        ? `<p class="bw-dom riktig" role="status"><span class="bw-dom-ord">Riktig!</span></p>`
-        : `<p class="bw-dom${s.v == null ? "" : " feil"}" role="status"><span class="bw-dom-ord">${s.v == null ? "Fasit" : "Feil"}</span> <span>Riktig svar er ${BOKSTAVER[riktigVis]}: ${esc(q.a[q.r])}</span></p>`;
+        ? `<p class="bw-dom riktig" role="status"><span class="bw-dom-ord">${esc(R.t("Riktig!"))}</span></p>`
+        : `<p class="bw-dom${s.v == null ? "" : " feil"}" role="status"><span class="bw-dom-ord">${esc(s.v == null ? R.t("Fasit") : R.t("Feil"))}</span> <span>${esc(R.t("Riktig svar er {bokstav}: {svar}", { bokstav: BOKSTAVER[riktigVis], svar: q.a[q.r] }))}</span></p>`;
       under = dom + (q.fakta ? faktaHtml(q) : "");
-      dokk = R.ui.dokk(R.ui.knapp(siste ? "Se resultatet" : "Neste spørsmål", "dneste", { ikon: siste ? "🏁" : "→" }));
+      dokk = R.ui.dokk(R.ui.knapp(siste ? R.t("Se resultatet") : R.t("Neste spørsmål"), "dneste", { ikon: siste ? "🏁" : "→" }));
     }
     return `${statusHtml(sp)}${kortHtml(sp, q)}${valgHtml(sp, q, "dsvar")}${under}${dokk}`;
   }
@@ -526,23 +537,23 @@
     if (!d.ferdig) return dagensSkjerm();
     const r = dagensRiktige(d);
     const rekke = dagensVunnet(d) ? rekkeNa() : 0;
-    const prikker = `<ol class="bw-rekke bw-prikker" aria-label="Svarene dine">${d.svar
-      .map((s, n) => `<li class="${s.ok ? "ja" : "nei"}" style="animation-delay: ${n * 90}ms"><span aria-hidden="true">${s.ok ? "✓" : "✗"}</span><span class="vh">Spørsmål ${n + 1}: ${s.ok ? "riktig" : "feil"}</span></li>`)
+    const prikker = `<ol class="bw-rekke bw-prikker" aria-label="${esc(R.t("Svarene dine"))}">${d.svar
+      .map((s, n) => `<li class="${s.ok ? "ja" : "nei"}" style="animation-delay: ${n * 90}ms"><span aria-hidden="true">${s.ok ? "✓" : "✗"}</span><span class="vh">${esc(s.ok ? R.t("Spørsmål {n}: riktig", { n: n + 1 }) : R.t("Spørsmål {n}: feil", { n: n + 1 }))}</span></li>`)
       .join("")}</ol>`;
     return `
       ${R.ui.banner({
         klasse: "aksent",
-        etikett: `Dagens fem nr. ${dagensNr(d.nr)}`,
-        tittel: `${r} av ${DAGENS_ANTALL} riktige`,
+        etikett: R.t("Dagens fem nr. {nr}", { nr: dagensNr(d.nr) }),
+        tittel: R.t("{n} av {antall} riktige", { n: r, antall: DAGENS_ANTALL }),
         tekst: vurdering(r / DAGENS_ANTALL),
         stemning: r >= 3 ? "jubel" : r <= 1 ? "lei" : "",
       })}
       ${prikker}
       ${rekke ? `<p class="bw-dagens-rekke">${rekkeTekst(rekke)}</p>` : ""}
       ${nedtellingHtml()}
-      <div class="stabel">${R.ui.knapp2("Se fasiten", "dfasit", { ikon: "📋" })}</div>
+      <div class="stabel">${R.ui.knapp2(R.t("Se fasiten"), "dfasit", { ikon: "📋" })}</div>
       ${R.ui.flereSpill({ antall: 1 })}
-      ${R.ui.dokk(R.ui.knapp("Del resultatet", "ddel", { ikon: "📤" }), R.ui.lenkerad(R.ui.lenke("Til Bedreviteren", "tilbake"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+      ${R.ui.dokk(R.ui.knapp(R.t("Del resultatet"), "ddel", { ikon: "📤" }), R.ui.lenkerad(R.ui.lenke(R.t("Til Bedreviteren"), "tilbake"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
   }
 
   function dagensFasit(d) {
@@ -551,11 +562,11 @@
         const q = ALLE[qi];
         const s = d.svar[n];
         return `<li><span class="bw-fasit-nr">${n + 1}</span><div><p class="bw-fasit-s">${esc(q.s)}</p><p class="bw-fasit-a">✓ ${esc(q.a[q.r])}</p>${
-          s ? `<p class="bw-fasit-hvem">${s.ok ? "Du hadde rett" : s.v == null ? "Ikke svart" : "Du svarte: " + esc(q.a[d.rekke[n][s.v]])}</p>` : ""
+          s ? `<p class="bw-fasit-hvem">${esc(s.ok ? R.t("Du hadde rett") : s.v == null ? R.t("Ikke svart") : R.t("Du svarte: {svar}", { svar: q.a[d.rekke[n][s.v]] }))}</p>` : ""
         }</div></li>`;
       })
       .join("");
-    return `<h2 id="ark-tittel">Fasiten</h2><ol class="bw-fasit">${punkt}</ol><button class="knapp" data-h="lukk-ark">Lukk</button>`;
+    return `<h2 id="ark-tittel">${esc(R.t("Fasiten"))}</h2><ol class="bw-fasit">${punkt}</ol><button class="knapp" data-h="lukk-ark">${esc(R.t("Lukk"))}</button>`;
   }
 
   // Answer today's current question (vis = the option's place on screen, null = «Jeg vet ikke»).
@@ -578,7 +589,7 @@
     } else R.lyd.pling();
     R.vis();
     visFakta();
-    R.si(`Riktig svar: ${BOKSTAVER[riktigVis]}, ${q.a[q.r]}. ${q.fakta || ""}`);
+    R.si(`${R.t("Riktig svar: {bokstav}, {svar}.", { bokstav: BOKSTAVER[riktigVis], svar: q.a[q.r] })} ${q.fakta || ""}`);
   }
 
   // ---------- The game ----------
@@ -637,19 +648,19 @@
     },
 
     regler: {
-      intro: "En quiz for hele gjengen på én mobil. Fire svar – bare ett er riktig.",
+      intro: R.t("En quiz for hele gjengen på én mobil. Fire svar – bare ett er riktig."),
       steg: [
-        ["Les høyt", "Den som holder mobilen, leser spørsmålet og de fire svarene høyt."],
-        ["Alle svarer", "Rop ut, skriv på en lapp – eller hold opp 1–4 fingrer for A–D samtidig."],
-        ["Vis svaret", "Trykk «Vis svaret», les faktabiten og trykk på alle som hadde rett."],
+        [R.t("Les høyt"), R.t("Den som holder mobilen, leser spørsmålet og de fire svarene høyt.")],
+        [R.t("Alle svarer"), R.t("Rop ut, skriv på en lapp – eller hold opp 1–4 fingrer for A–D samtidig.")],
+        [R.t("Vis svaret"), R.t("Trykk «Vis svaret», les faktabiten og trykk på alle som hadde rett.")],
       ],
       tips: [
-        "Stjernene viser hvor vanskelig spørsmålet er: ★ gir 1 poeng, ★★ gir 2 og ★★★ gir 3.",
-        "Spiller du alene? Velg én spiller, så trykker du rett på svaret ditt.",
-        "Den som leser, kan godt være med – svaret vises ikke før dere trykker.",
-        "Trykket feil? «Angre» øverst på neste spørsmål tar poengene tilbake.",
-        "«Blandet» starter lett og blir vanskeligere mot slutten.",
-        "Dagens fem: fem nye spørsmål hver dag, de samme for alle. Når du deler resultatet, røper du ikke svarene.",
+        R.t("Stjernene viser hvor vanskelig spørsmålet er: ★ gir 1 poeng, ★★ gir 2 og ★★★ gir 3."),
+        R.t("Spiller du alene? Velg én spiller, så trykker du rett på svaret ditt."),
+        R.t("Den som leser, kan godt være med – svaret vises ikke før dere trykker."),
+        R.t("Trykket feil? «Angre» øverst på neste spørsmål tar poengene tilbake."),
+        R.t("«Blandet» starter lett og blir vanskeligere mot slutten."),
+        R.t("Dagens fem: fem nye spørsmål hver dag, de samme for alle. Når du deler resultatet, røper du ikke svarene."),
       ],
     },
 
@@ -666,26 +677,26 @@
           const knapp = dagensForst ? R.ui.knapp : R.ui.knapp2;
           const dagens =
             d && d.ferdig
-              ? R.ui.knapp2(`✓ ${dagensRiktige(d)} av ${DAGENS_ANTALL}${rekke ? " · " + rekkeTekst(rekke) : ""}`, "dagens") + nedtellingHtml()
+              ? R.ui.knapp2(`✓ ${R.t("{n} av {alle}", { n: dagensRiktige(d), alle: DAGENS_ANTALL })}${rekke ? " · " + rekkeTekst(rekke) : ""}`, "dagens") + nedtellingHtml()
               : d && d.svar.length
-                ? knapp(`Fortsett dagens fem · ${d.svar.length}/${DAGENS_ANTALL}`, "dagens")
-                : knapp("Dagens fem", "dagens", { variant: dagensForst ? "stor" : "", ikon: "📅" });
-          const ekstra = (sp && sp.ferdig ? R.ui.knapp2("Se kåringen", "resultat") : "") + R.ui.lenke("Slik spiller du", "regler");
+                ? knapp(`${R.t("Fortsett dagens fem")} · ${d.svar.length}/${DAGENS_ANTALL}`, "dagens")
+                : knapp(R.t("Dagens fem"), "dagens", { variant: dagensForst ? "stor" : "", ikon: "📅" });
+          const ekstra = (sp && sp.ferdig ? R.ui.knapp2(R.t("Se kåringen"), "resultat") : "") + R.ui.lenke(R.t("Slik spiller du"), "regler");
           return R.ui.spillhjem({
-            slagordHtml: "Fire svar. Bare ett er riktig.<br><em>Hvem er den største bedreviteren?</em>",
+            slagordHtml: `${esc(R.t("Fire svar. Bare ett er riktig."))}<br><em>${esc(R.t("Hvem er den største bedreviteren?"))}</em>`,
             knapperHtml: dagensForst
-              ? dagens + R.ui.knapp2("Start quiz", "nytt") + ekstra
+              ? dagens + R.ui.knapp2(R.t("Start quiz"), "nytt") + ekstra
               : R.ui.startKnapper({
                   pagar: pagar(S),
-                  fortsettTekst: sp ? `Fortsett · spørsmål ${sp.nr + 1} av ${sp.liste.length}` : "",
-                  startTekst: "Start quiz",
+                  fortsettTekst: sp ? R.t("Fortsett · spørsmål {n} av {antall}", { n: sp.nr + 1, antall: sp.liste.length }) : "",
+                  startTekst: R.t("Start quiz"),
                 }) +
                 dagens +
                 ekstra,
             merker: [
-              ["1–20", "spillere"],
-              [String(ALLE.length), "spørsmål"],
-              ["0", "reklame"],
+              ["1–20", R.t("spillere")],
+              [String(ALLE.length), R.t("spørsmål")],
+              ["0", R.t("reklame")],
             ],
           });
         },
@@ -696,55 +707,55 @@
       },
 
       oppsett: {
-        tittel: "Ny quiz",
+        tittel: R.t("Ny quiz"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
           let deltakere = "";
           if (o.modus === "spillere")
-            deltakere = R.ui.spillere({ min: 1, max: 20, hjelp: S.antall === 1 ? "Alene? Da trykker du rett på svaret ditt." : "Én spiller? Da trykker du rett på svaret." });
+            deltakere = R.ui.spillere({ min: 1, max: 20, hjelp: S.antall === 1 ? R.t("Alene? Da trykker du rett på svaret ditt.") : R.t("Én spiller? Da trykker du rett på svaret.") });
           else if (o.modus === "lag")
             deltakere = `<section class="seksjon">
-              <div class="seksjon-hode"><h2>Hvor mange lag?</h2></div>
-              ${R.ui.teller("lag", o.lag, 2, 4, { enhet: "lag", minus: "Færre lag", pluss: "Flere lag" })}
+              <div class="seksjon-hode"><h2>${esc(R.t("Hvor mange lag?"))}</h2></div>
+              ${R.ui.teller("lag", o.lag, 2, 4, { enhet: R.t("lag"), minus: R.t("Færre lag"), pluss: R.t("Flere lag") })}
               <div class="bw-lagrad">${Array.from({ length: o.lag }, (_, i) => R.ui.lagmerke(i)).join("")}</div>
             </section>`;
           return `
-            <h1 id="skjerm-tittel">Gjør klart</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Hvordan spiller dere?</h2></div>
+              <div class="seksjon-hode"><h2>${esc(R.t("Hvordan spiller dere?"))}</h2></div>
               ${R.ui.fliser(
                 "modus",
                 [
-                  { v: "spillere", ikon: "🙋", tittel: "Hver for seg", tekst: "Alle mot alle – eller alene" },
-                  { v: "lag", ikon: "👥", tittel: "Lag mot lag", tekst: "2–4 lag samler poeng" },
-                  { v: "fri", ikon: "💡", tittel: "Uten poeng", tekst: "Bare spørsmål, svar og fakta" },
+                  { v: "spillere", ikon: "🙋", tittel: R.t("Hver for seg"), tekst: R.t("Alle mot alle – eller alene") },
+                  { v: "lag", ikon: "👥", tittel: R.t("Lag mot lag"), tekst: R.t("2–4 lag samler poeng") },
+                  { v: "fri", ikon: "💡", tittel: R.t("Uten poeng"), tekst: R.t("Bare spørsmål, svar og fakta") },
                 ],
                 o.modus,
               )}
             </section>
             ${deltakere}
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Kategorier</h2><span class="tall">${antallI(o.kategorier)} spørsmål</span></div>
-              ${R.ui.brikker("kategori", KATEGORIER.map((k) => ({ v: k.id, tekst: k.navn, ikon: k.ikon })), o.kategorier, { alle: true, etikett: "Kategorier" })}
+              <div class="seksjon-hode"><h2>${esc(R.t("Kategorier"))}</h2><span class="tall">${esc(R.t("{n} spørsmål", { n: antallI(o.kategorier) }))}</span></div>
+              ${R.ui.brikker("kategori", KATEGORIER.map((k) => ({ v: k.id, tekst: k.navn, ikon: k.ikon })), o.kategorier, { alle: true, etikett: R.t("Kategorier") })}
             </section>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Vanskelighet</h2></div>
-              ${R.ui.seg("niva", [["blandet", "Blandet"], ["1", "Lett"], ["2", "Middels"], ["3", "Vanskelig"]], o.niva, { etikett: "Vanskelighet" })}
+              <div class="seksjon-hode"><h2>${esc(R.t("Vanskelighet"))}</h2></div>
+              ${R.ui.seg("niva", [["blandet", R.t("Blandet")], ["1", R.t("Lett")], ["2", R.t("Middels")], ["3", R.t("Vanskelig")]], o.niva, { etikett: R.t("Vanskelighet") })}
             </section>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Antall spørsmål</h2></div>
-              ${R.ui.seg("lengde", LENGDER.map((n) => [n, String(n)]), o.lengde, { etikett: "Antall spørsmål" })}
+              <div class="seksjon-hode"><h2>${esc(R.t("Antall spørsmål"))}</h2></div>
+              ${R.ui.seg("lengde", LENGDER.map((n) => [n, String(n)]), o.lengde, { etikett: R.t("Antall spørsmål") })}
             </section>
-            ${R.ui.bryter("klokke", o.klokke, `Klokke på ${SEKUNDER} s`, "Klokka tikker de siste sekundene. Trykk på den for pause.")}
-            ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !o.kategorier.length, ikon: "🎓" }), o.kategorier.length ? "" : `<p class="hjelp">Velg minst én kategori.</p>`)}`;
+            ${R.ui.bryter("klokke", o.klokke, R.t("Klokke på {n} s", { n: SEKUNDER }), R.t("Klokka tikker de siste sekundene. Trykk på den for pause."))}
+            ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { av: !o.kategorier.length, ikon: "🎓" }), o.kategorier.length ? "" : `<p class="hjelp">${esc(R.t("Velg minst én kategori."))}</p>`)}`;
         },
       },
 
       sporsmal: {
         // Short title on narrow phones, so it isn't cut off between the buttons.
         tittel: (S) =>
-          erUtslag(S.spill) ? "Utslag" : window.innerWidth < 380 ? `${S.spill.nr + 1}/${S.spill.liste.length}` : `Spørsmål ${S.spill.nr + 1} av ${S.spill.liste.length}`,
+          erUtslag(S.spill) ? R.t("Utslag") : window.innerWidth < 380 ? `${S.spill.nr + 1}/${S.spill.liste.length}` : R.t("Spørsmål {n} av {antall}", { n: S.spill.nr + 1, antall: S.spill.liste.length }),
         tilbake: "hjem",
         vis: sporsmalSkjerm,
         inn(S) {
@@ -754,13 +765,13 @@
       },
 
       dagens: {
-        tittel: () => `Dagens fem · ${Math.min((dagensIDag() || sikreDagens()).i + 1, DAGENS_ANTALL)}/${DAGENS_ANTALL}`,
+        tittel: () => `${R.t("Dagens fem")} · ${Math.min((dagensIDag() || sikreDagens()).i + 1, DAGENS_ANTALL)}/${DAGENS_ANTALL}`,
         tilbake: "hjem",
         vis: dagensSkjerm,
       },
 
       dagensSlutt: {
-        tittel: "Dagens fem", // the banner below says which number
+        tittel: R.t("Dagens fem"), // the banner below says which number
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis: dagensSluttSkjerm,
@@ -781,7 +792,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -790,11 +801,11 @@
           return `
             ${bannerHtml(sp)}
             ${flere ? R.ui.pall(rader(sp)) + R.ui.poengliste(rader(sp)) : ""}
-            <div class="stabel">${R.ui.knapp2("Se fasiten", "fasit", { ikon: "📋" })}</div>
+            <div class="stabel">${R.ui.knapp2(R.t("Se fasiten"), "fasit", { ikon: "📋" })}</div>
             ${R.ui.flereSpill(sp.modus === "spillere" ? { antall: sp.deltakere } : {})}
             ${R.ui.dokk(
-              R.ui.knapp("Spill igjen", "igjen", { ikon: "🔁" }),
-              R.ui.lenkerad(angreLenke(sp), R.ui.lenke("Endre oppsett", "endre"), `<a class="lenke" href="/">Alle spill</a>`),
+              R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: "🔁" }),
+              R.ui.lenkerad(angreLenke(sp), R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`),
             )}`;
         },
         inn(S) {
@@ -830,7 +841,10 @@
       },
       ddel() {
         const d = dagensIDag();
-        if (d && d.ferdig) R.del("Bedreviteren", delTekst(d), DAGENS_URL + "#utfordring", { kort: { tittel: `Dagens fem nr. ${dagensNr(d.nr)}`, linjer: [`${dagensRes(d)} riktige`, d.svar.map((s) => (s.ok ? "🟢" : "🔴")).join("")] } });
+        if (d && d.ferdig)
+          R.del(R.t("Bedreviteren"), delTekst(d), DAGENS_URL + "#utfordring", {
+            kort: { tittel: R.t("Dagens fem nr. {nr}", { nr: dagensNr(d.nr) }), linjer: [R.t("{res} riktige", { res: dagensRes(d) }), d.svar.map((s) => (s.ok ? "🟢" : "🔴")).join("")] },
+          });
       },
       dfasit() {
         const d = dagensIDag();
@@ -876,11 +890,11 @@
       start(el, e, S) {
         if (!S.oppsett.kategorier.length) return;
         if (!nyttSpill(S)) {
-          R.toast("Fant ingen spørsmål – velg flere kategorier");
+          R.toast(R.t("Fant ingen spørsmål – velg flere kategorier"));
           return;
         }
         R.statistikk("start", { modus: S.spill.modus, sporsmal: S.spill.liste.length });
-        if (S.spill.liste.length < S.oppsett.lengde) R.toast(`Bare ${S.spill.liste.length} spørsmål passet – kjør på!`);
+        if (S.spill.liste.length < S.oppsett.lengde) R.toast(R.t("Bare {n} spørsmål passet – kjør på!", { n: S.spill.liste.length }));
         R.lyd.pop();
         R.gaTil("sporsmal");
       },
@@ -924,7 +938,7 @@
         }
         R.vis();
         visFakta();
-        R.si(`Riktig svar: ${BOKSTAVER[riktigVis]}, ${q.a[q.r]}. ${q.fakta}`);
+        R.si(`${R.t("Riktig svar: {bokstav}, {svar}.", { bokstav: BOKSTAVER[riktigVis], svar: q.a[q.r] })} ${q.fakta}`);
       },
       hvem(el, e, S) {
         const sp = S.spill;
@@ -964,7 +978,8 @@
             sp.poeng[i] += q.n;
             sp.treff[i] += 1;
           }
-          if (sp.riktige.length && girPoeng(sp) && sp.nr + 1 < sp.liste.length) R.toast(`+${poengTekst(q.n)} til ${oppramsing(sp.riktige.map((i) => deltakerNavn(sp, i)))}`);
+          if (sp.riktige.length && girPoeng(sp) && sp.nr + 1 < sp.liste.length)
+            R.toast(R.t("+{poeng} til {navn}", { poeng: poengTekst(q.n), navn: oppramsing(sp.riktige.map((i) => deltakerNavn(sp, i))) }));
         }
         sp.logg.push({ q: sp.liste[sp.nr], riktige: sp.riktige.slice(), valgt: sp.valgt });
         if (sp.nr + 1 >= sp.liste.length) {
@@ -973,7 +988,7 @@
           if (like.length > 1 && (sp.utslagNr || 0) < MAKS_UTSLAG && leggTilUtslag(sp, S.oppsett)) {
             sp.utslag = like;
             sp.utslagNr = (sp.utslagNr || 0) + 1;
-            R.toast(`Uavgjort! ${oppramsing(like.map((i) => deltakerNavn(sp, i)))} får et utslagsspørsmål`);
+            R.toast(R.t("Uavgjort! {navn} får et utslagsspørsmål", { navn: oppramsing(like.map((i) => deltakerNavn(sp, i))) }));
           } else {
             sp.ferdig = true;
             if (erSolo(sp)) {
@@ -1021,20 +1036,22 @@
         sp.valgt = a.valgt;
         sp.ferdig = false;
         sp.angre = null;
-        R.toast("Poengene er tatt tilbake");
+        R.toast(R.t("Poengene er tatt tilbake"));
         R.gaTil("sporsmal");
       },
       stilling(el, e, S) {
         const sp = S.spill;
         if (!sp) return;
-        R.ark(`<h2 id="ark-tittel">Stillingen</h2><p class="ingress">Etter ${sp.logg.length} av ${sp.liste.length} spørsmål</p>${R.ui.poengliste(rader(sp))}<button class="knapp" data-h="lukk-ark">Tilbake til quizen</button>`);
+        R.ark(
+          `<h2 id="ark-tittel">${esc(R.t("Stillingen"))}</h2><p class="ingress">${esc(R.t("Etter {n} av {antall} spørsmål", { n: sp.logg.length, antall: sp.liste.length }))}</p>${R.ui.poengliste(rader(sp))}<button class="knapp" data-h="lukk-ark">${esc(R.t("Tilbake til quizen"))}</button>`,
+        );
       },
       fasit(el, e, S) {
         if (S.spill) R.ark(fasitHtml(S.spill));
       },
       async avslutt(el, e, S) {
         const fortsatt = R.vakt();
-        if ((await R.bekreft("Avslutte quizen?", "Poengene blir borte, men dere kan alltid starte en ny.", "Avslutt", "Fortsett")) && fortsatt()) {
+        if ((await R.bekreft(R.t("Avslutte quizen?"), R.t("Poengene blir borte, men dere kan alltid starte en ny."), R.t("Avslutt"), R.t("Fortsett"))) && fortsatt()) {
           R.stoppTimere();
           S.spill = null;
           R.slippVaken();

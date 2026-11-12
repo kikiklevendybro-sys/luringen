@@ -5,6 +5,8 @@
 // podium, answer key, «Kveldens gjeng»), a solo round played to the end (record per level), a team
 // round where the clock runs out, a tie-break, and small phones (320 × 568) where the question, all
 // four answers, the right answer and the fun fact must be visible without scrolling.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en bedreviteren): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the state, the numbers, the share link and the storage keys.
 export default async function (t) {
   const fase = async () => (await t.tilstand()).spill;
   const visSvaret = async () => {
@@ -25,27 +27,32 @@ export default async function (t) {
   // The runner may use another phone size (--bredde/--hoyde); adapt to it and restore it at the end.
   const [B0, H0] = await t.js("[window.innerWidth, window.innerHeight]");
 
-  const les = (nokkel) => t.js(`JSON.parse(localStorage.getItem(${JSON.stringify("rusj." + nokkel)}) || "null")`);
+  const les = (nokkel) => t.js(`JSON.parse(localStorage.getItem(${JSON.stringify(t.nokkel(nokkel))}) || "null")`);
+  // The edition's own page: the share link is its address on rusj.no.
+  const ADRESSE = `https://rusj.no${new URL(t.side).pathname}#utfordring`;
+  const DEL = t.norsk ? /^Bedreviteren · Dagens fem nr\. \d+ · 3\/5 (?:🟢|🔴){5}$/u : /^\S.* · .*\d+ · 3\/5 (?:🟢|🔴){5}$/u;
   const ALLE = `(() => { const A = []; Object.keys(RUSJ_DATA).filter((n) => n.startsWith("sporsmal-")).sort().forEach((n) => RUSJ_DATA[n].forEach((q) => A.push(q))); return A; })()`;
 
-  // ---------- The old name: saved state is carried over once ----------
-  await t.start();
-  await t.js(`(() => {
-    localStorage.removeItem("rusj.bedreviteren.v1");
-    localStorage.setItem("rusj.besserwisseren.v1", JSON.stringify({ antall: 2, oppsett: { modus: "lag", lag: 3, niva: "2", lengde: 15, klokke: true, kategorier: ["norge"] }, spill: null }));
-    localStorage.setItem("rusj.besserwisseren.rekord", JSON.stringify({ 10: 7 }));
-    localStorage.setItem("rusj.kveld", JSON.stringify({ start: Date.now(), spill: [{ id: "besserwisseren", tid: Date.now(), resultat: [] }] }));
-  })()`);
-  await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
-  const flyttet = await t.tilstand();
-  t.sjekk(flyttet && flyttet.oppsett.modus === "lag" && flyttet.oppsett.lag === 3 && flyttet.oppsett.lengde === 15, "Oppsettet fra Besserwisseren ble ikke flyttet over");
-  t.sjekk((await les("besserwisseren.v1")) === null, "Den gamle lagringen ble ikke ryddet bort");
-  t.sjekk(JSON.stringify(await les("bedreviteren.rekord")) === '{"blandet.10":7}', "Den gamle rekorden ble ikke flyttet over");
-  t.sjekk((await les("kveld")).spill[0].id === "bedreviteren", "Kveldens gjeng har fortsatt det gamle navnet");
-  // The old address still works: a small page that sends the visitor on (no script, not in the sitemap)
-  const gammel = await t.js(`Promise.all([fetch("/besserwisseren/").then((r) => (r.ok ? r.text() : "")), fetch("/sitemap.xml").then((r) => (r.ok ? r.text() : "-"))])`);
-  t.sjekk(/http-equiv="refresh" content="0; url=\/bedreviteren\/"/.test(gammel[0]) && /rel="canonical" href="https:\/\/rusj\.no\/bedreviteren\/"/.test(gammel[0]) && !/<script/.test(gammel[0]), "/besserwisseren/ sender ikke videre til /bedreviteren/");
-  t.sjekk(!gammel[1].includes("besserwisseren"), "Den gamle adressen skal ikke stå i sitemap.xml");
+  // ---------- The old name: saved state is carried over once (Norwegian only) ----------
+  if (t.norsk) {
+    await t.start();
+    await t.js(`(() => {
+      localStorage.removeItem("rusj.bedreviteren.v1");
+      localStorage.setItem("rusj.besserwisseren.v1", JSON.stringify({ antall: 2, oppsett: { modus: "lag", lag: 3, niva: "2", lengde: 15, klokke: true, kategorier: ["norge"] }, spill: null }));
+      localStorage.setItem("rusj.besserwisseren.rekord", JSON.stringify({ 10: 7 }));
+      localStorage.setItem("rusj.kveld", JSON.stringify({ start: Date.now(), spill: [{ id: "besserwisseren", tid: Date.now(), resultat: [] }] }));
+    })()`);
+    await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
+    const flyttet = await t.tilstand();
+    t.sjekk(flyttet && flyttet.oppsett.modus === "lag" && flyttet.oppsett.lag === 3 && flyttet.oppsett.lengde === 15, "Oppsettet fra Besserwisseren ble ikke flyttet over");
+    t.sjekk((await les("besserwisseren.v1")) === null, "Den gamle lagringen ble ikke ryddet bort");
+    t.sjekk(JSON.stringify(await les("bedreviteren.rekord")) === '{"blandet.10":7}', "Den gamle rekorden ble ikke flyttet over");
+    t.sjekk((await les("kveld")).spill[0].id === "bedreviteren", "Kveldens gjeng har fortsatt det gamle navnet");
+    // The old address still works: a small page that sends the visitor on (no script, not in the sitemap)
+    const gammel = await t.js(`Promise.all([fetch("/besserwisseren/").then((r) => (r.ok ? r.text() : "")), fetch("/sitemap.xml").then((r) => (r.ok ? r.text() : "-"))])`);
+    t.sjekk(/http-equiv="refresh" content="0; url=\/bedreviteren\/"/.test(gammel[0]) && /rel="canonical" href="https:\/\/rusj\.no\/bedreviteren\/"/.test(gammel[0]) && !/<script/.test(gammel[0]), "/besserwisseren/ sender ikke videre til /bedreviteren/");
+    t.sjekk(!gammel[1].includes("besserwisseren"), "Den gamle adressen skal ikke stå i sitemap.xml");
+  }
 
   // ---------- «Dagens fem» ----------
   await t.start();
@@ -80,11 +87,11 @@ export default async function (t) {
   await t.vent("document.querySelector('[data-h=\"dsvar\"]')");
   let dg = (await les("bedreviteren.dagens")).dag;
   t.sjekk(dg.nr === iDag && JSON.stringify(dg.liste) === JSON.stringify(fem), "Dagens fem er ikke dagens spørsmål");
-  t.sjekk(/Dagens fem · 1\/5/i.test(await t.tekst("#topp-tittel")), "Topplinjen viser ikke «Dagens fem · 1/5»");
+  t.sjekk((t.norsk ? /Dagens fem · 1\/5/i : /1\/5/).test(await t.tekst("#topp-tittel")), "Topplinjen viser ikke «Dagens fem · 1/5»");
   t.sjekk((await t.antall('[data-h="dsvar"]')) === 4, "Dagens fem skal ha fire svarknapper");
   await t.bilde("dagens-sporsmal");
   // Answers: right, wrong, «Jeg vet ikke», right, right → 3 of 5
-  const riktigPlass = (n) => t.js(`(() => { const d = JSON.parse(localStorage.getItem("rusj.bedreviteren.dagens")).dag; const q = ${ALLE}[d.liste[${n}]]; return d.rekke[${n}].indexOf(q.r); })()`);
+  const riktigPlass = (n) => t.js(`(() => { const d = JSON.parse(localStorage.getItem(${JSON.stringify(t.nokkel("bedreviteren.dagens"))})).dag; const q = ${ALLE}[d.liste[${n}]]; return d.rekke[${n}].indexOf(q.r); })()`);
   const svar = async (n, rett) => {
     const r = await riktigPlass(n);
     if (rett === null) await t.klikk('[data-h="dvis"]');
@@ -100,12 +107,12 @@ export default async function (t) {
   t.sjekk(await t.finnes(".bw-dom.riktig"), "Svaret var borte etter omlasting");
   await t.klikk('[data-h="dneste"]');
   await svar(1, false);
-  t.sjekk(await t.finnes(".bw-dom.feil") && /Riktig svar er [A-D]: /.test(await t.tekst(".bw-dom")), "Feil svar viser ikke det riktige svaret");
+  t.sjekk(await t.finnes(".bw-dom.feil") && (t.norsk ? /Riktig svar er [A-D]: / : /[A-D]: /).test(await t.tekst(".bw-dom")), "Feil svar viser ikke det riktige svaret");
   await t.bilde("dagens-feil");
   await t.klikk('[data-h="dneste"]');
   // Back home mid-round: «Fortsett dagens fem · 2/5»; the party quiz is untouched
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett dagens fem · 2\/5/.test(await t.tekst('.hjem-knapper [data-h="dagens"]')), "Hjem viser ikke «Fortsett dagens fem · 2/5»");
+  t.sjekk((t.norsk ? /Fortsett dagens fem · 2\/5/ : / · 2\/5/).test(await t.tekst('.hjem-knapper [data-h="dagens"]')), "Hjem viser ikke «Fortsett dagens fem · 2/5»");
   t.sjekk((await t.tilstand()).spill == null, "Dagens fem skal ikke røre festquizen");
   await t.klikk('[data-h="dagens"]');
   await t.vent("document.querySelector('[data-h=\"dsvar\"]')");
@@ -114,13 +121,13 @@ export default async function (t) {
   await svar(3, true);
   await t.klikk('[data-h="dneste"]');
   await svar(4, true);
-  t.sjekk(/Se resultatet/.test(await t.tekst('.dokk [data-h="dneste"]')), "Siste spørsmål skal gå til resultatet");
+  t.sjekk(!t.norsk || /Se resultatet/.test(await t.tekst('.dokk [data-h="dneste"]')), "Siste spørsmål skal gå til resultatet");
   await t.klikk('[data-h="dneste"]');
   await t.vent("document.querySelector('.bw-prikker')");
-  t.sjekk(/3 av 5 riktige/.test(await t.tekst("#skjerm h1")), `Resultatet viser ikke «3 av 5 riktige» (${await t.tekst("#skjerm h1")})`);
+  t.sjekk((t.norsk ? /3 av 5 riktige/ : /3\D+5/).test(await t.tekst("#skjerm h1")), `Resultatet viser ikke «3 av 5 riktige» (${await t.tekst("#skjerm h1")})`);
   t.sjekk((await t.antall(".bw-prikker li.ja")) === 3 && (await t.antall(".bw-prikker li.nei")) === 2, "Prikkene viser ikke 3 riktige og 2 feil");
-  t.sjekk(/🔥 1 dag på rad/.test(await t.tekst(".bw-dagens-rekke")), "Resultatet viser ikke rekka");
-  t.sjekk(/Nye spørsmål om \d\d:\d\d:\d\d/.test(await t.tekst(".bw-nedtelling")), "Resultatet mangler nedtellingen");
+  t.sjekk((t.norsk ? /🔥 1 dag på rad/ : /🔥 1 /).test(await t.tekst(".bw-dagens-rekke")), "Resultatet viser ikke rekka");
+  t.sjekk((t.norsk ? /Nye spørsmål om \d\d:\d\d:\d\d/ : / \d\d:\d\d:\d\d/).test(await t.tekst(".bw-nedtelling")), "Resultatet mangler nedtellingen");
   const daglig = (await les("daglig")).bedreviteren;
   t.sjekk(daglig.nr === iDag && daglig.vunnet === true && daglig.rekke === 1 && daglig.res === "3/5" && !daglig.pagar, `rusj.daglig er feil: ${JSON.stringify(daglig)}`);
   await t.bilde("dagens-resultat", true);
@@ -128,7 +135,7 @@ export default async function (t) {
   await t.js("window.__delt = null; navigator.canShare = undefined; navigator.share = (d) => { window.__delt = d; return Promise.resolve(); }");
   await t.klikk('.dokk [data-h="ddel"]', 300);
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && delt.url === "https://rusj.no/bedreviteren/#utfordring" && /^Bedreviteren · Dagens fem nr\. \d+ · 3\/5 (?:🟢|🔴){5}$/u.test(delt.text), `Delingsteksten er feil: ${JSON.stringify(delt)}`);
+  t.sjekk(delt && delt.url === ADRESSE && DEL.test(delt.text), `Delingsteksten er feil: ${JSON.stringify(delt)}`);
   t.sjekk(delt && delt.text.endsWith("🟢🔴🔴🟢🟢"), `Prikkene i delingen er i feil rekkefølge: ${delt && delt.text}`);
   const fasit = await t.js(`${JSON.stringify(fem)}.flatMap((i) => [${ALLE}[i].s, ...${ALLE}[i].a].filter((x) => x.length > 3))`);
   t.sjekk(delt && !fasit.some((x) => delt.text.includes(x)), "Delingsteksten røper et spørsmål eller svar");
@@ -147,7 +154,7 @@ export default async function (t) {
     return { navn: f.name, type: f.type, b: bm.width, h: bm.height, tekst: d.text, url: d.url || "", b64 };
   })()`);
   t.sjekk(kort && kort.type === "image/png" && kort.b === 1080 && kort.h === 1350 && kort.navn === "rusj-bedreviteren.png", `Delingskortet er ikke en PNG på 1080×1350: ${JSON.stringify({ ...kort, b64: undefined })}`);
-  t.sjekk(kort && /^Bedreviteren · Dagens fem nr\. \d+ · 3\/5 (?:🟢|🔴){5}\nhttps:\/\/rusj\.no\/bedreviteren\/#utfordring$/u.test(kort.tekst), `Teksten ved bildet er feil: ${kort && kort.tekst}`);
+  t.sjekk(kort && kort.tekst.split("\n").length === 2 && DEL.test(kort.tekst.split("\n")[0]) && kort.tekst.split("\n")[1] === ADRESSE, `Teksten ved bildet er feil: ${kort && kort.tekst}`);
   t.sjekk(kort && !fasit.some((x) => kort.tekst.includes(x)), "Teksten ved bildet røper et spørsmål eller svar");
   if (kort && kort.b64) {
     const { writeFileSync, mkdirSync } = await import("node:fs");
@@ -161,9 +168,9 @@ export default async function (t) {
   await t.klikk('#ark [data-h="lukk-ark"]');
   // #dagens opens the result; home shows the score, the streak and the countdown
   await t.lastSide(t.side + "#dagens", "document.querySelector('.bw-prikker')");
-  t.sjekk(/Dagens fem nr\. \d+/i.test(await t.tekst(".banner .etikett")), "#dagens åpnet ikke resultatet");
+  t.sjekk((t.norsk ? /Dagens fem nr\. \d+/i : /\d+/).test(await t.tekst(".banner .etikett")), "#dagens åpnet ikke resultatet");
   await t.klikk("#tilbake");
-  t.sjekk(/✓ 3 av 5 · 🔥 1 dag på rad/.test(await t.tekst('.hjem-knapper [data-h="dagens"]')), `Hjem viser ikke «✓ 3 av 5 · 🔥 1 dag på rad» (${await t.tekst('.hjem-knapper [data-h="dagens"]')})`);
+  t.sjekk((t.norsk ? /✓ 3 av 5 · 🔥 1 dag på rad/ : /✓ 3\D+5 · 🔥 1 /).test(await t.tekst('.hjem-knapper [data-h="dagens"]')), `Hjem viser ikke «✓ 3 av 5 · 🔥 1 dag på rad» (${await t.tekst('.hjem-knapper [data-h="dagens"]')})`);
   const tid1 = await t.tekst(".bw-nedtelling b");
   await t.sov(1200);
   t.sjekk(/^\d\d:\d\d:\d\d$/.test(tid1) && tid1 !== (await t.tekst(".bw-nedtelling b")), "Nedtellingen på hjem går ikke");
@@ -172,7 +179,7 @@ export default async function (t) {
   // A challenge link (#utfordring): a banner above the main button on home, once.
   await t.lastSide(t.side + "#utfordring", "document.querySelector('.hjem-knapper .utfordring')");
   const utf = await t.js(`(() => { const b = document.querySelector(".hjem-knapper .utfordring"); return { forst: b === document.querySelector(".hjem-knapper").firstElementChild, tekst: b.textContent.trim(), hash: location.hash }; })()`);
-  t.sjekk(utf.forst && /Noen utfordret deg på dagens oppgave – klarer du det bedre\?/.test(utf.tekst) && utf.hash === "", `Utfordringsbanneret er feil: ${JSON.stringify(utf)}`);
+  t.sjekk(utf.forst && (!t.norsk || /Noen utfordret deg på dagens oppgave – klarer du det bedre\?/.test(utf.tekst)) && utf.hash === "", `Utfordringsbanneret er feil: ${JSON.stringify(utf)}`);
   await t.bilde("hjem-utfordring");
   await t.sov(420);
   await t.klikk('.hjem-knapper [data-h="dagens"]');
@@ -185,7 +192,7 @@ export default async function (t) {
   // #dagens on a fresh phone opens today's first question
   await t.start();
   await t.lastSide(t.side + "#dagens", "document.querySelector('[data-h=\"dsvar\"]')");
-  t.sjekk(/Dagens fem · 1\/5/i.test(await t.tekst("#topp-tittel")), "#dagens åpnet ikke dagens første spørsmål");
+  t.sjekk((t.norsk ? /Dagens fem · 1\/5/i : /1\/5/).test(await t.tekst("#topp-tittel")), "#dagens åpnet ikke dagens første spørsmål");
 
   // ---------- Setup ----------
   await t.start({ navn: ["Testspiller A", "Testspiller B", "Testspiller C"] });
@@ -214,7 +221,7 @@ export default async function (t) {
   t.sjekk(new Set(sp.liste).size === sp.liste.length, "Samme spørsmål kom to ganger i én runde");
   t.sjekk((await t.antall(".bw-valg")) === 4, "Spørsmålet viser ikke fire svar");
   t.sjekk(!(await t.finnes('[data-h="svar"]')), "Svarene skal ikke være knapper når flere spiller");
-  t.sjekk((B0 < 380 ? /^1\/10$/ : /Spørsmål 1 av 10/i).test((await t.tekst("#topp-tittel")).trim()), "Topplinjen viser ikke hvilket spørsmål vi er på");
+  t.sjekk((B0 < 380 ? /^1\/10$/ : t.norsk ? /Spørsmål 1 av 10/i : /1\D+10/).test((await t.tekst("#topp-tittel")).trim()), "Topplinjen viser ikke hvilket spørsmål vi er på");
 
   await visSvaret();
   await t.bilde("svar");
@@ -254,7 +261,7 @@ export default async function (t) {
   await t.lastSide(t.side, "document.querySelector('.bw-kort')");
   t.sjekk((await fase()).nr === 1, "Spillet husket ikke hvor vi var etter omlasting");
   await t.klikk("#tilbake");
-  t.sjekk(/spørsmål 2 av 10/.test(await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')), "«Fortsett» skal være hovedknappen mens et spill pågår");
+  t.sjekk((t.norsk ? /spørsmål 2 av 10/ : /2\D+10/).test(await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')), "«Fortsett» skal være hovedknappen mens et spill pågår");
   await t.bilde("hjem-pagar");
   await t.klikk('[data-h="nytt"]');
   t.sjekk(await t.finnes("#ark:not([hidden])"), "«Nytt spill» skal spørre før spillet forsvinner");
@@ -277,11 +284,11 @@ export default async function (t) {
   }
   await t.vent("document.querySelector('.pall')");
   await t.bilde("slutt", true);
-  t.sjekk(/Testspiller B.*vinner!/.test(await t.tekst("#skjerm h1")), "Vinnerlinjen «Testspiller B vinner!» vises ikke");
+  t.sjekk((t.norsk ? /Testspiller B.*vinner!/ : /Testspiller B/).test(await t.tekst("#skjerm h1")), "Vinnerlinjen «Testspiller B vinner!» vises ikke");
   t.sjekk((await fase()).logg.length === 10, "Loggen har ikke ti spørsmål");
   const kveld = await les("kveld");
   t.sjekk(kveld && kveld.spill.length === 1 && kveld.spill[0].id === "bedreviteren" && kveld.spill[0].resultat[0].navn === "Testspiller B", "Quizen ble ikke registrert i «Kveldens gjeng»");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Slutten mangler lenken «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Slutten mangler lenken «Alle spill»");
   await t.klikk('[data-h="fasit"]');
   t.sjekk((await t.antall("#ark .bw-fasit li")) === 10, "Fasiten viser ikke ti spørsmål");
   await t.bilde("fasit");
@@ -319,7 +326,7 @@ export default async function (t) {
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.banner')");
   sp = await fase();
-  t.sjekk(new RegExp(`${sp.treff[0]} av 10 riktige`).test(await t.tekst("#skjerm h1")), "Solo-resultatet viser ikke antall riktige");
+  t.sjekk(new RegExp(t.norsk ? `${sp.treff[0]} av 10 riktige` : `${sp.treff[0]}\\D+10`).test(await t.tekst("#skjerm h1")), "Solo-resultatet viser ikke antall riktige");
   t.sjekk(!(await t.finnes(".pall")), "Solo skal ikke vise pall");
   const rekord = (await les("bedreviteren.rekord")) || {};
   t.sjekk(sp.treff[0] === 0 || (rekord["1.10"] === sp.treff[0] && Object.keys(rekord).length === 1), `Rekorden skal lagres per nivå («1.10»): ${JSON.stringify(rekord)}`);
@@ -384,7 +391,7 @@ export default async function (t) {
   await t.vent("document.querySelector('.bw-kort')");
   sp = await fase();
   t.sjekk(JSON.stringify(sp.utslag) === "[0,1]" && sp.liste.length === 11 && sp.nr === 10, `Likt på topp ga ikke et utslagsspørsmål (${JSON.stringify(sp.utslag)})`);
-  t.sjekk(/Utslag/i.test(await t.tekst("#topp-tittel")) && /Utslagsspørsmål/.test(await t.tekst(".bw-hint")), "Utslagsspørsmålet er ikke merket");
+  t.sjekk(t.norsk ? /Utslag/i.test(await t.tekst("#topp-tittel")) && /Utslagsspørsmål/.test(await t.tekst(".bw-hint")) : await t.finnes(".bw-hint b"), "Utslagsspørsmålet er ikke merket");
   await t.bilde("utslag");
   await visSvaret();
   await t.klikk('[data-h="hvem"]');
@@ -392,7 +399,7 @@ export default async function (t) {
   await t.klikk('[data-h="riktig"][data-v="1"]');
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.pall')");
-  t.sjekk(/Lag Gul vinner!/.test(await t.tekst("#skjerm h1")) && /utslagsspørsmål/.test(await t.tekst(".banner .ingress")), "Utslaget avgjorde ikke kåringen");
+  t.sjekk({ nb: /Lag Gul vinner!/, en: /Team Yellow wins!/, da: /Hold Gul vinder!/ }[t.sprak].test(await t.tekst("#skjerm h1")) && (!t.norsk || /utslagsspørsmål/.test(await t.tekst(".banner .ingress"))), "Utslaget avgjorde ikke kåringen");
   t.sjekk((await les("kveld")).spill.length === 2, "Lagquizen ble ikke registrert i «Kveldens gjeng»");
   await t.bilde("utslag-slutt");
   await t.klikk('[data-h="igjen"]');

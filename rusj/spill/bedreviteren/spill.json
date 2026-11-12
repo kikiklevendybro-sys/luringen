@@ -24,5 +24,23 @@
   "rekkefolge": 10,
   "dagnavn": "Dagens fem",
   "alias": ["festquiz"],
-  "sok": ["quiz", "festquiz", "quiz spørsmål", "spørrekonkurranse", "dagens quiz", "quiz for barn", "allmennkunnskap"]
+  "sok": ["quiz", "festquiz", "quiz spørsmål", "spørrekonkurranse", "dagens quiz", "quiz for barn", "allmennkunnskap"],
+  "i18n": {
+    "en": {
+      "navn": "Clever Clogs",
+      "undertittel": "Party quiz",
+      "kort": "Four answers, one is right – and a fun fact thrown in.",
+      "beskrivelse": "Free party quiz with over 800 questions and fun facts. Today's five every day – or a quiz for the whole crew, each on their own or team against team.",
+      "slug": "clever-clogs",
+      "sok": ["quiz", "pub quiz", "quiz questions", "quiz questions and answers", "general knowledge quiz", "daily quiz", "quiz for kids", "family quiz", "trivia", "trivial pursuit"]
+    },
+    "da": {
+      "navn": "Klogeågen",
+      "undertittel": "Festquiz",
+      "kort": "Fire svar, ét er rigtigt – og lidt sjov viden med i købet.",
+      "beskrivelse": "Gratis festquiz på dansk med næsten 800 spørgsmål og sjove fakta. Dagens fem hver dag – eller quiz for hele banden, hver for sig eller hold mod hold.",
+      "slug": "klogeaagen",
+      "sok": ["quiz", "festquiz", "quizspørgsmål", "quiz med svar", "spørgeleg", "dagens quiz", "quiz for børn", "paratviden", "bezzerwizzer", "trivial pursuit"]
+    }
+  }
 }

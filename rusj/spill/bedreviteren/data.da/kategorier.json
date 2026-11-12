@@ -1,0 +1,12 @@
+[
+  { "id": "norge", "navn": "Danmark", "kort": "Danmark", "ikon": "🇩🇰", "farge": "var(--rod)" },
+  { "id": "geografi", "navn": "Geografi", "kort": "Geografi", "ikon": "🌍", "farge": "var(--himmel)" },
+  { "id": "natur", "navn": "Natur og dyr", "kort": "Natur", "ikon": "🦊", "farge": "var(--mynte)" },
+  { "id": "mat", "navn": "Mad og drikke", "kort": "Mad", "ikon": "🍕", "farge": "var(--oransje)" },
+  { "id": "sport", "navn": "Sport", "kort": "Sport", "ikon": "⚽", "farge": "var(--lampe)" },
+  { "id": "historie", "navn": "Historie", "kort": "Historie", "ikon": "🏰", "farge": "var(--lilla)" },
+  { "id": "vitenskap", "navn": "Videnskab og rummet", "kort": "Videnskab", "ikon": "🚀", "farge": "var(--himmel)" },
+  { "id": "sprak", "navn": "Sprog og ord", "kort": "Sprog", "ikon": "💬", "farge": "var(--rosa)" },
+  { "id": "kultur", "navn": "Kultur og eventyr", "kort": "Kultur", "ikon": "🎭", "farge": "var(--lilla)" },
+  { "id": "barn", "navn": "Børn (let)", "kort": "Børn", "ikon": "🧸", "farge": "var(--mynte)" }
+]

@@ -4,6 +4,8 @@
 // answer shown, reload mid-round and during a reveal, back + continue, «Nytt spill» asks, the
 // crowning with the award and the answer key, short phones and a phone on its side (question,
 // all ten answers and «Stopp» in view at once) and «Avslutt» before any round is done.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en tieren): the texts are checked in Norwegian
+// only (t.norsk); elsewhere the state, the numbers, the storage keys and the links.
 export default async function (t) {
   const spill = async () => (await t.tilstand()).spill;
   const [B0, H0] = await t.js("[window.innerWidth, window.innerHeight]");
@@ -11,7 +13,7 @@ export default async function (t) {
   // The right answer (as the button's data-v) for a ring position, and one that is wrong.
   const fasit = (pos) =>
     t.js(`(() => {
-      const sp = JSON.parse(localStorage.getItem("rusj.tieren.v1")).spill;
+      const sp = JSON.parse(localStorage.getItem(${JSON.stringify(t.nokkel("tieren.v1"))})).spill;
       const D = window.RUSJ_DATA, alle = [];
       Object.keys(D).filter((n) => n.startsWith("kort-")).sort().forEach((n) => D[n].forEach((k) => alle.push(k)));
       return String(alle[sp.kort[sp.runde]].a[sp.ring[${pos}]][1]);
@@ -22,7 +24,7 @@ export default async function (t) {
     return alle.find((v) => v !== riktig);
   };
   // The first free answer on the ring.
-  const ledig = () => t.js(`(() => { const sp = JSON.parse(localStorage.getItem("rusj.tieren.v1")).spill; return sp.apne.findIndex((a) => !a); })()`);
+  const ledig = () => t.js(`(() => { const sp = JSON.parse(localStorage.getItem(${JSON.stringify(t.nokkel("tieren.v1"))})).spill; return sp.apne.findIndex((a) => !a); })()`);
   const velg = async (pos) => {
     await t.klikk(`.ti-brikke[data-h="velg"][data-v="${pos}"]`, 200);
     await t.vent(`document.querySelector('[data-h="svar"]')`);
@@ -63,11 +65,11 @@ export default async function (t) {
   await t.start({ navn: ["Testspiller A", "Testspiller B", "Testspiller C"] });
   await t.klikk('[data-h="nytt"]');
   t.sjekk((await t.antall(".spiller")) === 3, "Oppsettet viser ikke tre spillere");
-  t.sjekk(/Gjør klart/.test(await t.tekst("#skjerm h1")), "Oppsettet skal hete «Gjør klart»");
+  t.sjekk(!t.norsk || /Gjør klart/.test(await t.tekst("#skjerm h1")), "Oppsettet skal hete «Gjør klart»");
   t.sjekk((await t.tekst('[data-h="start"]')).trim() === "Start", `Startknappen skal bare hete «Start»: «${await t.tekst('[data-h="start"]')}»`);
   // Categories, difficulty and rounds are folded into one row with a summary
   t.sjekk(!(await t.finnes('[data-h="kategori"]')), "«Flere valg» skal være lukket til å begynne med");
-  t.sjekk(/Alle kategorier · Blandet · 5 runder/.test(await t.tekst('[data-h="mer"]')), `«Flere valg» skal vise valgene: «${await t.tekst('[data-h="mer"]')}»`);
+  t.sjekk((t.norsk ? /Alle kategorier · Blandet · 5 runder/ : / · 5 /).test(await t.tekst('[data-h="mer"]')), `«Flere valg» skal vise valgene: «${await t.tekst('[data-h="mer"]')}»`);
   if (H0 >= 700) t.sjekk((await skjult('[data-h="mer"], [data-h="start"]')) === 0, "«Flere valg» og «Start» skal synes uten å rulle");
   await t.bilde("oppsett", true);
   await t.klikk('[data-h="mer"]');
@@ -75,11 +77,11 @@ export default async function (t) {
   await t.bilde("oppsett-flere", true);
   await t.klikk('[data-h="kategori"][data-v="*"]');
   t.sjekk(await t.js(`document.querySelector('[data-h="start"]').disabled`), "Start skal være av uten kategorier");
-  t.sjekk(/Velg minst én kategori/.test(await t.tekst("#skjerm .dokk")), "Mangler forklaringen når ingen kategori er valgt");
+  t.sjekk((t.norsk ? /Velg minst én kategori/ : /\S/).test(await t.tekst("#skjerm .dokk .hjelp")), "Mangler forklaringen når ingen kategori er valgt");
   await t.klikk('[data-h="kategori"][data-v="*"]');
   await t.klikk('[data-h="runder"][data-v="3"]');
   t.sjekk((await t.tilstand()).oppsett.runder === 3, "Antall runder ble ikke 3");
-  t.sjekk(/3 runder/.test(await t.tekst('[data-h="mer"]')), "Sammendraget i «Flere valg» fulgte ikke med");
+  t.sjekk((t.norsk ? /3 runder/ : /3 /).test(await t.tekst('[data-h="mer"]')), "Sammendraget i «Flere valg» fulgte ikke med");
 
   // ---------- Round 1 ----------
   await t.klikk('[data-h="start"]');
@@ -103,7 +105,7 @@ export default async function (t) {
   await t.bilde("valgt");
   // A right answer: «Riktig! +1» and the pot counting up in the middle of the ring
   await svar(true, async () => {
-    t.sjekk(/Riktig!/.test(await t.tekst(".ti-midt")) && /\+1/.test(await t.tekst(".ti-utfall")), "Midten skal si «Riktig! +1»");
+    t.sjekk((!t.norsk || /Riktig!/.test(await t.tekst(".ti-midt"))) && /\+1/.test(await t.tekst(".ti-utfall")), "Midten skal si «Riktig! +1»");
     t.sjekk((await t.tekst(".ti-midt .ti-potte b")).trim() === "1", "Potten i midten skal telle opp til 1");
     await t.bilde("riktig-oyeblikk");
   });
@@ -120,7 +122,7 @@ export default async function (t) {
   sp = await spill();
   t.sjekk(sp.status[1] === "ute" && sp.pott[1] === 0 && sp.tur === 2, "Feil svar skulle sende Testspiller B ut av runden");
   t.sjekk(await t.finnes(".ti-brikke.feil"), "Feil svar vises ikke på ringen");
-  t.sjekk(/^Riktig:/.test((await t.tekst(".ti-brikke.feil .ti-b-svar")).trim()), `Feil svar skal vise «Riktig: …»: «${await t.tekst(".ti-brikke.feil .ti-b-svar")}»`);
+  t.sjekk((t.norsk ? /^Riktig:/ : /^\S+:/).test((await t.tekst(".ti-brikke.feil .ti-b-svar")).trim()), `Feil svar skal vise «Riktig: …»: «${await t.tekst(".ti-brikke.feil .ti-b-svar")}»`);
   t.sjekk((await t.tekst(".ti-brikke.feil .ti-b-merke")).trim() === "✕", "Feil svar skal ha en ✕");
   t.sjekk((await t.js(`getComputedStyle(document.querySelector(".ti-brikke.feil")).color`)) === "rgb(23, 14, 43)", "Feil svar skal ha mørk tekst på det røde");
   await t.bilde("feil");
@@ -130,7 +132,7 @@ export default async function (t) {
   await svar(true);
   sp = await spill();
   t.sjekk(sp.pott[2] === 1 && sp.tur === 0, "Turen skulle gå tilbake til Testspiller A");
-  t.sjekk(/Stopp/.test(await t.tekst("#ti-stopp")), "Mangler «Stopp» når potten ikke er tom");
+  t.sjekk((!t.norsk || /Stopp/.test(await t.tekst("#ti-stopp"))) && (await t.finnes("#ti-stopp")), "Mangler «Stopp» når potten ikke er tom");
   await t.klikk("#ti-stopp", 20);
   await t.js(`document.querySelector("#ti-stopp") && document.querySelector("#ti-stopp").click()`); // a double tap
   await t.sov(150);
@@ -159,7 +161,7 @@ export default async function (t) {
   sp = await spill();
   t.sjekk(sp.fase === "ferdig" && sp.sum.join(",") === "1,0,1", `Poengene etter runde 1 er feil: ${sp.sum.join(",")}`);
   t.sjekk((await t.antall(".ti-brikke.fasit")) === 7, "Svarene ingen tok, skal vises når runden er over");
-  t.sjekk((await t.tekst("#ti-neste")).trim() === "Neste runde", `Hovedknappen skal hete «Neste runde»: «${await t.tekst("#ti-neste")}»`);
+  t.sjekk(!t.norsk || (await t.tekst("#ti-neste")).trim() === "Neste runde", `Hovedknappen skal hete «Neste runde»: «${await t.tekst("#ti-neste")}»`);
   rt = await ringTekst();
   t.sjekk(rt.ute === 0, `${rt.ute} avslørte svar stikker ut av brikken sin`);
   await t.bilde("runde-slutt", true);
@@ -173,7 +175,7 @@ export default async function (t) {
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   t.sjekk((await spill()).valgt !== null && (await t.finnes('[data-h="svar"]')), "Valget ble borte etter omlasting");
   await t.klikk("#tilbake");
-  t.sjekk(/runde 2 av 3/i.test(await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')), "«Fortsett» skal være hovedknappen mens et spill pågår");
+  t.sjekk((t.norsk ? /runde 2 av 3/i : /2\D+3/).test(await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')), "«Fortsett» skal være hovedknappen mens et spill pågår");
   await t.bilde("hjem-pagar");
   await t.klikk('[data-h="nytt"]');
   t.sjekk(await t.finnes("#ark:not([hidden])"), "«Nytt spill» skal spørre før spillet forsvinner");
@@ -193,7 +195,7 @@ export default async function (t) {
   await svar(true); // A +1, alone
   await velg(await ledig());
   await svar(true); // A +2
-  t.sjekk((await spill()).pott[0] === 2 && /2 poeng/.test(await t.tekst("#ti-stopp")), "Testspiller A skulle ha 2 i potten");
+  t.sjekk((await spill()).pott[0] === 2 && (t.norsk ? /2 poeng/ : /2 /).test(await t.tekst("#ti-stopp")), "Testspiller A skulle ha 2 i potten");
   await t.klikk("#ti-stopp");
   await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
   await t.vent("document.querySelector('.ti-oppsummering')");
@@ -208,16 +210,16 @@ export default async function (t) {
     await svar(false);
   }
   await t.vent("document.querySelector('.ti-oppsummering')");
-  t.sjekk((await t.tekst("#ti-neste")).trim() === "Til kåringen", `Siste runde skal ende med «Til kåringen»: «${await t.tekst("#ti-neste")}»`);
+  t.sjekk(!t.norsk || (await t.tekst("#ti-neste")).trim() === "Til kåringen", `Siste runde skal ende med «Til kåringen»: «${await t.tekst("#ti-neste")}»`);
   await t.klikk("#ti-neste");
   await t.vent("document.querySelector('.pall')");
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
-  t.sjekk(/Testspiller A vinner!/.test(await t.tekst("#skjerm h1")), `Vinnerlinjen er feil: «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk(/Modigst/i.test(await t.tekst(".ti-pris")) && /Testspiller A/.test(await t.tekst(".ti-pris")) && /2 i potten/.test(await t.tekst(".ti-pris")), `Prisen «Modigst» er feil: «${await t.tekst(".ti-pris")}»`);
-  t.sjekk((await t.tekst('#skjerm .dokk [data-h="igjen"]')).trim() === "Spill igjen", "Hovedknappen på kåringen skal hete «Spill igjen»");
-  t.sjekk(await t.finnes('#skjerm a.lenke[href="/"]'), "Slutten mangler lenken «Alle spill»");
+  t.sjekk(!t.norsk || /KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk((t.norsk ? /Testspiller A vinner!/ : /Testspiller A/).test(await t.tekst("#skjerm h1")), `Vinnerlinjen er feil: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk((!t.norsk || /Modigst/i.test(await t.tekst(".ti-pris"))) && /Testspiller A/.test(await t.tekst(".ti-pris")) && (t.norsk ? /2 i potten/ : / 2 /).test(await t.tekst(".ti-pris")), `Prisen «Modigst» er feil: «${await t.tekst(".ti-pris")}»`);
+  t.sjekk(!t.norsk || (await t.tekst('#skjerm .dokk [data-h="igjen"]')).trim() === "Spill igjen", "Hovedknappen på kåringen skal hete «Spill igjen»");
+  t.sjekk(await t.finnes(`#skjerm a.lenke[href="${t.forside}"]`), "Slutten mangler lenken «Alle spill»");
   t.sjekk((await t.tilstand())._aktiv === false, "Et ferdig spill skal ikke være merket som pågående");
-  const kveld = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  const kveld = await t.js(`JSON.parse(localStorage.getItem(${JSON.stringify(t.nokkel("kveld"))}) || "null")`);
   t.sjekk(kveld && kveld.spill.some((s) => s.id === "tieren"), "Resultatet kom ikke med i «Kveldens gjeng»");
   await t.sov(2000);
   if (await t.finnes("#ark:not([hidden])")) await t.klikk('#ark [data-h="lukk-ark"]');
@@ -268,7 +270,7 @@ export default async function (t) {
 
   // ---------- «Avslutt» before any round is done: no crowning ----------
   await t.klikk('[data-h="avslutt"]');
-  t.sjekk(/Avslutt/.test(await t.tekst('[data-h="avslutt"]')), "Lenken for å avslutte skal bare hete «Avslutt»");
+  t.sjekk(!t.norsk || /Avslutt/.test(await t.tekst('[data-h="avslutt"]')), "Lenken for å avslutte skal bare hete «Avslutt»");
   await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
   await t.vent("document.querySelector('.spillhjem')");
   t.sjekk((await t.tilstand()).spill === null, "Avslutt uten ferdige runder skal ta spillet bort");
