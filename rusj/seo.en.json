@@ -430,6 +430,16 @@
         "daily word puzzle",
         "guess the word"
       ]
+    },
+    "firklover": {
+      "tittel": "Four groups – find the links, a daily word puzzle",
+      "frase": "Four groups",
+      "beskrivelse": "Free word puzzle in British English: find four groups of four among sixteen words. The same clover for everyone each day, four mistakes allowed.",
+      "sok": [
+        "find the connection",
+        "group the words",
+        "daily word game"
+      ]
     }
   }
 }

@@ -3,7 +3,8 @@
    costs one of the clover's four leaves («Én unna!» when three of the four are right). The groups
    have four levels, shown by rusj's own colours AND a small clover with one to four leaves (so it
    never rests on colour alone): lett = mynte, middels = himmel, vrien = lampe, vriest = rosa.
-   Everyone in Norway gets the same puzzle each day (R.dag); older puzzles can be played as practice.
+   Everyone in the edition's country gets the same puzzle each day (R.dag); older puzzles can be
+   played as practice. The English and Danish editions have their own puzzles (data.en/, data.da/).
    The share text is hearts in the level colours, never the words.
    The engine at the top has no kit and no data of its own, so test/firklover.test.mjs can load
    this file in node:vm (window.Firklover) and test the grading. */
@@ -11,6 +12,9 @@
   "use strict";
 
   // ---------- Engine (pure) ----------
+
+  // R.t before the kit is there (the unit test loads this file without it): the Norwegian key.
+  const Rt = { t: (s, v) => (typeof window !== "undefined" && window.Rusj && window.Rusj.t ? window.Rusj.t(s, v) : String(s).replace(/\{(\w+)\}/g, (h, k) => (v && k in v ? String(v[k]) : h))) };
 
   // FROZEN: «Firkløveren nr. 1» is 1 November 2026 (data/klovere.json «dagens»[0]); the day numbers are
   // R.dag()'s (days since 1.1.1970 of the Oslo date).
@@ -82,7 +86,7 @@
   }
 
   // «Perfekt», «2 feil» or «Ikke løst» — the result as the player would say it (≤ 14 characters).
-  const resTekst = (st) => (!st.ferdig ? `${st.funnet.length} av 4` : !st.vunnet ? "Ikke løst" : st.feil ? `${st.feil} feil` : "Perfekt");
+  const resTekst = (st) => (!st.ferdig ? Rt.t("{n} av 4", { n: st.funnet.length }) : !st.vunnet ? Rt.t("Ikke løst") : st.feil ? Rt.t("{n} feil", { n: st.feil }) : Rt.t("Perfekt"));
   // The guesses as rows of hearts (never the words).
   const delRader = (forsok) => forsok.map((g) => g.map((i) => HJERTE[gruppeAv(i)]).join(""));
 
@@ -98,21 +102,21 @@
   // What is wrong with one puzzle (an empty list when it is fine). Used by the unit test.
   function sjekkKlover(k) {
     const feil = [];
-    if (!Array.isArray(k) || k.length !== 4) return ["må ha fire grupper"];
+    if (!Array.isArray(k) || k.length !== 4) return ["må ha fire grupper"]; // sprak-ok (the unit test's own words)
     const alle = [];
     k.forEach((g, n) => {
       if (!g || typeof g.t !== "string" || !g.t.trim()) feil.push(`gruppe ${n + 1} mangler tema`);
-      else if (g.t.length > 40) feil.push(`temaet «${g.t}» er for langt`);
-      if (!g || !Array.isArray(g.o) || g.o.length !== 4) return feil.push(`gruppe ${n + 1} må ha fire ord`);
+      else if (g.t.length > 40) feil.push(`temaet «${g.t}» er for langt`); // sprak-ok
+      if (!g || !Array.isArray(g.o) || g.o.length !== 4) return feil.push(`gruppe ${n + 1} må ha fire ord`); // sprak-ok
       for (const o of g.o) {
-        if (typeof o !== "string" || !o.trim() || o.trim() !== o) feil.push(`tomt eller utrimmet ord i gruppe ${n + 1}`);
-        else if (/\s/.test(o)) feil.push(`«${o}» har mellomrom`);
-        else if (Array.from(o).length > 12) feil.push(`«${o}» er for langt`);
+        if (typeof o !== "string" || !o.trim() || o.trim() !== o) feil.push(`tomt eller utrimmet ord i gruppe ${n + 1}`); // sprak-ok
+        else if (/\s/.test(o)) feil.push(`«${o}» har mellomrom`); // sprak-ok
+        else if (Array.from(o).length > 12) feil.push(`«${o}» er for langt`); // sprak-ok
         alle.push(normaliser(o));
       }
     });
     const sett = new Set(alle);
-    if (alle.length === 16 && sett.size !== 16) feil.push(`ord går igjen: ${alle.filter((o, i) => alle.indexOf(o) !== i).join(", ")}`);
+    if (alle.length === 16 && sett.size !== 16) feil.push(`ord går igjen: ${alle.filter((o, i) => alle.indexOf(o) !== i).join(", ")}`); // sprak-ok
     return feil;
   }
 
@@ -130,9 +134,12 @@
   const D = window.RUSJ_DATA;
   const KLOVERE = D.klovere.dagens;
   const N = KLOVERE.length;
-  const DEL_URL = "https://rusj.no/firklover/";
-  const ROS = ["Perfekt!", "Strålende!", "Godt jobba!", "Puh, det holdt!"];
-  const NAVN = "Firkløveren";
+  // The game's name and address in this edition (the share text, titles and links).
+  const DEL_URL = "https://rusj.no" + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "firklover") + "/";
+  const ROS = [R.t("Perfekt!"), R.t("Strålende!"), R.t("Godt jobba!"), R.t("Puh, det holdt!")];
+  const NAVN = (window.RUSJ_SPILL && window.RUSJ_SPILL.navn) || "Firkløveren"; // sprak-ok
+  // The four levels by name (lett, middels, vrien, vriest).
+  const NIVANAVN = [R.t("lett"), R.t("middels"), R.t("vrien"), R.t("vriest")];
 
   let H; // the actions
   let opptatt = false; // an answer is being shown: taps wait
@@ -188,12 +195,12 @@
   // The streak shown today: broken once a whole day has passed without a solved clover.
   const rekkeNa = (S) => (S.stat.sistVunnet != null && S.stat.sistVunnet >= iDag() - 1 ? S.stat.rekke : 0);
 
-  // ---------- Countdown to the next clover (midnight in Norway) ----------
+  // ---------- Countdown to the next clover (midnight in the edition's country) ----------
 
   function sekunderTilNy() {
     const na = Date.now();
     const deler = {};
-    new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    new Intl.DateTimeFormat("en-GB", { timeZone: R.tidssone, hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
       .formatToParts(new Date(na))
       .forEach((p) => (deler[p.type] = Number(p.value)));
     let igjen = 86400 - ((deler.hour % 24) * 3600 + deler.minute * 60 + deler.second);
@@ -205,7 +212,7 @@
   }
   const to = (n) => String(n).padStart(2, "0");
   const klokke = (s) => `${to(Math.floor(s / 3600))}:${to(Math.floor((s % 3600) / 60))}:${to(s % 60)}`;
-  const nedtellingHtml = () => `<p class="fk-nedtelling">Ny kløver om <b>${klokke(sekunderTilNy())}</b></p>`;
+  const nedtellingHtml = () => `<p class="fk-nedtelling">${esc(R.t("Ny kløver om"))} <b>${klokke(sekunderTilNy())}</b></p>`;
 
   function startNedtelling() {
     clearInterval(tikker);
@@ -238,7 +245,7 @@
   // The mistakes left: the clover's four leaves; a lost leaf stays as a dashed outline.
   function kloverHtml(feil) {
     const igjen = MAKS_FEIL - feil;
-    return `<span class="fk-klover" role="img" aria-label="${esc(`${R.flertall(igjen, "feil", "feil")} igjen`)}">
+    return `<span class="fk-klover" role="img" aria-label="${esc(R.t("{feil} igjen", { feil: R.flertall(igjen, "feil", "feil") }))}">
       <svg viewBox="-50 -50 100 112" aria-hidden="true" focusable="false">
         <path class="stilk" d="M2 4 C8 26 18 40 30 54"/>
         ${VINKLER.map((v, i) => {
@@ -260,7 +267,7 @@
   function stripeHtml(sp, g, o = {}) {
     const k = klover(sp.nr)[g];
     const n = g + 1;
-    const etikett = `${o.avslort ? "Gruppe" : "Riktig gruppe"}, ${NIVA[g]}: ${k.t}. ${ordListe(k.o)}.`;
+    const etikett = R.t("{gruppe}, {niva}: {tema}. {ord}.", { gruppe: o.avslort ? R.t("Gruppe") : R.t("Riktig gruppe"), niva: NIVANAVN[g], tema: k.t, ord: ordListe(k.o) });
     return `<div class="fk-stripe fk-${FARGE[g]}${o.ny ? " ny" : ""}${o.avslort ? " avslort" : ""}" role="group" aria-label="${esc(etikett)}">
       ${nivaIkon(n)}
       <span class="fk-stripe-tekst"><b>${esc(k.t)}</b><span>${esc(k.o.join(" · "))}</span></span>
@@ -276,26 +283,26 @@
       .map((i) => {
         const o = ordAv(sp, i);
         const valgt = sp.valgt.includes(i);
-        return `<button class="fk-rute${valgt ? " valgt" : ""}" data-h="velg" data-v="${i}" data-stille aria-pressed="${valgt}" style="--n:${lengde(o)}"${st.ferdig ? " disabled" : ""}><span>${esc(o)}</span></button>`;
+        return `<button class="fk-rute${valgt ? " valgt" : ""}" data-h="velg" data-v="${i}" data-stille aria-pressed="${valgt}" style="--n:${lengde(o)}"${st.ferdig ? " disabled" : ""}><span>${esc(o)}</span></button>`; // sprak-ok (action names)
       })
       .join("");
-    return `<div class="fk-brett" role="group" aria-label="Ordene">${striper}${ruter}</div>`;
+    return `<div class="fk-brett" role="group" aria-label="${esc(R.t("Ordene"))}">${striper}${ruter}</div>`;
   }
 
   function hjelpTekst(sp) {
     if (melding) return `<span class="fk-varsel ${melding.klasse || ""}">${esc(melding.tekst)}</span>`;
     const n = sp.valgt.length;
-    if (!n) return "Velg fire ord som hører sammen.";
-    return n === 4 ? "Fire valgt – trykk «Prøv»." : `${n} av 4 valgt`;
+    if (!n) return esc(R.t("Velg fire ord som hører sammen."));
+    return esc(n === 4 ? R.t("Fire valgt – trykk «Prøv».") : R.t("{n} av 4 valgt", { n }));
   }
 
   function dokkHtml(S, sp) {
     const st = status(sp.forsok);
     const ov = S.modus === "ov";
-    if (st.ferdig) return R.ui.dokk(R.ui.knapp("Se resultatet", "resultat"), ov ? R.ui.lenkerad(R.ui.lenke("Flere kløvere", "arkiv")) : "");
+    if (st.ferdig) return R.ui.dokk(R.ui.knapp(R.t("Se resultatet"), "resultat"), ov ? R.ui.lenkerad(R.ui.lenke(R.t("Flere kløvere"), "arkiv")) : "");
     return R.ui.dokk(
-      `<div class="knapprad">${R.ui.knapp2("Stokk", "stokk")}${R.ui.knapp2("Fjern valg", "fjern", { av: !sp.valgt.length })}</div>`,
-      R.ui.knapp("Prøv", "prov", { av: sp.valgt.length !== 4 || opptatt, id: "fk-prov" }),
+      `<div class="knapprad">${R.ui.knapp2(R.t("Stokk"), "stokk")}${R.ui.knapp2(R.t("Fjern valg"), "fjern", { av: !sp.valgt.length })}</div>`,
+      R.ui.knapp(R.t("Prøv"), "prov", { av: sp.valgt.length !== 4 || opptatt, id: "fk-prov" }),
     );
   }
 
@@ -303,35 +310,35 @@
   function miniHtml(sp) {
     const rader = sp.forsok.map((g, r) => {
       const v = vurder(g);
-      const tekst = v.gruppe >= 0 ? `riktig, ${NIVA[v.gruppe]}` : v.enUnna ? "én unna" : "feil";
-      return `<div class="fk-minirad" role="listitem" aria-label="${esc(`Forsøk ${r + 1}: ${tekst}`)}">${g.map((i) => `<span class="fk-mini fk-${FARGE[gruppeAv(i)]}">${nivaIkon(gruppeAv(i) + 1)}</span>`).join("")}</div>`;
+      const tekst = v.gruppe >= 0 ? R.t("riktig, {niva}", { niva: NIVANAVN[v.gruppe] }) : v.enUnna ? R.t("én unna") : R.t("feil");
+      return `<div class="fk-minirad" role="listitem" aria-label="${esc(R.t("Forsøk {n}: {res}", { n: r + 1, res: tekst }))}">${g.map((i) => `<span class="fk-mini fk-${FARGE[gruppeAv(i)]}">${nivaIkon(gruppeAv(i) + 1)}</span>`).join("")}</div>`;
     });
-    return `<div class="fk-minibrett" role="list" aria-label="Forsøkene dine">${rader.join("")}</div>`;
+    return `<div class="fk-minibrett" role="list" aria-label="${esc(R.t("Forsøkene dine"))}">${rader.join("")}</div>`;
   }
 
   function tallHtml(S) {
     const st = S.stat;
     const prosent = st.spilt ? Math.round((st.vunnet / st.spilt) * 100) : 0;
     return `<div class="fk-tall">
-        <div><b>${R.tall(st.spilt)}</b><span>spilt</span></div>
-        <div><b>${prosent} %</b><span>løst</span></div>
-        <div><b>${R.tall(rekkeNa(S))}</b><span>på rad</span></div>
-        <div><b>${R.tall(st.best)}</b><span>beste rekke</span></div>
+        <div><b>${R.tall(st.spilt)}</b><span>${esc(R.t("spilt"))}</span></div>
+        <div><b>${esc(R.t("{n} %", { n: prosent }))}</b><span>${esc(R.t("løst"))}</span></div>
+        <div><b>${R.tall(rekkeNa(S))}</b><span>${esc(R.t("på rad"))}</span></div>
+        <div><b>${R.tall(st.best)}</b><span>${esc(R.t("beste rekke"))}</span></div>
       </div>`;
   }
 
   function statistikkArk(S) {
     const st = S.stat;
     const ov = Object.values(S.ovLost);
-    return `<h2 id="ark-tittel">Statistikk</h2>
-      ${st.spilt ? tallHtml(S) + `<p class="hjelp">Perfekte dager (uten feil): ${R.tall(st.perfekt)}.</p>` : `<p class="ingress">Du har ikke spilt dagens kløver ennå. Gjør det, så dukker statistikken opp her.</p>`}
-      ${ov.length ? `<p class="hjelp">Øving: ${R.tall(ov.filter((x) => x === 1).length)} av ${R.tall(ov.length)} eldre kløvere løst.</p>` : ""}
-      <button class="knapp" data-h="lukk-ark">Lukk</button>`;
+    return `<h2 id="ark-tittel">${esc(R.t("Statistikk"))}</h2>
+      ${st.spilt ? tallHtml(S) + `<p class="hjelp">${esc(R.t("Perfekte dager (uten feil): {n}.", { n: R.tall(st.perfekt) }))}</p>` : `<p class="ingress">${esc(R.t("Du har ikke spilt dagens kløver ennå. Gjør det, så dukker statistikken opp her."))}</p>`}
+      ${ov.length ? `<p class="hjelp">${esc(R.t("Øving: {n} av {av} eldre kløvere løst.", { n: R.tall(ov.filter((x) => x === 1).length), av: R.tall(ov.length) }))}</p>` : ""}
+      <button class="knapp" data-h="lukk-ark">${esc(R.t("Lukk"))}</button>`;
   }
 
   // The rules' key to the levels: colour, clover mark and name together.
   const nivaForklaring = () =>
-    `<ul class="fk-nivaliste">${NIVA.map((n, g) => `<li class="fk-${FARGE[g]}">${nivaIkon(g + 1)}<span><b>${esc(n.charAt(0).toUpperCase() + n.slice(1))}</b> – ${g + 1} ${g ? "blader" : "blad"}</span></li>`).join("")}</ul>`;
+    `<ul class="fk-nivaliste">${NIVANAVN.map((n, g) => `<li class="fk-${FARGE[g]}">${nivaIkon(g + 1)}<span><b>${esc(n.charAt(0).toUpperCase() + n.slice(1))}</b> – ${esc(R.t("{n} blad|{n} blader", { n: g + 1 }))}</span></li>`).join("")}</ul>`;
 
   // ---------- Playing ----------
 
@@ -371,7 +378,7 @@
     const sp = aktiv(S);
     if (!sp || opptatt || S.skjerm !== "brett" || status(sp.forsok).ferdig) return;
     const har = sp.valgt.includes(i);
-    if (!har && sp.valgt.length >= 4) return settMelding(S, "Du har valgt fire. Trykk «Prøv» eller fjern et ord.", "", 2000);
+    if (!har && sp.valgt.length >= 4) return settMelding(S, R.t("Du har valgt fire. Trykk «Prøv» eller fjern et ord."), "", 2000);
     sp.valgt = har ? sp.valgt.filter((x) => x !== i) : sp.valgt.concat(i);
     R.lagre();
     lyd.velg(!har);
@@ -404,14 +411,14 @@
     const gjett = sp.valgt.slice();
     if (sp.forsok.some((g) => nokkel(g) === nokkel(gjett))) {
       lyd.nei();
-      return settMelding(S, "Den har du prøvd allerede.", "", 2200);
+      return settMelding(S, R.t("Den har du prøvd allerede."), "", 2200);
     }
     const v = vurder(gjett);
     sp.forsok.push(gjett);
     const st = status(sp.forsok);
     if (v.gruppe >= 0) sp.valgt = [];
     const dag = S.modus === "dag";
-    if (dag && sp.nr === iDag() && !st.ferdig) R.dagligIGang({ tekst: `${st.funnet.length} av 4` });
+    if (dag && sp.nr === iDag() && !st.ferdig) R.dagligIGang({ tekst: R.t("{n} av 4", { n: st.funnet.length }) });
     if (st.ferdig) {
       sp.valgt = [];
       if (dag) registrerDag(S, sp);
@@ -441,7 +448,7 @@
           melding = st.vunnet ? { tekst: ROS[st.feil], klasse: "ros", fast: true } : null;
           R.vis();
           nyStripe = -1;
-          R.si(`Riktig! ${k.t}: ${ordListe(k.o)}. ${st.vunnet ? "Alle fire grupper er funnet." : `${st.funnet.length} av 4 grupper funnet.`}`);
+          R.si(`${R.t("Riktig! {tema}: {ord}.", { tema: k.t, ord: ordListe(k.o) })} ${st.vunnet ? R.t("Alle fire grupper er funnet.") : R.t("{n} av 4 grupper funnet.", { n: st.funnet.length })}`);
           if (st.ferdig) avslutt(S, sp, st);
         },
         rolig ? 80 : 620,
@@ -460,7 +467,7 @@
     R.vibrer(60);
     nyttBlad = MAKS_FEIL - st.feil;
     const igjen = MAKS_FEIL - st.feil;
-    const tekst = st.ferdig ? "Ingen blader igjen – her er gruppene." : v.enUnna ? "Én unna!" : "Ikke en gruppe.";
+    const tekst = st.ferdig ? R.t("Ingen blader igjen – her er gruppene.") : v.enUnna ? R.t("Én unna!") : R.t("Ikke en gruppe.");
     setTimeout(
       () => {
         if (!fortsatt()) return;
@@ -468,7 +475,7 @@
         melding = { tekst, klasse: v.enUnna && !st.ferdig ? "unna" : "", fast: st.ferdig };
         R.vis();
         nyttBlad = -1;
-        R.si(`${tekst} ${st.ferdig ? "" : `${R.flertall(igjen, "feil", "feil")} igjen.`}`);
+        R.si(`${tekst} ${st.ferdig ? "" : R.t("{feil} igjen.", { feil: R.flertall(igjen, "feil", "feil") })}`);
         if (st.ferdig) avslutt(S, sp, st);
         else {
           clearTimeout(meldingId);
@@ -507,7 +514,7 @@
     const sp = S.dag;
     const st = status(sp.forsok);
     const rekke = rekkeNa(S);
-    const hode = `${NAVN} nr. ${nrFor(sp.nr)} · ${resTekst(st)}${st.vunnet && rekke > 1 ? ` · 🔥 ${rekke} på rad` : ""}`;
+    const hode = `${R.t("{navn} nr. {nr}", { navn: NAVN, nr: nrFor(sp.nr) })} · ${resTekst(st)}${st.vunnet && rekke > 1 ? ` · 🔥 ${R.t("{n} på rad", { n: rekke })}` : ""}`;
     return `${hode}\n\n${delRader(sp.forsok).join("\n")}\n`;
   }
   function delKort(S) {
@@ -515,14 +522,14 @@
     const st = status(sp.forsok);
     const rekke = rekkeNa(S);
     const rader = delRader(sp.forsok);
-    const linjer = [st.vunnet ? resTekst(st) : "Ikke løst i dag", ...rader];
-    if (st.vunnet && rekke > 1 && linjer.length < 8) linjer.push(`🔥 ${rekke} på rad`);
-    return { tittel: `${NAVN} nr. ${nrFor(sp.nr)}`, linjer: linjer.slice(0, 8) };
+    const linjer = [st.vunnet ? resTekst(st) : R.t("Ikke løst i dag"), ...rader];
+    if (st.vunnet && rekke > 1 && linjer.length < 8) linjer.push(`🔥 ${R.t("{n} på rad", { n: rekke })}`);
+    return { tittel: R.t("{navn} nr. {nr}", { navn: NAVN, nr: nrFor(sp.nr) }), linjer: linjer.slice(0, 8) };
   }
 
   // ---------- Dates for the practice list ----------
 
-  const DATO = new Intl.DateTimeFormat("nb-NO", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  const DATO = new Intl.DateTimeFormat(R.lokale, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
   const datoFor = (nr) => DATO.format(new Date(nr * 86400000 + 12 * 3600000)).replace(/\.$/, "");
 
   // ---------- The game ----------
@@ -589,21 +596,21 @@
     },
 
     regler: {
-      intro: "Seksten ord skjuler fire grupper med fire ord i hver. Finn alle fire – før kløveren mister bladene.",
+      intro: R.t("Seksten ord skjuler fire grupper med fire ord i hver. Finn alle fire – før kløveren mister bladene."),
       steg: [
-        ["Velg fire ord", "Trykk på fire ord du tror hører sammen, og trykk «Prøv». «Stokk» blander ordene om du står fast."],
-        ["Riktig gruppe", "Ordene legger seg som en papirstrimmel med temaet. Er tre av fire riktige, får du beskjeden «Én unna!»."],
-        ["Fire feil", "Hver feil koster et blad på kløveren. Mister den alle fire, er dagens kløver over – og du får se gruppene."],
+        [R.t("Velg fire ord"), R.t("Trykk på fire ord du tror hører sammen, og trykk «Prøv». «Stokk» blander ordene om du står fast.")],
+        [R.t("Riktig gruppe"), R.t("Ordene legger seg som en papirstrimmel med temaet. Er tre av fire riktige, får du beskjeden «Én unna!».")],
+        [R.t("Fire feil"), R.t("Hver feil koster et blad på kløveren. Mister den alle fire, er dagens kløver over – og du får se gruppene.")],
       ],
       tips: [
-        "Noen ord passer i to grupper. Se etter den gruppen som bare kan ha nettopp det ordet.",
-        "Gruppene har fire nivåer, fra lett til vriest. Fargen og det lille kløverbladet viser nivået.",
-        "Alle får den samme kløveren. En ny kommer ved midnatt.",
-        "Del resultatet som hjerter – uten å røpe ordene.",
-        "«Øv med eldre kløvere» gir deg kløverne fra dagene før.",
+        R.t("Noen ord passer i to grupper. Se etter den gruppen som bare kan ha nettopp det ordet."),
+        R.t("Gruppene har fire nivåer, fra lett til vriest. Fargen og det lille kløverbladet viser nivået."),
+        R.t("Alle får den samme kløveren. En ny kommer ved midnatt."),
+        R.t("Del resultatet som hjerter – uten å røpe ordene."),
+        R.t("«Øv med eldre kløvere» gir deg kløverne fra dagene før."),
       ],
       get ekstraHtml() {
-        return `<h3>Nivåene</h3>${nivaForklaring()}`;
+        return `<h3>${esc(R.t("Nivåene"))}</h3>${nivaForklaring()}`;
       },
     },
 
@@ -615,19 +622,19 @@
           const ferdig = !!(d && status(d.forsok).ferdig);
           const iGangD = iGang(d);
           const hoved = ferdig
-            ? R.ui.knapp("Se dagens resultat", "se-resultat")
-            : R.ui.knapp(iGangD ? `Fortsett dagens kløver · ${status(d.forsok).funnet.length} av 4` : "Dagens kløver", "dag", { variant: iGangD ? "" : "stor" });
+            ? R.ui.knapp(R.t("Se dagens resultat"), "se-resultat")
+            : R.ui.knapp(iGangD ? R.t("Fortsett dagens kløver · {n} av 4", { n: status(d.forsok).funnet.length }) : R.t("Dagens kløver"), "dag", { variant: iGangD ? "" : "stor" });
           const rekke = rekkeNa(S);
           const antallEldre = eldre().length;
           return R.ui.spillhjem({
-            undertittel: "Ordgåte",
-            slagordHtml: "Seksten ord. Fire grupper.<br><em>Ny kløver hver dag.</em>",
+            undertittel: R.t("Ordgåte"),
+            slagordHtml: `${esc(R.t("Seksten ord. Fire grupper."))}<br><em>${esc(R.t("Ny kløver hver dag."))}</em>`,
             knapperHtml:
               hoved +
               (ferdig ? nedtellingHtml() : "") +
-              (antallEldre ? R.ui.knapp2(iGang(S.ov) ? "Fortsett øvingen" : "Øv med eldre kløvere", "ov") : "") +
-              R.ui.lenkerad(R.ui.lenke("Statistikk", "statistikk"), R.ui.lenke("Slik spiller du", "regler")),
-            merker: [["16", "ord"], ["4", "grupper"], rekke ? [`🔥 ${rekke}`, rekke === 1 ? "dag på rad" : "dager på rad"] : ["4", "feil lov"]],
+              (antallEldre ? R.ui.knapp2(iGang(S.ov) ? R.t("Fortsett øvingen") : R.t("Øv med eldre kløvere"), "ov") : "") +
+              R.ui.lenkerad(R.ui.lenke(R.t("Statistikk"), "statistikk"), R.ui.lenke(R.t("Slik spiller du"), "regler")),
+            merker: [["16", R.t("ord")], ["4", R.t("grupper")], rekke ? [`🔥 ${rekke}`, rekke === 1 ? R.t("dag på rad") : R.t("dager på rad")] : ["4", R.t("feil lov")]],
           });
         },
         inn(S) {
@@ -636,14 +643,14 @@
       },
 
       brett: {
-        tittel: (S) => (S.modus === "ov" ? `Øving · nr. ${nrFor(S.ov.nr)}` : "Dagens kløver"),
+        tittel: (S) => (S.modus === "ov" ? R.t("Øving · nr. {nr}", { nr: nrFor(S.ov.nr) }) : R.t("Dagens kløver")),
         tilbake: "hjem",
         vis(S) {
           const sp = aktiv(S);
           const st = status(sp.forsok);
           const ov = S.modus === "ov";
           return `
-            <h1 class="vh" id="skjerm-tittel">${ov ? `Øving: ${esc(NAVN)} nr. ${nrFor(sp.nr)}` : "Dagens kløver"}</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(ov ? R.t("Øving: {navn} nr. {nr}", { navn: NAVN, nr: nrFor(sp.nr) }) : R.t("Dagens kløver"))}</h1>
             <div class="fk-status">
               <p class="fk-hjelp">${hjelpTekst(sp)}</p>
               ${kloverHtml(st.feil)}
@@ -664,7 +671,7 @@
       },
 
       arkiv: {
-        tittel: "Eldre kløvere",
+        tittel: R.t("Eldre kløvere"),
         tilbake: "hjem",
         vis(S) {
           const liste = eldre();
@@ -672,21 +679,22 @@
             .map((nr) => {
               const lost = S.ovLost[nr];
               const paGang = S.ov && S.ov.nr === nr && iGang(S.ov);
-              const merke = lost === 1 ? ["✓", "løst"] : lost === 0 ? ["✗", "ikke løst"] : paGang ? ["…", "påbegynt"] : ["", "ny"];
-              return `<li><button class="fk-arkivrad${lost === 1 ? " lost" : ""}" data-h="spill-ov" data-v="${nr}" aria-label="${esc(`Nr. ${nrFor(nr)}, ${datoFor(nr)}, ${merke[1]}`)}">
-                <b>Nr. ${nrFor(nr)}</b><span>${esc(datoFor(nr))}</span><i aria-hidden="true">${merke[0]}</i></button></li>`;
+              const ovH = 'data-h="spill-ov"'; // sprak-ok (an action name)
+              const merke = lost === 1 ? ["✓", R.t("løst")] : lost === 0 ? ["✗", R.t("ikke løst")] : paGang ? ["…", R.t("påbegynt")] : ["", R.t("ny")];
+              return `<li><button class="fk-arkivrad${lost === 1 ? " lost" : ""}" ${ovH} data-v="${nr}" aria-label="${esc(R.t("Nr. {nr}, {dato}, {status}", { nr: nrFor(nr), dato: datoFor(nr), status: merke[1] }))}">
+                <b>${esc(R.t("Nr. {nr}", { nr: nrFor(nr) }))}</b><span>${esc(datoFor(nr))}</span><i aria-hidden="true">${merke[0]}</i></button></li>`;
             })
             .join("");
           return `
-            <h1 id="skjerm-tittel">Eldre kløvere</h1>
-            <p class="ingress">Spill kløverne fra dagene før. Øving teller ikke i statistikken.</p>
+            <h1 id="skjerm-tittel">${esc(R.t("Eldre kløvere"))}</h1>
+            <p class="ingress">${esc(R.t("Spill kløverne fra dagene før. Øving teller ikke i statistikken."))}</p>
             <ul class="fk-arkiv">${rader}</ul>
-            ${R.ui.dokk(R.ui.knapp("Tilfeldig kløver", "tilfeldig"), R.ui.lenkerad(R.ui.lenke(`Til ${NAVN}`, "hjem")))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Tilfeldig kløver"), "tilfeldig"), R.ui.lenkerad(R.ui.lenke(R.t("Til {navn}", { navn: NAVN }), "hjem")))}`;
         },
       },
 
       resultat: {
-        tittel: (S) => (S.modus === "ov" ? `Øving · nr. ${nrFor(S.ov.nr)}` : `${NAVN} nr. ${nrFor(S.dag.nr)}`),
+        tittel: (S) => (S.modus === "ov" ? R.t("Øving · nr. {nr}", { nr: nrFor(S.ov.nr) }) : R.t("{navn} nr. {nr}", { navn: NAVN, nr: nrFor(S.dag.nr) })),
         tilbake: "hjem",
         vis(S) {
           const sp = aktiv(S);
@@ -694,12 +702,12 @@
           const ov = S.modus === "ov";
           const gammel = !ov && sp.nr !== iDag();
           const banner = R.ui.banner({
-            etikett: st.vunnet ? ROS[st.feil] : ov ? "Ikke denne gangen" : "Ikke i dag",
-            tittel: st.vunnet ? (st.feil ? `Alle fire grupper – med ${R.flertall(st.feil, "feil", "feil")}` : "Alle fire grupper uten en eneste feil!") : `Du fant ${st.funnet.length} av 4 grupper`,
+            etikett: st.vunnet ? ROS[st.feil] : ov ? R.t("Ikke denne gangen") : R.t("Ikke i dag"),
+            tittel: st.vunnet ? (st.feil ? R.t("Alle fire grupper – med {feil}", { feil: R.flertall(st.feil, "feil", "feil") }) : R.t("Alle fire grupper uten en eneste feil!")) : R.t("Du fant {n} av 4 grupper", { n: st.funnet.length }),
             klasse: "fk-banner",
             stemning: st.vunnet ? (st.feil < 3 ? "jubel" : "") : "lei",
           });
-          const grupper = `<section class="seksjon fk-grupper" aria-labelledby="fk-grupper-tittel"><h2 id="fk-grupper-tittel">Gruppene</h2>${[0, 1, 2, 3]
+          const grupper = `<section class="seksjon fk-grupper" aria-labelledby="fk-grupper-tittel"><h2 id="fk-grupper-tittel">${esc(R.t("Gruppene"))}</h2>${[0, 1, 2, 3]
             .map((g) => stripeHtml(sp, g, { avslort: !st.funnet.includes(g) }))
             .join("")}</section>`;
           if (ov) {
@@ -707,22 +715,22 @@
             return `${banner}
               ${miniHtml(sp)}
               ${grupper}
-              <p class="hjelp">Du har løst ${R.tall(lost.filter((x) => x === 1).length)} av ${R.tall(lost.length)} eldre kløvere.</p>
+              <p class="hjelp">${esc(R.t("Du har løst {n} av {av} eldre kløvere.", { n: R.tall(lost.filter((x) => x === 1).length), av: R.tall(lost.length) }))}</p>
               ${R.ui.flereSpill({ antall: 1 })}
-              ${R.ui.dokk(R.ui.knapp("Flere kløvere", "arkiv"), R.ui.lenkerad(R.ui.lenke(`Til ${NAVN}`, "hjem"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+              ${R.ui.dokk(R.ui.knapp(R.t("Flere kløvere"), "arkiv"), R.ui.lenkerad(R.ui.lenke(R.t("Til {navn}", { navn: NAVN }), "hjem"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
           }
           return `${banner}
-            ${gammel ? `<p class="fk-nedtelling"><b>En ny kløver er klar!</b></p>` : nedtellingHtml()}
+            ${gammel ? `<p class="fk-nedtelling"><b>${esc(R.t("En ny kløver er klar!"))}</b></p>` : nedtellingHtml()}
             ${miniHtml(sp)}
             ${grupper}
             <section class="seksjon fk-stat" aria-labelledby="fk-stat-tittel">
-              <h2 id="fk-stat-tittel">Statistikk</h2>
+              <h2 id="fk-stat-tittel">${esc(R.t("Statistikk"))}</h2>
               ${tallHtml(S)}
             </section>
             ${R.ui.flereSpill({ antall: 1 })}
             ${R.ui.dokk(
-              gammel ? R.ui.knapp("Spill dagens kløver", "dag") : R.ui.knapp("Del resultatet", "del"),
-              R.ui.lenkerad(R.ui.lenke("Øv med eldre kløvere", "arkiv"), '<a class="lenke" href="/">Alle spill</a>'),
+              gammel ? R.ui.knapp(R.t("Spill dagens kløver"), "dag") : R.ui.knapp(R.t("Del resultatet"), "del"),
+              R.ui.lenkerad(R.ui.lenke(R.t("Øv med eldre kløvere"), "arkiv"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`),
             )}`;
         },
         inn(S) {
@@ -816,7 +824,7 @@
         });
         oppdaterKnapper(S);
         visHjelp(S);
-        R.si("Ingen ord valgt.");
+        R.si(R.t("Ingen ord valgt."));
       },
       stokk(el, e, S) {
         const sp = aktiv(S);
@@ -830,7 +838,7 @@
         R.lyd.tone(520, 0, 0.06, "sine", 0.05);
         R.vis();
         if (!R.rolig()) document.querySelectorAll(".fk-rute").forEach((k) => k.classList.add("stokket"));
-        R.si("Ordene er stokket.");
+        R.si(R.t("Ordene er stokket."));
       },
       statistikk(el, e, S) {
         R.ark(statistikkArk(S));

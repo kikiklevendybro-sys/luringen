@@ -445,6 +445,16 @@
         "ordgåde",
         "ord på fem bogstaver"
       ]
+    },
+    "firklover": {
+      "tittel": "Fire grupper – dagens ordgåde på dansk, gratis",
+      "frase": "Fire grupper",
+      "beskrivelse": "Gratis ordgåde på dansk: find fire grupper med fire ord i hver blandt seksten ord. Samme kløver for alle hver dag, fire fejl tilladt – og øv på ældre.",
+      "sok": [
+        "find fire grupper",
+        "forbind ordene",
+        "ordgåde på dansk"
+      ]
     }
   }
 }
