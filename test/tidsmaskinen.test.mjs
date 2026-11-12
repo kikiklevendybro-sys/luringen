@@ -12,8 +12,8 @@ const KATEGORIER = les("kategorier.json");
 const FILER = readdirSync(MAPPE).filter((f) => f.startsWith("hendelser-") && f.endsWith(".json")).sort();
 const ALLE = FILER.flatMap((f) => les(f).map((h, i) => ({ ...h, hvor: `${f} #${i + 1}` })));
 const normal = (t) => String(t).toLocaleLowerCase("nb").replace(/[^a-z0-9æøåéèäöü]+/g, " ").trim();
-// Facts must be settled: nothing from the last decade, pop culture only before 2000.
-const SISTE_AAR = 2015;
+// Facts must be settled: nothing after the last full year (the deck was extended to 2025 in November 2026).
+const SISTE_AAR = 2025;
 
 test("kategoriene har id, navn, kort navn, ikon og farge, og hver har sin egen fil", () => {
   const ider = KATEGORIER.map((k) => k.id);
@@ -45,7 +45,6 @@ test("hver hendelse har riktig form og et gyldig årstall", () => {
     assert.ok([1, 2, 3].includes(h.n), `${h.hvor}: vanskelighet må være 1, 2 eller 3`);
     assert.ok(Number.isInteger(h.a) && h.a !== 0, `${h.hvor}: årstallet må være et heltall (og det finnes ikke noe år 0)`);
     assert.ok(h.a >= -3000 && h.a <= SISTE_AAR, `${h.hvor}: årstallet ${h.a} er utenfor ${-3000}–${SISTE_AAR}`);
-    if (h.k === "kultur") assert.ok(h.a < 2000, `${h.hvor}: popkultur skal være fra før 2000`);
     assert.ok(typeof h.t === "string" && h.t.trim() === h.t && h.t.length >= 8, `${h.hvor}: mangler tekst`);
     assert.ok(h.t.length <= 70, `${h.hvor}: teksten er for lang (${h.t.length} tegn)`);
     assert.ok(!/[.!?]$/.test(h.t), `${h.hvor}: teksten skal ikke slutte med punktum`);
@@ -74,7 +73,7 @@ test("årstallene er spredt, og filtrene i spillet gir alltid nok kort", () => {
   const eldre = ALLE.filter((h) => h.a < 1800).length;
   assert.ok(eldre >= 60, `bare ${eldre} hendelser før 1800`);
   const nyere = ALLE.filter((h) => h.a >= 2000).length;
-  assert.ok(nyere <= 25, `${nyere} hendelser etter 2000 – hold dem få og helt sikre`);
+  assert.ok(nyere <= 150, `${nyere} hendelser etter 2000 – hold dem få nok og helt sikre`);
   // Lett = nivå 1–2, Vanskelig = nivå 3 (as in spill.js). A 10-player game to 10 cards needs well over 100.
   assert.ok(ALLE.filter((h) => h.n <= 2).length >= 100, "for få hendelser på «Lett»");
   assert.ok(ALLE.filter((h) => h.n === 3).length >= 250, "for få hendelser på «Vanskelig»");

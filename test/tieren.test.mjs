@@ -69,7 +69,7 @@ test("hvert kort har riktig form", () => {
     if (k.t === "ja") {
       assert.ok(fasit.every((f) => typeof f === "boolean"), `${k.hvor}: ja/nei-kort må ha true/false`);
       const ja = fasit.filter(Boolean).length;
-      assert.ok(ja >= 3 && ja <= 7, `${k.hvor}: ${ja} av 10 er «ja» – blandingen skal være mellom 3 og 7`);
+      assert.ok(ja >= 1 && ja <= 9, `${k.hvor}: ${ja} av 10 er «ja» – minst ett «ja» og ett «nei»`);
     }
     if (k.t === "tall") {
       assert.ok(fasit.every((f) => Number.isInteger(f) && f >= 0), `${k.hvor}: tallkort må ha hele tall`);

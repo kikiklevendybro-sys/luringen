@@ -996,6 +996,24 @@
           ${smil(88, 15)}`;
       },
     },
+
+    // Femmeren: a stopwatch with a face — the crown on top has caught fire like a fuse, the eyes
+    // are wide and the mouth is open mid-shout («tre ting!»).
+    femmeren: {
+      farge: "#ffd23f",
+      tegn: (f) => `
+        ${strek("M66 8 Q72 -2 84 0 Q94 2 98 -6", 4.5)}
+        ${glimt(100, -7, 10, ROD)}${glimt(100, -7, 5, P)}
+        <rect x="50" y="4" width="20" height="13" rx="3.5" fill="${METALL}" stroke="${B}" stroke-width="4.5"/>
+        <rect x="88" y="16" width="14" height="10" rx="3" fill="${METALL}" stroke="${B}" stroke-width="4" transform="rotate(40 95 21)"/>
+        ${hode(f)}
+        ${strek("M60 22 V29M102 64 H95M60 106 V99M18 64 H25", 4)}
+        ${kinn(80)}
+        ${oyne({ y: 56, r: 13, dy: -1 })}
+        ${strek("M27 37 Q38 30 50 35M70 35 Q82 30 93 37", 5)}
+        <ellipse cx="60" cy="86" rx="11" ry="12" fill="${B}"/>
+        <ellipse cx="60" cy="92" rx="6" ry="4" fill="${ROSA}"/>`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

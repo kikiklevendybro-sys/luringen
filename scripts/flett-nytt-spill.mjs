@@ -24,9 +24,10 @@ if (existsSync(maskotFil)) {
   const gfil = join(ROT, "rusj/kit/gjengen.js");
   let g = readFileSync(gfil, "utf8");
   if (new RegExp(`\\n\\s{4}${id}:\\s*\\{\\n`).test(g)) throw new Error(`${id} finnes allerede i FIGURER`);
-  const slutt = "    },  };\n\n  // Fallback for a game whose mascot is not drawn yet";
-  if (!g.includes(slutt)) throw new Error("fant ikke slutten av FIGURER i gjengen.js");
-  g = g.replace(slutt, `    },\n\n${kropp}\n  };\n\n  // Fallback for a game whose mascot is not drawn yet`);
+  // The FIGURER table ends right before the placeholder helper; insert the new entry there.
+  const slutt = g.match(/\n?\s*\};\s*\n\s*\/\/ Fallback for a game whose mascot is not drawn yet/);
+  if (!slutt) throw new Error("fant ikke slutten av FIGURER i gjengen.js");
+  g = g.slice(0, slutt.index) + `\n\n${kropp}\n  };\n\n  // Fallback for a game whose mascot is not drawn yet` + g.slice(slutt.index + slutt[0].length);
   if (alias) g = g.replace(new RegExp(`(\\n\\s+${id}: \\[)"#[0-9a-fA-F]{3,8}", "[^"]*"(\\])`), `$1"${alias[1]}", "${alias[2]}"$2`);
   writeFileSync(gfil, g);
   rmSync(maskotFil);
