@@ -145,6 +145,41 @@
       "tittel": "Skak online – mod computeren eller en ven",
       "frase": "Skak",
       "beskrivelse": "Spil skak gratis på dansk: mod computeren på fire niveauer eller to på samme mobil – med alle regler, skakur og fortryd-knap. Uden konto."
+    },
+    "stigespillet": {
+      "tittel": "Stigespil online – gratis for børn på én mobil",
+      "frase": "Stigespil",
+      "beskrivelse": "Gratis stigespil på dansk: kast terningen, klatr op ad stigerne og rutsj ned. Tre brætter, store knapper til de mindste – og mobilen kan tage de ledige pladser."
+    },
+    "reversi": {
+      "tittel": "Reversi online – gratis mod mobilen eller en ven",
+      "frase": "Reversi",
+      "beskrivelse": "Spil reversi gratis på dansk: fang brikkerne og vend dem. Mod mobilen på fire niveauer eller to på samme mobil – med tip og fortryd-knap. Uden konto."
+    },
+    "dam": {
+      "tittel": "Dam online – gratis mod mobilen eller en ven",
+      "frase": "Dam online",
+      "beskrivelse": "Spil dam gratis på dansk: mod mobilen på fire niveauer eller to på samme mobil – med slagtvang, flere slag i træk, flyvende dam og fortryd-knap. Uden konto."
+    },
+    "vriatter": {
+      "tittel": "Olsen online – gratis mod mobilen eller venner",
+      "frase": "Olsen",
+      "beskrivelse": "Spil Olsen gratis på dansk: bekend kulør eller værdi, og skift kulør med en otter. Mod mobilen på tre niveauer eller 2–4 på samme mobil. Uden konto."
+    },
+    "meyer": {
+      "tittel": "Meyer – terningespillet med bluff, gratis på mobilen",
+      "frase": "Meyer",
+      "beskrivelse": "Spil Meyer på dansk: ryst bægeret, kig i smug, og sig et tal, der slår det forrige – sandt eller bluff. Gratis for 2–10 på én mobil, også mod mobilen."
+    },
+    "blokka": {
+      "tittel": "Blokpuslespil på dansk – gratis, med dagens blok",
+      "frase": "Blokpuslespil",
+      "beskrivelse": "Spil blokpuslespil gratis på dansk: læg brikkerne på 8 × 8, fyld rækker og kolonner, og byg kombo. Dagens blok er ens for alle. Uden reklamer og konto."
+    },
+    "bingoballen": {
+      "tittel": "Bingo på mobilen – talbingo og festbingo, gratis",
+      "frase": "Bingo",
+      "beskrivelse": "Gratis bingo på dansk med pladen på mobilen: talbingo med 75 kugler eller festbingo til julefrokost, juleaften, bryllup, sankthans og fødselsdag."
     }
   }
 }

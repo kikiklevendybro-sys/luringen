@@ -11,5 +11,23 @@
   "rekkefolge": 41,
   "qr": true,
   "sok": ["bingo", "festbingo", "julebordbingo", "bryllupsbingo", "tallbingo", "bingobrett", "bingo på mobilen"],
-  "alias": ["bingo"]
+  "alias": ["bingo"],
+  "i18n": {
+    "en": {
+      "navn": "Bingo Ball",
+      "undertittel": "Party bingo",
+      "kort": "Number bingo or party bingo – everyone has a card on their own phone.",
+      "beskrivelse": "Free bingo with the card on your phone: 75-ball number bingo, or party bingo for a Christmas party, a wedding, Bonfire Night, a birthday or a night at the pub.",
+      "slug": "bingo-ball",
+      "sok": ["bingo", "party bingo", "christmas bingo", "wedding bingo", "bingo caller", "bingo cards", "75 ball bingo", "hen party games", "stag do games"]
+    },
+    "da": {
+      "navn": "Bingobolden",
+      "undertittel": "Festbingo",
+      "kort": "Talbingo eller festbingo – alle har pladen på deres egen mobil.",
+      "beskrivelse": "Gratis bingo på dansk med pladen på mobilen: talbingo med 75 kugler eller festbingo til julefrokost, bryllup, sankthans, fødselsdag og konfirmation.",
+      "slug": "bingobolden",
+      "sok": ["bingo", "banko", "festbingo", "julebingo", "julefrokostbingo", "bryllupsbingo", "bingoplader", "talbingo", "bingo på mobilen"]
+    }
+  }
 }

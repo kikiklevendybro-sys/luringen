@@ -11,5 +11,23 @@
   "rekkefolge": 57,
   "farge": "#6c8cff",
   "dagnavn": "Dagens blokk",
-  "sok": ["blokkpuslespill", "blokkspill", "klossespill", "fyll rader", "8x8 puslespill", "dagens blokk", "blokker"]
+  "sok": ["blokkpuslespill", "blokkspill", "klossespill", "fyll rader", "8x8 puslespill", "dagens blokk", "blokker"],
+  "i18n": {
+    "en": {
+      "navn": "Blocky",
+      "undertittel": "Block puzzle",
+      "kort": "Fill rows and columns – and clear the board.",
+      "beskrivelse": "Free block puzzle in your browser: place pieces on an 8 × 8 board, fill rows and columns and clear them. Today's block: the same pieces for everyone, every day.",
+      "slug": "blocky",
+      "sok": ["block puzzle", "block game", "blocks", "fill rows and columns", "8x8 puzzle", "daily puzzle", "block blast", "1010"]
+    },
+    "da": {
+      "navn": "Blokken",
+      "undertittel": "Blokpuslespil",
+      "kort": "Fyld rækker og kolonner – og ryd brættet.",
+      "beskrivelse": "Gratis blokpuslespil på dansk: læg brikkerne på et 8 × 8-bræt, fyld rækker og kolonner, og ryd dem. Dagens blok: de samme brikker for alle hver dag.",
+      "slug": "blokken",
+      "sok": ["blokpuslespil", "blokspil", "klodsspil", "fyld rækker", "8x8 puslespil", "dagens blok", "daglig puslespil", "block blast"]
+    }
+  }
 }

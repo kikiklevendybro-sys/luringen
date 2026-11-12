@@ -6,6 +6,8 @@
 // pieces from the date, no undo, progress to the front page, a reload, the result with streak and
 // a live countdown, a share without the board, and #dagens. The board and the tray fit the screen
 // (portrait: the tray under the board; landscape: board left, pieces right).
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en blokka): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the numbers, the state and the links (t.forside, t.nokkel).
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -68,7 +70,7 @@ export default async function (t) {
 
   // ----- Home -----
   t.sjekk(await t.finnes('.hjem-knapper .knapp[data-h="dagens"] .bk-kal'), "Dagens blokk er ikke hovedknappen på hjemskjermen");
-  t.sjekk(/Spill fritt/.test(await t.tekst('[data-h="nytt"]')), "Mangler «Spill fritt» på hjemskjermen");
+  t.sjekk(!t.norsk || /Spill fritt/.test(await t.tekst('[data-h="nytt"]')), "Mangler «Spill fritt» på hjemskjermen");
   await t.bilde("hjem");
 
   // ----- Free play -----
@@ -88,8 +90,8 @@ export default async function (t) {
   t.sjekk((await fylteSkjerm()) === 10, "Brettet tegnes ikke fra lagret tilstand");
   // The board for a screen reader: one short line per row.
   const linjer = await t.js(`Array.from(document.querySelectorAll("#bk-tekst li")).map((l) => l.textContent)`);
-  t.sjekk(linjer.length === 8 && linjer[0] === "Rad 1: 3–8" && linjer[1] === "Rad 2: tom" && linjer[7] === "Rad 8: 1, 3, 5, 7", `Brettet som tekst for skjermleser er feil: ${linjer.join(" | ")}`);
-  t.sjekk(/Brikke 1: Strek på 2, liggende, 2 ruter/.test(await t.js(`document.querySelector('.bk-brikke[data-v="0"]').getAttribute("aria-label")`)), "Brikkene har ikke navn for skjermleser");
+  t.sjekk(linjer.length === 8 && (!t.norsk || (linjer[0] === "Rad 1: 3–8" && linjer[1] === "Rad 2: tom" && linjer[7] === "Rad 8: 1, 3, 5, 7")), `Brettet som tekst for skjermleser er feil: ${linjer.join(" | ")}`);
+  t.sjekk(!t.norsk || /Brikke 1: Strek på 2, liggende, 2 ruter/.test(await t.js(`document.querySelector('.bk-brikke[data-v="0"]').getAttribute("aria-label")`)), "Brikkene har ikke navn for skjermleser");
 
   await dra(0, "2h", 0, 0, async (mal) => {
     const m = await t.js(`(() => {
@@ -105,7 +107,7 @@ export default async function (t) {
   t.sjekk(s.tilbud[0] === null && s.linjer === 1 && s.poeng === 12 && s.rekke === 1, `Draget ryddet ikke raden (poeng ${s.poeng}, linjer ${s.linjer})`);
   t.sjekk(s.brett.slice(0, 8).every((v) => v === 0) && !(await t.finnes(".bk-sveve")), "Raden ble ikke tømt, eller brikken henger igjen");
   await t.sov(60);
-  t.sjekk(/Strek på 2, liggende lagt i rad 1, kolonne 1\. Rad 1 ryddet\. Pluss 12\. 12 poeng\./.test(await si()), `Plasseringen leses ikke opp: «${await si()}»`);
+  t.sjekk((t.norsk ? /Strek på 2, liggende lagt i rad 1, kolonne 1\. Rad 1 ryddet\. Pluss 12\. 12 poeng\./ : /12\..*12/).test(await si()), `Plasseringen leses ikke opp: «${await si()}»`);
   t.sjekk(await t.finnes('[data-h="angre"]:not([disabled])'), "Angre er ikke mulig etter første brikke");
 
   // Tap a piece, then a cell: the 2 × 2 lands around the tapped cell.
@@ -133,7 +135,7 @@ export default async function (t) {
   await tast("ArrowRight", 39);
   await tast("ArrowDown", 40);
   t.sjekk((await t.antall(".bk-ruter i.skygge")) === 1 && (await t.finnes(`${celle(2, 1)}.skygge`)), "Skyggen følger ikke piltastene");
-  t.sjekk(/Prikk: rad 2, kolonne 3\. Passer\./.test(await si()), `Piltastene leses ikke opp: «${await si()}»`);
+  t.sjekk((t.norsk ? /Prikk: rad 2, kolonne 3\. Passer\./ : /2.*3/).test(await si()), `Piltastene leses ikke opp: «${await si()}»`);
   await t.bilde("tastatur");
   await tast("Enter", 13);
   s = await fri();
@@ -153,29 +155,29 @@ export default async function (t) {
   s = await fri();
   t.sjekk(JSON.stringify(s.brett) === JSON.stringify(forLast.brett) && JSON.stringify(s.tilbud) === JSON.stringify(forLast.tilbud) && s.poeng === forLast.poeng, "Spillet ble ikke det samme etter omlasting");
   t.sjekk((await fylteSkjerm()) === fylte(s.brett) && (await t.antall(".bk-brikke")) === s.tilbud.filter(Boolean).length, "Brettet ble ikke tegnet riktig etter omlasting");
-  t.sjekk(/blokka/i.test(await t.tekst("#topp-tittel")), "Omlasting havnet ikke i spillet");
+  t.sjekk((t.norsk ? /blokka/i : /\S/).test(await t.tekst("#topp-tittel")), "Omlasting havnet ikke i spillet");
 
   // Back + «Fortsett»
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett · 2\d poeng/.test(await t.tekst('[data-h="fortsett"]')), "Hjemskjermen tilbyr ikke å fortsette");
+  t.sjekk((t.norsk ? /Fortsett · 2\d poeng/ : /2\d/).test(await t.tekst('[data-h="fortsett"]')), `Hjemskjermen tilbyr ikke å fortsette («${await t.tekst('[data-h="fortsett"]')}»)`);
   await t.klikk('[data-h="fortsett"]');
   await t.vent("document.querySelectorAll('.bk-ruter i').length === 64");
   await pause();
 
   // Game over: a checkerboard – only the single cell fits; after it, nothing does.
   await sett("fri", { brett: sjakk(), tilbud: ["1", "o4", "2h"], poeng: 50, lagt: 20, forrige: null, angretSett: -1, rekke: 0, siden: 0 });
-  t.sjekk((await t.antall(".bk-brikke.ikke")) === 2 && /Passer ikke/.test(await t.tekst('.bk-brikke[data-v="1"]')), "Brikker som ikke passer, er ikke merket med tekst");
+  t.sjekk((await t.antall(".bk-brikke.ikke")) === 2 && (!t.norsk || /Passer ikke/.test(await t.tekst('.bk-brikke[data-v="1"]'))), "Brikker som ikke passer, er ikke merket med tekst");
   await t.trykk('.bk-brikke[data-v="0"]');
   await t.trykk(celle(0, 0));
   await t.vent("document.querySelector('.bk-melding:not([hidden])')", 3000);
-  t.sjekk(/Ingen brikker passer!/.test(await t.tekst(".bk-melding")) && (await t.antall(".bk-brikker.over .bk-brikke.ikke")) === 2, "Slutten viser ikke hvilke brikker som ikke passer");
+  t.sjekk((!t.norsk || /Ingen brikker passer!/.test(await t.tekst(".bk-melding"))) && (await t.antall(".bk-brikker.over .bk-brikke.ikke")) === 2, "Slutten viser ikke hvilke brikker som ikke passer");
   t.sjekk((await S()).fri.ferdig === true, "Spillet ble ikke lagret som ferdig med en gang");
   await t.bilde("ingen-passer");
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
   await t.sov(700);
   let alt = await S();
   t.sjekk(alt.rekord === 51 && /51/.test(await t.tekst(".bk-tall b")), `Rekorden ble ikke lagret (${alt.rekord})`);
-  t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")) && (await t.finnes('.dokk a.lenke[href="/"]')) && /Spill igjen/.test(await t.tekst(".dokk .knapp")), "Sluttskjermen mangler de vanlige knappene");
+  t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")) && (await t.finnes(`.dokk a.lenke[href="${t.forside}"]`)) && (!t.norsk || /Spill igjen/.test(await t.tekst(".dokk .knapp"))), "Sluttskjermen mangler de vanlige knappene");
   await t.bilde("slutt", true);
   // The result can take the last piece back; the record forgets it again.
   await t.klikk('[data-h="angre-slutt"]');
@@ -190,7 +192,7 @@ export default async function (t) {
   t.sjekk((await S()).rekord === 51, "Rekorden ble ikke lagret på nytt");
   t.sjekk(!(await t.finnes('[data-h="angre-slutt"]')), "Sluttskjermen tilbyr å angre en gang til i samme runde");
   await t.klikk("#tilbake");
-  t.sjekk(/Rekord i fritt spill: 51 poeng/.test(await t.tekst(".bk-rekordlinje")) && !(await t.finnes('[data-h="fortsett"]')), "Hjemskjermen viser ikke rekorden, eller tilbyr et ferdig spill");
+  t.sjekk((t.norsk ? /Rekord i fritt spill: 51 poeng/ : /51/).test(await t.tekst(".bk-rekordlinje")) && !(await t.finnes('[data-h="fortsett"]')), "Hjemskjermen viser ikke rekorden, eller tilbyr et ferdig spill");
 
   // ----- Dagens blokk -----
   await t.klikk('[data-h="dagens"]');
@@ -198,21 +200,21 @@ export default async function (t) {
   await pause();
   s = (await S()).dag;
   t.sjekk(s.dagens === dag.tekst && JSON.stringify(s.tilbud) === JSON.stringify([...B.dagSett(dag.tekst, 0)]), `Dagens brikker kommer ikke fra datoen (${s.tilbud.join(", ")})`);
-  t.sjekk(/dagens blokk/i.test(await t.tekst("#topp-tittel")) && !(await t.finnes('[data-h="angre"]')) && /0 av 60/.test(await t.tekst(".bk-hud")), "Dagens blokk skal ha tittel, 60 brikker og ingen angreknapp");
+  t.sjekk((!t.norsk || /dagens blokk/i.test(await t.tekst("#topp-tittel"))) && !(await t.finnes('[data-h="angre"]')) && (t.norsk ? /0 av 60/ : /0\D+60/).test(await t.tekst(".bk-hud")), "Dagens blokk skal ha tittel, 60 brikker og ingen angreknapp");
   await t.bilde("dagens");
   await t.trykk('.bk-brikke[data-v="0"]');
   await t.trykk(celle(3, 3));
   s = (await S()).dag;
   t.sjekk(s.lagt === 1 && s.forrige === null, "Dagens blokk: brikken ble ikke lagt (eller kan angres)");
-  let felles = await t.js(`JSON.parse(localStorage.getItem("rusj.daglig") || "{}").blokka`);
-  t.sjekk(felles && felles.pagar && felles.pagar.nr === dag.nr && /^\d+p$/.test(felles.pagar.tekst.replace(/\s/g, "")), `Forsiden får ikke vite at dagens blokk er i gang (${JSON.stringify(felles)})`);
+  let felles = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("daglig")}") || "{}").blokka`);
+  t.sjekk(felles && felles.pagar && felles.pagar.nr === dag.nr && (t.norsk ? /^\d+p$/ : /^\d+\D+$/).test(felles.pagar.tekst.replace(/\s/g, "")), `Forsiden får ikke vite at dagens blokk er i gang (${JSON.stringify(felles)})`);
   // Reload mid-daily
   await t.lastSide(t.side, "document.querySelectorAll('.bk-ruter i').length === 64");
   await pause();
-  t.sjekk(/dagens blokk/i.test(await t.tekst("#topp-tittel")) && (await S()).dag.lagt === 1 && (await fylteSkjerm()) === fylte((await S()).dag.brett), "Dagens blokk overlevde ikke omlasting");
+  t.sjekk((!t.norsk || /dagens blokk/i.test(await t.tekst("#topp-tittel"))) && (await S()).dag.lagt === 1 && (await fylteSkjerm()) === fylte((await S()).dag.brett), "Dagens blokk overlevde ikke omlasting");
   // Home in between: «Fortsett dagens blokk»
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett dagens blokk/.test(await t.tekst('[data-h="dagens"]')), "Hjemskjermen tilbyr ikke å fortsette dagens blokk");
+  t.sjekk(!t.norsk || /Fortsett dagens blokk/.test(await t.tekst('[data-h="dagens"]')), "Hjemskjermen tilbyr ikke å fortsette dagens blokk");
   await t.klikk('[data-h="dagens"]');
   await t.vent("document.querySelectorAll('.bk-ruter i').length === 64");
   await pause();
@@ -225,9 +227,9 @@ export default async function (t) {
   alt = await S();
   const res = alt.daglig.dager[dag.tekst];
   t.sjekk(res && res.poeng === 1839 && alt.daglig.rekke === 1, "Dagens blokk ble ikke lagret som tatt");
-  felles = await t.js(`JSON.parse(localStorage.getItem("rusj.daglig") || "{}").blokka`);
-  t.sjekk(felles && felles.nr === dag.nr && felles.vunnet === true && felles.rekke === 1 && felles.res === "1\u00a0839 p", `Forsiden får ikke resultatet (${JSON.stringify(felles)})`);
-  t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".bk-nedtelling b")) && /1 dag på rad/.test(await t.tekst(".bk-dagrekke")), "Resultatet mangler nedtelling eller rekke");
+  felles = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("daglig")}") || "{}").blokka`);
+  t.sjekk(felles && felles.nr === dag.nr && felles.vunnet === true && felles.rekke === 1 && (t.norsk ? felles.res === "1\u00a0839 p" : /^1.?839 \S+$/.test(felles.res)), `Forsiden får ikke resultatet (${JSON.stringify(felles)})`);
+  t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".bk-nedtelling b")) && (t.norsk ? /1 dag på rad/ : /1/).test(await t.tekst(".bk-dagrekke")), "Resultatet mangler nedtelling eller rekke");
   const n1 = await t.tekst(".bk-nedtelling b");
   await t.sov(1200);
   t.sjekk((await t.tekst(".bk-nedtelling b")) !== n1, "Nedtellingen står stille");
@@ -235,15 +237,15 @@ export default async function (t) {
   await t.klikk('.dokk [data-h="del"]', 400);
   const delt = await t.js("window.__delt");
   const delTekst = delt ? `${delt.text || ""} ${delt.url || ""}` : "";
-  t.sjekk(/Blokka \d+\.\d+ · 1\s839 poeng · 14 linjer/.test(delTekst) && delTekst.includes("https://rusj.no/blokka/#utfordring"), `«Del resultatet» deler ikke resultatet (${JSON.stringify(delt)})`);
+  t.sjekk((t.norsk ? /Blokka \d+\.\d+ · 1\s839 poeng · 14 linjer/ : /\d+\/\d+ · 1.?839 \S+ · 14 /).test(delTekst) && delTekst.includes(t.norsk ? "https://rusj.no/blokka/#utfordring" : `https://rusj.no${t.forside}`) && delTekst.includes("#utfordring"), `«Del resultatet» deler ikke resultatet (${JSON.stringify(delt)})`);
   t.sjekk(!/[■□#.]{4,}|🟦{2,}|🟩|⬛|⬜/.test(delTekst.replace("#utfordring", "")), "Delingen inneholder brettet");
   await t.bilde("dagens-resultat", true);
   // #dagens shows the result
   await t.lastSide(t.side + "#dagens", "document.querySelector('.skjerm-slutt')");
-  t.sjekk(/dagens blokk/i.test(await t.tekst("#topp-tittel")), "#dagens åpnet ikke resultatet");
+  t.sjekk(!t.norsk || /dagens blokk/i.test(await t.tekst("#topp-tittel")), "#dagens åpnet ikke resultatet");
   await pause();
   await t.klikk("#tilbake");
-  t.sjekk(/Dagens blokk: 1\s839 poeng/.test(await t.tekst(".bk-daglinje")) && (await t.finnes(".bk-nedtelling b")), "Hjemskjermen viser ikke at dagens blokk er tatt");
+  t.sjekk((t.norsk ? /Dagens blokk: 1\s839 poeng/ : /1.?839/).test(await t.tekst(".bk-daglinje")) && (await t.finnes(".bk-nedtelling b")), "Hjemskjermen viser ikke at dagens blokk er tatt");
   await t.bilde("hjem-tatt");
 
   // ----- Fit: the board and the tray on the screen, no page scrolling -----

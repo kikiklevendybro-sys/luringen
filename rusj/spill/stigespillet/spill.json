@@ -12,5 +12,23 @@
   "farge": "#ffb347",
   "motMobilen": true,
   "sok": ["stigespill", "stiger og slanger", "slanger og stiger", "snakes and ladders", "brettspill for barn", "terningspill"],
-  "alias": ["stiger-og-sklier"]
+  "alias": ["stiger-og-sklier"],
+  "i18n": {
+    "en": {
+      "navn": "The Ladder Game",
+      "undertittel": "Ladders and slides",
+      "kort": "Climb up the ladders, whizz down the slides.",
+      "beskrivelse": "Free ladders and slides for little ones: roll the dice, climb the ladders and whizz down the slides. 1–4 on one phone – the phone can fill the empty seats.",
+      "slug": "ladder-game",
+      "sok": ["snakes and ladders", "ladders and slides", "chutes and ladders", "ladder game", "board game for kids", "dice game for kids"]
+    },
+    "da": {
+      "navn": "Stigespillet",
+      "undertittel": "Stiger og rutsjebaner",
+      "kort": "Klatr op ad stigerne, rutsj ned ad rutsjebanerne.",
+      "beskrivelse": "Gratis stigespil for de mindste: kast terningen, klatr op ad stigerne og rutsj ned ad rutsjebanerne. 1–4 på én mobil – mobilen kan tage de ledige pladser.",
+      "slug": "stigespillet",
+      "sok": ["stigespil", "slanger og stiger", "stiger og slanger", "snakes and ladders", "brætspil for børn", "terningespil for børn"]
+    }
+  }
 }

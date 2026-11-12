@@ -4,6 +4,8 @@
 // number, a card without bingo and the player's card, approves it, plays on for two rows and ends
 // at «Kåringen». The card is locked to the phone: leaving and joining again (link or typed code)
 // gives the same card. Then party bingo: the host's own card, a full row, and a full card.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en bingoballen): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the numbers, the state and the links (t.forside, t.nokkel).
 import { startChrome } from "../chrome.mjs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -31,7 +33,7 @@ async function ja(c) {
   await c.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
 }
 
-const gjest = (c) => c.js(`JSON.parse(localStorage.getItem("rusj.bingoballen.v1") || "null")`);
+const gjest = (c, nokkel) => c.js(`JSON.parse(localStorage.getItem("${nokkel}") || "null")`);
 
 export default async function (t) {
   await t.start();
@@ -70,7 +72,7 @@ export default async function (t) {
     await c2.js(`localStorage.setItem("rusj.felles", JSON.stringify({ lyd: false, navn: [] }))`);
     await c2.lastSide("about:blank");
     await c2.lastSide(`${t.side}#${kode}`, "document.querySelector('.skjerm-brett')");
-    const g = (await gjest(c2)).gjest;
+    const g = (await gjest(c2, t.nokkel("bingoballen.v1"))).gjest;
     t.sjekk(g.nr >= 100000 && g.nr <= 999999, `Brettnummeret skal ha seks sifre: ${g.nr}`);
     t.sjekk((await c2.tekst("#skjerm h1")).includes(String(g.nr)), "Brettnummeret står ikke øverst");
     t.sjekk((await c2.antall(".bb-brett.fem .bb-rute")) === 25, "Tallbrettet har ikke 25 ruter");
@@ -83,7 +85,7 @@ export default async function (t) {
     // The host's draw: the player's middle row comes first (the order is stored in the game)
     S = await t.tilstand();
     const rekke = [...midt, ...S.spill.rekke.filter((x) => !midt.includes(x))];
-    await t.js(`(() => { const k = "rusj.bingoballen.v1"; const s = JSON.parse(localStorage.getItem(k)); s.spill.rekke = ${JSON.stringify(rekke)}; localStorage.setItem(k, JSON.stringify(s)); })()`);
+    await t.js(`(() => { const k = "${t.nokkel("bingoballen.v1")}"; const s = JSON.parse(localStorage.getItem(k)); s.spill.rekke = ${JSON.stringify(rekke)}; localStorage.setItem(k, JSON.stringify(s)); })()`);
     await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
     if (!(await t.finnes(".skjerm-kode"))) await t.klikk('[data-h="fortsett"]');
     await t.klikk('[data-h="til-trekk"]');
@@ -108,7 +110,7 @@ export default async function (t) {
     await t.lastSide(t.side, "document.querySelector('.skjerm-trekk')");
     t.sjekk((await t.tilstand()).spill.trukket === 4, "Trekningen ble borte etter omlasting");
     await t.klikk("#tilbake");
-    t.sjekk(/4 av 75/.test(await t.tekst('[data-h="fortsett"]')), "«Fortsett» viser ikke antall baller");
+    t.sjekk((t.norsk ? /4 av 75/ : /4\D+75/).test(await t.tekst('[data-h="fortsett"]')), "«Fortsett» viser ikke antall baller");
     await t.klikk('[data-h="fortsett"]');
     await t.vent("document.querySelector('.skjerm-trekk')");
     await t.bilde("tavla", true);
@@ -143,8 +145,8 @@ export default async function (t) {
     await t.vent("document.querySelector('.bb-svar')");
     const annetOk = (await t.tilstand()).spill.sjekk.ok;
     if (!annetOk) {
-      t.sjekk(/mangler/.test(await t.tekst(".bb-svar")), "«Ikke ennå» sier ikke hva som mangler");
-      t.sjekk(/Ikke bingo/.test(await t.tekst("#skjerm h1")), "Overskriften sier ikke «Ikke bingo ennå»");
+      t.sjekk(!t.norsk || /mangler/.test(await t.tekst(".bb-svar")), "«Ikke ennå» sier ikke hva som mangler");
+      t.sjekk(!t.norsk || /Ikke bingo/.test(await t.tekst("#skjerm h1")), "Overskriften sier ikke «Ikke bingo ennå»");
       await t.bilde("sjekk-nei");
     }
     await t.klikk('[data-h="ny-sjekk"]');
@@ -152,7 +154,7 @@ export default async function (t) {
     await t.klikk('.bb-sjekkskjema button[type="submit"]');
     await t.vent("document.querySelector('.bb-svar.ok')");
     t.sjekk((await t.antall(".bb-kort-ramme .bb-rute.linje")) === 5, "Vertens sjekk viser ikke rekka");
-    t.sjekk((await t.tekst("#skjerm h1")).includes(`Brett ${g.nr} har bingo`), "Overskriften sier ikke at brettet har bingo");
+    t.sjekk((await t.tekst("#skjerm h1")).includes(t.norsk ? `Brett ${g.nr} har bingo` : String(g.nr)), "Overskriften sier ikke at brettet har bingo");
     await t.sov(400);
     await t.bilde("sjekk-bingo", true);
     await t.klikk('[data-h="godkjenn"]');
@@ -162,8 +164,8 @@ export default async function (t) {
     await t.klikk('[data-h="angre-godkjenn"]');
     t.sjekk((await t.tilstand()).spill.vinnere.length === 0, "«Angre» tok ikke bort vinneren");
     await t.klikk('[data-h="godkjenn"]');
-    t.sjekk((await t.tekst("#skjerm h1")).includes(`Brett ${g.nr} vinner`), "Overskriften sier ikke at brettet vinner");
-    t.sjekk(/^Avslutt$/.test((await t.tekst('.dokk [data-h="avslutt"]')).trim()), "Lenken heter ikke bare «Avslutt»");
+    t.sjekk((await t.tekst("#skjerm h1")).includes(t.norsk ? `Brett ${g.nr} vinner` : String(g.nr)), "Overskriften sier ikke at brettet vinner");
+    t.sjekk(!t.norsk || /^Avslutt$/.test((await t.tekst('.dokk [data-h="avslutt"]')).trim()), "Lenken heter ikke bare «Avslutt»");
     await t.bilde("godkjent");
     await t.klikk('[data-h="neste-maal"]');
     await t.vent("document.querySelector('.skjerm-trekk')");
@@ -183,7 +185,7 @@ export default async function (t) {
     await c2.vent("document.querySelector('.skjerm-hjem')");
     await c2.lastSide("about:blank");
     await c2.lastSide(`${t.side}#${kode}`, "document.querySelector('.skjerm-brett')");
-    t.sjekk((await gjest(c2)).gjest.nr === g.nr, "Samme kode på nytt ga et annet brett");
+    t.sjekk((await gjest(c2, t.nokkel("bingoballen.v1"))).gjest.nr === g.nr, "Samme kode på nytt ga et annet brett");
     await c2.klikk("#tilbake");
     await c2.klikk('[data-h="bli-med"]');
     await c2.skrivInn("#kodefelt", "abcd efgh");
@@ -193,7 +195,7 @@ export default async function (t) {
     await c2.skrivInn("#kodefelt", kode.toLowerCase().replace(/(.{4})/, "$1-"));
     await c2.klikk('button[type="submit"]');
     await c2.vent("document.querySelector('.skjerm-brett')");
-    t.sjekk((await gjest(c2)).gjest.nr === g.nr, "Koden skrevet inn ga et annet brett");
+    t.sjekk((await gjest(c2, t.nokkel("bingoballen.v1"))).gjest.nr === g.nr, "Koden skrevet inn ga et annet brett");
     if (c2.feil.length) c2.feil.forEach((f) => t.feil(`Spillerens mobil: ${f}`));
   } finally {
     await c2.lukk();
@@ -203,8 +205,8 @@ export default async function (t) {
   await t.klikk('[data-h="avslutt"]');
   await ja(t);
   await t.vent("document.querySelector('.skjerm-slutt .bb-premier')");
-  t.sjekk(/vinner!/.test(await t.tekst("#skjerm h1")), "Kåringen viser ikke vinneren");
-  t.sjekk(await t.finnes('.skjerm-slutt a[href="/"]'), "Kåringen mangler «Alle spill»");
+  t.sjekk((t.norsk ? /vinner!/ : /!/).test(await t.tekst("#skjerm h1")), "Kåringen viser ikke vinneren");
+  t.sjekk(await t.finnes(`.skjerm-slutt a[href="${t.forside}"]`), "Kåringen mangler «Alle spill»");
   await t.bilde("slutt", true);
   await t.klikk("#tilbake");
   t.sjekk(!(await t.finnes('[data-h="fortsett"]')), "Et ferdig spill vises fortsatt som «Fortsett»");
@@ -212,7 +214,9 @@ export default async function (t) {
   // ---------- Party bingo ----------
   await t.klikk('[data-h="nytt"]');
   await t.klikk('[data-h="modus"][data-v="fest"]');
-  await t.klikk('[data-h="tema"][data-v="17mai"]');
+  // Elsewhere the fourth theme (Danish «slik» means sweets, but the language check reads it as Norwegian)
+  const tema = t.norsk ? "17mai" : await t.js("document.querySelectorAll('[data-h=\"tema\"]')[3].dataset.v");
+  await t.klikk(`[data-h="tema"][data-v="${tema}"]`);
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('#bb-kode')");
   await t.klikk('[data-h="eget-brett"]');
@@ -232,6 +236,6 @@ export default async function (t) {
   await t.klikk('[data-h="til-brett"]');
   for (let i = 0; i < 16; i++) if (![4, 5, 6, 7].includes(i)) await t.klikk(`[data-h="merk"][data-v="${i}"]`, 60);
   await t.vent("document.querySelector('.skjerm-bingo')", 4000);
-  t.sjekk(/Fullt brett/.test(await t.tekst("#skjerm h1")), "Fullt brett ble ikke feiret");
+  t.sjekk((t.norsk ? /Fullt brett/ : /!/).test(await t.tekst("#skjerm h1")), "Fullt brett ble ikke feiret");
   await t.bilde("fest-full");
 }

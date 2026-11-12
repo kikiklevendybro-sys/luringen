@@ -11,5 +11,23 @@
   "rekkefolge": 54,
   "farge": "#7dd3a8",
   "sok": ["reversi", "snu brikkene", "reversi på nett", "brettspill svart hvit", "spill reversi"],
-  "motMobilen": true
+  "motMobilen": true,
+  "i18n": {
+    "en": {
+      "navn": "Reversi",
+      "undertittel": "Trap and flip",
+      "kort": "Trap the discs and flip them – most discs wins.",
+      "beskrivelse": "Free reversi in your browser: trap your opponent's discs and flip them. Against the phone at four levels or two on the same phone – with hints and undo.",
+      "slug": "reversi",
+      "sok": ["reversi", "othello", "flip the discs", "reversi against computer", "reversi free", "board game"]
+    },
+    "da": {
+      "navn": "Reversi",
+      "undertittel": "Fang og vend",
+      "kort": "Fang brikkerne og vend dem – flest brikker vinder.",
+      "beskrivelse": "Gratis reversi direkte i browseren: fang modstanderens brikker og vend dem. Mod mobilen på fire niveauer eller to på samme mobil – med tip og fortryd.",
+      "slug": "reversi",
+      "sok": ["reversi", "othello", "vend brikkerne", "reversi mod computeren", "reversi gratis", "brætspil"]
+    }
+  }
 }

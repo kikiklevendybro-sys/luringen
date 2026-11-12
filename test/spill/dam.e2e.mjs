@@ -3,6 +3,8 @@
 // square; a promotion; a flying king's capture wins the game and leads to «Kåringen». Then against
 // the phone: it answers in time without freezing the page, «Angre» takes back its answer, it never
 // moves while a sheet is open, the hint on Lett, and a win counts in the record on the home screen.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en dam): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the names, the state, classes and the links (t.forside).
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { mkdirSync } from "node:fs";
@@ -71,7 +73,7 @@ export default async function (t) {
   await t.bilde("start");
   t.sjekk((await brikker()) === 24, `Brettet skal ha 24 brikker, fant ${await brikker()}`);
   t.sjekk((await t.tilstand())._aktiv === true, "Et pågående parti er ikke merket som aktivt");
-  t.sjekk(/c3, hvit brikke/.test(await t.js(`document.querySelector('${rute("c3")}').getAttribute('aria-label')`)), "Ruta c3 har ikke navnet «c3, hvit brikke»");
+  t.sjekk((t.norsk ? /c3, hvit brikke/ : /^c3, \S/).test(await t.js(`document.querySelector('${rute("c3")}').getAttribute('aria-label')`)), "Ruta c3 har ikke navnet «c3, hvit brikke»");
 
   // A first move: two dots, then the board turns to black
   await trykk("c3");
@@ -85,8 +87,8 @@ export default async function (t) {
   await trykk("b6");
   await trykk("c5", 900);
   t.sjekk((await t.antall(".dm-rute.tvang")) === 1 && (await t.finnes(`${rute("d4")}.tvang`)), "Brikka som må slå, er ikke merket");
-  t.sjekk(/må slå/.test(await t.tekst(".dm-melding")), "Meldingen sier ikke at hvit må slå");
-  t.sjekk(/må slå/.test(await t.js(`document.querySelector('${rute("d4")}').getAttribute('aria-label')`)), "Skjermleseren får ikke vite at d4 må slå");
+  t.sjekk(t.norsk ? /må slå/.test(await t.tekst(".dm-melding")) : await t.finnes(".dm-melding.tvang"), "Meldingen sier ikke at hvit må slå");
+  t.sjekk(t.norsk ? /må slå/.test(await t.js(`document.querySelector('${rute("d4")}').getAttribute('aria-label')`)) : await t.finnes(`${rute("d4")}.tvang`), "Skjermleseren får ikke vite at d4 må slå");
   await t.bilde("slagplikt");
   await trykk("e3");
   t.sjekk(!(await t.finnes(".dm-rute.valgt")), "En brikke som ikke kan slå, ble valgt under slagplikt");
@@ -128,7 +130,7 @@ export default async function (t) {
   await trykk("c3");
   t.sjekk((await t.antall(".dm-rute.mal")) === 1 && (await t.finnes(`${rute("e5")}.mal.slag`)), "Første hopp til e5 vises ikke");
   await trykk("e5", 300);
-  t.sjekk((await t.antall(".dm-rute.mal")) === 2 && /Slå videre/.test(await t.tekst(".dm-melding")), "Midt i slaget skal to videre hopp vises");
+  t.sjekk((await t.antall(".dm-rute.mal")) === 2 && (!t.norsk || /Slå videre/.test(await t.tekst(".dm-melding"))), "Midt i slaget skal to videre hopp vises");
   t.sjekk(await t.finnes(".dm-brikke.slatt"), "Den hoppede brikka er ikke merket midt i slaget");
   await t.bilde("flerhopp");
   await trykk("g7", 1000);
@@ -140,7 +142,7 @@ export default async function (t) {
   await trykk("g7");
   await trykk("h8", 900);
   t.sjekk(await t.finnes(`${rute("h8")} .dm-brikke.dame`), "Brikka ble ikke dame på bakerste rad");
-  t.sjekk(/h8, hvit dame/.test(await t.js(`document.querySelector('${rute("h8")}').getAttribute('aria-label')`)), "Damen har ikke navnet «h8, hvit dame»");
+  t.sjekk((t.norsk ? /h8, hvit dame/ : /^h8, \S/).test(await t.js(`document.querySelector('${rute("h8")}').getAttribute('aria-label')`)), "Damen har ikke navnet «h8, hvit dame»");
   await t.bilde("dame");
 
   // A flying king captures from a distance and wins: «Kåringen»
@@ -155,17 +157,17 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
   await t.sov(400);
   await t.bilde("kaaringen", true);
-  t.sjekk(/Testspiller A vinner/.test(await t.tekst("#skjerm h1")), `Kåringen viser feil vinner: «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk((t.norsk ? /Testspiller A vinner/ : /Testspiller A/).test(await t.tekst("#skjerm h1")), `Kåringen viser feil vinner: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(!t.norsk || /KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
   s = await t.tilstand();
   t.sjekk(s.spill.registrert === true && s._aktiv === false, "Kåringen ble ikke registrert for kvelden");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
 
   // «Spill igjen»: the other player starts
   await t.klikk('[data-h="igjen"]');
   await t.vent("document.querySelectorAll('.dm-rute[data-v]').length === 32");
   t.sjekk((await sp()).starter === 1, "Den andre spilleren begynner ikke neste kamp");
-  t.sjekk(/Testspiller B begynner/.test(await t.tekst(".dm-melding")), "Meldingen sier ikke at Testspiller B begynner");
+  t.sjekk((t.norsk ? /Testspiller B begynner/ : /Testspiller B/).test(await t.tekst(".dm-melding")), "Meldingen sier ikke at Testspiller B begynner");
 
   // Against the phone, Vanskelig: it answers in time and the page keeps breathing
   await t.klikk("#tilbake");
@@ -227,9 +229,9 @@ export default async function (t) {
   t.sjekk((await sp()).resultat && (await sp()).resultat.vinner === 0, "Seieren mot mobilen ble ikke registrert");
   t.sjekk((await t.tilstand()).rekord[2].seier === 1, "Seieren ble ikke telt mot Lett");
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
-  t.sjekk(/Du vinner/.test(await t.tekst("#skjerm h1")), "Kåringen sier ikke «Du vinner!»");
+  t.sjekk(!t.norsk || /Du vinner/.test(await t.tekst("#skjerm h1")), "Kåringen sier ikke «Du vinner!»");
   await t.bilde("du-vinner", true);
   await t.klikk("#tilbake");
-  t.sjekk(/Lett/.test(await t.tekst(".dm-rekorder")), "Rekorden mot mobilen vises ikke på hjemskjermen");
+  t.sjekk((t.norsk ? /Lett/ : /\S/).test(await t.tekst(".dm-rekorder")), "Rekorden mot mobilen vises ikke på hjemskjermen");
   await t.bilde("hjem-rekord", true);
 }

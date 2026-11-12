@@ -12,5 +12,23 @@
   "farge": "#c98b5a",
   "sok": ["dam", "damspill", "dambrett", "checkers", "draughts", "dam på nett", "spill dam"],
   "motMobilen": true,
-  "alias": ["damspill"]
+  "alias": ["damspill"],
+  "i18n": {
+    "en": {
+      "navn": "Draughts",
+      "undertittel": "Jump and be crowned",
+      "kort": "Jump your opponent's pieces – reach the far side and be crowned.",
+      "beskrivelse": "Free draughts in your browser, Nordic rules: against the phone at four levels or two on the same phone – with compulsory captures, multi-jumps and flying kings.",
+      "slug": "draughts",
+      "sok": ["draughts", "checkers", "draughts against computer", "draughts online", "checkers free", "board game"]
+    },
+    "da": {
+      "navn": "Dam",
+      "undertittel": "Hop og bliv dam",
+      "kort": "Hop over modstanderens brikker – kom frem og bliv dam.",
+      "beskrivelse": "Gratis dam direkte i browseren: mod mobilen på fire niveauer eller to på samme mobil – med slagtvang, flere slag i træk, flyvende dam og fortryd-knap.",
+      "slug": "dam",
+      "sok": ["dam", "damspil", "dam mod computeren", "dam online", "dambræt", "brætspil"]
+    }
+  }
 }

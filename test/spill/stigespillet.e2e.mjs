@@ -4,10 +4,12 @@
 // 100 is home (default rule) and «Kåringen» with the podium, the places, «Lengste skli» and the
 // evening's scoreboard. The board must be clear of the dock at every size (also on its side).
 // Dice are forced by stubbing crypto.getRandomValues; positions are set through Rusj.S.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en stigespillet): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the names, the state and the links (t.forside, t.nokkel).
 const NAVN = ["Testspiller A", "Testspiller B"];
-const SP = `JSON.parse(localStorage.getItem("rusj.stigespillet.v1")).spill`;
 
 export default async function (t) {
+  const SP = `JSON.parse(localStorage.getItem("${t.nokkel("stigespillet.v1")}")).spill`;
   const terninger = (verdier) =>
     t.js(`(() => { const v = ${JSON.stringify(verdier)}; let i = 0; crypto.getRandomValues = (a) => { a[0] = Math.floor((v[i++ % v.length] - 0.5) / 6 * 4294967296); return a; }; })()`);
   const ekte = () => t.js("delete crypto.getRandomValues");
@@ -63,7 +65,7 @@ export default async function (t) {
   s = await t.tilstand();
   t.sjekk(s.spill.tur === 1 && s.spill.ekstra, "En sekser skal gi et ekstra kast");
   await stille();
-  t.sjekk(/Kast igjen/.test(await t.tekst(".dokk .knapp")), "Knappen skal si «Kast igjen» etter en sekser");
+  t.sjekk(!t.norsk || /Kast igjen/.test(await t.tekst(".dokk .knapp")), "Knappen skal si «Kast igjen» etter en sekser");
   await t.bilde("seks");
   await terninger([4]);
   await kast();
@@ -114,16 +116,16 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-slutt')", 12000);
   await ekte();
   await t.sov(800);
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === `${NAVN[1]} vinner!`, `Vinneren vises ikke: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(t.norsk ? (await t.tekst("#skjerm h1")).trim() === `${NAVN[1]} vinner!` : (await t.tekst("#skjerm h1")).includes(NAVN[1]), `Vinneren vises ikke: «${await t.tekst("#skjerm h1")}»`);
   t.sjekk(await t.finnes(".pall"), "Kåringen mangler pallen");
   t.sjekk((await t.antall(".sg-rang li")) === 3, "Plasseringene skal vise alle tre");
   t.sjekk(/63 → 22/.test(await t.tekst(".sg-fakta")), "«Lengste skli: 63 → 22» mangler");
   t.sjekk((await t.tilstand())._aktiv === false, "Et ferdig spill skal ikke være merket som pågående");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Kåringen mangler «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Kåringen mangler «Alle spill»");
   await t.bilde("kaaring", true);
   await t.sov(2000);
   if (await t.finnes('#ark:not([hidden]) [data-h="lukk-ark"]')) await t.klikk('#ark [data-h="lukk-ark"]');
-  const kveld = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  const kveld = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
   t.sjekk(kveld && kveld.spill.some((x) => x.id === "stigespillet"), "Kåringen ble ikke registrert i «Kveldens gjeng»");
 
   // ---------- Play again: same setup, the other boards look right too ----------
@@ -143,5 +145,5 @@ export default async function (t) {
   await t.sov(2200);
   if (await t.finnes('#ark:not([hidden]) [data-h="lukk-ark"]')) await t.klikk('#ark [data-h="lukk-ark"]');
   await t.klikk("#tilbake");
-  t.sjekk(/Sist vant/.test(await t.tekst(".hjem-knapper")), "Hjem viser ikke hvem som vant sist");
+  t.sjekk((t.norsk ? /Sist vant/ : /Testspiller [AB]/).test(await t.tekst(".hjem-knapper")), "Hjem viser ikke hvem som vant sist");
 }

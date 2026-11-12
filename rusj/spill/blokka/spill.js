@@ -4,7 +4,7 @@
    piece, the arrow keys move it, Enter places it). Pieces never turn. A full row or column is
    cleared; several lines at once is a combo, clears close together make a streak. When none of
    the pieces that are left fits anywhere, the game is over.
-   «Dagens blokk»: the same 60 pieces for everyone on an Oslo day, one try, no undo.
+   «Dagens blokk»: the same 60 pieces for everyone on the edition's day (Oslo, London or Copenhagen), one try, no undo.
    The rules (Blokk) are pure functions at the top; test/blokka.test.mjs loads this file without
    the kit (node:vm) and checks them.
 
@@ -26,47 +26,49 @@
 
   // ---------- The rules ----------
 
+  // R.t before the kit's R is in scope (the rules also load in the unit tests, without the kit).
+  const Rt = { t: (s) => (window.Rusj && window.Rusj.t ? window.Rusj.t(s) : s) };
   const Blokk = (() => {
     const N = 8;
     // [id, colour 1–7, art (rows split by "/"), name for a screen reader]
     const DEF = [
-      ["1", 2, "#", "Prikk"],
-      ["2h", 4, "##", "Strek på 2, liggende"],
-      ["2v", 4, "#/#", "Strek på 2, stående"],
-      ["3h", 4, "###", "Strek på 3, liggende"],
-      ["3v", 4, "#/#/#", "Strek på 3, stående"],
-      ["4h", 4, "####", "Strek på 4, liggende"],
-      ["4v", 4, "#/#/#/#", "Strek på 4, stående"],
-      ["5h", 4, "#####", "Strek på 5, liggende"],
-      ["5v", 4, "#/#/#/#/#", "Strek på 5, stående"],
-      ["h3a", 3, "##/#.", "Lite hjørne, åpent nede til høyre"],
-      ["h3b", 3, "##/.#", "Lite hjørne, åpent nede til venstre"],
-      ["h3c", 3, "#./##", "Lite hjørne, åpent oppe til høyre"],
-      ["h3d", 3, ".#/##", "Lite hjørne, åpent oppe til venstre"],
-      ["o4", 2, "##/##", "Kvadrat 2 × 2"],
-      ["l4a", 6, "#./#./##", "L på 4, stående, fot nede til høyre"],
-      ["l4b", 6, ".#/.#/##", "L på 4, stående, fot nede til venstre"],
-      ["l4c", 6, "##/#./#.", "L på 4, stående, arm oppe til høyre"],
-      ["l4d", 6, "##/.#/.#", "L på 4, stående, arm oppe til venstre"],
-      ["l4e", 6, "###/#..", "L på 4, liggende, arm nede til venstre"],
-      ["l4f", 6, "###/..#", "L på 4, liggende, arm nede til høyre"],
-      ["l4g", 6, "#../###", "L på 4, liggende, arm oppe til venstre"],
-      ["l4h", 6, "..#/###", "L på 4, liggende, arm oppe til høyre"],
-      ["t4a", 5, "###/.#.", "T, spissen ned"],
-      ["t4b", 5, ".#./###", "T, spissen opp"],
-      ["t4c", 5, "#./##/#.", "T, spissen til høyre"],
-      ["t4d", 5, ".#/##/.#", "T, spissen til venstre"],
-      ["s4a", 7, ".##/##.", "Trapp, liggende, stiger mot høyre"],
-      ["s4b", 7, "##./.##", "Trapp, liggende, stiger mot venstre"],
-      ["s4c", 7, "#./##/.#", "Trapp, stående, går ned mot høyre"],
-      ["s4d", 7, ".#/##/#.", "Trapp, stående, går ned mot venstre"],
-      ["h5a", 1, "###/#../#..", "Stort hjørne, åpent nede til høyre"],
-      ["h5b", 1, "###/..#/..#", "Stort hjørne, åpent nede til venstre"],
-      ["h5c", 1, "#../#../###", "Stort hjørne, åpent oppe til høyre"],
-      ["h5d", 1, "..#/..#/###", "Stort hjørne, åpent oppe til venstre"],
-      ["r6h", 3, "###/###", "Rektangel 3 × 2, liggende"],
-      ["r6v", 3, "##/##/##", "Rektangel 2 × 3, stående"],
-      ["o9", 2, "###/###/###", "Kvadrat 3 × 3"],
+      ["1", 2, "#", Rt.t("Prikk")],
+      ["2h", 4, "##", Rt.t("Strek på 2, liggende")],
+      ["2v", 4, "#/#", Rt.t("Strek på 2, stående")],
+      ["3h", 4, "###", Rt.t("Strek på 3, liggende")],
+      ["3v", 4, "#/#/#", Rt.t("Strek på 3, stående")],
+      ["4h", 4, "####", Rt.t("Strek på 4, liggende")],
+      ["4v", 4, "#/#/#/#", Rt.t("Strek på 4, stående")],
+      ["5h", 4, "#####", Rt.t("Strek på 5, liggende")],
+      ["5v", 4, "#/#/#/#/#", Rt.t("Strek på 5, stående")],
+      ["h3a", 3, "##/#.", Rt.t("Lite hjørne, åpent nede til høyre")],
+      ["h3b", 3, "##/.#", Rt.t("Lite hjørne, åpent nede til venstre")],
+      ["h3c", 3, "#./##", Rt.t("Lite hjørne, åpent oppe til høyre")],
+      ["h3d", 3, ".#/##", Rt.t("Lite hjørne, åpent oppe til venstre")],
+      ["o4", 2, "##/##", Rt.t("Kvadrat 2 × 2")],
+      ["l4a", 6, "#./#./##", Rt.t("L på 4, stående, fot nede til høyre")],
+      ["l4b", 6, ".#/.#/##", Rt.t("L på 4, stående, fot nede til venstre")],
+      ["l4c", 6, "##/#./#.", Rt.t("L på 4, stående, arm oppe til høyre")],
+      ["l4d", 6, "##/.#/.#", Rt.t("L på 4, stående, arm oppe til venstre")],
+      ["l4e", 6, "###/#..", Rt.t("L på 4, liggende, arm nede til venstre")],
+      ["l4f", 6, "###/..#", Rt.t("L på 4, liggende, arm nede til høyre")],
+      ["l4g", 6, "#../###", Rt.t("L på 4, liggende, arm oppe til venstre")],
+      ["l4h", 6, "..#/###", Rt.t("L på 4, liggende, arm oppe til høyre")],
+      ["t4a", 5, "###/.#.", Rt.t("T, spissen ned")],
+      ["t4b", 5, ".#./###", Rt.t("T, spissen opp")],
+      ["t4c", 5, "#./##/#.", Rt.t("T, spissen til høyre")],
+      ["t4d", 5, ".#/##/.#", Rt.t("T, spissen til venstre")],
+      ["s4a", 7, ".##/##.", Rt.t("Trapp, liggende, stiger mot høyre")],
+      ["s4b", 7, "##./.##", Rt.t("Trapp, liggende, stiger mot venstre")],
+      ["s4c", 7, "#./##/.#", Rt.t("Trapp, stående, går ned mot høyre")],
+      ["s4d", 7, ".#/##/#.", Rt.t("Trapp, stående, går ned mot venstre")],
+      ["h5a", 1, "###/#../#..", Rt.t("Stort hjørne, åpent nede til høyre")],
+      ["h5b", 1, "###/..#/..#", Rt.t("Stort hjørne, åpent nede til venstre")],
+      ["h5c", 1, "#../#../###", Rt.t("Stort hjørne, åpent oppe til høyre")],
+      ["h5d", 1, "..#/..#/###", Rt.t("Stort hjørne, åpent oppe til venstre")],
+      ["r6h", 3, "###/###", Rt.t("Rektangel 3 × 2, liggende")],
+      ["r6v", 3, "##/##/##", Rt.t("Rektangel 2 × 3, stående")],
+      ["o9", 2, "###/###/###", Rt.t("Kvadrat 3 × 3")],
     ];
     const FORMER = Object.create(null);
     const LISTE = [];
@@ -231,9 +233,12 @@
 
   const DAG_SETT = 20; // «Dagens blokk»: 20 sets, 60 pieces
   const DAG_BRIKKER = DAG_SETT * 3;
-  const UKEDAG = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
-  const MANED = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
-  const KOMBO = ["", "", "Dobbel!", "Trippel!", "Firedobbel!", "Femdobbel!", "Seksdobbel!"];
+  // Every text goes through R.t (rusj/SPRAK.md): the key is the Norwegian text.
+  const UKEDAG = [R.t("søndag"), R.t("mandag"), R.t("tirsdag"), R.t("onsdag"), R.t("torsdag"), R.t("fredag"), R.t("lørdag")];
+  const MANED = [R.t("januar"), R.t("februar"), R.t("mars"), R.t("april"), R.t("mai"), R.t("juni"), R.t("juli"), R.t("august"), R.t("september"), R.t("oktober"), R.t("november"), R.t("desember")];
+  const KOMBO = ["", "", R.t("Dobbel!"), R.t("Trippel!"), R.t("Firedobbel!"), R.t("Femdobbel!"), R.t("Seksdobbel!")];
+  // This edition's address (rusj.no/blokka/, rusj.no/en/…)
+  const ADRESSE = (document.querySelector('link[rel="canonical"]') || { href: "https://rusj.no/blokka/" }).href;
   const LOFT = 64; // px the dragged piece floats above a finger
 
   let H; // actions
@@ -244,9 +249,9 @@
   let sisteDra = 0; // time of the last drop (a click right after it is not a tap)
 
   const ukedag = (nr) => UKEDAG[(((nr + 4) % 7) + 7) % 7]; // day 0 (1 Jan 1970) was a Thursday
-  const datoTekst = (tekst) => `${Number(tekst.slice(8, 10))}. ${MANED[Number(tekst.slice(5, 7)) - 1]}`;
-  const kortDato = (tekst) => `${Number(tekst.slice(8, 10))}.${Number(tekst.slice(5, 7))}`;
-  const resTekst = (p) => `${R.tall(p)} p`;
+  const datoTekst = (tekst) => R.t("{dag}. {maned}", { dag: Number(tekst.slice(8, 10)), maned: MANED[Number(tekst.slice(5, 7)) - 1] });
+  const kortDato = (tekst) => R.t("{dag}.{mnd}", { dag: Number(tekst.slice(8, 10)), mnd: Number(tekst.slice(5, 7)) });
+  const resTekst = (p) => R.t("{poeng} p", { poeng: R.tall(p) }); // on the front page
 
   // ---------- The game state ----------
 
@@ -361,12 +366,12 @@
     return { f, x, y, ...r, poeng: p, rekke: sp.rekke, rent: tomtNa, nyttSett };
   }
 
-  // ---------- Countdown to the next daily (midnight in Norway) ----------
+  // ---------- Countdown to the next daily (midnight in the edition's time zone) ----------
 
   function sekunderTilNy() {
     const na = Date.now();
     const deler = {};
-    new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    new Intl.DateTimeFormat("en-GB", { timeZone: R.tidssone, hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
       .formatToParts(new Date(na))
       .forEach((p) => (deler[p.type] = Number(p.value)));
     let igjen = 86400 - ((deler.hour % 24) * 3600 + deler.minute * 60 + deler.second);
@@ -377,7 +382,7 @@
     return Math.max(1, igjen);
   }
   const klokkeTekst = (s) => `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-  const nedtellingHtml = () => `<p class="bk-nedtelling">Ny blokk om <b>${klokkeTekst(sekunderTilNy())}</b></p>`;
+  const nedtellingHtml = () => `<p class="bk-nedtelling">${esc(R.t("Ny blokk om"))} <b>${klokkeTekst(sekunderTilNy())}</b></p>`;
   let nedtellingId = null;
   function startNedtelling() {
     clearInterval(nedtellingId);
@@ -422,9 +427,9 @@
   function radTekst(brett, y) {
     const fylt = [];
     for (let x = 0; x < N; x++) if (brett[y * N + x]) fylt.push(x + 1);
-    if (!fylt.length) return `Rad ${y + 1}: tom`;
-    if (fylt.length === N) return `Rad ${y + 1}: full`;
-    return `Rad ${y + 1}: ${spenn(fylt)}`;
+    if (!fylt.length) return R.t("Rad {n}: tom", { n: y + 1 });
+    if (fylt.length === N) return R.t("Rad {n}: full", { n: y + 1 });
+    return R.t("Rad {n}: {fylt}", { n: y + 1, fylt: spenn(fylt) });
   }
   const brettTekst = (brett) => Array.from({ length: N }, (_, y) => `<li>${radTekst(brett, y)}</li>`).join("");
 
@@ -432,7 +437,7 @@
     const f = F[sp.tilbud[i]];
     if (!f) return "";
     const passerIkke = !Blokk.finnesPlass(sp.brett, f);
-    return `Brikke ${i + 1}: ${f.navn}, ${R.flertall(f.n, "rute", "ruter")}${passerIkke ? ", passer ikke" : ""}`;
+    return R.t("Brikke {n}: {navn}, {ruter}", { n: i + 1, navn: f.navn, ruter: R.flertall(f.n, "rute", "ruter") }) + (passerIkke ? ", " + R.t("passer ikke") : "");
   }
 
   function brikkerHtml(sp) {
@@ -441,28 +446,28 @@
         const f = F[sp.tilbud[i]];
         if (!f) return `<span class="bk-plass tom" aria-hidden="true"></span>`;
         const ikke = !Blokk.finnesPlass(sp.brett, f);
-        return `<button class="bk-plass bk-brikke${ikke ? " ikke" : ""}${valgt === i ? " valgt" : ""}" data-h="velg" data-v="${i}" data-stille aria-pressed="${valgt === i}" aria-label="${esc(brikkeEtikett(sp, i))}">${formHtml(f)}${ikke ? '<small class="bk-ikke">Passer ikke</small>' : ""}<kbd aria-hidden="true">${i + 1}</kbd></button>`;
+        return `<button data-h="velg" class="bk-plass bk-brikke${ikke ? " ikke" : ""}${valgt === i ? " valgt" : ""}" data-v="${i}" data-stille aria-pressed="${valgt === i}" aria-label="${esc(brikkeEtikett(sp, i))}">${formHtml(f)}${ikke ? `<small class="bk-ikke">${esc(R.t("Passer ikke"))}</small>` : ""}<kbd aria-hidden="true">${i + 1}</kbd></button>`;
       })
       .join("");
   }
 
   function hudHtml(S, sp) {
     const dag = !!sp.dagens;
-    const rekke = sp.rekke >= 2 ? `<i class="bk-rekke">Rekke ×${sp.rekke}</i>` : "";
-    return `<span class="bk-stat bk-poengboks"><small>Poeng</small><b id="bk-poeng">${R.tall(sp.poeng)}</b>${rekke}</span>
+    const rekke = sp.rekke >= 2 ? `<i class="bk-rekke">${esc(R.t("Rekke ×{n}", { n: sp.rekke }))}</i>` : "";
+    return `<span class="bk-stat bk-poengboks"><small>${esc(R.t("Poeng"))}</small><b id="bk-poeng">${R.tall(sp.poeng)}</b>${rekke}</span>
       ${
         dag
-          ? `<span class="bk-stat"><small>Brikker</small><b id="bk-igjen">${sp.lagt} av ${DAG_BRIKKER}</b></span>`
-          : `<span class="bk-stat"><small>Rekord</small><b id="bk-beste">${R.tall(Math.max(S.rekord || 0, sp.poeng))}</b></span>
-      <button class="bk-verk" data-h="angre" data-stille aria-label="Angre siste brikke"${kanAngre(sp) ? "" : " disabled"}>${IKON.angre}<span>Angre</span></button>
-      <button class="bk-verk" data-h="ny" aria-label="Start på nytt">${IKON.ny}<span>Ny</span></button>`
+          ? `<span class="bk-stat"><small>${esc(R.t("Brikker"))}</small><b id="bk-igjen">${esc(R.t("{n} av {alle}", { n: sp.lagt, alle: DAG_BRIKKER }))}</b></span>`
+          : `<span class="bk-stat"><small>${esc(R.t("Rekord"))}</small><b id="bk-beste">${R.tall(Math.max(S.rekord || 0, sp.poeng))}</b></span>
+      <button class="bk-verk" data-h="angre" data-stille aria-label="${esc(R.t("Angre siste brikke"))}"${kanAngre(sp) ? "" : " disabled"}>${IKON.angre}<span>${esc(R.t("Angre"))}</span></button>
+      <button class="bk-verk" data-h="ny" aria-label="${esc(R.t("Start på nytt"))}">${IKON.ny}<span>${esc(R.t("Ny"))}</span></button>`
       }`;
   }
 
   function tipsTekst(sp) {
-    if (sp.over) return sp.grunn === "alle" ? "Alle brikkene er lagt!" : "Ingen av brikkene får plass.";
-    if (valgt >= 0 && sp.tilbud[valgt]) return markor ? "Piltastene flytter · Enter legger · Esc angrer valget" : "Trykk på en rute for å legge brikken";
-    return sp.lagt < 2 ? "Dra en brikke til brettet – eller trykk på den og så på en rute" : "Fyll en rad eller kolonne for å rydde den";
+    if (sp.over) return sp.grunn === "alle" ? R.t("Alle brikkene er lagt!") : R.t("Ingen av brikkene får plass.");
+    if (valgt >= 0 && sp.tilbud[valgt]) return markor ? R.t("Piltastene flytter · Enter legger · Esc angrer valget") : R.t("Trykk på en rute for å legge brikken");
+    return sp.lagt < 2 ? R.t("Dra en brikke til brettet – eller trykk på den og så på en rute") : R.t("Fyll en rad eller kolonne for å rydde den");
   }
 
   // Bring the board, the tray, the HUD and the text for a screen reader up to date.
@@ -604,8 +609,8 @@
     }
     // The words: «Dobbel!», «Rekke ×3», «Rent brett!» and the points.
     if (info.linjer) {
-      const ord = info.rent ? "Rent brett!" : KOMBO[info.linjer] || (info.rekke >= 2 ? `Rekke ×${info.rekke}` : info.linjer === 1 ? "Ryddet!" : "Kjempekombo!");
-      const under = info.linjer >= 2 && info.rekke >= 2 ? `Rekke ×${info.rekke} · +${R.tall(info.poeng.sum)}` : `+${R.tall(info.poeng.sum)}`;
+      const ord = info.rent ? R.t("Rent brett!") : KOMBO[info.linjer] || (info.rekke >= 2 ? R.t("Rekke ×{n}", { n: info.rekke }) : info.linjer === 1 ? R.t("Ryddet!") : R.t("Kjempekombo!"));
+      const under = info.linjer >= 2 && info.rekke >= 2 ? `${R.t("Rekke ×{n}", { n: info.rekke })} · +${R.tall(info.poeng.sum)}` : `+${R.tall(info.poeng.sum)}`;
       const pop = document.createElement("div");
       pop.className = "bk-pop" + (info.linjer >= 2 || info.rekke >= 3 || info.rent ? " stor" : "");
       pop.innerHTML = `<b>${esc(ord)}</b><small>${esc(under)}</small>`;
@@ -639,18 +644,18 @@
 
   // A sentence for a screen reader after each piece.
   function lesOpp(sp, info) {
-    const deler = [`${info.f.navn} lagt i rad ${info.y + 1}, kolonne ${info.x + 1}.`];
+    const deler = [R.t("{navn} lagt i rad {rad}, kolonne {kolonne}.", { navn: info.f.navn, rad: info.y + 1, kolonne: info.x + 1 })];
     if (info.linjer) {
       const hva = [];
-      if (info.rader.length) hva.push(`rad ${R.ramsOpp(info.rader.map((r) => String(r + 1)))}`);
-      if (info.kolonner.length) hva.push(`kolonne ${R.ramsOpp(info.kolonner.map((k) => String(k + 1)))}`);
-      const t = hva.join(" og ");
-      deler.push(`${KOMBO[info.linjer] ? KOMBO[info.linjer] + " " : ""}${t[0].toUpperCase() + t.slice(1)} ryddet.`);
-      if (info.rekke >= 2) deler.push(`Rekke ganger ${info.rekke}.`);
-      if (info.rent) deler.push("Rent brett!");
+      if (info.rader.length) hva.push(R.t("rad {liste}", { liste: R.ramsOpp(info.rader.map((r) => String(r + 1))) }));
+      if (info.kolonner.length) hva.push(R.t("kolonne {liste}", { liste: R.ramsOpp(info.kolonner.map((k) => String(k + 1))) }));
+      const t = hva.join(` ${R.t("og")} `);
+      deler.push(`${KOMBO[info.linjer] ? KOMBO[info.linjer] + " " : ""}${R.t("{hva} ryddet.", { hva: t[0].toUpperCase() + t.slice(1) })}`);
+      if (info.rekke >= 2) deler.push(R.t("Rekke ganger {n}.", { n: info.rekke }));
+      if (info.rent) deler.push(R.t("Rent brett!"));
     }
-    deler.push(`Pluss ${info.poeng.sum}. ${R.tall(sp.poeng)} poeng.`);
-    if (info.nyttSett && !sp.over) deler.push("Tre nye brikker.");
+    deler.push(R.t("Pluss {n}. {poeng} poeng.", { n: info.poeng.sum, poeng: R.tall(sp.poeng) }));
+    if (info.nyttSett && !sp.over) deler.push(R.t("Tre nye brikker."));
     R.si(deler.join(" "));
   }
 
@@ -720,16 +725,16 @@
     tegn(S, false);
     if (alle) {
       R.lyd.riktig();
-      R.si(`Alle ${DAG_BRIKKER} brikkene er lagt. ${R.tall(sp.poeng)} poeng.`);
+      R.si(R.t("Alle {n} brikkene er lagt. {poeng} poeng.", { n: DAG_BRIKKER, poeng: R.tall(sp.poeng) }));
     } else {
       R.lyd.tone(330, 0.05, 0.22, "triangle", 0.1, 220);
       R.vibrer([50, 40, 50]);
-      const ikke = sp.tilbud.map((id, i) => (id ? `brikke ${i + 1}, ${F[id].navn}` : null)).filter(Boolean);
-      R.si(`Ingen brikker passer: ${R.ramsOpp(ikke)}. ${R.tall(sp.poeng)} poeng.`);
+      const ikke = sp.tilbud.map((id, i) => (id ? R.t("brikke {n}, {navn}", { n: i + 1, navn: F[id].navn }) : null)).filter(Boolean);
+      R.si(R.t("Ingen brikker passer: {liste}. {poeng} poeng.", { liste: R.ramsOpp(ikke), poeng: R.tall(sp.poeng) }));
     }
     const m = R.$(".bk-melding");
     if (m) {
-      m.innerHTML = `<div class="bk-meldingskort${alle ? " alle" : ""}"><h2>${alle ? "Alle brikkene er lagt!" : "Ingen brikker passer!"}</h2><p>${alle ? `${DAG_BRIKKER} av ${DAG_BRIKKER} – godt jobba.` : sp.tilbud.filter(Boolean).length === 1 ? "Brikken som er igjen, får ikke plass." : "Brikkene som er igjen, får ikke plass."}</p></div>`;
+      m.innerHTML = `<div class="bk-meldingskort${alle ? " alle" : ""}"><h2>${esc(alle ? R.t("Alle brikkene er lagt!") : R.t("Ingen brikker passer!"))}</h2><p>${esc(alle ? R.t("{n} av {n} – godt jobba.", { n: DAG_BRIKKER }) : sp.tilbud.filter(Boolean).length === 1 ? R.t("Brikken som er igjen, får ikke plass.") : R.t("Brikkene som er igjen, får ikke plass."))}</p></div>`;
       m.hidden = false;
     }
     const fortsatt = R.vakt();
@@ -784,7 +789,7 @@
     const b = R.$(".bk-verk[data-h='ny']") || R.$(".bk-brikke");
     if (document.activeElement === document.body && b) b.focus({ preventScroll: true });
     R.lyd.tone(520, 0, 0.1, "triangle", 0.09, 330);
-    R.si(`Angret. ${R.tall(sp.poeng)} poeng. Du kan angre igjen når du får tre nye brikker.`);
+    R.si(R.t("Angret. {poeng} poeng. Du kan angre igjen når du får tre nye brikker.", { poeng: R.tall(sp.poeng) }));
     R.lagre();
   }
 
@@ -826,7 +831,7 @@
     const ok = Blokk.passer(sp.brett, f, markor.x, markor.y);
     let linjer = 0;
     if (ok) linjer = Blokk.legg(sp.brett, f, markor.x, markor.y).linjer;
-    R.si(`${f.navn}: rad ${markor.y + 1}, kolonne ${markor.x + 1}. ${ok ? (linjer ? `Passer, rydder ${R.flertall(linjer, "linje", "linjer")}.` : "Passer.") : "Passer ikke her."}`);
+    R.si(`${R.t("{navn}: rad {rad}, kolonne {kolonne}.", { navn: f.navn, rad: markor.y + 1, kolonne: markor.x + 1 })} ${ok ? (linjer ? R.t("Passer, rydder {antall}.", { antall: R.flertall(linjer, "linje", "linjer") }) : R.t("Passer.")) : R.t("Passer ikke her.")}`);
   }
 
   function cellePa(g, px, py) {
@@ -979,7 +984,7 @@
         const m = midtPa(f, c.x, c.y);
         skygge(S, { i: valgt, x: m.x, y: m.y });
         nei();
-        R.si("Passer ikke der.");
+        R.si(R.t("Passer ikke der."));
         const fortsatt = R.vakt();
         setTimeout(() => fortsatt() && skygge(R.S), 600);
       }
@@ -1048,7 +1053,7 @@
       siMarkor(S);
     } else if ((e.key === "Enter" || e.key === " ") && paBrett) {
       e.preventDefault();
-      if (!plasser(S, valgt, markor.x, markor.y)) R.si("Passer ikke her.");
+      if (!plasser(S, valgt, markor.x, markor.y)) R.si(R.t("Passer ikke her."));
     } else if (e.key === "Escape") {
       e.preventDefault();
       const i = valgt;
@@ -1148,19 +1153,19 @@
     },
 
     regler: {
-      intro: "Legg brikkene på brettet. Fyller du en hel rad eller kolonne, forsvinner den – og du får poeng.",
+      intro: R.t("Legg brikkene på brettet. Fyller du en hel rad eller kolonne, forsvinner den – og du får poeng."),
       steg: [
-        ["Legg brikkene", "Du får tre brikker om gangen. Dra en brikke til brettet, eller trykk på den og så på en rute. Brikkene kan ikke snus."],
-        ["Rydd linjer", "En full rad eller kolonne forsvinner. Flere linjer på én gang gir kombo, og rydder du igjen innen tre brikker, vokser rekka – da ganges poengene opp."],
-        ["Ikke gå tom for plass", "Når ingen av brikkene du har igjen får plass, er spillet over."],
+        [R.t("Legg brikkene"), R.t("Du får tre brikker om gangen. Dra en brikke til brettet, eller trykk på den og så på en rute. Brikkene kan ikke snus.")],
+        [R.t("Rydd linjer"), R.t("En full rad eller kolonne forsvinner. Flere linjer på én gang gir kombo, og rydder du igjen innen tre brikker, vokser rekka – da ganges poengene opp.")],
+        [R.t("Ikke gå tom for plass"), R.t("Når ingen av brikkene du har igjen får plass, er spillet over.")],
       ],
       tips: [
-        "Hold midten av brettet ledig – de store brikkene trenger plass.",
-        "Tenk på alle tre brikkene før du legger den første.",
-        "Brikker som ikke får plass akkurat nå, er merket «Passer ikke».",
-        "I fritt spill kan du angre den siste brikken – én gang for hver runde med tre brikker.",
-        `Dagens blokk er de samme ${DAG_BRIKKER} brikkene for alle i hele landet. Du har ett forsøk, og du kan ikke angre.`,
-        "Med tastatur: 1, 2 og 3 velger brikke, piltastene flytter den, Enter legger den og Esc angrer valget.",
+        R.t("Hold midten av brettet ledig – de store brikkene trenger plass."),
+        R.t("Tenk på alle tre brikkene før du legger den første."),
+        R.t("Brikker som ikke får plass akkurat nå, er merket «Passer ikke»."),
+        R.t("I fritt spill kan du angre den siste brikken – én gang for hver runde med tre brikker."),
+        R.t("Dagens blokk er de samme {n} brikkene for alle i hele landet. Du har ett forsøk, og du kan ikke angre.", { n: DAG_BRIKKER }),
+        R.t("Med tastatur: 1, 2 og 3 velger brikke, piltastene flytter den, Enter legger den og Esc angrer valget."),
       ],
     },
 
@@ -1173,35 +1178,35 @@
           const lost = S.daglig.dager[d.tekst];
           const fri = S.fri && !S.fri.ferdig && S.fri.lagt > 0 ? S.fri : null;
           const r = dagRekke(S);
-          const regler = R.ui.lenke("Slik spiller du", "regler");
-          const fortsett = fri ? `Fortsett · ${R.tall(fri.poeng)} poeng` : "";
+          const regler = R.ui.lenke(R.t("Slik spiller du"), "regler");
+          const fortsett = fri ? R.t("Fortsett · {poeng} poeng", { poeng: R.tall(fri.poeng) }) : "";
           let knapper;
           if (!lost) {
             const navn = ukedag(d.nr);
-            const under = dag && dag.lagt > 0 ? `${R.tall(dag.poeng)} poeng · ${dag.lagt} av ${DAG_BRIKKER} brikker` : `${navn[0].toUpperCase() + navn.slice(1)} · ${DAG_BRIKKER} brikker · ${r > 0 ? `🔥 ${R.flertall(r, "dag", "dager")} på rad` : "ett forsøk"}`;
+            const under = dag && dag.lagt > 0 ? R.t("{poeng} poeng · {n} av {alle} brikker", { poeng: R.tall(dag.poeng), n: dag.lagt, alle: DAG_BRIKKER }) : `${navn[0].toUpperCase() + navn.slice(1)} · ${R.t("{n} brikker", { n: DAG_BRIKKER })} · ${r > 0 ? `🔥 ${R.t("{dager} på rad", { dager: R.flertall(r, "dag", "dager") })}` : R.t("ett forsøk")}`;
             knapper =
               R.ui.knapp("", "dagens", {
                 variant: "stor",
-                tekstHtml: `${kalender(d)}<span class="bk-dagknapp"><b>${dag && dag.lagt > 0 ? "Fortsett dagens blokk" : "Dagens blokk"}</b><small>${esc(under)}</small></span>`,
+                tekstHtml: `${kalender(d)}<span class="bk-dagknapp"><b>${esc(dag && dag.lagt > 0 ? R.t("Fortsett dagens blokk") : R.t("Dagens blokk"))}</b><small>${esc(under)}</small></span>`,
               }) +
-              (fri ? R.ui.knapp2(fortsett, "fortsett") + R.ui.lenkerad(R.ui.lenke("Nytt spill", "nytt"), regler) : R.ui.knapp2("Spill fritt", "nytt") + regler);
+              (fri ? R.ui.knapp2(fortsett, "fortsett") + R.ui.lenkerad(R.ui.lenke(R.t("Nytt spill"), "nytt"), regler) : R.ui.knapp2(R.t("Spill fritt"), "nytt") + regler);
           } else {
             knapper =
-              (fri ? R.ui.knapp(fortsett, "fortsett") + R.ui.knapp2("Nytt spill", "nytt") : R.ui.knapp("Spill fritt", "nytt")) +
-              `<p class="bk-daglinje">✓ Dagens blokk: ${R.tall(lost.poeng)} poeng${r > 1 ? ` · 🔥 ${r} dager på rad` : ""}</p>` +
-              R.ui.lenkerad(R.ui.lenke("Se resultatet", "dagens"), regler) +
+              (fri ? R.ui.knapp(fortsett, "fortsett") + R.ui.knapp2(R.t("Nytt spill"), "nytt") : R.ui.knapp(R.t("Spill fritt"), "nytt")) +
+              `<p class="bk-daglinje">✓ ${esc(R.t("Dagens blokk: {poeng} poeng", { poeng: R.tall(lost.poeng) }))}${r > 1 ? ` · 🔥 ${esc(R.t("{n} dager på rad", { n: r }))}` : ""}</p>` +
+              R.ui.lenkerad(R.ui.lenke(R.t("Se resultatet"), "dagens"), regler) +
               nedtellingHtml();
           }
           return (
             R.ui.spillhjem({
-              slagordHtml: "Fyll rader og kolonner.<br><em>Hvor lenge får alt plass?</em>",
+              slagordHtml: `${esc(R.t("Fyll rader og kolonner."))}<br><em>${esc(R.t("Hvor lenge får alt plass?"))}</em>`,
               knapperHtml: knapper,
               merker: [
-                ["8 × 8", "brett"],
-                ["1", "ny hver dag"],
-                ["0", "reklame"],
+                ["8 × 8", R.t("brett")],
+                ["1", R.t("ny hver dag")],
+                ["0", R.t("reklame")],
               ],
-            }) + (S.rekord ? `<p class="bk-rekordlinje">Rekord i fritt spill: <b>${R.tall(S.rekord)} poeng</b></p>` : "")
+            }) + (S.rekord ? `<p class="bk-rekordlinje">${esc(R.t("Rekord i fritt spill:"))} <b>${esc(R.t("{poeng} poeng", { poeng: R.tall(S.rekord) }))}</b></p>` : "")
           );
         },
         inn(S) {
@@ -1210,27 +1215,27 @@
       },
 
       spill: {
-        tittel: (S) => (S.modus === "dag" ? "Dagens blokk" : "Blokka"),
+        tittel: (S) => (S.modus === "dag" ? R.t("Dagens blokk") : R.t("Blokka")),
         tilbake: "hjem",
         liggende: false,
         vis(S) {
           const sp = aktiv(S);
           const dag = !!sp.dagens;
           return `
-            <h1 class="vh" id="skjerm-tittel">${dag ? "Dagens blokk" : "Blokka, fritt spill"}</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(dag ? R.t("Dagens blokk") : R.t("Blokka, fritt spill"))}</h1>
             <div class="bk-spill${dag ? " dag" : ""}">
               <div class="bk-hud${dag ? " dag" : ""}">${hudHtml(S, sp)}</div>
               <div class="bk-flate">
-                <div class="bk-brett" tabindex="0" role="group" aria-label="Brettet, 8 ganger 8. Velg en brikke med 1, 2 eller 3, flytt med piltastene og legg med Enter." aria-describedby="bk-tekst">
+                <div class="bk-brett" tabindex="0" role="group" aria-label="${esc(R.t("Brettet, 8 ganger 8. Velg en brikke med 1, 2 eller 3, flytt med piltastene og legg med Enter."))}" aria-describedby="bk-tekst">
                   <div class="bk-ruter" aria-hidden="true">${"<i></i>".repeat(N * N)}</div>
                   <div class="bk-effekter" aria-hidden="true"></div>
                 </div>
               </div>
-              <ol class="vh" id="bk-tekst" aria-label="Brettet rad for rad, fylte kolonner"></ol>
+              <ol class="vh" id="bk-tekst" aria-label="${esc(R.t("Brettet rad for rad, fylte kolonner"))}"></ol>
               <div class="bk-side">
-                <div class="bk-brikker" role="group" aria-label="Brikkene"></div>
+                <div class="bk-brikker" role="group" aria-label="${esc(R.t("Brikkene"))}"></div>
                 <p class="bk-tips">${esc(tipsTekst(sp))}</p>
-                <p class="bk-tastatur" aria-hidden="true">1–3 velger · piltaster flytter · Enter legger</p>
+                <p class="bk-tastatur" aria-hidden="true">${esc(R.t("1–3 velger · piltaster flytter · Enter legger"))}</p>
               </div>
               <div class="bk-melding" hidden role="status"></div>
             </div>`;
@@ -1267,17 +1272,17 @@
       },
 
       slutt: {
-        tittel: (S) => (S.modus === "dag" ? "Dagens blokk" : "Blokka"),
+        tittel: (S) => (S.modus === "dag" ? R.t("Dagens blokk") : R.t("Blokka")),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
           const sp = aktiv(S);
           const r = sp.resultat || { poeng: sp.poeng };
-          const alle = '<a class="lenke" href="/">Alle spill</a>';
+          const alle = `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`;
           const tall = `<div class="bk-resultat">
-              <div class="bk-tall${r.nyRekord ? " ny" : ""}"><b>${R.tall(sp.poeng)}</b><span>poeng</span>${r.nyRekord ? '<i class="bk-ny">Rekord!</i>' : ""}</div>
-              <div class="bk-tall"><b>${R.tall(sp.linjer)}</b><span>${sp.linjer === 1 ? "linje" : "linjer"}</span></div>
-              <div class="bk-tall"><b>${sp.besteRekke > 1 ? "×" + sp.besteRekke : sp.besteKombo > 1 ? sp.besteKombo : "–"}</b><span>${sp.besteRekke > 1 ? "beste rekke" : sp.besteKombo > 1 ? "linjer på én gang" : "rekke"}</span></div>
+              <div class="bk-tall${r.nyRekord ? " ny" : ""}"><b>${R.tall(sp.poeng)}</b><span>${esc(R.t("poeng|poeng", { n: sp.poeng }))}</span>${r.nyRekord ? `<i class="bk-ny">${esc(R.t("Rekord!"))}</i>` : ""}</div>
+              <div class="bk-tall"><b>${R.tall(sp.linjer)}</b><span>${esc(R.t("linje|linjer", { n: sp.linjer }))}</span></div>
+              <div class="bk-tall"><b>${sp.besteRekke > 1 ? "×" + sp.besteRekke : sp.besteKombo > 1 ? sp.besteKombo : "–"}</b><span>${esc(sp.besteRekke > 1 ? R.t("beste rekke") : sp.besteKombo > 1 ? R.t("linjer på én gang") : R.t("rekke"))}</span></div>
             </div>`;
           if (sp.dagens) {
             const idag = sp.dagens === R.dag().tekst;
@@ -1285,32 +1290,32 @@
             return `
               <div class="banner aksent">
                 ${R.figur()}
-                <p class="etikett">Dagens blokk · ${esc(ukedag(sp.dagNr))} ${esc(datoTekst(sp.dagens))}</p>
-                <h1 id="skjerm-tittel">${alleLagt ? "Alle brikkene lagt!" : "Godt jobba!"}</h1>
+                <p class="etikett">${esc(R.t("Dagens blokk"))} · ${esc(ukedag(sp.dagNr))} ${esc(datoTekst(sp.dagens))}</p>
+                <h1 id="skjerm-tittel">${esc(alleLagt ? R.t("Alle brikkene lagt!") : R.t("Godt jobba!"))}</h1>
               </div>
               ${tall}
-              <p class="hjelp">${alleLagt ? `Du fikk plass til alle ${DAG_BRIKKER} brikkene.` : `${sp.lagt} av ${DAG_BRIKKER} brikker fikk plass.`} Alle i hele landet får de samme brikkene i dag.</p>
+              <p class="hjelp">${esc(alleLagt ? R.t("Du fikk plass til alle {n} brikkene.", { n: DAG_BRIKKER }) : R.t("{n} av {alle} brikker fikk plass.", { n: sp.lagt, alle: DAG_BRIKKER }))} ${esc(R.t("Alle i hele landet får de samme brikkene i dag."))}</p>
               <div class="bk-dagboks">
-                ${r.rekke ? `<p class="bk-dagrekke"><span aria-hidden="true">🔥</span> ${R.flertall(r.rekke, "dag", "dager")} på rad</p>` : ""}
-                ${idag ? nedtellingHtml() : '<p class="bk-nedtelling"><b>En ny blokk er klar!</b></p>'}
+                ${r.rekke ? `<p class="bk-dagrekke"><span aria-hidden="true">🔥</span> ${esc(R.t("{dager} på rad", { dager: R.flertall(r.rekke, "dag", "dager") }))}</p>` : ""}
+                ${idag ? nedtellingHtml() : `<p class="bk-nedtelling"><b>${esc(R.t("En ny blokk er klar!"))}</b></p>`}
               </div>
               ${R.ui.flereSpill({ antall: 1 })}
-              ${idag ? R.ui.dokk(R.ui.knapp("Del resultatet", "del"), R.ui.lenkerad(R.ui.lenke("Spill fritt", "fri"), alle)) : R.ui.dokk(R.ui.knapp("Dagens blokk", "dagens"), R.ui.lenkerad(alle))}`;
+              ${idag ? R.ui.dokk(R.ui.knapp(R.t("Del resultatet"), "del"), R.ui.lenkerad(R.ui.lenke(R.t("Spill fritt"), "fri"), alle)) : R.ui.dokk(R.ui.knapp(R.t("Dagens blokk"), "dagens"), R.ui.lenkerad(alle))}`;
           }
-          const tittel = r.nyRekord ? "Ny rekord!" : "Godt jobba!";
-          const linje = r.nyRekord ? `Forrige rekord: ${R.tall(r.gml)} poeng.` : r.forste ? "Første runde – nå har du en rekord å slå!" : `Rekorden din: ${R.tall(S.rekord)} poeng.`;
+          const tittel = r.nyRekord ? R.t("Ny rekord!") : R.t("Godt jobba!");
+          const linje = r.nyRekord ? R.t("Forrige rekord: {poeng} poeng.", { poeng: R.tall(r.gml) }) : r.forste ? R.t("Første runde – nå har du en rekord å slå!") : R.t("Rekorden din: {poeng} poeng.", { poeng: R.tall(S.rekord) });
           return `
             <div class="banner aksent">
               ${R.figur()}
-              <p class="etikett">Fritt spill · ${R.flertall(sp.lagt, "brikke", "brikker")}</p>
+              <p class="etikett">${esc(R.t("Fritt spill"))} · ${esc(R.flertall(sp.lagt, "brikke", "brikker"))}</p>
               <h1 id="skjerm-tittel">${esc(tittel)}</h1>
             </div>
             ${tall}
             <p class="hjelp">${esc(linje)}</p>
             ${miniBrett(sp)}
-            ${kanAngre(sp) ? `<div class="bk-angrerad">${R.ui.knapp2("Angre siste brikke", "angre-slutt", { variant: "liten" })}</div>` : ""}
+            ${kanAngre(sp) ? `<div class="bk-angrerad">${R.ui.knapp2(R.t("Angre siste brikke"), "angre-slutt", { variant: "liten" })}</div>` : ""}
             ${R.ui.flereSpill({ antall: 1 })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Til Blokka", "tilbake"), alle))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Til Blokka"), "tilbake"), alle))}`;
         },
         inn(S) {
           const sp = aktiv(S);
@@ -1356,7 +1361,7 @@
         const sp = aktiv(S);
         if (sp && !sp.ferdig && sp.lagt > 0) {
           const fortsatt = R.vakt();
-          if (!(await R.bekreft("Starte på nytt?", "Brettet og poengene du har nå, forsvinner.", "Start på nytt", "Avbryt")) || !fortsatt()) return;
+          if (!(await R.bekreft(R.t("Starte på nytt?"), R.t("Brettet og poengene du har nå, forsvinner."), R.t("Start på nytt"), R.t("Avbryt"))) || !fortsatt()) return;
         }
         nyttSpill(S, false);
         R.lyd.sveip();
@@ -1388,11 +1393,13 @@
         if (!best) return;
         const rekke = (sp.resultat && sp.resultat.rekke) || 0;
         const dato = kortDato(sp.dagens);
-        const tekst = `🟦 Blokka ${dato} · ${R.tall(best.poeng)} poeng · ${R.flertall(best.linjer, "linje", "linjer")}${rekke > 1 ? ` · 🔥 ${rekke} dager på rad` : ""}. Klarer du mer på dagens blokk?`;
-        const linjer = [`${R.tall(best.poeng)} poeng`, `${R.flertall(best.linjer, "linje", "linjer")} · ${best.lagt} av ${DAG_BRIKKER} brikker`];
-        if (best.rekke > 1) linjer.push(`Beste rekke ×${best.rekke}`);
-        if (rekke > 1) linjer.push(`🔥 ${rekke} dager på rad`);
-        R.del("Blokka – dagens blokk", tekst, "https://rusj.no/blokka/#utfordring", { kort: { tittel: `Dagens blokk ${dato}`, linjer } });
+        const poeng = R.t("{poeng} poeng", { poeng: R.tall(best.poeng) });
+        const dager = rekke > 1 ? R.t("{n} dager på rad", { n: rekke }) : "";
+        const tekst = `🟦 ${R.t("Blokka")} ${dato} · ${poeng} · ${R.flertall(best.linjer, "linje", "linjer")}${dager ? ` · 🔥 ${dager}` : ""}. ${R.t("Klarer du mer på dagens blokk?")}`;
+        const linjer = [poeng, `${R.flertall(best.linjer, "linje", "linjer")} · ${R.t("{n} av {alle} brikker", { n: best.lagt, alle: DAG_BRIKKER })}`];
+        if (best.rekke > 1) linjer.push(R.t("Beste rekke ×{n}", { n: best.rekke }));
+        if (dager) linjer.push(`🔥 ${dager}`);
+        R.del(R.t("Blokka – dagens blokk"), tekst, ADRESSE + "#utfordring", { kort: { tittel: R.t("Dagens blokk {dato}", { dato }), linjer } });
       },
     }),
   });

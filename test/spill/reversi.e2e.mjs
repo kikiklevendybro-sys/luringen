@@ -3,6 +3,8 @@
 // game that ends on the board and leads to «Kåringen». Then against the phone: it answers in time
 // without freezing the page, «Angre» takes back its answer, it never moves while a sheet is open,
 // the hint on Lett, and a win counts in the record on the home screen.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en reversi): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the names, the state and the links (t.forside, t.nokkel).
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { mkdirSync } from "node:fs";
@@ -70,8 +72,8 @@ export default async function (t) {
   await t.bilde("start");
   t.sjekk((await skiver()) === 4, "Brettet skal starte med fire brikker");
   t.sjekk((await t.antall(".rv-rute.mulig")) === 4, "Svart skal ha fire mulige trekk som prikker");
-  t.sjekk(/d3, tom, mulig trekk, snur 1/.test(await t.js(`document.querySelector('${rute("d3")}').getAttribute('aria-label')`)), "Ruta d3 har ikke et godt navn");
-  t.sjekk(/e5, hvit brikke/.test(await t.js(`document.querySelector('${rute("e5")}').getAttribute('aria-label')`)), "Ruta e5 heter ikke «e5, hvit brikke»");
+  t.sjekk((t.norsk ? /d3, tom, mulig trekk, snur 1/ : /^d3, .+1/).test(await t.js(`document.querySelector('${rute("d3")}').getAttribute('aria-label')`)), "Ruta d3 har ikke et godt navn");
+  t.sjekk((t.norsk ? /e5, hvit brikke/ : /^e5, \S/).test(await t.js(`document.querySelector('${rute("e5")}').getAttribute('aria-label')`)), "Ruta e5 heter ikke «e5, hvit brikke»");
 
   // An illegal square is refused, a legal one flips
   await legg("a1", 300);
@@ -110,8 +112,8 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
   await t.sov(400);
   await t.bilde("kaaringen", true);
-  t.sjekk(/vinner|Uavgjort/.test(await t.tekst("#skjerm h1")), `Kåringen har ingen vinner: «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk((t.norsk ? /vinner|Uavgjort/ : /\S/).test(await t.tekst("#skjerm h1")), `Kåringen har ingen vinner: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(!t.norsk || /KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
   s = await t.tilstand();
   t.sjekk(s.spill.registrert === true && s._aktiv === false, "Kåringen ble ikke registrert for kvelden");
 
@@ -182,9 +184,9 @@ export default async function (t) {
   t.sjekk((await sp()).resultat && (await sp()).resultat.vinner === 0, "Seieren mot mobilen ble ikke registrert");
   t.sjekk((await t.tilstand()).rekord[2].seier === 1, "Seieren ble ikke telt mot Lett");
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
-  t.sjekk(/Du vinner/.test(await t.tekst("#skjerm h1")), "Kåringen sier ikke «Du vinner!»");
+  t.sjekk(!t.norsk || /Du vinner/.test(await t.tekst("#skjerm h1")), "Kåringen sier ikke «Du vinner!»");
   await t.bilde("du-vinner", true);
   await t.klikk("#tilbake");
-  t.sjekk(/Lett/.test(await t.tekst(".rv-rekorder")), "Rekorden mot mobilen vises ikke på hjemskjermen");
+  t.sjekk((t.norsk ? /Lett/ : /\S/).test(await t.tekst(".rv-rekorder")), "Rekorden mot mobilen vises ikke på hjemskjermen");
   await t.bilde("hjem-rekord", true);
 }
