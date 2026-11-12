@@ -6,6 +6,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
+import { lesRegler, eksemplerFor, omSpilletHtml } from "./om-spillet.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -109,10 +110,15 @@ const MERKER = [
   "kahoot", "pictionary", "skribbl", "gartic", "battleship", "connect four", "connect 4", "yahtzee", "uno", "scattergories",
   "taboo", "tabu", "trivial pursuit", "bezzerwizzer", "fia med knuff", "maxi-yatzy", "maxi yatzy", "memory",
 ];
-export const merkeI = (tekst) => {
+const finnMerke = (liste, tekst) => {
   const t = " " + String(tekst).toLocaleLowerCase("nb").replace(/[^a-zæøå0-9-]+/g, " ") + " ";
-  return MERKER.find((m) => t.includes(" " + m + " ")) || null;
+  return liste.find((m) => t.includes(" " + m.replace(/[^a-zæøå0-9-]+/g, " ") + " ")) || null;
 };
+export const merkeI = (tekst) => finnMerke(MERKER, tekst);
+// Text the build writes itself (the «Slik spiller dere» block, collection pages, alias addresses)
+// is held to a stricter list: also game names that sound generic but belong to someone.
+const MERKER_SYNLIG = [...MERKER, "ring of fire", "wordle", "time's up", "times up", "codenames"];
+export const merkeSynlig = (tekst) => finnMerke(MERKER_SYNLIG, tekst);
 export const TITTEL_MAKS = 62; // with « | rusj»; search results show about 60 characters
 export const BESKRIVELSE_GRENSER = [100, 160];
 
@@ -503,6 +509,12 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
     // Title, description and link preview come from rusj/seo.json: the words people search for
     // first, the mascot second. The mascot stays the name on the page itself.
     const sd = sokedata(m);
+    // «Slik spiller dere …» under the app (scripts/om-spillet.mjs): the rules from the game's own
+    // Rusj.start(), and for ordinary games real examples from its data. Outside #skjerm, so the kit
+    // never draws over it; the kit hides it on every screen but the home screen and the age gate.
+    const lest = lesRegler({ m, spillJs, data, ordData, G });
+    if (lest.feil) console.warn(`  ⚠ ${id}: ${lest.feil} – siden får ingen «Slik spiller dere»-blokk`);
+    const omHtml = lest.regler ? omSpilletHtml(m, { regler: lest.regler, eksempler: eksemplerFor(m, data), frase: merkeSynlig(sd.frase) ? m.undertittel : sd.frase, lenker: [] }) : "";
     const side = `${hodeMed({
       tittel: sd.tittel,
       ogTittel: sd.ogTittel,
@@ -541,6 +553,7 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
     </section>
   </main>
 </div>
+${omHtml}
 <div class="ark-bakgrunn" id="ark" hidden><div class="ark" role="dialog" aria-modal="true" aria-labelledby="ark-tittel" id="ark-innhold"></div></div>
 <div class="nedtelling" id="nedtelling" hidden aria-live="assertive"></div>
 <canvas class="konfetti" id="konfetti" aria-hidden="true"></canvas>

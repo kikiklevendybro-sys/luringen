@@ -9,7 +9,8 @@ import { mkdtempSync, mkdirSync, rmSync, readFileSync, readdirSync, existsSync, 
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { lesSeo, merkeI, TITTEL_MAKS, BESKRIVELSE_GRENSER, DOMENE, OMDOPT } from "../scripts/rusj.mjs";
+import { lesSeo, merkeI, merkeSynlig, TITTEL_MAKS, BESKRIVELSE_GRENSER, DOMENE, OMDOPT } from "../scripts/rusj.mjs";
+import { omSpilletHtml, flereTil } from "../scripts/om-spillet.mjs";
 
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ferdigBygget = process.env.RUSJ_WEB ? resolve(process.env.RUSJ_WEB) : null;
@@ -303,4 +304,65 @@ test("rusj/seo.json is checked when it is read: length, duplicates and brand nam
   } finally {
     rmSync(rot, { recursive: true, force: true });
   }
+});
+
+// ---------- «Slik spiller dere …» under every game page (scripts/om-spillet.mjs) ----------
+
+const omBlokk = (html) => {
+  const fra = html.indexOf('<section class="om-spillet"');
+  return fra < 0 ? null : html.slice(fra, html.indexOf("</section>", fra) + "</section>".length);
+};
+const synligTekst = (html) => tekst(html.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+const atten = (id) => /"alder18":true/.test(readFileSync(join(WEB, id, "data.js"), "utf8").split("\n")[0]);
+
+test("every game page has a readable «Slik spiller dere» block after the app, outside #skjerm", () => {
+  for (const id of spillIder.filter((x) => x !== "luringen")) {
+    const s = sider.find((x) => x.sti === `/${id}/`);
+    const blokk = omBlokk(s.html);
+    assert.ok(blokk, `${id}: mangler «Slik spiller dere»-blokken`);
+    assert.equal(s.html.split('<section class="om-spillet"').length, 2, `${id}: blokken står mer enn én gang`);
+    // After the app's closing tag (never inside #skjerm, which the kit redraws).
+    const appSlutt = s.html.indexOf("</main>\n</div>");
+    assert.ok(appSlutt > 0 && s.html.indexOf('<section class="om-spillet"') > appSlutt, `${id}: blokken står ikke etter appen`);
+    assert.ok(!/hidden|display:\s*none|aria-hidden/.test(blokk), `${id}: blokken er skjult i HTML-en`);
+    assert.match(blokk, /<h2 id="om-spillet-tittel">Slik spiller (dere|du) [^<]+<\/h2>/, `${id}: overskriften`);
+    assert.ok((blokk.match(/<li><b>/g) || []).length >= 3, `${id}: færre enn tre steg`);
+    assert.match(blokk, /<p class="om-ingress">[^<]{20,}<\/p>/, `${id}: mangler ingress`);
+    // Only plain text and a few harmless tags: everything from the games is escaped.
+    for (const [, tag] of blokk.matchAll(/<\/?([a-z0-9]+)/g)) assert.ok(["section", "p", "h2", "h3", "h4", "ul", "ol", "li", "b", "div", "nav", "a"].includes(tag), `${id}: <${tag}> i blokken`);
+    assert.equal(merkeSynlig(synligTekst(blokk)), null, `${id}: «${merkeSynlig(synligTekst(blokk))}» står synlig i blokken`);
+    assert.ok(synligTekst(blokk).split(" ").length >= 100, `${id}: blokken har bare ${synligTekst(blokk).split(" ").length} ord`);
+  }
+});
+
+test("examples: 20–30 real items on ordinary card games, none on 18+ games; 18+ games get the sober box", () => {
+  let medEksempler = 0;
+  for (const id of spillIder.filter((x) => x !== "luringen")) {
+    const blokk = omBlokk(sider.find((x) => x.sti === `/${id}/`).html);
+    const eksempler = [...blokk.matchAll(/<ul class="om-eksempler">([\s\S]*?)<\/ul>/g)].reduce((n, m) => n + (m[1].match(/<li>/g) || []).length, 0);
+    if (atten(id)) {
+      assert.equal(eksempler, 0, `${id}: 18+-spill skal ikke ha eksempler`);
+      assert.match(blokk, /Alkoholfritt teller like mye/, `${id}: mangler «Alkoholfritt teller like mye»`);
+      assert.match(blokk, /<a href="https:\/\/rusinfo\.no\/" rel="noopener">rusinfo\.no<\/a>/, `${id}: mangler RUSinfo`);
+      assert.match(blokk, /Bare for voksne \(18\+\)/, `${id}: sier ikke 18+`);
+    } else {
+      assert.ok(!/om-vett|rusinfo/.test(blokk), `${id}: drikkeråd i et vanlig spill`);
+      if (!eksempler) continue;
+      medEksempler++;
+      assert.ok(eksempler >= 20 && eksempler <= 30, `${id}: ${eksempler} eksempler`);
+      assert.match(blokk, /<p class="om-mer">… og (over )?[\d ]+ til i spillet\.<\/p>/, `${id}: mangler «… og over N til i spillet»`);
+    }
+  }
+  assert.ok(medEksempler >= 15, `bare ${medEksempler} spill har eksempler`);
+});
+
+test("the block escapes what it prints, and «over N» is always true", () => {
+  const m = { id: "x", navn: "<b>X</b>", spillere: [2, 4], minutter: [5, 10], mobiler: "en" };
+  const html = omSpilletHtml(m, { frase: "A & B", regler: { intro: "<script>alert(1)</script>", steg: [["<i>", '"x"'], ["a", "b"], ["c", "d"]], tips: ["<img src=x>"] }, eksempler: { tittel: "<u>", ting: ["<svg onload=x>"], totalt: 5, antall: 1 }, lenker: [["/a/", "<a>"]] });
+  for (const farlig of ["<script", "<b>X", "<i>", "<img", "<svg", "<u>", "<a>"]) assert.ok(!html.includes(farlig), `«${farlig}» kom med uescapet`);
+  assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.match(html, /Slik spiller dere &lt;b&gt;X&lt;\/b&gt;/);
+  assert.equal(flereTil(1437), "… og over 1 400 til i spillet.");
+  assert.equal(flereTil(470), "… og 470 til i spillet.");
+  assert.equal(flereTil(0), "");
 });
