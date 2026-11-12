@@ -126,6 +126,11 @@
       "tittel": "Sudoku free – today's sudoku, no ads",
       "frase": "Sudoku",
       "beskrivelse": "Free sudoku in your browser with no ads: new boards at four levels, always with a single solution. Today's sudoku for everyone, notes, hints and best times."
+    },
+    "kortkongen": {
+      "tittel": "Patience free – classic Klondike solitaire, no ads",
+      "frase": "Patience",
+      "beskrivelse": "Free patience in your browser with no ads – classic Klondike solitaire. Draw one or three cards, undo and get hints, and play only deals that can come out."
     }
   }
 }

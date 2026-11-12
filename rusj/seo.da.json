@@ -134,6 +134,11 @@
       "tittel": "Sudoku gratis – dagens sudoku, uden reklamer",
       "frase": "Sudoku",
       "beskrivelse": "Gratis sudoku på dansk uden reklamer: nye bræt på fire niveauer, altid med kun én løsning. Dagens sudoku for alle, noter, hint og bedste tider."
+    },
+    "kortkongen": {
+      "tittel": "Kabale gratis – klassisk Klondike uden reklamer",
+      "frase": "Kabale",
+      "beskrivelse": "Gratis kabale på dansk uden reklamer – klassisk Klondike. Træk ét eller tre kort, fortryd og få hint, og spil kun kabaler, der kan gå op."
     }
   }
 }
