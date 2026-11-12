@@ -2,6 +2,8 @@
 // where the other player starts, a draw, reload and back + continue; then five in a row on the
 // big board; then against the phone: Uslåelig never loses and blocks, the five-in-a-row phone
 // blocks a four, and «Avslutt» leads to «Kåringen». Everything must fit on small phones.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en bonden): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the names, the state and the links (t.forside).
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { mkdirSync } from "node:fs";
@@ -66,7 +68,7 @@ export default async function (t) {
   let sp = await spill();
   t.sjekk(sp.resultat && sp.resultat.vinner === 0 && sp.poeng[0] === 1, "Tre på rad ga ikke seier og poeng");
   t.sjekk(await t.finnes(".bo-strek path"), "Vinnerstreken tegnes ikke");
-  t.sjekk(/Testspiller A vinner/.test(await t.tekst(".bo-melding")), "Meldingen sier ikke hvem som vant");
+  t.sjekk((t.norsk ? /Testspiller A vinner/ : /Testspiller A/).test(await t.tekst(".bo-melding")), "Meldingen sier ikke hvem som vant");
   await t.bilde("vinner");
 
   // Undo the winning mark; the point goes. Then win again.
@@ -80,7 +82,7 @@ export default async function (t) {
   await t.klikk('[data-h="runde"]', 700);
   sp = await spill();
   t.sjekk(sp.runde === 2 && sp.starter === 1 && sp.trekk.length === 0, "Ny runde startet ikke med den andre spilleren");
-  t.sjekk(/Testspiller B begynner/.test(await t.tekst(".bo-melding")), "Meldingen sier ikke at Testspiller B begynner");
+  t.sjekk((t.norsk ? /Testspiller B begynner/ : /Testspiller B/).test(await t.tekst(".bo-melding")), "Meldingen sier ikke at Testspiller B begynner");
   for (const i of [0, 1, 2, 4, 3]) await merk(i);
   // Reload and back + continue keep the round
   await t.lastSide(t.side, "document.querySelectorAll('.bo-celle').length === 9");
@@ -106,8 +108,8 @@ export default async function (t) {
   await t.bilde("kamp-vunnet");
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
   t.sjekk((await spill()).poeng[0] === 3, "Automatisk kåring etter tre seirer virket ikke");
-  t.sjekk(/Testspiller A vinner/.test(await t.tekst("#skjerm h1")), `Kåringen viser feil vinner: «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk((t.norsk ? /Testspiller A vinner/ : /Testspiller A/).test(await t.tekst("#skjerm h1")), `Kåringen viser feil vinner: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
   await t.bilde("kaaringen", true);
   await t.klikk('[data-h="nytt"]');
   await t.klikk('[data-h="variant"][data-v="fem"]');
