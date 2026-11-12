@@ -504,8 +504,8 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
   // the collections it is in. Checked against every game, also those left out of a test build.
   const samlinger = lesSamlinger({
     rot: ROT,
-    spillIder: ["luringen", ...lesSpill(ROT, null).map((g) => g.id)],
-    atten: lesSpill(ROT, null).filter((g) => g.alder18).map((g) => g.id),
+    spillIder: ["luringen", ...alleSpillKort.map((g) => g.id)],
+    atten: alleSpillKort.filter((g) => g.alder18).map((g) => g.id),
     tittelMaks: TITTEL_MAKS,
     beskrivelse: BESKRIVELSE_GRENSER,
     merke: merkeSynlig,
@@ -1167,8 +1167,6 @@ ${album}
     // first, then the games in front-page order. Which files a page needs, the worker reads from
     // the page itself (every address with ?v=), so there is no second list to keep in step.
     sider: ["/", ...alleKort.map((m) => `/${m.id}/`), "/om/", "/personvern/", "/merker/", ...samlinger.map((s) => `/${s.slug}/`)],
-    samlinger: samlinger.map((s) => s.slug),
-    alias: [...alias.keys()].filter((a) => iBygget.has(alias.get(a))),
   };
 }
 
