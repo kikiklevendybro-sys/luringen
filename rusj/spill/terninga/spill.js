@@ -8,33 +8,36 @@
 
   // ---------- Rules (pure: no DOM, no kit) ----------
 
+  // Every text goes through Rusj.t (rusj/SPRAK.md): the key is the Norwegian text. The unit tests
+  // load this file without the kit, and then the Norwegian text is used as it is.
+  const Rusj = window.Rusj && typeof window.Rusj.t === "function" ? window.Rusj : { t: (k) => k };
   const OVER = ["enere", "toere", "treere", "firere", "femmere", "seksere"];
   const KAT = {
-    enere: { navn: "Enere", regel: "Summen av alle enere." },
-    toere: { navn: "Toere", regel: "Summen av alle toere." },
-    treere: { navn: "Treere", regel: "Summen av alle treere." },
-    firere: { navn: "Firere", regel: "Summen av alle firere." },
-    femmere: { navn: "Femmere", regel: "Summen av alle femmere." },
-    seksere: { navn: "Seksere", regel: "Summen av alle seksere." },
-    par1: { navn: "Ett par", regel: "To like. Det høyeste paret teller." },
-    par2: { navn: "To par", regel: "To ulike par." },
-    par3: { navn: "Tre par", regel: "Tre ulike par." },
-    like3: { navn: "Tre like", regel: "Summen av tre like." },
-    like4: { navn: "Fire like", regel: "Summen av fire like." },
-    like5: { navn: "Fem like", regel: "Summen av fem like." },
-    liten: { navn: "Liten straight", kort: "Liten str.", regel: "1-2-3-4-5 gir 15." },
-    stor: { navn: "Stor straight", kort: "Stor str.", regel: "2-3-4-5-6 gir 20." },
-    full: { navn: "Full straight", kort: "Full str.", regel: "1-2-3-4-5-6 gir 21." },
-    hus: { navn: "Hus", regel: "Tre like og to like av et annet tall. Summen av dem." },
-    villa: { navn: "Villa", regel: "To ganger tre like. Summen av alle." },
-    taarn: { navn: "Tårn", regel: "Fire like og to like av et annet tall. Summen av alle." },
-    sjanse: { navn: "Sjanse", regel: "Summen av alle terningene." },
-    yatzy: { navn: "Yatzy", regel: "Fem like gir 50." },
+    enere: { navn: Rusj.t("Enere"), regel: Rusj.t("Summen av alle enere.") },
+    toere: { navn: Rusj.t("Toere"), regel: Rusj.t("Summen av alle toere.") },
+    treere: { navn: Rusj.t("Treere"), regel: Rusj.t("Summen av alle treere.") },
+    firere: { navn: Rusj.t("Firere"), regel: Rusj.t("Summen av alle firere.") },
+    femmere: { navn: Rusj.t("Femmere"), regel: Rusj.t("Summen av alle femmere.") },
+    seksere: { navn: Rusj.t("Seksere"), regel: Rusj.t("Summen av alle seksere.") },
+    par1: { navn: Rusj.t("Ett par"), regel: Rusj.t("To like. Det høyeste paret teller.") },
+    par2: { navn: Rusj.t("To par"), regel: Rusj.t("To ulike par.") },
+    par3: { navn: Rusj.t("Tre par"), regel: Rusj.t("Tre ulike par.") },
+    like3: { navn: Rusj.t("Tre like"), regel: Rusj.t("Summen av tre like.") },
+    like4: { navn: Rusj.t("Fire like"), regel: Rusj.t("Summen av fire like.") },
+    like5: { navn: Rusj.t("Fem like"), regel: Rusj.t("Summen av fem like.") },
+    liten: { navn: Rusj.t("Liten straight"), kort: Rusj.t("Liten str."), regel: Rusj.t("1-2-3-4-5 gir 15.") },
+    stor: { navn: Rusj.t("Stor straight"), kort: Rusj.t("Stor str."), regel: Rusj.t("2-3-4-5-6 gir 20.") },
+    full: { navn: Rusj.t("Full straight"), kort: Rusj.t("Full str."), regel: Rusj.t("1-2-3-4-5-6 gir 21.") },
+    hus: { navn: Rusj.t("Hus"), regel: Rusj.t("Tre like og to like av et annet tall. Summen av dem.") },
+    villa: { navn: Rusj.t("Villa"), regel: Rusj.t("To ganger tre like. Summen av alle.") },
+    taarn: { navn: Rusj.t("Tårn"), regel: Rusj.t("Fire like og to like av et annet tall. Summen av alle.") },
+    sjanse: { navn: Rusj.t("Sjanse"), regel: Rusj.t("Summen av alle terningene.") },
+    yatzy: { navn: Rusj.t("Yatzy"), regel: Rusj.t("Fem like gir 50.") },
   };
   const VARIANTER = {
     vanlig: {
       id: "vanlig",
-      navn: "Yatzy",
+      navn: Rusj.t("Yatzy"),
       terninger: 5,
       grense: 63,
       bonus: 50,
@@ -45,7 +48,7 @@
     },
     maxi: {
       id: "maxi",
-      navn: "Yatzy med seks terninger",
+      navn: Rusj.t("Yatzy med seks terninger"),
       terninger: 6,
       grense: 84,
       bonus: 100,
@@ -334,13 +337,14 @@
   const tilfeldig = () => R.nyttFro() / 4294967296;
   const nyTerning = () => 1 + Math.floor(tilfeldig() * 6);
   const nyVri = () => Math.round(Math.random() * 36 - 18); // only looks: how twisted a die lands
-  const katNavn = (k, sp) => (k === "yatzy" && sp && sp.variant === "maxi" ? "Yatzy (seks like)" : KAT[k].navn);
+  const katNavn = (k, sp) => (k === "yatzy" && sp && sp.variant === "maxi" ? R.t("Yatzy (seks like)") : KAT[k].navn);
 
   // The phone players (as in Brikka). Seats 0…mennesker−1 are people, the rest are the phone.
-  const ROBOTER = ["Robo", "Bipp", "Bopp"];
-  const NIVANAVN = { lett: "Lett", middels: "Middels", vanskelig: "Vanskelig" };
+  const ROBOTER = [R.t("Robo"), R.t("Bipp"), R.t("Bopp")];
+  const NIVANAVN = { lett: R.t("Lett"), middels: R.t("Middels"), vanskelig: R.t("Vanskelig") };
   const erRobot = (sp, i) => i >= (sp.mennesker == null ? sp.antall : sp.mennesker);
-  const navnFor = (sp, i) => (erRobot(sp, i) ? ROBOTER[i - sp.mennesker] || "Robo" : R.navn(i));
+  const navnFor = (sp, i) => (erRobot(sp, i) ? ROBOTER[i - sp.mennesker] || ROBOTER[0] : R.navn(i));
+  const terningEtikett = (i, v, holdt) => (holdt ? R.t("Terning {n} viser {v}, holdt", { n: i + 1, v }) : R.t("Terning {n} viser {v}", { n: i + 1, v }));
   const avatarFor = (sp, i, storrelse) =>
     erRobot(sp, i) ? `<span class="avatar tg-robot ${storrelse || ""}" style="--pf: var(--p${(i % 20) + 1})" aria-hidden="true">🤖</span>` : R.avatar(i, storrelse);
   const folkIndekser = (sp) => Array.from({ length: sp.antall }, (_, i) => i).filter((i) => !erRobot(sp, i));
@@ -391,9 +395,9 @@
 
   const PIPS = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
   const SIDE = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] };
-  const VIPP = "rotateX(-21deg) rotateY(12deg)";
+  const VIPP = "rotateX(-21deg) rotateY(12deg)"; // CSS // sprak-ok
   const KUBE = [1, 2, 3, 4, 5, 6].map((n) => `<span class="tg-side s${n}">${PIPS[n].map((p) => `<i class="p${p}"></i>`).join("")}</span>`).join("");
-  const pose = (v, z, tx, ty) => `${VIPP} rotateZ(${z}deg) rotateX(${SIDE[v][0] + 360 * (tx || 0)}deg) rotateY(${SIDE[v][1] + 360 * (ty || 0)}deg)`;
+  const pose = (v, z, tx, ty) => `${VIPP} rotateZ(${z}deg) rotateX(${SIDE[v][0] + 360 * (tx || 0)}deg) rotateY(${SIDE[v][1] + 360 * (ty || 0)}deg)`; // sprak-ok
 
   // A flat die face (score pad, rules, setup tiles).
   const PUNKT = {
@@ -412,10 +416,10 @@
   function terningHtml(sp, i) {
     const v = sp.terninger[i];
     const holdt = !!sp.holdt[i] && sp.kast > 0;
-    return `<button class="tg-t${holdt ? " holdt" : ""}" data-h="hold" data-v="${i}" data-stille aria-pressed="${holdt}" aria-label="Terning ${i + 1} viser ${v}${holdt ? ", holdt" : ""}">
+    return `<button class="tg-t${holdt ? " holdt" : ""}" data-h="hold" data-v="${i}" data-stille aria-pressed="${holdt}" aria-label="${esc(terningEtikett(i, v, holdt))}">
       <span class="tg-skygge" aria-hidden="true"></span>
       <span class="tg-hopp" aria-hidden="true"><span class="tg-kube" style="transform: ${pose(v, sp.vri[i] || 0)}">${KUBE}</span></span>
-      <span class="tg-holdt-merke" aria-hidden="true">Holdt</span>
+      <span class="tg-holdt-merke" aria-hidden="true">${esc(R.t("Holdt"))}</span>
     </button>`;
   }
 
@@ -511,18 +515,18 @@
     const mulig = !fylt && sp.kast > 0 ? poeng(kat, sp.terninger) : null;
     let klasse = "tg-felt";
     let verdi = "";
-    let etikett = navn;
+    let etikett;
     if (fylt) {
       klasse += " fylt" + (kort[kat] === 0 ? " null" : "");
       verdi = kort[kat] === 0 ? "–" : String(kort[kat]);
-      etikett += kort[kat] === 0 ? ": strøket" : `: ${kort[kat]} poeng`;
+      etikett = kort[kat] === 0 ? R.t("{felt}: strøket", { felt: navn }) : R.t("{felt}: {n} poeng", { felt: navn, n: kort[kat] });
     } else if (mulig != null) {
       klasse += " mulig" + (mulig === 0 ? " null" : "");
       verdi = String(mulig);
-      etikett += mulig === 0 ? ": gir 0 – trykk for å stryke" : `: gir ${mulig} poeng`;
+      etikett = mulig === 0 ? R.t("{felt}: gir 0 – trykk for å stryke", { felt: navn }) : R.t("{felt}: gir {n} poeng", { felt: navn, n: mulig });
     } else {
       klasse += " apen";
-      etikett += ": ledig";
+      etikett = R.t("{felt}: ledig", { felt: navn });
     }
     const topp = iOver ? ansikt(OVER.indexOf(kat) + 1, "tg-felt-ikon") : `<span class="tg-felt-navn">${esc(KAT[kat].kort && sp.variant === "maxi" ? KAT[kat].kort : navn)}</span>`;
     return `<button class="${klasse}" data-h="sett" data-v="${kat}" data-stille aria-label="${esc(etikett)}"${fylt ? ' aria-disabled="true"' : ""}>${topp}<span class="tg-verdi">${esc(verdi)}</span></button>`;
@@ -532,11 +536,11 @@
     const V = VAR(sp);
     const sum = summer(sp.variant, sp.kort[sp.tur]);
     const andel = Math.min(1, sum.over / V.grense);
-    const bonusTekst = sum.bonus ? `+${sum.bonus}` : sum.bonusTapt ? "Ingen bonus" : `${sum.over}/${V.grense}`;
-    return `<section class="tg-blokk${sp.variant === "maxi" ? " maxi" : ""}" aria-label="Blokka til ${esc(navnFor(sp, sp.tur))}">
+    const bonusTekst = sum.bonus ? `+${sum.bonus}` : sum.bonusTapt ? R.t("Ingen bonus") : `${sum.over}/${V.grense}`;
+    return `<section class="tg-blokk${sp.variant === "maxi" ? " maxi" : ""}" aria-label="${esc(R.t("Blokka til {navn}", { navn: navnFor(sp, sp.tur) }))}">
       <div class="tg-over">${V.over.map((k) => feltHtml(sp, k, true)).join("")}</div>
       <div class="tg-bonus${sum.bonus ? " fatt" : ""}${sum.bonusTapt ? " tapt" : ""}">
-        <span class="tg-bonus-navn">Bonus ${V.bonus}</span>
+        <span class="tg-bonus-navn">${esc(R.t("Bonus {n}", { n: V.bonus }))}</span>
         <span class="tg-bonus-spor" aria-hidden="true"><i style="width: ${Math.round(andel * 100)}%"></i></span>
         <b>${esc(bonusTekst)}</b>
       </div>
@@ -557,13 +561,13 @@
     const alle = (fn) => Array.from({ length: n }, (_, i) => fn(i)).join("");
     const rader = [
       ...V.over.map((k) => rad(`${ansikt(OVER.indexOf(k) + 1, "tg-tabell-ikon")}${esc(katNavn(k, sp))}`, alle((i) => celle(i, k)))),
-      rad("Sum", alle((i) => `<td class="${i === sp.tur && !o.slutt ? "na" : ""}">${summene[i].over}</td>`), "sum"),
-      rad(`Bonus`, alle((i) => `<td class="${i === sp.tur && !o.slutt ? "na" : ""}">${summene[i].bonus ? summene[i].bonus : summene[i].bonusTapt ? "–" : ""}</td>`), "sum"),
+      rad(esc(R.t("Sum")), alle((i) => `<td class="${i === sp.tur && !o.slutt ? "na" : ""}">${summene[i].over}</td>`), "sum"),
+      rad(esc(R.t("Bonus")), alle((i) => `<td class="${i === sp.tur && !o.slutt ? "na" : ""}">${summene[i].bonus ? summene[i].bonus : summene[i].bonusTapt ? "–" : ""}</td>`), "sum"),
       ...V.under.map((k) => rad(esc(katNavn(k, sp)), alle((i) => celle(i, k)))),
-      rad("Totalt", alle((i) => `<td class="${i === sp.tur && !o.slutt ? "na" : ""}">${summene[i].total}</td>`), "total"),
+      rad(esc(R.t("Totalt")), alle((i) => `<td class="${i === sp.tur && !o.slutt ? "na" : ""}">${summene[i].total}</td>`), "total"),
     ];
     return `<div class="tg-tabell-ramme"><table class="tg-tabell${n > 3 ? " mange" : ""}${n === 1 ? " en" : ""}">
-      <thead><tr><th scope="col"><span class="vh">Felt</span></th>${alle(
+      <thead><tr><th scope="col"><span class="vh">${esc(R.t("Felt"))}</span></th>${alle(
         (i) => `<th scope="col" class="${i === sp.tur && !o.slutt ? "na" : ""}">${avatarFor(sp, i)}<span class="tg-tabell-navn">${esc(navnFor(sp, i))}</span></th>`,
       )}</tr></thead>
       <tbody>${rader.join("")}</tbody>
@@ -573,7 +577,7 @@
   // Everyone's total as small chips (the current player first in colour).
   function stillingHtml(sp) {
     if (sp.antall < 2) return "";
-    return `<ul class="tg-stilling" aria-label="Stillingen">${sp.kort
+    return `<ul class="tg-stilling" aria-label="${esc(R.t("Stillingen"))}">${sp.kort
       .map(
         (_, i) =>
           `<li class="${i === sp.tur ? "na" : ""}" style="--pf: var(--p${(i % 20) + 1})"><span class="vh">${esc(navnFor(sp, i))}: </span>${avatarFor(sp, i)}<b>${totalFor(sp, i)}</b></li>`,
@@ -582,35 +586,36 @@
   }
 
   function hintTekst(sp) {
-    if (alleFulle(sp)) return "Blokka er full!";
+    if (alleFulle(sp)) return R.t("Blokka er full!");
     const rest = igjen(sp);
     const spart = VAR(sp).spar ? sp.spart[sp.tur] || 0 : 0;
     if (sp.kast === 0) {
-      if (spart) return `Du har tre kast – og ${R.flertall(spart, "spart kast", "sparte kast")} i tillegg.`;
-      return sp.antall > 1 ? "Tre kast. Lykke til!" : "Du har tre kast denne runden.";
+      if (spart) return R.t("Du har tre kast – og {kast} i tillegg.", { kast: R.flertall(spart, "spart kast", "sparte kast") });
+      return sp.antall > 1 ? R.t("Tre kast. Lykke til!") : R.t("Du har tre kast denne runden.");
     }
-    if (erRobot(sp, sp.tur)) return rest > 0 ? `${navnFor(sp, sp.tur)} velger hvilke terninger som skal holdes …` : `${navnFor(sp, sp.tur)} velger et felt …`;
-    if (rest > 0) return "Trykk på terningene du vil holde";
-    return "Velg et felt på blokka";
+    if (erRobot(sp, sp.tur)) return rest > 0 ? R.t("{navn} velger hvilke terninger som skal holdes …", { navn: navnFor(sp, sp.tur) }) : R.t("{navn} velger et felt …", { navn: navnFor(sp, sp.tur) });
+    if (rest > 0) return R.t("Trykk på terningene du vil holde");
+    return R.t("Velg et felt på blokka");
   }
 
   function kastKnapp(sp) {
-    if (alleFulle(sp)) return R.ui.knapp("Se kåringen", "kaaring", { variant: "stor", ikon: "🏆" });
+    if (alleFulle(sp)) return R.ui.knapp(R.t("Se kåringen"), "kaaring", { variant: "stor", ikon: "🏆" });
     const rest = igjen(sp);
     const spart = VAR(sp).spar ? sp.spart[sp.tur] || 0 : 0;
     const vanlige = Math.max(0, KAST_PER_TUR - sp.kast);
     const prikker = `<span class="tg-prikker" aria-hidden="true">${[0, 1, 2].map((n) => `<i class="${n < vanlige ? "pa" : ""}"></i>`).join("")}${spart ? `<b>+${spart}</b>` : ""}</span>`;
-    if (rest <= 0) return R.ui.knapp("Velg et felt", "kast", { variant: "stor", av: true, tekstHtml: `Velg et felt ${prikker}` });
-    const tekst = sp.kast === 0 ? "Kast terningene" : "Kast igjen";
-    const etikett = `${tekst} – ${R.flertall(rest, "kast", "kast")} igjen${vanlige === 0 ? " (sparte kast)" : ""}`;
+    if (rest <= 0) return R.ui.knapp(R.t("Velg et felt"), "kast", { variant: "stor", av: true, tekstHtml: `${esc(R.t("Velg et felt"))} ${prikker}` });
+    const tekst = sp.kast === 0 ? R.t("Kast terningene") : R.t("Kast igjen");
+    const etikett = R.t("{tekst} – {kast} igjen", { tekst, kast: R.flertall(rest, "kast", "kast") }) + (vanlige === 0 ? " " + R.t("(sparte kast)") : "");
     return R.ui.knapp(tekst, "kast", { variant: "stor", id: "tg-kast", etikett, tekstHtml: `<span>${esc(tekst)}</span>${prikker}` });
   }
 
   function angreLenke(sp) {
     if (!sp.angre) return "";
     const a = sp.angre;
-    const hvem = sp.antall > 1 ? ` for ${navnFor(sp, a.tur)}` : "";
-    return `<button class="lenke" data-h="angre" id="tg-angre" aria-label="${esc(`Angre ${katNavn(a.kat, sp)}${hvem}`)}">↶ Angre ${esc(katNavn(a.kat, sp))}</button>`;
+    const felt = katNavn(a.kat, sp);
+    const etikett = sp.antall > 1 ? R.t("Angre {felt} for {navn}", { felt, navn: navnFor(sp, a.tur) }) : R.t("Angre {felt}", { felt });
+    return `<button class="lenke" data-h="angre" id="tg-angre" aria-label="${esc(etikett)}">↶ ${esc(R.t("Angre {felt}", { felt }))}</button>`;
   }
 
   // ---------- Celebrations ----------
@@ -629,20 +634,20 @@
     const kort = sp.kort[sp.tur];
     if (poeng("yatzy", t)) {
       sp.yatzyer = (sp.yatzyer || 0) + 1;
-      stempel(sp.variant === "maxi" ? "Seks like!" : "Yatzy!");
+      stempel(sp.variant === "maxi" ? R.t("Seks like!") : R.t("Yatzy!"));
       R.lyd.fanfare();
       R.konfetti();
       R.vibrer([60, 40, 60, 40, 160]);
-      R.si(sp.variant === "maxi" ? "Seks like – Yatzy!" : "Yatzy!");
+      R.si(sp.variant === "maxi" ? R.t("Seks like – Yatzy!") : R.t("Yatzy!"));
       return;
     }
     const fine = [
-      ["full", "Full straight!"],
-      ["stor", "Stor straight!"],
-      ["liten", "Liten straight!"],
-      ["taarn", "Tårn!"],
-      ["villa", "Villa!"],
-      ["hus", "Hus!"],
+      ["full", R.t("Full straight!")],
+      ["stor", R.t("Stor straight!")],
+      ["liten", R.t("Liten straight!")],
+      ["taarn", R.t("Tårn!")],
+      ["villa", R.t("Villa!")],
+      ["hus", R.t("Hus!")],
     ];
     for (const [k, tekst] of fine) {
       if (VAR(sp).alle.includes(k) && kort[k] == null && poeng(k, t)) {
@@ -676,26 +681,26 @@
   // ---------- Rules sheet extra: what every box gives ----------
 
   const regelListe = (V) =>
-    `<h3>Hva feltene gir${V.id === "maxi" ? " med seks terninger" : ""}</h3><ul class="tg-regelliste">
-      <li><b>Enere–seksere</b><span>Summen av terningene med det tallet. ${V.grense} eller mer til sammen gir ${V.bonus} i bonus.</span></li>
+    `<h3>${esc(V.id === "maxi" ? R.t("Hva feltene gir med seks terninger") : R.t("Hva feltene gir"))}</h3><ul class="tg-regelliste">
+      <li><b>${esc(R.t("Enere–seksere"))}</b><span>${esc(R.t("Summen av terningene med det tallet. {grense} eller mer til sammen gir {bonus} i bonus.", { grense: V.grense, bonus: V.bonus }))}</span></li>
       ${V.under
-        .map((k) => `<li><b>${esc(katNavn(k, { variant: V.id }))}</b><span>${esc(k === "yatzy" ? (V.id === "maxi" ? "Seks like gir 100." : "Fem like gir 50.") : KAT[k].regel)}</span></li>`)
+        .map((k) => `<li><b>${esc(katNavn(k, { variant: V.id }))}</b><span>${esc(k === "yatzy" ? (V.id === "maxi" ? R.t("Seks like gir 100.") : R.t("Fem like gir 50.")) : KAT[k].regel)}</span></li>`)
         .join("")}
     </ul>
-    ${V.spar ? `<p class="hjelp">Kast du ikke bruker, spares til senere turer.</p>` : ""}`;
+    ${V.spar ? `<p class="hjelp">${esc(R.t("Kast du ikke bruker, spares til senere turer."))}</p>` : ""}`;
   // The rules sheet explains the variant on the screen (the kit reads ekstraHtml when it opens).
   const REGLER = {
-    intro: "Kast terningene opptil tre ganger og fyll ut blokka. Flest poeng vinner.",
+    intro: R.t("Kast terningene opptil tre ganger og fyll ut blokka. Flest poeng vinner."),
     steg: [
-      ["Kast og hold", "Du har tre kast hver tur. Trykk på terningene du vil beholde, og kast resten på nytt."],
-      ["Velg et felt", "Blokka viser hva hvert ledig felt gir. Trykk på ett – du må fylle et felt hver tur, også om det gir 0."],
-      ["Flest poeng vinner", "Når blokka er full, er spillet over. 63 poeng eller mer på enere–seksere gir 50 i bonus (med seks terninger: 84 gir 100)."],
+      [R.t("Kast og hold"), R.t("Du har tre kast hver tur. Trykk på terningene du vil beholde, og kast resten på nytt.")],
+      [R.t("Velg et felt"), R.t("Blokka viser hva hvert ledig felt gir. Trykk på ett – du må fylle et felt hver tur, også om det gir 0.")],
+      [R.t("Flest poeng vinner"), R.t("Når blokka er full, er spillet over. 63 poeng eller mer på enere–seksere gir 50 i bonus (med seks terninger: 84 gir 100).")],
     ],
     tips: [
-      "I vanlig Yatzy gir tre av hver på enere–seksere akkurat 63 – og bonusen. Med seks terninger trengs fire av hver (84).",
-      "To par må være to ulike tall. Hus er tre like og to like av et annet tall.",
-      "Trykket på feil felt? «Angre» tar det tilbake, helt til neste kast.",
-      "Med seks terninger er det 20 felt – og kast du ikke bruker, sparer du til senere.",
+      R.t("I vanlig Yatzy gir tre av hver på enere–seksere akkurat 63 – og bonusen. Med seks terninger trengs fire av hver (84)."),
+      R.t("To par må være to ulike tall. Hus er tre like og to like av et annet tall."),
+      R.t("Trykket på feil felt? «Angre» tar det tilbake, helt til neste kast."),
+      R.t("Med seks terninger er det 20 felt – og kast du ikke bruker, sparer du til senere."),
     ],
     ekstraHtml: regelListe(VARIANTER.vanlig),
   };
@@ -712,10 +717,10 @@
     const maks = Math.min(3, 6 - folk);
     const r = Math.min(S.oppsett.roboter, maks);
     return `<section class="seksjon">
-      <div class="seksjon-hode"><h2>Mot mobilen</h2><span class="tall">${r ? R.flertall(folk + r, "spiller", "spillere") + " i alt" : "Av"}</span></div>
-      ${R.ui.seg("roboter", [[0, "Ingen"], [1, "1"], [2, "2"], [3, "3"]], r, { etikett: "Hvor mange spillere mobilen er", av: (v) => Number(v) > maks })}
-      ${r ? R.ui.seg("nivaa", NIVAER.map((n) => [n, NIVANAVN[n]]), S.oppsett.nivaa, { etikett: "Hvor flink mobilen er" }) : ""}
-      <p class="hjelp">${r ? `Mobilen spiller som ${esc(R.ramsOpp(ROBOTER.slice(0, r)))} 🤖 – ${{ lett: "beholder det opplagte og bommer av og til", middels: "spiller fornuftig og passer på bonusen", vanskelig: "regner på hvert kast" }[S.oppsett.nivaa]}.` : "Legg til en motspiller som mobilen styrer."}</p>
+      <div class="seksjon-hode"><h2>${esc(R.t("Mot mobilen"))}</h2><span class="tall">${esc(r ? R.t("{spillere} i alt", { spillere: R.flertall(folk + r, "spiller", "spillere") }) : R.t("Av"))}</span></div>
+      ${R.ui.seg("roboter", [[0, R.t("Ingen")], [1, "1"], [2, "2"], [3, "3"]], r, { etikett: R.t("Hvor mange spillere mobilen er"), av: (v) => Number(v) > maks })}
+      ${r ? R.ui.seg("nivaa", NIVAER.map((n) => [n, NIVANAVN[n]]), S.oppsett.nivaa, { etikett: R.t("Hvor flink mobilen er") }) : ""}
+      <p class="hjelp">${esc(r ? R.t("Mobilen spiller som {navn} 🤖 – {hvordan}.", { navn: R.ramsOpp(ROBOTER.slice(0, r)), hvordan: { lett: R.t("beholder det opplagte og bommer av og til"), middels: R.t("spiller fornuftig og passer på bonusen"), vanskelig: R.t("regner på hvert kast") }[S.oppsett.nivaa] }) : R.t("Legg til en motspiller som mobilen styrer."))}</p>
     </section>`;
   }
 
@@ -845,41 +850,41 @@
           const rek = ["vanlig", "maxi"].filter((v) => S.rekord[v]);
           return (
             R.ui.spillhjem({
-              slagordHtml: "Fem terninger. Tre kast.<br><em>Jakten på Yatzy!</em>",
+              slagordHtml: `${esc(R.t("Fem terninger. Tre kast."))}<br><em>${esc(R.t("Jakten på Yatzy!"))}</em>`,
               knapperHtml: R.ui.startKnapper({
                 pagar: pagar(S),
-                fortsettTekst: pagar(S) ? (alleFulle(sp) ? "Fortsett · se kåringen" : `Fortsett · runde ${runde(sp)} av ${VAR(sp).alle.length}`) : "",
-                ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+                fortsettTekst: pagar(S) ? (alleFulle(sp) ? R.t("Fortsett · se kåringen") : R.t("Fortsett · runde {n} av {alle}", { n: runde(sp), alle: VAR(sp).alle.length })) : "",
+                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [],
             }) +
             (rek.length
-              ? `<section class="tg-rekorder" aria-label="Rekorder på denne mobilen"><p class="etikett">Rekorder på denne mobilen</p><ul>${rek
-                  .map((v) => `<li><span aria-hidden="true">🏆</span> <b>${esc(VARIANTER[v].navn)}:</b> ${S.rekord[v].poeng} poeng · ${esc(S.rekord[v].navn)}</li>`)
+              ? `<section class="tg-rekorder" aria-label="${esc(R.t("Rekorder på denne mobilen"))}"><p class="etikett">${esc(R.t("Rekorder på denne mobilen"))}</p><ul>${rek
+                  .map((v) => `<li><span aria-hidden="true">🏆</span> <b>${esc(VARIANTER[v].navn)}:</b> ${S.rekord[v].poeng} ${esc(R.t("poeng"))} · ${esc(S.rekord[v].navn)}</li>`)
                   .join("")}</ul></section>`
               : "") +
             R.ui.merker([
-              ["1–6", "spillere"],
-              ["15", "felt"],
-              ["0", "reklame"],
+              ["1–6", R.t("spillere")],
+              ["15", R.t("felt")],
+              ["0", R.t("reklame")],
             ])
           );
         },
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         etter: (S) => visRegelvariant(S.oppsett.variant),
         vis: (S) => `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           <section class="seksjon">
-            <h2>Hvilken Yatzy?</h2>
+            <h2>${esc(R.t("Hvilken Yatzy?"))}</h2>
             ${R.ui.fliser(
               "variant",
               [
-                { v: "vanlig", tittel: "Yatzy", tekst: "5 terninger · 15 felt", ikon: `<span class="tg-flis-terninger">${ansikt(5)}${ansikt(3)}</span>` },
-                { v: "maxi", tittel: "Seks terninger", tekst: "20 felt · spar kast du ikke bruker", ikon: `<span class="tg-flis-terninger">${ansikt(6)}${ansikt(6)}${ansikt(6)}</span>` },
+                { v: "vanlig", tittel: R.t("Yatzy"), tekst: R.t("5 terninger · 15 felt"), ikon: `<span class="tg-flis-terninger">${ansikt(5)}${ansikt(3)}</span>` },
+                { v: "maxi", tittel: R.t("Seks terninger"), tekst: R.t("20 felt · spar kast du ikke bruker"), ikon: `<span class="tg-flis-terninger">${ansikt(6)}${ansikt(6)}${ansikt(6)}</span>` },
               ],
               S.oppsett.variant,
             )}
@@ -887,15 +892,15 @@
           ${R.ui.spillere({
             min: 1,
             max: 6,
-            tittel: "Hvem spiller?",
-            hjelp: (S.antall || 1) > 1 ? "Send mobilen videre etter hver tur." : "Alene? Jakt på din egen rekord – eller spill mot mobilen.",
+            tittel: R.t("Hvem spiller?"),
+            hjelp: (S.antall || 1) > 1 ? R.t("Send mobilen videre etter hver tur.") : R.t("Alene? Jakt på din egen rekord – eller spill mot mobilen."),
           })}
           ${motMobilenHtml(S)}
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor", ikon: "🎲" }))}`,
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { variant: "stor", ikon: "🎲" }))}`,
       },
 
       spill: {
-        tittel: (S) => (alleFulle(S.spill) ? "Blokka er full" : `Runde ${runde(S.spill)} av ${VAR(S.spill).alle.length}`),
+        tittel: (S) => (alleFulle(S.spill) ? R.t("Blokka er full") : R.t("Runde {n} av {alle}", { n: runde(S.spill), alle: VAR(S.spill).alle.length })),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -906,24 +911,24 @@
             <div class="tg-hode">
               ${avatarFor(sp, sp.tur, "mid")}
               <div class="tg-hvem">
-                <p class="etikett">${ferdig ? "Spillet er ferdig" : erRobot(sp, sp.tur) ? `Mobilen · ${NIVANAVN[sp.nivaa]}` : sp.antall > 1 ? "Din tur" : "Ditt kast"}</p>
+                <p class="etikett">${esc(ferdig ? R.t("Spillet er ferdig") : erRobot(sp, sp.tur) ? R.t("Mobilen · {niva}", { niva: NIVANAVN[sp.nivaa] }) : sp.antall > 1 ? R.t("Din tur") : R.t("Ditt kast"))}</p>
                 <h1 id="skjerm-tittel">${esc(navnFor(sp, sp.tur))}</h1>
               </div>
-              <p class="tg-total"><b>${total}</b><small>poeng</small></p>
+              <p class="tg-total"><b>${total}</b><small>${esc(R.t("poeng"))}</small></p>
             </div>
             ${stillingHtml(sp)}
             <div class="tg-brett${sp.kast === 0 ? " klar" : ""}${ferdig ? " ferdig" : ""}" id="tg-brett" style="--n: ${sp.terninger.length}">
-              <div class="tg-terninger" role="group" aria-label="Terningene">${sp.terninger.map((_, i) => terningHtml(sp, i)).join("")}</div>
+              <div class="tg-terninger" role="group" aria-label="${esc(R.t("Terningene"))}">${sp.terninger.map((_, i) => terningHtml(sp, i)).join("")}</div>
               <p class="tg-hint" id="tg-hint" aria-live="polite">${esc(hintTekst(sp))}</p>
             </div>
             ${blokkHtml(sp)}
             ${
               !ferdig && erRobot(sp, sp.tur)
                 ? R.ui.dokk(
-                    R.ui.knapp(`${navnFor(sp, sp.tur)} spiller …`, "kast", { variant: "stor", av: true, ikon: "🤖" }),
-                    R.ui.lenkerad(angreLenke(sp), hoppAnim ? "" : R.ui.lenke("Hopp over animasjonen", "hopp-anim"), R.ui.lenke("Blokka", "blokka"), R.ui.lenke("Avslutt", "avslutt")),
+                    R.ui.knapp(R.t("{navn} spiller …", { navn: navnFor(sp, sp.tur) }), "kast", { variant: "stor", av: true, ikon: "🤖" }),
+                    R.ui.lenkerad(angreLenke(sp), hoppAnim ? "" : R.ui.lenke(R.t("Hopp over animasjonen"), "hopp-anim"), R.ui.lenke(R.t("Blokka"), "blokka"), R.ui.lenke(R.t("Avslutt"), "avslutt")),
                   )
-                : R.ui.dokk(kastKnapp(sp), R.ui.lenkerad(angreLenke(sp), R.ui.lenke("Blokka", "blokka"), ferdig ? "" : R.ui.lenke("Avslutt", "avslutt")))
+                : R.ui.dokk(kastKnapp(sp), R.ui.lenkerad(angreLenke(sp), R.ui.lenke(R.t("Blokka"), "blokka"), ferdig ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")))
             }`;
         },
         inn(S) {
@@ -937,7 +942,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -946,22 +951,22 @@
           const best = Math.max(...rader.map((r) => r.poeng));
           const vinnere = rader.filter((r) => r.poeng === best);
           const res = sp.resultat || {};
-          const dokk = R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), '<a class="lenke" href="/">Alle spill</a>'));
-          const blokk = `<section class="seksjon"><h2>Blokka</h2>${tabellHtml(sp, { slutt: true })}</section>`;
+          const dokk = R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`));
+          const blokk = `<section class="seksjon"><h2>${esc(R.t("Blokka"))}</h2>${tabellHtml(sp, { slutt: true })}</section>`;
           if (sp.antall === 1) {
-            const tittel = res.ny && res.gml != null ? "Ny rekord!" : best >= 250 ? "Råsterkt!" : best >= 200 ? "Godt jobba!" : "Godt kjempa!";
+            const tittel = res.ny && res.gml != null ? R.t("Ny rekord!") : best >= 250 ? R.t("Råsterkt!") : best >= 200 ? R.t("Godt jobba!") : R.t("Godt kjempa!");
             const under = !res.komplett
-              ? "Blokka ble ikke full denne gangen. Fyll den helt for å sette rekord!"
+              ? R.t("Blokka ble ikke full denne gangen. Fyll den helt for å sette rekord!")
               : res.ny && res.gml != null
-                ? `Forrige rekord var ${res.gml} poeng.`
+                ? R.t("Forrige rekord var {n} poeng.", { n: res.gml })
                 : res.gml == null
-                  ? "Første runde på denne mobilen – nå har du en rekord å slå!"
-                  : `Rekorden din er ${res.gml} poeng.`;
+                  ? R.t("Første runde på denne mobilen – nå har du en rekord å slå!")
+                  : R.t("Rekorden din er {n} poeng.", { n: res.gml });
             return `
               <div class="banner aksent">
                 ${R.figur()}
                 <h1 id="skjerm-tittel">${esc(tittel)}</h1>
-                <p class="tg-sluttpoeng"><b>${best}</b> poeng</p>
+                <p class="tg-sluttpoeng"><b>${best}</b> ${esc(R.t("poeng"))}</p>
                 <p class="ingress">${esc(under)}</p>
               </div>
               ${blokk}
@@ -971,8 +976,8 @@
           return `
             <div class="banner aksent">
               ${vinnere.length === 1 ? `<span class="tg-vinner">${avatarFor(sp, vinnere[0].i, "gigant")}<span class="tg-krone" aria-hidden="true">👑</span></span>` : R.figur()}
-              <h1 id="skjerm-tittel">${esc(R.ramsOpp(vinnere.map((r) => navnFor(sp, r.i))))} vinner!</h1>
-              <p class="ingress">${vinnere.length > 1 ? `Likt med ${best} poeng hver.` : `${best} poeng${erRobot(sp, vinnere[0].i) ? " – mobilen vant denne gangen. Revansj?" : res.ny && res.gml != null ? " – ny rekord på denne mobilen!" : ""}`}</p>
+              <h1 id="skjerm-tittel">${esc(R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(vinnere.map((r) => navnFor(sp, r.i))), n: vinnere.length }))}</h1>
+              <p class="ingress">${esc(vinnere.length > 1 ? R.t("Likt med {n} poeng hver.", { n: best }) : erRobot(sp, vinnere[0].i) ? R.t("{n} poeng – mobilen vant denne gangen. Revansj?", { n: best }) : res.ny && res.gml != null ? R.t("{n} poeng – ny rekord på denne mobilen!", { n: best }) : R.t("{n} poeng", { n: best }))}</p>
             </div>
             ${robotAvatarer(sp, R.ui.pall(rader) + R.ui.poengliste(rader))}
             ${blokk}
@@ -1047,11 +1052,11 @@
         const i = Number(el.dataset.v);
         if (!(i >= 0 && i < sp.terninger.length)) return;
         if (sp.kast === 0) {
-          R.toast("Kast terningene først");
+          R.toast(R.t("Kast terningene først"));
           return;
         }
         if (igjen(sp) <= 0) {
-          R.toast("Ingen kast igjen – velg et felt");
+          R.toast(R.t("Ingen kast igjen – velg et felt"));
           return;
         }
         sp.holdt[i] = !sp.holdt[i];
@@ -1062,9 +1067,9 @@
         const v = sp.terninger[i];
         el.classList.toggle("holdt", sp.holdt[i]);
         el.setAttribute("aria-pressed", String(sp.holdt[i]));
-        el.setAttribute("aria-label", `Terning ${i + 1} viser ${v}${sp.holdt[i] ? ", holdt" : ""}`);
+        el.setAttribute("aria-label", terningEtikett(i, v, sp.holdt[i]));
         const hint = R.$("#tg-hint");
-        if (hint) hint.textContent = sp.holdt.every(Boolean) ? "Alle er holdt – velg et felt, eller slipp en terning" : hintTekst(sp);
+        if (hint) hint.textContent = sp.holdt.every(Boolean) ? R.t("Alle er holdt – velg et felt, eller slipp en terning") : hintTekst(sp);
         R.lagre();
       },
 
@@ -1084,7 +1089,7 @@
           sp.vri[i] = nyVri();
         });
         if (!indekser.length) {
-          R.toast("Alle terningene er holdt – slipp én, eller velg et felt");
+          R.toast(R.t("Alle terningene er holdt – slipp én, eller velg et felt"));
           return;
         }
         // A saved roll is used once the three rolls of the turn are gone (six-dice variant).
@@ -1100,7 +1105,7 @@
         }
         R.$$('#skjerm .dokk button, #skjerm [data-h="sett"]').forEach((b) => (b.disabled = true));
         const hint = R.$("#tg-hint");
-        if (hint) hint.textContent = "Terningene ruller …";
+        if (hint) hint.textContent = R.t("Terningene ruller …");
         const angre = R.$("#tg-angre");
         if (angre) angre.remove();
         rasle();
@@ -1110,7 +1115,8 @@
         ruller = false;
         if (!fortsatt()) return;
         R.vis();
-        R.si(`${erRobot(sp, sp.tur) ? navnFor(sp, sp.tur) + " kastet" : "Du kastet"} ${R.ramsOpp(sp.terninger.map(String))}.`);
+        const kastet = R.ramsOpp(sp.terninger.map(String));
+        R.si(erRobot(sp, sp.tur) ? R.t("{navn} kastet {terninger}.", { navn: navnFor(sp, sp.tur), terninger: kastet }) : R.t("Du kastet {terninger}.", { terninger: kastet }));
         if (!hoppAnim) feirKast(sp);
         R.lagre();
         driv();
@@ -1126,7 +1132,7 @@
         const robot = erRobot(sp, sp.tur);
         if (robot && !robotTrykk) return;
         if (sp.kast === 0) {
-          R.toast("Kast terningene først");
+          R.toast(R.t("Kast terningene først"));
           el.classList.remove("risting");
           void el.offsetWidth;
           el.classList.add("risting");
@@ -1149,7 +1155,7 @@
         const navn = katNavn(kat, sp);
 
         // The box gets its number at once; the next turn is drawn a moment later.
-        el.className = "tg-felt fylt ny" + (verdi === 0 ? " null" : "");
+        el.className = "tg-felt fylt ny" + (verdi === 0 ? " null" : ""); // class names // sprak-ok
         const vEl = el.querySelector(".tg-verdi");
         if (vEl) vEl.textContent = verdi === 0 ? "–" : String(verdi);
         R.$$('#skjerm .dokk button, #skjerm [data-h="sett"], #skjerm [data-h="hold"]').forEach((b) => (b.disabled = true));
@@ -1157,18 +1163,18 @@
         let melding;
         if (fikkBonus) {
           R.lyd.fanfare();
-          melding = `Bonus! +${V.bonus} til ${hvem}`;
+          melding = R.t("Bonus! +{n} til {navn}", { n: V.bonus, navn: hvem });
           R.vibrer([30, 40, 90]);
         } else if (verdi > 0) {
           R.lyd.riktig();
-          melding = sp.antall > 1 ? `+${verdi} på ${navn} til ${hvem}` : `+${verdi} på ${navn}`;
+          melding = sp.antall > 1 ? R.t("+{n} på {felt} til {navn}", { n: verdi, felt: navn, navn: hvem }) : R.t("+{n} på {felt}", { n: verdi, felt: navn });
           R.vibrer(20);
         } else {
           R.lyd.tone(330, 0, 0.12, "triangle", 0.09, 220);
-          melding = `${navn} er strøket`;
+          melding = R.t("{felt} er strøket", { felt: navn });
           R.vibrer(10);
         }
-        R.si(verdi > 0 ? `${verdi} poeng på ${navn}.` : `${navn} er strøket.`);
+        R.si(verdi > 0 ? R.t("{n} poeng på {felt}.", { n: verdi, felt: navn }) : R.t("{felt} er strøket.", { felt: navn }));
 
         if (robot) sp.angre = null; // only a person's own box can be taken back
         // Next turn (saved now, so a reload lands on the right player).
@@ -1187,13 +1193,13 @@
         R.vis();
         R.toast(melding); // after the redraw, so it sits above the new action area
         if (alleFulle(sp)) {
-          R.si("Blokka er full. Trykk på «Se kåringen».");
+          R.si(R.t("Blokka er full. Trykk på «Se kåringen»."));
           R.lyd.pling();
         } else if (sp.antall > 1) {
           const hode = R.$(".tg-hode");
           if (hode) hode.classList.add("ny");
           R.lyd.pop();
-          R.si(`${navnFor(sp, sp.tur)} sin tur.`);
+          R.si(R.t("{navn} sin tur.", { navn: navnFor(sp, sp.tur) }));
         }
         driv();
       },
@@ -1213,19 +1219,19 @@
         sp.angre = null;
         stoppRobot();
         R.lyd.snu();
-        R.toast(`Angret – ${katNavn(a.kat, sp)} er ledig igjen`);
+        R.toast(R.t("Angret – {felt} er ledig igjen", { felt: katNavn(a.kat, sp) }));
         R.vis();
-        R.si(`Angret. ${navnFor(sp, sp.tur)} velger på nytt.`);
+        R.si(R.t("Angret. {navn} velger på nytt.", { navn: navnFor(sp, sp.tur) }));
       },
 
       blokka(el, e, S) {
         const sp = S.spill;
         if (!sp) return;
         R.ark(`
-          <h2 id="ark-tittel">Blokka</h2>
+          <h2 id="ark-tittel">${esc(R.t("Blokka"))}</h2>
           ${tabellHtml(sp)}
-          ${VAR(sp).spar && sp.spart.some((n) => n) ? `<p class="hjelp">Sparte kast: ${sp.spart.map((n, i) => `${esc(navnFor(sp, i))} ${n}`).join(" · ")}</p>` : ""}
-          <button class="knapp" data-h="lukk-ark">Spill videre</button>`);
+          ${VAR(sp).spar && sp.spart.some((n) => n) ? `<p class="hjelp">${esc(R.t("Sparte kast: {liste}", { liste: sp.spart.map((n, i) => `${navnFor(sp, i)} ${n}`).join(" · ") }))}</p>` : ""}
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Spill videre"))}</button>`);
       },
 
       kaaring(el, e, S) {
@@ -1243,12 +1249,12 @@
         const fortsatt = R.vakt();
         const tom = sp.kort.every((k) => !Object.keys(k).length);
         if (tom) {
-          if (!(await R.bekreft("Avslutte spillet?", sp.antall > 1 ? "Ingen har fått poeng ennå. Dere kan alltid starte et nytt." : "Du har ikke fått poeng ennå. Du kan alltid starte et nytt.", "Avslutt", "Spill videre")) || !fortsatt()) return;
+          if (!(await R.bekreft(R.t("Avslutte spillet?"), sp.antall > 1 ? R.t("Ingen har fått poeng ennå. Dere kan alltid starte et nytt.") : R.t("Du har ikke fått poeng ennå. Du kan alltid starte et nytt."), R.t("Avslutt"), R.t("Spill videre"))) || !fortsatt()) return;
           S.spill = null;
           R.gaTil("hjem");
           return;
         }
-        if (!(await R.bekreft("Avslutte spillet?", "Dere går rett til kåringen med poengene så langt.", "Avslutt", "Spill videre")) || !fortsatt() || !pagar(S)) return;
+        if (!(await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere går rett til kåringen med poengene så langt."), R.t("Avslutt"), R.t("Spill videre"))) || !fortsatt() || !pagar(S)) return;
         lagreRekord(S);
         sp.ferdig = true;
         sp.angre = null;

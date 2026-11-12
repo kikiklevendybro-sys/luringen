@@ -106,6 +106,12 @@
       "tittel": "Sea battle online – sink the enemy fleet, free",
       "frase": "Sea battle",
       "beskrivelse": "Free sea battle game in your browser: place your fleet and sink the enemy ships – against the phone at three levels, or two players on one phone."
+    },
+    "terninga": {
+      "motMobilen": true,
+      "tittel": "Five-dice game online – Scandinavian scoring, free",
+      "frase": "Five-dice game",
+      "beskrivelse": "Free five-dice game with Scandinavian scoring: roll three times and chase pairs, straights and Yatzy – solo, with friends or against the phone."
     }
   }
 }

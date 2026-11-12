@@ -114,6 +114,12 @@
       "tittel": "Sænke slagskibe online – sænk flåden, gratis",
       "frase": "Sænke slagskibe",
       "beskrivelse": "Gratis sænke slagskibe på dansk: placér flåden, og sænk fjendens skibe – mod mobilen på tre niveauer eller to spillere på én mobil."
+    },
+    "terninga": {
+      "motMobilen": true,
+      "tittel": "Yatzy online – gratis med blok og terninger",
+      "frase": "Yatzy",
+      "beskrivelse": "Gratis Yatzy på dansk: fem terninger, tre kast og hele blokken på mobilen. Spil alene, sammen eller mod mobilen – med fem eller seks terninger."
     }
   }
 }

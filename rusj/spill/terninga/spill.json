@@ -11,5 +11,23 @@
   "rekkefolge": 33,
   "farge": "#ff5e6c",
   "motMobilen": true,
-  "sok": ["yatzy", "yahtzee", "maxi yatzy", "terninger", "terningspill", "poengblokk", "yatzy mot data"]
+  "sok": ["yatzy", "yahtzee", "maxi yatzy", "terninger", "terningspill", "poengblokk", "yatzy mot data"],
+  "i18n": {
+    "en": {
+      "navn": "Dicey",
+      "undertittel": "Five-dice game",
+      "kort": "Five dice, three rolls – Scandinavian scoring with pairs and a bonus.",
+      "beskrivelse": "Free five-dice game with Scandinavian scoring: three rolls, pairs, straights and a full scorecard. Play solo, together or against the phone.",
+      "slug": "dicey",
+      "sok": ["yahtzee", "yatzy", "dice game", "five dice", "dice", "scorecard", "score sheet", "maxi yatzy", "yacht dice", "scandinavian yatzy"]
+    },
+    "da": {
+      "navn": "Terningen",
+      "undertittel": "Yatzy",
+      "kort": "Fem terninger, tre kast – og jagten på Yatzy.",
+      "beskrivelse": "Gratis Yatzy på dansk: fem terninger, tre kast og hele blokken på mobilen. Spil alene, sammen eller mod mobilen – med fem eller seks terninger.",
+      "slug": "terningen",
+      "sok": ["yatzy", "yahtzee", "maxi yatzy", "terninger", "terningespil", "yatzyblok", "yatzy online", "yatzy mod computeren"]
+    }
+  }
 }
