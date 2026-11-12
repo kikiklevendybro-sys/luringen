@@ -441,6 +441,45 @@
       "tittel": "Ten answers – the quiz where one slip busts it all",
       "frase": "Ten answers",
       "beskrivelse": "Free quiz game: ten answers sit around a ring. Get them right and fill your pot – but one wrong answer and it all goes bust. Dare you take one more?"
+    },
+    "tidsmaskinen": {
+      "tittel": "When did it happen? History order game for 1–10",
+      "frase": "History order game",
+      "beskrivelse": "Put history in order: drag each event to its right place, oldest to newest. Over 600 events from Britain and the world. Free, for 1–10 players.",
+      "sok": [
+        "history",
+        "history game"
+      ]
+    },
+    "julekalenderen": {
+      "tittel": "Online Advent calendar – 24 doors for the family",
+      "frase": "Advent calendar",
+      "beskrivelse": "Free Advent calendar with 24 doors: Christmas riddles, a quiz, guess the carol, word puzzles and cosy ideas. A new door every day in December, no account.",
+      "sok": [
+        "advent calendar for kids",
+        "christmas riddles"
+      ]
+    },
+    "skronemakeren": {
+      "tittel": "Porkies – make up an answer, spot the real one",
+      "frase": "Porkies",
+      "beskrivelse": "The bluffing game where everyone invents an answer to a weird word, a place name or an odd fact – and you must spot the real one. Free for 3–10, one phone.",
+      "sok": [
+        "bluffing game",
+        "dictionary game",
+        "fake answers game"
+      ]
+    },
+    "nynneren": {
+      "tittel": "Hum the song – guess the tune! 500 songs, free",
+      "frase": "Hum the song",
+      "beskrivelse": "Free humming game with over 500 songs: nursery rhymes, carols, singalong anthems, film songs and pop classics. Hum without words – the others guess!",
+      "sok": [
+        "music quiz",
+        "music game",
+        "singalong",
+        "christmas songs"
+      ]
     }
   }
 }

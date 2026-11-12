@@ -1,0 +1,8 @@
+[
+  { "id": "norge", "navn": "Danmark", "kort": "Danmark", "ikon": "🇩🇰", "farge": "var(--rod)" },
+  { "id": "verden", "navn": "Verdenshistorie", "kort": "Verden", "ikon": "🌍", "farge": "var(--himmel)" },
+  { "id": "oppfinnelser", "navn": "Opfindelser", "kort": "Opfindelser", "ikon": "💡", "farge": "var(--lampe)" },
+  { "id": "natur", "navn": "Natur og videnskab", "kort": "Videnskab", "ikon": "🔭", "farge": "var(--mynte)" },
+  { "id": "kultur", "navn": "Bøger, film og musik", "kort": "Kultur", "ikon": "🎬", "farge": "var(--rosa)" },
+  { "id": "sport", "navn": "Sport", "kort": "Sport", "ikon": "🏅", "farge": "var(--oransje)" }
+]

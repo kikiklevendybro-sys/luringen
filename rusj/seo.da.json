@@ -457,6 +457,46 @@
       "tittel": "Ti svar – quizspillet, hvor ét forkert svar vælter alt",
       "frase": "Ti svar",
       "beskrivelse": "Gratis quizspil på dansk: ti svar ligger rundt om en ring. Svar rigtigt, og saml point i puljen – men ét forkert svar, og det hele ryger. Tør du tage et til?"
+    },
+    "tidsmaskinen": {
+      "tittel": "Tidslinjen – hvornår skete det? Historiespil for 1–10",
+      "frase": "Tidslinjen",
+      "beskrivelse": "Sæt historien i rækkefølge: træk hver begivenhed hen på den rigtige plads på tidslinjen. Over 600 begivenheder fra Danmark og verden. Gratis for 1–10.",
+      "sok": [
+        "historie",
+        "historiespil"
+      ]
+    },
+    "julekalenderen": {
+      "tittel": "Julekalender på nettet – 24 låger for hele familien",
+      "frase": "Julekalender",
+      "beskrivelse": "Gratis julekalender med 24 låger: julegåder, quiz, gæt julesangen, ordgåder og hyggelige idéer. En ny låge hver dag i december, uden konto.",
+      "sok": [
+        "adventskalender",
+        "julekalender for børn",
+        "julegåder"
+      ]
+    },
+    "skronemakeren": {
+      "tittel": "Skrønemageren – digt en forklaring, find den ægte",
+      "frase": "Skrønemageren",
+      "beskrivelse": "Bluffespillet, hvor alle digter en forklaring på et mærkeligt ord, et stednavn eller et skørt faktum – og I skal finde den ægte. Gratis for 3–10, én mobil.",
+      "sok": [
+        "bluffespil",
+        "ordbluf",
+        "find det rigtige svar"
+      ]
+    },
+    "nynneren": {
+      "tittel": "Nyn sangen – gæt melodien! 300 sange, gratis",
+      "frase": "Nyn sangen",
+      "beskrivelse": "Gratis nynneleg med over 300 sange: børnesange, julesange, fællessang, filmmusik og popklassikere. Nyn uden ord – de andre gætter!",
+      "sok": [
+        "musikquiz",
+        "musikleg",
+        "sang",
+        "julesange"
+      ]
     }
   }
 }

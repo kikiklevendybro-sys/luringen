@@ -3,17 +3,22 @@
 // during the roll, back + continue, «Nytt spill» asks), the crowning with the award and the
 // timelines, Rekordjakt to the first miss (the record is kept), teams, and short phones and a phone
 // on its side, where the card and every gap of a new timeline must be in view at once.
+// In another edition the texts are compared with the page's own R.t (tr), so the same keys are
+// checked in every language; storage keys come from t.nokkel.
 export default async function (t) {
   const pause = () => t.sov(420); // taps right after a screen change are ignored on purpose
   const spill = async () => (await t.tilstand()).spill;
   const [B0, H0] = await t.js("[window.innerWidth, window.innerHeight]");
   const LIGGENDE = "(orientation: landscape) and (max-height: 600px) and (min-width: 560px)";
   const liggende = () => t.js(`window.matchMedia(${JSON.stringify(LIGGENDE)}).matches`);
+  // The text of a key in this edition (the game's table, then the shared one).
+  const tr = (nokkel, verdier) => t.js(`Rusj.t(${JSON.stringify(nokkel)}, ${JSON.stringify(verdier || null)})`);
+  const LAGRET = t.nokkel("tidsmaskinen.v1");
 
   // Where the drawn card belongs in the current timeline: any gap from lo to hi.
   const fasit = () =>
     t.js(`(() => {
-      const sp = JSON.parse(localStorage.getItem("rusj.tidsmaskinen.v1")).spill;
+      const sp = JSON.parse(localStorage.getItem("${LAGRET}")).spill;
       const D = window.RUSJ_DATA, alle = [];
       Object.keys(D).filter((n) => n.startsWith("hendelser-")).sort().forEach((n) => D[n].forEach((h) => alle.push(h)));
       const a = alle[sp.kort].a, linje = sp.linjer[sp.tur];
@@ -25,12 +30,12 @@ export default async function (t) {
   // The longest span of years in one timeline, and who has it (for the award at the crowning).
   const lengsteReise = () =>
     t.js(`(() => {
-      const sp = JSON.parse(localStorage.getItem("rusj.tidsmaskinen.v1")).spill;
+      const sp = JSON.parse(localStorage.getItem("${LAGRET}")).spill;
       const D = window.RUSJ_DATA, alle = [];
       Object.keys(D).filter((n) => n.startsWith("hendelser-")).sort().forEach((n) => D[n].forEach((h) => alle.push(h)));
       const spenn = sp.linjer.map((l) => { const fra = alle[l[0]].a, til = alle[l[l.length - 1]].a; return til - fra - (fra < 0 && til > 0 ? 1 : 0); });
       const lengst = Math.max(...spenn);
-      return { lengst, tekst: Number(lengst).toLocaleString("nb-NO"), hvem: spenn.map((s, i) => (s === lengst ? i : -1)).filter((i) => i >= 0) };
+      return { lengst, tekst: Number(lengst).toLocaleString(Rusj.lokale), hvem: spenn.map((s, i) => (s === lengst ? i : -1)).filter((i) => i >= 0) };
     })()`);
   const midten = (sel) =>
     t.js(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); el.scrollIntoView({ block: "center" }); const b = el.getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; })()`);
@@ -98,7 +103,7 @@ export default async function (t) {
   // ---------- Setup ----------
   await t.start({ navn: ["Testspiller A", "Testspiller B", "Testspiller C"] });
   await t.klikk('[data-h="nytt"]');
-  t.sjekk(/Gjør klart/.test(await t.tekst("#skjerm h1")), "Oppsettet skal hete «Gjør klart»");
+  t.sjekk((await t.tekst("#skjerm h1")).trim() === (await tr("Gjør klart")), "Oppsettet skal hete «Gjør klart»");
   t.sjekk(await t.finnes('.flis[data-h="modus"][aria-pressed="true"]'), "Spillemåten skal velges med store fliser øverst");
   const fliser = await t.js(`Array.from(document.querySelectorAll('.flis[data-h="modus"]')).map((f) => { const r = f.getBoundingClientRect(); return [Math.round(r.top), Math.round(r.width), f.scrollWidth > f.clientWidth + 1]; })`);
   t.sjekk(fliser.length === 3 && new Set(fliser.map((x) => x[0])).size === 1 && new Set(fliser.map((x) => x[1])).size === 1, "De tre spillemåtene skal stå på én rad, like brede (aldri 2 + 1)");
@@ -107,7 +112,8 @@ export default async function (t) {
   t.sjekk((await t.tekst('[data-h="start"]')).trim() === "Start", `Startknappen skal bare hete «Start»: «${await t.tekst('[data-h="start"]')}»`);
   // Categories, difficulty and the target are folded into one row with a summary
   t.sjekk(!(await t.finnes('[data-h="kategori"]')), "«Flere valg» skal være lukket til å begynne med");
-  t.sjekk(/Alle kategorier · Blandet · Først til 10/.test(await t.tekst('[data-h="mer"]')), `«Flere valg» skal vise valgene: «${await t.tekst('[data-h="mer"]')}»`);
+  const valgene = [await tr("Alle kategorier"), await tr("Blandet"), await tr("Først til {n}", { n: 10 })].join(" · ");
+  t.sjekk((await t.tekst('[data-h="mer"]')).includes(valgene), `«Flere valg» skal vise valgene: «${await t.tekst('[data-h="mer"]')}»`);
   if (H0 >= 800) t.sjekk((await skjult('[data-h="mer"], [data-h="start"]')) === 0, "«Flere valg» og «Start» skal synes uten å rulle");
   await t.bilde("oppsett", true);
   await t.klikk('[data-h="mer"]');
@@ -116,11 +122,11 @@ export default async function (t) {
   await t.klikk('[data-h="kategori"][data-v="*"]');
   t.sjekk((await t.tilstand()).oppsett.kategorier.length === 0, "«Alle» skal kunne velge bort alle kategorier");
   t.sjekk(await t.js(`document.querySelector('[data-h="start"]').disabled`), "Start skal være av uten kategorier");
-  t.sjekk(/Velg minst én kategori/.test(await t.tekst("#skjerm .dokk")), "Mangler forklaringen når ingen kategori er valgt");
+  t.sjekk((await t.tekst("#skjerm .dokk")).includes(await tr("Velg minst én kategori under «Flere valg».")), "Mangler forklaringen når ingen kategori er valgt");
   await t.klikk('[data-h="kategori"][data-v="*"]');
   await t.klikk('[data-h="mal"][data-v="5"]');
   t.sjekk((await t.tilstand()).oppsett.mal === 5, "Målet ble ikke 5 kort");
-  t.sjekk(/Først til 5/.test(await t.tekst('[data-h="mer"]')), "Sammendraget i «Flere valg» fulgte ikke med");
+  t.sjekk((await t.tekst('[data-h="mer"]')).includes(await tr("Først til {n}", { n: 5 })), "Sammendraget i «Flere valg» fulgte ikke med");
 
   // ---------- First turn: tap a gap, drag the card along, check the year ----------
   await t.klikk('[data-h="start"]');
@@ -145,7 +151,7 @@ export default async function (t) {
   sp = await spill();
   t.sjekk(sp.plass === 0 && (await t.finnes(".tm-luke.tm-her .tm-ny-kort")), "Kortet ble ikke lagt i luke 0");
   t.sjekk(!(await t.finnes("#tm-hand")) && !(await t.js(`document.querySelector("#tm-sjekk").disabled`)), "Etter at kortet er lagt, skal «Sjekk året» være på");
-  t.sjekk((await t.tekst("#tm-sjekk")).trim() === "Sjekk året!", `Hovedknappen skal hete «Sjekk året!»: «${await t.tekst("#tm-sjekk")}»`);
+  t.sjekk((await t.tekst("#tm-sjekk")).trim() === (await tr("Sjekk året!")), `Hovedknappen skal hete «Sjekk året!»: «${await t.tekst("#tm-sjekk")}»`);
   t.sjekk((await skjult(".tm-ny-kort, #tm-sjekk")) === 0, "Kortet i tidslinja og «Sjekk året!» skal synes samtidig");
   await t.bilde("lagt");
   await dra(".tm-ny-kort", '.tm-luke[data-luke="1"]');
@@ -165,7 +171,7 @@ export default async function (t) {
   sp = await spill();
   t.sjekk(sp.fase === "svar" && sp.svar.riktig && sp.linjer[0].length === 2 && sp.treff[0] === 1, "Riktig plass ga ikke kortet til Testspiller A");
   t.sjekk(await t.finnes(".tm-dom.riktig") && (await t.finnes(".tm-rad.tm-fersk")), "Riktig svar vises ikke");
-  t.sjekk((await t.tekst('[data-h="neste"]')).trim() === "Neste: Testspiller B", `Neste-knappen skal si hvem som er neste: «${await t.tekst('[data-h="neste"]')}»`);
+  t.sjekk((await t.tekst('[data-h="neste"]')).trim() === (await tr("Neste: {navn}", { navn: "Testspiller B" })), `Neste-knappen skal si hvem som er neste: «${await t.tekst('[data-h="neste"]')}»`);
   await t.bilde("riktig");
 
   // ---------- Second turn: a finger drags the card to a wrong place ----------
@@ -180,7 +186,7 @@ export default async function (t) {
     sp = await spill();
     t.sjekk(sp.fase === "svar" && !sp.svar.riktig && sp.linjer[1].length === 1, "Feil plass skulle kaste kortet");
     t.sjekk((await t.finnes(".tm-dom.feil")) && (await t.finnes(".tm-spokelse")) && (await t.finnes(".tm-kastet")), "Feil svar skal vise hvor kortet hørte hjemme");
-    t.sjekk((await t.tekst(".tm-dom-ord")).trim() === "Nesten!", `Feil plass skal hete «Nesten!»: «${await t.tekst(".tm-dom-ord")}»`);
+    t.sjekk((await t.tekst(".tm-dom-ord")).trim() === (await tr("Nesten!")), `Feil plass skal hete «Nesten!»: «${await t.tekst(".tm-dom-ord")}»`);
     await t.bilde("feil");
   } else t.feil("Fant ingen feil luke å teste med");
   await t.klikk('[data-h="stilling"]');
@@ -196,7 +202,7 @@ export default async function (t) {
   sp = await spill();
   t.sjekk(sp.tur === 2 && sp.plass === 0, "Spillet husket ikke kortet i tidslinja etter omlasting");
   await t.klikk("#tilbake");
-  t.sjekk(/runde 1/i.test(await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')), "«Fortsett» skal være hovedknappen mens et spill pågår");
+  t.sjekk((await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')).includes(await tr("Fortsett · runde {n}", { n: 1 })), "«Fortsett» skal være hovedknappen mens et spill pågår");
   t.sjekk((await t.tilstand())._aktiv === true, "Et pågående spill er ikke merket som aktivt");
   await t.bilde("hjem-pagar");
   await t.klikk('[data-h="nytt"]');
@@ -212,8 +218,9 @@ export default async function (t) {
 
   // ---------- Play on: Testspiller A always right, the others wrong, until A has 5 cards ----------
   let toastSett = false;
+  const TIL_KARINGEN = await tr("Til kåringen");
   for (let n = 0; n < 40; n++) {
-    if (/Til kåringen/.test(await t.tekst('[data-h="neste"]'))) break;
+    if ((await t.tekst('[data-h="neste"]')).includes(TIL_KARINGEN)) break;
     await neste();
     sp = await spill();
     f = await fasit();
@@ -236,21 +243,22 @@ export default async function (t) {
     await sjekk();
   }
   t.sjekk(toastSett, "Fikk ikke testet hintet som toast");
-  t.sjekk((await t.tekst('[data-h="neste"]')).trim() === "Til kåringen", `Siste knapp skal hete «Til kåringen»: «${await t.tekst('[data-h="neste"]')}»`);
+  t.sjekk((await t.tekst('[data-h="neste"]')).trim() === TIL_KARINGEN, `Siste knapp skal hete «Til kåringen»: «${await t.tekst('[data-h="neste"]')}»`);
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.pall')");
   sp = await spill();
   t.sjekk(sp.ferdig && sp.linjer[0].length === 5, "Testspiller A skulle vinne med 5 kort");
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
-  t.sjekk(/Testspiller A vinner!/.test(await t.tekst("#skjerm h1")), `Vinnerlinjen er feil: «${await t.tekst("#skjerm h1")}»`);
+  const tittel = async (nokkel) => (await t.tekst("#topp-tittel")).trim().toLocaleLowerCase() === (await tr(nokkel)).toLocaleLowerCase();
+  t.sjekk(await tittel("Kåringen"), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk((await t.tekst("#skjerm h1")).includes(await tr("{navn} vinner!|{navn} vinner!", { navn: "Testspiller A", n: 1 })), `Vinnerlinjen er feil: «${await t.tekst("#skjerm h1")}»`);
   // The award: the longest journey through time
   const reise = await lengsteReise();
   const pris = await t.tekst(".tm-pris");
-  t.sjekk(/Lengste tidsreise/i.test(pris) && pris.includes(reise.tekst) && reise.hvem.every((i) => pris.includes(`Testspiller ${"ABC"[i]}`)), `Prisen «Lengste tidsreise» er feil (ventet ${reise.tekst} år): «${pris}»`);
-  t.sjekk((await t.tekst('#skjerm .dokk [data-h="igjen"]')).trim() === "Spill igjen", "Hovedknappen på kåringen skal hete «Spill igjen»");
-  t.sjekk(await t.finnes('#skjerm a.lenke[href="/"]'), "Slutten mangler lenken «Alle spill»");
+  t.sjekk(pris.toLocaleLowerCase().includes((await tr("Lengste tidsreise")).toLocaleLowerCase()) && pris.includes(reise.tekst) && reise.hvem.every((i) => pris.includes(`Testspiller ${"ABC"[i]}`)), `Prisen «Lengste tidsreise» er feil (ventet ${reise.tekst} år): «${pris}»`);
+  t.sjekk((await t.tekst('#skjerm .dokk [data-h="igjen"]')).trim() === (await tr("Spill igjen")), "Hovedknappen på kåringen skal hete «Spill igjen»");
+  t.sjekk(await t.finnes(`#skjerm a.lenke[href="${t.forside}"]`), "Slutten mangler lenken «Alle spill»");
   t.sjekk((await t.tilstand())._aktiv === false, "Et ferdig spill skal ikke være merket som pågående");
-  const kveld = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  const kveld = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
   t.sjekk(kveld && kveld.spill.some((s) => s.id === "tidsmaskinen"), "Resultatet kom ikke med i «Kveldens gjeng»");
   // The kit may offer «Ha rusj som app» right after a finished game: close it first.
   await t.sov(2000);
@@ -261,13 +269,13 @@ export default async function (t) {
   await t.bilde("tidslinjene");
   await t.klikk('#ark [data-h="lukk-ark"]');
   await t.klikk("#tilbake");
-  t.sjekk(/Til kåringen/.test(await t.tekst('[data-h="resultat"]')), "Hjem-skjermen mangler «Til kåringen» etter et ferdig spill");
+  t.sjekk((await t.tekst('[data-h="resultat"]')).includes(TIL_KARINGEN), "Hjem-skjermen mangler «Til kåringen» etter et ferdig spill");
 
   // ---------- Rekordjakt: three right, then a miss ----------
   await t.klikk('[data-h="nytt"]');
   await t.klikk('[data-h="modus"][data-v="rekord"]');
   t.sjekk(!(await t.finnes('[data-h="mal"]')) && !(await t.finnes(".spiller")), "Rekordjakt trenger verken spillere eller mål");
-  t.sjekk(!/Først til/.test(await t.tekst('[data-h="mer"]')), "Sammendraget skal ikke nevne et mål i Rekordjakt");
+  t.sjekk(!(await t.tekst('[data-h="mer"]')).includes(await tr("Først til")), "Sammendraget skal ikke nevne et mål i Rekordjakt");
   await t.bilde("oppsett-rekord", true);
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('#tm-hand')");
@@ -276,41 +284,42 @@ export default async function (t) {
     await legg(f.lo);
     await sjekk();
     if (n === 0) {
-      t.sjekk((await t.tekst('[data-h="neste"]')).trim() === "Trekk neste kort", `Rekordjakt: knappen skal hete «Trekk neste kort»: «${await t.tekst('[data-h="neste"]')}»`);
+      t.sjekk((await t.tekst('[data-h="neste"]')).trim() === (await tr("Trekk neste kort")), `Rekordjakt: knappen skal hete «Trekk neste kort»: «${await t.tekst('[data-h="neste"]')}»`);
       await t.bilde("rekord-riktig");
     }
     await neste();
   }
   f = await fasit();
-  t.sjekk(/3 på rad/.test(await t.tekst("#skjerm h1")), "Rekka teller ikke riktig");
+  t.sjekk((await t.tekst("#skjerm h1")).includes(await tr("{n} på rad", { n: 3 })), "Rekka teller ikke riktig");
   await legg(feilLuke(f) >= 0 ? feilLuke(f) : f.lo);
   await sjekk();
-  t.sjekk((await t.tekst(".tm-dom-ord")).trim() === "Nesten!", `Rekordjakt: feil plass skal også hete «Nesten!»: «${await t.tekst(".tm-dom-ord")}»`);
+  t.sjekk((await t.tekst(".tm-dom-ord")).trim() === (await tr("Nesten!")), `Rekordjakt: feil plass skal også hete «Nesten!»: «${await t.tekst(".tm-dom-ord")}»`);
   t.sjekk(!(await t.finnes("#toast.vis")), "Ingen toast oppå tidslinja etter «Sjekk året!»");
   await t.bilde("rekord-feil");
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.banner')");
-  t.sjekk(/3 på rad!/.test(await t.tekst("#skjerm h1")), `Resultatet viser ikke «3 på rad!»: «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk(/REKORDJAKT|Rekordjakt/.test(await t.tekst("#topp-tittel")), `Alene skal sluttskjermen hete «Rekordjakt», ikke «Kåringen»: «${await t.tekst("#topp-tittel")}»`);
-  t.sjekk(Number((await t.js(`JSON.parse(localStorage.getItem("rusj.tidsmaskinen.rekord") || "{}")`)).blandet) === 3, "Rekorden ble ikke lagret");
+  t.sjekk((await t.tekst("#skjerm h1")).includes(await tr("{n} på rad!", { n: 3 })), `Resultatet viser ikke «3 på rad!»: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(await tittel("Rekordjakt"), `Alene skal sluttskjermen hete «Rekordjakt», ikke «Kåringen»: «${await t.tekst("#topp-tittel")}»`);
+  t.sjekk(Number((await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("tidsmaskinen.rekord")}") || "{}")`)).blandet) === 3, "Rekorden ble ikke lagret");
   await t.sov(2000);
   if (await t.finnes("#ark:not([hidden])")) await t.klikk('#ark [data-h="lukk-ark"]');
   await t.bilde("rekord-slutt", true);
   await t.klikk('[data-h="igjen"]');
   await t.vent("document.querySelector('#tm-hand')");
-  t.sjekk(/rekord\s*3/i.test(await t.tekst(".tm-best")), "Rekorden vises ikke under spillet");
+  t.sjekk((await t.tekst(".tm-best")).replace(/\s+/g, "").toLocaleLowerCase() === `${await tr("Rekord")}3`.toLocaleLowerCase(), "Rekorden vises ikke under spillet");
 
   // ---------- Teams ----------
   await t.klikk("#tilbake");
   await t.klikk('[data-h="nytt"]');
   await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
-  t.sjekk(/3 på rad/.test(await t.tekst(".tm-rekordlinje")), "Oppsettet for Rekordjakt skal vise rekorden så langt");
+  t.sjekk((await t.tekst(".tm-rekordlinje")).includes(await tr("{n} på rad", { n: 3 })), "Oppsettet for Rekordjakt skal vise rekorden så langt");
   await t.klikk('[data-h="modus"][data-v="lag"]');
   await t.klikk('[data-h="lag"][data-v="1"]');
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('#tm-hand')");
   sp = await spill();
-  t.sjekk(sp.modus === "lag" && sp.deltakere === 3 && /Lag Rosa/.test(await t.tekst("#skjerm h1")), "Lag mot lag starter ikke med Lag Rosa");
+  const LAGNAVN = await t.js("[0, 1, 2, 3].map((i) => Rusj.lagNavn(i))");
+  t.sjekk(sp.modus === "lag" && sp.deltakere === 3 && (await t.tekst("#skjerm h1")).includes(LAGNAVN[0]), "Lag mot lag starter ikke med Lag Rosa");
   t.sjekk(await t.finnes(".tm-hode .tm-lagfigur svg"), "Laget skal ha en figur i lagfargen, ikke en tom sirkel");
   await t.bilde("lag");
 
@@ -360,11 +369,12 @@ export default async function (t) {
 
   // ---------- Quit mid-game: teams with cards go to the crowning ----------
   await t.klikk('[data-h="avslutt"]');
-  t.sjekk(/Avslutt/.test(await t.tekst('[data-h="avslutt"]')), "Lenken for å avslutte skal bare hete «Avslutt»");
+  t.sjekk((await t.tekst('[data-h="avslutt"]')).includes(await tr("Avslutt")), "Lenken for å avslutte skal bare hete «Avslutt»");
   await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
   await t.vent("document.querySelector('.banner')");
   sp = await spill();
-  const ventet = sp.vinnere.map((i) => "Lag " + ["Rosa", "Gul", "Blå", "Grønn"][i]);
-  t.sjekk(sp.slutt === "avsluttet" && ventet.includes("Lag Rosa"), "Avslutt skulle kåre laget med flest kort");
-  t.sjekk(new RegExp(`${ventet.length > 1 ? ventet.slice(0, -1).join(", ") + " og " + ventet[ventet.length - 1] : ventet[0]} vinner!`).test(await t.tekst("#skjerm h1")), `Vinnerlinjen er feil: «${await t.tekst("#skjerm h1")}»`);
+  const ventet = sp.vinnere.map((i) => LAGNAVN[i]);
+  t.sjekk(sp.slutt === "avsluttet" && ventet.includes(LAGNAVN[0]), "Avslutt skulle kåre laget med flest kort");
+  const vinnerlinje = await tr("{navn} vinner!|{navn} vinner!", { navn: await t.js(`Rusj.ramsOpp(${JSON.stringify(ventet)})`), n: ventet.length });
+  t.sjekk((await t.tekst("#skjerm h1")).includes(vinnerlinje), `Vinnerlinjen er feil: «${await t.tekst("#skjerm h1")}» (ventet «${vinnerlinje}»)`);
 }

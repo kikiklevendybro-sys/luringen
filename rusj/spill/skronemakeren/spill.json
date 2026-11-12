@@ -10,5 +10,23 @@
   "tagger": ["fest", "ord", "blof"],
   "rekkefolge": 58,
   "farge": "#b48cff",
-  "sok": ["bløffspill", "ordbløff", "finn det ekte svaret", "dikt en forklaring", "falske svar", "hva betyr ordet", "løgn eller sannhet", "ordbokleken"]
+  "sok": ["bløffspill", "ordbløff", "finn det ekte svaret", "dikt en forklaring", "falske svar", "hva betyr ordet", "løgn eller sannhet", "ordbokleken"],
+  "i18n": {
+    "en": {
+      "navn": "Porkies",
+      "undertittel": "Spot the real answer",
+      "kort": "Everyone makes up an answer. Can you spot the real one?",
+      "beskrivelse": "Free bluffing game: everyone invents an answer to a weird word or a strange fact – can you spot the real one? 3–10 players, one phone, over 250 cards.",
+      "slug": "porkies",
+      "sok": ["bluffing game", "dictionary game", "fake answers", "spot the real answer", "what does the word mean", "truth or lie", "Balderdash", "Fibbage"]
+    },
+    "da": {
+      "navn": "Skrønemageren",
+      "undertittel": "Find den ægte forklaring",
+      "kort": "Alle digter en forklaring. Finder I den ægte?",
+      "beskrivelse": "Gratis bluffespil på dansk: alle digter en forklaring på et mærkeligt ord eller et skørt faktum – finder I den ægte? 3–10 spillere, én mobil, over 250 kort.",
+      "slug": "skroenemageren",
+      "sok": ["bluffespil", "ordbluf", "find det rigtige svar", "digt en forklaring", "hvad betyder ordet", "løgn eller sandhed", "skrøner", "Balderdash", "Fibbage"]
+    }
+  }
 }

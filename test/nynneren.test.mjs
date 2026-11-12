@@ -2,7 +2,7 @@
 // Norwegian Disney titles, and enough newer songs (2010–2025) for «Bare nyere låter» and Jul.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 
 const L = JSON.parse(readFileSync(new URL("../rusj/spill/nynneren/data/laater.json", import.meta.url), "utf8"));
 const alle = L.kategorier.flatMap((k) => k.laater.map((l) => ({ k: k.id, t: l[0], n: l[1], a: l[2], y: l[3], l })));
@@ -55,3 +55,33 @@ test("kategori og norske Disney-titler", () => {
   for (const t of ["A Whole New World", "Under the Sea", "Circle of Life", "We Don't Talk About Bruno", "How Far I'll Go", "Let It Go", "Kvinne min"]) assert.ok(!alle.some((l) => l.t === t), `${t} skal ikke være med`);
   for (const t of ["En helt ny verden", "Snakker ikke om Bruno", "La den gå", "Hvor langt jeg må"]) assert.ok(alle.some((l) => l.t === t), `${t} mangler`);
 });
+
+// The English and Danish lists (data.en/, data.da/): the same shape, titles only – never an artist –
+// the categories a subset of the Norwegian ones in the same order, and enough newer songs.
+for (const mappe of ["data.en", "data.da"]) {
+  const url = new URL(`../rusj/spill/nynneren/${mappe}/laater.json`, import.meta.url);
+  if (!existsSync(url)) continue;
+  const U = JSON.parse(readFileSync(url, "utf8"));
+  const liste = U.kategorier.flatMap((k) => k.laater.map((l) => ({ k: k.id, t: l[0], n: l[1], a: l[2], y: l[3], l })));
+  test(`${mappe}: minst 250 låter, ingen dubletter, bare titler, gyldige år og kategorier`, () => {
+    assert.ok(liste.length >= 250, `bare ${liste.length}`);
+    const rekke = L.kategorier.map((k) => k.id);
+    const ider = U.kategorier.map((k) => k.id);
+    assert.deepEqual(ider, rekke.filter((id) => ider.includes(id)), "kategoriene skal være et utvalg av de norske, i samme rekkefølge");
+    assert.ok(ider.includes("jul"), "Jul mangler");
+    for (const k of U.kategorier) for (const f of ["id", "navn", "ikon"]) assert.ok(typeof k[f] === "string" && k[f], `${k.id}: ${f}`);
+    const sett = new Set();
+    for (const { k, t, n, a, y, l } of liste) {
+      const nok = t.toLowerCase().replace(/[^a-zæøå0-9]/g, "");
+      assert.ok(!sett.has(nok), `dublett: ${t}`);
+      sett.add(nok);
+      assert.ok([1, 2, 3].includes(n), `nivå: ${t}`);
+      assert.ok(l.length === 2 || (l.length === 4 && a === ""), `${t}: [tittel, nivå] eller [tittel, nivå, "", år] – aldri en artist`);
+      assert.ok(typeof t === "string" && t === t.trim() && t.length >= 2 && t.length <= 60 && !/\s\s/.test(t), `«${t}»`);
+      if (l.length === 4) assert.ok(Number.isInteger(y) && y >= 1900 && y <= 2025, `${t}: år ${y}`);
+      if (k === "hits") assert.ok(y >= 2010, `${t}: Hits skal være fra 2010 eller senere`);
+    }
+    assert.ok(liste.filter((l) => l.y >= 2010).length >= 60, "for få nyere låter for «Bare nyere låter»");
+    assert.ok(U.vrier.length === L.vrier.length && U.vrier.every((v) => Array.isArray(v) && v.length === 2 && v[1]), "vriene");
+  });
+}

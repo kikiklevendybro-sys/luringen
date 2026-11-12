@@ -1,0 +1,174 @@
+{
+  "kategorier": [
+    {
+      "id": "barn",
+      "navn": "Børnesange",
+      "ikon": "🧸",
+      "laater": [
+        ["Hjulene på bussen", 1], ["Lille Peter Edderkop", 1], ["Hoved, skulder, knæ og tå", 1], ["Mester Jakob", 1],
+        ["Jens Hansen havde en bondegård", 1], ["Blinke, blinke, lille stjerne", 1], ["Bæ, bæ, lille lam", 1], ["Mariehønen Evigglad", 1],
+        ["Bjørnen sover", 1], ["Bro, bro, brille", 1], ["Op, lille Hans", 1], ["Ride, ride ranke", 1],
+        ["Her kommer Pippi Langstrømpe", 1], ["Fem små aber", 1], ["Se min kjole", 2], ["Jeg gik mig over sø og land", 2],
+        ["Elefantens vuggevise", 2], ["I en skov en hytte lå", 2], ["Søren Banjomus", 2],
+        ["Der bor en bager på Nørregade", 2], ["Hvem sidder der bag skærmen", 2], ["Jeg ved en lærkerede", 2], ["Solen er så rød, mor", 3],
+        ["Old MacDonald Had a Farm", 2], ["Twinkle, Twinkle, Little Star", 2], ["Head, Shoulders, Knees and Toes", 3], ["Baby Shark", 1, "", 2016]
+      ]
+    },
+    {
+      "id": "jul",
+      "navn": "Julesange",
+      "ikon": "🎄",
+      "laater": [
+        ["Højt fra træets grønne top", 1], ["På loftet sidder nissen", 1], ["Glade jul", 1], ["Nu er det jul igen", 1],
+        ["Bjældeklang", 1], ["Rudolf med den røde tud", 1], ["Så går vi rundt om en enebærbusk", 1], ["Jingle Bells", 1],
+        ["Last Christmas", 1], ["All I Want for Christmas Is You", 1], ["Feliz Navidad", 1], ["We Wish You a Merry Christmas", 1],
+        ["Et barn er født i Betlehem", 2], ["Dejlig er jorden", 2], ["Kimer, I klokker", 2], ["Juletræet med sin pynt", 2],
+        ["Sikken voldsom trængsel og alarm", 2], ["Jeg er så glad hver julekvæld", 2], ["Det kimer nu til julefest", 2], ["Nu tændes tusind julelys", 2],
+        ["White Christmas", 2], ["Driving Home for Christmas", 2], ["Do They Know It's Christmas?", 2], ["Jingle Bell Rock", 2],
+        ["Rockin' Around the Christmas Tree", 2], ["Let It Snow! Let It Snow! Let It Snow!", 2], ["Santa Tell Me", 2, "", 2014], ["Julen har bragt velsignet bud", 3],
+        ["Et lille barn så lysteligt", 3], ["Den yndigste rose er funden", 3], ["Vær velkommen, Herrens år", 3], ["Mit hjerte altid vanker", 3],
+        ["Fra himlen højt kom budskab her", 3], ["Wonderful Christmastime", 3], ["Happy Xmas (War Is Over)", 3], ["Mistletoe", 3, "", 2011],
+        ["Underneath the Tree", 3, "", 2013], ["Christmas Lights", 3, "", 2010], ["Walking in the Air", 3], ["Santa Claus Is Coming to Town", 2]
+      ]
+    },
+    {
+      "id": "norske",
+      "navn": "Danske klassikere",
+      "ikon": "🎸",
+      "laater": [
+        ["Midt om natten", 1], ["Kvinde min", 1], ["Vi er røde, vi er hvide", 1], ["Papirsklip", 2],
+        ["Joanna", 2], ["Jutlandia", 2], ["Om lidt bli'r her stille", 2], ["Rabalderstræde", 2],
+        ["Fed rock", 2], ["Den med bamsen", 2], ["Under stjernerne på himlen", 2], ["Smuk og dejlig", 2],
+        ["Vi maler byen rød", 2], ["Fly on the Wings of Love", 2], ["Re-sepp-ten", 2], ["Natteravn", 2],
+        ["Kun for mig", 2], ["Det er i dag et vejr", 2], ["Hvis din far gi'r dig lov", 2], ["Hvorfor er lykken så lunefuld", 3],
+        ["Langebro", 3], ["Dansevise", 3], ["Disco Tango", 3], ["Tættere på himlen", 3],
+        ["Doctor Jones", 3], ["Roses Are Red", 3], ["Står på en alpetop", 3], ["De første kærester på månen", 3],
+        ["Mr. Swing King", 3], 
+        ["Only Teardrops", 3, "", 2013]
+      ]
+    },
+    {
+      "id": "allsang",
+      "navn": "Fællessang",
+      "ikon": "🙌",
+      "laater": [
+        ["Midsommervisen", 1], ["Vi sejler op ad åen", 1], ["I dag er det Oles fødselsdag", 1], ["Happy Birthday to You", 1],
+        ["Sweet Caroline", 1], ["Dancing Queen", 1], ["Hey Jude", 1], ["Bohemian Rhapsody", 1],
+        ["We Are the Champions", 1], ["We Will Rock You", 1], ["Y.M.C.A.", 1], ["Macarena", 1],
+        ["Livin' on a Prayer", 1], ["Seven Nation Army", 1], ["Det haver så nyligen regnet", 2], ["Nu falmer skoven", 2],
+        ["Jeg er havren", 2], ["Septembers himmel er så blå", 2], ["Sensommervise", 2], ["Svantes lykkelige dag", 2],
+        ["Marken er mejet", 2], ["I østen stiger solen op", 2], ["Den danske sang er en ung blond pige", 2], ["Mr. Brightside", 2],
+        ["Don't Stop Me Now", 2], ["Twist and Shout", 2], ["Cotton Eye Joe", 2], ["Cha Cha Slide", 2],
+        ["Freed from Desire", 2], ["Wonderwall", 2], ["Take On Me", 2], ["Africa", 2],
+        ["I'm Gonna Be (500 Miles)", 2], ["Jylland mellem tvende have", 3], ["Danmark, nu blunder den lyse nat", 3], ["Som en rejselysten flåde", 3],
+        ["En lærke letted", 3], ["Never Gonna Give You Up", 3], ["Come On Eileen", 3], ["Total Eclipse of the Heart", 3]
+      ]
+    },
+    {
+      "id": "pop",
+      "navn": "Popklassikere før 2010",
+      "ikon": "🪩",
+      "laater": [
+        ["Yesterday", 1], ["Let It Be", 1], ["Yellow Submarine", 1], ["Imagine", 1],
+        ["Thriller", 1], ["Billie Jean", 1], ["Beat It", 1], ["Toxic", 1],
+        ["...Baby One More Time", 1], ["Umbrella", 1], ["Crazy in Love", 1], ["Hips Don't Lie", 1],
+        ["I Gotta Feeling", 1], ["Waterloo", 1], ["Mamma Mia", 1], 
+        ["Wake Me Up Before You Go-Go", 1], ["Girls Just Want to Have Fun", 1], ["Can't Get You Out of My Head", 1], ["I Want It That Way", 1],
+        ["Rock Around the Clock", 1], ["Stand by Me", 1], ["What a Wonderful World", 1], ["Hotel California", 1],
+        ["All You Need Is Love", 2], ["Like a Prayer", 2], ["Single Ladies (Put a Ring on It)", 2], ["Uptown Girl", 2],
+        ["Every Breath You Take", 2], ["Sweet Child o' Mine", 2], ["Rocket Man", 2], ["I'm Still Standing", 2],
+        ["Spice Up Your Life", 2], ["Super Trouper", 2], ["Smells Like Teen Spirit", 2], ["Losing My Religion", 2],
+        ["Don't Speak", 2], ["Viva la Vida", 2], ["Fix You", 2], ["Chasing Cars", 2],
+        ["Purple Rain", 2], ["(I Can't Get No) Satisfaction", 2], ["Another Brick in the Wall", 2], ["Back for Good", 2],
+        ["Everybody (Backstreet's Back)", 2], ["Oops!... I Did It Again", 2], ["Don't Stop Believin'", 2], ["Jailhouse Rock", 2],
+        ["My Way", 2], ["Here Comes the Sun", 2], ["Help!", 2], ["Ob-La-Di, Ob-La-Da", 2],
+        ["Careless Whisper", 2], ["The Final Countdown", 2], ["I Want to Break Free", 2], ["Under Pressure", 2],
+        ["Another One Bites the Dust", 2], ["Radio Ga Ga", 2], ["Wind of Change", 2], ["Video Killed the Radio Star", 2],
+        ["Space Oddity", 3], ["Mr. Blue Sky", 3], ["Running Up That Hill", 3], ["Penny Lane", 3],
+        ["Stairway to Heaven", 3], ["Tainted Love", 3], ["Sultans of Swing", 3], ["Layla", 3],
+        ["Johnny B. Goode", 3], ["Unchained Melody", 3], ["Daydream Believer", 3], ["Good Vibrations", 3]
+      ]
+    },
+    {
+      "id": "film",
+      "navn": "Film, tv og musicals",
+      "ikon": "🎬",
+      "laater": [
+        ["Lad det gå", 1, "", 2013], ["Hakuna Matata", 1], ["En helt ny verden", 1], ["Under havet", 1],
+        ["My Heart Will Go On", 1], ["(I've Had) The Time of My Life", 1], ["You're the One That I Want", 1], ["Ghostbusters", 1],
+        ["Eye of the Tiger", 1], ["Stayin' Alive", 1], ["I Will Always Love You", 1], ["Summer Nights", 2],
+        ["Grease Lightnin'", 2], ["Footloose", 2], ["Flashdance... What a Feeling", 2], ["Over the Rainbow", 2],
+        ["Singin' in the Rain", 2], ["Do-Re-Mi", 2], ["Supercalifragilisticexpialidocious", 2], ["Vi taler ikke om Bruno", 2, "", 2021],
+        ["Shallow", 2, "", 2018], ["This Is Me", 2, "", 2017], ["The Time Warp", 2], ["Fame", 2],
+        ["Edelweiss", 3], ["My Favorite Things", 3], ["Pure Imagination", 3], ["Moon River", 3],
+        ["Memory", 3], ["Don't Cry for Me Argentina", 3], ["Skyfall", 3, "", 2012], ["City of Stars", 3, "", 2016]
+      ]
+    },
+    {
+      "id": "hymner",
+      "navn": "Nationalsange og salmer",
+      "ikon": "🎺",
+      "laater": [
+        ["Der er et yndigt land", 1], ["I Danmark er jeg født", 1], ["Kong Christian stod ved højen mast", 2], ["Du som har tændt millioner af stjerner", 2],
+        ["Amazing Grace", 2], ["Ode til glæden", 2], ["God Save the King", 2], ["La Marseillaise", 2],
+        ["The Star-Spangled Banner", 2], ["Nu titte til hinanden", 2], ["Det er hvidt herude", 3], 
+        ["Altid frejdig, når du går", 3], ["Den signede dag", 3], ["Påskeblomst! hvad vil du her?", 3], ["Nu takker alle Gud", 3],
+        ["Kirken den er et gammelt hus", 3], ["Lysets engel går med glans", 3], ["Fred hviler over land og by", 3], ["Du gamla, du fria", 3],
+        ["Ja, vi elsker dette landet", 3], ["Se, nu stiger solen", 3]
+      ]
+    },
+    {
+      "id": "hits",
+      "navn": "Hits 2010–2025",
+      "ikon": "🔥",
+      "laater": [
+        ["Rolling in the Deep", 1, "", 2010], ["Firework", 1, "", 2010], ["Roar", 1, "", 2013], ["Call Me Maybe", 1, "", 2011],
+        ["Somebody That I Used to Know", 1, "", 2011], ["Wake Me Up", 1, "", 2013], ["Get Lucky", 1, "", 2013], ["Let Her Go", 1, "", 2012],
+        ["Shake It Off", 1, "", 2014], ["Shape of You", 1, "", 2017], ["Chandelier", 1, "", 2014], ["Blinding Lights", 1, "", 2019],
+        ["Havana", 1, "", 2017], ["Levitating", 1, "", 2020], ["Bad Guy", 1, "", 2019], ["Dance Monkey", 1, "", 2019],
+        ["As It Was", 1, "", 2022], ["Espresso", 1, "", 2024], ["APT.", 1, "", 2024], ["Uptown Funk", 1, "", 2014],
+        ["Happy", 1, "", 2013], ["Gangnam Style", 1, "", 2012], ["Despacito", 1, "", 2017], ["Can't Stop the Feeling!", 1, "", 2016],
+        ["7 Years", 1, "", 2015], ["Lean On", 1, "", 2015], ["Someone Like You", 2, "", 2011], ["Set Fire to the Rain", 2, "", 2011],
+        ["Easy On Me", 2, "", 2021], ["Teenage Dream", 2, "", 2010], ["Grenade", 2, "", 2010], ["Locked Out of Heaven", 2, "", 2012],
+        ["We Found Love", 2, "", 2011], ["Party Rock Anthem", 2, "", 2011], ["Titanium", 2, "", 2011], ["Hey Brother", 2, "", 2013],
+        ["Royals", 2, "", 2013], ["Counting Stars", 2, "", 2013], ["Wrecking Ball", 2, "", 2013], ["Timber", 2, "", 2013],
+        ["Blank Space", 2, "", 2014], ["Anti-Hero", 2, "", 2022], ["Thinking Out Loud", 2, "", 2014], ["Bad Habits", 2, "", 2021],
+        ["Take Me to Church", 2, "", 2013], ["Budapest", 2, "", 2014], ["Rather Be", 2, "", 2014], ["Cheerleader", 2, "", 2014],
+        ["See You Again", 2, "", 2015], ["Love Yourself", 2, "", 2015], ["Save Your Tears", 2, "", 2020], ["Lush Life", 2, "", 2015],
+        ["Señorita", 2, "", 2019], ["New Rules", 2, "", 2017], ["Don't Start Now", 2, "", 2019], ["Cold Heart", 2, "", 2021],
+        ["Birds of a Feather", 2, "", 2024], ["Someone You Loved", 2, "", 2018], ["Watermelon Sugar", 2, "", 2019], ["Drivers License", 2, "", 2021],
+        ["Heat Waves", 2, "", 2020], ["Dynamite", 2, "", 2020], ["Born This Way", 2, "", 2011], ["Die with a Smile", 2, "", 2024],
+        ["Beautiful Things", 2, "", 2024], ["Moves like Jagger", 2, "", 2011], ["Starboy", 3, "", 2016], ["Cruel Summer", 3, "", 2019],
+        ["Hymn for the Weekend", 3, "", 2015], ["Stressed Out", 3, "", 2015], ["Riptide", 3, "", 2013], ["Papaoutai", 3, "", 2013],
+        ["Too Sweet", 3, "", 2024], ["Lose Control", 3, "", 2023], ["Unholy", 3, "", 2022], ["Abracadabra", 3, "", 2025],
+        ["The Fate of Ophelia", 3, "", 2025], ["Jerusalema", 3, "", 2019], ["Prayer in C", 3, "", 2014], ["Mama Said", 3, "", 2015]
+      ]
+    }
+  ],
+  "vrier": [
+    ["🎭", "Nyn som en operasanger"],
+    ["🤖", "Nyn som en robot"],
+    ["🐌", "Nyn meget, meget langsomt"],
+    ["⚡", "Nyn dobbelt så hurtigt"],
+    ["🐻", "Nyn med dyb bjørnestemme"],
+    ["🐭", "Nyn med lys pibestemme"],
+    ["👃", "Hold dig for næsen, mens du nynner"],
+    ["😴", "Nyn, som om du er pivtræt"],
+    ["🏴‍☠️", "Nyn som en sørøver"],
+    ["💃", "Dans, mens du nynner"],
+    ["✋", "Nyn med hånden for munden"],
+    ["📻", "Nyn som en grammofon, der hakker"],
+    ["😤", "Nyn som en sur gammel mand"],
+    ["👶", "Nyn som en baby"],
+    ["🎻", "Nyn med stor dramatik"],
+    ["😗", "Fløjt i stedet for at nynne"],
+    ["🦩", "Stå på ét ben, mens du nynner"],
+    ["😐", "Nyn uden at bevæge ansigtet"],
+    ["🫧", "Nyn, som om du er under vandet"],
+    ["🤫", "Nyn så lavt, du overhovedet kan"],
+    ["🐱", "Nyn som en kat"],
+    ["🥁", "Marchér på stedet, mens du nynner"],
+    ["🙈", "Nyn med lukkede øjne"],
+    ["🪄", "Nyn som en mystisk tryllekunstner"]
+  ]
+}
