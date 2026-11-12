@@ -127,6 +127,12 @@ test("engine: Vanskelig beats a random player every time and Middels most of the
 // With its real time budget Vanskelig won 8 of 8 against Middels in a longer run; here two games
 // (once as the first player, once as the second) keep the test reasonably quick.
 test("engine: Vanskelig beats Middels, as first and as second player", () => {
+  // A fresh engine: the tests above search on the clock, which leaves the shared transposition
+  // table in a state that depends on how busy the machine was – and this result with it.
+  const ny = { window: {}, performance, console, setTimeout, clearTimeout };
+  vm.createContext(ny);
+  vm.runInContext(readFileSync(join(ROT, "rusj/spill/fireren/spill.js"), "utf8"), ny);
+  const { Fire, Motor } = ny.window.Fireren;
   for (const sterk of [1, 2]) {
     const r = rng(900 + sterk);
     const b = Fire.nytt();
