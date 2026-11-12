@@ -232,6 +232,17 @@
         "julegaver"
       ],
       "type": "WebApplication"
+    },
+    "femmeren": {
+      "tittel": "Fem sekunder – nævn tre ting på fem sekunder",
+      "frase": "Nævn tre ting på fem sekunder",
+      "beskrivelse": "Fem sekunder-legen på dansk: nævn tre ting, før lunten er brændt ud. Over 650 kort til børn, familie, fest, Danmark og jul – gratis, uden reklamer, for 2–20.",
+      "sok": [
+        "5 sekunder spil",
+        "fem sekunder legen",
+        "nævn tre ting",
+        "ordleg for børn"
+      ]
     }
   }
 }

@@ -143,6 +143,8 @@
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
   const lagretAntall = () => R.felles.navn.filter((n) => String(n || "").trim()).length;
   const KLOKKE = "femmer-klokke";
+  // The address of this game in the edition (the share text links to it).
+  const ADRESSE = location.origin + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "femmeren") + "/";
   let H;
 
   // ---------- Record (this phone): the longest streak of successes ----------
@@ -166,10 +168,10 @@
   const kortTekst = (k) => `${D.prefiks} ${ALLE[k].t}`;
   const siTur = (S) => {
     const sp = S.spill;
-    R.si(`${R.navn(M.spiller(sp))} sin tur. ${kortTekst(sp.kort)}.`);
+    R.si(R.t("{navn} sin tur. {kort}.", { navn: R.navn(M.spiller(sp)), kort: kortTekst(sp.kort) }));
   };
   const lengdeTekst = (sp) =>
-    sp.maal === "poeng" ? `Først til ${sp.poengMaal}` : `Runde ${Math.min(M.runde(sp), sp.runder)} av ${sp.runder}`;
+    sp.maal === "poeng" ? R.t("Først til {n}", { n: sp.poengMaal }) : R.t("Runde {n} av {av}", { n: Math.min(M.runde(sp), sp.runder), av: sp.runder });
 
   function tilSlutt(S, tidlig) {
     const sp = S.spill;
@@ -196,7 +198,7 @@
     const p = pakke(k.p);
     return R.ui.storkort({
       etikett: `${p.ikon} ${p.navn}`,
-      nr: `${sp.tid} s`,
+      nr: R.t("{n} s", { n: sp.tid }),
       tekstHtml: `<span class="prefiks">${esc(D.prefiks)} …</span>${esc(k.t)}`,
       klasse: "femmer-kort" + (o.klasse ? " " + o.klasse : ""),
       sveip: o.sveip || null,
@@ -218,15 +220,15 @@
     const gml = lesRekord();
     const nyRekord = s.ja && rekke >= 2 && rekke > gml;
     let linje = "";
-    if (s.ja) linje = nyRekord ? `Ny rekord: ${rekke} på rad!` : rekke >= 2 ? `🔥 ${rekke} på rad!` : "Godt jobba!";
-    else linje = "Neste gang sitter de!";
+    if (s.ja) linje = nyRekord ? R.t("Ny rekord: {n} på rad!", { n: rekke }) : rekke >= 2 ? `🔥 ${R.t("{n} på rad!", { n: rekke })}` : R.t("Godt jobba!");
+    else linje = R.t("Neste gang sitter de!");
     const ufLinje =
       s.u == null
         ? ""
         : `<p class="femmer-bonus">${
             s.uja
-              ? `${esc(R.navn(s.u))} klarte tre til: <b>+1 bonus til ${esc(R.navn(s.u))}</b>`
-              : `Utfordringen slo tilbake: <b>+1 bonus til ${esc(R.navn(s.i))}</b>`
+              ? `${esc(R.t("{navn} klarte tre til:", { navn: R.navn(s.u) }))} <b>${esc(R.t("+1 bonus til {navn}", { navn: R.navn(s.u) }))}</b>`
+              : `${esc(R.t("Utfordringen slo tilbake:"))} <b>${esc(R.t("+1 bonus til {navn}", { navn: R.navn(s.i) }))}</b>`
           }</p>`;
     const rader = M.rader(sp).map((r) => {
       let pluss = 0;
@@ -234,20 +236,20 @@
       if (bonus === r.i) pluss += 1;
       return Object.assign(r, pluss ? { pluss } : {});
     });
-    const angre = sp.angre ? R.ui.lenke("↶ Angre", "angre", { id: "angre" }) : "";
+    const angre = sp.angre ? R.ui.lenke(`↶ ${R.t("Angre")}`, "angre", { id: "angre" }) : "";
     return `
       <div class="banner ${s.ja ? "aksent" : ""} femmer-resultat${s.ja ? " ja" : " nei"}">
         <div class="femmer-resultat-figur">${R.avatar(s.i, "gigant")}</div>
-        <p class="etikett">${s.ja ? "Klarte det!" : "Ikke denne gangen"}</p>
-        <h1 id="skjerm-tittel">${s.ja ? `+1 til ${esc(R.navn(s.i))}` : esc(R.navn(s.i))}</h1>
+        <p class="etikett">${esc(s.ja ? R.t("Klarte det!") : R.t("Ikke denne gangen"))}</p>
+        <h1 id="skjerm-tittel">${s.ja ? esc(R.t("+1 til {navn}", { navn: R.navn(s.i) })) : esc(R.navn(s.i))}</h1>
         <p class="femmer-linje${nyRekord ? " rekord" : ""}">${esc(linje)}</p>
         ${ufLinje}
       </div>
       ${R.ui.poengliste(rader)}
       ${R.ui.dokk(
-        R.ui.knapp(ferdig ? "Til kåringen" : "Neste tur", "videre"),
-        M.kanUtfordre(sp) ? R.ui.knapp2("For lett? Utfordre!", "utfordre", { ikon: "⚔️" }) : "",
-        R.ui.lenkerad(angre, ferdig ? "" : R.ui.lenke("Avslutt", "slutt")),
+        R.ui.knapp(ferdig ? R.t("Til kåringen") : R.t("Neste tur"), "videre"),
+        M.kanUtfordre(sp) ? R.ui.knapp2(R.t("For lett? Utfordre!"), "utfordre", { ikon: "⚔️" }) : "",
+        R.ui.lenkerad(angre, ferdig ? "" : R.ui.lenke(R.t("Avslutt"), "slutt")),
       )}`;
   }
 
@@ -304,18 +306,18 @@
     },
 
     regler: {
-      intro: "Et kort ber deg nevne tre ting – og du har fem sekunder på deg.",
+      intro: R.t("Et kort ber deg nevne tre ting – og du har fem sekunder på deg."),
       steg: [
-        ["Les kortet", "Den som har tur, leser kortet høyt: «Nevn tre ting du finner i et kjøleskap.»"],
-        ["Trykk Start", "Klar, ferdig, gå! Lunta brenner, og du roper tre ting før tiden er ute."],
-        ["Gjengen dømmer", "Klarte det? Trykk Ja eller Nei. Ja gir ett poeng – og flere på rad gir en rekke."],
+        [R.t("Les kortet"), R.t("Den som har tur, leser kortet høyt: «Nevn tre ting du finner i et kjøleskap.»")],
+        [R.t("Trykk Start"), R.t("Klar, ferdig, gå! Lunta brenner, og du roper tre ting før tiden er ute.")],
+        [R.t("Gjengen dømmer"), R.t("Klarte det? Trykk Ja eller Nei. Ja gir ett poeng – og flere på rad gir en rekke.")],
       ],
       tips: [
-        "Synes noen det var lett? Med «Utfordre» må de nevne tre nye på samme tid. Klarer de det, får de et bonuspoeng – hvis ikke, går bonusen til den som hadde tur.",
-        "Velg 10 sekunder når de yngste er med.",
-        "Ikke likt kortet? Sveip det bort eller trykk «Bytt kort».",
-        "Trykket feil? «Angre» tar dommen tilbake.",
-        "Gjengen bestemmer hva som godtas. Er dere i tvil, er det et ja.",
+        R.t("Synes noen det var lett? Med «Utfordre» må de nevne tre nye på samme tid. Klarer de det, får de et bonuspoeng – hvis ikke, går bonusen til den som hadde tur."),
+        R.t("Velg 10 sekunder når de yngste er med."),
+        R.t("Ikke likt kortet? Sveip det bort eller trykk «Bytt kort»."),
+        R.t("Trykket feil? «Angre» tar dommen tilbake."),
+        R.t("Gjengen bestemmer hva som godtas. Er dere i tvil, er det et ja."),
       ],
     },
 
@@ -325,28 +327,28 @@
         vis(S) {
           const rek = lesRekord();
           return R.ui.spillhjem({
-            slagordHtml: "Nevn tre ting.<br><em>Du har fem sekunder.</em>",
+            slagordHtml: `${esc(R.t("Nevn tre ting."))}<br><em>${esc(R.t("Du har fem sekunder."))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: pagar(S) ? `Fortsett · ${lengdeTekst(S.spill).toLowerCase()}` : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              fortsettTekst: pagar(S) ? R.t("Fortsett · {lengde}", { lengde: lengdeTekst(S.spill).toLocaleLowerCase(R.lokale) }) : "",
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
-            merker: [["2–20", "spillere"], [String(ALLE.length), "kort"], rek ? [String(rek), "på rad (rekord)"] : ["0", "reklame"]],
+            merker: [["2–20", R.t("spillere")], [String(ALLE.length), R.t("kort")], rek ? [String(rek), R.t("på rad (rekord)")] : ["0", R.t("reklame")]],
           });
         },
         inn: () => R.slippVaken(),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
           const poeng = o.maal === "poeng";
           return `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           <section class="seksjon">
-            <div class="seksjon-hode"><h2>Velg pakker</h2><span class="tall">${o.pakker.length} valgt</span></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Velg pakker"))}</h2><span class="tall">${esc(R.t("{n} valgt", { n: o.pakker.length }))}</span></div>
             ${R.ui.fliser(
               "pakke",
               PAKKER.map((p) => ({ v: p.id, tittel: p.navn, tekst: `${p.tekst} · ${p.kort.length}`, ikon: p.ikon })),
@@ -354,26 +356,26 @@
             )}
           </section>
           <section class="seksjon">
-            <h2>Hvor lenge?</h2>
-            ${R.ui.seg("maal", [["runder", "Runder"], ["poeng", "Først til"]], o.maal, { etikett: "Hvor lenge?" })}
+            <h2>${esc(R.t("Hvor lenge?"))}</h2>
+            ${R.ui.seg("maal", [["runder", R.t("Runder")], ["poeng", R.t("Først til")]], o.maal, { etikett: R.t("Hvor lenge?") })}
             <div class="femmer-teller">
               ${
                 poeng
-                  ? R.ui.teller("poengmaal", o.poengMaal, POENG[0], POENG[1], { vis: (v) => R.flertall(v, "poeng", "poeng"), minus: "Færre poeng", pluss: "Flere poeng" })
-                  : R.ui.teller("runder", o.runder, RUNDER[0], RUNDER[1], { vis: (v) => R.flertall(v, "runde", "runder"), minus: "Færre runder", pluss: "Flere runder" })
+                  ? R.ui.teller("poengmaal", o.poengMaal, POENG[0], POENG[1], { vis: (v) => R.flertall(v, "poeng", "poeng"), minus: R.t("Færre poeng"), pluss: R.t("Flere poeng") })
+                  : R.ui.teller("runder", o.runder, RUNDER[0], RUNDER[1], { vis: (v) => R.flertall(v, "runde", "runder"), minus: R.t("Færre runder"), pluss: R.t("Flere runder") })
               }
             </div>
-            <p class="hjelp">${poeng ? `Den første som når ${o.poengMaal} poeng, vinner.` : "Alle har tur én gang i hver runde."}</p>
+            <p class="hjelp">${esc(poeng ? R.t("Den første som når {n} poeng, vinner.", { n: o.poengMaal }) : R.t("Alle har tur én gang i hver runde."))}</p>
           </section>
           <section class="seksjon">
-            <h2>Tid</h2>
-            ${R.ui.seg("tid", TIDER.map((t) => [String(t), `${t} s`]), String(o.tid), { etikett: "Tid" })}
-            <p class="hjelp">${o.tid === 10 ? "Ti sekunder gir de yngste god tid." : "Fem sekunder er klassisk. Velg 10 s når de yngste er med."}</p>
+            <h2>${esc(R.t("Tid"))}</h2>
+            ${R.ui.seg("tid", TIDER.map((t) => [String(t), R.t("{n} s", { n: t })]), String(o.tid), { etikett: R.t("Tid") })}
+            <p class="hjelp">${esc(o.tid === 10 ? R.t("Ti sekunder gir de yngste god tid.") : R.t("Fem sekunder er klassisk. Velg 10 s når de yngste er med."))}</p>
           </section>
-          ${R.ui.bryter("utfordre-pa", o.utfordre, "Utfordre", "Var det lett? Da må den som sier det, nevne tre til – for et bonuspoeng.")}
-          ${R.ui.bryter("gividere", o.giVidere, "Gi mobilen videre", "En egen skjerm mellom turene. Skru av hvis én holder mobilen.")}
+          ${R.ui.bryter("utfordre-pa", o.utfordre, R.t("Utfordre"), R.t("Var det lett? Da må den som sier det, nevne tre til – for et bonuspoeng."))}
+          ${R.ui.bryter("gividere", o.giVidere, R.t("Gi mobilen videre"), R.t("En egen skjerm mellom turene. Skru av hvis én holder mobilen."))}
           ${R.ui.spillere({ min: 2, max: 20 })}
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !o.pakker.length }))}`;
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { av: !o.pakker.length }))}`;
         },
       },
 
@@ -383,39 +385,39 @@
         vis(S) {
           const sp = S.spill;
           const i = M.spiller(sp);
-          const angre = sp.angre ? R.ui.lenke("↶ Angre", "angre", { id: "angre" }) : "";
+          const angre = sp.angre ? R.ui.lenke(`↶ ${R.t("Angre")}`, "angre", { id: "angre" }) : "";
           switch (sp.fase) {
             case "gi":
               return `
-                <div class="femmer-gi">${R.ui.giTil({ i, h: "klar", tekst: "Gi mobilen til", knapp: "Jeg er klar", advarsel: "Alle kan se kortet", ikon: "👀" })}</div>`;
+                <div class="femmer-gi">${R.ui.giTil({ i, h: "klar", tekst: R.t("Gi mobilen til"), knapp: R.t("Jeg er klar"), advarsel: R.t("Alle kan se kortet"), ikon: "👀" })}</div>`;
             case "klar":
               return `
-                ${hvem(S, i, "Din tur")}
+                ${hvem(S, i, R.t("Din tur"))}
                 ${kortet(S, { sveip: "bytt" })}
-                <p class="sveip-hint" aria-hidden="true">← Sveip for å bytte kort →</p>
+                <p class="sveip-hint" aria-hidden="true">← ${esc(R.t("Sveip for å bytte kort"))} →</p>
                 ${R.ui.dokk(
-                  R.ui.knapp("Start", "tid-start", { variant: "stor", ikon: "⏱️" }),
-                  R.ui.lenkerad(angre, R.ui.lenke("Bytt kort", "bytt"), R.ui.lenke("Avslutt", "slutt")),
+                  R.ui.knapp(R.t("Start"), "tid-start", { variant: "stor", ikon: "⏱️" }),
+                  R.ui.lenkerad(angre, R.ui.lenke(R.t("Bytt kort"), "bytt"), R.ui.lenke(R.t("Avslutt"), "slutt")),
                 )}`;
             case "uklar":
               return `
-                ${hvem(S, sp.utfordrer, "Utfordring!")}
-                ${kortet(S, { klasse: "lampe", fot: `Tre nye – ikke de samme som ${R.navn(sp.siste.i)} sa.` })}
+                ${hvem(S, sp.utfordrer, R.t("Utfordring!"))}
+                ${kortet(S, { klasse: "lampe", fot: R.t("Tre nye – ikke de samme som {navn} sa.", { navn: R.navn(sp.siste.i) }) })}
                 ${R.ui.dokk(
-                  R.ui.knapp("Start", "tid-start", { variant: "stor", ikon: "⏱️" }),
-                  R.ui.lenkerad(R.ui.lenke("Avbryt utfordringen", "avbryt-utfordring")),
+                  R.ui.knapp(R.t("Start"), "tid-start", { variant: "stor", ikon: "⏱️" }),
+                  R.ui.lenkerad(R.ui.lenke(R.t("Avbryt utfordringen"), "avbryt-utfordring")),
                 )}`;
             case "tikker":
             case "utikker": {
               const u = sp.fase === "utikker";
               return `
-                ${hvem(S, u ? sp.utfordrer : i, u ? "Tre nye!" : "Nevn tre!")}
+                ${hvem(S, u ? sp.utfordrer : i, u ? R.t("Tre nye!") : R.t("Nevn tre!"))}
                 ${kortet(S, { kompakt: true, klasse: u ? "lampe" : "" })}
                 <div class="femmer-klokke">
                   ${R.ui.timer({ id: KLOKKE, sekunder: sp.tid, visning: "sek", alene: true })}
                   ${lunte(sp.tid)}
                 </div>
-                ${R.ui.dokk(R.ui.knapp("Ferdig!", "tid-ferdig", { variant: "mynte" }))}`;
+                ${R.ui.dokk(R.ui.knapp(R.t("Ferdig!"), "tid-ferdig", { variant: "mynte" }))}`;
             }
             case "dom":
             case "udom": {
@@ -423,25 +425,25 @@
               const hvemSom = u ? sp.utfordrer : i;
               return `
                 <div class="femmer-dom">
-                  <p class="etikett">${esc(R.navn(hvemSom))}${u ? " · utfordringen" : ""}</p>
-                  <h1 id="skjerm-tittel">Klarte det?</h1>
+                  <p class="etikett">${esc(u ? R.t("{navn} · utfordringen", { navn: R.navn(hvemSom) }) : R.navn(hvemSom))}</p>
+                  <h1 id="skjerm-tittel">${esc(R.t("Klarte det?"))}</h1>
                 </div>
                 ${kortet(S, { kompakt: true, klasse: u ? "lampe" : "" })}
-                <p class="femmer-dom-hjelp">${u ? "Tre nye ting – før tiden var ute?" : "Tre ting – før tiden var ute?"}</p>
+                <p class="femmer-dom-hjelp">${esc(u ? R.t("Tre nye ting – før tiden var ute?") : R.t("Tre ting – før tiden var ute?"))}</p>
                 ${R.ui.dokk(
-                  `<div class="knapprad femmer-janei">${R.ui.knapp("Ja", "dom", { v: "ja", variant: "mynte", ikon: "👍" })}${R.ui.knapp("Nei", "dom", { v: "nei", variant: "rod", ikon: "👎" })}</div>`,
-                  R.ui.lenkerad(u ? "" : R.ui.lenke("Avslutt", "slutt")),
+                  `<div class="knapprad femmer-janei">${R.ui.knapp(R.t("Ja"), "dom", { v: "ja", variant: "mynte", ikon: "👍" })}${R.ui.knapp(R.t("Nei"), "dom", { v: "nei", variant: "rod", ikon: "👎" })}</div>`,
+                  R.ui.lenkerad(u ? "" : R.ui.lenke(R.t("Avslutt"), "slutt")),
                 )}`;
             }
             case "utfordrer": {
               const andre = Array.from({ length: sp.antall }, (_, n) => n).filter((n) => n !== sp.siste.i);
               return `
                 <section class="seksjon">
-                  <h1 id="skjerm-tittel">Hvem utfordrer?</h1>
-                  <p class="hjelp">Den som synes det var lett, må nevne tre nye på ${sp.tid} sekunder.</p>
+                  <h1 id="skjerm-tittel">${esc(R.t("Hvem utfordrer?"))}</h1>
+                  <p class="hjelp">${esc(R.t("Den som synes det var lett, må nevne tre nye på {n} sekunder.", { n: sp.tid }))}</p>
                   ${R.ui.velgere("utfordrer", andre, null)}
                 </section>
-                ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke("Avbryt utfordringen", "avbryt-utfordring")))}`;
+                ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke(R.t("Avbryt utfordringen"), "avbryt-utfordring")))}`;
             }
             default:
               return resultatSkjerm(S);
@@ -459,7 +461,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -468,26 +470,26 @@
           const v = M.vinnere(sp);
           const lr = M.lengsteRekke(sp);
           const rek = lesRekord();
-          const tittel = !v.length ? "Ingen poeng denne gangen" : v.length > 3 ? `${v.length} spillere vinner!` : `${R.ramsOpp(v.map((i) => R.navn(i)))} vinner!`;
+          const tittel = !v.length ? R.t("Ingen poeng denne gangen") : vinnerTekst(v);
           const tekst = !v.length
-            ? "Ingen klarte tre på tiden. Prøv 10 s neste gang!"
-            : `${R.flertall(sp.klart, "tur", "turer")} klart av ${sp.forsok}.`;
+            ? R.t("Ingen klarte tre på tiden. Prøv 10 s neste gang!")
+            : R.t("{turer} klart av {n}.", { turer: R.flertall(sp.klart, "tur", "turer"), n: sp.forsok });
           return `
-            ${R.ui.banner({ klasse: "aksent", etikett: sp.maal === "poeng" ? `Først til ${sp.poengMaal}` : R.flertall(sp.runder, "runde", "runder"), tittel, tekst, stemning: v.length ? "jubel" : "" })}
+            ${R.ui.banner({ klasse: "aksent", etikett: sp.maal === "poeng" ? R.t("Først til {n}", { n: sp.poengMaal }) : R.flertall(sp.runder, "runde", "runder"), tittel, tekst, stemning: v.length ? "jubel" : "" })}
             ${v.length ? R.ui.pall(rader) : ""}
             ${R.ui.poengliste(rader)}
             ${
               lr.n > 0
                 ? `<div class="papirboks femmer-rekke">
-                    <p class="etikett">Lengste rekke</p>
-                    <p class="femmer-rekke-tall"><b>${esc(lr.n)}</b> på rad</p>
-                    <p>${esc(lr.hvem.length > 3 ? `${lr.hvem.length} spillere` : R.ramsOpp(lr.hvem.map((i) => R.navn(i))))}${lr.n >= rek ? " · rekord på denne mobilen" : ""}</p>
+                    <p class="etikett">${esc(R.t("Lengste rekke"))}</p>
+                    <p class="femmer-rekke-tall"><b>${esc(lr.n)}</b> ${esc(R.t("på rad"))}</p>
+                    <p>${esc(lr.hvem.length > 3 ? R.t("{n} spillere", { n: lr.hvem.length }) : R.ramsOpp(lr.hvem.map((i) => R.navn(i))))}${lr.n >= rek ? esc(R.t(" · rekord på denne mobilen")) : ""}</p>
                   </div>`
                 : ""
             }
-            ${v.length ? `<div class="femmer-del">${R.ui.knapp2("Del resultatet", "del", { ikon: "📣" })}</div>` : ""}
+            ${v.length ? `<div class="femmer-del">${R.ui.knapp2(R.t("Del resultatet"), "del", { ikon: "📣" })}</div>` : ""}
             ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           if (M.vinnere(S.spill).length) {
@@ -565,7 +567,7 @@
         if (!fortsatt()) return;
         S.spill.kort = trekk(S.spill);
         R.vis();
-        R.si(`Nytt kort. ${kortTekst(S.spill.kort)}.`);
+        R.si(R.t("Nytt kort. {kort}.", { kort: kortTekst(S.spill.kort) }));
       },
       // «Start»: klar, ferdig, gå — then the fuse burns.
       async "tid-start"(el, e, S) {
@@ -573,7 +575,7 @@
         if (!pagar(S) || !["klar", "uklar"].includes(sp.fase)) return;
         const u = sp.fase === "uklar";
         sp.angre = null;
-        if (!(await R.nedtelling(["Klar", "ferdig", "GÅ!"], 650))) return;
+        if (!(await R.nedtelling([R.t("Klar"), R.t("ferdig"), R.t("GÅ!")], 650))) return;
         if (!pagar(S) || sp.fase !== (u ? "uklar" : "klar")) return;
         sp.fase = u ? "utikker" : "tikker";
         R.vis();
@@ -608,8 +610,8 @@
         } else R.lyd.feil();
         R.gaTil("tur");
         const s = sp.siste;
-        if (s.u != null) R.si(`+1 bonus til ${R.navn(M.bonusTil(s))}.`);
-        else R.si(ja ? `+1 til ${R.navn(s.i)}.` : `Ingen poeng til ${R.navn(s.i)}.`);
+        if (s.u != null) R.si(R.t("+1 bonus til {navn}.", { navn: R.navn(M.bonusTil(s)) }));
+        else R.si(ja ? R.t("+1 til {navn}.", { navn: R.navn(s.i) }) : R.t("Ingen poeng til {navn}.", { navn: R.navn(s.i) }));
       },
       utfordre(el, e, S) {
         const sp = S.spill;
@@ -629,7 +631,7 @@
         sp.utfordrer = i;
         sp.fase = "uklar";
         R.gaTil("tur");
-        R.si(`${R.navn(i)} utfordrer. Tre nye ting: ${ALLE[sp.kort].t}.`);
+        R.si(R.t("{navn} utfordrer. Tre nye ting: {kort}.", { navn: R.navn(i), kort: ALLE[sp.kort].t }));
       },
       "avbryt-utfordring"(el, e, S) {
         const sp = S.spill;
@@ -656,11 +658,11 @@
         M.angre(sp);
         R.lyd.snu();
         R.gaTil("tur");
-        R.toast(`Angret dommen over ${navn}`);
+        R.toast(R.t("Angret dommen over {navn}", { navn }));
       },
       async slutt(el, e, S) {
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avslutte spillet?", "Dere går rett til kåringen. Den med flest poeng vinner.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere går rett til kåringen. Den med flest poeng vinner."), R.t("Avslutt"), R.t("Spill videre"));
         if (!ja || !fortsatt() || !pagar(S)) return;
         tilSlutt(S, true);
       },
@@ -675,10 +677,10 @@
           .slice(0, 3)
           .map((r) => `${R.navn(r.i)}: ${R.flertall(r.poeng, "poeng", "poeng")}`);
         const lr = M.lengsteRekke(sp);
-        const vinner = v.length > 3 ? `${v.length} spillere vinner!` : `${R.ramsOpp(v.map((i) => R.navn(i)))} vinner!`;
-        const linjer = [vinner, ...topp, ...(lr.n >= 2 ? [`Lengste rekke: ${lr.n} på rad`] : [])];
-        R.del("Femmeren", ["Femmeren – tre ting på fem sekunder ⏱️", ...linjer].join("\n"), location.origin + "/femmeren/", {
-          kort: { tittel: "Femmeren", linjer },
+        const vinner = vinnerTekst(v);
+        const linjer = [vinner, ...topp, ...(lr.n >= 2 ? [R.t("Lengste rekke: {n} på rad", { n: lr.n })] : [])];
+        R.del(R.app.navn, [R.t("{navn} – tre ting på fem sekunder ⏱️", { navn: R.app.navn }), ...linjer].join("\n"), ADRESSE, {
+          kort: { tittel: R.app.navn, linjer },
         });
       },
       igjen(el, e, S) {
@@ -688,12 +690,19 @@
     }),
   });
 
+  // «A wins!», «A and B win!» (English verbs agree), «5 players win!»
+  function vinnerTekst(v) {
+    if (v.length > 3) return R.t("{n} spillere vinner!", { n: v.length });
+    return R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(v.map((i) => R.navn(i))), n: v.length });
+  }
+
   // Time is up (or the player said «Ferdig!»): the group judges.
   function tilDom(S, tidlig) {
     const sp = S.spill;
     const u = sp.fase === "utikker";
     sp.fase = u ? "udom" : "dom";
     R.gaTil("tur");
-    R.si(`${tidlig ? "Ferdig" : "Tiden er ute"}! Klarte ${R.navn(u ? sp.utfordrer : M.spiller(sp))} det?`);
+    const navn = R.navn(u ? sp.utfordrer : M.spiller(sp));
+    R.si(tidlig ? R.t("Ferdig! Klarte {navn} det?", { navn }) : R.t("Tiden er ute! Klarte {navn} det?", { navn }));
   }
 })();
