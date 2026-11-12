@@ -11,10 +11,12 @@
 
   // ---------- The rounds ----------
 
+  // R.t before the kit is there (the unit tests load this file without it): the Norwegian key.
+  const Rt = { t: (s) => (window.Rusj && window.Rusj.t ? window.Rusj.t(s) : s) };
   const RUNDER = [
-    { navn: "Forklar", ikon: "💬", kjor: "FORKLAR!", regel: "Forklar med så mange ord du vil – men ikke si ordet.", kort: "Forklar – uten å si ordet" },
-    { navn: "Ett ord", ikon: "☝️", kjor: "ETT ORD!", regel: "Si bare ett eneste ord per lapp. Ingen lyder, ingen fakter.", kort: "Bare ett ord!" },
-    { navn: "Mim", ikon: "🤫", kjor: "MIM!", regel: "Ingen ord og ingen lyder – bare kroppen.", kort: "Mim – helt uten lyd" },
+    { navn: Rt.t("Forklar"), ikon: "💬", kjor: Rt.t("FORKLAR!"), regel: Rt.t("Forklar med så mange ord du vil – men ikke si ordet."), kort: Rt.t("Forklar – uten å si ordet") },
+    { navn: Rt.t("Ett ord"), ikon: "☝️", kjor: Rt.t("ETT ORD!"), regel: Rt.t("Si bare ett eneste ord per lapp. Ingen lyder, ingen fakter."), kort: Rt.t("Bare ett ord!") },
+    { navn: Rt.t("Mim"), ikon: "🤫", kjor: Rt.t("MIM!"), regel: Rt.t("Ingen ord og ingen lyder – bare kroppen."), kort: Rt.t("Mim – helt uten lyd") },
   ];
 
   // ---------- The hat: the rules, without the kit ----------
@@ -170,18 +172,22 @@
   const PER_SPILLER = [3, 4, 5];
   const TIDER = [30, 45, 60];
   const PASS = [
-    [0, "Ingen"],
+    [0, R.t("Ingen")],
     [1, "1"],
     [2, "2"],
-    [99, "Fritt"],
+    [99, R.t("Fritt")],
   ];
   const MIN = 4;
   const MAKS = 20;
   const MAKS_TEGN = 30; // a typed word
   const KORTFARGE = ["rosa", "lampe", "himmel", "mynte"];
-  const lagNavn = (i) => "Lag " + R.LAG[i].navn;
+  const lagNavn = (i) => R.lagNavn(i);
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
   const SIST = "hatten.sist";
+  // The address of this game in the edition (the share text links to it).
+  const ADRESSE = location.origin + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "hatten") + "/";
+  // A sentence with a bold name in it: the text is escaped first, the name gets its markup after.
+  const medFet = (tekst, navn) => esc(tekst).replace("{navn}", `<b>${esc(navn)}</b>`);
 
   let H; // the actions, so one action can reuse another
   let startetNa = false; // the turn screen was entered from the countdown: start the clock
@@ -190,9 +196,9 @@
   let feireNa = false; // the end screen was entered from the game just now: fanfare
   let feireRunde = false; // the round-over screen was entered from the turn just now: fanfare
 
-  const navnPa = (sp, i) => (sp.navn && sp.navn[i]) || `Spiller ${i + 1}`;
+  const navnPa = (sp, i) => (sp.navn && sp.navn[i]) || R.t("Spiller {n}", { n: i + 1 });
   const runde = (sp) => RUNDER[Math.min(sp.runde, RUNDER.length) - 1];
-  const rundeTittel = (sp) => `Runde ${sp.runde} av 3`;
+  const rundeTittel = (sp) => R.t("Runde {n} av {av}", { n: sp.runde, av: 3 });
 
   // ---------- Setup: teams ----------
 
@@ -211,7 +217,7 @@
   const lagMedlemmer = (S) => Array.from({ length: S.oppsett.lag }, (_, l) => S.oppsett.fordeling.map((x, i) => (x === l ? i : -1)).filter((i) => i >= 0));
   function hindring(S) {
     ordneLag(S);
-    if (lagMedlemmer(S).some((m) => m.length < 2)) return "Hvert lag trenger minst to spillere.";
+    if (lagMedlemmer(S).some((m) => m.length < 2)) return R.t("Hvert lag trenger minst to spillere.");
     return "";
   }
   function lageneHtml(S) {
@@ -223,9 +229,9 @@
           m
             .map(
               (i) =>
-                `<button class="ha-lagspiller" data-h="bytt-lag" data-v="${i}" aria-label="${esc(R.navn(i))} – flytt til ${esc(lagNavn((o.fordeling[i] + 1) % o.lag))}">${R.avatar(i)}<span>${esc(R.navn(i))}</span></button>`,
+                `<button class="ha-lagspiller" data-h="bytt-lag" data-v="${i}" aria-label="${esc(R.t("{navn} – flytt til {lag}", { navn: R.navn(i), lag: lagNavn((o.fordeling[i] + 1) % o.lag) }))}">${R.avatar(i)}<span>${esc(R.navn(i))}</span></button>`,
             )
-            .join("") || '<p class="hjelp">Ingen ennå</p>'
+            .join("") || `<p class="hjelp">${esc(R.t("Ingen ennå"))}</p>`
         }
       </div>`,
     );
@@ -244,16 +250,16 @@
 
   // The three rounds as three small steps (done, now, later).
   function rundeSteg(sp) {
-    return `<ol class="ha-steg" aria-label="Runde ${sp.runde} av 3">${RUNDER.map(
+    return `<ol class="ha-steg" aria-label="${esc(rundeTittel(sp))}">${RUNDER.map(
       (r, k) => `<li class="${k + 1 < sp.runde ? "ferdig" : k + 1 === sp.runde ? "na" : ""}"><span aria-hidden="true">${r.ikon}</span>${esc(r.navn)}</li>`,
     ).join("")}</ol>`;
   }
   function stilling(sp) {
-    return `<ul class="ha-stilling k${sp.lag.length}" aria-label="Poeng">${sp.lag
+    return `<ul class="ha-stilling k${sp.lag.length}" aria-label="${esc(R.t("Poeng"))}">${sp.lag
       .map((_, l) => `<li style="--lf: ${R.LAG[l].farge}"><b>${Hatt.sum(sp, l)}</b><small>${esc(R.LAG[l].navn)}</small></li>`)
       .join("")}</ul>`;
   }
-  const hattLinje = (sp) => `<p class="ha-hatt"><span aria-hidden="true">🎩</span> ${R.flertall(sp.hatt.length + (sp.tur && sp.tur.ord !== null ? 1 : 0), "lapp", "lapper")} igjen av ${sp.ord.length}</p>`;
+  const hattLinje = (sp) => `<p class="ha-hatt"><span aria-hidden="true">🎩</span> ${esc(R.t("{lapper} igjen av {n}", { lapper: R.flertall(sp.hatt.length + (sp.tur && sp.tur.ord !== null ? 1 : 0), "lapp", "lapper"), n: sp.ord.length }))}</p>`;
 
   // ---------- The clock ----------
 
@@ -281,7 +287,7 @@
     Hatt.tidUte(sp);
     t.igjen = 0;
     t.pause = false;
-    R.si("Tiden er ute!");
+    R.si(R.t("Tiden er ute!"));
     if (S.skjerm === "tur") R.vis();
     else R.lagre();
   }
@@ -316,7 +322,7 @@
     if (k) k.stopp();
     R.lyd.fanfare();
     R.vibrer([40, 40, 80]);
-    R.si("Hatten er tom!");
+    R.si(R.t("Hatten er tom!"));
   }
 
   async function svar(S, riktig, fraSveip) {
@@ -325,7 +331,7 @@
     if (opptatt || !t || t.slutt || t.pause) return;
     if (!riktig && !Hatt.kanPasse(sp, sp.pass)) {
       if (fraSveip) R.vis(); // the card was swiped away: bring it back
-      R.toast(sp.pass === 0 ? "Pass er slått av i dette spillet." : sp.hatt.length ? "Ingen pass igjen denne turen." : "Siste lapp i hatten – den kan ikke passes.");
+      R.toast(sp.pass === 0 ? R.t("Pass er slått av i dette spillet.") : sp.hatt.length ? R.t("Ingen pass igjen denne turen.") : R.t("Siste lapp i hatten – den kan ikke passes."));
       return;
     }
     opptatt = true;
@@ -382,14 +388,15 @@
     const topp = s.topp.filter((l) => Number.isInteger(l) && l >= 0 && l < p.length);
     const tall = p.slice().sort((a, b) => b - a).join("–");
     if (!topp.length) return "";
-    return topp.length === 1 ? `Sist: ${lagNavn(topp[0])} vant ${tall}.` : `Sist: ${R.ramsOpp(topp.map(lagNavn))} delte seieren (${tall}).`;
+    return topp.length === 1 ? R.t("Sist: {lag} vant {tall}.", { lag: lagNavn(topp[0]), tall }) : R.t("Sist: {lag} delte seieren ({tall}).", { lag: R.ramsOpp(topp.map(lagNavn)), tall });
   }
   function delTekst(sp) {
     const topp = ledere(sp);
     const p = sp.lag.map((_, l) => Hatt.sum(sp, l));
     const tall = p.slice().sort((a, b) => b - a).join("–");
-    const hvem = topp.length === 1 ? `${lagNavn(topp[0])} vant ${tall}` : topp.length ? `${R.ramsOpp(topp.map(lagNavn))} delte seieren (${tall})` : "Ingen fikk poeng";
-    return `Hatten: ${hvem} etter ${sp.runde >= 3 && sp.hatt.length === 0 ? "tre runder" : `runde ${sp.runde}`} med ${sp.ord.length} ord. Forklar, ett ord, mim!`;
+    const hvem = topp.length === 1 ? R.t("{lag} vant {tall}", { lag: lagNavn(topp[0]), tall }) : topp.length ? R.t("{lag} delte seieren ({tall})", { lag: R.ramsOpp(topp.map(lagNavn)), tall }) : R.t("Ingen fikk poeng");
+    const etter = sp.runde >= 3 && sp.hatt.length === 0 ? R.t("tre runder") : R.t("runde {n}", { n: sp.runde });
+    return R.t("{spill}: {hvem} etter {etter} med {n} ord. Forklar, ett ord, mim!", { spill: R.app.navn, hvem, etter, n: sp.ord.length });
   }
 
   // A new game from the setup («Fra rusj» draws its words now; «Skriv selv» asks the players first).
@@ -491,19 +498,19 @@
     },
 
     regler: {
-      intro: "Alle ordene ligger i hatten. Lagene bytter på å forklare – og de samme ordene brukes i tre runder.",
+      intro: R.t("Alle ordene ligger i hatten. Lagene bytter på å forklare – og de samme ordene brukes i tre runder."),
       steg: [
-        ["Runde 1: Forklar", "Forklar med så mange ord du vil, men ikke si ordet. Laget ditt gjetter så mange lapper som mulig før tiden er ute."],
-        ["Runde 2: Ett ord", "De samme ordene igjen – nå får du bare si ett ord per lapp. Dere husker dem fra runde 1!"],
-        ["Runde 3: Mim", "De samme ordene en siste gang, uten ord og uten lyder. Bare kroppen."],
+        [R.t("Runde 1: Forklar"), R.t("Forklar med så mange ord du vil, men ikke si ordet. Laget ditt gjetter så mange lapper som mulig før tiden er ute.")],
+        [R.t("Runde 2: Ett ord"), R.t("De samme ordene igjen – nå får du bare si ett ord per lapp. Dere husker dem fra runde 1!")],
+        [R.t("Runde 3: Mim"), R.t("De samme ordene en siste gang, uten ord og uten lyder. Bare kroppen.")],
       ],
       tips: [
-        "Eksempel: Lappen er «Isbjørn». Runde 1: «Stort, hvitt dyr som bor på Svalbard.» Runde 2: «Svalbard!» Runde 3: du mimer store poter og en iskald vind.",
-        "«Riktig» gir laget ett poeng. «Pass» legger lappen tilbake i hatten – den kommer igjen senere.",
-        "Lappene du ikke rekker, går videre til neste lag. Runden er over når hatten er tom.",
-        "Sveip kortet: høyre er riktig, venstre er pass.",
-        "Skriv selv: alle skriver noen ord i hemmelighet før spillet. Velg ting alle i rommet kjenner.",
-        "Trykket noen feil? Rett det i lista etter turen.",
+        R.t("Eksempel: Lappen er «Isbjørn». Runde 1: «Stort, hvitt dyr som bor på Svalbard.» Runde 2: «Svalbard!» Runde 3: du mimer store poter og en iskald vind."),
+        R.t("«Riktig» gir laget ett poeng. «Pass» legger lappen tilbake i hatten – den kommer igjen senere."),
+        R.t("Lappene du ikke rekker, går videre til neste lag. Runden er over når hatten er tom."),
+        R.t("Sveip kortet: høyre er riktig, venstre er pass."),
+        R.t("Skriv selv: alle skriver noen ord i hemmelighet før spillet. Velg ting alle i rommet kjenner."),
+        R.t("Trykket noen feil? Rett det i lista etter turen."),
       ],
     },
 
@@ -513,7 +520,7 @@
         const liste = sp && sp.skriv ? sp.skriv.lister[sp.skriv.nr] || [] : [];
         return {
           html: `<span class="ha-mine">${liste.map((o) => `<b>${esc(o)}</b>`).join("")}</span>`,
-          si: liste.length ? `Ordene dine: ${R.ramsOpp(liste)}.` : "Ingen ord ennå.",
+          si: liste.length ? R.t("Ordene dine: {ord}.", { ord: R.ramsOpp(liste) }) : R.t("Ingen ord ennå."),
           klasse: "ha-mappe-bak",
         };
       },
@@ -534,14 +541,14 @@
         if (!ord) return;
         if (liste.length >= S.oppsett.per) return;
         if (liste.some((x) => R.normaliser(x) === R.normaliser(ord))) {
-          R.toast("Det ordet har du allerede skrevet.");
+          R.toast(R.t("Det ordet har du allerede skrevet."));
           return;
         }
         liste.push(ord.charAt(0).toLocaleUpperCase("nb") + ord.slice(1));
         felt.value = "";
         R.lyd.pop();
         R.vibrer(15);
-        R.si(`${liste.length} av ${S.oppsett.per} ord i hatten.`);
+        R.si(R.t("{n} av {av} ord i hatten.", { n: liste.length, av: S.oppsett.per }));
         R.vis();
         if (liste.length < S.oppsett.per) {
           const f = R.$("#ha-ord");
@@ -557,23 +564,23 @@
           const sp = S.spill;
           const sist = sistLinje();
           return R.ui.spillhjem({
-            slagordHtml: "Forklar, si ett ord, mim.<br><em>De samme ordene – tre runder.</em>",
+            slagordHtml: `${esc(R.t("Forklar, si ett ord, mim."))}<br><em>${esc(R.t("De samme ordene – tre runder."))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: pagar(S) ? (sp.skriv ? "Fortsett · ord i hatten" : `Fortsett · runde ${sp.runde}`) : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler") + (sist ? `<p class="hjelp ha-sist">${esc(sist)}</p>` : ""),
+              fortsettTekst: pagar(S) ? (sp.skriv ? R.t("Fortsett · ord i hatten") : R.t("Fortsett · runde {n}", { n: sp.runde })) : "",
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler") + (sist ? `<p class="hjelp ha-sist">${esc(sist)}</p>` : ""),
             }),
             merker: [
-              ["4–20", "spillere"],
-              ["3", "runder"],
-              [R.tall(ALLE.length), "ord"],
+              ["4–20", R.t("spillere")],
+              ["3", R.t("runder")],
+              [R.tall(ALLE.length), R.t("ord")],
             ],
           });
         },
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
@@ -581,46 +588,46 @@
           const hind = hindring(S);
           const selv = o.kilde === "selv";
           return `
-            <h1 id="skjerm-tittel">Gjør klart</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
             <section class="seksjon">
-              <h2>Hvor kommer ordene fra?</h2>
+              <h2>${esc(R.t("Hvor kommer ordene fra?"))}</h2>
               ${R.ui.fliser(
                 "kilde",
                 [
-                  { v: "rusj", tittel: "Fra rusj", tekst: `${R.tall(ALLE.length)} kjente ord`, ikon: "🎩" },
-                  { v: "selv", tittel: "Skriv selv", tekst: "Alle skriver ord i hemmelighet", ikon: "✍️" },
+                  { v: "rusj", tittel: R.t("Fra rusj"), tekst: R.t("{n} kjente ord", { n: R.tall(ALLE.length) }), ikon: "🎩" },
+                  { v: "selv", tittel: R.t("Skriv selv"), tekst: R.t("Alle skriver ord i hemmelighet"), ikon: "✍️" },
                 ],
                 o.kilde,
               )}
             </section>
-            ${R.ui.spillere({ min: MIN, max: MAKS, tittel: "Hvem spiller?" })}
+            ${R.ui.spillere({ min: MIN, max: MAKS, tittel: R.t("Hvem spiller?") })}
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Lagene</h2><button class="lenke" data-h="stokk-lag">🔀 Stokk lagene</button></div>
-              ${R.ui.seg("lag", [[2, "2 lag"], [3, "3 lag"], [4, "4 lag"]], o.lag, { etikett: "Antall lag", av: (v) => Number(v) * 2 > n })}
+              <div class="seksjon-hode"><h2>${esc(R.t("Lagene"))}</h2><button class="lenke" data-h="stokk-lag">🔀 ${esc(R.t("Stokk lagene"))}</button></div>
+              ${R.ui.seg("lag", [2, 3, 4].map((x) => [x, R.t("{n} lag", { n: x })]), o.lag, { etikett: R.t("Antall lag"), av: (v) => Number(v) * 2 > n })}
               ${lageneHtml(S)}
-              <p class="hjelp">Trykk på et navn for å bytte lag.</p>
+              <p class="hjelp">${esc(R.t("Trykk på et navn for å bytte lag."))}</p>
             </section>
             <div class="ha-to">
               ${
                 selv
-                  ? `<section class="seksjon"><h2>Ord per spiller</h2>${R.ui.seg("per", PER_SPILLER.map((x) => [x, String(x)]), o.per, { etikett: "Ord per spiller" })}<p class="hjelp">${R.flertall(n * o.per, "ord", "ord")} i hatten.</p></section>`
-                  : `<section class="seksjon"><h2>Antall ord</h2>${R.ui.seg("ord", ANTALL_ORD.map((x) => [x, String(x)]), o.ord, { etikett: "Antall ord i hatten" })}</section>`
+                  ? `<section class="seksjon"><h2>${esc(R.t("Ord per spiller"))}</h2>${R.ui.seg("per", PER_SPILLER.map((x) => [x, String(x)]), o.per, { etikett: R.t("Ord per spiller") })}<p class="hjelp">${esc(R.t("{ord} i hatten.", { ord: R.flertall(n * o.per, "ord", "ord") }))}</p></section>`
+                  : `<section class="seksjon"><h2>${esc(R.t("Antall ord"))}</h2>${R.ui.seg("ord", ANTALL_ORD.map((x) => [x, String(x)]), o.ord, { etikett: R.t("Antall ord i hatten") })}</section>`
               }
-              <section class="seksjon"><h2>Tid per tur</h2>${R.ui.seg("tid", TIDER.map((x) => [x, `${x} s`]), o.tid, { etikett: "Tid per tur" })}</section>
+              <section class="seksjon"><h2>${esc(R.t("Tid per tur"))}</h2>${R.ui.seg("tid", TIDER.map((x) => [x, R.t("{n} s", { n: x })]), o.tid, { etikett: R.t("Tid per tur") })}</section>
             </div>
             <section class="seksjon">
-              <h2>Pass per tur</h2>
-              ${R.ui.seg("pass", PASS, o.pass, { etikett: "Pass per tur" })}
-              <p class="hjelp">Et pass legger lappen tilbake i hatten.</p>
+              <h2>${esc(R.t("Pass per tur"))}</h2>
+              ${R.ui.seg("pass", PASS, o.pass, { etikett: R.t("Pass per tur") })}
+              <p class="hjelp">${esc(R.t("Et pass legger lappen tilbake i hatten."))}</p>
             </section>
             ${hind ? `<p class="hjelp ha-advarsel" id="ha-hindring">${esc(hind)}</p>` : ""}
-            ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !!hind }))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { av: !!hind }))}`;
         },
       },
 
       // «Skriv selv»: the phone goes round, one player at a time.
       skrivGi: {
-        tittel: "Ord i hatten",
+        tittel: R.t("Ord i hatten"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -629,11 +636,11 @@
             ${R.ui.fremdrift(sp.navn.length, nr)}
             <div class="gi-til">
               <span class="gi-til-avatar">${R.avatar(nr, "gigant")}</span>
-              <p class="etikett">Gi mobilen til</p>
+              <p class="etikett">${esc(R.t("Gi mobilen til"))}</p>
               <h1 id="skjerm-tittel">${esc(navnPa(sp, nr))}</h1>
-              <p class="ikke-se">🙈 De andre ser bort – ordene er hemmelige</p>
+              <p class="ikke-se">🙈 ${esc(R.t("De andre ser bort – ordene er hemmelige"))}</p>
             </div>
-            ${R.ui.dokk(R.ui.knapp(`Jeg er ${navnPa(sp, nr)}`, "skriv-klar"), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Jeg er {navn}", { navn: navnPa(sp, nr) }), "skriv-klar"), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
         inn(S) {
           S.spill.skjerm = "skrivGi";
@@ -641,7 +648,7 @@
       },
 
       skriv: {
-        tittel: "Ord i hatten",
+        tittel: R.t("Ord i hatten"),
         tilbake: "hjem",
         gjenoppta: "skrivGi", // never show someone's words after a reload
         vis(S) {
@@ -653,22 +660,22 @@
           return `
             <div class="ha-skriv-topp">
               <p class="etikett">${esc(navnPa(sp, sp.skriv.nr))}</p>
-              <h1 id="skjerm-tittel">Skriv ${per} ord</h1>
-              <p class="ingress">Ting, steder, dyr eller kjente figurer – noe alle i rommet kjenner.</p>
+              <h1 id="skjerm-tittel">${esc(R.t("Skriv {n} ord", { n: per }))}</h1>
+              <p class="ingress">${esc(R.t("Ting, steder, dyr eller kjente figurer – noe alle i rommet kjenner."))}</p>
             </div>
             <form class="ha-skriv" data-skjema="nyttord" autocomplete="off">
-              <label class="vh" for="ha-ord">Et ord til hatten</label>
-              <input id="ha-ord" maxlength="${MAKS_TEGN}" autocomplete="off" autocapitalize="sentences" spellcheck="false" enterkeyhint="done" placeholder="${fullt ? "Hatten har ordene dine" : "F.eks. Isbjørn"}"${fullt ? " disabled" : ""}>
-              <button class="knapp lampe" type="submit"${fullt ? " disabled" : ""}>Legg i</button>
+              <label class="vh" for="ha-ord">${esc(R.t("Et ord til hatten"))}</label>
+              <input id="ha-ord" maxlength="${MAKS_TEGN}" autocomplete="off" autocapitalize="sentences" spellcheck="false" enterkeyhint="done" placeholder="${esc(fullt ? R.t("Hatten har ordene dine") : R.t("F.eks. Isbjørn"))}"${fullt ? " disabled" : ""}>
+              <button class="knapp lampe" type="submit"${fullt ? " disabled" : ""}>${esc(R.t("Legg i"))}</button>
             </form>
             <div class="ha-lapper-rad">
               <ul class="ha-lapper" aria-hidden="true">${lapper}</ul>
-              <p class="ha-lapper-tekst" role="status">${liste.length} av ${per} ord</p>
+              <p class="ha-lapper-tekst" role="status">${esc(R.t("{n} av {av} ord", { n: liste.length, av: per }))}</p>
             </div>
-            ${liste.length ? R.ui.mappe({ id: "mine", etikett: "Ordene dine", tekst: "Hold fingeren på kortet for å se" }) : ""}
+            ${liste.length ? R.ui.mappe({ id: "mine", etikett: R.t("Ordene dine"), tekst: R.t("Hold fingeren på kortet for å se") }) : ""}
             ${R.ui.dokk(
-              R.ui.knapp(fullt ? (sp.skriv.nr + 1 < sp.navn.length ? "Ferdig – gi videre" : "Ferdig – start spillet") : `Skriv ${per - liste.length} til`, "skriv-ferdig", { av: !fullt }),
-              R.ui.lenkerad(liste.length ? R.ui.lenke("Angre siste ord", "skriv-angre") : "", R.ui.lenke("Avslutt", "avslutt")),
+              R.ui.knapp(fullt ? (sp.skriv.nr + 1 < sp.navn.length ? R.t("Ferdig – gi videre") : R.t("Ferdig – start spillet")) : R.t("Skriv {n} til", { n: per - liste.length }), "skriv-ferdig", { av: !fullt }),
+              R.ui.lenkerad(liste.length ? R.ui.lenke(R.t("Angre siste ord"), "skriv-angre") : "", R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn(S) {
@@ -694,13 +701,13 @@
             ${hattLinje(sp)}
             <div class="ha-gi" style="--lf: ${R.LAG[f.lag].farge}">
               <span class="ha-gi-avatar">${R.avatar(f.spiller, "stor")}</span>
-              <p class="etikett">${esc(lagNavn(f.lag))} · ${forste && sp.runde === 1 ? "først ut" : "gi mobilen til"}</p>
+              <p class="etikett">${esc(forste && sp.runde === 1 ? R.t("{lag} · først ut", { lag: lagNavn(f.lag) }) : R.t("{lag} · gi mobilen til", { lag: lagNavn(f.lag) }))}</p>
               <h1 id="skjerm-tittel">${esc(navnPa(sp, f.spiller))}</h1>
-              <p class="ha-gi-tekst">Bare ${esc(navnPa(sp, f.spiller))} ser lappene. Resten av ${esc(lagNavn(f.lag))} gjetter.</p>
+              <p class="ha-gi-tekst">${esc(R.t("Bare {navn} ser lappene. Resten av {lag} gjetter.", { navn: navnPa(sp, f.spiller), lag: lagNavn(f.lag) }))}</p>
             </div>
             ${R.ui.dokk(
-              R.ui.knapp(`Start turen · ${sp.tid} s`, "start-tur"),
-              R.ui.lenkerad(sp.angre ? R.ui.lenke("Angre", "angre-tur") : "", R.ui.lenke("Avslutt", "avslutt")),
+              R.ui.knapp(R.t("Start turen · {n} s", { n: sp.tid }), "start-tur"),
+              R.ui.lenkerad(sp.angre ? R.ui.lenke(R.t("Angre"), "angre-tur") : "", R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn(S) {
@@ -720,20 +727,20 @@
           const igjen = sp.pass >= 99 ? null : Math.max(0, sp.pass - t.pass);
           const kanPasse = Hatt.kanPasse(sp, sp.pass);
           return `
-            <h1 class="vh" id="skjerm-tittel">${esc(navnPa(sp, t.spiller))} forklarer</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("{navn} forklarer", { navn: navnPa(sp, t.spiller) }))}</h1>
             ${status(sp, t)}
             <div style="--bunke: ${R.LAG[t.lag].farge}">${R.ui.storkort({
               etikett: `${r.ikon} ${r.navn}`,
-              nr: `${sp.hatt.length + 1} igjen`,
+              nr: R.t("{n} igjen", { n: sp.hatt.length + 1 }),
               tekstHtml: ordHtml(ordTekst(sp, t.ord)),
               fotHtml: `<span class="ha-hint">${esc(r.kort)}</span>`,
               klasse: "ha-kort " + KORTFARGE[t.lag],
               sveip: "sveip",
             })}</div>
-            <p class="sveip-hint" aria-hidden="true">← Pass · Riktig →</p>
+            <p class="sveip-hint" aria-hidden="true">← ${esc(R.t("Pass"))} · ${esc(R.t("Riktig"))} →</p>
             ${R.ui.dokk(
-              `<div class="ha-svar">${R.ui.knapp(igjen === null ? "Pass" : kanPasse ? `Pass (${igjen})` : "Ingen pass", "pass", { variant: "papir", stille: true, av: !kanPasse })}${R.ui.knapp("Riktig ✓", "riktig", { variant: "mynte", stille: true })}</div>`,
-              R.ui.lenkerad(t.angre ? R.ui.lenke("Angre", "angre-ord") : "", R.ui.lenke("Pause", "pause")),
+              `<div class="ha-svar">${R.ui.knapp(igjen === null ? R.t("Pass") : kanPasse ? R.t("Pass ({n})", { n: igjen }) : R.t("Ingen pass"), "pass", { variant: "papir", stille: true, av: !kanPasse })}${R.ui.knapp(`${R.t("Riktig")} ✓`, "riktig", { variant: "mynte", stille: true })}</div>`,
+              R.ui.lenkerad(t.angre ? R.ui.lenke(R.t("Angre"), "angre-ord") : "", R.ui.lenke(R.t("Pause"), "pause")),
             )}`;
         },
         etter() {
@@ -769,7 +776,7 @@
 
       // The hat is empty: the round is over. All the words go back in for the next round.
       rundeslutt: {
-        tittel: "Ny runde",
+        tittel: R.t("Ny runde"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -778,16 +785,16 @@
           const rader = sp.lag.map((_, l) => ({ lag: l, poeng: Hatt.sum(sp, l), pluss: sp.poeng[l][ferdig - 1] || 0 }));
           return `
             <div class="ha-tom">
-              <p class="etikett">Runde ${ferdig} av 3 er ferdig</p>
-              <h1 id="skjerm-tittel" class="stempel ha-stempel">Hatten er tom!</h1>
+              <p class="etikett">${esc(R.t("Runde {n} av {av} er ferdig", { n: ferdig, av: 3 }))}</p>
+              <h1 id="skjerm-tittel" class="stempel ha-stempel">${esc(R.t("Hatten er tom!"))}</h1>
             </div>
             ${R.ui.poengliste(rader)}
             <div class="papirboks ha-neste">
-              <p class="etikett">Neste: runde ${sp.runde} av 3</p>
+              <p class="etikett">${esc(R.t("Neste: runde {n} av {av}", { n: sp.runde, av: 3 }))}</p>
               <h2><span aria-hidden="true">${neste.ikon}</span> ${esc(neste.navn)}</h2>
-              <p>${esc(neste.regel)} Alle ${sp.ord.length} lappene er tilbake i hatten.</p>
+              <p>${esc(neste.regel)} ${esc(R.t("Alle {n} lappene er tilbake i hatten.", { n: sp.ord.length }))}</p>
             </div>
-            ${R.ui.dokk(R.ui.knapp(`Videre til runde ${sp.runde}`, "til-tavle"), R.ui.lenkerad(sp.angre ? R.ui.lenke("Angre", "angre-tur") : "", R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Videre til runde {n}", { n: sp.runde }), "til-tavle"), R.ui.lenkerad(sp.angre ? R.ui.lenke(R.t("Angre"), "angre-tur") : "", R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
         inn(S) {
           S.spill.skjerm = "rundeslutt";
@@ -799,7 +806,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -807,13 +814,14 @@
           const p = sp.lag.map((_, l) => Hatt.sum(sp, l));
           const sortert = p.slice().sort((a, b) => b - a);
           let banner;
-          if (topp.length === 1) banner = R.ui.banner({ etikett: "Kåringen", tittel: `${lagNavn(topp[0])} vinner!`, tekst: `${p[topp[0]]} poeng – ${sortert[0] - sortert[1]} foran nærmeste lag.` });
-          else if (topp.length > 1) banner = R.ui.banner({ etikett: "Delt seier", tittel: `${R.ramsOpp(topp.map(lagNavn))} vinner!`, tekst: `Likt på ${p[topp[0]]} poeng. Godt jobba!` });
-          else banner = R.ui.banner({ etikett: "Kåringen", tittel: "Ingen fikk poeng", tekst: "Neste gang tar dere av!", stemning: "lei" });
+          const vinner = R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(topp.map(lagNavn)), n: topp.length });
+          if (topp.length === 1) banner = R.ui.banner({ etikett: R.t("Kåringen"), tittel: vinner, tekst: R.t("{poeng} – {n} foran nærmeste lag.", { poeng: R.flertall(p[topp[0]], "poeng", "poeng"), n: sortert[0] - sortert[1] }) });
+          else if (topp.length > 1) banner = R.ui.banner({ etikett: R.t("Delt seier"), tittel: vinner, tekst: R.t("Likt på {poeng}. Godt jobba!", { poeng: R.flertall(p[topp[0]], "poeng", "poeng") }) });
+          else banner = R.ui.banner({ etikett: R.t("Kåringen"), tittel: R.t("Ingen fikk poeng"), tekst: R.t("Neste gang tar dere av!"), stemning: "lei" });
           const beste = sp.stat.spiller.reduce((b, x, i) => (x > (b ? sp.stat.spiller[b.i] : 0) ? { i } : b), null);
           const tabell = `<table class="ha-tabell">
-              <caption class="vh">Poeng per runde</caption>
-              <thead><tr><th scope="col">Lag</th>${RUNDER.map((r, k) => `<th scope="col"><span aria-hidden="true">${r.ikon}</span><span class="vh">Runde ${k + 1}, ${esc(r.navn)}</span></th>`).join("")}<th scope="col">Sum</th></tr></thead>
+              <caption class="vh">${esc(R.t("Poeng per runde"))}</caption>
+              <thead><tr><th scope="col">${esc(R.t("Lag"))}</th>${RUNDER.map((r, k) => `<th scope="col"><span aria-hidden="true">${r.ikon}</span><span class="vh">${esc(R.t("Runde {n}, {navn}", { n: k + 1, navn: r.navn }))}</span></th>`).join("")}<th scope="col">${esc(R.t("Sum"))}</th></tr></thead>
               <tbody>${sp.lag
                 .map(
                   (m, l) =>
@@ -827,10 +835,10 @@
             ${banner}
             ${R.ui.pall(lagRader(sp))}
             ${tabell}
-            ${beste ? `<p class="hjelp ha-beste">Beste forklarer: <b>${esc(navnPa(sp, beste.i))}</b> med ${R.flertall(sp.stat.spiller[beste.i], "riktig lapp", "riktige lapper")}.</p>` : ""}
-            ${topp.length ? `<div class="ha-del">${R.ui.knapp2("Del kåringen", "del")}</div>` : ""}
+            ${beste ? `<p class="hjelp ha-beste">${medFet(R.t("Beste forklarer: {navn} med {lapper}.", { navn: "{navn}", lapper: R.flertall(sp.stat.spiller[beste.i], "riktig lapp", "riktige lapper") }), navnPa(sp, beste.i))}</p>` : ""}
+            ${topp.length ? `<div class="ha-del">${R.ui.knapp2(R.t("Del kåringen"), "del")}</div>` : ""}
             ${R.ui.flereSpill({ antall: sp.navn.length })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -958,7 +966,7 @@
         Object.assign(sp, Hatt.nytt(sp.ord.length, sp.lag, R.rng(sp.fro)));
         sp.lagNr = lagNr;
         sp.skriv = null;
-        R.toast(`Alle ${sp.ord.length} ordene er i hatten!`);
+        R.toast(R.t("Alle {n} ordene er i hatten!", { n: sp.ord.length }));
         R.gaTil("tavle");
       },
 
@@ -1048,14 +1056,14 @@
         const iSjekk = !!(sp.tur && sp.tur.slutt);
         const harPoeng = sp.lag.some((_, l) => Hatt.sum(sp, l) > 0) || (iSjekk && sp.tur.riktige.some((r) => r.ok));
         const tekst = sp.skriv
-          ? "Ordene dere har skrevet, forsvinner."
+          ? R.t("Ordene dere har skrevet, forsvinner.")
           : !harPoeng
-            ? "Ingen har fått poeng ennå."
+            ? R.t("Ingen har fått poeng ennå.")
             : sp.tur && !iSjekk
-              ? "Turen som pågår, teller ikke. Laget som leder, vinner."
-              : "Laget som leder nå, vinner.";
+              ? R.t("Turen som pågår, teller ikke. Laget som leder, vinner.")
+              : R.t("Laget som leder nå, vinner.");
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avslutte spillet?", tekst, "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte spillet?"), tekst, R.t("Avslutt"), R.t("Spill videre"));
         if (!ja || !fortsatt() || S.spill !== sp) return;
         const k = klokke();
         if (k) k.stopp();
@@ -1071,7 +1079,7 @@
         R.gaTil("slutt");
       },
       del(el, e, S) {
-        if (S.spill && S.spill.ferdig) R.del("Hatten", delTekst(S.spill), location.origin + "/hatten/");
+        if (S.spill && S.spill.ferdig) R.del(R.app.navn, delTekst(S.spill), ADRESSE);
       },
       igjen(el, e, S) {
         S.spill = null;
@@ -1086,18 +1094,18 @@
     const n = t.riktige.length;
     return `<div class="ha-status">
       ${R.ui.timer({ id: "ha-tid", sekunder: t.igjen })}
-      <div class="ha-status-lag">${lagPrikk(t.lag)}<span><b>${esc(navnPa(sp, t.spiller))}</b><small>${esc(lagNavn(t.lag))} gjetter</small></span></div>
-      <div class="ha-teller${poppTeller ? " popp" : ""}" role="img" aria-label="${R.flertall(n, "riktig", "riktige")}"><b>${n}</b><small>riktige</small></div>
+      <div class="ha-status-lag">${lagPrikk(t.lag)}<span><b>${esc(navnPa(sp, t.spiller))}</b><small>${esc(R.t("{lag} gjetter", { lag: lagNavn(t.lag) }))}</small></span></div>
+      <div class="ha-teller${poppTeller ? " popp" : ""}" role="img" aria-label="${esc(R.flertall(n, "riktig", "riktige"))}"><b>${n}</b><small>${esc(R.t("riktige"))}</small></div>
     </div>`;
   }
 
   function pauseVis(sp, t) {
     return `<div class="bunke" style="--bunke: ${R.LAG[t.lag].farge}"><article class="storkort ha-kort ha-pausekort">
         ${R.figur()}
-        <h1 id="skjerm-tittel">Pause</h1>
-        <p class="ha-pause-tekst">Lappen er skjult. Fortsett når ${esc(navnPa(sp, t.spiller))} har mobilen.</p>
+        <h1 id="skjerm-tittel">${esc(R.t("Pause"))}</h1>
+        <p class="ha-pause-tekst">${esc(R.t("Lappen er skjult. Fortsett når {navn} har mobilen.", { navn: navnPa(sp, t.spiller) }))}</p>
       </article></div>
-      ${R.ui.dokk(R.ui.knapp("Fortsett", "fortsett-tur"), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
+      ${R.ui.dokk(R.ui.knapp(R.t("Fortsett"), "fortsett-tur"), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
   }
 
   function oppsummering(sp, t) {
@@ -1105,24 +1113,24 @@
     const tom = t.slutt === "tom";
     return `
       <div class="ha-resultat" style="--lf: ${R.LAG[t.lag].farge}">
-        <p class="stempel ha-stempel" aria-hidden="true">${tom ? "Hatten er tom!" : "Tiden er ute!"}</p>
-        <p class="etikett">${esc(lagNavn(t.lag))} · ${esc(navnPa(sp, t.spiller))} forklarte</p>
-        <h1 id="skjerm-tittel"><span class="vh">${tom ? "Hatten er tom! " : "Tiden er ute! "}</span><b>${n > 0 ? "+" : ""}${n}</b> ${n === 1 ? "poeng" : "poeng"}</h1>
+        <p class="stempel ha-stempel" aria-hidden="true">${esc(tom ? R.t("Hatten er tom!") : R.t("Tiden er ute!"))}</p>
+        <p class="etikett">${esc(R.t("{lag} · {navn} forklarte", { lag: lagNavn(t.lag), navn: navnPa(sp, t.spiller) }))}</p>
+        <h1 id="skjerm-tittel"><span class="vh">${esc(tom ? R.t("Hatten er tom!") : R.t("Tiden er ute!"))} </span><b>${n > 0 ? "+" : ""}${n}</b> ${esc(R.t("poeng|poeng", { n }))}</h1>
       </div>
       ${
         t.riktige.length
           ? `<section class="seksjon">
-              <div class="seksjon-hode"><h2>Lappene</h2><span class="tall">Trykk for å rette</span></div>
+              <div class="seksjon-hode"><h2>${esc(R.t("Lappene"))}</h2><span class="tall">${esc(R.t("Trykk for å rette"))}</span></div>
               <ul class="ha-ordliste">${t.riktige
                 .map(
                   (r, k) =>
-                    `<li><button class="ha-ord" data-h="veksle" data-v="${k}" aria-pressed="${r.ok}"><i aria-hidden="true">${r.ok ? "✓" : "↩"}</i><span>${esc(ordTekst(sp, r.i))}</span><small>${r.ok ? "+1" : "tilbake i hatten"}</small></button></li>`,
+                    `<li><button class="ha-ord" data-h="veksle" data-v="${k}" aria-pressed="${r.ok}"><i aria-hidden="true">${r.ok ? "✓" : "↩"}</i><span>${esc(ordTekst(sp, r.i))}</span><small>${r.ok ? "+1" : esc(R.t("tilbake i hatten"))}</small></button></li>`,
                 )
                 .join("")}</ul>
             </section>`
-          : `<p class="hjelp">Ingen lapper denne gangen. Neste gang!</p>`
+          : `<p class="hjelp">${esc(R.t("Ingen lapper denne gangen. Neste gang!"))}</p>`
       }
-      ${tom ? `<p class="hjelp">${sp.runde < 3 ? `Runde ${sp.runde} er ferdig når dere går videre.` : "Det var siste runde – nå venter kåringen."}</p>` : ""}
-      ${R.ui.dokk(R.ui.knapp(tom && sp.runde >= 3 && t.riktige.every((r) => r.ok) ? "Til kåringen" : "Videre", "tur-ferdig"), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
+      ${tom ? `<p class="hjelp">${esc(sp.runde < 3 ? R.t("Runde {n} er ferdig når dere går videre.", { n: sp.runde }) : R.t("Det var siste runde – nå venter kåringen."))}</p>` : ""}
+      ${R.ui.dokk(R.ui.knapp(tom && sp.runde >= 3 && t.riktige.every((r) => r.ok) ? R.t("Til kåringen") : R.t("Videre"), "tur-ferdig"), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
   }
 })();

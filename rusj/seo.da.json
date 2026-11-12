@@ -243,6 +243,17 @@
         "nævn tre ting",
         "ordleg for børn"
       ]
+    },
+    "hatten": {
+      "tittel": "Ord i hatten – forklar, ét ord, mim (holdspil)",
+      "frase": "Ord i hatten",
+      "beskrivelse": "Holdspillet med sedler i hatten: forklar, sig kun ét ord, og mim – de samme ord i tre runder. Gratis på dansk for 4–20, over 600 ord eller jeres egne.",
+      "sok": [
+        "fishbowl",
+        "hatteleg",
+        "sedler i hatten",
+        "ordleg for hold"
+      ]
     }
   }
 }

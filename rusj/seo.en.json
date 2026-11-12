@@ -234,6 +234,17 @@
         "name three things",
         "word game for kids"
       ]
+    },
+    "hatten": {
+      "tittel": "The hat game – describe, one word, mime (team game)",
+      "frase": "The hat game",
+      "beskrivelse": "The team game with names in a hat: describe, say a single word, then mime – the same words for three rounds. Free for 4–20, over 600 words or your own.",
+      "sok": [
+        "fishbowl game",
+        "celebrity game",
+        "names in a hat",
+        "team word game"
+      ]
     }
   }
 }

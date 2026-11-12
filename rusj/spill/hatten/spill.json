@@ -11,5 +11,23 @@
   "rekkefolge": 49,
   "farge": "#ffb347",
   "sok": ["fishbowl", "hatteleken", "ord i hatten", "lapper i hatten", "forklar ett ord mim", "celebrity"],
-  "alias": ["ord-i-hatten"]
+  "alias": ["ord-i-hatten"],
+  "i18n": {
+    "en": {
+      "navn": "The Hat Game",
+      "undertittel": "Three rounds, same words",
+      "kort": "Describe, one word, mime – the same words three times.",
+      "beskrivelse": "Free word game for teams on one phone: describe, say a single word, then mime – the same words three times. Over 600 words, or write your own.",
+      "slug": "hat-game",
+      "sok": ["hat game", "the hat game", "fishbowl", "fishbowl game", "celebrity game", "names in a hat", "salad bowl game", "describe one word mime", "time's up"]
+    },
+    "da": {
+      "navn": "Hatten",
+      "undertittel": "Tre runder, samme ord",
+      "kort": "Forklar, ét ord, mim – de samme ord tre gange.",
+      "beskrivelse": "Gratis ordleg for hold på én mobil: forklar, sig kun ét ord, og mim – de samme ord tre gange. Over 600 ord, eller skriv jeres egne.",
+      "slug": "hatten",
+      "sok": ["ord i hatten", "hatteleg", "sedler i hatten", "fishbowl", "celebrity", "forklar ét ord mim", "time's up", "holdleg"]
+    }
+  }
 }
