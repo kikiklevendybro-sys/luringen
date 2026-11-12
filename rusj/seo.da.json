@@ -108,6 +108,43 @@
       "tittel": "Fire på stribe – gratis mod en ven eller mobilen",
       "frase": "Fire på stribe",
       "beskrivelse": "Gratis fire på stribe på dansk. Slip brikkerne og få fire på stribe – mod en ven på samme mobil eller mod mobilen på tre niveauer."
+    },
+    "bonden": {
+      "motMobilen": true,
+      "tittel": "Kryds og bolle – tre og fem på stribe, gratis",
+      "frase": "Kryds og bolle",
+      "beskrivelse": "Gratis kryds og bolle på dansk: tre på stribe eller fem på stribe på et stort bræt – mod en ven på samme mobil eller mod mobilen på tre niveauer."
+    },
+    "slangen": {
+      "tittel": "Snake – det klassiske slangespil, gratis",
+      "frase": "Snake",
+      "beskrivelse": "Gratis Snake på dansk. Styr slangen med swipe, pile eller tastatur, spis frugt og voks – tre hastigheder, med eller uden vægge, og din egen rekord."
+    },
+    "dobleren": {
+      "tittel": "2048 – spil gratis på dansk, uden reklamer",
+      "frase": "2048",
+      "beskrivelse": "Gratis 2048 på dansk. Stryg brikkerne, slå ens tal sammen og nå 2048 – på 4 × 4 eller 5 × 5, med fortryd-knap og din egen rekord."
+    },
+    "minesveiperen": {
+      "tittel": "Minestryger gratis – lavet til mobilen, uden reklamer",
+      "frase": "Minestryger",
+      "beskrivelse": "Gratis minestryger på dansk uden reklamer. Første tryk er altid sikkert. Tre niveauer lavet til mobilen, flag med et langt tryk og dine bedste tider."
+    },
+    "tallknuseren": {
+      "tittel": "Sudoku gratis – dagens sudoku, uden reklamer",
+      "frase": "Sudoku",
+      "beskrivelse": "Gratis sudoku på dansk uden reklamer: nye bræt på fire niveauer, altid med kun én løsning. Dagens sudoku for alle, noter, hint og bedste tider."
+    },
+    "kortkongen": {
+      "tittel": "Kabale gratis – klassisk Klondike uden reklamer",
+      "frase": "Kabale",
+      "beskrivelse": "Gratis kabale på dansk uden reklamer – klassisk Klondike. Træk ét eller tre kort, fortryd og få hint, og spil kun kabaler, der kan gå op."
+    },
+    "sjakkhesten": {
+      "motMobilen": true,
+      "tittel": "Skak online – mod computeren eller en ven",
+      "frase": "Skak",
+      "beskrivelse": "Spil skak gratis på dansk: mod computeren på fire niveauer eller to på samme mobil – med alle regler, skakur og fortryd-knap. Uden konto."
     }
   }
 }

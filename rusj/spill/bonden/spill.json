@@ -11,5 +11,23 @@
   "rekkefolge": 28,
   "sok": ["tre på rad", "kryss og bolle", "tic tac toe", "fem på rad", "bondesjakk"],
   "motMobilen": true,
-  "alias": ["bondesjakk", "tre-pa-rad"]
+  "alias": ["bondesjakk", "tre-pa-rad"],
+  "i18n": {
+    "en": {
+      "navn": "Noughty",
+      "undertittel": "Noughts and crosses",
+      "kort": "Noughts or crosses? Three in a row wins.",
+      "beskrivelse": "Free noughts and crosses in your browser: three in a row or five in a row – against a friend on the same phone, or against the phone at three levels.",
+      "slug": "noughty",
+      "sok": ["noughts and crosses", "tic tac toe", "tic-tac-toe", "three in a row", "five in a row", "gomoku", "x and o", "noughty"]
+    },
+    "da": {
+      "navn": "Bonden",
+      "undertittel": "Kryds og bolle",
+      "kort": "Kryds eller bolle? Tre på stribe vinder.",
+      "beskrivelse": "Gratis kryds og bolle direkte i browseren: tre på stribe eller fem på stribe – mod en ven på samme mobil eller mod mobilen på tre niveauer.",
+      "slug": "bonden",
+      "sok": ["kryds og bolle", "tre på stribe", "fem på stribe", "tic tac toe", "kryds og bolle online", "krydsogbolle"]
+    }
+  }
 }

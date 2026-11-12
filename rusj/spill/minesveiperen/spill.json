@@ -11,5 +11,23 @@
   "rekkefolge": 29,
   "farge": "#93a9ec",
   "sok": ["minesveiper", "minesweeper", "miner", "finn minene", "dagens minefelt", "uten gjetting"],
-  "alias": ["minesveiper"]
+  "alias": ["minesveiper"],
+  "i18n": {
+    "en": {
+      "navn": "Minefield",
+      "undertittel": "Minesweeper",
+      "kort": "Find the safe squares – no guessing needed.",
+      "beskrivelse": "Free minesweeper with no guessing: every board can be cleared by logic. Today's minefield is the same for everyone, plus three levels made for mobile and your best times.",
+      "slug": "minefield",
+      "sok": ["minesweeper", "mine sweeper", "mines", "find the mines", "minesweeper no guessing", "daily minesweeper", "minefield"]
+    },
+    "da": {
+      "navn": "Minestrygeren",
+      "undertittel": "Minestryger",
+      "kort": "Find de sikre felter – helt uden at gætte.",
+      "beskrivelse": "Gratis minestryger på dansk – uden gætteri: hvert bræt kan ryddes med logik. Dagens minefelt er det samme for alle, tre niveauer lavet til mobilen og dine bedste tider.",
+      "slug": "minestrygeren",
+      "sok": ["minestryger", "minesweeper", "miner", "find minerne", "dagens minefelt", "uden gætteri"]
+    }
+  }
 }

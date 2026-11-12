@@ -5,6 +5,8 @@
 // and back + continue mid-game, the face restarts (asking first), a win with a record; a lost game
 // («Kabom!»); Middels and Ekspert scroll inside their own frame, and zoomed all the way out the
 // board is a map where a tap zooms in; the controls stay on screen at 320×568 and 375×560.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en minesveiperen): the texts are checked
+// in Norwegian only (t.norsk); elsewhere the numbers, the state, the address and the links.
 export default async function (t) {
   const celle = (i) => `.ms-c[data-i="${i}"]`;
   const spill = async () => (await t.tilstand()).spill;
@@ -28,9 +30,9 @@ export default async function (t) {
   await t.js("Rusj.felles.installTips = 2; Rusj.lagreFelles()");
   // Today's minefield is the main button; a free board starts at once (the first time: lett).
   t.sjekk(await t.finnes('.hjem-knapper .knapp[data-h="dagens"] .ms-kal'), "Dagens minefelt er ikke hovedknappen på hjemskjermen");
-  t.sjekk(/Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Knappen for et fritt brett viser ikke nivået den starter");
+  t.sjekk(!t.norsk || /Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Knappen for et fritt brett viser ikke nivået den starter");
   await t.klikk('[data-h="bytt"]');
-  t.sjekk((await t.tekst("#skjerm h1")) === "Gjør klart", "Oppsettet heter ikke «Gjør klart»");
+  t.sjekk(!t.norsk || (await t.tekst("#skjerm h1")) === "Gjør klart", "Oppsettet heter ikke «Gjør klart»");
   t.sjekk(await t.finnes('.bryter[data-h="uten"][aria-pressed="true"]'), "«Uten gjetting» er ikke på fra start");
   await t.bilde("oppsett");
   await t.klikk("#tilbake");
@@ -46,7 +48,7 @@ export default async function (t) {
   t.sjekk(await t.js(`document.querySelector('.ms-c.start') && Number(document.querySelector('.ms-c.start').dataset.i) === ${s.start}`), "Startruta er ikke merket");
   t.sjekk(await t.js(`(() => { const a = document.querySelectorAll('.ms-c[tabindex="0"]'); return a.length === 1 && Number(a[0].dataset.i) === ${s.start}; })()`), "Tab går ikke til startruta");
   t.sjekk(await t.js("!document.querySelector('.ms-merke').hidden"), "Dagens minefelt sier ikke «Uten gjetting»");
-  t.sjekk(/dagens minefelt/i.test(await t.tekst("#topp-tittel")), "Topplinja sier ikke «Dagens minefelt»");
+  t.sjekk((!t.norsk || /dagens minefelt/i.test(await t.tekst("#topp-tittel"))), "Topplinja sier ikke «Dagens minefelt»");
   const dagensMiner = s.mine.join("");
   await t.bilde("dagens");
   // The same board on every phone: the engine gives the same mines again.
@@ -62,7 +64,7 @@ export default async function (t) {
   await aktiver([s.mine.indexOf(1)]);
   await t.vent("document.querySelector('.skjerm-slutt')", 8000);
   await t.sov(600);
-  t.sjekk(/Kabom/.test(await t.tekst("#skjerm h1")) && /Prøv igjen/.test(await t.tekst('.dokk [data-h="dagens"]')), "Et tapt forsøk på dagens minefelt tilbyr ikke «Prøv igjen»");
+  t.sjekk((t.norsk ? /Kabom/ : /Kab/).test(await t.tekst("#skjerm h1")) && (t.norsk ? /Prøv igjen/ : /\S/).test(await t.tekst('.dokk [data-h="dagens"]')), "Et tapt forsøk på dagens minefelt tilbyr ikke «Prøv igjen»");
   let alt = await t.tilstand();
   t.sjekk(alt.daglig.forsok && alt.daglig.forsok.n === 1 && !alt.daglig.dager[dag.tekst] && !alt.stat.lett, "Forsøket på dagens minefelt ble ikke telt riktig");
   await t.bilde("dagens-tapt", true);
@@ -71,11 +73,11 @@ export default async function (t) {
   s = await spill();
   t.sjekk(s.mine.join("") === dagensMiner && s.forsok === 2 && !s.startet, "Andre forsøk er ikke det samme brettet");
   await t.trykk(celle(s.start));
-  t.sjekk(/2\. forsøk/.test(await t.js("document.querySelector('.ms-hud').textContent")), "Brettet viser ikke at det er andre forsøk");
+  t.sjekk((t.norsk ? /2\. forsøk/ : /2/).test(await t.js("document.querySelector('.ms-hud').textContent")), "Brettet viser ikke at det er andre forsøk");
 
   // A free board beside it: neither wipes the other.
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett dagens/.test(await t.tekst('[data-h="dagens"]')), "Hjemskjermen tilbyr ikke å fortsette dagens minefelt");
+  t.sjekk((t.norsk ? /Fortsett dagens/ : /\d:\d\d/).test(await t.tekst('[data-h="dagens"]')), "Hjemskjermen tilbyr ikke å fortsette dagens minefelt");
   await t.klikk('[data-h="nytt"]');
   t.sjekk(!(await t.finnes("#ark:not([hidden])")), "Et fritt brett spurte om å kaste dagens minefelt");
   await t.vent("Rusj.S.spill && !Rusj.S.spill.dagens && document.querySelectorAll('.ms-c').length === 81");
@@ -95,7 +97,7 @@ export default async function (t) {
   t.sjekk(alt.annet && alt.annet.dagens === dag.tekst && alt.annet.startet && !alt.annet.ferdig, "Dagens minefelt ble borte da et fritt brett startet");
 
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett dagens/.test(await t.tekst('[data-h="dagens"]')) && /Fortsett · lett/.test(await t.tekst('[data-h="fortsett"]')), "Hjemskjermen viser ikke begge spillene som er i gang");
+  t.sjekk((t.norsk ? /Fortsett dagens/ : /\d:\d\d/).test(await t.tekst('[data-h="dagens"]')) && (t.norsk ? /Fortsett · lett/ : /\d:\d\d/).test(await t.tekst('[data-h="fortsett"]')), "Hjemskjermen viser ikke begge spillene som er i gang");
   await t.bilde("hjem-to-spill");
 
   // Solve today's minefield: time, try number, streak, countdown and share.
@@ -110,21 +112,22 @@ export default async function (t) {
   t.sjekk(alt.daglig.dager[dag.tekst] && alt.daglig.dager[dag.tekst].forsok === 2 && alt.daglig.rekke === 1, "Dagens minefelt ble ikke lagret som løst");
   t.sjekk(!alt.rekorder.lett && !alt.stat.lett, "Dagens minefelt skal ikke telle i nivårekordene");
   t.sjekk(alt.annet && !alt.annet.dagens && alt.annet.startet, "Det frie brettet ble borte da dagens ble løst");
-  const felles = await t.js(`JSON.parse(localStorage.getItem("rusj.daglig") || "{}").minesveiperen`);
+  const felles = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("daglig")}") || "{}").minesveiperen`);
   t.sjekk(felles && felles.nr === dag.nr && felles.vunnet === true && felles.rekke === 1, "Forsiden får ikke vite at dagens minefelt er løst");
   t.sjekk(!felles || felles.res === undefined || /^\d+:\d\d$/.test(felles.res), "Resultatet til forsiden er ikke en tid");
   t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".ms-nedtelling b")), "Nedtellingen til neste minefelt mangler");
-  t.sjekk(/1 dag på rad/.test(await t.tekst(".ms-rekke")), "Rekka vises ikke");
-  t.sjekk(/2\./.test(await t.tekst(".ms-resultat")), "Resultatet viser ikke hvilket forsøk det var");
+  t.sjekk((t.norsk ? /1 dag på rad/ : /1/).test(await t.tekst(".ms-rekke")), "Rekka vises ikke");
+  t.sjekk((t.norsk ? /2\./ : /2/).test(await t.tekst(".ms-resultat")), "Resultatet viser ikke hvilket forsøk det var");
   await t.js("window.__delt = null; navigator.share = (d) => { window.__delt = d; return Promise.resolve(); }");
   await t.klikk('.dokk [data-h="del"]', 300);
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && (delt.url === "https://rusj.no/minesveiperen/" || String(delt.text).includes("https://rusj.no/minesveiperen/")) && /Minesveiperen \d+\.\d+ · \d+:\d\d på 2\. forsøk/.test(delt.text), `«Del resultatet» deler ikke resultatet (${JSON.stringify(delt)})`);
+  const adresse = "https://rusj.no" + new URL(t.side).pathname; // https://rusj.no/minesveiperen/, /en/minefield/ …
+  t.sjekk(delt && (delt.url === adresse || String(delt.text).includes(adresse)) && (t.norsk ? /Minesveiperen \d+\.\d+ · \d+:\d\d på 2\. forsøk/ : / \d+[./]\d+ · \d+:\d\d .*2/).test(delt.text), `«Del resultatet» deler ikke resultatet (${JSON.stringify(delt)})`);
   await t.bilde("dagens-lost", true);
 
   // Home: solved, a live countdown, and the free board is the main button now.
   await t.klikk("#tilbake");
-  t.sjekk(/ryddet på \d+:\d\d/.test(await t.tekst(".ms-daglinje")) && (await t.finnes(".ms-nedtelling b")), "Hjemskjermen viser ikke at dagens minefelt er løst");
+  t.sjekk((t.norsk ? /ryddet på \d+:\d\d/ : /\d+:\d\d/).test(await t.tekst(".ms-daglinje")) && (await t.finnes(".ms-nedtelling b")), "Hjemskjermen viser ikke at dagens minefelt er løst");
   t.sjekk(!(await t.finnes('[data-h="dagens"]')) && (await t.finnes('.knapp[data-h="fortsett"]')), "Hovedknappen ble ikke det frie brettet etter at dagens var løst");
   const n1 = await t.tekst(".ms-nedtelling b");
   await t.sov(1300);
@@ -132,7 +135,7 @@ export default async function (t) {
   await t.bilde("hjem-lost");
   // The front page's link: #dagens opens the result of the solved minefield.
   await t.lastSide(t.side + "#dagens", "document.querySelector('.skjerm-slutt')");
-  t.sjekk(/dagens minefelt/i.test(await t.tekst("#topp-tittel")) && (await t.finnes('.dokk [data-h="del"]')), "#dagens åpnet ikke resultatet for dagens minefelt");
+  t.sjekk((!t.norsk || /dagens minefelt/i.test(await t.tekst("#topp-tittel"))) && (await t.finnes('.dokk [data-h="del"]')), "#dagens åpnet ikke resultatet for dagens minefelt");
   await t.klikk("#tilbake");
 
   // ----- The free board -----
@@ -147,7 +150,7 @@ export default async function (t) {
   t.sjekk(s.flagg[kant[0]] === 1 && !s.apen[kant[0]], "Et langt trykk satte ikke flagg");
   t.sjekk((await t.tekst("#ms-igjen")) === "9", "Minetelleren teller ikke ned for flagget");
   await t.sov(80);
-  t.sjekk(/Flagg satt på rad \d+, kolonne \d+\. 9 miner igjen/.test(await t.js("document.querySelector('#si').textContent")), "Flagget ble ikke lest opp for skjermleser");
+  t.sjekk((t.norsk ? /Flagg satt på rad \d+, kolonne \d+\. 9 miner igjen/ : /\d+.*\d+.*9/).test(await t.js("document.querySelector('#si').textContent")), "Flagget ble ikke lest opp for skjermleser");
   await t.bilde("flagg");
 
   // Flag mode: a tap flags; then back to opening.
@@ -175,7 +178,7 @@ export default async function (t) {
     s = await spill();
     t.sjekk(trygge.every((j) => s.apen[j]), "Et trykk på tallet åpnet ikke resten rundt det");
     await t.sov(80);
-    t.sjekk(/rundt|åpnet|tom/.test(await t.js("document.querySelector('#si').textContent")), "Åpnede ruter ble ikke lest opp for skjermleser");
+    t.sjekk((t.norsk ? /rundt|åpnet|tom/ : /\S/).test(await t.js("document.querySelector('#si').textContent")), "Åpnede ruter ble ikke lest opp for skjermleser");
     await t.bilde("akkord");
   }
 
@@ -213,10 +216,10 @@ export default async function (t) {
   await t.bilde("vunnet", true);
   s = await t.tilstand();
   t.sjekk(s.rekorder.lett && s.rekorder.lett.tid > 0 && s.stat.lett.vunnet === 1, "Rekorden for Lett ble ikke lagret");
-  t.sjekk(/Godt jobba|Ny rekord/.test(await t.tekst("#skjerm h1")), "Seieren vises ikke");
-  t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")) && /lett/i.test(await t.tekst("#topp-tittel")), "Topplinja på soloresultatet sier ikke hva som ble spilt");
+  t.sjekk((t.norsk ? /Godt jobba|Ny rekord/ : /\S/).test(await t.tekst("#skjerm h1")), "Seieren vises ikke");
+  t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")) && (t.norsk ? /lett/i : /9 × 9/).test(await t.tekst("#topp-tittel")), "Topplinja på soloresultatet sier ikke hva som ble spilt");
   t.sjekk(await t.finnes(".banner .ms-glad .ms-vaie"), "Maskoten er ikke glad etter seieren");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
 
   // «Spill igjen», then step on a mine: Kabom!
   await t.klikk('[data-h="igjen"]');
@@ -229,9 +232,9 @@ export default async function (t) {
   await t.bilde("smell");
   await t.vent("document.querySelector('.skjerm-slutt')", 8000);
   await t.sov(600);
-  t.sjekk(/Kabom/.test(await t.tekst("#skjerm h1")), "Tapet vises ikke som «Kabom!»");
+  t.sjekk((t.norsk ? /Kabom/ : /Kab/).test(await t.tekst("#skjerm h1")), "Tapet vises ikke som «Kabom!»");
   t.sjekk((await t.tilstand()).stat.lett.spilt === 2, "Tapet ble ikke telt");
-  t.sjekk(/av 10/.test(await t.tekst(".ms-resultat")), "Tapet viser ikke hvor mange miner som ble funnet");
+  t.sjekk((t.norsk ? /av 10/ : /10/).test(await t.tekst(".ms-resultat")), "Tapet viser ikke hvor mange miner som ble funnet");
   await t.bilde("tapt", true);
 
   // Middels opens like Ekspert: finger-sized cells from the top-left corner. «−» shows the whole
@@ -327,5 +330,5 @@ export default async function (t) {
   // A tampered level name in the saved state ("__proto__") is not a level: back to the default.
   await t.js(`Rusj.S.oppsett = JSON.parse('{"niva":"__proto__"}'); Rusj.S.spill = null; Rusj.S.annet = null; Rusj.lagre()`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
-  t.sjekk(/Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Et ugyldig nivånavn i lagret tilstand ga ikke standardnivået");
+  t.sjekk(!t.norsk || /Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Et ugyldig nivånavn i lagret tilstand ga ikke standardnivået");
 }

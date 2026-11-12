@@ -11,5 +11,23 @@
   "rekkefolge": 30,
   "farge": "#ffb26b",
   "sok": ["2048", "tallspill", "slå sammen tall", "sveipespill", "dagens lynrunde"],
-  "alias": ["2048"]
+  "alias": ["2048"],
+  "i18n": {
+    "en": {
+      "navn": "Doubler",
+      "undertittel": "2048",
+      "kort": "Swipe, merge and double. Can you reach 2048?",
+      "beskrivelse": "Free 2048 in your browser. Swipe the tiles, merge matching numbers and reach 2048 – on 4 × 4 or 5 × 5, with undo and your own high score. Plus Today's blitz on 3 × 3.",
+      "slug": "doubler",
+      "sok": ["2048", "2048 game", "number puzzle", "merge numbers", "swipe game", "sliding tiles", "doubler"]
+    },
+    "da": {
+      "navn": "Dobleren",
+      "undertittel": "2048",
+      "kort": "Stryg, slå sammen og doble. Kan du nå 2048?",
+      "beskrivelse": "Gratis 2048 på dansk. Stryg brikkerne, slå ens tal sammen og nå 2048 – på 4 × 4 eller 5 × 5, med fortryd-knap og din egen rekord. Plus dagens lynrunde på 3 × 3.",
+      "slug": "dobleren",
+      "sok": ["2048", "2048 spil", "talspil", "slå tal sammen", "swipe spil", "dagens lynrunde"]
+    }
+  }
 }

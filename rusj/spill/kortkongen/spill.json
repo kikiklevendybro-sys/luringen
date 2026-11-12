@@ -10,5 +10,23 @@
   "tagger": ["daglig", "klassiker", "kort", "alene", "tenke"],
   "rekkefolge": 25,
   "sok": ["kabal", "klondike", "solitaire", "patience", "kortkabal", "kabal på nett", "dagens kabal"],
-  "alias": ["kabal"]
+  "alias": ["kabal"],
+  "i18n": {
+    "en": {
+      "navn": "Card King",
+      "undertittel": "Patience",
+      "kort": "Ace to king, red on black. Will it come out?",
+      "beskrivelse": "Free patience in your browser – classic Klondike with a new Today's deal every day. Draw one or three cards, undo and get hints, and play only deals that can come out.",
+      "slug": "card-king",
+      "sok": ["patience", "solitaire", "klondike", "klondike solitaire", "daily solitaire", "card game", "card king"]
+    },
+    "da": {
+      "navn": "Kortkongen",
+      "undertittel": "Kabale",
+      "kort": "Es til konge, rød på sort. Går kabalen op?",
+      "beskrivelse": "Gratis kabale på dansk – klassisk Klondike med en ny »Dagens kabale« hver dag. Træk ét eller tre kort, fortryd og få hint, og spil kun kabaler, der kan gå op.",
+      "slug": "kortkongen",
+      "sok": ["kabale", "klondike", "solitaire", "kabale online", "dagens kabale", "7-kabale", "kortspil"]
+    }
+  }
 }

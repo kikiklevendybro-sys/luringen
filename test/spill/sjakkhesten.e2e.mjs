@@ -3,6 +3,8 @@
 // saved position; threefold repetition; a clock running out; then games against the phone: it
 // answers within 2 s without freezing the page, «Angre» takes back its answer, and as black the
 // phone moves first. The board must fit above the dock on small phones.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en sjakkhesten): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the names, the state and the links (t.forside).
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { mkdirSync } from "node:fs";
@@ -133,8 +135,8 @@ export default async function (t) {
   await t.bilde("avslutt-valg");
   await t.klikk('#ark [data-h="ark-svar"][data-v="0"]');
   await t.vent("document.querySelector('.skjerm-slutt')");
-  t.sjekk(/Remis/.test(await t.tekst("#skjerm h1")), "Remis vises ikke på sluttskjermen");
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk(!t.norsk || /Remis/.test(await t.tekst("#skjerm h1")), "Remis vises ikke på sluttskjermen");
+  t.sjekk(!t.norsk || /KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
 
   // Colours swap: Testspiller B has white and gives Scholar's mate
   await t.klikk('[data-h="igjen"]');
@@ -149,11 +151,11 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
   await t.sov(400);
   await t.bilde("slutt-matt", true);
-  t.sjekk(/Testspiller B vinner/.test(await t.tekst("#skjerm h1")), `Vinneren vises ikke: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk((t.norsk ? /Testspiller B vinner/ : /Testspiller B/).test(await t.tekst("#skjerm h1")), `Vinneren vises ikke: «${await t.tekst("#skjerm h1")}»`);
   let s = await t.tilstand();
   t.sjekk(s.stilling.seire[1] === 1 && s.stilling.remis === 1, "Stillingen telte ikke seieren og remisen");
   t.sjekk(s._aktiv === false, "Et ferdig parti skal ikke være merket som pågående");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
 
   // Castling from a saved position (and the rook jumps)
   await t.klikk('[data-h="igjen"]');
@@ -170,7 +172,7 @@ export default async function (t) {
   await flytt("f6", "g8", 400);
   t.sjekk(/gjentakelse|Tre like/i.test(JSON.stringify((await t.tilstand()).spill.resultat) + (await t.tekst("#skjerm"))), "Tre like stillinger ga ikke remis");
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
-  t.sjekk(/tre like stillinger/i.test(await t.tekst(".banner")), "Sluttskjermen forklarer ikke trekkgjentakelsen");
+  t.sjekk(!t.norsk || /tre like stillinger/i.test(await t.tekst(".banner")), "Sluttskjermen forklarer ikke trekkgjentakelsen");
   await t.bilde("gjentakelse");
 
   // A clock that runs out
@@ -183,7 +185,7 @@ export default async function (t) {
   await t.bilde("klokke");
   await lastMed(t, `(S) => { S.spill.klokke.igjen = [300000, 1200]; }`);
   await t.vent("document.querySelector('.skjerm-slutt')", 8000);
-  t.sjekk(/tiden er ute/i.test(await t.tekst(".banner")) && /Testspiller A vinner/.test(await t.tekst("#skjerm h1")), "Tiden ute ga ikke riktig resultat");
+  t.sjekk((!t.norsk || /tiden er ute/i.test(await t.tekst(".banner"))) && (t.norsk ? /Testspiller A vinner/ : /Testspiller A/).test(await t.tekst("#skjerm h1")), "Tiden ute ga ikke riktig resultat");
   await t.bilde("tid-ute");
 
   // Against the phone (Vanskelig, white): it answers in time, and the page keeps breathing
@@ -233,7 +235,7 @@ export default async function (t) {
   await lastMed(t, `(S) => { S.spill.trekk = ["e2e4","e7e5","f1c4","b8c6","d1h5","g8f6"]; S.spill.meg = 0; }`);
   await flytt("h5", "f7", 300);
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
-  t.sjekk(/Du vinner/.test(await t.tekst("#skjerm h1")), `Seier mot mobilen vises ikke: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk((!t.norsk || /Du vinner/.test(await t.tekst("#skjerm h1"))) && (await t.tilstand()).spill.resultat.vinner === (await t.tilstand()).spill.meg, `Seier mot mobilen vises ikke: «${await t.tekst("#skjerm h1")}»`);
   t.sjekk((await t.tilstand()).rekord[4].seier === 1, "Seieren ble ikke telt mot Vanskelig");
   await t.bilde("du-vinner", true);
   await t.klikk('.dokk [data-h="angre"]');
@@ -250,7 +252,7 @@ export default async function (t) {
   await t.klikk('[data-h="avslutt"]');
   await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
   await t.vent("document.querySelector('.skjerm-slutt')");
-  t.sjekk(/Mobilen vinner/.test(await t.tekst("#skjerm h1")), "Å gi opp skal la mobilen vinne");
+  t.sjekk((!t.norsk || /Mobilen vinner/.test(await t.tekst("#skjerm h1"))) && (await t.tilstand()).spill.resultat.vinner !== (await t.tilstand()).spill.meg, "Å gi opp skal la mobilen vinne");
   await t.bilde("ga-opp", true);
   await t.klikk('[data-h="nytt"]');
   await t.klikk('[data-h="niva"][data-v="1"]');

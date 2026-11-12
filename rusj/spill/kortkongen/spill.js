@@ -627,16 +627,18 @@
   // that scales with the card's width (--kb). "stor" = classic face with pips and portraits; without
   // it the compact face for small cards: a big index on top, one big symbol below.
   const KORT = (() => {
+    // Every text goes through R.t (rusj/SPRAK.md): the key is the Norwegian text.
     const SORTER = [
-      { navn: "spar", rod: false },
-      { navn: "hjerter", rod: true },
-      { navn: "ruter", rod: true },
-      { navn: "kløver", rod: false },
+      { navn: R.t("spar"), rod: false },
+      { navn: R.t("hjerter"), rod: true },
+      { navn: R.t("ruter"), rod: true },
+      { navn: R.t("kløver"), rod: false },
     ];
     const BOKSTAV = ["", "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-    const VERDINAVN = ["", "ess", "2", "3", "4", "5", "6", "7", "8", "9", "10", "knekt", "dame", "konge"];
-    // «en 7-er», «et ess», «en dame»: for questions like «Har noen en 7-er?»
-    const MED_ARTIKKEL = ["", "et ess", "en 2-er", "en 3-er", "en 4-er", "en 5-er", "en 6-er", "en 7-er", "en 8-er", "en 9-er", "en 10-er", "en knekt", "en dame", "en konge"];
+    const VERDINAVN = ["", R.t("ess"), "2", "3", "4", "5", "6", "7", "8", "9", "10", R.t("knekt"), R.t("dame"), R.t("konge")];
+    // «en 7-er», «et ess», «en dame»: for questions like «Har noen en 7-er?» (not used in Kortkongen,
+    // so it stays Norwegian here).
+    const MED_ARTIKKEL = ["", "et ess", "en 2-er", "en 3-er", "en 4-er", "en 5-er", "en 6-er", "en 7-er", "en 8-er", "en 9-er", "en 10-er", "en knekt", "en dame", "en konge"]; // sprak-ok
     // Suit outlines in a 100 × 100 box. Every part runs clockwise, so they fill the same everywhere.
     const FORM = [
       "M50 6C62 24 92 38 92 62C92 76 81 84 70 84C62 84 56 80 53 74C54 83 58 89 66 95L34 95C42 89 46 83 47 74C44 80 38 84 30 84C19 84 8 76 8 62C8 38 38 24 50 6Z",
@@ -651,7 +653,8 @@
     const verdiAv = (k) => (k % 13) + 1;
     const erRod = (k) => SORTER[sortAv(k)].rod;
     const farge = (k) => (erRod(k) ? ROD : SVART);
-    const navn = (k) => `${SORTER[sortAv(k)].navn} ${VERDINAVN[verdiAv(k)]}`;
+    // «spar 7», «hjerter dame» (English «7 of spades», «queen of hearts»)
+    const navn = (k) => R.t("{sort} {verdi}", { sort: SORTER[sortAv(k)].navn, verdi: VERDINAVN[verdiAv(k)] });
     const Navn = (k) => navn(k).charAt(0).toUpperCase() + navn(k).slice(1);
 
     // A suit symbol of size str with its top-left corner at (x, y); upside down when snu.
@@ -736,8 +739,8 @@
   // ---------- Game state ----------
 
   const MODUS = {
-    1: { navn: "Ett kort", kort: "ett kort", tekst: "Trekk ett kort fra bunken. Roligere – flere kabaler går opp." },
-    3: { navn: "Tre kort", kort: "tre kort", tekst: "Trekk tre kort om gangen. Klassisk og mer vrient." },
+    1: { navn: R.t("Ett kort"), kort: R.t("ett kort"), tekst: R.t("Trekk ett kort fra bunken. Roligere – flere kabaler går opp.") },
+    3: { navn: R.t("Tre kort"), kort: R.t("tre kort"), tekst: R.t("Trekk tre kort om gangen. Klassisk og mer vrient.") },
   };
   const MAKS_ANGRE = 1500;
   const tomStat = () => ({ spilt: 0, vunnet: 0, rekke: 0, besteRekke: 0, besteTid: 0, faerrest: 0 });
@@ -868,7 +871,7 @@
     const d = dagensSpill(S);
     if (!d) return;
     if (d.ferdig && d.vunnet) R.dagligFerdig({ vunnet: true, rekke: dagrekke(S), res: visTid(((d.resultat && d.resultat.sek) || Math.round(d.tid / 1000)) * 1000) });
-    else if (d.startet && typeof R.dagligIGang === "function") R.dagligIGang({ tekst: `${kortHjem(d.kode)} av 52 hjem` });
+    else if (d.startet && typeof R.dagligIGang === "function") R.dagligIGang({ tekst: R.t("{n} av 52 hjem", { n: kortHjem(d.kode) }) });
   }
 
   // Count a game in the statistics (once): a win, or a started free game that was given up.
@@ -979,11 +982,11 @@
   const plassert = new Map(); // card → "x,y" where it was last put (to see which cards move)
 
   function etikett(k, p) {
-    if (!p.opp) return "Kort med baksiden opp";
+    if (!p.opp) return R.t("Kort med baksiden opp");
     const navn = KORT.Navn(k);
-    if (p.hvor === "bord") return `${navn}, kolonne ${p.i + 1}`;
-    if (p.hvor === "avfall") return `${navn}, trukket fra bunken`;
-    return `${navn}, lagt hjem`;
+    if (p.hvor === "bord") return R.t("{kort}, kolonne {n}", { kort: navn, n: p.i + 1 });
+    if (p.hvor === "avfall") return R.t("{kort}, trukket fra bunken", { kort: navn });
+    return R.t("{kort}, lagt hjem", { kort: navn });
   }
 
   // The cards and the stock in the order of the table – foundations, waste, stock, then the columns
@@ -1051,7 +1054,7 @@
       bunke.style.transform = `translate3d(${L.x[6]}px, 0, 0)`;
       bunke.classList.toggle("tom", !st.bunke.length);
       bunke.classList.toggle("snu", !st.bunke.length && st.avfall.length > 0);
-      bunke.setAttribute("aria-label", st.bunke.length ? `Bunken, ${R.flertall(st.bunke.length, "kort", "kort")} igjen. Trykk for å trekke ${MODUS[st.modus].kort}.` : st.avfall.length ? "Bunken er tom. Trykk for å legge kortene tilbake." : "Bunken er tom");
+      bunke.setAttribute("aria-label", st.bunke.length ? R.t("Bunken, {antall} igjen. Trykk for å trekke {kort}.", { antall: R.flertall(st.bunke.length, "kort", "kort"), kort: MODUS[st.modus].kort }) : st.avfall.length ? R.t("Bunken er tom. Trykk for å legge kortene tilbake.") : R.t("Bunken er tom"));
       bunke.disabled = !st.bunke.length && !st.avfall.length;
     }
     const antall = R.$("#kk-antall");
@@ -1124,10 +1127,10 @@
 
   // A move said aloud for screen readers: «Spar 7 til kolonne 3», «Trakk ruter 9».
   function siTrekk(t, flyttet, snudd) {
-    if (t.fra === "s") return R.si(st.avfall.length ? `Trakk ${KORT.navn(st.avfall[st.avfall.length - 1])}` : "Kortene er lagt tilbake i bunken");
+    if (t.fra === "s") return R.si(st.avfall.length ? R.t("Trakk {kort}", { kort: KORT.navn(st.avfall[st.avfall.length - 1]) }) : R.t("Kortene er lagt tilbake i bunken"));
     const kol = t.fra === "b" ? st.bord[t.i] : null;
-    const under = snudd && kol && kol.length ? `. ${KORT.Navn(kol[kol.length - 1])} ble snudd` : "";
-    R.si(`${KORT.Navn(flyttet[0])}${flyttet.length > 1 ? ` og ${R.flertall(flyttet.length - 1, "kort", "kort")} til` : ""} ${t.til === "g" ? "hjem" : `til kolonne ${t.j + 1}`}${under}`);
+    const under = snudd && kol && kol.length ? `. ${R.t("{kort} ble snudd", { kort: KORT.Navn(kol[kol.length - 1]) })}` : "";
+    R.si(`${KORT.Navn(flyttet[0])}${flyttet.length > 1 ? ` ${R.t("og {antall} til", { antall: R.flertall(flyttet.length - 1, "kort", "kort") })}` : ""} ${t.til === "g" ? R.t("hjem") : R.t("til kolonne {n}", { n: t.j + 1 })}${under}`);
   }
 
   // Carries out a move from the player (or from auto-finish). Returns true when it was legal.
@@ -1222,8 +1225,8 @@
   async function autoFullfor(S, plan) {
     laast = true;
     oppdaterHud();
-    R.toast("Løst! Kortene går hjem av seg selv.");
-    R.si("Kabalen er løst. Kortene går hjem av seg selv.");
+    R.toast(R.t("Løst! Kortene går hjem av seg selv."));
+    R.si(R.t("Kabalen er løst. Kortene går hjem av seg selv."));
     const fortsatt = R.vakt();
     await R.vent(R.rolig() ? 100 : 450);
     for (const t of plan) {
@@ -1264,7 +1267,7 @@
       setTimeout(() => el.classList.remove("kk-nei"), 420);
     }
     lyd.nei();
-    if (rekke.length) R.si(`${KORT.Navn(rekke[0])} kan ikke flyttes nå`);
+    if (rekke.length) R.si(R.t("{kort} kan ikke flyttes nå", { kort: KORT.Navn(rekke[0]) }));
   }
 
   // Picks a card that has more than one place to go and lights the places up (an empty place is a
@@ -1283,15 +1286,16 @@
         }
       }
       const kol = st.bord[m.j];
-      return m.til === "g" ? "hjem" : kol.length ? `på ${KORT.navn(kol[kol.length - 1])}` : "på den tomme plassen";
+      return m.til === "g" ? R.t("hjem") : kol.length ? R.t("på {kort}", { kort: KORT.navn(kol[kol.length - 1]) }) : R.t("på den tomme plassen");
     });
     R.lyd.klikk();
-    const hvor = steder.length > 1 ? `${steder.slice(0, -1).join(", ")} eller ${steder[steder.length - 1]}` : steder[0];
-    R.si(`${KORT.Navn(rekke[0])} er valgt. Trykk der ${rekke.length > 1 ? "kortene" : "kortet"} skal ligge: ${hvor}. Eller trykk på kortet igjen.`);
+    const hvor = steder.length > 1 ? `${steder.slice(0, -1).join(", ")} ${R.t("eller")} ${steder[steder.length - 1]}` : steder[0];
+    const kort = KORT.Navn(rekke[0]);
+    R.si(rekke.length > 1 ? R.t("{kort} er valgt. Trykk der kortene skal ligge: {hvor}. Eller trykk på kortet igjen.", { kort, hvor }) : R.t("{kort} er valgt. Trykk der kortet skal ligge: {hvor}. Eller trykk på kortet igjen.", { kort, hvor }));
     const S = R.S;
     if ((S.valgtips || 0) < 3) {
       S.valgtips = (S.valgtips || 0) + 1;
-      R.toast("Trykk der kortet skal ligge – eller på kortet igjen");
+      R.toast(R.t("Trykk der kortet skal ligge – eller på kortet igjen"));
     }
   }
   function opphevValg() {
@@ -1423,11 +1427,11 @@
     el.dataset.s = s;
     el.innerHTML =
       s === "ok"
-        ? `<span class="kk-stat kk-losbar" title="Kabalen kan fortsatt gå opp">${IKON.hake}Kan gå opp</span>`
+        ? `<span class="kk-stat kk-losbar" title="${esc(R.t("Kabalen kan fortsatt gå opp"))}">${IKON.hake}${esc(R.t("Kan gå opp"))}</span>`
         : s === "dod"
-          ? `<button class="kk-stat kk-laast" type="button" data-h="laast" aria-label="Låst: kabalen kan ikke gå opp herfra. Vis hva du kan gjøre.">${IKON.las}Låst</button>`
+          ? `<button class="kk-stat kk-laast" type="button" data-h="laast" aria-label="${esc(R.t("Låst: kabalen kan ikke gå opp herfra. Vis hva du kan gjøre."))}">${IKON.las}${esc(R.t("Låst"))}</button>`
           : s === "uviss"
-            ? `<span class="kk-stat kk-uviss" title="Vanskelig å si om kabalen kan gå opp herfra">Uvisst</span>`
+            ? `<span class="kk-stat kk-uviss" title="${esc(R.t("Vanskelig å si om kabalen kan gå opp herfra"))}">${esc(R.t("Uvisst"))}</span>`
             : "";
   }
 
@@ -1441,7 +1445,7 @@
       return;
     }
     const fraStart = sp.dod === 0; // lost before the first move: nothing to go back to
-    R.$("#kk-fast-tekst").textContent = fraStart ? "Denne kabalen kan ikke gå opp." : "Herfra kan ikke kabalen gå opp.";
+    R.$("#kk-fast-tekst").textContent = fraStart ? R.t("Denne kabalen kan ikke gå opp.") : R.t("Herfra kan ikke kabalen gå opp.");
     R.$("#kk-spol").hidden = fraStart;
     el.hidden = false;
   }
@@ -1452,7 +1456,7 @@
     laastVist = merke;
     visLaast(true);
     lyd.nei();
-    R.si(sp.dod === 0 ? "Denne kabalen kan ikke gå opp." : "Herfra kan ikke kabalen gå opp. Du kan spole tilbake til siste stilling som kan gå opp.");
+    R.si(sp.dod === 0 ? R.t("Denne kabalen kan ikke gå opp.") : R.t("Herfra kan ikke kabalen gå opp. Du kan spole tilbake til siste stilling som kan gå opp."));
   }
 
   // Back to the newest position that can still be solved. The answer along a line of play only goes
@@ -1494,10 +1498,10 @@
     venter(false);
     const ny = lo >= 0 && lo < n ? KABAL.fraKode(kodeVed(lo)) : null;
     if (!ny) {
-      R.toast("Fant ingen stilling som kan gå opp. Prøv en ny kabal.");
+      R.toast(R.t("Fant ingen stilling som kan gå opp. Prøv en ny kabal."));
       return;
     }
-    const tekst = `Spolt tilbake ${R.flertall(n - lo, "trekk", "trekk")}. Herfra kan kabalen gå opp.`;
+    const tekst = R.t("Spolt tilbake {trekk}. Herfra kan kabalen gå opp.", { trekk: R.flertall(n - lo, "trekk", "trekk") });
     st = ny;
     sp.kode = kodeVed(lo);
     sp.trekk = Number(sp.angre[lo].split("|")[1]) || 0;
@@ -1541,14 +1545,14 @@
       visStatus("dod");
       laastVist = sp.start + "|" + sp.dod;
       visLaast(true);
-      R.toast(sp.dod === 0 ? "Denne kabalen kan ikke gå opp." : "Herfra kan ikke kabalen gå opp. Spol tilbake, så får du hint derfra.");
+      R.toast(sp.dod === 0 ? R.t("Denne kabalen kan ikke gå opp.") : R.t("Herfra kan ikke kabalen gå opp. Spol tilbake, så får du hint derfra."));
       return;
     }
     let t = svar.trekk && svar.trekk.length ? KABAL.forsteSteg(st, svar.trekk[0]) : null;
     if (t && !KABAL.lovlig(st, t)) t = null;
     if (!t) t = KABAL.enkeltHint(st);
     if (!t) {
-      R.toast("Ingen flere trekk. Angre, eller start en ny kabal.");
+      R.toast(R.t("Ingen flere trekk. Angre, eller start en ny kabal."));
       return;
     }
     sp.hint += 1;
@@ -1556,13 +1560,13 @@
     let tekst;
     if (t.fra === "s") {
       el.push(R.$("#kk-bunke"));
-      tekst = st.bunke.length ? "Trekk fra bunken" : "Legg kortene tilbake i bunken";
+      tekst = st.bunke.length ? R.t("Trekk fra bunken") : R.t("Legg kortene tilbake i bunken");
     } else {
       const rekke = KABAL.loft(st, t);
       rekke.forEach((k) => el.push(kortEl(k)));
       el.push(malEl(t));
-      const hvor = t.til === "g" ? "hjem" : st.bord[t.j].length ? `til ${KORT.navn(st.bord[t.j][st.bord[t.j].length - 1])}` : "til den tomme plassen";
-      tekst = `Flytt ${KORT.navn(rekke[0])} ${hvor}`;
+      const hvor = t.til === "g" ? R.t("hjem") : st.bord[t.j].length ? R.t("til {kort}", { kort: KORT.navn(st.bord[t.j][st.bord[t.j].length - 1]) }) : R.t("til den tomme plassen");
+      tekst = R.t("Flytt {kort} {hvor}", { kort: KORT.navn(rekke[0]), hvor });
     }
     el.filter(Boolean).forEach((e) => e.classList.add("kk-hint"));
     R.toast(tekst.charAt(0).toUpperCase() + tekst.slice(1));
@@ -1665,7 +1669,7 @@
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape" || !valgt || !paBrettet()) return;
     opphevValg();
-    R.si("Kortet er sluppet");
+    R.si(R.t("Kortet er sluppet"));
   });
   document.addEventListener("contextmenu", (e) => {
     if (e.target.closest && e.target.closest("#kk-brett")) e.preventDefault();
@@ -1814,18 +1818,22 @@
 
   // ---------- «Dagens kabal»: the date, the countdown to the next one, the text to share ----------
 
-  const MND = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
-  const datoLang = (dato) => `${Number(dato.slice(8))}. ${MND[Number(dato.slice(5, 7)) - 1] || ""}`; // "2026-11-11" → «11. november»
-  const datoKort = (dato) => `${Number(dato.slice(8))}.${Number(dato.slice(5, 7))}.`; // → «11.11.»
-  const DEL_URL = "https://rusj.no/kortkongen/";
+  // Norwegian dates by hand (as before); the other editions ask Intl in their own language.
+  const MND = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"]; // sprak-ok
+  const datoLang = (dato) =>
+    R.sprak === "nb" ? `${Number(dato.slice(8))}. ${MND[Number(dato.slice(5, 7)) - 1] || ""}` : new Intl.DateTimeFormat(R.lokale, { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(dato + "T12:00:00Z")); // "2026-11-11" → «11. november» / «11 November»
+  const datoKort = (dato) => R.t("{dag}.{maned}.", { dag: Number(dato.slice(8)), maned: Number(dato.slice(5, 7)) }); // → «11.11.» (English «11/11»)
+  // The game's name and address in this edition.
+  const delNavn = () => (window.RUSJ_SPILL || {}).navn || "Kortkongen";
+  const DEL_URL = `https://rusj.no${R.forside}${(window.RUSJ_SPILL || {}).slug || "kortkongen"}/`;
 
-  // Seconds until midnight in Norway (the two nights a year the clocks change, the day is 23 or 25 hours).
+  // Seconds until midnight in the edition's country (the two nights a year the clocks change, the day is 23 or 25 hours).
   function tilMidnatt() {
     if (typeof R.tilMidnatt === "function") return R.tilMidnatt();
     const na = Date.now();
     const d = {};
     try {
-      new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(new Date(na)).forEach((p) => (d[p.type] = Number(p.value)));
+      new Intl.DateTimeFormat("en-GB", { timeZone: R.tidssone, hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(new Date(na)).forEach((p) => (d[p.type] = Number(p.value)));
     } catch (e) {
       const n = new Date(na);
       Object.assign(d, { hour: n.getHours(), minute: n.getMinutes(), second: n.getSeconds() });
@@ -1838,7 +1846,7 @@
   }
   const to = (n) => String(n).padStart(2, "0");
   const klokke = (s) => `${to(Math.floor(s / 3600))}:${to(Math.floor((s % 3600) / 60))}:${to(s % 60)}`; // HH:MM:SS
-  const nedtellingHtml = () => `<span class="kk-nedtelling">Ny kabal om <b>${klokke(tilMidnatt())}</b></span>`;
+  const nedtellingHtml = () => `<span class="kk-nedtelling">${esc(R.t("Ny kabal om {tid}")).replace("{tid}", `<b>${klokke(tilMidnatt())}</b>`)}</span>`;
   // Keeps every countdown on the screen alive; at midnight the screen is drawn again (a new daily).
   function startNedtelling() {
     const dag = iDag();
@@ -1858,7 +1866,7 @@
   function delTekst(S, sp) {
     const r = sp.resultat || { sek: Math.round(sp.tid / 1000), trekk: sp.trekk };
     const rekke = dagrekke(S);
-    return `Kortkongen ${datoKort(sp.dato)} · gikk opp på ${visTid(r.sek * 1000)} · ${R.tall(r.trekk)} trekk${sp.modus === 3 ? " · tre kort" : ""}${rekke > 1 ? `\n🔥 ${rekke} dager på rad` : ""}`;
+    return `${delNavn()} ${datoKort(sp.dato)} · ${R.t("gikk opp på {tid}", { tid: visTid(r.sek * 1000) })} · ${R.t("{n} trekk", { n: R.tall(r.trekk) })}${sp.modus === 3 ? ` · ${R.t("tre kort")}` : ""}${rekke > 1 ? `\n🔥 ${R.t("{n} dager på rad", { n: rekke })}` : ""}`;
   }
 
   // Small fanned cards for the mode tiles.
@@ -1868,7 +1876,7 @@
   function statLinje(s) {
     if (!s || !s.spilt) return "";
     const pst = Math.round((s.vunnet / s.spilt) * 100);
-    return `Vunnet ${R.tall(s.vunnet)} av ${R.tall(s.spilt)} (${pst} %)${s.besteTid ? ` · beste tid ${visTid(s.besteTid * 1000)}` : ""}`;
+    return `${R.t("Vunnet {v} av {n} ({pst} %)", { v: R.tall(s.vunnet), n: R.tall(s.spilt), pst })}${s.besteTid ? ` · ${R.t("beste tid {tid}", { tid: visTid(s.besteTid * 1000) })}` : ""}`;
   }
 
   // Both modes side by side.
@@ -1878,18 +1886,19 @@
     return `<table class="kk-tabell">
       <thead><tr><td></td><th scope="col">${esc(MODUS[1].navn)}</th><th scope="col">${esc(MODUS[3].navn)}</th></tr></thead>
       <tbody>
-        ${rad("Spilt", (x) => R.tall(x.spilt))}
-        ${rad("Vunnet", (x) => (x.spilt ? `${R.tall(x.vunnet)} <small>${Math.round((x.vunnet / x.spilt) * 100)} %</small>` : "–"))}
-        ${rad("På rad nå", (x) => R.tall(x.rekke))}
-        ${rad("Flest på rad", (x) => R.tall(x.besteRekke))}
-        ${rad("Beste tid", (x) => (x.besteTid ? visTid(x.besteTid * 1000) : "–"))}
-        ${rad("Færrest trekk", (x) => (x.faerrest ? R.tall(x.faerrest) : "–"))}
+        ${rad(R.t("Spilt"), (x) => R.tall(x.spilt))}
+        ${rad(R.t("Vunnet"), (x) => (x.spilt ? `${R.tall(x.vunnet)} <small>${Math.round((x.vunnet / x.spilt) * 100)} %</small>` : "–"))}
+        ${rad(R.t("På rad nå"), (x) => R.tall(x.rekke))}
+        ${rad(R.t("Flest på rad"), (x) => R.tall(x.besteRekke))}
+        ${rad(R.t("Beste tid"), (x) => (x.besteTid ? visTid(x.besteTid * 1000) : "–"))}
+        ${rad(R.t("Færrest trekk"), (x) => (x.faerrest ? R.tall(x.faerrest) : "–"))}
       </tbody>
     </table>`;
   }
 
   function brettHtml(S) {
     const sp = S.spill;
+    // class names // sprak-ok
     const kort = Array.from({ length: 52 }, (_, k) => KORT.html(k, { tag: "button", klasse: "kk-kort kk-av", attr: ` id="kk-k${k}" data-k="${k}" type="button" tabindex="-1" aria-hidden="true"` })).join("");
     // The empty places are buttons that sleep (disabled, hidden from screen readers) until a picked
     // card can be put there.
@@ -1897,18 +1906,18 @@
     const grunn = [0, 1, 2, 3]
       .map(
         (s) =>
-          `<button class="kk-plass kk-grunn" id="kk-g${s}" ${sov} aria-label="Hjem, ${esc(KORT.SORTER[s].navn)}" style="--sf:${KORT.SORTER[s].rod ? KORT.ROD : "#f4e9ff"}"><svg viewBox="0 0 100 100" aria-hidden="true">${KORT.symbol(s, 18, 18, 64)}</svg></button>`,
+          `<button class="kk-plass kk-grunn" id="kk-g${s}" ${sov} aria-label="${esc(R.t("Hjem, {sort}", { sort: KORT.SORTER[s].navn }))}" style="--sf:${KORT.SORTER[s].rod ? KORT.ROD : "#f4e9ff"}"><svg viewBox="0 0 100 100" aria-hidden="true">${KORT.symbol(s, 18, 18, 64)}</svg></button>`,
       )
       .join("");
-    const bord = Array.from({ length: 7 }, (_, i) => `<button class="kk-plass kk-tom" id="kk-b${i}" ${sov} aria-label="Tom plass, kolonne ${i + 1}"><b aria-hidden="true">K</b></button>`).join("");
-    return `<div class="kk-brett" id="kk-brett" role="group" aria-label="Kabalen" data-modus="${sp.modus}">
+    const bord = Array.from({ length: 7 }, (_, i) => `<button class="kk-plass kk-tom" id="kk-b${i}" ${sov} aria-label="${esc(R.t("Tom plass, kolonne {n}", { n: i + 1 }))}"><b aria-hidden="true">K</b></button>`).join("");
+    return `<div class="kk-brett" id="kk-brett" role="group" aria-label="${esc(R.t("Kabalen"))}" data-modus="${sp.modus}">
       ${grunn}<span class="kk-plass kk-avfall-plass" id="kk-avfall" aria-hidden="true"></span>${bord}
       <button class="kk-plass kk-bunke" id="kk-bunke" type="button" data-h="trekk" data-stille>${IKON.snu}</button>
       ${kort}
       <span class="kk-antall" id="kk-antall" aria-hidden="true"></span>
       <div class="kk-fast" id="kk-fast" hidden role="status">
-        <span id="kk-fast-tekst">Herfra kan ikke kabalen gå opp.</span>
-        <span class="kk-fast-knapper">${R.ui.knapp2("Spol tilbake", "spol", { variant: "liten", id: "kk-spol" })}${R.ui.knapp2(erDagens(sp) ? "Start på nytt" : "Ny kabal", "ny", { variant: "liten" })}</span>
+        <span id="kk-fast-tekst">${esc(R.t("Herfra kan ikke kabalen gå opp."))}</span>
+        <span class="kk-fast-knapper">${R.ui.knapp2(R.t("Spol tilbake"), "spol", { variant: "liten", id: "kk-spol" })}${R.ui.knapp2(erDagens(sp) ? R.t("Start på nytt") : R.t("Ny kabal"), "ny", { variant: "liten" })}</span>
       </div>
     </div>`;
   }
@@ -1975,20 +1984,20 @@
     },
 
     regler: {
-      intro: "Få alle kortene hjem i fire bunker – én for hver sort, fra ess til konge.",
+      intro: R.t("Få alle kortene hjem i fire bunker – én for hver sort, fra ess til konge."),
       steg: [
-        ["Bygg nedover på bordet", "Legg kortene i synkende rekkefølge, annenhver rød og svart: svart 8 på rød 9, rød 7 på svart 8."],
-        ["Trykk eller dra", "Trykk på et kort, så flytter det seg dit det kan ligge. Kan det ligge flere steder, lyser plassene: trykk på den du vil ha – eller på kortet igjen for beste plass. Du kan også dra kortene."],
-        ["Fra ess til konge", "Essene går hjem øverst til venstre. Bygg videre med samme sort: 2, 3, 4 … helt til kongen."],
+        [R.t("Bygg nedover på bordet"), R.t("Legg kortene i synkende rekkefølge, annenhver rød og svart: svart 8 på rød 9, rød 7 på svart 8.")],
+        [R.t("Trykk eller dra"), R.t("Trykk på et kort, så flytter det seg dit det kan ligge. Kan det ligge flere steder, lyser plassene: trykk på den du vil ha – eller på kortet igjen for beste plass. Du kan også dra kortene.")],
+        [R.t("Fra ess til konge"), R.t("Essene går hjem øverst til venstre. Bygg videre med samme sort: 2, 3, 4 … helt til kongen.")],
       ],
       tips: [
-        "Står du fast? Trykk på bunken for å trekke nye kort. Når den er tom, legges kortene tilbake.",
-        "Bare en konge kan legges på en tom plass.",
-        "Snu kortene med baksiden opp så fort du kan – de skjuler ofte nøkkelen.",
-        "«Hint» viser et lurt trekk, og «Angre» tar tilbake så mange trekk du vil.",
-        "Merket øverst sier om kabalen fortsatt kan gå opp. Står det «Låst», kan du spole tilbake til siste stilling som kan gå opp.",
-        "Dagens kabal er den samme for alle og kan alltid gå opp. Den kan prøves så mange ganger du vil – en ny kommer ved midnatt.",
-        "Når alle kortene ligger med bildet opp, går resten hjem av seg selv.",
+        R.t("Står du fast? Trykk på bunken for å trekke nye kort. Når den er tom, legges kortene tilbake."),
+        R.t("Bare en konge kan legges på en tom plass."),
+        R.t("Snu kortene med baksiden opp så fort du kan – de skjuler ofte nøkkelen."),
+        R.t("«Hint» viser et lurt trekk, og «Angre» tar tilbake så mange trekk du vil."),
+        R.t("Merket øverst sier om kabalen fortsatt kan gå opp. Står det «Låst», kan du spole tilbake til siste stilling som kan gå opp."),
+        R.t("Dagens kabal er den samme for alle og kan alltid gå opp. Den kan prøves så mange ganger du vil – en ny kommer ved midnatt."),
+        R.t("Når alle kortene ligger med bildet opp, går resten hjem av seg selv."),
       ],
     },
 
@@ -2003,30 +2012,30 @@
           const linje = statLinje(S.stat[S.oppsett.modus]);
           // «Dagens kabal» is the main button until it is solved; then free play takes over, and the
           // daily becomes a note with the result and the countdown to the next one.
-          const friKnapp = (hoved) => (hoved ? R.ui.knapp : R.ui.knapp2)(fri ? `Fortsett · ${R.flertall(fri.trekk, "trekk", "trekk")}` : `Ny kabal · ${MODUS[S.oppsett.modus].kort}`, fri ? "fortsett" : "nytt");
+          const friKnapp = (hoved) => (hoved ? R.ui.knapp : R.ui.knapp2)(fri ? R.t("Fortsett · {trekk}", { trekk: R.flertall(fri.trekk, "trekk", "trekk") }) : R.t("Ny kabal · {modus}", { modus: MODUS[S.oppsett.modus].kort }), fri ? "fortsett" : "nytt");
           const dagKnapp = () =>
-            dag && dag.startet ? R.ui.knapp(`Fortsett dagens kabal · ${R.flertall(dag.trekk, "trekk", "trekk")}`, "dagens") : R.ui.knapp("Dagens kabal", "dagens", { variant: "stor" });
+            dag && dag.startet ? R.ui.knapp(R.t("Fortsett dagens kabal · {trekk}", { trekk: R.flertall(dag.trekk, "trekk", "trekk") }), "dagens") : R.ui.knapp(R.t("Dagens kabal"), "dagens", { variant: "stor" });
           const r = lost ? dag.resultat || { sek: Math.round(dag.tid / 1000), trekk: dag.trekk } : null;
           const dagLinje = lost
             ? `<div class="kk-dagboks">
-                <p><span class="kk-dag-hake" aria-hidden="true">${IKON.hake}</span><b>Dagens kabal gikk opp</b> · ${visTid(r.sek * 1000)} · ${R.tall(r.trekk)} trekk</p>
-                <p class="kk-dag-under">${rekke > 1 ? `🔥 ${R.tall(rekke)} dager på rad · ` : ""}${nedtellingHtml()}</p>
-                ${R.ui.lenke("Se resultatet", "dagens")}
+                <p><span class="kk-dag-hake" aria-hidden="true">${IKON.hake}</span><b>${esc(R.t("Dagens kabal gikk opp"))}</b> · ${visTid(r.sek * 1000)} · ${esc(R.t("{n} trekk", { n: R.tall(r.trekk) }))}</p>
+                <p class="kk-dag-under">${rekke > 1 ? `🔥 ${esc(R.t("{n} dager på rad", { n: R.tall(rekke) }))} · ` : ""}${nedtellingHtml()}</p>
+                ${R.ui.lenke(R.t("Se resultatet"), "dagens")}
               </div>`
             : rekke > 0
-              ? `<p class="kk-hjemstat">🔥 ${rekke === 1 ? "Én dag" : `${R.tall(rekke)} dager`} på rad med dagens kabal – i dag også?</p>`
+              ? `<p class="kk-hjemstat">🔥 ${esc(R.t("{dager} på rad med dagens kabal – i dag også?", { dager: rekke === 1 ? R.t("Én dag") : R.t("{n} dager", { n: R.tall(rekke) }) }))}</p>`
               : "";
           return (
             R.ui.spillhjem({
-              slagordHtml: "Ess til konge, rødt på svart.<br><em>Går kabalen opp?</em>",
+              slagordHtml: `${esc(R.t("Ess til konge, rødt på svart."))}<br><em>${esc(R.t("Går kabalen opp?"))}</em>`,
               knapperHtml:
                 (lost ? friKnapp(true) : dagKnapp() + friKnapp(false)) +
-                R.ui.lenkerad(fri ? R.ui.lenke("Ny kabal", "nytt") : "", R.ui.lenke("Bytt oppsett", "endre"), R.ui.lenke("Slik spiller du", "regler"), S.stat[1] || S.stat[3] ? R.ui.lenke("Statistikk", "statistikk") : "") +
+                R.ui.lenkerad(fri ? R.ui.lenke(R.t("Ny kabal"), "nytt") : "", R.ui.lenke(R.t("Bytt oppsett"), "endre"), R.ui.lenke(R.t("Slik spiller du"), "regler"), S.stat[1] || S.stat[3] ? R.ui.lenke(R.t("Statistikk"), "statistikk") : "") +
                 dagLinje,
               merker: [
-                ["📅", "ny kabal hver dag"],
-                [R.tall((S.oppsett.modus === 3 ? LOSBARE.tre.length : LOSBARE.tre.length + LOSBARE.en.length) * 8), "løsbare kabaler"],
-                ["0", "reklame"],
+                ["📅", R.t("ny kabal hver dag")],
+                [R.tall((S.oppsett.modus === 3 ? LOSBARE.tre.length : LOSBARE.tre.length + LOSBARE.en.length) * 8), R.t("løsbare kabaler")],
+                ["0", R.t("reklame")],
               ],
             }) +
             (linje ? `<p class="kk-hjemstat">${esc(MODUS[S.oppsett.modus].navn)}: ${esc(linje)}</p>` : "")
@@ -2036,41 +2045,41 @@
       },
 
       oppsett: {
-        tittel: "Ny kabal",
+        tittel: R.t("Ny kabal"),
         tilbake: "hjem",
         vis: (S) => `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           <section class="seksjon">
-            <h2>Hvor mange kort trekker du?</h2>
+            <h2>${esc(R.t("Hvor mange kort trekker du?"))}</h2>
             ${R.ui.fliser(
               "modus",
               [1, 3].map((m) => ({ v: m, tittel: MODUS[m].navn, tekst: MODUS[m].tekst, ikon: miniKort(m) })),
               S.oppsett.modus,
             )}
           </section>
-          ${R.ui.bryter("losbar", S.oppsett.losbar, "Bare løsbare kabaler", "Hver kabal er sjekket på forhånd: den kan gå opp – hvis du spiller lurt.")}
-          <p class="hjelp">${dagensSpill(S) && dagensSpill(S).startet ? "Dagens kabal er i gang og beholder kortene sine." : "Valget gjelder også dagens kabal."}</p>
-          ${R.ui.dokk(R.ui.knapp("Start", "nytt", { variant: "stor" }))}`,
+          ${R.ui.bryter("losbar", S.oppsett.losbar, R.t("Bare løsbare kabaler"), R.t("Hver kabal er sjekket på forhånd: den kan gå opp – hvis du spiller lurt."))}
+          <p class="hjelp">${esc(dagensSpill(S) && dagensSpill(S).startet ? R.t("Dagens kabal er i gang og beholder kortene sine.") : R.t("Valget gjelder også dagens kabal."))}</p>
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "nytt", { variant: "stor" }))}`,
       },
 
       spill: {
-        tittel: (S) => (!S.spill ? "Kabal" : erDagens(S.spill) ? "Dagens kabal" : MODUS[S.spill.modus].navn),
+        tittel: (S) => (!S.spill ? R.t("Kabal") : erDagens(S.spill) ? R.t("Dagens kabal") : MODUS[S.spill.modus].navn),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           return `
-            <h1 class="vh" id="skjerm-tittel">${erDagens(sp) ? `Dagens kabal, ${esc(datoLang(sp.dato))}` : "Kabal"}</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(erDagens(sp) ? R.t("Dagens kabal, {dato}", { dato: datoLang(sp.dato) }) : R.t("Kabal"))}</h1>
             <div class="kk-hud">
-              <span class="kk-stat" aria-label="Tid">${IKON.klokke}<b id="kk-tid">${visTid(tidMs(sp))}</b></span>
-              <span class="kk-stat"><b id="kk-trekk">${sp.trekk}</b> trekk</span>
+              <span class="kk-stat" aria-label="${esc(R.t("Tid"))}">${IKON.klokke}<b id="kk-tid">${visTid(tidMs(sp))}</b></span>
+              <span class="kk-stat"><b id="kk-trekk">${sp.trekk}</b> ${esc(R.t("trekk"))}</span>
               <span class="kk-status" id="kk-status" aria-live="polite"></span>
             </div>
             ${brettHtml(S)}
             ${R.ui.dokk(`<div class="kk-verktoy">
-              <button class="kk-knapp" id="kk-angre" data-h="angre" ${sp.angre.length ? "" : "disabled"}>${IKON.angre}<span>Angre</span></button>
-              <button class="kk-knapp" data-h="hint">${IKON.hint}<span>Hint</span></button>
-              <button class="kk-knapp" data-h="ny">${IKON.ny}<span>${erDagens(sp) ? "På nytt" : "Ny kabal"}</span></button>
-              <button class="kk-knapp" data-h="avslutt">${IKON.slutt}<span>Avslutt</span></button>
+              <button class="kk-knapp" id="kk-angre" data-h="angre" ${sp.angre.length ? "" : "disabled"}>${IKON.angre}<span>${esc(R.t("Angre"))}</span></button>
+              <button class="kk-knapp" data-h="hint">${IKON.hint}<span>${esc(R.t("Hint"))}</span></button>
+              <button class="kk-knapp" data-h="ny">${IKON.ny}<span>${esc(erDagens(sp) ? R.t("På nytt") : R.t("Ny kabal"))}</span></button>
+              <button class="kk-knapp" data-h="avslutt">${IKON.slutt}<span>${esc(R.t("Avslutt"))}</span></button>
             </div>`)}`;
         },
         etter(S) {
@@ -2149,7 +2158,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -2160,13 +2169,14 @@
           const dokk =
             R.ui.flereSpill({ antall: 1 }) +
             R.ui.dokk(
-              R.ui.knapp("Spill igjen", "igjen"),
-              R.ui.lenkerad(dagLost ? "" : R.ui.lenke("Dagens kabal", "dagens"), R.ui.lenke("Endre oppsett", "endre"), '<a class="lenke" href="/">Alle spill</a>'),
+              R.ui.knapp(R.t("Spill igjen"), "igjen"),
+              R.ui.lenkerad(dagLost ? "" : R.ui.lenke(R.t("Dagens kabal"), "dagens"), R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`),
             );
-          const statHtml = `<p class="kk-sluttstat">${esc(MODUS[sp.modus].navn)}: vunnet ${R.tall(s.vunnet)} av ${R.tall(s.spilt)}${s.rekke > 1 ? ` · ${R.tall(s.rekke)} på rad` : ""}${s.besteRekke > 1 ? ` · rekord ${R.tall(s.besteRekke)} på rad` : ""}</p>`;
+          const statHtml = `<p class="kk-sluttstat">${esc(MODUS[sp.modus].navn)}: ${esc(R.t("vunnet {v} av {n}", { v: R.tall(s.vunnet), n: R.tall(s.spilt) }))}${s.rekke > 1 ? ` · ${esc(R.t("{n} på rad", { n: R.tall(s.rekke) }))}` : ""}${s.besteRekke > 1 ? ` · ${esc(R.t("rekord {n} på rad", { n: R.tall(s.besteRekke) }))}` : ""}</p>`;
+          const rekordMerke = `<i class="kk-ny">${esc(R.t("Rekord!"))}</i>`;
           const tallHtml = `<div class="kk-resultat">
-                <div class="kk-tall-kort${r.nyTid ? " ny" : ""}"><b>${visTid(r.sek * 1000)}</b><span>tid</span>${r.nyTid ? '<i class="kk-ny">Rekord!</i>' : ""}</div>
-                <div class="kk-tall-kort${r.nyTrekk ? " ny" : ""}"><b>${R.tall(r.trekk)}</b><span>trekk</span>${r.nyTrekk ? '<i class="kk-ny">Rekord!</i>' : ""}</div>
+                <div class="kk-tall-kort${r.nyTid ? " ny" : ""}"><b>${visTid(r.sek * 1000)}</b><span>${esc(R.t("tid"))}</span>${r.nyTid ? rekordMerke : ""}</div>
+                <div class="kk-tall-kort${r.nyTrekk ? " ny" : ""}"><b>${R.tall(r.trekk)}</b><span>${esc(R.t("trekk|trekk", { n: r.trekk }))}</span>${r.nyTrekk ? rekordMerke : ""}</div>
               </div>`;
           if (erDagens(sp)) {
             // «Dagens kabal» is solved: the result, the days in a row, something to share – and
@@ -2176,17 +2186,17 @@
             return `
               <div class="banner aksent">
                 ${R.figur(null, "jubel")}
-                <p class="etikett">Dagens kabal · ${esc(datoLang(sp.dato))}</p>
-                <h1 id="skjerm-tittel">Dagens kabal gikk opp!</h1>
-                <p class="ingress">${rekke > 1 ? `🔥 ${R.tall(rekke)} dager på rad!` : "Første dag i en ny rekke – kom tilbake i morgen."}</p>
+                <p class="etikett">${esc(R.t("Dagens kabal · {dato}", { dato: datoLang(sp.dato) }))}</p>
+                <h1 id="skjerm-tittel">${esc(R.t("Dagens kabal gikk opp!"))}</h1>
+                <p class="ingress">${esc(rekke > 1 ? `🔥 ${R.t("{n} dager på rad!", { n: R.tall(rekke) })}` : R.t("Første dag i en ny rekke – kom tilbake i morgen."))}</p>
               </div>
               ${tallHtml}
-              <p class="kk-neste">${gammel ? "<b>En ny kabal er klar!</b>" : nedtellingHtml()}</p>
-              <p class="kk-sluttstat">${esc(MODUS[sp.modus].navn)}${S.dstat.lost > 1 ? ` · ${R.tall(S.dstat.lost)} dagskabaler løst` : ""}${S.dstat.beste > 1 ? ` · lengste rekke ${R.tall(S.dstat.beste)} dager` : ""}</p>
+              <p class="kk-neste">${gammel ? `<b>${esc(R.t("En ny kabal er klar!"))}</b>` : nedtellingHtml()}</p>
+              <p class="kk-sluttstat">${esc(MODUS[sp.modus].navn)}${S.dstat.lost > 1 ? ` · ${esc(R.t("{n} dagskabaler løst", { n: R.tall(S.dstat.lost) }))}` : ""}${S.dstat.beste > 1 ? ` · ${esc(R.t("lengste rekke {n} dager", { n: R.tall(S.dstat.beste) }))}` : ""}</p>
               ${R.ui.flereSpill({ antall: 1 })}
               ${R.ui.dokk(
-                gammel ? R.ui.knapp("Dagens kabal", "dagens") : R.ui.knapp("Del resultatet", "del"),
-                R.ui.lenkerad(R.ui.lenke(iGang(frittSpill(S)) ? "Fortsett kabalen" : "Ny kabal", iGang(frittSpill(S)) ? "fortsett" : "nytt"), '<a class="lenke" href="/">Alle spill</a>'),
+                gammel ? R.ui.knapp(R.t("Dagens kabal"), "dagens") : R.ui.knapp(R.t("Del resultatet"), "del"),
+                R.ui.lenkerad(R.ui.lenke(iGang(frittSpill(S)) ? R.t("Fortsett kabalen") : R.t("Ny kabal"), iGang(frittSpill(S)) ? "fortsett" : "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`),
               )}`;
           }
           if (r.vunnet) {
@@ -2194,27 +2204,27 @@
             return `
               <div class="banner aksent">
                 ${R.figur()}
-                <p class="etikett">${esc(MODUS[sp.modus].navn)}${sp.losbar ? " · løsbar" : ""}</p>
-                <h1 id="skjerm-tittel">Kabalen gikk opp!</h1>
-                <p class="ingress">Godt jobba!${r.rekke > 1 ? ` Det er ${R.tall(r.rekke)} på rad.` : ""}</p>
+                <p class="etikett">${esc(MODUS[sp.modus].navn)}${sp.losbar ? ` · ${esc(R.t("løsbar"))}` : ""}</p>
+                <h1 id="skjerm-tittel">${esc(R.t("Kabalen gikk opp!"))}</h1>
+                <p class="ingress">${esc(R.t("Godt jobba!"))}${r.rekke > 1 ? ` ${esc(R.t("Det er {n} på rad.", { n: R.tall(r.rekke) }))}` : ""}</p>
               </div>
               ${tallHtml}
-              <p class="hjelp">${
+              <p class="hjelp">${esc(
                 rekord
-                  ? `Ny personlig rekord! Forrige: ${r.forrigeTid ? visTid(r.forrigeTid * 1000) : "–"} · ${r.forrigeTrekk ? R.tall(r.forrigeTrekk) + " trekk" : "–"}`
+                  ? R.t("Ny personlig rekord! Forrige: {tid} · {trekk}", { tid: r.forrigeTid ? visTid(r.forrigeTid * 1000) : "–", trekk: r.forrigeTrekk ? R.t("{n} trekk", { n: R.tall(r.forrigeTrekk) }) : "–" })
                   : r.forrigeTid
-                    ? `Rekordene dine: ${visTid(s.besteTid * 1000)} · ${R.tall(s.faerrest)} trekk`
-                    : "Første kabal i boks – nå har du rekorder å slå!"
-              }</p>
+                    ? R.t("Rekordene dine: {tid} · {trekk}", { tid: visTid(s.besteTid * 1000), trekk: R.t("{n} trekk", { n: R.tall(s.faerrest) }) })
+                    : R.t("Første kabal i boks – nå har du rekorder å slå!"),
+              )}</p>
               ${statHtml}
               ${dokk}`;
           }
           return `
             <div class="banner aksent">
               ${R.figur()}
-              <p class="etikett">${esc(MODUS[sp.modus].navn)}${sp.losbar ? " · løsbar" : ""}</p>
-              <h1 id="skjerm-tittel">Den var vrien!</h1>
-              <p class="ingress">${r.hjem ? `Du fikk ${R.tall(r.hjem)} av 52 kort hjem.` : "Ingen kort kom hjem denne gangen."} Neste kabal kan være din.</p>
+              <p class="etikett">${esc(MODUS[sp.modus].navn)}${sp.losbar ? ` · ${esc(R.t("løsbar"))}` : ""}</p>
+              <h1 id="skjerm-tittel">${esc(R.t("Den var vrien!"))}</h1>
+              <p class="ingress">${esc(r.hjem ? R.t("Du fikk {n} av 52 kort hjem.", { n: R.tall(r.hjem) }) : R.t("Ingen kort kom hjem denne gangen."))} ${esc(R.t("Neste kabal kan være din."))}</p>
             </div>
             ${r.hjem ? `<div class="kk-fremgang" aria-hidden="true"><span style="width:${Math.round((r.hjem / 52) * 100)}%"></span></div>` : ""}
             ${statHtml}
@@ -2251,7 +2261,7 @@
       dagens: (el, e, S) => R.gaTil(tilDagens(S)),
       del(el, e, S) {
         const sp = S.spill;
-        if (erDagens(sp) && sp.vunnet) R.del("Kortkongen", delTekst(S, sp), DEL_URL, { kort: { tittel: `Dagens kabal ${datoKort(sp.dato)}`, linjer: [`Gikk opp på ${visTid(((sp.resultat && sp.resultat.sek) || Math.round(sp.tid / 1000)) * 1000)}`, `${R.tall((sp.resultat && sp.resultat.trekk) || sp.trekk)} trekk`] } });
+        if (erDagens(sp) && sp.vunnet) R.del(delNavn(), delTekst(S, sp), DEL_URL, { kort: { tittel: R.t("Dagens kabal {dato}", { dato: datoKort(sp.dato) }), linjer: [R.t("Gikk opp på {tid}", { tid: visTid(((sp.resultat && sp.resultat.sek) || Math.round(sp.tid / 1000)) * 1000) }), R.t("{n} trekk", { n: R.tall((sp.resultat && sp.resultat.trekk) || sp.trekk) })] } });
       },
       spol: (el, e, S) => spolTilbake(S),
       laast() {
@@ -2260,19 +2270,19 @@
       },
       statistikk(el, e, S) {
         R.ark(`
-          <h2 id="ark-tittel">Statistikk</h2>
+          <h2 id="ark-tittel">${esc(R.t("Statistikk"))}</h2>
           <div class="kk-stat-ark">${statTabell(S)}</div>
-          <p class="hjelp">Statistikken ligger bare på denne mobilen.</p>
-          <button class="knapp" data-h="lukk-ark">Lukk</button>
-          ${R.ui.lenke("Nullstill statistikk", "nullstill")}`);
+          <p class="hjelp">${esc(R.t("Statistikken ligger bare på denne mobilen."))}</p>
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Lukk"))}</button>
+          ${R.ui.lenke(R.t("Nullstill statistikk"), "nullstill")}`);
       },
       async nullstill(el, e, S) {
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Nullstille statistikken?", "Alle seirer, rekker og rekorder slettes fra denne mobilen.", "Nullstill", "Avbryt");
+        const ja = await R.bekreft(R.t("Nullstille statistikken?"), R.t("Alle seirer, rekker og rekorder slettes fra denne mobilen."), R.t("Nullstill"), R.t("Avbryt"));
         if (!ja || !fortsatt()) return;
         S.stat = {};
         R.vis();
-        R.toast("Statistikken er nullstilt");
+        R.toast(R.t("Statistikken er nullstilt"));
       },
       modus(el, e, S) {
         S.oppsett.modus = Number(el.dataset.v) === 3 ? 3 : 1;
@@ -2316,7 +2326,7 @@
         plasser({ animer: true });
         R.lyd.tone(600, 0, 0.08, "triangle", 0.07, 420);
         R.lagre();
-        R.si("Angret");
+        R.si(R.t("Angret"));
         sjekkSnart(S);
       },
       hint: (el, e, S) => visHint(S),
@@ -2326,19 +2336,19 @@
         const fortsatt = R.vakt();
         if (erDagens(sp)) {
           // The daily is the same cards all day: it can only be started again.
-          const ja = await R.bekreft("Starte dagens kabal på nytt?", "Kortene er de samme. Tid og trekk begynner på null.", "Start på nytt", "Spill videre");
+          const ja = await R.bekreft(R.t("Starte dagens kabal på nytt?"), R.t("Kortene er de samme. Tid og trekk begynner på null."), R.t("Start på nytt"), R.t("Spill videre"));
           if (!ja || !fortsatt() || S.spill !== sp) return;
           nyDagens(S, true);
           R.gaTil("spill");
           return;
         }
         const valg = await R.velgIArk(
-          "Ny kabal?",
+          R.t("Ny kabal?"),
           [
-            { v: "ny", tekst: "Del ut en ny kabal" },
-            { v: "igjen", tekst: "Start denne kabalen på nytt" },
+            { v: "ny", tekst: R.t("Del ut en ny kabal") },
+            { v: "igjen", tekst: R.t("Start denne kabalen på nytt") },
           ],
-          sp && sp.startet ? "Kabalen du holder på med, teller som tapt i statistikken." : "",
+          sp && sp.startet ? R.t("Kabalen du holder på med, teller som tapt i statistikken.") : "",
         );
         if (!valg || !fortsatt() || !S.spill) return;
         registrer(S, false);
@@ -2351,11 +2361,11 @@
         const fortsatt = R.vakt();
         if (erDagens(sp)) {
           // Nothing is lost: the daily waits where it was left, and can be solved until midnight.
-          const bort = await R.bekreft("Legge bort dagens kabal?", "Den ligger klar der du slapp – helt til midnatt.", "Legg bort", "Spill videre");
+          const bort = await R.bekreft(R.t("Legge bort dagens kabal?"), R.t("Den ligger klar der du slapp – helt til midnatt."), R.t("Legg bort"), R.t("Spill videre"));
           if (bort && fortsatt()) R.gaTil("hjem");
           return;
         }
-        const ja = await R.bekreft("Avslutte kabalen?", sp.startet ? "Den teller som tapt i statistikken." : "Du kan alltid starte en ny.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte kabalen?"), sp.startet ? R.t("Den teller som tapt i statistikken.") : R.t("Du kan alltid starte en ny."), R.t("Avslutt"), R.t("Spill videre"));
         if (!ja || !fortsatt() || !S.spill) return;
         if (S.spill.startet) {
           stoppKlokke(S);

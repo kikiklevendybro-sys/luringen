@@ -11,5 +11,23 @@
   "rekkefolge": 24,
   "farge": "#7fd6c2",
   "sok": ["sudoku", "dagens sudoku", "tallgåte", "tallspill", "logikk"],
-  "alias": ["sudoku"]
+  "alias": ["sudoku"],
+  "i18n": {
+    "en": {
+      "navn": "Number Cruncher",
+      "undertittel": "Sudoku",
+      "kort": "One number in every square – pure logic, no maths.",
+      "beskrivelse": "Free sudoku in your browser. New boards at four levels, always with a single solution. Today's sudoku for everyone, notes, hints and best times.",
+      "slug": "number-cruncher",
+      "sok": ["sudoku", "daily sudoku", "sudoku free", "number puzzle", "logic puzzle", "number cruncher"]
+    },
+    "da": {
+      "navn": "Talknuseren",
+      "undertittel": "Sudoku",
+      "kort": "Ét tal i hvert felt – kun logik, ingen regning.",
+      "beskrivelse": "Gratis sudoku på dansk. Nye bræt på fire niveauer, altid med kun én løsning. Dagens sudoku for alle, noter, hint og bedste tider.",
+      "slug": "talknuseren",
+      "sok": ["sudoku", "dagens sudoku", "sudoku gratis", "talgåde", "talspil", "logik"]
+    }
+  }
 }

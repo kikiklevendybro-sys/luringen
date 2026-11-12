@@ -4,6 +4,8 @@
 // walls it crashes into the edge: the board stays with a small card, and one swipe starts the next
 // run at once («Se resultatet» opens the result; a new record goes there by itself); without walls
 // it comes out on the other side; the board and the cross fit at 320×568 and 375×560.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en slangen): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the numbers, the state and the links (t.forside).
 export default async function (t) {
   const live = () => t.js("JSON.parse(JSON.stringify(Rusj.S.spill))");
   const sett = (kode) => t.js(`(() => { const sp = Rusj.S.spill; ${kode}; })()`);
@@ -25,9 +27,9 @@ export default async function (t) {
   // The install tip (shown at most twice per phone after a good result) would cover the screenshots.
   await t.js("Rusj.felles.installTips = 2; Rusj.lagreFelles()");
   // The main button starts at once («Rolig» with walls the first time); «Bytt nivå» opens the setup.
-  t.sjekk(/Start spill · rolig/.test(await t.tekst('[data-h="nytt"]')), "Hovedknappen starter ikke på «Rolig» første gang");
+  t.sjekk(!t.norsk || /Start spill · rolig/.test(await t.tekst('[data-h="nytt"]')), "Hovedknappen starter ikke på «Rolig» første gang");
   await t.klikk('[data-h="bytt"]');
-  t.sjekk((await t.tekst("#skjerm h1")) === "Gjør klart", "Oppsettet heter ikke «Gjør klart»");
+  t.sjekk(!t.norsk || (await t.tekst("#skjerm h1")) === "Gjør klart", "Oppsettet heter ikke «Gjør klart»");
   t.sjekk(await t.finnes('[data-h="fart"][data-v="rolig"][aria-pressed="true"]'), "«Rolig» er ikke valgt første gang");
   t.sjekk(await t.finnes('[data-h="vegger"][aria-pressed="true"]'), "Vegger skal være på som standard");
   t.sjekk(await t.js("new Set(Array.from(document.querySelectorAll('[data-h=\"fart\"]')).map((el) => Math.round(el.getBoundingClientRect().top))).size === 1"), "De tre hastighetene står ikke på én rad");
@@ -120,7 +122,7 @@ export default async function (t) {
   t.sjekk((await t.tilstand()).spill.ferdig === true, "Krasjet ble ikke lagret som ferdig med en gang");
   await t.vent("document.querySelector('.sl-status.over:not([hidden]) .sl-statuskort.over')", 3000);
   await t.sov(450);
-  t.sjekk(!(await t.finnes(".skjerm-slutt")) && /1 poeng/.test(await t.tekst(".sl-statuskort.over")), "Etter krasjet står ikke brettet igjen med poengene");
+  t.sjekk(!(await t.finnes(".skjerm-slutt")) && (t.norsk ? /1 poeng/ : /\b1\b/).test(await t.tekst(".sl-statuskort.over")), "Etter krasjet står ikke brettet igjen med poengene");
   t.sjekk(
     await t.js(`(() => {
       const kort = document.querySelector(".sl-statuskort.over").getBoundingClientRect();
@@ -129,7 +131,7 @@ export default async function (t) {
     })()`),
     "Kortet etter krasjet dekker stedet der slangen krasjet",
   );
-  t.sjekk(/Krasj! 1 poeng\. Sveip/.test(await t.js("document.querySelector('#si').textContent")), "Krasjet ble ikke lest opp for skjermleser");
+  t.sjekk((t.norsk ? /Krasj! 1 poeng\. Sveip/ : /\b1\b/).test(await t.js("document.querySelector('#si').textContent")), "Krasjet ble ikke lest opp for skjermleser");
   await t.bilde("krasj");
   // One swipe: a new snake with the same setup, already on its way that way.
   await sveip(0, 120);
@@ -141,7 +143,7 @@ export default async function (t) {
   // Crash again without a point: the card, and «Se resultatet» opens the result screen.
   await sett("sp.kropp = [[7, 0], [7, 1], [7, 2]]; sp.retning = 'opp'; sp.ko = []; sp.mat = { x: 1, y: 14, t: 1 }");
   await t.vent("document.querySelector('.sl-status.over:not([hidden]) [data-h=\"resultat\"]')", 4000);
-  t.sjekk(/Rekord 1/.test(await t.tekst(".sl-statuskort.over")), "Kortet etter krasjet viser ikke rekorden");
+  t.sjekk((t.norsk ? /Rekord 1/ : /\b1\b/).test(await t.tekst(".sl-statuskort.over")), "Kortet etter krasjet viser ikke rekorden");
   await t.klikk('[data-h="resultat"]');
   await t.vent("document.querySelector('.skjerm-slutt')", 5000);
   await t.sov(900);
@@ -150,7 +152,7 @@ export default async function (t) {
   t.sjekk(s.spill.ferdig && s.rekorder["rolig-vegg"] === 1, "Rekorden ble ikke lagret");
   t.sjekk(await t.finnes(".sl-mini path[stroke='#ff5a4e']"), "Resultatet viser ikke brettet med kryss der slangen krasjet");
   t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")), "Topplinja sier «Kåringen» på et soloresultat");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
 
   // «Spill igjen» at once, the same setup.
   await t.klikk('[data-h="igjen"]');
@@ -163,7 +165,7 @@ export default async function (t) {
   await sett("sp.poeng = 5; sp.kropp = [[7, 0], [7, 1], [7, 2], [7, 3]]; sp.retning = 'opp'; sp.ko = []; sp.mat = { x: 1, y: 14, t: 1 }");
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
   await t.sov(500);
-  t.sjekk(/Ny rekord/.test(await t.tekst("#skjerm h1")) && (await t.tilstand()).rekorder["rolig-vegg"] === 5, "En ny rekord gikk ikke til resultatskjermen");
+  t.sjekk((!t.norsk || /Ny rekord/.test(await t.tekst("#skjerm h1"))) && (await t.tilstand()).rekorder["rolig-vegg"] === 5, "En ny rekord gikk ikke til resultatskjermen");
   await t.klikk('[data-h="igjen"]');
   await t.vent("document.querySelector('.sl-lerret')");
 
@@ -206,5 +208,5 @@ export default async function (t) {
   // A tampered speed in the saved state ("__proto__") is not a speed: back to the default.
   await t.js(`Rusj.S.oppsett = JSON.parse('{"fart":"__proto__","vegger":true}'); Rusj.S.spill = null; Rusj.lagre()`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
-  t.sjekk(/Start spill · rolig/.test(await t.tekst('[data-h="nytt"]')), "En ugyldig hastighet i lagret tilstand ga ikke standardvalget");
+  t.sjekk(!t.norsk || /Start spill · rolig/.test(await t.tekst('[data-h="nytt"]')), "En ugyldig hastighet i lagret tilstand ga ikke standardvalget");
 }

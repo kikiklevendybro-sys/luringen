@@ -100,6 +100,43 @@
       "tittel": "Four in a row – free against a friend or the phone",
       "frase": "Four in a row",
       "beskrivelse": "Free four in a row in your browser. Drop your discs and line up four – against a friend on the same phone, or against the phone at three levels."
+    },
+    "bonden": {
+      "motMobilen": true,
+      "tittel": "Noughts and crosses – three or five in a row, free",
+      "frase": "Noughts and crosses",
+      "beskrivelse": "Free noughts and crosses (tic-tac-toe) in your browser – or five in a row on a big board. Against a friend on the same phone, or against the phone."
+    },
+    "slangen": {
+      "tittel": "Snake – the classic snake game, free",
+      "frase": "Snake",
+      "beskrivelse": "Free Snake in your browser. Steer with swipes, arrows or the keyboard, eat fruit and grow – three speeds, with or without walls, and your own best score."
+    },
+    "dobleren": {
+      "tittel": "2048 – play free in your browser, no ads",
+      "frase": "2048",
+      "beskrivelse": "Free 2048 in your browser. Swipe the tiles, merge matching numbers and reach 2048 – on 4 × 4 or 5 × 5, with an undo button and your own high score."
+    },
+    "minesveiperen": {
+      "tittel": "Minesweeper free – made for mobile, no ads",
+      "frase": "Minesweeper",
+      "beskrivelse": "Free minesweeper in your browser with no ads. Your first tap is always safe. Three levels made for mobile, flags with a long press, and your best times."
+    },
+    "tallknuseren": {
+      "tittel": "Sudoku free – today's sudoku, no ads",
+      "frase": "Sudoku",
+      "beskrivelse": "Free sudoku in your browser with no ads: new boards at four levels, always with a single solution. Today's sudoku for everyone, notes, hints and best times."
+    },
+    "kortkongen": {
+      "tittel": "Patience free – classic Klondike solitaire, no ads",
+      "frase": "Patience",
+      "beskrivelse": "Free patience in your browser with no ads – classic Klondike solitaire. Draw one or three cards, undo and get hints, and play only deals that can come out."
+    },
+    "sjakkhesten": {
+      "motMobilen": true,
+      "tittel": "Chess online – against the computer or a friend",
+      "frase": "Chess",
+      "beskrivelse": "Play chess free in your browser: against the computer at four levels, or two on the same phone – with every rule, a chess clock and an undo button. No account."
     }
   }
 }

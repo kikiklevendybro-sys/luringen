@@ -11,5 +11,23 @@
   "rekkefolge": 26,
   "sok": ["sjakk", "chess", "sjakk på nett", "sjakk mot data", "sjakkspill", "spill sjakk"],
   "motMobilen": true,
-  "alias": ["sjakk"]
+  "alias": ["sjakk"],
+  "i18n": {
+    "en": {
+      "navn": "Knightly",
+      "undertittel": "Chess",
+      "kort": "Real chess – against a friend or against the phone.",
+      "beskrivelse": "Free chess in your browser. Play against the phone at four levels or against a friend on the same phone – with castling, en passant, a chess clock and undo.",
+      "slug": "knightly",
+      "sok": ["chess", "chess online", "chess against computer", "chess for two", "play chess", "chess game", "knightly"]
+    },
+    "da": {
+      "navn": "Skakhesten",
+      "undertittel": "Skak",
+      "kort": "Rigtig skak – mod en ven eller mod mobilen.",
+      "beskrivelse": "Gratis skak på dansk. Spil mod mobilen på fire niveauer eller mod en ven på samme mobil – med rokade, en passant, skakur og fortryd.",
+      "slug": "skakhesten",
+      "sok": ["skak", "chess", "skak online", "skak mod computer", "skak for to", "spil skak"]
+    }
+  }
 }

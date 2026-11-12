@@ -15,9 +15,10 @@
   // Tables without a prototype, so a saved or typed value like "__proto__" is simply not an option.
   const tabell = (o) => Object.assign(Object.create(null), o);
   const FARTER = tabell({
-    rolig: { navn: "Rolig", ms: 165, ikon: "🐢", tekst: "God tid" },
-    normal: { navn: "Normal", ms: 120, ikon: "🐍", tekst: "Klassisk" },
-    rask: { navn: "Rask", ms: 82, ikon: "⚡", tekst: "Kjappe fingrer" },
+    // Every text goes through R.t (rusj/SPRAK.md): the key is the Norwegian text.
+    rolig: { navn: R.t("Rolig"), ms: 165, ikon: "🐢", tekst: R.t("God tid") },
+    normal: { navn: R.t("Normal"), ms: 120, ikon: "🐍", tekst: R.t("Klassisk") },
+    rask: { navn: R.t("Rask"), ms: 82, ikon: "⚡", tekst: R.t("Kjappe fingrer") },
   });
   const FART_ID = ["rolig", "normal", "rask"];
   const RETNING = tabell({ opp: [0, -1], ned: [0, 1], venstre: [-1, 0], hoyre: [1, 0] });
@@ -499,7 +500,7 @@
     const r = sp.resultat;
     // A new record gets the whole result screen, with the fanfare.
     if (r.nyRekord) {
-      R.si(`Krasj! ${R.flertall(r.poeng, "poeng", "poeng")} – ny rekord.`);
+      R.si(R.t("Krasj! {poeng} – ny rekord.", { poeng: R.flertall(r.poeng, "poeng", "poeng") }));
       setTimeout(() => fortsatt() && R.gaTil("slutt"), R.rolig() ? 700 : 1100);
       return;
     }
@@ -511,7 +512,7 @@
         if (!fortsatt() || S.spill !== sp) return;
         omstartKlar = true;
         visStatus(S);
-        R.si(`Krasj! ${R.flertall(r.poeng, "poeng", "poeng")}. Sveip eller trykk på en pil for å prøve igjen.`);
+        R.si(R.t("Krasj! {poeng}. Sveip eller trykk på en pil for å prøve igjen.", { poeng: R.flertall(r.poeng, "poeng", "poeng") }));
       },
       R.rolig() ? 400 : 600,
     );
@@ -627,7 +628,7 @@
     if (!el || !sp) return;
     const knapp = R.$('[data-h="pause"]');
     if (knapp) {
-      knapp.setAttribute("aria-label", sp.status === "pause" ? "Fortsett" : "Pause");
+      knapp.setAttribute("aria-label", sp.status === "pause" ? R.t("Fortsett") : R.t("Pause"));
       knapp.classList.toggle("pauset", sp.status === "pause");
     }
     if (sp.status === "over" && omstartKlar && !skjul) {
@@ -640,9 +641,9 @@
       // Away from the head: at the top when the snake crashed in the lower half.
       el.classList.toggle("oppe", sp.kropp[0][1] > H_ / 2);
       el.innerHTML = `<div class="sl-statuskort over">
-        <p class="sl-stor">${R.flertall(r.poeng, "poeng", "poeng")}</p>
-        <p>${r.forste ? "Din første rekord!" : `Rekord ${Math.max(beste(S, sp), r.poeng)}.`} <span class="sl-finger">Sveip for å prøve igjen.</span><span class="sl-tast">Trykk på en piltast for å prøve igjen.</span></p>
-        ${R.ui.lenke("Se resultatet", "resultat")}
+        <p class="sl-stor">${esc(R.flertall(r.poeng, "poeng", "poeng"))}</p>
+        <p>${esc(r.forste ? R.t("Din første rekord!") : R.t("Rekord {n}.", { n: Math.max(beste(S, sp), r.poeng) }))} <span class="sl-finger">${esc(R.t("Sveip for å prøve igjen."))}</span><span class="sl-tast">${esc(R.t("Trykk på en piltast for å prøve igjen."))}</span></p>
+        ${R.ui.lenke(R.t("Se resultatet"), "resultat")}
       </div>`;
       return;
     }
@@ -655,8 +656,8 @@
     el.classList.toggle("klar", sp.status === "klar");
     el.innerHTML =
       sp.status === "klar"
-        ? `<div class="sl-statuskort klar"><p class="sl-stor">Klar?</p><p>Sveip eller trykk på en pil for å starte.</p>${sp.vegger ? "" : "<p class=\"sl-fri\">Uten vegger: Ut på én side, inn på den andre.</p>"}</div>`
-        : `<div class="sl-statuskort"><p class="etikett">Pause</p><p class="sl-stor">Slangen venter</p>${R.ui.knapp("Fortsett", "fortsett-spill")}${R.ui.lenke("Start på nytt", "ny")}</div>`;
+        ? `<div class="sl-statuskort klar"><p class="sl-stor">${esc(R.t("Klar?"))}</p><p>${esc(R.t("Sveip eller trykk på en pil for å starte."))}</p>${sp.vegger ? "" : `<p class="sl-fri">${esc(R.t("Uten vegger: Ut på én side, inn på den andre."))}</p>`}</div>`
+        : `<div class="sl-statuskort"><p class="etikett">${esc(R.t("Pause"))}</p><p class="sl-stor">${esc(R.t("Slangen venter"))}</p>${R.ui.knapp(R.t("Fortsett"), "fortsett-spill")}${R.ui.lenke(R.t("Start på nytt"), "ny")}</div>`;
   }
 
   function bindKontroll(S, rot) {
@@ -765,7 +766,7 @@
     venstre: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
     hoyre: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
   };
-  const PILNAVN = { opp: "Opp", ned: "Ned", venstre: "Til venstre", hoyre: "Til høyre" };
+  const PILNAVN = { opp: R.t("Opp"), ned: R.t("Ned"), venstre: R.t("Til venstre"), hoyre: R.t("Til høyre") };
   const PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="pa" d="M7 5h3v14H7zM14 5h3v14h-3z"/><path class="av" d="M8 4.5v15l12-7.5z"/></svg>';
 
   // The board as it ended, in miniature: the snake, the fruit it never got, and a ✕ where it crashed.
@@ -799,13 +800,13 @@
       const d = `M${kx - 0.42} ${ky - 0.42}l0.84 0.84M${kx + 0.42} ${ky - 0.42}l-0.84 0.84`;
       kryss = `<path d="${d}" stroke="#170e2b" stroke-width="0.5" stroke-linecap="round"/><path d="${d}" stroke="#ff5a4e" stroke-width="0.28" stroke-linecap="round"/>`;
     }
-    return `<svg class="sl-mini" viewBox="0 0 ${B} ${H_}" role="img" aria-label="Brettet da spillet var slutt">
+    return `<svg class="sl-mini" viewBox="0 0 ${B} ${H_}" role="img" aria-label="${esc(R.t("Brettet da spillet var slutt"))}">
       <defs><pattern id="sl-ruter" width="2" height="2" patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="#21143d"/><rect width="1" height="1" fill="#261848"/><rect x="1" y="1" width="1" height="1" fill="#261848"/></pattern></defs>
       <rect width="${B}" height="${H_}" fill="url(#sl-ruter)"/>${mat}${slange}${kryss}
     </svg>`;
   }
 
-  const oppsettTekst = (sp) => `${FARTER[sp.fart].navn} · ${sp.vegger ? "med vegger" : "uten vegger"}`;
+  const oppsettTekst = (sp) => `${FARTER[sp.fart].navn} · ${sp.vegger ? R.t("med vegger") : R.t("uten vegger")}`;
 
   // ---------- Start ----------
 
@@ -847,18 +848,18 @@
     },
 
     regler: {
-      intro: "Styr slangen til maten. Hver bit gjør den lengre – og da blir det trangere om plassen.",
+      intro: R.t("Styr slangen til maten. Hver bit gjør den lengre – og da blir det trangere om plassen."),
       steg: [
-        ["Styr", "Sveip på brettet eller trykk på pilene. Med tastatur: piltastene eller WASD."],
-        ["Spis", "Hver frukt gir ett poeng og gjør slangen ett ledd lengre."],
-        ["Ikke krasj", "Treffer slangen seg selv, er det slutt. Med vegger er kanten farlig også – uten vegger kommer slangen ut på den andre siden."],
+        [R.t("Styr"), R.t("Sveip på brettet eller trykk på pilene. Med tastatur: piltastene eller WASD.")],
+        [R.t("Spis"), R.t("Hver frukt gir ett poeng og gjør slangen ett ledd lengre.")],
+        [R.t("Ikke krasj"), R.t("Treffer slangen seg selv, er det slutt. Med vegger er kanten farlig også – uten vegger kommer slangen ut på den andre siden.")],
       ],
       tips: [
-        "Sving i god tid. Du kan trykke to svinger raskt etter hverandre, så husker slangen begge.",
-        "Hold deg langs kantene når slangen blir lang, så får du plass i midten.",
-        "Spillet tar pause av seg selv hvis du bytter app. Mellomrom eller P gir pause med tastatur.",
-        "Krasjet du? Sveip en gang til, så er en ny slange i gang med det samme. Slår du rekorden, får du se hele resultatet.",
-        "Slangen går i sanntid og kan dessverre ikke spilles med skjermleser.",
+        R.t("Sving i god tid. Du kan trykke to svinger raskt etter hverandre, så husker slangen begge."),
+        R.t("Hold deg langs kantene når slangen blir lang, så får du plass i midten."),
+        R.t("Spillet tar pause av seg selv hvis du bytter app. Mellomrom eller P gir pause med tastatur."),
+        R.t("Krasjet du? Sveip en gang til, så er en ny slange i gang med det samme. Slår du rekorden, får du se hele resultatet."),
+        R.t("Slangen går i sanntid og kan dessverre ikke spilles med skjermleser."),
       ],
     },
 
@@ -872,50 +873,50 @@
           for (const f of FART_ID)
             for (const v of [true, false]) {
               const p = S.rekorder[`${f}-${v ? "vegg" : "fri"}`];
-              if (p) rek.push(`<li><b>${FARTER[f].navn}${v ? "" : ", uten vegger"}</b> ${p}</li>`);
+              if (p) rek.push(`<li><b>${esc(FARTER[f].navn)}${v ? "" : ", " + esc(R.t("uten vegger"))}</b> ${p}</li>`);
             }
           return (
             R.ui.spillhjem({
-              slagordHtml: "Spis, voks og sving.<br><em>Bare ikke bit deg selv i halen!</em>",
+              slagordHtml: `${esc(R.t("Spis, voks og sving."))}<br><em>${esc(R.t("Bare ikke bit deg selv i halen!"))}</em>`,
               knapperHtml: R.ui.startKnapper({
                 pagar: aktiv,
-                fortsettTekst: aktiv ? `Fortsett · ${R.flertall(sp.poeng, "poeng", "poeng")}` : "",
+                fortsettTekst: aktiv ? R.t("Fortsett · {stilling}", { stilling: R.flertall(sp.poeng, "poeng", "poeng") }) : "",
                 // Starts at once with the last setup («Rolig» the first time); «Bytt nivå» opens it.
-                startTekst: `Start spill · ${FARTER[S.oppsett.fart].navn.toLowerCase()}${S.oppsett.vegger ? "" : ", uten vegger"}`,
-                ekstraHtml: R.ui.lenkerad(R.ui.lenke("Bytt nivå", "bytt"), R.ui.lenke("Slik spiller du", "regler")),
+                startTekst: R.t("Start spill · {oppsett}", { oppsett: FARTER[S.oppsett.fart].navn.toLowerCase() + (S.oppsett.vegger ? "" : ", " + R.t("uten vegger")) }),
+                ekstraHtml: R.ui.lenkerad(R.ui.lenke(R.t("Bytt nivå"), "bytt"), R.ui.lenke(R.t("Slik spiller du"), "regler")),
               }),
               merker: [
-                ["3", "hastigheter"],
-                ["Vegger", "av/på"],
-                ["0", "reklame"],
+                ["3", R.t("hastigheter")],
+                [R.t("Vegger"), R.t("av/på")],
+                ["0", R.t("reklame")],
               ],
-            }) + (rek.length ? `<section class="sl-rekorder" aria-label="Dine rekorder"><p class="etikett">Dine rekorder</p><ul>${rek.join("")}</ul></section>` : "")
+            }) + (rek.length ? `<section class="sl-rekorder" aria-label="${esc(R.t("Dine rekorder"))}"><p class="etikett">${esc(R.t("Dine rekorder"))}</p><ul>${rek.join("")}</ul></section>` : "")
           );
         },
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const vegger = S.oppsett.vegger;
           return `
-            <h1 id="skjerm-tittel">Gjør klart</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Hvor fort?</h2></div>
+              <div class="seksjon-hode"><h2>${esc(R.t("Hvor fort?"))}</h2></div>
               <div class="sl-tre">${R.ui.fliser(
                 "fart",
                 FART_ID.map((f) => {
                   const p = S.rekorder[`${f}-${vegger ? "vegg" : "fri"}`];
-                  return { v: f, tittel: FARTER[f].navn, tekst: p ? `Rekord ${p}` : FARTER[f].tekst, ikon: FARTER[f].ikon };
+                  return { v: f, tittel: FARTER[f].navn, tekst: p ? R.t("Rekord {n}", { n: p }) : FARTER[f].tekst, ikon: FARTER[f].ikon };
                 }),
                 S.oppsett.fart,
               )}</div>
             </section>
             <section class="seksjon">
-              ${R.ui.bryter("vegger", vegger, "Vegger rundt brettet", vegger ? "Treffer slangen kanten, er det slutt." : "Slangen kommer ut på den andre siden.")}
+              ${R.ui.bryter("vegger", vegger, R.t("Vegger rundt brettet"), vegger ? R.t("Treffer slangen kanten, er det slutt.") : R.t("Slangen kommer ut på den andre siden."))}
             </section>
-            ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor" }))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { variant: "stor" }))}`;
         },
       },
 
@@ -925,21 +926,21 @@
         vis(S) {
           const sp = S.spill;
           return `
-            <h1 class="vh" id="skjerm-tittel">Slangen</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("Slangen"))}</h1>
             <div class="sl-spill">
               <div class="sl-hud">
-                <span class="sl-stat"><small>Poeng</small><b id="sl-poeng">${sp.poeng}</b></span>
-                <span class="sl-stat"><small>Rekord</small><b id="sl-beste">${Math.max(beste(S, sp), sp.poeng)}</b></span>
-                <button class="sl-pause${sp.status === "pause" ? " pauset" : ""}" data-h="pause" aria-label="${sp.status === "pause" ? "Fortsett" : "Pause"}">${PAUSE}</button>
+                <span class="sl-stat"><small>${esc(R.t("Poeng"))}</small><b id="sl-poeng">${sp.poeng}</b></span>
+                <span class="sl-stat"><small>${esc(R.t("Rekord"))}</small><b id="sl-beste">${Math.max(beste(S, sp), sp.poeng)}</b></span>
+                <button class="sl-pause${sp.status === "pause" ? " pauset" : ""}" data-h="pause" aria-label="${esc(sp.status === "pause" ? R.t("Fortsett") : R.t("Pause"))}">${PAUSE}</button>
               </div>
               <div class="sl-flate">
                 <div class="sl-ramme${sp.vegger ? " vegger" : " fri"}">
-                  <canvas class="sl-lerret" role="img" aria-label="Brettet med slangen og maten"></canvas>
+                  <canvas class="sl-lerret" role="img" aria-label="${esc(R.t("Brettet med slangen og maten"))}"></canvas>
                   <div class="sl-status" hidden></div>
                 </div>
               </div>
-              ${R.ui.dokk(`<p class="sl-tastatur">Piltaster eller WASD styrer · mellomrom = pause</p><div class="sl-kryss" role="group" aria-label="Styr slangen">
-                ${["opp", "venstre", "ned", "hoyre"].map((r) => `<button class="sl-pil ${r}" data-retning="${r}" aria-label="${PILNAVN[r]}">${PIL[r]}</button>`).join("")}
+              ${R.ui.dokk(`<p class="sl-tastatur">${esc(R.t("Piltaster eller WASD styrer · mellomrom = pause"))}</p><div class="sl-kryss" role="group" aria-label="${esc(R.t("Styr slangen"))}">
+                ${["opp", "venstre", "ned", "hoyre"].map((r) => `<button class="sl-pil ${r}" data-retning="${r}" aria-label="${esc(PILNAVN[r])}">${PIL[r]}</button>`).join("")}
               </div>`)}
             </div>`;
         },
@@ -976,14 +977,14 @@
         vis(S) {
           const sp = S.spill;
           const r = sp.resultat || { poeng: sp.poeng, lengde: sp.kropp.length, sek: 0 };
-          const tittel = sp.fylt ? "Hele brettet!" : r.nyRekord ? "Ny rekord!" : r.poeng >= 15 ? "Godt jobba!" : "Godt forsøk!";
+          const tittel = sp.fylt ? R.t("Hele brettet!") : r.nyRekord ? R.t("Ny rekord!") : r.poeng >= 15 ? R.t("Godt jobba!") : R.t("Godt forsøk!");
           const linje = r.nyRekord
-            ? `Ny personlig rekord! Forrige: ${r.gml}.`
+            ? R.t("Ny personlig rekord! Forrige: {n}.", { n: r.gml })
             : r.forste
-              ? "Første runde med dette oppsettet – nå har du en rekord å slå!"
+              ? R.t("Første runde med dette oppsettet – nå har du en rekord å slå!")
               : r.gml
-                ? `Rekorden din (${oppsettTekst(sp).toLowerCase()}): ${Math.max(r.gml, r.poeng)}.`
-                : "Prøv igjen – slangen blir sulten på nytt!";
+                ? R.t("Rekorden din ({oppsett}): {n}.", { oppsett: oppsettTekst(sp).toLowerCase(), n: Math.max(r.gml, r.poeng) })
+                : R.t("Prøv igjen – slangen blir sulten på nytt!");
           return `
             <div class="banner aksent">
               ${R.figur()}
@@ -991,13 +992,13 @@
               <h1 id="skjerm-tittel">${esc(tittel)}</h1>
             </div>
             <div class="sl-resultat">
-              <div class="sl-tall${r.nyRekord ? " ny" : ""}"><b>${r.poeng}</b><span>poeng</span>${r.nyRekord ? '<i class="sl-ny">Rekord!</i>' : ""}</div>
-              <div class="sl-tall"><b>${r.lengde}</b><span>ledd lang</span></div>
+              <div class="sl-tall${r.nyRekord ? " ny" : ""}"><b>${r.poeng}</b><span>${esc(R.t("poeng|poeng", { n: r.poeng }))}</span>${r.nyRekord ? `<i class="sl-ny">${esc(R.t("Rekord!"))}</i>` : ""}</div>
+              <div class="sl-tall"><b>${r.lengde}</b><span>${esc(R.t("ledd lang|ledd lang", { n: r.lengde }))}</span></div>
             </div>
             <p class="hjelp">${esc(linje)}</p>
             ${miniBrett(sp)}
             ${R.ui.flereSpill({ antall: 1 })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "bytt"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "bytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
