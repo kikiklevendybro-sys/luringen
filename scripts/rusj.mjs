@@ -556,6 +556,26 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
     if (s === U.sprak) return `<b lang="${s}" aria-current="page">${navn}</b>`;
     return `<a href="${esc((finn && finn(V)) || V.forside)}" lang="${s}" hreflang="${s}">${navn}</a>`;
   }).join("")}</nav>`;
+  // The country picker at the top of the front page and the pages about rusj: a flag and a short
+  // code that open the three editions (the same page where it exists). A <details>, so it works
+  // without script; portal.js closes it on a tap outside or Escape. The flags are drawn once per
+  // page (FLAGG) and used by id.
+  const LANDKODE = { nb: "NO", en: "UK", da: "DK" };
+  const FLAGG = `<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="flagg-nb" viewBox="0 0 22 16" preserveAspectRatio="xMidYMid slice"><rect width="22" height="16" fill="#ba0c2f"/><path d="M6 0h4v16H6zM0 6h22v4H0z" fill="#fff"/><path d="M7 0h2v16H7zM0 7h22v2H0z" fill="#00205b"/></symbol>
+  <symbol id="flagg-en" viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice"><clipPath id="flagg-en-kryss"><path d="M30 15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><rect width="60" height="30" fill="#012169"/><path d="M0 0l60 30M60 0L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30M60 0L0 30" clip-path="url(#flagg-en-kryss)" stroke="#c8102e" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#c8102e" stroke-width="6"/></symbol>
+  <symbol id="flagg-da" viewBox="0 0 37 28" preserveAspectRatio="xMidYMid slice"><rect width="37" height="28" fill="#c8102e"/><path d="M12 0h4v28h-4zM0 12h37v4H0z" fill="#fff"/></symbol>
+</svg>`;
+  const flagg = (s) => `<svg class="flagg" aria-hidden="true" focusable="false"><use href="#flagg-${s}"/></svg>`;
+  const landvelger = (U, finn) => `<details class="landvelger">
+  <summary aria-label="${esc(U.t("Velg land og språk"))}">${flagg(U.sprak)}<span class="landvelger-kode">${LANDKODE[U.sprak]}</span><svg class="landvelger-pil" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 10l5 5 5-5"/></svg></summary>
+  <ul class="landvelger-liste">${ALLE_SPRAK.map((s) => {
+    const V = UTGAVE[s];
+    const navn = SPRAK_INFO[s].navn;
+    if (s === U.sprak) return `<li><b lang="${s}" aria-current="page">${flagg(s)}${navn}</b></li>`;
+    return `<li><a href="${esc((finn && finn(V)) || V.forside)}" lang="${s}" hreflang="${s}">${flagg(s)}${navn}</a></li>`;
+  }).join("")}</ul>
+</details>`;
 
   // ---------- «Klistremerkeboka»: the catalogue (rusj/merker.json) and its rules (rusj/kit/merker.js) ----------
   // Built from every game (also in a partial build): «tried all» counts the games without an age
@@ -890,7 +910,9 @@ ${STEMPEL_FILTER}
 <body class="portal">
 <div class="scene" aria-hidden="true"></div>
 ${IKONER}
+${FLAGG}
 <header class="helt">
+  ${landvelger(U, (V) => V.forside)}
   <h1 class="helt-logo"><span class="vh">${esc(forsideTittel)}</span>${G.logo({ klasse: "tegnes" })}</h1>
   <div class="helt-tekst">
     <p class="helt-slagord">${esc(t("Spill for hele gjengen."))} <br><em>${esc(t("Rett i nettleseren."))}</em></p>
@@ -1006,7 +1028,8 @@ ${bunn(U, false, (V) => V.forside)}
   const omSide = (U, o) => `${hodeMed({ sprak: U.sprak, alternativer: o.finn ? alternativer(o.finn) : [], tittel: o.tittel, ogTittel: o.ogTittel, beskrivelse: o.beskrivelse, sti: o.sti, ikon: ikoner.svg, deling: delingFor(U), delingAlt: U.t("rusj – gratis spill og selskapsleker på norsk"), css: [felles.css, portalCss, ...(o.css || [])], skript: o.skript ? [].concat(o.skript) : [], jsonld: o.jsonld })}
 <body class="portal${o.klasse ? " " + o.klasse : ""}">
 <div class="scene" aria-hidden="true"></div>
-<header class="side-topp"><a class="side-hjem" href="${U.forside}" aria-label="${esc(U.t("rusj – til alle spillene"))}">${G.logo()}</a></header>
+${FLAGG}
+<header class="side-topp"><a class="side-hjem" href="${U.forside}" aria-label="${esc(U.t("rusj – til alle spillene"))}">${G.logo()}</a>${landvelger(U, o.finn)}</header>
 <main class="side">
   <p class="side-sti"><a href="${U.forside}">${esc(U.t("Alle spill"))}</a> <span aria-hidden="true">›</span> ${esc(o.navn)}</p>
 ${o.innhold}

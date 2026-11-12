@@ -2583,3 +2583,121 @@ body:not(.over18) .spillkort[data-alder18] {
     animation: none;
   }
 }
+
+/* ---------- Country picker (top right on the front page and the pages about rusj) ---------- */
+.landvelger {
+  position: absolute;
+  top: calc(10px + env(safe-area-inset-top, 0px));
+  right: max(12px, env(safe-area-inset-right, 0px));
+  z-index: 5;
+  text-align: left;
+}
+.landvelger summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 10px 0 12px;
+  border: 2px solid var(--strek);
+  border-radius: 999px;
+  background: var(--slor);
+  color: var(--tekst);
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.landvelger summary::-webkit-details-marker {
+  display: none;
+}
+.landvelger summary:hover,
+.landvelger[open] summary {
+  border-color: var(--lampe);
+}
+.landvelger summary:focus-visible {
+  outline: 3px solid var(--lampe);
+  outline-offset: 2px;
+}
+.landvelger .flagg {
+  flex: none;
+  width: 22px;
+  height: 16px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(255, 241, 221, 0.25);
+}
+.landvelger-pil {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.18s ease;
+}
+.landvelger[open] .landvelger-pil {
+  transform: rotate(180deg);
+}
+.landvelger-liste {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 170px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 2px solid var(--strek);
+  border-radius: 16px;
+  background: var(--natt-tett);
+  box-shadow: 0 16px 40px var(--skygge);
+}
+.landvelger-liste a,
+.landvelger-liste b {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-decoration: none;
+}
+.landvelger-liste a:hover,
+.landvelger-liste a:focus-visible {
+  background: var(--natt-3);
+  color: var(--tekst);
+  outline: none;
+}
+.landvelger-liste b {
+  color: var(--tekst);
+  font-weight: 800;
+}
+.landvelger-liste b::after {
+  content: "✓" / "";
+  margin-left: auto;
+  color: var(--mynte);
+}
+@media (prefers-reduced-motion: reduce) {
+  .landvelger-pil {
+    transition: none;
+  }
+}
+/* the open list lies above the parade and the shelves below the header */
+.helt:has(.landvelger[open]),
+.side-topp:has(.landvelger[open]) {
+  z-index: 30;
+}
+/* narrow phones: only the flag and the arrow, so the pill stays clear of the logo */
+@media (max-width: 419px) {
+  .landvelger-kode {
+    display: none;
+  }
+  .landvelger summary {
+    gap: 5px;
+    padding: 0 8px 0 10px;
+  }
+}

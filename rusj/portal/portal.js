@@ -973,6 +973,19 @@
     sjekkFast();
   });
 
+  // The country picker (a <details>) also closes on a tap outside it and on Escape.
+  document.addEventListener("click", (e) => {
+    for (const d of $$("details.landvelger[open]")) if (!d.contains(e.target)) d.open = false;
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    for (const d of $$("details.landvelger[open]")) {
+      d.open = false;
+      const s = $("summary", d);
+      if (s) s.focus();
+    }
+  });
+
   if ("serviceWorker" in navigator && location.protocol === "https:") {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   }
