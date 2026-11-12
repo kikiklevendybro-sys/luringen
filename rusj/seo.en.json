@@ -129,6 +129,17 @@
       "tittel": "Kim's game online – what's missing? Fun for kids",
       "frase": "Kim's game",
       "beskrivelse": "Free Kim's game in your browser: look closely at the things – then the magpie steals one. What's missing? 12 levels and nearly 300 things, solo or together."
+    },
+    "verktoykassa": {
+      "tittel": "Who goes first? Dice, team picker, coin and timer",
+      "frase": "Who goes first?",
+      "beskrivelse": "Free party tools in your browser: ‘Who goes first?’ with fingers on the screen, dice, a team picker, rock paper scissors, a coin toss and a scorekeeper.",
+      "sok": [
+        "team generator",
+        "dice roller",
+        "stopwatch"
+      ],
+      "type": "WebApplication"
     }
   }
 }

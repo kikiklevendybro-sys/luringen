@@ -137,6 +137,17 @@
       "tittel": "Kims leg online – hvad mangler? Huskeleg for børn",
       "frase": "Kims leg",
       "beskrivelse": "Gratis Kims leg på dansk: se godt på tingene – så stjæler skaden noget. Hvad mangler? 12 niveauer og næsten 300 ting, alene eller sammen."
+    },
+    "verktoykassa": {
+      "tittel": "Hvem starter? Terning, holddeler, mønt og ur",
+      "frase": "Hvem starter?",
+      "beskrivelse": "Gratis festværktøj: »Hvem starter?« med fingrene på skærmen, terninger, holddeler, sten, saks, papir, plat eller krone og en pointtæller.",
+      "sok": [
+        "holdgenerator",
+        "terning online",
+        "stopur"
+      ],
+      "type": "WebApplication"
     }
   }
 }
