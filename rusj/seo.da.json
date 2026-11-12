@@ -277,6 +277,19 @@
         "hvem er jeg",
         "heads up"
       ]
+    },
+    "kunstneren": {
+      "tittel": "Tegn og gæt – gratis tegneleg på én mobil",
+      "frase": "Tegn og gæt",
+      "beskrivelse": "Tegn og gæt på dansk: tegn ordet med fingeren, før tiden løber ud – de andre gætter. Over 900 ord, plus Hviskelegen, hvor tegningerne går helt i ged.",
+      "sok": [
+        "tegneleg",
+        "tegnelegen",
+        "tegn og gæt ord",
+        "hviskeleg",
+        "pictionary",
+        "skribbl"
+      ]
     }
   }
 }

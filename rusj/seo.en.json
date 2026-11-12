@@ -267,6 +267,17 @@
         "who am i game",
         "heads up"
       ]
+    },
+    "kunstneren": {
+      "tittel": "Draw and guess – free drawing game on one phone",
+      "frase": "Draw and guess",
+      "beskrivelse": "Draw and guess: sketch the word with your finger before the clock runs out while the others guess. 900 words, plus Pass the Picture where it all goes wrong.",
+      "sok": [
+        "drawing game",
+        "guess the drawing",
+        "pictionary",
+        "telephone pictionary"
+      ]
     }
   }
 }

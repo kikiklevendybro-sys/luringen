@@ -11,5 +11,23 @@
   "rekkefolge": 8,
   "ordbank": true,
   "alias": ["gjett-ordet-pa-panna"],
-  "sok": ["gjett ordet på panna", "ordet på panna", "hvem er jeg", "pannelek", "mobilen på panna", "charades"]
+  "sok": ["gjett ordet på panna", "ordet på panna", "hvem er jeg", "pannelek", "mobilen på panna", "charades"],
+  "i18n": {
+    "en": {
+      "navn": "Forehead",
+      "undertittel": "Guess the word on your forehead",
+      "kort": "Phone on your forehead, the others give clues – tilt when you've got it.",
+      "beskrivelse": "Free ‘guess the word on your forehead’ game. Hold the phone to your forehead while the others give clues – tilt down for right, up to pass. 16 decks.",
+      "slug": "forehead",
+      "sok": ["heads up", "forehead game", "guess the word on your forehead", "who am i", "phone on forehead", "charades", "word guessing game", "party game"]
+    },
+    "da": {
+      "navn": "Panden",
+      "undertittel": "Gæt ordet på panden",
+      "kort": "Mobilen på panden, de andre giver hints – vip, når du har det.",
+      "beskrivelse": "Gratis »gæt ordet på panden«-spil på dansk. Hold mobilen op mod panden, de andre giver hints – vip ned for rigtigt, op for pas. 16 kortbunker.",
+      "slug": "panden",
+      "sok": ["gæt ordet på panden", "ordet på panden", "hvem er jeg", "pandeleg", "mobilen på panden", "heads up", "charades"]
+    }
+  }
 }

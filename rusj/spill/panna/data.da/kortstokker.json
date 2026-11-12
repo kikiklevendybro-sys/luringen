@@ -1,0 +1,160 @@
+{
+  "kortstokker": [
+    {
+      "id": "dyr",
+      "navn": "Dyr",
+      "ikon": "🦒",
+      "farge": "lampe",
+      "tekst": "Fra myre til blåhval",
+      "tips": "Det er lov at lave dyrelyde!",
+      "ord": ["Giraf", "Elefant", "Løve", "Tiger", "Zebra", "Flodhest", "Næsehorn", "Krokodille", "Gorilla", "Chimpanse", "Kænguru", "Koala", "Panda", "Isbjørn", "Pingvin", "Sæl", "Hvalros", "Delfin", "Haj", "Blåhval", "Blæksprutte", "Vandmand", "Søstjerne", "Krabbe", "Hummer", "Søhest", "Havskildpadde", "Frø", "Slange", "Firben", "Kamæleon", "Edderkop", "Myre", "Bi", "Sommerfugl", "Mariehøne", "Snegl", "Regnorm", "Larve", "Ørn", "Papegøje", "Flamingo", "Påfugl", "Struds", "Svane", "Ged", "Kanin", "Hamster", "Marsvin", "Rotte", "Egern", "Pindsvin", "Ræv", "Grævling", "Rådyr", "Flagermus", "Ulv", "Kamel", "Lama", "Dovendyr", "Surikat", "Stinkdyr", "Bæver", "Odder", "Muldvarp", "Lunde", "Spætte", "Kolibri", "Pelikan", "Tukan", "Leopard", "Gepard", "Myresluger", "Bæltedyr", "Hulepindsvin", "Vaskebjørn", "Orangutang", "Elg", "Stork"]
+    },
+    {
+      "id": "mat",
+      "navn": "Mad",
+      "ikon": "🍕",
+      "farge": "oransje",
+      "tekst": "Aftensmad, snacks og søde sager",
+      "tips": "Tænk smag, farve og hvornår man spiser det.",
+      "ord": ["Pizza", "Spaghetti", "Lasagne", "Burger", "Hotdog", "Sushi", "Tacos", "Karry", "Kebab", "Nudler", "Stegte ris", "Bagt kartoffel", "Ristet brød", "Havregrød", "Morgenmadsprodukter", "Pandekager", "Vafler", "Croissant", "Bagel", "Sandwich", "Suppe", "Salat", "Omelet", "Spejlæg", "Blødkogt æg", "Bacon", "Pølser", "Pommes frites", "Chips", "Popcorn", "Nachos", "Ost", "Smør", "Syltetøj", "Honning", "Peanutbutter", "Ketchup", "Sennep", "Mayonnaise", "Brun sovs", "Vaniljecreme", "Gele", "Chokolade", "Muffin", "Donut", "Småkage", "Æblekage", "Cheesecake", "Brownie", "Appelsin", "Jordbær", "Vandmelon", "Ananas", "Vindruer", "Citron", "Kokosnød", "Broccoli", "Ærter", "Majs", "Kartoffel", "Løg", "Hvidløg", "Champignon", "Agurk", "Tomat", "Avocado", "Milkshake", "Smoothie", "Saftevand", "Forårsrulle", "Kødboller", "Fiskepinde", "Burrito", "Hummus", "Hvidløgsbrød", "Chili con carne", "Kirsebær", "Pasta med kødsovs"]
+    },
+    {
+      "id": "yrker",
+      "navn": "Job",
+      "ikon": "👩‍🚒",
+      "farge": "rod",
+      "tekst": "Hvad laver du?",
+      "tips": "Vis, hvad man laver på jobbet!",
+      "ord": ["Politibetjent", "Brandmand", "Læge", "Sygeplejerske", "Tandlæge", "Frisør", "Kok", "Bager", "Lærer", "Landmand", "Pilot", "Astronaut", "Murer", "Blikkenslager", "Elektriker", "Postbud", "Buschauffør", "Taxichauffør", "Lokomotivfører", "Lastbilchauffør", "Dyrlæge", "Dyrepasser", "Livredder", "Ambulanceredder", "Kirurg", "Forsker", "Detektiv", "Dommer", "Advokat", "Soldat", "Sømand", "Fisker", "Gartner", "Maler", "Kunstner", "Fotograf", "Sanger", "Danser", "Skuespiller", "Fodboldspiller", "Fodbolddommer", "Tryllekunstner", "Klovn", "Jonglør", "Tjener", "Kassedame", "Bibliotekar", "Journalist", "Mekaniker", "Vinduespudser", "Skraldemand", "Slagter", "Barber", "Skrædder", "Arkitekt", "Ingeniør", "Programmør", "Ekspedient", "Rengøringsassistent", "Babysitter", "Optiker", "Apoteker", "Ejendomsmægler", "Arkæolog", "Biavler", "Hyrde", "Skovhugger", "Smed", "Skorstensfejer", "Dukkefører", "Personlig træner", "Stewardesse", "Kaptajn", "Spion", "Pædagog"]
+    },
+    {
+      "id": "sport",
+      "navn": "Sport",
+      "ikon": "⚽",
+      "farge": "himmel",
+      "tekst": "Bold, ski og alt derimellem",
+      "tips": "Mim bevægelserne – det hjælper!",
+      "ord": ["Fodbold", "Håndbold", "Tennis", "Golf", "Billard", "Dart", "Badminton", "Bordtennis", "Ishockey", "Basketball", "Volleyball", "Landhockey", "Svømning", "Udspring", "Surfing", "Roning", "Sejlsport", "Kajak", "Cykling", "Løb", "Maraton", "Hækkeløb", "Højdespring", "Længdespring", "Stangspring", "Spydkast", "Kuglestød", "Diskoskast", "Hammerkast", "Boksning", "Brydning", "Judo", "Karate", "Fægtning", "Bueskydning", "Gymnastik", "Trampolinspring", "Skiløb", "Snowboard", "Skøjteløb", "Curling", "Bobslæde", "Skihop", "Ridning", "Springridning", "Klatring", "Skateboard", "Bowling", "Yoga", "Vægtløftning", "Triatlon", "Synkronsvømning", "Vandpolo", "Rundbold", "Tovtrækning", "Sækkeløb", "Æggeløb", "Straffespark", "Målmand", "Frispark", "Hattrick", "Dunk", "Hole in one", "Plet i skiven", "Guldmedalje", "Pokal", "Stopur", "Startskud", "Målstreg", "Rødt kort", "Offside", "Stafet", "Cykelløb", "Vinterbadning", "Petanque"]
+    },
+    {
+      "id": "film",
+      "navn": "Kendte figurer",
+      "ikon": "🎬",
+      "farge": "rosa",
+      "tekst": "Helte og skurke fra bøger og historien",
+      "tips": "Citater, stemmer og positurer er tilladt!",
+      "ord": ["Sherlock Holmes", "Dr. Watson", "Robin Hood", "Kong Arthur", "Merlin", "Peter Pan", "Kaptajn Klo", "Alice i Eventyrland", "Hattemageren", "Cheshire-katten", "Den hvide kanin", "Hjerter Dronning", "Dracula", "Frankenstein", "Dr. Jekyll og Mr. Hyde", "Ebenezer Scrooge", "Oliver Twist", "Long John Silver", "Robinson Crusoe", "Gulliver", "Romeo og Julie", "Hamlet", "Ofelia", "Don Quijote", "Pinocchio", "Jeppe på Bjerget", "Klods-Hans", "Holger Danske", "Phileas Fogg", "Kaptajn Nemo", "Den usynlige mand", "Moby Dick", "Tommelise", "Snedronningen", "Den lille pige med svovlstikkerne", "Kejseren uden klæder", "Kleopatra", "Napoleon", "Julius Cæsar", "Christian IV", "Harald Blåtand", "H.C. Andersen", "Karen Blixen", "Tycho Brahe", "Niels Bohr", "Isaac Newton", "Albert Einstein", "Leonardo da Vinci", "Florence Nightingale", "Christoffer Columbus", "Neil Armstrong", "Jeanne d'Arc", "Tutankhamon", "Mona Lisa", "Charles Darwin", "Mozart", "Beethoven", "Marie Curie", "Vincent van Gogh", "Charlie Chaplin", "Askepot", "Snehvide", "Tornerose", "Rapunzel", "Guldlok", "Rødhætte", "Hans og Grete", "Gorm den Gamle", "Dronning Margrete I"]
+    },
+    {
+      "id": "eventyr",
+      "navn": "Eventyr og fantasi",
+      "ikon": "🧚",
+      "farge": "lilla",
+      "tekst": "Trolde, drager og trolddom",
+      "tips": "Fortæl en bid af eventyret!",
+      "ord": ["Trold", "Drage", "Enhjørning", "Havfrue", "Heks", "Troldmand", "Alf", "Dværg", "Fe", "Kæmpe", "Uhyre", "Nisse", "Spøgelse", "Vampyr", "Varulv", "Zombie", "Mumie", "Skelet", "Monster", "Rumvæsen", "Superhelt", "Pirat", "Ridder", "Prinsesse", "Prins", "Konge", "Dronning", "Tryllestav", "Krystalkugle", "Trylledrik", "Trylleformular", "Heksekost", "Heksekedel", "Flyvende tæppe", "Ånden i lampen", "Aladdins lampe", "Skattekiste", "Skattekort", "Sværdet i stenen", "Glasskoen", "Græskarkaret", "Det forgiftede æble", "Bønnestagen", "Guldæg", "Honningkagehus", "Den store stygge ulv", "De tre små grise", "Rumleskaft", "Den bestøvlede kat", "Den grimme ælling", "Prinsessen på ærten", "Den lille havfrue", "Tandfeen", "Påskeharen", "Uhyret i Loch Ness", "Føniks", "Kentaur", "Kyklop", "Medusa", "Pegasus", "Søuhyre", "Yeti", "Lygtemand", "Elverpige", "Gode fe", "Spøgelseshus", "Usynlighedskappe", "Tidsmaskine", "Talende spejl", "Frøprins", "Tinsoldat", "Fyrtøjet"]
+    },
+    {
+      "id": "huset",
+      "navn": "Ting i huset",
+      "ikon": "🛋️",
+      "farge": "himmel",
+      "tekst": "Alt, hvad du finder derhjemme",
+      "tips": "Hvor står den, og hvad bruger man den til?",
+      "ord": ["Støvsuger", "Køleskab", "Fryser", "Brødrister", "Elkedel", "Mikroovn", "Ovn", "Opvaskemaskine", "Vaskemaskine", "Tørretumbler", "Strygejern", "Strygebræt", "Spejl", "Seng", "Dyne", "Hovedpude", "Sofa", "Lænestol", "Bogreol", "Pære", "Stikkontakt", "Forlængerledning", "Gardiner", "Dørmåtte", "Brevsprække", "Nøgle", "Paraply", "Tøjklemme", "Kost", "Moppe", "Spand", "Skraldespand", "Toilet", "Toiletpapir", "Badekar", "Bruser", "Sæbe", "Tandbørste", "Tandpasta", "Håndklæde", "Varmedunk", "Radiator", "Brændeovn", "Fjernsyn", "Fjernbetjening", "Bærbar computer", "Oplader", "Lampe", "Vægur", "Kalender", "Frugtskål", "Tekande", "Krus", "Stegepande", "Gryde", "Grydeske", "Piskeris", "Kagerulle", "Dåseåbner", "Gaffel", "Kniv", "Tallerken", "Viskestykke", "Grydelap", "Sofapude", "Tæppe", "Trappe", "Loft", "Redskabsskur", "Røgalarm", "Klædeskab", "Kommode", "Bøjle", "Hjemmesko", "Badekåbe", "Svamp", "Stearinlys"]
+    },
+    {
+      "id": "steder",
+      "navn": "Steder",
+      "ikon": "🗺️",
+      "farge": "mynte",
+      "tekst": "Fra svømmehallen til månen",
+      "tips": "Hvad laver man der, og hvem er der?",
+      "ord": ["Lufthavn", "Hospital", "Bibliotek", "Svømmehal", "Forlystelsespark", "Tandlægen", "Tankstation", "Fyrtårn", "Ørken", "Jungle", "Månen", "Nordpolen", "Sydpolen", "Paris", "New York", "Rom", "Venedig", "Kina", "Australien", "Amazonas", "Mount Everest", "Sahara", "Hawaii", "Las Vegas", "Hollywood", "Den Kinesiske Mur", "Frihedsgudinden", "Eiffeltårnet", "Pyramiderne", "Colosseum", "Det skæve tårn i Pisa", "Taj Mahal", "Grand Canyon", "Niagarafaldene", "Akropolis", "Zoologisk have", "Bondegård", "Strand", "Skov", "Grotte", "Vulkan", "Øde ø", "Slot", "Museum", "Biograf", "Teater", "Supermarked", "Indkøbscenter", "Legeplads", "Skole", "Kirke", "Banegård", "Busstoppested", "Parkeringsplads", "Vaskehal", "Campingplads", "Skibakke", "Skøjtebane", "Bowlinghal", "Fitnesscenter", "Wellness", "Posthus", "Bank", "Politistation", "Brandstation", "Fængsel", "Rumstation", "Cirkus", "Tivoli", "Akvarium", "Planteskole", "Møntvask", "Frisørsalon", "Bageri", "Sommerhus"]
+    },
+    {
+      "id": "norge",
+      "navn": "Danmark",
+      "ikon": "🇩🇰",
+      "farge": "rod",
+      "tekst": "Typisk dansk på godt og ondt",
+      "tips": "Tænk hygge, cykler og rugbrød.",
+      "ord": ["Rugbrød", "Leverpostej", "Frikadeller", "Flæskesteg", "Stegt flæsk", "Smørrebrød", "Rød pølse", "Pølsevogn", "Rødgrød med fløde", "Koldskål", "Æbleskiver", "Wienerbrød", "Kanelsnegl", "Fastelavnsbolle", "Flødebolle", "Lakrids", "Hygge", "Ladcykel", "Cykelsti", "Cykelhjelm", "Dannebrog", "Flagdag", "Fødselsdagsflag", "Sankthans", "Bål med heks", "Fastelavn", "Slå katten af tønden", "Grundlovsdag", "Studenterhue", "Studenterkørsel", "Kolonihave", "Sommerhus ved Vesterhavet", "Strandtur", "Klitter", "Fjord", "Havfruen på Langelinie", "Nyhavn", "Rundetårn", "Amalienborg", "Livgarden", "Kronborg", "Møns Klint", "Skagen", "Bornholm", "Storebæltsbroen", "Øresundsbroen", "Vikingeskib", "Runesten", "Jellingstenen", "Højskole", "Fællessang", "Madpakke", "Mormor-hygge", "Kaffe og kage", "Rundstykker søndag", "Brunsviger", "Romkugle", "Gammeldags æblekage", "Rejer på rugbrød", "Sildemad", "Remoulade", "Ristede løg", "Vindmølle", "Svinestald", "Byfest", "Loppemarked", "Kongespil", "Fransk hotdog", "Motionsdag", "Blæsevejr", "Regnvejr i juli", "Mørke vinteraftener", "Stearinlys i vinduet", "Juleklip", "Pebernødder", "Roligans"]
+    },
+    {
+      "id": "folelser",
+      "navn": "Følelser",
+      "ikon": "🎭",
+      "farge": "lilla",
+      "tekst": "Spil det – uden at sige det",
+      "tips": "Her spiller de andre følelsen med ansigt og krop!",
+      "slik": "Spil følelsen – uden at sige den!",
+      "ord": ["Glad", "Ked af det", "Vred", "Bange", "Jaloux", "Stolt", "Flov", "Nervøs", "Overrasket", "Kede sig", "Træt", "Spændt", "Forelsket", "Genert", "Forvirret", "Skuffet", "Lettet", "Skyldig", "Gnaven", "Væmmes", "Rasende", "Bekymret", "Rolig", "Nysgerrig", "Stresset", "Ensom", "Taknemmelig", "Håbefuld", "Utålmodig", "Fornærmet", "Sur", "Mistænksom", "Forskrækket", "Selvtilfreds", "Fjollet", "Modig", "Fræk", "Svimmel", "Kilden", "Søvnig", "Kåd", "Lunefuld", "Skamfuld", "Målløs", "I den syvende himmel", "Knust", "Hjemve", "Stjerneramt", "Akavet", "Overvældet", "Sulten og sur", "Kærestesyg", "Beslutsom", "Panisk", "Rastløs", "Mundlam", "Nostalgisk", "Smigret", "Krænket", "Begejstret", "Rædselsslagen", "Irriteret", "Lækkersulten", "Søsyg", "Selvsikker", "Iskold", "Pivvarm", "Proppet mæt"]
+    },
+    {
+      "id": "barn",
+      "navn": "Børn",
+      "ikon": "🧸",
+      "farge": "lampe",
+      "tekst": "Til de mindste",
+      "tips": "Giv masser af hints – og vær tålmodige!",
+      "ord": ["Bold", "Bil", "Sol", "Måne", "Hus", "Ispind", "Kage", "Fødselsdag", "Ballon", "Strømper", "Hue", "Vanter", "Snebold", "Sandkasse", "Sandslot", "Gynge", "Rutsjebane", "Trampolin", "Sjippetov", "Tog", "Båd", "Flyvemaskine", "Traktor", "Brandbil", "Bamse", "Dukke", "Klodser", "Puslespil", "Farveblyanter", "Saks", "Bog", "Sæbebobler", "Regnbue", "Løbehjul", "Cykel", "Æble", "Gulerod", "Mælk", "Potte", "Sut", "Barnevogn", "Tremmeseng", "Godnathistorie", "Gemmeleg", "Fangeleg", "Hinkeleg", "Vandpyt", "Mudder", "Orm", "Ælling", "Hvalp", "Killing", "Kaninunge", "Dinosaur", "Raket", "Stjerne", "Sky", "Regn", "Sne", "Blomst", "Træ", "Blad", "Papirdrage", "Tromme", "Festhat", "Gave", "Slikpose", "Slikkepind", "Krone", "Solbriller", "Skumbad", "Pyjamas", "Is", "Gummistøvler"]
+    },
+    {
+      "id": "kaos",
+      "navn": "Kaos",
+      "ikon": "🌪️",
+      "farge": "rosa",
+      "tekst": "Helt skøre situationer",
+      "tips": "Gæt det hele – bid for bid!",
+      "ord": ["Ko på skøjter", "Pingvin på ski", "Isbjørn på solseng", "Julemand i juli", "Trold hos tandlægen", "Superhelt med forkølelse", "Robot på diskotek", "Kænguru på trampolin", "Skoleinspektør på rulleskøjter", "Zombie til yoga", "Hund der spiller klaver", "Kat der tager en selfie", "Vampyr på stranden", "Heks med flyskræk", "Gris i smoking", "Drage med hikke", "Bjørn i badebukser", "Pirat med GPS", "Landmand på månen", "Elefant i en glasbutik", "Mormor til rockkoncert", "Far der rapper", "Får på catwalken", "Krokodille i badekarret", "Morfar på skateboard", "Ninja i børnehaven", "Ugle på nattevagt", "Vafler med ketchup", "Pizza med banan", "Tacos til morgenmad", "Sokker i sandaler", "Hund med solbriller", "Snemand i sauna", "Haj med tandpine", "Spøgelse der er mørkeræd", "Dinosaur til ballet", "Viking på løbehjul", "Elefant i en elevator", "Søsyg pirat", "Ridder i hoppeborg", "Guldfisk på ferie", "Astronaut i kø", "Kok der ikke kan lave mad", "Klovn til jobsamtale", "Tryllekunstner uden kanin", "Hamster der løber maraton", "Giraf i en lille bil", "Havfrue på land", "Troldmand med knækket stav", "Bedstemor i faldskærm", "Baby der kører bus", "Kat der lufter hund", "Fisk på cykel", "Lærer der sidder efter", "Indbrudstyv der nyser", "Spion med hikke", "Snegl der har travlt", "Dovendyr i et løb", "Løve der er bange for mus", "Varulv hos frisøren", "Rumvæsen i supermarkedet", "Ballerina i gummistøvler", "Pingvin i ørkenen", "Ged til bryllup", "Måge til skovtur", "Skildpadde på skateboard", "Gorilla der spiller skak", "Papegøje der sladrer", "Vampyr hos tandlægen", "Brandmand der er bange for lys", "Mumie der bliver viklet ud", "Pindsvin til ballonfest"]
+    },
+    {
+      "id": "mim",
+      "navn": "Mim det!",
+      "ikon": "🤫",
+      "farge": "mynte",
+      "tekst": "Ingen taler – kun kroppen",
+      "tips": "Ikke en lyd! Brug hele kroppen, og spil gerne flere sammen.",
+      "slik": "Ingen taler – kun mim!",
+      "ny": "2026-12-31",
+      "etterOrdbank": true,
+      "ord": ["Stryge en skjorte", "Hænge vasketøj op", "Folde tøj", "Rede sengen", "Støvsuge", "Vaske gulv", "Pudse vinduer", "Vaske op", "Gå ud med skraldet", "Skifte en pære", "Skifte bleen", "Skubbe en barnevogn", "Vugge en baby", "Lufte hunden", "Vande blomster", "Slå græsplænen", "Rive blade sammen", "Skovle sne", "Skrabe bilruden", "Hugge brænde", "Tænde et bål", "Male en væg", "Slå et søm i", "Save et bræt", "Pumpe et dæk", "Vaske bilen", "Hænge et billede op", "Slå et telt op", "Tapetsere", "Bære en sofa", "Børste tænder", "Rede håret", "Barbere sig", "Lægge makeup", "Føne håret", "Klippe negle", "Binde snørebånd", "Klæde sig på", "Tage strømpebukser på", "Tage et brusebad", "Tage et karbad", "Vågne op", "Gabe og strække sig", "Spise spaghetti", "Drikke varm suppe", "Spise med pinde", "Skrælle en banan", "Bide i en citron", "Slikke på en is", "Spise majs på kolben", "Smøre en madpakke", "Vende en pandekage", "Piske æg", "Hakke løg", "Åbne et stramt glas", "Skænke en kop te", "Puste på varm mad", "Cykle i modvind", "Ride på en hest", "Køre bil", "Ro en båd", "Padle kajak", "Svømme butterfly", "Surfe på en bølge", "Spille tennis", "Skyde på kurven", "Tage et straffespark", "Tage armbøjninger", "Løfte vægte", "Sjippe", "Slå vejrmølle", "Gå på line", "Jonglere med bolde", "Spille guitar", "Spille klaver", "Spille trommer", "Spille violin", "Dirigere et orkester", "Synge opera", "Danse ballet", "Danse som en robot", "Tage en selfie", "Skrive en sms", "Skrive hurtigt på tastatur", "Læse et kort i blæst", "Tage et billede", "Male et portræt", "Strikke et halstørklæde", "Sy en knap i", "Fiske", "Klatre op ad en stige", "Bestige et bjerg", "Grave et hul", "Så et frø", "Bygge en snemand", "Lave en sneboldkamp", "Flyve med drage", "Puste en ballon op", "Pakke en gave ind", "Åbne en gave", "Gemme sig bag gardinet", "Liste forbi en sovende hund", "Gå på varmt sand", "Vade gennem mudder", "Snige sig ind på nogen", "Praje en taxa", "Fodre ænderne", "Solbade", "Smøre solcreme på", "Pudse næse", "Lyne en jakke", "Strigle en hest", "Malke en ko", "Plukke jordbær"]
+    },
+    {
+      "id": "lyd",
+      "navn": "Lav lyden!",
+      "ikon": "🔊",
+      "farge": "oransje",
+      "tekst": "Kun lyde – ingen ord",
+      "tips": "Ingen ord! Lav lyden så godt I kan – gerne i kor.",
+      "slik": "Kun lyde – ingen ord!",
+      "ny": "2026-12-31",
+      "etterOrdbank": true,
+      "ord": ["Hund", "Kat", "Hest", "Får", "Hane", "Høne", "And", "Gås", "Ko", "Gris", "Æsel", "Ugle", "Krage", "Gøg", "Due", "Kalkun", "Mus", "Klapperslange", "Abe", "Bjørn", "Humlebi", "Søløve", "Græshoppe", "Hvalsang", "Motorcykel", "Knallert", "Helikopter", "Racerbil", "Lastbil der bakker", "Ambulance", "Tågehorn", "Sporvogn", "Damplokomotiv", "Motorsav", "Plæneklipper", "Boremaskine", "Bilhorn", "Bilalarm", "Cykelklokke", "Rumskib", "Brandalarm", "Vækkeur", "Dørklokke", "Telefon der ringer", "Elkedel der koger", "Mikroovn der pinger", "Brødrister der springer", "Vaskemaskine der centrifugerer", "Hårtørrer", "Popcorn der popper", "Sodavand der åbnes", "Chipspose", "Snorken", "Nys", "Hikke", "Bøvs", "Torden", "Regn på ruden", "Hylende vind", "Bølger", "Fyrværkeri", "Knitrende bål", "Ur der tikker", "Kirkeklokker", "Isbil", "Baby der græder", "Fodboldpublikum", "Dommerfløjte", "Trommehvirvel", "Trompet", "Elguitar", "Beatboks", "Robot", "Heks der griner", "Brølende dinosaur", "Knirkende dør", "Dryppende hane", "Kameraklik", "Kazoo"]
+    },
+    {
+      "id": "si",
+      "navn": "Sig det som …",
+      "ikon": "🗣️",
+      "farge": "himmel",
+      "tekst": "Stemmer, roller og dialekter",
+      "tips": "Snak om hvad som helst – vejret eller aftensmaden – med stemmen på kortet.",
+      "slik": "Snak, som kortet siger – om hvad som helst!",
+      "ny": "2026-12-31",
+      "etterOrdbank": true,
+      "ord": ["Nyhedsoplæser", "Sportskommentator", "Vejrvært", "Togfører i højttaleren", "Auktionarius", "Bankoopråber", "Radiovært", "Eventyrfortæller", "Rapper", "Telefonsælger", "Brugtvognsforhandler", "Turistguide", "Fodboldtræner", "Yogalærer", "Quizvært", "Flykaptajn", "Cirkusdirektør", "Torvehandler", "Forlover der holder tale", "Butler", "Piratkaptajn", "Viking", "Hulemand", "Hemmelig agent", "Superskurk", "Spåkone", "Hypnotisør", "Professor", "Digter", "Filosof", "Baby", "Treårig", "Teenager", "Bedstemor", "Sur gammel mand", "Fin dame", "Pralhals", "Dramadronning", "GPS", "Operasanger", "Sergent", "Skoleinspektør til morgensang", "Sønderjyde", "Københavner", "Fynbo", "Bornholmer", "Nordjyde", "Rumvæsen fra Mars", "En der hvisker", "Naturfilm-fortæller", "Filmtrailer-stemme", "Tv-shop-sælger", "Kabinepersonale", "Søvnig person", "Bedrevidende", "Superhelt i knibe", "Kommentator til sneglevæddeløb"]
+    },
+    {
+      "id": "jul",
+      "navn": "Jul",
+      "ikon": "🎄",
+      "farge": "rod",
+      "tekst": "Jul og julefrokost",
+      "tips": "Tænk dufte, smage og alt, der sker i december.",
+      "ny": "2027-01-06",
+      "etterOrdbank": true,
+      "ord": ["Juletræ", "Julekugle", "Glimmer", "Juletræsstjerne", "Lyskæde", "Julekalender", "Kalenderlys", "Julesok", "Pakkekalender", "Nissehue", "Mistelten", "Kristtorn", "Dørkrans", "Snefnug", "Kane", "Rensdyr", "Rudolf", "Julemanden", "Nissedreng", "Nisseværksted", "Skorsten", "Gavepapir", "Til og fra-kort", "Gavebånd", "Julekort", "Julesweater", "Snemand", "Kælk", "Lucia-optog", "Krybbespil", "Engel", "Hyrde med et lam", "De hellige tre konger", "Jesusbarnet", "Krybbe", "Betlehemsstjernen", "Juleaftensmad", "Andesteg", "Flæskesvær", "Brunede kartofler", "Rødkål", "Risalamande", "Kirsebærsauce", "Mandelgave", "Risengrød", "Julehjerter", "Kravlenisser", "Klippe-klistre-dag", "Brunkager", "Vaniljekranse", "Klejner", "Honningkager", "Juleknas", "Konfekt", "Marcipangris", "Nøddeknækker", "Klementin", "Brætspil", "Pakkeleg", "Dans om juletræet", "Juleaften", "Juledag", "Anden juledag", "Nytårsaften", "Nedtælling", "Kransekage", "Nytårskrudt", "Bordbombe", "Julemarked", "Julelys", "Julesange", "Bjælder", "Snekugle", "Rimfrost", "Istap", "Uldhue", "Halstørklæde", "Pejs", "Nisse på loftet", "Ønskeseddel", "Brev til julemanden", "Juletur i skoven", "Julefilm", "Sidste-øjebliks-indkøb", "Gaveindpakning", "Rester", "Julefrokost", "Sild på rugbrød", "Æbleskivepande", "Juletræsfod", "Grannåle", "Topstjerne", "Hemmelig nisse", "Papirkæder", "Sneengel", "Julegudstjeneste"]
+    }
+  ]
+}

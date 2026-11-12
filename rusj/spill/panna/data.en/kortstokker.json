@@ -1,0 +1,160 @@
+{
+  "kortstokker": [
+    {
+      "id": "dyr",
+      "navn": "Animals",
+      "ikon": "🦒",
+      "farge": "lampe",
+      "tekst": "From ants to blue whales",
+      "tips": "Animal noises are allowed!",
+      "ord": ["Giraffe", "Elephant", "Lion", "Tiger", "Zebra", "Hippo", "Rhino", "Crocodile", "Gorilla", "Chimpanzee", "Kangaroo", "Koala", "Panda", "Polar bear", "Penguin", "Seal", "Walrus", "Dolphin", "Shark", "Blue whale", "Octopus", "Jellyfish", "Starfish", "Crab", "Lobster", "Seahorse", "Turtle", "Frog", "Snake", "Lizard", "Chameleon", "Spider", "Ant", "Bee", "Butterfly", "Ladybird", "Snail", "Earthworm", "Caterpillar", "Eagle", "Parrot", "Flamingo", "Peacock", "Ostrich", "Swan", "Goat", "Rabbit", "Hamster", "Guinea pig", "Rat", "Squirrel", "Hedgehog", "Fox", "Badger", "Deer", "Bat", "Wolf", "Camel", "Llama", "Sloth", "Meerkat", "Skunk", "Beaver", "Otter", "Mole", "Puffin", "Woodpecker", "Hummingbird", "Pelican", "Toucan", "Leopard", "Cheetah", "Anteater", "Armadillo", "Porcupine", "Raccoon", "Orangutan", "Moose"]
+    },
+    {
+      "id": "mat",
+      "navn": "Food",
+      "ikon": "🍕",
+      "farge": "oransje",
+      "tekst": "Dinners, snacks and sweet treats",
+      "tips": "Think taste, colour and when you eat it.",
+      "ord": ["Pizza", "Spaghetti", "Lasagne", "Hamburger", "Hot dog", "Sushi", "Taco", "Curry", "Kebab", "Noodles", "Fried rice", "Jacket potato", "Toast", "Porridge", "Cereal", "Pancakes", "Waffles", "Croissant", "Bagel", "Sandwich", "Soup", "Salad", "Omelette", "Fried egg", "Boiled egg", "Bacon", "Sausages", "Chips", "Crisps", "Popcorn", "Nachos", "Cheese", "Butter", "Jam", "Honey", "Peanut butter", "Ketchup", "Mustard", "Mayonnaise", "Gravy", "Custard", "Jelly", "Chocolate", "Cupcake", "Doughnut", "Biscuit", "Flapjack", "Apple crumble", "Cheesecake", "Brownie", "Muffin", "Orange", "Strawberry", "Watermelon", "Pineapple", "Grapes", "Lemon", "Coconut", "Broccoli", "Peas", "Sweetcorn", "Potato", "Onion", "Garlic", "Mushroom", "Cucumber", "Tomato", "Avocado", "Milkshake", "Smoothie", "Lemonade", "Spring roll", "Meatballs", "Fish fingers", "Burrito", "Hummus", "Garlic bread", "Chilli", "Cherry"]
+    },
+    {
+      "id": "yrker",
+      "navn": "Jobs",
+      "ikon": "👩‍🚒",
+      "farge": "rod",
+      "tekst": "What do you do for a living?",
+      "tips": "Show what they do at work!",
+      "ord": ["Police officer", "Firefighter", "Doctor", "Nurse", "Dentist", "Hairdresser", "Chef", "Baker", "Teacher", "Farmer", "Pilot", "Astronaut", "Builder", "Plumber", "Electrician", "Postie", "Bus driver", "Taxi driver", "Train driver", "Lorry driver", "Vet", "Zookeeper", "Lifeguard", "Paramedic", "Surgeon", "Scientist", "Detective", "Judge", "Lawyer", "Soldier", "Sailor", "Fisherman", "Gardener", "Painter", "Artist", "Photographer", "Singer", "Dancer", "Actor", "Footballer", "Referee", "Magician", "Clown", "Juggler", "Waiter", "Cashier", "Librarian", "Journalist", "Mechanic", "Window cleaner", "Bin collector", "Butcher", "Barber", "Tailor", "Architect", "Engineer", "Programmer", "Shop assistant", "Cleaner", "Babysitter", "Optician", "Pharmacist", "Estate agent", "Archaeologist", "Beekeeper", "Shepherd", "Lumberjack", "Blacksmith", "Chimney sweep", "Puppeteer", "Personal trainer", "Flight attendant", "Ship's captain", "Spy", "Cowboy"]
+    },
+    {
+      "id": "sport",
+      "navn": "Sport",
+      "ikon": "⚽",
+      "farge": "himmel",
+      "tekst": "Balls, skis and everything in between",
+      "tips": "Act out the moves – it helps!",
+      "ord": ["Football", "Rugby", "Cricket", "Tennis", "Golf", "Snooker", "Darts", "Netball", "Hockey", "Ice hockey", "Basketball", "Volleyball", "Badminton", "Table tennis", "Swimming", "Diving", "Surfing", "Rowing", "Sailing", "Canoeing", "Cycling", "Running", "Marathon", "Hurdles", "High jump", "Long jump", "Pole vault", "Javelin", "Shot put", "Discus", "Hammer throw", "Boxing", "Wrestling", "Judo", "Karate", "Fencing", "Archery", "Gymnastics", "Trampolining", "Skiing", "Snowboarding", "Ice skating", "Curling", "Bobsleigh", "Ski jumping", "Horse riding", "Show jumping", "Polo", "Climbing", "Skateboarding", "Bowling", "Yoga", "Weightlifting", "Triathlon", "Synchronised swimming", "Water polo", "Rounders", "Tug of war", "Sack race", "Egg and spoon race", "Penalty", "Goalkeeper", "Free kick", "Hat-trick", "Slam dunk", "Hole in one", "Bullseye", "Gold medal", "Trophy", "Stopwatch", "Starting pistol", "Finish line", "Red card", "Offside", "Relay race"]
+    },
+    {
+      "id": "film",
+      "navn": "Famous names",
+      "ikon": "🎬",
+      "farge": "rosa",
+      "tekst": "Heroes and villains from books and history",
+      "tips": "Quotes, voices and poses are allowed!",
+      "ord": ["Sherlock Holmes", "Dr Watson", "Robin Hood", "Maid Marian", "King Arthur", "Merlin", "Peter Pan", "Captain Hook", "Alice in Wonderland", "Mad Hatter", "Cheshire Cat", "White Rabbit", "Queen of Hearts", "Dracula", "Frankenstein", "Dr Jekyll and Mr Hyde", "Scrooge", "Oliver Twist", "Tiny Tim", "Long John Silver", "Robinson Crusoe", "Gulliver", "Romeo and Juliet", "Hamlet", "Macbeth", "Don Quixote", "Pinocchio", "Black Beauty", "Mr Toad", "Phileas Fogg", "Captain Nemo", "The Invisible Man", "Mr Darcy", "Moby Dick", "Father Time", "Old King Cole", "Humpty Dumpty", "Little Bo Peep", "Jack and Jill", "Cleopatra", "Napoleon", "Julius Caesar", "Henry VIII", "Queen Victoria", "William Shakespeare", "Isaac Newton", "Albert Einstein", "Leonardo da Vinci", "Florence Nightingale", "Christopher Columbus", "Neil Armstrong", "Joan of Arc", "Tutankhamun", "Mona Lisa", "Guy Fawkes", "Boudicca", "Winston Churchill", "Charles Darwin", "Mozart", "Beethoven", "Marie Curie", "Vincent van Gogh", "Charlie Chaplin", "Cinderella", "Snow White", "Sleeping Beauty", "Rapunzel", "Goldilocks", "Little Red Riding Hood", "Hansel and Gretel"]
+    },
+    {
+      "id": "eventyr",
+      "navn": "Fairy tales and fantasy",
+      "ikon": "🧚",
+      "farge": "lilla",
+      "tekst": "Trolls, dragons and magic",
+      "tips": "Tell a bit of the story!",
+      "ord": ["Troll", "Dragon", "Unicorn", "Mermaid", "Witch", "Wizard", "Elf", "Dwarf", "Fairy", "Giant", "Ogre", "Goblin", "Ghost", "Vampire", "Werewolf", "Zombie", "Mummy", "Skeleton", "Monster", "Alien", "Superhero", "Pirate", "Knight", "Princess", "Prince", "King", "Queen", "Magic wand", "Crystal ball", "Potion", "Spell", "Broomstick", "Cauldron", "Flying carpet", "Genie", "Magic lamp", "Treasure chest", "Treasure map", "Sword in the stone", "Glass slipper", "Pumpkin carriage", "Poisoned apple", "Beanstalk", "Golden egg", "Gingerbread house", "Big Bad Wolf", "Three Little Pigs", "Rumpelstiltskin", "Puss in Boots", "The Ugly Duckling", "The Princess and the Pea", "The Emperor's New Clothes", "The Little Mermaid", "Tooth Fairy", "Easter Bunny", "Loch Ness Monster", "Phoenix", "Centaur", "Cyclops", "Medusa", "Pegasus", "Kraken", "Yeti", "Leprechaun", "Pot of gold", "Fairy godmother", "Haunted house", "Invisibility cloak", "Time machine", "Talking mirror", "Frog prince", "Sea monster"]
+    },
+    {
+      "id": "huset",
+      "navn": "Around the house",
+      "ikon": "🛋️",
+      "farge": "himmel",
+      "tekst": "Everything you find at home",
+      "tips": "Where is it, and what's it for?",
+      "ord": ["Vacuum cleaner", "Fridge", "Freezer", "Toaster", "Kettle", "Microwave", "Oven", "Dishwasher", "Washing machine", "Tumble dryer", "Iron", "Ironing board", "Mirror", "Bed", "Duvet", "Pillow", "Sofa", "Armchair", "Bookshelf", "Light bulb", "Plug socket", "Extension lead", "Curtains", "Doormat", "Letterbox", "Key", "Umbrella", "Clothes peg", "Broom", "Mop", "Bucket", "Bin", "Toilet", "Toilet roll", "Bath", "Shower", "Soap", "Toothbrush", "Toothpaste", "Towel", "Hot water bottle", "Radiator", "Fireplace", "Television", "Remote control", "Laptop", "Phone charger", "Lamp", "Clock", "Calendar", "Fruit bowl", "Teapot", "Mug", "Frying pan", "Saucepan", "Wooden spoon", "Whisk", "Rolling pin", "Tin opener", "Fork", "Knife", "Plate", "Tea towel", "Oven glove", "Cushion", "Rug", "Stairs", "Loft", "Garden shed", "Wheelie bin", "Smoke alarm", "Wardrobe", "Chest of drawers", "Coat hanger", "Slippers", "Dressing gown", "Sponge"]
+    },
+    {
+      "id": "steder",
+      "navn": "Places",
+      "ikon": "🗺️",
+      "farge": "mynte",
+      "tekst": "From the swimming pool to the moon",
+      "tips": "What do you do there, and who's there?",
+      "ord": ["Airport", "Hospital", "Library", "Swimming pool", "Theme park", "Dentist's", "Petrol station", "Lighthouse", "Desert", "Jungle", "The moon", "North Pole", "South Pole", "Paris", "New York", "Rome", "Venice", "China", "Australia", "Amazon rainforest", "Mount Everest", "Sahara", "Hawaii", "Las Vegas", "Hollywood", "Great Wall of China", "Statue of Liberty", "Eiffel Tower", "Pyramids", "Colosseum", "Leaning Tower of Pisa", "Taj Mahal", "Grand Canyon", "Niagara Falls", "Acropolis", "Zoo", "Farm", "Beach", "Forest", "Cave", "Volcano", "Island", "Castle", "Museum", "Cinema", "Theatre", "Supermarket", "Shopping centre", "Playground", "School", "Church", "Train station", "Bus stop", "Car park", "Car wash", "Campsite", "Ski slope", "Ice rink", "Bowling alley", "Gym", "Spa", "Post office", "Bank", "Police station", "Fire station", "Prison", "Space station", "Circus", "Funfair", "Aquarium", "Garden centre", "Launderette", "Hairdresser's", "Bakery"]
+    },
+    {
+      "id": "norge",
+      "navn": "Britain",
+      "ikon": "🇬🇧",
+      "farge": "rod",
+      "tekst": "Typically British, for better or worse",
+      "tips": "Think queues, cups of tea and the seaside.",
+      "ord": ["Fish and chips", "Sunday roast", "Full English breakfast", "Beans on toast", "Yorkshire pudding", "Cream tea", "Scones", "Crumpets", "Sausage roll", "Scotch egg", "Shepherd's pie", "Toad in the hole", "Bangers and mash", "Haggis", "Pork pie", "Cornish pasty", "Mushy peas", "Sticky toffee pudding", "Trifle", "Cup of tea", "Afternoon tea", "Strawberries and cream", "Brown sauce", "Chip shop", "Corner shop", "Queueing", "Saying sorry", "Talking about the weather", "Drizzle", "Wellies", "Double-decker bus", "Black cab", "Red phone box", "Post box", "The Tube", "Big Ben", "Buckingham Palace", "Changing of the guard", "Union Jack", "Bonfire Night", "Pancake day", "Remembrance poppy", "Morris dancing", "Maypole", "Cheese rolling", "Village fete", "Car boot sale", "Allotment", "Garden gnome", "Seaside pier", "Punch and Judy", "Deckchair", "Stick of rock", "Donkey rides", "Caravan holiday", "Bank holiday", "Roundabout", "Motorway services", "School uniform", "Lollipop lady", "Kilt", "Tartan", "Bagpipes", "Stonehenge", "Hadrian's Wall", "Ben Nevis", "Lake District", "Snowdon", "River Thames", "White Cliffs of Dover", "Corgi", "Robin redbreast", "Bacon butty", "Dunking a biscuit", "Marmalade"]
+    },
+    {
+      "id": "folelser",
+      "navn": "Feelings",
+      "ikon": "🎭",
+      "farge": "lilla",
+      "tekst": "Act it – without saying it",
+      "tips": "Here the others act out the feeling with face and body!",
+      "slik": "Act out the feeling – don't say it!",
+      "ord": ["Happy", "Sad", "Angry", "Scared", "Jealous", "Proud", "Embarrassed", "Nervous", "Surprised", "Bored", "Tired", "Excited", "In love", "Shy", "Confused", "Disappointed", "Relieved", "Guilty", "Grumpy", "Disgusted", "Furious", "Worried", "Calm", "Curious", "Stressed", "Lonely", "Grateful", "Hopeful", "Impatient", "Offended", "Sulky", "Suspicious", "Startled", "Smug", "Silly", "Brave", "Cheeky", "Dizzy", "Ticklish", "Sleepy", "Giddy", "Moody", "Sheepish", "Gobsmacked", "Over the moon", "Heartbroken", "Homesick", "Starstruck", "Awkward", "Overwhelmed", "Hangry", "Lovesick", "Determined", "Panicky", "Restless", "Speechless", "Nostalgic", "Flattered", "Insulted", "Thrilled", "Terrified", "Annoyed", "Peckish", "Seasick", "Confident", "Freezing cold", "Boiling hot", "Full up"]
+    },
+    {
+      "id": "barn",
+      "navn": "Kids",
+      "ikon": "🧸",
+      "farge": "lampe",
+      "tekst": "For the little ones",
+      "tips": "Give lots of clues – and be patient!",
+      "ord": ["Ball", "Car", "Sun", "Moon", "House", "Ice lolly", "Cake", "Birthday", "Balloon", "Socks", "Hat", "Mittens", "Snowball", "Sandpit", "Sandcastle", "Swing", "Slide", "Trampoline", "Skipping rope", "Train", "Boat", "Aeroplane", "Tractor", "Fire engine", "Teddy bear", "Doll", "Building blocks", "Jigsaw", "Crayons", "Scissors", "Book", "Bubbles", "Rainbow", "Scooter", "Bike", "Apple", "Carrot", "Milk", "Potty", "Nappy", "Dummy", "Pram", "Cot", "Bedtime story", "Hide and seek", "Tag", "Hopscotch", "Puddle", "Mud", "Worm", "Duckling", "Puppy", "Kitten", "Bunny", "Dinosaur", "Rocket", "Star", "Cloud", "Rain", "Snow", "Flower", "Tree", "Leaf", "Kite", "Drum", "Party hat", "Present", "Sweets", "Lollipop", "Crown", "Sunglasses", "Bubble bath", "Pyjamas", "Ice cream"]
+    },
+    {
+      "id": "kaos",
+      "navn": "Chaos",
+      "ikon": "🌪️",
+      "farge": "rosa",
+      "tekst": "Completely mad situations",
+      "tips": "Guess the whole thing – bit by bit!",
+      "ord": ["Cow on ice skates", "Penguin on skis", "Polar bear on a sunbed", "Father Christmas in July", "Troll at the dentist", "Superhero with a cold", "Robot at a disco", "Kangaroo on a trampoline", "Headteacher on roller skates", "Zombie doing yoga", "Dog playing the piano", "Cat taking a selfie", "Vampire at the beach", "Witch afraid of flying", "Pig in a tuxedo", "Dragon with hiccups", "Bear in swimming trunks", "Pirate with a sat nav", "Farmer on the moon", "Bull in a china shop", "Gran at a rock concert", "Dad rapping", "Sheep on a catwalk", "Crocodile in the bath", "Grandad on a skateboard", "Ninja at nursery", "Owl on the night shift", "Waffles with ketchup", "Pizza with banana", "Tacos for breakfast", "Socks with sandals", "Dog in sunglasses", "Snowman in a sauna", "Shark with toothache", "Ghost afraid of the dark", "Dinosaur doing ballet", "Viking on a scooter", "Elephant in a lift", "Seasick pirate", "Knight on a bouncy castle", "Goldfish on holiday", "Astronaut in a traffic jam", "Chef who can't cook", "Clown at a job interview", "Magician who lost his rabbit", "Hamster running a marathon", "Giraffe in a tiny car", "Mermaid on dry land", "Wizard with a broken wand", "Granny skydiving", "Baby driving a bus", "Cat walking a dog", "Fish riding a bike", "Teacher in detention", "Burglar who sneezes", "Spy with hiccups", "Snail in a hurry", "Sloth in a race", "Lion afraid of mice", "Werewolf at the hairdresser's", "Alien in a supermarket", "Ballerina in wellies", "Penguin in the desert", "Goat at a wedding", "Seagull at a picnic", "Tortoise on a skateboard", "Gorilla playing chess", "Parrot telling secrets", "Vampire at the dentist", "Firefighter scared of candles", "Mummy unravelling", "Hedgehog at a balloon party"]
+    },
+    {
+      "id": "mim",
+      "navn": "Act it out!",
+      "ikon": "🤫",
+      "farge": "mynte",
+      "tekst": "Nobody talks – just your body",
+      "tips": "Not a sound! Use your whole body, and act it out together if you like.",
+      "slik": "Nobody talks – just act it out!",
+      "ny": "2026-12-31",
+      "etterOrdbank": true,
+      "ord": ["Ironing a shirt", "Hanging out the washing", "Folding clothes", "Making the bed", "Vacuuming", "Mopping the floor", "Cleaning windows", "Washing up", "Taking out the bins", "Changing a light bulb", "Changing a nappy", "Pushing a pram", "Rocking a baby", "Walking the dog", "Watering the plants", "Mowing the lawn", "Raking leaves", "Shovelling snow", "Scraping ice off the car", "Chopping wood", "Lighting a campfire", "Painting a wall", "Hammering a nail", "Sawing a plank", "Pumping up a tyre", "Washing the car", "Hanging a picture", "Putting up a tent", "Wallpapering", "Carrying a sofa", "Brushing your teeth", "Combing your hair", "Shaving", "Putting on make-up", "Blow-drying your hair", "Cutting your nails", "Tying your shoelaces", "Getting dressed", "Putting on tights", "Taking a shower", "Having a bath", "Waking up", "Yawning and stretching", "Eating spaghetti", "Drinking hot soup", "Eating with chopsticks", "Peeling a banana", "Biting a lemon", "Licking an ice cream", "Eating corn on the cob", "Making a sandwich", "Flipping a pancake", "Whisking eggs", "Chopping onions", "Opening a tight jar", "Pouring a cup of tea", "Blowing on hot food", "Riding a bike", "Riding a horse", "Driving a car", "Rowing a boat", "Paddling a canoe", "Swimming the butterfly", "Surfing a wave", "Playing tennis", "Shooting a basketball", "Taking a penalty", "Doing press-ups", "Lifting weights", "Skipping with a rope", "Doing a cartwheel", "Walking a tightrope", "Juggling balls", "Playing the guitar", "Playing the piano", "Playing the drums", "Playing the violin", "Conducting an orchestra", "Singing opera", "Dancing ballet", "Doing the robot", "Taking a selfie", "Texting", "Typing fast", "Reading a map in the wind", "Taking a photo", "Painting a portrait", "Knitting a scarf", "Sewing on a button", "Fishing", "Climbing a ladder", "Climbing a mountain", "Digging a hole", "Planting a seed", "Building a snowman", "Having a snowball fight", "Flying a kite", "Blowing up a balloon", "Wrapping a present", "Opening a present", "Hiding behind a curtain", "Tiptoeing past a sleeping dog", "Walking on hot sand", "Wading through mud", "Sneaking up on someone", "Hailing a taxi", "Feeding the ducks", "Sunbathing", "Putting on sun cream", "Blowing your nose", "Zipping up a coat", "Brushing a horse", "Milking a cow", "Picking strawberries"]
+    },
+    {
+      "id": "lyd",
+      "navn": "Make the noise!",
+      "ikon": "🔊",
+      "farge": "oransje",
+      "tekst": "Just sounds – no words",
+      "tips": "No words! Make the noise as best you can – in chorus if you like.",
+      "slik": "Just sounds – no words!",
+      "ny": "2026-12-31",
+      "etterOrdbank": true,
+      "ord": ["Dog", "Cat", "Horse", "Sheep", "Cockerel", "Hen", "Duck", "Goose", "Cow", "Pig", "Donkey", "Owl", "Crow", "Cuckoo", "Pigeon", "Turkey", "Mouse", "Rattlesnake", "Monkey", "Bear", "Bumblebee", "Sea lion", "Grasshopper", "Whale song", "Motorbike", "Moped", "Helicopter", "Racing car", "Lorry reversing", "Ambulance", "Foghorn", "Tram", "Steam train", "Chainsaw", "Lawnmower", "Drill", "Car horn", "Car alarm", "Bicycle bell", "Spaceship", "Fire alarm", "Alarm clock", "Doorbell", "Phone ringing", "Kettle boiling", "Microwave ping", "Toaster popping", "Washing machine spinning", "Hairdryer", "Popcorn popping", "Opening a fizzy drink", "Crisp packet", "Snoring", "Sneezing", "Hiccups", "Burping", "Thunder", "Rain on a window", "Howling wind", "Waves", "Fireworks", "Crackling bonfire", "Clock ticking", "Church bells", "Ice cream van", "Baby crying", "Football crowd", "Referee's whistle", "Drum roll", "Trumpet", "Electric guitar", "Beatboxing", "Robot", "Witch cackling", "Roaring dinosaur", "Squeaky door", "Dripping tap", "Camera click", "Kazoo"]
+    },
+    {
+      "id": "si",
+      "navn": "Say it like …",
+      "ikon": "🗣️",
+      "farge": "himmel",
+      "tekst": "Voices, roles and accents",
+      "tips": "Talk about anything – the weather or dinner – in the voice on the card.",
+      "slik": "Talk like the card says – about anything!",
+      "ny": "2026-12-31",
+      "etterOrdbank": true,
+      "ord": ["News reader", "Sports commentator", "Weather presenter", "Train announcer", "Auctioneer", "Bingo caller", "Radio DJ", "Storyteller", "Rapper", "Telephone salesperson", "Second-hand car dealer", "Tour guide", "Football manager", "Yoga teacher", "Quizmaster", "Airline pilot", "Ringmaster", "Market trader", "Best man giving a speech", "Butler", "Pirate captain", "Viking", "Caveman", "Secret agent", "Supervillain", "Fortune teller", "Hypnotist", "Professor", "Poet", "Philosopher", "Baby", "Toddler", "Teenager", "Granny", "Grumpy old man", "Posh lady", "Show-off", "Drama queen", "Sat nav", "Opera singer", "Sergeant major", "Headteacher in assembly", "Scouse accent", "Geordie accent", "Cockney accent", "Scottish accent", "Welsh accent", "Posh accent", "Alien from Mars", "Someone whispering", "Nature documentary narrator", "Film trailer voice", "Shopping channel presenter", "Cabin crew safety demo", "Sleepy person", "Know-it-all", "Superhero in trouble", "Commentator at a snail race"]
+    },
+    {
+      "id": "jul",
+      "navn": "Christmas",
+      "ikon": "🎄",
+      "farge": "rod",
+      "tekst": "Christmas and the festive season",
+      "tips": "Think smells, tastes and everything that happens in December.",
+      "ny": "2027-01-06",
+      "etterOrdbank": true,
+      "ord": ["Christmas tree", "Bauble", "Tinsel", "Christmas star", "Fairy lights", "Advent calendar", "Advent candle", "Christmas stocking", "Christmas cracker", "Paper crown", "Mistletoe", "Holly", "Wreath", "Snowflake", "Sleigh", "Reindeer", "Rudolph", "Father Christmas", "Santa's elf", "Santa's grotto", "Chimney", "Wrapping paper", "Gift tag", "Ribbon", "Christmas card", "Christmas jumper", "Snowman", "Sledge", "Carol singers", "Nativity play", "Angel", "Shepherd with a lamb", "Three wise men", "Baby Jesus", "Manger", "Star of Bethlehem", "Christmas dinner", "Roast turkey", "Stuffing", "Pigs in blankets", "Roast potatoes", "Brussels sprouts", "Cranberry sauce", "Christmas pudding", "Mince pie", "Christmas cake", "Yule log", "Gingerbread man", "Candy cane", "Selection box", "Tin of chocolates", "Satsuma", "Nuts", "Nutcracker", "Board games", "Pantomime", "Panto dame", "Boxing Day", "Christmas Eve", "Christmas morning", "New Year's Eve", "Countdown", "Party popper", "Christmas market", "Christmas lights", "Christmas songs", "Jingle bells", "Snow globe", "Frost", "Icicle", "Woolly hat", "Scarf", "Log fire", "Stocking filler", "Letter to Father Christmas", "Wish list", "Christmas Day walk", "Christmas film", "Last-minute shopping", "Wrapping presents", "Leftovers", "Turkey sandwich", "Santa's workshop", "Naughty list", "Twelve days of Christmas", "Partridge in a pear tree", "Christmas tree farm", "Pine needles", "Tree topper", "Secret Santa", "Paper chains", "Snow angel", "Sleigh bells", "Carol service"]
+    }
+  ]
+}

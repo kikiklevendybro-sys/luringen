@@ -10,6 +10,10 @@
 // their own kind of clue, deck links (#mim, #jul), the player count from the gang's names, a new
 // first player in every game, «Avslutt» on the ready screen, the crowning reported once to
 // «Kveldens gjeng», sharing, plain dock buttons and a top bar that is out of reach behind the stage.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en panna): the texts are checked in Norwegian
+// only (t.norsk), and the Norwegian word bank only there; elsewhere the state, the names and the
+// edition's storage keys (the page's own Rusj.sprak picks the key inside t.js).
+const NK = (n) => `("rusj." + (window.Rusj.sprak === "nb" ? "" : window.Rusj.sprak + ".") + "${n}")`;
 // Extra screen sizes are shot with t.skjermbilde (the runner's own checks use its start size).
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -137,7 +141,7 @@ export default async function (t) {
   t.sjekk(juletid ? stokkIder[0] === "jul" : stokkIder[stokkIder.length - 1] === "jul", `Jul står ikke ${juletid ? "først i sesongen" : "sist utenfor sesongen"}: ${stokkIder.join(", ")}`);
   t.sjekk((await t.antall(".panna-stokk .panna-stjerner i")) === stokkIder.length * 3, "Kortstokkflisene viser ikke tre stjerner hver");
   t.sjekk(/5\D+8\D+11\D+60 s/.test(await t.tekst(".panna-stjernehjelp")), `Stjernehjelpen sier ikke 5, 8 og 11 riktige på 60 s: «${await t.tekst(".panna-stjernehjelp")}»`);
-  const rekordLager = () => t.js(`JSON.parse(localStorage.getItem("rusj.panna.rekord") || "{}")`);
+  const rekordLager = () => t.js(`JSON.parse(localStorage.getItem(${NK("panna.rekord")}) || "{}")`);
   const delStubb = () => t.js(`window.__delt = []; navigator.share = (d) => { window.__delt.push(d); return Promise.resolve(); }`);
   const sistDelt = async () => (await t.js("window.__delt || []")).pop() || {};
 
@@ -146,24 +150,26 @@ export default async function (t) {
   await t.klikk('[data-h="stokk"][data-v="mat"]');
   let S = await t.tilstand();
   t.sjekk(S.oppsett.stokker.includes("kaos") && !S.oppsett.stokker.includes("mat"), "Kortstokkvalget ble ikke lagret");
-  await t.klikk('[data-h="vis-ob"]');
-  await t.klikk('[data-h="ob"][data-v="rommet"]');
-  await t.klikk('[data-h="nivaa"][data-v="1"]');
+  if (t.norsk) {
+    await t.klikk('[data-h="vis-ob"]');
+    await t.klikk('[data-h="ob"][data-v="rommet"]');
+    await t.klikk('[data-h="nivaa"][data-v="1"]');
+  } else t.sjekk(!(await t.finnes('[data-h="vis-ob"]')), "Den norske ordbanken skal ikke vises i andre utgaver");
   await t.klikk('[data-h="runder"][data-v="1"]');
   if ((await t.antall(".spiller")) > 2) await t.klikk('[data-h="spiller-fjern"][data-v="2"]');
   t.sjekk((await t.antall(".spiller")) === 2, "Fikk ikke fjernet en spiller");
   S = await t.tilstand();
-  t.sjekk(S.oppsett.ordbank.includes("rommet") && S.oppsett.nivaa === 1 && S.oppsett.runder === 1, "Ordbank/nivå/runder ble ikke lagret");
+  t.sjekk((!t.norsk || (S.oppsett.ordbank.includes("rommet") && S.oppsett.nivaa === 1)) && S.oppsett.runder === 1, "Ordbank/nivå/runder ble ikke lagret");
   await t.bilde("oppsett-ordbank", true);
   await smal("oppsett");
   await t.klikk('[data-h="start"]');
 
   // Ready screen for player 1 on an «iPhone»: no extra permission button – «Start runden» asks
-  await t.vent(`/Tillat/.test((document.querySelector(".panna-status") || {}).textContent || "")`);
+  await t.vent(`/Tillat|Allow|Tillad/.test((document.querySelector(".panna-status") || {}).textContent || "")`);
   t.sjekk(!(await t.finnes('[data-h="tillat"]')), "Klar-skjermen har en egen «Slå på vipping»-knapp i tillegg til «Start runden»");
   t.sjekk(/Testspiller A/.test(await t.tekst("#skjerm h1")), "Klar-skjermen viser ikke Testspiller A");
   t.sjekk(!(await t.finnes('.dokk .knapp .ikon')), "Hovedknappen «Start runden» skal være ren tekst");
-  t.sjekk((await t.tekst('.dokk [data-h="avslutt"]')).trim() === "Avslutt", "Klar-skjermen mangler «Avslutt»");
+  t.sjekk(!t.norsk || (await t.tekst('.dokk [data-h="avslutt"]')).trim() === "Avslutt", "Klar-skjermen mangler «Avslutt»");
   await t.bilde("klar-iphone");
   await smal("klar-iphone", ".panna-forklaring");
   await liggendeLiten("klar", "Testspiller");
@@ -176,7 +182,7 @@ export default async function (t) {
   await t.bilde("plasser");
   await t.vent(fase("nedtelling"), 5000);
   // The countdown faces the others: it tells them what to do
-  t.sjekk(/uten å si ordet/.test(await t.js(`(document.querySelector(".panna-klargjor .panna-under") || {}).textContent || ""`)), "Nedtellingen sier ikke hva de andre skal gjøre");
+  t.sjekk(!t.norsk || /uten å si ordet/.test(await t.js(`(document.querySelector(".panna-klargjor .panna-under") || {}).textContent || ""`)), "Nedtellingen sier ikke hva de andre skal gjøre");
   await t.bilde("nedtelling");
   await t.vent(fase("spill"), 6000);
   // The stage covers the top bar: its buttons must not be reachable behind it
@@ -194,15 +200,15 @@ export default async function (t) {
   // mark that stays in the trail on the card.)
   const blinket = () => t.js(`(() => { const b = document.querySelector("#panna-blink"); return { klasse: b.className, ord: b.querySelector("b").textContent, tegn: b.querySelector("i").textContent }; })()`);
   await vinkel(...NED);
-  await t.vent(`(JSON.parse(localStorage.getItem("rusj.panna.v1")).spill.runde.ord[0] || {}).ok === true`, 3000);
+  await t.vent(`(JSON.parse(localStorage.getItem(${NK("panna.v1")})).spill.runde.ord[0] || {}).ok === true`, 3000);
   let blink = await blinket();
-  t.sjekk(/riktig/.test(blink.klasse) && blink.ord === "Riktig!" && blink.tegn === "✓", `Riktig svar vises ikke med farge, tegn og ord (${JSON.stringify(blink)})`);
+  t.sjekk(/riktig/.test(blink.klasse) && (!t.norsk || blink.ord === "Riktig!") && blink.tegn === "✓", `Riktig svar vises ikke med farge, tegn og ord (${JSON.stringify(blink)})`);
   await vinkel(...NOYTRAL);
   await t.sov(800);
   await vinkel(...OPP);
-  await t.vent(`(JSON.parse(localStorage.getItem("rusj.panna.v1")).spill.runde.ord[1] || {}).ok === false`, 3000);
+  await t.vent(`(JSON.parse(localStorage.getItem(${NK("panna.v1")})).spill.runde.ord[1] || {}).ok === false`, 3000);
   blink = await blinket();
-  t.sjekk(/pass/.test(blink.klasse) && blink.ord === "Pass" && blink.tegn === "»", `Pass vises ikke med farge, tegn og ord (${JSON.stringify(blink)})`);
+  t.sjekk(/pass/.test(blink.klasse) && (!t.norsk || blink.ord === "Pass") && blink.tegn === "»", `Pass vises ikke med farge, tegn og ord (${JSON.stringify(blink)})`);
   await vinkel(...NOYTRAL);
   await t.sov(800);
   t.sjekk((await runde()).ord.length === 3, "Vipping ga ikke nytt ord");
@@ -281,7 +287,7 @@ export default async function (t) {
     const r = l.getBoundingClientRect();
     return { dekker: r.width >= innerWidth - 2 && r.height >= innerHeight - 2, tekst: l.querySelector(".panna-ute-tekst").textContent, ikon: !!l.querySelector(".panna-ute-ikon svg") };
   })()`);
-  t.sjekk(ute && ute.dekker && /Tiden er ute/.test(ute.tekst) && ute.ikon, `«Tiden er ute!» fyller ikke hele skjermen med tegn og ord (${JSON.stringify(ute)})`);
+  t.sjekk(ute && ute.dekker && (!t.norsk || /Tiden er ute/.test(ute.tekst)) && ute.ikon, `«Tiden er ute!» fyller ikke hele skjermen med tegn og ord (${JSON.stringify(ute)})`);
   await t.bilde("tiden-ute");
   await t.vent(`document.querySelector('.panna-ordliste')`, 6000);
   t.sjekk(Date.now() - uteStart >= 2000, `«Tiden er ute!» ble borte etter ${Date.now() - uteStart} ms (skal stå i minst to sekunder)`);
@@ -295,7 +301,7 @@ export default async function (t) {
   // Several decks were in play: the round counts for the record of a mix, and three right in
   // 60 s is no reason for confetti
   t.sjekk((await rekordLager())["miks:60"] === 3, `Rekorden for flere kortstokker ble ikke lagret (${JSON.stringify(await rekordLager())})`);
-  t.sjekk(/rekord 3 flere kortstokker · 60 s/i.test((await t.tekst(".panna-rek")).replace(/\s+/g, " ")), `Resultatet viser ikke rekorden: «${await t.tekst(".panna-rek")}»`);
+  t.sjekk(!t.norsk || /rekord 3 flere kortstokker · 60 s/i.test((await t.tekst(".panna-rek")).replace(/\s+/g, " ")), `Resultatet viser ikke rekorden: «${await t.tekst(".panna-rek")}»`);
   t.sjekk((await t.js("window.__konfetti")) === 0, "Tre riktige på 60 s skal ikke feires med konfetti");
 
   // Fix a mistake: the passed word was right after all – and the record follows
@@ -308,7 +314,7 @@ export default async function (t) {
   await delStubb();
   await t.klikk('[data-h="utfordre"]');
   let delt = await sistDelt();
-  t.sjekk(/klarte 4 riktige på 60 s i Panna/.test(delt.text || "") && /\/panna\/$/.test(delt.url || ""), `«Utfordre noen» deler ikke runden (${JSON.stringify(delt)})`);
+  t.sjekk((!t.norsk || /klarte 4 riktige på 60 s i Panna/.test(delt.text || "")) && (delt.url || "").endsWith(new URL(t.side).pathname), `«Utfordre noen» deler ikke runden (${JSON.stringify(delt)})`);
   await landskap("resultat");
 
   // Change decks in the sheet without losing the score
@@ -323,7 +329,7 @@ export default async function (t) {
   await t.klikk('[data-h="neste"]');
   t.sjekk(/Testspiller B/.test(await t.tekst("#skjerm h1")), "Neste spiller er ikke Testspiller B");
   await t.vent(`document.querySelector('.panna-mini')`, 4000);
-  t.sjekk(/En av de andre trykker/.test(await t.tekst(".panna-steg")), "Trykkmodus sier ikke at en av de andre trykker");
+  t.sjekk(!t.norsk || /En av de andre trykker/.test(await t.tekst(".panna-steg")), "Trykkmodus sier ikke at en av de andre trykker");
   await t.bilde("klar-trykk");
   await landskap("klar");
   await smal("klar", ".panna-forklaring");
@@ -343,12 +349,12 @@ export default async function (t) {
   // Regression: a round interrupted during the countdown and the page opened hours later –
   // «Fortsett» brings the player back to the ready screen, with the score intact
   await t.js(`(() => {
-    const s = JSON.parse(localStorage.getItem("rusj.panna.v1"));
+    const s = JSON.parse(localStorage.getItem(${NK("panna.v1")}));
     s.spill.runde = { fase: "nedtelling", ord: [], tid: 60, igjen: 60 };
     s.spill.skjerm = "runde";
     s.skjerm = "runde";
     s._tid = Date.now() - 4 * 3600 * 1000;
-    localStorage.setItem("rusj.panna.v1", JSON.stringify(s));
+    localStorage.setItem(${NK("panna.v1")}, JSON.stringify(s));
   })()`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   await t.klikk('[data-h="fortsett"]');
@@ -395,16 +401,16 @@ export default async function (t) {
   await t.js(`delete document.hidden`);
   await t.klikk('[data-h="avslutt-runde"]');
   await t.vent(`document.querySelector('.panna-ordliste')`);
-  t.sjekk(/Til kåringen/.test(await t.tekst(".dokk")) && !(await t.finnes(".dokk .knapp .ikon")), "Siste runde viser ikke «Til kåringen» som ren tekst");
+  t.sjekk((!t.norsk || /Til kåringen/.test(await t.tekst(".dokk"))) && !(await t.finnes(".dokk .knapp .ikon")), "Siste runde viser ikke «Til kåringen» som ren tekst");
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.pall')");
   await t.bilde("slutt", true);
   await smal("slutt", ".banner h1");
-  t.sjekk(/Testspiller A vinner!/.test(await t.tekst("#skjerm h1")), "Vinneren vises ikke som «Testspiller A vinner!»");
+  t.sjekk((t.norsk ? /Testspiller A vinner!/ : /Testspiller A/).test(await t.tekst("#skjerm h1")), "Vinneren vises ikke som «Testspiller A vinner!»");
   t.sjekk(await t.finnes(".flere-spill .flere-kort"), "Sluttskjermen foreslår ikke andre spill");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Mangler lenken «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Mangler lenken «Alle spill»");
   // The crowning is reported once to «Kveldens gjeng» and the statistics, and it can be shared
-  const kveld = () => t.js(`(JSON.parse(localStorage.getItem("rusj.kveld") || "{}").spill || []).filter((s) => s.id === "panna")`);
+  const kveld = () => t.js(`(JSON.parse(localStorage.getItem(${NK("kveld")}) || "{}").spill || []).filter((s) => s.id === "panna")`);
   let kv = await kveld();
   t.sjekk(kv.length === 1 && kv[0].resultat.length === 2 && kv[0].resultat[0].plass === 1 && kv[0].resultat[1].plass === 2, `Kåringen ble ikke meldt til «Kveldens gjeng» én gang (${JSON.stringify(kv)})`);
   const stat = await t.js(`Rusj._statKo.map((h) => h.h)`);
@@ -412,12 +418,12 @@ export default async function (t) {
   await delStubb();
   await t.klikk('[data-h="del"]');
   delt = await sistDelt();
-  t.sjekk(/Testspiller A vant Panna med 4 riktige\. Testspiller B 2\./.test(delt.text || "") && /\/panna\/$/.test(delt.url || ""), `«Del kåringen» deler ikke resultatet (${JSON.stringify(delt)})`);
+  t.sjekk((t.norsk ? /Testspiller A vant Panna med 4 riktige\. Testspiller B 2\./ : /Testspiller A.*4.*Testspiller B 2\./).test(delt.text || "") && (delt.url || "").endsWith(new URL(t.side).pathname), `«Del kåringen» deler ikke resultatet (${JSON.stringify(delt)})`);
   // The crowning is final: back leads home, where nothing is left to continue – but the record is there
   await t.klikk("#tilbake");
   await t.vent(`document.querySelector('.hjem-knapper')`);
   t.sjekk(!(await t.finnes('[data-h="fortsett"]')) && (await t.finnes('.hjem-knapper .knapp[data-h="nytt"]')), "Etter kåringen skal hjem-skjermen ikke tilby «Fortsett»");
-  t.sjekk(/4\s*rekord/.test(await t.tekst(".merker")), `Hjem-skjermen viser ikke rekorden («${await t.tekst(".merker")}»)`);
+  t.sjekk((t.norsk ? /4\s*rekord/ : /\b4\s*\S/).test(await t.tekst(".merker")), `Hjem-skjermen viser ikke rekorden («${await t.tekst(".merker")}»)`);
   t.sjekk((await kveld()).length === 1, "Kåringen ble meldt flere ganger");
   await t.bilde("hjem-rekord");
 
@@ -449,13 +455,13 @@ export default async function (t) {
   await t.klikk(".panna-pauseknapp", 300);
   await t.klikk('[data-h="avslutt-runde"]');
   await t.vent(`document.querySelector('.panna-ordliste')`);
-  t.sjekk(!(await t.finnes(".poengliste")) && /Neste spiller/.test(await t.tekst(".dokk")), "Uten poeng skal resultatet vise «Neste spiller» og ingen poengliste");
+  t.sjekk(!(await t.finnes(".poengliste")) && (!t.norsk || /Neste spiller/.test(await t.tekst(".dokk"))), "Uten poeng skal resultatet vise «Neste spiller» og ingen poengliste");
   t.sjekk((await t.antall(".panna-rek .panna-stjerner i.pa")) === 2, `Fire riktige på 30 s skal gi to stjerner, ikke ${await t.antall(".panna-rek .panna-stjerner i.pa")}`);
   t.sjekk((await rekordLager())[`${sisteStokk[0]}:30`] === 4, `Rekorden for kortstokken ble ikke lagret (${JSON.stringify(await rekordLager())})`);
   t.sjekk((await t.js("window.__konfetti")) === 1, "Fire riktige på 30 s skal feires med konfetti");
   await t.bilde("resultat-uten-poeng");
   await t.klikk('[data-h="neste"]');
-  t.sjekk(/ikke tillatt/.test(await t.tekst(".panna-status")) && (await t.finnes('[data-h="tillat"]')), "Avslått vipping vises ikke med «Prøv igjen»");
+  t.sjekk((!t.norsk || /ikke tillatt/.test(await t.tekst(".panna-status"))) && (await t.finnes('[data-h="tillat"]')), "Avslått vipping vises ikke med «Prøv igjen»");
   await t.bilde("klar-nektet");
 
   // «Avslutt» asks first and ends the game
@@ -465,13 +471,13 @@ export default async function (t) {
   await t.klikk(".panna-pauseknapp", 300);
   await t.klikk('[data-h="avslutt-runde"]');
   await t.vent(`document.querySelector('.panna-ordliste')`);
-  t.sjekk((await t.tekst('[data-h="avslutt"]')).trim() === "Avslutt", "Lenken for å avslutte heter ikke bare «Avslutt»");
+  t.sjekk(!t.norsk || (await t.tekst('[data-h="avslutt"]')).trim() === "Avslutt", "Lenken for å avslutte heter ikke bare «Avslutt»");
   await t.klikk('[data-h="avslutt"]');
   await t.klikk('#ark [data-v="ja"]');
   await t.vent(`document.querySelector('[data-h="nytt"]')`);
   t.sjekk(!(await t.finnes('[data-h="fortsett"]')), "Spillet ble ikke avsluttet");
   // (The stars from that deck count on the home screen.)
-  t.sjekk(/2 av \d+\s*stjerner/.test(await t.tekst(".merker")), `Hjem-skjermen teller ikke stjernene («${await t.tekst(".merker")}»)`);
+  t.sjekk((t.norsk ? /2 av \d+\s*stjerner/ : /\b2\D+\d+/).test(await t.tekst(".merker")), `Hjem-skjermen teller ikke stjernene («${await t.tekst(".merker")}»)`);
 
   // A link to one deck: /panna/#mim chooses «Mim det!» alone and opens the setup
   await t.lastSide("about:blank");
@@ -479,25 +485,25 @@ export default async function (t) {
   S = await t.tilstand();
   t.sjekk(S.oppsett.stokker.join() === "mim" && !S.oppsett.ordbank.length && (await t.js("location.hash")) === "", `Lenken #mim valgte ikke bare «Mim det!» (${S.oppsett.stokker.join()}; «${await t.js("location.hash")}»)`);
   // Points on, 60 s, one round each – and a record of 2 to beat
-  await t.js(`(() => { const r = JSON.parse(localStorage.getItem("rusj.panna.rekord") || "{}"); r["mim:60"] = 2; localStorage.setItem("rusj.panna.rekord", JSON.stringify(r)); })()`);
+  await t.js(`(() => { const r = JSON.parse(localStorage.getItem(${NK("panna.rekord")}) || "{}"); r["mim:60"] = 2; localStorage.setItem(${NK("panna.rekord")}, JSON.stringify(r)); })()`);
   await t.klikk('[data-h="poeng"]');
   await t.klikk('[data-h="tid"][data-v="60"]');
-  t.sjekk(/rekord 2/.test(await t.tekst('.panna-stokk[data-v="mim"]')), `Flisen viser ikke rekorden («${await t.tekst('.panna-stokk[data-v="mim"]')}»)`);
-  t.sjekk(/2 av 3 stjerner/.test(await t.js(`document.querySelector('.panna-stokk[data-v="${sisteStokk[0]}"]').textContent`)), "Flisen sier ikke i ord hvor mange stjerner kortstokken har");
+  t.sjekk(/(rekord|record) 2/.test(await t.tekst('.panna-stokk[data-v="mim"]')), `Flisen viser ikke rekorden («${await t.tekst('.panna-stokk[data-v="mim"]')}»)`);
+  t.sjekk((t.norsk ? /2 av 3 stjerner/ : /2\D+3/).test(await t.js(`document.querySelector('.panna-stokk[data-v="${sisteStokk[0]}"]').textContent`)), "Flisen sier ikke i ord hvor mange stjerner kortstokken har");
   await t.bilde("oppsett-stjerner", true);
   await smal("oppsett-stjerner");
   await t.klikk('[data-h="start"]');
   // A new first player in every game: the last game with points started with Testspiller A
   t.sjekk(/Testspiller B/.test(await t.tekst("#skjerm h1")), `Mobilen starter hos samme spiller hver gang («${await t.tekst("#skjerm h1")}»)`);
-  t.sjekk(/rekord 2/.test(await t.js(`document.querySelector(".panna-valgte").textContent`)), "Klar-skjermen viser ikke rekorden som skal slås");
+  t.sjekk(/(rekord|record) 2/.test(await t.js(`document.querySelector(".panna-valgte").textContent`)), "Klar-skjermen viser ikke rekorden som skal slås");
   await t.bilde("klar-mim");
   // The countdown tells the others how this deck is played, and the card's label stands out
   await t.klikk('[data-h="kjor"]', 300);
   await t.vent(fase("nedtelling"), 8000);
-  t.sjekk(/bare mim/.test(await t.js(`(document.querySelector(".panna-under.slik") || {}).textContent || ""`)), "Nedtellingen forteller ikke hjelperne at de skal mime");
+  t.sjekk(!t.norsk || /bare mim/.test(await t.js(`(document.querySelector(".panna-under.slik") || {}).textContent || ""`)), "Nedtellingen forteller ikke hjelperne at de skal mime");
   await t.bilde("nedtelling-mim");
   await t.vent(fase("spill"), 6000);
-  t.sjekk(/Mim det!/.test(await t.js(`(document.querySelector("#panna-kilde.slik") || {}).textContent || ""`)), "Merkelappen «Mim det!» er ikke framhevet på kortet");
+  t.sjekk(!t.norsk || /Mim det!/.test(await t.js(`(document.querySelector("#panna-kilde.slik") || {}).textContent || ""`)), "Merkelappen «Mim det!» er ikke framhevet på kortet");
   for (let n = 0; n < 3; n++) await t.klikk(".panna-sone.riktig", 800);
   t.sjekk((await spor()) === "rrr", `Sporet viser ikke tre riktige («${await spor()}»)`);
   await t.bilde("runde-mim");
@@ -507,8 +513,8 @@ export default async function (t) {
   await t.klikk('[data-h="avslutt-runde"]');
   await t.vent(`document.querySelector('.panna-ordliste')`);
   // Three beats two: a new record (but no star yet – five in 60 s gives the first)
-  t.sjekk((await t.finnes(".panna-rek.ny")) && /Ny rekord/i.test(await t.tekst(".panna-rek")) && /Mim det!/.test(await t.tekst(".panna-rek")), `Resultatet sier ikke «Ny rekord» for kortstokken: «${await t.tekst(".panna-rek")}»`);
-  t.sjekk(/2 til for én stjerne/.test(await t.tekst(".panna-rek-hint")), `Resultatet sier ikke hvor mye som mangler til en stjerne: «${await t.tekst(".panna-rek-hint")}»`);
+  t.sjekk((await t.finnes(".panna-rek.ny")) && (!t.norsk || (/Ny rekord/i.test(await t.tekst(".panna-rek")) && /Mim det!/.test(await t.tekst(".panna-rek")))), `Resultatet sier ikke «Ny rekord» for kortstokken: «${await t.tekst(".panna-rek")}»`);
+  t.sjekk((t.norsk ? /2 til for én stjerne/ : /^\s*2\D/).test(await t.tekst(".panna-rek-hint")), `Resultatet sier ikke hvor mye som mangler til en stjerne: «${await t.tekst(".panna-rek-hint")}»`);
   t.sjekk((await rekordLager())["mim:60"] === 3, "Den nye rekorden ble ikke lagret");
   await t.bilde("resultat-rekord", true);
   await smal("resultat-rekord", ".panna-rek");
@@ -522,7 +528,7 @@ export default async function (t) {
   await delStubb();
   await t.klikk('[data-h="utfordre"]');
   delt = await sistDelt();
-  t.sjekk(/Testspiller B klarte 3 i .*Mim det! på 60 s i Panna/.test(delt.text || "") && /\/panna\/#mim$/.test(delt.url || ""), `«Utfordre noen» lenker ikke til kortstokken (${JSON.stringify(delt)})`);
+  t.sjekk((t.norsk ? /Testspiller B klarte 3 i .*Mim det! på 60 s i Panna/ : /Testspiller B.*3/).test(delt.text || "") && (delt.url || "").endsWith(new URL(t.side).pathname + "#mim"), `«Utfordre noen» lenker ikke til kortstokken (${JSON.stringify(delt)})`);
 
   // A deck link never interrupts a game that is running
   await t.lastSide("about:blank");
@@ -541,10 +547,10 @@ export default async function (t) {
   await t.klikk(".panna-pauseknapp", 300);
   await t.klikk('[data-h="avslutt-runde"]');
   await t.vent(`document.querySelector('.panna-ordliste')`);
-  t.sjekk(!(await t.finnes(".panna-rek.ny")) && /rekord 3 .*Mim det! · 60 s/i.test((await t.tekst(".panna-rek")).replace(/\s+/g, " ")), `Resultatet viser ikke rekorden som står: «${await t.tekst(".panna-rek")}»`);
+  t.sjekk(!(await t.finnes(".panna-rek.ny")) && (t.norsk ? /rekord 3 .*Mim det! · 60 s/i : /3/).test((await t.tekst(".panna-rek")).replace(/\s+/g, " ")), `Resultatet viser ikke rekorden som står: «${await t.tekst(".panna-rek")}»`);
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.pall')");
-  t.sjekk(/Testspiller B vinner!/.test(await t.tekst("#skjerm h1")), `Feil vinner: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk((t.norsk ? /Testspiller B vinner!/ : /Testspiller B/).test(await t.tekst("#skjerm h1")), `Feil vinner: «${await t.tekst("#skjerm h1")}»`);
   t.sjekk((await kveld()).length === 2, "Det andre spillet med poeng ble ikke meldt til «Kveldens gjeng»");
   await landskap("slutt");
   await t.klikk('[data-h="igjen"]');
