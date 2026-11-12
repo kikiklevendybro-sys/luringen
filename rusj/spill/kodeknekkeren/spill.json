@@ -10,5 +10,7 @@
   "tagger": ["lag", "ord", "fest", "familie"],
   "rekkefolge": 9,
   "ordbank": true,
-  "qr": true
+  "qr": true,
+  "alias": ["kodeord"],
+  "sok": ["kodeord", "agenter", "agentspill", "hemmelige agenter", "ordlek lag"]
 }

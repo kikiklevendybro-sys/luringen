@@ -8,5 +8,7 @@
   "minutter": [10, 40],
   "mobiler": "en",
   "tagger": ["fest", "familie", "barn", "lag"],
-  "rekkefolge": 12
+  "rekkefolge": 12,
+  "alias": ["mimeleken"],
+  "sok": ["mimeleken", "mimelek", "mime", "mimeord", "charades", "lag mot lag"]
 }

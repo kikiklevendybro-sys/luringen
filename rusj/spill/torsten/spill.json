@@ -10,5 +10,6 @@
   "tagger": ["drikke", "fest"],
   "rekkefolge": 47,
   "alder18": true,
-  "sok": ["jeg har aldri", "never have I ever", "jeg har aldri drikkelek", "drikkeleker", "drikkespill"]
+  "sok": ["jeg har aldri", "never have I ever", "jeg har aldri drikkelek", "drikkeleker", "drikkespill"],
+  "alias": ["tørsten"]
 }

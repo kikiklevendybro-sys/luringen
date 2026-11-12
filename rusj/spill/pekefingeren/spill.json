@@ -8,5 +8,7 @@
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["fest", "familie", "sporsmal"],
-  "rekkefolge": 4
+  "rekkefolge": 4,
+  "alias": ["pekeleken", "hvem-er-mest-sannsynlig"],
+  "sok": ["pekeleken", "pekelek", "hvem er mest sannsynlig", "mest sannsynlig", "peke", "spørsmålskort"]
 }

@@ -9,7 +9,8 @@ import { mkdtempSync, mkdirSync, rmSync, readFileSync, readdirSync, existsSync, 
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { lesSeo, merkeI, TITTEL_MAKS, BESKRIVELSE_GRENSER, DOMENE, OMDOPT } from "../scripts/rusj.mjs";
+import { lesSeo, merkeI, merkeSynlig, TITTEL_MAKS, BESKRIVELSE_GRENSER, DOMENE, OMDOPT } from "../scripts/rusj.mjs";
+import { omSpilletHtml, flereTil } from "../scripts/om-spillet.mjs";
 
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ferdigBygget = process.env.RUSJ_WEB ? resolve(process.env.RUSJ_WEB) : null;
@@ -54,8 +55,10 @@ before(() => {
     if (!mappe.isDirectory()) continue;
     const fil = join(WEB, mappe.name, "index.html");
     if (!existsSync(fil)) continue;
-    if (mappe.name in OMDOPT) {
-      videresend.set(mappe.name, readFileSync(fil, "utf8"));
+    // Old addresses of renamed games and alias addresses: small pages that send the visitor on.
+    const html = readFileSync(fil, "utf8");
+    if (mappe.name in OMDOPT || html.includes('<meta http-equiv="refresh"')) {
+      videresend.set(mappe.name, html);
       continue;
     }
     sider.push(lesSide(`/${mappe.name}/`, fil));
@@ -70,7 +73,9 @@ after(() => {
 test("the build has the front page, the games and the pages about rusj", () => {
   assert.ok(spillIder.length >= 40, `bare ${spillIder.length} spill i bygget`);
   for (const sti of ["/", "/luringen/", "/om/", "/personvern/", "/merker/"]) assert.ok(sider.some((s) => s.sti === sti), `mangler ${sti}`);
-  assert.equal(sider.length, spillIder.length + 4, "andre sider enn forsiden, spillene, /om/, /personvern/ og /merker/ – legg dem til i testen");
+  // + the collection pages (rusj/samlinger/*.json), one page each.
+  const samlinger = readdirSync(join(ROT, "rusj/samlinger")).filter((f) => f.endsWith(".json")).length;
+  assert.equal(sider.length, spillIder.length + 4 + samlinger, "andre sider enn forsiden, spillene, /om/, /personvern/, /merker/ og samlingene – legg dem til i testen");
 });
 
 test("renamed games: the old address sends the visitor on, no script, not indexed, not in the sitemap", () => {
@@ -302,4 +307,205 @@ test("rusj/seo.json is checked when it is read: length, duplicates and brand nam
   } finally {
     rmSync(rot, { recursive: true, force: true });
   }
+});
+
+// ---------- «Slik spiller dere …» under every game page (scripts/om-spillet.mjs) ----------
+
+const omBlokk = (html) => {
+  const fra = html.indexOf('<section class="om-spillet"');
+  return fra < 0 ? null : html.slice(fra, html.indexOf("</section>", fra) + "</section>".length);
+};
+const synligTekst = (html) => tekst(html.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+const atten = (id) => id !== "luringen" && /"alder18":true/.test(readFileSync(join(WEB, id, "data.js"), "utf8").split("\n")[0]);
+
+test("every game page has a readable «Slik spiller dere» block after the app, outside #skjerm", () => {
+  for (const id of spillIder.filter((x) => x !== "luringen")) {
+    const s = sider.find((x) => x.sti === `/${id}/`);
+    const blokk = omBlokk(s.html);
+    assert.ok(blokk, `${id}: mangler «Slik spiller dere»-blokken`);
+    assert.equal(s.html.split('<section class="om-spillet"').length, 2, `${id}: blokken står mer enn én gang`);
+    // After the app's closing tag (never inside #skjerm, which the kit redraws).
+    const appSlutt = s.html.indexOf("</main>\n</div>");
+    assert.ok(appSlutt > 0 && s.html.indexOf('<section class="om-spillet"') > appSlutt, `${id}: blokken står ikke etter appen`);
+    assert.ok(!/hidden|display:\s*none|aria-hidden/.test(blokk), `${id}: blokken er skjult i HTML-en`);
+    assert.match(blokk, /<h2 id="om-spillet-tittel">Slik spiller (dere|du) [^<]+<\/h2>/, `${id}: overskriften`);
+    assert.ok((blokk.match(/<li><b>/g) || []).length >= 3, `${id}: færre enn tre steg`);
+    assert.match(blokk, /<p class="om-ingress">[^<]{20,}<\/p>/, `${id}: mangler ingress`);
+    // Only plain text and a few harmless tags: everything from the games is escaped.
+    for (const [, tag] of blokk.matchAll(/<\/?([a-z0-9]+)/g)) assert.ok(["section", "p", "h2", "h3", "h4", "ul", "ol", "li", "b", "div", "nav", "a"].includes(tag), `${id}: <${tag}> i blokken`);
+    assert.equal(merkeSynlig(synligTekst(blokk)), null, `${id}: «${merkeSynlig(synligTekst(blokk))}» står synlig i blokken`);
+    assert.ok(synligTekst(blokk).split(" ").length >= 100, `${id}: blokken har bare ${synligTekst(blokk).split(" ").length} ord`);
+  }
+});
+
+test("examples: 20–30 real items on ordinary card games, none on 18+ games; 18+ games get the sober box", () => {
+  let medEksempler = 0;
+  for (const id of spillIder.filter((x) => x !== "luringen")) {
+    const blokk = omBlokk(sider.find((x) => x.sti === `/${id}/`).html);
+    const eksempler = [...blokk.matchAll(/<ul class="om-eksempler">([\s\S]*?)<\/ul>/g)].reduce((n, m) => n + (m[1].match(/<li>/g) || []).length, 0);
+    if (atten(id)) {
+      assert.equal(eksempler, 0, `${id}: 18+-spill skal ikke ha eksempler`);
+      assert.match(blokk, /Alkoholfritt teller like mye/, `${id}: mangler «Alkoholfritt teller like mye»`);
+      assert.match(blokk, /<a href="https:\/\/rusinfo\.no\/" rel="noopener">rusinfo\.no<\/a>/, `${id}: mangler RUSinfo`);
+      assert.match(blokk, /Bare for voksne \(18\+\)/, `${id}: sier ikke 18+`);
+    } else {
+      assert.ok(!/om-vett|rusinfo/.test(blokk), `${id}: drikkeråd i et vanlig spill`);
+      if (!eksempler) continue;
+      medEksempler++;
+      assert.ok(eksempler >= 20 && eksempler <= 30, `${id}: ${eksempler} eksempler`);
+      assert.match(blokk, /<p class="om-mer">… og (over )?[\d ]+ til i spillet\.<\/p>/, `${id}: mangler «… og over N til i spillet»`);
+    }
+  }
+  assert.ok(medEksempler >= 15, `bare ${medEksempler} spill har eksempler`);
+});
+
+test("the block escapes what it prints, and «over N» is always true", () => {
+  const m = { id: "x", navn: "<b>X</b>", spillere: [2, 4], minutter: [5, 10], mobiler: "en" };
+  const html = omSpilletHtml(m, { frase: "A & B", regler: { intro: "<script>alert(1)</script>", steg: [["<i>", '"x"'], ["a", "b"], ["c", "d"]], tips: ["<img src=x>"] }, eksempler: { tittel: "<u>", ting: ["<svg onload=x>"], totalt: 5, antall: 1 }, lenker: [["/a/", "<a>"]] });
+  for (const farlig of ["<script", "<b>X", "<i>", "<img", "<svg", "<u>", "<a>"]) assert.ok(!html.includes(farlig), `«${farlig}» kom med uescapet`);
+  assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.match(html, /Slik spiller dere &lt;b&gt;X&lt;\/b&gt;/);
+  assert.equal(flereTil(1437), "… og over 1 400 til i spillet.");
+  assert.equal(flereTil(470), "… og 470 til i spillet.");
+  assert.equal(flereTil(0), "");
+});
+
+// ---------- Collection pages (rusj/samlinger/*.json → /<slug>/) ----------
+
+const samlingSlugs = () => readdirSync(join(ROT, "rusj/samlinger")).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5));
+
+test("collection pages: real pages with games, steps, questions and neighbours; in the sitemap; structured data", () => {
+  const slugs = samlingSlugs();
+  assert.ok(slugs.length >= 10, `bare ${slugs.length} samlinger`);
+  const xml = readFileSync(join(WEB, "sitemap.xml"), "utf8");
+  const sw = readFileSync(join(WEB, "sw.js"), "utf8");
+  for (const slug of slugs) {
+    const s = sider.find((x) => x.sti === `/${slug}/`);
+    assert.ok(s, `mangler /${slug}/`);
+    assert.ok(xml.includes(`<loc>${DOMENE}/${slug}/</loc>`), `/${slug}/ står ikke i sitemap.xml`);
+    assert.ok(sw.includes(`"/${slug}/"`), `/${slug}/ er ikke med for bruk uten nett`);
+    const main = s.html.slice(s.html.indexOf('<main class="side">'), s.html.indexOf("</main>"));
+    assert.equal((main.match(/<h1[ >]/g) || []).length, 1, `/${slug}/: én h1`);
+    assert.match(main, /<h2 id="samling-kvelden">/, `/${slug}/: mangler «Slik legger dere opp kvelden»`);
+    assert.match(main, /<dl class="samling-faq">/, `/${slug}/: mangler spørsmål og svar`);
+    const naboer = [...main.matchAll(/<nav class="samling-naboer"[\s\S]*?<\/nav>/g)][0][0];
+    assert.ok((naboer.match(/<a href="\/[a-z0-9-]+\/">/g) || []).length >= 2, `/${slug}/: for få nabosamlinger`);
+    assert.ok(synligTekst(main).split(" ").length >= 250, `/${slug}/: bare ${synligTekst(main).split(" ").length} ord`);
+    assert.equal(merkeSynlig(synligTekst(main)), null, `/${slug}/: «${merkeSynlig(synligTekst(main))}» står synlig`);
+    assert.ok(!/<script(?! type="application\/ld\+json")/.test(s.html.replace(/<script defer src="\/felles\/stat\.js\?v=[a-z0-9]+"><\/script>/, "")), `/${slug}/: har skript`);
+    // Structured data: the page, the list of games (exactly the games on the page) and the path.
+    assert.equal(s.jsonld.length, 1);
+    const g = JSON.parse(s.jsonld[0])["@graph"];
+    assert.ok(g.some((n) => n["@type"] === "CollectionPage" && n.url === s.kanonisk && n.description === s.beskrivelse), `/${slug}/: CollectionPage`);
+    const liste = g.find((n) => n["@type"] === "ItemList");
+    const lenket = [...new Set([...main.matchAll(/<a href="\/([a-z]+)\/"/g)].map((m) => m[1]).filter((id) => spillIder.includes(id)))];
+    assert.deepEqual(liste.itemListElement.map((e) => e.url).sort(), lenket.map((id) => `${DOMENE}/${id}/`).sort(), `/${slug}/: ItemList følger ikke spillene på siden`);
+    assert.equal(liste.numberOfItems, liste.itemListElement.length);
+    const sti = g.find((n) => n["@type"] === "BreadcrumbList").itemListElement;
+    assert.equal(sti[0].item, DOMENE + "/");
+    assert.equal(sti.at(-1).item, s.kanonisk);
+    // 18+: only the drinking games, no cards, the sober box. Ordinary: never a drinking game, never the hub.
+    const harAtten = lenket.some((id) => id !== "luringen" && atten(id));
+    if (slug === "drikkeleker") {
+      assert.ok(lenket.length >= 3 && lenket.every((id) => atten(id)), "/drikkeleker/: bare 18+-spill");
+      assert.ok(!main.includes("samling-kort"), "/drikkeleker/: skal ikke ha spillkort");
+      assert.match(main, /Alkoholfritt teller like mye/);
+      assert.match(main, /href="https:\/\/rusinfo\.no\/"/);
+      assert.match(s.tittel + s.og["og:title"], /18\+[\s\S]*18\+/, "/drikkeleker/: 18+ i tittel og og:title");
+    } else {
+      assert.ok(!harAtten, `/${slug}/: lenker til et 18+-spill`);
+      assert.ok(!main.includes('href="/drikkeleker/"'), `/${slug}/: lenker til drikkelekene`);
+      assert.ok(lenket.length >= 4, `/${slug}/: bare ${lenket.length} spill`);
+    }
+  }
+  // The game pages link to the collections they are in.
+  const jul = sider.find((x) => x.sti === "/bingoballen/");
+  assert.match(omBlokk(jul.html), /<a href="\/julebordleker\/">Julebordleker<\/a>/);
+  assert.ok(!sider.some((x) => spillIder.includes(x.sti.slice(1, -1)) && !atten(x.sti.slice(1, -1)) && x.html.includes('href="/drikkeleker/"')), "et vanlig spill lenker til /drikkeleker/");
+});
+
+test("collections are checked when they are read: unknown or 18+ games, brands, lengths and neighbours stop the build", async () => {
+  const { lesSamlinger } = await import("../scripts/samlinger.mjs");
+  const rot = mkdtempSync(join(tmpdir(), "rusj-samling-"));
+  mkdirSync(join(rot, "rusj/samlinger"), { recursive: true });
+  const ingress = ["Et avsnitt med nok ord til at siden blir en ekte side, skrevet for hånd og på naturlig norsk, med en grunn til å være her og ikke bare en liste.", "Et avsnitt til som forklarer hvordan spillene passer sammen, hvem de passer for, og hva dere trenger for å komme i gang med en gang i kveld, uten å lese en lang bruksanvisning."];
+  const god = (x = {}) => ({ tittel: "Spill for testing – en side som bare er her for testen", navn: "Test", h1: "Test", beskrivelse: "En beskrivelse som er lang nok til å være innenfor grensene som bygget bruker for alle sider på rusj, og ikke lenger.", ingress, spill: [["a", "Fordi."], ["b", "Fordi."], ["c", "Fordi."], ["luringen", "Fordi."]], kvelden: [["1", "x"], ["2", "y"], ["3", "z"]], faq: [["?", "!"], ["??", "!!"]], naboer: ["to", "tre"], ...x });
+  const skriv = (filer) => {
+    rmSync(join(rot, "rusj/samlinger"), { recursive: true, force: true });
+    mkdirSync(join(rot, "rusj/samlinger"));
+    for (const [navn, innhold] of Object.entries(filer)) writeFileSync(join(rot, "rusj/samlinger", navn + ".json"), JSON.stringify(innhold));
+    return lesSamlinger({ rot, spillIder: ["luringen", "a", "b", "c", "x", "y", "z", "w"], atten: ["x", "y", "z", "w"], tittelMaks: TITTEL_MAKS, beskrivelse: BESKRIVELSE_GRENSER, merke: merkeSynlig });
+  };
+  const tre = (en) => ({ en, to: god({ tittel: "Andre spill for testing – den andre siden i testen", beskrivelse: god().beskrivelse + " To.", naboer: ["en", "tre"] }), tre: god({ tittel: "Tredje spill for testing – den tredje siden i testen", beskrivelse: god().beskrivelse + " Tre.", naboer: ["en", "to"] }) });
+  try {
+    assert.equal(skriv(tre(god({ naboer: ["to", "tre"] }))).length, 3);
+    assert.throws(() => skriv(tre(god({ naboer: ["to", "tre"], spill: [...god().spill, ["finnesikke", "Fordi."]] }))), /finnes ikke/);
+    assert.throws(() => skriv(tre(god({ naboer: ["to", "tre"], spill: [...god().spill, ["x", "Fordi."]] }))), /18\+-spill/);
+    assert.throws(() => skriv(tre(god({ naboer: ["to", "tre"], ingress: [...ingress, "Nesten som Ring of Fire, bare bedre."] }))), /merkevare/);
+    assert.throws(() => skriv(tre(god({ naboer: ["to", "tre"], tittel: "x".repeat(TITTEL_MAKS) }))), /tittelen er/);
+    assert.throws(() => skriv(tre(god({ naboer: ["to", "fire"] }))), /«fire» finnes ikke/);
+    assert.throws(() => skriv({ ...tre(god({ naboer: ["to", "atten"] })), atten: god({ alder18: true, tittel: "Atten pluss for testing – kun for voksne i testen", beskrivelse: god().beskrivelse + " Atten.", spill: [["x", "Fordi."], ["y", "Fordi."], ["z", "Fordi."], ["w", "Fordi."]], naboer: ["en", "to"] }) }), /kan ikke lenke til 18\+-samlingen «atten»/);
+  } finally {
+    rmSync(rot, { recursive: true, force: true });
+  }
+});
+
+// ---------- Alias addresses (`alias` in spill.json): /jeg-har-aldri/ → /sladrehanken/ ----------
+
+test("alias addresses send the visitor on: no script, not indexed, not in the sitemap or the offline list", () => {
+  const kart = new Map([["imposter", "luringen"]]);
+  for (const id of readdirSync(join(ROT, "rusj/spill"))) {
+    const fil = join(ROT, "rusj/spill", id, "spill.json");
+    if (existsSync(fil)) for (const a of JSON.parse(readFileSync(fil, "utf8")).alias || []) kart.set(a, id);
+  }
+  assert.ok(kart.size >= 40, `bare ${kart.size} alias`);
+  const xml = readFileSync(join(WEB, "sitemap.xml"), "utf8");
+  const sw = readFileSync(join(WEB, "sw.js"), "utf8");
+  for (const [a, id] of kart) {
+    if (!spillIder.includes(id)) continue;
+    const html = videresend.get(a);
+    assert.ok(html, `mangler /${a}/`);
+    assert.match(html, new RegExp(`<meta http-equiv="refresh" content="0; url=/${id}/">`), `/${a}/: sender ikke videre til /${id}/`);
+    assert.match(html, new RegExp(`<link rel="canonical" href="${DOMENE}/${id}/">`), `/${a}/: canonical`);
+    assert.match(html, /<meta name="robots" content="noindex">/, `/${a}/: skal ikke indekseres`);
+    assert.match(html, new RegExp(`<a href="/${id}/">`), `/${a}/: mangler lenke`);
+    assert.ok(!/<script/i.test(html), `/${a}/: har script`);
+    assert.ok(!xml.includes(`/${a}/`), `/${a}/ står i sitemap.xml`);
+    assert.ok(!sw.includes(`"/${a}/"`), `/${a}/ står i listen for bruk uten nett`);
+    assert.equal(merkeSynlig(a.replace(/-/g, " ")), null, `/${a}/ er en annens merkevare`);
+  }
+  // Never a third party's game name as an address (an address is visible use).
+  for (const a of ["alias", "codenames", "wordle", "ring-of-fire", "kahoot", "heads-up", "pictionary", "tabu", "bezzerwizzer", "memory-spill"]) assert.ok(!kart.has(a), `/${a}/ er et alias`);
+});
+
+test("an alias that is already taken, malformed or a brand stops the build", async () => {
+  const { aliasKart } = await import("../scripts/rusj.mjs");
+  const lag = (spill, opptatt = ["om", "julebordleker"]) => aliasKart({ spill, opptatt, merke: merkeSynlig });
+  assert.deepEqual([...lag([{ id: "a", alias: ["jeg-har-aldri", "våghalsen"] }, { id: "b" }])], [["jeg-har-aldri", "a"], ["våghalsen", "a"]]);
+  assert.throws(() => lag([{ id: "a", alias: ["b"] }, { id: "b" }]), /allerede spillet b/);
+  assert.throws(() => lag([{ id: "a", alias: ["julebordleker"] }]), /allerede en side/);
+  assert.throws(() => lag([{ id: "a", alias: ["om"] }]), /allerede en side/);
+  assert.throws(() => lag([{ id: "a", alias: ["x"] }, { id: "b", alias: ["x"] }]), /brukes også av a/);
+  assert.throws(() => lag([{ id: "a", alias: ["Stor Bokstav"] }]), /små bokstaver/);
+  assert.throws(() => lag([{ id: "a", alias: ["ring-of-fire"] }]), /merkevare/);
+  assert.throws(() => lag([{ id: "a", alias: ["codenames"] }]), /merkevare/);
+  assert.throws(() => lag([{ id: "a", alias: "x" }]), /må være en liste/);
+});
+
+// ---------- Search words for the front page (`sok` in spill.json) ----------
+
+test("the original party games have their own generic search words, and the words people type find something", () => {
+  const liste = readFileSync(join(WEB, "felles/spilliste.js"), "utf8");
+  const spill = JSON.parse(liste.slice(liste.indexOf("=") + 1, liste.indexOf(";\nwindow.RUSJ_TAGGSOK")));
+  const taggsok = JSON.parse(liste.slice(liste.indexOf("window.RUSJ_TAGGSOK=") + "window.RUSJ_TAGGSOK=".length, liste.lastIndexOf(";")));
+  const originale = ["spionen", "sladrehanken", "pekefingeren", "vaghalsen", "vinglepetter", "skravla", "panna", "kodeknekkeren", "bedreviteren", "detektiven", "mimen", "hviskeren", "lognhalsen", "kunstneren", "sauen", "bokstavtrollet", "skjaera"];
+  for (const id of originale) {
+    const egne = JSON.parse(readFileSync(join(ROT, "rusj/spill", id, "spill.json"), "utf8")).sok || [];
+    assert.ok(egne.length >= 5, `${id}: bare ${egne.length} søkeord i spill.json`);
+    for (const ord of egne) assert.equal(merkeSynlig(ord), null, `${id}: «${ord}» i "sok" er en annens merkevare – bare allmenne ord her`);
+    const g = spill.find((x) => x.id === id);
+    if (g) for (const ord of egne) assert.ok(g.sok.includes(ord), `${id}: «${ord}» kom ikke med i spillista`);
+  }
+  const hoystakk = (g) => [g.navn, g.undertittel, g.kort, ...g.sok, ...g.tagger.flatMap((t) => taggsok[t] || [])].join(" ").toLocaleLowerCase("nb");
+  for (const ord of ["imposter", "nødt", "pekeleken", "flasketuten", "bli kjent", "dilemma", "mafia", "huskespill", "vendespill", "jeg har aldri", "kims lek", "alfabetleken", "20 spørsmål", "selskapsleker", "hyttetur", "klassefest"]) assert.ok(spill.some((g) => hoystakk(g).includes(ord)), `søket finner ingenting på «${ord}»`);
 });

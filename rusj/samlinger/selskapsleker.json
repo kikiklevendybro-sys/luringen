@@ -1,0 +1,95 @@
+{
+  "rekkefolge": 3,
+  "tittel": "Selskapsleker – gratis leker til selskap og familie",
+  "navn": "Selskapsleker",
+  "h1": "Selskapsleker",
+  "undertittel": "Gratis leker til bursdag, familieselskap og vennekveld",
+  "beskrivelse": "Selskapsleker for voksne og barn: mimeleken, pekeleken, tegn og gjett, bingo og flere. Gratis på mobilen, klare på sekunder – uten app og reklame.",
+  "ingress": [
+    "En god selskapslek er rask å forklare, får med både den sjenerte tanta og den ivrigste tolvåringen, og er over før noen kjeder seg. Her er lekene som fungerer i bursdager, familieselskap og på vennekvelder – med alle generasjoner rundt samme bord.",
+    "Alle spillene virker på én mobil som går rundt, eller på hver sin mobil der det passer. Mobilen holder styr på reglene, tiden og poengene, så dere kan konsentrere dere om å ha det gøy."
+  ],
+  "spill": [
+    [
+      "mimen",
+      "Den klassiske mimeleken med ord fra dyr, yrker, sport og eventyr. Fungerer for alle aldre."
+    ],
+    [
+      "pekefingeren",
+      "Hvem er mest sannsynlig til å …? Alle peker samtidig – og ingen slipper unna."
+    ],
+    [
+      "kunstneren",
+      "Tegn og gjett med fingeren, med lette ord for barn og vanskeligere for voksne."
+    ],
+    [
+      "panna",
+      "Mobilen på panna, de andre gir hint. Rask, høylytt og morsom."
+    ],
+    [
+      "papegoyen",
+      "Svar på alle spørsmål – men aldri med «ja» eller «nei». Vanskeligere enn det høres ut!"
+    ],
+    [
+      "femmeren",
+      "Nevn tre ting på fem sekunder. Enkle regler og masse latter."
+    ],
+    [
+      "sauen",
+      "Svar det samme som flest mulig – og ikke bli den svarte sauen."
+    ],
+    [
+      "tankeleseren",
+      "Ett hint, én skala: er dere på samme bølgelengde? Godt for blandede selskap."
+    ],
+    [
+      "detektiven",
+      "Én har en hemmelighet, de andre har 20 ja/nei-spørsmål."
+    ],
+    [
+      "bingoballen",
+      "Festbingo med temaer for bursdag, bryllup, konfirmasjon og 17. mai."
+    ],
+    [
+      "nynneren",
+      "Nynn låta uten ord – lag mot lag med barnesanger, allsang og julesanger."
+    ],
+    [
+      "luringen",
+      "Alle får det hemmelige ordet – nesten alle. Bløffeleken med fire nivåer, fra lett til kaos."
+    ]
+  ],
+  "kvelden": [
+    [
+      "Varm opp med noe kjapt",
+      "Femmeren eller Papegøyen tar fem minutter og får alle i gang. Ingen trenger å kunne noe fra før."
+    ],
+    [
+      "Del dere i lag",
+      "Mimen, Panna og Nynneren blir ekstra morsomme lag mot lag. Mobilen holder poengene."
+    ],
+    [
+      "Avslutt rundt bordet",
+      "Pekefingeren, Sauen eller Luringen passer når folk har satt seg igjen med kaffe og kake."
+    ]
+  ],
+  "faq": [
+    [
+      "Hvilke selskapsleker passer for både barn og voksne?",
+      "Mimen, Kunstneren og Panna har egne pakker for barn, og de voksne kan bytte til vanskeligere ord. Papegøyen og Femmeren passer for alle som kan prate."
+    ],
+    [
+      "Hvor mange kan være med?",
+      "De fleste lekene fungerer for 3 til 20. Bingoballen tar opptil 40, og da har alle brettet på sin egen mobil."
+    ],
+    [
+      "Koster det noe?",
+      "Nei. Alt på rusj er gratis, uten reklame og uten konto."
+    ]
+  ],
+  "naboer": [
+    "festleker",
+    "spill-for-barn",
+    "bli-kjent-leker"
+  ]
+}

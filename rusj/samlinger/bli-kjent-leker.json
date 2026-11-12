@@ -1,0 +1,79 @@
+{
+  "rekkefolge": 12,
+  "tittel": "Bli kjent-leker – for klassen, jobben og nye venner",
+  "navn": "Bli kjent-leker",
+  "h1": "Bli kjent-leker",
+  "undertittel": "For klassen, jobben og nye venner",
+  "beskrivelse": "Bli kjent-leker for klasser, kolleger og nye vennegjenger: to sannheter og en løgn, hva vil du helst, pekeleken og jeg har aldri. Gratis på mobilen.",
+  "ingress": [
+    "Den første halvtimen med nye folk er alltid den vanskeligste. En god bli kjent-lek gir alle noe å snakke om, uten at noen må holde tale eller dele mer enn de vil. Her er lekene som fungerer på skolestart, i fadderuka, på teambuilding og når to vennegjenger møtes.",
+    "Alle lekene går på én mobil, og spørsmålene er valgt for å skape gode historier – ikke pinlige øyeblikk. Det er alltid lov å si pass."
+  ],
+  "spill": [
+    [
+      "lognhalsen",
+      "To sannheter og en løgn – med temaer som barndom, reiser og skjulte talenter."
+    ],
+    [
+      "vinglepetter",
+      "Hva vil du helst? Alle velger samtidig, og valgene sier mye om folk."
+    ],
+    [
+      "sladrehanken",
+      "«Jeg har aldri …» med en egen bli kjent-pakke. Ingen trenger å fortelle mer enn de vil."
+    ],
+    [
+      "pekefingeren",
+      "Hvem er mest sannsynlig til å …? Fungerer best når folk har snakket litt sammen."
+    ],
+    [
+      "tankeleseren",
+      "Er dere på samme bølgelengde? Viser fort hvem som tenker likt."
+    ],
+    [
+      "sauen",
+      "Svar det samme som flokken – en morsom måte å finne ut hva gruppa har felles."
+    ],
+    [
+      "detektiven",
+      "20 ja/nei-spørsmål. Godt for å få alle til å snakke."
+    ],
+    [
+      "papegoyen",
+      "Svar på spørsmål om deg selv uten å si «ja» eller «nei»."
+    ]
+  ],
+  "kvelden": [
+    [
+      "Start med valg, ikke historier",
+      "Vinglepetter lar alle svare samtidig, så ingen står alene i fokus i starten."
+    ],
+    [
+      "Del litt mer",
+      "Løgnhalsen og Sladrehanken gir historiene – folk bestemmer selv hvor mye de forteller."
+    ],
+    [
+      "Avslutt med latter",
+      "Pekefingeren og Sauen passer når gruppa har blitt litt kjent."
+    ]
+  ],
+  "faq": [
+    [
+      "Passer lekene for skoleklasser?",
+      "Ja. Velg familie- og barnepakkene, så holder spørsmålene seg passe for alle aldre. Det finnes ingen konto eller chat."
+    ],
+    [
+      "Hvor mange kan være med?",
+      "Løgnhalsen, Vinglepetter og Sladrehanken fungerer opptil 20. Er dere flere, del dere i grupper med én mobil hver."
+    ],
+    [
+      "Hva om noen ikke vil svare?",
+      "Det er alltid lov å si pass, og spillene gir ingen minuspoeng for det."
+    ]
+  ],
+  "naboer": [
+    "selskapsleker",
+    "festleker",
+    "spill-for-barn"
+  ]
+}

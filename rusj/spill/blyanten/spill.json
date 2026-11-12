@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["daglig", "ord", "alene", "tenke"],
   "rekkefolge": 23,
-  "sok": ["kryssord", "minikryss", "kryssord på nett"]
+  "sok": ["kryssord", "minikryss", "kryssord på nett"],
+  "alias": ["kryssord"]
 }

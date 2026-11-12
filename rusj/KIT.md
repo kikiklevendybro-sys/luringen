@@ -119,6 +119,14 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
   «Kveldens gjeng», the evening's scoreboard across all games on the front page.
 - spill.json: `"alder18": true` (the kit shows an 18+ gate first), `"sok": ["…"]` (extra words for the
   front-page search: Norwegian genre names, common names of the genre).
+- spill.json: `"alias": ["jeg-har-aldri"]` — extra addresses (`rusj.no/jeg-har-aldri`) that send on to the
+  game. Lower case, digits and hyphens; never another company's game name. The build stops when an alias
+  is already a game, a collection (`rusj/samlinger/`), a page or another alias.
+- **«Slik spiller dere …» under the page:** the build runs your `spill.js` once in Node, takes the
+  `regler` you pass to `Rusj.start` (intro, steg, tips) and prints them as readable text below the app,
+  plus 20–30 examples from your data when `scripts/om-spillet.mjs` (`EKSEMPLER`) has an entry for the
+  game. So keep `regler` plain text that does not depend on the browser at load time. The kit shows the
+  block on the home screen and the age gate only; nothing to do in the game.
 - `R.visInstallTips()`: the kit shows the "install as app" tip itself after a finished game.
 - `R.dagligFerdig({ vunnet, rekke })`: daily puzzles call it when today's puzzle is done — the front page
   then shows «✓ i dag» and the streak on the game's card.

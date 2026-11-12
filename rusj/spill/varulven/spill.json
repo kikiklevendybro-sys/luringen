@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["fest", "blof", "lag"],
   "sok": ["én natt", "en natt", "one night", "varulvspill"],
-  "rekkefolge": 18
+  "rekkefolge": 18,
+  "alias": ["varulv"]
 }

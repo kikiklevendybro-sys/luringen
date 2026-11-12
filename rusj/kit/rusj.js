@@ -2337,6 +2337,10 @@
     const el = $("#skjerm");
     el.innerHTML = sk.vis(S);
     el.className = "skjerm skjerm-" + S.skjerm;
+    // Which screen is showing, on <html>: the «Slik spiller dere …» text under the page (written by
+    // the build, outside #skjerm) is shown on the home screen and the age gate only, so a game in
+    // progress never scrolls into it (rusj.css, «.om-spillet»).
+    document.documentElement.setAttribute("data-skjerm", S.skjerm === (APP.hjem || "hjem") ? "hjem" : S.skjerm);
     statusOverta(); // the status lines of the screen are the kit's to read out
     merkLiggende(); // before sk.etter: games measure the screen there
     if (valg.animer) {

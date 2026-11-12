@@ -1,0 +1,88 @@
+{
+  "rekkefolge": 11,
+  "tittel": "Spill alene – dagens ord, sudoku, kabal og hjernetrim",
+  "navn": "Spill alene",
+  "h1": "Spill alene",
+  "undertittel": "Daglige oppgaver og hjernetrim",
+  "beskrivelse": "Spill alene, gratis og uten reklame: dagens ord, minikryssord, sudoku, kabal, blokkpuslespill, 2048 og dagens quiz. Nye oppgaver hver dag.",
+  "ingress": [
+    "Fem minutter på bussen, en kaffepause eller en rolig kveld i sofaen: her er spillene for deg alene. Flere av dem har en ny oppgave hver dag, den samme for alle i hele landet, så du kan sammenligne med venner etterpå.",
+    "Alt er gratis og uten reklame. Spillene husker rekordene dine og hvor mange dager på rad du har klart dagens oppgave – bare på din egen enhet."
+  ],
+  "spill": [
+    [
+      "ordugla",
+      "Dagens ord: gjett ordet på fem bokstaver. Seks forsøk."
+    ],
+    [
+      "blyanten",
+      "Dagens minikryss – små kryssord laget for mobilen."
+    ],
+    [
+      "firklover",
+      "Seksten ord, fire grupper. Finn sammenhengen."
+    ],
+    [
+      "tallknuseren",
+      "Sudoku i fire nivåer, og en dagens sudoku for hele landet."
+    ],
+    [
+      "kortkongen",
+      "Kabal med dagens kabal og rekordtid."
+    ],
+    [
+      "blokka",
+      "Blokkpuslespill: fyll rader og kolonner og rydd brettet."
+    ],
+    [
+      "minesveiperen",
+      "Minesveiper der du aldri må gjette."
+    ],
+    [
+      "dobleren",
+      "Sveip, slå sammen og doble. Klarer du 2048?"
+    ],
+    [
+      "bedreviteren",
+      "Dagens quiz og over 1 200 spørsmål å øve på."
+    ],
+    [
+      "slangen",
+      "Snake: spis, voks og sving."
+    ],
+    [
+      "sjakkhesten",
+      "Sjakk mot mobilen på fire nivåer."
+    ]
+  ],
+  "kveldenTittel": "Slik legger du opp pausen",
+  "kvelden": [
+    [
+      "Ta dagens oppgaver",
+      "Ordugla, Blyanten, Firkløveren og dagens sudoku tar noen minutter hver. Forsiden viser hva du har klart i dag."
+    ],
+    [
+      "Del resultatet",
+      "Del hvor mange forsøk du brukte – uten å avsløre svaret for de som ikke har prøvd ennå."
+    ],
+    [
+      "Fortsett når du vil",
+      "Kabal, Blokka og 2048 har ingen dagsgrense. Spillet husker hvor du slapp."
+    ]
+  ],
+  "faq": [
+    [
+      "Når kommer nye oppgaver?",
+      "Ved midnatt norsk tid. Dagens oppgave er den samme for alle."
+    ],
+    [
+      "Må jeg ha konto for å holde rekka?",
+      "Nei. Rekka og rekordene lagres bare i nettleseren på enheten din."
+    ]
+  ],
+  "naboer": [
+    "ordspill",
+    "klassiske-spill",
+    "quiz"
+  ]
+}

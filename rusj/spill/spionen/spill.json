@@ -9,5 +9,7 @@
   "mobiler": "begge",
   "tagger": ["fest", "blof", "familie", "sporsmal"],
   "rekkefolge": 2,
-  "qr": true
+  "qr": true,
+  "alias": ["finn-spionen"],
+  "sok": ["finn spionen", "spion", "hvem er spionen", "hemmelig sted", "bløffespill", "spørsmålslek"]
 }

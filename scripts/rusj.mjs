@@ -6,6 +6,8 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
+import { lesRegler, eksemplerFor, omSpilletHtml, RUSINFO } from "./om-spillet.mjs";
+import { lesSamlinger, samlingInnhold, samlingJsonLd } from "./samlinger.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -13,6 +15,59 @@ export const DOMENE = "https://rusj.no";
 
 // Renamed games: old id → new id. The build writes /<old>/ as a page that sends visitors on.
 export const OMDOPT = { besserwisseren: "bedreviteren" };
+
+// Addresses that are pages of their own (or folders the build fills): an alias may never take one.
+export const FASTE_STIER = ["om", "personvern", "merker", "felles", "luringen", "404", "index", "sitemap", "robots", "manifest", "favicon", "sw"];
+
+// Alias addresses (`alias` in spill.json): /jeg-har-aldri/ → /sladrehanken/. Easy to say and type
+// at a party, and spelled the way people search. Returns Map(alias → game id) and stops the build
+// on an address that is taken (a game, a collection, a page, an old address or another alias), on
+// a malformed one, and on another company's brand: an address is visible use.
+// o: { spill: [{ id, alias }], opptatt: [addresses already in use], merke: (text) → brand | null }
+export function aliasKart(o) {
+  const feil = [];
+  const opptatt = new Map(o.opptatt.map((a) => [a, "en side"]));
+  for (const g of o.spill) opptatt.set(g.id, `spillet ${g.id}`);
+  const kart = new Map();
+  for (const g of o.spill) {
+    if (g.alias == null) continue;
+    if (!Array.isArray(g.alias)) {
+      feil.push(`${g.id}: "alias" må være en liste`);
+      continue;
+    }
+    for (const a of g.alias) {
+      if (typeof a !== "string" || !/^[a-z0-9æøå]+(-[a-z0-9æøå]+)*$/.test(a)) feil.push(`${g.id}: aliaset «${a}» kan bare ha små bokstaver, tall og bindestrek`);
+      else if (opptatt.has(a)) feil.push(`${g.id}: aliaset «${a}» er allerede ${opptatt.get(a)}`);
+      else if (kart.has(a)) feil.push(`${g.id}: aliaset «${a}» brukes også av ${kart.get(a)}`);
+      else if (o.merke(a.replace(/-/g, " "))) feil.push(`${g.id}: aliaset «${a}» er en annens merkevare («${o.merke(a.replace(/-/g, " "))}»)`);
+      else kart.set(a, g.id);
+    }
+  }
+  if (feil.length) throw new Error("Alias-adressene har feil:\n  " + feil.join("\n  "));
+  return kart;
+}
+
+// A tiny page that sends the visitor on: meta refresh (no script under the CSP), noindex, and the
+// canonical address for search engines. Never in the sitemap or the offline list.
+function videresendSide(m, tekst) {
+  return `<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="${CSP}">
+<meta name="robots" content="noindex">
+<title>${esc(m.navn)} | rusj</title>
+<link rel="canonical" href="${DOMENE}/${m.id}/">
+<meta http-equiv="refresh" content="0; url=/${m.id}/">
+<style>body{background:#150c28;color:#fff1dd;font:1.1rem/1.5 system-ui,sans-serif;text-align:center;padding:3rem 1rem}a{color:#ffd23f}</style>
+</head>
+<body>
+${tekst ? `<p>${esc(tekst)}</p>\n` : ""}<p><a href="/${m.id}/">Gå til ${esc(m.navn)}</a></p>
+</body>
+</html>
+`;
+}
 
 // Anonymous statistics (see statistikk/README.md and statistikk/KLIENT.md). The address of the
 // statistics Worker, e.g. "https://rusj-statistikk.<konto>.workers.dev". Empty = switched off:
@@ -109,10 +164,15 @@ const MERKER = [
   "kahoot", "pictionary", "skribbl", "gartic", "battleship", "connect four", "connect 4", "yahtzee", "uno", "scattergories",
   "taboo", "tabu", "trivial pursuit", "bezzerwizzer", "fia med knuff", "maxi-yatzy", "maxi yatzy", "memory",
 ];
-export const merkeI = (tekst) => {
+const finnMerke = (liste, tekst) => {
   const t = " " + String(tekst).toLocaleLowerCase("nb").replace(/[^a-zæøå0-9-]+/g, " ") + " ";
-  return MERKER.find((m) => t.includes(" " + m + " ")) || null;
+  return liste.find((m) => t.includes(" " + m.replace(/[^a-zæøå0-9-]+/g, " ") + " ")) || null;
 };
+export const merkeI = (tekst) => finnMerke(MERKER, tekst);
+// Text the build writes itself (the «Slik spiller dere» block, collection pages, alias addresses)
+// is held to a stricter list: also game names that sound generic but belong to someone.
+const MERKER_SYNLIG = [...MERKER, "ring of fire", "wordle", "time's up", "times up", "codenames"];
+export const merkeSynlig = (tekst) => finnMerke(MERKER_SYNLIG, tekst);
 export const TITTEL_MAKS = 62; // with « | rusj»; search results show about 60 characters
 export const BESKRIVELSE_GRENSER = [100, 160];
 
@@ -262,7 +322,7 @@ export function spillJsonLd(m, s, bilde) {
 function sistEndret(rot) {
   const datoer = new Map(); // first path segment(s) -> YYYY-MM-DD
   try {
-    const ut = execFileSync("git", ["log", "-n", "500", "--format=@%cs", "--name-only", "--", "rusj/spill", "rusj/portal", "rusj/seo.json", "src", "data"], {
+    const ut = execFileSync("git", ["log", "-n", "500", "--format=@%cs", "--name-only", "--", "rusj/spill", "rusj/portal", "rusj/seo.json", "rusj/samlinger", "src", "data"], {
       cwd: rot,
       encoding: "utf8",
       maxBuffer: 32 * 1024 * 1024,
@@ -440,6 +500,17 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
   felles.merker = skriv("felles/merker.js", "window.RUSJ_MERKER=" + JSON.stringify(merkeData).replace(/</g, "\\u003c") + ";\n" + kilde("rusj/kit/merker.js"));
 
   const seo = lesSeo(ROT);
+  // Collection pages (rusj/samlinger/*.json): read before the games, so every game page can link to
+  // the collections it is in. Checked against every game, also those left out of a test build.
+  const samlinger = lesSamlinger({
+    rot: ROT,
+    spillIder: ["luringen", ...alleSpillKort.map((g) => g.id)],
+    atten: alleSpillKort.filter((g) => g.alder18).map((g) => g.id),
+    tittelMaks: TITTEL_MAKS,
+    beskrivelse: BESKRIVELSE_GRENSER,
+    merke: merkeSynlig,
+  });
+  const samlingerMed = (id) => samlinger.filter((s) => s.spill.some(([x]) => x === id)).map((s) => [`/${s.slug}/`, s.navn]);
   const seoAv = new Map(); // one lookup per game (and one warning, if a game has no entry yet)
   const sokedata = (m) => {
     if (!seoAv.has(m.id)) seoAv.set(m.id, seoFor(seo, m));
@@ -503,6 +574,12 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
     // Title, description and link preview come from rusj/seo.json: the words people search for
     // first, the mascot second. The mascot stays the name on the page itself.
     const sd = sokedata(m);
+    // «Slik spiller dere …» under the app (scripts/om-spillet.mjs): the rules from the game's own
+    // Rusj.start(), and for ordinary games real examples from its data. Outside #skjerm, so the kit
+    // never draws over it; the kit hides it on every screen but the home screen and the age gate.
+    const lest = lesRegler({ m, spillJs, data, ordData, G });
+    if (lest.feil) console.warn(`  ⚠ ${id}: ${lest.feil} – siden får ingen «Slik spiller dere»-blokk`);
+    const omHtml = lest.regler ? omSpilletHtml(m, { regler: lest.regler, eksempler: eksemplerFor(m, data), frase: merkeSynlig(sd.frase) ? m.undertittel : sd.frase, lenker: samlingerMed(id) }) : "";
     const side = `${hodeMed({
       tittel: sd.tittel,
       ogTittel: sd.ogTittel,
@@ -541,6 +618,7 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
     </section>
   </main>
 </div>
+${omHtml}
 <div class="ark-bakgrunn" id="ark" hidden><div class="ark" role="dialog" aria-modal="true" aria-labelledby="ark-tittel" id="ark-innhold"></div></div>
 <div class="nedtelling" id="nedtelling" hidden aria-live="assertive"></div>
 <canvas class="konfetti" id="konfetti" aria-hidden="true"></canvas>
@@ -770,7 +848,7 @@ ${bunn(false)}
   // leave the contact line out.
   const KONTAKT = "rusj@odkdigital.no";
   const POSTADRESSE = ""; // the owner wants only the e-mail address shown
-  const omSide = (o) => `${hodeMed({ tittel: o.tittel, ogTittel: o.ogTittel, beskrivelse: o.beskrivelse, sti: o.sti, ikon: ikoner.svg, deling: ikoner.deling, delingAlt: "rusj – gratis spill og selskapsleker på norsk", css: [felles.css, portalCss], skript: o.skript ? [].concat(o.skript) : [] })}
+  const omSide = (o) => `${hodeMed({ tittel: o.tittel, ogTittel: o.ogTittel, beskrivelse: o.beskrivelse, sti: o.sti, ikon: ikoner.svg, deling: ikoner.deling, delingAlt: "rusj – gratis spill og selskapsleker på norsk", css: [felles.css, portalCss, ...(o.css || [])], skript: o.skript ? [].concat(o.skript) : [], jsonld: o.jsonld })}
 <body class="portal${o.klasse ? " " + o.klasse : ""}">
 <div class="scene" aria-hidden="true"></div>
 <header class="side-topp"><a class="side-hjem" href="/" aria-label="rusj – til alle spillene">${G.logo()}</a></header>
@@ -941,6 +1019,32 @@ ${album}
     }),
   );
 
+  // ---------- Collections: /julebordleker/, /spill-for-to/ … (rusj/samlinger, scripts/samlinger.mjs) ----------
+  // A hand-written page per occasion or kind of game, with the games that fit and why. The 18+ hub
+  // only names the drinking games and links to their rules; every game keeps its own age gate.
+  const samlingCss = samlinger.length ? skriv("felles/samling.css", kilde("rusj/samlinger/samling.css")) : null;
+  const spillAv = new Map(alleSpillKort.map((g) => [g.id, g]));
+  const fraseAv = (g) => {
+    const f = sokedata(g).frase;
+    return merkeSynlig(f) ? g.undertittel : f;
+  };
+  for (const s of samlinger) {
+    skriv(
+      `${s.slug}/index.html`,
+      omSide({
+        sti: `/${s.slug}/`,
+        navn: s.navn,
+        tittel: `${s.tittel} | rusj`,
+        ogTittel: s.alder18 && !s.h1.includes("18+") ? `${s.h1} (18+)` : s.h1,
+        beskrivelse: s.beskrivelse,
+        css: [samlingCss],
+        klasse: "samling",
+        jsonld: samlingJsonLd(s, { domene: DOMENE, spill: spillAv, utgiver: UTGIVER }),
+        innhold: samlingInnhold(s, { spill: spillAv, frase: fraseAv, figur: (id) => G.svg(id), naboer: (n) => samlinger.find((x) => x.slug === n), rusinfo: RUSINFO }),
+      }),
+    );
+  }
+
   // ---------- 404 (never indexed: no canonical address) ----------
   skriv(
     "404.html",
@@ -964,28 +1068,19 @@ ${album}
   for (const [gammel, ny] of Object.entries(OMDOPT)) {
     const m = spill.find((x) => x.id === ny);
     if (!m) continue;
-    skriv(
-      `${gammel}/index.html`,
-      `<!doctype html>
-<html lang="nb">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="${CSP}">
-<meta name="robots" content="noindex">
-<title>${esc(m.navn)} | rusj</title>
-<link rel="canonical" href="${DOMENE}/${ny}/">
-<meta http-equiv="refresh" content="0; url=/${ny}/">
-<style>body{background:#150c28;color:#fff1dd;font:1.1rem/1.5 system-ui,sans-serif;text-align:center;padding:3rem 1rem}a{color:#ffd23f}</style>
-</head>
-<body>
-<p>Spillet heter nå ${esc(m.navn)}.</p>
-<p><a href="/${ny}/">Gå til ${esc(m.navn)}</a></p>
-</body>
-</html>
-`,
-    );
+    skriv(`${gammel}/index.html`, videresendSide(m, `Spillet heter nå ${m.navn}.`));
   }
+
+  // ---------- Alias addresses: /jeg-har-aldri/ → /sladrehanken/ (`alias` in spill.json) ----------
+  // Checked against every game, collection and page (also in a partial build); written for the
+  // games in this build. The same small page as above, out of the sitemap and the offline list.
+  const alias = aliasKart({
+    spill: alleSpillKort, // (Luringen's aliases are checked whenever Luringen is in the build)
+    opptatt: [...FASTE_STIER, ...Object.keys(OMDOPT), ...samlinger.map((x) => x.slug)],
+    merke: merkeSynlig,
+  });
+  const iBygget = new Map([...(luringen ? [luringen] : []), ...spill].map((g) => [g.id, g]));
+  for (const [a, id] of alias) if (iBygget.has(id)) skriv(`${a}/index.html`, videresendSide(iBygget.get(id), ""));
 
   // ---------- Manifest, favicon, robots, sitemap ----------
   // Shortcuts (long press on the app icon): the three daily puzzles and «Overrask meg». Only games
@@ -1055,6 +1150,7 @@ ${album}
     ["/om/", SIDER_OPPDATERT],
     ["/personvern/", SIDER_OPPDATERT],
     ["/merker/", nyeste(datoer.get("rusj/merker.json"))],
+    ...samlinger.map((s) => [`/${s.slug}/`, nyeste(datoer.get("rusj/samlinger"), ...s.spill.map(([id]) => spillAv.get(id)).filter(Boolean).map(spillDato))]),
   ];
   skriv(
     "sitemap.xml",
@@ -1067,7 +1163,7 @@ ${album}
     // What the service worker keeps for playing without a connection: every page, the front page
     // first, then the games in front-page order. Which files a page needs, the worker reads from
     // the page itself (every address with ?v=), so there is no second list to keep in step.
-    sider: ["/", ...alleKort.map((m) => `/${m.id}/`), "/om/", "/personvern/", "/merker/"],
+    sider: ["/", ...alleKort.map((m) => `/${m.id}/`), "/om/", "/personvern/", "/merker/", ...samlinger.map((s) => `/${s.slug}/`)],
   };
 }
 

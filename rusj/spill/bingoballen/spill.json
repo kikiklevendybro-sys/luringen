@@ -10,5 +10,6 @@
   "tagger": ["fest", "familie"],
   "rekkefolge": 41,
   "qr": true,
-  "sok": ["bingo", "festbingo", "julebordbingo", "bryllupsbingo", "tallbingo", "bingobrett", "bingo på mobilen"]
+  "sok": ["bingo", "festbingo", "julebordbingo", "bryllupsbingo", "tallbingo", "bingobrett", "bingo på mobilen"],
+  "alias": ["bingo"]
 }

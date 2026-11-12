@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["daglig", "klassiker", "kort", "alene", "tenke"],
   "rekkefolge": 25,
-  "sok": ["kabal", "klondike", "solitaire", "patience", "kortkabal", "kabal på nett", "dagens kabal"]
+  "sok": ["kabal", "klondike", "solitaire", "patience", "kortkabal", "kabal på nett", "dagens kabal"],
+  "alias": ["kabal"]
 }

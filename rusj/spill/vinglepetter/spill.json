@@ -8,5 +8,7 @@
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["fest", "familie", "barn", "sporsmal"],
-  "rekkefolge": 6
+  "rekkefolge": 6,
+  "alias": ["hva-vil-du-helst"],
+  "sok": ["hva vil du helst", "vil du heller", "dilemma", "dilemmaer", "enten eller", "samtalespill"]
 }

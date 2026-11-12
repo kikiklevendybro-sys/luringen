@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["familie", "barn", "fest"],
   "rekkefolge": 48,
-  "sok": ["julekalender", "adventskalender", "luke", "jul", "desember", "julenøtter"]
+  "sok": ["julekalender", "adventskalender", "luke", "jul", "desember", "julenøtter"],
+  "alias": ["adventskalender"]
 }

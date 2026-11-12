@@ -1,0 +1,95 @@
+{
+  "rekkefolge": 4,
+  "tittel": "Festleker – leker til fest for voksne og ungdom",
+  "navn": "Festleker",
+  "h1": "Festleker",
+  "undertittel": "Leker til fest for vennegjengen",
+  "beskrivelse": "Festleker for vennegjengen: bløff, sannhet eller konsekvens, forklar ordet og varulv. Gratis på mobilen, uten app – og uten at noen må drikke.",
+  "ingress": [
+    "Når vennegjengen er samlet og praten trenger en gnist, er det disse lekene som gjør kvelden: bløff og avsløring, lag mot lag med ord, og spørsmål som får fram historiene ingen visste om. De passer for voksne og ungdom, på vors, hyttetur eller en helt vanlig fredag.",
+    "Ingen av lekene handler om drikke. De handler om å lese hverandre, finne på svar og le av det som skjer – og de fungerer like godt med brus som med noe annet i glasset."
+  ],
+  "spill": [
+    [
+      "luringen",
+      "Alle får det hemmelige ordet unntatt luringen. Bløffeleken som setter i gang flest diskusjoner."
+    ],
+    [
+      "spionen",
+      "Alle vet hvor dere er – bortsett fra spionen. Still spørsmål og finn den som gjetter."
+    ],
+    [
+      "varulven",
+      "Den klassiske varulvleken – mobilen er spillederen. Eller «Én natt» på sju minutter."
+    ],
+    [
+      "skravla",
+      "Forklar ordet uten å si det – første lag i mål vinner."
+    ],
+    [
+      "hatten",
+      "De samme ordene tre ganger: forklar, ett ord, mim. Blir bare morsommere for hver runde."
+    ],
+    [
+      "vaghalsen",
+      "Sannhet eller konsekvens med pakker for venner, fest og par – og alle kan si pass."
+    ],
+    [
+      "vinglepetter",
+      "Hva vil du helst? Alle velger samtidig, og så må dere forsvare valget."
+    ],
+    [
+      "lognhalsen",
+      "To sannheter og en løgn. Klarer de andre å avsløre deg?"
+    ],
+    [
+      "skronemakeren",
+      "Alle dikter en forklaring på et rart ord. Finner dere den ekte?"
+    ],
+    [
+      "kodeknekkeren",
+      "Kodeord i lag: ett ord og et tall – finn agentene og styr unna fella."
+    ],
+    [
+      "meyer",
+      "Terningbløff: slå, si et tall og håp at ingen sjekker."
+    ],
+    [
+      "tieren",
+      "Ti svar på ringen. Ta ett til – eller stopp mens du leder?"
+    ]
+  ],
+  "kvelden": [
+    [
+      "Start rolig",
+      "Vinglepetter eller Løgnhalsen får praten i gang mens folk kommer. Én mobil går rundt."
+    ],
+    [
+      "Lag mot lag",
+      "Skravla, Hatten eller Kodeknekkeren når gjengen er varm. Del dere i to lag og la mobilen holde tiden."
+    ],
+    [
+      "Avslør bløfferne",
+      "Avslutt med Luringen, Spionen eller Varulven – lekene folk snakker om dagen etter."
+    ]
+  ],
+  "faq": [
+    [
+      "Er dette drikkeleker?",
+      "Nei. Ingen av lekene her handler om drikke, og alle kan være med uansett hva de har i glasset."
+    ],
+    [
+      "Hvilken lek passer for mange?",
+      "Varulven og Spionen er best fra fem–seks spillere. Skravla og Hatten fungerer for store grupper delt i lag."
+    ],
+    [
+      "Trenger vi kort eller utstyr?",
+      "Nei. Mobilen er kortstokken, timeren og poengtavla. I noen lekene kan hver bruke sin egen mobil."
+    ]
+  ],
+  "naboer": [
+    "selskapsleker",
+    "bli-kjent-leker",
+    "ordspill"
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "rekkefolge": 1,
+  "tittel": "Julebordleker – leker, bingo og quiz til julebordet",
+  "navn": "Julebordleker",
+  "h1": "Julebordleker",
+  "undertittel": "Leker, bingo og quiz til julebordet",
+  "beskrivelse": "Gratis julebordleker på mobilen: julebordbingo, nissetrekning, mimelek og bløffespill for kolleger og venner. Uten app, konto og reklame.",
+  "ingress": [
+    "Et godt julebord trenger ikke mer enn god mat, hyggelige folk og én lek som får hele bordet til å le samtidig. Her er lekene som fungerer rundt et langbord: de er raske å forklare, alle kan være med uten å kunne noe på forhånd, og det eneste dere trenger, er en mobil.",
+    "Start med noe som bryter isen mens folk finner plassene sine, ta en lagkamp mellom hovedretten og desserten, og avslutt med bingo eller bløff til taxien kommer. Ingen av lekene handler om drikke, så alle kan være med på like vilkår."
+  ],
+  "spill": [
+    [
+      "bingoballen",
+      "Julebordbingo med øyeblikk som «Sjefen holder tale» og «Noen har på nisselue». Alle har brettet på sin egen mobil."
+    ],
+    [
+      "nissen",
+      "Trekk hemmelig nisse før julebordet – på én mobil eller med en egen lenke til hver, uten lapper i lua."
+    ],
+    [
+      "pekefingeren",
+      "Egen pakke for jul og julebord: hvem er mest sannsynlig til å …? Alle peker samtidig, og latteren kommer av seg selv."
+    ],
+    [
+      "luringen",
+      "Alle får det hemmelige ordet – unntatt luringen. Passer perfekt for et bord på seks til ti."
+    ],
+    [
+      "mimen",
+      "Mim jul og julebord uten ord. Fungerer i store selskap, også når det er bråkete i lokalet."
+    ],
+    [
+      "nynneren",
+      "65 julesanger å nynne uten ord. Spill lag mot lag på tvers av bordet."
+    ],
+    [
+      "sladrehanken",
+      "«Jeg har aldri» med en egen jule- og julebordpakke. Det holder å rekke opp hånda."
+    ],
+    [
+      "spionen",
+      "Alle vet at dere er på julebordet – bortsett fra spionen. Klarer dere å avsløre hen?"
+    ],
+    [
+      "bedreviteren",
+      "Quiz med fire svaralternativer og en faktabit på kjøpet. Lag mot lag mellom rettene."
+    ],
+    [
+      "tankeleseren",
+      "Er dere på samme bølgelengde? Skalaer som «Lite jul – Ekstremt mye jul» gir gode diskusjoner."
+    ]
+  ],
+  "kvelden": [
+    [
+      "Før maten: bryt isen",
+      "Start med Pekefingeren eller Sladrehanken mens folk finner plassene sine. Én mobil går rundt bordet, og ingen trenger å forberede noe."
+    ],
+    [
+      "Mellom rettene: lag mot lag",
+      "Del bordet i to lag og ta noen runder Bedreviteren, Nynneren eller Mimen. Hold rundene korte, så maten ikke blir kald."
+    ],
+    [
+      "Etter desserten: bingo eller bløff",
+      "Alle åpner Bingoballen på sin egen mobil – eller samle dem som vil, rundt Luringen eller Spionen."
+    ]
+  ],
+  "faq": [
+    [
+      "Trenger alle hver sin mobil?",
+      "Nei. De fleste lekene går på rundgang på én mobil. Bingoballen og nissetrekningen kan bruke hver sin mobil, og da skanner de andre bare en QR-kode."
+    ],
+    [
+      "Fungerer lekene uten alkohol?",
+      "Ja. Ingen av lekene på denne siden handler om drikke. Det eneste som teller, er hvem som ler mest."
+    ],
+    [
+      "Hvor mange kan være med?",
+      "Bingoballen tar opptil 40 spillere, Mimen og Pekefingeren opptil 20. Er dere flere, del dere opp bord for bord eller i lag."
+    ]
+  ],
+  "naboer": [
+    "juleleker",
+    "selskapsleker",
+    "festleker"
+  ]
+}

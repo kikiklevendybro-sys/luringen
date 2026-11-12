@@ -9,5 +9,7 @@
   "mobiler": "en",
   "tagger": ["fest", "familie", "ord", "lag"],
   "rekkefolge": 7,
-  "ordbank": true
+  "ordbank": true,
+  "alias": ["forklar-ordet"],
+  "sok": ["forklar ordet", "forbudte ord", "ordforklaring", "ordlek lag", "lagspill"]
 }

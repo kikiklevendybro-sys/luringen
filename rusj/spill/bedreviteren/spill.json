@@ -22,5 +22,7 @@
     "daglig"
   ],
   "rekkefolge": 10,
-  "dagnavn": "Dagens fem"
+  "dagnavn": "Dagens fem",
+  "alias": ["festquiz"],
+  "sok": ["quiz", "festquiz", "quiz spørsmål", "spørrekonkurranse", "dagens quiz", "quiz for barn", "allmennkunnskap"]
 }

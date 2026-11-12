@@ -10,5 +10,6 @@
   "tagger": ["klassiker", "alene"],
   "rekkefolge": 31,
   "farge": "#6fe07a",
-  "sok": ["snake", "slangespill", "ormespill", "slange"]
+  "sok": ["snake", "slangespill", "ormespill", "slange"],
+  "alias": ["snake"]
 }

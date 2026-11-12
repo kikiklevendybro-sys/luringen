@@ -10,5 +10,6 @@
   "tagger": ["klassiker", "barn", "familie", "alene"],
   "rekkefolge": 27,
   "sok": ["fire på rad", "4 på rad", "connect four", "connect 4", "firepårad"],
-  "motMobilen": true
+  "motMobilen": true,
+  "alias": ["fire-pa-rad"]
 }

@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["klassiker", "familie", "barn"],
   "rekkefolge": 34,
-  "sok": ["ludo", "knuff", "brettspill", "terningspill", "fia"]
+  "sok": ["ludo", "knuff", "brettspill", "terningspill", "fia"],
+  "alias": ["ludo"]
 }

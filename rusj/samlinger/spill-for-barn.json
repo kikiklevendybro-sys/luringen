@@ -1,0 +1,95 @@
+{
+  "rekkefolge": 5,
+  "tittel": "Spill for barn – gratis leker uten reklame",
+  "navn": "Spill for barn",
+  "h1": "Spill og leker for barn",
+  "undertittel": "Gratis, uten reklame og uten konto",
+  "beskrivelse": "Gratis spill for barn uten reklame: vendespill, kims lek, galgen, ludo, mimeleken og tegn og gjett. Ingen konto, ingen chat – alt blir på enheten.",
+  "ingress": [
+    "Spill for barn skal være morsomme, trygge og fri for reklame som lokker til kjøp. Her er spillene som passer for barn hjemme, i bursdager, på SFO og i klasserommet: hukommelse, ord, tegning og klassiske brettspill.",
+    "Det finnes ingen konto, ingen chat og ingen reklame på rusj, og det barna skriver inn, blir på enheten. De fleste spillene har egne barnepakker med lettere ord og spørsmål, og mange kan spilles sammen med en voksen."
+  ],
+  "spill": [
+    [
+      "elefanten",
+      "Vendespill med dyr, mat, kjøretøy og julemotiver – finn to like. For de minste og oppover."
+    ],
+    [
+      "skjaera",
+      "Kims lek: se godt på tingene, skjæra stjeler én. Trener hukommelsen."
+    ],
+    [
+      "ballongen",
+      "Galgen for barn – gjett ordet før ballongene sprekker, og ingen blir hengt."
+    ],
+    [
+      "brikka",
+      "Ludo for opptil fire, med mobilen som terning og brett."
+    ],
+    [
+      "stigespillet",
+      "Stiger og sklier – klatre opp og skli ned. Perfekt for dem som akkurat har lært å telle."
+    ],
+    [
+      "mimen",
+      "Mimeleken med egen barnepakke: dyr, eventyr og ting fra hverdagen."
+    ],
+    [
+      "kunstneren",
+      "Tegn med fingeren, de andre gjetter. Lette ord som katt, sol og eple."
+    ],
+    [
+      "papegoyen",
+      "Svar på spørsmålene uten å si «ja» eller «nei». Barnepakken har spørsmål som «Bor det en drage under senga di?»."
+    ],
+    [
+      "bokstavtrollet",
+      "Alfabetleken: si et ord på bokstaven før trollet våkner. Lette kategorier for barn."
+    ],
+    [
+      "panna",
+      "Gjett ordet på panna med en egen barnekortstokk."
+    ],
+    [
+      "bonden",
+      "Bondesjakk: tre på rad vinner. Mot mobilen eller hverandre."
+    ],
+    [
+      "fireren",
+      "Fire på rad – slipp brikkene og planlegg et trekk fram."
+    ]
+  ],
+  "kvelden": [
+    [
+      "Begynn med noe kjent",
+      "Elefanten, Bondesjakk eller Stigespillet har regler barna kan fra før, og de kommer raskt i gang."
+    ],
+    [
+      "Lek sammen",
+      "Mimen, Kunstneren og Papegøyen er best med flere rundt bordet – de voksne er gjerne med."
+    ],
+    [
+      "Avslutt rolig",
+      "Skjæra eller Ballongen passer når tempoet skal ned før leggetid."
+    ]
+  ],
+  "faq": [
+    [
+      "Er spillene trygge for barn?",
+      "Det er ingen reklame, ingen konto og ingen chat. Navnene barna skriver inn, lagres bare i nettleseren på enheten."
+    ],
+    [
+      "Fra hvilken alder passer spillene?",
+      "Elefanten, Skjæra og Stigespillet passer fra barnehagealder. Ord- og tegnelekene passer best fra skolealder, eller med en voksen som leser."
+    ],
+    [
+      "Kan vi bruke dem i klasserommet?",
+      "Ja. Galgen, Bokstavtrollet og Mimen fungerer godt på storskjerm eller nettbrett, og det trengs ingen innlogging."
+    ]
+  ],
+  "naboer": [
+    "juleleker",
+    "selskapsleker",
+    "spill-for-to"
+  ]
+}

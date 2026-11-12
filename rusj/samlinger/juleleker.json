@@ -1,0 +1,91 @@
+{
+  "rekkefolge": 2,
+  "tittel": "Juleleker for hele familien – gratis på mobilen",
+  "navn": "Juleleker",
+  "h1": "Juleleker for hele familien",
+  "undertittel": "Julespill for store og små",
+  "beskrivelse": "Juleleker og julespill for hele familien: nissetrekning, julebingo, julekalender, julesanger å nynne og leker for barn. Gratis, uten app og reklame.",
+  "ingress": [
+    "Romjulskvelder, besteforeldre på besøk og barn som ikke klarer å vente på pakkene: her er julelekene som samler store og små rundt samme bord. Alt virker rett i nettleseren på mobilen eller nettbrettet, og navnene skrives inn bare én gang.",
+    "Mange av spillene har egne julepakker – julesanger, julespørsmål og ting å tegne og mime fra juletreet og pepperkakehuset. Velg en rolig lek til grøten og en vill en til etter pakkene."
+  ],
+  "spill": [
+    [
+      "nissen",
+      "Nissetrekning for familien – ingen ser hvem de andre har trukket, og det følger med gaveideer."
+    ],
+    [
+      "julekalenderen",
+      "24 luker med nøtter, quiz og julekos – én ny hver dag i desember."
+    ],
+    [
+      "bingoballen",
+      "Julaftenbingo: «Noen finner mandelen», «Noen sovner i sofaen». Hver har brettet på sin egen mobil."
+    ],
+    [
+      "nynneren",
+      "65 julesanger å nynne, fra «Glade jul» til «Musevisa». De andre gjetter."
+    ],
+    [
+      "mimen",
+      "Mim nisser, pepperkaker og juletrepynt. Barna mimer og de voksne gjetter – eller omvendt."
+    ],
+    [
+      "kunstneren",
+      "Tegn og gjett med fingeren på skjermen. Alle kan være med, også de som sier at de ikke kan tegne."
+    ],
+    [
+      "femmeren",
+      "Nevn tre juleretter på fem sekunder! Egen julepakke med oppgaver for hele familien."
+    ],
+    [
+      "detektiven",
+      "Hvem er jeg? Egen julepakke med nisser, julemat og juletradisjoner – 20 ja/nei-spørsmål på å finne svaret."
+    ],
+    [
+      "elefanten",
+      "Vendespill med eget julemotiv: finn to like. Fint for de minste."
+    ],
+    [
+      "skjaera",
+      "Kims lek med juleting: se godt på tingene – skjæra stjeler én. Hva mangler?"
+    ],
+    [
+      "terninga",
+      "Terningspillet med fem terninger og blokka regnet ut for dere. Perfekt til romjulskvelden."
+    ]
+  ],
+  "kvelden": [
+    [
+      "Før jul: trekk nisser",
+      "Bruk Nissen til familiens hemmelige gaver, og åpne en luke i Julekalenderen hver dag i desember."
+    ],
+    [
+      "Mens dere venter: rolige leker",
+      "Elefanten, Skjæra og Detektiven passer mens grøten koker eller ribba står i ovnen."
+    ],
+    [
+      "Etter pakkene: full fart",
+      "Mimen, Nynneren og Kunstneren får hele familien opp av sofaen. Bingoballen er perfekt når alle sitter med hver sin mobil uansett."
+    ]
+  ],
+  "faq": [
+    [
+      "Passer lekene for små barn?",
+      "Ja. Elefanten, Skjæra og Mimen fungerer fra barnehagealder, og de fleste andre spillene har en egen pakke for barn."
+    ],
+    [
+      "Må vi laste ned en app?",
+      "Nei. Alt virker i nettleseren. Vil dere ha rusj på hjemskjermen, kan dere legge det til der – da virker spillene også uten nett."
+    ],
+    [
+      "Hvordan fungerer nissetrekningen?",
+      "Skriv inn navnene, og send mobilen rundt eller gi hver person en egen lenke. Mobilen sørger for at ingen trekker seg selv, og ingen ser de andres lapper."
+    ]
+  ],
+  "naboer": [
+    "julebordleker",
+    "spill-for-barn",
+    "selskapsleker"
+  ]
+}

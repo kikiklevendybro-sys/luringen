@@ -10,5 +10,6 @@
   "tagger": ["klassiker", "tenke", "alene"],
   "rekkefolge": 26,
   "sok": ["sjakk", "chess", "sjakk på nett", "sjakk mot data", "sjakkspill", "spill sjakk"],
-  "motMobilen": true
+  "motMobilen": true,
+  "alias": ["sjakk"]
 }

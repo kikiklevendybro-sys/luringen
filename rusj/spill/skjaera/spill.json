@@ -9,5 +9,7 @@
   "mobiler": "en",
   "tagger": ["barn", "familie", "hukommelse"],
   "rekkefolge": 20,
-  "farge": "#4fcfff"
+  "farge": "#4fcfff",
+  "alias": ["kims-lek", "skjæra"],
+  "sok": ["kims lek", "hva mangler", "huskelek", "huskespill", "hukommelse", "barnelek"]
 }

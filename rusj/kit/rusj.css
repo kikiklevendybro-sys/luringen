@@ -3237,3 +3237,219 @@ textarea.tekstfelt {
     animation: none;
   }
 }
+
+/* ---------- «Slik spiller dere …»: the readable text under a game page ----------
+   Written by the build (scripts/om-spillet.mjs) after .app, outside #skjerm. The app still fills
+   the first screen, so the block starts below it: the home screen looks as before, and whoever
+   scrolls finds the rules. While a game is in progress it is gone (the kit marks the screen on
+   <html>), so no game screen can scroll into it. Without JavaScript it is simply there.
+   It hangs below the body instead of being a part of its column: the app is sized exactly as it
+   was before the block existed (it fills the screen, the dock sits at the bottom). */
+body:not(.portal) {
+  position: relative;
+}
+
+.om-spillet {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 26px max(16px, env(safe-area-inset-right, 0px)) calc(40px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  color: var(--tekst-2);
+  overflow-wrap: break-word;
+}
+
+html[data-skjerm]:not([data-skjerm="hjem"]):not([data-skjerm="alder"]) .om-spillet {
+  display: none;
+}
+
+.om-spillet::before {
+  content: "";
+  display: block;
+  height: 2px;
+  margin-bottom: 22px;
+  border-radius: 2px;
+  background: linear-gradient(to right, transparent, var(--strek) 18%, var(--strek) 82%, transparent);
+}
+
+.om-spillet h2,
+.om-spillet h3,
+.om-spillet h4 {
+  color: var(--tekst);
+  font-family: var(--font-display);
+  line-height: 1.2;
+}
+
+.om-spillet h2 {
+  margin: 4px 0 2px;
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.om-spillet h3 {
+  margin: 26px 0 8px;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.om-spillet h4 {
+  margin: 16px 0 6px;
+  color: var(--aksent);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.om-etikett {
+  margin: 0;
+  color: var(--aksent);
+  font: 800 0.75rem/1.4 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.om-sjanger {
+  margin: 0 0 12px;
+  color: var(--tekst-3);
+  font-weight: 600;
+}
+
+.om-fakta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.om-fakta li {
+  padding: 4px 11px;
+  border: 1.5px solid var(--strek);
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.om-ingress {
+  margin: 0 0 14px;
+  color: var(--tekst);
+  font-size: 1.05rem;
+}
+
+.om-steg {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: om-steg;
+}
+
+.om-steg li {
+  position: relative;
+  min-height: 34px;
+  padding: 4px 0 0 46px;
+  counter-increment: om-steg;
+}
+
+.om-steg li::before {
+  content: counter(om-steg);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--aksent);
+  color: var(--natt);
+  font: 900 1rem/1 var(--font-display);
+}
+
+.om-steg b {
+  display: block;
+  color: var(--tekst);
+}
+
+.om-tips,
+.om-eksempler,
+.om-vett ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.om-tips li::marker,
+.om-eksempler li::marker,
+.om-vett li::marker {
+  color: var(--aksent);
+}
+
+.om-mer {
+  margin: 10px 0 0;
+  color: var(--tekst-3);
+  font-style: italic;
+}
+
+.om-vett {
+  margin-top: 24px;
+  padding: 4px 18px 16px;
+  border: 2px solid var(--strek);
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+}
+
+.om-vett h3 {
+  margin-top: 14px;
+}
+
+.om-vett p {
+  margin: 12px 0 0;
+}
+
+.om-spillet a {
+  color: var(--tekst);
+  font-weight: 700;
+  text-decoration-color: var(--aksent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.om-lenker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.om-lenker a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 2px solid var(--strek);
+  border-radius: 999px;
+  background: var(--natt-2);
+  font: 800 0.95rem/1.2 var(--font-display);
+  text-decoration: none;
+}
+
+/* On a phone on its side the age gate puts its dock in a fixed column on the right: keep the text
+   out from under it. */
+@media (orientation: landscape) and (max-height: 500px) {
+  html[data-liggende] .om-spillet {
+    max-width: var(--app-liggende);
+  }
+
+  html[data-liggende="side"] .om-spillet {
+    padding-right: calc(var(--dokk-b) + var(--dokk-luft) + max(16px, env(safe-area-inset-right, 0px)));
+  }
+}

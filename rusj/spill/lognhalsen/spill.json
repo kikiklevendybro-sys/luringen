@@ -8,5 +8,7 @@
   "minutter": [10, 40],
   "mobiler": "en",
   "tagger": ["fest", "familie", "blof", "sporsmal"],
-  "rekkefolge": 15
+  "rekkefolge": 15,
+  "alias": ["to-sannheter-og-en-logn", "løgnhalsen"],
+  "sok": ["to sannheter og en løgn", "løgn", "bli kjent", "bli kjent-lek", "klassefest", "historier"]
 }
