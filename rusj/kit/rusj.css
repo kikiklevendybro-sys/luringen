@@ -3075,3 +3075,165 @@ textarea.tekstfelt {
 .alder-boks .tips li {
   font-weight: 600;
 }
+
+/* ---------- Stickers («Klistremerkeboka», /merker/) ---------- */
+
+/* A round die-cut sticker: a paper rim, a coloured disc with the mascot (or an emoji), a gloss
+   highlight and an optional number badge. Size with --ms. */
+.klistre {
+  --ms: 88px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--ms);
+  height: var(--ms);
+  border-radius: 50%;
+  background: var(--papir);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18), 0 8px 18px rgba(0, 0, 0, 0.35);
+  transform: rotate(var(--vri, -4deg));
+}
+.klistre-bilde {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(100% - var(--ms) * 0.12);
+  height: calc(100% - var(--ms) * 0.12);
+  overflow: hidden;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, color-mix(in srgb, var(--mf) 55%, #fff) 0, var(--mf) 48%, color-mix(in srgb, var(--mf) 70%, #2e1e52) 100%);
+}
+.klistre-bilde::after {
+  content: "";
+  position: absolute;
+  inset: 6% 18% 52% 14%;
+  border-radius: 50%;
+  background: linear-gradient(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+  transform: rotate(-18deg);
+  pointer-events: none;
+}
+.klistre-bilde .figur {
+  width: 84%;
+  height: 84%;
+  margin-top: 5%;
+}
+.klistre-emoji {
+  font-size: calc(var(--ms) * 0.44);
+  line-height: 1;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.18));
+}
+.klistre-tall {
+  position: absolute;
+  right: -4%;
+  bottom: -2%;
+  min-width: calc(var(--ms) * 0.36);
+  height: calc(var(--ms) * 0.36);
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--papir);
+  border-radius: 999px;
+  background: var(--natt);
+  color: var(--lampe);
+  font-size: calc(var(--ms) * 0.18);
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* «Nytt klistremerke: …» — slaps on at the top, under the top bar, then goes. */
+.merke-pop {
+  position: fixed;
+  top: calc(64px + env(safe-area-inset-top, 0px));
+  left: 0;
+  right: 0;
+  z-index: 58;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-16px);
+  transition: opacity 0.25s, transform 0.25s;
+}
+.merke-pop.vis {
+  opacity: 1;
+  transform: none;
+}
+.merke-pop-inn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 440px;
+  padding: 10px 14px 10px 10px;
+  border-radius: 24px;
+  background: var(--papir);
+  color: var(--blekk);
+  box-shadow: 0 10px 30px var(--skygge);
+}
+.merke-pop-lenke {
+  pointer-events: auto;
+}
+.merke-pop-merker {
+  display: flex;
+  flex: none;
+}
+.merke-pop .klistre {
+  --ms: 58px;
+  --vri: -8deg;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+.merke-pop .klistre + .klistre {
+  margin-left: -26px;
+  --vri: 7deg;
+}
+.merke-pop.vis .klistre {
+  animation: klistre-slag 0.55s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.merke-pop.vis .klistre + .klistre {
+  animation-delay: 0.12s;
+}
+.merke-pop-tekst {
+  min-width: 0;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.merke-pop-etikett {
+  display: block;
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--blekk) 70%, transparent);
+}
+.merke-pop-tekst b {
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+.merke-pop.flere .merke-pop-tekst b {
+  font-size: 0.92rem;
+}
+.merke-pop.flere .merke-pop-etikett {
+  white-space: nowrap;
+}
+.merke-pop-lenke {
+  flex: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--natt);
+  color: var(--lampe);
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+@keyframes klistre-slag {
+  from {
+    opacity: 0;
+    transform: scale(1.7) rotate(-30deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--vri, -4deg));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .merke-pop.vis .klistre {
+    animation: none;
+  }
+}

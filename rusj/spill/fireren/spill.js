@@ -501,6 +501,7 @@
       sp.resultat = { vinner: hvem, linjer: ny.vunnet.linjer.map((l) => l.celler) };
       sp.poeng[hvem]++;
       telRekord(S, hvem);
+      if (sp.modus === "mobil" && hvem === 0) R.merke("klassiker-fireren");
       R.si(`${navn(sp, hvem)} får fire på rad!${kampVunnet(sp) ? ` ${navn(sp, hvem)} vinner kampen.` : ""}`);
       setTimeout(() => {
         if (!fortsatt() || !R.S.spill || R.S.spill.runde !== runde || !R.S.spill.resultat) return;

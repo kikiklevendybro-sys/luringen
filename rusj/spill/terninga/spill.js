@@ -666,6 +666,9 @@
     if (sp.resultat.ny) {
       S.rekord = Object.assign({}, S.rekord, { [sp.variant]: { poeng: best.poeng, navn: R.navn(best.i).slice(0, 16) } });
     }
+    // Beat the phone: a full pad, and more points than every robot.
+    const roboter = Array.from({ length: sp.antall }, (_, i) => i).filter((i) => erRobot(sp, i));
+    if (komplett && roboter.length && roboter.every((i) => summer(sp.variant, sp.kort[i]).total < best.poeng)) R.merke("klassiker-terninga");
     if (rader.length > 1) R.kveld.registrer(rader); // the phone never takes a place in «Kveldens gjeng»
     R.statistikk("ferdig", { variant: sp.variant, spillere: rader.length, roboter: sp.antall - rader.length, poeng: best.poeng, yatzy: sp.yatzyer || 0, komplett });
   }

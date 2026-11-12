@@ -414,6 +414,31 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
   // Every game can suggest the others (also those not built in a partial test build).
   const alleSpillKort = [...(luringen ? [luringen] : []), ...lesSpill(ROT, null)].sort((a, b) => a.rekkefolge - b.rekkefolge);
 
+  // ---------- «Klistremerkeboka»: the catalogue (rusj/merker.json) and its rules (rusj/kit/merker.js) ----------
+  // Built from every game (also in a partial build): «tried all» counts the games without an age
+  // gate that run on the kit. Never a sticker for a drinking game.
+  const merkeSpill = lesSpill(ROT, null).filter((g) => !g.alder18);
+  const merkeKatalog = JSON.parse(kilde("rusj/merker.json"));
+  const merkeGruppe = new Map(merkeKatalog.grupper.map((g) => [g.id, g]));
+  for (const mk of merkeKatalog.merker) {
+    if (!merkeGruppe.has(mk.gruppe)) throw new Error(`rusj/merker.json: ${mk.id} har ukjent gruppe «${mk.gruppe}»`);
+    // A mascot that is not in this build (a game on its way) falls back to the sticker's emoji.
+    if (mk.figur && !G.finnes(mk.figur)) {
+      if (!mk.emoji) throw new Error(`rusj/merker.json: ${mk.id} har ukjent figur «${mk.figur}» og ingen emoji`);
+      delete mk.figur;
+    }
+    mk.farge = mk.figur ? G.farge(mk.figur) : merkeGruppe.get(mk.gruppe).farge;
+  }
+  if (new Set(merkeKatalog.merker.map((mk) => mk.id)).size !== merkeKatalog.merker.length) throw new Error("rusj/merker.json: to merker har samme id");
+  const RusjMerkerTegn = (mk) => require(join(ROT, "rusj/kit/merker.js")).tegn(mk, G);
+  const merkeData = {
+    ...merkeKatalog,
+    alle: merkeSpill.map((g) => g.id),
+    daglige: merkeSpill.filter((g) => g.tagger.includes("daglig")).map((g) => g.id),
+    tagger: Object.fromEntries(merkeSpill.map((g) => [g.id, g.tagger])),
+  };
+  felles.merker = skriv("felles/merker.js", "window.RUSJ_MERKER=" + JSON.stringify(merkeData).replace(/</g, "\\u003c") + ";\n" + kilde("rusj/kit/merker.js"));
+
   const seo = lesSeo(ROT);
   const seoAv = new Map(); // one lookup per game (and one warning, if a game has no entry yet)
   const sokedata = (m) => {
@@ -469,7 +494,7 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
     const ikon = skriv(`${id}/ikon.svg`, ikonSvg(G, id));
     const deling = existsSync(join(BILDER, `deling-${id}.png`)) ? kopier(join(BILDER, `deling-${id}.png`), `${id}/deling.png`) : ikoner.deling;
 
-    const skript = [felles.gjengen, felles.js];
+    const skript = [felles.gjengen, felles.merker, felles.js];
     if (m.qr) skript.push(felles.qr);
     if (m.ordbank) skript.push(felles.ord);
     skript.push(dataSti, spillSti);
@@ -610,7 +635,7 @@ ${STEMPEL_FILTER}
       ? "Det dere skriver inn, lagres bare i nettleseren på denne enheten. Vi teller bare anonymt hvor mange som er innom og hvilke spill som åpnes – uten informasjonskapsler og uten personopplysninger."
       : "Det dere skriver inn, lagres bare i nettleseren på denne enheten. Vi har ingen server som tar imot det."
   }</p>
-  <nav class="bunn-lenker" aria-label="Om rusj">${medHjem ? '<a href="/">Alle spill</a>' : ""}<a href="/om/">Om rusj</a><a href="/personvern/">Personvern</a></nav>
+  <nav class="bunn-lenker" aria-label="Om rusj">${medHjem ? '<a href="/">Alle spill</a>' : ""}<a href="/merker/">Klistremerkeboka</a><a href="/om/">Om rusj</a><a href="/personvern/">Personvern</a></nav>
   <p class="bunn-liten">rusj.no · laget i Norge</p>
 </footer>`;
   const portalSide = `${hodeMed({
@@ -673,6 +698,7 @@ ${IKONER}
       <button type="button" class="kveld-alle" id="kveld-alle" aria-expanded="false" aria-controls="kveld-liste" hidden>Vis alle</button>
       <button type="button" class="lenke" id="kveld-nullstill">Start en ny kveld</button>
     </div>
+    <a class="kveld-merker" href="/merker/"><span aria-hidden="true">📒</span> Klistremerkeboka<span class="kveld-merker-pil" aria-hidden="true">›</span></a>
     <p class="kveld-fot">3 poeng for seier, 2 for andreplass og 1 for tredjeplass – i alle spillene dere spiller i kveld.</p>
   </section>
   <h2 class="filter-overskrift" id="spill" tabindex="-1">Hva skal vi spille?</h2>
@@ -747,8 +773,8 @@ ${bunn(false)}
   // leave the contact line out.
   const KONTAKT = "rusj@odkdigital.no";
   const POSTADRESSE = ""; // the owner wants only the e-mail address shown
-  const omSide = (o) => `${hodeMed({ tittel: o.tittel, ogTittel: o.ogTittel, beskrivelse: o.beskrivelse, sti: o.sti, ikon: ikoner.svg, deling: ikoner.deling, delingAlt: "rusj – gratis spill og selskapsleker på norsk", css: [felles.css, portalCss], skript: o.skript ? [o.skript] : [] })}
-<body class="portal">
+  const omSide = (o) => `${hodeMed({ tittel: o.tittel, ogTittel: o.ogTittel, beskrivelse: o.beskrivelse, sti: o.sti, ikon: ikoner.svg, deling: ikoner.deling, delingAlt: "rusj – gratis spill og selskapsleker på norsk", css: [felles.css, portalCss], skript: o.skript ? [].concat(o.skript) : [] })}
+<body class="portal${o.klasse ? " " + o.klasse : ""}">
 <div class="scene" aria-hidden="true"></div>
 <header class="side-topp"><a class="side-hjem" href="/" aria-label="rusj – til alle spillene">${G.logo()}</a></header>
 <main class="side">
@@ -781,6 +807,7 @@ ${bunn(true)}
       STAT_FIL ? `
       <li><b>Telling:</b> hvilken dag du sist var innom og hvor lenge besøket har vart. Da kan nettleseren selv si «var her i går» uten at vi får vite hvem du er.</li>` : ""
     }
+      <li><b>Klistremerker:</b> hvilke klistremerker du har samlet og hvilken dag, og hvilke spill du har prøvd – så boka vet hva som mangler.</li>
     </ul>
     <p>Alt dette ligger bare i denne nettleseren på denne enheten. ${STAT_FIL ? "Ingenting av det sendes til oss, og vi kan ikke se det." : "Vi har ingen server som tar imot det, og vi kan ikke se det."}</p>
   </section>${STAT_FIL ? PV_TELLING : ""}
@@ -863,6 +890,57 @@ ${
     <h2 id="om-kontakt">Kontakt</h2>
     ${KONTAKT ? `<p>Kontakt: <a href="mailto:${KONTAKT}">${KONTAKT}</a>${POSTADRESSE ? ` eller rusj, ${esc(POSTADRESSE)}` : ""}. Si gjerne fra om feil, eller foreslå et spill.</p>` : ""}
   </section>`,
+    }),
+  );
+
+  // ---------- «Klistremerkeboka»: /merker/ ----------
+  // The whole album is drawn here: every sticker as a soft silhouette with how to get it.
+  // /felles/merkebok.js colours the ones this phone has earned (rusj.merker) and adds the dates.
+  const merkebokJs = skriv("felles/merkebok.js", kilde("rusj/portal/merkebok.js"));
+  const VRI = [-5, 4, -2, 6, -6, 3, -3, 5];
+  const antallMerker = merkeKatalog.merker.length;
+  const album = merkeKatalog.grupper
+    .map((g) => {
+      const liste = merkeKatalog.merker.filter((mk) => mk.gruppe === g.id);
+      return `  <section class="bok-gruppe" aria-labelledby="bok-${g.id}" style="--gf: ${g.farge}">
+    <div class="bok-gruppe-topp"><h2 id="bok-${g.id}">${esc(g.navn)}</h2><span class="bok-gruppe-antall" data-gruppe="${g.id}">${liste.length}</span></div>
+    <p class="bok-gruppe-tekst">${esc(g.tekst)}</p>
+    <ul class="bok-ark">
+${liste
+  .map(
+    (mk, i) => `      <li class="bok-merke" data-merke="${mk.id}" style="--vri: ${VRI[i % VRI.length]}deg">
+        ${RusjMerkerTegn(mk)}
+        <span class="bok-navn">${esc(mk.navn)}</span>
+        <span class="bok-hvordan">${esc(mk.hvordan)}</span>
+        <span class="bok-dato" hidden></span>
+      </li>`,
+  )
+  .join("\n")}
+    </ul>
+  </section>`;
+    })
+    .join("\n");
+  skriv(
+    "merker/index.html",
+    omSide({
+      sti: "/merker/",
+      navn: "Klistremerkeboka",
+      tittel: "Klistremerkeboka – samle klistremerker på rusj | rusj",
+      ogTittel: "Klistremerkeboka på rusj",
+      beskrivelse: `${antallMerker} klistremerker å samle på rusj: for dagens oppgaver, spillekvelder, nye spill og seier mot mobilen. Boka lagres bare på enheten din.`,
+      skript: [felles.merker, merkebokJs],
+      klasse: "bok",
+      innhold: `  <h1>Klistremerkeboka</h1>
+  <p class="side-ingress">Et klistremerke for hver ting du har klart. Det er ingen hast – samle i ditt eget tempo.</p>
+  <div class="bok-status">
+    <p class="bok-telling"><b id="bok-antall">0</b> av ${antallMerker} <span>klistremerker</span></p>
+    <div class="bok-mal" role="progressbar" aria-label="Klistremerker samlet" aria-valuemin="0" aria-valuemax="${antallMerker}" aria-valuenow="0" id="bok-mal"><i id="bok-mal-fyll"></i></div>
+    <p class="bok-tom" id="bok-tom">Boka er tom ennå. Spill et spill, så kommer det første klistremerket.</p>
+    <button type="button" class="knapp-2 liten" id="bok-del"><span aria-hidden="true">📣</span> Del boka</button>
+    <p class="bok-delt" id="bok-delt" role="status" aria-live="polite"></p>
+  </div>
+${album}
+  <p class="side-liten bok-fot">Klistremerkene lagres bare i nettleseren på denne enheten. Ingen ser dem uten at du deler.</p>`,
     }),
   );
 
@@ -979,6 +1057,7 @@ ${
     ...alleKort.map((m) => [`/${m.id}/`, spillDato(m)]),
     ["/om/", SIDER_OPPDATERT],
     ["/personvern/", SIDER_OPPDATERT],
+    ["/merker/", nyeste(datoer.get("rusj/merker.json"))],
   ];
   skriv(
     "sitemap.xml",
@@ -991,7 +1070,7 @@ ${
     // What the service worker keeps for playing without a connection: every page, the front page
     // first, then the games in front-page order. Which files a page needs, the worker reads from
     // the page itself (every address with ?v=), so there is no second list to keep in step.
-    sider: ["/", ...alleKort.map((m) => `/${m.id}/`), "/om/", "/personvern/"],
+    sider: ["/", ...alleKort.map((m) => `/${m.id}/`), "/om/", "/personvern/", "/merker/"],
   };
 }
 

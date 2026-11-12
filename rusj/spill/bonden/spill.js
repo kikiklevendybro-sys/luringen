@@ -460,6 +460,7 @@
       sp.resultat = { vinner: hvem, celler: ny.vunnet.celler };
       sp.poeng[hvem]++;
       telRekord(S, hvem);
+      if (sp.modus === "mobil" && hvem === 0) R.merke("klassiker-bonden");
       R.si(`${navn(sp, hvem)} får ${sp.variant === "tre" ? "tre" : "fem"} på rad!${kampVunnet(sp) ? ` ${navn(sp, hvem)} vinner kampen.` : ""}`);
       setTimeout(() => fortsatt() && R.S.spill && R.S.spill.runde === runde && R.S.spill.resultat && lyd.strek(), 380);
       setTimeout(() => fortsatt() && R.S.spill && R.S.spill.runde === runde && R.S.spill.resultat && feir(R.S), 780);

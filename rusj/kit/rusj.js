@@ -245,6 +245,7 @@
       const dager = Object.keys(logg.dager).filter((k) => /^\d+$/.test(k)).sort((a, b) => a - b);
       for (const k of dager.slice(0, Math.max(0, dager.length - 400))) delete logg.dager[k];
       R.skriv("daglig", alle);
+      merkerSjekk();
       // Anonymous statistics: once per game and day — how many of today's dailies this phone has
       // finished, and the site streak (stat.js turns it into a coarse group).
       if (forsteGang && window.RusjStat) window.RusjStat.daglig(liste.length, dagligRekke(alle, nr));
@@ -303,6 +304,13 @@
       else if (typeof v === "boolean") ren[k.slice(0, 16)] = v;
       else if (typeof v === "string" && /^[a-z0-9_-]{1,20}$/i.test(v)) ren[k.slice(0, 16)] = v; // ids only, never names
     }
+    if (hendelse === "start") {
+      try {
+        merkeSpilt();
+      } catch (e) {
+        /* ignore */
+      }
+    }
     statKo.push({ h: hendelse, d: ren, t: Date.now() });
     if (statKo.length > 50) statKo.shift();
     try {
@@ -338,6 +346,7 @@
         k.spill = k.spill.slice(-60);
         R.skriv("kveld", k);
         R.statistikk("kveld", { spillere: resultat.length });
+        merkerSjekk();
         // A calm moment on the end screen. Games often register just before R.gaTil("slutt"), so the
         // screen is read on the next tick; the tip only shows if the player is still there 1.8 s later.
         setTimeout(() => {
@@ -358,6 +367,103 @@
       return Array.from(poeng, ([navn, p]) => ({ navn, poeng: p })).sort((a, b) => b.poeng - a.poeng);
     },
   };
+
+  // ---------- «Klistremerkeboka» (stickers, /merker/) ----------
+  // The catalogue and the rules are in /felles/merker.js (rusj/merker.json + rusj/kit/merker.js).
+  // rusj.merker = { <id>: day number earned }; rusj.spilt = ids of the games started on this phone
+  // (for «tried 5 games»); rusj.merkerNye = earned stickers not yet celebrated. This phone only.
+  const merkeKat = () => (window.RusjMerker && window.RUSJ_MERKER ? window.RUSJ_MERKER : null);
+  const merkeListe = (nokkel) => {
+    const l = R.les(nokkel, []);
+    return Array.isArray(l) ? l.filter((x) => typeof x === "string").slice(0, 200) : [];
+  };
+  function merkerGi(ids) {
+    const K = merkeKat();
+    if (!K || !ids.length) return;
+    const { lagret, nye } = window.RusjMerker.tildel(window.RusjMerker.rens(R.les("merker", {}), K), ids, K, R.dag().nr);
+    if (!nye.length || !R.skriv("merker", lagret)) return;
+    R.skriv("merkerNye", Array.from(new Set(merkeListe("merkerNye").concat(nye))));
+    feirMerkerSnart(1600); // let the game's own celebration land first
+  }
+  // A game gives an explicit sticker (e.g. the first win against the phone). Safe to call again.
+  R.merke = (id) => {
+    try {
+      merkerGi([id]);
+    } catch (e) {
+      /* a sticker never breaks a game */
+    }
+  };
+  // The stickers that follow from what is already stored (dailies, the evening, games tried).
+  function merkerSjekk() {
+    try {
+      const K = merkeKat();
+      if (!K) return;
+      const kilde = { daglig: R.les("daglig", {}), kveld: R.les("kveld", null), spilt: merkeListe("spilt"), iDag: R.dag().nr, naa: Date.now() };
+      merkerGi(Array.from(window.RusjMerker.utled(K, kilde)));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  R._merkerSjekk = merkerSjekk;
+  function merkeSpilt() {
+    const K = merkeKat();
+    const id = (APP && APP.id) || meta().id;
+    if (!K || !K.alle.includes(id)) return; // drinking games are never counted
+    const spilt = merkeListe("spilt");
+    if (!spilt.includes(id)) R.skriv("spilt", spilt.concat(id));
+    merkerSjekk();
+  }
+  // The celebration waits for a calm screen: never during a countdown, over a sheet, while a timer
+  // runs or while a secret card is on the screen. It tries again a little later until it can.
+  let merkeTid = null;
+  function merkeRolig() {
+    if (!spillVises || document.hidden) return false;
+    if (R.arkApent()) return false;
+    const ned = $("#nedtelling");
+    if (ned && !ned.hidden) return false;
+    if (apenMappe || $("#skjerm .mappe, #skjerm [data-mappe]")) return false;
+    for (const t of aktiveTimere) if (t.kjorer) return false;
+    return true;
+  }
+  function feirMerkerSnart(ms) {
+    clearTimeout(merkeTid);
+    merkeTid = setTimeout(feirMerker, ms == null ? 1500 : ms);
+  }
+  function feirMerker() {
+    const K = merkeKat();
+    if (!K) return;
+    const ids = merkeListe("merkerNye").filter((id) => K.merker.some((m) => m.id === id));
+    if (!ids.length) return;
+    if (!merkeRolig()) return feirMerkerSnart(1500);
+    R.fjern("merkerNye");
+    const merker = ids.map((id) => K.merker.find((m) => m.id === id));
+    const navn = R.ramsOpp(merker.map((m) => m.navn));
+    const etikett = merker.length === 1 ? "Nytt klistremerke:" : `${merker.length} nye klistremerker:`;
+    let pop = $("#merke-pop");
+    if (!pop) {
+      pop = document.createElement("div");
+      pop.className = "merke-pop";
+      pop.id = "merke-pop";
+      document.body.appendChild(pop);
+    }
+    pop.innerHTML = `<div class="merke-pop-inn">
+      <span class="merke-pop-merker">${merker.slice(0, 3).map((m) => window.RusjMerker.tegn(m, G)).join("")}</span>
+      <span class="merke-pop-tekst"><span class="merke-pop-etikett">${esc(etikett)}</span> <b>${esc(navn)}</b></span>
+      <a class="merke-pop-lenke" href="/merker/">Se boka</a>
+    </div>`;
+    pop.classList.toggle("flere", merker.length > 1);
+    pop.classList.remove("vis");
+    void pop.offsetWidth;
+    pop.classList.add("vis");
+    siKit(`${etikett} ${navn}.`);
+    R.lyd.pling();
+    clearTimeout(pop._tid);
+    pop._tid = setTimeout(skjulMerkePop, 5200);
+  }
+  function skjulMerkePop() {
+    const pop = $("#merke-pop");
+    if (pop) pop.classList.remove("vis");
+  }
 
   // ---------- "Install as an app" tip ----------
   let installHendelse = null;
@@ -3018,6 +3124,9 @@
     // gets the «Last resort» sheet.
     spillVises = true;
     meldLagring();
+    // Stickers that follow from what is stored already, and any earned but not yet celebrated.
+    merkerSjekk();
+    feirMerkerSnart(1200);
 
     window.addEventListener("hashchange", () => {
       const h = (location.hash || "").slice(1);

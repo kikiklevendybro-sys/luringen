@@ -1,0 +1,61 @@
+{
+  "v": 1,
+  "grupper": [
+    { "id": "dagens", "navn": "Dagens", "tekst": "Litt hver dag – i ditt eget tempo.", "farge": "#ffd23f" },
+    { "id": "kvelden", "navn": "Kvelden", "tekst": "Spillekvelder med gjengen.", "farge": "#ff4f8b" },
+    { "id": "utforsker", "navn": "Utforsker", "tekst": "Prøv noe nytt.", "farge": "#3de3b0" },
+    { "id": "klassiker", "navn": "Klassiker", "tekst": "Slå mobilen i de gamle klassikerne.", "farge": "#59b9ff" },
+    { "id": "sesong", "navn": "Sesong", "tekst": "Bare når det er sesong.", "farge": "#ff6b5e" }
+  ],
+  "merker": [
+    { "id": "dagens-forste", "gruppe": "dagens", "navn": "Første dag", "hvordan": "Løs én av dagens oppgaver.", "figur": "ordugla", "regel": { "type": "dager", "n": 1 } },
+    { "id": "dagens-rekke-3", "gruppe": "dagens", "navn": "Tre på rad", "hvordan": "Gjør en av dagens oppgaver tre dager på rad.", "emoji": "🔥", "tall": 3, "regel": { "type": "rekke", "n": 3 } },
+    { "id": "dagens-rekke-7", "gruppe": "dagens", "navn": "En hel uke", "hvordan": "Sju dager på rad. Én hviledag i uka er lov.", "emoji": "🔥", "tall": 7, "regel": { "type": "rekke", "n": 7 } },
+    { "id": "dagens-rekke-14", "gruppe": "dagens", "navn": "To uker", "hvordan": "Fjorten dager på rad. Én hviledag i uka er lov.", "emoji": "🔥", "tall": 14, "regel": { "type": "rekke", "n": 14 } },
+    { "id": "dagens-rekke-30", "gruppe": "dagens", "navn": "En hel måned", "hvordan": "Tretti dager på rad. Én hviledag i uka er lov.", "emoji": "🌟", "tall": 30, "regel": { "type": "rekke", "n": 30 } },
+    { "id": "dagens-rekke-100", "gruppe": "dagens", "navn": "Hundre!", "hvordan": "Hundre dager på rad. Én hviledag i uka er lov.", "emoji": "💯", "regel": { "type": "rekke", "n": 100 } },
+    { "id": "dagens-dager-10", "gruppe": "dagens", "navn": "Ti dager", "hvordan": "Vær med på dagens ti dager – når som helst.", "emoji": "📅", "tall": 10, "regel": { "type": "dager", "n": 10 } },
+    { "id": "dagens-dager-50", "gruppe": "dagens", "navn": "Femti dager", "hvordan": "Vær med på dagens femti dager – når som helst.", "emoji": "🗓️", "tall": 50, "regel": { "type": "dager", "n": 50 } },
+    { "id": "dagens-alle", "gruppe": "dagens", "navn": "Hele lista", "hvordan": "Gjør alle dagens oppgaver samme dag.", "emoji": "🌈", "regel": { "type": "alleIdag" } },
+    { "id": "seier-ordugla", "gruppe": "dagens", "navn": "Ordet er ditt", "hvordan": "Gjett dagens ord i Ordugla.", "figur": "ordugla", "regel": { "type": "dagligSeier", "spill": "ordugla" } },
+    { "id": "seier-blyanten", "gruppe": "dagens", "navn": "Kryss i boks", "hvordan": "Løs dagens minikryss i Blyanten.", "figur": "blyanten", "regel": { "type": "dagligSeier", "spill": "blyanten" } },
+    { "id": "seier-tallknuseren", "gruppe": "dagens", "navn": "Sudoku-sjef", "hvordan": "Løs dagens sudoku i Tallknuseren.", "figur": "tallknuseren", "regel": { "type": "dagligSeier", "spill": "tallknuseren" } },
+    { "id": "seier-kortkongen", "gruppe": "dagens", "navn": "Kabalen gikk opp", "hvordan": "Få dagens kabal i Kortkongen til å gå opp.", "figur": "kortkongen", "regel": { "type": "dagligSeier", "spill": "kortkongen" } },
+    { "id": "seier-minesveiperen", "gruppe": "dagens", "navn": "Ingen smell", "hvordan": "Rydd dagens brett i Minesveiperen.", "figur": "minesveiperen", "regel": { "type": "dagligSeier", "spill": "minesveiperen" } },
+    { "id": "seier-dobleren", "gruppe": "dagens", "navn": "Dobbelt opp", "hvordan": "Spill ferdig dagens brett i Dobleren.", "figur": "dobleren", "regel": { "type": "dagligSeier", "spill": "dobleren" } },
+    { "id": "seier-bedreviteren", "gruppe": "dagens", "navn": "Dagens viten", "hvordan": "Klar dagens fem i Bedreviteren.", "figur": "bedreviteren", "regel": { "type": "dagligSeier", "spill": "bedreviteren" } },
+    { "id": "seier-firklover", "gruppe": "dagens", "navn": "Firkløver", "hvordan": "Finn alle fire gruppene i dagens Firkløver.", "figur": "firklover", "emoji": "🍀", "regel": { "type": "dagligSeier", "spill": "firklover" } },
+    { "id": "seier-blokka", "gruppe": "dagens", "navn": "Alt på plass", "hvordan": "Løs dagens puslespill i Blokka.", "figur": "blokka", "emoji": "🧩", "regel": { "type": "dagligSeier", "spill": "blokka" } },
+
+    { "id": "kveld-forste", "gruppe": "kvelden", "navn": "Første kveld", "hvordan": "Spill et spill med poeng sammen med andre.", "figur": "pekefingeren", "regel": { "type": "kveldSpill", "n": 1 } },
+    { "id": "kveld-tre", "gruppe": "kvelden", "navn": "Tre på tavla", "hvordan": "Spill tre spill i samme kveld.", "figur": "skravla", "regel": { "type": "kveldSpill", "n": 3 } },
+    { "id": "kveld-fem", "gruppe": "kvelden", "navn": "Full pakke", "hvordan": "Spill fem spill i samme kveld.", "figur": "papegoyen", "regel": { "type": "kveldSpill", "n": 5 } },
+    { "id": "kveld-stor", "gruppe": "kvelden", "navn": "Stor gjeng", "hvordan": "Spill et spill med åtte eller flere.", "figur": "varulven", "regel": { "type": "kveldFolk", "n": 8 } },
+    { "id": "kveld-kronet", "gruppe": "kvelden", "navn": "Kveldens vinner", "hvordan": "Spill tre spill i én kveld, og få én klar vinner på tavla.", "emoji": "👑", "regel": { "type": "kronet", "n": 3 } },
+
+    { "id": "provd-5", "gruppe": "utforsker", "navn": "Nysgjerrig", "hvordan": "Prøv fem forskjellige spill.", "figur": "detektiven", "tall": 5, "regel": { "type": "provd", "n": 5 } },
+    { "id": "provd-15", "gruppe": "utforsker", "navn": "Oppdager", "hvordan": "Prøv femten forskjellige spill.", "figur": "spionen", "tall": 15, "regel": { "type": "provd", "n": 15 } },
+    { "id": "provd-30", "gruppe": "utforsker", "navn": "Eventyrer", "hvordan": "Prøv tretti forskjellige spill.", "figur": "tidsmaskinen", "tall": 30, "regel": { "type": "provd", "n": 30 } },
+    { "id": "provd-alle", "gruppe": "utforsker", "navn": "Alle sammen!", "hvordan": "Prøv hvert eneste spill på rusj.", "emoji": "🗺️", "regel": { "type": "provd", "n": "alle" } },
+    { "id": "provd-tegning", "gruppe": "utforsker", "navn": "Kunstnersjel", "hvordan": "Prøv et tegnespill.", "figur": "kunstneren", "regel": { "type": "provdTagg", "tagg": "tegning" } },
+    { "id": "provd-quiz", "gruppe": "utforsker", "navn": "Quizhjerne", "hvordan": "Prøv en quiz.", "figur": "tieren", "regel": { "type": "provdTagg", "tagg": "quiz" } },
+    { "id": "provd-ord", "gruppe": "utforsker", "navn": "Ordkløver", "hvordan": "Prøv et ordspill.", "figur": "bokstavtrollet", "regel": { "type": "provdTagg", "tagg": "ord" } },
+    { "id": "provd-lag", "gruppe": "utforsker", "navn": "Lagspiller", "hvordan": "Prøv et spill der dere spiller på lag.", "figur": "mimen", "regel": { "type": "provdTagg", "tagg": "lag" } },
+    { "id": "provd-blof", "gruppe": "utforsker", "navn": "Pokerfjes", "hvordan": "Prøv et bløffespill.", "figur": "lognhalsen", "regel": { "type": "provdTagg", "tagg": "blof" } },
+    { "id": "provd-hukommelse", "gruppe": "utforsker", "navn": "Elefanthukommelse", "hvordan": "Prøv et hukommelsesspill.", "figur": "elefanten", "regel": { "type": "provdTagg", "tagg": "hukommelse" } },
+    { "id": "provd-alene", "gruppe": "utforsker", "navn": "Egen stund", "hvordan": "Prøv et spill du kan spille alene.", "figur": "slangen", "regel": { "type": "provdTagg", "tagg": "alene" } },
+
+    { "id": "klassiker-sjakkhesten", "gruppe": "klassiker", "navn": "Sjakk matt!", "hvordan": "Slå mobilen i sjakk i Sjakkhesten.", "figur": "sjakkhesten", "regel": { "type": "merke" } },
+    { "id": "klassiker-fireren", "gruppe": "klassiker", "navn": "Fire på rad", "hvordan": "Slå mobilen i fire på rad i Fireren.", "figur": "fireren", "regel": { "type": "merke" } },
+    { "id": "klassiker-bonden", "gruppe": "klassiker", "navn": "Kryss og bolle", "hvordan": "Slå mobilen i bondesjakk i Bonden.", "figur": "bonden", "regel": { "type": "merke" } },
+    { "id": "klassiker-admiralen", "gruppe": "klassiker", "navn": "Senket flåten", "hvordan": "Slå mobilen i slagskip i Admiralen.", "figur": "admiralen", "regel": { "type": "merke" } },
+    { "id": "klassiker-terninga", "gruppe": "klassiker", "navn": "Terningkonge", "hvordan": "Få flere poeng enn mobilen i yatzy i Terninga.", "figur": "terninga", "regel": { "type": "merke" } },
+    { "id": "klassiker-dam", "gruppe": "klassiker", "navn": "Dam-mester", "hvordan": "Slå mobilen i dam.", "figur": "dam", "emoji": "⚫", "regel": { "type": "merke" } },
+    { "id": "klassiker-reversi", "gruppe": "klassiker", "navn": "Snudd rundt", "hvordan": "Slå mobilen i Reversi.", "figur": "reversi", "emoji": "⚪", "regel": { "type": "merke" } },
+    { "id": "klassiker-vriatter", "gruppe": "klassiker", "navn": "Åtter i ermet", "hvordan": "Slå mobilen i Vri åtter.", "figur": "vriatter", "emoji": "🃏", "regel": { "type": "merke" } },
+
+    { "id": "luke-1", "gruppe": "sesong", "navn": "Første luke", "hvordan": "Åpne luke 1 i Julekalenderen.", "figur": "julekalenderen", "tall": 1, "regel": { "type": "merke" } },
+    { "id": "luke-12", "gruppe": "sesong", "navn": "Halvveis til jul", "hvordan": "Åpne luke 12 i Julekalenderen.", "figur": "julekalenderen", "tall": 12, "regel": { "type": "merke" } },
+    { "id": "luke-24", "gruppe": "sesong", "navn": "Julaften!", "hvordan": "Åpne luke 24 i Julekalenderen.", "emoji": "🎄", "tall": 24, "regel": { "type": "merke" } }
+  ]
+}

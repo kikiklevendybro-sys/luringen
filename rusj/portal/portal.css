@@ -2964,3 +2964,217 @@ body:not(.over18) .spillkort[data-alder18] {
     pointer-events: none;
   }
 }
+
+/* ---------- «Klistremerkeboka» (/merker/) ---------- */
+
+.kveld-merker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: rgba(255, 241, 221, 0.06);
+  color: var(--tekst);
+  font-weight: 800;
+  text-decoration: none;
+}
+.kveld-merker-pil {
+  margin-left: auto;
+  color: var(--tekst-3);
+  font-size: 1.3rem;
+}
+
+.bok-status {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px 18px;
+  border-radius: var(--r-stor);
+  background: linear-gradient(160deg, rgba(255, 210, 63, 0.14), var(--natt-2) 60%);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 210, 63, 0.35);
+}
+.bok-telling {
+  color: var(--tekst-2);
+  font: 800 1.1rem/1.1 var(--font-display);
+}
+.bok-telling b {
+  color: var(--lampe);
+  font-size: 2.6rem;
+  font-variant-numeric: tabular-nums;
+}
+.bok-mal {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 241, 221, 0.1);
+}
+.bok-mal i {
+  display: block;
+  width: 0;
+  height: 100%;
+  min-width: 12px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--lampe), var(--rosa));
+  transition: width 0.6s ease-out;
+}
+.bok-tom {
+  color: var(--tekst-2);
+  line-height: 1.45;
+}
+.bok-status .knapp-2 {
+  justify-self: start;
+}
+.bok-delt {
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.bok-delt:empty {
+  display: none;
+}
+
+.side section.bok-gruppe {
+  background: linear-gradient(170deg, color-mix(in srgb, var(--gf) 14%, var(--natt-2)), var(--natt-2) 45%);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--gf) 30%, transparent);
+}
+.bok-gruppe-topp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.side .bok-gruppe-topp h2 {
+  margin: 0;
+}
+.bok-gruppe-antall {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 241, 221, 0.08);
+  color: var(--tekst-2);
+  font-weight: 800;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+.bok-gruppe-antall.full {
+  background: var(--gf);
+  color: var(--blekk);
+}
+.bok-gruppe-antall.full::before {
+  content: "✓ ";
+}
+.side section .bok-gruppe-tekst {
+  margin-top: 2px;
+  color: var(--tekst-3);
+  font-size: 0.92rem;
+}
+
+.side ul.bok-ark {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 18px 10px;
+  margin-top: 16px;
+  padding: 0;
+  list-style: none;
+}
+.side section li.bok-merke {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  line-height: 1.25;
+}
+.bok-merke .klistre {
+  --ms: 84px;
+  margin-bottom: 6px;
+}
+.bok-navn {
+  color: var(--tekst);
+  font-weight: 800;
+  font-size: 0.92rem;
+}
+.bok-hvordan {
+  color: var(--tekst-3);
+  font-size: 0.8rem;
+  text-wrap: balance;
+}
+.bok-dato {
+  color: var(--lampe);
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+.bok-merke.fatt .bok-hvordan {
+  display: none;
+}
+
+/* Not yet: a soft silhouette in a dashed ring, with how to get it. */
+.bok-merke:not(.fatt) .klistre {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px rgba(255, 241, 221, 0.16);
+  transform: none;
+}
+.bok-merke:not(.fatt) .klistre::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 2px dashed rgba(255, 241, 221, 0.16);
+  border-radius: 50%;
+}
+.bok-merke:not(.fatt) .klistre-bilde {
+  background: rgba(255, 241, 221, 0.04);
+}
+.bok-merke:not(.fatt) .klistre-bilde::after {
+  display: none;
+}
+.bok-merke:not(.fatt) .klistre-bilde > * {
+  filter: brightness(0) invert(1);
+  opacity: 0.13;
+}
+.bok-merke:not(.fatt) .klistre-tall {
+  border-color: var(--natt-2);
+  background: rgba(255, 241, 221, 0.1);
+  color: var(--tekst-3);
+}
+.bok-merke:not(.fatt) .bok-navn {
+  color: var(--tekst-2);
+}
+
+/* Earned today or yesterday: a little «Ny!» tab. */
+.bok-merke.ny::before {
+  content: "Ny!";
+  position: absolute;
+  top: -6px;
+  left: calc(50% - 50px);
+  z-index: 1;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--rosa);
+  color: var(--blekk);
+  font-weight: 900;
+  font-size: 0.72rem;
+  transform: rotate(-10deg);
+}
+.bok-merke.ny .klistre {
+  animation: klistre-slag 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+/* (@keyframes klistre-slag is in rusj.css) */
+.side .bok-fot {
+  color: var(--tekst-3);
+  font-size: 0.88rem;
+  text-align: center;
+}
+@media (max-width: 360px) {
+  .side ul.bok-ark {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  }
+  .bok-merke .klistre {
+    --ms: 72px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bok-merke.ny .klistre {
+    animation: none;
+  }
+}

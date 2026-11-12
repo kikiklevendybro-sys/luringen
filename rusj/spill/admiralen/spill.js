@@ -389,6 +389,7 @@
     if (alle) {
       sp.vinner = s;
       sp.tur = null;
+      if (maskin(sp) && s === 0) R.merke("klassiker-admiralen");
       if (!sp.talt) {
         sp.talt = true;
         const nokkel = stillingNokkel(sp);

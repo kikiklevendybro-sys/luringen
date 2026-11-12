@@ -182,6 +182,21 @@ export default async function (t) {
   await t.klikk('[data-h="angre"]', 400);
   t.sjekk((await tilstand()).trekk.length === 4, "«Angre» mot mobilen skal ta tilbake to brikker");
 
+  // Beating the phone gives the sticker «Fire på rad» once, celebrated at a calm moment.
+  await t.js(`localStorage.removeItem("rusj.merker"); localStorage.removeItem("rusj.merkerNye")`);
+  await lastMed(t, `(S) => { S.spill.trekk = [0, 6, 1, 6, 2, 5]; S.spill.starter = 0; S.spill.resultat = null; }`);
+  await slipp(3, 200);
+  await t.vent("Rusj.S.spill.resultat", 6000);
+  t.sjekk((await tilstand()).resultat.vinner === 0, "Seieren mot mobilen ble ikke registrert");
+  await t.vent("document.querySelector('#merke-pop.vis')", 6000);
+  const pop = await t.js(`({ tekst: document.querySelector("#merke-pop").innerText.replace(/\\s+/g, " "), lagret: JSON.parse(localStorage.getItem("rusj.merker") || "{}"), nye: localStorage.getItem("rusj.merkerNye") })`);
+  t.sjekk(/(Nytt klistremerke|nye klistremerker):.*Fire på rad/.test(pop.tekst) && Number.isInteger(pop.lagret["klassiker-fireren"]) && pop.nye == null, `Klistremerket for seier mot mobilen: ${JSON.stringify(pop)}`);
+  await t.sov(700);
+  await t.bilde("klistremerke");
+  await lastMed(t, `(S) => { S.spill.trekk = [0, 6, 1, 6, 2, 5]; S.spill.starter = 0; S.spill.resultat = null; }`);
+  await t.sov(1800);
+  t.sjekk(!(await t.js("!!document.querySelector('#merke-pop.vis')")), "Klistremerket ble feiret to ganger");
+
   // Small screens
   await storrelse(t, "brett", 375, 560);
   await storrelse(t, "brett", 320, 568);

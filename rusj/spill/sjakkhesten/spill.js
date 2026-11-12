@@ -1202,8 +1202,10 @@
     if (sp.modus === "mobil") {
       const r = S.rekord[sp.niva] || (S.rekord[sp.niva] = { seier: 0, remis: 0, tap: 0 });
       if (st.vinner == null) r.remis++;
-      else if (st.vinner === sp.meg) r.seier++;
-      else r.tap++;
+      else if (st.vinner === sp.meg) {
+        r.seier++;
+        R.merke("klassiker-sjakkhesten");
+      } else r.tap++;
     } else {
       const st2 = S.stilling;
       if (st.vinner == null) st2.remis++;

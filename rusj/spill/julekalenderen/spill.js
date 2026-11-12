@@ -101,6 +101,7 @@
     S.aktiv = d;
     S.nytt = d;
     R.statistikk("start", { luke: d });
+    if (d === 1 || d === 12 || d === 24) R.merke("luke-" + d);
     if (d === 24 || antallApnet(S) === 24) R.lyd.fanfare();
     else R.lyd.pling();
     R.vibrer(15);

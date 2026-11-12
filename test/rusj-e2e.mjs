@@ -828,6 +828,34 @@ for (const id of valgt) {
       if (atten) t.sjekk(/18 år/.test(om.tekst) && /alkoholfritt/i.test(om.tekst), "Om-siden sier ikke noe om drikkelekene og måtehold");
       t.sjekk((await utenfor()).length === 0, `Tekst stikker utenfor skjermen på Om-siden: ${(await utenfor()).join(", ")}`);
       await t.bilde("om");
+      // «Klistremerkeboka»: linked from the footer, every sticker as a silhouette while the book is
+      // empty; earned ones (stored, and a 7-day streak derived on the page) in colour with the day.
+      t.sjekk(bunnlenker.includes("/merker/"), "Bunnteksten på forsiden lenker ikke til /merker/");
+      await c.lastSide(`${tjener.url}/merker/`, "document.querySelector('.bok-merke')");
+      await c.js(`localStorage.clear()`);
+      await c.lastSide(`${tjener.url}/merker/`, "document.querySelector('.bok-merke')");
+      const tom = await c.js(`({ h1: document.querySelector("h1").innerText, antall: document.querySelectorAll(".bok-merke").length, fatt: document.querySelectorAll(".bok-merke.fatt").length, telling: document.querySelector(".bok-telling").innerText, tom: !document.querySelector("#bok-tom").hidden, del: !document.querySelector("#bok-del").hidden })`);
+      t.sjekk(/Klistremerkeboka/.test(tom.h1) && tom.antall >= 36 && tom.fatt === 0 && new RegExp("^0 av " + tom.antall).test(tom.telling) && tom.tom && !tom.del, `Tom klistremerkebok: ${JSON.stringify(tom)}`);
+      t.sjekk((await utenfor()).length === 0, `Tekst stikker utenfor skjermen i klistremerkeboka: ${(await utenfor()).join(", ")}`);
+      await t.bilde("merker-tom");
+      await c.js(`(() => {
+        const nr = Math.floor(Date.now() / 86400000);
+        const dager = {};
+        for (let i = 0; i < 7; i++) dager[nr - i] = ["ordugla"];
+        localStorage.setItem("rusj.daglig", JSON.stringify({ ordugla: { nr, vunnet: true, rekke: 7 }, _: { v: 1, dager } }));
+        localStorage.setItem("rusj.merker", JSON.stringify({ "klassiker-fireren": nr - 20, "luke-1": nr - 345, "finnes-ikke": nr, "provd-5": "tull" }));
+        localStorage.setItem("rusj.spilt", JSON.stringify(["kunstneren", "tieren", "mimen", "fireren", "elefanten", "bussen"]));
+      })()`);
+      await c.lastSide(`${tjener.url}/merker/`, "document.querySelector('.bok-merke.fatt')");
+      await c.sov(700);
+      const bok = await c.js(`({ fatt: Array.from(document.querySelectorAll(".bok-merke.fatt")).map((li) => li.dataset.merke), telling: document.querySelector("#bok-antall").textContent, dato: document.querySelector('[data-merke="klassiker-fireren"] .bok-dato').textContent, lagret: JSON.parse(localStorage.getItem("rusj.merker")), del: !document.querySelector("#bok-del").hidden })`);
+      const ventetFatt = ["dagens-forste", "dagens-rekke-3", "dagens-rekke-7", "seier-ordugla", "provd-5", "provd-tegning", "provd-quiz", "provd-lag", "provd-hukommelse", "klassiker-fireren", "luke-1"];
+      t.sjekk(ventetFatt.every((id) => bok.fatt.includes(id)) && !bok.fatt.includes("dagens-rekke-14") && Number(bok.telling) === bok.fatt.length && bok.del, `Klistremerkeboka viser feil merker: ${bok.fatt.join(", ")} (${bok.telling})`);
+      t.sjekk(/^Fått \d+\. [a-zæøå]+$/.test(bok.dato) && !("finnes-ikke" in bok.lagret) && Number.isInteger(bok.lagret["dagens-rekke-7"]), `Dato eller lagring i klistremerkeboka: «${bok.dato}», ${JSON.stringify(bok.lagret)}`);
+      t.sjekk((await utenfor()).length === 0, `Tekst stikker utenfor skjermen i klistremerkeboka: ${(await utenfor()).join(", ")}`);
+      await t.bilde("merker");
+      await t.bilde("merker-hel", true);
+      await c.js(`localStorage.clear()`);
       await c.lastSide(`${tjener.url}/personvern/`, "document.querySelector('#slett-alt')");
       const pv = await c.js(`({ h1: document.querySelector("h1").innerText, tekst: document.querySelector("main").innerText, knapp: document.querySelector("#slett-alt").innerText.trim() })`);
       t.sjekk(/Personvern/.test(pv.h1) && /localStorage/.test(pv.tekst) && /informasjonskapsler/.test(pv.tekst) && /GitHub Pages/.test(pv.tekst) && /IP-adresse/.test(pv.tekst) && /utenfor EU\/EØS/.test(pv.tekst) && /uten nett/.test(pv.tekst), "Personvernsiden mangler noe av det den skal si (lagring, informasjonskapsler, nettvert, IP-adresse, EU/EØS, bruk uten nett)");
