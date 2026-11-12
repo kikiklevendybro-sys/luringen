@@ -121,6 +121,11 @@
       "tittel": "Minesweeper free – made for mobile, no ads",
       "frase": "Minesweeper",
       "beskrivelse": "Free minesweeper in your browser with no ads. Your first tap is always safe. Three levels made for mobile, flags with a long press, and your best times."
+    },
+    "tallknuseren": {
+      "tittel": "Sudoku free – today's sudoku, no ads",
+      "frase": "Sudoku",
+      "beskrivelse": "Free sudoku in your browser with no ads: new boards at four levels, always with a single solution. Today's sudoku for everyone, notes, hints and best times."
     }
   }
 }

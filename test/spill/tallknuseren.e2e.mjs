@@ -3,6 +3,8 @@
 // solving it to the result screen with a record; «Dagens sudoku» is the same on every phone and its
 // result screen shows the streak; Ekspert is made fast; the board fits at 320 px and 375×560
 // without scrolling.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en tallknuseren): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the numbers, the state and the links (t.forside, t.nokkel).
 export default async function (t) {
   const celle = (i) => `.tk-celle[data-i="${i}"]`;
   const tast = (d) => `.tk-tast[data-v="${d}"]`;
@@ -45,10 +47,10 @@ export default async function (t) {
   // The install tip (shown at most twice per phone after a good result) would cover the screenshots.
   await t.js("Rusj.felles.installTips = 2; Rusj.lagreFelles()");
   // The main button starts at once on the last level (the first time: lett); «Bytt nivå» opens the choice.
-  t.sjekk(/Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Hovedknappen viser ikke nivået den starter");
+  t.sjekk(!t.norsk || /Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Hovedknappen viser ikke nivået den starter");
   t.sjekk(await t.finnes('[data-h="dagens"]'), "Mangler «Dagens sudoku» på hjem-skjermen");
   await t.klikk('[data-h="bytt"]');
-  t.sjekk((await t.tekst("#skjerm h1")) === "Gjør klart", "Oppsettet heter ikke «Gjør klart»");
+  t.sjekk(!t.norsk || (await t.tekst("#skjerm h1")) === "Gjør klart", "Oppsettet heter ikke «Gjør klart»");
   await t.klikk('[data-h="niva"][data-v="middels"]');
   await t.bilde("oppsett");
   await t.klikk('[data-h="niva"][data-v="lett"]');
@@ -78,12 +80,12 @@ export default async function (t) {
   t.sjekk(
     await t.js(`(() => {
       const alle = Array.from(document.querySelectorAll(".tk-celle.konflikt"));
-      return alle.length >= 2 && alle.every((el) => /, konflikt$/.test(el.getAttribute("aria-label")) && getComputedStyle(el, "::after").content.includes("!"));
+      return alle.length >= 2 && alle.every((el) => ${t.norsk ? "/, konflikt$/" : "/, [^,]+$/"}.test(el.getAttribute("aria-label")) && getComputedStyle(el, "::after").content.includes("!"));
     })()`),
     `Konflikten vises bare med farge (mangler i etiketten eller som merke): ${await t.js(`JSON.stringify(Array.from(document.querySelectorAll(".tk-celle.konflikt")).map((el) => [el.getAttribute("aria-label"), getComputedStyle(el, "::after").content]))`)}`,
   );
   await t.sov(80);
-  t.sjekk(new RegExp(`^${krasj} i rad \\d, kolonne \\d\\. Står allerede i raden`).test(await t.js("document.querySelector('#si').textContent")), "Konflikten ble ikke lest opp for skjermleser");
+  t.sjekk(new RegExp(t.norsk ? `^${krasj} i rad \\d, kolonne \\d\\. Står allerede i raden` : `^${krasj}\\D+\\d\\D+\\d`).test(await t.js("document.querySelector('#si').textContent")), "Konflikten ble ikke lest opp for skjermleser");
   await t.bilde("konflikt");
   await t.klikk('[data-h="angre"]');
   t.sjekk((await spill()).v[i0] === 0 && !(await t.finnes(".tk-celle.konflikt")), "Angre fjernet ikke tallet som krasjet");
@@ -161,7 +163,7 @@ export default async function (t) {
   await t.trykk(celle(d0));
   await t.klikk(tast(Number(alt.spill.losning[d0])));
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett dagens/.test(await t.tekst('[data-h="dagens"]')) && /Fortsett · lett/.test(await t.tekst('[data-h="fortsett"]')), "Hjemskjermen viser ikke begge brettene som er i gang");
+  t.sjekk((t.norsk ? /Fortsett dagens/ : /\d:\d\d/).test(await t.tekst('[data-h="dagens"]')) && (t.norsk ? /Fortsett · lett/ : /\d:\d\d/).test(await t.tekst('[data-h="fortsett"]')), "Hjemskjermen viser ikke begge brettene som er i gang");
   await t.bilde("hjem-to-brett");
   await t.klikk('[data-h="fortsett"]');
   await t.vent("Rusj.S.spill && !Rusj.S.spill.dagens && document.querySelectorAll('.tk-celle').length === 81");
@@ -197,9 +199,9 @@ export default async function (t) {
   await t.bilde("slutt", true);
   s = await t.tilstand();
   t.sjekk(s.rekorder && s.rekorder.lett && s.rekorder.lett.antall === 1, "Rekorden for Lett ble ikke lagret");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
   await t.klikk("#tilbake");
-  t.sjekk(/Lett/.test(await t.tekst(".tk-rekorder")), "Beste tid vises ikke på hjem-skjermen");
+  t.sjekk((t.norsk ? /Lett/ : /\d:\d\d/).test(await t.tekst(".tk-rekorder")), "Beste tid vises ikke på hjem-skjermen");
   await t.bilde("hjem-rekord");
 
   // Today's sudoku: made from the date, the same on every phone, and the level follows the weekday.
@@ -227,7 +229,7 @@ export default async function (t) {
   t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")), "Topplinja sier «Kåringen» på et soloresultat");
   s = await t.tilstand();
   t.sjekk(s.daglig.tider[forventet.dag] > 0 && s.daglig.rekke === 1, "Dagens sudoku ble ikke registrert som løst");
-  const forside = await t.js(`JSON.parse(localStorage.getItem("rusj.daglig") || "{}").tallknuseren || null`);
+  const forside = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("daglig")}") || "{}").tallknuseren || null`);
   t.sjekk(forside && forside.vunnet && forside.rekke === 1 && forside.nr === forventet.nr, "Forsiden får ikke vite at dagens sudoku er løst (R.dagligFerdig)");
   t.sjekk(!forside || forside.res === undefined || /^\d+:\d\d$/.test(forside.res), "Resultatet til forsiden er ikke en tid");
   await t.bilde("dagens-slutt", true);
@@ -239,7 +241,7 @@ export default async function (t) {
   t.sjekk(s.niva === forventet.niva && !s.dagens && s.gitt !== forventet.gitt, "«Spill igjen» ga ikke et nytt brett");
   // The front page's link: #dagens opens the result of the solved sudoku (the new board waits).
   await t.lastSide(t.side + "#dagens", "document.querySelector('.skjerm-slutt')");
-  t.sjekk(/dagens sudoku/i.test(await t.tekst("#topp-tittel")) && (await t.finnes('.dokk [data-h="del"]')), "#dagens åpnet ikke resultatet for dagens sudoku");
+  t.sjekk((!t.norsk || /dagens sudoku/i.test(await t.tekst("#topp-tittel"))) && (await t.finnes('.dokk [data-h="del"]')), "#dagens åpnet ikke resultatet for dagens sudoku");
   alt = await t.tilstand();
   t.sjekk(alt.annet && !alt.annet.dagens && !alt.annet.ferdig && alt.annet.gitt === s.gitt, "Det nye brettet ble borte da resultatet for dagens ble åpnet");
 
@@ -292,5 +294,5 @@ export default async function (t) {
   // A tampered level name in the saved state ("__proto__") is not a level: back to the default.
   await t.js(`Rusj.S.oppsett = JSON.parse('{"niva":"__proto__"}'); Rusj.S.spill = null; Rusj.S.annet = null; Rusj.lagre()`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
-  t.sjekk(/Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Et ugyldig nivånavn i lagret tilstand ga ikke standardnivået");
+  t.sjekk(!t.norsk || /Start spill · lett/.test(await t.tekst('[data-h="nytt"]')), "Et ugyldig nivånavn i lagret tilstand ga ikke standardnivået");
 }
