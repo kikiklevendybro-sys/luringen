@@ -653,7 +653,7 @@
       ]
     },
     "stigespillet": {
-      "tittel": "Stigespill på nett – gratis for barn, 1–4 på samme mobil",
+      "tittel": "Stigespill på nett – gratis for barn på én mobil",
       "frase": "Stigespill",
       "beskrivelse": "Gratis stigespill på norsk: kast terningen, klatre opp stigene og skli ned sklia. Tre brett, store knapper for de minste – og mobilen kan ta de ledige plassene.",
       "sok": [
@@ -663,6 +663,28 @@
         "snakes and ladders",
         "brettspill for barn",
         "terningspill for barn"
+      ]
+    },
+    "dam": {
+      "tittel": "Dam på nett – gratis mot mobilen eller en venn",
+      "frase": "Damspill på nett",
+      "beskrivelse": "Spill dam gratis på norsk: mot mobilen på fire nivåer, eller to på samme mobil – med slagplikt, flerhopp, flygende damer og angreknapp. Uten konto.",
+      "sok": [
+        "dam mot datamaskin",
+        "dam spill gratis",
+        "damspill på nett",
+        "dambrett på mobil"
+      ]
+    },
+    "reversi": {
+      "tittel": "Reversi på nett – gratis mot mobilen eller en venn",
+      "frase": "Reversi",
+      "beskrivelse": "Spill reversi gratis på norsk: klem brikkene inne og snu dem. Mot mobilen på fire nivåer eller to på samme mobil – med tips og angreknapp. Uten konto.",
+      "sok": [
+        "reversi mot datamaskin",
+        "reversi gratis",
+        "reversi på mobil",
+        "snu brikkene spill"
       ]
     }
   }

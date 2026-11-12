@@ -1,0 +1,15 @@
+{
+  "id": "dam",
+  "navn": "Dam",
+  "undertittel": "Dam",
+  "beskrivelse": "Gratis dam på norsk. Spill mot mobilen på fire nivåer eller mot en venn på samme mobil – med slagplikt, flerhopp, flygende damer og angre.",
+  "kort": "Hopp over brikkene og bli dame.",
+  "spillere": [1, 2],
+  "minutter": [5, 30],
+  "mobiler": "en",
+  "tagger": ["klassiker", "tenke", "alene"],
+  "rekkefolge": 53,
+  "farge": "#c98b5a",
+  "sok": ["dam", "damspill", "dambrett", "checkers", "draughts", "dam på nett", "spill dam"],
+  "motMobilen": true
+}

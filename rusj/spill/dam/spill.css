@@ -1,0 +1,668 @@
+/* Dam — a wooden 8 × 8 board, round pieces with a rim, a crown on the kings. The board is sized by
+   JS (tilpass) so the score, the board and the tools fit on the screen without scrolling. */
+
+.skjerm-spill {
+  --dm-lys: #f3dfc1;
+  --dm-mork: #a8694a;
+  --dm-hvit: #fff6e6;
+  --dm-hvit-dyp: #d9c6a6;
+  --dm-svart: #33244f;
+  --dm-svart-dyp: #170e2b;
+  gap: 10px;
+}
+
+/* A small stone of the player's colour */
+.dm-stein {
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6e6 0 46%, #d9c6a6 50% 60%, #fff6e6 64%);
+  box-shadow: 0 0 0 1.5px #0b0617;
+}
+
+.dm-stein.svart {
+  background: radial-gradient(circle, #33244f 0 46%, #170e2b 50% 60%, #33244f 64%);
+  box-shadow: 0 0 0 1.5px #f6e7cf;
+}
+
+/* ---------- Score ---------- */
+
+.dm-stilling {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.dm-tall {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  justify-items: center;
+  gap: 2px 8px;
+  font: 900 2.2rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.dm-tall span {
+  color: var(--tekst-3);
+  font-size: 1.4rem;
+}
+
+.dm-tall small {
+  grid-column: 1 / -1;
+  max-width: 6.2em;
+  color: var(--tekst-3);
+  font: 700 0.72rem/1.2 var(--font-tekst);
+  text-align: center;
+}
+
+.dm-spiller {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 8px 7px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  text-align: center;
+  transition: box-shadow 0.25s, background 0.25s, transform 0.25s;
+}
+
+.dm-spiller.aktiv {
+  background: color-mix(in srgb, var(--aksent) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--aksent), 0 0 22px color-mix(in srgb, var(--aksent) 28%, transparent);
+  transform: translateY(-2px);
+}
+
+.dm-spiller.vant {
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.dm-spiller.vant .dm-igjen {
+  color: var(--blekk);
+}
+
+.dm-merke {
+  position: relative;
+  display: block;
+}
+
+.dm-merke .avatar {
+  width: 38px;
+  height: 38px;
+  font-size: 1.25rem;
+}
+
+.dm-merke .dm-stein {
+  position: absolute;
+  right: -5px;
+  bottom: -3px;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+}
+
+.dm-maskin {
+  display: block;
+  width: 40px;
+  margin: -2px 0;
+}
+
+.dm-maskin .figur-ramme {
+  display: block;
+}
+
+.dm-navn {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 0.98rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dm-igjen {
+  color: var(--tekst-3);
+  font: 700 0.76rem/1.1 var(--font-tekst);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Message ---------- */
+
+.dm-melding {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 42px;
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 900 1.08rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.dm-melding.tvang {
+  background: color-mix(in srgb, var(--lampe) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--lampe);
+}
+
+.dm-melding.tvang b {
+  color: var(--lampe);
+}
+
+.dm-melding.vinner {
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+  color: var(--blekk);
+  animation: dm-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.dm-melding.remis {
+  background: var(--natt-3);
+  animation: dm-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes dm-hopp {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+
+.dm-tenker i {
+  font-style: normal;
+  animation: dm-prikk 1.2s infinite both;
+}
+
+.dm-tenker i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dm-tenker i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dm-prikk {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.dm-luft {
+  flex: 2 1 0;
+}
+
+.dm-luft.under {
+  flex-grow: 3;
+}
+
+/* ---------- The board ---------- */
+
+.dm-brettramme {
+  display: flex;
+  justify-content: center;
+}
+
+.dm-brett {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--dm-mork);
+  box-shadow: 0 0 0 4px #2a160c, 0 0 0 6px color-mix(in srgb, var(--aksent) 45%, var(--strek)), 0 18px 34px var(--skygge);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  container-type: inline-size;
+}
+
+.dm-rute {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--dm-mork);
+  color: var(--dm-lys);
+  cursor: pointer;
+}
+
+.dm-rute.lys {
+  background: var(--dm-lys);
+  color: #7b4a32;
+  cursor: default;
+}
+
+.dm-rute:focus-visible {
+  z-index: 4;
+  outline: 3px solid var(--lampe);
+  outline-offset: -3px;
+}
+
+.dm-rute.sist::before,
+.dm-rute.valgt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.dm-rute.sist::before {
+  background: rgba(255, 205, 60, 0.42);
+}
+
+.dm-rute.valgt::before {
+  background: rgba(61, 227, 176, 0.6);
+}
+
+/* Where the selected piece can go: a dot; a ring where it lands after a jump. */
+.dm-rute.mal::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  width: 32%;
+  height: 32%;
+  border-radius: 50%;
+  background: rgba(255, 246, 230, 0.55);
+  box-shadow: 0 0 0 2px rgba(23, 14, 43, 0.35);
+  pointer-events: none;
+}
+
+.dm-rute.mal.slag::after {
+  width: 44%;
+  height: 44%;
+  background: rgba(255, 210, 63, 0.75);
+}
+
+.dm-rute.mal.over::after {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  background: rgba(255, 246, 230, 0.2);
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.75);
+}
+
+/* Pieces that must capture pulse with a yellow ring. */
+.dm-rute.tvang::after {
+  content: "";
+  position: absolute;
+  inset: 5%;
+  z-index: 2;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3.5px var(--lampe), 0 0 14px rgba(255, 210, 63, 0.7);
+  pointer-events: none;
+  animation: dm-tvang 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes dm-tvang {
+  from {
+    opacity: 0.45;
+  }
+}
+
+.dm-rute.hint::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 4px var(--mynte);
+  background: rgba(61, 227, 176, 0.3);
+  animation: dm-hint 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes dm-hint {
+  from {
+    box-shadow: inset 0 0 0 2px var(--mynte);
+  }
+}
+
+/* A piece: a disc with a raised rim and a shadow underneath. */
+.dm-brikke {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 42%, var(--dm-hvit) 0 40%, var(--dm-hvit-dyp) 43% 52%, var(--dm-hvit) 56%);
+  box-shadow: 0 0 0 2px #170e2b, 0 3px 0 2px #170e2b, inset 0 -3px 0 rgba(23, 14, 43, 0.18);
+  color: #c9851f;
+  pointer-events: none;
+}
+
+.dm-brikke.svart {
+  background: radial-gradient(circle at 50% 42%, #4a3870 0 40%, var(--dm-svart-dyp) 43% 52%, #4a3870 56%);
+  box-shadow: 0 0 0 2px #f6e7cf, 0 3px 0 2px #0b0617, inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+  color: var(--lampe);
+}
+
+.dm-krone {
+  width: 62%;
+  height: 62%;
+  fill: currentColor;
+  stroke: #170e2b;
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 0 rgba(23, 14, 43, 0.35));
+}
+
+.dm-rute.valgt .dm-brikke {
+  transform: translateY(-4%) scale(1.07);
+  transition: transform 0.12s;
+}
+
+/* Jumped pieces: greyed while the capture goes on, then fading away after the move. */
+.dm-brikke.slatt {
+  opacity: 0.38;
+  filter: grayscale(0.7);
+}
+
+.dm-brikke.borte {
+  position: absolute;
+  animation: dm-borte 0.32s ease-in both;
+  animation-delay: calc(var(--i, 0) * 0.17s + 0.1s);
+}
+
+@keyframes dm-borte {
+  to {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+.dm-koord {
+  position: absolute;
+  z-index: 2;
+  text-shadow: 0 0 2px var(--dm-mork), 0 0 2px var(--dm-mork);
+  font: 800 clamp(0.5rem, 2.3vw, 0.7rem) / 1 var(--font-display);
+  pointer-events: none;
+}
+
+.dm-koord.fil {
+  right: 3px;
+  bottom: 2px;
+}
+
+.dm-koord.rad {
+  top: 3px;
+  left: 3px;
+}
+
+.dm-svever {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 70;
+  filter: drop-shadow(0 10px 12px rgba(6, 2, 14, 0.45));
+  pointer-events: none;
+}
+
+.dm-stempel {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  background: rgba(21, 12, 40, 0.28);
+  pointer-events: none;
+}
+
+.dm-stempel .stempel {
+  max-width: 90%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--natt) 78%, transparent);
+  font-size: 10cqw;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Dock ---------- */
+
+.skjerm-spill .lenke:disabled {
+  opacity: 0.35;
+}
+
+.skjerm-spill .lenke[aria-pressed="true"] {
+  color: var(--aksent);
+}
+
+.dm-knappebrikke {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  margin: -0.2em 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 42%, #fff6e6 0 40%, #d9c6a6 43% 52%, #fff6e6 56%);
+  box-shadow: 0 0 0 1.5px #170e2b, 0 2px 0 1.5px #170e2b;
+  color: #c9851f;
+}
+
+/* ---------- Home: results against the phone ---------- */
+
+.dm-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.dm-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dm-rekorder li,
+.dm-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dm-rekorder li b,
+.dm-rekordlinje b {
+  color: var(--tekst);
+}
+
+.dm-niva {
+  min-width: 5.5em;
+  font-family: var(--font-display);
+}
+
+.dm-rekordlinje {
+  align-self: center;
+  margin: 0;
+  border-radius: var(--r-mid);
+}
+
+.dm-rekordlinje .etikett {
+  width: 100%;
+  text-align: center;
+}
+
+/* ---------- Result ---------- */
+
+.dm-vinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.dm-kroneemoji {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  transform: translateX(-50%) rotate(-12deg);
+  animation: dm-krone 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.3s;
+}
+
+@keyframes dm-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30px) rotate(-30deg) scale(0.4);
+  }
+}
+
+/* Exactly two players: no «add player» button. */
+.skjerm-oppsett .legg-til:disabled {
+  display: none;
+}
+
+/* Four levels: two by two on narrow phones, so «Nybegynner» and «Vanskelig» fit */
+@media (max-width: 419px) {
+  .skjerm-oppsett .seg:has([data-h="niva"]) {
+    grid-auto-flow: row;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ---------- Short and narrow screens ---------- */
+
+@media (max-height: 760px) {
+  .skjerm-spill {
+    gap: 7px;
+  }
+
+  .dm-spiller {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    justify-items: start;
+    column-gap: 7px;
+    row-gap: 0;
+    padding: 5px 10px 5px 6px;
+    border-radius: 999px;
+    text-align: left;
+  }
+
+  .dm-merke {
+    grid-row: 1 / 3;
+  }
+
+  .dm-merke .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+
+  .dm-merke .dm-stein {
+    width: 14px;
+    height: 14px;
+  }
+
+  .dm-maskin {
+    width: 32px;
+  }
+
+  .dm-navn {
+    font-size: 0.9rem;
+  }
+
+  .dm-igjen {
+    font-size: 0.7rem;
+  }
+
+  .dm-tall {
+    font-size: 1.7rem;
+  }
+
+  .dm-melding {
+    min-height: 36px;
+    padding: 5px 14px;
+    font-size: 0.98rem;
+  }
+
+  .dm-luft {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .dm-stilling {
+    gap: 5px;
+  }
+
+  .dm-tall {
+    gap: 2px 5px;
+  }
+}
+
+/* ---------- Wide screens and phones on their side: the board left, the rest to the right ---------- */
+
+@media (min-width: 900px) and (min-aspect-ratio: 5/4), (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="dam"] .app:has(.skjerm-spill) {
+    max-width: 1100px;
+  }
+
+  .skjerm-spill {
+    display: grid;
+    grid-template-columns: auto minmax(230px, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    column-gap: 24px;
+    row-gap: 10px;
+    align-content: start;
+    padding-bottom: 12px;
+  }
+
+  .dm-luft {
+    display: none;
+  }
+
+  .skjerm-spill > .dm-brettramme {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: start;
+  }
+
+  .skjerm-spill > .dm-stilling {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .skjerm-spill > .dm-melding {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .skjerm-spill > .dokk {
+    grid-column: 2;
+    grid-row: 4;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+}

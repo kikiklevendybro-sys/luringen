@@ -1053,6 +1053,37 @@
         ${strek("M100 34 Q116 48 107 74 Q100 94 118 110", 2.5, "rgba(255,241,221,.8)")}
         ${glimt(110, 4, 7)}`,
     },
+
+    // Dam (draughts): a wooden piece that has reached the far row – and got its crown.
+    dam: {
+      farge: "#c98b5a",
+      tegn: (f) => `
+        ${hode(f)}
+        <circle cx="60" cy="64" r="38" fill="none" stroke="rgba(23,14,43,.22)" stroke-width="3.5"/>
+        <circle cx="60" cy="64" r="29" fill="none" stroke="rgba(23,14,43,.12)" stroke-width="3"/>
+        ${form("M33 30 L28 4 L45 17 L60 -2 L75 17 L92 4 L87 30 Q60 22 33 30Z", LAMPE)}
+        <circle cx="28" cy="4" r="4.5" fill="${ROSA}" stroke="${B}" stroke-width="3"/>
+        <circle cx="60" cy="-2" r="5" fill="${ROSA}" stroke="${B}" stroke-width="3"/>
+        <circle cx="92" cy="4" r="4.5" fill="${ROSA}" stroke="${B}" stroke-width="3"/>
+        ${kinn(82)}
+        ${oyne({ y: 60, dx: 2, dy: 1 })}
+        ${smil(86, 14)}`,
+    },
+
+    // Reversi: a disc caught in the middle of turning over – half dark, half light, a little dizzy.
+    reversi: {
+      farge: "#7dd3a8",
+      tegn: (f) => `
+        ${hode(f)}
+        <path d="M60 16 A48 48 0 0 0 60 112Z" fill="#5a4785"/>
+        <circle cx="60" cy="64" r="48" fill="none" stroke="${B}" stroke-width="5"/>
+        ${strek("M60 18 V110", 3, "rgba(23,14,43,.35)")}
+        ${strek("M20 18 Q60 -10 100 18", 4.5, LAMPE)}
+        ${form("M100 18 L88 16 L97 7Z", LAMPE, 3)}
+        <ellipse cx="88" cy="80" rx="8" ry="5" fill="rgba(255, 79, 139, 0.32)"/>
+        ${oyne({ y: 58, dx: 3, dy: -2, dx2: -3, dy2: 2 })}
+        ${form("M44 84 Q60 98 76 84 Q60 90 44 84Z", P, 4)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on
