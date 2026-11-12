@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["klassiker", "familie", "alene"],
   "rekkefolge": 37,
-  "sok": ["slagskip", "battleship", "senke skip", "senke slagskip", "sjøslag", "skipsspill", "slagskipspill"]
+  "sok": ["slagskip", "battleship", "senke skip", "senke slagskip", "sjøslag", "skipsspill", "slagskipspill"],
+  "alias": ["slagskip"]
 }

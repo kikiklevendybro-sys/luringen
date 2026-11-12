@@ -10,5 +10,6 @@
   "tagger": ["fest", "lag", "ord"],
   "rekkefolge": 49,
   "farge": "#ffb347",
-  "sok": ["fishbowl", "hatteleken", "ord i hatten", "lapper i hatten", "forklar ett ord mim", "celebrity"]
+  "sok": ["fishbowl", "hatteleken", "ord i hatten", "lapper i hatten", "forklar ett ord mim", "celebrity"],
+  "alias": ["ord-i-hatten"]
 }

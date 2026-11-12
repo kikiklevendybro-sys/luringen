@@ -10,5 +10,6 @@
   "tagger": ["klassiker", "tenke", "alene", "daglig"],
   "rekkefolge": 24,
   "farge": "#7fd6c2",
-  "sok": ["sudoku", "dagens sudoku", "tallgåte", "tallspill", "logikk"]
+  "sok": ["sudoku", "dagens sudoku", "tallgåte", "tallspill", "logikk"],
+  "alias": ["sudoku"]
 }

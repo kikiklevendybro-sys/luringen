@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["daglig", "ord", "alene", "tenke"],
   "rekkefolge": 22,
-  "sok": ["dagens ord", "ordspill", "fem bokstaver", "gjett ordet", "ordgåte"]
+  "sok": ["dagens ord", "ordspill", "fem bokstaver", "gjett ordet", "ordgåte"],
+  "alias": ["dagens-ord"]
 }

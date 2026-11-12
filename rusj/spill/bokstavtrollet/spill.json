@@ -8,5 +8,6 @@
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["barn", "familie", "ord"],
-  "rekkefolge": 19
+  "rekkefolge": 19,
+  "alias": ["alfabetleken"]
 }

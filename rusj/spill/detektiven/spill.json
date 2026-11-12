@@ -8,5 +8,6 @@
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["familie", "sporsmal", "barn", "ord"],
-  "rekkefolge": 11
+  "rekkefolge": 11,
+  "alias": ["20-sporsmal", "hvem-er-jeg"]
 }

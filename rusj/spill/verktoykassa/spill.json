@@ -10,5 +10,6 @@
   "tagger": ["verktoy", "fest", "familie"],
   "rekkefolge": 42,
   "farge": "#ffb02e",
-  "sok": ["hvem starter", "hvem begynner", "finger velger", "kron eller mynt", "terning", "lagdeler", "stein saks papir", "poengteller", "stoppeklokke", "nedtelling", "tilfeldig tall"]
+  "sok": ["hvem starter", "hvem begynner", "finger velger", "kron eller mynt", "terning", "lagdeler", "stein saks papir", "poengteller", "stoppeklokke", "nedtelling", "tilfeldig tall"],
+  "alias": ["hvem-starter", "laggenerator", "terning", "kron-eller-mynt", "verktøykassa"]
 }

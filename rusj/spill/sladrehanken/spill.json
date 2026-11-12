@@ -8,5 +8,6 @@
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["fest", "familie", "sporsmal"],
-  "rekkefolge": 3
+  "rekkefolge": 3,
+  "alias": ["jeg-har-aldri"]
 }

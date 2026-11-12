@@ -8,5 +8,6 @@
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["fest", "familie", "barn", "sporsmal"],
-  "rekkefolge": 6
+  "rekkefolge": 6,
+  "alias": ["hva-vil-du-helst"]
 }

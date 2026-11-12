@@ -55,8 +55,10 @@ before(() => {
     if (!mappe.isDirectory()) continue;
     const fil = join(WEB, mappe.name, "index.html");
     if (!existsSync(fil)) continue;
-    if (mappe.name in OMDOPT) {
-      videresend.set(mappe.name, readFileSync(fil, "utf8"));
+    // Old addresses of renamed games and alias addresses: small pages that send the visitor on.
+    const html = readFileSync(fil, "utf8");
+    if (mappe.name in OMDOPT || html.includes('<meta http-equiv="refresh"')) {
+      videresend.set(mappe.name, html);
       continue;
     }
     sider.push(lesSide(`/${mappe.name}/`, fil));
@@ -447,4 +449,46 @@ test("collections are checked when they are read: unknown or 18+ games, brands, 
   } finally {
     rmSync(rot, { recursive: true, force: true });
   }
+});
+
+// ---------- Alias addresses (`alias` in spill.json): /jeg-har-aldri/ → /sladrehanken/ ----------
+
+test("alias addresses send the visitor on: no script, not indexed, not in the sitemap or the offline list", () => {
+  const kart = new Map([["imposter", "luringen"]]);
+  for (const id of readdirSync(join(ROT, "rusj/spill"))) {
+    const fil = join(ROT, "rusj/spill", id, "spill.json");
+    if (existsSync(fil)) for (const a of JSON.parse(readFileSync(fil, "utf8")).alias || []) kart.set(a, id);
+  }
+  assert.ok(kart.size >= 40, `bare ${kart.size} alias`);
+  const xml = readFileSync(join(WEB, "sitemap.xml"), "utf8");
+  const sw = readFileSync(join(WEB, "sw.js"), "utf8");
+  for (const [a, id] of kart) {
+    if (!spillIder.includes(id)) continue;
+    const html = videresend.get(a);
+    assert.ok(html, `mangler /${a}/`);
+    assert.match(html, new RegExp(`<meta http-equiv="refresh" content="0; url=/${id}/">`), `/${a}/: sender ikke videre til /${id}/`);
+    assert.match(html, new RegExp(`<link rel="canonical" href="${DOMENE}/${id}/">`), `/${a}/: canonical`);
+    assert.match(html, /<meta name="robots" content="noindex">/, `/${a}/: skal ikke indekseres`);
+    assert.match(html, new RegExp(`<a href="/${id}/">`), `/${a}/: mangler lenke`);
+    assert.ok(!/<script/i.test(html), `/${a}/: har script`);
+    assert.ok(!xml.includes(`/${a}/`), `/${a}/ står i sitemap.xml`);
+    assert.ok(!sw.includes(`"/${a}/"`), `/${a}/ står i listen for bruk uten nett`);
+    assert.equal(merkeSynlig(a.replace(/-/g, " ")), null, `/${a}/ er en annens merkevare`);
+  }
+  // Never a third party's game name as an address (an address is visible use).
+  for (const a of ["alias", "codenames", "wordle", "ring-of-fire", "kahoot", "heads-up", "pictionary", "tabu", "bezzerwizzer", "memory-spill"]) assert.ok(!kart.has(a), `/${a}/ er et alias`);
+});
+
+test("an alias that is already taken, malformed or a brand stops the build", async () => {
+  const { aliasKart } = await import("../scripts/rusj.mjs");
+  const lag = (spill, opptatt = ["om", "julebordleker"]) => aliasKart({ spill, opptatt, merke: merkeSynlig });
+  assert.deepEqual([...lag([{ id: "a", alias: ["jeg-har-aldri", "våghalsen"] }, { id: "b" }])], [["jeg-har-aldri", "a"], ["våghalsen", "a"]]);
+  assert.throws(() => lag([{ id: "a", alias: ["b"] }, { id: "b" }]), /allerede spillet b/);
+  assert.throws(() => lag([{ id: "a", alias: ["julebordleker"] }]), /allerede en side/);
+  assert.throws(() => lag([{ id: "a", alias: ["om"] }]), /allerede en side/);
+  assert.throws(() => lag([{ id: "a", alias: ["x"] }, { id: "b", alias: ["x"] }]), /brukes også av a/);
+  assert.throws(() => lag([{ id: "a", alias: ["Stor Bokstav"] }]), /små bokstaver/);
+  assert.throws(() => lag([{ id: "a", alias: ["ring-of-fire"] }]), /merkevare/);
+  assert.throws(() => lag([{ id: "a", alias: ["codenames"] }]), /merkevare/);
+  assert.throws(() => lag([{ id: "a", alias: "x" }]), /må være en liste/);
 });

@@ -10,5 +10,6 @@
   "tagger": ["barn", "familie", "ord"],
   "rekkefolge": 38,
   "ordbank": true,
-  "sok": ["galgen", "hangman", "gjett ordet", "galgespill"]
+  "sok": ["galgen", "hangman", "gjett ordet", "galgespill"],
+  "alias": ["galgen"]
 }

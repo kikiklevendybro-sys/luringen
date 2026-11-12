@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["fest", "familie", "ord", "barn"],
   "rekkefolge": 8,
-  "ordbank": true
+  "ordbank": true,
+  "alias": ["gjett-ordet-pa-panna"]
 }

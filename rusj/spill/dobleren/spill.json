@@ -10,5 +10,6 @@
   "tagger": ["klassiker", "tenke", "alene", "daglig"],
   "rekkefolge": 30,
   "farge": "#ffb26b",
-  "sok": ["2048", "tallspill", "slå sammen tall", "sveipespill", "dagens lynrunde"]
+  "sok": ["2048", "tallspill", "slå sammen tall", "sveipespill", "dagens lynrunde"],
+  "alias": ["2048"]
 }

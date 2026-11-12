@@ -10,5 +10,6 @@
   "tagger": ["klassiker", "barn", "familie", "alene"],
   "rekkefolge": 28,
   "sok": ["tre på rad", "kryss og bolle", "tic tac toe", "fem på rad", "bondesjakk"],
-  "motMobilen": true
+  "motMobilen": true,
+  "alias": ["bondesjakk", "tre-pa-rad"]
 }

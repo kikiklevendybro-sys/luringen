@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["barn", "familie", "fest"],
   "rekkefolge": 40,
-  "sok": ["ja og nei", "ja-nei-leken", "ikke si ja eller nei", "ja nei forbudt", "yes no game"]
+  "sok": ["ja og nei", "ja-nei-leken", "ikke si ja eller nei", "ja nei forbudt", "yes no game"],
+  "alias": ["ja-og-nei", "papegøyen"]
 }

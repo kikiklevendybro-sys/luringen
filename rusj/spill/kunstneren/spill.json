@@ -8,5 +8,6 @@
   "minutter": [10, 40],
   "mobiler": "en",
   "tagger": ["tegning", "fest", "familie", "barn"],
-  "rekkefolge": 16
+  "rekkefolge": 16,
+  "alias": ["tegn-og-gjett"]
 }

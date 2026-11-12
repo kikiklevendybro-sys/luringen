@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["fest", "familie", "lag"],
   "rekkefolge": 39,
-  "sok": ["nynn låta", "gjett låta", "gjett sangen", "nynnelek", "nynne", "hum"]
+  "sok": ["nynn låta", "gjett låta", "gjett sangen", "nynnelek", "nynne", "hum"],
+  "alias": ["gjett-sangen"]
 }

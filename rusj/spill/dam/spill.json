@@ -11,5 +11,6 @@
   "rekkefolge": 53,
   "farge": "#c98b5a",
   "sok": ["dam", "damspill", "dambrett", "checkers", "draughts", "dam på nett", "spill dam"],
-  "motMobilen": true
+  "motMobilen": true,
+  "alias": ["damspill"]
 }

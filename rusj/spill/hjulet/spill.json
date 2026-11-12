@@ -10,5 +10,6 @@
   "tagger": ["drikke", "fest"],
   "rekkefolge": 46,
   "alder18": true,
-  "sok": ["drikkehjul", "snurr hjulet", "lykkehjul", "spin the wheel", "drikkeleker", "drikkespill"]
+  "sok": ["drikkehjul", "snurr hjulet", "lykkehjul", "spin the wheel", "drikkeleker", "drikkespill"],
+  "alias": ["drikkehjul"]
 }

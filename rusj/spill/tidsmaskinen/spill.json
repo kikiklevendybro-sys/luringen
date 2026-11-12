@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["quiz", "familie", "lag"],
   "rekkefolge": 35,
-  "sok": ["tidslinje", "tidslinjespill", "årstall", "historiequiz", "når skjedde det", "timeline"]
+  "sok": ["tidslinje", "tidslinjespill", "årstall", "historiequiz", "når skjedde det", "timeline"],
+  "alias": ["tidslinja"]
 }

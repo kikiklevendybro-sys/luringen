@@ -16,6 +16,59 @@ export const DOMENE = "https://rusj.no";
 // Renamed games: old id → new id. The build writes /<old>/ as a page that sends visitors on.
 export const OMDOPT = { besserwisseren: "bedreviteren" };
 
+// Addresses that are pages of their own (or folders the build fills): an alias may never take one.
+export const FASTE_STIER = ["om", "personvern", "merker", "felles", "luringen", "404", "index", "sitemap", "robots", "manifest", "favicon", "sw"];
+
+// Alias addresses (`alias` in spill.json): /jeg-har-aldri/ → /sladrehanken/. Easy to say and type
+// at a party, and spelled the way people search. Returns Map(alias → game id) and stops the build
+// on an address that is taken (a game, a collection, a page, an old address or another alias), on
+// a malformed one, and on another company's brand: an address is visible use.
+// o: { spill: [{ id, alias }], opptatt: [addresses already in use], merke: (text) → brand | null }
+export function aliasKart(o) {
+  const feil = [];
+  const opptatt = new Map(o.opptatt.map((a) => [a, "en side"]));
+  for (const g of o.spill) opptatt.set(g.id, `spillet ${g.id}`);
+  const kart = new Map();
+  for (const g of o.spill) {
+    if (g.alias == null) continue;
+    if (!Array.isArray(g.alias)) {
+      feil.push(`${g.id}: "alias" må være en liste`);
+      continue;
+    }
+    for (const a of g.alias) {
+      if (typeof a !== "string" || !/^[a-z0-9æøå]+(-[a-z0-9æøå]+)*$/.test(a)) feil.push(`${g.id}: aliaset «${a}» kan bare ha små bokstaver, tall og bindestrek`);
+      else if (opptatt.has(a)) feil.push(`${g.id}: aliaset «${a}» er allerede ${opptatt.get(a)}`);
+      else if (kart.has(a)) feil.push(`${g.id}: aliaset «${a}» brukes også av ${kart.get(a)}`);
+      else if (o.merke(a.replace(/-/g, " "))) feil.push(`${g.id}: aliaset «${a}» er en annens merkevare («${o.merke(a.replace(/-/g, " "))}»)`);
+      else kart.set(a, g.id);
+    }
+  }
+  if (feil.length) throw new Error("Alias-adressene har feil:\n  " + feil.join("\n  "));
+  return kart;
+}
+
+// A tiny page that sends the visitor on: meta refresh (no script under the CSP), noindex, and the
+// canonical address for search engines. Never in the sitemap or the offline list.
+function videresendSide(m, tekst) {
+  return `<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="${CSP}">
+<meta name="robots" content="noindex">
+<title>${esc(m.navn)} | rusj</title>
+<link rel="canonical" href="${DOMENE}/${m.id}/">
+<meta http-equiv="refresh" content="0; url=/${m.id}/">
+<style>body{background:#150c28;color:#fff1dd;font:1.1rem/1.5 system-ui,sans-serif;text-align:center;padding:3rem 1rem}a{color:#ffd23f}</style>
+</head>
+<body>
+${tekst ? `<p>${esc(tekst)}</p>\n` : ""}<p><a href="/${m.id}/">Gå til ${esc(m.navn)}</a></p>
+</body>
+</html>
+`;
+}
+
 // Anonymous statistics (see statistikk/README.md and statistikk/KLIENT.md). The address of the
 // statistics Worker, e.g. "https://rusj-statistikk.<konto>.workers.dev". Empty = switched off:
 // then nothing is sent, the CSP is unchanged and the privacy texts say what they always said.
@@ -1018,28 +1071,19 @@ ${album}
   for (const [gammel, ny] of Object.entries(OMDOPT)) {
     const m = spill.find((x) => x.id === ny);
     if (!m) continue;
-    skriv(
-      `${gammel}/index.html`,
-      `<!doctype html>
-<html lang="nb">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="${CSP}">
-<meta name="robots" content="noindex">
-<title>${esc(m.navn)} | rusj</title>
-<link rel="canonical" href="${DOMENE}/${ny}/">
-<meta http-equiv="refresh" content="0; url=/${ny}/">
-<style>body{background:#150c28;color:#fff1dd;font:1.1rem/1.5 system-ui,sans-serif;text-align:center;padding:3rem 1rem}a{color:#ffd23f}</style>
-</head>
-<body>
-<p>Spillet heter nå ${esc(m.navn)}.</p>
-<p><a href="/${ny}/">Gå til ${esc(m.navn)}</a></p>
-</body>
-</html>
-`,
-    );
+    skriv(`${gammel}/index.html`, videresendSide(m, `Spillet heter nå ${m.navn}.`));
   }
+
+  // ---------- Alias addresses: /jeg-har-aldri/ → /sladrehanken/ (`alias` in spill.json) ----------
+  // Checked against every game, collection and page (also in a partial build); written for the
+  // games in this build. The same small page as above, out of the sitemap and the offline list.
+  const alias = aliasKart({
+    spill: alleSpillKort, // (Luringen's aliases are checked whenever Luringen is in the build)
+    opptatt: [...FASTE_STIER, ...Object.keys(OMDOPT), ...samlinger.map((x) => x.slug)],
+    merke: merkeSynlig,
+  });
+  const iBygget = new Map([...(luringen ? [luringen] : []), ...spill].map((g) => [g.id, g]));
+  for (const [a, id] of alias) if (iBygget.has(id)) skriv(`${a}/index.html`, videresendSide(iBygget.get(id), ""));
 
   // ---------- Manifest, favicon, robots, sitemap ----------
   // Shortcuts (long press on the app icon): the three daily puzzles and «Overrask meg». Only games
@@ -1124,6 +1168,7 @@ ${album}
     // the page itself (every address with ?v=), so there is no second list to keep in step.
     sider: ["/", ...alleKort.map((m) => `/${m.id}/`), "/om/", "/personvern/", "/merker/", ...samlinger.map((s) => `/${s.slug}/`)],
     samlinger: samlinger.map((s) => s.slug),
+    alias: [...alias.keys()].filter((a) => iBygget.has(alias.get(a))),
   };
 }
 

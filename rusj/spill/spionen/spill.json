@@ -9,5 +9,6 @@
   "mobiler": "begge",
   "tagger": ["fest", "blof", "familie", "sporsmal"],
   "rekkefolge": 2,
-  "qr": true
+  "qr": true,
+  "alias": ["finn-spionen"]
 }

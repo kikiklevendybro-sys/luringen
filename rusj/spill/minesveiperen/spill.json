@@ -10,5 +10,6 @@
   "tagger": ["klassiker", "tenke", "alene", "daglig"],
   "rekkefolge": 29,
   "farge": "#93a9ec",
-  "sok": ["minesveiper", "minesweeper", "miner", "finn minene", "dagens minefelt", "uten gjetting"]
+  "sok": ["minesveiper", "minesweeper", "miner", "finn minene", "dagens minefelt", "uten gjetting"],
+  "alias": ["minesveiper"]
 }

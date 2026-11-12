@@ -10,5 +10,6 @@
   "tagger": ["familie", "fest", "verktoy"],
   "rekkefolge": 32,
   "qr": true,
-  "sok": ["secret santa", "nissetrekning", "trekk julegaver", "hemmelig nisse", "julegavetrekning", "trekke navn", "nisse"]
+  "sok": ["secret santa", "nissetrekning", "trekk julegaver", "hemmelig nisse", "julegavetrekning", "trekke navn", "nisse"],
+  "alias": ["secret-santa", "nissetrekning"]
 }

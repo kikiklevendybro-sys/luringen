@@ -10,5 +10,6 @@
   "tagger": ["drikke", "fest"],
   "rekkefolge": 45,
   "alder18": true,
-  "sok": ["ride the bus", "rød eller svart", "høyere lavere", "bussen drikkelek", "drikkelek kort"]
+  "sok": ["ride the bus", "rød eller svart", "høyere lavere", "bussen drikkelek", "drikkelek kort"],
+  "alias": ["busstur"]
 }

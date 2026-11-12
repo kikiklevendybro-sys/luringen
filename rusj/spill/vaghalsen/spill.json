@@ -8,5 +8,6 @@
   "minutter": [10, 45],
   "mobiler": "en",
   "tagger": ["fest", "familie", "barn", "sporsmal"],
-  "rekkefolge": 5
+  "rekkefolge": 5,
+  "alias": ["nodt-eller-sannhet", "sannhet-eller-nodt", "sannhet-eller-konsekvens", "våghalsen"]
 }
