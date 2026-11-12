@@ -235,6 +235,18 @@
         "lie",
         "party games"
       ]
+    },
+    "tankeleseren": {
+      "tittel": "In sync? Mind-reading game for 2–20",
+      "frase": "Mind-reading game",
+      "beskrivelse": "Free mind-reading game: one player sees the target on the dial and gives one hint – the others drag the needle. 610 scales for friends, family and teams.",
+      "sok": [
+        "wavelength",
+        "wavelength game",
+        "mind reader",
+        "cooperative game"
+      ],
+      "samarbeid": true
     }
   }
 }

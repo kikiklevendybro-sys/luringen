@@ -244,6 +244,19 @@
         "løgn",
         "two truths and a lie"
       ]
+    },
+    "tankeleseren": {
+      "tittel": "Samme bølgelængde? Tankelæserspil for 2–20",
+      "frase": "På samme bølgelængde",
+      "beskrivelse": "Gratis bølgelængdespil på dansk: én ser målet på skiven og giver ét hint – de andre trækker viseren. 610 skalaer for venner, familie og hold.",
+      "sok": [
+        "bølgelængde",
+        "bølgelængdespil",
+        "tankelæser",
+        "samarbejdsspil",
+        "wavelength"
+      ],
+      "samarbeid": true
     }
   }
 }
