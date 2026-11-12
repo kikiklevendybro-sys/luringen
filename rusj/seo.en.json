@@ -131,6 +131,12 @@
       "tittel": "Patience free – classic Klondike solitaire, no ads",
       "frase": "Patience",
       "beskrivelse": "Free patience in your browser with no ads – classic Klondike solitaire. Draw one or three cards, undo and get hints, and play only deals that can come out."
+    },
+    "sjakkhesten": {
+      "motMobilen": true,
+      "tittel": "Chess online – against the computer or a friend",
+      "frase": "Chess",
+      "beskrivelse": "Play chess free in your browser: against the computer at four levels, or two on the same phone – with every rule, a chess clock and an undo button. No account."
     }
   }
 }

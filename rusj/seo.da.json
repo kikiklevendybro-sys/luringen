@@ -139,6 +139,12 @@
       "tittel": "Kabale gratis – klassisk Klondike uden reklamer",
       "frase": "Kabale",
       "beskrivelse": "Gratis kabale på dansk uden reklamer – klassisk Klondike. Træk ét eller tre kort, fortryd og få hint, og spil kun kabaler, der kan gå op."
+    },
+    "sjakkhesten": {
+      "motMobilen": true,
+      "tittel": "Skak online – mod computeren eller en ven",
+      "frase": "Skak",
+      "beskrivelse": "Spil skak gratis på dansk: mod computeren på fire niveauer eller to på samme mobil – med alle regler, skakur og fortryd-knap. Uden konto."
     }
   }
 }
