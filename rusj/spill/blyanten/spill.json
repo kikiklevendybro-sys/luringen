@@ -10,5 +10,23 @@
   "tagger": ["daglig", "ord", "alene", "tenke"],
   "rekkefolge": 23,
   "sok": ["kryssord", "minikryss", "kryssord på nett"],
-  "alias": ["kryssord"]
+  "alias": ["kryssord"],
+  "i18n": {
+    "en": {
+      "navn": "Pencil",
+      "undertittel": "Mini crossword",
+      "kort": "Small crosswords made for your phone – a new one every day.",
+      "beskrivelse": "Free mini crosswords in English, made for your phone. Today's crossword is the same for everyone, and you can make new ones about animals, food, sport and more.",
+      "slug": "pencil",
+      "sok": ["mini crossword", "crossword", "daily crossword", "easy crossword", "quick crossword", "crossword for kids", "online crossword", "nyt mini"]
+    },
+    "da": {
+      "navn": "Blyanten",
+      "undertittel": "Minikrydsord",
+      "kort": "Små krydsord lavet til mobilen – nyt krydsord hver dag.",
+      "beskrivelse": "Gratis minikrydsord på dansk, lavet til mobilen. Dagens krydsord er ens for alle, og du kan lave nye om dyr, mad, sport og meget mere.",
+      "slug": "blyanten",
+      "sok": ["krydsord", "minikrydsord", "krydsord online", "dagens krydsord", "nemme krydsord", "krydsord for børn", "krydsord på nettet"]
+    }
+  }
 }

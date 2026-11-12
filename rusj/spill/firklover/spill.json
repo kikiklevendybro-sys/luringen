@@ -11,5 +11,23 @@
   "rekkefolge": 52,
   "farge": "#7bd88f",
   "dagnavn": "Dagens kløver",
-  "sok": ["fire grupper", "finn sammenhengen", "ordgåte", "koble ord", "dagens ordgåte", "grupper ord"]
+  "sok": ["fire grupper", "finn sammenhengen", "ordgåte", "koble ord", "dagens ordgåte", "grupper ord"],
+  "i18n": {
+    "en": {
+      "navn": "Clover",
+      "undertittel": "Four groups",
+      "kort": "Sixteen words, four groups. Find the links.",
+      "beskrivelse": "Free word puzzle: sixteen words hide four groups of four. Find the links before the clover loses its leaves. A new clover every day – and practise on older ones.",
+      "slug": "clover",
+      "sok": ["four groups", "find the link", "connect the words", "word groups", "daily word puzzle", "connections", "connections game", "only connect"]
+    },
+    "da": {
+      "navn": "Firkløveren",
+      "undertittel": "Fire grupper",
+      "kort": "Seksten ord, fire grupper. Find sammenhængen.",
+      "beskrivelse": "Gratis ordgåde på dansk: seksten ord gemmer fire grupper med fire ord. Find sammenhængen, før kløveren mister bladene. Ny kløver hver dag – og øv på ældre.",
+      "slug": "firkloeveren",
+      "sok": ["fire grupper", "find sammenhængen", "ordgåde", "forbind ordene", "dagens ordgåde", "connections på dansk", "connections"]
+    }
+  }
 }

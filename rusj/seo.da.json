@@ -497,6 +497,46 @@
         "sang",
         "julesange"
       ]
+    },
+    "ordugla": {
+      "tittel": "Dagens ord – gæt ordet på fem bogstaver, gratis",
+      "frase": "Dagens ord",
+      "beskrivelse": "Dansk ordspil: gæt dagens ord på fem bogstaver i seks forsøg. Samme ord for alle hver dag, med æ, ø og å – og øv dig, så meget du vil. Gratis, uden reklamer.",
+      "sok": [
+        "gæt ordet",
+        "ordgåde",
+        "ord på fem bogstaver"
+      ]
+    },
+    "firklover": {
+      "tittel": "Fire grupper – dagens ordgåde på dansk, gratis",
+      "frase": "Fire grupper",
+      "beskrivelse": "Gratis ordgåde på dansk: find fire grupper med fire ord i hver blandt seksten ord. Samme kløver for alle hver dag, fire fejl tilladt – og øv på ældre.",
+      "sok": [
+        "find fire grupper",
+        "forbind ordene",
+        "ordgåde på dansk"
+      ]
+    },
+    "blyanten": {
+      "tittel": "Minikrydsord – dagens krydsord på mobilen, gratis",
+      "frase": "Minikrydsord",
+      "beskrivelse": "Gratis krydsord på nettet, lavet til mobilen: dagens minikrydsord er ens for alle, og du kan lave nye om dyr, mad, sport og 27 andre temaer.",
+      "sok": [
+        "dagens krydsord",
+        "nemme krydsord",
+        "krydsord online"
+      ]
+    },
+    "bokstavtrollet": {
+      "tittel": "Alfabetlegen – sig et ord på bogstavet! Gratis",
+      "frase": "Alfabetlegen",
+      "beskrivelse": "Gratis alfabetleg på dansk. Sig et ord på bogstavet, og send mobilen videre, før trolden vågner – eller jagt ord med blyant og papir. For hele familien.",
+      "sok": [
+        "alfabetleg",
+        "bogstavleg",
+        "ordleg for børn"
+      ]
     }
   }
 }

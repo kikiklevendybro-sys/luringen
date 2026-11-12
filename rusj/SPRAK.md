@@ -195,3 +195,21 @@ Femmeren, Hatten.
 Ordugla, Blyanten, Ballongen, Skravla, Hviskeren, Kodeknekkeren, Bokstavtrollet, Bedreviteren,
 Tidsmaskinen, Tieren, Nynneren, Firkløveren, Skrønemakeren, Julekalenderen, and Luringen (`src/`,
 not on the kit; the 3 189-word bank).
+
+## Word lists and their sources
+
+Word lists are written for rusj and checked with scripts. An outside list may only be CC0, public
+domain, CC BY or MIT, and is named here and in the data file's `om`.
+
+- **Ordugla, English (Word Owl)** – the answers (`data.en/svar.json`) are our own. The accepted
+  guesses (`data.en/gyldige.json`) start from the five-letter words of *Webster's Second
+  International* (1934, public domain; the `/usr/share/dict/words` list on macOS and BSD) and regular
+  inflections of its shorter words; a word stays only when the macOS British English spell checker
+  (en_GB) accepts it. No rude words.
+- **Ordugla, Danish (Orduglen)** – answers and guesses are our own words and their regular
+  inflections (and the words in rusj's own Danish texts), kept only when the macOS Danish spell
+  checker accepts them.
+- **Blyanten (Pencil / Blyanten) and Firkløveren (Clover / Firkløveren)** – themes, clues and
+  groups are our own. `test/blyanten.test.mjs` builds every daily crossword of the first year in
+  each edition and checks that each run of letters across and down is one of the day's words.
+- The spell checkers only say yes or no to words we bring; nothing is copied out of them.

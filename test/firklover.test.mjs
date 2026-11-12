@@ -123,3 +123,28 @@ test("den faste rekkefølgen: de første kløverne endres ikke", () => {
   assert.equal(KLOVERE[11][0].t, "Måneder");
   assert.equal(KLOVERE[12][0].t, "Lyskilder");
 });
+
+// The English and Danish editions have their own clovers (data.en/, data.da/): the same rules.
+for (const [sprak, forste] of [
+  ["en", ["Fruit", "Card games", "Before ‘bell’", "Hides a rat"]],
+  ["da", ["Bær", "Kortfarver", "Ord foran »-klokke«", "Skjuler en mus"]],
+]) {
+  test(`${sprak}: at least 100 clovers, four groups of four, sixteen different words, short themes, a fixed order`, () => {
+    const k = JSON.parse(readFileSync(join(ROT, `rusj/spill/firklover/data.${sprak}/klovere.json`), "utf8")).dagens;
+    assert.ok(k.length >= 100, `bare ${k.length} kløvere`);
+    k.forEach((kl, n) => {
+      assert.deepEqual(ut(M.sjekkKlover(kl)), [], `${sprak} nr. ${n + 1}`);
+      for (const g of kl) assert.deepEqual(Object.keys(g).sort(), ["o", "t"], `${sprak} nr. ${n + 1}: ukjente felt`);
+      assert.equal(new Set(kl.map((g) => g.t.toLowerCase())).size, 4, `${sprak} nr. ${n + 1}: to like temaer`);
+    });
+    // The same four words twice anywhere in the list is a mistake.
+    const sett = new Set();
+    for (const kl of k)
+      for (const g of kl) {
+        const nk = g.o.map(M.normaliser).sort().join(",");
+        assert.ok(!sett.has(nk), `${sprak}: gruppen «${g.t}» går igjen`);
+        sett.add(nk);
+      }
+    assert.deepEqual([k[0][0].t, k[1][1].t, k[50][2].t, k[99][3].t], forste, "rekkefølgen er endret");
+  });
+}

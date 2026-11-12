@@ -480,6 +480,46 @@
         "singalong",
         "christmas songs"
       ]
+    },
+    "ordugla": {
+      "tittel": "Word of the day – guess the five-letter word, free",
+      "frase": "Word of the day",
+      "beskrivelse": "A free daily word game in British English: guess the five-letter word in six tries. The same word for everyone each day – and practise as much as you like.",
+      "sok": [
+        "five letter word game",
+        "daily word puzzle",
+        "guess the word"
+      ]
+    },
+    "firklover": {
+      "tittel": "Four groups – find the links, a daily word puzzle",
+      "frase": "Four groups",
+      "beskrivelse": "Free word puzzle in British English: find four groups of four among sixteen words. The same clover for everyone each day, four mistakes allowed.",
+      "sok": [
+        "find the connection",
+        "group the words",
+        "daily word game"
+      ]
+    },
+    "blyanten": {
+      "tittel": "Mini crossword – today's crossword on your phone",
+      "frase": "Mini crossword",
+      "beskrivelse": "Free crosswords made for your phone: today's mini crossword is the same for everyone, and you can make new ones on animals, food, sport and 27 other themes.",
+      "sok": [
+        "daily mini crossword",
+        "easy crossword",
+        "quick crossword"
+      ]
+    },
+    "bokstavtrollet": {
+      "tittel": "Alphabet game – say a word before the troll wakes",
+      "frase": "Alphabet game",
+      "beskrivelse": "A free alphabet game for the family: say a word on the letter and pass the phone before the troll wakes – or hunt for words with pencil and paper.",
+      "sok": [
+        "alphabet game",
+        "letter game",
+        "categories game for kids"
+      ]
     }
   }
 }
