@@ -11,5 +11,23 @@
   "rekkefolge": 21,
   "farge": "#85a3ff",
   "sok": ["huskespill", "vendespill", "finn to like", "finn parene", "memory", "hukommelse"],
-  "alias": ["vendespill"]
+  "alias": ["vendespill"],
+  "i18n": {
+    "en": {
+      "navn": "Nellie",
+      "undertittel": "Find the pairs",
+      "kort": "Turn two cards and find the pairs. An elephant never forgets!",
+      "beskrivelse": "Free pairs game in your browser. Turn two cards and find a match – on your own against the clock or up to four together. Animals, food, space and the rusj crew.",
+      "slug": "nellie",
+      "sok": ["pairs", "pairs game", "memory", "memory game", "matching game", "pelmanism", "concentration", "find the pairs", "matching pairs", "card matching"]
+    },
+    "da": {
+      "navn": "Elefanten",
+      "undertittel": "Vendespil",
+      "kort": "Vend to kort, og find parrene. En elefant glemmer aldrig!",
+      "beskrivelse": "Gratis vendespil på dansk. Vend to kort, og find to ens – alene mod uret eller op til fire sammen. Dyr, mad, rummet og rusj-banden.",
+      "slug": "elefanten",
+      "sok": ["vendespil", "huskespil", "find to ens", "find parrene", "memory", "erindringsspil", "billedvendespil"]
+    }
+  }
 }

@@ -126,6 +126,12 @@
       "tittel": "Ludo online – gratis for 1–4 spillere på én mobil",
       "frase": "Ludo",
       "beskrivelse": "Gratis ludo på dansk. Slå en sekser, kom ud, og slå de andre hjem! 2–4 spillere på én mobil – mobilen kan spille på de ledige pladser."
+    },
+    "elefanten": {
+      "motMobilen": true,
+      "tittel": "Vendespil online – find to ens, gratis for børn",
+      "frase": "Vendespil – find to ens",
+      "beskrivelse": "Gratis vendespil på dansk: vend to kort, og find to ens – alene mod uret eller op til fire sammen. Dyr, mad, rummet og meget mere."
     }
   }
 }

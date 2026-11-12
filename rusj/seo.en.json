@@ -118,6 +118,12 @@
       "tittel": "Ludo online – free for 1–4 players on one phone",
       "frase": "Ludo",
       "beskrivelse": "Free ludo in your browser. Roll a six, get your counters out and bump the others back to base! 2–4 players on one phone, and the phone can join in."
+    },
+    "elefanten": {
+      "motMobilen": true,
+      "tittel": "Pairs game online – turn two cards, free for kids",
+      "frase": "Pairs game – find the matching cards",
+      "beskrivelse": "Free pairs game in your browser: turn two cards and find a match – on your own against the clock or up to four together. Animals, food, space and more."
     }
   }
 }
