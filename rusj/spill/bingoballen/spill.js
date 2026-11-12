@@ -28,10 +28,11 @@
   const AUTO_SEK = 10;
   const range = (n) => Array.from({ length: n }, (_, i) => i);
   const bokstav = (x) => BOKSTAVER[Math.floor((x - 1) / 15)];
+  // Every text goes through R.t (rusj/SPRAK.md): the key is the Norwegian text.
   const MAAL = {
-    rekke: { navn: "Én rekke", kort: "én rekke" },
-    to: { navn: "To rekker", kort: "to rekker" },
-    full: { navn: "Fullt brett", kort: "fullt brett" },
+    rekke: { navn: R.t("Én rekke"), kort: R.t("én rekke") },
+    to: { navn: R.t("To rekker"), kort: R.t("to rekker") },
+    full: { navn: R.t("Fullt brett"), kort: R.t("fullt brett") },
   };
   const NESTE_MAAL = { rekke: "to", to: "full", full: null };
 
@@ -109,9 +110,9 @@
 
   function kodeFeil(tekst) {
     const kode = R.kode.normaliser(tekst);
-    if (!kode) return "Skriv inn koden først.";
-    if (kode.length !== KODELENGDE) return `Koden har ${KODELENGDE} tegn – du har skrevet ${kode.length}.`;
-    return "Koden stemmer ikke. Sjekk at den er skrevet riktig.";
+    if (!kode) return R.t("Skriv inn koden først.");
+    if (kode.length !== KODELENGDE) return R.t("Koden har {n} tegn – du har skrevet {antall}.", { n: KODELENGDE, antall: kode.length });
+    return R.t("Koden stemmer ikke. Sjekk at den er skrevet riktig.");
   }
 
   // Six digits: with 40 players the chance of two equal cards is about 1 in 1100.
@@ -150,14 +151,14 @@
     return `<div class="bb-piller">${liste.filter(Boolean).map((t) => `<span>${esc(t)}</span>`).join("")}</div>`;
   }
 
-  const typeTekst = (o) => (o.modus === "tall" ? "🎱 Tallbingo" : `${tema(o.tema).ikon} ${tema(o.tema).navn}`);
+  const typeTekst = (o) => (o.modus === "tall" ? `🎱 ${R.t("Tallbingo")}` : `${tema(o.tema).ikon} ${tema(o.tema).navn}`);
 
   const trukketListe = (sp) => sp.rekke.slice(0, sp.trukket);
 
   function tavla(sp, o = {}) {
     const sett = new Set(trukketListe(sp));
     const siste = sp.trukket ? sp.rekke[sp.trukket - 1] : null;
-    return `<div class="bb-tavla" role="img" aria-label="${sp.trukket} av ${BALLER} baller er trukket">${BOKSTAVER.map(
+    return `<div class="bb-tavla" role="img" aria-label="${esc(R.t("{n} av {alle} baller er trukket", { n: sp.trukket, alle: BALLER }))}">${BOKSTAVER.map(
       (b, k) =>
         `<span class="bb-tavla-b b-${b}">${b}</span>${range(15)
           .map((i) => {
@@ -179,12 +180,12 @@
         .map((x, i) => {
           const pa = merket.has(i);
           const klasse = `bb-rute${pa ? " merket" : ""}${iLinje.has(i) ? " linje" : ""}${o.sist === i ? " ny" : ""}`;
-          if (x === 0) return `<span class="${klasse} fri" aria-label="Fri rute">★</span>`;
-          if (!o.knapper) return `<span class="${klasse}" aria-label="${bokstav(x)} ${x}${pa ? ", trukket" : ""}">${x}</span>`;
+          if (x === 0) return `<span class="${klasse} fri" aria-label="${esc(R.t("Fri rute"))}">★</span>`;
+          if (!o.knapper) return `<span class="${klasse}" aria-label="${bokstav(x)} ${x}${pa ? ", " + esc(R.t("trukket")) : ""}">${x}</span>`;
           return `<button class="${klasse}" data-h="merk" data-v="${i}" aria-pressed="${pa}" aria-label="${bokstav(x)} ${x}">${x}</button>`;
         })
         .join("");
-      return `<div class="bb-brett fem${o.liten ? " liten" : ""}" role="group" aria-label="Bingobrett ${g.nr}">${BOKSTAVER.map((b) => `<span class="bb-hode b-${b}" aria-hidden="true">${b}</span>`).join("")}${rader}</div>`;
+      return `<div class="bb-brett fem${o.liten ? " liten" : ""}" role="group" aria-label="${esc(R.t("Bingobrett {nr}", { nr: g.nr }))}">${BOKSTAVER.map((b) => `<span class="bb-hode b-${b}" aria-hidden="true">${b}</span>`).join("")}${rader}</div>`;
     }
     const T = tema(g.tema);
     const celler = festbrett(g.fro, g.tema, g.nr);
@@ -196,7 +197,7 @@
         return `<button class="${klasse}" data-h="merk" data-v="${i}" aria-pressed="${pa}"><span class="bb-ikon" aria-hidden="true">${esc(ikon)}</span><span class="bb-tekst">${esc(tekst)}</span></button>`;
       })
       .join("");
-    return `<div class="bb-brett fire" role="group" aria-label="Festbingo: ${esc(T.navn)}, brett ${g.nr}">${ruter}</div>`;
+    return `<div class="bb-brett fire" role="group" aria-label="${esc(R.t("Festbingo: {tema}, brett {nr}", { tema: T.navn, nr: g.nr }))}">${ruter}</div>`;
   }
 
   const gjestLinjer = (g) => hele(new Set(g.merket), g.modus === "tall" ? 5 : 4);
@@ -236,13 +237,15 @@
   }
 
   // ---------- Reading the numbers aloud ----------
-  // With the phone's own Norwegian voice, so the host doesn't have to shout. Only voices on the
-  // phone itself: an online voice would send the numbers away. Follows the sound switch at the top.
+  // With the phone's own voice in the edition's language (Norwegian, English – British first – or
+  // Danish), so the host doesn't have to shout. Only voices on the phone itself: an online voice
+  // would send the numbers away. Follows the sound switch at the top.
+  const STEMMESPRAK = { en: /^en([-_]|$)/i, da: /^da([-_]|$)/i }[R.sprak] || /^(nb|no|nn)([-_]|$)/i;
   let stemme = null;
   function finnStemme() {
     try {
-      const stemmer = window.speechSynthesis ? speechSynthesis.getVoices() || [] : [];
-      stemme = stemmer.find((v) => /^(nb|no|nn)([-_]|$)/i.test(v.lang) && v.localService) || null;
+      const stemmer = (window.speechSynthesis ? speechSynthesis.getVoices() || [] : []).filter((v) => STEMMESPRAK.test(v.lang) && v.localService);
+      stemme = (R.sprak === "en" && stemmer.find((v) => /^en[-_]GB$/i.test(v.lang))) || stemmer[0] || null;
     } catch (e) {
       stemme = null;
     }
@@ -313,7 +316,7 @@
     pagar: (S) => pagar(S) || !!S.gjest,
 
     tilstand: () => ({
-      oppsett: { modus: "tall", tema: "julebord", auto: false, les: true },
+      oppsett: { modus: "tall", tema: TEMAER[0].id, auto: false, les: true },
       spill: null,
       // Card numbers this phone has been given, per code: the same card every time.
       laste: {},
@@ -324,7 +327,7 @@
     }),
 
     lastet(S) {
-      const o = (S.oppsett = Object.assign({ modus: "tall", tema: "julebord", auto: false, les: true }, S.oppsett));
+      const o = (S.oppsett = Object.assign({ modus: "tall", tema: TEMAER[0].id, auto: false, les: true }, S.oppsett));
       if (!["tall", "fest"].includes(o.modus)) o.modus = "tall";
       if (!TEMAER.some((t) => t.id === o.tema)) o.tema = TEMAER[0].id;
       o.auto = !!o.auto;
@@ -352,18 +355,18 @@
     },
 
     regler: {
-      intro: "Bingo der alle har brettet på sin egen mobil. Velg tallbingo med 75 baller, eller festbingo med øyeblikk som skjer på festen.",
+      intro: R.t("Bingo der alle har brettet på sin egen mobil. Velg tallbingo med 75 baller, eller festbingo med øyeblikk som skjer på festen."),
       steg: [
-        ["Del koden", "Den som starter, viser QR-koden. Alle skanner den og får et eget brett med et fast nummer."],
-        ["Merk det som skjer", "Tallbingo: verten trekker baller, og du trykker på tallene du har. Festbingo: trykk på øyeblikkene når de skjer."],
-        ["Rop BINGO!", "Første hele rekke vinner – vannrett, loddrett eller på skrå. I tallbingo sjekker verten brettet ditt med brettnummeret."],
+        [R.t("Del koden"), R.t("Den som starter, viser QR-koden. Alle skanner den og får et eget brett med et fast nummer.")],
+        [R.t("Merk det som skjer"), R.t("Tallbingo: verten trekker baller, og du trykker på tallene du har. Festbingo: trykk på øyeblikkene når de skjer.")],
+        [R.t("Rop BINGO!"), R.t("Første hele rekke vinner – vannrett, loddrett eller på skrå. I tallbingo sjekker verten brettet ditt med brettnummeret.")],
       ],
       tips: [
-        "I tallbingo kan dere spille videre om to rekker og fullt brett etter første bingo.",
-        "Brettet låses til mobilen. Går du ut og inn igjen med samme kode, får du det samme brettet.",
-        "Midtruta i tallbingo er fri – den teller alltid som merket.",
-        "Festbingo passer til julebord, julaften, nyttårsaften, bryllup, 17. mai, hyttetur, bursdag og konfirmasjon.",
-        "Verten kan slå på automatisk trekning og spille selv med «Mitt brett».",
+        R.t("I tallbingo kan dere spille videre om to rekker og fullt brett etter første bingo."),
+        R.t("Brettet låses til mobilen. Går du ut og inn igjen med samme kode, får du det samme brettet."),
+        R.t("Midtruta i tallbingo er fri – den teller alltid som merket."),
+        R.t("Festbingo passer til julebord, julaften, nyttårsaften, bryllup, 17. mai, hyttetur, bursdag og konfirmasjon."),
+        R.t("Verten kan slå på automatisk trekning og spille selv med «Mitt brett»."),
       ],
     },
 
@@ -372,7 +375,7 @@
       const o = lesKode(hash);
       if (!o) {
         S.kodeUtkast = R.kode.formater(R.kode.normaliser(hash).slice(0, KODELENGDE));
-        S.kodeFeil = "Lenken inneholder ingen gyldig kode. " + kodeFeil(hash);
+        S.kodeFeil = R.t("Lenken inneholder ingen gyldig kode.") + " " + kodeFeil(hash);
         return "bli-med";
       }
       S.gjest = nyGjest(S, o);
@@ -429,7 +432,7 @@
             f.focus();
           }
           const feil = R.$("#bb-sjekkfeil");
-          if (feil) feil.textContent = "Brettnummeret har seks sifre. Det står øverst på brettet.";
+          if (feil) feil.textContent = R.t("Brettnummeret har seks sifre. Det står øverst på brettet.");
           R.lyd.feil();
           return;
         }
@@ -454,37 +457,37 @@
         tilbake: "portal",
         vis: (S) =>
           R.ui.spillhjem({
-            slagordHtml: "Alle har brettet på mobilen.<br><em>Første hele rekke vinner!</em>",
+            slagordHtml: `${esc(R.t("Alle har brettet på mobilen."))}<br><em>${esc(R.t("Første hele rekke vinner!"))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: S.spill && S.spill.modus === "tall" ? `Fortsett · ${S.spill.trukket} av ${BALLER} baller` : "Fortsett · vis koden",
+              fortsettTekst: S.spill && S.spill.modus === "tall" ? R.t("Fortsett · {n} av {alle} baller", { n: S.spill.trukket, alle: BALLER }) : R.t("Fortsett · vis koden"),
                             ekstraHtml:
-                (S.gjest ? R.ui.knapp2(`Til brettet ditt · nr. ${S.gjest.nr}`, "til-brett", { ikon: "🎟️" }) : "") +
-                R.ui.knapp2("Bli med i et spill", "bli-med", { ikon: "📲" }) +
-                R.ui.lenke("Slik spiller du", "regler"),
+                (S.gjest ? R.ui.knapp2(R.t("Til brettet ditt · nr. {nr}", { nr: S.gjest.nr }), "til-brett", { ikon: "🎟️" }) : "") +
+                R.ui.knapp2(R.t("Bli med i et spill"), "bli-med", { ikon: "📲" }) +
+                R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
-              ["3–40", "spillere"],
-              ["75", "baller"],
-              [String(TEMAER.reduce((s, t) => s + t.oyeblikk.length, 0)), "festøyeblikk"],
+              ["3–40", R.t("spillere")],
+              ["75", R.t("baller")],
+              [String(TEMAER.reduce((s, t) => s + t.oyeblikk.length, 0)), R.t("festøyeblikk")],
             ],
           }),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
           return `
-            <h1 id="skjerm-tittel">Gjør klart</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
             <section class="seksjon">
-              <h2>Hva slags bingo?</h2>
+              <h2>${esc(R.t("Hva slags bingo?"))}</h2>
               ${R.ui.fliser(
                 "modus",
                 [
-                  { v: "tall", tittel: "Tallbingo", tekst: "75 baller – denne mobilen trekker", ikon: "🎱" },
-                  { v: "fest", tittel: "Festbingo", tekst: "Merk det som skjer på festen", ikon: "🎉" },
+                  { v: "tall", tittel: R.t("Tallbingo"), tekst: R.t("75 baller – denne mobilen trekker"), ikon: "🎱" },
+                  { v: "fest", tittel: R.t("Festbingo"), tekst: R.t("Merk det som skjer på festen"), ikon: "🎉" },
                 ],
                 o.modus,
               )}
@@ -492,7 +495,7 @@
             ${
               o.modus === "fest"
                 ? `<section class="seksjon">
-                    <h2>Hvor er festen?</h2>
+                    <h2>${esc(R.t("Hvor er festen?"))}</h2>
                     ${R.ui.fliser(
                       "tema",
                       TEMAER.map((t) => ({ v: t.id, tittel: t.navn, tekst: t.tekst, ikon: t.ikon })),
@@ -500,27 +503,27 @@
                     )}
                   </section>`
                 : `<section class="seksjon">
-                    <h2>Trekningen</h2>
+                    <h2>${esc(R.t("Trekningen"))}</h2>
                     ${R.ui.seg(
                       "auto",
                       [
-                        ["nei", "Jeg trykker selv"],
-                        ["ja", `Automatisk (${AUTO_SEK} s)`],
+                        ["nei", R.t("Jeg trykker selv")],
+                        ["ja", R.t("Automatisk ({n} s)", { n: AUTO_SEK })],
                       ],
                       o.auto ? "ja" : "nei",
-                      { etikett: "Trekningen" },
+                      { etikett: R.t("Trekningen") },
                     )}
-                    <p class="hjelp">Med automatisk trekning kan du spille selv med et eget brett.</p>
+                    <p class="hjelp">${esc(R.t("Med automatisk trekning kan du spille selv med et eget brett."))}</p>
                   </section>`
             }
-            <p class="bb-info">📲 Alle får et eget brett på sin mobil – med QR-kode eller kode. Ingen app, ingen konto.</p>
-            ${R.ui.dokk(R.ui.knapp("Start", "start"))}`;
+            <p class="bb-info">📲 ${esc(R.t("Alle får et eget brett på sin mobil – med QR-kode eller kode. Ingen app, ingen konto."))}</p>
+            ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start"))}`;
         },
       },
 
       // Share the code; every phone that joins gets its own card.
       kode: {
-        tittel: (S) => (S.spill.modus === "tall" ? "Tallbingo" : tema(S.spill.tema).navn),
+        tittel: (S) => (S.spill.modus === "tall" ? R.t("Tallbingo") : tema(S.spill.tema).navn),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -529,27 +532,27 @@
           const tall = sp.modus === "tall";
           const startet = tall && sp.trukket > 0;
           return `
-            ${piller([typeTekst(sp), tall ? "75 baller" : "4 × 4 øyeblikk"])}
-            <h1 id="skjerm-tittel">Del brettene</h1>
+            ${piller([typeTekst(sp), tall ? R.t("75 baller") : R.t("4 × 4 øyeblikk")])}
+            <h1 id="skjerm-tittel">${esc(R.t("Del brettene"))}</h1>
             <div class="kodekort bb-kodekort">
-              <span class="etikett">Skann for å få et brett</span>
+              <span class="etikett">${esc(R.t("Skann for å få et brett"))}</span>
               ${qr ? `<div class="qr">${qr}</div>` : ""}
               <span class="kode" id="bb-kode">${esc(R.kode.formater(sp.kode))}</span>
-              <div class="knapprad">${R.ui.knapp2("Kopier lenke", "kopier", { variant: "liten" })}${R.ui.knapp2("Del lenke", "del", { variant: "liten" })}</div>
+              <div class="knapprad">${R.ui.knapp2(R.t("Kopier lenke"), "kopier", { variant: "liten" })}${R.ui.knapp2(R.t("Del lenke"), "del", { variant: "liten" })}</div>
             </div>
             <ol class="steg bb-slik">
-              <li><b>Skann QR-koden</b><span>Eller åpne Bingoballen, trykk «Bli med i et spill» og skriv koden.</span></li>
-              <li><b>Hver mobil får sitt eget brett</b><span>${tall ? "Brettnummeret står øverst. Vis det til verten når du roper BINGO!" : "Trykk på øyeblikkene når de skjer. Første hele rekke vinner."}</span></li>
+              <li><b>${esc(R.t("Skann QR-koden"))}</b><span>${esc(R.t("Eller åpne Bingoballen, trykk «Bli med i et spill» og skriv koden."))}</span></li>
+              <li><b>${esc(R.t("Hver mobil får sitt eget brett"))}</b><span>${esc(tall ? R.t("Brettnummeret står øverst. Vis det til verten når du roper BINGO!") : R.t("Trykk på øyeblikkene når de skjer. Første hele rekke vinner."))}</span></li>
             </ol>
             ${R.ui.dokk(
-              tall ? R.ui.knapp(startet ? "Tilbake til trekningen" : "Start trekningen", "til-trekk", { ikon: "🎱" }) : R.ui.knapp("Hent ditt eget brett", "eget-brett", { ikon: "🎟️" }),
-              R.ui.lenkerad(tall ? R.ui.lenke("Mitt brett", "eget-brett") : "", R.ui.lenke("Avslutt", "avslutt")),
+              tall ? R.ui.knapp(startet ? R.t("Tilbake til trekningen") : R.t("Start trekningen"), "til-trekk", { ikon: "🎱" }) : R.ui.knapp(R.t("Hent ditt eget brett"), "eget-brett", { ikon: "🎟️" }),
+              R.ui.lenkerad(tall ? R.ui.lenke(R.t("Mitt brett"), "eget-brett") : "", R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
       },
 
       trekk: {
-        tittel: "Tallbingo",
+        tittel: R.t("Tallbingo"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -558,28 +561,28 @@
           const forrige = sp.rekke.slice(Math.max(0, n - 6), Math.max(0, n - 1)).reverse();
           const tomt = n >= BALLER;
           return `
-            <h1 class="vh" id="skjerm-tittel">Tallbingo: ${n} av ${BALLER} baller</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("Tallbingo: {n} av {alle} baller", { n, alle: BALLER }))}</h1>
             <div class="bb-status">
-              <span class="bb-maal">Spiller om <b>${MAAL[sp.maal].kort}</b></span>
+              <span class="bb-maal">${esc(R.t("Spiller om"))} <b>${esc(MAAL[sp.maal].kort)}</b></span>
               <span class="bb-teller"><b>${n}</b> / ${BALLER}</span>
             </div>
             <div class="bb-scene" aria-live="polite">
               ${siste ? ballHtml(siste, `stor${sp.nyBall ? " inn" : ""}`) : `<span class="bb-trommel" aria-hidden="true">🎱</span>`}
-              <p class="vh">${siste ? `Siste ball: ${bokstav(siste)} ${siste}` : "Ingen baller er trukket ennå"}</p>
+              <p class="vh">${esc(siste ? R.t("Siste ball: {ball}", { ball: `${bokstav(siste)} ${siste}` }) : R.t("Ingen baller er trukket ennå"))}</p>
             </div>
-            ${siste ? "" : '<p class="hjelp bb-forste">Trykk «Trekk ball» når alle har brettet sitt.</p>'}
-            ${forrige.length ? `<div class="bb-forrige" aria-label="Forrige baller">${forrige.map((x) => ballHtml(x, "liten")).join("")}</div>` : ""}
+            ${siste ? "" : `<p class="hjelp bb-forste">${esc(R.t("Trykk «Trekk ball» når alle har brettet sitt."))}</p>`}
+            ${forrige.length ? `<div class="bb-forrige" aria-label="${esc(R.t("Forrige baller"))}">${forrige.map((x) => ballHtml(x, "liten")).join("")}</div>` : ""}
             ${sp.auto ? `<div class="bb-auto-bar" aria-hidden="true"><i></i></div>` : ""}
-            ${stemme ? R.ui.bryter("les", S.oppsett.les, "Les opp tallene", "Med mobilens norske stemme") : ""}
+            ${stemme ? R.ui.bryter("les", S.oppsett.les, R.t("Les opp tallene"), R.t("Med mobilens norske stemme")) : ""}
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Tavla</h2><span class="tall">${BALLER - n} igjen</span></div>
+              <div class="seksjon-hode"><h2>${esc(R.t("Tavla"))}</h2><span class="tall">${esc(R.t("{n} igjen", { n: BALLER - n }))}</span></div>
               ${tavla(sp)}
             </section>
-            ${R.ui.lenkerad(R.ui.lenke("Vis koden igjen", "vis-kode"), R.ui.lenke("Mitt brett", "eget-brett"))}
+            ${R.ui.lenkerad(R.ui.lenke(R.t("Vis koden igjen"), "vis-kode"), R.ui.lenke(R.t("Mitt brett"), "eget-brett"))}
             ${R.ui.dokk(
-              R.ui.knapp(tomt ? "Alle ballene er trukket" : "Trekk ball", "trekk", { av: tomt, ikon: "🎱" }),
-              `<div class="knapprad">${R.ui.knapp2("Sjekk bingo", "til-sjekk")}${R.ui.knapp2(sp.auto ? "Pause" : "Auto", "auto-veksle", { ikon: sp.auto ? "⏸" : "▶" })}</div>`,
-              R.ui.lenkerad(`<button class="lenke" data-h="angre"${n ? "" : " disabled"}>↶ Angre ball</button>`, R.ui.lenke("Avslutt", "avslutt")),
+              R.ui.knapp(tomt ? R.t("Alle ballene er trukket") : R.t("Trekk ball"), "trekk", { av: tomt, ikon: "🎱" }),
+              `<div class="knapprad">${R.ui.knapp2(R.t("Sjekk bingo"), "til-sjekk")}${R.ui.knapp2(sp.auto ? R.t("Pause") : R.t("Auto"), "auto-veksle", { ikon: sp.auto ? "⏸" : "▶" })}</div>`,
+              R.ui.lenkerad(`<button class="lenke" data-h="angre"${n ? "" : " disabled"}>↶ ${esc(R.t("Angre ball"))}</button>`, R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn: (S) => planleggAuto(S),
@@ -590,7 +593,7 @@
       },
 
       sjekk: {
-        tittel: "Sjekk bingo",
+        tittel: R.t("Sjekk bingo"),
         tilbake: "trekk",
         vis(S) {
           const sp = S.spill;
@@ -602,36 +605,36 @@
             const mangler = s.ok ? 0 : manglerTil(res, sp.maal);
             resultat = `
               <div class="bb-svar ${s.ok ? "ok" : "nei"}" role="status">
-                <div class="stempel-sted">${s.ok ? `<span class="stempel ${s.godkjent ? "mynte" : "lampe"}">${s.godkjent ? "Vinner!" : "Bingo!"}</span>` : '<span class="stempel">Ikke ennå</span>'}</div>
+                <div class="stempel-sted">${s.ok ? `<span class="stempel ${s.godkjent ? "mynte" : "lampe"}">${esc(s.godkjent ? R.t("Vinner!") : R.t("Bingo!"))}</span>` : `<span class="stempel">${esc(R.t("Ikke ennå"))}</span>`}</div>
                 <p class="bb-svar-tekst">${
                   s.ok
-                    ? `Brett ${s.nr} har ${esc(maal.kort)}${res.linjer.length > 1 && sp.maal === "rekke" ? ` – faktisk ${res.linjer.length} rekker` : ""}.`
-                    : `Brett ${s.nr} mangler ${R.flertall(mangler, "tall", "tall")} for å få ${esc(maal.kort)}.`
+                    ? esc(res.linjer.length > 1 && sp.maal === "rekke" ? R.t("Brett {nr} har {maal} – faktisk {n} rekker.", { nr: s.nr, maal: maal.kort, n: res.linjer.length }) : R.t("Brett {nr} har {maal}.", { nr: s.nr, maal: maal.kort }))
+                    : esc(R.t("Brett {nr} mangler {antall} for å få {maal}.", { nr: s.nr, antall: R.flertall(mangler, "tall", "tall"), maal: maal.kort }))
                 }</p>
               </div>
-              <div class="bb-kort-ramme"><p class="etikett">Brett ${s.nr}</p>${brettHtml({ modus: "tall", fro: sp.fro, nr: s.nr }, { celler: res.celler, merket: res.merket, linjer: res.linjer, liten: true })}</div>`;
+              <div class="bb-kort-ramme"><p class="etikett">${esc(R.t("Brett {nr}", { nr: s.nr }))}</p>${brettHtml({ modus: "tall", fro: sp.fro, nr: s.nr }, { celler: res.celler, merket: res.merket, linjer: res.linjer, liten: true })}</div>`;
           }
           const dokk = !s
-            ? R.ui.dokk(R.ui.lenkerad(R.ui.lenke("Tilbake til trekningen", "til-trekk")))
+            ? R.ui.dokk(R.ui.lenkerad(R.ui.lenke(R.t("Tilbake til trekningen"), "til-trekk")))
             : !s.ok
-              ? R.ui.dokk(R.ui.knapp("Spill videre", "til-trekk"), R.ui.lenkerad(R.ui.lenke("Sjekk et annet brett", "ny-sjekk")))
+              ? R.ui.dokk(R.ui.knapp(R.t("Spill videre"), "til-trekk"), R.ui.lenkerad(R.ui.lenke(R.t("Sjekk et annet brett"), "ny-sjekk")))
               : !s.godkjent
-                ? R.ui.dokk(R.ui.knapp(`Godkjenn brett ${s.nr}`, "godkjenn", { variant: "mynte", ikon: "🏆" }), R.ui.lenkerad(R.ui.lenke("Ikke godkjenn", "ny-sjekk")))
+                ? R.ui.dokk(R.ui.knapp(R.t("Godkjenn brett {nr}", { nr: s.nr }), "godkjenn", { variant: "mynte", ikon: "🏆" }), R.ui.lenkerad(R.ui.lenke(R.t("Ikke godkjenn"), "ny-sjekk")))
                 : R.ui.dokk(
-                    NESTE_MAAL[sp.maal] && sp.trukket < BALLER ? R.ui.knapp(`Spill videre om ${MAAL[NESTE_MAAL[sp.maal]].kort}`, "neste-maal") : R.ui.knapp("Se kåringen", "til-slutt", { ikon: "🏆" }),
-                    R.ui.lenkerad(R.ui.lenke("Flere med bingo? Sjekk et brett til", "ny-sjekk"), R.ui.lenke("Angre", "angre-godkjenn"), NESTE_MAAL[sp.maal] ? R.ui.lenke("Avslutt", "avslutt") : ""),
+                    NESTE_MAAL[sp.maal] && sp.trukket < BALLER ? R.ui.knapp(R.t("Spill videre om {maal}", { maal: MAAL[NESTE_MAAL[sp.maal]].kort }), "neste-maal") : R.ui.knapp(R.t("Se kåringen"), "til-slutt", { ikon: "🏆" }),
+                    R.ui.lenkerad(R.ui.lenke(R.t("Flere med bingo? Sjekk et brett til"), "ny-sjekk"), R.ui.lenke(R.t("Angre"), "angre-godkjenn"), NESTE_MAAL[sp.maal] ? R.ui.lenke(R.t("Avslutt"), "avslutt") : ""),
                   );
           return `
-            <h1 id="skjerm-tittel" class="bb-sjekk-tittel">${!s ? "Hvem har bingo?" : !s.ok ? "Ikke bingo ennå" : s.godkjent ? `Brett ${s.nr} vinner!` : `Brett ${s.nr} har bingo!`}</h1>
+            <h1 id="skjerm-tittel" class="bb-sjekk-tittel">${esc(!s ? R.t("Hvem har bingo?") : !s.ok ? R.t("Ikke bingo ennå") : s.godkjent ? R.t("Brett {nr} vinner!", { nr: s.nr }) : R.t("Brett {nr} har bingo!", { nr: s.nr }))}</h1>
             ${
               s
                 ? ""
-                : `<p class="ingress">Skriv nummeret som står øverst på brettet. Dere spiller om <b>${esc(maal.kort)}</b>.</p>
+                : `<p class="ingress">${esc(R.t("Skriv nummeret som står øverst på brettet. Dere spiller om"))} <b>${esc(maal.kort)}</b>.</p>
                    <form class="bb-sjekkskjema" data-skjema="sjekk" autocomplete="off" novalidate>
-                     <label class="vh" for="bb-sjekknr">Brettnummer</label>
+                     <label class="vh" for="bb-sjekknr">${esc(R.t("Brettnummer"))}</label>
                      <input class="kodefelt" id="bb-sjekknr" data-felt="sjekknr" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="123456" value="${esc(S.sjekkUtkast || "")}">
                      <p class="feil" id="bb-sjekkfeil" role="alert"></p>
-                     <button class="knapp" type="submit"><span class="ikon" aria-hidden="true">🔍</span>Sjekk brettet</button>
+                     <button class="knapp" type="submit"><span class="ikon" aria-hidden="true">🔍</span>${esc(R.t("Sjekk brettet"))}</button>
                    </form>`
             }
             ${resultat}
@@ -640,7 +643,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -650,22 +653,22 @@
           const rader = ["rekke", "to", "full"]
             .filter((m) => v.some((x) => x.maal === m))
             .map(
-              (m) => `<li><span class="bb-premie">${esc(MAAL[m].navn)}</span><span class="bb-vinner">${esc(R.ramsOpp(v.filter((x) => x.maal === m).map((x) => `Brett ${x.nr}`)))}</span><small>ball ${v.find((x) => x.maal === m).ball}</small></li>`,
+              (m) => `<li><span class="bb-premie">${esc(MAAL[m].navn)}</span><span class="bb-vinner">${esc(R.ramsOpp(v.filter((x) => x.maal === m).map((x) => R.t("Brett {nr}", { nr: x.nr }))))}</span><small>${esc(R.t("ball {n}", { n: v.find((x) => x.maal === m).ball }))}</small></li>`,
             )
             .join("");
           return `
             <div class="banner ${v.length ? "aksent" : ""}">
               ${R.figur()}
-              <p class="etikett">Tallbingo · ${R.flertall(sp.trukket, "ball", "baller")}</p>
-              <h1 id="skjerm-tittel">${v.length ? `${esc(toppen.length > 1 ? "Brett " + R.ramsOpp(toppen.map(String)) : "Brett " + toppen[0])} vinner!` : "Ingen bingo denne gangen"}</h1>
+              <p class="etikett">${esc(R.t("Tallbingo"))} · ${esc(R.flertall(sp.trukket, "ball", "baller"))}</p>
+              <h1 id="skjerm-tittel">${esc(v.length ? (toppen.length > 1 ? R.t("Brett {nr} vinner!|Brett {nr} vinner!", { nr: R.ramsOpp(toppen.map(String)), n: toppen.length }) : R.t("Brett {nr} vinner!", { nr: toppen[0] })) : R.t("Ingen bingo denne gangen"))}</h1>
             </div>
-            ${rader ? `<ul class="bb-premier">${rader}</ul>` : '<p class="ingress midt">Kanskje neste gang? Det er lov å prøve igjen.</p>'}
+            ${rader ? `<ul class="bb-premier">${rader}</ul>` : `<p class="ingress midt">${esc(R.t("Kanskje neste gang? Det er lov å prøve igjen."))}</p>`}
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Tavla</h2><span class="tall">${R.flertall(sp.trukket, "ball", "baller")}</span></div>
+              <div class="seksjon-hode"><h2>${esc(R.t("Tavla"))}</h2><span class="tall">${esc(R.flertall(sp.trukket, "ball", "baller"))}</span></div>
               ${tavla(sp, { utenSiste: true })}
             </section>
             ${R.ui.flereSpill()}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -685,16 +688,16 @@
       // ----- Players -----
 
       "bli-med": {
-        tittel: "Bli med",
+        tittel: R.t("Bli med"),
         tilbake: "hjem",
         vis: (S) => `
-          <h1 id="skjerm-tittel">Bli med i et spill</h1>
-          <p class="ingress">Skann QR-koden med kameraet – eller skriv koden fra mobilen til den som startet.</p>
+          <h1 id="skjerm-tittel">${esc(R.t("Bli med i et spill"))}</h1>
+          <p class="ingress">${esc(R.t("Skann QR-koden med kameraet – eller skriv koden fra mobilen til den som startet."))}</p>
           <form class="seksjon bb-kodeskjema" data-skjema="kode" autocomplete="off" novalidate>
-            <label class="vh" for="kodefelt">Spillkode</label>
+            <label class="vh" for="kodefelt">${esc(R.t("Spillkode"))}</label>
             <input class="kodefelt" id="kodefelt" data-felt="kode" name="kode" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="20" placeholder="ABCD EFGH" value="${esc(S.kodeUtkast || "")}">
             <p class="feil" id="kodefeil" role="alert">${esc(S.kodeFeil || "")}</p>
-            ${R.ui.dokk('<button class="knapp" type="submit">Hent brettet mitt</button>')}
+            ${R.ui.dokk(`<button class="knapp" type="submit">${esc(R.t("Hent brettet mitt"))}</button>`)}
           </form>`,
         ut(S) {
           S.kodeFeil = "";
@@ -703,7 +706,7 @@
       },
 
       brett: {
-        tittel: (S) => (S.gjest.modus === "tall" ? "Tallbingo" : tema(S.gjest.tema).navn),
+        tittel: (S) => (S.gjest.modus === "tall" ? R.t("Tallbingo") : tema(S.gjest.tema).navn),
         tilbake: "hjem",
         vis(S) {
           const g = S.gjest;
@@ -711,21 +714,21 @@
           const vert = S.spill && S.spill.kode === g.kode;
           return `
             <div class="bb-topp">
-              <h1 id="skjerm-tittel" class="bb-nr"><small>Brett</small> ${g.nr}</h1>
+              <h1 id="skjerm-tittel" class="bb-nr"><small>${esc(R.t("Brett"))}</small> ${g.nr}</h1>
               <span class="bb-type">${esc(typeTekst(g))}</span>
             </div>
             ${brettHtml(g, { knapper: true, sist: sistMerket })}
             <p class="hjelp bb-brett-hjelp">${
               g.modus === "tall"
                 ? linjer.length
-                  ? "Hel rekke! Rop BINGO og vis brettnummeret til verten."
-                  : "Trykk på tallene du har når de blir ropt opp."
+                  ? esc(R.t("Hel rekke! Rop BINGO og vis brettnummeret til verten."))
+                  : esc(R.t("Trykk på tallene du har når de blir ropt opp."))
                 : linjer.length
-                  ? "Hel rekke! Rop BINGO så alle hører det."
-                  : "Trykk på et øyeblikk når det skjer. Hel rekke vinner."
+                  ? esc(R.t("Hel rekke! Rop BINGO så alle hører det."))
+                  : esc(R.t("Trykk på et øyeblikk når det skjer. Hel rekke vinner."))
             }</p>
-            ${R.ui.lenkerad(vert ? R.ui.lenke(g.modus === "tall" ? "Til trekningen" : "Vis koden", g.modus === "tall" ? "til-trekk" : "vis-kode") : "", R.ui.lenke("Forlat spillet", "forlat"))}
-            ${R.ui.dokk(R.ui.knapp("BINGO!", "bingo", { av: !linjer.length, variant: "rosa", id: "bb-bingo" }))}`;
+            ${R.ui.lenkerad(vert ? R.ui.lenke(g.modus === "tall" ? R.t("Til trekningen") : R.t("Vis koden"), g.modus === "tall" ? "til-trekk" : "vis-kode") : "", R.ui.lenke(R.t("Forlat spillet"), "forlat"))}
+            ${R.ui.dokk(R.ui.knapp(R.t("BINGO!"), "bingo", { av: !linjer.length, variant: "rosa", id: "bb-bingo" }))}`;
         },
         etter() {
           sistMerket = null;
@@ -734,7 +737,7 @@
 
       // Festbingo: the full row, big, to show the others.
       bingo: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "brett",
         vis(S) {
           const g = S.gjest;
@@ -747,9 +750,9 @@
           return `
             <div class="banner aksent">
               ${R.figur()}
-              <p class="etikett">${esc(T.navn)} · brett ${g.nr}</p>
-              <h1 id="skjerm-tittel">${full ? "Fullt brett!" : "Bingo!"}</h1>
-              <p class="ingress">${full ? "Alt skjedde. For en fest!" : "Du har en hel rekke. Vis de andre hva som skjedde:"}</p>
+              <p class="etikett">${esc(T.navn)} · ${esc(R.t("brett {nr}", { nr: g.nr }))}</p>
+              <h1 id="skjerm-tittel">${esc(full ? R.t("Fullt brett!") : R.t("Bingo!"))}</h1>
+              <p class="ingress">${esc(full ? R.t("Alt skjedde. For en fest!") : R.t("Du har en hel rekke. Vis de andre hva som skjedde:"))}</p>
             </div>
             <ul class="bb-bevis">${vis
               .map((i) => {
@@ -759,8 +762,8 @@
               .join("")}</ul>
             ${R.ui.flereSpill()}
             ${R.ui.dokk(
-              full ? R.ui.knapp("Spill igjen", "nytt") : R.ui.knapp("Spill videre mot fullt brett", "til-brett"),
-              R.ui.lenkerad(full ? R.ui.lenke("Til brettet", "til-brett") : "", '<a class="lenke" href="/">Alle spill</a>'),
+              full ? R.ui.knapp(R.t("Spill igjen"), "nytt") : R.ui.knapp(R.t("Spill videre mot fullt brett"), "til-brett"),
+              R.ui.lenkerad(full ? R.ui.lenke(R.t("Til brettet"), "til-brett") : "", `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`),
             )}`;
         },
         inn(S) {
@@ -843,7 +846,7 @@
       // Host
       kopier: (el, e, S) => R.kopier(R.kode.lenke(S.spill.kode)),
       del: (el, e, S) =>
-        R.del("Bingoballen", `Bli med på bingo! Trykk på lenken for å få ditt eget brett – eller skriv koden ${R.kode.formater(S.spill.kode)}.`, R.kode.lenke(S.spill.kode)),
+        R.del(R.t("Bingoballen"), R.t("Bli med på bingo! Trykk på lenken for å få ditt eget brett – eller skriv koden {kode}.", { kode: R.kode.formater(S.spill.kode) }), R.kode.lenke(S.spill.kode)),
       "vis-kode": () => R.gaTil("kode"),
       "til-trekk": (el, e, S) => (S.spill && S.spill.modus === "tall" ? R.gaTil("trekk") : null),
       "eget-brett"(el, e, S) {
@@ -867,7 +870,7 @@
         const x = sp.rekke[sp.trukket - 1];
         sp.trukket -= 1;
         R.vis();
-        R.toast(`${bokstav(x)} ${x} er lagt tilbake`);
+        R.toast(R.t("{ball} er lagt tilbake", { ball: `${bokstav(x)} ${x}` }));
         planleggAuto(S);
       },
       "auto-veksle"(el, e, S) {
@@ -910,7 +913,7 @@
         s.godkjent = false;
         sp.vinnere = sp.vinnere.filter((v) => !(v.nr === s.nr && v.maal === sp.maal));
         R.vis();
-        R.toast("Godkjenningen er angret");
+        R.toast(R.t("Godkjenningen er angret"));
       },
       "neste-maal"(el, e, S) {
         const sp = S.spill;
@@ -919,17 +922,17 @@
         sp.maal = neste;
         sp.sjekk = null;
         R.gaTil("trekk");
-        R.toast(`Nå spiller dere om ${MAAL[neste].kort}`);
+        R.toast(R.t("Nå spiller dere om {maal}", { maal: MAAL[neste].kort }));
       },
       "til-slutt": (el, e, S) => R.gaTil("slutt"),
       async avslutt(el, e, S) {
         const fortsatt = R.vakt();
         const tall = S.spill.modus === "tall";
         const ja = await R.bekreft(
-          tall ? "Avslutte bingoen?" : "Avslutte spillet?",
-          tall ? "Dere går til kåringen med vinnerne så langt." : "Koden slutter å vises her. Brettene på mobilene virker fortsatt.",
-          "Avslutt",
-          "Spill videre",
+          tall ? R.t("Avslutte bingoen?") : R.t("Avslutte spillet?"),
+          tall ? R.t("Dere går til kåringen med vinnerne så langt.") : R.t("Koden slutter å vises her. Brettene på mobilene virker fortsatt."),
+          R.t("Avslutt"),
+          R.t("Spill videre"),
         );
         if (!ja || !fortsatt()) return;
         stoppAuto();
@@ -963,7 +966,7 @@
           R.vibrer([40, 40, 80]);
           const knapp = R.$("#bb-bingo");
           if (knapp) knapp.classList.add("pop");
-          R.si("Hel rekke! Rop BINGO!");
+          R.si(R.t("Hel rekke! Rop BINGO!"));
         }
         if (g.modus === "fest" && pa && g.merket.length === 16) R.gaTil("bingo");
       },
@@ -975,15 +978,15 @@
         R.vibrer([60, 30, 120]);
         R.konfetti();
         R.ark(`
-          <h2 id="ark-tittel" class="bb-rop">BINGO!</h2>
-          <p class="ingress">Rop det høyt – og vis brettet ditt til verten.</p>
-          <p class="bb-ark-nr"><small>Brettnummer</small><b>${g.nr}</b></p>
-          <p class="hjelp">Verten skriver nummeret og sjekker tallene dine.</p>
-          <button class="knapp" data-h="lukk-ark">Tilbake til brettet</button>`);
+          <h2 id="ark-tittel" class="bb-rop">${esc(R.t("BINGO!"))}</h2>
+          <p class="ingress">${esc(R.t("Rop det høyt – og vis brettet ditt til verten."))}</p>
+          <p class="bb-ark-nr"><small>${esc(R.t("Brettnummer"))}</small><b>${g.nr}</b></p>
+          <p class="hjelp">${esc(R.t("Verten skriver nummeret og sjekker tallene dine."))}</p>
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Tilbake til brettet"))}</button>`);
       },
       async forlat(el, e, S) {
         const fortsatt = R.vakt();
-        if ((await R.bekreft("Forlate spillet?", "Brettet ditt er låst til denne mobilen. Blir du med igjen med samme kode, får du det samme brettet.", "Forlat", "Bli")) && fortsatt()) {
+        if ((await R.bekreft(R.t("Forlate spillet?"), R.t("Brettet ditt er låst til denne mobilen. Blir du med igjen med samme kode, får du det samme brettet."), R.t("Forlat"), R.t("Bli"))) && fortsatt()) {
           S.gjest = null;
           R.slippVaken();
           R.gaTil("hjem");
