@@ -255,6 +255,18 @@
         "pege",
         "pegeleg"
       ]
+    },
+    "vaghalsen": {
+      "tittel": "Sandhed eller konsekvens – over 1.000 kort, gratis",
+      "frase": "Sandhed eller konsekvens",
+      "beskrivelse": "Sandhed eller konsekvens på mobilen: snurr flasken, og vælg. Over 1.000 spørgsmål og udfordringer til børn, familie, venner og fest.",
+      "sok": [
+        "sandhed eller konsekvens",
+        "flaskehalsen",
+        "snurr flasken",
+        "truth or dare",
+        "udfordringer"
+      ]
     }
   }
 }
