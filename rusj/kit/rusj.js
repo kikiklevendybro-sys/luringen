@@ -375,6 +375,13 @@
         /* ignore */
       }
     }
+    if (hendelse === "ferdig") {
+      try {
+        kaffeTell();
+      } catch (e) {
+        /* ignore */
+      }
+    }
     statKo.push({ h: hendelse, d: ren, t: Date.now() });
     if (statKo.length > 50) statKo.shift();
     try {
@@ -528,6 +535,39 @@
     const pop = $("#merke-pop");
     if (pop) pop.classList.remove("vis");
   }
+
+  // ---------- «Spander en kaffe» ----------
+  // After every 20th finished game a sheet asks for a coffee, at a calm moment on the end screen.
+  // Only where the build put a payment link on the page (<html data-kaffe>, the Norwegian edition).
+  // A tap on the link counts as given: the question never comes back on this phone. Stored as
+  // rusj.kaffe = { ferdig: finished games } or { gitt: true }, on this phone only.
+  const KAFFE_HVER = 20;
+  const kaffeLenke = () => {
+    const u = document.documentElement.dataset.kaffe || "";
+    return /^https:\/\/[^\s"<>]+$/.test(u) ? u : "";
+  };
+  function kaffeTell() {
+    if (!kaffeLenke()) return;
+    const k = R.les("kaffe", {}) || {};
+    if (k.gitt) return;
+    const ferdig = (Number(k.ferdig) || 0) + 1;
+    R.skriv("kaffe", { ferdig });
+    if (ferdig % KAFFE_HVER !== 0 || R.iRamme) return;
+    // Let the end screen (and an install tip) land first; ask only if the player is still there.
+    setTimeout(() => {
+      const fortsatt = R.vakt();
+      setTimeout(() => fortsatt() && !R.arkApent() && R.visKaffe(), 2600);
+    }, 0);
+  }
+  R.visKaffe = () => {
+    const lenke = kaffeLenke();
+    if (!lenke) return;
+    R.ark(`
+      <h2 id="ark-tittel"><span aria-hidden="true">☕</span> ${esc(R.t("Liker du rusj?"))}</h2>
+      <p class="ingress">${esc(R.t("rusj er gratis og uten reklame. Spanderer du en kaffe, blir det flere spill."))}</p>
+      <a class="knapp" href="${esc(lenke)}" target="_blank" rel="noopener" data-h="kaffe-gitt">${esc(R.t("Spander en kaffe"))}</a>
+      <button class="lenke" data-h="lukk-ark">${esc(R.t("Ikke nå"))}</button>`);
+  };
 
   // ---------- "Install as an app" tip ----------
   let installHendelse = null;
@@ -2616,6 +2656,14 @@
     "lukk-ark": () => R.lukkArk(),
     "del-bilde": () => delVentende(),
     "installer-app": () => R._installer(),
+    // The link opens the payment page by itself; the sheet closes just after and never returns.
+    "kaffe-gitt": () => {
+      R.skriv("kaffe", { gitt: true });
+      setTimeout(() => {
+        R.lukkArk();
+        R.toast(R.t("Tusen takk! ☕"));
+      }, 80);
+    },
     // The 18+ gate in front of drinking games (spill.json "alder18": true)
     "alder-ja": () => {
       R.lagreFelles({ over18: true });
