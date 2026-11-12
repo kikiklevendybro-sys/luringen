@@ -1,0 +1,899 @@
+/* Meyer — game-specific styles (prefix my-). The dice are CSS cubes as in Terninga. */
+
+/* ---------- Lives row ---------- */
+
+.my-liv {
+  display: flex;
+  gap: 6px;
+  margin: 0 -4px 4px;
+  padding: 2px 4px 6px;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.my-liv::-webkit-scrollbar {
+  display: none;
+}
+
+.my-liv li {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 66px;
+  padding: 6px 4px 5px;
+  border-radius: 16px;
+  background: var(--natt-3);
+  color: var(--tekst-2);
+  font: 800 0.72rem/1.1 var(--font-display);
+}
+
+.my-liv li .avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 19px;
+}
+
+.my-liv li.na {
+  box-shadow: inset 0 0 0 2px var(--pf);
+  color: var(--tekst);
+}
+
+.my-liv li.ute {
+  opacity: 0.5;
+}
+
+.my-liv-navn {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-liv-terning {
+  position: absolute;
+  top: 26px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(0 1px 0 rgba(6, 2, 14, 0.6));
+}
+
+.my-liv-terning.ute {
+  color: var(--tekst-3);
+}
+
+/* ---------- Who is playing ---------- */
+
+.my-hode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 2px;
+}
+
+.my-hode h1 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.5rem, 7vw, 2rem);
+  line-height: 1.1;
+}
+
+.my-hode .etikett {
+  margin: 0 0 2px;
+}
+
+.my-hode.kompakt h1 {
+  font-size: clamp(1.35rem, 6vw, 1.7rem);
+}
+
+.my-liv .avatar.my-robot,
+.poengliste .avatar.my-robot,
+.my-plasser .avatar.my-robot {
+  font-size: 15px;
+}
+
+.my-maal,
+.my-hint,
+.my-sa {
+  margin: 6px 0;
+  color: var(--tekst-2);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.my-maal b,
+.my-sa b {
+  color: var(--tekst);
+  font-family: var(--font-display);
+}
+
+.my-kjede {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 2px 0 6px;
+  color: var(--tekst-3);
+  font-size: 0.85rem;
+}
+
+.my-kjede b {
+  color: var(--tekst-2);
+}
+
+.my-kjede i {
+  font-style: normal;
+}
+
+/* ---------- The felt and the cup ---------- */
+
+.my-brett {
+  position: relative;
+  display: grid;
+  flex: 1 1 auto;
+  place-items: center;
+  min-height: 210px;
+  max-height: 300px;
+  margin: 8px 0 4px;
+  border-radius: 28px;
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 60%, color-mix(in srgb, var(--aksent) 22%, transparent), transparent 75%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 3px, transparent 3px 7px),
+    #1d4a3c;
+  box-shadow:
+    inset 0 0 0 3px color-mix(in srgb, var(--aksent) 40%, #0e2a22),
+    inset 0 12px 26px rgba(6, 2, 14, 0.55),
+    0 6px 0 #0e2a22;
+  overflow: hidden;
+}
+
+.my-beger {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 132px;
+  filter: drop-shadow(0 14px 10px rgba(6, 2, 14, 0.55));
+  transform-origin: 50% 90%;
+}
+
+.my-beger-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.my-brett.rister .my-beger {
+  animation: my-rist 0.3s ease-in-out infinite;
+}
+
+@keyframes my-rist {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+  25% {
+    transform: translate(-9px, -6px) rotate(-7deg);
+  }
+  75% {
+    transform: translate(9px, -4px) rotate(7deg);
+  }
+}
+
+.my-brett.kikker .my-beger {
+  animation: my-kikk 1.5s ease-in-out infinite;
+}
+
+@keyframes my-kikk {
+  0%,
+  60%,
+  100% {
+    transform: rotate(0);
+  }
+  25%,
+  45% {
+    transform: translateY(-6px) rotate(-9deg);
+  }
+}
+
+/* Lifted: the cup rises and tips; the dice stay on the felt. */
+.my-brett.loftet .my-beger {
+  position: absolute;
+  top: 6px;
+  right: 8%;
+  width: 92px;
+  transform: rotate(18deg);
+  opacity: 0.9;
+}
+
+.my-brett.loftet.anim .my-beger {
+  animation: my-loft 0.85s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+
+@keyframes my-loft {
+  0% {
+    top: 50%;
+    right: 50%;
+    width: 132px;
+    transform: translate(50%, -50%) rotate(0);
+    opacity: 1;
+  }
+  35% {
+    top: 50%;
+    right: 50%;
+    width: 132px;
+    transform: translate(50%, -50%) rotate(-6deg);
+  }
+  100% {
+    top: 6px;
+    right: 8%;
+    width: 92px;
+    transform: rotate(18deg);
+    opacity: 0.9;
+  }
+}
+
+.my-brett.loftet.anim .my-terninger {
+  animation: my-fram 0.5s 0.45s ease-out both;
+}
+
+@keyframes my-fram {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+.my-stempel {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 3;
+  transform: rotate(-8deg);
+}
+
+.my-brett.anim .my-stempel {
+  animation: my-stemple 0.4s 0.95s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes my-stemple {
+  from {
+    opacity: 0;
+    transform: rotate(-8deg) scale(2);
+  }
+}
+
+/* ---------- Dice (cubes) ---------- */
+
+.my-terninger {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+}
+
+.my-t {
+  --s: 62px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(var(--s) * 1.25);
+  height: calc(var(--s) + 24px);
+  padding-bottom: 14px;
+  perspective: 520px;
+}
+
+.my-hopp,
+.my-kube {
+  position: relative;
+  display: block;
+  width: var(--s);
+  height: var(--s);
+  transform-style: preserve-3d;
+}
+
+.my-kube {
+  position: absolute;
+  inset: 0;
+}
+
+.my-side {
+  position: absolute;
+  inset: 0;
+  border-radius: 17%;
+  background: radial-gradient(circle at 30% 22%, #fffefa 0 28%, #f6e8d2 100%);
+  box-shadow:
+    inset 0 0 0 max(2px, calc(var(--s) * 0.05)) #170e2b,
+    inset 0 calc(var(--s) * -0.07) 0 rgba(23, 14, 43, 0.08);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.my-side.s1 { transform: translateZ(calc(var(--s) / 2)); }
+.my-side.s6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
+.my-side.s2 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); }
+.my-side.s5 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
+.my-side.s3 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); }
+.my-side.s4 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }
+
+.my-side i {
+  position: absolute;
+  width: 20%;
+  height: 20%;
+  margin: -10% 0 0 -10%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #3b2b5c, #170e2b 70%);
+}
+
+.my-side.s1 i {
+  width: 28%;
+  height: 28%;
+  margin: -14% 0 0 -14%;
+  background: radial-gradient(circle at 40% 35%, #ff6d80, #d42a45 70%);
+}
+
+.my-side .p1 { left: 27%; top: 27%; }
+.my-side .p3 { left: 73%; top: 27%; }
+.my-side .p4 { left: 27%; top: 50%; }
+.my-side .p5 { left: 50%; top: 50%; }
+.my-side .p6 { left: 73%; top: 50%; }
+.my-side .p7 { left: 27%; top: 73%; }
+.my-side .p9 { left: 73%; top: 73%; }
+
+.my-skygge {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  width: calc(var(--s) * 1.02);
+  height: calc(var(--s) * 0.3);
+  margin-left: calc(var(--s) * -0.51);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(6, 2, 14, 0.62), transparent);
+}
+
+/* ---------- The peek card ---------- */
+
+.my-titt .mappe {
+  height: 118px;
+  min-height: 0;
+}
+
+.my-titt .mappe-forside {
+  flex-direction: row;
+  gap: 14px;
+  padding: 12px 16px;
+}
+
+.my-titt .mappe-forside .figur-ramme {
+  width: 64px;
+  flex: none;
+}
+
+.my-titt .mappe-etikett {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  padding: 5px 9px;
+  font-size: 0.66rem;
+}
+
+.my-titt .mappe-finger {
+  flex-direction: row;
+  gap: 10px;
+  font-size: clamp(0.88rem, 4.2vw, 1rem);
+  line-height: 1.2;
+  text-align: left;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.my-titt .mappe-finger span {
+  text-align: left;
+}
+
+.my-titt .mappe-finger svg {
+  flex: none;
+  width: 36px;
+  height: 36px;
+}
+
+.my-titt .mappe-bakside.my-bak {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background:
+    radial-gradient(ellipse 80% 90% at 30% 60%, rgba(255, 255, 255, 0.08), transparent 70%),
+    #1d4a3c;
+  box-shadow: 0 10px 0 #0e2a22, 0 24px 44px var(--skygge);
+  color: #fff6e8;
+  text-align: left;
+}
+
+.my-bak-tekst {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.my-bak .etikett {
+  margin: 0;
+  color: #cfe9de;
+}
+
+.my-bak .my-terninger {
+  flex: none;
+  gap: 2px;
+}
+
+.my-bak .my-t {
+  --s: 46px;
+  padding-bottom: 8px;
+}
+
+.my-bak-verdi {
+  margin: 0;
+  font: 900 clamp(1.4rem, 7vw, 1.9rem)/1.05 var(--font-display);
+}
+
+.my-bak-sub {
+  margin: 0;
+  color: #cfe9de;
+  font-size: 0.85rem;
+}
+
+/* ---------- What to say ---------- */
+
+.my-valg {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 7px;
+  margin: 4px 0 8px;
+}
+
+.my-valg-knapp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 62px;
+  padding: 7px 4px 6px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--natt-3);
+  box-shadow: 0 3px 0 var(--natt);
+  color: var(--tekst);
+  font: 900 1.05rem/1.05 var(--font-display);
+  cursor: pointer;
+}
+
+.my-valg-knapp.spes b {
+  font-size: 0.86rem;
+}
+
+.my-valg-knapp.meyer {
+  box-shadow: inset 0 0 0 2px var(--lampe), 0 3px 0 var(--natt);
+}
+
+.my-valg-knapp.felles {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px;
+  min-height: 48px;
+  background: color-mix(in srgb, var(--lampe) 16%, var(--natt-3));
+}
+
+.my-valg-knapp small {
+  color: var(--tekst-2);
+  font: 700 0.78rem/1.1 var(--font-body, inherit);
+}
+
+.my-valg-knapp[aria-pressed="true"] {
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+  transform: translateY(-1px);
+}
+
+.my-valg-knapp[aria-pressed="true"] small {
+  color: var(--blekk);
+}
+
+.my-valg-knapp:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--natt);
+}
+
+.my-valg-par {
+  display: flex;
+  gap: 3px;
+}
+
+.my-valg-par .my-ansikt {
+  width: 22px;
+  height: 22px;
+}
+
+/* ---------- The announcement ---------- */
+
+.my-melding {
+  margin: 10px 0 4px;
+  padding: 16px 16px 14px;
+  border-radius: var(--r-stor);
+  background:
+    repeating-linear-gradient(-45deg, rgba(23, 14, 43, 0.04) 0 14px, transparent 14px 28px),
+    var(--papir);
+  box-shadow: 0 8px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.my-melding-hvem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--blekk-2);
+  font: 800 1rem/1.2 var(--font-display);
+}
+
+.my-melding-hvem span {
+  overflow-wrap: anywhere;
+}
+
+.my-melding-hvem .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 17px;
+}
+
+.my-melding-verdi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 14px;
+  margin: 10px 0 0;
+}
+
+.my-melding-verdi b {
+  font: 900 clamp(2rem, 11vw, 2.8rem)/1 var(--font-display);
+}
+
+.my-melding-par {
+  display: flex;
+  gap: 6px;
+}
+
+.my-melding-par .my-ansikt {
+  width: 46px;
+  height: 46px;
+}
+
+.my-melding-sub {
+  margin: 6px 0 0;
+  color: var(--blekk-2);
+  font-weight: 700;
+}
+
+.knapprad.my-svar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.knapprad.my-svar .knapp {
+  min-width: 0;
+}
+
+/* ---------- Result ---------- */
+
+.my-res-tittel {
+  margin: 6px 0 0;
+  text-align: center;
+}
+
+.my-sa {
+  text-align: center;
+}
+
+.my-res-tekst {
+  margin: 8px 0;
+  color: var(--tekst);
+  font: 800 1.08rem/1.35 var(--font-display);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.my-res-tekst.ute {
+  color: var(--rosa);
+}
+
+/* ---------- Home statistics ---------- */
+
+.my-stat {
+  margin: 14px 0 4px;
+  padding: 12px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-3);
+}
+
+.my-stat .etikett {
+  margin: 0 0 6px;
+}
+
+.my-stat ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+}
+
+.my-stat li {
+  display: flex;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+
+.my-stat li > span:first-child {
+  flex: none;
+  width: 1.3em;
+}
+
+.my-stat b {
+  color: var(--tekst);
+}
+
+/* ---------- Kåringen ---------- */
+
+.my-vinner {
+  position: relative;
+  display: inline-block;
+}
+
+.my-krone {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  font-size: 34px;
+  transform: translateX(-50%) rotate(-8deg);
+}
+
+.my-plasser {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-plasser li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--natt-3);
+}
+
+.my-plasser li.leder {
+  box-shadow: inset 0 0 0 2px var(--lampe);
+}
+
+.my-plasser .plass-nr {
+  width: 1.4em;
+  color: var(--tekst-2);
+  font: 900 1rem/1 var(--font-display);
+  text-align: center;
+}
+
+.my-plasser .navn {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  color: var(--tekst);
+  font: 800 1rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.my-plasser small {
+  color: var(--tekst-2);
+  font: 600 0.8rem/1.3 var(--font-body, inherit);
+}
+
+.my-plasser .my-liv-terning {
+  position: static;
+  width: 26px;
+  height: 26px;
+}
+
+/* ---------- Rules sheet: the ranking ---------- */
+
+.my-rang {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.my-rang li {
+  display: grid;
+  grid-template-columns: auto 6.6em minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: var(--natt-3);
+  color: var(--tekst-2);
+  font-size: 0.84rem;
+}
+
+.my-rang b {
+  color: var(--tekst);
+  font: 800 0.92rem/1.2 var(--font-display);
+}
+
+.my-rang-par {
+  display: flex;
+  gap: 3px;
+}
+
+.my-rang-par .my-ansikt {
+  width: 20px;
+  height: 20px;
+}
+
+/* ---------- Short and narrow screens ---------- */
+
+@media (max-height: 700px) {
+  .my-brett {
+    min-height: 160px;
+  }
+  .my-beger {
+    width: 104px;
+  }
+  .my-t {
+    --s: 52px;
+  }
+  .my-melding {
+    padding: 12px;
+  }
+  .my-melding-par .my-ansikt {
+    width: 36px;
+    height: 36px;
+  }
+  .my-titt .mappe {
+    height: 100px;
+  }
+  .my-titt .mappe-forside .figur-ramme {
+    width: 52px;
+  }
+}
+
+@media (max-width: 340px) {
+  .my-valg {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .my-valg-knapp {
+    min-height: 56px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .my-brett {
+    min-height: 150px;
+    max-height: 200px;
+  }
+  .my-beger {
+    width: 96px;
+  }
+  .my-brett.loftet .my-beger {
+    width: 70px;
+  }
+  .my-t {
+    --s: 48px;
+  }
+  .my-melding {
+    margin-top: 6px;
+    padding: 10px 12px;
+  }
+  .my-melding-verdi {
+    margin-top: 4px;
+  }
+  .my-melding-verdi b {
+    font-size: 1.9rem;
+  }
+  .my-melding-par .my-ansikt {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .my-brett.rister .my-beger,
+  .my-brett.kikker .my-beger {
+    animation: none;
+  }
+}
+
+.my-neste {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  color: var(--tekst-2);
+  font-size: 0.95rem;
+}
+
+.my-neste .avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 15px;
+}
+
+@media (max-height: 620px) {
+  .my-brett {
+    min-height: 118px;
+    margin: 4px 0 2px;
+  }
+  .my-beger {
+    width: 78px;
+  }
+  .my-brett.loftet .my-beger {
+    width: 64px;
+  }
+  .my-t {
+    --s: 44px;
+  }
+  .my-hode {
+    margin: 0;
+  }
+  .my-hode .avatar.mid {
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+  }
+  .my-maal,
+  .my-hint {
+    margin: 4px 0;
+    font-size: 0.92rem;
+  }
+  .my-liv li {
+    width: 58px;
+    padding: 4px 3px;
+  }
+  .my-liv li .avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+  .my-liv-terning {
+    top: 20px;
+    width: 19px;
+    height: 19px;
+  }
+}
+
+@media (max-height: 700px), (orientation: landscape) and (max-height: 500px) {
+  .my-stempel {
+    top: 10px;
+    bottom: auto;
+    left: 10px;
+    scale: 0.55;
+    transform-origin: 0 0;
+  }
+}

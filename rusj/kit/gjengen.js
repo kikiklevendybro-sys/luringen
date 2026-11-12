@@ -1014,6 +1014,28 @@
         <ellipse cx="60" cy="86" rx="11" ry="12" fill="${B}"/>
         <ellipse cx="60" cy="92" rx="6" ry="4" fill="${ROSA}"/>`,
     },
+
+    // Meyer (dice bluffing): a sly fellow with a leather dice cup tipped on his head like a hat,
+    // one eye winking, a knowing grin — and a die peeking out under the brim.
+    meyer: {
+      farge: "#e85d75",
+      tegn: (f) => `
+        ${terning(100, 30, 13, -12)}
+        ${hode(f)}
+        ${kinn(80)}
+        ${blunk(58, `<circle cx="40" cy="58" r="12" fill="${P}" stroke="${B}" stroke-width="4.5"/><circle cx="43" cy="59" r="5.5" fill="${B}"/><circle cx="41" cy="56.8" r="1.7" fill="${P}"/>`)}
+        ${strek("M69 59 Q80 52 91 59", 5.5)}
+        ${strek("M44 86 Q62 98 80 84", 5)}
+        ${strek("M76 82 l6 1", 4)}
+        <g transform="rotate(-14 56 22)">
+          ${form("M32 30 L38 -6 Q56 -11 74 -6 L80 30 Q56 36 32 30Z", "#7a2338")}
+          <path d="M34 20 Q56 26 78 20 L79.5 28 Q56 34 32.5 28Z" fill="#a9364f"/>
+          ${strek("M35 19 Q56 25 77 19", 2.2, LAMPE)}
+          ${glans("M44 2 L41 16", 3.5)}
+          ${form("M37 -6 Q56 -12 75 -6 Q56 -1 37 -6Z", "#5c1a2b", 3.5)}
+        </g>
+        ${glimt(18, 22, 6)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on
