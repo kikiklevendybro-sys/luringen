@@ -10,5 +10,23 @@
   "tagger": ["familie", "sporsmal", "barn", "ord"],
   "rekkefolge": 11,
   "alias": ["20-sporsmal", "hvem-er-jeg"],
-  "sok": ["20 spørsmål", "tjue spørsmål", "hvem er jeg", "ja eller nei", "gjettelek", "gjett hva jeg tenker på"]
+  "sok": ["20 spørsmål", "tjue spørsmål", "hvem er jeg", "ja eller nei", "gjettelek", "gjett hva jeg tenker på"],
+  "i18n": {
+    "en": {
+      "navn": "Sleuth",
+      "undertittel": "Who am I? – 20 questions",
+      "kort": "One player has a secret. The others have 20 yes/no questions.",
+      "beskrivelse": "Free ‘Who am I?’ and 20 questions. One player has a secret – the others have 20 yes/no questions to find it. Over 900 secrets.",
+      "slug": "sleuth",
+      "sok": ["20 questions", "twenty questions", "who am i", "who am i game", "yes or no game", "guessing game", "guess what i'm thinking of", "headbands"]
+    },
+    "da": {
+      "navn": "Detektiven",
+      "undertittel": "Hvem er jeg? – 20 spørgsmål",
+      "kort": "Én har en hemmelighed. De andre har 20 ja/nej-spørgsmål.",
+      "beskrivelse": "Gratis »Hvem er jeg?« og 20 spørgsmål på dansk. Én har en hemmelighed – de andre har 20 ja/nej-spørgsmål til at finde den. Over 900 hemmeligheder.",
+      "slug": "detektiven",
+      "sok": ["20 spørgsmål", "tyve spørgsmål", "hvem er jeg", "ja eller nej", "gætteleg", "gæt hvad jeg tænker på"]
+    }
+  }
 }

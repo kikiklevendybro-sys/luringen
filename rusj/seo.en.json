@@ -258,6 +258,17 @@
         "think alike",
         "herd mentality"
       ]
+    },
+    "detektiven": {
+      "tittel": "20 questions and ‘Who am I?’ – free guessing game",
+      "frase": "20 questions and ‘Who am I?’",
+      "beskrivelse": "One player has a secret – the others get 20 yes/no questions to guess it. A free guessing game with over 900 ideas: animals, things, jobs and places.",
+      "sok": [
+        "guessing game",
+        "who am i ideas",
+        "yes or no",
+        "twenty questions"
+      ]
     }
   }
 }
