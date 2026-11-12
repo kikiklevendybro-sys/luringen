@@ -8,6 +8,7 @@
 //          when the file rusj/SW-AV exists, so the brake can be pulled with a commit – rusj/DRIFT.md)
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, rmSync, readdirSync } from "node:fs";
 import { byggRusj, esc, hode as lagHode, lesSeo, seoFor, spillJsonLd, DOMENE } from "./rusj.mjs";
+import { ALLE_SPRAK, SPRAK_INFO, lagSprak, lesTabell } from "./sprak.mjs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
@@ -184,12 +185,15 @@ const rusj = byggRusj({ ROT, WEB, ordData: data, utvalg, luringen: utvalg && !ut
 const innholdHash = (sti) => hashTekst(readFileSync(join(WEB, sti.endsWith("/") ? sti + "index.html" : sti)).toString("latin1")).toString(36);
 const medHash = (stier) => stier.filter((sti) => existsSync(join(WEB, sti.endsWith("/") ? sti + "index.html" : sti))).map((sti) => [sti, innholdHash(sti)]);
 const swSider = medHash([...new Set([...rusj.sider, "/luringen/"])]);
-const swEkstra = medHash(["/manifest.webmanifest", "/luringen/ikon.svg", "/luringen/ikon-180.png"]);
+const swEkstra = medHash([...new Set(["/manifest.webmanifest", ...(rusj.manifester || []), "/luringen/ikon.svg", "/luringen/ikon-180.png"])]);
 
 // The page the worker shows when a page is neither stored nor reachable. It travels inside sw.js as
-// a string, so it needs no stored file and no request: styles inline, no script, no images.
-const frakoblet = `<!doctype html>
-<html lang="nb">
+// a string, so it needs no stored file and no request: styles inline, no script, no images. One per
+// edition ({ "/": …, "/en/": … }), in its own words (rusj/kit/tekst.<lang>.json).
+const frakobletFor = (sprak) => {
+  const t = lagSprak(sprak, lesTabell(join(ROT, `rusj/kit/tekst.${sprak}.json`)) || {}).t;
+  return `<!doctype html>
+<html lang="${sprak}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -197,7 +201,7 @@ const frakoblet = `<!doctype html>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#150c28">
 <meta name="color-scheme" content="dark">
-<title>Uten nett | rusj</title>
+<title>${esc(t("Uten nett"))} | rusj</title>
 <style>
 html{height:100%;background:#150c28;color:#fff1dd;font:400 1.05rem/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
 body{min-height:100%;margin:0;display:flex;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));box-sizing:border-box;text-align:center}
@@ -211,14 +215,16 @@ a:focus-visible{outline:3px solid #ffd23f;outline-offset:3px}
 </head>
 <body>
 <main>
-<h1>Du er uten nett</h1>
-<p>Denne siden er ikke lagret på enheten ennå. Spill du har åpnet før, virker fortsatt.</p>
-<p><a class="knapp" href="/">Til forsiden</a></p>
-<p><a href="">Prøv igjen</a></p>
+<h1>${esc(t("Du er uten nett"))}</h1>
+<p>${esc(t("Denne siden er ikke lagret på enheten ennå. Spill du har åpnet før, virker fortsatt."))}</p>
+<p><a class="knapp" href="${SPRAK_INFO[sprak].forside}">${esc(t("Til forsiden"))}</a></p>
+<p><a href="">${esc(t("Prøv igjen"))}</a></p>
 </main>
 </body>
 </html>
 `;
+};
+const frakoblet = Object.fromEntries(ALLE_SPRAK.map((s) => [SPRAK_INFO[s].forside, frakobletFor(s)]));
 
 // The version follows the content of every published file (a change of the same length counts too).
 const swVersjon = hashTekst(

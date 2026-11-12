@@ -42,6 +42,23 @@ const HASH_HODE = "x-rusj-hash"; // header on stored pages: the hash of their co
 const ONSKET = new Map([...SIDER, ...EKSTRA]); // path → the hash this build expects
 const FORSIDE = SIDER.length ? SIDER[0][0] : "/";
 const MANIFEST = "/manifest.webmanifest";
+// The editions under a folder of their own (/en/, /da/ – rusj/SPRAK.md): the build gives each its own
+// offline page, so FRAKOBLET names them. The worker fetches ahead only the pages of the editions
+// this visitor uses: those of the open pages and of the pages opened since the worker started
+// (Norwegian when there are none).
+const UTGAVER = typeof FRAKOBLET === "object" ? Object.keys(FRAKOBLET).filter((u) => u !== "/") : [];
+const utgaveAv = (sti) => UTGAVER.find((u) => sti.startsWith(u)) || "/";
+const brukteUtgaver = new Set();
+async function utgaverIBruk() {
+  const ut = new Set(brukteUtgaver);
+  try {
+    for (const k of await self.clients.matchAll({ type: "window", includeUncontrolled: true })) ut.add(utgaveAv(new URL(k.url).pathname));
+  } catch (feil) {
+    /* none known: Norwegian */
+  }
+  if (!ut.size) ut.add("/");
+  return ut;
+}
 
 const vent = (ms) => new Promise((ferdig) => setTimeout(ferdig, ms));
 
@@ -225,9 +242,14 @@ async function hentResten() {
     }
   };
   // The way in when the connection is gone: always, also on a metered connection.
-  for (const sti of [FORSIDE, MANIFEST]) if (ONSKET.has(sti) && !(await ett(sti))) return;
+  // The editions in use: the open pages' and those opened since the worker started.
+  const utgaver = await utgaverIBruk();
+  const forsider = [FORSIDE, MANIFEST, ...UTGAVER.filter((u) => utgaver.has(u)).flatMap((u) => [u, u + "manifest.webmanifest"])];
+  for (const sti of forsider) if (ONSKET.has(sti) && !(await ett(sti))) return;
   // Then the other pages in the order of the front page, and last the remaining extra files.
+  const iBruk = (sti) => utgaver.has(utgaveAv(sti));
   for (const [sti] of [...SIDER.slice(1), ...EKSTRA.filter((e) => e[0] !== MANIFEST)]) {
+    if (forsider.includes(sti) || !iBruk(sti)) continue;
     if (!(await caches.has(LAGER))) return; // the copy was deleted on purpose (/personvern/): leave it
     const lagret = await lager.match(sti);
     if (lagret && lagret.headers.get(HASH_HODE) === ONSKET.get(sti)) continue;
@@ -254,7 +276,9 @@ self.addEventListener("install", (e) => {
         await overtaGamle(lager, false);
         // The front page, the manifest and the pages that are open right now.
         const apne = (await self.clients.matchAll({ type: "window", includeUncontrolled: true })).map((k) => sideSti(new URL(k.url).pathname));
-        for (const sti of new Set([FORSIDE, MANIFEST, ...apne])) if (ONSKET.has(sti)) await sikre(lager, sti).catch(() => {});
+        // (and the front page of each open page's edition)
+        const egne = apne.map(utgaveAv).filter((u) => u !== "/").flatMap((u) => [u, u + "manifest.webmanifest"]);
+        for (const sti of new Set([FORSIDE, MANIFEST, ...egne, ...apne])) if (ONSKET.has(sti)) await sikre(lager, sti).catch(() => {});
       } catch (feil) {
         /* never stop the install: whatever is missing is fetched later */
       }
@@ -286,12 +310,15 @@ self.addEventListener("message", (e) => {
     e.waitUntil(
       (async () => {
         const lager = await caches.open(LAGER);
+        // (the pages of the editions in use: those are the ones the worker keeps)
+        const utgaver = await utgaverIBruk();
+        const mine = SIDER.filter(([sti]) => utgaver.has(utgaveAv(sti)));
         let lagret = 0;
-        for (const [sti, hash] of SIDER) {
+        for (const [sti, hash] of mine) {
           const svar = await lager.match(sti);
           if (svar && svar.headers.get(HASH_HODE) === hash) lagret++;
         }
-        e.source.postMessage({ type: "rusj-status", versjon: VERSJON, sider: SIDER.length, lagret, sparsomt: sparsomt() });
+        e.source.postMessage({ type: "rusj-status", versjon: VERSJON, sider: mine.length, lagret, sparsomt: sparsomt() });
       })(),
     );
   }
@@ -299,7 +326,8 @@ self.addEventListener("message", (e) => {
 
 // ---------- Requests ----------
 
-const frakoblet = () => new Response(FRAKOBLET, { status: 503, statusText: "Uten nett", headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+// FRAKOBLET is one page, or one per edition: { "/": …, "/en/": … }.
+const frakoblet = (sti) => new Response(typeof FRAKOBLET === "string" ? FRAKOBLET : FRAKOBLET[utgaveAv(sti || "/")] || FRAKOBLET["/"], { status: 503, statusText: "Uten nett", headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
 
 // A page. `etter` collects what goes on after the answer (the caller keeps the worker alive for it).
 async function side(req, url, etter) {
@@ -332,7 +360,7 @@ async function side(req, url, etter) {
     return Promise.race([nett.then((svar) => (svar.ok || svar.status === 404 ? svar : lagret)).catch(() => lagret), vent(FRIST).then(() => lagret)]);
   }
   // Not stored: the network – or, without one, a page that says so.
-  return Promise.race([nett, vent(FRIST_UKJENT).then(() => Promise.reject(new Error("frist")))]).catch(() => frakoblet());
+  return Promise.race([nett, vent(FRIST_UKJENT).then(() => Promise.reject(new Error("frist")))]).catch(() => frakoblet(sti));
 }
 
 self.addEventListener("fetch", (e) => {
@@ -344,6 +372,7 @@ self.addEventListener("fetch", (e) => {
   sistSpurt = Date.now();
 
   if (req.mode === "navigate") {
+    brukteUtgaver.add(utgaveAv(url.pathname));
     const etter = [];
     const svar = side(req, url, etter);
     e.respondWith(svar);

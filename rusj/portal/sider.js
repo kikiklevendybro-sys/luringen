@@ -8,6 +8,9 @@
   if (!knapp) return;
   const status = document.getElementById("slett-status");
   const dialog = document.getElementById("dialog");
+  const T = window.RusjTekst;
+  const t = T.t;
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
   // Everything rusj writes starts with «rusj.» – and Luringen's with «luringen.».
   const erVar = (nokkel) => !!nokkel && (nokkel.startsWith("rusj.") || nokkel.startsWith("luringen."));
@@ -33,24 +36,25 @@
   async function visStatus() {
     const n = nokler().length;
     const kopi = await harKopi();
-    const lagret = `${n} ${n === 1 ? "lagret oppføring" : "lagrede oppføringer"} fra rusj`;
     status.textContent = n
-      ? `Akkurat nå ligger det ${lagret} i denne nettleseren${kopi ? ", og en kopi av spillene for bruk uten nett" : ""}.`
+      ? kopi
+        ? t("Akkurat nå ligger det {n} lagret oppføring fra rusj i denne nettleseren, og en kopi av spillene for bruk uten nett.|Akkurat nå ligger det {n} lagrede oppføringer fra rusj i denne nettleseren, og en kopi av spillene for bruk uten nett.", { n })
+        : t("Akkurat nå ligger det {n} lagret oppføring fra rusj i denne nettleseren.|Akkurat nå ligger det {n} lagrede oppføringer fra rusj i denne nettleseren.", { n })
       : kopi
-        ? "Akkurat nå ligger det bare en kopi av spillene for bruk uten nett i denne nettleseren."
-        : "Akkurat nå ligger det ingenting fra rusj i denne nettleseren.";
+        ? t("Akkurat nå ligger det bare en kopi av spillene for bruk uten nett i denne nettleseren.")
+        : t("Akkurat nå ligger det ingenting fra rusj i denne nettleseren.");
   }
 
   // «Are you sure?» – in the site's own dialog, with the harmless answer in focus.
   function sporr() {
-    if (!dialog || !dialog.showModal) return Promise.resolve(window.confirm("Slette alt rusj har lagret på denne enheten? Det kan ikke angres."));
+    if (!dialog || !dialog.showModal) return Promise.resolve(window.confirm(t("Slette alt rusj har lagret på denne enheten? Det kan ikke angres.")));
     return new Promise((ferdig) => {
       dialog.innerHTML = `
-        <h2 id="dialog-tittel">Slette alt på denne enheten?</h2>
-        <p>Navn, innstillinger, spill som pågår, rekorder og den nedlastede kopien av spillene fjernes fra denne nettleseren. Det kan ikke angres.</p>
+        <h2 id="dialog-tittel">${esc(t("Slette alt på denne enheten?"))}</h2>
+        <p>${esc(t("Navn, innstillinger, spill som pågår, rekorder og den nedlastede kopien av spillene fjernes fra denne nettleseren. Det kan ikke angres."))}</p>
         <div class="dialog-knapper stabel">
-          <button type="button" class="knapp rod" value="ja">Ja, slett alt</button>
-          <button type="button" class="knapp-2" value="nei" autofocus>Avbryt</button>
+          <button type="button" class="knapp rod" value="ja">${esc(t("Ja, slett alt"))}</button>
+          <button type="button" class="knapp-2" value="nei" autofocus>${esc(t("Avbryt"))}</button>
         </div>`;
       let svart = false;
       const svar = (ja) => {
@@ -95,7 +99,7 @@
     knapp.disabled = true;
     await slettAlt();
     knapp.disabled = false;
-    status.textContent = nokler().length || (await harKopi()) ? "Noe kunne ikke slettes. Prøv å slette nettstedsdata for rusj.no i innstillingene til nettleseren." : "Slettet. Det ligger ikke lenger noe fra rusj i denne nettleseren.";
+    status.textContent = nokler().length || (await harKopi()) ? t("Noe kunne ikke slettes. Prøv å slette nettstedsdata for rusj.no i innstillingene til nettleseren.") : t("Slettet. Det ligger ikke lenger noe fra rusj i denne nettleseren.");
     knapp.focus();
   });
 

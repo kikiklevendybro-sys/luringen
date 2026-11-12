@@ -11,5 +11,23 @@
   "rekkefolge": 27,
   "sok": ["fire på rad", "4 på rad", "connect four", "connect 4", "firepårad"],
   "motMobilen": true,
-  "alias": ["fire-pa-rad"]
+  "alias": ["fire-pa-rad"],
+  "i18n": {
+    "en": {
+      "navn": "Fourby",
+      "undertittel": "Four in a row",
+      "kort": "Drop your discs – first to four in a row wins.",
+      "beskrivelse": "Free four in a row in your browser. Drop your discs and line up four – against a friend on the same phone, or against the phone at three levels.",
+      "slug": "fourby",
+      "sok": ["four in a row", "4 in a row", "connect four", "connect 4", "drop four", "fourby"]
+    },
+    "da": {
+      "navn": "Fireren",
+      "undertittel": "Fire på stribe",
+      "kort": "Slip brikkerne – først til fire på stribe vinder.",
+      "beskrivelse": "Gratis fire på stribe direkte i browseren. Slip brikkerne og få fire på stribe – mod en ven på samme mobil eller mod mobilen på tre niveauer.",
+      "slug": "fireren",
+      "sok": ["fire på stribe", "4 på stribe", "fire på række", "connect four", "connect 4", "firepåstribe"]
+    }
+  }
 }

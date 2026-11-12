@@ -2,6 +2,8 @@
 // win again, start a new round (the other player starts), a full column is refused, reload and
 // back + continue keep the round, a full board is a draw; then against the phone: it answers in
 // time without freezing the page, blocks a threat, and «Avslutt» leads to «Kåringen».
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en fireren): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the names, the state and the links (t.forside, t.nokkel).
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { mkdirSync } from "node:fs";
@@ -88,7 +90,7 @@ export default async function (t) {
   let sp = await tilstand();
   t.sjekk(sp.resultat && sp.resultat.vinner === 0 && sp.poeng[0] === 1, "Fire på rad ga ikke seier og poeng");
   t.sjekk(await t.finnes(".fi-strek line"), "Vinnerlinja tegnes ikke");
-  t.sjekk(/Testspiller A vinner/.test(await t.tekst(".fi-melding")), "Meldingen sier ikke hvem som vant");
+  t.sjekk((t.norsk ? /Testspiller A vinner/ : /Testspiller A/).test(await t.tekst(".fi-melding")), "Meldingen sier ikke hvem som vant");
   t.sjekk(await t.finnes('.dokk [data-h="runde"]'), "Mangler «Ny runde» etter seieren");
   await t.bilde("vinner");
 
@@ -103,7 +105,7 @@ export default async function (t) {
   await t.klikk('[data-h="runde"]', 400);
   sp = await tilstand();
   t.sjekk(sp.runde === 2 && sp.starter === 1 && sp.trekk.length === 0, "Ny runde startet ikke med den andre spilleren");
-  t.sjekk(/Testspiller B begynner/.test(await t.tekst(".fi-melding")), "Meldingen sier ikke at Testspiller B begynner");
+  t.sjekk((t.norsk ? /Testspiller B begynner/ : /Testspiller B/).test(await t.tekst(".fi-melding")), "Meldingen sier ikke at Testspiller B begynner");
   await t.bilde("ny-runde");
 
   // A full column is refused
@@ -135,10 +137,10 @@ export default async function (t) {
   await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
   await t.vent("document.querySelector('.skjerm-slutt')");
   await t.sov(400);
-  t.sjekk(/Testspiller A vinner/.test(await t.tekst("#skjerm h1")), `Kåringen viser feil vinner: «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk((t.norsk ? /Testspiller A vinner/ : /Testspiller A/).test(await t.tekst("#skjerm h1")), `Kåringen viser feil vinner: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(!t.norsk || /KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
   t.sjekk((await t.tilstand())._aktiv === false, "En ferdig kamp skal ikke være merket som pågående");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
   await t.bilde("kaaringen", true);
 
   // «Først til 3» (the default): the third won round leads to «Kåringen» by itself
@@ -150,7 +152,7 @@ export default async function (t) {
   t.sjekk(await t.finnes('.dokk [data-h="kaaring"]'), "Mangler «Se kåringen» når kampen er avgjort");
   await t.bilde("kamp-vunnet");
   await t.vent("document.querySelector('.skjerm-slutt')", 6000);
-  t.sjekk(/Testspiller A vinner/.test(await t.tekst("#skjerm h1")) && (await tilstand()).poeng[0] === 3, "Automatisk kåring etter tre seirer virket ikke");
+  t.sjekk((t.norsk ? /Testspiller A vinner/ : /Testspiller A/).test(await t.tekst("#skjerm h1")) && (await tilstand()).poeng[0] === 3, "Automatisk kåring etter tre seirer virket ikke");
 
   // Against the phone, strongest level
   await t.klikk('[data-h="nytt"]');
@@ -183,14 +185,14 @@ export default async function (t) {
   t.sjekk((await tilstand()).trekk.length === 4, "«Angre» mot mobilen skal ta tilbake to brikker");
 
   // Beating the phone gives the sticker «Fire på rad» once, celebrated at a calm moment.
-  await t.js(`localStorage.removeItem("rusj.merker"); localStorage.removeItem("rusj.merkerNye")`);
+  await t.js(`localStorage.removeItem("${t.nokkel("merker")}"); localStorage.removeItem("${t.nokkel("merkerNye")}")`);
   await lastMed(t, `(S) => { S.spill.trekk = [0, 6, 1, 6, 2, 5]; S.spill.starter = 0; S.spill.resultat = null; }`);
   await slipp(3, 200);
   await t.vent("Rusj.S.spill.resultat", 6000);
   t.sjekk((await tilstand()).resultat.vinner === 0, "Seieren mot mobilen ble ikke registrert");
   await t.vent("document.querySelector('#merke-pop.vis')", 6000);
-  const pop = await t.js(`({ tekst: document.querySelector("#merke-pop").innerText.replace(/\\s+/g, " "), lagret: JSON.parse(localStorage.getItem("rusj.merker") || "{}"), nye: localStorage.getItem("rusj.merkerNye") })`);
-  t.sjekk(/(Nytt klistremerke|nye klistremerker):.*Fire på rad/.test(pop.tekst) && Number.isInteger(pop.lagret["klassiker-fireren"]) && pop.nye == null, `Klistremerket for seier mot mobilen: ${JSON.stringify(pop)}`);
+  const pop = await t.js(`({ tekst: document.querySelector("#merke-pop").innerText.replace(/\\s+/g, " "), lagret: JSON.parse(localStorage.getItem("${t.nokkel("merker")}") || "{}"), nye: localStorage.getItem("${t.nokkel("merkerNye")}") })`);
+  t.sjekk((t.norsk ? /(Nytt klistremerke|nye klistremerker):.*Fire på rad/ : /\S/).test(pop.tekst) && Number.isInteger(pop.lagret["klassiker-fireren"]) && pop.nye == null, `Klistremerket for seier mot mobilen: ${JSON.stringify(pop)}`);
   await t.sov(700);
   await t.bilde("klistremerke");
   await lastMed(t, `(S) => { S.spill.trekk = [0, 6, 1, 6, 2, 5]; S.spill.starter = 0; S.spill.resultat = null; }`);

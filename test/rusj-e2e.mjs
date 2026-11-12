@@ -1,11 +1,14 @@
 // End-to-end check of rusj.no in headless Google Chrome on a phone-sized screen.
 // For every game: loads the page, checks the basics (title, no errors, no sideways scrolling),
 // then plays it through with test/spill/<id>.e2e.mjs if that file exists. Saves screenshots.
-// Usage: node test/rusj-e2e.mjs [--web dist/web] [--bilder dir] [--a11y dir] [id ...]
+// Usage: node test/rusj-e2e.mjs [--web dist/web] [--bilder dir] [--a11y dir] [--sprak en] [id ...]
 //   ids: game ids, "forside" (front page) or "luringen". Default: everything that was built.
 //   --a11y dir: also run the accessibility checker (test/a11y/) on every screenshot and write what
 //   it finds to dir/funn/<id>.json. Findings are data: they never fail the run.
 //   Then: node test/a11y/sammendrag.mjs dir
+//   --sprak en|da: the same in another edition (rusj/SPRAK.md): /en/ for "forside", /en/<slug>/ for a
+//   game published in it. The front page gets language-neutral checks; every screen is checked for
+//   Norwegian words left in it, and <html lang>.
 import { readdirSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -33,6 +36,31 @@ const HOYDE = Number(flagg("--hoyde")) || 844;
 // --a11y dir: the accessibility checker rides along (loaded only then). One file per page, so two
 // runs at the same time can share a folder.
 const A11Y = flagg("--a11y");
+const SPRAK = flagg("--sprak");
+if (SPRAK && !["en", "da"].includes(SPRAK)) {
+  console.error("--sprak må være en eller da");
+  process.exit(2);
+}
+// Words that give Norwegian away in the other editions (Danish shares many words, so its list is short).
+const NORSKE = {
+  en: new Set("og ikke er på med som har kan vil det et av du dere deg din ditt dine jeg meg hva når nå igjen spill spillet spiller spillere mobilen runde runder trekk poeng vinner avslutt fortsett angre lukk tilbake ferdig neste velg trykk start spill".split(" ")),
+  da: new Set("spill trykk velg igjen noe slik fortsett avslutt lukk uavgjort brettet deg meg dere hva gjør ble brikka".split(" ")),
+};
+NORSKE.en.delete("start");
+const norskOrd = (tekst) => {
+  const ren = String(tekst).replace(/Testspiller [A-Z]/g, " ");
+  if (SPRAK === "en" && /[æøå]/i.test(ren)) return true;
+  return (ren.toLocaleLowerCase("nb").match(/[a-zæøå]+/g) || []).some((o) => NORSKE[SPRAK].has(o));
+};
+// The game folders of the edition: id → "/en/<slug>/"
+const UTGAVE = new Map();
+if (SPRAK && existsSync(join(WEB, SPRAK)))
+  for (const d of readdirSync(join(WEB, SPRAK))) {
+    const fil = join(WEB, SPRAK, d, "data.js");
+    if (!existsSync(fil)) continue;
+    const m = /window\.RUSJ_SPILL=(\{.*?\});\n/.exec(readFileSync(fil, "utf8"));
+    if (m) UTGAVE.set(JSON.parse(m[1]).id, `/${SPRAK}/${d}/`);
+  }
 const A11Y_MAPPE = A11Y ? resolve(A11Y) : null;
 const lagA11y = A11Y_MAPPE ? (await import("./a11y/a11y.mjs")).lagA11y : null;
 if (A11Y_MAPPE) {
@@ -43,14 +71,20 @@ if (!existsSync(join(WEB, "index.html"))) {
   console.error(`Fant ikke ${WEB}/index.html – kjør node scripts/bygg.mjs først.`);
   process.exit(1);
 }
-const bygget = readdirSync(WEB).filter((d) => existsSync(join(WEB, d, "index.html")) && existsSync(join(WEB, d, "data.js")));
-const valgt = args.length ? args : ["forside", ...(existsSync(join(WEB, "luringen/index.html")) ? ["luringen"] : []), ...bygget];
+const bygget = SPRAK ? [...UTGAVE.keys()] : readdirSync(WEB).filter((d) => existsSync(join(WEB, d, "index.html")) && existsSync(join(WEB, d, "data.js")));
+const valgt = args.length ? args : ["forside", ...(!SPRAK && existsSync(join(WEB, "luringen/index.html")) ? ["luringen"] : []), ...bygget];
+const FORSIDE = SPRAK ? `/${SPRAK}/` : "/";
+const sideFor = (id) => (id === "forside" ? FORSIDE : SPRAK ? UTGAVE.get(id) : `/${id}/`);
+if (SPRAK) for (const id of valgt) if (id !== "forside" && !UTGAVE.has(id)) {
+  console.error(`${id} er ikke publisert på ${SPRAK} i ${WEB} (node scripts/sprak.mjs --spill ${id} --sprak ${SPRAK})`);
+  process.exit(1);
+}
 
 const tjener = await startTjener(WEB);
 const resultat = [];
 
 function meta(id) {
-  const tekst = readFileSync(join(WEB, id, "data.js"), "utf8");
+  const tekst = readFileSync(join(WEB, sideFor(id).slice(1), "data.js"), "utf8");
   const m = /window\.RUSJ_SPILL=(\{.*?\});\n/.exec(tekst);
   return m ? JSON.parse(m[1]) : { id };
 }
@@ -69,7 +103,13 @@ for (const id of valgt) {
     ...c,
     id,
     url: tjener.url,
-    side: `${tjener.url}/${id === "forside" ? "" : id + "/"}`,
+    side: `${tjener.url}${sideFor(id)}`,
+    // The edition (rusj/SPRAK.md): scenarios check texts only in Norwegian, and find the front page
+    // and the stored state where this edition keeps them.
+    sprak: SPRAK || "nb",
+    norsk: !SPRAK,
+    forside: FORSIDE,
+    nokkel: (n) => `rusj.${SPRAK ? SPRAK + "." : ""}${n}`,
     feil: (m) => feil.push(m),
     sjekk: (ok, m) => {
       if (!ok) feil.push(m);
@@ -104,10 +144,35 @@ for (const id of valgt) {
       if (utenfor.length) feil.push(`Tekst stikker utenfor skjermen på «${navn}»: ${utenfor.join(", ")}`);
       const tomme = await c.js(`Array.from(document.querySelectorAll("button, a")).filter(b => b.offsetParent && !b.innerText.trim() && !b.getAttribute("aria-label") && !b.querySelector("svg, img")).length`);
       if (tomme) feil.push(`${tomme} knapp(er) uten tekst eller aria-label på «${navn}»`);
+      if (SPRAK) {
+        // Another edition: the page says which language it is in, and no Norwegian is left on it
+        // (visible text and the names a screen reader reads; a part marked with another lang, such
+        // as the language switch, is left out).
+        const lang = await c.js("document.documentElement.lang");
+        if (lang !== SPRAK) feil.push(`<html lang="${lang}"> på «${navn}» (ventet ${SPRAK})`);
+        const tekster = await c.js(`(() => {
+          const ut = [];
+          const egen = (el) => { const l = el.closest("[lang]"); return !l || l.getAttribute("lang") === document.documentElement.lang; };
+          const synlig = (el) => { if (el.closest("[hidden], svg, script, style, template, noscript")) return false; const s = getComputedStyle(el); if (s.display === "none" || s.visibility === "hidden") return false; const b = el.getBoundingClientRect(); return b.width > 0 || b.height > 0; };
+          const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+          for (let n = w.nextNode(); n; n = w.nextNode()) {
+            const el = n.parentElement;
+            const x = n.textContent.trim();
+            if (x && el && egen(el) && synlig(el)) ut.push(x);
+          }
+          for (const el of document.querySelectorAll("[aria-label], [placeholder], [title]")) {
+            if (!egen(el) || !synlig(el)) continue;
+            for (const a of ["aria-label", "placeholder", "title"]) if (el.getAttribute(a)) ut.push(el.getAttribute(a));
+          }
+          return ut;
+        })()`);
+        const norsk = [...new Set(tekster.filter(norskOrd))];
+        if (norsk.length) feil.push(`Norsk tekst på «${navn}» (${SPRAK}): ${norsk.slice(0, 4).map((x) => `«${x.slice(0, 60)}»`).join(", ")}`);
+      }
       await c.skjermbilde(join(mappe, `${String(++nr).padStart(2, "0")}-${navn}.png`), { helside });
       if (a11y) await a11y.sjekk(navn); // findings are collected, never a test failure
     },
-    tilstand: () => c.js(`JSON.parse(localStorage.getItem("rusj.${id}.v1") || "null")`),
+    tilstand: () => c.js(`JSON.parse(localStorage.getItem("rusj.${SPRAK ? SPRAK + "." : ""}${id}.v1") || "null")`),
     // Is the element clear of the action area (the dock), with the page scrolled to the top?
     // Portrait: it ends above the dock. Landscape phones, where the kit makes the dock a column on
     // the right: it is beside the dock and inside the screen. `slakk` px of overlap are allowed.
@@ -135,7 +200,47 @@ for (const id of valgt) {
   };
 
   try {
-    if (id === "forside") {
+    if (id === "forside" && SPRAK) {
+      // Another edition's front page: language-neutral checks (the Norwegian walk is below).
+      await t.start();
+      const spill = [...UTGAVE.keys()];
+      const forside = await c.js(`({
+        kort: Array.from(document.querySelectorAll("#spillgrid .spillkort a")).map((a) => a.getAttribute("href")),
+        hreflang: Array.from(document.querySelectorAll('link[rel="alternate"]')).map((l) => l.hreflang + " " + new URL(l.href).pathname),
+        bryter: Array.from(document.querySelectorAll(".bunn .sprakvalg a, .bunn .sprakvalg [aria-current]")).map((a) => a.getAttribute("href") || "*"),
+        bunn: Array.from(document.querySelectorAll(".bunn-lenker a")).map((a) => a.getAttribute("href")),
+        h1: document.querySelector("h1") && document.querySelector("h1").textContent.trim(),
+        manifest: document.querySelector('link[rel="manifest"]').getAttribute("href"),
+      })`);
+      t.sjekk(forside.kort.length === spill.length && forside.kort.every((h) => h.startsWith(FORSIDE)), `Forsiden på ${SPRAK} viser ${forside.kort.length} spill (${forside.kort.join(", ")}), ventet ${spill.length} under ${FORSIDE}`);
+      t.sjekk(["nb /", `${SPRAK} ${FORSIDE}`, "x-default /"].every((x) => forside.hreflang.includes(x)), `hreflang på forsiden: ${forside.hreflang.join(", ")}`);
+      t.sjekk(forside.bryter.length === 3 && forside.bryter.includes("/") && forside.bryter.includes("*"), `Språkvalget i bunnen: ${forside.bryter.join(", ")}`);
+      t.sjekk(forside.bunn.every((h) => h.startsWith(FORSIDE)), `Bunnlenkene peker ut av utgaven: ${forside.bunn.join(", ")}`);
+      t.sjekk(!!forside.h1 && forside.manifest === `${FORSIDE}manifest.webmanifest`, `Forsiden mangler h1 eller eget manifest (${forside.manifest})`);
+      await t.bilde("forside");
+      await t.bilde("forside-hel", true);
+      // Search: a game's own name finds it.
+      const navn = await c.tekst("#spillgrid .spillkort .kort-navn");
+      await c.skrivInn("#sok", navn);
+      await c.sov(300);
+      t.sjekk((await c.antall("#spillgrid .spillkort:not([hidden])")) >= 1 && /\S/.test(await c.tekst("#treff")), `Søket etter «${navn}» fant ingenting`);
+      await t.bilde("forside-sok");
+      await c.klikk("#sok-tom");
+      await c.klikk("#overrask");
+      await c.vent("document.querySelector('#automat[open] [data-spill]:not([aria-disabled=\"true\"])')", 6000);
+      await t.bilde("forside-overrask");
+      await c.klikk("#automat [data-lukk]");
+      for (const side of await c.js(`Array.from(document.querySelectorAll(".bunn-lenker a")).map((a) => a.getAttribute("href"))`)) {
+        await c.lastSide(`${tjener.url}${side}`, "document.querySelector('h1')");
+        t.sjekk(await c.js("location.pathname.startsWith('/' + document.documentElement.lang + '/')"), `${side}: ikke i utgaven`);
+        await t.bilde("side-" + side.split("/").filter(Boolean).pop(), true);
+      }
+      // The game page links back to this edition's front page.
+      if (spill.length) {
+        await c.lastSide(`${tjener.url}${UTGAVE.get(spill[0])}`, "document.querySelector('#skjerm h1')");
+        t.sjekk((await c.js(`document.querySelector("#tilportal").getAttribute("href")`)) === FORSIDE, "Spillets rusj-knapp går ikke til utgavens forside");
+      }
+    } else if (id === "forside") {
       // A headless page has no focus, so «focus» never fires; the search row moves itself on focus.
       await c.send("Emulation.setFocusEmulationEnabled", { enabled: true });
       const tast = async (key, vk) => {

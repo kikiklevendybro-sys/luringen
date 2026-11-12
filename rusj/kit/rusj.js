@@ -20,16 +20,75 @@
   R.$ = $;
   R.$$ = $$;
   R.esc = esc;
-  R.tall = (n) => Number(n).toLocaleString("nb-NO");
+
+  // ---------- Language (rusj/SPRAK.md) ----------
+  // The edition: "nb" at the root, "en" under /en/, "da" under /da/. On those pages
+  // /felles/tekst.<lang>.js sets window.RUSJ_SPRAK and window.RUSJ_TEKST (the shared table) before
+  // this file runs; a game's own table (window.RUSJ_TEKST_SPILL) comes with its data.js.
+  // R.t("Gjør klart") → the text in this edition; the key is the Norwegian text, so Norwegian (and a
+  // key no table has) gives the key itself. R.t("{navn} vant!", { navn }) puts values in as text –
+  // escaping stays the caller's job. A table value { one, other } is chosen by Intl.PluralRules
+  // with verdier.n; a key "{n} runde|{n} runder" carries the Norwegian singular and plural.
+  // The key must always be a literal in quotes (scripts/sprak.mjs reads them to check the tables).
+  const SPRAKENE = { nb: ["nb-NO", "Europe/Oslo", "/merker/"], en: ["en-GB", "Europe/London", "/en/stickers/"], da: ["da-DK", "Europe/Copenhagen", "/da/klistermaerker/"] };
+  R.sprak = SPRAKENE[window.RUSJ_SPRAK] ? window.RUSJ_SPRAK : "nb";
+  R.lokale = SPRAKENE[R.sprak][0];
+  R.tidssone = SPRAKENE[R.sprak][1]; // «today» for daily puzzles: Oslo, London or Copenhagen
+  R.forside = R.sprak === "nb" ? "/" : "/" + R.sprak + "/"; // the front page of this edition
+  R.merkeside = SPRAKENE[R.sprak][2];
+  const harEgen = (o, k) => !!o && typeof o === "object" && Object.prototype.hasOwnProperty.call(o, k);
+  let flertallRegler = null;
+  const flertallsform = (n) => {
+    try {
+      flertallRegler = flertallRegler || new Intl.PluralRules(R.lokale);
+      return flertallRegler.select(Number(n));
+    } catch (e) {
+      return Number(n) === 1 ? "one" : "other";
+    }
+  };
+  const oppslag = (nokkel) => {
+    if (R.sprak === "nb") return undefined;
+    for (const tab of [window.RUSJ_TEKST_SPILL, window.RUSJ_TEKST]) if (harEgen(tab, nokkel)) return tab[nokkel];
+    return undefined;
+  };
+  const velgForm = (v, n) => {
+    if (typeof v !== "object") return v;
+    const f = flertallsform(n);
+    return harEgen(v, f) ? v[f] : v.other;
+  };
+  R.t = (nokkel, verdier) => {
+    let v = oppslag(nokkel);
+    if (v == null) {
+      v = nokkel;
+      if (typeof v === "string" && v.includes("|")) {
+        const [en, flere] = v.split("|");
+        v = verdier && Number(verdier.n) === 1 ? en : flere;
+      }
+    } else v = velgForm(v, verdier && verdier.n);
+    return verdier ? String(v).replace(/\{(\w+)\}/g, (hele, k) => (harEgen(verdier, k) ? String(verdier[k]) : hele)) : String(v);
+  };
+
+  R.tall = (n) => Number(n).toLocaleString(R.lokale);
   R.vent = (ms) => new Promise((r) => setTimeout(r, ms));
   R.rolig = () => !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   R.klamp = (n, min, max) => Math.min(max, Math.max(min, n));
-  // "1 sekund", "2 sekunder": R.flertall(n, "sekund", "sekunder")
-  R.flertall = (n, entall, flertall) => `${R.tall(n)} ${Number(n) === 1 ? entall : flertall}`;
-  // "A", "A og B", "A, B og C"
+  // "1 sekund", "2 sekunder": R.flertall(n, "sekund", "sekunder"). In another edition the table
+  // has the key "sekund|sekunder" with { one, other } (or one text).
+  R.flertall = (n, entall, flertall) => {
+    const v = oppslag(entall + "|" + flertall);
+    return `${R.tall(n)} ${v == null ? (Number(n) === 1 ? entall : flertall) : velgForm(v, n)}`;
+  };
+  // "A", "A og B", "A, B og C" (English "A, B and C", Danish "A, B og C" through Intl.ListFormat)
   R.ramsOpp = (liste) => {
     const l = (liste || []).map(String);
-    return l.length < 2 ? l.join("") : l.slice(0, -1).join(", ") + " og " + l[l.length - 1];
+    if (R.sprak !== "nb" && l.length > 1) {
+      try {
+        return new Intl.ListFormat(R.lokale, { style: "long", type: "conjunction" }).format(l);
+      } catch (e) {
+        /* fall through */
+      }
+    }
+    return l.length < 2 ? l.join("") : l.slice(0, -1).join(", ") + " " + R.t("og") + " " + l[l.length - 1];
   };
   R.formaterTid = (sek) => {
     sek = Math.max(0, Math.ceil(sek));
@@ -104,10 +163,14 @@
 
   // ---------- Storage (this device only) ----------
 
+  // Another edition keeps its own games, decks, records and dailies (rusj.en.*, rusj.da.*), so a card
+  // seen in Norwegian is not marked as seen in English. Names, sound and the 18+ answer are shared.
   const PREFIKS = "rusj.";
+  const DELT = { felles: true, stat: true };
+  const fullNokkel = (nokkel) => PREFIKS + (R.sprak === "nb" || DELT[nokkel] ? "" : R.sprak + ".") + nokkel;
   R.les = (nokkel, standard) => {
     try {
-      const v = localStorage.getItem(PREFIKS + nokkel);
+      const v = localStorage.getItem(fullNokkel(nokkel));
       return v == null ? standard : JSON.parse(v);
     } catch (e) {
       return standard;
@@ -119,19 +182,19 @@
   let lagringFeilet = false;
   let lagringMeldt = false;
   let spillVises = false; // true from the game's first screen: before that there is no toast to show it in
-  const LAGRING_TEKST = "Nettleseren lar oss ikke lagre – spillet virker, men huskes ikke";
+  const lagringTekst = () => R.t("Nettleseren lar oss ikke lagre – spillet virker, men huskes ikke");
   function meldLagring() {
     if (!lagringFeilet || lagringMeldt || !spillVises) return;
     lagringMeldt = true;
     try {
-      R.toast(LAGRING_TEKST);
+      R.toast(lagringTekst());
     } catch (e) {
       lagringMeldt = false;
     }
   }
   R.skriv = (nokkel, verdi) => {
     try {
-      localStorage.setItem(PREFIKS + nokkel, JSON.stringify(verdi));
+      localStorage.setItem(fullNokkel(nokkel), JSON.stringify(verdi));
       return true;
     } catch (e) {
       lagringFeilet = true;
@@ -141,7 +204,7 @@
   };
   R.fjern = (nokkel) => {
     try {
-      localStorage.removeItem(PREFIKS + nokkel);
+      localStorage.removeItem(fullNokkel(nokkel));
     } catch (e) {
       /* ignore */
     }
@@ -191,6 +254,7 @@
 
   // ---------- Daily puzzles ----------
   // The same "today" for everyone in Norway: { tekst: "2026-11-10", nr: days since 1970 }.
+  // (Copenhagen time in the Danish edition, London time in the English one: R.tidssone.)
   // Read with formatToParts (not a locale's date format, which a browser may lack), and fall back
   // to the phone's own date if the time zone is unknown.
   R.dag = (dato) => {
@@ -198,7 +262,7 @@
     let a, m, d;
     try {
       const deler = {};
-      for (const p of new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", year: "numeric", month: "numeric", day: "numeric" }).formatToParts(naa)) deler[p.type] = Number(p.value);
+      for (const p of new Intl.DateTimeFormat("en-GB", { timeZone: R.tidssone, year: "numeric", month: "numeric", day: "numeric" }).formatToParts(naa)) deler[p.type] = Number(p.value);
       a = deler.year;
       m = deler.month;
       d = deler.day;
@@ -333,7 +397,7 @@
     registrer(rader, valg) {
       try {
         const id = (APP && APP.id) || meta().id;
-        const navn = (r) => (r.navn != null ? String(r.navn) : r.lag != null ? "Lag " + R.LAG[r.lag % R.LAG.length].navn : R.navn(r.i || 0));
+        const navn = (r) => (r.navn != null ? String(r.navn) : r.lag != null ? R.lagNavn(r.lag) : R.navn(r.i || 0));
         const med = (rader || []).filter((r) => typeof r.poeng === "number");
         if (med.length < 2 && !(valg && valg.solo)) return;
         const sortert = med.slice().sort((a, b) => b.poeng - a.poeng);
@@ -438,7 +502,7 @@
     R.fjern("merkerNye");
     const merker = ids.map((id) => K.merker.find((m) => m.id === id));
     const navn = R.ramsOpp(merker.map((m) => m.navn));
-    const etikett = merker.length === 1 ? "Nytt klistremerke:" : `${merker.length} nye klistremerker:`;
+    const etikett = R.t("Nytt klistremerke:|{n} nye klistremerker:", { n: merker.length });
     let pop = $("#merke-pop");
     if (!pop) {
       pop = document.createElement("div");
@@ -449,7 +513,7 @@
     pop.innerHTML = `<div class="merke-pop-inn">
       <span class="merke-pop-merker">${merker.slice(0, 3).map((m) => window.RusjMerker.tegn(m, G)).join("")}</span>
       <span class="merke-pop-tekst"><span class="merke-pop-etikett">${esc(etikett)}</span> <b>${esc(navn)}</b></span>
-      <a class="merke-pop-lenke" href="/merker/">Se boka</a>
+      <a class="merke-pop-lenke" href="${R.merkeside}">${esc(R.t("Se boka"))}</a>
     </div>`;
     pop.classList.toggle("flere", merker.length > 1);
     pop.classList.remove("vis");
@@ -481,15 +545,15 @@
     R.felles.installTips = (Number(R.felles.installTips) || 0) + 1;
     R.lagreFelles();
     const tekst = installHendelse
-      ? "Legg rusj på hjemskjermen, så starter spillene som en app – og de virker uten nett."
+      ? esc(R.t("Legg rusj på hjemskjermen, så starter spillene som en app – og de virker uten nett."))
       : ios
-        ? "Trykk på Del-knappen <b>⬆︎</b> nederst i Safari og velg «Legg til på Hjem-skjerm». Da starter rusj som en app – og spillene virker uten nett."
-        : "Åpne menyen i nettleseren (⋮) og velg «Installer app» eller «Legg til på startsiden». Da starter rusj som en app – og spillene virker uten nett.";
+        ? esc(R.t("Trykk på Del-knappen {pil} nederst i Safari og velg «Legg til på Hjem-skjerm». Da starter rusj som en app – og spillene virker uten nett.")).replace("{pil}", "<b>⬆︎</b>")
+        : esc(R.t("Åpne menyen i nettleseren (⋮) og velg «Installer app» eller «Legg til på startsiden». Da starter rusj som en app – og spillene virker uten nett."));
     R.ark(`
-      <h2 id="ark-tittel">Ha rusj som app</h2>
+      <h2 id="ark-tittel">${esc(R.t("Ha rusj som app"))}</h2>
       <p class="ingress">${tekst}</p>
-      ${installHendelse ? '<button class="knapp" data-h="installer-app">Installer rusj</button>' : ""}
-      <button class="${installHendelse ? "lenke" : "knapp-2"}" data-h="lukk-ark">${installHendelse ? "Ikke nå" : "Skjønner!"}</button>`);
+      ${installHendelse ? `<button class="knapp" data-h="installer-app">${esc(R.t("Installer rusj"))}</button>` : ""}
+      <button class="${installHendelse ? "lenke" : "knapp-2"}" data-h="lukk-ark">${esc(installHendelse ? R.t("Ikke nå") : R.t("Skjønner!"))}</button>`);
   };
   R._installer = async () => {
     if (!installHendelse) return R.lukkArk();
@@ -505,15 +569,17 @@
 
   R.DYR = ["🦊", "🐸", "🐼", "🐙", "🦄", "🐯", "🐧", "🦉", "🐢", "🐳", "🦁", "🐨", "🐰", "🐝", "🦖", "🐷", "🐵", "🦜", "🐻", "🐞"];
   R.MAKS_SPILLERE = 20;
-  R.navn = (i) => String(R.felles.navn[i] || "").trim() || `Spiller ${i + 1}`;
+  R.navn = (i) => String(R.felles.navn[i] || "").trim() || R.t("Spiller {n}", { n: i + 1 });
   R.avatar = (i, storrelse) =>
     `<span class="avatar ${storrelse || ""}" style="--pf: var(--p${(i % 20) + 1})" aria-hidden="true">${R.DYR[i % 20]}</span>`;
   R.LAG = [
-    { navn: "Rosa", farge: "var(--rosa)" },
-    { navn: "Gul", farge: "var(--lampe)" },
-    { navn: "Blå", farge: "var(--himmel)" },
-    { navn: "Grønn", farge: "var(--mynte)" },
+    { navn: R.t("Rosa"), farge: "var(--rosa)" },
+    { navn: R.t("Gul"), farge: "var(--lampe)" },
+    { navn: R.t("Blå"), farge: "var(--himmel)" },
+    { navn: R.t("Grønn"), farge: "var(--mynte)" },
   ];
+  // «Lag Rosa» (English «Team Pink», Danish «Hold Rosa»)
+  R.lagNavn = (i) => R.t("Lag {farge}", { farge: R.LAG[i % R.LAG.length].navn });
 
   // ---------- Sound (synthesised, no files) ----------
 
@@ -1145,8 +1211,8 @@
         <h2 id="ark-tittel">${esc(tittel)}</h2>
         ${tekst ? `<p class="ingress">${esc(tekst)}</p>` : ""}
         <div class="knapprad">
-          <button class="knapp-2" data-h="ark-svar" data-v="nei">${esc(nei || "Avbryt")}</button>
-          <button class="knapp rosa" data-h="ark-svar" data-v="ja">${esc(ja || "Ja")}</button>
+          <button class="knapp-2" data-h="ark-svar" data-v="nei">${esc(nei || R.t("Avbryt"))}</button>
+          <button class="knapp rosa" data-h="ark-svar" data-v="ja">${esc(ja || R.t("Ja"))}</button>
         </div>`);
       arkSvar = resolve;
     });
@@ -1157,7 +1223,7 @@
   R.bekreftNytt = (pagar, solo) => {
     if (!pagar) return Promise.resolve(true);
     const alene = solo != null ? !!solo : !!(meta().spillere && meta().spillere[1] === 1);
-    return R.bekreft("Starte et nytt spill?", alene ? "Spillet du holder på med, forsvinner." : "Spillet dere holder på med, og stillingen forsvinner.", "Start nytt", "Avbryt");
+    return R.bekreft(R.t("Starte et nytt spill?"), alene ? R.t("Spillet du holder på med, forsvinner.") : R.t("Spillet dere holder på med, og stillingen forsvinner."), R.t("Start nytt"), R.t("Avbryt"));
   };
   R.velgIArk = (tittel, valg, tekst) =>
     new Promise((resolve) => {
@@ -1165,7 +1231,7 @@
         <h2 id="ark-tittel">${esc(tittel)}</h2>
         ${tekst ? `<p class="ingress">${esc(tekst)}</p>` : ""}
         <div class="stabel">${valg.map((o, i) => `<button class="knapp-2" data-h="ark-svar" data-v="${i}">${esc(o.tekst)}</button>`).join("")}</div>
-        <button class="lenke" data-h="lukk-ark">Avbryt</button>`);
+        <button class="lenke" data-h="lukk-ark">${esc(R.t("Avbryt"))}</button>`);
       arkSvar = (svar) => resolve(svar === false || svar == null ? null : valg[Number(svar)].v);
     });
 
@@ -1178,7 +1244,7 @@
   R._toastTid = toastTid;
   // The note about saving was cut short (a new screen, another toast): let it come once more.
   const toastSlutt = (t) => {
-    if (t && t.textContent === LAGRING_TEKST && performance.now() - toastVist < 2500) lagringMeldt = false;
+    if (t && t.textContent === lagringTekst() && performance.now() - toastVist < 2500) lagringMeldt = false;
   };
   R.skjulToast = () => {
     clearTimeout(toastId);
@@ -1276,10 +1342,10 @@
   R.kopier = async (tekst) => {
     try {
       await navigator.clipboard.writeText(tekst);
-      R.toast("Kopiert!");
+      R.toast(R.t("Kopiert!"));
       return true;
     } catch (e) {
-      R.toast("Kunne ikke kopiere – marker teksten selv");
+      R.toast(R.t("Kunne ikke kopiere – marker teksten selv"));
       return false;
     }
   };
@@ -1332,7 +1398,8 @@
   // «https://rusj.no/ordugla/#utfordring» → «rusj.no/ordugla».
   const kortAdresse = (url, id) => {
     const fra = String(url || "").replace(/^[a-z]+:\/\//i, "").replace(/[?#].*$/, "").replace(/\/+$/, "");
-    if (/^rusj\.no(\/[\w-]+)?$/.test(fra)) return fra;
+    if (/^rusj\.no(\/(en|da))?(\/[\w-]+)?$/.test(fra)) return fra;
+    if (R.sprak !== "nb") return "rusj.no/" + R.sprak + (id ? "/" + (meta().slug || id) : "");
     return id ? `rusj.no/${id}` : "rusj.no";
   };
 
@@ -1507,11 +1574,11 @@
   function visDelArk(data) {
     ventendeDeling = data;
     R.ark(`
-      <h2 id="ark-tittel">Bildet er klart</h2>
-      <p class="ingress">Trykk for å dele resultatet som bilde.</p>
+      <h2 id="ark-tittel">${esc(R.t("Bildet er klart"))}</h2>
+      <p class="ingress">${esc(R.t("Trykk for å dele resultatet som bilde."))}</p>
       <div class="stabel">
-        <button class="knapp" data-h="del-bilde">Del bildet</button>
-        <button class="lenke" data-h="lukk-ark">Avbryt</button>
+        <button class="knapp" data-h="del-bilde">${esc(R.t("Del bildet"))}</button>
+        <button class="lenke" data-h="lukk-ark">${esc(R.t("Avbryt"))}</button>
       </div>`);
   }
   async function delVentende() {
@@ -1744,7 +1811,7 @@
       el.classList.toggle("ferdig", this.ferdig);
       el.classList.toggle("pause", !this.kjorer && !this.ferdig);
       const pauseKnapp = el.querySelector("[data-timer-pause]");
-      if (pauseKnapp) pauseKnapp.textContent = this.kjorer ? "Pause" : this.ferdig ? "Ferdig" : "Fortsett";
+      if (pauseKnapp) pauseKnapp.textContent = this.kjorer ? R.t("Pause") : this.ferdig ? R.t("Ferdig") : R.t("Fortsett");
     }
   }
   R.Timer = Timer;
@@ -1773,6 +1840,8 @@
     h ^= h >>> 16;
     return h >>> 0;
   };
+  // Another edition mixes its language into the salt: a code made in Norwegian is not read in English.
+  const medSprak = (salt) => (R.sprak === "nb" ? salt : R.sprak + ":" + (salt || 0));
   const sjekksymboler = (symboler, salt, sjekk) =>
     Array.from({ length: sjekk || 1 }, (_, k) => bland(R.hash((salt || 0) + (k ? ":" + (k + 1) : "") + ":" + symboler.join(","))) >>> 27);
   R.kode = {
@@ -1786,7 +1855,7 @@
       while (bits.length % 5) bits.push(0);
       const symboler = [];
       for (let i = 0; i < bits.length; i += 5) symboler.push(bits.slice(i, i + 5).reduce((s, b) => s * 2 + b, 0));
-      symboler.push(...sjekksymboler(symboler, salt, sjekk));
+      symboler.push(...sjekksymboler(symboler, medSprak(salt), sjekk));
       return symboler.map((s) => ALFABET[s]).join("");
     },
     les(tekst, bredder, salt, sjekk) {
@@ -1797,7 +1866,7 @@
       if (kode.length !== lengde) return null;
       const symboler = kode.split("").map((c) => ALFABET.indexOf(c));
       const sum = symboler.splice(symboler.length - n, n);
-      if (sjekksymboler(symboler, salt, n).join(",") !== sum.join(",")) return null;
+      if (sjekksymboler(symboler, medSprak(salt), n).join(",") !== sum.join(",")) return null;
       const bits = [];
       symboler.forEach((s) => {
         for (let i = 4; i >= 0; i--) bits.push((s >> i) & 1);
@@ -1827,7 +1896,7 @@
       const Q = window.LuringenQr;
       if (!Q) return "";
       try {
-        return Q.qrSvg(Q.lagQr(tekst, nivå || "M"), { mork: "var(--blekk)", lys: "var(--papir)", etikett: "QR-kode som åpner spillet med koden" });
+        return Q.qrSvg(Q.lagQr(tekst, nivå || "M"), { mork: "var(--blekk)", lys: "var(--papir)", etikett: R.t("QR-kode som åpner spillet med koden") });
       } catch (e) {
         return "";
       }
@@ -1898,7 +1967,7 @@
   ui.lenkerad = (...deler) => `<div class="lenkerad">${deler.filter(Boolean).join("")}</div>`;
 
   // A challenge link (…/#utfordring, see «Slå meg» in KIT.md) shows this once, above the main button.
-  const UTFORDRING_HTML = `<p class="utfordring"><span aria-hidden="true">⚔️</span> Noen utfordret deg på dagens oppgave – klarer du det bedre?</p>`;
+  const utfordringHtml = () => `<p class="utfordring"><span aria-hidden="true">⚔️</span> ${esc(R.t("Noen utfordret deg på dagens oppgave – klarer du det bedre?"))}</p>`;
   R.utfordret = false;
 
   // Standard game home: mascot, name, genre label, slogan, buttons and facts.
@@ -1913,8 +1982,8 @@
         ${under ? `<span class="undertittel">${esc(under)}</span>` : ""}
         ${o.slagordHtml ? `<p class="slagord">${o.slagordHtml}</p>` : ""}
       </div>
-      <div class="hjem-knapper">${R.utfordret ? UTFORDRING_HTML : ""}${o.knapperHtml || ""}</div>
-      ${merker.length ? `<ul class="merker" aria-label="Om spillet">${merker.map(([b, t]) => `<li><b>${esc(b)}</b> ${esc(t)}</li>`).join("")}</ul>` : ""}`;
+      <div class="hjem-knapper">${R.utfordret ? utfordringHtml() : ""}${o.knapperHtml || ""}</div>
+      ${merker.length ? `<ul class="merker" aria-label="${esc(R.t("Om spillet"))}">${merker.map(([b, t]) => `<li><b>${esc(b)}</b> ${esc(t)}</li>`).join("")}</ul>` : ""}`;
   };
 
   // Home-screen buttons. While a game is running, "Fortsett" is the main action and starting
@@ -1922,8 +1991,8 @@
   // o: { pagar (bool), fortsettTekst, startTekst, nyH ("nytt"), fortsettH ("fortsett"), ekstraHtml }
   ui.startKnapper = (o = {}) =>
     (o.pagar
-      ? ui.knapp(o.fortsettTekst || "Fortsett spillet", o.fortsettH || "fortsett") + ui.knapp2(o.nyTekst || "Nytt spill", o.nyH || "nytt")
-      : ui.knapp(o.startTekst || "Start spill", o.nyH || "nytt")) + (o.ekstraHtml || "");
+      ? ui.knapp(o.fortsettTekst || R.t("Fortsett spillet"), o.fortsettH || "fortsett") + ui.knapp2(o.nyTekst || R.t("Nytt spill"), o.nyH || "nytt")
+      : ui.knapp(o.startTekst || R.t("Start spill"), o.nyH || "nytt")) + (o.ekstraHtml || "");
 
   // Segmented choice: valg = [[verdi, tekst], ...]
   ui.seg = (h, valg, aktiv, o = {}) =>
@@ -1934,9 +2003,9 @@
   // Number stepper: buttons send data-v "-1" / "1".
   ui.teller = (h, verdi, min, max, o = {}) =>
     `<div class="teller"${attr("id", o.id)}>
-      <button data-h="${esc(h)}" data-v="-1" aria-label="${esc(o.minus || "Færre")}"${verdi <= min ? " disabled" : ""}>−</button>
+      <button data-h="${esc(h)}" data-v="-1" aria-label="${esc(o.minus || R.t("Færre"))}"${verdi <= min ? " disabled" : ""}>−</button>
       <output aria-live="polite">${esc(o.vis ? o.vis(verdi) : verdi)}${o.enhet ? ` <small>${esc(o.enhet)}</small>` : ""}</output>
-      <button data-h="${esc(h)}" data-v="1" aria-label="${esc(o.pluss || "Flere")}"${verdi >= max ? " disabled" : ""}>+</button>
+      <button data-h="${esc(h)}" data-v="1" aria-label="${esc(o.pluss || R.t("Flere"))}"${verdi >= max ? " disabled" : ""}>+</button>
     </div>`;
 
   // Tiles: valg = [{ v, tittel, tekst, ikon }]
@@ -1953,7 +2022,7 @@
   // Multi-select chips: valg = [{ v, tekst, ikon, antall }]; valgt = array of v
   ui.brikker = (h, valg, valgt, o = {}) =>
     `<div class="brikker" role="group"${attr("aria-label", o.etikett)}>${
-      o.alle ? `<button class="brikke alle" data-h="${esc(h)}" data-v="*" aria-pressed="${valgt.length === valg.length}">Alle</button>` : ""
+      o.alle ? `<button class="brikke alle" data-h="${esc(h)}" data-v="*" aria-pressed="${valgt.length === valg.length}">${esc(R.t("Alle"))}</button>` : ""
     }${valg
       .map(
         (b) =>
@@ -1977,14 +2046,14 @@
     for (let i = 0; i < antall; i++) {
       rader.push(`<div class="spiller" style="--pf: var(--p${i + 1})">
         ${R.avatar(i)}
-        <input id="navn-${i}" data-navn="${i}" value="${esc(R.felles.navn[i] || "")}" placeholder="Spiller ${i + 1}" maxlength="16" autocomplete="off" autocapitalize="words" enterkeyhint="next" aria-label="Navn på spiller ${i + 1}">
-        ${antall > min ? `<button class="fjern" data-h="spiller-fjern" data-v="${i}" aria-label="Fjern ${esc(R.navn(i))}">×</button>` : ""}
+        <input id="navn-${i}" data-navn="${i}" value="${esc(R.felles.navn[i] || "")}" placeholder="${esc(R.t("Spiller {n}", { n: i + 1 }))}" maxlength="16" autocomplete="off" autocapitalize="words" enterkeyhint="next" aria-label="${esc(R.t("Navn på spiller {n}", { n: i + 1 }))}">
+        ${antall > min ? `<button class="fjern" data-h="spiller-fjern" data-v="${i}" aria-label="${esc(R.t("Fjern {navn}", { navn: R.navn(i) }))}">×</button>` : ""}
       </div>`);
     }
     return `<section class="seksjon" id="spillerboks" data-min="${min}" data-max="${max}">
-      <div class="seksjon-hode"><h2>${esc(o.tittel || "Hvem spiller?")}</h2><span class="tall">${antall} ${antall === 1 ? "spiller" : "spillere"}</span></div>
+      <div class="seksjon-hode"><h2>${esc(o.tittel || R.t("Hvem spiller?"))}</h2><span class="tall">${esc(R.flertall(antall, "spiller", "spillere"))}</span></div>
       <div class="spillere">${rader.join("")}</div>
-      ${min === max ? "" : `<button class="legg-til" data-h="spiller-legg-til"${antall >= max ? " disabled" : ""}>+ Legg til spiller${antall >= max ? ` (maks ${max})` : ""}</button>`}
+      ${min === max ? "" : `<button class="legg-til" data-h="spiller-legg-til"${antall >= max ? " disabled" : ""}>${esc(R.t("+ Legg til spiller"))}${antall >= max ? " " + esc(R.t("(maks {n})", { n: max })) : ""}</button>`}
       ${o.hjelp ? `<p class="hjelp">${esc(o.hjelp)}</p>` : ""}
     </section>`;
   };
@@ -1998,7 +2067,7 @@
       )
       .join("")}</div>`;
 
-  ui.lagmerke = (i, tekst) => `<span class="lagmerke" style="--lf: ${R.LAG[i % R.LAG.length].farge}"><i aria-hidden="true"></i>${esc(tekst || "Lag " + R.LAG[i % R.LAG.length].navn)}</span>`;
+  ui.lagmerke = (i, tekst) => `<span class="lagmerke" style="--lf: ${R.LAG[i % R.LAG.length].farge}"><i aria-hidden="true"></i>${esc(tekst || R.lagNavn(i))}</span>`;
 
   // "Give the phone to …" screen.
   // o: { i, h (button action), v, tekst, knapp, advarsel, ikon (default 🙈, "" for none),
@@ -2007,11 +2076,11 @@
     ${o.prikker ? ui.fremdrift(o.prikker[0], o.prikker[1]) : ""}
     <div class="gi-til">
       <span class="gi-til-avatar">${R.avatar(o.i, "gigant")}${o.merkeHtml ? `<span class="gi-til-merke">${o.merkeHtml}</span>` : ""}</span>
-      <p class="etikett">${esc(o.tekst || "Gi mobilen til")}</p>
+      <p class="etikett">${esc(o.tekst || R.t("Gi mobilen til"))}</p>
       <h1 id="skjerm-tittel">${esc(R.navn(o.i))}</h1>
-      ${o.advarsel === "" ? "" : `<p class="ikke-se">${o.ikon === "" ? "" : esc(o.ikon || "🙈") + " "}${esc(o.advarsel || "De andre ser bort")}</p>`}
+      ${o.advarsel === "" ? "" : `<p class="ikke-se">${o.ikon === "" ? "" : esc(o.ikon || "🙈") + " "}${esc(o.advarsel || R.t("De andre ser bort"))}</p>`}
     </div>
-    ${ui.dokk(ui.knapp(o.knapp || `Jeg er ${R.navn(o.i)}`, o.h, { v: o.v != null ? o.v : o.i }))}`;
+    ${ui.dokk(ui.knapp(o.knapp || R.t("Jeg er {navn}", { navn: R.navn(o.i) }), o.h, { v: o.v != null ? o.v : o.i }))}`;
 
   // Progress dots: antall players, na = current index (−1 for none), ferdige = set/array of done indexes
   ui.fremdrift = (antall, na, ferdige) => {
@@ -2027,12 +2096,12 @@
   // it with the next (see «Hold-to-reveal» below). The back is never part of the button for a
   // screen reader: what is on it is read out through #si, only while it shows.
   ui.mappe = (o = {}) => {
-    const etikett = o.etikett || "Hemmelig";
-    const tekst = o.tekst || "Hold inne for å se";
+    const etikett = o.etikett || R.t("Hemmelig");
+    const tekst = o.tekst || R.t("Hold inne for å se");
     // The name a screen reader says. The words printed on the card are part of it (so «trykk
     // Topphemmelig» works with voice control): they are put in front when the game's own name
     // for the card (etikettAria) leaves them out.
-    let navn = o.etikettAria || (o.etikett || o.tekst ? tekst : "Hold inne for å se det hemmelige kortet");
+    let navn = o.etikettAria || (o.etikett || o.tekst ? tekst : R.t("Hold inne for å se det hemmelige kortet"));
     for (const del of [tekst, etikett]) if (!R.normaliser(navn).includes(R.normaliser(del))) navn = del + (/[.!?]$/.test(del) ? " " : ". ") + navn;
     return `
     <button class="mappe" data-mappe="${esc(o.id != null ? o.id : "kort")}" aria-expanded="false" aria-describedby="mappe-hint" aria-label="${esc(navn)}">
@@ -2077,7 +2146,7 @@
     return `<ol class="poengliste">${sortert
       .map((r, n) => {
         const merke = r.lag != null ? `<span class="avatar" style="--pf: ${R.LAG[r.lag % R.LAG.length].farge}" aria-hidden="true"></span>` : R.avatar(r.i || 0);
-        const navn = r.navn != null ? r.navn : r.lag != null ? "Lag " + R.LAG[r.lag % R.LAG.length].navn : R.navn(r.i);
+        const navn = r.navn != null ? r.navn : r.lag != null ? R.lagNavn(r.lag) : R.navn(r.i);
         return `<li class="${r.poeng === topp && topp > 0 && !o.utenLeder ? "leder" : ""}"><span class="plass-nr">${n + 1}</span>${merke}<span class="navn">${esc(navn)}</span>${
           r.pluss ? `<span class="pluss">+${esc(r.pluss)}</span>` : ""
         }<span class="sum">${esc(r.poeng)}</span></li>`;
@@ -2094,13 +2163,13 @@
     const plass = (r) => {
       if (!r) return "<div></div>";
       const n = rang(r);
-      const navn = r.navn != null ? r.navn : r.lag != null ? "Lag " + R.LAG[r.lag % R.LAG.length].navn : R.navn(r.i);
+      const navn = r.navn != null ? r.navn : r.lag != null ? R.lagNavn(r.lag) : R.navn(r.i);
       const merke = r.lag != null ? `<span class="avatar stor" style="--pf: ${R.LAG[r.lag % R.LAG.length].farge}" aria-hidden="true"></span>` : R.avatar(r.i || 0, "stor");
-      return `<div class="pall-plass p${Math.min(n, 3)}">${merke}<span class="navn">${esc(navn)}</span><span class="poeng">${esc(r.poeng)} ${esc(o.enhet || "p")}</span><span class="blokk">${n}</span></div>`;
+      return `<div class="pall-plass p${Math.min(n, 3)}">${merke}<span class="navn">${esc(navn)}</span><span class="poeng">${esc(r.poeng)} ${esc(o.enhet || R.t("p"))}</span><span class="blokk">${n}</span></div>`;
     };
     // Two places: only those two, centred (no empty third column).
-    if (s.length < 3) return `<div class="pall to" aria-label="Pallen">${plass(s[1])}${plass(s[0])}</div>`;
-    return `<div class="pall" aria-label="Pallen">${plass(s[1])}${plass(s[0])}${plass(s[2])}</div>`;
+    if (s.length < 3) return `<div class="pall to" aria-label="${esc(R.t("Pallen"))}">${plass(s[1])}${plass(s[0])}</div>`;
+    return `<div class="pall" aria-label="${esc(R.t("Pallen"))}">${plass(s[1])}${plass(s[0])}${plass(s[2])}</div>`;
   };
 
   // A mascot with a mood, for result screens: R.ui.figur(id?, { stemning: "jubel" | "lei" }).
@@ -2138,16 +2207,16 @@
         })()
       : R.stokk(andre, r).slice(0, maks);
     return `<section class="seksjon flere-spill" aria-labelledby="flere-tittel">
-      <h2 id="flere-tittel">${esc(o.tittel || (o.antall === 1 ? "Flere spill du kan spille alene" : "Spill noe annet med samme gjeng"))}</h2>
+      <h2 id="flere-tittel">${esc(o.tittel || (o.antall === 1 ? R.t("Flere spill du kan spille alene") : R.t("Spill noe annet med samme gjeng")))}</h2>
       <div class="flere-liste">${utvalg
         .map(
-          (g) => `<a class="flere-kort" href="/${esc(g.id)}/" style="--kf: ${esc(g.farge)}">
+          (g) => `<a class="flere-kort" href="${esc(g.url || "/" + g.id + "/")}" style="--kf: ${esc(g.farge)}">
             <span class="flere-figur">${G.svg(g.id)}</span>
             <span class="flere-tekst"><b>${esc(g.navn)}</b><small>${esc(g.undertittel)}</small></span>
           </a>`,
         )
         .join("")}</div>
-      <a class="lenke" href="/">Se alle spillene på rusj.no</a>
+      <a class="lenke" href="${R.forside}">${esc(R.t("Se alle spillene på rusj.no"))}</a>
     </section>`;
   };
 
@@ -2219,7 +2288,7 @@
     $("#reglerknapp").hidden = !APP.regler || S.skjerm === "regler" || S.skjerm === "alder"; // no content before the 18+ answer
     const lyd = $("#lydknapp");
     lyd.setAttribute("aria-pressed", R.felles.lyd ? "true" : "false");
-    lyd.setAttribute("aria-label", R.felles.lyd ? "Skru av lyd" : "Skru på lyd");
+    lyd.setAttribute("aria-label", R.felles.lyd ? R.t("Skru av lyd") : R.t("Skru på lyd"));
   }
 
   // ---------- Landscape phones ----------
@@ -2479,8 +2548,8 @@
     if (mal === undefined) mal = APP.hjem || "hjem";
     if (mal === null) return;
     if (mal === "portal") {
-      if (S.skjerm === "alder") location.replace("/"); // never back into the 18+ gate
-      else location.href = "/";
+      if (S.skjerm === "alder") location.replace(R.forside); // never back into the 18+ gate
+      else location.href = R.forside;
       return;
     }
     R.gaTil(mal);
@@ -2525,13 +2594,13 @@
     const r = APP.regler;
     if (!r) return;
     R.ark(`
-      <h2 id="ark-tittel">Slik spiller du ${esc(APP.navn)}</h2>
+      <h2 id="ark-tittel">${esc(R.t("Slik spiller du {navn}", { navn: APP.navn }))}</h2>
       ${r.intro ? `<p class="ingress">${esc(r.intro)}</p>` : ""}
       ${r.steg ? `<ol class="steg">${r.steg.map(([t, x]) => `<li><b>${esc(t)}</b><span>${esc(x)}</span></li>`).join("")}</ol>` : ""}
-      ${r.tips && r.tips.length ? `<h3>Tips</h3><ul class="tips">${r.tips.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : ""}
+      ${r.tips && r.tips.length ? `<h3>${esc(R.t("Tips"))}</h3><ul class="tips">${r.tips.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : ""}
       ${r.ekstraHtml || ""}
-      <p class="personvern">${window.RUSJ_STAT ? "Det dere skriver inn, blir på denne mobilen. Ingen konto og ingen reklame. Vi teller bare anonymt hvor mange som spiller." : "Alt skjer på denne mobilen. Ingen konto, ingen reklame, og ingenting sendes noe sted."}</p>
-      <button class="knapp" data-h="lukk-ark">Skjønner!</button>`);
+      <p class="personvern">${esc(window.RUSJ_STAT ? R.t("Det dere skriver inn, blir på denne mobilen. Ingen konto og ingen reklame. Vi teller bare anonymt hvor mange som spiller.") : R.t("Alt skjer på denne mobilen. Ingen konto, ingen reklame, og ingenting sendes noe sted."))}</p>
+      <button class="knapp" data-h="lukk-ark">${esc(R.t("Skjønner!"))}</button>`);
   };
 
   // Built-in actions (a game may override any of them).
@@ -2555,7 +2624,7 @@
     },
     "alder-nei": () => {
       // Replace, so «back» on the front page doesn't return to the gate.
-      location.replace("/");
+      location.replace(R.forside);
     },
     // The way out after an error (see «Last resort»): forget this game's saved state — names and
     // sound are kept — and load the page again.
@@ -2623,7 +2692,6 @@
   let mappePeker = null; // the pointer that went down on a card: { id, tid }
   let mappeSlipp = -1e9; // when it was lifted: the click that follows belongs to it
   let mappeTast = -1e9; // when a key press on a card was handled: likewise
-  const SKJUL_HINT = "Trykk en gang til for å skjule kortet.";
   // What is on the back, as sentences: one for each line of the card, in the words as they were
   // written (a label set in capitals by the stylesheet is not spelled out letter by letter).
   function kortTekst(bak) {
@@ -2660,7 +2728,7 @@
     apenMed = med === "trykk" ? "trykk" : "hold";
     // Shown with a press, it counts as seen whenever it is hidden; held, after a moment's look.
     apnetTid = apenMed === "trykk" ? -1e9 : performance.now();
-    hemmeligLinje = siLinje(tekst + (apenMed === "trykk" ? " " + SKJUL_HINT : ""), true);
+    hemmeligLinje = siLinje(tekst + (apenMed === "trykk" ? " " + R.t("Trykk en gang til for å skjule kortet.") : ""), true);
     R.lyd.snu();
     R.vibrer(15);
   }
@@ -2685,7 +2753,7 @@
     }, 450);
     if (stille) return;
     if (holdt < 350) {
-      R.toast("Hold litt lenger for å lese");
+      R.toast(R.t("Hold litt lenger for å lese"));
       return;
     }
     if (APP.hemmelig && APP.hemmelig.sett) APP.hemmelig.sett(S, m.dataset.mappe, m);
@@ -2706,7 +2774,7 @@
     if (!apenMappe) return;
     apenMed = "trykk";
     apnetTid = -1e9;
-    siLinje(SKJUL_HINT);
+    siLinje(R.t("Trykk en gang til for å skjule kortet."));
     if (document.activeElement !== apenMappe) fokuser(apenMappe);
   }
   // The screen was redrawn in place while a card showed. Shown with a press, it stays shown (the
@@ -2796,11 +2864,11 @@
     feilMeldt = true;
     try {
       R.ark(`
-        <h2 id="ark-tittel">Oi, her gikk noe galt</h2>
-        <p class="ingress">Spillet snublet. Prøv en gang til. Står det fast, kan dere starte spillet på nytt – navnene huskes, men denne omgangen blir borte.</p>
+        <h2 id="ark-tittel">${esc(R.t("Oi, her gikk noe galt"))}</h2>
+        <p class="ingress">${esc(R.t("Spillet snublet. Prøv en gang til. Står det fast, kan dere starte spillet på nytt – navnene huskes, men denne omgangen blir borte."))}</p>
         <div class="stabel">
-          <button class="knapp" data-h="lukk-ark">Prøv videre</button>
-          <button class="knapp-2" data-h="start-pa-nytt">Start spillet på nytt</button>
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Prøv videre"))}</button>
+          <button class="knapp-2" data-h="start-pa-nytt">${esc(R.t("Start spillet på nytt"))}</button>
         </div>`);
     } catch (e) {
       /* not even the sheet can be shown: nothing more to do */
@@ -2841,10 +2909,10 @@
       }
     }
 
-    document.documentElement.lang = "nb";
+    document.documentElement.lang = R.sprak;
 
     // What a screen reader says about every secret card, after its name (aria-describedby).
-    if (!$("#mappe-hint")) document.body.insertAdjacentHTML("beforeend", '<p id="mappe-hint" hidden>Trykk for å vise kortet, og en gang til for å skjule det.</p>');
+    if (!$("#mappe-hint")) document.body.insertAdjacentHTML("beforeend", `<p id="mappe-hint" hidden>${esc(R.t("Trykk for å vise kortet, og en gang til for å skjule det."))}</p>`);
 
     // Every change inside the screen or the sheet — the kit's redraws and a game's own — is looked
     // at once: focus that the change took away is given back, new status lines are taken over and
@@ -2909,7 +2977,7 @@
         R.felles.navn[i] = R.kutt(el.value, 16);
         R.lagreFelles();
         const fjern = el.parentElement && el.parentElement.querySelector(".fjern");
-        if (fjern) fjern.setAttribute("aria-label", "Fjern " + R.navn(i));
+        if (fjern) fjern.setAttribute("aria-label", R.t("Fjern {navn}", { navn: R.navn(i) }));
       }
       if (el.dataset && el.dataset.felt && APP.felt && APP.felt[el.dataset.felt]) APP.felt[el.dataset.felt](S, el, e);
     });
@@ -3033,19 +3101,19 @@
         vis: () => `
           <div class="spillhjem alder-port">
             ${R.figur()}
-            <h1 id="skjerm-tittel">${esc(APP.navn)} <span class="undertittel">Drikkespill · 18+</span></h1>
-            <h2 class="alder-spor">Er du 18 år eller eldre?</h2>
-            <p class="slagord">Dette spillet er bare for voksne.</p>
+            <h1 id="skjerm-tittel">${esc(APP.navn)} <span class="undertittel">${esc(R.t("Drikkespill · 18+"))}</span></h1>
+            <h2 class="alder-spor">${esc(R.t("Er du 18 år eller eldre?"))}</h2>
+            <p class="slagord">${esc(R.t("Dette spillet er bare for voksne."))}</p>
           </div>
           <div class="papirboks alder-boks">
-            <p class="etikett">Drikk med vett</p>
+            <p class="etikett">${esc(R.t("Drikk med vett"))}</p>
             <ul class="tips">
-              <li>Alkoholfritt teller like mye – vann, brus og alkoholfritt er alltid lov.</li>
-              <li>Ta små slurker. Ingen skal presses, og alle kan stå over.</li>
-              <li>Spis, drikk vann, og sørg for trygg vei hjem.</li>
+              <li>${esc(R.t("Alkoholfritt teller like mye – vann, brus og alkoholfritt er alltid lov."))}</li>
+              <li>${esc(R.t("Ta små slurker. Ingen skal presses, og alle kan stå over."))}</li>
+              <li>${esc(R.t("Spis, drikk vann, og sørg for trygg vei hjem."))}</li>
             </ul>
           </div>
-          ${R.ui.dokk(R.ui.knapp("Ja, jeg er 18 eller eldre", "alder-ja"), R.ui.lenkerad(R.ui.lenke("Nei, ta meg tilbake", "alder-nei")))}`,
+          ${R.ui.dokk(R.ui.knapp(R.t("Ja, jeg er 18 eller eldre"), "alder-ja"), R.ui.lenkerad(R.ui.lenke(R.t("Nei, ta meg tilbake"), "alder-nei")))}`,
       };
     }
 
@@ -3121,7 +3189,7 @@
           }
         }
         R.gaTil(APP.hjem || "hjem");
-        R.toast("Det lagrede spillet kunne ikke åpnes. Vi startet på nytt.", { topp: true });
+        R.toast(R.t("Det lagrede spillet kunne ikke åpnes. Vi startet på nytt."), { topp: true });
       }
     }
     // The first screen is up: from here on a save that fails is said (once), and an exception

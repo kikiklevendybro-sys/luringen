@@ -35,6 +35,18 @@
     `<path d="M29 ${y} Q40 ${y - 13} 51 ${y}M69 ${y} Q80 ${y - 13} 91 ${y}" fill="none" stroke="${B}" stroke-width="5.5" stroke-linecap="round"/>`;
   const strek = (d, w = 5, farge = B) => `<path d="${d}" fill="none" stroke="${farge}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
   const smil = (y = 88, b = 16) => strek(`M${60 - b} ${y} Q60 ${y + 14} ${60 + b} ${y}`);
+  // The few words drawn into a mascot, per edition (rusj/SPRAK.md): valg.sprak in the build, the
+  // page's window.RUSJ_SPRAK in the browser. Three letters for the tiles, short words for signs.
+  const ORD = {
+    ugle: { nb: "ORD", en: "OWL", da: "ORD" },
+    kryss: { nb: "ORD", en: "ABC", da: "ORD" },
+    ja: { nb: "JA", en: "YES", da: "JA" },
+    fest: { nb: "FEST", en: "PARTY", da: "FEST" },
+  };
+  const ordFor = (valg, k) => {
+    const sprak = (valg && valg.sprak) || (typeof window !== "undefined" && window.RUSJ_SPRAK) || "nb";
+    return ORD[k][sprak] || ORD[k].nb;
+  };
   const tekst = (x, y, t, s = 16, f = B, rot = 0) =>
     `<text x="${x}" y="${y}" font-family="ui-rounded,'SF Pro Rounded','Arial Rounded MT Bold',system-ui,sans-serif" font-weight="900" font-size="${s}" text-anchor="middle" fill="${f}"${rot ? ` transform="rotate(${rot} ${x} ${y})"` : ""}>${t}</text>`;
 
@@ -450,7 +462,7 @@
     // Ordugla (daily word game): a wise owl holding three letter tiles.
     ordugla: {
       farge: "#d99a5e",
-      tegn: (f) => `
+      tegn: (f, v) => `
         ${form("M26 44 Q14 30 10 6 Q20 13 26 17 Q27 7 33 1 Q38 16 46 26Z", f)}${form("M94 44 Q106 30 110 6 Q100 13 94 17 Q93 7 87 1 Q82 16 74 26Z", f)}
         ${hode(f)}
         ${form("M60 48.8 A22 22 0 1 0 60 67.2 A22 22 0 1 0 60 48.8Z", "#ffe8c9", 4)}
@@ -458,7 +470,7 @@
         ${strek("M21 38 Q38 29 56 42M99 38 Q82 29 64 42", 5.5)}
         ${form("M52.5 66 Q60 62 67.5 66 L60 80Z", "#ff9f3a", 3.5)}
         ${kinn(84)}
-        ${/* the game's own tiles: solid mint = right place, yellow ring = elsewhere */ ""}${flis(35, 101, "O", MYNT, -9)}<rect x="49" y="92" width="22" height="22" rx="4.5" fill="#2a1a4a" stroke="${B}" stroke-width="4"/><circle cx="60" cy="103" r="7.6" fill="none" stroke="${LAMPE}" stroke-width="2.6"/>${tekst(60, 107.2, "R", 11.5, "#fff1dd")}${flis(85, 101, "D", MYNT, 9)}`,
+        ${/* the game's own tiles: solid mint = right place, yellow ring = elsewhere */ ""}${flis(35, 101, ordFor(v, "ugle")[0], MYNT, -9)}<rect x="49" y="92" width="22" height="22" rx="4.5" fill="#2a1a4a" stroke="${B}" stroke-width="4"/><circle cx="60" cy="103" r="7.6" fill="none" stroke="${LAMPE}" stroke-width="2.6"/>${tekst(60, 107.2, ordFor(v, "ugle")[1], 11.5, "#fff1dd")}${flis(85, 101, ordFor(v, "ugle")[2], MYNT, 9)}`,
     },
 
     // Nissen (Secret Santa): a Norwegian nisse, red cap and grey beard.
@@ -598,7 +610,7 @@
     // Papegøyen (the yes/no game): a parrot whose «JA» is crossed out.
     papegoyen: {
       farge: "#53d769",
-      tegn: (f) => `
+      tegn: (f, v) => `
         ${form("M52 24 Q36 0 48 -8 Q60 4 60 22Z", ROD)}
         ${form("M60 22 Q60 -6 74 -9 Q80 8 68 26Z", LAMPE)}
         ${form("M68 26 Q82 4 98 6 Q94 22 74 32Z", HIMMEL)}
@@ -608,7 +620,7 @@
         ${form("M44 62 Q60 50 76 62 Q78 82 60 98 Q42 82 44 62Z", "#ffb23a")}
         ${strek("M52 78 Q60 84 68 78", 3)}
         ${form("M2 0 h36 a6 6 0 0 1 6 6 v18 a6 6 0 0 1 -6 6 h-10 l-6 8 v-8 h-20 a6 6 0 0 1 -6 -6 v-18 a6 6 0 0 1 6 -6z", P, 3.5)}
-        ${tekst(20, 20.5, "JA", 13)}
+        ${tekst(20, 20.5, ordFor(v, "ja"), ordFor(v, "ja").length > 2 ? 9.5 : 13)}
         <circle cx="20" cy="15" r="10.5" fill="none" stroke="${ROD}" stroke-width="3.2"/>
         ${strek("M12.6 22.4 L27.4 7.6", 3.2, ROD)}`,
     },
@@ -832,7 +844,7 @@
     // Blyanten (mini crossword): a pencil-tipped head with a small crossword.
     blyanten: {
       farge: "#ffd66e",
-      tegn: (f) => `
+      tegn: (f, v) => `
         ${hode(f)}
         ${form("M25 34 L60 -9 L95 34 Q86.25 27 77.5 34 Q68.75 27 60 34 Q51.25 27 42.5 34 Q33.75 27 25 34Z", "#f8d5a4")}
         ${form("M51.1 2 L60 -9 L68.9 2 Q60 -1 51.1 2Z", "#5d5378", 3.5)}
@@ -844,7 +856,7 @@
           <rect x="4" y="80" width="36" height="36" rx="3" fill="${P}"/>
           <rect x="28" y="80" width="12" height="12" fill="${B}"/><rect x="4" y="104" width="12" height="12" fill="${B}"/>
           ${strek("M16 80 V116M28 80 V116M4 92 H40M4 104 H40", 2)}
-          ${tekst(10, 101.5, "O", 9)}${tekst(22, 101.5, "R", 9)}${tekst(34, 101.5, "D", 9)}
+          ${tekst(10, 101.5, ordFor(v, "kryss")[0], 9)}${tekst(22, 101.5, ordFor(v, "kryss")[1], 9)}${tekst(34, 101.5, ordFor(v, "kryss")[2], 9)}
           <rect x="4" y="80" width="36" height="36" rx="3" fill="none" stroke="${B}" stroke-width="4"/>
         </g>`,
     },
@@ -897,7 +909,7 @@
     // Bussen (18+, ride the bus): a party bus.
     bussen: {
       farge: "#ff5577",
-      tegn: (f) => `
+      tegn: (f, v) => `
         <circle cx="30" cy="110" r="11" fill="#3b3054" stroke="${B}" stroke-width="4"/><circle cx="30" cy="110" r="4" fill="${METALL}"/>
         <circle cx="90" cy="110" r="11" fill="#3b3054" stroke="${B}" stroke-width="4"/><circle cx="90" cy="110" r="4" fill="${METALL}"/>
         ${hode(f)}
@@ -905,7 +917,7 @@
         ${strek("M60 38 V68", 3)}
         ${oyne({ y: 54, x1: 39, x2: 81, r: 10.5, pr: 5 })}
         <rect x="34" y="14" width="52" height="18" rx="4" fill="${B}"/>
-        ${tekst(60, 28, "FEST", 13, LAMPE)}
+        ${tekst(60, 28, ordFor(v, "fest"), ordFor(v, "fest").length > 4 ? 11 : 13, LAMPE)}
         <circle cx="27" cy="84" r="7.5" fill="${LAMPE}" stroke="${B}" stroke-width="3.5"/><circle cx="93" cy="84" r="7.5" fill="${LAMPE}" stroke="${B}" stroke-width="3.5"/>
         ${form("M42 79 Q60 97 78 79Z", B, 4)}
         ${form("M30 100 H90 a5 5 0 0 1 0 10 H30 a5 5 0 0 1 0 -10Z", METALL, 3.5)}`,

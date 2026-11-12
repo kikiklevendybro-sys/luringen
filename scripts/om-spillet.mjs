@@ -25,7 +25,10 @@ const tekstfelt = (x) => typeof x === "string" && x.trim().length > 0;
 
 // Runs a game's spill.js and returns its rules { intro, steg: [[tittel, tekst]], tips: [] }, or
 // null with the reason (the build then warns and leaves the block out for that game).
-export function lesRegler({ m, spillJs, data, ordData, G }) {
+// sprak: another edition's { sprak, t, flertall, ramsOpp, tall, forside } (scripts/sprak.mjs
+// lagSprak with the game's table and the shared one) – the rules go through the same tables as in
+// the game. Left out: Norwegian.
+export function lesRegler({ m, spillJs, data, ordData, G, sprak }) {
   let def = null;
   const ingenting = stubb();
   const R = new Proxy(
@@ -35,6 +38,17 @@ export function lesRegler({ m, spillJs, data, ordData, G }) {
         if (k in t) return t[k];
         if (k === "start") return (d) => void (def = d);
         if (k === "esc") return esc;
+        if (sprak) {
+          if (k === "t" || k === "flertall" || k === "ramsOpp" || k === "tall") return sprak[k];
+          if (k === "sprak" || k === "forside" || k === "lokale" || k === "tidssone") return sprak[k];
+        }
+        if (k === "t") return (nokkel, v) => {
+          let x = nokkel;
+          if (x.includes("|")) x = x.split("|")[v && Number(v.n) === 1 ? 0 : 1];
+          return v ? x.replace(/\{(\w+)\}/g, (h, n) => (n in v ? String(v[n]) : h)) : x;
+        };
+        if (k === "sprak") return "nb";
+        if (k === "forside") return "/";
         if (k === "flertall") return (n, en, flere) => `${n} ${n === 1 ? en : flere}`;
         if (k === "ramsOpp") return (l) => (l.length < 2 ? l.join("") : l.slice(0, -1).join(", ") + " og " + l[l.length - 1]);
         return ingenting;
@@ -48,6 +62,7 @@ export function lesRegler({ m, spillJs, data, ordData, G }) {
     RUSJ_DATA: data,
     RUSJ_ORD: ordData,
     RUSJ_SPILL: { id: m.id, navn: m.navn, undertittel: m.undertittel, kort: m.kort, spillere: m.spillere, minutter: m.minutter, farge: m.farge, alder18: !!m.alder18 },
+    RUSJ_SPRAK: sprak ? sprak.sprak : undefined,
     RUSJ_ANDRE: [],
     console: { log() {}, warn() {}, error() {}, info() {} },
     setTimeout: () => 0,
@@ -249,7 +264,8 @@ export const EKSEMPLER = {
   },
 };
 
-// «… og over 1 400 til i spillet»: rounded down, so «over» is always true.
+// «… og over 1 400 til i spillet»: rounded down, so «over» is always true. (Norwegian only: the
+// examples are not shown in the other editions yet.)
 export function flereTil(antall) {
   if (antall <= 0) return "";
   const steg = antall >= 2000 ? 100 : antall >= 500 ? 50 : antall >= 60 ? 10 : 1;
@@ -272,35 +288,38 @@ export function eksemplerFor(m, data) {
 // checked 2026-11-12. Its phone is open on weekdays.
 export const RUSINFO = { navn: "RUSinfo", url: "https://rusinfo.no/", telefon: "915 08 588" };
 
-// The block itself. o: regler, eksempler, frase, lenker ([[href, tekst]]).
+// The block itself. o: regler, eksempler, frase, lenker ([[href, tekst]]), sprak (the edition, from
+// byggRusj: { t, forside }; left out = Norwegian), sprakvalg (the language switch, markup).
 export function omSpilletHtml(m, o) {
+  const t = o.sprak ? o.sprak.t : (k, v) => (v ? k.replace(/\{(\w+)\}/g, (h, n) => (n in v ? String(v[n]) : h)) : k);
   const [a, b] = m.spillere;
   const solo = b === 1;
-  const spillere = a === b ? (a === 1 ? "1 spiller" : `${a} spillere`) : `${a}–${b} spillere`;
+  const spillere = a === b ? (a === 1 ? t("1 spiller") : t("{n} spillere", { n: a })) : t("{a}–{b} spillere", { a, b });
   const [fra, til] = m.minutter;
-  const mobiler = { en: "1 mobil", hver: "Hver sin mobil", begge: "1 eller flere mobiler" }[m.mobiler];
+  const mobiler = { en: t("1 mobil"), hver: t("Hver sin mobil"), begge: t("1 eller flere mobiler") }[m.mobiler];
   const r = o.regler;
-  const fakta = [spillere, fra === til ? `${fra} min` : `${fra}–${til} min`, mobiler, m.alder18 ? "Bare for voksne (18+)" : null].filter(Boolean);
+  const fakta = [spillere, fra === til ? `${fra} min` : `${fra}–${til} min`, mobiler, m.alder18 ? t("Bare for voksne (18+)") : null].filter(Boolean);
   const deler = [
     `<section class="om-spillet" id="om-spillet" aria-labelledby="om-spillet-tittel">`,
-    `  <p class="om-etikett">Om spillet</p>`,
-    `  <h2 id="om-spillet-tittel">Slik spiller ${solo ? "du" : "dere"} ${esc(m.navn)}</h2>`,
+    `  <p class="om-etikett">${esc(t("Om spillet"))}</p>`,
+    `  <h2 id="om-spillet-tittel">${esc(solo ? t("Slik spiller du {navn}", { navn: m.navn }) : t("Slik spiller dere {navn}", { navn: m.navn }))}</h2>`,
     `  <p class="om-sjanger">${esc(o.frase)}</p>`,
     `  <ul class="om-fakta">${fakta.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>`,
     `  <p class="om-ingress">${esc(r.intro)}</p>`,
     `  <ol class="om-steg">${r.steg.map(([t, x]) => `<li><b>${esc(t)}</b> ${esc(x)}</li>`).join("")}</ol>`,
-    r.tips.length ? `  <h3>Tips</h3>\n  <ul class="om-tips">${r.tips.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : "",
+    r.tips.length ? `  <h3>${esc(t("Tips"))}</h3>\n  <ul class="om-tips">${r.tips.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : "",
   ];
   if (m.alder18) {
     deler.push(
       `  <div class="om-vett">`,
-      `    <h3>Drikk med vett</h3>`,
+      `    <h3>${esc(t("Drikk med vett"))}</h3>`,
       `    <ul>`,
-      `      <li>Alkoholfritt teller like mye – vann, brus og alkoholfritt er alltid lov.</li>`,
-      `      <li>Ta små slurker. Ingen skal presses, og alle kan stå over.</li>`,
-      `      <li>Spis, drikk vann, og sørg for trygg vei hjem. Trenger noen akutt hjelp, ring 113.</li>`,
+      `      <li>${esc(t("Alkoholfritt teller like mye – vann, brus og alkoholfritt er alltid lov."))}</li>`,
+      `      <li>${esc(t("Ta små slurker. Ingen skal presses, og alle kan stå over."))}</li>`,
+      `      <li>${esc(t("Spis, drikk vann, og sørg for trygg vei hjem. Trenger noen akutt hjelp, ring 113."))}</li>`,
       `    </ul>`,
-      `    <p>Lurer du på noe om alkohol, for deg selv eller noen andre? ${RUSINFO.navn} svarer på telefon ${RUSINFO.telefon} (hverdager) og anonymt på <a href="${RUSINFO.url}" rel="noopener">rusinfo.no</a>.</p>`,
+      // RUSinfo is a Norwegian service: another edition needs its own (rusj/SPRAK.md).
+      !o.sprak || o.sprak.sprak === "nb" ? `    <p>Lurer du på noe om alkohol, for deg selv eller noen andre? ${RUSINFO.navn} svarer på telefon ${RUSINFO.telefon} (hverdager) og anonymt på <a href="${RUSINFO.url}" rel="noopener">rusinfo.no</a>.</p>` : "", // sprak-ok
       `  </div>`,
     );
   } else if (o.eksempler) {
@@ -313,6 +332,8 @@ export function omSpilletHtml(m, o) {
     if (mer) deler.push(`  <p class="om-mer">${esc(mer)}</p>`);
   }
   const lenker = o.lenker || [];
-  deler.push(`  <nav class="om-lenker" aria-label="Flere spill">${[...lenker, ["/", "Alle spill på rusj"]].map(([h, t]) => `<a href="${esc(h)}">${esc(t)}</a>`).join("")}</nav>`, `</section>`);
+  deler.push(`  <nav class="om-lenker" aria-label="${esc(t("Flere spill"))}">${[...lenker, [o.sprak ? o.sprak.forside : "/", t("Alle spill på rusj")]].map(([h, x]) => `<a href="${esc(h)}">${esc(x)}</a>`).join("")}</nav>`);
+  if (o.sprakvalg) deler.push(`  ${o.sprakvalg}`);
+  deler.push(`</section>`);
   return deler.filter(Boolean).join("\n");
 }

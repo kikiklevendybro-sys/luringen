@@ -667,7 +667,7 @@ test("the build: every page names files that exist, and every script and style c
   const ekstra = JSON.parse(sw.match(/const EKSTRA = (\[.*?\]); \/\//)[1]);
   assert.ok(sider.length >= 45 && sider[0][0] === "/", "forsiden skal stå først i SIDER");
   for (const sti of ["/om/", "/personvern/", "/luringen/", "/ordugla/"]) assert.ok(sider.some((s) => s[0] === sti), `SIDER mangler ${sti}`);
-  assert.deepEqual(ekstra.map((e) => e[0]), ["/manifest.webmanifest", "/luringen/ikon.svg", "/luringen/ikon-180.png"]);
+  assert.deepEqual(ekstra.map((e) => e[0]), ["/manifest.webmanifest", "/en/manifest.webmanifest", "/da/manifest.webmanifest", "/luringen/ikon.svg", "/luringen/ikon-180.png"]);
   const sett = new Set();
   for (const [sti, hash] of [...sider, ...ekstra]) {
     const fil = join(WEB, sti.endsWith("/") ? sti + "index.html" : sti);
@@ -712,7 +712,8 @@ test("the real site: a first visit is cheap, the idle download brings every page
   n.vert.nede = true;
   n.nullstillLogg();
   const sider = JSON.parse(readFileSync(join(WEB, "sw.js"), "utf8").match(/const SIDER = (\[.*?\]); \/\//)[1]);
-  for (const [sti] of sider) {
+  // (a Norwegian visitor: the other editions are fetched only for those who use them – see below)
+  for (const [sti] of sider.filter(([s]) => !/^\/(en|da)\//.test(s))) {
     const { svar } = await sw.naviger(sti);
     assert.equal(svar.status, 200, sti);
     const html = await tekst(svar);
@@ -720,4 +721,33 @@ test("the real site: a first visit is cheap, the idle download brings every page
   }
   assert.equal((await sw.hent("/manifest.webmanifest")).status, 200);
   assert.equal((await sw.naviger("/finnes-ikke/")).svar.status, 503);
+});
+
+test("another edition: an English visitor gets the English pages for offline play, not the Norwegian games", async () => {
+  const n = lagNettleser();
+  publiserBygg(n);
+  const sider = JSON.parse(readFileSync(join(WEB, "sw.js"), "utf8").match(/const SIDER = (\[.*?\]); \/\//)[1]).map(([s]) => s);
+  const engelske = sider.filter((s) => s.startsWith("/en/"));
+  const spill = engelske.find((s) => s !== "/en/" && !/\/(privacy|about|stickers)\/$/.test(s));
+  assert.ok(engelske.includes("/en/") && spill, "SIDER mangler den engelske utgaven");
+  n.apne(spill);
+  const sw = n.start(readFileSync(join(WEB, "sw.js"), "utf8"));
+  await sw.installer();
+  await sw.aktiver();
+  await sw.fyll();
+  const status = await sw.status();
+  assert.equal(status.lagret, status.sider, "ikke alle de engelske sidene ble lagret");
+  assert.equal(status.sider, engelske.length, "statusen skal telle sidene i utgaven som er i bruk");
+  const lagret = await n.lagret();
+  for (const s of engelske) assert.ok(lagret.includes(s), `${s} ble ikke lagret`);
+  assert.ok(!lagret.includes("/ordugla/") && !lagret.some((s) => s.startsWith("/da/")), "en engelsk besøkende fikk norske spill eller den danske utgaven");
+  assert.ok(lagret.includes("/en/manifest.webmanifest"), "det engelske manifestet ble ikke lagret");
+  n.vert.nede = true;
+  for (const s of engelske) assert.equal((await sw.naviger(s)).svar.status, 200, `${s} virker ikke uten nett`);
+  const borte = await sw.naviger("/en/finnes-ikke/");
+  assert.equal(borte.svar.status, 503);
+  const html = await tekst(borte.svar);
+  assert.match(html, /<html lang="en">/);
+  assert.match(html, /You&#39;re offline/);
+  assert.match(html, /href="\/en\/"/);
 });

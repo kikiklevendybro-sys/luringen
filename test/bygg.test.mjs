@@ -11,6 +11,7 @@ import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lesSeo, merkeI, merkeSynlig, TITTEL_MAKS, BESKRIVELSE_GRENSER, DOMENE, OMDOPT } from "../scripts/rusj.mjs";
 import { omSpilletHtml, flereTil } from "../scripts/om-spillet.mjs";
+import { SPRAK } from "../scripts/sprak.mjs";
 
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ferdigBygget = process.env.RUSJ_WEB ? resolve(process.env.RUSJ_WEB) : null;
@@ -32,6 +33,7 @@ function lesSide(sti, fil) {
   };
   const og = {};
   for (const m of hode.matchAll(/<meta (?:property|name)="((?:og|twitter):[^"]+)" content="([^"]*)">/g)) {
+    if (m[1] === "og:locale:alternate") continue; // a list by design (one per other edition): test/sprak.test.mjs
     assert.ok(!(m[1] in og), `${sti}: ${m[1]} står to ganger`);
     og[m[1]] = tekst(m[2]);
   }
@@ -52,7 +54,7 @@ before(() => {
   assert.ok(existsSync(join(WEB, "index.html")), `Fant ikke ${WEB}/index.html`);
   sider = [lesSide("/", join(WEB, "index.html"))];
   for (const mappe of readdirSync(WEB, { withFileTypes: true })) {
-    if (!mappe.isDirectory()) continue;
+    if (!mappe.isDirectory() || SPRAK.includes(mappe.name)) continue; // the other editions: test/sprak.test.mjs
     const fil = join(WEB, mappe.name, "index.html");
     if (!existsSync(fil)) continue;
     // Old addresses of renamed games and alias addresses: small pages that send the visitor on.
@@ -177,7 +179,7 @@ test("the front page: «Dagens rusj» is wired in, and every card carries its fa
   assert.doesNotMatch(f.html, /id="idag(-ny)?"/);
   const skript = [...f.html.matchAll(/<script defer src="\/felles\/([a-z]+)\.js\?v=[a-z0-9]+"><\/script>/g)].map((m) => m[1]);
   // (stat.js comes first on every page when anonymous statistics are on: see STAT_ADRESSE.)
-  assert.deepEqual(skript.filter((s) => s !== "stat"), ["spilliste", "daglig", "portal"]);
+  assert.deepEqual(skript.filter((s) => s !== "stat"), ["tekst", "spilliste", "daglig", "portal"]);
   assert.ok(existsSync(join(WEB, "felles/daglig.js")));
   // One card per game: players, phones and time, and the same in the link's name.
   const kort = [...f.html.matchAll(/<li class="spillkort" data-id="([a-z]+)"[\s\S]*?<\/li>/g)];
@@ -207,8 +209,10 @@ test("the 404 page is not indexed and has no address of its own", () => {
 
 test("sitemap.xml lists every page once, with the date it last changed; robots.txt points to it", () => {
   const xml = readFileSync(join(WEB, "sitemap.xml"), "utf8");
-  const rader = [...xml.matchAll(/<url><loc>([^<]+)<\/loc><lastmod>([^<]+)<\/lastmod><\/url>/g)].map((m) => ({ loc: m[1], dato: m[2] }));
-  assert.equal(rader.length, (xml.match(/<url>/g) || []).length, "en <url> i sitemap.xml mangler <loc> eller <lastmod>");
+  // (the same page in the other editions follows as <xhtml:link>s: test/sprak.test.mjs)
+  const alle = [...xml.matchAll(/<url><loc>([^<]+)<\/loc><lastmod>([^<]+)<\/lastmod>(?:<xhtml:link [^>]+\/>)*<\/url>/g)].map((m) => ({ loc: m[1], dato: m[2] }));
+  assert.equal(alle.length, (xml.match(/<url>/g) || []).length, "en <url> i sitemap.xml mangler <loc> eller <lastmod>");
+  const rader = alle.filter((r) => !SPRAK.some((s) => r.loc.startsWith(`${DOMENE}/${s}/`)));
   assert.deepEqual(rader.map((r) => r.loc).sort(), sider.map((s) => DOMENE + s.sti).sort());
   assert.equal(rader[0].loc, DOMENE + "/", "forsiden står ikke først");
   const iMorgen = new Date(Date.now() + 36 * 3600 * 1000).toISOString().slice(0, 10);
