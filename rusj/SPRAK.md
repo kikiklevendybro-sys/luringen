@@ -49,7 +49,7 @@ same page in the other edition, or to its front page when the game is not there 
   language, `hreflang` (nb, en, da, x-default → Norwegian) in `<head>` and in `sitemap.xml` – only
   between real equivalents. `spill.js` and `spill.css` are the same file for every edition. One
   service worker serves all; it fetches ahead only the editions a visitor actually uses.
-- **Anonymous counting** (`rusj/kit/stat.js`): a page of another edition is counted as «en» or «da»
+- **Anonymous counting** (`rusj/kit/stat.js`): a page of another edition is counted under its game id (data-spill), the front page as «forside»
   (the first part of its address); «start» and «ferdig» carry the game id as before.
 - **Only Norwegian for now:** collection pages (`rusj/samlinger`), alias addresses, Luringen, the
   examples in «Slik spiller dere» (they need translated data and titles), the share images (the build
