@@ -265,10 +265,12 @@ let midlertidig = null;
 const BARE_NORSK = readdirSync(join(ROT, "rusj/spill"))
   .sort()
   .find((id) => existsSync(join(ROT, "rusj/spill", id, "spill.json")) && !JSON.parse(readFileSync(join(ROT, "rusj/spill", id, "spill.json"), "utf8")).i18n);
+// Once every game is translated there is none: the Norwegian-only checks are then skipped.
+const BYGG_SPILL = BARE_NORSK ? `fireren,${BARE_NORSK}` : "fireren";
 before(() => {
   midlertidig = mkdtempSync(join(tmpdir(), "rusj-sprak-bygg-"));
   WEB = join(midlertidig, "web");
-  execFileSync(process.execPath, [join(ROT, "scripts/bygg.mjs"), "--ut", WEB, "--spill", `fireren,${BARE_NORSK}`], { cwd: ROT, stdio: "pipe" });
+  execFileSync(process.execPath, [join(ROT, "scripts/bygg.mjs"), "--ut", WEB, "--spill", BYGG_SPILL], { cwd: ROT, stdio: "pipe" });
 });
 after(() => {
   if (midlertidig) rmSync(midlertidig, { recursive: true, force: true });
@@ -289,7 +291,7 @@ test("game pages: <html lang>, og:locale, canonical and hreflang between true eq
   assert.match(en, /<meta property="og:locale:alternate" content="nb_NO">/);
   assert.match(en, /<link rel="canonical" href="https:\/\/rusj\.no\/en\/fourby\/">/);
   // A game only in Norwegian: no hreflang at all.
-  assert.deepEqual(alternativer(les(`${BARE_NORSK}/index.html`)), []);
+  if (BARE_NORSK) assert.deepEqual(alternativer(les(`${BARE_NORSK}/index.html`)), []);
   // Structured data in the language, and the page in the edition's words.
   const ld = JSON.parse(en.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
   assert.equal(ld["@graph"][0].inLanguage, "en");
@@ -320,7 +322,7 @@ test("front pages: one per edition with only its games, in the sitemap with href
   assert.match(en, /<nav class="sprakvalg" aria-label="Language"><a href="\/" lang="nb" hreflang="nb">Norsk<\/a><b lang="en" aria-current="page">English<\/b><a href="\/da\/" lang="da" hreflang="da">Dansk<\/a><\/nav>/);
   const liste = les("felles/spilliste.en.js");
   assert.match(liste, /"url":"\/en\/fourby\/"/);
-  assert.ok(!liste.includes(`"${BARE_NORSK}"`), `${BARE_NORSK} er bare på norsk og skal ikke stå i den engelske spillista`);
+  if (BARE_NORSK) assert.ok(!liste.includes(`"${BARE_NORSK}"`), `${BARE_NORSK} er bare på norsk og skal ikke stå i den engelske spillista`);
   const xml = les("sitemap.xml");
   assert.match(xml, /xmlns:xhtml="http:\/\/www\.w3\.org\/1999\/xhtml"/);
   for (const sti of ["/en/", "/da/", "/en/fourby/", "/da/fireren/", "/en/privacy/", "/en/about/", "/en/stickers/", "/da/privatliv/", "/da/om/", "/da/klistermaerker/"]) {
@@ -328,7 +330,7 @@ test("front pages: one per edition with only its games, in the sitemap with href
   }
   const fireren = xml.match(/<url><loc>https:\/\/rusj\.no\/fireren\/<\/loc>.*?<\/url>/)[0];
   for (const l of ['hreflang="en" href="https://rusj.no/en/fourby/"', 'hreflang="da" href="https://rusj.no/da/fireren/"', 'hreflang="x-default" href="https://rusj.no/fireren/"']) assert.ok(fireren.includes(l), l);
-  assert.ok(!new RegExp(`<url><loc>https://rusj\\.no/${BARE_NORSK}/</loc>[^\\n]*xhtml`).test(xml), "et spill bare på norsk skal ikke ha hreflang");
+  if (BARE_NORSK) assert.ok(!new RegExp(`<url><loc>https://rusj\\.no/${BARE_NORSK}/</loc>[^\\n]*xhtml`).test(xml), "et spill bare på norsk skal ikke ha hreflang");
 });
 
 test("the pages about rusj and the manifest exist in every edition, in its words", () => {
