@@ -435,6 +435,17 @@
       "tittel": "Drukhjulet – snur hjulet, egne regler (18+)",
       "frase": "Drukhjulet",
       "beskrivelse": "Snur det store drukhjul (18+): sandheder, trygge udfordringer, skåler og jeres egne husregler. Kun små slurke – alkoholfrit tæller lige så meget."
+    },
+    "ballongen": {
+      "tittel": "Galgespil for børn – gæt ordet, med æ, ø og å",
+      "frase": "Galgespil for børn",
+      "beskrivelse": "Gratis galgespil for børn på dansk – uden galge! Gæt ordet bogstav for bogstav, før ballonerne springer. Med æ, ø, å og over 3.000 danske ord.",
+      "sok": [
+        "galgespil",
+        "hangman",
+        "hængt mand",
+        "gæt ordet"
+      ]
     }
   }
 }

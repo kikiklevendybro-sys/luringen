@@ -420,6 +420,17 @@
       "tittel": "Drinking wheel – spin it, make house rules (18+)",
       "frase": "Drinking wheel",
       "beskrivelse": "Spin the big drinking wheel (18+): truths, safe challenges, toasts and your own house rules. Small sips only – alcohol-free counts just as much."
+    },
+    "ballongen": {
+      "tittel": "Hangman for kids – guess the word, free, no app",
+      "frase": "Hangman for kids",
+      "beskrivelse": "Free hangman for kids – without the gallows! Guess the word letter by letter before the balloons pop. Over 3,000 British English words, no app.",
+      "sok": [
+        "hangman for kids",
+        "hangman game",
+        "guess the word game",
+        "spelling game for kids"
+      ]
     }
   }
 }
