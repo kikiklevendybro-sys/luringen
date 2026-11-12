@@ -4,6 +4,8 @@
 // scissors (against the phone and face to face), coin, random numbers without repeats, the score
 // counter with undo and a crowning, the countdown running out and the stopwatch with laps, reloads
 // and small screens. Random results are forced by stubbing crypto.getRandomValues.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en verktoykassa): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the state, the names and the links (t.forside, t.nokkel).
 const NAVN = ["Testspiller A", "Testspiller B", "Testspiller C", "Testspiller D", "Testspiller E"];
 
 export default async function (t) {
@@ -78,13 +80,13 @@ export default async function (t) {
   await fingre(1);
   await t.sov(3200);
   t.sjekk(!(await t.finnes("#vk-pad.valgt")), "Én finger alene skal ikke bli valgt");
-  t.sjekk(/Flere/.test(await t.tekst(".vk-pad-hjelp")), "Flaten sier ikke at flere må være med");
+  t.sjekk(!t.norsk || /Flere/.test(await t.tekst(".vk-pad-hjelp")), "Flaten sier ikke at flere må være med");
   await slipp();
 
   // No touch screen: draw a name instead
   await t.klikk('[data-h="starter-navn"]');
   await t.vent("document.querySelector('#vk-trekk.ferdig')", 6000);
-  t.sjekk(/Testspiller [A-E] starter!/.test(await t.tekst("#vk-trekk")), `Navnetrekningen ga «${await t.tekst("#vk-trekk")}»`);
+  t.sjekk((t.norsk ? /Testspiller [A-E] starter!/ : /Testspiller [A-E]/).test(await t.tekst("#vk-trekk")), `Navnetrekningen ga «${await t.tekst("#vk-trekk")}»`);
   await t.bilde("starter-navn");
   await t.klikk('#ark [data-h="apne"][data-v="lag"]');
 
@@ -95,7 +97,7 @@ export default async function (t) {
   await t.vent("document.querySelectorAll('.vk-lag').length === 2");
   let storrelser = await t.js("[...document.querySelectorAll('.vk-lag')].map((l) => l.querySelectorAll('li').length).sort()");
   t.sjekk(JSON.stringify(storrelser) === "[2,3]", `Fem på to lag skal bli 3 og 2: ${storrelser}`);
-  t.sjekk(/Lag Rosa/.test(await t.tekst(".vk-lagene")) && /Lag Gul/.test(await t.tekst(".vk-lagene")), "Lagene skal hete «Lag Rosa» og «Lag Gul»");
+  t.sjekk(!t.norsk || (/Lag Rosa/.test(await t.tekst(".vk-lagene")) && /Lag Gul/.test(await t.tekst(".vk-lagene"))), "Lagene skal hete «Lag Rosa» og «Lag Gul»");
   await t.sov(900);
   await t.bilde("lag-2");
   await t.klikk('[data-h="lag-endre"]');
@@ -131,7 +133,7 @@ export default async function (t) {
   await t.klikk('[data-h="ssp-spill"][data-v="stein"]');
   await t.vent("document.querySelector('#vk-arena.avslort')", 6000);
   await ekte();
-  t.sjekk(/Du vant/.test(await t.tekst("#vk-ssp-res")), "Stein mot saks skulle vunnet");
+  t.sjekk((t.norsk ? /Du vant/ : /!/).test(await t.tekst("#vk-ssp-res")), "Stein mot saks skulle vunnet");
   s = await t.tilstand();
   t.sjekk(s.ssp.du === 1 && s.ssp.mobil === 0, "Stillingen ble ikke talt");
   await t.sov(300);
@@ -154,11 +156,11 @@ export default async function (t) {
   await t.klikk('.dokk [data-h="mynt-kast"]');
   await t.vent("document.querySelector('#vk-mynt-res.ny')", 6000);
   await ekte();
-  t.sjekk((await t.tekst("#vk-mynt-res")).trim() === "Kron!", "Mynten skulle vist kron");
+  t.sjekk(!t.norsk || (await t.tekst("#vk-mynt-res")).trim() === "Kron!", "Mynten skulle vist kron");
   await t.bilde("mynt");
   await tilfeldig([0.8]);
   await t.klikk('.dokk [data-h="mynt-kast"]');
-  await t.vent("/Mynt/.test(document.querySelector('#vk-mynt-res').textContent) && document.querySelector('#vk-mynt-res.ny')", 6000);
+  await t.vent(`(${t.norsk ? "/Mynt/" : "/!/"}).test(document.querySelector('#vk-mynt-res').textContent) && document.querySelector('#vk-mynt-res.ny')`, 6000);
   await ekte();
   s = await t.tilstand();
   t.sjekk(s.mynt.kron === 1 && s.mynt.mynt === 1, "Kron og mynt ble ikke talt");
@@ -170,12 +172,12 @@ export default async function (t) {
   await t.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
   for (let k = 0; k < 6; k++) {
     await t.klikk('[data-h="tall-trekk"]', 60);
-    await t.vent(`JSON.parse(localStorage.getItem("rusj.verktoykassa.v1")).tall.trukket.length === ${k + 1} && document.querySelector('#vk-tall.ny')`, 4000);
+    await t.vent(`JSON.parse(localStorage.getItem("${t.nokkel("verktoykassa.v1")}")).tall.trukket.length === ${k + 1} && document.querySelector('#vk-tall.ny')`, 4000);
   }
   await t.send("Emulation.setEmulatedMedia", { features: [] });
   s = await t.tilstand();
   t.sjekk(JSON.stringify([...s.tall.trukket].sort()) === "[1,2,3,4,5,6]", `Tallene 1–6 skulle kommet én gang hver: ${s.tall.trukket}`);
-  t.sjekk(!(await t.finnes('[data-h="tall-trekk"]')) && /Start på nytt/.test(await t.tekst(".dokk .knapp")), "Når alle tallene er trukket, skal hovedknappen være «Start på nytt»");
+  t.sjekk(!(await t.finnes('[data-h="tall-trekk"]')) && (!t.norsk || /Start på nytt/.test(await t.tekst(".dokk .knapp"))), "Når alle tallene er trukket, skal hovedknappen være «Start på nytt»");
   await t.bilde("tall");
   await t.klikk('.dokk [data-h="tall-nullstill"]');
   t.sjekk((await t.tilstand()).tall.trukket.length === 0, "«Nullstill» tømte ikke lista");
@@ -187,7 +189,7 @@ export default async function (t) {
   await t.klikk('[data-h="poeng-endre"][data-v="1:1"]');
   s = await t.tilstand();
   t.sjekk(s.poeng.verdier[0] === 3 && s.poeng.verdier[1] === 5, `Poengene ble ${s.poeng.verdier.slice(0, 2)}`);
-  t.sjekk(/Angre \+5 til Testspiller B/.test(await t.tekst('[data-h="poeng-angre"]')), "Mangler «Angre +5 til Testspiller B»");
+  t.sjekk((t.norsk ? /Angre \+5 til Testspiller B/ : /\+5.*Testspiller B/).test(await t.tekst('[data-h="poeng-angre"]')), "Mangler «Angre +5 til Testspiller B»");
   await t.klikk('[data-h="poeng-angre"]');
   t.sjekk((await t.tilstand()).poeng.verdier[1] === 0, "«Angre» tok ikke poengene tilbake");
   await t.klikk('[data-h="poeng-endre"][data-v="1:1"]');
@@ -213,9 +215,9 @@ export default async function (t) {
   await t.bilde("poeng");
   await t.klikk('[data-h="poeng-kaar"]');
   await t.vent("document.querySelector('.skjerm-kaaring')");
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === "Testspiller B vinner!", `Kåringen sier «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(t.norsk ? (await t.tekst("#skjerm h1")).trim() === "Testspiller B vinner!" : /Testspiller B/.test(await t.tekst("#skjerm h1")), `Kåringen sier «${await t.tekst("#skjerm h1")}»`);
   t.sjekk(await t.finnes(".pall") && (await t.finnes(".poengliste")), "Kåringen mangler pall eller poengliste");
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk(!t.norsk || /KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
   await t.sov(500);
   await t.bilde("kaaring", true);
   await t.sov(1800);
@@ -224,7 +226,7 @@ export default async function (t) {
   await t.klikk("#tilbake");
   await t.klikk('[data-h="poeng-kaar"]');
   await t.vent("document.querySelector('.skjerm-kaaring')");
-  const kveld = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  const kveld = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
   t.sjekk(kveld && kveld.spill.filter((x) => x.id === "verktoykassa").length === 1, "Samme kåring ble registrert to ganger i Kveldens gjeng");
   await t.sov(1900);
   if (await t.finnes('#ark:not([hidden]) [data-h="lukk-ark"]')) await t.klikk('#ark [data-h="lukk-ark"]');

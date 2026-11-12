@@ -10,5 +10,23 @@
   "tagger": ["klassiker", "familie", "barn"],
   "rekkefolge": 34,
   "sok": ["ludo", "knuff", "brettspill", "terningspill", "fia"],
-  "alias": ["ludo"]
+  "alias": ["ludo"],
+  "i18n": {
+    "en": {
+      "navn": "Bumper",
+      "undertittel": "Ludo",
+      "kort": "Roll a six, get out – and bump the others back to base!",
+      "beskrivelse": "Free ludo in your browser. Roll a six, get your counters out and bump the others back to base! 2–4 players on one phone – the phone can fill the empty seats.",
+      "slug": "bumper",
+      "sok": ["ludo", "ludo online", "board game", "dice game", "counters", "sorry", "frustration", "pachisi", "parcheesi", "bumper"]
+    },
+    "da": {
+      "navn": "Brikken",
+      "undertittel": "Ludo",
+      "kort": "Slå en sekser, kom ud – og slå de andre hjem!",
+      "beskrivelse": "Gratis ludo på dansk. Slå en sekser, kom ud, og slå de andre hjem! 2–4 spillere på én mobil – mobilen kan spille på de ledige pladser.",
+      "slug": "brikken",
+      "sok": ["ludo", "ludo online", "brætspil", "terningespil", "slå hjem", "mensch ärgere dich nicht"]
+    }
+  }
 }

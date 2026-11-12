@@ -10,5 +10,23 @@
   "tagger": ["klassiker", "familie", "alene"],
   "rekkefolge": 37,
   "sok": ["slagskip", "battleship", "senke skip", "senke slagskip", "sjøslag", "skipsspill", "slagskipspill"],
-  "alias": ["slagskip"]
+  "alias": ["slagskip"],
+  "i18n": {
+    "en": {
+      "navn": "Admiral",
+      "undertittel": "Sea battle",
+      "kort": "Place your fleet and sink the ships – against the phone or a friend.",
+      "beskrivelse": "Free sea battle in your browser: place your fleet and sink the enemy ships – against the phone at three levels, or two players on one phone.",
+      "slug": "admiral",
+      "sok": ["battleship", "battleships", "sea battle", "naval battle", "sink the ships", "sink the fleet", "warships", "admiral"]
+    },
+    "da": {
+      "navn": "Admiralen",
+      "undertittel": "Sænke slagskibe",
+      "kort": "Placér flåden, og sænk skibene – mod mobilen eller en ven.",
+      "beskrivelse": "Gratis sænke slagskibe direkte i browseren: placér flåden, og sænk fjendens skibe – mod mobilen på tre niveauer eller to spillere på én mobil.",
+      "slug": "admiralen",
+      "sok": ["sænke slagskibe", "sænk slagskibe", "slagskibe", "battleship", "søslag", "sænk skibene", "skibsspil", "krigsskibe"]
+    }
+  }
 }

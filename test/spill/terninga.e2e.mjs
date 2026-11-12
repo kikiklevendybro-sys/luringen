@@ -2,6 +2,8 @@
 // back + continue, the pad sheet, a real double tap on «Kast», a forced Yatzy, then the whole game to
 // the crowning (fast, with reduced motion). Then a solo six-dice Yatzy, saved rolls and an
 // early end, plus the smallest screens. Dice are forced by stubbing crypto.getRandomValues.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en terninga): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the state, the names and the links (t.forside, t.nokkel).
 const NAVN = ["Testspiller A", "Testspiller B"];
 
 export default async function (t) {
@@ -16,7 +18,7 @@ export default async function (t) {
     await t.sov(150);
   };
   // Waits for player i's turn to be drawn (state first, then the redraw after the stamped box).
-  const tur = (i) => t.vent(`(JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill || {}).tur === ${i} && document.querySelector('#tg-brett') && !document.querySelector('#skjerm .tg-felt.ny')`, 5000);
+  const tur = (i) => t.vent(`(JSON.parse(localStorage.getItem("${t.nokkel("terninga.v1")}")).spill || {}).tur === ${i} && document.querySelector('#tg-brett') && !document.querySelector('#skjerm .tg-felt.ny')`, 5000);
   const felt = (k) => `[data-h="sett"][data-v="${k}"]`;
   const verdi = (k) => t.js(`document.querySelector('${felt(k)} .tg-verdi').textContent.trim()`);
   let s;
@@ -47,7 +49,7 @@ export default async function (t) {
   t.sjekk(JSON.stringify(s.spill.terninger) === "[2,2,5,5,6]" && s.spill.kast === 1, `Kastet ga ${s.spill.terninger}`);
   t.sjekk((await verdi("par2")) === "14" && (await verdi("par1")) === "10" && (await verdi("sjanse")) === "20", "Blokka viser feil mulige poeng etter første kast");
   t.sjekk(await t.finnes(`${felt("hus")}.mulig.null`), "Hus skal vises som 0 (kan strykes)");
-  t.sjekk(/2 kast igjen/.test(await t.js(`document.querySelector('[data-h="kast"]').getAttribute("aria-label")`)), "Kast-knappen sier ikke hvor mange kast som er igjen");
+  t.sjekk((t.norsk ? /2 kast igjen/ : /2/).test(await t.js(`document.querySelector('[data-h="kast"]').getAttribute("aria-label")`)), "Kast-knappen sier ikke hvor mange kast som er igjen");
   await t.bilde("kast-1");
   await t.klikk('[data-h="hold"][data-v="0"]', 60);
   await t.klikk('[data-h="hold"][data-v="1"]', 60);
@@ -72,7 +74,7 @@ export default async function (t) {
   await tur(1);
   s = await t.tilstand();
   t.sjekk(s.spill.kort[0].hus === 19 && s.spill.kast === 0, "Hus ble ikke fylt med 19");
-  t.sjekk(/Angre Hus/.test(await t.tekst('[data-h="angre"]')), "Mangler «Angre Hus» på neste spillers tur");
+  t.sjekk((t.norsk ? /Angre Hus/ : /↶/).test(await t.tekst('[data-h="angre"]')), "Mangler «Angre Hus» på neste spillers tur");
   await t.bilde("neste-spiller");
   await t.klikk('[data-h="angre"]');
   await tur(0);
@@ -127,7 +129,7 @@ export default async function (t) {
     const hvem = s.spill.tur;
     await kast();
     await t.klikk('[data-h="sett"].mulig', 60);
-    await t.vent(`JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill.tur !== ${hvem} || JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill.kort.every((k) => Object.keys(k).length === 15)`, 4000);
+    await t.vent(`JSON.parse(localStorage.getItem("${t.nokkel("terninga.v1")}")).spill.tur !== ${hvem} || JSON.parse(localStorage.getItem("${t.nokkel("terninga.v1")}")).spill.kort.every((k) => Object.keys(k).length === 15)`, 4000);
     await t.vent("!document.querySelector('#skjerm .tg-felt.ny')", 4000);
   }
   s = await t.tilstand();
@@ -135,7 +137,7 @@ export default async function (t) {
   await t.vent("document.querySelector('[data-h=\"kaaring\"]')");
   t.sjekk(await t.finnes('[data-h="angre"]'), "Det siste feltet skal kunne angres før kåringen");
   await t.bilde("full-blokk");
-  const totaler = await t.js(`(() => { const sp = JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill; return sp.kort.map((k) => RusjTerninga.summer("vanlig", k).total); })()`);
+  const totaler = await t.js(`(() => { const sp = JSON.parse(localStorage.getItem("${t.nokkel("terninga.v1")}")).spill; return sp.kort.map((k) => RusjTerninga.summer("vanlig", k).total); })()`);
   await t.klikk('[data-h="kaaring"]');
   await t.vent("document.querySelector('.skjerm-slutt')");
   await t.send("Emulation.setEmulatedMedia", { features: [] });
@@ -144,14 +146,14 @@ export default async function (t) {
   const best = Math.max(...totaler);
   const vinnere = NAVN.filter((_, i) => totaler[i] === best);
   const h1 = (await t.tekst("#skjerm h1")).trim();
-  t.sjekk(h1 === `${vinnere.join(" og ")} vinner!`, `Kåringen sier «${h1}», poengene var ${totaler.join(" – ")}`);
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk(t.norsk ? h1 === `${vinnere.join(" og ")} vinner!` : vinnere.every((n) => h1.includes(n)) && NAVN.every((n) => vinnere.includes(n) || !h1.includes(n)), `Kåringen sier «${h1}», poengene var ${totaler.join(" – ")}`);
+  t.sjekk(!t.norsk || /KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
   t.sjekk((await t.finnes(".poengliste")) && (await t.finnes(".tg-tabell")), "Kåringen mangler poengliste eller blokka");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
   s = await t.tilstand();
   t.sjekk(s._aktiv === false, "Et ferdig spill skal ikke være merket som pågående");
   t.sjekk(s.rekord && s.rekord.vanlig && s.rekord.vanlig.poeng === best, "Rekorden ble ikke lagret");
-  const kveld = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  const kveld = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
   t.sjekk(kveld && kveld.spill.some((x) => x.id === "terninga"), "Kåringen ble ikke registrert i «Kveldens gjeng»");
 
   // ---------- Solo six-dice Yatzy: 20 boxes, saved rolls ----------
@@ -167,7 +169,7 @@ export default async function (t) {
   await t.sov(300);
   await t.bilde("maxi-yatzy");
   await t.klikk(felt("yatzy"), 100);
-  await t.vent(`JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill.kast === 0 && !document.querySelector('#skjerm .tg-felt.ny')`);
+  await t.vent(`JSON.parse(localStorage.getItem("${t.nokkel("terninga.v1")}")).spill.kast === 0 && !document.querySelector('#skjerm .tg-felt.ny')`);
   s = await t.tilstand();
   t.sjekk(s.spill.kort[0].yatzy === 100 && s.spill.spart[0] === 2, `To kast skulle vært spart (spart: ${s.spill.spart[0]})`);
   t.sjekk(/\+2/.test(await t.tekst('[data-h="kast"]')), "Kast-knappen viser ikke de sparte kastene");
@@ -194,7 +196,7 @@ export default async function (t) {
   await t.sov(300);
 
   // «Avslutt» asks, then crowns the solo game (no record from an unfinished pad)
-  t.sjekk((await t.tekst('[data-h="avslutt"]')).trim() === "Avslutt", "Lenken for å avslutte skal hete «Avslutt»");
+  t.sjekk(!t.norsk || (await t.tekst('[data-h="avslutt"]')).trim() === "Avslutt", "Lenken for å avslutte skal hete «Avslutt»");
   await t.klikk('[data-h="avslutt"]');
   t.sjekk(await t.finnes('#ark:not([hidden]) [data-v="ja"]'), "«Avslutt» spurte ikke først");
   await t.klikk('#ark [data-v="ja"]');
@@ -203,7 +205,7 @@ export default async function (t) {
   await t.bilde("solo-slutt", true);
   s = await t.tilstand();
   t.sjekk(!s.rekord.maxi, "Et uferdig spill skal ikke gi rekord");
-  t.sjekk(/poeng/.test(await t.tekst(".tg-sluttpoeng")), "Solo-kåringen viser ikke poengene");
+  t.sjekk((t.norsk ? /poeng/ : /\d/).test(await t.tekst(".tg-sluttpoeng")), "Solo-kåringen viser ikke poengene");
 
   // Home shows the record
   await t.klikk("#tilbake");
@@ -225,17 +227,17 @@ export default async function (t) {
   // Our first box, then the phone's turn plays by itself (visibly: held dice, then rolls)
   await kast();
   await t.klikk('[data-h="sett"].mulig', 60);
-  await t.vent(`(JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill || {}).tur === 1`, 5000);
+  await t.vent(`(JSON.parse(localStorage.getItem("${t.nokkel("terninga.v1")}")).spill || {}).tur === 1`, 5000);
   await t.vent("/Robo/.test(document.querySelector('#skjerm h1').textContent) && document.querySelector('[data-h=\"hopp-anim\"]')", 5000);
   t.sjekk(await t.js(`document.querySelector('.dokk [data-h="kast"]').disabled`), "Kast-knappen skal være av mens mobilen spiller");
   await t.klikk('[data-h="hold"][data-v="0"]');
   t.sjekk(!(await t.tilstand()).spill.holdt[0] || (await t.tilstand()).spill.kast > 0, "Man kan ikke holde terninger for mobilen");
-  await t.vent(`JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill.kast >= 1 && !document.querySelector('#tg-brett[data-ruller]')`, 8000);
+  await t.vent(`JSON.parse(localStorage.getItem("${t.nokkel("terninga.v1")}")).spill.kast >= 1 && !document.querySelector('#tg-brett[data-ruller]')`, 8000);
   await t.sov(700);
   await t.bilde("mobilen-spiller");
   // Reload in the middle of the phone's turn: it carries on and finishes its box
   await t.lastSide(t.side, "document.querySelector('#tg-brett')");
-  await t.vent(`(() => { const sp = JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill; return sp.tur === 0 && Object.keys(sp.kort[1]).length === 1; })()`, 20000);
+  await t.vent(`(() => { const sp = JSON.parse(localStorage.getItem("${t.nokkel("terninga.v1")}")).spill; return sp.tur === 0 && Object.keys(sp.kort[1]).length === 1; })()`, 20000);
   // The rest quickly: «Hopp over animasjonen» on every phone turn, our own boxes as they come
   await t.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
   for (let n = 0; n < 800; n++) {
@@ -250,14 +252,14 @@ export default async function (t) {
   s = await t.tilstand();
   t.sjekk(s.spill.kort.every((k) => Object.keys(k).length === 15), "Spillet mot mobilen ble ikke ferdig: " + JSON.stringify({ tur: s.spill.tur, kast: s.spill.kast, holdt: s.spill.holdt, fylt: s.spill.kort.map((k) => Object.keys(k).length) }) + " " + (await t.js("document.querySelector('.tg-felt.ny') ? 'ny' : '-'")));
   await t.vent("document.querySelector('[data-h=\"kaaring\"]')", 8000);
-  const robo = await t.js(`RusjTerninga.summer("vanlig", JSON.parse(localStorage.getItem("rusj.terninga.v1")).spill.kort[1]).total`);
+  const robo = await t.js(`RusjTerninga.summer("vanlig", JSON.parse(localStorage.getItem("${t.nokkel("terninga.v1")}")).spill.kort[1]).total`);
   t.sjekk(robo >= 120, `Vanskelig fikk bare ${robo} poeng`);
   await t.klikk('[data-h="kaaring"]');
   await t.vent("document.querySelector('.skjerm-slutt')");
   await t.send("Emulation.setEmulatedMedia", { features: [] });
-  t.sjekk(/vinner!/.test(await t.tekst("#skjerm h1")), "Kåringen mot mobilen mangler vinner");
+  t.sjekk((t.norsk ? /vinner!/ : /!/).test(await t.tekst("#skjerm h1")), "Kåringen mot mobilen mangler vinner");
   t.sjekk(/Robo/.test(await t.tekst(".poengliste")), "Robo står ikke i poenglista");
-  const kveld2 = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  const kveld2 = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
   t.sjekk(!kveld2 || !JSON.stringify(kveld2).includes("Robo"), "Mobilen skal ikke stå i Kveldens gjeng");
   await t.sov(400);
   await t.bilde("kaaring-mot-mobilen", true);

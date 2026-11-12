@@ -180,6 +180,58 @@
       "tittel": "Bingo på mobilen – talbingo og festbingo, gratis",
       "frase": "Bingo",
       "beskrivelse": "Gratis bingo på dansk med pladen på mobilen: talbingo med 75 kugler eller festbingo til julefrokost, juleaften, bryllup, sankthans og fødselsdag."
+    },
+    "admiralen": {
+      "motMobilen": true,
+      "tittel": "Sænke slagskibe online – sænk flåden, gratis",
+      "frase": "Sænke slagskibe",
+      "beskrivelse": "Gratis sænke slagskibe på dansk: placér flåden, og sænk fjendens skibe – mod mobilen på tre niveauer eller to spillere på én mobil."
+    },
+    "terninga": {
+      "motMobilen": true,
+      "tittel": "Yatzy online – gratis med blok og terninger",
+      "frase": "Yatzy",
+      "beskrivelse": "Gratis Yatzy på dansk: fem terninger, tre kast og hele blokken på mobilen. Spil alene, sammen eller mod mobilen – med fem eller seks terninger."
+    },
+    "brikka": {
+      "motMobilen": true,
+      "tittel": "Ludo online – gratis for 1–4 spillere på én mobil",
+      "frase": "Ludo",
+      "beskrivelse": "Gratis ludo på dansk. Slå en sekser, kom ud, og slå de andre hjem! 2–4 spillere på én mobil – mobilen kan spille på de ledige pladser."
+    },
+    "elefanten": {
+      "motMobilen": true,
+      "tittel": "Vendespil online – find to ens, gratis for børn",
+      "frase": "Vendespil – find to ens",
+      "beskrivelse": "Gratis vendespil på dansk: vend to kort, og find to ens – alene mod uret eller op til fire sammen. Dyr, mad, rummet og meget mere."
+    },
+    "skjaera": {
+      "tittel": "Kims leg online – hvad mangler? Huskeleg for børn",
+      "frase": "Kims leg",
+      "beskrivelse": "Gratis Kims leg på dansk: se godt på tingene – så stjæler skaden noget. Hvad mangler? 12 niveauer og næsten 300 ting, alene eller sammen."
+    },
+    "verktoykassa": {
+      "tittel": "Hvem starter? Terning, holddeler, mønt og ur",
+      "frase": "Hvem starter?",
+      "beskrivelse": "Gratis festværktøj: »Hvem starter?« med fingrene på skærmen, terninger, holddeler, sten, saks, papir, plat eller krone og en pointtæller.",
+      "sok": [
+        "holdgenerator",
+        "terning online",
+        "stopur"
+      ],
+      "type": "WebApplication"
+    },
+    "nissen": {
+      "tittel": "Hemmelig nisse – gratis nissetrækning uden konto",
+      "frase": "Nissetrækning",
+      "beskrivelse": "Træk hemmelig nisse på et minut: skriv navnene, træk – og send hver sit hemmelige link. Gratis, uden e-mail, konto og reklamer.",
+      "sok": [
+        "nisseven",
+        "julefrokost",
+        "jul",
+        "julegaver"
+      ],
+      "type": "WebApplication"
     }
   }
 }

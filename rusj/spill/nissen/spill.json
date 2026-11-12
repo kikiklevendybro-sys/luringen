@@ -11,5 +11,23 @@
   "rekkefolge": 32,
   "qr": true,
   "sok": ["secret santa", "nissetrekning", "trekk julegaver", "hemmelig nisse", "julegavetrekning", "trekke navn", "nisse"],
-  "alias": ["secret-santa", "nissetrekning"]
+  "alias": ["secret-santa", "nissetrekning"],
+  "i18n": {
+    "en": {
+      "navn": "Secret Santa",
+      "undertittel": "Name draw",
+      "kort": "Secret Santa without names in a hat – on one phone or by link.",
+      "beskrivelse": "Free Secret Santa draw. Type the names and draw – everyone sees who they're buying for, on one phone or each with their own link. No account.",
+      "slug": "secret-santa-draw",
+      "sok": ["secret santa", "secret santa generator", "secret santa draw", "name draw", "draw names", "names out of a hat", "christmas gift exchange", "kris kringle", "office secret santa"]
+    },
+    "da": {
+      "navn": "Nissen",
+      "undertittel": "Hemmelig nisse",
+      "kort": "Hemmelig nisse uden sedler i huen – på én mobil eller via link.",
+      "beskrivelse": "Gratis nissetrækning på dansk. Skriv navnene, og træk – alle ser, hvem de skal give gave til, på én mobil eller hver sin via link. Ingen konto.",
+      "slug": "nissen",
+      "sok": ["hemmelig nisse", "nissetrækning", "secret santa", "nisseven", "julegavetrækning", "lodtrækning", "træk navne", "nisse"]
+    }
+  }
 }

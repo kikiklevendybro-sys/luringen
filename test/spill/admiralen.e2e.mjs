@@ -3,7 +3,9 @@
 // reload and back + continue mid-battle, sink the whole enemy fleet and reach «Kåringen» with the
 // score. Then two players on one phone: gates between placements and turns, the other fleet never
 // visible, and a win for one of them.
-const flate = (t, s) => t.js(`JSON.parse(localStorage.getItem("rusj.admiralen.v1")).spill.flate[${s}]`);
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en admiralen): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the state, the names and the links (t.forside, t.nokkel).
+const flate = (t, s) => t.js(`JSON.parse(localStorage.getItem("${t.nokkel("admiralen.v1")}")).spill.flate[${s}]`);
 
 // Cells of a ship, as the game counts them.
 const celler = (s, n) => Array.from({ length: s.lengde }, (_, k) => (s.y + (s.r === "v" ? k : 0)) * n + s.x + (s.r === "h" ? k : 0));
@@ -29,7 +31,7 @@ async function ja(t) {
 
 // Wait until it is the player's turn again (the computer may fire a few times).
 const minTur = (t, s = 0) =>
-  t.vent(`(() => { const sp = JSON.parse(localStorage.getItem("rusj.admiralen.v1")).spill; return !sp || sp.vinner != null || (sp.tur === ${s} && !document.querySelector(".ad-melding.venter")); })()`, 15000);
+  t.vent(`(() => { const sp = JSON.parse(localStorage.getItem("${t.nokkel("admiralen.v1")}")).spill; return !sp || sp.vinner != null || (sp.tur === ${s} && !document.querySelector(".ad-melding.venter")); })()`, 15000);
 
 export default async function (t) {
   await t.start({ navn: ["Testspiller A", "Testspiller B"] });
@@ -61,7 +63,7 @@ export default async function (t) {
   await t.bilde("plasser-valgt");
   // Tap an empty cell far from the others: the selected ship moves there if it fits
   const ledig = await t.js(`(() => {
-    const sp = JSON.parse(localStorage.getItem("rusj.admiralen.v1")).spill;
+    const sp = JSON.parse(localStorage.getItem("${t.nokkel("admiralen.v1")}")).spill;
     const n = sp.n; const f = sp.flate[0]; const s = f[4];
     const opptatt = new Set(); f.forEach((x, k) => { if (k === 4) return; for (let j = 0; j < x.lengde; j++) opptatt.add((x.y + (x.r === "v" ? j : 0)) * n + x.x + (x.r === "h" ? j : 0)); });
     const nabo = (c) => { const x = c % n, y = Math.floor(c / n); for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const nx = x + dx, ny = y + dy; if (nx >= 0 && ny >= 0 && nx < n && ny < n && opptatt.has(ny * n + nx)) return true; } return false; };
@@ -98,7 +100,7 @@ export default async function (t) {
   const vann = Array.from({ length: 100 }, (_, i) => i).filter((i) => !skipRuter.has(i));
   // A miss: aim, then fire with the button
   await t.klikk(`[data-h="sikt"][data-v="${vann[0]}"]`);
-  t.sjekk(/Fyr på/.test(await t.tekst('[data-h="fyr"]')), "«Fyr»-knappen sier ikke hvor det siktes");
+  t.sjekk((t.norsk ? /Fyr på [A-J]\d/ : /[A-J]\d/).test(await t.tekst('[data-h="fyr"]')), "«Fyr»-knappen sier ikke hvor det siktes");
   await t.bilde("sikte");
   await t.klikk('[data-h="fyr"]');
   t.sjekk((await t.tilstand()).spill.skudd[0].length === 1, "Skuddet ble ikke avfyrt");
@@ -140,8 +142,8 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-slutt')", 8000);
   S = await t.tilstand();
   t.sjekk(S.spill.vinner === 0, "Spilleren vant ikke selv om alle skip ble senket");
-  t.sjekk(/vinner!/.test(await t.tekst("#skjerm h1")), "Kåringen viser ikke vinneren");
-  t.sjekk(await t.finnes('.skjerm-slutt a[href="/"]'), "Kåringen mangler «Alle spill»");
+  t.sjekk(!t.norsk || /vinner!/.test(await t.tekst("#skjerm h1")), "Kåringen viser ikke vinneren");
+  t.sjekk(await t.finnes(`.skjerm-slutt a[href="${t.forside}"]`), "Kåringen mangler «Alle spill»");
   const stilling = Object.values(S.stilling)[0];
   t.sjekk(stilling && stilling[0] === 1 && stilling[1] === 0, `Stillingen ble ikke talt: ${JSON.stringify(S.stilling)}`);
   await t.bilde("slutt", true);
@@ -195,7 +197,7 @@ export default async function (t) {
   // Fast forward: every ship of the first player but one cell already hit by the second player
   const b = 1 - a;
   const aRuter = S.spill.flate[a].flatMap((s) => celler(s, 8));
-  await t.js(`(() => { const k = "rusj.admiralen.v1"; const s = JSON.parse(localStorage.getItem(k)); s.spill.skudd[${b}] = ${JSON.stringify(aRuter.slice(0, -1))}; localStorage.setItem(k, JSON.stringify(s)); })()`);
+  await t.js(`(() => { const k = "${t.nokkel("admiralen.v1")}"; const s = JSON.parse(localStorage.getItem(k)); s.spill.skudd[${b}] = ${JSON.stringify(aRuter.slice(0, -1))}; localStorage.setItem(k, JSON.stringify(s)); })()`);
   // A reload never opens a secret fleet directly: the gate comes first
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   t.sjekk(await t.finnes(".gi-til") && !(await t.finnes(".ad-brett")), "Omlasting i to-spiller åpnet en flåte uten «Gi mobilen til»");
@@ -209,7 +211,7 @@ export default async function (t) {
   await t.klikk(`[data-h="sikt"][data-v="${aRuter[aRuter.length - 1]}"]`);
   await t.klikk('[data-h="fyr"]');
   await t.vent("document.querySelector('.skjerm-slutt')", 8000);
-  t.sjekk(/vinner!/.test(await t.tekst("#skjerm h1")), "To-spiller-kåringen viser ikke vinneren");
-  t.sjekk(await t.js(`(() => { const k = JSON.parse(localStorage.getItem("rusj.kveld") || "null"); return !!(k && k.spill.some((s) => s.id === "admiralen")); })()`), "Slaget ble ikke registrert i «Kveldens gjeng»");
+  t.sjekk((t.norsk ? /vinner!/ : /Testspiller [AB]|x-q/).test(await t.tekst("#skjerm h1")), "To-spiller-kåringen viser ikke vinneren");
+  t.sjekk(await t.js(`(() => { const k = JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null"); return !!(k && k.spill.some((s) => s.id === "admiralen")); })()`), "Slaget ble ikke registrert i «Kveldens gjeng»");
   await t.bilde("to-slutt", true);
 }

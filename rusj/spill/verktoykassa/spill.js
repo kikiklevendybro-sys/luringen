@@ -77,31 +77,32 @@
   let sistFjernet = -1e9; // when a player was last removed from the score counter
   const travelt = { ruller: false, ssp: false, mynt: false, tall: false }; // an animation is running
 
+  // Every text goes through R.t (rusj/SPRAK.md): the key is the Norwegian text.
   const VERKTOY = [
-    { id: "starter", navn: "Hvem starter?", tekst: "Alle legger en finger på skjermen – mobilen velger", ikon: "👆", farge: "var(--rosa)" },
-    { id: "terninger", navn: "Terninger", tekst: "Kast 1–6 terninger", ikon: "🎲", farge: "var(--aksent)" },
-    { id: "lag", navn: "Lagdeler", tekst: "Rettferdige lag", ikon: "👥", farge: "var(--himmel)" },
-    { id: "ssp", navn: "Stein, saks, papir", tekst: "Mot mobilen eller hverandre", ikon: "✊", farge: "var(--lilla)" },
-    { id: "mynt", navn: "Mynt", tekst: "Kron eller mynt?", ikon: "🪙", farge: "var(--lampe)" },
-    { id: "tall", navn: "Tilfeldig tall", tekst: "Velg fra og til – uten å gjenta tall", ikon: "🔢", farge: "var(--mynte)" },
-    { id: "poeng", navn: "Poengteller", tekst: "Opptil åtte spillere", ikon: "🏆", farge: "var(--oransje)" },
-    { id: "klokke", navn: "Klokke", tekst: "Nedtelling og stoppeklokke", ikon: "⏱️", farge: "var(--rod)" },
+    { id: "starter", navn: R.t("Hvem starter?"), tekst: R.t("Alle legger en finger på skjermen – mobilen velger"), ikon: "👆", farge: "var(--rosa)" },
+    { id: "terninger", navn: R.t("Terninger"), tekst: R.t("Kast 1–6 terninger"), ikon: "🎲", farge: "var(--aksent)" },
+    { id: "lag", navn: R.t("Lagdeler"), tekst: R.t("Rettferdige lag"), ikon: "👥", farge: "var(--himmel)" },
+    { id: "ssp", navn: R.t("Stein, saks, papir"), tekst: R.t("Mot mobilen eller hverandre"), ikon: "✊", farge: "var(--lilla)" },
+    { id: "mynt", navn: R.t("Mynt"), tekst: R.t("Kron eller mynt?"), ikon: "🪙", farge: "var(--lampe)" },
+    { id: "tall", navn: R.t("Tilfeldig tall"), tekst: R.t("Velg fra og til – uten å gjenta tall"), ikon: "🔢", farge: "var(--mynte)" },
+    { id: "poeng", navn: R.t("Poengteller"), tekst: R.t("Opptil åtte spillere"), ikon: "🏆", farge: "var(--oransje)" },
+    { id: "klokke", navn: R.t("Klokke"), tekst: R.t("Nedtelling og stoppeklokke"), ikon: "⏱️", farge: "var(--rod)" },
   ];
   const verktoy = (id) => VERKTOY.find((v) => v.id === id);
 
   const HENDER = {
-    stein: { navn: "Stein", ikon: "✊" },
-    saks: { navn: "Saks", ikon: "✌️" },
-    papir: { navn: "Papir", ikon: "✋" },
+    stein: { navn: R.t("Stein"), ikon: "✊" },
+    saks: { navn: R.t("Saks"), ikon: "✌️" },
+    papir: { navn: R.t("Papir"), ikon: "✋" },
   };
 
   // ---------- 3D dice (a CSS cube, as in Terninga) ----------
 
   const PIPS = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
   const SIDE = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] };
-  const VIPP = "rotateX(-21deg) rotateY(12deg)";
+  const VIPP = "rotateX(-21deg) rotateY(12deg)"; // CSS // sprak-ok
   const KUBE = [1, 2, 3, 4, 5, 6].map((n) => `<span class="vk-side s${n}">${PIPS[n].map((p) => `<i class="p${p}"></i>`).join("")}</span>`).join("");
-  const pose = (v, z, tx, ty) => `${VIPP} rotateZ(${z}deg) rotateX(${SIDE[v][0] + 360 * (tx || 0)}deg) rotateY(${SIDE[v][1] + 360 * (ty || 0)}deg)`;
+  const pose = (v, z, tx, ty) => `${VIPP} rotateZ(${z}deg) rotateX(${SIDE[v][0] + 360 * (tx || 0)}deg) rotateY(${SIDE[v][1] + 360 * (ty || 0)}deg)`; // sprak-ok
   const nyTerning = () => 1 + Math.floor(tilfeldig() * 6);
 
   function rasle() {
@@ -216,9 +217,9 @@
     const n = fingre.size;
     p.classList.toggle("har-fingre", n > 0);
     if (padFase === "valgt") return;
-    if (n === 0) padHjelp("Alle legger en finger på skjermen", "Hold den i ro – så velger mobilen.");
-    else if (n === 1) padHjelp("Én finger …", "Flere må være med!");
-    else padHjelp(`${n} fingrer`, "Hold stille …");
+    if (n === 0) padHjelp(R.t("Alle legger en finger på skjermen"), R.t("Hold den i ro – så velger mobilen."));
+    else if (n === 1) padHjelp(R.t("Én finger …"), R.t("Flere må være med!"));
+    else padHjelp(R.t("{n} fingrer", { n }), R.t("Hold stille …"));
   }
 
   function fingerEndret() {
@@ -272,28 +273,28 @@
         if (nr[i] === 1) f.el.classList.add("vinner");
       });
       liste.forEach((_, i) => setTimeout(() => R.lyd.tone(520 + i * 90, 0, 0.12, "triangle", 0.14), R.rolig() ? 0 : i * 280));
-      R.si(`Rekkefølgen er klar for ${liste.length} fingrer.`);
-      padHjelp("Rekkefølgen er klar!", "Nummer 1 begynner.");
+      R.si(R.t("Rekkefølgen er klar for {n} fingrer.", { n: liste.length }));
+      padHjelp(R.t("Rekkefølgen er klar!"), R.t("Nummer 1 begynner."));
     } else if (modus === "lag") {
       const lag = fingerLag(liste.length, 2, rng);
       liste.forEach((f, i) => {
         f.el.dataset.lag = lag[i];
         f.el.classList.add("lag");
         f.el.style.setProperty("--ff", R.LAG[lag[i]].farge); // the circle takes the team colour
-        merke(f, `<b>Lag ${esc(R.LAG[lag[i]].navn)}</b>`);
+        merke(f, `<b>${esc(R.lagNavn(lag[i]))}</b>`);
       });
       R.lyd.riktig();
-      R.si("Lagene er klare: Lag Rosa og Lag Gul.");
-      padHjelp("Lag Rosa mot Lag Gul!", "Fargen under fingeren viser laget ditt.");
+      R.si(R.t("Lagene er klare: {a} og {b}.", { a: R.lagNavn(0), b: R.lagNavn(1) }));
+      padHjelp(R.t("{a} mot {b}!", { a: R.lagNavn(0), b: R.lagNavn(1) }), R.t("Fargen under fingeren viser laget ditt."));
     } else {
       const vinner = liste[Math.floor(rng() * liste.length)];
       liste.forEach((f) => f.el.classList.add(f === vinner ? "vinner" : "taper"));
-      merke(vinner, "<b>Du starter!</b>");
+      merke(vinner, `<b>${esc(R.t("Du starter!"))}</b>`);
       const r = p.getBoundingClientRect();
       p.style.setProperty("--vx", `${((vinner.x / r.width) * 100).toFixed(1)}%`);
       p.style.setProperty("--vy", `${((vinner.y / r.height) * 100).toFixed(1)}%`);
       R.lyd.fanfare();
-      R.si("En finger er valgt. Den som har den lysende ringen, starter!");
+      R.si(R.t("En finger er valgt. Den som har den lysende ringen, starter!"));
       padHjelp("", "");
     }
     R.vibrer([60, 40, 120]);
@@ -377,7 +378,7 @@
   const myntHtml = (side) => `<span class="vk-mynt-skive" style="transform: rotateX(${side === "mynt" ? 180 : 0}deg)">
       ${Array.from({ length: 7 }, (_, k) => `<span class="vk-mynt-kant" style="transform: translateZ(${k - 3}px)"></span>`).join("")}
       <span class="vk-mynt-side kron">${KRONE_SVG}</span>
-      <span class="vk-mynt-side mynt"><b>1</b><small>KRONE</small></span>
+      <span class="vk-mynt-side mynt"><b>1</b><small>${esc(R.t("KRONE"))}</small></span>
     </span>`;
 
   // ---------- Score counter ----------
@@ -389,7 +390,11 @@
 
   const igjenMs = (k) => (k.slutt ? Math.max(0, k.slutt - Date.now()) : k.pause != null ? k.pause : k.sekunder * 1000);
   const stoppMs = (st) => st.akk + (st.start ? Date.now() - st.start : 0);
-  const minSek = (sek) => (sek >= 60 ? `${Math.floor(sek / 60)} min${sek % 60 ? ` ${sek % 60} s` : ""}` : `${sek} s`);
+  const minSek = (sek) => (sek >= 60 ? R.t("{n} min", { n: Math.floor(sek / 60) }) + (sek % 60 ? " " + R.t("{n} s", { n: sek % 60 }) : "") : R.t("{n} s", { n: sek }));
+
+  // «Mellom 1 og 6 · 6 tall igjen» (igjen: null when numbers may come again)
+  const tallInfo = (lav, hoy, igjen) =>
+    R.t("Mellom {fra} og {til}", { fra: R.tall(lav), til: R.tall(hoy) }) + (igjen != null ? " · " + R.t("{tall} igjen", { tall: R.flertall(igjen, "tall", "tall") }) : "");
 
   function startNedtelling(S) {
     const k = S.klokke;
@@ -410,7 +415,7 @@
           const ring = R.$("#vk-ned");
           if (ring) ring.classList.add("ute");
         }
-        R.si("Tiden er ute!");
+        R.si(R.t("Tiden er ute!"));
       },
     }).start();
   }
@@ -471,17 +476,17 @@
     },
 
     regler: {
-      intro: "Små verktøy til spillkvelden. Alt virker uten nett, og ingenting sendes noe sted.",
+      intro: R.t("Små verktøy til spillkvelden. Alt virker uten nett, og ingenting sendes noe sted."),
       steg: [
-        ["Hvem starter?", "Alle legger en finger på skjermen og holder den i ro. Etter et lite øyeblikk velger mobilen én – eller en rekkefølge, eller to lag."],
-        ["Kast, trekk og del", "Terninger, rettferdige lag, «Stein, saks, papir», kron eller mynt og et tilfeldig tall – ett trykk unna."],
-        ["Tell poeng og ta tiden", "Poengtelleren holder styr på opptil åtte spillere. Klokka teller ned eller tar tiden."],
+        [R.t("Hvem starter?"), R.t("Alle legger en finger på skjermen og holder den i ro. Etter et lite øyeblikk velger mobilen én – eller en rekkefølge, eller to lag.")],
+        [R.t("Kast, trekk og del"), R.t("Terninger, rettferdige lag, «Stein, saks, papir», kron eller mynt og et tilfeldig tall – ett trykk unna.")],
+        [R.t("Tell poeng og ta tiden"), R.t("Poengtelleren holder styr på opptil åtte spillere. Klokka teller ned eller tar tiden.")],
       ],
       tips: [
-        "«Hvem starter?» virker best når mobilen ligger flatt på bordet.",
-        "Navnene du skriver inn, huskes i alle spillene på rusj.no.",
-        "Trykket feil i poengtelleren? «Angre» tar det siste trykket tilbake.",
-        "Ingen berøringsskjerm? Bruk «Trekk et navn i stedet».",
+        R.t("«Hvem starter?» virker best når mobilen ligger flatt på bordet."),
+        R.t("Navnene du skriver inn, huskes i alle spillene på rusj.no."),
+        R.t("Trykket feil i poengtelleren? «Angre» tar det siste trykket tilbake."),
+        R.t("Ingen berøringsskjerm? Bruk «Trekk et navn i stedet»."),
       ],
     },
 
@@ -492,16 +497,16 @@
         vis(S) {
           const k = S.klokke;
           const merknad = {
-            poeng: pagar(S) ? `Pågår · ${R.flertall(S.poeng.antall, "spiller", "spillere")}` : null,
-            klokke: k.slutt ? `Går · ${R.formaterTid(igjenMs(k) / 1000)} igjen` : k.stopp.start ? "Stoppeklokka går" : null,
+            poeng: pagar(S) ? R.t("Pågår · {spillere}", { spillere: R.flertall(S.poeng.antall, "spiller", "spillere") }) : null,
+            klokke: k.slutt ? R.t("Går · {tid} igjen", { tid: R.formaterTid(igjenMs(k) / 1000) }) : k.stopp.start ? R.t("Stoppeklokka går") : null,
           };
           const [helt, ...resten] = VERKTOY;
           return `
             <div class="vk-topp">
               ${R.figur()}
               <div class="vk-topp-tekst">
-                <h1 id="skjerm-tittel">Verktøykassa</h1>
-                <span class="undertittel">Festverktøy</span>
+                <h1 id="skjerm-tittel">${esc(R.app.navn)}</h1>
+                <span class="undertittel">${esc(R.app.undertittel)}</span>
               </div>
             </div>
             <button class="vk-helt" data-h="apne" data-v="${helt.id}">
@@ -517,25 +522,25 @@
                 </button>`,
               )
               .join("")}</div>
-            ${R.ui.merker([["8", "verktøy"], ["1–20", "spillere"], ["0", "reklame"]])}`;
+            ${R.ui.merker([["8", R.t("verktøy")], ["1–20", R.t("spillere")], ["0", R.t("reklame")]])}`;
         },
       },
 
       // ---------- Hvem starter? ----------
       starter: {
-        tittel: "Hvem starter?",
+        tittel: R.t("Hvem starter?"),
         tilbake: "hjem",
         vis: (S) => `
-          <h1 class="vh" id="skjerm-tittel">Hvem starter?</h1>
-          ${R.ui.seg("starter-modus", [["en", "Én starter"], ["rekke", "Rekkefølge"], ["lag", "To lag"]], S.starter.modus, { etikett: "Hva skal mobilen velge?" })}
-          <div class="vk-pad" id="vk-pad" data-modus="${esc(S.starter.modus)}" role="application" aria-label="Legg en finger hver på denne flaten">
+          <h1 class="vh" id="skjerm-tittel">${esc(R.t("Hvem starter?"))}</h1>
+          ${R.ui.seg("starter-modus", [["en", R.t("Én starter")], ["rekke", R.t("Rekkefølge")], ["lag", R.t("To lag")]], S.starter.modus, { etikett: R.t("Hva skal mobilen velge?") })}
+          <div class="vk-pad" id="vk-pad" data-modus="${esc(S.starter.modus)}" role="application" aria-label="${esc(R.t("Legg en finger hver på denne flaten"))}">
             <div class="vk-pad-hjelp" aria-live="polite">
               <span class="vk-pad-ikon" aria-hidden="true"><i></i><i></i><i></i></span>
-              <b>Alle legger en finger på skjermen</b>
-              <span>Hold den i ro – så velger mobilen.</span>
+              <b>${esc(R.t("Alle legger en finger på skjermen"))}</b>
+              <span>${esc(R.t("Hold den i ro – så velger mobilen."))}</span>
             </div>
           </div>
-          ${R.ui.lenkerad(R.ui.lenke("Trekk et navn i stedet", "starter-navn"))}`,
+          ${R.ui.lenkerad(R.ui.lenke(R.t("Trekk et navn i stedet"), "starter-navn"))}`,
         inn() {
           R.holdVaken();
           fingre.clear();
@@ -557,69 +562,69 @@
 
       // ---------- Dice ----------
       terninger: {
-        tittel: "Terninger",
+        tittel: R.t("Terninger"),
         tilbake: "hjem",
         vis(S) {
           const t = S.terninger;
           const sum = t.verdier.reduce((a, b) => a + b, 0);
           return `
-            <h1 class="vh" id="skjerm-tittel">Terninger</h1>
-            <div class="vk-brett" id="vk-terninger" style="--n: ${t.antall}" role="img" aria-label="${esc(`Terningene viser ${R.ramsOpp(t.verdier.map(String))}`)}">
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("Terninger"))}</h1>
+            <div class="vk-brett" id="vk-terninger" style="--n: ${t.antall}" role="img" aria-label="${esc(R.t("Terningene viser {tall}", { tall: R.ramsOpp(t.verdier.map(String)) }))}">
               ${t.verdier
                 .map(
                   (v, i) => `<span class="vk-t"><span class="vk-skygge"></span><span class="vk-hopp"><span class="vk-kube" style="transform: ${pose(v, t.vri[i] || 0)}">${KUBE}</span></span></span>`,
                 )
                 .join("")}
             </div>
-            <div class="vk-sum" aria-live="polite">${t.antall > 1 ? `<span class="etikett">Sum</span><b id="vk-sum">${t.historikk.length ? sum : "–"}</b>` : `<b id="vk-sum">${t.historikk.length ? sum : "–"}</b>`}</div>
+            <div class="vk-sum" aria-live="polite">${t.antall > 1 ? `<span class="etikett">${esc(R.t("Sum"))}</span><b id="vk-sum">${t.historikk.length ? sum : "–"}</b>` : `<b id="vk-sum">${t.historikk.length ? sum : "–"}</b>`}</div>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Antall terninger</h2></div>
-              ${R.ui.teller("terning-antall", t.antall, 1, 6, { minus: "Færre terninger", pluss: "Flere terninger" })}
+              <div class="seksjon-hode"><h2>${esc(R.t("Antall terninger"))}</h2></div>
+              ${R.ui.teller("terning-antall", t.antall, 1, 6, { minus: R.t("Færre terninger"), pluss: R.t("Flere terninger") })}
             </section>
-            ${t.historikk.length > 1 ? `<p class="vk-historikk"><span class="etikett">Forrige kast</span>${t.historikk.slice(1, 9).map((h) => `<span>${h}</span>`).join("")}</p>` : ""}
-            ${R.ui.dokk(R.ui.knapp(t.antall === 1 ? "Kast terningen" : "Kast terningene", "terning-kast", { variant: "stor", ikon: "🎲" }))}`;
+            ${t.historikk.length > 1 ? `<p class="vk-historikk"><span class="etikett">${esc(R.t("Forrige kast"))}</span>${t.historikk.slice(1, 9).map((h) => `<span>${h}</span>`).join("")}</p>` : ""}
+            ${R.ui.dokk(R.ui.knapp(t.antall === 1 ? R.t("Kast terningen") : R.t("Kast terningene"), "terning-kast", { variant: "stor", ikon: "🎲" }))}`;
         },
         inn: () => R.holdVaken(),
       },
 
       // ---------- Teams ----------
       lag: {
-        tittel: "Lagdeler",
+        tittel: R.t("Lagdeler"),
         tilbake: "hjem",
         vis(S) {
           const L = S.lag;
           const maks = Math.min(4, S.antall);
           if (L.fordeling) {
             return `
-              <h1 id="skjerm-tittel">${L.antall === 2 ? "To lag" : L.antall === 3 ? "Tre lag" : "Fire lag"}</h1>
+              <h1 id="skjerm-tittel">${esc(L.antall === 2 ? R.t("To lag") : L.antall === 3 ? R.t("Tre lag") : R.t("Fire lag"))}</h1>
               <div class="vk-lagene">${L.fordeling
                 .map(
                   (lag, k) => `<section class="vk-lag" style="--lf: ${R.LAG[k].farge}; --k: ${k}">
-                    <h2>${R.ui.lagmerke(k)}<span class="vk-lag-antall">${R.flertall(lag.length, "spiller", "spillere")}</span></h2>
+                    <h2>${R.ui.lagmerke(k)}<span class="vk-lag-antall">${esc(R.flertall(lag.length, "spiller", "spillere"))}</span></h2>
                     <ul>${lag.map((i, n) => `<li style="--n: ${n + k * 0.5}">${R.avatar(i)}<span>${esc(R.navn(i))}</span></li>`).join("")}</ul>
                   </section>`,
                 )
                 .join("")}</div>
-              ${R.ui.dokk(R.ui.knapp("Bland på nytt", "lag-del", { variant: "stor", ikon: "🔀" }), R.ui.lenkerad(R.ui.lenke("Endre navn og lag", "lag-endre")))}`;
+              ${R.ui.dokk(R.ui.knapp(R.t("Bland på nytt"), "lag-del", { variant: "stor", ikon: "🔀" }), R.ui.lenkerad(R.ui.lenke(R.t("Endre navn og lag"), "lag-endre")))}`;
           }
           return `
-            <h1 id="skjerm-tittel">Del inn i lag</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Del inn i lag"))}</h1>
             <section class="seksjon">
-              <h2>Hvor mange lag?</h2>
-              ${R.ui.seg("lag-antall", [[2, "To"], [3, "Tre"], [4, "Fire"]], L.antall, { etikett: "Antall lag", av: (v) => Number(v) > maks })}
+              <h2>${esc(R.t("Hvor mange lag?"))}</h2>
+              ${R.ui.seg("lag-antall", [[2, R.t("To")], [3, R.t("Tre")], [4, R.t("Fire")]], L.antall, { etikett: R.t("Antall lag"), av: (v) => Number(v) > maks })}
             </section>
-            ${R.ui.spillere({ min: 2, max: 20, tittel: "Hvem er med?", hjelp: "Lagene blir like store – eller så like som mulig." })}
-            ${R.ui.dokk(R.ui.knapp("Del inn i lag", "lag-del", { variant: "stor", ikon: "👥" }))}`;
+            ${R.ui.spillere({ min: 2, max: 20, tittel: R.t("Hvem er med?"), hjelp: R.t("Lagene blir like store – eller så like som mulig.") })}
+            ${R.ui.dokk(R.ui.knapp(R.t("Del inn i lag"), "lag-del", { variant: "stor", ikon: "👥" }))}`;
         },
       },
 
       // ---------- Rock, paper, scissors ----------
       ssp: {
-        tittel: "Stein, saks, papir",
+        tittel: R.t("Stein, saks, papir"),
         tilbake: "hjem",
         vis(S) {
           const P = S.ssp;
-          const modus = R.ui.seg("ssp-modus", [["mobil", "Mot mobilen"], ["to", "To spillere"]], P.modus, { etikett: "Hvem spiller?" });
+          const modus = R.ui.seg("ssp-modus", [["mobil", R.t("Mot mobilen")], ["to", R.t("To spillere")]], P.modus, { etikett: R.t("Hvem spiller?") });
           if (P.modus === "to") {
             const halv = (hvem) => {
               const valg = hvem === "a" ? P.a : P.b;
@@ -631,26 +636,26 @@
                 const egen = res[hvem];
                 const andre = res[hvem === "a" ? "b" : "a"];
                 const v = sspVinner(egen, andre);
-                midt = `<div class="vk-ssp-avsl"><span class="vk-hand stor">${HENDER[egen].ikon}</span><span class="vk-mot">mot</span><span class="vk-hand">${HENDER[andre].ikon}</span></div>
-                  <p class="vk-ssp-res ${v === 1 ? "vant" : v === 2 ? "tapte" : "likt"}">${v === 1 ? "Du vant!" : v === 2 ? "Du tapte" : "Uavgjort!"}</p>`;
+                midt = `<div class="vk-ssp-avsl"><span class="vk-hand stor">${HENDER[egen].ikon}</span><span class="vk-mot">${esc(R.t("mot"))}</span><span class="vk-hand">${HENDER[andre].ikon}</span></div>
+                  <p class="vk-ssp-res ${v === 1 ? "vant" : v === 2 ? "tapte" : "likt"}">${esc(v === 1 ? R.t("Du vant!") : v === 2 ? R.t("Du tapte") : R.t("Uavgjort!"))}</p>`;
               } else if (valg) {
-                midt = `<p class="vk-ssp-klar">✓ Klar!</p><p class="hjelp">${motsatt ? "" : "Venter på den andre …"}</p>`;
+                midt = `<p class="vk-ssp-klar">✓ ${esc(R.t("Klar!"))}</p><p class="hjelp">${motsatt ? "" : esc(R.t("Venter på den andre …"))}</p>`;
               } else {
                 midt = `<div class="knapprad tre vk-ssp-valg">${Object.entries(HENDER)
-                  .map(([id, h]) => `<button class="vk-ssp-knapp" data-h="ssp-to" data-v="${hvem}:${id}" data-stille aria-label="${esc(`${navn}: ${h.navn}`)}"><span aria-hidden="true">${h.ikon}</span><small>${h.navn}</small></button>`)
+                  .map(([id, h]) => `<button class="vk-ssp-knapp" data-h="ssp-to" data-v="${hvem}:${id}" data-stille aria-label="${esc(`${navn}: ${h.navn}`)}"><span aria-hidden="true">${h.ikon}</span><small>${esc(h.navn)}</small></button>`)
                   .join("")}</div>`;
               }
               const poeng = hvem === "a" ? P.poengA : P.poengB;
               return `<section class="vk-ssp-halv ${hvem}" aria-label="${esc(`${navn}, ${R.flertall(poeng, "poeng", "poeng")}`)}">
-                <p class="vk-ssp-hvem"><span class="etikett">${esc(navn)}</span><b>${R.flertall(poeng, "poeng", "poeng")}</b></p>${midt}</section>`;
+                <p class="vk-ssp-hvem"><span class="etikett">${esc(navn)}</span><b>${esc(R.flertall(poeng, "poeng", "poeng"))}</b></p>${midt}</section>`;
             };
             return `
-              <h1 class="vh" id="skjerm-tittel">Stein, saks, papir for to</h1>
+              <h1 class="vh" id="skjerm-tittel">${esc(R.t("Stein, saks, papir for to"))}</h1>
               ${modus}
               <div class="vk-ssp-to">
                 ${halv("b")}
                 <div class="vk-ssp-midt">
-                  ${P.resultat ? R.ui.knapp("Ny runde", "ssp-ny", { variant: "liten" }) : `<span class="hjelp">Velg i hemmelighet – den andre ser bort 🙈</span>`}
+                  ${P.resultat ? R.ui.knapp(R.t("Ny runde"), "ssp-ny", { variant: "liten" }) : `<span class="hjelp">${esc(R.t("Velg i hemmelighet – den andre ser bort 🙈"))}</span>`}
                 </div>
                 ${halv("a")}
               </div>`;
@@ -658,53 +663,53 @@
           const s = P.siste;
           const v = s ? sspVinner(s.du, s.mobil) : null;
           return `
-            <h1 class="vh" id="skjerm-tittel">Stein, saks, papir mot mobilen</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("Stein, saks, papir mot mobilen"))}</h1>
             ${modus}
-            <div class="vk-ssp-stilling-rad" aria-label="${esc(`Du ${P.du}, mobilen ${P.mobil}, uavgjort ${P.likt}`)}">
-              <span><small>Du</small><b>${P.du}</b></span><span class="vk-ssp-likt"><small>Likt</small><b>${P.likt}</b></span><span><small>Mobilen</small><b>${P.mobil}</b></span>
+            <div class="vk-ssp-stilling-rad" aria-label="${esc(R.t("Du {du}, mobilen {mobil}, uavgjort {likt}", { du: P.du, mobil: P.mobil, likt: P.likt }))}">
+              <span><small>${esc(R.t("Du"))}</small><b>${P.du}</b></span><span class="vk-ssp-likt"><small>${esc(R.t("Likt"))}</small><b>${P.likt}</b></span><span><small>${esc(R.t("Mobilen"))}</small><b>${P.mobil}</b></span>
             </div>
             <div class="vk-arena" id="vk-arena">
-              <span class="vk-hand-boks"><span class="vk-hand du" id="vk-hand-du">${s ? HENDER[s.du].ikon : "✊"}</span><small>Du</small></span>
-              <span class="vk-hand-boks"><span class="vk-hand mobil" id="vk-hand-mobil">${s ? HENDER[s.mobil].ikon : "✊"}</span><small>Mobilen</small></span>
+              <span class="vk-hand-boks"><span class="vk-hand du" id="vk-hand-du">${s ? HENDER[s.du].ikon : "✊"}</span><small>${esc(R.t("Du"))}</small></span>
+              <span class="vk-hand-boks"><span class="vk-hand mobil" id="vk-hand-mobil">${s ? HENDER[s.mobil].ikon : "✊"}</span><small>${esc(R.t("Mobilen"))}</small></span>
             </div>
-            <p class="vk-ssp-res ${v === 1 ? "vant" : v === 2 ? "tapte" : v === 0 ? "likt" : ""}" id="vk-ssp-res" aria-live="polite">${
-              s ? (v === 1 ? "Du vant!" : v === 2 ? "Mobilen vant!" : "Uavgjort!") : "Velg – mobilen velger samtidig"
-            }</p>
+            <p class="vk-ssp-res ${v === 1 ? "vant" : v === 2 ? "tapte" : v === 0 ? "likt" : ""}" id="vk-ssp-res" aria-live="polite">${esc(
+              s ? (v === 1 ? R.t("Du vant!") : v === 2 ? R.t("Mobilen vant!") : R.t("Uavgjort!")) : R.t("Velg – mobilen velger samtidig"),
+            )}</p>
             ${R.ui.dokk(
               `<div class="knapprad tre vk-ssp-valg">${Object.entries(HENDER)
-                .map(([id, h]) => `<button class="vk-ssp-knapp" data-h="ssp-spill" data-v="${id}" aria-label="${h.navn}"><span aria-hidden="true">${h.ikon}</span><small>${h.navn}</small></button>`)
+                .map(([id, h]) => `<button class="vk-ssp-knapp" data-h="ssp-spill" data-v="${id}" aria-label="${esc(h.navn)}"><span aria-hidden="true">${h.ikon}</span><small>${esc(h.navn)}</small></button>`)
                 .join("")}</div>`,
-              P.du + P.mobil + P.likt ? R.ui.lenkerad(R.ui.lenke("Nullstill", "ssp-nullstill")) : "",
+              P.du + P.mobil + P.likt ? R.ui.lenkerad(R.ui.lenke(R.t("Nullstill"), "ssp-nullstill")) : "",
             )}`;
         },
       },
 
       // ---------- Coin ----------
       mynt: {
-        tittel: "Mynt",
+        tittel: R.t("Mynt"),
         tilbake: "hjem",
         vis(S) {
           const M = S.mynt;
           const kastet = M.kron + M.mynt > 0;
           return `
-            <h1 class="vh" id="skjerm-tittel">Kron eller mynt</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("Kron eller mynt"))}</h1>
             <div class="vk-mynt-scene">
-              <button class="vk-mynt" id="vk-mynt" data-h="mynt-kast" data-stille aria-label="Kast mynten">
+              <button class="vk-mynt" id="vk-mynt" data-h="mynt-kast" data-stille aria-label="${esc(R.t("Kast mynten"))}">
                 <span class="vk-mynt-skygge" aria-hidden="true"></span>
                 <span class="vk-mynt-hopp" aria-hidden="true"><span class="vk-mynt-vipp">${myntHtml(M.side)}</span></span>
               </button>
             </div>
-            <p class="vk-mynt-res" id="vk-mynt-res" aria-live="polite">${kastet ? (M.side === "kron" ? "Kron!" : "Mynt!") : "Kron eller mynt?"}</p>
-            <div class="vk-mynt-tall"><span><small>Kron</small><b>${M.kron}</b></span><span><small>Mynt</small><b>${M.mynt}</b></span></div>
-            ${M.rekke.length ? `<p class="vk-mynt-rekke" aria-label="De siste kastene">${M.rekke.slice(0, 12).map((s) => `<i class="${s}">${s === "kron" ? "K" : "M"}</i>`).join("")}</p>` : ""}
-            ${R.ui.dokk(R.ui.knapp("Kast mynten", "mynt-kast", { variant: "stor", ikon: "🪙" }), kastet ? R.ui.lenkerad(R.ui.lenke("Nullstill", "mynt-nullstill")) : "")}`;
+            <p class="vk-mynt-res" id="vk-mynt-res" aria-live="polite">${esc(kastet ? (M.side === "kron" ? R.t("Kron!") : R.t("Mynt!")) : R.t("Kron eller mynt?"))}</p>
+            <div class="vk-mynt-tall"><span><small>${esc(R.t("Kron|Kron", { n: M.kron }))}</small><b>${M.kron}</b></span><span><small>${esc(R.t("Mynt|Mynt", { n: M.mynt }))}</small><b>${M.mynt}</b></span></div>
+            ${M.rekke.length ? `<p class="vk-mynt-rekke" aria-label="${esc(R.t("De siste kastene"))}">${M.rekke.slice(0, 12).map((s) => `<i class="${s}">${esc(s === "kron" ? R.t("K") : R.t("M"))}</i>`).join("")}</p>` : ""}
+            ${R.ui.dokk(R.ui.knapp(R.t("Kast mynten"), "mynt-kast", { variant: "stor", ikon: "🪙" }), kastet ? R.ui.lenkerad(R.ui.lenke(R.t("Nullstill"), "mynt-nullstill")) : "")}`;
         },
         inn: () => R.holdVaken(),
       },
 
       // ---------- Random number ----------
       tall: {
-        tittel: "Tilfeldig tall",
+        tittel: R.t("Tilfeldig tall"),
         tilbake: "hjem",
         vis(S) {
           const T = S.tall;
@@ -713,30 +718,30 @@
           const igjen = T.unik ? hoy - lav + 1 - new Set(T.trukket.filter((n) => n >= lav && n <= hoy)).size : null;
           const tom = T.unik && igjen <= 0;
           return `
-            <h1 class="vh" id="skjerm-tittel">Tilfeldig tall</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("Tilfeldig tall"))}</h1>
             <div class="vk-tall-vindu"><output class="vk-tall" id="vk-tall" aria-live="polite">${T.siste == null ? "?" : esc(R.tall(T.siste))}</output></div>
-            <p class="hjelp" id="vk-tall-info">${tom ? "Alle tallene er trukket!" : `Mellom ${esc(R.tall(lav))} og ${esc(R.tall(hoy))}${T.unik ? ` · ${R.flertall(igjen, "tall", "tall")} igjen` : ""}`}</p>
+            <p class="hjelp" id="vk-tall-info">${esc(tom ? R.t("Alle tallene er trukket!") : tallInfo(lav, hoy, T.unik ? igjen : null))}</p>
             <section class="seksjon">
               <div class="vk-tall-felt">
-                <label><span class="etikett">Fra</span><input class="tekstfelt" id="vk-fra" data-felt="tall-fra" type="number" inputmode="numeric" value="${T.fra}" min="-999999" max="999999"></label>
-                <label><span class="etikett">Til</span><input class="tekstfelt" id="vk-til" data-felt="tall-til" type="number" inputmode="numeric" value="${T.til}" min="-999999" max="999999"></label>
+                <label><span class="etikett">${esc(R.t("Fra"))}</span><input class="tekstfelt" id="vk-fra" data-felt="tall-fra" type="number" inputmode="numeric" value="${T.fra}" min="-999999" max="999999"></label>
+                <label><span class="etikett">${esc(R.t("Til"))}</span><input class="tekstfelt" id="vk-til" data-felt="tall-til" type="number" inputmode="numeric" value="${T.til}" min="-999999" max="999999"></label>
               </div>
-              <div class="brikker" role="group" aria-label="Vanlige valg">${[[1, 6], [1, 10], [1, 20], [1, 100]]
+              <div class="brikker" role="group" aria-label="${esc(R.t("Vanlige valg"))}">${[[1, 6], [1, 10], [1, 20], [1, 100]]
                 .map(([a, b]) => `<button class="brikke" data-h="tall-fast" data-v="${a}-${b}" aria-pressed="${T.fra === a && T.til === b}">${a}–${b}</button>`)
                 .join("")}</div>
-              ${R.ui.bryter("tall-unik", T.unik, "Ikke samme tall to ganger", "Som et lotteri: hvert tall trekkes bare én gang.")}
+              ${R.ui.bryter("tall-unik", T.unik, R.t("Ikke samme tall to ganger"), R.t("Som et lotteri: hvert tall trekkes bare én gang."))}
             </section>
-            ${T.trukket.length ? `<p class="vk-historikk"><span class="etikett">Trukket</span>${T.trukket.slice(0, 30).map((n) => `<span>${esc(R.tall(n))}</span>`).join("")}</p>` : ""}
+            ${T.trukket.length ? `<p class="vk-historikk"><span class="etikett">${esc(R.t("Trukket"))}</span>${T.trukket.slice(0, 30).map((n) => `<span>${esc(R.tall(n))}</span>`).join("")}</p>` : ""}
             ${R.ui.dokk(
-              tom ? R.ui.knapp("Start på nytt", "tall-nullstill", { variant: "stor", ikon: "🔄" }) : R.ui.knapp("Trekk et tall", "tall-trekk", { variant: "stor", ikon: "🔢" }),
-              T.trukket.length && !tom ? R.ui.lenkerad(R.ui.lenke("Nullstill", "tall-nullstill")) : "",
+              tom ? R.ui.knapp(R.t("Start på nytt"), "tall-nullstill", { variant: "stor", ikon: "🔄" }) : R.ui.knapp(R.t("Trekk et tall"), "tall-trekk", { variant: "stor", ikon: "🔢" }),
+              T.trukket.length && !tom ? R.ui.lenkerad(R.ui.lenke(R.t("Nullstill"), "tall-nullstill")) : "",
             )}`;
         },
       },
 
       // ---------- Score counter ----------
       poeng: {
-        tittel: "Poengteller",
+        tittel: R.t("Poengteller"),
         tilbake: "hjem",
         vis(S) {
           const P = S.poeng;
@@ -744,26 +749,26 @@
           const topp = Math.max(...rader.map((r) => r.poeng));
           const a = P.angre;
           return `
-            <h1 class="vh" id="skjerm-tittel">Poengteller</h1>
-            ${R.ui.seg("poeng-steg", [[1, "±1"], [5, "±5"], [10, "±10"]], P.steg, { etikett: "Hvor mye hvert trykk gir" })}
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("Poengteller"))}</h1>
+            ${R.ui.seg("poeng-steg", [[1, "±1"], [5, "±5"], [10, "±10"]], P.steg, { etikett: R.t("Hvor mye hvert trykk gir") })}
             <ul class="vk-pt">${rader
               .map(
                 (r) => `<li class="vk-pt-rad${r.poeng === topp && topp !== 0 && rader.length > 1 ? " leder" : ""}" style="--pf: var(--p${r.i + 1})">
                   <span class="vk-pt-avatar">${R.avatar(r.i)}${r.poeng === topp && topp > 0 && rader.length > 1 ? '<span class="vk-pt-krone" aria-hidden="true">👑</span>' : ""}</span>
-                  <input class="vk-pt-navn" id="navn-${r.i}" data-navn="${r.i}" value="${esc(R.felles.navn[r.i] || "")}" placeholder="Spiller ${r.i + 1}" maxlength="16" autocomplete="off" autocapitalize="words" enterkeyhint="done" aria-label="Navn på spiller ${r.i + 1}">
-                  <button class="vk-pt-knapp" data-h="poeng-endre" data-v="${r.i}:-1" aria-label="${esc(`Trekk fra ${P.steg} for ${R.navn(r.i)}`)}">−</button>
+                  <input class="vk-pt-navn" id="navn-${r.i}" data-navn="${r.i}" value="${esc(R.felles.navn[r.i] || "")}" placeholder="${esc(R.t("Spiller {n}", { n: r.i + 1 }))}" maxlength="16" autocomplete="off" autocapitalize="words" enterkeyhint="done" aria-label="${esc(R.t("Navn på spiller {n}", { n: r.i + 1 }))}">
+                  <button class="vk-pt-knapp" data-h="poeng-endre" data-v="${r.i}:-1" aria-label="${esc(R.t("Trekk fra {n} for {navn}", { n: P.steg, navn: R.navn(r.i) }))}">−</button>
                   <output class="vk-pt-sum" id="vk-pt-${r.i}" aria-live="polite">${r.poeng}</output>
-                  <button class="vk-pt-knapp pluss" data-h="poeng-endre" data-v="${r.i}:1" aria-label="${esc(`Legg til ${P.steg} for ${R.navn(r.i)}`)}">+</button>
-                  ${P.antall > 1 ? `<button class="vk-pt-fjern" data-h="poeng-fjern" data-v="${r.i}" aria-label="${esc(`Fjern ${R.navn(r.i)}`)}">×</button>` : ""}
+                  <button class="vk-pt-knapp pluss" data-h="poeng-endre" data-v="${r.i}:1" aria-label="${esc(R.t("Legg til {n} for {navn}", { n: P.steg, navn: R.navn(r.i) }))}">+</button>
+                  ${P.antall > 1 ? `<button class="vk-pt-fjern" data-h="poeng-fjern" data-v="${r.i}" aria-label="${esc(R.t("Fjern {navn}", { navn: R.navn(r.i) }))}">×</button>` : ""}
                 </li>`,
               )
               .join("")}</ul>
-            <button class="legg-til" data-h="poeng-legg-til"${P.antall >= 8 ? " disabled" : ""}>+ Legg til spiller${P.antall >= 8 ? " (maks 8)" : ""}</button>
+            <button class="legg-til" data-h="poeng-legg-til"${P.antall >= 8 ? " disabled" : ""}>${esc(R.t("+ Legg til spiller"))}${P.antall >= 8 ? " " + esc(R.t("(maks {n})", { n: 8 })) : ""}</button>
             ${R.ui.dokk(
-              R.ui.knapp("Kår vinneren", "poeng-kaar", { variant: "stor", ikon: "🏆", av: !pagar(S) }),
+              R.ui.knapp(R.t("Kår vinneren"), "poeng-kaar", { variant: "stor", ikon: "🏆", av: !pagar(S) }),
               R.ui.lenkerad(
-                a ? `<button class="lenke" data-h="poeng-angre" id="vk-angre">↶ Angre ${a.endring > 0 ? "+" : "−"}${Math.abs(a.endring)} til ${esc(R.navn(a.i))}</button>` : "",
-                pagar(S) ? R.ui.lenke("Nullstill", "poeng-nullstill") : "",
+                a ? `<button class="lenke" data-h="poeng-angre" id="vk-angre">↶ ${esc(R.t("Angre {endring} til {navn}", { endring: `${a.endring > 0 ? "+" : "−"}${Math.abs(a.endring)}`, navn: R.navn(a.i) }))}</button>` : "",
+                pagar(S) ? R.ui.lenke(R.t("Nullstill"), "poeng-nullstill") : "",
               ),
             )}`;
         },
@@ -771,7 +776,7 @@
       },
 
       kaaring: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "poeng",
         gjenoppta: "poeng",
         vis(S) {
@@ -781,13 +786,13 @@
           return `
             <div class="banner aksent">
               ${vinnere.length === 1 ? `<span class="vk-vinner">${R.avatar(vinnere[0].i, "gigant")}<span class="vk-krone" aria-hidden="true">👑</span></span>` : R.figur()}
-              <h1 id="skjerm-tittel">${esc(R.ramsOpp(vinnere.map((r) => R.navn(r.i))))} vinner!</h1>
-              <p class="ingress">${vinnere.length > 1 ? `Likt med ${R.flertall(best, "poeng", "poeng")} hver.` : `${R.flertall(best, "poeng", "poeng")}. Godt jobba!`}</p>
+              <h1 id="skjerm-tittel">${esc(R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(vinnere.map((r) => R.navn(r.i))), n: vinnere.length }))}</h1>
+              <p class="ingress">${esc(vinnere.length > 1 ? R.t("Likt med {poeng} hver.", { poeng: R.flertall(best, "poeng", "poeng") }) : R.t("{poeng}. Godt jobba!", { poeng: R.flertall(best, "poeng", "poeng") }))}</p>
             </div>
             ${R.ui.pall(rader)}
             ${R.ui.poengliste(rader)}
             ${R.ui.flereSpill({ antall: S.poeng.antall })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "poeng-igjen"), R.ui.lenkerad(R.ui.lenke("Til Verktøykassa", "hjem"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "poeng-igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Til Verktøykassa"), "hjem"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn() {
           R.lyd.fanfare();
@@ -798,28 +803,28 @@
 
       // ---------- Countdown and stopwatch ----------
       klokke: {
-        tittel: "Klokke",
+        tittel: R.t("Klokke"),
         tilbake: "hjem",
         vis(S) {
           const k = S.klokke;
-          const modus = R.ui.seg("klokke-modus", [["ned", "Nedtelling"], ["stopp", "Stoppeklokke"]], k.modus, { etikett: "Klokke" });
+          const modus = R.ui.seg("klokke-modus", [["ned", R.t("Nedtelling")], ["stopp", R.t("Stoppeklokke")]], k.modus, { etikett: R.t("Klokke") });
           if (k.modus === "stopp") {
             const st = k.stopp;
             const ms = stoppMs(st);
             const gar = !!st.start;
             const runder = st.runder;
             return `
-              <h1 class="vh" id="skjerm-tittel">Stoppeklokke</h1>
+              <h1 class="vh" id="skjerm-tittel">${esc(R.t("Stoppeklokke"))}</h1>
               ${modus}
               <output class="vk-stoppur${gar ? " gar" : ""}" id="vk-stoppur" aria-live="off">${stoppetid(ms)}</output>
               ${runder.length ? `<ol class="vk-runder" reversed>${runder
                 .map((r, n) => [r, n])
                 .reverse()
-                .map(([r, n]) => `<li><span>Runde ${n + 1}</span><b>${stoppetid(r - (n ? runder[n - 1] : 0))}</b><small>${stoppetid(r)}</small></li>`)
+                .map(([r, n]) => `<li><span>${esc(R.t("Runde {n}", { n: n + 1 }))}</span><b>${stoppetid(r - (n ? runder[n - 1] : 0))}</b><small>${stoppetid(r)}</small></li>`)
                 .join("")}</ol>` : ""}
               ${R.ui.dokk(
-                R.ui.knapp(gar ? "Stopp" : ms ? "Fortsett" : "Start", "stopp-veksle", { variant: gar ? "stor rosa" : "stor mynte", ikon: gar ? "⏸" : "▶" }),
-                R.ui.lenkerad(gar ? R.ui.lenke("Runde", "stopp-runde") : "", !gar && ms ? R.ui.lenke("Nullstill", "stopp-nullstill") : ""),
+                R.ui.knapp(gar ? R.t("Stopp") : ms ? R.t("Fortsett") : R.t("Start"), "stopp-veksle", { variant: gar ? "stor rosa" : "stor mynte", ikon: gar ? "⏸" : "▶" }), // class names // sprak-ok
+                R.ui.lenkerad(gar ? R.ui.lenke(R.t("Runde"), "stopp-runde") : "", !gar && ms ? R.ui.lenke(R.t("Nullstill"), "stopp-nullstill") : ""),
               )}`;
           }
           const igjen = igjenMs(k);
@@ -827,21 +832,21 @@
           const pauset = !gar && k.pause != null;
           const ferdig = k.ferdig && !gar && !pauset;
           return `
-            <h1 class="vh" id="skjerm-tittel">Nedtelling</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("Nedtelling"))}</h1>
             ${modus}
             <div class="vk-ned${ferdig ? " ute" : ""}">${R.ui.timer({ id: "vk-ned", sekunder: ferdig ? 0 : igjen / 1000, stor: true })}</div>
-            ${ferdig ? `<p class="vk-ute" aria-live="assertive">Tiden er ute!</p>` : ""}
+            ${ferdig ? `<p class="vk-ute" aria-live="assertive">${esc(R.t("Tiden er ute!"))}</p>` : ""}
             ${gar || pauset
               ? ""
               : `<section class="seksjon">
-                  <div class="brikker vk-klokke-valg" role="group" aria-label="Velg tid">${[30, 60, 120, 180, 300, 600]
+                  <div class="brikker vk-klokke-valg" role="group" aria-label="${esc(R.t("Velg tid"))}">${[30, 60, 120, 180, 300, 600]
                     .map((s) => `<button class="brikke" data-h="klokke-tid" data-v="${s}" aria-pressed="${k.sekunder === s}">${minSek(s)}</button>`)
                     .join("")}</div>
-                  ${R.ui.teller("klokke-juster", k.sekunder, 10, 5940, { vis: (s) => R.formaterTid(s), minus: "30 sekunder mindre", pluss: "30 sekunder mer" })}
+                  ${R.ui.teller("klokke-juster", k.sekunder, 10, 5940, { vis: (s) => R.formaterTid(s), minus: R.t("30 sekunder mindre"), pluss: R.t("30 sekunder mer") })}
                 </section>`}
             ${R.ui.dokk(
-              R.ui.knapp(gar ? "Pause" : pauset ? "Fortsett" : ferdig ? "Start igjen" : "Start", "klokke-veksle", { variant: gar ? "stor rosa" : "stor mynte", ikon: gar ? "⏸" : "▶" }),
-              gar || pauset || ferdig ? R.ui.lenkerad(R.ui.lenke("Nullstill", "klokke-nullstill")) : "",
+              R.ui.knapp(gar ? R.t("Pause") : pauset ? R.t("Fortsett") : ferdig ? R.t("Start igjen") : R.t("Start"), "klokke-veksle", { variant: gar ? "stor rosa" : "stor mynte", ikon: gar ? "⏸" : "▶" }), // class names // sprak-ok
+              gar || pauset || ferdig ? R.ui.lenkerad(R.ui.lenke(R.t("Nullstill"), "klokke-nullstill")) : "",
             )}`;
         },
         inn(S) {
@@ -882,10 +887,10 @@
         const n = R.klamp(S.antall, 2, 20);
         const navn = Array.from({ length: n }, (_, i) => R.navn(i));
         R.ark(`
-          <h2 id="ark-tittel">Hvem starter?</h2>
-          <p class="ingress">Mobilen trekker blant ${R.flertall(n, "navn", "navn")} fra lagdeleren.</p>
+          <h2 id="ark-tittel">${esc(R.t("Hvem starter?"))}</h2>
+          <p class="ingress">${esc(R.t("Mobilen trekker blant {navn} fra lagdeleren.", { navn: R.flertall(n, "navn", "navn") }))}</p>
           <p class="vk-trekk" id="vk-trekk" aria-live="polite">…</p>
-          <div class="knapprad"><button class="knapp-2" data-h="apne" data-v="lag">Endre navn</button><button class="knapp" data-h="starter-navn">Trekk igjen</button></div>`);
+          <div class="knapprad"><button class="knapp-2" data-h="apne" data-v="lag">${esc(R.t("Endre navn"))}</button><button class="knapp" data-h="starter-navn">${esc(R.t("Trekk igjen"))}</button></div>`);
         const ut = document.getElementById("vk-trekk");
         const vinner = Math.floor(tilfeldig() * n);
         const runder = R.rolig() ? 1 : 14;
@@ -896,11 +901,11 @@
           await R.vent(40 + k * k * 1.4);
         }
         if (!ut.isConnected) return;
-        ut.textContent = `${navn[vinner]} starter!`;
+        ut.textContent = R.t("{navn} starter!", { navn: navn[vinner] });
         ut.classList.add("ferdig");
         R.lyd.fanfare();
         R.vibrer([40, 40, 90]);
-        R.si(`${navn[vinner]} starter!`);
+        R.si(R.t("{navn} starter!", { navn: navn[vinner] }));
       },
 
       // Dice
@@ -940,7 +945,7 @@
         R.vis();
         const ny = document.getElementById("vk-sum");
         if (ny) ny.classList.add("ny");
-        R.si(t.antall > 1 ? `Terningene viser ${R.ramsOpp(t.verdier.map(String))}. Sum ${sum}.` : `Terningen viser ${sum}.`);
+        R.si(t.antall > 1 ? R.t("Terningene viser {tall}. Sum {sum}.", { tall: R.ramsOpp(t.verdier.map(String)), sum }) : R.t("Terningen viser {sum}.", { sum }));
       },
 
       // Teams
@@ -958,7 +963,7 @@
         R.statistikk("lag", { spillere: n, lag: S.lag.antall });
         if (S.skjerm === "lag") R.vis();
         window.scrollTo(0, 0);
-        R.si(S.lag.fordeling.map((lag, k) => `Lag ${R.LAG[k].navn}: ${R.ramsOpp(lag.map((i) => R.navn(i)))}`).join(". "));
+        R.si(S.lag.fordeling.map((lag, k) => `${R.lagNavn(k)}: ${R.ramsOpp(lag.map((i) => R.navn(i)))}`).join(". "));
       },
       "lag-endre"(el, e, S) {
         S.lag.fordeling = null;
@@ -987,7 +992,7 @@
         if (hDu) hDu.textContent = "✊";
         if (hMobil) hMobil.textContent = "✊";
         if (res) res.className = "vk-ssp-res";
-        const ord = ["Stein …", "saks …", "papir!"];
+        const ord = [R.t("Stein …"), R.t("saks …"), R.t("papir!")];
         try {
           for (let k = 0; k < 3; k++) {
             if (!fortsatt()) return;
@@ -1019,7 +1024,7 @@
         else R.lyd.pling();
         const ny = document.getElementById("vk-arena");
         if (ny) ny.classList.add("avslort");
-        R.si(`${HENDER[du].navn} mot ${HENDER[mobil].navn}. ${v === 1 ? "Du vant!" : v === 2 ? "Mobilen vant!" : "Uavgjort!"}`);
+        R.si(`${R.t("{a} mot {b}.", { a: HENDER[du].navn, b: HENDER[mobil].navn })} ${v === 1 ? R.t("Du vant!") : v === 2 ? R.t("Mobilen vant!") : R.t("Uavgjort!")}`);
       },
       // Two players: each chooses in secret on their half; both shown when both are ready.
       "ssp-to"(el, e, S) {
@@ -1036,7 +1041,7 @@
           if (v === 1) P.poengA += 1;
           else if (v === 2) P.poengB += 1;
           R.lyd.trommevirvel(R.rolig() ? 0.1 : 0.5);
-          R.si(`${R.navn(0)}: ${HENDER[P.a].navn}. ${R.navn(1)}: ${HENDER[P.b].navn}. ${v === 0 ? "Uavgjort!" : `${v === 1 ? R.navn(0) : R.navn(1)} vant!`}`);
+          R.si(`${R.navn(0)}: ${HENDER[P.a].navn}. ${R.navn(1)}: ${HENDER[P.b].navn}. ${v === 0 ? R.t("Uavgjort!") : R.t("{navn} vant!", { navn: v === 1 ? R.navn(0) : R.navn(1) })}`);
         }
         R.vis();
       },
@@ -1097,7 +1102,7 @@
         R.vibrer([20, 50, 20]);
         const nyRes = document.getElementById("vk-mynt-res");
         if (nyRes) nyRes.classList.add("ny");
-        R.si(side === "kron" ? "Kron!" : "Mynt!");
+        R.si(side === "kron" ? R.t("Kron!") : R.t("Mynt!"));
       },
       "mynt-nullstill"(el, e, S) {
         Object.assign(S.mynt, { kron: 0, mynt: 0, rekke: [] });
@@ -1122,7 +1127,7 @@
         if (travelt.tall) return;
         const n = trekkTall(T.fra, T.til, T.trukket, T.unik, tilfeldig);
         if (n == null) {
-          R.toast("Alle tallene er trukket");
+          R.toast(R.t("Alle tallene er trukket"));
           return;
         }
         T.siste = n;
@@ -1149,7 +1154,7 @@
         if (ny) ny.classList.add("ny");
         R.lyd.pling();
         R.vibrer(20);
-        R.si(`Tallet er ${n}.`);
+        R.si(R.t("Tallet er {n}.", { n }));
       },
       "tall-nullstill"(el, e, S) {
         S.tall.trukket = [];
@@ -1185,7 +1190,7 @@
         P.angre = null;
         P.kaaret = null;
         R.lyd.snu();
-        R.toast(`Angret ${a.endring > 0 ? "+" : "−"}${Math.abs(a.endring)} til ${R.navn(a.i)}`);
+        R.toast(R.t("Angret {endring} til {navn}", { endring: `${a.endring > 0 ? "+" : "−"}${Math.abs(a.endring)}`, navn: R.navn(a.i) }));
         R.vis();
       },
       "poeng-legg-til"(el, e, S) {
@@ -1215,7 +1220,7 @@
       },
       async "poeng-nullstill"(el, e, S) {
         const fortsatt = R.vakt();
-        if (!(await R.bekreft("Nullstille poengene?", "Alle får 0 poeng. Navnene blir stående.", "Nullstill", "Avbryt")) || !fortsatt()) return;
+        if (!(await R.bekreft(R.t("Nullstille poengene?"), R.t("Alle får 0 poeng. Navnene blir stående."), R.t("Nullstill"), R.t("Avbryt"))) || !fortsatt()) return;
         S.poeng.verdier = Array(8).fill(0);
         S.poeng.angre = null;
         S.poeng.kaaret = null;
@@ -1339,7 +1344,7 @@
     const info = document.getElementById("vk-tall-info");
     const lav = Math.min(T.fra, T.til);
     const hoy = Math.max(T.fra, T.til);
-    if (info) info.textContent = `Mellom ${R.tall(lav)} og ${R.tall(hoy)}${T.unik ? ` · ${R.flertall(hoy - lav + 1, "tall", "tall")} igjen` : ""}`;
+    if (info) info.textContent = tallInfo(lav, hoy, T.unik ? hoy - lav + 1 : null);
     const ut = document.getElementById("vk-tall");
     if (ut) ut.textContent = "?";
     R.$$('[data-h="tall-fast"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === `${T.fra}-${T.til}`)));

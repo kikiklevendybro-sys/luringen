@@ -11,5 +11,23 @@
   "rekkefolge": 42,
   "farge": "#ffb02e",
   "sok": ["hvem starter", "hvem begynner", "finger velger", "kron eller mynt", "terning", "lagdeler", "stein saks papir", "poengteller", "stoppeklokke", "nedtelling", "tilfeldig tall"],
-  "alias": ["hvem-starter", "laggenerator", "terning", "kron-eller-mynt", "verktøykassa"]
+  "alias": ["hvem-starter", "laggenerator", "terning", "kron-eller-mynt", "verktøykassa"],
+  "i18n": {
+    "en": {
+      "navn": "Toolbox",
+      "undertittel": "Party tools",
+      "kort": "Who goes first? Dice, teams, a coin, scores and a timer – all in one place.",
+      "beskrivelse": "Free party tools: ‘Who goes first?’ with fingers on the screen, dice, a team picker, rock paper scissors, heads or tails, a scorekeeper and a timer.",
+      "slug": "toolbox",
+      "sok": ["who goes first", "finger chooser", "team picker", "team generator", "dice roller", "roll a dice", "heads or tails", "coin toss", "flip a coin", "rock paper scissors", "scorekeeper", "score counter", "stopwatch", "countdown timer", "random number generator"]
+    },
+    "da": {
+      "navn": "Værktøjskassen",
+      "undertittel": "Festværktøj",
+      "kort": "Hvem starter? Terninger, hold, mønt, point og ur – samlet ét sted.",
+      "beskrivelse": "Gratis festværktøj på dansk: »Hvem starter?« med fingrene på skærmen, terninger, holddeler, sten, saks, papir, plat eller krone, pointtæller og ur.",
+      "slug": "vaerktoejskassen",
+      "sok": ["hvem starter", "hvem begynder", "fingervælger", "holddeler", "holdgenerator", "terning", "slå med terning", "plat eller krone", "sten saks papir", "pointtæller", "stopur", "nedtælling", "tilfældigt tal"]
+    }
+  }
 }

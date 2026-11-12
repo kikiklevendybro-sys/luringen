@@ -16,10 +16,13 @@
   const STORRELSER = [12, 16, 20, 24, 30];
   const STORRELSER_TO = [14, 18, 22, 26, 30];
   // husk: the chance that a card the elephant sees being turned, sticks in its memory.
+  // Every text goes through Rusj.t (rusj/SPRAK.md): the key is the Norwegian text. The unit tests
+  // load this file without the kit, and then the Norwegian text is used as it is.
+  const Rusj = window.Rusj && typeof window.Rusj.t === "function" ? window.Rusj : { t: (k) => k };
   const STYRKER = [
-    { id: "unge", navn: "Elefantunge", tekst: "Glemmer det meste", bestemt: "elefantungen", husk: 0.35 },
-    { id: "voksen", navn: "Elefant", tekst: "Husker en god del", bestemt: "elefanten", husk: 0.65 },
-    { id: "gammel", navn: "Gammel elefant", tekst: "Glemmer aldri", bestemt: "den gamle elefanten", husk: 1 },
+    { id: "unge", navn: Rusj.t("Elefantunge"), tekst: Rusj.t("Glemmer det meste"), bestemt: Rusj.t("elefantungen"), husk: 0.35 },
+    { id: "voksen", navn: Rusj.t("Elefant"), tekst: Rusj.t("Husker en god del"), bestemt: Rusj.t("elefanten"), husk: 0.65 },
+    { id: "gammel", navn: Rusj.t("Gammel elefant"), tekst: Rusj.t("Glemmer aldri"), bestemt: Rusj.t("den gamle elefanten"), husk: 1 },
   ];
   const styrke = (id) => STYRKER.find((s) => s.id === id) || STYRKER[0];
 
@@ -93,7 +96,8 @@
   const GJENGEN = "gjengen";
   const JUL = "jul";
   const MODUSER = ["alene", "elefant", "sammen"];
-  const DEL_URL = "https://rusj.no/elefanten/";
+  // The address to share: this edition's page (rusj.no/elefanten/, rusj.no/en/<slug>/ …).
+  const DEL_URL = "https://rusj.no" + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "elefanten") + "/";
 
   // Every theme as a list of faces: { navn, html, tint }
   const LISTER = {};
@@ -113,13 +117,13 @@
   // The themes on offer now: the Christmas pictures first, in season only.
   const temaerNa = () => (julNa() ? [...D.temaer.filter((t) => t.id === JUL), ...D.temaer.filter((t) => t.id !== JUL)] : D.temaer.filter((t) => t.id !== JUL));
 
-  const JA = ["Bra!", "Supert!", "Ja!", "Husket!", "Kjempebra!", "Wow!", "Tøft!", "Elefantbra!"];
-  const NEI = ["Nesten!", "Hmm …", "Prøv igjen!", "Oi!", "Husk dem!", "Snart!"];
+  const JA = [R.t("Bra!"), R.t("Supert!"), R.t("Ja!"), R.t("Husket!"), R.t("Kjempebra!"), R.t("Wow!"), R.t("Tøft!"), R.t("Elefantbra!")];
+  const NEI = [R.t("Nesten!"), R.t("Hmm …"), R.t("Prøv igjen!"), R.t("Oi!"), R.t("Husk dem!"), R.t("Snart!")];
   // What the elephant says when it plays itself.
-  const VET = ["Den husker jeg!", "Jeg vet det!", "Aha!", "Den så jeg!"];
-  const TENKER = ["Hmm …", "Hvor var den nå …", "La meg se …", "Tja …"];
-  const TOK = ["Husket!", "Tut-tut!", "Elefantbra!", "Der ja!"];
-  const BOM = ["Glemte det …", "Æsj!", "Nesten!", "Oi da!"];
+  const VET = [R.t("Den husker jeg!"), R.t("Jeg vet det!"), R.t("Aha!"), R.t("Den så jeg!")];
+  const TENKER = [R.t("Hmm …"), R.t("Hvor var den nå …"), R.t("La meg se …"), R.t("Tja …")];
+  const TOK = [R.t("Husket!"), R.t("Tut-tut!"), R.t("Elefantbra!"), R.t("Der ja!")];
+  const BOM = [R.t("Glemte det …"), R.t("Æsj!"), R.t("Nesten!"), R.t("Oi da!")];
 
   let H; // actions
   let las = false; // input locked (the peek at the start, the end of a game)
@@ -198,7 +202,7 @@
   const parFunnet = (sp) => sp.funnet.filter((f) => f >= 0).length / 2;
   const erElefantensTur = (sp) => !!sp.motstander && sp.tur === 1 && !sp.ferdig;
   // Who is player i on this board? Against the elephant: «Du» and «Elefanten».
-  const hvem = (sp, i) => (sp.motstander ? (i === 0 ? "Du" : "Elefanten") : R.navn(i));
+  const hvem = (sp, i) => (sp.motstander ? (i === 0 ? R.t("Du") : R.t("Elefanten")) : R.navn(i));
   const fargeFor = (sp, i) => (sp.motstander && i === 1 ? "var(--aksent)" : `var(--p${(i % 20) + 1})`);
   const merkeFor = (sp, i) => (sp.motstander && i === 1 ? "🐘" : R.DYR[i % 20]);
   const avatarFor = (sp, i) => (sp.motstander && i === 1 ? `<span class="avatar ele-elefant" aria-hidden="true">${G.svg("elefanten")}</span>` : R.avatar(i));
@@ -231,9 +235,9 @@
 
   function etikett(sp, i) {
     const f = sp.funnet[i];
-    if (f >= 0) return `${ansikt(sp, i).navn} – funnet`;
-    if (sp.opp.includes(i) || (venter && (venter.a === i || venter.b === i))) return `Kort ${i + 1}: ${ansikt(sp, i).navn}`;
-    return `Kort ${i + 1}`;
+    if (f >= 0) return R.t("{bilde} – funnet", { bilde: ansikt(sp, i).navn });
+    if (sp.opp.includes(i) || (venter && (venter.a === i || venter.b === i))) return R.t("Kort {n}: {bilde}", { n: i + 1, bilde: ansikt(sp, i).navn });
+    return R.t("Kort {n}", { n: i + 1 });
   }
 
   // ---------- Markup ----------
@@ -258,15 +262,15 @@
     if (sp.antall === 1) {
       const rek = S.rekorder[rekordNokkel(sp)];
       return `<div class="ele-hud solo">
-        <span class="ele-stat"><small>Par</small><b id="ele-par">${parFunnet(sp)}/${parTotalt(sp)}</b></span>
-        <span class="ele-stat"><small>Trekk</small><b id="ele-trekk">${sp.trekk}</b></span>
-        <span class="ele-stat"><small>Tid</small><b id="ele-tid">${visTid(tidMs(sp))}</b></span>
-        <span class="ele-stat rekord"><small>Rekord</small><b>${rek ? `🏆 ${rek.trekk}` : "–"}</b></span>
+        <span class="ele-stat"><small>${esc(R.t("Par"))}</small><b id="ele-par">${parFunnet(sp)}/${parTotalt(sp)}</b></span>
+        <span class="ele-stat"><small>${esc(R.t("Trekk"))}</small><b id="ele-trekk">${sp.trekk}</b></span>
+        <span class="ele-stat"><small>${esc(R.t("Tid"))}</small><b id="ele-tid">${visTid(tidMs(sp))}</b></span>
+        <span class="ele-stat rekord"><small>${esc(R.t("Rekord"))}</small><b>${rek ? `🏆 ${rek.trekk}` : "–"}</b></span>
       </div>`;
     }
     // Names may wrap to two lines; with three or four players the name gets its own line under the avatar.
     // In a tie-break only those who share the lead play: the others are dimmed.
-    return `<div class="ele-hud flere${sp.antall >= 3 ? " stablet" : ""}" style="--antall:${sp.antall}" role="list" aria-label="Poeng">${sp.poeng
+    return `<div class="ele-hud flere${sp.antall >= 3 ? " stablet" : ""}" style="--antall:${sp.antall}" role="list" aria-label="${esc(R.t("Poeng"))}">${sp.poeng
       .map(
         (p, i) => `<span class="ele-spiller${i === sp.tur ? " na" : ""}${sp.med && !sp.med.includes(i) ? " ute" : ""}" role="listitem" style="--pf: ${fargeFor(sp, i)}"${i === sp.tur ? ' aria-current="true"' : ""}>
           ${avatarFor(sp, i)}<span class="ele-navn">${esc(hvem(sp, i))}</span><b class="ele-poeng">${p}</b>
@@ -281,13 +285,13 @@
     const sp = S.spill;
     const i = sp.tur;
     if (sp.motstander) {
-      const tekst = i === 0 ? (begynner ? "Du begynner!" : "Din tur") : "Elefantens tur";
-      melding(`${avatarFor(sp, i)}<span class="ele-m-tekst"><b>${tekst}</b></span>`, "tur");
+      const tekst = i === 0 ? (begynner ? R.t("Du begynner!") : R.t("Din tur")) : R.t("Elefantens tur");
+      melding(`${avatarFor(sp, i)}<span class="ele-m-tekst"><b>${esc(tekst)}</b></span>`, "tur");
       R.si(tekst);
       return;
     }
-    melding(navnLinje(sp, i, begynner ? "begynner!" : "sin tur"), "tur");
-    R.si(`${R.navn(i)} ${begynner ? "begynner" : "sin tur"}`);
+    melding(navnLinje(sp, i, begynner ? R.t("begynner!") : R.t("sin tur")), "tur");
+    R.si(begynner ? R.t("{navn} begynner", { navn: R.navn(i) }) : R.t("{navn} sin tur", { navn: R.navn(i) }));
   }
 
   function oppdaterHud(S) {
@@ -501,17 +505,17 @@
           spill(kortEl(k) && kortEl(k).querySelector(".ele-hopp"), "jubel", 700);
           gnister(kortEl(k));
         }
-        venn("jubel", elefanten ? R.velg(TOK) : ferdig ? "Hurra!" : R.velg(JA));
+        venn("jubel", elefanten ? R.velg(TOK) : ferdig ? R.t("Hurra!") : R.velg(JA));
       }, 380);
       oppdaterHud(S);
-      const ekstra = sp.motstander ? (elefanten ? "Ekstra tur til elefanten" : "Ekstra tur til deg") : sp.antall > 1 ? `Ekstra tur til ${R.navn(f)}` : "";
+      const ekstra = sp.motstander ? (elefanten ? R.t("Ekstra tur til elefanten") : R.t("Ekstra tur til deg")) : sp.antall > 1 ? R.t("Ekstra tur til {navn}", { navn: R.navn(f) }) : "";
       if (ferdig) {
         melding(`<span>${esc(navn)}!</span>`, "par");
         avslutt(S);
         return "ferdig";
       }
       melding(`<span>${esc(navn)}!</span>${ekstra ? `<small>${esc(ekstra)}</small>` : ""}`, "par");
-      R.si(`Et par: ${navn}${ekstra ? `. ${ekstra}` : ""}`);
+      R.si(R.t("Et par: {bilde}", { bilde: navn }) + (ekstra ? `. ${ekstra}` : ""));
       return "par";
     }
     // Not a pair: the turn passes now (saved), the cards turn back a moment later.
@@ -570,9 +574,9 @@
     if (!fortsatt()) return;
     R.$$(".ele-kort").forEach((el) => el.classList.add("opp"));
     R.lyd.sveip();
-    melding(`<span>Se godt!</span>${sp.motstander ? "<small>Elefanten kikker ikke</small>" : ""}`, "par");
-    R.si("Se godt! Alle kortene vises i tre sekunder.");
-    venn("hmm", sp.motstander ? "Jeg kikker ikke!" : "Se godt!");
+    melding(`<span>${esc(R.t("Se godt!"))}</span>${sp.motstander ? `<small>${esc(R.t("Elefanten kikker ikke"))}</small>` : ""}`, "par");
+    R.si(R.t("Se godt! Alle kortene vises i tre sekunder."));
+    venn("hmm", sp.motstander ? R.t("Jeg kikker ikke!") : R.t("Se godt!"));
     await R.vent(3000);
     if (!fortsatt()) return;
     R.$$(".ele-kort").forEach((el) => el.classList.remove("opp"));
@@ -647,16 +651,16 @@
   function samling(sp) {
     const liste = LISTER[sp.tema];
     return `<section class="ele-samling" aria-labelledby="ele-samling-tittel">
-      <h2 class="etikett" id="ele-samling-tittel">${sp.motstander ? "Parene dere fant" : sp.antall > 1 ? "Parene dere fant" : "Parene du fant"}</h2>
+      <h2 class="etikett" id="ele-samling-tittel">${esc(sp.motstander ? R.t("Parene dere fant") : sp.antall > 1 ? R.t("Parene dere fant") : R.t("Parene du fant"))}</h2>
       <ul>${sp.fant
         .map(([k, f], n) => `<li style="--n:${n}; --tint:${liste[k].tint}${sp.antall > 1 ? `; --pf: ${fargeFor(sp, f)}` : ""}"><span class="vh">${esc(liste[k].navn)}</span>${liste[k].html}</li>`)
         .join("")}</ul>
     </section>`;
   }
 
-  const TITLER = { 3: "Elefanthukommelse!", 2: "Skarpt husket!", 1: "Alle par funnet!" };
-  const stjerneHtml = (st) => `<p class="ele-stjerner" role="img" aria-label="${st} av 3 stjerner">${[1, 2, 3].map((n) => `<span class="${n <= st ? "pa" : ""}" style="--n:${n}">${n <= st ? "★" : "☆"}</span>`).join("")}</p>`;
-  const hvor = (sp) => `${sp.kort.length} kort${sp.tema === GJENGEN ? " med Rusj-gjengen" : ""}`;
+  const TITLER = { 3: R.t("Elefanthukommelse!"), 2: R.t("Skarpt husket!"), 1: R.t("Alle par funnet!") };
+  const stjerneHtml = (st) => `<p class="ele-stjerner" role="img" aria-label="${esc(R.t("{n} av 3 stjerner", { n: st }))}">${[1, 2, 3].map((n) => `<span class="${n <= st ? "pa" : ""}" style="--n:${n}">${n <= st ? "★" : "☆"}</span>`).join("")}</p>`;
+  const hvor = (sp) => (sp.tema === GJENGEN ? R.t("{n} kort med Rusj-gjengen", { n: sp.kort.length }) : R.t("{n} kort", { n: sp.kort.length }));
 
   function soloResultat(S) {
     const sp = S.spill;
@@ -664,25 +668,28 @@
     const st = r.st || stjernerFor(sp.trekk, parTotalt(sp));
     const rekord = r.nyTrekk || r.nyTid;
     let linje;
-    if (sp.kikk) linje = "Med «Kikk først» er det et øvingsspill – rekorden står urørt.";
-    else if (rekord) linje = `Ny rekord på ${hvor(sp)}! Forrige: ${r.gml.trekk} trekk · ${visTid(r.gml.tid * 1000)}`;
+    if (sp.kikk) linje = R.t("Med «Kikk først» er det et øvingsspill – rekorden står urørt.");
+    else if (rekord) linje = R.t("Ny rekord på {hvor}! Forrige: {trekk} trekk · {tid}", { hvor: hvor(sp), trekk: r.gml.trekk, tid: visTid(r.gml.tid * 1000) });
     else if (r.gml) {
       const unna = r.trekk - r.gml.trekk;
-      linje = `${unna > 0 ? `${unna === 1 ? "Bare ett trekk" : `${unna} trekk`} fra rekorden!` : "Like få trekk som rekorden!"} Rekorden din på ${hvor(sp)}: ${r.gml.trekk} trekk · ${visTid(r.gml.tid * 1000)}`;
-    } else linje = `Første gang på ${hvor(sp)} – nå har du en rekord å slå!`;
+      linje =
+        (unna > 0 ? (unna === 1 ? R.t("Bare ett trekk fra rekorden!") : R.t("{n} trekk fra rekorden!", { n: unna })) : R.t("Like få trekk som rekorden!")) +
+        " " +
+        R.t("Rekorden din på {hvor}: {trekk} trekk · {tid}", { hvor: hvor(sp), trekk: r.gml.trekk, tid: visTid(r.gml.tid * 1000) });
+    } else linje = R.t("Første gang på {hvor} – nå har du en rekord å slå!", { hvor: hvor(sp) });
     return `
       <div class="banner aksent">
         ${R.ui.figur(null, { stemning: st >= 2 || rekord ? "jubel" : "" })}
-        <p class="etikett">${parTotalt(sp)} av ${parTotalt(sp)} par</p>
+        <p class="etikett">${esc(R.t("{n} av {alle} par", { n: parTotalt(sp), alle: parTotalt(sp) }))}</p>
         <h1 id="skjerm-tittel">${esc(TITLER[st])}</h1>
         ${stjerneHtml(st)}
       </div>
       <div class="ele-resultat">
-        <div class="ele-tall${r.nyTrekk ? " ny" : ""}"><b>${r.trekk}</b><span>trekk</span>${r.nyTrekk ? '<i class="ele-ny">Rekord!</i>' : ""}</div>
-        <div class="ele-tall${r.nyTid ? " ny" : ""}"><b>${visTid(r.sek * 1000)}</b><span>tid</span>${r.nyTid ? '<i class="ele-ny">Rekord!</i>' : ""}</div>
+        <div class="ele-tall${r.nyTrekk ? " ny" : ""}"><b>${r.trekk}</b><span>${esc(R.t("trekk"))}</span>${r.nyTrekk ? `<i class="ele-ny">${esc(R.t("Rekord!"))}</i>` : ""}</div>
+        <div class="ele-tall${r.nyTid ? " ny" : ""}"><b>${visTid(r.sek * 1000)}</b><span>${esc(R.t("tid"))}</span>${r.nyTid ? `<i class="ele-ny">${esc(R.t("Rekord!"))}</i>` : ""}</div>
       </div>
       <p class="hjelp">${esc(linje)}</p>
-      ${R.ui.knapp2("Del resultatet", "del")}
+      ${R.ui.knapp2(R.t("Del resultatet"), "del")}
       ${samling(sp)}`;
   }
 
@@ -693,23 +700,23 @@
     const neste = STYRKER[STYRKER.indexOf(s) + 1];
     const tekst = r.vant
       ? s.id === "gammel"
-        ? "Du slo den gamle elefanten – den som aldri glemmer!"
-        : `Du slo ${s.bestemt}. Tør du prøve en som husker mer?`
+        ? R.t("Du slo den gamle elefanten – den som aldri glemmer!")
+        : R.t("Du slo {hvem}. Tør du prøve en som husker mer?", { hvem: s.bestemt })
       : s.id === "unge"
-        ? "Elefantungen husket litt mer enn deg denne gangen. Prøv igjen!"
+        ? R.t("Elefantungen husket litt mer enn deg denne gangen. Prøv igjen!")
         : s.id === "voksen"
-          ? "Elefanten husket mest denne gangen. Prøv igjen – eller ta en som husker litt mindre."
-          : "Den gamle elefanten glemmer aldri. Prøv igjen – eller ta en som husker litt mindre.";
+          ? R.t("Elefanten husket mest denne gangen. Prøv igjen – eller ta en som husker litt mindre.")
+          : R.t("Den gamle elefanten glemmer aldri. Prøv igjen – eller ta en som husker litt mindre.");
     return `
       <div class="banner aksent">
         ${r.vant ? `<span class="ele-vinner">${R.avatar(0, "gigant")}<span class="ele-krone" aria-hidden="true">👑</span></span>` : R.ui.figur(null, { stemning: "jubel" })}
-        <p class="etikett">${sp.poeng[0]} mot ${sp.poeng[1]} par · ${esc(s.navn)}</p>
-        <h1 id="skjerm-tittel">${r.vant ? "Du vant!" : "Elefanten vant!"}</h1>
+        <p class="etikett">${esc(R.t("{a} mot {b} par · {navn}", { a: sp.poeng[0], b: sp.poeng[1], navn: s.navn }))}</p>
+        <h1 id="skjerm-tittel">${esc(r.vant ? R.t("Du vant!") : R.t("Elefanten vant!"))}</h1>
         <p class="ingress">${esc(tekst)}</p>
       </div>
-      ${r.seirer ? `<p class="ele-seirer"><span>Seirer mot ${esc(s.bestemt)}</span> <b>🏆 ${r.seirer}</b></p>` : ""}
-      ${r.vant && neste ? R.ui.knapp2(`Prøv mot ${neste.bestemt}`, "sterkere") : ""}
-      ${r.vant ? R.ui.knapp2("Del resultatet", "del") : ""}
+      ${r.seirer ? `<p class="ele-seirer"><span>${esc(R.t("Seirer mot {hvem}", { hvem: s.bestemt }))}</span> <b>🏆 ${r.seirer}</b></p>` : ""}
+      ${r.vant && neste ? R.ui.knapp2(R.t("Prøv mot {hvem}", { hvem: neste.bestemt }), "sterkere") : ""}
+      ${r.vant ? R.ui.knapp2(R.t("Del resultatet"), "del") : ""}
       ${samling(sp)}`;
   }
 
@@ -723,19 +730,19 @@
     return `
       <div class="banner aksent">
         ${alene ? `<span class="ele-vinner">${R.avatar(vinnere[0].i, "gigant")}<span class="ele-krone" aria-hidden="true">👑</span></span>` : R.ui.figur(null, { stemning: "jubel" })}
-        <p class="etikett">${alene ? `Flest par · ${best} av ${alle}${sp.omkamp ? " · vant omkampen" : ""}` : `Like mange par · ${best} hver`}</p>
-        <h1 id="skjerm-tittel">${esc(`${R.ramsOpp(vinnere.map((r) => R.navn(r.i)))} vinner!`)}</h1>
+        <p class="etikett">${esc(alene ? R.t("Flest par · {n} av {alle}", { n: best, alle }) + (sp.omkamp ? " · " + R.t("vant omkampen") : "") : R.t("Like mange par · {n} hver", { n: best }))}</p>
+        <h1 id="skjerm-tittel">${esc(R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(vinnere.map((r) => R.navn(r.i))), n: vinnere.length }))}</h1>
       </div>
-      ${sp.antall >= 3 ? R.ui.pall(rader, { enhet: "par" }) : ""}
+      ${sp.antall >= 3 ? R.ui.pall(rader, { enhet: R.t("par") }) : ""}
       ${R.ui.poengliste(rader)}
       ${samling(sp)}`;
   }
 
   function delTekst(S) {
     const sp = S.spill;
-    if (sp.motstander) return `Elefanten 🐘 Jeg slo ${styrke(sp.motstander).bestemt} ${sp.poeng[0]}–${sp.poeng[1]} i å finne to like. Klarer du det?`;
+    if (sp.motstander) return R.t("Elefanten 🐘 Jeg slo {hvem} {a}–{b} i å finne to like. Klarer du det?", { hvem: styrke(sp.motstander).bestemt, a: sp.poeng[0], b: sp.poeng[1] });
     const r = sp.resultat || {};
-    return `Elefanten 🐘 ${hvor(sp)} på ${r.trekk} trekk ${"⭐".repeat(r.st || 1)}\nKlarer du det på færre?`;
+    return R.t("Elefanten 🐘 {hvor} på {trekk} trekk {stjerner}\nKlarer du det på færre?", { hvor: hvor(sp), trekk: r.trekk, stjerner: "⭐".repeat(r.st || 1) });
   }
 
   // ---------- Start ----------
@@ -822,18 +829,18 @@
     },
 
     regler: {
-      intro: "Alle kortene ligger med bildet ned. Snu to og to – og finn like par.",
+      intro: R.t("Alle kortene ligger med bildet ned. Snu to og to – og finn like par."),
       steg: [
-        ["Snu to kort", "Trykk på to kort. Er bildene like, har du funnet et par!"],
-        ["Husk hvor de lå", "Ikke like? Da snur kortene seg tilbake. Prøv å huske bildene."],
-        ["Finn alle parene", "Alene: Klarer du det på færrest mulig trekk? Sammen eller mot elefanten: Et par gir en ekstra tur, og den med flest par vinner."],
+        [R.t("Snu to kort"), R.t("Trykk på to kort. Er bildene like, har du funnet et par!")],
+        [R.t("Husk hvor de lå"), R.t("Ikke like? Da snur kortene seg tilbake. Prøv å huske bildene.")],
+        [R.t("Finn alle parene"), R.t("Alene: Klarer du det på færrest mulig trekk? Sammen eller mot elefanten: Et par gir en ekstra tur, og den med flest par vinner.")],
       ],
       tips: [
-        "Si navnet på bildet høyt når du snur det. Da husker du det lettere.",
-        "Mot elefanten: Elefantungen glemmer det meste, elefanten husker en god del – og den gamle elefanten glemmer aldri.",
-        "Står det likt mellom flere til slutt, blir det omkamp på et lite brett.",
-        "«Kikk først» viser alle kortene i tre sekunder før start. Fint for de minste – men da teller ikke rekorden.",
-        "Rusj-gjengen er ekstra vanskelig: Alle figurene er runde og fargerike!",
+        R.t("Si navnet på bildet høyt når du snur det. Da husker du det lettere."),
+        R.t("Mot elefanten: Elefantungen glemmer det meste, elefanten husker en god del – og den gamle elefanten glemmer aldri."),
+        R.t("Står det likt mellom flere til slutt, blir det omkamp på et lite brett."),
+        R.t("«Kikk først» viser alle kortene i tre sekunder før start. Fint for de minste – men da teller ikke rekorden."),
+        R.t("Rusj-gjengen er ekstra vanskelig: Alle figurene er runde og fargerike!"),
       ],
     },
 
@@ -844,45 +851,45 @@
           const sp = S.spill;
           const aktiv = sp && !sp.ferdig;
           // What there is to beat: wins against the elephant, and the best game alone on every board.
-          const mot = STYRKER.filter((s) => S.elefant[s.id].seirer > 0).map((s) => `<li><b>${esc(s.navn)}</b> 🏆 ${R.flertall(S.elefant[s.id].seirer, "seier", "seirer")}</li>`);
+          const mot = STYRKER.filter((s) => S.elefant[s.id].seirer > 0).map((s) => `<li><b>${esc(s.navn)}</b> 🏆 ${esc(R.flertall(S.elefant[s.id].seirer, "seier", "seirer"))}</li>`);
           const alene = [];
           for (const g of ["", "g"])
             for (const n of STORRELSER) {
               const r = S.rekorder[g + n];
-              if (r) alene.push(`<li><b>${n} kort${g ? " · gjengen" : ""}</b> ${r.trekk} trekk</li>`);
+              if (r) alene.push(`<li><b>${esc(g ? R.t("{n} kort · gjengen", { n }) : R.t("{n} kort", { n }))}</b> ${esc(R.t("{n} trekk", { n: r.trekk }))}</li>`);
             }
-          const rekorder = [mot.length ? `<p class="etikett">Seirer mot elefanten</p><ul>${mot.join("")}</ul>` : "", alene.length ? `<p class="etikett">Rekorder alene</p><ul>${alene.join("")}</ul>` : ""].join("");
+          const rekorder = [mot.length ? `<p class="etikett">${esc(R.t("Seirer mot elefanten"))}</p><ul>${mot.join("")}</ul>` : "", alene.length ? `<p class="etikett">${esc(R.t("Rekorder alene"))}</p><ul>${alene.join("")}</ul>` : ""].join("");
           return R.ui.spillhjem({
-            slagordHtml: "Snu to kort. Finn parene.<br><em>En elefant glemmer aldri!</em>",
+            slagordHtml: `${esc(R.t("Snu to kort. Finn parene."))}<br><em>${esc(R.t("En elefant glemmer aldri!"))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: !!aktiv,
-              fortsettTekst: aktiv ? `Fortsett · ${sp.omkamp ? "omkamp" : `${parFunnet(sp)} av ${parTotalt(sp)} par`}` : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler") + (rekorder ? `<section class="ele-rekorder" aria-label="Dine rekorder">${rekorder}</section>` : ""),
+              fortsettTekst: aktiv ? (sp.omkamp ? R.t("Fortsett · omkamp") : R.t("Fortsett · {n} av {alle} par", { n: parFunnet(sp), alle: parTotalt(sp) })) : "",
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler") + (rekorder ? `<section class="ele-rekorder" aria-label="${esc(R.t("Dine rekorder"))}">${rekorder}</section>` : ""),
             }),
             merker: [
-              ["1–4", "spillere"],
-              [String(temaerNa().length), "temaer"],
-              ["0", "reklame"],
+              ["1–4", R.t("spillere")],
+              [String(temaerNa().length), R.t("temaer")],
+              ["0", R.t("reklame")],
             ],
           });
         },
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
           const sider = tilbud(S);
           return `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           <section class="seksjon ele-tre">
             ${R.ui.fliser(
               "modus",
               [
-                { v: "alene", tittel: "Alene", tekst: "Slå rekorden din", ikon: "🏆" },
-                { v: "elefant", tittel: "Mot elefanten", tekst: "Du mot mobilen", ikon: `<span class="ele-flisfigurer">${G.svg("elefanten")}</span>` },
-                { v: "sammen", tittel: "Sammen", tekst: "2–4 spillere", ikon: "🦊🐸" },
+                { v: "alene", tittel: R.t("Alene"), tekst: R.t("Slå rekorden din"), ikon: "🏆" },
+                { v: "elefant", tittel: R.t("Mot elefanten"), tekst: R.t("Du mot mobilen"), ikon: `<span class="ele-flisfigurer">${G.svg("elefanten")}</span>` },
+                { v: "sammen", tittel: R.t("Sammen"), tekst: R.t("2–4 spillere"), ikon: "🦊🐸" },
               ],
               o.modus,
             )}
@@ -890,39 +897,39 @@
           ${
             o.modus === "elefant"
               ? `<section class="seksjon ele-tre">
-            <div class="seksjon-hode"><h2>Hvor sterk er elefanten?</h2></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Hvor sterk er elefanten?"))}</h2></div>
             ${R.ui.fliser("styrke", STYRKER.map((s, n) => ({ v: s.id, tittel: s.navn, tekst: s.tekst, ikon: `<span class="ele-flisfigurer ele-str s${n + 1}">${G.svg("elefanten")}</span>` })), o.styrke)}
           </section>`
               : ""
           }
           <section class="seksjon ele-temaer">
-            <div class="seksjon-hode"><h2>Velg bilder</h2></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Velg bilder"))}</h2></div>
             ${R.ui.fliser(
               "tema",
               temaerNa().map((t) => ({
                 v: t.id,
                 tittel: t.navn,
-                tekst: t.id === GJENGEN ? t.tekst : `${LISTER[t.id].length} bilder`,
+                tekst: t.id === GJENGEN ? t.tekst : R.t("{n} bilder", { n: LISTER[t.id].length }),
                 ikon: t.id === GJENGEN ? `<span class="ele-flisfigurer">${["luringen", "skjaera", "elefanten"].map((id) => G.svg(id)).join("")}</span>` : esc(t.ikon),
               })),
               o.tema,
             )}
           </section>
           <section class="seksjon">
-            <div class="seksjon-hode"><h2>Hvor mange kort?</h2><span class="tall">${kortValgt(S) / 2} par</span></div>
-            ${R.ui.seg("storrelse", sider.map((n) => [n, String(n)]), kortValgt(S), { etikett: "Antall kort" })}
-            <div class="ele-skala" aria-hidden="true"><span>Lett</span><span>Elefant 🐘</span></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Hvor mange kort?"))}</h2><span class="tall">${esc(R.t("{n} par", { n: kortValgt(S) / 2 }))}</span></div>
+            ${R.ui.seg("storrelse", sider.map((n) => [n, String(n)]), kortValgt(S), { etikett: R.t("Antall kort") })}
+            <div class="ele-skala" aria-hidden="true"><span>${esc(R.t("Lett"))}</span><span>${esc(R.t("Elefant 🐘"))}</span></div>
           </section>
-          ${o.modus === "sammen" ? R.ui.spillere({ min: 2, max: 4, tittel: "Hvem spiller?", hjelp: "Dere bytter på. Finner du et par, får du en tur til." }) : ""}
+          ${o.modus === "sammen" ? R.ui.spillere({ min: 2, max: 4, tittel: R.t("Hvem spiller?"), hjelp: R.t("Dere bytter på. Finner du et par, får du en tur til.") }) : ""}
           <section class="seksjon">
-            ${R.ui.bryter("kikk", o.kikk, "Kikk først", o.modus === "alene" ? "Alle kortene vises i tre sekunder før start. Rekorden teller ikke da." : "Alle kortene vises i tre sekunder før start.")}
+            ${R.ui.bryter("kikk", o.kikk, R.t("Kikk først"), o.modus === "alene" ? R.t("Alle kortene vises i tre sekunder før start. Rekorden teller ikke da.") : R.t("Alle kortene vises i tre sekunder før start."))}
           </section>
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor" }))}`;
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { variant: "stor" }))}`;
         },
       },
 
       spill: {
-        tittel: (S) => (S.spill.omkamp ? "Omkamp" : S.spill.motstander ? styrke(S.spill.motstander).navn : tema(S.spill.tema).navn),
+        tittel: (S) => (S.spill.omkamp ? R.t("Omkamp") : S.spill.motstander ? styrke(S.spill.motstander).navn : tema(S.spill.tema).navn),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -930,13 +937,13 @@
           const del = nyDeling && !R.rolig();
           nyDeling = false;
           return `
-            <h1 class="vh" id="skjerm-tittel">Finn to like</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("Finn to like"))}</h1>
             <div class="ele-topp">
               ${hudHtml(S)}
               <div class="ele-melding" id="ele-melding" aria-hidden="true"></div>
             </div>
             <div class="ele-bord">
-              <div class="ele-brett${del ? " del" : ""}${sp.tema === GJENGEN ? " gjengen" : ""}" data-n="${n}"${sp.motstander ? ' data-venn="1"' : ""} style="--kol:4" role="group" aria-label="Kortene">
+              <div class="ele-brett${del ? " del" : ""}${sp.tema === GJENGEN ? " gjengen" : ""}" data-n="${n}"${sp.motstander ? ' data-venn="1"' : ""} style="--kol:4" role="group" aria-label="${esc(R.t("Kortene"))}">
                 ${sp.kort.map((_, i) => kortHtml(sp, i)).join("")}
               </div>
             </div>
@@ -975,21 +982,21 @@
 
       // Level at the top when the last pair is found: those who share the lead play a small board.
       omkamp: {
-        tittel: "Omkamp",
+        tittel: R.t("Omkamp"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const par = parTotalt(sp);
           return `
             ${R.ui.banner({
-              etikett: sp.omkamp > 1 ? "Fortsatt like mange par" : "Like mange par",
-              tittel: "Omkamp!",
-              tekst: `${R.ramsOpp(sp.med.map((i) => R.navn(i)))} står likt. ${par === 3 ? "Tre" : "Fem"} nye par avgjør – flest vinner.`,
+              etikett: sp.omkamp > 1 ? R.t("Fortsatt like mange par") : R.t("Like mange par"),
+              tittel: R.t("Omkamp!"),
+              tekst: par === 3 ? R.t("{navn} står likt. Tre nye par avgjør – flest vinner.", { navn: R.ramsOpp(sp.med.map((i) => R.navn(i))) }) : R.t("{navn} står likt. Fem nye par avgjør – flest vinner.", { navn: R.ramsOpp(sp.med.map((i) => R.navn(i))) }),
               klasse: "aksent",
               stemning: "",
             })}
             ${R.ui.poengliste(sp.poeng.map((p, i) => ({ i, poeng: p })))}
-            ${R.ui.dokk(R.ui.knapp("Start omkampen", "start-omkamp"))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Start omkampen"), "start-omkamp"))}`;
         },
         inn(S) {
           if (!S.spill || !S.spill.med) return R.gaTil("hjem");
@@ -999,7 +1006,7 @@
 
       slutt: {
         // One player (alone, or against the elephant) is not ranked: the title names the game.
-        tittel: (S) => (S.spill.motstander ? "Mot elefanten" : S.spill.antall === 1 ? `${tema(S.spill.tema).navn} · ${S.spill.kort.length} kort` : "Kåringen"),
+        tittel: (S) => (S.spill.motstander ? R.t("Mot elefanten") : S.spill.antall === 1 ? R.t("{tema} · {n} kort", { tema: tema(S.spill.tema).navn, n: S.spill.kort.length }) : R.t("Kåringen")),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -1008,7 +1015,7 @@
           return `
             ${innhold}
             ${R.ui.flereSpill({ antall: sp.motstander ? 1 : sp.antall })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         // Celebrate in proportion: a fanfare for a win, a record or a good game alone; a warm
         // "pling" when it took many moves or the elephant won.
@@ -1091,7 +1098,7 @@
         R.gaTil("spill");
       },
       del(el, e, S) {
-        if (S.spill && S.spill.ferdig) R.del("Elefanten", delTekst(S), DEL_URL);
+        if (S.spill && S.spill.ferdig) R.del(R.app.navn, delTekst(S), DEL_URL);
       },
       snu(el, e, S) {
         const sp = S.spill;

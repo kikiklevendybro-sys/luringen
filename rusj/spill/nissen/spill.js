@@ -29,9 +29,18 @@
   const MAKS = 30;
   const MAKS_NAVN = 16;
   const MAKS_PAR = 15;
-  const BUDSJETT = [0, 50, 100, 150, 200, 250, 300, 400, 500, 750, 1000];
-  const STANDARD_BUDSJETT = 4; // 200 kr
-  const HOLD = "Hold fingeren på kortet for å se";
+  // Every text goes through R.t (rusj/SPRAK.md): the key is the Norwegian text.
+  // The budget steps in the edition's own money – round amounts people actually use, not converted
+  // kroner – and the top of the small, middle, medium and big gift-idea bands.
+  const PENGER = {
+    nb: { trinn: [0, 50, 100, 150, 200, 250, 300, 400, 500, 750, 1000], band: [100, 200, 300, 500] },
+    en: { trinn: [0, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100], band: [10, 20, 30, 50] },
+    da: { trinn: [0, 50, 75, 100, 150, 200, 250, 300, 400, 500, 750], band: [75, 150, 250, 400] },
+  };
+  const BUDSJETT = (PENGER[R.sprak] || PENGER.nb).trinn;
+  const BAND_TOPP = (PENGER[R.sprak] || PENGER.nb).band;
+  const STANDARD_BUDSJETT = 4; // 200 kr (£20, 150 kr in Denmark)
+  const HOLD = R.t("Hold fingeren på kortet for å se");
   const range = (n) => Array.from({ length: n }, (_, i) => i);
 
   // Never part of a name: control characters, characters that can't be seen (zero width, blank
@@ -222,7 +231,7 @@
     return new Date(ar, Math.floor(d / 32) - 1, d % 32);
   }
   // "fredag 19. desember"
-  const datoTekst = (d, idag) => (d ? dagFor(d, idag).toLocaleDateString("nb-NO", { weekday: "long", day: "numeric", month: "long" }) : "");
+  const datoTekst = (d, idag) => (d ? dagFor(d, idag).toLocaleDateString(R.lokale, { weekday: "long", day: "numeric", month: "long" }) : "");
   // Whole days from today to the gift day (negative when it has been).
   function dagerTil(d, idag) {
     const na = idag || new Date();
@@ -233,7 +242,7 @@
   function nedtelling(d, idag) {
     if (!d) return "";
     const n = dagerTil(d, idag);
-    return n > 1 ? `${n} dager til gavedagen` : n === 1 ? "Gavedag i morgen!" : n === 0 ? "Gavedag i dag! 🎁" : "";
+    return n > 1 ? R.t("{n} dager til gavedagen", { n }) : n === 1 ? R.t("Gavedag i morgen!") : n === 0 ? R.t("Gavedag i dag! 🎁") : "";
   }
   // The chain may be revealed from the gift day on (always, when no day was set).
   const gavedagNadd = (sp) => !sp.dato || dagerTil(sp.dato) <= 0;
@@ -417,7 +426,7 @@
     if (!Q || !/^https?:$/.test(location.protocol)) return "";
     for (const niva of ["M", "L"]) {
       try {
-        return Q.qrSvg(Q.lagQr(tekst, niva), { mork: "var(--blekk)", lys: "var(--papir)", etikett: "QR-kode med en personlig lenke" });
+        return Q.qrSvg(Q.lagQr(tekst, niva), { mork: "var(--blekk)", lys: "var(--papir)", etikett: R.t("QR-kode med en personlig lenke") });
       } catch (e) {
         /* too long at this level */
       }
@@ -427,7 +436,10 @@
 
   // ---------- Small helpers ----------
 
-  const kroner = (kr) => (kr ? `${R.tall(kr)} kr` : "");
+  const kroner = (kr) => (kr ? R.t("{belop} kr", { belop: R.tall(kr) }) : "");
+  // A translated sentence with markup in its gaps (R.t with "{navn}" left in): the text is escaped,
+  // then the markup goes in where the gap is.
+  const tMed = (tekst, html) => Object.entries(html).reduce((s, [k, v]) => s.split(`{${k}}`).join(v), esc(tekst));
   const belop = (b) => kroner(BUDSJETT[b]);
 
   function piller(kr, dato) {
@@ -448,7 +460,7 @@
   const BAND = ["liten", "mellom", "middels", "stor", "raus"];
   const IDEER = D.ideer;
   const ANTALL_IDEER = BAND.reduce((s, b) => s + IDEER[b].length, 0);
-  const bandFor = (kr) => (!kr ? null : kr <= 100 ? "liten" : kr <= 200 ? "mellom" : kr <= 300 ? "middels" : kr <= 500 ? "stor" : "raus");
+  const bandFor = (kr) => (!kr ? null : kr <= BAND_TOPP[0] ? "liten" : kr <= BAND_TOPP[1] ? "mellom" : kr <= BAND_TOPP[2] ? "middels" : kr <= BAND_TOPP[3] ? "stor" : "raus");
   const stokker = {};
   function nesteIdeer(kr, antall) {
     const band = bandFor(kr);
@@ -465,14 +477,14 @@
 
   function visIdeer(kr) {
     R.ark(`
-      <h2 id="ark-tittel">Gaveideer${kr ? ` for ${esc(kroner(kr))}` : ""}</h2>
+      <h2 id="ark-tittel">${esc(kr ? R.t("Gaveideer for {belop}", { belop: kroner(kr) }) : R.t("Gaveideer"))}</h2>
       <ul class="ni-ideer" id="ni-ideer">${nesteIdeer(kr, 3)
         .map((t) => `<li>${esc(t)}</li>`)
         .join("")}</ul>
-      <p class="hjelp">Det er tanken som teller – ikke prisen.</p>
+      <p class="hjelp">${esc(R.t("Det er tanken som teller – ikke prisen."))}</p>
       <div class="knapprad">
-        ${R.ui.knapp2("Tre nye", "ideer-nye", { v: String(kr || 0), ikon: "🎲" })}
-        ${R.ui.knapp("Takk!", "lukk-ark")}
+        ${R.ui.knapp2(R.t("Tre nye"), "ideer-nye", { v: String(kr || 0), ikon: "🎲" })}
+        ${R.ui.knapp(R.t("Takk!"), "lukk-ark")}
       </div>`);
   }
 
@@ -504,16 +516,16 @@
 
   // The back of a hold-to-reveal card. The text sits on a plate, so the ribbon never crosses it.
   function kortHtml(mottaker, kr, dato) {
-    const linjer = [kr ? `💰 Budsjett ${kroner(kr)}` : "", dato ? `📅 Gavedag ${datoTekst(dato)}` : ""].filter(Boolean);
+    const linjer = [kr ? "💰 " + R.t("Budsjett {belop}", { belop: kroner(kr) }) : "", dato ? "📅 " + R.t("Gavedag {dato}", { dato: datoTekst(dato) }) : ""].filter(Boolean);
     return {
       klasse: "ni-kort",
       html: `
         <span class="ni-kort-gave" aria-hidden="true">🎁</span>
         <span class="ni-kort-plate">
-          <span class="kort-etikett">Du skal gi gave til</span>
+          <span class="kort-etikett">${esc(R.t("Du skal gi gave til"))}</span>
           <span class="kort-ord ${R.lengdeKlasse(mottaker)}" data-mottaker="${esc(mottaker)}">${esc(mottaker)}</span>
           ${linjer.length ? `<span class="ni-kort-info">${linjer.map(esc).join("<br>")}</span>` : ""}
-          <span class="kort-fot">Hysj! Ikke si det til noen.</span>
+          <span class="kort-fot">${esc(R.t("Hysj! Ikke si det til noen."))}</span>
         </span>`,
     };
   }
@@ -525,15 +537,15 @@
     const sp = S.spill;
     const fortsatt = R.vakt();
     const i = await R.velgIArk(
-      "Hvem vil se kortet sitt?",
+      R.t("Hvem vil se kortet sitt?"),
       range(sp.n).map((n) => ({ v: n, tekst: sp.navn[n] })),
     );
     if (i == null || !fortsatt()) return;
     R.ark(`
-      <h2 id="ark-tittel">Kortet til ${esc(sp.navn[i])}</h2>
-      ${R.ui.mappe({ id: "glemt" + i, etikett: "Topphemmelig", tekst: HOLD, etikettAria: `Hold fingeren på kortet for å se kortet til ${sp.navn[i]}` })}
-      <p class="hjelp">Bare ${esc(sp.navn[i])} skal se. Slipp for å skjule.</p>
-      <button class="knapp" data-h="lukk-ark">Ferdig</button>`);
+      <h2 id="ark-tittel">${esc(R.t("Kortet til {navn}", { navn: sp.navn[i] }))}</h2>
+      ${R.ui.mappe({ id: "glemt" + i, etikett: R.t("Topphemmelig"), tekst: HOLD, etikettAria: R.t("Hold fingeren på kortet for å se kortet til {navn}", { navn: sp.navn[i] }) })}
+      <p class="hjelp">${esc(R.t("Bare {navn} skal se. Slipp for å skjule.", { navn: sp.navn[i] }))}</p>
+      <button class="knapp" data-h="lukk-ark">${esc(R.t("Ferdig"))}</button>`);
   }
 
   // ---------- Setup ----------
@@ -554,12 +566,12 @@
     if (tomme) return tomme === 1 ? "Ett navn mangler." : `${tomme} navn mangler.`;
     const sett = new Map();
     for (const x of navn) {
-      if (sett.has(nokkel(x))) return `To heter «${x}». Skriv for eksempel «${x} B.»`;
+      if (sett.has(nokkel(x))) return R.t("To heter «{navn}». Skriv for eksempel «{navn} B.»", { navn: x });
       sett.set(nokkel(x), true);
       // Every name must survive the trip through a link, or two people would get one that won't open.
-      if (!navnHolder(x)) return `Navnet «${x}» kan ikke brukes. Prøv uten spesialtegn.`;
+      if (!navnHolder(x)) return R.t("Navnet «{navn}» kan ikke brukes. Prøv uten spesialtegn.", { navn: x });
     }
-    if (!ringMulig(navn.length, S.oppsett.par)) return "Det går ikke å trekke med alle disse parene. Fjern ett av dem.";
+    if (!ringMulig(navn.length, S.oppsett.par)) return R.t("Det går ikke å trekke med alle disse parene. Fjern ett av dem.");
     return "";
   }
 
@@ -578,8 +590,8 @@
       .map(
         (navn, i) => `<div class="spiller" style="--pf: var(--p${(i % 20) + 1})">
           ${R.avatar(i)}
-          <input id="ni-navn-${i}" data-felt="navn" data-i="${i}" value="${esc(navn)}" placeholder="Navn ${i + 1}" maxlength="${MAKS_NAVN}" autocomplete="off" autocapitalize="words" enterkeyhint="next" aria-label="Navn på person ${i + 1}">
-          ${n > MIN ? `<button class="fjern" data-h="fjern" data-v="${i}" aria-label="Fjern ${esc(ren(navn) || "person " + (i + 1))}">×</button>` : ""}
+          <input id="ni-navn-${i}" data-felt="navn" data-i="${i}" value="${esc(navn)}" placeholder="${esc(R.t("Navn {n}", { n: i + 1 }))}" maxlength="${MAKS_NAVN}" autocomplete="off" autocapitalize="words" enterkeyhint="next" aria-label="${esc(R.t("Navn på person {n}", { n: i + 1 }))}">
+          ${n > MIN ? `<button class="fjern" data-h="fjern" data-v="${i}" aria-label="${esc(R.t("Fjern {navn}", { navn: ren(navn) || R.t("person {n}", { n: i + 1 }) }))}">×</button>` : ""}
         </div>`,
       )
       .join("");
@@ -590,9 +602,9 @@
     if (!par.length) return "";
     return `<ul class="ni-parliste">${par
       .map(([a, b], k) => {
-        const na = ren(S.navn[a]) || `Navn ${a + 1}`;
-        const nb = ren(S.navn[b]) || `Navn ${b + 1}`;
-        return `<li class="ni-par"><span>${esc(na)}</span><span class="ni-par-pil" aria-label="og">⇄</span><span>${esc(nb)}</span><button data-h="fjern-par" data-v="${k}" aria-label="Fjern paret ${esc(na)} og ${esc(nb)}">×</button></li>`;
+        const na = ren(S.navn[a]) || R.t("Navn {n}", { n: a + 1 });
+        const nb = ren(S.navn[b]) || R.t("Navn {n}", { n: b + 1 });
+        return `<li class="ni-par"><span>${esc(na)}</span><span class="ni-par-pil" aria-label="${esc(R.t("og"))}">⇄</span><span>${esc(nb)}</span><button data-h="fjern-par" data-v="${k}" aria-label="${esc(R.t("Fjern paret {a} og {b}", { a: na, b: nb }))}">×</button></li>`;
       })
       .join("")}</ul>`;
   }
@@ -601,14 +613,14 @@
   function visParArk(S) {
     parValg = [];
     R.ark(`
-      <h2 id="ark-tittel">Hvem skal ikke trekke hverandre?</h2>
-      <p class="ingress">Velg to personer. De kan ikke trekke hverandre – verken den ene eller den andre veien.</p>
+      <h2 id="ark-tittel">${esc(R.t("Hvem skal ikke trekke hverandre?"))}</h2>
+      <p class="ingress">${esc(R.t("Velg to personer. De kan ikke trekke hverandre – verken den ene eller den andre veien."))}</p>
       <div class="velgere ni-parvelger">${S.navn
-        .map((navn, i) => `<button class="velger" data-h="par-velg" data-v="${i}" aria-pressed="false">${R.avatar(i)}<span>${esc(ren(navn) || "Navn " + (i + 1))}</span></button>`)
+        .map((navn, i) => `<button class="velger" data-h="par-velg" data-v="${i}" aria-pressed="false">${R.avatar(i)}<span>${esc(ren(navn) || R.t("Navn {n}", { n: i + 1 }))}</span></button>`)
         .join("")}</div>
       <div class="knapprad">
-        ${R.ui.knapp2("Avbryt", "lukk-ark")}
-        ${R.ui.knapp("Legg til", "par-ok", { av: true, id: "ni-par-ok" })}
+        ${R.ui.knapp2(R.t("Avbryt"), "lukk-ark")}
+        ${R.ui.knapp(R.t("Legg til"), "par-ok", { av: true, id: "ni-par-ok" })}
       </div>`);
   }
 
@@ -638,7 +650,7 @@
     const par = S.oppsett.par.map((p) => p.slice());
     const fro = finnFro(n, par, R.nyttFro() % FRO_ANTALL);
     if (fro < 0) {
-      R.toast("Fant ingen trekning som passer med parene. Fjern ett av dem");
+      R.toast(R.t("Fant ingen trekning som passer med parene. Fjern ett av dem"));
       return;
     }
     const sp = {
@@ -674,15 +686,15 @@
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
 
   // The small «Avslør nissekjeden» link: only from the gift day on, and always with a question.
-  const avslorLenke = (sp) => (gavedagNadd(sp) ? R.ui.lenke("Avslør nissekjeden", "til-kaaring") : "");
+  const avslorLenke = (sp) => (gavedagNadd(sp) ? R.ui.lenke(R.t("Avslør nissekjeden"), "til-kaaring") : "");
 
   function infoboks(sp) {
     const rader = [
-      ["👥", `${sp.n} personer`],
-      ["💰", belop(sp.budsjett) ? `Budsjett ${belop(sp.budsjett)}` : "Fritt budsjett"],
-      ["📅", sp.dato ? `Gavedag ${datoTekst(sp.dato)}` : "Ingen gavedag satt"],
+      ["👥", R.t("{n} personer", { n: sp.n })],
+      ["💰", belop(sp.budsjett) ? R.t("Budsjett {belop}", { belop: belop(sp.budsjett) }) : R.t("Fritt budsjett")],
+      ["📅", sp.dato ? R.t("Gavedag {dato}", { dato: datoTekst(sp.dato) }) : R.t("Ingen gavedag satt")],
     ];
-    if (sp.par.length) rader.push(["⇄", sp.par.length === 1 ? "1 par trekker ikke hverandre" : `${sp.par.length} par trekker ikke hverandre`]);
+    if (sp.par.length) rader.push(["⇄", sp.par.length === 1 ? R.t("1 par trekker ikke hverandre") : R.t("{n} par trekker ikke hverandre", { n: sp.par.length })]);
     return `<ul class="papirboks ni-info">${rader.map(([ikon, tekst]) => `<li><span aria-hidden="true">${ikon}</span>${esc(tekst)}</li>`).join("")}</ul>`;
   }
 
@@ -694,14 +706,14 @@
     const lenke = personligLenke(sp, i);
     const qr = qrSvg(lenke);
     R.ark(`
-      <h2 id="ark-tittel">Lenken til ${esc(sp.navn[i])}</h2>
-      <p class="ingress">Bare ${esc(sp.navn[i])} skal ha denne lenken. Den viser hvem ${esc(sp.navn[i])} skal gi gave til.</p>
-      ${qr ? `<div class="kodekort ni-kodekort"><div class="qr">${qr}</div><span class="etikett">Eller la ${esc(sp.navn[i])} skanne denne</span></div>` : ""}
+      <h2 id="ark-tittel">${esc(R.t("Lenken til {navn}", { navn: sp.navn[i] }))}</h2>
+      <p class="ingress">${esc(R.t("Bare {navn} skal ha denne lenken. Den viser hvem {navn} skal gi gave til.", { navn: sp.navn[i] }))}</p>
+      ${qr ? `<div class="kodekort ni-kodekort"><div class="qr">${qr}</div><span class="etikett">${esc(R.t("Eller la {navn} skanne denne", { navn: sp.navn[i] }))}</span></div>` : ""}
       <div class="knapprad">
-        ${R.ui.knapp2("Kopier lenke", "kopier-en", { v: i })}
-        ${R.ui.knapp("Del lenke", "del-en", { v: i })}
+        ${R.ui.knapp2(R.t("Kopier lenke"), "kopier-en", { v: i })}
+        ${R.ui.knapp(R.t("Del lenke"), "del-en", { v: i })}
       </div>
-      <button class="lenke" data-h="lukk-ark">Lukk</button>`);
+      <button class="lenke" data-h="lukk-ark">${esc(R.t("Lukk"))}</button>`);
   }
 
   function merkSendt(S, i, hvordan) {
@@ -765,18 +777,18 @@
     },
 
     regler: {
-      intro: "Nissetrekning uten lapper i lua: Alle trekker én person å gi gave til – og ingen vet hvem som har trukket hvem.",
+      intro: R.t("Nissetrekning uten lapper i lua: Alle trekker én person å gi gave til – og ingen vet hvem som har trukket hvem."),
       steg: [
-        ["Skriv navnene", "Legg til alle som er med. Velg budsjett og gavedag hvis dere vil, og hvem som ikke skal trekke hverandre."],
-        ["Trekk", "Én mobil: send den rundt, og alle holder fingeren på kortet. Hver sin mobil: alle får sin egen lenke, som bare viser hvem de selv skal gi til."],
-        ["Hysj til gavedagen", "Ingen trekker seg selv. På gavedagen kan dere avsløre hele nissekjeden og kåre årets nisse."],
+        [R.t("Skriv navnene"), R.t("Legg til alle som er med. Velg budsjett og gavedag hvis dere vil, og hvem som ikke skal trekke hverandre.")],
+        [R.t("Trekk"), R.t("Én mobil: send den rundt, og alle holder fingeren på kortet. Hver sin mobil: alle får sin egen lenke, som bare viser hvem de selv skal gi til.")],
+        [R.t("Hysj til gavedagen"), R.t("Ingen trekker seg selv. På gavedagen kan dere avsløre hele nissekjeden og kåre årets nisse.")],
       ],
       tips: [
-        "Hver sin mobil: Lenken til hver person har bare kortet til den personen. Navnene kan ikke leses rett ut av lenken, men den er ikke låst: Den som har en lenke, kan åpne kortet – og den som laget trekningen, kan åpne alle.",
-        "Glemt hvem du skal gi til? Åpne lenken din igjen. Den som laget trekningen, kan sende den på nytt.",
-        "Ingenting sendes via oss. Trekningen ligger bare på mobilen den ble laget på, så send lenkene med en gang. De virker også om mobilen skulle glemme trekningen.",
-        "Alle henger sammen i én stor ring. Fint for gaveutdelingen: den som nettopp fikk en gave, deler ut sin egen som neste.",
-        "Trenger du hjelp? «Gaveideer» gir forslag som passer budsjettet.",
+        R.t("Hver sin mobil: Lenken til hver person har bare kortet til den personen. Navnene kan ikke leses rett ut av lenken, men den er ikke låst: Den som har en lenke, kan åpne kortet – og den som laget trekningen, kan åpne alle."),
+        R.t("Glemt hvem du skal gi til? Åpne lenken din igjen. Den som laget trekningen, kan sende den på nytt."),
+        R.t("Ingenting sendes via oss. Trekningen ligger bare på mobilen den ble laget på, så send lenkene med en gang. De virker også om mobilen skulle glemme trekningen."),
+        R.t("Alle henger sammen i én stor ring. Fint for gaveutdelingen: den som nettopp fikk en gave, deler ut sin egen som neste."),
+        R.t("Trenger du hjelp? «Gaveideer» gir forslag som passer budsjettet."),
       ],
     },
 
@@ -811,7 +823,7 @@
       const o = lesPersonlig(hash);
       S.nyttKort = null;
       if (!o) {
-        S.lenkefeil = "Lenken er ufullstendig eller endret – kanskje ble den kuttet da den ble sendt. Be den som laget trekningen, om å sende den på nytt.";
+        S.lenkefeil = R.t("Lenken er ufullstendig eller endret – kanskje ble den kuttet da den ble sendt. Be den som laget trekningen, om å sende den på nytt.");
         return "lenkefeil";
       }
       S.lenkefeil = "";
@@ -855,20 +867,20 @@
         vis(S) {
           const dato = (S.spill && !S.spill.ferdig && S.spill.dato) || (S.gjest && S.gjest.dato) || 0;
           return R.ui.spillhjem({
-            slagordHtml: "Hvem skal du gi gave til?<br><em>Bare du får vite det.</em>",
+            slagordHtml: `${esc(R.t("Hvem skal du gi gave til?"))}<br><em>${esc(R.t("Bare du får vite det."))}</em>`,
             knapperHtml:
               nedtellingHtml(dato) +
               R.ui.startKnapper({
                 pagar: pagar(S),
-                fortsettTekst: "Fortsett trekningen",
-                startTekst: "Ny nissetrekning",
-                nyTekst: "Ny trekning",
-                ekstraHtml: (S.gjest ? R.ui.knapp2(`Se hvem du skal gi til`, "til-gjest", { ikon: "🎁" }) : "") + R.ui.lenke("Slik spiller du", "regler"),
+                fortsettTekst: R.t("Fortsett trekningen"),
+                startTekst: R.t("Ny nissetrekning"),
+                nyTekst: R.t("Ny trekning"),
+                ekstraHtml: (S.gjest ? R.ui.knapp2(R.t("Se hvem du skal gi til"), "til-gjest", { ikon: "🎁" }) : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
             merker: [
-              ["3–30", "personer"],
-              [String(ANTALL_IDEER), "gaveideer"],
-              ["0", "lapper i lua"],
+              ["3–30", R.t("personer")],
+              [String(ANTALL_IDEER), R.t("gaveideer")],
+              ["0", R.t("lapper i lua")],
             ],
           });
         },
@@ -880,54 +892,60 @@
       },
 
       oppsett: {
-        tittel: "Nissetrekning",
+        tittel: R.t("Nissetrekning"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
           const n = S.navn.length;
           const feil = oppsettFeil(S);
           return `
-            <h1 id="skjerm-tittel">Gjør klart</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
             <section class="seksjon">
-              <h2>Hvordan trekker dere?</h2>
+              <h2>${esc(R.t("Hvordan trekker dere?"))}</h2>
               ${R.ui.fliser(
                 "modus",
                 [
-                  { v: "en", tittel: "Én mobil", tekst: "Send den rundt – alle holder fingeren på kortet", ikon: "📱" },
-                  { v: "hver", tittel: "Hver sin mobil", tekst: "Alle får sin egen lenke og ser bare sitt eget kort", ikon: "📲" },
+                  { v: "en", tittel: R.t("Én mobil"), tekst: R.t("Send den rundt – alle holder fingeren på kortet"), ikon: "📱" },
+                  { v: "hver", tittel: R.t("Hver sin mobil"), tekst: R.t("Alle får sin egen lenke og ser bare sitt eget kort"), ikon: "📲" },
                 ],
                 o.modus,
               )}
             </section>
             <section class="seksjon" id="ni-navneboks">
-              <div class="seksjon-hode"><h2>Hvem er med?</h2><span class="tall">${n} personer</span></div>
+              <div class="seksjon-hode"><h2>${esc(R.t("Hvem er med?"))}</h2><span class="tall">${esc(R.t("{n} personer", { n }))}</span></div>
               <div class="spillere">${navnerader(S)}</div>
-              <button class="legg-til" data-h="legg-til"${n >= MAKS ? " disabled" : ""}>+ Legg til person${n >= MAKS ? ` (maks ${MAKS})` : ""}</button>
+              <button class="legg-til" data-h="legg-til"${n >= MAKS ? " disabled" : ""}>${esc(R.t("+ Legg til person"))}${n >= MAKS ? " " + esc(R.t("(maks {n})", { n: MAKS })) : ""}</button>
             </section>
             <section class="seksjon ni-to">
               <div class="seksjon">
-                <h2>Budsjett</h2>
-                ${R.ui.teller("budsjett", o.budsjett, 0, BUDSJETT.length - 1, { vis: (b) => (b ? BUDSJETT[b] : "Fritt"), enhet: o.budsjett ? "kr" : "", minus: "Lavere budsjett", pluss: "Høyere budsjett" })}
+                <h2>${esc(R.t("Budsjett"))}</h2>
+                ${R.ui.teller("budsjett", o.budsjett, 0, BUDSJETT.length - 1, {
+                  // «200 kr»: the number, then the unit in small type; «£20» has its sign in front.
+                  vis: (b) => (!b ? R.t("Fritt") : R.sprak === "en" ? kroner(BUDSJETT[b]) : BUDSJETT[b]),
+                  enhet: o.budsjett && R.sprak !== "en" ? R.t("kr") : "",
+                  minus: R.t("Lavere budsjett"),
+                  pluss: R.t("Høyere budsjett"),
+                })}
               </div>
               <div class="seksjon">
-                <h2><label for="ni-dato">Gavedag</label></h2>
+                <h2><label for="ni-dato">${esc(R.t("Gavedag"))}</label></h2>
                 <input class="tekstfelt ni-dato" type="date" id="ni-dato" data-felt="dato" value="${esc(o.dato)}">
-                <button class="lenke ni-dato-fjern" id="ni-dato-fjern" data-h="fjern-dato"${o.dato ? "" : " hidden"}>Ingen dato</button>
+                <button class="lenke ni-dato-fjern" id="ni-dato-fjern" data-h="fjern-dato"${o.dato ? "" : " hidden"}>${esc(R.t("Ingen dato"))}</button>
               </div>
             </section>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Ikke trekk hverandre</h2><span class="tall">valgfritt</span></div>
-              <p class="ni-hjelp">For eksempel kjærester eller søsken.</p>
+              <div class="seksjon-hode"><h2>${esc(R.t("Ikke trekk hverandre"))}</h2><span class="tall">${esc(R.t("valgfritt"))}</span></div>
+              <p class="ni-hjelp">${esc(R.t("For eksempel kjærester eller søsken."))}</p>
               ${parListe(S)}
-              ${R.ui.knapp2("Legg til par", "par", { variant: "liten", ikon: "+", av: o.par.length >= MAKS_PAR })}
+              ${R.ui.knapp2(R.t("Legg til par"), "par", { variant: "liten", ikon: "+", av: o.par.length >= MAKS_PAR })}
             </section>
-            ${R.ui.dokk(`<p class="ni-feil" id="ni-feil" role="status">${esc(feil)}</p>`, R.ui.knapp("Start", "start", { av: !!feil }))}`;
+            ${R.ui.dokk(`<p class="ni-feil" id="ni-feil" role="status">${esc(feil)}</p>`, R.ui.knapp(R.t("Start"), "start", { av: !!feil }))}`;
         },
       },
 
       // The sack is shaken: a short animation while the draw is already made.
       trekk: {
-        tittel: "Nissetrekning",
+        tittel: R.t("Nissetrekning"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -935,7 +953,7 @@
           const t = tilfeldig(sp.fro);
           const lapper = R.stokk(sp.navn, t)
             .slice(0, 8)
-            .map((navn, k) => `<span class="ni-lapp" style="--x:${Math.round((k % 2 ? 1 : -1) * (30 + t() * 90))}px;--r:${Math.round(t() * 50 - 25)}deg;--d:${(k * 0.17).toFixed(2)}s">${esc(navn)}</span>`)
+            .map((navn, k) => `<span class="ni-lapp" style="--x:${Math.round((k % 2 ? 1 : -1) * (30 + t() * 90))}px;--r:${Math.round(t() * 50 - 25)}deg;--d:${(k * 0.17).toFixed(2)}s">${esc(navn)}</span>`) // sprak-ok
             .join("");
           return `
             <div class="ni-trekk">
@@ -951,8 +969,8 @@
                   <path class="ni-sekk-sloyfe" d="M100 100 c-14 -16 -34 -6 -22 6 c8 8 22 -6 22 -6 c0 0 14 14 22 6 c12 -12 -8 -22 -22 -6z"/>
                 </svg>
               </div>
-              <h1 id="skjerm-tittel">Nissen trekker …</h1>
-              <p class="ingress">${sp.n} lapper i lua. Ingen trekker seg selv.</p>
+              <h1 id="skjerm-tittel">${esc(R.t("Nissen trekker …"))}</h1>
+              <p class="ingress">${esc(R.t("{n} lapper i lua. Ingen trekker seg selv.", { n: sp.n }))}</p>
             </div>`;
         },
         inn(S) {
@@ -977,7 +995,7 @@
 
       // One phone: the phone goes around, everyone holds to see their card.
       vis: {
-        tittel: "Nissetrekning",
+        tittel: R.t("Nissetrekning"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -987,15 +1005,15 @@
           return `
             ${R.ui.fremdrift(sp.n, i)}
             <div class="ni-mottaker">
-              <p class="etikett">Gi mobilen til</p>
+              <p class="etikett">${esc(R.t("Gi mobilen til"))}</p>
               <h1 id="skjerm-tittel" class="spillernavn ${navnKlasse(navn)}">${R.avatar(i, "stor")}<span>${esc(navn)}</span></h1>
             </div>
-            ${R.ui.mappe({ id: "p" + i, etikett: "Topphemmelig", tekst: HOLD, etikettAria: `Hold fingeren på kortet for å se kortet til ${navn}` })}
-            <p class="hjelp">${sp.vis.sett ? "Husket navnet? Trykk «Ferdig» og gi mobilen videre." : `Bare ${esc(navn)} skal se. Slipp, så skjules kortet igjen.`}</p>
+            ${R.ui.mappe({ id: "p" + i, etikett: R.t("Topphemmelig"), tekst: HOLD, etikettAria: R.t("Hold fingeren på kortet for å se kortet til {navn}", { navn }) })}
+            <p class="hjelp">${esc(sp.vis.sett ? R.t("Husket navnet? Trykk «Ferdig» og gi mobilen videre.") : R.t("Bare {navn} skal se. Slipp, så skjules kortet igjen.", { navn }))}</p>
             ${R.ui.dokk(
-              R.ui.knapp(siste ? "Alle har sett – ferdig!" : "", "vist", {
+              R.ui.knapp(siste ? R.t("Alle har sett – ferdig!") : "", "vist", {
                 av: !sp.vis.sett,
-                tekstHtml: siste ? "" : `<span class="ni-to-linjer"><b>Ferdig</b><small>Gi mobilen til ${esc(sp.navn[i + 1])}</small></span>`,
+                tekstHtml: siste ? "" : `<span class="ni-to-linjer"><b>${esc(R.t("Ferdig"))}</b><small>${esc(R.t("Gi mobilen til {navn}", { navn: sp.navn[i + 1] }))}</small></span>`,
               }),
             )}`;
         },
@@ -1004,25 +1022,25 @@
 
       // One phone: everyone has seen their card.
       klar: {
-        tittel: "Nissetrekning",
+        tittel: R.t("Nissetrekning"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           return `
             <div class="banner ni-banner">
               ${R.figur()}
-              <h1 id="skjerm-tittel">Alle har trukket!</h1>
-              <p class="ingress">Nå er det bare å holde tett til gavedagen. 🤫</p>
+              <h1 id="skjerm-tittel">${esc(R.t("Alle har trukket!"))}</h1>
+              <p class="ingress">${esc(R.t("Nå er det bare å holde tett til gavedagen. 🤫"))}</p>
             </div>
             ${nedtellingHtml(sp.dato)}
             ${infoboks(sp)}
             <div class="stabel">
-              ${R.ui.knapp2("Glemt hvem du skal gi til?", "glemt", { ikon: "🔍" })}
-              ${R.ui.knapp2("Gaveideer", "ideer", { ikon: "💡" })}
+              ${R.ui.knapp2(R.t("Glemt hvem du skal gi til?"), "glemt", { ikon: "🔍" })}
+              ${R.ui.knapp2(R.t("Gaveideer"), "ideer", { ikon: "💡" })}
             </div>
-            <p class="hjelp">Tips: Del ut gavene i ring – den som nettopp fikk en gave, deler ut sin egen som neste.</p>
-            ${R.ui.lenkerad(avslorLenke(sp), R.ui.lenke("Avslutt", "avslutt"))}
-            ${R.ui.dokk(R.ui.knapp("Ferdig – vi ses på gavedagen", "ferdig", { ikon: "🎄" }))}`;
+            <p class="hjelp">${esc(R.t("Tips: Del ut gavene i ring – den som nettopp fikk en gave, deler ut sin egen som neste."))}</p>
+            ${R.ui.lenkerad(avslorLenke(sp), R.ui.lenke(R.t("Avslutt"), "avslutt"))}
+            ${R.ui.dokk(R.ui.knapp(R.t("Ferdig – vi ses på gavedagen"), "ferdig", { ikon: "🎄" }))}`;
         },
         inn(S) {
           if (!S.spill.feiret) {
@@ -1037,7 +1055,7 @@
 
       // Each on their own phone: one personal link per person.
       del: {
-        tittel: "Nissetrekning",
+        tittel: R.t("Nissetrekning"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -1045,35 +1063,35 @@
           const neste = sp.sendt.findIndex((x) => !x);
           const rader = sp.navn
             .map((navn, i) => {
-              const status = sp.sendt[i] === 2 ? "Lenken er kopiert" : sp.sendt[i] === 1 ? "Lenken er delt" : "Ikke sendt ennå";
+              const status = sp.sendt[i] === 2 ? R.t("Lenken er kopiert") : sp.sendt[i] === 1 ? R.t("Lenken er delt") : R.t("Ikke sendt ennå");
               return `<li class="ni-lenkerad${sp.sendt[i] ? " sendt" : ""}">
-                <button class="ni-lenkenavn" data-h="person" data-v="${i}" aria-label="${esc(navn)}: vis lenken og QR-koden">${R.avatar(i)}<span><b>${esc(navn)}</b><small>${sp.sendt[i] ? "✓ " : ""}${status}</small></span></button>
-                <button class="knapp-2 liten" data-h="del-en" data-v="${i}" aria-label="Del lenken til ${esc(navn)}">Del</button>
-                <button class="knapp-2 liten" data-h="kopier-en" data-v="${i}" aria-label="Kopier lenken til ${esc(navn)}">Kopier</button>
+                <button class="ni-lenkenavn" data-h="person" data-v="${i}" aria-label="${esc(R.t("{navn}: vis lenken og QR-koden", { navn }))}">${R.avatar(i)}<span><b>${esc(navn)}</b><small>${sp.sendt[i] ? "✓ " : ""}${esc(status)}</small></span></button>
+                <button class="knapp-2 liten" data-h="del-en" data-v="${i}" aria-label="${esc(R.t("Del lenken til {navn}", { navn }))}">${esc(R.t("Del"))}</button>
+                <button class="knapp-2 liten" data-h="kopier-en" data-v="${i}" aria-label="${esc(R.t("Kopier lenken til {navn}", { navn }))}">${esc(R.t("Kopier"))}</button>
               </li>`;
             })
             .join("");
           return `
             ${piller(BUDSJETT[sp.budsjett], sp.dato)}
-            <h1 id="skjerm-tittel">Send lenkene</h1>
-            <p class="ingress">Hver person får sin egen lenke. Den viser bare hvem den personen skal gi gave til.</p>
+            <h1 id="skjerm-tittel">${esc(R.t("Send lenkene"))}</h1>
+            <p class="ingress">${esc(R.t("Hver person får sin egen lenke. Den viser bare hvem den personen skal gi gave til."))}</p>
             <p class="ni-varsel" id="ni-varsel">${
               !erLagret(sp)
-                ? "<b>Send alle lenkene nå.</b> Denne mobilen lagrer ikke trekningen – den blir borte når du lukker siden."
+                ? `<b>${esc(R.t("Send alle lenkene nå."))}</b> ${esc(R.t("Denne mobilen lagrer ikke trekningen – den blir borte når du lukker siden."))}`
                 : neste >= 0
-                  ? "<b>Send lenkene nå</b> – trekningen ligger bare på denne mobilen."
-                  : "Alle lenkene er sendt. Trekningen ligger bare på denne mobilen."
+                  ? `<b>${esc(R.t("Send lenkene nå"))}</b> ${esc(R.t("– trekningen ligger bare på denne mobilen."))}`
+                  : esc(R.t("Alle lenkene er sendt. Trekningen ligger bare på denne mobilen."))
             }</p>
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Lenkene</h2><span class="tall">${delt} av ${sp.n} sendt</span></div>
+              <div class="seksjon-hode"><h2>${esc(R.t("Lenkene"))}</h2><span class="tall">${esc(R.t("{n} av {alle} sendt", { n: delt, alle: sp.n }))}</span></div>
               <ul class="ni-lenker">${rader}</ul>
             </section>
-            <p class="hjelp">Lenkene virker også om mobilen skulle glemme trekningen. Har noen mistet lenken sin, sender du den på nytt herfra.</p>
-            <p class="ni-aerlig">Lenkene sendes ikke via oss. Navnene kan ikke leses rett ut av en lenke, men den er ikke låst: Den som har lenken, kan åpne kortet. Du som laget trekningen, kan åpne alle.</p>
-            ${R.ui.lenkerad(R.ui.lenke("Er du med selv? Se kortet ditt", "vert-gjest"), avslorLenke(sp), R.ui.lenke("Avslutt", "avslutt"))}
+            <p class="hjelp">${esc(R.t("Lenkene virker også om mobilen skulle glemme trekningen. Har noen mistet lenken sin, sender du den på nytt herfra."))}</p>
+            <p class="ni-aerlig">${esc(R.t("Lenkene sendes ikke via oss. Navnene kan ikke leses rett ut av en lenke, men den er ikke låst: Den som har lenken, kan åpne kortet. Du som laget trekningen, kan åpne alle."))}</p>
+            ${R.ui.lenkerad(R.ui.lenke(R.t("Er du med selv? Se kortet ditt"), "vert-gjest"), avslorLenke(sp), R.ui.lenke(R.t("Avslutt"), "avslutt"))}
             ${R.ui.dokk(
-              neste >= 0 ? R.ui.knapp(`Del lenken til ${sp.navn[neste]}`, "del-en", { v: neste, ikon: "📨" }) : R.ui.knapp("Ferdig – vi ses på gavedagen", "ferdig", { ikon: "🎄" }),
-              neste >= 0 ? R.ui.lenkerad(R.ui.lenke("Ferdig for nå", "ferdig")) : "",
+              neste >= 0 ? R.ui.knapp(R.t("Del lenken til {navn}", { navn: sp.navn[neste] }), "del-en", { v: neste, ikon: "📨" }) : R.ui.knapp(R.t("Ferdig – vi ses på gavedagen"), "ferdig", { ikon: "🎄" }),
+              neste >= 0 ? R.ui.lenkerad(R.ui.lenke(R.t("Ferdig for nå"), "ferdig")) : "",
             )}`;
         },
         etter: () => sno(),
@@ -1081,7 +1099,7 @@
 
       // From the gift day on: reveal the whole ring step by step, then crown «årets nisse».
       kaaring: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -1090,18 +1108,18 @@
           const alle = vist >= sp.n;
           const linje = (k) => {
             const r = rekke[k];
-            return `<li>${R.avatar(r.giver)}<span class="ni-kjede-tekst"><b>${esc(sp.navn[r.giver])}</b><small>var nissen til <b>${esc(sp.navn[r.mottaker])}</b></small></span></li>`;
+            return `<li>${R.avatar(r.giver)}<span class="ni-kjede-tekst"><b>${esc(sp.navn[r.giver])}</b><small>${esc(R.t("var nissen til"))} <b>${esc(sp.navn[r.mottaker])}</b></small></span></li>`;
           };
           if (!alle) {
             const neste = rekke[vist].mottaker;
             return `
-              <h1 id="skjerm-tittel" class="ni-kaaring-tittel">Hvem var nisse for hvem?</h1>
+              <h1 id="skjerm-tittel" class="ni-kaaring-tittel">${esc(R.t("Hvem var nisse for hvem?"))}</h1>
               <div class="papirboks ni-sporsmal" aria-live="polite">
-                <span class="etikett">${vist + 1} av ${sp.n}</span>
-                <span class="ni-sporsmal-navn">${R.avatar(neste, "stor")}<span>Hvem var nissen til <b>${esc(sp.navn[neste])}</b>?</span></span>
+                <span class="etikett">${esc(R.t("{n} av {alle}", { n: vist + 1, alle: sp.n }))}</span>
+                <span class="ni-sporsmal-navn">${R.avatar(neste, "stor")}<span>${esc(R.t("Hvem var nissen til"))} <b>${esc(sp.navn[neste])}</b>?</span></span>
               </div>
-              ${vist ? `<ol class="ni-kjede nyest">${range(vist).reverse().map(linje).join("")}</ol>` : `<p class="hjelp">${esc(sp.navn[neste])} gjetter først. Så avslører dere én og én.</p>`}
-              ${R.ui.dokk(R.ui.knapp("Avslør!", "avslor", { ikon: "🎅" }), R.ui.lenkerad(R.ui.lenke("Vis alle på en gang", "vis-alle")))}`;
+              ${vist ? `<ol class="ni-kjede nyest">${range(vist).reverse().map(linje).join("")}</ol>` : `<p class="hjelp">${esc(R.t("{navn} gjetter først. Så avslører dere én og én.", { navn: sp.navn[neste] }))}</p>`}
+              ${R.ui.dokk(R.ui.knapp(R.t("Avslør!"), "avslor", { ikon: "🎅" }), R.ui.lenkerad(R.ui.lenke(R.t("Vis alle på en gang"), "vis-alle")))}`;
           }
           const arets = sp.arets;
           return `
@@ -1109,29 +1127,29 @@
               arets != null
                 ? `<div class="banner aksent ni-arets">
                     ${R.figur()}
-                    <p class="etikett">Årets nisse</p>
-                    <h1 id="skjerm-tittel">${esc(sp.navn[arets])} vinner!</h1>
-                    <p class="ingress">Takk for den fineste gaven. 🎁</p>
+                    <p class="etikett">${esc(R.t("Årets nisse"))}</p>
+                    <h1 id="skjerm-tittel">${esc(R.t("{navn} vinner!", { navn: sp.navn[arets] }))}</h1>
+                    <p class="ingress">${esc(R.t("Takk for den fineste gaven. 🎁"))}</p>
                   </div>`
                 : `<div class="banner ni-banner">
                     ${R.figur()}
-                    <h1 id="skjerm-tittel">Ringen er sluttet!</h1>
-                    <p class="ingress">Alle ${sp.n} var nisse for noen – og fikk en nisse selv.</p>
+                    <h1 id="skjerm-tittel">${esc(R.t("Ringen er sluttet!"))}</h1>
+                    <p class="ingress">${esc(R.t("Alle {n} var nisse for noen – og fikk en nisse selv.", { n: sp.n }))}</p>
                   </div>`
             }
             <section class="seksjon">
-              <h2>Årets nisse</h2>
-              <p class="ni-hjelp">Hvem ga den beste gaven? Trykk på navnet.</p>
+              <h2>${esc(R.t("Årets nisse"))}</h2>
+              <p class="ni-hjelp">${esc(R.t("Hvem ga den beste gaven? Trykk på navnet."))}</p>
               <div class="velgere">${range(sp.n)
                 .map((i) => `<button class="velger" data-h="arets" data-v="${i}" aria-pressed="${arets === i}">${R.avatar(i)}<span>${esc(sp.navn[i])}</span></button>`)
                 .join("")}</div>
             </section>
             <section class="seksjon">
-              <h2>Nissekjeden</h2>
+              <h2>${esc(R.t("Nissekjeden"))}</h2>
               <ol class="ni-kjede">${range(sp.n).map(linje).join("")}</ol>
             </section>
             ${R.ui.flereSpill({ antall: sp.n })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -1147,18 +1165,18 @@
 
       // A personal card, opened from a link (or the host's own).
       gjest: {
-        tittel: "Nissetrekning",
+        tittel: R.t("Nissetrekning"),
         tilbake: "hjem",
         vis(S) {
           const g = S.gjest;
           return `
-            <h1 id="skjerm-tittel" class="ni-hei ${navnKlasse(g.navn)}">${navneAvatar(g.navn, "mid")}<span>Hei, ${esc(g.navn)}!</span></h1>
-            ${R.ui.mappe({ id: "gjest", etikett: "Topphemmelig", tekst: HOLD })}
+            <h1 id="skjerm-tittel" class="ni-hei ${navnKlasse(g.navn)}">${navneAvatar(g.navn, "mid")}<span>${esc(R.t("Hei, {navn}!", { navn: g.navn }))}</span></h1>
+            ${R.ui.mappe({ id: "gjest", etikett: R.t("Topphemmelig"), tekst: HOLD })}
             ${piller(g.kr, g.dato)}
             ${nedtellingHtml(g.dato)}
-            <p class="hjelp">Kortet er bare ditt. Glemmer du hvem du skal gi til, åpner du lenken igjen.</p>
-            ${R.ui.lenkerad(R.ui.lenke("Fjern fra denne mobilen", "forlat"))}
-            ${R.ui.dokk(R.ui.knapp2("Gaveideer", "ideer", { ikon: "💡" }))}`;
+            <p class="hjelp">${esc(R.t("Kortet er bare ditt. Glemmer du hvem du skal gi til, åpner du lenken igjen."))}</p>
+            ${R.ui.lenkerad(R.ui.lenke(R.t("Fjern fra denne mobilen"), "forlat"))}
+            ${R.ui.dokk(R.ui.knapp2(R.t("Gaveideer"), "ideer", { ikon: "💡" }))}`;
         },
         inn: () => setTimeout(() => R.slippVaken(), 0),
         etter: () => sno(),
@@ -1167,7 +1185,7 @@
       // A link was opened on a phone that already has a card, or a draw of its own: ask first.
       // (The new card's receiver is never shown here – only whose card it is.)
       nyttkort: {
-        tittel: "Nissetrekning",
+        tittel: R.t("Nissetrekning"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -1178,41 +1196,41 @@
             return `
               <div class="banner ni-banner">
                 ${R.figur()}
-                <h1 id="skjerm-tittel">Du har en trekning på denne mobilen</h1>
-                <p class="ingress">Lenken du åpnet, er nissekortet til ${b(ny.navn)}. Vil du åpne det?</p>
+                <h1 id="skjerm-tittel">${esc(R.t("Du har en trekning på denne mobilen"))}</h1>
+                <p class="ingress">${tMed(R.t("Lenken du åpnet, er nissekortet til {navn}. Vil du åpne det?", { navn: "{navn}" }), { navn: b(ny.navn) })}</p>
               </div>
-              <p class="hjelp">Trekningen din blir liggende som før. Kortet er bare ment for ${esc(ny.navn)}.</p>
-              ${R.ui.dokk(R.ui.knapp("Åpne kortet", "apne-nytt"), R.ui.lenkerad(R.ui.lenke("Ikke nå", "behold-kort")))}`;
+              <p class="hjelp">${esc(R.t("Trekningen din blir liggende som før. Kortet er bare ment for {navn}.", { navn: ny.navn }))}</p>
+              ${R.ui.dokk(R.ui.knapp(R.t("Åpne kortet"), "apne-nytt"), R.ui.lenkerad(R.ui.lenke(R.t("Ikke nå"), "behold-kort")))}`;
           }
           const samme = nokkel(g.navn) === nokkel(ny.navn);
           return `
             <div class="banner ni-banner">
               ${R.figur()}
-              <h1 id="skjerm-tittel">Du har allerede et nissekort</h1>
+              <h1 id="skjerm-tittel">${esc(R.t("Du har allerede et nissekort"))}</h1>
               <p class="ingress">${
                 samme
-                  ? `Denne mobilen har allerede et kort til ${b(g.navn)}. Lenken du åpnet, er et annet kort til ${esc(ny.navn)}.`
-                  : `Denne mobilen har kortet til ${b(g.navn)}. Lenken du åpnet, er kortet til ${b(ny.navn)}.`
-              } Vil du åpne det nye?</p>
+                  ? tMed(R.t("Denne mobilen har allerede et kort til {a}. Lenken du åpnet, er et annet kort til {b}.", { a: "{a}", b: "{b}" }), { a: b(g.navn), b: esc(ny.navn) })
+                  : tMed(R.t("Denne mobilen har kortet til {a}. Lenken du åpnet, er kortet til {b}.", { a: "{a}", b: "{b}" }), { a: b(g.navn), b: b(ny.navn) })
+              } ${esc(R.t("Vil du åpne det nye?"))}</p>
             </div>
-            <p class="hjelp">Da forsvinner det gamle kortet fra denne mobilen. ${samme ? "Har dere trukket på nytt, er det nye kortet det riktige. " : ""}Er du usikker på lenken, så spør den som laget trekningen.</p>
-            ${R.ui.dokk(R.ui.knapp("Åpne det nye kortet", "apne-nytt"), R.ui.lenkerad(R.ui.lenke("Behold det gamle", "behold-kort")))}`;
+            <p class="hjelp">${esc(R.t("Da forsvinner det gamle kortet fra denne mobilen."))} ${samme ? esc(R.t("Har dere trukket på nytt, er det nye kortet det riktige.")) + " " : ""}${esc(R.t("Er du usikker på lenken, så spør den som laget trekningen."))}</p>
+            ${R.ui.dokk(R.ui.knapp(R.t("Åpne det nye kortet"), "apne-nytt"), R.ui.lenkerad(R.ui.lenke(R.t("Behold det gamle"), "behold-kort")))}`;
         },
         etter: () => sno(),
       },
 
       // A link that can't be read: say so kindly.
       lenkefeil: {
-        tittel: "Nissetrekning",
+        tittel: R.t("Nissetrekning"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis: (S) => `
           <div class="banner">
             ${R.figur()}
-            <h1 id="skjerm-tittel">Lenken virker ikke</h1>
-            <p class="ingress">${esc(S.lenkefeil || "Lenken er ufullstendig.")}</p>
+            <h1 id="skjerm-tittel">${esc(R.t("Lenken virker ikke"))}</h1>
+            <p class="ingress">${esc(S.lenkefeil || R.t("Lenken er ufullstendig."))}</p>
           </div>
-          ${R.ui.dokk(R.ui.knapp("Til Nissen", "hjem"))}`,
+          ${R.ui.dokk(R.ui.knapp(R.t("Til {spill}", { spill: R.app.navn }), "hjem"))}`,
         etter: () => sno(),
       },
     },
@@ -1239,7 +1257,7 @@
         R.lagre();
         const lagret = !!S.spill && erLagret(S.spill);
         R.gaTil("hjem");
-        R.toast(lagret ? "Trekningen er lagret på denne mobilen" : "Denne mobilen lagrer ikke trekningen");
+        R.toast(lagret ? R.t("Trekningen er lagret på denne mobilen") : R.t("Denne mobilen lagrer ikke trekningen"));
       },
 
       // Setup
@@ -1327,9 +1345,9 @@
       },
       async "til-kaaring"(el, e, S) {
         const sp = S.spill;
-        if (!gavedagNadd(sp)) return R.toast("Nissekjeden kan avsløres fra gavedagen");
+        if (!gavedagNadd(sp)) return R.toast(R.t("Nissekjeden kan avsløres fra gavedagen"));
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Er alle gavene delt ut?", "Da kan dere se hele nissekjeden – hvem som var nisse for hvem. Det kan ikke skjules igjen.", "Ja, avslør", "Ikke ennå");
+        const ja = await R.bekreft(R.t("Er alle gavene delt ut?"), R.t("Da kan dere se hele nissekjeden – hvem som var nisse for hvem. Det kan ikke skjules igjen."), R.t("Ja, avslør"), R.t("Ikke ennå"));
         if (!ja || !fortsatt()) return;
         sp.skjerm = "kaaring";
         R.gaTil("kaaring");
@@ -1382,9 +1400,9 @@
         const fortsatt = R.vakt();
         const tekst =
           S.spill.modus === "hver"
-            ? "Trekningen slettes fra denne mobilen. Lenkene som er sendt, virker fortsatt."
-            : "Trekningen slettes fra denne mobilen. Har noen ikke sett kortet sitt, må dere trekke på nytt.";
-        const ja = await R.bekreft("Avslutte trekningen?", tekst, "Avslutt", "Behold");
+            ? R.t("Trekningen slettes fra denne mobilen. Lenkene som er sendt, virker fortsatt.")
+            : R.t("Trekningen slettes fra denne mobilen. Har noen ikke sett kortet sitt, må dere trekke på nytt.");
+        const ja = await R.bekreft(R.t("Avslutte trekningen?"), tekst, R.t("Avslutt"), R.t("Behold"));
         if (!ja || !fortsatt()) return;
         S.spill = null;
         R.slippVaken();
@@ -1397,9 +1415,9 @@
         const sp = S.spill;
         const i = Number(el.dataset.v);
         if (!sp || !(i >= 0 && i < sp.n)) return;
-        const tillegg = [belop(sp.budsjett) ? `Budsjett: ${belop(sp.budsjett)}.` : "", sp.dato ? `Gavedag: ${datoTekst(sp.dato)}.` : ""].filter(Boolean).join(" ");
+        const tillegg = [belop(sp.budsjett) ? R.t("Budsjett: {belop}.", { belop: belop(sp.budsjett) }) : "", sp.dato ? R.t("Gavedag: {dato}.", { dato: datoTekst(sp.dato) }) : ""].filter(Boolean).join(" ");
         // The link is scrambled, not locked: whoever has it can open the card. So the message says so.
-        R.del("Nissetrekning", `Hei, ${sp.navn[i]}! Her er lenken din til nissetrekningen. Åpne den for å se hvem du skal gi gave til – og ikke send den videre. ${tillegg}`.trim(), personligLenke(sp, i));
+        R.del(R.t("Nissetrekning"), `${R.t("Hei, {navn}! Her er lenken din til nissetrekningen. Åpne den for å se hvem du skal gi gave til – og ikke send den videre.", { navn: sp.navn[i] })} ${tillegg}`.trim(), personligLenke(sp, i));
         R.lukkArk();
         merkSendt(S, i, 1);
       },
@@ -1418,9 +1436,9 @@
         if (i == null) {
           const fortsatt = R.vakt();
           i = await R.velgIArk(
-            "Hvem er du?",
+            R.t("Hvem er du?"),
             range(sp.n).map((n) => ({ v: n, tekst: sp.navn[n] })),
-            "Når du har sett kortet ditt, viser denne mobilen bare det kortet.",
+            R.t("Når du har sett kortet ditt, viser denne mobilen bare det kortet."),
           );
           if (i == null || !fortsatt()) return;
         }
@@ -1443,7 +1461,7 @@
       // A personal card
       async forlat(el, e, S) {
         const fortsatt = R.vakt();
-        if ((await R.bekreft("Fjerne kortet fra denne mobilen?", "Du kan åpne lenken din igjen når du vil.", "Fjern", "Behold")) && fortsatt()) {
+        if ((await R.bekreft(R.t("Fjerne kortet fra denne mobilen?"), R.t("Du kan åpne lenken din igjen når du vil."), R.t("Fjern"), R.t("Behold"))) && fortsatt()) {
           S.gjest = null;
           R.gaTil("hjem");
         }

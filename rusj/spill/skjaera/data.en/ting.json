@@ -1,0 +1,211 @@
+{
+  "temaer": [
+    {
+      "id": "frukt",
+      "navn": "Fruit and berries",
+      "ting": [
+        ["🍎", "Apple"], ["🍐", "Pear"], ["🍊", "Orange"], ["🍋", "Lemon"], ["🍌", "Banana"], ["🍉", "Watermelon"],
+        ["🍇", "Grapes"], ["🍓", "Strawberry"], ["🫐", "Blueberries"], ["🍒", "Cherries"], ["🍑", "Peach"], ["🥭", "Mango"],
+        ["🍍", "Pineapple"], ["🥥", "Coconut"], ["🥝", "Kiwi"], ["🍈", "Melon"], ["🍏", "Green apple"], ["🫒", "Olives"],
+        ["🥜", "Peanuts"], ["🌰", "Chestnut"]
+      ]
+    },
+    {
+      "id": "gronnsaker",
+      "navn": "Vegetables",
+      "ting": [
+        ["🥕", "Carrot"], ["🌽", "Corn on the cob"], ["🥦", "Broccoli"], ["🥒", "Cucumber"], ["🍅", "Tomato"], ["🥔", "Potato"],
+        ["🧅", "Onion"], ["🧄", "Garlic"], ["🌶️", "Chilli"], ["🫑", "Pepper"], ["🥬", "Lettuce"], ["🍆", "Aubergine"],
+        ["🥑", "Avocado"], ["🍄", "Mushroom"], ["🎃", "Pumpkin"], ["🫘", "Beans"], ["🍠", "Sweet potato"], ["🌿", "Herbs"],
+        ["🥗", "Salad bowl"]
+      ]
+    },
+    {
+      "id": "mat",
+      "navn": "Food",
+      "ting": [
+        ["🍕", "Pizza"], ["🍔", "Burger"], ["🌭", "Hot dog"], ["🍟", "Chips"], ["🌮", "Taco"], ["🍝", "Spaghetti"],
+        ["🥪", "Sandwich"], ["🧀", "Cheese"], ["🥚", "Egg"], ["🍳", "Fried egg"], ["🥞", "Pancakes"], ["🧇", "Waffle"],
+        ["🍞", "Bread"], ["🥐", "Croissant"], ["🍗", "Chicken drumstick"], ["🍣", "Sushi"], ["🍜", "Noodles"], ["🍛", "Curry"],
+        ["🍙", "Rice ball"], ["🥟", "Dumpling"], ["🍖", "Meat on the bone"], ["🥓", "Bacon"], ["🥯", "Bagel"], ["🥨", "Pretzel"],
+        ["🫓", "Flatbread"], ["🍤", "Fried prawn"], ["🌯", "Burrito"], ["🥫", "Tin can"], ["🥖", "Baguette"]
+      ]
+    },
+    {
+      "id": "sott",
+      "navn": "Sweet treats",
+      "ting": [
+        ["🍦", "Ice cream cone"], ["🍨", "Bowl of ice cream"], ["🍩", "Doughnut"], ["🍪", "Biscuit"], ["🎂", "Birthday cake"], ["🍰", "Slice of cake"],
+        ["🧁", "Cupcake"], ["🍫", "Chocolate"], ["🍬", "Sweet"], ["🍭", "Lollipop"], ["🍮", "Crème caramel"], ["🍯", "Honey"],
+        ["🥧", "Pie"], ["🍿", "Popcorn"], ["🥤", "Fizzy drink"], ["🍧", "Slushie"], ["🥠", "Fortune cookie"], ["🍘", "Rice cracker"]
+      ]
+    },
+    {
+      "id": "garden",
+      "navn": "On the farm",
+      "ting": [
+        ["🐄", "Cow"], ["🐖", "Pig"], ["🐑", "Sheep"], ["🐐", "Goat"], ["🐓", "Cockerel"], ["🐔", "Hen"],
+        ["🐣", "Chick"], ["🦆", "Duck"], ["🐎", "Horse"], ["🐇", "Rabbit"], ["🐕", "Dog"], ["🐈", "Cat"],
+        ["🦃", "Turkey"], ["🐁", "Mouse"], ["🐂", "Ox"], ["🦙", "Llama"], ["🐏", "Ram"], ["🐀", "Rat"],
+        ["🐩", "Poodle"], ["🐤", "Baby bird"], ["🐴", "Pony"], ["🌾", "Ear of wheat"]
+      ]
+    },
+    {
+      "id": "ville",
+      "navn": "Wild animals",
+      "ting": [
+        ["🦁", "Lion"], ["🐯", "Tiger"], ["🐘", "Elephant"], ["🦒", "Giraffe"], ["🦓", "Zebra"], ["🦏", "Rhino"],
+        ["🦛", "Hippo"], ["🐊", "Crocodile"], ["🐒", "Monkey"], ["🦍", "Gorilla"], ["🐻", "Bear"], ["🦊", "Fox"],
+        ["🐺", "Wolf"], ["🦌", "Deer"], ["🦘", "Kangaroo"], ["🐼", "Panda"], ["🦔", "Hedgehog"], ["🐿️", "Squirrel"],
+        ["🐆", "Leopard"], ["🦧", "Orangutan"], ["🐫", "Camel"], ["🦬", "Bison"], ["🦡", "Badger"], ["🐨", "Koala"],
+        ["🦥", "Sloth"], ["🦇", "Bat"], ["🐗", "Wild boar"], ["🦫", "Beaver"], ["🐍", "Snake"], ["🦎", "Lizard"],
+        ["🦖", "Dinosaur"]
+      ]
+    },
+    {
+      "id": "havet",
+      "navn": "In the sea",
+      "ting": [
+        ["🐟", "Fish"], ["🐠", "Tropical fish"], ["🐡", "Pufferfish"], ["🦈", "Shark"], ["🐬", "Dolphin"], ["🐳", "Whale"],
+        ["🐙", "Octopus"], ["🦀", "Crab"], ["🦞", "Lobster"], ["🦐", "Prawn"], ["🐚", "Shell"], ["🐢", "Turtle"],
+        ["🦭", "Seal"], ["🐧", "Penguin"], ["🦦", "Otter"], ["⚓", "Anchor"], ["🦑", "Squid"], ["🪸", "Coral"],
+        ["🐋", "Humpback whale"], ["🦪", "Oyster"], ["🌊", "Wave"], ["🛟", "Lifebuoy"], ["🤿", "Diving mask"], ["🏖️", "Beach"]
+      ]
+    },
+    {
+      "id": "smakryp",
+      "navn": "Birds and creepy-crawlies",
+      "ting": [
+        ["🦉", "Owl"], ["🦅", "Eagle"], ["🦜", "Parrot"], ["🦢", "Swan"], ["🦩", "Flamingo"], ["🕊️", "Dove"],
+        ["🦚", "Peacock"], ["🐝", "Bee"], ["🐞", "Ladybird"], ["🐛", "Caterpillar"], ["🦋", "Butterfly"], ["🐌", "Snail"],
+        ["🐜", "Ant"], ["🕷️", "Spider"], ["🦗", "Grasshopper"], ["🐸", "Frog"], ["🐦", "Bird"], ["🦟", "Mosquito"],
+        ["🪰", "Fly"], ["🪲", "Beetle"], ["🦂", "Scorpion"], ["🪱", "Earthworm"]
+      ]
+    },
+    {
+      "id": "kjoretoy",
+      "navn": "Vehicles",
+      "ting": [
+        ["🚗", "Car"], ["🚌", "Bus"], ["🚓", "Police car"], ["🚑", "Ambulance"], ["🚒", "Fire engine"], ["🚜", "Tractor"],
+        ["🚲", "Bike"], ["🛴", "Scooter"], ["🏍️", "Motorbike"], ["🚂", "Steam train"], ["🚁", "Helicopter"], ["✈️", "Aeroplane"],
+        ["⛵", "Sailing boat"], ["🚢", "Ship"], ["🚀", "Rocket"], ["🚚", "Lorry"], ["🛶", "Canoe"], ["🚕", "Taxi"],
+        ["🚐", "Minibus"], ["🚙", "Four-by-four"], ["🏎️", "Racing car"], ["🚋", "Tram"], ["🚇", "Underground train"], ["🚄", "High-speed train"],
+        ["⛴️", "Ferry"], ["🛥️", "Motor boat"], ["🛩️", "Small plane"], ["🚠", "Cable car"], ["🛵", "Moped"], ["🚛", "Articulated lorry"],
+        ["🚤", "Speedboat"]
+      ]
+    },
+    {
+      "id": "leker",
+      "navn": "Toys",
+      "ting": [
+        ["🧸", "Teddy bear"], ["🪀", "Yo-yo"], ["🪁", "Kite"], ["🎈", "Balloon"], ["🎲", "Dice"], ["🧩", "Jigsaw piece"],
+        ["🎨", "Paint palette"], ["🖍️", "Crayon"], ["🎮", "Game controller"], ["🃏", "Playing card"], ["♟️", "Chess piece"], ["🪃", "Boomerang"],
+        ["🎯", "Dartboard"], ["🎠", "Carousel horse"], ["🤖", "Robot"], ["🪄", "Magic wand"], ["🪅", "Piñata"], ["🪆", "Russian doll"],
+        ["🛝", "Slide"], ["🔫", "Water pistol"], ["🛼", "Roller skate"], ["🎡", "Big wheel"], ["🎢", "Roller coaster"], ["🎳", "Skittle"]
+      ]
+    },
+    {
+      "id": "klaer",
+      "navn": "Clothes and stuff",
+      "ting": [
+        ["👕", "T-shirt"], ["👖", "Trousers"], ["👗", "Dress"], ["🧥", "Jacket"], ["🧣", "Scarf"], ["🧤", "Gloves"],
+        ["🧦", "Socks"], ["👟", "Trainers"], ["👢", "Boot"], ["👠", "High heel"], ["🧢", "Cap"], ["🎩", "Top hat"],
+        ["🕶️", "Sunglasses"], ["👓", "Glasses"], ["🎒", "School bag"], ["👜", "Handbag"], ["🩳", "Shorts"], ["👑", "Crown"],
+        ["🩱", "Swimming costume"], ["🩲", "Swimming trunks"], ["🥾", "Walking boot"], ["👞", "Smart shoe"], ["🩴", "Flip-flop"], ["👒", "Sun hat"],
+        ["👔", "Shirt"], ["🥼", "Lab coat"], ["🦺", "Hi-vis vest"], ["👘", "Kimono"], ["👛", "Purse"], ["💍", "Ring"]
+      ]
+    },
+    {
+      "id": "hjemme",
+      "navn": "At home",
+      "ting": [
+        ["🛏️", "Bed"], ["🛋️", "Sofa"], ["🪑", "Chair"], ["🚪", "Door"], ["🛁", "Bath"], ["🚽", "Loo"],
+        ["🪥", "Toothbrush"], ["🧽", "Sponge"], ["🕯️", "Candle"], ["💡", "Light bulb"], ["🔑", "Key"], ["⏰", "Alarm clock"],
+        ["🖼️", "Painting"], ["🧺", "Basket"], ["🧹", "Broom"], ["📺", "TV"], ["☎️", "Telephone"], ["🪞", "Mirror"],
+        ["🪟", "Window"], ["🚿", "Shower"], ["🧻", "Loo roll"], ["🧼", "Soap"], ["🪴", "Pot plant"], ["🗑️", "Bin"],
+        ["🧴", "Lotion bottle"], ["🔌", "Plug"], ["🕰️", "Clock"], ["📻", "Radio"], ["🪒", "Razor"]
+      ]
+    },
+    {
+      "id": "kjokken",
+      "navn": "In the kitchen",
+      "ting": [
+        ["🍴", "Knife and fork"], ["🥄", "Spoon"], ["🍽️", "Plate"], ["🫖", "Teapot"], ["☕", "Cup"], ["🥛", "Milk"],
+        ["🧂", "Salt cellar"], ["🥢", "Chopsticks"], ["🧊", "Ice cube"], ["⏲️", "Kitchen timer"], ["🍼", "Baby bottle"], ["🧈", "Butter"],
+        ["🥣", "Cereal bowl"], ["🍲", "Casserole"], ["🧃", "Juice"], ["🔪", "Knife"], ["🫙", "Jar"], ["🍵", "Teacup"],
+        ["🥘", "Paella pan"], ["🍚", "Bowl of rice"], ["🫕", "Fondue pot"], ["🥡", "Takeaway box"]
+      ]
+    },
+    {
+      "id": "natur",
+      "navn": "Nature and weather",
+      "ting": [
+        ["🌳", "Tree"], ["🌲", "Fir tree"], ["🌵", "Cactus"], ["🌻", "Sunflower"], ["🌷", "Tulip"], ["🌹", "Rose"],
+        ["🍁", "Maple leaf"], ["🍀", "Four-leaf clover"], ["🌈", "Rainbow"], ["⛰️", "Mountain"], ["🌋", "Volcano"], ["❄️", "Snowflake"],
+        ["⛄", "Snowman"], ["⚡", "Lightning"], ["☁️", "Cloud"], ["🌙", "Moon"], ["⭐", "Star"], ["☀️", "Sun"],
+        ["☂️", "Umbrella"], ["🌴", "Palm tree"], ["🌸", "Cherry blossom"], ["🌼", "Flower"], ["🌱", "Seedling"], ["🍂", "Autumn leaves"],
+        ["💧", "Drop of water"], ["🔥", "Bonfire"], ["🌪️", "Tornado"], ["🪨", "Rock"], ["🪵", "Log"], ["🌺", "Hibiscus"],
+        ["💐", "Bouquet"], ["🌧️", "Rain cloud"], ["🏝️", "Island"]
+      ]
+    },
+    {
+      "id": "sport",
+      "navn": "Sport and leisure",
+      "ting": [
+        ["⚽", "Football"], ["🏀", "Basketball"], ["🎾", "Tennis ball"], ["🏐", "Volleyball"], ["⚾", "Baseball"], ["🏓", "Table tennis"],
+        ["🏸", "Badminton"], ["🏒", "Ice hockey stick"], ["⛸️", "Ice skate"], ["🎿", "Skis"], ["🛷", "Sledge"], ["🏆", "Trophy"],
+        ["🥇", "Gold medal"], ["🥊", "Boxing glove"], ["🏹", "Bow and arrow"], ["🛹", "Skateboard"], ["🎣", "Fishing rod"], ["⛺", "Tent"],
+        ["🏈", "American football"], ["🏉", "Rugby ball"], ["🥅", "Goal"], ["⛳", "Golf flag"], ["🥌", "Curling stone"], ["🎽", "Running vest"],
+        ["🥋", "Judo suit"], ["🏋️", "Weightlifter"], ["🚴", "Cyclist"], ["🏊", "Swimmer"], ["⛷️", "Skier"], ["🏂", "Snowboard"],
+        ["🥈", "Silver medal"], ["🥉", "Bronze medal"]
+      ]
+    },
+    {
+      "id": "musikk",
+      "navn": "Music and fun",
+      "ting": [
+        ["🎸", "Guitar"], ["🎹", "Piano"], ["🥁", "Drum"], ["🎺", "Trumpet"], ["🎻", "Violin"], ["🎷", "Saxophone"],
+        ["🪗", "Accordion"], ["🎤", "Microphone"], ["🎧", "Headphones"], ["🎵", "Musical note"], ["🔔", "Bell"], ["🎉", "Party popper"],
+        ["🎁", "Present"], ["🎀", "Bow"], ["🎭", "Theatre masks"], ["🎪", "Circus tent"], ["🪕", "Banjo"], ["🎼", "Sheet music"],
+        ["📯", "Post horn"], ["🎙️", "Studio microphone"], ["🔊", "Loudspeaker"], ["💿", "CD"], ["🎟️", "Ticket"], ["🪩", "Disco ball"],
+        ["🎬", "Clapperboard"], ["🎊", "Confetti ball"]
+      ]
+    },
+    {
+      "id": "skole",
+      "navn": "At school",
+      "ting": [
+        ["✏️", "Pencil"], ["🖊️", "Pen"], ["📏", "Ruler"], ["✂️", "Scissors"], ["📎", "Paper clip"], ["📌", "Drawing pin"],
+        ["📚", "Books"], ["📓", "Exercise book"], ["🌍", "Globe"], ["🔬", "Microscope"], ["🧮", "Abacus"], ["🧪", "Test tube"],
+        ["🧲", "Magnet"], ["🔭", "Telescope"], ["🗺️", "Map"], ["🖌️", "Paintbrush"], ["📐", "Set square"], ["📖", "Open book"],
+        ["🏫", "School"], ["📝", "Note"], ["📋", "Clipboard"], ["✒️", "Fountain pen"], ["🎓", "Mortarboard"], ["📊", "Bar chart"],
+        ["🔢", "Numbers"], ["🔤", "Letters"], ["🗒️", "Notepad"], ["📅", "Calendar"], ["🖥️", "Computer"], ["🧑‍🏫", "Teacher"]
+      ]
+    },
+    {
+      "id": "dingser",
+      "navn": "Tools and gadgets",
+      "ting": [
+        ["🔨", "Hammer"], ["🪛", "Screwdriver"], ["🔧", "Spanner"], ["🪚", "Saw"], ["🧰", "Toolbox"], ["🪜", "Ladder"],
+        ["🔦", "Torch"], ["🔋", "Battery"], ["🔒", "Padlock"], ["⏳", "Hourglass"], ["🧭", "Compass"], ["📷", "Camera"],
+        ["📱", "Mobile phone"], ["💻", "Laptop"], ["⌚", "Watch"], ["🪣", "Bucket"], ["🧯", "Fire extinguisher"], ["✉️", "Letter"],
+        ["🪓", "Axe"], ["🔩", "Nut and bolt"], ["⚙️", "Cog"], ["🗜️", "Vice"], ["🪝", "Hook"], ["⛓️", "Chain"],
+        ["🪤", "Mousetrap"], ["🔍", "Magnifying glass"], ["🧷", "Safety pin"], ["🖨️", "Printer"], ["⌨️", "Keyboard"], ["🖱️", "Computer mouse"],
+        ["🕹️", "Joystick"], ["⏱️", "Stopwatch"], ["🗝️", "Old key"], ["🧵", "Cotton reel"], ["🪡", "Sewing needle"]
+      ]
+    }
+  ],
+  "jul": {
+    "navn": "Christmas",
+    "ting": [
+      ["🎄", "Christmas tree"], ["🎅", "Father Christmas"], ["🤶", "Mrs Claus"], ["🦌", "Reindeer"], ["🎁", "Christmas present"], ["🔔", "Christmas bell"],
+      ["🕯️", "Christmas candle"], ["⛄", "Snowman"], ["❄️", "Snowflake"], ["🧦", "Christmas stocking"], ["🍪", "Gingerbread biscuit"], ["⭐", "Christmas star"],
+      ["👼", "Angel"], ["⛪", "Church"], ["🛷", "Sledge"], ["🧣", "Scarf"], ["🧤", "Gloves"], ["🍊", "Satsuma"],
+      ["🥜", "Nuts"], ["🍬", "Sweets"], ["🎇", "Sparkler"], ["🧶", "Ball of wool"], ["🪵", "Yule log"], ["🎿", "Skis"],
+      ["⛸️", "Ice skates"], ["🥣", "Porridge"], ["☕", "Hot chocolate"], ["🎆", "Fireworks"], ["🧸", "Teddy bear"], ["🎀", "Ribbon bow"],
+      ["🎶", "Carol"], ["✉️", "Christmas card"], ["🚂", "Toy train"], ["🍫", "Chocolate"], ["🥛", "Milk for Santa"], ["🌲", "Fir tree"],
+      ["🔥", "Fireplace"], ["🏔️", "Snowy mountain"], ["🌟", "Twinkly star"], ["🥶", "Frozen"], ["🧥", "Winter coat"], ["📬", "Postbox"],
+      ["🌙", "Moon"], ["💝", "Heart with a bow"]
+    ]
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "temaer": [
+    {
+      "id": "dyr",
+      "navn": "Animals",
+      "ikon": "🐶",
+      "ting": [
+        ["🐶", "Dog"], ["🐱", "Cat"], ["🐭", "Mouse"], ["🐰", "Rabbit"], ["🦊", "Fox"], ["🐻", "Bear"],
+        ["🐼", "Panda"], ["🐨", "Koala"], ["🐯", "Tiger"], ["🦁", "Lion"], ["🐮", "Cow"], ["🐷", "Pig"],
+        ["🐸", "Frog"], ["🐵", "Monkey"], ["🐔", "Hen"], ["🐧", "Penguin"], ["🦉", "Owl"], ["🐴", "Horse"],
+        ["🦄", "Unicorn"], ["🐢", "Tortoise"], ["🐙", "Octopus"], ["🐳", "Whale"], ["🦒", "Giraffe"], ["🦓", "Zebra"],
+        ["🦔", "Hedgehog"], ["🐘", "Elephant"], ["🦋", "Butterfly"], ["🐞", "Ladybird"], ["🐺", "Wolf"], ["🦌", "Deer"],
+        ["🐿️", "Squirrel"], ["🦆", "Duck"], ["🐑", "Sheep"], ["🐐", "Goat"], ["🦀", "Crab"], ["🐬", "Dolphin"],
+        ["🦈", "Shark"], ["🐊", "Crocodile"], ["🐍", "Snake"], ["🦜", "Parrot"], ["🐌", "Snail"], ["🐝", "Bee"],
+        ["🦩", "Flamingo"], ["🐹", "Hamster"], ["🦘", "Kangaroo"], ["🦛", "Hippo"]
+      ]
+    },
+    {
+      "id": "mat",
+      "navn": "Food",
+      "ikon": "🍕",
+      "ting": [
+        ["🍎", "Apple"], ["🍌", "Banana"], ["🍓", "Strawberry"], ["🍉", "Watermelon"], ["🍇", "Grapes"], ["🍒", "Cherries"],
+        ["🍍", "Pineapple"], ["🥕", "Carrot"], ["🌽", "Corn on the cob"], ["🥦", "Broccoli"], ["🍕", "Pizza"], ["🍔", "Burger"],
+        ["🌭", "Hot dog"], ["🍟", "Chips"], ["🍦", "Ice cream"], ["🍩", "Doughnut"], ["🍪", "Biscuit"], ["🎂", "Birthday cake"],
+        ["🧀", "Cheese"], ["🥚", "Egg"], ["🍞", "Bread"], ["🥞", "Pancakes"], ["🍭", "Lollipop"], ["🍫", "Chocolate"],
+        ["🍋", "Lemon"], ["🥝", "Kiwi"], ["🍐", "Pear"], ["🥥", "Coconut"], ["🍿", "Popcorn"], ["🧁", "Cupcake"],
+        ["🥨", "Pretzel"], ["🧇", "Waffle"], ["🥐", "Croissant"], ["🍅", "Tomato"], ["🥒", "Cucumber"], ["🥔", "Potato"],
+        ["🍝", "Spaghetti"], ["🌮", "Taco"], ["🍗", "Chicken drumstick"], ["🍰", "Slice of cake"], ["🥛", "Milk"], ["🍯", "Honey"],
+        ["🫐", "Blueberries"], ["🥑", "Avocado"], ["🍑", "Peach"]
+      ]
+    },
+    {
+      "id": "kjoretoy",
+      "navn": "Vehicles",
+      "ikon": "🚒",
+      "ting": [
+        ["🚗", "Car"], ["🚕", "Taxi"], ["🚌", "Bus"], ["🚓", "Police car"], ["🚑", "Ambulance"], ["🚒", "Fire engine"],
+        ["🚜", "Tractor"], ["🚲", "Bike"], ["🛴", "Scooter"], ["🏍️", "Motorbike"], ["🚂", "Steam train"], ["🚁", "Helicopter"],
+        ["✈️", "Aeroplane"], ["⛵", "Sailing boat"], ["🚤", "Speedboat"], ["🚢", "Ship"], ["🛶", "Canoe"], ["🚚", "Lorry"],
+        ["🛵", "Moped"], ["🏎️", "Racing car"], ["🚋", "Tram"], ["🚠", "Gondola lift"], ["🛹", "Skateboard"], ["🚐", "Minibus"],
+        ["🚙", "Four-by-four"], ["🚛", "Articulated lorry"], ["🚇", "Underground train"], ["🚄", "High-speed train"], ["⛴️", "Ferry"], ["🛥️", "Motor boat"],
+        ["🛩️", "Small plane"], ["🛻", "Pickup truck"], ["🦽", "Wheelchair"], ["🚀", "Rocket"], ["🎈", "Hot-air balloon"], ["🛳️", "Cruise ship"],
+        ["🚡", "Cable car"]
+      ]
+    },
+    {
+      "id": "sport",
+      "navn": "Sport",
+      "ikon": "⚽",
+      "ting": [
+        ["⚽", "Football"], ["🏀", "Basketball"], ["🏈", "American football"], ["⚾", "Baseball"], ["🎾", "Tennis"], ["🏐", "Volleyball"],
+        ["🏓", "Table tennis"], ["🏸", "Badminton"], ["🏒", "Ice hockey"], ["⛸️", "Ice skating"], ["🎿", "Skis"], ["🏂", "Snowboard"],
+        ["🏊", "Swimming"], ["🚴", "Cycling"], ["🏆", "Trophy"], ["🥇", "Gold medal"], ["🎳", "Bowling"], ["🥊", "Boxing glove"],
+        ["⛳", "Golf"], ["🏹", "Bow and arrow"], ["🤸", "Gymnastics"], ["🏄", "Surfing"], ["🛷", "Sledge"], ["🥌", "Curling"],
+        ["🎯", "Darts"], ["🏉", "Rugby"], ["🤿", "Diving mask"], ["🧗", "Climbing"], ["🏋️", "Weightlifting"], ["🤾", "Handball"],
+        ["🏇", "Horse riding"], ["🛼", "Roller skates"], ["🥋", "Martial arts"], ["🚣", "Rowing"], ["⛷️", "Slalom"], ["🏃", "Running"],
+        ["🤺", "Fencing"], ["🎱", "Pool"], ["🥅", "Goal"], ["🛹", "Skateboard"]
+      ]
+    },
+    {
+      "id": "natur",
+      "navn": "Nature",
+      "ikon": "🌻",
+      "ting": [
+        ["🌳", "Tree"], ["🌲", "Fir tree"], ["🌵", "Cactus"], ["🌻", "Sunflower"], ["🌷", "Tulip"], ["🌹", "Rose"],
+        ["🍄", "Toadstool"], ["🍁", "Maple leaf"], ["🍀", "Four-leaf clover"], ["🌈", "Rainbow"], ["⛰️", "Mountain"], ["🌋", "Volcano"],
+        ["🌊", "Wave"], ["❄️", "Snowflake"], ["⛄", "Snowman"], ["🌪️", "Tornado"], ["⚡", "Lightning"], ["☁️", "Cloud"],
+        ["🔥", "Fire"], ["🌸", "Cherry blossom"], ["🌴", "Palm tree"], ["🐚", "Shell"], ["🌰", "Conker"], ["🍂", "Autumn leaves"],
+        ["💧", "Drop of water"], ["🌾", "Ear of wheat"], ["🌼", "Flower"], ["🌱", "Seedling"], ["🪨", "Rock"], ["🌺", "Hibiscus"],
+        ["🪵", "Log"], ["🌧️", "Rain cloud"], ["🏝️", "Island"], ["🌅", "Sunrise"], ["🌿", "Sprig"], ["🌬️", "Wind"],
+        ["🌫️", "Fog"]
+      ]
+    },
+    {
+      "id": "rom",
+      "navn": "Space",
+      "ikon": "🚀",
+      "ting": [
+        ["🚀", "Rocket"], ["🌙", "Crescent moon"], ["⭐", "Star"], ["🪐", "Planet"], ["☄️", "Comet"], ["🛸", "Flying saucer"],
+        ["👽", "Alien"], ["🌍", "Earth"], ["☀️", "Sun"], ["🔭", "Telescope"], ["🛰️", "Satellite"], ["🧑‍🚀", "Astronaut"],
+        ["🌠", "Shooting star"], ["🌕", "Full moon"], ["🌌", "Milky Way"], ["🤖", "Robot"], ["📡", "Satellite dish"], ["🌑", "New moon"],
+        ["👾", "Space monster"], ["🌟", "Glowing star"], ["💫", "Stardust"], ["🪨", "Meteorite"], ["🕳️", "Black hole"], ["🌀", "Galaxy"],
+        ["🌞", "Smiling sun"], ["🌝", "Smiling moon"], ["🧑‍🔬", "Scientist"], ["🌫️", "Nebula"]
+      ]
+    },
+    {
+      "id": "jul",
+      "navn": "Christmas",
+      "ikon": "🎄",
+      "ting": [
+        ["🎄", "Christmas tree"], ["🎅", "Father Christmas"], ["🤶", "Mrs Claus"], ["🦌", "Reindeer"], ["🎁", "Present"], ["🔔", "Bell"],
+        ["🕯️", "Candle"], ["⛄", "Snowman"], ["❄️", "Snowflake"], ["🧦", "Stocking"], ["🍪", "Gingerbread biscuit"], ["⭐", "Star"],
+        ["👼", "Angel"], ["⛪", "Church"], ["🛷", "Sledge"], ["🧣", "Scarf"], ["🧤", "Gloves"], ["🍊", "Satsuma"],
+        ["🥜", "Nuts"], ["🍬", "Sweets"], ["🎇", "Sparkler"], ["🧶", "Ball of wool"], ["🪵", "Log"], ["🎿", "Skis"],
+        ["⛸️", "Ice skate"], ["🥣", "Porridge"], ["☕", "Hot chocolate"], ["🎆", "Fireworks"], ["🎀", "Bow"], ["🧸", "Teddy bear"],
+        ["🚂", "Toy train"], ["✉️", "Christmas card"], ["🎶", "Carol"], ["🔥", "Open fire"], ["🍫", "Chocolate"], ["🥛", "Milk for Santa"],
+        ["🌲", "Fir tree"], ["🏔️", "Snowy mountain"]
+      ]
+    },
+    {
+      "id": "gjengen",
+      "navn": "The rusj crew",
+      "tekst": "All the characters from rusj"
+    }
+  ],
+  "gjengen": {
+    "luringen": "The Trickster",
+    "spionen": "The Spy",
+    "sladrehanken": "The Telltale",
+    "pekefingeren": "The Pointer",
+    "vaghalsen": "The Daredevil",
+    "vinglepetter": "The Ditherer",
+    "skravla": "The Chatterbox",
+    "panna": "The Brainbox",
+    "kodeknekkeren": "The Codebreaker",
+    "bedreviteren": "The Know-it-all",
+    "detektiven": "The Detective",
+    "mimen": "The Mime",
+    "tankeleseren": "The Mind Reader",
+    "hviskeren": "The Whisperer",
+    "lognhalsen": "The Fibber",
+    "kunstneren": "The Artist",
+    "sauen": "The Sheep",
+    "varulven": "The Werewolf",
+    "bokstavtrollet": "The Letter Troll",
+    "skjaera": "Maggie the Magpie",
+    "elefanten": "Nellie the Elephant",
+    "ordugla": "The Word Owl",
+    "nissen": "The Christmas Elf",
+    "terninga": "Dicey",
+    "tidsmaskinen": "The Time Machine",
+    "tieren": "The Coin",
+    "admiralen": "The Admiral",
+    "ballongen": "The Balloon",
+    "nynneren": "The Singer",
+    "papegoyen": "The Parrot",
+    "bingoballen": "The Bingo Ball",
+    "brikka": "Bumper",
+    "verktoykassa": "The Toolbox",
+    "kortkongen": "The Card King",
+    "tallknuseren": "The Number Cruncher",
+    "sjakkhesten": "The Knight",
+    "fireren": "Fourby",
+    "bonden": "The Farmer",
+    "minesveiperen": "The Sea Mine",
+    "dobleren": "The Doubler",
+    "slangen": "The Snake",
+    "blyanten": "The Pencil",
+    "ringen": "The Ring",
+    "pyramiden": "The Pyramid",
+    "bussen": "The Bus",
+    "hjulet": "The Wheel",
+    "torsten": "The Thirsty One",
+    "julekalenderen": "The Advent Calendar",
+    "firklover": "The Four-Leaf Clover",
+    "femmeren": "The Stopwatch",
+    "meyer": "The Dice Cup",
+    "stigespillet": "The Climber",
+    "dam": "The Draughts Piece",
+    "reversi": "The Reversi Disc",
+    "blokka": "The Block",
+    "skronemakeren": "The Storyteller",
+    "vriatter": "The Crazy Eight",
+    "hatten": "The Hat"
+  }
+}

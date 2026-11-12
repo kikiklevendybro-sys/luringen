@@ -172,6 +172,57 @@
       "tittel": "Bingo on your phone – number and party bingo, free",
       "frase": "Bingo",
       "beskrivelse": "Free bingo with the card on your phone: 75-ball number bingo, or party bingo for Christmas, weddings, New Year's Eve, Bonfire Night, birthdays and the pub."
+    },
+    "admiralen": {
+      "motMobilen": true,
+      "tittel": "Sea battle online – sink the enemy fleet, free",
+      "frase": "Sea battle",
+      "beskrivelse": "Free sea battle game in your browser: place your fleet and sink the enemy ships – against the phone at three levels, or two players on one phone."
+    },
+    "terninga": {
+      "motMobilen": true,
+      "tittel": "Five-dice game online – Scandinavian scoring, free",
+      "frase": "Five-dice game",
+      "beskrivelse": "Free five-dice game with Scandinavian scoring: roll three times and chase pairs, straights and Yatzy – solo, with friends or against the phone."
+    },
+    "brikka": {
+      "motMobilen": true,
+      "tittel": "Ludo online – free for 1–4 players on one phone",
+      "frase": "Ludo",
+      "beskrivelse": "Free ludo in your browser. Roll a six, get your counters out and bump the others back to base! 2–4 players on one phone, and the phone can join in."
+    },
+    "elefanten": {
+      "motMobilen": true,
+      "tittel": "Pairs game online – turn two cards, free for kids",
+      "frase": "Pairs game – find the matching cards",
+      "beskrivelse": "Free pairs game in your browser: turn two cards and find a match – on your own against the clock or up to four together. Animals, food, space and more."
+    },
+    "skjaera": {
+      "tittel": "Kim's game online – what's missing? Fun for kids",
+      "frase": "Kim's game",
+      "beskrivelse": "Free Kim's game in your browser: look closely at the things – then the magpie steals one. What's missing? 12 levels and nearly 300 things, solo or together."
+    },
+    "verktoykassa": {
+      "tittel": "Who goes first? Dice, team picker, coin and timer",
+      "frase": "Who goes first?",
+      "beskrivelse": "Free party tools in your browser: ‘Who goes first?’ with fingers on the screen, dice, a team picker, rock paper scissors, a coin toss and a scorekeeper.",
+      "sok": [
+        "team generator",
+        "dice roller",
+        "stopwatch"
+      ],
+      "type": "WebApplication"
+    },
+    "nissen": {
+      "tittel": "Secret Santa generator – free, no account needed",
+      "frase": "Secret Santa draw",
+      "beskrivelse": "Draw Secret Santa in a minute: type the names, draw – and send everyone their own secret link. Free, with no email, no account and no ads.",
+      "sok": [
+        "office secret santa",
+        "christmas",
+        "christmas presents"
+      ],
+      "type": "WebApplication"
     }
   }
 }
