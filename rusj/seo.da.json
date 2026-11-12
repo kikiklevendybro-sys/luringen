@@ -148,6 +148,18 @@
         "stopur"
       ],
       "type": "WebApplication"
+    },
+    "nissen": {
+      "tittel": "Hemmelig nisse – gratis nissetrækning uden konto",
+      "frase": "Nissetrækning",
+      "beskrivelse": "Træk hemmelig nisse på et minut: skriv navnene, træk – og send hver sit hemmelige link. Gratis, uden e-mail, konto og reklamer.",
+      "sok": [
+        "nisseven",
+        "julefrokost",
+        "jul",
+        "julegaver"
+      ],
+      "type": "WebApplication"
     }
   }
 }

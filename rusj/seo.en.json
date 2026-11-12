@@ -140,6 +140,17 @@
         "stopwatch"
       ],
       "type": "WebApplication"
+    },
+    "nissen": {
+      "tittel": "Secret Santa generator – free, no account needed",
+      "frase": "Secret Santa draw",
+      "beskrivelse": "Draw Secret Santa in a minute: type the names, draw – and send everyone their own secret link. Free, with no email, no account and no ads.",
+      "sok": [
+        "office secret santa",
+        "christmas",
+        "christmas presents"
+      ],
+      "type": "WebApplication"
     }
   }
 }
