@@ -15,7 +15,7 @@
   // `luringFar` = what the imposter sees on their card.
   const NIVAER = [
     { id: "lett", navn: "Lett", vansker: [1], luringFar: "hint" },
-    { id: "middels", navn: "Middels", vansker: [1, 2], luringFar: "kategori" },
+    { id: "middels", navn: "Middels", vansker: [1, 2], luringFar: "bare-hint" },
     { id: "vanskelig", navn: "Vanskelig", vansker: [2, 3], luringFar: "ingenting" },
     { id: "kaos", navn: "Kaos", vansker: [1, 2], luringFar: "lignende" },
   ];
@@ -183,8 +183,8 @@
     if (niva.luringFar === "lignende") return { type: "ord", ord: runde.lignende, kategori: runde.kategori, kaos: true };
     return {
       type: "luring",
-      kategori: niva.luringFar === "hint" || niva.luringFar === "kategori" ? runde.kategori : null,
-      hint: niva.luringFar === "hint" ? runde.hint : null,
+      kategori: niva.luringFar === "hint" ? runde.kategori : null,
+      hint: niva.luringFar === "hint" || niva.luringFar === "bare-hint" ? runde.hint : null,
     };
   }
 

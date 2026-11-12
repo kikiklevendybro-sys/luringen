@@ -33,7 +33,7 @@
   const ANTALL_ORD = DATA.kategorier.reduce((sum, k) => sum + k.ord.length, 0);
   const NIVA_TEKST = [
     { navn: "Lett", kort: "Luringen får kategori og et hint." },
-    { navn: "Middels", kort: "Luringen får bare kategorien." },
+    { navn: "Middels", kort: "Luringen får bare et hint, ikke kategorien." },
     { navn: "Vanskelig", kort: "Luringen får ingenting. Vanskeligere ord." },
     { navn: "Kaos", kort: "Luringen får et nesten-likt ord – og vet ikke at hen er luringen." },
   ];
@@ -538,7 +538,7 @@
   // The card as a screen reader says it (the same facts as kortHtml).
   function kortTekst(kort) {
     if (kort.type === "ord") return `Det hemmelige ordet er ${kort.ord}. Kategori: ${kort.kategori.navn}. Ikke si ordet høyt!`;
-    return `Du er luringen.${kort.kategori ? ` Kategori: ${kort.kategori.navn}.` : ""}${kort.hint ? ` Hint: ${kort.hint}.` : ""}${kort.kategori ? "" : " Ingen hint denne gangen."} Lytt godt, og bløff deg gjennom!`;
+    return `Du er luringen.${kort.kategori ? ` Kategori: ${kort.kategori.navn}.` : ""}${kort.hint ? ` Hint: ${kort.hint}.` : ""}${kort.kategori || kort.hint ? "" : " Ingen hint denne gangen."} Lytt godt, og bløff deg gjennom!`;
   }
 
   function kortHtml(kort) {
@@ -552,7 +552,7 @@
     const linjer = [];
     if (kort.kategori) linjer.push(`<span class="kort-linje"><b>Kategori</b>${kort.kategori.ikon} ${esc(kort.kategori.navn)}</span>`);
     if (kort.hint) linjer.push(`<span class="kort-linje"><b>Hint</b>${esc(kort.hint)}</span>`);
-    if (!kort.kategori) linjer.push('<span class="kort-linje">Ingen hint denne gangen</span>');
+    if (!kort.kategori && !kort.hint) linjer.push('<span class="kort-linje">Ingen hint denne gangen</span>');
     return `
       <span class="kort-etikett">Du er</span>
       <span class="kort-luring">Luringen</span>
@@ -897,7 +897,7 @@
     const rekkefolge = sp.poeng.map((p, i) => i).sort((a, b) => sp.poeng[b] - sp.poeng[a] || a - b);
     const ekstra = [];
     if (erKaos()) ekstra.push(`<span class="liten">${flere ? "Luringene" : "Luringen"} hadde ordet «${esc(sp.r.lignende)}».</span>`);
-    else if (K.NIVAER[sp.oppsett.niva].luringFar === "hint") ekstra.push(`<span class="liten">Hintet var «${esc(sp.r.hint)}».</span>`);
+    else if (["hint", "bare-hint"].includes(K.NIVAER[sp.oppsett.niva].luringFar)) ekstra.push(`<span class="liten">Hintet var «${esc(sp.r.hint)}».</span>`);
     $("#s-resultat").innerHTML = `
       <div class="banner ${luringVant ? "luringen" : "gruppa"}">
         ${maskotSvg(luringVant ? "glad" : "tatt")}

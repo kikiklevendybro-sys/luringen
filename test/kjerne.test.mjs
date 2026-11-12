@@ -108,7 +108,7 @@ test("kortFor shows the right card per level", () => {
 
   assert.deepEqual(K.kortFor(runde, oppsett, vanlig), { type: "ord", ord: runde.ord, kategori: runde.kategori });
   assert.deepEqual(K.kortFor(runde, { ...oppsett, niva: 0 }, luring), { type: "luring", kategori: runde.kategori, hint: runde.hint });
-  assert.deepEqual(K.kortFor(runde, { ...oppsett, niva: 1 }, luring), { type: "luring", kategori: runde.kategori, hint: null });
+  assert.deepEqual(K.kortFor(runde, { ...oppsett, niva: 1 }, luring), { type: "luring", kategori: null, hint: runde.hint });
   assert.deepEqual(K.kortFor(runde, { ...oppsett, niva: 2 }, luring), { type: "luring", kategori: null, hint: null });
   assert.deepEqual(K.kortFor(runde, { ...oppsett, niva: 3 }, luring), { type: "ord", ord: runde.lignende, kategori: runde.kategori, kaos: true });
 });
