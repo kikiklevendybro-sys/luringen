@@ -11,5 +11,23 @@
   "rekkefolge": 20,
   "farge": "#4fcfff",
   "alias": ["kims-lek", "skjæra"],
-  "sok": ["kims lek", "hva mangler", "huskelek", "huskespill", "hukommelse", "barnelek"]
+  "sok": ["kims lek", "hva mangler", "huskelek", "huskespill", "hukommelse", "barnelek"],
+  "i18n": {
+    "en": {
+      "navn": "Maggie",
+      "undertittel": "Kim's game",
+      "kort": "Look closely at the things. The magpie steals one – what's missing?",
+      "beskrivelse": "Free Kim's game in your browser. Look closely at the things – then the magpie steals something. What's missing? 12 levels for kids and families, solo or together.",
+      "slug": "maggie",
+      "sok": ["kim's game", "kims game", "what's missing", "whats missing", "memory game", "memory", "magpie", "observation game", "spot what's missing"]
+    },
+    "da": {
+      "navn": "Skaden",
+      "undertittel": "Kims leg",
+      "kort": "Se godt på tingene. Skaden stjæler noget – hvad mangler?",
+      "beskrivelse": "Gratis Kims leg på dansk. Se godt på tingene – så stjæler skaden noget. Hvad mangler? 12 niveauer for børn og familier, alene eller sammen.",
+      "slug": "skaden",
+      "sok": ["kims leg", "kimsleg", "hvad mangler", "huskeleg", "huskespil", "memory", "husskade"]
+    }
+  }
 }
