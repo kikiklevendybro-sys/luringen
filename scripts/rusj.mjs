@@ -464,7 +464,7 @@ export function faktaLest(m, motMobilen, t = (k, v) => (v ? k.replace(/\{(\w+)\}
     .join(", ");
 }
 
-export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
+export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen }) {
   const G = require(join(ROT, "rusj/kit/gjengen.js"));
   const kilde = (sti) => readFileSync(join(ROT, sti), "utf8");
   const filer = []; // every published path, for the service worker
@@ -518,6 +518,10 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
   const tekstFil = { nb: null };
   for (const s of SPRAK) tekstFil[s] = skriv(`felles/tekst.${s}.js`, `window.RUSJ_SPRAK=${JSON.stringify(s)};\nwindow.RUSJ_TEKST=${somData(kitTabell[s])};\n`);
   const forTekst = (U) => (tekstFil[U.sprak] ? [tekstFil[U.sprak]] : []);
+  // The word bank of each edition (felles/ord.js is Norwegian; felles/ord.<lang>.js the others, from
+  // data/kategorier.<lang>). A game with "ordbank" loads its own edition's bank as window.RUSJ_ORD.
+  const ordFor = { nb: { data: ordData, fil: felles.ord } };
+  for (const s of SPRAK) if (ordbanker[s]) ordFor[s] = { data: ordbanker[s], fil: skriv(`felles/ord.${s}.js`, "window.RUSJ_ORD=" + somData(ordbanker[s]) + ";") };
 
   // Icons and share images (drawn by scripts/lag-bilder.mjs, committed in rusj/bilder)
   const BILDER = join(ROT, "rusj/bilder");
@@ -719,7 +723,7 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
 
       const skript = [...forTekst(U), felles.gjengen, U.merkerJs, felles.js];
       if (m.qr) skript.push(felles.qr);
-      if (m.ordbank) skript.push(felles.ord);
+      if (m.ordbank && ordFor[U.sprak]) skript.push(ordFor[U.sprak].fil);
       skript.push(dataSti, jsSti);
 
       const dyp = m.fargeDyp || morkere(m.farge);
@@ -731,7 +735,7 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
       // from its data. Outside #skjerm, so the kit never draws over it; the kit hides it on every
       // screen but the home screen and the age gate.
       const spraket = U.sprak === "nb" ? null : lagSprak(U.sprak, spillTabell, kitTabell[U.sprak]);
-      const lest = lesRegler({ m, spillJs, data, ordData, G, sprak: spraket });
+      const lest = lesRegler({ m, spillJs, data, ordData: (ordFor[U.sprak] || {}).data, G, sprak: spraket });
       if (lest.feil) console.warn(`  ⚠ ${id}${U.sprak === "nb" ? "" : ` (${U.sprak})`}: ${lest.feil} – siden får ingen «Slik spiller dere»-blokk`);
       const alt = alternativer(spillSti(id));
       const omHtml = lest.regler

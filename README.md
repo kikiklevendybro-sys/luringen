@@ -29,7 +29,7 @@ Ingen avhengigheter må installeres. Det holder med Node.js (og Google Chrome fo
 - `rusj/portal/` – forsiden.
 - `rusj/KIT.md` – håndboka for å lage et nytt spill (regler, felles ordbruk og skjermmønstre). `rusj/SPILL.md` – beskrivelsen av hvert spill.
 - `rusj/bilder/` – app-ikoner og delingsbilder (lages med `scripts/lag-bilder.mjs`).
-- `src/` – Luringen, som var det første spillet. `data/kategorier/` – ordbanken (3 189 ord) som Luringen og flere andre spill bruker.
+- `src/` – Luringen, som var det første spillet. `data/kategorier/` – ordbanken (3 189 ord) som Luringen og flere andre spill bruker; `data/kategorier.en/` og `data/kategorier.da/` er ordbankene til den engelske og den danske utgaven av rusj.no.
 - `scripts/bygg.mjs` og `scripts/rusj.mjs` – bygget. `test/` – testene.
 
 Nye kategorier i ordbanken må legges sist i listen `REKKEFOLGE` i `scripts/bygg.mjs`, ellers endres kodene for «hver sin mobil» i Luringen.

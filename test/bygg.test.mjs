@@ -322,6 +322,32 @@ const omBlokk = (html) => {
 const synligTekst = (html) => tekst(html.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 const atten = (id) => id !== "luringen" && /"alder18":true/.test(readFileSync(join(WEB, id, "data.js"), "utf8").split("\n")[0]);
 
+test("word-bank games load their own edition's bank (felles/ord.js, ord.en.js, ord.da.js), never another's", () => {
+  const ordbank = readdirSync(join(ROT, "rusj/spill"))
+    .filter((id) => existsSync(join(ROT, "rusj/spill", id, "spill.json")))
+    .map((id) => JSON.parse(readFileSync(join(ROT, "rusj/spill", id, "spill.json"), "utf8")))
+    .filter((m) => m.ordbank);
+  assert.ok(ordbank.length >= 5);
+  const banker = (html) => [...html.matchAll(/src="\/felles\/(ord(?:\.[a-z]+)?\.js)\?/g)].map((m) => m[1]);
+  let andre = 0;
+  for (const m of ordbank) {
+    assert.deepEqual(banker(readFileSync(join(WEB, m.id, "index.html"), "utf8")), ["ord.js"], m.id);
+    for (const s of SPRAK) {
+      const fil = m.i18n && m.i18n[s] && join(WEB, s, m.i18n[s].slug, "index.html");
+      if (!fil || !existsSync(fil)) continue;
+      assert.deepEqual(banker(readFileSync(fil, "utf8")), [`ord.${s}.js`], `${s}/${m.i18n[s].slug}`);
+      andre++;
+    }
+  }
+  assert.ok(andre >= 2, "ingen ordbankspill publisert i en/da");
+  for (const s of SPRAK) {
+    const kode = readFileSync(join(WEB, `felles/ord.${s}.js`), "utf8");
+    const bank = JSON.parse(kode.slice("window.RUSJ_ORD=".length, -1));
+    assert.equal(bank.kategorier.length, 32, s);
+    assert.ok(Number.isInteger(bank.hash), s);
+  }
+});
+
 test("every game page has a readable «Slik spiller dere» block after the app, outside #skjerm", () => {
   for (const id of spillIder.filter((x) => x !== "luringen")) {
     const s = sider.find((x) => x.sti === `/${id}/`);

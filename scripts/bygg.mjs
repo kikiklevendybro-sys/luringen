@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Builds rusj.no without any dependencies:
-//   build/ord.json        merged word list (used by the tests and several games)
+//   build/ord.json        merged Norwegian word list (used by the tests and several games); the
+//                         English and Danish banks (data/kategorier.en, .da) go to the website only
 //   dist/web/             the website: front page, /luringen/, one folder per rusj game, offline support
 //   dist/luringen.html    Luringen as one page without <html>/<head> (for the Claude artifact)
 // Options: --ut <dir> (build somewhere else), --spill id1,id2 (only these games),
@@ -26,37 +27,49 @@ const REKKEFOLGE = [
 ];
 
 // ---------- Words ----------
+// One bank per edition, checked by the same rules: data/kategorier (Norwegian – also Luringen's and
+// build/ord.json), data/kategorier.en and data/kategorier.da (rusj/SPRAK.md). Same ids, same order.
 
-const kategorier = [];
-const sett = new Map();
-const duplikater = [];
-const mangler = [];
-
-for (const id of REKKEFOLGE) {
-  const fil = join(ROT, "data/kategorier", `${id}.json`);
-  if (!existsSync(fil)) {
-    mangler.push(id);
-    continue;
-  }
-  const kat = JSON.parse(readFileSync(fil, "utf8"));
-  if (kat.id !== id) throw new Error(`${fil}: id "${kat.id}" matcher ikke filnavnet`);
-  const ord = [];
-  for (const e of kat.ord) {
-    if (![1, 2, 3].includes(e.n) || !e.o || !e.h || !e.l) throw new Error(`${id}: ugyldig oppføring ${JSON.stringify(e)}`);
-    const nokkel = e.o.trim().toLocaleLowerCase("nb");
-    if (sett.has(nokkel)) {
-      duplikater.push(`${e.o} (${id}, beholdt i ${sett.get(nokkel)})`);
+function lesOrdbank(mappe, lokale) {
+  const kategorier = [];
+  const sett = new Map();
+  const duplikater = [];
+  const mangler = [];
+  const navn = mappe === "data/kategorier" ? "" : `${mappe}/`;
+  for (const id of REKKEFOLGE) {
+    const fil = join(ROT, mappe, `${id}.json`);
+    if (!existsSync(fil)) {
+      mangler.push(id);
       continue;
     }
-    sett.set(nokkel, id);
-    ord.push([e.o.trim(), e.n, e.h.trim(), e.l.trim()]);
+    const kat = JSON.parse(readFileSync(fil, "utf8"));
+    if (kat.id !== id) throw new Error(`${fil}: id "${kat.id}" matcher ikke filnavnet`);
+    const ord = [];
+    for (const e of kat.ord) {
+      if (![1, 2, 3].includes(e.n) || !e.o || !e.h || !e.l) throw new Error(`${navn}${id}: ugyldig oppføring ${JSON.stringify(e)}`);
+      const nokkel = e.o.trim().toLocaleLowerCase(lokale);
+      if (sett.has(nokkel)) {
+        duplikater.push(`${e.o} (${id}, beholdt i ${sett.get(nokkel)})`);
+        continue;
+      }
+      sett.set(nokkel, id);
+      ord.push([e.o.trim(), e.n, e.h.trim(), e.l.trim()]);
+    }
+    kategorier.push({ id: kat.id, navn: kat.navn, ikon: kat.ikon, ord });
   }
-  kategorier.push({ id: kat.id, navn: kat.navn, ikon: kat.ikon, ord });
+  if (!kategorier.length) throw new Error(`Fant ingen ordlister i ${mappe}`);
+  const data = { hash: hashTekst(JSON.stringify(kategorier)), kategorier };
+  return { data, antall: kategorier.reduce((s, k) => s + k.ord.length, 0), duplikater, mangler };
 }
 
-if (!kategorier.length) throw new Error("Fant ingen ordlister i data/kategorier");
-const data = { hash: hashTekst(JSON.stringify(kategorier)), kategorier };
-const antall = kategorier.reduce((s, k) => s + k.ord.length, 0);
+const { data, antall, duplikater, mangler } = lesOrdbank("data/kategorier", "nb");
+const { kategorier } = data;
+// The other editions' banks. An edition without its folder has no bank, and its word-bank games are
+// not published there (scripts/sprak.mjs).
+const ordbanker = {};
+for (const [sprak, lokale] of [["en", "en-GB"], ["da", "da"]]) {
+  if (existsSync(join(ROT, `data/kategorier.${sprak}`))) ordbanker[sprak] = lesOrdbank(`data/kategorier.${sprak}`, lokale);
+}
 
 mkdirSync(join(ROT, "build"), { recursive: true });
 writeFileSync(join(ROT, "build/ord.json"), JSON.stringify(data));
@@ -168,7 +181,7 @@ ${webKropp.trim()}
 `;
 writeFileSync(join(LUR, "index.html"), index);
 
-const rusj = byggRusj({ ROT, WEB, ordData: data, utvalg, luringen: utvalg && !utvalg.includes("luringen") ? null : LURINGEN_KORT });
+const rusj = byggRusj({ ROT, WEB, ordData: data, ordbanker: Object.fromEntries(Object.entries(ordbanker).map(([s, b]) => [s, b.data])), utvalg, luringen: utvalg && !utvalg.includes("luringen") ? null : LURINGEN_KORT });
 
 // ---------- Offline support: one service worker at the root (rusj/kit/sw.js) ----------
 // The worker gets three things from the build:
@@ -281,5 +294,10 @@ const kb = (fil) => Math.round(readFileSync(fil).length / 1024);
 console.log(`✓ ${antall} ord i ${kategorier.length} kategorier (hash ${data.hash})`);
 if (duplikater.length) console.log(`  ${duplikater.length} duplikater fjernet: ${duplikater.slice(0, 12).join(", ")}${duplikater.length > 12 ? " …" : ""}`);
 if (mangler.length) console.log(`  ⚠ mangler kategorier: ${mangler.join(", ")}`);
+for (const [sprak, b] of Object.entries(ordbanker)) {
+  console.log(`✓ ${sprak}: ${b.antall} ord i ${b.data.kategorier.length} kategorier (hash ${b.data.hash})`);
+  if (b.duplikater.length) console.log(`  ${b.duplikater.length} duplikater fjernet: ${b.duplikater.slice(0, 12).join(", ")}${b.duplikater.length > 12 ? " …" : ""}`);
+  if (b.mangler.length) console.log(`  ⚠ mangler kategorier: ${b.mangler.join(", ")}`);
+}
 console.log(`✓ ${rusj.spill.length} rusj-spill + Luringen i ${WEB.replace(ROT + "/", "")} (forside ${kb(join(WEB, "index.html"))} kB, Luringen ${kb(join(LUR, "luringen.js"))} kB)`);
 if (!tilAnnenMappe) console.log(`✓ dist/luringen.html (${kb(join(ROT, "dist/luringen.html"))} kB)`);

@@ -56,6 +56,21 @@ same page in the other edition, or to its front page when the game is not there 
   uses `rusj/bilder/deling.<lang>.png` and `deling-<id>.<lang>.png` when they exist, and no picture
   until then), the 404 page (it has the language switch).
 
+## The word banks
+
+Games with `"ordbank": true` in spill.json play with `window.RUSJ_ORD`. Each edition has its own bank,
+written for the country, not translated: `data/kategorier/` (Norwegian, also Luringen's and
+`build/ord.json`), `data/kategorier.en/` (British English) and `data/kategorier.da/` (rigsdansk). The
+same 32 category ids and file names in the same order (`REKKEFOLGE` in `scripts/bygg.mjs`), entries
+`{ o: word, n: level 1–3, h: hint, l: lure }`, about 100 per category with the Norwegian spread of
+levels. The id `norge` is «Typically British» / «Typisk dansk» and `steder` is places in Britain /
+Denmark; the ids stay so the code does not change. The build checks every bank by the same rules and
+publishes `felles/ord.js`, `felles/ord.en.js` and `felles/ord.da.js`; a page loads only its own
+edition's bank. A word-bank game is not published in an edition without its bank (a warning).
+Check a bank with `node scripts/sjekk-ord.mjs data/kategorier.en/*.json` (one language per run;
+`test/ordbank.test.mjs` does it for both). The lists are written by hand for rusj.no – no external word
+list is used.
+
 ## The checker
 
 ```bash
