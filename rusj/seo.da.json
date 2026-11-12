@@ -257,6 +257,17 @@
         "wavelength"
       ],
       "samarbeid": true
+    },
+    "sauen": {
+      "tittel": "Tænk som flokken – bliv ikke det sorte får!",
+      "frase": "Tænk som flokken",
+      "beskrivelse": "Gratis selskabsleg på dansk: svar det samme som flest muligt – men bliv ikke det sorte får. 850 spørgsmål, 3–12 spillere, én mobil går rundt.",
+      "sok": [
+        "det sorte får",
+        "flok",
+        "tænk ens",
+        "herd mentality"
+      ]
     }
   }
 }

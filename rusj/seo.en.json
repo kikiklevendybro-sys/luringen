@@ -247,6 +247,17 @@
         "cooperative game"
       ],
       "samarbeid": true
+    },
+    "sauen": {
+      "tittel": "Think like the flock – don't be the black sheep!",
+      "frase": "Think like the flock",
+      "beskrivelse": "Free party game: give the same answer as most of the group – but don't be the black sheep. 850 questions, 3–12 players, one phone passed round.",
+      "sok": [
+        "black sheep",
+        "flock",
+        "think alike",
+        "herd mentality"
+      ]
     }
   }
 }

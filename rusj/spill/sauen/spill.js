@@ -22,12 +22,12 @@
   // Irregular noun forms → base form (the regular ones are handled by ENDELSER).
   const UREGELRETT = {
     menn: "mann", mennene: "mann", bøker: "bok", bøkene: "bok", føtter: "fot", føttene: "fot",
-    hender: "hånd", hendene: "hånd", tenner: "tann", tennene: "tann", netter: "natt", nettene: "natt",
+    hender: "hånd", hendene: "hånd", tenner: "tann", tennene: "tann", netter: "natt", nettene: "natt", // sprak-ok
     røtter: "rot", røttene: "rot", bønder: "bonde", bøndene: "bonde", kyr: "ku", kyrne: "ku",
-    gjess: "gås", gjessene: "gås", tær: "tå", tærne: "tå", knær: "kne", knærne: "kne", trær: "tre",
-    trærne: "tre", strender: "strand", strendene: "strand", øyne: "øye", øynene: "øye", brødre: "bror",
+    gjess: "gås", gjessene: "gås", tær: "tå", tærne: "tå", knær: "kne", knærne: "kne", trær: "tre", // sprak-ok
+    trærne: "tre", strender: "strand", strendene: "strand", øyne: "øye", øynene: "øye", brødre: "bror", // sprak-ok
     brødrene: "bror", døtre: "datter", døtrene: "datter", mødre: "mor", mødrene: "mor", fedre: "far",
-    fedrene: "far", søstre: "søster", søstrene: "søster", ender: "and", endene: "and", stenger: "stang",
+    fedrene: "far", søstre: "søster", søstrene: "søster", ender: "and", endene: "and", stenger: "stang", // sprak-ok
     tenger: "tang",
   };
   // Endings of definite and plural nouns (bilen, biler, bilene, huset, jenta), adjectives (rødt,
@@ -35,13 +35,51 @@
   // purpose: it would make bilde match bil and matte match mat.
   const ENDELSER = ["ene", "ane", "er", "ar", "en", "et", "tt", "a", "e", "t", "r", "n"];
 
+  // The other editions (rusj/SPRAK.md) group answers by their own grammar. Danish uses the rules
+  // below with its own irregular plurals and endings, and a consonant doubled before an ending
+  // (kat → katte, ven → venner). English has its own small stemmer (stammerEngelsk).
+  const DANSK = {
+    uregelrett: {
+      mænd: "mand", mændene: "mand", bøger: "bog", bøgerne: "bog", fødder: "fod", fødderne: "fod", // sprak-ok
+      hænder: "hånd", hænderne: "hånd", tænder: "tand", tænderne: "tand", nætter: "nat", nætterne: "nat", // sprak-ok
+      børn: "barn", børnene: "barn", øjne: "øje", øjnene: "øje", brødre: "bror", brødrene: "bror", // sprak-ok
+      søstre: "søster", søstrene: "søster", mødre: "mor", mødrene: "mor", fædre: "far", fædrene: "far", // sprak-ok
+      døtre: "datter", døtrene: "datter", køer: "ko", køerne: "ko", gæs: "gås", gæssene: "gås", // sprak-ok
+      tæer: "tå", tæerne: "tå", træer: "træ", træerne: "træ", bønder: "bonde", bønderne: "bonde", // sprak-ok
+      ænder: "and", ænderne: "and", gæster: "gæst", gæsterne: "gæst", // sprak-ok
+    },
+    endelser: ["erne", "ene", "er", "en", "et", "ne", "e", "t", "r", "n"],
+  };
+  const ENGELSK = {
+    men: "man", women: "woman", children: "child", feet: "foot", teeth: "tooth", geese: "goose", mice: "mouse",
+    people: "person", oxen: "ox", dice: "die", potatoes: "potato", tomatoes: "tomato", heroes: "hero",
+  };
+  const UREGEL = R.sprak === "da" ? DANSK.uregelrett : UREGELRETT;
+  const ENDER = R.sprak === "da" ? DANSK.endelser : ENDELSER;
+
+  // English: plural -s, -es, -ies → -y and -ves → -f / -fe (cats, boxes, berries, knives).
+  function stammerEngelsk(ord) {
+    const ut = new Set([ord]);
+    if (ENGELSK[ord]) ut.add(ENGELSK[ord]);
+    const n = ord.length;
+    if (n > 4 && ord.endsWith("ies")) ut.add(ord.slice(0, -3) + "y");
+    if (n > 4 && ord.endsWith("ves")) {
+      ut.add(ord.slice(0, -3) + "f");
+      ut.add(ord.slice(0, -3) + "fe");
+    }
+    if (n > 4 && /(s|x|z|ch|sh|o)es$/.test(ord)) ut.add(ord.slice(0, -2));
+    if (n > 3 && ord.endsWith("s") && !/(ss|us|is)$/.test(ord)) ut.add(ord.slice(0, -1));
+    return ut;
+  }
+
   // The key a single word is compared by: lower case, accents and punctuation gone, no spaces.
   const nokkel = (tekst) => R.normaliser(tekst).replace(/ /g, "");
 
   // Possible base forms of one key: the key itself, an irregular base and the key minus one ending.
   function stammer(ord) {
+    if (R.sprak === "en") return stammerEngelsk(ord);
     const ut = new Set([ord]);
-    if (UREGELRETT[ord]) ut.add(UREGELRETT[ord]);
+    if (UREGEL[ord]) ut.add(UREGEL[ord]);
     // støvel → støvler, sykkel → sykler, finger → fingre: the e before a final l or r drops out.
     const el = /^(.*[^aeiouyæøå])e([lr])$/.exec(ord);
     if (el) {
@@ -49,7 +87,7 @@
       ut.add(uten);
       ut.add(uten.replace(/([^aeiouyæøå])\1([lr])$/, "$1$2"));
     }
-    for (const e of ENDELSER) {
+    for (const e of ENDER) {
       if (!ord.endsWith(e) || ord.length - e.length < 2) continue;
       const rest = ord.slice(0, -e.length);
       // A one-letter ending never splits a double letter (katt is not kat + t, mann is not man + n),
@@ -62,6 +100,8 @@
       if (rest.endsWith("mm") && e.length >= 2) ut.add(rest.slice(0, -1));
       // grønn → grønt, trygg → trygt: the double letter is dropped before the t.
       if (e === "t" && /[ng]$/.test(rest) && !/(nn|gg)$/.test(rest)) ut.add(rest + rest.slice(-1));
+      // Danish kat → katte, ven → venner: a consonant is doubled before an ending.
+      if (R.sprak === "da" && /([^aeiouyæøå])\1$/.test(rest)) ut.add(rest.slice(0, -1));
     }
     return ut;
   }
@@ -88,7 +128,7 @@
   }
 
   // The words of an answer, without a leading article: "en banan" → ["banan"].
-  const ARTIKLER = new Set(["en", "ei", "et", "den", "det", "de", "noen"]);
+  const ARTIKLER = new Set(R.sprak === "en" ? ["a", "an", "the", "some"] : R.sprak === "da" ? ["en", "et", "den", "det", "de", "nogle"] : ["en", "ei", "et", "den", "det", "de", "noen"]);
   function ordene(tekst) {
     const ord = R.normaliser(tekst).split(" ").filter(Boolean);
     return ord.length > 1 && ARTIKLER.has(ord[0]) ? ord.slice(1) : ord;
@@ -226,12 +266,12 @@
   const MAL = [5, 6, 8, 12];
   const TID = 20; // seconds to write an answer in «Alle samtidig»
   const MODUSER = [
-    { v: "en", tittel: "Én mobil", tekst: "Send den rundt, og skriv etter tur", ikon: "📱" },
-    { v: "alle", tittel: "Alle samtidig", tekst: "På lapper eller hver sin mobil", ikon: "📝" },
+    { v: "en", tittel: R.t("Én mobil"), tekst: R.t("Send den rundt, og skriv etter tur"), ikon: "📱" },
+    { v: "alle", tittel: R.t("Alle samtidig"), tekst: R.t("På lapper eller hver sin mobil"), ikon: "📝" },
   ];
   // The screens a game can be on, by the way of answering.
   const SPILLSKJERMER = { en: ["sporsmal", "skriv", "avslor", "poeng"], alle: ["klar", "sporsmal", "flokk", "alene", "poeng"] };
-  const TALL = ["null", "én", "to", "tre", "fire", "fem", "seks", "sju", "åtte", "ni", "ti", "elleve", "tolv"];
+  const TALL = [R.t("null"), R.t("én"), R.t("to"), R.t("tre"), R.t("fire"), R.t("fem"), R.t("seks"), R.t("sju"), R.t("åtte"), R.t("ni"), R.t("ti"), R.t("elleve"), R.t("tolv")];
   const stokk = R.kortstokk("sporsmal", ALLE.length);
 
   function nyttSporsmal(S) {
@@ -555,14 +595,20 @@
   // One or two short lines to share. Names of winners and title holders only — never an answer.
   function delTekst(sp) {
     const v = sp.vinnere;
-    const deler = [v.length ? `Sauen 🐑 ${navnene(v)} vant med ${R.flertall(Math.max(...v.map((i) => sp.poeng[i])), "poeng", "poeng")}.` : "Sauen 🐑 Ingen vinner denne gangen."];
+    const deler = [
+      `${R.t("Sauen")} 🐑 ${
+        v.length
+          ? R.t("{navn} vant med {poeng}.", { navn: navnene(v), poeng: R.flertall(Math.max(...v.map((i) => sp.poeng[i])), "poeng", "poeng") })
+          : R.t("Ingen vinner denne gangen.")
+      }`,
+    ];
     const p = priser(sp);
-    if (p.flokkdyr) deler.push(`Flokkdyret i kveld: ${p.flokkdyr.navn}.`);
-    if (sp.sau >= 0) deler.push(`Kveldens svarte sau: ${R.navn(sp.sau)} 🖤`);
+    if (p.flokkdyr) deler.push(R.t("Flokkdyret i kveld: {navn}.", { navn: p.flokkdyr.navn }));
+    if (sp.sau >= 0) deler.push(`${R.t("Kveldens svarte sau: {navn}", { navn: R.navn(sp.sau) })} 🖤`);
     return deler.join(" ");
   }
 
-  const sistTekst = (sist) => (sist.v.length > 2 ? `${sist.v.length} delte seieren` : `${liste(sist.v)} vant`);
+  const sistTekst = (sist) => (sist.v.length > 2 ? R.t("{n} delte seieren", { n: sist.v.length }) : R.t("{navn} vant", { navn: liste(sist.v) }));
 
   // ---------- Markup helpers ----------
 
@@ -580,10 +626,10 @@
         const pips = Array.from({ length: sp.mal }, (_, n) => `<i class="${n < p ? "fylt" : ""}"></i>`).join("");
         return `<li class="${sp.sau === i ? "har-sau" : ""} ${p === topp && p > 0 ? "leder" : ""}">
           ${medSau(S, i)}
-          <span class="sau-tavle-navn"><b>${esc(R.navn(i))}</b>${sp.sau === i ? '<span class="vh">, har den svarte sauen</span>' : ""}<span class="sau-tavle-linje"><span class="sau-pips" aria-hidden="true">${pips}</span>${
+          <span class="sau-tavle-navn"><b>${esc(R.navn(i))}</b>${sp.sau === i ? `<span class="vh">, ${esc(R.t("har den svarte sauen"))}</span>` : ""}<span class="sau-tavle-linje"><span class="sau-pips" aria-hidden="true">${pips}</span>${
             (pluss || []).includes(i) ? '<span class="pluss">+1</span>' : ""
           }</span></span>
-          <span class="sum">${p}<span class="vh"> poeng</span></span>
+          <span class="sum">${p}<span class="vh"> ${esc(R.t("poeng|poeng", { n: p }))}</span></span>
         </li>`;
       })
       .join("")}</ol>`;
@@ -610,24 +656,24 @@
       kanDeles ? "kan-deles" : "",
     ].filter(Boolean);
     const merke = o.flokk
-      ? '<span class="sau-gruppe-stempel">Flokken!</span>'
+      ? `<span class="sau-gruppe-stempel">${esc(R.t("Flokken!"))}</span>`
       : o.uavgjort
-        ? '<span class="sau-gruppe-stempel lampe">Uavgjort</span>'
+        ? `<span class="sau-gruppe-stempel lampe">${esc(R.t("Uavgjort"))}</span>`
         : o.svart
-          ? `<span class="sau-gruppe-svartsau">${R.figur("sauen", "", { svart: true })}Svart sau!</span>`
+          ? `<span class="sau-gruppe-svartsau">${R.figur("sauen", "", { svart: true })}${esc(R.t("Svart sau!"))}</span>`
           : "";
     const antall = R.flertall(spillere.length, "spiller", "spillere");
     return `<li class="${klasse.join(" ")}">
       <span class="sau-gruppe-topp">
         <b class="sau-gruppe-svar">${esc(tekster[0])}</b>
-        ${spillere.length === 1 && o.ferdig && !o.svart ? '<span class="sau-gruppe-alene">Alene</span>' : ""}
+        ${spillere.length === 1 && o.ferdig && !o.svart ? `<span class="sau-gruppe-alene">${esc(R.t("Alene"))}</span>` : ""}
         <span class="sau-gruppe-antall"><span aria-hidden="true">${spillere.length}</span><span class="vh">${antall}</span></span>
       </span>
       ${tekster.length > 1 ? `<span class="sau-varianter">${tekster.slice(1).map(esc).join(" · ")}</span>` : ""}
       <span class="sau-gruppe-hvem">${spillere.map((i) => `<span class="sau-hvem">${R.avatar(i)}<span>${esc(R.navn(i))}</span></span>`).join("")}</span>
       ${merke}
-      ${o.knapp ? `<button class="sau-gruppeknapp" data-h="velg" data-v="${n}" aria-pressed="${r.valgt === n}" aria-label="«${esc(tekster[0])}», ${antall}"></button>` : ""}
-      ${kanDeles ? `<button class="sau-del" data-h="del-opp" data-v="${n}" aria-label="Del opp «${esc(tekster.join(", "))}»"><span aria-hidden="true">✂</span></button>` : ""}
+      ${o.knapp ? `<button class="sau-gruppeknapp" data-h="velg" data-v="${n}" aria-pressed="${r.valgt === n}" aria-label="${esc(R.t("«{tekst}»", { tekst: tekster[0] }))}, ${antall}"></button>` : ""}
+      ${kanDeles ? `<button class="sau-del" data-h="del-opp" data-v="${n}" aria-label="${esc(R.t("Del opp «{tekst}»", { tekst: tekster.join(", ") }))}"><span aria-hidden="true">✂</span></button>` : ""}
     </li>`;
   }
 
@@ -651,17 +697,21 @@
     const skrevet = sp.modus === "en"; // the phone knows the answers
     if (res.flokk) {
       const antall = res.flokk.length;
-      if (antall === sp.antall) return { etikett: "Hele flokken!", tittel: skrevet ? `«${res.tekst}»` : "Alle tenkte likt", tekst: "Alle svarte det samme – alle får poeng!" };
+      if (antall === sp.antall) return { etikett: R.t("Hele flokken!"), tittel: skrevet ? R.t("«{tekst}»", { tekst: res.tekst }) : R.t("Alle tenkte likt"), tekst: R.t("Alle svarte det samme – alle får poeng!") };
       return {
-        etikett: skrevet ? "Flokken svarte" : "Flokken er funnet",
-        tittel: skrevet ? `«${res.tekst}»` : `${forStor(TALL[antall])} tenkte likt`,
-        tekst: antall > 3 ? `+1 til alle ${TALL[antall]} i flokken` : `+1 til ${navnene(res.flokk)}`,
+        etikett: skrevet ? R.t("Flokken svarte") : R.t("Flokken er funnet"),
+        tittel: skrevet ? R.t("«{tekst}»", { tekst: res.tekst }) : R.t("{antall} tenkte likt", { antall: forStor(TALL[antall]) }),
+        tekst: antall > 3 ? R.t("+1 til alle {antall} i flokken", { antall: TALL[antall] }) : R.t("+1 til {navn}", { navn: navnene(res.flokk) }),
       };
     }
     if (res.uavgjort) {
-      return { etikett: "Uavgjort i flokken", tittel: "Ingen poeng", tekst: res.like.length > 1 ? `${liste(res.like.map((t) => `«${t}»`))} var like store.` : "De største gruppene var like store." };
+      return {
+        etikett: R.t("Uavgjort i flokken"),
+        tittel: R.t("Ingen poeng"),
+        tekst: res.like.length > 1 ? R.t("{svar} var like store.", { svar: liste(res.like.map((t) => R.t("«{tekst}»", { tekst: t }))) }) : R.t("De største gruppene var like store."),
+      };
     }
-    return { etikett: "Ingen tenkte likt", tittel: "Ingen poeng", tekst: "Alle svarte noe forskjellig. For en sprø flokk!" };
+    return { etikett: R.t("Ingen tenkte likt"), tittel: R.t("Ingen poeng"), tekst: R.t("Alle svarte noe forskjellig. For en sprø flokk!") };
   }
 
   // ---------- The game ----------
@@ -731,19 +781,19 @@
     },
 
     regler: {
-      intro: "Svar det samme som flest mulig – men ikke bli den eneste som tenker annerledes.",
+      intro: R.t("Svar det samme som flest mulig – men ikke bli den eneste som tenker annerledes."),
       steg: [
-        ["Les spørsmålet", "Alle ser spørsmålet sammen, for eksempel «En frukt som er gul»."],
-        ["Svar i hemmelighet", "Send mobilen rundt og skriv etter tur – eller velg «Alle samtidig» og skriv på hver sin lapp."],
-        ["Følg flokken", "Alle i den største gruppen får ett poeng. Står du helt alene, får du den svarte sauen."],
+        [R.t("Les spørsmålet"), R.t("Alle ser spørsmålet sammen, for eksempel «En frukt som er gul».")],
+        [R.t("Svar i hemmelighet"), R.t("Send mobilen rundt og skriv etter tur – eller velg «Alle samtidig» og skriv på hver sin lapp.")],
+        [R.t("Følg flokken"), R.t("Alle i den største gruppen får ett poeng. Står du helt alene, får du den svarte sauen.")],
       ],
       tips: [
-        "Har du den svarte sauen, kan du ikke vinne. Den går videre neste gang én person står alene.",
-        "Er de største gruppene like store, får ingen poeng.",
-        "Én mobil: Etter avsløringen kan dere slå sammen svar som betyr det samme, som «Sitron» og «Gul sitron» – før poengene deles ut.",
-        `Alle samtidig: Mobilen teller ned ${TID} s mens alle skriver. På «vis!» viser alle svaret sitt, og dere trykker på hvem som er i flokken.`,
-        "Den første som når målet uten den svarte sauen, vinner. Målet følger hvor mange dere er, og dere kan endre det før start.",
-        "Med tre spillere er sauen på beite: da gjelder det bare å følge flokken.",
+        R.t("Har du den svarte sauen, kan du ikke vinne. Den går videre neste gang én person står alene."),
+        R.t("Er de største gruppene like store, får ingen poeng."),
+        R.t("Én mobil: Etter avsløringen kan dere slå sammen svar som betyr det samme, som «Sitron» og «Gul sitron» – før poengene deles ut."),
+        R.t("Alle samtidig: Mobilen teller ned {n} s mens alle skriver. På «vis!» viser alle svaret sitt, og dere trykker på hvem som er i flokken.", { n: TID }),
+        R.t("Den første som når målet uten den svarte sauen, vinner. Målet følger hvor mange dere er, og dere kan endre det før start."),
+        R.t("Med tre spillere er sauen på beite: da gjelder det bare å følge flokken."),
       ],
     },
 
@@ -753,24 +803,24 @@
         vis: (S) => `
           <div class="spillhjem">
             <div class="sau-duo">${R.figur("sauen")}${R.figur("sauen", "sau-svart", { svart: true })}</div>
-            <h1 id="skjerm-tittel">Sauen</h1>
-            <span class="undertittel">Tenk som flokken</span>
-            <p class="slagord">Svar det samme som de andre.<br><em>Ikke bli den svarte sauen!</em></p>
+            <h1 id="skjerm-tittel">${esc(R.t("Sauen"))}</h1>
+            <span class="undertittel">${esc(R.t("Tenk som flokken"))}</span>
+            <p class="slagord">${esc(R.t("Svar det samme som de andre."))}<br><em>${esc(R.t("Ikke bli den svarte sauen!"))}</em></p>
           </div>
           <div class="hjem-knapper">${R.ui.startKnapper({
             pagar: pagar(S),
-            fortsettTekst: pagar(S) ? `Fortsett · runde ${S.spill.nr}` : "",
+            fortsettTekst: pagar(S) ? R.t("Fortsett · runde {n}", { n: S.spill.nr }) : "",
             // (in the middle of a round the way to «Kåringen» is here: back, then «Avslutt»)
-            ekstraHtml: R.ui.lenkerad(R.ui.lenke("Slik spiller du", "regler"), pagar(S) ? R.ui.lenke("Avslutt", "avslutt") : ""),
+            ekstraHtml: R.ui.lenkerad(R.ui.lenke(R.t("Slik spiller du"), "regler"), pagar(S) ? R.ui.lenke(R.t("Avslutt"), "avslutt") : ""),
           })}</div>
-          <ul class="merker" aria-label="Om spillet">
-            ${S.sist ? `<li class="sau-sist"><b>SIST</b> ${esc(sistTekst(S.sist))}</li>` : ""}
-            <li><b>3–12</b> spillere</li><li><b>${ALLE.length}</b> spørsmål</li><li class="sau-merke-sau"><b>1</b> svart sau</li>
+          <ul class="merker" aria-label="${esc(R.t("Om spillet"))}">
+            ${S.sist ? `<li class="sau-sist"><b>${esc(R.t("SIST"))}</b> ${esc(sistTekst(S.sist))}</li>` : ""}
+            <li><b>3–12</b> ${esc(R.t("spillere"))}</li><li><b>${ALLE.length}</b> ${esc(R.t("spørsmål"))}</li><li class="sau-merke-sau"><b>1</b> ${esc(R.t("svart sau"))}</li>
           </ul>`,
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis: (S) => {
           const o = S.oppsett;
@@ -782,68 +832,68 @@
           const jul = pakke("jul");
           const pakker = !jul ? uten : sesong() ? [jul, ...uten] : [...uten, jul];
           return `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           <section class="seksjon">
-            <div class="seksjon-hode"><h2>Hvordan svarer dere?</h2></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Hvordan svarer dere?"))}</h2></div>
             ${R.ui.fliser("modus", MODUSER, o.modus)}
-            ${o.modus === "en" && antall >= 8 ? '<p class="hjelp">Er dere mange? Da går «Alle samtidig» mye raskere.</p>' : ""}
+            ${o.modus === "en" && antall >= 8 ? `<p class="hjelp">${esc(R.t("Er dere mange? Da går «Alle samtidig» mye raskere."))}</p>` : ""}
           </section>
           ${R.ui.spillere({
             min: 3,
             max: 12,
-            hjelp: antall === 3 ? "Med tre spillere er sauen på beite: ingen får den svarte sauen." : "Alle svarer på hvert spørsmål.",
+            hjelp: antall === 3 ? R.t("Med tre spillere er sauen på beite: ingen får den svarte sauen.") : R.t("Alle svarer på hvert spørsmål."),
           })}
           <section class="seksjon">
-            <div class="seksjon-hode"><h2>Spørsmål</h2><span class="tall">${n} spørsmål</span></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Spørsmål"))}</h2><span class="tall">${esc(R.t("{n} spørsmål", { n }))}</span></div>
             ${R.ui.brikker(
               "pakke",
               pakker.map((p) => ({ v: p.id, tekst: p.navn, ikon: p.ikon })),
               o.pakker,
-              { alle: true, etikett: "Spørsmålspakker" },
+              { alle: true, etikett: R.t("Spørsmålspakker") },
             )}
           </section>
           <section class="seksjon sau-mal">
-            <div class="seksjon-hode"><h2>Først til</h2><span class="tall">ca. ${anslag(antall, mal, o.modus)} min</span></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Først til"))}</h2><span class="tall">${esc(R.t("ca. {n} min", { n: anslag(antall, mal, o.modus) }))}</span></div>
             ${R.ui.seg(
               "mal",
-              MAL.map((m) => [String(m), `${m} poeng`]),
+              MAL.map((m) => [String(m), R.t("{n} poeng", { n: m })]),
               String(mal),
-              { etikett: "Poeng for å vinne" },
+              { etikett: R.t("Poeng for å vinne") },
             )}
           </section>
-          ${R.ui.dokk(R.ui.knapp(n ? "Start" : "Velg minst én pakke", "start", { av: !n }))}`;
+          ${R.ui.dokk(R.ui.knapp(n ? R.t("Start") : R.t("Velg minst én pakke"), "start", { av: !n }))}`;
         },
       },
 
       // «Alle samtidig», once per game: what everyone needs before the first question.
       klar: {
-        tittel: "Alle samtidig",
+        tittel: R.t("Alle samtidig"),
         tilbake: "hjem",
         vis: () => `
           <div class="sau-avslor-hode">
             <div class="sau-klar-figur">${R.figur()}</div>
-            <h1 id="skjerm-tittel">Finn fram lapper</h1>
-            <p class="ingress">Alle skriver svarene sine selv – på en lapp eller i notatappen på sin egen mobil.</p>
+            <h1 id="skjerm-tittel">${esc(R.t("Finn fram lapper"))}</h1>
+            <p class="ingress">${esc(R.t("Alle skriver svarene sine selv – på en lapp eller i notatappen på sin egen mobil."))}</p>
           </div>
           <ol class="steg sau-klar">
-            <li><b>Les spørsmålet høyt</b><span>Denne mobilen viser spørsmålet og teller ned ${TID} s.</span></li>
-            <li><b>Skriv i hemmelighet</b><span>Alle skriver ett svar: det de tror de fleste svarer.</span></li>
-            <li><b>3 – 2 – 1 – vis!</b><span>Alle viser svaret samtidig. Så trykker dere på hvem som er i flokken.</span></li>
+            <li><b>${esc(R.t("Les spørsmålet høyt"))}</b><span>${esc(R.t("Denne mobilen viser spørsmålet og teller ned {n} s.", { n: TID }))}</span></li>
+            <li><b>${esc(R.t("Skriv i hemmelighet"))}</b><span>${esc(R.t("Alle skriver ett svar: det de tror de fleste svarer."))}</span></li>
+            <li><b>${esc(R.t("3 – 2 – 1 – vis!"))}</b><span>${esc(R.t("Alle viser svaret samtidig. Så trykker dere på hvem som er i flokken."))}</span></li>
           </ol>
-          ${R.ui.dokk(R.ui.knapp("Vi er klare", "klar"))}`,
+          ${R.ui.dokk(R.ui.knapp(R.t("Vi er klare"), "klar"))}`,
         inn(S) {
           S.spill.skjerm = "klar";
         },
       },
 
       sporsmal: {
-        tittel: (S) => `Runde ${S.spill.nr}`,
+        tittel: (S) => R.t("Runde {n}", { n: S.spill.nr }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const r = sp.r;
           const q = ALLE[r.q];
-          const p = pakke(q.p) || { ikon: "🐑", navn: "Spørsmål" };
+          const p = pakke(q.p) || { ikon: "🐑", navn: R.t("Spørsmål") };
           const alle = sp.modus === "alle";
           // «Alle samtidig»: the clock is part of the card, so the question and the time are one thing.
           // (The kit's timer writes «Pause» / «Fortsett» on the button, which must be inside the timer.)
@@ -852,25 +902,25 @@
                 id: "sau-ring",
                 sekunder: r.tid,
                 visning: "sek",
-                kontrollHtml: `<p>Skriv ett svar i hemmelighet – det du tror de <em>andre</em> svarer.</p>${
-                  r.tid > 0 ? '<button class="knapp-2 liten" data-h="timer-veksle" data-v="sau-ring" data-timer-pause>Pause</button>' : ""
+                kontrollHtml: `<p>${esc(R.t("Skriv ett svar i hemmelighet – det du tror de {andre} svarer.")).replace("{andre}", () => `<em>${esc(R.t("andre"))}</em>`)}</p>${
+                  r.tid > 0 ? `<button class="knapp-2 liten" data-h="timer-veksle" data-v="sau-ring" data-timer-pause>${esc(R.t("Pause"))}</button>` : ""
                 }`,
               })}</div>`
-            : '<p class="storkort-fot">Alle svarer i hemmelighet. Svar det du tror de <em>andre</em> svarer!</p>';
+            : `<p class="storkort-fot">${esc(R.t("Alle svarer i hemmelighet. Svar det du tror de {andre} svarer!")).replace("{andre}", () => `<em>${esc(R.t("andre"))}</em>`)}</p>`;
           return `
             <div class="bunke"><article class="storkort sau-kort">
-              <div class="storkort-topp"><span class="storkort-etikett">${esc(p.ikon + " " + p.navn)}</span><span class="storkort-nr">Først til ${sp.mal}</span></div>
+              <div class="storkort-topp"><span class="storkort-etikett">${esc(p.ikon + " " + p.navn)}</span><span class="storkort-nr">${esc(R.t("Først til {n}", { n: sp.mal }))}</span></div>
               <h1 class="storkort-tekst ${q.t.length > 34 ? "lang" : ""}" id="skjerm-tittel">${esc(q.t)}</h1>
               ${fot}
             </article></div>
             ${
               sp.sau >= 0
-                ? `<p class="sau-holder">${medSau(S, sp.sau)}<span><b>${esc(R.navn(sp.sau))}</b> har den svarte sauen</span></p>`
+                ? `<p class="sau-holder">${medSau(S, sp.sau)}<span>${esc(R.t("{navn} har den svarte sauen")).replace("{navn}", () => `<b>${esc(R.navn(sp.sau))}</b>`)}</span></p>`
                 : ""
             }
             ${R.ui.dokk(
-              alle ? R.ui.knapp("Vis nå", "vis-na") : R.ui.knapp("Send mobilen rundt", "send-rundt"),
-              R.ui.lenkerad(R.ui.lenke("Bytt spørsmål", "bytt-sporsmal"), R.ui.lenke("Stillingen", "stilling"), R.ui.lenke("Avslutt", "avslutt")),
+              alle ? R.ui.knapp(R.t("Vis nå"), "vis-na") : R.ui.knapp(R.t("Send mobilen rundt"), "send-rundt"),
+              R.ui.lenkerad(R.ui.lenke(R.t("Bytt spørsmål"), "bytt-sporsmal"), R.ui.lenke(R.t("Stillingen"), "stilling"), R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn(S) {
@@ -890,7 +940,7 @@
       // field — the answer before is gone with the old screen — and after a reload the same
       // player gets the same empty field.
       skriv: {
-        tittel: (S) => `Svar ${S.spill.r.na + 1} av ${S.spill.antall}`,
+        tittel: (S) => R.t("Svar {n} av {av}", { n: S.spill.r.na + 1, av: S.spill.antall }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -902,16 +952,16 @@
             <form class="sau-skriv" data-skjema="svar" autocomplete="off" novalidate>
               <div class="sau-tur">
                 ${medSau(S, i, "mid")}
-                <div class="sau-tur-tekst"><p class="etikett">Gi mobilen til</p><h1 id="skjerm-tittel">${esc(navn)}</h1></div>
+                <div class="sau-tur-tekst"><p class="etikett">${esc(R.t("Gi mobilen til"))}</p><h1 id="skjerm-tittel">${esc(navn)}</h1></div>
               </div>
               <p class="sau-minne" id="svar-sporsmal">${esc(ALLE[r.q].t)}</p>
               <input id="svar-felt" class="tekstfelt sau-felt" name="svar-${sp.nr}-${r.na}" data-felt="svar" maxlength="40" autocomplete="off" autocorrect="on" autocapitalize="sentences" spellcheck="false" enterkeyhint="done" placeholder="${esc(
-                Array.from(navn).length > 10 ? "Skriv svaret ditt her …" : `${navn} skriver her …`,
-              )}" aria-label="${esc(`Svaret til ${navn}`)}" aria-describedby="svar-sporsmal svar-feil">
+                Array.from(navn).length > 10 ? R.t("Skriv svaret ditt her …") : R.t("{navn} skriver her …", { navn }),
+              )}" aria-label="${esc(R.t("Svaret til {navn}", { navn }))}" aria-describedby="svar-sporsmal svar-feil">
               <p class="feil" id="svar-feil" aria-live="assertive"></p>
-              <button class="knapp" type="submit">Ferdig</button>
+              <button class="knapp" type="submit">${esc(R.t("Ferdig"))}</button>
             </form>
-            <p class="hjelp">De andre ser bort. Tenk som flokken: hva svarer de fleste?</p>`;
+            <p class="hjelp">${esc(R.t("De andre ser bort. Tenk som flokken: hva svarer de fleste?"))}</p>`;
         },
         inn(S) {
           S.spill.skjerm = "skriv";
@@ -927,7 +977,7 @@
       },
 
       avslor: {
-        tittel: "Avsløringen",
+        tittel: R.t("Avsløringen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -948,9 +998,9 @@
               .reverse()
               .join("");
             return `
-              ${r.vist ? hode(`Svar ${r.vist} av ${total}`) : hode("Alle har svart!", "Samle dere rundt mobilen. Svarene vises ett og ett – den største gruppen kommer til slutt.")}
+              ${r.vist ? hode(R.t("Svar {n} av {av}", { n: r.vist, av: total })) : hode(R.t("Alle har svart!"), R.t("Samle dere rundt mobilen. Svarene vises ett og ett – den største gruppen kommer til slutt."))}
               ${r.vist ? `<ol class="sau-avslorte">${kort}</ol>` : `<div class="sau-venter">${R.figur()}</div>`}
-              ${R.ui.dokk(R.ui.knapp(r.vist === 0 ? "Avslør svarene" : siste ? "Vis den største gruppen" : "Vis neste svar", "neste-svar"))}`;
+              ${R.ui.dokk(R.ui.knapp(r.vist === 0 ? R.t("Avslør svarene") : siste ? R.t("Vis den største gruppen") : R.t("Vis neste svar"), "neste-svar"))}`;
           }
           // Everything is out: biggest group first. Tap two groups that mean the same to merge them.
           const rekke = r.grupper.map((g, n) => n).sort((a, b) => storrelse(r, b) - storrelse(r, a));
@@ -963,9 +1013,12 @@
           // (with three players the sheep is at pasture: the one alone is just «Alene»)
           const svartN = !sp.sauUte && ut.alene.length === 1 ? r.grupper.findIndex((g) => spillereI(r, g).length === 1 && spillereI(r, g)[0] === ut.alene[0]) : -1;
           const flere = r.grupper.length > 1;
-          const forklaring = ut.flokk ? "" : ut.uavgjort ? "De største gruppene er like store. " : "Alle svarte noe forskjellig. ";
+          const forklaring = ut.flokk ? "" : ut.uavgjort ? R.t("De største gruppene er like store.") + " " : R.t("Alle svarte noe forskjellig.") + " ";
           return `
-            ${hode(ut.flokk ? "Flokken er funnet!" : ut.uavgjort ? "Uavgjort!" : "Ingen tenkte likt!", flere ? `${forklaring}Betyr to svar egentlig det samme? Trykk på begge for å slå dem sammen før poengene deles ut.` : "Hele flokken tenkte det samme!")}
+            ${hode(
+              ut.flokk ? R.t("Flokken er funnet!") : ut.uavgjort ? R.t("Uavgjort!") : R.t("Ingen tenkte likt!"),
+              flere ? forklaring + R.t("Betyr to svar egentlig det samme? Trykk på begge for å slå dem sammen før poengene deles ut.") : R.t("Hele flokken tenkte det samme!"),
+            )}
             <ol class="sau-avslorte">${rekke
               .map((n) =>
                 gruppekort(S, n, {
@@ -979,9 +1032,9 @@
               )
               .join("")}</ol>
             ${R.ui.dokk(
-              r.valgt >= 0 ? '<p class="sau-tips">Trykk på svaret som betyr det samme – eller på det samme igjen for å angre.</p>' : "",
-              R.ui.knapp("Del ut poengene", "del-ut"),
-              r.angre.length ? R.ui.lenkerad(R.ui.lenke("Angre", "angre")) : "",
+              r.valgt >= 0 ? `<p class="sau-tips">${esc(R.t("Trykk på svaret som betyr det samme – eller på det samme igjen for å angre."))}</p>` : "",
+              R.ui.knapp(R.t("Del ut poengene"), "del-ut"),
+              r.angre.length ? R.ui.lenkerad(R.ui.lenke(R.t("Angre"), "angre")) : "",
             )}`;
         },
         inn(S) {
@@ -995,7 +1048,7 @@
 
       // «Alle samtidig»: everyone has shown their answer. Who is in the biggest group?
       flokk: {
-        tittel: (S) => `Runde ${S.spill.nr}`,
+        tittel: (S) => R.t("Runde {n}", { n: S.spill.nr }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -1003,15 +1056,15 @@
           return `
             <div class="sau-avslor-hode">
               ${sporsmalsbrikke(S)}
-              <h1 id="skjerm-tittel">Hvem er i flokken?</h1>
-              <p class="ingress">Trykk på alle i den største gruppen.</p>
+              <h1 id="skjerm-tittel">${esc(R.t("Hvem er i flokken?"))}</h1>
+              <p class="ingress">${esc(R.t("Trykk på alle i den største gruppen."))}</p>
             </div>
-            ${velgere("flokk-velg", alleSpillere(sp.antall), r.flokk, "Spillere i den største gruppen")}
+            ${velgere("flokk-velg", alleSpillere(sp.antall), r.flokk, R.t("Spillere i den største gruppen"))}
             <div class="sau-utfall">
-              <button data-h="flokk-ingen"><b>Ingen flokk</b><span>Alle svarte forskjellig</span></button>
-              <button data-h="flokk-uavgjort"><b>Uavgjort</b><span>Like store grupper</span></button>
+              <button data-h="flokk-ingen"><b>${esc(R.t("Ingen flokk"))}</b><span>${esc(R.t("Alle svarte forskjellig"))}</span></button>
+              <button data-h="flokk-uavgjort"><b>${esc(R.t("Uavgjort"))}</b><span>${esc(R.t("Like store grupper"))}</span></button>
             </div>
-            ${R.ui.dokk(R.ui.knapp(r.flokk.length < 2 ? "Velg minst to" : "Flokken er klar", "flokk-klar", { av: r.flokk.length < 2 }))}`;
+            ${R.ui.dokk(R.ui.knapp(r.flokk.length < 2 ? R.t("Velg minst to") : R.t("Flokken er klar"), "flokk-klar", { av: r.flokk.length < 2 }))}`;
         },
         inn(S) {
           S.spill.skjerm = "flokk";
@@ -1020,7 +1073,7 @@
 
       // «Alle samtidig»: asked only when the taps so far can't tell (see aleneSporsmal).
       alene: {
-        tittel: (S) => `Runde ${S.spill.nr}`,
+        tittel: (S) => R.t("Runde {n}", { n: S.spill.nr }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -1028,14 +1081,16 @@
           return `
             <div class="sau-avslor-hode">
               ${svartSau("stor")}
-              <h1 id="skjerm-tittel">Sto noen helt alene?</h1>
-              <p class="ingress">Var akkurat én alene om svaret sitt? Trykk på den spilleren – ellers «Nei».</p>
+              <h1 id="skjerm-tittel">${esc(R.t("Sto noen helt alene?"))}</h1>
+              <p class="ingress">${esc(R.t("Var akkurat én alene om svaret sitt? Trykk på den spilleren – ellers «Nei»."))}</p>
             </div>
-            ${velgere("alene-velg", aleneSporsmal(sp.antall, r.utfall, r.flokk).kandidater, null, "Spilleren som sto alene")}
+            ${velgere("alene-velg", aleneSporsmal(sp.antall, r.utfall, r.flokk).kandidater, null, R.t("Spilleren som sto alene"))}
             <p class="sau-holder">${
-              sp.sau >= 0 ? `${medSau(S, sp.sau)}<span><b>${esc(R.navn(sp.sau))}</b> har den svarte sauen nå</span>` : "<span>Den som sto alene, får den svarte sauen.</span>"
+              sp.sau >= 0
+                ? `${medSau(S, sp.sau)}<span>${esc(R.t("{navn} har den svarte sauen nå")).replace("{navn}", () => `<b>${esc(R.navn(sp.sau))}</b>`)}</span>`
+                : `<span>${esc(R.t("Den som sto alene, får den svarte sauen."))}</span>`
             }</p>
-            ${R.ui.dokk(R.ui.knapp("Nei", "alene-velg", { v: -1 }), R.ui.lenkerad(R.ui.lenke("Angre", "alene-angre")))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Nei"), "alene-velg", { v: -1 }), R.ui.lenkerad(R.ui.lenke(R.t("Angre"), "alene-angre")))}`;
         },
         inn(S) {
           S.spill.skjerm = "alene";
@@ -1043,33 +1098,41 @@
       },
 
       poeng: {
-        tittel: (S) => `Runde ${S.spill.nr}`,
+        tittel: (S) => R.t("Runde {n}", { n: S.spill.nr }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const res = sp.r.res;
           const t = rundetekst(sp);
-          const nyhet = (klasse, html) => `<div class="sau-nyhet ${klasse}">${svartSau("stor")}<div><p class="etikett">Den svarte sauen</p><p>${html}</p></div></div>`;
+          const nyhet = (klasse, html) => `<div class="sau-nyhet ${klasse}">${svartSau("stor")}<div><p class="etikett">${esc(R.t("Den svarte sauen"))}</p><p>${html}</p></div></div>`;
           const navn = res.sau >= 0 ? `<b>${esc(R.navn(res.sau))}</b>` : "";
+          const medNavn = (tekst) => tekst.replace("{navn}", () => navn);
           let sauTekst = "";
           if (res.sau >= 0 && res.sau !== res.forrigeSau) {
-            const kvitt = res.forrigeSau >= 0 ? ` ${esc(R.navn(res.forrigeSau))} er kvitt den.` : "";
-            sauTekst = nyhet("ny", `${navn} ${res.aleneTekst ? `var den eneste som svarte «${esc(res.aleneTekst)}»` : "sto helt alene"} og får den svarte sauen!${kvitt}`);
+            const kvitt = res.forrigeSau >= 0 ? " " + esc(R.t("{navn} er kvitt den.", { navn: R.navn(res.forrigeSau) })) : "";
+            sauTekst = nyhet(
+              "ny",
+              medNavn(
+                res.aleneTekst
+                  ? esc(R.t("{navn} var den eneste som svarte «{svar}» og får den svarte sauen!", { svar: res.aleneTekst }))
+                  : esc(R.t("{navn} sto helt alene og får den svarte sauen!")),
+              ) + kvitt,
+            );
           } else if (res.sau >= 0 && res.alene.length === 1) {
-            sauTekst = nyhet("ny", `${navn} står alene igjen og beholder den svarte sauen.`);
+            sauTekst = nyhet("ny", medNavn(esc(R.t("{navn} står alene igjen og beholder den svarte sauen."))));
           } else if (res.sau >= 0) {
-            sauTekst = nyhet("", `${navn} har den fortsatt.`);
+            sauTekst = nyhet("", medNavn(esc(R.t("{navn} har den fortsatt."))));
           }
           return `
             ${R.ui.banner({ etikett: t.etikett, tittel: t.tittel, tekst: t.tekst, klasse: res.flokk ? "aksent" : "", utenFigur: true })}
             ${sauTekst}
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Stillingen</h2><span class="tall">Først til ${sp.mal}</span></div>
+              <div class="seksjon-hode"><h2>${esc(R.t("Stillingen"))}</h2><span class="tall">${esc(R.t("Først til {n}", { n: sp.mal }))}</span></div>
               ${poengtavle(S, res.flokk || [])}
             </section>
             ${R.ui.dokk(
-              sp.ferdig ? R.ui.knapp("Til kåringen", "til-vinner") : R.ui.knapp("Neste spørsmål", "neste-runde"),
-              R.ui.lenkerad(R.ui.lenke("Angre", "angre-poeng"), sp.ferdig ? "" : R.ui.lenke("Avslutt", "avslutt")),
+              sp.ferdig ? R.ui.knapp(R.t("Til kåringen"), "til-vinner") : R.ui.knapp(R.t("Neste spørsmål"), "neste-runde"),
+              R.ui.lenkerad(R.ui.lenke(R.t("Angre"), "angre-poeng"), sp.ferdig ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn(S) {
@@ -1078,7 +1141,7 @@
       },
 
       vinner: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -1090,25 +1153,36 @@
           const ganger = (n) => R.flertall(n, "gang", "ganger");
           const p = priser(sp);
           const titler = [
-            p.flokkdyr && ["🐑", "Flokkdyret", p.flokkdyr.navn, `Med i flokken ${ganger(p.flokkdyr.n)}`],
-            p.ulv && ["🐺", "Ensom ulv", p.ulv.navn, `Sto helt alene ${ganger(p.ulv.n)}`],
-            sp.sau >= 0 && ["🖤", "Den svarte sauen", R.navn(sp.sau), sp.alene[sp.sau] > 1 ? `Sto alene ${ganger(sp.alene[sp.sau])} – og satt igjen med sauen` : "Satt igjen med sauen til slutt"],
+            p.flokkdyr && ["🐑", R.t("Flokkdyret"), p.flokkdyr.navn, R.t("Med i flokken {ganger}", { ganger: ganger(p.flokkdyr.n) })],
+            p.ulv && ["🐺", R.t("Ensom ulv"), p.ulv.navn, R.t("Sto helt alene {ganger}", { ganger: ganger(p.ulv.n) })],
+            sp.sau >= 0 && [
+              "🖤",
+              R.t("Den svarte sauen"),
+              R.navn(sp.sau),
+              sp.alene[sp.sau] > 1 ? R.t("Sto alene {ganger} – og satt igjen med sauen", { ganger: ganger(sp.alene[sp.sau]) }) : R.t("Satt igjen med sauen til slutt"),
+            ],
           ].filter(Boolean);
           const runder = sp.logg.length;
           return `
             ${R.ui.banner({
-              etikett: v.length > 1 ? "Flokkens ledere" : v.length ? "Flokkens leder" : "Spillet ble avsluttet",
-              tittel: v.length ? `${navnene(v)} vinner!` : "Ingen vinner",
-              tekst: sp.tidlig ? (runder ? `Etter ${R.flertall(runder, "runde", "runder")}.` : "Ingen runder ble spilt ferdig.") : `Først til ${sp.mal} poeng${sp.sauUte ? "" : " – uten den svarte sauen"}.`,
+              etikett: v.length > 1 ? R.t("Flokkens ledere") : v.length ? R.t("Flokkens leder") : R.t("Spillet ble avsluttet"),
+              tittel: v.length ? R.t("{navn} vinner!|{navn} vinner!", { navn: navnene(v), n: v.length }) : R.t("Ingen vinner"),
+              tekst: sp.tidlig
+                ? runder
+                  ? R.t("Etter {runder}.", { runder: R.flertall(runder, "runde", "runder") })
+                  : R.t("Ingen runder ble spilt ferdig.")
+                : sp.sauUte
+                  ? R.t("Først til {n} poeng.", { n: sp.mal })
+                  : R.t("Først til {n} poeng – uten den svarte sauen.", { n: sp.mal }),
               klasse: "aksent",
               stemning: v.length ? "jubel" : "",
             })}
             ${pall}
             ${poengtavle(S, [])}
             ${titler.length ? `<ul class="sau-titler">${titler.map(([ikon, t, n, x]) => `<li><span aria-hidden="true">${ikon}</span><div><small>${esc(t)}</small><b>${esc(n)}</b><span>${esc(x)}</span></div></li>`).join("")}</ul>` : ""}
-            ${R.ui.knapp2("Del resultatet", "del")}
+            ${R.ui.knapp2(R.t("Del resultatet"), "del")}
             ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -1137,7 +1211,7 @@
         const felt = form.querySelector("input");
         const tekst = felt.value.trim().replace(/\s+/g, " ");
         if (!R.normaliser(tekst)) {
-          R.$("#svar-feil").textContent = tekst ? "Svaret må ha bokstaver eller tall." : "Skriv et svar først.";
+          R.$("#svar-feil").textContent = tekst ? R.t("Svaret må ha bokstaver eller tall.") : R.t("Skriv et svar først.");
           felt.classList.remove("risting");
           void felt.offsetWidth;
           felt.classList.add("risting");
@@ -1237,10 +1311,10 @@
         const sp = S.spill;
         pauseRing();
         R.ark(`
-          <h2 id="ark-tittel">Stillingen</h2>
-          <p class="ingress">Først til ${sp.mal} poeng${sp.sauUte ? "" : " – uten den svarte sauen"}.</p>
+          <h2 id="ark-tittel">${esc(R.t("Stillingen"))}</h2>
+          <p class="ingress">${esc(sp.sauUte ? R.t("Først til {n} poeng.", { n: sp.mal }) : R.t("Først til {n} poeng – uten den svarte sauen.", { n: sp.mal }))}</p>
           ${poengtavle(S, [])}
-          <button class="knapp" data-h="lukk-ark">Lukk</button>`);
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Lukk"))}</button>`);
       },
 
       // ----- «Én mobil» -----
@@ -1257,7 +1331,7 @@
         if (r.valgt < 0 || r.valgt >= r.grupper.length) {
           r.valgt = g;
           R.lyd.klikk();
-          R.si("Valgt. Trykk på svaret som betyr det samme, eller på det samme igjen for å angre.");
+          R.si(R.t("Valgt. Trykk på svaret som betyr det samme, eller på det samme igjen for å angre."));
         } else if (r.valgt === g) {
           r.valgt = -1;
         } else {
@@ -1269,7 +1343,7 @@
           puls = a;
           R.lyd.pop();
           R.vibrer(20);
-          R.si("Slått sammen");
+          R.si(R.t("Slått sammen"));
         }
         R.vis();
       },
@@ -1283,7 +1357,7 @@
         r.grupper.splice(g, 1, ...deler);
         r.valgt = -1;
         R.lyd.sveip();
-        R.si("Delt opp");
+        R.si(R.t("Delt opp"));
         R.vis();
       },
       angre(el, e, S) {
@@ -1318,10 +1392,10 @@
           if (ut.flokk) {
             R.lyd.riktig();
             R.vibrer([40, 40, 120]);
-            R.si(`Flokken svarte ${teksterI(r, gruppeSvar(r, r.grupper[storste]))[0]}`);
+            R.si(R.t("Flokken svarte {svar}", { svar: teksterI(r, gruppeSvar(r, r.grupper[storste]))[0] }));
           } else {
             R.lyd.buu();
-            R.si("Ingen flokk denne gangen");
+            R.si(R.t("Ingen flokk denne gangen"));
           }
           // The button that was pressed is gone: put the keyboard and screen readers on the next one.
           const neste = R.$('#skjerm [data-h="del-ut"]');
@@ -1366,7 +1440,7 @@
         if (teller || !pagar(S) || sp.modus !== "alle" || S.skjerm !== "sporsmal") return;
         teller = true;
         pauseRing();
-        const ferdig = await R.nedtelling(["3", "2", "1", "VIS!"], 700);
+        const ferdig = await R.nedtelling(["3", "2", "1", R.t("VIS!")], 700);
         teller = false;
         if (!ferdig) return; // they left the screen during the countdown
         R.lyd.riktig();
@@ -1379,7 +1453,7 @@
         if (S.skjerm !== "flokk" || !erHeltall(i, 0, S.spill.antall - 1)) return;
         r.flokk = r.flokk.includes(i) ? r.flokk.filter((x) => x !== i) : r.flokk.concat(i);
         R.vis();
-        R.si(`${R.navn(i)} ${r.flokk.includes(i) ? "er med" : "er ikke med"}. ${r.flokk.length} valgt.`);
+        R.si(`${r.flokk.includes(i) ? R.t("{navn} er med.", { navn: R.navn(i) }) : R.t("{navn} er ikke med.", { navn: R.navn(i) })} ${R.t("{n} valgt.", { n: r.flokk.length })}`);
       },
       "flokk-klar"(el, e, S) {
         const r = S.spill.r;
@@ -1442,7 +1516,7 @@
         const klokkaGikk = !!(ring && ring.kjorer);
         pauseRing();
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avslutte spillet?", "Dere går til kåringen med stillingen så langt.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere går til kåringen med stillingen så langt."), R.t("Avslutt"), R.t("Spill videre"));
         if (!fortsatt() || !pagar(S)) return;
         if (!ja) {
           if (klokkaGikk && ring) ring.start(); // «Spill videre»: the clock carries on
@@ -1460,7 +1534,7 @@
         R.gaTil("vinner");
       },
       del(el, e, S) {
-        if (S.spill) R.del("Sauen", delTekst(S.spill), location.origin + "/sauen/");
+        if (S.spill) R.del(R.t("Sauen"), delTekst(S.spill), location.origin + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "sauen") + "/");
       },
       // «Spill igjen»: the same setup, and no need to find the notes again.
       igjen(el, e, S) {
