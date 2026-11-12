@@ -269,6 +269,17 @@
         "yes or no",
         "twenty questions"
       ]
+    },
+    "spionen": {
+      "tittel": "Find the spy – free party game for 3–12 players",
+      "frase": "Find the spy",
+      "beskrivelse": "Everyone knows the secret place – except the spy. Ask sly questions, unmask the spy or bluff your way through. Over 140 places, on one phone or several.",
+      "sok": [
+        "spy party game",
+        "secret location game",
+        "who is the spy",
+        "bluffing game"
+      ]
     }
   }
 }
