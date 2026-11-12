@@ -440,6 +440,16 @@
         "group the words",
         "daily word game"
       ]
+    },
+    "blyanten": {
+      "tittel": "Mini crossword – today's crossword on your phone",
+      "frase": "Mini crossword",
+      "beskrivelse": "Free crosswords made for your phone: today's mini crossword is the same for everyone, and you can make new ones on animals, food, sport and 27 other themes.",
+      "sok": [
+        "daily mini crossword",
+        "easy crossword",
+        "quick crossword"
+      ]
     }
   }
 }

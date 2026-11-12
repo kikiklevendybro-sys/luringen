@@ -5,7 +5,8 @@
 // of pencils through R.del, never the answers). The result of a check stands in the clue bar, never
 // in a toast over the grid. Then «Flere kryss»: setup («Gjør klart», level, a handful of themes +
 // «Alle temaer (36)»), give up and see the solution, a new crossword, and an easy one filled with
-// one wrong letter («Nesten!») that is then fixed.
+// one wrong letter («Nesten!») that is then fixed. Language-neutral (rusj/SPRAK.md): texts are
+// checked word for word only in Norwegian; the edition's own themes and daily plan are pinned.
 export default async function (t) {
   const pause = () => t.sov(420); // taps right after a screen change are ignored on purpose
   const S = () => t.tilstand();
@@ -48,7 +49,7 @@ export default async function (t) {
     Rusj.lagre();
   })()`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
-  t.sjekk(!/Fortsett/.test(await t.tekst(".hjem-knapper")), "Et gammelt uferdig kryss skal ikke gi «Fortsett» i dag");
+  t.sjekk(await t.finnes('.hjem-knapper .knapp.stor[data-h="dag"]') && (!t.norsk || !/Fortsett/.test(await t.tekst(".hjem-knapper"))), "Et gammelt uferdig kryss skal ikke gi «Fortsett» i dag");
 
   await t.klikk('[data-h="dag"]');
   await t.vent("document.querySelector('.bly-rutenett .bly-celle')");
@@ -100,7 +101,7 @@ export default async function (t) {
   await t.bilde("hjelp");
   await t.klikk('#ark [data-h="sjekk-ord"]', 200);
   t.sjekk(await t.finnes(`.bly-celle.feil[data-v="${feilCelle}"]`), "«Sjekk ordet» merket ikke den gale bokstaven");
-  t.sjekk(/Én bokstav er feil/.test(await varsel("feil")), `Resultatet av «Sjekk ordet» skal stå i stikkordlinja («${await varsel()}»)`);
+  t.sjekk((t.norsk ? /Én bokstav er feil/.test(await varsel("feil")) : !!(await varsel("feil"))), `Resultatet av «Sjekk ordet» skal stå i stikkordlinja («${await varsel()}»)`);
   t.sjekk(!(await t.finnes("#toast.vis")), "«Sjekk ordet» skal ikke legge en toast over krysset");
   await t.bilde("sjekket");
   await t.klikk('[data-h="hjelp"]', 150);
@@ -124,7 +125,7 @@ export default async function (t) {
   // Back and continue
   await t.klikk("#tilbake");
   // One line («… · 3/8 ord») where it fits; on narrow phones the progress stands on its own line.
-  t.sjekk(/Fortsett dagens kryss(?: · |\s+)\d\/8 ord/.test(await t.tekst('.hjem-knapper [data-h="dag"]')), `Hjem viser ikke «Fortsett dagens kryss · n/8 ord» («${await t.tekst('.hjem-knapper [data-h="dag"]')}»)`);
+  t.sjekk((t.norsk ? /Fortsett dagens kryss(?: · |\s+)\d\/8 ord/ : /\d\/8/).test(await t.tekst('.hjem-knapper [data-h="dag"]')), `Hjem viser ikke «Fortsett dagens kryss · n/8 ord» («${await t.tekst('.hjem-knapper [data-h="dag"]')}»)`);
   await t.bilde("hjem-fortsett");
   await t.klikk('[data-h="dag"]');
   await t.vent("document.querySelector('.bly-tastatur')");
@@ -133,12 +134,28 @@ export default async function (t) {
   // Frozen dailies: these must never change (data/dagens.json and the theme word lists are append-only).
   const forste = await t.js("Rusj.dag(new Date(Date.UTC(2026, 10, 9, 12))).nr");
   const fast = {
-    0: "naturen: blomst skog sti topp elv utsikt mose rot",
-    1: "eventyr: frosk ønske havfrue slott ring kjempe drage troll",
-    2: "rommet: fullmåne meteor nordlys univers ufo måne jord bane",
-    30: "garden: egg traktor lam hest åker stall halm gjerde",
-    365: "yrker: fotograf sjåfør prest servitør murer lokfører fisker maler",
-  };
+    nb: {
+      0: "naturen: blomst skog sti topp elv utsikt mose rot",
+      1: "eventyr: frosk ønske havfrue slott ring kjempe drage troll",
+      2: "rommet: fullmåne meteor nordlys univers ufo måne jord bane",
+      30: "garden: egg traktor lam hest åker stall halm gjerde",
+      365: "yrker: fotograf sjåfør prest servitør murer lokfører fisker maler",
+    },
+    en: {
+      0: "fugler: owl seagull peacock wren swallow nest magpie hawk",
+      1: "skolen: bag art scissors glue register reading maths board",
+      2: "sommer: festival suncream fan spade pier sun lemonade crab",
+      30: "fugler: sparrow feather starling crow swan thrush nest wren",
+      365: "transport: canoe rocket tractor car coach train tube tram",
+    },
+    da: {
+      0: "rommet: rumvæsen meteor sol raket rumskib satellit krater mars",
+      1: "yrker: sømand dyrlæge lærer slagter murer betjent dommer læge",
+      2: "musikk: saxofon dans tone kor guitar sanger orkester disko",
+      30: "rommet: jorden univers mars måne venus jupiter raket sol",
+      365: "hjemme: pejs sofa tag gardin skorsten garage hylde væg",
+    },
+  }[t.sprak];
   for (const [d, forventet] of Object.entries(fast)) {
     const fakt = await t.js(`(() => { const x = Rusj.app._dagensKryss(${forste} + ${d}); return x.tema + ": " + x.ord.map((w) => w.o).join(" "); })()`);
     t.sjekk(fakt === forventet, `Dagens kryss dag ${Number(d) + 1} er endret: «${fakt}»`);
@@ -184,14 +201,14 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-resultat')", 8000);
   await t.sov(700);
   s = await S();
-  const daglig = await t.js(`JSON.parse(localStorage.getItem("rusj.daglig") || "{}").blyanten || null`);
+  const daglig = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("daglig")}") || "{}").blyanten || null`);
   t.sjekk(daglig && daglig.nr === iDag && daglig.vunnet === true && daglig.rekke === 1, `R.dagligFerdig ble ikke kalt riktig: ${JSON.stringify(daglig)}`);
   t.sjekk(s.dag.ferdig && !s.dag.gaOpp && s.stat.lost === 1 && s.stat.rekke === 1 && s.stat.sistLost === iDag, `Statistikken er feil: ${JSON.stringify(s.stat)}`);
-  t.sjekk(/Krysset er løst/.test(await t.tekst("#skjerm h1")), `Feil overskrift: «${await t.tekst("#skjerm h1")}»`);
+  if (t.norsk) t.sjekk(/Krysset er løst/.test(await t.tekst("#skjerm h1")), `Feil overskrift: «${await t.tekst("#skjerm h1")}»`);
   t.sjekk(/2/.test(await t.tekst(".bly-fakta")), "Antall hint vises ikke på resultatet");
   t.sjekk(s._aktiv === false, "Et løst kryss skal ikke være merket som pågående");
-  t.sjekk(await t.finnes('#skjerm a.lenke[href="/"]'), "Mangler «Alle spill» på resultatet");
-  t.sjekk((await t.tekst(".dokk .knapp")).trim() === "Del resultatet", `Hovedknappen på dagens resultat skal være «Del resultatet» (${await t.tekst(".dokk .knapp")})`);
+  t.sjekk(await t.finnes(`#skjerm a.lenke[href="${t.forside}"]`), "Mangler «Alle spill» på resultatet");
+  t.sjekk((await t.finnes('.dokk .knapp[data-h="del"]')) && (!t.norsk || (await t.tekst(".dokk .knapp")).trim() === "Del resultatet"), `Hovedknappen på dagens resultat skal være «Del resultatet» (${await t.tekst(".dokk .knapp")})`);
   t.sjekk(/^\d\d:\d\d:\d\d$/.test(await t.tekst(".skjerm-resultat .bly-nedtelling b")), "Nedtellingen (TT:MM:SS) mangler på resultatet");
   await t.bilde("resultat", true);
 
@@ -203,10 +220,14 @@ export default async function (t) {
   })()`);
   await t.klikk('[data-h="del"]', 300);
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && /^Blyanten nr\. \d+ · /.test(delt) && /\nLøst på \d+:\d\d med 2 hint\n\nhttps:\/\/rusj\.no\/blyanten\/$/.test(delt), `Delingsteksten er feil: ${delt}`);
+  // The edition's name and address: «Blyanten nr. 4 · …», «Pencil #4 · …»
+  const adresse = "https://rusj.no" + (await t.js("location.pathname"));
+  const navn = await t.js("window.RUSJ_SPILL.navn");
+  t.sjekk(delt && delt.startsWith(navn + " ") && /\n[^\n]*\d+:\d\d[^\n]* 2 [^\n]*\n\n/.test(delt) && delt.endsWith("\n\n" + adresse), `Delingsteksten er feil: ${delt}`);
+  if (t.norsk) t.sjekk(delt && /^Blyanten nr\. \d+ · /.test(delt) && /\nLøst på \d+:\d\d med 2 hint\n\nhttps:\/\/rusj\.no\/blyanten\/$/.test(delt), `Delingsteksten er feil: ${delt}`);
   const delRad = delt ? delt.split("\n")[1] : "";
   t.sjekk(/^(?:\u270F\uFE0F?|\u{1F4A1}){8}$/u.test(delRad) && /\u{1F4A1}/u.test(delRad) && /\u270F/u.test(delRad), `Delingsteksten skal ha én blyant eller lyspære per ord: ${delt}`);
-  t.sjekk(/Kopiert/.test(await t.js(`document.querySelector("#toast.vis") ? document.querySelector("#toast").textContent : ""`)), "Mangler «Kopiert» etter deling");
+  t.sjekk((t.norsk ? /Kopiert/ : /./).test(await t.js(`document.querySelector("#toast.vis") ? document.querySelector("#toast").textContent : ""`)), "Mangler «Kopiert» etter deling");
   t.sjekk(delt && !k.ord.some((w) => w.o.length > 3 && delt.toLowerCase().includes(w.o)), "Delingsteksten røper et svar");
 
   // Home: today's crossword is done
@@ -217,11 +238,12 @@ export default async function (t) {
   // «Flere kryss»: hard, one theme
   await t.klikk('[data-h="fri"]');
   await t.vent("document.querySelector('[data-h=\"start\"]')");
-  t.sjekk(/Gjør klart/.test(await t.tekst("#skjerm h1")), `Oppsettet skal hete «Gjør klart» («${await t.tekst("#skjerm h1")}»)`);
-  t.sjekk((await t.antall('.brikke[data-h="tema"]')) === 9 && /Alle temaer \(36\)/.test(await t.tekst('.brikke[data-v="*"]')) && (await trykket('.brikke[data-v="*"]')) === "true", "Oppsettet skal vise «Alle temaer (36)» (valgt) og åtte temaer");
+  if (t.norsk) t.sjekk(/Gjør klart/.test(await t.tekst("#skjerm h1")), `Oppsettet skal hete «Gjør klart» («${await t.tekst("#skjerm h1")}»)`);
+  const antallTemaer = await t.js("window.RUSJ_DATA.temaer.temaer.length");
+  t.sjekk((await t.antall('.brikke[data-h="tema"]')) === 9 && new RegExp(`\\(${antallTemaer}\\)`).test(await t.tekst('.brikke[data-v="*"]')) && (!t.norsk || /Alle temaer \(36\)/.test(await t.tekst('.brikke[data-v="*"]'))) && (await trykket('.brikke[data-v="*"]')) === "true", "Oppsettet skal vise «Alle temaer (36)» (valgt) og åtte temaer");
   await t.klikk('[data-h="niva"][data-v="vanskelig"]');
   await t.klikk('[data-h="alle-temaer"]');
-  t.sjekk((await t.antall('.brikke[data-h="tema"]')) === 37, `«Vis alle 36 temaene» viser ikke alle temaene (${await t.antall('.brikke[data-h="tema"]')})`);
+  t.sjekk((await t.antall('.brikke[data-h="tema"]')) === antallTemaer + 1, `«Vis alle 36 temaene» viser ikke alle temaene (${await t.antall('.brikke[data-h="tema"]')})`);
   await t.bilde("oppsett-alle", true);
   await t.klikk('[data-h="alle-temaer"]');
   await t.klikk('[data-h="tema"][data-v="skogsdyr"]');
@@ -241,8 +263,8 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-resultat')", 6000);
   await t.sov(400);
   s = await S();
-  t.sjekk(s.fri.ferdig && s.fri.gaOpp && s.friStat.lost === 0 && /løsningen/.test(await t.tekst("#skjerm h1")), "«Gi opp» viste ikke løsningen");
-  t.sjekk(/Løsning vist/.test(await t.tekst(".bly-fakta")) && !/hint/.test(await t.tekst(".bly-fakta")), `Etter «Gi opp» skal det stå «Løsning vist», ikke antall hint («${await t.tekst(".bly-fakta")}»)`);
+  t.sjekk(s.fri.ferdig && s.fri.gaOpp && s.friStat.lost === 0 && (!t.norsk || /løsningen/.test(await t.tekst("#skjerm h1"))), "«Gi opp» viste ikke løsningen");
+  t.sjekk(!t.norsk || (/Løsning vist/.test(await t.tekst(".bly-fakta")) && !/hint/.test(await t.tekst(".bly-fakta"))), `Etter «Gi opp» skal det stå «Løsning vist», ikke antall hint («${await t.tekst(".bly-fakta")}»)`);
   await t.bilde("ga-opp");
 
   // A new one with the same settings
@@ -270,7 +292,7 @@ export default async function (t) {
   await t.klikk('#ark [data-h="sjekk-alt"]', 200);
   const feil = (await S()).fri.feil;
   t.sjekk(feil.length === 1 && (await t.finnes(".bly-celle.feil")), `«Vis meg feilene» merket ikke én feil (${feil.length})`);
-  t.sjekk(/Én bokstav er feil/.test(await varsel("feil")) && !(await t.finnes("#toast.vis")), "«Vis meg feilene» skal svare i stikkordlinja, ikke i en toast");
+  t.sjekk((t.norsk ? /Én bokstav er feil/.test(await varsel("feil")) : !!(await varsel("feil"))) && !(await t.finnes("#toast.vis")), "«Vis meg feilene» skal svare i stikkordlinja, ikke i en toast");
   const fk = (await S()).fri.kryss;
   const fc = feil[0];
   let fb = null;

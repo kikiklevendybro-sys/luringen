@@ -209,4 +209,7 @@ domain, CC BY or MIT, and is named here and in the data file's `om`.
 - **Ordugla, Danish (Orduglen)** – answers and guesses are our own words and their regular
   inflections (and the words in rusj's own Danish texts), kept only when the macOS Danish spell
   checker accepts them.
+- **Blyanten (Pencil / Blyanten) and Firkløveren (Clover / Firkløveren)** – themes, clues and
+  groups are our own. `test/blyanten.test.mjs` builds every daily crossword of the first year in
+  each edition and checks that each run of letters across and down is one of the day's words.
 - The spell checkers only say yes or no to words we bring; nothing is copied out of them.
