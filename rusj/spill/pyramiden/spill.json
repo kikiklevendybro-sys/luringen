@@ -10,5 +10,23 @@
   "tagger": ["drikke", "fest"],
   "rekkefolge": 44,
   "alder18": true,
-  "sok": ["pyramide", "pyramiden drikkelek", "drikkelek kort", "bløff", "kortpyramide"]
+  "sok": ["pyramide", "pyramiden drikkelek", "drikkelek kort", "bløff", "kortpyramide"],
+  "i18n": {
+    "en": {
+      "navn": "Pyramid",
+      "undertittel": "Got the card – or bluffing?",
+      "kort": "Four secret cards, fifteen in the pyramid – and plenty of bluff.",
+      "beskrivelse": "Free card drinking game (18+). Four secret cards and a pyramid you turn – hand out sips or bluff. The phone keeps track. Alcohol-free counts.",
+      "slug": "pyramid",
+      "sok": ["pyramid drinking game", "pyramid card game", "card drinking game", "bluff drinking game", "drinking games"]
+    },
+    "da": {
+      "navn": "Pyramiden",
+      "undertittel": "Har du kortet – eller bluffer du?",
+      "kort": "Fire hemmelige kort, femten i pyramiden – og masser af bluff.",
+      "beskrivelse": "Gratis drukspil på dansk (18+). Fire hemmelige kort og en pyramide, der vendes – del slurke ud eller bluff. Mobilen holder styr. Alkoholfrit tæller.",
+      "slug": "pyramiden",
+      "sok": ["pyramide drukspil", "pyramiden drukspil", "drukspil med kort", "bluff", "kortpyramide"]
+    }
+  }
 }
