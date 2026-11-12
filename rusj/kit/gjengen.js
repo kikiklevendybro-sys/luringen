@@ -1084,6 +1084,20 @@
         ${oyne({ y: 58, dx: 3, dy: -2, dx2: -3, dy2: 2 })}
         ${form("M44 84 Q60 98 76 84 Q60 90 44 84Z", P, 4)}`,
     },
+
+    // Blokka: a round blue head balancing three little blocks on top, one of them just clicking into place.
+    blokka: {
+      farge: "#6c8cff",
+      tegn: (f) => `
+        ${hode(f)}
+        ${form("M36 24 h17 v-17 h-17Z", LAMPE, 4)}
+        ${form("M53 24 h17 v-17 h-17Z", ROSA, 4)}
+        ${form("M53 7 h17 v-17 h-17Z", MYNT, 4)}
+        ${strek("M76 -4 l5 -5 M80 4 l7 -2 M76 12 l7 2", 3, LAMPE)}
+        ${kinn(80)}
+        ${oyne({ y: 58, dx: 2, dy: -3 })}
+        ${smil(84, 15)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

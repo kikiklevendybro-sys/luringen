@@ -1,0 +1,15 @@
+{
+  "id": "blokka",
+  "navn": "Blokka",
+  "undertittel": "Blokkpuslespill",
+  "beskrivelse": "Gratis blokkpuslespill på norsk: legg brikkene på et 8 × 8-brett, fyll rader og kolonner og rydd dem. Dagens blokk: de samme brikkene for alle hver dag.",
+  "kort": "Fyll rader og kolonner – og rydd brettet.",
+  "spillere": [1, 1],
+  "minutter": [3, 15],
+  "mobiler": "en",
+  "tagger": ["alene", "tenke", "daglig"],
+  "rekkefolge": 57,
+  "farge": "#6c8cff",
+  "dagnavn": "Dagens blokk",
+  "sok": ["blokkpuslespill", "blokkspill", "klossespill", "fyll rader", "8x8 puslespill", "dagens blokk", "blokker"]
+}

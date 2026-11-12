@@ -686,6 +686,18 @@
         "reversi på mobil",
         "snu brikkene spill"
       ]
+    },
+    "blokka": {
+      "tittel": "Blokkpuslespill på norsk – gratis, med dagens blokk",
+      "frase": "Blokkpuslespill",
+      "beskrivelse": "Spill blokkpuslespill gratis på norsk: legg brikkene på 8 × 8, fyll rader og kolonner og bygg kombo. Dagens blokk er lik for alle. Uten reklame og konto.",
+      "sok": [
+        "blokkpuslespill gratis",
+        "blokkspill på mobil",
+        "fyll rader og kolonner",
+        "puslespill med blokker",
+        "daglig puslespill"
+      ]
     }
   }
 }
