@@ -1,0 +1,21 @@
+{
+  "jul": {
+    "navn": "Christmas",
+    "ikon": "🎄",
+    "tekst": "Christmas and winter",
+    "ord": [
+      "Christmas Day", "Christmas Eve", "Boxing Day", "New Year's Eve", "Christmas", "Father Christmas", "Advent calendar", "Christmas stocking",
+      "Fireworks", "Sparkler", "Wrapping paper", "Present", "Letter to Santa", "Christmas card", "Christmas jumper", "Bauble",
+      "Tinsel", "Fairy lights", "Party hat", "Christmas pudding", "Christmas cake", "Secret Santa", "Christmas party", "Carol singers",
+      "Carol service", "Nativity", "Three Wise Men", "Shepherds", "Angel", "Fairy on top", "Wreath", "Gift tag",
+      "Hogmanay", "Christmas cracker", "Pantomime", "Christmas tree", "Holly", "Mistletoe", "Pine cone", "Fir",
+      "Spruce", "Pine", "Robin", "Reindeer", "Polar bear", "Penguin", "Snow", "Ice",
+      "Frost", "Icicle", "Snowflake", "Winter", "Hoar frost", "Black ice", "Sleet", "Avalanche",
+      "Star", "Woolly hat", "Scarf", "Mittens", "Jumper", "Slippers", "Dressing gown", "Pyjamas",
+      "Bobble hat", "Earmuffs", "Fireplace", "Blanket", "Candle", "Sledge", "Sledging", "Building a snowman",
+      "Snowball fight", "Skiing", "Ice skating", "Snowboarding", "Ice hockey", "Chairlift", "Hot chocolate", "Mince pie",
+      "Gingerbread man", "Chocolate coins", "Shortbread", "Sprouts", "Parsnip", "Cranberry", "Clementine", "Satsuma",
+      "Roast dinner", "Choir", "North Pole", "Ebenezer Scrooge", "Tiny Tim", "Gingerbread house", "Nativity play", "Hanukkah"
+    ]
+  }
+}

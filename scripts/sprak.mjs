@@ -418,6 +418,8 @@ export function sjekkSpill(rot, id, sprak, kilde = null, fellesTabell = undefine
     const mangler = readdirSync(data).filter((f) => f.endsWith(".json") && !existsSync(join(mappe, `data.${sprak}`, f)));
     if (mangler.length) return { publiseres: false, feil: [], varsler: [`${id} (${sprak}): data.${sprak}/ mangler ${mangler.join(", ")} – ikke publisert`], krevd: new Map(), grunn: "data" };
   }
+  // A word-bank game needs the edition's own bank (data/kategorier.<lang>, published as felles/ord.<lang>.js).
+  if (m.ordbank && !existsSync(join(rot, `data/kategorier.${sprak}`))) return { publiseres: false, feil: [], varsler: [`${id} (${sprak}): data/kategorier.${sprak}/ finnes ikke – ikke publisert`], krevd: new Map(), grunn: "data" };
   const js = kilde ?? readFileSync(join(mappe, "spill.js"), "utf8");
   const alle = strenger(js);
   const n = nokler(js, alle);

@@ -11,8 +11,8 @@
 // first player in every game, «Avslutt» on the ready screen, the crowning reported once to
 // «Kveldens gjeng», sharing, plain dock buttons and a top bar that is out of reach behind the stage.
 // Runs in every edition (node test/rusj-e2e.mjs --sprak en panna): the texts are checked in Norwegian
-// only (t.norsk), and the Norwegian word bank only there; elsewhere the state, the names and the
-// edition's storage keys (the page's own Rusj.sprak picks the key inside t.js).
+// only (t.norsk); elsewhere the state, the names, the edition's own word bank and the edition's
+// storage keys (the page's own Rusj.sprak picks the key inside t.js).
 const NK = (n) => `("rusj." + (window.Rusj.sprak === "nb" ? "" : window.Rusj.sprak + ".") + "${n}")`;
 // Extra screen sizes are shot with t.skjermbilde (the runner's own checks use its start size).
 import { join, resolve } from "node:path";
@@ -150,16 +150,19 @@ export default async function (t) {
   await t.klikk('[data-h="stokk"][data-v="mat"]');
   let S = await t.tilstand();
   t.sjekk(S.oppsett.stokker.includes("kaos") && !S.oppsett.stokker.includes("mat"), "Kortstokkvalget ble ikke lagret");
-  if (t.norsk) {
-    await t.klikk('[data-h="vis-ob"]');
-    await t.klikk('[data-h="ob"][data-v="rommet"]');
-    await t.klikk('[data-h="nivaa"][data-v="1"]');
-  } else t.sjekk(!(await t.finnes('[data-h="vis-ob"]')), "Den norske ordbanken skal ikke vises i andre utgaver");
+  // Every edition has its own word bank (felles/ord.js, ord.en.js, ord.da.js).
+  await t.klikk('[data-h="vis-ob"]');
+  await t.klikk('[data-h="ob"][data-v="rommet"]');
+  await t.klikk('[data-h="nivaa"][data-v="1"]');
+  if (!t.norsk) {
+    const ob = await t.js(`(() => { const k = (window.RUSJ_ORD.kategorier || []).find((x) => x.id === "rommet"); return { sprak: window.Rusj.sprak, navn: k && k.navn, ord: k && k.ord.slice(0, 3).map((o) => o[0]) }; })()`);
+    t.sjekk(ob.navn && !/Verdensrommet/.test(ob.navn) && ob.ord.length === 3, `Ordbanken er ikke utgavens egen (${JSON.stringify(ob)})`);
+  }
   await t.klikk('[data-h="runder"][data-v="1"]');
   if ((await t.antall(".spiller")) > 2) await t.klikk('[data-h="spiller-fjern"][data-v="2"]');
   t.sjekk((await t.antall(".spiller")) === 2, "Fikk ikke fjernet en spiller");
   S = await t.tilstand();
-  t.sjekk((!t.norsk || (S.oppsett.ordbank.includes("rommet") && S.oppsett.nivaa === 1)) && S.oppsett.runder === 1, "Ordbank/nivå/runder ble ikke lagret");
+  t.sjekk(S.oppsett.ordbank.includes("rommet") && S.oppsett.nivaa === 1 && S.oppsett.runder === 1, "Ordbank/nivå/runder ble ikke lagret");
   await t.bilde("oppsett-ordbank", true);
   await smal("oppsett");
   await t.klikk('[data-h="start"]');

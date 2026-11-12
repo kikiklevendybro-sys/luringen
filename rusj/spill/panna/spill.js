@@ -15,8 +15,11 @@
   const R = window.Rusj;
   const esc = R.esc;
   const STOKKER = window.RUSJ_DATA.kortstokker.kortstokker;
-  // The word bank (Luringen's) is Norwegian: the other editions play with the decks alone.
-  const ORDBANK = (R.sprak === "nb" && window.RUSJ_ORD && window.RUSJ_ORD.kategorier) || [];
+  // The shared word bank of the edition (rusj/SPRAK.md: Norwegian, English and Danish each have their own).
+  const ORDBANK = (window.RUSJ_ORD && window.RUSJ_ORD.kategorier) || [];
+  // The English and Danish editions were published without a bank, so there it goes last in the list
+  // below: the words that saved games already point to keep their numbers.
+  const BANK_SIST = R.sprak !== "nb";
   // The address of this game in the edition (the share texts link to it).
   const ADRESSE = location.origin + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "panna") + "/";
   const TIDER = [30, 60, 90];
@@ -36,8 +39,9 @@
   // ---------- Words ----------
   // One list for everything, so the deck remembers what has been shown (across sessions).
   // Saved games and that memory point into the list by number, so its order is fixed: the first
-  // decks, then the word bank, then the decks added later («etterOrdbank» in the data). New decks
-  // go last in the file with that mark; new words go last in a deck that has it.
+  // decks, then the word bank, then the decks added later («etterOrdbank» in the data) – in English
+  // and Danish the bank comes after those (BANK_SIST). New decks go last in the file with that mark;
+  // new words go last in a deck that has it.
   // Word-bank words that already exist in one of the first decks are skipped. A word-bank word
   // that a later deck also has stays in the list, but is left out while that deck is chosen (w.d).
   // Decks with their own way of giving clues («slik»: mime, sounds, voices) share words freely —
@@ -47,27 +51,36 @@
     const sett = new Set();
     const iBanken = new Map();
     const leggTil = (s) => s.ord.forEach((t) => ALLE.push({ k: s.id, t, x: R.normaliser(t) }));
-    STOKKER.filter((s) => !s.etterOrdbank).forEach((s) => {
-      s.ord.forEach((t) => sett.add(R.normaliser(t)));
-      leggTil(s);
-    });
-    ORDBANK.forEach((kat) =>
-      kat.ord.forEach((o) => {
-        const nokkel = R.normaliser(o[0]);
-        if (sett.has(nokkel)) return;
-        sett.add(nokkel);
-        iBanken.set(nokkel, ALLE.length);
-        ALLE.push({ k: "ob:" + kat.id, t: o[0], n: o[1], x: nokkel });
-      }),
-    );
-    STOKKER.filter((s) => s.etterOrdbank).forEach((s) => {
+    const bank = () =>
+      ORDBANK.forEach((kat) =>
+        kat.ord.forEach((o) => {
+          const nokkel = R.normaliser(o[0]);
+          if (sett.has(nokkel)) return;
+          sett.add(nokkel);
+          iBanken.set(nokkel, ALLE.length);
+          ALLE.push({ k: "ob:" + kat.id, t: o[0], n: o[1], x: nokkel });
+        }),
+      );
+    const merk = (s) => {
       if (!s.slik)
         s.ord.forEach((t) => {
           const w = ALLE[iBanken.get(R.normaliser(t))];
           if (w) (w.d = w.d || []).push(s.id);
         });
+    };
+    STOKKER.filter((s) => !s.etterOrdbank).forEach((s) => {
+      s.ord.forEach((t) => sett.add(R.normaliser(t)));
       leggTil(s);
     });
+    if (!BANK_SIST) bank();
+    STOKKER.filter((s) => s.etterOrdbank).forEach((s) => {
+      merk(s);
+      leggTil(s);
+    });
+    if (BANK_SIST) {
+      bank();
+      STOKKER.filter((s) => s.etterOrdbank).forEach(merk);
+    }
   })();
   const kortstokk = R.kortstokk("ord", ALLE.length);
   const stokk = (id) => STOKKER.find((s) => s.id === id);

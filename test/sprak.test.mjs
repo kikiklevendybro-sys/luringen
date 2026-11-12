@@ -220,6 +220,27 @@ test("the checker on a game: published only when spill.json, tables and data are
   }
 });
 
+test("the checker on a word-bank game: published only where the edition has its own bank", () => {
+  const rot = mkdtempSync(join(tmpdir(), "rusj-sprak-"));
+  try {
+    const mappe = join(rot, "rusj/spill/ordspill");
+    mkdirSync(mappe, { recursive: true });
+    mkdirSync(join(rot, "rusj/kit"), { recursive: true });
+    writeFileSync(join(rot, "rusj/kit/tekst.en.json"), "{}");
+    const i18n = { en: { navn: "Words", undertittel: "A test", kort: "Short.", beskrivelse: "Long.", slug: "words", sok: [] } };
+    writeFileSync(join(mappe, "spill.json"), JSON.stringify({ id: "ordspill", ordbank: true, tagger: ["ord"], i18n }));
+    writeFileSync(join(mappe, "spill.js"), 'R.t("Gjør klart");');
+    writeFileSync(join(mappe, "tekst.en.json"), JSON.stringify({ "Gjør klart": "Get ready" }));
+    let r = sjekkSpill(rot, "ordspill", "en");
+    assert.ok(!r.publiseres && r.feil.length === 0 && /data\/kategorier\.en\/ finnes ikke/.test(r.varsler.join()), "uten engelsk ordbank: ikke publisert, men ingen feil");
+    mkdirSync(join(rot, "data/kategorier.en"), { recursive: true });
+    r = sjekkSpill(rot, "ordspill", "en");
+    assert.ok(r.publiseres, r.feil.join("; "));
+  } finally {
+    rmSync(rot, { recursive: true, force: true });
+  }
+});
+
 test("the real tables: complete for every published game, and the pilot is published in en and da", () => {
   const r = sjekkSprak({ rot: ROT });
   assert.deepEqual(r.feil, []);

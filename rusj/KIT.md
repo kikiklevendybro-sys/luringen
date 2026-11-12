@@ -32,7 +32,7 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
   "tagger": ["fest", "familie", "sporsmal"],       // fest familie barn blof ord lag quiz tegning hukommelse sporsmal
   "rekkefolge": 4,                                 // position on the front page (given in your brief)
   "farge": "#ffd23f",                              // optional accent; default = the mascot's colour
-  "ordbank": false,                                // true → window.RUSJ_ORD (3,189 Norwegian words) is loaded
+  "ordbank": false,                                // true → window.RUSJ_ORD is loaded: the edition's own word bank (data/kategorier, .en, .da)
   "qr": false                                      // true → window.LuringenQr is loaded (Rusj.kode.qr)
 }
 ```

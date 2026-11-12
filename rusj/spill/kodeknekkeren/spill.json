@@ -12,5 +12,23 @@
   "ordbank": true,
   "qr": true,
   "alias": ["kodeord"],
-  "sok": ["kodeord", "agenter", "agentspill", "hemmelige agenter", "ordlek lag"]
+  "sok": ["kodeord", "agenter", "agentspill", "hemmelige agenter", "ordlek lag"],
+  "i18n": {
+    "en": {
+      "navn": "Codebreaker",
+      "undertittel": "Code words in teams",
+      "kort": "One word and a number – find the agents and steer clear of the trap.",
+      "beskrivelse": "A free code word game: the code master gives one word and a number – the team finds its agents on the board and avoids the trap. Team against team, or together from two players.",
+      "slug": "codebreaker",
+      "sok": ["codenames", "code words", "spymaster", "secret agents", "word association game", "team word game", "party game for teams"]
+    },
+    "da": {
+      "navn": "Kodeknækkeren",
+      "undertittel": "Kodeord på hold",
+      "kort": "Ét ord og et tal – find agenterne, og hold jer fra fælden.",
+      "beskrivelse": "Gratis kodeordsspil på dansk: Kodemesteren giver ét ord og et tal – holdet finder sine agenter på brættet og undgår fælden. Hold mod hold eller sammen fra to spillere.",
+      "slug": "kodeknaekkeren",
+      "sok": ["codenames", "kodeord", "kodenavne", "agentspil", "hemmelige agenter", "ordleg på hold", "holdspil"]
+    }
+  }
 }

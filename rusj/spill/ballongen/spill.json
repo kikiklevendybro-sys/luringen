@@ -11,5 +11,23 @@
   "rekkefolge": 38,
   "ordbank": true,
   "sok": ["galgen", "hangman", "gjett ordet", "galgespill"],
-  "alias": ["galgen"]
+  "alias": ["galgen"],
+  "i18n": {
+    "en": {
+      "navn": "Up and Away",
+      "undertittel": "Hangman for kids",
+      "kort": "Guess the word before the balloons pop!",
+      "beskrivelse": "Free hangman for kids – without the gallows! Guess the word letter by letter before the balloons pop. Over 3,000 British English words.",
+      "slug": "up-and-away",
+      "sok": ["hangman", "hangman for kids", "guess the word", "word game for kids", "spelling game", "balloon game", "letter guessing game"]
+    },
+    "da": {
+      "navn": "Ballonen",
+      "undertittel": "Galgespil for børn",
+      "kort": "Gæt ordet, før ballonerne springer!",
+      "beskrivelse": "Gratis galgespil for børn på dansk – uden galge! Gæt ordet bogstav for bogstav, før ballonerne springer. Med æ, ø, å og over 3.000 ord.",
+      "slug": "ballonen",
+      "sok": ["galgespil", "hangman", "hængt mand", "gæt ordet", "ordleg for børn", "stavespil", "ballonspil"]
+    }
+  }
 }

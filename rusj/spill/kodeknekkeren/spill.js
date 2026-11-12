@@ -21,12 +21,18 @@
   const ER_ORD = /^[A-Za-zÆØÅæøåÉé]{3,11}$/;
   // Never on the board: real people, and English words that aren't everyday Norwegian.
   // (The word list is shared with other games, so it is filtered here, not edited.)
-  const UTELATT = new Set([
-    "napoleon", "kleopatra", "shakespeare", "tutankhamon",
-    "likes", "story", "buffering", "livestream", "highscore", "moonwalk", "backpacking", "sightseeing", "laptop", "powerbank", "meme",
-  ]);
+  // (Norwegian only: the English and Danish banks have no such words.)
+  const NORSK = R.sprak !== "en" && R.sprak !== "da";
+  const UTELATT = new Set(
+    NORSK
+      ? [
+          "napoleon", "kleopatra", "shakespeare", "tutankhamon",
+          "likes", "story", "buffering", "livestream", "highscore", "moonwalk", "backpacking", "sightseeing", "laptop", "powerbank", "meme",
+        ]
+      : [],
+  );
   // rusj.no's house spelling for a few words in the shared list.
-  const SKRIVEMATE = { Spaghetti: "Spagetti", Fremtid: "Framtid", Fremføring: "Framføring", Romferge: "Romferje" };
+  const SKRIVEMATE = NORSK ? { Spaghetti: "Spagetti", Fremtid: "Framtid", Fremføring: "Framføring", Romferge: "Romferje" } : {}; // sprak-ok
   const KANDIDATER = { 1: [], 2: [] };
   ORD.kategorier.forEach((kat, k) =>
     kat.ord.forEach(([o, n]) => {
@@ -50,24 +56,40 @@
   const HINT = 7; // … and seven hints
   // Teams are always «Lag Rosa» / «Lag Blå» in text (shared wording on rusj.no).
   const LAG = [
-    { navn: "Lag Rosa", kort: "Rosa", klasse: "rosa", token: "--rosa", knapp: "rosa" },
-    { navn: "Lag Blå", kort: "Blå", klasse: "bla", token: "--himmel", knapp: "himmel" },
+    { navn: R.t("Lag Rosa"), kort: R.t("Rosa"), klasse: "rosa", token: "--rosa", knapp: "rosa" },
+    { navn: R.t("Lag Blå"), kort: R.t("Blå"), klasse: "bla", token: "--himmel", knapp: "himmel" },
   ];
   const KITLAG = [0, 2]; // the kit's own team list is Rosa, Gul, Blå, Grønn (for «Kveldens gjeng»)
   const TID = [0, 60, 120, 180];
   const KAMPER = ["ett", "best3", "fri"];
-  const KAMPNAVN = { ett: "Ett brett", best3: "Best av 3", fri: "Fri kamp" };
+  const KAMPNAVN = { ett: R.t("Ett brett"), best3: R.t("Best av 3"), fri: R.t("Fri kamp") };
   const GRENSER = { lag: [4, 20], sammen: [2, 4] }; // players, when the group types its names
   const UENDELIG = 99;
   const TALL = [1, 2, 3, 4, 5, UENDELIG]; // the number in a hint
-  const TALLORD = ["null", "ett", "to", "tre", "fire", "fem", "seks"];
+  const TALLORD =
+    R.sprak === "en"
+      ? ["zero", "one", "two", "three", "four", "five", "six"]
+      : R.sprak === "da"
+        ? ["nul", "ét", "to", "tre", "fire", "fem", "seks"] // sprak-ok
+        : ["null", "ett", "to", "tre", "fire", "fem", "seks"]; // sprak-ok
   // «Sammen mot fella»: what the group is called for the agents it found.
   const STIGE = [
-    { til: 3, omrade: "0–3", tittel: "Spionlærlinger", tekst: "Alle mesterspioner har startet akkurat her." },
-    { til: 6, omrade: "4–6", tittel: "Lovende spioner", tekst: "Dere er på sporet. Litt dristigere hint neste gang?" },
-    { til: 8, omrade: "7–8", tittel: "Skarpe spioner", tekst: "Så nær! Bare litt igjen til mesterklassen." },
-    { til: 9, omrade: "9", tittel: "Mesterspioner", tekst: "Alle ni funnet – fella fikk aldri sjansen." },
+    { til: 3, omrade: "0–3", tittel: R.t("Spionlærlinger"), tekst: R.t("Alle mesterspioner har startet akkurat her.") },
+    { til: 6, omrade: "4–6", tittel: R.t("Lovende spioner"), tekst: R.t("Dere er på sporet. Litt dristigere hint neste gang?") },
+    { til: 8, omrade: "7–8", tittel: R.t("Skarpe spioner"), tekst: R.t("Så nær! Bare litt igjen til mesterklassen.") },
+    { til: 9, omrade: "9", tittel: R.t("Mesterspioner"), tekst: R.t("Alle ni funnet – fella fikk aldri sjansen.") },
   ];
+  // A translated text with markup in its {places}: the text is escaped, then the places are filled.
+  const medHtml = (tekst, html) => esc(tekst).replace(/\{(\w+)\}/g, (hele, k) => (Object.prototype.hasOwnProperty.call(html, k) ? html[k] : hele));
+  // «Lag Rosa sin tur» as two pieces that never break inside (kk-nb): the team name with what is
+  // glued to it («Team Pink's»), then the rest («turn»).
+  function nbBiter(tekst, lag) {
+    const [foran, etter] = tekst.split("{lag}");
+    const m = /^(\S*)\s+(.*)$/.exec(etter || "");
+    const a = foran + lag + (m ? m[1] : etter || "");
+    const b = m ? m[2] : "";
+    return `<span class="kk-nb">${esc(a)}</span>${b ? ` <span class="kk-nb">${esc(b)}</span>` : ""}`;
+  }
 
   // Watermark icons on revealed cards: agent (fedora), bystander, and the trap (a bomb).
   const IKON = {
@@ -87,65 +109,100 @@
   // Long words are shown on two lines on small cards, split where a Norwegian reader expects it:
   // at the joint of a compound (Sol-systemet, Rund-kjøring) when a known last part is found,
   // otherwise before the last consonant between two vowels (Kroko-dille), never inside kj, sj, ng …
-  const LEDD = (
-    "burger kake pinne bolle suppe postei grøt skive brød stykke salat spyd pølse smør snurr stek bær melon nøtt frukt eple " +
-    "gummi spinn ring gull shake banan krem saus split stenger drikk vann kjeks topp skap koker rister panne spade fjøl høvel " +
-    "jern åpner kvern papir rull lapp pinner plate mikser slynge folie pose pott saks maskin glass vekt klokke beger form " +
-    "pensel hjul padde mus bjørn spett meis fisk hogger sprut stjerne skjell slott post spette anemone krabbe gård rev vrak " +
-    "skjelv kopp fugl mark bølge brann sol hoppe stikker nesle kanne plante lilje slange krage blomst sopp bed hage nisse " +
-    "suger lys kasse bøtte gris sekk henger varsler køye stake håndtak bryter stol kontakt trekker bår skuffe pumpe stokk " +
-    "stikke gaffel benk vern hjelm freser blåser støvel kjede jakke genser briller strikk børste stift lakk bukse kåpe spenne " +
-    "tørkle taske dress tang sprit saft tann sperre sans pleier sjåfør legger mester vakt passer trener øving minutt rom " +
-    "robe skole tabell melk føring lesning fag bok kontor butikk senter plass bygg klinikk kjøkken verksted felt ballong skip " +
-    "vogn buss kjøring skilt bil båt scooter bane stasjon dump grense arbeid kort ball tennis løp board hopp hevinger skyting " +
-    "sprang kaptein skinn mølle brett deig album kunst merker klipp bilder kjel kniv støping teppe dyr spray spill fløyte kule " +
-    "gulv bass pipe fele musikk vise tekst skrekk gitar hest bobler jakt krig sjakk binge løype kveld liv korps fredag godt tur " +
-    "kjøtt ferie hytte kirke stang krone krim kofte mat hus fjord heimen tunga tinget stad landet lag moen berg fest sund fjell " +
-    "stigen snes seggen rike huset hammer syke liste bånd reise leir klubb nummer penger feber lengsel sjekking service byrå " +
-    "hall mann stav brønn kiste helt skurk styrke ladden mal syn gubben film serie strømming rose mannen rolle snarr haren " +
-    "hjerte lavn dagen strømpe krans krybbe maling marked tog alder tid maleri hull loven riket skjold presse propper telefon " +
-    "chat navn tone deksel lasting datering bilde alfa motor virus svindel verset systemet kraft landing rør vogna sfære " +
+  const LEDD_NB = (
+    "burger kake pinne bolle suppe postei grøt skive brød stykke salat spyd pølse smør snurr stek bær melon nøtt frukt eple " + // sprak-ok
+    "gummi spinn ring gull shake banan krem saus split stenger drikk vann kjeks topp skap koker rister panne spade fjøl høvel " + // sprak-ok
+    "jern åpner kvern papir rull lapp pinner plate mikser slynge folie pose pott saks maskin glass vekt klokke beger form " + // sprak-ok
+    "pensel hjul padde mus bjørn spett meis fisk hogger sprut stjerne skjell slott post spette anemone krabbe gård rev vrak " + // sprak-ok
+    "skjelv kopp fugl mark bølge brann sol hoppe stikker nesle kanne plante lilje slange krage blomst sopp bed hage nisse " + // sprak-ok
+    "suger lys kasse bøtte gris sekk henger varsler køye stake håndtak bryter stol kontakt trekker bår skuffe pumpe stokk " + // sprak-ok
+    "stikke gaffel benk vern hjelm freser blåser støvel kjede jakke genser briller strikk børste stift lakk bukse kåpe spenne " + // sprak-ok
+    "tørkle taske dress tang sprit saft tann sperre sans pleier sjåfør legger mester vakt passer trener øving minutt rom " + // sprak-ok
+    "robe skole tabell melk føring lesning fag bok kontor butikk senter plass bygg klinikk kjøkken verksted felt ballong skip " + // sprak-ok
+    "vogn buss kjøring skilt bil båt scooter bane stasjon dump grense arbeid kort ball tennis løp board hopp hevinger skyting " + // sprak-ok
+    "sprang kaptein skinn mølle brett deig album kunst merker klipp bilder kjel kniv støping teppe dyr spray spill fløyte kule " + // sprak-ok
+    "gulv bass pipe fele musikk vise tekst skrekk gitar hest bobler jakt krig sjakk binge løype kveld liv korps fredag godt tur " + // sprak-ok
+    "kjøtt ferie hytte kirke stang krone krim kofte mat hus fjord heimen tunga tinget stad landet lag moen berg fest sund fjell " + // sprak-ok
+    "stigen snes seggen rike huset hammer syke liste bånd reise leir klubb nummer penger feber lengsel sjekking service byrå " + // sprak-ok
+    "hall mann stav brønn kiste helt skurk styrke ladden mal syn gubben film serie strømming rose mannen rolle snarr haren " + // sprak-ok
+    "hjerte lavn dagen strømpe krans krybbe maling marked tog alder tid maleri hull loven riket skjold presse propper telefon " + // sprak-ok
+    "chat navn tone deksel lasting datering bilde alfa motor virus svindel verset systemet kraft landing rør vogna sfære " + // sprak-ok
     "syntese krets kapsel heim land dam trekking kroning skraper skop hans tek grafer stikk fotball"
   ).split(" ");
-  const FORLEDD = (
-    "barne skole fiske kjøkken sommer vinter jule påske reise hytte brann regn snø sol vann luft lys lyd super troll skatte " +
-    "sjø hav fjell skog hage kjøtt pepper kanel gulrot vanilje sjokolade mineral sports flagg melke tann hånd hår nøkkel natt " +
-    "dag morgen kveld røyk gynge hoppe spill leke for auto opp"
+  const FORLEDD_NB = (
+    "barne skole fiske kjøkken sommer vinter jule påske reise hytte brann regn snø sol vann luft lys lyd super troll skatte " + // sprak-ok
+    "sjø hav fjell skog hage kjøtt pepper kanel gulrot vanilje sjokolade mineral sports flagg melke tann hånd hår nøkkel natt " + // sprak-ok
+    "dag morgen kveld røyk gynge hoppe spill leke for auto opp" // sprak-ok
   ).split(" ");
-  const HALE = ["", "e", "r", "er", "en", "et", "ene", "s", "a", "ing"];
+  const HALE_NB = ["", "e", "r", "er", "en", "et", "ene", "s", "a", "ing"];
+  // English and Danish: their own common last and first parts of compounds (Butter-fly, Fod-bold).
+  const LEDD_EN = (
+    "ball board house fish bird cake berry berries room boat ship light shop work wood box pot fruit bread corn flower storm " +
+    "flake fly bow fall pecker hopper stick pack bag case cup pan plate glass line field yard garden land star fire water ground " +
+    "lamp bell book bike train truck road rail pool tree bush grass leaf root seed shell bone wall roof door gate chair table " +
+    "coat shoe boot sock glove scarf belt shirt time night cream brush paper print phone ride cone sauce burger ladder watch " +
+    "word wave wheel bar port maid mouth hog pop ray about"
+  ).split(" ");
+  const FORLEDD_EN = (
+    "snow sun water fire rain foot hand head air sea star tooth butter pan straw black blue green grass lady rock sand back under " +
+    "over out down sky moon night home play hair bath bed book camp tea birth skate swim school ice pine water hedge"
+  ).split(" ");
+  const LEDD_DA = (
+    "kage bold hus mand fisk fugl træ blomst bær skab stol bord vogn bil båd skib tog bane plads sko hat handske jakke kjole " + // sprak-ok
+    "lampe seng pude dyne vand mad brød suppe grød salat pølse ost saft mælk kop glas ske kniv gaffel gryde pande ovn maskine " + // sprak-ok
+    "papir bog spil leg dag aften nat fest tur rejse ferie land sø skov hav strand bjerg dal mark have gård stald hytte telt " + // sprak-ok
+    "lys stjerne sol måne regn sne vind storm sten blad rod plante busk græs lås nøgle dør vindue væg tag gulv trappe stige " + // sprak-ok
+    "kasse pose taske sæk spand kurv kande flaske dåse æske hjul tøj støvle bukser ring kort løb hop dans sang musik film kat " + // sprak-ok
+    "hund hest gris høne gås myre orm snegl brille børste cykel mus kost brønd krukke vrag skraber" // sprak-ok
+  ).split(" "); // sprak-ok
+  const FORLEDD_DA = (
+    "børne skole fiske køkken sommer vinter jule påske rejse sne sol vand luft lys lyd super trold skatte sø hav bjerg skov " + // sprak-ok
+    "have kød peber kanel chokolade sports flag mælke tand hånd hår nøgle nat dag morgen aften fødselsdags blomster frugt is" // sprak-ok
+  ).split(" "); // sprak-ok
+  const LEDD = R.sprak === "en" ? LEDD_EN : R.sprak === "da" ? LEDD_DA : LEDD_NB;
+  const FORLEDD = R.sprak === "en" ? FORLEDD_EN : R.sprak === "da" ? FORLEDD_DA : FORLEDD_NB;
+  const HALE = R.sprak === "en" ? ["", "s", "es"] : R.sprak === "da" ? ["", "e", "r", "er", "en", "et", "ene", "erne", "s"] : HALE_NB;
   // Words the rules get wrong. Triple consonants come back when the word is split (buss-sjåfør).
-  const SPESIAL = {
-    armbåndsur: ["Arm", "båndsur"],
+  const SPESIAL_NB = {
+    armbåndsur: ["Arm", "båndsur"], // sprak-ok
     samfunnsfag: ["Sam", "funnsfag"],
     byggvarehus: ["Bygg", "varehus"],
     blomsterbed: ["Blomster", "bed"],
-    svømming: ["Svøm", "ming"],
+    svømming: ["Svøm", "ming"], // sprak-ok
     amazonas: ["Ama", "zonas"],
-    øyemaske: ["Øye", "maske"],
+    øyemaske: ["Øye", "maske"], // sprak-ok
     romvesen: ["Rom", "vesen"],
     trombone: ["Trom", "bone"],
     moonwalk: ["Moon", "walk"],
     navnedag: ["Navne", "dag"],
     hemsedal: ["Hemse", "dal"],
     ensomhet: ["Ensom", "het"],
-    bussjåfør: ["Buss", "sjåfør"],
+    bussjåfør: ["Buss", "sjåfør"], // sprak-ok
     stikkontakt: ["Stikk", "kontakt"],
     australia: ["Austra", "lia"],
     hieroglyfer: ["Hiero", "glyfer"],
     influenser: ["Influ", "enser"],
     frustrasjon: ["Frus", "trasjon"],
     plystring: ["Plys", "tring"],
-    enhjørning: ["En", "hjørning"],
+    enhjørning: ["En", "hjørning"], // sprak-ok
     elektriker: ["Elek", "triker"],
     resepsjon: ["Resep", "sjon"],
     pinocchio: ["Pinoc", "chio"],
     utkledning: ["Ut", "kledning"],
-    cashewnøtt: ["Cashew", "nøtt"],
+    cashewnøtt: ["Cashew", "nøtt"], // sprak-ok
   };
+  const SPESIAL = NORSK ? SPESIAL_NB : {};
   // Short words that only look like compounds (Klat-ring, Her-kules): keep them on one line.
-  const HEL = new Set(["klatring", "herkules", "tastatur", "skulptur", "thailand", "tønsberg", "grønland"]);
+  const HEL = new Set(NORSK ? ["klatring", "herkules", "tastatur", "skulptur", "thailand", "tønsberg", "grønland"] : []); // sprak-ok
   const VOKAL = /[aeiouyæøåé]/;
   const SAMMEN = ["kj", "sj", "tj", "gj", "hj", "hv", "ng", "ch", "sh", "th", "ph", "ck"];
+  // English and Danish: consonants that start a syllable together – the split moves to before them
+  // (Wind-break, Cork-screw, Sky-skraber) – and pairs that end one (Chick-en), never split.
+  const KLASE =
+    R.sprak === "en"
+      ? ["bl", "br", "ch", "cl", "cr", "dr", "fl", "fr", "gl", "gr", "kn", "ph", "pl", "pr", "qu", "sc", "sh", "sk", "sl", "sm", "sn", "sp", "st", "sw", "th", "tr", "tw", "wh", "wr"]
+      : ["bl", "br", "dr", "fl", "fr", "gl", "gr", "kl", "kn", "kr", "kv", "pl", "pr", "sk", "sl", "sm", "sn", "sp", "st", "sv", "tr", "tv", "dv", "hj", "hv", "sj", "gn"];
+  const KODA = R.sprak === "en" ? ["ck", "ng", "gh", "tch"] : ["ng"];
 
   function delOrd(ord) {
     const l = ord.toLocaleLowerCase("nb");
@@ -167,10 +224,18 @@
       if (FORLEDD.includes(l.slice(0, p))) prov(p, 5);
     }
     if (best) return [ord.slice(0, best.p), ord.slice(best.p)];
-    if (n < 9) return null; // short words: only split at a known compound joint
+    if (n < (NORSK ? 9 : 8)) return null; // short words: only split at a known compound joint
     let valg = null;
     for (let p = 3; p <= n - 3; p++) {
       if (VOKAL.test(l[p]) || !VOKAL.test(l[p + 1] || "")) continue; // before the last consonant ahead of a vowel
+      if (!NORSK) {
+        if (KODA.includes(l[p - 1] + l[p])) continue;
+        let q = p;
+        while (q > 3 && KLASE.includes(l[q - 1] + l[q])) q -= 1;
+        if (KLASE.includes(l[q - 1] + l[q])) continue;
+        if (valg == null || Math.abs(q - midt) < Math.abs(valg - midt)) valg = q;
+        continue;
+      }
       if (SAMMEN.includes(l[p - 1] + l[p]) || l.slice(p - 2, p + 1) === "skj") continue;
       if (valg == null || Math.abs(p - midt) < Math.abs(valg - midt)) valg = p;
     }
@@ -320,7 +385,7 @@
     return { vist, tur, vinner, grunn };
   }
 
-  const navnPa = (sp, i) => (sp.navn && sp.navn[i]) || `Spiller ${i + 1}`;
+  const navnPa = (sp, i) => (sp.navn && sp.navn[i]) || R.t("Spiller {n}", { n: i + 1 });
   // The code masters of this board when the group has typed its names: one per team, or one in
   // co-op. A new one every board, in turn.
   function mestere(sp) {
@@ -331,12 +396,12 @@
   // «Kari» when the game knows who it is, otherwise «Kodemesteren».
   function mesterNavn(sp, lag) {
     const m = mestere(sp);
-    return m ? navnPa(sp, m[erSammen(sp) ? 0 : lag]) : "Kodemesteren";
+    return m ? navnPa(sp, m[erSammen(sp) ? 0 : lag]) : R.t("Kodemesteren");
   }
 
   function startMelding(sp) {
-    if (erSammen(sp)) return { tekst: `Hint 1 av ${HINT}. ${mesterNavn(sp)} gir ett ord og et tall.`, type: "tur" };
-    return { tekst: `${LAG[sp.start].navn} begynner. ${mesterNavn(sp, sp.start)} gir ett ord og et tall.`, type: "tur" };
+    if (erSammen(sp)) return { tekst: R.t("Hint {n} av {antall}. {navn} gir ett ord og et tall.", { n: 1, antall: HINT, navn: mesterNavn(sp) }), type: "tur" };
+    return { tekst: R.t("{lag} begynner. {navn} gir ett ord og et tall.", { lag: LAG[sp.start].navn, navn: mesterNavn(sp, sp.start) }), type: "tur" };
   }
 
   // o: { modus, kamp, fro, brett, start, lett, tid, stilling, spilt, navn, lag, antall, mnr, mstart, beste }
@@ -401,7 +466,7 @@
     if (o.modus === "lag" && o.navn) {
       ordneLag(S);
       const rosa = o.lag.filter((l) => l === 0).length;
-      if (rosa < 2 || S.antall - rosa < 2) return "Hvert lag trenger minst to spillere.";
+      if (rosa < 2 || S.antall - rosa < 2) return R.t("Hvert lag trenger minst to spillere.");
     }
     return "";
   }
@@ -466,7 +531,7 @@
 
   // Is the match decided by the board that just ended?
   const avgjort = (sp) => over(sp) && (erSammen(sp) || sp.kamp === "ett" || (sp.kamp === "best3" && Math.max(sp.stilling[0], sp.stilling[1]) >= 2));
-  const stillingTekst = (sp) => `${LAG[0].navn} ${sp.stilling[0]} – ${sp.stilling[1]} ${LAG[1].navn}`;
+  const stillingTekst = (sp) => `${LAG[0].navn} ${sp.stilling[0]} – ${sp.stilling[1]} ${LAG[1].navn}`; // (team names and numbers only)
 
   // The best hint of the match: the one the team got most right guesses from in one turn (two or
   // more), the earliest if several did. Looked at when a board is left for good.
@@ -527,14 +592,19 @@
       sp.grunn = "hint";
       sp.spilt += 1;
       S.laert = true;
-      sp.melding = { tekst: forst ? `${forst.replace(/[.!]$/, "")} – og det var siste hint.` : "Det var siste hint.", type };
+      sp.melding = { tekst: forst ? R.t("{forst} – og det var siste hint.", { forst: forst.replace(/[.!]$/, "") }) : R.t("Det var siste hint."), type };
       R.si(sp.melding.tekst);
       stoppTur();
       R.vis();
       tilResultatOm(1400);
       return;
     }
-    sp.melding = { tekst: forst ? `${forst} Hint ${nr + 1} av ${HINT} – nytt ord og tall.` : `Hint ${nr + 1} av ${HINT}. ${mesterNavn(sp)} gir ett ord og et tall.`, type };
+    sp.melding = {
+      tekst: forst
+        ? R.t("{forst} Hint {n} av {antall} – nytt ord og tall.", { forst, n: nr + 1, antall: HINT })
+        : R.t("Hint {n} av {antall}. {navn} gir ett ord og et tall.", { n: nr + 1, antall: HINT, navn: mesterNavn(sp) }),
+      type,
+    };
     R.si(sp.melding.tekst);
     R.vis();
     startTur(S);
@@ -546,12 +616,12 @@
     const nr = hintNr(sp);
     sp.hist.push({ t: "tid", tur: sp.tur, hint: sp.hint });
     if (erSammen(sp)) {
-      hintSlutt(S, nr, "Tiden er ute!", "tid");
+      hintSlutt(S, nr, R.t("Tiden er ute!"), "tid");
       return;
     }
     tomHint(sp);
     sp.tur = 1 - sp.tur;
-    sp.melding = { tekst: `Tiden er ute! Nå er det ${LAG[sp.tur].navn} sin tur.`, type: "tid" };
+    sp.melding = { tekst: R.t("Tiden er ute! Nå er det {lag} sin tur.", { lag: LAG[sp.tur].navn }), type: "tid" };
     R.si(sp.melding.tekst);
     R.vis();
     startTur(S);
@@ -666,7 +736,7 @@
 
   // ---------- Markup ----------
 
-  const typeNavn = (type, sammen) => (type === FELLE ? "fella" : type === NOYTRAL ? "nøytralt ord" : sammen ? "agent" : `agent for ${LAG[type].navn}`);
+  const typeNavn = (type, sammen) => (type === FELLE ? R.t("fella") : type === NOYTRAL ? R.t("nøytralt ord") : sammen ? R.t("agent") : R.t("agent for {lag}", { lag: LAG[type].navn }));
   // A letter in the corner, so the key never depends on telling colours apart:
   // R and B for the teams (A for the agents in co-op), ✕ for the trap, nothing for neutral words.
   const bokstav = (type, sammen) => (type === FELLE ? "✕" : type === NOYTRAL ? "" : sammen ? "A" : type === ROSA ? "R" : "B");
@@ -687,7 +757,7 @@
     if (vist) klasser.push("vist");
     if (fasit) klasser.push("fasit");
     if (o.sist === i) klasser.push("snu");
-    const etikett = synlig ? `${ord}: ${typeNavn(type, sammen)}${fasit ? " (ikke tatt)" : ""}` : ord;
+    const etikett = synlig ? `${ord}: ${typeNavn(type, sammen)}${fasit ? ` ${R.t("(ikke tatt)")}` : ""}` : ord;
     // A taken card stays focusable (aria-disabled, not disabled), so keyboard focus doesn't fall
     // out of the board when the card flips; taps on it are ignored in the «kort» action.
     return `<button class="${klasser.join(" ")}" data-h="kort" data-v="${i}"${synlig || o.fasit ? ' aria-disabled="true" data-stille' : ""} aria-label="${esc(etikett)}">${
@@ -697,7 +767,7 @@
 
   function brettHtml(sp, o = {}) {
     const farge = erSammen(sp) ? "sammen" : `lag-${LAG[sp.vinner != null ? sp.vinner : sp.tur].klasse}`;
-    return `<div class="kk-brett ${farge}${o.fasit ? " med-fasit" : ""}" role="group" aria-label="Brettet: 25 ord">${sp.ord.map((_, i) => kortHtml(sp, i, o)).join("")}</div>`;
+    return `<div class="kk-brett ${farge}${o.fasit ? " med-fasit" : ""}" role="group" aria-label="${esc(R.t("Brettet: {n} ord", { n: ANTALL }))}">${sp.ord.map((_, i) => kortHtml(sp, i, o)).join("")}</div>`;
   }
 
   function timerHtml(sp) {
@@ -705,7 +775,7 @@
     const t = R.timer("kk-tid");
     const igjenSek = t ? t.igjen : sp.tid;
     const omkrets = 2 * Math.PI * 54;
-    return `<button class="kk-timer${t && !t.kjorer && !t.ferdig ? " pause" : ""}" id="kk-tid" data-h="timer-veksle" data-v="kk-tid" aria-label="Tidsur – trykk for pause">
+    return `<button class="kk-timer${t && !t.kjorer && !t.ferdig ? " pause" : ""}" id="kk-tid" data-h="timer-veksle" data-v="kk-tid" aria-label="${esc(R.t("Tidsur – trykk for pause"))}">
       <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="spor" cx="60" cy="60" r="54"/><circle class="fyll" cx="60" cy="60" r="54" style="stroke-dasharray:${omkrets};stroke-dashoffset:${omkrets * (1 - igjenSek / sp.tid)}"/></svg>
       <span class="timer-tid">${R.formaterTid(igjenSek)}</span>
     </button>`;
@@ -717,18 +787,18 @@
       const etter = HINT - nr;
       return `<div class="kk-status sammen">
         <div class="kk-lag agent aktiv">
-          <span class="kk-lag-navn">Agenter</span>
+          <span class="kk-lag-navn">${esc(R.t("Agenter"))}</span>
           <b class="kk-lag-tall">${igjen(sp, ROSA)}</b>
-          <span class="kk-lag-tekst">igjen</span>
+          <span class="kk-lag-tekst">${esc(R.t("igjen"))}</span>
         </div>
         <div class="kk-tur">
-          <b>${over(sp) ? (sp.grunn === "alle" ? "Alle funnet!" : sp.grunn === "fella" ? "Fella!" : "Siste hint brukt") : `<span class="kk-nb">Hint ${nr}</span> <span class="kk-nb">av ${HINT}</span>`}</b>
+          <b>${over(sp) ? esc(sp.grunn === "alle" ? R.t("Alle funnet!") : sp.grunn === "fella" ? R.t("Fella!") : R.t("Siste hint brukt")) : `<span class="kk-nb">${esc(R.t("Hint {n}", { n: nr }))}</span> <span class="kk-nb">${esc(R.t("av {antall}", { antall: HINT }))}</span>`}</b>
           ${timerHtml(sp)}
         </div>
         <div class="kk-lag hintboks${etter ? "" : " tom"}">
-          <span class="kk-lag-navn">Hint</span>
+          <span class="kk-lag-navn">${esc(R.t("Hint"))}</span>
           <b class="kk-lag-tall">${etter}</b>
-          <span class="kk-lag-tekst">igjen</span>
+          <span class="kk-lag-tekst">${esc(R.t("igjen"))}</span>
         </div>
       </div>`;
     }
@@ -736,9 +806,9 @@
       const aktiv = !over(sp) && sp.tur === l;
       const n = igjen(sp, l);
       return `<div class="kk-lag ${LAG[l].klasse}${aktiv ? " aktiv" : ""}">
-        <span class="kk-lag-navn">${LAG[l].navn}</span>
+        <span class="kk-lag-navn">${esc(LAG[l].navn)}</span>
         <b class="kk-lag-tall">${n}</b>
-        <span class="kk-lag-tekst">${n === 1 ? "agent" : "agenter"} igjen</span>
+        <span class="kk-lag-tekst">${esc(R.t("agent igjen|agenter igjen", { n }))}</span>
       </div>`;
     };
     const tur = LAG[sp.tur];
@@ -746,7 +816,7 @@
     return `<div class="kk-status lag-${farge.klasse}">
       ${boks(ROSA)}
       <div class="kk-tur">
-        ${sp.vinner == null ? `<span class="kk-tur-pil" aria-hidden="true">${sp.tur === ROSA ? "◀" : "▶"}</span><b><span class="kk-nb">${tur.navn}</span> <span class="kk-nb">sin tur</span></b>` : `<b><span class="kk-nb">${LAG[sp.vinner].navn}</span> <span class="kk-nb">tok brettet!</span></b>`}
+        ${sp.vinner == null ? `<span class="kk-tur-pil" aria-hidden="true">${sp.tur === ROSA ? "◀" : "▶"}</span><b>${nbBiter(R.t("{lag} sin tur"), tur.navn)}</b>` : `<b>${nbBiter(R.t("{lag} tok brettet!"), LAG[sp.vinner].navn)}</b>`}
         ${timerHtml(sp)}
       </div>
       ${boks(BLA)}
@@ -769,12 +839,12 @@
   function hintRest(sp) {
     const h = sp.hint;
     if (!h || h.n == null) return { tekst: "", brukt: false };
-    if (h.n === UENDELIG) return { tekst: "så mange forsøk dere vil", brukt: false };
+    if (h.n === UENDELIG) return { tekst: R.t("så mange forsøk dere vil"), brukt: false };
     const sammen = erSammen(sp);
     const rest = h.n - brukt(sp);
-    if (rest > 0) return { tekst: `${TALLORD[rest]} forsøk igjen${sammen ? "" : " (+1)"}`, brukt: false };
-    if (rest === 0 && !sammen) return { tekst: "ekstraforsøket igjen", brukt: false };
-    return { tekst: sammen ? "forsøkene er brukt" : `${LAG[sp.tur].navn} er ferdig`, brukt: true };
+    if (rest > 0) return { tekst: R.t("{tall} forsøk igjen", { tall: TALLORD[rest], n: rest }) + (sammen ? "" : " (+1)"), brukt: false };
+    if (rest === 0 && !sammen) return { tekst: R.t("ekstraforsøket igjen"), brukt: false };
+    return { tekst: sammen ? R.t("forsøkene er brukt") : R.t("{lag} er ferdig", { lag: LAG[sp.tur].navn }), brukt: true };
   }
 
   function hintHtml(sp) {
@@ -782,16 +852,16 @@
     const h = sp.hint;
     if (h && !sp.redigerer) {
       const rest = hintRest(sp);
-      const lest = `Hintet: ${hintHode(h).replace(" · ", ", ").replace("∞", "uendelig")}.${rest.tekst ? ` ${rest.tekst.replace("(+1)", "pluss ett ekstra")}.` : ""} Trykk for å endre.`;
+      const lest = `${R.t("Hintet: {hint}.", { hint: hintHode(h).replace(" · ", ", ").replace("∞", R.t("uendelig")) })}${rest.tekst ? ` ${rest.tekst.replace("(+1)", R.t("pluss ett ekstra"))}.` : ""} ${R.t("Trykk for å endre.")}`;
       return `<div class="kk-hint satt ${farge}${rest.brukt ? " brukt" : ""}">
         <button class="kk-hint-vis" id="kk-hint-vis" data-h="hint-endre" aria-label="${esc(lest)}"><b>${esc(hintHode(h))}</b>${rest.tekst ? `<span>${esc(rest.tekst)}</span>` : ""}<i aria-hidden="true">✎</i></button>
       </div>`;
     }
     return `<form class="kk-hint ${farge}" data-skjema="hint" autocomplete="off" novalidate>
-      <label class="vh" for="kk-hintfelt">Hintet fra kodemesteren (valgfritt)</label>
-      <input class="kk-hintfelt" id="kk-hintfelt" name="hint" data-felt="hint" maxlength="20" placeholder="Hint" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" enterkeyhint="done" value="${esc(sp.utkast || "")}">
-      <div class="kk-tall" role="group" aria-label="Tallet i hintet">${TALL.map(
-        (n) => `<button type="button" data-h="hint-tall" data-v="${n}" aria-pressed="${!!(sp.redigerer && h && h.n === n)}"${n === UENDELIG ? ' aria-label="Uendelig"' : ""}>${tallTegn(n)}</button>`,
+      <label class="vh" for="kk-hintfelt">${esc(R.t("Hintet fra kodemesteren (valgfritt)"))}</label>
+      <input class="kk-hintfelt" id="kk-hintfelt" name="hint" data-felt="hint" maxlength="20" placeholder="${esc(R.t("Hint"))}" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" enterkeyhint="done" value="${esc(sp.utkast || "")}">
+      <div class="kk-tall" role="group" aria-label="${esc(R.t("Tallet i hintet"))}">${TALL.map(
+        (n) => `<button type="button" data-h="hint-tall" data-v="${n}" aria-pressed="${!!(sp.redigerer && h && h.n === n)}"${n === UENDELIG ? ` aria-label="${esc(R.t("Uendelig"))}"` : ""}>${tallTegn(n)}</button>`,
       ).join("")}</div>
     </form>`;
   }
@@ -814,11 +884,11 @@
       const post = { lag: sp.tur, nr: hintNr(sp), ord, n, fra: turStart(sp) };
       if (forrige) sp.hintlogg[sp.hintlogg.length - 1] = post;
       else sp.hintlogg.push(post);
-      R.si(`Hint: ${hintHode(sp.hint).replace(" · ", ", ").replace("∞", "uendelig")}.`);
+      R.si(R.t("Hint: {hint}.", { hint: hintHode(sp.hint).replace(" · ", ", ").replace("∞", R.t("uendelig")) }));
       R.lyd.pop();
       // The classic rule: the hint can't be one of the words on the table.
       const norm = R.normaliser(ord);
-      if (norm && sp.ord.some((w, i) => !sp.vist.includes(i) && R.normaliser(w) === norm)) R.toast("Hintet kan ikke være et ord på brettet", { topp: true });
+      if (norm && sp.ord.some((w, i) => !sp.vist.includes(i) && R.normaliser(w) === norm)) R.toast(R.t("Hintet kan ikke være et ord på brettet"), { topp: true });
     }
     R.vis();
     const vis = R.$("#kk-hint-vis");
@@ -830,25 +900,25 @@
     const sammen = erSammen(sp);
     const tegn = (i, p) => {
       const type = sp.nokkel[i];
-      if (type === FELLE) return ["💥", "fella"];
-      if (type === NOYTRAL) return ["–", "nøytralt"];
-      return type === (sammen ? ROSA : p.lag) ? ["✓", "riktig"] : ["✗", `agent for ${LAG[type].navn}`];
+      if (type === FELLE) return ["💥", R.t("fella")];
+      if (type === NOYTRAL) return ["–", R.t("nøytralt")];
+      return type === (sammen ? ROSA : p.lag) ? ["✓", R.t("riktig")] : ["✗", R.t("agent for {lag}", { lag: LAG[type].navn })];
     };
     const rader = sp.hintlogg
       .map((p) => {
         const kort = turKort(sp, p.fra);
         return `<li class="${sammen ? "sammen" : LAG[p.lag].klasse}">
-          <span class="kk-logg-hvem">${sammen ? `Hint ${p.nr}` : LAG[p.lag].navn}</span>
+          <span class="kk-logg-hvem">${esc(sammen ? R.t("Hint {n}", { n: p.nr }) : LAG[p.lag].navn)}</span>
           <b>${esc(hintHode(p))}</b>
           <span class="kk-logg-kort">${
             kort.length
               ? kort
                   .map((i) => {
                     const [t, lest] = tegn(i, p);
-                    return `<span>${esc(sp.ord[i])} <span aria-hidden="true">${t}</span><span class="vh">(${lest})</span></span>`;
+                    return `<span>${esc(sp.ord[i])} <span aria-hidden="true">${t}</span><span class="vh">(${esc(lest)})</span></span>`;
                   })
                   .join("")
-              : "Ingen kort snudd ennå"
+              : esc(R.t("Ingen kort snudd ennå"))
           }</span>
         </li>`;
       })
@@ -856,32 +926,33 @@
       .join("");
     const m = mestere(sp);
     R.ark(`
-      <h2 id="ark-tittel">Hintene så langt</h2>
-      <p class="ingress">Brett ${sp.brett + 1}${m ? ` · ${sammen ? "kodemester" : "kodemestere"}: ${esc(R.ramsOpp(m.map((i) => navnPa(sp, i))))}` : ""}. Det nyeste står øverst.</p>
-      ${rader ? `<ol class="kk-logg" reversed>${rader}</ol>` : '<p class="hjelp">Ingen hint er skrevet inn på dette brettet.</p>'}
-      <button class="knapp-2" data-h="lukk-ark">Lukk</button>`);
+      <h2 id="ark-tittel">${esc(R.t("Hintene så langt"))}</h2>
+      <p class="ingress">${esc(R.t("Brett {n}", { n: sp.brett + 1 }))}${m ? ` · ${esc(sammen ? R.t("kodemester: {navn}", { navn: R.ramsOpp(m.map((i) => navnPa(sp, i))) }) : R.t("kodemestere: {navn}", { navn: R.ramsOpp(m.map((i) => navnPa(sp, i))) }))}` : ""}. ${esc(R.t("Det nyeste står øverst."))}</p>
+      ${rader ? `<ol class="kk-logg" reversed>${rader}</ol>` : `<p class="hjelp">${esc(R.t("Ingen hint er skrevet inn på dette brettet."))}</p>`}
+      <button class="knapp-2" data-h="lukk-ark">${esc(R.t("Lukk"))}</button>`);
   }
 
   // ---------- The first board on this phone: a three-frame example ----------
 
   const visEksempel = (S) => !S.laert && !!S.spill && !S.spill.hist.length && !over(S.spill);
   function eksempelHtml(sp) {
-    const kort = (ord, klasse) => `<i${klasse ? ` class="${klasse}"` : ""}>${ord}</i>`;
+    const kort = (ord, klasse) => `<i${klasse ? ` class="${klasse}"` : ""}>${esc(ord)}</i>`;
     const farge = erSammen(sp) ? "sammen" : `lag-${LAG[sp.tur].klasse}`;
-    return `<section class="kk-eks ${farge}" aria-label="Eksempel: slik spiller dere">
-      <div class="kk-eks-hode"><span class="etikett">Slik spiller dere</span><button class="kk-eks-lukk" data-h="eks-lukk" aria-label="Lukk eksempelet">✕</button></div>
+    const [krabbe, sykkel, lampe, make, hav] = [R.t("Krabbe"), R.t("Sykkel"), R.t("Lampe"), R.t("Måke"), R.t("HAV, 2")];
+    return `<section class="kk-eks ${farge}" aria-label="${esc(R.t("Eksempel: slik spiller dere"))}">
+      <div class="kk-eks-hode"><span class="etikett">${esc(R.t("Slik spiller dere"))}</span><button class="kk-eks-lukk" data-h="eks-lukk" aria-label="${esc(R.t("Lukk eksempelet"))}">✕</button></div>
       <ol>
-        <li><span class="kk-eks-bilde" aria-hidden="true"><span class="kk-eks-boble">HAV, 2</span></span><span class="kk-eks-tekst">Kodemesteren sier «HAV, 2»</span></li>
-        <li><span class="kk-eks-bilde" aria-hidden="true">${kort("Krabbe", "lys")}${kort("Sykkel")}${kort("Lampe")}${kort("Måke", "lys")}</span><span class="kk-eks-tekst">To av ordene passer</span></li>
-        <li><span class="kk-eks-bilde" aria-hidden="true">${kort("Krabbe", "tatt")}${kort("Sykkel")}${kort("Lampe")}${kort("Måke", "tatt")}</span><span class="kk-eks-tekst">Laget trykker Krabbe og Måke</span></li>
+        <li><span class="kk-eks-bilde" aria-hidden="true"><span class="kk-eks-boble">${esc(hav)}</span></span><span class="kk-eks-tekst">${esc(R.t("Kodemesteren sier «{hint}»", { hint: hav }))}</span></li>
+        <li><span class="kk-eks-bilde" aria-hidden="true">${kort(krabbe, "lys")}${kort(sykkel)}${kort(lampe)}${kort(make, "lys")}</span><span class="kk-eks-tekst">${esc(R.t("To av ordene passer"))}</span></li>
+        <li><span class="kk-eks-bilde" aria-hidden="true">${kort(krabbe, "tatt")}${kort(sykkel)}${kort(lampe)}${kort(make, "tatt")}</span><span class="kk-eks-tekst">${esc(R.t("Laget trykker {a} og {b}", { a: krabbe, b: make }))}</span></li>
       </ol>
     </section>`;
   }
 
   // The start as three dots: Lag → Nøkkel → Brett.
   const veiHtml = (na) =>
-    `<ol class="kk-vei" aria-label="Veien til første hint">${["Lag", "Nøkkel", "Brett"]
-      .map((t, i) => `<li class="${i < na ? "ferdig" : i === na ? "na" : ""}"${i === na ? ' aria-current="step"' : ""}><i aria-hidden="true">${i < na ? "✓" : i + 1}</i><span>${t}</span></li>`)
+    `<ol class="kk-vei" aria-label="${esc(R.t("Veien til første hint"))}">${[R.t("Lag"), R.t("Nøkkel"), R.t("Brett")]
+      .map((t, i) => `<li class="${i < na ? "ferdig" : i === na ? "na" : ""}"${i === na ? ' aria-current="step"' : ""}><i aria-hidden="true">${i < na ? "✓" : i + 1}</i><span>${esc(t)}</span></li>`)
       .join("")}</ol>`;
 
   // ---------- The key ----------
@@ -895,7 +966,7 @@
         const klasse = `kk-n t${nokkel[i]} ${lengdeKlasse(w)}${t ? " tatt" : ""}`;
         const innhold = merke(nokkel[i], o.sammen) + ordHtml(w);
         return o.knapper
-          ? `<button class="${klasse}" data-h="tatt" data-v="${i}" aria-pressed="${t}" aria-label="${esc(w)}: ${typeNavn(nokkel[i], o.sammen)}">${innhold}</button>`
+          ? `<button class="${klasse}" data-h="tatt" data-v="${i}" aria-pressed="${t}" aria-label="${esc(w)}: ${esc(typeNavn(nokkel[i], o.sammen))}">${innhold}</button>`
           : `<span class="${klasse}">${innhold}</span>`;
       })
       .join("")}</span>`;
@@ -903,10 +974,10 @@
 
   function fordeling(sp) {
     const sammen = erSammen(sp);
-    const rad = (type, navn, n) => `<span><i class="t${type}">${bokstav(type, sammen)}</i>${navn}: ${n}</span>`;
+    const rad = (type, navn, n) => `<span><i class="t${type}">${bokstav(type, sammen)}</i>${esc(navn)}: ${n}</span>`;
     return `<span class="kk-fordeling${sammen ? " sammen" : ""}" aria-hidden="true">${
-      sammen ? rad(ROSA, "Agenter", AGENTER) + rad(NOYTRAL, "Nøytrale", ANTALL - AGENTER - 1) : rad(sp.start, LAG[sp.start].navn, 9) + rad(1 - sp.start, LAG[1 - sp.start].navn, 8) + rad(NOYTRAL, "Nøytrale", 7)
-    }${rad(FELLE, "Fella", 1)}</span>`;
+      sammen ? rad(ROSA, R.t("Agenter"), AGENTER) + rad(NOYTRAL, R.t("Nøytrale"), ANTALL - AGENTER - 1) : rad(sp.start, LAG[sp.start].navn, 9) + rad(1 - sp.start, LAG[1 - sp.start].navn, 8) + rad(NOYTRAL, R.t("Nøytrale"), 7)
+    }${rad(FELLE, R.t("Fella"), 1)}</span>`;
   }
 
   // How the code masters get the key: join code + QR, or hold-to-reveal on this screen.
@@ -916,50 +987,56 @@
     const modus = S.oppsett.nokkel;
     const bytt = R.ui.lenkerad(
       modus === "mobil"
-        ? R.ui.lenke("Ingen mobil? Vis nøkkelen på denne skjermen", "nokkelmodus", { v: "skjerm" })
-        : R.ui.lenke(sammen ? "Bruk egen mobil i stedet (QR-kode)" : "Bruk egne mobiler i stedet (QR-kode)", "nokkelmodus", { v: "mobil" }),
+        ? R.ui.lenke(R.t("Ingen mobil? Vis nøkkelen på denne skjermen"), "nokkelmodus", { v: "skjerm" })
+        : R.ui.lenke(sammen ? R.t("Bruk egen mobil i stedet (QR-kode)") : R.t("Bruk egne mobiler i stedet (QR-kode)"), "nokkelmodus", { v: "mobil" }),
     );
+    const spill = (window.RUSJ_SPILL && window.RUSJ_SPILL.navn) || "Kodeknekkeren";
     if (modus === "mobil") {
       const kode = lagKode(sp);
       const qr = kanLenke ? R.kode.qr(R.kode.lenke(kode)) : "";
       return `<div class="kodekort kk-kodekort">
-          <span class="etikett">Brett ${sp.brett + 1} · bare for ${sammen ? "kodemesteren" : "kodemesterne"}</span>
+          <span class="etikett">${esc(sammen ? R.t("Brett {n} · bare for kodemesteren", { n: sp.brett + 1 }) : R.t("Brett {n} · bare for kodemesterne", { n: sp.brett + 1 }))}</span>
           ${qr ? `<div class="qr">${qr}</div>` : ""}
           <span class="kode" id="kk-kode" data-kode="${esc(kode)}">${esc(R.kode.formater(kode))}</span>
-          <div class="knapprad">${R.ui.knapp2("Kopier kode", "kopier", { variant: "liten" })}${kanLenke ? R.ui.knapp2("Del lenke", "del-lenke", { variant: "liten" }) : ""}</div>
+          <div class="knapprad">${R.ui.knapp2(R.t("Kopier kode"), "kopier", { variant: "liten" })}${kanLenke ? R.ui.knapp2(R.t("Del lenke"), "del-lenke", { variant: "liten" }) : ""}</div>
         </div>
         <ol class="steg kk-steg">
-          <li><b>${qr ? "Skann QR-koden" : "Åpne Kodeknekkeren"}</b><span>${qr ? "Eller åpne Kodeknekkeren, trykk «Jeg er kodemester» og skriv koden." : "Trykk «Jeg er kodemester» og skriv koden."}</span></li>
-          <li><b>${sammen ? "Hold mobilen for deg selv" : "Hold mobilen for dere selv"}</b><span>Nøkkelen viser hvilke ord som er agenter – og hvor fella er.</span></li>
+          <li><b>${esc(qr ? R.t("Skann QR-koden") : R.t("Åpne {spill}", { spill }))}</b><span>${esc(qr ? R.t("Eller åpne {spill}, trykk «Jeg er kodemester» og skriv koden.", { spill }) : R.t("Trykk «Jeg er kodemester» og skriv koden."))}</span></li>
+          <li><b>${esc(sammen ? R.t("Hold mobilen for deg selv") : R.t("Hold mobilen for dere selv"))}</b><span>${esc(R.t("Nøkkelen viser hvilke ord som er agenter – og hvor fella er."))}</span></li>
         </ol>
         ${bytt}`;
     }
-    return `${R.ui.mappe({ id: "nokkel", etikett: sammen ? "Kun kodemesteren!" : "Kun kodemestere!", tekst: "Hold fingeren på kortet for å se", etikettAria: `Hold fingeren på kortet for å se nøkkelen. Bare for ${sammen ? "kodemesteren" : "kodemestere"}.` })}
-      <p class="hjelp">De andre ser bort. Nøkkelen kan åpnes igjen fra brettet med 🔑.</p>
+    return `${R.ui.mappe({ id: "nokkel", etikett: sammen ? R.t("Kun kodemesteren!") : R.t("Kun kodemestere!"), tekst: R.t("Hold fingeren på kortet for å se"), etikettAria: sammen ? R.t("Hold fingeren på kortet for å se nøkkelen. Bare for kodemesteren.") : R.t("Hold fingeren på kortet for å se nøkkelen. Bare for kodemestere.") })}
+      <p class="hjelp">${esc(R.t("De andre ser bort. Nøkkelen kan åpnes igjen fra brettet med 🔑."))}</p>
       ${bytt}`;
   }
 
   // «Kari 🔑, Per og Lise»: the code master first, marked with the key.
   function lagliste(sp, l) {
     const m = mestere(sp)[l];
-    return R.ramsOpp([m, ...sp.lag[l].filter((i) => i !== m)].map((i) => esc(navnPa(sp, i)) + (i === m ? ' <span aria-hidden="true">🔑</span><span class="vh">(kodemester)</span>' : "")));
+    return R.ramsOpp([m, ...sp.lag[l].filter((i) => i !== m)].map((i) => esc(navnPa(sp, i)) + (i === m ? ` <span aria-hidden="true">🔑</span><span class="vh">${esc(R.t("(kodemester)"))}</span>` : "")));
   }
 
   // Who the code masters are, as a line of HTML ("" when the game doesn't know).
   function mesterLinje(sp) {
     const m = mestere(sp);
     if (!m) return "";
-    if (erSammen(sp)) return `Kodemester nå: <b>${esc(navnPa(sp, m[0]))}</b>.`;
-    return `Kodemestere nå: <b class="kk-farge rosa">${esc(navnPa(sp, m[0]))}</b> (${LAG[0].navn}) og <b class="kk-farge bla">${esc(navnPa(sp, m[1]))}</b> (${LAG[1].navn}).`;
+    if (erSammen(sp)) return medHtml(R.t("Kodemester nå: {navn}."), { navn: `<b>${esc(navnPa(sp, m[0]))}</b>` });
+    return medHtml(R.t("Kodemestere nå: {a} ({lagA}) og {b} ({lagB})."), {
+      a: `<b class="kk-farge rosa">${esc(navnPa(sp, m[0]))}</b>`,
+      lagA: esc(LAG[0].navn),
+      b: `<b class="kk-farge bla">${esc(navnPa(sp, m[1]))}</b>`,
+      lagB: esc(LAG[1].navn),
+    });
   }
 
   function visNokkelArk(S) {
     const linje = mesterLinje(S.spill);
     R.ark(`
-      <h2 id="ark-tittel">Nøkkelen · brett ${S.spill.brett + 1}</h2>
+      <h2 id="ark-tittel">${esc(R.t("Nøkkelen · brett {n}", { n: S.spill.brett + 1 }))}</h2>
       ${linje ? `<p class="ingress">${linje}</p>` : ""}
       ${nokkelHtml(S)}
-      <button class="knapp-2" data-h="lukk-ark">Lukk</button>`);
+      <button class="knapp-2" data-h="lukk-ark">${esc(R.t("Lukk"))}</button>`);
   }
 
   // ---------- Setup ----------
@@ -969,13 +1046,13 @@
     const kol = (l) => {
       const navn = [];
       for (let i = 0; i < S.antall; i++)
-        if (o.lag[i] === l) navn.push(`<button class="kk-lagspiller" data-h="bytt-lag" data-v="${i}" aria-label="${esc(R.navn(i))} – flytt til ${LAG[1 - l].navn}">${R.avatar(i)}<span>${esc(R.navn(i))}</span></button>`);
-      return `<div class="kk-lagkol ${LAG[l].klasse}"><h3>${LAG[l].navn} <span>${navn.length}</span></h3>${navn.join("") || '<p class="hjelp">Ingen ennå</p>'}</div>`;
+        if (o.lag[i] === l) navn.push(`<button class="kk-lagspiller" data-h="bytt-lag" data-v="${i}" aria-label="${esc(R.t("{navn} – flytt til {lag}", { navn: R.navn(i), lag: LAG[1 - l].navn }))}">${R.avatar(i)}<span>${esc(R.navn(i))}</span></button>`);
+      return `<div class="kk-lagkol ${LAG[l].klasse}"><h3>${esc(LAG[l].navn)} <span>${navn.length}</span></h3>${navn.join("") || `<p class="hjelp">${esc(R.t("Ingen ennå"))}</p>`}</div>`;
     };
     return `<section class="seksjon">
-      <div class="seksjon-hode"><h2>Lagene</h2><button class="lenke" data-h="stokk-lag">🔀 Stokk lagene</button></div>
+      <div class="seksjon-hode"><h2>${esc(R.t("Lagene"))}</h2><button class="lenke" data-h="stokk-lag">🔀 ${esc(R.t("Stokk lagene"))}</button></div>
       <div class="kk-lagene">${kol(0)}${kol(1)}</div>
-      <p class="hjelp">Trykk på et navn for å bytte lag.</p>
+      <p class="hjelp">${esc(R.t("Trykk på et navn for å bytte lag."))}</p>
     </section>`;
   }
 
@@ -984,64 +1061,66 @@
   // Why the board ended («Lag mot lag»).
   function grunnTekst(sp) {
     const v = sp.vinner;
-    if (sp.grunn === "fella") return `${LAG[1 - v].navn} trykket på fella.`;
+    if (sp.grunn === "fella") return R.t("{lag} trykket på fella.", { lag: LAG[1 - v].navn });
     const siste = sp.hist[sp.hist.length - 1];
-    return siste && siste.tur !== v ? `${LAG[1 - v].navn} snudde den siste agenten til ${LAG[v].navn}.` : `${LAG[v].navn} fant alle agentene sine.`;
+    return siste && siste.tur !== v ? R.t("{lag} snudde den siste agenten til {vinner}.", { lag: LAG[1 - v].navn, vinner: LAG[v].navn }) : R.t("{lag} fant alle agentene sine.", { lag: LAG[v].navn });
   }
 
   const stillingHtml = (sp) =>
-    `<p class="kk-stilling" aria-label="Stillingen: ${LAG[0].navn} ${sp.stilling[0]}, ${LAG[1].navn} ${sp.stilling[1]}"><span class="rosa">${LAG[0].navn} <b>${sp.stilling[0]}</b></span><span class="kk-strek">–</span><span class="bla"><b>${sp.stilling[1]}</b> ${LAG[1].navn}</span></p>`;
+    `<p class="kk-stilling" aria-label="${esc(R.t("Stillingen: {lagA} {a}, {lagB} {b}", { lagA: LAG[0].navn, a: sp.stilling[0], lagB: LAG[1].navn, b: sp.stilling[1] }))}"><span class="rosa">${esc(LAG[0].navn)} <b>${sp.stilling[0]}</b></span><span class="kk-strek">–</span><span class="bla"><b>${sp.stilling[1]}</b> ${esc(LAG[1].navn)}</span></p>`;
 
-  const rekordTekst = (r) => (r.f === AGENTER ? `${r.f} av ${AGENTER} på ${r.h} hint` : `${r.f} av ${AGENTER}`);
+  const rekordTekst = (r) => (r.f === AGENTER ? R.t("{f} av {antall} på {h} hint", { f: r.f, antall: AGENTER, h: r.h }) : R.t("{f} av {antall}", { f: r.f, antall: AGENTER }));
   const trinnFor = (f) => STIGE.findIndex((t) => f <= t.til);
 
   // The line that is shared from «Kåringen»: the game, the result in numbers, never typed text.
   function deleTekst(sp) {
+    const navn = (window.RUSJ_SPILL && window.RUSJ_SPILL.navn) || "Kodeknekkeren";
     if (erSammen(sp)) {
       const f = funnet(sp);
-      return `Kodeknekkeren – Sammen mot fella: ${f} av ${AGENTER}${f === AGENTER ? ` på ${hintNr(sp)} hint` : ""} 🕵️ ${"✅".repeat(f)}${"▫️".repeat(AGENTER - f)}${sp.grunn === "fella" ? " 💥" : ""}`;
+      const res = f === AGENTER ? R.t("{f} av {antall} på {h} hint", { f, antall: AGENTER, h: hintNr(sp) }) : R.t("{f} av {antall}", { f, antall: AGENTER });
+      return `${navn} – ${R.t("Sammen mot fella")}: ${res} 🕵️ ${"✅".repeat(f)}${"▫️".repeat(AGENTER - f)}${sp.grunn === "fella" ? " 💥" : ""}`;
     }
     const [a, b] = sp.stilling;
-    if (a === b) return `Kodeknekkeren: uavgjort ${a}–${b} mellom ${LAG[0].navn} og ${LAG[1].navn} 🕵️`;
+    if (a === b) return `${navn}: ${R.t("uavgjort {a}–{b} mellom {lagA} og {lagB}", { a, b, lagA: LAG[0].navn, lagB: LAG[1].navn })} 🕵️`;
     const v = a > b ? 0 : 1;
     const hvem = sp.navn && sp.lag[v].length <= 6 ? `\n${LAG[v].navn}: ${R.ramsOpp(sp.lag[v].map((i) => navnPa(sp, i)))}` : "";
-    return `Kodeknekkeren: ${LAG[v].navn} vant ${sp.kamp === "ett" ? "brettet" : `${sp.stilling[v]}–${sp.stilling[1 - v]}`} 🕵️${hvem}`;
+    return `${navn}: ${sp.kamp === "ett" ? R.t("{lag} vant brettet", { lag: LAG[v].navn }) : R.t("{lag} vant {a}–{b}", { lag: LAG[v].navn, a: sp.stilling[v], b: sp.stilling[1 - v] })} 🕵️${hvem}`;
   }
 
   function prisHtml(sp) {
     const p = sp.beste;
     if (!p) return "";
-    const hvem = [p.mester ? `gitt av ${p.mester}` : "", erSammen(sp) ? "" : LAG[p.lag].navn].filter(Boolean).join(", ");
+    const hvem = [p.mester ? R.t("gitt av {navn}", { navn: p.mester }) : "", erSammen(sp) ? "" : LAG[p.lag].navn].filter(Boolean).join(", ");
     return `<div class="boks kk-pris">
-      <p class="etikett">Beste hint</p>
-      <p><b>${esc(hintHode(p))}</b> – ${TALLORD[p.treff] || p.treff} riktige på én tur${hvem ? ` <span>(${esc(hvem)})</span>` : ""}</p>
+      <p class="etikett">${esc(R.t("Beste hint"))}</p>
+      <p><b>${esc(hintHode(p))}</b> – ${esc(R.t("{tall} riktige på én tur", { tall: TALLORD[p.treff] || p.treff }))}${hvem ? ` <span>(${esc(hvem)})</span>` : ""}</p>
     </div>`;
   }
 
   function karingLag(sp) {
     const [a, b] = sp.stilling;
     const v = a === b ? null : a > b ? 0 : 1;
-    const etikett = `${KAMPNAVN[sp.kamp]}${sp.avbrutt ? " · avsluttet" : ""}`;
-    const antallBrett = `${sp.spilt} brett`;
+    const etikett = `${KAMPNAVN[sp.kamp]}${sp.avbrutt ? ` · ${R.t("avsluttet")}` : ""}`;
+    const antallBrett = R.flertall(sp.spilt, "brett", "brett");
     let banner;
-    if (!sp.spilt) banner = R.ui.banner({ etikett, tittel: "Ingen vinner denne gangen", tekst: "Dere avsluttet før første brett var ferdig.", stemning: "" });
-    else if (v == null) banner = R.ui.banner({ etikett, tittel: "Uavgjort!", tekst: `${a}–${b} etter ${antallBrett}. ${LAG[0].navn} og ${LAG[1].navn} deler seieren.`, klasse: "aksent" });
+    if (!sp.spilt) banner = R.ui.banner({ etikett, tittel: R.t("Ingen vinner denne gangen"), tekst: R.t("Dere avsluttet før første brett var ferdig."), stemning: "" });
+    else if (v == null) banner = R.ui.banner({ etikett, tittel: R.t("Uavgjort!"), tekst: R.t("{a}–{b} etter {brett}. {lagA} og {lagB} deler seieren.", { a, b, brett: antallBrett, lagA: LAG[0].navn, lagB: LAG[1].navn }), klasse: "aksent" });
     else
       banner = R.ui.banner({
         etikett,
-        tittel: `${LAG[v].navn} vinner!`,
-        tekst: sp.spilt === 1 && over(sp) ? grunnTekst(sp) : `${sp.stilling[v]}–${sp.stilling[1 - v]} etter ${antallBrett}.`,
+        tittel: R.t("{navn} vinner!", { navn: LAG[v].navn }),
+        tekst: sp.spilt === 1 && over(sp) ? grunnTekst(sp) : R.t("{a}–{b} etter {brett}.", { a: sp.stilling[v], b: sp.stilling[1 - v], brett: antallBrett }),
         klasse: `kk-banner ${LAG[v].klasse}`,
       });
     const lagkort = (l) => `<div class="kk-lagkort ${LAG[l].klasse}${v === l ? " vinner" : ""}">
-        <h2>${LAG[l].navn}</h2>
-        <p class="kk-lagkort-tall"><b>${sp.stilling[l]}</b> brett</p>
+        <h2>${esc(LAG[l].navn)}</h2>
+        <p class="kk-lagkort-tall">${medHtml(R.t("{tall} brett|{tall} brett", { tall: "{tall}", n: sp.stilling[l] }), { tall: `<b>${sp.stilling[l]}</b>` })}</p>
         ${sp.navn ? `<p class="kk-lagkort-navn">${esc(R.ramsOpp(sp.lag[l].map((i) => navnPa(sp, i))))}</p>` : ""}
       </div>`;
     return `${banner}
-      ${sp.spilt ? `<div class="kk-lagkortene" role="group" aria-label="Stillingen">${lagkort(0)}${lagkort(1)}</div>` : ""}
+      ${sp.spilt ? `<div class="kk-lagkortene" role="group" aria-label="${esc(R.t("Stillingen"))}">${lagkort(0)}${lagkort(1)}</div>` : ""}
       ${prisHtml(sp)}
-      ${sp.spilt ? R.ui.knapp2("Del resultatet", "del") : ""}`;
+      ${sp.spilt ? R.ui.knapp2(R.t("Del resultatet"), "del") : ""}`;
   }
 
   function karingSammen(S, sp) {
@@ -1051,38 +1130,38 @@
     const ferdigSpilt = over(sp);
     const tall =
       sp.grunn === "alle"
-        ? `Alle ${AGENTER} agentene på ${h} hint.`
+        ? R.t("Alle {antall} agentene på {h} hint.", { antall: AGENTER, h })
         : sp.grunn === "fella"
-          ? `${f} av ${AGENTER} agenter før fella klappet igjen på hint ${h}.`
+          ? R.t("{f} av {antall} agenter før fella klappet igjen på hint {h}.", { f, antall: AGENTER, h })
           : sp.grunn === "hint"
-            ? `${f} av ${AGENTER} agenter på ${HINT} hint.`
-            : `${f} av ${AGENTER} agenter da dere avsluttet på hint ${h}.`;
+            ? R.t("{f} av {antall} agenter på {h} hint.", { f, antall: AGENTER, h: HINT })
+            : R.t("{f} av {antall} agenter da dere avsluttet på hint {h}.", { f, antall: AGENTER, h });
     const m = mestere(sp);
     const rekord =
       sp.rekord === "ny"
-        ? '<p class="kk-rekord ny">Ny rekord!</p>'
+        ? `<p class="kk-rekord ny">${esc(R.t("Ny rekord!"))}</p>`
         : sp.rekord === "forste"
-          ? '<p class="kk-rekord">Første runde – nå har dere en rekord å slå!</p>'
+          ? `<p class="kk-rekord">${esc(R.t("Første runde – nå har dere en rekord å slå!"))}</p>`
           : S.rekord
-            ? `<p class="kk-rekord">Rekorden å slå: ${rekordTekst(S.rekord)}.</p>`
+            ? `<p class="kk-rekord">${esc(R.t("Rekorden å slå: {rekord}.", { rekord: rekordTekst(S.rekord) }))}</p>`
             : "";
     return `${R.ui.banner({
-      etikett: `Sammen mot fella${sp.avbrutt ? " · avsluttet" : ""}`,
-      tittel: ferdigSpilt ? `${STIGE[trinn].tittel}${trinn === STIGE.length - 1 ? "!" : ""}` : "Brettet ble avsluttet",
+      etikett: `${R.t("Sammen mot fella")}${sp.avbrutt ? ` · ${R.t("avsluttet")}` : ""}`,
+      tittel: ferdigSpilt ? `${STIGE[trinn].tittel}${trinn === STIGE.length - 1 ? "!" : ""}` : R.t("Brettet ble avsluttet"),
       tekst: tall,
       klasse: "aksent",
       stemning: !ferdigSpilt ? "" : sp.grunn === "fella" || trinn === 0 ? "lei" : trinn >= 2 ? "jubel" : "",
     })}
-      <p class="kk-pips" role="img" aria-label="${f} av ${AGENTER} agenter funnet">${Array.from({ length: AGENTER }, (_, i) => `<i class="${i < f ? "funnet" : ""}"></i>`).join("")}${sp.grunn === "fella" ? '<i class="felle">✕</i>' : ""}</p>
+      <p class="kk-pips" role="img" aria-label="${esc(R.t("{f} av {antall} agenter funnet", { f, antall: AGENTER }))}">${Array.from({ length: AGENTER }, (_, i) => `<i class="${i < f ? "funnet" : ""}"></i>`).join("")}${sp.grunn === "fella" ? '<i class="felle">✕</i>' : ""}</p>
       ${rekord}
       ${
         ferdigSpilt
-          ? `<ol class="kk-stige" aria-label="Titlene dere kan få">${STIGE.map((t, i) => `<li class="${i === trinn ? "na" : ""}"${i === trinn ? ' aria-current="true"' : ""}><span>${t.omrade}</span><b>${t.tittel}</b>${i === trinn ? `<small>${t.tekst}</small>` : ""}</li>`).join("")}</ol>`
+          ? `<ol class="kk-stige" aria-label="${esc(R.t("Titlene dere kan få"))}">${STIGE.map((t, i) => `<li class="${i === trinn ? "na" : ""}"${i === trinn ? ' aria-current="true"' : ""}><span>${t.omrade}</span><b>${esc(t.tittel)}</b>${i === trinn ? `<small>${esc(t.tekst)}</small>` : ""}</li>`).join("")}</ol>`
           : ""
       }
-      ${m ? `<p class="hjelp">Kodemester på dette brettet: ${esc(navnPa(sp, m[0]))}.</p>` : ""}
+      ${m ? `<p class="hjelp">${esc(R.t("Kodemester på dette brettet: {navn}.", { navn: navnPa(sp, m[0]) }))}</p>` : ""}
       ${prisHtml(sp)}
-      ${R.ui.knapp2("Del resultatet", "del")}`;
+      ${R.ui.knapp2(R.t("Del resultatet"), "del")}`;
   }
 
   // ---------- The code master's phone ----------
@@ -1100,10 +1179,10 @@
 
   function sjekkKode(tekst) {
     const ren = R.kode.normaliser(tekst);
-    if (!ren) return { feil: "Skriv inn koden først." };
-    if (ren.length !== KODELENGDE) return { feil: `Koden har ${KODELENGDE} tegn. Sjekk at alle er med.` };
+    if (!ren) return { feil: R.t("Skriv inn koden først.") };
+    if (ren.length !== KODELENGDE) return { feil: R.t("Koden har {n} tegn. Sjekk at alle er med.", { n: KODELENGDE }) };
     const k = lesKode(ren);
-    if (!k) return { feil: "Koden stemmer ikke. Se etter skrivefeil – og oppdater siden på begge skjermene." };
+    if (!k) return { feil: R.t("Koden stemmer ikke. Se etter skrivefeil – og oppdater siden på begge skjermene.") };
     return { k };
   }
 
@@ -1218,8 +1297,8 @@
   const pagarSpill = (S) => !!S.spill && !S.spill.ferdig;
 
   function fortsettTekst(sp) {
-    if (erSammen(sp)) return over(sp) ? `Fortsett · ${funnet(sp)} av ${AGENTER} funnet` : `Fortsett · hint ${hintNr(sp)} av ${HINT}`;
-    return over(sp) ? `Fortsett · ${stillingTekst(sp)}` : `Fortsett · brett ${sp.brett + 1}`;
+    if (erSammen(sp)) return over(sp) ? R.t("Fortsett · {f} av {antall} funnet", { f: funnet(sp), antall: AGENTER }) : R.t("Fortsett · hint {n} av {antall}", { n: hintNr(sp), antall: HINT });
+    return over(sp) ? R.t("Fortsett · {stilling}", { stilling: stillingTekst(sp) }) : R.t("Fortsett · brett {n}", { n: sp.brett + 1 });
   }
 
   // ---------- The app ----------
@@ -1276,28 +1355,28 @@
     },
 
     regler: {
-      intro: "Lag Rosa og Lag Blå leter etter sine hemmelige agenter blant 25 ord. Bare kodemesterne vet hvilke ord som hører til hvem.",
+      intro: R.t("Lag Rosa og Lag Blå leter etter sine hemmelige agenter blant 25 ord. Bare kodemesterne vet hvilke ord som hører til hvem."),
       steg: [
-        ["Velg kodemestere", "Del dere i to lag. Hvert lag har én kodemester, som ser nøkkelen – på egen mobil eller på skjermen med brettet (hold inne for å se)."],
-        ["Ett ord og et tall", "Kodemesteren sier ett hint og et tall, for eksempel «Hav, 2». Laget trykker på de ordene de tror hintet peker på."],
-        ["Finn agentene – unngå fella", "Rett farge: gjett videre. Nøytralt ord eller motstandernes agent: turen går over. Fella: dere taper brettet med en gang."],
+        [R.t("Velg kodemestere"), R.t("Del dere i to lag. Hvert lag har én kodemester, som ser nøkkelen – på egen mobil eller på skjermen med brettet (hold inne for å se).")],
+        [R.t("Ett ord og et tall"), R.t("Kodemesteren sier ett hint og et tall, for eksempel «Hav, 2». Laget trykker på de ordene de tror hintet peker på.")],
+        [R.t("Finn agentene – unngå fella"), R.t("Rett farge: gjett videre. Nøytralt ord eller motstandernes agent: turen går over. Fella: dere taper brettet med en gang.")],
       ],
       tips: [
-        "Første lag som finner alle agentene sine, vinner brettet. I «Best av 3» vinner første lag til to brett.",
-        "Dere kan gjette én gang mer enn tallet – for å ta igjen et ord dere bommet på tidligere.",
-        "Trykk på tallet over brettet når hintet er gitt, så teller mobilen forsøkene. Skriv gjerne ordet også – alle hintene ligger under «Hintene».",
-        "Hintet må være ett ord, og ikke et av ordene på brettet.",
-        "Kodemesteren får ikke peke, nikke eller himle med øynene. Pokerfjes!",
-        "Laget som begynner, har 9 agenter. Det andre har 8.",
-        "Trykket feil? «Angre» fikser det.",
+        R.t("Første lag som finner alle agentene sine, vinner brettet. I «Best av 3» vinner første lag til to brett."),
+        R.t("Dere kan gjette én gang mer enn tallet – for å ta igjen et ord dere bommet på tidligere."),
+        R.t("Trykk på tallet over brettet når hintet er gitt, så teller mobilen forsøkene. Skriv gjerne ordet også – alle hintene ligger under «Hintene»."),
+        R.t("Hintet må være ett ord, og ikke et av ordene på brettet."),
+        R.t("Kodemesteren får ikke peke, nikke eller himle med øynene. Pokerfjes!"),
+        R.t("Laget som begynner, har 9 agenter. Det andre har 8."),
+        R.t("Trykket feil? «Angre» fikser det."),
       ],
       ekstraHtml: `
-        <h3>Sammen mot fella</h3>
-        <p class="ingress">For 2–4 spillere, alle på samme lag. Én er kodemester for hvert brett – bytt på.</p>
+        <h3>${esc(R.t("Sammen mot fella"))}</h3>
+        <p class="ingress">${esc(R.t("For 2–4 spillere, alle på samme lag. Én er kodemester for hvert brett – bytt på."))}</p>
         <ol class="steg">
-          <li><b>Ni agenter, sju hint</b><span>På brettet er det 9 agenter, 15 nøytrale ord og én felle. Kodemesteren har sju hint på seg.</span></li>
-          <li><b>Gjett til dere bommer</b><span>En agent: gjett videre. Et nøytralt ord: det hintet er brukt. «Neste hint» avslutter et hint når dere vil.</span></li>
-          <li><b>Styr unna fella</b><span>Trykker dere på fella, er brettet over med en gang. Finn så mange agenter dere kan – og slå rekorden deres.</span></li>
+          <li><b>${esc(R.t("Ni agenter, sju hint"))}</b><span>${esc(R.t("På brettet er det 9 agenter, 15 nøytrale ord og én felle. Kodemesteren har sju hint på seg."))}</span></li>
+          <li><b>${esc(R.t("Gjett til dere bommer"))}</b><span>${esc(R.t("En agent: gjett videre. Et nøytralt ord: det hintet er brukt. «Neste hint» avslutter et hint når dere vil."))}</span></li>
+          <li><b>${esc(R.t("Styr unna fella"))}</b><span>${esc(R.t("Trykker dere på fella, er brettet over med en gang. Finn så mange agenter dere kan – og slå rekorden deres."))}</span></li>
         </ol>`,
     },
 
@@ -1309,8 +1388,8 @@
         requestAnimationFrame(() => tilpass(R.$(".mappe.apen .mappe-bakside")));
         return {
           html: `<span class="kk-mappe-topp">${
-            sammen ? '<span class="kk-starter sammen">Sammen mot fella</span>' : `<span class="kk-starter ${LAG[sp.start].klasse}">${LAG[sp.start].navn} begynner</span>`
-          }<span>Brett ${sp.brett + 1}</span></span>${nokkelGrid(sp.ord, sp.nokkel, { tatt: sp.vist, sammen })}${fordeling(sp)}<span class="kk-tommel" aria-hidden="true">Slipp for å skjule</span>`,
+            sammen ? `<span class="kk-starter sammen">${esc(R.t("Sammen mot fella"))}</span>` : `<span class="kk-starter ${LAG[sp.start].klasse}">${esc(R.t("{lag} begynner", { lag: LAG[sp.start].navn }))}</span>`
+          }<span>${esc(R.t("Brett {n}", { n: sp.brett + 1 }))}</span></span>${nokkelGrid(sp.ord, sp.nokkel, { tatt: sp.vist, sammen })}${fordeling(sp)}<span class="kk-tommel" aria-hidden="true">${esc(R.t("Slipp for å skjule"))}</span>`,
           klasse: "kk-bak",
         };
       },
@@ -1320,7 +1399,7 @@
       const svar = sjekkKode(hash);
       if (!svar.k) {
         S.kodeUtkast = R.kode.formater(R.kode.normaliser(hash).slice(0, KODELENGDE));
-        S.kodeFeil = "Lenken inneholder ingen gyldig kode. " + svar.feil;
+        S.kodeFeil = R.t("Lenken inneholder ingen gyldig kode.") + " " + svar.feil;
         return "bli-med";
       }
       S.gjest = nyGjest(svar.k);
@@ -1379,19 +1458,19 @@
         tilbake: "portal",
         vis: (S) =>
           R.ui.spillhjem({
-            slagordHtml: "Ett ord. Ett tall.<br><em>Finn agentene – unngå fella.</em>",
+            slagordHtml: `${esc(R.t("Ett ord. Ett tall."))}<br><em>${esc(R.t("Finn agentene – unngå fella."))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagarSpill(S),
               fortsettTekst: pagarSpill(S) ? fortsettTekst(S.spill) : "",
-              ekstraHtml: R.ui.knapp2("Jeg er kodemester", "bli-med", { ikon: "🔑" }) + R.ui.lenke("Slik spiller du", "regler"),
+              ekstraHtml: R.ui.knapp2(R.t("Jeg er kodemester"), "bli-med", { ikon: "🔑" }) + R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
-            merker: [...(S.rekord ? [["REKORD", rekordTekst(S.rekord)]] : []), ["2–20", "spillere"], ["2", "lag – eller sammen"], [R.tall(KANDIDATER[2].length), "ord"]],
+            merker: [...(S.rekord ? [[R.t("REKORD"), rekordTekst(S.rekord)]] : []), ["2–20", R.t("spillere")], ["2", R.t("lag – eller sammen")], [R.tall(KANDIDATER[2].length), R.t("ord")]],
           }),
         etter: () => bred(false),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
@@ -1399,105 +1478,107 @@
           if (o.navn && !sammen) ordneLag(S);
           const hindring = startHindring(S);
           return `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           ${veiHtml(0)}
           ${R.ui.fliser(
             "modus",
             [
-              { v: "lag", ikon: "⚔️", tittel: "Lag mot lag", tekst: "4 eller flere" },
-              { v: "sammen", ikon: "🤝", tittel: "Sammen mot fella", tekst: "2–4 spillere" },
+              { v: "lag", ikon: "⚔️", tittel: R.t("Lag mot lag"), tekst: R.t("4 eller flere") },
+              { v: "sammen", ikon: "🤝", tittel: R.t("Sammen mot fella"), tekst: R.t("2–4 spillere") },
             ],
             o.modus,
           )}
           <p class="ingress">${
             sammen
-              ? "Én er kodemester, resten gjetter. Finn alle ni agentene på sju hint – uten å gå i fella."
-              : 'Del dere i <b class="kk-farge rosa">Lag Rosa</b> og <b class="kk-farge bla">Lag Blå</b>, og velg én kodemester på hvert lag.'
+              ? esc(R.t("Én er kodemester, resten gjetter. Finn alle ni agentene på sju hint – uten å gå i fella."))
+              : medHtml(R.t("Del dere i {rosa} og {bla}, og velg én kodemester på hvert lag."), { rosa: `<b class="kk-farge rosa">${esc(LAG[0].navn)}</b>`, bla: `<b class="kk-farge bla">${esc(LAG[1].navn)}</b>` })
           }</p>
-          ${R.ui.bryter("navn", o.navn, "Skriv inn navn", sammen ? "Mobilen holder styr på hvem som er kodemester." : "Mobilen deler lagene og velger nye kodemestere for hvert brett.")}
-          ${o.navn ? R.ui.spillere({ min: GRENSER[o.modus][0], max: GRENSER[o.modus][1], hjelp: sammen ? "Dere bytter på å være kodemester." : "" }) : ""}
+          ${R.ui.bryter("navn", o.navn, R.t("Skriv inn navn"), sammen ? R.t("Mobilen holder styr på hvem som er kodemester.") : R.t("Mobilen deler lagene og velger nye kodemestere for hvert brett."))}
+          ${o.navn ? R.ui.spillere({ min: GRENSER[o.modus][0], max: GRENSER[o.modus][1], hjelp: sammen ? R.t("Dere bytter på å være kodemester.") : "" }) : ""}
           ${o.navn && !sammen ? lageneHtml(S) : ""}
           ${
             sammen
               ? ""
               : `<section class="seksjon">
-            <h2>Kampen</h2>
+            <h2>${esc(R.t("Kampen"))}</h2>
             ${R.ui.seg(
               "kamp",
-              KAMPER.map((k) => [k, k === "fri" ? "Fri" : KAMPNAVN[k]]),
+              KAMPER.map((k) => [k, k === "fri" ? R.t("Fri") : KAMPNAVN[k]]),
               o.kamp,
-              { etikett: "Kampen" },
+              { etikett: R.t("Kampen") },
             )}
-            <p class="hjelp">${o.kamp === "ett" ? "Ett brett – så er det kåring." : o.kamp === "best3" ? "Første lag til to brett vinner." : "Spill så mange brett dere vil. «Avslutt» gir kåringen."}</p>
+            <p class="hjelp">${esc(o.kamp === "ett" ? R.t("Ett brett – så er det kåring.") : o.kamp === "best3" ? R.t("Første lag til to brett vinner.") : R.t("Spill så mange brett dere vil. «Avslutt» gir kåringen."))}</p>
           </section>`
           }
           <section class="seksjon">
-            <h2>${sammen ? "Hvor ser kodemesteren nøkkelen?" : "Hvor ser kodemesterne nøkkelen?"}</h2>
+            <h2>${esc(sammen ? R.t("Hvor ser kodemesteren nøkkelen?") : R.t("Hvor ser kodemesterne nøkkelen?"))}</h2>
             ${R.ui.fliser(
               "nokkelmodus",
               [
-                { v: "mobil", ikon: "📱", tittel: "På egen mobil", tekst: "Med QR-kode" },
-                { v: "skjerm", ikon: "🔒", tittel: "På denne skjermen", tekst: "Hold fingeren på kortet" },
+                { v: "mobil", ikon: "📱", tittel: R.t("På egen mobil"), tekst: R.t("Med QR-kode") },
+                { v: "skjerm", ikon: "🔒", tittel: R.t("På denne skjermen"), tekst: R.t("Hold fingeren på kortet") },
               ],
               o.nokkel,
             )}
           </section>
           <section class="seksjon">
-            <h2>Ordene</h2>
+            <h2>${esc(R.t("Ordene"))}</h2>
             ${R.ui.seg(
               "ord",
               [
-                ["alle", "Blandet"],
-                ["lett", "Bare lette ord"],
+                ["alle", R.t("Blandet")],
+                ["lett", R.t("Bare lette ord")],
               ],
               o.lett ? "lett" : "alle",
-              { etikett: "Ordene" },
+              { etikett: R.t("Ordene") },
             )}
           </section>
           <section class="seksjon">
-            <h2>${sammen ? "Tidsur for hvert hint" : "Tidsur for hver tur"}</h2>
+            <h2>${esc(sammen ? R.t("Tidsur for hvert hint") : R.t("Tidsur for hver tur"))}</h2>
             ${R.ui.seg(
               "tid",
-              TID.map((t) => [t, t ? `${t / 60} min` : "Av"]),
+              TID.map((t) => [t, t ? R.t("{n} min", { n: t / 60 }) : R.t("Av")]),
               o.tid,
-              { etikett: sammen ? "Tidsur for hvert hint" : "Tidsur for hver tur" },
+              { etikett: sammen ? R.t("Tidsur for hvert hint") : R.t("Tidsur for hver tur") },
             )}
           </section>
-          <p class="hjelp kk-tips">Tips: åpne brettet på nettbrett eller TV – det fyller skjermen.</p>
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !!hindring }), hindring ? `<p class="hjelp">${esc(hindring)}</p>` : "")}`;
+          <p class="hjelp kk-tips">${esc(R.t("Tips: åpne brettet på nettbrett eller TV – det fyller skjermen."))}</p>
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { av: !!hindring }), hindring ? `<p class="hjelp">${esc(hindring)}</p>` : "")}`;
         },
         etter: () => bred(false),
       },
 
       nokkel: {
-        tittel: (S) => `Brett ${S.spill.brett + 1}`,
+        tittel: (S) => R.t("Brett {n}", { n: S.spill.brett + 1 }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const sammen = erSammen(sp);
           const linje = mesterLinje(sp);
           const ingress = linje
-            ? `${linje} Resten ser bort!`
-            : sammen
-              ? sp.mnr > 0
-                ? "Ny kodemester for hvert brett. Resten ser bort!"
-                : "Velg én kodemester. Resten ser bort!"
-              : sp.brett > 0 && S.oppsett.nokkel === "mobil"
-                ? "Har dere koden fra forrige brett? Trykk «Neste brett» på mobilen – eller skann på nytt."
-                : "Én kodemester på hvert lag. Resten av laget ser bort!";
+            ? `${linje} ${esc(R.t("Resten ser bort!"))}`
+            : esc(
+                sammen
+                  ? sp.mnr > 0
+                    ? R.t("Ny kodemester for hvert brett. Resten ser bort!")
+                    : R.t("Velg én kodemester. Resten ser bort!")
+                  : sp.brett > 0 && S.oppsett.nokkel === "mobil"
+                    ? R.t("Har dere koden fra forrige brett? Trykk «Neste brett» på mobilen – eller skann på nytt.")
+                    : R.t("Én kodemester på hvert lag. Resten av laget ser bort!"),
+              );
           return `
-          <h1 id="skjerm-tittel">${sammen ? "Kodemester, hent nøkkelen" : "Kodemestere, hent nøkkelen"}</h1>
+          <h1 id="skjerm-tittel">${esc(sammen ? R.t("Kodemester, hent nøkkelen") : R.t("Kodemestere, hent nøkkelen"))}</h1>
           ${veiHtml(1)}
           <p class="ingress">${ingress}</p>
-          ${linje && !sammen ? `<div class="kk-lagliste"><p class="rosa"><b>${LAG[0].navn}</b> ${lagliste(sp, 0)}</p><p class="bla"><b>${LAG[1].navn}</b> ${lagliste(sp, 1)}</p></div>` : ""}
+          ${linje && !sammen ? `<div class="kk-lagliste"><p class="rosa"><b>${esc(LAG[0].navn)}</b> ${lagliste(sp, 0)}</p><p class="bla"><b>${esc(LAG[1].navn)}</b> ${lagliste(sp, 1)}</p></div>` : ""}
           ${nokkelHtml(S)}
-          ${R.ui.dokk(R.ui.knapp("Klar – vis brettet", "til-brett"))}`;
+          ${R.ui.dokk(R.ui.knapp(R.t("Klar – vis brettet"), "til-brett"))}`;
         },
         etter: () => bred(false),
       },
 
       brett: {
-        tittel: (S) => `Brett ${S.spill.brett + 1}`,
+        tittel: (S) => R.t("Brett {n}", { n: S.spill.brett + 1 }),
         tilbake: "hjem",
         liggende: false, // landscape phones: the board has its own wide layout (html.kk-vid in spill.css)
         vis(S) {
@@ -1509,21 +1590,24 @@
           const klar = !ferdig && hintRest(sp).brukt; // the guesses of the hint are used: time to hand over
           const eksempel = visEksempel(S);
           let knapp;
-          if (ferdig) knapp = R.ui.knapp("Se resultatet", "til-resultat");
+          if (ferdig) knapp = R.ui.knapp(R.t("Se resultatet"), "til-resultat");
           else if (sammen)
             knapp = R.ui.knapp("", "ferdig", {
               variant: klar ? "kk-klar" : "",
-              tekstHtml: `<span class="kk-ferdig"><b>${nr >= HINT ? "Ferdig med siste hint" : "Neste hint"}</b><small>${nr >= HINT ? "Da er brettet over" : `Ferdig med hint ${nr} av ${HINT}`}</small></span>`,
+              tekstHtml: `<span class="kk-ferdig"><b>${esc(nr >= HINT ? R.t("Ferdig med siste hint") : R.t("Neste hint"))}</b><small>${esc(nr >= HINT ? R.t("Da er brettet over") : R.t("Ferdig med hint {n} av {antall}", { n: nr, antall: HINT }))}</small></span>`,
             });
           else
             knapp = R.ui.knapp("", "ferdig", {
               variant: `${na.knapp}${klar ? " kk-klar" : ""}`,
-              tekstHtml: `<span class="kk-ferdig"><b>${na.navn} er ferdig</b><small>Turen går til ${LAG[1 - sp.tur].navn}</small></span>`,
+              tekstHtml: `<span class="kk-ferdig"><b>${esc(R.t("{lag} er ferdig", { lag: na.navn }))}</b><small>${esc(R.t("Turen går til {lag}", { lag: LAG[1 - sp.tur].navn }))}</small></span>`,
             });
           return `
-            <h1 class="vh" id="skjerm-tittel">Brett ${sp.brett + 1}: ${
-              sammen ? (ferdig ? "brettet er over" : `hint ${nr} av ${HINT}`) : ferdig ? `${LAG[sp.vinner].navn} tok brettet` : `${na.navn} sin tur`
-            }</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(
+              R.t("Brett {n}: {status}", {
+                n: sp.brett + 1,
+                status: sammen ? (ferdig ? R.t("brettet er over") : R.t("hint {n} av {antall}", { n: nr, antall: HINT })) : ferdig ? R.t("{lag} tok brettet", { lag: LAG[sp.vinner].navn }) : R.t("{lag} sin tur", { lag: na.navn }),
+              }),
+            )}</h1>
             ${statusHtml(sp)}
             ${eksempel ? eksempelHtml(sp) : meldingHtml(sp)}
             ${eksempel || ferdig ? "" : hintHtml(sp)}
@@ -1531,10 +1615,10 @@
             ${R.ui.dokk(
               knapp,
               `<div class="lenkerad kk-verktoy">
-                <button class="lenke" data-h="angre"${sp.hist.length ? "" : " disabled"}>↶ Angre</button>
-                <button class="lenke" data-h="nokkel-ark">🔑 Nøkkelen</button>
-                ${sp.hintlogg.length ? '<button class="lenke" data-h="hint-logg">💬 Hintene</button>' : ""}
-                <button class="lenke" data-h="avslutt">Avslutt</button>
+                <button class="lenke" data-h="angre"${sp.hist.length ? "" : " disabled"}>↶ ${esc(R.t("Angre"))}</button>
+                <button class="lenke" data-h="nokkel-ark">🔑 ${esc(R.t("Nøkkelen"))}</button>
+                ${sp.hintlogg.length ? `<button class="lenke" data-h="hint-logg">💬 ${esc(R.t("Hintene"))}</button>` : ""}
+                <button class="lenke" data-h="avslutt">${esc(R.t("Avslutt"))}</button>
               </div>`,
             )}`;
         },
@@ -1554,7 +1638,7 @@
 
       // A board is over: what happened, the whole key, and on to the next board or «Kåringen».
       resultat: {
-        tittel: (S) => `Brett ${S.spill.brett + 1}`,
+        tittel: (S) => R.t("Brett {n}", { n: S.spill.brett + 1 }),
         tilbake: "hjem",
         liggende: false, // (as the board: its own wide layout)
         vis(S) {
@@ -1566,16 +1650,16 @@
             const f = funnet(sp);
             banner = `<div class="banner kk-banner sammen">
               ${R.ui.figur(null, { stemning: sp.grunn === "alle" ? "jubel" : sp.grunn === "fella" ? "lei" : "" })}
-              <p class="etikett">Brett ${sp.brett + 1} · hint ${hintNr(sp)} av ${HINT}</p>
-              <h1 id="skjerm-tittel">${sp.grunn === "alle" ? "Alle ni funnet!" : sp.grunn === "fella" ? "Rett i fella!" : "Hintene er brukt"}</h1>
-              <p class="ingress">${sp.grunn === "alle" ? "Fella fikk aldri sjansen." : `${f} av ${AGENTER} agenter funnet.`}</p>
+              <p class="etikett">${esc(R.t("Brett {n} · hint {h} av {antall}", { n: sp.brett + 1, h: hintNr(sp), antall: HINT }))}</p>
+              <h1 id="skjerm-tittel">${esc(sp.grunn === "alle" ? R.t("Alle ni funnet!") : sp.grunn === "fella" ? R.t("Rett i fella!") : R.t("Hintene er brukt"))}</h1>
+              <p class="ingress">${esc(sp.grunn === "alle" ? R.t("Fella fikk aldri sjansen.") : R.t("{f} av {antall} agenter funnet.", { f, antall: AGENTER }))}</p>
             </div>`;
           } else {
             const v = sp.vinner;
             banner = `<div class="banner kk-banner ${LAG[v].klasse}">
               ${R.ui.figur(null, { stemning: "jubel" })}
-              <p class="etikett">Brett ${sp.brett + 1}${sist && sp.kamp === "best3" ? " · kampen er avgjort" : ""}</p>
-              <h1 id="skjerm-tittel">${LAG[v].navn} tok brettet!</h1>
+              <p class="etikett">${esc(R.t("Brett {n}", { n: sp.brett + 1 }))}${sist && sp.kamp === "best3" ? ` · ${esc(R.t("kampen er avgjort"))}` : ""}</p>
+              <h1 id="skjerm-tittel">${esc(R.t("{lag} tok brettet!", { lag: LAG[v].navn }))}</h1>
               <p class="ingress">${esc(grunnTekst(sp))}</p>
               ${sp.kamp === "ett" ? "" : stillingHtml(sp)}
             </div>`;
@@ -1583,10 +1667,10 @@
           return `
             ${banner}
             ${brettHtml(sp, { fasit: true })}
-            <p class="hjelp kk-fasit-hjelp">Kort med bare farget kant rakk ingen å ta.</p>
+            <p class="hjelp kk-fasit-hjelp">${esc(R.t("Kort med bare farget kant rakk ingen å ta."))}</p>
             ${R.ui.dokk(
-              sist ? R.ui.knapp("Til kåringen", "til-karing") : R.ui.knapp("Neste brett", "neste-brett"),
-              R.ui.lenkerad('<button class="lenke" data-h="angre" aria-label="Angre siste trykk">↶ Angre</button>', sp.hintlogg.length ? R.ui.lenke("💬 Hintene", "hint-logg") : "", sist ? "" : R.ui.lenke("Avslutt", "avslutt")),
+              sist ? R.ui.knapp(R.t("Til kåringen"), "til-karing") : R.ui.knapp(R.t("Neste brett"), "neste-brett"),
+              R.ui.lenkerad(`<button class="lenke" data-h="angre" aria-label="${esc(R.t("Angre siste trykk"))}">↶ ${esc(R.t("Angre"))}</button>`, sp.hintlogg.length ? R.ui.lenke(`💬 ${R.t("Hintene")}`, "hint-logg") : "", sist ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn(S) {
@@ -1610,14 +1694,14 @@
       },
 
       karing: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           return `
             ${erSammen(sp) ? karingSammen(S, sp) : karingLag(sp)}
             ${R.ui.flereSpill(sp.antall ? { antall: sp.antall } : {})}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         // Celebrate in proportion, and only the first time the screen is shown.
         inn(S) {
@@ -1647,7 +1731,7 @@
       },
 
       "bli-med": {
-        tittel: "Kodemester",
+        tittel: R.t("Kodemester"),
         tilbake: "hjem",
         // With a key already on this phone (after a reload), showing it again is the main action
         // and the field is for a new code; otherwise the field is the whole screen.
@@ -1656,15 +1740,15 @@
           return `
           <div class="banner kk-bli-med">
             ${R.figur()}
-            <h1 id="skjerm-tittel">Jeg er kodemester</h1>
-            <p class="ingress">${g ? "Nøkkelen er lagret på mobilen. Har brettet fått en ny kode, skriver du den nedenfor." : "Skriv koden fra skjermen med brettet. Da ser du nøkkelen her."}</p>
+            <h1 id="skjerm-tittel">${esc(R.t("Jeg er kodemester"))}</h1>
+            <p class="ingress">${esc(g ? R.t("Nøkkelen er lagret på mobilen. Har brettet fått en ny kode, skriver du den nedenfor.") : R.t("Skriv koden fra skjermen med brettet. Da ser du nøkkelen her."))}</p>
           </div>
           <form class="kk-kodeskjema" data-skjema="kode" autocomplete="off" novalidate>
-            <label class="${g ? "etikett kk-nykode" : "vh"}" for="kk-kodefelt">${g ? "Ny kode" : "Koden"}</label>
+            <label class="${g ? "etikett kk-nykode" : "vh"}" for="kk-kodefelt">${esc(g ? R.t("Ny kode") : R.t("Koden"))}</label>
             <input class="kodefelt" id="kk-kodefelt" name="kode" data-felt="kode" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="12" placeholder="ABCD 1234" value="${esc(S.kodeUtkast || "")}">
             <p class="feil" id="kk-kodefeil" role="alert">${esc(S.kodeFeil || "")}</p>
-            ${g ? '<button class="knapp-2" type="submit">Bruk den nye koden</button>' : '<p class="hjelp">Koden står under 🔑 på brettet.</p>'}
-            ${R.ui.dokk(g ? `<button class="knapp" type="button" data-h="til-gjest">Vis nøkkelen til brett ${g.brett + 1}</button>` : '<button class="knapp" type="submit">Vis nøkkelen</button>')}
+            ${g ? `<button class="knapp-2" type="submit">${esc(R.t("Bruk den nye koden"))}</button>` : `<p class="hjelp">${esc(R.t("Koden står under 🔑 på brettet."))}</p>`}
+            ${R.ui.dokk(g ? `<button class="knapp" type="button" data-h="til-gjest">${esc(R.t("Vis nøkkelen til brett {n}", { n: g.brett + 1 }))}</button>` : `<button class="knapp" type="submit">${esc(R.t("Vis nøkkelen"))}</button>`)}
           </form>`;
         },
         etter: () => bred(false),
@@ -1679,7 +1763,7 @@
       },
 
       kodemester: {
-        tittel: "Kodemester",
+        tittel: R.t("Kodemester"),
         tilbake: "hjem",
         gjenoppta: "bli-med", // the key is a secret: after a reload, one tap to see it again
         vis(S) {
@@ -1690,28 +1774,28 @@
             .map((type) => {
               const ord = b.ord.map((w, i) => ({ w, i })).filter((x) => b.nokkel[x.i] === type);
               const igjenN = ord.filter((x) => !g.tatt.includes(x.i)).length;
-              const navn = type === FELLE ? "Fella" : type === NOYTRAL ? "Nøytrale" : sammen ? "Agenter" : LAG[type].navn;
+              const navn = type === FELLE ? R.t("Fella") : type === NOYTRAL ? R.t("Nøytrale") : sammen ? R.t("Agenter") : LAG[type].navn;
               return `<section class="kk-gruppe t${type}">
-                <h2><i aria-hidden="true">${bokstav(type, sammen)}</i>${navn}<span>${type === FELLE ? "" : `${igjenN} igjen`}</span></h2>
+                <h2><i aria-hidden="true">${bokstav(type, sammen)}</i>${esc(navn)}<span>${type === FELLE ? "" : esc(R.t("{n} igjen", { n: igjenN }))}</span></h2>
                 <p>${ord.map((x) => `<span class="${g.tatt.includes(x.i) ? "tatt" : ""}">${esc(x.w)}</span>`).join("")}</p>
               </section>`;
             })
             .join("");
           return `
             <div class="kk-gjest-hode">
-              <div><p class="etikett">Nøkkelen</p><h1 id="skjerm-tittel">Brett ${g.brett + 1}</h1></div>
-              ${sammen ? '<span class="kk-starter sammen">Sammen mot fella</span>' : `<span class="kk-starter ${LAG[g.start].klasse}">${LAG[g.start].navn} begynner</span>`}
+              <div><p class="etikett">${esc(R.t("Nøkkelen"))}</p><h1 id="skjerm-tittel">${esc(R.t("Brett {n}", { n: g.brett + 1 }))}</h1></div>
+              ${sammen ? `<span class="kk-starter sammen">${esc(R.t("Sammen mot fella"))}</span>` : `<span class="kk-starter ${LAG[g.start].klasse}">${esc(R.t("{lag} begynner", { lag: LAG[g.start].navn }))}</span>`}
             </div>
             ${
               g.skjult
-                ? `<button class="kk-dekke" data-h="skjul"><span aria-hidden="true">🙈</span><b>Nøkkelen er skjult</b><span>Trykk for å vise den igjen</span></button>`
+                ? `<button class="kk-dekke" data-h="skjul"><span aria-hidden="true">🙈</span><b>${esc(R.t("Nøkkelen er skjult"))}</b><span>${esc(R.t("Trykk for å vise den igjen"))}</span></button>`
                 : `${nokkelGrid(b.ord, b.nokkel, { tatt: g.tatt, knapper: true, sammen })}
-                   <p class="hjelp">Gi ett ord og et tall, for eksempel «Hav, 2». Trykk på ord som blir tatt, så krysses de ut her.</p>
+                   <p class="hjelp">${esc(R.t("Gi ett ord og et tall, for eksempel «Hav, 2». Trykk på ord som blir tatt, så krysses de ut her."))}</p>
                    <div class="kk-grupper${sammen ? " sammen" : ""}">${grupper}</div>`
             }
             ${R.ui.dokk(
-              `<div class="knapprad">${R.ui.knapp2(g.skjult ? "Vis" : "Skjul", "skjul", { ikon: g.skjult ? "👀" : "🙈" })}${R.ui.knapp2("Neste brett", "gjest-neste", { ikon: "→" })}</div>`,
-              R.ui.lenkerad(g.brett > 0 ? R.ui.lenke("Forrige brett", "gjest-forrige") : "", R.ui.lenke("Ny kode", "bli-med")),
+              `<div class="knapprad">${R.ui.knapp2(g.skjult ? R.t("Vis") : R.t("Skjul"), "skjul", { ikon: g.skjult ? "👀" : "🙈" })}${R.ui.knapp2(R.t("Neste brett"), "gjest-neste", { ikon: "→" })}</div>`,
+              R.ui.lenkerad(g.brett > 0 ? R.ui.lenke(R.t("Forrige brett"), "gjest-forrige") : "", R.ui.lenke(R.t("Ny kode"), "bli-med")),
             )}`;
         },
         inn: () => R.holdVaken(),
@@ -1731,13 +1815,13 @@
           const poeng = !erSammen(sp) && a + b > 0;
           const tekst = over(sp)
             ? poeng
-              ? `Stillingen ${a}–${b} nullstilles.`
-              : "Resultatet fra brettet blir ikke kåret."
+              ? R.t("Stillingen {a}–{b} nullstilles.", { a, b })
+              : R.t("Resultatet fra brettet blir ikke kåret.")
             : poeng
-              ? `Brettet dere holder på med, forsvinner, og stillingen ${a}–${b} nullstilles.`
-              : "Brettet dere holder på med, forsvinner.";
+              ? R.t("Brettet dere holder på med, forsvinner, og stillingen {a}–{b} nullstilles.", { a, b })
+              : R.t("Brettet dere holder på med, forsvinner.");
           const fortsatt = R.vakt();
-          if (!(await R.bekreft("Starte et nytt spill?", tekst, "Start nytt", "Spill videre")) || !fortsatt()) return;
+          if (!(await R.bekreft(R.t("Starte et nytt spill?"), tekst, R.t("Start nytt"), R.t("Spill videre"))) || !fortsatt()) return;
         }
         R.gaTil("oppsett");
       },
@@ -1831,7 +1915,7 @@
         R.gaTil("nokkel");
       },
       del(el, e, S) {
-        if (S.spill) R.del("Kodeknekkeren", deleTekst(S.spill), location.origin + "/kodeknekkeren/");
+        if (S.spill) R.del((window.RUSJ_SPILL && window.RUSJ_SPILL.navn) || "Kodeknekkeren", deleTekst(S.spill), location.origin + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "kodeknekkeren") + "/");
       },
 
       "til-brett": () => R.gaTil("brett"),
@@ -1840,7 +1924,8 @@
       kopier: (el, e, S) => R.kopier(R.kode.formater(lagKode(S.spill))),
       "del-lenke"(el, e, S) {
         const kode = lagKode(S.spill);
-        R.del("Kodeknekkeren", `Nøkkelen til brett ${S.spill.brett + 1} – bare for ${erSammen(S.spill) ? "kodemesteren" : "kodemesterne"}. Koden er ${R.kode.formater(kode)}.`, R.kode.lenke(kode));
+        const v = { n: S.spill.brett + 1, kode: R.kode.formater(kode) };
+        R.del((window.RUSJ_SPILL && window.RUSJ_SPILL.navn) || "Kodeknekkeren", erSammen(S.spill) ? R.t("Nøkkelen til brett {n} – bare for kodemesteren. Koden er {kode}.", v) : R.t("Nøkkelen til brett {n} – bare for kodemesterne. Koden er {kode}.", v), R.kode.lenke(kode));
       },
 
       // The hint strip
@@ -1897,7 +1982,7 @@
             sp.stilling[sp.vinner] += 1;
           }
           slutt();
-          sp.melding = { tekst: sammen ? `«${ord}» var fella! Brettet er over.` : `«${ord}» var fella! ${LAG[lag].navn} taper brettet.`, type: "felle" };
+          sp.melding = { tekst: sammen ? R.t("«{ord}» var fella! Brettet er over.", { ord }) : R.t("«{ord}» var fella! {lag} taper brettet.", { ord, lag: LAG[lag].navn }), type: "felle" };
           R.si(sp.melding.tekst);
           R.lyd.bom();
           R.vibrer([90, 60, 260]);
@@ -1921,7 +2006,7 @@
           }
           slutt();
           sp.melding = {
-            tekst: sammen ? "Alle ni agentene er funnet!" : vinner === lag ? `${LAG[vinner].navn} har funnet alle agentene!` : `Oi! «${ord}» var den siste agenten til ${LAG[vinner].navn} – brettet er deres.`,
+            tekst: sammen ? R.t("Alle ni agentene er funnet!") : vinner === lag ? R.t("{lag} har funnet alle agentene!", { lag: LAG[vinner].navn }) : R.t("Oi! «{ord}» var den siste agenten til {lag} – brettet er deres.", { ord, lag: LAG[vinner].navn }),
             type: sammen || vinner === lag ? "riktig" : "feil",
           };
           R.si(sp.melding.tekst);
@@ -1934,8 +2019,8 @@
         }
 
         if (egen) {
-          const knapp = sammen ? (nr >= HINT ? "Ferdig med siste hint" : "Neste hint") : `${LAG[lag].navn} er ferdig`;
-          sp.melding = { tekst: hintRest(sp).brukt ? `Riktig! Forsøkene er brukt – trykk «${knapp}».` : `Riktig! Gjett videre – eller trykk «${knapp}».`, type: "riktig" };
+          const knapp = sammen ? (nr >= HINT ? R.t("Ferdig med siste hint") : R.t("Neste hint")) : R.t("{lag} er ferdig", { lag: LAG[lag].navn });
+          sp.melding = { tekst: hintRest(sp).brukt ? R.t("Riktig! Forsøkene er brukt – trykk «{knapp}».", { knapp }) : R.t("Riktig! Gjett videre – eller trykk «{knapp}».", { knapp }), type: "riktig" };
           R.lyd.riktig();
           R.vibrer(20);
           R.si(sp.melding.tekst);
@@ -1945,16 +2030,16 @@
         steg.hint = sp.hint;
         if (sammen) {
           R.lyd.takk();
-          hintSlutt(S, nr, `«${ord}» var nøytralt.`, "noytral");
+          hintSlutt(S, nr, R.t("«{ord}» var nøytralt.", { ord }), "noytral");
           return;
         }
         tomHint(sp);
         sp.tur = 1 - lag;
         if (type === NOYTRAL) {
-          sp.melding = { tekst: `«${ord}» var nøytralt. Nå er det ${LAG[sp.tur].navn} sin tur.`, type: "noytral" };
+          sp.melding = { tekst: R.t("«{ord}» var nøytralt. Nå er det {lag} sin tur.", { ord, lag: LAG[sp.tur].navn }), type: "noytral" };
           R.lyd.takk();
         } else {
-          sp.melding = { tekst: `Oi! «${ord}» tilhørte ${LAG[type].navn} – og nå er det deres tur.`, type: "feil" };
+          sp.melding = { tekst: R.t("Oi! «{ord}» tilhørte {lag} – og nå er det deres tur.", { ord, lag: LAG[type].navn }), type: "feil" };
           R.lyd.feil();
           R.vibrer([30, 40, 30]);
         }
@@ -1978,7 +2063,7 @@
         }
         tomHint(sp);
         sp.tur = 1 - sp.tur;
-        sp.melding = { tekst: `${LAG[sp.tur].navn} sin tur. ${mesterNavn(sp, sp.tur)} gir ett ord og et tall.`, type: "tur" };
+        sp.melding = { tekst: R.t("{lag} sin tur. {navn} gir ett ord og et tall.", { lag: LAG[sp.tur].navn, navn: mesterNavn(sp, sp.tur) }), type: "tur" };
         R.si(sp.melding.tekst);
         R.vis();
         startTur(S);
@@ -1999,7 +2084,7 @@
           sp.utkast = "";
           if (sp.hint) Object.assign(sp.hintlogg[sp.hintlogg.length - 1] || {}, { ord: sp.hint.ord, n: sp.hint.n });
           else sp.hintlogg.pop();
-          sp.melding = { tekst: sp.hint ? `Angret – hintet er ${hintHode(sp.hint)} igjen.` : "Angret – hintet er tatt bort.", type: "angre" };
+          sp.melding = { tekst: sp.hint ? R.t("Angret – hintet er {hint} igjen.", { hint: hintHode(sp.hint) }) : R.t("Angret – hintet er tatt bort."), type: "angre" };
           R.si(sp.melding.tekst);
           R.vis();
           return;
@@ -2019,8 +2104,16 @@
           sp.utkast = "";
           sp.redigerer = false;
         }
-        const hvor = erSammen(sp) ? `Hint ${hintNr(sp)} av ${HINT}.` : `${LAG[sp.tur].navn} sin tur.`;
-        sp.melding = { tekst: h.t === "kort" ? `Angret – «${sp.ord[h.i]}» er skjult igjen. ${hvor}` : `Angret – ${erSammen(sp) ? `tilbake til hint ${hintNr(sp)} av ${HINT}.` : `${LAG[sp.tur].navn} sin tur igjen.`}`, type: "angre" };
+        const hvor = erSammen(sp) ? R.t("Hint {n} av {antall}.", { n: hintNr(sp), antall: HINT }) : R.t("{lag} sin tur.", { lag: LAG[sp.tur].navn });
+        sp.melding = {
+          tekst:
+            h.t === "kort"
+              ? R.t("Angret – «{ord}» er skjult igjen. {hvor}", { ord: sp.ord[h.i], hvor })
+              : erSammen(sp)
+                ? R.t("Angret – tilbake til hint {n} av {antall}.", { n: hintNr(sp), antall: HINT })
+                : R.t("Angret – {lag} sin tur igjen.", { lag: LAG[sp.tur].navn }),
+          type: "angre",
+        };
         R.si(sp.melding.tekst);
         if (S.skjerm !== "brett") {
           R.gaTil("brett");
@@ -2036,14 +2129,14 @@
         if (!sp || sp.ferdig) return;
         const [a, b] = sp.stilling;
         const tekst = erSammen(sp)
-          ? "Dere går til kåringen med agentene dere har funnet så langt."
+          ? R.t("Dere går til kåringen med agentene dere har funnet så langt.")
           : over(sp)
-            ? `Dere går til kåringen med stillingen ${a}–${b}.`
+            ? R.t("Dere går til kåringen med stillingen {a}–{b}.", { a, b })
             : sp.spilt
-              ? `Brettet dere holder på med, teller ikke. Dere går til kåringen med stillingen ${a}–${b}.`
-              : "Brettet teller ikke, så kåringen blir uten vinner.";
+              ? R.t("Brettet dere holder på med, teller ikke. Dere går til kåringen med stillingen {a}–{b}.", { a, b })
+              : R.t("Brettet teller ikke, så kåringen blir uten vinner.");
         const fortsatt = R.vakt();
-        if (!(await R.bekreft("Avslutte spillet?", tekst, "Avslutt", "Spill videre")) || !fortsatt() || S.spill !== sp || sp.ferdig) return;
+        if (!(await R.bekreft(R.t("Avslutte spillet?"), tekst, R.t("Avslutt"), R.t("Spill videre"))) || !fortsatt() || S.spill !== sp || sp.ferdig) return;
         // Ended early: in the middle of a board, or before a «Best av 3» was decided.
         tilKaring(S, !over(sp) || (sp.kamp === "best3" && !avgjort(sp)));
       },
@@ -2063,11 +2156,11 @@
       async "gjest-neste"(el, e, S) {
         const g = S.gjest;
         if (g.brett >= MAKS_BRETT) {
-          R.toast("Skann den nye koden fra brettet");
+          R.toast(R.t("Skann den nye koden fra brettet"));
           return;
         }
         const fortsatt = R.vakt();
-        if (!(await R.bekreft(`Gå til brett ${g.brett + 2}?`, `Gjør det når skjermen med brettet viser «Brett ${g.brett + 2}».`, "Neste brett", "Ikke ennå")) || !fortsatt()) return;
+        if (!(await R.bekreft(R.t("Gå til brett {n}?", { n: g.brett + 2 }), R.t("Gjør det når skjermen med brettet viser «{brett}».", { brett: R.t("Brett {n}", { n: g.brett + 2 }) }), R.t("Neste brett"), R.t("Ikke ennå"))) || !fortsatt()) return;
         g.brett += 1;
         g.start = erSammen(g) ? 0 : 1 - g.start;
         g.tatt = [];
@@ -2075,7 +2168,7 @@
         R.lyd.snu();
         R.vis();
         window.scrollTo(0, 0);
-        R.toast(`Brett ${g.brett + 1} – sjekk at ordene stemmer med brettet`);
+        R.toast(R.t("Brett {n} – sjekk at ordene stemmer med brettet", { n: g.brett + 1 }));
       },
       "gjest-forrige"(el, e, S) {
         const g = S.gjest;
@@ -2085,7 +2178,7 @@
         g.tatt = [];
         R.vis();
         window.scrollTo(0, 0);
-        R.toast(`Tilbake til brett ${g.brett + 1}`);
+        R.toast(R.t("Tilbake til brett {n}", { n: g.brett + 1 }));
       },
     }),
   });

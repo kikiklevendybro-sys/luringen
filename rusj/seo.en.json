@@ -520,6 +520,52 @@
         "letter game",
         "categories game for kids"
       ]
+    },
+    "ballongen": {
+      "tittel": "Hangman for kids – guess the word, free, no app",
+      "frase": "Hangman for kids",
+      "beskrivelse": "Free hangman for kids – without the gallows! Guess the word letter by letter before the balloons pop. Over 3,000 British English words, no app.",
+      "sok": [
+        "hangman for kids",
+        "hangman game",
+        "guess the word game",
+        "spelling game for kids"
+      ]
+    },
+    "hviskeren": {
+      "tittel": "One-clue word game – a team game for 3–10",
+      "frase": "One secret clue each",
+      "beskrivelse": "A free team word game: everyone gives one secret clue, but matching clues are struck out. Can the guesser get the word? 3–10 players, one phone.",
+      "sok": [
+        "just one",
+        "one clue game",
+        "cooperative word game",
+        "team word game"
+      ],
+      "samarbeid": true
+    },
+    "kodeknekkeren": {
+      "tittel": "Code words – the team game with 25 words and agents",
+      "frase": "Code words",
+      "beskrivelse": "A free code word game for two teams: the code master gives one word and a number – find your agents and avoid the trap. 4–20 players, one or more phones.",
+      "sok": [
+        "codenames",
+        "code words game",
+        "spymaster game",
+        "secret agents game"
+      ]
+    },
+    "skravla": {
+      "tittel": "Explain the word – a team word game with 3,000 words",
+      "frase": "Explain the word",
+      "beskrivelse": "Explain the word without saying it! A free word game for 4–20 players: team against team with over 3,000 words, a timer and a race track on your phone.",
+      "sok": [
+        "taboo",
+        "articulate",
+        "explain the word game",
+        "forbidden words",
+        "word guessing game"
+      ]
     }
   }
 }

@@ -537,6 +537,52 @@
         "bogstavleg",
         "ordleg for børn"
       ]
+    },
+    "ballongen": {
+      "tittel": "Galgespil for børn – gæt ordet, med æ, ø og å",
+      "frase": "Galgespil for børn",
+      "beskrivelse": "Gratis galgespil for børn på dansk – uden galge! Gæt ordet bogstav for bogstav, før ballonerne springer. Med æ, ø, å og over 3.000 danske ord.",
+      "sok": [
+        "galgespil",
+        "hangman",
+        "hængt mand",
+        "gæt ordet"
+      ]
+    },
+    "hviskeren": {
+      "tittel": "Kun ét hint – samarbejdsspil med ord for 3–10",
+      "frase": "Kun ét hint",
+      "beskrivelse": "Gratis samarbejdsspil på dansk: alle giver ét hint i hemmelighed, men ens hints bliver streget ud. Kan gætteren ordet? 3–10 spillere, én mobil.",
+      "sok": [
+        "ét hint",
+        "samarbejdsspil",
+        "gæt ordet",
+        "just one"
+      ],
+      "samarbeid": true
+    },
+    "kodeknekkeren": {
+      "tittel": "Kodeord – holdspillet med 25 ord og hemmelige agenter",
+      "frase": "Kodeord",
+      "beskrivelse": "Gratis kodeordsspil på dansk for to hold: Kodemesteren giver ét ord og et tal – find jeres agenter, og undgå fælden. 4–20 spillere, én eller flere mobiler.",
+      "sok": [
+        "kodeordsspil",
+        "kodenavne",
+        "agentspil",
+        "codenames"
+      ]
+    },
+    "skravla": {
+      "tittel": "Forklar ordet – ordspil hold mod hold med 3.000 ord",
+      "frase": "Forklar ordet",
+      "beskrivelse": "Forklar ordet uden at sige det! Gratis ordspil på dansk for 4–20 spillere: hold mod hold med over 3.000 ord, ur og spillebræt på mobilen.",
+      "sok": [
+        "tabu",
+        "forklar ordet",
+        "forbudte ord",
+        "gætteleg",
+        "ordleg"
+      ]
     }
   }
 }

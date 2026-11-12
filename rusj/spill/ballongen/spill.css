@@ -972,6 +972,17 @@
   font-size: 1rem;
 }
 
+/* The English keyboard has no Æ Ø Å: its last row's wide keys fill the row */
+.bl-tast.vid4 {
+  grid-column: span 4;
+  font-size: 1rem;
+}
+
+.bl-tast.vid6 {
+  grid-column: span 6;
+  font-size: 1rem;
+}
+
 .bl-tast[aria-disabled="true"] {
   cursor: default;
 }

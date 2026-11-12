@@ -1,0 +1,77 @@
+{
+  "dommer": [
+    {
+      "til": 0,
+      "tekster": [
+        "Quiet as a mouse.",
+        "Tongues took this round off.",
+        "Zero points – but what an effort!",
+        "The words got a bit stuck.",
+        "Well, that flew by.",
+        "The next round can only get better!"
+      ]
+    },
+    {
+      "til": 3,
+      "tekster": [
+        "It loosened up at the end!",
+        "A careful start.",
+        "Warming up nicely!",
+        "Small steps are still steps.",
+        "Next round you'll take off!",
+        "The engine is running."
+      ]
+    },
+    {
+      "til": 6,
+      "tekster": [
+        "Well talked!",
+        "Now it's rolling!",
+        "Solid chatter!",
+        "Nailed it!",
+        "Good work, team!",
+        "You speak the same language."
+      ]
+    },
+    {
+      "til": 9,
+      "tekster": [
+        "Now we're talking!",
+        "The words just pour out!",
+        "That was quick!",
+        "Mind readers, the lot of you!",
+        "Proper flow!",
+        "Chattering like magpies!"
+      ]
+    },
+    {
+      "til": 12,
+      "tekster": [
+        "Chatterboxes!",
+        "Lightning explanations, one after another!",
+        "Can you read each other's minds?",
+        "Vocal cords on fire!",
+        "That was pro level!",
+        "Are you sure you didn't cheat?"
+      ]
+    },
+    {
+      "til": 999,
+      "tekster": [
+        "A world record in chatter?",
+        "Talking at full steam!",
+        "That was pure magic!",
+        "Record speed! Who trained you?",
+        "The word machine is in top gear!",
+        "Someone call the record books."
+      ]
+    }
+  ],
+  "vinnere": [
+    "Chatter champions",
+    "Word wizards",
+    "Champion chatterboxes",
+    "Masters of natter",
+    "Talk titans"
+  ]
+}
