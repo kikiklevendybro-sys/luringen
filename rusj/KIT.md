@@ -41,6 +41,8 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
 
 - **Language:** all UI text and content in Norwegian bokmål, natural and warm, short sentences.
   Code, comments and identifiers follow the kit's style (Norwegian identifiers are fine, comments in English).
+  Write every UI text as `R.t("…")` from the start (the key is the Norwegian text, so nothing changes
+  in Norwegian) – that is what lets the game come to rusj.no/en/ and /da/ later. See rusj/SPRAK.md.
 - **No dependencies, no network.** No fetch, no external URLs, no fonts/images from the internet.
   The page has a strict Content Security Policy: no inline `<script>`, no `onclick=` attributes,
   no `eval`/`new Function`. Inline `style="…"` attributes are allowed.
@@ -94,7 +96,7 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
 - **End screen:** winner banner (+ `R.ui.pall` and `R.ui.poengliste` when there are points), then
   `R.ui.flereSpill({ antall })` ("Spill noe annet med samme gjeng"; with `antall: 1` "Flere spill du kan spille
   alene" — don't pass your own `tittel`). Dock: «Spill igjen» (same setup) as the
-  main button; links «Endre oppsett» and «Alle spill» (`<a class="lenke" href="/">Alle spill</a>`).
+  main button; links «Endre oppsett» and «Alle spill» (`<a class="lenke" href="${R.forside}">${R.esc(R.t("Alle spill"))}</a>`).
 - **Celebrate in proportion:** fanfare + confetti for a real win or a great result; a gentle sound and
   warm words for a weak solo result.
 - **Ending early:** the link is always just «Avslutt» (a `R.bekreft` sheet explains what happens).
@@ -146,6 +148,16 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
 - **Safety net:** if a saved game can't be drawn at all (also not the home screen), the kit drops that
   game's saved state and starts fresh with a toast. Still validate in `lastet(S)` — and bump `versjon`
   when the shape of `S` changes.
+
+## Other languages (rusj/SPRAK.md)
+
+rusj.no has an English edition under `/en/` and a Danish one under `/da/`, built from the same code.
+A game joins an edition when its texts are wrapped in `R.t("…")` (literal keys only), its tables
+`tekst.en.json` / `tekst.da.json` and `i18n` in spill.json are complete and `node scripts/sprak.mjs`
+is happy. The kit gives `R.sprak`, `R.forside` (link to the front page with it, never `href="/"`),
+`R.tidssone` (never hard-code `"Europe/Oslo"`), and keeps saved games, decks and join codes apart per
+edition by itself. The recipe, the glossary («Get ready», «Quit», «Gør klar», «Afslut» …) and the
+culture rules are in rusj/SPRAK.md.
 
 ## Accessibility the kit does for you (and how not to undo it)
 
