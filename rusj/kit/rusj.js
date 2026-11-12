@@ -562,10 +562,11 @@
   R.visKaffe = () => {
     const lenke = kaffeLenke();
     if (!lenke) return;
+    const pris = R.kutt(document.documentElement.dataset.kaffePris || "", 12);
     R.ark(`
       <h2 id="ark-tittel"><span aria-hidden="true">☕</span> ${esc(R.t("Liker du rusj?"))}</h2>
-      <p class="ingress">${esc(R.t("rusj er gratis og uten reklame. Spanderer du en kaffe, blir det flere spill."))}</p>
-      <a class="knapp" href="${esc(lenke)}" target="_blank" rel="noopener" data-h="kaffe-gitt">${esc(R.t("Spander en kaffe"))}</a>
+      <p class="ingress">${esc(R.t("rusj er gratis og uten reklame, og sånn vil vi ha det. Derfor spør vi om en kaffe hvert 20. spill. Spanderer du én, slutter vi å mase."))}</p>
+      <a class="knapp" href="${esc(lenke)}" target="_blank" rel="noopener" data-h="kaffe-gitt">${esc(pris ? R.t("Spander en kaffe – {pris}", { pris }) : R.t("Spander en kaffe"))}</a>
       <button class="lenke" data-h="lukk-ark">${esc(R.t("Ikke nå"))}</button>`);
   };
 

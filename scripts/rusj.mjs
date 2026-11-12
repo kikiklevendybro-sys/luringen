@@ -77,12 +77,16 @@ ${tekst ? `<p>${esc(tekst)}</p>\n` : ""}<p><a href="/${m.id}/">Gå til ${esc(m.n
 // window.RUSJ_STAT) on every page, and the footer and /personvern/ describe the counting.
 export const STAT_ADRESSE = "https://rusj-statistikk.kikiklevendybro.workers.dev";
 
-// «Spander en kaffe»: the owner's payment link (Vipps). Empty = switched off. When set, Norwegian
-// game pages carry it as <html data-kaffe>, and the kit asks for a coffee after every 20th finished
-// game until the link is tapped once (rusj/kit/rusj.js, «Spander en kaffe»). Vipps is Norwegian,
-// so the English and Danish editions never ask.
-export const KAFFE_LENKE = "";
-if (KAFFE_LENKE && !/^https:\/\/[^\s"<>]+$/.test(KAFFE_LENKE)) throw new Error("KAFFE_LENKE må være en vanlig https-adresse");
+// «Spander en kaffe»: per edition, the owner's payment link and the price shown on the button.
+// An empty link = off in that edition. When set, that edition's game pages carry them as
+// <html data-kaffe data-kaffe-pris>, and the kit asks for a coffee after every 20th finished game
+// until the link is tapped once (rusj/kit/rusj.js, «Spander en kaffe»).
+export const KAFFE = {
+  nb: { lenke: "", pris: "39 kr" },
+  en: { lenke: "", pris: "" },
+  da: { lenke: "", pris: "" },
+};
+for (const [s, k] of Object.entries(KAFFE)) if (k.lenke && !/^https:\/\/[^\s"<>]+$/.test(k.lenke)) throw new Error(`KAFFE.${s}.lenke må være en vanlig https-adresse`);
 
 // Checks the address and returns its origin ("" when off). Throws on anything that is not a plain
 // https origin (or http://localhost / 127.0.0.1 for tests), so a typo cannot reach the CSP.
@@ -753,7 +757,7 @@ export function byggRusj({ ROT, WEB, ordData, utvalg, luringen }) {
         delingAlt: t("{navn} – {frase}. Gratis på rusj.no", { navn: m.navn, frase: sd.frase }),
         css,
         skript,
-        htmlAttr: ` data-spill="${id}"${KAFFE_LENKE && U.sprak === "nb" ? ` data-kaffe="${esc(KAFFE_LENKE)}"` : ""} style="--aksent: ${m.farge}; --aksent-dyp: ${dyp}"`,
+        htmlAttr: ` data-spill="${id}"${KAFFE[U.sprak] && KAFFE[U.sprak].lenke ? ` data-kaffe="${esc(KAFFE[U.sprak].lenke)}" data-kaffe-pris="${esc(KAFFE[U.sprak].pris || "")}"` : ""} style="--aksent: ${m.farge}; --aksent-dyp: ${dyp}"`,
         jsonld: spillJsonLd(m, sd, deling, U),
       })}
 <body>
@@ -1087,7 +1091,7 @@ ${bunn(U, true, o.finn)}
             : ""
         }
       <li>${th("{tittel} hvilke klistremerker du har samlet og hvilken dag, og hvilke spill du har prøvd – så boka vet hva som mangler.", { tittel: `<b>${esc(t("Klistremerker:"))}</b>` })}</li>${
-        KAFFE_LENKE && U.sprak === "nb"
+        KAFFE[U.sprak] && KAFFE[U.sprak].lenke
           ? `
       <li>${th("{tittel} hvor mange spill du har spilt ferdig, og om du har trykket «Spander en kaffe» – så spørsmålet kommer bare hvert 20. spill, og aldri igjen etter at du har spandert.", { tittel: `<b>${esc(t("Kaffe:"))}</b>` })}</li>`
           : ""
