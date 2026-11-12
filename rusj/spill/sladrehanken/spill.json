@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["fest", "familie", "sporsmal"],
   "rekkefolge": 3,
-  "alias": ["jeg-har-aldri"]
+  "alias": ["jeg-har-aldri"],
+  "sok": ["jeg har aldri", "jeg har aldri spørsmål", "bli kjent", "samtalespill", "spørsmålskort", "vors uten alkohol"]
 }

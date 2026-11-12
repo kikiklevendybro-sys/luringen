@@ -492,3 +492,21 @@ test("an alias that is already taken, malformed or a brand stops the build", asy
   assert.throws(() => lag([{ id: "a", alias: ["codenames"] }]), /merkevare/);
   assert.throws(() => lag([{ id: "a", alias: "x" }]), /må være en liste/);
 });
+
+// ---------- Search words for the front page (`sok` in spill.json) ----------
+
+test("the original party games have their own generic search words, and the words people type find something", () => {
+  const liste = readFileSync(join(WEB, "felles/spilliste.js"), "utf8");
+  const spill = JSON.parse(liste.slice(liste.indexOf("=") + 1, liste.indexOf(";\nwindow.RUSJ_TAGGSOK")));
+  const taggsok = JSON.parse(liste.slice(liste.indexOf("window.RUSJ_TAGGSOK=") + "window.RUSJ_TAGGSOK=".length, liste.lastIndexOf(";")));
+  const originale = ["spionen", "sladrehanken", "pekefingeren", "vaghalsen", "vinglepetter", "skravla", "panna", "kodeknekkeren", "bedreviteren", "detektiven", "mimen", "hviskeren", "lognhalsen", "kunstneren", "sauen", "bokstavtrollet", "skjaera"];
+  for (const id of originale) {
+    const egne = JSON.parse(readFileSync(join(ROT, "rusj/spill", id, "spill.json"), "utf8")).sok || [];
+    assert.ok(egne.length >= 5, `${id}: bare ${egne.length} søkeord i spill.json`);
+    for (const ord of egne) assert.equal(merkeSynlig(ord), null, `${id}: «${ord}» i "sok" er en annens merkevare – bare allmenne ord her`);
+    const g = spill.find((x) => x.id === id);
+    if (g) for (const ord of egne) assert.ok(g.sok.includes(ord), `${id}: «${ord}» kom ikke med i spillista`);
+  }
+  const hoystakk = (g) => [g.navn, g.undertittel, g.kort, ...g.sok, ...g.tagger.flatMap((t) => taggsok[t] || [])].join(" ").toLocaleLowerCase("nb");
+  for (const ord of ["imposter", "nødt", "pekeleken", "flasketuten", "bli kjent", "dilemma", "mafia", "huskespill", "vendespill", "jeg har aldri", "kims lek", "alfabetleken", "20 spørsmål", "selskapsleker", "hyttetur", "klassefest"]) assert.ok(spill.some((g) => hoystakk(g).includes(ord)), `søket finner ingenting på «${ord}»`);
+});

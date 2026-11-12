@@ -10,5 +10,6 @@
   "tagger": ["fest", "blof", "familie", "sporsmal"],
   "rekkefolge": 2,
   "qr": true,
-  "alias": ["finn-spionen"]
+  "alias": ["finn-spionen"],
+  "sok": ["finn spionen", "spion", "hvem er spionen", "hemmelig sted", "bløffespill", "spørsmålslek"]
 }

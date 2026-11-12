@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["fest", "familie", "barn", "sporsmal"],
   "rekkefolge": 5,
-  "alias": ["nodt-eller-sannhet", "sannhet-eller-nodt", "sannhet-eller-konsekvens", "våghalsen"]
+  "alias": ["nodt-eller-sannhet", "sannhet-eller-nodt", "sannhet-eller-konsekvens", "våghalsen"],
+  "sok": ["nødt eller sannhet", "sannhet eller nødt", "sannhet eller konsekvens", "nødt", "flasketuten", "snurr flaska", "utfordringer"]
 }

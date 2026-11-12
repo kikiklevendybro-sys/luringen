@@ -123,6 +123,8 @@ const LURINGEN_KORT = {
   rekkefolge: 1,
   // (as in a game's spill.json: an easy address that sends on to /luringen/)
   alias: ["imposter"],
+  // Words for the front-page search (generic only; rusj/seo.json adds more).
+  sok: ["imposter", "finn bløfferen", "hemmelig ord", "bløff", "bløffespill", "ordlek", "selskapslek"],
 };
 // Luringen's page gets the same <head> as every other page (title and description from
 // rusj/seo.json, link preview, icons, structured data), so the two can never drift apart.

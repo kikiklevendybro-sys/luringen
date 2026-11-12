@@ -10,5 +10,6 @@
   "tagger": ["fest", "familie", "ord", "barn"],
   "rekkefolge": 8,
   "ordbank": true,
-  "alias": ["gjett-ordet-pa-panna"]
+  "alias": ["gjett-ordet-pa-panna"],
+  "sok": ["gjett ordet på panna", "ordet på panna", "hvem er jeg", "pannelek", "mobilen på panna", "charades"]
 }

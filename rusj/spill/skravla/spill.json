@@ -10,5 +10,6 @@
   "tagger": ["fest", "familie", "ord", "lag"],
   "rekkefolge": 7,
   "ordbank": true,
-  "alias": ["forklar-ordet"]
+  "alias": ["forklar-ordet"],
+  "sok": ["forklar ordet", "forbudte ord", "ordforklaring", "ordlek lag", "lagspill"]
 }

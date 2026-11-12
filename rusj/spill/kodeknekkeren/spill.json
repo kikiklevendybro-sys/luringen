@@ -11,5 +11,6 @@
   "rekkefolge": 9,
   "ordbank": true,
   "qr": true,
-  "alias": ["kodeord"]
+  "alias": ["kodeord"],
+  "sok": ["kodeord", "agenter", "agentspill", "hemmelige agenter", "ordlek lag"]
 }

@@ -8,5 +8,6 @@
   "minutter": [10, 40],
   "mobiler": "en",
   "tagger": ["fest", "familie", "sporsmal"],
-  "rekkefolge": 17
+  "rekkefolge": 17,
+  "sok": ["tenk som flokken", "svarte sauen", "tenk likt", "samme svar", "flokken"]
 }

@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["tegning", "fest", "familie", "barn"],
   "rekkefolge": 16,
-  "alias": ["tegn-og-gjett"]
+  "alias": ["tegn-og-gjett"],
+  "sok": ["tegn og gjett", "tegnelek", "tegne", "tegnespill", "gjett tegningen", "hviskeleken"]
 }

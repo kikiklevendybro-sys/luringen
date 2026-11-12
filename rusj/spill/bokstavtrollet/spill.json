@@ -9,5 +9,6 @@
   "mobiler": "en",
   "tagger": ["barn", "familie", "ord"],
   "rekkefolge": 19,
-  "alias": ["alfabetleken"]
+  "alias": ["alfabetleken"],
+  "sok": ["alfabetleken", "alfabetlek", "bokstavlek", "ord på bokstav", "kategorilek", "ordlek for barn"]
 }
