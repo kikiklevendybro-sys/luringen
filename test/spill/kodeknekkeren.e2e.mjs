@@ -92,7 +92,14 @@ async function mobilBilde(t, navn, bredde, hoyde) {
 }
 
 const NAVN = ["Testspiller A", "Testspiller B", "Testspiller C", "Testspiller D", "Testspiller E"];
-const vertLag = (l) => (l === 0 ? "Lag Rosa" : "Lag Blå");
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en kodeknekkeren): texts are checked in
+// Norwegian only (nb, eq), numbers and state everywhere; the team names follow the edition.
+let NB = true;
+let SPRAK = "nb";
+const nb = (re) => (NB ? re : /[\s\S]*/);
+const eq = (a, b) => !NB || a === b;
+const eqOr = (a, b, re) => (NB ? a === b : re.test(a));
+const vertLag = (l) => ({ en: ["Team Pink", "Team Blue"], da: ["Hold Rosa", "Hold Blå"] }[SPRAK] || ["Lag Rosa", "Lag Blå"])[l];
 const kortAv = (sp, type, unntak = []) => sp.nokkel.findIndex((x, i) => x === type && !sp.vist.includes(i) && !unntak.includes(i));
 // WCAG contrast of two "rgb(r, g, b)" colours
 const lys = (rgb) => {
@@ -105,8 +112,10 @@ const lys = (rgb) => {
 const kontrast = (a, b) => (Math.max(lys(a), lys(b)) + 0.05) / (Math.min(lys(a), lys(b)) + 0.05);
 
 export default async function (t) {
+  NB = t.norsk;
+  SPRAK = t.sprak;
   const tilstand = () => t.tilstand();
-  const kveld = () => t.js(`((JSON.parse(localStorage.getItem("rusj.kveld") || "null") || {}).spill || []).filter((s) => s.id === "kodeknekkeren")`);
+  const kveld = () => t.js(`((JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null") || {}).spill || []).filter((s) => s.id === "kodeknekkeren")`);
   const stat = (h) => t.js(`Rusj._statKo.filter((x) => x.h === ${JSON.stringify(h)}).map((x) => x.d)`);
   const snu = (i, ms = 140) => t.klikk(`.kk-kort[data-v="${i}"]`, ms);
   const angre = () => t.klikk('[data-h="angre"]', 460); // (a second «Angre» within 0.4 s is taken as a double tap)
@@ -125,8 +134,8 @@ export default async function (t) {
 
   await t.start({ navn: NAVN });
   t.sjekk(await t.finnes('[data-h="bli-med"]'), "Mangler «Jeg er kodemester» på hjem-skjermen");
-  t.sjekk(/2–20\s*spillere/.test(await t.tekst(".merker")), `Hjem-skjermen sier ikke «2–20 spillere» («${(await t.tekst(".merker")).replace(/\s+/g, " ")}»)`);
-  t.sjekk(!(await t.finnes('[data-h="fortsett"]')) && !/REKORD/.test(await t.tekst(".merker")), "En ny mobil skal ikke ha «Fortsett» eller rekord på hjem-skjermen");
+  t.sjekk(nb(/2–20\s*spillere/).test(await t.tekst(".merker")) && /2–20/.test(await t.tekst(".merker")), `Hjem-skjermen sier ikke «2–20 spillere» («${(await t.tekst(".merker")).replace(/\s+/g, " ")}»)`);
+  t.sjekk(!(await t.finnes('[data-h="fortsett"]')) && !/REKORD|BEST/.test(await t.tekst(".merker")), "En ny mobil skal ikke ha «Fortsett» eller rekord på hjem-skjermen");
 
   // ---------- Setup ----------
   await t.klikk('[data-h="nytt"]');
@@ -139,11 +148,11 @@ export default async function (t) {
       tips: /Tips: åpne brettet på nettbrett eller TV/.test(document.querySelector("#skjerm").innerText), kamp: (document.querySelector('[data-h="kamp"][aria-pressed="true"]') || {}).innerText,
       navn: !!document.querySelector("#spillerboks"), tittel: document.querySelector("#skjerm h1").innerText, start: document.querySelector(".dokk .knapp").innerText.trim() }; })()`);
   t.sjekk(opp.modusForst && opp.fliser === 2, "Valget mellom «Lag mot lag» og «Sammen mot fella» skal være det første på oppsettet, som to fliser");
-  t.sjekk(opp.vei === "Lag → Nøkkel → Brett" && /Lag/.test(opp.na), `Starten skal vises som tre prikker «Lag → Nøkkel → Brett» med «Lag» som nå (${opp.vei}, nå: ${opp.na})`);
-  t.sjekk(opp.tips, "Oppsettet mangler tipset om nettbrett eller TV");
-  t.sjekk(opp.kamp === "Best av 3", `«Kampen» skal stå på «Best av 3» fra start (står på «${opp.kamp}»)`);
+  t.sjekk(eq(opp.vei, "Lag → Nøkkel → Brett") && nb(/Lag/).test(opp.na) && opp.vei.split(" → ").length === 3, `Starten skal vises som tre prikker «Lag → Nøkkel → Brett» med «Lag» som nå (${opp.vei}, nå: ${opp.na})`);
+  t.sjekk(!NB || opp.tips, "Oppsettet mangler tipset om nettbrett eller TV");
+  t.sjekk(eq(opp.kamp, "Best av 3"), `«Kampen» skal stå på «Best av 3» fra start (står på «${opp.kamp}»)`);
   t.sjekk(!opp.navn, "Navn skal være valgfritt: spillerlista skal ikke vises før man ber om den");
-  t.sjekk(opp.tittel === "Gjør klart" && opp.start === "Start", `Oppsettet heter «${opp.tittel}» og hovedknappen «${opp.start}»`);
+  t.sjekk(eq(opp.tittel, "Gjør klart") && opp.start === "Start", `Oppsettet heter «${opp.tittel}» og hovedknappen «${opp.start}»`);
   t.sjekk((await tilstand()).antall === 5, `Et nytt oppsett skal starte fra den lagrede gjengen på 5 (fikk ${(await tilstand()).antall})`);
   await t.klikk('[data-h="kamp"][data-v="fri"]');
   t.sjekk((await tilstand()).oppsett.kamp === "fri", "«Fri» ble ikke valgt");
@@ -156,7 +165,7 @@ export default async function (t) {
   // ---------- Key screen: join code + QR ----------
   await t.vent("document.querySelector('#kk-kode')");
   t.sjekk(await t.finnes(".kk-kodekort .qr svg"), "QR-koden vises ikke");
-  t.sjekk(/Nøkkel/.test(await t.tekst('.kk-vei li[aria-current="step"]')), "Nøkkel-skjermen viser ikke «Nøkkel» som steget vi er på");
+  t.sjekk(nb(/Nøkkel/).test(await t.tekst('.kk-vei li[aria-current="step"]')), "Nøkkel-skjermen viser ikke «Nøkkel» som steget vi er på");
   await t.bilde("nokkel-kode");
   const kode = await t.js("document.querySelector('#kk-kode').dataset.kode");
   t.sjekk(/^[0-9A-Z]{8}$/.test(kode), `Koden ser rar ut: ${kode}`);
@@ -181,7 +190,7 @@ export default async function (t) {
   const holdt = await bokstaver(".mappe.apen .kk-n");
   t.sjekk(holdt.length === 25 && holdt.every((m) => m.b === ["R", "B", "", "✕"][m.t]), "Hold-kortet skiller ikke lagene med bokstaver (R, B og ✕ for fella)");
   const forklaring = await t.js("(document.querySelector('.mappe.apen .kk-fordeling') || {}).textContent || ''");
-  t.sjekk(/R\s*Lag Rosa: \d/.test(forklaring) && /B\s*Lag Blå: \d/.test(forklaring) && /✕\s*Fella: 1/.test(forklaring), `Forklaringen under nøkkelen mangler bokstavene («${forklaring}»)`);
+  t.sjekk(new RegExp(`R\\s*${vertLag(0)}: \\d`).test(forklaring) && new RegExp(`B\\s*${vertLag(1)}: \\d`).test(forklaring) && /✕\s*[^:]+: 1/.test(forklaring), `Forklaringen under nøkkelen mangler bokstavene («${forklaring}»)`);
   await t.bilde("nokkel-holdt");
   await slipp();
   t.sjekk(!(await t.finnes(".mappe.apen")), "Hold-kortet lukket seg ikke");
@@ -192,7 +201,7 @@ export default async function (t) {
   await ventBrett();
   await t.bilde("brett-eksempel");
   t.sjekk((await t.antall(".kk-eks li")) === 3 && !(await t.finnes(".kk-hint")), "Første brett på mobilen skal vise eksempelet i tre ruter");
-  t.sjekk(/Kodemesteren sier «HAV, 2».*To av ordene passer.*Laget trykker Krabbe og Måke/s.test(await t.tekst(".kk-eks")), `Eksempelet sier ikke det det skal: «${(await t.tekst(".kk-eks")).replace(/\s+/g, " ")}»`);
+  t.sjekk(nb(/Kodemesteren sier «HAV, 2».*To av ordene passer.*Laget trykker Krabbe og Måke/s).test(await t.tekst(".kk-eks")), `Eksempelet sier ikke det det skal: «${(await t.tekst(".kk-eks")).replace(/\s+/g, " ")}»`);
   t.sjekk((await t.friForDokk(".kk-brett")) && (await t.friForDokk(".kk-eks")), "Eksempelet eller brettet havner bak knappene");
   const kutt = await t.js("Array.from(document.querySelectorAll('.kk-ord')).filter(o => o.getBoundingClientRect().width > o.parentElement.clientWidth + 1).length");
   t.sjekk(kutt === 0, `${kutt} ord er for brede for kortene på mobil`);
@@ -220,12 +229,12 @@ export default async function (t) {
     return { tall: k.map((b) => b.innerText.trim()).join(" "), ikkeTrykket: k.filter((b) => b.getAttribute("aria-pressed") === "false").length, gruppe: document.querySelector(".kk-tall").getAttribute("aria-label"),
       uendelig: k[5].getAttribute("aria-label"), etikett: (document.querySelector('label[for="kk-hintfelt"]') || {}).textContent || "", maks: f.maxLength, skrift: parseFloat(getComputedStyle(f).fontSize) }; })()`);
   t.sjekk(st.tall === "1 2 3 4 5 ∞" && st.ikkeTrykket === 6, `Hintstripa skal ha tallene «1 2 3 4 5 ∞» med aria-pressed (har «${st.tall}»)`);
-  t.sjekk(!!st.gruppe && st.uendelig === "Uendelig" && /valgfritt/.test(st.etikett) && st.maks === 20, "Hintstripa mangler etiketter (gruppe, ∞, feltet) eller grensen på 20 tegn");
+  t.sjekk(!!st.gruppe && eq(st.uendelig, "Uendelig") && nb(/valgfritt/).test(st.etikett) && st.maks === 20, "Hintstripa mangler etiketter (gruppe, ∞, feltet) eller grensen på 20 tegn");
   t.sjekk(st.skrift >= 16, `Hintfeltet har ${st.skrift}px skrift – under 16px zoomer iPhone inn på siden`);
   t.sjekk((await t.friForDokk(".kk-hint")) && (await t.friForDokk(".kk-brett")), "Hintstripa eller brettet havner bak knappene");
   await t.skrivInn("#kk-hintfelt", "hav");
   await t.klikk('[data-h="hint-tall"][data-v="2"]');
-  t.sjekk(/HAV · 2/.test(await stripe()) && /to forsøk igjen \(\+1\)/.test(await stripe()), `Stripa skal vise «HAV · 2 – to forsøk igjen (+1)» (viser «${(await stripe()).replace(/\s+/g, " ")}»)`);
+  t.sjekk(/HAV · 2/.test(await stripe()) && nb(/to forsøk igjen \(\+1\)/).test(await stripe()) && /\(\+1\)/.test(await stripe()), `Stripa skal vise «HAV · 2 – to forsøk igjen (+1)» (viser «${(await stripe()).replace(/\s+/g, " ")}»)`);
   t.sjekk(await t.js("document.activeElement && document.activeElement.id === 'kk-hint-vis'"), "Fokus skal stå på hintet når tallet er trykket (knappen forsvant)");
   S = await tilstand();
   t.sjekk(S.spill.hint && S.spill.hint.ord === "hav" && S.spill.hint.n === 2 && S.spill.hintlogg.length === 1, "Hintet ble ikke lagret");
@@ -233,36 +242,36 @@ export default async function (t) {
   await t.bilde("hint");
   // It counts down as cards are turned …
   await snu(eget);
-  t.sjekk(/ett forsøk igjen \(\+1\)/.test(await stripe()), `Etter ett kort: «${(await stripe()).replace(/\s+/g, " ")}»`);
+  t.sjekk(nb(/ett forsøk igjen \(\+1\)/).test(await stripe()), `Etter ett kort: «${(await stripe()).replace(/\s+/g, " ")}»`);
   S = await tilstand();
   const eget2 = kortAv(S.spill, lag);
   await snu(eget2);
-  t.sjekk(/ekstraforsøket igjen/.test(await stripe()), `Etter to kort: «${(await stripe()).replace(/\s+/g, " ")}»`);
+  t.sjekk(nb(/ekstraforsøket igjen/).test(await stripe()), `Etter to kort: «${(await stripe()).replace(/\s+/g, " ")}»`);
   const eget3 = kortAv((await tilstand()).spill, lag);
   await snu(eget3);
   // … and says the team is done when the guesses are used (the team may still go on: the game is not a referee)
-  t.sjekk(new RegExp(`${vertLag(lag)} er ferdig`).test(await stripe()) && (await t.finnes(".kk-hint.brukt")), `Når forsøkene er brukt, skal stripa si «${vertLag(lag)} er ferdig» (sier «${(await stripe()).replace(/\s+/g, " ")}»)`);
+  t.sjekk((NB ? new RegExp(`${vertLag(lag)} er ferdig`) : new RegExp(vertLag(lag))).test(await stripe()) && (await t.finnes(".kk-hint.brukt")), `Når forsøkene er brukt, skal stripa si «${vertLag(lag)} er ferdig» (sier «${(await stripe()).replace(/\s+/g, " ")}»)`);
   t.sjekk(await t.finnes('.dokk .knapp.kk-klar[data-h="ferdig"]'), "Hovedknappen skal lyse opp når forsøkene er brukt");
   t.sjekk((await tilstand()).spill.tur === lag, "Turen skal ikke gå videre av seg selv når forsøkene er brukt");
   await t.bilde("hint-brukt");
   // Undo: the card is hidden again and the count is back
   await angre();
   S = await tilstand();
-  t.sjekk(!S.spill.vist.includes(eget3) && /ekstraforsøket igjen/.test(await stripe()) && !(await t.finnes(".knapp.kk-klar")), "Angre tok ikke tilbake kortet og tellingen på stripa");
+  t.sjekk(!S.spill.vist.includes(eget3) && nb(/ekstraforsøket igjen/).test(await stripe()) && !(await t.finnes(".knapp.kk-klar")), "Angre tok ikke tilbake kortet og tellingen på stripa");
   // Change the hint: the field has the word and the number is pressed
   await t.klikk("#kk-hint-vis");
   const endre = await t.js(`({ ord: document.querySelector("#kk-hintfelt").value, trykket: Array.from(document.querySelectorAll('[data-h="hint-tall"][aria-pressed="true"]')).map((b) => b.dataset.v).join(), fokus: document.activeElement.id })`);
   t.sjekk(endre.ord === "hav" && endre.trykket === "2" && endre.fokus === "kk-hintfelt", `Et trykk på hintet skal åpne det for endring (${JSON.stringify(endre)})`);
   await t.klikk('[data-h="hint-tall"][data-v="3"]');
   S = await tilstand();
-  t.sjekk(/HAV · 3/.test(await stripe()) && /ett forsøk igjen \(\+1\)/.test(await stripe()) && S.spill.hintlogg.length === 1 && S.spill.hintlogg[0].n === 3, `Hintet ble ikke endret til 3 («${(await stripe()).replace(/\s+/g, " ")}»)`);
+  t.sjekk(/HAV · 3/.test(await stripe()) && nb(/ett forsøk igjen \(\+1\)/).test(await stripe()) && S.spill.hintlogg.length === 1 && S.spill.hintlogg[0].n === 3, `Hintet ble ikke endret til 3 («${(await stripe()).replace(/\s+/g, " ")}»)`);
   await angre();
   S = await tilstand();
   t.sjekk(S.spill.hint.n === 2 && S.spill.hintlogg[0].n === 2 && /HAV · 2/.test(await stripe()) && S.spill.vist.length === 2, "Angre skulle ta tilbake endringen av hintet (og ikke et kort)");
   // «Hintene så langt»
   await t.klikk('[data-h="hint-logg"]');
   const logg = await t.tekst("#ark");
-  t.sjekk(/Hintene så langt/.test(logg) && /HAV · 2/.test(logg) && logg.includes(vertLag(lag).toUpperCase()) && logg.includes(sp.ord[eget]) && logg.includes(sp.ord[eget2]), `Arket «Hintene så langt» viser ikke hintet, laget og ordene som ble tatt: «${logg.replace(/\s+/g, " ").slice(0, 160)}»`);
+  t.sjekk(nb(/Hintene så langt/).test(logg) && /HAV · 2/.test(logg) && logg.includes(vertLag(lag).toUpperCase()) && logg.includes(sp.ord[eget]) && logg.includes(sp.ord[eget2]), `Arket «Hintene så langt» viser ikke hintet, laget og ordene som ble tatt: «${logg.replace(/\s+/g, " ").slice(0, 160)}»`);
   await t.bilde("hintene");
   await t.klikk('#ark [data-h="lukk-ark"]');
 
@@ -276,7 +285,7 @@ export default async function (t) {
   await angre();
   S = await tilstand();
   t.sjekk(!S.spill.vist.includes(noytral) && S.spill.tur === lag, "Angre virket ikke");
-  t.sjekk(S.spill.hint && S.spill.hint.ord === "hav" && /HAV · 2/.test(await stripe()) && /ekstraforsøket igjen/.test(await stripe()), "Angre skulle hente hintet tilbake da turen kom tilbake");
+  t.sjekk(S.spill.hint && S.spill.hint.ord === "hav" && /HAV · 2/.test(await stripe()) && nb(/ekstraforsøket igjen/).test(await stripe()), "Angre skulle hente hintet tilbake da turen kom tilbake");
 
   // The other team's agent: turn goes over
   const motstander = kortAv(S.spill, 1 - lag);
@@ -289,16 +298,16 @@ export default async function (t) {
   await t.skrivInn("#kk-hintfelt", "fjell");
   await t.js(`document.querySelector("form.kk-hint").requestSubmit()`);
   await t.sov(200);
-  t.sjekk(/FJELL/.test(await stripe()) && !/forsøk/.test(await stripe()), `Enter i feltet skal skrive inn ordet uten tall («${(await stripe()).replace(/\s+/g, " ")}»)`);
+  t.sjekk(/FJELL/.test(await stripe()) && (!NB || !/forsøk/.test(await stripe())), `Enter i feltet skal skrive inn ordet uten tall («${(await stripe()).replace(/\s+/g, " ")}»)`);
   await t.klikk("#kk-hint-vis");
   await t.klikk('[data-h="hint-tall"][data-v="99"]');
-  t.sjekk(/FJELL · ∞/.test(await stripe()) && /så mange forsøk dere vil/.test(await stripe()), `∞ gir ikke fritt antall forsøk («${(await stripe()).replace(/\s+/g, " ")}»)`);
+  t.sjekk(/FJELL · ∞/.test(await stripe()) && nb(/så mange forsøk dere vil/).test(await stripe()), `∞ gir ikke fritt antall forsøk («${(await stripe()).replace(/\s+/g, " ")}»)`);
   // A word that lies on the board: the phone says so (the classic rule)
   S = await tilstand();
   await t.klikk("#kk-hint-vis");
   await t.skrivInn("#kk-hintfelt", S.spill.ord[kortAv(S.spill, 2)].toLowerCase());
   await t.klikk('[data-h="hint-tall"][data-v="1"]');
-  t.sjekk(/ikke være et ord på brettet/.test(await t.tekst("#toast")) && (await t.finnes("#toast.vis")), "Et hint som står på brettet, skulle gi beskjed");
+  t.sjekk(nb(/ikke være et ord på brettet/).test(await t.tekst("#toast")) && (await t.finnes("#toast.vis")), "Et hint som står på brettet, skulle gi beskjed");
   // Typed text is text: never markup, never longer than 20 characters (an emoji counts as one)
   await t.klikk("#kk-hint-vis");
   await t.skrivInn("#kk-hintfelt", '<b id="kk-x">x</b>');
@@ -318,8 +327,8 @@ export default async function (t) {
 
   // End the turn by hand: the button has the colour of the team playing and says who is next.
   // A double tap (two real taps 110 ms apart) hands the turn over once – not over and back.
-  t.sjekk(new RegExp(`${vertLag(1 - lag)} er ferdig`).test(await t.tekst('[data-h="ferdig"]')), "Hovedknappen sier ikke hvilket lag som er ferdig");
-  t.sjekk(new RegExp(`Turen går til ${vertLag(lag)}`).test(await t.tekst('[data-h="ferdig"]')), "Hovedknappen sier ikke hvem som får turen");
+  t.sjekk((NB ? new RegExp(`${vertLag(1 - lag)} er ferdig`) : new RegExp(vertLag(1 - lag))).test(await t.tekst('[data-h="ferdig"]')), "Hovedknappen sier ikke hvilket lag som er ferdig");
+  t.sjekk(new RegExp(NB ? `Turen går til ${vertLag(lag)}` : vertLag(lag)).test(await t.tekst('[data-h="ferdig"]')), "Hovedknappen sier ikke hvem som får turen");
   t.sjekk(!/[^\s\wæøåÆØÅ]/.test((await t.tekst('[data-h="ferdig"]')).replace(/\s+/g, "")), `Hovedknappen skal være ren tekst uten emoji («${(await t.tekst('[data-h="ferdig"]')).replace(/\s+/g, " ")}»)`);
   await t.sov(400);
   await dobbeltTrykk(t, '[data-h="ferdig"]');
@@ -333,7 +342,7 @@ export default async function (t) {
   t.sjekk((await t.antall(".kk-nokkel .kk-n")) === 25, "Kodemesteren ser ikke 25 ruter");
   const gjest = await t.js("Array.from(document.querySelectorAll('.kk-nokkel .kk-n')).map(b => ({ o: b.querySelector('.kk-ord .hel').textContent, t: Number(b.className.match(/\\bt(\\d)\\b/)[1]) }))");
   t.sjekk(gjest.every((g, i) => g.o === vert.ord[i] && g.t === vert.nokkel[i]), "Nøkkelen fra koden stemmer ikke med brettet");
-  t.sjekk(new RegExp(vert.start === 0 ? "Rosa" : "Blå").test(await t.tekst(".kk-starter")), "Kodemesteren ser feil lag som begynner");
+  t.sjekk(new RegExp(vertLag(vert.start)).test(await t.tekst(".kk-starter")), "Kodemesteren ser feil lag som begynner");
   // Not by colour alone: every agent has its team's letter, the trap a ✕ — in the grid and in the lists
   const pa = await bokstaver(".kk-nokkel .kk-n");
   t.sjekk(pa.every((m) => m.b === ["R", "B", "", "✕"][m.t]), "Nøkkelen på kodemesterens mobil skiller ikke lagene med bokstaver");
@@ -353,11 +362,11 @@ export default async function (t) {
   await t.klikk('[data-h="bli-med"]');
   await t.skrivInn("#kk-kodefelt", "abcd");
   await t.klikk('button[type="submit"]');
-  t.sjekk(/tegn/.test(await t.tekst("#kk-kodefeil")), "Mangler feilmelding for for kort kode");
+  t.sjekk(nb(/tegn/).test(await t.tekst("#kk-kodefeil")) && /\S/.test(await t.tekst("#kk-kodefeil")), "Mangler feilmelding for for kort kode");
   const feilKode = kode.slice(0, 7) + (kode[7] === "0" ? "1" : "0");
   await t.skrivInn("#kk-kodefelt", feilKode);
   await t.klikk('button[type="submit"]');
-  t.sjekk(/stemmer ikke/.test(await t.tekst("#kk-kodefeil")), "En feil kode ble godtatt");
+  t.sjekk(nb(/stemmer ikke/).test(await t.tekst("#kk-kodefeil")) && /\S/.test(await t.tekst("#kk-kodefeil")), "En feil kode ble godtatt");
   await t.bilde("bli-med-feil");
   await t.skrivInn("#kk-kodefelt", kode.slice(0, 4).toLowerCase() + "-" + kode.slice(4).toLowerCase());
   await t.vent("document.querySelector('.kk-nokkel')", 4000);
@@ -365,21 +374,21 @@ export default async function (t) {
 
   // A broken link goes to the form with a message
   await t.lastSide(`${t.side}#XYZ`, "document.querySelector('#kk-kodefelt')");
-  t.sjekk(/gyldig/.test(await t.tekst("#kk-kodefeil")), "Ugyldig lenke viser ingen feilmelding");
+  t.sjekk(nb(/gyldig/).test(await t.tekst("#kk-kodefeil")) && /\S/.test(await t.tekst("#kk-kodefeil")), "Ugyldig lenke viser ingen feilmelding");
 
   // ---------- Back on the board device: the game is still there ----------
   // (A reload never opens the key by itself: it shows the join screen with a button back to it.)
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   t.sjekk(!(await t.finnes(".kk-nokkel")), "Omlasting viste nøkkelen uten at kodemesteren ba om det");
   t.sjekk(await t.finnes('.dokk .knapp[data-h="til-gjest"]'), "Med en lagret nøkkel skulle «Vis nøkkelen til brett …» være hovedknappen");
-  t.sjekk(/ny kode/i.test(await t.tekst('label[for="kk-kodefelt"]')), "Kodefeltet skulle hete «Ny kode» når en nøkkel er lagret");
+  t.sjekk(nb(/ny kode/i).test(await t.tekst('label[for="kk-kodefelt"]')), "Kodefeltet skulle hete «Ny kode» når en nøkkel er lagret");
   await t.bilde("bli-med-igjen");
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett · brett 1/.test(await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')), `Mens et brett pågår, skal hovedknappen være «Fortsett · brett 1» (er «${await t.tekst(".hjem-knapper .knapp")}»)`);
+  t.sjekk((NB ? /Fortsett · brett 1/ : /· \S+ 1/).test(await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')), `Mens et brett pågår, skal hovedknappen være «Fortsett · brett 1» (er «${await t.tekst(".hjem-knapper .knapp")}»)`);
   // «Nytt spill» asks first, says what is lost, and keeps the game when the answer is «Spill videre»
   await t.klikk('[data-h="nytt"]');
   await t.vent("document.querySelector('#ark:not([hidden]) [data-v=\"nei\"]')");
-  t.sjekk(/Brettet dere holder på med, forsvinner\./.test(await t.tekst("#ark")) && (await t.tekst('#ark [data-v="nei"]')).trim() === "Spill videre", `«Nytt spill» midt i første brett: «${(await t.tekst("#ark")).replace(/\s+/g, " ")}»`);
+  t.sjekk(nb(/Brettet dere holder på med, forsvinner\./).test(await t.tekst("#ark")) && eq((await t.tekst('#ark [data-v="nei"]')).trim(), "Spill videre"), `«Nytt spill» midt i første brett: «${(await t.tekst("#ark")).replace(/\s+/g, " ")}»`);
   await t.bilde("bekreft-nytt");
   await arkSvar("nei");
   t.sjekk((await tilstand()).spill !== null && (await t.finnes('[data-h="fortsett"]')), "Spillet forsvant selv om vi trykket «Spill videre»");
@@ -446,9 +455,9 @@ export default async function (t) {
   t.sjekk((await t.antall(".kk-kort.fasit")) > 0, "Resultatet viser ikke hele nøkkelen");
   const res = await t.js(`({ h1: document.querySelector("#skjerm h1").innerText, stilling: document.querySelector(".kk-stilling").innerText.replace(/\\s+/g, " ").trim(), knapp: document.querySelector(".dokk .knapp").innerText.trim(), h: document.querySelector(".dokk .knapp").dataset.h,
     lenker: Array.from(document.querySelectorAll(".dokk .lenke")).map((l) => l.innerText.trim()).join("|"), topp: document.querySelector("#topp-tittel").textContent })`);
-  t.sjekk(res.h1 === `${vertLag(vinnerLag)} tok brettet!`, `Brettets resultat har overskriften «${res.h1}»`);
-  t.sjekk(res.stilling === (vinnerLag === 0 ? "Lag Rosa 1 – 0 Lag Blå" : "Lag Rosa 0 – 1 Lag Blå"), `Brettets resultat viser stillingen «${res.stilling}»`);
-  t.sjekk(res.knapp === "Neste brett" && res.h === "neste-brett" && /Angre/.test(res.lenker) && /Avslutt/.test(res.lenker), `Etter et brett skal hovedknappen være «Neste brett», med «Angre» og «Avslutt» under (${res.knapp}: ${res.lenker})`);
+  t.sjekk(eq(res.h1, `${vertLag(vinnerLag)} tok brettet!`) && res.h1.includes(vertLag(vinnerLag)), `Brettets resultat har overskriften «${res.h1}»`);
+  t.sjekk(res.stilling === (vinnerLag === 0 ? `${vertLag(0)} 1 – 0 ${vertLag(1)}` : `${vertLag(0)} 0 – 1 ${vertLag(1)}`), `Brettets resultat viser stillingen «${res.stilling}»`);
+  t.sjekk(eq(res.knapp, "Neste brett") && res.h === "neste-brett" && nb(/Angre/).test(res.lenker) && nb(/Avslutt/).test(res.lenker), `Etter et brett skal hovedknappen være «Neste brett», med «Angre» og «Avslutt» under (${res.knapp}: ${res.lenker})`);
   t.sjekk((await kveld()).length === 0, "Kampen ble registrert i Kveldens gjeng før kåringen");
   const fasit = await bokstaver(".kk-brett .kk-kort.fasit, .kk-brett .kk-kort.vist");
   t.sjekk(fasit.length === 25 && fasit.every((m) => m.b === ["R", "B", "", "✕"][m.t]), "Nøkkelen på resultatet skiller ikke lagene med bokstaver");
@@ -459,12 +468,12 @@ export default async function (t) {
 
   // Between two boards: the home screen says so, and «Nytt spill» says what would be lost
   await t.klikk("#tilbake");
-  const mellom = `Fortsett · Lag Rosa ${vinnerLag === 0 ? "1 – 0" : "0 – 1"} Lag Blå`;
-  t.sjekk((await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')).replace(/\s+/g, " ").trim() === mellom, `Mellom to brett skal hovedknappen være «${mellom}» (er «${(await t.tekst(".hjem-knapper .knapp")).replace(/\s+/g, " ")}»)`);
+  const mellom = `Fortsett · ${vertLag(0)} ${vinnerLag === 0 ? "1 – 0" : "0 – 1"} ${vertLag(1)}`;
+  t.sjekk((await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')).replace(/\s+/g, " ").trim().endsWith(NB ? mellom : mellom.replace("Fortsett ", "")), `Mellom to brett skal hovedknappen være «${mellom}» (er «${(await t.tekst(".hjem-knapper .knapp")).replace(/\s+/g, " ")}»)`);
   await t.bilde("hjem-mellom-brett");
   await t.klikk('[data-h="nytt"]');
   await t.vent("document.querySelector('#ark:not([hidden]) [data-v=\"nei\"]')");
-  t.sjekk(new RegExp(`Stillingen ${vinnerLag === 0 ? "1–0" : "0–1"} nullstilles\\.`).test(await t.tekst("#ark")) && !/holder på med/.test(await t.tekst("#ark")), `«Nytt spill» mellom to brett skal si at stillingen nullstilles: «${(await t.tekst("#ark")).replace(/\s+/g, " ")}»`);
+  t.sjekk(!NB || new RegExp(`Stillingen ${vinnerLag === 0 ? "1–0" : "0–1"} nullstilles\\.`).test(await t.tekst("#ark")) && !/holder på med/.test(await t.tekst("#ark")), `«Nytt spill» mellom to brett skal si at stillingen nullstilles: «${(await t.tekst("#ark")).replace(/\s+/g, " ")}»`);
   await t.bilde("bekreft-nytt-stilling");
   await arkSvar("nei");
   await t.klikk('[data-h="fortsett"]');
@@ -482,7 +491,7 @@ export default async function (t) {
   // The code master who already has the old code just taps "Neste brett"
   await t.lastSide(`${t.side}#${kode}`, "document.querySelector('.kk-nokkel')");
   await t.klikk('[data-h="gjest-neste"]');
-  t.sjekk((await t.tekst('#ark [data-v="nei"]')).trim() === "Ikke ennå", "Arket «Gå til brett 2?» skal ha «Ikke ennå» som nei-svar");
+  t.sjekk(eq((await t.tekst('#ark [data-v="nei"]')).trim(), "Ikke ennå"), "Arket «Gå til brett 2?» skal ha «Ikke ennå» som nei-svar");
   await t.bilde("kodemester-neste-brett");
   await arkSvar("ja");
   await t.vent("document.querySelector('#skjerm h1').textContent.includes('2')");
@@ -496,7 +505,7 @@ export default async function (t) {
   // ---------- The trap ends the board; undo saves the day; the second win decides the match ----------
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett · brett 2/.test(await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')), "Hjem-skjermen sier ikke «Fortsett · brett 2»");
+  t.sjekk((NB ? /Fortsett · brett 2/ : /· \S+ 2/).test(await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')), "Hjem-skjermen sier ikke «Fortsett · brett 2»");
   await t.klikk('[data-h="fortsett"]');
   await ventBrett();
   t.sjekk(!(await t.finnes(".kk-eks")) && (await t.finnes(".kk-hint")), "Eksempelet skal aldri vises igjen etter første ferdige brett");
@@ -510,9 +519,9 @@ export default async function (t) {
   await ventResultat();
   S = await tilstand();
   t.sjekk(S.spill.vinner === vinnerLag && S.spill.grunn === "fella" && S.spill.stilling[vinnerLag] === 2, "Fella ga ikke seieren til det andre laget");
-  t.sjekk(/fella/.test(await t.tekst(".kk-banner")), "Resultatet sier ikke at noen gikk i fella");
+  t.sjekk(nb(/fella/).test(await t.tekst(".kk-banner")), "Resultatet sier ikke at noen gikk i fella");
   const avgjort = await t.js(`({ knapp: document.querySelector(".dokk .knapp").innerText.trim(), h: document.querySelector(".dokk .knapp").dataset.h, etikett: document.querySelector(".kk-banner .etikett").innerText, avslutt: !!document.querySelector('.dokk [data-h="avslutt"]') })`);
-  t.sjekk(avgjort.knapp === "Til kåringen" && avgjort.h === "til-karing" && /avgjort/i.test(avgjort.etikett) && !avgjort.avslutt, `Når kampen er avgjort, skal hovedknappen være «Til kåringen» (${JSON.stringify(avgjort)})`);
+  t.sjekk(eq(avgjort.knapp, "Til kåringen") && avgjort.h === "til-karing" && nb(/avgjort/i).test(avgjort.etikett) && !avgjort.avslutt, `Når kampen er avgjort, skal hovedknappen være «Til kåringen» (${JSON.stringify(avgjort)})`);
   await t.bilde("resultat-fella");
   await angre();
   await ventBrett();
@@ -530,11 +539,11 @@ export default async function (t) {
   S = await tilstand();
   const kar = await t.js(`({ topp: document.querySelector("#topp-tittel").textContent, h1: document.querySelector("#skjerm h1").innerText, tekst: document.querySelector(".banner").innerText.replace(/\\s+/g, " "),
     vinner: (document.querySelector(".kk-lagkort.vinner h2") || {}).innerText, kort: Array.from(document.querySelectorAll(".kk-lagkort .kk-lagkort-tall b")).map((b) => b.textContent).join("–"),
-    knapp: document.querySelector(".dokk .knapp").innerText.trim(), lenker: Array.from(document.querySelectorAll(".dokk .lenke")).map((l) => l.innerText.trim()).join("|"), alle: !!document.querySelector('.dokk a.lenke[href="/"]'),
+    knapp: document.querySelector(".dokk .knapp").innerText.trim(), lenker: Array.from(document.querySelectorAll(".dokk .lenke")).map((l) => l.innerText.trim()).join("|"), alle: !!document.querySelector('.dokk a.lenke[href="${t.forside}"]'),
     del: !!document.querySelector('.knapp-2[data-h="del"]'), flere: !!document.querySelector(".flere-spill"), jubel: !!document.querySelector(".banner .figur-ramme.jubel") })`);
-  t.sjekk(/kåringen/i.test(kar.topp) && kar.h1 === `${vertLag(vinnerLag)} vinner!` && /2–0 etter 2 brett/.test(kar.tekst) && /Best av 3/i.test(kar.tekst), `Kåringen: «${kar.h1}» – «${kar.tekst}»`);
+  t.sjekk(nb(/kåringen/i).test(kar.topp) && eq(kar.h1, `${vertLag(vinnerLag)} vinner!`) && kar.h1.includes(vertLag(vinnerLag)) && nb(/2–0 etter 2 brett/).test(kar.tekst) && /2–0/.test(kar.tekst) && nb(/Best av 3/i).test(kar.tekst), `Kåringen: «${kar.h1}» – «${kar.tekst}»`);
   t.sjekk(kar.vinner === vertLag(vinnerLag) && kar.kort === (vinnerLag === 0 ? "2–0" : "0–2") && kar.jubel, `Kåringen viser ikke lagene med stillingen (${kar.vinner}, ${kar.kort})`);
-  t.sjekk(kar.knapp === "Spill igjen" && kar.lenker === "Endre oppsett|Alle spill" && kar.alle && kar.del && kar.flere, `Kåringen skal ha «Spill igjen», «Endre oppsett», «Alle spill», «Del resultatet» og flere spill (${kar.knapp}: ${kar.lenker})`);
+  t.sjekk(eq(kar.knapp, "Spill igjen") && eq(kar.lenker, "Endre oppsett|Alle spill") && kar.alle && kar.del && kar.flere, `Kåringen skal ha «Spill igjen», «Endre oppsett», «Alle spill», «Del resultatet» og flere spill (${kar.knapp}: ${kar.lenker})`);
   t.sjekk(S.spill.ferdig === true && S._aktiv === false, "Etter kåringen skal spillet være ferdig (ikke «pågår»)");
   t.sjekk(await t.friForDokk("#skjerm h1"), "Overskriften på kåringen havner bak knappene");
   // Registered once in «Kveldens gjeng»: the two teams, with boards won
@@ -543,7 +552,7 @@ export default async function (t) {
   hendelser = await stat("ferdig");
   t.sjekk(hendelser.length === 1 && hendelser[0].modus === "lag" && hendelser[0].runder === 2 && hendelser[0].avbrutt === false, `Statistikken «ferdig»: ${JSON.stringify(hendelser)}`);
   let deling = await delt();
-  t.sjekk(deling && deling.tittel === "Kodeknekkeren" && deling.tekst === `Kodeknekkeren: ${vertLag(vinnerLag)} vant 2–0 🕵️` && /\/kodeknekkeren\/$/.test(deling.url), `«Del resultatet» delte: ${JSON.stringify(deling)}`);
+  t.sjekk(deling && deling.tittel === (await t.js("window.RUSJ_SPILL.navn")) && eqOr(deling.tekst, `Kodeknekkeren: ${vertLag(vinnerLag)} vant 2–0 🕵️`, new RegExp(`${vertLag(vinnerLag)}.*2–0 🕵️$`)) && deling.url.endsWith(new URL(t.side).pathname), `«Del resultatet» delte: ${JSON.stringify(deling)}`);
   // A reload shows «Kåringen» again without registering the match twice
   await t.lastSide(t.side, "document.querySelector('#skjerm.skjerm-karing .banner')");
   t.sjekk((await kveld()).length === 1 && (await stat("ferdig")).length === 0, "Kampen ble registrert en gang til etter omlasting");
@@ -559,7 +568,7 @@ export default async function (t) {
   await t.klikk('[data-h="avslutt"]');
   await t.vent("document.querySelector('#ark:not([hidden]) [data-v=\"nei\"]')");
   const ark = await t.js(`({ tittel: document.querySelector("#ark h2").innerText, tekst: document.querySelector("#ark .ingress").innerText, ja: document.querySelector('#ark [data-v="ja"]').innerText.trim(), nei: document.querySelector('#ark [data-v="nei"]').innerText.trim() })`);
-  t.sjekk(ark.tittel === "Avslutte spillet?" && ark.ja === "Avslutt" && ark.nei === "Spill videre" && /uten vinner/.test(ark.tekst), `Arket for «Avslutt»: ${JSON.stringify(ark)}`);
+  t.sjekk(eq(ark.tittel, "Avslutte spillet?") && eq(ark.ja, "Avslutt") && eq(ark.nei, "Spill videre") && nb(/uten vinner/).test(ark.tekst), `Arket for «Avslutt»: ${JSON.stringify(ark)}`);
   await t.bilde("bekreft-avslutt");
   await arkSvar("nei");
   t.sjekk((await tilstand()).spill.ferdig === false && (await t.finnes("#skjerm.skjerm-brett")), "«Spill videre» avsluttet spillet likevel");
@@ -567,7 +576,7 @@ export default async function (t) {
   await arkSvar("ja");
   await ventKaring();
   S = await tilstand();
-  t.sjekk(/Ingen vinner/.test(await t.tekst("#skjerm h1")) && !(await t.finnes('[data-h="del"]')) && !(await t.finnes(".kk-lagkort")), `«Avslutt» før første brett er ferdig: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(nb(/Ingen vinner/).test(await t.tekst("#skjerm h1")) && !(await t.finnes('[data-h="del"]')) && !(await t.finnes(".kk-lagkort")), `«Avslutt» før første brett er ferdig: «${await t.tekst("#skjerm h1")}»`);
   t.sjekk(S.spill !== null && S.spill.ferdig === true && S._aktiv === false, "«Avslutt» skal gå til kåringen og gjøre spillet ferdig (ikke kaste det)");
   t.sjekk((await kveld()).length === 1, "En kamp uten ferdige brett skal ikke registreres i Kveldens gjeng");
   hendelser = await stat("ferdig");
@@ -589,7 +598,7 @@ export default async function (t) {
   t.sjekk(lagene.rosa + lagene.bla === 5 && Math.abs(lagene.rosa - lagene.bla) === 1, "«Stokk lagene» ga skjeve lag");
   // A tap on a name moves the player; a team of one can't start
   while ((await t.antall(".kk-lagkol.bla .kk-lagspiller")) > 1) await t.klikk(".kk-lagkol.bla .kk-lagspiller");
-  t.sjekk((await t.js("document.querySelector('[data-h=\"start\"]').disabled")) && /minst to spillere/.test(await t.tekst(".dokk")), "Et lag med én spiller skulle sperre «Start» med en forklaring");
+  t.sjekk((await t.js("document.querySelector('[data-h=\"start\"]').disabled")) && nb(/minst to spillere/).test(await t.tekst(".dokk")), "Et lag med én spiller skulle sperre «Start» med en forklaring");
   await t.klikk(".kk-lagkol.rosa .kk-lagspiller");
   t.sjekk(!(await t.js("document.querySelector('[data-h=\"start\"]').disabled")), "«Start» skal åpne seg når begge lag har to spillere");
   // A player leaves and comes back: the teams follow
@@ -607,13 +616,13 @@ export default async function (t) {
   const mester = (s, l) => s.navn[s.lag[l][(s.mstart[l] + s.mnr) % s.lag[l].length]];
   t.sjekk(sp.kamp === "ett" && sp.navn.length === 5 && sp.lag[0].length + sp.lag[1].length === 5 && sp.antall === 5, "Kampen med navn ble ikke satt opp riktig");
   const nokkelTekst = (await t.tekst("#skjerm")).replace(/\s+/g, " ");
-  t.sjekk(nokkelTekst.includes(`Kodemestere nå: ${mester(sp, 0)} (Lag Rosa) og ${mester(sp, 1)} (Lag Blå)`), `Nøkkel-skjermen sier ikke hvem som er kodemestere («${nokkelTekst.slice(0, 200)}»)`);
+  t.sjekk(NB ? nokkelTekst.includes(`Kodemestere nå: ${mester(sp, 0)} (Lag Rosa) og ${mester(sp, 1)} (Lag Blå)`) : nokkelTekst.includes(`${mester(sp, 0)} (${vertLag(0)})`) && nokkelTekst.includes(`${mester(sp, 1)} (${vertLag(1)})`), `Nøkkel-skjermen sier ikke hvem som er kodemestere («${nokkelTekst.slice(0, 200)}»)`);
   t.sjekk((await t.antall(".kk-lagliste p")) === 2 && NAVN.every((n) => nokkelTekst.includes(n)), "Nøkkel-skjermen viser ikke hvem som er på hvilket lag");
   t.sjekk((await stat("start")).some((h) => h.modus === "lag" && h.spillere === 5 && h.kamp === "ett"), "Statistikken «start» mangler antall spillere");
   await t.bilde("nokkel-navn");
   await t.klikk('[data-h="til-brett"]');
   await t.vent("document.querySelector('#kk-tid .timer-tid')");
-  t.sjekk((await t.tekst(".kk-melding")).includes(`${mester(sp, sp.start)} gir ett ord og et tall`), `Meldingen sier ikke hvem som gir hintet («${await t.tekst(".kk-melding")}»)`);
+  t.sjekk((await t.tekst(".kk-melding")).includes(NB ? `${mester(sp, sp.start)} gir ett ord og et tall` : mester(sp, sp.start)), `Meldingen sier ikke hvem som gir hintet («${await t.tekst(".kk-melding")}»)`);
   await t.bilde("brett-med-tidsur");
 
   // The turn clock waits while the page is hidden (a locked phone): the turn stays where it is
@@ -629,7 +638,7 @@ export default async function (t) {
   await t.js(`Object.defineProperty(document, "hidden", { get: () => true, configurable: true }); document.dispatchEvent(new Event("visibilitychange")); delete document.hidden; document.dispatchEvent(new Event("visibilitychange"))`);
   t.sjekk((await t.js("Rusj.timer('kk-tid').kjorer")) === false, "Et tidsur spillerne selv har satt på pause, skal ikke starte av seg selv");
   await t.js("Rusj.timer('kk-tid').start(); Rusj.timer('kk-tid').leggTil(-45)");
-  await t.vent(`JSON.parse(localStorage.getItem("rusj.kodeknekkeren.v1")).spill.tur === ${1 - forTur}`, 5000);
+  await t.vent(`JSON.parse(localStorage.getItem("${t.nokkel("kodeknekkeren.v1")}")).spill.tur === ${1 - forTur}`, 5000);
   t.sjekk(await t.finnes(".kk-melding.tid"), "Mangler melding når tiden er ute");
   t.sjekk(/1:0\d|0:5\d/.test(await t.tekst("#kk-tid .timer-tid")), "Tidsuret startet ikke på nytt for neste lag");
   await mobilBilde(t, "brett-tidsur", 375, 560);
@@ -646,7 +655,7 @@ export default async function (t) {
   }
   await ventResultat();
   const ettRes = await t.js(`({ knapp: document.querySelector(".dokk .knapp").innerText.trim(), stilling: !!document.querySelector(".kk-stilling") })`);
-  t.sjekk(ettRes.knapp === "Til kåringen" && !ettRes.stilling, "«Ett brett» skal gå rett til kåringen etter brettet, uten stilling");
+  t.sjekk(eq(ettRes.knapp, "Til kåringen") && !ettRes.stilling, "«Ett brett» skal gå rett til kåringen etter brettet, uten stilling");
   await t.klikk('[data-h="til-karing"]');
   await ventKaring();
   S = await tilstand();
@@ -656,7 +665,7 @@ export default async function (t) {
   const vinnerkort = (await t.tekst(".kk-lagkort.vinner")).replace(/\s+/g, " ");
   t.sjekk(vinnere.every((n) => vinnerkort.includes(n)), `Kåringen viser ikke hvem som er på vinnerlaget («${vinnerkort}»)`);
   deling = await delt();
-  t.sjekk(deling && deling.tekst.startsWith(`Kodeknekkeren: ${vertLag(ettVinner)} vant brettet 🕵️`) && vinnere.every((n) => deling.tekst.includes(n)), `«Del resultatet» med navn: ${JSON.stringify(deling)}`);
+  t.sjekk(deling && (NB ? deling.tekst.startsWith(`Kodeknekkeren: ${vertLag(ettVinner)} vant brettet 🕵️`) : deling.tekst.includes(vertLag(ettVinner))) && vinnere.every((n) => deling.tekst.includes(n)), `«Del resultatet» med navn: ${JSON.stringify(deling)}`);
   await t.bilde("karing-navn", true);
   // «Spill igjen»: the same teams, and the next player in each team is code master
   const forrige = [mester(S.spill, 0), mester(S.spill, 1)];
@@ -675,7 +684,7 @@ export default async function (t) {
   await t.klikk('[data-h="modus"][data-v="sammen"]');
   S = await tilstand();
   const sm = await t.js(`({ rader: document.querySelectorAll("#spillerboks .spiller").length, maks: document.querySelector("#spillerboks").dataset.max, kamp: !!document.querySelector('[data-h="kamp"]'), lag: !!document.querySelector(".kk-lagene"), tid: Array.from(document.querySelectorAll("#skjerm h2")).map((h) => h.innerText).join("|") })`);
-  t.sjekk(S.oppsett.modus === "sammen" && S.antall === 4 && sm.rader === 4 && sm.maks === "4" && !sm.kamp && !sm.lag && /Tidsur for hvert hint/.test(sm.tid), `Oppsettet for «Sammen mot fella»: ${JSON.stringify(sm)} (antall ${S.antall})`);
+  t.sjekk(S.oppsett.modus === "sammen" && S.antall === 4 && sm.rader === 4 && sm.maks === "4" && !sm.kamp && !sm.lag && nb(/Tidsur for hvert hint/).test(sm.tid), `Oppsettet for «Sammen mot fella»: ${JSON.stringify(sm)} (antall ${S.antall})`);
   await t.klikk('[data-h="tid"][data-v="0"]');
   await t.bilde("oppsett-sammen", true);
   await t.klikk('[data-h="start"]');
@@ -685,50 +694,50 @@ export default async function (t) {
   const smTelling = [0, 1, 2, 3].map((x) => sp.nokkel.filter((y) => y === x).length);
   t.sjekk(sp.modus === "sammen" && smTelling.join("/") === "9/0/15/1", `«Sammen mot fella» skal ha 9 agenter, 15 nøytrale og 1 felle (${smTelling.join("/")})`);
   const smMester = (s) => s.navn[(s.mstart[0] + s.mnr) % s.antall];
-  t.sjekk((await t.tekst("#skjerm")).replace(/\s+/g, " ").includes(`Kodemester nå: ${smMester(sp)}`) && /Kodemester, hent nøkkelen/.test(await t.tekst("#skjerm h1")), "Nøkkel-skjermen sier ikke hvem som er kodemester");
+  t.sjekk((await t.tekst("#skjerm")).replace(/\s+/g, " ").includes(NB ? `Kodemester nå: ${smMester(sp)}` : smMester(sp)) && nb(/Kodemester, hent nøkkelen/).test(await t.tekst("#skjerm h1")), "Nøkkel-skjermen sier ikke hvem som er kodemester");
   const smKode = await t.js("document.querySelector('#kk-kode').dataset.kode");
   await t.bilde("nokkel-sammen");
   // The code master's phone: the code says which mode it is, and the key has agents (A), neutral words and the trap
   await t.lastSide(`${t.side}#${smKode}`, "document.querySelector('.kk-nokkel')");
   const smGjest = await t.js("Array.from(document.querySelectorAll('.kk-nokkel .kk-n')).map(b => ({ o: b.querySelector('.kk-ord .hel').textContent, t: Number(b.className.match(/\\bt(\\d)\\b/)[1]), b: (b.querySelector('.kk-b') || {}).textContent || '' }))");
   t.sjekk((await tilstand()).gjest.modus === "sammen" && smGjest.every((g, i) => g.o === sp.ord[i] && g.t === sp.nokkel[i]) && (await t.finnes(".kk-nokkel.sammen")), "Koden fra «Sammen mot fella» ga ikke den samme nøkkelen på kodemesterens mobil");
-  t.sjekk(smGjest.every((g) => g.b === ["A", "", "", "✕"][g.t]) && /Sammen mot fella/.test(await t.tekst(".kk-starter")), "Nøkkelen for «Sammen mot fella» mangler bokstaven A, ✕ for fella eller merkelappen");
-  t.sjekk((await t.js(`Array.from(document.querySelectorAll(".kk-gruppe h2")).map((h) => h.innerText.replace(/\\s+/g, " ").trim()).join("|")`)).startsWith("A Agenter 9 igjen|Nøytrale 15 igjen|✕ Fella"), "Listene under nøkkelen for «Sammen mot fella» er feil");
+  t.sjekk(smGjest.every((g) => g.b === ["A", "", "", "✕"][g.t]) && nb(/Sammen mot fella/).test(await t.tekst(".kk-starter")), "Nøkkelen for «Sammen mot fella» mangler bokstaven A, ✕ for fella eller merkelappen");
+  t.sjekk((await t.js(`Array.from(document.querySelectorAll(".kk-gruppe h2")).map((h) => h.innerText.replace(/\\s+/g, " ").trim()).join("|")`)).match(NB ? /^A Agenter 9 igjen\|Nøytrale 15 igjen\|✕ Fella/ : /^A \D*9\D*\|\D*15\D*\|✕/), "Listene under nøkkelen for «Sammen mot fella» er feil");
   await t.bilde("kodemester-sammen");
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   await t.klikk("#tilbake");
-  t.sjekk(/Fortsett · hint 1 av 7/.test(await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')), `Hjem-skjermen under «Sammen mot fella»: «${await t.tekst(".hjem-knapper .knapp")}»`);
+  t.sjekk((NB ? /Fortsett · hint 1 av 7/ : /1 \S+ 7/).test(await t.tekst('.hjem-knapper .knapp[data-h="fortsett"]')), `Hjem-skjermen under «Sammen mot fella»: «${await t.tekst(".hjem-knapper .knapp")}»`);
   await t.klikk('[data-h="fortsett"]');
   await ventBrett();
   // (textContent: on a phone on its side the small «igjen» under the numbers is not shown)
   const smStatus = () => t.js(`document.querySelector(".kk-status").textContent.replace(/\\s+/g, " ").trim()`);
-  t.sjekk(/Agenter 9 igjen Hint 1 av 7 Hint 6 igjen/i.test(await smStatus()), `Status for «Sammen mot fella»: «${await smStatus()}»`);
-  t.sjekk(/Neste hint/.test(await t.tekst('[data-h="ferdig"]')) && (await t.tekst(".kk-melding")).includes(`${smMester(sp)} gir ett ord og et tall`), "Brettet for «Sammen mot fella» mangler «Neste hint» eller navnet på kodemesteren");
+  t.sjekk((NB ? /Agenter 9 igjen Hint 1 av 7 Hint 6 igjen/i : /9\D+1\D+7\D+6/).test(await smStatus()), `Status for «Sammen mot fella»: «${await smStatus()}»`);
+  t.sjekk(nb(/Neste hint/).test(await t.tekst('[data-h="ferdig"]')) && (await t.tekst(".kk-melding")).includes(NB ? `${smMester(sp)} gir ett ord og et tall` : smMester(sp)), "Brettet for «Sammen mot fella» mangler «Neste hint» eller navnet på kodemesteren");
   await t.bilde("sammen-brett");
   const agent = async (ms = 140) => snu(kortAv((await tilstand()).spill, 0), ms);
   const noytralt = async () => snu(kortAv((await tilstand()).spill, 2), 200);
   // Hint 1: two agents on «2» (the strip counts without the +1), then a neutral word ends the hint
   await t.klikk('[data-h="hint-tall"][data-v="2"]');
-  t.sjekk(/to forsøk igjen/.test(await stripe()) && !/\+1/.test(await stripe()), `Stripa i «Sammen mot fella»: «${(await stripe()).replace(/\s+/g, " ")}»`);
+  t.sjekk(nb(/to forsøk igjen/).test(await stripe()) && !/\+1/.test(await stripe()), `Stripa i «Sammen mot fella»: «${(await stripe()).replace(/\s+/g, " ")}»`);
   await agent();
   await agent();
-  t.sjekk(/forsøkene er brukt/.test(await stripe()) && (await t.finnes(".dokk .knapp.kk-klar")), "Når forsøkene er brukt, skal stripa si det og «Neste hint» lyse opp");
+  t.sjekk(nb(/forsøkene er brukt/).test(await stripe()) && (await t.finnes(".dokk .knapp.kk-klar")), "Når forsøkene er brukt, skal stripa si det og «Neste hint» lyse opp");
   await t.bilde("sammen-hint");
   await noytralt();
   S = await tilstand();
-  t.sjekk(S.spill.grunn == null && S.spill.hint === null && /Hint 2 av 7/i.test(await smStatus()) && /Agenter 7 igjen/i.test(await smStatus()) && (await t.finnes(".kk-melding.noytral")), `Et nøytralt ord skal bruke opp hintet: «${await smStatus()}»`);
+  t.sjekk(S.spill.grunn == null && S.spill.hint === null && (NB ? /Hint 2 av 7/i : /\b2\b\D+7/).test(await smStatus()) && nb(/Agenter 7 igjen/i).test(await smStatus()) && (await t.finnes(".kk-melding.noytral")), `Et nøytralt ord skal bruke opp hintet: «${await smStatus()}»`);
   // Undo: back on hint 1 with its hint; again: on to hint 2
   await angre();
-  t.sjekk(/Hint 1 av 7/i.test(await smStatus()) && /forsøkene er brukt/.test(await stripe()), "Angre skulle gå tilbake til hint 1");
+  t.sjekk((NB ? /Hint 1 av 7/i : /\b1\b\D+7/).test(await smStatus()) && nb(/forsøkene er brukt/).test(await stripe()), "Angre skulle gå tilbake til hint 1");
   await noytralt();
   // Hints 2–5: two, two, one and one agent, each ended with «Neste hint»
   for (const n of [2, 2, 1, 1]) {
     for (let k = 0; k < n; k++) await agent();
     await ferdig();
   }
-  t.sjekk(/Hint 6 av 7/i.test(await smStatus()) && /Agenter 1 igjen/i.test(await smStatus()), `Etter fem hint: «${await smStatus()}»`);
+  t.sjekk((NB ? /Hint 6 av 7/i : /\b6\b\D+7/).test(await smStatus()) && nb(/Agenter 1 igjen/i).test(await smStatus()), `Etter fem hint: «${await smStatus()}»`);
   await noytralt();
-  t.sjekk(/Hint 7 av 7/i.test(await smStatus()) && /Hint 0 igjen/i.test(await smStatus()) && /Ferdig med siste hint/.test(await t.tekst('[data-h="ferdig"]')), `På siste hint: «${await smStatus()}»`);
+  t.sjekk((NB ? /Hint 7 av 7/i : /\b7\b\D+7/).test(await smStatus()) && nb(/Hint 0 igjen/i).test(await smStatus()) && nb(/Ferdig med siste hint/).test(await t.tekst('[data-h="ferdig"]')), `På siste hint: «${await smStatus()}»`);
   await mobilBilde(t, "sammen", 375, 560);
   await mobilBilde(t, "sammen", 320, 568);
   await bredBilde(t, "sammen", 844, 390);
@@ -736,24 +745,24 @@ export default async function (t) {
   await noytralt();
   await ventResultat();
   S = await tilstand();
-  t.sjekk(S.spill.grunn === "hint" && /Hintene er brukt/.test(await t.tekst("#skjerm h1")) && /8 av 9 agenter funnet/.test(await t.tekst(".kk-banner")) && (await t.tekst(".dokk .knapp")).trim() === "Til kåringen", `Brettets resultat i «Sammen mot fella»: «${await t.tekst(".kk-banner")}»`);
+  t.sjekk(S.spill.grunn === "hint" && nb(/Hintene er brukt/).test(await t.tekst("#skjerm h1")) && (NB ? /8 av 9 agenter funnet/ : /8 \S+ 9/).test(await t.tekst(".kk-banner")) && eq((await t.tekst(".dokk .knapp")).trim(), "Til kåringen"), `Brettets resultat i «Sammen mot fella»: «${await t.tekst(".kk-banner")}»`);
   await t.bilde("sammen-resultat", true);
   const kveldFor = (await kveld()).length;
   await t.klikk('[data-h="til-karing"]');
   await ventKaring();
   S = await tilstand();
   let smKar = await t.js(`({ h1: document.querySelector("#skjerm h1").innerText, tekst: document.querySelector(".banner").innerText.replace(/\\s+/g, " "), rekord: (document.querySelector(".kk-rekord") || {}).innerText, pips: document.querySelectorAll(".kk-pips i.funnet").length, na: (document.querySelector(".kk-stige li.na b") || {}).innerText, trinn: document.querySelectorAll(".kk-stige li").length, knapp: document.querySelector(".dokk .knapp").innerText.trim() })`);
-  t.sjekk(smKar.h1 === "Skarpe spioner" && /8 av 9 agenter på 7 hint/.test(smKar.tekst) && smKar.pips === 8 && smKar.na === "Skarpe spioner" && smKar.trinn === 4 && smKar.knapp === "Spill igjen", `Kåringen for «Sammen mot fella»: ${JSON.stringify(smKar)}`);
-  t.sjekk(/Første runde – nå har dere en rekord å slå!/.test(smKar.rekord) && S.rekord.f === 8 && S.rekord.h === 7, `Første resultat skal bli rekorden uten «Ny rekord!» (${smKar.rekord}, ${JSON.stringify(S.rekord)})`);
+  t.sjekk(eq(smKar.h1, "Skarpe spioner") && (NB ? /8 av 9 agenter på 7 hint/ : /8 \S+ 9\D+7/).test(smKar.tekst) && smKar.pips === 8 && smKar.na === smKar.h1 && smKar.trinn === 4 && eq(smKar.knapp, "Spill igjen"), `Kåringen for «Sammen mot fella»: ${JSON.stringify(smKar)}`);
+  t.sjekk(nb(/Første runde – nå har dere en rekord å slå!/).test(smKar.rekord) && !!smKar.rekord && S.rekord.f === 8 && S.rekord.h === 7, `Første resultat skal bli rekorden uten «Ny rekord!» (${smKar.rekord}, ${JSON.stringify(S.rekord)})`);
   t.sjekk((await kveld()).length === kveldFor, "«Sammen mot fella» skal ikke gi poeng i Kveldens gjeng");
   hendelser = await stat("ferdig");
   t.sjekk(hendelser.some((h) => h.modus === "sammen" && h.funnet === 8 && h.avbrutt === false), `Statistikken «ferdig» for «Sammen mot fella»: ${JSON.stringify(hendelser)}`);
   deling = await delt();
-  t.sjekk(deling && deling.tekst === "Kodeknekkeren – Sammen mot fella: 8 av 9 🕵️ ✅✅✅✅✅✅✅✅▫️", `«Del resultatet»: ${JSON.stringify(deling)}`);
+  t.sjekk(deling && eqOr(deling.tekst, "Kodeknekkeren – Sammen mot fella: 8 av 9 🕵️ ✅✅✅✅✅✅✅✅▫️", /8 \S+ 9 🕵️ ✅✅✅✅✅✅✅✅▫️$/), `«Del resultatet»: ${JSON.stringify(deling)}`);
   await t.bilde("sammen-karing", true);
   // The record is the first thing on the home screen
   await t.klikk("#tilbake");
-  t.sjekk((await t.tekst(".merker li:first-child")).replace(/\s+/g, " ").trim() === "REKORD 8 av 9" && !(await t.finnes('[data-h="fortsett"]')), `Rekorden skal stå først på hjem-skjermen («${await t.tekst(".merker li:first-child")}»)`);
+  t.sjekk(eqOr((await t.tekst(".merker li:first-child")).replace(/\s+/g, " ").trim(), "REKORD 8 av 9", /8 \S+ 9/) && !(await t.finnes('[data-h="fortsett"]')), `Rekorden skal stå først på hjem-skjermen («${await t.tekst(".merker li:first-child")}»)`);
   await t.bilde("hjem-rekord");
 
   // A second game, the next code master: all nine on two hints is a new record
@@ -766,14 +775,14 @@ export default async function (t) {
   await ferdig();
   for (let k = 0; k < 5; k++) await agent(60);
   await ventResultat();
-  t.sjekk(/Alle ni funnet!/.test(await t.tekst("#skjerm h1")), `Alle ni funnet: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(nb(/Alle ni funnet!/).test(await t.tekst("#skjerm h1")), `Alle ni funnet: «${await t.tekst("#skjerm h1")}»`);
   await t.klikk('[data-h="til-karing"]');
   await ventKaring();
   S = await tilstand();
   smKar = await t.js(`({ h1: document.querySelector("#skjerm h1").innerText, tekst: document.querySelector(".banner").innerText.replace(/\\s+/g, " "), rekord: (document.querySelector(".kk-rekord") || {}).innerText, ny: !!document.querySelector(".kk-rekord.ny") })`);
-  t.sjekk(smKar.h1 === "Mesterspioner!" && /Alle 9 agentene på 2 hint/.test(smKar.tekst) && smKar.ny && /Ny rekord!/.test(smKar.rekord) && S.rekord.f === 9 && S.rekord.h === 2, `Ny rekord: ${JSON.stringify(smKar)} ${JSON.stringify(S.rekord)}`);
+  t.sjekk(eq(smKar.h1, "Mesterspioner!") && (NB ? /Alle 9 agentene på 2 hint/ : /9\D+2/).test(smKar.tekst) && smKar.ny && nb(/Ny rekord!/).test(smKar.rekord) && S.rekord.f === 9 && S.rekord.h === 2, `Ny rekord: ${JSON.stringify(smKar)} ${JSON.stringify(S.rekord)}`);
   deling = await delt();
-  t.sjekk(deling && deling.tekst === "Kodeknekkeren – Sammen mot fella: 9 av 9 på 2 hint 🕵️ ✅✅✅✅✅✅✅✅✅", `«Del resultatet» med alle ni: ${JSON.stringify(deling)}`);
+  t.sjekk(deling && eqOr(deling.tekst, "Kodeknekkeren – Sammen mot fella: 9 av 9 på 2 hint 🕵️ ✅✅✅✅✅✅✅✅✅", /9 \S+ 9\D+2\D+ 🕵️ ✅✅✅✅✅✅✅✅✅$/), `«Del resultatet» med alle ni: ${JSON.stringify(deling)}`);
   await t.bilde("sammen-rekord", true);
   // «Spill igjen»: the next player is code master. The trap ends the board at once; undo; «Avslutt» sets no record
   const forrigeMester = smMester(S.spill);
@@ -786,7 +795,7 @@ export default async function (t) {
   await agent();
   await snu(S.spill.nokkel.indexOf(3), 300);
   await ventResultat();
-  t.sjekk(/Rett i fella!/.test(await t.tekst("#skjerm h1")) && /1 av 9 agenter funnet/.test(await t.tekst(".kk-banner")), `Fella i «Sammen mot fella»: «${await t.tekst(".kk-banner")}»`);
+  t.sjekk(nb(/Rett i fella!/).test(await t.tekst("#skjerm h1")) && (NB ? /1 av 9 agenter funnet/ : /1 \S+ 9/).test(await t.tekst(".kk-banner")), `Fella i «Sammen mot fella»: «${await t.tekst(".kk-banner")}»`);
   await t.bilde("sammen-fella");
   await angre();
   await ventBrett();
@@ -798,12 +807,12 @@ export default async function (t) {
   await ventKaring();
   S = await tilstand();
   smKar = await t.js(`({ h1: document.querySelector("#skjerm h1").innerText, tekst: document.querySelector(".banner").innerText.replace(/\\s+/g, " "), rekord: (document.querySelector(".kk-rekord") || {}).innerText, lei: !!document.querySelector(".banner .figur-ramme.lei"), felle: !!document.querySelector(".kk-pips .felle") })`);
-  t.sjekk(smKar.h1 === "Spionlærlinger" && /1 av 9 agenter før fella klappet igjen på hint 1/.test(smKar.tekst) && smKar.lei && smKar.felle && /Rekorden å slå: 9 av 9 på 2 hint/.test(smKar.rekord) && S.rekord.f === 9, `Kåringen etter fella: ${JSON.stringify(smKar)}`);
+  t.sjekk(eq(smKar.h1, "Spionlærlinger") && (NB ? /1 av 9 agenter før fella klappet igjen på hint 1/ : /1 \S+ 9/).test(smKar.tekst) && smKar.lei && smKar.felle && (NB ? /Rekorden å slå: 9 av 9 på 2 hint/ : /9 \S+ 9\D+2/).test(smKar.rekord) && S.rekord.f === 9, `Kåringen etter fella: ${JSON.stringify(smKar)}`);
   deling = await delt();
-  t.sjekk(deling && deling.tekst === "Kodeknekkeren – Sammen mot fella: 1 av 9 🕵️ ✅▫️▫️▫️▫️▫️▫️▫️▫️ 💥", `«Del resultatet» etter fella: ${JSON.stringify(deling)}`);
+  t.sjekk(deling && eqOr(deling.tekst, "Kodeknekkeren – Sammen mot fella: 1 av 9 🕵️ ✅▫️▫️▫️▫️▫️▫️▫️▫️ 💥", /1 \S+ 9 🕵️ ✅▫️▫️▫️▫️▫️▫️▫️▫️ 💥$/), `«Del resultatet» etter fella: ${JSON.stringify(deling)}`);
   await t.bilde("sammen-karing-fella", true);
   await t.klikk("#tilbake");
-  t.sjekk((await t.tekst(".merker li:first-child")).replace(/\s+/g, " ").trim() === "REKORD 9 av 9 på 2 hint", `Rekorden på hjem-skjermen: «${await t.tekst(".merker li:first-child")}»`);
+  t.sjekk(eqOr((await t.tekst(".merker li:first-child")).replace(/\s+/g, " ").trim(), "REKORD 9 av 9 på 2 hint", /9 \S+ 9\D+2/), `Rekorden på hjem-skjermen: «${await t.tekst(".merker li:first-child")}»`);
 
   // ---------- Saved games ----------
   // One from before matches had an end (a finished board on the old result screen): the match goes on
@@ -836,11 +845,11 @@ export default async function (t) {
     kodeUtkast: "",
     kodeFeil: null,
   };
-  const lagre = (verdi) => t.js(`localStorage.setItem("rusj.kodeknekkeren.v1", ${JSON.stringify(JSON.stringify(verdi))})`);
+  const lagre = (verdi) => t.js(`localStorage.setItem("${t.nokkel("kodeknekkeren.v1")}", ${JSON.stringify(JSON.stringify(verdi))})`);
   await lagre(gammel);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   S = await tilstand();
-  t.sjekk((await t.finnes("#skjerm.skjerm-resultat")) && (await t.tekst(".dokk .knapp")).trim() === "Neste brett" && S.spill && S.spill.kamp === "fri" && S.spill.stilling.join() === gammel.spill.stilling.join() && S.spill.vist.join() === g.vist.join() && S.spill.vinner === g.vinner, `Et spill lagret før kampene fikk en slutt, ble ikke hentet opp riktig (skjerm ${S.skjerm}, ${JSON.stringify(S.spill && { kamp: S.spill.kamp, stilling: S.spill.stilling })})`);
+  t.sjekk((await t.finnes("#skjerm.skjerm-resultat")) && eq((await t.tekst(".dokk .knapp")).trim(), "Neste brett") && S.spill && S.spill.kamp === "fri" && S.spill.stilling.join() === gammel.spill.stilling.join() && S.spill.vist.join() === g.vist.join() && S.spill.vinner === g.vinner, `Et spill lagret før kampene fikk en slutt, ble ikke hentet opp riktig (skjerm ${S.skjerm}, ${JSON.stringify(S.spill && { kamp: S.spill.kamp, stilling: S.spill.stilling })})`);
   // Steps that don't add up (someone edited the save): the game is dropped, the page is fine
   const fusk = JSON.parse(JSON.stringify(S));
   fusk.spill.hist[0].tur = 1 - fusk.spill.hist[0].tur;

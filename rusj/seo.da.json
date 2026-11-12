@@ -458,6 +458,17 @@
         "just one"
       ],
       "samarbeid": true
+    },
+    "kodeknekkeren": {
+      "tittel": "Kodeord – holdspillet med 25 ord og hemmelige agenter",
+      "frase": "Kodeord",
+      "beskrivelse": "Gratis kodeordsspil på dansk for to hold: Kodemesteren giver ét ord og et tal – find jeres agenter, og undgå fælden. 4–20 spillere, én eller flere mobiler.",
+      "sok": [
+        "kodeordsspil",
+        "kodenavne",
+        "agentspil",
+        "codenames"
+      ]
     }
   }
 }

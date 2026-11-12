@@ -443,6 +443,17 @@
         "team word game"
       ],
       "samarbeid": true
+    },
+    "kodeknekkeren": {
+      "tittel": "Code words – the team game with 25 words and agents",
+      "frase": "Code words",
+      "beskrivelse": "A free code word game for two teams: the code master gives one word and a number – find your agents and avoid the trap. 4–20 players, one or more phones.",
+      "sok": [
+        "codenames",
+        "code words game",
+        "spymaster game",
+        "secret agents game"
+      ]
     }
   }
 }
