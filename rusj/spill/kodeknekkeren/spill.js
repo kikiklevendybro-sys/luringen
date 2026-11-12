@@ -21,7 +21,7 @@
   const ER_ORD = /^[A-Za-zÆØÅæøåÉé]{3,11}$/;
   // Never on the board: real people, and English words that aren't everyday Norwegian.
   // (The word list is shared with other games, so it is filtered here, not edited.)
-  // (Norwegian only: the English and Danish banks have no such words.)
+  // Danish: long words that end up too small on a phone's card even on two lines.
   const NORSK = R.sprak !== "en" && R.sprak !== "da";
   const UTELATT = new Set(
     NORSK
@@ -29,7 +29,9 @@
           "napoleon", "kleopatra", "shakespeare", "tutankhamon",
           "likes", "story", "buffering", "livestream", "highscore", "moonwalk", "backpacking", "sightseeing", "laptop", "powerbank", "meme",
         ]
-      : [],
+      : R.sprak === "da"
+        ? ["christiansø", "computermus", "hammershus", "redningsbåd", "skærtorsdag"] // sprak-ok
+        : [],
   );
   // rusj.no's house spelling for a few words in the shared list.
   const SKRIVEMATE = NORSK ? { Spaghetti: "Spagetti", Fremtid: "Framtid", Fremføring: "Framføring", Romferge: "Romferje" } : {}; // sprak-ok
@@ -191,7 +193,36 @@
     utkledning: ["Ut", "kledning"],
     cashewnøtt: ["Cashew", "nøtt"], // sprak-ok
   };
-  const SPESIAL = NORSK ? SPESIAL_NB : {};
+  const SPESIAL_EN = {
+    annoyance: ["Annoy", "ance"],
+    sleepover: ["Sleep", "over"],
+    kayaking: ["Kayak", "ing"],
+    abseiling: ["Abseil", "ing"],
+    southampton: ["South", "ampton"],
+    shepherds: ["Shep", "herds"],
+    mistletoe: ["Mistle", "toe"],
+  };
+  // Danish compounds the rules split in the wrong place (Skøj-tepark, Gruppec-hat). // sprak-ok
+  const SPESIAL_DA = Object.fromEntries(
+    (
+      "Adgangs-kode Aprils-nar Bakke-top Barber-shop Barne-dåb Baby-shower Billed-ramme Boks-ning Bowling-hal " + // sprak-ok
+      "Bronze-alder Brød-rister Bue-skydning Bukke-spring Bus-chauffør Bær-plukning Bønne-stage Decimal-tal " + // sprak-ok
+      "Diskos-kast Dåse-åbner Efter-abe El-guitar Forårs-løg Foto-album Fly-tilstand Fylde-pen Fysik-lokale Geo-caching " + // sprak-ok
+      "Glas-kugler Glatte-jern Gruppe-chat Gryde-ret Guden-åen Hakke-bøf Hals-kæde Hjemme-bagt Hjemme-side Hjerte-slag " + // sprak-ok
+      "Hoved-rolle Hule-bygning Hvid-tjørn Højde-spring Hæfte-pistol Ind-skoling Is-hockey Jakke-sæt Jante-lov Jern-alder " + // sprak-ok
+      "Kage-form Kalejdo-skop Klokke-tårn Kontra-bas Kort-læsning Kron-juveler Kryds-ord Kryds-togt Kælk-ning Køkken-ur " + // sprak-ok
+      "Lakrids-pibe Lim-fjorden Lim-pistol Lucia-optog Lyst-yacht Mad-kundskab Middel-alder Mikro-skop Milk-shake Mistel-ten " + // sprak-ok
+      "Muld-varp Mønt-vask Navne-opråb Nisse-hue Nørre-bro Ord-søgning Over-alls Pas-kontrol Polo-shirt Reality-show " + // sprak-ok
+      "Reje-fiskeri Robot-arm Rum-vandring Røg-alarm Røntgen-syn Skrift-rulle Skøjte-park Slikke-pind Slåen-tjørn Snurre-top " + // sprak-ok
+      "Sorte-per Spids-kål Spinde-rok Sprælle-mænd Sjippe-tov Sten-alder Steto-skop Stjerne-skud Strik-ning Stryge-bræt " + // sprak-ok
+      "Stryge-jern Svæve-fly Svømme-hal Syd-afrika Sæbe-opera Sø-pindsvin Sø-stjerne Talent-show Trelle-borg Trille-bør " + // sprak-ok
+      "Tromme-sæt Trylle-drik Trylle-stav Trylle-ærter Ud-skoling Ud-spring Vand-pistol Vejr-udsigt Video-opkald Vinde-bro " + // sprak-ok
+      "Våben-skjold Øre-varmere" // sprak-ok
+    )
+      .split(" ")
+      .map((d) => [d.replace("-", "").toLocaleLowerCase("nb"), d.split("-")]),
+  );
+  const SPESIAL = R.sprak === "en" ? SPESIAL_EN : R.sprak === "da" ? SPESIAL_DA : SPESIAL_NB;
   // Short words that only look like compounds (Klat-ring, Her-kules): keep them on one line.
   const HEL = new Set(NORSK ? ["klatring", "herkules", "tastatur", "skulptur", "thailand", "tønsberg", "grønland"] : []); // sprak-ok
   const VOKAL = /[aeiouyæøåé]/;
