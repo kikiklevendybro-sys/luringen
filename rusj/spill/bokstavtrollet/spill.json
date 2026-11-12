@@ -10,5 +10,23 @@
   "tagger": ["barn", "familie", "ord"],
   "rekkefolge": 19,
   "alias": ["alfabetleken"],
-  "sok": ["alfabetleken", "alfabetlek", "bokstavlek", "ord på bokstav", "kategorilek", "ordlek for barn"]
+  "sok": ["alfabetleken", "alfabetlek", "bokstavlek", "ord på bokstav", "kategorilek", "ordlek for barn"],
+  "i18n": {
+    "en": {
+      "navn": "Letter Troll",
+      "undertittel": "The alphabet game",
+      "kort": "Say a word on the letter – and pass the phone before the troll wakes!",
+      "beskrivelse": "Free alphabet game in English. Say a word on the letter and pass the phone before the troll wakes – or hunt for words with pencil and paper. For kids and families.",
+      "slug": "letter-troll",
+      "sok": ["alphabet game", "letter game", "word game for kids", "categories game", "pass the bomb", "scattergories", "name place animal thing", "word on a letter"]
+    },
+    "da": {
+      "navn": "Bogstavtrolden",
+      "undertittel": "Alfabetlegen",
+      "kort": "Sig et ord på bogstavet – og send mobilen videre, før trolden vågner!",
+      "beskrivelse": "Gratis alfabetleg på dansk. Sig et ord på bogstavet, og send mobilen videre, før trolden vågner – eller jagt ord med blyant og papir. For børn og familie.",
+      "slug": "bogstavtrolden",
+      "sok": ["alfabetleg", "alfabetlegen", "bogstavleg", "ord på bogstav", "kategorileg", "ordleg for børn", "by land flod", "scattergories"]
+    }
+  }
 }

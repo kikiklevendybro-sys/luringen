@@ -450,6 +450,16 @@
         "easy crossword",
         "quick crossword"
       ]
+    },
+    "bokstavtrollet": {
+      "tittel": "Alphabet game – say a word before the troll wakes",
+      "frase": "Alphabet game",
+      "beskrivelse": "A free alphabet game for the family: say a word on the letter and pass the phone before the troll wakes – or hunt for words with pencil and paper.",
+      "sok": [
+        "alphabet game",
+        "letter game",
+        "categories game for kids"
+      ]
     }
   }
 }

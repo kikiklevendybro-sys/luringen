@@ -465,6 +465,16 @@
         "nemme krydsord",
         "krydsord online"
       ]
+    },
+    "bokstavtrollet": {
+      "tittel": "Alfabetlegen – sig et ord på bogstavet! Gratis",
+      "frase": "Alfabetlegen",
+      "beskrivelse": "Gratis alfabetleg på dansk. Sig et ord på bogstavet, og send mobilen videre, før trolden vågner – eller jagt ord med blyant og papir. For hele familien.",
+      "sok": [
+        "alfabetleg",
+        "bogstavleg",
+        "ordleg for børn"
+      ]
     }
   }
 }

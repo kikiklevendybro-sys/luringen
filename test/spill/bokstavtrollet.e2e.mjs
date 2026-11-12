@@ -12,7 +12,7 @@ export default async function (t) {
   const vent = (sel, ms) => t.vent(`document.querySelector(${JSON.stringify(sel)})`, ms);
   const sp = () => t.js("JSON.parse(JSON.stringify(Rusj.S.spill))");
   const kat = (i) => t.js(`window.RUSJ_DATA.kategorier.kategorier[${i}]`);
-  const kveld = () => t.js(`(JSON.parse(localStorage.getItem("rusj.kveld") || "null") || { spill: [] }).spill.filter((s) => s.id === "bokstavtrollet").map((s) => s.resultat.map((r) => r.navn.slice(-1) + r.plass).join(" "))`);
+  const kveld = () => t.js(`(JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null") || { spill: [] }).spill.filter((s) => s.id === "bokstavtrollet").map((s) => s.resultat.map((r) => r.navn.slice(-1) + r.plass).join(" "))`);
   const fri = async (sel, hvor) => t.sjekk(await t.friForDokk(sel, 6), `«${sel}» er skjult bak knappene på «${hvor}»`);
   // One round of Bomba from the card: start, (pass the phone n times), wake the troll, say who held it.
   const runde = async (taper, send = 0) => {
@@ -37,11 +37,11 @@ export default async function (t) {
   t.sjekk((await krav()) === "bokstav" && !(await t.finnes('[data-h="niva"]')) && !(await t.finnes('[data-h="jul"]')), "På barnenivå skal «Bokstav» være valgt – uten kategorinivå og julekategorier");
   await t.bilde("oppsett-bokstav", true);
   await t.klikk('[data-h="krav"][data-v="begge"]');
-  t.sjekk(/16 kategorier/.test(await t.tekst(".skjerm-oppsett")), "«Begge» på barnenivå skal trekke blant de 16 brede kategoriene");
+  t.sjekk((t.norsk ? /16 kategorier/ : / 16 /).test(await t.tekst(".skjerm-oppsett")), "«Begge» på barnenivå skal trekke blant de 16 brede kategoriene");
   await t.klikk('[data-h="niva"][data-v="familie"]');
-  t.sjekk(/27 kategorier/.test(await t.tekst(".skjerm-oppsett")), "«Begge» på familienivå skal trekke blant 27 brede kategorier");
+  t.sjekk((t.norsk ? /27 kategorier/ : / 27 /).test(await t.tekst(".skjerm-oppsett")), "«Begge» på familienivå skal trekke blant 27 brede kategorier");
   await t.klikk('[data-h="jul"]');
-  t.sjekk(/ 4 kategorier/.test(await t.tekst(".skjerm-oppsett")), "Julekategoriene med bokstav skal være fire på familienivå");
+  t.sjekk((t.norsk ? / 4 kategorier/ : / 4 /).test(await t.tekst(".skjerm-oppsett")), "Julekategoriene med bokstav skal være fire på familienivå");
   await t.klikk('[data-h="jul"]');
   t.sjekk((await t.js(`document.querySelector('[data-h="sistemann"]').getAttribute("aria-pressed")`)) === "false", "«Sistemann igjen» skal være av fra start");
   await t.bilde("oppsett-bomba", true);
@@ -88,7 +88,7 @@ export default async function (t) {
   t.sjekk(new Set(bokstaver).size === 3 && s.kort.k === andre.k, `Hver spiller skal få sin egen bokstav i samme kategori: ${bokstaver.join(" ")}`);
   t.sjekk((await t.tekst(".bt-kort .bt-bokstav")).trim() === s.kort.b, "Kortet viser ikke den nye bokstaven");
   // «Bytt bokstav»: a new letter for the same player – and the phone cannot be passed on while it spins
-  t.sjekk((await t.tekst('.dokk [data-h="bytt-bokstav"]')).trim() === "Bytt bokstav", "Mangler «Bytt bokstav» under «Send videre»");
+  t.sjekk((await t.finnes('.dokk [data-h="bytt-bokstav"]')) && (!t.norsk || (await t.tekst('.dokk [data-h="bytt-bokstav"]')).trim() === "Bytt bokstav"), "Mangler «Bytt bokstav» under «Send videre»");
   await t.klikk('[data-h="bytt-bokstav"]', 200);
   const byttet = await sp();
   t.sjekk(byttet.kort.b !== s.kort.b && byttet.holder === s.holder && (await t.js(`document.querySelector('[data-h="send"]').disabled`)), "«Bytt bokstav» skal gi ny bokstav til samme spiller og låse «Send videre» mens den snurrer");
@@ -109,8 +109,8 @@ export default async function (t) {
   await t.bilde("mistet-hjerte");
   await fri(".bt-tap h1", "mistet hjerte");
   t.sjekk((await t.tilstand()).spill.liv[holder] === 2, "Hjertet ble ikke tatt");
-  t.sjekk(/2 ord før trollet våknet/.test(await t.tekst(".bt-rundeord")), `Runden skal si hvor mange ord dere rakk: «${await t.tekst(".bt-rundeord")}»`);
-  t.sjekk((await t.js(`JSON.parse(localStorage.getItem("rusj.bokstavtrollet.rekord")).ord`)) === 2, "Rekorden (flest ord før trollet våknet) ble ikke lagret");
+  t.sjekk((t.norsk ? /2 ord før trollet våknet/ : /2/).test(await t.tekst(".bt-rundeord")), `Runden skal si hvor mange ord dere rakk: «${await t.tekst(".bt-rundeord")}»`);
+  t.sjekk((await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("bokstavtrollet.rekord")}")).ord`)) === 2, "Rekorden (flest ord før trollet våknet) ble ikke lagret");
 
   // Undo, then pick again – it was Testspiller C
   await t.klikk('[data-h="angre"]');
@@ -121,7 +121,7 @@ export default async function (t) {
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   t.sjekk(await t.finnes('[data-h="neste-runde"]'), "Kom ikke tilbake til runden etter omlasting");
   await t.klikk("#tilbake");
-  t.sjekk((await t.finnes('[data-h="fortsett"]')) && /2 ord/.test(await t.tekst(".bt-rekord")), "Hjem-skjermen mangler «Fortsett» eller rekorden");
+  t.sjekk((await t.finnes('[data-h="fortsett"]')) && (t.norsk ? /2 ord/ : /2/).test(await t.tekst(".bt-rekord")), "Hjem-skjermen mangler «Fortsett» eller rekorden");
   await t.bilde("hjem-fortsett");
   await t.klikk('[data-h="fortsett"]');
   await t.klikk('[data-h="neste-runde"]');
@@ -133,8 +133,8 @@ export default async function (t) {
   await runde(2);
   await t.bilde("siste-hjerte");
   s = await sp();
-  t.sjekk(s.liv.join() === "3,3,0" && /mistet det siste hjertet/.test(await t.tekst("#skjerm h1")), `Det siste hjertet: ${s.liv} «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk(!(await t.finnes('[data-h="neste-runde"]')) && (await t.finnes('.dokk .knapp[data-h="finale"]')) && /finale/.test(await t.tekst(".bt-tap .ingress")), "Like mange hjerter på topp skal gi finale, ikke flere runder");
+  t.sjekk(s.liv.join() === "3,3,0" && (!t.norsk || /mistet det siste hjertet/.test(await t.tekst("#skjerm h1"))), `Det siste hjertet: ${s.liv} «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(!(await t.finnes('[data-h="neste-runde"]')) && (await t.finnes('.dokk .knapp[data-h="finale"]')) && (!t.norsk || /finale/.test(await t.tekst(".bt-tap .ingress"))), "Like mange hjerter på topp skal gi finale, ikke flere runder");
   t.sjekk(!(await t.finnes(".bt-ute")) && (await t.antall(".bt-liv li")) === 3, "Ingen skal være «ute» når spillet slutter på det siste hjertet");
   await t.klikk('[data-h="finale"]');
   await vent(".bt-finale");
@@ -142,26 +142,26 @@ export default async function (t) {
   await t.bilde("finale");
   await fri(".bt-kort", "finalen");
   s = await sp();
-  t.sjekk(s.finale.join() === "0,1" && [0, 1].includes(s.start) && (await t.antall(".bt-liv li")) === 2 && /Finalen/i.test(await t.tekst("#topp-tittel")), `Finalen skal stå mellom A og B: ${JSON.stringify(s.finale)}`);
+  t.sjekk(s.finale.join() === "0,1" && [0, 1].includes(s.start) && (await t.antall(".bt-liv li")) === 2 && (!t.norsk || /Finalen/i.test(await t.tekst("#topp-tittel"))), `Finalen skal stå mellom A og B: ${JSON.stringify(s.finale)}`);
   await runde(null, 2);
   t.sjekk((await t.js("Rusj.S.spill.holder")) === s.start && (await t.antall('[data-h="taper"]')) === 2, "I finalen skal mobilen bare gå mellom finalistene");
   await t.klikk('[data-h="taper"][data-v="0"]');
-  t.sjekk(/røk ut av finalen/.test(await t.tekst("#skjerm h1")) && (await sp()).liv.join() === "3,3,0", "Finalen skal ikke ta hjerter – den som holdt mobilen, ryker ut");
+  t.sjekk((!t.norsk || /røk ut av finalen/.test(await t.tekst("#skjerm h1"))) && (await sp()).liv.join() === "3,3,0", "Finalen skal ikke ta hjerter – den som holdt mobilen, ryker ut");
   // Undo works in the final too – it was Testspiller B
   await t.klikk('[data-h="angre"]');
   t.sjekk((await sp()).finale.join() === "0,1", "Angre i finalen satte ikke finalisten inn igjen");
   await t.klikk('[data-h="taper"][data-v="1"]');
   await t.bilde("ute-av-finalen");
-  t.sjekk(/Til kåringen/.test(await t.tekst(".dokk .knapp")), `Etter finalen skal knappen lede «Til kåringen»: «${await t.tekst(".dokk .knapp")}»`);
+  t.sjekk(t.norsk ? /Til kåringen/.test(await t.tekst(".dokk .knapp")) : await t.finnes('.dokk .knapp[data-h="bomba-vinner"]'), `Etter finalen skal knappen lede «Til kåringen»: «${await t.tekst(".dokk .knapp")}»`);
   await t.klikk('[data-h="bomba-vinner"]');
   await vent(".skjerm-vinner");
   await t.bilde("vinner-bomba", true);
   await fri(".banner h1", "kåringen");
-  t.sjekk(/Testspiller A vinner/.test(await t.tekst("#skjerm h1")) && /Vant finalen/i.test(await t.tekst(".banner .etikett")), "Vinneren av finalen vises ikke");
+  t.sjekk(/Testspiller A/.test(await t.tekst("#skjerm h1")) && (!t.norsk || (/Testspiller A vinner/.test(await t.tekst("#skjerm h1")) && /Vant finalen/i.test(await t.tekst(".banner .etikett")))), "Vinneren av finalen vises ikke");
   t.sjekk((await t.js(`Array.from(document.querySelectorAll(".bt-rekke li")).map((li) => li.querySelector(".bt-plass").textContent + li.querySelector(".bt-pr-navn").textContent.slice(-1)).join(" ")`)) === "1A 2B 3C" && (await t.antall(".bt-rekke li.vinner")) === 1, "Kåringen skal vise plassene etter finalen");
   t.sjekk((await kveld()).join("|") === "A1 B2 C3", `Bomba ble ikke meldt til «Kveldens gjeng»: ${(await kveld()).join("|")}`);
-  t.sjekk(await t.finnes('.flere-spill, a.lenke[href="/"]'), "Sluttskjermen mangler «Alle spill»");
-  t.sjekk((await t.tekst("#topp-tittel")).trim().toLowerCase() === "kåringen" && (await t.tilstand())._aktiv === false, "Sluttskjermen heter ikke «Kåringen», eller spillet regnes som pågående");
+  t.sjekk(await t.finnes(`.flere-spill, a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk((!t.norsk || (await t.tekst("#topp-tittel")).trim().toLowerCase() === "kåringen") && (await t.tilstand())._aktiv === false, "Sluttskjermen heter ikke «Kåringen», eller spillet regnes som pågående");
 
   // ---------- «Kategori»: no letter; «Avslutt» before anything has happened clears the game ----------
   await t.klikk('[data-h="nytt"]');
@@ -173,7 +173,7 @@ export default async function (t) {
   await t.bilde("klar-kategori");
   s = await sp();
   const k = await kat(s.kort.k);
-  t.sjekk(s.kort.b === "" && k.b >= 1 && !k.kun && /si noe som passer/.test(await t.tekst(".bt-kort")), `«Kategori» skal gi en bred kategori uten bokstav: ${JSON.stringify(k)}`);
+  t.sjekk(s.kort.b === "" && k.b >= 1 && !k.kun && (!t.norsk || /si noe som passer/.test(await t.tekst(".bt-kort"))), `«Kategori» skal gi en bred kategori uten bokstav: ${JSON.stringify(k)}`);
   await t.klikk('[data-h="bomba-start"]', 50);
   await vent(".skjerm-bomba", 8000);
   await t.sov(300);
@@ -184,7 +184,7 @@ export default async function (t) {
   await t.klikk('[data-h="fortsett"]');
   await vent('[data-h="bomba-start"]');
   await t.klikk('[data-h="avslutt"]');
-  t.sjekk(/blir borte/.test(await t.tekst("#ark .ingress")) && (await t.tekst('#ark [data-v="nei"]')).trim() === "Spill videre", `«Avslutt» før noen har mistet et hjerte: «${await t.tekst("#ark .ingress")}»`);
+  t.sjekk(!t.norsk || (/blir borte/.test(await t.tekst("#ark .ingress")) && (await t.tekst('#ark [data-v="nei"]')).trim() === "Spill videre"), `«Avslutt» før noen har mistet et hjerte: «${await t.tekst("#ark .ingress")}»`);
   await t.klikk('#ark [data-v="ja"]');
   await vent(".bt-moduser");
   t.sjekk((await t.tilstand()).spill === null, "«Avslutt» før noe har skjedd skal fjerne spillet");
@@ -199,25 +199,25 @@ export default async function (t) {
   await vent(".bt-kort");
   await t.sov(1500);
   s = await sp();
-  t.sjekk(s.kort.k === -1 && s.sistemann === true && /Et ord\s+som begynner på/.test((await t.tekst(".bt-kort")).replace(/\s+/g, " ")), `«Bokstav» skal gi et kort uten kategori: «${(await t.tekst(".bt-kort")).replace(/\s+/g, " ")}»`);
-  t.sjekk((await t.tekst('.dokk [data-h="nytt-kort"]')).trim() === "Ny bokstav", "Lenken for nytt kort skal hete «Ny bokstav» uten kategori");
+  t.sjekk(s.kort.k === -1 && s.sistemann === true && (!t.norsk || /Et ord\s+som begynner på/.test((await t.tekst(".bt-kort")).replace(/\s+/g, " "))), `«Bokstav» skal gi et kort uten kategori: «${(await t.tekst(".bt-kort")).replace(/\s+/g, " ")}»`);
+  t.sjekk(!t.norsk || (await t.tekst('.dokk [data-h="nytt-kort"]')).trim() === "Ny bokstav", "Lenken for nytt kort skal hete «Ny bokstav» uten kategori");
   await t.bilde("klar-bokstav");
   await runde(1);
   // «Avslutt» after a heart is lost goes to «Kåringen» – «Spill videre» stays
   await t.klikk('[data-h="neste-runde"]');
   await vent('[data-h="bomba-start"]');
   await t.klikk('[data-h="avslutt"]');
-  t.sjekk(/flest hjerter nå, vinner/.test(await t.tekst("#ark .ingress")), `«Avslutt» etter et tapt hjerte: «${await t.tekst("#ark .ingress")}»`);
+  t.sjekk(!t.norsk || /flest hjerter nå, vinner/.test(await t.tekst("#ark .ingress")), `«Avslutt» etter et tapt hjerte: «${await t.tekst("#ark .ingress")}»`);
   await t.klikk('#ark [data-v="nei"]');
   await runde(1);
   await t.klikk('[data-h="neste-runde"]');
   await runde(1);
   await t.bilde("ute");
-  t.sjekk(/er ute!/.test(await t.tekst("#skjerm h1")) && (await t.finnes(".bt-liv .bt-ute")) && /Til kåringen/.test(await t.tekst(".dokk .knapp")), "Med «Sistemann igjen» skal den uten hjerter være ute");
+  t.sjekk((await t.finnes(".bt-liv .bt-ute")) && (!t.norsk || (/er ute!/.test(await t.tekst("#skjerm h1")) && /Til kåringen/.test(await t.tekst(".dokk .knapp")))), "Med «Sistemann igjen» skal den uten hjerter være ute");
   await t.klikk('[data-h="bomba-vinner"]');
   await vent(".skjerm-vinner");
   await t.bilde("vinner-sistemann", true);
-  t.sjekk(/Testspiller A vinner/.test(await t.tekst("#skjerm h1")) && (await kveld())[1] === "A1 B2", "Vinneren av «Sistemann igjen» vises ikke");
+  t.sjekk((t.norsk ? /Testspiller A vinner/ : /Testspiller A/).test(await t.tekst("#skjerm h1")) && (await kveld())[1] === "A1 B2", "Vinneren av «Sistemann igjen» vises ikke");
 
   // ---------- Bokstavjakt: the game is chosen on the home screen (once) ----------
   await t.klikk("#tilbake");
@@ -229,7 +229,7 @@ export default async function (t) {
   await t.bilde("oppsett-jakt", true);
   await t.klikk('[data-h="start"]');
   await vent('[data-h="jakt-trekk"]');
-  t.sjekk(/Runde 1 av 3/i.test(await t.tekst("#topp-tittel")), `Bokstavjakt skal si hvor langt dere er kommet: «${await t.tekst("#topp-tittel")}»`);
+  t.sjekk((t.norsk ? /Runde 1 av 3/i : /1\D+3/).test(await t.tekst("#topp-tittel")), `Bokstavjakt skal si hvor langt dere er kommet: «${await t.tekst("#topp-tittel")}»`);
   await t.bilde("jakt-klar");
   await t.klikk('[data-h="jakt-trekk"]');
   await t.vent("document.querySelector('.bt-kategorier:not(.skjult)') && !document.querySelector('[data-h=\"jakt-ferdig\"]').disabled", 8000);
@@ -255,7 +255,7 @@ export default async function (t) {
   // A row nobody has scored is marked – the group cannot move on with a silent 0
   await t.klikk('[data-h="poeng"][data-v="0:2"]', 80);
   await t.klikk('[data-h="kat-neste"]');
-  t.sjekk((await t.antall(".bt-poengrader li.mangler")) === 1 && /Mangler poeng/.test(await t.tekst(".bt-poengrader li.mangler")) && (await t.js("Rusj.S.spill.r.nr")) === 0, "En rad uten poeng skal merkes, og kategorien bli stående");
+  t.sjekk((await t.antall(".bt-poengrader li.mangler")) === 1 && (!t.norsk || /Mangler poeng/.test(await t.tekst(".bt-poengrader li.mangler"))) && (await t.js("Rusj.S.spill.r.nr")) === 0, "En rad uten poeng skal merkes, og kategorien bli stående");
   await t.bilde("jakt-mangler-poeng");
   await fri(".bt-poengrader li.mangler", "mangler poeng");
   // Scores a whole round: a points per category for the first player, b for the second
@@ -286,7 +286,7 @@ export default async function (t) {
   await t.klikk('[data-h="kat-neste"]');
   await vent(".skjerm-jakt-stilling");
   t.sjekk((await t.tilstand()).spill.poeng.join() === "10,5", "Poengene ble ikke lagt til igjen");
-  t.sjekk((await t.tekst('[data-h="avslutt"]')).trim() === "Avslutt" && /Ny runde/.test(await t.tekst(".dokk .knapp")), "Etter første runde skal det stå «Ny runde» og «Avslutt»");
+  t.sjekk((await t.finnes('[data-h="avslutt"]')) && (!t.norsk || ((await t.tekst('[data-h="avslutt"]')).trim() === "Avslutt" && /Ny runde/.test(await t.tekst(".dokk .knapp")))), "Etter første runde skal det stå «Ny runde» og «Avslutt»");
 
   // The next rounds: draw, let the time run out, score
   const jaktrunde = async (a, b) => {
@@ -299,23 +299,23 @@ export default async function (t) {
     await vent(".skjerm-jakt-stilling");
   };
   await jaktrunde(0, 1);
-  t.sjekk((await t.tilstand()).spill.poeng.join() === "10,10" && /Runde 2 av 3 er ferdig/i.test(await t.tekst(".banner .etikett")), "Runde to ble ikke talt riktig");
+  t.sjekk((await t.tilstand()).spill.poeng.join() === "10,10" && (!t.norsk || /Runde 2 av 3 er ferdig/i.test(await t.tekst(".banner .etikett"))), "Runde to ble ikke talt riktig");
   // Round three ends level: one extra round decides
   await jaktrunde(1, 1);
   await t.bilde("jakt-likt");
-  t.sjekk(/står likt!/.test(await t.tekst("#skjerm h1")) && /Ekstrarunde/.test(await t.tekst(".dokk .knapp")) && /ekstrarunde avgjør/.test(await t.tekst(".banner .ingress")), `Likt etter siste runde skal gi én ekstrarunde: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(!t.norsk || (/står likt!/.test(await t.tekst("#skjerm h1")) && /Ekstrarunde/.test(await t.tekst(".dokk .knapp")) && /ekstrarunde avgjør/.test(await t.tekst(".banner .ingress"))), `Likt etter siste runde skal gi én ekstrarunde: «${await t.tekst("#skjerm h1")}»`);
   await jaktrunde(2, 0);
   await t.bilde("jakt-siste-stilling");
-  t.sjekk((await t.tilstand()).spill.poeng.join() === "25,15" && /Til kåringen/.test(await t.tekst(".dokk .knapp")) && !(await t.finnes('[data-h="avslutt"]')), "Etter ekstrarunden skal spillet lede «Til kåringen» av seg selv");
+  t.sjekk((await t.tilstand()).spill.poeng.join() === "25,15" && (t.norsk ? /Til kåringen/.test(await t.tekst(".dokk .knapp")) : await t.finnes('.dokk .knapp[data-h="jakt-karing"]')) && !(await t.finnes('[data-h="avslutt"]')), "Etter ekstrarunden skal spillet lede «Til kåringen» av seg selv");
   await t.klikk('[data-h="jakt-karing"]');
   await vent(".skjerm-vinner");
   await t.bilde("vinner-jakt", true);
-  t.sjekk(/Testspiller A vinner/.test(await t.tekst("#skjerm h1")), "Vinneren av Bokstavjakt vises ikke");
-  t.sjekk((await t.tekst("#topp-tittel")).trim().toLowerCase() === "kåringen", "Sluttskjermen heter ikke «Kåringen»");
+  t.sjekk((t.norsk ? /Testspiller A vinner/ : /Testspiller A/).test(await t.tekst("#skjerm h1")), "Vinneren av Bokstavjakt vises ikke");
+  if (t.norsk) t.sjekk((await t.tekst("#topp-tittel")).trim().toLowerCase() === "kåringen", "Sluttskjermen heter ikke «Kåringen»");
   t.sjekk((await t.tilstand())._aktiv === false && (await kveld())[2] === "A1 B2", "Bokstavjakt ble ikke meldt til «Kveldens gjeng», eller regnes som pågående");
 
   // ---------- A game saved by the first version keeps its rules (category + letter, knock-out) ----------
-  await t.js(`localStorage.setItem("rusj.bokstavtrollet.v1", JSON.stringify({ skjerm: "klar", antall: 3, _tid: Date.now(),
+  await t.js(`localStorage.setItem("${t.nokkel("bokstavtrollet.v1")}", JSON.stringify({ skjerm: "klar", antall: 3, _tid: Date.now(),
     oppsett: { modus: "bomba", niva: "familie", vanskelig: false, sovn: "normalt", tid: 90 },
     spill: { modus: "bomba", antall: 3, niva: "familie", vanskelig: false, brukt: ["K"], runde: 2, ferdig: false, sovn: "normalt", liv: [3, 2, 3], ute: [], start: 1, holder: 1, ord: 0, slutt: 0, kort: { k: 2, b: "K" } } }))`);
   await t.lastSide(t.side, "document.querySelector('.bt-kort')");
