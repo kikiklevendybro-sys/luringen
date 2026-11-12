@@ -2165,7 +2165,7 @@
       const n = rang(r);
       const navn = r.navn != null ? r.navn : r.lag != null ? R.lagNavn(r.lag) : R.navn(r.i);
       const merke = r.lag != null ? `<span class="avatar stor" style="--pf: ${R.LAG[r.lag % R.LAG.length].farge}" aria-hidden="true"></span>` : R.avatar(r.i || 0, "stor");
-      return `<div class="pall-plass p${Math.min(n, 3)}">${merke}<span class="navn">${esc(navn)}</span><span class="poeng">${esc(r.poeng)} ${esc(o.enhet || R.t("p"))}</span><span class="blokk">${n}</span></div>`;
+      return `<div class="pall-plass p${Math.min(n, 3)}">${merke}<span class="navn">${esc(navn)}</span><span class="poeng">${esc(r.poeng)} ${esc(o.enhet || R.t("p", { n: r.poeng }))}</span><span class="blokk">${n}</span></div>`;
     };
     // Two places: only those two, centred (no empty third column).
     if (s.length < 3) return `<div class="pall to" aria-label="${esc(R.t("Pallen"))}">${plass(s[1])}${plass(s[0])}</div>`;

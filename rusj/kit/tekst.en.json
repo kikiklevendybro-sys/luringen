@@ -54,7 +54,7 @@
   "Hemmelig": "Secret",
   "Hold inne for å se": "Hold to see",
   "Hold inne for å se det hemmelige kortet": "Hold to see the secret card",
-  "p": "pts",
+  "p": { "one": "pt", "other": "pts" },
   "Pallen": "The podium",
   "Flere spill du kan spille alene": "More games you can play on your own",
   "Spill noe annet med samme gjeng": "Play something else with the same crew",
