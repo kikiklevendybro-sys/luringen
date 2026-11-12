@@ -2584,15 +2584,15 @@ body:not(.over18) .spillkort[data-alder18] {
   }
 }
 
-/* ---------- Country picker (top right on the front page and the pages about rusj) ---------- */
-.landvelger {
+/* ---------- Language picker (top right on the front page and the pages about rusj) ---------- */
+.sprakvelger {
   position: absolute;
   top: calc(10px + env(safe-area-inset-top, 0px));
   right: max(12px, env(safe-area-inset-right, 0px));
   z-index: 5;
   text-align: left;
 }
-.landvelger summary {
+.sprakvelger summary {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -2610,25 +2610,35 @@ body:not(.over18) .spillkort[data-alder18] {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
-.landvelger summary::-webkit-details-marker {
+.sprakvelger summary::-webkit-details-marker {
   display: none;
 }
-.landvelger summary:hover,
-.landvelger[open] summary {
+.sprakvelger summary:hover,
+.sprakvelger[open] summary {
   border-color: var(--lampe);
 }
-.landvelger summary:focus-visible {
+.sprakvelger summary:focus-visible {
   outline: 3px solid var(--lampe);
   outline-offset: 2px;
 }
-.landvelger .flagg {
+.sprakvelger .flagg {
   flex: none;
   width: 22px;
   height: 16px;
   border-radius: 3px;
   box-shadow: 0 0 0 1px rgba(255, 241, 221, 0.25);
 }
-.landvelger-pil {
+.sprakvelger-globus {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--lampe);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sprakvelger-pil {
   width: 16px;
   height: 16px;
   fill: none;
@@ -2638,10 +2648,10 @@ body:not(.over18) .spillkort[data-alder18] {
   stroke-linejoin: round;
   transition: transform 0.18s ease;
 }
-.landvelger[open] .landvelger-pil {
+.sprakvelger[open] .sprakvelger-pil {
   transform: rotate(180deg);
 }
-.landvelger-liste {
+.sprakvelger-liste {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
@@ -2654,8 +2664,8 @@ body:not(.over18) .spillkort[data-alder18] {
   background: var(--natt-tett);
   box-shadow: 0 16px 40px var(--skygge);
 }
-.landvelger-liste a,
-.landvelger-liste b {
+.sprakvelger-liste a,
+.sprakvelger-liste b {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2666,37 +2676,37 @@ body:not(.over18) .spillkort[data-alder18] {
   font-weight: 700;
   text-decoration: none;
 }
-.landvelger-liste a:hover,
-.landvelger-liste a:focus-visible {
+.sprakvelger-liste a:hover,
+.sprakvelger-liste a:focus-visible {
   background: var(--natt-3);
   color: var(--tekst);
   outline: none;
 }
-.landvelger-liste b {
+.sprakvelger-liste b {
   color: var(--tekst);
   font-weight: 800;
 }
-.landvelger-liste b::after {
+.sprakvelger-liste b::after {
   content: "✓" / "";
   margin-left: auto;
   color: var(--mynte);
 }
 @media (prefers-reduced-motion: reduce) {
-  .landvelger-pil {
+  .sprakvelger-pil {
     transition: none;
   }
 }
 /* the open list lies above the parade and the shelves below the header */
-.helt:has(.landvelger[open]),
-.side-topp:has(.landvelger[open]) {
+.helt:has(.sprakvelger[open]),
+.side-topp:has(.sprakvelger[open]) {
   z-index: 30;
 }
-/* narrow phones: only the flag and the arrow, so the pill stays clear of the logo */
+/* narrow phones: only the globe and the code, so the pill stays clear of the logo */
 @media (max-width: 419px) {
-  .landvelger-kode {
+  .sprakvelger-pil {
     display: none;
   }
-  .landvelger summary {
+  .sprakvelger summary {
     gap: 5px;
     padding: 0 8px 0 10px;
   }

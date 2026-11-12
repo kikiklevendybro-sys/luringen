@@ -973,13 +973,13 @@
     sjekkFast();
   });
 
-  // The country picker (a <details>) also closes on a tap outside it and on Escape.
+  // The language picker (a <details>) also closes on a tap outside it and on Escape.
   document.addEventListener("click", (e) => {
-    for (const d of $$("details.landvelger[open]")) if (!d.contains(e.target)) d.open = false;
+    for (const d of $$("details.sprakvelger[open]")) if (!d.contains(e.target)) d.open = false;
   });
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    for (const d of $$("details.landvelger[open]")) {
+    for (const d of $$("details.sprakvelger[open]")) {
       d.open = false;
       const s = $("summary", d);
       if (s) s.focus();
