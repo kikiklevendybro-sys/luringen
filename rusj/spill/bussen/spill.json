@@ -11,5 +11,23 @@
   "rekkefolge": 45,
   "alder18": true,
   "sok": ["ride the bus", "rød eller svart", "høyere lavere", "bussen drikkelek", "drikkelek kort"],
-  "alias": ["busstur"]
+  "alias": ["busstur"],
+  "i18n": {
+    "en": {
+      "navn": "Party Bus",
+      "undertittel": "Red or black?",
+      "kort": "Red or black? Whoever misses most rides the bus.",
+      "beskrivelse": "Free card drinking game (18+). Red or black, higher or lower – wrong answers mean sips, and whoever misses most rides the bus. Alcohol-free counts.",
+      "slug": "party-bus",
+      "sok": ["ride the bus", "ride the bus drinking game", "red or black", "higher or lower", "card drinking game", "drinking games"]
+    },
+    "da": {
+      "navn": "Bussen",
+      "undertittel": "Rød eller sort?",
+      "kort": "Rød eller sort? Den, der rammer forbi flest gange, tager bussen.",
+      "beskrivelse": "Gratis drukspil på dansk (18+). Rød eller sort, højere eller lavere – forkerte svar giver slurke, og den, der rammer forbi mest, tager bussen.",
+      "slug": "bussen",
+      "sok": ["ride the bus", "bussen drukspil", "rød eller sort", "højere lavere", "drukspil med kort"]
+    }
+  }
 }
