@@ -11,5 +11,23 @@
   "rekkefolge": 31,
   "farge": "#6fe07a",
   "sok": ["snake", "slangespill", "ormespill", "slange"],
-  "alias": ["snake"]
+  "alias": ["snake"],
+  "i18n": {
+    "en": {
+      "navn": "Hissy",
+      "undertittel": "Snake",
+      "kort": "Eat, grow and turn – just don't bite your own tail!",
+      "beskrivelse": "Free Snake in your browser. Steer the snake with swipes, arrows or the keyboard, eat fruit and grow – three speeds, with or without walls, and your own high score.",
+      "slug": "hissy",
+      "sok": ["snake", "snake game", "classic snake", "nokia snake", "worm game", "hissy"]
+    },
+    "da": {
+      "navn": "Slangen",
+      "undertittel": "Snake",
+      "kort": "Spis, voks og drej – bare du ikke bider dig selv i halen!",
+      "beskrivelse": "Gratis Snake direkte i browseren. Styr slangen med swipe, pile eller tastatur, spis frugt og voks – tre hastigheder, med eller uden vægge, og din egen rekord.",
+      "slug": "slangen",
+      "sok": ["snake", "slangespil", "snake spil", "nokia snake", "ormespil", "slange"]
+    }
+  }
 }
