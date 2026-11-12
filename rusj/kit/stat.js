@@ -82,7 +82,16 @@
 
   // "forside", a game id (the first part of the address), or "annet".
   function side() {
-    var del = String((w.location && w.location.pathname) || "/").split("/")[1] || "";
+    var deler = String((w.location && w.location.pathname) || "/").split("/");
+    var del = deler[1] || "";
+    // /en/… and /da/…: the same games under their own names; count them by the game's id.
+    if (del === "en" || del === "da") {
+      var spill = w.document && w.document.documentElement && w.document.documentElement.getAttribute("data-spill");
+      if (spill) return /^[a-z0-9]{2,24}$/.test(spill) ? spill : "annet";
+      del = deler[2] || "";
+      if (del === "" || del === "index.html") return "forside";
+      return "annet";
+    }
     if (del === "" || del === "index.html") return "forside";
     return /^[a-z0-9]{2,24}$/.test(del) ? del : "annet";
   }
