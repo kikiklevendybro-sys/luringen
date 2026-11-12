@@ -1,0 +1,23 @@
+{
+  "jul": {
+    "navn": "Jul",
+    "ikon": "🎄",
+    "tekst": "Jul og vinter",
+    "ord": [
+      "Juleaften", "Nytårsaften", "Juledag", "Anden juledag", "Jul", "Julemanden", "Julekalender", "Julestrømpe",
+      "Fyrværkeri", "Stjernekaster", "Gavepapir", "Gave", "Ønskeseddel", "Brev til julemanden", "Julekort", "Julesweater",
+      "Julekugle", "Glimmer", "Lyskæde", "Festhat", "Bordbombe", "Risalamande", "Kirsebærsovs", "Julesang",
+      "Salme", "Julegudstjeneste", "De hellige tre konger", "Hyrderne", "Engel", "Stjerne i toppen", "Adventskrans", "Kalenderlys",
+      "Luciaoptog", "Gavemærke", "Julefrokost", "Nissehue", "Julehjerte", "Hygge", "Pakkekalender", "Klippe julehjerter",
+      "Julekalender i tv", "Mørke vinteraftener", "Kongens nytårstale", "Hoppe ind i nytåret", "Juletræ", "Gran", "Kristtorn", "Kogle",
+      "Mistelten", "Ædelgran", "Nisse", "Rensdyr", "Isbjørn", "Pingvin", "Sne", "Frost",
+      "Istap", "Snefnug", "Snemand", "Snebold", "Vinter", "Rim", "Glatføre", "Slud",
+      "Lavine", "Stjerne", "Halstørklæde", "Luffer", "Vanter", "Hue", "Strikhue", "Ørevarmere",
+      "Uldsokker", "Hjemmesko", "Stearinlys", "Brændeovn", "Tæppe", "Kælk", "Kælkning", "Skiløb",
+      "Skøjteløb", "Skøjtebane", "Ishockey", "Snowboard", "Stolelift", "Skiferie", "Vinterbadning", "Varm kakao",
+      "Risengrød", "Flæskesteg", "Rødkål", "Brunede kartofler", "Andesteg", "Æbleskiver", "Pebernødder", "Brunkager",
+      "Vaniljekranse", "Klejner", "Marcipan", "Konfekt", "Rosenkål", "Klementin", "Grønkål", "Juletræsdans",
+      "Nordpolen", "Krybbespil", "Ebenezer Scrooge", "Lille Tim", "Nøddeknækkeren", "Snedronningen", "Honningkagehus"
+    ]
+  }
+}

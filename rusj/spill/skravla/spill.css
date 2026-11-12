@@ -1134,6 +1134,12 @@
     min-height: 64px;
   }
 
+  /* A word of several words takes two lines: smaller, so the forbidden words stay above the
+     buttons (English and Danish have many, «Ice cream», «Rød pølse»). */
+  .skjerm-runde .sk-med-forbudt .sk-ordet.flere {
+    font-size: min(2rem, calc(148cqi / var(--tegn, 8)));
+  }
+
   .skjerm-runde .sveip-hint {
     display: none;
   }

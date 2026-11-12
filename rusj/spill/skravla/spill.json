@@ -11,5 +11,23 @@
   "rekkefolge": 7,
   "ordbank": true,
   "alias": ["forklar-ordet"],
-  "sok": ["forklar ordet", "forbudte ord", "ordforklaring", "ordlek lag", "lagspill"]
+  "sok": ["forklar ordet", "forbudte ord", "ordforklaring", "ordlek lag", "lagspill"],
+  "i18n": {
+    "en": {
+      "navn": "Chatterbox",
+      "undertittel": "Explain the word",
+      "kort": "Explain the word without saying it – first team to the finish wins.",
+      "beskrivelse": "A free ‘explain the word’ game. Team against team: explain as many words as you can and move your token to the finish. Over 3,000 words.",
+      "slug": "chatterbox",
+      "sok": ["taboo", "articulate", "explain the word", "forbidden words", "word guessing game", "team word game", "christmas word game"]
+    },
+    "da": {
+      "navn": "Snakketøjet",
+      "undertittel": "Forklar ordet",
+      "kort": "Forklar ordet uden at sige det – første hold i mål vinder.",
+      "beskrivelse": "Gratis »forklar ordet«-spil på dansk. Hold mod hold: Forklar så mange ord, I kan nå, og flyt brikken mod mål. Over 3.000 ord.",
+      "slug": "snakketoejet",
+      "sok": ["tabu", "forklar ordet", "forbudte ord", "ordleg på hold", "holdspil", "gætteleg", "julespil"]
+    }
+  }
 }

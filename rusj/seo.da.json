@@ -469,6 +469,18 @@
         "agentspil",
         "codenames"
       ]
+    },
+    "skravla": {
+      "tittel": "Forklar ordet – ordspil hold mod hold med 3.000 ord",
+      "frase": "Forklar ordet",
+      "beskrivelse": "Forklar ordet uden at sige det! Gratis ordspil på dansk for 4–20 spillere: hold mod hold med over 3.000 ord, ur og spillebræt på mobilen.",
+      "sok": [
+        "tabu",
+        "forklar ordet",
+        "forbudte ord",
+        "gætteleg",
+        "ordleg"
+      ]
     }
   }
 }
