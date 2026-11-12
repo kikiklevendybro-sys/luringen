@@ -11,5 +11,23 @@
   "rekkefolge": 46,
   "alder18": true,
   "sok": ["drikkehjul", "snurr hjulet", "lykkehjul", "spin the wheel", "drikkeleker", "drikkespill"],
-  "alias": ["drikkehjul"]
+  "alias": ["drikkehjul"],
+  "i18n": {
+    "en": {
+      "navn": "Wheelie",
+      "undertittel": "Spin and cheers",
+      "kort": "Spin the wheel – it decides what happens.",
+      "beskrivelse": "Free spin-the-wheel drinking game (18+): spin the big wheel and see where it lands. Make your own house rules. Small sips only – alcohol-free counts.",
+      "slug": "wheelie",
+      "sok": ["spin the wheel drinking game", "drinking wheel", "wheel of fortune drinking game", "spin the wheel", "drinking games", "truth or dare drinking game"]
+    },
+    "da": {
+      "navn": "Hjulet",
+      "undertittel": "Snur og skål",
+      "kort": "Snur hjulet – det bestemmer, hvad der sker.",
+      "beskrivelse": "Gratis drukspil på dansk (18+): Snur det store hjul, og se, hvor det lander. Lav jeres egne husregler. Kun små slurke – alkoholfrit tæller.",
+      "slug": "hjulet",
+      "sok": ["drukhjul", "snur hjulet", "lykkehjul drukspil", "spin the wheel", "drukspil", "drukspil til fest"]
+    }
+  }
 }
