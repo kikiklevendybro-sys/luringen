@@ -10,5 +10,23 @@
   "tagger": ["fest", "familie", "blof", "sporsmal"],
   "rekkefolge": 15,
   "alias": ["to-sannheter-og-en-logn", "løgnhalsen"],
-  "sok": ["to sannheter og en løgn", "løgn", "bli kjent", "bli kjent-lek", "klassefest", "historier"]
+  "sok": ["to sannheter og en løgn", "løgn", "bli kjent", "bli kjent-lek", "klassefest", "historier"],
+  "i18n": {
+    "en": {
+      "navn": "Fibber",
+      "undertittel": "Two truths and a lie",
+      "kort": "Three statements, one lie. Can they catch you out?",
+      "beskrivelse": "Free Two Truths and a Lie. Say three things about yourself – two are true, one is a lie. Can the others catch you out?",
+      "slug": "fibber",
+      "sok": ["two truths and a lie", "2 truths and a lie", "icebreaker games", "getting to know you games", "truth or lie", "lie detector game", "party games"]
+    },
+    "da": {
+      "navn": "Løgnhalsen",
+      "undertittel": "To sandheder og en løgn",
+      "kort": "Tre påstande, én løgn. Kan de afsløre dig?",
+      "beskrivelse": "Gratis »To sandheder og en løgn« på dansk. Sig tre ting om dig selv – to er sande, én er løgn. Kan de andre afsløre dig?",
+      "slug": "loegnhalsen",
+      "sok": ["to sandheder og en løgn", "2 sandheder og 1 løgn", "lær hinanden at kende", "isbryder", "festleg", "sandt eller falsk", "two truths and a lie"]
+    }
+  }
 }
