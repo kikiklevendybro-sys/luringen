@@ -425,7 +425,7 @@ for (const id of valgt) {
           await c.js(`(() => { const e = document.activeElement; const s = getComputedStyle(e); const ring = (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2) || (e.id === "sok" && s.borderTopColor === "rgb(255, 210, 63)"); return (e.id ? "#" + e.id : e.matches('a[href="#spill"]') ? "finn" : String(e.className).split(" ")[0] || e.tagName) + (ring ? "" : " (uten synlig fokus)"); })()`),
         );
       }
-      const ventetStopp = ["finn", "#overrask", "#installtips-vis", "#installtips-lukk", "#sok", "#filter-knapp", "hylle-alle", "A"].slice(0, 8); // A: the first card on the first shelf
+      const ventetStopp = ["SUMMARY", "finn", "#overrask", "#installtips-vis", "#installtips-lukk", "#sok", "#filter-knapp", "hylle-alle"]; // SUMMARY: the language picker at the top
       t.sjekk(stopp.join(" → ") === ventetStopp.join(" → "), `Tab-rekkefølgen på forsiden: ${stopp.join(" → ")}`);
       // Backwards from the last game: what gets focus is scrolled to the top of the screen, and must
       // not end up under the search row that sticks there.
