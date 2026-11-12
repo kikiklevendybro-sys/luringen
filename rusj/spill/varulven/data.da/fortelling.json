@@ -1,0 +1,111 @@
+{
+  "natt": [
+    "Månen står op over landsbyen. Alle lukker øjnene …",
+    "Det bliver mørkt i landsbyen. Langt inde i skoven hyler noget.",
+    "Lysene slukkes, ét efter ét. Ikke alle her er, hvad de ser ud til.",
+    "Uglerne vågner, og landsbyen falder i søvn. Luk øjnene – og lyt.",
+    "Natten sænker sig over hustagene. Et sted sliber nogen kløerne.",
+    "Fuldmåne i nat. Ingen kigger, og ingen siger et ord.",
+    "Det knirker i gulvbrædderne. Det er bare vinden … sikkert.",
+    "Tågen lægger sig over landsbyen. Nogen er sultne i nat.",
+    "Hundene gør mod skovbrynet. Så bliver alt helt stille.",
+    "Klokken i kirketårnet slår tolv. Alle lukker øjnene.",
+    "Vinden hyler i skorstenen – eller er det noget andet?",
+    "Stearinlysene blafrer og går ud. Natten er kommet."
+  ],
+  "sanger": [
+    "Mester Jakob",
+    "Lille Peter Edderkop",
+    "Bro, bro brille",
+    "Bæ, bæ, lille lam",
+    "Se den lille kattekilling",
+    "Ride ride ranke",
+    "I en skov en hytte lå",
+    "Jeg gik mig over sø og land",
+    "Op, lille Hans",
+    "En elefant kom marcherende",
+    "Hist, hvor vejen slår en bugt",
+    "Fra Engeland til Skotland"
+  ],
+  "morgen": [
+    "Hanen galer. Landsbyen vågner – men vågner alle?",
+    "Solen titter frem over bakken. Alle åbner øjnene.",
+    "Der dufter af nybagt brød fra bageriet. Men hvad skete der i nat?",
+    "Morgenen er kold og stille. Alt for stille.",
+    "Fuglene synger, og landsbyen samles på torvet.",
+    "Et nyt døgn. Hvem mangler ved morgenbordet?",
+    "Kirkeklokkerne ringer. Det er tid til at tælle hoveder.",
+    "Duggen ligger tungt på græsset, og nogle spor fører ind i skoven …"
+  ],
+  "fredelig": [
+    "Den første nat var fredelig. Fra i nat jager ulvene for alvor.",
+    "Ulvene snusede bare rundt i nat. Næste nat bliver det alvor.",
+    "Ingen spor i sneen, ingen tomme senge. Nyd det – det varer ikke.",
+    "Alle er på plads ved morgenbordet. Indtil videre."
+  ],
+  "dag": [
+    "Hvem var ude i nat? Hvem har set noget mærkeligt? Snak sammen!",
+    "Landsbyen samles på torvet. Nogen her lyver.",
+    "Se hinanden i øjnene. Hvem blinker lidt for meget?",
+    "Alle har en mening. Kun nogle har ret.",
+    "Varulvene sidder blandt jer. De smiler også.",
+    "Spørg, anklag og forsvar dig. Men ikke for ivrigt – så bliver du mistænkt.",
+    "Nogen her har jord under neglene. Hvem?"
+  ],
+  "dagSenere": [
+    "Tænk tilbage på i går. Hvem stemte lidt mærkeligt?",
+    "Hvem har været stille siden i går? Og hvem har snakket lidt for meget?"
+  ],
+  "reddet": [
+    "Lægen var det rigtige sted på det rigtige tidspunkt. Ingen døde i nat!",
+    "Ulvene slog til – men lægen var hurtigere. Alle overlevede!",
+    "Et skrig i natten og så et plaster. Lægen reddede nogen!",
+    "Ulvene gik sultne i seng. Lægen reddede et liv i nat.",
+    "Ulvene kom – og gik tomhændede hjem igen.",
+    "Lægen satte plastret det rigtige sted. Ingen døde i nat."
+  ],
+  "ingenUt": [
+    "Landsbyen blev ikke enige. Alle får lov at leve – i hvert fald til i nat.",
+    "Ingen blev stemt ud. Varulvene smiler i skægget.",
+    "Uenighed på torvet. Natten kommer alligevel.",
+    "Torvet tømmes uden dom. Nogen puster lettet ud.",
+    "Ingen fik flertal. Måske var det klogt – måske ikke."
+  ],
+  "landsbyVant": [
+    "Den sidste varulv er væk. Landsbyen kan endelig sove godt!",
+    "Ulvene er jaget langt ind i skoven. Der bliver fest på torvet!",
+    "Fred i landsbyen igen – og ikke flere ulvespor i sneen.",
+    "Hylet er forstummet. Landsbyen er tryg igen!",
+    "Kirkeklokkerne ringer for sejren. Ulvene er væk!"
+  ],
+  "ulvVant": [
+    "Varulvene har overtaget landsbyen. Auuuu!",
+    "Nu er der lige så mange ulve som folk. Landsbyen er tabt.",
+    "Ulveflokken hyler mod månen. De narrede jer allesammen.",
+    "Månen lyser over en stille landsby. Ulvene vandt.",
+    "Landsbyen sov for tungt. Nu er det ulvenes landsby."
+  ],
+  "enNatt": [
+    "Én nat er alt, I får. Luk øjnene – nogen kommer til at bytte plads.",
+    "Månen er oppe, og i nat er intet sikkert. Ikke engang, hvem du selv er.",
+    "Landsbyen falder i søvn. Nogen lister rundt og bytter om på ting.",
+    "Det er mørkt, og nogen har lange fingre i nat.",
+    "En kort nat, mange hemmeligheder. Luk øjnene.",
+    "I nat kan alt ske. I morgen må nogen tage skylden."
+  ],
+  "enMorgen": [
+    "Hanen galer. Alle er her – men er alle de samme som i går aftes?",
+    "Solen står op. Nogen vågner som en helt anden.",
+    "Godmorgen! Mærk efter: Føler du dig lidt … håret?",
+    "Landsbyen vågner. I nat skete der noget – og nogen ved hvad.",
+    "Ingen mangler ved morgenbordet. Men mindst én af jer er varulv."
+  ],
+  "enDag": [
+    "Hvem gjorde hvad i nat? Fortæl – eller find på noget.",
+    "Alle siger, de er landsbyboere. Nogen lyver.",
+    "Spørg den synske. Hvis det altså er den synske.",
+    "Rollen, du så i nat, er måske ikke din længere.",
+    "Fire minutter. Én varulv er nok.",
+    "Den, der snakker mest, har ikke altid mest at skjule. Eller hvad?"
+  ]
+}

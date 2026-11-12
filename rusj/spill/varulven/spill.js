@@ -16,7 +16,7 @@
   const F = window.RUSJ_DATA.fortelling;
   const esc = R.esc;
 
-  const HOLD = "Hold fingeren på kortet for å se";
+  const HOLD = R.t("Hold fingeren på kortet for å se");
   const MIN = 6;
   const MAKS = 12; // above twelve a night is mostly waiting
   const TIDER = [2, 3, 5];
@@ -28,60 +28,65 @@
   let H; // the actions, so one action can reuse another
   let teller = false; // a countdown is running
 
-  const MAGEFOLELSE = "Svaret er hemmelig. Når spillet er slutt, får dere se hvem som hadde best magefølelse.";
+  const MAGEFOLELSE = R.t("Svaret er hemmelig. Når spillet er slutt, får dere se hvem som hadde best magefølelse.");
+  // The roles that come in numbers (the wolves and the villagers): «1 varulv», «3 landsbyboere».
+  const ANTALL = {
+    varulv: (n) => R.flertall(n, "varulv", "varulver"),
+    landsby: (n) => R.flertall(n, "landsbyboer", "landsbyboere"),
+  };
+  // … and the plural on its own («begge var varulver»).
+  const FLERTALL = { varulv: () => R.t("varulver"), landsby: () => R.t("landsbyboere") };
   const ROLLER = {
     varulv: {
-      navn: "Varulv",
-      flertall: "varulver",
+      navn: R.t("Varulv"),
       ikon: "🐺",
-      tekst: "Om natta velger ulveflokken hvem som skal tas. Om dagen later du som du er helt vanlig.",
-      sporsmal: "Hvem skal ulveflokken ta i natt?",
-      verb: "Ta",
-      ute: "En varulv mindre i landsbyen!",
+      tekst: R.t("Om natta velger ulveflokken hvem som skal tas. Om dagen later du som du er helt vanlig."),
+      sporsmal: R.t("Hvem skal ulveflokken ta i natt?"),
+      verb: R.t("Ta"),
+      ute: R.t("En varulv mindre i landsbyen!"),
       // The peaceful first night: the same screen and the same taps, but nobody is taken.
-      fredelig: { sporsmal: "Hvem vil ulveflokken snuse på i natt?", verb: "Snus på" },
+      fredelig: { sporsmal: R.t("Hvem vil ulveflokken snuse på i natt?"), verb: R.t("Snus på") },
     },
     synsk: {
-      navn: "Synsk",
+      navn: R.t("Synsk"),
       ikon: "🔮",
-      tekst: "Hver natt får du vite om én person er varulv. Bruk det klokt – uten å avsløre deg.",
-      sporsmal: "Hvem vil du se nærmere på i natt?",
-      info: "Du får vite om personen er varulv eller ikke.",
-      verb: "Se på",
-      ute: "Nå er det ingen som ser inn i krystallkula lenger.",
+      tekst: R.t("Hver natt får du vite om én person er varulv. Bruk det klokt – uten å avsløre deg."),
+      sporsmal: R.t("Hvem vil du se nærmere på i natt?"),
+      info: R.t("Du får vite om personen er varulv eller ikke."),
+      verb: R.t("Se på"),
+      ute: R.t("Nå er det ingen som ser inn i krystallkula lenger."),
     },
     lege: {
-      navn: "Lege",
+      navn: R.t("Lege"),
       ikon: "🩺",
-      tekst: "Hver natt beskytter du én person mot ulvene. Gjerne deg selv – men ikke den samme to netter på rad.",
-      sporsmal: "Hvem vil du beskytte i natt?",
-      info: "Du kan beskytte deg selv, men ikke den samme to netter på rad.",
-      verb: "Beskytt",
-      ute: "Uten lege blir nettene farligere.",
+      tekst: R.t("Hver natt beskytter du én person mot ulvene. Gjerne deg selv – men ikke den samme to netter på rad."),
+      sporsmal: R.t("Hvem vil du beskytte i natt?"),
+      info: R.t("Du kan beskytte deg selv, men ikke den samme to netter på rad."),
+      verb: R.t("Beskytt"),
+      ute: R.t("Uten lege blir nettene farligere."),
       fredelig: {
-        sporsmal: "Hvem vil du passe på i natt?",
-        info: "Første natt er fredelig: ingen blir tatt. Fra neste natt beskytter du på ordentlig – også den du velger nå.",
-        verb: "Pass på",
+        sporsmal: R.t("Hvem vil du passe på i natt?"),
+        info: R.t("Første natt er fredelig: ingen blir tatt. Fra neste natt beskytter du på ordentlig – også den du velger nå."),
+        verb: R.t("Pass på"),
       },
     },
     jeger: {
-      navn: "Jeger",
+      navn: R.t("Jeger"),
       ikon: "🏹",
-      tekst: "Blir du tatt eller kastet ut, tar du med deg én person i fallet. Sikt godt!",
-      sporsmal: "Hvem tror du er varulv?",
+      tekst: R.t("Blir du tatt eller kastet ut, tar du med deg én person i fallet. Sikt godt!"),
+      sporsmal: R.t("Hvem tror du er varulv?"),
       info: MAGEFOLELSE,
-      verb: "Mistenk",
-      ute: "Men jegeren rekker et siste skudd …",
+      verb: R.t("Mistenk"),
+      ute: R.t("Men jegeren rekker et siste skudd …"),
     },
     landsby: {
-      navn: "Landsbyboer",
-      flertall: "landsbyboere",
+      navn: R.t("Landsbyboer"),
       ikon: "🏡",
-      tekst: "Ingen superkrefter – bare magefølelse. Finn varulvene og stem dem ut om dagen.",
-      sporsmal: "Hvem tror du er varulv?",
+      tekst: R.t("Ingen superkrefter – bare magefølelse. Finn varulvene og stem dem ut om dagen."),
+      sporsmal: R.t("Hvem tror du er varulv?"),
       info: MAGEFOLELSE,
-      verb: "Mistenk",
-      ute: "Varulvene gnir seg i potene.",
+      verb: R.t("Mistenk"),
+      ute: R.t("Varulvene gnir seg i potene."),
     },
   };
   const SPESIAL = ["synsk", "lege", "jeger"];
@@ -96,17 +101,16 @@
   const TALETID = 4; // minutes of talk before the vote
   const EN_SEK = 16; // about what one player's turn takes in this mode (the role is new to them)
   const EN_ROLLER = {
-    varulv: { navn: "Varulv", flertall: "varulver", ikon: "🐺", sporsmal: "Hvem vil du skylde på i morgen?", verb: "Skyld på" },
-    synsk: { navn: "Synsk", ikon: "🔮", sporsmal: "Hvem vil du se rollen til?", info: "Du ser rollen slik den var da natta begynte.", verb: "Se på" },
-    bytter: { navn: "Bytter", ikon: "🔄", sporsmal: "Hvem vil du bytte rolle med?", info: "Bare du får vite om byttet – og du får se den nye rollen din.", verb: "Bytt med" },
-    brak: { navn: "Bråkmaker", ikon: "😈", sporsmal: "Hvilke to skal bytte roller?", info: "Velg to andre. Rollene deres bytter plass, uten at noen av dem får vite det.", verb: "Bytt om" },
+    varulv: { navn: R.t("Varulv"), ikon: "🐺", sporsmal: R.t("Hvem vil du skylde på i morgen?"), verb: R.t("Skyld på") },
+    synsk: { navn: R.t("Synsk"), ikon: "🔮", sporsmal: R.t("Hvem vil du se rollen til?"), info: R.t("Du ser rollen slik den var da natta begynte."), verb: R.t("Se på") },
+    bytter: { navn: R.t("Bytter"), ikon: "🔄", sporsmal: R.t("Hvem vil du bytte rolle med?"), info: R.t("Bare du får vite om byttet – og du får se den nye rollen din."), verb: R.t("Bytt med") },
+    brak: { navn: R.t("Bråkmaker"), ikon: "😈", sporsmal: R.t("Hvilke to skal bytte roller?"), info: R.t("Velg to andre. Rollene deres bytter plass, uten at noen av dem får vite det."), verb: R.t("Bytt om") },
     landsby: {
-      navn: "Landsbyboer",
-      flertall: "landsbyboere",
+      navn: R.t("Landsbyboer"),
       ikon: "🏡",
-      sporsmal: "Hvem tror du er varulv?",
-      info: "Du har ingen nattjobb – bare magefølelsen. Svaret er hemmelig til runden er over.",
-      verb: "Mistenk",
+      sporsmal: R.t("Hvem tror du er varulv?"),
+      info: R.t("Du har ingen nattjobb – bare magefølelsen. Svaret er hemmelig til runden er over."),
+      verb: R.t("Mistenk"),
     },
   };
   // 1 wolf up to six players, 2 from seven; a seer and a swapper; a troublemaker from six.
@@ -124,9 +128,8 @@
     return rekkefolge
       .filter((r) => tell(r))
       .map((r) => {
-        const antall = tell(r);
-        const navn = antall > 1 && roller[r].flertall ? roller[r].flertall : roller[r].navn.toLowerCase();
-        return `<span class="vu-stokk-del"><span aria-hidden="true">${roller[r].ikon}</span> ${roller[r].flertall ? antall + " " : ""}${esc(navn)}</span>`;
+        const navn = ANTALL[r] ? ANTALL[r](tell(r)) : roller[r].navn.toLowerCase();
+        return `<span class="vu-stokk-del"><span aria-hidden="true">${roller[r].ikon}</span> ${esc(navn)}</span>`;
       })
       .join('<span aria-hidden="true"> · </span>');
   }
@@ -158,16 +161,24 @@
   // What a role does tonight: the question, the helper line and the verb on the button.
   const nattjobb = (sp, i) => Object.assign({}, rolle(sp, i), erFredelig(sp) ? rolle(sp, i).fredelig : null);
 
-  // Small numbers as words («etter tre netter»).
-  const TALLORD = ["null", "én", "to", "tre", "fire", "fem", "seks", "sju", "åtte", "ni", "ti", "elleve", "tolv"];
+  // Small numbers as words («etter tre netter»), in the edition's language.
+  const TALLORD = {
+    nb: ["null", "én", "to", "tre", "fire", "fem", "seks", "sju", "åtte", "ni", "ti", "elleve", "tolv"], // sprak-ok
+    en: ["nought", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"], // sprak-ok
+    da: ["nul", "én", "to", "tre", "fire", "fem", "seks", "syv", "otte", "ni", "ti", "elleve", "tolv"], // sprak-ok
+  }[R.sprak] || [];
   const tallord = (n) => TALLORD[n] || String(n);
-  const netter = (n) => (n === 1 ? "én natt" : `${tallord(n)} netter`);
+  // «ingen», «én», «to» … in front of a word («ingen runder», «én gang»).
+  const ordFor = (n) => (n === 0 ? R.t("ingen") : tallord(n));
+  const netter = (n) => R.t("én natt|{tall} netter", { n, tall: tallord(n) });
+  // A text with player names in bold (HTML): the text is escaped, then {a}, {b} … become <b>name</b>.
+  const fet = (tekst, navn) => Object.keys(navn).reduce((s, k) => s.split(`{${k}}`).join(`<b>${esc(navn[k])}</b>`), esc(tekst));
   // How long the phone needs to go around, the way people say it: «ca. 2 minutter».
   function omtrentTid(sekunder) {
-    if (sekunder < 45) return "under ett minutt";
-    if (sekunder < 80) return "ca. 1 minutt";
-    if (sekunder < 105) return "ca. halvannet minutt";
-    return `ca. ${Math.round(sekunder / 60)} minutter`;
+    if (sekunder < 45) return R.t("under ett minutt");
+    if (sekunder < 80) return R.t("ca. 1 minutt");
+    if (sekunder < 105) return R.t("ca. halvannet minutt");
+    return R.t("ca. {n} minutter", { n: Math.round(sekunder / 60) });
   }
 
   function vinner(sp) {
@@ -265,9 +276,9 @@
   function nattSteg(sp, nr, en, to, tre) {
     return `
       <ol class="steg vu-slik">
-        <li><b>Lukk øynene og nynn «${esc(linje(sp, "sanger", nr))}» til hanen galer</b><span>${esc(en)}</span></li>
-        <li><b>Får du en prikk på skulderen, er det din tur</b><span>${esc(to)}</span></li>
-        <li><b>Gi mobilen videre og lukk øynene igjen</b><span>${esc(tre)}</span></li>
+        <li><b>${esc(R.t("Lukk øynene og nynn «{sang}» til hanen galer", { sang: linje(sp, "sanger", nr) }))}</b><span>${esc(en)}</span></li>
+        <li><b>${esc(R.t("Får du en prikk på skulderen, er det din tur"))}</b><span>${esc(to)}</span></li>
+        <li><b>${esc(R.t("Gi mobilen videre og lukk øynene igjen"))}</b><span>${esc(tre)}</span></li>
       </ol>`;
   }
 
@@ -275,15 +286,15 @@
 
   function rollekort(sp, i) {
     const r = rolle(sp, i);
-    let fot = "Du er med i landsbyen. Dere vinner når alle varulvene er ute.";
+    let fot = R.t("Du er med i landsbyen. Dere vinner når alle varulvene er ute.");
     if (erUlv(sp, i)) {
       const andre = range(sp.n).filter((j) => j !== i && erUlv(sp, j));
-      fot = andre.length ? `Ulveflokken: du og ${liste(andre.map(R.navn))}.` : "Du er den eneste varulven.";
+      fot = andre.length ? R.t("Ulveflokken: du og {andre}.", { andre: liste(andre.map(R.navn)) }) : R.t("Du er den eneste varulven.");
     }
     return {
       klasse: "vu-kort",
       html: `
-        <span class="kort-etikett">Du er</span>
+        <span class="kort-etikett">${esc(R.t("Du er"))}</span>
         <span class="vu-kort-ikon" aria-hidden="true">${r.ikon}</span>
         <span class="kort-ord">${esc(r.navn)}</span>
         <span class="vu-kort-tekst">${esc(r.tekst)}</span>
@@ -297,7 +308,7 @@
       .map((i) => {
         const dod = !sp.levende[i];
         return `<li class="${dod ? "dod" : ""}">${R.avatar(i)}<span><b>${esc(R.navn(i))}</b>${
-          dod ? `<small>${rolle(sp, i).ikon} ${esc(rolle(sp, i).navn)}${sp.spilleder === i ? " · spilleder" : ""}</small>` : ""
+          dod ? `<small>${rolle(sp, i).ikon} ${esc(rolle(sp, i).navn)}${sp.spilleder === i ? " · " + esc(R.t("spilleder", { n: 1 })) : ""}</small>` : ""
         }</span></li>`;
       })
       .join("")}</ul>`;
@@ -317,11 +328,11 @@
       ${prikker(sp)}
       <div class="vu-port">
         ${R.avatar(meg, "gigant")}
-        <p class="etikett">Gi mobilen til</p>
+        <p class="etikett">${esc(R.t("Gi mobilen til"))}</p>
         <h1 id="skjerm-tittel" class="${navnKlasse(R.navn(meg))}">${esc(R.navn(meg))}</h1>
-        <p class="ikke-se">🙈 Alle andre har øynene lukket</p>
+        <p class="ikke-se">🙈 ${esc(R.t("Alle andre har øynene lukket"))}</p>
       </div>
-      ${R.ui.dokk(R.ui.knapp(`Jeg er ${R.navn(meg)}`, "jeg-er"))}`;
+      ${R.ui.dokk(R.ui.knapp(R.t("Jeg er {navn}", { navn: R.navn(meg) }), "jeg-er"))}`;
   }
 
   // The private answer: the last step of every night turn. The same paper card for every role,
@@ -341,10 +352,11 @@
         <p class="vu-svar-hoved">${esc(svar.hoved)}</p>
         <p class="vu-svar-under">${esc(svar.under)}</p>
       </div>
-      <p class="hjelp">${nesteI != null ? "Ikke si noe. Gi mobilen videre, lukk øynene og nynn videre." : "Du er sist i natt. Ikke si noe ennå – trykk «Ferdig», så vekker du landsbyen."}</p>
+      <p class="hjelp">${esc(nesteI != null ? R.t("Ikke si noe. Gi mobilen videre, lukk øynene og nynn videre.") : R.t("Du er sist i natt. Ikke si noe ennå – trykk «Ferdig», så vekker du landsbyen."))}</p>
       ${R.ui.dokk(
+        // sprak-ok (markup: the texts are below)
         `<button class="knapp${venter ? " vu-vent" : ""}" data-h="natt-ferdig"${venter ? ` disabled style="--vent: ${t.klar - Date.now()}ms"` : ""}>${
-          nesteI != null ? toLinjer("Ferdig", `Gi mobilen til ${R.navn(nesteI)}`) : toLinjer("Ferdig", "Så vekker du landsbyen")
+          nesteI != null ? toLinjer(R.t("Ferdig"), R.t("Gi mobilen til {navn}", { navn: R.navn(nesteI) })) : toLinjer(R.t("Ferdig"), R.t("Så vekker du landsbyen"))
         }</button>`,
       )}`;
   }
@@ -377,15 +389,15 @@
         let merke = "";
         if (r === "varulv" && erUlv(sp, i)) {
           av = true;
-          merke = deg ? "deg" : "🐺";
+          merke = deg ? R.t("deg") : "🐺";
         } else if (r === "lege") {
           if (i === sp.forrigeBeskyttet) {
             av = true;
-            merke = "i går";
-          } else if (deg) merke = "deg";
+            merke = R.t("i går");
+          } else if (deg) merke = R.t("deg");
         } else if (deg) {
           av = true;
-          merke = "deg";
+          merke = R.t("deg");
         }
         return `<button class="velger" data-h="marker" data-v="${i}" aria-pressed="${markert === i}"${av ? " disabled" : ""}>${R.avatar(i)}<span><b>${esc(R.navn(i))}</b>${
           merke ? `<small>${esc(merke)}</small>` : ""
@@ -397,16 +409,17 @@
   // What a wolf is told before the pick (HTML): who the pack is and what the others have chosen.
   function ulveInfo(sp, meg) {
     const fredelig = erFredelig(sp);
-    const forst = fredelig ? "Første natt er fredelig: ingen blir tatt. " : "";
+    const forst = fredelig ? esc(R.t("Første natt er fredelig: ingen blir tatt.")) + " " : "";
     const andre = ulveflokk(sp).filter((i) => i !== meg);
-    if (!andre.length) return forst + (sp.roller.filter((r) => r === "varulv").length > 1 ? "Du er den eneste varulven igjen." : "Du er den eneste varulven.");
+    if (!andre.length) return forst + esc(sp.roller.filter((r) => r === "varulv").length > 1 ? R.t("Du er den eneste varulven igjen.") : R.t("Du er den eneste varulven."));
     const valgt = andre.filter((i) => sp.valg[i] != null);
     return (
       forst +
-      `Ulveflokken: du og ${esc(liste(andre.map(R.navn)))}. ` +
+      esc(R.t("Ulveflokken: du og {andre}.", { andre: liste(andre.map(R.navn)) })) +
+      " " +
       (valgt.length
-        ? valgt.map((i) => `<b>${esc(R.navn(i))}</b> vil ${fredelig ? "snuse på" : "ta"} <b>${esc(R.navn(sp.valg[i]))}</b>.`).join(" ")
-        : "Ingen av de andre har valgt ennå i natt.")
+        ? valgt.map((i) => fet(fredelig ? R.t("{a} vil snuse på {b}.") : R.t("{a} vil ta {b}."), { a: R.navn(i), b: R.navn(sp.valg[i]) })).join(" ")
+        : esc(R.t("Ingen av de andre har valgt ennå i natt.")))
     );
   }
 
@@ -418,30 +431,30 @@
     const fredelig = erFredelig(sp);
     if (r === "varulv") {
       const flokk = ulveflokk(sp).filter((i) => sp.valg[i] != null);
-      const flokken = `Ulveflokken: ${flokk.map((i) => `${i === meg ? "du" : R.navn(i)} → ${R.navn(sp.valg[i])}`).join(", ")}.`;
+      const flokken = R.t("Ulveflokken: {valg}.", { valg: flokk.map((i) => `${i === meg ? R.t("du") : R.navn(i)} → ${R.navn(sp.valg[i])}`).join(", ") });
       if (fredelig) {
         return {
           ikon: "🐺",
-          hoved: `Du snuser på ${navn}.`,
-          under: (flokk.length > 1 ? flokken + " " : "") + "Første natt blir ingen tatt. Fra neste natt er det alvor.",
+          hoved: R.t("Du snuser på {navn}.", { navn }),
+          under: (flokk.length > 1 ? flokken + " " : "") + R.t("Første natt blir ingen tatt. Fra neste natt er det alvor."),
         };
       }
       return {
         ikon: "🐺",
-        hoved: `Du vil ta ${navn}.`,
-        under: flokk.length > 1 ? `${flokken} Flertallet bestemmer – står det likt, avgjør månen.` : "Flertallet i ulveflokken bestemmer. Står det likt, avgjør månen.",
+        hoved: R.t("Du vil ta {navn}.", { navn }),
+        under: flokk.length > 1 ? flokken + " " + R.t("Flertallet bestemmer – står det likt, avgjør månen.") : R.t("Flertallet i ulveflokken bestemmer. Står det likt, avgjør månen."),
       };
     }
     if (r === "synsk") {
       const ulv = erUlv(sp, m);
-      return { ikon: ulv ? "🐺" : "🏡", hoved: ulv ? `${navn} er varulv!` : `${navn} er ikke varulv.`, under: "Husk det – men ikke avslør deg for tidlig." };
+      return { ikon: ulv ? "🐺" : "🏡", hoved: ulv ? R.t("{navn} er varulv!", { navn }) : R.t("{navn} er ikke varulv.", { navn }), under: R.t("Husk det – men ikke avslør deg for tidlig.") };
     }
     if (r === "lege") {
       return fredelig
-        ? { ikon: "🩺", hoved: `Du passer på ${navn} i natt.`, under: "En rolig vakt: første natt blir ingen tatt." }
-        : { ikon: "🩺", hoved: `Du beskytter ${navn} i natt.`, under: "Kommer ulvene, står du klar med plaster." };
+        ? { ikon: "🩺", hoved: R.t("Du passer på {navn} i natt.", { navn }), under: R.t("En rolig vakt: første natt blir ingen tatt.") }
+        : { ikon: "🩺", hoved: R.t("Du beskytter {navn} i natt.", { navn }), under: R.t("Kommer ulvene, står du klar med plaster.") };
     }
-    return { ikon: "🤫", hoved: "Mistanken din er notert.", under: `Du tror ${navn} er varulv. Dere får se hvem som hadde rett når spillet er slutt.` };
+    return { ikon: "🤫", hoved: R.t("Mistanken din er notert."), under: R.t("Du tror {navn} er varulv. Dere får se hvem som hadde rett når spillet er slutt.", { navn }) };
   }
 
   // ---------- Day clock (survives reloads: the end time is saved in S) ----------
@@ -623,9 +636,9 @@
 
   // The main button after someone has died: the hunter first, then a winner, else on to day/night.
   function nesteKnapp(sp, etter) {
-    if (sp.jeger && sp.jeger.mal == null) return R.ui.knapp("Jegeren sikter …", "til-jeger");
-    if (vinner(sp)) return R.ui.knapp("Se hvem som vant", "til-slutt");
-    return etter === "dag" ? R.ui.knapp("Til dagen", "til-dag") : R.ui.knapp("Natta faller på", "til-natt");
+    if (sp.jeger && sp.jeger.mal == null) return R.ui.knapp(R.t("Jegeren sikter …"), "til-jeger");
+    if (vinner(sp)) return R.ui.knapp(R.t("Se hvem som vant"), "til-slutt");
+    return etter === "dag" ? R.ui.knapp(R.t("Til dagen"), "til-dag") : R.ui.knapp(R.t("Natta faller på"), "til-natt");
   }
 
   // Under the stamp on the screen where a player leaves the game. The first one out gets a job
@@ -635,7 +648,7 @@
     if (sp.spilleder !== i) return `<p class="ingress midt">${forst ? esc(forst) + " " : ""}${esc(r.ute)}</p>`;
     return `
       <p class="ingress midt">${forst ? esc(forst) + " " : ""}${esc(r.ute)}</p>
-      <p class="vu-jobb"><span class="vu-jobb-ikon" aria-hidden="true">📣</span><span><b>${esc(R.navn(i))}, du er ute – men nå er du spillederen:</b> du holder mobilen, leser høyt og teller fingrene.</span></p>`;
+      <p class="vu-jobb"><span class="vu-jobb-ikon" aria-hidden="true">📣</span><span><b>${esc(R.t("{navn}, du er ute – men nå er du spillederen:", { navn: R.navn(i) }))}</b> ${esc(R.t("du holder mobilen, leser høyt og teller fingrene."))}</span></p>`;
   }
 
   // A short drum roll, then the answer: sett() changes the state, lyd() plays the verdict.
@@ -658,11 +671,11 @@
 
   function statusFor(sp, i) {
     for (const h of sp.hendelser) {
-      if (h.type === "natt" && h.offer === i) return `Tatt natt ${h.nr}`;
-      if (h.type === "dag" && h.ut === i) return `Kastet ut dag ${h.nr}`;
-      if (h.type === "jeger" && h.mal === i) return "Skutt av jegeren";
+      if (h.type === "natt" && h.offer === i) return R.t("Tatt natt {n}", { n: h.nr });
+      if (h.type === "dag" && h.ut === i) return R.t("Kastet ut dag {n}", { n: h.nr });
+      if (h.type === "jeger" && h.mal === i) return R.t("Skutt av jegeren");
     }
-    return "Overlevde";
+    return R.t("Overlevde");
   }
 
   function historikk(sp) {
@@ -671,19 +684,22 @@
       .map((h) => {
         if (h.type === "natt") {
           const deler = [];
-          if (h.fredelig) deler.push("En fredelig første natt: ingen ble tatt.");
-          else if (h.reddet) deler.push(`Ulvene gikk etter <b>${esc(R.navn(h.mal))}</b>, men legen kom først.`);
-          else if (h.offer != null) deler.push(`Ulvene tok ${navnRolle(h.offer)}.`);
-          else deler.push("En stille natt.");
-          if (h.synsk) deler.push(`Den synske, ${esc(R.navn(h.synsk.av))}, så på ${esc(R.navn(h.synsk.sjekket))}: ${h.synsk.ulv ? "varulv!" : "ikke varulv."}`);
-          return `<li><span class="vu-hist-ikon" aria-hidden="true">🌙</span><span><b class="vu-hist-tittel">Natt ${h.nr}</b> ${deler.join(" ")}</span></li>`;
+          if (h.fredelig) deler.push(esc(R.t("En fredelig første natt: ingen ble tatt.")));
+          else if (h.reddet) deler.push(fet(R.t("Ulvene gikk etter {navn}, men legen kom først."), { navn: R.navn(h.mal) }));
+          else if (h.offer != null) deler.push(esc(R.t("Ulvene tok {hvem}.")).replace("{hvem}", () => navnRolle(h.offer)));
+          else deler.push(esc(R.t("En stille natt.")));
+          if (h.synsk) {
+            const hvem = { av: R.navn(h.synsk.av), hvem: R.navn(h.synsk.sjekket) };
+            deler.push(esc(h.synsk.ulv ? R.t("Den synske, {av}, så på {hvem}: varulv!", hvem) : R.t("Den synske, {av}, så på {hvem}: ikke varulv.", hvem)));
+          }
+          return `<li><span class="vu-hist-ikon" aria-hidden="true">🌙</span><span><b class="vu-hist-tittel">${esc(R.t("Natt {n}", { n: h.nr }))}</b> ${deler.join(" ")}</span></li>`;
         }
         if (h.type === "dag") {
-          return `<li><span class="vu-hist-ikon" aria-hidden="true">☀️</span><span><b class="vu-hist-tittel">Dag ${h.nr}</b> ${
-            h.ut != null ? `Landsbyen kastet ut ${navnRolle(h.ut)}.` : "Ingen ble kastet ut."
+          return `<li><span class="vu-hist-ikon" aria-hidden="true">☀️</span><span><b class="vu-hist-tittel">${esc(R.t("Dag {n}", { n: h.nr }))}</b> ${
+            h.ut != null ? esc(R.t("Landsbyen kastet ut {hvem}.")).replace("{hvem}", () => navnRolle(h.ut)) : esc(R.t("Ingen ble kastet ut."))
           }</span></li>`;
         }
-        return `<li><span class="vu-hist-ikon" aria-hidden="true">🏹</span><span>Jegeren ${esc(R.navn(h.av))} tok med seg ${navnRolle(h.mal)}.</span></li>`;
+        return `<li><span class="vu-hist-ikon" aria-hidden="true">🏹</span><span>${esc(R.t("Jegeren {av} tok med seg {hvem}.", { av: R.navn(h.av) })).replace("{hvem}", () => navnRolle(h.mal))}</span></li>`;
       })
       .join("");
   }
@@ -705,25 +721,30 @@
       const [i, t] = beste;
       rader.push({
         ikon: "🎯",
-        tittel: "Beste magefølelse",
-        tekst: `${R.navn(i)} pekte på en varulv ${t.riktig} av ${t.alle} ${t.alle === 1 ? "natt" : "netter"}.`,
-        del: `Beste magefølelse: ${R.navn(i)}, ${t.riktig} av ${t.alle}`, // for «Del resultatet»
+        tittel: R.t("Beste magefølelse"),
+        tekst: R.t("{navn} pekte på en varulv {riktig} av {n} natt.|{navn} pekte på en varulv {riktig} av {n} netter.", { n: t.alle, navn: R.navn(i), riktig: t.riktig }),
+        del: R.t("Beste magefølelse: {navn}, {riktig} av {alle}", { navn: R.navn(i), riktig: t.riktig, alle: t.alle }), // for «Del resultatet»
       });
     }
     const mest = [...mistenkt.entries()].sort((a, b) => b[1] - a[1])[0];
     if (mest && mest[1] > 1) {
       const [i, antall] = mest;
-      rader.push({ ikon: "👀", tittel: "Mest mistenkt om natta", tekst: `${R.navn(i)} fikk ${antall} hemmelige mistanker – ${erUlv(sp, i) ? "og var faktisk varulv!" : "men var helt uskyldig."}` });
+      const hva = { navn: R.navn(i), n: antall };
+      rader.push({
+        ikon: "👀",
+        tittel: R.t("Mest mistenkt om natta"),
+        tekst: erUlv(sp, i) ? R.t("{navn} fikk {n} hemmelige mistanker – og var faktisk varulv!", hva) : R.t("{navn} fikk {n} hemmelige mistanker – men var helt uskyldig.", hva),
+      });
     }
     const ulvene = range(sp.n).filter((i) => erUlv(sp, i));
     const lurt = ulvene.filter((i) => !mistenkt.has(i));
-    if (lurt.length && sp.mistanker.length) rader.push({ ikon: "🎭", tittel: "Beste skuespiller", tekst: `Ingen landsbyboer mistenkte ${liste(lurt.map(R.navn))} om natta.` });
+    if (lurt.length && sp.mistanker.length) rader.push({ ikon: "🎭", tittel: R.t("Beste skuespiller"), tekst: R.t("Ingen landsbyboer mistenkte {hvem} om natta.", { hvem: liste(lurt.map(R.navn)) }) });
     return rader;
   }
 
   const prisHtml = (priser) =>
     priser.length
-      ? `<section class="seksjon"><h2>Nattas hemmeligheter</h2><ul class="vu-stat">${priser
+      ? `<section class="seksjon"><h2>${esc(R.t("Nattas hemmeligheter"))}</h2><ul class="vu-stat">${priser
           .map((p) => `<li><span class="vu-stat-ikon" aria-hidden="true">${p.ikon}</span><span><b>${esc(p.tittel)}</b>${esc(p.tekst)}</span></li>`)
           .join("")}</ul></section>`
       : "";
@@ -731,11 +752,11 @@
   const spilteNetter = (sp) => sp.hendelser.filter((h) => h.type === "natt").length;
 
   // The tally on this phone: how many games each side has won («Landsbyen 3 – 2 Varulvene»).
-  const stillingTekst = (S) => `Landsbyen ${S.stilling.landsby} – ${S.stilling.ulv} Varulvene`;
+  const stillingTekst = (S) => R.t("Landsbyen {landsby} – {ulv} Varulvene", { landsby: S.stilling.landsby, ulv: S.stilling.ulv });
   const harStilling = (S) => S.stilling.landsby + S.stilling.ulv > 0;
   const stillingHtml = (S) =>
     harStilling(S)
-      ? `<p class="vu-stilling"><span class="etikett">Stillingen på denne mobilen</span><span class="vu-stilling-tall"><span>Landsbyen</span> <b>${S.stilling.landsby} – ${S.stilling.ulv}</b> <span>Varulvene</span></span></p>`
+      ? `<p class="vu-stilling"><span class="etikett">${esc(R.t("Stillingen på denne mobilen"))}</span><span class="vu-stilling-tall"><span>${esc(R.t("Landsbyen"))}</span> <b>${S.stilling.landsby} – ${S.stilling.ulv}</b> <span>${esc(R.t("Varulvene"))}</span></span></p>`
       : "";
 
   // Done once per game, on the way to «Kåringen»: the tally, «Kveldens gjeng» and statistics.
@@ -771,9 +792,10 @@
   function delTekst(S) {
     const sp = S.spill;
     const pris = statistikk(sp).find((r) => r.del);
-    const linjer = [`Varulven 🐺 ${sp.vinner === "ulv" ? "Varulvene" : "Landsbyen"} vant etter ${netter(spilteNetter(sp))}.`];
+    const etter = { netter: netter(spilteNetter(sp)) };
+    const linjer = [sp.vinner === "ulv" ? R.t("Varulven 🐺 Varulvene vant etter {netter}.", etter) : R.t("Varulven 🐺 Landsbyen vant etter {netter}.", etter)];
     if (pris) linjer.push(pris.del + ".");
-    else if (S.stilling.landsby + S.stilling.ulv > 1) linjer.push(`Stillingen: ${stillingTekst(S)}.`);
+    else if (S.stilling.landsby + S.stilling.ulv > 1) linjer.push(R.t("Stillingen: {stilling}.", { stilling: stillingTekst(S) }));
     return linjer.join("\n");
   }
 
@@ -782,9 +804,13 @@
   const EN_REKKE = ["varulv", "synsk", "bytter", "brak", "landsby"];
   const nattSkjerm = (sp) => (sp.modus === "en" ? "en-natt" : "natt");
   const rollenavn = (r) => EN_ROLLER[r].navn.toLowerCase();
-  const rundeTekst = (sp) => (sp.runder ? `Runde ${sp.runde} av ${sp.runder}` : `Runde ${sp.runde}`);
+  const rundeTekst = (sp) => (sp.runder ? R.t("Runde {n} av {av}", { n: sp.runde, av: sp.runder }) : R.t("Runde {n}", { n: sp.runde }));
   const sisteRunde = (sp) => sp.runder > 0 && sp.runde >= sp.runder;
-  const antallOrd = (n, entall, flertall) => `${n === 0 ? "ingen" : tallord(n)} ${n === 1 ? entall : flertall}`;
+  // «Landsbyen vant to runder, varulvene én.»
+  const seirerTekst = (s) => {
+    const runder = R.t("{tall} runde|{tall} runder", { n: s.landsby, tall: ordFor(s.landsby) });
+    return s.ulv ? R.t("Landsbyen vant {runder}, varulvene {ulv}.", { runder, ulv: tallord(s.ulv) }) : R.t("Landsbyen vant {runder}, varulvene ingen.", { runder });
+  };
 
   function enNyttSpill(S) {
     const n = R.klamp(S.antall, MODUS.en.min, MODUS.en.maks);
@@ -856,11 +882,12 @@
   // What a wolf is told before the pick (HTML).
   function enUlveInfo(sp, meg) {
     const andre = range(sp.n).filter((i) => i !== meg && sp.roller[i] === "varulv");
-    if (!andre.length) return "Du er den eneste varulven. Blir du ikke pekt ut i morgen, vinner du.";
+    if (!andre.length) return esc(R.t("Du er den eneste varulven. Blir du ikke pekt ut i morgen, vinner du."));
     const a = andre[0];
     return (
-      `Den andre varulven er <b>${esc(R.navn(a))}</b>. ` +
-      (sp.valg[a] != null ? `<b>${esc(R.navn(a))}</b> vil skylde på <b>${esc(R.navn(sp.valg[a]))}</b>.` : "Blir ingen av dere pekt ut i morgen, vinner dere.")
+      fet(R.t("Den andre varulven er {navn}."), { navn: R.navn(a) }) +
+      " " +
+      (sp.valg[a] != null ? fet(R.t("{a} vil skylde på {b}."), { a: R.navn(a), b: R.navn(sp.valg[a]) }) : esc(R.t("Blir ingen av dere pekt ut i morgen, vinner dere.")))
     );
   }
 
@@ -873,7 +900,7 @@
       .map((i) => {
         const deg = i === meg;
         const flokk = ulv && !deg && sp.roller[i] === "varulv";
-        const merke = deg ? "deg" : flokk ? "🐺" : "";
+        const merke = deg ? R.t("deg") : flokk ? "🐺" : "";
         return `<button class="velger" data-h="en-marker" data-v="${i}" aria-pressed="${m.includes(i)}"${deg || flokk ? " disabled" : ""}>${R.avatar(i)}<span><b>${esc(R.navn(i))}</b>${
           merke ? `<small>${esc(merke)}</small>` : ""
         }</span></button>`;
@@ -889,21 +916,21 @@
       const andre = range(sp.n).filter((i) => i !== meg && sp.roller[i] === "varulv");
       return {
         ikon: "🐺",
-        hoved: `Du skylder på ${R.navn(v)}.`,
-        under: (andre.length ? `Ulveflokken: du og ${R.navn(andre[0])}. ` : "") + "Få landsbyen til å peke på en som ikke er varulv. Men husk: rollen din kan bli byttet i natt.",
+        hoved: R.t("Du skylder på {navn}.", { navn: R.navn(v) }),
+        under: (andre.length ? R.t("Ulveflokken: du og {andre}.", { andre: R.navn(andre[0]) }) + " " : "") + R.t("Få landsbyen til å peke på en som ikke er varulv. Men husk: rollen din kan bli byttet i natt."),
       };
     }
-    if (r === "synsk") return { ikon: EN_ROLLER[sp.roller[v]].ikon, hoved: `${R.navn(v)} er ${rollenavn(sp.roller[v])}.`, under: "Slik var det da natta begynte. Roller kan bytte plass før hanen galer." };
+    if (r === "synsk") return { ikon: EN_ROLLER[sp.roller[v]].ikon, hoved: R.t("{navn} er {rolle}.", { navn: R.navn(v), rolle: rollenavn(sp.roller[v]) }), under: R.t("Slik var det da natta begynte. Roller kan bytte plass før hanen galer.") };
     if (r === "bytter") {
       const ny = sp.roller[v];
       return {
         ikon: EN_ROLLER[ny].ikon,
-        hoved: `Nå er du ${rollenavn(ny)}.`,
-        under: `${R.navn(v)} er bytter nå – uten å vite det. ${ny === "varulv" ? "Du er på ulvenes lag: ikke bli pekt ut." : "Du er fortsatt på landsbyens lag."}`,
+        hoved: R.t("Nå er du {rolle}.", { rolle: rollenavn(ny) }),
+        under: R.t("{navn} er bytter nå – uten å vite det.", { navn: R.navn(v) }) + " " + (ny === "varulv" ? R.t("Du er på ulvenes lag: ikke bli pekt ut.") : R.t("Du er fortsatt på landsbyens lag.")),
       };
     }
-    if (r === "brak") return { ikon: "😈", hoved: `${R.navn(v[0])} og ${R.navn(v[1])} bytter roller i natt.`, under: "Ingen av dem får vite det. Hva gjør du med den hemmeligheten?" };
-    return { ikon: "🤫", hoved: "Mistanken din er notert.", under: `Du tror ${R.navn(v)} er varulv. Dere får se hvem som hadde rett når runden er over.` };
+    if (r === "brak") return { ikon: "😈", hoved: R.t("{a} og {b} bytter roller i natt.", { a: R.navn(v[0]), b: R.navn(v[1]) }), under: R.t("Ingen av dem får vite det. Hva gjør du med den hemmeligheten?") };
+    return { ikon: "🤫", hoved: R.t("Mistanken din er notert."), under: R.t("Du tror {navn} er varulv. Dere får se hvem som hadde rett når runden er over.", { navn: R.navn(v) }) };
   }
 
   // The card behind «Glemt hva du så i natt?»: the role as dealt and what the player did.
@@ -913,11 +940,11 @@
     return {
       klasse: "vu-kort",
       html: `
-        <span class="kort-etikett">Da natta begynte, var du</span>
+        <span class="kort-etikett">${esc(R.t("Da natta begynte, var du"))}</span>
         <span class="vu-kort-ikon" aria-hidden="true">${EN_ROLLER[r].ikon}</span>
         <span class="kort-ord">${esc(EN_ROLLER[r].navn)}</span>
-        <span class="vu-kort-tekst">${esc(svar ? (r === "landsby" ? `Du mistenkte ${R.navn(sp.valg[i])}.` : svar.hoved) : "")}</span>
-        <span class="kort-fot">Roller kan ha byttet plass i natt.</span>`,
+        <span class="vu-kort-tekst">${esc(svar ? (r === "landsby" ? R.t("Du mistenkte {navn}.", { navn: R.navn(sp.valg[i]) }) : svar.hoved) : "")}</span>
+        <span class="kort-fot">${esc(R.t("Roller kan ha byttet plass i natt."))}</span>`,
     };
   }
 
@@ -948,34 +975,36 @@
   // The night as a little story, for the reveal (HTML rows): what the wolves planned, what the
   // seer saw, and the swaps in the order they were carried out.
   function enHistorie(sp) {
-    const n = (i) => `<b>${esc(R.navn(i))}</b>`;
     const rader = [];
     range(sp.n)
       .filter((i) => sp.roller[i] === "varulv" && sp.valg[i] != null)
-      .forEach((u) => rader.push(["🐺", `Varulven ${n(u)} ville skylde på ${n(sp.valg[u])}.`]));
+      .forEach((u) => rader.push(["🐺", fet(R.t("Varulven {a} ville skylde på {b}."), { a: R.navn(u), b: R.navn(sp.valg[u]) })]));
     const s = sp.roller.indexOf("synsk");
-    if (s >= 0 && sp.valg[s] != null) rader.push(["🔮", `Den synske, ${n(s)}, så på ${n(sp.valg[s])}: ${esc(rollenavn(sp.roller[sp.valg[s]]))}.`]);
+    if (s >= 0 && sp.valg[s] != null) rader.push(["🔮", fet(R.t("Den synske, {a}, så på {b}: {rolle}.", { rolle: rollenavn(sp.roller[sp.valg[s]]) }), { a: R.navn(s), b: R.navn(sp.valg[s]) })]);
     const r = sp.roller.slice();
     const b = sp.roller.indexOf("bytter");
     if (b >= 0 && sp.valg[b] != null) {
       const x = sp.valg[b];
       [r[b], r[x]] = [r[x], r[b]];
-      rader.push(["🔄", `Bytteren ${n(b)} byttet rolle med ${n(x)} og ble ${esc(rollenavn(r[b]))}. ${n(x)} ble bytter – uten å vite det.`]);
+      rader.push(["🔄", fet(R.t("Bytteren {a} byttet rolle med {b} og ble {rolle}. {b} ble bytter – uten å vite det.", { rolle: rollenavn(r[b]) }), { a: R.navn(b), b: R.navn(x) })]);
     }
     const k = sp.roller.indexOf("brak");
     if (k >= 0 && Array.isArray(sp.valg[k])) {
       const [y, z] = sp.valg[k];
       const like = r[y] === r[z];
       [r[y], r[z]] = [r[z], r[y]];
+      const hvem = { a: R.navn(k), b: R.navn(y), c: R.navn(z) };
       rader.push([
         "😈",
-        `Bråkmakeren ${n(k)} byttet om rollene til ${n(y)} og ${n(z)}` +
-          (like ? ` – men begge var ${esc(EN_ROLLER[r[y]].flertall || rollenavn(r[y]))}, så ingenting skjedde.` : `: ${n(y)} ble ${esc(rollenavn(r[y]))}, og ${n(z)} ble ${esc(rollenavn(r[z]))}.`),
+        like
+          ? fet(R.t("Bråkmakeren {a} byttet om rollene til {b} og {c} – men begge var {roller}, så ingenting skjedde.", { roller: FLERTALL[r[y]] ? FLERTALL[r[y]]() : rollenavn(r[y]) }), hvem)
+          : fet(R.t("Bråkmakeren {a} byttet om rollene til {b} og {c}: {b} ble {rb}, og {c} ble {rc}.", { rb: rollenavn(r[y]), rc: rollenavn(r[z]) }), hvem),
       ]);
     }
     const gjett = range(sp.n).filter((i) => sp.roller[i] === "landsby" && sp.valg[i] != null);
     if (gjett.length) {
-      rader.push(["🤫", `Hemmelige mistanker: ${gjett.map((i) => `${n(i)} mistenkte ${n(sp.valg[i])} (${sp.roller[sp.valg[i]] === "varulv" ? "traff" : "bom"})`).join(", ")}.`]);
+      const mistanker = gjett.map((i) => fet(sp.roller[sp.valg[i]] === "varulv" ? R.t("{a} mistenkte {b} (traff)") : R.t("{a} mistenkte {b} (bom)"), { a: R.navn(i), b: R.navn(sp.valg[i]) })).join(", ");
+      rader.push(["🤫", esc(R.t("Hemmelige mistanker: {liste}.")).replace("{liste}", () => mistanker)]);
     }
     return rader.map(([ikon, tekst]) => `<li><span class="vu-hist-ikon" aria-hidden="true">${ikon}</span><span>${tekst}</span></li>`).join("");
   }
@@ -992,16 +1021,24 @@
     if (beste != null) {
       priser.push({
         ikon: "🎯",
-        tittel: "Beste magefølelse",
-        tekst: `${R.navn(beste)} pekte på en varulv ${treff[beste]} av ${forsok[beste]} ${forsok[beste] === 1 ? "natt" : "netter"} – helt uten ledetråder.`,
-        del: `Beste magefølelse: ${R.navn(beste)}, ${treff[beste]} av ${forsok[beste]}`,
+        tittel: R.t("Beste magefølelse"),
+        tekst: R.t("{navn} pekte på en varulv {riktig} av {n} natt – helt uten ledetråder.|{navn} pekte på en varulv {riktig} av {n} netter – helt uten ledetråder.", { n: forsok[beste], navn: R.navn(beste), riktig: treff[beste] }),
+        del: R.t("Beste magefølelse: {navn}, {riktig} av {alle}", { navn: R.navn(beste), riktig: treff[beste], alle: forsok[beste] }),
       });
     }
     const somUlv = tell((l, i) => l.v === "ulv" && l.ulver.includes(i));
     const flest = Math.max(0, ...somUlv);
     const skuespillere = range(sp.n).filter((i) => flest > 0 && somUlv[i] === flest);
     if (skuespillere.length === 1 || skuespillere.length === 2) {
-      priser.push({ ikon: "🎭", tittel: "Beste skuespiller", tekst: `${liste(skuespillere.map(R.navn))} slapp unna som varulv ${antallOrd(flest, "gang", "ganger")}${skuespillere.length > 1 ? " hver" : ""}.` });
+      const hva = { n: flest, hvem: liste(skuespillere.map(R.navn)), tall: ordFor(flest) };
+      priser.push({
+        ikon: "🎭",
+        tittel: R.t("Beste skuespiller"),
+        tekst:
+          skuespillere.length > 1
+            ? R.t("{hvem} slapp unna som varulv {tall} gang hver.|{hvem} slapp unna som varulv {tall} ganger hver.", hva)
+            : R.t("{hvem} slapp unna som varulv {tall} gang.|{hvem} slapp unna som varulv {tall} ganger.", hva),
+      });
     }
     const pekt = tell((l, i) => l.pekt.includes(i));
     const mest = Math.max(0, ...pekt);
@@ -1009,8 +1046,8 @@
     if (utpekte.length === 1) {
       const i = utpekte[0];
       const skyldig = sp.logg.filter((l) => l.pekt.includes(i) && l.ulver.includes(i)).length;
-      const dom = skyldig === 0 ? "og var uskyldig hver gang." : skyldig === mest ? "og var varulv hver gang!" : `og var varulv ${skyldig === 1 ? "én" : tallord(skyldig)} av dem.`;
-      priser.push({ ikon: "👉", tittel: "Mest utpekt", tekst: `${R.navn(i)} ble pekt ut ${tallord(mest)} ganger – ${dom}` });
+      const dom = skyldig === 0 ? R.t("og var uskyldig hver gang.") : skyldig === mest ? R.t("og var varulv hver gang!") : R.t("og var varulv {tall} av dem.", { tall: tallord(skyldig) });
+      priser.push({ ikon: "👉", tittel: R.t("Mest utpekt"), tekst: R.t("{navn} ble pekt ut {tall} ganger – {dom}", { navn: R.navn(i), tall: tallord(mest), dom }) });
     }
     return priser;
   }
@@ -1025,12 +1062,14 @@
     const sp = S.spill;
     const vinnere = enVinnere(sp);
     const topp = Math.max(0, ...sp.poeng);
-    const hvem = vinnere.length > 3 ? `${antallOrd(vinnere.length, "spiller", "spillere")} delte seieren` : vinnere.length > 1 ? `${liste(vinnere.map(R.navn))} delte seieren` : `${R.navn(vinnere[0])} vant`;
-    const s = sp.seirer;
-    return [
-      `Varulven 🐺 Én natt: ${hvem} med ${topp} poeng etter ${antallOrd(sp.spilt, "runde", "runder")}.`,
-      `Landsbyen vant ${antallOrd(s.landsby, "runde", "runder")}, varulvene ${s.ulv === 0 ? "ingen" : tallord(s.ulv)}.`,
-    ].join("\n");
+    const hvem =
+      vinnere.length > 3
+        ? R.t("{tall} spillere delte seieren", { tall: ordFor(vinnere.length) })
+        : vinnere.length > 1
+          ? R.t("{hvem} delte seieren", { hvem: liste(vinnere.map(R.navn)) })
+          : R.t("{navn} vant", { navn: R.navn(vinnere[0]) });
+    const runder = R.t("{tall} runde|{tall} runder", { n: sp.spilt, tall: ordFor(sp.spilt) });
+    return [R.t("Varulven 🐺 Én natt: {hvem} med {n} poeng etter {runder}.|Varulven 🐺 Én natt: {hvem} med {n} poeng etter {runder}.", { n: topp, hvem, runder }), seirerTekst(sp.seirer)].join("\n");
   }
 
   // «Kåringen» after a session: the winner(s), the podium, the scores and the awards.
@@ -1039,23 +1078,23 @@
     const rader = range(sp.n).map((i) => ({ i, poeng: sp.poeng[i] }));
     const vinnere = enVinnere(sp);
     const mange = vinnere.length > 3;
-    const seirer = `Landsbyen vant ${antallOrd(sp.seirer.landsby, "runde", "runder")}, varulvene ${sp.seirer.ulv ? tallord(sp.seirer.ulv) : "ingen"}.`;
+    const seirer = seirerTekst(sp.seirer);
     const banner = vinnere.length
       ? R.ui.banner({
           klasse: "aksent",
-          etikett: `Én natt · ${R.flertall(sp.spilt, "runde", "runder")}`,
-          tittel: mange ? `${vinnere.length} spillere deler seieren!` : `${R.ramsOpp(vinnere.map(R.navn))} vinner!`,
+          etikett: R.t("Én natt · {runder}", { runder: R.flertall(sp.spilt, "runde", "runder") }),
+          tittel: mange ? R.t("{n} spillere deler seieren!", { n: vinnere.length }) : R.t("{navn} vinner!|{navn} vinner!", { n: vinnere.length, navn: R.ramsOpp(vinnere.map(R.navn)) }),
           tekst: seirer,
         })
-      : R.ui.banner({ stemning: "", etikett: "Én natt", tittel: "Ingen vant denne gangen", tekst: "Spillet ble avsluttet før første runde var ferdig." });
+      : R.ui.banner({ stemning: "", etikett: R.t("Én natt"), tittel: R.t("Ingen vant denne gangen"), tekst: R.t("Spillet ble avsluttet før første runde var ferdig.") });
     return `
       ${banner}
       ${vinnere.length ? R.ui.pall(rader) + R.ui.poengliste(rader) : ""}
       ${prisHtml(enPriser(sp))}
       ${stillingHtml(S)}
-      ${vinnere.length ? R.ui.knapp2("Del resultatet", "del") : ""}
+      ${vinnere.length ? R.ui.knapp2(R.t("Del resultatet"), "del") : ""}
       ${R.ui.flereSpill({ antall: sp.n })}
-      ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+      ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
   }
 
   // A game is in progress until «Kåringen» (front page badge, screen kept awake).
@@ -1066,11 +1105,11 @@
 
   function fortsettTekst(sp) {
     const s = sp.skjerm;
-    if (sp.modus === "en") return `Fortsett · ${rundeTekst(sp).toLowerCase()}`;
-    if (s === "roller" || !s) return "Fortsett · rollene";
-    if (s === "natt-start" || s === "natt") return `Fortsett · natt ${sp.natt}`;
-    if (s === "morgen") return `Fortsett · morgen ${sp.natt}`;
-    return `Fortsett · dag ${sp.dag}`;
+    if (sp.modus === "en") return R.t("Fortsett · {runde}", { runde: rundeTekst(sp).toLowerCase() });
+    if (s === "roller" || !s) return R.t("Fortsett · rollene");
+    if (s === "natt-start" || s === "natt") return R.t("Fortsett · natt {n}", { n: sp.natt });
+    if (s === "morgen") return R.t("Fortsett · morgen {n}", { n: sp.natt });
+    return R.t("Fortsett · dag {n}", { n: sp.dag });
   }
 
   // ---------- Saved state: check everything before it is used ----------
@@ -1168,38 +1207,38 @@
 
   const REGLER = {
     klassisk: {
-      tittel: "Klassisk – den lange leken",
-      intro: "Klassisk: Noen i landsbyen er varulver. Om natta jakter de, om dagen later de som ingenting. Mobilen er spillederen – den forteller alle hva de skal gjøre.",
+      tittel: R.t("Klassisk – den lange leken"),
+      intro: R.t("Klassisk: Noen i landsbyen er varulver. Om natta jakter de, om dagen later de som ingenting. Mobilen er spillederen – den forteller alle hva de skal gjøre."),
       steg: [
-        ["Se rollen din", "Send mobilen rundt. Hold fingeren på kortet for å se om du er varulv, synsk, lege eller landsbyboer."],
-        ["Natt: mobilen går rundt", "Alle lukker øynene og nynner. Den som får mobilen, gjør nattjobben sin i stillhet og gir den videre. Alle gjør noe, så ingen kan gjette roller ut fra tiden."],
-        ["Dag: snakk og stem", "Mobilen forteller hvem ulvene tok. Snakk sammen, pek samtidig og kast ut den dere mistenker. Rollen blir avslørt."],
+        [R.t("Se rollen din"), R.t("Send mobilen rundt. Hold fingeren på kortet for å se om du er varulv, synsk, lege eller landsbyboer.")],
+        [R.t("Natt: mobilen går rundt"), R.t("Alle lukker øynene og nynner. Den som får mobilen, gjør nattjobben sin i stillhet og gir den videre. Alle gjør noe, så ingen kan gjette roller ut fra tiden.")],
+        [R.t("Dag: snakk og stem"), R.t("Mobilen forteller hvem ulvene tok. Snakk sammen, pek samtidig og kast ut den dere mistenker. Rollen blir avslørt.")],
       ],
       tips: [
-        "Landsbyen vinner når alle varulvene er ute. Varulvene vinner når de er like mange som resten.",
-        "Varulvene vet hvem de andre varulvene er, og ser hva de andre har valgt om natta.",
-        "Den synske ser om én person er varulv hver natt. Legen beskytter én person – men ikke den samme to netter på rad.",
-        "Jeger (valgfri): Blir jegeren tatt eller kastet ut, tar jegeren med seg én person.",
-        "Fredelig første natt (valgfri): Alle tar nattrunden sin, og den synske ser – men ingen blir tatt. Da får alle spilt før noen ryker ut.",
-        "Den første som ryker ut, blir spilleder: holder mobilen, leser høyt og teller fingrene. Ryker du ut senere, er du stille resten av spillet – men du får gjerne se på og le.",
+        R.t("Landsbyen vinner når alle varulvene er ute. Varulvene vinner når de er like mange som resten."),
+        R.t("Varulvene vet hvem de andre varulvene er, og ser hva de andre har valgt om natta."),
+        R.t("Den synske ser om én person er varulv hver natt. Legen beskytter én person – men ikke den samme to netter på rad."),
+        R.t("Jeger (valgfri): Blir jegeren tatt eller kastet ut, tar jegeren med seg én person."),
+        R.t("Fredelig første natt (valgfri): Alle tar nattrunden sin, og den synske ser – men ingen blir tatt. Da får alle spilt før noen ryker ut."),
+        R.t("Den første som ryker ut, blir spilleder: holder mobilen, leser høyt og teller fingrene. Ryker du ut senere, er du stille resten av spillet – men du får gjerne se på og le."),
       ],
     },
     en: {
-      tittel: "Én natt – den korte leken",
-      intro: "Én natt: Alle får en rolle, mobilen går én runde rundt bordet, og noen bytter roller i mørket. Så har dere fire minutter på å peke ut en varulv. Ingen ryker ut.",
+      tittel: R.t("Én natt – den korte leken"),
+      intro: R.t("Én natt: Alle får en rolle, mobilen går én runde rundt bordet, og noen bytter roller i mørket. Så har dere fire minutter på å peke ut en varulv. Ingen ryker ut."),
       steg: [
-        ["Natt: mobilen går én runde", "Alle lukker øynene og nynner. Når du får mobilen, ser du rollen din og gjør nattjobben din. Alle gjør noe, så ingen kan gjette roller ut fra tiden."],
-        ["Dag: fire minutter prat", "Hvem er varulv? Fortell, spør og bløff. Husk at roller kan ha byttet plass i natt – kanskje din også."],
-        ["Pek samtidig", "Landsbyen vinner hvis en varulv er blant dem som får flest fingrer. Ellers vinner varulvene. Vinnerne får ett poeng hver."],
+        [R.t("Natt: mobilen går én runde"), R.t("Alle lukker øynene og nynner. Når du får mobilen, ser du rollen din og gjør nattjobben din. Alle gjør noe, så ingen kan gjette roller ut fra tiden.")],
+        [R.t("Dag: fire minutter prat"), R.t("Hvem er varulv? Fortell, spør og bløff. Husk at roller kan ha byttet plass i natt – kanskje din også.")],
+        [R.t("Pek samtidig"), R.t("Landsbyen vinner hvis en varulv er blant dem som får flest fingrer. Ellers vinner varulvene. Vinnerne får ett poeng hver.")],
       ],
       tips: [
-        "Varulv: Fra sju spillere er det to, og de får vite om hverandre. Varulven velger hvem flokken vil skylde på.",
-        "Synsk: Ser rollen til én spiller – slik den var da natta begynte.",
-        "Bytter: Bytter rolle med én spiller og får se den nye rollen sin. Den andre får ikke vite noe.",
-        "Bråkmaker (fra seks spillere): Bytter om rollene til to andre – uten at noen får se dem.",
-        "Byttene skjer når natta er over: først bytterens, så bråkmakerens. Du spiller for laget til rollen du ender med.",
-        "Fikk ingen mer enn én finger, er ingen pekt ut – og da vinner varulvene.",
-        "Dere spiller tre eller fem runder, eller så mange dere vil. Flest poeng vinner.",
+        R.t("Varulv: Fra sju spillere er det to, og de får vite om hverandre. Varulven velger hvem flokken vil skylde på."),
+        R.t("Synsk: Ser rollen til én spiller – slik den var da natta begynte."),
+        R.t("Bytter: Bytter rolle med én spiller og får se den nye rollen sin. Den andre får ikke vite noe."),
+        R.t("Bråkmaker (fra seks spillere): Bytter om rollene til to andre – uten at noen får se dem."),
+        R.t("Byttene skjer når natta er over: først bytterens, så bråkmakerens. Du spiller for laget til rollen du ender med."),
+        R.t("Fikk ingen mer enn én finger, er ingen pekt ut – og da vinner varulvene."),
+        R.t("Dere spiller tre eller fem runder, eller så mange dere vil. Flest poeng vinner."),
       ],
     },
   };
@@ -1297,23 +1336,23 @@
         tilbake: "portal",
         vis: (S) =>
           R.ui.spillhjem({
-            slagordHtml: "Noen i landsbyen er varulver.<br><em>Mobilen er spillederen.</em>",
+            slagordHtml: `${esc(R.t("Noen i landsbyen er varulver."))}<br><em>${esc(R.t("Mobilen er spillederen."))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
               fortsettTekst: pagar(S) ? fortsettTekst(S.spill) : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
-              ...(harStilling(S) ? [["STILLING", stillingTekst(S)]] : []),
-              ["4–12", "spillere"],
-              ["1", "mobil"],
-              ["0", "spilleder"],
+              ...(harStilling(S) ? [[R.t("STILLING"), stillingTekst(S)]] : []),
+              ["4–12", R.t("spillere")],
+              ["1", R.t("mobil", { n: 1 })],
+              ["0", R.t("spilleder", { n: 0 })],
             ],
           }),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
@@ -1324,74 +1363,74 @@
           const klassisk = MODUS.klassisk;
           const modusvalg = `
             <section class="seksjon">
-              <h2>Hvordan vil dere spille?</h2>
+              <h2>${esc(R.t("Hvordan vil dere spille?"))}</h2>
               ${R.ui.fliser(
                 "modus",
                 [
                   {
                     v: "klassisk",
                     ikon: "🐺",
-                    tittel: "Klassisk",
-                    tekst: en && n < klassisk.min ? `Trenger minst ${klassisk.min} spillere (dere er ${n}). 20–40 min, noen ryker ut` : "6–12 spillere, 20–40 min, noen ryker ut",
+                    tittel: R.t("Klassisk"),
+                    tekst: en && n < klassisk.min ? R.t("Trenger minst {min} spillere (dere er {antall}). 20–40 min, noen ryker ut", { min: klassisk.min, antall: n }) : R.t("6–12 spillere, 20–40 min, noen ryker ut"),
                   },
                   {
                     v: "en",
                     ikon: "🌙",
-                    tittel: "Én natt",
-                    tekst: !en && n > MODUS.en.maks ? `Opptil ${MODUS.en.maks} spillere (dere er ${n}). 7 min per runde, alle er med hele tiden` : "4–10 spillere, 7 min per runde, alle er med hele tiden",
+                    tittel: R.t("Én natt"),
+                    tekst: !en && n > MODUS.en.maks ? R.t("Opptil {maks} spillere (dere er {antall}). 7 min per runde, alle er med hele tiden", { maks: MODUS.en.maks, antall: n }) : R.t("4–10 spillere, 7 min per runde, alle er med hele tiden"),
                   },
                 ],
                 o.modus,
               )}
             </section>`;
-          const rekkefolge = "Skriv navnene i den rekkefølgen dere sitter rundt bordet – mobilen går rundt i den rekkefølgen.";
+          const rekkefolge = R.t("Skriv navnene i den rekkefølgen dere sitter rundt bordet – mobilen går rundt i den rekkefølgen.");
           if (en) {
             return `
-              <h1 id="skjerm-tittel">Gjør klart</h1>
+              <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
               ${modusvalg}
               ${R.ui.spillere({ min: MODUS.en.min, max: MODUS.en.maks, hjelp: rekkefolge })}
-              <p class="vu-stokk"><span class="etikett">Rollene i spillet (${n})</span>${stokkTekst(enStokk(n), EN_ROLLER, EN_REKKE)}</p>
+              <p class="vu-stokk"><span class="etikett">${esc(R.t("Rollene i spillet ({n})", { n }))}</span>${stokkTekst(enStokk(n), EN_ROLLER, EN_REKKE)}</p>
               <section class="seksjon">
-                <h2>Antall runder</h2>
-                ${R.ui.seg("runder", RUNDER.map((r) => [r, r ? String(r) : "Fri"]), o.runder, { etikett: "Antall runder" })}
-                <p class="hjelp">${
-                  o.runder ? `Ca. ${Math.round((o.runder * 7) / 5) * 5} minutter. Nye roller hver runde – flest poeng vinner.` : "Spill så mange runder dere vil. «Avslutt» tar dere til kåringen."
-                }</p>
+                <h2>${esc(R.t("Antall runder"))}</h2>
+                ${R.ui.seg("runder", RUNDER.map((r) => [r, r ? String(r) : R.t("Fri")]), o.runder, { etikett: R.t("Antall runder") })}
+                <p class="hjelp">${esc(
+                  o.runder ? R.t("Ca. {n} minutter. Nye roller hver runde – flest poeng vinner.", { n: Math.round((o.runder * 7) / 5) * 5 }) : R.t("Spill så mange runder dere vil. «Avslutt» tar dere til kåringen."),
+                )}</p>
               </section>
-              ${R.ui.dokk(R.ui.knapp("Start", "start"))}`;
+              ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start"))}`;
           }
           const ulver = antallUlver(S);
           return `
-            <h1 id="skjerm-tittel">Gjør klart</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
             ${modusvalg}
-            ${R.ui.spillere({ min: klassisk.min, max: klassisk.maks, hjelp: "Best med 7–10. " + rekkefolge })}
+            ${R.ui.spillere({ min: klassisk.min, max: klassisk.maks, hjelp: R.t("Best med 7–10.") + " " + rekkefolge })}
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Varulver</h2><span class="tall">Anbefalt: ${anbefalteUlver(n)}</span></div>
-              ${R.ui.teller("ulver", ulver, 1, maksUlver(n), { enhet: ulver === 1 ? "varulv" : "varulver", minus: "Færre varulver", pluss: "Flere varulver" })}
+              <div class="seksjon-hode"><h2>${esc(R.t("Varulver"))}</h2><span class="tall">${esc(R.t("Anbefalt: {n}", { n: anbefalteUlver(n) }))}</span></div>
+              ${R.ui.teller("ulver", ulver, 1, maksUlver(n), { enhet: ulver === 1 ? R.t("varulv") : R.t("varulver"), minus: R.t("Færre varulver"), pluss: R.t("Flere varulver") })}
             </section>
             <section class="seksjon">
-              <h2>Spesialroller</h2>
+              <h2>${esc(R.t("Spesialroller"))}</h2>
               ${R.ui.brikker(
                 "rolle",
                 SPESIAL.map((r) => ({ v: r, tekst: ROLLER[r].navn, ikon: ROLLER[r].ikon })),
                 SPESIAL.filter((r) => o[r]),
-                { etikett: "Spesialroller" },
+                { etikett: R.t("Spesialroller") },
               )}
-              <p class="hjelp vu-venstre">Den synske ser om én person er varulv hver natt. Legen beskytter én person hver natt. Jegeren tar med seg én person når jegeren dør.</p>
+              <p class="hjelp vu-venstre">${esc(R.t("Den synske ser om én person er varulv hver natt. Legen beskytter én person hver natt. Jegeren tar med seg én person når jegeren dør."))}</p>
             </section>
-            <p class="vu-stokk"><span class="etikett">Rollene i spillet (${n})</span>${stokkTekst(kortstokk(n, ulver, o), ROLLER, ["varulv", ...SPESIAL, "landsby"])}</p>
-            ${R.ui.bryter("fredelig", fredeligPa(S), "Fredelig første natt", "Alle tar nattrunden sin, men ingen blir tatt den første natta. Da får alle spilt før noen ryker ut.")}
+            <p class="vu-stokk"><span class="etikett">${esc(R.t("Rollene i spillet ({n})", { n }))}</span>${stokkTekst(kortstokk(n, ulver, o), ROLLER, ["varulv", ...SPESIAL, "landsby"])}</p>
+            ${R.ui.bryter("fredelig", fredeligPa(S), R.t("Fredelig første natt"), R.t("Alle tar nattrunden sin, men ingen blir tatt den første natta. Da får alle spilt før noen ryker ut."))}
             <section class="seksjon">
-              <h2>Tid til å diskutere</h2>
-              ${R.ui.seg("tid", TIDER.map((t) => [t, `${t} min`]), o.tid, { etikett: "Minutter til å diskutere om dagen" })}
+              <h2>${esc(R.t("Tid til å diskutere"))}</h2>
+              ${R.ui.seg("tid", TIDER.map((t) => [t, R.t("{n} min", { n: t })]), o.tid, { etikett: R.t("Minutter til å diskutere om dagen") })}
             </section>
-            ${R.ui.dokk(R.ui.knapp("Start", "start"))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start"))}`;
         },
       },
 
       // The phone goes around once: everyone holds to see their role.
       roller: {
-        tittel: "Rollene",
+        tittel: R.t("Rollene"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -1400,22 +1439,22 @@
           return `
             ${R.ui.fremdrift(sp.n, i)}
             <div class="vu-mottaker">
-              <p class="etikett">Gi mobilen til</p>
+              <p class="etikett">${esc(R.t("Gi mobilen til"))}</p>
               <h1 id="skjerm-tittel" class="spillernavn ${navnKlasse(R.navn(i))}">${R.avatar(i, "stor")}<span>${esc(R.navn(i))}</span></h1>
             </div>
-            ${R.ui.mappe({ id: "r" + i, etikett: "Hemmelig rolle", tekst: HOLD, etikettAria: `Hold fingeren på kortet for å se rollen til ${R.navn(i)}` })}
-            <p class="hjelp">${sp.vis.sett ? "Husket rollen? Trykk «Ferdig» og gi mobilen videre." : `Bare ${esc(R.navn(i))} skal se. Slipp, så skjules kortet igjen.`}</p>
+            ${R.ui.mappe({ id: "r" + i, etikett: R.t("Hemmelig rolle"), tekst: HOLD, etikettAria: R.t("Hold fingeren på kortet for å se rollen til {navn}", { navn: R.navn(i) }) })}
+            <p class="hjelp">${esc(sp.vis.sett ? R.t("Husket rollen? Trykk «Ferdig» og gi mobilen videre.") : R.t("Bare {navn} skal se. Slipp, så skjules kortet igjen.", { navn: R.navn(i) }))}</p>
             ${R.ui.dokk(
-              R.ui.knapp(siste ? "Alle har sett rollen sin" : "", "vist", {
+              R.ui.knapp(siste ? R.t("Alle har sett rollen sin") : "", "vist", {
                 av: !sp.vis.sett,
-                tekstHtml: siste ? "" : toLinjer("Ferdig", `Gi mobilen til ${R.navn(i + 1)}`),
+                tekstHtml: siste ? "" : toLinjer(R.t("Ferdig"), R.t("Gi mobilen til {navn}", { navn: R.navn(i + 1) })),
               }),
             )}`;
         },
       },
 
       "natt-start": {
-        tittel: (S) => `Natt ${S.spill.natt}`,
+        tittel: (S) => R.t("Natt {n}", { n: S.spill.natt }),
         tilbake: "hjem",
         stemning: "natt",
         vis(S) {
@@ -1426,20 +1465,20 @@
           return `
             <div class="vu-natthimmel">
               <span class="vu-maane" aria-hidden="true">🌙</span>
-              <h1 id="skjerm-tittel">Natta faller på</h1>
+              <h1 id="skjerm-tittel">${esc(R.t("Natta faller på"))}</h1>
               <p class="vu-fortelling">${esc(fortelling)}</p>
-              ${erFredelig(sp) ? '<p class="vu-merke"><span aria-hidden="true">🕊️</span> Fredelig første natt: ingen blir tatt</p>' : ""}
+              ${erFredelig(sp) ? `<p class="vu-merke"><span aria-hidden="true">🕊️</span> ${esc(R.t("Fredelig første natt: ingen blir tatt"))}</p>` : ""}
             </div>
-            ${nattSteg(sp, sp.natt, "Mobilen går rundt bordet. Ingen titter – og nynningen skjuler alle lyder.", "Åpne øynene, ta mobilen og gjør det den sier – helt stille.", "Alle får en tur, også de uten nattjobb.")}
-            <p class="hjelp">Natta tar ${omtrentTid(sp.tur.rekke.length * NATT_SEK)} og starter hos <b>${esc(R.navn(forste))}</b>.</p>
-            ${R.ui.dokk(R.ui.knapp("Start natta", "start-natt"), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${nattSteg(sp, sp.natt, R.t("Mobilen går rundt bordet. Ingen titter – og nynningen skjuler alle lyder."), R.t("Åpne øynene, ta mobilen og gjør det den sier – helt stille."), R.t("Alle får en tur, også de uten nattjobb."))}
+            <p class="hjelp">${fet(R.t("Natta tar {tid} og starter hos {navn}.", { tid: omtrentTid(sp.tur.rekke.length * NATT_SEK) }), { navn: R.navn(forste) })}</p>
+            ${R.ui.dokk(R.ui.knapp(R.t("Start natta"), "start-natt"), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
         inn: () => ul(),
       },
 
       // The night turn: "give the phone to X" → X picks one name → a short private answer.
       natt: {
-        tittel: (S) => `Natt ${S.spill.natt}`,
+        tittel: (S) => R.t("Natt {n}", { n: S.spill.natt }),
         tilbake: "hjem",
         stemning: "natt",
         vis(S) {
@@ -1459,7 +1498,7 @@
                 <p>${info}</p>
               </div>
               ${nattValg(sp, meg)}
-              ${R.ui.dokk(R.ui.knapp(m != null ? `${r.verb} ${R.navn(m)}` : "Trykk på et navn", "velg", { av: m == null }))}`;
+              ${R.ui.dokk(R.ui.knapp(m != null ? `${r.verb} ${R.navn(m)}` : R.t("Trykk på et navn"), "velg", { av: m == null }))}`;
           }
           return svarSteg(sp, nattSvar(sp, meg));
         },
@@ -1467,7 +1506,7 @@
       },
 
       morgen: {
-        tittel: (S) => `Morgen ${S.spill.natt}`,
+        tittel: (S) => R.t("Morgen {n}", { n: S.spill.natt }),
         tilbake: "hjem",
         stemning: "morgen",
         vis(S) {
@@ -1478,29 +1517,29 @@
             return `
               <div class="vu-sol" aria-hidden="true">☀️</div>
               <div class="vu-mottaker">
-                <h1 id="skjerm-tittel">Alle åpner øynene!</h1>
+                <h1 id="skjerm-tittel">${esc(R.t("Alle åpner øynene!"))}</h1>
                 <p class="vu-fortelling">${esc(linje(sp, "morgen", sp.natt))}</p>
               </div>
-              <p class="hjelp">Si det høyt: <b>«God morgen, landsby!»</b> ${
-                leder != null ? `Gi mobilen til spillederen, <b>${esc(R.navn(leder))}</b>, som trykker når alle ser på.` : "Legg mobilen midt på bordet og trykk når alle ser på."
+              <p class="hjelp">${esc(R.t("Si det høyt:"))} <b>${esc(R.t("«God morgen, landsby!»"))}</b> ${
+                leder != null ? fet(R.t("Gi mobilen til spillederen, {navn}, som trykker når alle ser på."), { navn: R.navn(leder) }) : esc(R.t("Legg mobilen midt på bordet og trykk når alle ser på."))
               }</p>
-              ${R.ui.dokk(R.ui.knapp("Hva skjedde i natt?", "se-natt"))}`;
+              ${R.ui.dokk(R.ui.knapp(R.t("Hva skjedde i natt?"), "se-natt"))}`;
           }
           if (m.offer == null) {
             return `
               <div class="vu-spotlys">
                 <div class="vu-stor-ikon" aria-hidden="true">${m.fredelig ? "🕊️" : m.reddet ? "🩹" : "🌤️"}</div>
-                <h1 id="skjerm-tittel">${m.fredelig ? "Alle våknet. Denne gangen." : "Alle overlevde natta!"}</h1>
-                <p class="vu-fortelling">${esc(m.fredelig ? linje(sp, "fredelig", 0) : m.reddet ? linje(sp, "reddet", sp.natt) : "En helt stille natt.")}</p>
+                <h1 id="skjerm-tittel">${esc(m.fredelig ? R.t("Alle våknet. Denne gangen.") : R.t("Alle overlevde natta!"))}</h1>
+                <p class="vu-fortelling">${esc(m.fredelig ? linje(sp, "fredelig", 0) : m.reddet ? linje(sp, "reddet", sp.natt) : R.t("En helt stille natt."))}</p>
               </div>
               ${R.ui.dokk(nesteKnapp(sp, "dag"))}`;
           }
           return `
             <div class="vu-spotlys">
               <span class="vu-dod">${R.avatar(m.offer, "gigant")}</span>
-              <h1 id="skjerm-tittel">${esc(R.navn(m.offer))} ble tatt i natt<span class="vh"> – ${esc(rolle(sp, m.offer).navn)}</span></h1>
+              <h1 id="skjerm-tittel">${esc(R.t("{navn} ble tatt i natt", { navn: R.navn(m.offer) }))}<span class="vh"> – ${esc(rolle(sp, m.offer).navn)}</span></h1>
               <div class="stempel-sted">${stempel(sp, m.offer)}</div>
-              ${uteTekst(sp, m.offer, sp.spilleder === m.offer ? "" : `${R.navn(m.offer)} er ute av spillet og sier ikke mer.`)}
+              ${uteTekst(sp, m.offer, sp.spilleder === m.offer ? "" : R.t("{navn} er ute av spillet og sier ikke mer.", { navn: R.navn(m.offer) }))}
             </div>
             ${R.ui.dokk(nesteKnapp(sp, "dag"))}`;
         },
@@ -1510,7 +1549,7 @@
       },
 
       jeger: {
-        tittel: "Jegeren",
+        tittel: R.t("Jegeren"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -1520,18 +1559,18 @@
               <div class="vu-jeger-topp">
                 ${R.avatar(j.av, "stor")}
                 <div>
-                  <p class="etikett">${esc(R.navn(j.av))} var jeger</p>
-                  <h1 id="skjerm-tittel">Et siste skudd</h1>
+                  <p class="etikett">${esc(R.t("{navn} var jeger", { navn: R.navn(j.av) }))}</p>
+                  <h1 id="skjerm-tittel">${esc(R.t("Et siste skudd"))}</h1>
                 </div>
               </div>
-              <p class="ingress">${esc(R.navn(j.av))} peker på én person som må bli med ut av spillet.</p>
+              <p class="ingress">${esc(R.t("{navn} peker på én person som må bli med ut av spillet.", { navn: R.navn(j.av) }))}</p>
               ${R.ui.velgere("jeger-valg", levende(sp), j.valgt)}
-              ${R.ui.dokk(R.ui.knapp(j.valgt != null ? `Skyt ${R.navn(j.valgt)}` : "Velg hvem jegeren skyter", "skyt", { variant: "rosa", av: j.valgt == null }))}`;
+              ${R.ui.dokk(R.ui.knapp(j.valgt != null ? R.t("Skyt {navn}", { navn: R.navn(j.valgt) }) : R.t("Velg hvem jegeren skyter"), "skyt", { variant: "rosa", av: j.valgt == null }))}`;
           }
           return `
             <div class="vu-spotlys${j.vist ? "" : " spenning"}">
               <span class="vu-skjelv${j.vist ? " vu-dod" : ""}">${R.avatar(j.mal, "gigant")}</span>
-              <h1 id="skjerm-tittel">${j.vist ? `${esc(R.navn(j.mal))} var …<span class="vh"> ${esc(rolle(sp, j.mal).navn)}</span>` : `Jegeren sikter på ${esc(R.navn(j.mal))} …`}</h1>
+              <h1 id="skjerm-tittel">${j.vist ? `${esc(R.t("{navn} var …", { navn: R.navn(j.mal) }))}<span class="vh"> ${esc(rolle(sp, j.mal).navn)}</span>` : esc(R.t("Jegeren sikter på {navn} …", { navn: R.navn(j.mal) }))}</h1>
               <div class="stempel-sted">${j.vist ? stempel(sp, j.mal) : ""}</div>
               ${j.vist ? uteTekst(sp, j.mal, "") : ""}
             </div>
@@ -1547,7 +1586,7 @@
       },
 
       dag: {
-        tittel: (S) => `Dag ${S.spill.dag}`,
+        tittel: (S) => R.t("Dag {n}", { n: S.spill.dag }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -1555,21 +1594,21 @@
           const lev = levende(sp).length;
           return `
             <div class="vu-mottaker">
-              <h1 id="skjerm-tittel">Hvem er varulv?</h1>
+              <h1 id="skjerm-tittel">${esc(R.t("Hvem er varulv?"))}</h1>
               <p class="vu-fortelling">${esc(linje(sp, "dag", sp.dag))}</p>
             </div>
             ${R.ui.timer({
               id: "klokke",
               sekunder: Math.ceil(igjenMs(k) / 1000),
-              kontrollHtml: `${k.ute ? '<span class="vu-tid-ute"><span aria-hidden="true">⏰</span> Tiden er ute!</span>' : '<span class="etikett">Tid til å snakke</span>'}
-                <button class="knapp-2 liten" data-h="pause" data-timer-pause>${k.gaar ? "Pause" : "Fortsett"}</button>
-                ${R.ui.knapp2("+1 min", "pluss-min", { variant: "liten" })}`,
+              kontrollHtml: `${k.ute ? `<span class="vu-tid-ute"><span aria-hidden="true">⏰</span> ${esc(R.t("Tiden er ute!"))}</span>` : `<span class="etikett">${esc(R.t("Tid til å snakke"))}</span>`}
+                <button class="knapp-2 liten" data-h="pause" data-timer-pause>${esc(k.gaar ? R.t("Pause") : R.t("Fortsett"))}</button>
+                ${R.ui.knapp2(R.t("+1 min"), "pluss-min", { variant: "liten" })}`,
             })}
             <section class="seksjon">
-              <div class="seksjon-hode"><h2>Landsbyen</h2><span class="tall">${lev} lever · ${sp.n - lev} ute</span></div>
+              <div class="seksjon-hode"><h2>${esc(R.t("Landsbyen"))}</h2><span class="tall">${esc(R.t("{lever} lever · {ute} ute", { lever: lev, ute: sp.n - lev }))}</span></div>
               ${landsbyen(sp)}
             </section>
-            ${R.ui.dokk(R.ui.knapp("Klare til å stemme", "til-stemme", { variant: "rosa" }), R.ui.lenkerad(R.ui.lenke("Glemt rollen din?", "se-igjen"), R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Klare til å stemme"), "til-stemme", { variant: "rosa" }), R.ui.lenkerad(R.ui.lenke(R.t("Glemt rollen din?"), "se-igjen"), R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
         inn: (S) => startKlokke(S),
         ut: (S) => stoppKlokke(S),
@@ -1580,29 +1619,29 @@
       },
 
       stemme: {
-        tittel: (S) => `Dag ${S.spill.dag}`,
+        tittel: (S) => R.t("Dag {n}", { n: S.spill.dag }),
         tilbake: "dag",
         vis(S) {
           const sp = S.spill;
           const valgt = sp.mistenkt;
           const leder = spilleder(sp);
           return `
-            <h1 id="skjerm-tittel">Landsbyen stemmer</h1>
-            <p class="ingress">Tell ned og pek samtidig på den dere vil kaste ut. Den som får flest fingrer, må forlate landsbyen.${
-              leder != null ? ` Spillederen, ${esc(R.navn(leder))}, teller fingrene.` : ""
+            <h1 id="skjerm-tittel">${esc(R.t("Landsbyen stemmer"))}</h1>
+            <p class="ingress">${esc(R.t("Tell ned og pek samtidig på den dere vil kaste ut. Den som får flest fingrer, må forlate landsbyen."))}${
+              leder != null ? " " + esc(R.t("Spillederen, {navn}, teller fingrene.", { navn: R.navn(leder) })) : ""
             }</p>
-            ${R.ui.knapp2("3 · 2 · 1 – Pek!", "pek", { ikon: "👉" })}
+            ${R.ui.knapp2(R.t("3 · 2 · 1 – Pek!"), "pek", { ikon: "👉" })}
             <section class="seksjon">
-              <h2>Hvem fikk flest fingrer?</h2>
+              <h2>${esc(R.t("Hvem fikk flest fingrer?"))}</h2>
               ${R.ui.velgere("mistenkt", levende(sp), valgt)}
             </section>
-            ${R.ui.lenke("Uavgjort – ingen kastes ut i dag", "ingen-ut")}
-            ${R.ui.dokk(R.ui.knapp(valgt != null ? `Kast ut ${R.navn(valgt)}` : "Velg hvem som må gå", "kast-ut", { variant: "rosa", av: valgt == null }))}`;
+            ${R.ui.lenke(R.t("Uavgjort – ingen kastes ut i dag"), "ingen-ut")}
+            ${R.ui.dokk(R.ui.knapp(valgt != null ? R.t("Kast ut {navn}", { navn: R.navn(valgt) }) : R.t("Velg hvem som må gå"), "kast-ut", { variant: "rosa", av: valgt == null }))}`;
         },
       },
 
       utkastet: {
-        tittel: (S) => `Dag ${S.spill.dag}`,
+        tittel: (S) => R.t("Dag {n}", { n: S.spill.dag }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -1610,9 +1649,9 @@
           return `
             <div class="vu-spotlys${sp.utVist ? "" : " spenning"}">
               <span class="vu-skjelv${sp.utVist ? " vu-dod" : ""}">${R.avatar(i, "gigant")}</span>
-              <h1 id="skjerm-tittel">${sp.utVist ? `${esc(R.navn(i))} var …<span class="vh"> ${esc(rolle(sp, i).navn)}</span>` : `${esc(R.navn(i))} forlater landsbyen …`}</h1>
+              <h1 id="skjerm-tittel">${sp.utVist ? `${esc(R.t("{navn} var …", { navn: R.navn(i) }))}<span class="vh"> ${esc(rolle(sp, i).navn)}</span>` : esc(R.t("{navn} forlater landsbyen …", { navn: R.navn(i) }))}</h1>
               <div class="stempel-sted">${sp.utVist ? stempel(sp, i) : ""}</div>
-              ${sp.utVist ? uteTekst(sp, i, erUlv(sp, i) ? "Riktig!" : "Å nei, en uskyldig!") : ""}
+              ${sp.utVist ? uteTekst(sp, i, erUlv(sp, i) ? R.t("Riktig!") : R.t("Å nei, en uskyldig!")) : ""}
             </div>
             ${sp.utVist ? R.ui.dokk(nesteKnapp(sp, "natt")) : ""}`;
         },
@@ -1635,12 +1674,12 @@
           return `
             <div class="vu-natthimmel">
               <span class="vu-maane" aria-hidden="true">🌙</span>
-              <h1 id="skjerm-tittel">Natta faller på</h1>
+              <h1 id="skjerm-tittel">${esc(R.t("Natta faller på"))}</h1>
               <p class="vu-fortelling">${esc(linje(sp, "enNatt", sp.runde))}</p>
             </div>
-            ${nattSteg(sp, sp.runde, "Mobilen går én runde rundt bordet. Ingen titter – og nynningen skjuler alle lyder.", "Åpne øynene, se rollen din og gjør det mobilen sier – helt stille.", "Alle gjør noe i natt, så ingen kan gjette roller ut fra tiden.")}
-            <p class="hjelp">Natta tar ${omtrentTid(sp.n * EN_SEK)} og starter hos <b>${esc(R.navn(sp.tur.rekke[0]))}</b>.</p>
-            ${R.ui.dokk(R.ui.knapp("Start natta", "start-natt"), R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${nattSteg(sp, sp.runde, R.t("Mobilen går én runde rundt bordet. Ingen titter – og nynningen skjuler alle lyder."), R.t("Åpne øynene, se rollen din og gjør det mobilen sier – helt stille."), R.t("Alle gjør noe i natt, så ingen kan gjette roller ut fra tiden."))}
+            <p class="hjelp">${fet(R.t("Natta tar {tid} og starter hos {navn}.", { tid: omtrentTid(sp.n * EN_SEK) }), { navn: R.navn(sp.tur.rekke[0]) })}</p>
+            ${R.ui.dokk(R.ui.knapp(R.t("Start natta"), "start-natt"), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
         inn: () => ul(),
       },
@@ -1661,15 +1700,15 @@
             const m = t.markert;
             const klar = m.length === (brak ? 2 : 1);
             const knapp = !klar
-              ? R.ui.knapp(brak ? (m.length ? "Trykk på ett navn til" : "Trykk på to navn") : "Trykk på et navn", "en-velg", { av: true })
+              ? R.ui.knapp(brak ? (m.length ? R.t("Trykk på ett navn til") : R.t("Trykk på to navn")) : R.t("Trykk på et navn"), "en-velg", { av: true })
               : brak
-                ? R.ui.knapp("", "en-velg", { tekstHtml: toLinjer("Bytt om rollene", `${R.navn(m[0])} og ${R.navn(m[1])}`) })
+                ? R.ui.knapp("", "en-velg", { tekstHtml: toLinjer(R.t("Bytt om rollene"), R.ramsOpp([R.navn(m[0]), R.navn(m[1])])) })
                 : R.ui.knapp(`${r.verb} ${R.navn(m[0])}`, "en-velg");
             // (the heading is only the name here too; the role is ordinary text below it)
             return `
               ${prikker(sp)}
               <div class="vu-oppdrag vu-en-oppdrag">
-                <div class="vu-hvem">${R.avatar(meg)}<div><h1 id="skjerm-tittel">${esc(R.navn(meg))}</h1> <span>· du er</span></div></div>
+                <div class="vu-hvem">${R.avatar(meg)}<div><h1 id="skjerm-tittel">${esc(R.navn(meg))}</h1> <span>· ${esc(R.t("du er"))}</span></div></div>
                 <p class="vu-rolle"><span aria-hidden="true">${r.ikon}</span> ${esc(r.navn)}</p>
                 <p class="vu-sporsmal">${esc(r.sporsmal)}</p>
                 <p>${sp.roller[meg] === "varulv" ? enUlveInfo(sp, meg) : esc(r.info)}</p>
@@ -1691,11 +1730,11 @@
           return `
             <div class="vu-sol" aria-hidden="true">☀️</div>
             <div class="vu-mottaker">
-              <h1 id="skjerm-tittel">Alle åpner øynene!</h1>
+              <h1 id="skjerm-tittel">${esc(R.t("Alle åpner øynene!"))}</h1>
               <p class="vu-fortelling">${esc(linje(sp, "enMorgen", sp.runde))}</p>
             </div>
-            <p class="hjelp">Si det høyt: <b>«God morgen, landsby!»</b> Legg mobilen midt på bordet. Dere har ${tallord(TALETID)} minutter på å finne en varulv.</p>
-            ${R.ui.dokk(R.ui.knapp("Start praten", "en-start-dag"))}`;
+            <p class="hjelp">${esc(R.t("Si det høyt:"))} <b>${esc(R.t("«God morgen, landsby!»"))}</b> ${esc(R.t("Legg mobilen midt på bordet. Dere har {tall} minutter på å finne en varulv.", { tall: tallord(TALETID) }))}</p>
+            ${R.ui.dokk(R.ui.knapp(R.t("Start praten"), "en-start-dag"))}`;
         },
         inn: () => hane(),
       },
@@ -1708,22 +1747,22 @@
           const k = sp.klokke;
           return `
             <div class="vu-mottaker">
-              <h1 id="skjerm-tittel">Hvem er varulv?</h1>
+              <h1 id="skjerm-tittel">${esc(R.t("Hvem er varulv?"))}</h1>
               <p class="vu-fortelling">${esc(linje(sp, "enDag", sp.runde))}</p>
             </div>
             ${R.ui.timer({
               id: "klokke",
               sekunder: Math.ceil(igjenMs(k) / 1000),
-              kontrollHtml: `${k.ute ? '<span class="vu-tid-ute"><span aria-hidden="true">⏰</span> Tiden er ute!</span>' : '<span class="etikett">Tid til å snakke</span>'}
-                <button class="knapp-2 liten" data-h="pause" data-timer-pause>${k.gaar ? "Pause" : "Fortsett"}</button>
-                ${R.ui.knapp2("+1 min", "pluss-min", { variant: "liten" })}`,
+              kontrollHtml: `${k.ute ? `<span class="vu-tid-ute"><span aria-hidden="true">⏰</span> ${esc(R.t("Tiden er ute!"))}</span>` : `<span class="etikett">${esc(R.t("Tid til å snakke"))}</span>`}
+                <button class="knapp-2 liten" data-h="pause" data-timer-pause>${esc(k.gaar ? R.t("Pause") : R.t("Fortsett"))}</button>
+                ${R.ui.knapp2(R.t("+1 min"), "pluss-min", { variant: "liten" })}`,
             })}
             <section class="seksjon">
-              <h2>Rollene i natt</h2>
+              <h2>${esc(R.t("Rollene i natt"))}</h2>
               <p class="vu-stokk">${stokkTekst(sp.roller, EN_ROLLER, EN_REKKE)}</p>
-              <p class="hjelp vu-venstre">Landsbyen vinner hvis en varulv blir pekt ut. Husk: roller kan ha byttet plass i natt – kanskje din også.</p>
+              <p class="hjelp vu-venstre">${esc(R.t("Landsbyen vinner hvis en varulv blir pekt ut. Husk: roller kan ha byttet plass i natt – kanskje din også."))}</p>
             </section>
-            ${R.ui.dokk(R.ui.knapp("Stem nå", "en-til-stemme", { variant: "rosa" }), R.ui.lenkerad(R.ui.lenke("Glemt hva du så?", "se-igjen"), R.ui.lenke("Avslutt", "avslutt")))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Stem nå"), "en-til-stemme", { variant: "rosa" }), R.ui.lenkerad(R.ui.lenke(R.t("Glemt hva du så?"), "se-igjen"), R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
         inn: (S) => startKlokke(S),
         ut: (S) => stoppKlokke(S),
@@ -1741,17 +1780,21 @@
         vis(S) {
           const sp = S.spill;
           const m = sp.pektValg;
-          const knapp = !m.length ? "Trykk på den som fikk flest" : m.length > 2 ? `${m.length} ble pekt ut` : `${R.ramsOpp(m.map(R.navn))} ble pekt ut`;
+          const knapp = !m.length
+            ? R.t("Trykk på den som fikk flest")
+            : m.length > 2
+              ? R.t("{n} ble pekt ut", { n: m.length })
+              : R.t("{hvem} ble pekt ut|{hvem} ble pekt ut", { n: m.length, hvem: R.ramsOpp(m.map(R.navn)) });
           return `
-            <h1 id="skjerm-tittel">Pek ut en varulv</h1>
-            <p class="ingress">Tell ned og pek samtidig på den du tror er varulv. Landsbyen vinner hvis en varulv er blant dem som får flest fingrer.</p>
-            ${R.ui.knapp2("3 · 2 · 1 – Pek!", "pek", { ikon: "👉" })}
+            <h1 id="skjerm-tittel">${esc(R.t("Pek ut en varulv"))}</h1>
+            <p class="ingress">${esc(R.t("Tell ned og pek samtidig på den du tror er varulv. Landsbyen vinner hvis en varulv er blant dem som får flest fingrer."))}</p>
+            ${R.ui.knapp2(R.t("3 · 2 · 1 – Pek!"), "pek", { ikon: "👉" })}
             <section class="seksjon">
-              <h2>Hvem fikk flest fingrer?</h2>
+              <h2>${esc(R.t("Hvem fikk flest fingrer?"))}</h2>
               ${R.ui.velgere("en-pekt", range(sp.n), m)}
-              <p class="hjelp">Står det likt, trykker du på alle som fikk flest.</p>
+              <p class="hjelp">${esc(R.t("Står det likt, trykker du på alle som fikk flest."))}</p>
             </section>
-            ${R.ui.lenke("Ingen fikk mer enn én finger", "en-ingen")}
+            ${R.ui.lenke(R.t("Ingen fikk mer enn én finger"), "en-ingen")}
             ${R.ui.dokk(R.ui.knapp(knapp, "en-avslor", { variant: "rosa", av: !m.length }))}`;
         },
       },
@@ -1766,7 +1809,7 @@
           const pekt = sp.pekt;
           const storrelse = pekt.length === 1 ? "gigant" : "stor";
           if (!sp.vist) {
-            const hvem = pekt.length > 3 ? `${pekt.length} spillere` : R.ramsOpp(pekt.map(R.navn));
+            const hvem = pekt.length > 3 ? R.t("{n} spillere", { n: pekt.length }) : R.ramsOpp(pekt.map(R.navn));
             return `
               <div class="vu-spotlys spenning">
                 ${
@@ -1774,7 +1817,7 @@
                     ? `<div class="vu-pekte">${pekt.map((i) => `<span class="vu-skjelv">${R.avatar(i, storrelse)}</span>`).join("")}</div>`
                     : '<div class="vu-stor-ikon" aria-hidden="true">🤷</div>'
                 }
-                <h1 id="skjerm-tittel">${pekt.length ? `${esc(hvem)} ble pekt ut …` : "Ingen ble pekt ut …"}</h1>
+                <h1 id="skjerm-tittel">${esc(pekt.length ? R.t("{hvem} ble pekt ut …|{hvem} ble pekt ut …", { n: pekt.length, hvem }) : R.t("Ingen ble pekt ut …"))}</h1>
               </div>`;
           }
           const v = enVinner(sp);
@@ -1782,13 +1825,13 @@
           const tatt = pekt.filter((i) => sp.slutt[i] === "varulv");
           const forklaring =
             v === "landsby"
-              ? `${R.ramsOpp(tatt.map(R.navn))} endte natta som varulv – og ble pekt ut.`
-              : `${pekt.length ? "Ingen varulv ble pekt ut." : "Ingen ble pekt ut."} ${ulver.length > 1 ? "Varulvene var" : "Varulven var"} ${R.ramsOpp(ulver.map(R.navn))}.`;
+              ? R.t("{hvem} endte natta som varulv – og ble pekt ut.|{hvem} endte natta som varulv – og ble pekt ut.", { n: tatt.length, hvem: R.ramsOpp(tatt.map(R.navn)) })
+              : `${pekt.length ? R.t("Ingen varulv ble pekt ut.") : R.t("Ingen ble pekt ut.")} ${ulver.length > 1 ? R.t("Varulvene var {hvem}.", { hvem: R.ramsOpp(ulver.map(R.navn)) }) : R.t("Varulven var {hvem}.", { hvem: R.ramsOpp(ulver.map(R.navn)) })}`;
           const hvemVarHvem = range(sp.n)
             .map((i) => {
               const a = EN_ROLLER[sp.roller[i]];
               const b = EN_ROLLER[sp.slutt[i]];
-              const roller = a === b ? `${a.ikon} ${esc(a.navn)}` : `${a.ikon} ${esc(a.navn)} <span aria-hidden="true">→</span><span class="vh"> ble til </span> ${b.ikon} ${esc(b.navn)}`;
+              const roller = a === b ? `${a.ikon} ${esc(a.navn)}` : `${a.ikon} ${esc(a.navn)} <span aria-hidden="true">→</span><span class="vh"> ${esc(R.t("ble til"))} </span> ${b.ikon} ${esc(b.navn)}`;
               return `<li class="${sp.slutt[i] === "varulv" ? "ulv" : ""}">${R.avatar(i)}<span><b>${esc(R.navn(i))}</b><small>${roller}</small></span></li>`;
             })
             .join("");
@@ -1801,24 +1844,24 @@
                       .join("")}</ul>`
                   : '<div class="vu-stor-ikon" aria-hidden="true">🐺</div>'
               }
-              <h1 id="skjerm-tittel" class="vu-dom ${v === "landsby" ? "mynte" : "rosa"}">${v === "landsby" ? "Landsbyen vinner runden!" : "Varulvene vinner runden!"}</h1>
+              <h1 id="skjerm-tittel" class="vu-dom ${v === "landsby" ? "mynte" : "rosa"}">${esc(v === "landsby" ? R.t("Landsbyen vinner runden!") : R.t("Varulvene vinner runden!"))}</h1>
               <p class="ingress midt">${esc(forklaring)}</p>
             </div>
             <section class="seksjon">
-              <h2>Hvem var hvem?</h2>
+              <h2>${esc(R.t("Hvem var hvem?"))}</h2>
               <ul class="vu-rolleliste">${hvemVarHvem}</ul>
             </section>
             <section class="seksjon">
-              <h2>Slik gikk natta</h2>
+              <h2>${esc(R.t("Slik gikk natta"))}</h2>
               <ol class="vu-historikk">${enHistorie(sp)}</ol>
             </section>
             <section class="seksjon">
-              <h2>Stillingen</h2>
+              <h2>${esc(R.t("Stillingen"))}</h2>
               ${R.ui.poengliste(range(sp.n).map((i) => ({ i, poeng: sp.poeng[i] + (!sp.talt && enVant(sp, i) ? 1 : 0), pluss: enVant(sp, i) ? 1 : 0 })))}
             </section>
             ${R.ui.dokk(
-              R.ui.knapp(sisteRunde(sp) ? "Til kåringen" : "Neste runde", "en-neste"),
-              R.ui.lenkerad(R.ui.lenke("Angre", "en-angre"), sisteRunde(sp) ? "" : R.ui.lenke("Avslutt", "avslutt")),
+              R.ui.knapp(sisteRunde(sp) ? R.t("Til kåringen") : R.t("Neste runde"), "en-neste"),
+              R.ui.lenkerad(R.ui.lenke(R.t("Angre"), "en-angre"), sisteRunde(sp) ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         inn(S) {
@@ -1830,7 +1873,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         stemning: null,
         vis(S) {
@@ -1850,35 +1893,35 @@
             ? R.ui.banner({
                 klasse: ulvVant ? "rosa" : "mynte",
                 stemning: ulvVant ? "jubel" : "lei",
-                etikett: `Etter ${netter(spilt)}`,
-                tittel: ulvVant ? "Varulvene vinner!" : "Landsbyen vinner!",
+                etikett: R.t("Etter {netter}", { netter: netter(spilt) }),
+                tittel: ulvVant ? R.t("Varulvene vinner!") : R.t("Landsbyen vinner!"),
                 tekst: linje(sp, ulvVant ? "ulvVant" : "landsbyVant", sp.natt),
               })
             : R.ui.banner({
                 stemning: "",
-                etikett: spilt ? `Avsluttet etter ${netter(spilt)}` : "Avsluttet før første natt",
-                tittel: "Ingen vant denne gangen",
-                tekst: "Spillet ble avsluttet før noen vant. Her er fasiten.",
+                etikett: spilt ? R.t("Avsluttet etter {netter}", { netter: netter(spilt) }) : R.t("Avsluttet før første natt"),
+                tittel: R.t("Ingen vant denne gangen"),
+                tekst: R.t("Spillet ble avsluttet før noen vant. Her er fasiten."),
               });
           return `
             ${banner}
             ${stillingHtml(S)}
             <section class="seksjon">
-              <h2>Hvem var hvem?</h2>
+              <h2>${esc(R.t("Hvem var hvem?"))}</h2>
               <ul class="vu-rolleliste">${roller}</ul>
             </section>
             ${prisHtml(stat)}
             ${
               sp.hendelser.length
                 ? `<section class="seksjon">
-              <h2>Slik gikk det</h2>
+              <h2>${esc(R.t("Slik gikk det"))}</h2>
               <ol class="vu-historikk">${historikk(sp)}</ol>
             </section>`
                 : ""
             }
-            ${sp.vinner ? R.ui.knapp2("Del resultatet", "del") : ""}
+            ${sp.vinner ? R.ui.knapp2(R.t("Del resultatet"), "del") : ""}
             ${R.ui.flereSpill({ antall: sp.n })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -1929,7 +1972,7 @@
         S.antall = R.klamp(husket, MODUS[ny].min, MODUS[ny].maks);
         o.ulver = null;
         R.vis();
-        R.si(`${ny === "en" ? "Én natt" : "Klassisk"}. ${R.flertall(S.antall, "spiller", "spillere")}.`);
+        R.si(`${ny === "en" ? R.t("Én natt") : R.t("Klassisk")}. ${R.flertall(S.antall, "spiller", "spillere")}.`);
       },
       runder(el, e, S) {
         const r = Number(el.dataset.v);
@@ -2074,7 +2117,7 @@
       },
       async "en-ingen"(el, e, S) {
         const fortsatt = R.vakt();
-        if (!(await R.bekreft("Ingen ble pekt ut?", "Fikk ingen mer enn én finger, slipper varulvene unna.", "Ja, ingen", "Stem på nytt")) || !fortsatt()) return;
+        if (!(await R.bekreft(R.t("Ingen ble pekt ut?"), R.t("Fikk ingen mer enn én finger, slipper varulvene unna."), R.t("Ja, ingen"), R.t("Stem på nytt"))) || !fortsatt()) return;
         const sp = S.spill;
         sp.pektValg = [];
         sp.pekt = [];
@@ -2132,14 +2175,14 @@
         if (!pagar(S)) return;
         const en = sp.modus === "en";
         const tekst = !en
-          ? "Dere går rett til kåringen og får se hvem som var hvem. Ingen vinner."
+          ? R.t("Dere går rett til kåringen og får se hvem som var hvem. Ingen vinner.")
           : S.skjerm === "en-avsloring"
-            ? "Dere går rett til kåringen med poengene så langt."
+            ? R.t("Dere går rett til kåringen med poengene så langt.")
             : sp.spilt
-              ? "Dere går rett til kåringen med poengene så langt. Runden dere holder på med, teller ikke."
-              : "Ingen runder er spilt ferdig, så det blir en kåring uten poeng.";
+              ? R.t("Dere går rett til kåringen med poengene så langt. Runden dere holder på med, teller ikke.")
+              : R.t("Ingen runder er spilt ferdig, så det blir en kåring uten poeng.");
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avslutte spillet?", tekst, "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte spillet?"), tekst, R.t("Avslutt"), R.t("Spill videre"));
         if (!ja || !fortsatt() || !pagar(S)) return;
         if (en) enTell(S); // a round that has been revealed counts
         sp.avbrutt = true;
@@ -2203,7 +2246,7 @@
           }
           R.lagre();
         }
-        R.si("Ett minutt til"); // (the clock shows it; this is for screen readers)
+        R.si(R.t("Ett minutt til")); // (the clock shows it; this is for screen readers)
       },
       // «Glemt rollen din?» / «Glemt hva du så?»: one player's own card again, behind a hold.
       async "se-igjen"(el, e, S) {
@@ -2211,16 +2254,16 @@
         const en = sp.modus === "en";
         const fortsatt = R.vakt();
         const i = await R.velgIArk(
-          en ? "Hvem vil se natta si igjen?" : "Hvem vil se rollen sin?",
+          en ? R.t("Hvem vil se natta si igjen?") : R.t("Hvem vil se rollen sin?"),
           (en ? range(sp.n) : levende(sp)).map((n) => ({ v: n, tekst: R.navn(n) })),
         );
         if (!fortsatt()) return;
         if (i == null) return;
         R.ark(`
-          <h2 id="ark-tittel">${en ? "Natta til" : "Rollen til"} ${esc(R.navn(i))}</h2>
-          ${R.ui.mappe({ id: "r" + i, etikett: en ? "Hemmelig" : "Hemmelig rolle", tekst: HOLD })}
-          <p class="hjelp">Bare ${esc(R.navn(i))} skal se. Slipp for å skjule.</p>
-          <button class="knapp" data-h="lukk-ark">Ferdig</button>`);
+          <h2 id="ark-tittel">${esc(en ? R.t("Natta til {navn}", { navn: R.navn(i) }) : R.t("Rollen til {navn}", { navn: R.navn(i) }))}</h2>
+          ${R.ui.mappe({ id: "r" + i, etikett: en ? R.t("Hemmelig") : R.t("Hemmelig rolle"), tekst: HOLD })}
+          <p class="hjelp">${esc(R.t("Bare {navn} skal se. Slipp for å skjule.", { navn: R.navn(i) }))}</p>
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Ferdig"))}</button>`);
       },
       "til-stemme"(el, e, S) {
         S.spill.mistenkt = null;
@@ -2231,7 +2274,7 @@
         teller = true;
         let ferdig = false;
         try {
-          ferdig = await R.nedtelling(["3", "2", "1", "PEK!"], 700);
+          ferdig = await R.nedtelling(["3", "2", "1", R.t("PEK!")], 700);
         } finally {
           teller = false;
         }
@@ -2256,7 +2299,7 @@
       },
       async "ingen-ut"(el, e, S) {
         const fortsatt = R.vakt();
-        if (!(await R.bekreft("Ingen kastes ut?", "Da går landsbyen rett til natta.", "Ja, ingen i dag", "Stem på nytt")) || !fortsatt()) return;
+        if (!(await R.bekreft(R.t("Ingen kastes ut?"), R.t("Da går landsbyen rett til natta."), R.t("Ja, ingen i dag"), R.t("Stem på nytt"))) || !fortsatt()) return;
         const sp = S.spill;
         sp.hendelser.push({ type: "dag", nr: sp.dag, ut: null });
         sp.ingenUt = true; // «Natta faller på» opens with it
@@ -2269,7 +2312,7 @@
         const sp = S.spill;
         if (!sp || !sp.ferdig) return;
         const tekst = sp.modus === "en" ? (enVinnere(sp).length ? enDelTekst(S) : "") : sp.vinner ? delTekst(S) : "";
-        if (tekst) R.del("Varulven", tekst, location.origin + "/varulven/");
+        if (tekst) R.del(R.t("Varulven"), tekst, location.origin + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "varulven") + "/");
       },
     }),
   };

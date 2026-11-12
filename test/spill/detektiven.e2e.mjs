@@ -63,8 +63,9 @@ export default async function (t) {
   };
   const runde = async () => (await t.tilstand()).spill.runde;
   const poeng = async () => (await t.tilstand()).spill.poeng.join(",");
-  const stat = () => t.js(`JSON.parse(localStorage.getItem("rusj.detektiven.stat") || "null")`);
-  const kveld = () => t.js(`(JSON.parse(localStorage.getItem("rusj.kveld") || "null") || { spill: [] }).spill.filter((s) => s.id === "detektiven").map((s) => s.resultat.map((r) => r.navn.slice(-1) + r.plass).join(" "))`);
+  const N = t.norsk; // the texts are checked in Norwegian only; other editions check the state and the numbers
+  const stat = () => t.js(`JSON.parse(localStorage.getItem("${t.nokkel("detektiven.stat")}") || "null")`);
+  const kveld = () => t.js(`(JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null") || { spill: [] }).spill.filter((s) => s.id === "detektiven").map((s) => s.resultat.map((r) => r.navn.slice(-1) + r.plass).join(" "))`);
   const seKortet = async (navn) => {
     const slipp = await t.hold(".mappe", 900);
     if (navn) await t.bilde(navn);
@@ -96,16 +97,16 @@ export default async function (t) {
   t.sjekk((await t.js(`document.querySelector('.flis[aria-pressed="true"]').dataset.v`)) === "spm", "«20 spørsmål» skal være valgt fra start");
   const lengde = () => t.js(`({ tall: document.querySelector(".teller output").innerText.replace(/\\s+/g, " ").trim(), hjelp: document.querySelector(".teller + .hjelp").innerText, lagret: Rusj.S.oppsett.antallH })`);
   let l = await lengde();
-  t.sjekk(/^3 hemmeligheter/.test(l.tall) && l.lagret === null && /Alle får ha hemmeligheten én gang/.test(l.hjelp), `Lengden følger ikke gruppa: ${JSON.stringify(l)}`);
+  t.sjekk(/^3 \S/.test(l.tall) && l.lagret === null && (!N || /Alle får ha hemmeligheten én gang/.test(l.hjelp)), `Lengden følger ikke gruppa: ${JSON.stringify(l)}`);
   await t.klikk('[data-h="antall-h"][data-v="1"]');
   l = await lengde();
-  t.sjekk(l.lagret === 4 && /Ikke alle får ha hemmeligheten like mange ganger/.test(l.hjelp), `Fire hemmeligheter på tre spillere: ${JSON.stringify(l)}`);
+  t.sjekk(l.lagret === 4 && (!N || /Ikke alle får ha hemmeligheten like mange ganger/.test(l.hjelp)), `Fire hemmeligheter på tre spillere: ${JSON.stringify(l)}`);
   await t.klikk('[data-h="antall-h"][data-v="-1"]');
   t.sjekk((await lengde()).lagret === null, "Tilbake på «én hver» skal lengden følge gruppa igjen");
   await t.klikk('[data-h="modus"][data-v="jeg"]');
-  t.sjekk(/Alle får gjette én gang/.test((await lengde()).hjelp), "«Hvem er jeg?» skal la alle gjette én gang");
+  t.sjekk(!N || /Alle får gjette én gang/.test((await lengde()).hjelp), "«Hvem er jeg?» skal la alle gjette én gang");
   await t.klikk('[data-h="modus"][data-v="sammen"]');
-  t.sjekk(/^5 hemmeligheter/.test((await lengde()).tall), "«Alle mot hemmeligheten» skal starte på fem hemmeligheter");
+  t.sjekk(/^5 \S/.test((await lengde()).tall), "«Alle mot hemmeligheten» skal starte på fem hemmeligheter");
   await t.klikk('[data-h="modus"][data-v="spm"]');
 
   // Categories: one off, then all on again (eleven with «Jul»); hardest level; hints stay on
@@ -124,20 +125,20 @@ export default async function (t) {
   // Secret 1 — Testspiller A keeps it
   await t.vent(`document.querySelector('[data-h="jeg-er"]')`);
   t.sjekk(/Testspiller A/.test(await t.tekst("#skjerm h1")), "Mobilen skal gå til Testspiller A først");
-  t.sjekk(/Hemmelighet 1 av 3/i.test(await t.tekst("#topp-tittel")), `Topplinja skal si «Hemmelighet 1 av 3»: «${await t.tekst("#topp-tittel")}»`);
-  t.sjekk((await t.tekst('.dokk [data-h="avslutt"]')).trim() === "Avslutt", "«Gi mobilen til»-skjermen mangler «Avslutt»");
+  t.sjekk((N ? /Hemmelighet 1 av 3/i : /1 \S+ 3/).test(await t.tekst("#topp-tittel")), `Topplinja skal si «Hemmelighet 1 av 3»: «${await t.tekst("#topp-tittel")}»`);
+  t.sjekk(N ? (await t.tekst('.dokk [data-h="avslutt"]')).trim() === "Avslutt" : await t.finnes('.dokk [data-h="avslutt"]'), "«Gi mobilen til»-skjermen mangler «Avslutt»");
   await t.bilde("gi-mobilen");
   await smal("gi-mobilen", ".gi-til h1");
   await t.klikk('[data-h="jeg-er"]');
   t.sjekk(await t.js(`document.querySelector('[data-h="start-avhor"]').disabled`), "«Start avhøret» må være låst til kortet er sett");
   t.sjekk(!(await t.tekst(".mappe-bakside")).trim(), "Hemmeligheten vises uten at kortet holdes");
-  t.sjekk(/Du er/i.test(await seKortet("hemmelig-holdt")), "Kortet skal si «Du er» i 20 spørsmål");
+  t.sjekk(/Du er|You are/i.test(await seKortet("hemmelig-holdt")), "Kortet skal si «Du er» i 20 spørsmål");
   t.sjekk((await runde()).sett === true, "Kortet ble ikke registrert som sett");
   const forste = (await runde()).h;
   await t.klikk('[data-h="ny-hemmelighet"]');
   let r = await runde();
   t.sjekk(r.h !== forste && r.sett === false, "«Trekk en ny» ga ikke en ny, skjult hemmelighet");
-  t.sjekk(/Ny hemmelighet/.test(await t.tekst(".skjerm-hemmelig > .hjelp")) && !(await t.finnes("#toast.vis")), "Ny hemmelighet skal sies i linja under kortet, ikke i en melding over overskriften");
+  t.sjekk((N ? /Ny hemmelighet/ : /\S/).test(await t.tekst(".skjerm-hemmelig > .hjelp")) && !(await t.finnes("#toast.vis")), "Ny hemmelighet skal sies i linja under kortet, ikke i en melding over overskriften");
   await seKortet();
   await t.bilde("hemmelig");
   await smal("hemmelig", [".mappe", ".skjerm-hemmelig > .hjelp"]);
@@ -145,7 +146,7 @@ export default async function (t) {
   await t.klikk('[data-h="start-avhor"]', 250);
   t.sjekk((await t.finnes(".detektiv-lupe")) && (await t.js(`document.querySelector("#nedtelling").hidden`)), "Avhøret skal starte uten nedtelling");
   await t.bilde("avhor-start");
-  t.sjekk(/^\+1 spørsmål/.test(await t.js(`document.querySelector(".detektiv-lupe").getAttribute("aria-label")`)), "Navnet på telleren skal begynne med teksten som står på den («+1 spørsmål»)");
+  t.sjekk(/^\+1 \S/.test(await t.js(`document.querySelector(".detektiv-lupe").getAttribute("aria-label")`)), "Navnet på telleren skal begynne med teksten som står på den («+1 spørsmål»)");
   t.sjekk(!(await t.finnes(".detektiv-angre")), "«Angre» skal ikke vises før noe er talt");
 
   // Ja / Nei / Kanskje and plain +1 all count
@@ -161,7 +162,7 @@ export default async function (t) {
   t.sjekk(!(await t.finnes("#toast.vis")), "Et klart hint skal ikke gi en melding oppå skjermen");
   await t.klikk('[data-h="hint"]');
   t.sjekk((await runde()).hint === 1, "Hintet ble ikke vist");
-  t.sjekk(/kategori/i.test(await t.tekst(".detektiv-hint")), "Første hint skal være kategorien");
+  t.sjekk(/kategori|category/i.test(await t.tekst(".detektiv-hint")), "Første hint skal være kategorien");
   t.sjekk(await t.js(`document.activeElement.classList.contains("detektiv-hintkort")`), "Etter «Vis hint» skal fokus stå på hintet (knappen er borte)");
   await t.bilde("avhor-hint");
   // «Angre» sits at the foot of the magnifier and takes one question back
@@ -172,7 +173,7 @@ export default async function (t) {
   t.sjekk((await runde()).spm === 9, "Angre fjernet ikke ett spørsmål");
   await t.klikk('[data-h="svar"][data-v="n"]');
   t.sjekk(!/\d/.test(await t.tekst(".detektiv-status")), "Teksten under forstørrelsesglasset teller også – bare glasset skal vise tallet");
-  t.sjekk((await t.antall(".dokk .lenke")) === 3 && (await t.tekst('.dokk [data-h="avslutt"]')).trim() === "Avslutt", "Avhøret skal ha lenkene «Se kortet», «Gi opp» og «Avslutt»");
+  t.sjekk((await t.antall(".dokk .lenke")) === 3 && (!N || (await t.tekst('.dokk [data-h="avslutt"]')).trim() === "Avslutt"), "Avhøret skal ha lenkene «Se kortet», «Gi opp» og «Avslutt»");
   await landskap("avhor", [".detektiv-hint", ".detektiv-angre", ".detektiv-svar"]);
   await smal("avhor", [".detektiv-hint", ".detektiv-angre"]);
 
@@ -186,12 +187,12 @@ export default async function (t) {
   // nothing for teamwork (over 10) and nothing for the keeper (the secret did not last 15).
   await t.klikk('[data-h="gjettet"]');
   await t.bilde("hvem");
-  t.sjekk(/Løst på 11 spørsmål/i.test(await t.tekst(".banner .etikett")) && !/samarbeid/.test(await t.tekst("#skjerm .hjelp")), `«Hvem gjettet det?» etter 10 talte spørsmål: «${await t.tekst(".banner .etikett")}» / «${await t.tekst("#skjerm .hjelp")}»`);
+  t.sjekk((N ? /Løst på 11 spørsmål/i : /11/).test(await t.tekst(".banner .etikett")) && !/samarbeid|teamwork|samarbejde/.test(await t.tekst("#skjerm .hjelp")), `«Hvem gjettet det?» etter 10 talte spørsmål: «${await t.tekst(".banner .etikett")}» / «${await t.tekst("#skjerm .hjelp")}»`);
   t.sjekk(!(await t.finnes('[data-h="gjetter"][data-v="0"]')), "Den som har hemmeligheten kan ikke gjette selv");
   await t.klikk('[data-h="gjetter"][data-v="1"]');
   await t.vent(`document.querySelector('.detektiv-pluss-liste')`);
   t.sjekk((await poeng()) === "0,2,0", `Feil poeng etter løst på 11 spørsmål: ${await poeng()}`);
-  t.sjekk(/Løst på 11 spørsmål/.test(await t.tekst(".detektiv-avsloring .ingress")), "Avsløringen og poengene er uenige om antall spørsmål");
+  t.sjekk((N ? /Løst på 11 spørsmål/ : /11/).test(await t.tekst(".detektiv-avsloring .ingress")), "Avsløringen og poengene er uenige om antall spørsmål");
   await t.bilde("avsloring-lost", true);
 
   // Oops, one question too many and it was C: undo the points, undo a question, choose again.
@@ -200,17 +201,17 @@ export default async function (t) {
   t.sjekk((await runde()).spm === 10 && (await poeng()) === "0,0,0" && (await stat()).lost === 0, "Angre poengene tok ikke runden (og rekorden) tilbake");
   await t.klikk('[data-h="angre"]');
   await t.klikk('[data-h="gjettet"]');
-  t.sjekk(/Løst på 10 spørsmål/i.test(await t.tekst(".banner .etikett")) && /godt samarbeid/.test(await t.tekst("#skjerm .hjelp")), "Løst på 10 spørsmål skal gi de andre detektivene poeng for samarbeid");
+  t.sjekk((N ? /Løst på 10 spørsmål/i : /10/).test(await t.tekst(".banner .etikett")) && /godt samarbeid|good teamwork|godt samarbejde/.test(await t.tekst("#skjerm .hjelp")), "Løst på 10 spørsmål skal gi de andre detektivene poeng for samarbeid");
   await t.klikk('[data-h="gjetter"][data-v="2"]');
   await t.vent(`document.querySelector('.detektiv-pluss-liste')`);
   t.sjekk((await poeng()) === "0,1,2", `Feil poeng etter løst på 10 spørsmål: ${await poeng()}`);
-  t.sjekk((await t.antall(".detektiv-pluss-liste li")) === 2 && /godt samarbeid/.test(await t.tekst(".detektiv-pluss-liste")), "Poenglista for runden skal vise gjetteren og samarbeidspoenget");
+  t.sjekk((await t.antall(".detektiv-pluss-liste li")) === 2 && /godt samarbeid|good teamwork|godt samarbejde/.test(await t.tekst(".detektiv-pluss-liste")), "Poenglista for runden skal vise gjetteren og samarbeidspoenget");
   t.sjekk(await t.js(`Array.from(document.querySelectorAll(".detektiv-pluss-liste .grunn")).every((g) => g.scrollWidth <= g.clientWidth + 1)`), "Begrunnelsen for poengene er kuttet");
   await t.bilde("avsloring-samarbeid", true);
   // «Avslutt» is just «Avslutt» and asks first; «Spill videre» stays on the reveal
-  t.sjekk((await t.tekst('[data-h="avslutt"]')).trim() === "Avslutt", "Lenken for å avslutte heter ikke bare «Avslutt»");
+  t.sjekk(!N || (await t.tekst('[data-h="avslutt"]')).trim() === "Avslutt", "Lenken for å avslutte heter ikke bare «Avslutt»");
   await t.klikk('[data-h="avslutt"]');
-  t.sjekk((await t.finnes("#ark:not([hidden])")) && (await t.tekst('#ark [data-v="nei"]')).trim() === "Spill videre", "«Avslutt» spør ikke først med «Spill videre»");
+  t.sjekk((await t.finnes("#ark:not([hidden])")) && (!N || (await t.tekst('#ark [data-v="nei"]')).trim() === "Spill videre"), "«Avslutt» spør ikke først med «Spill videre»");
   await t.klikk('#ark [data-v="nei"]');
   t.sjekk(await t.finnes(".detektiv-pluss-liste"), "«Spill videre» forlot avsløringen");
 
@@ -234,7 +235,7 @@ export default async function (t) {
   // After 15 questions the keeper has earned one point – «Gi opp» says so, and «Spill videre» goes on
   await tell(12);
   await t.klikk('[data-h="gi-opp"]');
-  t.sjekk(/får 1 poeng/.test(await t.tekst("#ark .ingress")), `«Gi opp» etter 15 spørsmål skal love 1 poeng: «${await t.tekst("#ark .ingress")}»`);
+  t.sjekk(/får 1 poeng|gets 1 point|får 1 point/.test(await t.tekst("#ark .ingress")), `«Gi opp» etter 15 spørsmål skal love 1 poeng: «${await t.tekst("#ark .ingress")}»`);
   await t.bilde("gi-opp");
   await t.klikk('#ark [data-v="nei"]');
   t.sjekk((await runde()).spm === 15, "Avbrutt «Gi opp» endret runden");
@@ -258,36 +259,36 @@ export default async function (t) {
   await t.klikk('[data-h="svar"][data-v="n"]');
   await t.klikk('[data-h="svar"][data-v="j"]');
   await t.klikk('[data-h="gi-opp"]');
-  t.sjekk(/ingen får poeng/.test(await t.tekst("#ark .ingress")), `«Gi opp» etter to spørsmål skal ikke gi poeng: «${await t.tekst("#ark .ingress")}»`);
+  t.sjekk(/ingen får poeng|nobody scores|ingen får point/.test(await t.tekst("#ark .ingress")), `«Gi opp» etter to spørsmål skal ikke gi poeng: «${await t.tekst("#ark .ingress")}»`);
   await t.klikk('#ark [data-v="ja"]');
   await fasit();
   t.sjekk((await poeng()) === "0,4,2" && (await t.finnes(".detektiv-ingen-poeng")), `«Gi opp» etter to spørsmål ga poeng likevel: ${await poeng()}`);
-  t.sjekk(/Til kåringen/.test(await t.tekst(".dokk .knapp")), `Siste hemmelighet skal lede «Til kåringen»: «${await t.tekst(".dokk .knapp")}»`);
+  t.sjekk(!N || /Til kåringen/.test(await t.tekst(".dokk .knapp")), `Siste hemmelighet skal lede «Til kåringen»: «${await t.tekst(".dokk .knapp")}»`);
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.pall')");
   await t.bilde("slutt", true);
   await smal("slutt", ".banner h1");
   await landskap("slutt");
-  t.sjekk(/Testspiller B vinner!/.test(await t.tekst("#skjerm h1")), "Vinneren vises ikke som «Testspiller B vinner!»");
-  t.sjekk((await t.tekst("#topp-tittel")).trim().toLowerCase() === "kåringen", "Sluttskjermen heter ikke «Kåringen»");
-  t.sjekk(await t.finnes(".flere-spill .flere-kort"), "Sluttskjermen foreslår ikke andre spill");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Mangler lenken «Alle spill»");
-  t.sjekk(/Raskeste/.test(await t.tekst(".detektiv-fakta")), "Mangler morsomme fakta på slutten");
+  t.sjekk((N ? /Testspiller B vinner!/ : /Testspiller B/).test(await t.tekst("#skjerm h1")), "Vinneren vises ikke som «Testspiller B vinner!»");
+  t.sjekk(!N || (await t.tekst("#topp-tittel")).trim().toLowerCase() === "kåringen", "Sluttskjermen heter ikke «Kåringen»");
+  t.sjekk((await t.finnes(".flere-spill .flere-kort")) || !(await t.js(`(window.RUSJ_ANDRE || []).some((g) => g.spillere[0] <= ${(await t.tilstand()).spill.antall} && ${(await t.tilstand()).spill.antall} <= g.spillere[1])`)), "Sluttskjermen foreslår ikke andre spill");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Mangler lenken «Alle spill»");
+  t.sjekk(/Raskeste|Fastest|Hurtigste/.test(await t.tekst(".detektiv-fakta")), "Mangler morsomme fakta på slutten");
   t.sjekk((await kveld()).join("|") === "B1 C2 A3", `Kåringen ble ikke meldt til «Kveldens gjeng»: ${(await kveld()).join("|")}`);
   t.sjekk((await t.tilstand())._aktiv === false, "Spillet regnes fortsatt som pågående på «Kåringen»");
 
   // ---------- Game 2: two players – the only detective is picked by the phone, a tie is broken ----------
   await t.klikk('[data-h="nytt"]');
   await t.klikk('[data-h="spiller-fjern"][data-v="2"]');
-  t.sjekk(/^2 hemmeligheter/.test((await lengde()).tall), "Med to spillere skal lengden følge med til to hemmeligheter");
+  t.sjekk(/^2 \S/.test((await lengde()).tall), "Med to spillere skal lengden følge med til to hemmeligheter");
   await t.klikk('[data-h="start"]');
   await tilAvhor();
   await tell(3);
-  t.sjekk(/Testspiller B gjettet det!/.test(await t.tekst(".dokk .knapp")), `Med to spillere skal knappen navngi detektiven: «${await t.tekst(".dokk .knapp")}»`);
+  t.sjekk((N ? /Testspiller B gjettet det!/ : /Testspiller B/).test(await t.tekst(".dokk .knapp")), `Med to spillere skal knappen navngi detektiven: «${await t.tekst(".dokk .knapp")}»`);
   await t.klikk('[data-h="gjettet"]');
   await t.vent(`document.querySelector('.detektiv-fasit .kort-ord')`);
   t.sjekk(!(await t.finnes('[data-h="gjetter"]')) && (await poeng()) === "0,2", `Med to spillere skal «Hvem gjettet det?» hoppes over: ${await poeng()}`);
-  t.sjekk(/Løst på 4 spørsmål/.test(await t.tekst(".detektiv-avsloring .ingress")), "Tre talte spørsmål og gjetningen skal være «løst på 4 spørsmål»");
+  t.sjekk((N ? /Løst på 4 spørsmål/ : / 4 /).test(await t.tekst(".detektiv-avsloring .ingress")), "Tre talte spørsmål og gjetningen skal være «løst på 4 spørsmål»");
   await t.bilde("avsloring-to-spillere");
   await t.klikk('[data-h="neste"]');
   await tilAvhor();
@@ -298,7 +299,7 @@ export default async function (t) {
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.pall')");
   await t.bilde("slutt-likt", true);
-  t.sjekk(/Testspiller B vinner!/.test(await t.tekst("#skjerm h1")) && /raskeste oppklaring/.test(await t.tekst(".banner .ingress")), `Likt på poeng skal avgjøres på raskeste oppklaring: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk((N ? /Testspiller B vinner!/ : /Testspiller B/).test(await t.tekst("#skjerm h1")) && (!N || /raskeste oppklaring/.test(await t.tekst(".banner .ingress"))), `Likt på poeng skal avgjøres på raskeste oppklaring: «${await t.tekst("#skjerm h1")}»`);
   t.sjekk((await t.js(`Array.from(document.querySelectorAll(".pall .blokk")).map((b) => b.textContent).sort().join("")`)) === "12" && (await t.antall(".poengliste li.leder")) === 1, "Pallen og lista skal vise én vinner etter omkampen på tall");
   t.sjekk((await kveld())[1] === "B1 A2", `«Kveldens gjeng» skal få vinneren etter avgjørelsen: ${(await kveld())[1]}`);
 
@@ -310,22 +311,22 @@ export default async function (t) {
   await t.bilde("oppsett-hvem-er-jeg", true);
   await t.klikk('[data-h="start"]');
   await t.vent(`document.querySelector('[data-h="jeg-er"]')`);
-  t.sjekk(/ser bort/.test(await t.tekst(".ikke-se")) && /Vis kortet til de andre/.test(await t.tekst(".dokk .knapp")), "«Hvem er jeg?» skal be den som gjetter om å se bort");
+  t.sjekk(!N || (/ser bort/.test(await t.tekst(".ikke-se")) && /Vis kortet til de andre/.test(await t.tekst(".dokk .knapp"))), "«Hvem er jeg?» skal be den som gjetter om å se bort");
   await t.bilde("gi-hvem-er-jeg");
   await smal("gi-hvem-er-jeg", ".gi-til h1");
   await t.klikk('[data-h="jeg-er"]');
-  t.sjekk(/Hvem er/.test(await t.tekst("#skjerm h1")), "Kortskjermen i «Hvem er jeg?» skal spørre hvem spilleren er");
-  t.sjekk(/Testspiller A er/i.test(await seKortet("hemmelig-hvem-er-jeg")), "Kortet skal si «Testspiller A er» til de andre");
+  t.sjekk(/Hvem er|Who is/.test(await t.tekst("#skjerm h1")), "Kortskjermen i «Hvem er jeg?» skal spørre hvem spilleren er");
+  t.sjekk((N ? /Testspiller A er/i : /Testspiller A/i).test(await seKortet("hemmelig-hvem-er-jeg")), "Kortet skal si «Testspiller A er» til de andre");
   await smal("hemmelig-hvem-er-jeg", [".mappe", ".skjerm-hemmelig > .hjelp"]);
   await t.klikk('[data-h="start-avhor"]');
   await t.vent(`document.querySelector('.detektiv-lupe')`);
-  t.sjekk(/spør – dere andre svarer/.test(await t.tekst(".detektiv-status")) && /Testspiller A gjettet det!/.test(await t.tekst(".dokk .knapp")), "Avhøret i «Hvem er jeg?» skal si hvem som spør og hvem som kan gjette");
+  t.sjekk((!N || /spør – dere andre svarer/.test(await t.tekst(".detektiv-status"))) && (N ? /Testspiller A gjettet det!/ : /Testspiller A/).test(await t.tekst(".dokk .knapp")), "Avhøret i «Hvem er jeg?» skal si hvem som spør og hvem som kan gjette");
   await t.bilde("avhor-hvem-er-jeg");
   await landskap("avhor-hvem-er-jeg", ".detektiv-svar");
   await tell(6);
   await t.klikk('[data-h="gjettet"]');
   await t.vent(`document.querySelector('.detektiv-fasit .kort-ord')`);
-  t.sjekk((await poeng()) === "3,0,0" && /fant det ut på 7 spørsmål/.test(await t.tekst(".detektiv-pluss-liste")), `Sju spørsmål skal gi den som gjetter 3 poeng: ${await poeng()}`);
+  t.sjekk((await poeng()) === "3,0,0" && (N ? /fant det ut på 7 spørsmål/ : / 7 /).test(await t.tekst(".detektiv-pluss-liste")), `Sju spørsmål skal gi den som gjetter 3 poeng: ${await poeng()}`);
   await t.bilde("avsloring-hvem-er-jeg", true);
   await t.klikk('[data-h="neste"]');
   await tilAvhor();
@@ -338,27 +339,27 @@ export default async function (t) {
   await tilAvhor();
   await tell(2);
   await t.klikk('.dokk [data-h="avslutt"]');
-  t.sjekk(/teller ikke/.test(await t.tekst("#ark .ingress")), `«Avslutt» midt i en hemmelighet skal si at den ikke teller: «${await t.tekst("#ark .ingress")}»`);
+  t.sjekk(/teller ikke|doesn't count|tæller ikke/.test(await t.tekst("#ark .ingress")), `«Avslutt» midt i en hemmelighet skal si at den ikke teller: «${await t.tekst("#ark .ingress")}»`);
   await t.klikk('#ark [data-v="ja"]');
   await t.vent("document.querySelector('.poengliste')");
   await t.bilde("slutt-hvem-er-jeg", true);
   let S = await t.tilstand();
   t.sjekk(S.spill.ferdig === true && S.spill.runde === null && S.spill.logg.length === 2, "«Avslutt» midt i en hemmelighet skal gå til kåringen uten å telle den");
-  t.sjekk((await t.antall(".poengliste li")) === 2 && /Bare de som rakk å gjette/.test(await t.tekst("#skjerm")), "Bare de som rakk å gjette, skal være med i kåringen");
-  t.sjekk(/Testspiller A vinner!/.test(await t.tekst("#skjerm h1")), "Vinneren av «Hvem er jeg?» vises ikke");
+  t.sjekk((await t.antall(".poengliste li")) === 2 && (!N || /Bare de som rakk å gjette/.test(await t.tekst("#skjerm"))), "Bare de som rakk å gjette, skal være med i kåringen");
+  t.sjekk((N ? /Testspiller A vinner!/ : /Testspiller A/).test(await t.tekst("#skjerm h1")), "Vinneren av «Hvem er jeg?» vises ikke");
 
   // ---------- Game 4: «Alle mot hemmeligheten» – no points, a report and a record ----------
   await t.klikk('[data-h="nytt"]');
   await t.klikk('[data-h="modus"][data-v="sammen"]');
   for (let k = 0; k < 3; k++) await t.klikk('[data-h="antall-h"][data-v="-1"]', 60);
-  t.sjekk(/^2 hemmeligheter/.test((await lengde()).tall), "Lengden lot seg ikke sette til to hemmeligheter");
+  t.sjekk(/^2 \S/.test((await lengde()).tall), "Lengden lot seg ikke sette til to hemmeligheter");
   await t.klikk('[data-h="start"]');
   await tilAvhor();
   await tell(3);
   await t.klikk('[data-h="gjettet"]');
   await t.vent(`document.querySelector('.detektiv-fasit .kort-ord')`);
-  t.sjekk(/Løst på 4 spørsmål!/.test(await t.tekst("#skjerm h1")) && !(await t.finnes(".detektiv-pluss-liste, .poengliste, [data-h='gjetter']")), "Uten poeng skal avsløringen bare si hvor mange spørsmål det tok");
-  t.sjekk((await t.antall(".detektiv-saker li.lost")) === 1 && /5 løst på rad/.test(await t.tekst(".detektiv-nyrekord")), `Avsløringen uten poeng skal vise sakene og rekka: «${await t.tekst(".detektiv-nyrekord")}»`);
+  t.sjekk((N ? /Løst på 4 spørsmål!/ : /4/).test(await t.tekst("#skjerm h1")) && !(await t.finnes(".detektiv-pluss-liste, .poengliste, [data-h='gjetter']")), "Uten poeng skal avsløringen bare si hvor mange spørsmål det tok");
+  t.sjekk((await t.antall(".detektiv-saker li.lost")) === 1 && (N ? /5 løst på rad/ : /5/).test(await t.tekst(".detektiv-nyrekord")), `Avsløringen uten poeng skal vise sakene og rekka: «${await t.tekst(".detektiv-nyrekord")}»`);
   await t.bilde("avsloring-sammen", true);
   await t.klikk('[data-h="neste"]');
   await tilAvhor();
@@ -366,22 +367,22 @@ export default async function (t) {
   await t.klikk('[data-h="gi-opp"]');
   await t.klikk('#ark [data-v="ja"]');
   await fasit();
-  t.sjekk(/Til rapporten/.test(await t.tekst(".dokk .knapp")), "Siste hemmelighet uten poeng skal lede «Til rapporten»");
+  t.sjekk(!N || /Til rapporten/.test(await t.tekst(".dokk .knapp")), "Siste hemmelighet uten poeng skal lede «Til rapporten»");
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.detektiv-saker')");
   await t.bilde("rapporten", true);
   await smal("rapporten", ".banner h1");
-  t.sjekk((await t.tekst("#topp-tittel")).trim().toLowerCase() === "rapporten" && /1 av 2 oppklart!/.test(await t.tekst("#skjerm h1")), `Sluttskjermen uten poeng: «${await t.tekst("#topp-tittel")}» / «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk((!N || (await t.tekst("#topp-tittel")).trim().toLowerCase() === "rapporten") && (N ? /1 av 2 oppklart!/ : /1 \S+ 2/).test(await t.tekst("#skjerm h1")), `Sluttskjermen uten poeng: «${await t.tekst("#topp-tittel")}» / «${await t.tekst("#skjerm h1")}»`);
   t.sjekk((await t.antall(".detektiv-saker li")) === 2 && !(await t.finnes(".pall")) && (await kveld()).length === 3, "Et spill uten poeng skal ikke kåre noen eller meldes til «Kveldens gjeng»");
   await t.js(`Rusj.del = (tittel, tekst, url) => { window.__delt = { tittel, tekst, url }; }`);
   await t.klikk('[data-h="del"]');
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && /^Detektiven 🔎 Vi oppklarte 1 av 2 hemmeligheter – raskest på 4 spørsmål!\n🟩🟥$/.test(delt.tekst) && delt.url === "https://rusj.no/detektiven/", `«Del resultatet» delte ikke resultatet: ${JSON.stringify(delt)}`);
+  t.sjekk(delt && (N ? /^Detektiven 🔎 Vi oppklarte 1 av 2 hemmeligheter – raskest på 4 spørsmål!\n🟩🟥$/.test(delt.tekst) : /🟩🟥$/u.test(delt.tekst)) && delt.url === "https://rusj.no" + (N ? "/detektiven/" : new URL(t.side).pathname), `«Del resultatet» delte ikke resultatet: ${JSON.stringify(delt)}`);
   const st = await stat();
   t.sjekk(st && st.lost === 6 && st.rad === 0 && st.bestRad === 5 && st.raskest === 4, `Rekorden på mobilen stemmer ikke: ${JSON.stringify(st)}`);
   // The record on the home screen
   await t.klikk("#tilbake");
-  t.sjekk(/5 løst på rad · raskest på 4 spørsmål/.test(await t.tekst(".detektiv-rekord")) && /6\s*oppklart/.test(await t.tekst(".merker")), `Hjem-skjermen viser ikke rekorden: «${await t.tekst(".detektiv-rekord")}»`);
+  t.sjekk((N ? /5 løst på rad · raskest på 4 spørsmål/ : /5 .+ · .+ 4 /).test(await t.tekst(".detektiv-rekord")) && (N ? /6\s*oppklart/ : /6\s*\S/).test(await t.tekst(".merker")), `Hjem-skjermen viser ikke rekorden: «${await t.tekst(".detektiv-rekord")}»`);
   t.sjekk(await t.finnes('.hjem-knapper .knapp[data-h="nytt"]'), "Etter et ferdig spill skal «Start spill» være hovedknappen");
   await t.bilde("hjem-rekord");
   await landskap("hjem-rekord");
@@ -403,7 +404,7 @@ export default async function (t) {
   t.sjekk(await t.finnes('[data-h="jeg-er"]'), "Omlasting på hemmelighet-skjermen gikk ikke tilbake til «Gi mobilen til»");
 
   // A game saved by the first version (no mode, «to hver», the old log) opens and goes on
-  await t.js(`localStorage.setItem("rusj.detektiven.v1", JSON.stringify({ skjerm: "avhor", antall: 3, _tid: Date.now(),
+  await t.js(`localStorage.setItem("${t.nokkel("detektiven.v1")}", JSON.stringify({ skjerm: "avhor", antall: 3, _tid: Date.now(),
     oppsett: { kategorier: ["dyr", "ting", "mat", "yrker", "norge", "kjoretoy", "fantasi", "natur", "sport", "barn"], nivaa: 2, runder: 2, hint: true },
     spill: { antall: 3, runder: 2, kategorier: ["dyr"], nivaa: 2, hint: true, poeng: [1, 2, 0], skjerm: "avhor",
       logg: [{ k: 0, h: 3, spm: 11, g: 1, pluss: { 0: 1, 1: 2 }, svar: [], hint: 0 }],

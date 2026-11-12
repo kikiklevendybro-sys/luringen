@@ -10,5 +10,23 @@
   "tagger": ["fest", "blof", "lag"],
   "sok": ["én natt", "en natt", "one night", "varulvspill"],
   "rekkefolge": 18,
-  "alias": ["varulv"]
+  "alias": ["varulv"],
+  "i18n": {
+    "en": {
+      "navn": "Werewolf",
+      "undertittel": "No game master needed",
+      "kort": "Find the werewolves – classic, or ‘One night’ in seven minutes.",
+      "beskrivelse": "Free werewolf game – no game master needed. Classic with nights and votes for 6–12, or ‘One night’ in seven minutes for 4–10. The phone runs the night.",
+      "slug": "werewolf",
+      "sok": ["werewolf", "werewolf game", "werewolves", "mafia", "mafia game", "one night", "werewolf without a moderator", "party game"]
+    },
+    "da": {
+      "navn": "Varulven",
+      "undertittel": "Varulv",
+      "kort": "Find varulvene – klassisk, eller »Én nat« på syv minutter.",
+      "beskrivelse": "Gratis »Varulv« på dansk – uden spilleder. Klassisk med nætter og afstemninger for 6–12, eller »Én nat« på syv minutter for 4–10. Mobilen styrer natten.",
+      "slug": "varulven",
+      "sok": ["varulv", "varulvespil", "varulve", "én nat", "en nat", "mafia", "selskabsspil"]
+    }
+  }
 }

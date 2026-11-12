@@ -9,5 +9,23 @@
   "mobiler": "en",
   "tagger": ["fest", "familie", "sporsmal"],
   "rekkefolge": 17,
-  "sok": ["tenk som flokken", "svarte sauen", "tenk likt", "samme svar", "flokken"]
+  "sok": ["tenk som flokken", "svarte sauen", "tenk likt", "samme svar", "flokken"],
+  "i18n": {
+    "en": {
+      "navn": "Sheepish",
+      "undertittel": "Think like the flock",
+      "kort": "Give the same answer as most people – and don't be the black sheep.",
+      "beskrivelse": "Free party game: give the same answer as as many others as you can – but don't end up the black sheep. 850 questions, 3–12 players, one phone or all at once.",
+      "slug": "sheepish",
+      "sok": ["herd mentality", "think like the flock", "black sheep game", "think alike", "same answer game", "flock"]
+    },
+    "da": {
+      "navn": "Fåret",
+      "undertittel": "Tænk som flokken",
+      "kort": "Svar det samme som flest muligt – og bliv ikke det sorte får.",
+      "beskrivelse": "Gratis selskabsleg på dansk: svar det samme som flest muligt – men bliv ikke det sorte får. 850 spørgsmål, 3–12 spillere, én mobil eller alle på én gang.",
+      "slug": "faaret",
+      "sok": ["tænk som flokken", "det sorte får", "tænk ens", "samme svar", "flokken", "herd mentality"]
+    }
+  }
 }

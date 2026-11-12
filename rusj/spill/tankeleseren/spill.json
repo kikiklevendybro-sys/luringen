@@ -9,5 +9,23 @@
   "mobiler": "en",
   "tagger": ["fest", "familie", "lag", "sporsmal"],
   "rekkefolge": 13,
-  "sok": ["wavelength", "skala", "på samme bølgelengde", "tankelesing", "utfordre en venn", "julebordsleker"]
+  "sok": ["wavelength", "skala", "på samme bølgelengde", "tankelesing", "utfordre en venn", "julebordsleker"],
+  "i18n": {
+    "en": {
+      "navn": "Mind Reader",
+      "undertittel": "Are we on the same page?",
+      "kort": "One hint, one dial – are you on the same page?",
+      "beskrivelse": "Free guessing game. One player sees the target on the dial and gives one hint – the others drag the needle to where they think it is. In sync?",
+      "slug": "mind-reader",
+      "sok": ["wavelength", "same wavelength", "wavelength game online", "mind reading game", "scale game", "challenge a friend", "office christmas party games"]
+    },
+    "da": {
+      "navn": "Tankelæseren",
+      "undertittel": "Er vi på bølgelængde?",
+      "kort": "Ét hint, én skive – er I på samme bølgelængde?",
+      "beskrivelse": "Gratis gætteleg på dansk. Én ser målet på skiven og giver ét hint – de andre trækker viseren derhen, hvor de tror. Er I på samme bølgelængde?",
+      "slug": "tankelaeseren",
+      "sok": ["wavelength", "bølgelængde", "på samme bølgelængde", "tankelæsning", "udfordr en ven", "julefrokostlege"]
+    }
+  }
 }

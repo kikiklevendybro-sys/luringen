@@ -17,12 +17,34 @@
 // the right order (the swapper's first), «Avslutt» from the reveal → «Kåringen» with one round.
 // Then «Avslutt» before any round is finished, and a damaged saved state in both ways of playing.
 const NAVN = ["Testspiller A", "Testspiller B", "Testspiller C", "Testspiller D", "Testspiller E", "Testspiller F"];
-const ROLLENAVN = { varulv: "Varulv", synsk: "Synsk", lege: "Lege", jeger: "Jeger", landsby: "Landsbyboer" };
-const NOKKEL = "rusj.varulven.v1";
+// The edition (rusj/SPRAK.md): the state is kept under its own keys, and the texts are checked in
+// the edition's own words (set when the scenario starts).
+let SP = "nb";
+const T = (nb, en, da) => ({ nb, en, da })[SP];
+const ROLLER_TEKST = {
+  nb: { varulv: "Varulv", synsk: "Synsk", lege: "Lege", jeger: "Jeger", landsby: "Landsbyboer" },
+  en: { varulv: "Werewolf", synsk: "Seer", lege: "Doctor", jeger: "Hunter", landsby: "Villager" },
+  da: { varulv: "Varulv", synsk: "Synsk", lege: "Læge", jeger: "Jæger", landsby: "Landsbyboer" },
+};
+let ROLLENAVN = ROLLER_TEKST.nb;
+let NOKKEL = "rusj.varulven.v1";
+let KVELD = "rusj.kveld";
+// The verb on the night's confirm button, per role (the peaceful first night has its own).
+const VERB = {
+  nb: { fredelig: { varulv: "Snus på", lege: "Pass på", synsk: "Se på", ellers: "Mistenk" }, vanlig: { varulv: "Ta", lege: "Beskytt", synsk: "Se på", ellers: "Mistenk" } },
+  en: { fredelig: { varulv: "Sniff out", lege: "Watch over", synsk: "Look at", ellers: "Suspect" }, vanlig: { varulv: "Take", lege: "Protect", synsk: "Look at", ellers: "Suspect" } },
+  da: { fredelig: { varulv: "Snus til", lege: "Pas på", synsk: "Se på", ellers: "Mistænk" }, vanlig: { varulv: "Tag", lege: "Beskyt", synsk: "Se på", ellers: "Mistænk" } },
+};
+// The song to hum on «Natta faller på», in the edition's quotation marks.
+const SANG = () => T(/nynn «([^»]+)»/, /hum ‘([^’]+)’/, /nyn »([^«]+)«/);
+// «Landsbyen 1 – 0 Varulvene»
+const stilling = (a, b) => new RegExp(T(`Landsbyen\\s*${a} – ${b}\\s*Varulvene`, `The village\\s*${a} – ${b}\\s*The werewolves`, `Landsbyen\\s*${a} – ${b}\\s*Varulvene`));
+const rundeAv = (n, av) => T(`Runde ${n} av ${av}`, `Round ${n} of ${av}`, `Runde ${n} af ${av}`);
+const AVSLUTT_KNAPPER = () => T("Spill videre|Avslutt", "Keep playing|End", "Spil videre|Afslut");
 
 const spill = async (t) => (await t.tilstand()).spill;
 const lever = (sp) => sp.levende.map((l, i) => (l ? i : -1)).filter((i) => i >= 0);
-const kveld = (t) => t.js(`(JSON.parse(localStorage.getItem("rusj.kveld") || "null") || { spill: [] }).spill.filter((s) => s.id === "varulven")`);
+const kveld = (t) => t.js(`(JSON.parse(localStorage.getItem("${KVELD}") || "null") || { spill: [] }).spill.filter((s) => s.id === "varulven")`);
 const ren = (s) => String(s).replace(/\s+/g, " ").trim();
 
 // Hold a card, read its back, let go. Cards whose content is taller than the card are noted.
@@ -80,7 +102,7 @@ async function rollerunde(t, o = {}) {
       tekst = await les(t, sel);
     }
     t.sjekk(tekst.includes(ROLLENAVN[sp.roller[i]]), `Spiller ${i + 1} skulle sett rollen ${ROLLENAVN[sp.roller[i]]}, men kortet viser: ${ren(tekst)}`);
-    if (sp.roller[i] === "varulv" && sp.roller.filter((r) => r === "varulv").length === 1) t.sjekk(/eneste varulven/.test(tekst), "Ulven får ikke vite at den er alene");
+    if (sp.roller[i] === "varulv" && sp.roller.filter((r) => r === "varulv").length === 1) t.sjekk(T(/eneste varulven/, /only werewolf/, /eneste varulv/).test(tekst), "Ulven får ikke vite at den er alene");
     await t.vent("!document.querySelector('[data-h=\"vist\"]').disabled", 3000);
     if (o.omlast === i) {
       await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
@@ -131,7 +153,8 @@ async function spillNatt(t, velg, o = {}) {
     await t.klikk(`[data-h="marker"][data-v="${mal}"]`);
     t.sjekk(await t.finnes(`[data-h="marker"][data-v="${mal}"][aria-pressed="true"]`), "Navnet ble ikke markert");
     const knapp = await t.tekst('[data-h="velg"]');
-    const verb = o.fredelig ? { varulv: "Snus på", lege: "Pass på", synsk: "Se på" }[rolle] || "Mistenk" : { varulv: "Ta", lege: "Beskytt", synsk: "Se på" }[rolle] || "Mistenk";
+    const verber = VERB[SP][o.fredelig ? "fredelig" : "vanlig"];
+    const verb = verber[rolle] || verber.ellers;
     t.sjekk(knapp.startsWith(verb + " "), `Bekreft-knappen om natta sier «${knapp}» for ${rolle} (ventet «${verb} …»)`);
     if (o.bilder && !avbildet.has(rolle)) await t.bilde(`${o.bilder}-valg-${rolle}`);
     await t.klikk('[data-h="velg"]');
@@ -143,7 +166,7 @@ async function spillNatt(t, velg, o = {}) {
     if (rolle === "synsk") {
       const svar = await t.tekst(".vu-svar-hoved");
       const ulv = sp.roller[mal] === "varulv";
-      t.sjekk(ulv ? /er varulv/.test(svar) : /ikke varulv/.test(svar), `Synsk fikk feil svar om ${NAVN[mal]}: ${svar}`);
+      t.sjekk(ulv ? T(/er varulv/, /is a werewolf/, /er varulv/).test(svar) : T(/ikke varulv/, /not a werewolf/, /ikke varulv/).test(svar), `Synsk fikk feil svar om ${NAVN[mal]}: ${svar}`);
     }
     if (o.bilder && !avbildet.has(rolle)) {
       await t.bilde(`${o.bilder}-svar-${rolle}`);
@@ -199,14 +222,14 @@ async function renKnapp(t, hvor) {
 
 // ---------- The classic game ----------
 async function klassiskSpill(t) {
-  t.sjekk(!/STILLING/.test(await t.tekst(".merker")), "Hjem-skjermen viser en stilling før noe er spilt");
+  t.sjekk(!T(/STILLING/, /SCORE/, /STILLING/).test(await t.tekst(".merker")), "Hjem-skjermen viser en stilling før noe er spilt");
   await t.klikk('[data-h="nytt"]');
   t.sjekk((await t.tilstand()).antall === 6, "Antall spillere følger ikke navnene som finnes");
   t.sjekk(await t.finnes('[data-h="fredelig"][aria-pressed="true"]'), "«Fredelig første natt» står ikke på som standard med 6 spillere");
 
   // 12 players: the recommendation follows, the peaceful night is off by default, then back to 6
   for (let i = 0; i < 6; i++) await t.klikk('[data-h="spiller-legg-til"]', 40);
-  t.sjekk(/Anbefalt: 3/.test(await t.tekst(".skjerm-oppsett")), "Anbefalt antall varulver for 12 spillere er ikke 3");
+  t.sjekk(T(/Anbefalt: 3/, /Recommended: 3/, /Anbefalet: 3/).test(await t.tekst(".skjerm-oppsett")), "Anbefalt antall varulver for 12 spillere er ikke 3");
   t.sjekk(await t.finnes('[data-h="spiller-legg-til"]:disabled'), "Kan legge til flere enn 12 spillere");
   t.sjekk(await t.finnes('[data-h="fredelig"][aria-pressed="false"]'), "«Fredelig første natt» står på som standard med 12 spillere");
   await t.bilde("oppsett-12", true);
@@ -257,9 +280,9 @@ async function klassiskSpill(t) {
     fredelig: true,
     start: async () => {
       const tekst = ren(await t.tekst(".skjerm-natt-start"));
-      t.sjekk(/Natta tar ca\. 1 minutt og starter hos Testspiller A/.test(tekst), `«Natta faller på» sier ikke hvor lang natta er: ${tekst}`);
-      t.sjekk(/Fredelig første natt: ingen blir tatt/.test(tekst), "«Natta faller på» sier ikke at første natt er fredelig");
-      sang1 = (/nynn «([^»]+)»/.exec(tekst) || [])[1] || "";
+      t.sjekk(T(/Natta tar ca\. 1 minutt og starter hos Testspiller A/, /The night takes about a minute and starts with Testspiller A/, /Natten tager ca\. 1 minut og starter hos Testspiller A/).test(tekst), `«Natta faller på» sier ikke hvor lang natta er: ${tekst}`);
+      t.sjekk(T(/Fredelig første natt: ingen blir tatt/, /Peaceful first night: nobody is taken/, /Fredelig første nat: ingen bliver taget/).test(tekst), "«Natta faller på» sier ikke at første natt er fredelig");
+      sang1 = (SANG().exec(tekst) || [])[1] || "";
       t.sjekk(await t.js(`window.RUSJ_DATA.fortelling.sanger.length === 12 && window.RUSJ_DATA.fortelling.sanger.includes(${JSON.stringify(sang1)})`), `Fant ikke en av de tolv sangene på «Natta faller på» («${sang1}»)`);
       t.sjekk(await t.friForDokk(".skjerm-natt-start .vu-natthimmel"), "«Natta faller på» ligger bak knappen");
       await renKnapp(t, "Natta faller på");
@@ -267,13 +290,14 @@ async function klassiskSpill(t) {
     sjekk: async (rolle) => {
       if (rolle !== "varulv") return;
       const tekst = ren(await t.tekst(".vu-oppdrag"));
-      t.sjekk(/Første natt er fredelig: ingen blir tatt\. Du er den eneste varulven\./.test(tekst) && !/igjen/.test(tekst), `Ulven alene natt 1 ser: ${tekst}`);
+      const alene = T(/Første natt er fredelig: ingen blir tatt\. Du er den eneste varulven\./, /The first night is peaceful: nobody is taken\. You're the only werewolf\./, /Første nat er fredelig: ingen bliver taget\. Du er den eneste varulv\./);
+      t.sjekk(alene.test(tekst) && !T(/igjen/, /left/, /tilbage/).test(tekst), `Ulven alene natt 1 ser: ${tekst}`);
     },
   });
   await morgen(t, "morgen-fredelig");
   sp = await spill(t);
   t.sjekk(lever(sp).length === 6 && sp.morgen.offer === null && sp.morgen.fredelig === true && sp.forrigeBeskyttet === null, "Den fredelige natta tok noen, eller legens valg ble husket");
-  t.sjekk(ren(await t.tekst("#skjerm h1")) === "Alle våknet. Denne gangen.", `Morgenen etter den fredelige natta sier «${ren(await t.tekst("#skjerm h1"))}»`);
+  t.sjekk(ren(await t.tekst("#skjerm h1")) === T("Alle våknet. Denne gangen.", "Everyone woke up. This time.", "Alle vågnede. Denne gang."), `Morgenen etter den fredelige natta sier «${ren(await t.tekst("#skjerm h1"))}»`);
   await renKnapp(t, "morgen");
   await videre(t);
 
@@ -284,7 +308,7 @@ async function klassiskSpill(t) {
   t.sjekk(await t.friForDokk(".skjerm-dag .timer"), "Klokka på dagen ligger bak knappene");
   await renKnapp(t, "dag");
   await t.klikk("#tilbake");
-  t.sjekk(/dag 1/.test(await t.tekst('[data-h="fortsett"]')), "«Fortsett» viser ikke dag 1");
+  t.sjekk(T(/dag 1/, /day 1/, /dag 1/).test(await t.tekst('[data-h="fortsett"]')), "«Fortsett» viser ikke dag 1");
   await t.bilde("hjem-fortsett");
   await t.klikk('[data-h="nytt"]');
   await ark(t, "nei");
@@ -293,16 +317,21 @@ async function klassiskSpill(t) {
   await t.klikk('[data-h="se-igjen"]');
   await t.klikk(`#ark [data-h="ark-svar"][data-v="${lever(sp).indexOf(lege)}"]`);
   await t.vent(`document.querySelector('#ark:not([hidden]) .mappe[data-mappe="r${lege}"]')`);
-  t.sjekk((await les(t, `#ark .mappe[data-mappe="r${lege}"]`)).includes("Lege"), "«Glemt rollen» viste feil rolle");
+  t.sjekk((await les(t, `#ark .mappe[data-mappe="r${lege}"]`)).includes(ROLLENAVN.lege), "«Glemt rollen» viste feil rolle");
   await t.klikk('#ark [data-h="lukk-ark"]');
   await t.klikk('[data-h="avslutt"]');
   let knapper = await ark(t, "nei");
-  t.sjekk(knapper.join("|") === "Spill videre|Avslutt", `Arket for «Avslutt» har knappene ${knapper.join(" / ")}`);
+  t.sjekk(knapper.join("|") === AVSLUTT_KNAPPER(), `Arket for «Avslutt» har knappene ${knapper.join(" / ")}`);
   t.sjekk((await t.tilstand()).skjerm === "dag" && (await t.tilstand())._aktiv === true, "«Spill videre» avsluttet spillet likevel");
   await stem(t, v2, "utkastet-uskyldig");
   let tekst = ren(await t.tekst(".skjerm-utkastet"));
-  t.sjekk(/Landsbyboer/i.test(await t.tekst(".skjerm-utkastet .stempel")) && /uskyldig/.test(tekst), "Utkastet landsbyboer vises ikke som uskyldig");
-  t.sjekk(new RegExp(`${NAVN[v2]}, du er ute – men nå er du spillederen: du holder mobilen, leser høyt og teller fingrene\\.`).test(tekst), `Den første som ryker ut, får ikke jobben som spilleder: ${tekst}`);
+  t.sjekk(new RegExp(ROLLENAVN.landsby, "i").test(await t.tekst(".skjerm-utkastet .stempel")) && T(/uskyldig/, /innocent/, /uskyldig/).test(tekst), "Utkastet landsbyboer vises ikke som uskyldig");
+  const jobb = T(
+    "du er ute – men nå er du spillederen: du holder mobilen, leser høyt og teller fingrene",
+    "you're out – but now you're the game master: you hold the phone, read aloud and count the fingers",
+    "du er ude – men nu er du spillederen: du holder mobilen, læser højt og tæller fingrene",
+  );
+  t.sjekk(new RegExp(`${NAVN[v2]}, ${jobb}\\.`).test(tekst), `Den første som ryker ut, får ikke jobben som spilleder: ${tekst}`);
   t.sjekk((await spill(t)).spilleder === v2, "Spillederen ble ikke lagret");
   t.sjekk(await t.friForDokk(".skjerm-utkastet .vu-jobb"), "Jobben som spilleder ligger bak knappen");
   await videre(t);
@@ -312,31 +341,31 @@ async function klassiskSpill(t) {
   await spillNatt(t, (rolle, meg) => (rolle === "varulv" ? v1 : rolle === "lege" ? v1 : rolle === "synsk" ? v1 : ulv), {
     start: async () => {
       const tekst = ren(await t.tekst(".skjerm-natt-start"));
-      const sang2 = (/nynn «([^»]+)»/.exec(tekst) || [])[1] || "";
+      const sang2 = (SANG().exec(tekst) || [])[1] || "";
       t.sjekk(sang2 && sang2 !== sang1, `Natt 2 har samme sang som natt 1 («${sang2}»)`);
-      t.sjekk(!/Fredelig/.test(tekst), "Natt 2 kalles fredelig");
+      t.sjekk(!T(/Fredelig/, /Peaceful/, /Fredelig/).test(tekst), "Natt 2 kalles fredelig");
     },
     sjekk: async (rolle) => {
       if (rolle === "lege") t.sjekk(!(await t.finnes(`[data-h="marker"][data-v="${v1}"]:disabled`)), "Legen kan ikke beskytte den hun passet på den fredelige natta");
     },
   });
   await t.vent("document.querySelector('[data-h=\"se-natt\"]')");
-  t.sjekk(new RegExp(`Gi mobilen til spillederen, ${NAVN[v2]}`).test(ren(await t.tekst(".skjerm-morgen"))), "Morgenen sender ikke mobilen til spillederen");
+  t.sjekk(new RegExp(T("Gi mobilen til spillederen, ", "Give the phone to the game master, ", "Giv mobilen til spillederen, ") + NAVN[v2]).test(ren(await t.tekst(".skjerm-morgen"))), "Morgenen sender ikke mobilen til spillederen");
   await morgen(t, "morgen-reddet");
   sp = await spill(t);
   t.sjekk(sp.morgen.reddet && lever(sp).length === 5, "Legen reddet ikke offeret");
-  t.sjekk(/overlevde/.test(await t.tekst("#skjerm h1")), "Morgenen sier ikke at alle overlevde");
+  t.sjekk(T(/overlevde/, /survived/, /overlevede/).test(await t.tekst("#skjerm h1")), "Morgenen sier ikke at alle overlevde");
   await videre(t);
 
   // Day 2: the game leader is marked; nobody is voted out («Stem på nytt» stays), and the next night
   // opens with that
   await t.vent("document.querySelector('.skjerm-dag #klokke')");
-  t.sjekk(/spilleder/.test(await t.tekst(".vu-landsby li.dod")), "Spillederen er ikke merket i landsbyen");
+  t.sjekk(T(/spilleder/, /game master/, /spilleder/).test(await t.tekst(".vu-landsby li.dod")), "Spillederen er ikke merket i landsbyen");
   await t.klikk('[data-h="til-stemme"]');
-  t.sjekk(new RegExp(`Spillederen, ${NAVN[v2]}, teller fingrene`).test(ren(await t.tekst(".skjerm-stemme"))), "Avstemningen nevner ikke spillederen");
+  t.sjekk(new RegExp(T(`Spillederen, ${NAVN[v2]}, teller fingrene`, `The game master, ${NAVN[v2]}, counts the fingers`, `Spillederen, ${NAVN[v2]}, tæller fingrene`)).test(ren(await t.tekst(".skjerm-stemme"))), "Avstemningen nevner ikke spillederen");
   await t.klikk('[data-h="ingen-ut"]');
   knapper = await ark(t, "nei");
-  t.sjekk(knapper.join("|") === "Stem på nytt|Ja, ingen i dag" && (await t.tilstand()).skjerm === "stemme", `Arket for «ingen kastes ut»: ${knapper.join(" / ")}`);
+  t.sjekk(knapper.join("|") === T("Stem på nytt|Ja, ingen i dag", "Vote again|Yes, nobody today", "Stem igen|Ja, ingen i dag") && (await t.tilstand()).skjerm === "stemme", `Arket for «ingen kastes ut»: ${knapper.join(" / ")}`);
   await t.klikk('[data-h="ingen-ut"]');
   await ark(t, "ja");
   await t.vent("document.querySelector('.skjerm-natt-start')");
@@ -354,7 +383,7 @@ async function klassiskSpill(t) {
   sp = await spill(t);
   t.sjekk(!sp.levende[v3] && sp.morgen.offer === v3, "Ulven tok ikke riktig person natt 3");
   tekst = ren(await t.tekst(".skjerm-morgen"));
-  t.sjekk(/er ute av spillet og sier ikke mer/.test(tekst) && !/spillederen/.test(tekst), "Den andre som ryker ut, får også jobben som spilleder");
+  t.sjekk(T(/er ute av spillet og sier ikke mer/, /is out of the game and says no more/, /er ude af spillet og siger ikke mere/).test(tekst) && !T(/spillederen/, /game master/, /spillederen/).test(tekst), "Den andre som ryker ut, får også jobben som spilleder");
   await videre(t);
 
   // Day 3: the time runs out. «+1 min» cancels the jump to the vote; after a reload, or coming back
@@ -381,13 +410,13 @@ async function klassiskSpill(t) {
   await stem(t, ulv, "utkastet-ulv");
   await videre(t);
   await t.vent("document.querySelector('.skjerm-slutt')");
-  t.sjekk(/Landsbyen vinner!/.test(await t.tekst("#skjerm h1")), "Landsbyen vant ikke");
-  t.sjekk(/Etter tre netter/i.test(await t.tekst(".skjerm-slutt .banner")), "Kåringen sier ikke hvor mange netter spillet varte");
-  t.sjekk(await t.finnes('.skjerm-slutt a[href="/"]'), "Sluttskjermen mangler «Alle spill»");
+  t.sjekk(T(/Landsbyen vinner!/, /The village wins!/, /Landsbyen vinder!/).test(await t.tekst("#skjerm h1")), "Landsbyen vant ikke");
+  t.sjekk(T(/Etter tre netter/i, /After three nights/i, /Efter tre nætter/i).test(await t.tekst(".skjerm-slutt .banner")), "Kåringen sier ikke hvor mange netter spillet varte");
+  t.sjekk(await t.finnes(`.skjerm-slutt a[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
   t.sjekk((await t.antall(".vu-historikk li")) === 6, `Historikken skal ha seks hendelser, har ${await t.antall(".vu-historikk li")}`);
-  t.sjekk(/fredelig første natt/i.test(await t.tekst(".vu-historikk")), "Historikken nevner ikke den fredelige natta");
+  t.sjekk(T(/fredelig første natt/i, /peaceful first night/i, /fredelig første nat/i).test(await t.tekst(".vu-historikk")), "Historikken nevner ikke den fredelige natta");
   t.sjekk(await t.finnes(".vu-stat li"), "Mangler statistikken fra natta");
-  t.sjekk(/Landsbyen\s*1 – 0\s*Varulvene/.test(await t.tekst(".vu-stilling")), `Stillingen på kåringen: ${ren(await t.tekst(".vu-stilling"))}`);
+  t.sjekk(stilling(1, 0).test(await t.tekst(".vu-stilling")), `Stillingen på kåringen: ${ren(await t.tekst(".vu-stilling"))}`);
   await renKnapp(t, "kåringen");
   // «Kveldens gjeng»: once, the five on the winning side share first place
   let gjeng = await kveld(t);
@@ -399,7 +428,8 @@ async function klassiskSpill(t) {
   await t.js(`Object.defineProperty(navigator, "share", { configurable: true, value: (d) => { window.__delt = d; return Promise.resolve(); } })`);
   await t.klikk('[data-h="del"]');
   const delt = await t.js("window.__delt || null");
-  t.sjekk(delt && /^Varulven 🐺 Landsbyen vant etter tre netter\.\n/.test(delt.text) && /\/varulven\/$/.test(delt.url), `«Del resultatet» deler: ${JSON.stringify(delt)}`);
+  const lenke = T(/\/varulven\/$/, /\/en\/werewolf\/$/, /\/da\/varulven\/$/);
+  t.sjekk(delt && T(/^Varulven 🐺 Landsbyen vant etter tre netter\.\n/, /^Werewolf 🐺 The village won after three nights\.\n/, /^Varulven 🐺 Landsbyen vandt efter tre nætter\.\n/).test(delt.text) && lenke.test(delt.url), `«Del resultatet» deler: ${JSON.stringify(delt)}`);
   // A reload: still «Kåringen», nothing is registered twice; the home screen offers a new game
   await t.lastSide(t.side, "document.querySelector('.skjerm-slutt')");
   gjeng = await kveld(t);
@@ -407,7 +437,7 @@ async function klassiskSpill(t) {
   t.sjekk(gjeng.length === 1 && st.stilling.landsby === 1 && st.stilling.ulv === 0, "Omlasting på kåringen registrerte resultatet en gang til");
   await t.klikk("#tilbake");
   t.sjekk((await t.finnes('[data-h="nytt"]')) && !(await t.finnes('[data-h="fortsett"]')), "Hjem-skjermen tilbyr «Fortsett» etter at spillet er slutt");
-  t.sjekk(/STILLING\s*Landsbyen 1 – 0 Varulvene/.test(ren(await t.tekst(".merker li"))), `Stillingen står ikke først blant merkene: ${ren(await t.tekst(".merker"))}`);
+  t.sjekk(T(/STILLING\s*Landsbyen 1 – 0 Varulvene/, /SCORE\s*Village 1 – 0 Werewolves/, /STILLING\s*Landsbyen 1 – 0 Varulvene/).test(ren(await t.tekst(".merker li"))), `Stillingen står ikke først blant merkene: ${ren(await t.tekst(".merker"))}`);
   await t.bilde("hjem-stilling");
 
   // ---------- Game 2: hunter on, no peaceful night, the wolves win ----------
@@ -437,7 +467,7 @@ async function klassiskSpill(t) {
   // Taken on night 1: the first one out gets the job on the morning screen
   sp = await spill(t);
   tekst = ren(await t.tekst(".skjerm-morgen"));
-  t.sjekk(sp.spilleder === offer1 && /nå er du spillederen/.test(tekst) && !/sier ikke mer/.test(tekst), `Offeret natt 1 ble ikke spilleder: ${tekst}`);
+  t.sjekk(sp.spilleder === offer1 && T(/nå er du spillederen/, /now you're the game master/, /nu er du spillederen/).test(tekst) && !T(/sier ikke mer/, /says no more/, /siger ikke mere/).test(tekst), `Offeret natt 1 ble ikke spilleder: ${tekst}`);
   t.sjekk(await t.friForDokk(".skjerm-morgen .vu-jobb"), "Jobben som spilleder ligger bak knappen på morgenen (320 px)");
   await videre(t);
   await t.vent("document.querySelector('.skjerm-dag')");
@@ -471,9 +501,9 @@ async function klassiskSpill(t) {
   await t.vent("document.querySelector('[data-h=\"til-slutt\"]')");
   await videre(t);
   await t.vent("document.querySelector('.skjerm-slutt')");
-  t.sjekk(/Varulvene vinner!/.test(await t.tekst("#skjerm h1")), "Varulvene vant ikke");
+  t.sjekk(T(/Varulvene vinner!/, /The werewolves win!/, /Varulvene vinder!/).test(await t.tekst("#skjerm h1")), "Varulvene vant ikke");
   t.sjekk(await t.js("document.documentElement.classList.contains('vu-natt')"), "Ulvenes seier har ikke nattlook");
-  t.sjekk(/Landsbyen\s*1 – 1\s*Varulvene/.test(await t.tekst(".vu-stilling")), `Stillingen etter to spill: ${ren(await t.tekst(".vu-stilling"))}`);
+  t.sjekk(stilling(1, 1).test(await t.tekst(".vu-stilling")), `Stillingen etter to spill: ${ren(await t.tekst(".vu-stilling"))}`);
   gjeng = await kveld(t);
   t.sjekk(gjeng.length === 2 && gjeng[1].resultat.filter((r) => r.plass === 1).length === 1 && gjeng[1].resultat[0].navn === NAVN[ulv2], `Kveldens gjeng etter spill 2: ${JSON.stringify(gjeng[1])}`);
   await t.bilde("slutt-ulv", true);
@@ -487,7 +517,7 @@ async function klassiskSpill(t) {
   await ark(t, "ja");
   await t.vent("document.querySelector('.skjerm-slutt')");
   st = await t.tilstand();
-  t.sjekk(/Ingen vant denne gangen/.test(await t.tekst("#skjerm h1")) && /Avsluttet før første natt/i.test(await t.tekst(".skjerm-slutt .banner")), `«Avslutt» ga kåringen «${ren(await t.tekst(".skjerm-slutt .banner"))}»`);
+  t.sjekk(T(/Ingen vant denne gangen/, /Nobody won this time/, /Ingen vandt denne gang/).test(await t.tekst("#skjerm h1")) && T(/Avsluttet før første natt/i, /Ended before the first night/i, /Afsluttet før første nat/i).test(await t.tekst(".skjerm-slutt .banner")), `«Avslutt» ga kåringen «${ren(await t.tekst(".skjerm-slutt .banner"))}»`);
   t.sjekk(st._aktiv === false && st.spill.ferdig && st.spill.avbrutt && !st.spill.vinner, "Etter «Avslutt» står spillet fortsatt som «pågår»");
   t.sjekk((await t.antall(".vu-rolleliste li")) === 6, "«Hvem var hvem?» mangler etter «Avslutt»");
   t.sjekk(!(await t.finnes('[data-h="del"]')), "«Del resultatet» vises uten en vinner");
@@ -505,9 +535,21 @@ async function enNattSpill(t) {
   // =====================================================================================
   // «Én natt»: one night, swaps at dawn, one vote, points over several rounds
   // =====================================================================================
-  const EN_NAVN = { varulv: "Varulv", synsk: "Synsk", bytter: "Bytter", brak: "Bråkmaker", landsby: "Landsbyboer" };
+  const EN_NAVN = T(
+    { varulv: "Varulv", synsk: "Synsk", bytter: "Bytter", brak: "Bråkmaker", landsby: "Landsbyboer" },
+    { varulv: "Werewolf", synsk: "Seer", bytter: "Swapper", brak: "Troublemaker", landsby: "Villager" },
+    { varulv: "Varulv", synsk: "Synsk", bytter: "Rollebytter", brak: "Ballademager", landsby: "Landsbyboer" },
+  );
+  const EN_VERB = T(
+    { varulv: "Skyld på", synsk: "Se på", bytter: "Bytt med", landsby: "Mistenk", brak: "Bytt om rollene" },
+    { varulv: "Blame", synsk: "Look at", bytter: "Swap with", landsby: "Suspect", brak: "Swap their roles" },
+    { varulv: "Skyd skylden på", synsk: "Se på", bytter: "Byt med", landsby: "Mistænk", brak: "Byt om på rollerne" },
+  );
   const lite = (r) => EN_NAVN[r].toLowerCase();
-  const navnFor = (i) => NAVN[i] && i < 4 ? NAVN[i] : `Spiller ${i + 1}`;
+  // «A og B» as the edition joins two names
+  const og = (a, b) => `${a}${T(" og ", " and ", " og ")}${b}`;
+  const blePekt = (hvem, n) => hvem + T(" ble pekt ut", n > 1 ? " were pointed out" : " was pointed out", " blev peget ud");
+  const navnFor = (i) => NAVN[i] && i < 4 ? NAVN[i] : `${T("Spiller", "Player", "Spiller")} ${i + 1}`;
   const stokk = (n) => [...(n >= 7 ? ["varulv", "varulv"] : ["varulv"]), "synsk", "bytter", ...(n >= 6 ? ["brak"] : []), ...Array(n).fill("landsby")].slice(0, n).sort().join();
   const alle = (sp, rolle) => sp.roller.map((r, i) => (r === rolle ? i : -1)).filter((i) => i >= 0);
   const topptittel = () => t.js(`document.querySelector("#topp-tittel").textContent`);
@@ -541,7 +583,7 @@ async function enNattSpill(t) {
       const mal = plan(rolle, meg, sp);
       for (const m of [].concat(mal)) await t.klikk(`[data-h="en-marker"][data-v="${m}"]`);
       const knapp = ren(await t.tekst('[data-h="en-velg"]'));
-      const ventet = rolle === "brak" ? "Bytt om rollene" : `${{ varulv: "Skyld på", synsk: "Se på", bytter: "Bytt med", landsby: "Mistenk" }[rolle]} ${navnFor(mal)}`;
+      const ventet = rolle === "brak" ? EN_VERB.brak : `${EN_VERB[rolle]} ${navnFor(mal)}`;
       t.sjekk(knapp.startsWith(ventet), `«Én natt»: bekreft-knappen sier «${knapp}» for ${rolle} (ventet «${ventet}»)`);
       if (o.bilder && !avbildet.has(rolle)) await t.bilde(`${o.bilder}-valg-${rolle}`);
       await t.klikk('[data-h="en-velg"]');
@@ -552,8 +594,8 @@ async function enNattSpill(t) {
       t.sjekk(f.id === "skjerm-tittel" && f.h1 === navnFor(meg), `«Én natt», svaret: fokus på «${f.tag}#${f.id}», overskriften sier «${f.h1}» (skal bare være navnet)`);
       // Everything a player is told is the roles as dealt
       const svar = ren(await t.tekst(".vu-svar-hoved"));
-      if (rolle === "synsk") t.sjekk(svar === `${navnFor(mal)} er ${lite(sp.roller[mal])}.`, `Den synske fikk svaret «${svar}» om en ${sp.roller[mal]}`);
-      if (rolle === "bytter") t.sjekk(svar === `Nå er du ${lite(sp.roller[mal])}.`, `Bytteren fikk svaret «${svar}» etter å ha byttet med en ${sp.roller[mal]}`);
+      if (rolle === "synsk") t.sjekk(svar === T(`${navnFor(mal)} er ${lite(sp.roller[mal])}.`, `${navnFor(mal)} is a ${lite(sp.roller[mal])}.`, `${navnFor(mal)} er ${lite(sp.roller[mal])}.`), `Den synske fikk svaret «${svar}» om en ${sp.roller[mal]}`);
+      if (rolle === "bytter") t.sjekk(svar === T(`Nå er du ${lite(sp.roller[mal])}.`, `Now you're a ${lite(sp.roller[mal])}.`, `Nu er du ${lite(sp.roller[mal])}.`), `Bytteren fikk svaret «${svar}» etter å ha byttet med en ${sp.roller[mal]}`);
       if (o.bilder && !avbildet.has(rolle)) {
         await t.bilde(`${o.bilder}-svar-${rolle}`);
         avbildet.add(rolle);
@@ -594,7 +636,7 @@ async function enNattSpill(t) {
     if (!pekt.length) {
       await t.klikk('[data-h="en-ingen"]');
       const knapper = await ark(t, "nei");
-      t.sjekk(knapper.join("|") === "Stem på nytt|Ja, ingen" && (await t.tilstand()).skjerm === "en-stemme", `Arket for «ingen ble pekt ut»: ${knapper.join(" / ")}`);
+      t.sjekk(knapper.join("|") === T("Stem på nytt|Ja, ingen", "Vote again|Yes, nobody", "Stem igen|Ja, ingen") && (await t.tilstand()).skjerm === "en-stemme", `Arket for «ingen ble pekt ut»: ${knapper.join(" / ")}`);
       await t.klikk('[data-h="en-ingen"]');
       await ark(t, "ja");
     } else {
@@ -618,8 +660,8 @@ async function enNattSpill(t) {
   for (let i = 5; i >= 4; i--) await t.klikk(`[data-h="spiller-fjern"][data-v="${i}"]`, 40);
   t.sjekk((await t.tilstand()).antall === 4 && !(await t.finnes('[data-h="spiller-fjern"]')), "«Én natt» lar seg ikke sette opp med fire spillere");
   tekst = ren(await t.tekst(".skjerm-oppsett"));
-  t.sjekk(/Trenger minst 6 spillere \(dere er 4\)/.test(tekst), "Flisen «Klassisk» forklarer ikke at den trenger seks");
-  t.sjekk(/1 varulv · 🔮 synsk · 🔄 bytter · 🏡 1 landsbyboer/.test(tekst.replace(/\s+/g, " ")), `Rollene for fire spillere: ${ren(await t.tekst(".vu-stokk"))}`);
+  t.sjekk(T(/Trenger minst 6 spillere \(dere er 4\)/, /Needs at least 6 players \(you're 4\)/, /Kræver mindst 6 spillere \(I er 4\)/).test(tekst), "Flisen «Klassisk» forklarer ikke at den trenger seks");
+  t.sjekk(T(/1 varulv · 🔮 synsk · 🔄 bytter · 🏡 1 landsbyboer/, /1 werewolf · 🔮 seer · 🔄 swapper · 🏡 1 villager/, /1 varulv · 🔮 synsk · 🔄 rollebytter · 🏡 1 landsbyboer/).test(tekst.replace(/\s+/g, " ")), `Rollene for fire spillere: ${ren(await t.tekst(".vu-stokk"))}`);
   // No dead end: «Klassisk» with four gives six rows – and going back gives the four again
   await t.klikk('[data-h="modus"][data-v="klassisk"]');
   st = await t.tilstand();
@@ -633,7 +675,7 @@ async function enNattSpill(t) {
   await t.vent("document.querySelector('.skjerm-en-natt-start')");
   sp = await spill(t);
   t.sjekk(sp.modus === "en" && sp.n === 4 && sp.runder === 3 && sp.runde === 1 && sp.roller.slice().sort().join() === stokk(4), `«Én natt» med fire: feil utdeling ${sp.roller}`);
-  t.sjekk((await topptittel()) === "Runde 1 av 3", `Topplinja sier «${await topptittel()}»`);
+  t.sjekk((await topptittel()) === rundeAv(1, 3), `Topplinja sier «${await topptittel()}»`);
 
   // Round 1: the swapper swaps with the seer (the wolf stays the wolf), the wolf is pointed out
   let [w] = alle(sp, "varulv");
@@ -645,13 +687,13 @@ async function enNattSpill(t) {
     omlastVed: 1,
     start: async () => {
       const tekst = ren(await t.tekst(".skjerm-en-natt-start"));
-      t.sjekk(/Natta tar ca\. 1 minutt og starter hos Testspiller A/.test(tekst) && /nynn «[^»]+»/.test(tekst), `«Natta faller på» i «Én natt»: ${tekst}`);
+      t.sjekk(T(/Natta tar ca\. 1 minutt og starter hos Testspiller A/, /The night takes about a minute and starts with Testspiller A/, /Natten tager ca\. 1 minut og starter hos Testspiller A/).test(tekst) && SANG().test(tekst), `«Natta faller på» i «Én natt»: ${tekst}`);
       t.sjekk(await t.friForDokk(".skjerm-en-natt-start .vu-natthimmel"), "«Natta faller på» («Én natt») ligger bak knappen");
       await renKnapp(t, "Natta faller på (Én natt)");
     },
     sjekk: async (rolle) => {
       t.sjekk(await t.friForDokk(".vu-en-oppdrag"), `«Én natt»: rollen og spørsmålet ligger bak knappen (${rolle})`);
-      if (rolle === "varulv") t.sjekk(/Du er den eneste varulven/.test(ren(await t.tekst(".vu-oppdrag"))), "Den ene varulven får ikke vite at den er alene");
+      if (rolle === "varulv") t.sjekk(T(/Du er den eneste varulven/, /You're the only werewolf/, /Du er den eneste varulv/).test(ren(await t.tekst(".vu-oppdrag"))), "Den ene varulven får ikke vite at den er alene");
     },
   });
   sp = await spill(t);
@@ -670,23 +712,31 @@ async function enNattSpill(t) {
       await t.klikk(`#ark [data-h="ark-svar"][data-v="${s}"]`);
       await t.vent(`document.querySelector('#ark:not([hidden]) .mappe[data-mappe="r${s}"]')`);
       const kort = ren(await les(t, `#ark .mappe[data-mappe="r${s}"]`));
-      t.sjekk(/Synsk/.test(kort) && kort.includes(`${navnFor(w)} er varulv.`), `«Glemt hva du så?» viser: ${kort}`);
+      t.sjekk(kort.includes(EN_NAVN.synsk) && kort.includes(T(`${navnFor(w)} er varulv.`, `${navnFor(w)} is a werewolf.`, `${navnFor(w)} er varulv.`)), `«Glemt hva du så?» viser: ${kort}`);
       await t.klikk('#ark [data-h="lukk-ark"]');
       // Back + continue keeps the round
       await t.klikk("#tilbake");
-      t.sjekk(/runde 1 av 3/.test(await t.tekst('[data-h="fortsett"]')), `«Fortsett» sier «${await t.tekst('[data-h="fortsett"]')}»`);
+      t.sjekk((await t.tekst('[data-h="fortsett"]')).includes(rundeAv(1, 3).toLowerCase()), `«Fortsett» sier «${await t.tekst('[data-h="fortsett"]')}»`);
       await t.klikk('[data-h="fortsett"]');
       await t.vent("document.querySelector('.skjerm-en-dag #klokke')");
     },
     stemme: async () => {
-      t.sjekk(ren(await t.tekst('[data-h="en-avslor"]')) === `${navnFor(w)} ble pekt ut`, `Knappen i avstemningen sier «${ren(await t.tekst('[data-h="en-avslor"]'))}»`);
+      t.sjekk(ren(await t.tekst('[data-h="en-avslor"]')) === blePekt(navnFor(w), 1), `Knappen i avstemningen sier «${ren(await t.tekst('[data-h="en-avslor"]'))}»`);
       t.sjekk(await t.friForDokk(".skjerm-en-stemme h1"), "«Én natt»: avstemningen ligger bak knappen");
     },
   });
   await t.bilde("en-avsloring-landsby");
   tekst = ren(await t.tekst(".skjerm-en-avsloring"));
-  t.sjekk(/Landsbyen vinner runden!/.test(await t.tekst("#skjerm h1")) && /Varulv/i.test(await t.tekst(".vu-pekte .stempel")), `Runde 1: avsløringen sier «${ren(await t.tekst("#skjerm h1"))}»`);
-  t.sjekk(tekst.includes(`${navnFor(w)} endte natta som varulv – og ble pekt ut.`) && tekst.includes(`Bytteren ${navnFor(b)} byttet rolle med ${navnFor(s)} og ble synsk.`), `Runde 1: historien mangler: ${tekst}`);
+  const landsbyRunden = T(/Landsbyen vinner runden!/, /The village wins the round!/, /Landsbyen vinder runden!/);
+  const ulvRunden = T(/Varulvene vinner runden!/, /The werewolves win the round!/, /Varulvene vinder runden!/);
+  t.sjekk(landsbyRunden.test(await t.tekst("#skjerm h1")) && new RegExp(EN_NAVN.varulv, "i").test(await t.tekst(".vu-pekte .stempel")), `Runde 1: avsløringen sier «${ren(await t.tekst("#skjerm h1"))}»`);
+  const endte = T(`${navnFor(w)} endte natta som varulv – og ble pekt ut.`, `${navnFor(w)} ended the night as a werewolf – and was pointed out.`, `${navnFor(w)} endte natten som varulv – og blev peget ud.`);
+  const byttet = T(
+    `Bytteren ${navnFor(b)} byttet rolle med ${navnFor(s)} og ble synsk.`,
+    `The swapper, ${navnFor(b)}, swapped roles with ${navnFor(s)} and became a seer.`,
+    `Rollebytteren ${navnFor(b)} byttede rolle med ${navnFor(s)} og blev synsk.`,
+  );
+  t.sjekk(tekst.includes(endte) && tekst.includes(byttet), `Runde 1: historien mangler: ${tekst}`);
   t.sjekk(await t.friForDokk(".skjerm-en-avsloring .vu-dom"), "Avsløringen: dommen ligger bak knappene");
   t.sjekk(await t.js("document.documentElement.classList.contains('vu-morgen')"), "Landsbyens seier i runden har ikke morgenlook");
   await renKnapp(t, "avsløringen");
@@ -705,7 +755,7 @@ async function enNattSpill(t) {
   sp = st.spill;
   t.sjekk(sp.runde === 2 && sp.spilt === 1 && sp.poeng.reduce((a, x) => a + x, 0) === 3 && sp.poeng[w] === 0, `Etter runde 1: poeng ${sp.poeng}, runde ${sp.runde}`);
   t.sjekk(st.stilling.landsby === for0.landsby + 1 && st.stilling.ulv === for0.ulv, `Stillingen på mobilen etter runde 1: ${JSON.stringify(st.stilling)}`);
-  t.sjekk(sp.tur.rekke[0] === 1 && (await topptittel()) === "Runde 2 av 3", "Runde 2 starter ikke ett sete videre");
+  t.sjekk(sp.tur.rekke[0] === 1 && (await topptittel()) === rundeAv(2, 3), "Runde 2 starter ikke ett sete videre");
   const poeng1 = sp.poeng.slice();
 
   // Round 2: the swapper swaps with the wolf and becomes the wolf. Nobody is pointed out → the wolves win
@@ -719,7 +769,7 @@ async function enNattSpill(t) {
   await enDagOgStemme([]);
   await t.bilde("en-avsloring-ulv");
   tekst = ren(await t.tekst(".skjerm-en-avsloring"));
-  t.sjekk(/Varulvene vinner runden!/.test(await t.tekst("#skjerm h1")) && tekst.includes(`Ingen ble pekt ut. Varulven var ${navnFor(b)}.`), `Runde 2: ${tekst.slice(0, 200)}`);
+  t.sjekk(ulvRunden.test(await t.tekst("#skjerm h1")) && tekst.includes(T(`Ingen ble pekt ut. Varulven var ${navnFor(b)}.`, `Nobody was pointed out. The werewolf was ${navnFor(b)}.`, `Ingen blev peget ud. Varulven var ${navnFor(b)}.`)), `Runde 2: ${tekst.slice(0, 200)}`);
   t.sjekk(await t.js("document.documentElement.classList.contains('vu-natt')"), "Ulvenes seier i runden har ikke nattlook");
   await t.klikk('[data-h="en-neste"]');
   await t.vent("document.querySelector('.skjerm-en-natt-start')");
@@ -735,24 +785,26 @@ async function enNattSpill(t) {
   await enDagOgStemme([w, l], {
     stemme: async () => {
       const knapp = ren(await t.tekst('[data-h="en-avslor"]'));
-      t.sjekk(knapp === `${[w, l].sort((a, c) => a - c).map(navnFor).join(" og ")} ble pekt ut` || knapp === `${navnFor(w)} og ${navnFor(l)} ble pekt ut`, `Knappen ved delt førsteplass sier «${knapp}»`);
+      const [x, y] = [w, l].sort((a, c) => a - c).map(navnFor);
+      t.sjekk(knapp === blePekt(og(x, y), 2) || knapp === blePekt(og(navnFor(w), navnFor(l)), 2), `Knappen ved delt førsteplass sier «${knapp}»`);
     },
   });
   await t.bilde("en-avsloring-to");
-  t.sjekk(/Landsbyen vinner runden!/.test(await t.tekst("#skjerm h1")) && (await t.antall(".vu-pekte.flere li")) === 2, "Runde 3: to utpekte vises ikke, eller landsbyen vant ikke");
-  t.sjekk(ren(await t.tekst('[data-h="en-neste"]')) === "Til kåringen" && !(await t.finnes('.skjerm-en-avsloring [data-h="avslutt"]')), "Siste runde: hovedknappen er ikke «Til kåringen»");
+  t.sjekk(landsbyRunden.test(await t.tekst("#skjerm h1")) && (await t.antall(".vu-pekte.flere li")) === 2, "Runde 3: to utpekte vises ikke, eller landsbyen vant ikke");
+  t.sjekk(ren(await t.tekst('[data-h="en-neste"]')) === T("Til kåringen", "To the results", "Til kåringen") && !(await t.finnes('.skjerm-en-avsloring [data-h="avslutt"]')), "Siste runde: hovedknappen er ikke «Til kåringen»");
   await t.klikk('[data-h="en-neste"]');
   await t.vent("document.querySelector('.skjerm-slutt')");
   st = await t.tilstand();
   sp = st.spill;
   const topp = Math.max(...sp.poeng);
   const vinnere = sp.poeng.map((p, i) => (p === topp ? i : -1)).filter((i) => i >= 0);
-  const vinnerlinje = `${vinnere.map(navnFor).join(", ").replace(/, ([^,]*)$/, " og $1")} vinner!`;
+  const vinnerlinje = `${vinnere.map(navnFor).join(", ").replace(/, ([^,]*)$/, T(" og $1", " and $1", " og $1"))} ${T("vinner!", vinnere.length > 1 ? "win!" : "wins!", "vinder!")}`;
   t.sjekk(st._aktiv === false && sp.ferdig && sp.spilt === 3 && sp.poeng.reduce((a, x) => a + x, 0) === 7, `Kåringen etter tre runder: ${JSON.stringify(sp.poeng)}`);
   t.sjekk(vinnere.length > 3 || ren(await t.tekst("#skjerm h1")) === vinnerlinje, `Vinnerlinja sier «${ren(await t.tekst("#skjerm h1"))}», ventet «${vinnerlinje}»`);
-  t.sjekk(/Én natt · 3 runder/i.test(await t.tekst(".skjerm-slutt .banner")) && /Landsbyen vant to runder, varulvene én\./.test(await t.tekst(".skjerm-slutt .banner")), `Banneret på kåringen: ${ren(await t.tekst(".skjerm-slutt .banner"))}`);
+  const seirer = T(/Landsbyen vant to runder, varulvene én\./, /The village won two rounds, the werewolves one\./, /Landsbyen vandt to runder, varulvene én\./);
+  t.sjekk(T(/Én natt · 3 runder/i, /One night · 3 rounds/i, /Én nat · 3 runder/i).test(await t.tekst(".skjerm-slutt .banner")) && seirer.test(await t.tekst(".skjerm-slutt .banner")), `Banneret på kåringen: ${ren(await t.tekst(".skjerm-slutt .banner"))}`);
   t.sjekk((await t.antall(".skjerm-slutt .poengliste li")) === 4 && (await t.finnes(".skjerm-slutt .pall")), "Kåringen mangler pall eller poengliste");
-  t.sjekk(new RegExp(`Landsbyen\\s*${for0.landsby + 2} – ${for0.ulv + 1}\\s*Varulvene`).test(await t.tekst(".vu-stilling")), `Stillingen etter «Én natt»: ${ren(await t.tekst(".vu-stilling"))}`);
+  t.sjekk(stilling(for0.landsby + 2, for0.ulv + 1).test(await t.tekst(".vu-stilling")), `Stillingen etter «Én natt»: ${ren(await t.tekst(".vu-stilling"))}`);
   gjeng = await kveld(t);
   t.sjekk(gjeng.length === for0.kveld + 1 && gjeng[for0.kveld].resultat.length === 4 && gjeng[for0.kveld].resultat.filter((r) => r.plass === 1).length === vinnere.length, `Kveldens gjeng etter «Én natt»: ${JSON.stringify(gjeng[for0.kveld])}`);
   await renKnapp(t, "kåringen (Én natt)");
@@ -760,7 +812,12 @@ async function enNattSpill(t) {
   await t.js(`window.__delt = null; Object.defineProperty(navigator, "share", { configurable: true, value: (d) => { window.__delt = d; return Promise.resolve(); } })`);
   await t.klikk('[data-h="del"]');
   const delt2 = await t.js("window.__delt || null");
-  t.sjekk(delt2 && /^Varulven 🐺 Én natt: .+ med \d poeng etter tre runder\.\nLandsbyen vant to runder, varulvene én\.$/.test(delt2.text) && /\/varulven\/$/.test(delt2.url), `«Del resultatet» etter «Én natt»: ${JSON.stringify(delt2)}`);
+  const delt2Tekst = T(
+    /^Varulven 🐺 Én natt: .+ med \d poeng etter tre runder\.\nLandsbyen vant to runder, varulvene én\.$/,
+    /^Werewolf 🐺 One night: .+ with \d points? after three rounds\.\nThe village won two rounds, the werewolves one\.$/,
+    /^Varulven 🐺 Én nat: .+ med \d point efter tre runder\.\nLandsbyen vandt to runder, varulvene én\.$/,
+  );
+  t.sjekk(delt2 && delt2Tekst.test(delt2.text) && T(/\/varulven\/$/, /\/en\/werewolf\/$/, /\/da\/varulven\/$/).test(delt2.url), `«Del resultatet» etter «Én natt»: ${JSON.stringify(delt2)}`);
   await t.lastSide(t.side, "document.querySelector('.skjerm-slutt')");
   t.sjekk((await kveld(t)).length === for0.kveld + 1 && (await t.tilstand()).stilling.landsby === for0.landsby + 2, "Omlasting på kåringen («Én natt») registrerte resultatet en gang til");
 
@@ -770,12 +827,12 @@ async function enNattSpill(t) {
   for (let i = 0; i < 3; i++) await t.klikk('[data-h="spiller-legg-til"]', 40);
   await t.klikk('[data-h="runder"][data-v="5"]');
   tekst = ren(await t.tekst(".vu-stokk"));
-  t.sjekk(/2 varulver · 🔮 synsk · 🔄 bytter · 😈 bråkmaker · 🏡 2 landsbyboere/.test(tekst), `Rollene for sju spillere: ${tekst}`);
+  t.sjekk(T(/2 varulver · 🔮 synsk · 🔄 bytter · 😈 bråkmaker · 🏡 2 landsbyboere/, /2 werewolves · 🔮 seer · 🔄 swapper · 😈 troublemaker · 🏡 2 villagers/, /2 varulve · 🔮 synsk · 🔄 rollebytter · 😈 ballademager · 🏡 2 landsbyboere/).test(tekst), `Rollene for sju spillere: ${tekst}`);
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('.skjerm-en-natt-start')");
   sp = await spill(t);
   t.sjekk(sp.n === 7 && sp.roller.slice().sort().join() === stokk(7), `«Én natt» med sju: feil utdeling ${sp.roller}`);
-  t.sjekk(/Natta tar ca\. 2 minutter/.test(ren(await t.tekst(".skjerm-en-natt-start"))) && (await topptittel()) === "Runde 1 av 5", "«Natta faller på» med sju spillere sier ikke ca. 2 minutter");
+  t.sjekk(T(/Natta tar ca\. 2 minutter/, /The night takes about 2 minutes/, /Natten tager ca\. 2 minutter/).test(ren(await t.tekst(".skjerm-en-natt-start"))) && (await topptittel()) === rundeAv(1, 5), "«Natta faller på» med sju spillere sier ikke ca. 2 minutter");
   const [w1, w2] = alle(sp, "varulv");
   [s] = alle(sp, "synsk");
   [b] = alle(sp, "bytter");
@@ -789,14 +846,16 @@ async function enNattSpill(t) {
       if (rolle === "varulv") {
         const annen = meg === w1 ? w2 : w1;
         const tekst = ren(await t.tekst(".vu-oppdrag"));
-        t.sjekk(tekst.includes(`Den andre varulven er ${navnFor(annen)}.`) && (s0.valg[annen] == null || tekst.includes(`${navnFor(annen)} vil skylde på ${navnFor(l2)}.`)), `Varulven ser ikke den andre varulven: ${tekst}`);
+        const andre = T(`Den andre varulven er ${navnFor(annen)}.`, `The other werewolf is ${navnFor(annen)}.`, `Den anden varulv er ${navnFor(annen)}.`);
+        const skylder = T(`${navnFor(annen)} vil skylde på ${navnFor(l2)}.`, `${navnFor(annen)} wants to blame ${navnFor(l2)}.`, `${navnFor(annen)} vil skyde skylden på ${navnFor(l2)}.`);
+        t.sjekk(tekst.includes(andre) && (s0.valg[annen] == null || tekst.includes(skylder)), `Varulven ser ikke den andre varulven: ${tekst}`);
         t.sjekk(await t.finnes(`[data-h="en-marker"][data-v="${annen}"]:disabled`), "En varulv kan skylde på den andre varulven");
       }
       if (rolle === "brak") {
         // Two names: the button counts down, and a third name replaces the oldest
-        t.sjekk(ren(await t.tekst('[data-h="en-velg"]')) === "Trykk på to navn", "Bråkmakerens knapp ber ikke om to navn");
+        t.sjekk(ren(await t.tekst('[data-h="en-velg"]')) === T("Trykk på to navn", "Tap two names", "Tryk på to navne"), "Bråkmakerens knapp ber ikke om to navn");
         await t.klikk(`[data-h="en-marker"][data-v="${w2}"]`);
-        t.sjekk(ren(await t.tekst('[data-h="en-velg"]')) === "Trykk på ett navn til", "Bråkmakerens knapp ber ikke om ett navn til");
+        t.sjekk(ren(await t.tekst('[data-h="en-velg"]')) === T("Trykk på ett navn til", "Tap one more name", "Tryk på ét navn mere"), "Bråkmakerens knapp ber ikke om ett navn til");
         await t.klikk(`[data-h="en-marker"][data-v="${b}"]`);
         await t.klikk(`[data-h="en-marker"][data-v="${l1}"]`);
         t.sjekk((await spill(t)).tur.markert.join() === [b, l1].join(), "Det tredje navnet erstattet ikke det eldste");
@@ -812,21 +871,27 @@ async function enNattSpill(t) {
   await enDagOgStemme([w1]);
   await t.bilde("en7-avsloring");
   tekst = ren(await t.tekst(".skjerm-en-avsloring"));
-  t.sjekk(/Varulvene vinner runden!/.test(await t.tekst("#skjerm h1")) && /Bytter/i.test(await t.tekst(".vu-pekte .stempel")), `Sju spillere: avsløringen sier «${ren(await t.tekst("#skjerm h1"))}» og stempelet «${await t.tekst(".vu-pekte .stempel")}»`);
-  t.sjekk(tekst.includes("Ingen varulv ble pekt ut. Varulvene var") && tekst.includes(`Bråkmakeren ${navnFor(k)} byttet om rollene til ${navnFor(b)} og ${navnFor(l1)}: ${navnFor(b)} ble landsbyboer, og ${navnFor(l1)} ble varulv.`), `Sju spillere: historien er feil: ${tekst}`);
+  t.sjekk(ulvRunden.test(await t.tekst("#skjerm h1")) && new RegExp(EN_NAVN.bytter, "i").test(await t.tekst(".vu-pekte .stempel")), `Sju spillere: avsløringen sier «${ren(await t.tekst("#skjerm h1"))}» og stempelet «${await t.tekst(".vu-pekte .stempel")}»`);
+  const ingenUlv = T("Ingen varulv ble pekt ut. Varulvene var", "No werewolf was pointed out. The werewolves were", "Ingen varulv blev peget ud. Varulvene var");
+  const brak = T(
+    `Bråkmakeren ${navnFor(k)} byttet om rollene til ${navnFor(b)} og ${navnFor(l1)}: ${navnFor(b)} ble landsbyboer, og ${navnFor(l1)} ble varulv.`,
+    `The troublemaker, ${navnFor(k)}, swapped the roles of ${navnFor(b)} and ${navnFor(l1)}: ${navnFor(b)} became a villager and ${navnFor(l1)} a werewolf.`,
+    `Ballademageren ${navnFor(k)} byttede om på rollerne hos ${navnFor(b)} og ${navnFor(l1)}: ${navnFor(b)} blev landsbyboer, og ${navnFor(l1)} blev varulv.`,
+  );
+  t.sjekk(tekst.includes(ingenUlv) && tekst.includes(brak), `Sju spillere: historien er feil: ${tekst}`);
   t.sjekk((await t.antall(".vu-rolleliste li.ulv")) === 2 && (await t.antall(".vu-rolleliste li")) === 7, "«Hvem var hvem?» viser ikke de to som endte som varulver");
   await t.bilde("en7-avsloring-hel", true);
   // «Avslutt» from the reveal: the round counts, and «Kåringen» comes with the points so far
   await t.klikk('.skjerm-en-avsloring [data-h="avslutt"]');
   knapper = await ark(t, "nei");
-  t.sjekk(knapper.join("|") === "Spill videre|Avslutt" && (await t.tilstand()).skjerm === "en-avsloring", `Arket for «Avslutt» («Én natt»): ${knapper.join(" / ")}`);
+  t.sjekk(knapper.join("|") === AVSLUTT_KNAPPER() && (await t.tilstand()).skjerm === "en-avsloring", `Arket for «Avslutt» («Én natt»): ${knapper.join(" / ")}`);
   await t.klikk('.skjerm-en-avsloring [data-h="avslutt"]');
   await ark(t, "ja");
   await t.vent("document.querySelector('.skjerm-slutt')");
   st = await t.tilstand();
   sp = st.spill;
   t.sjekk(st._aktiv === false && sp.ferdig && sp.avbrutt && sp.spilt === 1 && sp.poeng[l1] === 1 && sp.poeng[w2] === 1 && sp.poeng.reduce((a, x) => a + x, 0) === 2, `«Avslutt» etter én runde: ${JSON.stringify(sp.poeng)}`);
-  t.sjekk(ren(await t.tekst("#skjerm h1")) === `${[l1, w2].sort((a, c) => a - c).map(navnFor).join(" og ")} vinner!`, `Delt seier skrives «${ren(await t.tekst("#skjerm h1"))}»`);
+  t.sjekk(ren(await t.tekst("#skjerm h1")) === `${og(...[l1, w2].sort((a, c) => a - c).map(navnFor))} ${T("vinner!", "win!", "vinder!")}`, `Delt seier skrives «${ren(await t.tekst("#skjerm h1"))}»`);
   gjeng = await kveld(t);
   t.sjekk(gjeng.length === for0.kveld + 2 && gjeng[for0.kveld + 1].resultat.length === 7 && gjeng[for0.kveld + 1].resultat.filter((r) => r.plass === 1).length === 2, `Kveldens gjeng etter «Avslutt» med én runde: ${JSON.stringify(gjeng[for0.kveld + 1])}`);
   t.sjekk(st.stilling.landsby === for0.landsby + 2 && st.stilling.ulv === for0.ulv + 2, `Stillingen etter økt B: ${JSON.stringify(st.stilling)}`);
@@ -841,7 +906,7 @@ async function enNattSpill(t) {
   await ark(t, "ja");
   await t.vent("document.querySelector('.skjerm-slutt')");
   st = await t.tilstand();
-  t.sjekk(/Ingen vant denne gangen/.test(await t.tekst("#skjerm h1")) && st._aktiv === false && !(await t.finnes('[data-h="del"]')) && !(await t.finnes(".skjerm-slutt .pall")), "«Avslutt» før første runde ga ikke en kåring uten vinner");
+  t.sjekk(T(/Ingen vant denne gangen/, /Nobody won this time/, /Ingen vandt denne gang/).test(await t.tekst("#skjerm h1")) && st._aktiv === false && !(await t.finnes('[data-h="del"]')) && !(await t.finnes(".skjerm-slutt .pall")), "«Avslutt» før første runde ga ikke en kåring uten vinner");
   t.sjekk((await kveld(t)).length === for0.kveld + 2 && st.stilling.landsby + st.stilling.ulv === for0.landsby + for0.ulv + 4, "En økt uten ferdige runder ble registrert");
   await t.klikk("#tilbake");
   t.sjekk((await t.finnes('[data-h="nytt"]')) && !(await t.finnes('[data-h="fortsett"]')), "Hjem-skjermen tilbyr «Fortsett» etter «Avslutt» («Én natt»)");
@@ -852,7 +917,7 @@ async function odelagtLagring(t) {
   const odelegg = async (kode, hva) => {
     await t.js(`(() => { const s = JSON.parse(localStorage.getItem("${NOKKEL}")); s._tid = Date.now(); ${kode}; localStorage.setItem("${NOKKEL}", JSON.stringify(s)); })()`);
     await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
-    t.sjekk(ren(await t.tekst("#skjerm h1")) === "Varulven" && (await t.finnes('[data-h="nytt"]')) && !(await t.finnes('[data-h="fortsett"]')), `Ødelagt lagring (${hva}) ga ikke en ren hjem-skjerm`);
+    t.sjekk(ren(await t.tekst("#skjerm h1")) === T("Varulven", "Werewolf", "Varulven") && (await t.finnes('[data-h="nytt"]')) && !(await t.finnes('[data-h="fortsett"]')), `Ødelagt lagring (${hva}) ga ikke en ren hjem-skjerm`);
     await t.klikk('[data-h="nytt"]');
     t.sjekk((await t.finnes(".skjerm-oppsett #spillerboks")) && (await t.finnes('[data-h="start"]:not(:disabled)')), `Ødelagt lagring (${hva}): oppsettet tegnes ikke`);
     await t.klikk("#tilbake");
@@ -870,6 +935,10 @@ async function odelagtLagring(t) {
 
 // VARULVEN_E2E=klassisk or VARULVEN_E2E=en runs one half only (while developing).
 export default async function (t) {
+  SP = t.sprak;
+  ROLLENAVN = ROLLER_TEKST[SP];
+  NOKKEL = t.nokkel("varulven.v1");
+  KVELD = t.nokkel("kveld");
   await t.send("Emulation.setFocusEmulationEnabled", { enabled: true });
   await t.start({ navn: NAVN });
   const del = process.env.VARULVEN_E2E || "";

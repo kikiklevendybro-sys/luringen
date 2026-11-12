@@ -1,0 +1,111 @@
+{
+  "natt": [
+    "The moon rises over the village. Everyone closes their eyes …",
+    "Darkness falls on the village. Deep in the forest, something howls.",
+    "The lights go out, one by one. Not everyone here is what they seem.",
+    "The owls wake up, and the village goes to sleep. Close your eyes – and listen.",
+    "Night settles over the rooftops. Somewhere, someone is sharpening their claws.",
+    "A full moon tonight. Nobody peeks, and nobody says a word.",
+    "The floorboards creak. It's only the wind … surely.",
+    "Fog settles over the village. Someone is hungry tonight.",
+    "The dogs bark at the edge of the forest. Then everything goes completely still.",
+    "The church clock strikes twelve. Everyone closes their eyes.",
+    "The wind howls in the chimney – or is it something else?",
+    "The candles flicker and go out. Night has come."
+  ],
+  "sanger": [
+    "Twinkle, Twinkle, Little Star",
+    "Baa, Baa, Black Sheep",
+    "Row, Row, Row Your Boat",
+    "Old MacDonald Had a Farm",
+    "Hickory Dickory Dock",
+    "Incy Wincy Spider",
+    "Humpty Dumpty",
+    "Mary Had a Little Lamb",
+    "London Bridge Is Falling Down",
+    "Oranges and Lemons",
+    "Hey Diddle Diddle",
+    "The Grand Old Duke of York"
+  ],
+  "morgen": [
+    "The cock crows. The village wakes up – but does everyone?",
+    "The sun peeps over the hill. Everyone opens their eyes.",
+    "There's a smell of fresh bread from the bakery. But what happened in the night?",
+    "The morning is cold and still. Far too still.",
+    "The birds are singing, and the village gathers on the green.",
+    "A new day. Who's missing from the breakfast table?",
+    "The church bells ring. Time for a head count.",
+    "The dew lies heavy on the grass, and some tracks lead into the forest …"
+  ],
+  "fredelig": [
+    "The first night was peaceful. From tonight the wolves hunt for real.",
+    "The wolves only sniffed around tonight. Next night it gets serious.",
+    "No tracks in the snow, no empty beds. Enjoy it – it won't last.",
+    "Everyone is at the breakfast table. For now."
+  ],
+  "dag": [
+    "Who was out last night? Who saw something strange? Talk it over!",
+    "The village gathers on the green. Someone here is lying.",
+    "Look each other in the eye. Who's blinking a bit too much?",
+    "Everyone has an opinion. Only some are right.",
+    "The werewolves are sitting among you. They're smiling too.",
+    "Ask, accuse and defend yourself. But not too keenly – that looks suspicious.",
+    "Someone here has mud under their fingernails. Who?"
+  ],
+  "dagSenere": [
+    "Think back to yesterday. Who voted a bit strangely?",
+    "Who has been quiet since yesterday? And who has been talking a bit too much?"
+  ],
+  "reddet": [
+    "The doctor was in the right place at the right time. Nobody died tonight!",
+    "The wolves struck – but the doctor was quicker. Everyone survived!",
+    "A scream in the night, and then a plaster. The doctor saved someone!",
+    "The wolves went to bed hungry. The doctor saved a life tonight.",
+    "The wolves came – and went home empty-handed.",
+    "The doctor put the plaster in the right place. Nobody died tonight."
+  ],
+  "ingenUt": [
+    "The village couldn't agree. Everyone gets to live – at least until tonight.",
+    "Nobody was voted out. The werewolves grin into their whiskers.",
+    "Disagreement on the green. Night comes all the same.",
+    "The green empties without a verdict. Someone breathes a sigh of relief.",
+    "Nobody got a majority. Maybe that was clever – maybe not."
+  ],
+  "landsbyVant": [
+    "The last werewolf is gone. At last the village can sleep soundly!",
+    "The wolves have been chased deep into the forest. It's party time on the green!",
+    "Peace in the village again – and no more wolf tracks in the snow.",
+    "The howling has stopped. The village is safe again!",
+    "The church bells ring for victory. The wolves are gone!"
+  ],
+  "ulvVant": [
+    "The werewolves have taken over the village. Awoooo!",
+    "Now there are as many wolves as villagers. The village is lost.",
+    "The pack howls at the moon. They fooled every one of you.",
+    "The moon shines over a silent village. The wolves won.",
+    "The village slept too soundly. Now it belongs to the wolves."
+  ],
+  "enNatt": [
+    "One night is all you get. Close your eyes – someone is going to swap places.",
+    "The moon is up, and tonight nothing is certain. Not even who you are.",
+    "The village falls asleep. Someone is sneaking around, swapping things.",
+    "It's dark, and someone has sticky fingers tonight.",
+    "A short night, many secrets. Close your eyes.",
+    "Tonight anything can happen. Tomorrow someone has to take the blame."
+  ],
+  "enMorgen": [
+    "The cock crows. Everyone is here – but is everyone the same as last night?",
+    "The sun comes up. Someone wakes up as somebody else entirely.",
+    "Good morning! Check yourself: do you feel a bit … hairy?",
+    "The village wakes up. Something happened in the night – and someone knows what.",
+    "Nobody is missing from the breakfast table. But at least one of you is a werewolf."
+  ],
+  "enDag": [
+    "Who did what in the night? Tell – or make something up.",
+    "Everyone says they're a villager. Someone is lying.",
+    "Ask the seer. If it really is the seer, that is.",
+    "The role you saw in the night might not be yours any more.",
+    "Four minutes. One werewolf is enough.",
+    "Whoever talks the most doesn't always have the most to hide. Or do they?"
+  ]
+}

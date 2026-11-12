@@ -341,6 +341,75 @@
       "tittel": "Ja og nej-legen – sig ikke ja eller nej! Gratis",
       "frase": "Ja og nej-legen",
       "beskrivelse": "Gratis ja og nej-leg på dansk: svar på snedige spørgsmål uden at sige »ja« eller »nej«. Over 650 spørgsmål til børn, familie og voksne."
+    },
+    "lognhalsen": {
+      "tittel": "To sandheder og en løgn – gratis isbryderleg",
+      "frase": "To sandheder og en løgn",
+      "beskrivelse": "»To sandheder og en løgn« på dansk: få et tema, sig tre ting om dig selv – og lad de andre afsløre løgnen. Gratis isbryderleg for 3–20 med 670 kort.",
+      "sok": [
+        "to sandheder og en løgn eksempler",
+        "isbryder",
+        "lær hinanden at kende",
+        "løgn",
+        "two truths and a lie"
+      ]
+    },
+    "tankeleseren": {
+      "tittel": "Samme bølgelængde? Tankelæserspil for 2–20",
+      "frase": "På samme bølgelængde",
+      "beskrivelse": "Gratis bølgelængdespil på dansk: én ser målet på skiven og giver ét hint – de andre trækker viseren. 610 skalaer for venner, familie og hold.",
+      "sok": [
+        "bølgelængde",
+        "bølgelængdespil",
+        "tankelæser",
+        "samarbejdsspil",
+        "wavelength"
+      ],
+      "samarbeid": true
+    },
+    "sauen": {
+      "tittel": "Tænk som flokken – bliv ikke det sorte får!",
+      "frase": "Tænk som flokken",
+      "beskrivelse": "Gratis selskabsleg på dansk: svar det samme som flest muligt – men bliv ikke det sorte får. 850 spørgsmål, 3–12 spillere, én mobil går rundt.",
+      "sok": [
+        "det sorte får",
+        "flok",
+        "tænk ens",
+        "herd mentality"
+      ]
+    },
+    "detektiven": {
+      "tittel": "20 spørgsmål og »Hvem er jeg?« – gratis gætteleg",
+      "frase": "20 spørgsmål og »Hvem er jeg?«",
+      "beskrivelse": "Én har en hemmelighed – de andre har 20 ja/nej-spørgsmål til at gætte den. Gratis gætteleg på dansk med over 900 forslag: dyr, ting, job og steder.",
+      "sok": [
+        "gætteleg",
+        "hvem er jeg forslag",
+        "ja eller nej",
+        "tyve spørgsmål"
+      ]
+    },
+    "spionen": {
+      "tittel": "Find spionen – gratis selskabsspil for 3–12",
+      "frase": "Find spionen",
+      "beskrivelse": "Alle kender det hemmelige sted – undtagen spionen. Stil snedige spørgsmål, afslør spionen eller bluf dig igennem. Over 140 steder, på én mobil eller flere.",
+      "sok": [
+        "spionspil",
+        "hemmeligt sted",
+        "hvem er spionen",
+        "bluffspil"
+      ]
+    },
+    "varulven": {
+      "tittel": "Varulv uden spilleder – gratis selskabsspil",
+      "frase": "Varulv uden spilleder",
+      "beskrivelse": "Mobilen styrer natten, så alle kan være med. Klassisk varulv med synsk, læge og jæger for 6–12 eller en hurtig runde »Én nat« for 4–10 spillere.",
+      "sok": [
+        "varulvespil",
+        "varulv uden spilleder",
+        "mafia selskabsspil",
+        "én nat varulv"
+      ]
     }
   }
 }

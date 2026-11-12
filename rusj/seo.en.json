@@ -327,6 +327,74 @@
       "tittel": "The Yes/No Game – don’t say yes or no! Free",
       "frase": "The yes/no game",
       "beskrivelse": "The free yes/no game on your phone: answer tricky questions without saying ‘yes’ or ‘no’. Over 650 questions for kids, family and grown-ups."
+    },
+    "lognhalsen": {
+      "tittel": "Two Truths and a Lie – free icebreaker game",
+      "frase": "Two Truths and a Lie",
+      "beskrivelse": "Two Truths and a Lie online: get a theme, say three things about yourself – and let the others spot the lie. A free icebreaker for 3–20, with 670 cards.",
+      "sok": [
+        "two truths and a lie examples",
+        "icebreaker games",
+        "getting to know you games",
+        "lie",
+        "party games"
+      ]
+    },
+    "tankeleseren": {
+      "tittel": "In sync? Mind-reading game for 2–20",
+      "frase": "Mind-reading game",
+      "beskrivelse": "Free mind-reading game: one player sees the target on the dial and gives one hint – the others drag the needle. 610 scales for friends, family and teams.",
+      "sok": [
+        "wavelength",
+        "wavelength game",
+        "mind reader",
+        "cooperative game"
+      ],
+      "samarbeid": true
+    },
+    "sauen": {
+      "tittel": "Think like the flock – don't be the black sheep!",
+      "frase": "Think like the flock",
+      "beskrivelse": "Free party game: give the same answer as most of the group – but don't be the black sheep. 850 questions, 3–12 players, one phone passed round.",
+      "sok": [
+        "black sheep",
+        "flock",
+        "think alike",
+        "herd mentality"
+      ]
+    },
+    "detektiven": {
+      "tittel": "20 questions and ‘Who am I?’ – free guessing game",
+      "frase": "20 questions and ‘Who am I?’",
+      "beskrivelse": "One player has a secret – the others get 20 yes/no questions to guess it. A free guessing game with over 900 ideas: animals, things, jobs and places.",
+      "sok": [
+        "guessing game",
+        "who am i ideas",
+        "yes or no",
+        "twenty questions"
+      ]
+    },
+    "spionen": {
+      "tittel": "Find the spy – free party game for 3–12 players",
+      "frase": "Find the spy",
+      "beskrivelse": "Everyone knows the secret place – except the spy. Ask sly questions, unmask the spy or bluff your way through. Over 140 places, on one phone or several.",
+      "sok": [
+        "spy party game",
+        "secret location game",
+        "who is the spy",
+        "bluffing game"
+      ]
+    },
+    "varulven": {
+      "tittel": "Werewolf without a game master – free party game",
+      "frase": "Werewolf without a game master",
+      "beskrivelse": "The phone runs the night, so everyone plays. Classic werewolf with a seer, a doctor and a hunter for 6–12, or a quick ‘One night’ round for 4–10.",
+      "sok": [
+        "werewolf party game",
+        "werewolf no moderator",
+        "mafia party game",
+        "one night werewolf"
+      ]
     }
   }
 }
