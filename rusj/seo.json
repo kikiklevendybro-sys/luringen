@@ -651,6 +651,19 @@
         "terningspill med bløff",
         "meier terning"
       ]
+    },
+    "stigespillet": {
+      "tittel": "Stigespill på nett – gratis for barn, 1–4 på samme mobil",
+      "frase": "Stigespill",
+      "beskrivelse": "Gratis stigespill på norsk: kast terningen, klatre opp stigene og skli ned sklia. Tre brett, store knapper for de minste – og mobilen kan ta de ledige plassene.",
+      "sok": [
+        "stigespill",
+        "stiger og slanger",
+        "slanger og stiger",
+        "snakes and ladders",
+        "brettspill for barn",
+        "terningspill for barn"
+      ]
     }
   }
 }

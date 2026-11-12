@@ -1,0 +1,753 @@
+/* Stigespillet: whose turn (avatar, name, status, die), the board (an SVG under HTML pieces),
+   the three board themes and the end screen. Everything new is prefixed sg-.
+   Board positions are in units of one square (10 × 10). */
+
+.skjerm-spill {
+  gap: 12px;
+}
+
+/* ---------- Whose turn ---------- */
+
+.sg-tur {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 64px;
+}
+
+.sg-meg {
+  position: relative;
+  flex: none;
+}
+
+.sg-meg > .avatar {
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18), 0 0 0 3px var(--natt), 0 0 0 6px var(--lf);
+  animation: sg-tur-inn 0.45s cubic-bezier(0.25, 1.6, 0.45, 1);
+}
+
+/* The square the player stands on, as a small tag under the avatar */
+.sg-meg-rute {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  min-width: 26px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--lf);
+  box-shadow: 0 0 0 2px var(--natt);
+  color: var(--blekk);
+  font: 900 0.72rem/1.2 var(--font-display);
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+@keyframes sg-tur-inn {
+  from {
+    transform: scale(0.6);
+  }
+}
+
+.sg-hvem {
+  display: grid;
+  flex: 1;
+  gap: 1px;
+  min-width: 0;
+}
+
+.sg-hvem .etikett {
+  color: color-mix(in srgb, var(--lf) 70%, var(--tekst-2));
+}
+
+.sg-hvem h1 {
+  font-size: clamp(1.35rem, 6.4vw, 1.85rem);
+  overflow-wrap: anywhere;
+}
+
+.sg-status {
+  color: var(--tekst-2);
+  font: 700 0.92rem/1.25 var(--font-tekst);
+}
+
+.avatar.sg-robot {
+  background: var(--pf);
+}
+
+/* ---------- The die ---------- */
+
+.sg-terning {
+  --s: 44px;
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--lf) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lf) 55%, var(--strek));
+  cursor: pointer;
+  perspective: 420px;
+}
+
+.sg-terning:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.sg-terning.klar {
+  animation: sg-vink 2.6s ease-in-out 1s infinite;
+}
+
+@keyframes sg-vink {
+  0%,
+  78%,
+  100% {
+    transform: none;
+  }
+  84% {
+    transform: rotate(-8deg) scale(1.06);
+  }
+  90% {
+    transform: rotate(6deg) scale(1.06);
+  }
+  95% {
+    transform: none;
+  }
+}
+
+.sg-hopp,
+.sg-kube {
+  position: relative;
+  display: block;
+  width: var(--s);
+  height: var(--s);
+  transform-style: preserve-3d;
+}
+
+.sg-kube {
+  position: absolute;
+  inset: 0;
+}
+
+.sg-side {
+  position: absolute;
+  inset: 0;
+  border-radius: 17%;
+  background: radial-gradient(circle at 30% 22%, #fffefa 0 28%, #f6e8d2 100%);
+  box-shadow: inset 0 0 0 2.4px #170e2b, inset 0 -3px 0 rgba(23, 14, 43, 0.08);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sg-side.s1 { transform: translateZ(calc(var(--s) / 2)); }
+.sg-side.s6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
+.sg-side.s2 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); }
+.sg-side.s5 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
+.sg-side.s3 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); }
+.sg-side.s4 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }
+
+.sg-side i {
+  position: absolute;
+  width: 20%;
+  height: 20%;
+  margin: -10% 0 0 -10%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #3b2b5c, #170e2b 70%);
+}
+
+.sg-side.s1 i {
+  width: 28%;
+  height: 28%;
+  margin: -14% 0 0 -14%;
+  background: radial-gradient(circle at 40% 35%, #ff6d80, #d42a45 70%);
+}
+
+.sg-side .p1 { left: 27%; top: 27%; }
+.sg-side .p3 { left: 73%; top: 27%; }
+.sg-side .p4 { left: 27%; top: 50%; }
+.sg-side .p5 { left: 50%; top: 50%; }
+.sg-side .p6 { left: 73%; top: 50%; }
+.sg-side .p7 { left: 27%; top: 73%; }
+.sg-side .p9 { left: 73%; top: 73%; }
+
+.sg-skygge {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  width: calc(var(--s) * 1.02);
+  height: calc(var(--s) * 0.3);
+  margin-left: calc(var(--s) * -0.51);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(6, 2, 14, 0.55), transparent);
+}
+
+/* ---------- The board ---------- */
+
+.sg-brett {
+  --b-a: #fff6e3;
+  --b-b: #e6f2c8;
+  --b-ramme: #5f9a3b;
+  --b-tre: #c98b4a;
+  --b-nr: rgba(23, 14, 43, 0.62);
+  position: relative;
+  width: min(100%, calc(100vh - 300px));
+  aspect-ratio: 1;
+  margin: auto; /* centred in the room between the turn line and the dock */
+  border-radius: 4%;
+  box-shadow: 0 0 0 5px var(--b-ramme), 0 0 0 7.5px var(--blekk), 0 10px 0 7.5px var(--blekk), 0 22px 44px var(--skygge);
+  container-type: inline-size;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@supports (height: 100svh) {
+  .sg-brett {
+    width: min(100%, calc(100svh - 300px));
+  }
+}
+
+.sg-brett.tema-verdensrommet {
+  --b-a: #fff4e4;
+  --b-b: #e7defb;
+  --b-ramme: #4b3a8f;
+  --b-tre: #f0bd4f;
+}
+
+.sg-brett.tema-jul {
+  --b-a: #fff6ea;
+  --b-b: #fbdcd3;
+  --b-ramme: #c8323c;
+  --b-tre: #b97a45;
+}
+
+.sg-bunn {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  border-radius: 4%;
+}
+
+.sg-plate {
+  fill: var(--b-a);
+}
+
+.sg-rute {
+  fill: var(--b-a);
+}
+
+.sg-rute.b {
+  fill: var(--b-b);
+}
+
+.sg-rute.start {
+  fill: color-mix(in srgb, var(--mynte) 45%, var(--b-a));
+}
+
+.sg-rute.mal {
+  fill: color-mix(in srgb, var(--lampe) 70%, var(--b-a));
+}
+
+.sg-ramme {
+  fill: none;
+  stroke: var(--blekk);
+  stroke-width: 0.9;
+}
+
+.sg-nr {
+  fill: var(--b-nr);
+  font: 800 2.9px/1 var(--font-display);
+}
+
+.sg-nr.mal {
+  fill: var(--blekk);
+}
+
+.sg-pynt {
+  font-size: 3.6px;
+  text-anchor: middle;
+  opacity: 0.55;
+}
+
+.sg-pynt.mal {
+  font-size: 5.6px;
+  opacity: 1;
+}
+
+/* Ladders: an ink line under a wooden one, hand-drawn bow */
+.sg-stige path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sg-stige-blekk {
+  stroke: var(--blekk);
+  stroke-width: 2.3;
+}
+
+.sg-stige-tre {
+  stroke: var(--b-tre);
+  stroke-width: 1.05;
+}
+
+/* Slides: a coloured chute with an ink edge, a light stripe and a little puddle at the bottom */
+.sg-skli path {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.sg-skli-blekk {
+  stroke: var(--blekk);
+  stroke-width: 5.6;
+}
+
+.sg-skli-renne {
+  stroke: var(--sf);
+  stroke-width: 3.9;
+}
+
+.sg-skli-stripe {
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 0.9;
+  stroke-dasharray: 2.4 2.2;
+}
+
+.sg-skli-topp {
+  fill: var(--sf);
+  stroke: var(--blekk);
+  stroke-width: 0.9;
+}
+
+.sg-skli-dam {
+  fill: color-mix(in srgb, var(--himmel) 40%, transparent);
+  stroke: color-mix(in srgb, var(--blekk) 40%, transparent);
+  stroke-width: 0.5;
+}
+
+/* Two mascots as scenery, peeking over the frame */
+.sg-figur {
+  position: absolute;
+  z-index: 1;
+  width: 13%;
+  pointer-events: none;
+}
+
+.sg-figur .figur-ramme {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+.sg-figur svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sg-figur.f1 {
+  right: -5%;
+  bottom: -6%;
+  transform: rotate(10deg);
+}
+
+.sg-figur.f2 {
+  top: -6%;
+  right: -5%;
+  transform: rotate(-12deg);
+}
+
+/* ---------- Pieces (a coloured disc with the player's animal) ---------- */
+
+.sg-brikke {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 10%;
+  height: 10%;
+  pointer-events: none;
+  transform: translate(calc((var(--x) - 0.5) * 100%), calc((var(--y) - 0.5) * 100%)) scale(var(--sk, 1));
+}
+
+.sg-brikke.na {
+  z-index: 4;
+}
+
+.sg-brikke.flytter {
+  z-index: 6;
+}
+
+.sg-brikke-indre {
+  position: absolute;
+  inset: 4%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 26%, rgba(255, 255, 255, 0.85) 0 9%, transparent 26%),
+    var(--lf);
+  box-shadow: 0 0 0 1.8px var(--blekk), 0 2.8px 0 1.8px var(--blekk);
+}
+
+.sg-dyr {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+@supports (width: 1cqw) {
+  .sg-dyr {
+    font-size: clamp(0.7rem, 5.4cqw, 1.7rem);
+  }
+}
+
+.sg-brikke.na .sg-brikke-indre {
+  animation: sg-vippe 1s ease-in-out infinite;
+}
+
+.sg-brikke.na::before {
+  content: "";
+  position: absolute;
+  inset: -6%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2.5px var(--blekk), 0 0 0 5px var(--lf);
+  animation: sg-ring 1.2s ease-out infinite;
+}
+
+.sg-brikke.flytter::before,
+.sg-brikke.flytter .sg-brikke-indre {
+  animation: none;
+}
+
+@keyframes sg-vippe {
+  50% {
+    transform: translateY(-12%) scale(1.06);
+  }
+}
+
+@keyframes sg-ring {
+  from {
+    opacity: 0.95;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
+.sg-brett.ferdig .sg-brikke.na .sg-brikke-indre,
+.sg-brett.ferdig .sg-brikke .sg-brikke-indre {
+  animation: none;
+}
+
+/* Everyone in turn order, with the square they stand on */
+.sg-rekke {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sg-rekke li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 3px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  transition: transform 0.25s;
+}
+
+.sg-rekke li.na {
+  background: color-mix(in srgb, var(--lf) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--lf);
+  transform: translateY(-3px);
+}
+
+.sg-rekke .avatar {
+  box-shadow: 0 0 0 2px var(--lf);
+}
+
+.sg-rekke b {
+  min-width: 2ch;
+  font: 900 0.95rem/1 var(--font-display);
+  text-align: center;
+}
+
+/* The big «Kast» button in the player's colour */
+.knapp.sg-kast .ikon {
+  font-size: 1.5em;
+}
+
+/* ---------- Setup: «Verdensrommet» must fit a tile on a 320 px phone ---------- */
+
+@media (max-width: 380px) {
+  .flis[data-h="brett"] b {
+    font-size: 1rem;
+  }
+
+  .flis[data-h="brett"] {
+    padding-inline: 10px;
+  }
+}
+
+/* ---------- Home ---------- */
+
+.sg-sist {
+  margin: 4px 0 0;
+  text-align: center;
+}
+
+/* ---------- End screen ---------- */
+
+.sg-vinner {
+  position: relative;
+  display: inline-block;
+  margin-top: 20px;
+}
+
+.sg-vinner .avatar.gigant {
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.18), 0 0 0 6px var(--natt), 0 0 0 9px var(--lf);
+}
+
+.sg-krone {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  font-size: 3rem;
+  transform: translateX(-50%) rotate(-8deg);
+  animation: sg-krone 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) 0.2s both;
+}
+
+@keyframes sg-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30px) rotate(-30deg) scale(0.4);
+  }
+}
+
+.sg-rang {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sg-rang li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 8px 14px 8px 8px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.sg-rang li.leder {
+  background: color-mix(in srgb, var(--lf) 18%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--lf);
+}
+
+.sg-rang .plass-nr {
+  width: 2ch;
+  color: var(--tekst-3);
+  font: 900 0.95rem/1 var(--font-display);
+  text-align: center;
+}
+
+.sg-rang .avatar {
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18), 0 0 0 2.5px var(--lf);
+}
+
+.sg-rang .navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-rang-rute {
+  flex: none;
+  color: var(--tekst-2);
+  font: 800 0.9rem/1 var(--font-display);
+}
+
+.sg-fakta {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sg-faktum {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px 12px 12px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2);
+  color: var(--blekk);
+}
+
+.sg-faktum > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sg-faktum .etikett {
+  color: var(--blekk-2);
+}
+
+.sg-faktum b {
+  font: 900 1.25rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.sg-faktum span:last-child > span:last-child {
+  overflow-wrap: anywhere;
+}
+
+.sg-faktum-ikon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--aksent);
+  box-shadow: 0 0 0 3px var(--blekk);
+  font-size: 1.6rem;
+}
+
+/* ---------- Short screens: the whole board above the dock ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-spill {
+    gap: 8px;
+  }
+
+  .sg-tur {
+    gap: 10px;
+    min-height: 0;
+  }
+
+  .sg-meg > .avatar.mid {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .sg-meg-rute {
+    bottom: -6px;
+    font-size: 0.64rem;
+  }
+
+  .sg-hvem .etikett {
+    display: none;
+  }
+
+  .sg-hvem h1 {
+    font-size: clamp(1.2rem, 6vw, 1.5rem);
+  }
+
+  .sg-status {
+    font-size: 0.8rem;
+  }
+
+  .sg-terning {
+    --s: 36px;
+    width: 52px;
+    height: 52px;
+    border-radius: 15px;
+  }
+
+  .sg-rekke {
+    display: none;
+  }
+
+  .sg-brett {
+    width: min(100% - 16px, calc(100vh - 252px));
+  }
+
+  @supports (height: 100svh) {
+    .sg-brett {
+      width: min(100% - 16px, calc(100svh - 252px));
+    }
+  }
+}
+
+@media (min-width: 768px) {
+  .sg-brett {
+    width: min(100%, calc(100svh - 300px), 600px);
+  }
+}
+
+/* ---------- Landscape phones: the board on the left, whose turn and the die beside it,
+   the kit's dock (the big «Kast») as the column on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  html[data-liggende="side"] .skjerm-spill {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 18px;
+  }
+
+  html[data-liggende="side"] .sg-brett {
+    grid-row: 1;
+    grid-column: 1;
+    width: min(calc(100svh - var(--topp-h, 48px) - 40px), 360px);
+    margin: 8px 6px 12px 8px;
+  }
+
+  html[data-liggende="side"] .sg-tur {
+    grid-row: 1;
+    grid-column: 2;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  html[data-liggende="side"] .skjerm-spill {
+    grid-template-rows: auto auto;
+    align-content: center;
+  }
+
+  html[data-liggende="side"] .sg-brett {
+    grid-row: 1 / span 2;
+  }
+
+  html[data-liggende="side"] .sg-tur {
+    align-self: end;
+  }
+
+  html[data-liggende="side"] .sg-hvem .etikett {
+    display: block;
+  }
+
+  html[data-liggende="side"] .sg-rekke {
+    display: flex;
+    grid-row: 2;
+    grid-column: 2;
+    align-self: start;
+    justify-content: flex-start;
+    margin: 0;
+  }
+}

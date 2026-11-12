@@ -1036,6 +1036,23 @@
         </g>
         ${glimt(18, 22, 6)}`,
     },
+
+    // Stigespillet: a round climber with a wooden ladder on one side and a pink slide curving down the other.
+    stigespillet: {
+      farge: "#ffb347",
+      tegn: (f) => `
+        ${strek("M4 116 L20 8M24 116 L40 8", 10)}${strek("M4 116 L20 8M24 116 L40 8", 4.5, "#c98b4a")}
+        ${strek("M8 96 H27M11 76 H30M14 56 H33M17 36 H36M19 18 H38", 8)}${strek("M8 96 H27M11 76 H30M14 56 H33M17 36 H36M19 18 H38", 3.5, "#c98b4a")}
+        ${hode(f)}
+        ${glans("M28 50 Q31 32 47 23", 6)}
+        ${kinn(80)}
+        ${oyne({ y: 58, dx: -3, dy: -4 })}
+        ${smil(88, 15)}
+        ${strek("M30 38 Q40 32 50 37M70 37 Q80 32 90 38", 5)}
+        ${form("M96 24 Q126 40 112 76 Q104 98 126 112 L116 120 Q90 100 100 74 Q110 46 88 32Z", ROSA)}
+        ${strek("M100 34 Q116 48 107 74 Q100 94 118 110", 2.5, "rgba(255,241,221,.8)")}
+        ${glimt(110, 4, 7)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on
