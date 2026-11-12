@@ -436,6 +436,11 @@
         "kahoot",
         "trivial pursuit"
       ]
+    },
+    "tieren": {
+      "tittel": "Ten answers – the quiz where one slip busts it all",
+      "frase": "Ten answers",
+      "beskrivelse": "Free quiz game: ten answers sit around a ring. Get them right and fill your pot – but one wrong answer and it all goes bust. Dare you take one more?"
     }
   }
 }

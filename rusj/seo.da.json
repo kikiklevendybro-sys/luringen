@@ -452,6 +452,11 @@
         "bezzerwizzer",
         "trivial pursuit"
       ]
+    },
+    "tieren": {
+      "tittel": "Ti svar – quizspillet, hvor ét forkert svar vælter alt",
+      "frase": "Ti svar",
+      "beskrivelse": "Gratis quizspil på dansk: ti svar ligger rundt om en ring. Svar rigtigt, og saml point i puljen – men ét forkert svar, og det hele ryger. Tør du tage et til?"
     }
   }
 }

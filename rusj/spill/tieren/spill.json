@@ -9,5 +9,23 @@
   "mobiler": "en",
   "tagger": ["quiz", "familie", "fest"],
   "rekkefolge": 36,
-  "sok": ["ti svar", "quizspill", "spørrespill", "ja eller nei quiz", "brettspill quiz"]
+  "sok": ["ti svar", "quizspill", "spørrespill", "ja eller nei quiz", "brettspill quiz"],
+  "i18n": {
+    "en": {
+      "navn": "Tenner",
+      "undertittel": "Ten answers",
+      "kort": "Ten answers on the ring. Take one more – or stop while you're ahead?",
+      "beskrivelse": "Free quiz game: ten answers sit around a ring. Get them right and fill your pot – but one wrong answer and it all goes bust. Dare you take one more?",
+      "slug": "tenner",
+      "sok": ["ten answers", "quiz game", "trivia game", "push your luck quiz", "yes or no quiz", "board game quiz", "family quiz game"]
+    },
+    "da": {
+      "navn": "Tieren",
+      "undertittel": "Ti svar",
+      "kort": "Ti svar på ringen. Tag et til – eller stop, mens du fører?",
+      "beskrivelse": "Gratis quizspil på dansk: ti svar ligger rundt om en ring. Svar rigtigt, og saml point i puljen – men ét forkert svar, og det hele ryger. Tør du tage et til?",
+      "slug": "tieren",
+      "sok": ["ti svar", "quizspil", "spørgespil", "ja eller nej quiz", "brætspil quiz", "familiequiz"]
+    }
+  }
 }
