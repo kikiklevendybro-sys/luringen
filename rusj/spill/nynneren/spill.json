@@ -10,5 +10,23 @@
   "tagger": ["fest", "familie", "lag"],
   "rekkefolge": 39,
   "sok": ["nynn låta", "gjett låta", "gjett sangen", "nynnelek", "nynne", "hum"],
-  "alias": ["gjett-sangen"]
+  "alias": ["gjett-sangen"],
+  "i18n": {
+    "en": {
+      "navn": "Humdinger",
+      "undertittel": "Hum the song",
+      "kort": "Hum the song without words – the others guess.",
+      "beskrivelse": "Free humming game with over 500 songs – nursery rhymes, carols, singalong anthems, film songs and pop classics. Hum without words, the others guess!",
+      "slug": "humdinger",
+      "sok": ["hum the song", "guess the song", "humming game", "name that tune", "guess the tune", "song quiz", "music quiz", "Hitster"]
+    },
+    "da": {
+      "navn": "Nynneren",
+      "undertittel": "Nyn sangen",
+      "kort": "Nyn sangen uden ord – de andre gætter.",
+      "beskrivelse": "Gratis nynneleg på dansk med over 300 sange – børnesange, julesange, fællessang, filmmusik og popklassikere. Nyn uden ord, de andre gætter!",
+      "slug": "nynneren",
+      "sok": ["nyn sangen", "gæt sangen", "nynneleg", "nynne", "gæt melodien", "musikquiz", "hum", "Hitster"]
+    }
+  }
 }

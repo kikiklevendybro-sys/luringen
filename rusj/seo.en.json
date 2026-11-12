@@ -438,6 +438,12 @@
       "frase": "Porkies",
       "beskrivelse": "The bluffing game where everyone invents an answer to a weird word, a place name or an odd fact – and you must spot the real one. Free for 3–10, one phone.",
       "sok": ["bluffing game", "dictionary game", "fake answers game"]
+    },
+    "nynneren": {
+      "tittel": "Hum the song – guess the tune! 500 songs, free",
+      "frase": "Hum the song",
+      "beskrivelse": "Free humming game with over 500 songs: nursery rhymes, carols, singalong anthems, film songs and pop classics. Hum without words – the others guess!",
+      "sok": ["music quiz", "music game", "singalong", "christmas songs"]
     }
   }
 }

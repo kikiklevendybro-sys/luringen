@@ -453,6 +453,12 @@
       "frase": "Skrønemageren",
       "beskrivelse": "Bluffespillet, hvor alle digter en forklaring på et mærkeligt ord, et stednavn eller et skørt faktum – og I skal finde den ægte. Gratis for 3–10, én mobil.",
       "sok": ["bluffespil", "ordbluf", "find det rigtige svar"]
+    },
+    "nynneren": {
+      "tittel": "Nyn sangen – gæt melodien! 300 sange, gratis",
+      "frase": "Nyn sangen",
+      "beskrivelse": "Gratis nynneleg med over 300 sange: børnesange, julesange, fællessang, filmmusik og popklassikere. Nyn uden ord – de andre gætter!",
+      "sok": ["musikquiz", "musikleg", "sang", "julesange"]
     }
   }
 }
