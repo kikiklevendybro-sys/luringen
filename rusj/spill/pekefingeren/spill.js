@@ -36,20 +36,20 @@
 
   // One line under the stamp: something for the table to talk about before the next card.
   const LINJER = [
-    "Forsvar deg – ti sekunder!",
-    "Når skjedde det sist?",
-    "Du leser neste kort.",
-    "Hva sier du til tiltalen?",
-    "Hvem pekte du på selv?",
-    "Ta det som et kompliment!",
-    "Én setning til ditt forsvar!",
-    "Fortell om forrige gang!",
+    R.t("Forsvar deg – ti sekunder!"),
+    R.t("Når skjedde det sist?"),
+    R.t("Du leser neste kort."),
+    R.t("Hva sier du til tiltalen?"),
+    R.t("Hvem pekte du på selv?"),
+    R.t("Ta det som et kompliment!"),
+    R.t("Én setning til ditt forsvar!"),
+    R.t("Fortell om forrige gang!"),
   ];
   const LINJER_DELT = [
-    "Ti sekunder hver til å forsvare dere!",
-    "Avgjør det med stein, saks, papir!",
-    "Dere leser neste kort – i kor.",
-    "Pek på hverandre og forklar!",
+    R.t("Ti sekunder hver til å forsvare dere!"),
+    R.t("Avgjør det med stein, saks, papir!"),
+    R.t("Dere leser neste kort – i kor."),
+    R.t("Pek på hverandre og forklar!"),
   ];
 
   // A new card. `bytte`: the card on the table is swapped (skipped), so its number stays.
@@ -66,7 +66,7 @@
   }
 
   // Screen readers don't announce a card that is redrawn in place, so say it.
-  const siKort = (S) => R.si(`Kort ${S.spill.nr}. ${D.prefiks.replace(" …", "")} ${ALLE[S.spill.kort].t}?`);
+  const siKort = (S) => R.si(`${R.t("Kort {nr}.", { nr: S.spill.nr })} ${D.prefiks.replace(" …", "")} ${ALLE[S.spill.kort].t}?`);
 
   function poengRader(S) {
     return alle(S.spill).map((i) => ({ i, poeng: S.spill.poeng[i] || 0 }));
@@ -79,9 +79,9 @@
 
   // «+1 til Kari» / «+1 til begge» / «+1 til alle tre»
   function plussTekst(vinnere) {
-    if (vinnere.length === 1) return `+1 til ${R.navn(vinnere[0])}`;
-    if (vinnere.length === 2) return "+1 til begge";
-    return `+1 til alle ${vinnere.length}`;
+    if (vinnere.length === 1) return R.t("+1 til {navn}", { navn: R.navn(vinnere[0]) });
+    if (vinnere.length === 2) return R.t("+1 til begge");
+    return R.t("+1 til alle {n}", { n: vinnere.length });
   }
 
   // The latest statements a player won (at most three), for the banner and the diploma.
@@ -120,7 +120,7 @@
     R.lyd.trommevirvel(0.45);
     R.vibrer([30, 40, 30, 40, 120]);
     const hvem = navneliste(vinnere);
-    R.si(`${hvem} ${vinnere.length > 1 ? "deler kortet" : "er mest sannsynlig"}: til å ${ALLE[sp.kort].t}. ${plussTekst(vinnere)}.`);
+    R.si(`${vinnere.length > 1 ? R.t("{navn} deler kortet: til å {utsagn}.", { navn: hvem, utsagn: ALLE[sp.kort].t }) : R.t("{navn} er mest sannsynlig: til å {utsagn}.", { navn: hvem, utsagn: ALLE[sp.kort].t })} ${plussTekst(vinnere)}.`);
   }
 
   function kortet(S, kompakt) {
@@ -129,11 +129,11 @@
     const p = pakke(k.p);
     return R.ui.storkort({
       etikett: `${p.ikon} ${p.navn}`,
-      nr: sp.lengde ? `${sp.nr} av ${sp.lengde}` : `#${sp.nr}`,
+      nr: sp.lengde ? R.t("{n} av {alle}", { n: sp.nr, alle: sp.lengde }) : `#${sp.nr}`,
       tekstHtml: `<span class="prefiks">${esc(D.prefiks)}</span>${esc(k.t)}?`,
       klasse: kompakt ? "aksent" : "",
       sveip: kompakt ? null : "neste",
-      fot: !kompakt && sisteKort(sp) ? (sp.poeng ? "Siste kort – så er det kåring." : "Siste kort!") : null,
+      fot: !kompakt && sisteKort(sp) ? (sp.poeng ? R.t("Siste kort – så er det kåring.") : R.t("Siste kort!")) : null,
       kompakt,
     });
   }
@@ -144,15 +144,15 @@
     const v = sp.siste.vinnere;
     const k = ALLE[sp.siste.kort];
     const siste = sisteKort(sp);
-    const angre = sp.angre ? R.ui.lenke("↶ Angre", "angre", { id: "angre" }) : "";
-    const dokk = R.ui.dokk(R.ui.knapp(siste ? "Til kåringen" : "Neste kort", "videre"), R.ui.lenkerad(angre, siste ? "" : R.ui.lenke("Avslutt", "slutt")));
+    const angre = sp.angre ? R.ui.lenke(R.t("↶ Angre"), "angre", { id: "angre" }) : "";
+    const dokk = R.ui.dokk(R.ui.knapp(siste ? R.t("Til kåringen") : R.t("Neste kort"), "videre"), R.ui.lenkerad(angre, siste ? "" : R.ui.lenke(R.t("Avslutt"), "slutt")));
     if (!v.length) {
       // «Ingen poeng» on the last card: one calm stop before the crowning, so it can still be undone.
       return `
         <div class="banner peke-kaaret">
-          <p class="etikett">Kort ${sp.nr} av ${sp.lengde}</p>
-          <h1 id="skjerm-tittel">Ingen poeng</h1>
-          <p class="peke-kaaret-til">Det var siste kort. Nå er det kåring!</p>
+          <p class="etikett">${esc(R.t("Kort {nr} av {alle}", { nr: sp.nr, alle: sp.lengde }))}</p>
+          <h1 id="skjerm-tittel">${esc(R.t("Ingen poeng"))}</h1>
+          <p class="peke-kaaret-til">${esc(R.t("Det var siste kort. Nå er det kåring!"))}</p>
         </div>
         ${dokk}`;
     }
@@ -161,9 +161,9 @@
     return `
       <div class="banner aksent peke-kaaret${delt ? " delt" : ""}">
         <div class="peke-kaaret-figurer">${v.map((i) => R.avatar(i, delt ? "stor" : "gigant")).join("")}</div>
-        <h1 id="skjerm-tittel">${v.length > 3 ? `${v.length} spillere` : esc(navneliste(v))}</h1>
-        <div class="stempel-sted"><span class="stempel aksent">${delt ? "Delt!" : "Mest sannsynlig!"}</span></div>
-        <p class="peke-kaaret-til">… til å ${esc(k.t)}</p>
+        <h1 id="skjerm-tittel">${v.length > 3 ? esc(R.t("{n} spillere", { n: v.length })) : esc(navneliste(v))}</h1>
+        <div class="stempel-sted"><span class="stempel aksent">${esc(delt ? R.t("Delt!") : R.t("Mest sannsynlig!"))}</span></div>
+        <p class="peke-kaaret-til">${esc(R.t("… til å {utsagn}", { utsagn: k.t }))}</p>
         <p class="peke-kaaret-linje"><b>${esc(plussTekst(v))}</b><span>${esc(linjer[(sp.fro + sp.nr) % linjer.length])}</span></p>
       </div>
       ${dokk}`;
@@ -215,18 +215,18 @@
     },
 
     regler: {
-      intro: "Et utsagn dukker opp. Alle peker samtidig på den i gjengen som passer best.",
+      intro: R.t("Et utsagn dukker opp. Alle peker samtidig på den i gjengen som passer best."),
       steg: [
-        ["Les høyt", "Én leser utsagnet: «Hvem er mest sannsynlig til å …»"],
-        ["Tell ned", "Trykk på knappen. Når mobilen sier PEK, peker alle på én person – samtidig."],
-        ["Kår vinneren", "Trykk på den som fikk flest fingrer. Like mange? Velg «Delt mellom flere», så får alle sammen ett poeng hver."],
+        [R.t("Les høyt"), R.t("Én leser utsagnet: «Hvem er mest sannsynlig til å …»")],
+        [R.t("Tell ned"), R.t("Trykk på knappen. Når mobilen sier PEK, peker alle på én person – samtidig.")],
+        [R.t("Kår vinneren"), R.t("Trykk på den som fikk flest fingrer. Like mange? Velg «Delt mellom flere», så får alle sammen ett poeng hver.")],
       ],
       tips: [
-        "Den som får kortet, får også noe å svare for. Lov å forsvare seg – men bare i ti sekunder.",
-        "Etter 10 eller 20 kort kommer kåringen av seg selv – med diplom til alle som vant et kort.",
-        "Trykket feil? «Angre» tar poenget tilbake.",
-        "Sveip kortet til siden for å bytte det ut.",
-        "Skru av poeng hvis dere bare vil prate.",
+        R.t("Den som får kortet, får også noe å svare for. Lov å forsvare seg – men bare i ti sekunder."),
+        R.t("Etter 10 eller 20 kort kommer kåringen av seg selv – med diplom til alle som vant et kort."),
+        R.t("Trykket feil? «Angre» tar poenget tilbake."),
+        R.t("Sveip kortet til siden for å bytte det ut."),
+        R.t("Skru av poeng hvis dere bare vil prate."),
       ],
     },
 
@@ -235,35 +235,35 @@
         tilbake: "portal",
         vis: (S) =>
           R.ui.spillhjem({
-            slagordHtml: "Les utsagnet. Tell ned.<br><em>Alle peker samtidig.</em>",
+            slagordHtml: `${esc(R.t("Les utsagnet. Tell ned."))}<br><em>${esc(R.t("Alle peker samtidig."))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
-              fortsettTekst: pagar(S) ? `Fortsett · kort ${S.spill.nr}${S.spill.lengde ? ` av ${S.spill.lengde}` : ""}` : "",
-              ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+              fortsettTekst: pagar(S) ? (S.spill.lengde ? R.t("Fortsett · kort {nr} av {alle}", { nr: S.spill.nr, alle: S.spill.lengde }) : R.t("Fortsett · kort {nr}", { nr: S.spill.nr })) : "",
+              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
-              ["3–20", "spillere"],
-              [String(ALLE.length), "utsagn"],
-              ["0", "reklame"],
+              ["3–20", R.t("spillere")],
+              [String(ALLE.length), R.t("utsagn")],
+              ["0", R.t("reklame")],
             ],
           }),
         inn: () => R.slippVaken(),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
           const lengdeHjelp = !o.lengde
-            ? "Dere spiller til noen trykker «Avslutt»."
+            ? R.t("Dere spiller til noen trykker «Avslutt».")
             : o.poeng
-              ? `Etter ${o.lengde} kort kommer kåringen av seg selv.`
-              : `Etter ${o.lengde} kort er runden ferdig.`;
+              ? R.t("Etter {n} kort kommer kåringen av seg selv.", { n: o.lengde })
+              : R.t("Etter {n} kort er runden ferdig.", { n: o.lengde });
           return `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           <section class="seksjon">
-            <div class="seksjon-hode"><h2>Velg pakker</h2><span class="tall">${o.pakker.length} valgt</span></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Velg pakker"))}</h2><span class="tall">${esc(R.t("{n} valgt", { n: o.pakker.length }))}</span></div>
             ${R.ui.fliser(
               "pakke",
               PAKKER.map((p) => ({ v: p.id, tittel: p.navn, tekst: `${p.tekst} · ${p.utsagn.length}`, ikon: p.ikon })),
@@ -271,57 +271,57 @@
             )}
           </section>
           <section class="seksjon">
-            <h2 id="lengde-tittel">Hvor mange kort?</h2>
-            ${R.ui.seg("lengde", LENGDER.map((n) => [String(n), n ? String(n) : "Fritt"]), String(o.lengde), { etikett: "Hvor mange kort?" })}
+            <h2 id="lengde-tittel">${esc(R.t("Hvor mange kort?"))}</h2>
+            ${R.ui.seg("lengde", LENGDER.map((n) => [String(n), n ? String(n) : R.t("Fritt")]), String(o.lengde), { etikett: R.t("Hvor mange kort?") })}
             <p class="hjelp">${esc(lengdeHjelp)}</p>
           </section>
-          ${R.ui.bryter("poeng", o.poeng, "Tell poeng", "Trykk på den som fikk flest fingrer – og se hvem som vinner til slutt.")}
+          ${R.ui.bryter("poeng", o.poeng, R.t("Tell poeng"), R.t("Trykk på den som fikk flest fingrer – og se hvem som vinner til slutt."))}
           ${o.poeng ? R.ui.spillere({ min: 3, max: 20 }) : ""}
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { av: !o.pakker.length }))}`;
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { av: !o.pakker.length }))}`;
         },
       },
 
       kort: {
-        tittel: (S) => `Kort ${S.spill.nr}${S.spill.lengde ? ` av ${S.spill.lengde}` : ""}`,
+        tittel: (S) => (S.spill.lengde ? R.t("Kort {nr} av {alle}", { nr: S.spill.nr, alle: S.spill.lengde }) : R.t("Kort {nr}", { nr: S.spill.nr })),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           if (sp.fase === "kaaret") return kaaret(S);
           if (sp.fase !== "velg") {
             // (Short on purpose: with a name in it the links wrap and the big button jumps.)
-            const angre = sp.angre ? R.ui.lenke("↶ Angre", "angre", { id: "angre" }) : "";
+            const angre = sp.angre ? R.ui.lenke(R.t("↶ Angre"), "angre", { id: "angre" }) : "";
             return `
-              <h1 class="vh" id="skjerm-tittel">Kort ${sp.nr}</h1>
+              <h1 class="vh" id="skjerm-tittel">${esc(R.t("Kort {nr}", { nr: sp.nr }))}</h1>
               ${kortet(S, false)}
-              <p class="sveip-hint" aria-hidden="true">← Sveip for å bytte kort →</p>
+              <p class="sveip-hint" aria-hidden="true">${esc(R.t("← Sveip for å bytte kort →"))}</p>
               ${R.ui.dokk(
-                R.ui.knapp("3 · 2 · 1 – PEK!", "pek", { variant: "stor", ikon: "👉" }),
-                R.ui.lenkerad(angre, R.ui.lenke("Bytt kort", "neste"), sp.poeng ? R.ui.lenke("Avslutt", "slutt") : R.ui.lenke("Avslutt", "avslutt")),
+                R.ui.knapp(R.t("3 · 2 · 1 – PEK!"), "pek", { variant: "stor", ikon: "👉" }),
+                R.ui.lenkerad(angre, R.ui.lenke(R.t("Bytt kort"), "neste"), sp.poeng ? R.ui.lenke(R.t("Avslutt"), "slutt") : R.ui.lenke(R.t("Avslutt"), "avslutt")),
               )}`;
           }
           if (sp.delt) {
             const n = sp.valgt.length;
             return `
-              <h1 class="vh">Kort ${sp.nr}: hvem fikk like mange fingrer?</h1>
+              <h1 class="vh">${esc(R.t("Kort {nr}: hvem fikk like mange fingrer?", { nr: sp.nr }))}</h1>
               ${kortet(S, true)}
               <section class="seksjon">
-                <div class="seksjon-hode"><h2 id="skjerm-tittel">Hvem delte førsteplassen?</h2><span class="tall">${n} valgt</span></div>
-                <p class="peke-hjelp">Trykk på alle som fikk flest fingrer.</p>
+                <div class="seksjon-hode"><h2 id="skjerm-tittel">${esc(R.t("Hvem delte førsteplassen?"))}</h2><span class="tall">${esc(R.t("{n} valgt", { n }))}</span></div>
+                <p class="peke-hjelp">${esc(R.t("Trykk på alle som fikk flest fingrer."))}</p>
                 ${R.ui.velgere("velg", alle(sp), sp.valgt)}
               </section>
               ${R.ui.dokk(
-                R.ui.knapp(n < 2 ? "Velg minst to" : `Delt! ${plussTekst(sp.valgt)}`, "delt-ferdig", { av: n < 2 }),
-                R.ui.lenkerad(R.ui.lenke("Bare én fikk flest", "delt"), R.ui.lenke("Avslutt", "slutt")),
+                R.ui.knapp(n < 2 ? R.t("Velg minst to") : R.t("Delt! {pluss}", { pluss: plussTekst(sp.valgt) }), "delt-ferdig", { av: n < 2 }),
+                R.ui.lenkerad(R.ui.lenke(R.t("Bare én fikk flest"), "delt"), R.ui.lenke(R.t("Avslutt"), "slutt")),
               )}`;
           }
           return `
-            <h1 class="vh">Kort ${sp.nr}: hvem fikk flest fingrer?</h1>
+            <h1 class="vh">${esc(R.t("Kort {nr}: hvem fikk flest fingrer?", { nr: sp.nr }))}</h1>
             ${kortet(S, true)}
             <section class="seksjon">
-              <h2 id="skjerm-tittel">Hvem fikk flest fingrer?</h2>
+              <h2 id="skjerm-tittel">${esc(R.t("Hvem fikk flest fingrer?"))}</h2>
               ${R.ui.velgere("vinner", alle(sp), null)}
             </section>
-            ${R.ui.dokk(R.ui.knapp2("Delt mellom flere", "delt"), R.ui.lenkerad(R.ui.lenke("Ingen poeng", "uavgjort"), R.ui.lenke("Avslutt", "slutt")))}`;
+            ${R.ui.dokk(R.ui.knapp2(R.t("Delt mellom flere"), "delt"), R.ui.lenkerad(R.ui.lenke(R.t("Ingen poeng"), "uavgjort"), R.ui.lenke(R.t("Avslutt"), "slutt")))}`;
         },
         inn() {
           R.holdVaken();
@@ -330,18 +330,18 @@
 
       slutt: {
         // «Kåringen» only when players are ranked; without points the top bar shows the game's name.
-        tittel: (S) => (S.spill && S.spill.poeng ? "Kåringen" : null),
+        tittel: (S) => (S.spill && S.spill.poeng ? R.t("Kåringen") : null),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
           const sp = S.spill;
-          const dokk = R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "nytt"), `<a class="lenke" href="/">Alle spill</a>`));
+          const dokk = R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`));
           if (!sp.poeng) {
             return `
               ${R.ui.banner({
-                etikett: "Uten poeng",
-                tittel: sp.spilt === 1 ? "Ett kort – ferdig!" : `${sp.spilt} kort – ferdig!`,
-                tekst: "Ingen kåring denne gangen. Skru på «Tell poeng» for å se hvem gjengen peker ut til slutt.",
+                etikett: R.t("Uten poeng"),
+                tittel: sp.spilt === 1 ? R.t("Ett kort – ferdig!") : R.t("{n} kort – ferdig!", { n: sp.spilt }),
+                tekst: R.t("Ingen kåring denne gangen. Skru på «Tell poeng» for å se hvem gjengen peker ut til slutt."),
                 stemning: "",
               })}
               ${R.ui.flereSpill()}
@@ -353,15 +353,15 @@
           const vinnere = harPoeng ? rader.filter((r) => r.poeng === best.poeng).map((r) => r.i) : [];
           // «Blant annet til å …»: three statements for a single winner, one each when the win is shared.
           let blantAnnet = "";
-          if (vinnere.length === 1) blantAnnet = `Blant annet til å ${R.ramsOpp(vunnetAv(sp, vinnere[0]).map((k) => ALLE[k].t))}.`;
-          else if (vinnere.length > 1 && vinnere.length <= 3) blantAnnet = `Blant annet: ${R.ramsOpp(vinnere.map((i) => `${R.navn(i)} til å ${ALLE[vunnetAv(sp, i, 1)[0]].t}`))}.`;
+          if (vinnere.length === 1) blantAnnet = R.t("Blant annet til å {utsagn}.", { utsagn: R.ramsOpp(vunnetAv(sp, vinnere[0]).map((k) => ALLE[k].t)) });
+          else if (vinnere.length > 1 && vinnere.length <= 3) blantAnnet = R.t("Blant annet: {liste}.", { liste: R.ramsOpp(vinnere.map((i) => R.t("{navn} til å {utsagn}", { navn: R.navn(i), utsagn: ALLE[vunnetAv(sp, i, 1)[0]].t }))) });
           const dipl = diplomer(S);
           return `
             ${R.ui.banner({
               klasse: "aksent",
-              etikett: !harPoeng ? "Ingen poeng" : vinnere.length > 1 ? "Like sannsynlige til alt" : "Mest sannsynlig til alt",
-              tittel: !harPoeng ? "Ingen vinner denne gangen" : vinnere.length > 3 ? `${vinnere.length} spillere vinner!` : `${navneliste(vinnere)} vinner!`,
-              tekst: harPoeng ? blantAnnet : "Ingen fikk poeng. Neste gang: trykk på den som fikk flest fingrer.",
+              etikett: !harPoeng ? R.t("Ingen poeng") : vinnere.length > 1 ? R.t("Like sannsynlige til alt") : R.t("Mest sannsynlig til alt"),
+              tittel: !harPoeng ? R.t("Ingen vinner denne gangen") : vinnere.length > 3 ? R.t("{n} spillere vinner!", { n: vinnere.length }) : R.t("{navn} vinner!|{navn} vinner!", { navn: navneliste(vinnere), n: vinnere.length }),
+              tekst: harPoeng ? blantAnnet : R.t("Ingen fikk poeng. Neste gang: trykk på den som fikk flest fingrer."),
               stemning: harPoeng ? "jubel" : "",
             })}
             ${harPoeng ? R.ui.pall(rader) : ""}
@@ -369,17 +369,17 @@
             ${
               dipl.length
                 ? `<section class="seksjon peke-diplomer" aria-labelledby="diplom-tittel">
-                    <h2 id="diplom-tittel">Diplomer</h2>
+                    <h2 id="diplom-tittel">${esc(R.t("Diplomer"))}</h2>
                     <ul class="peke-diplomliste">${dipl
                       .map(
                         (r) => `<li class="peke-diplom">
                           <p class="peke-diplom-hode">${R.avatar(r.i)}<b>${esc(R.navn(r.i))}</b></p>
-                          <p class="etikett">Mest sannsynlig til å</p>
+                          <p class="etikett">${esc(R.t("Mest sannsynlig til å"))}</p>
                           <p class="peke-diplom-tekst">${esc(R.ramsOpp(vunnetAv(sp, r.i).map((k) => ALLE[k].t)))}.</p>
                         </li>`,
                       )
                       .join("")}</ul>
-                    ${R.ui.knapp2(dipl.length === 1 ? "Del diplomet" : "Del diplomene", "del")}
+                    ${R.ui.knapp2(dipl.length === 1 ? R.t("Del diplomet") : R.t("Del diplomene"), "del")}
                   </section>`
                 : ""
             }
@@ -449,7 +449,7 @@
         if (!pagar(S) || S.spill.fase !== "les") return;
         const sp = S.spill;
         sp.angre = null;
-        if (!(await R.nedtelling(["3", "2", "1", "PEK!"], 700))) return;
+        if (!(await R.nedtelling(["3", "2", "1", R.t("PEK!")], 700))) return;
         R.lyd.pek();
         R.vibrer([60, 40, 120]);
         if (sp.poeng) {
@@ -457,7 +457,7 @@
           sp.valgt = [];
           sp.delt = false;
           R.vis();
-          R.si("Hvem fikk flest fingrer?");
+          R.si(R.t("Hvem fikk flest fingrer?"));
           const h = R.$("#skjerm-tittel");
           if (h) h.scrollIntoView({ behavior: R.rolig() ? "auto" : "smooth", block: "center" });
           return;
@@ -496,7 +496,7 @@
         sp.delt = !sp.delt;
         sp.valgt = [];
         R.vis();
-        R.si(sp.delt ? "Trykk på alle som fikk flest fingrer." : "Hvem fikk flest fingrer?");
+        R.si(sp.delt ? R.t("Trykk på alle som fikk flest fingrer.") : R.t("Hvem fikk flest fingrer?"));
       },
       velg(el, e, S) {
         const sp = S.spill;
@@ -558,20 +558,20 @@
         sp.angre = null;
         R.lyd.snu();
         R.gaTil("kort");
-        R.toast(a.vinnere.length === 1 ? `Angret +1 til ${R.navn(a.vinnere[0])}` : a.vinnere.length ? "Angret delt poeng" : "Angret «ingen poeng»");
+        R.toast(a.vinnere.length === 1 ? R.t("Angret +1 til {navn}", { navn: R.navn(a.vinnere[0]) }) : a.vinnere.length ? R.t("Angret delt poeng") : R.t("Angret «ingen poeng»"));
         const h = R.$("#skjerm-tittel");
         if (h) h.scrollIntoView({ behavior: "auto", block: "center" });
       },
       // «Avslutt» with points: straight to the crowning (the sheet says so).
       async slutt(el, e, S) {
         const fortsatt = R.vakt();
-        const ja = await R.bekreft("Avslutte spillet?", "Dere går rett til kåringen. Den med flest poeng vinner.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere går rett til kåringen. Den med flest poeng vinner."), R.t("Avslutt"), R.t("Spill videre"));
         if (!ja || !fortsatt() || !pagar(S)) return;
         tilSlutt(S, true);
       },
       async avslutt(el, e, S) {
         const fortsatt = R.vakt();
-        if ((await R.bekreft("Avslutte spillet?", "Dere kan alltid starte et nytt.", "Avslutt", "Spill videre")) && fortsatt()) {
+        if ((await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere kan alltid starte et nytt."), R.t("Avslutt"), R.t("Spill videre"))) && fortsatt()) {
           if (S.spill) R.statistikk("ferdig", { kort: S.spill.spilt, spillere: 0, poeng: false, lengde: S.spill.lengde, tidlig: true });
           S.spill = null;
           R.gaTil("hjem");
@@ -580,9 +580,9 @@
       // The diplomas as text, for the group chat.
       del(el, e, S) {
         if (!S.spill || !S.spill.poeng) return;
-        const linjer = diplomer(S).map((r) => `${R.navn(r.i)} – mest sannsynlig til å ${R.ramsOpp(vunnetAv(S.spill, r.i).map((k) => ALLE[k].t))}.`);
+        const linjer = diplomer(S).map((r) => R.t("{navn} – mest sannsynlig til å {utsagn}.", { navn: R.navn(r.i), utsagn: R.ramsOpp(vunnetAv(S.spill, r.i).map((k) => ALLE[k].t)) }));
         if (!linjer.length) return;
-        R.del("Pekefingeren", [`${linjer.length === 1 ? "Diplom" : "Diplomer"} fra Pekefingeren 👉`, ...linjer].join("\n"), location.origin + "/pekefingeren/");
+        R.del(R.app.navn, [linjer.length === 1 ? R.t("Diplom fra {spill} 👉", { spill: R.app.navn }) : R.t("Diplomer fra {spill} 👉", { spill: R.app.navn }), ...linjer].join("\n"), location.origin + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "pekefingeren") + "/");
       },
       igjen(el, e, S) {
         S.spill = null;

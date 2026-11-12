@@ -4,6 +4,9 @@
 // reload on the spotlight, back + continue, «Spill videre» in the sheet, the crowning that arrives
 // by itself after the last card (shared win, diplomas, share, «Kveldens gjeng»). Then a session
 // without points (ends by itself, no crowning) and the deep link #jul.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en pekefingeren): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the names, the numbers, the state and the links (t.forside,
+// t.nokkel). The kit's accessibility walk at the end runs in Norwegian only.
 
 // A nervous double tap: a real finger tap on one button and, about 90 ms later, a second real tap
 // on the button the new screen has put under the thumb. (Real taps: the kit only guards against
@@ -29,7 +32,8 @@ async function toTrykk(t, forst, deretter) {
 export default async function (t) {
   const pause = () => t.sov(420); // taps right after a screen change are ignored on purpose
   const enH1 = async (hvor) => t.sjekk((await t.antall("#skjerm h1")) === 1, `Skjermen «${hvor}» skal ha nøyaktig én h1`);
-  const kveld = () => t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  const kveld = () => t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
+  const KAARING = t.sprak === "en" ? /results/i : /kåringen/i; // the title of the end screen
   const hendelser = () => t.js(`window.Rusj._statKo.map((s) => s.h)`);
 
   await t.start({ navn: ["Testspiller A", "Testspiller B", "Testspiller C"] });
@@ -45,7 +49,7 @@ export default async function (t) {
   })();
   const fliser = await t.js(`Array.from(document.querySelectorAll('[data-h="pakke"]')).map((f) => f.dataset.v)`);
   t.sjekk(fliser.includes("jul") && fliser[sesong ? 0 : fliser.length - 1] === "jul", `Julepakken skal stå ${sesong ? "først" : "sist"}: ${fliser.join(", ")}`);
-  t.sjekk(/Jul og julebord/.test(await t.tekst('[data-h="pakke"][data-v="jul"]')), "Julepakken mangler beskrivelsen «Jul og julebord»");
+  t.sjekk(!t.norsk || /Jul og julebord/.test(await t.tekst('[data-h="pakke"][data-v="jul"]')), "Julepakken mangler beskrivelsen «Jul og julebord»");
   t.sjekk(!(await t.tilstand()).oppsett.pakker.includes("jul"), "Julepakken skal ikke være valgt fra start");
 
   // Session length: 20 by default, here 10
@@ -63,7 +67,8 @@ export default async function (t) {
   await t.bilde("kort");
   t.sjekk((await t.tilstand())._aktiv === true, "Et pågående spill er ikke merket som aktivt");
   t.sjekk((await hendelser()).includes("start"), "Spillet meldte ikke «start» til statistikken");
-  t.sjekk(/1 av 10/i.test(await t.tekst("#topp-tittel")) && /1 av 10/.test(await t.tekst(".storkort-nr")), "Kortet viser ikke «1 av 10»");
+  const enAvTi = t.norsk ? /1 av 10/i : /1 \S+ 10/i;
+  t.sjekk(enAvTi.test(await t.tekst("#topp-tittel")) && enAvTi.test(await t.tekst(".storkort-nr")), "Kortet viser ikke «1 av 10»");
   const forste = (await t.tilstand()).spill.kort;
 
   // Swipe: another card, but still card 1 of the session
@@ -101,8 +106,8 @@ export default async function (t) {
   await t.vent("document.querySelector('.peke-kaaret')");
   s = await t.tilstand();
   t.sjekk(s.spill.poeng[1] === 1 && s.spill.fase === "kaaret", "Poenget ble ikke gitt til spiller 2");
-  t.sjekk(/Testspiller B/.test(await t.tekst("#skjerm h1")) && /mest sannsynlig/i.test(await t.tekst(".stempel")), "Rampelyset viser ikke hvem som er mest sannsynlig");
-  t.sjekk(/\+1 til Testspiller B/.test(await t.tekst(".peke-kaaret-linje")), "Rampelyset sier ikke «+1 til Testspiller B»");
+  t.sjekk(/Testspiller B/.test(await t.tekst("#skjerm h1")) && (!t.norsk || /mest sannsynlig/i.test(await t.tekst(".stempel"))), "Rampelyset viser ikke hvem som er mest sannsynlig");
+  t.sjekk((t.norsk ? /\+1 til Testspiller B/ : /\+1 \S+ Testspiller B/).test(await t.tekst(".peke-kaaret-linje")), "Rampelyset sier ikke «+1 til Testspiller B»");
   t.sjekk(!(await t.finnes("#toast.vis")), "«+1 til …» skal vises i rampelyset, ikke som en toast");
   t.sjekk(await t.finnes('#skjerm .dokk [data-h="slutt"]'), "«Avslutt» mangler i rampelyset");
   t.sjekk(await t.friForDokk(".peke-kaaret-linje"), "Linja under stempelet havner bak knappene");
@@ -136,7 +141,7 @@ export default async function (t) {
   await t.bilde("angre");
   await pause();
   await t.klikk('[data-h="angre"]');
-  t.sjekk(/Angret \+1 til Testspiller B/.test(await t.tekst("#toast")), "«Angre» sier ikke hva som ble angret");
+  t.sjekk((t.norsk ? /Angret \+1 til Testspiller B/ : /\+1 \S+ Testspiller B/).test(await t.tekst("#toast")), "«Angre» sier ikke hva som ble angret");
   s = await t.tilstand();
   t.sjekk(s.spill.poeng[1] === 0 && s.spill.fase === "velg" && s.spill.kort === andre && s.spill.nr === 1, "«Angre» på neste kort tok ikke tilbake poenget og kortet");
   await pause();
@@ -150,14 +155,14 @@ export default async function (t) {
   t.sjekk(await t.js(`document.querySelector('[data-h="delt-ferdig"]').disabled`), "«Delt» skal kreve minst to navn");
   await t.klikk('[data-h="velg"][data-v="0"]');
   await t.klikk('[data-h="velg"][data-v="1"]');
-  t.sjekk(/Delt! \+1 til begge/.test(await t.tekst('[data-h="delt-ferdig"]')), `Knappen skal si «Delt! +1 til begge»: «${await t.tekst('[data-h="delt-ferdig"]')}»`);
+  t.sjekk(!t.norsk || /Delt! \+1 til begge/.test(await t.tekst('[data-h="delt-ferdig"]')), `Knappen skal si «Delt! +1 til begge»: «${await t.tekst('[data-h="delt-ferdig"]')}»`);
   await enH1("delt mellom flere");
   await t.bilde("delt-velg");
   await t.klikk('[data-h="delt-ferdig"]');
   await t.vent("document.querySelector('.peke-kaaret.delt')");
   s = await t.tilstand();
   t.sjekk(s.spill.poeng[0] === 1 && s.spill.poeng[1] === 2, "Delt seier skal gi begge ett poeng");
-  t.sjekk(/Testspiller A og Testspiller B/.test(await t.tekst("#skjerm h1")) && /delt/i.test(await t.tekst(".stempel")), "Rampelyset viser ikke den delte seieren");
+  t.sjekk(t.norsk ? /Testspiller A og Testspiller B/.test(await t.tekst("#skjerm h1")) && /delt/i.test(await t.tekst(".stempel")) : /Testspiller A \S+ Testspiller B/.test(await t.tekst("#skjerm h1")), "Rampelyset viser ikke den delte seieren");
   await t.sov(900);
   await t.bilde("delt");
   await videre();
@@ -172,7 +177,7 @@ export default async function (t) {
   // Back to home keeps the game: «Fortsett» is the main button, «Nytt spill» asks first
   await t.klikk("#tilbake");
   t.sjekk(await t.finnes('.hjem-knapper .knapp[data-h="fortsett"]'), "«Fortsett» er ikke hovedknappen mens spillet pågår");
-  t.sjekk(/kort 4 av 10/.test(await t.tekst('[data-h="fortsett"]')), "«Fortsett» sier ikke hvor langt spillet er kommet");
+  t.sjekk((t.norsk ? /kort 4 av 10/ : /4 \S+ 10/).test(await t.tekst('[data-h="fortsett"]')), "«Fortsett» sier ikke hvor langt spillet er kommet");
   await t.klikk('[data-h="nytt"]');
   t.sjekk(await t.finnes('#ark:not([hidden]) [data-h="ark-svar"]'), "«Nytt spill» spør ikke før spillet slettes");
   await t.klikk('#ark [data-h="ark-svar"][data-v="nei"]');
@@ -181,9 +186,9 @@ export default async function (t) {
   await pause();
 
   // «Avslutt» asks, and staying is called «Spill videre»
-  t.sjekk(/^Avslutt$/.test((await t.tekst('[data-h="slutt"]')).trim()), "Lenken for å avslutte skal bare hete «Avslutt»");
+  t.sjekk(!t.norsk || /^Avslutt$/.test((await t.tekst('[data-h="slutt"]')).trim()), "Lenken for å avslutte skal bare hete «Avslutt»");
   await t.klikk('[data-h="slutt"]');
-  t.sjekk((await t.tekst('#ark [data-h="ark-svar"][data-v="nei"]')).trim() === "Spill videre", "Arket skal ha knappen «Spill videre»");
+  t.sjekk(!t.norsk || (await t.tekst('#ark [data-h="ark-svar"][data-v="nei"]')).trim() === "Spill videre", "Arket skal ha knappen «Spill videre»");
   await t.klikk('#ark [data-h="ark-svar"][data-v="nei"]');
   t.sjekk((await t.tilstand()).spill.ferdig === false, "«Spill videre» avsluttet spillet likevel");
 
@@ -196,24 +201,24 @@ export default async function (t) {
   }
   s = await t.tilstand();
   t.sjekk(s.spill.nr === 10 && s.spill.poeng[0] === 4 && s.spill.poeng[1] === 4 && s.spill.poeng[2] === 1, `Feil stilling før siste kort: ${JSON.stringify(s.spill.poeng)} på kort ${s.spill.nr}`);
-  t.sjekk(/Siste kort/.test(await t.tekst(".storkort-fot")), "Det siste kortet sier ikke at det er det siste");
+  t.sjekk((await t.finnes(".storkort-fot")) && (!t.norsk || /Siste kort/.test(await t.tekst(".storkort-fot"))), "Det siste kortet sier ikke at det er det siste");
   await t.bilde("siste-kort");
 
   // Card 10, the last one: «Ingen poeng» stops once (so it can be undone), then the crowning comes by itself
   await tilVelg();
   await stem(null);
   await t.vent("document.querySelector('.peke-kaaret')");
-  t.sjekk(/Ingen poeng/.test(await t.tekst("#skjerm h1")) && /Til kåringen/.test(await t.tekst('[data-h="videre"]')), "Etter siste kort skal knappen hete «Til kåringen»");
+  t.sjekk(!t.norsk || (/Ingen poeng/.test(await t.tekst("#skjerm h1")) && /Til kåringen/.test(await t.tekst('[data-h="videre"]'))), "Etter siste kort skal knappen hete «Til kåringen»");
   t.sjekk(await t.finnes("#angre"), "«Ingen poeng» på siste kort skal kunne angres");
   await videre();
   await t.vent("document.querySelector('.pall')");
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk(KAARING.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
   await t.bilde("slutt", true);
-  t.sjekk(/Testspiller A og Testspiller B vinner/.test(await t.tekst("#skjerm h1")), `4–4 skal kåre begge: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk((t.norsk ? /Testspiller A og Testspiller B vinner/ : /Testspiller A \S+ Testspiller B/).test(await t.tekst("#skjerm h1")), `4–4 skal kåre begge: «${await t.tekst("#skjerm h1")}»`);
   const blant = await t.tekst(".banner .ingress");
-  t.sjekk(/Blant annet/.test(blant) && /Testspiller A til å/.test(blant) && /Testspiller B til å/.test(blant), `«Blant annet …» skal nevne begge vinnerne: «${blant}»`);
+  t.sjekk(t.norsk ? /Blant annet/.test(blant) && /Testspiller A til å/.test(blant) && /Testspiller B til å/.test(blant) : /Testspiller A \S+/.test(blant) && /Testspiller B \S+/.test(blant), `«Blant annet …» skal nevne begge vinnerne: «${blant}»`);
   t.sjekk((await t.antall(".peke-diplom")) === 3, `Alle tre med poeng skal få diplom, fant ${await t.antall(".peke-diplom")}`);
-  t.sjekk(await t.finnes('#skjerm a.lenke[href="/"]'), "Mangler «Alle spill» på sluttskjermen");
+  t.sjekk(await t.finnes(`#skjerm a.lenke[href="${t.forside}"]`), "Mangler «Alle spill» på sluttskjermen");
   t.sjekk((await t.tilstand())._aktiv === false, "Et ferdig spill skal ikke være merket som pågående");
   t.sjekk((await hendelser()).includes("ferdig"), "Spillet meldte ikke «ferdig» til statistikken");
   let k = await kveld();
@@ -225,7 +230,7 @@ export default async function (t) {
   await t.js(`navigator.share = async (d) => { window.__delt = d; }`);
   await t.klikk('[data-h="del"]');
   const delt = await t.js("window.__delt || null");
-  t.sjekk(delt && /Testspiller A – mest sannsynlig til å /.test(delt.text) && /Testspiller C – /.test(delt.text) && /\/pekefingeren\/$/.test(delt.url), `«Del diplomene» delte ikke diplomene: ${JSON.stringify(delt)}`);
+  t.sjekk(delt && (t.norsk ? /Testspiller A – mest sannsynlig til å /.test(delt.text) && /\/pekefingeren\/$/.test(delt.url) : /Testspiller A – /.test(delt.text) && new URL(delt.url).pathname === new URL(t.side).pathname) && /Testspiller C – /.test(delt.text), `«Del diplomene» delte ikke diplomene: ${JSON.stringify(delt)}`);
 
   // The crowning is final: back leads home, and there is nothing to continue
   await t.klikk("#tilbake");
@@ -241,16 +246,16 @@ export default async function (t) {
   await t.vent("document.querySelector('.storkort')");
   await pause();
   await t.klikk('[data-h="pek"]', 50);
-  await t.vent("document.querySelector('#nedtelling[hidden]') && document.querySelector('.storkort:not(.ut)') && /2 av 10/.test(document.querySelector('.storkort-nr').textContent)", 8000);
+  await t.vent("document.querySelector('#nedtelling[hidden]') && document.querySelector('.storkort:not(.ut)') && /2 \\S+ 10/.test(document.querySelector('.storkort-nr').textContent)", 8000);
   // (jump to the last card instead of counting down eight more times)
-  await t.js(`(() => { const s = JSON.parse(localStorage.getItem("rusj.pekefingeren.v1")); s.spill.nr = 10; s.spill.spilt = 9; localStorage.setItem("rusj.pekefingeren.v1", JSON.stringify(s)); })()`);
+  await t.js(`(() => { const k = "${t.nokkel("pekefingeren.v1")}"; const s = JSON.parse(localStorage.getItem(k)); s.spill.nr = 10; s.spill.spilt = 9; localStorage.setItem(k, JSON.stringify(s)); })()`);
   await t.lastSide(t.side, "document.querySelector('.storkort')");
-  t.sjekk(/Siste kort/.test(await t.tekst(".storkort-fot")), "Uten poeng: det siste kortet sier ikke at det er det siste");
+  t.sjekk((await t.finnes(".storkort-fot")) && (!t.norsk || /Siste kort/.test(await t.tekst(".storkort-fot"))), "Uten poeng: det siste kortet sier ikke at det er det siste");
   await pause();
   await t.klikk('[data-h="pek"]', 50);
   await t.vent("document.querySelector('.banner') && document.querySelector('[data-h=\"igjen\"]')", 8000);
-  t.sjekk(/10 kort – ferdig/.test(await t.tekst("#skjerm h1")), `Uten poeng skal runden ende av seg selv: «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk(!/kåringen/i.test(await t.tekst("#topp-tittel")) && !(await t.finnes(".pall, .poengliste")), "Uten poeng skal sluttskjermen ikke være en kåring");
+  t.sjekk((t.norsk ? /10 kort – ferdig/ : /10/).test(await t.tekst("#skjerm h1")), `Uten poeng skal runden ende av seg selv: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(!KAARING.test(await t.tekst("#topp-tittel")) && !(await t.finnes(".pall, .poengliste")), "Uten poeng skal sluttskjermen ikke være en kåring");
   k = await kveld();
   t.sjekk(k.spill.length === 1, "Et spill uten poeng skal ikke meldes til «Kveldens gjeng»");
   await t.bilde("ferdig-uten-poeng");
@@ -263,7 +268,7 @@ export default async function (t) {
   await t.bilde("jul-oppsett", true);
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('.storkort')");
-  t.sjekk(/Jul/i.test(await t.tekst(".storkort-etikett")), "Med bare julepakken skal kortet komme fra den");
+  t.sjekk((t.sprak === "en" ? /Christmas/i : /Jul/i).test(await t.tekst(".storkort-etikett")), "Med bare julepakken skal kortet komme fra den");
   await t.bilde("jul-kort");
   // … and is ignored while a game is running
   await t.lastSide(t.side + "#jul", "document.querySelector('#skjerm h1')");
@@ -271,6 +276,8 @@ export default async function (t) {
   s = await t.tilstand();
   t.sjekk(s.spill && s.spill.ferdig === false && s.skjerm !== "oppsett", "#jul skal ikke avbryte et spill som pågår");
   // The kit check runs on the set-up screen: leave the game above and start from a clean slate.
+  // (Norwegian only: it checks the kit's own words and the Norwegian file paths.)
+  if (!t.norsk) return;
   await t.js(`(() => { for (const k of Object.keys(localStorage)) if (k.startsWith("rusj.pekefingeren.v")) localStorage.removeItem(k); })()`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   await t.klikk('[data-h="nytt"]');

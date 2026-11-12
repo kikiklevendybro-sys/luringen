@@ -10,5 +10,23 @@
   "tagger": ["fest", "familie", "sporsmal"],
   "rekkefolge": 4,
   "alias": ["pekeleken", "hvem-er-mest-sannsynlig"],
-  "sok": ["pekeleken", "pekelek", "hvem er mest sannsynlig", "mest sannsynlig", "peke", "spørsmålskort"]
+  "sok": ["pekeleken", "pekelek", "hvem er mest sannsynlig", "mest sannsynlig", "peke", "spørsmålskort"],
+  "i18n": {
+    "en": {
+      "navn": "Pointy",
+      "undertittel": "Who’s most likely to?",
+      "kort": "Read the statement, count down – and everyone points at once.",
+      "beskrivelse": "Free ‘Who’s most likely to’ game for your phone. Read the statement, count down – and everyone points at once. Over 900 statements for parties, friends and family.",
+      "slug": "pointy",
+      "sok": ["who's most likely to", "most likely to", "most likely to questions", "pointing game", "party questions", "question cards"]
+    },
+    "da": {
+      "navn": "Pegefingeren",
+      "undertittel": "Hvem er mest tilbøjelig til?",
+      "kort": "Læs udsagnet, tæl ned – og alle peger på samme tid.",
+      "beskrivelse": "Gratis »Hvem er mest tilbøjelig til«-spil på dansk. Læs udsagnet, tæl ned – og alle peger på samme tid. Over 900 udsagn til fest, venner og familie.",
+      "slug": "pegefingeren",
+      "sok": ["hvem er mest tilbøjelig til", "mest tilbøjelig til", "pegeleg", "most likely to", "pege", "spørgsmålskort", "festspil"]
+    }
+  }
 }
