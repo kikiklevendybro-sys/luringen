@@ -6,6 +6,9 @@
 // et selv» card, the knock-out that leads straight to the crowning (no boo), titles, share and
 // «Kveldens gjeng». Then «Én står igjen» with four players (knock-outs, "everyone out at once
 // doesn't count", last one standing), «Bare kort», an early finish with a shared win, and #jul.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en sladrehanken): the texts are checked in
+// Norwegian only (t.norsk), the card's opening words in each edition; elsewhere the names, the state
+// and the links (t.forside, t.nokkel).
 
 // Two real finger taps 90 ms apart on the same spot (a nervous double tap). The kit only drops a
 // second tap that lands near the first one, so a scripted click + a tap elsewhere is not a ghost tap.
@@ -27,7 +30,8 @@ async function dobbeltrykk(t, sel) {
 export default async function (t) {
   const pause = () => t.sov(420); // taps right after a screen change are ignored on purpose
   const liv = async () => (await t.tilstand()).spill.liv.join(",");
-  const kveld = () => t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  const kveld = () => t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
+  const PREFIKS = { nb: "Jeg har aldri", en: "Never have I ever", da: "Jeg har aldrig" }[t.sprak];
   const hendelser = () => t.js(`window.Rusj._statKo.map((s) => s.h)`);
   const enH1 = async (hvor) => t.sjekk((await t.antall("#skjerm h1")) === 1, `Skjermen «${hvor}» skal ha nøyaktig én h1`);
   const regelValgt = (v) => t.finnes(`[data-h="regel"][data-v="${v}"][aria-pressed="true"]`);
@@ -45,7 +49,7 @@ export default async function (t) {
   })();
   const fliser = await t.js(`Array.from(document.querySelectorAll('[data-h="pakke"]')).map((f) => f.dataset.v)`);
   t.sjekk(fliser.includes("jul") && fliser[sesong ? 0 : fliser.length - 1] === "jul", `Julepakken skal stå ${sesong ? "først" : "sist"}: ${fliser.join(", ")}`);
-  t.sjekk(/Jul og julebord/.test(await t.tekst('[data-h="pakke"][data-v="jul"]')), "Julepakken mangler beskrivelsen «Jul og julebord»");
+  t.sjekk(!t.norsk || /Jul og julebord/.test(await t.tekst('[data-h="pakke"][data-v="jul"]')), "Julepakken mangler beskrivelsen «Jul og julebord»");
   t.sjekk(!(await t.tilstand()).oppsett.pakker.includes("jul"), "Julepakken skal ikke være valgt fra start");
 
   // «Spillet varer til …»: four players keep the old rule, from five the first knock-out ends the game
@@ -66,10 +70,10 @@ export default async function (t) {
   s = await t.tilstand();
   t.sjekk(s.spill.liv.length === 5 && s.spill.liv.every((l) => l === 5), "Alle skal starte med fem liv");
   t.sjekk(s.spill.regel === "forste", `Spillet skal ende når den første er ute, fikk «${s.spill.regel}»`);
-  t.sjekk(/^Jeg har aldri/.test(await t.tekst(".storkort-tekst")), "Kortet begynner ikke med «Jeg har aldri»");
+  t.sjekk((await t.tekst(".storkort-tekst")).startsWith(PREFIKS), `Kortet begynner ikke med «${PREFIKS}»`);
   t.sjekk(s._aktiv === true, "Et pågående spill er ikke merket som aktivt");
   t.sjekk((await hendelser()).includes("start"), "Spillet meldte ikke «start» til statistikken");
-  t.sjekk(/Leser: Testspiller A/.test(await t.tekst(".sladre-leser")), `Første kort skal leses av Testspiller A: «${await t.tekst(".sladre-leser")}»`);
+  t.sjekk((t.norsk ? /Leser: Testspiller A/ : /Testspiller A/).test(await t.tekst(".sladre-leser")), `Første kort skal leses av Testspiller A: «${await t.tekst(".sladre-leser")}»`);
   t.sjekk(await t.friForDokk(".sladre-hint"), "Teksten under kortet havner bak knappene");
   const forste = s.spill.kort;
 
@@ -106,12 +110,12 @@ export default async function (t) {
   await t.klikk('[data-h="avslor"][data-v="0"]');
   t.sjekk(!(await t.finnes(".sladre-prat")), "Brikken om den beste historien skal først komme når to er avslørt");
   await t.klikk('[data-h="avslor"][data-v="1"]');
-  t.sjekk(/beste historien/.test(await t.tekst(".sladre-prat")), "Mangler «Hvem har den beste historien?» når to er avslørt");
+  t.sjekk((await t.finnes(".sladre-prat")) && (!t.norsk || /beste historien/.test(await t.tekst(".sladre-prat"))), "Mangler «Hvem har den beste historien?» når to er avslørt");
   await t.bilde("hvem-har");
   await t.klikk('[data-h="ferdig"]');
   await t.vent("document.querySelector('[data-h=\"avslor-na\"]')", 5000);
   t.sjekk((await liv()) === "4,4,5,5,5", `Feil liv etter første kort: ${await liv()}`);
-  t.sjekk(/Leser: Testspiller B/.test(await t.tekst(".sladre-leser")), "Neste kort skal leses av Testspiller B");
+  t.sjekk((t.norsk ? /Leser: Testspiller B/ : /Testspiller B/).test(await t.tekst(".sladre-leser")), "Neste kort skal leses av Testspiller B");
 
   // Undo: the lives come back and the same card returns to «Hvem har gjort det?» with the same choice
   t.sjekk(await t.finnes('#skjerm .dokk [data-h="angre"]'), "Mangler «Angre» etter at liv ble trukket");
@@ -153,8 +157,8 @@ export default async function (t) {
   await runde([0], { historie: null });
   s = await t.tilstand();
   t.sjekk((await liv()) === "3,4,5,5,5" && s.spill.fase === "historie", `Den som er alene om det, skal miste et liv og få rampelyset: ${await liv()}`);
-  t.sjekk(/Testspiller A – fortell/.test(await t.tekst("#skjerm h1")) && /Alene om det/i.test(await t.tekst(".sladre-historie .etikett")), "Rampelyset ber ikke Testspiller A fortelle");
-  t.sjekk(/lov å si pass/.test(await t.tekst(".sladre-historie .ingress")), "Rampelyset skal si at det er lov å si pass");
+  t.sjekk(t.norsk ? /Testspiller A – fortell/.test(await t.tekst("#skjerm h1")) && /Alene om det/i.test(await t.tekst(".sladre-historie .etikett")) : /Testspiller A/.test(await t.tekst("#skjerm h1")), "Rampelyset ber ikke Testspiller A fortelle");
+  t.sjekk(!t.norsk || /lov å si pass/.test(await t.tekst(".sladre-historie .ingress")), "Rampelyset skal si at det er lov å si pass");
   t.sjekk(!(await t.finnes("#toast.vis")), "Rampelyset skal komme i stedet for en toast");
   t.sjekk((await t.finnes('#skjerm .dokk [data-h="avslutt"]')) && (await t.finnes('#skjerm .dokk [data-h="angre"]')), "Rampelyset mangler «Angre» eller «Avslutt»");
   t.sjekk(await t.friForDokk(".sladre-historie .ingress"), "Teksten i rampelyset havner bak knappene");
@@ -165,7 +169,7 @@ export default async function (t) {
   await t.vent("document.querySelector('[data-h=\"avslor-na\"]')", 5000);
   s = await t.tilstand();
   t.sjekk((await liv()) === "4,4,5,5,5" && s.spill.historier[0] === 1, `«God historie! +1 liv» ga ikke livet tilbake: ${await liv()}`);
-  t.sjekk(/fikk livet tilbake/.test(await t.tekst("#toast")), "Mangler beskjeden om at livet er tilbake");
+  t.sjekk((t.norsk ? /fikk livet tilbake/ : /Testspiller A/).test(await t.tekst("#toast")), "Mangler beskjeden om at livet er tilbake");
 
   // … and that can be undone too (the story, the life and the card)
   await pause();
@@ -183,7 +187,7 @@ export default async function (t) {
   // About every sixth card (the fourth one played) the reader makes up the rest
   s = await t.tilstand();
   t.sjekk(s.spill.egen === true && (await t.finnes(".storkort.sladre-egen")), "Det fjerde kortet skal være et «Finn på et selv»-kort");
-  t.sjekk(/Testspiller D finner på resten/.test(await t.tekst(".storkort-tekst")) && /Jeg har aldri …/.test(await t.tekst(".storkort-tekst")), `Kortet sier ikke hvem som finner på resten: «${await t.tekst(".storkort-tekst")}»`);
+  t.sjekk((t.norsk ? /Testspiller D finner på resten/ : /Testspiller D/).test(await t.tekst(".storkort-tekst")) && (await t.tekst(".storkort-tekst")).includes(PREFIKS + " …"), `Kortet sier ikke hvem som finner på resten: «${await t.tekst(".storkort-tekst")}»`);
   await enH1("finn på et selv");
   await t.bilde("finn-pa-selv");
   await runde([1, 2, 3]);
@@ -207,7 +211,7 @@ export default async function (t) {
   await t.klikk('[data-h="ferdig"]');
   await t.vent("document.querySelector('.sladre-historie')", 5000);
   // On zero lives the story decides: a good one, and Testspiller A is still in
-  t.sjekk(/tom for liv/i.test(await t.tekst(".sladre-historie .etikett")) && /redder/.test(await t.tekst(".sladre-historie .ingress")), "Rampelyset på siste liv skal si at en god historie redder spilleren");
+  t.sjekk(!t.norsk || (/tom for liv/i.test(await t.tekst(".sladre-historie .etikett")) && /redder/.test(await t.tekst(".sladre-historie .ingress"))), "Rampelyset på siste liv skal si at en god historie redder spilleren");
   await t.bilde("historie-siste-liv");
   await pause();
   await t.klikk('[data-h="historie-god"]');
@@ -223,22 +227,22 @@ export default async function (t) {
   t.sjekk(s.spill.fase === "ute" && s.spill.slutt === true, "Første spiller ute skal avslutte spillet");
   t.sjekk((await t.js("window.__buu")) === 0, "Den som ryker ut, skal ikke bli buet på");
   t.sjekk(/Testspiller A/.test(await t.tekst("#skjerm h1")), "Ute-skjermen viser ikke Testspiller A");
-  t.sjekk(/Mest erfaren/.test(await t.tekst("#skjerm")), "Den første ute får ikke tittelen «Mest erfaren»");
-  t.sjekk(/spillet over/.test(await t.tekst("#skjerm")) && !(await t.finnes(".sladre-stilling")), "Ute-skjermen skal si at spillet er over – ingen sitter og ser på");
-  t.sjekk(/^Til kåringen$/.test((await t.tekst('[data-h="videre"]')).trim()), `Knappen skal hete «Til kåringen»: «${await t.tekst('[data-h="videre"]')}»`);
+  t.sjekk(t.norsk ? /Mest erfaren/.test(await t.tekst("#skjerm")) : await t.finnes(".sladre-tittel"), "Den første ute får ikke tittelen «Mest erfaren»");
+  t.sjekk((!t.norsk || /spillet over/.test(await t.tekst("#skjerm"))) && !(await t.finnes(".sladre-stilling")), "Ute-skjermen skal si at spillet er over – ingen sitter og ser på");
+  t.sjekk(!t.norsk || /^Til kåringen$/.test((await t.tekst('[data-h="videre"]')).trim()), `Knappen skal hete «Til kåringen»: «${await t.tekst('[data-h="videre"]')}»`);
   await t.bilde("ute", true);
   await pause();
   await t.klikk('[data-h="videre"]');
   await t.vent("document.querySelector('.sladre-rang')");
   await t.bilde("slutt", true);
-  t.sjekk(/Testspiller E vinner/.test(await t.tekst("#skjerm h1")), `Den med flest liv skal vinne: «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk(/KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
+  t.sjekk((t.norsk ? /Testspiller E vinner/ : /Testspiller E/).test(await t.tekst("#skjerm h1")), `Den med flest liv skal vinne: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(!t.norsk || /KÅRINGEN|Kåringen/.test(await t.tekst("#topp-tittel")), "Sluttskjermen skal hete «Kåringen»");
   const titler = await t.js(`Array.from(document.querySelectorAll(".sladre-tittel")).map((b) => b.innerText).join(" | ")`);
-  t.sjekk(/MEST ERFAREN\s+Testspiller A/i.test(titler), `«Mest erfaren» skal være den første ute: ${titler}`);
-  t.sjekk(/BESTE FORTELLER\s+Testspiller A/i.test(titler), `«Beste forteller» skal være den som fikk livet tilbake: ${titler}`);
-  t.sjekk(/fant på selv/.test(await t.tekst(".sladre-topp")), "«Kortet som avslørte flest» skal være kortet dere fant på selv");
-  t.sjekk(/Tom for liv/.test(await t.tekst(".sladre-rang li:last-child")), "Resultatlista skal vise at den siste gikk tom for liv");
-  t.sjekk(await t.finnes('#skjerm a.lenke[href="/"]'), "Mangler «Alle spill» på sluttskjermen");
+  t.sjekk((t.norsk ? /MEST ERFAREN\s+Testspiller A/i : /😎\s*\S[^|]*Testspiller A/).test(titler), `«Mest erfaren» skal være den første ute: ${titler}`);
+  t.sjekk((t.norsk ? /BESTE FORTELLER\s+Testspiller A/i : /🎤\s*\S[^|]*Testspiller A/).test(titler), `«Beste forteller» skal være den som fikk livet tilbake: ${titler}`);
+  t.sjekk(!t.norsk || /fant på selv/.test(await t.tekst(".sladre-topp")), "«Kortet som avslørte flest» skal være kortet dere fant på selv");
+  t.sjekk(!t.norsk || /Tom for liv/.test(await t.tekst(".sladre-rang li:last-child")), "Resultatlista skal vise at den siste gikk tom for liv");
+  t.sjekk(await t.finnes(`#skjerm a.lenke[href="${t.forside}"]`), "Mangler «Alle spill» på sluttskjermen");
   t.sjekk((await t.tilstand())._aktiv === false, "Et ferdig spill skal ikke være merket som pågående");
   t.sjekk((await hendelser()).includes("ferdig"), "Spillet meldte ikke «ferdig» til statistikken");
   let k = await kveld();
@@ -250,7 +254,7 @@ export default async function (t) {
   await t.js(`navigator.share = async (d) => { window.__delt = d; }`);
   await t.klikk('[data-h="del"]');
   const delt = await t.js("window.__delt || null");
-  t.sjekk(delt && /Testspiller E er uskyldigst/.test(delt.text) && /Testspiller A er mest erfaren/.test(delt.text) && /\/sladrehanken\/$/.test(delt.url), `«Del kåringen» delte ikke kåringen: ${JSON.stringify(delt)}`);
+  t.sjekk(delt && (t.norsk ? /Testspiller E er uskyldigst/.test(delt.text) && /Testspiller A er mest erfaren/.test(delt.text) && /\/sladrehanken\/$/.test(delt.url) : /Testspiller E/.test(delt.text) && /Testspiller A/.test(delt.text) && new URL(delt.url).pathname === new URL(t.side).pathname), `«Del kåringen» delte ikke kåringen: ${JSON.stringify(delt)}`);
 
   // The crowning is final: back leads home with nothing to continue; «Nytt spill» doesn't ask
   await t.klikk("#tilbake");
@@ -265,12 +269,12 @@ export default async function (t) {
   await t.vent("document.querySelector('.storkort')");
   t.sjekk((await t.tilstand()).spill.regel === "siste", "Fire spillere skal spille til én står igjen");
   // (everyone on their last life, instead of twenty cards to get there)
-  await t.js(`(() => { const s = JSON.parse(localStorage.getItem("rusj.sladrehanken.v1")); s.spill.liv = [1, 1, 1, 1]; localStorage.setItem("rusj.sladrehanken.v1", JSON.stringify(s)); })()`);
+  await t.js(`(() => { const k = "${t.nokkel("sladrehanken.v1")}"; const s = JSON.parse(localStorage.getItem(k)); s.spill.liv = [1, 1, 1, 1]; localStorage.setItem(k, JSON.stringify(s)); })()`);
   await t.lastSide(t.side, "document.querySelector('[data-h=\"avslor-na\"]')");
   await runde([0]);
   await t.vent("document.querySelector('.sladre-ute')", 5000);
-  t.sjekk(/Avslørt og ute/i.test(await t.tekst(".sladre-ute .etikett")) && (await t.antall(".sladre-stilling li")) === 3, "Ute-skjermen skal vise de tre som fortsatt er med");
-  t.sjekk(/^Neste kort$/.test((await t.tekst('[data-h="videre"]')).trim()) && (await t.finnes('#skjerm .dokk [data-h="avslutt"]')), "Ute-skjermen skal ha «Neste kort» og «Avslutt»");
+  t.sjekk((!t.norsk || /Avslørt og ute/i.test(await t.tekst(".sladre-ute .etikett"))) && (await t.antall(".sladre-stilling li")) === 3, "Ute-skjermen skal vise de tre som fortsatt er med");
+  t.sjekk((!t.norsk || /^Neste kort$/.test((await t.tekst('[data-h="videre"]')).trim())) && (await t.finnes('#skjerm .dokk [data-h="avslutt"]')), "Ute-skjermen skal ha «Neste kort» og «Avslutt»");
   await t.bilde("ute-en-igjen", true);
   await pause();
   await t.klikk('[data-h="videre"]');
@@ -286,13 +290,13 @@ export default async function (t) {
   // B and C go out together → D is the most innocent
   await runde([1, 2]);
   await t.vent("document.querySelector('.sladre-ute')", 5000);
-  t.sjekk(/Testspiller B og Testspiller C/.test(await t.tekst("#skjerm h1")) && /Til kåringen/.test(await t.tekst('[data-h="videre"]')), "To ute samtidig skal vises sammen, og bare én er igjen");
+  t.sjekk((t.norsk ? /Testspiller B og Testspiller C/ : /Testspiller B\b.*Testspiller C/).test(await t.tekst("#skjerm h1")) && (!t.norsk || /Til kåringen/.test(await t.tekst('[data-h="videre"]'))) && !(await t.finnes('#skjerm .dokk [data-h="avslutt"]')), "To ute samtidig skal vises sammen, og bare én er igjen");
   await pause();
   await t.klikk('[data-h="videre"]');
   await t.vent("document.querySelector('.sladre-rang')");
-  t.sjekk(/Testspiller D vinner/.test(await t.tekst("#skjerm h1")), "Den siste med liv skal vinne");
+  t.sjekk((t.norsk ? /Testspiller D vinner/ : /Testspiller D/).test(await t.tekst("#skjerm h1")), "Den siste med liv skal vinne");
   t.sjekk(/Testspiller A/.test(await t.tekst(".sladre-tittel")), "«Mest erfaren» skal være den første ute");
-  t.sjekk(/Ute på kort/.test(await t.tekst(".sladre-rang li:last-child")), "Resultatlista skal vise hvilket kort den første røk ut på");
+  t.sjekk(!t.norsk || /Ute på kort/.test(await t.tekst(".sladre-rang li:last-child")), "Resultatlista skal vise hvilket kort den første røk ut på");
   k = await kveld();
   t.sjekk(k.spill.length === 2 && plass(1, "Testspiller D") === 1 && plass(1, "Testspiller B") === 2 && plass(1, "Testspiller C") === 2 && plass(1, "Testspiller A") === 4, "«Kveldens gjeng» fikk feil plasseringer i spill to");
   await t.bilde("slutt-en-igjen", true);
@@ -316,11 +320,11 @@ export default async function (t) {
   await pause();
   await t.klikk('[data-h="neste"]', 400);
   await t.vent("document.querySelector('.storkort:not(.ut)')");
-  t.sjekk((await t.finnes(".storkort.sladre-egen")) && /Den som leser finner på resten/.test(await t.tekst(".storkort-tekst")), "Det fjerde kortet i «Bare kort» skal være et «Finn på et selv»-kort");
+  t.sjekk((await t.finnes(".storkort.sladre-egen")) && (!t.norsk || /Den som leser finner på resten/.test(await t.tekst(".storkort-tekst"))), "Det fjerde kortet i «Bare kort» skal være et «Finn på et selv»-kort");
   await t.bilde("bare-kort-finn-pa-selv");
-  t.sjekk(/^Avslutt$/.test((await t.tekst('[data-h="avslutt"]')).trim()), "Lenken for å avslutte skal bare hete «Avslutt»");
+  t.sjekk(!t.norsk || /^Avslutt$/.test((await t.tekst('[data-h="avslutt"]')).trim()), "Lenken for å avslutte skal bare hete «Avslutt»");
   await t.klikk('[data-h="avslutt"]');
-  t.sjekk((await t.tekst('#ark [data-h="ark-svar"][data-v="nei"]')).trim() === "Spill videre", "Arket skal ha knappen «Spill videre»");
+  t.sjekk(!t.norsk || (await t.tekst('#ark [data-h="ark-svar"][data-v="nei"]')).trim() === "Spill videre", "Arket skal ha knappen «Spill videre»");
   await t.klikk('#ark [data-h="ark-svar"][data-v="nei"]');
   t.sjekk((await t.tilstand()).spill !== null, "«Spill videre» avsluttet spillet likevel");
   await t.klikk('[data-h="avslutt"]');
@@ -335,11 +339,11 @@ export default async function (t) {
   await t.klikk('[data-h="start"]');
   await runde([0]);
   await t.klikk('[data-h="avslutt"]');
-  t.sjekk(/kåringen/.test(await t.tekst("#ark .ingress")) && (await t.tekst('#ark [data-h="ark-svar"][data-v="nei"]')).trim() === "Spill videre", "Arket skal si at «Avslutt» går til kåringen, og ha «Spill videre»");
+  t.sjekk(!t.norsk || (/kåringen/.test(await t.tekst("#ark .ingress")) && (await t.tekst('#ark [data-h="ark-svar"][data-v="nei"]')).trim() === "Spill videre"), "Arket skal si at «Avslutt» går til kåringen, og ha «Spill videre»");
   await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
   await t.vent("document.querySelector('.sladre-rang')");
-  t.sjekk(/delt seier/i.test(await t.tekst(".banner .etikett")), "Lik stilling skal gi delt seier");
-  t.sjekk(/Testspiller B, Testspiller C og Testspiller D vinner/.test(await t.tekst("#skjerm h1")), "Delt seier skal liste navnene «A, B og C»");
+  t.sjekk(!t.norsk || /delt seier/i.test(await t.tekst(".banner .etikett")), "Lik stilling skal gi delt seier");
+  t.sjekk((t.norsk ? /Testspiller B, Testspiller C og Testspiller D vinner/ : /Testspiller B, Testspiller C \S+ Testspiller D/).test(await t.tekst("#skjerm h1")), "Delt seier skal liste navnene «A, B og C»");
   await t.bilde("delt-seier");
 
   // Deep link: …/sladrehanken/#jul opens «Gjør klart» with only the Christmas pack
@@ -349,7 +353,7 @@ export default async function (t) {
   t.sjekk((await t.js("location.hash")) === "", "#jul skal fjernes fra adressen etterpå");
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('.storkort')");
-  t.sjekk(/Jul/i.test(await t.tekst(".storkort-etikett")), "Med bare julepakken skal kortet komme fra den");
+  t.sjekk((t.sprak === "en" ? /Christmas/i : /Jul/i).test(await t.tekst(".storkort-etikett")), "Med bare julepakken skal kortet komme fra den");
   await t.bilde("jul-kort");
   // … and is ignored while a game is running
   await t.lastSide(t.side + "#jul", "document.querySelector('#skjerm h1')");

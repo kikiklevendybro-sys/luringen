@@ -232,6 +232,18 @@
         "julegaver"
       ],
       "type": "WebApplication"
+    },
+    "sladrehanken": {
+      "tittel": "Jeg har aldrig – over 1.000 spørgsmål på dansk, gratis",
+      "frase": "Jeg har aldrig",
+      "beskrivelse": "Spil »Jeg har aldrig« direkte på mobilen: over 1.000 spørgsmål til venner, familie, rejser og fest. Læs kortet højt – har du gjort det, er du afsløret.",
+      "sok": [
+        "jeg har aldrig",
+        "jeg har aldrig spørgsmål",
+        "jeg har aldrig leg",
+        "never have i ever",
+        "sladre"
+      ]
     }
   }
 }

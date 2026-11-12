@@ -223,6 +223,17 @@
         "christmas presents"
       ],
       "type": "WebApplication"
+    },
+    "sladrehanken": {
+      "tittel": "Never Have I Ever – 1,000 questions, free",
+      "frase": "Never have I ever",
+      "beskrivelse": "Play ‘Never have I ever’ on your phone: over 1,000 questions for friends, family, travel and parties. Read the card aloud – done it? You’re caught out.",
+      "sok": [
+        "never have i ever questions",
+        "never have i ever game",
+        "ice breaker",
+        "tattletale"
+      ]
     }
   }
 }
