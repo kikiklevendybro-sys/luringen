@@ -44,7 +44,7 @@ if (SPRAK && !["en", "da"].includes(SPRAK)) {
 // Words that give Norwegian away in the other editions (Danish shares many words, so its list is short).
 const NORSKE = {
   en: new Set("og ikke er på med som har kan vil det et av du dere deg din ditt dine jeg meg hva når nå igjen spill spillet spiller spillere mobilen runde runder trekk poeng vinner avslutt fortsett angre lukk tilbake ferdig neste velg trykk start spill".split(" ")),
-  da: new Set("spill trykk velg igjen noe slik fortsett avslutt lukk uavgjort brettet deg meg dere hva gjør ble brikka".split(" ")),
+  da: new Set("spill trykk velg igjen noe fortsett avslutt lukk uavgjort brettet deg meg dere hva gjør ble brikka".split(" ")),
 };
 NORSKE.en.delete("start");
 const norskOrd = (tekst) => {
