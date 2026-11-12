@@ -54,10 +54,11 @@ test("jul er for hele familien: ingenting om alkohol", () => {
 test("rekkefølgen lagrede spill peker inn i: de tolv første kortstokkene, så ordbanken, så de nye", () => {
   const forste = STOKKER.filter((s) => !s.etterOrdbank).map((s) => s.id);
   assert.deepEqual(forste, ["dyr", "mat", "yrker", "sport", "film", "eventyr", "huset", "steder", "norge", "folelser", "barn", "kaos"]);
-  // The first 841 words keep their numbers: nothing may be added to or removed from those decks.
+  // The first 1226 words keep their numbers: nothing may be added to or removed from those decks
+  // (raised from 841 on 2026-11-12 when every deck was filled up to at least 100 words).
   assert.equal(
     STOKKER.filter((s) => !s.etterOrdbank).reduce((n, s) => n + s.ord.length, 0),
-    841,
+    1226,
     "antall ord i de tolv første kortstokkene er endret – da peker lagrede spill og «allerede vist» på feil ord",
   );
   // New decks come last in the file, so their words keep their numbers when another deck is added.

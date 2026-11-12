@@ -24,7 +24,6 @@
     { "o": "Adventskalender", "n": 1, "h": "Nedtelling", "l": "Julestrømpe" },
     { "o": "Knask eller knep", "n": 1, "h": "Dør", "l": "Julebukk" },
     { "o": "Gresskarlykt", "n": 1, "h": "Lys", "l": "Adventsstake" },
-    { "o": "Barnetog", "n": 1, "h": "Flagg", "l": "Fakkeltog" },
     { "o": "Fyrverkeri", "n": 1, "h": "Smell", "l": "Stjerneskudd" },
     { "o": "Ballong", "n": 1, "h": "Luft", "l": "Konfetti" },
     { "o": "Konfetti", "n": 1, "h": "Papir", "l": "Serpentin" },
@@ -43,6 +42,9 @@
     { "o": "Juleavslutning", "n": 1, "h": "Desember", "l": "Julespill" },
     { "o": "Julehjerte", "n": 1, "h": "Flette", "l": "Julekule" },
     { "o": "Julegave", "n": 1, "h": "Pakke", "l": "Påskeegg" },
+    { "o": "Bursdagsfest", "n": 1, "h": "Ballonger", "l": "Jubileum" },
+    { "o": "Bryllupskake", "n": 1, "h": "Etasjer", "l": "Kransekake" },
+    { "o": "Bursdagssang", "n": 1, "h": "Hurra", "l": "Allsang" },
     { "o": "Pinse", "n": 2, "h": "Helligdag", "l": "Kristi himmelfartsdag" },
     { "o": "Fastelavn", "n": 2, "h": "Fjær", "l": "Karneval" },
     { "o": "Advent", "n": 2, "h": "Søndag", "l": "Ramadan" },
@@ -77,7 +79,6 @@
     { "o": "Fadder", "n": 2, "h": "Baby", "l": "Forlover" },
     { "o": "Gjestebok", "n": 2, "h": "Penn", "l": "Invitasjon" },
     { "o": "Flaggheising", "n": 2, "h": "Morgen", "l": "Barnetog" },
-    { "o": "Påskekrim", "n": 2, "h": "Spenning", "l": "Julekalender" },
     { "o": "Divali", "n": 3, "h": "India", "l": "Hanukka" },
     { "o": "Olsok", "n": 3, "h": "Sommer", "l": "Sankthans" },
     { "o": "Palmesøndag", "n": 3, "h": "Esel", "l": "Langfredag" },
@@ -102,6 +103,7 @@
     { "o": "4. juli", "n": 3, "h": "Stjerner", "l": "17. mai" },
     { "o": "Lysmesse", "n": 3, "h": "Kor", "l": "Lucia" },
     { "o": "Brudebukett", "n": 3, "h": "Kaste", "l": "Bordkort" },
-    { "o": "Skuddårsdag", "n": 3, "h": "Februar", "l": "Navnedag" }
+    { "o": "Skuddårsdag", "n": 3, "h": "Februar", "l": "Navnedag" },
+    { "o": "Gullbryllup", "n": 3, "h": "Femti år", "l": "Jubileum" }
   ]
 }

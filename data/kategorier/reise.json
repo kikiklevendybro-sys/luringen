@@ -7,7 +7,6 @@
     { "o": "Pass", "n": 1, "h": "Bilde", "l": "Visum" },
     { "o": "Billett", "n": 1, "h": "Kontroll", "l": "Boardingkort" },
     { "o": "Solkrem", "n": 1, "h": "Strand", "l": "Aftersun" },
-    { "o": "Hotell", "n": 1, "h": "Rom", "l": "Vandrerhjem" },
     { "o": "Camping", "n": 1, "h": "Telt", "l": "Hyttetur" },
     { "o": "Badeferie", "n": 1, "h": "Basseng", "l": "Skiferie" },
     { "o": "Skiferie", "n": 1, "h": "Snø", "l": "Badeferie" },
@@ -78,6 +77,9 @@
     { "o": "Backpacking", "n": 2, "h": "Budsjett", "l": "Charterferie" },
     { "o": "Flyskrekk", "n": 2, "h": "Nervøs", "l": "Reisesyke" },
     { "o": "Bobilferie", "n": 2, "h": "Campingplass", "l": "Hytteferie" },
+    { "o": "Tollkontroll", "n": 2, "h": "Skranke", "l": "Sikkerhetskontroll" },
+    { "o": "Severdighet", "n": 2, "h": "Turister", "l": "Museum" },
+    { "o": "Reiseguide", "n": 2, "h": "Bok", "l": "Kart" },
     { "o": "Turistfelle", "n": 3, "h": "Dyrt", "l": "Suvenirbutikk" },
     { "o": "Halvpensjon", "n": 3, "h": "Middag", "l": "All inclusive" },
     { "o": "Glamping", "n": 3, "h": "Luksus", "l": "Trehytte" },
@@ -102,6 +104,7 @@
     { "o": "Utflukt", "n": 3, "h": "Buss", "l": "Sightseeing" },
     { "o": "Øyhopping", "n": 3, "h": "Ferje", "l": "Rundreise" },
     { "o": "Bagasjeoppbevaring", "n": 3, "h": "Skap", "l": "Hittegods" },
-    { "o": "Rullefortau", "n": 3, "h": "Korridor", "l": "Rulletrapp" }
+    { "o": "Rullefortau", "n": 3, "h": "Korridor", "l": "Rulletrapp" },
+    { "o": "Interrail", "n": 3, "h": "Tog", "l": "Fottur" }
   ]
 }

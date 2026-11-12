@@ -39,11 +39,11 @@ test("ingen oppgave står to ganger (heller ikke i to kategorier)", () => {
   assert.ok(alle.length >= 600, `bare ${alle.length} oppgaver`);
 });
 
-test("Jul: seksti oppgaver på alle tre nivåer, sist i fila, med pakkenavn fra KIT", () => {
+test("Jul: minst åtti oppgaver på alle tre nivåer, sist i fila, med pakkenavn fra KIT", () => {
   const jul = KAT[KAT.length - 1];
   assert.equal(jul.id, "jul");
   assert.deepEqual([jul.navn, jul.ikon, jul.tekst], ["Jul", "🎄", "Jul og julebord"]);
-  assert.equal(jul.oppgaver.length, 60);
+  assert.ok(jul.oppgaver.length >= 80, `Jul: bare ${jul.oppgaver.length} oppgaver`);
   for (const n of [1, 2, 3]) assert.ok(jul.oppgaver.filter((o) => o[1] === n).length >= 15, `for få julenivå ${n}`);
   // The order of the older categories is what the saved decks count by.
   assert.deepEqual(KAT.map((k) => k.id), ["dyr", "yrker", "sport", "hverdag", "folelser", "eventyr", "handlinger", "situasjoner", "barn", "jul"]);

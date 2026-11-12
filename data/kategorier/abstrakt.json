@@ -23,6 +23,7 @@
     { "o": "Hemmelighet", "n": 1, "h": "Hviske", "l": "Mysterium" },
     { "o": "Løgn", "n": 1, "h": "Nese", "l": "Hemmelighet" },
     { "o": "Overraskelse", "n": 1, "h": "Gave", "l": "Sjokk" },
+    { "o": "Lykke", "n": 1, "h": "Smil", "l": "Glede" },
     { "o": "Sjalusi", "n": 2, "h": "Grønn", "l": "Misunnelse" },
     { "o": "Tålmodighet", "n": 2, "h": "Vente", "l": "Utholdenhet" },
     { "o": "Ensomhet", "n": 2, "h": "Alene", "l": "Savn" },
@@ -46,7 +47,6 @@
     { "o": "Selvtillit", "n": 2, "h": "Rak rygg", "l": "Stolthet" },
     { "o": "Grådighet", "n": 2, "h": "Mer", "l": "Misunnelse" },
     { "o": "Hjelpsomhet", "n": 2, "h": "Speider", "l": "Omtanke" },
-    { "o": "Hjemlengsel", "n": 2, "h": "Leirskole", "l": "Savn" },
     { "o": "Forelskelse", "n": 2, "h": "Sommerfugler", "l": "Kjærlighet" },
     { "o": "Humor", "n": 2, "h": "Vits", "l": "Ironi" },
     { "o": "Motivasjon", "n": 2, "h": "Gulrot", "l": "Inspirasjon" },
@@ -102,6 +102,7 @@
     { "o": "Takknemlighet", "n": 3, "h": "Klem", "l": "Glede" },
     { "o": "Visdom", "n": 3, "h": "Ugle", "l": "Kunnskap" },
     { "o": "Beundring", "n": 3, "h": "Idol", "l": "Respekt" },
-    { "o": "Begeistring", "n": 3, "h": "Jubel", "l": "Glede" }
+    { "o": "Begeistring", "n": 3, "h": "Jubel", "l": "Glede" },
+    { "o": "Sjarm", "n": 3, "h": "Smil", "l": "Utstråling" }
   ]
 }

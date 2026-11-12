@@ -2,52 +2,102 @@
   "husk": [
     "Husk kortene – du får ikke se dem igjen!",
     "Prent dem inn i hukommelsen. Ingen jukselapper!",
-    "Fire kort. Se godt etter – nå gjelder det."
+    "Fire kort. Se godt etter – nå gjelder det.",
+    "Se nøye – snart er de borte!",
+    "Fire kort. Én sjanse. Pugg!",
+    "Lag en liten regle, så husker du dem.",
+    "Ta deg god tid. Ingen ser på.",
+    "Si dem stille for deg selv – to ganger.",
+    "Kortene gjemmer seg snart. Lær dem utenat!"
   ],
   "sporsmal": [
     "Si fra – og del ut!",
     "Rekk opp hånda hvis du har den – eller bløff!",
     "Husker du kortene dine? Nå er sjansen.",
     "Har du den? Eller later du bare som?",
-    "Noen som har den? Ingen bløff her … eller?"
+    "Noen som har den? Ingen bløff her … eller?",
+    "Har noen dette kortet? Kom igjen!",
+    "Hvem har den? Si fra nå!",
+    "Tenk deg om … er det ditt kort?",
+    "Bløffere, nå er det deres tur!",
+    "Kjenner du igjen kortet? Rekk opp hånda!",
+    "Dette kortet leter etter en eier.",
+    "Alle ser på hverandre … hvem har den?"
   ],
   "godtatt": [
     "Ingen protester.",
     "Godtatt uten et ord.",
     "Tilliten er stor her.",
-    "Ingen tvil i lufta."
+    "Ingen tvil i lufta.",
+    "Ingen sa imot.",
+    "Alle nikket.",
+    "Det gikk glatt.",
+    "Ingen våget å protestere.",
+    "Stille i salen.",
+    "Ingen innsigelser."
   ],
   "sant": [
     "Kortet var der hele tiden!",
     "Ærlig som dagen er lang.",
-    "Her var det ingen bløff."
+    "Her var det ingen bløff.",
+    "Det stemte!",
+    "Helt ærlig, faktisk!",
+    "Ingen bløff i sikte.",
+    "Kortet lå der svart på hvitt.",
+    "Der ser du – det var sant!",
+    "Rett og slett ærlig."
   ],
   "bloff": [
     "Avslørt! Det var bløff.",
     "Tatt på fersken!",
-    "Den gikk ikke – bløff!"
+    "Den gikk ikke – bløff!",
+    "Bløffen sprakk!",
+    "Avslørt på direkten!",
+    "Nesten trodde vi det!",
+    "Bløff! Godt forsøk.",
+    "Pokerfjeset sprakk!",
+    "Den ble for drøy!"
   ],
   "vann": [
     "Alle tar en god slurk vann før neste rad. Pyramiden venter gjerne.",
     "Halvveis opp! Pust ut og ta en tår vann – alle sammen.",
     "Neste rad gir flere slurker. Fyll glasset med vann først.",
     "Vannrunde! Den som henter vann til alle, er kveldens helt.",
-    "Husk vann mellom radene. Morgendagen sier takk."
+    "Husk vann mellom radene. Morgendagen sier takk.",
+    "Ny rad, nytt glass vann. Alle tar en slurk.",
+    "Vannpause! Pyramiden står der den står.",
+    "Ta et pust, drikk litt vann og spis noe.",
+    "Halvveis i pyramiden – vann til alle!",
+    "Før neste rad: vann i glasset, alle sammen.",
+    "Pause. Vann er alltid lov og alltid lurt."
   ],
   "vannTopp": [
     "Bare toppkortet igjen. Alle tar en god slurk vann først.",
     "Toppen venter – men først et glass vann til alle.",
-    "Ett kort igjen! Skyll ned litt vann før vi snur det."
+    "Ett kort igjen! Skyll ned litt vann før vi snur det.",
+    "Toppen er nær! Først litt vann til alle.",
+    "Siste kort venter. Ta en god slurk vann først.",
+    "Snart på toppen – fyll vannglasset.",
+    "Før det store øyeblikket: vann til alle."
   ],
   "fot": [
     "Små slurker. Alkoholfritt teller like mye.",
     "Alle kan stå over – helt greit.",
     "Vann og brus teller også.",
-    "Ta det med ro – kvelden er lang."
+    "Ta det med ro – kvelden er lang.",
+    "Ingen må drikke – bare være med.",
+    "Saft og brus teller like mye.",
+    "En liten slurk er nok.",
+    "Stå over når du vil, uten å forklare.",
+    "Pass på hverandre i kveld."
   ],
   "elefant": [
     "Alle fire! Elefanthukommelse!",
     "Feilfritt! Den hukommelsen vil vi ha.",
-    "Fire av fire. Imponerende!"
+    "Fire av fire. Imponerende!",
+    "Alle fire riktig! Hukommelse av stål.",
+    "Fire av fire – helt rått!",
+    "Ikke en eneste glipp!",
+    "Perfekt! Du husket alt."
   ]
 }

@@ -362,7 +362,7 @@
         "I tallbingo kan dere spille videre om to rekker og fullt brett etter første bingo.",
         "Brettet låses til mobilen. Går du ut og inn igjen med samme kode, får du det samme brettet.",
         "Midtruta i tallbingo er fri – den teller alltid som merket.",
-        "Festbingo passer til julebord, julaften, bryllup, 17. mai, hyttetur, bursdag og konfirmasjon.",
+        "Festbingo passer til julebord, julaften, nyttårsaften, bryllup, 17. mai, hyttetur, bursdag og konfirmasjon.",
         "Verten kan slå på automatisk trekning og spille selv med «Mitt brett».",
       ],
     },

@@ -13,7 +13,20 @@
     "Heldiggris!",
     "Ren magi!",
     "Kortene elsker deg!",
-    "Smart trekk!"
+    "Smart trekk!",
+    "Strålende!",
+    "Du leser kortene som en bok!",
+    "Klinkende klart!",
+    "Midt i blinken!",
+    "Flaksen er på din side!",
+    "Den satt som et skudd!",
+    "Mesterlig!",
+    "Du har teft!",
+    "Ja, ja, ja!",
+    "Nå er du i siget!",
+    "Tommel opp!",
+    "Rene tankelesingen!",
+    "Sjåføren nikker fornøyd!"
   ],
   "feil": [
     "Au da!",
@@ -27,12 +40,28 @@
     "Æsj, da!",
     "Den var lur!",
     "Ikke denne gangen!",
-    "Kortene var frekke"
+    "Kortene var frekke",
+    "Pokker!",
+    "Kortene lurte deg!",
+    "Den gikk rett vest!",
+    "Bomskudd!",
+    "Søren heller!",
+    "Huff, da!",
+    "Flaksen tok fri.",
+    "Ikke helt!",
+    "Kortene hadde andre planer.",
+    "Dagen er ikke din – ennå!",
+    "Bussen rygget!"
   ],
   "likt": [
     "Likt! Det teller som riktig.",
     "På streken – du slipper unna!",
-    "Akkurat likt. Heldig!"
+    "Akkurat likt. Heldig!",
+    "Likt! Du slipper med skrekken.",
+    "Samme verdi – det teller som riktig!",
+    "Uavgjort med kortet. Du går videre!",
+    "Helt likt! Heldiggris.",
+    "Likt teller som riktig – puh!"
   ],
   "fot": [
     "Alkoholfritt teller like mye.",
@@ -40,7 +69,13 @@
     "Vann og brus teller også.",
     "Ingen må. Alle kan stå over.",
     "Ta det med ro – kvelden er lang.",
-    "Skål med det du har i glasset!"
+    "Skål med det du har i glasset!",
+    "Stå over når du vil – ingen spør hvorfor.",
+    "En liten slurk holder lenge.",
+    "Saft, vann eller brus – alt teller.",
+    "Det er ingen konkurranse i å drikke.",
+    "Pass på hverandre – og på deg selv.",
+    "Spis litt mens dere spiller."
   ],
   "vann": [
     "Vannpause! Alle tar en slurk vann før neste runde.",
@@ -51,23 +86,42 @@
     "Vannrunde! Den som henter vann til alle, er kveldens helt.",
     "Tørst? Vann er alltid lov – og alltid lurt.",
     "Vann i glasset og smil om munnen. Videre!",
-    "Ingen kortspill blir bedre av tørste spillere. Vann!"
+    "Ingen kortspill blir bedre av tørste spillere. Vann!",
+    "Vann i glasset! Alle tar en slurk før neste runde.",
+    "Liten pause: vann, snacks og et pust i bakken.",
+    "Et glass vann til hver – så kjører bussen videre.",
+    "Vann er kveldens beste medpassasjer.",
+    "Pause! Strekk på beina og ta en slurk vann.",
+    "Fyll opp vannglassene – neste runde starter snart."
   ],
   "vannBuss": [
     "Pause med vann og litt snacks før bussen går!",
     "Bussen venter – ta en slurk vann først.",
     "Drikk vann, spis noe, og planlegg trygg vei hjem.",
-    "Alle om bord – med et glass vann i hånda."
+    "Alle om bord – med et glass vann i hånda.",
+    "Siste etappe! Alle tar en slurk vann først.",
+    "Før bussen går: vann i glasset og noe å bite i.",
+    "Sjåføren krever vannpause før avgang.",
+    "Bussen fyller tanken – du fyller vannglasset.",
+    "Billett, vann og godt humør – da går bussen."
   ],
   "framme": [
     "Du kom deg av bussen!",
     "Endestasjon – du klarte det!",
     "Pling! Du er framme!",
-    "Fem holdeplasser i strekk. Sjåføren klapper!"
+    "Fem holdeplasser i strekk. Sjåføren klapper!",
+    "Neste stopp: hjem! Godt kjørt.",
+    "Du hoppet av i tide!",
+    "Bussen stopper – og du går av som vinner!",
+    "Velkommen fram! Det var en lang tur."
   ],
   "sjafor": [
     "Sjåføren gir seg – du er framme likevel!",
     "Bussen har fyrabend. Du er framme!",
-    "Sjåføren synes du har fortjent å gå av nå."
+    "Sjåføren synes du har fortjent å gå av nå.",
+    "Sjåføren har kjørt nok for i kveld. Du er framme!",
+    "Ruta er innstilt – du får gå av her.",
+    "Sjåføren slår av motoren. Du er framme likevel!",
+    "Bussen tar pause, og du slipper av."
   ]
 }

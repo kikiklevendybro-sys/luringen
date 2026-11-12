@@ -9,7 +9,10 @@
         ["🐼", "Panda"], ["🐨", "Koala"], ["🐯", "Tiger"], ["🦁", "Løve"], ["🐮", "Ku"], ["🐷", "Gris"],
         ["🐸", "Frosk"], ["🐵", "Ape"], ["🐔", "Høne"], ["🐧", "Pingvin"], ["🦉", "Ugle"], ["🐴", "Hest"],
         ["🦄", "Enhjørning"], ["🐢", "Skilpadde"], ["🐙", "Blekksprut"], ["🐳", "Hval"], ["🦒", "Sjiraff"],
-        ["🦓", "Sebra"], ["🦔", "Pinnsvin"], ["🐘", "Elefant"], ["🦋", "Sommerfugl"], ["🐞", "Marihøne"]
+        ["🦓", "Sebra"], ["🦔", "Pinnsvin"], ["🐘", "Elefant"], ["🦋", "Sommerfugl"], ["🐞", "Marihøne"], ["🐺", "Ulv"],
+        ["🦌", "Hjort"], ["🐿️", "Ekorn"], ["🦆", "And"], ["🐑", "Sau"], ["🐐", "Geit"], ["🦀", "Krabbe"], ["🐬", "Delfin"],
+        ["🦈", "Hai"], ["🐊", "Krokodille"], ["🐍", "Slange"], ["🦜", "Papegøye"], ["🐌", "Snegl"], ["🐝", "Bie"],
+        ["🦩", "Flamingo"], ["🐹", "Hamster"], ["🦘", "Kenguru"], ["🦛", "Flodhest"]
       ]
     },
     {
@@ -22,7 +25,9 @@
         ["🌭", "Pølse i brød"], ["🍟", "Pommes frites"], ["🍦", "Softis"], ["🍩", "Smultring"], ["🍪", "Kjeks"],
         ["🎂", "Bursdagskake"], ["🧀", "Ost"], ["🥚", "Egg"], ["🍞", "Brød"], ["🥞", "Pannekaker"],
         ["🍭", "Kjærlighet på pinne"], ["🍫", "Sjokolade"], ["🍋", "Sitron"], ["🥝", "Kiwi"], ["🍐", "Pære"],
-        ["🥥", "Kokosnøtt"], ["🍿", "Popkorn"], ["🧁", "Muffins"]
+        ["🥥", "Kokosnøtt"], ["🍿", "Popkorn"], ["🧁", "Muffins"], ["🥨", "Kringle"], ["🧇", "Vaffel"], ["🥐", "Croissant"],
+        ["🍅", "Tomat"], ["🥒", "Agurk"], ["🥔", "Potet"], ["🍝", "Spagetti"], ["🌮", "Taco"], ["🍗", "Kyllinglår"],
+        ["🍰", "Kakestykke"], ["🥛", "Melk"], ["🍯", "Honning"], ["🫐", "Blåbær"], ["🥑", "Avokado"], ["🍑", "Fersken"]
       ]
     },
     {
@@ -34,7 +39,9 @@
         ["🚜", "Traktor"], ["🚲", "Sykkel"], ["🛴", "Sparkesykkel"], ["🏍️", "Motorsykkel"], ["🚂", "Damplokomotiv"],
         ["🚁", "Helikopter"], ["✈️", "Fly"], ["⛵", "Seilbåt"], ["🚤", "Speedbåt"], ["🚢", "Skip"], ["🛶", "Kano"],
         ["🚚", "Lastebil"], ["🛵", "Moped"], ["🏎️", "Racerbil"], ["🚋", "Trikk"], ["🚠", "Gondolbane"],
-        ["🛹", "Skateboard"], ["🚐", "Minibuss"], ["🚙", "Terrengbil"]
+        ["🛹", "Skateboard"], ["🚐", "Minibuss"], ["🚙", "Terrengbil"], ["🚛", "Vogntog"], ["🚇", "T-bane"],
+        ["🚄", "Lyntog"], ["⛴️", "Ferje"], ["🛥️", "Motorbåt"], ["🛩️", "Småfly"], ["🛻", "Pickup"], ["🦽", "Rullestol"],
+        ["🚀", "Rakett"], ["🎈", "Luftballong"], ["🛳️", "Cruiseskip"], ["🚡", "Taubane"]
       ]
     },
     {
@@ -47,7 +54,9 @@
         ["🎿", "Ski"], ["🏂", "Snøbrett"], ["🏊", "Svømming"], ["🚴", "Sykling"], ["🏆", "Pokal"], ["🥇", "Gullmedalje"],
         ["🎳", "Bowling"], ["🥊", "Boksehanske"], ["⛳", "Golf"], ["🏹", "Pil og bue"], ["🤸", "Turn"],
         ["🏄", "Surfing"], ["🛷", "Kjelke"], ["🥌", "Curling"], ["🎯", "Dart"], ["🏉", "Rugby"], ["🤿", "Dykkermaske"],
-        ["🧗", "Klatring"]
+        ["🧗", "Klatring"], ["🏋️", "Vektløfting"], ["🤾", "Håndball"], ["🏇", "Ridning"], ["🛼", "Rulleskøyter"],
+        ["🥋", "Kampsport"], ["🚣", "Roing"], ["⛷️", "Slalåm"], ["🏃", "Løping"], ["🤺", "Fekting"], ["🎱", "Biljard"],
+        ["🥅", "Fotballmål"], ["🛹", "Skateboard"]
       ]
     },
     {
@@ -59,7 +68,9 @@
         ["🍄", "Fluesopp"], ["🍁", "Lønneblad"], ["🍀", "Firkløver"], ["🌈", "Regnbue"], ["⛰️", "Fjell"], ["🌋", "Vulkan"],
         ["🌊", "Bølge"], ["❄️", "Snøfnugg"], ["⛄", "Snømann"], ["🌪️", "Tornado"], ["⚡", "Lyn"], ["☁️", "Sky"],
         ["🔥", "Ild"], ["🌸", "Kirsebærblomst"], ["🌴", "Palme"], ["🐚", "Skjell"], ["🌰", "Kastanje"],
-        ["🍂", "Høstløv"], ["💧", "Vanndråpe"], ["🌾", "Kornaks"], ["🌼", "Blomst"], ["🌱", "Spire"]
+        ["🍂", "Høstløv"], ["💧", "Vanndråpe"], ["🌾", "Kornaks"], ["🌼", "Blomst"], ["🌱", "Spire"], ["🪨", "Stein"],
+        ["🌺", "Hibiskus"], ["🪵", "Tømmerstokk"], ["🌧️", "Regnsky"], ["🏝️", "Øy"], ["🌅", "Soloppgang"], ["🌿", "Kvist"],
+        ["🌬️", "Vind"], ["🌫️", "Tåke"]
       ]
     },
     {
@@ -70,7 +81,9 @@
         ["🚀", "Rakett"], ["🌙", "Halvmåne"], ["⭐", "Stjerne"], ["🪐", "Planet"], ["☄️", "Komet"],
         ["🛸", "Flygende tallerken"], ["👽", "Romvesen"], ["🌍", "Jorda"], ["☀️", "Sola"], ["🔭", "Teleskop"],
         ["🛰️", "Satellitt"], ["🧑‍🚀", "Astronaut"], ["🌠", "Stjerneskudd"], ["🌕", "Fullmåne"], ["🌌", "Melkeveien"],
-        ["🤖", "Robot"], ["📡", "Parabolantenne"]
+        ["🤖", "Robot"], ["📡", "Parabolantenne"], ["🌑", "Nymåne"], ["👾", "Rommonster"], ["🌟", "Glitrende stjerne"],
+        ["💫", "Stjernestøv"], ["🪨", "Meteoritt"], ["🕳️", "Svart hull"], ["🌀", "Galakse"], ["🌞", "Smilende sol"],
+        ["🌝", "Smilende måne"], ["🧑‍🔬", "Forsker"], ["🌫️", "Stjernetåke"]
       ]
     },
     {
@@ -83,7 +96,9 @@
         ["🍪", "Pepperkake"], ["⭐", "Julestjerne"], ["👼", "Engel"], ["⛪", "Kirke"], ["🛷", "Kjelke"],
         ["🧣", "Skjerf"], ["🧤", "Hansker"], ["🍊", "Klementin"], ["🥜", "Nøtter"], ["🍬", "Godteri"],
         ["🎇", "Stjerneskudd"], ["🧶", "Garnnøste"], ["🪵", "Vedkubbe"], ["🎿", "Ski"], ["⛸️", "Skøyter"],
-        ["🥣", "Julegrøt"], ["☕", "Kakao"], ["🎆", "Fyrverkeri"]
+        ["🥣", "Julegrøt"], ["☕", "Kakao"], ["🎆", "Fyrverkeri"], ["🎀", "Sløyfe"], ["🧸", "Bamse"], ["🚂", "Leketog"],
+        ["✉️", "Julekort"], ["🎶", "Julesang"], ["🔥", "Peis"], ["🍫", "Sjokolade"], ["🥛", "Melk til nissen"],
+        ["🌲", "Grantre"], ["🏔️", "Snødekt fjell"]
       ]
     },
     {

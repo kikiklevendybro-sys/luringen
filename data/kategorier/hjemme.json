@@ -68,7 +68,6 @@
     { "o": "Safe", "n": 2, "h": "Hemmelig", "l": "Kiste" },
     { "o": "Krakk", "n": 2, "h": "Nå opp", "l": "Puff" },
     { "o": "Skohylle", "n": 2, "h": "Gang", "l": "Dørmatte" },
-    { "o": "Blomsterpotte", "n": 2, "h": "Vinduskarm", "l": "Vase" },
     { "o": "Nattlys", "n": 2, "h": "Mørkredd", "l": "Lommelykt" },
     { "o": "Dørhåndtak", "n": 2, "h": "Bakterier", "l": "Dørstopper" },
     { "o": "Lysbryter", "n": 2, "h": "Klikk", "l": "Stikkontakt" },
@@ -79,6 +78,7 @@
     { "o": "Vifte", "n": 2, "h": "Sommer", "l": "Hårføner" },
     { "o": "Vannkran", "n": 2, "h": "Drypp", "l": "Dusj" },
     { "o": "Stikkontakt", "n": 2, "h": "Ledning", "l": "Skjøteledning" },
+    { "o": "Dørstokk", "n": 2, "h": "Snuble", "l": "Dørkarm" },
 
     { "o": "Persienne", "n": 3, "h": "Sol", "l": "Markise" },
     { "o": "Markise", "n": 3, "h": "Skygge", "l": "Parasoll" },
@@ -104,6 +104,7 @@
     { "o": "Varmepumpe", "n": 3, "h": "Strømregning", "l": "Radiator" },
     { "o": "Gulvvarme", "n": 3, "h": "Barbeint", "l": "Radiator" },
     { "o": "Knagg", "n": 3, "h": "Jakke", "l": "Kleshenger" },
-    { "o": "Klesstativ", "n": 3, "h": "Tørke", "l": "Klessnor" }
+    { "o": "Klesstativ", "n": 3, "h": "Tørke", "l": "Klessnor" },
+    { "o": "Vaskeservant", "n": 3, "h": "Speil", "l": "Kjøkkenvask" }
   ]
 }

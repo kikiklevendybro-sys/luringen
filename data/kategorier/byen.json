@@ -78,7 +78,6 @@
     { "o": "Fontene", "n": 2, "h": "Mynter", "l": "Statue" },
     { "o": "Statue", "n": 2, "h": "Stein", "l": "Fontene" },
     { "o": "Kontorbygg", "n": 2, "h": "Kaffemaskin", "l": "Rådhus" },
-    { "o": "Drivhus", "n": 2, "h": "Varme", "l": "Hagesenter" },
     { "o": "Synagoge", "n": 3, "h": "Stjerne", "l": "Moské" },
     { "o": "Samfunnshus", "n": 3, "h": "Bygda", "l": "Kulturhus" },
     { "o": "Bedehus", "n": 3, "h": "Basar", "l": "Kirke" },

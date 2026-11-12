@@ -84,7 +84,9 @@ export default async function (t) {
   t.sjekk(!/tabu/i.test(await t.tekst("#skjerm")), "Oppsettet bruker ordet «Tabu»");
 
   // «Forbudte ord» needs enough words with a list: with one small category the tile is closed and
-  // a line says why
+  // a line says why. (On «Middels» every category now has enough lists on its own, so this is
+  // checked on «Vanskelig», where one category has only a handful.)
+  await t.klikk('[data-h="niva"][data-v="3"]');
   await velgKategorier(t, ["planter"]);
   await t.klikk('#ark [data-h="kat-ferdig"]');
   t.sjekk(await t.js(`document.querySelector('[data-h="modus"][data-v="tabu"]').disabled`), "«Forbudte ord» kan velges selv om utvalget har for få ord med forbudsliste");
@@ -105,6 +107,7 @@ export default async function (t) {
   await t.klikk('#ark [data-h="kat-ferdig"]');
   t.sjekk(await t.finnes("#sk-forfa.sk-advarsel"), "Mangler advarselen når «Forbudte ord» er valgt og utvalget er for lite");
   t.sjekk(await t.js(`document.querySelector('[data-h="start"]').disabled`), "«Start» er åpen selv om «Forbudte ord» har for få ord");
+  await t.klikk('[data-h="niva"][data-v="2"]');
 
   // Categories live in a sheet: all of them but one
   await velgKategorier(t, null, ["abstrakt"]);

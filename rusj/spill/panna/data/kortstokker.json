@@ -16,7 +16,11 @@
         "Elg", "Rev", "Ulv", "Grevling", "Ekorn", "Pinnsvin", "Kanin", "Hamster",
         "Esel", "Kamel", "Lama", "Sel", "Hvalross", "Bever", "Lemen", "Gaupe",
         "Kameleon", "Gepard", "Vaskebjørn", "Stinkdyr", "Muldvarp", "Hakkespett", "Svane", "Måke",
-        "Nebbdyr", "Sjøhest", "Narhval", "Pelikan", "Gresshoppe", "Ku", "Gris", "Geit"
+        "Nebbdyr", "Sjøhest", "Narhval", "Pelikan", "Gresshoppe", "Ku", "Gris", "Geit", "Leopard",
+        "Jaguar", "Hyene", "Gnu", "Antilope", "Bison", "Hjort", "Rådyr", "Oter", "Røyskatt",
+        "Orangutang", "Sjimpanse", "Lemur", "Tukan", "Kolibri", "Laks", "Torsk", "Makrell",
+        "Spekkhogger", "Kobra", "Øgle", "Salamander", "Tarantell", "Skorpion", "Veps", "Gullfisk",
+        "Marsvin", "Undulat", "Lunde", "Rype", "Moskusfe"
       ]
     },
     {
@@ -34,7 +38,12 @@
         "Speilegg", "Eggerøre", "Bacon", "Omelett", "Tomatsuppe", "Fiskesuppe", "Salat", "Ananas",
         "Vannmelon", "Jordbær", "Sitron", "Avokado", "Brokkoli", "Rosenkål", "Tyggegummi", "Lakris",
         "Marsipan", "Sukkerspinn", "Gulrotkake", "Fiskepinner", "Pytt i panne", "Burrito", "Croissant", "Rundstykke",
-        "Yoghurt", "Kokosnøtt", "Banan", "Hvitløk", "Chili", "Ostekake", "Kjeks", "Toast"
+        "Yoghurt", "Kokosnøtt", "Banan", "Hvitløk", "Chili", "Ostekake", "Kjeks", "Toast", "Ost",
+        "Smør", "Røkelaks", "Reker", "Grillkylling", "Biff", "Ris", "Potetmos", "Wok", "Nudler",
+        "Dumplings", "Vårruller", "Falafel", "Hummus", "Lapskaus", "Gryterett", "Smørbrød", "Bagel",
+        "Sorbet", "Sjokolademousse", "Tiramisu", "Eplekake", "Brownies", "Gelé", "Pudding",
+        "Peanøtter", "Rosiner", "Mango", "Kiwi", "Druer", "Pære", "Bringebær", "Mais", "Agurk",
+        "Tomat", "Paprika", "Løk", "Sopp", "Pai"
       ]
     },
     {
@@ -53,7 +62,12 @@
         "Detektiv", "Prest", "Barnehagelærer", "Meteorolog", "Personlig trener", "Influenser", "DJ", "Kranfører",
         "Søppeltømmer", "Vaktmester", "Badevakt", "Skorsteinsfeier", "Pizzabud", "Programmerer", "Fyrvokter", "Ambulansearbeider",
         "Jordmor", "Konditor", "Smed", "Skredder", "Murer", "Parkeringsvakt", "Flygeleder", "Skiinstruktør",
-        "Forfatter", "Stuntmann", "Postbud", "Brøytebilsjåfør", "Tolk", "Ordfører"
+        "Forfatter", "Stuntmann", "Postbud", "Brøytebilsjåfør", "Tolk", "Ordfører", "Ingeniør",
+        "Apoteker", "Optiker", "Psykolog", "Fysioterapeut", "Kasserer", "Resepsjonist",
+        "Gruvearbeider", "Tømmerhogger", "Lastebilsjåfør", "Kabinansatt", "Matros", "Gjeter",
+        "Birøkter", "Urmaker", "Keramiker", "Sminkør", "Musiker", "Danser", "Komiker", "Arkeolog",
+        "Astronom", "Geolog", "Vekter", "Tollbetjent", "Fjellfører", "Eiendomsmegler",
+        "Statsminister", "Hundetrener", "Hovslager", "Isbilselger"
       ]
     },
     {
@@ -73,7 +87,11 @@
         "Spydkast", "Kulestøt", "Sleggekast", "Orientering", "Triatlon", "Vektløfting", "Yoga", "Sjakk",
         "Dart", "Bowling", "Biljard", "Rugby", "Amerikansk fotball", "Baseball", "Cricket", "Padel",
         "Squash", "Fallskjermhopping", "Strikkhopp", "Frisbeegolf", "Skateboard", "Hundekjøring", "Sekkeløp", "Tautrekking",
-        "Hinderløp", "E-sport"
+        "Hinderløp", "E-sport", "Kickboksing", "Taekwondo", "Kajakk", "Rafting", "Vannski",
+        "Brettseiling", "Kitesurfing", "Dykking", "Hurtigløp", "Telemark", "Topptur", "Skeleton",
+        "Bob", "Kjelkehockey", "Rulleskøyter", "Paragliding", "Terrengsykling", "Kappgang", "Tikamp",
+        "Synkronsvømming", "Rytmisk gymnastikk", "Parkour", "Buldring", "Sprangridning",
+        "Sportsfiske", "Bordhockey", "Boccia"
       ]
     },
     {
@@ -94,7 +112,10 @@
         "King Kong", "Godzilla", "E.T.", "Dracula", "Frankensteins monster", "Willy Wonka", "Mary Poppins", "James Bond",
         "Sherlock Holmes", "Indiana Jones", "Jack Sparrow", "Tarzan", "Mowgli", "Baloo", "Dumbo", "Bambi",
         "Kung Fu Panda", "Paddington", "Sauen Shaun", "Smurf", "Asterix", "Obelix", "Tintin", "Tom og Jerry",
-        "Snurre Sprett", "Scooby-Doo", "Homer Simpson", "Voldemort", "Humlesnurr", "Dobby", "Pumba", "Cruella de Vil"
+        "Snurre Sprett", "Scooby-Doo", "Homer Simpson", "Voldemort", "Humlesnurr", "Dobby", "Pumba", "Cruella de Vil",
+        "Klatremus", "Mikkel Rev", "Bamse Brakar", "Kasper, Jesper og Jonatan", "Ludvig",
+        "Emil i Lønneberget", "Ronja Røverdatter", "Karlsson på taket", "Rasmus Klump",
+        "Kaptein Haddock", "Lucky Luke", "Alice i Eventyrland", "Zorro", "Robin Hood"
       ]
     },
     {
@@ -112,7 +133,14 @@
         "Prinsesse", "Ridder", "Sjørøver", "Kyklop", "Pegasus", "Føniks", "Nøkken", "Huldra",
         "Fossegrimen", "Nisse", "Sfinks", "Mumie", "Usynlighetskappe", "Trylledrikk", "Krystallkule", "Heksekost",
         "Forbannelse", "Tidsmaskin", "Romvesen", "Superhelt", "Superkraft", "Sjumilsstøvler", "Bønnestengel", "Prinsessen på erten",
-        "Keiserens nye klær", "Den stygge andungen", "Tommelise", "Snødronningen", "Soria Moria slott", "Kjerringa mot strømmen", "Mestertyven", "Gullegg"
+        "Keiserens nye klær", "Den stygge andungen", "Tommelise", "Snødronningen", "Soria Moria slott", "Kjerringa mot strømmen", "Mestertyven", "Gullegg",
+        "Gnom", "Kentaur", "Minotauros", "Medusa", "Kraken", "Sjøorm", "Griff", "Yeti", "Draugen",
+        "Fe", "Ond stemor", "Magisk speil", "Gullgåsa", "Tre ønsker", "Skattekart", "Dragehule",
+        "Tryllestøv", "Trollskog", "Halve kongeriket", "Prins på hvit hest", "Froskeprinsen",
+        "Gullhår og de tre bjørnene", "Pannekaken", "Pepperkakemannen", "Den lille havfrue",
+        "Smørbukk", "Gutten som kappåt med trollet", "Østenfor sol og vestenfor måne",
+        "Sjuende far i huset", "Kvitebjørn kong Valemon", "Tinnsoldaten", "Fyrtøyet",
+        "Piken med svovelstikkene", "Rumleskaft", "Trehodet troll", "Drageegg"
       ]
     },
     {
@@ -131,7 +159,12 @@
         "Håndkle", "Kam", "Tannkrem", "Vekkerklokke", "Kalender", "Stekepanne", "Kjele", "Potetskreller",
         "Skjærefjøl", "Kjøkkenvekt", "Eggeklokke", "Kaffekopp", "Røykvarsler", "Brannslukker", "Sikringsskap", "Varmepumpe",
         "Peis", "Ruter", "TV", "Spillkonsoll", "Kleshenger", "Symaskin", "Lommelykt", "Verktøykasse",
-        "Stige", "Persienne", "Badevekt", "Telys", "Hengekøye"
+        "Stige", "Persienne", "Badevekt", "Telys", "Hengekøye", "Gaffel", "Kniv", "Tallerken",
+        "Fryser", "Kjøkkenbenk", "Dusjforheng", "Toalettbørste", "Nattbord", "Kommode", "Skohylle",
+        "Skittentøyskurv", "Tørkestativ", "Blomsterpotte", "Taklampe", "Lysbryter", "Radiator",
+        "Dørhåndtak", "Gelender", "Gulvteppe", "Pledd", "Kjøkkenrull", "Plastfolie", "Matboks",
+        "Brødboks", "Vaffeljern", "Visp", "Kjevle", "Durkslag", "Rivjern", "Pepperkvern", "Øse",
+        "Bordduk", "Lysestake"
       ]
     },
     {
@@ -151,7 +184,10 @@
         "Campingplass", "Strand", "Svømmehall", "Treningssenter", "Kjøpesenter", "Supermarked", "Bakeri", "Restaurant",
         "Hotell", "Museum", "Sirkus", "Stadion", "Skøytebane", "Alpinanlegg", "Romstasjon", "Akvarium",
         "Vulkan", "Regnskog", "Grotte", "Øde øy", "Atlantis", "Bermudatriangelet", "Lekeplass",
-        "Loft", "Kjeller", "Badstue", "Venterom", "Bowlinghall"
+        "Loft", "Kjeller", "Badstue", "Venterom", "Bowlinghall", "Klasserom", "Gymsal", "Skolegård",
+        "Kontor", "Fabrikk", "Gruve", "Havn", "Marina", "Rådhus", "Teater", "Konserthus", "Kafé",
+        "Kiosk", "Vaskehall", "Garasje", "Fjelltopp", "Isbre", "Savanne", "Innsjø", "Iglo", "Tunnel",
+        "Rundkjøring", "Bussholdeplass", "Tokyo", "Berlin", "Island", "Skog"
       ]
     },
     {
@@ -170,7 +206,13 @@
         "Allemannsretten", "Hardingfele", "Rosemaling", "Fjellvettreglene", "Lusekofte", "Topplue", "Ullundertøy", "Sparkstøtting",
         "Rattkjelke", "Skismøring", "Ostehøvel", "Binders", "Bompenger", "Elbil", "Brøytestikk", "Snøskuffe",
         "Seter", "Skrei", "Kaviar på tube", "Julebord", "Lille julaften", "Oljeplattform", "Bergensbanen", "Ferje",
-        "Stortinget", "Pepperkakebyen"
+        "Stortinget", "Pepperkakebyen", "Turisthytte", "Solveggen", "Joik", "Samefolkets dag",
+        "Kofte", "Lavvo", "Fiskekaker", "Smalahove", "Klippfisk", "Raspeballer", "Flatbrød",
+        "Spekemat", "Tran", "Henrik Ibsen", "Edvard Munch", "Skrik", "Roald Amundsen",
+        "Fridtjof Nansen", "Kon-Tiki", "Vigelandsparken", "Operahuset", "Bryggen",
+        "Geirangerfjorden", "Svalbard", "Grunnloven", "Nynorsk", "Dialekter", "Laksetrapp",
+        "Bunadssølv", "Kongekrabbe", "Birkebeinerrennet", "Sankthansbål", "Konfirmasjon",
+        "Påskefjellet", "Skitur"
       ]
     },
     {
@@ -190,7 +232,11 @@
         "Uskyldig", "Skyldig", "Mistenksom", "Andpusten", "Kjeder seg", "Hjemlengsel", "Sommerfugler i magen", "Gåsehud",
         "Hikke", "Stiv av skrekk", "Rasende", "Trassig", "Snurt", "Imponert", "Sjokkert", "Fortvilet",
         "Håpefull", "Selvsikker", "Usikker", "Hemmelighetsfull", "Lat", "Rampete", "Sjøsyk", "Høydeskrekk",
-        "Iskald", "Svett", "Forkjølet", "Søtsugen"
+        "Iskald", "Svett", "Forkjølet", "Søtsugen", "Lykkelig", "Opprømt", "Begeistret",
+        "Fortryllet", "Forbløffet", "Målløs", "Trygg", "Engstelig", "Livredd", "Skamfull", "Ydmyk",
+        "Overlegen", "Kry", "Sta", "Lei seg", "Nostalgisk", "Romantisk", "Dagdrømmende", "Glemsk",
+        "Konsentrert", "Energisk", "Utslitt", "Søvnig", "Tverr", "Grinete", "Sutrete", "Kjærlig",
+        "Hjelpsom", "Frekk", "Høflig", "Smigret", "Skadefro", "Fornøyd", "Rolig"
       ]
     },
     {
@@ -209,7 +255,11 @@
         "Kattunge", "Valp", "Kylling", "Lam", "Kalv", "Føll", "Dinosaur", "Rakett",
         "Robot", "Akebrett", "Tegning", "Plaster", "Smokk", "Bleie", "Barnevogn", "Sugerør",
         "Hoppeslott", "Karusell", "Badeball", "Bøtte og spade", "Gave", "Lørdagsgodt", "Pyjamas", "Telt",
-        "Bål", "Pinnebrød", "Stjerne", "Hjerte", "Krone", "Tromme", "Gitar", "Blokkfløyte"
+        "Bål", "Pinnebrød", "Stjerne", "Hjerte", "Krone", "Tromme", "Gitar", "Blokkfløyte", "Fisk",
+        "Fugl", "Blomst", "Tre", "Sky", "Snø", "Sko", "Genser", "Jakke", "Kopp", "Godteri",
+        "Appelsin", "Buss", "Politibil", "Gravemaskin", "Skjell", "Badetøy", "Solbriller",
+        "Papirdrage", "Kritt", "Pensel", "Xylofon", "Sølepytt", "Gjemsel", "Sisten", "Paradis",
+        "Sandaler", "Gyngehest", "Hoppeball"
       ]
     },
     {
@@ -234,7 +284,21 @@
         "Maur med muskler", "Lærer med vannpistol", "Romvesen på bussen", "Tante på trommer",
         "Gorilla i bryllup", "Mumie på solarium", "Varulv hos frisøren", "Astronaut som har glemt nøklene",
         "Prinsesse i gjørma", "Trollmann som har glemt passordet", "Konge i kø", "Tiger i tutu",
-        "Ballerina i gummistøvler", "Kamel i snøstorm", "Pingvin på safari"
+        "Ballerina i gummistøvler", "Kamel i snøstorm", "Pingvin på safari",
+        "Elefant på trehjulssykkel", "Bestefar på dataspillturnering", "Hval i svømmehallen",
+        "Brannmann som er redd for vann", "Vampyr som elsker hvitløk", "Troll på stranda",
+        "Spøkelse på sydentur", "Lege med hikke", "Tannlege med godteripose", "Ku på kino",
+        "Hest i sofaen", "Heks på karaoke", "Ridder i rundkjøring", "Isbjørn med solkrem",
+        "Kamel på ski", "Pingvin med paraply", "Rektor i ballkjole", "Statsminister på trampoline",
+        "Prinsesse som bryter", "Dinosaur i drosje", "Nisse på sommerferie", "Påskehare på julebord",
+        "Hai på svømmekurs", "Blekksprut som strikker", "Sau som telefonselger", "Gris på spa",
+        "Snømann i Sahara", "Astronaut i kassakø", "Robot med kjærlighetssorg",
+        "Zombie på jobbintervju", "Mumie i dusjen", "Dronning på sparkstøtting",
+        "Superhelt uten kappe", "Viking på kafé", "Hund som sjåfør", "Katt i regnfrakk",
+        "Ugle som ikke får sove", "Gorilla på biblioteket", "Snegle i sprintløp",
+        "Skilpadde på motorsykkel", "Mus som jager katten", "Baby som holder tale",
+        "Onkel på kunstløp", "Lærer i sandkassa", "Pirat på pedalbåt", "Drage på grillfest",
+        "Troll i rulletrappa", "Kjempe i dukkehus", "Ninja på bowling"
       ]
     },
     {
@@ -292,7 +356,9 @@
         "Rap", "Kyss", "Latter", "Babygråt", "Applaus", "Plystring", "Jodling", "Gurgling",
         "Rumlende mage", "Hjerteslag", "Slurping", "Tannlegebor", "Trompet", "Fiolin", "Elgitar", "Tuba",
         "Sekkepipe", "Munnspill", "Kirkeorgel", "Trommesolo", "Triangel", "Saksofon", "Operasanger", "Beatboxing",
-        "Korps", "Dommerfløyte", "Gong", "Kubjelle", "Hekselatter", "Kanon", "Fyrverkeri"
+        "Korps", "Dommerfløyte", "Gong", "Kubjelle", "Hekselatter", "Kanon", "Fyrverkeri",
+        "Popkorn som popper", "Tikkende klokke", "Gjøkur", "Sprakende bål", "Isbiter i glass",
+        "Sentrifugering", "Badeand", "Fottrinn"
       ]
     },
     {
@@ -314,7 +380,13 @@
         "Søvngjenger", "Kundeservice", "Telefonsvarer", "GPS", "Filmtrailer", "Naturfilm", "Barne-TV-vert", "Hvisking",
         "Roping", "Munnen full av mat", "Tett nese", "Nyvåknet", "Helium", "Under vann", "Dårlig dekning", "Sakte film",
         "Hurtigspoling", "Ekko", "Latterkrampe", "Musikal", "På rim", "Bedøvet munn", "Bergenser", "Trønder",
-        "Nordlending", "Sørlending", "Siddis", "Østfolding", "Sunnmøring", "Svenske", "Danske"
+        "Nordlending", "Sørlending", "Siddis", "Østfolding", "Sunnmøring", "Svenske", "Danske",
+        "Stand-up-komiker", "Talkshowvert", "Politiker i debatt", "Foreleser", "Reklamestemme",
+        "Lydbokleser", "Togannonse", "Skikommentator", "Golfkommentator", "Matanmelder",
+        "Aerobicinstruktør", "Meditasjonsguide", "Hørespill", "Skurk i tegnefilm", "ASMR",
+        "Is i munnen", "Gjennom en vegg", "Langt borte", "Valdris", "Telemarking", "Finnmarking",
+        "Gudbrandsdøl", "Haugesunder", "Oslo vest", "Oslo øst", "Nordmøring", "Romsdaling",
+        "Fransk kokk", "Italiensk pizzabaker", "Gammel dronning"
       ]
     },
     {
