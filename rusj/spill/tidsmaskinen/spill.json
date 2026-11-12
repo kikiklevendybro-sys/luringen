@@ -10,5 +10,23 @@
   "tagger": ["quiz", "familie", "lag"],
   "rekkefolge": 35,
   "sok": ["tidslinje", "tidslinjespill", "årstall", "historiequiz", "når skjedde det", "timeline"],
-  "alias": ["tidslinja"]
+  "alias": ["tidslinja"],
+  "i18n": {
+    "en": {
+      "navn": "Time Traveller",
+      "undertittel": "Put history in order",
+      "kort": "When did it happen? Put each event in its right place in history.",
+      "beskrivelse": "Free history game: put each event in its right place, oldest to newest. Over 600 events from Britain and the world – inventions, science, culture and sport.",
+      "slug": "time-traveller",
+      "sok": ["timeline", "timeline game", "history game", "history quiz", "when did it happen", "put events in order", "chronology", "Timeline card game"]
+    },
+    "da": {
+      "navn": "Tidsmaskinen",
+      "undertittel": "Tidslinjen",
+      "kort": "Hvornår skete det? Læg begivenheden på den rigtige plads på tidslinjen.",
+      "beskrivelse": "Gratis tidslinjespil på dansk: læg begivenheden på den rigtige plads på tidslinjen. Over 600 begivenheder fra Danmark og verden – opfindelser, kultur og sport.",
+      "slug": "tidsmaskinen",
+      "sok": ["tidslinje", "tidslinjespil", "årstal", "historiequiz", "hvornår skete det", "historie", "timeline"]
+    }
+  }
 }

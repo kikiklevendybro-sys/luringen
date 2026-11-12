@@ -420,6 +420,12 @@
       "tittel": "Drinking wheel – spin it, make house rules (18+)",
       "frase": "Drinking wheel",
       "beskrivelse": "Spin the big drinking wheel (18+): truths, safe challenges, toasts and your own house rules. Small sips only – alcohol-free counts just as much."
+    },
+    "tidsmaskinen": {
+      "tittel": "When did it happen? History order game for 1–10",
+      "frase": "History order game",
+      "beskrivelse": "Put history in order: drag each event to its right place, oldest to newest. Over 600 events from Britain and the world. Free, for 1–10 players.",
+      "sok": ["history", "history game"]
     }
   }
 }

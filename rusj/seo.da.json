@@ -435,6 +435,12 @@
       "tittel": "Drukhjulet – snur hjulet, egne regler (18+)",
       "frase": "Drukhjulet",
       "beskrivelse": "Snur det store drukhjul (18+): sandheder, trygge udfordringer, skåler og jeres egne husregler. Kun små slurke – alkoholfrit tæller lige så meget."
+    },
+    "tidsmaskinen": {
+      "tittel": "Tidslinjen – hvornår skete det? Historiespil for 1–10",
+      "frase": "Tidslinjen",
+      "beskrivelse": "Sæt historien i rækkefølge: træk hver begivenhed hen på den rigtige plads på tidslinjen. Over 600 begivenheder fra Danmark og verden. Gratis for 1–10.",
+      "sok": ["historie", "historiespil"]
     }
   }
 }
