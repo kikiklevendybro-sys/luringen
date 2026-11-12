@@ -300,14 +300,18 @@
 
   // Without a prototype, so a saved or typed value like "__proto__" is simply not a level.
   const NIVAER = Object.assign(Object.create(null), {
-    lett: { navn: "Lett", b: 9, h: 9, miner: 10 },
-    middels: { navn: "Middels", b: 16, h: 16, miner: 40 },
-    ekspert: { navn: "Ekspert", b: 16, h: 30, miner: 99 },
+    // Every text goes through R.t (rusj/SPRAK.md): the key is the Norwegian text.
+    lett: { navn: R.t("Lett"), b: 9, h: 9, miner: 10 },
+    middels: { navn: R.t("Middels"), b: 16, h: 16, miner: 40 },
+    ekspert: { navn: R.t("Ekspert"), b: 16, h: 30, miner: 99 },
     // Only «Dagens minefelt» uses this one (Friday and Saturday).
     tolv: { navn: "12 × 12", b: 12, h: 12, miner: 24 },
   });
-  const UKEDAG = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
-  const MANED = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
+  // Norwegian dates by hand (as before); the other editions ask Intl in their own language.
+  const UKEDAG = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"]; // sprak-ok
+  const MANED = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"]; // sprak-ok
+  const iDato = (tekst) => new Date(tekst + "T12:00:00Z");
+  const manedNavn = (tekst) => (R.sprak === "nb" ? MANED[Number(tekst.slice(5, 7)) - 1] : new Intl.DateTimeFormat(R.lokale, { month: "long", timeZone: "UTC" }).format(iDato(tekst)));
   const NIVA_ID = ["lett", "middels", "ekspert"];
   // Cell sizes for the zoom buttons (0 = the whole board on the screen).
   const ZOOM = [0, 30, 36, 44];
@@ -426,15 +430,15 @@
     const sp = S.spill;
     if (!sp || !sp.startet || sp.dagens !== R.dag().tekst || S.daglig.dager[sp.dagens] || typeof R.dagligIGang !== "function") return;
     const andel = Math.floor((apneTrygge(sp) / (antallCeller(sp) - sp.miner)) * 100);
-    R.dagligIGang({ tekst: sp.ferdig ? "Prøv igjen" : `${andel} %` });
+    R.dagligIGang({ tekst: sp.ferdig ? R.t("Prøv igjen") : `${andel} %` });
   }
 
-  // ---------- Countdown to the next minefield (midnight in Norway) ----------
+  // ---------- Countdown to the next minefield (midnight in the edition's country) ----------
 
   function sekunderTilNy() {
     const na = Date.now();
     const deler = {};
-    new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    new Intl.DateTimeFormat("en-GB", { timeZone: R.tidssone, hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" })
       .formatToParts(new Date(na))
       .forEach((p) => (deler[p.type] = Number(p.value)));
     let igjen = 86400 - ((deler.hour % 24) * 3600 + deler.minute * 60 + deler.second);
@@ -445,7 +449,7 @@
     return Math.max(1, igjen);
   }
   const klokkeTekst = (s) => `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-  const nedtellingHtml = () => `<p class="ms-nedtelling">Nytt minefelt om <b>${klokkeTekst(sekunderTilNy())}</b></p>`;
+  const nedtellingHtml = () => `<p class="ms-nedtelling">${esc(R.t("Nytt minefelt om {tid}")).replace("{tid}", `<b>${klokkeTekst(sekunderTilNy())}</b>`)}</p>`;
   // Ticks every second while a countdown is on the screen; at midnight the screen is drawn again.
   let nedtellingId = null;
   function startNedtelling() {
@@ -521,14 +525,14 @@
     return "a" + tall(sp, i);
   }
   function etikett(sp, i, t) {
-    const sted = `Rad ${((i / sp.b) | 0) + 1}, kolonne ${(i % sp.b) + 1}`;
-    if (t === "u") return `${sted}: lukket${i === sp.start && !sp.startet ? ", start her" : ""}`;
-    if (t === "f") return `${sted}: flagg`;
-    if (t === "a0") return `${sted}: tom`;
-    if (t[0] === "a") return `${sted}: ${t.slice(1)} ${t === "a1" ? "mine" : "miner"} rundt`;
-    if (t === "x") return `${sted}: minen som smalt`;
-    if (t === "w") return `${sted}: feil flagg`;
-    return `${sted}: mine`;
+    const sted = R.t("Rad {r}, kolonne {k}", { r: ((i / sp.b) | 0) + 1, k: (i % sp.b) + 1 });
+    if (t === "u") return `${sted}: ${R.t("lukket")}${i === sp.start && !sp.startet ? ", " + R.t("start her") : ""}`;
+    if (t === "f") return `${sted}: ${R.t("flagg")}`;
+    if (t === "a0") return `${sted}: ${R.t("tom")}`;
+    if (t[0] === "a") return `${sted}: ${R.t("{n} mine rundt|{n} miner rundt", { n: Number(t.slice(1)) })}`;
+    if (t === "x") return `${sted}: ${R.t("minen som smalt")}`;
+    if (t === "w") return `${sted}: ${R.t("feil flagg")}`;
+    return `${sted}: ${R.t("mine")}`;
   }
   const innhold = (t) => (t[0] === "a" && t !== "a0" ? t.slice(1) : "");
 
@@ -647,10 +651,10 @@
     if (!tips) return;
     const stor = rulle && rulle.classList.contains("stor");
     const sp = S.spill;
-    if (rulle && rulle.parentElement && rulle.parentElement.classList.contains("oversikt")) tips.textContent = "Trykk på brettet for å zoome inn";
-    else if (sp && sp.start >= 0 && !sp.startet) tips.textContent = "Start på ruta som lyser";
-    else if (S.flaggmodus) tips.textContent = stor ? "Dra for å se resten · trykk for flagg" : "Trykk for å sette flagg";
-    else tips.textContent = stor ? "Dra for å se resten · hold inne for flagg" : "Trykk for å åpne · hold inne for flagg";
+    if (rulle && rulle.parentElement && rulle.parentElement.classList.contains("oversikt")) tips.textContent = R.t("Trykk på brettet for å zoome inn");
+    else if (sp && sp.start >= 0 && !sp.startet) tips.textContent = R.t("Start på ruta som lyser");
+    else if (S.flaggmodus) tips.textContent = stor ? R.t("Dra for å se resten · trykk for flagg") : R.t("Trykk for å sette flagg");
+    else tips.textContent = stor ? R.t("Dra for å se resten · hold inne for flagg") : R.t("Trykk for å åpne · hold inne for flagg");
   }
 
   // ---------- Moves ----------
@@ -697,7 +701,7 @@
       // Not enough flags yet: the closed neighbours just wink.
       for (const j of lukket) blink(j);
       R.lyd.tone(300, 0, 0.07, "triangle", 0.07);
-      R.si(`${n} ${n === 1 ? "mine" : "miner"} rundt, ${flaggRundt(sp, i)} flagg satt.`);
+      R.si(`${R.t("{n} mine rundt|{n} miner rundt", { n })}, ${R.t("{n} flagg satt.|{n} flagg satt.", { n: flaggRundt(sp, i) })}`);
       return;
     }
     let smalt = -1;
@@ -724,7 +728,7 @@
     if (vunnet(sp)) return vinn(S, fra);
     // For a screen reader: what the cell showed, or how many cells opened.
     if (apnet.length === 1) R.si(etikett(sp, apnet[0][0], tilstand(sp, apnet[0][0])));
-    else if (apnet.length) R.si(`${apnet.length} ruter åpnet.`);
+    else if (apnet.length) R.si(R.t("{n} ruter åpnet.", { n: apnet.length }));
     if (sp.dagens && apnet.some(([k]) => k === sp.start)) meldIGang(S);
     R.lagre();
   }
@@ -736,7 +740,8 @@
     if (!sp.startet && sp.start >= 0) return blink(sp.start);
     sp.flagg[i] = sp.flagg[i] ? 0 : 1;
     const igjen = sp.miner - flaggTotalt(sp);
-    R.si(`${sp.flagg[i] ? "Flagg satt" : "Flagg fjernet"} på rad ${((i / sp.b) | 0) + 1}, kolonne ${(i % sp.b) + 1}. ${igjen} ${igjen === 1 ? "mine" : "miner"} igjen.`);
+    const rk = { r: ((i / sp.b) | 0) + 1, k: (i % sp.b) + 1 };
+    R.si(`${sp.flagg[i] ? R.t("Flagg satt på rad {r}, kolonne {k}.", rk) : R.t("Flagg fjernet på rad {r}, kolonne {k}.", rk)} ${R.t("{n} mine igjen.|{n} miner igjen.", { n: igjen })}`);
     if (sp.flagg[i]) {
       R.lyd.tone(880, 0, 0.06, "square", 0.06);
       R.lyd.tone(1320, 0.05, 0.08, "square", 0.05);
@@ -784,7 +789,7 @@
       S.stat[sp.niva].spilt += 1;
     }
     R.statistikk("ferdig", { niva: sp.niva, dagens: !!sp.dagens, vunnet: false, sek: sp.resultat.sek });
-    R.si("Kabom! Det lå en mine der.");
+    R.si(R.t("Kabom! Det lå en mine der."));
     R.lagre();
     las = true;
     // The mines go off one after another, nearest first.
@@ -841,7 +846,7 @@
       S.stat[sp.niva].vunnet += 1;
     }
     R.statistikk("ferdig", { niva: sp.niva, dagens: !!sp.dagens, vunnet: true, sek });
-    R.si(`Brettet er ryddet på ${visTid(sek * 1000)}.`);
+    R.si(R.t("Brettet er ryddet på {tid}.", { tid: visTid(sek * 1000) }));
     R.lagre();
     las = true;
     const forsinkelse = new Map();
@@ -1102,40 +1107,42 @@
   function hudHtml(S) {
     const sp = S.spill;
     const rek = sp.dagens ? null : S.rekorder[sp.niva];
-    const ekstra = sp.dagens ? (sp.forsok > 1 ? ` · ${sp.forsok}. forsøk` : "") : rek ? ` · rekord ${visTid(rek.tid * 1000)}` : "";
+    const ekstra = sp.dagens ? (sp.forsok > 1 ? ` · ${R.t("{n}. forsøk", { n: sp.forsok })}` : "") : rek ? ` · ${R.t("rekord {tid}", { tid: visTid(rek.tid * 1000) })}` : "";
     return `<div class="ms-hud">
-      <span class="ms-stat"><small>Miner</small><b><span class="ms-bombe" aria-hidden="true"></span><span id="ms-igjen">${sp.miner - flaggTotalt(sp)}</span></b></span>
-      <button class="ms-fjes" data-h="ny" aria-label="${sp.dagens ? "Start brettet på nytt" : "Nytt brett"}">${R.figur()}<i class="ms-omstart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></i></button>
-      <span class="ms-stat"><small>Tid${ekstra}</small><b id="ms-tid">${visTid(tidMs(sp))}</b></span>
+      <span class="ms-stat"><small>${esc(R.t("Miner"))}</small><b><span class="ms-bombe" aria-hidden="true"></span><span id="ms-igjen">${sp.miner - flaggTotalt(sp)}</span></b></span>
+      <button class="ms-fjes" data-h="ny" aria-label="${esc(sp.dagens ? R.t("Start brettet på nytt") : R.t("Nytt brett"))}">${R.figur()}<i class="ms-omstart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></i></button>
+      <span class="ms-stat"><small>${esc(R.t("Tid") + ekstra)}</small><b id="ms-tid">${visTid(tidMs(sp))}</b></span>
     </div>`;
   }
 
   function kontrollHtml(S) {
     const sp = S.spill;
     const zoom = sp.niva !== "lett";
-    return `<p class="ms-merke"${sp.trygg ? "" : " hidden"}><span aria-hidden="true">✓</span> Uten gjetting</p>
+    return `<p class="ms-merke"${sp.trygg ? "" : " hidden"}><span aria-hidden="true">✓</span> ${esc(R.t("Uten gjetting"))}</p>
     <div class="ms-kontroll${zoom ? " med-zoom" : ""}">
-      <div class="ms-modus" role="group" aria-label="Hva skjer når du trykker">
-        <button data-h="modus" data-v="apne" aria-pressed="${!S.flaggmodus}">${HAKKE}<span>Åpne</span></button>
-        <button data-h="modus" data-v="flagg" aria-pressed="${!!S.flaggmodus}">${FLAGG}<span>Flagg</span></button>
+      <div class="ms-modus" role="group" aria-label="${esc(R.t("Hva skjer når du trykker"))}">
+        <button data-h="modus" data-v="apne" aria-pressed="${!S.flaggmodus}">${HAKKE}<span>${esc(R.t("Åpne"))}</span></button>
+        <button data-h="modus" data-v="flagg" aria-pressed="${!!S.flaggmodus}">${FLAGG}<span>${esc(R.t("Flagg"))}</span></button>
       </div>
       ${
         zoom
-          ? `<div class="ms-zoom" role="group" aria-label="Størrelse">
-              <button data-h="zoom" data-v="-1" aria-label="Zoom ut">−</button>
-              <button data-h="zoom" data-v="1" aria-label="Zoom inn">+</button>
+          ? `<div class="ms-zoom" role="group" aria-label="${esc(R.t("Størrelse"))}">
+              <button data-h="zoom" data-v="-1" aria-label="${esc(R.t("Zoom ut"))}">−</button>
+              <button data-h="zoom" data-v="1" aria-label="${esc(R.t("Zoom inn"))}">+</button>
             </div>`
           : ""
       }
     </div>
-    <p class="ms-tastatur">Piltaster flytter · Enter åpner · F setter flagg · + og − zoomer</p>
-    <p class="ms-tips">${S.flaggmodus ? "Trykk for å sette flagg" : "Trykk for å åpne · hold inne for flagg"}</p>`;
+    <p class="ms-tastatur">${esc(R.t("Piltaster flytter · Enter åpner · F setter flagg · + og − zoomer"))}</p>
+    <p class="ms-tips">${esc(S.flaggmodus ? R.t("Trykk for å sette flagg") : R.t("Trykk for å åpne · hold inne for flagg"))}</p>`;
   }
 
   // A little calendar page with today's date, and the date in words.
-  const kalender = (d) => `<span class="ms-kal" aria-hidden="true"><small>${esc(MANED[Number(d.tekst.slice(5, 7)) - 1].slice(0, 3))}</small><b>${Number(d.tekst.slice(8, 10))}</b></span>`;
-  const ukedag = (nr) => UKEDAG[(((nr + 4) % 7) + 7) % 7]; // day 0 (1 Jan 1970) was a Thursday
-  const datoTekst = (tekst) => `${Number(tekst.slice(8, 10))}. ${MANED[Number(tekst.slice(5, 7)) - 1]}`;
+  const kalender = (d) => `<span class="ms-kal" aria-hidden="true"><small>${esc(manedNavn(d.tekst).slice(0, 3))}</small><b>${Number(d.tekst.slice(8, 10))}</b></span>`;
+  // day 0 (1 Jan 1970) was a Thursday
+  const ukedag = (nr) => (R.sprak === "nb" ? UKEDAG[(((nr + 4) % 7) + 7) % 7] : new Intl.DateTimeFormat(R.lokale, { weekday: "long", timeZone: "UTC" }).format(new Date(nr * 86400000)));
+  // «12. november» / «12 November» / «12. november»
+  const datoTekst = (tekst) => (R.sprak === "nb" ? `${Number(tekst.slice(8, 10))}. ${MANED[Number(tekst.slice(5, 7)) - 1]}` : new Intl.DateTimeFormat(R.lokale, { day: "numeric", month: "long", timeZone: "UTC" }).format(iDato(tekst)));
 
   // The board in miniature for the result screen.
   function miniBrett(sp) {
@@ -1168,7 +1175,7 @@
   }
 
   function prosent(stat) {
-    return stat && stat.spilt ? `${stat.vunnet} av ${stat.spilt} vunnet` : "";
+    return stat && stat.spilt ? R.t("{v} av {n} vunnet", { v: stat.vunnet, n: stat.spilt }) : "";
   }
 
   // ---------- Start ----------
@@ -1257,20 +1264,20 @@
     vedHash: (S, hash) => (hash === "dagens" ? apneDagens(S) : null),
 
     regler: {
-      intro: "Under rutene ligger det miner. Åpne alle de trygge rutene – uten å trykke på en mine.",
+      intro: R.t("Under rutene ligger det miner. Åpne alle de trygge rutene – uten å trykke på en mine."),
       steg: [
-        ["Trykk for å åpne", "Første trykk er alltid trygt. Et tall forteller hvor mange miner som ligger rundt ruta – også på skrå."],
-        ["Sett flagg", "Hold fingeren på en rute (eller slå på Flagg) for å merke en mine du har funnet."],
-        ["Rydd hele brettet", "Når alle trygge ruter er åpne, har du vunnet. Klarer du det raskere neste gang?"],
+        [R.t("Trykk for å åpne"), R.t("Første trykk er alltid trygt. Et tall forteller hvor mange miner som ligger rundt ruta – også på skrå.")],
+        [R.t("Sett flagg"), R.t("Hold fingeren på en rute (eller slå på Flagg) for å merke en mine du har funnet.")],
+        [R.t("Rydd hele brettet"), R.t("Når alle trygge ruter er åpne, har du vunnet. Klarer du det raskere neste gang?")],
       ],
       tips: [
-        "Står det 1 ved siden av bare én lukket rute, ligger minen der.",
-        "Trykk på et tall når alle flaggene rundt det er satt. Da åpnes resten rundt det på en gang.",
-        "Middels og ekspert er store: Dra for å flytte rundt, og bruk − og + for å zoome.",
-        "Trykk på fjeset øverst for å starte et nytt brett.",
-        "Med «Uten gjetting» kan hvert brett ryddes med logikk alene. Smeller det, fantes det et trygt trekk.",
-        "Dagens minefelt er det samme for alle i hele landet. Det blir større utover uka: 9 × 9 fra mandag, 12 × 12 fredag og lørdag, 16 × 16 på søndag.",
-        "Med tastatur: Tab til brettet, piltaster flytter, Enter åpner, F setter flagg, + og − zoomer.",
+        R.t("Står det 1 ved siden av bare én lukket rute, ligger minen der."),
+        R.t("Trykk på et tall når alle flaggene rundt det er satt. Da åpnes resten rundt det på en gang."),
+        R.t("Middels og ekspert er store: Dra for å flytte rundt, og bruk − og + for å zoome."),
+        R.t("Trykk på fjeset øverst for å starte et nytt brett."),
+        R.t("Med «Uten gjetting» kan hvert brett ryddes med logikk alene. Smeller det, fantes det et trygt trekk."),
+        R.t("Dagens minefelt er det samme for alle i hele landet. Det blir større utover uka: 9 × 9 fra mandag, 12 × 12 fredag og lørdag, 16 × 16 på søndag."),
+        R.t("Med tastatur: Tab til brettet, piltaster flytter, Enter åpner, F setter flagg, + og − zoomer."),
       ],
     },
 
@@ -1287,34 +1294,34 @@
           const f = S.daglig.forsok && S.daglig.forsok.dato === d.tekst ? S.daglig.forsok.n : 0;
           const rek = NIVA_ID.filter((n) => S.rekorder[n]).map((n) => `<li><b>${esc(NIVAER[n].navn)}</b> ${visTid(S.rekorder[n].tid * 1000)}</li>`);
           const niva = NIVAER[S.oppsett.niva].navn.toLowerCase();
-          const friKnapp = (knapp) => (friAktiv ? knapp(`Fortsett · ${NIVAER[fri.niva].navn.toLowerCase()} · ${visTid(fri.tid)}`, "fortsett") : knapp(`Start spill · ${niva}`, "nytt"));
+          const friKnapp = (knapp) => (friAktiv ? knapp(R.t("Fortsett · {niva} · {tid}", { niva: NIVAER[fri.niva].navn.toLowerCase(), tid: visTid(fri.tid) }), "fortsett") : knapp(R.t("Start spill · {niva}", { niva }), "nytt"));
           let knapper;
           if (!lost) {
             // Today's minefield is the main button until it is solved; the free board is one tap away.
             const [b, h] = M.DAGLIG_FORMER[M.dagligNiva(d.nr)];
             const navn = ukedag(d.nr);
-            const tittel = iGang(dag) ? `Fortsett dagens · ${visTid(dag.tid)}` : f > 0 ? "Prøv dagens igjen" : "Dagens minefelt";
+            const tittel = iGang(dag) ? R.t("Fortsett dagens · {tid}", { tid: visTid(dag.tid) }) : f > 0 ? R.t("Prøv dagens igjen") : R.t("Dagens minefelt");
             const nr = iGang(dag) ? dag.forsok : f + 1; // which try is under way, or comes next
-            const under = `${navn[0].toUpperCase() + navn.slice(1)} · ${b} × ${h}${nr > 1 ? ` · ${nr}. forsøk` : r > 0 ? ` · 🔥 ${R.flertall(r, "dag", "dager")} på rad` : " · uten gjetting"}`;
+            const under = `${navn[0].toUpperCase() + navn.slice(1)} · ${b} × ${h} · ${nr > 1 ? R.t("{n}. forsøk", { n: nr }) : r > 0 ? `🔥 ${R.t("{dager} på rad", { dager: R.flertall(r, "dag", "dager") })}` : R.t("uten gjetting")}`;
             knapper =
               R.ui.knapp("", "dagens", { variant: "stor", tekstHtml: `${kalender(d)}<span class="ms-dagknapp"><b>${esc(tittel)}</b><small>${esc(under)}</small></span>` }) + friKnapp(R.ui.knapp2);
           } else {
             knapper =
               friKnapp(R.ui.knapp) +
-              `<p class="ms-daglinje">✓ Dagens minefelt er ryddet på ${visTid(lost.sek * 1000)}${r > 1 ? ` · 🔥 ${r} dager på rad` : ""}</p>${nedtellingHtml()}`;
+              `<p class="ms-daglinje">✓ ${esc(R.t("Dagens minefelt er ryddet på {tid}", { tid: visTid(lost.sek * 1000) }))}${r > 1 ? ` · 🔥 ${esc(R.t("{n} dager på rad", { n: r }))}` : ""}</p>${nedtellingHtml()}`;
           }
           return (
             R.ui.spillhjem({
-              undertittel: "Logikk",
-              slagordHtml: "Finn de trygge rutene.<br><em>Ikke trå på en mine!</em>",
+              undertittel: R.t("Logikk"),
+              slagordHtml: `${esc(R.t("Finn de trygge rutene."))}<br><em>${esc(R.t("Ikke trå på en mine!"))}</em>`,
               // With a free board under way, «Nytt spill» goes by the level choice.
-              knapperHtml: knapper + R.ui.lenkerad(R.ui.lenke(friAktiv ? "Nytt spill" : "Bytt nivå", "bytt"), R.ui.lenke("Slik spiller du", "regler")),
+              knapperHtml: knapper + R.ui.lenkerad(R.ui.lenke(friAktiv ? R.t("Nytt spill") : R.t("Bytt nivå"), "bytt"), R.ui.lenke(R.t("Slik spiller du"), "regler")),
               merker: [
-                ["3", "nivåer"],
-                ["1", "nytt hver dag"],
-                ["0", "reklame"],
+                ["3", R.t("nivåer")],
+                ["1", R.t("nytt hver dag")],
+                ["0", R.t("reklame")],
               ],
-            }) + (rek.length ? `<section class="ms-rekorder" aria-label="Dine beste tider"><p class="etikett">Dine beste tider</p><ul>${rek.join("")}</ul></section>` : "")
+            }) + (rek.length ? `<section class="ms-rekorder" aria-label="${esc(R.t("Dine beste tider"))}"><p class="etikett">${esc(R.t("Dine beste tider"))}</p><ul>${rek.join("")}</ul></section>` : "")
           );
         },
         inn(S) {
@@ -1323,10 +1330,10 @@
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis: (S) => `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           <section class="seksjon">
             ${R.ui.fliser(
               "niva",
@@ -1337,34 +1344,34 @@
                 return {
                   v: n,
                   tittel: N.navn,
-                  tekst: `${N.b} × ${N.h} · ${N.miner} miner${rek ? ` · 🏆 ${visTid(rek.tid * 1000)}` : ""}${st ? ` · ${st}` : ""}`,
+                  tekst: `${N.b} × ${N.h} · ${R.t("{n} miner", { n: N.miner })}${rek ? ` · 🏆 ${visTid(rek.tid * 1000)}` : ""}${st ? ` · ${st}` : ""}`,
                   ikon: flisIkon(n),
                 };
               }),
               S.oppsett.niva,
               { en: true },
             )}
-            ${R.ui.bryter("uten", S.oppsett.uten, "Uten gjetting", "Brettet kan alltid ryddes med logikk.")}
-            <p class="hjelp">Første trykk er alltid trygt.</p>
+            ${R.ui.bryter("uten", S.oppsett.uten, R.t("Uten gjetting"), R.t("Brettet kan alltid ryddes med logikk."))}
+            <p class="hjelp">${esc(R.t("Første trykk er alltid trygt."))}</p>
           </section>
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor" }))}`,
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { variant: "stor" }))}`,
       },
 
       spill: {
-        tittel: (S) => (S.spill.dagens ? "Dagens minefelt" : NIVAER[S.spill.niva].navn),
+        tittel: (S) => (S.spill.dagens ? R.t("Dagens minefelt") : NIVAER[S.spill.niva].navn),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           return `
-            <h1 class="vh" id="skjerm-tittel">${sp.dagens ? "Dagens minefelt" : `Minesveiper, ${esc(NIVAER[sp.niva].navn.toLowerCase())}`}</h1>
+            <h1 class="vh" id="skjerm-tittel">${esc(sp.dagens ? R.t("Dagens minefelt") : R.t("Minesveiper, {niva}", { niva: NIVAER[sp.niva].navn.toLowerCase() }))}</h1>
             <div class="ms-spill">
               ${hudHtml(S)}
               <div class="ms-vindu${S.flaggmodus ? " flaggmodus" : ""}">
                 <div class="ms-rulle">
-                  <div class="ms-brett" style="--kol:${sp.b}" role="group" aria-label="Brettet, ${sp.b} ganger ${sp.h} ruter">${brettHtml(sp)}</div>
+                  <div class="ms-brett" style="--kol:${sp.b}" role="group" aria-label="${esc(R.t("Brettet, {b} ganger {h} ruter", { b: sp.b, h: sp.h }))}">${brettHtml(sp)}</div>
                 </div>
                 <div class="ms-kanter" aria-hidden="true"><i class="v"></i><i class="h"></i><i class="o"></i><i class="n"></i></div>
-                <button class="ms-lupe" data-h="lupe" data-stille hidden aria-label="Zoom inn på brettet"><span>Trykk for å zoome inn</span></button>
+                <button class="ms-lupe" data-h="lupe" data-stille hidden aria-label="${esc(R.t("Zoom inn på brettet"))}"><span>${esc(R.t("Trykk for å zoome inn"))}</span></button>
               </div>
               ${R.ui.dokk(kontrollHtml(S))}
             </div>`;
@@ -1433,17 +1440,17 @@
 
       slutt: {
         // A solo result: the top bar says what was played ("Kåringen" is for ranked players).
-        tittel: (S) => (S.spill && S.spill.dagens ? "Dagens minefelt" : S.spill && NIVAER[S.spill.niva] ? `${NIVAER[S.spill.niva].navn} · ${S.spill.b} × ${S.spill.h}` : "Minesveiper"),
+        tittel: (S) => (S.spill && S.spill.dagens ? R.t("Dagens minefelt") : S.spill && NIVAER[S.spill.niva] ? `${NIVAER[S.spill.niva].navn} · ${S.spill.b} × ${S.spill.h}` : R.t("Minesveiper")),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
           const sp = S.spill;
           const N = NIVAER[sp.niva];
           const r = sp.resultat || { sek: Math.round(sp.tid / 1000), andel: 0 };
-          const alle = '<a class="lenke" href="/">Alle spill</a>';
-          const nyttFritt = R.ui.lenke(`Nytt brett · ${NIVAER[S.oppsett.niva].navn.toLowerCase()}`, "igjen");
+          const alle = `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`;
+          const nyttFritt = R.ui.lenke(R.t("Nytt brett · {niva}", { niva: NIVAER[S.oppsett.niva].navn.toLowerCase() }), "igjen");
           if (sp.dagens) {
-            const dagEtikett = `Dagens minefelt · ${ukedag(sp.dagNr)} ${datoTekst(sp.dagens)}`;
+            const dagEtikett = R.t("Dagens minefelt · {dato}", { dato: `${ukedag(sp.dagNr)} ${datoTekst(sp.dagens)}` });
             // The page may stay open past midnight: then a new minefield is ready.
             const gammel = sp.dagens !== R.dag().tekst;
             if (sp.vunnet) {
@@ -1452,52 +1459,53 @@
                 <div class="banner aksent">
                   ${gladFigur()}
                   <p class="etikett">${esc(dagEtikett)}</p>
-                  <h1 id="skjerm-tittel">${forsok === 1 ? "Rent bord!" : "Godt jobba!"}</h1>
+                  <h1 id="skjerm-tittel">${esc(forsok === 1 ? R.t("Rent bord!") : R.t("Godt jobba!"))}</h1>
                 </div>
                 <div class="ms-resultat">
-                  <div class="ms-tall"><b>${visTid(r.sek * 1000)}</b><span>tid</span></div>
-                  <div class="ms-tall"><b>${forsok}.</b><span>forsøk</span></div>
+                  <div class="ms-tall"><b>${visTid(r.sek * 1000)}</b><span>${esc(R.t("tid"))}</span></div>
+                  <div class="ms-tall"><b>${esc(R.t("{n}.", { n: forsok }))}</b><span>${esc(R.t("forsøk"))}</span></div>
                 </div>
                 <div class="ms-dagboks">
-                  ${r.rekke ? `<p class="ms-rekke"><span aria-hidden="true">🔥</span> ${R.flertall(r.rekke, "dag", "dager")} på rad</p>` : ""}
-                  ${gammel ? '<p class="ms-nedtelling"><b>Et nytt minefelt er klart!</b></p>' : nedtellingHtml()}
+                  ${r.rekke ? `<p class="ms-rekke"><span aria-hidden="true">🔥</span> ${esc(R.t("{dager} på rad", { dager: R.flertall(r.rekke, "dag", "dager") }))}</p>` : ""}
+                  ${gammel ? `<p class="ms-nedtelling"><b>${esc(R.t("Et nytt minefelt er klart!"))}</b></p>` : nedtellingHtml()}
                 </div>
                 ${miniBrett(sp)}
                 ${R.ui.flereSpill({ antall: 1 })}
-                ${R.ui.dokk(gammel ? R.ui.knapp("Dagens minefelt", "dagens") : R.ui.knapp("Del resultatet", "del"), R.ui.lenkerad(nyttFritt, alle))}`;
+                ${R.ui.dokk(gammel ? R.ui.knapp(R.t("Dagens minefelt"), "dagens") : R.ui.knapp(R.t("Del resultatet"), "del"), R.ui.lenkerad(nyttFritt, alle))}`;
             }
             return `
               <div class="banner">
                 ${R.figur("minesveiperen", "ms-sotet")}
                 <p class="etikett">${esc(dagEtikett)}</p>
-                <h1 id="skjerm-tittel">Kabom!</h1>
+                <h1 id="skjerm-tittel">${esc(R.t("Kabom!"))}</h1>
               </div>
               <div class="ms-resultat">
-                <div class="ms-tall"><b>${r.andel} %</b><span>ryddet</span></div>
-                <div class="ms-tall"><b>${r.forsok || 1}.</b><span>forsøk</span></div>
+                <div class="ms-tall"><b>${r.andel} %</b><span>${esc(R.t("ryddet"))}</span></div>
+                <div class="ms-tall"><b>${esc(R.t("{n}.", { n: r.forsok || 1 }))}</b><span>${esc(R.t("forsøk"))}</span></div>
               </div>
-              <p class="hjelp">Dagens minefelt kan ryddes helt uten å gjette. Det samme brettet venter – ta det en gang til!</p>
+              <p class="hjelp">${esc(R.t("Dagens minefelt kan ryddes helt uten å gjette. Det samme brettet venter – ta det en gang til!"))}</p>
               ${miniBrett(sp)}
-              ${R.ui.dokk(R.ui.knapp(gammel ? "Dagens minefelt" : "Prøv igjen", "dagens"), R.ui.lenkerad(nyttFritt, alle))}`;
+              ${R.ui.dokk(R.ui.knapp(gammel ? R.t("Dagens minefelt") : R.t("Prøv igjen"), "dagens"), R.ui.lenkerad(nyttFritt, alle))}`;
           }
           const dokk =
             R.ui.flereSpill({ antall: 1 }) +
-            R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "bytt"), alle));
+            R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "bytt"), alle));
           if (sp.vunnet) {
+            const niva = N.navn.toLowerCase();
             const linje = r.nyRekord
-              ? `Ny personlig rekord på ${N.navn.toLowerCase()}! Forrige: ${visTid(r.gml * 1000)}.`
+              ? R.t("Ny personlig rekord på {niva}! Forrige: {tid}.", { niva, tid: visTid(r.gml * 1000) })
               : r.gml
-                ? `Rekorden din på ${N.navn.toLowerCase()}: ${visTid(Math.min(r.gml, r.sek) * 1000)}.`
-                : `Første seier på ${N.navn.toLowerCase()} – nå har du en rekord å slå!`;
+                ? R.t("Rekorden din på {niva}: {tid}.", { niva, tid: visTid(Math.min(r.gml, r.sek) * 1000) })
+                : R.t("Første seier på {niva} – nå har du en rekord å slå!", { niva });
             return `
               <div class="banner aksent">
                 ${gladFigur()}
-                <p class="etikett">${esc(N.navn)} · ${N.b} × ${N.h} · ${N.miner} miner</p>
-                <h1 id="skjerm-tittel">${r.nyRekord ? "Ny rekord!" : "Godt jobba!"}</h1>
+                <p class="etikett">${esc(N.navn)} · ${N.b} × ${N.h} · ${esc(R.t("{n} miner", { n: N.miner }))}</p>
+                <h1 id="skjerm-tittel">${esc(r.nyRekord ? R.t("Ny rekord!") : R.t("Godt jobba!"))}</h1>
               </div>
               <div class="ms-resultat">
-                <div class="ms-tall${r.nyRekord ? " ny" : ""}"><b>${visTid(r.sek * 1000)}</b><span>tid</span>${r.nyRekord ? '<i class="ms-ny">Rekord!</i>' : ""}</div>
-                <div class="ms-tall"><b>${visTid((r.gml ? Math.min(r.gml, r.sek) : r.sek) * 1000)}</b><span>rekord</span></div>
+                <div class="ms-tall${r.nyRekord ? " ny" : ""}"><b>${visTid(r.sek * 1000)}</b><span>${esc(R.t("tid"))}</span>${r.nyRekord ? `<i class="ms-ny">${esc(R.t("Rekord!"))}</i>` : ""}</div>
+                <div class="ms-tall"><b>${visTid((r.gml ? Math.min(r.gml, r.sek) : r.sek) * 1000)}</b><span>${esc(R.t("rekord"))}</span></div>
               </div>
               <p class="hjelp">${esc(linje)}</p>
               ${miniBrett(sp)}
@@ -1506,14 +1514,14 @@
           return `
             <div class="banner">
               ${R.figur("minesveiperen", "ms-sotet")}
-              <p class="etikett">${esc(N.navn)} · ${N.b} × ${N.h} · ${N.miner} miner</p>
-              <h1 id="skjerm-tittel">Kabom!</h1>
+              <p class="etikett">${esc(N.navn)} · ${N.b} × ${N.h} · ${esc(R.t("{n} miner", { n: N.miner }))}</p>
+              <h1 id="skjerm-tittel">${esc(R.t("Kabom!"))}</h1>
             </div>
             <div class="ms-resultat">
-              <div class="ms-tall"><b>${r.andel} %</b><span>ryddet</span></div>
-              <div class="ms-tall"><b>${r.funnet || 0} av ${N.miner}</b><span>miner funnet</span></div>
+              <div class="ms-tall"><b>${r.andel} %</b><span>${esc(R.t("ryddet"))}</span></div>
+              <div class="ms-tall"><b>${esc(R.t("{n} av {alle}", { n: r.funnet || 0, alle: N.miner }))}</b><span>${esc(R.t("miner funnet"))}</span></div>
             </div>
-            <p class="hjelp">${sp.trygg ? "Dette brettet kunne ryddes uten å gjette. Se etter tallet som røper minen neste gang!" : r.andel >= 80 ? "Det var nære på! Én mine skilte deg fra seieren." : "Minene gjemmer seg godt. Neste brett kan bli ditt!"}</p>
+            <p class="hjelp">${esc(sp.trygg ? R.t("Dette brettet kunne ryddes uten å gjette. Se etter tallet som røper minen neste gang!") : r.andel >= 80 ? R.t("Det var nære på! Én mine skilte deg fra seieren.") : R.t("Minene gjemmer seg godt. Neste brett kan bli ditt!"))}</p>
             ${miniBrett(sp)}
             ${dokk}`;
         },
@@ -1573,8 +1581,8 @@
         if (iGang) {
           const fortsatt = R.vakt();
           const ja = dag
-            ? await R.bekreft("Starte på nytt?", `Det samme brettet, fra start. Det blir ${sp.forsok + 1}. forsøk.`, "Start på nytt", "Avbryt")
-            : await R.bekreft("Nytt brett?", "Brettet du holder på med, forsvinner.", "Nytt brett", "Avbryt");
+            ? await R.bekreft(R.t("Starte på nytt?"), R.t("Det samme brettet, fra start. Det blir {n}. forsøk.", { n: sp.forsok + 1 }), R.t("Start på nytt"), R.t("Avbryt"))
+            : await R.bekreft(R.t("Nytt brett?"), R.t("Brettet du holder på med, forsvinner."), R.t("Nytt brett"), R.t("Avbryt"));
           if (!ja || !fortsatt()) return;
         }
         nyttSpill(S, dag ? "dagens" : sp ? sp.niva : S.oppsett.niva);
@@ -1600,9 +1608,15 @@
         const sp = S.spill;
         if (!sp || !sp.dagens || !sp.vunnet || !sp.resultat) return;
         const r = sp.resultat;
-        const dato = `${Number(sp.dagens.slice(8, 10))}.${Number(sp.dagens.slice(5, 7))}`;
-        const tekst = `💣 Minesveiperen ${dato} · ${visTid(r.sek * 1000)} på ${r.forsok > 1 ? `${r.forsok}.` : "første"} forsøk${r.rekke > 1 ? ` · 🔥 ${r.rekke} dager på rad` : ""}. Klarer du dagens minefelt?`;
-        R.del("Minesveiperen – dagens minefelt", tekst, "https://rusj.no/minesveiperen/", { kort: { tittel: `Dagens minefelt ${dato}`, linjer: [visTid(r.sek * 1000), `${r.forsok > 1 ? `${r.forsok}. forsøk` : "Første forsøk"}${r.rekke > 1 ? ` · 🔥 ${r.rekke} på rad` : ""}`] } });
+        // «12.11» (English «12/11»); the game's name and address in this edition.
+        const dato = R.t("{dag}.{maned}", { dag: Number(sp.dagens.slice(8, 10)), maned: Number(sp.dagens.slice(5, 7)) });
+        const spill = window.RUSJ_SPILL || {};
+        const navn = spill.navn || "Minesveiperen";
+        const adresse = `https://rusj.no${R.forside}${spill.slug || "minesveiperen"}/`;
+        const tid = visTid(r.sek * 1000);
+        const pa = r.forsok > 1 ? R.t("{tid} på {n}. forsøk", { tid, n: r.forsok }) : R.t("{tid} på første forsøk", { tid });
+        const tekst = `💣 ${navn} ${dato} · ${pa}${r.rekke > 1 ? ` · 🔥 ${R.t("{n} dager på rad", { n: r.rekke })}` : ""}. ${R.t("Klarer du dagens minefelt?")}`;
+        R.del(R.t("{navn} – dagens minefelt", { navn }), tekst, adresse, { kort: { tittel: R.t("Dagens minefelt {dato}", { dato }), linjer: [tid, `${r.forsok > 1 ? R.t("{n}. forsøk", { n: r.forsok }) : R.t("Første forsøk")}${r.rekke > 1 ? ` · 🔥 ${R.t("{n} på rad", { n: r.rekke })}` : ""}`] } });
       },
       modus(el, e, S) {
         S.flaggmodus = el.dataset.v === "flagg";

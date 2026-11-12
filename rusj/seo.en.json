@@ -116,6 +116,11 @@
       "tittel": "2048 – play free in your browser, no ads",
       "frase": "2048",
       "beskrivelse": "Free 2048 in your browser. Swipe the tiles, merge matching numbers and reach 2048 – on 4 × 4 or 5 × 5, with an undo button and your own high score."
+    },
+    "minesveiperen": {
+      "tittel": "Minesweeper free – made for mobile, no ads",
+      "frase": "Minesweeper",
+      "beskrivelse": "Free minesweeper in your browser with no ads. Your first tap is always safe. Three levels made for mobile, flags with a long press, and your best times."
     }
   }
 }
