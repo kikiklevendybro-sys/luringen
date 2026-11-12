@@ -280,6 +280,17 @@
         "who is the spy",
         "bluffing game"
       ]
+    },
+    "varulven": {
+      "tittel": "Werewolf without a game master – free party game",
+      "frase": "Werewolf without a game master",
+      "beskrivelse": "The phone runs the night, so everyone plays. Classic werewolf with a seer, a doctor and a hunter for 6–12, or a quick ‘One night’ round for 4–10.",
+      "sok": [
+        "werewolf party game",
+        "werewolf no moderator",
+        "mafia party game",
+        "one night werewolf"
+      ]
     }
   }
 }

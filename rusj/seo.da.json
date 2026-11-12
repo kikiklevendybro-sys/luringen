@@ -290,6 +290,17 @@
         "hvem er spionen",
         "bluffspil"
       ]
+    },
+    "varulven": {
+      "tittel": "Varulv uden spilleder – gratis selskabsspil",
+      "frase": "Varulv uden spilleder",
+      "beskrivelse": "Mobilen styrer natten, så alle kan være med. Klassisk varulv med synsk, læge og jæger for 6–12 eller en hurtig runde »Én nat« for 4–10 spillere.",
+      "sok": [
+        "varulvespil",
+        "varulv uden spilleder",
+        "mafia selskabsspil",
+        "én nat varulv"
+      ]
     }
   }
 }
