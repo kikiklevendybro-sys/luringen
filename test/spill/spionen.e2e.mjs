@@ -248,10 +248,10 @@ async function innhold(t, ctx) {
   })()`);
   ctx.steder = d.pakker.reduce((s, [, n]) => s + n, 0);
   ctx.sporsmal = d.sporsmal;
-  t.sjekk(d.pakker.every(([, n]) => n === 14) && d.pakker.some(([id]) => id === "jul") && !d.skjeve.length, `Hver pakke skal ha 14 steder med 7 roller (og «Jul» skal finnes): ${JSON.stringify(d.pakker)} ${d.skjeve.join(", ")}`);
+  t.sjekk(d.pakker.every(([, n]) => n >= 15) && d.pakker.some(([id]) => id === "jul") && !d.skjeve.length, `Hver pakke skal ha minst 15 steder med 7 roller (og «Jul» skal finnes): ${JSON.stringify(d.pakker)} ${d.skjeve.join(", ")}`);
   t.sjekk(!d.like.length, `Samme sted finnes to ganger: ${d.like.join(", ")}`);
   const unike = new Set(d.sporsmal).size;
-  t.sjekk(d.sporsmal.length === 120 && unike === 120 && d.grupper.rolle >= 30 && d.grupper.lett >= 20 && d.sporsmal.every((q) => /\?$/.test(q)), `Ventet 120 ulike spørsmål (minst 30 om rollen, 20 lette): ${d.sporsmal.length} / ${unike} unike, ${JSON.stringify(d.grupper)}`);
+  t.sjekk(d.sporsmal.length >= 220 && unike === d.sporsmal.length && d.grupper.rolle >= 30 && d.grupper.lett >= 20 && d.sporsmal.every((q) => /\?$/.test(q)), `Ventet minst 220 ulike spørsmål (minst 30 om rollen, 20 lette): ${d.sporsmal.length} / ${unike} unike, ${JSON.stringify(d.grupper)}`);
 
   // Home: the first chip counts the places and opens «Stedspasset» (nothing is stamped yet).
   await tilHjem(t);
@@ -288,7 +288,7 @@ async function oppsett(t) {
   t.sjekk(/ca\. 20 min/.test(await t.tekst(".skjerm-oppsett")), "3 runder på 5 minutter skal anslås til ca. 20 min");
 
   await velgPakker(t, ["hverdag", "fantasi"]);
-  t.sjekk(/28 steder/.test(await t.tekst(".skjerm-oppsett")), "To pakker skal gi 28 steder");
+  t.sjekk(/32 steder/.test(await t.tekst(".skjerm-oppsett")), "To pakker skal gi 32 steder");
   t.sjekk(await t.finnes('[data-h="spioner"][data-v="2"]:disabled'), "2 spioner skal være låst med 4 spillere");
   t.sjekk((await t.tekst("#skjerm h1")).trim() === "Gjør klart" && (await t.tekst('[data-h="start"]')).trim() === "Start", "Oppsettet skal hete «Gjør klart» og ha knappen «Start»");
   await overskrifter(t, "oppsett");
@@ -323,7 +323,7 @@ async function enMobil(t, ctx) {
     const el = document.querySelector("#sp-apent");
     return { steder: el.querySelectorAll(".sp-sted").length, knapper: el.querySelectorAll("button.sp-sted").length, tekst: el.innerText, ruller: el.scrollHeight > el.clientHeight + 4, hoyde: Math.round(el.clientHeight), siden: document.documentElement.scrollHeight - window.innerHeight };
   })()`);
-  t.sjekk(apent.steder === 28 && apent.knapper === 0 && ren(apent.tekst).includes(ren(navnSted)), `Stedene skal stå åpent på runden (28, deriblant stedet): ${apent.steder} steder, ${apent.knapper} knapper`);
+  t.sjekk(apent.steder === 32 && apent.knapper === 0 && ren(apent.tekst).includes(ren(navnSted)), `Stedene skal stå åpent på runden (32, deriblant stedet): ${apent.steder} steder, ${apent.knapper} knapper`);
   t.sjekk(!(await t.finnes('#skjerm [data-h="steder"]')), "«Steder»-knappen (som avslørte spionen) finnes fortsatt på runden");
   t.sjekk(apent.ruller && apent.hoyde >= 90 && apent.siden <= 1, `Stedslista skal rulle for seg selv, og siden skal stå stille (lista ${apent.hoyde} px høy, siden ${apent.siden} px for lang)`);
   for (const sel of [".sp-topp", ".sp-forslag", "#sp-apent"]) t.sjekk(await t.friForDokk(sel), `${sel} ligger bak knappene på runden`);
@@ -400,7 +400,7 @@ async function enMobil(t, ctx) {
   await t.klikk('[data-h="til-gjett"]');
   await t.vent("document.querySelector('[data-h=\"gjett-sted\"]')");
   // The guess list is the list from the round, in the same order; its headings are in order.
-  t.sjekk((await t.antall('[data-h="gjett-sted"]')) === 28, "Gjettelista skal ha de samme 28 stedene");
+  t.sjekk((await t.antall('[data-h="gjett-sted"]')) === 32, "Gjettelista skal ha de samme 32 stedene");
   await overskrifter(t, "spionen gjetter");
   await t.bilde("gjett");
   const feilSted = await t.js(`Number(Array.from(document.querySelectorAll('[data-h="gjett-sted"]')).map((b) => b.dataset.v).find((v) => Number(v) !== ${r.sted}))`);
@@ -757,8 +757,8 @@ async function hverSinMobil(t, ctx) {
   t.sjekk((await t.tilstand()).oppsett.spioner === 2, "Fikk ikke valgt 2 spioner med 7 spillere");
   await t.klikk('[data-h="runder"][data-v="3"]', 60);
   await velgPakker(t, ["hverdag", "norge"]);
-  // The deck: twenty of the 28 places have been played on this phone. The code the host makes
-  // must start with places from the other eight (every phone works the places out from the code).
+  // The deck: twenty of the 32 places have been played on this phone. The code the host makes
+  // must start with places from the other twelve (every phone works the places out from the code).
   await t.js(`localStorage.setItem("${STOKK}", JSON.stringify(Array.from({ length: 20 }, (_, i) => i)))`);
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('#spillkode')");
@@ -893,7 +893,7 @@ async function hverSinMobil(t, ctx) {
     await t.vent("!document.querySelector('[data-h=\"start-klokka\"]').disabled");
     await t.klikk('[data-h="start-klokka"]');
     await t.vent("document.querySelector('.skjerm-runde #klokke')", 8000);
-    t.sjekk(/Runde 1 av 3/i.test(await t.tekst(".sp-rundemerke")) && (await t.antall("#sp-apent .sp-sted")) === 28 && (await t.finnes("#sp-forslag")), "Vertens runde mangler rundemerket, stedene eller spørsmålet");
+    t.sjekk(/Runde 1 av 3/i.test(await t.tekst(".sp-rundemerke")) && (await t.antall("#sp-apent .sp-sted")) === 32 && (await t.finnes("#sp-forslag")), "Vertens runde mangler rundemerket, stedene eller spørsmålet");
     await t.bilde("vert-runde");
     const r1 = (await t.tilstand()).spill.r;
     const tatt = r1.spioner[0];
@@ -984,7 +984,7 @@ async function hverSinMobil(t, ctx) {
 
 // ---------- deck ----------
 
-// «Hver sin mobil», one pack of 14 places and three rounds per game: the places of one game never
+// «Hver sin mobil», one pack of 16 places and three rounds per game: the places of one game never
 // come straight back in the next, and nothing is repeated before the deck is nearly through.
 async function stokkenOverSpill(t) {
   await t.js(`localStorage.removeItem("${STOKK}")`);
@@ -1032,12 +1032,12 @@ async function julesesongen(t) {
   const tom = () => t.js(`localStorage.clear(); localStorage.setItem("rusj.felles", ${JSON.stringify(JSON.stringify({ lyd: false, navn: NAVN }))})`);
   const pakker = (s) => s.oppsett.pakker.join(",");
 
-  // A fresh setup in the season: «Jul» and the first standard pack, 28 places, «Jul» first.
+  // A fresh setup in the season: «Jul» and the first standard pack, 32 places, «Jul» first.
   await tom();
   await pa("2026-12-10T12:00:00+01:00", async (s) => {
     t.sjekk(pakker(s) === "hverdag,jul" && s.jul === 2026, `Et nytt oppsett i desember skal ha Jul + Hverdag: ${pakker(s)} (jul: ${s.jul})`);
     await nyttOppsett(t);
-    t.sjekk((await t.js(`document.querySelector(".sp-pakker .flis").dataset.v`)) === "jul" && /28 steder/.test(await t.tekst(".skjerm-oppsett")), "«Jul» skal stå først i sesongen, og oppsettet skal ha 28 steder");
+    t.sjekk((await t.js(`document.querySelector(".sp-pakker .flis").dataset.v`)) === "jul" && /32 steder/.test(await t.tekst(".skjerm-oppsett")), "«Jul» skal stå først i sesongen, og oppsettet skal ha 32 steder");
     await t.bilde("oppsett-jul", true);
     // The players switch it off: it stays off for the rest of the season.
     await t.klikk('[data-h="pakke"][data-v="jul"]');

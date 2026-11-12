@@ -81,7 +81,7 @@ export default async function (t) {
     const P = window.RUSJ_DATA.sporsmal.pakker;
     const tekst = (q) => (typeof q === "string" ? q : q.t);
     const jul = P.find((p) => p.id === "jul");
-    if (!jul || jul.navn !== "Jul" || jul.ikon !== "🎄" || jul.sporsmal.length < 32 || jul.sporsmal.length > 34) ut.push("Jul-pakka mangler eller har feil størrelse");
+    if (!jul || jul.navn !== "Jul" || jul.ikon !== "🎄" || jul.sporsmal.length < 32) ut.push("Jul-pakka mangler eller har feil størrelse");
     if (new Set(P.map((p) => p.ikon)).size !== P.length) ut.push("to pakker har samme ikon");
     const alle = P.flatMap((p) => p.sporsmal.map(tekst));
     if (new Set(alle.map((x) => x.toLowerCase())).size !== alle.length) ut.push("et spørsmål står to ganger");

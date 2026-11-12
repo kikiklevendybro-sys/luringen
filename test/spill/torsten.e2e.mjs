@@ -55,11 +55,11 @@ export default async function (t) {
   await aldersport(t, false);
   await t.klikk('[data-h="nytt"]');
   let st = await s();
-  t.sjekk(st.oppsett.pakker.length === 7 && st.oppsett.vri === true, "Alle pakkene og vrien skal være valgt fra start");
+  t.sjekk(st.oppsett.pakker.length === 9 && st.oppsett.vri === true, "Alle pakkene og vrien skal være valgt fra start");
   t.sjekk(await t.finnes('.fliser.flervalg [data-h="pakke"]'), "Pakkene ser ikke ut som flervalg");
   t.sjekk((await t.antall(".spiller")) === 4, "Oppsettet viser ikke de fire lagrede spillerne");
   await t.bilde("oppsett", true);
-  for (const id of ["vors", "student", "reise", "jobb", "pinlig", "flort", "kaos"]) await t.klikk(`[data-h="pakke"][data-v="${id}"]`, 40);
+  for (const id of ["vors", "student", "reise", "jobb", "pinlig", "flort", "kaos", "hytte", "sommer"]) await t.klikk(`[data-h="pakke"][data-v="${id}"]`, 40);
   t.sjekk(await t.js("document.querySelector('[data-h=\"start\"]').disabled"), "Start skal være av når ingen pakker er valgt");
   for (const id of ["vors", "pinlig", "flort"]) await t.klikk(`[data-h="pakke"][data-v="${id}"]`, 40);
   await t.klikk('[data-h="vri"]');

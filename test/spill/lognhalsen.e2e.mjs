@@ -101,10 +101,10 @@ export default async function (t) {
   await t.klikk('[data-h="vis-temaer"]');
   await t.klikk('#ark [data-h="temavalg"][data-v="*"]');
   s = await t.tilstand();
-  t.sjekk(s.oppsett.temaer.length === 14 && s.oppsett.temaer.includes("jul"), "«Alle» valgte ikke alle temaene");
+  t.sjekk(s.oppsett.temaer.length === 16 && s.oppsett.temaer.includes("jul"), "«Alle» valgte ikke alle temaene");
   await t.klikk('#ark [data-h="temavalg"][data-v="mat"]');
   t.sjekk(!(await t.tilstand()).oppsett.temaer.includes("mat"), "Temaet ble ikke valgt bort");
-  t.sjekk(/13 av 14/.test(await t.tekst("#skjerm")) && /Alle unntatt Mat/.test(await t.tekst(".lh-temaknapp")), "Oppsettet viser ikke hvilke temaer som er valgt");
+  t.sjekk(/15 av 16/.test(await t.tekst("#skjerm")) && /Alle unntatt Mat/.test(await t.tekst(".lh-temaknapp")), "Oppsettet viser ikke hvilke temaer som er valgt");
   await t.bilde("temaer");
   await t.klikk('#ark [data-h="temavalg"][data-v="mat"]');
   await t.klikk('#ark [data-h="lukk-ark"]');
@@ -112,7 +112,7 @@ export default async function (t) {
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('.lh-temakort')");
   s = await t.tilstand();
-  t.sjekk(s._aktiv === true && s.spill.runder === 1 && s.spill.temaer.length === 14, "Spillet startet ikke med oppsettet (pagar, runder, temaer)");
+  t.sjekk(s._aktiv === true && s.spill.runder === 1 && s.spill.temaer.length === 16, "Spillet startet ikke med oppsettet (pagar, runder, temaer)");
   t.sjekk((await stat("start")).some((d) => d.modus === "hoyt" && d.spillere === 5), "Statistikken fikk ikke «start»");
   const teller1 = (s.spill.start + s.spill.k) % 5;
   t.sjekk((await t.tekst("#skjerm h1")).trim() === NAVN[teller1], "Fortelleren vises ikke som overskrift");
