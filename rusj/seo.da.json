@@ -290,6 +290,57 @@
         "pictionary",
         "skribbl"
       ]
+    },
+    "sladrehanken": {
+      "tittel": "Jeg har aldrig – over 1.000 spørgsmål på dansk, gratis",
+      "frase": "Jeg har aldrig",
+      "beskrivelse": "Spil »Jeg har aldrig« direkte på mobilen: over 1.000 spørgsmål til venner, familie, rejser og fest. Læs kortet højt – har du gjort det, er du afsløret.",
+      "sok": [
+        "jeg har aldrig",
+        "jeg har aldrig spørgsmål",
+        "jeg har aldrig leg",
+        "never have i ever",
+        "sladre"
+      ]
+    },
+    "pekefingeren": {
+      "tittel": "Hvem er mest tilbøjelig til? 900 spørgsmål, gratis",
+      "frase": "Hvem er mest tilbøjelig til",
+      "beskrivelse": "Spil det på mobilen: læs udsagnet, tæl ned – og alle peger på samme tid. Over 900 »hvem er mest tilbøjelig til«-spørgsmål til fest, venner og familie.",
+      "sok": [
+        "mest tilbøjelig til",
+        "most likely to",
+        "pege",
+        "pegeleg"
+      ]
+    },
+    "vaghalsen": {
+      "tittel": "Sandhed eller konsekvens – over 1.000 kort, gratis",
+      "frase": "Sandhed eller konsekvens",
+      "beskrivelse": "Sandhed eller konsekvens på mobilen: snurr flasken, og vælg. Over 1.000 spørgsmål og udfordringer til børn, familie, venner og fest.",
+      "sok": [
+        "sandhed eller konsekvens",
+        "flaskehalsen",
+        "snurr flasken",
+        "truth or dare",
+        "udfordringer"
+      ]
+    },
+    "vinglepetter": {
+      "tittel": "Hvad vil du helst? 900 dilemmaer på dansk, gratis",
+      "frase": "Hvad vil du helst?",
+      "beskrivelse": "»Hvad vil du helst?« på dansk: over 900 sjove dilemmaer til børn, familie, venner og fest. To valg, tæl ned – og alle vælger på samme tid. Gratis.",
+      "sok": [
+        "hvad vil du helst",
+        "would you rather",
+        "dilemma",
+        "enten eller"
+      ]
+    },
+    "papegoyen": {
+      "tittel": "Ja og nej-legen – sig ikke ja eller nej! Gratis",
+      "frase": "Ja og nej-legen",
+      "beskrivelse": "Gratis ja og nej-leg på dansk: svar på snedige spørgsmål uden at sige »ja« eller »nej«. Over 650 spørgsmål til børn, familie og voksne."
     }
   }
 }

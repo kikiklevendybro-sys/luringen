@@ -7,15 +7,26 @@
 // unique ids while spinning, packs look multi-select, «Avslutt» asks first and is in every dock,
 // pagar, 375 × 560, Kåringen is final (no way back into the game, no «Fortsett» afterwards) and is
 // counted once for «Kveldens gjeng», the rim lights blink at most three times a second.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en vaghalsen): the edition's own cards and
+// words come from ORD below; the state and the links from t.nokkel and t.forside.
 const NAVN = ["Testspiller A", "Testspiller B", "Testspiller C"];
 const VALG = "document.querySelector('[data-h=\"velg\"]')";
 const SNURR = "document.querySelector('[data-h=\"snurr\"]:not(:disabled)')";
 const KORT = "document.querySelector('#vh-kort')";
-const NOKKEL = "rusj.vaghalsen.v1";
+// The words and cards the scenario looks for, per edition (the timed and the lasting cards are in each deck).
+const ORD = {
+  nb: { siste: /^Siste runde$/i, forstTil10: /^Først til 10$/i, vinner: (n) => `${n} vinner!`, vinnerBegge: (a, b) => `${a} og ${b} vinner!`, snurrer: /snurrer/, turerHver: /^4 turer hver$/, sekunder: /20 sekunder/, tidenUte: /Tiden er ute/, jul: /Jul/,
+    tjue: "Fortell et kjent eventyr på 20 sekunder.", ti: "Si fem ting som er gule – på ti sekunder.", minutt: "Snakk som en baby i ett minutt.", ingen: "Gå som en pingvin rundt i rommet.", varer: "Snakk som en sjørøver til det er din tur igjen.", brikke: "Testspiller A snakker som en sjørøver", regel: "Finn på en ny regel som gjelder til det er din tur igjen." },
+  en: { siste: /^Last round$/i, forstTil10: /^First to 10$/i, vinner: (n) => `${n} wins!`, vinnerBegge: (a, b) => `${a} and ${b} win!`, snurrer: /spins/, turerHver: /^4 turns each$/, sekunder: /20 seconds/, tidenUte: /Time’s up/, jul: /Christmas/,
+    tjue: "Make up a rap about {spiller} in 20 seconds.", ti: "Say five things that are yellow – in 10 seconds.", minutt: "Talk like a baby for 60 seconds.", ingen: "Walk like a penguin round the room.", varer: "Talk like a pirate until your next go.", brikke: "Testspiller A talks like a pirate", regel: "Make up a new rule that lasts until your next go." },
+  da: { siste: /^Sidste runde$/i, forstTil10: /^Først til 10$/i, vinner: (n) => `${n} vinder!`, vinnerBegge: (a, b) => `${a} og ${b} vinder!`, snurrer: /snurrer/, turerHver: /^4 ture hver$/, sekunder: /20 sekunder/, tidenUte: /Tiden er gået/, jul: /Jul/,
+    tjue: "Lav en rap om {spiller} på 20 sekunder.", ti: "Sig fem ting, der er gule – på 10 sekunder.", minutt: "Tal som en baby i 60 sekunder.", ingen: "Gå som en pingvin rundt i rummet.", varer: "Tal som en sørøver, indtil det er din tur igen.", brikke: "Testspiller A taler som en sørøver", regel: "Find på en ny regel, der gælder, indtil det er din tur igen." },
+};
 
 // Change the saved game and load the page again (the kit only saves on screen changes and redraws,
 // so the change survives the reload). `endre` runs in the page: (state, argument, all cards) => {}.
 async function settTilstand(t, endre, arg) {
+  const NOKKEL = t.nokkel("vaghalsen.v1");
   await t.js(`(() => {
     const s = JSON.parse(localStorage.getItem(${JSON.stringify(NOKKEL)}));
     const tekst = (k) => (typeof k === "string" ? k : k.t);
@@ -27,7 +38,7 @@ async function settTilstand(t, endre, arg) {
   })()`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
 }
-const kveldsspill = (t) => t.js(`((JSON.parse(localStorage.getItem("rusj.kveld") || "null") || {}).spill || []).filter((s) => s.id === "vaghalsen").length`);
+const kveldsspill = (t) => t.js(`((JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null") || {}).spill || []).filter((s) => s.id === "vaghalsen").length`);
 // One whole turn in turn order: choose, (the card), «Fullført!» or «Står over», wait for the table.
 async function spillTur(t, type, utfall = "fullfort") {
   await t.klikk(`[data-h="velg"][data-v="${type}"]`);
@@ -52,6 +63,9 @@ async function flikk(t, fra = 200, steg = 24) {
 }
 
 export default async function (t) {
+  const O = ORD[t.sprak];
+  // «Tur 1 av 12» / «Turn 1 of 12» / «Tur 1 af 12»
+  const turAv = (a, b) => (t.norsk ? new RegExp(`^Tur ${a} av ${b}$`, "i") : new RegExp(`^\\S+ ${a} \\S+ ${b}$`, "i"));
   await t.start({ navn: NAVN });
   await t.klikk('[data-h="nytt"]');
   t.sjekk((await t.antall(".spiller")) === 3, "Oppsettet viser ikke de tre lagrede spillerne");
@@ -80,7 +94,7 @@ export default async function (t) {
   const blink = await t.js(`(() => { const el = document.querySelector(".vh-hjul.stoppet .vh-lys.en"); if (!el) return null; const st = getComputedStyle(el); return { navn: st.animationName, sek: parseFloat(st.animationDuration), ganger: st.animationIterationCount }; })()`);
   t.sjekk(blink && blink.navn === "vh-blink" && blink.sek >= 0.334 && Number(blink.ganger) <= 5, `Lysene blinker for fort når flaska stopper (${JSON.stringify(blink)})`);
   t.sjekk(await t.finnes('.dokk [data-h="kaaring"]'), "«Avslutt» mangler når flaska har pekt ut en spiller");
-  t.sjekk(/^Tur 1 av 12$/i.test((await t.tekst("#topp-tittel")).trim()), `Toppfeltet viser ikke «Tur 1 av 12» med tre spillere og fire turer hver («${await t.tekst("#topp-tittel")}»)`);
+  t.sjekk(turAv(1, 12).test((await t.tekst("#topp-tittel")).trim()), `Toppfeltet viser ikke «Tur 1 av 12» med tre spillere og fire turer hver («${await t.tekst("#topp-tittel")}»)`);
   await t.sov(700);
   await t.bilde("flaska-har-talt");
   const forste = s.spill.tur;
@@ -112,7 +126,7 @@ export default async function (t) {
   await t.klikk('[data-h="fullfort"]', 450);
   await t.vent(SNURR, 5000);
   t.sjekk((await t.tilstand()).spill.stat[forste].k === 1, "Konsekvensen ble ikke talt etter angring");
-  t.sjekk(/snurrer/.test(await t.tekst("#skjerm h1")), "Den som nettopp spilte, blir ikke bedt om å snurre");
+  t.sjekk(O.snurrer.test(await t.tekst("#skjerm h1")), "Den som nettopp spilte, blir ikke bedt om å snurre");
 
   // 3. Tap the table to spin; never the same player twice in a row; truth
   await t.trykk("#vh-hjul");
@@ -173,7 +187,7 @@ export default async function (t) {
   await t.klikk('#ark [data-h="lukk-ark"]');
 
   // 9. Awards: the link is just «Avslutt» and asks first («Spill videre» stays in the game)
-  t.sjekk((await t.tekst('[data-h="kaaring"]')).trim() === "Avslutt", "Lenken for å avslutte skal hete «Avslutt»");
+  t.sjekk(!t.norsk || (await t.tekst('[data-h="kaaring"]')).trim() === "Avslutt", "Lenken for å avslutte skal hete «Avslutt»");
   await t.klikk('[data-h="kaaring"]');
   t.sjekk(await t.finnes('#ark:not([hidden]) [data-v="nei"]'), "«Avslutt» spurte ikke først");
   await t.klikk('#ark [data-v="nei"]');
@@ -186,11 +200,12 @@ export default async function (t) {
   await t.sov(700);
   await t.bilde("kaaring", true);
   const h1 = (await t.tekst("#skjerm h1")).trim();
-  t.sjekk(h1 === `${NAVN[forste]} vinner!`, `Overskriften skulle vært «${NAVN[forste]} vinner!», men er «${h1}»`);
-  t.sjekk(await t.finnes(".flere-spill"), "Sluttskjermen mangler «Spill noe annet med samme gjeng»");
-  t.sjekk(await t.finnes('.dokk a.lenke[href="/"]'), "Sluttskjermen mangler lenken «Alle spill»");
+  t.sjekk(h1 === O.vinner(NAVN[forste]), `Overskriften skulle vært «${NAVN[forste]} vinner!», men er «${h1}»`);
+  // (a one-game test build of another edition has no other games to suggest)
+  t.sjekk((await t.finnes(".flere-spill")) || (!t.norsk && !(await t.js("(window.RUSJ_ANDRE || []).length"))), "Sluttskjermen mangler «Spill noe annet med samme gjeng»");
+  t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler lenken «Alle spill»");
   const priser = (await t.tekst(".vh-priser")).toLowerCase();
-  t.sjekk(priser.includes("største våghals") && priser.includes("ærligste"), "Kåringen mangler største våghals eller ærligste");
+  t.sjekk((await t.antall(".vh-pris")) === 2 && (!t.norsk || (priser.includes("største våghals") && priser.includes("ærligste"))), "Kåringen mangler største våghals eller ærligste");
   t.sjekk(!/feig|står over/.test(priser), "Kåringen skal ikke trekke fram den som sto over");
   // Kåringen is final and counted once: shared with «Del kåringen», no way back into the game
   t.sjekk((await kveldsspill(t)) === 1, `Kåringen ble ikke meldt til «Kveldens gjeng» nøyaktig én gang (${await kveldsspill(t)})`);
@@ -199,7 +214,7 @@ export default async function (t) {
   await t.js(`window.__delt = null; navigator.share = async (d) => { window.__delt = d; };`);
   await t.klikk('[data-h="del"]');
   const delt = await t.js("window.__delt");
-  t.sjekk(delt && delt.text.includes(`${NAVN[forste]} vant`) && /Største våghals/.test(delt.text) && /\/vaghalsen\/$/.test(delt.url) && !/https?:/.test(delt.text), `«Del kåringen» delte ikke kåringen (${JSON.stringify(delt)})`);
+  t.sjekk(delt && (t.norsk ? delt.text.includes(`${NAVN[forste]} vant`) && /Største våghals/.test(delt.text) && /\/vaghalsen\/$/.test(delt.url) : delt.text.includes(NAVN[forste]) && new URL(delt.url).pathname === new URL(t.side).pathname) && !/https?:/.test(delt.text), `«Del kåringen» delte ikke kåringen (${JSON.stringify(delt)})`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   t.sjekk((await t.tilstand()).skjerm === "slutt" && (await t.finnes(".vh-priser")), "Kåringen sto ikke etter omlasting");
   t.sjekk((await kveldsspill(t)) === 1, "Kåringen ble meldt til «Kveldens gjeng» en gang til ved omlasting");
@@ -308,14 +323,14 @@ export default async function (t) {
   await t.start({ navn: ["Testspiller A", "Testspiller B"] });
   await t.klikk('[data-h="nytt"]');
   t.sjekk(await t.finnes('[data-h="mal"][data-v="turer"][aria-pressed="true"]'), "«Turer hver» skal være valgt fra start under «Hvor lenge?»");
-  t.sjekk(/^4 turer hver$/.test((await t.tekst('[data-h="mal"][data-v="turer"]')).trim()), `To spillere skal få fire turer hver («${await t.tekst('[data-h="mal"][data-v="turer"]')}»)`);
+  t.sjekk(O.turerHver.test((await t.tekst('[data-h="mal"][data-v="turer"]')).trim()), `To spillere skal få fire turer hver («${await t.tekst('[data-h="mal"][data-v="turer"]')}»)`);
   await t.klikk('[data-h="turmodus"][data-v="rekke"]');
   await t.klikk('[data-h="start"]');
   await t.vent(VALG);
   s = await t.tilstand();
   t.sjekk(s.spill.tur === 0 && s.spill.start === 0, `Første spill på rekke og rad skal starte med spiller 1 (startet med ${s.spill.tur + 1})`);
   t.sjekk(s.spill.mal && s.spill.mal.type === "turer" && s.spill.mal.n === 4, `Målet ble ikke fire turer hver (${JSON.stringify(s.spill.mal)})`);
-  t.sjekk(/^Tur 1 av 8$/i.test(await topp()), `Toppfeltet viser «${await topp()}», ventet «Tur 1 av 8»`);
+  t.sjekk(turAv(1, 8).test(await topp()), `Toppfeltet viser «${await topp()}», ventet «Tur 1 av 8»`);
   await spillTur(t, "k");
   await t.vent(VALG);
   await spillTur(t, "s");
@@ -330,15 +345,15 @@ export default async function (t) {
     Object.assign(st.spill, { nr: 6, runde: 4, tur: 0, fase: "valg", angre: null });
   });
   await t.vent(VALG);
-  t.sjekk(/^Siste runde$/i.test(await etikett()), `Bordet sier ikke «Siste runde» i siste runde («${await etikett()}»)`);
-  t.sjekk(/^Tur 7 av 8$/i.test(await topp()), `Toppfeltet viser «${await topp()}», ventet «Tur 7 av 8»`);
+  t.sjekk(O.siste.test(await etikett()), `Bordet sier ikke «Siste runde» i siste runde («${await etikett()}»)`);
+  t.sjekk(turAv(7, 8).test(await topp()), `Toppfeltet viser «${await topp()}», ventet «Tur 7 av 8»`);
   await spillTur(t, "k");
   await t.vent(VALG);
   await spillTur(t, "s");
   await t.vent(TIL_KAARING, 6000);
   s = await t.tilstand();
   t.sjekk(s.spill.fase === "mal" && s.skjerm === "runde" && s._aktiv === true, `Etter siste tur skal bordet vise målgang (fase: ${s.spill.fase})`);
-  t.sjekk(/^Målgang$/i.test(await topp()) && /siste tur/i.test(await t.tekst("#skjerm h1")), "Målgangen sier ikke at det var siste tur");
+  t.sjekk(!t.norsk || (/^Målgang$/i.test(await topp()) && /siste tur/i.test(await t.tekst("#skjerm h1"))), "Målgangen sier ikke at det var siste tur");
   t.sjekk(!(await t.finnes('[data-h="velg"], [data-h="snurr"]')), "Det går an å spille videre etter målgang");
   await t.sov(500);
   await t.bilde("malgang");
@@ -353,7 +368,7 @@ export default async function (t) {
   await t.vent("document.querySelector('.vh-priser')");
   s = await t.tilstand();
   t.sjekk(s.spill.ferdig === true && s._aktiv === false && s.skjerm === "slutt", "«Til kåringen» avsluttet ikke spillet");
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === "Testspiller A vinner!", `Åtte mot fire poeng skal kåre spiller A («${await t.tekst("#skjerm h1")}»)`);
+  t.sjekk((await t.tekst("#skjerm h1")).trim() === O.vinner("Testspiller A"), `Åtte mot fire poeng skal kåre spiller A («${await t.tekst("#skjerm h1")}»)`);
   t.sjekk((await kveldsspill(t)) === 1, "Målgangen ble ikke meldt til «Kveldens gjeng» én gang");
   await t.sov(600);
   await t.bilde("kaaring-etter-malgang", true);
@@ -368,12 +383,12 @@ export default async function (t) {
   await t.klikk('[data-h="nytt"]');
   await t.klikk('#ark [data-v="ja"]');
   await t.klikk('[data-h="mal"][data-v="poeng"]');
-  t.sjekk(/10 poeng/.test(await t.tekst("#vh-mal-hjelp")), "Forklaringen under «Hvor lenge?» følger ikke valget");
+  t.sjekk((t.norsk ? /10 poeng/ : /10/).test(await t.tekst("#vh-mal-hjelp")), "Forklaringen under «Hvor lenge?» følger ikke valget");
   await t.klikk('[data-h="start"]');
   await t.vent(VALG);
   s = await t.tilstand();
   t.sjekk(s.spill.mal && s.spill.mal.type === "poeng" && s.spill.mal.n === 10, `Målet ble ikke ti poeng (${JSON.stringify(s.spill.mal)})`);
-  t.sjekk(/^Først til 10$/i.test(await topp()), `Toppfeltet viser «${await topp()}», ventet «Først til 10»`);
+  t.sjekk(O.forstTil10.test(await topp()), `Toppfeltet viser «${await topp()}», ventet «Først til 10»`);
   const forst = s.spill.start;
   await settTilstand(t, (st) => {
     st.spill.stat.forEach((x) => Object.assign(x, { turer: 4, k: 4, s: 0 }));
@@ -384,12 +399,12 @@ export default async function (t) {
   await t.vent(VALG);
   s = await t.tilstand();
   t.sjekk(s.spill.fase === "valg" && s.spill.tur === 1 - forst, "Den andre fikk ikke turen sin etter at den første nådde ti poeng");
-  t.sjekk(/^Siste runde$/i.test(await etikett()), `Bordet sier ikke «Siste runde» når noen har nådd ti poeng («${await etikett()}»)`);
+  t.sjekk(O.siste.test(await etikett()), `Bordet sier ikke «Siste runde» når noen har nådd ti poeng («${await etikett()}»)`);
   await spillTur(t, "k"); // … and so does the other
   await t.vent(TIL_KAARING, 6000);
   await t.klikk('[data-h="til-kaaring"]');
   await t.vent("document.querySelector('.vh-priser')");
-  t.sjekk((await t.tekst("#skjerm h1")).trim() === "Testspiller A og Testspiller B vinner!", `Ti mot ti skal kåre begge («${await t.tekst("#skjerm h1")}»)`);
+  t.sjekk((await t.tekst("#skjerm h1")).trim() === O.vinnerBegge("Testspiller A", "Testspiller B"), `Ti mot ti skal kåre begge («${await t.tekst("#skjerm h1")}»)`);
 
   // 16. «Avslutt» before anyone has played: home, no crowning. Then the bottle with a goal:
   // everyone gets exactly as many turns, so only players with turns left are picked.
@@ -409,7 +424,7 @@ export default async function (t) {
     Object.assign(st.spill, { nr: 11, tur: 2, fase: "snurr", angre: null });
   });
   await t.vent(SNURR);
-  t.sjekk(/^Siste runde$/i.test(await etikett()) && /^Tur 12 av 12$/i.test(await topp()), `Siste tur med flaska: «${await etikett()}» / «${await topp()}»`);
+  t.sjekk(O.siste.test(await etikett()) && turAv(12, 12).test(await topp()), `Siste tur med flaska: «${await etikett()}» / «${await topp()}»`);
   await t.klikk('[data-h="snurr"]', 40);
   await t.vent(VALG, 9000);
   s = await t.tilstand();
@@ -429,7 +444,7 @@ export default async function (t) {
     Object.assign(st.spill, { nr: 14, tur: 0, fase: "snurr", angre: null });
   });
   await t.vent(SNURR);
-  t.sjekk(/^Siste runde$/i.test(await etikett()), `Bordet sier ikke «Siste runde» når noen har ti poeng («${await etikett()}»)`);
+  t.sjekk(O.siste.test(await etikett()), `Bordet sier ikke «Siste runde» når noen har ti poeng («${await etikett()}»)`);
   await t.klikk('[data-h="snurr"]', 40);
   await t.vent(VALG, 9000);
   t.sjekk((await t.tilstand()).spill.tur === 2, "Flaska skal peke på den som har hatt én tur mindre");
@@ -454,9 +469,9 @@ export default async function (t) {
   await t.klikk('[data-h="turmodus"][data-v="rekke"]');
   await t.klikk('[data-h="start"]');
   await t.vent(VALG);
-  await medKort("Fortell et kjent eventyr på 20 sekunder.");
+  await medKort(O.tjue);
   await t.vent(KORT);
-  t.sjekk((await klokke()) === "20" && /20 sekunder/.test(await klokkeEtikett()), `Kortet med «20 sekunder» fikk ikke en klokke på 20 s («${await klokke()}»)`);
+  t.sjekk((await klokke()) === "20" && O.sekunder.test(await klokkeEtikett()), `Kortet med «20 sekunder» fikk ikke en klokke på 20 s («${await klokke()}»)`);
   t.sjekk(await t.friForDokk("#vh-klokke"), "Klokka på kortet havner bak knappene");
   await t.sov(400);
   await t.bilde("kort-med-klokke");
@@ -472,27 +487,27 @@ export default async function (t) {
   await t.klikk('[data-h="klokke"]');
   await t.js(`(() => { const k = window.Rusj.timer("vh-klokke"); k.leggTil(-(k.igjen - 0.5)); })()`);
   await t.vent("document.querySelector('#vh-klokke.ferdig')", 4000);
-  t.sjekk(/Tiden er ute/.test(await klokkeEtikett()), "Klokka sier ikke fra når tiden er ute");
+  t.sjekk(O.tidenUte.test(await klokkeEtikett()), "Klokka sier ikke fra når tiden er ute");
   await t.klikk('[data-h="klokke"]');
   t.sjekk(!(await t.finnes("#vh-klokke.ferdig")) && Number(await klokke()) >= 19, "Klokka kan ikke startes på nytt når tiden er ute");
   await t.klikk('[data-h="fullfort"]', 250);
   t.sjekk(!(await t.js(`!!window.Rusj.timer("vh-klokke")`)), "Klokka går videre etter «Fullført!»");
   await t.vent(VALG, 6000);
-  for (const [tekst, sek] of [["Si fem ting som er gule – på ti sekunder.", "10"], ["Snakk som en baby i ett minutt.", "60"]]) {
+  for (const [tekst, sek] of [[O.ti, "10"], [O.minutt, "60"]]) {
     await medKort(tekst);
     await t.vent(KORT);
     t.sjekk((await t.finnes("#vh-klokke")) && (await klokke()) === sek, `«${tekst}» skulle fått en klokke på ${sek} s`);
   }
-  await medKort("Gå som en pingvin rundt i rommet.");
+  await medKort(O.ingen);
   await t.vent(KORT);
   t.sjekk(!(await t.finnes("#vh-klokke")), "Et kort uten tid fikk klokke");
 
   // 18. «Gjelder nå»: a dare that lasts stays on the table until the player's next turn.
-  await medKort("Snakk som en sjørøver til det er din tur igjen.");
+  await medKort(O.varer);
   await t.vent(KORT);
   await t.klikk('[data-h="fullfort"]', 250);
   await t.vent(VALG, 6000);
-  t.sjekk((await t.tekst(".vh-brikke")).includes("Testspiller A snakker som en sjørøver"), `Konsekvensen som varer, står ikke på bordet («${await t.tekst(".vh-brikker")}»)`);
+  t.sjekk((await t.tekst(".vh-brikke")).includes(O.brikke), `Konsekvensen som varer, står ikke på bordet («${await t.tekst(".vh-brikker")}»)`);
   t.sjekk(await t.friForDokk(".vh-brikker"), "«Gjelder nå»-brikkene havner bak knappene");
   await t.sov(600);
   await t.bilde("gjelder-na");
@@ -514,7 +529,7 @@ export default async function (t) {
   s = await t.tilstand();
   t.sjekk(s.spill.tur === 0 && s.spill.gjelder.length === 0 && !(await t.finnes(".vh-brikke")), "Brikken ble ikke borte da spilleren sto for tur igjen");
   // A rule for the whole table: nobody can «forget» it, it can only be taken away.
-  await medKort("Finn på en ny regel som gjelder til det er din tur igjen.");
+  await medKort(O.regel);
   await t.vent(KORT);
   await t.klikk('[data-h="fullfort"]', 250);
   await t.vent(VALG, 6000);
@@ -540,7 +555,7 @@ export default async function (t) {
   await t.vent(VALG, 9000);
   await t.klikk('[data-h="velg"][data-v="k"]');
   await t.vent(KORT);
-  t.sjekk(/Jul/.test(await t.tekst("#vh-kort .storkort-nr")), `Kortet kom ikke fra julepakken («${await t.tekst("#vh-kort .storkort-nr")}»)`);
+  t.sjekk(O.jul.test(await t.tekst("#vh-kort .storkort-nr")), `Kortet kom ikke fra julepakken («${await t.tekst("#vh-kort .storkort-nr")}»)`);
   await t.sov(400);
   await t.bilde("julekort");
   // A running game is left alone by the link.

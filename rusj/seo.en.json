@@ -278,6 +278,55 @@
         "pictionary",
         "telephone pictionary"
       ]
+    },
+    "sladrehanken": {
+      "tittel": "Never Have I Ever – 1,000 questions, free",
+      "frase": "Never have I ever",
+      "beskrivelse": "Play ‘Never have I ever’ on your phone: over 1,000 questions for friends, family, travel and parties. Read the card aloud – done it? You’re caught out.",
+      "sok": [
+        "never have i ever questions",
+        "never have i ever game",
+        "ice breaker",
+        "tattletale"
+      ]
+    },
+    "pekefingeren": {
+      "tittel": "Who’s Most Likely To – 900 questions, free",
+      "frase": "Who’s most likely to",
+      "beskrivelse": "The pointing game on your phone: read the statement, count down – and everyone points at once. Over 900 ‘most likely to’ questions for parties and family.",
+      "sok": [
+        "most likely to",
+        "who is most likely to",
+        "pointing game",
+        "point"
+      ]
+    },
+    "vaghalsen": {
+      "tittel": "Truth or Dare – over 1,000 questions and dares",
+      "frase": "Truth or dare",
+      "beskrivelse": "Truth or dare on your phone: spin the bottle and choose. Over 1,000 questions and dares for kids, family, friends and grown-up parties.",
+      "sok": [
+        "truth or dare questions",
+        "spin the bottle",
+        "dares for kids",
+        "truth questions"
+      ]
+    },
+    "vinglepetter": {
+      "tittel": "Would You Rather? 900 questions for all ages, free",
+      "frase": "Would you rather?",
+      "beskrivelse": "‘Would you rather?’ on your phone: over 900 funny dilemmas for kids, family, friends and parties. Two options, count down – and everyone chooses at once.",
+      "sok": [
+        "would you rather questions",
+        "this or that",
+        "dilemmas",
+        "either or"
+      ]
+    },
+    "papegoyen": {
+      "tittel": "The Yes/No Game – don’t say yes or no! Free",
+      "frase": "The yes/no game",
+      "beskrivelse": "The free yes/no game on your phone: answer tricky questions without saying ‘yes’ or ‘no’. Over 650 questions for kids, family and grown-ups."
     }
   }
 }

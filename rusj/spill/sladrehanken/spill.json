@@ -10,5 +10,23 @@
   "tagger": ["fest", "familie", "sporsmal"],
   "rekkefolge": 3,
   "alias": ["jeg-har-aldri"],
-  "sok": ["jeg har aldri", "jeg har aldri spørsmål", "bli kjent", "samtalespill", "spørsmålskort", "vors uten alkohol"]
+  "sok": ["jeg har aldri", "jeg har aldri spørsmål", "bli kjent", "samtalespill", "spørsmålskort", "vors uten alkohol"],
+  "i18n": {
+    "en": {
+      "navn": "Blabbermouth",
+      "undertittel": "Never have I ever …",
+      "kort": "Read the card aloud – if you’ve done it, you’re caught out.",
+      "beskrivelse": "Free ‘Never have I ever’ game for your phone. Read the card aloud – if you’ve done it, you’re caught out. Over 1,000 cards for friends, family, travel and parties.",
+      "slug": "blabbermouth",
+      "sok": ["never have i ever", "never have i ever questions", "never have i ever game", "ice breaker", "getting to know you", "question cards", "party game without drinking"]
+    },
+    "da": {
+      "navn": "Sladrehanken",
+      "undertittel": "Jeg har aldrig …",
+      "kort": "Læs kortet højt – har du gjort det, er du afsløret.",
+      "beskrivelse": "Gratis »Jeg har aldrig«-spil på dansk. Læs kortet højt – har du gjort det, er du afsløret. Over 1.000 kort til venner, familie, rejser og fest.",
+      "slug": "sladrehanken",
+      "sok": ["jeg har aldrig", "jeg har aldrig spørgsmål", "jeg har aldrig spil", "never have i ever", "isbryder", "lær hinanden at kende", "samtalespil", "spørgsmålskort"]
+    }
+  }
 }

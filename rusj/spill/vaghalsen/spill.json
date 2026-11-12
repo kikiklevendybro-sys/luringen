@@ -10,5 +10,23 @@
   "tagger": ["fest", "familie", "barn", "sporsmal"],
   "rekkefolge": 5,
   "alias": ["nodt-eller-sannhet", "sannhet-eller-nodt", "sannhet-eller-konsekvens", "våghalsen"],
-  "sok": ["nødt eller sannhet", "sannhet eller nødt", "sannhet eller konsekvens", "nødt", "flasketuten", "snurr flaska", "utfordringer"]
+  "sok": ["nødt eller sannhet", "sannhet eller nødt", "sannhet eller konsekvens", "nødt", "flasketuten", "snurr flaska", "utfordringer"],
+  "i18n": {
+    "en": {
+      "navn": "Plucky",
+      "undertittel": "Truth or dare",
+      "kort": "Spin the bottle. Truth or dare – are you brave enough?",
+      "beskrivelse": "Free truth or dare for your phone. Spin the bottle, pick truth or dare – and go for it! Over 1,000 cards for kids, family, friends and parties.",
+      "slug": "plucky",
+      "sok": ["truth or dare", "truth or dare questions", "truth or dare for kids", "spin the bottle", "dares", "party games"]
+    },
+    "da": {
+      "navn": "Vovehalsen",
+      "undertittel": "Sandhed eller konsekvens",
+      "kort": "Snurr flasken. Sandhed eller konsekvens – tør du?",
+      "beskrivelse": "Gratis »Sandhed eller konsekvens« på dansk. Snurr flasken, vælg sandhed eller konsekvens – og vov! Egne kort til børn, familie, venner og fest.",
+      "slug": "vovehalsen",
+      "sok": ["sandhed eller konsekvens", "sandhed eller konsekvens spørgsmål", "flaskehalsen", "snurr flasken", "truth or dare", "udfordringer", "konsekvenser"]
+    }
+  }
 }

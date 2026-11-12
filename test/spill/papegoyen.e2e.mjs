@@ -2,6 +2,15 @@
 // by button and by swipe (only from the chosen packs), «Sa det!» with the squawk, «Angre» gives the
 // time back, pause, reload mid-turn (comes back paused), back + continue, a turn that lasts the whole
 // time, a player who stands over, «Kåringen» in seconds, then «Spill igjen» and ending early.
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en papegoyen): the words it reads come from
+// ORD below; the state and the links from t.nokkel and t.forside.
+
+// The words the scenario reads, per edition.
+const ORD = {
+  nb: { nikk: /nikk/, ja: /ja/, streng: /jepp/, folgOpp: /Følg opp: «/, lurt: /Lurt av: «.+\?»/, vinner: (n) => `${n} vinner!`, vant: /vinner!/, kaaring: "kåringen" },
+  en: { nikk: /nodding/, ja: /yes/, streng: /yep/, folgOpp: /Follow up: ‘/, lurt: /‘.+\?’/, vinner: (n) => `${n} wins!`, vant: /wins?!/, kaaring: "the results" },
+  da: { nikk: /nik/, ja: /ja/, streng: /jep/, folgOpp: /Følg op: »/, lurt: /».+\?«/, vinner: (n) => `${n} vinder!`, vant: /vinder!/, kaaring: "kåringen" },
+};
 
 const S = "Rusj.S";
 // An element must be fully visible above the dock (short phones), measured from the top.
@@ -28,7 +37,7 @@ export default async function (t) {
   s = await t.tilstand();
   const forste = s.spill.na.i;
   t.sjekk(new RegExp(`Testspiller ${"ABC"[forste]}`).test(await t.tekst("#skjerm h1")), "Stolen viser ikke hvem som skal svare");
-  t.sjekk(/nikk/.test(await t.tekst(".pa-forbud")) && /ja/.test(await t.tekst(".pa-forbud")), "Forbudene vises ikke");
+  t.sjekk(ORD[t.sprak].nikk.test(await t.tekst(".pa-forbud")) && ORD[t.sprak].ja.test(await t.tekst(".pa-forbud")), "Forbudene vises ikke");
 
   // Back during the countdown must not start the clock by itself
   await t.klikk('[data-h="klar"]', 300);
@@ -55,7 +64,7 @@ export default async function (t) {
   s = await t.tilstand();
   t.sjekk(s.spill.na.spm === 3, "Et sveip ga ikke et nytt spørsmål");
   t.sjekk(!(await t.tekst(".storkort-tekst")).includes("{"), "Et navn i spørsmålet ble ikke fylt inn");
-  t.sjekk(/Følg opp: «/.test(await t.tekst(".storkort-fot")), "Kortet foreslår ingen oppfølger");
+  t.sjekk(ORD[t.sprak].folgOpp.test(await t.tekst(".storkort-fot")), "Kortet foreslår ingen oppfølger");
   await t.sov(900);
 
   // «Sa det!» ends the turn with the squawk; «Angre» gives the time back (paused)
@@ -66,8 +75,8 @@ export default async function (t) {
   s = await t.tilstand();
   let l = s.spill.logg[0];
   t.sjekk(l && l.sek >= 2 && l.sek < 30 && s.spill.tider[forste] === l.sek, `Tiden ble ikke registrert riktig: ${JSON.stringify(l)}`);
-  t.sjekk(new RegExp(`holdt ut i ${l.sek} sekund`).test(await t.tekst("#skjerm h1")), "Overskriften viser ikke hvor lenge spilleren holdt ut");
-  t.sjekk(/Lurt av: «.+\?»/.test(await t.tekst(".pa-lurt")), "Papegøyeskjermen viser ikke spørsmålet som lurte spilleren");
+  t.sjekk((t.norsk ? new RegExp(`holdt ut i ${l.sek} sekund`) : new RegExp(`\\b${l.sek}\\b`)).test(await t.tekst("#skjerm h1")), "Overskriften viser ikke hvor lenge spilleren holdt ut");
+  t.sjekk(ORD[t.sprak].lurt.test(await t.tekst(".pa-lurt")), "Papegøyeskjermen viser ikke spørsmålet som lurte spilleren");
   await t.klikk('[data-h="angre"]');
   await t.vent("document.querySelector('[data-h=\"fortsett-tur\"]')");
   s = await t.tilstand();
@@ -121,12 +130,13 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-slutt .banner')");
   await t.sov(400);
   await t.bilde("slutt", true);
-  t.sjekk(new RegExp(`Testspiller ${"ABC"[andre]} vinner!`).test(await t.tekst("#skjerm h1")), "Vinneren vises ikke");
-  t.sjekk((await t.tekst("#topp-tittel")).trim().toLowerCase() === "kåringen", "Sluttskjermen heter ikke «Kåringen»");
+  t.sjekk((await t.tekst("#skjerm h1")).includes(ORD[t.sprak].vinner(`Testspiller ${"ABC"[andre]}`)), "Vinneren vises ikke");
+  t.sjekk((await t.tekst("#topp-tittel")).trim().toLowerCase() === ORD[t.sprak].kaaring, "Sluttskjermen heter ikke «Kåringen»");
   t.sjekk(/30 s/.test(await t.tekst(".pall")), "Pallen viser ikke sekunder");
   t.sjekk(await t.finnes(".pa-sek .poengliste") && (await t.finnes(".pa-priser")), "Kåringen mangler poengliste eller priser");
-  t.sjekk(await t.finnes(".flere-spill") && (await t.finnes('.dokk a.lenke[href="/"]')), "Kåringen mangler andre spill eller «Alle spill»");
-  const kveld = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  // (a one-game test build of another edition has no other games to suggest)
+  t.sjekk(((await t.finnes(".flere-spill")) || (!t.norsk && !(await t.js("(window.RUSJ_ANDRE || []).length")))) && (await t.finnes(`.dokk a.lenke[href="${t.forside}"]`)), "Kåringen mangler andre spill eller «Alle spill»");
+  const kveld = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
   t.sjekk(kveld && kveld.spill.some((x) => x.id === "papegoyen"), "Resultatet ble ikke lagt i «Kveldens gjeng»");
   t.sjekk((await t.tilstand())._aktiv === false, "Spillet regnes fortsatt som pågående på «Kåringen»");
   await t.sov(2000);
@@ -138,7 +148,7 @@ export default async function (t) {
   await t.klikk('[data-h="runder"][data-v="2"]');
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('.pa-stol')");
-  t.sjekk(/jepp/.test(await t.tekst(".pa-forbud")), "Strenge regler vises ikke");
+  t.sjekk(ORD[t.sprak].streng.test(await t.tekst(".pa-forbud")), "Strenge regler vises ikke");
   t.sjekk((await t.tilstand()).spill.turer === 6, "To runder med tre spillere skal gi seks turer");
   await t.klikk('[data-h="klar"]', 50);
   await t.vent("document.querySelector('#pa-tid')", 8000);
@@ -149,6 +159,6 @@ export default async function (t) {
   await t.vent("document.querySelector('#ark:not([hidden]) [data-v=\"ja\"]')");
   await t.klikk('#ark [data-v="ja"]');
   await t.vent("document.querySelector('.skjerm-slutt .banner')");
-  t.sjekk(/vinner!/.test(await t.tekst("#skjerm h1")), "Avslutt ga ingen vinner");
+  t.sjekk(ORD[t.sprak].vant.test(await t.tekst("#skjerm h1")), "Avslutt ga ingen vinner");
   await t.bilde("slutt-tidlig", true);
 }
