@@ -16,7 +16,9 @@
   const LILLE = "31";
   const FELLES = "F"; // «Fellesrunde»: a 3-2, announced outside the ranking (when the rule is on)
   const NIVAER = ["lett", "middels", "vanskelig"];
-  const PARNAVN = { 6: "seksere", 5: "femmere", 4: "firere", 3: "treere", 2: "toere", 1: "enere" };
+  // R.t before the kit's R is in scope (the rules also load in the unit tests, without the kit).
+  const Rt = { t: (s) => (window.Rusj && window.Rusj.t ? window.Rusj.t(s) : s) };
+  const PARNAVN = { 6: Rt.t("Par seksere"), 5: Rt.t("Par femmere"), 4: Rt.t("Par firere"), 3: Rt.t("Par treere"), 2: Rt.t("Par toere"), 1: Rt.t("Par enere") };
 
   const verdi = (a, b) => `${Math.max(a, b)}${Math.min(a, b)}`;
   // 21 for Meyer down to 1 for 3-2; −1 for anything that is not in the ranking.
@@ -27,7 +29,7 @@
   const slar = (a, b) => styrke(a) > styrke(b);
   const erPar = (v) => v.length === 2 && v[0] === v[1];
   const odds = (v) => (v === FELLES ? 2 : erPar(v) ? 1 : 2); // ways out of 36
-  const navn = (v) => (v === MEYER ? "Meyer" : v === LILLE ? "Lille Meyer" : v === FELLES ? "Fellesrunde" : erPar(v) ? `Par ${PARNAVN[v[0]]}` : v);
+  const navn = (v) => (v === MEYER ? Rt.t("Meyer") : v === LILLE ? Rt.t("Lille Meyer") : v === FELLES ? Rt.t("Fellesrunde") : erPar(v) ? PARNAVN[v[0]] : v);
   const ojne = (v) => (v === FELLES ? [3, 2] : [Number(v[0]), Number(v[1])]);
   const strek = (v) => ojne(v).join("-");
 
@@ -269,10 +271,11 @@
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
   const tilfeldig = () => R.nyttFro() / 4294967296;
   const terning = () => 1 + Math.floor(tilfeldig() * 6);
-  const ROBOTER = ["Robo", "Bipp", "Bopp"];
-  const NIVANAVN = { lett: "Lett", middels: "Middels", vanskelig: "Vanskelig" };
+  // Every text goes through R.t (rusj/SPRAK.md): the key is the Norwegian text.
+  const ROBOTER = [R.t("Robo"), R.t("Bipp"), R.t("Bopp")];
+  const NIVANAVN = { lett: R.t("Lett"), middels: R.t("Middels"), vanskelig: R.t("Vanskelig") };
   const erRobot = (sp, i) => i >= sp.mennesker;
-  const navnFor = (sp, i) => (erRobot(sp, i) ? ROBOTER[i - sp.mennesker] || "Robo" : R.navn(i));
+  const navnFor = (sp, i) => (erRobot(sp, i) ? ROBOTER[i - sp.mennesker] || ROBOTER[0] : R.navn(i));
   const avatarFor = (sp, i, st) =>
     erRobot(sp, i) ? `<span class="avatar my-robot ${st || ""}" style="--pf: var(--p${(i % 20) + 1})" aria-hidden="true">🤖</span>` : R.avatar(i, st);
 
@@ -301,7 +304,7 @@
   const PIPS = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
   const SIDE = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] };
   const KUBE = [1, 2, 3, 4, 5, 6].map((n) => `<span class="my-side s${n}">${PIPS[n].map((p) => `<i class="p${p}"></i>`).join("")}</span>`).join("");
-  const pose = (v, z, tx, ty) => `rotateX(-21deg) rotateY(12deg) rotateZ(${z}deg) rotateX(${SIDE[v][0] + 360 * (tx || 0)}deg) rotateY(${SIDE[v][1] + 360 * (ty || 0)}deg)`;
+  const pose = (v, z, tx, ty) => `rotateX(-21deg) rotateY(12deg) rotateZ(${z}deg) rotateX(${SIDE[v][0] + 360 * (tx || 0)}deg) rotateY(${SIDE[v][1] + 360 * (ty || 0)}deg)`; // sprak-ok
   const kube = (v, z, klasse) =>
     `<span class="my-t ${klasse || ""}" aria-hidden="true"><span class="my-skygge"></span><span class="my-hopp"><span class="my-kube" style="transform: ${pose(v, z)}">${KUBE}</span></span></span>`;
   const kuber = (kast) => `<span class="my-terninger">${kube(kast[0], -9)}${kube(kast[1], 11)}</span>`;
@@ -334,11 +337,11 @@
   // ---------- Pieces of the screen ----------
 
   function livRad(sp, aktiv) {
-    return `<ol class="my-liv" aria-label="Liv igjen">${sp.liv
+    return `<ol class="my-liv" aria-label="${esc(R.t("Liv igjen"))}">${sp.liv
       .map((liv, i) => {
         const ute = liv <= 0;
         return `<li class="${i === aktiv ? "na" : ""}${ute ? " ute" : ""}" style="--pf: var(--p${(i % 20) + 1})"${i === aktiv ? ' aria-current="true"' : ""}>
-          ${avatarFor(sp, i)}<span class="my-liv-navn">${esc(navnFor(sp, i))}</span>${livTerning(sp, i)}<span class="vh">: ${ute ? "ute" : R.flertall(liv, "liv", "liv")}</span>
+          ${avatarFor(sp, i)}<span class="my-liv-navn">${esc(navnFor(sp, i))}</span>${livTerning(sp, i)}<span class="vh">: ${esc(ute ? R.t("ute") : R.flertall(liv, "liv", "liv"))}</span>
         </li>`;
       })
       .join("")}</ol>`;
@@ -346,7 +349,7 @@
 
   function meldingKort(sp, m, o = {}) {
     return `<div class="my-melding${o.klasse ? " " + o.klasse : ""}">
-      <p class="my-melding-hvem">${avatarFor(sp, m.av)}<span>${esc(navnFor(sp, m.av))} sier</span></p>
+      <p class="my-melding-hvem">${avatarFor(sp, m.av)}<span>${esc(R.t("{navn} sier", { navn: navnFor(sp, m.av) }))}</span></p>
       <p class="my-melding-verdi"><span class="my-melding-par">${par(m.v)}</span><b>${esc(navn(m.v))}</b></p>
       ${m.v !== FELLES && navn(m.v) !== m.v ? `<p class="my-melding-sub">${esc(strek(m.v))}</p>` : ""}
     </div>`;
@@ -355,15 +358,15 @@
   function kjedeHtml(sp) {
     if (sp.kjede.length < 2) return "";
     const tidligere = sp.kjede.slice(0, -1).slice(-4);
-    return `<p class="my-kjede"><span class="vh">Sagt før i runden: </span>${tidligere
-      .map((k) => `<span>${esc(navnFor(sp, k.av))} <b>${esc(k.v === FELLES ? "Fellesrunde" : strek(k.v))}</b></span>`)
+    return `<p class="my-kjede"><span class="vh">${esc(R.t("Sagt før i runden:"))} </span>${tidligere
+      .map((k) => `<span>${esc(navnFor(sp, k.av))} <b>${esc(k.v === FELLES ? navn(FELLES) : strek(k.v))}</b></span>`)
       .join('<i aria-hidden="true">→</i>')}</p>`;
   }
 
   function maaSla(sp) {
     const f = forrigeV(sp);
-    if (!f) return `<p class="my-maal">Ny runde – du begynner og kan si hva du vil.</p>`;
-    return `<p class="my-maal">Du må slå <b>${esc(navn(f))}</b>${navn(f) !== f ? ` <span>(${esc(strek(f))})</span>` : ""}</p>`;
+    if (!f) return `<p class="my-maal">${esc(R.t("Ny runde – du begynner og kan si hva du vil."))}</p>`;
+    return `<p class="my-maal">${esc(R.t("Du må slå"))} <b>${esc(navn(f))}</b>${navn(f) !== f ? ` <span>(${esc(strek(f))})</span>` : ""}</p>`;
   }
 
   function begerBrett(sp, o = {}) {
@@ -378,16 +381,16 @@
   function valgGrid(sp) {
     const lov = lovlige(forrigeV(sp), sp.felles);
     const rangert = lov.filter((v) => v !== FELLES);
-    return `<div class="my-valg" role="group" aria-label="Hva sier du?">
+    return `<div class="my-valg" role="group" aria-label="${esc(R.t("Hva sier du?"))}">
       ${rangert
         .map((v) => {
           const spes = navn(v) !== v;
-          return `<button class="my-valg-knapp${spes ? " spes" : ""}${v === MEYER ? " meyer" : ""}" data-h="velg" data-v="${v}" aria-pressed="${sp.valgt === v}" aria-label="${esc(spes ? `${navn(v)}, ${strek(v)}` : v)}">
+          return `<button data-h="velg" class="my-valg-knapp${spes ? " spes" : ""}${v === MEYER ? " meyer" : ""}" data-v="${v}" aria-pressed="${sp.valgt === v}" aria-label="${esc(spes ? `${navn(v)}, ${strek(v)}` : v)}">
             <span class="my-valg-par">${par(v)}</span><b>${esc(spes ? navn(v) : v)}</b>
           </button>`;
         })
         .join("")}
-      ${lov.includes(FELLES) ? `<button class="my-valg-knapp felles" data-h="velg" data-v="F" aria-pressed="${sp.valgt === FELLES}" aria-label="Fellesrunde, 3-2"><span class="my-valg-par">${par(FELLES)}</span><b>Fellesrunde</b><small>3-2 · ingen mister liv</small></button>` : ""}
+      ${lov.includes(FELLES) ? `<button class="my-valg-knapp felles" data-h="velg" data-v="F" aria-pressed="${sp.valgt === FELLES}" aria-label="${esc(navn(FELLES))}, 3-2"><span class="my-valg-par">${par(FELLES)}</span><b>${esc(navn(FELLES))}</b><small>${esc(R.t("3-2 · ingen mister liv"))}</small></button>` : ""}
     </div>`;
   }
 
@@ -396,15 +399,16 @@
     if (!u) return { tittel: "", tekst: "" };
     const a = navnFor(sp, u.av);
     const s = navnFor(sp, u.svarer);
-    if (u.type === "felles") return { tittel: "Fellesrunde!", tekst: `${s} trodde på det. Ingen mister liv – ny runde.` };
+    if (u.type === "felles") return { tittel: R.t("Fellesrunde!"), tekst: R.t("{navn} trodde på det. Ingen mister liv – ny runde.", { navn: s }) };
     const t = navnFor(sp, u.taper);
-    const mister = u.tap === 2 ? "to liv" : "ett liv";
-    const ute = u.ute ? ` ${t} er ute!` : "";
-    if (u.type === "godta") return { tittel: `${s} godtar Meyer`, tekst: `${s} mister ett liv uten å løfte.${ute}` };
+    const ute = u.ute ? " " + R.t("{navn} er ute!", { navn: t }) : "";
+    if (u.type === "godta") return { tittel: R.t("{navn} godtar Meyer", { navn: s }), tekst: R.t("{navn} mister ett liv uten å løfte.", { navn: s }) + ute };
     const ub = (v) => strek(v).replace("-", "\u2011"); // never split 3-1 over two lines
     const hadde = ub(verdi(u.kast[0], u.kast[1]));
-    if (u.sann) return { tittel: "Det var sant!", tekst: `${a} hadde ${hadde}. ${s} mister ${mister}.${ute}` };
-    return { tittel: "Bløff!", tekst: `${a} sa ${u.v === FELLES ? "Fellesrunde" : ub(u.v)}, men hadde ${hadde}. ${a} mister ${mister}.${ute}` };
+    // «… mister to liv» / «… mister ett liv»
+    const mister = (navn) => (u.tap === 2 ? R.t("{navn} mister to liv.", { navn }) : R.t("{navn} mister ett liv.", { navn }));
+    if (u.sann) return { tittel: R.t("Det var sant!"), tekst: `${R.t("{navn} hadde {kast}.", { navn: a, kast: hadde })} ${mister(s)}${ute}` };
+    return { tittel: R.t("Bløff!"), tekst: `${R.t("{navn} sa {sa}, men hadde {kast}.", { navn: a, sa: u.v === FELLES ? navn(FELLES) : ub(u.v), kast: hadde })} ${mister(a)}${ute}` };
   }
 
   // ---------- Statistics on this phone (names only, never sent anywhere) ----------
@@ -440,42 +444,42 @@
     const linjer = [];
     if (best.length) {
       const [n, s] = best[0];
-      linjer.push(`<li><span aria-hidden="true">🎭</span> <span><b>Beste bløffer:</b> ${esc(n)} – ${esc(R.flertall(s.hjem, "bløff", "bløffer"))} gikk hjem</span></li>`);
-      if (best.length > 1) linjer.push(`<li class="my-stat-rest"><span aria-hidden="true"></span> <span>Så: ${esc(R.ramsOpp(best.slice(1).map(([m, t]) => `${m} (${t.hjem})`)))}</span></li>`);
+      linjer.push(`<li><span aria-hidden="true">🎭</span> <span><b>${esc(R.t("Beste bløffer:"))}</b> ${esc(R.t("{navn} – {antall} gikk hjem", { navn: n, antall: R.flertall(s.hjem, "bløff", "bløffer") }))}</span></li>`);
+      if (best.length > 1) linjer.push(`<li class="my-stat-rest"><span aria-hidden="true"></span> <span>${esc(R.t("Så: {navn}", { navn: R.ramsOpp(best.slice(1).map(([m, t]) => `${m} (${t.hjem})`)) }))}</span></li>`);
     }
-    if (S.sist && S.sist.navn) linjer.push(`<li><span aria-hidden="true">🏆</span> <span><b>Sist:</b> ${esc(S.sist.navn)} vant${S.sist.robot ? " – mobilen tok den" : ""}</span></li>`);
+    if (S.sist && S.sist.navn) linjer.push(`<li><span aria-hidden="true">🏆</span> <span><b>${esc(R.t("Sist:"))}</b> ${esc(S.sist.robot ? R.t("{navn} vant – mobilen tok den", { navn: S.sist.navn }) : R.t("{navn} vant", { navn: S.sist.navn }))}</span></li>`);
     if (!linjer.length) return "";
-    return `<section class="my-stat" aria-label="Statistikk på denne mobilen"><p class="etikett">På denne mobilen</p><ul>${linjer.join("")}</ul></section>`;
+    return `<section class="my-stat" aria-label="${esc(R.t("Statistikk på denne mobilen"))}"><p class="etikett">${esc(R.t("På denne mobilen"))}</p><ul>${linjer.join("")}</ul></section>`;
   }
 
   // ---------- Rules sheet ----------
 
   const rangTabell = () => `
-    <h3>Rangeringen – fra høyest til lavest</h3>
-    <p class="hjelp">Den høyeste terningen sies først: 4 og 6 er 64. Like verdier er like gode, uansett hvilken terning som viser hva.</p>
+    <h3>${esc(R.t("Rangeringen – fra høyest til lavest"))}</h3>
+    <p class="hjelp">${esc(R.t("Den høyeste terningen sies først: 4 og 6 er 64. Like verdier er like gode, uansett hvilken terning som viser hva."))}</p>
     <ol class="my-rang">
       ${RANG.map(
         (v) =>
           `<li><span class="my-rang-par">${par(v)}</span><b>${esc(navn(v) !== v ? navn(v) : v)}</b><span>${esc(
-            v === MEYER ? "Høyest. Løftes den, mister taperen to liv" : v === LILLE ? "Nest høyest" : v === "66" ? "Så parene, seksere til enere" : v === "65" ? "Så resten, høyeste terning først" : v === "32" ? "Lavest – eller Fellesrunde" : navn(v) !== v ? strek(v) : "",
+            v === MEYER ? R.t("Høyest. Løftes den, mister taperen to liv") : v === LILLE ? R.t("Nest høyest") : v === "66" ? R.t("Så parene, seksere til enere") : v === "65" ? R.t("Så resten, høyeste terning først") : v === "32" ? R.t("Lavest – eller Fellesrunde") : navn(v) !== v ? strek(v) : "",
           )}</span></li>`,
       ).join("")}
     </ol>
-    <h3>Fellesrunde (kan slås av)</h3>
-    <p class="hjelp">Slår du 3-2, kan du si «Fellesrunde» – når som helst i runden. Tror neste på det, mister ingen liv, og en ny runde begynner. Det kan også være en bløff – og da kan den løftes.</p>`;
+    <h3>${esc(R.t("Fellesrunde (kan slås av)"))}</h3>
+    <p class="hjelp">${esc(R.t("Slår du 3-2, kan du si «Fellesrunde» – når som helst i runden. Tror neste på det, mister ingen liv, og en ny runde begynner. Det kan også være en bløff – og da kan den løftes."))}</p>`;
 
   const REGLER = {
-    intro: "Rist begeret, kikk i hemmelighet og si et tall som slår det forrige – sant eller bløff. Den som tar feil, mister et liv.",
+    intro: R.t("Rist begeret, kikk i hemmelighet og si et tall som slår det forrige – sant eller bløff. Den som tar feil, mister et liv."),
     steg: [
-      ["Rist og kikk", "Rist begeret og hold fingeren på kortet for å se terningene. Bare du ser dem."],
-      ["Si noe som slår det forrige", "Velg hva du sier fra lista. Det kan være sant – eller en bløff. Så går mobilen videre."],
-      ["Tror det eller «Løgn!»", "Neste tror det (og må slå det) eller roper «Løgn!». Da løftes begeret: tok du feil, mister du et liv. Sist med liv igjen vinner."],
+      [R.t("Rist og kikk"), R.t("Rist begeret og hold fingeren på kortet for å se terningene. Bare du ser dem.")],
+      [R.t("Si noe som slår det forrige"), R.t("Velg hva du sier fra lista. Det kan være sant – eller en bløff. Så går mobilen videre.")],
+      [R.t("Tror det eller «Løgn!»"), R.t("Neste tror det (og må slå det) eller roper «Løgn!». Da løftes begeret: tok du feil, mister du et liv. Sist med liv igjen vinner.")],
     ],
     tips: [
-      "Det er sant hvis terningene viser det som ble sagt – eller bedre.",
-      "Etter Meyer kan ingen slå det: løft (taperen mister to liv) eller godta Meyer og mist ett.",
-      "Taperen begynner neste runde. Alle har seks liv – terningen ved navnet viser hvor mange som er igjen.",
-      "Når du tror på det forrige, slår du nye terninger. Du trenger ikke kikke før du sier noe.",
+      R.t("Det er sant hvis terningene viser det som ble sagt – eller bedre."),
+      R.t("Etter Meyer kan ingen slå det: løft (taperen mister to liv) eller godta Meyer og mist ett."),
+      R.t("Taperen begynner neste runde. Alle har seks liv – terningen ved navnet viser hvor mange som er igjen."),
+      R.t("Når du tror på det forrige, slår du nye terninger. Du trenger ikke kikke før du sier noe."),
     ],
     ekstraHtml: rangTabell(),
   };
@@ -488,10 +492,10 @@
     const maks = Math.min(3, MAKS - folk);
     const r = Math.min(S.oppsett.roboter, maks);
     return `<section class="seksjon">
-      <div class="seksjon-hode"><h2>Mot mobilen</h2><span class="tall">${r ? R.flertall(folk + r, "spiller", "spillere") + " i alt" : "Av"}</span></div>
-      ${R.ui.seg("roboter", [[0, "Ingen"], [1, "1"], [2, "2"], [3, "3"]], r, { etikett: "Hvor mange spillere mobilen er", av: (v) => Number(v) > maks })}
-      ${r ? R.ui.seg("nivaa", NIVAER.map((n) => [n, NIVANAVN[n]]), S.oppsett.nivaa, { etikett: "Hvor flink mobilen er" }) : ""}
-      <p class="hjelp">${r ? `Mobilen spiller som ${esc(R.ramsOpp(ROBOTER.slice(0, r)))} 🤖 – ${{ lett: "tror på det meste og bløffer vilt", middels: "regner litt og bløffer av og til", vanskelig: "regner på sjansene og er vanskelig å lure" }[S.oppsett.nivaa]}.` : "Få nok? Legg til spillere som mobilen styrer."}</p>
+      <div class="seksjon-hode"><h2>${esc(R.t("Mot mobilen"))}</h2><span class="tall">${esc(r ? R.t("{antall} i alt", { antall: R.flertall(folk + r, "spiller", "spillere") }) : R.t("Av"))}</span></div>
+      ${R.ui.seg("roboter", [[0, R.t("Ingen")], [1, "1"], [2, "2"], [3, "3"]], r, { etikett: R.t("Hvor mange spillere mobilen er"), av: (v) => Number(v) > maks })}
+      ${r ? R.ui.seg("nivaa", NIVAER.map((n) => [n, NIVANAVN[n]]), S.oppsett.nivaa, { etikett: R.t("Hvor flink mobilen er") }) : ""}
+      <p class="hjelp">${r ? `${esc(R.t("Mobilen spiller som {navn}", { navn: R.ramsOpp(ROBOTER.slice(0, r)) }))} 🤖 – ${esc({ lett: R.t("tror på det meste og bløffer vilt"), middels: R.t("regner litt og bløffer av og til"), vanskelig: R.t("regner på sjansene og er vanskelig å lure") }[S.oppsett.nivaa])}.` : esc(R.t("Få nok? Legg til spillere som mobilen styrer."))}</p>
     </section>`;
   }
 
@@ -567,7 +571,7 @@
     R.lyd.pop();
     R.vibrer(10);
     const s = svarer(sp);
-    R.si(`${navnFor(sp, sp.melding.av)} sier ${navn(v)}.${erRobot(sp, s) ? "" : ` Gi mobilen til ${navnFor(sp, s)}.`}`);
+    R.si(R.t("{navn} sier {verdi}.", { navn: navnFor(sp, sp.melding.av), verdi: navn(v) }) + (erRobot(sp, s) ? "" : " " + R.t("Gi mobilen til {navn}.", { navn: navnFor(sp, s) })));
     R.vis();
     return true;
   }
@@ -580,16 +584,16 @@
       R.lyd.klikk();
       if (sp.fase === "resultat") {
         R.lyd.pling();
-        R.si(`${navnFor(sp, s)} tror det. Fellesrunde – ingen mister liv.`);
-      } else R.si(`${navnFor(sp, s)} tror på ${navn(v)} og må slå det.`);
-      if (erRobot(sp, s)) R.toast(`${navnFor(sp, s)} tror det`);
+        R.si(R.t("{navn} tror det. Fellesrunde – ingen mister liv.", { navn: navnFor(sp, s) }));
+      } else R.si(R.t("{navn} tror på {verdi} og må slå det.", { navn: navnFor(sp, s), verdi: navn(v) }));
+      if (erRobot(sp, s)) R.toast(R.t("{navn} tror det", { navn: navnFor(sp, s) }));
       R.vis();
       return;
     }
     const ok = valg === "godta" ? godta(sp) : loft(sp);
     if (!ok) return;
     animerSteg = sp.steg;
-    if (erRobot(sp, s)) R.toast(valg === "godta" ? `${navnFor(sp, s)} godtar Meyer` : `${navnFor(sp, s)} roper «Løgn!»`);
+    if (erRobot(sp, s)) R.toast(valg === "godta" ? R.t("{navn} godtar Meyer", { navn: navnFor(sp, s) }) : R.t("{navn} roper «Løgn!»", { navn: navnFor(sp, s) }));
     R.vis();
     avslor(sp);
   }
@@ -687,9 +691,9 @@
         const v = sp.felles && e === "32" ? FELLES : e;
         const spes = navn(v) !== v;
         return {
-          html: `${kuber(sp.kast)}<div class="my-bak-tekst"><p class="etikett">Du slo</p><p class="my-bak-verdi">${esc(spes ? navn(v) : v)}</p>${spes && v !== FELLES ? `<p class="my-bak-sub">${esc(strek(v))}</p>` : v === FELLES ? '<p class="my-bak-sub">3-2 – du kan si Fellesrunde</p>' : ""}</div>`,
+          html: `${kuber(sp.kast)}<div class="my-bak-tekst"><p class="etikett">${esc(R.t("Du slo"))}</p><p class="my-bak-verdi">${esc(spes ? navn(v) : v)}</p>${spes && v !== FELLES ? `<p class="my-bak-sub">${esc(strek(v))}</p>` : v === FELLES ? `<p class="my-bak-sub">${esc(R.t("3-2 – du kan si Fellesrunde"))}</p>` : ""}</div>`,
           klasse: "my-bak",
-          si: `Du slo ${sp.kast[0]} og ${sp.kast[1]}: ${spes ? navn(v) : v}.`,
+          si: R.t("Du slo {a} og {b}: {verdi}.", { a: sp.kast[0], b: sp.kast[1], verdi: spes ? navn(v) : v }),
         };
       },
     },
@@ -701,53 +705,53 @@
           const sp = S.spill;
           return (
             R.ui.spillhjem({
-              slagordHtml: "Rist, kikk – og si noe som slår det.<br><em>Sant eller bløff?</em>",
+              slagordHtml: `${esc(R.t("Rist, kikk – og si noe som slår det."))}<br><em>${esc(R.t("Sant eller bløff?"))}</em>`,
               knapperHtml: R.ui.startKnapper({
                 pagar: pagar(S),
-                fortsettTekst: pagar(S) ? (sp.vinner != null ? "Fortsett · se kåringen" : `Fortsett · runde ${sp.runde}`) : "",
-                ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+                fortsettTekst: pagar(S) ? (sp.vinner != null ? R.t("Fortsett · se kåringen") : R.t("Fortsett · runde {n}", { n: sp.runde })) : "",
+                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [],
             }) +
             statHtml(S) +
             R.ui.merker([
-              ["2–10", "spillere"],
-              ["6", "liv"],
-              ["0", "reklame"],
+              ["2–10", R.t("spillere")],
+              ["6", R.t("liv")],
+              ["0", R.t("reklame")],
             ])
           );
         },
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis: (S) => `
-          <h1 id="skjerm-tittel">Gjør klart</h1>
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
           ${R.ui.spillere({
             min: 1,
             max: Math.max(1, MAKS - S.oppsett.roboter),
-            tittel: "Hvem spiller?",
-            hjelp: (S.antall || 1) > 1 ? "Send mobilen videre når du har sagt ditt." : "Alene? Spill mot mobilen.",
+            tittel: R.t("Hvem spiller?"),
+            hjelp: (S.antall || 1) > 1 ? R.t("Send mobilen videre når du har sagt ditt.") : R.t("Alene? Spill mot mobilen."),
           })}
           ${motMobilenHtml(S)}
           <section class="seksjon">
-            <div class="seksjon-hode"><h2>Liv</h2><span class="tall">${esc(R.flertall(S.oppsett.liv, "liv", "liv"))} hver</span></div>
-            ${R.ui.seg("liv", [[3, "3 · kjapt"], [6, "6 · vanlig"]], S.oppsett.liv, { etikett: "Hvor mange liv hver spiller har" })}
+            <div class="seksjon-hode"><h2>${esc(R.t("Liv"))}</h2><span class="tall">${esc(R.t("{antall} hver", { antall: R.flertall(S.oppsett.liv, "liv", "liv") }))}</span></div>
+            ${R.ui.seg("liv", [[3, R.t("3 · kjapt")], [6, R.t("6 · vanlig")]], S.oppsett.liv, { etikett: R.t("Hvor mange liv hver spiller har") })}
           </section>
           <section class="seksjon">
-            ${R.ui.bryter("felles", S.oppsett.felles, "Fellesrunde", "Slår du 3-2, kan du si «Fellesrunde»: ingen mister liv, og runden starter på nytt.")}
+            ${R.ui.bryter("felles", S.oppsett.felles, navn(FELLES), R.t("Slår du 3-2, kan du si «Fellesrunde»: ingen mister liv, og runden starter på nytt."))}
           </section>
-          ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor", ikon: "🎲" }))}`,
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { variant: "stor", ikon: "🎲" }))}`,
       },
 
       spill: {
-        tittel: (S) => `Runde ${S.spill.runde}`,
+        tittel: (S) => R.t("Runde {n}", { n: S.spill.runde }),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
-          const avslutt = R.ui.lenke("Avslutt", "avslutt");
-          const regler = R.ui.lenke("Rangeringen", "regler");
+          const avslutt = R.ui.lenke(R.t("Avslutt"), "avslutt");
+          const regler = R.ui.lenke(R.t("Rangeringen"), "regler");
           // ----- Roll -----
           if (sp.fase === "rist") {
             const robot = erRobot(sp, sp.tur);
@@ -756,13 +760,13 @@
               ${livRad(sp, sp.tur)}
               <div class="my-hode">
                 ${avatarFor(sp, sp.tur, "mid")}
-                <div><p class="etikett">${robot ? `Mobilen · ${NIVANAVN[sp.nivaa]}` : f ? "Du tror det – din tur" : "Din tur"}</p><h1 id="skjerm-tittel">${esc(navnFor(sp, sp.tur))}</h1></div>
+                <div><p class="etikett">${esc(robot ? `${R.t("Mobilen")} · ${NIVANAVN[sp.nivaa]}` : f ? R.t("Du tror det – din tur") : R.t("Din tur"))}</p><h1 id="skjerm-tittel">${esc(navnFor(sp, sp.tur))}</h1></div>
               </div>
-              ${robot ? `<p class="my-maal">${f ? `${esc(navnFor(sp, sp.tur))} må slå <b>${esc(navn(f))}</b>` : `${esc(navnFor(sp, sp.tur))} begynner runden`}</p>` : maaSla(sp)}
+              ${robot ? `<p class="my-maal">${f ? `${esc(R.t("{navn} må slå", { navn: navnFor(sp, sp.tur) }))} <b>${esc(navn(f))}</b>` : esc(R.t("{navn} begynner runden", { navn: navnFor(sp, sp.tur) }))}</p>` : maaSla(sp)}
               ${kjedeHtml(sp)}
               ${begerBrett(sp, { rister })}
               ${R.ui.dokk(
-                robot ? R.ui.knapp(`${navnFor(sp, sp.tur)} rister …`, "rist", { variant: "stor", av: true, ikon: "🤖" }) : R.ui.knapp("Rist begeret", "rist", { variant: "stor", ikon: "🎲", av: rister }),
+                robot ? R.ui.knapp(R.t("{navn} rister …", { navn: navnFor(sp, sp.tur) }), "rist", { variant: "stor", av: true, ikon: "🤖" }) : R.ui.knapp(R.t("Rist begeret"), "rist", { variant: "stor", ikon: "🎲", av: rister }),
                 R.ui.lenkerad(regler, avslutt),
               )}`;
           }
@@ -771,23 +775,23 @@
             if (erRobot(sp, sp.tur)) {
               return `
                 ${livRad(sp, sp.tur)}
-                <div class="my-hode">${avatarFor(sp, sp.tur, "mid")}<div><p class="etikett">Mobilen · ${NIVANAVN[sp.nivaa]}</p><h1 id="skjerm-tittel">${esc(navnFor(sp, sp.tur))}</h1></div></div>
-                <p class="my-maal">${esc(navnFor(sp, sp.tur))} kikker under begeret …</p>
+                <div class="my-hode">${avatarFor(sp, sp.tur, "mid")}<div><p class="etikett">${esc(`${R.t("Mobilen")} · ${NIVANAVN[sp.nivaa]}`)}</p><h1 id="skjerm-tittel">${esc(navnFor(sp, sp.tur))}</h1></div></div>
+                <p class="my-maal">${esc(R.t("{navn} kikker under begeret …", { navn: navnFor(sp, sp.tur) }))}</p>
                 ${kjedeHtml(sp)}
                 ${begerBrett(sp, { kikker: true })}
-                ${R.ui.dokk(R.ui.knapp(`${navnFor(sp, sp.tur)} tenker …`, "meld", { variant: "stor", av: true, ikon: "🤖" }), R.ui.lenkerad(regler, avslutt))}`;
+                ${R.ui.dokk(R.ui.knapp(R.t("{navn} tenker …", { navn: navnFor(sp, sp.tur) }), "meld", { variant: "stor", av: true, ikon: "🤖" }), R.ui.lenkerad(regler, avslutt))}`;
             }
             const v = sp.valgt;
             return `
               <div class="my-hode kompakt">
                 ${avatarFor(sp, sp.tur)}
-                <div><p class="etikett">${esc(navnFor(sp, sp.tur))} · bare du ser</p><h1 id="skjerm-tittel">Hva sier du?</h1></div>
+                <div><p class="etikett">${esc(navnFor(sp, sp.tur))} · ${esc(R.t("bare du ser"))}</p><h1 id="skjerm-tittel">${esc(R.t("Hva sier du?"))}</h1></div>
               </div>
-              <div class="my-titt">${R.ui.mappe({ id: "kast", etikett: "Under begeret", tekst: "Hold fingeren på kortet for å se", etikettAria: "Under begeret. Hold fingeren på kortet for å se terningene dine" })}</div>
+              <div class="my-titt">${R.ui.mappe({ id: "kast", etikett: R.t("Under begeret"), tekst: R.t("Hold fingeren på kortet for å se"), etikettAria: R.t("Under begeret. Hold fingeren på kortet for å se terningene dine") })}</div>
               ${maaSla(sp)}
               ${valgGrid(sp)}
               ${R.ui.dokk(
-                R.ui.knapp(v ? `Si ${v === FELLES ? "Fellesrunde" : navn(v) !== v ? navn(v) : v}` : "Velg hva du sier", "meld", { variant: "stor", av: !v, ikon: v ? "📣" : "" }),
+                R.ui.knapp(v ? R.t("Si {verdi}", { verdi: navn(v) }) : R.t("Velg hva du sier"), "meld", { variant: "stor", av: !v, ikon: v ? "📣" : "" }),
                 R.ui.lenkerad(regler, avslutt),
               )}`;
           }
@@ -797,26 +801,26 @@
             const robot = erRobot(sp, s);
             const m = sp.melding;
             const knapper = robot
-              ? R.ui.knapp(`${navnFor(sp, s)} tenker …`, "tro", { variant: "stor", av: true, ikon: "🤖" })
+              ? R.ui.knapp(R.t("{navn} tenker …", { navn: navnFor(sp, s) }), "tro", { variant: "stor", av: true, ikon: "🤖" })
               : m.v === MEYER
-                ? `<div class="knapprad my-svar">${R.ui.knapp("Godta Meyer", "godta", { variant: "papir", etikett: "Godta Meyer og mist ett liv" })}${R.ui.knapp("Løgn!", "loft", { variant: "rod", ikon: "✋" })}</div>`
-                : `<div class="knapprad my-svar">${R.ui.knapp("Tror det", "tro", { variant: "mynte", ikon: "👍" })}${R.ui.knapp("Løgn!", "loft", { variant: "rod", ikon: "✋" })}</div>`;
+                ? `<div class="knapprad my-svar">${R.ui.knapp(R.t("Godta Meyer"), "godta", { variant: "papir", etikett: R.t("Godta Meyer og mist ett liv") })}${R.ui.knapp(R.t("Løgn!"), "loft", { variant: "rod", ikon: "✋" })}</div>`
+                : `<div class="knapprad my-svar">${R.ui.knapp(R.t("Tror det"), "tro", { variant: "mynte", ikon: "👍" })}${R.ui.knapp(R.t("Løgn!"), "loft", { variant: "rod", ikon: "✋" })}</div>`;
             return `
               ${livRad(sp, s)}
               <div class="my-hode">
                 ${avatarFor(sp, s, "mid")}
-                <div><p class="etikett">${robot ? `Mobilen · ${NIVANAVN[sp.nivaa]}` : erRobot(sp, m.av) ? "Din tur" : "Gi mobilen til"}</p><h1 id="skjerm-tittel">${esc(navnFor(sp, s))}</h1></div>
+                <div><p class="etikett">${esc(robot ? `${R.t("Mobilen")} · ${NIVANAVN[sp.nivaa]}` : erRobot(sp, m.av) ? R.t("Din tur") : R.t("Gi mobilen til"))}</p><h1 id="skjerm-tittel">${esc(navnFor(sp, s))}</h1></div>
               </div>
               ${meldingKort(sp, m)}
               ${kjedeHtml(sp)}
               <p class="my-hint">${
                 robot
-                  ? `${esc(navnFor(sp, s))} tenker på om det er sant …`
+                  ? esc(R.t("{navn} tenker på om det er sant …", { navn: navnFor(sp, s) }))
                   : m.v === MEYER
-                    ? "Meyer kan ikke slås. Løft – taperen mister to liv – eller godta og mist ett."
+                    ? esc(R.t("Meyer kan ikke slås. Løft – taperen mister to liv – eller godta og mist ett."))
                     : m.v === FELLES
-                      ? "Tror du det, mister ingen liv. Løgn? Løft begeret!"
-                      : "Tror du det, må du slå det. Tror du ikke, roper du «Løgn!»."
+                      ? esc(R.t("Tror du det, mister ingen liv. Løgn? Løft begeret!"))
+                      : esc(R.t("Tror du det, må du slå det. Tror du ikke, roper du «Løgn!»."))
               }</p>
               ${R.ui.dokk(knapper, R.ui.lenkerad(regler, avslutt))}`;
           }
@@ -825,22 +829,22 @@
           const r = resultatTekst(sp);
           const anim = animerSteg === sp.steg && !R.rolig();
           const stempel =
-            u.type === "loft" ? `<span class="stempel my-stempel ${u.sann ? "mynte" : ""}" aria-hidden="true">${u.sann ? "Sant!" : "Bløff!"}</span>` : u.type === "felles" ? '<span class="stempel my-stempel lampe" aria-hidden="true">Fellesrunde</span>' : "";
+            u.type === "loft" ? `<span class="stempel my-stempel ${u.sann ? "mynte" : ""}" aria-hidden="true">${esc(u.sann ? R.t("Sant!") : R.t("Bløff!"))}</span>` : u.type === "felles" ? `<span class="stempel my-stempel lampe" aria-hidden="true">${esc(navn(FELLES))}</span>` : "";
           const ferdig = sp.vinner != null;
           const folkInne = igjen(sp).some((i) => !erRobot(sp, i));
           return `
             ${livRad(sp, u.taper != null ? u.taper : -1)}
             <h1 id="skjerm-tittel" class="my-res-tittel">${esc(r.tittel)}</h1>
-            ${u.type === "loft" ? `<p class="my-sa">${esc(navnFor(sp, u.av))} sa <b>${esc(navn(u.v))}</b>${navn(u.v) !== u.v && u.v !== FELLES ? ` (${esc(strek(u.v))})` : ""}</p>` : ""}
+            ${u.type === "loft" ? `<p class="my-sa">${esc(R.t("{navn} sa", { navn: navnFor(sp, u.av) }))} <b>${esc(navn(u.v))}</b>${navn(u.v) !== u.v && u.v !== FELLES ? ` (${esc(strek(u.v))})` : ""}</p>` : ""}
             ${begerBrett(sp, { kast: u.type === "loft" ? u.kast : null, loftet: u.type === "loft", anim, stempel })}
             <p class="my-res-tekst${u.type === "loft" && u.ute ? " ute" : ""}" role="status">${esc(r.tekst)}</p>
-            ${!ferdig ? `<p class="my-neste">${avatarFor(sp, sp.starter)}<span>${esc(navnFor(sp, sp.starter))} begynner neste runde</span></p>` : ""}
+            ${!ferdig ? `<p class="my-neste">${avatarFor(sp, sp.starter)}<span>${esc(R.t("{navn} begynner neste runde", { navn: navnFor(sp, sp.starter) }))}</span></p>` : ""}
             ${R.ui.dokk(
               ferdig
-                ? R.ui.knapp("Til kåringen", "kaaring", { variant: "stor", ikon: "🏆" })
+                ? R.ui.knapp(R.t("Til kåringen"), "kaaring", { variant: "stor", ikon: "🏆" })
                 : folkInne
-                  ? R.ui.knapp("Ny runde", "runde", { variant: "stor", etikett: `Ny runde – ${navnFor(sp, sp.starter)} begynner` })
-                  : R.ui.knapp("Mobilen spiller videre …", "runde", { variant: "stor", av: true, ikon: "🤖" }),
+                  ? R.ui.knapp(R.t("Ny runde"), "runde", { variant: "stor", etikett: R.t("Ny runde – {navn} begynner", { navn: navnFor(sp, sp.starter) }) })
+                  : R.ui.knapp(R.t("Mobilen spiller videre …"), "runde", { variant: "stor", av: true, ikon: "🤖" }),
               R.ui.lenkerad(regler, ferdig ? "" : avslutt),
             )}`;
         },
@@ -856,7 +860,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         gjenoppta: "hjem",
         vis(S) {
@@ -864,7 +868,7 @@
           const rang = rangering(sp);
           const ledere = sp.vinner != null ? [sp.vinner] : rang.filter((r) => r.liv === rang[0].liv).map((r) => r.i);
           const robotVant = ledere.every((i) => erRobot(sp, i));
-          const etikett = (r) => (r.i === sp.vinner ? `${R.flertall(r.liv, "liv", "liv")} igjen` : r.liv > 0 ? `${R.flertall(r.liv, "liv", "liv")} igjen` : `ute i runde ${sp.uteRunde[r.i]}`);
+          const etikett = (r) => (r.i === sp.vinner ? R.t("{antall} igjen", { antall: R.flertall(r.liv, "liv", "liv") }) : r.liv > 0 ? R.t("{antall} igjen", { antall: R.flertall(r.liv, "liv", "liv") }) : R.t("ute i runde {n}", { n: sp.uteRunde[r.i] }));
           // The kit's podium ranks by points: give places as points and write lives / round out on it.
           const rader = rang.map((r, k) => ({ i: r.i, poeng: rang.length - k, ...(erRobot(sp, r.i) ? { navn: navnFor(sp, r.i) } : {}) }));
           let pall = R.ui.pall(rader);
@@ -879,29 +883,29 @@
           const liste = `<ol class="my-plasser">${rang
             .map((r, k) => {
               const t = sp.tall[r.i];
-              return `<li class="${ledere.includes(r.i) ? "leder" : ""}"><span class="plass-nr">${k + 1}</span>${avatarFor(sp, r.i)}<span class="navn">${esc(navnFor(sp, r.i))}<small>${esc(etikett(r))}${t.hjem ? ` · ${R.flertall(t.hjem, "bløff", "bløffer")} gikk hjem` : ""}${t.treff ? ` · avslørte ${t.treff}` : ""}</small></span>${livTerning(sp, r.i)}</li>`;
+              return `<li class="${ledere.includes(r.i) ? "leder" : ""}"><span class="plass-nr">${k + 1}</span>${avatarFor(sp, r.i)}<span class="navn">${esc(navnFor(sp, r.i))}<small>${esc(etikett(r))}${t.hjem ? ` · ${esc(R.t("{antall} gikk hjem", { antall: R.flertall(t.hjem, "bløff", "bløffer") }))}` : ""}${t.treff ? ` · ${esc(R.t("avslørte {n}", { n: t.treff }))}` : ""}</small></span>${livTerning(sp, r.i)}</li>`;
             })
             .join("")}</ol>`;
-          const tittel = `${R.ramsOpp(ledere.map((i) => navnFor(sp, i)))} ${ledere.length > 1 ? "leder" : "vinner"}!`;
+          const tittel = ledere.length > 1 ? R.t("{navn} leder!", { navn: R.ramsOpp(ledere.map((i) => navnFor(sp, i))) }) : R.t("{navn} vinner!", { navn: navnFor(sp, ledere[0]) });
           const besteBlof = rang.slice().sort((a, b) => sp.tall[b.i].hjem - sp.tall[a.i].hjem)[0];
           const tekst = robotVant
-            ? "Mobilen vant denne gangen. Revansj?"
+            ? R.t("Mobilen vant denne gangen. Revansj?")
             : sp.vinner == null
-              ? "Spillet ble avsluttet før det var ferdig."
+              ? R.t("Spillet ble avsluttet før det var ferdig.")
               : sp.tall[besteBlof.i].hjem > 0
-                ? `Kveldens bløffer: ${navnFor(sp, besteBlof.i)} – ${R.flertall(sp.tall[besteBlof.i].hjem, "bløff", "bløffer")} gikk hjem.`
-                : "Godt jobba – ærlig spilt!";
+                ? R.t("Kveldens bløffer: {navn} – {antall} gikk hjem.", { navn: navnFor(sp, besteBlof.i), antall: R.flertall(sp.tall[besteBlof.i].hjem, "bløff", "bløffer") })
+                : R.t("Godt jobba – ærlig spilt!");
           return `
             <div class="banner aksent">
               ${ledere.length === 1 ? `<span class="my-vinner">${avatarFor(sp, ledere[0], "gigant")}<span class="my-krone" aria-hidden="true">👑</span></span>` : R.ui.figur(null, { stemning: robotVant ? "lei" : "jubel" })}
-              <p class="etikett">Kåringen</p>
+              <p class="etikett">${esc(R.t("Kåringen"))}</p>
               <h1 id="skjerm-tittel">${esc(tittel)}</h1>
               <p class="ingress">${esc(tekst)}</p>
             </div>
             ${pall}
-            <section class="seksjon"><h2>Slik gikk det</h2>${liste}</section>
+            <section class="seksjon"><h2>${esc(R.t("Slik gikk det"))}</h2>${liste}</section>
             ${R.ui.flereSpill({ antall: sp.mennesker })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen"), R.ui.lenkerad(R.ui.lenke("Endre oppsett", "endre"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -948,7 +952,7 @@
       },
       start(el, e, S) {
         if (!nyttSpill(S)) {
-          R.toast("Dere må være minst to. Legg til en spiller – eller mobilen.");
+          R.toast(R.t("Dere må være minst to. Legg til en spiller – eller mobilen."));
           return;
         }
         R.gaTil("spill");
@@ -985,7 +989,7 @@
         rull(sp, [terning(), terning()]);
         klakk(0, 0.7);
         klakk(0.08, 0.4);
-        if (!erRobot(sp, sp.tur)) R.si("Terningene ligger under begeret. Hold fingeren på kortet for å se.");
+        if (!erRobot(sp, sp.tur)) R.si(R.t("Terningene ligger under begeret. Hold fingeren på kortet for å se."));
         R.vis();
       },
       velg(el, e, S) {
@@ -1021,7 +1025,7 @@
         const sp = S.spill;
         if (!pagar(S) || !nyRunde(sp)) return;
         R.lyd.klikk();
-        R.si(`Runde ${sp.runde}. ${navnFor(sp, sp.tur)} begynner.`);
+        R.si(R.t("Runde {n}. {navn} begynner.", { n: sp.runde, navn: navnFor(sp, sp.tur) }));
         R.gaTil("spill");
       },
       kaaring(el, e, S) {
@@ -1037,13 +1041,13 @@
         const fortsatt = R.vakt();
         const urort = sp.liv.every((l) => l === sp.maksLiv);
         if (urort) {
-          if (!(await R.bekreft("Avslutte spillet?", "Ingen har mistet liv ennå. Dere kan alltid starte et nytt.", "Avslutt", "Spill videre")) || !fortsatt()) return;
+          if (!(await R.bekreft(R.t("Avslutte spillet?"), R.t("Ingen har mistet liv ennå. Dere kan alltid starte et nytt."), R.t("Avslutt"), R.t("Spill videre"))) || !fortsatt()) return;
           stoppRobot();
           S.spill = null;
           R.gaTil("hjem");
           return;
         }
-        if (!(await R.bekreft("Avslutte spillet?", "Dere går rett til kåringen. Flest liv igjen leder.", "Avslutt", "Spill videre")) || !fortsatt() || !pagar(S)) return;
+        if (!(await R.bekreft(R.t("Avslutte spillet?"), R.t("Dere går rett til kåringen. Flest liv igjen leder."), R.t("Avslutt"), R.t("Spill videre"))) || !fortsatt() || !pagar(S)) return;
         stoppRobot();
         lagreStat(S);
         sp.ferdig = true;

@@ -31,7 +31,7 @@ export default async function (t) {
   await t.js("Rusj.felles.installTips = 2; Rusj.lagreFelles()");
   await t.bilde("hjem");
   await t.klikk('[data-h="nytt"]', 450);
-  t.sjekk(/Gjør klart/.test(await t.tekst("#skjerm h1")), "Oppsettet heter ikke «Gjør klart»");
+  t.sjekk(!t.norsk || /Gjør klart/.test(await t.tekst("#skjerm h1")), "Oppsettet heter ikke «Gjør klart»");
   t.sjekk((await t.antall('#spillerboks input[data-navn]')) === 3, "Tre spillere er ikke ført opp");
   await t.bilde("oppsett", true);
   await t.klikk('[data-h="start"]', 600);
@@ -59,11 +59,11 @@ export default async function (t) {
   t.sjekk((await t.antall('[data-h="velg"]')) === 21, "Første melding: ikke alle 20 verdier + Fellesrunde å velge mellom");
   t.sjekk(!(await t.finnes('[data-h="velg"][data-v="32"]')), "3-2 kan sies som tall selv om Fellesrunde er på");
   await t.klikk('[data-h="velg"][data-v="64"]', 250);
-  t.sjekk(/Si 64/.test(await t.tekst('[data-h="meld"]')), "Knappen sier ikke «Si 64»");
+  t.sjekk((t.norsk ? /Si 64/ : /64/).test(await t.tekst('[data-h="meld"]')), "Knappen sier ikke «Si 64»");
   await t.bilde("valgt", true);
   await t.klikk('[data-h="meld"]', 450);
   await fase("svar");
-  t.sjekk(/Testspiller B/.test(await t.tekst("#skjerm h1")) && /Gi mobilen til/i.test(await t.tekst(".my-hode .etikett")), "Svarskjermen sier ikke «Gi mobilen til Testspiller B»");
+  t.sjekk(/Testspiller B/.test(await t.tekst("#skjerm h1")) && (!t.norsk || /Gi mobilen til/i.test(await t.tekst(".my-hode .etikett"))), "Svarskjermen sier ikke «Gi mobilen til Testspiller B»");
   t.sjekk(/64/.test(await t.tekst(".my-melding")), "Meldingen 64 vises ikke");
   t.sjekk(await t.friForDokk(".my-melding"), "Meldingen er skjult bak knappene");
   t.sjekk(await skjulteTerninger(), "Terningene vises på svarskjermen");
@@ -71,7 +71,7 @@ export default async function (t) {
   await loft();
   s = await sp();
   t.sjekk(s.utfall.sann === true && s.liv.join() === "6,5,6", `Løgn! på en sann melding: feil liv (${s.liv})`);
-  t.sjekk(/Det var sant/.test(await t.tekst("#skjerm h1")), "Resultatet sier ikke «Det var sant!»");
+  t.sjekk(!t.norsk || /Det var sant/.test(await t.tekst("#skjerm h1")), "Resultatet sier ikke «Det var sant!»");
   t.sjekk((await t.antall("#skjerm .my-t")) === 2, "Begeret ble løftet uten at terningene vises");
   await t.bilde("loftet-sant");
 
@@ -87,7 +87,7 @@ export default async function (t) {
   await loft();
   s = await sp();
   t.sjekk(s.utfall.sann === false && s.utfall.tap === 2 && s.liv.join() === "6,3,6", `Bløffet Meyer: bløfferen skulle mistet to liv (${s.liv})`);
-  t.sjekk(/Bløff/.test(await t.tekst("#skjerm h1")), "Resultatet sier ikke «Bløff!»");
+  t.sjekk(!t.norsk || /Bløff/.test(await t.tekst("#skjerm h1")), "Resultatet sier ikke «Bløff!»");
   await t.bilde("loftet-blof");
 
   // ----- Round 3: B bluffs 33 with 2-2, C believes, rolls — reload while hidden — bluffs 66; A calls -----
@@ -99,7 +99,7 @@ export default async function (t) {
   await fase("rist");
   s = await sp();
   t.sjekk(s.tur === 2 && s.kast === null && s.tall[1].hjem === 1, "Den som trodde det, fikk ikke begeret (eller bløffen ble ikke telt)");
-  t.sjekk(/Du må slå/.test(await t.tekst(".my-maal")) && /Par treere/.test(await t.tekst(".my-maal")), "Skjermen sier ikke hva som må slås");
+  t.sjekk(!t.norsk || /Du må slå/.test(await t.tekst(".my-maal")) && /Par treere/.test(await t.tekst(".my-maal")), "Skjermen sier ikke hva som må slås");
   await rist();
   await settKast(5, 5);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
@@ -137,21 +137,21 @@ export default async function (t) {
   t.sjekk(await t.finnes('[data-h="kaaring"]'), "Mangler «Til kåringen»");
   await t.bilde("siste-runde");
   await t.klikk('[data-h="kaaring"]', 900);
-  t.sjekk(/Kåringen/i.test(await t.tekst("#topp-tittel")), "Sluttskjermen heter ikke «Kåringen»");
-  t.sjekk(/vinner!/.test(await t.tekst("#skjerm h1")), "Banneret sier ikke hvem som vant");
+  t.sjekk(!t.norsk || /Kåringen/i.test(await t.tekst("#topp-tittel")), "Sluttskjermen heter ikke «Kåringen»");
+  t.sjekk((t.norsk ? /vinner!/ : /!/).test(await t.tekst("#skjerm h1")), "Banneret sier ikke hvem som vant");
   t.sjekk(await t.finnes(".pall"), "Pallen mangler på kåringen");
   t.sjekk((await t.antall(".my-plasser li")) === 3, "Plasseringslista har ikke tre spillere");
-  const kveld = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  const kveld = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
   t.sjekk(kveld && kveld.spill.some((k) => k.id === "meyer" && k.resultat.length === 3), "Kåringen ble ikke registrert i Kveldens gjeng");
   await t.bilde("kaaring", true);
   await t.klikk("#tilbake", 500);
-  t.sjekk(/Beste bløffer/.test(await t.tekst(".my-stat")) && /Testspiller B/.test(await t.tekst(".my-stat")), "Hjemskjermen viser ikke beste bløffer");
+  t.sjekk((!t.norsk || /Beste bløffer/.test(await t.tekst(".my-stat"))) && /Testspiller B/.test(await t.tekst(".my-stat")), "Hjemskjermen viser ikke beste bløffer");
   await t.bilde("hjem-statistikk");
 
   // ----- The rules sheet has the ranking table -----
   await t.klikk('[data-h="regler"]', 500);
   t.sjekk((await t.antall(".ark .my-rang li")) === 21, "Reglene viser ikke hele rangeringen");
-  t.sjekk(/Meyer/.test(await t.tekst(".ark .my-rang li:first-child")) && /32/.test(await t.tekst(".ark .my-rang li:last-child")), "Rangeringen starter ikke med Meyer eller slutter ikke med 32");
+  t.sjekk((t.norsk ? /Meyer/ : /\S/).test(await t.tekst(".ark .my-rang li:first-child")) && /32/.test(await t.tekst(".ark .my-rang li:last-child")), "Rangeringen starter ikke med Meyer eller slutter ikke med 32");
   await t.bilde("regler");
   await t.klikk('[data-h="lukk-ark"]', 400);
 
@@ -173,7 +173,7 @@ export default async function (t) {
   // Robo answers — not at once, but after a readable pause.
   await t.sov(500);
   t.sjekk((await sp()).fase === "svar", "Mobilen svarte for fort til at noen kunne lese det");
-  t.sjekk(/tenker/.test(await t.tekst(".my-hint")), "Skjermen sier ikke at mobilen tenker");
+  t.sjekk(!t.norsk || /tenker/.test(await t.tekst(".my-hint")), "Skjermen sier ikke at mobilen tenker");
   await t.bilde("mobilen-tenker");
   let steg = 0;
   while ((await sp()).vinner == null && steg++ < 80) {
@@ -192,6 +192,6 @@ export default async function (t) {
   t.sjekk(s.vinner != null, "Spillet mot mobilen ble ikke ferdig");
   await t.sov(1200);
   await t.klikk('[data-h="kaaring"]', 900);
-  t.sjekk(/vinner!/.test(await t.tekst("#skjerm h1")), "Kåringen mot mobilen sier ikke hvem som vant");
+  t.sjekk((t.norsk ? /vinner!/ : /!/).test(await t.tekst("#skjerm h1")), "Kåringen mot mobilen sier ikke hvem som vant");
   await t.bilde("kaaring-mobilen", true);
 }

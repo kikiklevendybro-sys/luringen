@@ -11,5 +11,23 @@
   "rekkefolge": 51,
   "farge": "#e85d75",
   "sok": ["meyer", "mia", "meier", "terningbløff", "bløff med terninger", "lille meyer", "terningspill bløff", "løgnerterning"],
-  "motMobilen": true
+  "motMobilen": true,
+  "i18n": {
+    "en": {
+      "navn": "Mia",
+      "undertittel": "The dice bluffing game",
+      "kort": "Roll, make a call – and hope nobody checks.",
+      "beskrivelse": "Free Mia, the dice bluffing game: shake, peek in secret and call a roll that beats the last one – true or a bluff. For 2–10 on one phone, or vs the phone.",
+      "slug": "mia",
+      "sok": ["mia", "mia dice game", "meyer", "maexchen", "liar's dice", "dice bluff", "bluffing game", "dice game"]
+    },
+    "da": {
+      "navn": "Meyer",
+      "undertittel": "Terningebluff",
+      "kort": "Slå, sig et tal – og håb, at ingen tjekker.",
+      "beskrivelse": "Meyer på dansk, gratis: ryst bægeret, kig i smug, og sig et tal, der slår det forrige – sandt eller bluff. For 2–10 på én mobil, også mod mobilen.",
+      "slug": "meyer",
+      "sok": ["meyer", "meyer terningespil", "meyer regler", "lille meyer", "terningebluff", "bluff med terninger", "terningespil"]
+    }
+  }
 }
