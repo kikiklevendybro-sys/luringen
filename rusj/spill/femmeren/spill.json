@@ -10,5 +10,23 @@
   "tagger": ["fest", "familie", "barn"],
   "rekkefolge": 50,
   "farge": "#ffd23f",
-  "sok": ["5 sekunder", "fem sekunder", "nevn tre ting", "tre ting på fem sekunder", "femsekundersleken"]
+  "sok": ["5 sekunder", "fem sekunder", "nevn tre ting", "tre ting på fem sekunder", "femsekundersleken"],
+  "i18n": {
+    "en": {
+      "navn": "Fiver",
+      "undertittel": "Three things in five seconds",
+      "kort": "‘Name three …’ – and the clock is ticking.",
+      "beskrivelse": "Free ‘name three things in five seconds’ game. The fuse burns, the crew judges. Over 650 cards for families, parties, Britain, Christmas and know-it-alls.",
+      "slug": "fiver",
+      "sok": ["5 second rule", "five second rule", "5 seconds game", "name three things", "three things in five seconds", "five second game", "quick fire party game", "word game for kids"]
+    },
+    "da": {
+      "navn": "Femmeren",
+      "undertittel": "Tre ting på fem sekunder",
+      "kort": "»Nævn tre …« – og uret tikker.",
+      "beskrivelse": "Gratis »nævn tre ting på fem sekunder«-spil på dansk. Lunten brænder, banden dømmer. Over 650 kort til familie, fest, Danmark, jul og dem, der ved alt.",
+      "slug": "femmeren",
+      "sok": ["5 sekunder", "fem sekunder", "5 second rule", "nævn tre ting", "tre ting på fem sekunder", "femsekunders-legen", "ordleg for børn"]
+    }
+  }
 }

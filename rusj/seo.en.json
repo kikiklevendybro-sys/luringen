@@ -223,6 +223,61 @@
         "christmas presents"
       ],
       "type": "WebApplication"
+    },
+    "femmeren": {
+      "tittel": "Five-second game – name three things in five seconds",
+      "frase": "Name three things in five seconds",
+      "beskrivelse": "The five-second game: name three things before the fuse burns out. Over 650 cards for kids, families, parties, Britain and Christmas – free, no ads, for 2–20.",
+      "sok": [
+        "5 second rule game",
+        "five second game",
+        "name three things",
+        "word game for kids"
+      ]
+    },
+    "hatten": {
+      "tittel": "The hat game – describe, one word, mime (team game)",
+      "frase": "The hat game",
+      "beskrivelse": "The team game with names in a hat: describe, say a single word, then mime – the same words for three rounds. Free for 4–20, over 600 words or your own.",
+      "sok": [
+        "fishbowl game",
+        "celebrity game",
+        "names in a hat",
+        "team word game"
+      ]
+    },
+    "mimen": {
+      "tittel": "Charades – over 700 cards to act out, free",
+      "frase": "Charades",
+      "beskrivelse": "Charades on your phone: over 700 cards in nine categories, including ones just for kids. Everyone for themselves or teams, with a clock and scores. Free.",
+      "sok": [
+        "charades ideas",
+        "charades for kids",
+        "mime game",
+        "acting game"
+      ]
+    },
+    "panna": {
+      "tittel": "Forehead game – guess the word, free, no app",
+      "frase": "Guess the word on your forehead",
+      "beskrivelse": "Hold the phone to your forehead, the others give clues – tilt down when you've guessed it. A free forehead guessing game with 16 decks and no app.",
+      "sok": [
+        "forehead game",
+        "phone on forehead game",
+        "who am i game",
+        "heads up"
+      ]
+    },
+    "kunstneren": {
+      "tittel": "Draw and guess – free drawing game on one phone",
+      "frase": "Draw and guess",
+      "beskrivelse": "Draw and guess: sketch the word with your finger before the clock runs out while the others guess. 900 words, plus Pass the Picture where it all goes wrong.",
+      "sok": [
+        "drawing game",
+        "guess the drawing",
+        "pictionary",
+        "telephone pictionary"
+      ]
     }
   }
 }

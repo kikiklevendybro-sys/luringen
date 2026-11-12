@@ -10,5 +10,23 @@
   "tagger": ["tegning", "fest", "familie", "barn"],
   "rekkefolge": 16,
   "alias": ["tegn-og-gjett"],
-  "sok": ["tegn og gjett", "tegnelek", "tegne", "tegnespill", "gjett tegningen", "hviskeleken"]
+  "sok": ["tegn og gjett", "tegnelek", "tegne", "tegnespill", "gjett tegningen", "hviskeleken"],
+  "i18n": {
+    "en": {
+      "navn": "Doodler",
+      "undertittel": "Draw and guess",
+      "kort": "Draw with your finger – the others shout out guesses.",
+      "beskrivelse": "Free draw-and-guess game on one phone. Draw the word before time runs out – or play Pass the Picture and watch the drawings go wonderfully wrong.",
+      "slug": "doodler",
+      "sok": ["draw and guess", "drawing game", "pictionary", "guess the drawing", "telephone pictionary", "gartic phone", "skribbl", "doodle game"]
+    },
+    "da": {
+      "navn": "Kunstneren",
+      "undertittel": "Tegn og gæt",
+      "kort": "Tegn med fingeren – de andre gætter i vildt kor.",
+      "beskrivelse": "Gratis tegn-og-gæt-spil på dansk på én mobil. Tegn ordet, før tiden løber ud – eller spil Hviskelegen, og se tegningerne gå helt i ged.",
+      "slug": "kunstneren",
+      "sok": ["tegn og gæt", "tegneleg", "tegnespil", "gæt tegningen", "hviskeleg", "pictionary", "skribbl", "gartic phone"]
+    }
+  }
 }

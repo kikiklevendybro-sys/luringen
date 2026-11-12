@@ -5,12 +5,15 @@
 // the explainers rotate, and Kåringen (podium, table, evening scoreboard, share). Last «Skriv selv»:
 // every player behind a «Gi mobilen til …» gate, typed words never visible to the next player, a
 // reload while typing goes back to the gate, and the typed words are the words in the hat.
-const S = "JSON.parse(localStorage.getItem('rusj.hatten.v1'))";
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en hatten): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the state, the names and the edition's storage keys.
+const NOKKEL = `("rusj." + (window.Rusj.sprak === "nb" ? "" : window.Rusj.sprak + ".") + "hatten.v1")`;
+const S = `JSON.parse(localStorage.getItem(${NOKKEL}))`;
 const SP = `${S}.spill`;
 
 // Set something in the saved game and reload (resumes on the same screen).
 async function endre(t, kode) {
-  await t.js(`(() => { const s = ${S}; const sp = s.spill; ${kode}; localStorage.setItem('rusj.hatten.v1', JSON.stringify(s)); })()`);
+  await t.js(`(() => { const s = ${S}; const sp = s.spill; ${kode}; localStorage.setItem(${NOKKEL}, JSON.stringify(s)); })()`);
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
 }
 
@@ -36,21 +39,21 @@ async function tomHatten(t, igjen) {
 export default async function (t) {
   await t.start({ navn: ["Testspiller A", "Testspiller B", "Testspiller C", "Testspiller D"] });
   await t.js("Rusj.felles.installTips = 2; Rusj.lagreFelles()");
-  t.sjekk(/ord/.test(await t.tekst(".merker")), "Hjem-skjermen viser ikke antall ord");
+  t.sjekk(!t.norsk || /ord/.test(await t.tekst(".merker")), "Hjem-skjermen viser ikke antall ord");
   await t.bilde("hjem");
 
   // ---------- Setup ----------
   await t.klikk('[data-h="nytt"]');
   await t.vent("document.querySelector('[data-h=\"start\"]')");
-  t.sjekk((await t.tekst("#skjerm h1")) === "Gjør klart", "Oppsettet heter ikke «Gjør klart»");
+  t.sjekk(!t.norsk || (await t.tekst("#skjerm h1")) === "Gjør klart", "Oppsettet heter ikke «Gjør klart»");
   t.sjekk(await t.finnes('.fliser [data-h="kilde"][data-v="rusj"][aria-pressed="true"]'), "«Fra rusj» skal være valgt først");
   t.sjekk(await t.js(`document.querySelector('[data-h="lag"][data-v="3"]').disabled`), "Tre lag kan velges med bare fire spillere");
   t.sjekk((await t.antall(".ha-lagkol")) === 2 && (await t.antall(".ha-lagspiller")) === 4, "Lagene viser ikke to lag med fire spillere");
-  t.sjekk(/Rosa/.test(await t.tekst(".ha-lagkol")), "Lagene heter ikke «Rosa» og «Gul»");
+  t.sjekk(!t.norsk || /Rosa/.test(await t.tekst(".ha-lagkol")), "Lagene heter ikke «Rosa» og «Gul»");
   // Move a player to the other team: 1 against 3 can't start
   await t.klikk('[data-h="bytt-lag"][data-v="0"]');
   t.sjekk(await t.js(`document.querySelector('[data-h="start"]').disabled`), "«Start» er åpen med én spiller på et lag");
-  t.sjekk(/minst to/.test(await t.tekst("#ha-hindring")), "Mangler forklaringen når et lag har for få spillere");
+  t.sjekk(!t.norsk || /minst to/.test(await t.tekst("#ha-hindring")), "Mangler forklaringen når et lag har for få spillere");
   await t.klikk('[data-h="bytt-lag"][data-v="0"]');
   t.sjekk(!(await t.js(`document.querySelector('[data-h="start"]').disabled`)), "«Start» er stengt med to og to på lagene");
   await t.klikk('[data-h="ord"][data-v="30"]');
@@ -66,7 +69,7 @@ export default async function (t) {
   const sp0 = s.spill;
   t.sjekk(sp0.ord.length === 30 && new Set(sp0.ord).size === 30 && sp0.hatt.length === 30, `Hatten har ikke 30 ulike ord (${sp0.ord.length})`);
   t.sjekk(sp0.lag.length === 2 && sp0.lag.every((m) => m.length === 2), "Spillet har ikke to lag med to spillere");
-  t.sjekk(/Runde 1/.test(await t.tekst(".ha-steg .na")) || /Forklar/.test(await t.tekst(".ha-steg .na")), "Tavla viser ikke runde 1");
+  t.sjekk(!t.norsk || /Runde 1/.test(await t.tekst(".ha-steg .na")) || /Forklar/.test(await t.tekst(".ha-steg .na")), "Tavla viser ikke runde 1");
   t.sjekk(!(await t.finnes(".ha-ordet")), "Et ord vises før turen er startet");
   t.sjekk(await t.friForDokk(".ha-gi h1"), "«Gi mobilen til …» skjules bak knappene");
   const f1 = { lag: sp0.lagNr, spiller: sp0.lag[sp0.lagNr][0] };
@@ -108,7 +111,7 @@ export default async function (t) {
   s = await t.tilstand();
   t.sjekk(s.skjerm === "tur" && s.spill.tur.pause === true, "Turen sto ikke på pause etter omlasting");
   t.sjekk(!(await t.finnes(".ha-ordet")), "Ordet vises mens turen står på pause");
-  t.sjekk((await t.tekst('[data-h="fortsett-tur"]')).trim() === "Fortsett", "Pausekortet mangler «Fortsett»");
+  t.sjekk(!t.norsk || (await t.tekst('[data-h="fortsett-tur"]')).trim() === "Fortsett", "Pausekortet mangler «Fortsett»");
   t.sjekk(await t.finnes('.dokk [data-h="avslutt"]'), "Mangler «Avslutt» på pausekortet");
   await t.bilde("pause");
   await t.klikk('[data-h="fortsett-tur"]');
@@ -118,7 +121,7 @@ export default async function (t) {
   // Time is up: the list, one word corrected back into the hat
   await t.js("Rusj.timer('ha-tid').leggTil(-500)");
   await t.vent("document.querySelector('[data-h=\"tur-ferdig\"]')");
-  t.sjekk(/Tiden er ute/.test(await t.tekst("#skjerm")), "Mangler «Tiden er ute!»");
+  t.sjekk(!t.norsk || /Tiden er ute/.test(await t.tekst("#skjerm")), "Mangler «Tiden er ute!»");
   s = await t.tilstand();
   t.sjekk(s.spill.tur.ord === null && s.spill.hatt.length === 27, `Ordet på kortet gikk ikke tilbake i hatten (${s.spill.hatt.length})`);
   t.sjekk((await t.antall(".ha-ord")) === 3, "Lista viser ikke de tre riktige ordene");
@@ -148,19 +151,19 @@ export default async function (t) {
   const f2 = await t.js(`(() => { const sp = ${SP}; return { lag: sp.lagNr, spiller: sp.lag[sp.lagNr][sp.peker[sp.lagNr] % sp.lag[sp.lagNr].length] }; })()`);
   t.sjekk(f2.lag !== f1.lag, "Lagene bytter ikke på");
   await tomHatten(t, 2);
-  t.sjekk(/Hatten er tom/.test(await t.tekst("#skjerm")), "Mangler «Hatten er tom!» når siste lapp er tatt");
+  t.sjekk(!t.norsk || /Hatten er tom/.test(await t.tekst("#skjerm")), "Mangler «Hatten er tom!» når siste lapp er tatt");
   await t.bilde("hatten-tom");
   await t.klikk('[data-h="tur-ferdig"]');
   await t.vent("document.querySelector('[data-h=\"til-tavle\"]')");
   s = await t.tilstand();
   t.sjekk(s.spill.runde === 2 && s.spill.hatt.length === 30, `Runde 2 startet ikke med full hatt (runde ${s.spill.runde}, ${s.spill.hatt.length} lapper)`);
   t.sjekk(JSON.stringify(s.spill.ord) === JSON.stringify(sp0.ord), "Runde 2 bruker ikke de samme ordene");
-  t.sjekk(/Ett ord/.test(await t.tekst(".ha-neste")), "Rundeskiftet sier ikke hva runde 2 går ut på");
+  t.sjekk(!t.norsk || /Ett ord/.test(await t.tekst(".ha-neste")), "Rundeskiftet sier ikke hva runde 2 går ut på");
   t.sjekk(await t.friForDokk(".ha-tom h1"), "«Hatten er tom!» skjules bak knappene");
   await t.bilde("runde-2", true);
   await t.klikk('[data-h="til-tavle"]');
   await t.vent("document.querySelector('.ha-gi')");
-  t.sjekk(/Ett ord/.test(await t.tekst(".ha-steg .na")), "Tavla viser ikke runde 2");
+  t.sjekk(!t.norsk || /Ett ord/.test(await t.tekst(".ha-steg .na")), "Tavla viser ikke runde 2");
   // The rotation: team 1 has had one turn, so its second player explains next time
   const f3 = await t.js(`(() => { const sp = ${SP}; return { lag: sp.lagNr, spiller: sp.lag[sp.lagNr][sp.peker[sp.lagNr] % sp.lag[sp.lagNr].length] }; })()`);
   t.sjekk(f3.lag === f1.lag && f3.spiller !== f1.spiller, "Den samme spilleren forklarer to ganger for laget sitt");
@@ -168,7 +171,7 @@ export default async function (t) {
 
   // Round 2 → 3 → Kåringen
   await startTur(t);
-  t.sjekk(/ett ord/i.test(await t.tekst(".storkort-etikett")), "Kortet sier ikke at det er runde 2");
+  t.sjekk(!t.norsk || /ett ord/i.test(await t.tekst(".storkort-etikett")), "Kortet sier ikke at det er runde 2");
   await t.klikk('[data-h="pause"]');
   await t.klikk('[data-h="fortsett-tur"]');
   await t.vent("document.querySelector('.ha-ordet')");
@@ -179,11 +182,11 @@ export default async function (t) {
   await tomHatten(t, 3);
   await t.klikk('[data-h="tur-ferdig"]');
   await t.vent("document.querySelector('[data-h=\"til-tavle\"]')");
-  t.sjekk((await t.tilstand()).spill.runde === 3 && /Mim/.test(await t.tekst(".ha-neste")), "Runde 3 (mim) startet ikke");
+  t.sjekk((await t.tilstand()).spill.runde === 3 && (!t.norsk || /Mim/.test(await t.tekst(".ha-neste"))), "Runde 3 (mim) startet ikke");
   await t.klikk('[data-h="til-tavle"]');
   await t.vent("document.querySelector('.ha-gi')");
   await tomHatten(t, 4);
-  t.sjekk(/Til kåringen/.test(await t.tekst('[data-h="tur-ferdig"]')), "Siste tur i runde 3 skal gå til kåringen");
+  t.sjekk(!t.norsk || /Til kåringen/.test(await t.tekst('[data-h="tur-ferdig"]')), "Siste tur i runde 3 skal gå til kåringen");
   await t.klikk('[data-h="tur-ferdig"]');
   await t.vent("document.querySelector('.ha-tabell')");
 
@@ -191,11 +194,11 @@ export default async function (t) {
   s = await t.tilstand();
   const sum = s.spill.poeng.map((p) => p.reduce((a, b) => a + b, 0));
   t.sjekk(s.spill.ferdig && s.skjerm === "slutt", "Spillet ble ikke avsluttet etter runde 3");
-  t.sjekk(/vinner/.test(await t.tekst("#skjerm h1")), "Kåringen sier ikke hvem som vant");
+  t.sjekk(!t.norsk || /vinner/.test(await t.tekst("#skjerm h1")), "Kåringen sier ikke hvem som vant");
   t.sjekk(await t.finnes(".pall"), "Mangler pallen");
   t.sjekk((await t.antall(".ha-tabell tbody tr")) === 2, "Tabellen viser ikke begge lagene");
   t.sjekk(sum.reduce((a, b) => a + b, 0) === 2 + 2 + 3 + 4, `Poengsummen stemmer ikke: ${sum}`);
-  const kveld = await t.js("JSON.parse(localStorage.getItem('rusj.kveld') || 'null')");
+  const kveld = await t.js(`JSON.parse(localStorage.getItem('${t.nokkel("kveld")}') || 'null')`);
   const siste = kveld && kveld.spill && kveld.spill[kveld.spill.length - 1];
   t.sjekk(siste && siste.id === "hatten" && siste.resultat.length === 4, `Kveldens gjeng fikk ikke de fire spillerne (${JSON.stringify(siste && siste.resultat)})`);
   t.sjekk(kveld.spill.filter((x) => x.id === "hatten").length === 1, "Kveldens gjeng fikk spillet mer enn én gang");
@@ -205,19 +208,19 @@ export default async function (t) {
   await t.bilde("karingen-hel", true);
   // A reload on Kåringen stays there and doesn't register again
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
-  const kveld2 = await t.js("JSON.parse(localStorage.getItem('rusj.kveld') || 'null')");
+  const kveld2 = await t.js(`JSON.parse(localStorage.getItem('${t.nokkel("kveld")}') || 'null')`);
   t.sjekk(kveld2.spill.filter((x) => x.id === "hatten").length === 1, "Omlasting på kåringen registrerte spillet på nytt");
   // The home screen remembers the last game
   await t.klikk("#tilbake");
   await t.vent("document.querySelector('.ha-sist')");
-  t.sjekk(/Sist:/.test(await t.tekst(".ha-sist")), "Hjem-skjermen viser ikke forrige spill");
+  t.sjekk(!t.norsk || /Sist:/.test(await t.tekst(".ha-sist")), "Hjem-skjermen viser ikke forrige spill");
 
   // ---------- «Skriv selv» ----------
   await t.klikk('[data-h="nytt"]');
   await t.vent("document.querySelector('[data-h=\"start\"]')");
   await t.klikk('[data-h="kilde"][data-v="selv"]');
   await t.klikk('[data-h="per"][data-v="3"]');
-  t.sjekk(/12 ord/.test(await t.tekst("#skjerm")), "Oppsettet sier ikke hvor mange ord som blir i hatten");
+  t.sjekk(/12/.test(await t.tekst("#skjerm")), "Oppsettet sier ikke hvor mange ord som blir i hatten");
   await t.bilde("oppsett-skriv-selv", true);
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelector('[data-h=\"skriv-klar\"]')");

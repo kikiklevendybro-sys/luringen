@@ -1,0 +1,70 @@
+{
+ "kategorier": [
+  {
+   "id": "ting",
+   "navn": "Things",
+   "ikon": "🧸",
+   "ord": ["Umbrella", "Toothbrush", "Vacuum cleaner", "Fridge", "Toaster", "Torch", "Hammock", "Beach ball", "Trampoline", "Lawnmower", "Alarm clock", "Sleeping bag", "Binoculars", "Compass", "Fishing rod", "Rucksack", "Knitting needles", "Hairdryer", "Scissors", "Ladder", "Hammer", "Screwdriver", "Light bulb", "Mirror", "Telescope", "Kettle", "Teapot", "Wellies", "Bucket and spade", "Deckchair", "Paddling pool", "Wheelbarrow", "Watering can", "Garden gnome", "Doorbell", "Letterbox", "Piggy bank", "Matchstick", "Candle", "Teddy bear", "Sledge", "Ice skates", "Bicycle", "Pram", "Escalator", "Parachute", "Hot-air balloon", "Submarine", "Helicopter", "Tractor", "Fire engine", "Digger", "Sailing boat", "Canoe", "Drum kit", "Guitar", "Violin", "Piano", "Harmonica", "Bagpipes", "Microphone", "Remote control", "Calculator", "Sofa", "Duvet", "Bunk bed", "Washing machine", "Iron", "Deck of cards", "Dice", "Jigsaw puzzle", "Kite", "Bubbles", "Sunglasses", "Gloves", "Raincoat", "Pyjamas", "Slippers", "Tie", "Crown", "Treasure chest", "Suit of armour", "Sword", "Helmet", "Zip", "Hourglass", "Skateboard", "Roller skates", "Scooter", "Rubber duck", "Bobble hat", "Lunchbox", "Pencil sharpener", "Magnifying glass", "Snow globe", "Suitcase", "Padlock", "Rolling pin", "Plaster", "Dressing gown", "Bow tie", "Yo-yo"]
+  },
+  {
+   "id": "dyr",
+   "navn": "Animals",
+   "ikon": "🐘",
+   "ord": ["Elephant", "Giraffe", "Penguin", "Crocodile", "Kangaroo", "Polar bear", "Moose", "Reindeer", "Squirrel", "Hedgehog", "Bat", "Octopus", "Shark", "Whale", "Dolphin", "Starfish", "Crab", "Lobster", "Snail", "Earthworm", "Spider", "Ant", "Bee", "Butterfly", "Ladybird", "Mosquito", "Parrot", "Ostrich", "Peacock", "Owl", "Eagle", "Seagull", "Hen", "Turkey", "Pig", "Cow", "Sheep", "Goat", "Horse", "Donkey", "Camel", "Llama", "Gorilla", "Chimpanzee", "Lion", "Tiger", "Zebra", "Hippo", "Rhino", "Panda", "Koala", "Sloth", "Tortoise", "Frog", "Snake", "Goldfish", "Hamster", "Guinea pig", "Rabbit", "Puppy", "Kitten", "Wolf", "Fox", "Badger", "Otter", "Seal", "Walrus", "Dinosaur", "Flamingo", "Hummingbird", "Pelican", "Puffin", "Killer whale", "Jellyfish", "Seahorse", "Chameleon", "Highland cow", "Swan", "Meerkat"]
+  },
+  {
+   "id": "mat",
+   "navn": "Food",
+   "ikon": "🍕",
+   "ord": ["Pizza", "Fish and chips", "Sunday roast", "Shepherd's pie", "Toad in the hole", "Bangers and mash", "Beans on toast", "Full English", "Scotch egg", "Sausage roll", "Cornish pasty", "Yorkshire pudding", "Crumpet", "Scone", "Victoria sponge", "Trifle", "Sticky toffee pudding", "Jam roly-poly", "Eton mess", "Mince pie", "Hot cross bun", "Pancake", "Waffle", "Spaghetti", "Lasagne", "Curry", "Sushi", "Taco", "Hamburger", "Hot dog", "Popcorn", "Ice cream", "Chocolate", "Candyfloss", "Toffee apple", "Doughnut", "Cupcake", "Jelly", "Custard", "Porridge", "Marmalade", "Jacket potato", "Crisps", "Haggis", "Black pudding", "Pork pie", "Kebab", "Banana", "Watermelon", "Pineapple", "Coconut", "Lemon", "Strawberry", "Carrot", "Broccoli", "Brussels sprout", "Onion", "Garlic", "Cucumber", "Tomato", "Corn on the cob", "Fried egg", "Bacon", "Ketchup", "Mustard", "Honey", "Hot chocolate", "Cup of tea", "Soup", "Chewing gum", "Liquorice", "Shortbread", "Flapjack", "Gingerbread man", "Cheese on toast", "Mushy peas", "Boiled egg and soldiers", "Avocado", "Cherries", "Grapes"]
+  },
+  {
+   "id": "norge",
+   "navn": "Places in Britain",
+   "ikon": "🏰",
+   "ord": ["Stonehenge", "Big Ben", "Tower Bridge", "Tower of London", "Buckingham Palace", "London Eye", "Hadrian's Wall", "Loch Ness", "Ben Nevis", "Snowdon", "Lake District", "Edinburgh Castle", "White Cliffs of Dover", "Giant's Causeway", "Blackpool Tower", "Brighton Pier", "Windsor Castle", "St Paul's Cathedral", "Westminster Abbey", "Trafalgar Square", "Piccadilly Circus", "Oxford", "Cambridge", "Bath", "York Minster", "Angel of the North", "Jurassic Coast", "Isle of Wight", "Isle of Skye", "Cornwall", "Cotswolds", "Peak District", "Land's End", "John o' Groats", "Caernarfon Castle", "Forth Bridge", "Hampton Court", "Stratford-upon-Avon", "River Thames", "Channel Tunnel", "Holy Island", "Glasgow"]
+  },
+  {
+   "id": "verden",
+   "navn": "Places in the world",
+   "ikon": "🌍",
+   "ord": ["Eiffel Tower", "Statue of Liberty", "Great Wall of China", "Pyramids", "Sphinx", "Taj Mahal", "Colosseum", "Leaning Tower of Pisa", "Acropolis", "Machu Picchu", "Mount Everest", "Sahara", "Amazon rainforest", "River Nile", "Grand Canyon", "Niagara Falls", "North Pole", "South Pole", "Antarctica", "Pacific Ocean", "Venice", "Paris", "Rome", "New York", "Tokyo", "Sydney Opera House", "Golden Gate Bridge", "Hollywood", "Las Vegas", "Mount Fuji", "Kilimanjaro", "Great Barrier Reef", "Dead Sea", "Uluru", "Iceland", "Greenland", "Hawaii", "Petra", "Christ the Redeemer", "Berlin Wall", "Alps", "Himalayas", "Times Square", "Victoria Falls", "Galapagos Islands", "Pompeii", "Atlantis", "Lapland", "Easter Island", "Vatican", "The White House", "The Moon", "Mars", "Saturn", "Milky Way", "Australia", "Egypt", "Japan"]
+  },
+  {
+   "id": "eventyr",
+   "navn": "Fairy tales and fantasy",
+   "ikon": "🧚",
+   "ord": ["Father Christmas", "Easter Bunny", "Tooth Fairy", "Cinderella", "Sleeping Beauty", "Snow White", "Little Red Riding Hood", "Three Little Pigs", "Big Bad Wolf", "Goldilocks", "Hansel and Gretel", "Rapunzel", "Rumpelstiltskin", "Puss in Boots", "Jack and the Beanstalk", "Humpty Dumpty", "Pied Piper", "Princess and the Pea", "The Ugly Duckling", "The Emperor's New Clothes", "Wizard", "Witch", "Princess", "Dragon", "Unicorn", "Mermaid", "Troll", "Elf", "Ghost", "Pirate", "Knight", "Robin Hood", "Peter Pan", "Captain Hook", "Pinocchio", "King Arthur", "Merlin", "Excalibur", "Loch Ness Monster", "Sherlock Holmes", "Frankenstein", "Dracula", "Aladdin", "Genie", "Magic carpet", "Magic wand", "Crystal ball", "Glass slipper", "Alice in Wonderland", "Superhero", "Robot", "Alien", "Giant", "Dwarf", "Werewolf", "Mummy", "Vampire", "Zombie", "Cyclops", "Medusa", "Hercules", "Thor", "Jack Frost", "Potion"]
+  },
+  {
+   "id": "historie",
+   "navn": "History and famous names",
+   "ikon": "📜",
+   "ord": ["William Shakespeare", "Queen Victoria", "Henry VIII", "Elizabeth I", "Winston Churchill", "Florence Nightingale", "Isaac Newton", "Charles Darwin", "Jane Austen", "Charles Dickens", "Albert Einstein", "Leonardo da Vinci", "Mona Lisa", "Mozart", "Beethoven", "Napoleon", "Cleopatra", "Julius Caesar", "Christopher Columbus", "Galileo", "Marie Curie", "Neil Armstrong", "The Wright brothers", "Boudicca", "Guy Fawkes", "Captain Cook", "Emmeline Pankhurst", "Ada Lovelace", "Alan Turing", "Agatha Christie", "Vincent van Gogh", "Tutankhamun", "Vikings", "Romans", "Ancient Egypt", "Pharaoh", "Stone Age", "Magna Carta", "Battle of Hastings", "Great Fire of London", "Titanic", "Moon landing", "Mahatma Gandhi", "Nelson Mandela", "Abraham Lincoln", "Joan of Arc", "Charlie Chaplin"]
+  },
+  {
+   "id": "yrker",
+   "navn": "Jobs",
+   "ikon": "🧑‍🚒",
+   "ord": ["Firefighter", "Police officer", "Doctor", "Nurse", "Dentist", "Hairdresser", "Chef", "Baker", "Farmer", "Fisherman", "Pilot", "Astronaut", "Ship's captain", "Teacher", "Plumber", "Carpenter", "Electrician", "Postie", "Bus driver", "Judge", "Librarian", "Photographer", "Conductor", "Magician", "Clown", "Vet", "Gardener", "Archaeologist", "Scientist", "Journalist", "Actor", "Ballet dancer", "Bodyguard", "Detective", "King", "Queen", "Vicar", "Surgeon", "Builder", "Painter", "Train driver", "Lifeguard", "Spy", "Referee", "Lollipop lady", "Window cleaner", "Paramedic", "Butcher", "Zookeeper", "Beekeeper"]
+  },
+  {
+   "id": "aktivitet",
+   "navn": "Sport and fun",
+   "ikon": "⚽",
+   "ord": ["Football", "Rugby", "Cricket", "Tennis", "Golf", "Snooker", "Darts", "Netball", "Hockey", "Ice hockey", "Swimming", "Diving", "Surfing", "Rowing", "Cycling", "Horse riding", "Boxing", "Karate", "Yoga", "Marathon", "Pole vault", "High jump", "Skiing", "Snowboarding", "Figure skating", "Curling", "Bowling", "Badminton", "Table tennis", "Basketball", "Climbing", "Gymnastics", "Archery", "Fencing", "Chess", "Hurdles", "Tug of war", "Sack race", "Egg and spoon race", "Hide and seek", "Hopscotch", "Skipping rope", "Hula hoop", "Karaoke", "Camping", "Barbecue", "Snowball fight", "Sandcastle", "Knitting", "Baking", "Limbo", "Big wheel", "Roller coaster", "Merry-go-round", "Circus", "Musical chairs", "Rounders", "Juggling", "Ballet", "Breakdancing", "Leapfrog", "Conkers"]
+  },
+  {
+   "id": "hverdag",
+   "navn": "Everyday life and celebrations",
+   "ikon": "🎉",
+   "ord": ["Birthday", "Christmas", "Easter", "Bonfire Night", "Halloween", "New Year's Eve", "Wedding", "Pancake day", "Valentine's Day", "Fireworks", "Rainbow", "Northern lights", "Thunderstorm", "Snowstorm", "Heatwave", "Solar eclipse", "Gravity", "Echo", "Shadow", "Dream", "Nightmare", "Hiccups", "Sneeze", "Yawn", "Tickle", "Love", "Friendship", "Homesick", "Secret", "Surprise", "Applause", "Selfie", "Queue", "Rush hour", "Homework", "Playtime", "Summer holidays", "Half term", "Present", "Pocket money", "Braces", "Domino effect", "Sleepwalking", "Crush", "Giggles", "Goosebumps", "Butterflies in your tummy", "Headache", "Sunburn", "Jet lag", "Fear of heights", "Hibernation", "Chaos", "Day off", "Birthday cake", "Early bird", "Night owl", "Christmas tree", "Easter egg", "Advent calendar", "Picnic", "Sleepover", "Traffic jam", "Brain freeze", "Pins and needles"]
+  },
+  {
+   "id": "natur",
+   "navn": "Nature and space",
+   "ikon": "🌋",
+   "ord": ["Volcano", "Glacier", "Waterfall", "Fjord", "Cave", "Desert", "Oasis", "Rainforest", "Bog", "Tide", "Wave", "Sandy beach", "Tornado", "Lightning", "Avalanche", "Icicle", "Snowman", "Snow angel", "Shooting star", "Full moon", "Comet", "Black hole", "Meteor", "Pine cone", "Oak tree", "Birch tree", "Palm tree", "Cactus", "Sunflower", "Dandelion", "Rose", "Toadstool", "Acorn", "Raindrop", "Dew", "Hail", "Fog", "Earthquake", "Geyser", "Coral reef", "Island", "Peninsula", "Mountain lake", "Space station", "Rocket", "Satellite", "Planet", "Constellation", "Rock pool", "Puddle"]
+  }
+ ]
+}

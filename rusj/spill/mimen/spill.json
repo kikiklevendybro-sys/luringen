@@ -10,5 +10,23 @@
   "tagger": ["fest", "familie", "barn", "lag"],
   "rekkefolge": 12,
   "alias": ["mimeleken"],
-  "sok": ["mimeleken", "mimelek", "mime", "mimeord", "charades", "lag mot lag"]
+  "sok": ["mimeleken", "mimelek", "mime", "mimeord", "charades", "lag mot lag"],
+  "i18n": {
+    "en": {
+      "navn": "Charades",
+      "undertittel": "Act it out",
+      "kort": "Show it without words – the others guess.",
+      "beskrivelse": "Free charades with over 700 cards – from penguin to walking on ice. Speed charades against the clock or one card at a time, everyone for themselves or teams.",
+      "slug": "charades",
+      "sok": ["charades", "charades ideas", "charades words", "charades for kids", "acting game", "mime game", "team game", "christmas charades"]
+    },
+    "da": {
+      "navn": "Mimen",
+      "undertittel": "Mimeleg",
+      "kort": "Vis det uden ord – de andre gætter.",
+      "beskrivelse": "Gratis mimeleg på dansk med over 700 opgaver – fra pingvin til at gå på glat is. Lynmim på tid eller én opgave ad gangen, alle mod alle eller hold mod hold.",
+      "slug": "mimen",
+      "sok": ["mimeleg", "mimelegen", "mime", "mimeord", "charades", "hold mod hold", "gæt og grimasser"]
+    }
+  }
 }

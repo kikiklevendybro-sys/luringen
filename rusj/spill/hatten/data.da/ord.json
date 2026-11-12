@@ -1,0 +1,70 @@
+{
+ "kategorier": [
+  {
+   "id": "ting",
+   "navn": "Ting",
+   "ikon": "🧸",
+   "ord": ["Paraply", "Tandbørste", "Støvsuger", "Køleskab", "Brødrister", "Lommelygte", "Hængekøje", "Badebold", "Trampolin", "Plæneklipper", "Vækkeur", "Sovepose", "Kikkert", "Kompas", "Fiskestang", "Rygsæk", "Strikkepinde", "Hårtørrer", "Saks", "Stige", "Hammer", "Skruetrækker", "Elpære", "Spejl", "Teleskop", "Elkedel", "Tekande", "Gummistøvler", "Spand og skovl", "Liggestol", "Soppebassin", "Trillebør", "Vandkande", "Havenisse", "Dørklokke", "Postkasse", "Sparegris", "Tændstik", "Stearinlys", "Bamse", "Kælk", "Skøjter", "Cykel", "Ladcykel", "Barnevogn", "Rulletrappe", "Faldskærm", "Luftballon", "Ubåd", "Helikopter", "Traktor", "Brandbil", "Gravko", "Sejlbåd", "Kano", "Trommesæt", "Guitar", "Violin", "Klaver", "Mundharmonika", "Harmonika", "Mikrofon", "Fjernbetjening", "Lommeregner", "Sofa", "Dyne", "Badekar", "Vaskemaskine", "Strygejern", "Kortspil", "Terning", "Puslespil", "Papirdrage", "Sæbebobler", "Solbriller", "Vanter", "Regnfrakke", "Pyjamas", "Hjemmesko", "Slips", "Krone", "Skattekiste", "Rustning", "Sværd", "Hjelm", "Lynlås", "Timeglas", "Skateboard", "Rulleskøjter", "Løbehjul", "Badeand", "Hue", "Madkasse", "Blyantspidser", "Lup", "Snekugle", "Kuffert", "Hængelås", "Kagerulle", "Plaster", "Badekåbe", "Butterfly", "Yoyo"]
+  },
+  {
+   "id": "dyr",
+   "navn": "Dyr",
+   "ikon": "🐘",
+   "ord": ["Elefant", "Giraf", "Pingvin", "Krokodille", "Kænguru", "Isbjørn", "Elg", "Rensdyr", "Egern", "Pindsvin", "Flagermus", "Blæksprutte", "Haj", "Hval", "Delfin", "Søstjerne", "Krabbe", "Hummer", "Snegl", "Regnorm", "Edderkop", "Myre", "Bi", "Sommerfugl", "Mariehøne", "Myg", "Papegøje", "Struds", "Påfugl", "Ugle", "Ørn", "Måge", "Høne", "Kalkun", "Gris", "Ko", "Får", "Ged", "Hest", "Æsel", "Kamel", "Lama", "Gorilla", "Chimpanse", "Løve", "Tiger", "Zebra", "Flodhest", "Næsehorn", "Panda", "Koala", "Dovendyr", "Skildpadde", "Frø", "Slange", "Guldfisk", "Hamster", "Marsvin", "Kanin", "Hvalp", "Killing", "Ulv", "Ræv", "Grævling", "Odder", "Sæl", "Hvalros", "Dinosaur", "Flamingo", "Kolibri", "Pelikan", "Lunde", "Spækhugger", "Vandmand", "Søhest", "Kamæleon", "Stork", "Svane", "Surikat"]
+  },
+  {
+   "id": "mat",
+   "navn": "Mad",
+   "ikon": "🍕",
+   "ord": ["Pizza", "Frikadeller", "Flæskesteg", "Stegt flæsk", "Smørrebrød", "Rugbrød", "Leverpostej", "Rullepølse", "Rød pølse", "Fiskefrikadeller", "Rødgrød med fløde", "Koldskål", "Æbleskiver", "Risalamande", "Brunede kartofler", "Rødkål", "Hindbærsnitte", "Kanelsnegl", "Wienerbrød", "Fastelavnsbolle", "Lagkage", "Drømmekage", "Kransekage", "Flødebolle", "Pandekager", "Vafler", "Spaghetti", "Lasagne", "Sushi", "Tacos", "Burger", "Pommes frites", "Popcorn", "Is", "Chokolade", "Lakrids", "Vingummi", "Candyfloss", "Brunsviger", "Grød", "Øllebrød", "Æblekage", "Tarteletter", "Biksemad", "Gule ærter", "Banan", "Vandmelon", "Ananas", "Kokosnød", "Citron", "Jordbær", "Blåbær", "Gulerod", "Broccoli", "Kartoffel", "Løg", "Hvidløg", "Agurk", "Tomat", "Majskolbe", "Spejlæg", "Bacon", "Ketchup", "Sennep", "Remoulade", "Honning", "Syltetøj", "Kakaomælk", "Suppe", "Tyggegummi", "Marcipan", "Pebernødder", "Brunkager", "Vaniljekranse", "Toast", "Nachos", "Kebab", "Avocado", "Kirsebær", "Vindruer"]
+  },
+  {
+   "id": "norge",
+   "navn": "Steder i Danmark",
+   "ikon": "🏰",
+   "ord": ["Den Lille Havfrue", "Nyhavn", "Rundetårn", "Amalienborg", "Christiansborg", "Rosenborg", "Kronborg", "Frederiksborg Slot", "Egeskov Slot", "Skagen", "Grenen", "Råbjerg Mile", "Møns Klint", "Bornholm", "Dueodde", "Hammershus", "Limfjorden", "Storebæltsbroen", "Øresundsbroen", "Himmelbjerget", "Den Gamle By", "Jellingstenene", "Roskilde Domkirke", "Ribe", "Odense", "Aarhus", "Aalborg", "Esbjerg", "Dyrehaven", "Strøget", "Marmorkirken", "Rådhuspladsen", "Fanø", "Rømø", "Ærø", "Samsø", "Vadehavet", "Mols Bjerge", "Vesterhavet", "Silkeborg", "Kongens Nytorv", "Gudhjem"]
+  },
+  {
+   "id": "verden",
+   "navn": "Steder i verden",
+   "ikon": "🌍",
+   "ord": ["Eiffeltårnet", "Frihedsgudinden", "Den Kinesiske Mur", "Pyramiderne", "Sfinksen", "Taj Mahal", "Colosseum", "Det skæve tårn i Pisa", "Big Ben", "Akropolis", "Machu Picchu", "Mount Everest", "Sahara", "Amazonas", "Nilen", "Grand Canyon", "Niagaravandfaldene", "Nordpolen", "Sydpolen", "Antarktis", "Stillehavet", "Venedig", "Paris", "London", "Rom", "New York", "Tokyo", "Operahuset i Sydney", "Golden Gate-broen", "Hollywood", "Las Vegas", "Fuji", "Kilimanjaro", "Great Barrier Reef", "Det Døde Hav", "Uluru", "Island", "Grønland", "Færøerne", "Hawaii", "Petra", "Kristusstatuen i Rio", "Stonehenge", "Berlinmuren", "Alperne", "Himalaya", "Times Square", "Victoriafaldene", "Pompeji", "Atlantis", "Lapland", "Påskeøen", "Vatikanet", "Det Hvide Hus", "Månen", "Mars", "Saturn", "Mælkevejen"]
+  },
+  {
+   "id": "eventyr",
+   "navn": "Eventyr og fantasi",
+   "ikon": "🧚",
+   "ord": ["Julemanden", "Påskeharen", "Tandfeen", "Askepot", "Tornerose", "Snehvide", "Rødhætte", "De tre små grise", "Den store stygge ulv", "Guldlok", "Hans og Grete", "Rapunzel", "Rumleskaft", "Den grimme ælling", "Tommelise", "Kejserens nye klæder", "Prinsessen på ærten", "Fyrtøjet", "Snedronningen", "Klods-Hans", "Den standhaftige tinsoldat", "Troldmand", "Heks", "Prinsesse", "Drage", "Enhjørning", "Havfrue", "Trold", "Nisse", "Spøgelse", "Pirat", "Ridder", "Robin Hood", "Peter Pan", "Kaptajn Klo", "Pinocchio", "Kong Arthur", "Holger Danske", "Lygtemand", "Sherlock Holmes", "Frankenstein", "Dracula", "Aladdin", "Ånden i lampen", "Flyvende tæppe", "Tryllestav", "Krystalkugle", "Glasskoen", "Superhelt", "Robot", "Rumvæsen", "Kæmpe", "Dværg", "Varulv", "Mumie", "Vampyr", "Zombie", "Kyklop", "Medusa", "Herkules", "Odin", "Thor", "Loke", "Trylledrik"]
+  },
+  {
+   "id": "historie",
+   "navn": "Historie og kendte navne",
+   "ikon": "📜",
+   "ord": ["H.C. Andersen", "Karen Blixen", "Niels Bohr", "Tycho Brahe", "Søren Kierkegaard", "Carl Nielsen", "Harald Blåtand", "Gorm den Gamle", "Christian IV", "H.C. Ørsted", "Knud Rasmussen", "Vitus Bering", "Ludvig Holberg", "Jeppe på Bjerget", "Albert Einstein", "Leonardo da Vinci", "Mona Lisa", "Skriget", "Mozart", "Beethoven", "Napoleon", "Kleopatra", "Julius Cæsar", "Christoffer Columbus", "Isaac Newton", "Galileo Galilei", "Charles Darwin", "Marie Curie", "Neil Armstrong", "Brødrene Wright", "William Shakespeare", "Vikinger", "Romerriget", "Farao", "Stenalderen", "Titanic", "Månelandingen", "Genforeningen", "Grundloven", "Tutankhamon", "Jeanne d'Arc", "Mahatma Gandhi", "Nelson Mandela", "Abraham Lincoln", "Charlie Chaplin", "Vikingeskib", "Vincent van Gogh"]
+  },
+  {
+   "id": "yrker",
+   "navn": "Job",
+   "ikon": "🧑‍🚒",
+   "ord": ["Brandmand", "Politibetjent", "Læge", "Sygeplejerske", "Tandlæge", "Frisør", "Kok", "Bager", "Landmand", "Fisker", "Pilot", "Astronaut", "Kaptajn", "Lærer", "Blikkenslager", "Tømrer", "Elektriker", "Postbud", "Buschauffør", "Dommer", "Bibliotekar", "Fotograf", "Dirigent", "Tryllekunstner", "Klovn", "Dyrlæge", "Gartner", "Arkæolog", "Forsker", "Journalist", "Skuespiller", "Balletdanser", "Livvagt", "Detektiv", "Konge", "Dronning", "Præst", "Kirurg", "Murer", "Maler", "Lokomotivfører", "Livredder", "Spion", "Fodbolddommer", "Skraldemand", "Vinduespudser", "Ambulanceredder", "Slagter", "Dyrepasser", "Biavler"]
+  },
+  {
+   "id": "aktivitet",
+   "navn": "Sport og sjov",
+   "ikon": "⚽",
+   "ord": ["Fodbold", "Håndbold", "Badminton", "Cykling", "Tennis", "Golf", "Dart", "Bordtennis", "Ishockey", "Svømning", "Udspring", "Surfing", "Roning", "Sejlsport", "Ridning", "Boksning", "Karate", "Yoga", "Maraton", "Stangspring", "Højdespring", "Skiløb", "Snowboard", "Kunstskøjteløb", "Curling", "Bowling", "Basketball", "Klatring", "Gymnastik", "Bueskydning", "Fægtning", "Skak", "Hækkeløb", "Tovtrækning", "Sækkeløb", "Æggeløb", "Gemmeleg", "Hinkeleg", "Sjippetov", "Hulahopring", "Karaoke", "Telttur", "Grillfest", "Sneboldkamp", "Sandslot", "Strikning", "Bagning", "Limbo", "Pariserhjul", "Rutsjebane", "Karrusel", "Cirkus", "Stoledans", "Rundbold", "Kongespil", "Jonglering", "Ballet", "Breakdance", "Minigolf", "Bålhygge", "Kajak"]
+  },
+  {
+   "id": "hverdag",
+   "navn": "Hverdag og fest",
+   "ikon": "🎉",
+   "ord": ["Fødselsdag", "Jul", "Påske", "Fastelavn", "Sankthans", "Halloween", "Nytårsaften", "Bryllup", "Konfirmation", "Mortensaften", "Fyrværkeri", "Regnbue", "Nordlys", "Tordenvejr", "Snestorm", "Hedebølge", "Solformørkelse", "Tyngdekraft", "Ekko", "Skygge", "Drøm", "Mareridt", "Hikke", "Nys", "Gaben", "Kildren", "Kærlighed", "Venskab", "Hjemve", "Hemmelighed", "Overraskelse", "Klapsalver", "Selfie", "Kø", "Myldretid", "Lektier", "Frikvarter", "Sommerferie", "Efterårsferie", "Gave", "Lommepenge", "Tandbøjle", "Dominoeffekt", "Søvngænger", "Forelskelse", "Latterkrampe", "Gåsehud", "Sommerfugle i maven", "Hovedpine", "Solskoldning", "Jetlag", "Flyskræk", "Højdeskræk", "Vinterhi", "Kaos", "Fridag", "Fødselsdagskage", "Morgenfrisk", "Natteravn", "Juletræ", "Påskeæg", "Pakkekalender", "Madpakke", "Motionsdag", "Hjernefrys"]
+  },
+  {
+   "id": "natur",
+   "navn": "Natur og rummet",
+   "ikon": "🌋",
+   "ord": ["Vulkan", "Gletsjer", "Vandfald", "Fjord", "Grotte", "Ørken", "Oase", "Regnskov", "Mose", "Tidevand", "Bølge", "Sandstrand", "Tornado", "Lyn", "Lavine", "Istap", "Snemand", "Sneengel", "Stjerneskud", "Fuldmåne", "Komet", "Sort hul", "Meteor", "Kogle", "Egetræ", "Bøgeskov", "Palme", "Kaktus", "Solsikke", "Mælkebøtte", "Rose", "Fluesvamp", "Agern", "Regndråbe", "Dug", "Hagl", "Tåge", "Jordskælv", "Gejser", "Koralrev", "Øde ø", "Halvø", "Klit", "Rumstation", "Raket", "Satellit", "Planet", "Stjernebillede", "Vandpyt", "Rimfrost"]
+  }
+ ]
+}

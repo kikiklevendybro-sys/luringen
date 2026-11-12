@@ -232,6 +232,64 @@
         "julegaver"
       ],
       "type": "WebApplication"
+    },
+    "femmeren": {
+      "tittel": "Fem sekunder – nævn tre ting på fem sekunder",
+      "frase": "Nævn tre ting på fem sekunder",
+      "beskrivelse": "Fem sekunder-legen på dansk: nævn tre ting, før lunten er brændt ud. Over 650 kort til børn, familie, fest, Danmark og jul – gratis, uden reklamer, for 2–20.",
+      "sok": [
+        "5 sekunder spil",
+        "fem sekunder legen",
+        "nævn tre ting",
+        "ordleg for børn"
+      ]
+    },
+    "hatten": {
+      "tittel": "Ord i hatten – forklar, ét ord, mim (holdspil)",
+      "frase": "Ord i hatten",
+      "beskrivelse": "Holdspillet med sedler i hatten: forklar, sig kun ét ord, og mim – de samme ord i tre runder. Gratis på dansk for 4–20, over 600 ord eller jeres egne.",
+      "sok": [
+        "fishbowl",
+        "hatteleg",
+        "sedler i hatten",
+        "ordleg for hold"
+      ]
+    },
+    "mimen": {
+      "tittel": "Mimeleg – over 700 ord og opgaver, gratis på dansk",
+      "frase": "Mimeleg",
+      "beskrivelse": "Mimeleg på mobilen: over 700 ord og opgaver i ni kategorier, også nogle til børn. Alle mod alle eller hold mod hold, med ur og point. Gratis.",
+      "sok": [
+        "mimeleg",
+        "mime",
+        "mimeleg ord",
+        "mimeleg forslag",
+        "charades"
+      ]
+    },
+    "panna": {
+      "tittel": "Gæt ordet på panden – gratis på dansk, uden app",
+      "frase": "Gæt ordet på panden",
+      "beskrivelse": "Hold mobilen op mod panden, de andre giver hints – vip ned, når du har gættet det. Gratis »gæt ordet på panden«-spil med 16 kortbunker og uden app.",
+      "sok": [
+        "ordet på panden",
+        "pandeleg",
+        "hvem er jeg",
+        "heads up"
+      ]
+    },
+    "kunstneren": {
+      "tittel": "Tegn og gæt – gratis tegneleg på én mobil",
+      "frase": "Tegn og gæt",
+      "beskrivelse": "Tegn og gæt på dansk: tegn ordet med fingeren, før tiden løber ud – de andre gætter. Over 900 ord, plus Hviskelegen, hvor tegningerne går helt i ged.",
+      "sok": [
+        "tegneleg",
+        "tegnelegen",
+        "tegn og gæt ord",
+        "hviskeleg",
+        "pictionary",
+        "skribbl"
+      ]
     }
   }
 }
