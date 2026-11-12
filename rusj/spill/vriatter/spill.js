@@ -18,12 +18,12 @@
       { navn: "spar", rod: false },
       { navn: "hjerter", rod: true },
       { navn: "ruter", rod: true },
-      { navn: "kløver", rod: false },
+      { navn: "kløver", rod: false }, // sprak-ok (not shown in this game)
     ];
     const BOKSTAV = ["", "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
     const VERDINAVN = ["", "ess", "2", "3", "4", "5", "6", "7", "8", "9", "10", "knekt", "dame", "konge"];
     // «en 7-er», «et ess», «en dame»: for questions like «Har noen en 7-er?»
-    const MED_ARTIKKEL = ["", "et ess", "en 2-er", "en 3-er", "en 4-er", "en 5-er", "en 6-er", "en 7-er", "en 8-er", "en 9-er", "en 10-er", "en knekt", "en dame", "en konge"];
+    const MED_ARTIKKEL = ["", "et ess", "en 2-er", "en 3-er", "en 4-er", "en 5-er", "en 6-er", "en 7-er", "en 8-er", "en 9-er", "en 10-er", "en knekt", "en dame", "en konge"]; // sprak-ok (not shown in this game)
     // Suit outlines in a 100 × 100 box. Every part runs clockwise, so they fill the same everywhere.
     const FORM = [
       "M50 6C62 24 92 38 92 62C92 76 81 84 70 84C62 84 56 80 53 74C54 83 58 89 66 95L34 95C42 89 46 83 47 74C44 80 38 84 30 84C19 84 8 76 8 62C8 38 38 24 50 6Z",
@@ -412,26 +412,29 @@
 
   const esc = R.esc;
   const { sortAv, verdiAv } = Vri;
-  const NIVANAVN = { 1: "Lett", 2: "Middels", 3: "Vanskelig" };
+  // Every text goes through R.t (rusj/SPRAK.md): the key is the Norwegian text.
+  const NIVANAVN = { 1: R.t("Lett"), 2: R.t("Middels"), 3: R.t("Vanskelig") };
   const NIVATEKST = {
-    1: "Mobilen legger det som passer, helt tilfeldig. Fint for de minste.",
-    2: "Mobilen sparer på åtterne og spiller fargen den har mest av.",
-    3: "Mobilen teller kort, husker hva dere mangler og blokkerer. Klarer du å slå den?",
+    1: R.t("Mobilen legger det som passer, helt tilfeldig. Fint for de minste."),
+    2: R.t("Mobilen sparer på åtterne og spiller fargen den har mest av."),
+    3: R.t("Mobilen teller kort, husker hva dere mangler og blokkerer. Klarer du å slå den?"),
   };
   const MAL = {
-    tre: { navn: "Først til 3", tekst: "Den som først vinner tre runder, vinner." },
-    poeng: { navn: "100 poeng", tekst: "Vinneren av runden får poeng for kortene de andre sitter igjen med. Først til 100 vinner." },
-    en: { navn: "Én runde", tekst: "Én runde – den som først blir kvitt kortene, vinner." },
+    tre: { navn: R.t("Først til 3"), tekst: R.t("Den som først vinner tre runder, vinner.") },
+    poeng: { navn: R.t("100 poeng"), tekst: R.t("Vinneren av runden får poeng for kortene de andre sitter igjen med. Først til 100 vinner.") },
+    en: { navn: R.t("Én runde"), tekst: R.t("Én runde – den som først blir kvitt kortene, vinner.") },
   };
   const MAL_POENG = 100;
-  const VERDIORD = ["", "ess", "to", "tre", "fire", "fem", "seks", "sju", "åtte", "ni", "ti", "knekt", "dame", "konge"];
-  const VERDI_EN = ["", "et ess", "en toer", "en treer", "en firer", "en femmer", "en sekser", "en sjuer", "en åtter", "en nier", "en tier", "en knekt", "en dame", "en konge"];
-  const FARGENAVN = ["spar", "hjerter", "ruter", "kløver"];
+  const VERDIORD = ["", R.t("ess"), R.t("to"), R.t("tre"), R.t("fire"), R.t("fem"), R.t("seks"), R.t("sju"), R.t("åtte"), R.t("ni"), R.t("ti"), R.t("knekt"), R.t("dame"), R.t("konge")];
+  const VERDI_EN = ["", R.t("et ess"), R.t("en toer"), R.t("en treer"), R.t("en firer"), R.t("en femmer"), R.t("en sekser"), R.t("en sjuer"), R.t("en åtter"), R.t("en nier"), R.t("en tier"), R.t("en knekt"), R.t("en dame"), R.t("en konge")];
+  const FARGENAVN = [R.t("spar"), R.t("hjerter"), R.t("ruter"), R.t("kløver")];
+  const FARGE_EN = [R.t("en spar"), R.t("en hjerter"), R.t("en ruter"), R.t("en kløver")]; // «Legg en ruter …»
   const Farge = (s) => FARGENAVN[s].charAt(0).toUpperCase() + FARGENAVN[s].slice(1);
   // «hjerter åtte», «spar dame»
-  const kortnavn = (k) => `${FARGENAVN[sortAv(k)]} ${VERDIORD[verdiAv(k)]}`;
+  const kortnavn = (k) => R.t("{farge} {verdi}", { farge: FARGENAVN[sortAv(k)], verdi: VERDIORD[verdiAv(k)] });
   const FART = { legg: 950, trekk: 650, start: 900 }; // ms per move of a phone player
-  const DEL_URL = "https://rusj.no/vriatter/";
+  // This edition's address (rusj.no/vriatter/, rusj.no/en/…)
+  const DEL_URL = (document.querySelector('link[rel="canonical"]') || { href: "https://rusj.no/vriatter/" }).href;
   let H;
 
   // S.spill: { id, modus ("mobil" | "flere"), niva, n, mal, toer, runde, starter, poeng [per seat],
@@ -439,7 +442,7 @@
   //   waits behind «Vis kortene mine»), ferdig, registrert }
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
   const erMenneske = (sp, p) => sp.modus === "flere" || p === 0;
-  const navn = (sp, p) => (sp.modus === "flere" ? R.navn(p) : p === 0 ? "Du" : sp.n === 2 ? "Mobilen" : `Mobil ${p}`);
+  const navn = (sp, p) => (sp.modus === "flere" ? R.navn(p) : p === 0 ? R.t("Du") : sp.n === 2 ? R.t("Mobilen") : R.t("Mobil {n}", { n: p }));
   const avatar = (sp, p, str) => R.avatar(sp.modus === "flere" ? p : p === 0 ? 0 : 9 + p, str);
   // The seat whose hand is shown: you against the phone, or the one whose turn it is.
   const meg = (sp) => (sp.modus === "flere" ? sp.r.tur : 0);
@@ -475,18 +478,18 @@
     const du = !(sp.modus === "flere") && h.p === 0;
     switch (h.type) {
       case "legg":
-        return `${hvem} la ${kortnavn(h.k)}${h.sort != null ? ` og vrir til ${FARGENAVN[h.sort]}` : ""}.`;
+        return h.sort != null ? R.t("{hvem} la {kort} og vrir til {farge}.", { hvem, kort: kortnavn(h.k), farge: FARGENAVN[h.sort] }) : R.t("{hvem} la {kort}.", { hvem, kort: kortnavn(h.k) });
       case "vri":
-        return `${hvem} vrir til ${FARGENAVN[h.sort]}.`;
+        return du ? R.t("Du vrir til {farge}.", { farge: FARGENAVN[h.sort] }) : R.t("{hvem} vrir til {farge}.", { hvem, farge: FARGENAVN[h.sort] });
       case "trekk":
-        if (h.k == null) return `${hvem} fikk ikke trukket – bunken er tom.`;
-        return du || (sp.modus === "flere" && h.p === meg(sp)) ? `${hvem} trakk ${kortnavn(h.k)}.` : `${hvem} trakk et kort.`;
+        if (h.k == null) return R.t("{hvem} fikk ikke trukket – bunken er tom.", { hvem });
+        return du || (sp.modus === "flere" && h.p === meg(sp)) ? R.t("{hvem} trakk {kort}.", { hvem, kort: kortnavn(h.k) }) : R.t("{hvem} trakk et kort.", { hvem });
       case "pass":
-        return du ? "Du står over." : `${hvem} står over.`;
+        return du ? R.t("Du står over.") : R.t("{hvem} står over.", { hvem });
       case "straff":
-        return `${hvem} må trekke ${R.flertall(h.n, "kort", "kort")} og står over.`;
+        return du ? R.t("Du må trekke {antall} og står over.", { antall: R.flertall(h.n, "kort", "kort") }) : R.t("{hvem} må trekke {antall} og står over.", { hvem, antall: R.flertall(h.n, "kort", "kort") });
       case "stokket":
-        return "Kortene er stokket til en ny bunke.";
+        return R.t("Kortene er stokket til en ny bunke.");
       default:
         return "";
     }
@@ -497,21 +500,21 @@
   function hintTekst(sp) {
     const r = sp.r;
     const t = Vri.topp(r);
-    const valg = [`en ${FARGENAVN[r.sort]}`];
+    const valg = [FARGE_EN[r.sort]];
     if (verdiAv(t) !== 8) valg.push(VERDI_EN[verdiAv(t)]);
-    valg.push("en åtter");
-    return `Legg ${valg.slice(0, -1).join(", ")} eller ${valg[valg.length - 1]}.`;
+    valg.push(VERDI_EN[8]);
+    return R.t("Legg {valg} eller {siste}.", { valg: valg.slice(0, -1).join(", "), siste: valg[valg.length - 1] });
   }
 
   function meldingTekst(sp) {
     const r = sp.r;
     if (rundeFerdig(sp)) return "";
     const p = r.tur;
-    if (r.venter != null) return erMenneske(sp, r.venter) ? "Hvilken farge vrir du til?" : `${navn(sp, r.venter)} vrir …`;
-    if (!erMenneske(sp, p)) return `${navn(sp, p)} tenker …`;
+    if (r.venter != null) return erMenneske(sp, r.venter) ? R.t("Hvilken farge vrir du til?") : R.t("{navn} vrir …", { navn: navn(sp, r.venter) });
+    if (!erMenneske(sp, p)) return R.t("{navn} tenker …", { navn: navn(sp, p) });
     if (Vri.lovlige(r, p).length) return hintTekst(sp);
-    if (Vri.kanTrekke(r, p)) return r.trukket ? `Fortsatt ingenting å legge. Trekk igjen (${r.trukket} av 3).` : "Du har ingenting å legge. Trekk et kort.";
-    return r.trukket ? "Ingenting passet etter tre kort. Du må stå over." : "Ingenting å legge, og bunken er tom. Du må stå over.";
+    if (Vri.kanTrekke(r, p)) return r.trukket ? R.t("Fortsatt ingenting å legge. Trekk igjen ({n} av 3).", { n: r.trukket }) : R.t("Du har ingenting å legge. Trekk et kort.");
+    return r.trukket ? R.t("Ingenting passet etter tre kort. Du må stå over.") : R.t("Ingenting å legge, og bunken er tom. Du må stå over.");
   }
 
   // ---------- Flow ----------
@@ -650,7 +653,7 @@
       seter.push(p);
     }
     const aktiv = ferdig ? -1 : r.venter != null ? r.venter : r.tur;
-    return `<ul class="vr-andre" aria-label="Rundt bordet">${seter
+    return `<ul class="vr-andre" aria-label="${esc(R.t("Rundt bordet"))}">${seter
       .map((p) => {
         const n = r.hender[p].length;
         const vant = ferdig && r.vinner === p;
@@ -676,19 +679,20 @@
     const under = r.bunke.length > 1 ? KORT.html(r.bunke[r.bunke.length - 2], { opp: true, klasse: "vr-under" }) : "";
     const vridd = r.sort !== sortAv(t) || verdiAv(t) === 8;
     const velger = r.venter != null && erMenneske(sp, r.venter) && r.venter === p;
+    const toppKlasse = `vr-topp${ny ? " ny fra-" + ny.fra : ""}`; // sprak-ok
     return `<div class="vr-bord${velger ? " velger" : ""}">
-      <button class="vr-stokk${kanTrekke ? " klar" : ""}" data-h="trekk" aria-label="Bunken, ${esc(R.flertall(igjen, "kort", "kort"))}${kanTrekke ? ". Trekk et kort" : ""}"${kanTrekke ? "" : ' aria-disabled="true"'}>
+      <button data-h="trekk" class="vr-stokk${kanTrekke ? " klar" : ""}" aria-label="${esc(R.t("Bunken, {antall}", { antall: R.flertall(igjen, "kort", "kort") }) + (kanTrekke ? ". " + R.t("Trekk et kort") : ""))}"${kanTrekke ? "" : ' aria-disabled="true"'}>
         ${igjen ? KORT.html(null, { klasse: "vr-stokkort" }) : '<span class="vr-tom" aria-hidden="true"></span>'}
         <span class="vr-tall" aria-hidden="true">${igjen}</span>
       </button>
-      <div class="vr-haug" id="vr-haug" role="img" aria-label="Øverst ligger ${esc(kortnavn(t))}. Fargen er ${esc(FARGENAVN[r.sort])}.">
-        ${under}${KORT.html(t, { opp: true, stor: true, klasse: `vr-topp${ny ? " ny fra-" + ny.fra : ""}` })}
+      <div class="vr-haug" id="vr-haug" role="img" aria-label="${esc(R.t("Øverst ligger {kort}. Fargen er {farge}.", { kort: kortnavn(t), farge: FARGENAVN[r.sort] }))}">
+        ${under}${KORT.html(t, { opp: true, stor: true, klasse: toppKlasse })}
         ${vridd && r.venter == null ? `<span class="vr-vridd" aria-hidden="true">${fargeIkon(r.sort, 22)}<b>${esc(Farge(r.sort))}</b></span>` : ""}
       </div>
       ${
         velger
-          ? `<div class="vr-velg" role="group" aria-labelledby="vr-velg-t"><h2 id="vr-velg-t">Vri til</h2><div class="vr-velg-rad">${[1, 2, 0, 3]
-              .map((s) => `<button class="vr-farge" data-h="farge" data-v="${s}"${s === 1 ? " data-fokus" : ""}>${fargeIkon(s, 34)}<span>${Farge(s)}</span></button>`)
+          ? `<div class="vr-velg" role="group" aria-labelledby="vr-velg-t"><h2 id="vr-velg-t">${esc(R.t("Vri til"))}</h2><div class="vr-velg-rad">${[1, 2, 0, 3]
+              .map((s) => `<button class="vr-farge" data-h="farge" data-v="${s}"${s === 1 ? " data-fokus" : ""}>${fargeIkon(s, 34)}<span>${esc(Farge(s))}</span></button>`)
               .join("")}</div></div>`
           : ""
       }
@@ -707,7 +711,7 @@
     const ny = nyIHand;
     nyIHand = null;
     const hand = sorter(r.hender[p]);
-    return `<div class="vr-hand${minTur ? " min-tur" : ""}" role="group" aria-label="${sp.modus === "flere" ? esc(`Kortene til ${navn(sp, p)}`) : "Kortene dine"}" style="--n:${hand.length}">${hand
+    return `<div class="vr-hand${minTur ? " min-tur" : ""}" role="group" aria-label="${esc(sp.modus === "flere" ? R.t("Kortene til {navn}", { navn: navn(sp, p) }) : R.t("Kortene dine"))}" style="--n:${hand.length}">${hand
       .map((k, i) => {
         const ok = lov.has(k);
         return `<button class="vr-hk${ok ? " lovlig" : ""}${k === ny ? " ny" : ""}" data-h="legg" data-v="${k}" data-k="${k}" aria-label="${esc(kortnavn(k))}"${ok ? "" : ' aria-disabled="true"'} style="--i:${i}">${KORT.html(k, { opp: true })}</button>`;
@@ -725,25 +729,25 @@
       const h = sorter(r.hender[p]);
       rader.push(`<li class="${p === v ? "vant" : ""}">${avatar(sp, p)}<b>${esc(navn(sp, p))}</b>${
         p === v
-          ? `<span class="vr-ut">${sp.mal === "poeng" ? `+${esc(res.gevinst)} poeng` : "Ute!"}</span>`
+          ? `<span class="vr-ut">${esc(sp.mal === "poeng" ? R.t("+{n} poeng", { n: res.gevinst }) : R.t("Ute!"))}</span>`
           : `<span class="vr-rest" aria-label="${esc(h.map(kortnavn).join(", "))}">${h.map((k) => KORT.html(k, { opp: true })).join("")}</span>${sp.mal === "poeng" ? `<span class="vr-pt">${esc(res.rester[p])}</span>` : ""}`
       }</li>`);
     }
-    return `<ul class="vr-resultat" aria-label="Kortene som ble igjen">${rader.join("")}</ul>`;
+    return `<ul class="vr-resultat" aria-label="${esc(R.t("Kortene som ble igjen"))}">${rader.join("")}</ul>`;
   }
 
   function resultatTittel(sp) {
     const v = sp.resultat.vinner;
-    const lost = sp.r.lost ? "Ingen kom videre – færrest kort vinner. " : "";
-    if (kampVunnet(sp) && sp.mal !== "en") return lost + (sp.modus === "mobil" ? (v === 0 ? "Du vinner kampen!" : `${navn(sp, v)} vinner kampen!`) : `${navn(sp, v)} vinner kampen!`);
-    if (sp.modus === "mobil") return lost + (v === 0 ? "Du ble kvitt alle kortene!" : `${navn(sp, v)} ble kvitt kortene først.`);
-    return lost + `${navn(sp, v)} ble kvitt alle kortene!`;
+    const lost = sp.r.lost ? R.t("Ingen kom videre – færrest kort vinner.") + " " : "";
+    if (kampVunnet(sp) && sp.mal !== "en") return lost + (sp.modus === "mobil" ? (v === 0 ? R.t("Du vinner kampen!") : R.t("{navn} vinner kampen!", { navn: navn(sp, v) })) : R.t("{navn} vinner kampen!", { navn: navn(sp, v) }));
+    if (sp.modus === "mobil") return lost + (v === 0 ? R.t("Du ble kvitt alle kortene!") : R.t("{navn} ble kvitt kortene først.", { navn: navn(sp, v) }));
+    return lost + R.t("{navn} ble kvitt alle kortene!", { navn: navn(sp, v) });
   }
 
   // A small line of the score under the title of the table (not in «Én runde»).
   function stillingTekst(sp) {
     if (sp.mal === "en") return "";
-    const mal = sp.mal === "poeng" ? `først til ${MAL_POENG} poeng` : "først til 3 seirer";
+    const mal = esc(sp.mal === "poeng" ? R.t("først til {n} poeng", { n: MAL_POENG }) : R.t("først til 3 seirer"));
     return `${esc(navn(sp, meg(sp)))}: ${esc(enhet(sp, sp.poeng[meg(sp)]))} · ${mal}`;
   }
 
@@ -754,7 +758,7 @@
     if (sp.port && !ferdig) {
       const sist = sistTekst(sp);
       return `${sist ? `<p class="vr-sist-port" role="status">${esc(sist)}</p>` : ""}
-        ${R.ui.giTil({ i: r.tur, h: "vis", knapp: "Vis kortene mine", tekst: r.logg.length ? "Gi mobilen til" : `Runde ${sp.runde} – gi mobilen til`, advarsel: "De andre ser bort", prikker: [sp.n, r.tur] })}`;
+        ${R.ui.giTil({ i: r.tur, h: "vis", knapp: R.t("Vis kortene mine"), tekst: r.logg.length ? R.t("Gi mobilen til") : R.t("Runde {n} – gi mobilen til", { n: sp.runde }), advarsel: R.t("De andre ser bort"), prikker: [sp.n, r.tur] })}`;
     }
     const p = meg(sp);
     const minTur = !ferdig && erMenneske(sp, r.tur) && r.venter == null;
@@ -763,12 +767,12 @@
     const sist = sistTekst(sp);
     const melding = ferdig ? resultatTittel(sp) : meldingTekst(sp);
     let hoved = "";
-    if (ferdig) hoved = kampVunnet(sp) ? R.ui.knapp("Se kåringen", "kaaring", { ikon: "🏆" }) : R.ui.knapp("Ny runde", "runde", { ikon: "🃏" });
-    else if (kanPasse) hoved = R.ui.knapp("Stå over", "pass");
-    else hoved = R.ui.knapp(r.trukket && kanTrekke ? `Trekk igjen (${r.trukket} av 3)` : "Trekk et kort", "trekk", { av: !kanTrekke });
+    if (ferdig) hoved = kampVunnet(sp) ? R.ui.knapp(R.t("Se kåringen"), "kaaring", { ikon: "🏆" }) : R.ui.knapp(R.t("Ny runde"), "runde", { ikon: "🃏" });
+    else if (kanPasse) hoved = R.ui.knapp(R.t("Stå over"), "pass");
+    else hoved = R.ui.knapp(r.trukket && kanTrekke ? R.t("Trekk igjen ({n} av 3)", { n: r.trukket }) : R.t("Trekk et kort"), "trekk", { av: !kanTrekke });
     const stilling = stillingTekst(sp);
     return `
-      <h1 class="vh" id="skjerm-tittel">Vri åtter, runde ${sp.runde}</h1>
+      <h1 class="vh" id="skjerm-tittel">${esc(R.t("Vri åtter, runde {n}", { n: sp.runde }))}</h1>
       ${ferdig ? "" : andreHtml(sp)}
       ${bordHtml(sp)}
       <div class="vr-melding${ferdig ? " ferdig" : minTur ? " din" : ""}" role="status">
@@ -777,13 +781,13 @@
       </div>
       ${ferdig ? resultatHtml(sp) : handHtml(sp)}
       ${stilling && !ferdig ? `<p class="vr-stilling">${stilling}</p>` : ""}
-      ${R.ui.dokk(hoved, R.ui.lenkerad(R.ui.lenke("Avslutt", "avslutt")))}`;
+      ${R.ui.dokk(hoved, R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
   }
 
   function rekordHtml(S, niva) {
     const r = S.rekord[niva];
     if (!r || !(r.seier + r.tap)) return "";
-    return `<span><b>${r.seier}</b> ${r.seier === 1 ? "seier" : "seirer"}</span><span><b>${r.tap}</b> tap</span>`;
+    return `<span><b>${r.seier}</b> ${esc(R.t("seier|seirer", { n: r.seier }))}</span><span><b>${r.tap}</b> ${esc(R.t("tap|tap", { n: r.tap }))}</span>`;
   }
 
   // ---------- Dragging a card onto the pile ----------
@@ -897,21 +901,21 @@
     },
 
     regler: {
-      intro: "Bli kvitt alle kortene dine først. Alle får fem kort (sju når dere er to), og ett kort snus på bordet.",
+      intro: R.t("Bli kvitt alle kortene dine først. Alle får fem kort (sju når dere er to), og ett kort snus på bordet."),
       steg: [
-        ["Følg farge eller tall", "Legg et kort i samme farge (hjerter, ruter, spar eller kløver) eller med samme tall som kortet øverst. Trykk på kortet – eller dra det til bordet."],
-        ["Åtteren vrir", "En åtter kan legges på hva som helst. Da velger du hvilken farge den neste må følge."],
-        ["Trekk opptil tre", "Har du ingenting å legge, trekker du ett kort om gangen – opptil tre. Passer ikke noe da heller, står du over."],
+        [R.t("Følg farge eller tall"), R.t("Legg et kort i samme farge (hjerter, ruter, spar eller kløver) eller med samme tall som kortet øverst. Trykk på kortet – eller dra det til bordet.")],
+        [R.t("Åtteren vrir"), R.t("En åtter kan legges på hva som helst. Da velger du hvilken farge den neste må følge.")],
+        [R.t("Trekk opptil tre"), R.t("Har du ingenting å legge, trekker du ett kort om gangen – opptil tre. Passer ikke noe da heller, står du over.")],
       ],
       tips: [
-        "Den som først blir kvitt alle kortene sine, vinner runden.",
-        "Først til 3: Den som først vinner tre runder, vinner kampen.",
-        "100 poeng: Vinneren av runden får poeng for kortene de andre har igjen – åtter 50, bildekort 10, ess 1 og resten det tallet de viser. Først til 100 vinner.",
-        "Spar på åtterne! De redder deg når ingenting annet passer.",
-        "Snus en åtter først, stokkes den inn igjen og et nytt kort snus.",
-        "Er bunken tom, stokkes kortene på bordet (unntatt det øverste) til en ny bunke.",
-        "Husregel «Toer»: Legger noen en toer, må den neste trekke to kort og står over. Den er av som standard.",
-        "Flere på én mobil: Kortene skjules mellom hver tur. Trykk «Vis kortene mine» når du har fått mobilen.",
+        R.t("Den som først blir kvitt alle kortene sine, vinner runden."),
+        R.t("Først til 3: Den som først vinner tre runder, vinner kampen."),
+        R.t("100 poeng: Vinneren av runden får poeng for kortene de andre har igjen – åtter 50, bildekort 10, ess 1 og resten det tallet de viser. Først til 100 vinner."),
+        R.t("Spar på åtterne! De redder deg når ingenting annet passer."),
+        R.t("Snus en åtter først, stokkes den inn igjen og et nytt kort snus."),
+        R.t("Er bunken tom, stokkes kortene på bordet (unntatt det øverste) til en ny bunke."),
+        R.t("Husregel «Toer»: Legger noen en toer, må den neste trekke to kort og står over. Den er av som standard."),
+        R.t("Flere på én mobil: Kortene skjules mellom hver tur. Trykk «Vis kortene mine» når du har fått mobilen."),
       ],
     },
 
@@ -924,38 +928,38 @@
           const rek = [1, 2, 3].map((n) => [n, rekordHtml(S, n)]).filter(([, h]) => h);
           return (
             R.ui.spillhjem({
-              slagordHtml: "Følg farge eller tall.<br><em>Åtteren vrir alt.</em>",
+              slagordHtml: `${esc(R.t("Følg farge eller tall."))}<br><em>${esc(R.t("Åtteren vrir alt."))}</em>`,
               knapperHtml: R.ui.startKnapper({
                 pagar: aktiv,
-                fortsettTekst: aktiv ? `Fortsett · runde ${sp.runde}` : "",
-                ekstraHtml: R.ui.lenke("Slik spiller du", "regler"),
+                fortsettTekst: aktiv ? R.t("Fortsett · runde {n}", { n: sp.runde }) : "",
+                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [
-                ["1–4", "spillere"],
-                ["3", "nivåer"],
-                ["0", "reklame"],
+                ["1–4", R.t("spillere")],
+                ["3", R.t("nivåer")],
+                ["0", R.t("reklame")],
               ],
             }) +
-            (rek.length ? `<section class="vr-rekorder" aria-label="Mot mobilen"><p class="etikett">Mot mobilen</p><ul>${rek.map(([n, h]) => `<li><b class="vr-niva">${NIVANAVN[n]}</b>${h}</li>`).join("")}</ul></section>` : "")
+            (rek.length ? `<section class="vr-rekorder" aria-label="${esc(R.t("Mot mobilen"))}"><p class="etikett">${esc(R.t("Mot mobilen"))}</p><ul>${rek.map(([n, h]) => `<li><b class="vr-niva">${esc(NIVANAVN[n])}</b>${h}</li>`).join("")}</ul></section>` : "")
           );
         },
         inn: () => R.slippVaken(),
       },
 
       oppsett: {
-        tittel: "Nytt spill",
+        tittel: R.t("Nytt spill"),
         tilbake: "hjem",
         vis(S) {
           const o = S.oppsett;
           return `
-            <h1 id="skjerm-tittel">Gjør klart</h1>
+            <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
             <section class="seksjon">
-              <h2>Hvordan vil dere spille?</h2>
+              <h2>${esc(R.t("Hvordan vil dere spille?"))}</h2>
               ${R.ui.fliser(
                 "modus",
                 [
-                  { v: "mobil", ikon: "🤖", tittel: "Mot mobilen", tekst: "Du mot 1–3 mobilspillere" },
-                  { v: "flere", ikon: "👥", tittel: "Flere på én mobil", tekst: "2–4 spillere sender mobilen rundt" },
+                  { v: "mobil", ikon: "🤖", tittel: R.t("Mot mobilen"), tekst: R.t("Du mot 1–3 mobilspillere") },
+                  { v: "flere", ikon: "👥", tittel: R.t("Flere på én mobil"), tekst: R.t("2–4 spillere sender mobilen rundt") },
                 ],
                 o.modus,
               )}
@@ -963,31 +967,31 @@
             ${
               o.modus === "mobil"
                 ? `<section class="seksjon">
-                    <h2>Hvor mange mobilspillere?</h2>
-                    ${R.ui.seg("mobiler", [[1, "1"], [2, "2"], [3, "3"]], o.mobiler, { etikett: "Antall mobilspillere" })}
+                    <h2>${esc(R.t("Hvor mange mobilspillere?"))}</h2>
+                    ${R.ui.seg("mobiler", [[1, "1"], [2, "2"], [3, "3"]], o.mobiler, { etikett: R.t("Antall mobilspillere") })}
                   </section>
                   <section class="seksjon">
-                    <h2>Hvor flink er mobilen?</h2>
-                    ${R.ui.seg("niva", [[1, "Lett"], [2, "Middels"], [3, "Vanskelig"]], o.niva, { etikett: "Nivå" })}
+                    <h2>${esc(R.t("Hvor flink er mobilen?"))}</h2>
+                    ${R.ui.seg("niva", [[1, NIVANAVN[1]], [2, NIVANAVN[2]], [3, NIVANAVN[3]]], o.niva, { etikett: R.t("Nivå") })}
                     <p class="hjelp">${esc(NIVATEKST[o.niva])}</p>
                   </section>`
-                : R.ui.spillere({ min: 2, max: 4, tittel: "Hvem spiller?", hjelp: "Kortene skjules mellom hver tur, så ingen ser de andres." })
+                : R.ui.spillere({ min: 2, max: 4, tittel: R.t("Hvem spiller?"), hjelp: R.t("Kortene skjules mellom hver tur, så ingen ser de andres.") })
             }
             <section class="seksjon">
-              <h2>Hvor lenge?</h2>
-              ${R.ui.seg("mal", Object.keys(MAL).map((m) => [m, MAL[m].navn]), o.mal, { etikett: "Hvor lenge" })}
+              <h2>${esc(R.t("Hvor lenge?"))}</h2>
+              ${R.ui.seg("mal", Object.keys(MAL).map((m) => [m, MAL[m].navn]), o.mal, { etikett: R.t("Hvor lenge") })}
               <p class="hjelp">${esc(MAL[o.mal].tekst)}</p>
             </section>
             <section class="seksjon">
-              <h2>Husregel</h2>
-              ${R.ui.bryter("toer", o.toer, "Toer: neste trekker to", "Legger noen en toer, må den neste trekke to kort og står over.")}
+              <h2>${esc(R.t("Husregel"))}</h2>
+              ${R.ui.bryter("toer", o.toer, R.t("Toer: neste trekker to"), R.t("Legger noen en toer, må den neste trekke to kort og står over."))}
             </section>
-            ${R.ui.dokk(R.ui.knapp("Start", "start", { variant: "stor", ikon: "🃏" }))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { variant: "stor", ikon: "🃏" }))}`;
         },
       },
 
       spill: {
-        tittel: (S) => (S.spill ? `Runde ${S.spill.runde}` : ""),
+        tittel: (S) => (S.spill ? R.t("Runde {n}", { n: S.spill.runde }) : ""),
         tilbake: "hjem",
         vis: spillHtml,
         inn(S) {
@@ -1005,7 +1009,7 @@
       },
 
       slutt: {
-        tittel: "Kåringen",
+        tittel: R.t("Kåringen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
@@ -1015,21 +1019,21 @@
           const duVant = sp.modus === "mobil" && vinnere.length === 1 && sp.poeng[0] === topp;
           const mobilVant = sp.modus === "mobil" && topp > 0 && !duVant && sp.poeng[0] < topp;
           let tittel;
-          if (!vinnere.length) tittel = "Ingen vinner denne gangen";
-          else if (duVant) tittel = "Du vinner!";
-          else if (sp.modus === "mobil" && vinnere.length === 1) tittel = `${vinnere[0]} vinner!`;
-          else tittel = vinnere.length === 1 ? `${vinnere[0]} vinner!` : `${R.ramsOpp(vinnere)} vinner!`;
+          if (!vinnere.length) tittel = R.t("Ingen vinner denne gangen");
+          else if (duVant) tittel = R.t("Du vinner!");
+          else if (sp.modus === "mobil" && vinnere.length === 1) tittel = R.t("{navn} vinner!", { navn: vinnere[0] });
+          else tittel = vinnere.length === 1 ? R.t("{navn} vinner!", { navn: vinnere[0] }) : R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(vinnere), n: vinnere.length });
           const runder = sp.runde - (sp.resultat ? 0 : 1);
           const etikett = `${R.flertall(runder, "runde", "runder")}${sp.modus === "mobil" ? ` · ${NIVANAVN[sp.niva].toLowerCase()}` : ""}`;
-          const tekst = mobilVant ? "Godt kjempa! Neste gang er åtterne på din side." : duVant ? "Godt jobba!" : "";
+          const tekst = mobilVant ? R.t("Godt kjempa! Neste gang er åtterne på din side.") : duVant ? R.t("Godt jobba!") : "";
           const rek = sp.modus === "mobil" ? rekordHtml(S, sp.niva) : "";
           return `
             ${R.ui.banner({ tittel, etikett, tekst, stemning: mobilVant || !vinnere.length ? "lei" : "jubel" })}
             ${sp.mal !== "en" && sp.n > 2 ? R.ui.pall(rader, { enhet: sp.mal === "poeng" ? "p" : "" }) : ""}
             ${R.ui.poengliste(rader)}
-            ${rek ? `<p class="vr-rekordlinje"><span class="etikett">Mot mobilen · ${NIVANAVN[sp.niva].toLowerCase()}</span>${rek}</p>` : ""}
+            ${rek ? `<p class="vr-rekordlinje"><span class="etikett">${esc(R.t("Mot mobilen"))} · ${esc(NIVANAVN[sp.niva].toLowerCase())}</span>${rek}</p>` : ""}
             ${R.ui.flereSpill({ antall: sp.modus === "flere" ? sp.n : 1 })}
-            ${R.ui.dokk(R.ui.knapp("Spill igjen", "igjen", { ikon: "🃏" }), R.ui.lenkerad(R.ui.lenke("Del resultatet", "del"), R.ui.lenke("Endre oppsett", "nytt"), '<a class="lenke" href="/">Alle spill</a>'))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: "🃏" }), R.ui.lenkerad(R.ui.lenke(R.t("Del resultatet"), "del"), R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -1107,14 +1111,14 @@
         const k = Number(el.dataset.v);
         const r = sp.r;
         const p = meg(sp);
-        if (rundeFerdig(sp) || !erMenneske(sp, r.tur) || r.venter != null) return R.toast(rundeFerdig(sp) ? "Runden er over" : `Vent litt – ${navn(sp, r.tur)} tenker`);
+        if (rundeFerdig(sp) || !erMenneske(sp, r.tur) || r.venter != null) return R.toast(rundeFerdig(sp) ? R.t("Runden er over") : R.t("Vent litt – {navn} tenker", { navn: navn(sp, r.tur) }));
         if (!Vri.kanLegges(k, Vri.topp(r), r.sort) || r.tur !== p) {
           R.lyd.feil();
           R.vibrer(30);
           el.classList.remove("risting");
           void el.offsetWidth;
           el.classList.add("risting");
-          R.si(`${kortnavn(k)} passer ikke. ${hintTekst(sp)}`);
+          R.si(`${R.t("{kort} passer ikke.", { kort: kortnavn(k) })} ${hintTekst(sp)}`);
           return;
         }
         spillKort(S, k, "trykk");
@@ -1132,9 +1136,9 @@
         const sp = S.spill;
         if (!sp || sp.port || rundeFerdig(sp)) return;
         const r = sp.r;
-        if (!erMenneske(sp, r.tur) || r.venter != null) return R.toast(`Vent litt – ${navn(sp, r.tur)} tenker`);
+        if (!erMenneske(sp, r.tur) || r.venter != null) return R.toast(R.t("Vent litt – {navn} tenker", { navn: navn(sp, r.tur) }));
         if (!Vri.kanTrekke(r, r.tur)) {
-          if (Vri.lovlige(r, r.tur).length) R.toast("Du har et kort som passer – legg det");
+          if (Vri.lovlige(r, r.tur).length) R.toast(R.t("Du har et kort som passer – legg det"));
           return;
         }
         const k = Vri.trekk(r, r.tur, rng());
@@ -1171,15 +1175,16 @@
         let linje2;
         if (sp.modus === "mobil") {
           const vant = sp.poeng[0] === Math.max(...sp.poeng) && sp.poeng.filter((x) => x === sp.poeng[0]).length === 1;
-          tekst = `${vant ? "Jeg slo mobilen" : "Mobilen slo meg"} i Vri åtter (${NIVANAVN[sp.niva].toLowerCase()}), ${stilling}. Klarer du bedre?`;
-          linje2 = `mot mobilen · ${NIVANAVN[sp.niva].toLowerCase()}`;
+          const niva = NIVANAVN[sp.niva].toLowerCase();
+          tekst = vant ? R.t("Jeg slo mobilen i Vri åtter ({niva}), {stilling}. Klarer du bedre?", { niva, stilling }) : R.t("Mobilen slo meg i Vri åtter ({niva}), {stilling}. Klarer du bedre?", { niva, stilling });
+          linje2 = R.t("mot mobilen · {niva}", { niva });
         } else {
           const topp = Math.max(...sp.poeng);
           const v = sp.poeng.map((x, p) => (x === topp ? R.navn(p) : null)).filter(Boolean);
-          tekst = `${R.ramsOpp(v)} vant Vri åtter (${stilling})! Ta en runde du også.`;
-          linje2 = `${R.flertall(sp.n, "spiller", "spillere")} på én mobil`;
+          tekst = R.t("{navn} vant Vri åtter ({stilling})! Ta en runde du også.", { navn: R.ramsOpp(v), stilling });
+          linje2 = R.t("{spillere} på én mobil", { spillere: R.flertall(sp.n, "spiller", "spillere") });
         }
-        R.del("Vri åtter", tekst, DEL_URL, { kort: { tittel: "Vri åtter", linjer: [stilling, linje2] } });
+        R.del(R.t("Vri åtter"), tekst, DEL_URL, { kort: { tittel: R.t("Vri åtter"), linjer: [stilling, linje2] } });
       },
       async avslutt(el, e, S) {
         const sp = S.spill;
@@ -1187,7 +1192,7 @@
         const fortsatt = R.vakt();
         stoppMobil(); // the phone players wait while the sheet is open
         const ferdige = sp.runde - (sp.resultat ? 0 : 1);
-        const ja = await R.bekreft("Avslutte spillet?", ferdige ? "Dere går til kåringen. Runden dere er midt i, teller ikke." : "Dere kan alltid starte et nytt.", "Avslutt", "Spill videre");
+        const ja = await R.bekreft(R.t("Avslutte spillet?"), ferdige ? R.t("Dere går til kåringen. Runden dere er midt i, teller ikke.") : R.t("Dere kan alltid starte et nytt."), R.t("Avslutt"), R.t("Spill videre"));
         if (!fortsatt() || S.spill !== sp || sp.ferdig) return;
         if (!ja) return planleggMobil();
         if (!ferdige && !sp.resultat) {

@@ -12,5 +12,23 @@
   "farge": "#ff6b6b",
   "sok": ["vri åtter", "vri 8", "vriåtter", "vri åttern", "crazy eights", "kortspill", "kortspill for to", "kortspill på nett"],
   "motMobilen": true,
-  "alias": ["vri-atter"]
+  "alias": ["vri-atter"],
+  "i18n": {
+    "en": {
+      "navn": "Crazy Eights",
+      "undertittel": "Eights are wild",
+      "kort": "Follow suit or number – eights change the suit.",
+      "beskrivelse": "Free Crazy Eights in your browser: follow suit or number, and switch suits with an eight. Against the phone at three levels, or 2–4 on the same phone.",
+      "slug": "crazy-eights",
+      "sok": ["crazy eights", "crazy 8s", "eights", "card game", "crazy eights against computer", "switch card game", "uno"]
+    },
+    "da": {
+      "navn": "Olsen",
+      "undertittel": "Otteren skifter kulør",
+      "kort": "Bekend kulør eller værdi – otteren skifter kulør.",
+      "beskrivelse": "Gratis Olsen direkte i browseren: bekend kulør eller værdi, og skift kulør med en otter. Mod mobilen på tre niveauer eller 2–4 på samme mobil.",
+      "slug": "olsen",
+      "sok": ["olsen", "olsen kortspil", "ottere", "kortspil", "olsen mod computeren", "crazy eights", "uno"]
+    }
+  }
 }

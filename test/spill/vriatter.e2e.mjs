@@ -3,6 +3,8 @@
 // three and passing, the record on home, «Avslutt» → «Kåringen» with «Del resultatet»; then two
 // people on one phone: the hand waits behind «Vis kortene mine» at every change of turn (also after a
 // reload), a whole round, «Kåringen» and «Kveldens gjeng».
+// Runs in every edition (node test/rusj-e2e.mjs --sprak en vriatter): the texts are checked in
+// Norwegian only (t.norsk); elsewhere the names, the state and the links (t.forside, t.nokkel).
 
 // Card number: suit 0 spar, 1 hjerter, 2 ruter, 3 kløver; value 1 (ess) … 13 (konge).
 const K = (s, v) => s * 13 + v - 1;
@@ -39,7 +41,7 @@ export default async function (t) {
       if (document.querySelector('[data-h="vis"]')) { document.querySelector('[data-h="vis"]').click(); return "vis"; }
       if (document.querySelector('.vr-farge')) { document.querySelector('.vr-farge').click(); return "farge"; }
       const lov = Array.from(document.querySelectorAll('.vr-hand.min-tur .vr-hk.lovlig'));
-      if (lov.length) { (lov.find((b) => !/åtte$/.test(b.getAttribute('aria-label'))) || lov[0]).click(); return "legg"; }
+      if (lov.length) { (lov.find((b) => Number(b.dataset.k) % 13 !== 7) || lov[0]).click(); return "legg"; }
       const k = document.querySelector('.dokk .knapp[data-h="trekk"]:not([disabled]), .dokk .knapp[data-h="pass"]');
       if (k) { k.click(); return k.dataset.h; }
       return "";
@@ -59,7 +61,7 @@ export default async function (t) {
 
   // ---------- Against the phone ----------
   await t.klikk('[data-h="nytt"]');
-  t.sjekk(/Gjør klart/.test(await t.tekst("#skjerm h1")), "Oppsettet heter ikke «Gjør klart»");
+  t.sjekk(!t.norsk || /Gjør klart/.test(await t.tekst("#skjerm h1")), "Oppsettet heter ikke «Gjør klart»");
   await t.bilde("oppsett-mobil", true);
   await t.klikk('[data-h="start"]');
   await t.vent("document.querySelectorAll('.vr-hk').length === 7");
@@ -69,7 +71,7 @@ export default async function (t) {
   t.sjekk(s.r.hender[0].length === 7 && s.r.hender[1].length === 7, "To spillere skal få sju kort hver");
   t.sjekk(s.r.bunke.length === 1 && s.r.bunke[0] % 13 !== 7, "Startkortet er en åtter");
   const navn = await t.js(`Array.from(document.querySelectorAll('.vr-hk')).map((b) => b.getAttribute('aria-label'))`);
-  t.sjekk(navn.every((n) => /^(spar|hjerter|ruter|kløver) (ess|to|tre|fire|fem|seks|sju|åtte|ni|ti|knekt|dame|konge)$/.test(n)), `Kortene heter ikke «farge verdi»: ${navn.join(", ")}`);
+  t.sjekk(navn.every((n) => (t.norsk ? /^(spar|hjerter|ruter|kløver) (ess|to|tre|fire|fem|seks|sju|åtte|ni|ti|knekt|dame|konge)$/ : /^\S+ \S+( \S+)?$/).test(n)), `Kortene heter ikke «farge verdi»: ${navn.join(", ")}`);
   t.sjekk(await t.friForDokk(".vr-hand"), "Hånda ligger bak handlingsfeltet");
   await t.bilde("din-tur");
 
@@ -86,11 +88,11 @@ export default async function (t) {
   await t.klikk('[data-h="runde"]', 500);
   await t.vent("document.querySelector('.vr-hand')");
   await ordne({ hender: [[K(1, 8), K(2, 3), K(3, 9)], [K(0, 6), K(0, 7), K(1, 2), K(2, 13), K(3, 12)]], bunke: [K(0, 5)] });
-  t.sjekk(await t.finnes('.vr-hk[aria-label="hjerter åtte"].lovlig'), "Hjerter åtte er ikke en knapp som kan legges");
-  t.sjekk(await t.js(`document.querySelector('.vr-hk[aria-label="ruter tre"]').getAttribute('aria-disabled') === 'true'`), "Ruter tre er ikke merket som et kort som ikke passer");
-  await t.klikk('.vr-hk[aria-label="ruter tre"]', 300);
+  t.sjekk(await t.finnes(`.vr-hk[data-k="${K(1, 8)}"].lovlig`), "Hjerter åtte er ikke en knapp som kan legges");
+  t.sjekk(await t.js(`document.querySelector('.vr-hk[data-k="${K(2, 3)}"]').getAttribute('aria-disabled') === 'true'`), "Ruter tre er ikke merket som et kort som ikke passer");
+  await t.klikk(`.vr-hk[data-k="${K(2, 3)}"]`, 300);
   t.sjekk((await sp()).r.hender[0].length === 3, "Et kort som ikke passer, ble lagt");
-  await t.klikk('.vr-hk[aria-label="hjerter åtte"]', 400);
+  await t.klikk(`.vr-hk[data-k="${K(1, 8)}"]`, 400);
   t.sjekk((await t.antall(".vr-farge")) === 4, "Fire farger å vri til vises ikke etter åtteren");
   s = await sp();
   t.sjekk(s.r.venter === 0 && s.r.tur === 0, "Runden venter ikke på fargevalget");
@@ -102,8 +104,8 @@ export default async function (t) {
   await t.klikk('.vr-farge[data-v="2"]', 300);
   s = await sp();
   t.sjekk(s.r.sort === 2 && s.r.venter == null && s.r.tur === 1, "Åtteren vred ikke til ruter, eller turen gikk ikke videre");
-  t.sjekk(/vrir til ruter/.test(await t.tekst(".vr-melding")), "Meldingen sier ikke at du vrir til ruter");
-  await t.vent("JSON.parse(localStorage.getItem('rusj.vriatter.v1')).spill.r.tur === 0", 5000);
+  t.sjekk(!t.norsk || /vrir til ruter/.test(await t.tekst(".vr-melding")), "Meldingen sier ikke at du vrir til ruter");
+  await t.vent(`JSON.parse(localStorage.getItem('${t.nokkel("vriatter.v1")}')).spill.r.tur === 0`, 5000);
   s = await sp();
   t.sjekk(s.r.hender[1].length === 4 && s.r.bunke[s.r.bunke.length - 1] === K(2, 13), "Mobilen fulgte ikke ruter med ruter konge");
   await t.bilde("mobilen-svarte");
@@ -121,7 +123,7 @@ export default async function (t) {
 
   // Nothing to play: draw up to three, then pass; the phone then plays (also after a reload in its turn)
   await ordne({ hender: [[K(1, 3), K(1, 4), K(2, 9)], [K(3, 2), K(3, 3), K(3, 4), K(3, 5), K(3, 6)]], bunke: [K(0, 2)], stokk: [K(2, 5), K(1, 10), K(2, 7)] });
-  t.sjekk(/ingenting å legge/.test(await t.tekst(".vr-melding")), "Meldingen sier ikke at du har ingenting å legge");
+  t.sjekk(!t.norsk || /ingenting å legge/.test(await t.tekst(".vr-melding")), "Meldingen sier ikke at du har ingenting å legge");
   for (let n = 0; n < 3; n++) await t.klikk('.dokk [data-h="trekk"]', 350);
   s = await sp();
   t.sjekk(s.r.hender[0].length === 6 && s.r.trukket === 3, "Tre kort ble ikke trukket");
@@ -131,7 +133,7 @@ export default async function (t) {
   s = await sp();
   t.sjekk(s.r.tur === 1, "Turen gikk ikke til mobilen etter «Stå over»");
   await t.lastSide(t.side, "document.querySelector('.vr-hand')");
-  await t.vent("JSON.parse(localStorage.getItem('rusj.vriatter.v1')).spill.r.tur === 0", 5000);
+  await t.vent(`JSON.parse(localStorage.getItem('${t.nokkel("vriatter.v1")}')).spill.r.tur === 0`, 5000);
   s = await sp();
   t.sjekk(s.r.bunke[s.r.bunke.length - 1] === K(3, 2), "Mobilen la ikke kløver to på spar to etter omlasting");
 
@@ -143,11 +145,11 @@ export default async function (t) {
   await t.sov(2200);
   t.sjekk((await sp()).r.tur === 1, "Mobilen spilte mens reglene var åpne");
   await t.klikk('#ark [data-h="lukk-ark"]');
-  await t.vent("JSON.parse(localStorage.getItem('rusj.vriatter.v1')).spill.r.tur === 0", 5000);
+  await t.vent(`JSON.parse(localStorage.getItem('${t.nokkel("vriatter.v1")}')).spill.r.tur === 0`, 5000);
 
   // Home shows the record against the phone
   await t.klikk("#tilbake");
-  t.sjekk(/Middels/.test(await t.tekst(".vr-rekorder")), "Rekorden mot mobilen vises ikke på hjem");
+  t.sjekk((t.norsk ? /Middels/ : /\S/).test(await t.tekst(".vr-rekorder")), "Rekorden mot mobilen vises ikke på hjem");
   await t.bilde("hjem-rekord");
   await t.klikk('[data-h="fortsett"]');
   await t.vent("document.querySelector('.vr-hand')");
@@ -157,9 +159,9 @@ export default async function (t) {
   await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
   await t.vent("document.querySelector('.skjerm-slutt')");
   await t.sov(400);
-  t.sjekk(/Kåringen/i.test(await t.tekst("#topp-tittel")), "Sluttskjermen heter ikke «Kåringen»");
-  t.sjekk(/vinner!/.test(await t.tekst("#skjerm h1")), `Kåringen sier ikke hvem som vant: «${await t.tekst("#skjerm h1")}»`);
-  t.sjekk(await t.finnes('.dokk [data-h="del"]') && (await t.finnes('.dokk a.lenke[href="/"]')), "Kåringen mangler «Del resultatet» eller «Alle spill»");
+  t.sjekk(!t.norsk || /Kåringen/i.test(await t.tekst("#topp-tittel")), "Sluttskjermen heter ikke «Kåringen»");
+  t.sjekk((t.norsk ? /vinner!/ : /!/).test(await t.tekst("#skjerm h1")), `Kåringen sier ikke hvem som vant: «${await t.tekst("#skjerm h1")}»`);
+  t.sjekk(await t.finnes('.dokk [data-h="del"]') && (await t.finnes(`.dokk a.lenke[href="${t.forside}"]`)), "Kåringen mangler «Del resultatet» eller «Alle spill»");
   t.sjekk((await t.tilstand())._aktiv === false, "Et ferdig spill skal ikke være merket som pågående");
   await t.bilde("kaaringen-mobil", true);
   await t.klikk('[data-h="del"]', 600);
@@ -196,7 +198,7 @@ export default async function (t) {
   s = await sp();
   if (s.r.vinner == null) {
     t.sjekk(s.r.tur !== forste && s.port && (await t.finnes('[data-h="vis"]')) && !(await t.finnes(".vr-hk")), "Porten kom ikke tilbake da turen gikk videre");
-    t.sjekk(/la |står over/.test(await t.tekst(".vr-sist-port")), "Porten sier ikke hva forrige spiller gjorde");
+    t.sjekk((t.norsk ? /la |står over/ : /Testspiller [AB]/).test(await t.tekst(".vr-sist-port")), "Porten sier ikke hva forrige spiller gjorde");
   }
   s = await spillRunde();
   t.sjekk(s.r.vinner != null && s.resultat, "Runden for to på én mobil ble ikke ferdig");
@@ -205,8 +207,8 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-slutt')");
   await t.sov(400);
   const vinner = s.r.vinner === 0 ? "Testspiller A" : "Testspiller B";
-  t.sjekk((await t.tekst("#skjerm h1")) === `${vinner} vinner!`, `Kåringen viser feil vinner: «${await t.tekst("#skjerm h1")}»`);
-  const kveld = await t.js(`JSON.parse(localStorage.getItem("rusj.kveld") || "null")`);
+  t.sjekk(t.norsk ? (await t.tekst("#skjerm h1")) === `${vinner} vinner!` : (await t.tekst("#skjerm h1")).includes(vinner), `Kåringen viser feil vinner: «${await t.tekst("#skjerm h1")}»`);
+  const kveld = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("kveld")}") || "null")`);
   const siste = kveld && kveld.spill && kveld.spill[kveld.spill.length - 1];
   t.sjekk(siste && siste.id === "vriatter" && siste.resultat.length === 2, "Kåringen ble ikke registrert i Kveldens gjeng (bare menneskene)");
   await t.bilde("kaaringen-flere", true);
