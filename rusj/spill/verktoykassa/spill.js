@@ -96,74 +96,12 @@
     papir: { navn: R.t("Papir"), ikon: "✋" },
   };
 
-  // ---------- 3D dice (a CSS cube, as in Terninga) ----------
+  // ---------- Dice ----------
+  // Real 3D dice in a tray, thrown with a simulated throw (R.terninger, rusj/kit/terninger.js). This
+  // tool decides the values; the kit lands the dice on them.
 
-  const PIPS = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
-  const SIDE = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] };
-  const VIPP = "rotateX(-21deg) rotateY(12deg)"; // CSS // sprak-ok
-  const KUBE = [1, 2, 3, 4, 5, 6].map((n) => `<span class="vk-side s${n}">${PIPS[n].map((p) => `<i class="p${p}"></i>`).join("")}</span>`).join("");
-  const pose = (v, z, tx, ty) => `${VIPP} rotateZ(${z}deg) rotateX(${SIDE[v][0] + 360 * (tx || 0)}deg) rotateY(${SIDE[v][1] + 360 * (ty || 0)}deg)`; // sprak-ok
   const nyTerning = () => 1 + Math.floor(tilfeldig() * 6);
-
-  function rasle() {
-    for (let k = 0; k < 7; k++) R.lyd.stoy(k * 0.034 + Math.random() * 0.012, 0.024, 0.08 + Math.random() * 0.07, 2600 + Math.random() * 2800);
-  }
-  function klakk(t, styrke) {
-    R.lyd.stoy(t, 0.04, 0.3 * styrke, 1300 + Math.random() * 700);
-    R.lyd.tone(160 + Math.random() * 80, t, 0.07, "triangle", 0.15 * styrke, 105);
-  }
-
-  function animerTerninger(fra, fraVri, til, tilVri) {
-    return new Promise((ferdig) => {
-      const kuber = R.$$("#vk-terninger .vk-kube");
-      if (!kuber.length) return ferdig();
-      if (R.rolig() || !kuber[0].animate) {
-        kuber.forEach((k, i) => (k.style.transform = pose(til[i], tilVri[i])));
-        setTimeout(ferdig, 120);
-        return;
-      }
-      let lengst = 0;
-      kuber.forEach((kube, i) => {
-        const ms = 860 + i * 70 + Math.random() * 120;
-        lengst = Math.max(lengst, ms);
-        const tx = (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 2));
-        const ty = (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 2));
-        const v0 = fra[i] || 1;
-        const z0 = fraVri[i] || 0;
-        // From where it rests (a new die appears from the cup): a dip, a tumbling flight, landing, bounce.
-        const a = kube.animate(
-          [
-            { transform: pose(v0, z0), offset: 0 },
-            { transform: pose(v0, z0 + (tx > 0 ? 25 : -25)), offset: 0.12, easing: "cubic-bezier(.3,.55,.3,1)" },
-            { transform: pose(til[i], tilVri[i], tx, ty), offset: 1 },
-          ],
-          { duration: ms, fill: "both" },
-        );
-        a.onfinish = () => {
-          kube.style.transform = pose(til[i], tilVri[i]);
-          a.cancel();
-        };
-        const dx = Math.round((Math.random() * 2 - 1) * 22);
-        const hopp = kube.parentElement.animate(
-          [
-            { transform: "translate(0, 0) scale(1)", offset: 0, easing: "ease-out" },
-            { transform: `translate(${Math.round(dx * 0.3)}px, 12px) scale(.88)`, offset: 0.12, easing: "cubic-bezier(.2,.7,.4,1)" },
-            { transform: `translate(${dx}px, -48px) scale(1.1)`, offset: 0.42, easing: "cubic-bezier(.6,0,.9,.5)" },
-            { transform: "translate(0, 0) scale(1)", offset: 0.66, easing: "cubic-bezier(.2,.7,.4,1)" },
-            { transform: "translate(0, -9px) scale(1.02)", offset: 0.82, easing: "cubic-bezier(.6,0,.9,.5)" },
-            { transform: "translate(0, 0) scale(1)", offset: 1 },
-          ],
-          { duration: ms },
-        );
-        hopp.onfinish = () => hopp.cancel();
-        klakk((ms * 0.66) / 1000, 1);
-        klakk((ms * 0.99) / 1000, 0.45);
-      });
-      rasle();
-      setTimeout(() => R.vibrer([14, 60, 10, 50, 8]), 570); // when the first die lands
-      setTimeout(ferdig, lengst + 40);
-    });
-  }
+  let sveipKast = null; // a fling on the tray: its direction and speed for the next throw
 
   // ---------- «Hvem starter?» – fingers on the screen ----------
   // The fingers are not part of the saved state: they only exist while they touch the glass.
@@ -569,13 +507,16 @@
           const sum = t.verdier.reduce((a, b) => a + b, 0);
           return `
             <h1 class="vh" id="skjerm-tittel">${esc(R.t("Terninger"))}</h1>
-            <div class="vk-brett" id="vk-terninger" style="--n: ${t.antall}" role="img" aria-label="${esc(R.t("Terningene viser {tall}", { tall: R.ramsOpp(t.verdier.map(String)) }))}">
-              ${t.verdier
-                .map(
-                  (v, i) => `<span class="vk-t"><span class="vk-skygge"></span><span class="vk-hopp"><span class="vk-kube" style="transform: ${pose(v, t.vri[i] || 0)}">${KUBE}</span></span></span>`,
-                )
-                .join("")}
-            </div>
+            ${R.terninger.html({
+              id: "vk-terninger",
+              klasse: "vk-brett",
+              verdier: t.verdier,
+              vri: t.vri,
+              hold: false,
+              knapper: false,
+              navn: R.t("Terningene viser {tall}", { tall: R.ramsOpp(t.verdier.map(String)) }),
+              klar: !t.historikk.length,
+            })}
             <div class="vk-sum" aria-live="polite">${t.antall > 1 ? `<span class="etikett">${esc(R.t("Sum"))}</span><b id="vk-sum">${t.historikk.length ? sum : "–"}</b>` : `<b id="vk-sum">${t.historikk.length ? sum : "–"}</b>`}</div>
             <section class="seksjon">
               <div class="seksjon-hode"><h2>${esc(R.t("Antall terninger"))}</h2></div>
@@ -584,6 +525,14 @@
             ${t.historikk.length > 1 ? `<p class="vk-historikk"><span class="etikett">${esc(R.t("Forrige kast"))}</span>${t.historikk.slice(1, 9).map((h) => `<span>${h}</span>`).join("")}</p>` : ""}
             ${R.ui.dokk(R.ui.knapp(t.antall === 1 ? R.t("Kast terningen") : R.t("Kast terningene"), "terning-kast", { variant: "stor", ikon: "🎲" }))}`;
         },
+        etter: () =>
+          R.terninger.koble("vk-terninger", {
+            vedSveip(vei) {
+              if (travelt.ruller || R.arkApent()) return;
+              sveipKast = vei;
+              H["terning-kast"](null, null, R.S).catch((feil) => console.error(feil));
+            },
+          }),
         inn: () => R.holdVaken(),
       },
 
@@ -925,9 +874,9 @@
       },
       async "terning-kast"(el, e, S) {
         const t = S.terninger;
+        const vei = sveipKast;
+        sveipKast = null;
         if (travelt.ruller) return;
-        const fra = t.verdier.slice();
-        const fraVri = t.vri.slice();
         t.verdier = t.verdier.map(nyTerning);
         t.vri = t.verdier.map(() => Math.round(Math.random() * 30 - 15));
         const sum = t.verdier.reduce((a, b) => a + b, 0);
@@ -939,7 +888,7 @@
         const sumEl = document.getElementById("vk-sum");
         if (sumEl) sumEl.classList.add("skjult");
         const fortsatt = R.vakt();
-        await animerTerninger(fra, fraVri, t.verdier, t.vri);
+        await R.terninger.kast("vk-terninger", { verdier: t.verdier, indekser: t.verdier.map((_, i) => i), retning: vei && vei.retning, styrke: vei && vei.styrke });
         travelt.ruller = false;
         if (!fortsatt()) return;
         R.vis();
