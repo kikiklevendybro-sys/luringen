@@ -621,6 +621,12 @@
       "frase": "Prikker og kasser",
       "beskrivelse": "Spil prikker og kasser gratis: tegn streger mellem prikkerne, luk en kasse, og tegn igen. Mod mobilen på tre niveauer eller to på samme mobil.",
       "motMobilen": true
+    },
+    "samannen": {
+      "tittel": "Kalaha online – gratis mod mobilen eller en ven",
+      "frase": "Kalaha",
+      "beskrivelse": "Spil kalaha gratis: læg én kugle i hvert hul, få en tur til, og fang modstanderens kugler. Mod mobilen på tre niveauer eller to på samme mobil.",
+      "motMobilen": true
     }
   }
 }

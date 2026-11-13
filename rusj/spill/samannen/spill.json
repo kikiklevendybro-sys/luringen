@@ -1,0 +1,35 @@
+{
+  "id": "samannen",
+  "navn": "Såmannen",
+  "undertittel": "Kalaha",
+  "beskrivelse": "Gratis kalaha på norsk: legg én kule i hvert hull, få en tur til og fang motstanderens kuler. Mot mobilen på tre nivåer eller mot en venn på samme mobil.",
+  "kort": "Én kule i hvert hull – og flest i kalahaen vinner.",
+  "spillere": [1, 2],
+  "minutter": [3, 15],
+  "mobiler": "en",
+  "tagger": ["klassiker", "familie", "tenke", "barn", "alene"],
+  "rekkefolge": 73,
+  "farge": "#7fcf6a",
+  "alder": 6,
+  "sok": ["kalaha", "mancala", "kalaha på nett", "kalaha mot datamaskin", "kulespill", "brettspill med kuler", "afrikansk brettspill"],
+  "motMobilen": true,
+  "alias": ["kalaha"],
+  "i18n": {
+    "en": {
+      "navn": "Sowerby",
+      "undertittel": "Mancala",
+      "kort": "One stone in each pit – and the most in your store wins.",
+      "beskrivelse": "Free mancala in your browser, Scandinavian kalaha rules: sow one stone per pit, earn extra turns and capture. Against the phone at three levels or a friend.",
+      "slug": "sowerby",
+      "sok": ["mancala", "kalaha", "mancala online", "mancala against computer", "sowing game", "count and capture"]
+    },
+    "da": {
+      "navn": "Sædemanden",
+      "undertittel": "Kalaha",
+      "kort": "Én kugle i hvert hul – og flest i kalahaen vinder.",
+      "beskrivelse": "Gratis kalaha direkte i browseren: læg én kugle i hvert hul, få en tur til, og fang modstanderens kugler. Mod mobilen på tre niveauer eller mod en ven.",
+      "slug": "saedemanden",
+      "sok": ["kalaha", "mancala", "kalaha online", "kalaha mod computeren", "kuglespil", "brætspil med kugler"]
+    }
+  }
+}
