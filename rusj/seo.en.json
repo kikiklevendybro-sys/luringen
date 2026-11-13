@@ -598,6 +598,12 @@
       "frase": "Nine men's morris",
       "beskrivelse": "Play nine men's morris free: place nine pieces, make mills and take your opponent's pieces. Against the phone at three levels or two on one phone. No account.",
       "motMobilen": true
+    },
+    "snekkeren": {
+      "tittel": "Dots and boxes – free against the phone or a friend",
+      "frase": "Dots and boxes",
+      "beskrivelse": "Play dots and boxes free: draw lines between the dots, close a box and draw again. Against the phone at three levels or two on one phone, 3 × 3 to 6 × 6.",
+      "motMobilen": true
     }
   }
 }

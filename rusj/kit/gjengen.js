@@ -1300,6 +1300,7 @@
     sebraen: ["#f2ecff", "Z"],
     nostet: ["#ff8fb8", "N"],
     molla: ["#f2b45c", "M"],
+    snekkeren: ["#8fd3ff", "S"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

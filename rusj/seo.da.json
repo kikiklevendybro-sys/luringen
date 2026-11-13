@@ -615,6 +615,12 @@
       "frase": "Mølle",
       "beskrivelse": "Spil mølle gratis i browseren: sæt ni brikker ud, lav møller, og tag modstanderens brikker. Mod mobilen på tre niveauer eller to på samme mobil. Uden konto.",
       "motMobilen": true
+    },
+    "snekkeren": {
+      "tittel": "Prikker og kasser – gratis mod mobilen eller en ven",
+      "frase": "Prikker og kasser",
+      "beskrivelse": "Spil prikker og kasser gratis: tegn streger mellem prikkerne, luk en kasse, og tegn igen. Mod mobilen på tre niveauer eller to på samme mobil.",
+      "motMobilen": true
     }
   }
 }

@@ -1,0 +1,35 @@
+{
+  "id": "snekkeren",
+  "navn": "Snekkeren",
+  "undertittel": "Prikker og bokser",
+  "beskrivelse": "Gratis prikker og bokser på norsk: tegn streker mellom prikkene og lukk flest bokser. Mot mobilen på tre nivåer eller mot en venn på samme mobil.",
+  "kort": "Én strek om gangen – lukk boksen, og den er din.",
+  "spillere": [1, 2],
+  "minutter": [3, 15],
+  "mobiler": "en",
+  "tagger": ["klassiker", "familie", "tenke", "barn", "alene"],
+  "rekkefolge": 75,
+  "farge": "#8fd3ff",
+  "alder": 6,
+  "sok": ["prikker og bokser", "boksespill", "prikkspill", "lag bokser", "prikk og strek", "firkantspill", "bokser og streker", "papirspill"],
+  "motMobilen": true,
+  "alias": ["prikker-og-bokser"],
+  "i18n": {
+    "en": {
+      "navn": "Boxer",
+      "undertittel": "Dots and boxes",
+      "kort": "One line at a time – close a box, and it's yours.",
+      "beskrivelse": "Free dots and boxes in your browser: draw lines between the dots and close the most boxes. Against the phone at three levels or a friend on the same phone.",
+      "slug": "boxer",
+      "sok": ["dots and boxes", "boxes game", "squares game", "dot game", "pigs in a pen", "dots and boxes online", "dots and boxes against computer"]
+    },
+    "da": {
+      "navn": "Snedkeren",
+      "undertittel": "Prikker og kasser",
+      "kort": "Én streg ad gangen – luk kassen, og den er din.",
+      "beskrivelse": "Gratis prikker og kasser direkte i browseren: tegn streger mellem prikkerne, og luk flest kasser. Mod mobilen på tre niveauer eller mod en ven på samme mobil.",
+      "slug": "snedkeren",
+      "sok": ["prikker og kasser", "kassespil", "prikspil", "prikker og streger", "lav kasser", "papirspil", "streg og kasse"]
+    }
+  }
+}
