@@ -700,6 +700,18 @@
         "picture cross puzzle",
         "picture logic puzzle"
       ]
+    },
+    "lasesmeden": {
+      "tittel": "Code breaker game – crack the colour code, free",
+      "frase": "Code breaker",
+      "beskrivelse": "Play a free code breaker game: guess the secret row of coloured pegs, read the pins and crack the code. Against the phone at three levels, or two players.",
+      "motMobilen": true,
+      "sok": [
+        "code breaker game",
+        "colour code puzzle",
+        "bulls and cows",
+        "crack the code game"
+      ]
     }
   }
 }

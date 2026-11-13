@@ -717,6 +717,18 @@
         "malerlogik",
         "logikspil gratis"
       ]
+    },
+    "lasesmeden": {
+      "tittel": "Knæk koden – gratis farvekodespil mod mobilen",
+      "frase": "Knæk koden",
+      "beskrivelse": "Spil et gratis kodeknækkerspil: gæt den hemmelige række af farvede knapper, læs prikkerne, og knæk koden. Mod mobilen på tre niveauer eller to spillere.",
+      "motMobilen": true,
+      "sok": [
+        "knæk koden spil",
+        "farvekode spil",
+        "kodeknækker",
+        "gæt koden"
+      ]
     }
   }
 }
