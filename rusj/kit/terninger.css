@@ -1,0 +1,325 @@
+/* R.terninger: the dice tray (rusj/kit/terninger.js). A wooden tray with felt, seen from above with a
+   mild perspective; real CSS cubes for dice; a rail at the bottom for held dice. The script sets
+   --trn-s (die size), --trn-k (rail scale), --trn-filt-h, --trn-hylle-h and --trn-perspektiv.
+   A game sets the tray's height (it fills what it gets) and may override the colours below. */
+
+.trn-brett {
+  --trn-tre: #8b5a32;
+  --trn-tre-lys: #b98352;
+  --trn-tre-mork: #55321a;
+  --trn-filt: #176049;
+  --trn-filt-lys: #1f7a5d;
+  --trn-flate: #fffaf1;
+  --trn-flate-kant: #ecdcc1;
+  --trn-oye: #1b1230;
+  --trn-en: #d42a46;
+  position: relative;
+  display: block;
+  min-height: 132px;
+  border-radius: 24px;
+  background:
+    repeating-linear-gradient(97deg, rgba(255, 236, 200, 0.06) 0 2px, transparent 2px 7px, rgba(40, 18, 4, 0.08) 7px 9px, transparent 9px 15px),
+    linear-gradient(165deg, var(--trn-tre-lys), var(--trn-tre) 42%, var(--trn-tre-mork));
+  box-shadow:
+    inset 0 2px 0 rgba(255, 230, 190, 0.3),
+    inset 0 -3px 0 rgba(30, 12, 0, 0.35),
+    0 6px 0 #3b2110,
+    0 16px 30px rgba(6, 2, 14, 0.55);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.trn-brett.sveiper {
+  cursor: grabbing;
+}
+
+/* While a finger swipes, the loose dice rattle as if they were in a hand */
+.trn-brett.sveiper .trn-t:not(.holdt) {
+  animation: trn-rist 0.14s linear infinite;
+}
+
+.trn-brett.sveiper .trn-t:not(.holdt):nth-child(2n) {
+  animation-delay: -0.07s;
+}
+
+@keyframes trn-rist {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: 1.5px -1px;
+  }
+  75% {
+    translate: -1.5px 1px;
+  }
+}
+
+/* The felt: lit from the top left, darker under the rim */
+.trn-filt {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  left: 10px;
+  height: var(--trn-filt-h, calc(100% - 20px));
+  overflow: hidden;
+  border-radius: 15px;
+  background:
+    radial-gradient(ellipse 85% 80% at 38% 30%, rgba(255, 255, 255, 0.13), transparent 70%),
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 4px),
+    linear-gradient(160deg, var(--trn-filt-lys), var(--trn-filt));
+  box-shadow:
+    inset 0 0 0 2px rgba(10, 4, 0, 0.35),
+    inset 0 10px 20px rgba(4, 10, 6, 0.6),
+    inset 8px 0 16px rgba(4, 10, 6, 0.3),
+    inset 0 -3px 8px rgba(4, 10, 6, 0.35),
+    0 1px 0 rgba(255, 230, 190, 0.22);
+}
+
+/* The rail for held dice */
+.trn-hylle {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  height: var(--trn-hylle-h, 0px);
+  border-radius: 13px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 236, 200, 0.05) 0 2px, transparent 2px 11px),
+    linear-gradient(to bottom, #3e230f, #5a3519 60%, #6b4120);
+  box-shadow:
+    inset 0 5px 10px rgba(10, 4, 0, 0.6),
+    inset 0 -1px 0 rgba(255, 230, 190, 0.18),
+    0 1px 0 rgba(255, 230, 190, 0.2);
+}
+
+.trn-brett:not(.har-holdt) .trn-hylle i {
+  opacity: 0.4;
+}
+
+.trn-hylle i {
+  position: absolute;
+  top: 50%;
+  width: calc(var(--trn-s, 40px) * var(--trn-k, 1));
+  height: calc(var(--trn-s, 40px) * var(--trn-k, 1));
+  border-radius: 24%;
+  background: rgba(10, 4, 0, 0.18);
+  box-shadow: inset 0 2px 5px rgba(10, 4, 0, 0.55), 0 1px 0 rgba(255, 230, 190, 0.12);
+  transform: translateY(-50%);
+  transition: opacity 0.2s;
+}
+
+/* The game's hint line sits in the rail while it is empty */
+.trn-hint {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  left: 14px;
+  display: grid;
+  height: var(--trn-hylle-h, 28px);
+  place-items: center;
+  overflow: hidden;
+  color: rgba(255, 241, 221, 0.86);
+  font: 800 0.84rem/1.15 var(--font-display);
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(10, 4, 0, 0.6);
+  transition: opacity 0.2s;
+}
+
+.trn-brett:not(.med-hylle) .trn-hint {
+  bottom: 14px;
+  height: auto;
+}
+
+.trn-brett.har-holdt .trn-hint {
+  opacity: 0;
+}
+
+/* The scene: one 3D space for every die, with a mild perspective */
+.trn-scene {
+  position: absolute;
+  inset: 10px;
+  transform-style: preserve-3d;
+  perspective: var(--trn-perspektiv, 760px);
+  perspective-origin: 50% 40%;
+  pointer-events: none;
+}
+
+.trn-t {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--trn-s, 40px);
+  height: var(--trn-s, 40px);
+  padding: 0;
+  border: 0;
+  border-radius: 24%;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+  transform-style: preserve-3d;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.trn-t:disabled {
+  cursor: default;
+}
+
+.trn-kube {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+
+/* A face, 100 px (the cube is scaled to the die): ivory, rounded, with drilled pips */
+.trn-flate {
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  width: 100px;
+  height: 100px;
+  /* a clear 1.5 px border: the face's edge is drawn inside its texture, so it stays smooth when turned */
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background: radial-gradient(circle at 30% 24%, #ffffff 0 22%, var(--trn-flate) 48%, var(--trn-flate-kant) 100%) padding-box;
+  box-shadow:
+    inset 0 0 0 1.5px rgba(150, 110, 70, 0.22),
+    inset 0 -7px 12px rgba(150, 110, 70, 0.2),
+    inset 0 5px 8px rgba(255, 255, 255, 0.8);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* The light: a face turned away from the lamp is darker (set per frame) */
+.trn-flate::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #241536;
+  content: "";
+  opacity: var(--trn-mork, 0);
+}
+
+.trn-flate i {
+  position: absolute;
+  width: 19px;
+  height: 19px;
+  margin: -9.5px 0 0 -9.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 38%, #4a3a6c, var(--trn-oye) 70%);
+  box-shadow:
+    inset 0 2.5px 2px rgba(0, 0, 0, 0.6),
+    0 1.5px 0 rgba(255, 255, 255, 0.9);
+}
+
+.trn-flate[data-v="1"] i {
+  width: 27px;
+  height: 27px;
+  margin: -13.5px 0 0 -13.5px;
+  background: radial-gradient(circle at 42% 38%, #ff7387, var(--trn-en) 72%);
+}
+
+.trn-o1 { top: 25%; left: 25%; }
+.trn-o3 { top: 25%; left: 75%; }
+.trn-o4 { top: 50%; left: 25%; }
+.trn-o5 { top: 50%; left: 50%; }
+.trn-o6 { top: 50%; left: 75%; }
+.trn-o7 { top: 75%; left: 25%; }
+.trn-o9 { top: 75%; left: 75%; }
+
+/* The inside of the cube shows through the rounded corners as the rounded edge */
+.trn-kjerne {
+  position: absolute;
+  top: -48px;
+  left: -48px;
+  width: 96px;
+  height: 96px;
+  border-radius: 8px;
+  background: #e2d1b4;
+}
+
+.trn-kjerne.k2 {
+  transform: rotateY(90deg);
+}
+
+.trn-kjerne.k3 {
+  transform: rotateX(90deg);
+}
+
+/* The shadow on the felt (moved, grown and blurred by the script as the die rises) */
+.trn-skygge {
+  position: absolute;
+  inset: 3%;
+  border-radius: 26%;
+  background: rgba(2, 10, 6, 0.9);
+  opacity: 0.6;
+}
+
+/* Held: a glowing frame round the die in its slot */
+.trn-ring {
+  position: absolute;
+  inset: -5px;
+  border: 2.5px solid var(--aksent);
+  border-radius: 30%;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--aksent) 70%, transparent), inset 0 0 8px color-mix(in srgb, var(--aksent) 45%, transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.trn-t.holdt .trn-ring {
+  opacity: 1;
+}
+
+/* Waiting for the first throw: the dice dim and an arrow says how to throw */
+.trn-klar .trn-scene {
+  filter: brightness(0.8) saturate(0.75);
+}
+
+.trn-sveip {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 11px 3px 8px;
+  border-radius: 999px;
+  background: rgba(4, 16, 10, 0.4);
+  color: rgba(255, 241, 221, 0.92);
+  font: 800 0.74rem/1.2 var(--font-display);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.trn-klar .trn-sveip {
+  display: flex;
+}
+
+.trn-sveip i {
+  width: 8px;
+  height: 8px;
+  margin-top: 4px;
+  border-top: 2.5px solid currentColor;
+  border-left: 2.5px solid currentColor;
+  transform: rotate(45deg);
+  animation: trn-pil 1.6s ease-in-out infinite;
+}
+
+@keyframes trn-pil {
+  0%,
+  100% {
+    translate: 0 1px;
+    opacity: 0.6;
+  }
+  50% {
+    translate: 0 -3px;
+    opacity: 1;
+  }
+}

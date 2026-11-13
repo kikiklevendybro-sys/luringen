@@ -510,6 +510,9 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen }
     js: skriv("felles/rusj.js", kilde("rusj/kit/rusj.js")),
     stat: STAT_FIL && skriv("felles/stat.js", STAT_FIL.innhold),
     qr: skriv("felles/qr.js", kilde("src/qr.js")),
+    // 3D dice in a tray (R.terninger): only for games with "terninger": true in spill.json
+    terninger: skriv("felles/terninger.js", kilde("rusj/kit/terninger.js")),
+    terningerCss: skriv("felles/terninger.css", kilde("rusj/kit/terninger.css")),
     ord: skriv("felles/ord.js", "window.RUSJ_ORD=" + JSON.stringify(ordData).replace(/</g, "\\u003c") + ";"),
     // t() for the front page and the pages about rusj (the kit has its own copy)
     tekst: skriv("felles/tekst.js", kilde("rusj/kit/tekst.js")),
@@ -716,13 +719,14 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen }
       const dataJs =
         "window.RUSJ_SPILL=" + JSON.stringify(meta) + ";\nwindow.RUSJ_ANDRE=" + somData(andre) + ";\nwindow.RUSJ_DATA=" + somData(data) + ";\n" + (spillTabell ? "window.RUSJ_TEKST_SPILL=" + somData(spillTabell) + ";\n" : "");
       const dataSti = skriv(`${mappe}data.js`, dataJs);
-      const css = [felles.css, ...(spillCss ? [spillCss] : [])];
+      const css = [felles.css, ...(m.terninger ? [felles.terningerCss] : []), ...(spillCss ? [spillCss] : [])];
       const ikon = skriv(`${mappe}ikon.svg`, ikonSvg(G, id, U.sprak === "nb" ? undefined : U.sprak));
       const egenDeling = U.sprak === "nb" ? `deling-${id}.png` : `deling-${id}.${U.sprak}.png`;
       const deling = existsSync(join(BILDER, egenDeling)) ? kopier(join(BILDER, egenDeling), `${mappe}deling.png`) : deling0;
 
       const skript = [...forTekst(U), felles.gjengen, U.merkerJs, felles.js];
       if (m.qr) skript.push(felles.qr);
+      if (m.terninger) skript.push(felles.terninger);
       if (m.ordbank && ordFor[U.sprak]) skript.push(ordFor[U.sprak].fil);
       skript.push(dataSti, jsSti);
 
