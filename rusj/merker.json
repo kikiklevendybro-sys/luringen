@@ -27,6 +27,7 @@
     { "id": "seier-firklover", "gruppe": "dagens", "navn": "Firkløver", "hvordan": "Finn alle fire gruppene i dagens Firkløver.", "figur": "firklover", "emoji": "🍀", "regel": { "type": "dagligSeier", "spill": "firklover" } },
     { "id": "seier-blokka", "gruppe": "dagens", "navn": "Alt på plass", "hvordan": "Løs dagens puslespill i Blokka.", "figur": "blokka", "emoji": "🧩", "regel": { "type": "dagligSeier", "spill": "blokka" } },
     { "id": "seier-humla", "gruppe": "dagens", "navn": "Full krukke", "hvordan": "Nå honning i dagens blomst i Humla.", "figur": "humla", "emoji": "🍯", "regel": { "type": "dagligSeier", "spill": "humla" } },
+    { "id": "seier-sporhunden", "gruppe": "dagens", "navn": "På sporet", "hvordan": "Finn alle temaordene i dagens spor i Sporhunden.", "figur": "sporhunden", "emoji": "🐾", "regel": { "type": "dagligSeier", "spill": "sporhunden" } },
 
     { "id": "kveld-forste", "gruppe": "kvelden", "navn": "Første kveld", "hvordan": "Spill et spill med poeng sammen med andre.", "figur": "pekefingeren", "regel": { "type": "kveldSpill", "n": 1 } },
     { "id": "kveld-tre", "gruppe": "kvelden", "navn": "Tre på tavla", "hvordan": "Spill tre spill i samme kveld.", "figur": "skravla", "regel": { "type": "kveldSpill", "n": 3 } },

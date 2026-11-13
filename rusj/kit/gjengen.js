@@ -1217,6 +1217,7 @@
     skronemakeren: ["#b48cff", "S"],
     // Part 4 (rusj/SPILL4.md): placeholders until the drawings in rusj/spill/<id>/maskot.js are merged.
     humla: ["#ffb53d", "H"],
+    sporhunden: ["#e0a15e", "S"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

@@ -1,0 +1,557 @@
+/* Sporhunden: round letters on the night background; a found word leaves a trail (a thick rounded
+   line under its letters) – mint for theme words, pink for the key word, yellow while tracing.
+   The word search uses the same cells with one colour per word. Everything prefixed sh-. */
+
+.skjerm-brett,
+.skjerm-leting {
+  gap: 8px;
+}
+
+/* ---------- The theme and the word being traced ---------- */
+
+.sh-topp {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+}
+
+.sh-tema {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 8px 12px 10px;
+  border: 2px solid var(--strek);
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+}
+
+.sh-tema .etikett {
+  margin: 0;
+}
+
+.sh-tema b {
+  font: 900 1.35rem/1.15 var(--font-display);
+}
+
+.sh-fremdrift {
+  color: var(--tekst-2);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.sh-valg {
+  display: grid;
+  place-items: center;
+  min-height: 38px;
+  margin: 0;
+}
+
+.sh-ordet {
+  font: 900 1.7rem/1.1 var(--font-display);
+  letter-spacing: 0.08em;
+  color: var(--lampe);
+  overflow-wrap: anywhere;
+}
+
+.sh-hjelpetekst {
+  color: var(--tekst-3);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.sh-melding {
+  min-height: 1.4em;
+  margin: 0;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.sh-varsel.ok {
+  color: var(--mynte);
+}
+
+.sh-varsel.nokkel {
+  color: var(--rosa);
+}
+
+.sh-varsel.ekstra,
+.sh-varsel.hint {
+  color: var(--lampe);
+}
+
+.sh-varsel.feil {
+  color: var(--tekst);
+}
+
+/* ---------- The grid ---------- */
+
+.sh-rute {
+  --sh-c: min(calc((100vw - 40px) / var(--br)), calc((100dvh - 340px) / var(--ho)), 64px);
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--br), var(--sh-c));
+  grid-auto-rows: var(--sh-c);
+  justify-content: center;
+  margin: 0 auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.sh-linjer {
+  position: absolute;
+  inset: 0;
+  width: calc(var(--sh-c) * var(--br));
+  height: calc(var(--sh-c) * var(--ho));
+  margin: 0 auto;
+  pointer-events: none;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sh-linjer polyline,
+.sh-linjer circle {
+  stroke-width: 22;
+}
+
+.sh-linjer .funnet {
+  stroke: var(--mynte);
+}
+
+.sh-linjer .nokkel {
+  stroke: var(--rosa);
+}
+
+.sh-linjer .avslort {
+  stroke: var(--lilla);
+  stroke-dasharray: 2 34;
+  stroke-width: 26;
+}
+
+.sh-linjer .valgt {
+  stroke: var(--lampe);
+}
+
+.sh-celle {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: calc(var(--sh-c) - 6px);
+  height: calc(var(--sh-c) - 6px);
+  margin: 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tekst);
+  font: 900 calc(var(--sh-c) * 0.46) / 1 var(--font-display);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sh-celle.valgt {
+  background: var(--lampe);
+  color: var(--blekk);
+}
+
+.sh-celle.funnet {
+  background: var(--mynte);
+  color: var(--blekk);
+  cursor: default;
+}
+
+.sh-celle.nokkel {
+  background: var(--rosa);
+  color: var(--blekk);
+}
+
+.sh-celle.avslort {
+  background: var(--lilla);
+  color: var(--blekk);
+}
+
+.sh-celle.hint {
+  box-shadow: 0 0 0 3px var(--natt), 0 0 0 5px var(--lampe);
+  outline: 2px dashed var(--lampe);
+  outline-offset: 3px;
+}
+
+.sh-celle i {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--lampe);
+  color: var(--blekk);
+  font: 900 0.7rem/1 var(--font-tekst);
+  font-style: normal;
+}
+
+/* ---------- The dock ---------- */
+
+.sh-knapper {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 8px;
+}
+
+.sh-knapper .knapp,
+.sh-knapper .knapp-2 {
+  margin: 0;
+}
+
+.sh-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.sh-hintantall {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--lampe);
+  color: var(--blekk);
+  font-size: 0.8rem;
+}
+
+.sh-maler {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.sh-maler i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px currentColor;
+  opacity: 0.6;
+}
+
+.sh-maler i.fylt {
+  background: var(--lampe);
+  box-shadow: none;
+  opacity: 1;
+}
+
+/* ---------- Results ---------- */
+
+.sh-ferdigrute .sh-rute {
+  --sh-c: min(calc((100vw - 48px) / var(--br)), 44px);
+  pointer-events: none;
+}
+
+.sh-funnetliste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-funnetliste li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--mynte);
+  color: var(--blekk);
+  font: 900 0.9rem/1.3 var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+.sh-funnetliste li.nokkel {
+  background: var(--rosa);
+}
+
+.sh-funnetliste li.glemt {
+  background: transparent;
+  color: var(--tekst-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.sh-nedtelling {
+  margin: 0;
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.sh-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-tall {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  text-align: center;
+}
+
+.sh-tall b {
+  display: block;
+  font: 900 1.55rem/1.1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-tall span {
+  display: block;
+  color: var(--tekst-2);
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+/* ---------- Older trails ---------- */
+
+.sh-arkiv {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-arkivrad {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--strek);
+  border-radius: var(--r-liten);
+  background: var(--natt-2);
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sh-arkivrad b {
+  font: 900 1.05rem/1.2 var(--font-display);
+}
+
+.sh-arkivrad span {
+  grid-column: 1;
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+}
+
+.sh-arkivrad i {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  font-style: normal;
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: var(--mynte);
+}
+
+.sh-arkivrad.lost {
+  border-color: var(--mynte-dyp);
+}
+
+/* ---------- The word search ---------- */
+
+.sh-let {
+  --sh-c: min(calc((100vw - 32px) / var(--br)), calc((100dvh - 330px) / var(--ho)), 46px);
+}
+
+.sh-let .sh-celle {
+  width: var(--sh-c);
+  height: var(--sh-c);
+  margin: 0;
+  font-size: calc(var(--sh-c) * 0.52);
+}
+
+.sh-let .sh-celle.funnet {
+  background: transparent;
+  color: var(--blekk);
+}
+
+.sh-let .sh-linjer polyline,
+.sh-let .sh-linjer circle {
+  stroke-width: 72;
+}
+
+.sh-linjer .f-mynte {
+  stroke: var(--mynte);
+}
+
+.sh-linjer .f-himmel {
+  stroke: var(--himmel);
+}
+
+.sh-linjer .f-lampe {
+  stroke: var(--lampe);
+}
+
+.sh-linjer .f-lilla {
+  stroke: var(--lilla);
+}
+
+.sh-linjer .f-oransje {
+  stroke: var(--oransje);
+}
+
+.sh-linjer .f-rosa {
+  stroke: var(--rosa);
+}
+
+.sh-let .sh-linjer .avslort {
+  opacity: 0.55;
+  stroke-dasharray: none;
+}
+
+.sh-let .sh-linjer .valgt {
+  stroke: var(--papir);
+  opacity: 0.9;
+}
+
+.sh-let .sh-celle.valgt {
+  background: transparent;
+  color: var(--blekk);
+}
+
+.sh-lettopp {
+  display: flex;
+  justify-content: space-between;
+  color: var(--tekst-2);
+  font-weight: 800;
+}
+
+.sh-ordliste {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font: 900 0.95rem/1.4 var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+.sh-ordliste li.funnet {
+  color: var(--tekst-3);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.sh-temavalg {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.sh-temavalg b {
+  font: 900 1.25rem/1.2 var(--font-display);
+}
+
+/* ---------- Short phones ---------- */
+
+@media (max-height: 700px) {
+  .sh-tema {
+    padding: 4px 10px 6px;
+  }
+
+  .sh-tema b {
+    font-size: 1.15rem;
+  }
+
+  .sh-rute {
+    --sh-c: min(calc((100vw - 40px) / var(--br)), calc((100dvh - 330px) / var(--ho)), 64px);
+  }
+
+  .sh-let {
+    --sh-c: min(calc((100vw - 32px) / var(--br)), calc((100dvh - 290px) / var(--ho)), 46px);
+  }
+
+  .sh-valg {
+    min-height: 30px;
+  }
+
+  .sh-ordet {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-height: 620px) {
+  .sh-tema {
+    grid-template-columns: auto auto;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0 10px;
+    padding: 4px 10px;
+  }
+
+  .sh-tema .etikett {
+    display: none;
+  }
+
+  .sh-melding {
+    min-height: 1.2em;
+    font-size: 0.85rem;
+  }
+
+  .sh-valg {
+    min-height: 26px;
+  }
+}
+
+/* ---------- A phone lying down: theme and buttons to the left, the grid to the right ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  @supports selector(:has(a)) {
+    html[data-spill="sporhunden"] .app:has(.skjerm-brett, .skjerm-leting) {
+      max-width: 860px;
+    }
+
+    .skjerm-brett,
+    .skjerm-leting {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-rows: auto 1fr;
+      gap: 6px 22px;
+      align-items: start;
+    }
+
+    .skjerm-brett .sh-topp,
+    .skjerm-leting .sh-lettopp,
+    .skjerm-leting .sh-melding {
+      grid-column: 1;
+    }
+
+    .skjerm-brett .sh-rute,
+    .skjerm-leting .sh-rute {
+      --sh-c: min(calc((100dvh - 78px) / var(--ho)), 50px);
+      grid-column: 2;
+      grid-row: 1 / span 3;
+    }
+
+    .skjerm-leting .sh-ordliste {
+      grid-column: 1;
+      justify-content: flex-start;
+    }
+
+    .skjerm-brett .dokk,
+    .skjerm-leting .dokk {
+      position: static;
+      grid-column: 1;
+      margin: 0;
+      padding: 0 0 8px;
+      background: none;
+    }
+  }
+}

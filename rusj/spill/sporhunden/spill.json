@@ -1,0 +1,35 @@
+{
+  "id": "sporhunden",
+  "navn": "Sporhunden",
+  "undertittel": "Ordjakt",
+  "beskrivelse": "Gratis ordjakt på norsk: finn dagens temaord og nøkkelordet som binder dem sammen i et rutenett av bokstaver. Ny ledetråd hver dag – og ordleting for familien.",
+  "kort": "Følg sporet: finn dagens temaord i bokstavene.",
+  "spillere": [1, 1],
+  "minutter": [3, 15],
+  "alder": 8,
+  "mobiler": "en",
+  "tagger": ["daglig", "ord", "alene"],
+  "rekkefolge": 63,
+  "farge": "#e0a15e",
+  "dagnavn": "Dagens spor",
+  "sok": ["ordjakt", "finn ordene", "ordleting", "temaord", "dagens ordjakt", "bokstavnett", "ordsøk", "finn ord i bokstaver"],
+  "om": "Temaene er skrevet for rusj. Ordene som gir hint: Norsk ordbank – bokmål 2005 (Språkbanken, Nasjonalbiblioteket, CC BY 4.0), valgt ut etter N-gram – bokmål (Språkbanken, CC0). Engelsk: ENABLE (public domain) og 12dicts av Alan Beale (public domain). Dansk: Det Centrale Ordregister COR₁ (Dansk Sprognævn, CC0) og NST uttaleleksikon for dansk (Språkbanken, CC0).",
+  "i18n": {
+    "en": {
+      "navn": "Word Hound",
+      "undertittel": "Word hunt",
+      "kort": "Follow the trail: find today's theme words in the letters.",
+      "beskrivelse": "Free word hunt in English: find today's theme words in a grid of letters, and the key word that ties them together. A new clue daily, plus a word search.",
+      "slug": "word-hound",
+      "sok": ["word hunt", "word search", "find the words", "theme words", "daily word puzzle", "letter grid", "wordsearch", "hidden words"]
+    },
+    "da": {
+      "navn": "Sporhunden",
+      "undertittel": "Ordjagt",
+      "kort": "Følg sporet: find dagens temaord i bogstaverne.",
+      "beskrivelse": "Gratis ordjagt på dansk: find dagens temaord og nøgleordet, der binder dem sammen, i et net af bogstaver. Ny ledetråd hver dag – og ordsøgning for familien.",
+      "slug": "sporhunden",
+      "sok": ["ordjagt", "find ordene", "ordsøgning", "temaord", "dagens ordjagt", "bogstavnet", "find ord", "skjulte ord"]
+    }
+  }
+}

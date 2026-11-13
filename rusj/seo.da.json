@@ -596,6 +596,19 @@
         "find flest ord",
         "pangram"
       ]
+    },
+    "sporhunden": {
+      "tittel": "Ordjagt – find dagens temaord i bogstaverne, gratis",
+      "frase": "Ordjagt",
+      "beskrivelse": "Gratis ordjagt på dansk: følg sporet gennem bogstaverne og find dagens temaord og nøgleordet. Ny ledetråd hver dag – og klassisk ordsøgning for familien.",
+      "sok": [
+        "ordjagt",
+        "find ordene",
+        "ordsøgning",
+        "temaord",
+        "dagens ordjagt",
+        "skjulte ord"
+      ]
     }
   }
 }
