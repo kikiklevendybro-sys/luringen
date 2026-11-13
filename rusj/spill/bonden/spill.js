@@ -1,5 +1,5 @@
-/* Bonden — «Bondesjakk»: three in a row on 3 × 3, and «Fem på rad» on a 10 × 10 board of squared
-   paper. Two players on one phone or against the phone (Lett, Middels, Uslåelig — Vanskelig for
+/* Bonden — «Bondesjakk»: three in a row on 3 × 3, and «Fem på rad» on squared paper, 10 × 10 or
+   the classic big board, 15 × 15. Two players on one phone or against the phone (Lett, Middels, Uslåelig — Vanskelig for
    five in a row). Quick rounds drawn with a pen, a running score, and who starts alternates.
    The rules and both computer players are pure functions at the top; test/bonden.test.mjs loads
    this file without the kit. */
@@ -13,6 +13,7 @@
     const VARIANT = {
       tre: { n: 3, rad: 3 },
       fem: { n: 10, rad: 5 },
+      stor: { n: 15, rad: 5 }, // the big board: five in a row on 15 × 15
     };
     const RETNINGER = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
@@ -137,7 +138,8 @@
     // Lines are judged by windows of five: a window with no opposing mark and k own marks is one
     // step closer to five for each mark. Two different windows that are one move from five make
     // an open four (can't be stopped); several windows with three make an open three.
-    const FEM = 10;
+    // One engine per board size: FEM is the side of the board (10, or 15 for the big board).
+    function lagFem(FEM) {
     function monster(b, i, s) {
       const n = FEM;
       const x0 = i % n, y0 = Math.floor(i / n);
@@ -208,7 +210,7 @@
           }
         if (nabo) ut.push(i);
       }
-      if (!noe) return [44, 45, 54, 55];
+      if (!noe) return FEM === 10 ? [44, 45, 54, 55] : [Math.floor(FEM / 2) * (FEM + 1)]; // the middle
       return ut;
     }
 
@@ -351,7 +353,12 @@
       return best.i;
     }
 
-    return { tre, fem, beste3, verdi, vinner3, monster, vurder };
+    return { fem, monster, vurder };
+    }
+    const FEM10 = lagFem(10);
+    const FEM15 = lagFem(15);
+
+    return { tre, fem: FEM10.fem, stor: FEM15.fem, beste3, verdi, vinner3, monster: FEM10.monster, vurder: FEM10.vurder, monster15: FEM15.monster, vurder15: FEM15.vurder };
   })();
 
   const R = window.Rusj;
@@ -372,10 +379,12 @@
   // «tre/fem på rad» as one phrase (English «three in a row», Danish «tre på stribe»).
   const PA_RAD = { tre: R.t("tre på rad"), fem: R.t("fem på rad") };
   const NIVANAVN = { tre: { 1: R.t("Lett"), 2: R.t("Middels"), 3: R.t("Uslåelig") }, fem: { 1: R.t("Lett"), 2: R.t("Middels"), 3: R.t("Vanskelig") } };
+  NIVANAVN.stor = NIVANAVN.fem;
   const NIVATEKST = {
     tre: { 1: R.t("Mobilen tegner litt hvor som helst. Fint for de minste."), 2: R.t("Mobilen stopper deg – men kan lures."), 3: R.t("Mobilen taper aldri. Klarer du uavgjort?") },
     fem: { 1: R.t("Mobilen tegner litt hvor som helst. Fint for å lære."), 2: R.t("Mobilen stopper det meste. Passe utfordring."), 3: R.t("Mobilen ser trusler før du gjør det. Lykke til!") },
   };
+  NIVATEKST.stor = NIVATEKST.fem;
   const MIN_TENK = 520;
   const MAL = [3, 5, 0]; // «Først til 3», «Først til 5», «Uten slutt»
   const LIGGENDE = "(orientation: landscape) and (max-height: 600px) and (min-width: 560px)"; // phones on their side
@@ -529,9 +538,10 @@
       if (!fortsatt() || !R.S.spill || R.S.spill.resultat || R.S.spill.id + ":" + R.S.spill.runde + ":" + R.S.spill.trekk.length !== nokkel) return;
       const st = hentStilling(R.S);
       const b = st.b.slice();
-      const i = R.S.spill.variant === "tre" ? Data.tre(b, st.tur, R.S.spill.niva, Math.random) : Data.fem(b, st.tur, R.S.spill.niva, Math.random);
+      const v = R.S.spill.variant;
+      const i = v === "tre" ? Data.tre(b, st.tur, R.S.spill.niva, Math.random) : v === "stor" ? Data.stor(b, st.tur, R.S.spill.niva, Math.random) : Data.fem(b, st.tur, R.S.spill.niva, Math.random);
       settMerke(R.S, i >= 0 && !st.b[i] ? i : st.b.indexOf(0));
-    }, MIN_TENK + (sp.variant === "fem" ? 150 : 0));
+    }, MIN_TENK + (sp.variant !== "tre" ? 150 : 0));
   }
   function stoppTenking() {
     clearTimeout(tenkId);
@@ -633,7 +643,7 @@
       penn = `<svg class="bo-penn" viewBox="0 0 300 300" aria-hidden="true"><path pathLength="1" d="${d}" style="stroke-width:${((300 / n) * 0.46).toFixed(1)}"/></svg>`;
       strek = `<svg class="bo-strek ${MERKE[sp.resultat.vinner]}" viewBox="0 0 300 300" aria-hidden="true"><path pathLength="1" d="${d}"/></svg>`;
     }
-    return `<div class="bo-papir ${n === 3 ? "tre" : "fem"}${o.liten ? " liten" : ""}">
+    return `<div class="bo-papir ${n === 3 ? "tre" : "fem"}${n === 15 ? " stor" : ""}${o.liten ? " liten" : ""}">
       <div class="bo-brett" style="--n:${n}"${o.interaktiv ? ` role="group" aria-label="${esc(R.t("Brettet, {n} ganger {n} ruter", { n }))}"` : ' aria-hidden="true"'}>
         ${rutenett}
         ${penn}
@@ -746,6 +756,7 @@
         R.t("Midten er sterk, og hjørnene er nesten like gode."),
         R.t("Lag to trusler på en gang, så klarer ikke motstanderen å stoppe begge."),
         R.t("Fem på rad: Fire på rad med ledig plass i begge ender kan ikke stoppes."),
+        R.t("Det store brettet, 15 × 15, er det klassiske brettet for fem på rad. Der er det plass til lange og åpne partier."),
         R.t("Dere bytter på å begynne."),
         R.t("Først til 3: Den som først vinner tre runder, vinner kampen. Velg «Uten slutt» hvis dere bare vil spille videre."),
         R.t("Fem på rad på en liten skjerm: Trykk én gang for å se merket svakt, og én gang til for å tegne det."),
@@ -759,7 +770,7 @@
         vis(S) {
           const sp = S.spill;
           const aktiv = pagar(S);
-          const rek = ["tre", "fem"].flatMap((v) => [1, 2, 3].map((n) => [v, n, rekordHtml(S, `${v}-${n}`)])).filter(([, , h]) => h);
+          const rek = ["tre", "fem", "stor"].flatMap((v) => [1, 2, 3].map((n) => [v, n, rekordHtml(S, `${v}-${n}`)])).filter(([, , h]) => h);
           return (
             R.ui.spillhjem({
               slagordHtml: `${esc(R.t("Kryss eller bolle?"))}<br><em>${esc(R.t("Tre på rad vinner!"))}</em>`,
@@ -770,12 +781,12 @@
               }),
               merker: [
                 ["1–2", R.t("spillere")],
-                ["2", R.t("brett")],
+                ["3", R.t("brett")],
                 ["0", R.t("reklame")],
               ],
             }) +
             (rek.length
-              ? `<section class="bo-rekorder" aria-label="${esc(R.t("Mot mobilen"))}"><p class="etikett">${esc(R.t("Mot mobilen"))}</p><ul>${rek.map(([v, n, h]) => `<li><b class="bo-niva">${esc(v === "tre" ? R.t("Tre på rad") : R.t("Fem på rad"))} · ${esc(NIVANAVN[v][n])}</b>${h}</li>`).join("")}</ul></section>`
+              ? `<section class="bo-rekorder" aria-label="${esc(R.t("Mot mobilen"))}"><p class="etikett">${esc(R.t("Mot mobilen"))}</p><ul>${rek.map(([v, n, h]) => `<li><b class="bo-niva">${esc(v === "tre" ? R.t("Tre på rad") : v === "stor" ? R.t("Fem på rad, 15 × 15") : R.t("Fem på rad"))} · ${esc(NIVANAVN[v][n])}</b>${h}</li>`).join("")}</ul></section>`
               : "")
           );
         },
@@ -807,6 +818,7 @@
                 [
                   ["tre", R.t("Tre på rad · 3 × 3")],
                   ["fem", R.t("Fem på rad · 10 × 10")],
+                  ["stor", R.t("Fem på rad · 15 × 15")],
                 ],
                 o.variant,
                 { etikett: R.t("Brettet") },

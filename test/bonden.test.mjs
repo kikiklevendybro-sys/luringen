@@ -1,4 +1,4 @@
-// Bonden: win detection for three in a row (3 × 3) and five in a row (10 × 10), and the computer
+// Bonden: win detection for three in a row (3 × 3) and five in a row (10 × 10 and 15 × 15), and the computer
 // players. Loads rusj/spill/bonden/spill.js without the kit (node:vm).
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -187,4 +187,86 @@ test("five in a row: a forced win is found and carried through against the best 
     s = 3 - s;
   }
   assert.fail("no five within nine moves");
+});
+
+// ---------- The big board (15 × 15) and the boards that were there before it ----------
+
+// The existing modes must play exactly as before the big board came: 30 seeded games between the
+// levels on 3 × 3 and 10 × 10 (a fake clock, so only the node budgets limit the search) give the same
+// moves and winners, move for move, as the version without it (fingerprint taken from it).
+test("three in a row and five in a row on 10 × 10 play exactly as before the 15 × 15 board", async () => {
+  const { createHash } = await import("node:crypto");
+  const k = { window: {}, performance: { now: () => 0 }, console, setTimeout, clearTimeout };
+  vm.createContext(k);
+  vm.runInContext(readFileSync(join(ROT, "rusj/spill/bonden/spill.js"), "utf8"), k);
+  const B = k.window.Bonden;
+  const ut = [];
+  for (const variant of ["tre", "fem"])
+    for (const [a, b] of [[1, 1], [1, 2], [2, 3], [3, 3], [3, 1]])
+      for (let fro = 1; fro <= 3; fro++) {
+        const r = rng(fro * 97 + a * 7 + b);
+        const trekk = [];
+        for (;;) {
+          const st = B.Brett.spillUt(variant, trekk, 1);
+          if (st.vunnet || st.fullt) {
+            ut.push([variant, a, b, fro, trekk.join(","), st.vunnet ? st.vunnet.spiller : 0]);
+            break;
+          }
+          const niva = st.tur === 1 ? a : b;
+          trekk.push(variant === "tre" ? B.Data.tre(st.b.slice(), st.tur, niva, r) : B.Data.fem(st.b.slice(), st.tur, niva, r));
+        }
+      }
+  assert.equal(createHash("sha256").update(JSON.stringify(ut)).digest("hex"), "1be280de84e617f98d4bd733699e1c04e286e5eb2dc623e1b14950cc6c643432");
+  // the old boards keep their sizes, and a saved 10 × 10 game still replays
+  assert.deepEqual(JSON.parse(JSON.stringify(Brett.VARIANT.tre)), { n: 3, rad: 3 });
+  assert.deepEqual(JSON.parse(JSON.stringify(Brett.VARIANT.fem)), { n: 10, rad: 5 });
+  assert.equal(fem(40, 0, 41, 1, 42, 2, 43, 3, 44).vunnet.spiller, 1);
+});
+
+const stor = (...trekk) => Brett.spillUt("stor", trekk, 1);
+
+test("15 × 15: five in a row anywhere, also along the edges, but never round the edge", () => {
+  assert.deepEqual(JSON.parse(JSON.stringify(Brett.VARIANT.stor)), { n: 15, rad: 5 });
+  // the right edge of row 0: 10–14
+  let st = stor(10, 30, 11, 31, 12, 32, 13, 33, 14);
+  assert.deepEqual([...st.vunnet.celler], [10, 11, 12, 13, 14]);
+  // 12, 13, 14 and then 15, 16 (the next row) is no line
+  assert.equal(stor(12, 60, 13, 61, 14, 62, 15, 63, 16).vunnet, null);
+  // the bottom-left to top-right diagonal through the middle
+  st = stor(112, 0, 98, 1, 84, 2, 126, 3, 140);
+  assert.deepEqual([...st.vunnet.celler], [84, 98, 112, 126, 140]);
+  assert.equal(stor(225), null);
+  assert.equal(stor(-1), null);
+});
+
+test("15 × 15: the first move is in the middle; the phone takes five and blocks a four", () => {
+  for (let i = 0; i < 5; i++) assert.equal(Data.stor(new Array(225).fill(0), 1, 3, rng(i)), 112);
+  const b = new Array(225).fill(0);
+  [112, 113, 114, 115].forEach((i) => (b[i] = 2));
+  [0, 1, 2, 3].forEach((i) => (b[i] = 1));
+  for (const niva of [2, 3]) assert.ok([111, 116].includes(Data.stor(b.slice(), 2, niva, rng(niva))), `nivå ${niva} tar femmeren`);
+  // kryss (1) has two of its own, bolle four: kryss must stop it
+  const c = new Array(225).fill(0);
+  [112, 113, 114, 115].forEach((i) => (c[i] = 2));
+  [30, 31].forEach((i) => (c[i] = 1));
+  for (const niva of [2, 3]) assert.ok([111, 116].includes(Data.stor(c.slice(), 1, niva, rng(niva))), `nivå ${niva} stopper fireren`);
+});
+
+test("15 × 15: only legal moves over many seeded games, and every game ends", () => {
+  let vunnet = 0;
+  for (const [a, b] of [[1, 1], [1, 2], [2, 1], [2, 2], [3, 1], [1, 3], [3, 2], [2, 3], [3, 3]])
+    for (let fro = 1; fro <= 2; fro++) {
+      const r = rng(fro * 31 + a * 5 + b);
+      const trekk = [];
+      let st = Brett.spillUt("stor", trekk, 1);
+      while (!st.vunnet && !st.fullt) {
+        const i = Data.stor(st.b.slice(), st.tur, st.tur === 1 ? a : b, r);
+        assert.ok(i >= 0 && i < 225 && !st.b[i], `ulovlig trekk ${i}`);
+        trekk.push(i);
+        st = Brett.spillUt("stor", trekk, 1);
+        assert.ok(st && trekk.length <= 225);
+      }
+      if (st.vunnet) vunnet++;
+    }
+  assert.ok(vunnet >= 12, `bare ${vunnet} av 18 partier fikk fem på rad`);
 });
