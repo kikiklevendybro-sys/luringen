@@ -22,9 +22,9 @@ const ONS = 20768; // Wednesday 11 November 2026; that week is Monday 20766 … 
 const logg = (...dager) => ({ _: { v: 1, dager: Object.fromEntries(dager.map((d) => [d, ["ordugla"]])) } });
 const har = (kilde) => M.utled(K, { iDag: ONS, naa: 0, ...kilde });
 
-test("the catalogue: about 40 stickers, unique ids, known groups, a line on how to get each", () => {
+test("the catalogue: 36–120 stickers (new games add more), unique ids, known groups, a line on how to get each", () => {
   const ids = KATALOG.merker.map((m) => m.id);
-  assert.ok(ids.length >= 36 && ids.length <= 50, `${ids.length} merker`);
+  assert.ok(ids.length >= 36 && ids.length <= 120, `${ids.length} merker`);
   assert.equal(new Set(ids).size, ids.length);
   const grupper = new Set(KATALOG.grupper.map((g) => g.id));
   for (const m of KATALOG.merker) {
