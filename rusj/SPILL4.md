@@ -64,11 +64,17 @@ hand screen between players, like Vri åtter). Reuse the card look and hand UI o
 Kortkongen. Each game gets its own rules screen and a record or «sist» line.
 
 ## Wave 3 — casual and children
-9 Bubble shooter + Match-3 (no sweets theme) · 10 Merge-the-fruit drop, one-tap game, Brick
-breaker · 11 children's card games (Old Maid without the traditional caricature, Go Fish, War,
-Snap), times tables and mental maths, Follow the pattern, Maze · 12 Nonogram, Code breaker
-(colour pegs), 15-puzzle, «Which country?» (outline/flag daily; Natural Earth data),
-Domino logic («Pips»-type).
+
+| job | games (rekkefolge) | tagger (suggested) |
+|---|---|---|
+| 9 | Bubble shooter (76), Match-3 (77, no sweets theme) | alene, tenke, barn |
+| 10 | Merge-the-fruit drop (78, own art, no copy of the known game), One-tap game (79, original character, no bird), Brick breaker (80) | alene, barn |
+| 11 | Children's card games (81, one game with Old Maid without the caricature, Go Fish, War, Snap), Times tables and mental maths (82), Follow the pattern (83), Maze (84) | barn, familie, alene |
+| 12 | Nonogram (85), Code breaker with colour pegs (86), 15-puzzle (87), «Which country?» daily (88, Natural Earth public-domain outlines, own flag SVGs), Domino logic daily (89, «Pips»-type, never that name) | alene, tenke, daglig |
+
+Notes: arcade games must feel great with touch (no lag, 60 fps on a mid phone, pause on
+visibility change) and work with keyboard; no ads, no lives to buy, no timers that push.
+Children's games: no reading needed where possible, big targets, praise, no failure sounds.
 
 ## Wave 4 — party and 18+
 13 18+: task deck with player names, Guess the card, Count to 21, Paranoia (responsible tone) ·
