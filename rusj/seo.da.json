@@ -609,6 +609,32 @@
       "tittel": "Stipuslespil – én streg gennem alle felter",
       "frase": "Stipuslespil",
       "beskrivelse": "Spil et gratis stipuslespil: træk én tråd gennem alle felter, og tag tallene i rækkefølge. Nyt nøgle hver dag og bræt fra 5 × 5 til 8 × 8, nogle med vægge."
+    },
+    "humla": {
+      "tittel": "Lav ord af syv bogstaver – dagens ordblomst, gratis",
+      "frase": "Lav ord af syv bogstaver",
+      "beskrivelse": "Gratis ordspil på dansk: lav så mange ord, du kan, af syv bogstaver – midterbogstavet skal med. Saml point, nå honning og del din rang. Ny blomst hver dag.",
+      "sok": [
+        "syv bogstaver",
+        "lav ord af bogstaver",
+        "ordspil med bogstaver",
+        "dagens ordspil",
+        "find flest ord",
+        "pangram"
+      ]
+    },
+    "sporhunden": {
+      "tittel": "Ordjagt – find dagens temaord i bogstaverne, gratis",
+      "frase": "Ordjagt",
+      "beskrivelse": "Gratis ordjagt på dansk: følg sporet gennem bogstaverne og find dagens temaord og nøgleordet. Ny ledetråd hver dag – og klassisk ordsøgning for familien.",
+      "sok": [
+        "ordjagt",
+        "find ordene",
+        "ordsøgning",
+        "temaord",
+        "dagens ordjagt",
+        "skjulte ord"
+      ]
     }
   }
 }

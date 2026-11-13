@@ -592,6 +592,32 @@
       "tittel": "Path puzzle – one line through every square, daily",
       "frase": "Path puzzle",
       "beskrivelse": "Play a free path puzzle: draw one thread through every square and pass the numbers in order. A new yarn every day, boards from 5 × 5 to 8 × 8, some with walls."
+    },
+    "humla": {
+      "tittel": "Make words from seven letters – a daily word flower",
+      "frase": "Make words from seven letters",
+      "beskrivelse": "Free word game in British English: make as many words as you can from seven letters – the centre letter in each one. Reach honey and share your rank.",
+      "sok": [
+        "seven letter word game",
+        "make words from letters",
+        "how many words can you make",
+        "daily word game",
+        "pangram",
+        "word flower"
+      ]
+    },
+    "sporhunden": {
+      "tittel": "Word hunt – find today's theme words in the letters",
+      "frase": "Word hunt",
+      "beskrivelse": "Free word hunt in British English: follow the trail through the letters to find today's theme words and the key word. A new clue daily, plus a word search.",
+      "sok": [
+        "word hunt",
+        "word search",
+        "find the words",
+        "theme words",
+        "daily word puzzle",
+        "hidden words"
+      ]
     }
   }
 }

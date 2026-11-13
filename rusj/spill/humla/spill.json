@@ -1,0 +1,35 @@
+{
+  "id": "humla",
+  "navn": "Humla",
+  "undertittel": "Sju bokstaver",
+  "beskrivelse": "Gratis ordspill på norsk: lag ord av sju bokstaver i en blomst – midtbokstaven må være med. Samle poeng, nå honning og del rangen. Ny blomst hver dag.",
+  "kort": "Lag ord av sju bokstaver – midtbokstaven må alltid være med.",
+  "spillere": [1, 1],
+  "minutter": [3, 20],
+  "alder": 10,
+  "mobiler": "en",
+  "tagger": ["daglig", "ord", "alene"],
+  "rekkefolge": 64,
+  "farge": "#ffb53d",
+  "dagnavn": "Dagens blomst",
+  "sok": ["sju bokstaver", "lag ord", "ord av bokstaver", "bokstavspill", "dagens ordspill", "finn ord", "ordblomst", "pangram"],
+  "om": "Ordlista bygger på Norsk ordbank – bokmål 2005 (Språkbanken, Nasjonalbiblioteket, CC BY 4.0), valgt ut etter N-gram – bokmål (Språkbanken, CC0). Engelsk: ENABLE (public domain) og 12dicts av Alan Beale (public domain). Dansk: Det Centrale Ordregister COR₁ (Dansk Sprognævn, CC0) og NST uttaleleksikon for dansk (Språkbanken, CC0).",
+  "i18n": {
+    "en": {
+      "navn": "Bumblebee",
+      "undertittel": "Seven letters",
+      "kort": "Make words from seven letters – always use the centre letter.",
+      "beskrivelse": "Free word game in English: make words from the seven letters of a flower – the centre letter in each one. Score points, reach honey and share your rank.",
+      "slug": "bumblebee",
+      "sok": ["seven letters", "make words from letters", "word maker", "daily word game", "letter puzzle", "pangram", "word flower", "how many words"]
+    },
+    "da": {
+      "navn": "Humlebien",
+      "undertittel": "Syv bogstaver",
+      "kort": "Lav ord af syv bogstaver – midterbogstavet skal altid med.",
+      "beskrivelse": "Gratis ordspil på dansk: lav ord af de syv bogstaver i en blomst – midterbogstavet skal med. Saml point, nå honning og del din rang. Ny blomst hver dag.",
+      "slug": "humlebien",
+      "sok": ["syv bogstaver", "lav ord", "ord af bogstaver", "bogstavspil", "dagens ordspil", "find ord", "ordblomst", "pangram"]
+    }
+  }
+}

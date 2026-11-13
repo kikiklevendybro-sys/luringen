@@ -30,6 +30,8 @@
     { "id": "seier-stjernekikkeren", "gruppe": "dagens", "navn": "Stjerneklart", "hvordan": "Løs dagens stjernehimmel i Stjernekikkeren.", "figur": "stjernekikkeren", "emoji": "⭐", "regel": { "type": "dagligSeier", "spill": "stjernekikkeren" } },
     { "id": "seier-sebraen", "gruppe": "dagens", "navn": "Svart på hvitt", "hvordan": "Løs dagens sebra i Sebraen.", "figur": "sebraen", "emoji": "🦓", "regel": { "type": "dagligSeier", "spill": "sebraen" } },
     { "id": "seier-nostet", "gruppe": "dagens", "navn": "Tråden holdt", "hvordan": "Løs dagens nøste i Nøstet.", "figur": "nostet", "emoji": "🧶", "regel": { "type": "dagligSeier", "spill": "nostet" } },
+    { "id": "seier-humla", "gruppe": "dagens", "navn": "Full krukke", "hvordan": "Nå honning i dagens blomst i Humla.", "figur": "humla", "emoji": "🍯", "regel": { "type": "dagligSeier", "spill": "humla" } },
+    { "id": "seier-sporhunden", "gruppe": "dagens", "navn": "På sporet", "hvordan": "Finn alle temaordene i dagens spor i Sporhunden.", "figur": "sporhunden", "emoji": "🐾", "regel": { "type": "dagligSeier", "spill": "sporhunden" } },
 
     { "id": "kveld-forste", "gruppe": "kvelden", "navn": "Første kveld", "hvordan": "Spill et spill med poeng sammen med andre.", "figur": "pekefingeren", "regel": { "type": "kveldSpill", "n": 1 } },
     { "id": "kveld-tre", "gruppe": "kvelden", "navn": "Tre på tavla", "hvordan": "Spill tre spill i samme kveld.", "figur": "skravla", "regel": { "type": "kveldSpill", "n": 3 } },

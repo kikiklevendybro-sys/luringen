@@ -1299,6 +1299,8 @@
     stjernekikkeren: ["#7d8cff", "S"],
     sebraen: ["#f2ecff", "Z"],
     nostet: ["#ff8fb8", "N"],
+    humla: ["#ffb53d", "H"],
+    sporhunden: ["#e0a15e", "S"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 
