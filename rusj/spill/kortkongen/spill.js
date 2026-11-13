@@ -1569,7 +1569,7 @@
   const dagensSpill = (S) => [S.spill, S.annet].find((x) => x && x.dag === iDag()) || null;
   const frittSpill = (S) => [S.spill, S.annet].find((x) => x && x.dag == null) || null;
   const iGang = (sp) => !!(sp && !sp.ferdig);
-  const pagar = (S) => iGang(frittSpill(S)) || !!(iGang(dagensSpill(S)) && dagensSpill(S).startet);
+  const pagar = (S) => iGang(frittSpill(S)) || !!(iGang(dagensSpill(S)) && dagensSpill(S).startet) || vPagar(S);
   // Days in a row with the daily solved, as it stands today (yesterday's streak still lives).
   const dagrekke = (S) => (S.dstat && (S.dstat.sist === iDag() || S.dstat.sist === iDag() - 1) ? S.dstat.rekke : 0);
 
@@ -2738,6 +2738,1492 @@
     </div>`;
   }
 
+  // ==========================================================================================
+  // ---------- More solitaires on the table: Edderkopp, FreeCell, Pyramide, Tre topper, Golf ----------
+  // Picked on the home screen. Each keeps its own game in S.v[id] (the one on the table: S.vid), its
+  // statistics in S.vstat (Edderkopp per number of suits) and Edderkopp's suits in S.vopp. Klondike's
+  // state (S.spill, S.annet, S.stat, S.dstat, S.oppsett) is never touched here. Screens: "vspill",
+  // "vslutt", "voppsett". The same cards, taps, drags, undo, hints and «Kan gå opp» chip as Klondike.
+
+  const LOSBARE_V = DATA.kabaler || {};
+  const VID = ["edderkopp", "freecell", "pyramide", "topper", "golf"];
+  const VNAVN = { edderkopp: R.t("Edderkopp"), freecell: R.t("FreeCell"), pyramide: R.t("Pyramide"), topper: R.t("Tre topper"), golf: R.t("Golf") };
+  const VOM = {
+    edderkopp: R.t("Bygg hele rekker i samme sort"),
+    freecell: R.t("Alle kortene synlige, fire frie celler"),
+    pyramide: R.t("Fjern par som blir 13"),
+    topper: R.t("Rydd tre topper – ett opp eller ned"),
+    golf: R.t("Rydd sju kolonner – ett opp eller ned"),
+  };
+  const sorterTekst = (n) => R.flertall(n, "sort", "sorter");
+  const vNavn = (sp) => (sp.id === "edderkopp" ? R.t("{navn} · {sorter}", { navn: VNAVN.edderkopp, sorter: sorterTekst(sp.sorter) }) : VNAVN[sp.id]);
+  const statId = (sp) => (sp.id === "edderkopp" ? "edderkopp" + sp.sorter : sp.id);
+  const vPaBordet = (S) => (S && S.vid && S.v && S.v[S.vid]) || null;
+  const vIGang = (sp) => !!(sp && !sp.ferdig);
+  function vPagar(S) {
+    return !!(S && S.v && VID.some((id) => S.v[id] && !S.v[id].ferdig && S.v[id].startet));
+  }
+
+  // ---------- Each solitaire: layout, where the cards lie, what a tap or a drag may do ----------
+  // maal(W, H) → L (card size and places); pos(st, L) → per card { x, y, z, opp, aktiv, hvor, i };
+  // steder(L) → the empty places [{ id, x, y, type, etikett }]; kilde(st, k) → what a tap on card k
+  // lifts; mal(st, f) → the moves it can make, best first; direkte(st, f, mal) → the move to make at
+  // once, or null to light the places up; dit(st, m) → { kort } | { sted }; treff(st, m, k): a tap on
+  // card k chooses m; loft(st, f) → the cards that move; hint(st) → a sensible move without searching.
+  const VUI = (() => {
+    const G = VARIANTER;
+    const topp = (l) => (l.length ? l[l.length - 1] : null);
+    const kortGap = (W) => (W < 330 ? 4 : W < 430 ? 5 : 8);
+    // n cards in a row, as wide as allowed, centred.
+    function rad(W, n, gap, maks) {
+      const cw = Math.max(22, Math.min(Math.floor((W - gap * (n - 1)) / n), maks));
+      const venstre = Math.floor((W - (cw * n + gap * (n - 1))) / 2);
+      return { cw, x: Array.from({ length: n }, (_, i) => venstre + i * (cw + gap)) };
+    }
+    // Steps down a column (as Klondike's steg): face-down cards close, face-up ones readable, squeezed
+    // when the column would reach the bottom of the board.
+    function steg(L, antall, skjult, y0) {
+      const plass = L.H - y0;
+      const oppe = Math.max(0, antall - skjult - 1);
+      const passer = (dn, opp) => skjult * dn + oppe * opp + L.ch <= plass;
+      let dn = Math.max(4, Math.round(L.ch * 0.12));
+      let opp = Math.round(L.ch * 0.3);
+      if (passer(dn, opp)) return { dn, opp };
+      if (skjult) dn = Math.max(3, Math.floor((plass - L.ch - oppe * opp) / skjult));
+      if (passer(dn, opp) || !oppe) return { dn, opp };
+      opp = Math.max(Math.ceil(L.ch * 0.26), Math.floor((plass - L.ch - skjult * dn) / oppe));
+      if (passer(dn, opp)) return { dn, opp };
+      opp = Math.max(Math.round(L.ch * 0.19), Math.floor((plass - L.ch - skjult * dn) / oppe));
+      return { dn, opp };
+    }
+    function kolonne(ut, kol, skjult, x, y0, L, z0, ekstra) {
+      const { dn, opp } = steg(L, kol.length, skjult, y0);
+      let y = y0;
+      kol.forEach((k, n) => {
+        ut[k] = { x, y, z: z0 + n, opp: n >= skjult, aktiv: n >= skjult, hvor: "kol", ...ekstra, p: n };
+        y += n < skjult ? dn : opp;
+      });
+    }
+    // The waste: the top card and the two before it peeking out to the left.
+    function vifte(ut, liste, x, y, L, z0) {
+      const steg = Math.round(L.cw * 0.26);
+      const n = liste.length;
+      liste.forEach((k, i) => (ut[k] = { x: x - Math.min(2, n - 1 - i) * steg, y, z: z0 + i, opp: true, aktiv: false, hvor: "avfall" }));
+    }
+    // The stock: one pile.
+    const bunke = (ut, liste, x, y) => liste.forEach((k, n) => (ut[k] = { x, y, z: 100 + n, opp: false, aktiv: false, hvor: "bunke" }));
+    const ettKort = (st, f) => [f];
+
+    // --- Golf and Tre topper: one tap sends a free card to the waste ---
+    const tilAvfall = {
+      kilde: null,
+      mal: (st, f) => (f && G[f.v].lovlig(st, f.m) ? [f.m] : []),
+      direkte: (st, f, mal) => mal[0] || null,
+      dit: (st) => ({ kort: topp(st.avfall) }),
+      treff: () => false,
+      loft: (st, f) => [f.k],
+      // The move that leaves the most to play next (from the tallest pile), else the stock.
+      hint(st, E) {
+        let best = null;
+        let bestP = -1;
+        for (const m of E.trekk(st)) {
+          if (m.fra === "s") continue;
+          const c = E.kopi(st);
+          E.utfor(c, m);
+          const p = E.trekk(c).filter((x) => x.fra !== "s").length * 10 + (E.id === "golf" ? st.kol[m.i].length : E.RAD[m.i]);
+          if (p > bestP) {
+            bestP = p;
+            best = m;
+          }
+        }
+        return best || (st.bunke.length ? { fra: "s" } : null);
+      },
+    };
+
+    const golf = {
+      ...tilAvfall,
+      motor: G.golf,
+      maal(W, H) {
+        const gap = kortGap(W);
+        // Columns of five, a third of a card apart; the stock and the waste under them.
+        const fraHoyde = Math.floor((H - gap * 3) / 3.2 / 1.4);
+        const r = rad(W, 7, gap, Math.min(fraHoyde, 100));
+        const ch = Math.round(r.cw * 1.4);
+        const opp = Math.round(ch * 0.3);
+        const hoy = ch + 4 * opp;
+        const mellom = Math.max(gap * 3, Math.min(Math.round(ch * 0.8), H - hoy - ch));
+        const y0 = Math.max(0, Math.round((H - hoy - mellom - ch) * 0.3)); // a tall screen: a little lower
+        const yBunn = y0 + hoy + mellom;
+        return { ...r, ch, gap, opp, y0, yBunn, H: Math.max(H, yBunn + ch), xBunke: r.x[6], xAvfall: r.x[3] };
+      },
+      pos(st, L) {
+        const ut = new Array(52);
+        st.kol.forEach((kol, i) => kol.forEach((k, n) => (ut[k] = { x: L.x[i], y: L.y0 + n * L.opp, z: 10 + n, opp: true, aktiv: n === kol.length - 1, hvor: "kol", i })));
+        bunke(ut, st.bunke, L.xBunke, L.yBunn);
+        vifte(ut, st.avfall, L.xAvfall, L.yBunn, L, 200);
+        return ut;
+      },
+      steder: (L) => [...L.x.map((x, i) => ({ id: "b" + i, x, y: L.y0, type: "tom" })), { id: "avfall", x: L.xAvfall, y: L.yBunn, type: "avfall" }, { id: "bunke", x: L.xBunke, y: L.yBunn, type: "bunke" }],
+      kilde(st, k) {
+        const i = st.kol.findIndex((kol) => topp(kol) === k);
+        return i >= 0 ? { v: "golf", k, m: { fra: "b", i } } : null;
+      },
+      hint: (st) => tilAvfall.hint(st, G.golf),
+      rekkefolge: (st) => [...st.kol.flat(), "bunke"],
+    };
+
+    const topper = {
+      ...tilAvfall,
+      motor: G.topper,
+      maal(W, H) {
+        const gap = W < 330 ? 3 : W < 430 ? 4 : 6;
+        // Ten cards side by side at the bottom; each row half a card above the next.
+        const fraHoyde = Math.floor((H - gap * 3) / 3.7 / 1.4);
+        const r = rad(W, 10, gap, Math.min(fraHoyde, 92));
+        const ch = Math.round(r.cw * 1.4);
+        const halv = (r.cw + gap) / 2;
+        const dy = Math.round(ch * 0.5);
+        const hoy = 3 * dy + ch;
+        const mellom = Math.max(gap * 3, Math.min(Math.round(ch * 0.7), H - hoy - ch));
+        const y0 = Math.max(0, Math.round((H - hoy - mellom - ch) * 0.3));
+        const yBunn = y0 + hoy + mellom;
+        const midt = Math.round(W / 2 - r.cw / 2);
+        return { ...r, ch, gap, dy, y0, yBunn, H: Math.max(H, yBunn + ch), px: G.topper.X.map((x) => Math.round(r.x[0] + x * halv)), xAvfall: midt + Math.round(r.cw * 0.6), xBunke: midt - Math.round(r.cw * 1.2) };
+      },
+      pos(st, L) {
+        const ut = new Array(52);
+        const E = G.topper;
+        st.bord.forEach((k, i) => {
+          if (k < 0) return;
+          const fri = E.fri(st, i);
+          ut[k] = { x: L.px[i], y: L.y0 + E.RAD[i] * L.dy, z: 10 + E.RAD[i] * 30 + i, opp: fri, aktiv: fri, hvor: "topp", i };
+        });
+        bunke(ut, st.bunke, L.xBunke, L.yBunn);
+        vifte(ut, st.avfall, L.xAvfall, L.yBunn, L, 200);
+        return ut;
+      },
+      steder: (L) => [{ id: "avfall", x: L.xAvfall, y: L.yBunn, type: "avfall" }, { id: "bunke", x: L.xBunke, y: L.yBunn, type: "bunke" }],
+      kilde(st, k) {
+        const i = st.bord.indexOf(k);
+        return i >= 0 && G.topper.fri(st, i) ? { v: "topper", k, m: { fra: "b", i } } : null;
+      },
+      hint: (st) => tilAvfall.hint(st, G.topper),
+      rekkefolge: (st) => [...st.bord.filter((k, i) => k >= 0 && G.topper.fri(st, i)), "bunke"],
+    };
+
+    // --- Pyramide: a card and its partner (13 together) go out; a king alone ---
+    const P = G.pyramide;
+    const pyramide = {
+      motor: P,
+      maal(W, H) {
+        const gap = kortGap(W);
+        const fraHoyde = Math.floor((H - gap * 3) / 5 / 1.4);
+        const r = rad(W, 7, gap, Math.min(fraHoyde, 96));
+        const ch = Math.round(r.cw * 1.4);
+        const dy = Math.round(ch * 0.5);
+        const hoy = 6 * dy + ch;
+        const mellom = Math.max(gap * 3, Math.min(Math.round(ch * 0.6), H - hoy - ch));
+        const y0 = Math.max(0, Math.round((H - hoy - mellom - ch) * 0.3));
+        const yBunn = y0 + hoy + mellom;
+        const px = P.RAD.map((rd, i) => Math.round(r.x[0] + ((6 - rd) * (r.cw + gap)) / 2 + (i - (rd * (rd + 1)) / 2) * (r.cw + gap)));
+        return { ...r, ch, gap, dy, y0, yBunn, H: Math.max(H, yBunn + ch), px, xBunke: r.x[0], xTrukket: r.x[1] + Math.round(gap / 2), xAvfall: r.x[3], xKast: r.x[6] };
+      },
+      pos(st, L) {
+        const ut = new Array(52);
+        st.bord.forEach((k, i) => {
+          if (k < 0) return;
+          ut[k] = { x: L.px[i], y: L.y0 + P.RAD[i] * L.dy, z: 10 + i, opp: true, aktiv: P.fri(st, i), hvor: "pyr", i };
+        });
+        bunke(ut, st.bunke, L.xBunke, L.yBunn);
+        if (st.trukket >= 0) ut[st.trukket] = { x: L.xTrukket, y: L.yBunn, z: 260, opp: true, aktiv: true, hvor: "trukket" };
+        st.avfall.forEach((k, n) => (ut[k] = { x: L.xAvfall, y: L.yBunn, z: 200 + n, opp: true, aktiv: n === st.avfall.length - 1, hvor: "avfall" }));
+        st.kast.forEach((k, n) => (ut[k] = { x: L.xKast, y: L.yBunn, z: 300 + n, opp: true, aktiv: false, hvor: "kast" }));
+        return ut;
+      },
+      steder: (L) => [
+        { id: "bunke", x: L.xBunke, y: L.yBunn, type: "bunke" },
+        { id: "trukket", x: L.xTrukket, y: L.yBunn, type: "avfall" },
+        { id: "avfall", x: L.xAvfall, y: L.yBunn, type: "avfall" },
+        { id: "kast", x: L.xKast, y: L.yBunn, type: "kast" },
+      ],
+      kilde(st, k) {
+        for (const a of P.ledige(st)) if (P.kortPa(st, a) === k) return { v: "pyramide", k, a };
+        return null;
+      },
+      mal(st, f) {
+        if (!f) return [];
+        if (KABAL.verdiAv(f.k) === 13) return P.lovlig(st, { fra: "k", a: f.a }) ? [{ fra: "k", a: f.a }] : [];
+        return P.ledige(st)
+          .filter((b) => b !== f.a && P.lovlig(st, { fra: "p", a: f.a, b }))
+          .map((b) => ({ fra: "p", a: Math.min(f.a, b), b: Math.max(f.a, b), dit: b }));
+      },
+      direkte: (st, f, mal) => (mal.length === 1 ? mal[0] : null),
+      dit: (st, m) => (m.fra === "k" ? { sted: "kast", kort: topp(st.kast) } : { kort: P.kortPa(st, m.dit) }),
+      treff: (st, m, k) => m.fra === "p" && P.kortPa(st, m.dit) === k,
+      loft: (st, f) => [f.k],
+      hint(st) {
+        const t = P.trekk(st);
+        return t.find((m) => m.fra === "k") || t.find((m) => m.fra === "p") || t.find((m) => m.fra === "s") || null;
+      },
+      rekkefolge: (st) => [...P.ledige(st).map((a) => P.kortPa(st, a)), "bunke"],
+    };
+
+    // --- FreeCell ---
+    const F = G.freecell;
+    const freecell = {
+      motor: F,
+      maal(W, H) {
+        const gap = kortGap(W);
+        // Like Klondike: as wide as the phone allows, not so tall that a long column can't fit.
+        const fraHoyde = Math.floor((H - 18) / 5.2 / 1.4);
+        const r = rad(W, 8, gap, Math.min(fraHoyde, 100));
+        const ch = Math.round(r.cw * 1.4);
+        return { ...r, ch, gap, H, yBord: ch + Math.max(8, Math.round(ch * 0.15)) };
+      },
+      pos(st, L) {
+        const ut = new Array(52);
+        st.grunn.forEach((v, s) => {
+          for (let n = 0; n < v; n++) ut[s * 13 + n] = { x: L.x[4 + s], y: 0, z: 10 + n, opp: true, aktiv: false, hvor: "grunn" };
+        });
+        st.celle.forEach((k, i) => k >= 0 && (ut[k] = { x: L.x[i], y: 0, z: 30, opp: true, aktiv: true, hvor: "celle", i }));
+        st.bord.forEach((kol, i) => kolonne(ut, kol, 0, L.x[i], L.yBord, L, 100, { i }));
+        // Only cards that can be lifted (the tail of each column in order) answer a tap.
+        st.bord.forEach((kol, i) => kol.forEach((k, p) => (ut[k].aktiv = !!F.loft(st, { fra: "b", i, p }))));
+        return ut;
+      },
+      steder: (L) => [
+        ...[0, 1, 2, 3].map((i) => ({ id: "c" + i, x: L.x[i], y: 0, type: "celle" })),
+        ...[0, 1, 2, 3].map((s) => ({ id: "g" + s, x: L.x[4 + s], y: 0, type: "grunn", sort: s })),
+        ...L.x.map((x, i) => ({ id: "b" + i, x, y: L.yBord, type: "tom" })),
+      ],
+      kilde(st, k) {
+        const i = st.celle.indexOf(k);
+        if (i >= 0) return { v: "freecell", k, fra: "c", i };
+        for (let j = 0; j < 8; j++) {
+          const p = st.bord[j].indexOf(k);
+          if (p >= 0) return F.loft(st, { fra: "b", i: j, p }) ? { v: "freecell", k, fra: "b", i: j, p } : null;
+        }
+        return null;
+      },
+      // Home, every column where it builds, one empty column, one free cell.
+      mal(st, f) {
+        if (!f) return [];
+        const kilde = f.fra === "c" ? { fra: "c", i: f.i } : { fra: "b", i: f.i, p: f.p };
+        const rekke = F.loft(st, kilde);
+        if (!rekke) return [];
+        const ut = [];
+        const prov = (til, j) => {
+          const m = { ...kilde, til, j };
+          if (F.lovlig(st, m)) ut.push(m);
+          return F.lovlig(st, m);
+        };
+        prov("g", KABAL.sortAv(rekke[0]));
+        for (let j = 0; j < 8; j++) if (st.bord[j].length) prov("b", j);
+        for (let j = 0; j < 8; j++) if (!st.bord[j].length && prov("b", j)) break;
+        if (f.fra === "b") for (let j = 0; j < 4; j++) if (prov("c", j)) break;
+        return ut;
+      },
+      // Home when nothing could need the card; one column where it builds; else the only place left.
+      direkte(st, f, mal) {
+        if (mal.length === 1) return mal[0];
+        const hjem = mal.find((m) => m.til === "g");
+        if (hjem && F.trygg(st, F.loft(st, hjem)[0])) return hjem;
+        const bygg = mal.filter((m) => m.til === "b" && st.bord[m.j].length);
+        if (!hjem && bygg.length === 1) return bygg[0];
+        return null;
+      },
+      dit(st, m) {
+        if (m.til === "g") return st.grunn[m.j] ? { kort: m.j * 13 + st.grunn[m.j] - 1 } : { sted: "g" + m.j };
+        if (m.til === "c") return { sted: "c" + m.j };
+        return st.bord[m.j].length ? { kort: topp(st.bord[m.j]) } : { sted: "b" + m.j };
+      },
+      treff: (st, m, k) => (m.til === "b" ? st.bord[m.j].includes(k) : m.til === "g" ? st.grunn[m.j] > 0 && k === m.j * 13 + st.grunn[m.j] - 1 : false),
+      loft: (st, f) => F.loft(st, f.fra === "c" ? { fra: "c", i: f.i } : { fra: "b", i: f.i, p: f.p }) || [],
+      hint(st) {
+        const t = F.trekk(st);
+        const kort = (m) => F.loft(st, m)[0];
+        return (
+          t.find((m) => m.til === "g") ||
+          t.find((m) => m.til === "b" && st.bord[m.j].length && (m.fra === "c" || (m.p > 0 && !KABAL.kanPaBord(kort(m), st.bord[m.i][m.p - 1])))) ||
+          null
+        );
+      },
+      rekkefolge: (st) => [...st.celle.filter((k) => k >= 0), ...st.bord.flat()],
+      // Every column in order: the rest goes home by itself.
+      ferdigPlan(st0) {
+        if (!st0.bord.every((kol) => kol.every((k, p) => !p || KABAL.kanPaBord(k, kol[p - 1])))) return null;
+        const st = F.kopi(st0);
+        const plan = [];
+        for (let vakt = 0; vakt < 60 && !F.vunnet(st); vakt++) {
+          let gjort = false;
+          for (let i = 0; i < 4 && !gjort; i++) {
+            const k = st.celle[i];
+            if (k >= 0 && F.kanPaGrunn(st, k)) {
+              const m = { fra: "c", i, til: "g", j: KABAL.sortAv(k) };
+              F.utfor(st, m, { auto: false });
+              plan.push(m);
+              gjort = true;
+            }
+          }
+          for (let i = 0; i < 8 && !gjort; i++) {
+            const kol = st.bord[i];
+            const k = topp(kol);
+            if (k != null && F.kanPaGrunn(st, k)) {
+              const m = { fra: "b", i, p: kol.length - 1, til: "g", j: KABAL.sortAv(k) };
+              F.utfor(st, m, { auto: false });
+              plan.push(m);
+              gjort = true;
+            }
+          }
+          if (!gjort) return null;
+        }
+        return F.vunnet(st) ? plan : null;
+      },
+    };
+
+    // --- Edderkopp ---
+    const E = G.edderkopp;
+    const edderkopp = {
+      motor: E,
+      maal(W, H) {
+        const gap = W < 330 ? 2 : W < 430 ? 3 : 6;
+        const fraHoyde = Math.floor((H - 18) / 5.4 / 1.4);
+        const r = rad(W, 10, gap, Math.min(fraHoyde, 92));
+        const ch = Math.round(r.cw * 1.4);
+        return { ...r, ch, gap, H, yBord: ch + Math.max(6, Math.round(ch * 0.15)), fan: Math.max(4, Math.round(r.cw * 0.2)) };
+      },
+      pos(st, L) {
+        const ut = new Array(104);
+        // Whole runs at home, top left, one behind the other with the king on top.
+        for (let n = 0; n < st.hjem.length; n++) {
+          const r = Math.floor(n / 13);
+          ut[st.hjem[n]] = { x: L.x[0] + r * L.fan, y: 0, z: 10 + r * 13 + (12 - (n % 13)), opp: true, aktiv: false, hvor: "hjem" };
+        }
+        // The stock top right: one little pile per deal left.
+        st.bunke.forEach((k, n) => (ut[k] = { x: L.x[9] - Math.floor(n / 10) * L.fan, y: 0, z: 200 + n, opp: false, aktiv: false, hvor: "bunke" }));
+        st.bord.forEach((kol, i) => kolonne(ut, kol, st.skjult[i], L.x[i], L.yBord, L, 300, { i }));
+        st.bord.forEach((kol, i) => kol.forEach((k, p) => (ut[k].aktiv = p >= st.skjult[i] && !!E.loft(st, { fra: "b", i, p }))));
+        return ut;
+      },
+      steder: (L) => [{ id: "hjem", x: L.x[0], y: 0, type: "kast" }, { id: "bunke", x: L.x[9], y: 0, type: "bunke" }, ...L.x.map((x, i) => ({ id: "b" + i, x, y: L.yBord, type: "tom" }))],
+      // A tap on a face-up card lifts the run from it – or, when that run is not in one suit, the run
+      // that ends the column (the cards are small: the tap needn't be exact).
+      kilde(st, k) {
+        for (let i = 0; i < 10; i++) {
+          const p = st.bord[i].indexOf(k);
+          if (p < 0) continue;
+          if (p < st.skjult[i]) return null;
+          let q = p;
+          while (!E.loft(st, { fra: "b", i, p: q })) q++;
+          return { v: "edderkopp", k: st.bord[i][q], i, p: q };
+        }
+        return null;
+      },
+      mal(st, f) {
+        if (!f) return [];
+        const kol = st.bord[f.i];
+        // No place for the whole run: perhaps for a shorter one.
+        for (let p = f.p; p < kol.length; p++) {
+          const ut = [];
+          let tom = false;
+          const rekke = E.loft(st, { fra: "b", i: f.i, p });
+          if (!rekke) continue;
+          const sort = KABAL.sortAv(E.ansikt(st, rekke[0]));
+          for (let j = 0; j < 10; j++) {
+            const m = { fra: "b", i: f.i, p, til: "b", j };
+            if (!E.lovlig(st, m)) continue;
+            if (!st.bord[j].length) {
+              if (tom || p === 0) continue;
+              tom = true;
+            }
+            m.samme = st.bord[j].length > 0 && KABAL.sortAv(E.ansikt(st, topp(st.bord[j]))) === sort;
+            ut.push(m);
+          }
+          if (ut.length) return ut.sort((a, b) => (b.samme ? 2 : st.bord[b.j].length ? 1 : 0) - (a.samme ? 2 : st.bord[a.j].length ? 1 : 0));
+        }
+        return [];
+      },
+      direkte(st, f, mal) {
+        if (mal.length === 1) return mal[0];
+        const samme = mal.filter((m) => m.samme);
+        if (samme.length === 1) return samme[0];
+        const bygg = mal.filter((m) => st.bord[m.j].length);
+        if (!samme.length && bygg.length === 1) return bygg[0];
+        return null;
+      },
+      dit: (st, m) => (st.bord[m.j].length ? { kort: topp(st.bord[m.j]) } : { sted: "b" + m.j }),
+      treff: (st, m, k) => st.bord[m.j].includes(k),
+      loft: (st, f) => E.loft(st, { fra: "b", i: f.i, p: f.p }) || [],
+      hint: (st) => E.hint(st),
+      rekkefolge: (st) => [...st.bord.flat(), "bunke"],
+    };
+
+    return { golf, topper, pyramide, freecell, edderkopp };
+  })();
+
+  // ---------- The table of the other solitaires ----------
+
+  let vst = null; // the position on the table (parsed from the game's kode)
+  let VL = null; // its measurements
+  let vlaast = false; // dealing or finishing by itself: no input
+  let vklokkeFra = null;
+  let vnyDeling = false;
+  let vvalgt = null; // a card picked with a tap that has more than one place to go: { f, mal }
+  let vhintId = null;
+  let vlaastVist = null;
+  let vSistPos = [];
+  const vplassert = new Map();
+  let vNettoppSnudd = { k: -1, tid: -1e9 };
+  const vForFersk = (k) => k === vNettoppSnudd.k && performance.now() - vNettoppSnudd.tid < 380;
+  const VD = () => VUI[R.S.vid];
+  const vKortEl = (k) => document.getElementById("kv-k" + k);
+  const vStedEl = (id) => document.getElementById("kv-s-" + id);
+  // The face of a card (Edderkopp: its place in the two decks → 0–51).
+  const vAnsikt = (k) => (R.S && R.S.vid === "edderkopp" && vst ? VARIANTER.edderkopp.ansikt(vst, k) : k);
+  const vKortNavn = (k) => KORT.navn(vAnsikt(k));
+  const vKortNavnStor = (k) => KORT.Navn(vAnsikt(k));
+
+  const vTidMs = (sp) => sp.tid + (vklokkeFra != null ? performance.now() - vklokkeFra : 0);
+  function vStartKlokke(S) {
+    const sp = vPaBordet(S);
+    if (!sp || sp.ferdig || !sp.startet || vklokkeFra != null || document.hidden || S.skjerm !== "vspill") return;
+    vklokkeFra = performance.now();
+  }
+  function vStoppKlokke(S) {
+    const sp = vPaBordet(S);
+    if (sp && vklokkeFra != null) sp.tid += performance.now() - vklokkeFra;
+    vklokkeFra = null;
+  }
+
+  // A new deal of solitaire `id` – or the same deal again. From the list of proven deals where there is
+  // one (in one of the suit swaps, without repeats on this phone); Edderkopp deals at random.
+  function vNytt(S, id, samme) {
+    vStoppKlokke(S);
+    const gammel = S.v[id];
+    const E = VUI[id].motor;
+    let fro = null;
+    let bytte = 0;
+    let losbar = false;
+    let sorter = id === "edderkopp" ? S.vopp.sorter : 0;
+    if (samme && gammel) {
+      fro = gammel.fro;
+      bytte = gammel.bytte;
+      losbar = gammel.losbar;
+      sorter = gammel.sorter;
+    } else {
+      const liste = LOSBARE_V[id] || [];
+      if (liste.length) {
+        const i = R.kortstokk("losbare-" + id, liste.length).neste();
+        fro = liste[Math.max(0, i)];
+        bytte = R.heltall(0, id === "freecell" ? 7 : 23);
+        losbar = true;
+      }
+    }
+    if (fro == null) fro = R.nyttFro();
+    S.vid = id;
+    vst = E.del(fro, id === "edderkopp" ? sorter : bytte);
+    const kode = E.kode(vst);
+    S.v[id] = { id, fro, bytte, sorter, losbar, kode, start: kode, angre: [], trekk: 0, tid: 0, hint: 0, spolt: 0, ok: losbar ? 0 : -1, dod: -1, startet: false, ferdig: false, vunnet: false, talt: false, resultat: null };
+    vnyDeling = true;
+    vlaastVist = null;
+    R.statistikk("start", sorter ? { kabal: id, sorter, losbar } : { kabal: id, losbar });
+  }
+
+  // Solitaire `id` on the table, with the game it has.
+  function vLegg(S, id) {
+    if (S.vid !== id) vStoppKlokke(S);
+    S.vid = id;
+    const sp = S.v[id] || null;
+    vst = sp ? VUI[id].motor.fraKode(sp.kode) : null;
+    vlaastVist = null;
+    return sp;
+  }
+
+  // Count a game (once): a win, or a started game given up. → the result
+  function vRegistrer(S, vant) {
+    const sp = vPaBordet(S);
+    if (!sp || sp.talt || (!vant && !sp.startet)) return null;
+    sp.talt = true;
+    const id = statId(sp);
+    const s = (S.vstat[id] = Object.assign(tomStat(), S.vstat[id] || {}));
+    const sek = Math.max(1, Math.round(sp.tid / 1000));
+    const fr = vst ? VUI[sp.id].motor.fremgang(vst) : { n: 0, av: 1 };
+    const res = { vunnet: vant, sek, trekk: sp.trekk, n: fr.n, av: fr.av, nyTid: false, nyTrekk: false, forrigeTid: s.besteTid, forrigeTrekk: s.faerrest };
+    s.spilt += 1;
+    if (vant) {
+      s.vunnet += 1;
+      s.rekke += 1;
+      s.besteRekke = Math.max(s.besteRekke, s.rekke);
+      res.nyTid = !!s.besteTid && sek < s.besteTid;
+      res.nyTrekk = !!s.faerrest && sp.trekk < s.faerrest;
+      s.besteTid = s.besteTid ? Math.min(s.besteTid, sek) : sek;
+      s.faerrest = s.faerrest ? Math.min(s.faerrest, sp.trekk) : sp.trekk;
+    } else s.rekke = 0;
+    res.rekke = s.rekke;
+    sp.resultat = res;
+    R.statistikk("ferdig", { vunnet: vant, sek, trekk: sp.trekk, kabal: sp.id, hint: sp.hint });
+    return res;
+  }
+
+  // ---------- Measurements and where everything lies ----------
+
+  function vMaal() {
+    const brett = R.$("#kv-brett");
+    if (!brett || !vst) return null;
+    const W = brett.clientWidth;
+    const topp = brett.getBoundingClientRect().top + window.scrollY;
+    const skjerm = R.$("#skjerm");
+    const mellom = skjerm ? parseFloat(getComputedStyle(skjerm).rowGap) || 0 : 0;
+    const dokk = R.$("#skjerm .dokk");
+    // A phone on its side (see spill.css): the toolbar stands beside the table, not under it.
+    const under = dokk && getComputedStyle(dokk).position === "static" ? 10 : mellom + (dokk ? dokk.offsetHeight : 0);
+    const H = Math.max(200, Math.floor(window.innerHeight - topp - under - 2));
+    return VD().maal(W, H);
+  }
+
+  function vEtikett(k, p) {
+    if (!p.opp) return R.t("Kort med baksiden opp");
+    const navn = vKortNavnStor(k);
+    if (p.hvor === "kol") return R.t("{kort}, kolonne {n}", { kort: navn, n: p.i + 1 });
+    if (p.hvor === "celle") return R.t("{kort}, fri celle", { kort: navn });
+    if (p.hvor === "pyr") return R.t("{kort}, rad {n}", { kort: navn, n: VARIANTER.pyramide.RAD[p.i] + 1 });
+    if (p.hvor === "topp") return R.t("{kort}, rad {n}", { kort: navn, n: VARIANTER.topper.RAD[p.i] + 1 });
+    if (p.hvor === "trukket") return R.t("{kort}, trukket fra bunken", { kort: navn });
+    if (p.hvor === "avfall") return R.t("{kort}, øverst på kastebunken", { kort: navn });
+    return R.t("{kort}, lagt hjem", { kort: navn });
+  }
+
+  function vPlasser(o = {}) {
+    const brett = R.$("#kv-brett");
+    if (!brett || !VL || !vst) return;
+    const V = VD();
+    if (!o.animer) brett.classList.add("kk-stille");
+    const pos = V.pos(vst, VL);
+    vSistPos = pos;
+    pos.forEach((p, k) => {
+      const el = vKortEl(k);
+      if (!el || !p) return;
+      const nokkel = p.x + "," + p.y;
+      const flyttet = vplassert.get(k) !== nokkel;
+      vplassert.set(k, nokkel);
+      el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
+      clearTimeout(el._z);
+      if (flyttet && o.animer) {
+        el.style.zIndex = String(600 + p.z);
+        el._z = setTimeout(() => (el.style.zIndex = String(p.z)), 300);
+      } else el.style.zIndex = String(p.z);
+      el.classList.toggle("sk-opp", p.opp);
+      el.classList.toggle("kk-av", !p.aktiv);
+      el.tabIndex = p.aktiv ? 0 : -1;
+      el.setAttribute("aria-label", vEtikett(k, p));
+      if (p.aktiv) el.removeAttribute("aria-hidden");
+      else el.setAttribute("aria-hidden", "true");
+    });
+    for (const s of V.steder(VL)) {
+      const el = vStedEl(s.id);
+      if (el) el.style.transform = `translate3d(${s.x}px, ${s.y}px, 0)`;
+    }
+    const bunke = vStedEl("bunke");
+    const antall = R.$("#kv-antall");
+    if (antall && !bunke) antall.hidden = true;
+    if (bunke) {
+      const n = vst.bunke.length;
+      const edderkopp = R.S.vid === "edderkopp";
+      bunke.classList.toggle("tom", !n);
+      bunke.disabled = !n;
+      bunke.setAttribute(
+        "aria-label",
+        !n
+          ? R.t("Bunken er tom")
+          : edderkopp
+            ? R.t("Bunken, {antall} igjen. Trykk for å legge ett kort på hver kolonne.", { antall: R.flertall(n / 10, "utdeling", "utdelinger") })
+            : R.t("Bunken, {antall} igjen. Trykk for å trekke {kort}.", { antall: R.flertall(n, "kort", "kort"), kort: MODUS[1].kort }),
+      );
+      if (antall) {
+        const s = V.steder(VL).find((x) => x.id === "bunke");
+        antall.textContent = edderkopp ? n / 10 : n;
+        antall.hidden = !n;
+        antall.style.transform = `translate3d(${s.x + VL.cw - 24}px, ${s.y + VL.ch - 14}px, 0)`;
+      }
+    }
+    brett.style.height = VL.H + "px";
+    vOppdaterHud();
+    if (!o.animer) {
+      void brett.offsetWidth;
+      brett.classList.remove("kk-stille");
+    }
+    vOrdneSnart();
+  }
+
+  function vOppdaterHud() {
+    const sp = vPaBordet(R.S);
+    if (!sp) return;
+    const trekk = R.$("#kv-trekk");
+    if (trekk) trekk.textContent = sp.trekk;
+    R.$$('#skjerm [data-h="vangre"]').forEach((b) => (b.disabled = !sp.angre.length || vlaast));
+    const tid = R.$("#kv-tid");
+    if (tid) tid.textContent = visTid(vTidMs(sp));
+  }
+
+  function vTilpass(animer) {
+    if (!R.$("#kv-brett") || !vst) return;
+    VL = vMaal();
+    R.$("#kv-brett").style.setProperty("--kortbredde", VL.cw + "px");
+    vPlasser({ animer });
+  }
+
+  // The cards that can be picked up in the order of the table, so the keyboard and screen readers walk
+  // it as it looks (done when the cards have come to rest: moving an element stops its slide).
+  let vOrdneId = null;
+  function vOrdneSnart() {
+    clearTimeout(vOrdneId);
+    vOrdneId = setTimeout(vOrdne, 420);
+  }
+  function vOrdne() {
+    const brett = R.$("#kv-brett");
+    if (!brett || !vst) return;
+    if (vdra || vlaast) return vOrdneSnart();
+    const fokus = document.activeElement;
+    let forrige = R.$("#kv-anker");
+    for (const x of VD().rekkefolge(vst)) {
+      const el = x === "bunke" ? vStedEl("bunke") : vKortEl(x);
+      if (!el || !forrige) continue;
+      if (forrige.nextElementSibling !== el) forrige.after(el);
+      forrige = el;
+    }
+    if (fokus && fokus !== document.activeElement && brett.contains(fokus)) fokus.focus({ preventScroll: true });
+  }
+
+  // ---------- Moves ----------
+
+  function vHuskAngre(sp) {
+    sp.angre.push(sp.kode + "|" + sp.trekk);
+    const forMange = sp.angre.length - MAKS_ANGRE;
+    if (forMange > 0) {
+      sp.angre.splice(0, forMange);
+      sp.ok = sp.ok >= forMange ? sp.ok - forMange : -1;
+      sp.dod = sp.dod < 0 ? -1 : Math.max(0, sp.dod - forMange);
+    }
+  }
+
+  // The cards a move takes with it (before it is made).
+  function vFlyttet(m) {
+    const id = R.S.vid;
+    const E = VD().motor;
+    if (m.fra === "s") return id === "edderkopp" ? vst.bunke.slice(-10) : vst.bunke.slice(-1);
+    if (id === "golf") return [vst.kol[m.i][vst.kol[m.i].length - 1]];
+    if (id === "topper") return [vst.bord[m.i]];
+    if (id === "pyramide") return m.fra === "k" ? [E.kortPa(vst, m.a)] : [E.kortPa(vst, m.a), E.kortPa(vst, m.b)];
+    return E.loft(vst, m) || [];
+  }
+
+  // Where a move goes, in words (hints and screen readers).
+  function vHvor(m) {
+    const id = R.S.vid;
+    if (id === "golf" || id === "topper") return R.t("til kastebunken");
+    if (m.til === "g") return R.t("hjem");
+    if (m.til === "c") return R.t("til en fri celle");
+    const kol = vst.bord[m.j];
+    return kol.length ? R.t("til {kort}", { kort: vKortNavn(kol[kol.length - 1]) }) : R.t("til den tomme plassen");
+  }
+
+  // A move said aloud: «Hjerter 7 til kastebunken», «Spar 6 og hjerter 7 er fjernet» …
+  function vSi(m, flyttet, info) {
+    const id = R.S.vid;
+    let tekst;
+    if (m.fra === "s") tekst = id === "edderkopp" ? R.t("Ti nye kort er delt ut") : R.t("Trakk {kort}", { kort: vKortNavn(flyttet[0]) });
+    else if (id === "pyramide") tekst = m.fra === "k" ? R.t("{kort} er fjernet", { kort: vKortNavnStor(flyttet[0]) }) : R.t("{a} og {b} er fjernet", { a: vKortNavnStor(flyttet[0]), b: vKortNavn(flyttet[1]) });
+    else {
+      const flere = flyttet.length > 1 ? ` ${R.t("og {antall} til", { antall: R.flertall(flyttet.length - 1, "kort", "kort") })}` : "";
+      tekst = `${vKortNavnStor(flyttet[0])}${flere} ${m.til === "c" ? R.t("til en fri celle") : m.til === "g" ? R.t("hjem") : id === "golf" || id === "topper" ? R.t("til kastebunken") : R.t("til kolonne {n}", { n: m.j + 1 })}`;
+    }
+    if (info.snudd && info.snudd.length) tekst += `. ${R.t("{kort} ble snudd", { kort: vKortNavnStor(vst.bord[info.snudd[0]][vst.bord[info.snudd[0]].length - 1]) })}`;
+    if (info.auto && info.auto.length) tekst += `. ${R.t("{antall} gikk hjem av seg selv", { antall: R.flertall(info.auto.length, "kort", "kort") })}`;
+    if (info.ferdig && info.ferdig.length) tekst += `. ${R.t("En hel rekke gikk hjem!")}`;
+    R.si(tekst);
+  }
+
+  // Carries out a move from the player (or from finishing by itself). Returns true when it was legal.
+  function vGjor(m, o = {}) {
+    const S = R.S;
+    const sp = vPaBordet(S);
+    const V = VD();
+    if (!sp || sp.ferdig || !vst || !V.motor.lovlig(vst, m)) return false;
+    vSkjulHint();
+    vOpphevValg();
+    vVisLaast(false);
+    if (!o.auto) vHuskAngre(sp);
+    const flyttet = vFlyttet(m);
+    const forKode = sp.kode;
+    const info = V.motor.utfor(vst, m) || {};
+    sp.trekk += o.auto ? 0 : 1;
+    sp.kode = V.motor.kode(vst);
+    // Following the way the search found: the rest of it is the way from here.
+    const kjent = vKjent.get(sp.id + ":" + forKode);
+    if (kjent && kjent.s === "ok" && kjent.trekk && kjent.trekk.length && sammeTrekk(kjent.trekk[0], m)) vKjent.set(sp.id + ":" + sp.kode, { s: "ok", trekk: kjent.trekk.slice(1) });
+    if (!sp.startet) {
+      sp.startet = true;
+      vStartKlokke(S);
+    }
+    vPlasser({ animer: true });
+    if (m.fra === "s") lyd.trekk();
+    else if (m.til === "g" || S.vid === "pyramide") {
+      lyd.hjem(KABAL.verdiAv(vAnsikt(flyttet[0])));
+      R.vibrer(10);
+    } else if (S.vid === "golf" || S.vid === "topper") lyd.hjem(KABAL.verdiAv(flyttet[0]));
+    else lyd.legg();
+    if (info.auto && info.auto.length) setTimeout(() => lyd.hjem(13), 160);
+    if (info.ferdig && info.ferdig.length) {
+      setTimeout(() => {
+        R.lyd.pling();
+        R.vibrer([20, 40, 20]);
+      }, 200);
+      R.toast(R.t("En hel rekke gikk hjem!"));
+    }
+    // A card turned face up: the second tap of a quick double tap must not move it unseen.
+    const snudd = info.snudd && info.snudd.length ? info.snudd[0] : -1;
+    if (snudd >= 0) {
+      setTimeout(() => R.lyd.snu(), 120);
+      const kol = vst.bord[snudd];
+      vNettoppSnudd = { k: kol[kol.length - 1], tid: performance.now() };
+    }
+    if (!o.auto) vSi(m, flyttet, info);
+    R.lagre();
+    if (!o.auto) vEtterTrekk(S);
+    return true;
+  }
+  const sammeTrekk = (a, b) => ["fra", "i", "p", "til", "j", "a", "b"].every((x) => a[x] === b[x]);
+
+  function vEtterTrekk(S) {
+    const V = VD();
+    if (V.motor.vunnet(vst)) return vVinn(S);
+    const plan = V.ferdigPlan ? V.ferdigPlan(vst) : null;
+    if (plan) return vAutoFullfor(S, plan);
+    vSjekkSnart(S);
+  }
+
+  async function vAutoFullfor(S, plan) {
+    vlaast = true;
+    vOppdaterHud();
+    R.toast(R.t("Løst! Kortene går hjem av seg selv."));
+    R.si(R.t("Kabalen er løst. Kortene går hjem av seg selv."));
+    const fortsatt = R.vakt();
+    await R.vent(R.rolig() ? 100 : 450);
+    for (const t of plan) {
+      if (!fortsatt()) return;
+      vGjor(t, { auto: true });
+      await R.vent(R.rolig() ? 15 : 95);
+    }
+    if (!fortsatt()) return;
+    vlaast = false;
+    if (VD().motor.vunnet(vst)) vVinn(S);
+  }
+
+  function vVinn(S) {
+    const sp = vPaBordet(S);
+    if (!sp || sp.ferdig) return;
+    vStoppKlokke(S);
+    vlaast = true;
+    sp.ferdig = true;
+    sp.vunnet = true;
+    vRegistrer(S, true);
+    R.lagre();
+    vOppdaterHud();
+    R.lyd.fanfare();
+    R.vibrer([40, 60, 120]);
+    const fortsatt = R.vakt();
+    setTimeout(() => {
+      vlaast = false;
+      if (fortsatt()) R.gaTil("vslutt");
+    }, R.rolig() ? 300 : 900);
+  }
+
+  // ---------- Taps: one place to go → it goes; several → they light up and the next tap chooses ----------
+
+  function vTrykkKort(k) {
+    if (vlaast || !vst) return;
+    const V = VD();
+    const f = V.kilde(vst, k);
+    if (vvalgt) {
+      const v = vvalgt;
+      const sammeKort = f && f.k === v.f.k;
+      const dit = sammeKort ? v.mal[0] : v.mal.find((m) => V.treff(vst, m, k));
+      vOpphevValg();
+      if (dit) return void vGjor(dit);
+    }
+    if (!f) return;
+    const mal = V.mal(vst, f);
+    const d = V.direkte(vst, f, mal);
+    if (d) return void vGjor(d);
+    if (mal.length) return vVelg(f, mal);
+    for (const x of V.loft(vst, f)) {
+      const el = vKortEl(x);
+      if (!el || R.rolig()) continue;
+      el.classList.remove("kk-nei");
+      void el.offsetWidth;
+      el.classList.add("kk-nei");
+      setTimeout(() => el.classList.remove("kk-nei"), 420);
+    }
+    lyd.nei();
+    R.si(R.t("{kort} kan ikke flyttes nå", { kort: vKortNavnStor(f.k) }));
+  }
+
+  function vDitEl(m) {
+    const d = VD().dit(vst, m);
+    return d.kort != null && d.kort >= 0 ? vKortEl(d.kort) : vStedEl(d.sted);
+  }
+
+  function vVelg(f, mal) {
+    const V = VD();
+    vvalgt = { f, mal };
+    V.loft(vst, f).forEach((k) => vKortEl(k) && vKortEl(k).classList.add("kk-valgt"));
+    const steder = mal.map((m) => {
+      const el = vDitEl(m);
+      if (el) {
+        el.classList.add("kk-mal", "kk-velg");
+        if (el.classList.contains("kk-plass")) {
+          el.disabled = false;
+          el.tabIndex = 0;
+          el.removeAttribute("aria-hidden");
+        }
+      }
+      if (R.S.vid === "pyramide") return vKortNavn(VARIANTER.pyramide.kortPa(vst, m.dit));
+      if (m.til === "g") return R.t("hjem");
+      if (m.til === "c") return R.t("i en fri celle");
+      const kol = vst.bord[m.j];
+      return kol.length ? R.t("på {kort}", { kort: vKortNavn(kol[kol.length - 1]) }) : R.t("på den tomme plassen");
+    });
+    R.lyd.klikk();
+    const hvor = steder.length > 1 ? `${steder.slice(0, -1).join(", ")} ${R.t("eller")} ${steder[steder.length - 1]}` : steder[0];
+    const kort = vKortNavnStor(f.k);
+    const flere = V.loft(vst, f).length > 1;
+    R.si(
+      R.S.vid === "pyramide"
+        ? R.t("{kort} er valgt. Trykk på kortet som gir 13 sammen med det: {hvor}. Eller trykk på kortet igjen.", { kort, hvor })
+        : flere
+          ? R.t("{kort} er valgt. Trykk der kortene skal ligge: {hvor}. Eller trykk på kortet igjen.", { kort, hvor })
+          : R.t("{kort} er valgt. Trykk der kortet skal ligge: {hvor}. Eller trykk på kortet igjen.", { kort, hvor }),
+    );
+    const S = R.S;
+    if ((S.valgtips || 0) < 3) {
+      S.valgtips = (S.valgtips || 0) + 1;
+      R.toast(R.S.vid === "pyramide" ? R.t("Trykk på kortet som gir 13 sammen med det") : R.t("Trykk der kortet skal ligge – eller på kortet igjen"));
+    }
+  }
+  function vOpphevValg() {
+    if (!vvalgt) return;
+    vvalgt = null;
+    R.$$("#kv-brett .kk-valgt").forEach((el) => el.classList.remove("kk-valgt"));
+    R.$$("#kv-brett .kk-velg").forEach((el) => {
+      el.classList.remove("kk-mal", "kk-velg");
+      if (el.classList.contains("kk-plass")) {
+        el.disabled = true;
+        el.tabIndex = -1;
+        el.setAttribute("aria-hidden", "true");
+      }
+    });
+  }
+  function vVelgPlass(el) {
+    if (!vvalgt || vlaast) return;
+    const id = el.id.slice(5);
+    const dit = vvalgt.mal.find((m) => VD().dit(vst, m).sted === id);
+    vOpphevValg();
+    if (dit) vGjor(dit);
+  }
+
+  // ---------- Hints and «can it still come out?» ----------
+
+  function vSkjulHint() {
+    clearTimeout(vhintId);
+    R.$$("#kv-brett .kk-hint").forEach((el) => el.classList.remove("kk-hint"));
+  }
+
+  // How far each search may look before it says «Uvisst» (FreeCell's best-first search never says «Låst»).
+  const V_TAK = { golf: 200000, topper: 150000, pyramide: 300000, freecell: 40000 }; // (as when the proven deals were found)
+  const vKjent = new Map(); // "id:position" → answer (the newest 300)
+  let vJobb = null;
+  function vAnalyser(id, kode) {
+    const nokkel = id + ":" + kode;
+    if (vKjent.has(nokkel)) return Promise.resolve(vKjent.get(nokkel));
+    if (vJobb && vJobb.kode === nokkel && !vJobb.avbrutt) return vJobb.svar;
+    if (vJobb) vJobb.avbrutt = true;
+    const j = (vJobb = { kode: nokkel, avbrutt: false, svar: null });
+    j.svar = new Promise((ferdig) => {
+      const E = VUI[id].motor;
+      const fra = E.fraKode(kode);
+      if (!fra || !E.loser) return ferdig(null);
+      const l = E.loser(fra, V_TAK[id]);
+      const steg = () => {
+        if (j.avbrutt) return ferdig(null);
+        const t0 = performance.now();
+        let over = false;
+        while (!over && performance.now() - t0 < 7) over = l.kjor(150);
+        if (!over) return setTimeout(steg, 0);
+        const r = l.resultat();
+        const svar = { s: r.trekk ? "ok" : r.uttomt ? "dod" : "uviss", trekk: r.trekk };
+        vKjent.set(nokkel, svar);
+        if (vKjent.size > 300) vKjent.delete(vKjent.keys().next().value);
+        if (vJobb === j) vJobb = null;
+        ferdig(svar);
+      };
+      setTimeout(steg, 0);
+    });
+    return j.svar;
+  }
+
+  let vSjekkId = null;
+  function vSjekkSnart(S, ms) {
+    clearTimeout(vSjekkId);
+    vSjekkId = setTimeout(() => vSjekkStilling(R.S), ms == null ? 240 : ms);
+  }
+  function vSjekkStilling(S) {
+    const sp = vPaBordet(S);
+    if (!sp || sp.ferdig || !vst || S.skjerm !== "vspill") return;
+    const kode = sp.kode;
+    const bruk = (svar) => {
+      if (!svar || vPaBordet(R.S) !== sp || sp.kode !== kode || sp.ferdig || R.S.skjerm !== "vspill") return;
+      const n = sp.angre.length;
+      if (svar.s === "ok") {
+        sp.ok = n;
+        sp.dod = -1;
+      } else if (svar.s === "dod" && (sp.dod < 0 || sp.dod > n)) sp.dod = n;
+      vVisStatus(svar.s);
+      if (svar.s === "dod") vMeldLaast(S);
+    };
+    const n = sp.angre.length;
+    if (!VD().motor.trekk(vst).length) return bruk({ s: "dod" }); // nothing left to do at all
+    if (sp.dod >= 0 && n >= sp.dod) return bruk({ s: "dod" });
+    if (!VD().motor.loser) return vVisStatus("");
+    if (sp.ok === n) return vVisStatus("ok");
+    vAnalyser(sp.id, kode).then(bruk);
+  }
+
+  function vVisStatus(s) {
+    const el = R.$("#kv-status");
+    if (!el || el.dataset.s === s) return;
+    el.dataset.s = s;
+    el.innerHTML =
+      s === "ok"
+        ? `<span class="kk-stat kk-losbar" title="${esc(R.t("Kabalen kan fortsatt gå opp"))}">${IKON.hake}${esc(R.t("Kan gå opp"))}</span>`
+        : s === "dod"
+          ? `<button class="kk-stat kk-laast" type="button" data-h="vlaast" aria-label="${esc(R.t("Låst: kabalen kan ikke gå opp herfra. Vis hva du kan gjøre."))}">${IKON.las}${esc(R.t("Låst"))}</button>`
+          : s === "uviss"
+            ? `<span class="kk-stat kk-uviss" title="${esc(R.t("Vanskelig å si om kabalen kan gå opp herfra"))}">${esc(R.t("Uvisst"))}</span>`
+            : "";
+  }
+
+  // The note over the bottom of the table: lost from here (or nothing left to do).
+  function vVisLaast(vis) {
+    const el = R.$("#kv-fast");
+    if (!el) return;
+    const sp = vPaBordet(R.S);
+    if (!vis || !sp || !vst) {
+      el.hidden = true;
+      return;
+    }
+    const tomt = !VD().motor.trekk(vst).length;
+    const fraStart = sp.dod === 0;
+    R.$("#kv-fast-tekst").textContent = tomt ? R.t("Ingen flere trekk.") : fraStart ? R.t("Denne kabalen kan ikke gå opp.") : R.t("Herfra kan ikke kabalen gå opp.");
+    R.$("#kv-spol").hidden = fraStart || !VD().motor.loser;
+    el.hidden = false;
+  }
+  function vMeldLaast(S) {
+    const sp = vPaBordet(S);
+    const merke = sp.id + "|" + sp.start + "|" + sp.dod;
+    if (vlaastVist === merke) return;
+    vlaastVist = merke;
+    vVisLaast(true);
+    lyd.nei();
+    R.si(!VD().motor.trekk(vst).length ? R.t("Ingen flere trekk. Angre, eller start en ny kabal.") : sp.dod === 0 ? R.t("Denne kabalen kan ikke gå opp.") : R.t("Herfra kan ikke kabalen gå opp. Du kan spole tilbake til siste stilling som kan gå opp."));
+  }
+
+  // Back to the newest position that can still come out (halving between the last «yes» and the «no»).
+  async function vSpolTilbake(S) {
+    const sp = vPaBordet(S);
+    if (vlaast || !sp || sp.ferdig || !vst) return;
+    const n = sp.angre.length;
+    const kodeVed = (i) => (i >= n ? sp.kode : sp.angre[i].split("|")[0]);
+    const fortsatt = R.vakt();
+    const venter = (pa) => {
+      const knapp = R.$("#kv-spol");
+      if (knapp) knapp.classList.toggle("venter", pa);
+      vlaast = pa;
+      vOppdaterHud();
+    };
+    let avbrutt = false;
+    const kan = async (i) => {
+      const svar = await vAnalyser(sp.id, kodeVed(i));
+      if (!svar || !fortsatt() || vPaBordet(R.S) !== sp) avbrutt = true;
+      return !!svar && svar.s === "ok";
+    };
+    clearTimeout(vSjekkId);
+    vOpphevValg();
+    vSkjulHint();
+    venter(true);
+    let lo = Math.min(sp.ok, n);
+    let hi = sp.dod >= 0 ? Math.min(sp.dod, n) : n;
+    if (lo < 0 && hi > 0 && (await kan(0))) lo = 0;
+    while (!avbrutt && lo >= 0 && hi - lo > 1) {
+      const midt = (lo + hi) >> 1;
+      if (await kan(midt)) lo = midt;
+      else hi = midt;
+    }
+    if (avbrutt) {
+      if (vPaBordet(R.S) === sp) venter(false);
+      return;
+    }
+    venter(false);
+    const ny = lo >= 0 && lo < n ? VD().motor.fraKode(kodeVed(lo)) : null;
+    if (!ny) {
+      R.toast(R.t("Fant ingen stilling som kan gå opp. Prøv en ny kabal."));
+      return;
+    }
+    const tekst = R.t("Spolt tilbake {trekk}. Herfra kan kabalen gå opp.", { trekk: R.flertall(n - lo, "trekk", "trekk") });
+    vst = ny;
+    sp.kode = kodeVed(lo);
+    sp.trekk = Number(sp.angre[lo].split("|")[1]) || 0;
+    sp.angre.length = lo;
+    sp.ok = lo;
+    sp.dod = -1;
+    sp.spolt = (sp.spolt || 0) + 1;
+    vlaastVist = null;
+    vVisLaast(false);
+    vPlasser({ animer: true });
+    vVisStatus("ok");
+    R.lyd.tone(600, 0, 0.08, "triangle", 0.07, 420);
+    R.lyd.tone(450, 0.09, 0.1, "triangle", 0.07, 320);
+    R.lagre();
+    R.toast(tekst);
+    R.si(tekst);
+  }
+
+  // A hint: the first move of a way to the end where a search can find one; otherwise a sensible move.
+  let vhinter = false;
+  async function vVisHint(S) {
+    const sp = vPaBordet(S);
+    const V = VD();
+    if (vlaast || !vst || !sp || vhinter) return;
+    vSkjulHint();
+    vOpphevValg();
+    const kode = sp.kode;
+    let svar = null;
+    if (V.motor.loser) {
+      svar = vKjent.get(sp.id + ":" + kode);
+      if (!svar) {
+        const knapp = () => R.$('#skjerm [data-h="vhint"]');
+        vhinter = true;
+        if (knapp()) knapp().classList.add("venter");
+        svar = await vAnalyser(sp.id, kode);
+        vhinter = false;
+        if (knapp()) knapp().classList.remove("venter");
+        if (!svar || vPaBordet(R.S) !== sp || sp.kode !== kode || R.S.skjerm !== "vspill" || vlaast) return;
+      }
+      if (svar.s === "dod") {
+        if (sp.dod < 0 || sp.dod > sp.angre.length) sp.dod = sp.angre.length;
+        vVisStatus("dod");
+        vlaastVist = sp.id + "|" + sp.start + "|" + sp.dod;
+        vVisLaast(true);
+        R.toast(!V.motor.trekk(vst).length ? R.t("Ingen flere trekk. Angre, eller start en ny kabal.") : sp.dod === 0 ? R.t("Denne kabalen kan ikke gå opp.") : R.t("Herfra kan ikke kabalen gå opp. Spol tilbake, så får du hint derfra."));
+        return;
+      }
+    }
+    let m = svar && svar.trekk && svar.trekk.length ? svar.trekk[0] : null;
+    if (m && !V.motor.lovlig(vst, m)) m = null;
+    if (!m) m = V.hint(vst);
+    if (!m) {
+      R.toast(R.t("Ingen flere trekk. Angre, eller start en ny kabal."));
+      return;
+    }
+    sp.hint += 1;
+    const el = [];
+    let tekst;
+    if (m.fra === "s") {
+      el.push(vStedEl("bunke"));
+      tekst = S.vid === "edderkopp" ? R.t("Del ut nye kort") : R.t("Trekk fra bunken");
+    } else {
+      const flyttet = vFlyttet(m);
+      flyttet.forEach((k) => el.push(vKortEl(k)));
+      if (S.vid === "pyramide") tekst = m.fra === "k" ? R.t("Fjern {kort}", { kort: vKortNavn(flyttet[0]) }) : R.t("Fjern {a} og {b}", { a: vKortNavn(flyttet[0]), b: vKortNavn(flyttet[1]) });
+      else {
+        el.push(vDitEl(m));
+        tekst = R.t("Flytt {kort} {hvor}", { kort: vKortNavn(flyttet[0]), hvor: vHvor(m) });
+      }
+    }
+    el.filter(Boolean).forEach((e) => e.classList.add("kk-hint"));
+    R.toast(tekst.charAt(0).toUpperCase() + tekst.slice(1));
+    R.si(tekst);
+    R.lyd.pling();
+    vhintId = setTimeout(vSkjulHint, 2600);
+    R.lagre();
+  }
+
+  // ---------- Dragging ----------
+
+  let vdra = null;
+  let vSistPeker = -1e9;
+  const vPaBrettet = () => R.S && R.S.skjerm === "vspill" && vPaBordet(R.S) && !vPaBordet(R.S).ferdig && vst && VL;
+
+  // Every move the dragged cards could make (not only the best ones a tap would offer).
+  function vDraMal(f) {
+    const V = VD();
+    const E = V.motor;
+    const id = R.S.vid;
+    if (id === "freecell") return E.trekk(vst).filter((m) => m.fra === f.fra && m.i === f.i && (f.fra === "c" || m.p === f.p));
+    if (id === "edderkopp") return E.trekk(vst).filter((m) => m.fra === "b" && m.i === f.i && m.p === f.p);
+    return V.mal(vst, f);
+  }
+
+  function vMalRekt(m) {
+    const { cw, ch } = VL;
+    if (m.til === "b") {
+      const kol = vst.bord[m.j];
+      const y0 = VL.yBord;
+      const bunn = kol.length ? vSistPos[kol[kol.length - 1]].y + ch : y0 + ch;
+      return { x: VL.x[m.j], y: y0, w: cw, h: bunn - y0 + ch * 0.5 };
+    }
+    const d = VD().dit(vst, m);
+    if (d.kort != null && d.kort >= 0 && vSistPos[d.kort]) return { x: vSistPos[d.kort].x, y: vSistPos[d.kort].y, w: cw, h: ch };
+    const s = VD()
+      .steder(VL)
+      .find((x) => x.id === d.sted);
+    return s ? { x: s.x, y: s.y, w: cw, h: ch } : null;
+  }
+
+  function vFinnMal(dx, dy) {
+    const b = vdra.base[0];
+    const r = { x: b.x + dx, y: b.y + dy, w: VL.cw, h: VL.ch };
+    let best = null;
+    let bestA = VL.cw * VL.ch * 0.12;
+    for (const m of vdra.alle) {
+      const f = vMalRekt(m);
+      if (!f) continue;
+      const a = Math.max(0, Math.min(r.x + r.w, f.x + f.w) - Math.max(r.x, f.x)) * Math.max(0, Math.min(r.y + r.h, f.y + f.h) - Math.max(r.y, f.y));
+      if (a > bestA) {
+        bestA = a;
+        best = m;
+      }
+    }
+    return best;
+  }
+
+  document.addEventListener("pointerdown", (e) => {
+    if (vdra || !vPaBrettet() || vlaast || (e.button != null && e.button > 0)) return;
+    const el = e.target.closest && e.target.closest("#kv-brett .kk-kort");
+    if (!el || el.classList.contains("kk-av") || vForFersk(Number(el.dataset.k))) return;
+    const k = Number(el.dataset.k);
+    const f = VD().kilde(vst, k);
+    vSkjulHint();
+    vdra = { id: e.pointerId, type: e.pointerType, x0: e.clientX, y0: e.clientY, k, f, kort: f ? VD().loft(vst, f) : [], aktiv: false, mal: null };
+    try {
+      R.$("#kv-brett").setPointerCapture(e.pointerId);
+    } catch (feil) {
+      /* not every pointer can be captured */
+    }
+  });
+
+  document.addEventListener("pointermove", (e) => {
+    if (!vdra || e.pointerId !== vdra.id || !vdra.kort.length) return;
+    const dx = e.clientX - vdra.x0;
+    const dy = e.clientY - vdra.y0;
+    if (!vdra.aktiv) {
+      if (Math.hypot(dx, dy) < (TERSKEL[vdra.type] || 6)) return;
+      vOpphevValg();
+      vdra.aktiv = true;
+      vdra.alle = vDraMal(vdra.f);
+      vdra.el = vdra.kort.map(vKortEl);
+      vdra.base = vdra.kort.map((k) => vSistPos[k]);
+      vdra.el.forEach((el, n) => {
+        clearTimeout(el._z);
+        el.classList.add("kk-drar");
+        el.style.zIndex = String(1000 + n);
+      });
+      R.vibrer(6);
+    }
+    e.preventDefault();
+    vdra.el.forEach((el, n) => {
+      const b = vdra.base[n];
+      el.style.transform = `translate3d(${b.x + dx}px, ${b.y + dy}px, 0)`;
+    });
+    const mal = vFinnMal(dx, dy);
+    if (mal !== vdra.mal) {
+      R.$$("#kv-brett .kk-mal").forEach((x) => x.classList.remove("kk-mal"));
+      if (mal) {
+        const m = vDitEl(mal);
+        if (m) m.classList.add("kk-mal");
+      }
+      vdra.mal = mal;
+    }
+  });
+
+  function vSluttDra(e, avbrutt) {
+    if (!vdra || e.pointerId !== vdra.id) return;
+    const d = vdra;
+    vdra = null;
+    vSistPeker = performance.now();
+    if (!d.aktiv) {
+      if (!avbrutt) vTrykkKort(d.k);
+      return;
+    }
+    R.$$("#kv-brett .kk-mal").forEach((x) => x.classList.remove("kk-mal"));
+    d.el.forEach((el) => el.classList.remove("kk-drar"));
+    if (!avbrutt && d.mal && vGjor(d.mal)) return;
+    vPlasser({ animer: true });
+    if (!avbrutt) lyd.nei();
+  }
+  document.addEventListener("pointerup", (e) => vSluttDra(e, false));
+  document.addEventListener("pointercancel", (e) => vSluttDra(e, true));
+
+  // Keyboard (Enter/space on a card) and other clicks without a pointer: the same as a tap.
+  document.addEventListener("click", (e) => {
+    if (!vPaBrettet() || vlaast || !e.target.closest) return;
+    const plass = e.target.closest("#kv-brett .kk-plass.kk-velg");
+    if (plass) return vVelgPlass(plass);
+    const el = e.target.closest("#kv-brett .kk-kort");
+    if (!el) {
+      if (vvalgt && e.target.closest("#kv-brett") && !e.target.closest("[data-h]")) vOpphevValg();
+      return;
+    }
+    if (performance.now() - vSistPeker < 600) return;
+    vTrykkKort(Number(el.dataset.k));
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !vvalgt || !vPaBrettet()) return;
+    vOpphevValg();
+    R.si(R.t("Kortet er sluppet"));
+  });
+  document.addEventListener("contextmenu", (e) => {
+    if (e.target.closest && e.target.closest("#kv-brett")) e.preventDefault();
+  });
+
+  // ---------- The other solitaires: rules, home tiles, board and result ----------
+
+  const VREGLER = {
+    edderkopp: {
+      intro: R.t("Bygg hele rekker fra konge til ess i samme sort. En hel rekke går hjem av seg selv – åtte rekker, og kabalen går opp."),
+      steg: [
+        [R.t("Bygg nedover"), R.t("Et kort kan legges på et kort som er ett høyere, uansett sort: 7 på 8, 8 på 9.")],
+        [R.t("Flytt rekker i samme sort"), R.t("Kort i samme sort og i rekkefølge kan flyttes sammen. Trykk på et kort, så flytter det seg – eller dra det.")],
+        [R.t("Del ut nye kort"), R.t("Står du fast, trykk på bunken: da får hver kolonne ett nytt kort. Alle kolonnene må ha kort først.")],
+      ],
+      tips: [
+        R.t("Med én sort er kabalen rolig, med fire sorter er den skikkelig vrien."),
+        R.t("En tom kolonne tar hvilket som helst kort – den er gull verdt."),
+        R.t("Snu kortene med baksiden opp så fort du kan."),
+        R.t("«Hint» viser et lurt trekk, og «Angre» tar tilbake så mange trekk du vil."),
+      ],
+    },
+    freecell: {
+      intro: R.t("Få alle kortene hjem i fire bunker – én for hver sort, fra ess til konge. Alle kortene ligger med bildet opp fra start."),
+      steg: [
+        [R.t("Bygg nedover"), R.t("Legg kortene i synkende rekkefølge, annenhver rød og svart: svart 8 på rød 9.")],
+        [R.t("Fire frie celler"), R.t("Øverst til venstre er det fire celler som tar ett kort hver. Bruk dem lurt – de blir fort fulle.")],
+        [R.t("Flere kort på en gang"), R.t("En rekke kan flyttes samlet når det er nok frie celler og tomme kolonner til å flytte den kort for kort.")],
+      ],
+      tips: [
+        R.t("En tom kolonne tar hvilket som helst kort."),
+        R.t("Kort som ingen trenger lenger, går hjem av seg selv."),
+        R.t("Nesten alle kabalene kan gå opp – og alle her kan det."),
+        R.t("«Hint» viser et lurt trekk, og «Angre» tar tilbake så mange trekk du vil."),
+      ],
+    },
+    pyramide: {
+      intro: R.t("Fjern alle de 52 kortene, to og to: kortene i et par må bli 13 til sammen."),
+      steg: [
+        [R.t("Par som blir 13"), R.t("Ess er 1, knekt 11 og dame 12. 6 og 7, 4 og 9, dame og ess … Trykk på et kort, så på kortet som gir 13 sammen med det.")],
+        [R.t("Kongen går alene"), R.t("En konge er 13 alene: trykk på den, så forsvinner den.")],
+        [R.t("Bunken"), R.t("Trykk på bunken for å trekke et kort. Det trukne kortet og det øverste på kastebunken kan også brukes. Du går gjennom bunken bare én gang.")],
+      ],
+      tips: [
+        R.t("Et kort er ledig når ingen kort ligger over det."),
+        R.t("Kabalen går opp først når pyramiden, bunken og kastebunken er tomme."),
+        R.t("Alle kabalene her kan gå opp – blant helt tilfeldige kabaler går bare et fåtall opp."),
+        R.t("«Hint» viser et lurt trekk, og «Angre» tar tilbake så mange trekk du vil."),
+      ],
+    },
+    topper: {
+      intro: R.t("Rydd alle tre toppene. Kortene går til kastebunken ett og ett."),
+      steg: [
+        [R.t("Ett opp eller ett ned"), R.t("Trykk på et ledig kort som er ett høyere eller ett lavere enn kortet på kastebunken. Fargen spiller ingen rolle.")],
+        [R.t("Rundt hjørnet"), R.t("Ess og konge er naboer: et ess kan legges på en konge, og en konge på et ess.")],
+        [R.t("Snu og trekk"), R.t("Et kort snus når ingen kort ligger over det. Står du fast, trykk på bunken for et nytt kort. Bunken kan bare brukes én gang.")],
+      ],
+      tips: [R.t("Lange rekker gir flyt: velg det kortet som åpner flest nye."), R.t("Alle kabalene her kan gå opp."), R.t("«Hint» viser et lurt trekk, og «Angre» tar tilbake så mange trekk du vil.")],
+    },
+    golf: {
+      intro: R.t("Rydd alle sju kolonnene. Kortene går til kastebunken ett og ett."),
+      steg: [
+        [R.t("Ett opp eller ett ned"), R.t("Trykk på det nederste kortet i en kolonne hvis det er ett høyere eller ett lavere enn kortet på kastebunken. Fargen spiller ingen rolle.")],
+        [R.t("Kongen stopper alt"), R.t("Ingenting kan legges på en konge, og ess og konge er ikke naboer.")],
+        [R.t("Trekk når du står fast"), R.t("Trykk på bunken for å legge et nytt kort på kastebunken. Bunken kan bare brukes én gang.")],
+      ],
+      tips: [R.t("Se etter lange rekker: 5, 6, 7, 6, 5 …"), R.t("Alle kabalene her kan gå opp – men det krever planlegging."), R.t("«Hint» viser et lurt trekk, og «Angre» tar tilbake så mange trekk du vil.")],
+    },
+  };
+
+  // The rules sheet of one solitaire (the same look as the kit's).
+  function vVisRegler(id) {
+    const r = VREGLER[id];
+    R.ark(`
+      <h2 id="ark-tittel">${esc(R.t("Slik spiller du {navn}", { navn: VNAVN[id] }))}</h2>
+      <p class="ingress">${esc(r.intro)}</p>
+      <ol class="steg">${r.steg.map(([t, x]) => `<li><b>${esc(t)}</b><span>${esc(x)}</span></li>`).join("")}</ol>
+      <h3>${esc(R.t("Tips"))}</h3><ul class="tips">${r.tips.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
+      <p class="personvern">${esc(window.RUSJ_STAT ? R.t("Det dere skriver inn, blir på denne mobilen. Ingen konto og ingen reklame. Vi teller bare anonymt hvor mange som spiller.") : R.t("Alt skjer på denne mobilen. Ingen konto, ingen reklame, og ingenting sendes noe sted."))}</p>
+      <button class="knapp" data-h="lukk-ark">${esc(R.t("Skjønner!"))}</button>`);
+  }
+
+  // Small cards for the tiles: what each solitaire is about at a glance.
+  const VIKON = { edderkopp: [12, 11, 10], freecell: [25, 11, 23], pyramide: [5, 19], topper: [4, 18, 6], golf: [44, 31, 46] };
+  const vMini = (id) =>
+    `<span class="kk-mini kk-mini-${VIKON[id].length}">${VIKON[id].map((k, n) => KORT.html(k, { opp: true, klasse: "kk-mini-kort", stil: `--n:${n}` })).join("")}</span>`;
+  const SORTER_TEKST = {
+    1: R.t("Bare spar. Rolig og fin å lære på."),
+    2: R.t("Spar og hjerter. Litt mer å tenke på."),
+    4: R.t("Alle fire sortene. Skikkelig vrien."),
+  };
+  const vSorterIkon = (n) =>
+    `<span class="kk-mini kv-mini-${n}">${[12, 25, 38, 51].slice(0, n).map((k, i) => KORT.html(k, { opp: true, klasse: "kk-mini-kort", stil: `--n:${i}` })).join("")}</span>`;
+
+  // The record or «sist» line of a tile.
+  function vLinje(S, id) {
+    const sp = S.v[id];
+    if (sp && !sp.ferdig && sp.startet) return R.t("I gang · {trekk}", { trekk: R.flertall(sp.trekk, "trekk", "trekk") });
+    const s = S.vstat[id === "edderkopp" ? "edderkopp" + (sp && !sp.ferdig ? sp.sorter : S.vopp.sorter) : id];
+    if (s && s.spilt) return s.besteTid ? R.t("Rekord {tid} · vunnet {v} av {n}", { tid: visTid(s.besteTid * 1000), v: R.tall(s.vunnet), n: R.tall(s.spilt) }) : R.t("Vunnet {v} av {n}", { v: R.tall(s.vunnet), n: R.tall(s.spilt) });
+    return VOM[id];
+  }
+
+  function vHjemHtml(S) {
+    return `<section class="kk-varianter" aria-labelledby="kk-v-tittel">
+      <h2 id="kk-v-tittel">${esc(R.t("Flere kabaler"))}</h2>
+      <div class="kk-vliste">${VID.map((id) => {
+        const sp = S.v[id];
+        const navn = id === "edderkopp" ? vNavn({ id, sorter: sp && !sp.ferdig ? sp.sorter : S.vopp.sorter }) : VNAVN[id];
+        const iGang = !!(sp && !sp.ferdig && sp.startet);
+        return `<button class="kk-vknapp${iGang ? " i-gang" : ""}" data-h="variant" data-v="${id}">${vMini(id)}<b>${esc(navn)}</b><span>${esc(vLinje(S, id))}</span></button>`;
+      }).join("")}</div>
+    </section>`;
+  }
+
+  function vBrettHtml(S) {
+    const sp = vPaBordet(S);
+    const V = VUI[sp.id];
+    const st0 = V.motor.fraKode(sp.kode);
+    const ansikt = (k) => (sp.id === "edderkopp" ? VARIANTER.edderkopp.ANSIKT(k, st0.sorter) : k);
+    // class names // sprak-ok
+    const kort = Array.from({ length: V.motor.antall }, (_, k) => KORT.html(ansikt(k), { tag: "button", klasse: "kk-kort kk-av", attr: ` id="kv-k${k}" data-k="${k}" type="button" tabindex="-1" aria-hidden="true"` })).join("");
+    const sov = 'type="button" disabled tabindex="-1" aria-hidden="true"';
+    const steder = V.steder(V.maal(320, 520))
+      .map((s) => {
+        if (s.type === "bunke") return `<button class="kk-plass kk-bunke kv-bunke" id="kv-s-bunke" type="button" data-h="vtrekk" data-stille></button>`;
+        const n = Number(s.id.slice(1)) + 1;
+        if (s.type === "grunn")
+          return `<button class="kk-plass kk-grunn" id="kv-s-${s.id}" ${sov} aria-label="${esc(R.t("Hjem, {sort}", { sort: KORT.SORTER[s.sort].navn }))}" style="--sf:${KORT.SORTER[s.sort].rod ? KORT.ROD : "#f4e9ff"}"><svg viewBox="0 0 100 100" aria-hidden="true">${KORT.symbol(s.sort, 18, 18, 64)}</svg></button>`;
+        if (s.type === "celle") return `<button class="kk-plass kv-celle" id="kv-s-${s.id}" ${sov} aria-label="${esc(R.t("Fri celle {n}", { n }))}"></button>`;
+        if (s.type === "tom") return `<button class="kk-plass kv-tom" id="kv-s-${s.id}" ${sov} aria-label="${esc(R.t("Tom plass, kolonne {n}", { n }))}"></button>`;
+        return `<span class="kk-plass kv-${s.type}" id="kv-s-${s.id}" aria-hidden="true"></span>`;
+      })
+      .join("");
+    return `<div class="kk-brett kv-brett kv-${sp.id}" id="kv-brett" role="group" aria-label="${esc(vNavn(sp))}">
+      ${steder}<span id="kv-anker" hidden></span>
+      ${kort}
+      <span class="kk-antall" id="kv-antall" aria-hidden="true"></span>
+      <div class="kk-fast" id="kv-fast" hidden role="status">
+        <span id="kv-fast-tekst">${esc(R.t("Herfra kan ikke kabalen gå opp."))}</span>
+        <span class="kk-fast-knapper">${R.ui.knapp2(R.t("Spol tilbake"), "vspol", { variant: "liten", id: "kv-spol" })}${R.ui.knapp2(R.t("Ny kabal"), "vny", { variant: "liten" })}</span>
+      </div>
+    </div>`;
+  }
+
+  // How far a lost game came, in words.
+  function vFremgangTekst(sp, r) {
+    if (sp.id === "freecell") return r.n ? R.t("Du fikk {n} av 52 kort hjem.", { n: R.tall(r.n) }) : R.t("Ingen kort kom hjem denne gangen.");
+    if (sp.id === "edderkopp") return R.t("Du fikk {n} av 8 rekker hjem.", { n: R.tall(r.n) });
+    if (sp.id === "pyramide") return R.t("Du fjernet {n} av 52 kort.", { n: R.tall(r.n) });
+    return R.t("Du ryddet {n} av {av} kort.", { n: R.tall(r.n), av: r.av });
+  }
+
+  function vSluttHtml(S) {
+    const sp = vPaBordet(S);
+    const r = sp.resultat || { vunnet: sp.vunnet, sek: Math.round(sp.tid / 1000), trekk: sp.trekk, n: 0, av: 1 };
+    const s = Object.assign(tomStat(), S.vstat[statId(sp)] || {});
+    const dokk =
+      R.ui.flereSpill({ antall: 1 }) +
+      R.ui.dokk(
+        R.ui.knapp(R.t("Spill igjen"), "vigjen"),
+        R.ui.lenkerad(sp.id === "edderkopp" ? R.ui.lenke(R.t("Endre oppsett"), "vendre") : "", R.ui.lenke(R.t("Flere kabaler"), "vhjem"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`),
+      );
+    const statHtml = `<p class="kk-sluttstat">${esc(vNavn(sp))}: ${esc(R.t("vunnet {v} av {n}", { v: R.tall(s.vunnet), n: R.tall(s.spilt) }))}${s.rekke > 1 ? ` · ${esc(R.t("{n} på rad", { n: R.tall(s.rekke) }))}` : ""}${s.besteRekke > 1 ? ` · ${esc(R.t("rekord {n} på rad", { n: R.tall(s.besteRekke) }))}` : ""}</p>`;
+    const etikett = `${esc(vNavn(sp))}${sp.losbar ? ` · ${esc(R.t("løsbar"))}` : ""}`;
+    if (r.vunnet) {
+      const rekordMerke = `<i class="kk-ny">${esc(R.t("Rekord!"))}</i>`;
+      const rekord = r.nyTid || r.nyTrekk;
+      return `
+        <div class="banner aksent">
+          ${R.figur(null, "jubel")}
+          <p class="etikett">${etikett}</p>
+          <h1 id="skjerm-tittel">${esc(R.t("Kabalen gikk opp!"))}</h1>
+          <p class="ingress">${esc(R.t("Godt jobba!"))}${r.rekke > 1 ? ` ${esc(R.t("Det er {n} på rad.", { n: R.tall(r.rekke) }))}` : ""}</p>
+        </div>
+        <div class="kk-resultat">
+          <div class="kk-tall-kort${r.nyTid ? " ny" : ""}"><b>${visTid(r.sek * 1000)}</b><span>${esc(R.t("tid"))}</span>${r.nyTid ? rekordMerke : ""}</div>
+          <div class="kk-tall-kort${r.nyTrekk ? " ny" : ""}"><b>${R.tall(r.trekk)}</b><span>${esc(R.t("trekk|trekk", { n: r.trekk }))}</span>${r.nyTrekk ? rekordMerke : ""}</div>
+        </div>
+        <p class="hjelp">${esc(
+          rekord
+            ? R.t("Ny personlig rekord! Forrige: {tid} · {trekk}", { tid: r.forrigeTid ? visTid(r.forrigeTid * 1000) : "–", trekk: r.forrigeTrekk ? R.t("{n} trekk", { n: R.tall(r.forrigeTrekk) }) : "–" })
+            : r.forrigeTid
+              ? R.t("Rekordene dine: {tid} · {trekk}", { tid: visTid(s.besteTid * 1000), trekk: R.t("{n} trekk", { n: R.tall(s.faerrest) }) })
+              : R.t("Første kabal i boks – nå har du rekorder å slå!"),
+        )}</p>
+        ${statHtml}
+        ${dokk}`;
+    }
+    return `
+      <div class="banner aksent">
+        ${R.figur()}
+        <p class="etikett">${etikett}</p>
+        <h1 id="skjerm-tittel">${esc(R.t("Den var vrien!"))}</h1>
+        <p class="ingress">${esc(vFremgangTekst(sp, r))} ${esc(R.t("Neste kabal kan være din."))}</p>
+      </div>
+      ${r.n ? `<div class="kk-fremgang" aria-hidden="true"><span style="width:${Math.round((r.n / r.av) * 100)}%"></span></div>` : ""}
+      ${statHtml}
+      ${dokk}`;
+  }
+  // A saved state from before the other solitaires gets their empty slots; a saved game that can't be
+  // read any more is dropped (never a broken position).
+  function lastetV(S) {
+    if (!S.v || typeof S.v !== "object" || Array.isArray(S.v)) S.v = {};
+    if (!S.vstat || typeof S.vstat !== "object" || Array.isArray(S.vstat)) S.vstat = {};
+    for (const k of Object.keys(S.vstat)) {
+      if (!S.vstat[k] || typeof S.vstat[k] !== "object") delete S.vstat[k];
+      else S.vstat[k] = Object.assign(tomStat(), S.vstat[k]);
+    }
+    S.vopp = Object.assign({ sorter: 1 }, S.vopp && typeof S.vopp === "object" ? S.vopp : {});
+    if (![1, 2, 4].includes(S.vopp.sorter)) S.vopp.sorter = 1;
+    for (const id of Object.keys(S.v)) {
+      const sp = S.v[id];
+      const E = VUI[id] && VUI[id].motor;
+      const ok = E && sp && typeof sp === "object" && sp.id === id && E.fraKode(sp.kode) && Array.isArray(sp.angre) && E.fraKode(sp.start);
+      if (!ok) {
+        delete S.v[id];
+        continue;
+      }
+      const antall = sp.angre.length;
+      sp.angre = sp.angre.filter((a) => typeof a === "string" && E.fraKode(a.split("|")[0]));
+      for (const felt of ["trekk", "tid", "hint", "spolt"]) sp[felt] = Number(sp[felt]) || 0;
+      const hel = sp.angre.length === antall;
+      const indeks = (v) => (hel && Number.isInteger(v) && v >= 0 && v <= sp.angre.length ? v : -1);
+      sp.ok = indeks(sp.ok);
+      sp.dod = indeks(sp.dod);
+    }
+    if (!VUI[S.vid]) S.vid = null;
+    const sp = vPaBordet(S);
+    vst = sp ? VUI[S.vid].motor.fraKode(sp.kode) : null;
+    if (S.skjerm === "vspill" && !(sp && !sp.ferdig)) S.skjerm = sp ? "vslutt" : "hjem";
+    if (S.skjerm === "vslutt" && !(sp && sp.ferdig)) S.skjerm = "hjem";
+  }
+
   R.start({
     id: "kortkongen",
     versjon: 1,
@@ -2747,6 +4233,11 @@
       oppsett: { modus: 1, losbar: true },
       stat: {},
       spill: null,
+      // The other solitaires (see «More solitaires on the table»)
+      v: {},
+      vid: null,
+      vstat: {},
+      vopp: { sorter: 1 },
     }),
 
     lastet(S) {
@@ -2792,6 +4283,7 @@
       if (S.skjerm === "spill" && !(S.spill && !S.spill.ferdig)) S.skjerm = S.spill ? "slutt" : "hjem";
       if (S.skjerm === "slutt" && !(S.spill && S.spill.ferdig)) S.skjerm = "hjem";
       meldDagens(S);
+      lastetV(S);
     },
 
     // rusj.no/kortkongen/#dagens (the front page's «I dag» strip): straight to today's daily.
@@ -2814,6 +4306,7 @@
         R.t("Merket øverst sier om kabalen fortsatt kan gå opp. Står det «Låst», kan du spole tilbake til siste stilling som kan gå opp."),
         R.t("Dagens kabal er den samme for alle og kan alltid gå opp. Den kan prøves så mange ganger du vil – en ny kommer ved midnatt."),
         R.t("Når alle kortene ligger med bildet opp, går resten hjem av seg selv."),
+        R.t("Lyst på noe annet? Under «Flere kabaler» finner du Edderkopp, FreeCell, Pyramide, Tre topper og Golf – hver med sine egne regler."),
       ],
     },
 
@@ -2854,7 +4347,8 @@
                 ["0", R.t("reklame")],
               ],
             }) +
-            (linje ? `<p class="kk-hjemstat">${esc(MODUS[S.oppsett.modus].navn)}: ${esc(linje)}</p>` : "")
+            (linje ? `<p class="kk-hjemstat">${esc(MODUS[S.oppsett.modus].navn)}: ${esc(linje)}</p>` : "") +
+            vHjemHtml(S)
           );
         },
         inn: () => startNedtelling(),
@@ -3059,9 +4553,281 @@
           }
         },
       },
+
+      // ---------- The other solitaires ----------
+
+      // Edderkopp's one setting: how many suits.
+      voppsett: {
+        tittel: () => VNAVN.edderkopp,
+        tilbake: "hjem",
+        vis: (S) => `
+          <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
+          <section class="seksjon">
+            <h2>${esc(R.t("Hvor mange sorter?"))}</h2>
+            ${R.ui.fliser(
+              "vsorter",
+              [1, 2, 4].map((n) => ({ v: n, tittel: sorterTekst(n), tekst: SORTER_TEKST[n], ikon: vSorterIkon(n) })),
+              S.vopp.sorter,
+            )}
+          </section>
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "vstart", { variant: "stor" }))}`,
+      },
+
+      vspill: {
+        tittel: (S) => (vPaBordet(S) ? VNAVN[vPaBordet(S).id] : R.t("Kabal")),
+        tilbake: "hjem",
+        vis(S) {
+          const sp = vPaBordet(S);
+          if (!sp) return `<h1 class="vh" id="skjerm-tittel">${esc(R.t("Kabal"))}</h1>`;
+          return `
+            <h1 class="vh" id="skjerm-tittel">${esc(vNavn(sp))}</h1>
+            <div class="kk-hud">
+              <span class="kk-stat" aria-label="${esc(R.t("Tid"))}">${IKON.klokke}<b id="kv-tid">${visTid(vTidMs(sp))}</b></span>
+              <span class="kk-stat"><b id="kv-trekk">${sp.trekk}</b> ${esc(R.t("trekk"))}</span>
+              ${sp.id === "edderkopp" ? `<span class="kk-stat">${esc(sorterTekst(sp.sorter))}</span>` : ""}
+              <span class="kk-status" id="kv-status" aria-live="polite"></span>
+            </div>
+            ${vBrettHtml(S)}
+            ${R.ui.dokk(`<div class="kk-verktoy">
+              <button class="kk-knapp" id="kv-angre" data-h="vangre" ${sp.angre.length ? "" : "disabled"}>${IKON.angre}<span>${esc(R.t("Angre"))}</span></button>
+              <button class="kk-knapp" data-h="vhint">${IKON.hint}<span>${esc(R.t("Hint"))}</span></button>
+              <button class="kk-knapp" data-h="vny">${IKON.ny}<span>${esc(R.t("Ny kabal"))}</span></button>
+              <button class="kk-knapp" data-h="vavslutt">${IKON.slutt}<span>${esc(R.t("Avslutt"))}</span></button>
+            </div>`)}`;
+        },
+        etter(S) {
+          VL = null;
+          vplassert.clear();
+          const sp = vPaBordet(S);
+          if (!sp) return;
+          vst = VD().motor.fraKode(sp.kode);
+          VL = vMaal();
+          R.$("#kv-brett").style.setProperty("--kortbredde", VL.cw + "px");
+          if (vnyDeling && !R.rolig()) {
+            vnyDeling = false;
+            // Deal: every card starts on the stock (or above the table), face down, and flies out.
+            const brett = R.$("#kv-brett");
+            const pos = VD().pos(vst, VL);
+            const sted = VD().steder(VL).find((x) => x.id === "bunke") || { x: Math.round(VL.x[0]), y: 0 };
+            brett.classList.add("kk-stille");
+            const rekkefolge = [];
+            pos.forEach((p, k) => {
+              const el = vKortEl(k);
+              if (!el) return;
+              el.style.transform = `translate3d(${sted.x}px, ${sted.y}px, 0)`;
+              el.style.zIndex = "1";
+              el.classList.remove("sk-opp");
+              vplassert.set(k, sted.x + "," + sted.y);
+              if (p.hvor !== "bunke") rekkefolge.push(k);
+            });
+            rekkefolge.sort((a, b) => pos[a].y - pos[b].y || pos[a].x - pos[b].x);
+            void brett.offsetWidth;
+            brett.classList.remove("kk-stille");
+            const STEG = rekkefolge.length > 40 ? 22 : 30;
+            rekkefolge.forEach((k, n) => {
+              const el = vKortEl(k);
+              el.style.transitionDelay = `${n * STEG}ms`;
+              el.querySelector(".sk-indre").style.transitionDelay = `${n * STEG + 200}ms`;
+              if (n % 2 === 0) R.lyd.stoy(n * (STEG / 1000), 0.03, 0.06, 3200);
+            });
+            vlaast = true;
+            vPlasser({ animer: true });
+            const fortsatt = R.vakt();
+            setTimeout(() => {
+              rekkefolge.forEach((k) => {
+                const el = vKortEl(k);
+                if (!el) return;
+                el.style.transitionDelay = "";
+                el.querySelector(".sk-indre").style.transitionDelay = "";
+              });
+              if (!fortsatt()) return;
+              vlaast = false;
+              vPlasser({ animer: false });
+            }, rekkefolge.length * STEG + 650);
+          } else {
+            vnyDeling = false;
+            vPlasser({ animer: false });
+          }
+          vSjekkSnart(S, 80);
+        },
+        inn(S) {
+          if (!vPaBordet(S)) return R.gaTil("hjem");
+          vStartKlokke(S);
+          const id = setInterval(() => {
+            const el = R.$("#kv-tid");
+            const sp = vPaBordet(R.S);
+            if (el && sp) el.textContent = visTid(vTidMs(sp));
+          }, 500);
+          R.vedForlat(() => clearInterval(id));
+          const plan = vPaBordet(S).startet && vst && !VD().motor.vunnet(vst) && VD().ferdigPlan ? VD().ferdigPlan(vst) : null;
+          if (plan) setTimeout(() => R.S.skjerm === "vspill" && vAutoFullfor(R.S, plan), 500);
+        },
+        ut(S) {
+          vStoppKlokke(S);
+          vSkjulHint();
+          vOpphevValg();
+          clearTimeout(vSjekkId);
+          clearTimeout(vOrdneId);
+          if (vJobb) vJobb.avbrutt = true;
+          vhinter = false;
+          vdra = null;
+          vlaast = false;
+        },
+      },
+
+      vslutt: {
+        tittel: R.t("Kåringen"),
+        tilbake: "hjem",
+        gjenoppta: "hjem",
+        vis: (S) => vSluttHtml(S),
+        inn(S) {
+          const sp = vPaBordet(S);
+          if (sp && sp.vunnet) {
+            R.konfetti();
+            const fortsatt = R.vakt();
+            setTimeout(() => fortsatt() && R.visInstallTips(), 1800);
+          } else {
+            R.lyd.riktig();
+            setTimeout(() => R.lyd.pling(), 260);
+          }
+        },
+      },
     },
 
     handlinger: (H = {
+      // The rules of the solitaire on the table (or Klondike's on its own screens).
+      regler(el, e, S) {
+        if (["vspill", "vslutt", "voppsett"].includes(S.skjerm) && VUI[S.vid]) return vVisRegler(S.vid);
+        R.visRegler();
+      },
+      // A tile on the home screen: its game goes on, or a new one is dealt (Edderkopp asks for suits first).
+      variant(el, e, S) {
+        const id = el.dataset.v;
+        if (!VUI[id]) return;
+        const sp = S.v[id];
+        if (sp && !sp.ferdig) {
+          vLegg(S, id);
+          return R.gaTil("vspill");
+        }
+        if (id === "edderkopp") {
+          S.vid = id;
+          return R.gaTil("voppsett");
+        }
+        vNytt(S, id);
+        R.gaTil("vspill");
+      },
+      vsorter(el, e, S) {
+        const n = Number(el.dataset.v);
+        S.vopp.sorter = [1, 2, 4].includes(n) ? n : 1;
+        R.vis();
+      },
+      async vstart(el, e, S) {
+        const sp = S.v.edderkopp;
+        const fortsatt = R.vakt();
+        if (sp && !sp.ferdig && sp.startet) {
+          if (!(await R.bekreftNytt(true, true)) || !fortsatt()) return;
+          vLegg(S, "edderkopp");
+          vRegistrer(S, false);
+        }
+        vNytt(S, "edderkopp");
+        R.gaTil("vspill");
+      },
+      vtrekk(el, e, S) {
+        const sp = vPaBordet(S);
+        if (vlaast || !vst || !sp || sp.ferdig) return;
+        if (S.vid === "edderkopp" && vst.bunke.length && !VARIANTER.edderkopp.kanDele(vst)) {
+          lyd.nei();
+          R.toast(R.t("Alle kolonnene må ha kort før du deler ut."));
+          return;
+        }
+        vGjor({ fra: "s" });
+      },
+      vangre(el, e, S) {
+        const sp = vPaBordet(S);
+        if (vlaast || !sp || sp.ferdig || !sp.angre.length) return;
+        vSkjulHint();
+        const [kode, trekk] = sp.angre.pop().split("|");
+        const ny = VD().motor.fraKode(kode);
+        if (!ny) {
+          sp.angre = [];
+          vOppdaterHud();
+          return;
+        }
+        vst = ny;
+        sp.kode = kode;
+        sp.trekk = Number(trekk) || 0;
+        const n = sp.angre.length;
+        if (sp.ok > n) sp.ok = n;
+        if (sp.dod > n) {
+          sp.dod = -1;
+          vlaastVist = null;
+        }
+        vOpphevValg();
+        vVisLaast(false);
+        vPlasser({ animer: true });
+        R.lyd.tone(600, 0, 0.08, "triangle", 0.07, 420);
+        R.lagre();
+        R.si(R.t("Angret"));
+        vSjekkSnart(S);
+      },
+      vhint: (el, e, S) => vVisHint(S),
+      vspol: (el, e, S) => vSpolTilbake(S),
+      vlaast() {
+        const el = R.$("#kv-fast");
+        if (el) vVisLaast(el.hidden);
+      },
+      async vny(el, e, S) {
+        if (vlaast) return;
+        const sp = vPaBordet(S);
+        if (!sp) return;
+        const fortsatt = R.vakt();
+        const valg = await R.velgIArk(
+          R.t("Ny kabal?"),
+          [
+            { v: "ny", tekst: R.t("Del ut en ny kabal") },
+            { v: "igjen", tekst: R.t("Start denne kabalen på nytt") },
+            ...(sp.id === "edderkopp" ? [{ v: "sorter", tekst: R.t("Velg antall sorter") }] : []),
+          ],
+          sp.startet ? R.t("Kabalen du holder på med, teller som tapt i statistikken.") : "",
+        );
+        if (!valg || !fortsatt() || vPaBordet(S) !== sp) return;
+        vStoppKlokke(S);
+        vRegistrer(S, false);
+        if (valg === "sorter") {
+          delete S.v.edderkopp;
+          vst = null;
+          return R.gaTil("voppsett");
+        }
+        vNytt(S, sp.id, valg === "igjen");
+        R.gaTil("vspill");
+      },
+      async vavslutt(el, e, S) {
+        if (vlaast) return;
+        const sp = vPaBordet(S);
+        if (!sp) return;
+        const fortsatt = R.vakt();
+        const ja = await R.bekreft(R.t("Avslutte kabalen?"), sp.startet ? R.t("Den teller som tapt i statistikken.") : R.t("Du kan alltid starte en ny."), R.t("Avslutt"), R.t("Spill videre"));
+        if (!ja || !fortsatt() || vPaBordet(S) !== sp) return;
+        if (sp.startet) {
+          vStoppKlokke(S);
+          vRegistrer(S, false);
+          sp.ferdig = true;
+          R.gaTil("vslutt");
+        } else {
+          delete S.v[sp.id];
+          vst = null;
+          R.gaTil("hjem");
+        }
+      },
+      vigjen(el, e, S) {
+        const sp = vPaBordet(S);
+        if (!sp) return R.gaTil("hjem");
+        if (sp.id === "edderkopp") S.vopp.sorter = sp.sorter;
+        vNytt(S, sp.id);
+        R.gaTil("vspill");
+      },
+      vendre: () => R.gaTil("voppsett"),
+      vhjem: () => R.gaTil("hjem"),
       // A new free game, dealt at once with the setup from last time («Bytt oppsett» changes it).
       async nytt(el, e, S) {
         const fortsatt = R.vakt();
@@ -3207,5 +4973,17 @@
       stoppKlokke(S);
       R.lagre();
     } else startKlokke(S);
+  });
+  // The same for the other solitaires.
+  window.addEventListener("resize", () => {
+    if (R.S && R.S.skjerm === "vspill" && !vdra) vTilpass(false);
+  });
+  document.addEventListener("visibilitychange", () => {
+    const S = R.S;
+    if (!S || S.skjerm !== "vspill") return;
+    if (document.hidden) {
+      vStoppKlokke(S);
+      R.lagre();
+    } else vStartKlokke(S);
   });
 })();

@@ -765,3 +765,198 @@
     font-size: 0.9rem;
   }
 }
+
+/* ==========================================================================================
+   The other solitaires (Edderkopp, FreeCell, Pyramide, Tre topper, Golf): the home tiles, the
+   suit choice and the table. The table reuses Klondike's classes (kk-brett, kk-kort, kk-plass …);
+   what is new is prefixed kv-. Klondike's rules above are not changed by any of this.
+   ========================================================================================== */
+
+/* Home: «Flere kabaler», one row per solitaire with its record or «sist» line */
+.kk-varianter {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.kk-varianter h2 {
+  color: var(--tekst-2);
+  font: 900 1rem/1.2 var(--font-display);
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.kk-vliste {
+  display: grid;
+  gap: 8px;
+}
+
+.kk-vknapp {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 12px;
+  min-height: 62px;
+  padding: 8px 14px 8px 10px;
+  border: 2px solid var(--strek);
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.kk-vknapp:active {
+  background: var(--natt-3);
+  transform: translateY(1px);
+}
+
+.kk-vknapp.i-gang {
+  border-color: color-mix(in srgb, var(--aksent) 65%, var(--strek));
+}
+
+.kk-vknapp .kk-mini {
+  grid-row: 1 / 3;
+  width: 58px;
+  height: 44px;
+}
+
+.kk-vknapp b {
+  align-self: end;
+  font: 900 1.06rem/1.15 var(--font-display);
+}
+
+.kk-vknapp > span:last-child {
+  align-self: start;
+  color: var(--tekst-2);
+  font-size: 0.84rem;
+  line-height: 1.3;
+}
+
+/* Edderkopp's suit tiles: one card per suit */
+.kv-mini-4 {
+  width: 72px;
+}
+
+/* ---------- The table ---------- */
+
+.skjerm-vspill {
+  gap: 10px;
+}
+
+/* Ten cards across (Edderkopp, Tre topper): every pixel of the width counts. */
+.kv-brett.kv-edderkopp,
+.kv-brett.kv-topper {
+  margin-inline: -14px;
+}
+
+.kv-tom,
+.kv-celle {
+  border-radius: calc(var(--kortbredde) * 0.1);
+}
+
+.kv-celle {
+  background: rgba(33, 20, 61, 0.6);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tekst-3) 45%, transparent);
+}
+
+.kv-kast,
+.kv-avfall {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tekst-3) 22%, transparent);
+  background: rgba(33, 20, 61, 0.2);
+}
+
+.kv-bunke.tom {
+  cursor: default;
+}
+
+/* The stock's counter in front of the stock (its cards lie higher here than in Klondike). */
+.kv-brett .kk-antall {
+  z-index: 290;
+}
+
+/* A picked or dragged card grows from its own middle: the face grows, not the card's place (a scale
+   on the card itself would also scale its position on the table). */
+.kv-brett .kk-kort.kk-valgt,
+.kv-brett .kk-kort.kk-drar {
+  scale: none;
+}
+
+.kv-brett .kk-kort.kk-valgt .sk-indre,
+.kv-brett .kk-kort.kk-drar .sk-indre {
+  scale: 1.06;
+}
+
+/* The smallest cards (ten across a small phone): a slightly firmer edge so the cards stay apart. */
+.kv-edderkopp .sk-for,
+.kv-topper .sk-for {
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 18, 48, 0.24),
+    0 1px 2px rgba(6, 2, 14, 0.45);
+}
+
+@media (max-height: 700px) {
+  .skjerm-vspill {
+    gap: 8px;
+    padding-top: 2px;
+  }
+
+  .skjerm-vspill .dokk {
+    padding-top: 8px;
+  }
+}
+
+/* A phone on its side: as Klondike – the table to the left, the chips and the tools to the right. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-vspill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 152px;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "brett hud" "brett dokk";
+    align-items: start;
+    gap: 10px 14px;
+  }
+
+  .skjerm-vspill > .kk-hud {
+    grid-area: hud;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .skjerm-vspill > .kk-brett {
+    grid-area: brett;
+    margin-inline: 0;
+  }
+
+  .skjerm-vspill > .dokk {
+    grid-area: dokk;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .skjerm-vspill .kk-verktoy {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .skjerm-vspill .kk-knapp {
+    min-height: 56px;
+  }
+
+  html:has(.skjerm-vspill) .toast {
+    top: auto !important;
+    right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    bottom: 10px !important;
+    left: auto !important;
+    max-width: 236px !important;
+    margin: 0;
+    border-radius: 18px;
+    padding: 9px 14px;
+    font-size: 0.9rem;
+  }
+}
