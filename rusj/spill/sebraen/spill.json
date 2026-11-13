@@ -1,0 +1,32 @@
+{
+  "id": "sebraen",
+  "navn": "Sebraen",
+  "undertittel": "Binærpuslespill",
+  "beskrivelse": "Gratis binærpuslespill på norsk: svart og hvitt, aldri tre like på rad og like mange av hver i hver rad og kolonne. Dagens sebra og brett fra 6 × 6 til 10 × 10.",
+  "kort": "Svart og hvitt – aldri tre like på rad, like mange av hver.",
+  "spillere": [1, 1],
+  "minutter": [2, 15],
+  "mobiler": "en",
+  "tagger": ["alene", "tenke", "daglig"],
+  "rekkefolge": 61,
+  "farge": "#3de3b0",
+  "sok": ["binærpuslespill", "binært puslespill", "takuzu", "svart og hvitt", "logikkspill", "nuller og enere", "aldri tre på rad", "dagens logikkspill"],
+  "i18n": {
+    "en": {
+      "navn": "Zebra",
+      "undertittel": "Binary puzzle",
+      "kort": "Black and white – never three alike in a row, and as many of each.",
+      "beskrivelse": "Free binary puzzle: black and white, never three alike in a row, as many of each in every row and column. A daily zebra and boards from 6 × 6 to 10 × 10.",
+      "slug": "zebra",
+      "sok": ["binary puzzle", "takuzu", "black and white puzzle", "logic puzzle", "noughts and ones", "never three in a row", "daily logic puzzle"]
+    },
+    "da": {
+      "navn": "Zebraen",
+      "undertittel": "Binært puslespil",
+      "kort": "Sort og hvidt – aldrig tre ens i træk, lige mange af hver.",
+      "beskrivelse": "Gratis binært puslespil: sort og hvidt, aldrig tre ens i træk og lige mange af hver i hver række og kolonne. Dagens zebra og bræt fra 6 × 6 til 10 × 10.",
+      "slug": "zebraen",
+      "sok": ["binært puslespil", "takuzu", "sort og hvidt", "logikspil", "nuller og ettaller", "aldrig tre i træk", "dagens logikspil"]
+    }
+  }
+}

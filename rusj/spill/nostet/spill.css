@@ -1,0 +1,840 @@
+/* Nøstet — one thread through every cell. Everything is prefixed "ns-".
+   The board is a night sky cut into patches. A patch is told apart by three things at once: thick
+   cream edges, its own pattern and its own colour (never colour alone). --c is the cell size. */
+
+/* ---------- The play screen fills the phone exactly (no scroll, no rubber band, no zoom) ---------- */
+
+html.ns-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.ns-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.ns-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.ns-fast main,
+html.ns-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.ns-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ns-spill .dokk {
+  gap: 10px;
+  padding-top: 4px;
+  background: none;
+}
+
+/* ---------- Info row ---------- */
+
+.ns-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.ns-stat,
+.ns-klokke {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 7px 4px 6px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+}
+
+.ns-stat small,
+.ns-klokke small {
+  color: var(--tekst-3);
+  font: 800 0.64rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ns-stat b,
+.ns-klokke b {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 1.12rem/1.05 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ns-stat:last-child b {
+  color: var(--lampe);
+}
+
+.ns-klokke {
+  position: relative;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: center;
+  column-gap: 9px;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+  cursor: pointer;
+}
+
+.ns-klokketekst {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ns-pauseikon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+}
+
+.ns-pauseikon svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--blekk);
+}
+
+.ns-pauseikon .av,
+.ns-spill.pauset .ns-pauseikon .pa {
+  display: none;
+}
+
+.ns-spill.pauset .ns-pauseikon .av {
+  display: inline;
+}
+
+.ns-spill.pauset .dokk {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.ns-klokke:active {
+  transform: scale(0.96);
+}
+
+/* ---------- The board: linen, a pink yarn thread, sewing-button numbers ---------- */
+
+.ns-flate {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+.ns-brett {
+  --c: 48px;
+  --fokus: var(--blekk);
+  --fokus-2: transparent;
+  position: relative;
+  width: calc(var(--n) * var(--c));
+  height: calc(var(--n) * var(--c));
+  border-radius: 14px;
+  background:
+    repeating-linear-gradient(0deg, rgba(181, 35, 88, 0.035) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(90deg, rgba(181, 35, 88, 0.035) 0 2px, transparent 2px 5px),
+    var(--papir);
+  box-shadow: 0 0 0 4px var(--blekk), 0 0 0 7px var(--rosa), 0 18px 36px var(--skygge);
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: crosshair;
+  transition: filter 0.2s, opacity 0.2s;
+}
+
+.ns-brett:focus-visible {
+  outline: 3px solid var(--lampe);
+  outline-offset: 8px;
+}
+
+.ns-spill.pauset .ns-brett {
+  opacity: 0.35;
+  filter: blur(9px);
+}
+
+.ns-ruter {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--n), var(--c));
+  grid-auto-rows: var(--c);
+}
+
+.ns-ruter i {
+  box-shadow: inset -1px -1px 0 rgba(23, 14, 43, 0.13);
+  transition: background 0.15s;
+}
+
+.ns-ruter i.med {
+  background: rgba(255, 79, 139, 0.12);
+}
+
+.ns-ruter i.hintet {
+  background: rgba(164, 123, 255, 0.28);
+}
+
+.ns-tegning {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ns-traad-skygge,
+.ns-traad,
+.ns-tvinn {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ns-traad-skygge {
+  stroke: var(--rosa-dyp);
+  stroke-width: 0.48;
+}
+
+.ns-traad {
+  stroke: var(--rosa);
+  stroke-width: 0.36;
+}
+
+/* The twist of the yarn */
+.ns-tvinn {
+  stroke: rgba(255, 241, 221, 0.55);
+  stroke-width: 0.07;
+  stroke-dasharray: 0.14 0.2;
+}
+
+.ns-hode {
+  fill: var(--rosa);
+  stroke: var(--blekk);
+  stroke-width: 0.07;
+}
+
+.ns-vegg {
+  fill: none;
+  stroke: var(--blekk);
+  stroke-width: 0.16;
+  stroke-linecap: round;
+}
+
+/* Numbers: round sewing buttons on top of the thread. A taken number turns deep pink (and the
+   next one gets a yellow ring), so the order shows by more than colour: the ring moves on. */
+.ns-tall {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ns-tallknapp {
+  position: absolute;
+  top: calc((var(--y) + 0.19) * var(--c));
+  left: calc((var(--x) + 0.19) * var(--c));
+  display: grid;
+  place-items: center;
+  width: calc(var(--c) * 0.62);
+  height: calc(var(--c) * 0.62);
+  border-radius: 50%;
+  background: var(--papir);
+  box-shadow: 0 0 0 calc(var(--c) * 0.05 + 1px) var(--blekk), 0 3px 0 rgba(23, 14, 43, 0.3);
+  color: var(--blekk);
+  font: 900 calc(var(--c) * 0.34) / 1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ns-tallknapp.tatt {
+  background: var(--rosa-dyp);
+  color: #fff;
+}
+
+.ns-tallknapp.neste {
+  box-shadow: 0 0 0 calc(var(--c) * 0.05 + 1px) var(--blekk), 0 0 0 calc(var(--c) * 0.05 + 4px) var(--lampe);
+}
+
+.ns-brett.rist {
+  animation: ns-rist 0.36s ease-in-out;
+}
+
+.ns-brett.vant .ns-traad {
+  animation: ns-glod 1.2s ease-out both;
+}
+
+.ns-brett.vant .ns-tallknapp {
+  animation: ns-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  animation-delay: calc(var(--t) * 70ms);
+}
+
+@keyframes ns-rist {
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes ns-glod {
+  50% {
+    stroke: var(--lampe);
+  }
+}
+
+@keyframes ns-pop {
+  45% {
+    transform: scale(1.35);
+  }
+}
+
+.ns-pauseboks {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.ns-pauseboks[hidden] {
+  display: none;
+}
+
+.ns-pausekort {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 22px 24px 24px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 18px 40px var(--skygge);
+}
+
+.ns-pausetekst {
+  margin: 0;
+  font: 900 1.4rem/1.15 var(--font-display);
+}
+
+.ns-pausekort .knapp {
+  width: auto;
+  min-width: 200px;
+  margin-top: 8px;
+}
+
+/* The sky and the line under it, centred together. */
+.ns-midt {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Hints and warnings: a line under the board, never over it. While the board is empty it says how
+   to play (the rules sheet says it to a screen reader). */
+.ns-under {
+  position: relative;
+  width: 100%;
+  min-height: 2.6em;
+}
+
+.ns-melding,
+.ns-tips {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font: 800 0.92rem/1.25 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+  transition: opacity 0.2s;
+}
+
+.ns-melding {
+  color: var(--tekst);
+  opacity: 0;
+}
+
+.ns-melding.vis {
+  opacity: 1;
+}
+
+.ns-tips {
+  color: var(--tekst-3);
+  opacity: 0;
+}
+
+.ns-spill.tomt .ns-tips {
+  opacity: 1;
+}
+
+.ns-under:has(.ns-melding.vis) .ns-tips {
+  opacity: 0;
+}
+
+/* ---------- Tools ---------- */
+
+.ns-verktoy {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ns-verk {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 4px 8px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 0.8rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.ns-verk span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ns-verk svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ns-verk:active:not(:disabled) {
+  background: var(--natt-3);
+  transform: scale(0.95);
+}
+
+.ns-verk:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.ns-merke {
+  position: absolute;
+  top: -7px;
+  right: 6px;
+  min-width: 24px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  box-shadow: 0 0 0 2px var(--natt);
+  color: var(--tekst-2);
+  font: 900 0.66rem/1 var(--font-display);
+  font-style: normal;
+  text-align: center;
+}
+
+/* ---------- Home ---------- */
+
+.hjem-knapper .knapp:has(.ns-dagknapp) {
+  gap: 14px;
+  padding-block: 10px;
+}
+
+.ns-dagknapp {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+
+.ns-dagknapp b {
+  font: 900 1.25rem/1.1 var(--font-display);
+}
+
+.ns-dagknapp small {
+  color: var(--blekk-2);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+.ns-kal {
+  display: grid;
+  flex: none;
+  grid-template-rows: auto 1fr;
+  width: 40px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.ns-kal small {
+  padding: 2px 0 1px;
+  background: var(--lilla-dyp);
+  color: #fff;
+  font: 900 0.6rem/1.1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ns-kal b {
+  display: grid;
+  place-items: center;
+  font: 900 1.2rem/1 var(--font-display);
+}
+
+.ns-nedtelling {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.ns-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ns-daglinje {
+  align-self: center;
+  max-width: 100%;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 60%, var(--strek));
+  color: var(--aksent);
+  font: 800 0.9rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.ns-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  padding-bottom: 12px;
+}
+
+.ns-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ns-rekorder li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 800 0.9rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ns-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.ns-rekorder li small {
+  color: var(--tekst-3);
+  font-weight: 700;
+}
+
+/* ---------- Setup ---------- */
+
+.ns-styrke {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 24px;
+}
+
+.ns-styrke i {
+  width: 6px;
+  border-radius: 3px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.ns-styrke i:nth-child(1) {
+  height: 9px;
+}
+
+.ns-styrke i:nth-child(2) {
+  height: 14px;
+}
+
+.ns-styrke i:nth-child(3) {
+  height: 19px;
+}
+
+.ns-styrke i:nth-child(4) {
+  height: 24px;
+}
+
+.ns-styrke i.pa {
+  background: var(--nf, var(--aksent));
+  box-shadow: none;
+}
+
+/* ---------- Result ---------- */
+
+.ns-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.ns-tall-boks {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 10px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.ns-tall-boks b {
+  font: 900 2.4rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ns-tall-boks span {
+  font: 800 0.78rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.ns-ny {
+  position: absolute;
+  top: -12px;
+  right: -4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+}
+
+.ns-dagboks {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.ns-rekke {
+  margin: 0;
+  font: 900 1.4rem/1.1 var(--font-display);
+}
+
+/* The finished thread in miniature */
+.ns-mini {
+  align-self: center;
+  width: 120px;
+  height: 120px;
+  margin: 4px 0 8px;
+  overflow: visible;
+  transform: rotate(-2deg);
+  filter: drop-shadow(0 8px 14px rgba(6, 2, 14, 0.55));
+}
+
+.ns-mini rect {
+  fill: var(--papir);
+  stroke: var(--blekk);
+  stroke-width: 0.18;
+}
+
+.ns-mini path {
+  fill: none;
+  stroke: var(--rosa);
+  stroke-width: 0.32;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ns-mini circle {
+  fill: var(--blekk);
+}
+
+/* ---------- Short and narrow phones ---------- */
+
+@media (max-height: 700px) {
+  .ns-mini {
+    width: 96px;
+    height: 96px;
+  }
+
+  .ns-spill {
+    gap: 6px;
+  }
+
+  .ns-stat,
+  .ns-klokke {
+    padding: 5px 4px 4px;
+  }
+
+  .ns-pauseikon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .ns-verk {
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 4px;
+  }
+
+  .ns-verk svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ns-under {
+    min-height: 2.4em;
+  }
+
+  .ns-melding,
+  .ns-tips {
+    font-size: 0.84rem;
+  }
+
+}
+
+@media (max-width: 359px) {
+  .ns-verk span {
+    font-size: 0.7rem;
+  }
+
+  .ns-verk {
+    grid-template-columns: none;
+  }
+
+  .ns-stat b,
+  .ns-klokke b {
+    font-size: 1rem;
+  }
+
+  .ns-klokke {
+    column-gap: 5px;
+  }
+
+  .ns-pauseikon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .ns-tall-boks b {
+    font-size: 2rem;
+  }
+}
+
+/* ---------- Landscape phones: the board on the left, the rest on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="nostet"] .app:has(.ns-spill) {
+    max-width: 1000px;
+  }
+
+  .ns-spill {
+    display: grid;
+    grid-template-columns: min(calc(100dvh - 70px), 54vw) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    column-gap: 20px;
+    row-gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .ns-flate {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .ns-topp {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .ns-plass {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .ns-under {
+    min-height: 4em;
+  }
+
+  .ns-spill .dokk {
+    position: static;
+    grid-column: 2;
+    grid-row: 3;
+    align-self: end;
+    margin: 0;
+    padding: 0 0 max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .ns-verk {
+    padding: 11px 6px;
+  }
+}
+
+.ns-plass:empty {
+  display: none;
+}

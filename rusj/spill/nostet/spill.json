@@ -1,0 +1,32 @@
+{
+  "id": "nostet",
+  "navn": "Nøstet",
+  "undertittel": "Stipuslespill",
+  "beskrivelse": "Gratis stipuslespill på norsk: trekk én tråd gjennom alle rutene og ta tallene i rekkefølge. Dagens nøste og brett fra 5 × 5 til 8 × 8, noen med vegger.",
+  "kort": "Én tråd gjennom alle rutene – og tallene i riktig rekkefølge.",
+  "spillere": [1, 1],
+  "minutter": [1, 10],
+  "mobiler": "en",
+  "tagger": ["alene", "tenke", "daglig"],
+  "rekkefolge": 62,
+  "farge": "#ff8fb8",
+  "sok": ["stipuslespill", "tegn en strek", "én strek", "linjespill", "sti gjennom alle ruter", "tallsti", "logikkspill", "dagens logikkspill"],
+  "i18n": {
+    "en": {
+      "navn": "Woolly",
+      "undertittel": "Path puzzle",
+      "kort": "One thread through every square – with the numbers in order.",
+      "beskrivelse": "Free path puzzle: draw one thread through every square and pass the numbers in order. A new yarn every day, boards from 5 × 5 to 8 × 8, some with walls.",
+      "slug": "woolly",
+      "sok": ["path puzzle", "one line puzzle", "draw a line through every square", "number path", "logic puzzle", "daily logic puzzle", "hamiltonian path"]
+    },
+    "da": {
+      "navn": "Nøglet",
+      "undertittel": "Stipuslespil",
+      "kort": "Én tråd gennem alle felter – og tallene i den rigtige rækkefølge.",
+      "beskrivelse": "Gratis stipuslespil på dansk: træk én tråd gennem alle felter, og tag tallene i rækkefølge. Dagens nøgle og bræt fra 5 × 5 til 8 × 8, nogle med vægge.",
+      "slug": "noeglet",
+      "sok": ["stipuslespil", "tegn en streg", "én streg", "linjespil", "talsti", "logikspil", "dagens logikspil"]
+    }
+  }
+}

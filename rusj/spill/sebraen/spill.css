@@ -1,0 +1,844 @@
+/* Sebraen — black and white. Everything is prefixed "sb-".
+   The board is a night sky cut into patches. A patch is told apart by three things at once: thick
+   cream edges, its own pattern and its own colour (never colour alone). --c is the cell size. */
+
+/* ---------- The play screen fills the phone exactly (no scroll, no rubber band, no zoom) ---------- */
+
+html.sb-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.sb-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.sb-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.sb-fast main,
+html.sb-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.sb-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sb-spill .dokk {
+  gap: 10px;
+  padding-top: 4px;
+  background: none;
+}
+
+/* ---------- Info row ---------- */
+
+.sb-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.sb-stat,
+.sb-klokke {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 7px 4px 6px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+}
+
+.sb-stat small,
+.sb-klokke small {
+  color: var(--tekst-3);
+  font: 800 0.64rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sb-stat b,
+.sb-klokke b {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 1.12rem/1.05 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sb-stat:last-child b {
+  color: var(--lampe);
+}
+
+.sb-klokke {
+  position: relative;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: center;
+  column-gap: 9px;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+  cursor: pointer;
+}
+
+.sb-klokketekst {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sb-pauseikon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+}
+
+.sb-pauseikon svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--blekk);
+}
+
+.sb-pauseikon .av,
+.sb-spill.pauset .sb-pauseikon .pa {
+  display: none;
+}
+
+.sb-spill.pauset .sb-pauseikon .av {
+  display: inline;
+}
+
+.sb-spill.pauset .dokk {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.sb-klokke:active {
+  transform: scale(0.96);
+}
+
+/* ---------- The board: paper, ink lines, black and white dots ---------- */
+
+.sb-flate {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+.sb-brett {
+  --c: 44px;
+  --linje: rgba(23, 14, 43, 0.16);
+  --fokus: var(--blekk);
+  --fokus-2: transparent;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--n), var(--c));
+  grid-auto-rows: var(--c);
+  border-radius: 14px;
+  background: var(--papir);
+  box-shadow: 0 0 0 4px var(--blekk), 0 0 0 7px var(--papir-2), 0 18px 36px var(--skygge);
+  overflow: hidden;
+  touch-action: manipulation;
+  transition: filter 0.2s, opacity 0.2s;
+}
+
+/* Zebra stripes on the frame: the board's own look. */
+.sb-brett::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: repeating-linear-gradient(-55deg, rgba(23, 14, 43, 0.035) 0 calc(var(--c) * 0.35), transparent 0 calc(var(--c) * 0.7));
+  content: "";
+  pointer-events: none;
+}
+
+.sb-spill.pauset .sb-brett {
+  opacity: 0.35;
+  filter: blur(9px);
+}
+
+.sb-celle {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--c);
+  height: var(--c);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: inset -1px -1px 0 var(--linje);
+  color: var(--blekk);
+  cursor: pointer;
+}
+
+/* The givens: a slightly darker paper and a small corner mark (they can't be changed). */
+.sb-celle.gitt {
+  background: rgba(241, 220, 192, 0.85);
+}
+
+.sb-celle.gitt::before {
+  position: absolute;
+  top: 7%;
+  left: 7%;
+  width: 12%;
+  height: 12%;
+  border-top: 2px solid rgba(23, 14, 43, 0.35);
+  border-left: 2px solid rgba(23, 14, 43, 0.35);
+  content: "";
+}
+
+.sb-celle.hintet {
+  background: rgba(164, 123, 255, 0.2);
+}
+
+/* Black: a filled ink dot. White: a hollow ring. The shapes differ, not only the colours. */
+.sb-prikk {
+  width: 62%;
+  height: 62%;
+  border-radius: 50%;
+  font-style: normal;
+}
+
+.sb-prikk.svart {
+  background: radial-gradient(circle at 34% 30%, #4a3a66 0 18%, transparent 19%), var(--blekk);
+  box-shadow: 0 3px 0 rgba(23, 14, 43, 0.25);
+}
+
+.sb-prikk.hvit {
+  background: #fff;
+  box-shadow: inset 0 0 0 calc(var(--c) * 0.08 + 1px) var(--blekk), 0 3px 0 rgba(23, 14, 43, 0.18);
+}
+
+.sb-celle.konflikt {
+  background: rgba(255, 90, 78, 0.22);
+  box-shadow: inset 0 0 0 3px #c4261e;
+}
+
+.sb-celle.konflikt::after {
+  position: absolute;
+  top: 4%;
+  right: 4%;
+  display: grid;
+  place-items: center;
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  background: #c4261e;
+  box-shadow: 0 0 0 2px var(--papir);
+  color: #fff;
+  font: 900 calc(var(--c) * 0.24) / 1 var(--font-display);
+  content: "!";
+}
+
+.sb-celle:focus-visible {
+  z-index: 3;
+  outline: 3px solid var(--blekk);
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 6px var(--lampe);
+}
+
+/* The signs on the line between two cells: a small round badge with «=» or «×». */
+.sb-tegnlag {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.sb-tegn {
+  position: absolute;
+  top: calc(var(--y) * var(--c));
+  left: calc(var(--x) * var(--c));
+  display: grid;
+  place-items: center;
+  width: calc(var(--c) * 0.36 + 4px);
+  height: calc(var(--c) * 0.36 + 4px);
+  border-radius: 50%;
+  background: var(--lampe);
+  box-shadow: 0 0 0 2px var(--blekk);
+  color: var(--blekk);
+  font: 900 calc(var(--c) * 0.3 + 2px) / 1 var(--font-display);
+  font-style: normal;
+  transform: translate(-50%, -50%);
+}
+
+.sb-tegn.brutt {
+  background: #c4261e;
+  box-shadow: 0 0 0 2px var(--papir), 0 0 0 4px #c4261e;
+  color: #fff;
+}
+
+.sb-celle.blink {
+  animation: sb-blink 0.6s ease-out;
+}
+
+.sb-celle.rist {
+  animation: sb-rist 0.38s ease-in-out;
+}
+
+.sb-celle.hintmal .sb-prikk {
+  animation: sb-pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.sb-brett.vant .sb-celle .sb-prikk {
+  animation: sb-pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  animation-delay: var(--f, 0ms);
+}
+
+@keyframes sb-blink {
+  40% {
+    background: var(--lampe);
+  }
+}
+
+@keyframes sb-rist {
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes sb-pop {
+  45% {
+    transform: scale(1.3);
+  }
+}
+
+.sb-pauseboks {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.sb-pauseboks[hidden] {
+  display: none;
+}
+
+.sb-pausekort {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 22px 24px 24px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 18px 40px var(--skygge);
+}
+
+.sb-pausetekst {
+  margin: 0;
+  font: 900 1.4rem/1.15 var(--font-display);
+}
+
+.sb-pausekort .knapp {
+  width: auto;
+  min-width: 200px;
+  margin-top: 8px;
+}
+
+/* The sky and the line under it, centred together. */
+.sb-midt {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Hints and warnings: a line under the board, never over it. While the board is empty it says how
+   to play (the rules sheet says it to a screen reader). */
+.sb-under {
+  position: relative;
+  width: 100%;
+  min-height: 2.6em;
+}
+
+.sb-melding,
+.sb-tips {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font: 800 0.92rem/1.25 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+  transition: opacity 0.2s;
+}
+
+.sb-melding {
+  color: var(--tekst);
+  opacity: 0;
+}
+
+.sb-melding.vis {
+  opacity: 1;
+}
+
+.sb-tips {
+  color: var(--tekst-3);
+  opacity: 0;
+}
+
+.sb-spill.tomt .sb-tips {
+  opacity: 1;
+}
+
+.sb-under:has(.sb-melding.vis) .sb-tips {
+  opacity: 0;
+}
+
+/* ---------- Tools ---------- */
+
+.sb-verktoy {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sb-verk {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 4px 8px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 0.8rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.sb-verk span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sb-verk svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sb-verk:active:not(:disabled) {
+  background: var(--natt-3);
+  transform: scale(0.95);
+}
+
+.sb-verk:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.sb-merke {
+  position: absolute;
+  top: -7px;
+  right: 6px;
+  min-width: 24px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  box-shadow: 0 0 0 2px var(--natt);
+  color: var(--tekst-2);
+  font: 900 0.66rem/1 var(--font-display);
+  font-style: normal;
+  text-align: center;
+}
+
+/* ---------- Home ---------- */
+
+.hjem-knapper .knapp:has(.sb-dagknapp) {
+  gap: 14px;
+  padding-block: 10px;
+}
+
+.sb-dagknapp {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+
+.sb-dagknapp b {
+  font: 900 1.25rem/1.1 var(--font-display);
+}
+
+.sb-dagknapp small {
+  color: var(--blekk-2);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+.sb-kal {
+  display: grid;
+  flex: none;
+  grid-template-rows: auto 1fr;
+  width: 40px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.sb-kal small {
+  padding: 2px 0 1px;
+  background: var(--lilla-dyp);
+  color: #fff;
+  font: 900 0.6rem/1.1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sb-kal b {
+  display: grid;
+  place-items: center;
+  font: 900 1.2rem/1 var(--font-display);
+}
+
+.sb-nedtelling {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.sb-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-daglinje {
+  align-self: center;
+  max-width: 100%;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 60%, var(--strek));
+  color: var(--aksent);
+  font: 800 0.9rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.sb-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  padding-bottom: 12px;
+}
+
+.sb-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sb-rekorder li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 800 0.9rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.sb-rekorder li small {
+  color: var(--tekst-3);
+  font-weight: 700;
+}
+
+/* ---------- Setup ---------- */
+
+.sb-mal {
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  gap: 1px;
+  width: 26px;
+  height: 26px;
+  padding: 2px;
+  border-radius: 6px;
+  background: var(--papir);
+}
+
+.sb-mal i {
+  border-radius: 50%;
+}
+
+.sb-mal i.s {
+  background: var(--blekk);
+}
+
+.sb-mal i.h {
+  box-shadow: inset 0 0 0 1.2px var(--blekk);
+}
+
+/* ---------- Result ---------- */
+
+.sb-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.sb-tall-boks {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 10px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.sb-tall-boks b {
+  font: 900 2.4rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-tall-boks span {
+  font: 800 0.78rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.sb-ny {
+  position: absolute;
+  top: -12px;
+  right: -4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+}
+
+.sb-dagboks {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.sb-rekke {
+  margin: 0;
+  font: 900 1.4rem/1.1 var(--font-display);
+}
+
+/* The solved board in miniature */
+.sb-mini {
+  --m: 15px;
+  display: grid;
+  grid-template-columns: repeat(var(--n), var(--m));
+  grid-auto-rows: var(--m);
+  align-self: center;
+  width: fit-content;
+  margin: 4px 0 8px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--papir);
+  box-shadow: 0 0 0 3px var(--blekk), 0 8px 20px var(--skygge);
+  transform: rotate(-2deg);
+}
+
+.sb-mini i {
+  margin: 2px;
+  border-radius: 50%;
+}
+
+.sb-mini i.s {
+  background: var(--blekk);
+}
+
+.sb-mini i.h {
+  box-shadow: inset 0 0 0 2px var(--blekk);
+}
+
+/* ---------- Short and narrow phones ---------- */
+
+@media (max-height: 700px) {
+  .sb-spill {
+    gap: 6px;
+  }
+
+  .sb-stat,
+  .sb-klokke {
+    padding: 5px 4px 4px;
+  }
+
+  .sb-pauseikon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .sb-verk {
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 4px;
+  }
+
+  .sb-verk svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sb-under {
+    min-height: 2.4em;
+  }
+
+  .sb-melding,
+  .sb-tips {
+    font-size: 0.84rem;
+  }
+
+  .sb-mini {
+    --m: 12px;
+  }
+}
+
+@media (max-width: 359px) {
+  .sb-verk span {
+    font-size: 0.7rem;
+  }
+
+  .sb-verk {
+    grid-template-columns: none;
+  }
+
+  .sb-stat b,
+  .sb-klokke b {
+    font-size: 1rem;
+  }
+
+  .sb-klokke {
+    column-gap: 5px;
+  }
+
+  .sb-pauseikon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sb-tall-boks b {
+    font-size: 2rem;
+  }
+}
+
+/* ---------- Landscape phones: the board on the left, the rest on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="sebraen"] .app:has(.sb-spill) {
+    max-width: 1000px;
+  }
+
+  .sb-spill {
+    display: grid;
+    grid-template-columns: min(calc(100dvh - 70px), 54vw) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    column-gap: 20px;
+    row-gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .sb-flate {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .sb-topp {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .sb-plass {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .sb-under {
+    min-height: 4em;
+  }
+
+  .sb-spill .dokk {
+    position: static;
+    grid-column: 2;
+    grid-row: 3;
+    align-self: end;
+    margin: 0;
+    padding: 0 0 max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .sb-verk {
+    padding: 11px 6px;
+  }
+}
+
+.sb-plass:empty {
+  display: none;
+}

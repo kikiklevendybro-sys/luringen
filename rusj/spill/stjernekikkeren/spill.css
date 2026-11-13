@@ -1,0 +1,959 @@
+/* Stjernekikkeren — one star per row, column and patch of sky. Everything is prefixed "sk-".
+   The board is a night sky cut into patches. A patch is told apart by three things at once: thick
+   cream edges, its own pattern and its own colour (never colour alone). --c is the cell size. */
+
+/* ---------- The play screen fills the phone exactly (no scroll, no rubber band, no zoom) ---------- */
+
+html.sk-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.sk-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.sk-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.sk-fast main,
+html.sk-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.sk-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sk-spill .dokk {
+  gap: 10px;
+  padding-top: 4px;
+  background: none;
+}
+
+/* ---------- Info row ---------- */
+
+.sk-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.sk-stat,
+.sk-klokke {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 7px 4px 6px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+}
+
+.sk-stat small,
+.sk-klokke small {
+  color: var(--tekst-3);
+  font: 800 0.64rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sk-stat b,
+.sk-klokke b {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 1.12rem/1.05 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sk-stat:last-child b {
+  color: var(--lampe);
+}
+
+.sk-klokke {
+  position: relative;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: center;
+  column-gap: 9px;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+  cursor: pointer;
+}
+
+.sk-klokketekst {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sk-pauseikon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+}
+
+.sk-pauseikon svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--blekk);
+}
+
+.sk-pauseikon .av,
+.sk-spill.pauset .sk-pauseikon .pa {
+  display: none;
+}
+
+.sk-spill.pauset .sk-pauseikon .av {
+  display: inline;
+}
+
+.sk-spill.pauset .dokk {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.sk-klokke:active {
+  transform: scale(0.96);
+}
+
+/* ---------- The sky ---------- */
+
+.sk-flate {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+.sk-brett {
+  --c: 40px;
+  --kant: #fff1dd;
+  --tynn: rgba(255, 241, 221, 0.2);
+  --fokus: var(--lampe);
+  --fokus-2: var(--blekk);
+  display: grid;
+  grid-template-columns: repeat(var(--n), var(--c));
+  grid-auto-rows: var(--c);
+  border-radius: 12px;
+  background: var(--natt);
+  box-shadow: 0 0 0 4px var(--kant), 0 0 0 7px var(--natt-3), 0 18px 36px var(--skygge);
+  overflow: hidden;
+  touch-action: none;
+  transition: filter 0.2s, opacity 0.2s;
+}
+
+.sk-spill.pauset .sk-brett {
+  opacity: 0.35;
+  filter: blur(9px);
+}
+
+.sk-celle {
+  --kt: 0px;
+  --kb: 0px;
+  --kl: 0px;
+  --kr: 0px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--c);
+  height: var(--c);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: var(--fc);
+  background-image: var(--mp);
+  background-size: var(--ms, 9px 9px);
+  box-shadow:
+    inset 0 var(--kt) 0 0 var(--kant),
+    inset 0 calc(-1 * var(--kb)) 0 0 var(--kant),
+    inset var(--kl) 0 0 0 var(--kant),
+    inset calc(-1 * var(--kr)) 0 0 0 var(--kant),
+    inset 0 0 0 0.5px var(--tynn);
+  color: var(--tekst);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.sk-celle.kt,
+.sk-mini .kt {
+  --kt: 2px;
+}
+
+.sk-celle.kb,
+.sk-mini .kb {
+  --kb: 2px;
+}
+
+.sk-celle.kl,
+.sk-mini .kl {
+  --kl: 2px;
+}
+
+.sk-celle.kr,
+.sk-mini .kr {
+  --kr: 2px;
+}
+
+/* Ten patches: colour + pattern (dots, stripes, checks, rings …) */
+.sk-f0 {
+  --fc: #b23f3a;
+  --mp: none;
+}
+
+.sk-f1 {
+  --fc: #bb6418;
+  --mp: radial-gradient(circle, rgba(255, 241, 221, 0.34) 1.5px, transparent 1.8px);
+  --ms: 8px 8px;
+}
+
+.sk-f2 {
+  --fc: #857a12;
+  --mp: repeating-linear-gradient(45deg, rgba(255, 241, 221, 0.26) 0 2px, transparent 2px 7px);
+  --ms: auto;
+}
+
+.sk-f3 {
+  --fc: #2a8447;
+  --mp: repeating-linear-gradient(0deg, rgba(255, 241, 221, 0.26) 0 2px, transparent 2px 7px);
+  --ms: auto;
+}
+
+.sk-f4 {
+  --fc: #0f7c76;
+  --mp: repeating-linear-gradient(-45deg, rgba(255, 241, 221, 0.26) 0 2px, transparent 2px 7px);
+  --ms: auto;
+}
+
+.sk-f5 {
+  --fc: #2670b2;
+  --mp: repeating-linear-gradient(90deg, rgba(255, 241, 221, 0.26) 0 2px, transparent 2px 7px);
+  --ms: auto;
+}
+
+.sk-f6 {
+  --fc: #3b4cbd;
+  --mp: conic-gradient(rgba(255, 241, 221, 0.2) 25%, transparent 0 50%, rgba(255, 241, 221, 0.2) 0 75%, transparent 0);
+  --ms: 10px 10px;
+}
+
+.sk-f7 {
+  --fc: #6c42bf;
+  --mp: radial-gradient(circle, transparent 2px, rgba(255, 241, 221, 0.32) 2.3px 3.4px, transparent 3.7px);
+  --ms: 11px 11px;
+}
+
+.sk-f8 {
+  --fc: #9c3389;
+  --mp: repeating-linear-gradient(45deg, rgba(255, 241, 221, 0.2) 0 1.5px, transparent 1.5px 6px), repeating-linear-gradient(-45deg, rgba(255, 241, 221, 0.2) 0 1.5px, transparent 1.5px 6px);
+  --ms: auto;
+}
+
+.sk-f9 {
+  --fc: #56607a;
+  --mp: linear-gradient(rgba(255, 241, 221, 0.24) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(255, 241, 221, 0.24) 1.5px, transparent 1.5px);
+  --ms: 8px 8px;
+}
+
+/* A dot: no star here. Auto dots (from the stars on the board) are smaller and fainter. */
+.sk-prikk {
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: var(--papir);
+  box-shadow: 0 0 0 2px rgba(23, 14, 43, 0.55);
+}
+
+.sk-celle.ute::before {
+  position: absolute;
+  inset: 0;
+  background: rgba(21, 12, 40, 0.32);
+  content: "";
+}
+
+.sk-celle.ute::after {
+  position: relative;
+  width: 14%;
+  height: 14%;
+  border-radius: 50%;
+  background: rgba(255, 241, 221, 0.62);
+  content: "";
+}
+
+.sk-stjerne {
+  width: 76%;
+  height: 76%;
+  fill: var(--lampe);
+  stroke: var(--blekk);
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 5px rgba(255, 210, 63, 0.55));
+}
+
+/* A star from a hint: cream with a gold edge (and «fra hint» in its name). */
+.sk-celle.hintet .sk-stjerne {
+  fill: var(--papir);
+  stroke: var(--lampe-dyp);
+}
+
+/* A star that breaks a rule: a red ring and a «!» badge — more than colour. */
+.sk-celle.konflikt {
+  box-shadow: inset 0 0 0 3px #ff5a4e, inset 0 0 0 6px rgba(23, 14, 43, 0.5);
+}
+
+.sk-celle.konflikt::after {
+  position: absolute;
+  top: 4%;
+  right: 4%;
+  display: grid;
+  place-items: center;
+  width: 38%;
+  height: 38%;
+  border-radius: 50%;
+  background: #c4261e;
+  box-shadow: 0 0 0 2px var(--papir);
+  color: #fff;
+  font: 900 calc(var(--c) * 0.28) / 1 var(--font-display);
+  content: "!";
+}
+
+.sk-celle:focus-visible {
+  z-index: 2;
+  outline: 3px solid var(--lampe);
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 6px var(--blekk);
+}
+
+.sk-celle.blink {
+  animation: sk-blink 0.6s ease-out;
+}
+
+.sk-celle.rist {
+  animation: sk-rist 0.38s ease-in-out;
+}
+
+.sk-celle.hintmal .sk-stjerne,
+.sk-celle.lys .sk-stjerne {
+  animation: sk-lys 0.7s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.sk-brett.vant .sk-stjerne {
+  filter: drop-shadow(0 0 9px rgba(255, 210, 63, 0.95));
+}
+
+@keyframes sk-blink {
+  40% {
+    filter: brightness(1.7);
+  }
+}
+
+@keyframes sk-rist {
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes sk-lys {
+  40% {
+    transform: scale(1.45) rotate(18deg);
+  }
+}
+
+.sk-pauseboks {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.sk-pauseboks[hidden] {
+  display: none;
+}
+
+.sk-pausekort {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 22px 24px 24px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 18px 40px var(--skygge);
+}
+
+.sk-pausetekst {
+  margin: 0;
+  font: 900 1.4rem/1.15 var(--font-display);
+}
+
+.sk-pausekort .knapp {
+  width: auto;
+  min-width: 200px;
+  margin-top: 8px;
+}
+
+/* The sky and the line under it, centred together. */
+.sk-midt {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Hints and warnings: a line under the board, never over it. While the board is empty it says how
+   to play (the rules sheet says it to a screen reader). */
+.sk-under {
+  position: relative;
+  width: 100%;
+  min-height: 2.6em;
+}
+
+.sk-melding,
+.sk-tips {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font: 800 0.92rem/1.25 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+  transition: opacity 0.2s;
+}
+
+.sk-melding {
+  color: var(--tekst);
+  opacity: 0;
+}
+
+.sk-melding.vis {
+  opacity: 1;
+}
+
+.sk-tips {
+  color: var(--tekst-3);
+  opacity: 0;
+}
+
+.sk-spill.tomt .sk-tips {
+  opacity: 1;
+}
+
+.sk-under:has(.sk-melding.vis) .sk-tips {
+  opacity: 0;
+}
+
+/* ---------- Tools ---------- */
+
+.sk-verktoy {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sk-verk {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 4px 8px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 0.8rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.sk-verk span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sk-verk svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sk-verk[data-h="auto"] svg circle {
+  fill: currentColor;
+  stroke: none;
+}
+
+.sk-verk[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--aksent) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--aksent);
+}
+
+.sk-verk:active:not(:disabled) {
+  background: var(--natt-3);
+  transform: scale(0.95);
+}
+
+.sk-verk:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.sk-merke {
+  position: absolute;
+  top: -7px;
+  right: 6px;
+  min-width: 24px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  box-shadow: 0 0 0 2px var(--natt);
+  color: var(--tekst-2);
+  font: 900 0.66rem/1 var(--font-display);
+  font-style: normal;
+  text-align: center;
+}
+
+.sk-verk[aria-pressed="true"] .sk-merke {
+  background: var(--aksent);
+  color: var(--blekk);
+}
+
+/* ---------- Home ---------- */
+
+.hjem-knapper .knapp:has(.sk-dagknapp) {
+  gap: 14px;
+  padding-block: 10px;
+}
+
+.sk-dagknapp {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+
+.sk-dagknapp b {
+  font: 900 1.25rem/1.1 var(--font-display);
+}
+
+.sk-dagknapp small {
+  color: var(--blekk-2);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+.sk-kal {
+  display: grid;
+  flex: none;
+  grid-template-rows: auto 1fr;
+  width: 40px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.sk-kal small {
+  padding: 2px 0 1px;
+  background: var(--lilla-dyp);
+  color: #fff;
+  font: 900 0.6rem/1.1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sk-kal b {
+  display: grid;
+  place-items: center;
+  font: 900 1.2rem/1 var(--font-display);
+}
+
+.sk-nedtelling {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.sk-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-daglinje {
+  align-self: center;
+  max-width: 100%;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 60%, var(--strek));
+  color: var(--aksent);
+  font: 800 0.9rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.sk-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  padding-bottom: 12px;
+}
+
+.sk-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sk-rekorder li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 800 0.9rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.sk-rekorder li small {
+  color: var(--tekst-3);
+  font-weight: 700;
+}
+
+/* ---------- Setup ---------- */
+
+.sk-styrke {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 24px;
+}
+
+.sk-styrke i {
+  width: 6px;
+  border-radius: 3px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.sk-styrke i:nth-child(1) {
+  height: 8px;
+}
+
+.sk-styrke i:nth-child(2) {
+  height: 12px;
+}
+
+.sk-styrke i:nth-child(3) {
+  height: 16px;
+}
+
+.sk-styrke i:nth-child(4) {
+  height: 20px;
+}
+
+.sk-styrke i:nth-child(5) {
+  height: 24px;
+}
+
+.sk-styrke i.pa {
+  background: var(--nf, var(--aksent));
+  box-shadow: none;
+}
+
+/* ---------- Result ---------- */
+
+.sk-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.sk-tall-boks {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 10px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.sk-tall-boks b {
+  font: 900 2.4rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-tall-boks span {
+  font: 800 0.78rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.sk-ny {
+  position: absolute;
+  top: -12px;
+  right: -4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+}
+
+.sk-dagboks {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.sk-rekke {
+  margin: 0;
+  font: 900 1.4rem/1.1 var(--font-display);
+}
+
+/* The solved sky in miniature */
+.sk-mini {
+  --m: 15px;
+  --kant: #fff1dd;
+  --tynn: rgba(255, 241, 221, 0.18);
+  display: grid;
+  grid-template-columns: repeat(var(--n), var(--m));
+  grid-auto-rows: var(--m);
+  align-self: center;
+  width: fit-content;
+  margin: 4px 0 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 0 0 3px var(--kant), 0 8px 20px var(--skygge);
+  transform: rotate(-2deg);
+}
+
+.sk-mini i {
+  --kt: 0px;
+  --kb: 0px;
+  --kl: 0px;
+  --kr: 0px;
+  display: grid;
+  place-items: center;
+  background-color: var(--fc);
+  box-shadow:
+    inset 0 var(--kt) 0 0 var(--kant),
+    inset 0 calc(-1 * var(--kb)) 0 0 var(--kant),
+    inset var(--kl) 0 0 0 var(--kant),
+    inset calc(-1 * var(--kr)) 0 0 0 var(--kant);
+  color: var(--lampe);
+  font: 900 0.7rem/1 var(--font-display);
+  font-style: normal;
+  text-shadow: 0 0 2px var(--blekk);
+}
+
+.sk-mini .kt {
+  --kt: 1px;
+}
+
+.sk-mini .kb {
+  --kb: 1px;
+}
+
+.sk-mini .kl {
+  --kl: 1px;
+}
+
+.sk-mini .kr {
+  --kr: 1px;
+}
+
+/* ---------- Short and narrow phones ---------- */
+
+@media (max-height: 700px) {
+  .sk-spill {
+    gap: 6px;
+  }
+
+  .sk-stat,
+  .sk-klokke {
+    padding: 5px 4px 4px;
+  }
+
+  .sk-pauseikon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .sk-verk {
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 4px;
+  }
+
+  .sk-verk svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sk-under {
+    min-height: 2.4em;
+  }
+
+  .sk-melding,
+  .sk-tips {
+    font-size: 0.84rem;
+  }
+
+  .sk-mini {
+    --m: 12px;
+  }
+}
+
+@media (max-width: 359px) {
+  .sk-verk span {
+    font-size: 0.7rem;
+  }
+
+  .sk-verk {
+    grid-template-columns: none;
+  }
+
+  .sk-stat b,
+  .sk-klokke b {
+    font-size: 1rem;
+  }
+
+  .sk-klokke {
+    column-gap: 5px;
+  }
+
+  .sk-pauseikon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sk-tall-boks b {
+    font-size: 2rem;
+  }
+}
+
+/* ---------- Landscape phones: the sky on the left, the rest on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="stjernekikkeren"] .app:has(.sk-spill) {
+    max-width: 1000px;
+  }
+
+  .sk-spill {
+    display: grid;
+    grid-template-columns: min(calc(100dvh - 70px), 54vw) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    column-gap: 20px;
+    row-gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .sk-flate {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .sk-topp {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .sk-plass {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .sk-under {
+    min-height: 4em;
+  }
+
+  .sk-spill .dokk {
+    position: static;
+    grid-column: 2;
+    grid-row: 3;
+    align-self: end;
+    margin: 0;
+    padding: 0 0 max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .sk-verktoy {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sk-verk {
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 6px;
+  }
+}
+
+.sk-plass:empty {
+  display: none;
+}

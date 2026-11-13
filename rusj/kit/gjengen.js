@@ -1242,6 +1242,9 @@
     skronemakeren: ["#b48cff", "S"],
     // Part 4 (rusj/SPILL4.md)
     skilpadda: ["#34b892", "S"],
+    stjernekikkeren: ["#7d8cff", "S"],
+    sebraen: ["#f2ecff", "Z"],
+    nostet: ["#ff8fb8", "N"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 
