@@ -141,3 +141,16 @@ test("the committed rusj/topp.json is valid", () => {
   const topp = lesTopp(join(import.meta.dirname, "..", "rusj/topp.json"));
   assert.ok(topp && Array.isArray(topp.spill) && topp.spill.length <= MAKS);
 });
+
+test("hentToppD1: reads the table through Cloudflare's API, only games with enough starts", async () => {
+  const { hentToppD1, MIN_STARTER } = await import("../scripts/topp.mjs");
+  let kall = null;
+  const rader = [{ id: "spionen", startet: 40 }, { id: "ordugla", startet: MIN_STARTER }, { id: "humla", startet: MIN_STARTER - 1 }, { id: "finnesikke", startet: 99 }];
+  const hent = async (url, valg) => ((kall = { url, valg }), { ok: true, status: 200, json: async () => ({ success: true, result: [{ results: rader }] }) });
+  const env = { CLOUDFLARE_API_TOKEN: "t".repeat(40), CLOUDFLARE_ACCOUNT_ID: "a".repeat(32) };
+  const topp = await hentToppD1({ env, hent, idag: new Date("2026-11-13T12:00:00Z") });
+  assert.deepEqual(topp, { oppdatert: "2026-11-13", spill: ["spionen", "ordugla"] });
+  assert.match(kall.url, /\/accounts\/a{32}\/d1\/database\/[0-9a-f-]{36}\/query$/);
+  assert.deepEqual(JSON.parse(kall.valg.body).params, ["2026-10-15", "2026-11-13"]);
+  assert.equal(await hentToppD1({ env: {}, hent, rot: "/finnes/ikke" }), null);
+});

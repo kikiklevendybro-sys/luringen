@@ -5,6 +5,8 @@
 // first five an edition has, never an 18+ game, and no row at all with fewer than three
 // (lesTopp and toppSpill in scripts/rusj.mjs).
 //   node scripts/topp.mjs        then build, look at the front page, and commit rusj/topp.json
+// Reads the database through Cloudflare's API when CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID
+// are in .env (hentToppD1); otherwise it asks the Worker's /admin/data.json with the admin key.
 // Needs RUSJ_ADMIN_NOKKEL in .env at the root of the repository (or in the environment). The key
 // goes only into the X-Admin-Nokkel header of one GET to STAT_ADRESSE, and is never printed.
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
@@ -14,6 +16,8 @@ import { STAT_ADRESSE, statOpprinnelse } from "./rusj.mjs";
 
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const MAKS = 10;
+// A game joins the list only after this many starts in 30 days: below it the order is chance.
+export const MIN_STARTER = 10;
 
 // One value from the text of a .env file: NAME=value, NAME="value", export NAME=value, # comments.
 export function lesEnv(tekst, navn) {
@@ -77,6 +81,43 @@ export async function hentTopp({ rot = ROT, env = process.env, hent = globalThis
   return { oppdatert, spill: toppFraData(data, kjenteSpill(rot)) };
 }
 
+// The same list read straight from the D1 database through Cloudflare's API. /admin/data.json sits
+// behind Cloudflare Access, which stops a script at the door before the Worker sees the key; the
+// API token that deploys the Worker can read the table. Needs CLOUDFLARE_API_TOKEN and
+// CLOUDFLARE_ACCOUNT_ID in .env (never printed); the database id is in statistikk/wrangler.toml.
+export async function hentToppD1({ rot = ROT, env = process.env, hent = globalThis.fetch, idag = new Date() } = {}) {
+  const envFil = join(rot, ".env");
+  const envTekst = existsSync(envFil) ? readFileSync(envFil, "utf8") : "";
+  const verdi = (navn) => (env && env[navn]) || lesEnv(envTekst, navn);
+  const token = verdi("CLOUDFLARE_API_TOKEN");
+  const konto = verdi("CLOUDFLARE_ACCOUNT_ID");
+  if (!token || !konto) return null;
+  const toml = readFileSync(join(rot, "statistikk/wrangler.toml"), "utf8");
+  const db = (/^\s*database_id\s*=\s*"([0-9a-f-]{36})"/m.exec(toml) || [])[1];
+  if (!db || !/^[0-9a-f]{32}$/.test(konto)) throw new Error("Fant ikke database_id i statistikk/wrangler.toml eller en gyldig CLOUDFLARE_ACCOUNT_ID.");
+  const iDag = osloDag(idag);
+  const fra = new Date(Date.parse(iDag + "T12:00:00Z") - 29 * 864e5).toISOString().slice(0, 10);
+  const sql = "SELECT substr(nokkel, 7) AS id, SUM(n) AS startet FROM teller WHERE nokkel LIKE 'start.%' AND dag >= ?1 AND dag <= ?2 GROUP BY nokkel ORDER BY startet DESC, nokkel LIMIT 60";
+  let svar;
+  try {
+    svar = await hent(`https://api.cloudflare.com/client/v4/accounts/${konto}/d1/database/${db}/query`, {
+      method: "POST",
+      headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+      body: JSON.stringify({ sql, params: [fra, iDag] }),
+      cache: "no-store",
+    });
+  } catch (e) {
+    throw new Error("Fikk ikke kontakt med Cloudflares API.");
+  }
+  if (svar.status === 401 || svar.status === 403) throw new Error(`Cloudflare godtok ikke API-nøkkelen (HTTP ${svar.status}). Sjekk CLOUDFLARE_API_TOKEN i .env.`);
+  if (!svar.ok) throw new Error(`Cloudflares API svarte HTTP ${svar.status}.`);
+  const data = await svar.json().catch(() => null);
+  const rader = data && data.success && Array.isArray(data.result) && data.result[0] && Array.isArray(data.result[0].results) ? data.result[0].results : null;
+  if (!rader) throw new Error("Uventet svar fra Cloudflares API.");
+  const nok = rader.filter((r) => Number(r.startet) >= MIN_STARTER);
+  return { oppdatert: iDag, spill: toppFraData({ perioder: [{ id: "d30", spill: nok }] }, kjenteSpill(rot)) };
+}
+
 export function skrivTopp(rot, topp) {
   const fil = join(rot, "rusj/topp.json");
   writeFileSync(fil, JSON.stringify({ oppdatert: topp.oppdatert, spill: topp.spill }, null, 2) + "\n");
@@ -85,7 +126,7 @@ export function skrivTopp(rot, topp) {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   try {
-    const topp = await hentTopp();
+    const topp = (await hentToppD1()) || (await hentTopp());
     skrivTopp(ROT, topp);
     console.log(`✓ rusj/topp.json: ${topp.spill.length} spill, oppdatert ${topp.oppdatert}${topp.spill.length ? ` (${topp.spill.join(", ")})` : ""}`);
     if (topp.spill.length < 3) console.log("  Færre enn tre spill: raden «Mest spilt nå» vises ikke ennå.");
