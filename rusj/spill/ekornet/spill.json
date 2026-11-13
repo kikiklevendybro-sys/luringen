@@ -1,0 +1,33 @@
+{
+  "id": "ekornet",
+  "navn": "Ekornet",
+  "undertittel": "Match 3-spill",
+  "beskrivelse": "Gratis match 3 på norsk: bytt to brikker og få tre like nøtter, blader eller sopper på rad. Brett med mål, eller 30 trekk for rekord. Ingen liv, ingen reklame.",
+  "kort": "Bytt to og få tre like på rad – ekornet samler til vinteren.",
+  "spillere": [1, 1],
+  "alder": 6,
+  "minutter": [3, 20],
+  "mobiler": "en",
+  "tagger": ["alene", "tenke", "barn"],
+  "rekkefolge": 77,
+  "farge": "#f0954a",
+  "sok": ["match 3", "match-3", "tre på rad spill", "bytt og match", "matchespill", "tre like", "ekorn spill"],
+  "i18n": {
+    "en": {
+      "navn": "Nutty",
+      "undertittel": "Match 3",
+      "kort": "Swap two to line up three alike – the squirrel is stocking up for winter.",
+      "beskrivelse": "Free match 3 in your browser: swap two pieces to line up three acorns, leaves or mushrooms. Levels with goals, or 30 moves for a high score. No lives, no ads.",
+      "slug": "nutty",
+      "sok": ["match 3", "match three", "match 3 game", "swap and match", "three in a row puzzle", "squirrel game"]
+    },
+    "da": {
+      "navn": "Egernet",
+      "undertittel": "Match 3",
+      "kort": "Byt to, og få tre ens på række – egernet samler til vinteren.",
+      "beskrivelse": "Gratis match 3 på dansk: byt to brikker, og få tre ens agern, blade eller svampe på række. Baner med mål eller 30 træk for rekord. Ingen liv, ingen reklamer.",
+      "slug": "egernet",
+      "sok": ["match 3", "match 3 spil", "tre på række spil", "byt og match", "matchspil", "egern spil"]
+    }
+  }
+}

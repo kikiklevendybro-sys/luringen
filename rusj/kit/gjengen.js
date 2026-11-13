@@ -1580,6 +1580,7 @@
     samleren: ["#4fb8f0", "S"],
     hjerteknuseren: ["#ff6f91", "H"],
     bobla: ["#7fd8ff", "B"],
+    ekornet: ["#f0954a", "E"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 
