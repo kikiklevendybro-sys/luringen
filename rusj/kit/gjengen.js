@@ -1290,6 +1290,54 @@
           ${pote(104, 108, 20)}${pote(116, 96, 30)}`;
       },
     },
+
+
+    // Narren: a purple court jester with a cheeky grin under a three-pointed fool's cap with bells,
+    // holding two cards – the one who is left with cards at the end.
+    narren: {
+      farge: "#a77bff",
+      tegn: (f) => `
+        ${hode(f)}
+        ${form("M20 40 Q10 22 -1 10 Q22 8 42 26Z", ROSA)}
+        ${form("M40 28 Q48 4 60 -6 Q72 4 80 28Z", LAMPE)}
+        ${form("M78 26 Q98 8 121 10 Q110 22 100 40Z", ROSA)}
+        <circle cx="-1" cy="10" r="5.5" fill="${LAMPE}" stroke="${B}" stroke-width="3.2"/>
+        <circle cx="60" cy="-6" r="5.5" fill="${P}" stroke="${B}" stroke-width="3.2"/>
+        <circle cx="121" cy="10" r="5.5" fill="${LAMPE}" stroke="${B}" stroke-width="3.2"/>
+        ${form("M15 46 Q60 22 105 46 L103 36 Q60 12 17 36Z", LAMPE, 3.8)}
+        <path d="M38 33 l4 -5 4 5 -4 5Z M56 27 l4 -5 4 5 -4 5Z M74 33 l4 -5 4 5 -4 5Z" fill="${ROSA}"/>
+        ${kinn(80)}
+        ${oyne({ y: 62, dx: 3, dy: 1 })}
+        ${strek("M28 46 Q40 41 51 47M69 45 Q80 39 92 44", 4.5)}
+        ${form("M40 82 Q60 104 80 82 Q60 90 40 82Z", B, 3.5)}<path d="M50 89 Q60 93 70 89 Q62 98 50 89Z" fill="${ROSA}"/>
+        ${vifte(100, 124, [[-16, spar(100, 104, 5)], [10, hjerte(100, 104, 5, ROSA)]])}
+        ${glimt(10, 92, 6)}`,
+    },
+
+
+    // Golfballen: a dimpled golf ball in a green flat cap, holding a little flag – and a card,
+    // because this golf is played with cards.
+    golfballen: {
+      farge: "#4fc97a",
+      tegn: (f) => `
+        ${hode("#f7f3ea")}
+        <g fill="${B}" fill-opacity=".1">
+          <circle cx="24" cy="66" r="4"/><circle cx="20" cy="82" r="3.6"/><circle cx="30" cy="96" r="3.6"/>
+          <circle cx="96" cy="66" r="4"/><circle cx="100" cy="82" r="3.6"/><circle cx="90" cy="96" r="3.6"/>
+          <circle cx="44" cy="100" r="3"/><circle cx="76" cy="100" r="3"/><circle cx="60" cy="106" r="3"/>
+          <circle cx="60" cy="72" r="2.6"/><circle cx="50" cy="40" r="3"/><circle cx="70" cy="40" r="3"/>
+        </g>
+        ${form("M15 46 Q14 12 60 10 Q104 12 103 42 Q60 30 15 46Z", f)}
+        ${form("M74 40 Q102 30 118 40 Q104 50 78 48Z", "#2f9a55", 4)}
+        <circle cx="60" cy="13" r="4.5" fill="#2f9a55" stroke="${B}" stroke-width="3"/>
+        ${strek("M30 34 Q46 24 64 24", 3, "rgba(255,241,221,.55)")}
+        ${kinn(80)}
+        ${oyne({ y: 62, dx: 2, dy: 1 })}
+        ${smil(84, 15)}
+        ${pinne("M8 116 L8 70", "#fff1dd", 2.5)}
+        ${form("M10 70 L30 76 L10 84Z", ROD, 3.2)}
+        ${vifte(104, 124, [[12, `${tekst(104, 98, "2", 14, ROD)}${hjerte(104, 107, 4.5)}`]])}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

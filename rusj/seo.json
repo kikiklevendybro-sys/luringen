@@ -809,6 +809,28 @@
         "dagens ordjakt",
         "ordsøk"
       ]
+    },
+    "narren": {
+      "tittel": "Idiot kortspill – gratis mot mobilen eller venner",
+      "frase": "Idiot",
+      "beskrivelse": "Spill idiot gratis på norsk: likt eller høyere, toeren nullstiller og tieren brenner bunken. Mot mobilen på tre nivåer, eller 2–4 på samme mobil. Uten konto.",
+      "sok": [
+        "idiot regler",
+        "idiot kortspill regler",
+        "idiot mot datamaskin",
+        "kortspillet idiot på nett"
+      ]
+    },
+    "golfballen": {
+      "tittel": "Golf kortspill – gratis mot mobilen eller venner",
+      "frase": "Kortgolf",
+      "beskrivelse": "Spill kortgolf gratis på norsk: bytt deg ned til lavest sum, og like par teller null. Seks eller fire kort, mot mobilen på tre nivåer eller 2–4 på én mobil.",
+      "sok": [
+        "golf kortspill regler",
+        "kortgolf regler",
+        "golf kortspill mot datamaskin",
+        "golf med kort på nett"
+      ]
     }
   }
 }
