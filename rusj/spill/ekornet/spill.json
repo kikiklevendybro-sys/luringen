@@ -1,0 +1,34 @@
+{
+  "id": "ekornet",
+  "navn": "Ekornet",
+  "undertittel": "Gangetabellen",
+  "beskrivelse": "Gratis gangetabell og hoderegning for barn: øverunder og en rolig utfordring uten klokke. Velg tabeller, se fremgangen – og samle nøtter for hvert riktig svar.",
+  "kort": "Øv på gangetabellen og hoderegning – og samle nøtter.",
+  "spillere": [1, 1],
+  "minutter": [3, 15],
+  "mobiler": "en",
+  "tagger": ["barn", "alene", "tenke"],
+  "rekkefolge": 82,
+  "farge": "#e8894a",
+  "alder": 6,
+  "sok": ["gangetabellen", "gangetabell", "lille gangetabell", "hoderegning", "matte for barn", "regning", "pluss og minus", "deling", "mattespill", "øve gangetabellen", "regnespill", "multiplikasjon"],
+  "alias": ["gangetabellen"],
+  "i18n": {
+    "en": {
+      "navn": "Hazel",
+      "undertittel": "Times tables",
+      "kort": "Practise your times tables and mental maths – and collect nuts.",
+      "beskrivelse": "Free times tables and mental maths for children: practice rounds and a calm challenge with no clock. Pick your tables, watch your progress and collect nuts.",
+      "slug": "hazel",
+      "sok": ["times tables", "times tables practice", "multiplication tables", "mental maths", "maths for kids", "maths game", "adding and taking away", "division", "times tables game"]
+    },
+    "da": {
+      "navn": "Egernet",
+      "undertittel": "Den lille tabel",
+      "kort": "Øv den lille tabel og hovedregning – og saml nødder.",
+      "beskrivelse": "Gratis tabeltræning og hovedregning for børn: øverunder og en rolig udfordring uden ur. Vælg tabeller, se dine fremskridt – og saml nødder for hvert rigtigt svar.",
+      "slug": "egernet",
+      "sok": ["den lille tabel", "tabeller", "gangetabel", "hovedregning", "matematik for børn", "regnespil", "plus og minus", "division", "tabeltræning", "matematikspil"]
+    }
+  }
+}

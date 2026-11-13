@@ -728,6 +728,17 @@
         "følg mønsteret spil",
         "gentag rækken"
       ]
+    },
+    "ekornet": {
+      "tittel": "Den lille tabel – gratis tabeltræning for børn",
+      "frase": "Den lille tabel",
+      "beskrivelse": "Øv den lille tabel og hovedregning gratis: vælg tabeller, se dine fremskridt i hver tabel, og tag en rolig udfordring uden ur. Plus, minus og division også.",
+      "sok": [
+        "øv den lille tabel online",
+        "tabelspil",
+        "hovedregning for børn",
+        "gangetabel øvelse"
+      ]
     }
   }
 }
