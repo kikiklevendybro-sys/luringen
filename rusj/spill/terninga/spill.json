@@ -11,6 +11,7 @@
   "rekkefolge": 33,
   "farge": "#ff5e6c",
   "motMobilen": true,
+  "terninger": true,
   "sok": ["yatzy", "yahtzee", "maxi yatzy", "terninger", "terningspill", "poengblokk", "yatzy mot data"],
   "i18n": {
     "en": {
