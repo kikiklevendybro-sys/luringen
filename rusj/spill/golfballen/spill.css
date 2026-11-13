@@ -1,0 +1,882 @@
+/* Golfballen. Game styles are prefixed "gb-"; the shared playing cards "sk-". */
+
+/* ---------- Playing cards (the same look in Kortkongen, Bussen and Pyramiden) ----------
+   .sk-kort takes its width from --kortbredde (or --kb on the card itself); the face is an SVG that
+   scales with it. The back uses the game's accent colour. Flip: add .sk-opp. */
+.sk-kort {
+  --kb: var(--kortbredde, 64px);
+  --sk-r: calc(var(--kb) * 0.1);
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--kb);
+  height: calc(var(--kb) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sk-r);
+  background: none;
+  color: inherit;
+  font: inherit;
+  perspective: calc(var(--kb) * 9);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sk-indre {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.3, 1.25, 0.45, 1);
+}
+
+.sk-kort.sk-opp .sk-indre {
+  transform: rotateY(180deg);
+}
+
+.sk-side {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--sk-r);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sk-for {
+  background: linear-gradient(170deg, #fffdf8 0%, #fff8ec 55%, #f9eedd 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 18, 48, 0.16),
+    inset 0 calc(var(--kb) * -0.035) 0 rgba(27, 18, 48, 0.06),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+  transform: rotateY(180deg);
+}
+
+.sk-ansikt {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sk-ansikt text {
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* The back: a woven pattern in the game's colour, a paper rim and the rusj blob in the middle. */
+.sk-bak {
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.32), transparent 46%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    linear-gradient(160deg, color-mix(in srgb, var(--aksent) 82%, #fff) 0%, var(--aksent) 42%, color-mix(in srgb, var(--aksent) 62%, var(--natt)) 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.045) #fff8ec,
+    inset 0 0 0 calc(var(--kb) * 0.065) rgba(27, 18, 48, 0.18),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+}
+
+.sk-bak::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44%;
+  aspect-ratio: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-14 -14 28 28'%3E%3Cpath d='M0 -11 C7 -12 12 -6 11 1 C10 8 5 12 -1 11 C-8 10 -12 5 -11 -2 C-10 -8 -6 -10 0 -11Z' fill='%23fff8ec' stroke='%231b1230' stroke-opacity='.25' stroke-width='1.6'/%3E%3Cpath d='M-4.5 -3.5 C-3 -6.5 1 -7.5 3.5 -6' fill='none' stroke='%231b1230' stroke-opacity='.2' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: translate(-50%, -50%) rotate(-10deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-indre {
+    transition-duration: 0.01ms !important;
+  }
+}
+/* ---------- end of playing cards ---------- */
+
+
+/* ---------- The table ---------- */
+
+.skjerm-spill {
+  --kb-bunke: 64px;
+  --kb-nett: 74px;
+  --kb-mini: 20px;
+}
+
+/* One tight column (the kit's 22 px between parts is for forms). */
+.skjerm-spill:has(.gb-bord) {
+  gap: 8px;
+}
+
+/* The others: name, points and their grid, small. */
+.gb-andre {
+  display: grid;
+  grid-template-columns: repeat(var(--seter, 1), minmax(0, 1fr));
+  gap: 6px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.gb-andre.seter-1 {
+  --seter: 1;
+  max-width: 320px;
+}
+
+.gb-andre.seter-2 {
+  --seter: 2;
+}
+
+.gb-andre.seter-3 {
+  --seter: 3;
+}
+
+.gb-sete {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px 6px 7px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.gb-andre.seter-1 .gb-sete {
+  grid-auto-flow: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 12px 6px 6px;
+}
+
+.gb-sete.aktiv {
+  box-shadow: 0 0 0 3px var(--aksent);
+  transform: translateY(-2px);
+}
+
+.gb-sete.ute {
+  box-shadow: 0 0 0 2px var(--lampe);
+}
+
+.gb-hode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.gb-ava {
+  position: relative;
+  flex: none;
+}
+
+.gb-ava .avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+}
+
+.gb-info {
+  display: grid;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.gb-navn {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.gb-linje {
+  overflow: hidden;
+  color: var(--tekst-2);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.gb-tenker {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  display: flex;
+  gap: 2px;
+  padding: 3px 4px;
+  border-radius: 999px;
+  background: var(--papir);
+}
+
+.gb-tenker i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--blekk);
+  animation: gb-prikk 1s infinite ease-in-out;
+}
+
+.gb-tenker i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.gb-tenker i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes gb-prikk {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+/* A grid of cards: two rows of three (or two). */
+.gb-nett {
+  display: grid;
+  grid-template-columns: repeat(3, var(--kortbredde));
+  justify-content: center;
+  gap: 8px 10px;
+  --kortbredde: var(--kb-nett);
+}
+
+.gb-nett.k2 {
+  grid-template-columns: repeat(2, var(--kortbredde));
+}
+
+.gb-nett.liten {
+  gap: 2px 3px;
+  --kortbredde: var(--kb-mini);
+}
+
+.gb-plass {
+  position: relative;
+  display: block;
+  width: var(--kortbredde);
+  height: calc(var(--kortbredde) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--kortbredde) * 0.1);
+  background: none;
+  color: inherit;
+  font: inherit;
+  touch-action: manipulation;
+}
+
+.gb-plass > .sk-kort {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.18s ease-out, box-shadow 0.18s;
+}
+
+button.gb-plass {
+  cursor: pointer;
+}
+
+button.gb-plass.aktiv > .sk-kort {
+  box-shadow: 0 0 0 3px var(--lampe), 0 0 18px rgba(255, 210, 63, 0.35);
+  border-radius: var(--sk-r);
+}
+
+.gb-meg.bytter button.gb-plass.aktiv > .sk-kort {
+  animation: gb-vink 1.6s infinite ease-in-out;
+}
+
+@keyframes gb-vink {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* A pair in a column counts 0: a green ring and a «0». */
+.gb-plass.par > .sk-kort {
+  box-shadow: 0 0 0 3px #3ddc84;
+  border-radius: var(--sk-r);
+}
+
+.gb-nett:not(.liten) .gb-plass.par::after {
+  content: "0";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #3ddc84;
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  box-shadow: 0 2px 0 rgba(6, 2, 14, 0.35);
+}
+
+.gb-plass:focus-visible {
+  outline: none;
+}
+
+.gb-plass:focus-visible > .sk-kort {
+  outline: 3px solid var(--lampe);
+  outline-offset: 3px;
+  border-radius: var(--sk-r);
+}
+
+/* The pile, the card in hand and the discards */
+.gb-bord {
+  position: relative;
+  display: flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  min-height: calc(var(--kb-bunke) * 1.4 + 20px);
+  padding: 10px 0;
+  border-radius: 28px;
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, #2f9a55 42%, var(--natt)) 0%, color-mix(in srgb, #2f9a55 18%, var(--natt)) 70%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.06);
+}
+
+.gb-stokk,
+.gb-kast {
+  position: relative;
+  display: block;
+  width: var(--kb-bunke);
+  height: calc(var(--kb-bunke) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  --kortbredde: var(--kb-bunke);
+}
+
+.gb-stokk .sk-kort {
+  box-shadow:
+    3px 3px 0 -1px rgba(255, 248, 236, 0.7),
+    6px 6px 0 -2px rgba(255, 248, 236, 0.4);
+}
+
+.gb-stokk[aria-disabled="true"] {
+  opacity: 0.85;
+}
+
+.gb-stokk.klar .sk-kort {
+  animation: gb-puls 1.4s infinite ease-in-out;
+}
+
+@keyframes gb-puls {
+  50% {
+    transform: translateY(-4px);
+    filter: brightness(1.12);
+  }
+}
+
+.gb-kast > .sk-kort {
+  position: absolute;
+  inset: 0;
+}
+
+.gb-kast.klar {
+  box-shadow: 0 0 0 3px var(--lampe), 0 0 22px rgba(255, 210, 63, 0.35);
+  cursor: pointer;
+}
+
+.gb-under {
+  transform: rotate(-8deg) translate(-3px, 2px);
+}
+
+.gb-toppkort.ny {
+  animation: gb-inn 0.36s cubic-bezier(0.2, 1.1, 0.4, 1) both;
+}
+
+@keyframes gb-inn {
+  from {
+    transform: translateY(70px) rotate(10deg) scale(0.85);
+    opacity: 0.5;
+  }
+}
+
+.gb-tom {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+}
+
+.gb-tall {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  z-index: 3;
+  min-width: 24px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  box-shadow: 0 2px 0 rgba(6, 2, 14, 0.35);
+}
+
+.gb-hand {
+  position: relative;
+  width: calc(var(--kb-bunke) * 1.1);
+  height: calc(var(--kb-bunke) * 1.1 * 1.4);
+  --kortbredde: calc(var(--kb-bunke) * 1.1);
+}
+
+.gb-hand:not(.full) {
+  width: 0;
+  margin: 0 -11px;
+}
+
+.gb-handkort {
+  position: absolute;
+  inset: 0;
+  animation: gb-loft 0.34s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+  filter: drop-shadow(0 8px 12px rgba(6, 2, 14, 0.5));
+}
+
+@keyframes gb-loft {
+  from {
+    transform: translate(-50px, 10px) scale(0.8) rotate(-8deg);
+    opacity: 0.4;
+  }
+}
+
+.gb-melding {
+  display: grid;
+  gap: 2px;
+  min-height: 3.1em;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.gb-melding b {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+}
+
+.gb-melding.din b,
+.gb-melding.ferdig b {
+  color: var(--lampe);
+}
+
+.gb-sist {
+  color: var(--tekst-2);
+  font-size: 0.88rem;
+}
+
+.gb-sist-port {
+  margin: 0 0 4px;
+  color: var(--tekst-2);
+  text-align: center;
+}
+
+/* ---------- My grid ---------- */
+
+.gb-meg {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.gb-status {
+  margin: 0;
+  color: var(--tekst-2);
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.gb-status b {
+  color: var(--tekst);
+  font-family: var(--font-display);
+}
+
+/* ---------- The end of a hole ---------- */
+
+.skjerm-spill:has(.gb-hullres) {
+  --kb-nett: 52px;
+}
+
+.gb-hullres {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gb-hullres li,
+.gb-plasser li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 12px 4px 6px;
+  border-radius: 14px;
+  background: var(--natt-2);
+}
+
+.gb-hullres li.best,
+.gb-plasser li.best {
+  box-shadow: 0 0 0 3px var(--lampe);
+}
+
+.gb-hullres .avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+}
+
+.gb-hullres b,
+.gb-plasser b {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.gb-hp {
+  flex: none;
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.gb-sum {
+  flex: none;
+  min-width: 5.5em;
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.gb-plasser {
+  display: grid;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gb-plasser .gb-sum {
+  min-width: 0;
+  margin-left: auto;
+  color: var(--tekst);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.gb-nr {
+  flex: none;
+  width: 1.6em;
+  font-family: var(--font-display);
+  text-align: center;
+}
+
+/* The score card scrolls sideways inside itself, never the page. */
+.gb-kortwrap {
+  max-width: 100%;
+  margin-top: 10px;
+  overflow-x: auto;
+  border-radius: 14px;
+  background: var(--natt-2);
+}
+
+.gb-scorekort {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.gb-scorekort th,
+.gb-scorekort td {
+  padding: 6px 5px;
+  white-space: nowrap;
+}
+
+.gb-scorekort thead th {
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.gb-scorekort tbody th {
+  max-width: 7em;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+}
+
+.gb-scorekort tbody tr + tr {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gb-tot {
+  font-family: var(--font-display);
+}
+
+/* ---------- Home and the crowning ---------- */
+
+.gb-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.gb-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gb-rekorder li,
+.gb-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.gb-rekorder li b,
+.gb-rekordlinje b {
+  color: var(--tekst);
+}
+
+.gb-rekordlinje {
+  margin: 12px auto 0;
+  width: fit-content;
+}
+
+.gb-niva {
+  min-width: 5.5em;
+  font-family: var(--font-display);
+}
+
+/* ---------- Taller and smaller screens ---------- */
+
+@media (min-height: 780px) and (orientation: portrait) {
+  .skjerm-spill {
+    --kb-bunke: 70px;
+    --kb-nett: 82px;
+    --kb-mini: 22px;
+  }
+  .skjerm-spill:has(.gb-hullres) {
+    --kb-nett: 60px;
+  }
+}
+
+@media (max-height: 700px) {
+  .skjerm-spill {
+    --kb-bunke: 44px;
+    --kb-nett: 47px;
+    --kb-mini: 15px;
+  }
+  .skjerm-spill:has(.gb-hullres) .gb-plass.par::after,
+  .skjerm-spill:has(.gb-hullres) .gb-status {
+    display: none;
+  }
+  .skjerm-spill:has(.gb-bord) {
+    gap: 5px;
+  }
+  .skjerm-spill:has(.gb-hullres) {
+    --kb-nett: 34px;
+  }
+  .gb-sete {
+    padding: 4px 4px 5px;
+    gap: 2px;
+  }
+  .gb-andre:not(.seter-3) .gb-sete {
+    grid-auto-flow: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 4px 10px 4px 4px;
+  }
+  .gb-andre.seter-3 .gb-ava {
+    display: none;
+  }
+  .gb-ava .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.85rem;
+  }
+  .gb-bord {
+    gap: 18px;
+    padding: 6px 0;
+    min-height: calc(var(--kb-bunke) * 1.4 + 12px);
+  }
+  .gb-melding {
+    min-height: 2.6em;
+  }
+  .gb-melding b {
+    font-size: 0.95rem;
+  }
+  .gb-sist {
+    font-size: 0.8rem;
+  }
+  .gb-meg {
+    gap: 4px;
+    padding-top: 2px;
+  }
+  .gb-nett:not(.liten) {
+    gap: 6px 8px;
+  }
+  .gb-hullres li {
+    min-height: 36px;
+    padding: 2px 10px 2px 4px;
+  }
+  .gb-hullres .avatar {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+@media (max-width: 360px) {
+  .gb-andre {
+    gap: 4px;
+  }
+  .gb-navn {
+    font-size: 0.8rem;
+  }
+  .gb-linje {
+    font-size: 0.7rem;
+  }
+}
+
+/* A phone on its side: the others in a slim row; the table and my grid side by side. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-spill {
+    --kb-bunke: 44px;
+    --kb-nett: 46px;
+    --kb-mini: 13px;
+  }
+  .skjerm-spill:has(.gb-bord) {
+    gap: 4px;
+  }
+  .skjerm-spill:has(.gb-hullres) {
+    --kb-nett: 30px;
+  }
+  .gb-sete,
+  .gb-andre .gb-sete {
+    grid-auto-flow: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 3px 8px 3px 4px;
+  }
+  .gb-ava .avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+  .gb-bord {
+    min-height: calc(var(--kb-bunke) * 1.4 + 10px);
+    padding: 5px 0;
+    gap: 18px;
+  }
+  .gb-melding {
+    min-height: 2.3em;
+  }
+  .gb-melding b {
+    font-size: 0.9rem;
+  }
+  .gb-sist {
+    font-size: 0.78rem;
+  }
+  .gb-meg {
+    gap: 4px;
+    padding-top: 0;
+  }
+  .skjerm-spill:has(.gb-hullres) .gb-plass.par::after {
+    display: none;
+  }
+  .gb-nett:not(.liten) {
+    gap: 4px 6px;
+  }
+  .gb-hullres {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .gb-hullres li {
+    min-height: 32px;
+    padding: 2px 8px 2px 4px;
+  }
+  .gb-hullres .avatar {
+    width: 22px;
+    height: 22px;
+  }
+  .gb-hullres .gb-sum {
+    min-width: 0;
+  }
+}
+
+/* The side layout: the table on the left, my grid on the right, the message under the table. */
+@media (orientation: landscape) and (max-height: 500px) {
+  html[data-liggende="side"] .skjerm-spill:has(.gb-bord) {
+    --kb-bunke: 50px;
+    --kb-nett: 58px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-content: start;
+    column-gap: 14px;
+  }
+  html[data-liggende="side"] .skjerm-spill:has(.gb-hullres) {
+    --kb-nett: 40px;
+  }
+  html[data-liggende="side"] .skjerm-spill:has(.gb-bord) > .gb-andre {
+    grid-column: 1 / -1;
+  }
+  html[data-liggende="side"] .skjerm-spill:has(.gb-bord) > .gb-bord,
+  html[data-liggende="side"] .skjerm-spill:has(.gb-bord) > .gb-melding,
+  html[data-liggende="side"] .skjerm-spill:has(.gb-bord) > .gb-hullres {
+    grid-column: 1;
+  }
+  html[data-liggende="side"] .skjerm-spill:has(.gb-bord) > .gb-meg {
+    grid-column: 2;
+    grid-row: 2 / span 3;
+    align-self: start;
+  }
+  html[data-liggende="side"] .gb-hullres {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
