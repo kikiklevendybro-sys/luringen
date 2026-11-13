@@ -3170,9 +3170,6 @@ textarea.tekstfelt {
   color: var(--blekk);
   box-shadow: 0 10px 30px var(--skygge);
 }
-.merke-pop-lenke {
-  pointer-events: auto;
-}
 .merke-pop-merker {
   display: flex;
   flex: none;
@@ -3211,16 +3208,6 @@ textarea.tekstfelt {
 }
 .merke-pop.flere .merke-pop-etikett {
   white-space: nowrap;
-}
-.merke-pop-lenke {
-  flex: none;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: var(--natt);
-  color: var(--lampe);
-  font-weight: 800;
-  font-size: 0.9rem;
-  text-decoration: none;
 }
 @keyframes klistre-slag {
   from {

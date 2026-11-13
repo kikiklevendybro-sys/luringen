@@ -520,7 +520,6 @@
     pop.innerHTML = `<div class="merke-pop-inn">
       <span class="merke-pop-merker">${merker.slice(0, 3).map((m) => window.RusjMerker.tegn(m, G)).join("")}</span>
       <span class="merke-pop-tekst"><span class="merke-pop-etikett">${esc(etikett)}</span> <b>${esc(navn)}</b></span>
-      <a class="merke-pop-lenke" href="${R.merkeside}">${esc(R.t("Se boka"))}</a>
     </div>`;
     pop.classList.toggle("flere", merker.length > 1);
     pop.classList.remove("vis");
@@ -529,7 +528,10 @@
     siKit(`${etikett} ${navn}.`);
     R.lyd.pling();
     clearTimeout(pop._tid);
-    pop._tid = setTimeout(skjulMerkePop, 5200);
+    pop._tid = setTimeout(skjulMerkePop, 4000);
+    // It never takes a tap (no link: a tap meant for the board must not leave the game), and the
+    // player's next tap anywhere puts it away.
+    setTimeout(() => document.addEventListener("pointerdown", skjulMerkePop, { once: true, capture: true }), 600);
   }
   function skjulMerkePop() {
     const pop = $("#merke-pop");
