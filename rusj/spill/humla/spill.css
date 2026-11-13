@@ -1,0 +1,570 @@
+/* Humla: a flower of round paper petals around a pink centre, the rank ladder and the word being
+   typed above it, the buttons under the thumb. Everything prefixed hu-. */
+
+.skjerm-brett {
+  --hu-b: min(78vw, 300px); /* the flower's width */
+  gap: 10px;
+}
+
+/* ---------- Rank and found words ---------- */
+
+.hu-info {
+  grid-template-columns: minmax(0, 1fr);
+  display: grid;
+  gap: 8px;
+}
+
+.hu-rang,
+.hu-funnet {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 2px solid var(--strek);
+  border-radius: var(--r-liten);
+  background: var(--natt-2);
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.hu-rangnavn {
+  flex: none;
+  min-width: 0;
+  font: 900 1.05rem/1.15 var(--font-display);
+  white-space: nowrap;
+}
+
+.hu-stige {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 70px;
+  height: 14px;
+  background: linear-gradient(var(--strek), var(--strek)) center / 100% 3px no-repeat;
+}
+
+.hu-stige i {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--natt-3);
+  box-shadow: 0 0 0 2px var(--strek);
+}
+
+.hu-stige i.na {
+  background: var(--rosa);
+  box-shadow: 0 0 0 2px var(--rosa);
+}
+
+.hu-stige i.maal {
+  width: 14px;
+  height: 14px;
+  box-shadow: 0 0 0 2px var(--lampe);
+}
+
+.hu-stige i.her {
+  width: 16px;
+  height: 16px;
+  background: var(--rosa);
+  box-shadow: 0 0 0 3px var(--papir);
+}
+
+.hu-poeng {
+  flex: none;
+  font: 900 1.05rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.hu-rang.opp .hu-rangnavn {
+  animation: hu-hopp 0.6s ease;
+}
+
+.hu-funnet b {
+  flex: none;
+  font: 900 0.95rem/1.2 var(--font-display);
+}
+
+.hu-siste {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tekst-2);
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hu-funnet i {
+  flex: none;
+  color: var(--tekst-2);
+  font-style: normal;
+  font-weight: 900;
+  font-size: 1.3rem;
+}
+
+/* ---------- The word being typed ---------- */
+
+.hu-spill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hu-ordfelt {
+  text-align: center;
+}
+
+.hu-skrevet {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+  font: 900 2rem/1.1 var(--font-display);
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+.hu-skrevet .midt {
+  color: var(--rosa);
+}
+
+.hu-skrevet .fremmed {
+  color: var(--tekst-3);
+}
+
+.hu-skrevet span:last-child:not(.hu-tom)::after {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 0.9em;
+  margin-left: 3px;
+  vertical-align: -0.08em;
+  background: var(--lampe);
+  animation: hu-blink 1s steps(1) infinite;
+}
+
+.hu-tom {
+  color: var(--tekst-3);
+  font: 700 1rem/1.2 var(--font-tekst);
+  letter-spacing: 0;
+}
+
+
+.hu-hjelp {
+  min-height: 1.5em;
+  margin: 0;
+  color: var(--tekst-2);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.hu-varsel {
+  font: 900 1.05rem/1.2 var(--font-display);
+}
+
+.hu-varsel.ok {
+  color: var(--mynte);
+}
+
+.hu-varsel.blomst {
+  color: var(--rosa);
+}
+
+.hu-varsel.feil {
+  color: var(--tekst);
+}
+
+/* ---------- The flower ---------- */
+
+.hu-blomst {
+  --hu-k: calc(var(--hu-b) * 0.3); /* a petal */
+  position: relative;
+  flex: none;
+  width: var(--hu-b);
+  height: var(--hu-b);
+  margin: auto;
+}
+
+.hu-blomst::before {
+  /* a soft round glow behind the flower */
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 79, 139, 0.16), rgba(255, 79, 139, 0) 70%);
+}
+
+.hu-blad,
+.hu-midt {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 3px solid var(--blekk);
+  color: var(--blekk);
+  font: 900 calc(var(--hu-b) * 0.11) / 1 var(--font-display);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hu-blad {
+  left: calc(50% - var(--hu-k) / 2);
+  top: calc(50% - var(--hu-k) * 0.62);
+  width: var(--hu-k);
+  height: calc(var(--hu-k) * 1.24);
+  border-radius: 50% 50% 46% 46% / 60% 60% 40% 40%;
+  background: var(--papir);
+  box-shadow: inset 0 -5px 0 var(--papir-2);
+  transform: rotate(var(--v)) translateY(calc(var(--hu-b) * -0.3));
+  transition: transform 0.12s ease;
+}
+
+.hu-blad span {
+  display: block;
+  transform: rotate(calc(-1 * var(--v)));
+}
+
+.hu-midt {
+  left: calc(50% - var(--hu-k) * 0.6);
+  top: calc(50% - var(--hu-k) * 0.6);
+  width: calc(var(--hu-k) * 1.2);
+  height: calc(var(--hu-k) * 1.2);
+  border-radius: 50%;
+  background: var(--rosa);
+  box-shadow: inset 0 -5px 0 var(--rosa-dyp), 0 0 0 4px var(--natt);
+  color: var(--papir);
+  font-size: calc(var(--hu-b) * 0.13);
+  transition: transform 0.12s ease;
+}
+
+.hu-blad:active:not(:disabled) {
+  transform: rotate(var(--v)) translateY(calc(var(--hu-b) * -0.3)) scale(0.9);
+}
+
+.hu-midt:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.hu-blad:disabled,
+.hu-midt:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.hu-blomst.stokket .hu-blad span {
+  animation: hu-snu 0.35s ease;
+}
+
+/* ---------- The buttons ---------- */
+
+.hu-knapper {
+  display: grid;
+  grid-template-columns: 1fr auto 1.4fr;
+  gap: 8px;
+}
+
+.hu-knapper .knapp,
+.hu-knapper .knapp-2 {
+  margin: 0;
+}
+
+.hu-stokk {
+  display: grid;
+  place-items: center;
+  min-width: 56px;
+  padding-inline: 12px;
+}
+
+.hu-stokk svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Word lists, ranks, numbers ---------- */
+
+.hu-ordliste {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 4px 12px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  font: 800 0.95rem/1.35 var(--font-display);
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+
+.hu-ordliste .blomst {
+  color: var(--rosa);
+}
+
+#ark .hu-ordliste .blomst,
+.papirboks .hu-ordliste .blomst {
+  color: var(--rosa-dyp);
+}
+
+.hu-ordliste .glemt {
+  color: var(--tekst-3);
+  text-decoration: line-through dotted;
+  text-decoration-thickness: 1px;
+}
+
+#ark .hu-ordliste .glemt {
+  color: var(--blekk-2);
+}
+
+.hu-rangliste {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.hu-rangliste li {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--r-liten);
+}
+
+.hu-rangliste li.maal {
+  outline: 2px dashed currentColor;
+  outline-offset: -2px;
+}
+
+.hu-rangliste li.her {
+  background: rgba(255, 79, 139, 0.18);
+}
+
+.hu-rangliste b {
+  font: 900 1rem/1.2 var(--font-display);
+}
+
+.hu-nedtelling {
+  margin: 0;
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.hu-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.hu-tall {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  text-align: center;
+}
+
+.hu-tall b {
+  display: block;
+  font: 900 1.55rem/1.1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hu-tall span {
+  display: block;
+  color: var(--tekst-2);
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+/* ---------- Older flowers ---------- */
+
+.hu-arkiv {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hu-arkivrad {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--strek);
+  border-radius: var(--r-liten);
+  background: var(--natt-2);
+  color: var(--tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.hu-arkivrad b {
+  font: 900 1.05rem/1.2 var(--font-display);
+}
+
+.hu-arkivrad span {
+  grid-column: 1;
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+}
+
+.hu-arkivrad i {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  font-style: normal;
+  font-size: 1.2rem;
+}
+
+.hu-arkivrad.lost {
+  border-color: var(--rosa-dyp);
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes hu-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes hu-hopp {
+  40% {
+    transform: translateY(-5px) scale(1.08);
+  }
+}
+
+@keyframes hu-snu {
+  from {
+    opacity: 0;
+    transform: rotate(calc(-1 * var(--v))) scale(0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hu-skrevet span:last-child::after {
+    animation: none;
+  }
+}
+
+/* ---------- Short and narrow phones ---------- */
+
+@media (max-height: 760px) {
+  .skjerm-brett {
+    --hu-b: min(70vw, 250px);
+    gap: 8px;
+  }
+
+  .hu-skrevet {
+    min-height: 38px;
+    font-size: 1.7rem;
+  }
+}
+
+@media (max-height: 620px) {
+  .skjerm-brett {
+    --hu-b: min(64vw, 206px);
+  }
+
+  .hu-rang,
+  .hu-funnet {
+    min-height: 40px;
+    padding-block: 5px;
+  }
+
+  .hu-skrevet {
+    min-height: 32px;
+    font-size: 1.45rem;
+  }
+
+  .hu-hjelp {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 359px) {
+  .hu-rangnavn,
+  .hu-poeng {
+    font-size: 0.95rem;
+  }
+
+  .hu-stige {
+    min-width: 54px;
+  }
+
+  .hu-stige i {
+    width: 8px;
+    height: 8px;
+  }
+
+  .hu-tall b {
+    font-size: 1.3rem;
+  }
+}
+
+/* ---------- A phone lying down: ranks and the word to the left, the flower to the right ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  @supports selector(:has(a)) {
+    html[data-spill="humla"] .app:has(.skjerm-brett) {
+      max-width: 860px;
+    }
+
+    .skjerm-brett {
+      --hu-b: min(52vh, 210px);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto 1fr auto;
+      gap: 6px 22px;
+      align-items: start;
+    }
+
+    .skjerm-brett .hu-info {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .skjerm-brett .hu-spill {
+      display: contents;
+    }
+
+    .skjerm-brett .hu-ordfelt {
+      grid-column: 1;
+      grid-row: 2;
+      align-self: center;
+    }
+
+    .skjerm-brett .hu-blomst {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+
+    .skjerm-brett .dokk {
+      position: static;
+      grid-column: 2;
+      grid-row: 3;
+      margin: 0;
+      padding: 0 0 8px;
+      background: none;
+    }
+  }
+}

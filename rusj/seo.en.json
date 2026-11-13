@@ -566,6 +566,19 @@
         "forbidden words",
         "word guessing game"
       ]
+    },
+    "humla": {
+      "tittel": "Make words from seven letters – a daily word flower",
+      "frase": "Make words from seven letters",
+      "beskrivelse": "Free word game in British English: make as many words as you can from seven letters – the centre letter in each one. Reach honey and share your rank.",
+      "sok": [
+        "seven letter word game",
+        "make words from letters",
+        "how many words can you make",
+        "daily word game",
+        "pangram",
+        "word flower"
+      ]
     }
   }
 }

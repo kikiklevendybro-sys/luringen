@@ -583,6 +583,19 @@
         "gætteleg",
         "ordleg"
       ]
+    },
+    "humla": {
+      "tittel": "Lav ord af syv bogstaver – dagens ordblomst, gratis",
+      "frase": "Lav ord af syv bogstaver",
+      "beskrivelse": "Gratis ordspil på dansk: lav så mange ord, du kan, af syv bogstaver – midterbogstavet skal med. Saml point, nå honning og del din rang. Ny blomst hver dag.",
+      "sok": [
+        "syv bogstaver",
+        "lav ord af bogstaver",
+        "ordspil med bogstaver",
+        "dagens ordspil",
+        "find flest ord",
+        "pangram"
+      ]
     }
   }
 }
