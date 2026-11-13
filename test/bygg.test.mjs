@@ -576,3 +576,84 @@ test("every game has its age, it reaches the front page's game list, and the bui
   // Luringen's card in scripts/bygg.mjs is held to the same.
   assert.throws(() => sjekkAlder({ id: "luringen" }, "scripts/bygg.mjs (LURINGEN_KORT)"), /LURINGEN_KORT\): mangler "alder"/);
 });
+
+// ---------- «Mest spilt nå» on the front page ----------
+
+test("«Mest spilt nå»: no row with the committed empty list, and the build stops on a broken file", async () => {
+  const { lesTopp, toppSpill } = await import("../scripts/rusj.mjs");
+  const topp = lesTopp(join(ROT, "rusj/topp.json"));
+  for (const sti of ["index.html", "en/index.html", "da/index.html"]) {
+    const html = readFileSync(join(WEB, sti), "utf8");
+    if (toppSpill(topp, [...html.matchAll(/<li class="spillkort" data-id="([a-z]+)"/g)].map((m) => ({ id: m[1] }))).length) continue; // the owner has run scripts/topp.mjs
+    assert.ok(!html.includes('class="topp5"') && !html.includes("Etter anonym telling"), `${sti}: raden vises uten liste`);
+  }
+  const rot = mkdtempSync(join(tmpdir(), "rusj-topp-"));
+  try {
+    const fil = join(rot, "topp.json");
+    assert.equal(lesTopp(fil), null, "ingen fil: ingen liste");
+    for (const galt of ["{ikke json", JSON.stringify({ spill: "fireren" }), JSON.stringify({ spill: ["<script>"] }), JSON.stringify({ spill: Array(11).fill("a") }), JSON.stringify({ oppdatert: "i går", spill: [] })]) {
+      writeFileSync(fil, galt);
+      assert.throws(() => lesTopp(fil), /topp\.json: (ugyldig JSON|skal være)/, galt);
+    }
+    writeFileSync(fil, JSON.stringify({ oppdatert: "2026-11-13", spill: ["a", "b", "a", "c"] }));
+    assert.deepEqual(lesTopp(fil), { oppdatert: "2026-11-13", spill: ["a", "b", "c"] });
+    // The row: the edition's games in the list's order, never 18+, at most five, none under three.
+    const liste = ["a", "b", "c", "d", "e", "f", "g"].map((id) => ({ id, alder18: id === "b" }));
+    assert.deepEqual(toppSpill({ spill: ["x", "b", "c", "a", "g", "f", "e", "d"] }, liste).map((m) => m.id), ["c", "a", "g", "f", "e"]);
+    assert.deepEqual(toppSpill({ spill: ["b", "c", "a", "x"] }, liste), []);
+    assert.deepEqual(toppSpill(null, liste), []);
+  } finally {
+    rmSync(rot, { recursive: true, force: true });
+  }
+});
+
+test("«Mest spilt nå»: the build draws the row from the list – numbered, in the edition's words, never 18+", () => {
+  const rot = mkdtempSync(join(tmpdir(), "rusj-topp-bygg-"));
+  const bygg = (navn, topp, spill = "fireren,bonden,sjakkhesten,dam,ringen,mimen") => {
+    const ut = join(rot, navn);
+    const args = [join(ROT, "scripts/bygg.mjs"), "--ut", ut, "--spill", spill];
+    if (topp !== undefined) {
+      writeFileSync(join(rot, navn + ".json"), JSON.stringify(topp));
+      args.push("--topp", join(rot, navn + ".json"));
+    } else args.push("--topp", join(rot, "finnes-ikke.json"));
+    execFileSync(process.execPath, args, { cwd: ROT, stdio: "pipe" });
+    return (sti) => readFileSync(join(ut, sti), "utf8");
+  };
+  const rad = (html) => {
+    const fra = html.indexOf('<section class="topp5"');
+    if (fra < 0) return null;
+    const del = html.slice(fra, html.indexOf("</section>", fra));
+    return {
+      ider: [...del.matchAll(/<li class="spillkort hyllekort toppkort" data-id="([a-z]+)"/g)].map((m) => m[1]),
+      nr: [...del.matchAll(/<span class="topp-nr" aria-hidden="true">(\d)<\/span>/g)].map((m) => Number(m[1])),
+      navn: [...del.matchAll(/aria-label="([^"]+)"/g)].map((m) => m[1]),
+      lenker: [...del.matchAll(/<a href="([^"]+)"/g)].map((m) => m[1]),
+      del,
+      forHelt: fra > html.indexOf("</header>") && fra < html.indexOf('id="fortsett"'),
+    };
+  };
+  try {
+    // ringen is 18+, reversi is not in this build, «finnesikke» is no game: the five others, in order.
+    const les = bygg("med", { oppdatert: "2026-11-13", spill: ["ringen", "fireren", "finnesikke", "bonden", "sjakkhesten", "reversi", "dam", "mimen", "luringen"] });
+    const nb = rad(les("index.html"));
+    assert.ok(nb, "raden mangler");
+    assert.deepEqual(nb.ider, ["fireren", "bonden", "sjakkhesten", "dam", "mimen"]);
+    assert.deepEqual(nb.nr, [1, 2, 3, 4, 5]);
+    assert.ok(nb.forHelt, "raden står ikke rett under toppen av siden");
+    assert.match(nb.del, /aria-label="Mest spilt nå"/);
+    assert.match(nb.del, /<p class="topp5-fot">Etter anonym telling<\/p>/);
+    assert.ok(nb.navn.slice(1).every((n, i) => n.startsWith(`Nummer ${i + 1}. `)), nb.navn.join(" | "));
+    assert.deepEqual(nb.lenker, ["/fireren/", "/bonden/", "/sjakkhesten/", "/dam/", "/mimen/"]);
+    const en = rad(les("en/index.html"));
+    assert.ok(en && en.ider.length === 5 && en.lenker.every((l) => l.startsWith("/en/")), JSON.stringify(en && en.lenker));
+    assert.match(en.del, /aria-label="Most played now"[\s\S]*Based on anonymous counts/);
+    assert.ok(en.navn.slice(1).every((n, i) => n.startsWith(`Number ${i + 1}. `)));
+    assert.match(rad(les("da/index.html")).del, /Mest spillet nu[\s\S]*Ud fra anonym optælling/);
+    // Only two games of the edition left: no row. No file: no row.
+    assert.equal(rad(bygg("to", { oppdatert: "2026-11-13", spill: ["ringen", "fireren", "bonden", "reversi"] })("index.html")), null);
+    const uten = bygg("uten", undefined);
+    assert.equal(rad(uten("index.html")), null);
+  } finally {
+    rmSync(rot, { recursive: true, force: true });
+  }
+});

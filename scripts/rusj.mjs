@@ -502,7 +502,7 @@ export function faktaLest(m, motMobilen, t = (k, v) => (v ? k.replace(/\{(\w+)\}
     .join(", ");
 }
 
-export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen }) {
+export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, topp: toppFil = join(ROT, "rusj/topp.json") }) {
   if (luringen) sjekkAlder(luringen, "scripts/bygg.mjs (LURINGEN_KORT)");
   const G = require(join(ROT, "rusj/kit/gjengen.js"));
   const kilde = (sti) => readFileSync(join(ROT, sti), "utf8");
@@ -856,6 +856,8 @@ ${STEMPEL_FILTER}
   const portalCss = skriv("felles/portal.css", kilde("rusj/portal/portal.css"));
   const portalJs = skriv("felles/portal.js", kilde("rusj/portal/portal.js"));
   const dagligJs = skriv("felles/daglig.js", kilde("rusj/portal/daglig.js")); // «Dagens rusj»: see rusj/DAGLIG.md
+  // «Mest spilt nå» (rusj/topp.json): a row under the hero.
+  const topp = lesTopp(toppFil);
   const siderJs = skriv("felles/sider.js", kilde("rusj/portal/sider.js"));
   // Small line icons in the text colour (drawn once, used by every card): emoji phones and
   // stopwatches are dark on some phones and would disappear on the night background.
@@ -910,13 +912,14 @@ ${STEMPEL_FILTER}
     // daily puzzle and for games one can play against the phone. The link's name says the same in
     // one sentence. On the shelf tiles the phones are shown in their short form, and the time not.
     const svgFor = (id) => G.svg(id, U.sprak === "nb" ? undefined : { sprak: U.sprak });
-    const kort = kortListe
-      .map((m) => {
+    // o.klasse: more classes on the card; o.nr: its number in «Mest spilt nå» (a badge on the
+    // picture, and «Nummer 1.» first in the link's name).
+    const kortHtml = (m, o = {}) => {
         const mob = MOB[m.mobiler];
         const merker = [m.tagger.includes("daglig") && `<span class="kort-merke dagens">${esc(t("Dagens"))}</span>`, motMobilen(m) && `<span class="kort-merke">${esc(t("Mot mobilen"))}</span>`].filter(Boolean).join("");
-        return `<li class="spillkort" data-id="${m.id}"${m.alder18 ? " data-alder18" : ""} style="--kf: ${m.farge}">
-        <a href="${m.url}" aria-label="${esc(`${m.navn}: ${m.undertittel}. ${m.kort} ${U.stor(faktaLest(m, motMobilen(m), t))}.`)}">
-          <span class="kort-figur">${svgFor(m.id)}${m.alder18 ? '<span class="kort-18" aria-hidden="true">18+</span>' : ""}</span>
+        return `<li class="spillkort${o.klasse ? " " + o.klasse : ""}" data-id="${m.id}"${m.alder18 ? " data-alder18" : ""} style="--kf: ${m.farge}">
+        <a href="${m.url}" aria-label="${esc(`${o.nr ? t("Nummer {n}.", { n: o.nr }) + " " : ""}${m.navn}: ${m.undertittel}. ${m.kort} ${U.stor(faktaLest(m, motMobilen(m), t))}.`)}">
+          <span class="kort-figur">${svgFor(m.id)}${m.alder18 ? '<span class="kort-18" aria-hidden="true">18+</span>' : ""}${o.nr ? `<span class="topp-nr" aria-hidden="true">${o.nr}</span>` : ""}</span>
           <span class="kort-tekst">
             <span class="kort-topp"><span class="kort-sjanger">${esc(m.undertittel)}</span>${merker ? `<span class="kort-merker">${merker}</span>` : ""}</span>
             <span class="kort-navn">${esc(m.navn)}</span>
@@ -929,8 +932,21 @@ ${STEMPEL_FILTER}
           </span>
         </a>
       </li>`;
-      })
-      .join("\n");
+    };
+    const kort = kortListe.map((m) => kortHtml(m)).join("\n");
+    // «Mest spilt nå»: five numbered tiles right under the hero, from rusj/topp.json (never 18+;
+    // no row without at least three games of this edition in the list).
+    const toppRad = toppSpill(topp, kortListe);
+    const toppHtml = toppRad.length
+      ? `<section class="topp5" id="topp5" aria-label="${esc(t("Mest spilt nå"))}">
+    <h2>${esc(t("Mest spilt nå"))}</h2>
+    <ol class="hylle-rad topp5-rad" role="list">
+${toppRad.map((m, i) => kortHtml(m, { klasse: "hyllekort toppkort", nr: i + 1 })).join("\n")}
+    </ol>
+    <p class="topp5-fot">${esc(t("Etter anonym telling"))}</p>
+  </section>
+  `
+      : "";
     const brukteTagger = Object.keys(TAGGER).filter((tg) => kortListe.some((m) => m.tagger.includes(tg)));
     U.antall18 = kortListe.filter((m) => m.alder18).length;
     const forsideTittel = U.seo.forside.tittel;
@@ -982,7 +998,7 @@ ${FLAGG}
 </header>
 <div class="parade" aria-hidden="true"><div class="parade-spor" id="parade"></div></div>
 <main class="portal-hoved">
-  <section class="fortsett" id="fortsett" hidden aria-labelledby="fortsett-tittel">
+  ${toppHtml}<section class="fortsett" id="fortsett" hidden aria-labelledby="fortsett-tittel">
     <h2 id="fortsett-tittel">${esc(t("Fortsett der dere slapp"))}</h2>
     <ul class="fortsett-rad" id="fortsett-rad"></ul>
   </section>

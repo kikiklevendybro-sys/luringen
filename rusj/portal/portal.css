@@ -845,6 +845,46 @@ body.portal {
   scroll-snap-align: start;
 }
 
+/* ---------- «Mest spilt nå»: five numbered tiles under the hero (rusj/topp.json) ---------- */
+
+.topp5 {
+  display: grid;
+  gap: 6px;
+}
+
+.topp5 h2 {
+  font-size: 1.3rem;
+}
+
+.topp5-fot {
+  margin-top: -8px;
+  color: var(--tekst-3);
+  font: 700 0.8rem/1.2 var(--font-display);
+}
+
+/* The number on the picture's corner; «Fortsett» moves to the other corner. */
+.topp-nr {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--lampe);
+  box-shadow: 0 3px 0 var(--lampe-dyp);
+  color: var(--blekk);
+  font: 900 1.05rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.toppkort .kort-fortsett {
+  right: 14px;
+  left: auto;
+}
+
 /* ---------- How it works, install, footer ---------- */
 
 .slik {
