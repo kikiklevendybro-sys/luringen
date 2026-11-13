@@ -566,6 +566,11 @@
         "forbidden words",
         "word guessing game"
       ]
+    },
+    "stjernekikkeren": {
+      "tittel": "Star puzzle – free daily logic puzzle",
+      "frase": "Star puzzle",
+      "beskrivelse": "Play a free star puzzle: one star in every row, column and area, and no two stars touch. A new sky every day and boards from 6 × 6 to 10 × 10."
     }
   }
 }

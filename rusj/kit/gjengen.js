@@ -1215,6 +1215,8 @@
     stigespillet: ["#ffb347", "S"],
     blokka: ["#6c8cff", "B"],
     skronemakeren: ["#b48cff", "S"],
+    // Part 4 (rusj/SPILL4.md): placeholders until each game's own drawing (rusj/spill/<id>/maskot.js) is merged.
+    stjernekikkeren: ["#7d8cff", "S"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

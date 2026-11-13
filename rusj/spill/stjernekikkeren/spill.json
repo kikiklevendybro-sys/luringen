@@ -1,0 +1,32 @@
+{
+  "id": "stjernekikkeren",
+  "navn": "Stjernekikkeren",
+  "undertittel": "Stjernepuslespill",
+  "beskrivelse": "Gratis logikkspill på norsk: én stjerne i hver rad, kolonne og felt, og ingen stjerner rører hverandre. Dagens stjernehimmel og nye brett fra 6 × 6 til 10 × 10.",
+  "kort": "Én stjerne i hver rad, kolonne og felt – uten at de rører hverandre.",
+  "spillere": [1, 1],
+  "minutter": [2, 15],
+  "mobiler": "en",
+  "tagger": ["alene", "tenke", "daglig"],
+  "rekkefolge": 60,
+  "farge": "#ffd23f",
+  "sok": ["stjernepuslespill", "stjernespill", "logikkspill", "dagens logikkspill", "plasser stjerner", "fargefelt", "star battle", "logikkoppgave"],
+  "i18n": {
+    "en": {
+      "navn": "Stargazer",
+      "undertittel": "Star puzzle",
+      "kort": "One star in every row, column and area – and no two stars touch.",
+      "beskrivelse": "Free logic puzzle in your browser: one star in every row, column and area, and no two stars may touch. A new sky every day and boards from 6 × 6 to 10 × 10.",
+      "slug": "stargazer",
+      "sok": ["star puzzle", "star battle", "logic puzzle", "daily logic puzzle", "two not touch", "colour regions puzzle", "place the stars"]
+    },
+    "da": {
+      "navn": "Stjernekiggeren",
+      "undertittel": "Stjernepuslespil",
+      "kort": "Én stjerne i hver række, kolonne og område – uden at de rører hinanden.",
+      "beskrivelse": "Gratis logikspil på dansk: én stjerne i hver række, kolonne og område, og ingen stjerner må røre hinanden. Dagens stjernehimmel og bræt fra 6 × 6 til 10 × 10.",
+      "slug": "stjernekiggeren",
+      "sok": ["stjernepuslespil", "stjernespil", "logikspil", "dagens logikspil", "placer stjernerne", "star battle", "logisk gåde"]
+    }
+  }
+}
