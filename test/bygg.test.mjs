@@ -552,7 +552,7 @@ test("every game has its age, it reaches the front page's game list, and the bui
   const liste = readFileSync(join(WEB, "felles/spilliste.js"), "utf8");
   const spill = JSON.parse(liste.slice(liste.indexOf("=") + 1, liste.indexOf(";\nwindow.RUSJ_TAGGSOK")));
   for (const g of spill) assert.ok(Number.isInteger(g.alder), `${g.id}: mangler "alder" i spillista`);
-  assert.ok(spill.some((g) => g.id === "luringen" && g.alder === 8), "Luringen mangler alder i spillista");
+  assert.ok(spill.some((g) => g.id === "luringen" && g.alder === 7), "Luringen mangler alder i spillista");
   // A game without it (or with a wrong one) stops the build, and the message says what to write.
   const rot = mkdtempSync(join(tmpdir(), "rusj-alder-"));
   try {

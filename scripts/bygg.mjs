@@ -133,7 +133,7 @@ const LURINGEN_KORT = {
   undertittel: "Finn bløfferen",
   kort: "Alle får det hemmelige ordet. Nesten alle.",
   spillere: [3, 10],
-  alder: 8, // the lowest recommended age, as "alder" in a game's spill.json
+  alder: 7, // the lowest recommended age, as "alder" in a game's spill.json
   minutter: [10, 40],
   mobiler: "begge",
   tagger: ["fest", "blof", "ord", "familie"],
