@@ -717,6 +717,17 @@
         "find vej spil",
         "labyrint mus og ost"
       ]
+    },
+    "hermegasa": {
+      "tittel": "Huskespil for børn – følg mønsteret med lyd",
+      "frase": "Følg mønsteret",
+      "beskrivelse": "Gratis huskespil for børn på dansk: gåsen viser farver, former og toner i en række – gør det samme, og rækken vokser. Alene eller 2–4, der skiftes.",
+      "sok": [
+        "huskespil farver og lyd",
+        "husk rækkefølgen spil",
+        "følg mønsteret spil",
+        "gentag rækken"
+      ]
     }
   }
 }

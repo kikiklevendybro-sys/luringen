@@ -700,6 +700,17 @@
         "find the way game",
         "mouse and cheese maze"
       ]
+    },
+    "hermegasa": {
+      "tittel": "Follow the pattern – free sequence game for kids",
+      "frase": "Follow the pattern",
+      "beskrivelse": "Free pattern game for children: the goose shows colours, shapes and sounds in a row – copy them and the row grows. Alone or 2–4 taking turns.",
+      "sok": [
+        "pattern game",
+        "repeat the sequence game",
+        "colour and sound sequence",
+        "copy the pattern game"
+      ]
     }
   }
 }

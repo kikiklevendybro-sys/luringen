@@ -1,0 +1,506 @@
+/* Hermegåsa — follow the pattern. Everything is prefixed "hg-". Big pads, each with its own
+   colour, shape and tone; the goose sits above them and talks in a bubble. */
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.hg-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- The score, the goose and the progress ---------- */
+
+.hg-hud {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px 12px;
+  min-height: 52px;
+}
+
+.hg-midt {
+  display: grid;
+  flex: 1;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  min-height: 0;
+}
+
+.hg-gas {
+  position: relative;
+  width: clamp(72px, 13vh, 120px);
+}
+
+.hg-gas .figur-ramme {
+  display: block;
+  width: 100%;
+  transform-origin: 50% 90%;
+  filter: drop-shadow(0 8px 14px color-mix(in srgb, var(--aksent) 30%, transparent));
+}
+
+.hg-gas .figur-ramme.nikk {
+  animation: hg-nikk 0.32s ease-out;
+}
+
+@keyframes hg-nikk {
+  45% {
+    transform: rotate(-7deg) translateY(3px) scale(1.04, 0.96);
+  }
+}
+
+.hg-gas.jubel .figur-ramme {
+  animation: hg-hopp 0.75s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+@keyframes hg-hopp {
+  30% {
+    transform: translateY(-22px) rotate(-8deg) scale(1.08);
+  }
+  60% {
+    transform: translateY(0) rotate(4deg) scale(1.05, 0.94);
+  }
+}
+
+.hg-gas.hmm .figur-ramme {
+  animation: hg-hmm 0.9s ease-in-out;
+}
+
+@keyframes hg-hmm {
+  25% {
+    transform: rotate(-12deg);
+  }
+  60% {
+    transform: rotate(8deg);
+  }
+}
+
+.hg-boble {
+  position: relative;
+  max-width: min(100%, 320px);
+  min-height: 2.3em;
+  padding: 8px 14px;
+  border-radius: 16px;
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 1.02rem/1.15 var(--font-display);
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.6) translateY(-6px);
+  transition: opacity 0.2s, transform 0.25s cubic-bezier(0.3, 1.5, 0.5, 1);
+  pointer-events: none;
+}
+
+.hg-boble::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--papir);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.hg-midt.snakker .hg-boble {
+  opacity: 1;
+  transform: none;
+}
+
+.hg-hvem {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hg-hvem .avatar {
+  flex: none;
+}
+
+.hg-hvem b {
+  overflow: hidden;
+  font: 900 1rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hg-stat {
+  display: grid;
+  justify-items: center;
+  min-width: 64px;
+  padding: 5px 12px;
+  border-radius: 14px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.hg-stat small {
+  color: var(--tekst-2);
+  font: 800 0.66rem/1.1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hg-stat b {
+  font: 900 1.6rem/1.1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.hg-fjaer {
+  display: flex;
+  gap: 2px;
+  font-size: 1.3rem;
+}
+
+.hg-fjaer b.brukt {
+  opacity: 0.22;
+  filter: grayscale(1);
+}
+
+.hg-prikker {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  max-width: 300px;
+  min-height: 10px;
+}
+
+.hg-prikker i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  transition: background-color 0.15s;
+}
+
+.hg-tall {
+  color: var(--tekst-2);
+  font: 900 0.95rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.hg-prikker i.pa {
+  background: var(--aksent);
+  box-shadow: none;
+}
+
+/* ---------- The pads ---------- */
+
+.hg-flate {
+  display: grid;
+  place-items: center;
+  padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+}
+
+.hg-brett {
+  --hg-kol: 2;
+  --hg-str: 150px;
+  --hg-gap: 14px;
+  display: grid;
+  grid-template-columns: repeat(var(--hg-kol), var(--hg-str));
+  gap: var(--hg-gap);
+}
+
+.hg-brikke {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--hg-str);
+  height: var(--hg-str);
+  padding: 0;
+  border: 0;
+  border-radius: 28%;
+  background: radial-gradient(circle at 32% 26%, color-mix(in srgb, var(--bf) 70%, #fff) 0%, var(--bf) 48%, color-mix(in srgb, var(--bf) 72%, var(--natt)) 100%);
+  box-shadow:
+    inset 0 0 0 4px color-mix(in srgb, var(--bd) 60%, transparent),
+    0 8px 0 var(--bd),
+    0 16px 28px rgba(6, 2, 14, 0.5);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform 0.08s,
+    filter 0.12s,
+    box-shadow 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hg-form {
+  width: 58%;
+  height: 58%;
+  overflow: visible;
+  fill: #fff8ec;
+  stroke: #170e2b;
+  stroke-width: 6;
+  stroke-linejoin: round;
+  transition: transform 0.12s;
+}
+
+.hg-brikke.lyser,
+.hg-brikke:active {
+  filter: saturate(1.15) brightness(1.22);
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 255, 255, 0.6),
+    0 3px 0 var(--bd),
+    0 0 0 6px color-mix(in srgb, var(--bf) 45%, transparent),
+    0 0 46px 10px color-mix(in srgb, var(--bf) 70%, transparent);
+  transform: translateY(5px) scale(1.03);
+}
+
+.hg-brikke.lyser .hg-form {
+  transform: scale(1.14);
+}
+
+/* While the goose shows the row, taps wait: the pads are a little dimmer. */
+.hg-brett.viser .hg-brikke:not(.lyser) {
+  filter: saturate(0.6) brightness(0.62);
+}
+
+.hg-brett.viser .hg-brikke {
+  cursor: default;
+}
+
+.hg-brikke.riktig {
+  animation: hg-puls 0.42s ease-in-out 3;
+}
+
+@keyframes hg-puls {
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.hg-brikke.rist {
+  animation: hg-rist 0.36s ease-in-out;
+}
+
+@keyframes hg-rist {
+  25% {
+    transform: translateX(-6px) rotate(-3deg);
+  }
+  75% {
+    transform: translateX(6px) rotate(3deg);
+  }
+}
+
+.hg-brett.bolge .hg-brikke {
+  animation: hg-bolge 0.5s ease-out both;
+}
+
+.hg-brett.bolge .hg-brikke:nth-child(2) {
+  animation-delay: 0.06s;
+}
+
+.hg-brett.bolge .hg-brikke:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+.hg-brett.bolge .hg-brikke:nth-child(4) {
+  animation-delay: 0.18s;
+}
+
+.hg-brett.bolge .hg-brikke:nth-child(5) {
+  animation-delay: 0.24s;
+}
+
+.hg-brett.bolge .hg-brikke:nth-child(6) {
+  animation-delay: 0.3s;
+}
+
+@keyframes hg-bolge {
+  40% {
+    transform: translateY(-8px) scale(1.04);
+    filter: saturate(1.1) brightness(1.1);
+  }
+}
+
+/* ---------- Setup, home, together and result ---------- */
+
+.hg-forhand {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.hg-forhand span {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 28%;
+  background: var(--bf);
+  box-shadow: 0 4px 0 var(--bd);
+}
+
+.hg-forhand .hg-form {
+  stroke-width: 7;
+}
+
+.hg-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.hg-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hg-rekorder li {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+}
+
+.hg-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst);
+}
+
+.hg-sist {
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.hg-forrige {
+  align-self: center;
+  margin: 0 0 4px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font: 800 0.95rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.hg-resultat {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: min(100%, 220px);
+  margin-inline: auto;
+  padding: 16px 10px 14px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.hg-resultat b {
+  font: 900 3rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.hg-resultat span {
+  font: 800 0.8rem/1 var(--font-display);
+  letter-spacing: 0.14em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.hg-ny {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+}
+
+.hg-linje {
+  text-align: center;
+}
+
+.hg-vinner {
+  position: relative;
+  display: inline-block;
+}
+
+.hg-krone {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  font-size: 2.2rem;
+  transform: translateX(-50%) rotate(-10deg);
+}
+
+@media (max-height: 700px) {
+  .hg-hud {
+    min-height: 44px;
+  }
+
+  .hg-boble {
+    font-size: 0.92rem;
+  }
+}
+
+/* ---------- Landscape phones: the goose and the score on the left, the pads on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="hermegasa"] .app:has(.hg-spill) {
+    max-width: 1000px;
+  }
+
+  .hg-spill {
+    display: grid;
+    grid-template-columns: minmax(200px, 300px) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 20px;
+  }
+
+  .hg-hud {
+    grid-column: 1;
+    justify-content: center;
+  }
+
+  .hg-midt {
+    grid-column: 1;
+  }
+
+  .hg-gas {
+    width: 96px;
+  }
+
+  .hg-flate {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hg-brikke,
+  .hg-form {
+    transition: none;
+  }
+}
