@@ -1,5 +1,5 @@
     // Snekkeren: a round sky-blue head with a flat red carpenter's pencil tucked behind the ear, a
-    // yellow folding ruler zig-zagging up beside the chin, a cheerful look and rosy cheeks.
+    // cheerful look and rosy cheeks, and a yellow folding ruler leaning at the side.
     snekkeren: {
       farge: "#8fd3ff",
       tegn: (f) => `
@@ -12,13 +12,9 @@
         ${rodme(80)}
         ${oyne({ y: 60, dx: -2, dy: 1 })}
         ${smil(88, 14)}
-        <g transform="rotate(-20 14 104)">
-          ${form("M2 98 H30 V108 H2Z", LAMPE, 3)}
-          ${strek("M9 98 V102M16 98 V103M23 98 V102", 1.6, B)}
-        </g>
-        <g transform="rotate(38 26 96)">
-          ${form("M22 70 H50 V80 H22Z", LAMPE, 3)}
-          ${strek("M29 70 V74M36 70 V75M43 70 V74", 1.6, B)}
+        <g transform="rotate(-58 12 112)">
+          ${form("M-6 106 H30 V116 H-6Z", LAMPE, 3)}
+          ${strek("M2 106 V110M10 106 V111M18 106 V110M26 106 V111", 1.6, B)}
         </g>`,
     },
 // alias: ["#8fd3ff", "S"]
