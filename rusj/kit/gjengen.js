@@ -1399,6 +1399,9 @@
     snekkeren: ["#8fd3ff", "S"],
     samannen: ["#7fcf6a", "S"],
     hopperen: ["#ffb74d", "H"],
+    tavla: ["#d8613f", "T"],
+    lykkegrisen: ["#ff9ec4", "L"],
+    dobbelsekseren: ["#3fb6c8", "D"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

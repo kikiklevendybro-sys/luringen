@@ -1,0 +1,34 @@
+{
+  "id": "dobbelsekseren",
+  "navn": "Dobbelsekseren",
+  "undertittel": "Domino",
+  "beskrivelse": "Gratis domino på norsk: legg tall mot tall og bli kvitt brikkene først. Trekk- eller blokkdomino mot mobilen på tre nivåer, eller 2–4 på samme mobil.",
+  "kort": "Legg tall mot tall – først tom for brikker vinner.",
+  "spillere": [1, 4],
+  "minutter": [5, 30],
+  "mobiler": "en",
+  "tagger": ["klassiker", "familie", "tenke"],
+  "rekkefolge": 71,
+  "farge": "#3fb6c8",
+  "alder": 6,
+  "motMobilen": true,
+  "sok": ["domino", "dominobrikker", "domino spill", "trekkdomino", "blokkdomino", "domino mot data", "dobbel seks", "brettspill"],
+  "i18n": {
+    "en": {
+      "navn": "Dotty",
+      "undertittel": "Dominoes",
+      "kort": "Match the numbers – first out of tiles wins.",
+      "beskrivelse": "Free dominoes in your browser: match the numbers and be first out of tiles. Draw or block game against the phone at three levels, or 2–4 on one phone.",
+      "slug": "dotty",
+      "sok": ["dominoes", "domino", "draw dominoes", "block dominoes", "double six", "dominoes against computer", "dominoes free", "tile game"]
+    },
+    "da": {
+      "navn": "Dobbeltsekseren",
+      "undertittel": "Domino",
+      "kort": "Læg tal mod tal – først tom for brikker vinder.",
+      "beskrivelse": "Gratis domino på dansk: læg tal mod tal, og bliv først af med brikkerne. Træk- eller blokdomino mod mobilen på tre niveauer, eller 2–4 på samme mobil.",
+      "slug": "dobbeltsekseren",
+      "sok": ["domino", "dominobrikker", "domino spil", "trækdomino", "blokdomino", "domino mod computeren", "dobbelt seks", "brætspil"]
+    }
+  }
+}
