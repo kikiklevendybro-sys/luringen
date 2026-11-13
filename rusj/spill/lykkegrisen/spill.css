@@ -1,0 +1,556 @@
+/* Lykkegrisen — six dice on a pink felt tray, the dice put aside as small groups with their points,
+   everyone's total as chips with a bar towards the target, and the score sheet. Everything new is
+   prefixed lg-. */
+
+:root {
+  --lg-filt: color-mix(in srgb, var(--aksent) 22%, #1b0f33);
+}
+
+.skjerm-spill {
+  gap: 12px;
+}
+
+/* ---------- Whose turn ---------- */
+
+.lg-hode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.lg-hvem {
+  flex: 1;
+  min-width: 0;
+}
+
+.lg-hvem .etikett {
+  margin-bottom: 2px;
+}
+
+.lg-hvem h1 {
+  overflow: hidden;
+  font-size: clamp(1.4rem, 7vw, 1.9rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lg-total {
+  margin: 2px 0 0;
+  color: var(--tekst-2);
+  font: 800 0.85rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.lg-tur {
+  display: grid;
+  flex: none;
+  justify-items: end;
+  gap: 3px;
+  margin: 0;
+}
+
+.lg-tur b {
+  font: 900 2.1rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--aksent);
+}
+
+.lg-tur.tapt b {
+  color: var(--tekst-3);
+  text-decoration: line-through;
+}
+
+.lg-tur small {
+  color: var(--tekst-3);
+  font: 800 0.7rem/1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Everyone's total, with a bar towards the target */
+.lg-stilling {
+  display: flex;
+  gap: 6px;
+  margin: -4px 0 0;
+  padding: 0 0 2px;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.lg-stilling::-webkit-scrollbar {
+  display: none;
+}
+
+.lg-stilling li {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  padding: 3px 11px 3px 3px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 900 0.92rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.lg-stilling li::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: var(--andel);
+  height: 3px;
+  background: var(--pf);
+  content: "";
+}
+
+.lg-stilling .avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 0.85rem;
+}
+
+.lg-stilling li.na {
+  box-shadow: inset 0 0 0 2px var(--pf);
+  color: var(--tekst);
+}
+
+.lg-stilling li.mal {
+  background: color-mix(in srgb, var(--lampe) 22%, var(--natt-2));
+}
+
+.lg-robot {
+  --pf: var(--natt-3);
+}
+
+/* ---------- The tray ---------- */
+
+.lg-brett {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 16px 12px 12px;
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 40%, color-mix(in srgb, var(--aksent) 16%, transparent), transparent 75%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 3px, transparent 3px 7px),
+    var(--lg-filt);
+  box-shadow:
+    inset 0 0 0 3px color-mix(in srgb, var(--aksent) 45%, var(--natt)),
+    inset 0 10px 22px rgba(6, 2, 14, 0.55),
+    0 6px 0 color-mix(in srgb, var(--aksent-dyp) 55%, var(--natt));
+}
+
+.lg-terninger {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.lg-t {
+  position: relative;
+  display: grid;
+  flex: 0 1 60px;
+  place-items: center;
+  min-width: 0;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.3, 1.6, 0.5, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lg-t svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.45));
+}
+
+.lg-flate rect,
+.lg-liten rect {
+  fill: #fffaf2;
+  stroke: #170e2b;
+  stroke-width: 7;
+}
+
+.lg-flate circle,
+.lg-liten circle {
+  fill: #170e2b;
+}
+
+.lg-flate circle.en,
+.lg-liten circle.en {
+  fill: #e3364f;
+}
+
+.lg-t.valgt {
+  transform: translateY(-8px);
+}
+
+.lg-t.valgt svg {
+  filter: drop-shadow(0 0 0 transparent) drop-shadow(0 0 2px var(--aksent)) drop-shadow(0 0 2px var(--aksent)) drop-shadow(0 10px 6px rgba(6, 2, 14, 0.45));
+}
+
+.lg-t.valgt .lg-flate rect {
+  fill: color-mix(in srgb, var(--aksent) 30%, #fffaf2);
+}
+
+.lg-t.vent {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.lg-brett.klar .lg-t.vent {
+  animation: lg-vink 3.4s ease-in-out 1.2s infinite;
+}
+
+.lg-brett.klar .lg-t:nth-child(2) { animation-delay: 1.32s; }
+.lg-brett.klar .lg-t:nth-child(3) { animation-delay: 1.44s; }
+.lg-brett.klar .lg-t:nth-child(4) { animation-delay: 1.56s; }
+.lg-brett.klar .lg-t:nth-child(5) { animation-delay: 1.68s; }
+.lg-brett.klar .lg-t:nth-child(6) { animation-delay: 1.8s; }
+
+@keyframes lg-vink {
+  0%,
+  80%,
+  100% {
+    translate: 0 0;
+  }
+  86% {
+    translate: 0 -5px;
+  }
+  92% {
+    translate: 0 0;
+  }
+}
+
+.lg-t.rull svg {
+  animation: lg-rull 0.62s cubic-bezier(0.2, 0.7, 0.3, 1) var(--forsink, 0ms) both;
+}
+
+@keyframes lg-rull {
+  0% {
+    opacity: 0.2;
+    transform: translate(-16px, -26px) rotate(-280deg) scale(0.5);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(3px, 3px) rotate(14deg) scale(1.08);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.lg-brett.tomt .lg-t {
+  opacity: 0.55;
+  filter: grayscale(0.6);
+}
+
+/* The dice put aside this turn */
+.lg-lagt {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.lg-gruppe {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 9px 3px 4px;
+  border-radius: 999px;
+  background: rgba(6, 2, 14, 0.35);
+}
+
+.lg-liten {
+  width: 20px;
+  height: 20px;
+}
+
+.lg-gruppe b {
+  margin-left: 4px;
+  color: var(--mynte);
+  font: 900 0.82rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.lg-hint {
+  min-height: 1.2em;
+  margin: 0;
+  color: var(--tekst-2);
+  font: 800 0.9rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.lg-stempel {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  animation: lg-ut 0.5s ease-in 1.9s both;
+}
+
+.lg-stempel .stempel {
+  font-size: 1.7rem;
+  animation: lg-inn 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes lg-inn {
+  from {
+    opacity: 0;
+    transform: scale(2.2) rotate(-14deg);
+  }
+}
+
+@keyframes lg-ut {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ---------- Score sheet ---------- */
+
+.lg-lapp-ramme {
+  overflow-x: auto;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  color: var(--blekk);
+}
+
+.lg-lapp {
+  width: 100%;
+  border-collapse: collapse;
+  font: 800 0.9rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.lg-lapp th,
+.lg-lapp td {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(23, 14, 43, 0.12);
+}
+
+.lg-lapp thead th {
+  min-width: 64px;
+  vertical-align: bottom;
+}
+
+.lg-lapp thead .avatar {
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin: 0 auto 3px;
+  font-size: 0.85rem;
+}
+
+.lg-lapp-navn {
+  display: block;
+  max-width: 7em;
+  margin: 0 auto;
+  overflow: hidden;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lg-lapp tbody th {
+  color: var(--blekk-2);
+  font-size: 0.75rem;
+}
+
+.lg-lapp td.na {
+  background: rgba(255, 79, 139, 0.12);
+}
+
+.lg-lapp tfoot td,
+.lg-lapp tfoot th {
+  border-top: 2px solid var(--blekk);
+  border-bottom: 0;
+  font-size: 1rem;
+}
+
+.lg-straff {
+  color: var(--rod-dyp);
+}
+
+/* The last turns under the tray */
+.lg-under .lg-lapp-ramme {
+  opacity: 0.92;
+}
+
+.lg-under .lg-lapp {
+  font-size: 0.82rem;
+}
+
+.lg-under .lg-lapp th,
+.lg-under .lg-lapp td {
+  padding: 4px 6px;
+}
+
+.lg-under .lg-lapp thead .avatar {
+  width: 22px;
+  height: 22px;
+  margin-bottom: 2px;
+  font-size: 0.75rem;
+}
+
+@media (max-height: 700px) {
+  .lg-under {
+    display: none;
+  }
+}
+
+/* ---------- Rules sheet: the scoring table ---------- */
+
+.lg-regelliste {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-regelliste li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--strek);
+}
+
+.lg-regelliste span {
+  text-align: right;
+}
+
+/* ---------- Home: records ---------- */
+
+.lg-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.lg-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-rekorder li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.lg-rekorder li b {
+  color: var(--tekst);
+}
+
+.lg-niva {
+  font-family: var(--font-display);
+}
+
+.lg-rekorder li.lg-sist {
+  border-radius: var(--r-mid);
+}
+
+/* ---------- Short screens and phones on their side ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-spill {
+    gap: 8px;
+  }
+
+  .lg-hode .avatar.mid {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+
+  .lg-tur b {
+    font-size: 1.7rem;
+  }
+
+  .lg-brett {
+    gap: 8px;
+    padding: 12px 10px 10px;
+  }
+
+  .lg-t {
+    flex-basis: 50px;
+  }
+}
+
+@media (max-width: 359px) {
+  .lg-terninger {
+    gap: 5px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-spill {
+    gap: 6px;
+  }
+
+  .lg-hode .avatar.mid {
+    width: 34px;
+    height: 34px;
+    font-size: 1.1rem;
+  }
+
+  .lg-hvem h1 {
+    font-size: 1.3rem;
+  }
+
+  .lg-total {
+    display: none;
+  }
+
+  .lg-tur b {
+    font-size: 1.5rem;
+  }
+
+  .lg-brett {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .lg-t {
+    flex-basis: 46px;
+  }
+
+  .lg-t.valgt {
+    transform: translateY(-5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-t.rull svg,
+  .lg-brett.klar .lg-t.vent {
+    animation: none;
+  }
+}
