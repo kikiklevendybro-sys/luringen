@@ -571,6 +571,11 @@
       "tittel": "Star puzzle – free daily logic puzzle",
       "frase": "Star puzzle",
       "beskrivelse": "Play a free star puzzle: one star in every row, column and area, and no two stars touch. A new sky every day and boards from 6 × 6 to 10 × 10."
+    },
+    "sebraen": {
+      "tittel": "Binary puzzle – free daily black and white logic",
+      "frase": "Binary puzzle",
+      "beskrivelse": "Play a free binary puzzle: black and white, never three alike in a row and as many of each per line, with = and × signs. A new zebra daily, 6 × 6 to 10 × 10."
     }
   }
 }

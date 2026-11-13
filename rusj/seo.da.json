@@ -588,6 +588,11 @@
       "tittel": "Stjernepuslespil – gratis dagligt logikspil",
       "frase": "Stjernepuslespil",
       "beskrivelse": "Spil et gratis stjernepuslespil: én stjerne i hver række, kolonne og område, og ingen rører hinanden. Ny himmel hver dag og bræt fra 6 × 6 til 10 × 10."
+    },
+    "sebraen": {
+      "tittel": "Binært puslespil – gratis, sort og hvidt hver dag",
+      "frase": "Binært puslespil",
+      "beskrivelse": "Spil et gratis binært puslespil: sort og hvidt, aldrig tre ens i træk og lige mange af hver, med = og ×. Ny zebra hver dag og bræt fra 6 × 6 til 10 × 10."
     }
   }
 }
