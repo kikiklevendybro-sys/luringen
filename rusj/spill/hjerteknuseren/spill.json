@@ -1,0 +1,35 @@
+{
+  "id": "hjerteknuseren",
+  "navn": "Hjerteknuseren",
+  "undertittel": "Hjerter",
+  "beskrivelse": "Gratis hjerter på norsk: gi bort tre kort, følg farge og unngå hjerterne og spar dame. Du mot tre mobilspillere på tre nivåer.",
+  "kort": "Følg farge – og la de andre ta hjerterne og spar dame.",
+  "spillere": [1, 1],
+  "minutter": [10, 30],
+  "mobiler": "en",
+  "tagger": ["kort", "klassiker", "familie"],
+  "rekkefolge": 68,
+  "farge": "#ff6f91",
+  "alder": 9,
+  "sok": ["hjerter", "hjerter kortspill", "hearts", "hearts kortspill", "spar dame", "stikkspill", "kortspill", "kortspill alene", "hjerter mot mobilen", "skyte månen"],
+  "motMobilen": true,
+  "alias": ["hjerter"],
+  "i18n": {
+    "en": {
+      "navn": "Heartbreaker",
+      "undertittel": "Hearts",
+      "kort": "Follow suit – and leave the hearts and the queen of spades to the others.",
+      "beskrivelse": "Free Hearts in your browser: pass three cards, follow suit and dodge the hearts and the queen of spades. You against three phone players at three levels.",
+      "slug": "heartbreaker",
+      "sok": ["hearts", "hearts card game", "black lady", "black maria", "queen of spades", "trick-taking game", "card game", "hearts against computer", "shoot the moon"]
+    },
+    "da": {
+      "navn": "Hjerteknuseren",
+      "undertittel": "Hjerterfri",
+      "kort": "Bekend kulør – og lad de andre tage hjerterne og spardamen.",
+      "beskrivelse": "Gratis hjerterfri direkte i browseren: giv tre kort videre, bekend kulør, og undgå hjerterne og spardamen. Dig mod tre mobilspillere på tre niveauer.",
+      "slug": "hjerteknuseren",
+      "sok": ["hjerterfri", "hearts", "hjerter", "kortspil", "spardame", "stikspil", "kortspil alene", "hjerterfri mod computeren"]
+    }
+  }
+}

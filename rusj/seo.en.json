@@ -603,6 +603,17 @@
         "gin rummy free",
         "rummy against the computer"
       ]
+    },
+    "hjerteknuseren": {
+      "tittel": "Hearts card game – free against the phone",
+      "frase": "Hearts",
+      "beskrivelse": "Play Hearts free in your browser: pass three cards, follow suit and dodge every heart and the queen of spades. You against three phone players at three levels.",
+      "sok": [
+        "hearts rules",
+        "hearts free",
+        "hearts against the computer",
+        "black lady card game"
+      ]
     }
   }
 }
