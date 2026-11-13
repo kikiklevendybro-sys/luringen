@@ -176,7 +176,8 @@ R.terninger.hold("mitt-brett", i, true, { etikett, verdi });  // to the rail / b
   `hold`. Keyboard and screen readers get real buttons with your `etikett` and `aria-pressed`.
 - Reduced motion (`R.rolig()`) or `rolig: true`: no flight, the dice fade in where they land.
 - Sounds (`R.lyd.stoy/tone`, as hard as each impact) and a light `R.vibrer` come with the throw.
-- Colours: override `--trn-filt`, `--trn-tre`, `--trn-flate`, `--trn-oye`, `--trn-en` on `.trn-brett`.
+- Look: override `--trn-filt`, `--trn-tre`, `--trn-flate`, `--trn-oye`, `--trn-en` on `.trn-brett`;
+  `--trn-kant` is the wooden rim (10 px; Terninga uses 7 px on the smallest phones).
 - `R.terninger.fysikk` is the pure physics (also `window.RusjTerninger` in Node: test/terninger.test.mjs).
 
 ## Other languages (rusj/SPRAK.md)

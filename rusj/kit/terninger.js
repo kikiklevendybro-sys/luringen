@@ -931,7 +931,7 @@
     `<span class="trn-kube" aria-hidden="true">${flater.map((v, a) => `<span class="trn-flate" data-a="${a}" data-v="${v}" style="transform: ${FLATE[a]}">${oyneHtml(v)}</span>`).join("")}<span class="trn-kjerne k1"></span><span class="trn-kjerne k2"></span><span class="trn-kjerne k3"></span></span>`;
 
   const BRETT = new Map(); // id → the tray's dice (they survive every redraw of the screen)
-  const KANT = 10; // the wooden rim, px (as in terninger.css)
+  const kant = (el) => parseFloat(getComputedStyle(el).getPropertyValue("--trn-kant")) || 10; // the wooden rim, px
   const GLIPE = 6; // between the felt and the hold rail, px
 
   function nyttBrett(id, n) {
@@ -988,11 +988,12 @@
   // hold rail under it fits one row of dice (a little smaller when the room is tight).
   function maal(B) {
     const el = B.el;
-    const bredde = el.clientWidth - 2 * KANT;
-    const hoyde = el.clientHeight - 2 * KANT;
+    const k0 = kant(el);
+    const bredde = el.clientWidth - 2 * k0;
+    const hoyde = el.clientHeight - 2 * k0;
     if (bredde <= 0 || hoyde <= 0) return false;
     const holdes = B.o.hold !== false;
-    const s1 = bredde / Math.max(6, B.n + 2.2);
+    const s1 = bredde / Math.max(6.1, B.n + 2.35); // so the felt is at least max(5.8, n + 2) wide inside its margins
     let k = 1;
     let s;
     if (!holdes) s = Math.min(s1, hoyde / 2.4);
@@ -1000,23 +1001,26 @@
     else {
       // tight: a smaller rail, and the felt 2 dice high (plus its margins)
       k = 0.82;
-      s = Math.min(s1, (hoyde - GLIPE) / (2.2 + 1.22 * k));
+      s = Math.min(s1, (hoyde - GLIPE) / (2.2 + 1.14 * k));
     }
     s = Math.max(20, Math.min(64, s));
-    const hylle = holdes ? Math.round(s * 1.22 * k) : 0;
+    const hylle = holdes ? Math.round(s * (k < 1 ? 1.14 : 1.22) * k) : 0;
     const filt = hoyde - (holdes ? hylle + GLIPE : 0);
-    // a small margin inside the felt: a die against the wall still shows all of its top face
-    // inside the felt (the perspective lifts it a little outwards)
-    const marg = s * 0.1;
-    const W = (bredde - 2 * marg) / s;
-    const H = (filt - 2 * marg) / s;
+    // A margin inside the felt, so a die against the wall still shows all of its top face on the
+    // felt: the perspective (28 dice deep, centred on the felt) lifts a top face outwards by 1/27
+    // of its distance from the middle.
+    const margX = Math.max(s * 0.06, bredde / 56 + 0.5);
+    const margY = Math.max(s * 0.06, filt / 56 + 0.5);
+    const W = (bredde - 2 * margX) / s;
+    const H = (filt - 2 * margY) / s;
     const gammel = B.W && B.H ? [B.W, B.H] : null;
-    Object.assign(B, { s, k, W, H, bredde, filt, hylle, marg });
+    Object.assign(B, { s, k, W, H, bredde, filt, hylle, margX, margY });
     el.style.setProperty("--trn-s", s.toFixed(2) + "px");
     el.style.setProperty("--trn-filt-h", filt.toFixed(1) + "px");
     el.style.setProperty("--trn-hylle-h", hylle + "px");
     el.style.setProperty("--trn-k", String(k));
     el.style.setProperty("--trn-perspektiv", Math.round(s * 28) + "px");
+    el.style.setProperty("--trn-oy", (filt / 2).toFixed(1) + "px");
     el.querySelectorAll(".trn-hylle i").forEach((x, i) => {
       x.style.left = `${(hylleX(B, i) - (s * k) / 2).toFixed(1)}px`;
     });
@@ -1092,7 +1096,7 @@
   function hvilePose(B, i) {
     const t = B.t[i];
     if (t.holdt) return { px: hylleX(B, i), py: B.filt + GLIPE + B.hylle / 2, z: 0.5, q: qMul(qGir(-gir(t.q)), t.q), k: B.k };
-    return { px: B.marg + t.x * B.s, py: B.marg + t.y * B.s, z: 0.5, q: t.q, k: 1 };
+    return { px: B.margX + t.x * B.s, py: B.margY + t.y * B.s, z: 0.5, q: t.q, k: 1 };
   }
 
   // ---------- Drawing ----------
@@ -1296,7 +1300,7 @@
         maal(B);
         el.classList.remove("trn-klar");
       }
-      if (!B.W) Object.assign(B, { W: 7, H: 3, s: 40, k: 1, marg: 0 });
+      if (!B.W) Object.assign(B, { W: 7, H: 3, s: 40, k: 1, margX: 0, margY: 0 });
       const kastes = new Set(o.indekser);
       ryddOpp(B);
       const ider = [];
@@ -1380,7 +1384,7 @@
             spill.malt[k] = true;
             flater = til[k];
           } else if (spill.dom) flater = spill.malt[k] || bytt[k] < 0 ? til[k] : fra[k];
-          tegn(B, i, { px: B.marg + (S[pa] + (S[pb] - S[pa]) * u) * B.s, py: B.marg + (S[pa + 1] + (S[pb + 1] - S[pa + 1]) * u) * B.s, z: S[pa + 2] + (S[pb + 2] - S[pa + 2]) * u, q: q.map((v) => v / l), k: 1 }, flater);
+          tegn(B, i, { px: B.margX + (S[pa] + (S[pb] - S[pa]) * u) * B.s, py: B.margY + (S[pa + 1] + (S[pb + 1] - S[pa + 1]) * u) * B.s, z: S[pa + 2] + (S[pb + 2] - S[pa + 2]) * u, q: q.map((v) => v / l), k: 1 }, flater);
         });
         spill.dom = false;
         // the knocks, as loud as they hit

@@ -13,6 +13,7 @@
   --trn-flate-kant: #ecdcc1;
   --trn-oye: #1b1230;
   --trn-en: #d42a46;
+  --trn-kant: 10px; /* the wooden rim (the script reads it) */
   position: relative;
   display: block;
   min-height: 132px;
@@ -60,9 +61,9 @@
 /* The felt: lit from the top left, darker under the rim */
 .trn-filt {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  left: 10px;
+  top: var(--trn-kant);
+  right: var(--trn-kant);
+  left: var(--trn-kant);
   height: var(--trn-filt-h, calc(100% - 20px));
   overflow: hidden;
   border-radius: 15px;
@@ -82,9 +83,9 @@
 /* The rail for held dice */
 .trn-hylle {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
-  left: 10px;
+  right: var(--trn-kant);
+  bottom: var(--trn-kant);
+  left: var(--trn-kant);
   height: var(--trn-hylle-h, 0px);
   border-radius: 13px;
   background:
@@ -116,7 +117,7 @@
 .trn-hint {
   position: absolute;
   right: 14px;
-  bottom: 10px;
+  bottom: var(--trn-kant);
   left: 14px;
   display: grid;
   height: var(--trn-hylle-h, 28px);
@@ -141,10 +142,10 @@
 /* The scene: one 3D space for every die, with a mild perspective */
 .trn-scene {
   position: absolute;
-  inset: 10px;
+  inset: var(--trn-kant);
   transform-style: preserve-3d;
   perspective: var(--trn-perspektiv, 760px);
-  perspective-origin: 50% 40%;
+  perspective-origin: 50% var(--trn-oy, 40%);
   pointer-events: none;
 }
 
