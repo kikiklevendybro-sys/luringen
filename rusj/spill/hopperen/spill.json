@@ -1,0 +1,35 @@
+{
+  "id": "hopperen",
+  "navn": "Hopperen",
+  "undertittel": "Kinasjakk",
+  "beskrivelse": "Gratis kinasjakk på norsk: hopp over brikkene og få alle ti over stjerna først. 2, 3, 4 eller 6 plasser – mobilen spiller de tomme, på tre nivåer.",
+  "kort": "Hopp over stjerna – først i mål vinner.",
+  "spillere": [1, 6],
+  "minutter": [5, 25],
+  "mobiler": "en",
+  "tagger": ["klassiker", "familie", "tenke", "barn", "alene"],
+  "rekkefolge": 74,
+  "farge": "#ffb74d",
+  "alder": 7,
+  "sok": ["kinasjakk", "kinesisk sjakk", "stjernespill", "hoppespill", "kinasjakk på nett", "kinasjakk mot datamaskin", "stjernebrett"],
+  "motMobilen": true,
+  "alias": ["kinasjakk"],
+  "i18n": {
+    "en": {
+      "navn": "Hopper",
+      "undertittel": "Chinese checkers",
+      "kort": "Hop across the star – first home wins.",
+      "beskrivelse": "Free Chinese checkers in your browser: hop over the pegs and get all ten across the star first. 2, 3, 4 or 6 seats – the phone plays the empty ones, at three levels.",
+      "slug": "hopper",
+      "sok": ["chinese checkers", "star checkers", "chinese checkers online", "chinese checkers against computer", "hop game", "star board game"]
+    },
+    "da": {
+      "navn": "Hopperen",
+      "undertittel": "Kinaskak",
+      "kort": "Hop over stjernen – først i mål vinder.",
+      "beskrivelse": "Gratis kinaskak direkte i browseren: hop over brikkerne, og få alle ti over stjernen først. 2, 3, 4 eller 6 pladser – mobilen spiller de tomme på tre niveauer.",
+      "slug": "hopperen",
+      "sok": ["kinaskak", "kinesisk skak", "stjernespil", "hoppespil", "kinaskak online", "kinaskak mod computeren"]
+    }
+  }
+}

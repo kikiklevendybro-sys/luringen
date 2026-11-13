@@ -60,6 +60,7 @@
     { "id": "klassiker-molla", "gruppe": "klassiker", "navn": "Mølle!", "hvordan": "Slå mobilen i mølle i Mølla.", "figur": "molla", "regel": { "type": "merke" } },
     { "id": "klassiker-snekkeren", "gruppe": "klassiker", "navn": "Mestersnekker", "hvordan": "Slå mobilen i prikker og bokser i Snekkeren.", "figur": "snekkeren", "regel": { "type": "merke" } },
     { "id": "klassiker-samannen", "gruppe": "klassiker", "navn": "Full kalaha", "hvordan": "Slå mobilen i kalaha i Såmannen.", "figur": "samannen", "regel": { "type": "merke" } },
+    { "id": "klassiker-hopperen", "gruppe": "klassiker", "navn": "Først i mål", "hvordan": "Slå mobilen i kinasjakk i Hopperen.", "figur": "hopperen", "regel": { "type": "merke" } },
 
     { "id": "luke-1", "gruppe": "sesong", "navn": "Første luke", "hvordan": "Åpne luke 1 i Julekalenderen.", "figur": "julekalenderen", "tall": 1, "regel": { "type": "merke" } },
     { "id": "luke-12", "gruppe": "sesong", "navn": "Halvveis til jul", "hvordan": "Åpne luke 12 i Julekalenderen.", "figur": "julekalenderen", "tall": 12, "regel": { "type": "merke" } },

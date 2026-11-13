@@ -610,6 +610,12 @@
       "frase": "Mancala",
       "beskrivelse": "Play mancala free with Scandinavian kalaha rules: sow the stones, earn extra turns and capture. Against the phone at three levels or two on one phone.",
       "motMobilen": true
+    },
+    "hopperen": {
+      "tittel": "Chinese checkers – free against the phone or friends",
+      "frase": "Chinese checkers",
+      "beskrivelse": "Play Chinese checkers free: hop your ten pegs across the star before anyone else. 2, 3, 4 or 6 seats, the phone plays the empty ones at three levels.",
+      "motMobilen": true
     }
   }
 }

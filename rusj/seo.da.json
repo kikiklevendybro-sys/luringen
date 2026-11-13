@@ -627,6 +627,12 @@
       "frase": "Kalaha",
       "beskrivelse": "Spil kalaha gratis: læg én kugle i hvert hul, få en tur til, og fang modstanderens kugler. Mod mobilen på tre niveauer eller to på samme mobil.",
       "motMobilen": true
+    },
+    "hopperen": {
+      "tittel": "Kinaskak online – gratis mod mobilen eller venner",
+      "frase": "Kinaskak",
+      "beskrivelse": "Spil kinaskak gratis: hop dine ti brikker over stjernen før alle andre. 2, 3, 4 eller 6 pladser, og mobilen spiller de tomme på tre niveauer.",
+      "motMobilen": true
     }
   }
 }
