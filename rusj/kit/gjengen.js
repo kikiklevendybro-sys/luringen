@@ -1338,6 +1338,135 @@
         ${form("M10 70 L30 76 L10 84Z", ROD, 3.2)}
         ${vifte(104, 124, [[12, `${tekst(104, 98, "2", 14, ROD)}${hjerte(104, 107, 4.5)}`]])}`,
     },
+
+    // Mølla: a round wheat-yellow head in front of a windmill's four latticed sails (a mill), which
+    // peek out at the corners, a brass hub on the forehead, a happy look and rosy cheeks.
+    molla: {
+      farge: "#f2b45c",
+      tegn: (f) => `
+        ${[45, 135, 225, 315].map((a) => `<g transform="rotate(${a} 60 64)">${form("M53 18 H67 V-6 H53Z", P, 3.5)}${strek("M60 18 V-6M53 10 H67M53 2 H67", 2, "rgba(23,14,43,.4)")}</g>`).join("")}
+        ${hode(f)}
+        <circle cx="60" cy="30" r="6" fill="${MESSING}" stroke="${B}" stroke-width="3.5"/>
+        ${kinn(80)}
+        ${oyne({ y: 60, dx: 2, dy: 1 })}
+        ${smil(88, 13)}`,
+    },
+
+    // Såmannen: a round leaf-green head with a little sprout growing on top, a happy squint and
+    // rosy cheeks, and a sack of marbles at the side with three coloured ones rolling out of it.
+    samannen: {
+      farge: "#7fcf6a",
+      tegn: (f) => `
+        ${pinne("M60 18 Q58 8 62 -2", "#3f9a3a", 4)}
+        ${form("M61 4 Q72 -10 88 -4 Q78 10 61 4Z", "#9be07a", 3.5)}
+        ${form("M60 8 Q48 -4 34 2 Q44 14 60 8Z", "#9be07a", 3.5)}
+        ${hode(f)}
+        ${rodme(80)}
+        ${gladeOyne(60)}
+        ${smil(86, 14)}
+        ${form("M92 86 Q84 100 90 112 Q104 120 118 112 Q124 98 114 86 Q110 80 104 84 Q98 80 92 86Z", "#d9a066", 4)}
+        ${strek("M94 88 Q104 92 114 87", 3, B)}
+        <circle cx="86" cy="118" r="5" fill="${ROSA}" stroke="${B}" stroke-width="2.5"/>
+        <circle cx="76" cy="114" r="4.5" fill="${LAMPE}" stroke="${B}" stroke-width="2.5"/>
+        <circle cx="100" cy="76" r="4.5" fill="${HIMMEL}" stroke="${B}" stroke-width="2.5"/>`,
+    },
+
+    // Hopperen: a round apricot head caught mid-hop, two motion arcs behind it, eyes wide with
+    // excitement and a big open smile; three coloured pegs bounce along beside it, and a little
+    // six-pointed star (the board) waits below.
+    hopperen: {
+      farge: "#ffb74d",
+      tegn: (f) => `
+        ${strek("M6 70 Q4 46 18 30", 4, "rgba(255,241,221,.55)")}
+        ${strek("M-2 82 Q-6 56 8 36", 3, "rgba(255,241,221,.35)")}
+        ${hode(f)}
+        ${kinn(80)}
+        ${oyne({ y: 58, dy: -3, r: 13 })}
+        ${form("M44 84 Q60 104 76 84 Q60 90 44 84Z", B, 3)}
+        <path d="M14 96 L17 102 L24 102 L19 107 L21 114 L14 110 L7 114 L9 107 L4 102 L11 102Z" fill="${LAMPE}" stroke="${B}" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="98" cy="22" r="6" fill="${ROSA}" stroke="${B}" stroke-width="3"/>
+        <circle cx="111" cy="38" r="5" fill="${HIMMEL}" stroke="${B}" stroke-width="3"/>
+        <circle cx="114" cy="56" r="4.5" fill="${MYNT}" stroke="${B}" stroke-width="3"/>`,
+    },
+
+    // Snekkeren: a round sky-blue head with a flat red carpenter's pencil tucked behind the ear, a
+    // cheerful look and rosy cheeks, and a yellow folding ruler leaning at the side.
+    snekkeren: {
+      farge: "#8fd3ff",
+      tegn: (f) => `
+        ${hode(f)}
+        <g transform="rotate(-32 94 24)">
+          ${form("M68 18 H104 L116 24 L104 30 H68Z", ROD, 3.5)}
+          <path d="M108.5 21.4 L116 24 L108.5 26.6Z" fill="${B}"/>
+          ${strek("M74 24 H100", 2, "rgba(23,14,43,.35)")}
+        </g>
+        ${rodme(80)}
+        ${oyne({ y: 60, dx: -2, dy: 1 })}
+        ${smil(88, 14)}
+        <g transform="rotate(-58 12 112)">
+          ${form("M-6 106 H30 V116 H-6Z", LAMPE, 3)}
+          ${strek("M2 106 V110M10 106 V111M18 106 V110M26 106 V111", 1.6, B)}
+        </g>`,
+    },
+
+
+    // Tavla: a terracotta face with a fringe of backgammon points (sand and felt green) and a little
+    // stack of checkers, two dark and two cream, balanced on top like a hat.
+    tavla: {
+      farge: "#d8613f",
+      tegn: (f) => `
+        ${hode(f)}
+        ${[0, 1, 2, 3].map((i) => form(`M${32 + i * 14} 30 L${46 + i * 14} 30 L${39 + i * 14} 50Z`, i % 2 ? "#1d5b4c" : "#f2d39b", 3)).join("")}
+        <ellipse cx="60" cy="21" rx="21" ry="7" fill="#2b1f47" stroke="${B}" stroke-width="3.5"/>
+        <ellipse cx="60" cy="15" rx="21" ry="7" fill="#2b1f47" stroke="${B}" stroke-width="3.5"/>
+        <ellipse cx="60" cy="9" rx="21" ry="7" fill="${P}" stroke="${B}" stroke-width="3.5"/>
+        <ellipse cx="60" cy="3" rx="21" ry="7" fill="${P}" stroke="${B}" stroke-width="3.5"/>
+        <ellipse cx="60" cy="3" rx="11" ry="3.5" fill="none" stroke="rgba(23,14,43,.28)" stroke-width="2"/>
+        ${kinn(84)}
+        ${oyne({ y: 66, dx: 2, dy: -1 })}
+        ${smil(90, 13)}
+        ${glimt(100, 18, 6)}`,
+    },
+
+
+    // Lykkegrisen: a pink pig with pointy ears and a big snout, a die on its head (the one shows
+    // its single red pip) and a lucky four-leaf clover tucked behind one ear.
+    lykkegrisen: {
+      farge: "#ff9ec4",
+      tegn: (f) => `
+        ${form("M22 34 L18 6 L46 22Z", f)}
+        ${form("M98 34 L102 6 L74 22Z", f)}
+        <path d="M24 28 L22 13 L37 22Z" fill="#ff6fa4"/>
+        <path d="M96 28 L98 13 L83 22Z" fill="#ff6fa4"/>
+        ${hode(f)}
+        ${[[104, 14, 0], [112, 22, 90], [104, 30, 180], [96, 22, 270]].map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="5.5" ry="7.5" fill="#53d769" stroke="${B}" stroke-width="2.5" transform="rotate(${r + 45} ${x} ${y})"/>`).join("")}
+        <circle cx="104" cy="22" r="2.6" fill="${B}"/>
+        <rect x="47" y="2" width="26" height="26" rx="6" fill="${P}" stroke="${B}" stroke-width="3.5" transform="rotate(-8 60 15)"/>
+        <circle cx="60" cy="15" r="4.2" fill="#e3364f"/>
+        ${oyne({ y: 54, x1: 41, x2: 79, r: 11, pr: 5, dx: 1, dy: 1 })}
+        <ellipse cx="60" cy="80" rx="19" ry="13" fill="#ff7fae" stroke="${B}" stroke-width="4.5"/>
+        <ellipse cx="53" cy="80" rx="3.6" ry="5" fill="${B}"/>
+        <ellipse cx="67" cy="80" rx="3.6" ry="5" fill="${B}"/>
+        ${kinn(70)}
+        ${strek("M50 100 Q60 106 70 100", 4)}`,
+    },
+
+
+    // Dobbelsekseren: a teal face wearing the double six as a tilted hat – an ivory tile with six
+    // pips on each half – and a winking grin.
+    dobbelsekseren: {
+      farge: "#3fb6c8",
+      tegn: (f) => `
+        ${hode(f)}
+        <g transform="rotate(-10 60 14)">
+          <rect x="30" y="1" width="60" height="28" rx="6" fill="${P}" stroke="${B}" stroke-width="3.5"/>
+          ${strek("M60 5 V25", 2.5, "rgba(23,14,43,.55)")}
+          ${[[38, 8], [46, 8], [54, 8], [38, 22], [46, 22], [54, 22], [66, 8], [74, 8], [82, 8], [66, 22], [74, 22], [82, 22]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.6" fill="${B}"/>`).join("")}
+        </g>
+        ${rodme(80)}
+        ${blunk(60, `<circle cx="40" cy="58" r="12" fill="${P}" stroke="${B}" stroke-width="4.5"/><circle cx="42" cy="59" r="5.5" fill="${B}"/><circle cx="40" cy="56.8" r="1.7" fill="${P}"/>${strek("M69 58 Q80 50 91 58", 5.5)}`)}
+        ${strek("M44 86 Q60 100 78 84", 5)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

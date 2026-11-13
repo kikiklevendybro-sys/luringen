@@ -831,6 +831,90 @@
         "golf kortspill mot datamaskin",
         "golf med kort på nett"
       ]
+    },
+    "molla": {
+      "tittel": "Mølle på nett – gratis mot mobilen eller en venn",
+      "frase": "Mølle",
+      "beskrivelse": "Spill mølle gratis på norsk: sett ut ni brikker, lag møller og ta motstanderens brikker. Mot mobilen på tre nivåer eller to på samme mobil. Uten konto.",
+      "motMobilen": true,
+      "sok": [
+        "mølle mot datamaskin",
+        "mølle spill gratis",
+        "nimannsmølle",
+        "mølle på mobil"
+      ]
+    },
+    "samannen": {
+      "tittel": "Kalaha på nett – gratis mot mobilen eller en venn",
+      "frase": "Kalaha",
+      "beskrivelse": "Spill kalaha gratis på norsk: legg én kule i hvert hull, få en tur til og fang motstanderens kuler. Mot mobilen på tre nivåer eller to på samme mobil.",
+      "motMobilen": true,
+      "sok": [
+        "kalaha mot datamaskin",
+        "kalaha spill gratis",
+        "mancala på norsk",
+        "kalaha på mobil"
+      ]
+    },
+    "hopperen": {
+      "tittel": "Kinasjakk på nett – gratis mot mobilen eller venner",
+      "frase": "Kinasjakk",
+      "beskrivelse": "Spill kinasjakk gratis på norsk: hopp de ti brikkene dine over stjerna før alle andre. 2, 3, 4 eller 6 plasser – mobilen spiller de tomme på tre nivåer.",
+      "motMobilen": true,
+      "sok": [
+        "kinasjakk mot datamaskin",
+        "kinasjakk gratis",
+        "kinasjakk for flere",
+        "kinasjakk på mobil"
+      ]
+    },
+    "snekkeren": {
+      "tittel": "Prikker og bokser – gratis mot mobilen eller en venn",
+      "frase": "Prikker og bokser",
+      "beskrivelse": "Spill prikker og bokser gratis på norsk: tegn streker mellom prikkene, lukk en boks og tegn igjen. Mot mobilen på tre nivåer eller to på samme mobil.",
+      "motMobilen": true,
+      "sok": [
+        "prikker og bokser mot datamaskin",
+        "boksespill gratis",
+        "prikkspill på mobil",
+        "lag bokser spill"
+      ]
+    },
+    "tavla": {
+      "tittel": "Backgammon på norsk – gratis mot mobilen",
+      "frase": "Backgammon",
+      "beskrivelse": "Spill backgammon gratis: kast, flytt og slå ut. Mot mobilen på tre nivåer eller to på samme mobil, med doblingskube og kamper til 3 eller 5. Uten reklame.",
+      "sok": [
+        "backgammon gratis",
+        "backgammon på norsk",
+        "backgammon mot data",
+        "backgammon for to",
+        "spill backgammon"
+      ]
+    },
+    "lykkegrisen": {
+      "tittel": "10 000 terningspill – gratis på norsk",
+      "frase": "Terningspillet 10 000",
+      "beskrivelse": "Spill terningspillet 10 000 gratis: kast seks terninger, legg til side det som gir poeng, og våg å kaste videre. For 1–8, med mobilen som motspiller.",
+      "sok": [
+        "10000 terningspill",
+        "titusen terningspill",
+        "10 000 regler",
+        "terningspill seks terninger",
+        "terningspill på nett"
+      ]
+    },
+    "dobbelsekseren": {
+      "tittel": "Domino på norsk – gratis mot mobilen",
+      "frase": "Domino",
+      "beskrivelse": "Spill domino gratis: legg tall mot tall og bli kvitt brikkene først. Trekk- eller blokkdomino mot mobilen på tre nivåer, eller 2–4 på samme mobil. Uten reklame.",
+      "sok": [
+        "domino gratis",
+        "domino på nett",
+        "domino mot data",
+        "trekkdomino regler",
+        "blokkdomino"
+      ]
     }
   }
 }
