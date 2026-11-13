@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis kodeordspill på norsk: kodemesteren gir ett ord og et tall – laget finner agentene på brettet og unngår fella. Lag mot lag, eller sammen fra to spillere.",
   "kort": "Ett ord og et tall – finn agentene og styr unna fella.",
   "spillere": [2, 20],
+  "alder": 10,
   "minutter": [10, 45],
   "mobiler": "begge",
   "tagger": ["lag", "ord", "fest", "familie"],

@@ -539,3 +539,40 @@ test("the original party games have their own generic search words, and the word
   const hoystakk = (g) => [g.navn, g.undertittel, g.kort, ...g.sok, ...g.tagger.flatMap((t) => taggsok[t] || [])].join(" ").toLocaleLowerCase("nb");
   for (const ord of ["imposter", "nødt", "pekeleken", "flasketuten", "bli kjent", "dilemma", "mafia", "huskespill", "vendespill", "jeg har aldri", "kims lek", "alfabetleken", "20 spørsmål", "selskapsleker", "hyttetur", "klassefest"]) assert.ok(spill.some((g) => hoystakk(g).includes(ord)), `søket finner ingenting på «${ord}»`);
 });
+
+// ---------- "alder" in spill.json: the lowest recommended age (the front-page finder) ----------
+
+test("every game has its age, it reaches the front page's game list, and the build stops without it", async () => {
+  const { lesSpill, sjekkAlder } = await import("../scripts/rusj.mjs");
+  for (const m of lesSpill(ROT, null)) {
+    assert.ok(Number.isInteger(m.alder) && m.alder >= 3 && m.alder <= 18, `${m.id}: "alder" er ${m.alder}`);
+    if (m.alder18) assert.equal(m.alder, 18, `${m.id}: et 18+-spill med "alder" ${m.alder}`);
+  }
+  const liste = readFileSync(join(WEB, "felles/spilliste.js"), "utf8");
+  const spill = JSON.parse(liste.slice(liste.indexOf("=") + 1, liste.indexOf(";\nwindow.RUSJ_TAGGSOK")));
+  for (const g of spill) assert.ok(Number.isInteger(g.alder), `${g.id}: mangler "alder" i spillista`);
+  assert.ok(spill.some((g) => g.id === "luringen" && g.alder === 8), "Luringen mangler alder i spillista");
+  // A game without it (or with a wrong one) stops the build, and the message says what to write.
+  const rot = mkdtempSync(join(tmpdir(), "rusj-alder-"));
+  try {
+    mkdirSync(join(rot, "rusj/kit"), { recursive: true });
+    mkdirSync(join(rot, "rusj/spill/fireren"), { recursive: true });
+    writeFileSync(join(rot, "rusj/kit/gjengen.js"), readFileSync(join(ROT, "rusj/kit/gjengen.js")));
+    const ekte = JSON.parse(readFileSync(join(ROT, "rusj/spill/fireren/spill.json"), "utf8"));
+    const les = (endre) => () => {
+      const m = { ...ekte };
+      endre(m);
+      writeFileSync(join(rot, "rusj/spill/fireren/spill.json"), JSON.stringify(m));
+      return lesSpill(rot, null);
+    };
+    assert.doesNotThrow(les(() => {}));
+    assert.throws(les((m) => delete m.alder), /fireren\/spill\.json: mangler "alder" – den laveste anbefalte alderen \(et helt tall fra 3 til 18; 18 for 18\+-spill\)/);
+    assert.throws(les((m) => (m.alder = "7")), /"alder" må være et helt tall fra 3 til 18, ikke "7"/);
+    assert.throws(les((m) => (m.alder = 2)), /helt tall fra 3 til 18, ikke 2/);
+    assert.throws(les((m) => Object.assign(m, { alder18: true, alder: 12 })), /et 18\+-spill skal ha "alder": 18, ikke 12/);
+  } finally {
+    rmSync(rot, { recursive: true, force: true });
+  }
+  // Luringen's card in scripts/bygg.mjs is held to the same.
+  assert.throws(() => sjekkAlder({ id: "luringen" }, "scripts/bygg.mjs (LURINGEN_KORT)"), /LURINGEN_KORT\): mangler "alder"/);
+});

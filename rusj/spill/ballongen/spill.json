@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis galgen for barn på norsk – uten galge! Gjett ordet bokstav for bokstav før ballongene sprekker. Med æ, ø, å og over 3000 ord.",
   "kort": "Gjett ordet før ballongene sprekker!",
   "spillere": [1, 6],
+  "alder": 6,
   "minutter": [5, 20],
   "mobiler": "en",
   "tagger": ["barn", "familie", "ord"],

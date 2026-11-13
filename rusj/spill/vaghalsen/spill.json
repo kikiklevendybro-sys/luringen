@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis «Sannhet eller konsekvens» på norsk. Snurr flaska, velg sannhet eller konsekvens – og våg! Egne kort for barn, familie, venner og fest.",
   "kort": "Snurr flaska. Sannhet eller konsekvens – tør du?",
   "spillere": [2, 20],
+  "alder": 6,
   "minutter": [10, 45],
   "mobiler": "en",
   "tagger": ["fest", "familie", "barn", "sporsmal"],

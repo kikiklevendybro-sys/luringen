@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis ja-og-nei-lek på norsk: svar på lure spørsmål uten å si «ja» eller «nei». Over 350 spørsmål for barn, familie og voksne.",
   "kort": "Svar på alt – men aldri «ja» eller «nei»!",
   "spillere": [2, 20],
+  "alder": 5,
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["barn", "familie", "fest"],

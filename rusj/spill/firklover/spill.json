@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis ordgåte på norsk: seksten ord skjuler fire grupper på fire. Finn sammenhengen før kløveren mister bladene. Ny kløver hver dag – og øv på eldre.",
   "kort": "Seksten ord, fire grupper. Finn sammenhengen.",
   "spillere": [1, 1],
+  "alder": 12,
   "minutter": [3, 10],
   "mobiler": "en",
   "tagger": ["daglig", "ord", "alene", "tenke"],

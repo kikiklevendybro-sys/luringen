@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis drikkespill på norsk (18+). Rød eller svart, høyere eller lavere – feil svar gir slurker, og den som bommer mest, tar bussen. Alkoholfritt teller.",
   "kort": "Rød eller svart? Den som bommer mest, tar bussen.",
   "spillere": [2, 10],
+  "alder": 18,
   "minutter": [10, 25],
   "mobiler": "en",
   "tagger": ["drikke", "fest"],

@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis quizspill på norsk: ti svar ligger rundt en ring. Svar riktig og samle poeng i potten – men ett feil svar, og alt ryker. Tør du ta ett til?",
   "kort": "Ti svar på ringen. Ta ett til – eller stopp mens du leder?",
   "spillere": [2, 8],
+  "alder": 10,
   "minutter": [15, 40],
   "mobiler": "en",
   "tagger": ["quiz", "familie", "fest"],

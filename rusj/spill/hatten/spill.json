@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis ordlek for lag på én mobil: forklar, si bare ett ord og mim – de samme ordene tre ganger. Over 600 ord, eller skriv deres egne.",
   "kort": "Forklar, ett ord, mim — de samme ordene tre ganger.",
   "spillere": [4, 20],
+  "alder": 10,
   "minutter": [20, 45],
   "mobiler": "en",
   "tagger": ["fest", "lag", "ord"],

@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis «Hva vil du helst?»-spill på norsk. To valg, tell ned – og alle velger samtidig. Over 400 dilemmaer for barn, familie, venner og fest.",
   "kort": "To valg, begge fristende. Tell ned – og alle velger samtidig.",
   "spillere": [2, 20],
+  "alder": 6,
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["fest", "familie", "barn", "sporsmal"],

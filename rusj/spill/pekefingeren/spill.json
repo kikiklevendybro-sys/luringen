@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis «Hvem er mest sannsynlig»-spill på norsk. Les utsagnet, tell ned – og alle peker samtidig. Hundrevis av utsagn for fest, venner og familie.",
   "kort": "Les utsagnet, tell ned – og alle peker samtidig.",
   "spillere": [3, 20],
+  "alder": 8,
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["fest", "familie", "sporsmal"],

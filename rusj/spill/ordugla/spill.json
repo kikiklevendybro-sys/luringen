@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis ordspill på norsk: gjett dagens ord på fem bokstaver i seks forsøk. Samme ord for alle hver dag – og øv med nye ord så mye du vil.",
   "kort": "Gjett dagens ord på fem bokstaver. Du har seks forsøk.",
   "spillere": [1, 1],
+  "alder": 10,
   "minutter": [2, 10],
   "mobiler": "en",
   "tagger": ["daglig", "ord", "alene", "tenke"],

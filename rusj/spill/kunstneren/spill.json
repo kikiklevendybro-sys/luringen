@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis tegn-og-gjett-spill på norsk, på én mobil. Tegn ordet før tiden går ut – eller spill Hviskeleken og se tegningene spore helt av.",
   "kort": "Tegn med fingeren – de andre gjetter i vilt kor.",
   "spillere": [2, 20],
+  "alder": 6,
   "minutter": [10, 40],
   "mobiler": "en",
   "tagger": ["tegning", "fest", "familie", "barn"],

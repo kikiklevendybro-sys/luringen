@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis «Varulv» på norsk – uten spilleder. Klassisk med netter og avstemninger for 6–12, eller «Én natt» på sju minutter for 4–10. Mobilen styrer natta.",
   "kort": "Finn varulvene – klassisk, eller «Én natt» på sju minutter.",
   "spillere": [4, 12],
+  "alder": 10,
   "minutter": [7, 40],
   "mobiler": "en",
   "tagger": ["fest", "blof", "lag"],

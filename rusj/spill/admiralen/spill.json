@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis slagskip på norsk: plasser flåten og senk fiendens skip – mot mobilen på tre nivåer, eller to spillere på én mobil.",
   "kort": "Plasser flåten og senk skipene – mot mobilen eller en venn.",
   "spillere": [1, 2],
+  "alder": 7,
   "minutter": [5, 20],
   "mobiler": "en",
   "tagger": ["klassiker", "familie", "alene"],

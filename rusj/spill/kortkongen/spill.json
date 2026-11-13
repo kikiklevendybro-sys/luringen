@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis kabal på norsk: Klondike med «Dagens kabal», Edderkopp, FreeCell, Pyramide, Tre topper og Golf. Angre, hint og kabaler som kan gå opp. Ingen reklame.",
   "kort": "Ess til konge, rødt på svart. Går kabalen opp?",
   "spillere": [1, 1],
+  "alder": 7,
   "minutter": [3, 15],
   "mobiler": "en",
   "tagger": ["daglig", "klassiker", "kort", "alene", "tenke"],

@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis festverktøy på norsk: «Hvem starter?» med fingrene på skjermen, terninger, lagdeler, «Stein, saks, papir», kron eller mynt, tall, poengteller og klokke.",
   "kort": "Hvem starter? Terninger, lag, mynt, poeng og klokke – alt på ett sted.",
   "spillere": [1, 20],
+  "alder": 5,
   "minutter": [1, 60],
   "mobiler": "en",
   "tagger": ["verktoy", "fest", "familie"],

@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis bondesjakk (kryss og bolle) på norsk: tre på rad eller fem på rad – mot en venn på samme mobil eller mot mobilen på tre nivåer.",
   "kort": "Kryss eller bolle? Tre på rad vinner.",
   "spillere": [1, 2],
+  "alder": 4,
   "minutter": [1, 15],
   "mobiler": "en",
   "tagger": ["klassiker", "barn", "familie", "alene"],

@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis «Hvem er jeg?» og 20 spørsmål på norsk. Én har en hemmelighet – de andre har 20 ja/nei-spørsmål på seg. Over 500 hemmeligheter.",
   "kort": "Én har en hemmelighet. De andre har 20 ja/nei-spørsmål.",
   "spillere": [2, 20],
+  "alder": 6,
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["familie", "sporsmal", "barn", "ord"],

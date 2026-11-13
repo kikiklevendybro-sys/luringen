@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis stipuslespill på norsk: trekk én tråd gjennom alle rutene og ta tallene i rekkefølge. Dagens nøste og brett fra 5 × 5 til 8 × 8, noen med vegger.",
   "kort": "Én tråd gjennom alle rutene – og tallene i riktig rekkefølge.",
   "spillere": [1, 1],
+  "alder": 7,
   "minutter": [1, 10],
   "mobiler": "en",
   "tagger": ["alene", "tenke", "daglig"],

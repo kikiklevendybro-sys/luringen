@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis binærpuslespill på norsk: svart og hvitt, aldri tre like på rad og like mange av hver i hver rad og kolonne. Dagens sebra og brett fra 6 × 6 til 10 × 10.",
   "kort": "Svart og hvitt – aldri tre like på rad, like mange av hver.",
   "spillere": [1, 1],
+  "alder": 9,
   "minutter": [2, 15],
   "mobiler": "en",
   "tagger": ["alene", "tenke", "daglig"],

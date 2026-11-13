@@ -351,7 +351,18 @@ function sistEndret(rot) {
   return datoer;
 }
 
-const PAKREVD = ["id", "navn", "undertittel", "beskrivelse", "kort", "spillere", "minutter", "mobiler", "tagger", "rekkefolge"];
+const PAKREVD = ["id", "navn", "undertittel", "beskrivelse", "kort", "spillere", "alder", "minutter", "mobiler", "tagger", "rekkefolge"];
+
+// "alder": the lowest recommended age of a game (reading, rules, content; the children's version
+// where the game has one), a whole number from 3 to 18. Every 18+ game has 18. The front-page finder
+// («Hva skal vi spille?») shows a game when its age is at most the youngest player's.
+export const ALDER_GRENSER = [3, 18];
+export function sjekkAlder(m, hvor) {
+  const [min, maks] = ALDER_GRENSER;
+  if (m.alder == null) throw new Error(`${hvor}: mangler "alder" – den laveste anbefalte alderen (et helt tall fra ${min} til ${maks}; 18 for 18+-spill). Se rusj/SPILL4.md.`);
+  if (!Number.isInteger(m.alder) || m.alder < min || m.alder > maks) throw new Error(`${hvor}: "alder" må være et helt tall fra ${min} til ${maks}, ikke ${JSON.stringify(m.alder)}`);
+  if (m.alder18 && m.alder !== 18) throw new Error(`${hvor}: et 18+-spill skal ha "alder": 18, ikke ${m.alder}`);
+}
 export const TAGGER = {
   fest: "Fest",
   familie: "Familie",
@@ -402,6 +413,7 @@ export function lesSpill(rot, utvalg) {
     const fil = join(mappe, id, "spill.json");
     if (!existsSync(fil)) continue;
     const m = JSON.parse(readFileSync(fil, "utf8"));
+    sjekkAlder(m, fil);
     for (const felt of PAKREVD) if (m[felt] == null) throw new Error(`${fil}: mangler "${felt}"`);
     if (m.id !== id) throw new Error(`${fil}: id "${m.id}" matcher ikke mappenavnet`);
     if (!G.finnes(id)) throw new Error(`${fil}: ingen figur for "${id}" i rusj/kit/gjengen.js`);
@@ -465,6 +477,7 @@ export function faktaLest(m, motMobilen, t = (k, v) => (v ? k.replace(/\{(\w+)\}
 }
 
 export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen }) {
+  if (luringen) sjekkAlder(luringen, "scripts/bygg.mjs (LURINGEN_KORT)");
   const G = require(join(ROT, "rusj/kit/gjengen.js"));
   const kilde = (sti) => readFileSync(join(ROT, sti), "utf8");
   const filer = []; // every published path, for the service worker
@@ -852,6 +865,7 @@ ${STEMPEL_FILTER}
       undertittel: m.undertittel,
       kort: m.kort,
       spillere: m.spillere,
+      alder: m.alder,
       minutter: m.minutter,
       tagger: m.tagger,
       mobiler: m.mobiler,

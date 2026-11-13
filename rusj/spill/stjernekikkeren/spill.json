@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis logikkspill på norsk: én stjerne i hver rad, kolonne og felt, og ingen stjerner rører hverandre. Dagens stjernehimmel og nye brett fra 6 × 6 til 10 × 10.",
   "kort": "Én stjerne i hver rad, kolonne og felt – uten at de rører hverandre.",
   "spillere": [1, 1],
+  "alder": 10,
   "minutter": [2, 15],
   "mobiler": "en",
   "tagger": ["alene", "tenke", "daglig"],
