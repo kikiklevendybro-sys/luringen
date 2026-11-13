@@ -1,0 +1,456 @@
+/* Maneten — a one-tap game. Everything is prefixed "ma-". The cave is a canvas in a chunky frame;
+   a finger anywhere on the board, or on the big pad under it, holds. */
+
+html.ma-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.ma-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.ma-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.ma-fast main,
+html.ma-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.ma-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- HUD ---------- */
+
+.ma-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr) 56px;
+  gap: 8px;
+}
+
+.ma-stat {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 6px 7px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.ma-stat:first-child {
+  background: color-mix(in srgb, var(--aksent) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 50%, var(--strek));
+}
+
+.ma-stat small {
+  color: var(--tekst-2);
+  font: 800 0.64rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ma-stat b {
+  font: 900 1.35rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-stat:first-child b {
+  color: var(--aksent);
+}
+
+.ma-perlestat b::before {
+  content: "";
+  display: inline-block;
+  width: 0.62em;
+  height: 0.62em;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0 25%, #ffe1f0 45%, #d7b4ff 100%);
+  box-shadow: 0 0 0 2px var(--blekk);
+  vertical-align: 0.06em;
+}
+
+.ma-pause {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  cursor: pointer;
+}
+
+.ma-pause svg {
+  width: 22px;
+  height: 22px;
+  fill: var(--tekst);
+}
+
+.ma-pause .av,
+.ma-pause.pauset .pa {
+  display: none;
+}
+
+.ma-pause.pauset .av {
+  display: inline;
+}
+
+.ma-pause.pauset {
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+}
+
+.ma-pause.pauset svg {
+  fill: var(--blekk);
+}
+
+/* ---------- The cave ---------- */
+
+.ma-flate {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+  cursor: pointer;
+}
+
+.ma-ramme {
+  position: relative;
+  padding: 5px;
+  border-radius: 18px;
+  background: #0f0820;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--aksent) 70%, var(--natt)),
+    0 9px 0 3px color-mix(in srgb, var(--aksent) 30%, var(--natt)),
+    0 22px 44px var(--skygge);
+}
+
+.ma-lerret {
+  display: block;
+  border-radius: 13px;
+  touch-action: none;
+}
+
+.ma-status {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(15, 8, 32, 0.45);
+}
+
+.ma-status[hidden] {
+  display: none;
+}
+
+/* Ready and after a crash: the card sits low and lets the press through */
+.ma-status.klar,
+.ma-status.over {
+  align-items: end;
+  background: none;
+  pointer-events: none;
+}
+
+.ma-statuskort {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: min(100%, 290px);
+  padding: 16px 16px 12px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 18px 40px var(--skygge);
+  text-align: center;
+  animation: ma-inn 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+.ma-statuskort.klar {
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--natt-2) 88%, transparent);
+  animation: ma-inn 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) both, ma-puls 1.8s ease-in-out 0.4s infinite;
+}
+
+.ma-statuskort.over {
+  gap: 2px;
+  padding: 10px 14px 2px;
+  background: color-mix(in srgb, var(--natt-2) 94%, transparent);
+  pointer-events: auto;
+}
+
+.ma-statuskort p:not(.etikett):not(.ma-stor) {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.ma-statuskort .knapp {
+  margin-top: 4px;
+}
+
+.ma-statuskort .lenke {
+  min-height: 44px;
+  padding-block: 6px;
+}
+
+.ma-stor {
+  color: var(--aksent);
+  font: 900 1.5rem/1.1 var(--font-display);
+}
+
+@keyframes ma-inn {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}
+
+@keyframes ma-puls {
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.ma-tast {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ma-finger {
+    display: none;
+  }
+
+  .ma-tast {
+    display: inline;
+  }
+}
+
+/* ---------- The pad under the thumb ---------- */
+
+.ma-pad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 74px;
+  margin-top: 6px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--aksent) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px color-mix(in srgb, var(--aksent) 60%, var(--strek)), 0 6px 0 var(--natt-3);
+  color: var(--tekst);
+  font: 900 1.05rem/1.2 var(--font-display);
+  cursor: pointer;
+  transition: transform 0.06s, background-color 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ma-pad svg {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: var(--aksent);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ma-pad.trykket {
+  background: color-mix(in srgb, var(--aksent) 40%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--aksent), 0 1px 0 var(--natt-3);
+  transform: translateY(5px);
+}
+
+/* ---------- Home and result ---------- */
+
+.ma-rekorder {
+  display: grid;
+  justify-items: center;
+  margin-top: 4px;
+}
+
+.ma-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ma-rekorder li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  font: 800 0.9rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.ma-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.ma-tall {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 10px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.ma-tall b {
+  font: 900 2.5rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-tall span {
+  font: 800 0.78rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.ma-ny {
+  position: absolute;
+  top: -12px;
+  right: -4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+  animation: ma-slag 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both 0.7s;
+}
+
+@keyframes ma-slag {
+  from {
+    opacity: 0;
+    transform: rotate(8deg) scale(2.4);
+  }
+}
+
+.ma-del {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- Short and narrow phones ---------- */
+
+@media (max-height: 700px) {
+  .ma-spill {
+    gap: 7px;
+  }
+
+  .ma-stat {
+    padding: 5px 6px;
+  }
+
+  .ma-stat small {
+    font-size: 0.58rem;
+  }
+
+  .ma-stat b {
+    font-size: 1.15rem;
+  }
+
+  .ma-pad {
+    min-height: 58px;
+    font-size: 0.95rem;
+  }
+
+  .ma-tall {
+    padding: 12px 8px;
+  }
+
+  .ma-tall b {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 359px) {
+  .ma-hud {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr) 50px;
+    gap: 6px;
+  }
+}
+
+/* ---------- Landscape phones: the cave to the left, score and pad to the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="maneten"] .app:has(.ma-spill) {
+    max-width: 1000px;
+  }
+
+  .ma-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 260px);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 18px;
+    row-gap: 10px;
+    padding-bottom: 8px;
+  }
+
+  .ma-flate {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .ma-hud {
+    grid-column: 2;
+    grid-row: 1;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .ma-pad {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: stretch;
+    flex-direction: column;
+    min-height: 0;
+  }
+}

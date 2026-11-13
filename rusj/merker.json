@@ -73,6 +73,7 @@
     { "id": "klassiker-hjerteknuseren", "gruppe": "klassiker", "navn": "Kaldt hjerte", "hvordan": "Slå mobilene i Hjerteknuseren.", "figur": "hjerteknuseren", "emoji": "💔", "regel": { "type": "merke" } },
 
     { "id": "arkade-planeten", "gruppe": "arkade", "navn": "Her kommer sola", "hvordan": "Lag sola i Planeten.", "figur": "planeten", "emoji": "☀️", "regel": { "type": "merke" } },
+    { "id": "arkade-maneten", "gruppe": "arkade", "navn": "Dypdykker", "hvordan": "Svøm 300 meter i Maneten.", "figur": "maneten", "emoji": "🪼", "regel": { "type": "merke" } },
 
     { "id": "luke-1", "gruppe": "sesong", "navn": "Første luke", "hvordan": "Åpne luke 1 i Julekalenderen.", "figur": "julekalenderen", "tall": 1, "regel": { "type": "merke" } },
     { "id": "luke-12", "gruppe": "sesong", "navn": "Halvveis til jul", "hvordan": "Åpne luke 12 i Julekalenderen.", "figur": "julekalenderen", "tall": 12, "regel": { "type": "merke" } },

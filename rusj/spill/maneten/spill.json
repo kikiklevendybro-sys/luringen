@@ -1,0 +1,33 @@
+{
+  "id": "maneten",
+  "navn": "Maneten",
+  "undertittel": "Hold for å svømme",
+  "beskrivelse": "Gratis ett-trykks-spill på norsk: hold fingeren nede, så svømmer maneten opp – slipp, så synker den. Unngå steiner og kråkeboller, sank perler og sett rekord.",
+  "kort": "Hold for å svømme opp, slipp for å synke. Hvor langt kommer du?",
+  "spillere": [1, 1],
+  "alder": 6,
+  "minutter": [2, 10],
+  "mobiler": "en",
+  "tagger": ["alene", "barn"],
+  "rekkefolge": 79,
+  "farge": "#ff86c8",
+  "sok": ["ett trykk spill", "one tap", "hold for å fly", "hulespill", "undervannsspill", "manet", "reaksjonsspill", "arkadespill"],
+  "i18n": {
+    "en": {
+      "navn": "Bloop",
+      "undertittel": "Hold to swim",
+      "kort": "Hold to swim up, let go to sink. How far can you get?",
+      "beskrivelse": "Free one-tap game in your browser: hold your finger down and the jellyfish swims up – let go and it sinks. Dodge rocks and sea urchins, collect pearls, set a record.",
+      "slug": "bloop",
+      "sok": ["one tap game", "one button game", "hold to fly", "cave game", "underwater game", "jellyfish game", "arcade game", "endless swimmer"]
+    },
+    "da": {
+      "navn": "Goplen",
+      "undertittel": "Hold for at svømme",
+      "kort": "Hold for at svømme op, slip for at synke. Hvor langt kommer du?",
+      "beskrivelse": "Gratis ét-tryks-spil på dansk: hold fingeren nede, så svømmer goplen op – slip, så synker den. Undgå sten og søpindsvin, saml perler, og sæt rekord.",
+      "slug": "goplen",
+      "sok": ["et tryk spil", "one tap", "hold for at flyve", "hulespil", "undervandsspil", "vandmand", "gople", "arkadespil"]
+    }
+  }
+}

@@ -700,6 +700,17 @@
         "merge game no ads",
         "physics merge game"
       ]
+    },
+    "maneten": {
+      "tittel": "One-tap game – hold to swim through the cave, free",
+      "frase": "One-tap game",
+      "beskrivelse": "Play a free one-tap game: hold to swim up, let go to sink, and steer a jellyfish past rocks and sea urchins. Collect pearls and beat your best. No ads.",
+      "sok": [
+        "one tap game free",
+        "hold to fly game",
+        "cave flying game",
+        "jellyfish game"
+      ]
     }
   }
 }

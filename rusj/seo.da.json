@@ -717,6 +717,17 @@
         "slå planeter sammen",
         "fysikspil på mobilen"
       ]
+    },
+    "maneten": {
+      "tittel": "Ét-tryks-spil – hold og svøm gennem hulen, gratis",
+      "frase": "Ét-tryks-spil",
+      "beskrivelse": "Spil et gratis ét-tryks-spil: hold for at svømme op, slip for at synke, og styr en gople forbi sten og søpindsvin. Saml perler og slå din rekord.",
+      "sok": [
+        "et tryk spil gratis",
+        "hold for at flyve spil",
+        "hulespil",
+        "gople spil"
+      ]
     }
   }
 }
