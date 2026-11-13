@@ -1,0 +1,890 @@
+/* Narren. Game styles are prefixed "nr-"; the shared playing cards "sk-". */
+
+/* ---------- Playing cards (the same look in Kortkongen, Bussen and Pyramiden) ----------
+   .sk-kort takes its width from --kortbredde (or --kb on the card itself); the face is an SVG that
+   scales with it. The back uses the game's accent colour. Flip: add .sk-opp. */
+.sk-kort {
+  --kb: var(--kortbredde, 64px);
+  --sk-r: calc(var(--kb) * 0.1);
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--kb);
+  height: calc(var(--kb) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sk-r);
+  background: none;
+  color: inherit;
+  font: inherit;
+  perspective: calc(var(--kb) * 9);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sk-indre {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.3, 1.25, 0.45, 1);
+}
+
+.sk-kort.sk-opp .sk-indre {
+  transform: rotateY(180deg);
+}
+
+.sk-side {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--sk-r);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sk-for {
+  background: linear-gradient(170deg, #fffdf8 0%, #fff8ec 55%, #f9eedd 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 18, 48, 0.16),
+    inset 0 calc(var(--kb) * -0.035) 0 rgba(27, 18, 48, 0.06),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+  transform: rotateY(180deg);
+}
+
+.sk-ansikt {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sk-ansikt text {
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* The back: a woven pattern in the game's colour, a paper rim and the rusj blob in the middle. */
+.sk-bak {
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.32), transparent 46%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    linear-gradient(160deg, color-mix(in srgb, var(--aksent) 82%, #fff) 0%, var(--aksent) 42%, color-mix(in srgb, var(--aksent) 62%, var(--natt)) 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.045) #fff8ec,
+    inset 0 0 0 calc(var(--kb) * 0.065) rgba(27, 18, 48, 0.18),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+}
+
+.sk-bak::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44%;
+  aspect-ratio: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-14 -14 28 28'%3E%3Cpath d='M0 -11 C7 -12 12 -6 11 1 C10 8 5 12 -1 11 C-8 10 -12 5 -11 -2 C-10 -8 -6 -10 0 -11Z' fill='%23fff8ec' stroke='%231b1230' stroke-opacity='.25' stroke-width='1.6'/%3E%3Cpath d='M-4.5 -3.5 C-3 -6.5 1 -7.5 3.5 -6' fill='none' stroke='%231b1230' stroke-opacity='.2' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: translate(-50%, -50%) rotate(-10deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-indre {
+    transition-duration: 0.01ms !important;
+  }
+}
+/* ---------- end of playing cards ---------- */
+
+
+/* ---------- The table ---------- */
+
+.skjerm-spill {
+  --kb-haug: 78px;
+  --kb-hand: 60px;
+  --kb-bord: 50px;
+  --kb-mini: 22px;
+}
+
+/* The table is one tight column (the kit's 22 px between parts is for forms). */
+.skjerm-spill:has(.nr-bord) {
+  gap: 8px;
+}
+
+/* The hand is its own stacking context, so its cards never come over the dock. */
+.nr-hand {
+  isolation: isolate;
+}
+
+/* The others: a plate each with name, cards on the hand and their table cards. */
+.nr-andre {
+  display: grid;
+  grid-template-columns: repeat(var(--seter, 1), minmax(0, 1fr));
+  gap: 6px;
+  max-width: 460px;
+  margin: 0 auto 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.nr-plass {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px 6px 7px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.nr-plass.aktiv {
+  box-shadow: 0 0 0 3px var(--aksent);
+  transform: translateY(-2px);
+}
+
+.nr-plass.ute {
+  opacity: 0.6;
+}
+
+.nr-topp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.nr-ava {
+  position: relative;
+  flex: none;
+}
+
+.nr-ava .avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+}
+
+.nr-info {
+  display: grid;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.nr-navn {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nr-antall,
+.nr-uteMerke {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  color: var(--tekst-2);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nr-uteMerke {
+  color: var(--lampe);
+}
+
+/* «3 kort på hånda», or just «3 kort» when three others share the row. */
+.nr-kort,
+.nr-andre.seter-3 .nr-lang {
+  display: none;
+}
+
+.nr-andre.seter-3 .nr-kort {
+  display: inline;
+}
+
+.nr-rygger {
+  display: inline-flex;
+  flex: none;
+  width: calc(8px + (var(--n) - 1) * 3px);
+  height: 12px;
+}
+
+.nr-rygger i {
+  flex: none;
+  width: 8px;
+  height: 12px;
+  margin-right: -5px;
+  border-radius: 2px;
+  background: var(--aksent);
+  box-shadow: inset 0 0 0 1.5px #fff8ec;
+}
+
+.nr-tenker {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  display: flex;
+  gap: 2px;
+  padding: 3px 4px;
+  border-radius: 999px;
+  background: var(--papir);
+}
+
+.nr-tenker i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--blekk);
+  animation: nr-prikk 1s infinite ease-in-out;
+}
+
+.nr-tenker i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.nr-tenker i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes nr-prikk {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+/* Table cards: a slot with the hidden card and the open one on top, a little lower. */
+.nr-mini,
+.nr-mittbord {
+  display: flex;
+  justify-content: center;
+}
+
+.nr-mini {
+  gap: 3px;
+  --kortbredde: var(--kb-mini);
+}
+
+.nr-spor {
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--kortbredde);
+  height: calc(var(--kortbredde) * 1.4 + var(--kortbredde) * 0.28);
+}
+
+.nr-spor.nr-tomt::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 calc(var(--kortbredde) * 0.28);
+  border: 1.5px dashed rgba(255, 255, 255, 0.18);
+  border-radius: calc(var(--kortbredde) * 0.1);
+}
+
+.nr-ned,
+.nr-opp {
+  position: absolute;
+  left: 0;
+  display: block;
+  width: var(--kortbredde);
+  height: calc(var(--kortbredde) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--kortbredde) * 0.1);
+  background: none;
+  color: inherit;
+}
+
+.nr-ned {
+  top: 0;
+}
+
+.nr-opp {
+  top: calc(var(--kortbredde) * 0.28);
+}
+
+/* The big pile in the middle */
+.nr-bord {
+  position: relative;
+  display: flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  min-height: calc(var(--kb-haug) * 1.4 + 22px);
+  margin: 0;
+  padding: 10px 0;
+  border-radius: 28px;
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, #7a4fd1 40%, var(--natt)) 0%, color-mix(in srgb, #7a4fd1 18%, var(--natt)) 70%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.06);
+}
+
+.nr-stokk {
+  position: relative;
+  width: calc(var(--kb-haug) * 0.7);
+  height: calc(var(--kb-haug) * 0.7 * 1.4);
+  --kortbredde: calc(var(--kb-haug) * 0.7);
+}
+
+.nr-stokk .sk-kort {
+  box-shadow:
+    3px 3px 0 -1px rgba(255, 248, 236, 0.7),
+    6px 6px 0 -2px rgba(255, 248, 236, 0.4);
+}
+
+.nr-tom {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+}
+
+.nr-tall {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  z-index: 3;
+  min-width: 24px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  box-shadow: 0 2px 0 rgba(6, 2, 14, 0.35);
+}
+
+.nr-haug {
+  position: relative;
+  display: block;
+  width: var(--kb-haug);
+  height: calc(var(--kb-haug) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  --kortbredde: var(--kb-haug);
+  transition: box-shadow 0.15s;
+}
+
+.nr-haug.klar {
+  box-shadow: 0 0 0 3px var(--lampe), 0 0 22px rgba(255, 210, 63, 0.4);
+  cursor: pointer;
+}
+
+.nr-haug > .sk-kort {
+  position: absolute;
+  inset: 0;
+}
+
+.nr-under {
+  transform: rotate(-9deg) translate(-4px, 2px);
+}
+
+.nr-under2 {
+  transform: rotate(7deg) translate(4px, 1px);
+}
+
+.nr-tomhaug {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed rgba(255, 255, 255, 0.28);
+  border-radius: 10px;
+  font-size: 2rem;
+}
+
+.nr-tomhaug.brent {
+  animation: nr-brann 0.7s ease-out both;
+}
+
+@keyframes nr-brann {
+  0% {
+    transform: scale(1.25);
+    background: rgba(255, 140, 40, 0.55);
+    box-shadow: 0 0 40px rgba(255, 120, 30, 0.8);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.nr-merke {
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  z-index: 3;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 rgba(6, 2, 14, 0.4);
+  transform: translateX(-50%);
+}
+
+.nr-brent {
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  min-width: 34px;
+  color: var(--tekst-2);
+  font-size: 1.2rem;
+  line-height: 1.1;
+}
+
+.nr-brent b {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.nr-toppkort.ny.fra-hand {
+  animation: nr-fra-hand 0.38s cubic-bezier(0.2, 1.1, 0.4, 1) both;
+}
+
+.nr-toppkort.ny.fra-topp {
+  animation: nr-fra-topp 0.42s cubic-bezier(0.2, 1.1, 0.4, 1) both;
+}
+
+@keyframes nr-fra-hand {
+  from {
+    transform: translateY(160px) rotate(10deg) scale(0.8);
+    opacity: 0.4;
+  }
+}
+
+@keyframes nr-fra-topp {
+  from {
+    transform: translateY(-150px) rotate(-14deg) scale(0.7);
+    opacity: 0.3;
+  }
+}
+
+.nr-melding {
+  display: grid;
+  gap: 2px;
+  min-height: 3.1em;
+  margin: 0;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.nr-melding b {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+}
+
+.nr-melding.din b {
+  color: var(--lampe);
+}
+
+.nr-melding.ferdig b {
+  color: var(--lampe);
+  font-size: 1.15rem;
+}
+
+.nr-sist {
+  color: var(--tekst-2);
+  font-size: 0.88rem;
+}
+
+.nr-sist-port {
+  margin: 0 0 4px;
+  color: var(--tekst-2);
+  text-align: center;
+}
+
+/* ---------- My side: table cards and the hand ---------- */
+
+.nr-meg {
+  display: grid;
+  gap: 4px;
+}
+
+.nr-mittbord {
+  gap: 10px;
+  --kortbredde: var(--kb-bord);
+}
+
+.nr-mittbord .nr-opp,
+.nr-mittbord .nr-ned {
+  transition: transform 0.18s ease-out, filter 0.18s;
+}
+
+button.nr-opp,
+button.nr-ned {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.nr-meg.min-tur.kilde-opp .nr-opp.lovlig,
+.nr-meg.min-tur.kilde-ned button.nr-ned {
+  filter: drop-shadow(0 0 6px rgba(255, 210, 63, 0.75));
+}
+
+.nr-meg.min-tur.kilde-ned button.nr-ned {
+  animation: nr-vink 1.6s infinite ease-in-out;
+}
+
+@keyframes nr-vink {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.nr-meg.min-tur.kilde-opp .nr-opp:not(.lovlig) .sk-kort {
+  filter: brightness(0.62) saturate(0.6);
+}
+
+.nr-opp.valgt,
+.nr-hk.valgt .sk-kort {
+  transform: translateY(-12px);
+}
+
+.nr-opp.valgt .sk-kort,
+.nr-hk.valgt .sk-kort {
+  box-shadow: 0 0 0 3px var(--lampe), 0 6px 14px rgba(6, 2, 14, 0.5);
+  border-radius: var(--sk-r);
+}
+
+/* The hand: one or more fanned rows that always fit the width. */
+.nr-hand {
+  display: grid;
+  justify-items: center;
+  min-height: calc(var(--kb-hand) * 1.4 + 14px);
+  padding: 12px 0 2px;
+  --kortbredde: var(--kb-hand);
+}
+
+.nr-hand.rader {
+  --kb-hand: 54px;
+}
+
+.nr-hand.rader .nr-rad + .nr-rad {
+  margin-top: calc(var(--kb-hand) * -0.62);
+}
+
+.nr-rad {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.nr-hk {
+  position: relative;
+  flex: 0 1 var(--kb-hand);
+  min-width: calc(var(--kb-hand) * 0.3);
+  height: calc(var(--kb-hand) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  touch-action: manipulation;
+  z-index: var(--i);
+}
+
+.nr-hk:last-child {
+  flex-shrink: 0;
+}
+
+.nr-hk .sk-kort {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: transform 0.18s ease-out, filter 0.18s;
+}
+
+.nr-meg.min-tur.kilde-hand .nr-hk:not(.lovlig) .sk-kort {
+  filter: brightness(0.62) saturate(0.6);
+}
+
+.nr-hk:focus-visible,
+.nr-opp:focus-visible,
+.nr-ned:focus-visible {
+  outline: none;
+}
+
+.nr-hk:focus-visible .sk-kort,
+.nr-opp:focus-visible .sk-kort,
+.nr-ned:focus-visible .sk-kort {
+  outline: 3px solid var(--lampe);
+  outline-offset: 2px;
+  border-radius: var(--sk-r);
+}
+
+.nr-tomhand {
+  margin: 0;
+  align-self: center;
+  color: var(--tekst-3);
+  font-size: 0.9rem;
+}
+
+/* ---------- The end ---------- */
+
+.nr-plasser {
+  display: grid;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nr-plasser li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 16px;
+  background: var(--natt-2);
+}
+
+.nr-plasser li.forst {
+  box-shadow: 0 0 0 3px var(--lampe);
+}
+
+.nr-plasser li.narr {
+  box-shadow: 0 0 0 2px var(--aksent);
+}
+
+.nr-nr {
+  flex: none;
+  width: 1.6em;
+  font-family: var(--font-display);
+  text-align: center;
+}
+
+.nr-plasser b {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nr-plassmerke {
+  flex: none;
+  margin-left: auto;
+  color: var(--tekst-2);
+  font-size: 0.88rem;
+}
+
+.forst .nr-plassmerke {
+  color: var(--lampe);
+}
+
+/* ---------- Home and the crowning ---------- */
+
+.nr-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.nr-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nr-rekorder li,
+.nr-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.nr-rekorder li b,
+.nr-rekordlinje b {
+  color: var(--tekst);
+}
+
+.nr-rekordlinje {
+  margin: 12px auto 0;
+  width: fit-content;
+}
+
+.nr-niva {
+  min-width: 5.5em;
+  font-family: var(--font-display);
+}
+
+/* ---------- Taller and smaller screens ---------- */
+
+@media (min-height: 780px) and (orientation: portrait) {
+  .skjerm-spill {
+    --kb-haug: 86px;
+    --kb-hand: 68px;
+    --kb-bord: 56px;
+    --kb-mini: 24px;
+  }
+}
+
+@media (max-height: 700px) {
+  .skjerm-spill {
+    --kb-haug: 52px;
+    --kb-hand: 52px;
+    --kb-bord: 36px;
+    --kb-mini: 17px;
+  }
+  .nr-plass {
+    padding: 4px 4px 5px;
+    gap: 2px;
+  }
+  /* One or two others: name and table cards side by side. Three: no avatar. */
+  .nr-andre:not(.seter-3) .nr-plass {
+    grid-auto-flow: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 4px 10px 4px 4px;
+  }
+  .nr-andre.seter-3 .nr-ava {
+    display: none;
+  }
+  .skjerm-spill:has(.nr-bord) {
+    gap: 5px;
+  }
+  .nr-andre {
+    margin-bottom: 0;
+  }
+  .nr-andre.seter-3 .nr-plass {
+    padding: 3px 3px 4px;
+    gap: 1px;
+  }
+  /* A big hand in rows: the table cards wait anyway, so they shrink. */
+  .nr-meg:has(.nr-hand.rader) {
+    --kb-bord: 26px;
+  }
+  .nr-hand.rader {
+    --kb-hand: 46px;
+  }
+  .nr-ava .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.85rem;
+  }
+  .nr-bord {
+    gap: 20px;
+    padding: 6px 0;
+    min-height: calc(var(--kb-haug) * 1.4 + 14px);
+  }
+  .nr-melding {
+    min-height: 2.6em;
+    margin: 4px 0 0;
+  }
+  .nr-melding b {
+    font-size: 0.95rem;
+  }
+  .nr-sist {
+    font-size: 0.8rem;
+  }
+  .nr-hand {
+    padding-top: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .nr-andre {
+    gap: 4px;
+  }
+  .nr-navn {
+    font-size: 0.8rem;
+  }
+  .nr-antall,
+  .nr-uteMerke {
+    font-size: 0.7rem;
+  }
+}
+
+/* A phone on its side: the others in a slim row; my table cards beside the hand. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-spill {
+    --kb-haug: 46px;
+    --kb-hand: 46px;
+    --kb-bord: 34px;
+    --kb-mini: 15px;
+  }
+  .nr-andre {
+    margin-bottom: 2px;
+  }
+  .nr-plass {
+    grid-auto-flow: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 8px 3px 4px;
+    gap: 6px;
+  }
+  .nr-ava .avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+  .nr-bord {
+    min-height: calc(var(--kb-haug) * 1.4 + 12px);
+    margin: 2px 0;
+    padding: 5px 0;
+    gap: 22px;
+  }
+  .nr-melding {
+    min-height: 2.3em;
+    margin: 2px 0 0;
+  }
+  .nr-melding b {
+    font-size: 0.9rem;
+  }
+  .nr-sist {
+    font-size: 0.78rem;
+  }
+  .nr-meg {
+    grid-template-columns: auto minmax(0, max-content);
+    justify-content: center;
+    align-items: end;
+    gap: 24px;
+  }
+  .nr-hand {
+    width: calc((var(--kb-hand) + 4px) * var(--per, 3));
+    max-width: 100%;
+    padding-top: 10px;
+  }
+  .nr-hand.rader {
+    --kb-hand: 40px;
+  }
+}
