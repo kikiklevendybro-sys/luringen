@@ -576,6 +576,11 @@
       "tittel": "Binary puzzle – free daily black and white logic",
       "frase": "Binary puzzle",
       "beskrivelse": "Play a free binary puzzle: black and white, never three alike in a row and as many of each per line, with = and × signs. A new zebra daily, 6 × 6 to 10 × 10."
+    },
+    "nostet": {
+      "tittel": "Path puzzle – one line through every square, daily",
+      "frase": "Path puzzle",
+      "beskrivelse": "Play a free path puzzle: draw one thread through every square and pass the numbers in order. A new yarn every day, boards from 5 × 5 to 8 × 8, some with walls."
     }
   }
 }
