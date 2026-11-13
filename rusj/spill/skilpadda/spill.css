@@ -1,0 +1,690 @@
+/* Skilpadda — mahjong solitaire. Everything is prefixed "sp-". On the board: --tw / --th are a
+   tile's width and height, --hx / --hy half of them (a place is given in half tiles), --d how far
+   each layer moves up and left, --mz the highest layer. spill.js sets them from the free room. */
+
+/* ---------- The play screen fills the phone exactly; the page never scrolls ---------- */
+
+html.sp-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.sp-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.sp-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.sp-fast main,
+html.sp-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 8px;
+}
+
+/* A bigger screen gets a bigger board (the kit keeps .app at 480 px). */
+@media (min-width: 700px) and (min-height: 501px) {
+  html[data-spill="skilpadda"] .app:has(.sp-flate) {
+    max-width: 1180px;
+  }
+
+  .sp-verktoy {
+    max-width: 520px;
+    margin-inline: auto;
+  }
+}
+
+/* ---------- HUD ---------- */
+
+.sp-hud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sp-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 800 0.9rem/1 var(--font-display);
+  white-space: nowrap;
+}
+
+.sp-stat b {
+  color: var(--tekst);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-stat.null {
+  box-shadow: inset 0 0 0 2px var(--lampe);
+}
+
+.sp-stat svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- The board ---------- */
+
+.sp-flate {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sp-brett {
+  --tw: 40px;
+  --th: 52px;
+  --hx: 20px;
+  --hy: 26px;
+  --d: 5px;
+  --mz: 0;
+  --fokus: var(--blekk);
+  --fokus-2: transparent;
+  position: relative;
+}
+
+/* A tile: an ivory face; its side (as thick as one layer step) shows to the bottom right, with a soft
+   shadow on what lies under it. */
+.sp-b {
+  position: absolute;
+  top: calc(var(--y) * var(--hy) + (var(--mz) - var(--z)) * var(--d));
+  left: calc(var(--x) * var(--hx) + (var(--mz) - var(--z)) * var(--d));
+  width: var(--tw);
+  height: var(--th);
+  margin: 0;
+  padding: calc(var(--tw) * 0.04);
+  border: 0;
+  border-radius: calc(var(--tw) * 0.16);
+  background: linear-gradient(155deg, #fffdf6 0%, #fbf1dc 62%, #f1e2c1 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(23, 14, 43, 0.38),
+    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.9),
+    calc(var(--d) * 0.5) calc(var(--d) * 0.5) 0 #e0c99b,
+    var(--d) var(--d) 0 #b89462,
+    calc(var(--d) + 1px) calc(var(--d) + 1px) 0 rgba(23, 14, 43, 0.75),
+    calc(var(--d) + 2px) calc(var(--d) + 4px) 8px rgba(8, 4, 20, 0.45);
+  color: var(--blekk);
+  cursor: pointer;
+  transition: transform 0.12s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sp-b svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-display);
+  font-weight: 900;
+  pointer-events: none;
+}
+
+/* Locked tiles are a little darker (when «Vis ledige brikker» is on). */
+.sp-b::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(23, 14, 43, 0.3);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease-out;
+}
+
+.vis-frie .sp-b.last::after {
+  opacity: 1;
+}
+
+.sp-b.last {
+  cursor: default;
+}
+
+/* The selected tile: lifted, yellow, with a thick ink ring. */
+.sp-b.valgt {
+  background: linear-gradient(155deg, #fff6b8 0%, #ffe066 70%, #fcc419 100%);
+  box-shadow:
+    inset 0 0 0 3px var(--blekk),
+    calc(var(--d) * 0.5) calc(var(--d) * 0.5) 0 #e0c99b,
+    var(--d) var(--d) 0 #b89462,
+    calc(var(--d) + 1px) calc(var(--d) + 1px) 0 rgba(23, 14, 43, 0.75),
+    calc(var(--d) + 4px) calc(var(--d) + 8px) 12px rgba(8, 4, 20, 0.5);
+  transform: translate(-2px, -3px);
+}
+
+/* A hint: both tiles pulse with a pink ring. */
+.sp-b.hint {
+  background: linear-gradient(155deg, #fff0f6 0%, #ffd6e7 100%);
+  animation: sp-hint 0.8s ease-in-out infinite alternate;
+}
+
+.sp-b.hint::before {
+  position: absolute;
+  inset: -3px;
+  border: 3px solid var(--rosa-dyp, #d61f69);
+  border-radius: calc(var(--tw) * 0.2);
+  content: "";
+  pointer-events: none;
+}
+
+@keyframes sp-hint {
+  from { transform: translateY(0); }
+  to { transform: translateY(-4px); }
+}
+
+/* A pair taken: up and away. */
+.sp-b.ut {
+  animation: sp-ut 0.3s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes sp-ut {
+  to {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.82);
+  }
+}
+
+/* A tile that just became free glows for a moment. */
+.sp-b.ny {
+  animation: sp-ny 0.7s ease-out;
+}
+
+@keyframes sp-ny {
+  0% { filter: brightness(1.25) saturate(1.2); }
+  100% { filter: none; }
+}
+
+/* Tiles that come back (undo) and a shuffled board. */
+.sp-b.inn {
+  animation: sp-inn 0.32s ease-out;
+}
+
+@keyframes sp-inn {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.85);
+  }
+}
+
+.sp-b.stokket {
+  animation: sp-stokk 0.5s ease-out both;
+  animation-delay: calc((var(--x) + var(--y)) * 8ms);
+}
+
+@keyframes sp-stokk {
+  0% { transform: rotateY(90deg) scale(0.9); }
+  100% { transform: none; }
+}
+
+.sp-b.rist {
+  animation: sp-rist 0.32s ease-in-out;
+}
+
+@keyframes sp-rist {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sp-b:not(.last):not(.valgt):hover {
+    background: linear-gradient(155deg, #ffffff 0%, #fff6e0 100%);
+    transform: translateY(-1px);
+  }
+}
+
+/* Very small tiles (the turtle on a narrow phone): a thinner frame so the face keeps its room. */
+.sp-brett.liten .sp-b {
+  padding: 0;
+  border-radius: calc(var(--tw) * 0.14);
+}
+
+/* ---------- No pair is free ---------- */
+
+.sp-stopp {
+  position: absolute;
+  inset: 0;
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: rgba(14, 8, 30, 0.45);
+}
+
+.sp-stopp[hidden] {
+  display: none;
+}
+
+.sp-stoppkort {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 340px;
+  padding: 18px 18px 14px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2), 0 18px 40px rgba(0, 0, 0, 0.5);
+  color: var(--blekk);
+  text-align: center;
+  animation: sp-inn 0.3s ease-out;
+}
+
+.sp-stoppkort h2 {
+  margin: 0;
+  font: 900 1.3rem/1.15 var(--font-display);
+}
+
+.sp-stoppkort p {
+  margin: 0;
+  color: var(--blekk-2);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.sp-stoppkort .lenke {
+  color: var(--blekk);
+}
+
+/* ---------- Toolbar in the dock ---------- */
+
+.sp-verktoy {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sp-knapp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 6px 2px;
+  border: 2px solid var(--strek);
+  border-radius: var(--r-mid);
+  background: rgba(33, 20, 61, 0.85);
+  color: var(--tekst);
+  font: 800 0.8rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.sp-knapp span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.sp-knapp svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sp-knapp:active:not(:disabled) {
+  background: var(--natt-3);
+  transform: translateY(1px);
+}
+
+.sp-knapp:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+/* Short screens: slimmer HUD and toolbar, so the board gets the room */
+@media (max-height: 700px) {
+  .skjerm-spill {
+    gap: 6px;
+    padding-top: 2px;
+  }
+
+  .sp-stat {
+    padding-block: 4px;
+    font-size: 0.84rem;
+  }
+
+  .sp-knapp {
+    min-height: 46px;
+    gap: 2px;
+    font-size: 0.74rem;
+  }
+
+  .sp-knapp svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .skjerm-spill .dokk {
+    padding-top: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .sp-hud {
+    gap: 5px;
+  }
+
+  .sp-stat {
+    gap: 4px;
+    padding-inline: 8px;
+    font-size: 0.78rem;
+  }
+
+  .sp-stat svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* ---------- A phone on its side (844 × 390 and the like): the board to the left with the whole
+   height, the chips and the four tools in a column to the right. The dock is an ordinary block here,
+   so the kit leaves the screen alone. ---------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  html[data-spill="skilpadda"] .app:has(.sp-flate) {
+    max-width: 980px;
+  }
+
+  .skjerm-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 168px;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "brett hud" "brett dokk";
+    align-items: start;
+    gap: 8px 14px;
+    padding-block: 4px 8px;
+  }
+
+  .skjerm-spill > .sp-hud {
+    grid-area: hud;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .skjerm-spill > .sp-hud .sp-stat {
+    justify-content: center;
+  }
+
+  .skjerm-spill > .sp-flate {
+    grid-area: brett;
+    align-self: stretch;
+    height: 100%;
+  }
+
+  .skjerm-spill > .dokk {
+    grid-area: dokk;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .skjerm-spill .sp-verktoy {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .skjerm-spill .sp-knapp {
+    min-height: 54px;
+  }
+}
+
+/* ---------- Home ---------- */
+
+.hjem-knapper .knapp:has(.sp-dagknapp) {
+  gap: 14px;
+  padding-block: 10px;
+}
+
+.sp-dagknapp {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+
+.sp-dagknapp b {
+  font: 900 1.3rem/1.1 var(--font-display);
+}
+
+.sp-dagknapp small {
+  color: var(--blekk-2);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+.sp-kal {
+  display: grid;
+  flex: none;
+  grid-template-rows: auto 1fr;
+  width: 40px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.sp-kal small {
+  padding: 2px 0 1px;
+  background: #0f6e54;
+  color: #fff;
+  font: 900 0.6rem/1.1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sp-kal b {
+  display: grid;
+  place-items: center;
+  font: 900 1.2rem/1 var(--font-display);
+}
+
+.sp-dagboks {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+  text-align: center;
+}
+
+.sp-dagboks p {
+  margin: 0;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.sp-dagboks p b {
+  color: var(--tekst);
+}
+
+.sp-hake svg {
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  vertical-align: -3px;
+  fill: none;
+  stroke: var(--aksent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.skjerm-slutt > .sp-dagboks {
+  background: none;
+  box-shadow: none;
+}
+
+.sp-hjemstat,
+.sp-sluttstat {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* «Nytt brett om 05:12:33» – ticks every second */
+.sp-nedtelling {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.sp-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.25rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Setup: each layout seen from above ---------- */
+
+.sp-mini {
+  display: block;
+  width: 60px;
+  height: 46px;
+}
+
+/* ---------- Result ---------- */
+
+.sp-resultat {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 10px;
+}
+
+.sp-tall {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 6px 12px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2), 0 16px 30px var(--skygge);
+  color: var(--blekk);
+}
+
+.sp-tall b {
+  font: 900 1.9rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sp-tall:not(:first-child) b {
+  font-size: 1.5rem;
+}
+
+.sp-tall span {
+  font: 800 0.66rem/1.15 var(--font-display);
+  letter-spacing: 0.1em;
+  opacity: 0.75;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.sp-tall.straff {
+  box-shadow: inset 0 0 0 2px var(--rod-dyp, #b3202a), 0 6px 0 var(--papir-2), 0 16px 30px var(--skygge);
+}
+
+.sp-ny {
+  position: absolute;
+  top: -10px;
+  right: -4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--rosa-dyp, #d61f69);
+  color: #fff;
+  font: 900 0.7rem/1.2 var(--font-display);
+  font-style: normal;
+  transform: rotate(6deg);
+}
+
+.sp-straff {
+  margin-top: -8px;
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (max-width: 360px) {
+  .sp-resultat {
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .sp-tall {
+    padding-inline: 4px;
+  }
+
+  .sp-tall span {
+    font-size: 0.6rem;
+    letter-spacing: 0.03em;
+  }
+
+  .sp-tall b {
+    font-size: 1.5rem;
+  }
+
+  .sp-tall:not(:first-child) b {
+    font-size: 1.25rem;
+  }
+}
+
+/* ---------- Less motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-b,
+  .sp-b.valgt,
+  .sp-b.hint,
+  .sp-b.ny,
+  .sp-b.inn,
+  .sp-b.stokket,
+  .sp-b.rist,
+  .sp-stoppkort {
+    animation: none;
+    transition: none;
+  }
+
+  .sp-b.valgt {
+    transform: none;
+  }
+}

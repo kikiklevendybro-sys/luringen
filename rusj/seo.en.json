@@ -566,6 +566,17 @@
         "forbidden words",
         "word guessing game"
       ]
+    },
+    "skilpadda": {
+      "tittel": "Mahjong solitaire – free, with a daily board",
+      "frase": "Mahjong solitaire",
+      "beskrivelse": "Play mahjong solitaire free: match free tiles in pairs and clear the board. Five layouts with the classic turtle, hints, undo and a daily board. No ads.",
+      "sok": [
+        "mahjong solitaire free",
+        "mahjong turtle",
+        "tile matching game",
+        "daily mahjong"
+      ]
     }
   }
 }

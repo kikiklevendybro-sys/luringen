@@ -1,0 +1,34 @@
+{
+  "id": "skilpadda",
+  "navn": "Skilpadda",
+  "undertittel": "Mahjong-kabal",
+  "beskrivelse": "Gratis mahjong-kabal på norsk: finn to like, ledige brikker og rydd hele brettet. Fem brett, hint og angre, bare brett som kan gå opp – og dagens brett.",
+  "kort": "Finn to like, ledige brikker – og rydd hele brettet.",
+  "spillere": [1, 1],
+  "minutter": [3, 20],
+  "mobiler": "en",
+  "tagger": ["alene", "tenke", "daglig", "klassiker"],
+  "rekkefolge": 59,
+  "farge": "#34b892",
+  "dagnavn": "Dagens brett",
+  "sok": ["mahjong", "mahjong kabal", "mahjong solitaire", "mahjongg", "mahjong gratis", "brikkespill", "skilpadde", "dagens mahjong", "finn par"],
+  "alias": ["mahjong"],
+  "i18n": {
+    "en": {
+      "navn": "Tile Turtle",
+      "undertittel": "Mahjong solitaire",
+      "kort": "Find two matching free tiles – and clear the whole board.",
+      "beskrivelse": "Free mahjong solitaire in your browser: match free tiles in pairs and clear the board. Five layouts, hints and undo, only boards that can be cleared – and a daily board.",
+      "slug": "tile-turtle",
+      "sok": ["mahjong", "mahjong solitaire", "mahjongg", "mahjong tiles", "tile matching", "free mahjong", "daily mahjong", "turtle layout"]
+    },
+    "da": {
+      "navn": "Skildpadden",
+      "undertittel": "Mahjong-kabale",
+      "kort": "Find to ens, frie brikker – og ryd hele brættet.",
+      "beskrivelse": "Gratis mahjong-kabale på dansk: find to ens, frie brikker, og ryd hele brættet. Fem bræt, hint og fortryd, kun bræt der kan gå op – og dagens bræt.",
+      "slug": "skildpadden",
+      "sok": ["mahjong", "mahjong kabale", "mahjong solitaire", "mahjongg", "mahjong gratis", "brikspil", "skildpadde", "dagens mahjong"]
+    }
+  }
+}
