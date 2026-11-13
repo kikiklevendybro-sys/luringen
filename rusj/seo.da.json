@@ -609,6 +609,12 @@
       "tittel": "Stipuslespil – én streg gennem alle felter",
       "frase": "Stipuslespil",
       "beskrivelse": "Spil et gratis stipuslespil: træk én tråd gennem alle felter, og tag tallene i rækkefølge. Nyt nøgle hver dag og bræt fra 5 × 5 til 8 × 8, nogle med vægge."
+    },
+    "molla": {
+      "tittel": "Mølle online – gratis mod mobilen eller en ven",
+      "frase": "Mølle",
+      "beskrivelse": "Spil mølle gratis i browseren: sæt ni brikker ud, lav møller, og tag modstanderens brikker. Mod mobilen på tre niveauer eller to på samme mobil. Uden konto.",
+      "motMobilen": true
     }
   }
 }

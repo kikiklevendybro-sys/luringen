@@ -592,6 +592,12 @@
       "tittel": "Path puzzle – one line through every square, daily",
       "frase": "Path puzzle",
       "beskrivelse": "Play a free path puzzle: draw one thread through every square and pass the numbers in order. A new yarn every day, boards from 5 × 5 to 8 × 8, some with walls."
+    },
+    "molla": {
+      "tittel": "Nine men's morris – free against the phone or a friend",
+      "frase": "Nine men's morris",
+      "beskrivelse": "Play nine men's morris free: place nine pieces, make mills and take your opponent's pieces. Against the phone at three levels or two on one phone. No account.",
+      "motMobilen": true
     }
   }
 }
