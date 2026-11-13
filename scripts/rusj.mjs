@@ -856,7 +856,9 @@ ${STEMPEL_FILTER}
   const portalCss = skriv("felles/portal.css", kilde("rusj/portal/portal.css"));
   const portalJs = skriv("felles/portal.js", kilde("rusj/portal/portal.js"));
   const dagligJs = skriv("felles/daglig.js", kilde("rusj/portal/daglig.js")); // «Dagens rusj»: see rusj/DAGLIG.md
-  // «Mest spilt nå» (rusj/topp.json): a row under the hero.
+  const finnerJs = skriv("felles/finner.js", kilde("rusj/portal/finner.js")); // «Hva skal vi spille?»: the finder's choice
+  const Finner = require(join(ROT, "rusj/portal/finner.js")); // its chips and age steps, for the markup
+  // «Mest spilt nå» (rusj/topp.json): a row under the hero, and a place in the finder's ranking.
   const topp = lesTopp(toppFil);
   const siderJs = skriv("felles/sider.js", kilde("rusj/portal/sider.js"));
   // Small line icons in the text colour (drawn once, used by every card): emoji phones and
@@ -887,6 +889,8 @@ ${STEMPEL_FILTER}
     const MOB = mobilerPa(t);
     const TAGG = taggerPa(t);
     const kortListe = U.kort;
+    // The place of each of the edition's games in «Mest spilt nå» (1 = most played), for the finder.
+    const toppPlass = new Map((topp ? topp.spill : []).filter((id) => kortListe.some((m) => m.id === id)).map((id, i) => [id, i + 1]));
     const spillData = kortListe.map((m) => ({
       id: m.id,
       navn: m.navn,
@@ -898,6 +902,8 @@ ${STEMPEL_FILTER}
       tagger: m.tagger,
       mobiler: m.mobiler,
       farge: m.farge,
+      rekkefolge: m.rekkefolge,
+      ...(toppPlass.has(m.id) ? { topp: toppPlass.get(m.id) } : {}),
       alder18: !!m.alder18,
       ...(motMobilen(m) ? { motMobilen: true } : {}),
       // The game's own search words plus the ones in rusj/seo.json (what people call the game).
@@ -963,7 +969,7 @@ ${toppRad.map((m, i) => kortHtml(m, { klasse: "hyllekort toppkort", nr: i + 1 })
       deling: delingFor(U),
       delingAlt: t("rusj – gratis spill og selskapsleker på norsk"),
       css: [felles.css, portalCss],
-      skript: portalSkript(U, portalData, dagligJs, portalJs),
+      skript: portalSkript(U, portalData, dagligJs, finnerJs, portalJs),
       jsonld: {
         "@context": "https://schema.org",
         "@graph": [
@@ -1019,6 +1025,34 @@ ${FLAGG}
     <p class="kveld-fot">${esc(t("3 poeng for seier, 2 for andreplass og 1 for tredjeplass – i alle spillene dere spiller i kveld."))}</p>
   </section>
   <h2 class="filter-overskrift" id="spill" tabindex="-1">${esc(t("Hva skal vi spille?"))}</h2>
+  <div class="finner" id="finner">
+    <div class="finner-sporsmal" role="group" aria-labelledby="finner-antall-tittel">
+      <span class="finner-tittel" id="finner-antall-tittel">${esc(t("Hvor mange er dere?"))}</span>
+      <div class="brikker finner-brikker">${Object.keys(Finner.SPILLERE).map((v) => `<button type="button" class="brikke" data-finn-antall="${v}" aria-pressed="false">${v.replace("-", "–")}</button>`).join("")}</div>
+    </div>
+    <div class="finner-sporsmal finner-alder" role="group" aria-labelledby="finner-alder-tittel">
+      <label class="finner-tittel" id="finner-alder-tittel" for="finner-yngst">${esc(t("Yngste"))}</label>
+      <div class="finner-steg">
+        <button type="button" class="finner-steg-knapp" data-finn-yngst="-1" aria-label="${esc(t("Yngre"))}">−</button>
+        <select id="finner-yngst">${Finner.alderTrinn(false).map((v) => `<option value="${v}"${v === "voksen" ? " selected" : ""}>${esc(v === "voksen" ? t("Voksen") : t("{n} år", { n: v }))}</option>`).join("")}</select>
+        <button type="button" class="finner-steg-knapp" data-finn-yngst="1" aria-label="${esc(t("Eldre"))}">+</button>
+      </div>
+    </div>
+    <div class="finner-sporsmal" role="group" aria-labelledby="finner-lyst-tittel">
+      <span class="finner-tittel" id="finner-lyst-tittel">${esc(t("Hva har dere lyst på?"))}</span>
+      <div class="brikker finner-brikker">${[
+        ["alt", t("Litt av alt")],
+        ["tull", t("Le og tulle")],
+        ["tenke", t("Tenke og vinne")],
+        ["ord", t("Ord og quiz")],
+        ["tegne", t("Tegne og mime")],
+        ["kjapt", t("Kjapt (<10 min)")],
+      ].map(([v, navn]) => `<button type="button" class="brikke" data-finn-lyst="${v}" aria-pressed="${v === "alt"}">${esc(navn)}</button>`).join("")}</div>
+    </div>
+    <p class="finner-treff" id="finner-treff"></p>
+    <ul class="spillgrid finner-liste" id="finner-liste" aria-label="${esc(t("Forslag"))}"></ul>
+    <button type="button" class="knapp-2 liten finner-mer" id="finner-mer" hidden>${esc(t("Vis flere"))}</button>
+  </div>
   <div class="filter" id="filter" role="search">
     <div class="sok">
       <span class="sok-ikon" aria-hidden="true">🔎</span>

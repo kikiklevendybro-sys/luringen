@@ -89,6 +89,122 @@ function meta(id) {
   return m ? JSON.parse(m[1]) : { id };
 }
 
+// «Hva skal vi spille?» on the front page (every edition): the example from the brief – a parent
+// with daughters of 7 and 11 – in three taps (3–4, the age list, 7); the list follows at once, says
+// why each game fits, is remembered, mixes kinds, and never shows 18+ unless it is chosen.
+// The 18+ steps are checked further down (after the 18+ door has been opened): finnerAtten().
+async function finnerTur(t, c) {
+  const forside = `document.querySelector('.spillgrid')`;
+  const les = () =>
+    c.js(`(() => {
+      const spill = new Map((window.RUSJ_SPILLISTE || []).map((s) => [s.id, s]));
+      const kort = Array.from(document.querySelectorAll("#finner-liste .spillkort")).filter((k) => k.offsetParent);
+      const trykket = (sel, felt) => Array.from(document.querySelectorAll(sel)).filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset[felt]);
+      let lagret = null;
+      try { lagret = JSON.parse(localStorage.getItem(${JSON.stringify(t.nokkel("portal"))}) || "null"); } catch (e) { lagret = "?"; }
+      return {
+        treff: document.querySelector("#finner-treff").textContent,
+        live: document.querySelector("#finner-treff").getAttribute("aria-live"),
+        kort: kort.map((k) => {
+          const s = spill.get(k.dataset.id);
+          const g = k.querySelector(".kort-grunn");
+          const b = k.getBoundingClientRect();
+          return { id: s.id, alder: s.alder, spillere: s.spillere, alder18: !!s.alder18, tagger: s.tagger, minutter: s.minutter, slag: window.RusjFinner.slag(s), grunn: g ? g.textContent : "", navn: k.querySelector("a").getAttribute("aria-label") || "", ute: b.right > innerWidth + 1 || b.left < -1 };
+        }),
+        mer: !document.querySelector("#finner-mer").hidden,
+        antall: trykket("[data-finn-antall]", "finnAntall"),
+        lyst: trykket("[data-finn-lyst]", "finnLyst"),
+        yngst: document.querySelector("#finner-yngst").value,
+        trinn: Array.from(document.querySelectorAll("#finner-yngst option")).map((o) => o.value),
+        lagret,
+      };
+    })()`);
+  const velgAlder = async (v) => {
+    await c.js(`(() => { const s = document.querySelector("#finner-yngst"); s.value = ${JSON.stringify(String(v))}; s.dispatchEvent(new Event("change", { bubbles: true })); })()`);
+    await c.sov(150);
+  };
+
+  // «Finn et spill» in the hero leads to the questions.
+  await c.js("scrollTo(0, 0)");
+  await c.klikk('a.knapp[href="#spill"]');
+  await c.sov(700);
+  const ved = await c.js(`({ fokus: document.activeElement && document.activeElement.id, topp: Math.round(document.querySelector("#spill").getBoundingClientRect().top), sporsmal: Math.round(document.querySelector("#finner .finner-sporsmal:last-of-type").getBoundingClientRect().bottom), vh: innerHeight })`);
+  t.sjekk(ved.fokus === "spill" && ved.topp >= -2 && ved.topp < ved.vh / 3, `«Finn et spill» går ikke til «Hva skal vi spille?» (fokus ${ved.fokus}, overskriften på ${ved.topp} px)`);
+
+  // Before anything is chosen: «Voksen», «Litt av alt», no player count; a list already, never 18+.
+  let f = await les();
+  t.sjekk(f.yngst === "voksen" && f.lyst.join() === "alt" && f.antall.length === 0, `Finneren starter ikke på Voksen / Litt av alt (${f.yngst}, ${f.lyst}, ${f.antall})`);
+  t.sjekk(f.live === "polite", "Antallet i finneren leses ikke opp (aria-live)");
+  t.sjekk(f.kort.length === 6 && f.kort.every((k) => !k.alder18), `Finneren viser ${f.kort.length} kort før noe er valgt${f.kort.some((k) => k.alder18) ? ", med 18+" : ""}`);
+  t.sjekk(!f.trinn.includes("fest") && f.trinn[0] === "3" && f.trinn[f.trinn.length - 1] === "voksen", `Alderstrinnene i finneren: ${f.trinn.join(", ")}`);
+
+  // The example in three taps: 3–4, then the age (the list opens on a tap; here its value is set).
+  await c.trykk('[data-finn-antall="3-4"]');
+  await velgAlder(7);
+  f = await les();
+  t.sjekk(f.antall.join() === "3-4" && f.yngst === "7", `Valget ble ikke stående (${f.antall}, ${f.yngst})`);
+  t.sjekk(f.kort.length >= 4 && f.kort.length <= 6 && f.mer, `Eksempelet gir ${f.kort.length} kort${f.mer ? "" : " og ingen «Vis flere»"}`);
+  for (const k of f.kort) {
+    t.sjekk(k.alder <= 7 && k.spillere[0] <= 3 && k.spillere[1] >= 4 && !k.alder18, `${k.id} passer ikke for tre–fire med en sjuåring (fra ${k.alder} år, ${k.spillere.join("–")} spillere${k.alder18 ? ", 18+" : ""})`);
+    const fra = ([a, b]) => (a === b ? String(a) : `${a}–${b}`);
+    t.sjekk(new RegExp(`^\\D*${k.alder}\\D[^·]*· ${fra(k.spillere)} [^·]+ · ${fra(k.minutter)} min · \\S`).test(k.grunn), `${k.id}: grunnlinja «${k.grunn}»`);
+    t.sjekk(k.navn.includes(String(k.alder)), `${k.id}: alderen står ikke i lenkenavnet («${k.navn}»)`);
+    t.sjekk(!k.ute, `${k.id}: kortet stikker ut av skjermen`);
+  }
+  const slag = f.kort.map((k) => k.slag);
+  t.sjekk(new Set(slag).size >= 3 && Math.max(...slag.map((s) => slag.filter((x) => x === s).length)) <= 2, `Eksempelet blander ikke: ${f.kort.map((k) => `${k.id} (${k.slag})`).join(", ")}`);
+  if (t.norsk) t.sjekk(/^\d+ spill passer$/.test(f.treff) && f.kort.every((k) => k.grunn.startsWith(`Fra ${k.alder} år · `)), `Teksten i finneren: «${f.treff}», «${f.kort[0] && f.kort[0].grunn}»`);
+  t.sjekk(JSON.stringify(f.lagret && f.lagret.finn) === JSON.stringify({ antall: "3-4", yngst: 7, lyst: "alt" }), `Finnerens valg lagres ikke i ${t.nokkel("portal")}: ${JSON.stringify(f.lagret)}`);
+  await c.js(`document.querySelector("#spill").scrollIntoView()`);
+  await t.bilde("forside-finner");
+
+  // The stepper: one year at a time, and «Voksen» after 17.
+  await c.trykk('[data-finn-yngst="1"]');
+  t.sjekk((await les()).yngst === "8", "+ i alderen går ikke ett år opp");
+  await c.trykk('[data-finn-yngst="-1"]');
+  await velgAlder(17);
+  await c.trykk('[data-finn-yngst="1"]');
+  f = await les();
+  t.sjekk(f.yngst === "voksen" && (await c.js(`document.querySelector('[data-finn-yngst="1"]').getAttribute("aria-disabled")`)) === "true", `Etter 17 kommer ikke «Voksen» som siste trinn (${f.yngst})`);
+  await velgAlder(7);
+
+  // «Vis flere»: six more, and the keyboard goes on to the first new one.
+  const for_ = (await les()).kort.map((k) => k.id);
+  await c.klikk("#finner-mer");
+  f = await les();
+  t.sjekk(f.kort.length > for_.length && f.kort.slice(0, for_.length).map((k) => k.id).join() === for_.join(), `«Vis flere» viser ikke flere (${f.kort.length})`);
+  t.sjekk(await c.js(`document.activeElement && document.activeElement.closest("#finner-liste .spillkort") === document.querySelectorAll("#finner-liste .spillkort")[${for_.length}]`), "Fokus går ikke til det første nye kortet etter «Vis flere»");
+
+  // A wish narrows it; tapping it again goes back to «Litt av alt».
+  await c.trykk('[data-finn-lyst="ord"]');
+  f = await les();
+  t.sjekk(f.kort.length > 0 && f.kort.every((k) => k.tagger.includes("ord") || k.tagger.includes("quiz")), `«Ord og quiz» gir ${f.kort.map((k) => k.id).join(", ")}`);
+  await c.trykk('[data-finn-lyst="ord"]');
+  t.sjekk((await les()).lyst.join() === "alt", "Et nytt trykk på ønsket går ikke tilbake til «Litt av alt»");
+
+  // Remembered: the same answers and the same list after a reload.
+  const lista = (await les()).kort.map((k) => k.id).join();
+  await c.lastSide(t.side, forside);
+  await c.sov(300);
+  f = await les();
+  t.sjekk(f.antall.join() === "3-4" && f.yngst === "7" && f.lyst.join() === "alt" && f.kort.map((k) => k.id).join() === lista, `Finnerens valg huskes ikke etter omlasting (${f.antall}, ${f.yngst}, ${f.lyst})`);
+}
+
+// After «Ja, jeg er 18 eller eldre»: «Voksen fest (18+)» is the last step and brings drinking games;
+// «Skjul» takes the step away again, and with it every 18+ game.
+async function finnerAtten(t, c) {
+  const steg = () => c.js(`Array.from(document.querySelectorAll("#finner-yngst option")).map((o) => o.value)`);
+  const atten = () => c.js(`(() => { const spill = new Map((window.RUSJ_SPILLISTE || []).map((s) => [s.id, s])); return Array.from(document.querySelectorAll("#finner-liste .spillkort")).filter((k) => spill.get(k.dataset.id).alder18 && k.offsetParent).length; })()`);
+  t.sjekk((await steg()).slice(-2).join() === "voksen,fest", `«Voksen fest (18+)» er ikke siste trinn etter 18+-bekreftelsen (${(await steg()).slice(-2)})`);
+  t.sjekk((await atten()) === 0, "Finneren viser 18+ uten at «Voksen fest (18+)» er valgt");
+  await c.js(`(() => { const s = document.querySelector("#finner-yngst"); s.value = "fest"; s.dispatchEvent(new Event("change", { bubbles: true })); })()`);
+  await c.sov(150);
+  t.sjekk((await atten()) >= 1, "«Voksen fest (18+)» gir ingen drikkespill i finneren");
+  return async () => {
+    t.sjekk(!(await steg()).includes("fest") && (await c.js(`document.querySelector("#finner-yngst").value`)) === "voksen" && (await atten()) === 0, "«Skjul» tar ikke bort «Voksen fest (18+)» og drikkespillene i finneren");
+  };
+}
+
 for (const id of valgt) {
   const mappe = join(BILDER, id);
   mkdirSync(mappe, { recursive: true });
@@ -226,6 +342,7 @@ for (const id of valgt) {
       t.sjekk((await c.antall("#spillgrid .spillkort:not([hidden])")) >= 1 && /\S/.test(await c.tekst("#treff")), `Søket etter «${navn}» fant ingenting`);
       await t.bilde("forside-sok");
       await c.klikk("#sok-tom");
+      await finnerTur(t, c);
       await c.klikk("#overrask");
       await c.vent("document.querySelector('#automat[open] [data-spill]:not([aria-disabled=\"true\"])')", 6000);
       await t.bilde("forside-overrask");
@@ -279,10 +396,11 @@ for (const id of valgt) {
       const alle = await synligeKort();
 
       // First visit: the install tip is one compact row on the first screen, and on an ordinary
-      // phone a whole row of game cards fits under it.
-      const forste = await c.js(`(() => { const k = document.querySelector(".hylle-rad .spillkort a"); const tips = document.querySelector("#installtips"); const b = tips.getBoundingClientRect(); return { kortBunn: k ? Math.round(k.getBoundingClientRect().bottom) : 0, tipsSynlig: !tips.hidden, tipsHoyde: Math.round(b.height), tipsBunn: Math.round(b.bottom), vh: innerHeight }; })()`);
+      // phone a way to a game fits under it: the row «Mest spilt nå» when there is one, else the
+      // three questions of «Hva skal vi spille?».
+      const forste = await c.js(`(() => { const k = document.querySelector(".topp5 .spillkort a") || document.querySelector("#finner .finner-sporsmal:last-of-type"); const tips = document.querySelector("#installtips"); const b = tips.getBoundingClientRect(); return { hva: document.querySelector(".topp5") ? "Raden «Mest spilt nå»" : "Spørsmålene i «Hva skal vi spille?»", kortBunn: k ? Math.round(k.getBoundingClientRect().bottom) : 0, tipsSynlig: !tips.hidden, tipsHoyde: Math.round(b.height), tipsBunn: Math.round(b.bottom), vh: innerHeight }; })()`);
       t.sjekk(forste.tipsSynlig && forste.tipsHoyde <= 48 && forste.tipsBunn <= forste.vh, `Installeringstipset er ikke én kompakt rad på første skjerm (${forste.tipsHoyde} px høyt, slutter på ${forste.tipsBunn} av ${forste.vh} px)`);
-      if (BREDDE <= 430 && HOYDE >= 800) t.sjekk(forste.kortBunn > 0 && forste.kortBunn <= forste.vh, `Første rad med spillkort får ikke plass på første skjerm (slutter på ${forste.kortBunn} av ${forste.vh} px)`);
+      if (BREDDE <= 430 && HOYDE >= 800) t.sjekk(forste.kortBunn > 0 && forste.kortBunn <= forste.vh, `${forste.hva} får ikke plass på første skjerm (slutter på ${forste.kortBunn} av ${forste.vh} px)`);
       const fakta = (await c.tekst(".helt-fakta")).replace(/\s+/g, " ");
       t.sjekk(/Ingen konto/.test(fakta) && !/apper/.test(fakta), `Faktaene under logoen: «${fakta}»`);
 
@@ -417,16 +535,36 @@ for (const id of valgt) {
       t.sjekk(parade.fokus === 0, "Paradefigurene kan få tastaturfokus");
 
       // Keyboard: the first stops come in reading order, and each one shows where the focus is.
+      // «Mest spilt nå» (when there is a list), the tip, then «Hva skal vi spille?»: the player chips,
+      // the age stepper (−, the list, +), the wishes, the cards and «Vis flere»; then the search row.
+      const finnerKort = await c.js(`Array.from(document.querySelectorAll("#finner-liste .spillkort a")).filter((a) => a.offsetParent).length`);
+      const ventetStopp = [
+        "SUMMARY", // the language picker at the top
+        "finn",
+        "#overrask",
+        ...Array((await c.antall(".topp5 .spillkort a")) || 0).fill("A"),
+        "#installtips-vis",
+        "#installtips-lukk",
+        ...Array(5).fill("brikke"),
+        "finner-steg-knapp",
+        "#finner-yngst",
+        "finner-steg-knapp",
+        ...Array(6).fill("brikke"),
+        ...Array(finnerKort).fill("A"),
+        ...((await c.js("!document.querySelector('#finner-mer').hidden")) ? ["#finner-mer"] : []),
+        "#sok",
+        "#filter-knapp",
+        "hylle-alle",
+      ];
       const stopp = [];
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < ventetStopp.length; i++) {
         await tast("Tab", 9);
         await c.sov(80);
         stopp.push(
           await c.js(`(() => { const e = document.activeElement; const s = getComputedStyle(e); const ring = (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2) || (e.id === "sok" && s.borderTopColor === "rgb(255, 210, 63)"); return (e.id ? "#" + e.id : e.matches('a[href="#spill"]') ? "finn" : String(e.className).split(" ")[0] || e.tagName) + (ring ? "" : " (uten synlig fokus)"); })()`),
         );
       }
-      const ventetStopp = ["SUMMARY", "finn", "#overrask", "#installtips-vis", "#installtips-lukk", "#sok", "#filter-knapp", "hylle-alle"]; // SUMMARY: the language picker at the top
-      t.sjekk(stopp.join(" → ") === ventetStopp.join(" → "), `Tab-rekkefølgen på forsiden: ${stopp.join(" → ")}`);
+      t.sjekk(finnerKort === 6 && stopp.join(" → ") === ventetStopp.join(" → "), `Tab-rekkefølgen på forsiden: ${stopp.join(" → ")}`);
       // Backwards from the last game: what gets focus is scrolled to the top of the screen, and must
       // not end up under the search row that sticks there.
       await c.js(`(() => { const a = Array.from(document.querySelectorAll("#spillgrid .spillkort a")).filter((x) => x.offsetParent); a[a.length - 1].focus(); })()`);
@@ -467,6 +605,11 @@ for (const id of valgt) {
       t.sjekk(glid.hoyder.length === 1 && glid.sider === 1 && glid.hopp === 0, `Søkelinja endrer høyde eller siden hopper der den fester seg (høyder: ${glid.hoyder.join("/")} px, ${glid.sider} sidehøyder, ${glid.hopp} hopp)`);
       t.sjekk(glid.fast, "Søkelinja får ikke bakgrunn når siden har rullet inn under den");
       const linjeHoyde = glid.hoyder[0];
+      await c.sov(300);
+
+      // «Hva skal vi spille?»: the example in three taps, the stepper, «Vis flere», a wish, remembered.
+      await finnerTur(t, c);
+      await c.js("document.activeElement.blur(); scrollTo(0, 0)");
       await c.sov(300);
 
       // Search: focus moves the search row to the top (room for the keyboard), typing narrows the
@@ -603,7 +746,9 @@ for (const id of valgt) {
         t.sjekk(await c.js("!!document.activeElement.closest('.hylle-18')"), "Fokus havner ikke på drikkespill-hylla etter «Ja»");
         const etter18 = await tall();
         t.sjekk(Number(lesLinje(etter18.linje)[1]) === etter18.helt && !lesLinje(etter18.linje)[2], `Etter «Ja» sier lista «${etter18.linje}», logoen ${etter18.helt}`);
+        const etterSkjul = await finnerAtten(t, c);
         await c.klikk("[data-skjul18]");
+        await etterSkjul();
         t.sjekk((await synligeKort("#spillgrid .spillkort[data-alder18]")) === 0, "«Skjul» skjuler ikke drikkespillene");
         t.sjekk(await c.js("document.activeElement !== document.body"), "Fokus forsvinner etter «Skjul»");
       }

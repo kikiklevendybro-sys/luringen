@@ -179,8 +179,9 @@ test("the front page: «Dagens rusj» is wired in, and every card carries its fa
   assert.doesNotMatch(f.html, /id="idag(-ny)?"/);
   const skript = [...f.html.matchAll(/<script defer src="\/felles\/([a-z]+)\.js\?v=[a-z0-9]+"><\/script>/g)].map((m) => m[1]);
   // (stat.js comes first on every page when anonymous statistics are on: see STAT_ADRESSE.)
-  assert.deepEqual(skript.filter((s) => s !== "stat"), ["tekst", "spilliste", "daglig", "portal"]);
+  assert.deepEqual(skript.filter((s) => s !== "stat"), ["tekst", "spilliste", "daglig", "finner", "portal"]);
   assert.ok(existsSync(join(WEB, "felles/daglig.js")));
+  assert.equal(readFileSync(join(WEB, "felles/finner.js"), "utf8"), readFileSync(join(ROT, "rusj/portal/finner.js"), "utf8"));
   // One card per game: players, phones and time, and the same in the link's name.
   const kort = [...f.html.matchAll(/<li class="spillkort" data-id="([a-z]+)"[\s\S]*?<\/li>/g)];
   assert.equal(kort.length, spillIder.length);
@@ -577,7 +578,28 @@ test("every game has its age, it reaches the front page's game list, and the bui
   assert.throws(() => sjekkAlder({ id: "luringen" }, "scripts/bygg.mjs (LURINGEN_KORT)"), /LURINGEN_KORT\): mangler "alder"/);
 });
 
-// ---------- «Mest spilt nå» on the front page ----------
+// ---------- «Hva skal vi spille?» (the finder) and «Mest spilt nå» on the front page ----------
+
+test("the finder: three questions under «Hva skal vi spille?», before the search row, in every edition", () => {
+  for (const [sti, ord] of [
+    ["index.html", ["Hvor mange er dere?", "Yngste", "Voksen", "7 år", "Hva har dere lyst på?", "Litt av alt", "Kjapt (&lt;10 min)", "Vis flere"]],
+    ["en/index.html", ["How many of you are there?", "Youngest", "Adult", "7 years", "What do you fancy?", "A bit of everything", "Quick (&lt;10 min)", "Show more"]],
+    ["da/index.html", ["Hvor mange er I?", "Yngste", "Voksen", "7 år", "Hvad har I lyst til?", "Lidt af hvert", "Hurtigt (&lt;10 min.)", "Vis flere"]],
+  ]) {
+    const html = readFileSync(join(WEB, sti), "utf8");
+    const finner = html.slice(html.indexOf('<div class="finner" id="finner">'), html.indexOf('<div class="filter" id="filter"'));
+    assert.ok(html.indexOf('id="spill"') < html.indexOf('id="finner"') && finner.length > 200, `${sti}: finneren står ikke mellom overskriften og søket`);
+    for (const o of ord) assert.ok(finner.includes(o), `${sti}: mangler «${o}» i finneren`);
+    assert.deepEqual([...finner.matchAll(/data-finn-antall="([^"]+)" aria-pressed="false">([^<]+)</g)].map((m) => m[2]), ["1", "2", "3–4", "5–8", "9+"]);
+    assert.deepEqual([...finner.matchAll(/<option value="([^"]+)"/g)].map((m) => m[1]), [..."3 4 5 6 7 8 9 10 11 12 13 14 15 16 17".split(" "), "voksen"], `${sti}: alderstrinnene (18+ legges til av siden bak 18+-døra)`);
+    assert.match(finner, /<option value="voksen" selected>/);
+    assert.deepEqual([...finner.matchAll(/data-finn-lyst="([a-z]+)" aria-pressed="(true|false)"/g)].map((m) => m[1] + (m[2] === "true" ? "*" : "")), ["alt*", "tull", "tenke", "ord", "tegne", "kjapt"]);
+    assert.match(finner, /<button type="button" class="finner-steg-knapp" data-finn-yngst="-1" aria-label="[^"]+">−<\/button>/);
+    assert.match(finner, /<ul class="spillgrid finner-liste" id="finner-liste" aria-label="[^"]+"><\/ul>/);
+    // The hero's «Finn et spill» goes here.
+    assert.match(html, /<a class="knapp" href="#spill">/);
+  }
+});
 
 test("«Mest spilt nå»: no row with the committed empty list, and the build stops on a broken file", async () => {
   const { lesTopp, toppSpill } = await import("../scripts/rusj.mjs");
@@ -649,10 +671,14 @@ test("«Mest spilt nå»: the build draws the row from the list – numbered, in
     assert.match(en.del, /aria-label="Most played now"[\s\S]*Based on anonymous counts/);
     assert.ok(en.navn.slice(1).every((n, i) => n.startsWith(`Number ${i + 1}. `)));
     assert.match(rad(les("da/index.html")).del, /Mest spillet nu[\s\S]*Ud fra anonym optælling/);
+    // The finder ranks by the same list (ringen too: it only shows after «Voksen fest (18+)»).
+    const liste = les("felles/spilliste.js");
+    for (const [id, plass] of [["ringen", 1], ["fireren", 2], ["mimen", 6]]) assert.match(liste, new RegExp(`"id":"${id}"[^}]*"topp":${plass}[,}]`));
     // Only two games of the edition left: no row. No file: no row.
     assert.equal(rad(bygg("to", { oppdatert: "2026-11-13", spill: ["ringen", "fireren", "bonden", "reversi"] })("index.html")), null);
     const uten = bygg("uten", undefined);
     assert.equal(rad(uten("index.html")), null);
+    assert.doesNotMatch(uten("felles/spilliste.js"), /"topp":/);
   } finally {
     rmSync(rot, { recursive: true, force: true });
   }
