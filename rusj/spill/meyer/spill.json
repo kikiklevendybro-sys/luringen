@@ -8,6 +8,7 @@
   "alder": 10,
   "minutter": [10, 30],
   "mobiler": "en",
+  "terninger": true,
   "tagger": ["fest", "blof", "klassiker"],
   "rekkefolge": 51,
   "farge": "#e85d75",

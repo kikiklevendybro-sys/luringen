@@ -286,7 +286,8 @@
   let animerSteg = -1; // the step whose result should be animated (not after a reload)
 
   // ---------- Dice ----------
-  // Flat faces (tiles, lives, rules) and CSS cubes as in Terninga for the dice under the cup.
+  // Flat faces (tiles, lives, rules); the dice under the cup are real 3D dice in the kit's tray
+  // (R.terninger, rusj/kit/terninger.js), shaken in a cup-sized space in the middle of the felt.
   const PUNKT = {
     1: [[50, 50]],
     2: [[71, 29], [29, 71]],
@@ -301,14 +302,9 @@
       .join("")}</svg>`;
   const par = (v) => ojne(v).map((n) => ansikt(n)).join("");
 
-  const PIPS = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
-  const SIDE = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] };
-  const KUBE = [1, 2, 3, 4, 5, 6].map((n) => `<span class="my-side s${n}">${PIPS[n].map((p) => `<i class="p${p}"></i>`).join("")}</span>`).join("");
-  const pose = (v, z, tx, ty) => `rotateX(-21deg) rotateY(12deg) rotateZ(${z}deg) rotateX(${SIDE[v][0] + 360 * (tx || 0)}deg) rotateY(${SIDE[v][1] + 360 * (ty || 0)}deg)`; // sprak-ok
-  const kube = (v, z, klasse) =>
-    `<span class="my-t ${klasse || ""}" aria-hidden="true"><span class="my-skygge"></span><span class="my-hopp"><span class="my-kube" style="transform: ${pose(v, z)}">${KUBE}</span></span></span>`;
-  const kuber = (kast) => `<span class="my-terninger">${kube(kast[0], -9)}${kube(kast[1], 11)}</span>`;
-
+  const BRETT = "my-terninger";
+  const UNDER_BEGERET = [2.8, 2.2]; // the space under the cup, in dice
+  let sistKast = [6, 5]; // what lay under the cup last (shown again until the next shake)
   // The leather cup, upside down on the felt.
   const BEGER = `<svg class="my-beger-svg" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
     <path d="M18 112 L32 16 Q60 6 88 16 L102 112 Q60 122 18 112Z" fill="#7a2338" stroke="#170e2b" stroke-width="5" stroke-linejoin="round"/>
@@ -325,7 +321,7 @@
       ? ansikt(Math.min(6, sp.liv[i]), "my-liv-terning")
       : `<svg class="my-liv-terning ute" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><rect x="7" y="7" width="86" height="86" rx="22" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="14 10"/><path d="M34 34 L66 66M66 34 L34 66" stroke="currentColor" stroke-width="9" stroke-linecap="round"/></svg>`;
 
-  // Sounds as in Terninga: a rattle in the cup and a woody clack.
+  // Sounds: a rattle in the cup and a woody clack.
   function rasle(n = 7) {
     for (let k = 0; k < n; k++) R.lyd.stoy(k * 0.034 + Math.random() * 0.012, 0.024, 0.08 + Math.random() * 0.07, 2600 + Math.random() * 2800);
   }
@@ -371,8 +367,9 @@
 
   function begerBrett(sp, o = {}) {
     const klasse = ["my-brett", o.rister ? "rister" : "", o.kikker ? "kikker" : "", o.loftet ? "loftet" : "", o.anim ? "anim" : ""].filter(Boolean).join(" ");
+    if (o.kast) sistKast = o.kast;
     return `<div class="${klasse}" id="my-brett">
-      ${o.kast ? kuber(o.kast) : ""}
+      ${R.terninger.html({ id: BRETT, klasse: "my-filt", verdier: sp.kast || sistKast, hold: false, knapper: false, plass: 7.5 })}
       <span class="my-beger">${BEGER}</span>
       ${o.stempel || ""}
     </div>`;
@@ -691,7 +688,7 @@
         const v = sp.felles && e === "32" ? FELLES : e;
         const spes = navn(v) !== v;
         return {
-          html: `${kuber(sp.kast)}<div class="my-bak-tekst"><p class="etikett">${esc(R.t("Du slo"))}</p><p class="my-bak-verdi">${esc(spes ? navn(v) : v)}</p>${spes && v !== FELLES ? `<p class="my-bak-sub">${esc(strek(v))}</p>` : v === FELLES ? `<p class="my-bak-sub">${esc(R.t("3-2 – du kan si Fellesrunde"))}</p>` : ""}</div>`,
+          html: `${R.terninger.statisk(sp.kast, { s: 46, vri: [-9, 11], klasse: "my-par" })}<div class="my-bak-tekst"><p class="etikett">${esc(R.t("Du slo"))}</p><p class="my-bak-verdi">${esc(spes ? navn(v) : v)}</p>${spes && v !== FELLES ? `<p class="my-bak-sub">${esc(strek(v))}</p>` : v === FELLES ? `<p class="my-bak-sub">${esc(R.t("3-2 – du kan si Fellesrunde"))}</p>` : ""}</div>`,
           klasse: "my-bak",
           si: R.t("Du slo {a} og {b}: {verdi}.", { a: sp.kast[0], b: sp.kast[1], verdi: spes ? navn(v) : v }),
         };
@@ -849,6 +846,14 @@
             )}`;
         },
         etter() {
+          // a fling on the felt shakes the cup, like the button
+          R.terninger.koble(BRETT, {
+            vedSveip() {
+              const sp = R.S.spill;
+              if (!sp || sp.fase !== "rist" || rister || erRobot(sp, sp.tur) || R.arkApent()) return;
+              H.rist(null, null, R.S).catch((feil) => console.error(feil));
+            },
+          });
           driv();
         },
         inn(S) {
@@ -987,6 +992,9 @@
         rister = false;
         if (R.S.spill !== sp || sp.steg !== steg || R.S.skjerm !== "spill") return;
         rull(sp, [terning(), terning()]);
+        // The dice settle under the cup (a real throw in the cup's space, nobody sees it; where they lie
+        // is known at once, so nothing waits for it).
+        R.terninger.kast(BRETT, { verdier: sp.kast, indekser: [0, 1], omrade: UNDER_BEGERET, rolig: true, lyd: false });
         klakk(0, 0.7);
         klakk(0.08, 0.4);
         if (!erRobot(sp, sp.tur)) R.si(R.t("Terningene ligger under begeret. Hold fingeren på kortet for å se."));
