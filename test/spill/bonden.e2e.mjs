@@ -1,7 +1,8 @@
 // Bonden: two players on 3 × 3 (a win, undo of the winning mark, the win again), a new round
 // where the other player starts, a draw, reload and back + continue; then five in a row on the
 // big board; then against the phone: Uslåelig never loses and blocks, the five-in-a-row phone
-// blocks a four, and «Avslutt» leads to «Kåringen». Everything must fit on small phones.
+// blocks a four, and «Avslutt» leads to «Kåringen»; last the 15 × 15 board against the phone (a
+// tap shows a faint mark first, five at the edge wins). Everything must fit on small phones.
 // Runs in every edition (node test/rusj-e2e.mjs --sprak en bonden): the texts are checked in
 // Norwegian only (t.norsk); elsewhere the names, the state and the links (t.forside).
 import { join, resolve } from "node:path";
@@ -198,4 +199,38 @@ export default async function (t) {
   t.sjekk((await t.js("Rusj.S.skjerm")) === "hjem" && (await t.js("Rusj.S.spill.trekk.length")) === lengde + 1, "Mobilen tegnet mens spilleren var på en annen skjerm");
   await t.klikk('[data-h="fortsett"]');
   await t.vent(`Rusj.S.spill.trekk.length === ${lengde + 2}`, 4000);
+
+  // The big board, 15 × 15, against Middels: the cells are small, so a tap shows a faint mark first
+  await t.klikk('[data-h="avslutt"]');
+  await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
+  await t.vent("document.querySelector('.skjerm-slutt, .skjerm-hjem')");
+  await t.klikk('[data-h="nytt"]');
+  if (await t.finnes('#ark:not([hidden]) [data-h="ark-svar"]')) await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
+  await t.vent("document.querySelector('[data-h=\"variant\"][data-v=\"stor\"]')");
+  await t.klikk('[data-h="variant"][data-v="stor"]');
+  await t.klikk('[data-h="niva"][data-v="2"]');
+  t.sjekk(!t.norsk || /15 × 15/.test(await t.tekst('[data-h="variant"][data-v="stor"]')), "Valget for det store brettet mangler");
+  await t.bilde("oppsett-stor", true);
+  await t.js("Rusj.S.nesteStarter = 0"); // the test wants you to start
+  await t.klikk('[data-h="start"]');
+  await t.vent("document.querySelectorAll('.bo-celle').length === 225");
+  await t.trykk('.bo-celle[data-v="112"]');
+  t.sjekk(await t.finnes('.bo-celle.forslag[data-v="112"]') && (await spill()).trekk.length === 0, "Første trykk på det store brettet skal bare vise et svakt merke");
+  await t.trykk('.bo-celle[data-v="112"]');
+  t.sjekk((await spill()).trekk[0] === 112, "Andre trykk tegnet ikke merket på det store brettet");
+  await t.vent("Rusj.S.spill.trekk.length === 2", 5000);
+  await t.sov(500);
+  await t.bilde("stor-mot-mobilen");
+  // Five at the right edge (cells 100–104) wins on the big board too
+  await lastMed(t, `(S) => { S.spill.trekk = [100, 0, 101, 14, 102, 210, 103, 224]; S.spill.starter = 0; S.spill.resultat = null; }`);
+  await t.vent("document.querySelectorAll('.bo-celle').length === 225");
+  await t.trykk('.bo-celle[data-v="104"]');
+  await t.trykk('.bo-celle[data-v="104"]');
+  await t.sov(1000);
+  sp = await spill();
+  t.sjekk(sp.resultat && sp.resultat.vinner === 0 && sp.resultat.celler.join() === "100,101,102,103,104", `Fem på rad på det store brettet ga ikke seier: ${JSON.stringify(sp.resultat)}`);
+  t.sjekk((await t.tilstand()).rekord["stor-2"].seier === 1, "Seieren på det store brettet ble ikke telt");
+  await t.bilde("stor-vinner");
+  await storrelse(t, "stor", 375, 560);
+  await storrelse(t, "stor", 320, 568);
 }

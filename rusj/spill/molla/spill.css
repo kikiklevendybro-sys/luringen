@@ -1,0 +1,692 @@
+/* Mølla — a light wooden board with three squares burnt into it, cream and plum pieces that slide
+   along the lines. Sized by JS (tilpass) like Reversi. */
+
+.skjerm-spill {
+  --ml-tre: #e9c58e;
+  --ml-tre-2: #d9ad6c;
+  --ml-linje: #6b4423;
+  --ml-hvit: #fff6e6;
+  --ml-svart: #2b1f45;
+  gap: 10px;
+}
+
+/* ---------- Score ---------- */
+
+.ml-stilling {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.ml-tall {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  justify-items: center;
+  gap: 2px 8px;
+  font: 900 2.2rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ml-tall span {
+  color: var(--tekst-3);
+  font-size: 1.4rem;
+}
+
+.ml-tall small {
+  grid-column: 1 / -1;
+  max-width: 6.2em;
+  color: var(--tekst-3);
+  font: 700 0.72rem/1.2 var(--font-tekst);
+  text-align: center;
+}
+
+.ml-spiller {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 8px 7px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  text-align: center;
+  transition: box-shadow 0.25s, background 0.25s, transform 0.25s;
+}
+
+.ml-spiller.aktiv {
+  background: color-mix(in srgb, var(--aksent) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--aksent), 0 0 22px color-mix(in srgb, var(--aksent) 28%, transparent);
+  transform: translateY(-2px);
+}
+
+.ml-spiller.vant {
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.ml-merke {
+  display: block;
+}
+
+.ml-merke .avatar {
+  width: 38px;
+  height: 38px;
+  font-size: 1.25rem;
+}
+
+.ml-maskin {
+  display: block;
+  width: 40px;
+  margin: -2px 0;
+}
+
+.ml-maskin .figur-ramme {
+  display: block;
+}
+
+.ml-navn {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 0.98rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ml-antall {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2px 5px;
+  font: 900 1.05rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ml-antall small {
+  width: 100%;
+  color: var(--tekst-3);
+  font: 700 0.72rem/1.2 var(--font-tekst);
+}
+
+.ml-spiller.vant .ml-antall,
+.ml-spiller.vant .ml-antall small {
+  color: var(--blekk);
+}
+
+/* ---------- Message ---------- */
+
+.ml-melding {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 42px;
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 900 1.05rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.ml-melding small {
+  display: block;
+  margin-top: 2px;
+  font: 700 0.8rem/1.2 var(--font-tekst);
+  opacity: 0.85;
+}
+
+.ml-melding.molle {
+  background: color-mix(in srgb, var(--rosa) 24%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--rosa);
+  animation: ml-hopp 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.ml-melding.fly {
+  background: color-mix(in srgb, var(--lampe) 18%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--lampe);
+}
+
+.ml-melding.vinner {
+  border-radius: var(--r-mid);
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+  color: var(--blekk);
+  animation: ml-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.ml-melding.remis {
+  border-radius: var(--r-mid);
+  background: var(--natt-3);
+  animation: ml-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes ml-hopp {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+
+.ml-tenker i {
+  font-style: normal;
+  animation: ml-prikk 1.2s infinite both;
+}
+
+.ml-tenker i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ml-tenker i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes ml-prikk {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.ml-luft {
+  flex: 2 1 0;
+}
+
+.ml-luft.under {
+  flex-grow: 3;
+}
+
+/* ---------- The board ---------- */
+
+.ml-brettramme {
+  display: flex;
+  justify-content: center;
+}
+
+.ml-brett {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.28), transparent 60%),
+    repeating-linear-gradient(97deg, transparent 0 9px, rgba(120, 70, 20, 0.07) 9px 11px),
+    linear-gradient(160deg, var(--ml-tre), var(--ml-tre-2));
+  box-shadow: 0 0 0 4px #8a5a2b, 0 0 0 6px color-mix(in srgb, var(--aksent) 45%, var(--strek)), 0 18px 34px var(--skygge);
+  -webkit-user-select: none;
+  user-select: none;
+  container-type: inline-size;
+  --fokus: var(--blekk);
+  --fokus-2: transparent;
+}
+
+.ml-linjer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--ml-linje);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.ml-punkt {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 13%;
+  height: 13%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+/* The point itself: a little burnt dot */
+.ml-punkt::before {
+  content: "";
+  position: absolute;
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: var(--ml-linje);
+}
+
+.ml-punkt:focus-visible {
+  z-index: 4;
+  outline: 3px solid var(--blekk);
+  outline-offset: 0;
+}
+
+/* Where you may place or move: a soft ring around the dot */
+.ml-punkt.mulig::after {
+  content: "";
+  position: absolute;
+  width: 54%;
+  height: 54%;
+  border-radius: 50%;
+  background: color-mix(in srgb, #1f66a8 22%, transparent);
+  box-shadow: 0 0 0 2.5px #1f66a8;
+  animation: ml-puls 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes ml-puls {
+  from {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+}
+
+/* A piece */
+.ml-skive {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 84%;
+  height: 84%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--ml-hvit) 55%, #e8d6b8);
+  box-shadow: inset 0 -3px 0 rgba(23, 14, 43, 0.2), 0 2px 0 rgba(60, 30, 10, 0.55), 0 0 0 2px #6b4423;
+  pointer-events: none;
+}
+
+.ml-skive.svart {
+  background: radial-gradient(circle at 35% 30%, #6a5a8f, var(--ml-svart) 60%);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.35), 0 2px 0 rgba(60, 30, 10, 0.55), 0 0 0 2px #170e2b;
+}
+
+/* A ring on the piece itself, like the dot under it */
+.ml-skive::after {
+  content: "";
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px rgba(107, 68, 35, 0.35);
+}
+
+.ml-skive.svart::after {
+  box-shadow: inset 0 0 0 2px rgba(255, 241, 221, 0.18);
+}
+
+/* Movable pieces lift a little; the one picked up lifts more */
+.ml-punkt.kan .ml-skive {
+  box-shadow: inset 0 -3px 0 rgba(23, 14, 43, 0.2), 0 3px 0 rgba(60, 30, 10, 0.55), 0 0 0 2.5px #1f66a8;
+}
+
+.ml-punkt.kan .ml-skive.svart {
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.35), 0 3px 0 rgba(60, 30, 10, 0.55), 0 0 0 2.5px #1f66a8;
+}
+
+.ml-punkt.valgt .ml-skive {
+  transform: translateY(-8%) scale(1.12);
+  box-shadow: 0 0 0 3px var(--rosa-dyp), 0 7px 10px rgba(60, 30, 10, 0.45);
+  transition: transform 0.15s;
+}
+
+/* Pieces that may be taken after a mill: a red ring that pulses */
+.ml-punkt.ta .ml-skive {
+  animation: ml-ta 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes ml-ta {
+  from {
+    box-shadow: 0 0 0 2px var(--rod-dyp), 0 2px 0 rgba(60, 30, 10, 0.55);
+  }
+  to {
+    box-shadow: 0 0 0 5px var(--rod-dyp), 0 0 14px rgba(179, 32, 42, 0.6);
+    transform: scale(1.06);
+  }
+}
+
+/* The last move: a small dot on the piece, and a faint ring where it came from */
+.ml-punkt.sist .ml-skive::before {
+  content: "";
+  position: absolute;
+  inset: 40%;
+  border-radius: 50%;
+  background: var(--rosa);
+  box-shadow: 0 0 0 1.5px rgba(23, 14, 43, 0.45);
+}
+
+.ml-punkt.fra::after {
+  content: "";
+  position: absolute;
+  width: 46%;
+  height: 46%;
+  border-radius: 50%;
+  border: 2px dashed rgba(107, 68, 35, 0.6);
+}
+
+.ml-skive.ny {
+  animation: ml-ny 0.28s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes ml-ny {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+}
+
+.ml-skive.glid {
+  animation: ml-glid 0.32s cubic-bezier(0.3, 1.1, 0.5, 1) both;
+}
+
+@keyframes ml-glid {
+  from {
+    transform: translate(calc(var(--dx, 0) * 1cqw), calc(var(--dy, 0) * 1cqw));
+  }
+}
+
+.ml-skive.tatt {
+  animation: ml-tatt 0.5s ease-in both;
+}
+
+@keyframes ml-tatt {
+  to {
+    transform: scale(0.2) rotate(40deg);
+    opacity: 0;
+  }
+}
+
+.ml-skive.liten {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  box-shadow: 0 0 0 1.5px #f6e7cf;
+}
+
+.ml-skive.liten.svart {
+  box-shadow: 0 0 0 1.5px #8d7bb8;
+}
+
+.ml-skive.liten::after {
+  content: none;
+}
+
+.ml-skive.vant {
+  box-shadow: 0 0 0 3px var(--lampe), 0 0 14px rgba(255, 210, 63, 0.7);
+}
+
+.ml-punkt.risting {
+  animation: ml-rist 0.35s;
+}
+
+@keyframes ml-rist {
+  25% {
+    transform: translate(calc(-50% - 4px), -50%);
+  }
+  75% {
+    transform: translate(calc(-50% + 4px), -50%);
+  }
+}
+
+.ml-stempel {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(60, 30, 10, 0.18);
+  pointer-events: none;
+}
+
+.ml-stempel .stempel {
+  max-width: 92%;
+  background: color-mix(in srgb, var(--natt) 80%, transparent);
+  font-size: 8.5cqw;
+  white-space: nowrap;
+}
+
+/* ---------- Dock ---------- */
+
+.skjerm-spill .lenke:disabled {
+  opacity: 0.35;
+}
+
+.ml-knappeikon {
+  position: relative;
+  display: inline-block;
+  width: 1.3em;
+  height: 1.3em;
+  margin: -0.15em 0;
+  border: 2.5px solid #170e2b;
+  border-radius: 3px;
+  background: #e9c58e;
+}
+
+.ml-knappeikon::after {
+  content: "";
+  position: absolute;
+  inset: 22%;
+  border: 2px solid #170e2b;
+  border-radius: 2px;
+}
+
+/* ---------- Home: results against the phone ---------- */
+
+.ml-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.ml-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ml-rekorder li,
+.ml-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ml-rekorder li b,
+.ml-rekordlinje b {
+  color: var(--tekst);
+}
+
+.ml-niva {
+  min-width: 5.5em;
+  font-family: var(--font-display);
+}
+
+.ml-rekordlinje {
+  align-self: center;
+  margin: 0;
+  border-radius: var(--r-mid);
+}
+
+.ml-rekordlinje .etikett {
+  width: 100%;
+  text-align: center;
+}
+
+.ml-del {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- Result ---------- */
+
+.ml-vinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.ml-kroneemoji {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  transform: translateX(-50%) rotate(-12deg);
+  animation: ml-krone 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.3s;
+}
+
+@keyframes ml-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30px) rotate(-30deg) scale(0.4);
+  }
+}
+
+/* Exactly two players: no «add player» button. */
+.skjerm-oppsett .legg-til:disabled {
+  display: none;
+}
+
+/* ---------- Short and narrow screens ---------- */
+
+@media (max-height: 760px) {
+  .skjerm-spill {
+    gap: 7px;
+  }
+
+  .ml-spiller {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    justify-items: start;
+    column-gap: 7px;
+    row-gap: 0;
+    padding: 5px 10px 5px 6px;
+    border-radius: 999px;
+    text-align: left;
+  }
+
+  .ml-merke {
+    grid-row: 1 / 3;
+  }
+
+  .ml-merke .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+
+  .ml-maskin {
+    width: 32px;
+  }
+
+  .ml-navn {
+    font-size: 0.9rem;
+  }
+
+  .ml-antall {
+    justify-content: flex-start;
+    font-size: 0.9rem;
+  }
+
+  .ml-antall small {
+    width: auto;
+    font-size: 0.68rem;
+  }
+
+  .ml-tall {
+    font-size: 1.7rem;
+  }
+
+  .ml-melding {
+    min-height: 36px;
+    padding: 5px 14px;
+    font-size: 0.96rem;
+  }
+
+  .ml-luft {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .ml-stilling {
+    gap: 5px;
+  }
+
+  .ml-tall {
+    gap: 2px 5px;
+  }
+
+  .ml-melding {
+    font-size: 0.92rem;
+  }
+}
+
+/* ---------- Wide screens and phones on their side: the board left, the rest to the right ---------- */
+
+@media (min-width: 900px) and (min-aspect-ratio: 5/4), (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="molla"] .app:has(.skjerm-spill) {
+    max-width: 1100px;
+  }
+
+  .skjerm-spill {
+    display: grid;
+    grid-template-columns: auto minmax(230px, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    column-gap: 24px;
+    row-gap: 10px;
+    align-content: start;
+    padding-bottom: 12px;
+  }
+
+  .ml-luft {
+    display: none;
+  }
+
+  .skjerm-spill > .ml-brettramme {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: start;
+    padding: 6px;
+  }
+
+  .skjerm-spill > .ml-stilling {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .skjerm-spill > .ml-melding {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .skjerm-spill > .dokk {
+    grid-column: 2;
+    grid-row: 4;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+}

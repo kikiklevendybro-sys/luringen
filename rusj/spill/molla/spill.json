@@ -1,0 +1,35 @@
+{
+  "id": "molla",
+  "navn": "Mølla",
+  "undertittel": "Mølle",
+  "beskrivelse": "Gratis mølle på norsk: sett ut ni brikker, lag tre på rad og ta motstanderens brikker. Mot mobilen på tre nivåer eller mot en venn på samme mobil.",
+  "kort": "Tre på rad er en mølle – og en brikke mindre for den andre.",
+  "spillere": [1, 2],
+  "minutter": [5, 20],
+  "mobiler": "en",
+  "tagger": ["klassiker", "familie", "tenke", "barn", "alene"],
+  "rekkefolge": 72,
+  "farge": "#f2b45c",
+  "alder": 7,
+  "sok": ["mølle", "møllespill", "nimannsmølle", "ni menns mølle", "mylle", "mølle brettspill", "mølle mot datamaskin", "mølle på nett"],
+  "motMobilen": true,
+  "alias": ["molle"],
+  "i18n": {
+    "en": {
+      "navn": "Merrills",
+      "undertittel": "Nine men's morris",
+      "kort": "Three in a row is a mill – and one piece fewer for the other side.",
+      "beskrivelse": "Free nine men's morris in your browser: place nine pieces, make mills and take your opponent's pieces. Against the phone at three levels or a friend on one phone.",
+      "slug": "merrills",
+      "sok": ["nine men's morris", "merrills", "mill board game", "morris game", "nine mens morris online", "nine men's morris against computer", "mills"]
+    },
+    "da": {
+      "navn": "Møllen",
+      "undertittel": "Mølle",
+      "kort": "Tre på stribe er en mølle – og en brik mindre til den anden.",
+      "beskrivelse": "Gratis mølle direkte i browseren: sæt ni brikker ud, lav tre på stribe, og tag modstanderens brikker. Mod mobilen på tre niveauer eller mod en ven på samme mobil.",
+      "slug": "moellen",
+      "sok": ["mølle", "møllespil", "mølle brætspil", "ni mands mølle", "mølle mod computeren", "mølle online"]
+    }
+  }
+}

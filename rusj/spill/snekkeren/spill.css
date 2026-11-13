@@ -1,0 +1,618 @@
+/* Snekkeren — dots and boxes on a sheet of squared paper. Lines are drawn with a pen in the
+   player's colour (rosa for player 1, blue for player 2); a closed box is shaded in that colour
+   with the player's animal. The free lines are buttons with a wide tap area. Sized by JS. */
+
+.skjerm-spill {
+  --sn-rosa: #d6336c;
+  --sn-bla: #1f66a8;
+  --sn-papir: #fffaf0;
+  gap: 10px;
+}
+
+/* ---------- Score ---------- */
+
+.sn-stilling {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.sn-tall {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  justify-items: center;
+  gap: 2px 8px;
+  font: 900 2.2rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sn-tall .rosa {
+  color: var(--rosa);
+}
+
+.sn-tall .bla {
+  color: var(--himmel);
+}
+
+.sn-tall span {
+  color: var(--tekst-3);
+  font-size: 1.4rem;
+}
+
+.sn-tall small {
+  grid-column: 1 / -1;
+  color: var(--tekst-3);
+  font: 700 0.74rem/1.2 var(--font-tekst);
+  text-align: center;
+}
+
+.sn-spiller {
+  --f: var(--rosa);
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 8px 7px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  text-align: center;
+  transition: box-shadow 0.25s, background 0.25s, transform 0.25s;
+}
+
+.sn-spiller.bla {
+  --f: var(--himmel);
+}
+
+.sn-spiller.aktiv {
+  background: color-mix(in srgb, var(--f) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--f), 0 0 22px color-mix(in srgb, var(--f) 28%, transparent);
+  transform: translateY(-2px);
+}
+
+.sn-spiller.vant {
+  background: var(--f);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--f) 55%, var(--natt));
+  color: var(--blekk);
+}
+
+.sn-merke {
+  display: block;
+}
+
+.sn-merke .avatar {
+  width: 38px;
+  height: 38px;
+  font-size: 1.25rem;
+}
+
+.sn-maskin {
+  display: block;
+  width: 40px;
+  margin: -2px 0;
+}
+
+.sn-maskin .figur-ramme {
+  display: block;
+}
+
+.sn-navn {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 0.98rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Message ---------- */
+
+.sn-melding {
+  --f: var(--rosa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  margin: 0;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 900 1.05rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.sn-melding.bla {
+  --f: var(--himmel);
+}
+
+.sn-melding.igjen {
+  background: color-mix(in srgb, var(--f) 20%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--f);
+  animation: sn-hopp 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.sn-meldingsmerke {
+  display: block;
+  flex: none;
+}
+
+.sn-meldingsmerke .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.95rem;
+}
+
+.sn-meldingsmerke .sn-maskin {
+  width: 32px;
+  margin: -4px 0;
+}
+
+.sn-melding.vinner {
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+  color: var(--blekk);
+  animation: sn-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.sn-melding.remis {
+  background: var(--natt-3);
+  animation: sn-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes sn-hopp {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+
+.sn-tenker i {
+  font-style: normal;
+  animation: sn-prikk 1.2s infinite both;
+}
+
+.sn-tenker i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.sn-tenker i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes sn-prikk {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.sn-luft {
+  flex: 2 1 0;
+}
+
+.sn-luft.under {
+  flex-grow: 3;
+}
+
+/* ---------- The board ---------- */
+
+.sn-brettramme {
+  display: flex;
+  justify-content: center;
+}
+
+.sn-brett {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at 30% 15%, #fff, var(--sn-papir) 70%);
+  box-shadow: 0 0 0 4px #e8d9bf, 0 0 0 6px color-mix(in srgb, var(--aksent) 45%, var(--strek)), 0 18px 34px var(--skygge);
+  -webkit-user-select: none;
+  user-select: none;
+  container-type: inline-size;
+  --fokus: var(--blekk);
+  --fokus-2: transparent;
+}
+
+.sn-tegning {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.sn-prikker circle {
+  fill: var(--blekk);
+}
+
+.sn-strek {
+  stroke: var(--sn-rosa);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.sn-brett.n6 .sn-strek {
+  stroke-width: 1.25;
+}
+
+.sn-strek.bla {
+  stroke: var(--sn-bla);
+}
+
+/* The lines of the last turn glow a little */
+.sn-strek.sist {
+  filter: drop-shadow(0 0 1.2px rgba(255, 210, 63, 0.95));
+}
+
+.sn-strek.ny {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: sn-tegn 0.22s ease-out forwards;
+}
+
+@keyframes sn-tegn {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.sn-tom {
+  stroke: rgba(23, 14, 43, 0.12);
+  stroke-width: 0.5;
+  stroke-dasharray: 1.2 1.2;
+}
+
+/* A free line: a faint dashed line in a wide tap area */
+.sn-linje {
+  position: absolute;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.sn-linje::before {
+  content: "";
+  position: absolute;
+  border-radius: 2px;
+  opacity: 0.55;
+}
+
+.sn-linje.v::before {
+  left: -14%;
+  right: -14%;
+  top: calc(50% - 1px);
+  height: 2px;
+  background: repeating-linear-gradient(90deg, rgba(23, 14, 43, 0.3) 0 5px, transparent 5px 9px);
+}
+
+.sn-linje.l::before {
+  top: -14%;
+  bottom: -14%;
+  left: calc(50% - 1px);
+  width: 2px;
+  background: repeating-linear-gradient(0deg, rgba(23, 14, 43, 0.3) 0 5px, transparent 5px 9px);
+}
+
+/* While it is your turn the free lines are a little clearer */
+.sn-brett.fri .sn-linje::before {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .sn-brett.fri .sn-linje:hover::before {
+    background: var(--sn-rosa);
+    opacity: 0.45;
+  }
+}
+
+.sn-linje:focus-visible {
+  z-index: 4;
+  outline: 3px solid var(--blekk);
+  outline-offset: -2px;
+}
+
+/* A closed box */
+.sn-boks {
+  position: absolute;
+  z-index: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--rosa) 30%, var(--sn-papir));
+}
+
+.sn-boks.bla {
+  background: color-mix(in srgb, var(--himmel) 34%, var(--sn-papir));
+}
+
+.sn-boksmerke {
+  font-size: calc(var(--s) * 0.48cqw);
+  line-height: 1;
+}
+
+.sn-boks.ny {
+  animation: sn-boks 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.sn-boks.ny .sn-boksmerke {
+  animation: sn-merke 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.1s;
+}
+
+@keyframes sn-boks {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+@keyframes sn-merke {
+  from {
+    transform: scale(0.2) rotate(-25deg);
+  }
+}
+
+.sn-stempel {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(23, 14, 43, 0.12);
+  pointer-events: none;
+}
+
+.sn-stempel .stempel {
+  max-width: 92%;
+  background: color-mix(in srgb, var(--natt) 80%, transparent);
+  font-size: 9cqw;
+  white-space: nowrap;
+}
+
+/* ---------- Dock ---------- */
+
+.skjerm-spill .lenke:disabled {
+  opacity: 0.35;
+}
+
+.sn-knappeikon {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  margin: -0.12em 0;
+  border: 3px solid #170e2b;
+  border-right-style: dotted;
+  border-bottom-style: dotted;
+  border-radius: 2px;
+  background: color-mix(in srgb, #ff4f8b 35%, #fffaf0);
+}
+
+/* ---------- Home: the last game and results against the phone ---------- */
+
+.sn-sist {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 8px;
+  margin: -6px auto 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.sn-sist b {
+  color: var(--tekst);
+  font-variant-numeric: tabular-nums;
+}
+
+.sn-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.sn-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sn-rekorder li,
+.sn-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sn-rekorder li b,
+.sn-rekordlinje b {
+  color: var(--tekst);
+}
+
+.sn-niva {
+  min-width: 5.5em;
+  font-family: var(--font-display);
+}
+
+.sn-rekordlinje {
+  align-self: center;
+  margin: 0;
+  border-radius: var(--r-mid);
+}
+
+.sn-rekordlinje .etikett {
+  width: 100%;
+  text-align: center;
+}
+
+.sn-del {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- Result ---------- */
+
+.sn-vinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.sn-kroneemoji {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  transform: translateX(-50%) rotate(-12deg);
+  animation: sn-krone 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.3s;
+}
+
+@keyframes sn-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30px) rotate(-30deg) scale(0.4);
+  }
+}
+
+/* Exactly two players: no «add player» button. */
+.skjerm-oppsett .legg-til:disabled {
+  display: none;
+}
+
+/* ---------- Short and narrow screens ---------- */
+
+@media (max-height: 760px) {
+  .skjerm-spill {
+    gap: 7px;
+  }
+
+  .sn-spiller {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    column-gap: 7px;
+    padding: 5px 10px 5px 6px;
+    border-radius: 999px;
+    text-align: left;
+  }
+
+  .sn-merke .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+
+  .sn-maskin {
+    width: 32px;
+  }
+
+  .sn-navn {
+    font-size: 0.9rem;
+  }
+
+  .sn-tall {
+    font-size: 1.7rem;
+  }
+
+  .sn-melding {
+    min-height: 36px;
+    padding: 4px 14px;
+    font-size: 0.96rem;
+  }
+
+  .sn-luft {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .sn-stilling {
+    gap: 5px;
+  }
+
+  .sn-tall {
+    gap: 2px 5px;
+  }
+
+  .sn-melding {
+    font-size: 0.92rem;
+  }
+}
+
+/* ---------- Wide screens and phones on their side: the board left, the rest to the right ---------- */
+
+@media (min-width: 900px) and (min-aspect-ratio: 5/4), (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="snekkeren"] .app:has(.skjerm-spill) {
+    max-width: 1100px;
+  }
+
+  .skjerm-spill {
+    display: grid;
+    grid-template-columns: auto minmax(230px, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    column-gap: 24px;
+    row-gap: 10px;
+    align-content: start;
+    padding-bottom: 12px;
+  }
+
+  .sn-luft {
+    display: none;
+  }
+
+  .skjerm-spill > .sn-brettramme {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: start;
+    padding: 6px;
+  }
+
+  .skjerm-spill > .sn-stilling {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .skjerm-spill > .sn-melding {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .skjerm-spill > .dokk {
+    grid-column: 2;
+    grid-row: 4;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+}

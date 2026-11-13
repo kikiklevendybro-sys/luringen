@@ -671,3 +671,23 @@
     background: none;
   }
 }
+
+/* ---------- The big board (15 × 15) ---------- */
+
+.bo-papir.stor {
+  padding: 6px;
+}
+
+.bo-papir.stor .bo-celle {
+  padding: 10%;
+}
+
+/* Three boards to choose from: one per line, so the labels stay whole */
+.skjerm-oppsett .seg:has([data-h="variant"]) {
+  grid-auto-flow: row;
+  grid-template-columns: 1fr;
+}
+
+.skjerm-oppsett .seg:has([data-h="variant"]) button {
+  min-height: 42px;
+}

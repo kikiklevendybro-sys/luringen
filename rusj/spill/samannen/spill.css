@@ -1,0 +1,699 @@
+/* Såmannen — a kalaha board of warm wood: six round pits a side and a long store at each end,
+   full of coloured marbles. Upright it stands on its end (player 1's pits on the left, the store at
+   the bottom); on a phone on its side it is the classic long board. Sized by JS (tilpass). */
+
+.skjerm-spill {
+  --sa-tre: #c98a4b;
+  --sa-tre-2: #a96b33;
+  --sa-grop: #6b3f1d;
+  gap: 10px;
+}
+
+/* ---------- Score ---------- */
+
+.sa-stilling {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.sa-tall-stilling {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 900 2.2rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sa-tall-stilling .rosa {
+  color: var(--rosa);
+}
+
+.sa-tall-stilling .bla {
+  color: var(--himmel);
+}
+
+.sa-tall-stilling span {
+  color: var(--tekst-3);
+  font-size: 1.4rem;
+}
+
+.sa-spiller {
+  --f: var(--rosa);
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 8px 7px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  text-align: center;
+  transition: box-shadow 0.25s, background 0.25s, transform 0.25s;
+}
+
+.sa-spiller.bla {
+  --f: var(--himmel);
+}
+
+.sa-spiller.aktiv {
+  background: color-mix(in srgb, var(--f) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--f), 0 0 22px color-mix(in srgb, var(--f) 28%, transparent);
+  transform: translateY(-2px);
+}
+
+.sa-spiller.vant {
+  background: var(--f);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--f) 55%, var(--natt));
+  color: var(--blekk);
+}
+
+.sa-merke {
+  display: block;
+}
+
+.sa-merke .avatar {
+  width: 38px;
+  height: 38px;
+  font-size: 1.25rem;
+}
+
+.sa-maskin {
+  display: block;
+  width: 40px;
+  margin: -2px 0;
+}
+
+.sa-maskin .figur-ramme {
+  display: block;
+}
+
+.sa-navn {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 0.98rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Message ---------- */
+
+.sa-melding {
+  --f: var(--rosa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  margin: 0;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 900 1.05rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.sa-melding.bla {
+  --f: var(--himmel);
+}
+
+.sa-melding.igjen,
+.sa-melding.fangst {
+  background: color-mix(in srgb, var(--f) 20%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--f);
+  animation: sa-hopp 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.sa-melding.fangst {
+  background: color-mix(in srgb, var(--lampe) 18%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px var(--lampe);
+}
+
+.sa-meldingsmerke {
+  display: block;
+  flex: none;
+}
+
+.sa-meldingsmerke .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.95rem;
+}
+
+.sa-meldingsmerke .sa-maskin {
+  width: 32px;
+  margin: -4px 0;
+}
+
+.sa-melding.vinner {
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+  color: var(--blekk);
+  animation: sa-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.sa-melding.remis {
+  background: var(--natt-3);
+  animation: sa-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes sa-hopp {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+
+.sa-tenker i {
+  font-style: normal;
+  animation: sa-prikk 1.2s infinite both;
+}
+
+.sa-tenker i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.sa-tenker i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes sa-prikk {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.sa-luft {
+  flex: 1 1 0;
+}
+
+/* ---------- The board ---------- */
+
+.sa-brettramme {
+  display: flex;
+  justify-content: center;
+}
+
+.sa-brett {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1.3fr repeat(6, 1fr) 1.3fr;
+  gap: 6px 10px;
+  width: 100%;
+  height: 560px;
+  padding: 12px;
+  border-radius: 34px;
+  background:
+    radial-gradient(ellipse at 30% 10%, rgba(255, 230, 190, 0.35), transparent 55%),
+    repeating-linear-gradient(8deg, transparent 0 14px, rgba(80, 40, 10, 0.08) 14px 16px),
+    linear-gradient(170deg, var(--sa-tre), var(--sa-tre-2));
+  box-shadow: inset 0 2px 0 rgba(255, 230, 190, 0.4), inset 0 -4px 0 rgba(60, 30, 10, 0.35), 0 0 0 3px #5a3416, 0 18px 34px var(--skygge);
+  -webkit-user-select: none;
+  user-select: none;
+  --fokus: var(--lampe);
+}
+
+.sa-brett.ligg {
+  grid-template-columns: 1.35fr repeat(6, 1fr) 1.35fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px 6px;
+  height: auto;
+  aspect-ratio: 8 / 2.75;
+}
+
+/* A pit (a button for the six on each side) and a store */
+.sa-hull {
+  --f: var(--rosa);
+  position: relative;
+  grid-row: var(--sr);
+  grid-column: var(--sk);
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at 50% 35%, #4a2a12, var(--sa-grop) 70%);
+  box-shadow: inset 0 5px 9px rgba(20, 8, 0, 0.6), inset 0 -2px 0 rgba(255, 220, 170, 0.2), 0 1px 0 rgba(255, 230, 190, 0.35);
+  container-type: size;
+  cursor: default;
+}
+
+.sa-brett.ligg .sa-hull {
+  grid-row: var(--lr);
+  grid-column: var(--lk);
+}
+
+.sa-hull.bla {
+  --f: var(--himmel);
+}
+
+.sa-hull.lager {
+  border-radius: 999px;
+}
+
+/* Pits you may choose: a ring in your colour, and a little lift */
+.sa-hull.kan {
+  cursor: pointer;
+  box-shadow: inset 0 5px 9px rgba(20, 8, 0, 0.6), 0 0 0 3px var(--f), 0 0 14px color-mix(in srgb, var(--f) 60%, transparent);
+}
+
+.sa-brett.fri .sa-hull:not(.kan):not(.lager) {
+  filter: brightness(0.82);
+}
+
+@media (hover: hover) {
+  .sa-hull.kan:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.sa-hull:focus-visible {
+  z-index: 3;
+  outline: 3px solid var(--lampe);
+  outline-offset: 2px;
+}
+
+.sa-kuler {
+  position: absolute;
+  inset: 10% 14% 10% 10%;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 0 1px;
+  pointer-events: none;
+}
+
+.sa-hull.lager .sa-kuler {
+  inset: 12% 8% 12% 22%;
+}
+
+.sa-brett.ligg .sa-hull.lager .sa-kuler {
+  inset: 26% 10% 8%;
+}
+
+.sa-kuler i {
+  flex: none;
+  width: min(30cqh, 19cqw);
+  height: min(30cqh, 19cqw);
+  margin: -1px 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0 12%, var(--k) 45%, color-mix(in srgb, var(--k) 60%, #000));
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+}
+
+/* a pile, not a grid: every other marble a little up or down */
+.sa-kuler i:nth-child(2n) {
+  transform: translateY(-14%);
+}
+
+.sa-kuler i:nth-child(3n) {
+  transform: translateY(12%);
+}
+
+.sa-hull.lager .sa-kuler i {
+  width: min(19cqh, 8.5cqw);
+  height: min(19cqh, 8.5cqw);
+}
+
+.sa-brett.ligg .sa-hull.lager .sa-kuler i {
+  width: min(10cqh, 19cqw);
+  height: min(10cqh, 19cqw);
+}
+
+.sa-tall {
+  position: absolute;
+  right: 6%;
+  bottom: 4%;
+  z-index: 2;
+  min-width: 1.6em;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(23, 14, 43, 0.78);
+  color: var(--papir);
+  font: 900 0.86rem/1.3 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.sa-hull.kan .sa-tall {
+  background: var(--f);
+  color: var(--blekk);
+}
+
+/* The store's number: at its left end upright, at its top on the long board */
+.sa-hull.lager .sa-tall {
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  left: 5%;
+  padding: 2px 9px;
+  background: rgba(23, 14, 43, 0.72);
+  box-shadow: 0 0 0 2px var(--f);
+  font-size: 1.25rem;
+  transform: translateY(-50%);
+}
+
+.sa-brett.ligg .sa-hull.lager .sa-tall {
+  top: 7%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* The move just played: the pits that got a marble pulse one after another */
+.sa-hull.fikk {
+  animation: sa-fikk 0.36s ease-out both;
+  animation-delay: calc(var(--nr) * 80ms);
+}
+
+@keyframes sa-fikk {
+  40% {
+    box-shadow: inset 0 5px 9px rgba(20, 8, 0, 0.6), 0 0 0 3px var(--lampe), 0 0 16px rgba(255, 210, 63, 0.8);
+    transform: scale(1.04);
+  }
+}
+
+.sa-hull.tomt {
+  animation: sa-tomt 0.4s ease-out both;
+}
+
+@keyframes sa-tomt {
+  30% {
+    transform: scale(0.94);
+  }
+}
+
+.sa-hull.fanget {
+  animation: sa-fanget 0.7s ease-out both 0.5s;
+}
+
+@keyframes sa-fanget {
+  40% {
+    box-shadow: inset 0 5px 9px rgba(20, 8, 0, 0.6), 0 0 0 4px var(--rod), 0 0 18px rgba(255, 90, 78, 0.8);
+  }
+}
+
+.sa-hull.sist {
+  box-shadow: inset 0 5px 9px rgba(20, 8, 0, 0.6), 0 0 0 2px rgba(255, 210, 63, 0.7);
+}
+
+.sa-hull.risting {
+  animation: sa-rist 0.35s;
+}
+
+@keyframes sa-rist {
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.sa-stempel {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  border-radius: 34px;
+  background: rgba(40, 20, 5, 0.25);
+  pointer-events: none;
+}
+
+.sa-stempel .stempel {
+  max-width: 92%;
+  background: color-mix(in srgb, var(--natt) 80%, transparent);
+  font-size: 2.2rem;
+  white-space: nowrap;
+}
+
+/* ---------- Dock ---------- */
+
+.skjerm-spill .lenke:disabled {
+  opacity: 0.35;
+}
+
+.sa-knappeikon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 1.5em;
+  height: 1em;
+  margin: -0.1em 0;
+  border-radius: 999px;
+  background: #6b3f1d;
+  box-shadow: 0 0 0 2.5px #170e2b;
+}
+
+.sa-knappeikon i {
+  width: 0.32em;
+  height: 0.32em;
+  border-radius: 50%;
+  background: #ffd23f;
+}
+
+.sa-knappeikon i:nth-child(2) {
+  background: #ff4f8b;
+}
+
+.sa-knappeikon i:nth-child(3) {
+  background: #59b9ff;
+}
+
+/* ---------- Home: the last game and results against the phone ---------- */
+
+.sa-sist {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 8px;
+  margin: -6px auto 0;
+  padding: 6px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.sa-sist b {
+  color: var(--tekst);
+  font-variant-numeric: tabular-nums;
+}
+
+.sa-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.sa-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sa-rekorder li,
+.sa-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sa-rekorder li b,
+.sa-rekordlinje b {
+  color: var(--tekst);
+}
+
+.sa-niva {
+  min-width: 5.5em;
+  font-family: var(--font-display);
+}
+
+.sa-rekordlinje {
+  align-self: center;
+  margin: 0;
+  border-radius: var(--r-mid);
+}
+
+.sa-rekordlinje .etikett {
+  width: 100%;
+  text-align: center;
+}
+
+.sa-del {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- Result ---------- */
+
+.sa-vinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.sa-kroneemoji {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  transform: translateX(-50%) rotate(-12deg);
+  animation: sa-krone 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.3s;
+}
+
+@keyframes sa-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30px) rotate(-30deg) scale(0.4);
+  }
+}
+
+/* Exactly two players: no «add player» button. */
+.skjerm-oppsett .legg-til:disabled {
+  display: none;
+}
+
+/* ---------- Short and narrow screens ---------- */
+
+@media (max-height: 760px) {
+  .skjerm-spill {
+    gap: 7px;
+  }
+
+  .sa-spiller {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    column-gap: 7px;
+    padding: 5px 10px 5px 6px;
+    border-radius: 999px;
+    text-align: left;
+  }
+
+  .sa-merke .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+
+  .sa-maskin {
+    width: 32px;
+  }
+
+  .sa-navn {
+    font-size: 0.9rem;
+  }
+
+  .sa-tall-stilling {
+    font-size: 1.7rem;
+  }
+
+  .sa-melding {
+    min-height: 36px;
+    padding: 4px 14px;
+    font-size: 0.96rem;
+  }
+
+  .sa-brett {
+    gap: 4px 8px;
+    padding: 9px;
+    border-radius: 26px;
+  }
+
+  .sa-luft {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .sa-stilling {
+    gap: 5px;
+  }
+
+  .sa-melding {
+    font-size: 0.92rem;
+  }
+}
+
+/* ---------- Wide screens and phones on their side: the long board left, the rest to the right ---------- */
+
+@media (min-width: 900px) and (min-aspect-ratio: 5/4), (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="samannen"] .app:has(.skjerm-spill) {
+    max-width: 1100px;
+  }
+
+  .skjerm-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(220px, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    column-gap: 22px;
+    row-gap: 10px;
+    align-content: start;
+    padding-bottom: 12px;
+  }
+
+  .sa-luft {
+    display: none;
+  }
+
+  .skjerm-spill > .sa-brettramme {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: center;
+    padding: 4px;
+  }
+
+  .skjerm-spill > .sa-stilling {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .skjerm-spill > .sa-melding {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .skjerm-spill > .dokk {
+    grid-column: 2;
+    grid-row: 4;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .sa-tall {
+    font-size: 0.78rem;
+  }
+
+  .sa-hull.lager .sa-tall {
+    font-size: 1.05rem;
+  }
+}

@@ -1395,6 +1395,10 @@
     sporhunden: ["#e0a15e", "S"],
     narren: ["#a77bff", "N"],
     golfballen: ["#4fc97a", "G"],
+    molla: ["#f2b45c", "M"],
+    snekkeren: ["#8fd3ff", "S"],
+    samannen: ["#7fcf6a", "S"],
+    hopperen: ["#ffb74d", "H"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

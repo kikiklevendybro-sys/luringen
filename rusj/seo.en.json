@@ -628,6 +628,30 @@
       "tittel": "Golf card game – free against the phone or friends",
       "frase": "Golf card game",
       "beskrivelse": "Play the Golf card game free: swap down to the lowest score, and a pair in a column counts zero. Six or four cards, three levels, or 2–4 on one phone."
+    },
+    "molla": {
+      "tittel": "Nine men's morris – free against the phone or a friend",
+      "frase": "Nine men's morris",
+      "beskrivelse": "Play nine men's morris free: place nine pieces, make mills and take your opponent's pieces. Against the phone at three levels or two on one phone. No account.",
+      "motMobilen": true
+    },
+    "snekkeren": {
+      "tittel": "Dots and boxes – free against the phone or a friend",
+      "frase": "Dots and boxes",
+      "beskrivelse": "Play dots and boxes free: draw lines between the dots, close a box and draw again. Against the phone at three levels or two on one phone, 3 × 3 to 6 × 6.",
+      "motMobilen": true
+    },
+    "samannen": {
+      "tittel": "Mancala online – free against the phone or a friend",
+      "frase": "Mancala",
+      "beskrivelse": "Play mancala free with Scandinavian kalaha rules: sow the stones, earn extra turns and capture. Against the phone at three levels or two on one phone.",
+      "motMobilen": true
+    },
+    "hopperen": {
+      "tittel": "Chinese checkers – free against the phone or friends",
+      "frase": "Chinese checkers",
+      "beskrivelse": "Play Chinese checkers free: hop your ten pegs across the star before anyone else. 2, 3, 4 or 6 seats, the phone plays the empty ones at three levels.",
+      "motMobilen": true
     }
   }
 }

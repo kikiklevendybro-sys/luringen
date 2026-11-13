@@ -1,0 +1,650 @@
+/* Hopperen — a cream six-pointed star with 121 holes; each point is tinted in the colour of the seat
+   that starts there. Pegs are glossy balls; the legal holes for a picked-up peg get a dot, and the
+   last move's way is a dotted line. Sized by JS (tilpass): the star is as big as the screen allows,
+   and taps snap to the nearest hole that means something (see naermeste in spill.js). */
+
+.skjerm-spill {
+  --hp-rosa: #ff4f8b;
+  --hp-gul: #ffd23f;
+  --hp-bla: #59b9ff;
+  --hp-gronn: #3de3b0;
+  --hp-lilla: #b48cff;
+  --hp-oransje: #ff8a3d;
+  gap: 8px;
+}
+
+/* The six colours (class names on pegs, seats, the path and the message) */
+.hp-rosa {
+  --f: var(--hp-rosa);
+}
+
+.hp-gul {
+  --f: var(--hp-gul);
+}
+
+.hp-bla {
+  --f: var(--hp-bla);
+}
+
+.hp-gronn {
+  --f: var(--hp-gronn);
+}
+
+.hp-lilla {
+  --f: var(--hp-lilla);
+}
+
+.hp-oransje {
+  --f: var(--hp-oransje);
+}
+
+/* ---------- Seats ---------- */
+
+.hp-seter {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-seter.n3,
+.hp-seter.n6 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.hp-sete {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 9px 4px 4px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  transition: box-shadow 0.25s, background 0.25s;
+}
+
+.hp-sete.aktiv {
+  background: color-mix(in srgb, var(--f) 18%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--f), 0 0 16px color-mix(in srgb, var(--f) 30%, transparent);
+}
+
+.hp-sete.vant {
+  background: var(--f);
+  color: var(--blekk);
+}
+
+.hp-setefigur {
+  position: relative;
+  display: block;
+  flex: none;
+}
+
+.hp-setefigur .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.95rem;
+}
+
+.hp-maskin {
+  display: block;
+  width: 30px;
+  margin: -2px 0;
+}
+
+.hp-maskin .figur-ramme {
+  display: block;
+}
+
+.hp-prikk {
+  display: inline-block;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0 14%, var(--f) 50%, color-mix(in srgb, var(--f) 60%, #000));
+  box-shadow: 0 0 0 1.5px var(--natt);
+}
+
+.hp-setefigur .hp-prikk {
+  position: absolute;
+  right: -3px;
+  bottom: -2px;
+}
+
+.hp-setenavn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 900 0.86rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hp-imal {
+  flex: none;
+  font: 900 0.95rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.hp-imal small {
+  color: var(--tekst-3);
+  font-size: 0.7rem;
+}
+
+.hp-sete.vant .hp-imal small {
+  color: var(--blekk-2);
+}
+
+/* ---------- Message ---------- */
+
+.hp-melding {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 38px;
+  margin: 0;
+  padding: 5px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 900 1rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.hp-melding .hp-prikk {
+  width: 16px;
+  height: 16px;
+}
+
+.hp-melding.vinner {
+  border-radius: var(--r-mid);
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+  color: var(--blekk);
+  animation: hp-hopp 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes hp-hopp {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+
+.hp-tenker i {
+  font-style: normal;
+  animation: hp-prikkblink 1.2s infinite both;
+}
+
+.hp-tenker i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.hp-tenker i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes hp-prikkblink {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+/* ---------- The star ---------- */
+
+.hp-brettramme {
+  display: flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+}
+
+.hp-brett {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 13 / 14.8564;
+  -webkit-user-select: none;
+  user-select: none;
+  --fokus: var(--blekk);
+  --fokus-2: transparent;
+}
+
+.hp-stjerne {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hp-stjerne polygon {
+  fill: #fff1dd;
+  stroke: #e2cfae;
+  stroke-width: 0.14;
+  stroke-linejoin: round;
+}
+
+.hp-vei {
+  fill: none;
+  stroke: var(--f);
+  stroke-width: 0.16;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 0.05 0.3;
+  filter: drop-shadow(0 0 0.04px #170e2b);
+}
+
+.hp-vei.ny {
+  animation: hp-vei 0.5s ease-out both;
+}
+
+@keyframes hp-vei {
+  from {
+    opacity: 0;
+  }
+}
+
+.hp-hull {
+  --f: #8a7a6a;
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 7.6923%;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+/* The hole itself */
+.hp-hull::before {
+  content: "";
+  position: absolute;
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  background: rgba(23, 14, 43, 0.55);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+/* The points of the star: a ring in their colour around every hole */
+.hp-hull[class*="spiss-"]::after {
+  content: "";
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--s) 26%, transparent);
+}
+
+.hp-hull.spiss-hp-rosa {
+  --s: var(--hp-rosa);
+}
+
+.hp-hull.spiss-hp-gul {
+  --s: var(--hp-gul);
+}
+
+.hp-hull.spiss-hp-bla {
+  --s: var(--hp-bla);
+}
+
+.hp-hull.spiss-hp-gronn {
+  --s: var(--hp-gronn);
+}
+
+.hp-hull.spiss-hp-lilla {
+  --s: var(--hp-lilla);
+}
+
+.hp-hull.spiss-hp-oransje {
+  --s: var(--hp-oransje);
+}
+
+.hp-hull:focus-visible {
+  z-index: 4;
+  outline: 3px solid var(--blekk);
+  outline-offset: 0;
+}
+
+.hp-brikke {
+  position: relative;
+  z-index: 2;
+  width: 82%;
+  height: 82%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #fff 0 12%, var(--f) 48%, color-mix(in srgb, var(--f) 55%, #000));
+  box-shadow: 0 1.5px 0 rgba(23, 14, 43, 0.45), 0 0 0 1px rgba(23, 14, 43, 0.5);
+  pointer-events: none;
+}
+
+/* Pegs that can move: a white ring; the one picked up lifts */
+.hp-hull.kan .hp-brikke {
+  box-shadow: 0 1.5px 0 rgba(23, 14, 43, 0.45), 0 0 0 2px #fff;
+}
+
+.hp-hull.valgt {
+  z-index: 3;
+}
+
+.hp-hull.valgt .hp-brikke {
+  box-shadow: 0 0 0 2.5px var(--blekk), 0 0 0 4.5px #fff, 0 4px 8px rgba(23, 14, 43, 0.5);
+  transform: translateY(-10%) scale(1.15);
+  transition: transform 0.15s;
+}
+
+/* Where the picked-up peg can go */
+.hp-hull.mal::before {
+  width: 54%;
+  height: 54%;
+  background: var(--blekk);
+  box-shadow: 0 0 0 2px #fff;
+  animation: hp-mal 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes hp-mal {
+  from {
+    transform: scale(0.75);
+  }
+}
+
+.hp-hull.sist .hp-brikke::after {
+  content: "";
+  position: absolute;
+  inset: 34%;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1.5px rgba(23, 14, 43, 0.5);
+}
+
+.hp-hull.fra::before {
+  width: 62%;
+  height: 62%;
+  background: none;
+  box-shadow: none;
+  border: 2px dashed rgba(23, 14, 43, 0.45);
+}
+
+.hp-brikke.ny {
+  animation: hp-ny 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes hp-ny {
+  from {
+    transform: scale(0.4);
+  }
+}
+
+.hp-stempel {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.hp-stempel .stempel {
+  max-width: 92%;
+  background: color-mix(in srgb, var(--natt) 82%, transparent);
+  font-size: clamp(1.2rem, 7vw, 2.4rem);
+  white-space: nowrap;
+}
+
+/* ---------- Dock ---------- */
+
+.skjerm-spill .lenke:disabled {
+  opacity: 0.35;
+}
+
+.hp-knappeikon {
+  display: inline-block;
+  width: 1.3em;
+  height: 1.3em;
+  margin: -0.15em 0;
+  background: #170e2b;
+  clip-path: polygon(50% 0, 63% 27%, 93% 25%, 77% 50%, 93% 75%, 63% 73%, 50% 100%, 37% 73%, 7% 75%, 23% 50%, 7% 25%, 37% 27%);
+}
+
+/* ---------- Home: the last game and results against the phone ---------- */
+
+.hp-sist {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 8px;
+  margin: -6px auto 0;
+  padding: 6px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.hp-sist b {
+  color: var(--tekst);
+}
+
+.hp-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.hp-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hp-rekorder li,
+.hp-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hp-rekorder li b,
+.hp-rekordlinje b {
+  color: var(--tekst);
+}
+
+.hp-niva {
+  font-family: var(--font-display);
+}
+
+.hp-rekordlinje {
+  align-self: center;
+  margin: 0;
+  border-radius: var(--r-mid);
+}
+
+.hp-rekordlinje .etikett {
+  width: 100%;
+  text-align: center;
+}
+
+.hp-del {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- Result ---------- */
+
+.hp-vinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.hp-kroneemoji {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  font-size: 3.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.4));
+  transform: translateX(-50%) rotate(-12deg);
+  animation: hp-krone 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both 0.3s;
+}
+
+@keyframes hp-krone {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30px) rotate(-30deg) scale(0.4);
+  }
+}
+
+/* ---------- Narrow phones: the star may use the side margins ---------- */
+
+@media (max-width: 420px) {
+  .hp-brettramme {
+    margin: 0 -10px;
+  }
+}
+
+/* ---------- Four or six seats: one row of avatars with their colour and count (the names are in
+   the message line and in the row's label) ---------- */
+
+.hp-seter.n4,
+.hp-seter.n6 {
+  grid-template-columns: repeat(var(--k, 6), minmax(0, 1fr));
+}
+
+.hp-seter.n4 {
+  --k: 4;
+}
+
+.hp-seter.n4 .hp-setenavn,
+.hp-seter.n6 .hp-setenavn {
+  display: none;
+}
+
+.hp-seter.n4 .hp-sete,
+.hp-seter.n6 .hp-sete {
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 6px 3px 3px;
+  overflow: hidden;
+}
+
+/* Six seats on a narrow phone: only the count of pegs home */
+@media (max-width: 459px) {
+  .hp-seter.n6 {
+    gap: 3px;
+  }
+
+  .hp-seter.n6 .hp-sete {
+    gap: 2px;
+    padding: 2px 4px 2px 2px;
+  }
+
+  .hp-seter.n6 .hp-imal small {
+    display: none;
+  }
+
+  .hp-seter.n6 .hp-setefigur .avatar {
+    width: 22px;
+    height: 22px;
+    font-size: 0.76rem;
+  }
+
+  .hp-seter.n6 .hp-maskin {
+    width: 24px;
+  }
+}
+
+/* ---------- Short screens ---------- */
+
+@media (max-height: 760px) {
+  .skjerm-spill {
+    gap: 6px;
+  }
+
+  .hp-setefigur .avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.82rem;
+  }
+
+  .hp-maskin {
+    width: 26px;
+  }
+
+  .hp-melding {
+    min-height: 32px;
+    padding: 3px 12px;
+    font-size: 0.92rem;
+  }
+}
+
+/* ---------- Wide screens and phones on their side: the star left, the rest to the right ---------- */
+
+@media (min-width: 900px) and (min-aspect-ratio: 5/4), (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="hopperen"] .app:has(.skjerm-spill) {
+    max-width: 1100px;
+  }
+
+  .skjerm-spill {
+    display: grid;
+    grid-template-columns: auto minmax(230px, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    column-gap: 22px;
+    row-gap: 8px;
+    align-content: start;
+    padding-bottom: 8px;
+  }
+
+  .skjerm-spill > .hp-brettramme {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: start;
+    margin: 0;
+  }
+
+  .skjerm-spill > .hp-seter {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .skjerm-spill > .hp-melding {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .skjerm-spill > .dokk {
+    grid-column: 2;
+    grid-row: 4;
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+}
