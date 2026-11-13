@@ -729,6 +729,17 @@
         "kodeknækker",
         "gæt koden"
       ]
+    },
+    "skyveren": {
+      "tittel": "15-spil – gratis skydepuslespil med tal eller billeder",
+      "frase": "15-spil",
+      "beskrivelse": "Spil 15-spillet gratis på dansk: skub brikkerne på plads med tal eller billede, fra 3 × 3 til 5 × 5. Hver eneste blanding kan løses.",
+      "sok": [
+        "15-spil online",
+        "skydepuslespil",
+        "glidepuslespil",
+        "talpuslespil"
+      ]
     }
   }
 }

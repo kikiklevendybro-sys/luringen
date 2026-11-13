@@ -712,6 +712,17 @@
         "bulls and cows",
         "crack the code game"
       ]
+    },
+    "skyveren": {
+      "tittel": "15 puzzle – free sliding puzzle, numbers or pictures",
+      "frase": "15 puzzle",
+      "beskrivelse": "Play the 15 puzzle free in your browser: slide the tiles into order with numbers or a picture, from 3 × 3 to 5 × 5. Every shuffle is solvable.",
+      "sok": [
+        "15 puzzle online",
+        "sliding puzzle free",
+        "8 puzzle",
+        "sliding tile game"
+      ]
     }
   }
 }
