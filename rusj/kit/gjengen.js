@@ -1345,6 +1345,8 @@
     nostet: ["#ff8fb8", "N"],
     humla: ["#ffb53d", "H"],
     sporhunden: ["#e0a15e", "S"],
+    narren: ["#a77bff", "N"],
+    golfballen: ["#4fc97a", "G"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

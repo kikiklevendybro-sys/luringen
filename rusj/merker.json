@@ -59,6 +59,8 @@
     { "id": "klassiker-dam", "gruppe": "klassiker", "navn": "Dam-mester", "hvordan": "Slå mobilen i dam.", "figur": "dam", "emoji": "⚫", "regel": { "type": "merke" } },
     { "id": "klassiker-reversi", "gruppe": "klassiker", "navn": "Snudd rundt", "hvordan": "Slå mobilen i Reversi.", "figur": "reversi", "emoji": "⚪", "regel": { "type": "merke" } },
     { "id": "klassiker-vriatter", "gruppe": "klassiker", "navn": "Åtter i ermet", "hvordan": "Slå mobilen i Vri åtter.", "figur": "vriatter", "emoji": "🃏", "regel": { "type": "merke" } },
+    { "id": "klassiker-narren", "gruppe": "klassiker", "navn": "Kongen av slottet", "hvordan": "Bli kvitt kortene før mobilen i Narren.", "figur": "narren", "emoji": "👑", "regel": { "type": "merke" } },
+    { "id": "klassiker-golfballen", "gruppe": "klassiker", "navn": "Under par", "hvordan": "Få lavere sum enn mobilen i Golfballen.", "figur": "golfballen", "emoji": "⛳", "regel": { "type": "merke" } },
 
     { "id": "luke-1", "gruppe": "sesong", "navn": "Første luke", "hvordan": "Åpne luke 1 i Julekalenderen.", "figur": "julekalenderen", "tall": 1, "regel": { "type": "merke" } },
     { "id": "luke-12", "gruppe": "sesong", "navn": "Halvveis til jul", "hvordan": "Åpne luke 12 i Julekalenderen.", "figur": "julekalenderen", "tall": 12, "regel": { "type": "merke" } },

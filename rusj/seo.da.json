@@ -635,6 +635,16 @@
         "dagens ordjagt",
         "skjulte ord"
       ]
+    },
+    "narren": {
+      "tittel": "Idiot kortspil – gratis mod mobilen eller venner",
+      "frase": "Idiot",
+      "beskrivelse": "Spil idiot gratis på dansk: lige så højt eller højere, toeren nulstiller, og tieren brænder bunken. Mod mobilen på tre niveauer eller 2–4 på samme mobil."
+    },
+    "golfballen": {
+      "tittel": "Golf kortspil – gratis mod mobilen eller venner",
+      "frase": "Kortgolf",
+      "beskrivelse": "Spil kortgolf gratis på dansk: byt dig ned til den laveste sum, og ens par i en kolonne tæller nul. Seks eller fire kort, mod mobilen eller 2–4 på én mobil."
     }
   }
 }

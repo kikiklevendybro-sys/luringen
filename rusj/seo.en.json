@@ -618,6 +618,16 @@
         "daily word puzzle",
         "hidden words"
       ]
+    },
+    "narren": {
+      "tittel": "Palace card game – free against the phone or friends",
+      "frase": "Palace",
+      "beskrivelse": "Play Palace free in your browser: equal or higher, twos reset and tens burn the pile. Face-up and face-down table cards, three levels, or 2–4 on one phone."
+    },
+    "golfballen": {
+      "tittel": "Golf card game – free against the phone or friends",
+      "frase": "Golf card game",
+      "beskrivelse": "Play the Golf card game free: swap down to the lowest score, and a pair in a column counts zero. Six or four cards, three levels, or 2–4 on one phone."
     }
   }
 }

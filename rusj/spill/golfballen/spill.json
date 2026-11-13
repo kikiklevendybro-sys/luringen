@@ -1,0 +1,35 @@
+{
+  "id": "golfballen",
+  "navn": "Golfballen",
+  "undertittel": "Kortgolf",
+  "beskrivelse": "Gratis kortgolf på norsk: bytt deg ned til lavest sum, og få like par til å telle null. Seks eller fire kort, mot mobilen eller 2–4 på én mobil.",
+  "kort": "Bytt deg ned til lavest sum – like par teller null.",
+  "spillere": [1, 4],
+  "minutter": [5, 30],
+  "mobiler": "en",
+  "tagger": ["kort", "klassiker", "familie", "fest"],
+  "rekkefolge": 66,
+  "farge": "#4fc97a",
+  "alder": 7,
+  "sok": ["golf kortspill", "kortgolf", "golf med kort", "kortspillet golf", "seks kort golf", "fire kort golf", "kortspill", "kortspill for to", "kortspill på nett"],
+  "motMobilen": true,
+  "alias": ["kortgolf"],
+  "i18n": {
+    "en": {
+      "navn": "Birdie",
+      "undertittel": "Golf card game",
+      "kort": "Swap your way down to the lowest score – pairs count nothing.",
+      "beskrivelse": "Free Golf card game in your browser: swap down to the lowest score and make pairs count zero. Six or four cards, against the phone or 2–4 on one phone.",
+      "slug": "birdie",
+      "sok": ["golf card game", "card golf", "golf", "six card golf", "four card golf", "card game", "card game for two", "golf card game online"]
+    },
+    "da": {
+      "navn": "Golfbolden",
+      "undertittel": "Kortgolf",
+      "kort": "Byt dig ned til den laveste sum – ens par tæller nul.",
+      "beskrivelse": "Gratis kortgolf på dansk: byt dig ned til den laveste sum, og få ens par til at tælle nul. Seks eller fire kort, mod mobilen eller 2–4 på én mobil.",
+      "slug": "golfbolden",
+      "sok": ["golf kortspil", "kortgolf", "golf med kort", "kortspillet golf", "seks kort golf", "kortspil", "kortspil for to", "kortspil online"]
+    }
+  }
+}
