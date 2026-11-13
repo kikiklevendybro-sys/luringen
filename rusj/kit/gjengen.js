@@ -1467,6 +1467,52 @@
         ${blunk(60, `<circle cx="40" cy="58" r="12" fill="${P}" stroke="${B}" stroke-width="4.5"/><circle cx="42" cy="59" r="5.5" fill="${B}"/><circle cx="40" cy="56.8" r="1.7" fill="${P}"/>${strek("M69 58 Q80 50 91 58", 5.5)}`)}
         ${strek("M44 86 Q60 100 78 84", 5)}`,
     },
+
+
+    // Samleren: a sky-blue collector with a brass monocle on a chain, proudly holding up a run –
+    // hjerter sju, åtte and ni in a neat fan.
+    samleren: {
+      farge: "#4fb8f0",
+      tegn: (f) => `
+        ${hode(f)}
+        ${kinn(82)}
+        ${oyne({ y: 58, dx: 2, dy: -1 })}
+        <circle cx="80" cy="58" r="16.5" fill="none" stroke="${MESSING}" stroke-width="4"/>
+        ${strek("M95 64 Q104 80 97 98", 2.5, MESSING)}
+        ${strek("M28 40 Q40 33 52 39M68 37 Q80 30 92 35", 5)}
+        ${smil(88, 12)}
+        ${vifte(30, 126, [
+          [-26, tekst(30, 99, "7", 11, ROD) + hjerte(30, 110, 4.5)],
+          [-6, tekst(30, 99, "8", 11, ROD) + hjerte(30, 110, 4.5)],
+          [14, tekst(30, 99, "9", 11, ROD) + hjerte(30, 110, 4.5)],
+        ])}
+        ${glimt(106, 18, 7)}
+        ${glimt(14, 30, 4.5)}`,
+    },
+
+
+    // Hjerteknuseren: a rosy heartbreaker with a sly grin and one raised brow, holding a heart that
+    // has cracked in two – with spar dame tucked behind its ear.
+    hjerteknuseren: {
+      farge: "#ff6f91",
+      tegn: (f) => `
+        <g transform="rotate(16 102 26)">
+          <rect x="89" y="4" width="26" height="36" rx="4" fill="${P}" stroke="${B}" stroke-width="3.5"/>
+          ${tekst(102, 20, "Q", 13)}
+          ${spar(102, 30, 5)}
+        </g>
+        ${hode(f)}
+        ${kinn(80)}
+        ${oyne({ y: 58, dx: -3, dy: 1 })}
+        ${strek("M28 42 Q40 38 52 43M68 38 Q80 28 92 33", 5)}
+        ${strek("M44 85 Q60 97 77 82", 5)}
+        <g transform="rotate(-14 20 100)">
+          <path d="M20 116 C-5 99 -1 82 10 81 C15 81 18 84 20 88 C22 84 25 81 30 81 C41 82 45 99 20 116Z" fill="${ROD}" stroke="${B}" stroke-width="4" stroke-linejoin="round"/>
+          ${strek("M20 88 L15 96 L23 101 L17 110", 3.2)}
+          ${glans("M10 88 Q8 92 10 96", 3)}
+        </g>
+        ${glimt(108, 52, 5)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

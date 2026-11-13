@@ -915,6 +915,28 @@
         "trekkdomino regler",
         "blokkdomino"
       ]
+    },
+    "samleren": {
+      "tittel": "Rummy på nett – gratis, med 500 og gin rummy",
+      "frase": "Rummy",
+      "beskrivelse": "Spill rummy gratis på norsk: legg ut sett og rekker, legg til og bli kvitt kortene først. Med 500 og gin rummy, mot mobilen eller 2–4 på samme mobil.",
+      "sok": [
+        "rummy regler",
+        "rummy mot data",
+        "500 kortspill",
+        "gin rummy gratis"
+      ]
+    },
+    "hjerteknuseren": {
+      "tittel": "Hjerter kortspill – gratis mot mobilen",
+      "frase": "Hjerter",
+      "beskrivelse": "Spill hjerter gratis på norsk: gi bort tre kort, følg farge og unngå hjerterne og spar dame. Du mot tre mobilspillere på tre nivåer. Uten konto.",
+      "sok": [
+        "hjerter kortspill",
+        "hearts kortspill",
+        "hjerter regler",
+        "hjerter mot data"
+      ]
     }
   }
 }
