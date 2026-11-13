@@ -609,9 +609,825 @@
     return { naabare, nyttigeFlytt, sortAv, verdiAv, rod, tilfeldig, del, kopi, kanPaBord, kanPaGrunn, loft, lovlig, utfor, vunnet, alleOppe, kode, fraKode, gyldig, besteMal, alleMal, tryggHjem, dagens, los, loser, forsteSteg, enkeltHint, fast };
   })();
 
+  // ---------- More solitaires: Golf, Tre topper, Pyramide, FreeCell and Edderkopp ----------
+  // Pure engines like KABAL (no DOM), also loaded by test/kortkongen-varianter.test.mjs. KABAL above
+  // is not touched by them. Every engine has: del(fro, valg) → st, lovlig(st, m), utfor(st, m) → what
+  // happened, trekk(st) → every legal move, vunnet(st), kode(st) / fraKode(tekst) (null when unsound),
+  // fremgang(st) → { n, av } (cards done), and a search loser(st, maks) → { kjor, resultat } like
+  // KABAL.loser. A move always has `fra`; { fra: "s" } turns the stock.
+  const VARIANTER = (() => {
+    const { tilfeldig, sortAv, verdiAv, rod, kanPaBord } = KABAL;
+    const topp = (l) => (l.length ? l[l.length - 1] : null);
+    const heltall = (x, min, max) => Number.isInteger(x) && x >= min && x <= max;
+
+    // The shuffle of KABAL.del, for n cards (Edderkopp plays with two decks).
+    function stokk(n, fro) {
+      const t = tilfeldig(fro);
+      const kort = Array.from({ length: n }, (_, i) => i);
+      for (let i = n - 1; i > 0; i--) {
+        const j = Math.floor(t() * (i + 1));
+        [kort[i], kort[j]] = [kort[j], kort[i]];
+      }
+      return kort;
+    }
+
+    // Renaming the suits keeps a deal as solvable as it was: in Golf, Tre topper and Pyramide any of the
+    // 24 ways (suits don't matter there), in FreeCell the eight that keep the colours (KABAL's).
+    const ALLE = [];
+    for (const a of [0, 1, 2, 3]) for (const b of [0, 1, 2, 3]) for (const c of [0, 1, 2, 3]) for (const d of [0, 1, 2, 3]) if (new Set([a, b, c, d]).size === 4) ALLE.push([a, b, c, d]);
+    const FARGEBYTTER = [
+      [0, 1, 2, 3],
+      [3, 1, 2, 0],
+      [0, 2, 1, 3],
+      [3, 2, 1, 0],
+      [1, 0, 3, 2],
+      [2, 0, 3, 1],
+      [1, 3, 0, 2],
+      [2, 3, 0, 1],
+    ];
+    const bytt = (kort, m) => kort.map((k) => m[sortAv(k)] * 13 + (k % 13));
+    // A shuffled deck of 52 with the suits renamed (bytte: 0–23, or 0–7 with farger).
+    const stokk52 = (fro, bytte, farger) => bytt(stokk(52, fro), farger ? FARGEBYTTER[(bytte || 0) & 7] : ALLE[((bytte || 0) % 24 + 24) % 24]);
+
+    // A position as text: one character per card (up to 124 cards), "-" for an empty place.
+    let ekstra = "";
+    for (let c = 0xc0; c <= 0xff; c++) if (c !== 0xd7 && c !== 0xf7) ekstra += String.fromCharCode(c);
+    const TEGN = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" + ekstra;
+    const tilTegn = (l) => l.map((k) => (k < 0 ? "-" : TEGN[k])).join("");
+    const fraTegn = (s) => Array.from(s, (c) => (c === "-" ? -1 : TEGN.indexOf(c)));
+    // Every card exactly once: the cards in the lists (an empty place, -1, only where tomOk) are 0 … n − 1.
+    function hele(lister, n, tomOk) {
+      const sett = new Set();
+      for (const l of lister)
+        for (const k of l) {
+          if (k === -1 && tomOk) continue;
+          if (!heltall(k, 0, n - 1) || sett.has(k)) return false;
+          sett.add(k);
+        }
+      return sett.size === n;
+    }
+
+    // Depth first with a memory of positions already seen, in steps like KABAL.loser. o: barn(n) → the
+    // moves to try, best first; bruk(n, m) → the next position; nokkel(n); ferdig(n). It tries every
+    // line, so a search that runs dry («uttomt») proves that the position can't be won.
+    function dybde(start, o, maks) {
+      const sett = new Set();
+      const stakk = [];
+      const sti = [];
+      let noder = 0;
+      let losning = null;
+      let startet = false;
+      let over = false;
+      let taket = false;
+      function inn(n) {
+        if (++noder > maks) {
+          taket = true;
+          return false;
+        }
+        if (o.ferdig(n)) {
+          losning = sti.slice();
+          return true;
+        }
+        const k = o.nokkel(n);
+        const ny = !sett.has(k);
+        if (ny) sett.add(k);
+        stakk.push({ n, trekk: ny ? o.barn(n) : [], i: 0 });
+        return false;
+      }
+      function kjor(antall) {
+        if (over) return true;
+        let igjen = antall == null ? Infinity : antall;
+        if (!startet) {
+          startet = true;
+          if (inn(start)) return (over = true);
+        }
+        while (stakk.length && !taket) {
+          if (igjen-- <= 0) return false;
+          const f = stakk[stakk.length - 1];
+          if (f.i >= f.trekk.length) {
+            stakk.pop();
+            if (stakk.length) sti.pop();
+            continue;
+          }
+          const m = f.trekk[f.i++];
+          sti.push(m);
+          if (inn(o.bruk(f.n, m))) return (over = true);
+        }
+        stakk.length = 0;
+        return (over = true);
+      }
+      return { kjor, resultat: () => ({ trekk: losning, noder, uttomt: over && !losning && !taket }) };
+    }
+
+    // Best first (the position that looks closest to the end, o.h(n): lower is better) – for FreeCell,
+    // where a plain depth-first search gets lost. It never proves anything; it finds a way or gives up.
+    function beste(start, o, maks) {
+      const noder = [{ n: start, far: -1, m: null }];
+      const sett = new Set([o.nokkel(start)]);
+      const ko = []; // a binary heap of [h, nr]
+      const opp = (i) => {
+        while (i > 0) {
+          const f = (i - 1) >> 1;
+          if (ko[f][0] < ko[i][0] || (ko[f][0] === ko[i][0] && ko[f][1] < ko[i][1])) break;
+          [ko[f], ko[i]] = [ko[i], ko[f]];
+          i = f;
+        }
+      };
+      const ned = () => {
+        let i = 0;
+        for (;;) {
+          const a = 2 * i + 1;
+          const b = a + 1;
+          let m = i;
+          const mindre = (x, y) => ko[x][0] < ko[y][0] || (ko[x][0] === ko[y][0] && ko[x][1] < ko[y][1]);
+          if (a < ko.length && mindre(a, m)) m = a;
+          if (b < ko.length && mindre(b, m)) m = b;
+          if (m === i) return;
+          [ko[m], ko[i]] = [ko[i], ko[m]];
+          i = m;
+        }
+      };
+      const legg = (h, nr) => {
+        ko.push([h, nr]);
+        opp(ko.length - 1);
+      };
+      const ta = () => {
+        const forste = ko[0];
+        const siste = ko.pop();
+        if (ko.length) {
+          ko[0] = siste;
+          ned();
+        }
+        return forste;
+      };
+      let losning = null;
+      let over = false;
+      let taket = false;
+      let antallNoder = 0;
+      const vei = (nr) => {
+        const ut = [];
+        for (let i = nr; noder[i].far >= 0; i = noder[i].far) ut.push(noder[i].m);
+        return ut.reverse();
+      };
+      if (o.ferdig(start)) {
+        losning = [];
+        over = true;
+      } else legg(o.h(start), 0);
+      function kjor(antall) {
+        if (over) return true;
+        let igjen = antall == null ? Infinity : antall;
+        while (ko.length) {
+          if (igjen-- <= 0) return false;
+          if (++antallNoder > maks) {
+            taket = true;
+            break;
+          }
+          const [, nr] = ta();
+          const n = noder[nr].n;
+          for (const m of o.barn(n)) {
+            const c = o.bruk(n, m);
+            const k = o.nokkel(c);
+            if (sett.has(k)) continue;
+            sett.add(k);
+            noder.push({ n: c, far: nr, m });
+            if (o.ferdig(c)) {
+              losning = vei(noder.length - 1);
+              return (over = true);
+            }
+            legg(o.h(c), noder.length - 1);
+          }
+        }
+        return (over = true);
+      }
+      return { kjor, resultat: () => ({ trekk: losning, noder: antallNoder, uttomt: over && !losning && !taket }) };
+    }
+
+    // ---------- Golf ----------
+    // Seven columns of five, all face up; one card starts the waste, 16 in the stock. The top card of a
+    // column may go to the waste when it is one higher or lower, any suit. Ace and king are not
+    // neighbours, and nothing may go on a king. The stock is gone through once. Won: the columns are empty.
+    // Moves: { fra: "s" } (stock → waste), { fra: "b", i } (top of column i → waste).
+    const golf = (() => {
+      const passer = (k, a) => a != null && a >= 0 && verdiAv(a) !== 13 && Math.abs(verdiAv(k) - verdiAv(a)) === 1;
+      function del(fro, bytte) {
+        const k = stokk52(fro, bytte);
+        const kol = [];
+        for (let c = 0; c < 7; c++) kol.push(k.slice(c * 5, c * 5 + 5));
+        const bunke = k.slice(35);
+        return { kol, bunke, avfall: [bunke.pop()] };
+      }
+      const kopi = (st) => ({ kol: st.kol.map((k) => k.slice()), bunke: st.bunke.slice(), avfall: st.avfall.slice() });
+      function lovlig(st, m) {
+        if (!m) return false;
+        if (m.fra === "s") return st.bunke.length > 0;
+        return m.fra === "b" && heltall(m.i, 0, 6) && st.kol[m.i].length > 0 && passer(topp(st.kol[m.i]), topp(st.avfall));
+      }
+      function utfor(st, m) {
+        st.avfall.push(m.fra === "s" ? st.bunke.pop() : st.kol[m.i].pop());
+        return {};
+      }
+      function trekk(st) {
+        const ut = [];
+        for (let i = 0; i < 7; i++) if (lovlig(st, { fra: "b", i })) ut.push({ fra: "b", i });
+        if (st.bunke.length) ut.push({ fra: "s" });
+        return ut;
+      }
+      const igjen = (st) => st.kol.reduce((s, k) => s + k.length, 0);
+      const vunnet = (st) => igjen(st) === 0;
+      const kode = (st) => [st.kol.map(tilTegn).join(","), tilTegn(st.bunke), tilTegn(st.avfall)].join(".");
+      function fraKode(s) {
+        const d = String(s).split(".");
+        if (d.length !== 3) return null;
+        const st = { kol: d[0].split(",").map(fraTegn), bunke: fraTegn(d[1]), avfall: fraTegn(d[2]) };
+        const ok = st.kol.length === 7 && st.kol.every((k) => k.length <= 5) && st.bunke.length <= 16 && st.avfall.length >= 1 && hele([...st.kol, st.bunke, st.avfall], 52);
+        return ok ? st : null;
+      }
+      function loser(st0, maks) {
+        return dybde(
+          kopi(st0),
+          {
+            ferdig: vunnet,
+            // (Only the rank of the waste's top card matters.)
+            nokkel: (n) => n.kol.map((k) => k.length).join("") + "|" + n.bunke.length + "|" + verdiAv(topp(n.avfall)),
+            // The card that leaves the most to play next first, then the tallest column (it hides the most).
+            barn: (n) => {
+              const t = trekk(n);
+              const vekt = (m) => {
+                if (m.fra === "s") return -1;
+                const k = topp(n.kol[m.i]);
+                let v = n.kol[m.i].length;
+                n.kol.forEach((kol, j) => {
+                  const under = j === m.i ? kol[kol.length - 2] : topp(kol);
+                  if (under != null && passer(under, k)) v += 10;
+                });
+                return v;
+              };
+              const w = new Map(t.map((m) => [m, vekt(m)]));
+              return t.sort((a, b) => w.get(b) - w.get(a));
+            },
+            bruk: (n, m) => {
+              const c = kopi(n);
+              utfor(c, m);
+              return c;
+            },
+          },
+          maks || 300000,
+        );
+      }
+      return { id: "golf", antall: 52, passer, del, kopi, lovlig, utfor, trekk, igjen, vunnet, kode, fraKode, loser, fremgang: (st) => ({ n: 35 - igjen(st), av: 35 }) };
+    })();
+
+    // ---------- Tre topper (Tri Peaks) ----------
+    // 28 cards in three peaks (rows of 3, 6, 9 and 10; only the bottom row face up), one card starts the
+    // waste, 23 in the stock. A card with nothing on it may go to the waste when it is one higher or
+    // lower, any suit – round the corner (ace on king, king on ace). A card turns face up when it is
+    // uncovered. The stock is gone through once. Won: all three peaks are cleared.
+    // Moves: { fra: "s" }, { fra: "b", i } (place i, 0–27, top row first → waste).
+    const topper = (() => {
+      // Where each place lies, in half cards from the left; the row (0 top … 3 bottom).
+      const X = [3, 9, 15, 2, 4, 8, 10, 14, 16, 1, 3, 5, 7, 9, 11, 13, 15, 17, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18];
+      const RAD = X.map((_, i) => (i < 3 ? 0 : i < 9 ? 1 : i < 18 ? 2 : 3));
+      // The cards that lie on each place (half a card to the left and right in the row below).
+      const DEKKER = X.map((x, i) => X.map((_, j) => j).filter((j) => RAD[j] === RAD[i] + 1 && Math.abs(X[j] - x) === 1));
+      const passer = (k, a) => {
+        if (a == null || a < 0) return false;
+        const d = Math.abs(verdiAv(k) - verdiAv(a));
+        return d === 1 || d === 12;
+      };
+      function del(fro, bytte) {
+        const k = stokk52(fro, bytte);
+        const bunke = k.slice(28);
+        return { bord: k.slice(0, 28), bunke, avfall: [bunke.pop()] };
+      }
+      const kopi = (st) => ({ bord: st.bord.slice(), bunke: st.bunke.slice(), avfall: st.avfall.slice() });
+      const fri = (st, i) => st.bord[i] >= 0 && DEKKER[i].every((j) => st.bord[j] < 0);
+      function lovlig(st, m) {
+        if (!m) return false;
+        if (m.fra === "s") return st.bunke.length > 0;
+        return m.fra === "b" && heltall(m.i, 0, 27) && fri(st, m.i) && passer(st.bord[m.i], topp(st.avfall));
+      }
+      function utfor(st, m) {
+        if (m.fra === "s") st.avfall.push(st.bunke.pop());
+        else {
+          st.avfall.push(st.bord[m.i]);
+          st.bord[m.i] = -1;
+        }
+        return {};
+      }
+      function trekk(st) {
+        const ut = [];
+        for (let i = 0; i < 28; i++) if (lovlig(st, { fra: "b", i })) ut.push({ fra: "b", i });
+        if (st.bunke.length) ut.push({ fra: "s" });
+        return ut;
+      }
+      const igjen = (st) => st.bord.filter((k) => k >= 0).length;
+      const vunnet = (st) => igjen(st) === 0;
+      const kode = (st) => [tilTegn(st.bord), tilTegn(st.bunke), tilTegn(st.avfall)].join(".");
+      function fraKode(s) {
+        const d = String(s).split(".");
+        if (d.length !== 3) return null;
+        const st = { bord: fraTegn(d[0]), bunke: fraTegn(d[1]), avfall: fraTegn(d[2]) };
+        const ok = st.bord.length === 28 && st.bunke.length <= 23 && st.avfall.length >= 1 && !st.bunke.includes(-1) && !st.avfall.includes(-1) && hele([st.bord, st.bunke, st.avfall], 52, true);
+        return ok ? st : null;
+      }
+      // How many cards a move uncovers (they turn face up).
+      const apner = (st, i) => X.reduce((n, _, j) => n + (DEKKER[j].includes(i) && st.bord[j] >= 0 && DEKKER[j].every((x) => x === i || st.bord[x] < 0) ? 1 : 0), 0);
+      function loser(st0, maks) {
+        return dybde(
+          kopi(st0),
+          {
+            ferdig: vunnet,
+            nokkel: (n) => n.bord.map((k) => (k >= 0 ? 1 : 0)).join("") + "|" + n.bunke.length + "|" + verdiAv(topp(n.avfall)),
+            barn: (n) => trekk(n).sort((a, b) => (b.fra === "b" ? 1 + apner(n, b.i) : 0) - (a.fra === "b" ? 1 + apner(n, a.i) : 0)),
+            bruk: (n, m) => {
+              const c = kopi(n);
+              utfor(c, m);
+              return c;
+            },
+          },
+          maks || 300000,
+        );
+      }
+      return { id: "topper", antall: 52, X, RAD, DEKKER, passer, del, kopi, fri, lovlig, utfor, trekk, igjen, vunnet, kode, fraKode, loser, fremgang: (st) => ({ n: 28 - igjen(st), av: 28 }) };
+    })();
+
+    // ---------- Pyramide ----------
+    // 28 cards in a pyramid of seven rows, all face up; 24 in the stock. Two free cards that make 13
+    // (ace 1, jack 11, queen 12) are taken out together; a king (13) goes alone. A card is free when
+    // nothing lies on it. Turning the stock puts its top card face up beside it («trukket»); the card
+    // drawn before goes onto the waste. The card drawn and the top of the waste can be used too. The
+    // stock is gone through once. Won: all 52 cards are out (the pyramid, the stock and the waste).
+    // Places: 0–27 the pyramid (row by row from the top), 28 the card drawn, 29 the top of the waste.
+    // Moves: { fra: "s" }, { fra: "k", a } (a king), { fra: "p", a, b } (a pair, a < b).
+    const pyramide = (() => {
+      const RAD = [];
+      for (let r = 0; r < 7; r++) for (let c = 0; c <= r; c++) RAD.push(r);
+      const DEKKER = RAD.map((r, i) => (r < 6 ? [i + r + 1, i + r + 2] : []));
+      // Every place that must be cleared before place i is free (all the cards below it, in a triangle).
+      const UNDER = RAD.map((r, i) => {
+        const c = i - (r * (r + 1)) / 2;
+        const ut = [];
+        for (let r2 = r + 1; r2 < 7; r2++) for (let c2 = c; c2 <= c + r2 - r; c2++) ut.push((r2 * (r2 + 1)) / 2 + c2);
+        return ut;
+      });
+      const TRUKKET = 28;
+      const AVFALL = 29;
+      function del(fro, bytte) {
+        const k = stokk52(fro, bytte);
+        return { bord: k.slice(0, 28), bunke: k.slice(28), trukket: -1, avfall: [], kast: [] };
+      }
+      // Lost for certain: a pyramid card whose every partner still in play lies below it. Those must go
+      // (each with another card of its own rank) before it is free – and then none is left for it.
+      function laast(st) {
+        const igjen = new Array(14).fill(0);
+        const tell = (k) => k >= 0 && igjen[verdiAv(k)]++;
+        st.bord.forEach(tell);
+        st.bunke.forEach(tell);
+        st.avfall.forEach(tell);
+        tell(st.trukket);
+        for (let i = 0; i < 28; i++) {
+          const k = st.bord[i];
+          if (k < 0 || verdiAv(k) === 13) continue;
+          const mot = 13 - verdiAv(k);
+          let under = 0;
+          for (const j of UNDER[i]) if (st.bord[j] >= 0 && verdiAv(st.bord[j]) === mot) under++;
+          if (under && under === igjen[mot]) return true;
+        }
+        return false;
+      }
+      const kopi = (st) => ({ bord: st.bord.slice(), bunke: st.bunke.slice(), trukket: st.trukket, avfall: st.avfall.slice(), kast: st.kast.slice() });
+      const fri = (st, i) => st.bord[i] >= 0 && DEKKER[i].every((j) => st.bord[j] < 0);
+      // The card that can be taken from a place, or -1.
+      function kortPa(st, a) {
+        if (heltall(a, 0, 27)) return fri(st, a) ? st.bord[a] : -1;
+        if (a === TRUKKET) return st.trukket;
+        if (a === AVFALL) return st.avfall.length ? topp(st.avfall) : -1;
+        return -1;
+      }
+      // Every place that has a card to take now.
+      const ledige = (st) => [...Array.from({ length: 28 }, (_, i) => i), TRUKKET, AVFALL].filter((a) => kortPa(st, a) >= 0);
+      function lovlig(st, m) {
+        if (!m) return false;
+        if (m.fra === "s") return st.bunke.length > 0;
+        if (m.fra === "k") {
+          const k = kortPa(st, m.a);
+          return k >= 0 && verdiAv(k) === 13;
+        }
+        if (m.fra === "p") {
+          if (m.a === m.b) return false;
+          const a = kortPa(st, m.a);
+          const b = kortPa(st, m.b);
+          return a >= 0 && b >= 0 && verdiAv(a) + verdiAv(b) === 13;
+        }
+        return false;
+      }
+      function ta(st, a) {
+        const k = kortPa(st, a);
+        if (a < 28) st.bord[a] = -1;
+        else if (a === TRUKKET) st.trukket = -1;
+        else st.avfall.pop();
+        st.kast.push(k);
+        return k;
+      }
+      function utfor(st, m) {
+        if (m.fra === "s") {
+          if (st.trukket >= 0) st.avfall.push(st.trukket);
+          st.trukket = st.bunke.pop();
+          return {};
+        }
+        // (The higher place first: taking the drawn card never changes which card is on the waste.)
+        if (m.fra === "k") return { kort: [ta(st, m.a)] };
+        const [x, y] = m.a > m.b ? [m.a, m.b] : [m.b, m.a];
+        return { kort: [ta(st, x), ta(st, y)] };
+      }
+      function trekk(st) {
+        const ut = [];
+        const fri = ledige(st);
+        for (const a of fri) if (verdiAv(kortPa(st, a)) === 13) ut.push({ fra: "k", a });
+        for (let x = 0; x < fri.length; x++)
+          for (let y = x + 1; y < fri.length; y++) {
+            const m = { fra: "p", a: fri[x], b: fri[y] };
+            if (lovlig(st, m)) ut.push(m);
+          }
+        if (st.bunke.length) ut.push({ fra: "s" });
+        return ut;
+      }
+      const vunnet = (st) => st.kast.length === 52;
+      const kode = (st) => [tilTegn(st.bord), tilTegn(st.bunke), tilTegn([st.trukket]), tilTegn(st.avfall), tilTegn(st.kast)].join(".");
+      function fraKode(s) {
+        const d = String(s).split(".");
+        if (d.length !== 5 || d[2].length !== 1) return null;
+        const st = { bord: fraTegn(d[0]), bunke: fraTegn(d[1]), trukket: fraTegn(d[2])[0], avfall: fraTegn(d[3]), kast: fraTegn(d[4]) };
+        const ok = st.bord.length === 28 && st.bunke.length <= 24 && !st.bunke.includes(-1) && !st.avfall.includes(-1) && !st.kast.includes(-1) && hele([st.bord, st.bunke, [st.trukket], st.avfall, st.kast], 52, true);
+        return ok ? st : null;
+      }
+      function loser(st0, maks) {
+        return dybde(
+          kopi(st0),
+          {
+            ferdig: vunnet,
+            // (Only the ranks of the drawn card and the waste matter.)
+            nokkel: (n) => n.bord.map((k) => (k >= 0 ? 1 : 0)).join("") + "|" + n.bunke.length + "|" + (n.trukket >= 0 ? verdiAv(n.trukket) : 0) + "|" + n.avfall.map((k) => TEGN[verdiAv(k)]).join(""),
+            barn: (n) => {
+              if (laast(n)) return [];
+              const t = trekk(n);
+              // A king never needs a partner: taking it at once is never worse.
+              const konge = t.find((m) => m.fra === "k");
+              if (konge) return [konge];
+              const vekt = (m) => (m.fra === "s" ? 0 : (m.a < 28 ? 2 : 1) + (m.b < 28 ? 2 : 1));
+              return t.sort((a, b) => vekt(b) - vekt(a));
+            },
+            bruk: (n, m) => {
+              const c = kopi(n);
+              utfor(c, m);
+              return c;
+            },
+          },
+          maks || 300000,
+        );
+      }
+      return { id: "pyramide", antall: 52, RAD, DEKKER, UNDER, TRUKKET, AVFALL, laast, del, kopi, fri, kortPa, ledige, lovlig, utfor, trekk, vunnet, kode, fraKode, loser, fremgang: (st) => ({ n: st.kast.length, av: 52 }) };
+    })();
+
+    // ---------- FreeCell ----------
+    // All 52 cards face up in eight columns (7, 7, 7, 7, 6, 6, 6, 6), four free cells, four foundations.
+    // Build down in alternating colours; a free cell holds one card; an empty column takes any card.
+    // Several cards move at once when there is room to move them one by one: (free cells + 1) ×
+    // 2^(empty columns). Cards nothing can need any more go home by themselves.
+    // Sources: { fra: "b", i, p } (column i from position p), { fra: "c", i } (free cell i).
+    // Moves: a source + { til: "g" | "c" | "b", j }.
+    const freecell = (() => {
+      const trygg = (st, k) => {
+        const v = verdiAv(k);
+        if (v <= 2) return true;
+        const mot = rod(k) ? [0, 3] : [1, 2];
+        return st.grunn[mot[0]] >= v - 1 && st.grunn[mot[1]] >= v - 1;
+      };
+      const kanPaGrunn = (st, k) => st.grunn[sortAv(k)] === verdiAv(k) - 1;
+      const kopi = (st) => ({ bord: st.bord.map((k) => k.slice()), celle: st.celle.slice(), grunn: st.grunn.slice() });
+      const frie = (st) => st.celle.filter((k) => k < 0).length;
+      const tomme = (st) => st.bord.filter((k) => !k.length).length;
+      const kapasitet = (st, tilTom) => (frie(st) + 1) * 2 ** Math.max(0, tomme(st) - (tilTom ? 1 : 0));
+      function loft(st, f) {
+        if (!f) return null;
+        if (f.fra === "c") return heltall(f.i, 0, 3) && st.celle[f.i] >= 0 ? [st.celle[f.i]] : null;
+        if (f.fra !== "b" || !heltall(f.i, 0, 7)) return null;
+        const kol = st.bord[f.i];
+        if (!heltall(f.p, 0, kol.length - 1)) return null;
+        const rekke = kol.slice(f.p);
+        for (let n = 1; n < rekke.length; n++) if (!kanPaBord(rekke[n], rekke[n - 1])) return null;
+        return rekke;
+      }
+      function lovlig(st, m) {
+        const rekke = loft(st, m);
+        if (!rekke) return false;
+        if (m.til === "g") return rekke.length === 1 && m.j === sortAv(rekke[0]) && kanPaGrunn(st, rekke[0]);
+        if (m.til === "c") return m.fra === "b" && rekke.length === 1 && heltall(m.j, 0, 3) && st.celle[m.j] < 0;
+        if (m.til === "b") {
+          if (!heltall(m.j, 0, 7) || (m.fra === "b" && m.j === m.i)) return false;
+          const kol = st.bord[m.j];
+          if (!kol.length) return rekke.length <= kapasitet(st, true);
+          return rekke.length <= kapasitet(st, false) && kanPaBord(rekke[0], topp(kol));
+        }
+        return false;
+      }
+      function flytt(st, m) {
+        const rekke = loft(st, m);
+        if (m.fra === "c") st.celle[m.i] = -1;
+        else st.bord[m.i].length = m.p;
+        if (m.til === "g") st.grunn[m.j] += 1;
+        else if (m.til === "c") st.celle[m.j] = rekke[0];
+        else st.bord[m.j].push(...rekke);
+        return rekke;
+      }
+      // The cards nothing can need any more go home, again and again. → [{ fra, i, k }]
+      function autoHjem(st) {
+        const ut = [];
+        for (let igjen = true; igjen; ) {
+          igjen = false;
+          for (let i = 0; i < 4; i++) {
+            const k = st.celle[i];
+            if (k >= 0 && kanPaGrunn(st, k) && trygg(st, k)) {
+              flytt(st, { fra: "c", i, til: "g", j: sortAv(k) });
+              ut.push({ fra: "c", i, k });
+              igjen = true;
+            }
+          }
+          for (let i = 0; i < 8; i++) {
+            const kol = st.bord[i];
+            const k = topp(kol);
+            if (k != null && kanPaGrunn(st, k) && trygg(st, k)) {
+              flytt(st, { fra: "b", i, p: kol.length - 1, til: "g", j: sortAv(k) });
+              ut.push({ fra: "b", i, k });
+              igjen = true;
+            }
+          }
+        }
+        return ut;
+      }
+      function del(fro, bytte) {
+        const k = stokk52(fro, bytte, true);
+        const bord = [[], [], [], [], [], [], [], []];
+        k.forEach((x, n) => bord[n % 8].push(x));
+        const st = { bord, celle: [-1, -1, -1, -1], grunn: [0, 0, 0, 0] };
+        autoHjem(st);
+        return st;
+      }
+      // o.auto === false: only the move itself (the tests compare the bare rules).
+      function utfor(st, m, o) {
+        const kort = flytt(st, m);
+        return { kort, auto: o && o.auto === false ? [] : autoHjem(st) };
+      }
+      // Every source with cards that may be lifted.
+      function kilder(st) {
+        const ut = [];
+        for (let i = 0; i < 4; i++) if (st.celle[i] >= 0) ut.push({ fra: "c", i });
+        st.bord.forEach((kol, i) => {
+          for (let p = kol.length - 1; p >= 0; p--) {
+            ut.push({ fra: "b", i, p });
+            if (p > 0 && !kanPaBord(kol[p], kol[p - 1])) break;
+          }
+        });
+        return ut;
+      }
+      function trekk(st) {
+        const ut = [];
+        for (const f of kilder(st)) {
+          for (let j = 0; j < 4; j++) for (const til of ["g", "c"]) if (lovlig(st, { ...f, til, j })) ut.push({ ...f, til, j });
+          for (let j = 0; j < 8; j++) if (lovlig(st, { ...f, til: "b", j })) ut.push({ ...f, til: "b", j });
+        }
+        return ut;
+      }
+      const hjem = (st) => st.grunn.reduce((a, b) => a + b, 0);
+      const vunnet = (st) => hjem(st) === 52;
+      const kode = (st) => [st.bord.map(tilTegn).join(","), tilTegn(st.celle), st.grunn.join(",")].join(".");
+      function fraKode(s) {
+        const d = String(s).split(".");
+        if (d.length !== 3) return null;
+        const st = { bord: d[0].split(",").map(fraTegn), celle: fraTegn(d[1]), grunn: d[2].split(",").map(Number) };
+        if (st.bord.length !== 8 || st.celle.length !== 4 || st.grunn.length !== 4 || !st.grunn.every((v) => heltall(v, 0, 13)) || st.bord.some((k) => k.includes(-1))) return null;
+        const grunn = st.grunn.map((v, s) => Array.from({ length: v }, (_, n) => s * 13 + n));
+        return hele([...st.bord, st.celle, ...grunn], 52, true) ? st : null;
+      }
+      // The search: the moves a good player would think of (a free cell or an empty column only once,
+      // whole runs onto a column), the safe cards home after each, and how near the end it looks.
+      function barn(n) {
+        const ut = [];
+        const prov = (m) => lovlig(n, m) && ut.push(m);
+        for (let i = 0; i < 4; i++) if (n.celle[i] >= 0) prov({ fra: "c", i, til: "g", j: sortAv(n.celle[i]) });
+        n.bord.forEach((kol, i) => kol.length && prov({ fra: "b", i, p: kol.length - 1, til: "g", j: sortAv(topp(kol)) }));
+        const tom = n.bord.findIndex((k) => !k.length);
+        const celle = n.celle.indexOf(-1);
+        n.bord.forEach((kol, i) => {
+          if (!kol.length) return;
+          let p0 = kol.length - 1;
+          while (p0 > 0 && kanPaBord(kol[p0], kol[p0 - 1])) p0--;
+          for (let j = 0; j < 8; j++) {
+            if (j === i || !n.bord[j].length) continue;
+            const t = topp(n.bord[j]);
+            for (let p = p0; p < kol.length; p++) if (kanPaBord(kol[p], t)) prov({ fra: "b", i, p, til: "b", j });
+          }
+          if (tom >= 0 && p0 > 0) {
+            const lengst = Math.max(p0, kol.length - kapasitet(n, true));
+            prov({ fra: "b", i, p: lengst, til: "b", j: tom });
+            if (lengst !== kol.length - 1) prov({ fra: "b", i, p: kol.length - 1, til: "b", j: tom });
+          }
+        });
+        for (let i = 0; i < 4; i++) {
+          const k = n.celle[i];
+          if (k < 0) continue;
+          for (let j = 0; j < 8; j++) if (n.bord[j].length) prov({ fra: "c", i, til: "b", j });
+          if (tom >= 0) prov({ fra: "c", i, til: "b", j: tom });
+        }
+        if (celle >= 0) n.bord.forEach((kol, i) => kol.length && prov({ fra: "b", i, p: kol.length - 1, til: "c", j: celle }));
+        return ut;
+      }
+      function h(n) {
+        let dyp = 0;
+        for (let s = 0; s < 4; s++) {
+          if (n.grunn[s] === 13) continue;
+          const k = s * 13 + n.grunn[s];
+          for (const kol of n.bord) {
+            const p = kol.indexOf(k);
+            if (p >= 0) dyp += kol.length - 1 - p;
+          }
+        }
+        let brudd = 0;
+        for (const kol of n.bord) for (let p = 1; p < kol.length; p++) if (!kanPaBord(kol[p], kol[p - 1])) brudd++;
+        return (52 - hjem(n)) * 5 + dyp * 3 + brudd * 2 + (4 - frie(n)) * 2 - tomme(n) * 3;
+      }
+      const nokkel = (n) => n.grunn.join("") + "|" + tilTegn(n.celle.slice().sort((a, b) => a - b)) + "|" + n.bord.map(tilTegn).sort().join(",");
+      function loser(st0, maks) {
+        return beste(
+          kopi(st0),
+          {
+            ferdig: vunnet,
+            nokkel,
+            h,
+            barn,
+            bruk: (n, m) => {
+              const c = kopi(n);
+              utfor(c, m);
+              return c;
+            },
+          },
+          maks || 40000,
+        );
+      }
+      return { id: "freecell", antall: 52, trygg, kanPaGrunn, kopi, kapasitet, loft, lovlig, utfor, autoHjem, del, kilder, trekk, hjem, vunnet, kode, fraKode, loser, fremgang: (st) => ({ n: hjem(st), av: 52 }) };
+    })();
+
+    // ---------- Edderkopp (Spider) ----------
+    // Two decks, 104 cards: 54 in ten columns (6, 6, 6, 6, 5 …), only the top card face up; 50 in the
+    // stock. A card goes on a card one higher, any suit; only a run in one suit moves together; an
+    // empty column takes any card or run. The stock deals one card face up on every column – never
+    // while a column is empty. A run from king to ace in one suit goes home by itself. Won: eight runs.
+    // With 1 suit every card is a spade, with 2 spades and hearts. A card is its place in the two
+    // decks, 0–103; ansikt(st, p) is the face (0–51 as in KABAL).
+    // Moves: { fra: "s" }, { fra: "b", i, p, til: "b", j }.
+    const edderkopp = (() => {
+      const ANSIKT = (p, sorter) => (sorter === 1 ? p % 13 : sorter === 2 ? (((p / 13) | 0) % 2) * 13 + (p % 13) : p % 52);
+      const ansikt = (st, p) => ANSIKT(p, st.sorter);
+      function del(fro, sorter) {
+        const s = [1, 2, 4].includes(sorter) ? sorter : 1;
+        const k = stokk(104, fro);
+        const bord = Array.from({ length: 10 }, () => []);
+        for (let n = 0; n < 54; n++) bord[n % 10].push(k[n]);
+        return { bord, skjult: bord.map((kol) => kol.length - 1), bunke: k.slice(54), hjem: [], sorter: s };
+      }
+      const kopi = (st) => ({ bord: st.bord.map((k) => k.slice()), skjult: st.skjult.slice(), bunke: st.bunke.slice(), hjem: st.hjem.slice(), sorter: st.sorter });
+      // b lies on a in a run that moves together: face up, the same suit, one lower.
+      const iRekke = (st, a, b) => sortAv(ansikt(st, a)) === sortAv(ansikt(st, b)) && verdiAv(ansikt(st, b)) === verdiAv(ansikt(st, a)) - 1;
+      function loft(st, f) {
+        if (!f || f.fra !== "b" || !heltall(f.i, 0, 9)) return null;
+        const kol = st.bord[f.i];
+        if (!heltall(f.p, st.skjult[f.i], kol.length - 1)) return null;
+        for (let n = f.p + 1; n < kol.length; n++) if (!iRekke(st, kol[n - 1], kol[n])) return null;
+        return kol.slice(f.p);
+      }
+      const kanDele = (st) => st.bunke.length > 0 && st.bord.every((k) => k.length > 0);
+      function lovlig(st, m) {
+        if (!m) return false;
+        if (m.fra === "s") return kanDele(st);
+        const rekke = loft(st, m);
+        if (!rekke || m.til !== "b" || !heltall(m.j, 0, 9) || m.j === m.i) return false;
+        const kol = st.bord[m.j];
+        return !kol.length || verdiAv(ansikt(st, topp(kol))) === verdiAv(ansikt(st, rekke[0])) + 1;
+      }
+      // Does column i end in a whole run, king to ace in one suit?
+      function hel(st, i) {
+        const kol = st.bord[i];
+        const n = kol.length;
+        if (n < 13 || n - 13 < st.skjult[i] || verdiAv(ansikt(st, kol[n - 13])) !== 13) return false;
+        for (let x = n - 12; x < n; x++) if (!iRekke(st, kol[x - 1], kol[x])) return false;
+        return true;
+      }
+      function utfor(st, m) {
+        const info = { snudd: [], ferdig: [] };
+        const snu = (i) => {
+          const kol = st.bord[i];
+          if (!kol.length) st.skjult[i] = 0;
+          else if (kol.length <= st.skjult[i]) {
+            st.skjult[i] = kol.length - 1;
+            info.snudd.push(i);
+          }
+        };
+        const sjekk = (i) => {
+          if (!hel(st, i)) return;
+          const rekke = st.bord[i].splice(-13);
+          st.hjem.push(...rekke);
+          info.ferdig.push({ i, kort: rekke });
+          snu(i);
+        };
+        if (m.fra === "s") {
+          for (let i = 0; i < 10; i++) st.bord[i].push(st.bunke.pop());
+          for (let i = 0; i < 10; i++) sjekk(i);
+          return info;
+        }
+        const rekke = st.bord[m.i].splice(m.p);
+        st.bord[m.j].push(...rekke);
+        snu(m.i);
+        sjekk(m.j);
+        return info;
+      }
+      function trekk(st) {
+        const ut = [];
+        st.bord.forEach((kol, i) => {
+          for (let p = kol.length - 1; p >= st.skjult[i]; p--) {
+            if (p < kol.length - 1 && !iRekke(st, kol[p], kol[p + 1])) break;
+            for (let j = 0; j < 10; j++) if (lovlig(st, { fra: "b", i, p, til: "b", j })) ut.push({ fra: "b", i, p, til: "b", j });
+          }
+        });
+        if (kanDele(st)) ut.push({ fra: "s" });
+        return ut;
+      }
+      const vunnet = (st) => st.hjem.length === 104;
+      const kode = (st) => [st.bord.map(tilTegn).join(","), st.skjult.join(","), tilTegn(st.bunke), tilTegn(st.hjem), st.sorter].join(".");
+      function fraKode(s) {
+        const d = String(s).split(".");
+        if (d.length !== 5) return null;
+        const st = { bord: d[0].split(",").map(fraTegn), skjult: d[1].split(",").map(Number), bunke: fraTegn(d[2]), hjem: fraTegn(d[3]), sorter: Number(d[4]) };
+        if (st.bord.length !== 10 || st.skjult.length !== 10 || ![1, 2, 4].includes(st.sorter) || st.bunke.length % 10 || st.hjem.length % 13) return null;
+        if (!st.skjult.every((h, i) => heltall(h, 0, 103) && (st.bord[i].length ? h < st.bord[i].length : h === 0))) return null;
+        if (!hele([...st.bord, st.bunke, st.hjem], 104)) return null;
+        // Every run at home is whole.
+        for (let n = 0; n < st.hjem.length; n += 13) {
+          const r = st.hjem.slice(n, n + 13);
+          if (verdiAv(ansikt(st, r[0])) !== 13 || r.some((k, x) => x > 0 && !iRekke(st, r[x - 1], k))) return null;
+        }
+        return st;
+      }
+      // A sensible next move without searching: a run home, a card turned, a run in one suit made
+      // longer, an empty column put to use; else deal; else anything that is not just a shuffle.
+      function hint(st) {
+        let best = null;
+        let bestP = 0;
+        let reserve = null;
+        for (const m of trekk(st)) {
+          if (m.fra === "s") continue;
+          const kol = st.bord[m.i];
+          const forste = ansikt(st, kol[m.p]);
+          const mal = st.bord[m.j];
+          const under = m.p > 0 ? kol[m.p - 1] : null;
+          const underOpp = under != null && m.p - 1 >= st.skjult[m.i];
+          const avdekker = m.p > 0 && m.p === st.skjult[m.i];
+          const sitter = underOpp && verdiAv(ansikt(st, under)) === verdiAv(forste) + 1;
+          const sitterSamme = sitter && sortAv(ansikt(st, under)) === sortAv(forste);
+          let p;
+          if (!mal.length) {
+            if (m.p === 0 || sitter) continue; // a whole column to an empty one, or off a good card
+            p = avdekker ? 45 : 0;
+            if (!reserve || kol.length - m.p < reserve.n) reserve = { m, n: kol.length - m.p };
+            if (!p) continue;
+          } else {
+            const samme = sortAv(ansikt(st, topp(mal))) === sortAv(forste);
+            if (sitterSamme || (sitter && !samme)) continue; // breaks a run, or only moves it sideways
+            p = 20 + (samme ? 40 : 0) + (avdekker ? 50 : 0) + (m.p === 0 ? 30 : 0) + (kol.length - m.p);
+            if (samme) {
+              const c = kopi(st);
+              if (utfor(c, m).ferdig.length) p += 500;
+            }
+          }
+          if (p > bestP) {
+            bestP = p;
+            best = m;
+          }
+        }
+        if (best) return best;
+        if (kanDele(st)) return { fra: "s" };
+        return reserve ? reserve.m : null;
+      }
+      return { id: "edderkopp", antall: 104, ANSIKT, ansikt, del, kopi, iRekke, loft, kanDele, lovlig, hel, utfor, trekk, vunnet, kode, fraKode, hint, fremgang: (st) => ({ n: st.hjem.length / 13, av: 8 }) };
+    })();
+
+    return { stokk, TEGN, tilTegn, fraTegn, golf, topper, pyramide, freecell, edderkopp };
+  })();
+
   // node:test loads this file without the kit: hand over the rules and stop.
   if (typeof window === "undefined" || !window.Rusj) {
-    (typeof globalThis !== "undefined" ? globalThis : this).KortkongenRegler = KABAL;
+    const g = typeof globalThis !== "undefined" ? globalThis : this;
+    g.KortkongenRegler = KABAL;
+    g.KortkongenVarianter = VARIANTER;
     return;
   }
 
