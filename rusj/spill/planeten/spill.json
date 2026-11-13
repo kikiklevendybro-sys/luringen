@@ -1,0 +1,33 @@
+{
+  "id": "planeten",
+  "navn": "Planeten",
+  "undertittel": "Slipp og slå sammen",
+  "beskrivelse": "Gratis slipp og slå sammen-spill på norsk: slipp planeter ned i glasset, og to like blir én større – fra asteroide til sola. Med ekte fysikk og din egen rekord.",
+  "kort": "To like planeter blir én større. Klarer du å lage sola?",
+  "spillere": [1, 1],
+  "alder": 5,
+  "minutter": [3, 15],
+  "mobiler": "en",
+  "tagger": ["alene", "barn"],
+  "rekkefolge": 78,
+  "farge": "#ffb35c",
+  "sok": ["merge spill", "slå sammen spill", "slippespill", "planetspill", "fysikkspill", "planeter", "solsystemet", "sammenslåing"],
+  "i18n": {
+    "en": {
+      "navn": "Orby",
+      "undertittel": "Drop and merge",
+      "kort": "Two alike planets make one bigger. Can you make the Sun?",
+      "beskrivelse": "Free drop-and-merge game in your browser: drop planets into the jar, and two alike become one bigger – from asteroid to the Sun. Real physics and your own best score.",
+      "slug": "orby",
+      "sok": ["merge game", "drop and merge", "planet merge", "merge planets", "physics game", "solar system game", "dropping game"]
+    },
+    "da": {
+      "navn": "Planeten",
+      "undertittel": "Slip og slå sammen",
+      "kort": "To ens planeter bliver til én større. Kan du lave Solen?",
+      "beskrivelse": "Gratis slip og slå sammen-spil på dansk: slip planeter ned i glasset, og to ens bliver til én større – fra asteroide til Solen. Med ægte fysik og din egen rekord.",
+      "slug": "planeten",
+      "sok": ["merge spil", "slå sammen spil", "planetspil", "fysikspil", "planeter", "solsystemet"]
+    }
+  }
+}

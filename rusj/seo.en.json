@@ -689,6 +689,17 @@
         "hearts against the computer",
         "black lady card game"
       ]
+    },
+    "planeten": {
+      "tittel": "Planet merge game – drop and merge, free",
+      "frase": "Drop and merge",
+      "beskrivelse": "Play a free drop-and-merge game: drop planets into the jar, and two alike become one bigger – from asteroid to the Sun. Real physics, no ads.",
+      "sok": [
+        "planet merge game",
+        "drop and merge free",
+        "merge game no ads",
+        "physics merge game"
+      ]
     }
   }
 }

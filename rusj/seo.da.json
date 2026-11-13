@@ -706,6 +706,17 @@
         "hjerterfri mod computeren",
         "hearts kortspil"
       ]
+    },
+    "planeten": {
+      "tittel": "Planetspil – slip og slå planeter sammen, gratis",
+      "frase": "Slip og slå sammen",
+      "beskrivelse": "Spil et gratis slå sammen-spil på dansk: slip planeter i glasset, to ens bliver til én større – fra asteroide til Solen. Ægte fysik, uden reklamer.",
+      "sok": [
+        "merge spil gratis",
+        "planetspil",
+        "slå planeter sammen",
+        "fysikspil på mobilen"
+      ]
     }
   }
 }
