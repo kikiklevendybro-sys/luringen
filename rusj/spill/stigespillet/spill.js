@@ -246,76 +246,27 @@
     return R.t("{kast}! Hopp, hopp – til {til}.", { kast: t.kast, til: t.til });
   }
 
-  // ---------- 3D die (a CSS cube, as in Brikka and Terninga) ----------
+  // ---------- The die ----------
+  // A real 3D die in a little wooden box, thrown with a simulated throw (R.terninger in
+  // rusj/kit/terninger.js). The game decides the number; the kit lands the die on it. Tap the die or
+  // swipe on the box to throw.
 
-  const PIPS = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
-  const SIDE = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] };
-  const VIPP = "rotateX(-20deg) rotateY(14deg)"; // sprak-ok
-  const KUBE = [1, 2, 3, 4, 5, 6].map((n) => `<span class="sg-side s${n}">${PIPS[n].map((p) => `<i class="p${p}"></i>`).join("")}</span>`).join("");
-  const pose = (v, z, tx, ty) => `${VIPP} rotateZ(${z}deg) rotateX(${SIDE[v][0] + 360 * (tx || 0)}deg) rotateY(${SIDE[v][1] + 360 * (ty || 0)}deg)`; // sprak-ok
-
+  const TERNING = "sg-terning";
   function terningHtml(sp) {
     const kan = !erRobot(sp, sp.tur) && !sp.ferdig;
-    return `<button class="sg-terning${kan ? " klar" : ""}" id="sg-terning" data-h="kast" data-stille style="--lf: ${FARGE[sp.tur]}" aria-label="${esc(kan ? R.t("Kast terningen") : R.t("Terningen viser {n}", { n: sp.terning }))}"${kan ? "" : " disabled"}>
-      <span class="sg-skygge" aria-hidden="true"></span>
-      <span class="sg-hopp" aria-hidden="true"><span class="sg-kube" style="transform: ${pose(sp.terning, sp.vri || 0)}">${KUBE}</span></span>
-    </button>`;
-  }
-
-  function rasle() {
-    for (let k = 0; k < 6; k++) R.lyd.stoy(k * 0.034 + Math.random() * 0.012, 0.024, 0.08 + Math.random() * 0.07, 2600 + Math.random() * 2800);
-  }
-  function klakk(t, styrke) {
-    R.lyd.stoy(t, 0.04, 0.3 * styrke, 1300 + Math.random() * 700);
-    R.lyd.tone(160 + Math.random() * 80, t, 0.07, "triangle", 0.15 * styrke, 105);
-  }
-
-  function animerTerning(fra, fraVri, til, tilVri) {
-    return new Promise((ferdig) => {
-      const el = R.$("#sg-terning");
-      if (!el) return ferdig();
-      const kube = el.querySelector(".sg-kube");
-      const hopp = el.querySelector(".sg-hopp");
-      const slutt = pose(til, tilVri);
-      if (R.rolig() || !kube.animate) {
-        kube.style.transform = slutt;
-        setTimeout(ferdig, 120);
-        return;
-      }
-      const ms = 880;
-      const tx = (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 2));
-      const ty = (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 2));
-      const a = kube.animate(
-        [
-          { transform: pose(fra, fraVri), offset: 0 },
-          { transform: pose(fra, fraVri + (tx > 0 ? 25 : -25)), offset: 0.12, easing: "cubic-bezier(.3,.55,.3,1)" },
-          { transform: pose(til, tilVri, tx, ty), offset: 1 },
-        ],
-        { duration: ms, fill: "both" },
-      );
-      a.onfinish = () => {
-        kube.style.transform = slutt;
-        a.cancel();
-      };
-      const b = hopp.animate(
-        [
-          { transform: "translate(0, 0) scale(1)", offset: 0, easing: "ease-out" },
-          { transform: "translate(-3px, 6px) scale(.88)", offset: 0.12, easing: "cubic-bezier(.2,.7,.4,1)" },
-          { transform: "translate(-8px, -30px) scale(1.12)", offset: 0.42, easing: "cubic-bezier(.6,0,.9,.5)" },
-          { transform: "translate(0, 0) scale(1)", offset: 0.66, easing: "cubic-bezier(.2,.7,.4,1)" },
-          { transform: "translate(0, -7px) scale(1.02)", offset: 0.82, easing: "cubic-bezier(.6,0,.9,.5)" },
-          { transform: "translate(0, 0) scale(1)", offset: 1 },
-        ],
-        { duration: ms },
-      );
-      b.onfinish = () => b.cancel();
-      rasle();
-      klakk((ms * 0.66) / 1000, 1);
-      klakk((ms * 0.99) / 1000, 0.45);
-      setTimeout(() => R.vibrer([14, 50, 8]), ms * 0.66);
-      setTimeout(ferdig, ms + 40);
+    return R.terninger.html({
+      id: TERNING,
+      klasse: "sg-terning" + (kan ? " klar" : ""),
+      verdier: [sp.terning],
+      vri: [sp.vri || 0],
+      hold: false,
+      plass: 2.15, // one die in a box about twice its size
+      handling: "kast",
+      av: !kan,
+      etikett: () => (kan ? R.t("Kast terningen") : R.t("Terningen viser {n}", { n: sp.terning })),
     });
   }
+  let sveipKast = null; // a fling on the box: its direction and speed for the next throw
 
   // ---------- Board (an SVG in units of 10 per square, pieces as HTML on top) ----------
 
@@ -543,8 +494,8 @@
     stopp();
     const sete = sp.tur;
     const navn = navnFor(sp, sete);
-    const fra = sp.terning;
-    const fraVri = sp.vri || 0;
+    const vei = sveipKast;
+    sveipKast = null;
     const v = nyTerning();
     const t = trekk(sp.pos[sete], v, brettFor(sp), sp.regler);
     sp.terning = v;
@@ -572,12 +523,12 @@
     opptatt();
     const knapp = R.$('#skjerm .dokk [data-h="kast"]');
     if (knapp) knapp.disabled = true;
-    const terning = R.$("#sg-terning");
+    const terning = R.$("#sg-terning .trn-t");
     if (terning) terning.disabled = true;
     const status = R.$("#sg-status");
     if (status) status.textContent = R.t("Terningen ruller …");
     const fortsatt = R.vakt();
-    await animerTerning(fra, fraVri, v, sp.vri);
+    await R.terninger.kast(TERNING, { verdier: [v], indekser: [0], retning: vei && vei.retning, styrke: vei && vei.styrke });
     if (!fortsatt()) return (laast = false);
     if (status) status.textContent = trekkTekst(t, navn);
     if (v === 6) R.lyd.pling();
@@ -746,6 +697,15 @@
             ${rekkeHtml(sp)}
             ${R.ui.dokk(knapp, R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
+        etter: () =>
+          R.terninger.koble(TERNING, {
+            vedSveip(vei) {
+              const sp = R.S.spill;
+              if (!sp || erRobot(sp, sp.tur) || sp.ferdig || laast || R.arkApent()) return;
+              sveipKast = vei;
+              kast(R.S).catch((feil) => console.error(feil));
+            },
+          }),
         inn(S) {
           if (!S.spill) return R.gaTil("hjem");
           if (S.spill.ferdig) return R.gaTil("slutt"); // reloaded during the winner's celebration

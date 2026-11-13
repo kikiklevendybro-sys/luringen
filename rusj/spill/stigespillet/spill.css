@@ -73,115 +73,48 @@
   background: var(--pf);
 }
 
-/* ---------- The die ---------- */
+/* ---------- The die: a little wooden box from the kit (R.terninger, rusj/kit/terninger.css) ---------- */
 
 .sg-terning {
-  --s: 44px;
-  position: relative;
-  display: grid;
+  --trn-kant: 6px;
   flex: none;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  padding: 0;
-  border: 0;
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--lf) 16%, var(--natt-2));
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lf) 55%, var(--strek));
-  cursor: pointer;
-  perspective: 420px;
+  width: 92px;
+  height: 92px;
+  min-height: 0;
+  border-radius: 20px;
 }
 
-.sg-terning:disabled {
-  cursor: default;
-  opacity: 1;
+.sg-terning .trn-filt {
+  border-radius: 13px;
 }
 
+/* No room for words in the box: the turn line says what to do */
+.sg-terning .trn-sveip {
+  display: none !important;
+}
+
+/* Ready to throw: the box glows in the player's colour now and then */
 .sg-terning.klar {
   animation: sg-vink 2.6s ease-in-out 1s infinite;
 }
 
 @keyframes sg-vink {
   0%,
-  78%,
+  76%,
   100% {
-    transform: none;
+    box-shadow:
+      inset 0 2px 0 rgba(255, 230, 190, 0.3),
+      inset 0 -3px 0 rgba(30, 12, 0, 0.35),
+      0 5px 0 #3b2110,
+      0 0 0 0 transparent;
   }
-  84% {
-    transform: rotate(-8deg) scale(1.06);
+  86% {
+    box-shadow:
+      inset 0 2px 0 rgba(255, 230, 190, 0.3),
+      inset 0 -3px 0 rgba(30, 12, 0, 0.35),
+      0 5px 0 #3b2110,
+      0 0 0 4px var(--lf);
   }
-  90% {
-    transform: rotate(6deg) scale(1.06);
-  }
-  95% {
-    transform: none;
-  }
-}
-
-.sg-hopp,
-.sg-kube {
-  position: relative;
-  display: block;
-  width: var(--s);
-  height: var(--s);
-  transform-style: preserve-3d;
-}
-
-.sg-kube {
-  position: absolute;
-  inset: 0;
-}
-
-.sg-side {
-  position: absolute;
-  inset: 0;
-  border-radius: 17%;
-  background: radial-gradient(circle at 30% 22%, #fffefa 0 28%, #f6e8d2 100%);
-  box-shadow: inset 0 0 0 2.4px #170e2b, inset 0 -3px 0 rgba(23, 14, 43, 0.08);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-.sg-side.s1 { transform: translateZ(calc(var(--s) / 2)); }
-.sg-side.s6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
-.sg-side.s2 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); }
-.sg-side.s5 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
-.sg-side.s3 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); }
-.sg-side.s4 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }
-
-.sg-side i {
-  position: absolute;
-  width: 20%;
-  height: 20%;
-  margin: -10% 0 0 -10%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #3b2b5c, #170e2b 70%);
-}
-
-.sg-side.s1 i {
-  width: 28%;
-  height: 28%;
-  margin: -14% 0 0 -14%;
-  background: radial-gradient(circle at 40% 35%, #ff6d80, #d42a45 70%);
-}
-
-.sg-side .p1 { left: 27%; top: 27%; }
-.sg-side .p3 { left: 73%; top: 27%; }
-.sg-side .p4 { left: 27%; top: 50%; }
-.sg-side .p5 { left: 50%; top: 50%; }
-.sg-side .p6 { left: 73%; top: 50%; }
-.sg-side .p7 { left: 27%; top: 73%; }
-.sg-side .p9 { left: 73%; top: 73%; }
-
-.sg-skygge {
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  width: calc(var(--s) * 1.02);
-  height: calc(var(--s) * 0.3);
-  margin-left: calc(var(--s) * -0.51);
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(6, 2, 14, 0.55), transparent);
 }
 
 /* ---------- The board ---------- */
@@ -193,7 +126,7 @@
   --b-tre: #c98b4a;
   --b-nr: rgba(23, 14, 43, 0.62);
   position: relative;
-  width: min(100%, calc(100vh - 300px));
+  width: min(100%, calc(100vh - 328px));
   aspect-ratio: 1;
   margin: auto; /* centred in the room between the turn line and the dock */
   border-radius: 4%;
@@ -205,7 +138,7 @@
 
 @supports (height: 100svh) {
   .sg-brett {
-    width: min(100%, calc(100svh - 300px));
+    width: min(100%, calc(100svh - 328px));
   }
 }
 
@@ -672,10 +605,10 @@
   }
 
   .sg-terning {
-    --s: 36px;
-    width: 52px;
-    height: 52px;
-    border-radius: 15px;
+    --trn-kant: 5px;
+    width: 74px;
+    height: 74px;
+    border-radius: 16px;
   }
 
   .sg-rekke {
@@ -683,19 +616,19 @@
   }
 
   .sg-brett {
-    width: min(100% - 16px, calc(100vh - 252px));
+    width: min(100% - 16px, calc(100vh - 274px));
   }
 
   @supports (height: 100svh) {
     .sg-brett {
-      width: min(100% - 16px, calc(100svh - 252px));
+      width: min(100% - 16px, calc(100svh - 274px));
     }
   }
 }
 
 @media (min-width: 768px) {
   .sg-brett {
-    width: min(100%, calc(100svh - 300px), 600px);
+    width: min(100%, calc(100svh - 328px), 600px);
   }
 }
 
