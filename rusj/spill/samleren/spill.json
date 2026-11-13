@@ -1,0 +1,35 @@
+{
+  "id": "samleren",
+  "navn": "Samleren",
+  "undertittel": "Rummy",
+  "beskrivelse": "Gratis rummy på norsk: legg ut sett og rekker og bli kvitt kortene. Med 500 og gin rummy. Mot mobilen på tre nivåer, eller 2–4 på samme mobil.",
+  "kort": "Samle like og på rad – og legg dem ut før de andre.",
+  "spillere": [1, 4],
+  "minutter": [5, 40],
+  "mobiler": "en",
+  "tagger": ["kort", "klassiker", "familie"],
+  "rekkefolge": 67,
+  "farge": "#4fb8f0",
+  "alder": 8,
+  "sok": ["rummy", "rommy", "romme", "500", "femhundre", "500 rummy", "gin rummy", "kortspill", "kortspill for to", "rummy regler", "rummy mot mobilen", "sett og rekker"],
+  "motMobilen": true,
+  "alias": ["rummy"],
+  "i18n": {
+    "en": {
+      "navn": "Collector",
+      "undertittel": "Rummy",
+      "kort": "Collect sets and runs – and lay them down before the others.",
+      "beskrivelse": "Free rummy in your browser: lay down sets and runs and get rid of your cards. With 500 and gin rummy. Against the phone at three levels, or 2–4 on one phone.",
+      "slug": "collector",
+      "sok": ["rummy", "rummy 500", "500 rum", "gin rummy", "card game", "card game for two", "rummy rules", "rummy against computer", "sets and runs"]
+    },
+    "da": {
+      "navn": "Samleren",
+      "undertittel": "Rommy",
+      "kort": "Saml ens og i træk – og læg dem ud før de andre.",
+      "beskrivelse": "Gratis rommy direkte i browseren: læg sæt og rækker ud, og bliv af med kortene. Med 500 og gin rummy. Mod mobilen på tre niveauer eller 2–4 på samme mobil.",
+      "slug": "samleren",
+      "sok": ["rommy", "rummy", "500", "500 kortspil", "femhundrede", "gin rummy", "kortspil", "kortspil for to", "rommy regler", "rommy mod computeren"]
+    }
+  }
+}

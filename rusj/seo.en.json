@@ -667,6 +667,28 @@
       "tittel": "Dominoes online – free against the phone",
       "frase": "Dominoes",
       "beskrivelse": "Play dominoes free in your browser: match number to number and be first out of tiles. Draw or block game against the phone at three levels, or 2–4 on one phone."
+    },
+    "samleren": {
+      "tittel": "Rummy online – free, with 500 and gin rummy",
+      "frase": "Rummy",
+      "beskrivelse": "Play rummy free in your browser: lay down sets and runs, lay off and go out first. With 500 and gin rummy, against the phone or 2–4 on one phone.",
+      "sok": [
+        "rummy rules",
+        "rummy 500 rules",
+        "gin rummy free",
+        "rummy against the computer"
+      ]
+    },
+    "hjerteknuseren": {
+      "tittel": "Hearts card game – free against the phone",
+      "frase": "Hearts",
+      "beskrivelse": "Play Hearts free in your browser: pass three cards, follow suit and dodge every heart and the queen of spades. You against three phone players at three levels.",
+      "sok": [
+        "hearts rules",
+        "hearts free",
+        "hearts against the computer",
+        "black lady card game"
+      ]
     }
   }
 }

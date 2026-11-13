@@ -1,0 +1,640 @@
+/* Hjerteknuseren. Game styles are prefixed "hj-"; the shared playing cards "sk-". */
+
+/* ---------- Playing cards (the same look in Kortkongen, Bussen and Pyramiden) ----------
+   .sk-kort takes its width from --kortbredde (or --kb on the card itself); the face is an SVG that
+   scales with it. The back uses the game's accent colour. Flip: add .sk-opp. */
+.sk-kort {
+  --kb: var(--kortbredde, 64px);
+  --sk-r: calc(var(--kb) * 0.1);
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--kb);
+  height: calc(var(--kb) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sk-r);
+  background: none;
+  color: inherit;
+  font: inherit;
+  perspective: calc(var(--kb) * 9);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sk-indre {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.3, 1.25, 0.45, 1);
+}
+
+.sk-kort.sk-opp .sk-indre {
+  transform: rotateY(180deg);
+}
+
+.sk-side {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--sk-r);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sk-for {
+  background: linear-gradient(170deg, #fffdf8 0%, #fff8ec 55%, #f9eedd 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 18, 48, 0.16),
+    inset 0 calc(var(--kb) * -0.035) 0 rgba(27, 18, 48, 0.06),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+  transform: rotateY(180deg);
+}
+
+.sk-ansikt {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sk-ansikt text {
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* The back: a woven pattern in the game's colour, a paper rim and the rusj blob in the middle. */
+.sk-bak {
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.32), transparent 46%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    linear-gradient(160deg, color-mix(in srgb, var(--aksent) 82%, #fff) 0%, var(--aksent) 42%, color-mix(in srgb, var(--aksent) 62%, var(--natt)) 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.045) #fff8ec,
+    inset 0 0 0 calc(var(--kb) * 0.065) rgba(27, 18, 48, 0.18),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+}
+
+.sk-bak::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44%;
+  aspect-ratio: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-14 -14 28 28'%3E%3Cpath d='M0 -11 C7 -12 12 -6 11 1 C10 8 5 12 -1 11 C-8 10 -12 5 -11 -2 C-10 -8 -6 -10 0 -11Z' fill='%23fff8ec' stroke='%231b1230' stroke-opacity='.25' stroke-width='1.6'/%3E%3Cpath d='M-4.5 -3.5 C-3 -6.5 1 -7.5 3.5 -6' fill='none' stroke='%231b1230' stroke-opacity='.2' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: translate(-50%, -50%) rotate(-10deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-indre {
+    transition-duration: 0.01ms !important;
+  }
+}
+/* ---------- end of playing cards ---------- */
+
+
+/* ---------- The table: three phone players round the trick ---------- */
+
+.skjerm-spill {
+  --kb-hand: 58px;
+  --kb-stikk: 50px;
+  gap: 10px;
+}
+
+.skjerm-spill > .dokk {
+  margin-top: 0;
+  gap: 6px;
+  padding-top: 18px;
+}
+
+.skjerm-spill .dokk .knapp {
+  min-height: 54px;
+  padding-block: 10px;
+  font-size: 1.14rem;
+}
+
+.hj-bord {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas:
+    ". topp ."
+    "venstre midt hoyre";
+  align-items: center;
+  justify-items: center;
+  gap: 6px 4px;
+  padding: 8px 6px 12px;
+  border-radius: 24px;
+  background: radial-gradient(ellipse at 50% 55%, color-mix(in srgb, #8a1e3c 40%, var(--natt)) 0%, color-mix(in srgb, #8a1e3c 16%, var(--natt)) 75%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.06);
+}
+
+.hj-sete {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 4px;
+  border-radius: 16px;
+  background: rgba(14, 8, 30, 0.45);
+  transition: box-shadow 0.2s;
+}
+
+.hj-sete.aktiv {
+  box-shadow: 0 0 0 3px var(--aksent);
+}
+
+.hj-topp {
+  grid-area: topp;
+}
+
+.hj-venstre {
+  grid-area: venstre;
+}
+
+.hj-hoyre {
+  grid-area: hoyre;
+}
+
+.hj-venstre,
+.hj-hoyre {
+  flex-direction: column;
+  padding: 6px 6px 8px;
+  text-align: center;
+}
+
+.hj-ava {
+  position: relative;
+  flex: none;
+}
+
+.hj-info {
+  display: grid;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.hj-navn {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hj-tatt,
+.hj-sum,
+.hj-klar {
+  overflow: hidden;
+  color: var(--tekst-2);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hj-tatt {
+  color: #ffb3c4;
+}
+
+.hj-klar {
+  color: var(--mynte);
+}
+
+.hj-tenker {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  display: flex;
+  gap: 2px;
+  padding: 3px 4px;
+  border-radius: 999px;
+  background: var(--papir);
+}
+
+.hj-tenker i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--blekk);
+  animation: hj-prikk 1s infinite ease-in-out;
+}
+
+.hj-tenker i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.hj-tenker i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes hj-prikk {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+/* The trick: one place for each seat, the card turned a little towards its player. */
+.hj-stikk {
+  position: relative;
+  grid-area: midt;
+  width: calc(var(--kb-stikk) * 2.6);
+  height: calc(var(--kb-stikk) * 1.4 * 2.05);
+  --kortbredde: var(--kb-stikk);
+}
+
+.hj-lagt {
+  position: absolute;
+  display: block;
+  animation: hj-inn 0.28s cubic-bezier(0.2, 1.1, 0.4, 1) both;
+}
+
+.hj-lagt .sk-kort {
+  box-shadow: 0 4px 10px rgba(6, 2, 14, 0.45);
+}
+
+.hj-p0 {
+  left: 50%;
+  bottom: 0;
+  --fra: translate(-50%, 60px);
+  transform: translateX(-50%) rotate(3deg);
+}
+
+.hj-p2 {
+  left: 50%;
+  top: 0;
+  --fra: translate(-50%, -60px);
+  transform: translateX(-50%) rotate(-4deg);
+}
+
+.hj-p1 {
+  left: 0;
+  top: 50%;
+  --fra: translate(-60px, -50%);
+  transform: translateY(-50%) rotate(-8deg);
+}
+
+.hj-p3 {
+  right: 0;
+  top: 50%;
+  --fra: translate(60px, -50%);
+  transform: translateY(-50%) rotate(7deg);
+}
+
+@keyframes hj-inn {
+  from {
+    opacity: 0;
+    transform: var(--fra) scale(0.85);
+  }
+}
+
+.hj-lagt.vinner .sk-kort {
+  outline: 3px solid var(--lampe);
+  outline-offset: 1px;
+  border-radius: var(--sk-r);
+}
+
+.hj-ubrutt {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 179, 196, 0.22);
+  font-size: calc(var(--kb-stikk) * 1.1);
+  line-height: 1;
+}
+
+.hj-melding {
+  display: grid;
+  gap: 2px;
+  min-height: 2.6em;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.hj-melding b {
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.hj-melding.din b {
+  color: var(--lampe);
+}
+
+.hj-melding.ferdig b {
+  color: var(--lampe);
+  font-size: 1.15rem;
+}
+
+.hj-sist {
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+}
+
+/* ---------- The hand ---------- */
+
+.hj-handramme {
+  display: grid;
+  gap: 4px;
+  margin-top: auto;
+}
+
+.hj-handtopp {
+  color: var(--tekst-2);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hj-hand {
+  --steg: 30px;
+  --per-rad: 9;
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 6px;
+  width: calc(var(--per-rad) * var(--steg) + 1px);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 12px calc(var(--kb-hand) - var(--steg)) 0 0;
+  box-sizing: content-box;
+  --kortbredde: var(--kb-hand);
+}
+
+.hj-hk {
+  position: relative;
+  flex: none;
+  width: var(--kb-hand);
+  height: calc(var(--kb-hand) * 1.4);
+  margin-right: calc(var(--steg) - var(--kb-hand));
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hj-hk .sk-kort {
+  transition: transform 0.16s ease-out, filter 0.16s, box-shadow 0.16s;
+}
+
+.hj-hand.min-tur .hj-hk.lovlig .sk-kort {
+  transform: translateY(-10px);
+}
+
+.hj-hand.min-tur .hj-hk:not(.lovlig) .sk-kort {
+  filter: brightness(0.62) saturate(0.6);
+}
+
+.hj-hk.valgt .sk-kort {
+  transform: translateY(-12px);
+  box-shadow: 0 0 0 3px var(--lampe);
+  border-radius: var(--sk-r);
+}
+
+.hj-hk.fersk .sk-for {
+  box-shadow:
+    inset 0 -4px 0 var(--mynte),
+    inset 0 0 0 1px rgba(27, 18, 48, 0.16),
+    0 1px 2px rgba(6, 2, 14, 0.4);
+}
+
+.hj-hk:focus-visible {
+  outline: none;
+}
+
+.hj-hk:focus-visible .sk-kort {
+  outline: 3px solid var(--lampe);
+  outline-offset: 2px;
+  border-radius: var(--sk-r);
+}
+
+/* ---------- End of a round ---------- */
+
+.hj-resultat {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.hj-resultat li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.hj-resultat li.leder {
+  box-shadow: 0 0 0 3px var(--lampe);
+}
+
+.hj-resultat b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hj-pluss {
+  color: #ffb3c4;
+}
+
+.hj-tot {
+  min-width: 2.4em;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  text-align: right;
+}
+
+.hj-siste {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+  --kortbredde: 58px;
+}
+
+.hj-siste li {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+}
+
+.hj-siste li.vinner .sk-kort {
+  outline: 3px solid var(--lampe);
+  outline-offset: 2px;
+  border-radius: var(--sk-r);
+}
+
+/* ---------- Home and the crowning ---------- */
+
+.hj-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.hj-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hj-rekorder li,
+.hj-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hj-rekorder li b,
+.hj-rekordlinje b {
+  color: var(--tekst);
+}
+
+.hj-rekordlinje {
+  width: fit-content;
+  margin: 12px auto 0;
+}
+
+.hj-niva {
+  min-width: 5.5em;
+  font-family: var(--font-display);
+}
+
+/* ---------- Taller and smaller screens ---------- */
+
+@media (min-height: 780px) and (orientation: portrait) {
+  .skjerm-spill {
+    --kb-hand: 64px;
+    --kb-stikk: 58px;
+  }
+}
+
+/* Short phones: smaller cards, and the seats show only this round's points (the totals are on the
+   result after each round). */
+@media (max-height: 700px) {
+  .skjerm-spill {
+    --kb-hand: 46px;
+    --kb-stikk: 36px;
+    gap: 4px;
+  }
+  .skjerm-spill > .dokk {
+    padding-top: 12px;
+  }
+  .hj-bord {
+    padding: 4px 4px 6px;
+    gap: 2px 4px;
+  }
+  .hj-sete {
+    padding: 2px 6px 2px 2px;
+  }
+  .hj-venstre,
+  .hj-hoyre {
+    padding: 4px 4px 6px;
+  }
+  .hj-sete .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+  .hj-sum {
+    display: none;
+  }
+  .hj-melding {
+    min-height: 2.2em;
+  }
+  .hj-melding b {
+    font-size: 0.95rem;
+  }
+  .hj-sist {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .hj-navn {
+    font-size: 0.8rem;
+  }
+  .hj-tatt,
+  .hj-sum,
+  .hj-klar {
+    font-size: 0.7rem;
+  }
+}
+
+/* A phone on its side: the seats in one slim row, the trick small. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-spill {
+    --kb-hand: 42px;
+    --kb-stikk: 32px;
+    gap: 4px;
+  }
+  .hj-bord {
+    padding: 4px;
+    gap: 2px 6px;
+  }
+  .hj-venstre,
+  .hj-hoyre {
+    flex-direction: row;
+    padding: 2px 6px 2px 2px;
+    text-align: left;
+  }
+  .hj-sete {
+    padding: 2px 6px 2px 2px;
+  }
+  .hj-sete .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+  .hj-sum {
+    display: none;
+  }
+  .hj-melding {
+    min-height: 2em;
+  }
+  .hj-melding b {
+    font-size: 0.9rem;
+  }
+  .hj-sist {
+    font-size: 0.78rem;
+  }
+  .hj-hand {
+    padding-top: 10px;
+  }
+}

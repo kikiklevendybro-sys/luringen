@@ -684,6 +684,28 @@
       "tittel": "Domino online – gratis mod mobilen",
       "frase": "Domino",
       "beskrivelse": "Spil domino gratis på dansk: læg tal mod tal, og bliv først af med brikkerne. Træk- eller blokdomino mod mobilen på tre niveauer, eller 2–4 på samme mobil."
+    },
+    "samleren": {
+      "tittel": "Rommy online – gratis, med 500 og gin rummy",
+      "frase": "Rommy",
+      "beskrivelse": "Spil rommy gratis på dansk: læg sæt og rækker ud, læg til, og bliv af med kortene først. Med 500 og gin rummy, mod mobilen eller 2–4 på samme mobil.",
+      "sok": [
+        "rommy regler",
+        "500 kortspil regler",
+        "gin rummy gratis",
+        "rommy mod computeren"
+      ]
+    },
+    "hjerteknuseren": {
+      "tittel": "Hjerterfri online – gratis mod mobilen",
+      "frase": "Hjerterfri",
+      "beskrivelse": "Spil hjerterfri gratis på dansk: giv tre kort videre, bekend kulør, og undgå hjerterne og spardamen. Dig mod tre mobilspillere på tre niveauer.",
+      "sok": [
+        "hjerterfri regler",
+        "hjerterfri gratis",
+        "hjerterfri mod computeren",
+        "hearts kortspil"
+      ]
     }
   }
 }
