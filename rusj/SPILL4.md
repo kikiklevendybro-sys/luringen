@@ -26,6 +26,9 @@ every builder») and two comparable games before building.
 - Tests: unit tests for rules/engine/opponent/generator; e2e at 390×844, 320×568, 844×390 and
   --probe, in nb, en and da (max two e2e processes at once). Look at the screenshots.
 - Disk is limited: delete your screenshots and partial builds under build/ when you are done.
+- spill.json gets `"alder": <number>`: the lowest recommended player age (reading, rules, content;
+  the children's version where the game has one). The front-page finder uses it.
+- Start by fast-forwarding your worktree to `sprak` (`git merge --ff-only sprak`).
 
 ## Wave 1 — the most played solo games
 
@@ -48,9 +51,17 @@ Notes:
   MIT) — if none is found, publish 4b in nb and en only and say so. Filter out offensive words.
 
 ## Wave 2 — card and board classics against the phone
-5 Idiot (Shithead/Palace) + Golf card game · 6 Rummy (500/Gin) + Hearts · 7 Backgammon +
-Ten thousand (dice) · 8 Nine men's morris, Kalaha, Chinese checkers, Dots and boxes, Dominoes;
-Bonden gets a «five in a row» variant.
+
+| job | games (rekkefolge) | tagger (suggested) |
+|---|---|---|
+| 5 | Idiot / Shithead / Palace (65), Golf card game (66, the classic 6- or 4-card grid game) | kort, klassiker, familie, fest |
+| 6 | Rummy with 500 and Gin variants (67), Hearts (68) | kort, klassiker, familie |
+| 7 | Backgammon (69), Ten thousand dice game (70), Dominoes (71) | klassiker, familie, tenke |
+| 8 | Nine men's morris (72), Kalaha/mancala (73), Chinese checkers (74), Dots and boxes (75); Bonden gets a «five in a row» variant | klassiker, familie, tenke, barn |
+
+Notes: play against the phone (2–3 levels) and pass-and-play where hidden hands allow it (a
+hand screen between players, like Vri åtter). Reuse the card look and hand UI of Vri åtter and
+Kortkongen. Each game gets its own rules screen and a record or «sist» line.
 
 ## Wave 3 — casual and children
 9 Bubble shooter + Match-3 (no sweets theme) · 10 Merge-the-fruit drop, one-tap game, Brick
