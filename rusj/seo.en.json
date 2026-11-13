@@ -592,6 +592,11 @@
       "tittel": "Path puzzle – one line through every square, daily",
       "frase": "Path puzzle",
       "beskrivelse": "Play a free path puzzle: draw one thread through every square and pass the numbers in order. A new yarn every day, boards from 5 × 5 to 8 × 8, some with walls."
+    },
+    "tavla": {
+      "tittel": "Backgammon online – free against the phone",
+      "frase": "Backgammon",
+      "beskrivelse": "Play backgammon free in your browser: roll, move and hit. Against the phone at three levels or two on one phone, with the doubling cube and matches to 3 or 5."
     }
   }
 }

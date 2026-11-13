@@ -1,0 +1,34 @@
+{
+  "id": "tavla",
+  "navn": "Tavla",
+  "undertittel": "Backgammon",
+  "beskrivelse": "Gratis backgammon på norsk. Kast, flytt og slå ut – mot mobilen på tre nivåer eller to på samme mobil, med doblingskube og kamper til 3 eller 5.",
+  "kort": "Kast, flytt og slå ut – og få alle 15 brikkene hjem først.",
+  "spillere": [1, 2],
+  "minutter": [10, 40],
+  "mobiler": "en",
+  "tagger": ["klassiker", "tenke", "familie"],
+  "rekkefolge": 69,
+  "farge": "#d8613f",
+  "alder": 8,
+  "motMobilen": true,
+  "sok": ["backgammon", "backgammon på norsk", "backgammon mot data", "backgammon for to", "brettspill", "terningspill", "doblingskube", "tavl"],
+  "i18n": {
+    "en": {
+      "navn": "Pip",
+      "undertittel": "Backgammon",
+      "kort": "Roll, move and hit – bring all 15 checkers home and off first.",
+      "beskrivelse": "Free backgammon in your browser: roll, move and hit. Against the phone at three levels or two on one phone – with the doubling cube and matches to 3 or 5.",
+      "slug": "pip",
+      "sok": ["backgammon", "backgammon online", "backgammon against computer", "backgammon free", "doubling cube", "board game", "dice game"]
+    },
+    "da": {
+      "navn": "Tavlen",
+      "undertittel": "Backgammon",
+      "kort": "Kast, flyt og slå ud – og få alle 15 brikker hjem først.",
+      "beskrivelse": "Gratis backgammon på dansk. Kast, flyt og slå ud – mod mobilen på tre niveauer eller to på samme mobil, med doblingsterning og kampe til 3 eller 5.",
+      "slug": "tavlen",
+      "sok": ["backgammon", "backgammon online", "backgammon mod computeren", "backgammon gratis", "doblingsterning", "brætspil", "terningespil"]
+    }
+  }
+}
