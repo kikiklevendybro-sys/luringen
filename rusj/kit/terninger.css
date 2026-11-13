@@ -3,16 +3,22 @@
    --trn-s (die size), --trn-k (rail scale), --trn-filt-h, --trn-hylle-h and --trn-perspektiv.
    A game sets the tray's height (it fills what it gets) and may override the colours below. */
 
+/* The dice's colours (also for dice lying still on a card); a game may set them per die, e.g.
+   .trn-t.mork { --trn-flate: …; --trn-glans: …; --trn-oye: …; --trn-oye-glans: …; --trn-kjerne: … } */
+.trn-brett,
+.trn-statisk {
+  --trn-flate: #fffaf1;
+  --trn-flate-kant: #ecdcc1;
+  --trn-oye: #1b1230;
+  --trn-en: #d42a46;
+}
+
 .trn-brett {
   --trn-tre: #8b5a32;
   --trn-tre-lys: #b98352;
   --trn-tre-mork: #55321a;
   --trn-filt: #176049;
   --trn-filt-lys: #1f7a5d;
-  --trn-flate: #fffaf1;
-  --trn-flate-kant: #ecdcc1;
-  --trn-oye: #1b1230;
-  --trn-en: #d42a46;
   --trn-kant: 10px; /* the wooden rim (the script reads it) */
   position: relative;
   display: block;
@@ -188,7 +194,7 @@
   /* a clear 1.5 px border: the face's edge is drawn inside its texture, so it stays smooth when turned */
   border: 1.5px solid transparent;
   border-radius: 14px;
-  background: radial-gradient(circle at 30% 24%, #ffffff 0 22%, var(--trn-flate) 48%, var(--trn-flate-kant) 100%) padding-box;
+  background: radial-gradient(circle at 30% 24%, var(--trn-glans, #ffffff) 0 22%, var(--trn-flate) 48%, var(--trn-flate-kant) 100%) padding-box;
   box-shadow:
     inset 0 0 0 1.5px rgba(150, 110, 70, 0.22),
     inset 0 -7px 12px rgba(150, 110, 70, 0.2),
@@ -213,7 +219,7 @@
   height: 19px;
   margin: -9.5px 0 0 -9.5px;
   border-radius: 50%;
-  background: radial-gradient(circle at 42% 38%, #4a3a6c, var(--trn-oye) 70%);
+  background: radial-gradient(circle at 42% 38%, var(--trn-oye-glans, #4a3a6c), var(--trn-oye) 70%);
   box-shadow:
     inset 0 2.5px 2px rgba(0, 0, 0, 0.6),
     0 1.5px 0 rgba(255, 255, 255, 0.9);
@@ -242,7 +248,7 @@
   width: 96px;
   height: 96px;
   border-radius: 8px;
-  background: #e2d1b4;
+  background: var(--trn-kjerne, #e2d1b4);
 }
 
 .trn-kjerne.k2 {
@@ -323,4 +329,86 @@
     translate: 0 -3px;
     opacity: 1;
   }
+}
+
+/* ---------- Without a tray: dice on the game's own surface (flate: false) ---------- */
+
+.trn-brett.bar {
+  --trn-kant: 0px;
+  min-height: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.trn-brett.bar .trn-skygge {
+  background: rgba(10, 4, 20, 0.85);
+}
+
+/* A die nobody taps */
+span.trn-t {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* A small badge on a die (e.g. «×2» for a double in backgammon), above its top face */
+.trn-merke {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  min-width: 20px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: var(--blekk);
+  box-shadow: 0 0 0 2px var(--papir);
+  color: var(--papir);
+  font: 900 0.68rem/1.1 var(--font-display);
+  text-align: center;
+  transform: translateZ(calc(var(--trn-s, 40px) + 2px));
+}
+
+/* ---------- Dice lying still on a card (R.terninger.statisk) ---------- */
+
+.trn-statisk {
+  display: inline-flex;
+  gap: calc(var(--trn-s, 40px) * 0.35);
+  align-items: center;
+  justify-content: center;
+  perspective: calc(var(--trn-s, 40px) * 14);
+}
+
+.trn-solo {
+  position: relative;
+  display: block;
+  width: var(--trn-s, 40px);
+  height: var(--trn-s, 40px);
+  transform-style: preserve-3d;
+}
+
+.trn-solo::before {
+  position: absolute;
+  inset: 6%;
+  border-radius: 26%;
+  background: rgba(6, 2, 14, 0.5);
+  content: "";
+  filter: blur(calc(var(--trn-s, 40px) * 0.08));
+  transform: translate(calc(var(--trn-s, 40px) * 0.1), calc(var(--trn-s, 40px) * 0.16));
+}
+
+/* A tray over the game's own board that never takes a tap (sveip: false) */
+.trn-brett.uten-sveip {
+  pointer-events: none;
+  touch-action: auto;
+}
+
+/* The doubling cube (R.terninger.dobling): numbers instead of pips */
+.trn-tallflate {
+  display: grid;
+  place-items: center;
+}
+
+.trn-tallflate b {
+  color: var(--trn-oye, #1b1230);
+  font: 900 44px/1 var(--font-display);
+  letter-spacing: -0.04em;
 }
