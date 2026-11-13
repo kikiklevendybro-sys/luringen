@@ -281,7 +281,8 @@ export default async function (t) {
   t.sjekk(s.stat[1] && s.stat[1].vunnet === 1 && s.stat[1].rekke === 1 && s.stat[1].besteTid > 0, "Seieren ble ikke lagret i statistikken");
   t.sjekk(s._aktiv === false, "En vunnet kabal skal ikke regnes som pågående");
   t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), "Sluttskjermen mangler «Alle spill»");
-  t.sjekk(await t.finnes(".flere-spill"), "Sluttskjermen mangler «Spill noe annet»");
+  // (An edition built with this game alone has no other games to suggest.)
+  t.sjekk((await t.finnes(".flere-spill")) || !(await t.js("(window.RUSJ_ANDRE || []).length")), "Sluttskjermen mangler «Spill noe annet»");
 
   // 10. Statistics on the home screen
   await t.klikk("#tilbake");
@@ -510,4 +511,307 @@ export default async function (t) {
     await t.bilde("lang-kolonne-liten");
   } else t.feil("Teststillingen med lang kolonne er ugyldig");
   await t.send("Emulation.setDeviceMetricsOverride", { width: b0, height: h0, deviceScaleFactor: 2, mobile: true });
+
+  await varianter(t);
+}
+
+// ---------- The other solitaires: Golf, Tre topper, Pyramide, FreeCell, Edderkopp ----------
+// Each from its tile on the home screen: a proven deal (Edderkopp after the suit choice), the table
+// clear of the toolbar, a tap that makes a legal move (or picks the card), undo, a hint, reload and
+// back + «Fortsett»; then a nearly won game finishes with a tap → the result, the statistics and the
+// record line on the tile. Plus: Pyramide's choice between two partners, a drag in FreeCell (mouse)
+// and Edderkopp (finger), Edderkopp refusing to deal onto an empty column, the rules of the solitaire
+// on the table, and Klondike's own state left alone.
+const V = kontekst.KortkongenVarianter;
+const KABALER = JSON.parse(readFileSync(join(ROT, "rusj/spill/kortkongen/data/kabaler.json"), "utf8"));
+const ANTALL = { golf: 52, topper: 52, pyramide: 52, freecell: 52, edderkopp: 104 };
+const vSpill = (id, st, ekstra = {}) => ({
+  id,
+  fro: 1,
+  bytte: 0,
+  sorter: id === "edderkopp" ? st.sorter : 0,
+  losbar: false,
+  kode: V[id].kode(st),
+  start: V[id].kode(st),
+  angre: [],
+  trekk: 0,
+  tid: 0,
+  hint: 0,
+  spolt: 0,
+  ok: -1,
+  dod: -1,
+  startet: false,
+  ferdig: false,
+  vunnet: false,
+  talt: false,
+  resultat: null,
+  ...ekstra,
+});
+const vTilstand = (sp, skjerm = "vspill", ekstra = {}) => ({ oppsett: { modus: 1, losbar: true }, stat: {}, spill: null, v: { [sp.id]: sp }, vid: sp.id, vstat: {}, vopp: { sorter: sp.sorter || 1 }, skjerm, _tid: Date.now(), ...ekstra });
+const ALLE = Array.from({ length: 52 }, (_, k) => k);
+// One tap from the end of each solitaire.
+function nesten(id) {
+  if (id === "golf") return { kol: [[4], [], [], [], [], [], []], bunke: [], avfall: ALLE.filter((k) => k !== 4 && k !== 16).concat([16]) }; // 5♠ onto 4♥
+  if (id === "topper") {
+    const bord = Array(28).fill(-1);
+    bord[18] = 4;
+    return { bord, bunke: [], avfall: ALLE.filter((k) => k !== 4 && k !== 16).concat([16]) };
+  }
+  if (id === "pyramide") {
+    const bord = Array(28).fill(-1);
+    bord[0] = 12; // K♠ alone at the top
+    return { bord, bunke: [], trukket: -1, avfall: [], kast: ALLE.filter((k) => k !== 12) };
+  }
+  if (id === "freecell") return { bord: [[12], [], [], [], [], [], [], []], celle: [-1, -1, -1, -1], grunn: [12, 13, 13, 13] };
+  const bord = Array.from({ length: 10 }, () => []);
+  bord[0] = [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]; // K … 2 of spades; the ace beside it
+  bord[1] = [0];
+  const hjem = [];
+  for (let c = 1; c < 8; c++) for (let v = 12; v >= 0; v--) hjem.push(c * 13 + v);
+  return { bord, skjult: Array(10).fill(0), bunke: [], hjem, sorter: 1 };
+}
+const nestenKort = { golf: 4, topper: 4, pyramide: 12, freecell: 12, edderkopp: 0 };
+
+async function varianter(t) {
+  const kode = async (id) => (await t.tilstand()).v[id].kode;
+  const kortKlart = (id) => `document.querySelectorAll('#kv-brett .kk-kort').length === ${ANTALL[id]}`;
+  async function lastInn(S, ventPa) {
+    await t.lastSide(t.url + "/", "document.querySelector('.spillgrid')");
+    await t.js(`localStorage.setItem("${t.nokkel("kortkongen.v1")}", ${JSON.stringify(JSON.stringify(S))})`);
+    await t.lastSide(t.side, ventPa || "document.querySelector('#skjerm h1')");
+    await t.sov(400);
+  }
+  const brettOverDokk = () =>
+    t.js(`(() => { const d = document.querySelector("#skjerm .dokk").getBoundingClientRect();
+      for (const el of document.querySelectorAll("#kv-brett .kk-kort:not(.kk-av), #kv-brett .kk-plass")) {
+        const b = el.getBoundingClientRect();
+        if (!b.width) continue;
+        const ved = b.right <= d.left + 1 || b.left >= d.right - 1;
+        if (ved ? b.bottom > window.innerHeight + 1 : b.bottom > d.top + 2) return false;
+        if (b.left < -1 || b.right > window.innerWidth + 1) return false;
+      }
+      return true; })()`);
+  const toast = () => t.js(`(document.querySelector("#toast") || { textContent: "" }).textContent`);
+  const punkt = (k, dy = 0.5) =>
+    t.js(`(() => { const b = document.getElementById("kv-k${k}").getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + Math.min(b.height * ${dy}, b.height - 4) }; })()`);
+  async function dra(fra, til, beroring) {
+    const steg = 10;
+    const p = (i) => ({ x: fra.x + ((til.x - fra.x) * i) / steg, y: fra.y + ((til.y - fra.y) * i) / steg });
+    if (beroring) {
+      await t.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: fra.x, y: fra.y }] });
+      for (let i = 1; i <= steg; i++) {
+        await t.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [p(i)] });
+        await t.sov(16);
+      }
+      await t.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    } else {
+      await t.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: fra.x, y: fra.y });
+      await t.send("Input.dispatchMouseEvent", { type: "mousePressed", x: fra.x, y: fra.y, button: "left", buttons: 1, clickCount: 1 });
+      for (let i = 1; i <= steg; i++) {
+        await t.send("Input.dispatchMouseEvent", { type: "mouseMoved", ...p(i), button: "left", buttons: 1 });
+        await t.sov(16);
+      }
+      await t.send("Input.dispatchMouseEvent", { type: "mouseReleased", ...til, button: "left", buttons: 0, clickCount: 1 });
+    }
+    await t.sov(500);
+  }
+  // The positions one legal move away (to check that a tap made a legal move).
+  const etterfolgere = (id, st) =>
+    V[id].trekk(st).map((m) => {
+      const c = V[id].fraKode(V[id].kode(st));
+      V[id].utfor(c, m);
+      return V[id].kode(c);
+    });
+
+  // Klondike's own state before the other solitaires are played: it must come through untouched.
+  await lastInn({ oppsett: { modus: 3, losbar: false }, stat: { 3: { spilt: 4, vunnet: 2, rekke: 1, besteRekke: 2, besteTid: 300, faerrest: 120 } }, spill: null, skjerm: "hjem", _tid: Date.now() }, "document.querySelector('.kk-varianter')");
+  t.sjekk((await t.antall(".kk-vknapp")) === 5, "Hjem skal vise de fem andre kabalene");
+  t.sjekk(!t.norsk || /flere kabaler/i.test(await t.tekst(".kk-varianter h2")), "Hjem mangler «Flere kabaler»");
+  t.sjekk(await t.js("document.documentElement.scrollWidth <= window.innerWidth"), "Hjem-skjermen er for bred");
+  await t.bilde("hjem-kabaler", true);
+
+  for (const id of ["golf", "topper", "pyramide", "freecell", "edderkopp"]) {
+    // A new deal from the tile
+    await t.klikk(`.kk-vknapp[data-v="${id}"]`);
+    if (id === "edderkopp") {
+      t.sjekk((await t.antall('.fliser [data-h="vsorter"]')) === 3, "Edderkopp skal kunne velge 1, 2 eller 4 sorter");
+      t.sjekk(await t.finnes('[data-h="vsorter"][data-v="1"][aria-pressed="true"]'), "Edderkopp skal starte med én sort");
+      await t.klikk('[data-h="vsorter"][data-v="2"]');
+      await t.bilde("edderkopp-oppsett", true);
+      await t.klikk('.dokk [data-h="vstart"]');
+    }
+    await t.vent(kortKlart(id));
+    await t.sov(300);
+    await t.bilde(`${id}-deler-ut`);
+    await t.sov(2400);
+    let s = await t.tilstand();
+    let sp = s.v && s.v[id];
+    let st = sp && V[id].fraKode(sp.kode);
+    t.sjekk(s.vid === id && st && s.skjerm === "vspill", `${id}: ingen kabal på bordet`);
+    if (!st) continue;
+    t.sjekk(sp.kode === V[id].kode(V[id].del(sp.fro, id === "edderkopp" ? sp.sorter : sp.bytte)), `${id}: kabalen er ikke delt ut som frøet sier`);
+    if (id === "edderkopp") t.sjekk(sp.sorter === 2 && s.vopp.sorter === 2, "Edderkopp ble ikke delt ut med to sorter");
+    else t.sjekk(sp.losbar && KABALER[id].includes(sp.fro), `${id}: kabalen er ikke fra listen over løsbare`);
+    t.sjekk(s.spill === null && s.stat[3] && s.stat[3].spilt === 4 && s.oppsett.modus === 3, `${id}: Klondike-lagringen ble endret`);
+    t.sjekk(await brettOverDokk(), `${id}: kortene stikker inn under knappene eller ut av skjermen`);
+    t.sjekk(await t.js("document.documentElement.scrollWidth <= window.innerWidth"), `${id}: brettet er for bredt`);
+    t.sjekk(!t.norsk || (await t.tekst("#topp-tittel")).toLowerCase().includes({ golf: "golf", topper: "tre topper", pyramide: "pyramide", freecell: "freecell", edderkopp: "edderkopp" }[id]), `${id}: tittelen viser ikke navnet på kabalen`);
+    if (id === "edderkopp") {
+      const bredde = await t.js(`parseFloat(document.getElementById("kv-brett").style.getPropertyValue("--kortbredde"))`);
+      t.sjekk(bredde >= 26, `Edderkopp-kortene er for små: ${bredde} px`);
+    }
+    if (id !== "edderkopp") await t.vent("document.querySelector('#kv-status .kk-stat')", 8000).catch(() => t.feil(`${id}: «Kan gå opp»-merket kom aldri`));
+    await t.bilde(`${id}-brett`);
+
+    // A tap: a legal move (or the card is picked, with its places lit up)
+    const start = sp.kode;
+    const lovlige = etterfolgere(id, st);
+    const trykkbar = await t.js(`[...document.querySelectorAll("#kv-brett .kk-kort:not(.kk-av)")].map((e) => Number(e.dataset.k))`);
+    let gjort = false;
+    for (const k of trykkbar) {
+      await t.klikk(`#kv-k${k}`, 250);
+      const ny = await kode(id);
+      if (ny !== start) {
+        t.sjekk(lovlige.includes(ny), `${id}: et trykk ga et ulovlig trekk`);
+        gjort = true;
+        break;
+      }
+      if (await t.finnes("#kv-brett .kk-valgt")) {
+        t.sjekk((await t.antall("#kv-brett .kk-velg")) >= 2, `${id}: et valgt kort uten plasser som lyser`);
+        await t.bilde(`${id}-velg`);
+        await t.klikk("#kv-brett .kk-velg", 300);
+        const ny2 = await kode(id);
+        t.sjekk(lovlige.includes(ny2), `${id}: trykket på en plass som lyste ga ikke et lovlig trekk`);
+        gjort = ny2 !== start;
+        break;
+      }
+    }
+    if (!gjort && (await t.finnes("#kv-s-bunke:not([disabled])"))) {
+      await t.klikk("#kv-s-bunke", 300);
+      gjort = (await kode(id)) !== start;
+      t.sjekk(lovlige.includes(await kode(id)), `${id}: bunken ga et ulovlig trekk`);
+    }
+    t.sjekk(gjort, `${id}: ingen trykk flyttet noe`);
+    s = await t.tilstand();
+    t.sjekk(s.v[id].trekk === 1 && s.v[id].startet, `${id}: trekket ble ikke talt`);
+    await t.sov(400);
+    await t.bilde(`${id}-etter-trykk`);
+    await t.klikk("#kv-angre", 400);
+    t.sjekk((await kode(id)) === start, `${id}: «Angre» ga ikke tilbake samme stilling`);
+    t.sjekk(await t.js('document.getElementById("kv-angre").disabled'), `${id}: «Angre» skal være grått når det ikke er noe å angre`);
+
+    // A hint, then reload and back + «Fortsett»
+    await t.klikk('#skjerm .dokk [data-h="vhint"]');
+    await t.vent("document.querySelector('#kv-brett .kk-hint')", 8000).catch(() => t.feil(`${id}: «Hint» viste ikke noe trekk`));
+    await t.bilde(`${id}-hint`);
+    if (await t.finnes("#kv-s-bunke:not([disabled])")) await t.klikk("#kv-s-bunke", 300);
+    else await t.klikk(`#kv-k${trykkbar[0]}`, 300);
+    const forOmlasting = await kode(id);
+    await t.lastSide(t.side, kortKlart(id));
+    t.sjekk((await kode(id)) === forOmlasting && (await t.tilstand()).skjerm === "vspill", `${id}: stillingen forsvant ved omlasting`);
+    await t.klikk("#tilbake");
+    await t.vent("document.querySelector('.kk-varianter')");
+    t.sjekk(await t.finnes(`.kk-vknapp.i-gang[data-v="${id}"]`), `${id}: flisen viser ikke at kabalen er i gang`);
+    t.sjekk(!t.norsk || /I gang · 1 trekk/.test(await t.tekst(`.kk-vknapp[data-v="${id}"]`)), `${id}: flisen mangler «I gang · 1 trekk»`);
+    await t.klikk(`.kk-vknapp[data-v="${id}"]`);
+    await t.vent(kortKlart(id));
+    t.sjekk((await kode(id)) === forOmlasting, `${id}: «Fortsett» fra flisen ga ikke samme kabal`);
+    await t.klikk("#reglerknapp");
+    t.sjekk(!t.norsk || (await t.tekst("#ark h2")).toLowerCase().includes({ golf: "golf", topper: "tre topper", pyramide: "pyramide", freecell: "freecell", edderkopp: "edderkopp" }[id]), `${id}: «?» viser ikke reglene for denne kabalen`);
+    t.sjekk((await t.antall("#ark .steg li")) === 3, `${id}: reglene skal ha tre steg`);
+    if (id === "pyramide") await t.bilde("pyramide-regler");
+    await t.klikk('#ark [data-h="lukk-ark"]');
+
+    // One tap from the end: it goes out, and the result shows (with the statistics)
+    await lastInn(vTilstand(vSpill(id, nesten(id)), "vspill", { vstat: s.vstat, stat: s.stat, oppsett: s.oppsett }), kortKlart(id));
+    await t.klikk(`#kv-k${nestenKort[id]}`);
+    await t.vent("document.querySelector('.skjerm-vslutt')", 6000);
+    await t.sov(700);
+    t.sjekk(!t.norsk || /gikk opp/.test(await t.tekst("#skjerm h1")), `${id}: seieren vises ikke`);
+    s = await t.tilstand();
+    const sid = id === "edderkopp" ? "edderkopp1" : id;
+    t.sjekk(s.vstat[sid] && s.vstat[sid].vunnet === 1 && s.vstat[sid].besteTid > 0, `${id}: seieren ble ikke lagret i statistikken`);
+    t.sjekk(s._aktiv === false, `${id}: en vunnet kabal skal ikke regnes som pågående`);
+    t.sjekk(await t.finnes(`.dokk a.lenke[href="${t.forside}"]`), `${id}: sluttskjermen mangler «Alle spill»`);
+    t.sjekk((await t.finnes(".flere-spill")) || !(await t.js("(window.RUSJ_ANDRE || []).length")), `${id}: sluttskjermen mangler «Spill noe annet»`);
+    if (id === "golf" || id === "edderkopp") await t.bilde(`${id}-seier`, true);
+    await t.klikk('.dokk [data-h="vhjem"]');
+    await t.vent("document.querySelector('.kk-varianter')");
+    if (id === "edderkopp") await t.klikk('.dokk [data-h="vhjem"]').catch(() => {});
+    t.sjekk(!t.norsk || /Rekord/.test(await t.tekst(`.kk-vknapp[data-v="${id}"]`)) || id === "edderkopp", `${id}: flisen viser ikke rekorden`);
+  }
+
+  // Pyramide: a card with two partners – the first tap picks, the second chooses
+  const to = Array(28).fill(-1);
+  to[27] = 5; // 6♠
+  to[26] = 19; // 7♥
+  to[25] = 45; // 7♣
+  to[24] = 18; // 6♥ (so the game can still come out)
+  const pyr = { bord: to, bunke: [], trukket: -1, avfall: [], kast: ALLE.filter((k) => ![5, 19, 45, 18].includes(k)) };
+  await lastInn(vTilstand(vSpill("pyramide", pyr)), kortKlart("pyramide"));
+  await t.trykk("#kv-k5");
+  t.sjekk((await t.antall("#kv-brett .kk-valgt")) === 1 && (await t.antall("#kv-brett .kk-velg")) === 2, "Pyramide: et kort med to partnere skal velges, og begge skal lyse");
+  await t.bilde("pyramide-to-valg");
+  await t.trykk("#kv-k45");
+  await t.sov(300);
+  let st = V.pyramide.fraKode(await kode("pyramide"));
+  t.sjekk(st.bord[27] === -1 && st.bord[25] === -1 && st.bord[26] === 19, "Pyramide: trykket på den andre partneren fjernet ikke det paret");
+
+  // FreeCell: drag a card onto a column with the mouse; a drop where it can't go sends it back
+  const fc = V.freecell.del(KABALER.freecell[3], 0);
+  await lastInn(vTilstand(vSpill("freecell", fc)), kortKlart("freecell"));
+  const flytt = V.freecell.trekk(fc).find((m) => m.fra === "b" && m.til === "b" && fc.bord[m.j].length);
+  if (flytt) {
+    const kortet = fc.bord[flytt.i][flytt.p];
+    const mal = fc.bord[flytt.j][fc.bord[flytt.j].length - 1];
+    const feil = [0, 1, 2, 3, 4, 5, 6, 7].find((j) => j !== flytt.i && fc.bord[j].length && !V.freecell.lovlig(fc, { ...flytt, j }));
+    if (feil != null) {
+      await dra(await punkt(kortet, 0.15), await punkt(fc.bord[feil][fc.bord[feil].length - 1], 0.8));
+      t.sjekk((await kode("freecell")) === V.freecell.kode(fc), "FreeCell: et kort sluppet der det ikke kan ligge, ble flyttet");
+    }
+    await dra(await punkt(kortet, 0.15), await punkt(mal, 0.8));
+    const etter = V.freecell.fraKode(V.freecell.kode(fc));
+    V.freecell.utfor(etter, flytt);
+    t.sjekk((await kode("freecell")) === V.freecell.kode(etter), "FreeCell: dra og slipp med mus flyttet ikke kortet");
+    await t.bilde("freecell-dratt");
+  } else t.feil("Fant ikke noe FreeCell-trekk å dra");
+
+  // Edderkopp: no deal while a column is empty; a drag with a finger
+  const ed = V.edderkopp.del(7, 1);
+  const ekstra = ed.bord[9].splice(0);
+  ed.bord[8].push(...ekstra);
+  ed.skjult[9] = 0;
+  ed.skjult[8] = ed.bord[8].length - 1;
+  await lastInn(vTilstand(vSpill("edderkopp", V.edderkopp.fraKode(V.edderkopp.kode(ed)))), kortKlart("edderkopp"));
+  const forDeling = await kode("edderkopp");
+  await t.klikk("#kv-s-bunke", 300);
+  t.sjekk((await kode("edderkopp")) === forDeling, "Edderkopp: bunken delte ut selv om en kolonne er tom");
+  t.sjekk((t.norsk ? /tomme|må ha kort/ : /\S/).test(await toast()), "Edderkopp: ingen beskjed om at alle kolonnene må ha kort");
+  await t.bilde("edderkopp-tom-kolonne");
+  const edSt = V.edderkopp.fraKode(forDeling);
+  const edFlytt = V.edderkopp.trekk(edSt).find((m) => m.fra === "b" && edSt.bord[m.j].length);
+  if (edFlytt) {
+    const kortet = edSt.bord[edFlytt.i][edFlytt.p];
+    await dra(await punkt(kortet, 0.15), await punkt(edSt.bord[edFlytt.j][edSt.bord[edFlytt.j].length - 1], 0.8), true);
+    const etter = V.edderkopp.fraKode(forDeling);
+    V.edderkopp.utfor(etter, edFlytt);
+    t.sjekk((await kode("edderkopp")) === V.edderkopp.kode(etter), "Edderkopp: dra og slipp med fingeren flyttet ikke kortet");
+  }
+
+  // Small phones: Edderkopp's ten columns and a long column stay above the toolbar and readable
+  const [b0, h0] = await t.js("[window.innerWidth, window.innerHeight]");
+  if (b0 > 320) {
+    await t.send("Emulation.setDeviceMetricsOverride", { width: 320, height: 568, deviceScaleFactor: 2, mobile: true });
+    // Six face-down cards and twenty face-up ones in the first column, two in each of the others.
+    const ids = V.stokk(104, 11);
+    const bord = [ids.slice(0, 26), ...Array.from({ length: 9 }, (_, i) => ids.slice(26 + i * 2, 28 + i * 2))];
+    const lang = { bord, skjult: bord.map((k, i) => (i === 0 ? 6 : 1)), bunke: ids.slice(44), hjem: [], sorter: 4 };
+    const gyldig = V.edderkopp.fraKode(V.edderkopp.kode(lang));
+    if (gyldig) {
+      await lastInn(vTilstand(vSpill("edderkopp", gyldig, { startet: true })), kortKlart("edderkopp"));
+      t.sjekk(await brettOverDokk(), "Edderkopp: en lang kolonne stikker inn under knappene på 320 × 568");
+      await t.bilde("edderkopp-320-lang");
+    } else t.feil("Teststillingen med lang Edderkopp-kolonne er ugyldig");
+    await t.send("Emulation.setDeviceMetricsOverride", { width: b0, height: h0, deviceScaleFactor: 2, mobile: true });
+  }
 }

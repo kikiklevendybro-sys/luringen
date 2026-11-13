@@ -3,6 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
@@ -463,3 +464,22 @@ function fyllUtenGrunn(st) {
   assert.ok(K.gyldig(st), "teststillingen er ugyldig");
   return st;
 }
+
+test("Klondike er uendret etter de nye kabalene: dagens kabal, utdelingene og listen over løsbare kabaler gir samme fingeravtrykk som før", () => {
+  // Taken with the code from before Edderkopp, FreeCell, Pyramide, Tre topper and Golf came (commit
+  // 0e58b10): the daily deals of 3 484 days from 11 November 2026 in both draw modes, 3 000 free deals
+  // as saved codes, and the file of proven deals.
+  const dagens = createHash("sha256");
+  for (let i = 0; i < 1742 * 2; i++) {
+    const dato = new Date(Date.UTC(2026, 10, 11) + i * 86400000).toISOString().slice(0, 10);
+    const d = K.dagens(dato, LOSBARE.tre);
+    dagens.update(dato + ":" + K.kode(K.del(d.fro, d.variant, 1)) + ":" + K.kode(K.del(d.fro, d.variant, 3)) + "\n");
+  }
+  assert.equal(dagens.digest("hex"), "70d7e236f587c7afbd68999fea9175af49c7b65ac3af0ab80c5adb7ffa75f48c", "dagens kabal er endret");
+  const del = createHash("sha256");
+  for (let f = 0; f < 3000; f++) del.update(K.kode(K.del(f * 7919 + 1, f & 7, f % 2 ? 3 : 1)) + "\n");
+  assert.equal(del.digest("hex"), "f4ab3fb702eb8ce434dc4619c4e0cac05125942bbf4837c64bee66851e012c69", "utdelingen eller lagringskoden er endret");
+  const liste = createHash("sha256");
+  liste.update(readFileSync(join(ROT, "rusj/spill/kortkongen/data/losbare.json")));
+  assert.equal(liste.digest("hex"), "198ed076d565dc956bc47d3f05546ca72a130bde21488ba62f1313277cdd6ac4", "listen over løsbare kabaler er endret");
+});
