@@ -73,6 +73,7 @@
     { "id": "klassiker-dobbelsekseren", "gruppe": "klassiker", "navn": "Domino!", "hvordan": "Slå mobilen i domino i Dobbelsekseren.", "figur": "dobbelsekseren", "emoji": "🀄", "regel": { "type": "merke" } },
     { "id": "klassiker-samleren", "gruppe": "klassiker", "navn": "Full samling", "hvordan": "Slå mobilen i Samleren.", "figur": "samleren", "regel": { "type": "merke" } },
     { "id": "klassiker-hjerteknuseren", "gruppe": "klassiker", "navn": "Kaldt hjerte", "hvordan": "Slå mobilene i Hjerteknuseren.", "figur": "hjerteknuseren", "emoji": "💔", "regel": { "type": "merke" } },
+    { "id": "klassiker-pusen", "gruppe": "klassiker", "navn": "Mjau!", "hvordan": "Slå mobilen i et kortspill i Pusen.", "figur": "pusen", "emoji": "🐱", "regel": { "type": "merke" } },
 
     { "id": "luke-1", "gruppe": "sesong", "navn": "Første luke", "hvordan": "Åpne luke 1 i Julekalenderen.", "figur": "julekalenderen", "tall": 1, "regel": { "type": "merke" } },
     { "id": "luke-12", "gruppe": "sesong", "navn": "Halvveis til jul", "hvordan": "Åpne luke 12 i Julekalenderen.", "figur": "julekalenderen", "tall": 12, "regel": { "type": "merke" } },
