@@ -573,5 +573,6 @@
     "one": "{n} game fits",
     "other": "{n} games fit"
   },
-  "Ingen spill passer akkurat det. Prøv en annen alder eller et annet ønske.": "No game fits quite that. Try another age or another choice."
+  "Ingen spill passer akkurat det. Prøv en annen alder eller et annet ønske.": "No game fits quite that. Try another age or another choice.",
+  "Sveip for å kaste": "Swipe to roll"
 }

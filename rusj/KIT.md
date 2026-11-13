@@ -33,7 +33,8 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
   "rekkefolge": 4,                                 // position on the front page (given in your brief)
   "farge": "#ffd23f",                              // optional accent; default = the mascot's colour
   "ordbank": false,                                // true → window.RUSJ_ORD is loaded: the edition's own word bank (data/kategorier, .en, .da)
-  "qr": false                                      // true → window.LuringenQr is loaded (Rusj.kode.qr)
+  "qr": false,                                     // true → window.LuringenQr is loaded (Rusj.kode.qr)
+  "terninger": false                               // true → R.terninger: 3D dice in a tray (see «Dice» below)
 }
 ```
 
@@ -148,6 +149,36 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
 - **Safety net:** if a saved game can't be drawn at all (also not the home screen), the kit drops that
   game's saved state and starts fresh with a toast. Still validate in `lastet(S)` — and bump `versjon`
   when the shape of `S` changes.
+
+## Dice: `R.terninger` (rusj/kit/terninger.js + .css)
+
+Loaded only when spill.json has `"terninger": true`. A wooden tray with felt, seen from above with a
+mild perspective; real 3D dice (pips on all six faces, opposite faces sum to 7) that are thrown with a
+simulated physics throw, and a rail under the felt for held dice. Terninga is the reference.
+
+```js
+// in vis(S): the tray's markup (fills the height your CSS gives it; min. ~126 px)
+R.terninger.html({ id: "mitt-brett", verdier: [3, 5], holdt: [false, true],   // holdt: on the rail
+  etikett: (i, v, holdt) => R.t("Terning {n} viser {v}", { n: i + 1, v }),   // each die is a button
+  navn: R.t("Terningene"), hint: "…", hintId: "…", klar: true,               // klar: before the first throw
+  handling: "hold", hold: true, vri: [12, -8], klasse: "" })                 // hold: false → no rail
+// in etter(S, rot): measures the tray, lays out the dice, a fling on the tray calls vedSveip
+R.terninger.koble("mitt-brett", { vedSveip: ({ retning, styrke }) => { /* = your throw button */ } });
+// the game decides the values first; resolves when every die lies still
+await R.terninger.kast("mitt-brett", { verdier, indekser: [0, 1], retning, styrke, rolig });
+R.terninger.hold("mitt-brett", i, true, { etikett, verdi });  // to the rail / back (your rules decide)
+```
+
+- Your rules stay yours: pick the values (`R.nyttFro`), save them, then call `kast`. The throw is
+  simulated first (fixed 120 Hz), then played back; the dice are relabelled so they land on your values.
+  `retning`/`styrke` come from `vedSveip`; without them the throw is random (the button).
+- A die tap is a normal `data-h` action (default `hold`), so your own handler decides and then calls
+  `hold`. Keyboard and screen readers get real buttons with your `etikett` and `aria-pressed`.
+- Reduced motion (`R.rolig()`) or `rolig: true`: no flight, the dice fade in where they land.
+- Sounds (`R.lyd.stoy/tone`, as hard as each impact) and a light `R.vibrer` come with the throw.
+- Look: override `--trn-filt`, `--trn-tre`, `--trn-flate`, `--trn-oye`, `--trn-en` on `.trn-brett`;
+  `--trn-kant` is the wooden rim (10 px; Terninga uses 7 px on the smallest phones).
+- `R.terninger.fysikk` is the pure physics (also `window.RusjTerninger` in Node: test/terninger.test.mjs).
 
 ## Other languages (rusj/SPRAK.md)
 

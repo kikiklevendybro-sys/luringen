@@ -1,7 +1,8 @@
-// Terninga (Yatzy): two players roll, hold and roll again, score a house, undo it, reload mid-turn,
-// back + continue, the pad sheet, a real double tap on «Kast», a forced Yatzy, then the whole game to
-// the crowning (fast, with reduced motion). Then a solo six-dice Yatzy, saved rolls and an
-// early end, plus the smallest screens. Dice are forced by stubbing crypto.getRandomValues.
+// Terninga (Yatzy): two players roll (a swipe on the tray, then the button), hold and roll again,
+// score a house, undo it, reload mid-turn, back + continue, the pad sheet, a real double tap on
+// «Kast», a forced Yatzy, then the whole game to the crowning (fast, with reduced motion). Then a
+// solo six-dice Yatzy, saved rolls and an early end, plus the smallest screens. Dice are forced by
+// stubbing crypto.getRandomValues; the tray is the kit's (R.terninger, rusj/kit/terninger.js).
 // Runs in every edition (node test/rusj-e2e.mjs --sprak en terninga): the texts are checked in
 // Norwegian only (t.norsk); elsewhere the state, the names and the links (t.forside, t.nokkel).
 const NAVN = ["Testspiller A", "Testspiller B"];
@@ -17,6 +18,34 @@ export default async function (t) {
     await landet();
     await t.sov(150);
   };
+  // A real fling with a finger: from the middle of `fra` (a die or the tray) upwards, fast.
+  const sveip = async (fra, dy = -150) => {
+    await t.js(`document.querySelector(${JSON.stringify(fra)}).scrollIntoView({ block: "center" })`);
+    await t.sov(150);
+    const p = await t.js(`(() => { const b = document.querySelector(${JSON.stringify(fra)}).getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; })()`);
+    await t.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: p.x, y: p.y }] });
+    for (let i = 1; i <= 6; i++) {
+      await t.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: p.x + i * 3, y: p.y + (dy * i) / 6 }] });
+      await t.sov(12);
+    }
+    await t.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  };
+  // The value on the face that points up on every die, read from how the cube is turned on screen.
+  const topp = () =>
+    t.js(`Array.from(document.querySelectorAll("#tg-brett .trn-t")).map((b) => {
+      const m = new DOMMatrix(getComputedStyle(b.querySelector(".trn-kube")).transform);
+      const z = [m.m13, m.m23, m.m33];
+      let best = -Infinity;
+      let verdi = 0;
+      b.querySelectorAll(".trn-flate").forEach((f, a) => {
+        const opp = (a & 1 ? -1 : 1) * z[a >> 1];
+        if (opp > best) {
+          best = opp;
+          verdi = Number(f.dataset.v);
+        }
+      });
+      return verdi;
+    }).join(",")`);
   // Waits for player i's turn to be drawn (state first, then the redraw after the stamped box).
   const tur = (i) => t.vent(`(JSON.parse(localStorage.getItem("${t.nokkel("terninga.v1")}")).spill || {}).tur === ${i} && document.querySelector('#tg-brett') && !document.querySelector('#skjerm .tg-felt.ny')`, 5000);
   const felt = (k) => `[data-h="sett"][data-v="${k}"]`;
@@ -30,7 +59,7 @@ export default async function (t) {
   t.sjekk((await t.antall(".spiller")) === 2, "Oppsettet viser ikke de to spillerne");
   await t.bilde("oppsett", true);
   await t.klikk('[data-h="start"]');
-  await t.vent("document.querySelectorAll('#tg-brett .tg-t').length === 5");
+  await t.vent("document.querySelectorAll('#tg-brett .trn-t').length === 5");
   t.sjekk((await t.antall('[data-h="sett"]')) === 15, "Blokka skal ha 15 felt");
   t.sjekk((await t.tekst("#skjerm h1")).trim() === NAVN[0], "Første spiller står ikke øverst");
   t.sjekk((await t.tilstand())._aktiv === true, "Spillet regnes ikke som pågående");
@@ -42,21 +71,56 @@ export default async function (t) {
   s = await t.tilstand();
   t.sjekk(s.spill.holdt.every((h) => !h) && s.spill.kort[0].sjanse == null, "Man kan holde eller fylle før første kast");
 
-  // ---------- Roll, hold, roll again ----------
+  t.sjekk(await t.finnes("#tg-brett.trn-klar .trn-sveip"), "Brettet viser ikke at man kan sveipe for å kaste");
+  t.sjekk(await t.js(`Array.from(document.querySelectorAll("#tg-brett .trn-t")).every((b) => /[0-9]/.test(b.getAttribute("aria-label")) && b.getAttribute("aria-pressed") === "false")`), "Terningene mangler etikett eller aria-pressed");
+
+  // ---------- Roll with a swipe (it starts on a die: a fling never holds it), hold, roll again ----------
   await terninger([2, 2, 5, 5, 6]);
-  await kast();
+  await sveip('#tg-brett .trn-t[data-v="2"]');
+  await t.sov(220);
+  await t.bilde("sveip-i-lufta");
+  await landet();
+  await t.sov(200);
+  await t.bilde("sveip-landet");
   s = await t.tilstand();
-  t.sjekk(JSON.stringify(s.spill.terninger) === "[2,2,5,5,6]" && s.spill.kast === 1, `Kastet ga ${s.spill.terninger}`);
+  t.sjekk(JSON.stringify(s.spill.terninger) === "[2,2,5,5,6]" && s.spill.kast === 1, `Sveipet ga ${s.spill.terninger} (kast ${s.spill.kast})`);
+  t.sjekk(s.spill.holdt.every((h) => !h), "Et sveip som startet på en terning holdt den");
+  // what the dice show on top is what the game rolled (the kit relabels the dice, never the result)
+  t.sjekk((await topp()) === "2,2,5,5,6", `Terningene viser ${await topp()} på toppen, spillet kastet 2,2,5,5,6`);
   t.sjekk((await verdi("par2")) === "14" && (await verdi("par1")) === "10" && (await verdi("sjanse")) === "20", "Blokka viser feil mulige poeng etter første kast");
   t.sjekk(await t.finnes(`${felt("hus")}.mulig.null`), "Hus skal vises som 0 (kan strykes)");
   t.sjekk((t.norsk ? /2 kast igjen/ : /2/).test(await t.js(`document.querySelector('[data-h="kast"]').getAttribute("aria-label")`)), "Kast-knappen sier ikke hvor mange kast som er igjen");
   await t.bilde("kast-1");
   await t.klikk('[data-h="hold"][data-v="0"]', 60);
   await t.klikk('[data-h="hold"][data-v="1"]', 60);
-  t.sjekk((await t.antall('.tg-t[aria-pressed="true"]')) === 2, "To terninger skulle vært holdt");
+  t.sjekk((await t.antall('.trn-t[aria-pressed="true"]')) === 2, "To terninger skulle vært holdt");
+  await t.sov(350);
+  const paHylla = await t.js(`(() => {
+    const h = document.querySelector("#tg-brett .trn-hylle").getBoundingClientRect();
+    return Array.from(document.querySelectorAll('.trn-t[aria-pressed="true"]')).every((b) => { const r = b.getBoundingClientRect(); const y = r.y + r.height / 2; return y > h.top && y < h.bottom; });
+  })()`);
+  t.sjekk(paHylla, "De holdte terningene ligger ikke på hylla");
+  // With the keyboard: a die is a button – Enter holds it, Enter again lets it go
+  const tast = async () => {
+    await t.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13, text: "\r" });
+    await t.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
+    await t.sov(450);
+  };
+  await t.js(`document.querySelector('#tg-brett .trn-t[data-v="3"]').focus()`);
+  await tast();
+  t.sjekk((await t.tilstand()).spill.holdt[3] && (await t.finnes('#tg-brett .trn-t[data-v="3"][aria-pressed="true"]')), "Enter på en terning holdt den ikke");
+  t.sjekk(await t.js(`document.activeElement === document.querySelector('#tg-brett .trn-t[data-v="3"]')`), "Fokus forsvant fra terningen som ble holdt");
+  await tast();
+  t.sjekk(!(await t.tilstand()).spill.holdt[3] && (await t.antall('.trn-t[aria-pressed="true"]')) === 2, "Enter en gang til slapp ikke terningen");
+  await t.js("document.activeElement.blur()");
   await t.bilde("holdt");
   await terninger([5, 5, 5]);
-  await kast();
+  await t.klikk('[data-h="kast"]', 60);
+  await t.sov(200);
+  await t.bilde("knapp-i-lufta");
+  await landet();
+  await t.sov(150);
+  t.sjekk((await topp()) === "2,2,5,5,5", `Terningene viser ${await topp()} på toppen etter andre kast`);
   s = await t.tilstand();
   t.sjekk(JSON.stringify(s.spill.terninger) === "[2,2,5,5,5]" && s.spill.kast === 2, `Holdte terninger ble kastet på nytt: ${s.spill.terninger}`);
   t.sjekk((await verdi("hus")) === "19", "Hus skal gi 19");
@@ -67,7 +131,8 @@ export default async function (t) {
   await t.lastSide(t.side, "document.querySelector('#tg-brett')");
   s = await t.tilstand();
   t.sjekk(JSON.stringify(s.spill.terninger) === "[2,2,5,5,5]" && s.spill.kast === 2 && s.spill.holdt[0] && s.spill.holdt[1], "Omlasting mistet terningene eller holdene");
-  t.sjekk((await t.antall('.tg-t[aria-pressed="true"]')) === 2, "De holdte terningene vises ikke etter omlasting");
+  t.sjekk((await t.antall('.trn-t[aria-pressed="true"]')) === 2, "De holdte terningene vises ikke etter omlasting");
+  t.sjekk((await topp()) === "2,2,5,5,5", `Etter omlasting viser terningene ${await topp()}`);
 
   // ---------- Score, undo, score again ----------
   await t.klikk(felt("hus"), 100);
@@ -161,7 +226,7 @@ export default async function (t) {
   await t.klikk('[data-h="spiller-fjern"][data-v="1"]');
   await t.klikk('[data-h="variant"][data-v="maxi"]');
   await t.klikk('[data-h="start"]');
-  await t.vent("document.querySelectorAll('#tg-brett .tg-t').length === 6");
+  await t.vent("document.querySelectorAll('#tg-brett .trn-t').length === 6");
   t.sjekk((await t.antall('[data-h="sett"]')) === 20, "Yatzy med seks terninger skal ha 20 felt");
   await terninger([3, 3, 3, 3, 3, 3]);
   await kast();
@@ -190,6 +255,11 @@ export default async function (t) {
     t.sjekk(await t.js("document.documentElement.scrollWidth <= window.innerWidth"), `Siden er for bred på ${b} px`);
     const over = (await t.friForDokk("#tg-brett")) && (await t.friForDokk(".tg-over"));
     t.sjekk(over, `Terningene eller blokka skjules bak knappen på ${b} × ${h}`);
+    // the whole pad stays above the dock's button (only the dock's soft fade may reach it)
+    const blokk = await t.js(`(() => { window.scrollTo(0, 0); const p = document.querySelector(".tg-blokk").getBoundingClientRect(); const k = document.querySelector("#skjerm .dokk .knapp").getBoundingClientRect(); return [Math.round(p.bottom), Math.round(k.top)]; })()`);
+    t.sjekk(blokk[0] <= blokk[1], `Blokka går bak kast-knappen på ${b} × ${h} (${blokk[0]} > ${blokk[1]})`);
+    const side = await t.js(`parseFloat(getComputedStyle(document.querySelector("#tg-brett")).getPropertyValue("--trn-s"))`);
+    t.sjekk(side >= 26, `Terningene er bare ${side} px på ${b} × ${h}`);
     await t.bilde(`maxi-${b}x${h}`);
   }
   await t.send("Emulation.setDeviceMetricsOverride", { width: b0, height: h0, deviceScaleFactor: 2, mobile: true });

@@ -300,6 +300,7 @@ export function uoversatt(kilde, alle = strenger(kilde), somNokkel = nokler(kild
 // The shared table (rusj/kit/tekst.<lang>.json) covers these sources and the sticker catalogue.
 export const FELLES_KILDER = [
   "rusj/kit/rusj.js",
+  "rusj/kit/terninger.js",
   "rusj/portal/portal.js",
   "rusj/portal/daglig.js",
   "rusj/portal/merkebok.js",

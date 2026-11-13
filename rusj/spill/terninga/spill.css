@@ -3,7 +3,6 @@
 
 :root {
   --tg-blyant: #c22a48; /* the "pencil" colour for scores you could get */
-  --tg-filt: color-mix(in srgb, var(--aksent) 26%, #1b0f33);
 }
 
 .skjerm-spill {
@@ -104,219 +103,18 @@
   color: var(--tekst);
 }
 
-/* ---------- The dice tray ---------- */
+/* ---------- The dice tray (R.terninger, rusj/kit/terninger.css) ---------- */
 
+/* The tray takes the room the screen has left over: tall on a tall phone, never pushing the pad
+   down behind the dock on a small one. */
 .tg-brett {
-  position: relative;
-  display: grid;
-  gap: 4px;
-  padding: 14px 12px 10px;
-  border-radius: 24px;
-  background:
-    radial-gradient(ellipse 90% 70% at 50% 40%, color-mix(in srgb, var(--aksent) 18%, transparent), transparent 75%),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 3px, transparent 3px 7px),
-    var(--tg-filt);
-  box-shadow:
-    inset 0 0 0 3px color-mix(in srgb, var(--aksent) 45%, var(--natt)),
-    inset 0 10px 22px rgba(6, 2, 14, 0.55),
-    0 6px 0 color-mix(in srgb, var(--aksent-dyp) 55%, var(--natt));
-  container-type: inline-size;
+  flex: 1 1 150px;
+  min-height: 150px;
+  max-height: 290px;
 }
 
-.tg-terninger {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  justify-content: center;
-  isolation: isolate;
-}
-
-/* Every die gets an equal share of the tray; the cube is 80 % of it, so tilted dice never touch. */
-.tg-t {
-  --s: 42px;
-  position: relative;
-  display: grid;
-  flex: 1 1 0;
-  place-items: center;
-  min-width: 0;
-  max-width: 76px;
-  height: calc(var(--s) + 24px);
-  padding: 0 0 17px;
-  border: 0;
-  border-radius: 16px;
-  background: none;
-  cursor: pointer;
-  perspective: 520px;
-  -webkit-tap-highlight-color: transparent;
-}
-
-@supports (width: 1cqw) {
-  .tg-t {
-    --s: min(60px, calc((100cqw - 24px) / var(--n) * 0.76));
-  }
-}
-
-.tg-hopp,
-.tg-kube {
-  position: relative;
-  display: block;
-  width: var(--s);
-  height: var(--s);
-  transform-style: preserve-3d;
-}
-
-.tg-kube {
-  position: absolute;
-  inset: 0;
-}
-
-.tg-side {
-  position: absolute;
-  inset: 0;
-  border-radius: 17%;
-  background: radial-gradient(circle at 30% 22%, #fffefa 0 28%, #f6e8d2 100%);
-  box-shadow:
-    inset 0 0 0 max(2px, calc(var(--s) * 0.05)) #170e2b,
-    inset 0 calc(var(--s) * -0.07) 0 rgba(23, 14, 43, 0.08);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-.tg-side.s1 {
-  transform: translateZ(calc(var(--s) / 2));
-}
-
-.tg-side.s6 {
-  transform: rotateY(180deg) translateZ(calc(var(--s) / 2));
-}
-
-.tg-side.s2 {
-  transform: rotateY(90deg) translateZ(calc(var(--s) / 2));
-}
-
-.tg-side.s5 {
-  transform: rotateY(-90deg) translateZ(calc(var(--s) / 2));
-}
-
-.tg-side.s3 {
-  transform: rotateX(90deg) translateZ(calc(var(--s) / 2));
-}
-
-.tg-side.s4 {
-  transform: rotateX(-90deg) translateZ(calc(var(--s) / 2));
-}
-
-.tg-side i {
-  position: absolute;
-  width: 20%;
-  height: 20%;
-  margin: -10% 0 0 -10%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #3b2b5c, #170e2b 70%);
-}
-
-.tg-side.s1 i {
-  width: 28%;
-  height: 28%;
-  margin: -14% 0 0 -14%;
-  background: radial-gradient(circle at 40% 35%, #ff6d80, #d42a45 70%);
-}
-
-.tg-side .p1 { left: 27%; top: 27%; }
-.tg-side .p3 { left: 73%; top: 27%; }
-.tg-side .p4 { left: 27%; top: 50%; }
-.tg-side .p5 { left: 50%; top: 50%; }
-.tg-side .p6 { left: 73%; top: 50%; }
-.tg-side .p7 { left: 27%; top: 73%; }
-.tg-side .p9 { left: 73%; top: 73%; }
-
-.tg-skygge {
-  position: absolute;
-  bottom: 13px;
-  left: 50%;
-  width: calc(var(--s) * 1.02);
-  height: calc(var(--s) * 0.3);
-  margin-left: calc(var(--s) * -0.51);
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(6, 2, 14, 0.62), transparent);
-}
-
-/* Held dice: lifted, glowing in the accent colour and labelled */
-.tg-t.holdt .tg-hopp {
-  transform: translateY(-4px);
-}
-
-.tg-t.holdt {
-  filter: drop-shadow(0 0 1.5px var(--aksent)) drop-shadow(0 0 1.5px var(--aksent)) drop-shadow(0 0 8px color-mix(in srgb, var(--aksent) 80%, transparent));
-}
-
-.tg-holdt-merke {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--aksent);
-  color: var(--blekk);
-  font: 900 0.62rem/1.2 var(--font-display);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translate(-50%, 4px) scale(0.8);
-  transition: opacity 0.15s, transform 0.2s cubic-bezier(0.3, 1.6, 0.5, 1);
-}
-
-.tg-t.holdt .tg-holdt-merke {
-  opacity: 1;
-  transform: translate(-50%, 0) scale(1);
-}
-
-.tg-t:active .tg-hopp {
-  transform: scale(0.94);
-}
-
-/* Before the first roll: the dice wait (and wiggle now and then) */
-.tg-brett.klar .tg-t {
-  opacity: 0.58;
-}
-
-.tg-brett.klar .tg-kube {
-  animation: tg-vink 3.4s ease-in-out 1.2s infinite;
-}
-
-.tg-brett.klar .tg-t:nth-child(2) .tg-kube { animation-delay: 1.32s; }
-.tg-brett.klar .tg-t:nth-child(3) .tg-kube { animation-delay: 1.44s; }
-.tg-brett.klar .tg-t:nth-child(4) .tg-kube { animation-delay: 1.56s; }
-.tg-brett.klar .tg-t:nth-child(5) .tg-kube { animation-delay: 1.68s; }
-.tg-brett.klar .tg-t:nth-child(6) .tg-kube { animation-delay: 1.8s; }
-
-@keyframes tg-vink {
-  0%,
-  80%,
-  100% {
-    translate: 0 0;
-  }
-  86% {
-    translate: 0 -5px;
-  }
-  92% {
-    translate: 0 0;
-  }
-  96% {
-    translate: 0 -2px;
-  }
-}
-
-.tg-brett.ferdig .tg-t {
-  opacity: 0.45;
-}
-
-.tg-hint {
-  min-height: 1.2em;
-  color: var(--tekst-2);
-  font: 800 0.86rem/1.2 var(--font-display);
-  text-align: center;
+.tg-brett.ferdig .trn-scene {
+  opacity: 0.5;
 }
 
 /* Stamp over the tray (Yatzy!, straights, house) */
@@ -807,28 +605,8 @@
   }
 
   .tg-brett {
-    gap: 2px;
-    padding: 9px 10px 6px;
-    border-radius: 20px;
-  }
-
-  .tg-t {
-    height: calc(var(--s) + 19px);
-    padding-bottom: 14px;
-  }
-
-  @supports (width: 1cqw) {
-    .tg-t {
-      --s: min(48px, calc((100cqw - 24px) / var(--n) * 0.76));
-    }
-  }
-
-  .tg-skygge {
-    bottom: 10px;
-  }
-
-  .tg-hint {
-    font-size: 0.78rem;
+    flex-basis: 126px;
+    min-height: 126px;
   }
 
   .tg-blokk {
@@ -874,12 +652,66 @@
   }
 }
 
-/* Tall phones: use the room for a roomier pad */
-@media (min-height: 780px) {
-  .tg-brett {
-    padding-block: 18px 12px;
+/* The smallest phones (320 × 568, 375 × 560): the tray gets its room from a tighter pad */
+@media (max-height: 600px) {
+  .skjerm-spill {
+    gap: 5px;
   }
 
+  .tg-hode .avatar.mid {
+    width: 34px;
+    height: 34px;
+    font-size: 1.05rem;
+  }
+
+  .tg-hvem h1 {
+    font-size: clamp(1.2rem, 6vw, 1.45rem);
+  }
+
+  .tg-total b {
+    font-size: 1.4rem;
+  }
+
+  .tg-brett {
+    --trn-kant: 7px;
+    flex-basis: 108px;
+    min-height: 108px;
+  }
+
+  .tg-blokk {
+    gap: 4px;
+    padding: 6px;
+  }
+
+  .tg-over,
+  .tg-under {
+    gap: 3px;
+  }
+
+  .tg-felt {
+    min-height: 32px;
+  }
+
+  .tg-felt-ikon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .tg-verdi {
+    font-size: 1rem;
+  }
+}
+
+/* A phone on its side: the page scrolls to the pad anyway, so the tray gets room for real dice */
+@media (orientation: landscape) and (max-height: 500px) {
+  .tg-brett {
+    flex-basis: 178px;
+    min-height: 178px;
+  }
+}
+
+/* Tall phones: use the room for a roomier pad */
+@media (min-height: 780px) {
   .tg-felt {
     min-height: 58px;
   }

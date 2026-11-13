@@ -388,16 +388,9 @@
   const runde = (sp) => Math.min(VAR(sp).alle.length, 1 + Math.min(...sp.kort.map((k) => Object.keys(k).length)));
   const igjen = (sp) => kastIgjen(sp.variant, sp.kast, sp.spart[sp.tur]);
 
-  // ---------- Dice (CSS cubes) ----------
-  // A die is a cube with six faces. The pose puts the wanted face towards the viewer; whole extra
-  // turns on the way make it tumble. rotateZ (applied last) is the little twist it lands with, and
-  // the first two rotations tilt the whole cube so we see a bit of the top and the side.
-
-  const PIPS = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
-  const SIDE = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] };
-  const VIPP = "rotateX(-21deg) rotateY(12deg)"; // CSS // sprak-ok
-  const KUBE = [1, 2, 3, 4, 5, 6].map((n) => `<span class="tg-side s${n}">${PIPS[n].map((p) => `<i class="p${p}"></i>`).join("")}</span>`).join("");
-  const pose = (v, z, tx, ty) => `${VIPP} rotateZ(${z}deg) rotateX(${SIDE[v][0] + 360 * (tx || 0)}deg) rotateY(${SIDE[v][1] + 360 * (ty || 0)}deg)`; // sprak-ok
+  // ---------- Dice ----------
+  // The dice are real 3D cubes in a tray, thrown with a simulated physics throw (R.terninger in
+  // rusj/kit/terninger.js). This game decides the values; the kit lands the dice on them.
 
   // A flat die face (score pad, rules, setup tiles).
   const PUNKT = {
@@ -413,97 +406,34 @@
       .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${n === 1 ? 13 : 9.5}" fill="${n === 1 ? "#e3364f" : "#170e2b"}"/>`)
       .join("")}</svg>`;
 
-  function terningHtml(sp, i) {
-    const v = sp.terninger[i];
-    const holdt = !!sp.holdt[i] && sp.kast > 0;
-    return `<button class="tg-t${holdt ? " holdt" : ""}" data-h="hold" data-v="${i}" data-stille aria-pressed="${holdt}" aria-label="${esc(terningEtikett(i, v, holdt))}">
-      <span class="tg-skygge" aria-hidden="true"></span>
-      <span class="tg-hopp" aria-hidden="true"><span class="tg-kube" style="transform: ${pose(v, sp.vri[i] || 0)}">${KUBE}</span></span>
-      <span class="tg-holdt-merke" aria-hidden="true">${esc(R.t("Holdt"))}</span>
-    </button>`;
-  }
-
-  // Sounds: a rattle in the cup, then a woody clack (and a softer bounce) for every die that lands.
-  function rasle() {
-    for (let k = 0; k < 7; k++) R.lyd.stoy(k * 0.034 + Math.random() * 0.012, 0.024, 0.08 + Math.random() * 0.07, 2600 + Math.random() * 2800);
-  }
-  function klakk(t, styrke) {
-    R.lyd.stoy(t, 0.04, 0.3 * styrke, 1300 + Math.random() * 700);
-    R.lyd.tone(160 + Math.random() * 80, t, 0.07, "triangle", 0.15 * styrke, 105);
-  }
-
-  // Throw the dice with these indexes from their old faces to the new ones. Resolves when all landed.
-  function animerKast(sp, indekser, fra, fraVri) {
-    return new Promise((ferdig) => {
-      const knapper = R.$$("#tg-brett .tg-t");
-      if (!knapper.length || !indekser.length) return ferdig();
-      const rolig = R.rolig() || hoppAnim;
-      let lengst = 0;
-      let forste = Infinity;
-      indekser.forEach((i, n) => {
-        const el = knapper[i];
-        if (!el) return;
-        const kube = el.querySelector(".tg-kube");
-        const hopp = el.querySelector(".tg-hopp");
-        const skygge = el.querySelector(".tg-skygge");
-        const v = sp.terninger[i];
-        const z = sp.vri[i] || 0;
-        const slutt = pose(v, z);
-        if (rolig || !kube.animate) {
-          kube.style.transform = slutt;
-          return;
-        }
-        const ms = 860 + n * 80 + Math.random() * 140;
-        lengst = Math.max(lengst, ms);
-        const tx = (1 + Math.floor(Math.random() * 2)) * (Math.random() < 0.5 ? -1 : 1);
-        const ty = (1 + Math.floor(Math.random() * 2)) * (Math.random() < 0.5 ? -1 : 1);
-        // From exactly where it rests: a little dip (scooped up), a tumbling flight, a landing and a bounce.
-        const rull = kube.animate(
-          [
-            { transform: pose(fra[i], fraVri[i] || 0), offset: 0 },
-            { transform: pose(fra[i], (fraVri[i] || 0) + (tx > 0 ? 25 : -25)), offset: 0.12, easing: "cubic-bezier(.3,.55,.3,1)" },
-            { transform: pose(v, z, tx, ty), offset: 1 },
-          ],
-          { duration: ms, fill: "both" },
-        );
-        rull.onfinish = () => {
-          kube.style.transform = slutt;
-          rull.cancel();
-        };
-        const dx = Math.round((Math.random() * 2 - 1) * 22);
-        const hopp1 = hopp.animate(
-          [
-            { transform: "translate(0, 0) scale(1)", offset: 0, easing: "ease-out" },
-            { transform: `translate(${Math.round(dx * 0.3)}px, 12px) scale(.88)`, offset: 0.12, easing: "cubic-bezier(.2,.7,.4,1)" },
-            { transform: `translate(${dx}px, -44px) scale(1.1)`, offset: 0.42, easing: "cubic-bezier(.6,0,.9,.5)" },
-            { transform: "translate(0, 0) scale(1)", offset: 0.66, easing: "cubic-bezier(.2,.7,.4,1)" },
-            { transform: "translate(0, -9px) scale(1.02)", offset: 0.82, easing: "cubic-bezier(.6,0,.9,.5)" },
-            { transform: "translate(0, 0) scale(1)", offset: 1 },
-          ],
-          { duration: ms },
-        );
-        hopp1.onfinish = () => hopp1.cancel();
-        if (skygge) {
-          const s = skygge.animate(
-            [
-              { transform: "scale(1)", opacity: 1, offset: 0 },
-              { transform: "scale(1.05)", opacity: 1, offset: 0.12 },
-              { transform: "scale(.5)", opacity: 0.2, offset: 0.42 },
-              { transform: "scale(1)", opacity: 1, offset: 0.66 },
-              { transform: "scale(.85)", opacity: 0.7, offset: 0.82 },
-              { transform: "scale(1)", opacity: 1, offset: 1 },
-            ],
-            { duration: ms },
-          );
-          s.onfinish = () => s.cancel();
-        }
-        klakk((ms * 0.66) / 1000, 1);
-        klakk((ms * 0.99) / 1000, 0.45);
-        forste = Math.min(forste, ms * 0.66);
-      });
-      if (forste < Infinity) setTimeout(() => R.vibrer([14, 60, 10, 50, 8]), forste);
-      setTimeout(ferdig, rolig ? 120 : lengst + 40);
+  const BRETT = "tg-brett";
+  function brettHtml(sp, ferdig) {
+    return R.terninger.html({
+      id: BRETT,
+      klasse: "tg-brett" + (ferdig ? " ferdig" : ""),
+      verdier: sp.terninger,
+      holdt: sp.terninger.map((_, i) => !!sp.holdt[i] && sp.kast > 0),
+      vri: sp.vri,
+      etikett: terningEtikett,
+      navn: R.t("Terningene"),
+      hint: hintTekst(sp),
+      hintId: "tg-hint",
+      klar: sp.kast === 0 && !ferdig,
     });
+  }
+
+  // A fling on the tray: the same as «Kast», in that direction and with that speed.
+  let sveipKast = null;
+  function sveipet(vei) {
+    const S = R.S;
+    const sp = S && S.spill;
+    if (!pagar(S) || ruller || laas || alleFulle(sp) || erRobot(sp, sp.tur) || R.arkApent()) return;
+    if (igjen(sp) <= 0) {
+      R.toast(R.t("Ingen kast igjen – velg et felt"));
+      return;
+    }
+    sveipKast = vei;
+    H.kast(null, null, S).catch((feil) => console.error(feil));
   }
 
   // ---------- Score pad ----------
@@ -917,10 +847,7 @@
               <p class="tg-total"><b>${total}</b><small>${esc(R.t("poeng"))}</small></p>
             </div>
             ${stillingHtml(sp)}
-            <div class="tg-brett${sp.kast === 0 ? " klar" : ""}${ferdig ? " ferdig" : ""}" id="tg-brett" style="--n: ${sp.terninger.length}">
-              <div class="tg-terninger" role="group" aria-label="${esc(R.t("Terningene"))}">${sp.terninger.map((_, i) => terningHtml(sp, i)).join("")}</div>
-              <p class="tg-hint" id="tg-hint" aria-live="polite">${esc(hintTekst(sp))}</p>
-            </div>
+            ${brettHtml(sp, ferdig)}
             ${blokkHtml(sp)}
             ${
               !ferdig && erRobot(sp, sp.tur)
@@ -931,6 +858,7 @@
                 : R.ui.dokk(kastKnapp(sp), R.ui.lenkerad(angreLenke(sp), R.ui.lenke(R.t("Blokka"), "blokka"), ferdig ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")))
             }`;
         },
+        etter: () => R.terninger.koble(BRETT, { vedSveip: sveipet }),
         inn(S) {
           if (!S.spill) return R.gaTil("hjem");
           ruller = false;
@@ -1063,11 +991,9 @@
         if (sp.holdt[i]) R.lyd.pop();
         else R.lyd.tone(420, 0, 0.08, "sine", 0.16, 300);
         R.vibrer(8);
-        // Changed in place (no redraw), so quick taps on several dice and then «Kast» all count.
-        const v = sp.terninger[i];
-        el.classList.toggle("holdt", sp.holdt[i]);
-        el.setAttribute("aria-pressed", String(sp.holdt[i]));
-        el.setAttribute("aria-label", terningEtikett(i, v, sp.holdt[i]));
+        // Changed in place (no redraw), so quick taps on several dice and then «Kast» all count:
+        // the die hops to the rail (or back to the felt).
+        R.terninger.hold(BRETT, i, sp.holdt[i], { etikett: terningEtikett, verdi: sp.terninger[i], rolig: hoppAnim });
         const hint = R.$("#tg-hint");
         if (hint) hint.textContent = sp.holdt.every(Boolean) ? R.t("Alle er holdt – velg et felt, eller slipp en terning") : hintTekst(sp);
         R.lagre();
@@ -1077,9 +1003,9 @@
         const sp = S.spill;
         if (!pagar(S) || ruller || laas || alleFulle(sp)) return;
         if (erRobot(sp, sp.tur) && !robotTrykk) return;
+        const vei = sveipKast; // a fling on the tray says where and how hard
+        sveipKast = null;
         if (igjen(sp) <= 0) return;
-        const fra = sp.terninger.slice();
-        const fraVri = sp.vri.slice();
         if (sp.kast === 0) sp.holdt = sp.holdt.map(() => false);
         const indekser = [];
         sp.terninger.forEach((v, i) => {
@@ -1099,19 +1025,14 @@
         R.lagre(); // the result is saved before the dice land: a reload shows where they ended up
         ruller = true;
         const brett = R.$("#tg-brett");
-        if (brett) {
-          brett.classList.remove("klar");
-          brett.dataset.ruller = "1"; // gone with the next redraw, when the dice have landed
-        }
+        if (brett) brett.dataset.ruller = "1"; // gone with the next redraw, when the dice have landed
         R.$$('#skjerm .dokk button, #skjerm [data-h="sett"]').forEach((b) => (b.disabled = true));
         const hint = R.$("#tg-hint");
         if (hint) hint.textContent = R.t("Terningene ruller …");
         const angre = R.$("#tg-angre");
         if (angre) angre.remove();
-        rasle();
-        R.vibrer(10);
         const fortsatt = R.vakt();
-        await animerKast(sp, indekser, fra, fraVri);
+        await R.terninger.kast(BRETT, { verdier: sp.terninger, indekser, retning: vei && vei.retning, styrke: vei && vei.styrke, rolig: hoppAnim });
         ruller = false;
         if (!fortsatt()) return;
         R.vis();
