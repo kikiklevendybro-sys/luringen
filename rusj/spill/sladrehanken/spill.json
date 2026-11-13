@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis «Jeg har aldri»-spill på norsk. Les kortet høyt – har du gjort det, er du avslørt. Over 500 kort for venner, familie, reise og fest.",
   "kort": "Les kortet høyt – har du gjort det, er du avslørt.",
   "spillere": [2, 20],
+  "alder": 8,
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["fest", "familie", "sporsmal"],

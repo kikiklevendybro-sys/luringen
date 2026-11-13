@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis drikkelek med kort på norsk (18+). Trekk et kort fra ringen – hvert kort har sin regel. Bare små slurker, og alkoholfritt teller like mye.",
   "kort": "Trekk et kort fra ringen – hvert kort har sin egen regel.",
   "spillere": [3, 12],
+  "alder": 18,
   "minutter": [15, 45],
   "mobiler": "en",
   "tagger": ["drikke", "fest"],

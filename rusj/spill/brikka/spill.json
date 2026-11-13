@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis ludo på norsk. Slå seks, kom deg ut og knuff de andre hjem! 2–4 spillere på én mobil – mobilen kan spille på de ledige plassene.",
   "kort": "Slå seks, kom deg ut – og knuff de andre hjem!",
   "spillere": [1, 4],
+  "alder": 5,
   "minutter": [15, 40],
   "mobiler": "en",
   "tagger": ["klassiker", "familie", "barn"],

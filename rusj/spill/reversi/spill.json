@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis reversi på norsk. Klem brikkene inne og snu dem – mot mobilen på fire nivåer eller mot en venn på samme mobil, med tips og angre.",
   "kort": "Klem brikkene inne og snu dem til din farge.",
   "spillere": [1, 2],
+  "alder": 7,
   "minutter": [5, 20],
   "mobiler": "en",
   "tagger": ["klassiker", "tenke", "alene"],

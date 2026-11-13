@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis minesveiper på norsk – uten gjetting: hvert brett kan ryddes med logikk. Dagens minefelt for hele landet, tre nivåer laget for mobilen og dine beste tider.",
   "kort": "Finn de trygge rutene – helt uten å gjette.",
   "spillere": [1, 1],
+  "alder": 8,
   "minutter": [2, 15],
   "mobiler": "en",
   "tagger": ["klassiker", "tenke", "alene", "daglig"],

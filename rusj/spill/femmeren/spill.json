@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis «nevn tre ting på fem sekunder»-spill på norsk. Lunta brenner, gjengen dømmer. Over 650 kort for familie, fest, Norge, jul og de som kan alt.",
   "kort": "«Nevn tre …» – og klokka tikker.",
   "spillere": [2, 20],
+  "alder": 7,
   "minutter": [5, 30],
   "mobiler": "en",
   "tagger": ["fest", "familie", "barn"],

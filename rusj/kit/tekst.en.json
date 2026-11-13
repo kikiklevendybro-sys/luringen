@@ -545,5 +545,33 @@
   "Full krukke": "A full jar",
   "Nå honning i dagens blomst i Humla.": "Reach honey in today's flower in Bumblebee.",
   "På sporet": "On the trail",
-  "Finn alle temaordene i dagens spor i Sporhunden.": "Find all the theme words in today's trail in Word Hound."
+  "Finn alle temaordene i dagens spor i Sporhunden.": "Find all the theme words in today's trail in Word Hound.",
+  "Nummer {n}.": "Number {n}.",
+  "Mest spilt nå": "Most played now",
+  "Etter anonym telling": "Based on anonymous counts",
+  "Hvor mange er dere?": "How many of you are there?",
+  "Yngste": "Youngest",
+  "Yngre": "Younger",
+  "Eldre": "Older",
+  "Voksen": "Adult",
+  "{n} år": {
+    "one": "{n} year",
+    "other": "{n} years"
+  },
+  "Voksen fest (18+)": "Adult party (18+)",
+  "Hva har dere lyst på?": "What do you fancy?",
+  "Litt av alt": "A bit of everything",
+  "Le og tulle": "Laugh and be silly",
+  "Tenke og vinne": "Think and win",
+  "Ord og quiz": "Words and quizzes",
+  "Tegne og mime": "Draw and act",
+  "Kjapt (<10 min)": "Quick (<10 min)",
+  "Forslag": "Suggestions",
+  "Vis flere": "Show more",
+  "Fra {n} år": "Age {n}+",
+  "{n} spill passer": {
+    "one": "{n} game fits",
+    "other": "{n} games fit"
+  },
+  "Ingen spill passer akkurat det. Prøv en annen alder eller et annet ønske.": "No game fits quite that. Try another age or another choice."
 }

@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis «To sannheter og en løgn» på norsk. Si tre ting om deg selv – to er sanne, én er løgn. Klarer de andre å avsløre deg?",
   "kort": "Tre påstander, én løgn. Klarer de å avsløre deg?",
   "spillere": [3, 20],
+  "alder": 8,
   "minutter": [10, 40],
   "mobiler": "en",
   "tagger": ["fest", "familie", "blof", "sporsmal"],

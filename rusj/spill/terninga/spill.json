@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis Yatzy på norsk: fem terninger, tre kast og hele blokka på mobilen. Spill alene, sammen eller mot mobilen – med fem eller seks terninger.",
   "kort": "Fem terninger, tre kast – og jakten på Yatzy.",
   "spillere": [1, 6],
+  "alder": 7,
   "minutter": [10, 40],
   "mobiler": "en",
   "tagger": ["klassiker", "familie"],

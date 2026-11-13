@@ -179,8 +179,9 @@ test("the front page: «Dagens rusj» is wired in, and every card carries its fa
   assert.doesNotMatch(f.html, /id="idag(-ny)?"/);
   const skript = [...f.html.matchAll(/<script defer src="\/felles\/([a-z]+)\.js\?v=[a-z0-9]+"><\/script>/g)].map((m) => m[1]);
   // (stat.js comes first on every page when anonymous statistics are on: see STAT_ADRESSE.)
-  assert.deepEqual(skript.filter((s) => s !== "stat"), ["tekst", "spilliste", "daglig", "portal"]);
+  assert.deepEqual(skript.filter((s) => s !== "stat"), ["tekst", "spilliste", "daglig", "finner", "portal"]);
   assert.ok(existsSync(join(WEB, "felles/daglig.js")));
+  assert.equal(readFileSync(join(WEB, "felles/finner.js"), "utf8"), readFileSync(join(ROT, "rusj/portal/finner.js"), "utf8"));
   // One card per game: players, phones and time, and the same in the link's name.
   const kort = [...f.html.matchAll(/<li class="spillkort" data-id="([a-z]+)"[\s\S]*?<\/li>/g)];
   assert.equal(kort.length, spillIder.length);
@@ -538,4 +539,147 @@ test("the original party games have their own generic search words, and the word
   }
   const hoystakk = (g) => [g.navn, g.undertittel, g.kort, ...g.sok, ...g.tagger.flatMap((t) => taggsok[t] || [])].join(" ").toLocaleLowerCase("nb");
   for (const ord of ["imposter", "nødt", "pekeleken", "flasketuten", "bli kjent", "dilemma", "mafia", "huskespill", "vendespill", "jeg har aldri", "kims lek", "alfabetleken", "20 spørsmål", "selskapsleker", "hyttetur", "klassefest"]) assert.ok(spill.some((g) => hoystakk(g).includes(ord)), `søket finner ingenting på «${ord}»`);
+});
+
+// ---------- "alder" in spill.json: the lowest recommended age (the front-page finder) ----------
+
+test("every game has its age, it reaches the front page's game list, and the build stops without it", async () => {
+  const { lesSpill, sjekkAlder } = await import("../scripts/rusj.mjs");
+  for (const m of lesSpill(ROT, null)) {
+    assert.ok(Number.isInteger(m.alder) && m.alder >= 3 && m.alder <= 18, `${m.id}: "alder" er ${m.alder}`);
+    if (m.alder18) assert.equal(m.alder, 18, `${m.id}: et 18+-spill med "alder" ${m.alder}`);
+  }
+  const liste = readFileSync(join(WEB, "felles/spilliste.js"), "utf8");
+  const spill = JSON.parse(liste.slice(liste.indexOf("=") + 1, liste.indexOf(";\nwindow.RUSJ_TAGGSOK")));
+  for (const g of spill) assert.ok(Number.isInteger(g.alder), `${g.id}: mangler "alder" i spillista`);
+  assert.ok(spill.some((g) => g.id === "luringen" && g.alder === 8), "Luringen mangler alder i spillista");
+  // A game without it (or with a wrong one) stops the build, and the message says what to write.
+  const rot = mkdtempSync(join(tmpdir(), "rusj-alder-"));
+  try {
+    mkdirSync(join(rot, "rusj/kit"), { recursive: true });
+    mkdirSync(join(rot, "rusj/spill/fireren"), { recursive: true });
+    writeFileSync(join(rot, "rusj/kit/gjengen.js"), readFileSync(join(ROT, "rusj/kit/gjengen.js")));
+    const ekte = JSON.parse(readFileSync(join(ROT, "rusj/spill/fireren/spill.json"), "utf8"));
+    const les = (endre) => () => {
+      const m = { ...ekte };
+      endre(m);
+      writeFileSync(join(rot, "rusj/spill/fireren/spill.json"), JSON.stringify(m));
+      return lesSpill(rot, null);
+    };
+    assert.doesNotThrow(les(() => {}));
+    assert.throws(les((m) => delete m.alder), /fireren\/spill\.json: mangler "alder" – den laveste anbefalte alderen \(et helt tall fra 3 til 18; 18 for 18\+-spill\)/);
+    assert.throws(les((m) => (m.alder = "7")), /"alder" må være et helt tall fra 3 til 18, ikke "7"/);
+    assert.throws(les((m) => (m.alder = 2)), /helt tall fra 3 til 18, ikke 2/);
+    assert.throws(les((m) => Object.assign(m, { alder18: true, alder: 12 })), /et 18\+-spill skal ha "alder": 18, ikke 12/);
+  } finally {
+    rmSync(rot, { recursive: true, force: true });
+  }
+  // Luringen's card in scripts/bygg.mjs is held to the same.
+  assert.throws(() => sjekkAlder({ id: "luringen" }, "scripts/bygg.mjs (LURINGEN_KORT)"), /LURINGEN_KORT\): mangler "alder"/);
+});
+
+// ---------- «Hva skal vi spille?» (the finder) and «Mest spilt nå» on the front page ----------
+
+test("the finder: three questions under «Hva skal vi spille?», before the search row, in every edition", () => {
+  for (const [sti, ord] of [
+    ["index.html", ["Hvor mange er dere?", "Yngste", "Voksen", "7 år", "Hva har dere lyst på?", "Litt av alt", "Kjapt (&lt;10 min)", "Vis flere"]],
+    ["en/index.html", ["How many of you are there?", "Youngest", "Adult", "7 years", "What do you fancy?", "A bit of everything", "Quick (&lt;10 min)", "Show more"]],
+    ["da/index.html", ["Hvor mange er I?", "Yngste", "Voksen", "7 år", "Hvad har I lyst til?", "Lidt af hvert", "Hurtigt (&lt;10 min.)", "Vis flere"]],
+  ]) {
+    const html = readFileSync(join(WEB, sti), "utf8");
+    const finner = html.slice(html.indexOf('<div class="finner" id="finner">'), html.indexOf('<div class="filter" id="filter"'));
+    assert.ok(html.indexOf('id="spill"') < html.indexOf('id="finner"') && finner.length > 200, `${sti}: finneren står ikke mellom overskriften og søket`);
+    for (const o of ord) assert.ok(finner.includes(o), `${sti}: mangler «${o}» i finneren`);
+    assert.deepEqual([...finner.matchAll(/data-finn-antall="([^"]+)" aria-pressed="false">([^<]+)</g)].map((m) => m[2]), ["1", "2", "3–4", "5–8", "9+"]);
+    assert.deepEqual([...finner.matchAll(/<option value="([^"]+)"/g)].map((m) => m[1]), [..."3 4 5 6 7 8 9 10 11 12 13 14 15 16 17".split(" "), "voksen"], `${sti}: alderstrinnene (18+ legges til av siden bak 18+-døra)`);
+    assert.match(finner, /<option value="voksen" selected>/);
+    assert.deepEqual([...finner.matchAll(/data-finn-lyst="([a-z]+)" aria-pressed="(true|false)"/g)].map((m) => m[1] + (m[2] === "true" ? "*" : "")), ["alt*", "tull", "tenke", "ord", "tegne", "kjapt"]);
+    assert.match(finner, /<button type="button" class="finner-steg-knapp" data-finn-yngst="-1" aria-label="[^"]+">−<\/button>/);
+    assert.match(finner, /<ul class="spillgrid finner-liste" id="finner-liste" aria-label="[^"]+"><\/ul>/);
+    // The hero's «Finn et spill» goes here.
+    assert.match(html, /<a class="knapp" href="#spill">/);
+  }
+});
+
+test("«Mest spilt nå»: no row with the committed empty list, and the build stops on a broken file", async () => {
+  const { lesTopp, toppSpill } = await import("../scripts/rusj.mjs");
+  const topp = lesTopp(join(ROT, "rusj/topp.json"));
+  for (const sti of ["index.html", "en/index.html", "da/index.html"]) {
+    const html = readFileSync(join(WEB, sti), "utf8");
+    if (toppSpill(topp, [...html.matchAll(/<li class="spillkort" data-id="([a-z]+)"/g)].map((m) => ({ id: m[1] }))).length) continue; // the owner has run scripts/topp.mjs
+    assert.ok(!html.includes('class="topp5"') && !html.includes("Etter anonym telling"), `${sti}: raden vises uten liste`);
+  }
+  const rot = mkdtempSync(join(tmpdir(), "rusj-topp-"));
+  try {
+    const fil = join(rot, "topp.json");
+    assert.equal(lesTopp(fil), null, "ingen fil: ingen liste");
+    for (const galt of ["{ikke json", JSON.stringify({ spill: "fireren" }), JSON.stringify({ spill: ["<script>"] }), JSON.stringify({ spill: Array(11).fill("a") }), JSON.stringify({ oppdatert: "i går", spill: [] })]) {
+      writeFileSync(fil, galt);
+      assert.throws(() => lesTopp(fil), /topp\.json: (ugyldig JSON|skal være)/, galt);
+    }
+    writeFileSync(fil, JSON.stringify({ oppdatert: "2026-11-13", spill: ["a", "b", "a", "c"] }));
+    assert.deepEqual(lesTopp(fil), { oppdatert: "2026-11-13", spill: ["a", "b", "c"] });
+    // The row: the edition's games in the list's order, never 18+, at most five, none under three.
+    const liste = ["a", "b", "c", "d", "e", "f", "g"].map((id) => ({ id, alder18: id === "b" }));
+    assert.deepEqual(toppSpill({ spill: ["x", "b", "c", "a", "g", "f", "e", "d"] }, liste).map((m) => m.id), ["c", "a", "g", "f", "e"]);
+    assert.deepEqual(toppSpill({ spill: ["b", "c", "a", "x"] }, liste), []);
+    assert.deepEqual(toppSpill(null, liste), []);
+  } finally {
+    rmSync(rot, { recursive: true, force: true });
+  }
+});
+
+test("«Mest spilt nå»: the build draws the row from the list – numbered, in the edition's words, never 18+", () => {
+  const rot = mkdtempSync(join(tmpdir(), "rusj-topp-bygg-"));
+  const bygg = (navn, topp, spill = "fireren,bonden,sjakkhesten,dam,ringen,mimen") => {
+    const ut = join(rot, navn);
+    const args = [join(ROT, "scripts/bygg.mjs"), "--ut", ut, "--spill", spill];
+    if (topp !== undefined) {
+      writeFileSync(join(rot, navn + ".json"), JSON.stringify(topp));
+      args.push("--topp", join(rot, navn + ".json"));
+    } else args.push("--topp", join(rot, "finnes-ikke.json"));
+    execFileSync(process.execPath, args, { cwd: ROT, stdio: "pipe" });
+    return (sti) => readFileSync(join(ut, sti), "utf8");
+  };
+  const rad = (html) => {
+    const fra = html.indexOf('<section class="topp5"');
+    if (fra < 0) return null;
+    const del = html.slice(fra, html.indexOf("</section>", fra));
+    return {
+      ider: [...del.matchAll(/<li class="spillkort hyllekort toppkort" data-id="([a-z]+)"/g)].map((m) => m[1]),
+      nr: [...del.matchAll(/<span class="topp-nr" aria-hidden="true">(\d)<\/span>/g)].map((m) => Number(m[1])),
+      navn: [...del.matchAll(/aria-label="([^"]+)"/g)].map((m) => m[1]),
+      lenker: [...del.matchAll(/<a href="([^"]+)"/g)].map((m) => m[1]),
+      del,
+      forHelt: fra > html.indexOf("</header>") && fra < html.indexOf('id="fortsett"'),
+    };
+  };
+  try {
+    // ringen is 18+, reversi is not in this build, «finnesikke» is no game: the five others, in order.
+    const les = bygg("med", { oppdatert: "2026-11-13", spill: ["ringen", "fireren", "finnesikke", "bonden", "sjakkhesten", "reversi", "dam", "mimen", "luringen"] });
+    const nb = rad(les("index.html"));
+    assert.ok(nb, "raden mangler");
+    assert.deepEqual(nb.ider, ["fireren", "bonden", "sjakkhesten", "dam", "mimen"]);
+    assert.deepEqual(nb.nr, [1, 2, 3, 4, 5]);
+    assert.ok(nb.forHelt, "raden står ikke rett under toppen av siden");
+    assert.match(nb.del, /aria-label="Mest spilt nå"/);
+    assert.match(nb.del, /<p class="topp5-fot">Etter anonym telling<\/p>/);
+    assert.ok(nb.navn.slice(1).every((n, i) => n.startsWith(`Nummer ${i + 1}. `)), nb.navn.join(" | "));
+    assert.deepEqual(nb.lenker, ["/fireren/", "/bonden/", "/sjakkhesten/", "/dam/", "/mimen/"]);
+    const en = rad(les("en/index.html"));
+    assert.ok(en && en.ider.length === 5 && en.lenker.every((l) => l.startsWith("/en/")), JSON.stringify(en && en.lenker));
+    assert.match(en.del, /aria-label="Most played now"[\s\S]*Based on anonymous counts/);
+    assert.ok(en.navn.slice(1).every((n, i) => n.startsWith(`Number ${i + 1}. `)));
+    assert.match(rad(les("da/index.html")).del, /Mest spillet nu[\s\S]*Ud fra anonym optælling/);
+    // The finder ranks by the same list (ringen too: it only shows after «Voksen fest (18+)»).
+    const liste = les("felles/spilliste.js");
+    for (const [id, plass] of [["ringen", 1], ["fireren", 2], ["mimen", 6]]) assert.match(liste, new RegExp(`"id":"${id}"[^}]*"topp":${plass}[,}]`));
+    // Only two games of the edition left: no row. No file: no row.
+    assert.equal(rad(bygg("to", { oppdatert: "2026-11-13", spill: ["ringen", "fireren", "bonden", "reversi"] })("index.html")), null);
+    const uten = bygg("uten", undefined);
+    assert.equal(rad(uten("index.html")), null);
+    assert.doesNotMatch(uten("felles/spilliste.js"), /"topp":/);
+  } finally {
+    rmSync(rot, { recursive: true, force: true });
+  }
 });

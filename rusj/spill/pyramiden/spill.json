@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis drikkespill på norsk (18+). Fire hemmelige kort, en pyramide som snus – del ut slurker eller bløff. Mobilen holder styr. Alkoholfritt teller.",
   "kort": "Fire hemmelige kort, femten i pyramiden – og mye bløff.",
   "spillere": [3, 10],
+  "alder": 18,
   "minutter": [15, 30],
   "mobiler": "en",
   "tagger": ["drikke", "fest"],

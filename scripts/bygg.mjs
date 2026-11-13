@@ -5,6 +5,7 @@
 //   dist/web/             the website: front page, /luringen/, one folder per rusj game, offline support
 //   dist/luringen.html    Luringen as one page without <html>/<head> (for the Claude artifact)
 // Options: --ut <dir> (build somewhere else), --spill id1,id2 (only these games),
+//          --topp <file> (another «Mest spilt nå» list than rusj/topp.json; for tests),
 //          --sw-av (emergency: publish a service worker that removes itself; the same happens
 //          when the file rusj/SW-AV exists, so the brake can be pulled with a commit – rusj/DRIFT.md)
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, rmSync, readdirSync } from "node:fs";
@@ -99,13 +100,15 @@ const tilAnnenMappe = process.argv.includes("--ut");
 if (!tilAnnenMappe) writeFileSync(join(ROT, "dist/luringen.html"), fyll(hode + kropp, false));
 
 // ---------- Website: rusj.no ----------
-// Options: --ut <dir> (default dist/web), --spill id1,id2 (only these games; for tests)
+// Options: --ut <dir> (default dist/web), --spill id1,id2 (only these games; for tests),
+// --topp <file> (instead of rusj/topp.json; for tests)
 const arg = (navn) => {
   const i = process.argv.indexOf(navn);
   return i > 0 ? process.argv[i + 1] : null;
 };
 const WEB = arg("--ut") ? resolve(arg("--ut")) : join(ROT, "dist/web");
 const utvalg = arg("--spill") ? arg("--spill").split(",").map((s) => s.trim()).filter(Boolean) : null;
+const toppFil = arg("--topp") ? resolve(arg("--topp")) : undefined;
 rmSync(WEB, { recursive: true, force: true });
 mkdirSync(WEB, { recursive: true });
 
@@ -130,6 +133,7 @@ const LURINGEN_KORT = {
   undertittel: "Finn bløfferen",
   kort: "Alle får det hemmelige ordet. Nesten alle.",
   spillere: [3, 10],
+  alder: 8, // the lowest recommended age, as "alder" in a game's spill.json
   minutter: [10, 40],
   mobiler: "begge",
   tagger: ["fest", "blof", "ord", "familie"],
@@ -181,7 +185,7 @@ ${webKropp.trim()}
 `;
 writeFileSync(join(LUR, "index.html"), index);
 
-const rusj = byggRusj({ ROT, WEB, ordData: data, ordbanker: Object.fromEntries(Object.entries(ordbanker).map(([s, b]) => [s, b.data])), utvalg, luringen: utvalg && !utvalg.includes("luringen") ? null : LURINGEN_KORT });
+const rusj = byggRusj({ ROT, WEB, ordData: data, ordbanker: Object.fromEntries(Object.entries(ordbanker).map(([s, b]) => [s, b.data])), utvalg, luringen: utvalg && !utvalg.includes("luringen") ? null : LURINGEN_KORT, topp: toppFil });
 
 // ---------- Offline support: one service worker at the root (rusj/kit/sw.js) ----------
 // The worker gets three things from the build:

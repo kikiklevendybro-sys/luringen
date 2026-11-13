@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis vri åtter på norsk. Følg farge eller tall, og la åtteren vri. Spill mot mobilen på tre nivåer, eller 2–4 på samme mobil.",
   "kort": "Følg farge eller tall – åtteren vrir alt.",
   "spillere": [1, 4],
+  "alder": 6,
   "minutter": [5, 20],
   "mobiler": "en",
   "tagger": ["klassiker", "kort", "familie"],

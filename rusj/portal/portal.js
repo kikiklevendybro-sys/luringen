@@ -1,6 +1,6 @@
-/* rusj.no front page: search, category shelves («Dagens utfordringer» with what is done today and
-   the streak), filters by player count and type, the 18+ gate for drinking games, «Kveldens
-   gjeng» (the evening's scoreboard), «Overrask meg» (a slot machine), «Fortsett der dere slapp»,
+/* rusj.no front page: «Hva skal vi spille?» (three questions and a short list), search, category
+   shelves («Dagens utfordringer» with what is done today and the streak), filters by player count
+   and type, the 18+ gate for drinking games, «Kveldens gjeng» (the evening's scoreboard), «Overrask meg» (a slot machine), «Fortsett der dere slapp»,
    the mascot parade and the install-as-app tip.
    Reads window.RUSJ_SPILLISTE (written by the build). Nothing leaves the device.
    The same file runs every edition (rusj/SPRAK.md): texts through t() from /felles/tekst.js. */
@@ -100,6 +100,7 @@
   function nyAlder() {
     byggHyller();
     visFortsett();
+    visFinner();
     oppdater();
   }
 
@@ -171,6 +172,128 @@
   };
   const passer = (s) => (over18 || !s.alder18) && passerValg(s);
 
+  // ---------- «Hva skal vi spille?»: three questions and a short list (rusj/portal/finner.js) ----------
+  // How many, the youngest one's age and what they fancy: the list under the questions answers at
+  // once (no button), with copies of the game cards and a line on why each one fits. The answers are
+  // kept with the filters (rusj.portal). «Voksen fest (18+)» is a step only behind the 18+ door.
+
+  const Finner = window.RusjFinner;
+  const FINN_SIDE = 6; // cards before «Vis flere»
+  const MOB_LEST = { en: t("én mobil"), hver: t("hver sin mobil"), begge: t("én eller flere mobiler") };
+  let finnValg = Finner ? Finner.normaliser(lagret.finn, over18) : null;
+  let finnVist = FINN_SIDE;
+  const finnListe = $("#finner-liste");
+  const yngstValg = $("#finner-yngst");
+  const lagre = () => skriv(k("portal"), Object.assign({ antall, tagg }, finnValg ? { finn: finnValg } : {}));
+
+  // «Fra 7 år · 3–8 spillere · 10–30 min · én mobil»: the parts, each kept whole on a line.
+  function grunn(s) {
+    const [a, b] = s.spillere;
+    const [fra, til] = s.minutter;
+    return [
+      s.alder18 ? "18+" : t("Fra {n} år", { n: s.alder }),
+      a === b ? (a === 1 ? t("1 spiller") : t("{n} spillere", { n: a })) : t("{a}–{b} spillere", { a, b }),
+      fra === til ? `${fra} min` : `${fra}–${til} min`,
+      MOB_LEST[s.mobiler],
+    ];
+  }
+  function finnKort(s) {
+    const k = kilde(s.id);
+    if (!k) return null;
+    const c = k.cloneNode(true);
+    c.hidden = false;
+    c.classList.add("finnerkort");
+    const linje = document.createElement("span");
+    linje.className = "kort-grunn";
+    grunn(s).forEach((del, i) => {
+      if (i) linje.append(" · ");
+      const d = document.createElement("span");
+      d.textContent = del;
+      linje.append(d);
+    });
+    $(".kort-tekst", c).append(linje);
+    // The age goes into the link's name too (players, phones and time are in it already).
+    const a = $("a", c);
+    if (a && !s.alder18) a.dataset.etikett = (a.dataset.etikett != null ? a.dataset.etikett : a.getAttribute("aria-label") || "") + " " + t("Fra {n} år", { n: s.alder }) + ".";
+    return c;
+  }
+
+  function visFinner() {
+    if (!Finner || !finnListe) return;
+    finnValg = Finner.normaliser(finnValg, over18);
+    $$("[data-finn-antall]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.finnAntall === finnValg.antall)));
+    $$("[data-finn-lyst]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.finnLyst === finnValg.lyst)));
+    let fest = $('option[value="fest"]', yngstValg);
+    if (over18 && !fest) {
+      fest = document.createElement("option");
+      fest.value = "fest";
+      fest.textContent = t("Voksen fest (18+)");
+      yngstValg.append(fest);
+    } else if (!over18 && fest) yngstValg.removeChild(fest);
+    yngstValg.value = String(finnValg.yngst);
+    const trinn = Finner.alderTrinn(over18);
+    const her = trinn.indexOf(finnValg.yngst);
+    // aria-disabled, not disabled: the button keeps the focus at the end of the steps.
+    $('[data-finn-yngst="-1"]').setAttribute("aria-disabled", String(her <= 0));
+    $('[data-finn-yngst="1"]').setAttribute("aria-disabled", String(her >= trinn.length - 1));
+    const liste = Finner.finn(
+      SPILL.filter((s) => kilde(s.id)),
+      finnValg,
+      { maned: new Date().getMonth() + 1 },
+    );
+    finnListe.textContent = "";
+    for (const s of liste.slice(0, finnVist)) {
+      const c = finnKort(s);
+      if (c) finnListe.append(c);
+    }
+    $("#finner-mer").hidden = liste.length <= finnVist;
+    const tekst = liste.length ? t("{n} spill passer", { n: liste.length }) : t("Ingen spill passer akkurat det. Prøv en annen alder eller et annet ønske.");
+    if ($("#finner-treff").textContent !== tekst) $("#finner-treff").textContent = tekst;
+    merkFortsett(); // the link names, and «Fortsett» on a game in progress
+  }
+  function nyttFinnValg() {
+    finnVist = FINN_SIDE;
+    visFinner();
+    lagre();
+  }
+  if (Finner && finnListe) {
+    $("#finner").addEventListener("click", (e) => {
+      const a = e.target.closest("[data-finn-antall]");
+      if (a) {
+        finnValg.antall = finnValg.antall === a.dataset.finnAntall ? "" : a.dataset.finnAntall;
+        nyttFinnValg();
+        return;
+      }
+      const l = e.target.closest("[data-finn-lyst]");
+      if (l) {
+        finnValg.lyst = l.dataset.finnLyst === finnValg.lyst ? "alt" : l.dataset.finnLyst;
+        nyttFinnValg();
+        return;
+      }
+      const steg = e.target.closest("[data-finn-yngst]");
+      if (steg) {
+        if (steg.getAttribute("aria-disabled") === "true") return;
+        const trinn = Finner.alderTrinn(over18);
+        const her = trinn.indexOf(finnValg.yngst);
+        finnValg.yngst = trinn[Math.max(0, Math.min(trinn.length - 1, her + Number(steg.dataset.finnYngst)))];
+        nyttFinnValg();
+        return;
+      }
+      if (e.target.closest("#finner-mer")) {
+        const for_ = finnVist;
+        finnVist += FINN_SIDE;
+        visFinner();
+        // On to the first new card (the button may be gone now).
+        const ny = finnListe.children[for_];
+        if (ny && $("a", ny)) $("a", ny).focus();
+      }
+    });
+    yngstValg.addEventListener("change", () => {
+      finnValg.yngst = yngstValg.value;
+      nyttFinnValg();
+    });
+  }
+
   const filterKnapp = $("#filter-knapp");
   const filtre = $("#filtre");
 
@@ -215,7 +338,7 @@
     $("#filter-antall").textContent = String(valgt);
     filterKnapp.classList.toggle("aktiv", valgt > 0);
     filterKnapp.setAttribute("aria-label", valgt ? t("Filter, {n} valgt", { n: valgt }) : t("Filter"));
-    skriv(k("portal"), { antall, tagg });
+    lagre();
     sjekkFastSnart(); // the list changed length: the search row may have come loose or stuck
   }
 
@@ -226,8 +349,8 @@
   filterKnapp.addEventListener("click", () => {
     const apen = filtre.hidden;
     visFiltre(apen);
-    // Opened from the stuck bar further down: the panel sits under the heading, so go there.
-    if (apen && $("#filter").classList.contains("fast")) $("#spill").scrollIntoView({ behavior: rolig() ? "auto" : "smooth", block: "start" });
+    // Opened from the stuck bar further down: the panel sits under the search row's own place, so go there.
+    if (apen && $("#filter").classList.contains("fast")) sokTilTopps(true);
   });
   filtre.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
@@ -254,11 +377,13 @@
       tagg = ny;
       if (over18 !== var18) nyAlder();
       else oppdater();
-      // «Se alle» on a shelf: the shelves hide, so take the reader to the results and the filter.
+      // «Se alle» on a shelf: the shelves hide, so take the reader to the filter and the results
+      // (under the search row, which comes after «Hva skal vi spille?»).
       if (b.classList.contains("hylle-alle")) {
         visFiltre(true);
-        $("#spill").focus({ preventScroll: true });
-        $("#spill").scrollIntoView({ behavior: rolig() ? "auto" : "smooth", block: "start" });
+        sokTilTopps(true);
+        const valgtTagg = $("#tagger .brikke[aria-pressed='true']");
+        (valgtTagg || $("#filter-knapp")).focus({ preventScroll: true });
       }
       return;
     }
@@ -831,14 +956,14 @@
   }
 
   // The search bar gets a solid background (and a soft shadow) once the page has scrolled in under
-  // it: when its heading is a little more than out of sight above. Not at the very point where it
+  // it: when what stands right above it («Hva skal vi spille?») is a little more than out of sight. Not at the very point where it
   // starts to stick – that is where a search puts it, and the line right below it must stay clear.
   // Only the background changes, never the height: see .filter.fast in portal.css.
   // (Read from the scroll position, once per frame. An IntersectionObserver on the heading misses a
   // jump straight past it – the End key, a restored scroll position – and leaves the bar see-through.)
   function sjekkFast() {
     sjekkFast.venter = false;
-    $("#filter").classList.toggle("fast", $("#spill").getBoundingClientRect().bottom < -14);
+    $("#filter").classList.toggle("fast", ($("#finner") || $("#spill")).getBoundingClientRect().bottom < -14);
   }
   function sjekkFastSnart() {
     if (sjekkFast.venter) return;
@@ -849,14 +974,13 @@
   window.addEventListener("resize", sjekkFastSnart);
   sjekkFast();
 
-  // «Finn et spill» goes to the search field.
-  const finn = $('a.knapp[href="#spill"]');
-  if (finn)
-    finn.addEventListener("click", (e) => {
+  // «Finn et spill» goes to «Hva skal vi spille?»: the three questions, right under the heading.
+  const finnKnapp = $('a.knapp[href="#spill"]');
+  if (finnKnapp)
+    finnKnapp.addEventListener("click", (e) => {
       e.preventDefault();
-      // With an on-screen keyboard coming up, start at the search row itself; otherwise at its heading.
-      $(beroring ? "#filter" : "#spill").scrollIntoView({ behavior: rolig() ? "auto" : "smooth", block: "start" });
-      setTimeout(() => $("#sok").focus({ preventScroll: true }), rolig() ? 0 : 450);
+      $("#spill").scrollIntoView({ behavior: rolig() ? "auto" : "smooth", block: "start" });
+      $("#spill").focus({ preventScroll: true });
     });
 
   // The badge in the hero counts every game (the build wrote the same number into the page).
@@ -943,6 +1067,9 @@
   visKveld();
   visFiltre(!!(antall || tagg)); // open when filters from last time are still on
   oppdater();
+  visFinner();
+  // Only changes are read aloud, not the first list.
+  if ($("#finner-treff")) $("#finner-treff").setAttribute("aria-live", "polite");
 
   // The app shortcut «Overrask meg» (a long press on the app icon) opens /#overrask: spin at once.
   if (hash === "#overrask" && automat.showModal) {
@@ -964,6 +1091,7 @@
       over18 = true; // confirmed in a game's 18+ gate meanwhile
       visAlder();
       byggHyller();
+      visFinner();
     }
     finnAktive();
     oppdaterDagens(); // a daily puzzle may be finished since the page was left

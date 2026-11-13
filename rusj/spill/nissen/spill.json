@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis nissetrekning på norsk. Skriv navnene og trekk – alle ser hvem de skal gi gave til, på én mobil eller hver sin via lenke. Ingen konto.",
   "kort": "Hemmelig nisse uten lapper i lua – på én mobil eller via lenke.",
   "spillere": [3, 30],
+  "alder": 6,
   "minutter": [2, 10],
   "mobiler": "begge",
   "tagger": ["familie", "fest", "verktoy"],

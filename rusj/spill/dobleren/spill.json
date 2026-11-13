@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis 2048 på norsk. Sveip brikkene, slå sammen like tall og nå 2048 – på 4 × 4 eller 5 × 5, med angreknapp og din egen rekord. Dagens lynrunde: samme 3 × 3-brett for hele landet.",
   "kort": "Sveip, slå sammen og doble. Klarer du 2048?",
   "spillere": [1, 1],
+  "alder": 7,
   "minutter": [3, 20],
   "mobiler": "en",
   "tagger": ["klassiker", "tenke", "alene", "daglig"],

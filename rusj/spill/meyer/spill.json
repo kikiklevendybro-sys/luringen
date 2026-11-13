@@ -5,6 +5,7 @@
   "beskrivelse": "Meyer på norsk, gratis: rist begeret, kikk i hemmelighet og si et tall som slår det forrige – sant eller bløff. For 2–10 på én mobil, også mot mobilen.",
   "kort": "Slå, si et tall – og håp at ingen sjekker.",
   "spillere": [2, 10],
+  "alder": 10,
   "minutter": [10, 30],
   "mobiler": "en",
   "tagger": ["fest", "blof", "klassiker"],

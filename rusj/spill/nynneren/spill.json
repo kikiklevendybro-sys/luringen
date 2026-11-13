@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis nynnelek på norsk med over 500 låter – barnesanger, julesanger, allsang, filmmusikk og popklassikere. Nynn uten ord, de andre gjetter!",
   "kort": "Nynn låta uten ord – de andre gjetter.",
   "spillere": [3, 20],
+  "alder": 6,
   "minutter": [10, 40],
   "mobiler": "en",
   "tagger": ["fest", "familie", "lag"],

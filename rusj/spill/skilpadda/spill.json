@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis mahjong-kabal på norsk: finn to like, ledige brikker og rydd hele brettet. Fem brett, hint og angre, bare brett som kan gå opp – og dagens brett.",
   "kort": "Finn to like, ledige brikker – og rydd hele brettet.",
   "spillere": [1, 1],
+  "alder": 7,
   "minutter": [3, 20],
   "mobiler": "en",
   "tagger": ["alene", "tenke", "daglig", "klassiker"],

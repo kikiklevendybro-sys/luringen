@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis Snake på norsk. Styr slangen med sveip, piler eller tastatur, spis frukt og voks – tre hastigheter, med eller uten vegger, og din egen rekord.",
   "kort": "Spis, voks og sving – bare ikke bit deg selv i halen!",
   "spillere": [1, 1],
+  "alder": 5,
   "minutter": [2, 15],
   "mobiler": "en",
   "tagger": ["klassiker", "alene"],

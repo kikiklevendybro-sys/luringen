@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis minikryssord på norsk, laget for mobilen. Dagens kryss er likt for alle, og du kan lage nye kryss om dyr, mat, sport og mye mer.",
   "kort": "Små kryssord laget for mobilen – nytt kryss hver dag.",
   "spillere": [1, 1],
+  "alder": 10,
   "minutter": [3, 15],
   "mobiler": "en",
   "tagger": ["daglig", "ord", "alene", "tenke"],

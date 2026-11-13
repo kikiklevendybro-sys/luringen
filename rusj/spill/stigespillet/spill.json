@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis stigespill på norsk for de minste: kast terningen, klatre opp stigene og skli ned sklia. 1–4 på én mobil – mobilen kan ta de ledige plassene.",
   "kort": "Klatre opp stigene, skli ned sklia.",
   "spillere": [1, 4],
+  "alder": 4,
   "minutter": [10, 25],
   "mobiler": "en",
   "tagger": ["barn", "familie", "klassiker"],

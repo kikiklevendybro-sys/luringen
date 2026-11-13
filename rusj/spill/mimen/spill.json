@@ -5,6 +5,7 @@
   "beskrivelse": "Gratis mimelek på norsk med over 600 oppgaver – fra pingvin til å gå på glatt is. Hurtigmim på tid eller én oppgave om gangen, alle mot alle eller lag mot lag.",
   "kort": "Vis det uten ord – de andre gjetter.",
   "spillere": [3, 20],
+  "alder": 6,
   "minutter": [10, 40],
   "mobiler": "en",
   "tagger": ["fest", "familie", "barn", "lag"],
