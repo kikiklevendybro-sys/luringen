@@ -1246,6 +1246,50 @@
         <circle cx="24" cy="18" r="8" fill="${P}" stroke="${B}" stroke-width="3.5"/>
         <circle cx="21.5" cy="18" r="1.5" fill="${B}"/><circle cx="26.5" cy="18" r="1.5" fill="${B}"/>`,
     },
+
+    // Humla: a round bumblebee — two antennae with knobs, see-through wings on the sides, a dark
+    // fuzzy stripe over the forehead and a pink flower held up at the chin (the game's letter flower).
+    humla: {
+      farge: "#ffb53d",
+      tegn: (f) => `
+        ${strek("M47 22 Q42 8 32 4", 4.5)}${strek("M73 22 Q78 8 88 4", 4.5)}
+        <circle cx="31" cy="4" r="6" fill="${B}"/><circle cx="89" cy="4" r="6" fill="${B}"/>
+        <ellipse cx="16" cy="44" rx="18" ry="11" fill="#dff3ff" stroke="${B}" stroke-width="4" transform="rotate(-28 16 44)"/>
+        <ellipse cx="104" cy="44" rx="18" ry="11" fill="#dff3ff" stroke="${B}" stroke-width="4" transform="rotate(28 104 44)"/>
+        ${glans("M9 40 Q14 36 21 37", 3)}${glans("M99 37 Q106 36 111 40", 3)}
+        ${hode(f)}
+        <path d="M23 36 Q60 12 97 36 L102 45 Q60 22 18 45Z" fill="${B}"/>
+        ${oyne({ y: 62, r: 12, pr: 5.6, dx: 1, dy: 1 })}
+        ${kinn(82)}
+        ${smil(88, 12)}
+        <g transform="translate(60 106)">
+          ${[0, 72, 144, 216, 288].map((v) => `<ellipse cx="0" cy="-8" rx="6" ry="8.5" fill="${P}" stroke="${B}" stroke-width="3" transform="rotate(${v})"/>`).join("")}
+          <circle r="6" fill="${ROSA}" stroke="${B}" stroke-width="3"/>
+        </g>`,
+    },
+
+    // Sporhunden: a round tracking dog with long floppy ears, a big shiny nose down on the trail and
+    // its tongue out; a line of paw prints runs past (the trail it follows through the letters).
+    sporhunden: {
+      farge: "#e0a15e",
+      tegn: (f) => {
+        const pote = (x, y, v) =>
+          `<g transform="translate(${x} ${y}) rotate(${v})"><ellipse cx="0" cy="2" rx="4.6" ry="3.8" fill="${B}"/><circle cx="-4.2" cy="-3.6" r="1.7" fill="${B}"/><circle cx="0" cy="-5.2" r="1.7" fill="${B}"/><circle cx="4.2" cy="-3.6" r="1.7" fill="${B}"/></g>`;
+        return `
+          ${form("M22 30 Q4 34 6 66 Q8 92 24 96 Q34 92 32 66 Q31 44 38 34Z", "#8a5130")}
+          ${form("M98 30 Q116 34 114 66 Q112 92 96 96 Q86 92 88 66 Q89 44 82 34Z", "#8a5130")}
+          ${hode(f)}
+          <ellipse cx="60" cy="84" rx="22" ry="16" fill="#f6d7ae" stroke="${B}" stroke-width="4"/>
+          ${oyne({ y: 56, r: 11, pr: 5.4, dx: 0, dy: 3 })}
+          ${strek("M33 40 Q40 35 48 39M72 39 Q80 35 87 40", 4.5)}
+          <ellipse cx="60" cy="76" rx="9" ry="6.5" fill="${B}"/>
+          ${glans("M56 74 Q59 72 62 73", 2.5)}
+          ${strek("M60 82 V88M50 88 Q60 96 70 88", 4)}
+          ${form("M55 91 Q60 104 65 91Z", ROSA, 3)}
+          ${kinn(84)}
+          ${pote(104, 108, 20)}${pote(116, 96, 30)}`;
+      },
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

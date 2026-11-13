@@ -783,6 +783,32 @@
         "tallsti",
         "linjepuslespill"
       ]
+    },
+    "humla": {
+      "tittel": "Lag ord av sju bokstaver – dagens ordblomst, gratis",
+      "frase": "Lag ord av sju bokstaver",
+      "beskrivelse": "Gratis ordspill på norsk: lag så mange ord du kan av sju bokstaver – midtbokstaven må være med. Samle poeng, nå honning og del rangen. Ny blomst hver dag.",
+      "sok": [
+        "sju bokstaver",
+        "lag ord av bokstaver",
+        "ordspill med bokstaver",
+        "dagens ordspill",
+        "finn flest ord",
+        "pangram"
+      ]
+    },
+    "sporhunden": {
+      "tittel": "Ordjakt – finn dagens temaord i bokstavene, gratis",
+      "frase": "Ordjakt",
+      "beskrivelse": "Gratis ordjakt på norsk: følg sporet gjennom bokstavene og finn dagens temaord og nøkkelordet. Ny ledetråd hver dag – og klassisk ordleting for familien.",
+      "sok": [
+        "ordjakt",
+        "finn ordene",
+        "ordleting",
+        "temaord",
+        "dagens ordjakt",
+        "ordsøk"
+      ]
     }
   }
 }
