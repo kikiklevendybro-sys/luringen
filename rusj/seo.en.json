@@ -592,6 +592,17 @@
       "tittel": "Path puzzle – one line through every square, daily",
       "frase": "Path puzzle",
       "beskrivelse": "Play a free path puzzle: draw one thread through every square and pass the numbers in order. A new yarn every day, boards from 5 × 5 to 8 × 8, some with walls."
+    },
+    "samleren": {
+      "tittel": "Rummy online – free, with 500 and gin rummy",
+      "frase": "Rummy",
+      "beskrivelse": "Play rummy free in your browser: lay down sets and runs, lay off and go out first. With 500 and gin rummy, against the phone or 2–4 on one phone.",
+      "sok": [
+        "rummy rules",
+        "rummy 500 rules",
+        "gin rummy free",
+        "rummy against the computer"
+      ]
     }
   }
 }

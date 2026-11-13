@@ -609,6 +609,17 @@
       "tittel": "Stipuslespil – én streg gennem alle felter",
       "frase": "Stipuslespil",
       "beskrivelse": "Spil et gratis stipuslespil: træk én tråd gennem alle felter, og tag tallene i rækkefølge. Nyt nøgle hver dag og bræt fra 5 × 5 til 8 × 8, nogle med vægge."
+    },
+    "samleren": {
+      "tittel": "Rommy online – gratis, med 500 og gin rummy",
+      "frase": "Rommy",
+      "beskrivelse": "Spil rommy gratis på dansk: læg sæt og rækker ud, læg til, og bliv af med kortene først. Med 500 og gin rummy, mod mobilen eller 2–4 på samme mobil.",
+      "sok": [
+        "rommy regler",
+        "500 kortspil regler",
+        "gin rummy gratis",
+        "rommy mod computeren"
+      ]
     }
   }
 }

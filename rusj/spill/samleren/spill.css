@@ -1,0 +1,899 @@
+/* Samleren. Game styles are prefixed "sa-"; the shared playing cards "sk-". */
+
+/* ---------- Playing cards (the same look in Kortkongen, Bussen and Pyramiden) ----------
+   .sk-kort takes its width from --kortbredde (or --kb on the card itself); the face is an SVG that
+   scales with it. The back uses the game's accent colour. Flip: add .sk-opp. */
+.sk-kort {
+  --kb: var(--kortbredde, 64px);
+  --sk-r: calc(var(--kb) * 0.1);
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--kb);
+  height: calc(var(--kb) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sk-r);
+  background: none;
+  color: inherit;
+  font: inherit;
+  perspective: calc(var(--kb) * 9);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sk-indre {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.3, 1.25, 0.45, 1);
+}
+
+.sk-kort.sk-opp .sk-indre {
+  transform: rotateY(180deg);
+}
+
+.sk-side {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--sk-r);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sk-for {
+  background: linear-gradient(170deg, #fffdf8 0%, #fff8ec 55%, #f9eedd 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 18, 48, 0.16),
+    inset 0 calc(var(--kb) * -0.035) 0 rgba(27, 18, 48, 0.06),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+  transform: rotateY(180deg);
+}
+
+.sk-ansikt {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sk-ansikt text {
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* The back: a woven pattern in the game's colour, a paper rim and the rusj blob in the middle. */
+.sk-bak {
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.32), transparent 46%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    linear-gradient(160deg, color-mix(in srgb, var(--aksent) 82%, #fff) 0%, var(--aksent) 42%, color-mix(in srgb, var(--aksent) 62%, var(--natt)) 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.045) #fff8ec,
+    inset 0 0 0 calc(var(--kb) * 0.065) rgba(27, 18, 48, 0.18),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+}
+
+.sk-bak::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44%;
+  aspect-ratio: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-14 -14 28 28'%3E%3Cpath d='M0 -11 C7 -12 12 -6 11 1 C10 8 5 12 -1 11 C-8 10 -12 5 -11 -2 C-10 -8 -6 -10 0 -11Z' fill='%23fff8ec' stroke='%231b1230' stroke-opacity='.25' stroke-width='1.6'/%3E%3Cpath d='M-4.5 -3.5 C-3 -6.5 1 -7.5 3.5 -6' fill='none' stroke='%231b1230' stroke-opacity='.2' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: translate(-50%, -50%) rotate(-10deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-indre {
+    transition-duration: 0.01ms !important;
+  }
+}
+/* ---------- end of playing cards ---------- */
+
+
+/* ---------- The table ---------- */
+
+.skjerm-spill {
+  --kb-hand: 58px;
+  --kb-haug: 52px;
+  --kb-meld: 34px;
+  --kb-bunke: 38px;
+  gap: 10px;
+}
+
+/* The dock on the table: a slimmer main button, so the hand keeps its room. */
+.skjerm-spill .dokk {
+  gap: 6px;
+  padding-top: 18px;
+}
+
+.skjerm-spill .dokk .knapp,
+.skjerm-spill .dokk .knapp-2 {
+  min-height: 54px;
+  padding-block: 10px;
+  font-size: 1.14rem;
+}
+
+.sa-knapprad {
+  grid-template-columns: 1.2fr 1fr;
+}
+
+.sa-andre {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sa-plass {
+  display: flex;
+  flex: 0 1 160px;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 5px;
+  border-radius: 18px;
+  background: var(--natt-2);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.sa-plass.aktiv {
+  box-shadow: 0 0 0 3px var(--aksent);
+  transform: translateY(-2px);
+}
+
+.sa-ava {
+  position: relative;
+  flex: none;
+}
+
+.sa-info {
+  display: grid;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.sa-navn {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sa-antall,
+.sa-p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  color: var(--tekst-2);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sa-p {
+  display: block;
+}
+
+.sa-rygger {
+  display: inline-flex;
+  flex: none;
+  width: calc(10px + (var(--n) - 1) * 4px);
+  height: 14px;
+}
+
+.sa-rygger i {
+  flex: none;
+  width: 10px;
+  height: 14px;
+  margin-right: -6px;
+  border-radius: 2px;
+  background: var(--aksent);
+  box-shadow: inset 0 0 0 1.5px #fff8ec;
+}
+
+.sa-tenker {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  display: flex;
+  gap: 2px;
+  padding: 3px 4px;
+  border-radius: 999px;
+  background: var(--papir);
+}
+
+.sa-tenker i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--blekk);
+  animation: sa-prikk 1s infinite ease-in-out;
+}
+
+.sa-tenker i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.sa-tenker i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes sa-prikk {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+/* The felt: the piles on top, the melds below them. */
+.sa-bord {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 24px;
+  background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, #1e8a62 46%, var(--natt)) 0%, color-mix(in srgb, #1e8a62 22%, var(--natt)) 75%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.06);
+}
+
+/* The game's name in the corner of the felt (Rummy, 500, Gin rummy). */
+.sa-merke {
+  position: absolute;
+  right: 14px;
+  bottom: 7px;
+  color: rgba(255, 248, 236, 0.42);
+  font: 900 0.66rem/1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.sa-hauger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+.sa-fem .sa-hauger {
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.sa-stokk,
+.sa-bunke {
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--kb-haug);
+  height: calc(var(--kb-haug) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  --kortbredde: var(--kb-haug);
+}
+
+.sa-stokk .sk-kort {
+  box-shadow:
+    3px 3px 0 -1px rgba(255, 248, 236, 0.75),
+    6px 6px 0 -2px rgba(255, 248, 236, 0.45);
+}
+
+.sa-stokk[aria-disabled="true"],
+.sa-bunke[aria-disabled="true"] {
+  cursor: default;
+}
+
+.sa-stokk.klar .sk-kort,
+.sa-bunke.klar .sa-topp {
+  animation: sa-puls 1.4s infinite ease-in-out;
+}
+
+@keyframes sa-puls {
+  50% {
+    transform: translateY(-4px);
+    filter: brightness(1.12);
+  }
+}
+
+.sa-bunke > .sk-kort {
+  position: absolute;
+  inset: 0;
+}
+
+.sa-under {
+  transform: rotate(-8deg) translate(-3px, 2px);
+  opacity: 0.85;
+}
+
+.sa-tom {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+}
+
+.sa-tom.liten {
+  width: var(--kb-bunke);
+  height: calc(var(--kb-bunke) * 1.4);
+}
+
+.sa-tall {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  min-width: 24px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 0 rgba(6, 2, 14, 0.35);
+}
+
+/* 500: the discard pile spread out, every card a button; picking one takes it and all above it. */
+.sa-spredt {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  row-gap: 6px;
+  min-width: 0;
+  padding: 2px calc(var(--kb-bunke) - 22px) 2px 0;
+  --kortbredde: var(--kb-bunke);
+}
+
+.sa-bk {
+  position: relative;
+  flex: none;
+  width: var(--kb-bunke);
+  height: calc(var(--kb-bunke) * 1.4);
+  margin-right: calc(22px - var(--kb-bunke));
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+}
+
+.sa-bk:last-child {
+  margin-right: 0;
+}
+
+.sa-bk .sk-kort {
+  transition: transform 0.15s;
+}
+
+.sa-bk.valgt .sk-kort {
+  transform: translateY(-6px);
+  outline: 3px solid var(--lampe);
+  outline-offset: 1px;
+  border-radius: var(--sk-r);
+}
+
+.sa-bk.kan:last-child .sk-kort {
+  animation: sa-puls 1.4s infinite ease-in-out;
+}
+
+.sa-bk:focus-visible,
+.sa-meld:focus-visible,
+.sa-hk:focus-visible,
+.sa-stokk:focus-visible,
+.sa-bunke:focus-visible {
+  outline: none;
+}
+
+.sa-bk:focus-visible .sk-kort,
+.sa-hk:focus-visible .sk-kort,
+.sa-stokk:focus-visible .sk-kort,
+.sa-bunke:focus-visible .sa-topp {
+  outline: 3px solid var(--lampe);
+  outline-offset: 2px;
+  border-radius: var(--sk-r);
+}
+
+/* The melds on the table: little fans of cards; a meld the picked cards fit glows. */
+.sa-bordmeld {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  gap: 8px 10px;
+  max-height: 36vh;
+  overflow-y: auto;
+  padding: 4px 2px;
+  --kortbredde: var(--kb-meld);
+}
+
+.sa-tomt {
+  margin: 0;
+  padding: 6px 0;
+  color: rgba(255, 248, 236, 0.72);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.sa-meld {
+  display: flex;
+  flex: none;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(6, 2, 14, 0.22);
+  color: inherit;
+  cursor: default;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.sa-meld .sk-kort + .sk-kort {
+  margin-left: calc(var(--kb-meld) * -0.52);
+}
+
+.sa-meld.mal {
+  cursor: pointer;
+  box-shadow: 0 0 0 3px var(--lampe), 0 0 18px rgba(255, 210, 63, 0.45);
+  transform: translateY(-2px);
+}
+
+.sa-meld:focus-visible {
+  box-shadow: 0 0 0 3px var(--lampe), 0 0 0 6px var(--blekk);
+}
+
+.sa-meld.fersk {
+  animation: sa-fersk 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+@keyframes sa-fersk {
+  from {
+    transform: scale(0.7);
+    opacity: 0.3;
+  }
+}
+
+.sa-melding {
+  display: grid;
+  gap: 2px;
+  min-height: 2.6em;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.sa-melding b {
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.sa-melding.din b {
+  color: var(--lampe);
+}
+
+.sa-melding.ferdig b {
+  color: var(--lampe);
+  font-size: 1.15rem;
+}
+
+.sa-sist {
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+}
+
+/* ---------- The hand: rows of overlapping cards (laid out by leggUtHand) ---------- */
+
+/* The hand sits right above the dock, under the thumb; the free room goes above it. */
+.sa-handramme {
+  display: grid;
+  gap: 4px;
+  margin-top: auto;
+}
+
+.skjerm-spill > .dokk {
+  margin-top: 0;
+}
+
+.sa-handtopp {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--tekst-2);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sa-handtopp > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sa-sorter {
+  flex: none;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 700 0.8rem/1.2 var(--font-tekst);
+  cursor: pointer;
+}
+
+.sa-sorter[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--aksent) 40%, var(--natt-2));
+}
+
+.sa-hand {
+  --steg: 30px;
+  --per-rad: 9;
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 6px;
+  width: calc(var(--per-rad) * var(--steg) + 1px);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 12px calc(var(--kb-hand) - var(--steg)) 0 0;
+  box-sizing: content-box;
+  --kortbredde: var(--kb-hand);
+}
+
+.sa-hk {
+  position: relative;
+  flex: none;
+  width: var(--kb-hand);
+  height: calc(var(--kb-hand) * 1.4);
+  margin-right: calc(var(--steg) - var(--kb-hand));
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sa-hk .sk-kort {
+  transition: transform 0.16s ease-out, filter 0.16s, box-shadow 0.16s;
+}
+
+.sa-hk.valgt .sk-kort {
+  transform: translateY(-11px);
+  box-shadow: 0 0 0 3px var(--lampe);
+  border-radius: var(--sk-r);
+}
+
+.sa-hk.maa .sk-kort::after {
+  content: "!";
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--lampe);
+  color: var(--blekk);
+  font: 900 0.75rem/1 var(--font-display);
+}
+
+.sa-hk.fersk .sk-kort {
+  animation: sa-trukket 0.4s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+
+@keyframes sa-trukket {
+  from {
+    opacity: 0;
+    transform: translate(-30px, -80px) rotate(-10deg) scale(0.8);
+  }
+}
+
+.sa-hk.fersk.valgt .sk-kort {
+  animation: none;
+}
+
+/* Gin: the hand grouped by its best melds; a small gap after each group and a green edge under it. */
+.sa-hk.i-meld .sk-for {
+  box-shadow:
+    inset 0 -4px 0 #2bb673,
+    inset 0 0 0 1px rgba(27, 18, 48, 0.16),
+    0 1px 2px rgba(6, 2, 14, 0.4);
+}
+
+.sa-sist-port {
+  margin: 0 0 4px;
+  color: var(--tekst-2);
+  text-align: center;
+}
+
+/* ---------- End of a round ---------- */
+
+/* The result takes the room above the dock, so the dock stays at the bottom. */
+.sa-slutt {
+  margin-bottom: auto;
+}
+
+.sa-resultat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  --kortbredde: 26px;
+}
+
+.sa-resultat li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-height: 48px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 16px;
+  background: var(--natt-2);
+}
+
+.sa-resultat li.vant {
+  box-shadow: 0 0 0 3px var(--lampe);
+}
+
+.sa-resultat b {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sa-rest {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.sa-rest .sk-kort {
+  flex-shrink: 1;
+  min-width: 8px;
+}
+
+.sa-rest .sk-kort:last-child {
+  flex-shrink: 0;
+}
+
+.sa-oppstilling {
+  display: flex;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  gap: 6px;
+  order: 3;
+}
+
+.sa-gruppe {
+  display: flex;
+  padding: 2px;
+  border-radius: 6px;
+  background: rgba(43, 182, 115, 0.22);
+}
+
+.sa-gruppe .sk-kort + .sk-kort {
+  margin-left: -12px;
+}
+
+.sa-gruppe.avlagt {
+  background: rgba(255, 210, 63, 0.25);
+}
+
+.sa-gruppe.los {
+  background: rgba(255, 79, 107, 0.2);
+}
+
+.sa-ut {
+  margin-left: auto;
+  color: var(--lampe);
+  font-family: var(--font-display);
+}
+
+.sa-pt {
+  flex: none;
+  margin-left: auto;
+  color: var(--tekst-2);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.sa-pt b {
+  color: var(--tekst);
+}
+
+.sa-stilling {
+  margin: 4px 0 0;
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ---------- Home and the crowning ---------- */
+
+.sa-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.sa-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sa-rekorder li,
+.sa-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sa-rekorder li b,
+.sa-rekordlinje b {
+  color: var(--tekst);
+}
+
+.sa-rekordlinje {
+  width: fit-content;
+  margin: 12px auto 0;
+}
+
+.sa-niva {
+  font-family: var(--font-display);
+}
+
+/* ---------- Taller and smaller screens ---------- */
+
+@media (min-height: 780px) and (orientation: portrait) {
+  .skjerm-spill {
+    --kb-hand: 68px;
+    --kb-haug: 62px;
+    --kb-meld: 40px;
+    --kb-bunke: 44px;
+  }
+}
+
+@media (max-height: 700px) {
+  .skjerm-spill {
+    --kb-hand: 50px;
+    --kb-haug: 42px;
+    --kb-meld: 30px;
+    --kb-bunke: 34px;
+    gap: 5px;
+  }
+  .skjerm-spill > .dokk {
+    padding-top: 12px;
+  }
+  .sa-plass {
+    padding: 3px 8px 3px 3px;
+  }
+  .sa-plass .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+  /* The seat in two lines: the name, then cards and points side by side. */
+  .sa-info {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 6px;
+  }
+  .sa-navn {
+    flex-basis: 100%;
+  }
+  .sa-rygger {
+    display: none;
+  }
+  .sa-bord {
+    padding: 6px;
+    gap: 6px;
+  }
+  .sa-bordmeld {
+    max-height: 22vh;
+  }
+  .sa-sist {
+    font-size: 0.8rem;
+  }
+  .sa-melding {
+    min-height: 2.2em;
+  }
+  .sa-melding b {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .sa-plass {
+    gap: 5px;
+  }
+  .sa-navn {
+    font-size: 0.85rem;
+  }
+}
+
+/* A phone on its side: the opponents in a slim row, smaller cards. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .skjerm-spill {
+    --kb-hand: 44px;
+    --kb-haug: 36px;
+    --kb-meld: 28px;
+    --kb-bunke: 30px;
+    gap: 4px;
+  }
+  .sa-plass {
+    padding: 2px 8px 2px 2px;
+  }
+  .sa-plass .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+  .sa-bord {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    padding: 6px;
+  }
+  .sa-gin {
+    grid-template-columns: 1fr;
+  }
+  .sa-fem {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sa-bordmeld {
+    max-height: 30vh;
+  }
+  .sa-melding {
+    min-height: 2em;
+  }
+  .sa-melding b {
+    font-size: 0.9rem;
+  }
+  .sa-sist {
+    font-size: 0.78rem;
+  }
+  .sa-hand {
+    padding-top: 10px;
+  }
+}
