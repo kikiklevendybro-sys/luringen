@@ -451,6 +451,32 @@ export function tidTekst(m) {
   return a === b ? `${a} min` : `${a}–${b} min`;
 }
 
+// ---------- «Mest spilt nå»: rusj/topp.json, written by scripts/topp.mjs ----------
+// { "oppdatert": "YYYY-MM-DD", "spill": [up to 10 game ids, the most started first] } – ids only,
+// never a number. No file: no row. A file that is not like that stops the build.
+export const TOPP_ANTALL = 5; // cards in the row
+export const TOPP_MINST = 3; // fewer games left for an edition: no row
+export function lesTopp(fil) {
+  if (!existsSync(fil)) return null;
+  let topp;
+  try {
+    topp = JSON.parse(readFileSync(fil, "utf8"));
+  } catch (e) {
+    throw new Error(`${fil}: ugyldig JSON (${e.message})`);
+  }
+  const ok = topp && typeof topp === "object" && Array.isArray(topp.spill) && topp.spill.length <= 10 && topp.spill.every((id) => typeof id === "string" && /^[a-z0-9]{1,30}$/.test(id));
+  if (!ok || (topp.oppdatert != null && !/^\d{4}-\d{2}-\d{2}$/.test(topp.oppdatert))) throw new Error(`${fil}: skal være { "oppdatert": "ÅÅÅÅ-MM-DD", "spill": [opptil 10 spill-id-er] } (lag den med node scripts/topp.mjs)`);
+  return { oppdatert: topp.oppdatert || null, spill: [...new Set(topp.spill)] };
+}
+// The games of the row in one edition: those of the list the edition has, never an 18+ game, in the
+// list's order, at most five. Fewer than three: [] (no row). liste: the edition's games.
+export function toppSpill(topp, liste) {
+  if (!topp) return [];
+  const av = new Map(liste.map((m) => [m.id, m]));
+  const ut = topp.spill.map((id) => av.get(id)).filter((m) => m && !m.alder18).slice(0, TOPP_ANTALL);
+  return ut.length >= TOPP_MINST ? ut : [];
+}
+
 // How many phones a game needs, from «mobiler» in spill.json: on a list row (tekst), on the small
 // shelf tile (kort) and read aloud (lest).
 export const mobilerPa = (t) => ({
