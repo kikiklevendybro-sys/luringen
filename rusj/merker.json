@@ -50,6 +50,7 @@
     { "id": "provd-blof", "gruppe": "utforsker", "navn": "Pokerfjes", "hvordan": "Prøv et bløffespill.", "figur": "lognhalsen", "regel": { "type": "provdTagg", "tagg": "blof" } },
     { "id": "provd-hukommelse", "gruppe": "utforsker", "navn": "Elefanthukommelse", "hvordan": "Prøv et hukommelsesspill.", "figur": "elefanten", "regel": { "type": "provdTagg", "tagg": "hukommelse" } },
     { "id": "provd-alene", "gruppe": "utforsker", "navn": "Egen stund", "hvordan": "Prøv et spill du kan spille alene.", "figur": "slangen", "regel": { "type": "provdTagg", "tagg": "alene" } },
+    { "id": "musa-ost", "gruppe": "utforsker", "navn": "Ostejeger", "hvordan": "Finn osten i en stor labyrint i Musa.", "figur": "musa", "emoji": "🧀", "regel": { "type": "merke" } },
 
     { "id": "klassiker-sjakkhesten", "gruppe": "klassiker", "navn": "Sjakk matt!", "hvordan": "Slå mobilen i sjakk i Sjakkhesten.", "figur": "sjakkhesten", "regel": { "type": "merke" } },
     { "id": "klassiker-fireren", "gruppe": "klassiker", "navn": "Fire på rad", "hvordan": "Slå mobilen i fire på rad i Fireren.", "figur": "fireren", "regel": { "type": "merke" } },

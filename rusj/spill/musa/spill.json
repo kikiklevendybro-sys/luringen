@@ -1,0 +1,34 @@
+{
+  "id": "musa",
+  "navn": "Musa",
+  "undertittel": "Labyrint",
+  "beskrivelse": "Gratis labyrint for barn: hjelp musa gjennom gangene og fram til osten. Fire størrelser og en ny labyrint hver gang – sveip, dra eller bruk piltastene.",
+  "kort": "Hjelp musa gjennom labyrinten og fram til osten.",
+  "spillere": [1, 1],
+  "minutter": [1, 10],
+  "mobiler": "en",
+  "tagger": ["barn", "alene", "tenke"],
+  "rekkefolge": 84,
+  "farge": "#c3b1f5",
+  "alder": 4,
+  "sok": ["labyrint", "labyrint for barn", "labyrintspill", "finn veien", "irrgang", "musespill", "labyrint på nett", "barnespill", "spill for barn"],
+  "alias": ["labyrint"],
+  "i18n": {
+    "en": {
+      "navn": "Squeak",
+      "undertittel": "Maze",
+      "kort": "Help the mouse through the maze to the cheese.",
+      "beskrivelse": "Free maze game for children: help the mouse along the hedges to the cheese. Four sizes and a new maze every time – swipe, drag or use the arrow keys.",
+      "slug": "squeak",
+      "sok": ["maze", "mazes for kids", "maze game", "labyrinth", "find the way", "maze puzzle", "online maze", "games for kids", "mouse maze"]
+    },
+    "da": {
+      "navn": "Musen",
+      "undertittel": "Labyrint",
+      "kort": "Hjælp musen gennem labyrinten hen til osten.",
+      "beskrivelse": "Gratis labyrint for børn: hjælp musen gennem gangene hen til osten. Fire størrelser og en ny labyrint hver gang – stryg, træk eller brug piletasterne.",
+      "slug": "musen",
+      "sok": ["labyrint", "labyrint for børn", "labyrintspil", "find vej", "musespil", "labyrint online", "spil for børn", "børnespil"]
+    }
+  }
+}

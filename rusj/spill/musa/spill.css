@@ -1,0 +1,491 @@
+/* Musa — a maze. Everything is prefixed "mu-". A hedge maze on sand, the mouse and the cheese are
+   SVG; the arrow cross sits under the thumb (beside the board on a phone on its side). */
+
+/* ---------- The play screen fills the phone; swipes never scroll the page ---------- */
+
+html.mu-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.mu-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.mu-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.mu-fast main,
+html.mu-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.mu-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.mu-spill .dokk {
+  padding-top: 2px;
+  background: none;
+}
+
+/* ---------- The maze ---------- */
+
+.mu-flate {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+  touch-action: none;
+}
+
+.mu-brett {
+  --mu-mus: #c3b1f5;
+  display: block;
+  width: min(100%, 360px);
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 14px 26px rgba(6, 2, 14, 0.5));
+}
+
+.mu-gulv {
+  fill: #f7e7c6;
+  stroke: #2a6b3f;
+  stroke-width: 0.12;
+}
+
+.mu-start {
+  fill: rgba(195, 177, 245, 0.45);
+}
+
+.mu-vegg-kant,
+.mu-vegg {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mu-vegg-kant {
+  stroke: #1d4d2c;
+  stroke-width: 0.34;
+}
+
+.mu-vegg {
+  stroke: #47b866;
+  stroke-width: 0.2;
+}
+
+/* The bigger mazes get slimmer hedges, so the paths stay wide. */
+.mu-brett[data-n="10"] .mu-vegg-kant,
+.mu-brett[data-n="14"] .mu-vegg-kant {
+  stroke-width: 0.28;
+}
+
+.mu-brett[data-n="10"] .mu-vegg,
+.mu-brett[data-n="14"] .mu-vegg {
+  stroke-width: 0.16;
+}
+
+/* The way walked: crumbs. */
+.mu-spor {
+  fill: none;
+  stroke: #e0729f;
+  stroke-width: 0.17;
+  stroke-dasharray: 0 0.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+/* «Vis veien»: glowing dots that fade again. */
+.mu-hint {
+  fill: none;
+  stroke: #ffb400;
+  stroke-width: 0.26;
+  stroke-dasharray: 0 0.5;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.mu-hint.vis {
+  opacity: 1;
+  animation: mu-blink 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes mu-blink {
+  from {
+    stroke-width: 0.2;
+  }
+  to {
+    stroke-width: 0.32;
+  }
+}
+
+.mu-figur,
+.mu-ost {
+  transition: transform 85ms linear;
+}
+
+.mu-ost {
+  transition: none;
+}
+
+.mu-snu {
+  transition: transform 0.15s;
+}
+
+.mu-snu.venstre {
+  transform: scaleX(-1);
+}
+
+.mu-hopp {
+  transform-origin: 0 0.3px;
+}
+
+.mu-figur.dras .mu-hopp {
+  transform: scale(1.18);
+}
+
+.mu-hopp.dunk {
+  animation: mu-dunk 0.28s ease-out;
+}
+
+@keyframes mu-dunk {
+  30% {
+    transform: scale(0.86, 1.1);
+  }
+}
+
+.mu-hopp.jubel {
+  animation: mu-jubel 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 2;
+}
+
+@keyframes mu-jubel {
+  50% {
+    transform: translateY(-0.45px) scale(1.25);
+  }
+}
+
+.mu-ost-indre {
+  animation: mu-vink 2.4s ease-in-out infinite;
+}
+
+.mu-ost-indre.spist {
+  animation: mu-spist 0.6s ease-in forwards;
+}
+
+@keyframes mu-vink {
+  0%,
+  70%,
+  100% {
+    transform: none;
+  }
+  80% {
+    transform: rotate(-8deg) scale(1.08);
+  }
+  90% {
+    transform: rotate(6deg) scale(1.08);
+  }
+}
+
+@keyframes mu-spist {
+  to {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+}
+
+/* ---------- Arrows and help ---------- */
+
+.mu-styr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.mu-kryss {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 76px));
+  justify-content: start;
+  gap: 8px;
+}
+
+.mu-pil {
+  display: grid;
+  place-items: center;
+  height: 64px;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 5px 0 var(--natt-3);
+  color: var(--tekst);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.06s, background-color 0.1s;
+}
+
+.mu-pil svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mu-pil:active {
+  background: color-mix(in srgb, var(--aksent) 30%, var(--natt-2));
+  box-shadow: inset 0 0 0 2.5px var(--aksent), 0 1px 0 var(--natt-3);
+  color: var(--aksent);
+  transform: translateY(4px);
+}
+
+.mu-hjelp {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 64px;
+  height: 64px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--lampe) 16%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lampe) 45%, var(--strek)), 0 5px 0 var(--natt-3);
+  color: var(--tekst);
+  font: 800 0.72rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.mu-hjelp span {
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.mu-hjelp:active {
+  transform: translateY(4px);
+  box-shadow: inset 0 0 0 2px var(--lampe), 0 1px 0 var(--natt-3);
+}
+
+@media (max-width: 359px) {
+  .mu-kryss {
+    gap: 6px;
+  }
+
+  .mu-pil,
+  .mu-hjelp {
+    height: 56px;
+    border-radius: 17px;
+  }
+
+  .mu-hjelp {
+    min-width: 56px;
+    padding-inline: 5px;
+    font-size: 0.66rem;
+  }
+}
+
+@media (max-height: 700px) {
+  .mu-pil,
+  .mu-hjelp {
+    height: 54px;
+    border-radius: 17px;
+  }
+}
+
+/* ---------- Home, setup and result ---------- */
+
+.mu-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.mu-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mu-rekorder li {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mu-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst);
+}
+
+.mu-sist {
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.mu-mini {
+  display: block;
+  width: 56px;
+  height: 56px;
+}
+
+.mu-storrelser .flis-ikon {
+  display: grid;
+  place-items: center;
+}
+
+.mu-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.mu-tall {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 16px 10px 14px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.mu-tall b {
+  font: 900 2.3rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.mu-tall span {
+  font: 800 0.8rem/1 var(--font-display);
+  letter-spacing: 0.14em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.mu-ny {
+  position: absolute;
+  top: -12px;
+  right: -4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+}
+
+.mu-linje {
+  text-align: center;
+}
+
+/* ---------- Landscape phones: the maze on the left, the arrows as a cross on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="musa"] .app:has(.mu-spill) {
+    max-width: 1000px;
+  }
+
+  .mu-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 260px);
+    column-gap: 20px;
+    padding-bottom: 8px;
+  }
+
+  .mu-flate {
+    grid-column: 1;
+  }
+
+  .mu-spill .dokk {
+    position: static;
+    grid-column: 2;
+    align-self: center;
+    margin: 0;
+    padding: 0 0 max(8px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .mu-styr {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .mu-kryss {
+    grid-template-areas: ". opp ." "venstre ned hoyre";
+    grid-template-columns: repeat(3, 64px);
+    justify-content: center;
+  }
+
+  .mu-pil {
+    height: 58px;
+  }
+
+  .mu-pil.opp {
+    grid-area: opp;
+  }
+
+  .mu-pil.venstre {
+    grid-area: venstre;
+  }
+
+  .mu-pil.ned {
+    grid-area: ned;
+  }
+
+  .mu-pil.hoyre {
+    grid-area: hoyre;
+  }
+
+  .mu-hjelp {
+    grid-auto-flow: column;
+    align-items: center;
+    gap: 6px;
+    height: 46px;
+    padding-inline: 14px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mu-figur {
+    transition: none;
+  }
+
+  .mu-ost-indre,
+  .mu-hint.vis {
+    animation: none;
+  }
+}

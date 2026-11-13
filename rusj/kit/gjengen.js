@@ -1579,6 +1579,7 @@
     dobbelsekseren: ["#3fb6c8", "D"],
     samleren: ["#4fb8f0", "S"],
     hjerteknuseren: ["#ff6f91", "H"],
+    musa: ["#c3b1f5", "M"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 
