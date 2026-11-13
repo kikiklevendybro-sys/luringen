@@ -706,6 +706,17 @@
         "hjerterfri mod computeren",
         "hearts kortspil"
       ]
+    },
+    "blekkspruten": {
+      "tittel": "Nonogram på dansk – gratis med dagens nonogram",
+      "frase": "Nonogram",
+      "beskrivelse": "Spil gratis nonogram på dansk: følg tallene, udfyld felterne, og se billedet komme frem. Dagens nonogram, 29 billeder og tilfældige gitre op til 12 × 12.",
+      "sok": [
+        "nonogram online",
+        "billedlogik",
+        "malerlogik",
+        "logikspil gratis"
+      ]
     }
   }
 }

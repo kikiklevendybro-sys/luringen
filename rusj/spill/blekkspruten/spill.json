@@ -1,0 +1,33 @@
+{
+  "id": "blekkspruten",
+  "navn": "Blekkspruten",
+  "undertittel": "Nonogram",
+  "beskrivelse": "Gratis nonogram på norsk: tallene sier hvor blekket skal, og et bilde kommer fram. Dagens nonogram, 29 bilder å male og tilfeldige brett fra 5 × 5 til 12 × 12.",
+  "kort": "Følg tallene, fyll rutene – og et bilde kommer fram.",
+  "spillere": [1, 1],
+  "alder": 8,
+  "minutter": [2, 20],
+  "mobiler": "en",
+  "tagger": ["alene", "tenke", "daglig"],
+  "rekkefolge": 85,
+  "farge": "#c08cff",
+  "sok": ["nonogram", "bildelogikk", "malelogikk", "tallmaling", "pikselbilde", "logikkspill", "japansk bildekryss", "dagens logikkspill"],
+  "i18n": {
+    "en": {
+      "navn": "Inky",
+      "undertittel": "Nonogram",
+      "kort": "Follow the numbers, fill the squares – and a picture appears.",
+      "beskrivelse": "Free nonogram puzzles: the numbers say where the ink goes, and a picture appears. A daily nonogram, 29 pictures to paint and random grids from 5 × 5 to 12 × 12.",
+      "slug": "inky",
+      "sok": ["nonogram", "picture cross puzzle", "paint by numbers logic", "picture logic puzzle", "pixel puzzle", "logic puzzle", "daily logic puzzle"]
+    },
+    "da": {
+      "navn": "Blæksprutten",
+      "undertittel": "Nonogram",
+      "kort": "Følg tallene, udfyld felterne – og et billede kommer frem.",
+      "beskrivelse": "Gratis nonogram på dansk: tallene viser, hvor blækket skal hen, og et billede kommer frem. Dagens nonogram, 29 billeder og tilfældige gitre op til 12 × 12.",
+      "slug": "blaeksprutten",
+      "sok": ["nonogram", "billedlogik", "malerlogik", "tegn med tal", "pixelbillede", "logikspil", "dagens logikspil"]
+    }
+  }
+}
