@@ -747,6 +747,42 @@
         "mahjong på norsk",
         "dagens mahjong"
       ]
+    },
+    "stjernekikkeren": {
+      "tittel": "Stjernepuslespill på norsk – gratis, ny himmel hver dag",
+      "frase": "Stjernepuslespill",
+      "beskrivelse": "Gratis logikkspill på norsk: én stjerne i hver rad, kolonne og felt, og ingen stjerner rører hverandre. Dagens stjernehimmel og brett fra 6 × 6 til 10 × 10.",
+      "sok": [
+        "stjernepuslespill",
+        "logikkspill med stjerner",
+        "dagens logikkoppgave",
+        "en stjerne i hver rad",
+        "fargefelt puslespill"
+      ]
+    },
+    "sebraen": {
+      "tittel": "Binærpuslespill på norsk – gratis, ny sebra hver dag",
+      "frase": "Binærpuslespill",
+      "beskrivelse": "Gratis binærpuslespill på norsk: svart og hvitt, aldri tre like på rad og like mange av hver, med = og ×. Dagens sebra og brett fra 6 × 6 til 10 × 10.",
+      "sok": [
+        "binærpuslespill",
+        "binært puslespill",
+        "svart og hvitt puslespill",
+        "aldri tre på rad",
+        "nuller og enere"
+      ]
+    },
+    "nostet": {
+      "tittel": "Stipuslespill på norsk – én tråd gjennom alle rutene",
+      "frase": "Stipuslespill",
+      "beskrivelse": "Gratis stipuslespill på norsk: trekk én tråd gjennom alle rutene og ta tallene i rekkefølge. Dagens nøste og brett fra 5 × 5 til 8 × 8, noen med vegger.",
+      "sok": [
+        "stipuslespill",
+        "tegn en strek gjennom alle ruter",
+        "én strek",
+        "tallsti",
+        "linjepuslespill"
+      ]
     }
   }
 }

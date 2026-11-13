@@ -1192,6 +1192,60 @@
         ${smil(92, 13)}
         ${glimt(104, 4, 7)}`,
     },
+
+    // Stjernekikkeren: a round periwinkle head squinting through a brass telescope, one big eye open
+    // to the sky and two little stars twinkling above.
+    stjernekikkeren: {
+      farge: "#7d8cff",
+      tegn: (f) => `
+        ${hode(f)}
+        ${kinn(82)}
+        ${blunk(56, `<circle cx="40" cy="56" r="12" fill="${P}" stroke="${B}" stroke-width="4.5"/><circle cx="43" cy="52.5" r="5.5" fill="${B}"/><circle cx="41" cy="50.3" r="1.7" fill="${P}"/>`)}
+        ${strek("M67 58 Q79 51 91 58", 5)}
+        ${smil(88, 13)}
+        ${form("M74.9 53.2 L106.9 19.2 L117.1 28.8 L85.1 62.8Z", MESSING, 4.5)}
+        ${form("M99 24.6 L105.5 17.8 L118.6 30.2 L112.2 37Z", METALL, 4)}
+        ${glans("M84 50 L102 31", 3)}
+        ${glimt(22, 14, 9)}
+        ${glimt(46, -3, 6, P)}`,
+    },
+
+    // Sebraen: a round zebra head – cream with ink stripes, a striped mane on top and two pricked
+    // ears – holding a black dot and a white ring like a pair of spectacles.
+    sebraen: {
+      farge: "#f2ecff",
+      tegn: (f) => `
+        ${form("M30 26 L22 0 L44 18Z", f, 4.5)}
+        ${form("M90 26 L98 0 L76 18Z", f, 4.5)}
+        ${hode(f)}
+        ${strek("M30 34 Q40 44 34 58M90 34 Q80 44 86 58M22 76 Q34 74 36 86M98 76 Q86 74 84 86", 6)}
+        ${form("M46 18 Q50 4 56 16 Q60 2 64 16 Q70 4 74 18 Q60 24 46 18Z", B, 4)}
+        ${kinn(84)}
+        <circle cx="40" cy="58" r="15" fill="${B}" stroke="${B}" stroke-width="4"/>
+        <circle cx="80" cy="58" r="15" fill="#fff" stroke="${B}" stroke-width="6"/>
+        ${strek("M55 58 H65", 4)}
+        <circle cx="40" cy="58" r="5" fill="${P}"/>
+        <circle cx="80" cy="58" r="5.5" fill="${B}"/>
+        ${smil(92, 12)}`,
+    },
+
+    // Nøstet: a round pink ball of yarn with wound strands across it, happy eyes, and a loose
+    // thread curling away to a knitting needle with a little sewing button on it.
+    nostet: {
+      farge: "#ff8fb8",
+      tegn: (f) => `
+        ${hode(f)}
+        ${strek("M18 46 Q60 24 102 46M14 66 Q60 46 106 66M22 88 Q60 70 98 88", 3.5, "rgba(23,14,43,.35)")}
+        ${strek("M40 20 Q30 64 44 108M80 20 Q92 64 76 108", 3.5, "rgba(23,14,43,.35)")}
+        ${kinn(80)}
+        ${gladeOyne(60)}
+        ${smil(84, 12)}
+        ${pinne("M100 96 Q118 104 112 116 Q104 124 96 116", ROSA, 4)}
+        ${pinne("M84 -6 L116 26", METALL, 4)}
+        <circle cx="116" cy="26" r="4" fill="${LAMPE}" stroke="${B}" stroke-width="3"/>
+        <circle cx="24" cy="18" r="8" fill="${P}" stroke="${B}" stroke-width="3.5"/>
+        <circle cx="21.5" cy="18" r="1.5" fill="${B}"/><circle cx="26.5" cy="18" r="1.5" fill="${B}"/>`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on
