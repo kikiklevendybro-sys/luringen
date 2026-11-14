@@ -1,0 +1,54 @@
+{
+  "_om": "Spåkonen: det, spåkonen siger. hoyere/lavere: hintet efter første gæt. forste/andre: rigtigt i første eller andet forsøg. bom: forkert to gange.",
+  "hoyere": [
+    "Kuglen siger: højere!",
+    "Jeg ser … noget højere.",
+    "Højere, min ven. Højere!",
+    "Stjernerne peger opad.",
+    "Kuglen blinker: højere!",
+    "Kig op – kortet er højere.",
+    "Ånderne hvisker: højere.",
+    "Tågen letter … højere!",
+    "Kortet ligger højere, end du tror."
+  ],
+  "lavere": [
+    "Kuglen siger: lavere!",
+    "Jeg ser … noget lavere.",
+    "Lavere, min ven. Lavere!",
+    "Stjernerne peger nedad.",
+    "Kuglen blinker: lavere!",
+    "Kig ned – kortet er lavere.",
+    "Ånderne hvisker: lavere.",
+    "Tågen letter … lavere!",
+    "Kortet ligger lavere, end du tror."
+  ],
+  "forste": [
+    "Lige i kuglen! Du er synsk.",
+    "Du så det før mig!",
+    "Krystalklart!",
+    "Spåkonen er imponeret.",
+    "Første forsøg! Er det dig, der er spåkonen?",
+    "Kortene har ingen hemmeligheder for dig.",
+    "Det stod skrevet i stjernerne!"
+  ],
+  "andre": [
+    "Anden gang er lykkens gang!",
+    "Der kom synet!",
+    "Kuglen hjalp dig på vej.",
+    "Lidt tåget, men du så det!",
+    "Godt læst!",
+    "Ramt i andet forsøg!",
+    "Stjernerne viste vej."
+  ],
+  "bom": [
+    "Tågen var for tæt.",
+    "Kuglen blev helt grumset.",
+    "Stjernerne stod forkert.",
+    "Spåkonen ryster på hovedet.",
+    "Kortene snød dig!",
+    "Ikke denne gang.",
+    "Selv spåkoner rammer forbi.",
+    "Synet udeblev.",
+    "Kuglen trænger til en pudsning."
+  ]
+}

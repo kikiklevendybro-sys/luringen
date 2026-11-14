@@ -1,0 +1,54 @@
+{
+  "_om": "Mystic: what the fortune teller says. hoyere/lavere: the hint after the first guess. forste/andre: right on the first or second try. bom: wrong twice.",
+  "hoyere": [
+    "The crystal ball says: higher!",
+    "I see … something higher.",
+    "Higher, my dear. Higher!",
+    "The stars point upwards.",
+    "The ball twinkles: higher!",
+    "Look up – the card is higher.",
+    "The spirits whisper: higher.",
+    "The mist clears … higher!",
+    "The card is higher than you think."
+  ],
+  "lavere": [
+    "The crystal ball says: lower!",
+    "I see … something lower.",
+    "Lower, my dear. Lower!",
+    "The stars point downwards.",
+    "The ball twinkles: lower!",
+    "Look down – the card is lower.",
+    "The spirits whisper: lower.",
+    "The mist clears … lower!",
+    "The card is lower than you think."
+  ],
+  "forste": [
+    "Spot on! You must be psychic.",
+    "You saw it before I did!",
+    "Crystal clear!",
+    "The mystic is impressed.",
+    "First try! Are you the mystic now?",
+    "The cards have no secrets from you.",
+    "It was written in the stars!"
+  ],
+  "andre": [
+    "Second time lucky!",
+    "There's the vision!",
+    "The ball gave you a nudge.",
+    "A bit misty, but you saw it!",
+    "Nicely read!",
+    "Got it on the second try!",
+    "The stars showed you the way."
+  ],
+  "bom": [
+    "Too much mist tonight.",
+    "The crystal ball went cloudy.",
+    "The stars were out of line.",
+    "The mystic shakes her head.",
+    "The cards fooled you!",
+    "Not this time.",
+    "Even mystics miss.",
+    "The vision never came.",
+    "The ball needs a polish."
+  ]
+}

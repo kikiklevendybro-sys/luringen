@@ -1,0 +1,33 @@
+{
+  "id": "spakona",
+  "navn": "Spåkona",
+  "undertittel": "Gjett kortet",
+  "beskrivelse": "Gratis drikkelek med kort på norsk (18+). Gjett verdien på neste kort – Spåkona sier høyere eller lavere. Bom, og du tar en liten slurk. Alkoholfritt teller.",
+  "kort": "Gjett kortet – Spåkona sier høyere eller lavere.",
+  "spillere": [2, 12],
+  "alder": 18,
+  "minutter": [10, 30],
+  "mobiler": "en",
+  "tagger": ["drikke", "fest"],
+  "rekkefolge": 91,
+  "alder18": true,
+  "sok": ["giveren drikkelek", "dealer drikkelek", "gjett kortet", "høyere eller lavere", "drikkelek kort", "drikkespill med kort"],
+  "i18n": {
+    "en": {
+      "navn": "Mystic",
+      "undertittel": "Guess the card",
+      "kort": "Guess the card – the Mystic says higher or lower.",
+      "beskrivelse": "Free card drinking game (18+). Guess the value of the next card – the Mystic says higher or lower. Miss and take a small sip. Alcohol-free counts just as much.",
+      "slug": "mystic",
+      "sok": ["dealer drinking game", "the dealer card game", "guess the card", "higher or lower drinking game", "card drinking game", "drinking games"]
+    },
+    "da": {
+      "navn": "Spåkonen",
+      "undertittel": "Gæt kortet",
+      "kort": "Gæt kortet – Spåkonen siger højere eller lavere.",
+      "beskrivelse": "Gratis drukspil med kort på dansk (18+). Gæt værdien på næste kort – Spåkonen siger højere eller lavere. Rammer du forbi, tager du en lille slurk.",
+      "slug": "spaakonen",
+      "sok": ["dealer drukspil", "giveren drukspil", "gæt kortet", "højere eller lavere", "drukspil med kort", "drukspil"]
+    }
+  }
+}
