@@ -1820,6 +1820,76 @@
         ${form("M84 104 L116 90 L120 98Z", "#ffe788", 3.2)}
         <circle cx="96" cy="111" r="3.2" fill="#e8a91e"/><circle cx="109" cy="106" r="2.4" fill="#e8a91e"/><circle cx="112" cy="114" r="1.8" fill="#e8a91e"/>`,
     },
+
+    // Hovedpersonen: a warm coral face in front of a tall wooden chair back, a spotlight sparkle on
+    // each side and a big grin – the one in the hot seat, ready for the next question.
+    hovedpersonen: {
+      farge: "#ff7a59",
+      tegn: (f) => `
+        ${form("M8 6 Q60 -8 112 6 L110 24 Q60 10 10 24Z", "#b8743c", 4.5)}
+        ${form("M12 18 H26 V116 H12Z", "#a4622e", 4.5)}${form("M94 18 H108 V116 H94Z", "#a4622e", 4.5)}
+        ${glans("M18 8 Q40 2 60 1", 3)}
+        ${hode(f)}
+        ${kinn(80)}
+        ${oyne({ y: 58, r: 11.5, pr: 5.6, dy: -1 })}
+        ${strek("M30 40 Q40 34 50 39M70 39 Q80 34 90 40", 4.2)}
+        ${form("M42 82 Q60 106 78 82Z", "#7a1f2b", 4.2)}
+        <path d="M50 94 Q60 101 70 94 Q60 90 50 94Z" fill="#ff8fa6"/>
+        ${glimt(8, 70, 8)}${glimt(113, 62, 6)}${glimt(104, 104, 5, P)}`,
+    },
+
+    // Smilefjeset: a sunny yellow face winking with one eye and grinning wide, with a small speech
+    // bubble of emoji shapes (a heart, a star, a drop) – the riddle it is about to tell.
+    smilefjeset: {
+      farge: "#ffc93c",
+      tegn: (f) => `
+        ${hode(f)}
+        ${kinn(80)}
+        <circle cx="40" cy="56" r="11.5" fill="${P}" stroke="${B}" stroke-width="4.5"/>
+        <circle cx="41" cy="57" r="5.6" fill="${B}"/><circle cx="39" cy="54.6" r="1.7" fill="${P}"/>
+        ${strek("M70 58 Q80 48 91 58", 5.5)}
+        ${strek("M29 38 Q40 32 51 37M70 44 Q80 40 90 44", 4.2)}
+        ${form("M36 76 Q60 108 84 76Z", "#7a1f2b", 4.2)}
+        <path d="M40 78 H80 L77 84 H43Z" fill="${P}"/>
+        ${form("M84 6 H118 Q122 6 122 10 V28 Q122 32 118 32 H100 L92 40 L94 32 H84 Q80 32 80 28 V10 Q80 6 84 6Z", P, 3.6)}
+        ${hjerte(92, 19, 5)}${glimt(104, 19, 5.5)}<circle cx="114" cy="20" r="3.4" fill="#59b9ff"/>`,
+    },
+
+    // Dommeren: a periwinkle judge with a curly white wig, round spectacles and a kind smile,
+    // holding up a wooden gavel – ready to crown the funniest answer.
+    dommeren: {
+      farge: "#7c8cff",
+      tegn: (f) => `
+        <circle cx="18" cy="40" r="11" fill="${P}" stroke="${B}" stroke-width="4"/><circle cx="16" cy="60" r="11" fill="${P}" stroke="${B}" stroke-width="4"/>
+        <circle cx="102" cy="40" r="11" fill="${P}" stroke="${B}" stroke-width="4"/><circle cx="104" cy="60" r="11" fill="${P}" stroke="${B}" stroke-width="4"/>
+        ${hode(f)}
+        ${form("M22 40 Q24 12 60 10 Q96 12 98 40 Q86 28 74 32 Q60 22 46 32 Q34 28 22 40Z", P, 4.2)}
+        ${kinn(82)}
+        <circle cx="40" cy="58" r="13" fill="${P}" stroke="${B}" stroke-width="4"/><circle cx="80" cy="58" r="13" fill="${P}" stroke="${B}" stroke-width="4"/>
+        ${strek("M53 58 H67", 4)}
+        <circle cx="41" cy="59" r="5.4" fill="${B}"/><circle cx="81" cy="59" r="5.4" fill="${B}"/>
+        <circle cx="39" cy="56.6" r="1.7" fill="${P}"/><circle cx="79" cy="56.6" r="1.7" fill="${P}"/>
+        ${smil(86, 13)}
+        <g transform="rotate(-40 104 86)"><rect x="101" y="84" width="7" height="30" rx="3" fill="#a4622e" stroke="${B}" stroke-width="3.4"/><rect x="90" y="70" width="29" height="16" rx="4" fill="#c98a4a" stroke="${B}" stroke-width="3.6"/></g>`,
+    },
+
+    // Sfinksen: a sandy lion-faced sphinx in a striped blue-and-gold headdress, one eyebrow raised and
+    // a knowing smile – and a small question mark floating by: it has a riddle for you.
+    sfinksen: {
+      farge: "#e0b25a",
+      tegn: (f) => `
+        ${form("M8 112 L14 40 Q20 10 60 8 Q100 10 106 40 L112 112 L86 112 L88 58 L32 58 L34 112Z", HIMMEL, 4.5)}
+        ${strek("M18 70 H32M16 86 H33M15 102 H34M88 70 H102M87 86 H104M86 102 H105", 5, LAMPE)}
+        ${hode(f)}
+        ${form("M22 46 Q24 12 60 10 Q96 12 98 46 Q80 30 60 30 Q40 30 22 46Z", LAMPE, 4.2)}
+        ${strek("M34 24 Q46 18 60 18M86 24 Q74 18 60 18", 4.2, HIMMEL)}
+        ${kinn(82)}
+        ${oyne({ y: 60, r: 10.5, pr: 5, dx: 1.5, dy: 1 })}
+        ${strek("M30 44 Q40 40 50 46M70 40 Q80 34 90 38", 4.2)}
+        ${strek("M48 86 Q60 94 74 84", 4.5)}
+        <path d="M56 72 H64 L60 77Z" fill="${B}"/>
+        ${tekst(110, 24, "?", 26, P)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

@@ -1093,6 +1093,54 @@
         "finn veien spill",
         "labyrint mus og ost"
       ]
+    },
+    "hovedpersonen": {
+      "tittel": "Den varme stolen – 300 spørsmål på norsk, gratis",
+      "frase": "Den varme stolen",
+      "beskrivelse": "Spill «den varme stolen» rett på mobilen: én svarer, alle spør. Over 300 spørsmål for familie, venner og dype samtaler – med stjerner til de beste svarene.",
+      "sok": [
+        "den varme stolen",
+        "varm stol",
+        "hot seat",
+        "spørsmål å stille venner",
+        "bli kjent spørsmål"
+      ]
+    },
+    "smilefjeset": {
+      "tittel": "Emoji-gåter – 300 gåter på norsk, gratis",
+      "frase": "Emoji-gåter",
+      "beskrivelse": "Gjett ordtak, ting, steder, dyr, yrker og barnesanger ut fra noen få emojier. Over 300 emoji-gåter på norsk – med gjengen eller alene, med hint. Gratis.",
+      "sok": [
+        "emoji-gåter",
+        "emoji quiz norsk",
+        "gjett emojien",
+        "emojirebus",
+        "emoji ordtak"
+      ]
+    },
+    "dommeren": {
+      "tittel": "Fyll inn det som mangler – festspill med 500 kort",
+      "frase": "Fyll inn det som mangler",
+      "beskrivelse": "Festspillet der alle velger det morsomste svarkortet i hemmelighet, og dommeren kårer det beste. Egne kort på norsk for familie og voksne. Gratis, én mobil.",
+      "sok": [
+        "fyll inn det som mangler",
+        "fyll inn spill",
+        "svarkort spill",
+        "partyspill kort",
+        "morsomt festspill"
+      ]
+    },
+    "sfinksen": {
+      "tittel": "Gåter med svar – lurespørsmål og hjernetrim, gratis",
+      "frase": "Gåter med en vri",
+      "beskrivelse": "Over 200 egne gåter og lurespørsmål på norsk: lette gåter for barn, ordlek og hjernetrim for voksne. Spill med gjengen eller alene – med hint. Gratis.",
+      "sok": [
+        "gåter",
+        "gåter med svar",
+        "gåter for barn",
+        "lurespørsmål",
+        "hjernetrim"
+      ]
     }
   }
 }
