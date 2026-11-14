@@ -1,10 +1,10 @@
-/* Ekornet — the times tables and mental maths, at your own pace. The squirrel collects a nut for
+/* Nøtteknekkeren — the times tables and mental maths, at your own pace. The squirrel collects a nut for
    every answer that is right the first time. Practice rounds (ten questions; a question you miss
    comes back a little later, and the facts you know least come up most) and a calm challenge
    (twenty questions, no clock while you answer, a record per choice). Times tables 1–10, division,
    and plus and minus up to 10, 20 or 100. Progress per table: a fact counts as learnt when it has
    been right twice in a row. A wrong answer is never punished with a sound: the squirrel shows the
-   right one. The question generator at the top is pure; test/ekornet.test.mjs loads this file
+   right one. The question generator at the top is pure; test/notteknekkeren.test.mjs loads this file
    without the kit. */
 (function () {
   "use strict";
@@ -126,20 +126,20 @@
 
   const R = window.Rusj;
   if (!R) {
-    window.Ekornet = { Oppgaver, TABELLER, ARTER, GRENSER, LAERT };
+    window.Notteknekkeren = { Oppgaver, TABELLER, ARTER, GRENSER, LAERT };
     return;
   }
 
   // ---------- The game ----------
 
   const esc = R.esc;
-  const DEL_URL = "https://rusj.no" + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "ekornet") + "/";
+  const DEL_URL = "https://rusj.no" + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "notteknekkeren") + "/";
   // The signs the edition's schools use: · and : in Norway and Denmark, × and ÷ in Britain.
   const TEGN = { gange: R.sprak === "en" ? "×" : "·", deling: R.sprak === "en" ? "÷" : ":", pluss: "+", minus: "−" };
   const ART_NAVN = { gange: R.t("Gange"), deling: R.t("Deling"), pluss: R.t("Pluss"), minus: R.t("Minus") };
   const ROS = [R.t("Riktig!"), R.t("Bra!"), R.t("Supert!"), R.t("Ja!"), R.t("Knallbra!"), R.t("Flott!"), R.t("Nøttebra!")];
   const ANTALL = { ove: 10, utfordring: 20 };
-  window.Ekornet = { Oppgaver, TABELLER, ARTER, GRENSER, LAERT };
+  window.Notteknekkeren = { Oppgaver, TABELLER, ARTER, GRENSER, LAERT };
 
   const tekstFor = (q) => `${q.a} ${TEGN[q.op]} ${q.b}`;
   const lest = (q) => `${tekstFor(q)} = ${q.svar}`;
@@ -281,7 +281,7 @@
       const gml = S.rekorder[sig];
       sp.resultat = { riktige, av, gml: gml == null ? null : gml, ny: gml != null && riktige > gml, st: Oppgaver.stjerner(riktige, av) };
       S.rekorder[sig] = Math.max(gml || 0, riktige);
-      if (riktige === av) R.merke("ekornet-alle");
+      if (riktige === av) R.merke("notteknekkeren-alle");
     } else sp.resultat = { riktige, av };
     S.sist = { modus: sp.modus, navn: sig, riktige, av };
     R.statistikk("ferdig", { modus: sp.modus, art: sp.art, riktige, av, sek: Math.round(sp.tid / 1000) });
@@ -421,13 +421,13 @@
   function delTekst(S) {
     const sp = S.spill;
     const r = sp.resultat || {};
-    return R.t("Ekornet 🐿️ {riktige} av {av} riktige på {hva}! Klarer du det?", { riktige: r.riktige, av: r.av, hva: valgNavn(sp.art, sp.tabeller, sp.til).toLowerCase() });
+    return R.t("Nøtteknekkeren 🐿️ {riktige} av {av} riktige på {hva}! Klarer du det?", { riktige: r.riktige, av: r.av, hva: valgNavn(sp.art, sp.tabeller, sp.til).toLowerCase() });
   }
 
   // ---------- Start ----------
 
   R.start({
-    id: "ekornet",
+    id: "notteknekkeren",
     versjon: 1,
     pagar: (S) => !!(S.spill && !S.spill.ferdig),
 
@@ -496,7 +496,7 @@
     },
 
     regler: {
-      intro: R.t("Ekornet samler nøtter. Hvert svar som er riktig første gang, gir én nøtt!"),
+      intro: R.t("Nøtteknekkeren samler nøtter. Hvert svar som er riktig første gang, gir én nøtt!"),
       steg: [
         [R.t("Velg hva du vil øve på"), R.t("Gangetabellen (velg de tabellene du vil), deling, pluss eller minus.")],
         [R.t("Regn i ditt eget tempo"), R.t("Skriv svaret med talltastene – eller velg mellom fire svar. Det er ingen klokke som tikker.")],
@@ -505,7 +505,7 @@
       tips: [
         R.t("Øverunde: ti spørsmål. Bommer du, kommer regnestykket tilbake litt senere – og det du kan minst, kommer oftest."),
         R.t("Utfordring: tjue spørsmål uten klokke. Hvor mange får du riktig første gang? Rekorden lagres for hvert valg."),
-        R.t("Svarer du feil, viser ekornet det riktige svaret. Det er sånn man lærer!"),
+        R.t("Svarer du feil, viser Nøtteknekkeren det riktige svaret. Det er sånn man lærer!"),
         R.t("Med tastatur: tallene, rettetasten og Enter. Med fire svar velger tastene 1–4 svaret."),
       ],
     },

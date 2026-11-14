@@ -1,4 +1,4 @@
-// Ekornet (times tables and mental maths). Runs in every edition: texts are checked in Norwegian only.
+// Nøtteknekkeren (times tables and mental maths). Runs in every edition: texts are checked in Norwegian only.
 // 1 Home with the progress rings, rules, setup: two ways, four kinds of sums, ten tables.
 // 2 A practice round on the 3- and 7-tables with the number keys: a right answer gives a nut and
 //   moves the fact up; a wrong one shows the right answer and comes back later («En gang til»);
@@ -121,7 +121,7 @@ export default async function (t) {
   s = await t.tilstand();
   t.sjekk(s.spill.resultat.riktige === 20 && s.spill.resultat.st === 3 && s.rekorder["pluss:20"] === 20, `Utfordringen ble talt feil (${JSON.stringify(s.spill.resultat)})`);
   const merker = await t.js(`JSON.parse(localStorage.getItem("${t.nokkel("merker")}") || "{}")`);
-  t.sjekk(!!merker["ekornet-alle"], "Klistremerket «Nøtteknekker» ble ikke gitt for 20 av 20");
+  t.sjekk(!!merker["notteknekkeren-alle"], "Klistremerket «Full nøttepose» ble ikke gitt for 20 av 20");
 
   // ---------- 4 Division with the number keys ----------
   await t.klikk('.lenkerad [data-h="nytt"]');

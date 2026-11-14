@@ -1581,7 +1581,7 @@
     hjerteknuseren: ["#ff6f91", "H"],
     musa: ["#c3b1f5", "M"],
     hermegasa: ["#ffa14a", "H"],
-    ekornet: ["#e8894a", "E"],
+    notteknekkeren: ["#e8894a", "N"],
     pusen: ["#9a86e8", "P"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);

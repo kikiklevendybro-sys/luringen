@@ -1,8 +1,8 @@
-// Ekornet (times tables and mental maths): the question generator (the right answers, only the
+// Nøtteknekkeren (times tables and mental maths): the question generator (the right answers, only the
 // chosen tables, plus and minus inside the limit, whole answers for division, mental-maths pairs
 // up to 100), rounds (the length asked for, never the same question twice in a row, no repeats
 // before the pool is used up, the weak facts more often), the four answers to choose from, the level
-// of a fact and the progress per table, and the stars. Loads rusj/spill/ekornet/spill.js without the kit.
+// of a fact and the progress per table, and the stars. Loads rusj/spill/notteknekkeren/spill.js without the kit.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -13,8 +13,8 @@ import vm from "node:vm";
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const kontekst = { window: {}, console };
 vm.createContext(kontekst);
-vm.runInContext(readFileSync(join(ROT, "rusj/spill/ekornet/spill.js"), "utf8"), kontekst);
-const { Oppgaver, TABELLER, LAERT } = kontekst.window.Ekornet;
+vm.runInContext(readFileSync(join(ROT, "rusj/spill/notteknekkeren/spill.js"), "utf8"), kontekst);
+const { Oppgaver, TABELLER, LAERT } = kontekst.window.Notteknekkeren;
 
 function rng(fro) {
   return () => {

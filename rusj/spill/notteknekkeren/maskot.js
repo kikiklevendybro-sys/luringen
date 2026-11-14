@@ -1,7 +1,7 @@
-// alias: ["#e8894a", "E"]
-    // Ekornet: an orange squirrel with tufted ears, a cream face and a big bushy tail curling up
+// alias: ["#e8894a", "N"]
+    // Nøtteknekkeren: an orange squirrel with tufted ears, a cream face and a big bushy tail curling up
     // behind it, holding a hazelnut – one nut for every right answer.
-    ekornet: {
+    notteknekkeren: {
       farge: "#e8894a",
       tegn: (f) => `
         ${form("M78 108 Q128 112 127 64 Q126 18 94 8 Q74 2 66 16 Q88 14 100 32 Q116 58 98 86 Q92 96 78 108Z", "#c9652c", 4.5)}

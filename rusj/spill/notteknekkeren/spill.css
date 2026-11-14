@@ -1,4 +1,4 @@
-/* Ekornet — times tables and mental maths. Everything is prefixed "ek-". The question sits on a
+/* Nøtteknekkeren — times tables and mental maths. Everything is prefixed "ek-". The question sits on a
    paper card next to the squirrel; the number keys (or four answers) are in the dock under the thumb. */
 
 .skjerm-spill {
@@ -560,7 +560,7 @@
 /* ---------- Landscape phones: the question on the left, the keys on the right ---------- */
 
 @media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
-  html[data-spill="ekornet"] .app:has(.ek-spill) {
+  html[data-spill="notteknekkeren"] .app:has(.ek-spill) {
     max-width: 1000px;
   }
 

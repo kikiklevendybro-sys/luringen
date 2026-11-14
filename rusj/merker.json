@@ -50,7 +50,7 @@
     { "id": "provd-blof", "gruppe": "utforsker", "navn": "Pokerfjes", "hvordan": "Prøv et bløffespill.", "figur": "lognhalsen", "regel": { "type": "provdTagg", "tagg": "blof" } },
     { "id": "provd-hukommelse", "gruppe": "utforsker", "navn": "Elefanthukommelse", "hvordan": "Prøv et hukommelsesspill.", "figur": "elefanten", "regel": { "type": "provdTagg", "tagg": "hukommelse" } },
     { "id": "provd-alene", "gruppe": "utforsker", "navn": "Egen stund", "hvordan": "Prøv et spill du kan spille alene.", "figur": "slangen", "regel": { "type": "provdTagg", "tagg": "alene" } },
-    { "id": "ekornet-alle", "gruppe": "utforsker", "navn": "Nøtteknekker", "hvordan": "Få 20 av 20 i en utfordring i Ekornet.", "figur": "ekornet", "emoji": "🌰", "regel": { "type": "merke" } },
+    { "id": "notteknekkeren-alle", "gruppe": "utforsker", "navn": "Full nøttepose", "hvordan": "Få 20 av 20 i en utfordring i Nøtteknekkeren.", "figur": "notteknekkeren", "emoji": "🌰", "regel": { "type": "merke" } },
     { "id": "hermegasa-ti", "gruppe": "utforsker", "navn": "Hermemester", "hvordan": "Husk ti på rad i Hermegåsa.", "figur": "hermegasa", "emoji": "🪿", "regel": { "type": "merke" } },
     { "id": "musa-ost", "gruppe": "utforsker", "navn": "Ostejeger", "hvordan": "Finn osten i en stor labyrint i Musa.", "figur": "musa", "emoji": "🧀", "regel": { "type": "merke" } },
 
