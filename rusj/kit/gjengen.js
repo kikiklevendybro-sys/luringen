@@ -1581,6 +1581,7 @@
     hjerteknuseren: ["#ff6f91", "H"],
     planeten: ["#ffb35c", "P"],
     maneten: ["#ff86c8", "M"],
+    murbrekkeren: ["#5fd0ff", "M"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 
