@@ -6,6 +6,7 @@ export const SPILL = {
   ballongen: "Ballongen",
   bedreviteren: "Bedreviteren",
   bingoballen: "Bingoballen",
+  blekkspruten: "Blekkspruten",
   blokka: "Blokka",
   blyanten: "Blyanten",
   bobla: "Bobla",
@@ -22,6 +23,7 @@ export const SPILL = {
   femmeren: "Femmeren",
   fireren: "Fireren",
   firklover: "Firkløveren",
+  globetrotteren: "Globetrotteren",
   golfballen: "Golfballen",
   hatten: "Hatten",
   hjerteknuseren: "Hjerteknuseren",
@@ -33,13 +35,17 @@ export const SPILL = {
   kodeknekkeren: "Kodeknekkeren",
   kortkongen: "Kortkongen",
   kunstneren: "Kunstneren",
+  lasesmeden: "Låsesmeden",
   lognhalsen: "Løgnhalsen",
   luringen: "Luringen",
   lykkegrisen: "Lykkegrisen",
+  maneten: "Maneten",
   meyer: "Meyer",
   mimen: "Mimen",
   minesveiperen: "Minesveiperen",
   molla: "Mølla",
+  murbrekkeren: "Murbrekkeren",
+  mureren: "Mureren",
   narren: "Narren",
   nissen: "Nissen",
   nostet: "Nøstet",
@@ -48,6 +54,7 @@ export const SPILL = {
   panna: "Panna",
   papegoyen: "Papegøyen",
   pekefingeren: "Pekefingeren",
+  planeten: "Planeten",
   pyramiden: "Pyramiden",
   reversi: "Reversi",
   ringen: "Ringen",
@@ -60,6 +67,7 @@ export const SPILL = {
   skjaera: "Skjæra",
   skravla: "Skravla",
   skronemakeren: "Skrønemakeren",
+  skyveren: "Skyveren",
   sladrehanken: "Sladrehanken",
   slangen: "Slangen",
   snekkeren: "Snekkeren",
@@ -82,4 +90,4 @@ export const SPILL = {
 };
 
 // The daily puzzles («Dagens rusj»): the games tagged "daglig", in front-page order.
-export const DAGLIGE = ["bedreviteren","ordugla","blyanten","tallknuseren","kortkongen","minesveiperen","dobleren","firklover","blokka","skilpadda","stjernekikkeren","sebraen","nostet","sporhunden","humla"];
+export const DAGLIGE = ["bedreviteren","ordugla","blyanten","tallknuseren","kortkongen","minesveiperen","dobleren","firklover","blokka","skilpadda","stjernekikkeren","sebraen","nostet","sporhunden","humla","blekkspruten","globetrotteren","mureren"];
