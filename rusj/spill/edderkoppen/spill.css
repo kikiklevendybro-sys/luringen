@@ -1,0 +1,499 @@
+/* Edderkoppen. Game styles are prefixed "ed-". */
+
+.skjerm-brett {
+  --ed-b: min(100%, 380px, calc(100svh - 360px));
+  gap: 8px;
+}
+
+.skjerm-brett > .dokk {
+  margin-top: 0;
+  gap: 4px;
+  padding-top: 12px;
+}
+
+/* ---------- Clock and words ---------- */
+
+.ed-info {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.ed-klokke {
+  --andel: 1;
+  position: relative;
+  display: grid;
+  min-width: 92px;
+  place-items: center;
+  overflow: hidden;
+  padding: 6px 12px 10px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.ed-klokke b {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.ed-klokke i {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 5px;
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--aksent) calc(var(--andel) * 100%), rgba(255, 255, 255, 0.12) 0);
+}
+
+.ed-klokke.lite b {
+  color: var(--rod, #ff6b5e);
+  animation: ed-puls 1s ease-in-out infinite;
+}
+
+.ed-klokke.lite i {
+  background: linear-gradient(90deg, var(--rod, #ff6b5e) calc(var(--andel) * 100%), rgba(255, 255, 255, 0.12) 0);
+}
+
+@keyframes ed-puls {
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.ed-funnet {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ed-funnet b {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.ed-funnet span {
+  overflow: hidden;
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ed-funnet i {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  color: var(--tekst-2);
+  font-size: 1.4rem;
+  font-style: normal;
+}
+
+/* ---------- The word being spun ---------- */
+
+.ed-ordfelt {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.ed-ord {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  min-height: 2.4rem;
+  margin: 0;
+}
+
+.ed-ord span {
+  display: grid;
+  min-width: 1.7rem;
+  height: 2.2rem;
+  padding: 0 4px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  box-shadow: 0 2px 0 rgba(6, 2, 14, 0.35);
+}
+
+.ed-ord .ed-tom {
+  min-width: 0;
+  background: none;
+  color: var(--tekst-2);
+  font-family: inherit;
+  font-size: 0.95rem;
+  box-shadow: none;
+}
+
+.ed-ord em {
+  color: var(--tekst-2);
+  font-size: 0.8rem;
+  font-style: normal;
+}
+
+.ed-hjelp {
+  min-height: 1.3em;
+  margin: 0;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.ed-varsel.ok {
+  color: var(--mynte);
+}
+
+.ed-varsel.langt {
+  color: var(--lampe);
+  font-weight: 800;
+}
+
+.ed-varsel.feil {
+  color: #ffb3a8;
+}
+
+/* ---------- The grid ---------- */
+
+.ed-rute {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  width: var(--ed-b);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  padding: 8px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 30%, rgba(255, 255, 255, 0.05) 30.5% 31%, transparent 31.5% 52%, rgba(255, 255, 255, 0.05) 52.5% 53%, transparent 53.5%),
+    color-mix(in srgb, var(--aksent) 14%, var(--natt-2));
+  touch-action: none;
+  container-type: inline-size;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ed-celle {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(170deg, #fffdf8, #f6ecdb);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 12.5cqi;
+  line-height: 1;
+  box-shadow: 0 4px 0 rgba(6, 2, 14, 0.38), inset 0 -3px 0 rgba(27, 18, 48, 0.08);
+  transition: transform 0.1s, background-color 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.ed-celle span {
+  pointer-events: none;
+}
+
+.ed-celle.valgt {
+  background: linear-gradient(170deg, color-mix(in srgb, var(--aksent) 70%, #fff), var(--aksent));
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 rgba(6, 2, 14, 0.38);
+}
+
+.ed-celle.siste {
+  outline: 3px solid var(--papir);
+  outline-offset: 2px;
+}
+
+.ed-celle:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ed-celle:focus-visible {
+  outline: 3px solid var(--lampe);
+  outline-offset: 2px;
+}
+
+/* The silk thread through the chosen letters. */
+.ed-traad {
+  position: absolute;
+  inset: 8px;
+  z-index: 1;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  pointer-events: none;
+}
+
+.ed-traad polyline {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px rgba(27, 18, 48, 0.35));
+}
+
+/* ---------- The buttons in the dock ---------- */
+
+.ed-knapper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 8px;
+}
+
+.ed-knapper .knapp,
+.ed-knapper .knapp-2 {
+  min-height: 52px;
+  margin: 0;
+}
+
+/* ---------- Words, results, statistics ---------- */
+
+.ed-ordliste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ed-ordliste li {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+}
+
+.ed-ordliste li small {
+  color: var(--blekk-2);
+  font-family: inherit;
+  font-size: 0.72rem;
+}
+
+.ed-ordliste li.glemt {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--tekst-2);
+}
+
+.ed-ordliste li.glemt small {
+  color: var(--tekst-2);
+}
+
+.ed-ordliste li.ut {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  opacity: 0.7;
+}
+
+.ed-mini {
+  display: grid;
+  grid-template-columns: repeat(4, 30px);
+  gap: 4px;
+  width: fit-content;
+  margin: 6px auto 4px;
+}
+
+.ed-mini span {
+  display: grid;
+  height: 30px;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.ed-tall {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  text-align: center;
+}
+
+.ed-tall div {
+  display: grid;
+  gap: 2px;
+  padding: 8px 4px;
+  border-radius: 14px;
+  background: var(--natt-2);
+}
+
+.ed-tall b {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+}
+
+.ed-tall span {
+  color: var(--tekst-2);
+  font-size: 0.75rem;
+}
+
+.ed-sist {
+  margin: 4px 0 0;
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ed-spiller {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 16px;
+  background: var(--natt-2);
+}
+
+.ed-spiller summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+.ed-spiller summary b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ed-spiller summary span {
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.ed-spiller .ed-ordliste {
+  margin-bottom: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ed-klokke.lite b {
+    animation: none;
+  }
+  .ed-celle {
+    transition: none;
+  }
+}
+
+/* ---------- Smaller screens ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-brett {
+    --ed-b: min(100%, 340px, calc(100svh - 318px));
+    gap: 6px;
+  }
+  .skjerm-brett > .dokk {
+    padding-top: 8px;
+  }
+  .ed-klokke b {
+    font-size: 1.3rem;
+  }
+  .ed-ord {
+    min-height: 2rem;
+  }
+  .ed-ord span {
+    height: 1.9rem;
+    min-width: 1.5rem;
+    font-size: 1.1rem;
+  }
+  .ed-knapper .knapp,
+  .ed-knapper .knapp-2 {
+    min-height: 46px;
+  }
+  .ed-rute {
+    gap: 6px;
+    padding: 6px;
+  }
+  .ed-traad {
+    inset: 6px;
+    width: calc(100% - 12px);
+    height: calc(100% - 12px);
+  }
+}
+
+@media (max-width: 359px) {
+  .ed-tall span {
+    font-size: 0.68rem;
+  }
+}
+
+/* ---------- A phone on its side: the grid on the left, the rest beside it ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  @supports selector(:has(a)) {
+    html[data-spill="edderkoppen"] .app:has(.skjerm-brett) {
+      max-width: 860px;
+    }
+
+    .skjerm-brett {
+      --ed-b: min(calc(100svh - 76px), 330px);
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-rows: auto auto 1fr;
+      gap: 6px 20px;
+      align-items: start;
+    }
+
+    .skjerm-brett .ed-rute {
+      grid-column: 1;
+      grid-row: 1 / span 3;
+      gap: 5px;
+      padding: 6px;
+    }
+
+    .skjerm-brett .ed-traad {
+      inset: 6px;
+      width: calc(100% - 12px);
+      height: calc(100% - 12px);
+    }
+
+    .skjerm-brett .ed-info {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .skjerm-brett .ed-ordfelt {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .skjerm-brett > .dokk {
+      position: static;
+      grid-column: 2;
+      grid-row: 3;
+      align-self: end;
+      margin: 0;
+      padding: 0 0 8px;
+      background: none;
+    }
+  }
+}

@@ -862,6 +862,17 @@
         "krig kortspil for børn",
         "snap kortspil"
       ]
+    },
+    "edderkoppen": {
+      "tittel": "Find ord i 16 bogstaver – ordjagt på tid, gratis",
+      "frase": "Find ord i nettet",
+      "beskrivelse": "Gratis ordspil på dansk: find så mange ord, du kan, i et net på 4 × 4 bogstaver på tre minutter. Dagens net, frit spil og runder for hele banden.",
+      "sok": [
+        "find ord i bogstaver",
+        "ordspil på tid",
+        "4x4 ordspil",
+        "ordjagt i bogstavnet"
+      ]
     }
   }
 }

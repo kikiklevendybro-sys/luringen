@@ -845,6 +845,17 @@
         "war card game for kids",
         "snap card game"
       ]
+    },
+    "edderkoppen": {
+      "tittel": "Find words in 16 letters – word grid against the clock",
+      "frase": "Find words in the grid",
+      "beskrivelse": "Free word game in British English: find as many words as you can in a 4 × 4 grid of letters in three minutes. A daily grid, free play and rounds for the family.",
+      "sok": [
+        "find words in letters",
+        "word grid game",
+        "4x4 word game",
+        "three minute word game"
+      ]
     }
   }
 }
