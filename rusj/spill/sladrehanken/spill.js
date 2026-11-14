@@ -26,7 +26,9 @@
     const andre = D.pakker.filter((p) => p.id !== "jul");
     return julesesong() ? [...jul, ...andre] : [...andre, ...jul];
   })();
-  const STANDARD = D.pakker.filter((p) => !p.voksen && p.id !== "jul").map((p) => p.id);
+  // The teen pack («Ungdom», 13–16, last in the data) is chosen on purpose, so the default packs
+  // and what they draw stay as before.
+  const STANDARD = D.pakker.filter((p) => !p.voksen && p.id !== "jul" && p.id !== "ungdom").map((p) => p.id);
   const stokk = R.kortstokk("kort", ALLE.length);
   let H; // the actions, so one action can reuse another
   let knekker = null; // players whose heart is breaking right now (animation only, never saved)

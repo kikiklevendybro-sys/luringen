@@ -360,4 +360,37 @@ export default async function (t) {
   await t.sov(300);
   s = await t.tilstand();
   t.sjekk(s.spill && s.spill.fase !== "ferdig" && s.skjerm !== "oppsett", "#jul skal ikke avbryte et spill som pågår");
+
+  // ---------- The teen pack («Ungdom» 13–16): last in the data, not chosen by default, not 18+ ----------
+  await t.start({ navn: ["Testspiller A", "Testspiller B", "Testspiller C"] });
+  await t.klikk('[data-h="nytt"]');
+  const ungdom = await t.js(`(() => { const p = window.RUSJ_DATA.kort.pakker; const u = p[p.length - 1]; return { id: u.id, navn: u.navn, antall: u.kort.length, voksen: !!u.voksen, fra: p.slice(0, -1).reduce((n, x) => n + x.kort.length, 0), kort: u.kort }; })()`);
+  t.sjekk(ungdom.id === "ungdom" && ungdom.antall >= 55 && !ungdom.voksen, `Ungdomspakken skal stå sist i dataene, med rundt 60 kort (${ungdom.id}: ${ungdom.antall})`);
+  s = await t.tilstand();
+  t.sjekk(!s.oppsett.pakker.includes("ungdom") && !s.oppsett.pakker.includes("fest"), "Ungdomspakken og festpakken skal ikke være valgt fra start");
+  const flis = await t.tekst('[data-h="pakke"][data-v="ungdom"]');
+  t.sjekk(/13–16/.test(flis) && !/18\+/.test(flis) && flis.includes(ungdom.navn), `Ungdomsflisa skal si navnet og 13–16, ikke 18+ («${flis.replace(/\s+/g, " ")}»)`);
+  for (const v of s.oppsett.pakker) await t.klikk(`[data-h="pakke"][data-v="${v}"]`, 60);
+  await t.klikk('[data-h="pakke"][data-v="ungdom"]');
+  s = await t.tilstand();
+  t.sjekk(s.oppsett.pakker.join() === "ungdom", `Bare ungdomspakken skal være valgt (${s.oppsett.pakker})`);
+  await t.bilde("ungdom-oppsett", true);
+  await t.klikk('[data-h="start"]');
+  await t.vent("document.querySelector('.storkort')");
+  s = await t.tilstand();
+  t.sjekk(s.spill.kort >= ungdom.fra && s.spill.kort < ungdom.fra + ungdom.antall, `Kortet kom ikke fra ungdomspakken (nr. ${s.spill.kort})`);
+  t.sjekk((await t.tekst(".storkort-etikett")).toLocaleLowerCase().includes(ungdom.navn.toLocaleLowerCase()), `Kortet viser ikke pakkenavnet («${await t.tekst(".storkort-etikett")}»)`);
+  t.sjekk((await t.tekst(".storkort-tekst")).includes(ungdom.kort[s.spill.kort - ungdom.fra]), "Kortet viser ikke teksten fra ungdomspakken");
+  t.sjekk(await t.friForDokk(".storkort"), "Kortet havner bak knappene (ungdomspakken)");
+  await t.bilde("ungdom-kort");
+  // One player alone in having done it: the story spotlight, with the teen card above.
+  await runde([1], { historie: null });
+  t.sjekk(await t.friForDokk(".sladre-historie h1"), "Navnet i rampelyset havner bak knappene (ungdomspakken)");
+  await t.sov(400);
+  await t.bilde("ungdom-historie");
+  await pause();
+  await t.klikk('[data-h="historie-god"]');
+  await t.vent("document.querySelector('[data-h=\"avslor-na\"]')", 5000);
+  s = await t.tilstand();
+  t.sjekk(s.spill.nr === 2 && s.spill.liv.join() === "5,5,5" && (s.spill.egen || (s.spill.kort >= ungdom.fra && s.spill.kort < ungdom.fra + ungdom.antall)), `Neste kort skal også komme fra ungdomspakken (${s.spill.kort}, liv ${s.spill.liv})`);
 }
