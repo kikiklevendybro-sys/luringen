@@ -1,0 +1,33 @@
+{
+  "id": "bobla",
+  "navn": "Bobla",
+  "undertittel": "Bobleskyter",
+  "beskrivelse": "Gratis bobleskyter på norsk: sikt, skyt og få tre like bobler til å sprette. Brett etter brett eller uendelig med rekord. Ingen liv, ingen reklame.",
+  "kort": "Sikt, skyt – tre like spretter, og alt under faller.",
+  "spillere": [1, 1],
+  "alder": 5,
+  "minutter": [2, 20],
+  "mobiler": "en",
+  "tagger": ["alene", "tenke", "barn"],
+  "rekkefolge": 76,
+  "farge": "#7fd8ff",
+  "sok": ["bubble shooter", "bobleskyter", "boblespill", "skyt bobler", "bobler", "sprette bobler", "bubble pop"],
+  "i18n": {
+    "en": {
+      "navn": "Bubbles",
+      "undertittel": "Bubble popper",
+      "kort": "Aim, shoot – three alike pop, and everything below drops.",
+      "beskrivelse": "Free bubble popping game in your browser: aim, shoot and pop three or more alike. Level after level, or endless for a high score. No lives, no ads.",
+      "slug": "bubbles",
+      "sok": ["bubble shooter", "bubble game", "bubble pop", "shoot bubbles", "pop bubbles", "bubbles"]
+    },
+    "da": {
+      "navn": "Boblen",
+      "undertittel": "Bobleskyder",
+      "kort": "Sigt, skyd – tre ens springer, og alt nedenunder falder.",
+      "beskrivelse": "Gratis bobleskyder på dansk: sigt, skyd, og få tre ens bobler til at springe. Bane efter bane eller uendeligt med rekord. Ingen liv, ingen reklamer.",
+      "slug": "boblen",
+      "sok": ["bubble shooter", "bobleskyder", "boblespil", "skyd bobler", "bobler", "bubble pop"]
+    }
+  }
+}

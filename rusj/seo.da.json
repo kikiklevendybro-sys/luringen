@@ -706,6 +706,28 @@
         "hjerterfri mod computeren",
         "hearts kortspil"
       ]
+    },
+    "bobla": {
+      "tittel": "Bobleskyder på dansk – gratis, bane efter bane",
+      "frase": "Bobleskyder",
+      "beskrivelse": "Spil bobleskyder gratis på dansk: sigt, skyd mod væggene, og få tre ens bobler til at springe. Nye baner hele tiden eller uendeligt med rekord. Uden reklamer.",
+      "sok": [
+        "bobleskyder gratis",
+        "boblespil uden reklamer",
+        "skyd bobler spil",
+        "boblespil for børn"
+      ]
+    },
+    "ekornet": {
+      "tittel": "Match 3 på dansk – gratis, med baner uden liv",
+      "frase": "Match 3",
+      "beskrivelse": "Spil match 3 gratis på dansk: byt agern, blade og svampe til rækker af tre, udløs pile- og stjernebrikker, og klar bane efter bane. Uden reklamer og liv.",
+      "sok": [
+        "match 3 gratis",
+        "match 3 for børn",
+        "byt og match spil",
+        "match 3 uden liv"
+      ]
     }
   }
 }
