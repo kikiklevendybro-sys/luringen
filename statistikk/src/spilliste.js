@@ -19,11 +19,13 @@ export const SPILL = {
   dobbelsekseren: "Dobbelsekseren",
   dobleren: "Dobleren",
   dommeren: "Dommeren",
+  edderkoppen: "Edderkoppen",
   ekornet: "Ekornet",
   elefanten: "Elefanten",
   femmeren: "Femmeren",
   fireren: "Fireren",
   firklover: "Firkløveren",
+  fiskeren: "Fiskeren",
   globetrotteren: "Globetrotteren",
   golfballen: "Golfballen",
   hatten: "Hatten",
@@ -42,6 +44,7 @@ export const SPILL = {
   lognhalsen: "Løgnhalsen",
   luringen: "Luringen",
   lykkegrisen: "Lykkegrisen",
+  makkeren: "Makkeren",
   maneten: "Maneten",
   meyer: "Meyer",
   mimen: "Mimen",
@@ -73,6 +76,7 @@ export const SPILL = {
   sfinksen: "Sfinksen",
   sjakkhesten: "Sjakkhesten",
   sjefen: "Sjefen",
+  sjongloren: "Sjongløren",
   skattejegeren: "Skattejegeren",
   skilpadda: "Skilpadda",
   skjaera: "Skjæra",
@@ -104,4 +108,4 @@ export const SPILL = {
 };
 
 // The daily puzzles («Dagens rusj»): the games tagged "daglig", in front-page order.
-export const DAGLIGE = ["bedreviteren","ordugla","blyanten","tallknuseren","kortkongen","minesveiperen","dobleren","firklover","blokka","skilpadda","stjernekikkeren","sebraen","nostet","sporhunden","humla","blekkspruten","globetrotteren","mureren"];
+export const DAGLIGE = ["bedreviteren","ordugla","blyanten","tallknuseren","kortkongen","minesveiperen","dobleren","firklover","blokka","skilpadda","stjernekikkeren","sebraen","nostet","sporhunden","humla","blekkspruten","globetrotteren","mureren","edderkoppen"];
