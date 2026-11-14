@@ -1196,6 +1196,7 @@
     }
     if (apenMappe && apenMappe.closest("#ark")) lukkMappe(true); // a card in the sheet that is being replaced
     $("#ark-innhold").innerHTML = html;
+    $("#ark-innhold").scrollTop = 0; // a new sheet starts at the top, not where the last one was scrolled to
     $("#ark").hidden = false;
     settInert();
     flyttToast();
