@@ -34,6 +34,7 @@
     { "id": "seier-sporhunden", "gruppe": "dagens", "navn": "På sporet", "hvordan": "Finn alle temaordene i dagens spor i Sporhunden.", "figur": "sporhunden", "emoji": "🐾", "regel": { "type": "dagligSeier", "spill": "sporhunden" } },
     { "id": "seier-blekkspruten", "gruppe": "dagens", "navn": "Mesterverk", "hvordan": "Løs dagens nonogram i Blekkspruten.", "figur": "blekkspruten", "emoji": "🐙", "regel": { "type": "dagligSeier", "spill": "blekkspruten" } },
     { "id": "seier-globetrotteren", "gruppe": "dagens", "navn": "Jorda rundt", "hvordan": "Finn dagens land i Globetrotteren.", "figur": "globetrotteren", "emoji": "🌍", "regel": { "type": "dagligSeier", "spill": "globetrotteren" } },
+    { "id": "seier-mureren", "gruppe": "dagens", "navn": "Rett i lodd", "hvordan": "Bygg dagens mur i Mureren.", "figur": "mureren", "emoji": "🧱", "regel": { "type": "dagligSeier", "spill": "mureren" } },
 
     { "id": "kveld-forste", "gruppe": "kvelden", "navn": "Første kveld", "hvordan": "Spill et spill med poeng sammen med andre.", "figur": "pekefingeren", "regel": { "type": "kveldSpill", "n": 1 } },
     { "id": "kveld-tre", "gruppe": "kvelden", "navn": "Tre på tavla", "hvordan": "Spill tre spill i samme kveld.", "figur": "skravla", "regel": { "type": "kveldSpill", "n": 3 } },

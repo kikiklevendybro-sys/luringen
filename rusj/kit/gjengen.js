@@ -1583,6 +1583,7 @@
     lasesmeden: ["#f2b84b", "L"],
     skyveren: ["#3cc6b4", "S"],
     globetrotteren: ["#58a6ff", "G"],
+    mureren: ["#e2704f", "M"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

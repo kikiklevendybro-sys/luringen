@@ -751,6 +751,17 @@
         "geografiquiz",
         "flagquiz"
       ]
+    },
+    "mureren": {
+      "tittel": "Dominologik – gratis puslespil med dagens mur",
+      "frase": "Dominologik",
+      "beskrivelse": "Spil gratis dominologik på dansk: læg alle brikkerne, så hvert felt overholder sin regel – sum, ens, forskellige, under eller over. Ny mur hver dag.",
+      "sok": [
+        "dominologik",
+        "domino puslespil",
+        "logikspil gratis",
+        "dagens logikspil"
+      ]
     }
   }
 }

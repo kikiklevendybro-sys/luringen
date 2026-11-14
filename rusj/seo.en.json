@@ -734,6 +734,17 @@
         "daily geography quiz",
         "flag quiz"
       ]
+    },
+    "mureren": {
+      "tittel": "Domino logic puzzle – free, with a daily wall",
+      "frase": "Domino logic puzzle",
+      "beskrivelse": "Play a free domino logic puzzle: lay every domino so each region keeps its rule – a sum, equal, different, under or over. A new wall daily, three levels.",
+      "sok": [
+        "domino logic puzzle",
+        "domino puzzle free",
+        "domino sum puzzle",
+        "daily logic puzzle"
+      ]
     }
   }
 }
