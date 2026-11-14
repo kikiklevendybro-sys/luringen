@@ -873,6 +873,17 @@
         "4x4 ordspil",
         "ordjagt i bogstavnet"
       ]
+    },
+    "sjongloren": {
+      "tittel": "Anagrammer – lav ord af bogstaverne, gratis",
+      "frase": "Anagrammer",
+      "beskrivelse": "Gratis anagramspil på dansk: lav så mange ord, du kan, af seks eller syv bogstaver, og find helordet, der bruger dem alle. Fem runder, på tid eller uden ur.",
+      "sok": [
+        "anagram spil",
+        "lav ord af bogstaver",
+        "byt rundt på bogstaverne",
+        "find ordet i bogstaverne"
+      ]
     }
   }
 }

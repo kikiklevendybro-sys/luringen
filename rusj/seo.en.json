@@ -856,6 +856,17 @@
         "4x4 word game",
         "three minute word game"
       ]
+    },
+    "sjongloren": {
+      "tittel": "Anagrams – make words from the letters, free",
+      "frase": "Anagrams",
+      "beskrivelse": "Free anagram game in British English: make as many words as you can from six or seven letters and find the word that uses them all. Five rounds, timed or not.",
+      "sok": [
+        "anagram game online",
+        "word scramble",
+        "unscramble the letters",
+        "make words from letters"
+      ]
     }
   }
 }

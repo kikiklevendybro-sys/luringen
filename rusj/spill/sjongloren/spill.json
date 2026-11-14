@@ -1,0 +1,35 @@
+{
+  "id": "sjongloren",
+  "navn": "Sjongløren",
+  "undertittel": "Anagrammer",
+  "beskrivelse": "Gratis anagramspill på norsk: lag ord av seks eller sju bokstaver og finn helordet som bruker alle. Fem runder – på tid eller uten klokke.",
+  "kort": "Fem runder med bokstaver i lufta – lag ord og finn helordet.",
+  "spillere": [1, 1],
+  "minutter": [5, 15],
+  "alder": 9,
+  "mobiler": "en",
+  "tagger": ["ord", "alene", "tenke"],
+  "rekkefolge": 99,
+  "farge": "#ff9f5a",
+  "sok": ["anagram", "anagrammer", "lag ord av bokstaver", "bokstavspill", "ordspill", "stokk bokstavene", "finn ordet", "ord av bokstaver", "anagramspill"],
+  "alias": ["anagram"],
+  "om": "Ordlista bygger på Norsk ordbank – bokmål 2005 (Språkbanken, Nasjonalbiblioteket, CC BY 4.0), valgt ut etter N-gram – bokmål (Språkbanken, CC0). Engelsk: ENABLE (public domain) og 12dicts av Alan Beale (public domain). Dansk: Det Centrale Ordregister COR₁ (Dansk Sprognævn, CC0) og NST uttaleleksikon for dansk (Språkbanken, CC0).",
+  "i18n": {
+    "en": {
+      "navn": "Juggler",
+      "undertittel": "Anagrams",
+      "kort": "Five rounds of letters in the air – make words and find the whole word.",
+      "beskrivelse": "Free anagram game: make words from six or seven letters and find the word that uses them all. Five rounds – against the clock or at your own pace.",
+      "slug": "juggler",
+      "sok": ["anagrams", "anagram game", "make words from letters", "word scramble", "unscramble words", "letter game", "word game", "jumbled letters", "find the word"]
+    },
+    "da": {
+      "navn": "Jongløren",
+      "undertittel": "Anagrammer",
+      "kort": "Fem runder med bogstaver i luften – lav ord og find helordet.",
+      "beskrivelse": "Gratis anagramspil på dansk: lav ord af seks eller syv bogstaver, og find helordet, der bruger dem alle. Fem runder – på tid eller uden ur.",
+      "slug": "jongloeren",
+      "sok": ["anagram", "anagrammer", "lav ord af bogstaver", "bogstavspil", "ordspil", "byt rundt på bogstaverne", "find ordet", "anagramspil"]
+    }
+  }
+}
