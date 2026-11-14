@@ -1,0 +1,33 @@
+{
+  "id": "sjefen",
+  "navn": "Sjefen",
+  "undertittel": "Drikkelek med navnene deres",
+  "beskrivelse": "Gratis drikkelek på norsk (18+). Kortene sier navnene deres: oppgaver, dueller, regler og «drikk eller gjør». Små slurker – alkoholfritt teller like mye.",
+  "kort": "Kortene sier navnene deres – og bestemmer resten.",
+  "spillere": [3, 16],
+  "alder": 18,
+  "minutter": [15, 45],
+  "mobiler": "en",
+  "tagger": ["drikke", "fest"],
+  "rekkefolge": 90,
+  "alder18": true,
+  "sok": ["drikkelek med navn", "drikkespill med navn", "drikkelek app", "festlek kort", "drikkeleker", "drikkespill"],
+  "i18n": {
+    "en": {
+      "navn": "Bossy",
+      "undertittel": "Drinking game with your names",
+      "kort": "The cards call out your names – and boss you about.",
+      "beskrivelse": "Free drinking game with your names on the cards (18+): tasks, duels, rules and ‘drink or dare’. Small sips only – alcohol-free counts just as much.",
+      "slug": "bossy",
+      "sok": ["drinking game with names", "drinking game app", "party drinking game", "drink or dare", "drinking games", "party games for adults"]
+    },
+    "da": {
+      "navn": "Chefen",
+      "undertittel": "Drukspil med jeres navne",
+      "kort": "Kortene siger jeres navne – og bestemmer resten.",
+      "beskrivelse": "Gratis drukspil på dansk (18+). Kortene siger jeres navne: opgaver, dueller, regler og »drik eller gør«. Små slurke – alkoholfrit tæller lige så meget.",
+      "slug": "chefen",
+      "sok": ["drukspil med navne", "drukspil app", "drukleg med navne", "festspil kort", "drukspil", "drukspil til fest"]
+    }
+  }
+}
