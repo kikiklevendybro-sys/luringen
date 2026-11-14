@@ -1,0 +1,476 @@
+/* Globetrotteren — «Which country?». Everything is prefixed "gt-".
+   The country sits on a sea-blue card; each guess is a row with the distance, an arrow towards the
+   answer and how near it is (a bar that fills as you get closer – the number says it too). */
+
+.gt-spill {
+  display: grid;
+  gap: 10px;
+}
+
+/* The card with the outline or the flag */
+.gt-kort {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 12px 14px 14px;
+  border-radius: var(--r-stor);
+  background: radial-gradient(circle at 50% 40%, #2c6fa8, #17406b 75%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12), 0 14px 30px var(--skygge);
+}
+
+.gt-etikett {
+  color: rgba(255, 255, 255, 0.82);
+  font: 800 0.74rem/1.2 var(--font-display);
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.gt-omriss {
+  width: min(62vw, 230px);
+  height: min(62vw, 230px);
+}
+
+.gt-omriss path {
+  fill: var(--papir);
+  fill-rule: evenodd;
+  stroke: var(--blekk);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.35));
+}
+
+.gt-flagg {
+  width: min(66vw, 250px);
+  height: auto;
+  margin: 18px 0;
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5), 0 10px 20px rgba(6, 2, 14, 0.45);
+}
+
+.gt-kort.vant {
+  box-shadow: inset 0 0 0 3px var(--mynte), 0 14px 30px var(--skygge);
+}
+
+.gt-fasit {
+  margin: 0;
+  color: #fff;
+  font: 900 1.4rem/1.15 var(--font-display);
+  text-align: center;
+}
+
+.gt-hint {
+  justify-self: center;
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--lampe);
+  font: 800 0.9rem/1.25 var(--font-display);
+  text-align: center;
+}
+
+/* Guesses */
+.gt-rader {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gt-rad {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto 26px 42px;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 4px 10px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  font: 800 0.92rem/1.15 var(--font-display);
+}
+
+/* The nearness bar along the bottom of the row */
+.gt-rad:not(.tom)::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: var(--p);
+  height: 4px;
+  background: linear-gradient(90deg, var(--rosa), var(--lampe) 60%, var(--mynte));
+}
+
+.gt-rad.tom {
+  min-height: 30px;
+  opacity: 0.45;
+}
+
+.gt-rad.riktig {
+  box-shadow: inset 0 0 0 2.5px var(--mynte);
+}
+
+.gt-nr {
+  color: var(--tekst-3);
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+.gt-land {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gt-km,
+.gt-p {
+  color: var(--tekst-2);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.gt-p {
+  color: var(--tekst);
+}
+
+.gt-retning {
+  display: grid;
+  place-items: center;
+}
+
+.gt-pil {
+  width: 22px;
+  height: 22px;
+  fill: var(--lampe);
+}
+
+/* The field and the suggestions */
+.gt-skjema {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px;
+  gap: 8px;
+}
+
+.gt-felt {
+  min-width: 0;
+  height: 52px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--papir);
+  box-shadow: inset 0 -3px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 800 1.1rem/1 var(--font-display);
+}
+
+.gt-felt::placeholder {
+  color: var(--blekk-2);
+  opacity: 0.7;
+}
+
+.gt-felt:focus-visible {
+  outline: 3px solid var(--lampe);
+  outline-offset: 2px;
+}
+
+.gt-send {
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 16px;
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+  cursor: pointer;
+}
+
+.gt-send svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: var(--blekk);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gt-forslagliste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gt-forslagliste:empty {
+  display: none;
+}
+
+.gt-forslag {
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 0.95rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.gt-forslag:first-child {
+  background: color-mix(in srgb, var(--aksent) 28%, var(--natt-3));
+  box-shadow: inset 0 0 0 2px var(--aksent);
+}
+
+/* The hint sits under the field (no dock: the suggestions must never hide behind it). */
+.gt-verktoy {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+
+.gt-verktoy .knapp-2 {
+  width: auto;
+  min-width: 0;
+}
+
+/* ---------- Home ---------- */
+
+.hjem-knapper .knapp:has(.gt-dagknapp) {
+  gap: 14px;
+  padding-block: 10px;
+}
+
+.gt-kal {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  font-size: 1.6rem;
+}
+
+.gt-dagknapp {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+
+.gt-dagknapp b {
+  font: 900 1.25rem/1.1 var(--font-display);
+}
+
+.gt-dagknapp small {
+  color: var(--blekk-2);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+.gt-daglinje {
+  align-self: center;
+  max-width: 100%;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 60%, var(--strek));
+  color: var(--aksent);
+  font: 800 0.9rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.gt-nedtelling {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.gt-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.gt-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  padding-bottom: 12px;
+}
+
+.gt-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gt-rekorder li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font: 700 0.9rem/1.2 var(--font-display);
+}
+
+.gt-rekorder li b {
+  color: var(--tekst);
+  font-weight: 900;
+}
+
+.gt-sist {
+  margin: 0;
+  color: var(--tekst-3);
+  font: 700 0.86rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+/* ---------- Result ---------- */
+
+.gt-svar {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  align-items: center;
+  gap: 14px 18px;
+  padding: 14px;
+  border-radius: var(--r-stor);
+  background: radial-gradient(circle at 50% 40%, #2c6fa8, #17406b 75%);
+}
+
+.gt-svar .gt-omriss.liten {
+  width: 110px;
+  height: 110px;
+}
+
+.gt-svar .gt-flagg.liten {
+  width: 110px;
+  margin: 0;
+}
+
+.gt-svar p {
+  display: grid;
+  grid-column: 1 / -1;
+  justify-items: center;
+  gap: 2px;
+  margin: 0;
+  color: #fff;
+}
+
+.gt-svar b {
+  font: 900 1.4rem/1.15 var(--font-display);
+  text-align: center;
+}
+
+.gt-svar span {
+  color: rgba(255, 255, 255, 0.75);
+  font: 800 0.8rem/1.2 var(--font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gt-dagboks {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.gt-rekke {
+  margin: 0;
+  font: 900 1.4rem/1.1 var(--font-display);
+}
+
+.gt-fordeling {
+  display: grid;
+  gap: 4px;
+  width: min(100%, 320px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gt-fordeling li {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  align-items: center;
+  gap: 8px;
+  font: 800 0.85rem/1 var(--font-display);
+}
+
+.gt-fordeling i {
+  min-width: 22px;
+  width: max(22px, var(--b));
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: var(--natt-3);
+  font-style: normal;
+  text-align: right;
+}
+
+.gt-fordeling li.na i {
+  background: var(--aksent);
+  color: var(--blekk);
+}
+
+@media (max-height: 700px) {
+  .gt-omriss {
+    width: min(52vw, 170px);
+    height: min(52vw, 170px);
+  }
+
+  .gt-flagg {
+    width: min(56vw, 190px);
+    margin: 10px 0;
+  }
+
+  .gt-rad {
+    min-height: 32px;
+  }
+
+  .gt-rad.tom {
+    min-height: 24px;
+  }
+}
+
+@media (max-width: 359px) {
+  .gt-rad {
+    grid-template-columns: 14px minmax(0, 1fr) auto 22px 36px;
+    gap: 5px;
+    padding: 4px 8px;
+    font-size: 0.82rem;
+  }
+}
+
+/* Landscape phones: the card on the left, the guesses and the field on the right. */
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  .gt-spill {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: start;
+    column-gap: 18px;
+  }
+
+  .gt-kort {
+    grid-row: 1 / span 5;
+  }
+
+  .gt-omriss {
+    width: min(38vh, 200px);
+    height: min(38vh, 200px);
+  }
+
+  .gt-rad.tom {
+    min-height: 22px;
+  }
+}

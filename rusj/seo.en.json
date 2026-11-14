@@ -723,6 +723,17 @@
         "8 puzzle",
         "sliding tile game"
       ]
+    },
+    "globetrotteren": {
+      "tittel": "Guess the country – daily outline and flag quiz",
+      "frase": "Guess the country",
+      "beskrivelse": "Play a free country quiz: guess the country from its outline in six tries, with distance and direction after every guess. Daily, plus outlines or flags.",
+      "sok": [
+        "guess the country game",
+        "country outline quiz",
+        "daily geography quiz",
+        "flag quiz"
+      ]
     }
   }
 }

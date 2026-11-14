@@ -740,6 +740,17 @@
         "glidepuslespil",
         "talpuslespil"
       ]
+    },
+    "globetrotteren": {
+      "tittel": "Gæt landet – dagens landequiz med omrids og flag",
+      "frase": "Gæt landet",
+      "beskrivelse": "Spil en gratis landequiz: gæt landet ud fra omridset på seks forsøg med afstand og retning efter hvert gæt. Dagens land og frit spil med omrids eller flag.",
+      "sok": [
+        "gæt landet spil",
+        "landequiz",
+        "geografiquiz",
+        "flagquiz"
+      ]
     }
   }
 }

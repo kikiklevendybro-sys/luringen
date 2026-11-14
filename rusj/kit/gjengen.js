@@ -1582,6 +1582,7 @@
     blekkspruten: ["#c08cff", "B"],
     lasesmeden: ["#f2b84b", "L"],
     skyveren: ["#3cc6b4", "S"],
+    globetrotteren: ["#58a6ff", "G"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 
