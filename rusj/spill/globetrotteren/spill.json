@@ -1,0 +1,33 @@
+{
+  "id": "globetrotteren",
+  "navn": "Globetrotteren",
+  "undertittel": "Gjett landet",
+  "beskrivelse": "Gratis landquiz på norsk: gjett landet ut fra omrisset på seks forsøk. Hvert gjett viser avstand og retning. Dagens land, og fritt spill med omriss eller flagg.",
+  "kort": "Hvilket land er dette? Avstand og retning viser veien.",
+  "spillere": [1, 1],
+  "alder": 9,
+  "minutter": [1, 10],
+  "mobiler": "en",
+  "tagger": ["alene", "quiz", "daglig"],
+  "rekkefolge": 88,
+  "farge": "#58a6ff",
+  "sok": ["gjett landet", "landquiz", "geografiquiz", "gjett land ut fra kart", "flaggquiz", "verdenskart quiz", "dagens land", "geografispill"],
+  "i18n": {
+    "en": {
+      "navn": "Globetrotter",
+      "undertittel": "Guess the country",
+      "kort": "Which country is this? Distance and direction show the way.",
+      "beskrivelse": "Free country quiz: guess the country from its outline in six tries, with distance and direction after each guess. A daily country, plus outlines or flags.",
+      "slug": "globetrotter",
+      "sok": ["guess the country", "country outline quiz", "geography game", "flag quiz", "map quiz", "daily geography game", "country silhouette game"]
+    },
+    "da": {
+      "navn": "Globetrotteren",
+      "undertittel": "Gæt landet",
+      "kort": "Hvilket land er det? Afstand og retning viser vejen.",
+      "beskrivelse": "Gratis landequiz på dansk: gæt landet ud fra omridset på seks forsøg. Hvert gæt viser afstand og retning. Dagens land og frit spil med omrids eller flag.",
+      "slug": "globetrotteren",
+      "sok": ["gæt landet", "landequiz", "geografiquiz", "flagquiz", "kortquiz", "dagens land", "geografispil"]
+    }
+  }
+}

@@ -1631,6 +1631,11 @@
     planeten: ["#ffb35c", "P"],
     maneten: ["#ff86c8", "M"],
     murbrekkeren: ["#5fd0ff", "M"],
+    blekkspruten: ["#c08cff", "B"],
+    lasesmeden: ["#f2b84b", "L"],
+    skyveren: ["#3cc6b4", "S"],
+    globetrotteren: ["#58a6ff", "G"],
+    mureren: ["#e2704f", "M"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

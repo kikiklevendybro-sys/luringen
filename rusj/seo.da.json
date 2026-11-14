@@ -761,6 +761,62 @@
         "bat og bold spil",
         "smadr klodserne"
       ]
+    },
+    "blekkspruten": {
+      "tittel": "Nonogram på dansk – gratis med dagens nonogram",
+      "frase": "Nonogram",
+      "beskrivelse": "Spil gratis nonogram på dansk: følg tallene, udfyld felterne, og se billedet komme frem. Dagens nonogram, 29 billeder og tilfældige gitre op til 12 × 12.",
+      "sok": [
+        "nonogram online",
+        "billedlogik",
+        "malerlogik",
+        "logikspil gratis"
+      ]
+    },
+    "lasesmeden": {
+      "tittel": "Knæk koden – gratis farvekodespil mod mobilen",
+      "frase": "Knæk koden",
+      "beskrivelse": "Spil et gratis kodeknækkerspil: gæt den hemmelige række af farvede knapper, læs prikkerne, og knæk koden. Mod mobilen på tre niveauer eller to spillere.",
+      "motMobilen": true,
+      "sok": [
+        "knæk koden spil",
+        "farvekode spil",
+        "kodeknækker",
+        "gæt koden"
+      ]
+    },
+    "skyveren": {
+      "tittel": "15-spil – gratis skydepuslespil med tal eller billeder",
+      "frase": "15-spil",
+      "beskrivelse": "Spil 15-spillet gratis på dansk: skub brikkerne på plads med tal eller billede, fra 3 × 3 til 5 × 5. Hver eneste blanding kan løses.",
+      "sok": [
+        "15-spil online",
+        "skydepuslespil",
+        "glidepuslespil",
+        "talpuslespil"
+      ]
+    },
+    "globetrotteren": {
+      "tittel": "Gæt landet – dagens landequiz med omrids og flag",
+      "frase": "Gæt landet",
+      "beskrivelse": "Spil en gratis landequiz: gæt landet ud fra omridset på seks forsøg med afstand og retning efter hvert gæt. Dagens land og frit spil med omrids eller flag.",
+      "sok": [
+        "gæt landet spil",
+        "landequiz",
+        "geografiquiz",
+        "flagquiz"
+      ]
+    },
+    "mureren": {
+      "tittel": "Dominologik – gratis puslespil med dagens mur",
+      "frase": "Dominologik",
+      "beskrivelse": "Spil gratis dominologik på dansk: læg alle brikkerne, så hvert felt overholder sin regel – sum, ens, forskellige, under eller over. Ny mur hver dag.",
+      "sok": [
+        "dominologik",
+        "domino puslespil",
+        "logikspil gratis",
+        "dagens logikspil"
+      ]
     }
   }
 }

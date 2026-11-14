@@ -744,6 +744,62 @@
         "paddle and ball game",
         "smash the bricks"
       ]
+    },
+    "blekkspruten": {
+      "tittel": "Nonogram puzzles – free, with a daily nonogram",
+      "frase": "Nonogram",
+      "beskrivelse": "Play free nonograms in your browser: follow the numbers, ink the squares and reveal the picture. A daily nonogram, 29 pictures and random grids up to 12 × 12.",
+      "sok": [
+        "nonogram online",
+        "nonogram puzzles free",
+        "picture cross puzzle",
+        "picture logic puzzle"
+      ]
+    },
+    "lasesmeden": {
+      "tittel": "Code breaker game – crack the colour code, free",
+      "frase": "Code breaker",
+      "beskrivelse": "Play a free code breaker game: guess the secret row of coloured pegs, read the pins and crack the code. Against the phone at three levels, or two players.",
+      "motMobilen": true,
+      "sok": [
+        "code breaker game",
+        "colour code puzzle",
+        "bulls and cows",
+        "crack the code game"
+      ]
+    },
+    "skyveren": {
+      "tittel": "15 puzzle – free sliding puzzle, numbers or pictures",
+      "frase": "15 puzzle",
+      "beskrivelse": "Play the 15 puzzle free in your browser: slide the tiles into order with numbers or a picture, from 3 × 3 to 5 × 5. Every shuffle is solvable.",
+      "sok": [
+        "15 puzzle online",
+        "sliding puzzle free",
+        "8 puzzle",
+        "sliding tile game"
+      ]
+    },
+    "globetrotteren": {
+      "tittel": "Guess the country – daily outline and flag quiz",
+      "frase": "Guess the country",
+      "beskrivelse": "Play a free country quiz: guess the country from its outline in six tries, with distance and direction after every guess. Daily, plus outlines or flags.",
+      "sok": [
+        "guess the country game",
+        "country outline quiz",
+        "daily geography quiz",
+        "flag quiz"
+      ]
+    },
+    "mureren": {
+      "tittel": "Domino logic puzzle – free, with a daily wall",
+      "frase": "Domino logic puzzle",
+      "beskrivelse": "Play a free domino logic puzzle: lay every domino so each region keeps its rule – a sum, equal, different, under or over. A new wall daily, three levels.",
+      "sok": [
+        "domino logic puzzle",
+        "domino puzzle free",
+        "domino sum puzzle",
+        "daily logic puzzle"
+      ]
     }
   }
 }

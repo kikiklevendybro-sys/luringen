@@ -33,6 +33,9 @@
     { "id": "seier-nostet", "gruppe": "dagens", "navn": "Tråden holdt", "hvordan": "Løs dagens nøste i Nøstet.", "figur": "nostet", "emoji": "🧶", "regel": { "type": "dagligSeier", "spill": "nostet" } },
     { "id": "seier-humla", "gruppe": "dagens", "navn": "Full krukke", "hvordan": "Nå honning i dagens blomst i Humla.", "figur": "humla", "emoji": "🍯", "regel": { "type": "dagligSeier", "spill": "humla" } },
     { "id": "seier-sporhunden", "gruppe": "dagens", "navn": "På sporet", "hvordan": "Finn alle temaordene i dagens spor i Sporhunden.", "figur": "sporhunden", "emoji": "🐾", "regel": { "type": "dagligSeier", "spill": "sporhunden" } },
+    { "id": "seier-blekkspruten", "gruppe": "dagens", "navn": "Mesterverk", "hvordan": "Løs dagens nonogram i Blekkspruten.", "figur": "blekkspruten", "emoji": "🐙", "regel": { "type": "dagligSeier", "spill": "blekkspruten" } },
+    { "id": "seier-globetrotteren", "gruppe": "dagens", "navn": "Jorda rundt", "hvordan": "Finn dagens land i Globetrotteren.", "figur": "globetrotteren", "emoji": "🌍", "regel": { "type": "dagligSeier", "spill": "globetrotteren" } },
+    { "id": "seier-mureren", "gruppe": "dagens", "navn": "Rett i lodd", "hvordan": "Bygg dagens mur i Mureren.", "figur": "mureren", "emoji": "🧱", "regel": { "type": "dagligSeier", "spill": "mureren" } },
 
     { "id": "kveld-forste", "gruppe": "kvelden", "navn": "Første kveld", "hvordan": "Spill et spill med poeng sammen med andre.", "figur": "pekefingeren", "regel": { "type": "kveldSpill", "n": 1 } },
     { "id": "kveld-tre", "gruppe": "kvelden", "navn": "Tre på tavla", "hvordan": "Spill tre spill i samme kveld.", "figur": "skravla", "regel": { "type": "kveldSpill", "n": 3 } },
@@ -71,6 +74,8 @@
     { "id": "klassiker-dobbelsekseren", "gruppe": "klassiker", "navn": "Domino!", "hvordan": "Slå mobilen i domino i Dobbelsekseren.", "figur": "dobbelsekseren", "emoji": "🀄", "regel": { "type": "merke" } },
     { "id": "klassiker-samleren", "gruppe": "klassiker", "navn": "Full samling", "hvordan": "Slå mobilen i Samleren.", "figur": "samleren", "regel": { "type": "merke" } },
     { "id": "klassiker-hjerteknuseren", "gruppe": "klassiker", "navn": "Kaldt hjerte", "hvordan": "Slå mobilene i Hjerteknuseren.", "figur": "hjerteknuseren", "emoji": "💔", "regel": { "type": "merke" } },
+    { "id": "klassiker-lasesmeden", "gruppe": "klassiker", "navn": "Låst opp", "hvordan": "Knekk mobilens kode i Låsesmeden.", "figur": "lasesmeden", "emoji": "🔐", "regel": { "type": "merke" } },
+    { "id": "klassiker-skyveren", "gruppe": "klassiker", "navn": "Femten på plass", "hvordan": "Løs femtenspillet på 4 × 4 eller større i Skyveren.", "figur": "skyveren", "emoji": "🧩", "regel": { "type": "merke" } },
 
     { "id": "arkade-bobla", "gruppe": "arkade", "navn": "Boblemester", "hvordan": "Klar brett 10 i Bobla.", "figur": "bobla", "emoji": "🫧", "regel": { "type": "merke" } },
     { "id": "arkade-ekornet", "gruppe": "arkade", "navn": "Fullt forråd", "hvordan": "Klar brett 10 i Ekornet.", "figur": "ekornet", "emoji": "🐿️", "regel": { "type": "merke" } },

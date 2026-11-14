@@ -1,0 +1,619 @@
+/* Låsesmeden — crack the colour code. Everything is prefixed "ls-".
+   A brass lock on a dark door: guesses are rows of pegs in holes, the lock answers with pins
+   (filled = right place, ring = right colour). Every peg has its own colour and shape (--kf). */
+
+html.ls-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.ls-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+html.ls-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.ls-fast main,
+html.ls-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+/* ---------- Pegs, holes and pins ---------- */
+
+.ls-knapp,
+.ls-hull,
+.ls-skjult {
+  --s: 30px;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--s);
+  height: var(--s);
+}
+
+.ls-knapp svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: var(--kf);
+  stroke: var(--blekk);
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 0 rgba(6, 2, 14, 0.55));
+}
+
+.ls-hull {
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, #0d0719 0 45%, #1a1030 75%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 241, 221, 0.08);
+}
+
+.ls-hull::after {
+  content: "";
+  width: 22%;
+  height: 22%;
+  border-radius: 50%;
+  background: rgba(255, 241, 221, 0.12);
+}
+
+.ls-skjult {
+  border-radius: 10px;
+  background: linear-gradient(160deg, #6b4a1a, #3b2610);
+  box-shadow: inset 0 0 0 2px rgba(255, 210, 120, 0.35);
+  color: var(--messing, #f0bd4f);
+  font: 900 1rem/1 var(--font-display);
+}
+
+.ls-knapper {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ls-pinner {
+  display: grid;
+  grid-template-columns: repeat(3, 9px);
+  gap: 3px;
+  align-content: center;
+}
+
+.ls-pinner[data-n="4"] {
+  grid-template-columns: repeat(2, 9px);
+}
+
+.ls-pinner i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 241, 221, 0.1);
+}
+
+/* Right place: a solid paper pin; right colour: a thick ring. Never colour alone. */
+.ls-pinner i.s {
+  background: var(--papir);
+  box-shadow: 0 0 0 1px var(--blekk);
+}
+
+.ls-pinner i.h {
+  background: transparent;
+  box-shadow: inset 0 0 0 2.2px var(--papir);
+}
+
+/* ---------- The play screen ---------- */
+
+.ls-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ls-topp {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.ls-hvem {
+  margin: 0;
+  color: var(--tekst-2);
+  font: 800 0.9rem/1.2 var(--font-display);
+}
+
+/* The lock: a brass plate with the hidden code. */
+.ls-las {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 18px;
+  background: linear-gradient(170deg, #f6cf72, #d99a2b 60%, #b97a1a);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45), inset 0 -3px 0 rgba(90, 50, 0, 0.35), 0 10px 24px var(--skygge);
+  color: var(--blekk);
+}
+
+.ls-las .ls-knapp,
+.ls-las .ls-skjult {
+  --s: 30px;
+}
+
+.ls-lasikon svg,
+.ls-las > svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: var(--blekk);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.ls-las.apen {
+  animation: ls-apen 0.7s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.ls-las.laast {
+  animation: ls-rist 0.4s ease-in-out;
+}
+
+@keyframes ls-apen {
+  40% {
+    transform: scale(1.12) rotate(-3deg);
+  }
+}
+
+@keyframes ls-rist {
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+
+.ls-status {
+  margin: 0;
+  color: var(--tekst-2);
+  font: 800 0.92rem/1.2 var(--font-display);
+}
+
+/* The guesses so far: they scroll; the newest is at the bottom, next to the row being built. */
+.ls-historikk {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 0;
+  margin: 0;
+  padding: 4px 2px;
+  overflow-y: auto;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+
+.ls-historikk:empty::before {
+  content: "";
+  margin: auto;
+}
+
+.ls-rad {
+  display: grid;
+  grid-template-columns: 22px auto auto;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 12px;
+  border-radius: 14px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.ls-rad:first-child {
+  margin-top: auto;
+}
+
+.ls-rad.vant {
+  box-shadow: inset 0 0 0 2.5px var(--mynte);
+}
+
+.ls-rad .ls-knapp {
+  --s: 26px;
+}
+
+.ls-nr {
+  color: var(--tekst-3);
+  font: 900 0.8rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ls-nede {
+  display: grid;
+  gap: 10px;
+}
+
+/* The row being built */
+.ls-bygg {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ls-plass {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  cursor: pointer;
+}
+
+.ls-plass .ls-knapp,
+.ls-plass .ls-hull {
+  --s: 36px;
+}
+
+.ls-plass.valgt {
+  box-shadow: inset 0 0 0 3px var(--aksent), 0 0 0 3px rgba(240, 189, 79, 0.25);
+}
+
+/* The pegs to choose from */
+.ls-palett {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.ls-palett[data-n="8"] {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.ls-velg {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  cursor: pointer;
+}
+
+.ls-velg .ls-knapp {
+  --s: 34px;
+}
+
+.ls-velg:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--papir-2);
+}
+
+.ls-velg:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.ls-tast {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  color: var(--blekk-2);
+  font: 900 0.62rem/1 var(--font-display);
+  opacity: 0.7;
+}
+
+.ls-handling {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.ls-handling .knapp,
+.ls-handling .knapp-2 {
+  margin: 0;
+}
+
+.skjerm-lag .ls-handling {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+
+.ls-verk {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 7px 4px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 0.8rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.ls-verk svg,
+.ls-handling .ikon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ls-verk:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.ls-verk:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* ---------- Making a code (two players) ---------- */
+
+.ls-lag {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  margin-top: 6px;
+}
+
+.ls-lag .ls-palett {
+  width: 100%;
+}
+
+.ls-las.lukket {
+  padding: 10px;
+}
+
+/* ---------- Setup, results, home ---------- */
+
+.ls-eksempel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.ls-fasit {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--r-stor);
+  background: linear-gradient(170deg, #f6cf72, #d99a2b 60%, #b97a1a);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45), 0 12px 26px var(--skygge);
+  color: var(--blekk);
+}
+
+.ls-fasit .etikett {
+  margin: 0;
+  color: var(--blekk);
+}
+
+.ls-fasit .ls-knapp {
+  --s: 36px;
+}
+
+.ls-historikk.ls-kort {
+  flex: none;
+  max-height: none;
+  overflow: visible;
+}
+
+.ls-tabell {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ls-tabell li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.ls-tabell li.vinner {
+  box-shadow: inset 0 0 0 2.5px var(--aksent);
+}
+
+.ls-tabell .navn {
+  overflow: hidden;
+  font: 800 1rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ls-tabell b {
+  font: 900 1rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ls-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  padding-bottom: 12px;
+}
+
+.ls-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ls-rekorder li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 800 0.9rem/1.2 var(--font-display);
+}
+
+.ls-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.ls-rekorder li small {
+  color: var(--tekst-3);
+  font-weight: 700;
+}
+
+/* ---------- Short and narrow phones ---------- */
+
+@media (max-height: 700px) {
+  .ls-spill {
+    gap: 6px;
+  }
+
+  .ls-las {
+    padding: 5px 12px 5px 8px;
+  }
+
+  .ls-las .ls-knapp,
+  .ls-las .ls-skjult {
+    --s: 24px;
+  }
+
+  .ls-plass {
+    width: 44px;
+    height: 44px;
+  }
+
+  .ls-plass .ls-knapp,
+  .ls-plass .ls-hull {
+    --s: 30px;
+  }
+
+  .ls-velg {
+    height: 44px;
+  }
+
+  .ls-velg .ls-knapp {
+    --s: 28px;
+  }
+
+  .ls-rad {
+    padding: 2px 10px;
+  }
+
+  .ls-rad .ls-knapp {
+    --s: 22px;
+  }
+
+  .ls-nede {
+    gap: 7px;
+  }
+
+  .ls-verk span {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .ls-palett[data-n="8"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .ls-palett[data-n="8"] .ls-velg {
+    height: 40px;
+  }
+
+  .ls-bygg {
+    gap: 6px;
+  }
+
+  .ls-plass {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ---------- Landscape phones: guesses on the left, building on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="lasesmeden"] .app:has(.ls-spill) {
+    max-width: 1000px;
+  }
+
+  .ls-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 20px;
+    row-gap: 6px;
+    padding-bottom: 8px;
+  }
+
+  .ls-topp {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .ls-historikk {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .ls-nede {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-content: end;
+  }
+
+  .ls-spill .dokk {
+    position: static;
+    margin: 0;
+    padding: 0 0 max(8px, env(safe-area-inset-bottom, 0px));
+    background: none;
+  }
+
+  .ls-palett[data-n="8"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .ls-rad:first-child {
+    margin-top: 0;
+  }
+}

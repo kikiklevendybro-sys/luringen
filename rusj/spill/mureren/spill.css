@@ -1,0 +1,753 @@
+/* Mureren — domino logic. Everything is prefixed "mu-".
+   The board is a patch of plaster with coloured regions (dashed edges, a rule badge in the first
+   cell); dominoes are ivory bricks with ink pips. --c is the cell size. */
+
+html.mu-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.mu-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+html.mu-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.mu-fast main,
+html.mu-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.mu-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- Info row ---------- */
+
+.mu-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.mu-stat,
+.mu-klokke {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 7px 4px 6px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+}
+
+.mu-stat small,
+.mu-klokke small {
+  color: var(--tekst-3);
+  font: 800 0.64rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mu-stat b,
+.mu-klokke b {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 1.05rem/1.05 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mu-stat:last-child b {
+  color: var(--aksent);
+}
+
+.mu-klokke {
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: center;
+  column-gap: 9px;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+  cursor: pointer;
+}
+
+.mu-klokketekst {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.mu-pauseikon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+}
+
+.mu-pauseikon svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--blekk);
+}
+
+.mu-pauseikon .av,
+.mu-spill.pauset .mu-pauseikon .pa {
+  display: none;
+}
+
+.mu-spill.pauset .mu-pauseikon .av {
+  display: inline;
+}
+
+/* ---------- The board ---------- */
+
+.mu-flate-omr {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+.mu-ruter {
+  --c: 52px;
+  --fokus: var(--blekk);
+  --fokus-2: transparent;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--b), var(--c));
+  grid-auto-rows: var(--c);
+}
+
+.mu-spill.pauset .mu-ruter {
+  opacity: 0.3;
+  filter: blur(8px);
+}
+
+.mu-hull {
+  display: block;
+}
+
+.mu-celle {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #efe3cf;
+  box-shadow: inset 0 0 0 1px rgba(23, 14, 43, 0.12);
+  cursor: pointer;
+}
+
+.mu-celle.omr {
+  background: var(--of);
+}
+
+/* Region edges: thick dashed lines where a region meets something else. */
+.mu-celle.omr::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border: 0 dashed rgba(23, 14, 43, 0.55);
+  pointer-events: none;
+}
+
+.mu-celle.omr[data-k*="t"]::before {
+  border-top-width: 2.5px;
+}
+
+.mu-celle.omr[data-k*="h"]::before {
+  border-right-width: 2.5px;
+}
+
+.mu-celle.omr[data-k*="b"]::before {
+  border-bottom-width: 2.5px;
+}
+
+.mu-celle.omr[data-k*="v"]::before {
+  border-left-width: 2.5px;
+}
+
+.mu-celle:focus-visible {
+  z-index: 3;
+  outline: 3px solid var(--lampe);
+  outline-offset: -3px;
+}
+
+/* The rule: a diamond badge in the region's first cell. */
+.mu-regel {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: calc(var(--c) * 0.5);
+  height: calc(var(--c) * 0.42);
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--blekk);
+  box-shadow: 0 2px 0 rgba(6, 2, 14, 0.4);
+  color: var(--papir);
+  font: 900 calc(max(12px, var(--c) * 0.26)) / 1 var(--font-display);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.mu-regel.ok {
+  background: #0f6e54;
+}
+
+.mu-regel.ok::after {
+  content: "✓";
+}
+
+.mu-regel.feil {
+  background: var(--rod-dyp, #b3261e);
+  animation: mu-rist 0.35s ease-in-out;
+}
+
+@keyframes mu-rist {
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+
+/* Dominoes on the board */
+.mu-lagt {
+  position: absolute;
+  top: calc(var(--y) * var(--c));
+  left: calc(var(--x) * var(--c));
+  z-index: 1;
+  width: calc(var(--c) * 2);
+  height: var(--c);
+  margin: 0;
+  padding: 3px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.mu-lagt.staar {
+  width: var(--c);
+  height: calc(var(--c) * 2);
+}
+
+.mu-lagt .mu-flate {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mu-lagt.staar .mu-flate {
+  /* Drawn flat, turned upright around the middle: the first half on top. */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--c) * 2 - 6px);
+  height: calc(var(--c) - 6px);
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.mu-flate rect {
+  fill: #fffaf0;
+  stroke: var(--blekk);
+  stroke-width: 0.06;
+}
+
+.mu-flate path {
+  stroke: rgba(23, 14, 43, 0.45);
+  stroke-width: 0.04;
+}
+
+.mu-flate circle {
+  fill: var(--blekk);
+}
+
+.mu-lagt .mu-flate {
+  filter: drop-shadow(0 3px 0 rgba(6, 2, 14, 0.35));
+}
+
+.mu-lagt.hintet .mu-flate rect {
+  fill: #e9dcff;
+}
+
+.mu-ruter.vant .mu-lagt {
+  animation: mu-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes mu-pop {
+  45% {
+    scale: 1.08;
+  }
+}
+
+/* ---------- The hand, messages and tools ---------- */
+
+.mu-side {
+  display: grid;
+  gap: 6px;
+}
+
+.mu-melding {
+  min-height: 1.25em;
+  margin: 0;
+  color: var(--tekst);
+  font: 800 0.88rem/1.25 var(--font-display);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.mu-melding.vis {
+  opacity: 1;
+}
+
+.mu-handrad {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  min-height: 46px;
+}
+
+.mu-hand {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 44px;
+  padding: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  cursor: pointer;
+}
+
+.mu-hand .mu-flate {
+  width: 60px;
+  height: 30px;
+  transform: rotate(var(--snu));
+  transition: transform 0.18s ease-out;
+}
+
+.mu-hand.valgt {
+  background: color-mix(in srgb, var(--aksent) 30%, var(--natt-2));
+  box-shadow: inset 0 0 0 3px var(--aksent);
+}
+
+.mu-hand.valgt .mu-flate {
+  width: 44px;
+  height: 22px;
+}
+
+.mu-tomhand {
+  margin: 0;
+  color: var(--tekst-3);
+  font: 800 0.9rem/1.2 var(--font-display);
+}
+
+.mu-spill .dokk {
+  padding-top: 2px;
+  background: none;
+}
+
+.mu-verktoy {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mu-verk {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 4px 7px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 0.8rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.mu-verk svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mu-verk:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.mu-verk:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.mu-merke {
+  position: absolute;
+  top: -7px;
+  right: 6px;
+  min-width: 24px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  box-shadow: 0 0 0 2px var(--natt);
+  color: var(--tekst-2);
+  font: 900 0.66rem/1 var(--font-display);
+  font-style: normal;
+  text-align: center;
+}
+
+.mu-pauseboks {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+}
+
+.mu-pausekort {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 22px 24px 24px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 18px 40px var(--skygge);
+}
+
+.mu-pausetekst {
+  margin: 0;
+  font: 900 1.3rem/1.15 var(--font-display);
+}
+
+/* ---------- Home, setup, result ---------- */
+
+.hjem-knapper .knapp:has(.mu-dagknapp) {
+  gap: 14px;
+  padding-block: 10px;
+}
+
+.mu-dagknapp {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+
+.mu-dagknapp b {
+  font: 900 1.25rem/1.1 var(--font-display);
+}
+
+.mu-dagknapp small {
+  color: var(--blekk-2);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+.mu-kal {
+  display: grid;
+  flex: none;
+  grid-template-rows: auto 1fr;
+  width: 40px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.mu-kal small {
+  padding: 2px 0 1px;
+  background: #a8452c;
+  color: #fff;
+  font: 900 0.6rem/1.1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mu-kal b {
+  display: grid;
+  place-items: center;
+  font: 900 1.2rem/1 var(--font-display);
+}
+
+.mu-nedtelling {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.mu-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.mu-daglinje {
+  align-self: center;
+  max-width: 100%;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 60%, var(--strek));
+  color: var(--aksent);
+  font: 800 0.9rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.mu-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  padding-bottom: 12px;
+}
+
+.mu-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mu-rekorder li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 800 0.9rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.mu-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.mu-rekorder li small {
+  color: var(--tekst-3);
+  font-weight: 700;
+}
+
+.mu-ikon {
+  color: var(--aksent);
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+}
+
+.mu-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.mu-tall-boks {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 10px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.mu-tall-boks b {
+  font: 900 2.4rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.mu-tall-boks span {
+  font: 800 0.78rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.mu-ny {
+  position: absolute;
+  top: -12px;
+  right: -4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+}
+
+.mu-dagboks {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.mu-rekke {
+  margin: 0;
+  font: 900 1.4rem/1.1 var(--font-display);
+}
+
+/* The finished wall, small */
+.mu-mini {
+  display: grid;
+  justify-items: center;
+  margin: 6px 0 10px;
+  pointer-events: none;
+}
+
+.mu-mini .mu-ruter {
+  --c: 30px;
+  transform: rotate(-1.5deg);
+  filter: drop-shadow(0 8px 14px rgba(6, 2, 14, 0.55));
+}
+
+.mu-mini .mu-regel {
+  display: none;
+}
+
+@media (max-height: 700px) {
+  .mu-spill {
+    gap: 5px;
+  }
+
+  .mu-stat,
+  .mu-klokke {
+    padding: 5px 4px 4px;
+  }
+
+  .mu-pauseikon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .mu-verk {
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 4px;
+  }
+
+  .mu-verk svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mu-hand {
+    width: 62px;
+    height: 38px;
+  }
+
+  .mu-hand .mu-flate {
+    width: 52px;
+    height: 26px;
+  }
+
+  .mu-mini .mu-ruter {
+    --c: 24px;
+  }
+}
+
+@media (max-width: 359px) {
+  .mu-hand {
+    width: 58px;
+  }
+
+  .mu-hand .mu-flate {
+    width: 48px;
+    height: 24px;
+  }
+
+  .mu-stat b,
+  .mu-klokke b {
+    font-size: 0.95rem;
+  }
+}
+
+/* ---------- Landscape phones: the board on the left, the rest on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="mureren"] .app:has(.mu-spill) {
+    max-width: 1000px;
+  }
+
+  .mu-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 18px;
+    row-gap: 6px;
+    padding-bottom: 8px;
+  }
+
+  .mu-flate-omr {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .mu-topp {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .mu-side {
+    grid-column: 2;
+    grid-row: 2;
+    align-content: end;
+  }
+
+  .mu-spill .dokk {
+    position: static;
+    margin: 0;
+    padding: 0 0 max(8px, env(safe-area-inset-bottom, 0px));
+  }
+}

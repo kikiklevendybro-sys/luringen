@@ -1,0 +1,33 @@
+{
+  "id": "mureren",
+  "navn": "Mureren",
+  "undertittel": "Dominologikk",
+  "beskrivelse": "Gratis dominologikk på norsk: legg dominobrikkene slik at hvert felt holder regelen sin – sum, like, ulike, under eller over. Dagens mur og brett på tre nivåer.",
+  "kort": "Legg dominobrikkene så hvert felt holder regelen sin.",
+  "spillere": [1, 1],
+  "alder": 8,
+  "minutter": [2, 15],
+  "mobiler": "en",
+  "tagger": ["alene", "tenke", "daglig"],
+  "rekkefolge": 89,
+  "farge": "#e2704f",
+  "sok": ["dominologikk", "domino puslespill", "dominooppgave", "logikkspill", "domino med regler", "tallpuslespill", "dagens logikkspill", "dominobrikker på brett"],
+  "i18n": {
+    "en": {
+      "navn": "Brickie",
+      "undertittel": "Domino logic",
+      "kort": "Lay the dominoes so every region keeps its rule.",
+      "beskrivelse": "Free domino logic puzzle: lay the dominoes so every region keeps its rule – a sum, equal, different, under or over. A daily wall and boards at three levels.",
+      "slug": "brickie",
+      "sok": ["domino logic puzzle", "domino puzzle", "domino placement puzzle", "logic puzzle", "daily logic puzzle", "domino sum puzzle"]
+    },
+    "da": {
+      "navn": "Mureren",
+      "undertittel": "Dominologik",
+      "kort": "Læg dominobrikkerne, så hvert felt overholder sin regel.",
+      "beskrivelse": "Gratis dominologik på dansk: læg brikkerne, så hvert felt overholder sin regel – sum, ens, forskellige, under eller over. Dagens mur og bræt på tre niveauer.",
+      "slug": "mureren",
+      "sok": ["dominologik", "domino puslespil", "dominoopgave", "logikspil", "dagens logikspil", "dominobrikker på bræt"]
+    }
+  }
+}

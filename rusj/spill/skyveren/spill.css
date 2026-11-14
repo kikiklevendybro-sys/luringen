@@ -1,0 +1,391 @@
+/* Skyveren — the sliding puzzle. Everything is prefixed "sk-".
+   A wooden tray with chunky tiles that slide (transform) into the empty square. --s is the board
+   size, --n the side, --x/--y a tile's place and --hx/--hy its home (for the picture). */
+
+html.sk-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.sk-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+html.sk-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.sk-fast main,
+html.sk-fast .skjerm {
+  min-height: 0;
+}
+
+.sk-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sk-hud {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sk-stat {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 7px 4px 6px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.sk-stat small {
+  color: var(--tekst-3);
+  font: 800 0.64rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sk-stat b {
+  font: 900 1.12rem/1.05 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-stat:last-child b {
+  color: var(--aksent);
+}
+
+.sk-flate {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+/* The tray */
+.sk-brett {
+  --s: 300px;
+  --fokus: var(--lampe);
+  position: relative;
+  box-sizing: content-box;
+  width: calc(var(--s) - 16px);
+  height: calc(var(--s) - 16px);
+  padding: 8px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, #6b4423, #4a2c14);
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.12), inset 0 0 0 3px rgba(0, 0, 0, 0.25), 0 18px 36px var(--skygge);
+}
+
+.sk-brett::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 10px;
+  background: #2a180b;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.6);
+}
+
+.sk-bit {
+  --t: calc((var(--s) - 16px) / var(--n));
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: grid;
+  place-items: center;
+  width: var(--t);
+  height: var(--t);
+  padding: 2px;
+  border: 0;
+  background: none;
+  transform: translate(calc(var(--x) * var(--t)), calc(var(--y) * var(--t)));
+  transition: transform 0.11s ease-out;
+  cursor: pointer;
+}
+
+.sk-bit::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: calc(var(--t) * 0.14);
+  background: var(--papir);
+  box-shadow: inset 0 -4px 0 var(--papir-2), 0 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+.sk-tall {
+  position: relative;
+  color: var(--blekk);
+  font: 900 calc(var(--t) * 0.42) / 1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A number tile at home gets a mint band: never colour alone – the band is a shape too. */
+.sk-brett.sk-m-tall .sk-bit.hjemme::before {
+  box-shadow: inset 0 -4px 0 var(--papir-2), inset 0 0 0 3px #0f6e54, 0 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* The picture: the mascot cut into pieces over a sunburst that runs across the whole board. */
+.sk-brett.sk-m-bilde .sk-bit::before {
+  background: radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--bf) 30%, #fff8ec) 0 30%, color-mix(in srgb, var(--bf) 55%, #2a1648) 78%);
+  background-size: calc(var(--n) * 100%) calc(var(--n) * 100%);
+  background-position: calc(var(--hx) / (var(--n) - 1) * 100%) calc(var(--hy) / (var(--n) - 1) * 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+.sk-bit svg.sk-bilde {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: calc(var(--t) * 0.12);
+}
+
+.sk-lite {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  min-width: 1.4em;
+  padding: 2px 4px;
+  border-radius: 999px;
+  background: rgba(23, 14, 43, 0.72);
+  color: var(--papir);
+  font: 900 calc(max(11px, var(--t) * 0.16)) / 1 var(--font-display);
+  text-align: center;
+}
+
+.sk-bit:active {
+  filter: brightness(0.94);
+}
+
+.sk-bit.nei {
+  animation: sk-nei 0.3s ease-in-out;
+}
+
+@keyframes sk-nei {
+  30% {
+    margin-left: -4px;
+  }
+  70% {
+    margin-left: 4px;
+  }
+}
+
+.sk-brett.vant .sk-bit {
+  animation: sk-vant 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  animation-delay: calc((var(--x) + var(--y)) * 50ms);
+}
+
+.sk-brett.vant.sk-m-bilde .sk-lite {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+@keyframes sk-vant {
+  45% {
+    filter: brightness(1.15);
+    scale: 1.08;
+  }
+}
+
+.sk-side {
+  display: grid;
+  gap: 6px;
+}
+
+.sk-tips {
+  min-height: 1.3em;
+  margin: 0;
+  color: var(--tekst-3);
+  font: 800 0.9rem/1.25 var(--font-display);
+  text-align: center;
+}
+
+.sk-spill .dokk {
+  padding-top: 2px;
+  background: none;
+}
+
+/* ---------- The answer key (peek sheet and result) ---------- */
+
+.sk-fasit {
+  display: block;
+  justify-self: center;
+  width: 150px;
+  height: 150px;
+  margin: 6px auto 10px;
+  border-radius: 18px;
+  background: radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--bf) 30%, #fff8ec) 0 30%, color-mix(in srgb, var(--bf) 55%, #2a1648) 78%);
+  box-shadow: 0 0 0 4px #5a3519, 0 14px 30px var(--skygge);
+}
+
+.sk-fasit svg {
+  width: 100%;
+  height: 100%;
+}
+
+.sk-fasit-tall {
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  gap: 3px;
+  padding: 6px;
+  background: #2a180b;
+}
+
+.sk-fasit-tall i {
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--papir);
+  color: var(--blekk);
+  font: 900 0.85rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.sk-fasit-tall i:last-child {
+  background: none;
+}
+
+.sk-fasit.sk-stor {
+  width: 180px;
+  height: 180px;
+}
+
+/* ---------- Results and home ---------- */
+
+.sk-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.sk-tall-boks {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 10px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.sk-tall-boks.ny {
+  box-shadow: 0 7px 0 var(--papir-2), 0 0 0 4px var(--aksent), 0 18px 34px var(--skygge);
+}
+
+.sk-tall-boks b {
+  font: 900 2.4rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-tall-boks span {
+  font: 800 0.78rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.sk-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  padding-bottom: 12px;
+}
+
+.sk-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sk-rekorder li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 800 0.88rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.sk-sist {
+  margin: 0;
+  color: var(--tekst-3);
+  font: 700 0.86rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+@media (max-height: 700px) {
+  .sk-spill {
+    gap: 6px;
+  }
+
+  .sk-stat {
+    padding: 5px 4px 4px;
+  }
+
+  .sk-fasit.sk-stor {
+    width: 130px;
+    height: 130px;
+  }
+}
+
+/* ---------- Landscape phones: the tray on the left, the rest on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="skyveren"] .app:has(.sk-spill) {
+    max-width: 1000px;
+  }
+
+  .sk-spill {
+    display: grid;
+    grid-template-columns: min(calc(100dvh - 60px), 54vw) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 22px;
+    padding-bottom: 8px;
+  }
+
+  .sk-flate {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .sk-hud {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .sk-side {
+    grid-column: 2;
+    grid-row: 2;
+    align-content: end;
+  }
+
+  .sk-spill .dokk {
+    position: static;
+    margin: 0;
+    padding: 0 0 max(8px, env(safe-area-inset-bottom, 0px));
+  }
+}
