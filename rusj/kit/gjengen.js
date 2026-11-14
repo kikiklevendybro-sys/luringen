@@ -2004,6 +2004,80 @@
         ${tekst(106, 22, "?", 26, LAMPE)}
         ${strek("M100 66 Q110 62 114 54M102 76 Q114 76 120 70", 3, P)}`,
     },
+
+
+    // Edderkoppen: a round, leafy-green spider hanging from a silk thread, eight bendy legs with
+    // little feet, two big friendly eyes and a small smile – the thread is the word being spun.
+    edderkoppen: {
+      farge: "#9be36b",
+      tegn: (f) => `
+        ${strek("M60 0 V18", 3, P)}
+        ${strek("M22 46 Q8 30 4 16M16 62 Q2 56 -2 44M16 78 Q2 84 -2 98M24 94 Q12 106 10 120", 5.5)}
+        ${strek("M98 46 Q112 30 116 16M104 62 Q118 56 122 44M104 78 Q118 84 122 98M96 94 Q108 106 110 120", 5.5)}
+        <circle cx="4" cy="16" r="3.5" fill="${B}"/><circle cx="116" cy="16" r="3.5" fill="${B}"/>
+        <circle cx="10" cy="120" r="3.5" fill="${B}"/><circle cx="110" cy="120" r="3.5" fill="${B}"/>
+        ${hode(f)}
+        ${kinn(80)}
+        ${oyne({ y: 58, r: 13, pr: 6, dy: 1 })}
+        ${smil(86, 13)}
+        ${glans("M28 44 Q34 32 46 26", 4)}`,
+    },
+
+
+    // Sjongløren: a round, apricot juggler with a striped jester-ish hat brim, eyes looking up at three
+    // letter balls in the air above her head (pink, yellow and mint), a happy open smile.
+    sjongloren: {
+      farge: "#ff9f5a",
+      tegn: (f) => `
+        ${hode(f)}
+        ${form("M22 40 Q60 6 98 40 Q60 26 22 40Z", P, 4)}
+        ${strek("M40 27 L46 36M60 22 V33M80 27 L74 36", 3.5, "#ff6f9f")}
+        <circle cx="22" cy="12" r="10" fill="#ff86c8" stroke="${B}" stroke-width="3.5"/>
+        <circle cx="60" cy="2" r="10" fill="${LAMPE}" stroke="${B}" stroke-width="3.5"/>
+        <circle cx="98" cy="12" r="10" fill="#7fe0b5" stroke="${B}" stroke-width="3.5"/>
+        ${kinn(82)}
+        ${oyne({ y: 62, r: 12, pr: 5.6, dy: -4 })}
+        ${form("M46 88 Q60 104 74 88Z", "#ff6f6f", 4)}`,
+    },
+
+
+    // Fiskeren: a round, sea-blue fisher in a yellow sou'wester, a fishing rod over the shoulder with
+    // a playing card (the 10 of diamonds, «store kasino») hooked on the line.
+    fiskeren: {
+      farge: "#4fc3d9",
+      tegn: (f) => `
+        ${strek("M96 112 L112 6", 4.5)}
+        ${strek("M112 6 Q118 30 116 52", 2, B)}
+        <rect x="104" y="52" width="16" height="22" rx="3" fill="${P}" stroke="${B}" stroke-width="3"/>
+        <path d="M112 57 L116 63 L112 69 L108 63Z" fill="#dc2440"/>
+        ${hode(f)}
+        ${form("M10 52 Q14 14 60 12 Q106 14 110 52 Q60 40 10 52Z", LAMPE, 4.5)}
+        ${strek("M30 30 Q60 22 90 30", 3, "#c99a1a")}
+        ${kinn(82)}
+        ${oyne({ y: 66, r: 11.5, pr: 5.4, dx: 2 })}
+        ${smil(90, 13)}`,
+    },
+
+
+    // Makkeren: a round, cornflower-blue card player giving a high five with one hand and holding up a
+    // fan of three cards with the other – a winking eye: «you and me this round».
+    makkeren: {
+      farge: "#7fa8ff",
+      tegn: (f) => `
+        <g transform="rotate(-14 16 96)">
+          <rect x="4" y="74" width="20" height="28" rx="3" fill="${P}" stroke="${B}" stroke-width="3"/>
+          <rect x="12" y="72" width="20" height="28" rx="3" fill="${P}" stroke="${B}" stroke-width="3"/>
+          <rect x="20" y="70" width="20" height="28" rx="3" fill="${P}" stroke="${B}" stroke-width="3"/>
+          <path d="M30 78 L34 84 L30 90 L26 84Z" fill="#dc2440"/>
+        </g>
+        ${hode(f)}
+        ${form("M100 46 Q116 34 118 16 Q112 10 104 14 Q102 28 92 36Z", f, 4)}
+        ${strek("M108 14 L106 6M114 18 L118 10", 3)}
+        ${kinn(80)}
+        ${oyne({ y: 58, r: 11.5, pr: 5.5, dx: -2 })}
+        ${strek("M72 58 Q80 52 88 58", 5)}
+        ${smil(86, 15)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

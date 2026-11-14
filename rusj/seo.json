@@ -1203,6 +1203,52 @@
         "paranoia spørsmål",
         "hvem her spørsmål"
       ]
+    },
+    "edderkoppen": {
+      "tittel": "Finn ord i 16 bokstaver – ordjakt på tid, gratis",
+      "frase": "Finn ord i rutenettet",
+      "beskrivelse": "Gratis ordspill på norsk: finn så mange ord du kan i et rutenett på 4 × 4 bokstaver på tre minutter. Dagens rutenett, fritt spill og runder for gjengen.",
+      "sok": [
+        "finn ord i bokstaver",
+        "ordspill på tid",
+        "4x4 ordspill",
+        "ordjakt i rutenett"
+      ]
+    },
+    "sjongloren": {
+      "tittel": "Anagrammer – lag ord av bokstavene, gratis",
+      "frase": "Anagrammer",
+      "beskrivelse": "Gratis anagramspill på norsk: lag så mange ord du kan av seks eller sju bokstaver og finn helordet som bruker alle. Fem runder, på tid eller uten klokke.",
+      "sok": [
+        "anagram spill",
+        "lag ord av bokstaver",
+        "stokk bokstavene",
+        "finn ordet av bokstavene"
+      ]
+    },
+    "fiskeren": {
+      "tittel": "Kasino kortspill – gratis mot mobilen",
+      "frase": "Kasino",
+      "beskrivelse": "Spill kasino gratis på norsk: fisk kort fra bordet, bygg og ta tabber. Samle ess, store og lille kasino, spar og flest kort mot én til tre mobiler.",
+      "sok": [
+        "kasino kortspill",
+        "kasino regler",
+        "store og lille kasino",
+        "kasino mot data"
+      ],
+      "motMobilen": true
+    },
+    "makkeren": {
+      "tittel": "Amerikaner kortspill – gratis mot mobilen",
+      "frase": "Amerikaner",
+      "beskrivelse": "Spill Amerikaner gratis på norsk: meld stikk, velg trumf og spør etter et kort for å finne makkeren. To mot to hver runde, mot tre mobiler på tre nivåer.",
+      "sok": [
+        "amerikaner kortspill",
+        "amerikaner regler",
+        "kortspill med melding",
+        "amerikaner mot data"
+      ],
+      "motMobilen": true
     }
   }
 }
