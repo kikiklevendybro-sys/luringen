@@ -331,6 +331,7 @@ R.start({
 | `R.ui.giTil({ i, h, tekst, knapp, prikker: [antall, na] })` | "Gi mobilen til …" screen for pass-the-phone |
 | `R.ui.fremdrift(antall, na)` | progress dots |
 | `R.ui.mappe({ id, etikett, tekst })` | hold-to-reveal secret card; back filled by `hemmelig.innhold` |
+| `data-hemmelig` on an element | marks a private screen (a hand passed around): no sticker toast while it is shown |
 | `R.ui.storkort({ tekst \| tekstHtml, etikett, nr, fot, klasse, sveip, kompakt })` | big paper card for decks; `sveip: "handling"` makes it swipeable |
 | `R.ui.timer({ id, sekunder, stor, kontrollHtml })` + `new R.Timer({ id, sekunder, vedSlutt, vedTikk }).start()` | countdown ring |
 | `R.ui.poengliste([{ i \| lag \| navn, poeng, pluss }])`, `R.ui.pall(rader)` | scoreboard, podium |

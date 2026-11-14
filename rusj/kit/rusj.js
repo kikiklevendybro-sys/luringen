@@ -492,7 +492,7 @@
     if (R.arkApent()) return false;
     const ned = $("#nedtelling");
     if (ned && !ned.hidden) return false;
-    if (apenMappe || $("#skjerm .mappe, #skjerm [data-mappe]")) return false;
+    if (apenMappe || $("#skjerm .mappe, #skjerm [data-mappe], #skjerm [data-hemmelig]")) return false; // [data-hemmelig]: a private hand on screen
     for (const t of aktiveTimere) if (t.kjorer) return false;
     return true;
   }

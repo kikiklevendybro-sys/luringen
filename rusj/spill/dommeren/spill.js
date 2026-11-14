@@ -445,7 +445,7 @@
               <div><p class="etikett">🤫 ${esc(R.t("Bare {navn} ser dette", { navn: R.navn(i) }))}</p><h1 id="skjerm-tittel">${esc(R.t("Velg ditt beste svar"))}</h1></div>
             </div>
             <p class="papirboks dom-forhand" aria-live="polite"><span>${valgt >= 0 ? setning(sp, SV[h[valgt]].t) : setning(sp, null)}</span></p>
-            <div class="dom-hand" role="group" aria-label="${esc(R.t("Svarkortene dine"))}">
+            <div class="dom-hand" data-hemmelig role="group" aria-label="${esc(R.t("Svarkortene dine"))}">
               ${h.map((k, n) => `<button class="dom-svarkort${n === valgt ? " valgt" : ""}" data-h="merk" data-v="${n}" aria-pressed="${n === valgt}">${esc(SV[k].t)}</button>`).join("")}
             </div>
             ${R.ui.dokk(R.ui.knapp(valgt >= 0 ? R.t("Legg kortet") : R.t("Velg et kort"), "legg", { id: "dom-legg", av: valgt < 0 }))}`;
