@@ -707,6 +707,117 @@
         "hearts kortspil"
       ]
     },
+    "bobla": {
+      "tittel": "Bobleskyder på dansk – gratis, bane efter bane",
+      "frase": "Bobleskyder",
+      "beskrivelse": "Spil bobleskyder gratis på dansk: sigt, skyd mod væggene, og få tre ens bobler til at springe. Nye baner hele tiden eller uendeligt med rekord. Uden reklamer.",
+      "sok": [
+        "bobleskyder gratis",
+        "boblespil uden reklamer",
+        "skyd bobler spil",
+        "boblespil for børn"
+      ]
+    },
+    "ekornet": {
+      "tittel": "Match 3 på dansk – gratis, med baner uden liv",
+      "frase": "Match 3",
+      "beskrivelse": "Spil match 3 gratis på dansk: byt agern, blade og svampe til rækker af tre, udløs pile- og stjernebrikker, og klar bane efter bane. Uden reklamer og liv.",
+      "sok": [
+        "match 3 gratis",
+        "match 3 for børn",
+        "byt og match spil",
+        "match 3 uden liv"
+      ]
+    },
+    "planeten": {
+      "tittel": "Planetspil – slip og slå planeter sammen, gratis",
+      "frase": "Slip og slå sammen",
+      "beskrivelse": "Spil et gratis slå sammen-spil på dansk: slip planeter i glasset, to ens bliver til én større – fra asteroide til Solen. Ægte fysik, uden reklamer.",
+      "sok": [
+        "merge spil gratis",
+        "planetspil",
+        "slå planeter sammen",
+        "fysikspil på mobilen"
+      ]
+    },
+    "maneten": {
+      "tittel": "Ét-tryks-spil – hold og svøm gennem hulen, gratis",
+      "frase": "Ét-tryks-spil",
+      "beskrivelse": "Spil et gratis ét-tryks-spil: hold for at svømme op, slip for at synke, og styr en gople forbi sten og søpindsvin. Saml perler og slå din rekord.",
+      "sok": [
+        "et tryk spil gratis",
+        "hold for at flyve spil",
+        "hulespil",
+        "gople spil"
+      ]
+    },
+    "murbrekkeren": {
+      "tittel": "Brick breaker – tolv baner, gratis i browseren",
+      "frase": "Brick breaker",
+      "beskrivelse": "Spil brick breaker gratis på dansk: styr battet, lad bolden springe, og smadr muren. Tolv baner med hårde klodser, stål og kapsler – uden reklamer.",
+      "sok": [
+        "brick breaker gratis",
+        "murbrækker spil",
+        "bat og bold spil",
+        "smadr klodserne"
+      ]
+    },
+    "blekkspruten": {
+      "tittel": "Nonogram på dansk – gratis med dagens nonogram",
+      "frase": "Nonogram",
+      "beskrivelse": "Spil gratis nonogram på dansk: følg tallene, udfyld felterne, og se billedet komme frem. Dagens nonogram, 29 billeder og tilfældige gitre op til 12 × 12.",
+      "sok": [
+        "nonogram online",
+        "billedlogik",
+        "malerlogik",
+        "logikspil gratis"
+      ]
+    },
+    "lasesmeden": {
+      "tittel": "Knæk koden – gratis farvekodespil mod mobilen",
+      "frase": "Knæk koden",
+      "beskrivelse": "Spil et gratis kodeknækkerspil: gæt den hemmelige række af farvede knapper, læs prikkerne, og knæk koden. Mod mobilen på tre niveauer eller to spillere.",
+      "motMobilen": true,
+      "sok": [
+        "knæk koden spil",
+        "farvekode spil",
+        "kodeknækker",
+        "gæt koden"
+      ]
+    },
+    "skyveren": {
+      "tittel": "15-spil – gratis skydepuslespil med tal eller billeder",
+      "frase": "15-spil",
+      "beskrivelse": "Spil 15-spillet gratis på dansk: skub brikkerne på plads med tal eller billede, fra 3 × 3 til 5 × 5. Hver eneste blanding kan løses.",
+      "sok": [
+        "15-spil online",
+        "skydepuslespil",
+        "glidepuslespil",
+        "talpuslespil"
+      ]
+    },
+    "globetrotteren": {
+      "tittel": "Gæt landet – dagens landequiz med omrids og flag",
+      "frase": "Gæt landet",
+      "beskrivelse": "Spil en gratis landequiz: gæt landet ud fra omridset på seks forsøg med afstand og retning efter hvert gæt. Dagens land og frit spil med omrids eller flag.",
+      "sok": [
+        "gæt landet spil",
+        "landequiz",
+        "geografiquiz",
+        "flagquiz"
+      ]
+    },
+    "mureren": {
+      "tittel": "Dominologik – gratis puslespil med dagens mur",
+      "frase": "Dominologik",
+      "beskrivelse": "Spil gratis dominologik på dansk: læg alle brikkerne, så hvert felt overholder sin regel – sum, ens, forskellige, under eller over. Ny mur hver dag.",
+      "sok": [
+        "dominologik",
+        "domino puslespil",
+        "logikspil gratis",
+        "dagens logikspil"
+      ]
+    },
     "musa": {
       "tittel": "Labyrint for børn – find vej til osten, gratis",
       "frase": "Labyrint for børn",

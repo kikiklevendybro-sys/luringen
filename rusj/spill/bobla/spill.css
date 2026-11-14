@@ -1,0 +1,492 @@
+/* Bobla — a bubble shooter. Everything is prefixed "bo-". The board is a canvas in a chunky frame;
+   the HUD sits above it (portrait) or beside it (a phone on its side). */
+
+/* ---------- The play screen fills the phone exactly; aiming never scrolls the page ---------- */
+
+html.bo-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.bo-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.bo-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.bo-fast main,
+html.bo-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.bo-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- HUD ---------- */
+
+.bo-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.bo-stat {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 6px 7px;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.bo-stat small {
+  color: var(--tekst-2);
+  font: 800 0.64rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bo-stat b {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 1.3rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bo-poengboks {
+  background: color-mix(in srgb, var(--aksent) 18%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+}
+
+.bo-poengboks b {
+  color: var(--aksent);
+}
+
+.bo-pause {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  cursor: pointer;
+}
+
+.bo-pause svg {
+  width: 22px;
+  height: 22px;
+  fill: var(--tekst);
+}
+
+.bo-pause .av,
+.bo-pause.pauset .pa {
+  display: none;
+}
+
+.bo-pause.pauset .av {
+  display: inline;
+}
+
+.bo-pause.pauset {
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+}
+
+.bo-pause.pauset svg {
+  fill: var(--blekk);
+}
+
+/* ---------- The board ---------- */
+
+.bo-flate {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+.bo-ramme {
+  position: relative;
+  padding: 4px;
+  border-radius: 20px;
+  background: #0f0820;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--aksent) 65%, var(--natt)),
+    0 8px 0 3px color-mix(in srgb, var(--aksent) 28%, var(--natt)),
+    0 22px 44px var(--skygge);
+  cursor: crosshair;
+  outline-offset: 6px;
+  touch-action: none;
+}
+
+.bo-lerret {
+  display: block;
+  border-radius: 16px;
+  touch-action: none;
+}
+
+/* The swap button lies on the small next bubble (placed from JS) */
+.bo-bytt {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.bo-bytt:focus-visible {
+  outline: 3px solid var(--aksent);
+  outline-offset: 0;
+}
+
+.bo-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(15, 8, 32, 0.62);
+  cursor: default;
+}
+
+.bo-status[hidden] {
+  display: none;
+}
+
+.bo-statuskort {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(100%, 280px);
+  padding: 18px 18px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  color: var(--blekk);
+  text-align: center;
+  box-shadow: 0 8px 0 var(--papir-2), 0 18px 40px var(--skygge);
+}
+
+.bo-statuskort .etikett {
+  margin: 0;
+  color: var(--blekk-2);
+}
+
+.bo-stor {
+  margin: 0 0 4px;
+  font: 900 1.45rem/1.1 var(--font-display);
+}
+
+.bo-statuskort .knapp {
+  width: 100%;
+}
+
+.bo-tips {
+  margin: 0;
+  color: var(--tekst-2);
+  font: 800 0.86rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.bo-tast {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bo-finger {
+    display: none;
+  }
+
+  .bo-tast {
+    display: inline;
+  }
+}
+
+/* ---------- Short and narrow phones ---------- */
+
+@media (max-height: 700px) and (orientation: portrait) {
+  .bo-spill {
+    gap: 8px;
+  }
+
+  .bo-stat {
+    padding: 6px 6px 5px;
+  }
+
+  .bo-stat b {
+    font-size: 1.1rem;
+  }
+
+  .bo-pause {
+    min-height: 40px;
+  }
+}
+
+@media (max-height: 620px) and (orientation: portrait) {
+  .bo-tips {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .bo-hud {
+    gap: 6px;
+  }
+
+  .bo-pause {
+    width: 50px;
+  }
+}
+
+/* ---------- A phone on its side: the board on the left, the rest on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="bobla"] .app:has(.bo-spill) {
+    max-width: 900px;
+  }
+
+  .bo-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(170px, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 20px;
+    row-gap: 10px;
+  }
+
+  .bo-flate {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .bo-hud {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    margin-top: 6px;
+  }
+
+  .bo-tips {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+  }
+}
+
+/* ---------- Home ---------- */
+
+.bo-knapp {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+}
+
+.bo-knapp b {
+  font: 900 1.35rem/1.1 var(--font-display);
+}
+
+.bo-knapp small {
+  color: var(--blekk-2);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+.bo-sistlinje {
+  display: grid;
+  gap: 4px;
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.bo-sistlinje p {
+  margin: 0;
+}
+
+/* ---------- All levels ---------- */
+
+.bo-brettgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  gap: 10px;
+  padding-bottom: 24px;
+}
+
+.bo-brettflis {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 10px 4px 8px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2);
+  color: var(--blekk);
+  cursor: pointer;
+}
+
+.bo-brettflis b {
+  font: 900 1.4rem/1 var(--font-display);
+}
+
+.bo-brettflis span {
+  color: #a0610a;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+}
+
+.bo-brettflis.ny {
+  background: color-mix(in srgb, var(--aksent) 30%, var(--papir));
+}
+
+.bo-brettflis.ny span {
+  color: var(--blekk-2);
+}
+
+.bo-brettflis:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--papir-2);
+}
+
+/* ---------- The result ---------- */
+
+.bo-stjerner {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.bo-stjerner i {
+  color: rgba(255, 241, 221, 0.18);
+  font: 900 3rem/1 var(--font-display);
+  font-style: normal;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+}
+
+.bo-stjerner i.pa {
+  color: var(--lampe);
+  animation: bo-stjerne 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.bo-stjerner i.pa:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.bo-stjerner i.pa:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes bo-stjerne {
+  from {
+    opacity: 0;
+    transform: scale(0.2) rotate(-40deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.bo-resultat {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 10px;
+}
+
+.bo-tall {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 6px 12px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2), 0 16px 30px var(--skygge);
+  color: var(--blekk);
+}
+
+.bo-tall b {
+  font: 900 1.8rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bo-tall:not(:first-child) b {
+  font-size: 1.45rem;
+}
+
+.bo-tall span {
+  font: 800 0.66rem/1.15 var(--font-display);
+  letter-spacing: 0.1em;
+  opacity: 0.75;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.bo-ny {
+  position: absolute;
+  top: -10px;
+  right: -4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--rosa-dyp, #d61f69);
+  color: #fff;
+  font: 900 0.7rem/1.2 var(--font-display);
+  font-style: normal;
+  transform: rotate(6deg);
+}
+
+@media (max-width: 360px) {
+  .bo-tall b {
+    font-size: 1.45rem;
+  }
+
+  .bo-tall:not(:first-child) b {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-height: 700px) {
+  .bo-stjerner i {
+    font-size: 2.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bo-stjerner i.pa {
+    animation: none;
+  }
+}

@@ -937,6 +937,117 @@
         "hjerter regler",
         "hjerter mot data"
       ]
+    },
+    "bobla": {
+      "tittel": "Bobleskyter på norsk – gratis, brett etter brett",
+      "frase": "Bobleskyter",
+      "beskrivelse": "Spill bobleskyter gratis på norsk: sikt, skyt i veggene og få tre like bobler til å sprette. Nye brett hele tiden, eller uendelig med rekord. Uten reklame.",
+      "sok": [
+        "bobleskyter gratis",
+        "boblespill på mobil",
+        "skyt bobler spill",
+        "boblespill for barn"
+      ]
+    },
+    "ekornet": {
+      "tittel": "Match 3 på norsk – gratis, med brett og uten liv",
+      "frase": "Match 3",
+      "beskrivelse": "Spill match 3 gratis på norsk: bytt nøtter, blader og sopper til rader på tre, utløs pil- og stjernebrikker og klar brett etter brett. Uten reklame og liv.",
+      "sok": [
+        "match 3 gratis",
+        "tre på rad spill for barn",
+        "bytt og match spill",
+        "match 3 uten liv"
+      ]
+    },
+    "planeten": {
+      "tittel": "Planetspill – slipp og slå sammen planeter, gratis",
+      "frase": "Slipp og slå sammen",
+      "beskrivelse": "Spill et gratis slå sammen-spill på norsk: slipp planeter i glasset, og to like blir én større – fra asteroide til sola. Ekte fysikk, uten reklame.",
+      "sok": [
+        "merge spill gratis",
+        "planetspill",
+        "slå sammen planeter",
+        "fysikkspill på mobil"
+      ]
+    },
+    "maneten": {
+      "tittel": "Ett-trykks-spill – hold og svøm gjennom hulen, gratis",
+      "frase": "Ett-trykks-spill",
+      "beskrivelse": "Spill et gratis ett-trykks-spill på norsk: hold for å svømme opp, slipp for å synke, og styr en manet forbi steiner og kråkeboller. Sank perler og slå rekorden.",
+      "sok": [
+        "ett trykk spill gratis",
+        "hold for å fly spill",
+        "hulespill på mobil",
+        "manet spill"
+      ]
+    },
+    "murbrekkeren": {
+      "tittel": "Brick breaker på norsk – tolv brett, gratis",
+      "frase": "Brick breaker",
+      "beskrivelse": "Spill brick breaker gratis på norsk: styr racketen, la ballen sprette og knus muren. Tolv brett med harde klosser, stål og kapsler – uten reklame.",
+      "sok": [
+        "brick breaker gratis",
+        "murbrekker spill",
+        "racket og ball spill",
+        "knus klossene"
+      ]
+    },
+    "blekkspruten": {
+      "tittel": "Nonogram på norsk – gratis med dagens nonogram",
+      "frase": "Nonogram",
+      "beskrivelse": "Spill nonogram gratis på norsk: følg tallene, fyll rutene og se bildet komme fram. Dagens nonogram, 29 bilder å male og tilfeldige brett opp til 12 × 12.",
+      "sok": [
+        "nonogram på norsk",
+        "bildelogikk",
+        "malelogikk",
+        "japansk bildekryss"
+      ]
+    },
+    "lasesmeden": {
+      "tittel": "Knekk koden – gratis fargekodespill mot mobilen",
+      "frase": "Knekk koden",
+      "beskrivelse": "Spill knekk koden gratis på norsk: gjett den hemmelige rekken av fargede knapper, les prikkene og knekk koden. Mot mobilen på tre nivåer, eller to spillere.",
+      "motMobilen": true,
+      "sok": [
+        "knekk koden spill",
+        "fargekode spill",
+        "kodeknekker",
+        "gjett koden"
+      ]
+    },
+    "skyveren": {
+      "tittel": "Femtenspillet – gratis skyvepuslespill på norsk",
+      "frase": "Femtenspillet",
+      "beskrivelse": "Spill femtenspillet gratis på norsk: skyv bitene på plass med tall eller bilde, fra 3 × 3 til 5 × 5. Hver eneste blanding kan løses.",
+      "sok": [
+        "femtenspillet",
+        "15-spillet",
+        "skyvepuslespill",
+        "glidepuslespill"
+      ]
+    },
+    "globetrotteren": {
+      "tittel": "Gjett landet – dagens landquiz med omriss og flagg",
+      "frase": "Gjett landet",
+      "beskrivelse": "Spill en gratis landquiz på norsk: gjett landet ut fra omrisset på seks forsøk, med avstand og retning etter hvert gjett. Dagens land og fritt spill.",
+      "sok": [
+        "gjett landet",
+        "landquiz",
+        "geografiquiz",
+        "flaggquiz"
+      ]
+    },
+    "mureren": {
+      "tittel": "Dominologikk – gratis puslespill med dagens mur",
+      "frase": "Dominologikk",
+      "beskrivelse": "Spill dominologikk gratis på norsk: legg alle brikkene slik at hvert felt holder regelen sin – sum, like, ulike, under eller over. Ny mur hver dag.",
+      "sok": [
+        "dominologikk",
+        "domino puslespill",
+        "logikkspill gratis",
+        "dagens logikkspill"
+      ]
     }
   }
 }

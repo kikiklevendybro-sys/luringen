@@ -8,6 +8,7 @@
   "alder": 4,
   "minutter": [10, 25],
   "mobiler": "en",
+  "terninger": true,
   "tagger": ["barn", "familie", "klassiker"],
   "rekkefolge": 56,
   "farge": "#ffb347",

@@ -547,138 +547,79 @@
 /* ---------- Dice and the doubling cube ---------- */
 
 .tv-midt {
+  position: relative;
   z-index: 4;
   display: flex;
   grid-row: 7;
   grid-column: 1 / 3;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  justify-content: flex-start;
+  padding-left: 4px;
   pointer-events: none;
 }
 
 .ligg .tv-midt {
   grid-row: 1 / 3;
   grid-column: 8 / 14;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 6px 0 0;
 }
 
 .ligg .tv-midt.venstre {
   grid-column: 1 / 7;
 }
 
-.tv-tern {
-  display: flex;
-  gap: 5px;
+/* The dice (R.terninger, rusj/kit/terninger.css) roll along the bar – a little taller than the bar,
+   so they are not tiny – or, on a phone on its side, in the band between the points. */
+.tv-terninger {
+  position: absolute;
+  top: -12px;
+  right: 2px;
+  bottom: -12px;
+  left: calc(var(--bar) + 8px);
 }
 
-.tv-t {
-  width: calc(var(--bar) - 2px);
-  height: calc(var(--bar) - 2px);
-  filter: drop-shadow(0 2px 2px rgba(6, 2, 14, 0.55));
+.ligg .tv-terninger {
+  top: calc(50% - clamp(36px, calc(var(--c) * 1.9), 62px));
+  right: 3%;
+  bottom: auto;
+  left: 3%;
+  height: clamp(72px, calc(var(--c) * 3.8), 124px);
 }
 
-.ligg .tv-t {
-  width: clamp(26px, calc(var(--c) * 1.3), 46px);
-  height: clamp(26px, calc(var(--c) * 1.3), 46px);
+/* The dark player's dice are dark, with light pips */
+.tv-terninger .trn-t.s1 {
+  --trn-flate: #3a2c5e;
+  --trn-flate-kant: #261b40;
+  --trn-glans: #55457f;
+  --trn-oye: #fff4e0;
+  --trn-oye-glans: #ffffff;
+  --trn-kjerne: #2b1f47;
 }
 
-.tv-tern.dobbel .tv-t {
-  width: calc(var(--bar) - 6px);
-  height: calc(var(--bar) - 6px);
+.tv-terninger .trn-t.brukt {
+  opacity: 0.35;
 }
 
-.ligg .tv-tern.dobbel .tv-t {
-  width: clamp(22px, calc(var(--c) * 1.05), 38px);
-  height: clamp(22px, calc(var(--c) * 1.05), 38px);
-}
-
-.tv-t rect {
-  fill: #fffaf2;
-  stroke: #170e2b;
-  stroke-width: 7;
-}
-
-.tv-t circle {
-  fill: #170e2b;
-}
-
-.tv-t.s1 rect {
-  fill: #2f2350;
-  stroke: #fff4e0;
-}
-
-.tv-t.s1 circle {
-  fill: #fff4e0;
-}
-
-.tv-t.brukt {
-  opacity: 0.32;
-}
-
-.tv-tern.apning .tv-t:first-child {
-  transform: rotate(-8deg);
-}
-
-.tv-tern.apning .tv-t:last-child {
-  transform: rotate(9deg);
-}
-
-.tv-tern.rull .tv-t {
-  animation: tv-rull 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) both;
-}
-
-.tv-tern.rull .tv-t:nth-child(2) {
-  animation-delay: 0.05s;
-}
-
-.tv-tern.rull .tv-t:nth-child(3) {
-  animation-delay: 0.08s;
-}
-
-.tv-tern.rull .tv-t:nth-child(4) {
-  animation-delay: 0.11s;
-}
-
-@keyframes tv-rull {
-  0% {
-    opacity: 0.2;
-    transform: translate(-18px, -10px) rotate(-260deg) scale(0.55);
-  }
-  55% {
-    opacity: 1;
-    transform: translate(3px, 2px) rotate(18deg) scale(1.08);
-  }
-  100% {
-    transform: none;
-  }
-}
-
+/* The doubling cube: who owns it shows as a ring in the owner's colour */
 .tv-kube {
   display: grid;
+  flex: none;
   place-items: center;
-  width: calc(var(--bar) - 4px);
-  height: calc(var(--bar) - 4px);
-  border-radius: 6px;
-  background: linear-gradient(160deg, #fffaf2, #ead9be);
-  box-shadow: inset 0 0 0 2px #170e2b, 0 2px 3px rgba(6, 2, 14, 0.5);
-  color: #170e2b;
-  font: 900 calc(var(--bar) * 0.42) / 1 var(--font-display);
-}
-
-.ligg .tv-kube {
-  width: clamp(24px, calc(var(--c) * 1.2), 40px);
-  height: clamp(24px, calc(var(--c) * 1.2), 40px);
-  font-size: clamp(0.8rem, calc(var(--c) * 0.55), 1.1rem);
+  border-radius: 8px;
 }
 
 .tv-kube.eid.s0 {
-  box-shadow: inset 0 0 0 2px #170e2b, 0 0 0 2.5px var(--tv-lys), 0 2px 3px rgba(6, 2, 14, 0.5);
+  box-shadow: 0 0 0 2.5px var(--tv-lys);
 }
 
-.tv-kube.eid.s1 {
-  background: linear-gradient(160deg, #3d2f66, #2b1f47);
-  box-shadow: inset 0 0 0 2px #fff4e0, 0 2px 3px rgba(6, 2, 14, 0.5);
-  color: #fff4e0;
+.tv-kube.eid.s1 .trn-statisk {
+  --trn-flate: #3a2c5e;
+  --trn-flate-kant: #261b40;
+  --trn-glans: #55457f;
+  --trn-oye: #fff4e0;
+  --trn-kjerne: #2b1f47;
 }
 
 /* ---------- Home: records ---------- */
@@ -913,8 +854,7 @@
   .tv-celle.kan .tv-b:last-child,
   .tv-p.mal::before,
   .tv-ut.mal,
-  .tv-b.ny,
-  .tv-tern.rull .tv-t {
+  .tv-b.ny {
     animation: none;
   }
 }

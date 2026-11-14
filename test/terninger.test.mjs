@@ -18,9 +18,10 @@ const F = window.RusjTerninger.fysikk;
 const KAST = 1000;
 const RUND = 0.1; // the rounded skin the dice collide with (the cube's corners sit 0.4 from its centre)
 
-// A tray as the kit lays it out for n dice: at least max(5.8, n + 2) × 2 dice of felt.
+// A tray as the kit lays it out for n dice: at least max(5.8, n + 2) × 2 dice of felt (one or two
+// dice: n + 1.9 wide).
 function brett(rnd, n) {
-  const wMin = Math.max(5.8, n + 2);
+  const wMin = n <= 2 ? n + 1.9 : Math.max(5.8, n + 2);
   return { W: wMin + rnd() * (11 - wMin), H: 2 + rnd() * 2.8 };
 }
 
@@ -161,6 +162,49 @@ for (let n = 1; n <= 6; n++) {
     assert.ok(lengst <= 2.5);
   });
 }
+
+test("two dice shaken under a cup (Meyer): a small space, still at rest, apart and inside", () => {
+  const rnd = F.mulberry32(31);
+  for (let k = 0; k < 500; k++) {
+    const W = 2.8 + rnd() * 0.6;
+    const H = 2.2 + rnd() * 0.4;
+    const terninger = [0, 1].map((i) => ({ x: W / 2 + (i - 0.5) * 1.2, y: H / 2, q: F.qGir(rnd() * 6.283), kast: true }));
+    const v = rnd() * Math.PI * 2;
+    const sim = F.simuler({ bredde: W, hoyde: H, terninger, retning: [Math.cos(v), Math.sin(v)], styrke: rnd(), fro: k + 7 });
+    assert.ok(sim.sov && (sim.rammer - 1) / sim.hz <= 2.5, `kast ${k}: not at rest in time`);
+    for (const d of sim.slutt) assert.ok(utenfor(d.x, d.y, d.q, W, H) <= 1e-6, `kast ${k}: a die rests outside the cup`);
+    assert.ok(F.overlappFlat(sim.slutt[0], sim.slutt[1]) <= 1e-6, `kast ${k}: the dice overlap`);
+  }
+});
+
+test("one die in a box twice its size (Brikka, Stigespillet): at rest in time, inside, the asked value", () => {
+  const rnd = F.mulberry32(77);
+  for (let k = 0; k < 500; k++) {
+    const W = 1.9 + rnd() * 0.5;
+    const H = 1.9 + rnd() * 0.5;
+    const v = rnd() * Math.PI * 2;
+    const sim = F.simuler({ bredde: W, hoyde: H, terninger: [{ x: W / 2, y: H / 2, q: F.qGir(rnd() * 6.283), kast: true }], retning: [Math.cos(v), Math.sin(v)], styrke: rnd(), fro: k + 3 });
+    assert.ok(sim.sov && (sim.rammer - 1) / sim.hz <= 2.5, `kast ${k}: not at rest in time`);
+    const d = sim.slutt[0];
+    assert.ok(utenfor(d.x, d.y, d.q, W, H) <= 1e-6, `kast ${k}: the die rests outside the box`);
+    const verdi = 1 + (k % 6);
+    const r = F.ommerk(sim, 0, verdi, F.MERKINGER[k % 24]);
+    assert.equal(r.flater[F.oppAkse(d.q)], verdi);
+  }
+});
+
+test("two dice along a narrow lane (Tavla's bar): at rest in time, apart and inside", () => {
+  const rnd = F.mulberry32(5);
+  for (let k = 0; k < 500; k++) {
+    const W = 6 + rnd() * 6;
+    const H = 1.45 + rnd() * 0.8;
+    const terninger = [0, 1].map((i) => ({ x: W / 2 + (i - 0.5) * 1.5, y: H / 2, q: F.qGir((rnd() - 0.5) * 0.3), kast: true }));
+    const sim = F.simuler({ bredde: W, hoyde: H, terninger, retning: [rnd() < 0.5 ? -1 : 1, (rnd() - 0.5) * 0.5], styrke: rnd(), fro: k + 11 });
+    assert.ok(sim.sov && (sim.rammer - 1) / sim.hz <= 2.5, `kast ${k}: not at rest in time`);
+    for (const d of sim.slutt) assert.ok(utenfor(d.x, d.y, d.q, W, H) <= 1e-6, `kast ${k}: a die rests outside the lane`);
+    assert.ok(F.overlappFlat(sim.slutt[0], sim.slutt[1]) <= 1e-6, `kast ${k}: the dice overlap`);
+  }
+});
 
 test("dice lying still are obstacles, and only move when knocked hard", () => {
   const rnd = F.mulberry32(77);

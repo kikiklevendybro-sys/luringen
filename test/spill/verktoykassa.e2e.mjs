@@ -109,16 +109,50 @@ export default async function (t) {
   await t.sov(900);
   await t.bilde("lag-3");
 
-  // ---------- Dice ----------
+  // ---------- Dice (the kit's tray: R.terninger) ----------
+  // The value on the face that points up on every die, read from how each cube is turned on screen.
+  const topp = () =>
+    t.js(`Array.from(document.querySelectorAll("#vk-terninger .trn-t")).map((b) => {
+      const m = new DOMMatrix(getComputedStyle(b.querySelector(".trn-kube")).transform);
+      const z = [m.m13, m.m23, m.m33];
+      let best = -Infinity;
+      let verdi = 0;
+      b.querySelectorAll(".trn-flate").forEach((f, a) => {
+        const opp = (a & 1 ? -1 : 1) * z[a >> 1];
+        if (opp > best) {
+          best = opp;
+          verdi = Number(f.dataset.v);
+        }
+      });
+      return verdi;
+    }).join(",")`);
   await apne("terninger");
   await t.klikk('[data-h="terning-antall"][data-v="1"]');
-  t.sjekk((await t.antall("#vk-terninger .vk-t")) === 3, "Tre terninger vises ikke");
+  t.sjekk((await t.antall("#vk-terninger .trn-t")) === 3, "Tre terninger vises ikke");
   await terninger([2, 4, 6]);
-  await t.klikk('[data-h="terning-kast"]');
+  await t.klikk('[data-h="terning-kast"]', 0);
+  await t.sov(150);
+  await t.bilde("terninger-i-lufta");
   await t.vent("document.querySelector('#vk-sum.ny')", 6000);
   t.sjekk((await t.tekst("#vk-sum")).trim() === "12", `Summen skulle vært 12, ikke ${await t.tekst("#vk-sum")}`);
-  await ekte();
+  t.sjekk((await topp()) === "2,4,6", `Terningene viser ${await topp()} på toppen, verktøyet kastet 2, 4 og 6`);
+  t.sjekk(/2.*4.*6/.test(await t.js(`document.querySelector("#vk-terninger .trn-scene").getAttribute("aria-label")`)), "Terningbrettet sier ikke hva terningene viser");
   await t.bilde("terninger");
+  // A fling on the tray throws too, with six dice
+  for (let n = 0; n < 3; n++) await t.klikk('[data-h="terning-antall"][data-v="1"]', 60);
+  await terninger([1, 2, 3, 4, 5, 6]);
+  const p = await t.js(`(() => { const b = document.querySelector("#vk-terninger").getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height * 0.7 }; })()`);
+  await t.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: p.x, y: p.y }] });
+  for (let i = 1; i <= 6; i++) {
+    await t.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: p.x - i * 4, y: p.y - i * 22 }] });
+    await t.sov(12);
+  }
+  await t.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await t.vent("document.querySelector('#vk-sum.ny') && document.querySelector('#vk-sum').textContent.trim() === '21'", 6000);
+  t.sjekk((await topp()) === "1,2,3,4,5,6", `Etter sveipet viser terningene ${await topp()}`);
+  await ekte();
+  await t.bilde("terninger-seks");
+  t.sjekk(await t.friForDokk("#vk-terninger"), "Terningbrettet ligger bak kast-knappen");
 
   // ---------- Rock, paper, scissors ----------
   await apne("ssp");

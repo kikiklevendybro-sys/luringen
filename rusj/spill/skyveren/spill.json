@@ -1,0 +1,33 @@
+{
+  "id": "skyveren",
+  "navn": "Skyveren",
+  "undertittel": "Femtenspillet",
+  "beskrivelse": "Gratis femtenspill på norsk: skyv bitene på plass med tall eller bilde, fra 3 × 3 til 5 × 5. Hver blanding kan løses. Slå rekorden din i trekk og tid.",
+  "kort": "Skyv bitene på plass – med tall eller med et bilde.",
+  "spillere": [1, 1],
+  "alder": 6,
+  "minutter": [1, 10],
+  "mobiler": "en",
+  "tagger": ["alene", "tenke", "klassiker", "barn"],
+  "rekkefolge": 87,
+  "farge": "#3cc6b4",
+  "sok": ["femtenspillet", "15-spillet", "skyvepuslespill", "glidepuslespill", "puslespill med tall", "skyv brikkene", "8-puslespill", "flyttespill"],
+  "i18n": {
+    "en": {
+      "navn": "Shifty",
+      "undertittel": "15 puzzle",
+      "kort": "Slide the tiles into place – with numbers or a picture.",
+      "beskrivelse": "Free 15 puzzle: slide the tiles into place with numbers or a picture, from 3 × 3 to 5 × 5. Every shuffle can be solved. Beat your record for moves and time.",
+      "slug": "shifty",
+      "sok": ["15 puzzle", "sliding puzzle", "sliding tile puzzle", "8 puzzle", "number slide puzzle", "picture slide puzzle", "fifteen puzzle"]
+    },
+    "da": {
+      "navn": "Skubberen",
+      "undertittel": "Skydepuslespil",
+      "kort": "Skub brikkerne på plads – med tal eller med et billede.",
+      "beskrivelse": "Gratis skydepuslespil på dansk: skub brikkerne på plads med tal eller billede, fra 3 × 3 til 5 × 5. Hver blanding kan løses. Slå din rekord i træk og tid.",
+      "slug": "skubberen",
+      "sok": ["15-spil", "femtenspil", "skydepuslespil", "glidepuslespil", "talpuslespil", "skub brikkerne"]
+    }
+  }
+}

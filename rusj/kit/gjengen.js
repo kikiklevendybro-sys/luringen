@@ -1513,6 +1513,227 @@
         </g>
         ${glimt(108, 52, 5)}`,
     },
+
+    // Bobla: a round soap-bubble head in light sky blue with a big shine at the top left, a rainbow
+    // sheen along the lower right edge, two little bubbles floating off and a delighted open smile.
+    bobla: {
+      farge: "#7fd8ff",
+      tegn: (f) => `
+        ${hode(f)}
+        ${strek("M98 84 Q92 100 76 108", 4.5, "rgba(255,79,139,.75)")}
+        ${strek("M103 72 Q101 86 95 96", 4, "rgba(255,210,63,.9)")}
+        ${glans("M24 50 Q26 28 46 20", 6)}
+        ${glans("M30 60 Q30 56 31 53", 4)}
+        <circle cx="103" cy="12" r="11" fill="rgba(191,236,255,.75)" stroke="${B}" stroke-width="3.5"/>
+        ${glans("M97 9 Q98 5 102 4", 2.5)}
+        <circle cx="117" cy="-3" r="5.5" fill="rgba(191,236,255,.75)" stroke="${B}" stroke-width="3"/>
+        ${rodme(80)}
+        ${oyne({ y: 58, dx: 2, dy: -3 })}
+        <path d="M45 84 Q60 104 75 84Z" fill="${B}" stroke="${B}" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M52 93 Q60 99 68 93 Q60 90 52 93Z" fill="${ROSA}"/>`,
+    },
+
+    // Ekornet: a round squirrel-orange head with tufted ears, a big bushy tail curling up behind it
+    // on the right, a cream muzzle with a dark nose and two front teeth, and an acorn held up at
+    // the lower left – stocking up for winter.
+    ekornet: {
+      farge: "#f0954a",
+      tegn: (f) => `
+        ${form("M80 110C120 104 128 58 117 28C109 6 86 2 81 20C77 34 99 38 103 56C107 76 94 94 80 110Z", "#c96a2c", 4.5)}
+        ${strek("M110 30C117 44 118 62 112 78", 4, "rgba(255,241,221,.55)")}
+        ${form("M20 38L22 6L46 24Z", f, 4.5)}
+        ${form("M100 38L98 6L74 24Z", f, 4.5)}
+        ${strek("M22 6L17 -3M22 6L25 -4M98 6L95 -4M98 6L103 -3", 3)}
+        ${hode(f)}
+        ${form("M30 33L30 18L41 26Z", "#ffb98a", 0)}
+        ${form("M90 33L90 18L79 26Z", "#ffb98a", 0)}
+        <ellipse cx="60" cy="84" rx="23" ry="17" fill="#ffe3c2"/>
+        ${kinn(78)}
+        ${oyne({ y: 56, dx: 2, dy: -2 })}
+        <ellipse cx="60" cy="75" rx="6.5" ry="4.5" fill="${B}"/>
+        ${strek("M50 83Q60 90 70 83", 4)}
+        ${form("M55 86H65V96H55Z", P, 3)}
+        ${strek("M60 86V96", 2)}
+        <g transform="rotate(-18 16 98)">
+          ${form("M5 99C6 110 12 116 17 117C22 116 28 110 29 99Z", "#f29b45", 3.5)}
+          ${form("M3 99C3 91 9 87 17 87C25 87 31 91 31 99C24 101 10 101 3 99Z", "#9a6532", 3.5)}
+          ${strek("M17 87C17 84 18 82 21 81", 3)}
+        </g>`,
+    },
+
+
+    // Planeten: a warm orange planet with a few craters on its forehead and a tilted ring around its
+    // middle, a little moon circling above – the planet that swallows its twin and grows.
+    planeten: {
+      farge: "#ffb35c",
+      tegn: (f) => `
+        <g transform="rotate(-12 60 92)">${strek("M-4 92 A64 14 0 0 1 124 92", 11)}${strek("M-4 92 A64 14 0 0 1 124 92", 5.5, "#ffe3a3")}</g>
+        ${hode(f)}
+        <ellipse cx="33" cy="36" rx="6" ry="4.5" fill="#e58f3a"/><ellipse cx="78" cy="27" rx="4.5" ry="3.4" fill="#e58f3a"/><ellipse cx="95" cy="44" rx="3.4" ry="2.6" fill="#e58f3a"/>
+        ${kinn(76)}
+        ${oyne({ y: 56, dx: 2, dy: -2 })}
+        ${smil(80, 13)}
+        <g transform="rotate(-12 60 92)">${strek("M-4 92 A64 14 0 0 0 124 92", 11)}${strek("M-4 92 A64 14 0 0 0 124 92", 5.5, "#ffe3a3")}</g>
+        <circle cx="109" cy="8" r="9" fill="#ece6d6" stroke="${B}" stroke-width="4"/><circle cx="106" cy="6" r="2.4" fill="#cfc7b0"/>
+        ${glimt(14, 14, 6)}${glimt(122, 34, 4, P)}`,
+    },
+
+
+    // Maneten: a pink jellyfish whose head is the bell – a lighter dome on top, a frilled rim and
+    // four wavy tentacles below, swimming up with a trail of bubbles.
+    maneten: {
+      farge: "#ff86c8",
+      tegn: (f) => `
+        ${hode(f)}
+        <path d="M17 58 Q20 20 60 18 Q100 20 103 58 Q86 42 60 42 Q34 42 17 58Z" fill="#ffb3dc"/>
+        ${glans("M34 34 Q44 26 56 25", 4.5)}
+        ${oyne({ y: 58, dx: 2, dy: -2 })}
+        ${kinn(74)}
+        ${smil(76, 11)}
+        ${pinne("M36 96 Q28 106 36 113 Q43 119 36 124", "#ffc4e4", 3.5)}
+        ${pinne("M52 99 Q58 108 51 115 Q45 121 51 125", "#ffc4e4", 3.5)}
+        ${pinne("M68 99 Q62 108 69 115 Q75 121 69 125", "#ffc4e4", 3.5)}
+        ${pinne("M84 96 Q92 106 84 113 Q77 119 84 124", "#ffc4e4", 3.5)}
+        ${form("M13 86 Q19 99 28 90 Q35 102 44 92 Q52 104 60 93 Q68 104 76 92 Q85 102 92 90 Q101 99 107 86 Q60 101 13 86Z", "#ffc4e4", 4)}
+        <circle cx="108" cy="22" r="6" fill="none" stroke="${P}" stroke-width="3"/>
+        <circle cx="116" cy="4" r="4" fill="none" stroke="${P}" stroke-width="2.5"/>
+        <circle cx="104" cy="-4" r="2.6" fill="none" stroke="${P}" stroke-width="2"/>
+        ${glimt(12, 14, 6)}`,
+    },
+
+
+    // Murbrekkeren: a sky-blue wall-breaker in a yellow hard hat, eyes on the ball it just sent off,
+    // with two bricks tumbling out of the wall beside it.
+    murbrekkeren: {
+      farge: "#5fd0ff",
+      tegn: (f) => `
+        ${hode(f)}
+        ${form("M19 48 Q20 8 60 6 Q100 8 101 48Z", LAMPE, 4.5)}
+        ${glans("M36 22 Q46 14 58 13", 4)}
+        ${strek("M60 9 V46", 4)}
+        ${form("M8 46 H112 Q115 55 106 56 H14 Q5 55 8 46Z", LAMPE, 4.5)}
+        ${oyne({ y: 70, r: 11, dx: 3, dy: -3 })}
+        ${strek("M30 59 Q39 55 49 58M71 58 Q81 55 90 59", 4.5)}
+        ${smil(92, 12)}
+        ${rodme(86)}
+        <g transform="rotate(-18 104 14)"><rect x="92" y="6" width="24" height="13" rx="3" fill="${ROSA}" stroke="${B}" stroke-width="3.5"/></g>
+        <g transform="rotate(24 10 98)"><rect x="-2" y="92" width="22" height="12" rx="3" fill="#ff8a3d" stroke="${B}" stroke-width="3.5"/></g>
+        <circle cx="112" cy="88" r="8" fill="${P}" stroke="${B}" stroke-width="3.5"/>
+        ${strek("M100 98 L94 104M104 101 L101 108", 2.5, P)}
+        ${glimt(2, 18, 6)}`,
+    },
+
+
+    // Blekkspruten: a lilac octopus with a round dome of a head and four curly arms; one arm holds
+    // up a little squared card with inked squares – the picture it is painting.
+    blekkspruten: {
+      farge: "#c08cff",
+      tegn: (f) => `
+        ${strek("M30 86 Q12 98 20 110 Q27 118 34 108", 15)}${strek("M30 86 Q12 98 20 110 Q27 118 34 108", 8, f)}
+        ${strek("M48 94 Q40 108 50 116", 15)}${strek("M48 94 Q40 108 50 116", 8, f)}
+        ${strek("M72 94 Q80 108 70 116", 15)}${strek("M72 94 Q80 108 70 116", 8, f)}
+        ${strek("M94 84 Q122 80 116 44", 15)}${strek("M94 84 Q122 80 116 44", 8, f)}
+        <g transform="rotate(-12 110 28) translate(8 4)">
+          <rect x="86" y="8" width="32" height="32" rx="4" fill="${P}" stroke="${B}" stroke-width="3.5"/>
+          <path d="M94 16h8v8h-8zM102 24h8v8h-8zM94 32h8v4h-8z" fill="${B}"/>
+          ${strek("M94 16h16v16h-16zM102 16v16M94 24h16", 1.2, "rgba(23,14,43,.35)")}
+        </g>
+        <path d="M16 74 Q12 16 60 14 Q108 16 104 74 Q102 96 60 96 Q18 96 16 74Z" fill="${f}" stroke="${B}" stroke-width="5"/>
+        ${glans("M34 30 Q42 22 52 21", 5)}
+        ${kinn(74)}
+        ${oyne({ y: 56, r: 11, dx: 3, dy: -2 })}
+        ${smil(78, 12)}`,
+    },
+
+
+    // Låsesmeden: a brass padlock with a face, its shackle up, holding a big old key in one hand –
+    // and three coloured pegs (a circle, a square, a triangle) on its belly plate.
+    lasesmeden: {
+      farge: "#f2b84b",
+      tegn: (f) => `
+        ${strek("M30 46 V30 Q30 6 60 6 Q90 6 90 30 V46", 17)}${strek("M30 46 V30 Q30 6 60 6 Q90 6 90 30 V46", 9, METALL)}
+        ${form("M14 46 Q14 40 20 40 H100 Q106 40 106 46 V100 Q106 114 92 114 H28 Q14 114 14 100Z", f, 5)}
+        ${glans("M24 52 V74", 5)}
+        ${kinn(80)}
+        ${oyne({ y: 64, r: 11, dx: -2, dy: 1 })}
+        ${smil(80, 11)}
+        <rect x="34" y="92" width="52" height="16" rx="6" fill="${B}"/>
+        <circle cx="44" cy="100" r="4.6" fill="${ROD}"/>
+        <rect x="55.5" y="95.5" width="9" height="9" rx="1.6" fill="${HIMMEL}"/>
+        <path d="M76 95 L81 104 H71Z" fill="${LAMPE}"/>
+        <g transform="rotate(-28 112 70)">
+          ${pinne("M100 72 H126", MESSING, 4)}
+          <circle cx="98" cy="72" r="7" fill="${MESSING}" stroke="${B}" stroke-width="3.5"/>
+          <circle cx="98" cy="72" r="2.4" fill="${B}"/>
+          ${strek("M118 72 V79M124 72 V78", 3.5)}
+        </g>`,
+    },
+
+
+    // Skyveren: a teal square tile with rounded corners and a cheeky sideways glance, pushing a
+    // little paper tile «15» along with both hands – sliding it into the empty square.
+    skyveren: {
+      farge: "#3cc6b4",
+      tegn: (f) => `
+        ${strek("M92 44 h18M98 36 h14", 4, LAMPE)}
+        <rect x="84" y="54" width="34" height="34" rx="7" fill="${P}" stroke="${B}" stroke-width="4"/>
+        ${tekst(101, 78, "15", 17)}
+        ${form("M6 32 Q6 16 22 16 H66 Q82 16 82 32 V96 Q82 112 66 112 H22 Q6 112 6 96Z", f, 5)}
+        ${glans("M16 36 V27 Q16 25 20 25 H32", 5)}
+        <ellipse cx="20" cy="76" rx="7" ry="4.5" fill="rgba(255, 79, 139, 0.32)"/><ellipse cx="68" cy="76" rx="7" ry="4.5" fill="rgba(255, 79, 139, 0.32)"/>
+        ${oyne({ y: 54, x1: 28, x2: 60, r: 10, pr: 5, dx: 4, dy: 0 })}
+        ${strek("M18 38 Q28 33 37 37M51 35 Q60 31 70 36", 4.5)}
+        ${strek("M32 84 Q45 93 58 82", 5)}
+        <ellipse cx="84" cy="64" rx="6.5" ry="6" fill="${f}" stroke="${B}" stroke-width="3.5"/>
+        <ellipse cx="84" cy="80" rx="6.5" ry="6" fill="${f}" stroke="${B}" stroke-width="3.5"/>`,
+    },
+
+
+    // Globetrotteren: a round blue globe with green continents, a jaunty red travel cap and a
+    // little red pennant on a pole – off to see the world.
+    globetrotteren: {
+      farge: "#58a6ff",
+      tegn: (f) => `
+        ${pinne("M114 114 V16", METALL, 3.5)}
+        ${form("M114 16 L127 23 L114 30Z", ROD, 3.2)}
+        ${hode(f)}
+        ${form("M28 36 Q40 26 54 30 Q60 40 50 46 Q46 56 36 54 Q24 50 28 36Z", MYNT, 3.5)}
+        ${form("M74 86 Q86 78 96 84 Q100 96 90 104 Q78 108 74 98Z", MYNT, 3.5)}
+        ${form("M16 72 Q22 66 26 74 Q24 84 16 82Z", MYNT, 3)}
+        ${strek("M14 64 Q60 76 106 64", 2.5, "rgba(23,14,43,.25)")}
+        <g transform="rotate(-10 60 24)">
+          ${form("M30 30 Q34 0 62 -2 Q90 0 92 30Z", ROD, 4.5)}
+          ${strek("M44 6 Q56 2 68 4", 3, "rgba(255,241,221,.6)")}
+          ${form("M20 32 Q60 20 104 30 Q108 38 100 38 Q60 30 24 40 Q14 40 20 32Z", LAMPE, 4)}
+        </g>
+        ${kinn(82)}
+        ${oyne({ y: 62, r: 11, dx: 2, dy: -1 })}
+        ${smil(84, 13)}`,
+    },
+
+
+    // Mureren: a brick-red bricklayer with a faint brick pattern on its lower face, a yellow hard
+    // hat, and a domino held like a brick in one hand – laying it on the wall.
+    mureren: {
+      farge: "#e2704f",
+      tegn: (f) => `
+        ${hode(f)}
+        ${strek("M17 80 H103M28 98 H92M40 80 V98M80 80 V98M60 98 V110", 2.5, "rgba(255,241,221,.45)")}
+        <g transform="rotate(-18 100 92)">
+          <rect x="84" y="70" width="34" height="18" rx="4" fill="${P}" stroke="${B}" stroke-width="3.5"/>
+          ${strek("M101 72 V86", 2.2)}
+          <circle cx="92.5" cy="79" r="2.4" fill="${B}"/>
+          <circle cx="106" cy="75.5" r="2.2" fill="${B}"/>
+          <circle cx="113" cy="82.5" r="2.2" fill="${B}"/>
+        </g>
+        ${form("M16 44 Q18 8 60 8 Q102 8 104 44Z", LAMPE, 5)}
+        ${form("M8 44 H112 Q114 52 106 52 H14 Q6 52 8 44Z", LAMPE, 4.5)}
+        ${strek("M60 10 V44", 4, "rgba(23,14,43,.35)")}
+        ${glans("M32 20 Q40 14 50 13", 4.5)}
+        ${kinn(76)}
+        ${oyne({ y: 64, r: 10.5, dx: 3, dy: 0 })}
+        ${smil(80, 12)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on
@@ -1579,6 +1800,16 @@
     dobbelsekseren: ["#3fb6c8", "D"],
     samleren: ["#4fb8f0", "S"],
     hjerteknuseren: ["#ff6f91", "H"],
+    bobla: ["#7fd8ff", "B"],
+    ekornet: ["#f0954a", "E"],
+    planeten: ["#ffb35c", "P"],
+    maneten: ["#ff86c8", "M"],
+    murbrekkeren: ["#5fd0ff", "M"],
+    blekkspruten: ["#c08cff", "B"],
+    lasesmeden: ["#f2b84b", "L"],
+    skyveren: ["#3cc6b4", "S"],
+    globetrotteren: ["#58a6ff", "G"],
+    mureren: ["#e2704f", "M"],
     musa: ["#c3b1f5", "M"],
     hermegasa: ["#ffa14a", "H"],
     notteknekkeren: ["#e8894a", "N"],

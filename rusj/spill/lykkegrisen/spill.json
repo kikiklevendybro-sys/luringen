@@ -7,6 +7,7 @@
   "spillere": [1, 8],
   "minutter": [10, 40],
   "mobiler": "en",
+  "terninger": true,
   "tagger": ["klassiker", "familie", "fest"],
   "rekkefolge": 70,
   "farge": "#ff9ec4",

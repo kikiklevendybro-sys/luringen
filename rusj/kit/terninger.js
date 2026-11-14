@@ -931,7 +931,11 @@
     `<span class="trn-kube" aria-hidden="true">${flater.map((v, a) => `<span class="trn-flate" data-a="${a}" data-v="${v}" style="transform: ${FLATE[a]}">${oyneHtml(v)}</span>`).join("")}<span class="trn-kjerne k1"></span><span class="trn-kjerne k2"></span><span class="trn-kjerne k3"></span></span>`;
 
   const BRETT = new Map(); // id → the tray's dice (they survive every redraw of the screen)
-  const kant = (el) => parseFloat(getComputedStyle(el).getPropertyValue("--trn-kant")) || 10; // the wooden rim, px
+  // the wooden rim, px (0 for dice on the game's own board)
+  const kant = (el) => {
+    const k = parseFloat(getComputedStyle(el).getPropertyValue("--trn-kant"));
+    return Number.isFinite(k) ? k : 10;
+  };
   const GLIPE = 6; // between the felt and the hold rail, px
 
   function nyttBrett(id, n) {
@@ -952,8 +956,19 @@
     }
     B.o = o;
     const holdes = o.hold !== false;
+    const forKast = new Set(o.forKast || []);
     o.verdier.forEach((v, i) => {
       const t = B.t[i];
+      // About to be thrown (the game drew the screen before calling kast): it still shows what it
+      // showed – the new number is only painted on in the air.
+      if (forKast.has(i)) {
+        if (!t.flater || !t.q) {
+          const h = hvile((v % 6) + 1, ((o.vri && o.vri[i]) || 0) * (Math.PI / 180));
+          t.q = h.q;
+          t.flater = h.flater;
+        }
+        return;
+      }
       if (t.flater && t.q && t.flater[oppAkse(t.q)] === v) return;
       // A die that shows something else than the game says (a reload, «Angre»): laid down anew, flat.
       const h = hvile(v, t.q ? gir(t.q) : ((o.vri && o.vri[i]) || 0) * (Math.PI / 180));
@@ -968,18 +983,94 @@
         Object.assign(t, { x: null, y: null, holdt: false, hjem: null });
       });
     const harHoldt = o.verdier.some((_, i) => holdt(i));
-    const knapper = o.verdier
-      .map(
-        (v, i) =>
-          `<button class="trn-t${holdt(i) ? " holdt" : ""}" type="button" data-h="${esc(o.handling || "hold")}" data-v="${i}" data-stille${holdes ? ` aria-pressed="${holdt(i)}"` : ""} aria-label="${esc(o.etikett ? o.etikett(i, v, holdt(i)) : String(v))}"${o.av ? " disabled" : ""}><span class="trn-skygge" aria-hidden="true"></span><span class="trn-ring" aria-hidden="true"></span>${kubeHtml(B.t[i].flater)}</button>`,
-      )
+    const knapp = o.knapper !== false;
+    const indre = (i) =>
+      `<span class="trn-skygge" aria-hidden="true"></span><span class="trn-ring" aria-hidden="true"></span>${kubeHtml(B.t[i].flater)}${
+        o.merker && o.merker[i] ? `<span class="trn-merke" aria-hidden="true">${esc(o.merker[i])}</span>` : ""
+      }`;
+    const terninger = o.verdier
+      .map((v, i) => {
+        const klasse = `trn-t${holdt(i) ? " holdt" : ""}${o.klasser && o.klasser[i] ? " " + o.klasser[i] : ""}`;
+        // without buttons (a die nobody taps) the whole tray is one picture with the game's label
+        if (!knapp) return `<span class="${esc(klasse)}" data-v="${i}" aria-hidden="true">${indre(i)}</span>`;
+        // dataV: what the game's action gets as data-v (default the die's number); av: true, or per die
+        const dv = o.dataV ? o.dataV[i] : i;
+        const av = Array.isArray(o.av) ? o.av[i] : o.av;
+        return `<button class="${esc(klasse)}" type="button" data-h="${esc(o.handling || "hold")}" data-v="${esc(String(dv))}" data-stille${holdes ? ` aria-pressed="${holdt(i)}"` : ""} aria-label="${esc(o.etikett ? o.etikett(i, v, holdt(i)) : String(v))}"${av ? " disabled" : ""}>${indre(i)}</button>`;
+      })
       .join("");
-    return `<div class="trn-brett${holdes ? " med-hylle" : ""}${o.klar ? " trn-klar" : ""}${harHoldt ? " har-holdt" : ""} ${o.klasse || ""}" id="${esc(id)}" style="--n: ${n}">
-      <div class="trn-filt" aria-hidden="true"><span class="trn-sveip"><i></i><span>${esc(R.t("Sveip for å kaste"))}</span></span></div>
+    const bar = o.flate === false;
+    return `<div class="trn-brett${bar ? " bar" : ""}${o.sveip === false ? " uten-sveip" : ""}${holdes ? " med-hylle" : ""}${o.klar ? " trn-klar" : ""}${harHoldt ? " har-holdt" : ""} ${o.klasse || ""}" id="${esc(id)}" style="--n: ${n}">
+      ${bar ? "" : `<div class="trn-filt" aria-hidden="true"><span class="trn-sveip"><i></i><span>${esc(R.t("Sveip for å kaste"))}</span></span></div>`}
       ${holdes ? `<div class="trn-hylle" aria-hidden="true">${o.verdier.map(() => "<i></i>").join("")}</div>` : ""}
       ${o.hint != null ? `<p class="trn-hint"${o.hintId ? ` id="${esc(o.hintId)}"` : ""} aria-live="polite">${esc(o.hint)}</p>` : ""}
-      <div class="trn-scene" role="group"${o.navn ? ` aria-label="${esc(o.navn)}"` : ""}>${knapper}</div>
+      <div class="trn-scene"${knapp ? ` role="group"${o.navn ? ` aria-label="${esc(o.navn)}"` : ""}` : o.navn ? ` role="img" aria-label="${esc(o.navn)}"` : ' aria-hidden="true"'}>${terninger}</div>
     </div>`;
+  }
+
+  // Backgammon's doubling cube, lying still: 2–64 on its faces, `verdi` on top (64 while nobody owns
+  // it). o: { s (px), vri (degrees), klasse }.
+  function dobling(verdi, o = {}) {
+    const s = o.s || 34;
+    const TALL = [2, 4, 8, 16, 32, 64];
+    // body axes +x −x +y −y +z −z; opposite faces: 2–64, 4–32, 8–16
+    const PAR = [
+      [4, 32],
+      [8, 16],
+      [2, 64],
+    ];
+    const opp = TALL.includes(verdi) ? verdi : 64;
+    const j = PAR.findIndex((p) => p.includes(opp));
+    const tall = [0, 0, 0, 0, 0, 0];
+    // turn the pairs so the wanted number is on +z
+    const rest = PAR.filter((_, k) => k !== j);
+    tall[4] = opp;
+    tall[5] = PAR[j][0] === opp ? PAR[j][1] : PAR[j][0];
+    tall[0] = rest[0][0];
+    tall[1] = rest[0][1];
+    tall[2] = rest[1][0];
+    tall[3] = rest[1][1];
+    const vipp = qMul(qAkse(1, 0, 0, -0.3), qAkse(0, 1, 0, 0.22));
+    const q = qMul(vipp, qGir((((o.vri || 0) * Math.PI) / 180)));
+    const m = matrise(q, new Array(9));
+    const f = s / D;
+    const c = (x) => (x * f).toFixed(5);
+    const sider = tall
+      .map((tx, a) => {
+        const jj = a >> 1;
+        const sg = a & 1 ? -1 : 1;
+        const lys = sg * (m[jj] * LYS[0] + m[3 + jj] * LYS[1] + m[6 + jj] * LYS[2]);
+        const mork = Math.max(0, Math.min(0.72, 0.78 * (0.88 - lys)));
+        return `<span class="trn-flate trn-tallflate" style="transform: ${FLATE[a]}; --trn-mork: ${mork.toFixed(3)}"><b>${tx}</b></span>`;
+      })
+      .join("");
+    return `<span class="trn-statisk trn-dobling ${o.klasse || ""}" style="--trn-s: ${s}px" aria-hidden="true"><span class="trn-solo"><span class="trn-kube" style="transform: matrix3d(${c(m[0])},${c(m[3])},${c(m[6])},0,${c(m[1])},${c(m[4])},${c(m[7])},0,${c(m[2])},${c(m[5])},${c(m[8])},0,0,0,${(s / 2).toFixed(1)},1)">${sider}<span class="trn-kjerne k1"></span><span class="trn-kjerne k2"></span><span class="trn-kjerne k3"></span></span></span></span>`;
+  }
+
+  // Dice that lie still on a card or in a list (no tray, no throw): seen from just above, a little
+  // turned. verdier: the values; o: { s (px, default 40), vri: [degrees], klasse }.
+  function statisk(verdier, o = {}) {
+    const s = o.s || 40;
+    const vipp = qMul(qAkse(1, 0, 0, -0.22), qAkse(0, 1, 0, 0.14)); // the top and a little of two sides
+    return `<span class="trn-statisk ${o.klasse || ""}" style="--trn-s: ${s}px" aria-hidden="true">${verdier
+      .map((v, i) => {
+        const q = qMul(vipp, qGir((((o.vri && o.vri[i]) || 0) * Math.PI) / 180));
+        const m = matrise(q, new Array(9));
+        const f = s / D;
+        const c = (x) => (x * f).toFixed(5);
+        const flater = hvile(v, 0).flater;
+        const sider = flater
+          .map((fv, a) => {
+            const j = a >> 1;
+            const sg = a & 1 ? -1 : 1;
+            const lys = sg * (m[j] * LYS[0] + m[3 + j] * LYS[1] + m[6 + j] * LYS[2]);
+            const mork = Math.max(0, Math.min(0.72, 0.78 * (0.88 - lys)));
+            return `<span class="trn-flate" data-a="${a}" data-v="${fv}" style="transform: ${FLATE[a]}; --trn-mork: ${mork.toFixed(3)}">${oyneHtml(fv)}</span>`;
+          })
+          .join("");
+        return `<span class="trn-solo"><span class="trn-kube" style="transform: matrix3d(${c(m[0])},${c(m[3])},${c(m[6])},0,${c(m[1])},${c(m[4])},${c(m[7])},0,${c(m[2])},${c(m[5])},${c(m[8])},0,0,0,${(s / 2).toFixed(1)},1)">${sider}<span class="trn-kjerne k1"></span><span class="trn-kjerne k2"></span><span class="trn-kjerne k3"></span></span></span>`;
+      })
+      .join("")}</span>`;
   }
 
   // ---------- Measuring and laying out ----------
@@ -993,10 +1084,12 @@
     const hoyde = el.clientHeight - 2 * k0;
     if (bredde <= 0 || hoyde <= 0) return false;
     const holdes = B.o.hold !== false;
-    const s1 = bredde / Math.max(6.1, B.n + 2.35); // so the felt is at least max(5.8, n + 2) wide inside its margins
+    // The felt is at least max(5.8, n + 2) dice wide inside its margins (one or two dice: n + 1.9),
+    // or as wide as the game asks (plass: a cup over two dice needs small dice).
+    const s1 = bredde / (B.o.plass || (B.n <= 2 ? B.n + 2.2 : Math.max(6.1, B.n + 2.35)));
     let k = 1;
     let s;
-    if (!holdes) s = Math.min(s1, hoyde / 2.4);
+    if (!holdes) s = Math.min(s1, hoyde / (B.o.hoyde || 2.3)); // hoyde: a narrow lane (backgammon's bar)
     else if ((hoyde - GLIPE) / (2.6 + 1.22) >= s1) s = s1;
     else {
       // tight: a smaller rail, and the felt 2 dice high (plus its margins)
@@ -1180,8 +1273,10 @@
       t.holdt = holdt;
     });
     ryddOpp(B);
-    if (B.spiller) B.spiller.dom = true; // a throw is playing: it draws on the new markup from its next frame
-    else tegnHvile(B);
+    if (B.spiller) {
+      B.spiller.dom = true; // a throw is playing: it draws on the new markup from its next frame
+      el.dataset.kaster = "1";
+    } else tegnHvile(B);
     bindSveip(B, el);
     if (B.vakt) B.vakt.disconnect();
     if (window.ResizeObserver) {
@@ -1200,7 +1295,7 @@
   // A fling on the tray throws in that direction with that speed (the game decides if it may).
   const bundet = new WeakSet();
   function bindSveip(B, el) {
-    if (bundet.has(el)) return; // the same markup joined twice: one set of listeners
+    if (bundet.has(el) || (B.o && B.o.sveip === false)) return; // the same markup joined twice: one set of listeners
     bundet.add(el);
     let p = null;
     let stoppKlikk = 0;
@@ -1303,9 +1398,14 @@
       if (!B.W) Object.assign(B, { W: 7, H: 3, s: 40, k: 1, margX: 0, margY: 0 });
       const kastes = new Set(o.indekser);
       ryddOpp(B);
+      // omrade [w, h]: the dice are thrown in a smaller space in the middle (under a cup)
+      const omr = o.omrade ? [Math.min(o.omrade[0], B.W), Math.min(o.omrade[1], B.H)] : null;
+      const ox = omr ? (B.W - omr[0]) / 2 : 0;
+      const oy = omr ? (B.H - omr[1]) / 2 : 0;
       const ider = [];
       for (let i = 0; i < B.n; i++) {
         const t = B.t[i];
+        if (omr && !kastes.has(i)) continue;
         if (kastes.has(i)) {
           if (t.holdt) {
             // a held die that the game throws after all: back on the felt first
@@ -1316,10 +1416,13 @@
         } else if (!t.holdt) ider.push(i);
       }
       const vinkel = -Math.PI / 2 + (Math.random() - 0.5) * 1.1;
+      const steg = omr ? Math.min(1.5, (omr[0] - 1.6) / Math.max(1, ider.length - 1)) : 0;
       const sim = simuler({
-        bredde: B.W,
-        hoyde: B.H,
-        terninger: ider.map((i) => ({ x: B.t[i].x, y: B.t[i].y, q: B.t[i].q, kast: kastes.has(i) })),
+        bredde: omr ? omr[0] : B.W,
+        hoyde: omr ? omr[1] : B.H,
+        terninger: ider.map((i, k) =>
+          omr ? { x: omr[0] / 2 + (k - (ider.length - 1) / 2) * steg, y: omr[1] / 2, q: B.t[i].q, kast: true } : { x: B.t[i].x, y: B.t[i].y, q: B.t[i].q, kast: kastes.has(i) },
+        ),
         retning: o.retning || [Math.cos(vinkel), Math.sin(vinkel)],
         styrke: o.styrke == null ? 0.45 + Math.random() * 0.4 : o.styrke,
         fro: Math.floor(Math.random() * 4294967296),
@@ -1339,8 +1442,8 @@
           bytt[k] = -1;
         }
         // where it ends is kept at once: a redraw before it lands shows the result
-        t.x = sim.slutt[k].x;
-        t.y = sim.slutt[k].y;
+        t.x = sim.slutt[k].x + ox;
+        t.y = sim.slutt[k].y + oy;
         t.q = sim.slutt[k].q;
         t.flater = til[k];
       });
@@ -1360,6 +1463,7 @@
       R.vibrer(8);
       const spill = { sim, ider, fra, til, bytt, malt: ider.map(() => false), start: performance.now(), stot: 0, vibrert: 0, ferdig, dom: true };
       B.spiller = spill;
+      el.dataset.kaster = "1"; // while the dice fly (tests wait for it to go)
       const varighet = (sim.rammer / sim.hz) * 1000;
       const S = sim.spor;
       const ramme = () => {
@@ -1384,7 +1488,7 @@
             spill.malt[k] = true;
             flater = til[k];
           } else if (spill.dom) flater = spill.malt[k] || bytt[k] < 0 ? til[k] : fra[k];
-          tegn(B, i, { px: B.margX + (S[pa] + (S[pb] - S[pa]) * u) * B.s, py: B.margY + (S[pa + 1] + (S[pb + 1] - S[pa + 1]) * u) * B.s, z: S[pa + 2] + (S[pb + 2] - S[pa + 2]) * u, q: q.map((v) => v / l), k: 1 }, flater);
+          tegn(B, i, { px: B.margX + (ox + S[pa] + (S[pb] - S[pa]) * u) * B.s, py: B.margY + (oy + S[pa + 1] + (S[pb + 1] - S[pa + 1]) * u) * B.s, z: S[pa + 2] + (S[pb + 2] - S[pa + 2]) * u, q: q.map((v) => v / l), k: 1 }, flater);
         });
         spill.dom = false;
         // the knocks, as loud as they hit
@@ -1409,6 +1513,7 @@
     if (B.spiller !== spill) return;
     clearTimeout(spill.vakt);
     B.spiller = null;
+    if (B.el) delete B.el.dataset.kaster;
     if (B.el && B.el.isConnected) tegnHvile(B);
     spill.ferdig();
   }
@@ -1487,5 +1592,5 @@
     });
   }
 
-  R.terninger = { html, koble, kast, hold, stopp: (id) => stopp(BRETT.get(id)), fysikk };
+  R.terninger = { html, koble, kast, hold, statisk, dobling, stopp: (id) => stopp(BRETT.get(id)), fysikk };
 })();

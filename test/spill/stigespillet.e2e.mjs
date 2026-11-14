@@ -13,6 +13,23 @@ export default async function (t) {
   const terninger = (verdier) =>
     t.js(`(() => { const v = ${JSON.stringify(verdier)}; let i = 0; crypto.getRandomValues = (a) => { a[0] = Math.floor((v[i++ % v.length] - 0.5) / 6 * 4294967296); return a; }; })()`);
   const ekte = () => t.js("delete crypto.getRandomValues");
+  // What the die shows on top, read from how the cube is turned on screen (the kit's R.terninger).
+  const topp = (sel) =>
+    t.js(`(() => {
+      const b = document.querySelector("${sel} .trn-t");
+      const m = new DOMMatrix(getComputedStyle(b.querySelector(".trn-kube")).transform);
+      const z = [m.m13, m.m23, m.m33];
+      let best = -Infinity;
+      let verdi = 0;
+      b.querySelectorAll(".trn-flate").forEach((f, a) => {
+        const opp = (a & 1 ? -1 : 1) * z[a >> 1];
+        if (opp > best) {
+          best = opp;
+          verdi = Number(f.dataset.v);
+        }
+      });
+      return verdi;
+    })()`);
   const stille = () => t.vent("document.querySelector('#sg-brett') && !document.querySelector('#sg-brett[data-opptatt]')", 12000);
   const kast = async () => {
     await stille();
@@ -66,6 +83,7 @@ export default async function (t) {
   t.sjekk(s.spill.tur === 1 && s.spill.ekstra, "En sekser skal gi et ekstra kast");
   await stille();
   t.sjekk(!t.norsk || /Kast igjen/.test(await t.tekst(".dokk .knapp")), "Knappen skal si «Kast igjen» etter en sekser");
+  t.sjekk((await topp("#sg-terning")) === 6, `Terningen viser ${await topp("#sg-terning")} på toppen, kastet var 6`);
   await t.bilde("seks");
   await terninger([4]);
   await kast();

@@ -504,103 +504,13 @@ html[lang="da"] .vk-topp h1 {
   animation: pop 0.4s cubic-bezier(0.3, 1.8, 0.5, 1);
 }
 
-/* ---------- Dice ---------- */
+/* ---------- Dice (the kit's tray, rusj/kit/terninger.css) ---------- */
 
+/* The tray takes the room the screen has left over */
 .vk-brett {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px 10px;
-  min-height: 150px;
-  padding: 26px 14px 18px;
-  border-radius: 26px;
-  background:
-    radial-gradient(ellipse 90% 70% at 50% 40%, color-mix(in srgb, var(--aksent) 16%, transparent), transparent 75%),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 3px, transparent 3px 7px),
-    color-mix(in srgb, var(--aksent) 18%, #1b0f33);
-  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--aksent) 40%, var(--natt)), inset 0 10px 22px rgba(6, 2, 14, 0.55);
-}
-
-.vk-t {
-  --s: 64px;
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: calc(var(--s) * 1.3);
-  height: calc(var(--s) * 1.35);
-  perspective: 560px;
-}
-
-.vk-brett[style*="--n: 1"] .vk-t,
-.vk-brett[style*="--n: 2"] .vk-t {
-  --s: 84px;
-}
-
-.vk-hopp,
-.vk-kube {
-  position: relative;
-  display: block;
-  width: var(--s);
-  height: var(--s);
-  transform-style: preserve-3d;
-}
-
-.vk-kube {
-  position: absolute;
-  inset: 0;
-}
-
-.vk-side {
-  position: absolute;
-  inset: 0;
-  border-radius: 17%;
-  background: radial-gradient(circle at 30% 22%, #fffefa 0 28%, #f6e8d2 100%);
-  box-shadow: inset 0 0 0 max(2.4px, calc(var(--s) * 0.05)) #170e2b, inset 0 calc(var(--s) * -0.07) 0 rgba(23, 14, 43, 0.08);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-.vk-side.s1 { transform: translateZ(calc(var(--s) / 2)); }
-.vk-side.s6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
-.vk-side.s2 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); }
-.vk-side.s5 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
-.vk-side.s3 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); }
-.vk-side.s4 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }
-
-.vk-side i {
-  position: absolute;
-  width: 20%;
-  height: 20%;
-  margin: -10% 0 0 -10%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #3b2b5c, #170e2b 70%);
-}
-
-.vk-side.s1 i {
-  width: 28%;
-  height: 28%;
-  margin: -14% 0 0 -14%;
-  background: radial-gradient(circle at 40% 35%, #ff6d80, #d42a45 70%);
-}
-
-.vk-side .p1 { left: 27%; top: 27%; }
-.vk-side .p3 { left: 73%; top: 27%; }
-.vk-side .p4 { left: 27%; top: 50%; }
-.vk-side .p5 { left: 50%; top: 50%; }
-.vk-side .p6 { left: 73%; top: 50%; }
-.vk-side .p7 { left: 27%; top: 73%; }
-.vk-side .p9 { left: 73%; top: 73%; }
-
-.vk-skygge {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: calc(var(--s) * 1.05);
-  height: calc(var(--s) * 0.3);
-  margin-left: calc(var(--s) * -0.525);
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(6, 2, 14, 0.6), transparent);
+  flex: 1 1 190px;
+  min-height: 170px;
+  max-height: 270px;
 }
 
 .vk-sum {
@@ -1449,17 +1359,8 @@ html[lang="da"] .vk-topp h1 {
   }
 
   .vk-brett {
-    min-height: 120px;
-    padding: 18px 10px 12px;
-  }
-
-  .vk-t {
-    --s: 52px;
-  }
-
-  .vk-brett[style*="--n: 1"] .vk-t,
-  .vk-brett[style*="--n: 2"] .vk-t {
-    --s: 70px;
+    flex-basis: 140px;
+    min-height: 136px;
   }
 
   .vk-arena {
@@ -1524,9 +1425,5 @@ html[lang="da"] .vk-topp h1 {
 
   .vk-pt-sum {
     font-size: 1.45rem;
-  }
-
-  .vk-t {
-    --s: 52px;
   }
 }

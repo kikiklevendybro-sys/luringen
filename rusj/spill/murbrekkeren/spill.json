@@ -1,0 +1,33 @@
+{
+  "id": "murbrekkeren",
+  "navn": "Murbrekkeren",
+  "undertittel": "Brick breaker",
+  "beskrivelse": "Gratis brick breaker på norsk: styr racketen, send ballen opp og knus alle klossene. Tolv brett med harde klosser, stål og ekstra baller – og din egen rekord.",
+  "kort": "Racket, ball og en mur som skal ned. Hvor mange brett klarer du?",
+  "spillere": [1, 1],
+  "alder": 6,
+  "minutter": [3, 20],
+  "mobiler": "en",
+  "tagger": ["alene", "barn", "klassiker"],
+  "rekkefolge": 80,
+  "farge": "#5fd0ff",
+  "sok": ["brick breaker", "murbrekker", "knus klossene", "ballspill", "racket og ball", "arkadespill", "klossespill", "murspill"],
+  "i18n": {
+    "en": {
+      "navn": "Wallop",
+      "undertittel": "Brick breaker",
+      "kort": "A paddle, a ball and a wall that has to come down. How many levels can you clear?",
+      "beskrivelse": "Free brick breaker in your browser: move the paddle, send the ball up and smash every brick. Twelve levels with tough bricks, steel and extra balls – and your own best.",
+      "slug": "wallop",
+      "sok": ["brick breaker", "bricks game", "paddle and ball", "ball game", "arcade game", "smash the bricks", "wall breaker"]
+    },
+    "da": {
+      "navn": "Murbrækkeren",
+      "undertittel": "Brick breaker",
+      "kort": "Et bat, en bold og en mur, der skal ned. Hvor mange baner klarer du?",
+      "beskrivelse": "Gratis brick breaker på dansk: styr battet, send bolden op, og smadr alle klodserne. Tolv baner med hårde klodser, stål og ekstra bolde – og din egen rekord.",
+      "slug": "murbraekkeren",
+      "sok": ["brick breaker", "murbrækker", "smadr klodserne", "boldspil", "bat og bold", "arkadespil", "klodsspil"]
+    }
+  }
+}

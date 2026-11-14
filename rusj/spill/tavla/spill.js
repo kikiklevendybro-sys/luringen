@@ -411,11 +411,6 @@
       R.lyd.tone(140, 0, 0.18, "square", 0.08, 70);
     },
     ut: () => R.lyd.tone(660, 0, 0.12, "sine", 0.14, 880),
-    rasle: () => {
-      for (let k = 0; k < 6; k++) R.lyd.stoy(k * 0.04 + Math.random() * 0.01, 0.024, 0.08 + Math.random() * 0.06, 2600 + Math.random() * 2400);
-      R.lyd.stoy(0.36, 0.04, 0.24, 1300);
-      R.lyd.stoy(0.46, 0.04, 0.18, 1500);
-    },
     tap: () => {
       R.lyd.tone(392, 0, 0.22, "triangle", 0.13);
       R.lyd.tone(311, 0.2, 0.42, "triangle", 0.12);
@@ -423,47 +418,35 @@
   };
 
   // ---------- Dice ----------
-  // A flat die face; the throw itself is shown by visKast (one place, so a shared dice module can
-  // take over later).
-  const PUNKTER = {
-    1: [[50, 50]],
-    2: [[72, 28], [28, 72]],
-    3: [[72, 28], [50, 50], [28, 72]],
-    4: [[28, 28], [72, 28], [28, 72], [72, 72]],
-    5: [[28, 28], [72, 28], [50, 50], [28, 72], [72, 72]],
-    6: [[28, 26], [72, 26], [28, 50], [72, 50], [28, 74], [72, 74]],
-  };
-  const terningSvg = (n, side, brukt) =>
-    `<svg class="tv-t s${side}${brukt ? " brukt" : ""}" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><rect x="6" y="6" width="88" height="88" rx="20"/>${PUNKTER[n]
-      .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="10"/>`)
-      .join("")}</svg>`;
+  // Two real 3D dice that roll along the bar (a central band of the board on a phone on its side),
+  // thrown with a simulated throw (R.terninger, rusj/kit/terninger.js). The game decides the numbers;
+  // the kit lands the dice on them. A die that is used up is dimmed; a double shows on each die how
+  // many moves it still gives. The doubling cube is a small 3D cube with its value on top.
+  const BRETT = "tv-kast";
+  let tegnForKast = null; // the dice about to be thrown while the screen is drawn before the throw
   function terningerHtml(sp) {
     if (!sp.kast || sp.resultat) return "";
-    if (sp.apning && !sp.steg.length && sp.rest.length === 2) return `<span class="tv-tern apning">${terningSvg(sp.kast[0], 0)}${terningSvg(sp.kast[1], 1)}</span>`;
-    const alle = T.terningerFor(sp.kast);
-    const igjen = sp.rest.slice();
-    const vis = alle.map((d) => {
-      const k = igjen.indexOf(d);
-      if (k >= 0) {
-        igjen.splice(k, 1);
-        return terningSvg(d, sp.tur, false);
-      }
-      return terningSvg(d, sp.tur, true);
-    });
-    return `<span class="tv-tern${alle.length === 4 ? " dobbel" : ""}">${vis.join("")}</span>`;
-  }
-  // Show a throw of the dice now on the screen. Resolves when they have landed.
-  function visKast() {
-    return new Promise((ferdig) => {
-      const el = R.$("#tv-terninger .tv-tern");
-      if (!el || R.rolig() || hopp) return setTimeout(ferdig, 60);
-      lyd.rasle();
-      el.classList.add("rull");
-      R.vibrer([12, 50, 8]);
-      setTimeout(ferdig, 620);
+    const apning = sp.apning && !sp.steg.length && sp.rest.length === 2;
+    const dobbel = sp.kast[0] === sp.kast[1];
+    const r = sp.rest.length;
+    // what each die still gives: a double counts twice per die (die 0 is used first)
+    const igjen = dobbel ? [Math.max(0, r - 2), Math.min(2, r)] : sp.kast.map((d) => (sp.rest.includes(d) ? 1 : 0));
+    return R.terninger.html({
+      id: BRETT,
+      klasse: "tv-terninger",
+      verdier: sp.kast,
+      flate: false,
+      hold: false,
+      knapper: false,
+      sveip: false,
+      hoyde: liggende() ? 2.2 : 1.5,
+      klasser: [0, 1].map((k) => `${apning ? "s" + k : "s" + sp.tur}${!apning && !igjen[k] && !tegnForKast ? " brukt" : ""}`),
+      merker: dobbel && !tegnForKast ? igjen.map((n) => (n ? `×${n}` : "")) : null,
+      forKast: tegnForKast,
     });
   }
-  const kubeHtml = (sp) => (sp.kube ? `<span class="tv-kube${sp.kubeEier >= 0 ? " eid s" + sp.kubeEier : ""}" aria-hidden="true">${sp.kubeEier < 0 && sp.kubeVerdi === 1 ? 64 : sp.kubeVerdi}</span>` : "");
+  const kubeHtml = (sp) =>
+    sp.kube ? `<span class="tv-kube${sp.kubeEier >= 0 ? " eid s" + sp.kubeEier : ""}">${R.terninger.dobling(sp.kubeEier < 0 && sp.kubeVerdi === 1 ? 64 : sp.kubeVerdi, { s: liggende() ? 30 : 24, vri: -8 })}</span>` : "";
 
   // ---------- The board ----------
   // One grid, drawn on its side in landscape: point (row, column) in landscape is (column, row) in
@@ -683,9 +666,13 @@
     sp.valgt = -1;
     ruller = true;
     R.lagre();
+    tegnForKast = [0, 1];
     R.vis();
+    tegnForKast = null;
     const fortsatt = R.vakt();
-    await visKast();
+    // along the lane: thrown from one end towards the other
+    const retning = [Math.random() < 0.5 ? -1 : 1, (Math.random() - 0.5) * 0.5];
+    await R.terninger.kast(BRETT, { verdier: sp.kast, indekser: [0, 1], retning, styrke: 0.45 + Math.random() * 0.35, rolig: hopp, lyd: !hopp });
     ruller = false;
     if (!fortsatt() || R.S.spill !== sp) return;
     R.vis();
@@ -1077,6 +1064,7 @@
         },
         etter() {
           tilpass();
+          R.terninger.koble(BRETT);
         },
         inn(S) {
           if (!S.spill) return R.gaTil("hjem");

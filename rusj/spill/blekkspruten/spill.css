@@ -1,0 +1,947 @@
+/* Blekkspruten — nonogram. Everything is prefixed "bs-".
+   The board is a sheet of squared paper; inked cells are deep octopus ink, crosses are pencil.
+   --c is the cell size, --h the size of one clue number. */
+
+/* ---------- The play screen fills the phone exactly (no scroll, no rubber band, no zoom) ---------- */
+
+html.bs-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.bs-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.bs-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.bs-fast main,
+html.bs-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-spill {
+  gap: 0;
+}
+
+.bs-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.bs-spill .dokk {
+  gap: 10px;
+  padding-top: 4px;
+  background: none;
+}
+
+/* ---------- Info row ---------- */
+
+.bs-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.bs-stat,
+.bs-klokke {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 7px 4px 6px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+}
+
+.bs-stat small,
+.bs-klokke small {
+  color: var(--tekst-3);
+  font: 800 0.64rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bs-stat b,
+.bs-klokke b {
+  max-width: 100%;
+  overflow: hidden;
+  font: 900 1.12rem/1.05 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bs-stat:last-child b {
+  color: var(--aksent);
+}
+
+.bs-klokke {
+  position: relative;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: center;
+  column-gap: 9px;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+  cursor: pointer;
+}
+
+.bs-klokketekst {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bs-pauseikon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+}
+
+.bs-pauseikon svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--blekk);
+}
+
+.bs-pauseikon .av,
+.bs-spill.pauset .bs-pauseikon .pa {
+  display: none;
+}
+
+.bs-spill.pauset .bs-pauseikon .av {
+  display: inline;
+}
+
+.bs-spill.pauset .dokk {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.bs-klokke:active {
+  transform: scale(0.96);
+}
+
+/* ---------- The board ---------- */
+
+.bs-flate {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+.bs-midt {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.bs-brett {
+  --c: 30px;
+  --h: 17px;
+  --strek-l: rgba(23, 14, 43, 0.16);
+  --strek-t: rgba(23, 14, 43, 0.7);
+  --fokus: var(--blekk);
+  --fokus-2: transparent;
+  position: relative;
+  display: grid;
+  grid-template-columns: auto calc(var(--k) * var(--c));
+  grid-template-rows: auto calc(var(--r) * var(--c));
+  padding: 6px 8px 8px 6px;
+  border-radius: 14px;
+  background: var(--papir);
+  box-shadow: 0 0 0 3px var(--blekk), 0 0 0 6px var(--aksent), 0 18px 36px var(--skygge);
+  color: var(--blekk);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer;
+  transition: filter 0.2s, opacity 0.2s;
+}
+
+.bs-brett:focus-visible {
+  outline: 3px solid var(--lampe);
+  outline-offset: 9px;
+}
+
+.bs-spill.pauset .bs-brett {
+  opacity: 0.35;
+  filter: blur(9px);
+}
+
+/* Clues: numbers in ink; a line that is right turns pale. */
+.bs-kolhint {
+  display: grid;
+  grid-column: 2;
+  grid-row: 1;
+  grid-template-columns: repeat(var(--k), var(--c));
+  align-items: end;
+  padding-bottom: 3px;
+}
+
+.bs-radhint {
+  display: grid;
+  grid-column: 1;
+  grid-row: 2;
+  grid-template-rows: repeat(var(--r), var(--c));
+  justify-items: end;
+  padding-right: 4px;
+}
+
+.bs-kolhint span,
+.bs-radhint span {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  border-radius: 6px;
+  transition: opacity 0.2s, background 0.15s;
+}
+
+.bs-kolhint span {
+  flex-direction: column;
+  height: 100%;
+  margin: 0 1px;
+  padding: 2px 0;
+}
+
+.bs-radhint span {
+  margin: 1px 0;
+  padding: 0 2px;
+}
+
+.bs-kolhint b,
+.bs-radhint b {
+  display: grid;
+  place-items: center;
+  min-width: var(--h);
+  height: var(--h);
+  font: 900 calc(var(--h) * 0.86) / 1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+
+.bs-kolhint span:nth-child(odd),
+.bs-radhint span:nth-child(odd) {
+  background: rgba(106, 63, 209, 0.07);
+}
+
+.bs-kolhint span.ok,
+.bs-radhint span.ok {
+  opacity: 0.32;
+}
+
+.bs-kolhint span.aktiv,
+.bs-radhint span.aktiv {
+  background: rgba(255, 210, 63, 0.45);
+  opacity: 1;
+}
+
+.bs-ruter {
+  display: grid;
+  grid-column: 2;
+  grid-row: 2;
+  grid-template-columns: repeat(var(--k), var(--c));
+  grid-auto-rows: var(--c);
+  box-shadow: 0 0 0 2px var(--strek-t);
+}
+
+.bs-ruter i {
+  position: relative;
+  box-shadow: inset -1px -1px 0 var(--strek-l);
+  transition: background-color 0.08s;
+}
+
+/* Every fifth line is thick, so counting is easy. */
+.bs-ruter i[data-s~="v5"] {
+  box-shadow: inset -2px 0 0 var(--strek-t), inset 0 -1px 0 var(--strek-l);
+}
+
+.bs-ruter i[data-s~="u5"] {
+  box-shadow: inset 0 -2px 0 var(--strek-t), inset -1px 0 0 var(--strek-l);
+}
+
+.bs-ruter i[data-s~="v5"][data-s~="u5"] {
+  box-shadow: inset -2px 0 0 var(--strek-t), inset 0 -2px 0 var(--strek-t);
+}
+
+/* Ink: a deep square with a little shine, so it reads as ink and not as a shadow. */
+.bs-ruter i.f::after {
+  content: "";
+  position: absolute;
+  inset: 1px 2px 2px 1px;
+  border-radius: calc(var(--c) * 0.12);
+  background: linear-gradient(145deg, #3d2a6b, var(--blekk) 60%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* A cross: pencil, thin, clearly a note. */
+.bs-ruter i.x::after {
+  content: "";
+  position: absolute;
+  inset: 26%;
+  background:
+    linear-gradient(45deg, transparent calc(50% - 1.2px), var(--blekk-2) calc(50% - 1.2px) calc(50% + 1.2px), transparent calc(50% + 1.2px)),
+    linear-gradient(-45deg, transparent calc(50% - 1.2px), var(--blekk-2) calc(50% - 1.2px) calc(50% + 1.2px), transparent calc(50% + 1.2px));
+  opacity: 0.8;
+}
+
+.bs-ruter i.h {
+  background: rgba(164, 123, 255, 0.3);
+}
+
+.bs-ruter i.feil {
+  background: rgba(255, 79, 94, 0.35);
+}
+
+.bs-ruter i.m {
+  z-index: 1;
+  outline: 3px solid var(--lampe);
+  outline-offset: -2px;
+  box-shadow: 0 0 0 2px var(--blekk);
+}
+
+.bs-brett.vant .bs-ruter i.f::after {
+  animation: bs-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.bs-brett.vant .bs-ruter i:nth-child(3n + 1)::after {
+  animation-delay: 0.08s;
+}
+
+.bs-brett.vant .bs-ruter i:nth-child(3n + 2)::after {
+  animation-delay: 0.16s;
+}
+
+.bs-brett.vant .bs-kolhint,
+.bs-brett.vant .bs-radhint {
+  transition: opacity 0.6s;
+  opacity: 0.25;
+}
+
+@keyframes bs-pop {
+  45% {
+    transform: scale(1.25);
+    background: var(--aksent-dyp);
+  }
+}
+
+.bs-pauseboks {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.bs-pauseboks[hidden] {
+  display: none;
+}
+
+.bs-pausekort {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 22px 24px 24px;
+  border-radius: var(--r-stor);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek), 0 18px 40px var(--skygge);
+}
+
+.bs-pausetekst {
+  margin: 0;
+  font: 900 1.4rem/1.15 var(--font-display);
+}
+
+.bs-pausekort .knapp {
+  width: auto;
+  min-width: 200px;
+  margin-top: 8px;
+}
+
+/* Hints and warnings: a line under the board, never over it. */
+.bs-under {
+  position: relative;
+  width: 100%;
+  min-height: 2.6em;
+}
+
+.bs-melding,
+.bs-tips {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font: 800 0.92rem/1.25 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+  transition: opacity 0.2s;
+}
+
+.bs-melding {
+  color: var(--tekst);
+  opacity: 0;
+}
+
+.bs-melding.vis {
+  opacity: 1;
+}
+
+.bs-tips {
+  color: var(--tekst-3);
+  opacity: 0;
+}
+
+.bs-spill.tomt .bs-tips {
+  opacity: 1;
+}
+
+.bs-under:has(.bs-melding.vis) .bs-tips {
+  opacity: 0;
+}
+
+/* ---------- Tools ---------- */
+
+.bs-verktoy {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.bs-valg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 18px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.bs-verk {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 4px 8px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 800 0.8rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.bs-valg .bs-verk {
+  padding: 6px 4px 5px;
+  border-radius: 14px;
+  background: none;
+  box-shadow: none;
+  color: var(--tekst-2);
+}
+
+.bs-valg .bs-verk[aria-pressed="true"] {
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.bs-verk span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bs-verk svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bs-verk svg .fylt {
+  fill: currentColor;
+}
+
+.bs-verk:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.bs-verk:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.bs-merke {
+  position: absolute;
+  top: -7px;
+  right: 6px;
+  min-width: 24px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  box-shadow: 0 0 0 2px var(--natt);
+  color: var(--tekst-2);
+  font: 900 0.66rem/1 var(--font-display);
+  font-style: normal;
+  text-align: center;
+}
+
+/* ---------- Home ---------- */
+
+.hjem-knapper .knapp:has(.bs-dagknapp) {
+  gap: 14px;
+  padding-block: 10px;
+}
+
+.bs-dagknapp {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+
+.bs-dagknapp b {
+  font: 900 1.25rem/1.1 var(--font-display);
+}
+
+.bs-dagknapp small {
+  color: var(--blekk-2);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+.bs-kal {
+  display: grid;
+  flex: none;
+  grid-template-rows: auto 1fr;
+  width: 40px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.bs-kal small {
+  padding: 2px 0 1px;
+  background: var(--lilla-dyp);
+  color: #fff;
+  font: 900 0.6rem/1.1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bs-kal b {
+  display: grid;
+  place-items: center;
+  font: 900 1.2rem/1 var(--font-display);
+}
+
+.bs-nedtelling {
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+}
+
+.bs-nedtelling b {
+  color: var(--tekst);
+  font: 900 1.3rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.bs-daglinje {
+  align-self: center;
+  max-width: 100%;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 60%, var(--strek));
+  color: var(--aksent);
+  font: 800 0.9rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+.bs-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  padding-bottom: 12px;
+}
+
+.bs-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bs-rekorder li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst);
+  font: 800 0.9rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.bs-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.bs-rekorder li small {
+  color: var(--tekst-3);
+  font-weight: 700;
+}
+
+/* ---------- Setup ---------- */
+
+.bs-styrke {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 24px;
+}
+
+.bs-styrke i {
+  width: 6px;
+  border-radius: 3px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.bs-styrke i:nth-child(1) {
+  height: 9px;
+}
+
+.bs-styrke i:nth-child(2) {
+  height: 14px;
+}
+
+.bs-styrke i:nth-child(3) {
+  height: 19px;
+}
+
+.bs-styrke i:nth-child(4) {
+  height: 24px;
+}
+
+.bs-styrke i.pa {
+  background: var(--nf, var(--aksent));
+  box-shadow: none;
+}
+
+/* The picture gallery: a painted picture shows itself, the rest are question marks. */
+.bs-galleri {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  gap: 8px;
+}
+
+.bs-bildevalg {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 8px 4px 6px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  cursor: pointer;
+}
+
+.bs-bildevalg small {
+  font: 800 0.7rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.bs-bildevalg[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--aksent) 22%, var(--natt-2));
+  box-shadow: inset 0 0 0 3px var(--aksent);
+  color: var(--tekst);
+}
+
+.bs-ukjent {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: repeating-linear-gradient(0deg, transparent 0 8px, rgba(23, 14, 43, 0.12) 8px 9px), repeating-linear-gradient(90deg, transparent 0 8px, rgba(23, 14, 43, 0.12) 8px 9px), var(--papir);
+  color: var(--blekk-2);
+  font: 900 1.4rem/1 var(--font-display);
+}
+
+.bs-tommel {
+  width: 44px;
+  height: 44px;
+}
+
+.bs-tommel rect,
+.bs-mini rect {
+  fill: var(--papir);
+}
+
+.bs-tommel path,
+.bs-mini path {
+  fill: var(--blekk);
+}
+
+/* ---------- Result ---------- */
+
+.bs-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.bs-tall-boks {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 10px 16px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.bs-tall-boks b {
+  font: 900 2.4rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.bs-tall-boks span {
+  font: 800 0.78rem/1 var(--font-display);
+  letter-spacing: 0.12em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.bs-ny {
+  position: absolute;
+  top: -12px;
+  right: -4px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--rosa);
+  box-shadow: 0 3px 0 var(--rosa-dyp);
+  color: #fff;
+  font: 900 0.8rem/1.1 var(--font-display);
+  font-style: normal;
+  transform: rotate(8deg);
+}
+
+.bs-dagboks {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.bs-rekke {
+  margin: 0;
+  font: 900 1.4rem/1.1 var(--font-display);
+}
+
+.bs-ferdig {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+}
+
+.bs-ferdig figcaption {
+  color: var(--tekst);
+  font: 900 1.15rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.bs-mini {
+  width: 132px;
+  height: 132px;
+  transform: rotate(-2deg);
+  filter: drop-shadow(0 8px 14px rgba(6, 2, 14, 0.55));
+}
+
+/* ---------- Short and narrow phones ---------- */
+
+@media (max-height: 700px) {
+  .bs-mini {
+    width: 100px;
+    height: 100px;
+  }
+
+  .bs-spill {
+    gap: 6px;
+  }
+
+  .bs-stat,
+  .bs-klokke {
+    padding: 5px 4px 4px;
+  }
+
+  .bs-pauseikon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .bs-verk {
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 4px;
+  }
+
+  .bs-verk svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .bs-under {
+    min-height: 2.4em;
+  }
+
+  .bs-melding,
+  .bs-tips {
+    font-size: 0.84rem;
+  }
+}
+
+@media (max-width: 359px) {
+  .bs-verk span {
+    font-size: 0.7rem;
+  }
+
+  .bs-verk {
+    grid-template-columns: none;
+  }
+
+  .bs-stat b,
+  .bs-klokke b {
+    font-size: 1rem;
+  }
+
+  .bs-klokke {
+    column-gap: 5px;
+  }
+
+  .bs-pauseikon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .bs-tall-boks b {
+    font-size: 2rem;
+  }
+
+  .bs-brett {
+    padding: 4px 6px 6px 4px;
+  }
+}
+
+/* ---------- Landscape phones: the board on the left, the rest on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="blekkspruten"] .app:has(.bs-spill) {
+    max-width: 1000px;
+  }
+
+  .bs-spill {
+    display: grid;
+    grid-template-columns: min(calc(100dvh - 60px), 56vw) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    column-gap: 20px;
+    row-gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .bs-flate {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .bs-topp {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .bs-plass {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .bs-under {
+    min-height: 4em;
+  }
+
+  .bs-spill .dokk {
+    position: static;
+    grid-column: 2;
+    grid-row: 3;
+    align-self: end;
+    margin: 0;
+    padding: 0 0 max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .bs-verktoy {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .bs-valg {
+    grid-column: 1 / -1;
+  }
+
+  .bs-verk {
+    padding: 10px 6px;
+  }
+}
+
+.bs-plass:empty {
+  display: none;
+}
