@@ -566,6 +566,7 @@
         const rek = S.rekord[sp.niva] || (S.rekord[sp.niva] = { seier: 0, tap: 0 });
         if (v === 0) rek.seier++;
         else rek.tap++;
+        if (v === 0) R.merke("klassiker-vriatter");
       }
       const fortsatt = R.vakt();
       setTimeout(() => {
