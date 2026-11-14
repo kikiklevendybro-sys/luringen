@@ -884,6 +884,17 @@
         "gæt emojien",
         "emoji rebus"
       ]
+    },
+    "dommeren": {
+      "tittel": "Udfyld det tomme felt – festspil med 500 kort",
+      "frase": "Udfyld det tomme felt",
+      "beskrivelse": "Festspillet, hvor alle i hemmelighed vælger det sjoveste svarkort, og dommeren kårer det bedste. Egne kort: familie og voksne. Gratis, én mobil.",
+      "sok": [
+        "udfyld det tomme felt",
+        "festspil med kort",
+        "svarkort spil",
+        "sjovt festspil"
+      ]
     }
   }
 }

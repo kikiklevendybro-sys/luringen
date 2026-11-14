@@ -867,6 +867,17 @@
         "guess the emoji",
         "emoji rebus"
       ]
+    },
+    "dommeren": {
+      "tittel": "Fill in the blank – party game with 500 cards",
+      "frase": "Fill in the blank",
+      "beskrivelse": "The party game where everyone secretly picks the funniest answer card and the judge crowns the best. Our own cards: family and grown-ups. Free, one phone.",
+      "sok": [
+        "fill in the blank game",
+        "party card game",
+        "answer cards game",
+        "funny party game"
+      ]
     }
   }
 }

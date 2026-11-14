@@ -1,0 +1,33 @@
+{
+  "id": "dommeren",
+  "navn": "Dommeren",
+  "undertittel": "Fyll inn det som mangler",
+  "beskrivelse": "Gratis fyll-inn-spill på norsk. Alle velger i hemmelighet det morsomste svaret – og dommeren kårer det beste. Over 500 kort, familiepakke og en for voksne.",
+  "kort": "Velg det morsomste svaret – dommeren kårer det beste.",
+  "spillere": [3, 10],
+  "alder": 10,
+  "minutter": [15, 45],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "ord"],
+  "rekkefolge": 96,
+  "alias": ["fyll-inn", "fyll-inn-det-som-mangler"],
+  "sok": ["fyll inn", "fyll inn det som mangler", "fyll-inn-spill", "svarkort", "festspill med kort", "partyspill", "morsomme kort", "kortspill for voksne"],
+  "i18n": {
+    "en": {
+      "navn": "Judgey",
+      "undertittel": "Fill in the blank",
+      "kort": "Pick the funniest answer – the judge chooses the best.",
+      "beskrivelse": "Free fill-in-the-blank party game for one phone. Everyone secretly picks the funniest answer card, and the judge crowns the best. Over 500 cards, family and grown-ups.",
+      "slug": "judgey",
+      "sok": ["fill in the blank", "fill in the blanks game", "party card game", "answer cards", "funny party game", "family party game"]
+    },
+    "da": {
+      "navn": "Dommeren",
+      "undertittel": "Udfyld det tomme felt",
+      "kort": "Vælg det sjoveste svar – dommeren kårer det bedste.",
+      "beskrivelse": "Gratis udfyld-det-tomme-felt-spil på dansk. Alle vælger i hemmelighed det sjoveste svarkort – og dommeren kårer det bedste. Over 500 kort til familie og voksne.",
+      "slug": "dommeren",
+      "sok": ["udfyld det tomme felt", "udfyld hullet", "festspil med kort", "svarkort", "sjovt festspil", "kortspil for voksne"]
+    }
+  }
+}
