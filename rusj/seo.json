@@ -1163,6 +1163,46 @@
         "fargelegging på mobil",
         "malebok for barn"
       ]
+    },
+    "sjefen": {
+      "tittel": "Drikkelek med navn – oppgaver og regler (18+)",
+      "frase": "Drikkelek med navn",
+      "beskrivelse": "Drikkelek på mobilen der kortene sier navnene deres (18+): oppgaver, dueller, regler som varer og «drikk eller gjør». Små slurker – alkoholfritt teller.",
+      "sok": [
+        "drikkelek med navn",
+        "drikkespill med navn",
+        "drikkelek app gratis"
+      ]
+    },
+    "spakona": {
+      "tittel": "Giveren – drikkelek med kort: gjett kortet (18+)",
+      "frase": "Gjett kortet – drikkelek",
+      "beskrivelse": "Giveren-leken på mobilen (18+): gjett verdien på neste kort, få «høyere» eller «lavere» og ett forsøk til. Bare små slurker – alkoholfritt teller like mye.",
+      "sok": [
+        "giveren drikkelek regler",
+        "dealer drikkelek",
+        "gjett kortet drikkelek"
+      ]
+    },
+    "telleren": {
+      "tittel": "21 drikkelek – tell til 21 og lag regler (18+)",
+      "frase": "21 – drikkelek",
+      "beskrivelse": "Drikkeleken 21 på mobilen (18+): tell i ring til 21, og den som sier 21, lager en ny regel. Mobilen holder tavla og foreslår regler. Alkoholfritt teller.",
+      "sok": [
+        "21 drikkelek regler",
+        "tell til 21 drikkelek",
+        "drikkelek uten kort"
+      ]
+    },
+    "mistanken": {
+      "tittel": "Paranoia drikkelek – hemmelige spørsmål (18+)",
+      "frase": "Paranoia – drikkelek",
+      "beskrivelse": "Paranoia på mobilen (18+): Mobilen hvisker et hemmelig «Hvem her …?»-spørsmål, du svarer med et navn, og mynten avgjør om alle får vite hvorfor.",
+      "sok": [
+        "paranoia drikkelek regler",
+        "paranoia spørsmål",
+        "hvem her spørsmål"
+      ]
     }
   }
 }

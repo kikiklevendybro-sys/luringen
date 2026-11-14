@@ -1928,6 +1928,82 @@
         ${form("M106 70 L114 72 L116 64 L108 62Z", METALL, 3.4)}
         ${form("M108 62 Q106 48 116 40 Q122 52 116 64Z", LAMPE, 3.6)}`,
     },
+
+
+    // Sjefen: a green boss in a peaked cap with a gold star, eyebrows set for business and a
+    // yellow megaphone – the cards give the orders, and Sjefen reads them out.
+    sjefen: {
+      farge: "#8fdc5c",
+      tegn: (f) => `
+        ${hode(f)}
+        ${form("M14 44 Q16 8 60 6 Q104 8 106 44 Q60 30 14 44Z", "#34306e", 4.5)}
+        ${form("M10 46 Q60 30 110 46 Q112 56 102 56 Q60 44 18 56 Q8 56 10 46Z", B, 3)}
+        ${glimt(60, 24, 9, LAMPE)}
+        ${strek("M27 52 L50 58M93 52 L70 58", 5)}
+        ${kinn(84)}
+        ${oyne({ y: 68, r: 10.5, dx: 2, dy: 1, pr: 5 })}
+        ${strek("M46 92 Q60 101 74 92", 5)}
+        ${form("M88 98 L114 84 L114 116 L88 104Z", LAMPE, 4)}
+        ${form("M80 96 L90 96 L90 106 L80 106Z", "#ff9f43", 3.5)}
+        ${strek("M118 92 L124 88M119 100 L126 100M118 108 L124 112", 3, P)}`,
+    },
+
+
+    // Spåkona: a violet fortune teller in a starry headscarf with a gold coin on her forehead,
+    // knowing half-closed eyes and a glowing crystal ball in front – with a playing card inside.
+    spakona: {
+      farge: "#d67cff",
+      tegn: (f) => `
+        ${form("M10 60 Q8 10 60 8 Q112 10 110 60 Q100 30 60 30 Q20 30 10 60Z", "#3d2b7a", 4.5)}
+        ${form("M106 52 Q120 70 112 96 Q104 80 100 62Z", "#3d2b7a", 4)}
+        ${hode(f)}
+        ${form("M12 52 Q14 22 60 20 Q106 22 108 52 Q90 36 60 36 Q30 36 12 52Z", "#3d2b7a", 4.5)}
+        ${glimt(34, 30, 4, LAMPE)}${glimt(86, 28, 3.5, LAMPE)}
+        <circle cx="60" cy="40" r="6" fill="${MESSING}" stroke="${B}" stroke-width="3"/>
+        ${blunk(60, strek("M30 60 Q40 54 50 60M70 60 Q80 54 90 60", 5) + strek("M31 61 Q40 66 49 61M71 61 Q80 66 89 61", 3.5))}
+        ${kinn(76)}
+        ${strek("M50 82 Q60 88 70 82", 4.5)}
+        <circle cx="60" cy="104" r="20" fill="#bfe8ff" stroke="${B}" stroke-width="4.5"/>
+        <rect x="53" y="94" width="14" height="19" rx="2.5" fill="${P}" stroke="${B}" stroke-width="2.5" transform="rotate(-8 60 104)"/>
+        ${hjerte(59.5, 104, 3.6)}
+        ${glans("M48 96 Q51 90 57 88", 3.5)}
+        ${form("M42 120 H78 L74 126 H46Z", MESSING, 3.5)}`,
+    },
+
+
+    // Telleren: an orange counter with round glasses and a pencil behind the ear, holding up a
+    // little blackboard with «21» on it – and a tally of chalk strokes for the rules.
+    telleren: {
+      farge: "#ffa552",
+      tegn: (f) => `
+        ${hode(f)}
+        <g transform="rotate(28 100 30)">${form("M92 10 H108 V48 L100 58 L92 48Z", LAMPE, 3.5)}${form("M92 10 H108 V16 H92Z", ROSA, 3)}</g>
+        ${kinn(80)}
+        ${oyne({ y: 54, r: 11, dx: 1, dy: -1, pr: 5 })}
+        <circle cx="40" cy="54" r="15" fill="none" stroke="${B}" stroke-width="4"/><circle cx="80" cy="54" r="15" fill="none" stroke="${B}" stroke-width="4"/>
+        ${strek("M55 52 Q60 48 65 52", 4)}
+        ${smil(70, 10)}
+        ${form("M26 86 H94 V118 H26Z", "#2f5d4e", 4.5)}
+        ${tekst(60, 112, "21", 24, P)}
+        ${strek("M32 92 V100M36 92 V100M40 92 V100M44 92 V100M30 98 L46 94", 2, "rgba(255,241,221,.75)")}`,
+    },
+
+
+    // Mistanken: a blue head with one eyebrow raised and the eyes darting sideways, a hand by the
+    // mouth whispering «psst», and a little question mark floating above – who here …?
+    mistanken: {
+      farge: "#6c9cff",
+      tegn: (f) => `
+        ${hode(f)}
+        ${strek("M28 38 Q40 30 52 40", 5)}${strek("M68 44 Q80 42 92 46", 5)}
+        ${oyne({ y: 58, r: 11, dx: 5, dy: 0, pr: 5 })}
+        ${rodme(80)}
+        ${strek("M48 88 Q56 84 66 88", 4.5)}
+        ${form("M70 86 Q78 78 88 82 Q96 86 92 98 Q86 108 74 102 Q66 96 70 86Z", "#ffd9b3", 4)}
+        ${strek("M76 90 L86 88M76 96 L88 96", 2.5)}
+        ${tekst(106, 22, "?", 26, LAMPE)}
+        ${strek("M100 66 Q110 62 114 54M102 76 Q114 76 120 70", 3, P)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on
