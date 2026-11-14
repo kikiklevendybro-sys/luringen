@@ -1513,6 +1513,53 @@
         </g>
         ${glimt(108, 52, 5)}`,
     },
+
+    // Bobla: a round soap-bubble head in light sky blue with a big shine at the top left, a rainbow
+    // sheen along the lower right edge, two little bubbles floating off and a delighted open smile.
+    bobla: {
+      farge: "#7fd8ff",
+      tegn: (f) => `
+        ${hode(f)}
+        ${strek("M98 84 Q92 100 76 108", 4.5, "rgba(255,79,139,.75)")}
+        ${strek("M103 72 Q101 86 95 96", 4, "rgba(255,210,63,.9)")}
+        ${glans("M24 50 Q26 28 46 20", 6)}
+        ${glans("M30 60 Q30 56 31 53", 4)}
+        <circle cx="103" cy="12" r="11" fill="rgba(191,236,255,.75)" stroke="${B}" stroke-width="3.5"/>
+        ${glans("M97 9 Q98 5 102 4", 2.5)}
+        <circle cx="117" cy="-3" r="5.5" fill="rgba(191,236,255,.75)" stroke="${B}" stroke-width="3"/>
+        ${rodme(80)}
+        ${oyne({ y: 58, dx: 2, dy: -3 })}
+        <path d="M45 84 Q60 104 75 84Z" fill="${B}" stroke="${B}" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M52 93 Q60 99 68 93 Q60 90 52 93Z" fill="${ROSA}"/>`,
+    },
+
+    // Ekornet: a round squirrel-orange head with tufted ears, a big bushy tail curling up behind it
+    // on the right, a cream muzzle with a dark nose and two front teeth, and an acorn held up at
+    // the lower left – stocking up for winter.
+    ekornet: {
+      farge: "#f0954a",
+      tegn: (f) => `
+        ${form("M80 110C120 104 128 58 117 28C109 6 86 2 81 20C77 34 99 38 103 56C107 76 94 94 80 110Z", "#c96a2c", 4.5)}
+        ${strek("M110 30C117 44 118 62 112 78", 4, "rgba(255,241,221,.55)")}
+        ${form("M20 38L22 6L46 24Z", f, 4.5)}
+        ${form("M100 38L98 6L74 24Z", f, 4.5)}
+        ${strek("M22 6L17 -3M22 6L25 -4M98 6L95 -4M98 6L103 -3", 3)}
+        ${hode(f)}
+        ${form("M30 33L30 18L41 26Z", "#ffb98a", 0)}
+        ${form("M90 33L90 18L79 26Z", "#ffb98a", 0)}
+        <ellipse cx="60" cy="84" rx="23" ry="17" fill="#ffe3c2"/>
+        ${kinn(78)}
+        ${oyne({ y: 56, dx: 2, dy: -2 })}
+        <ellipse cx="60" cy="75" rx="6.5" ry="4.5" fill="${B}"/>
+        ${strek("M50 83Q60 90 70 83", 4)}
+        ${form("M55 86H65V96H55Z", P, 3)}
+        ${strek("M60 86V96", 2)}
+        <g transform="rotate(-18 16 98)">
+          ${form("M5 99C6 110 12 116 17 117C22 116 28 110 29 99Z", "#f29b45", 3.5)}
+          ${form("M3 99C3 91 9 87 17 87C25 87 31 91 31 99C24 101 10 101 3 99Z", "#9a6532", 3.5)}
+          ${strek("M17 87C17 84 18 82 21 81", 3)}
+        </g>`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on
