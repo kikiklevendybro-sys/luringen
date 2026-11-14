@@ -58,6 +58,7 @@
     { "id": "notteknekkeren-alle", "gruppe": "utforsker", "navn": "Full nøttepose", "hvordan": "Få 20 av 20 i en utfordring i Nøtteknekkeren.", "figur": "notteknekkeren", "emoji": "🌰", "regel": { "type": "merke" } },
     { "id": "hermegasa-ti", "gruppe": "utforsker", "navn": "Hermemester", "hvordan": "Husk ti på rad i Hermegåsa.", "figur": "hermegasa", "emoji": "🪿", "regel": { "type": "merke" } },
     { "id": "musa-ost", "gruppe": "utforsker", "navn": "Ostejeger", "hvordan": "Finn osten i en stor labyrint i Musa.", "figur": "musa", "emoji": "🧀", "regel": { "type": "merke" } },
+    { "id": "smilefjeset-alle", "gruppe": "utforsker", "navn": "Emoji-ekspert", "hvordan": "Få alle riktig i en runde alene i Smilefjeset.", "figur": "smilefjeset", "emoji": "😄", "regel": { "type": "merke" } },
 
     { "id": "klassiker-sjakkhesten", "gruppe": "klassiker", "navn": "Sjakk matt!", "hvordan": "Slå mobilen i sjakk i Sjakkhesten.", "figur": "sjakkhesten", "regel": { "type": "merke" } },
     { "id": "klassiker-fireren", "gruppe": "klassiker", "navn": "Fire på rad", "hvordan": "Slå mobilen i fire på rad i Fireren.", "figur": "fireren", "regel": { "type": "merke" } },

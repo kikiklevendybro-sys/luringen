@@ -856,6 +856,17 @@
         "questions to ask friends",
         "getting to know you questions"
       ]
+    },
+    "smilefjeset": {
+      "tittel": "Emoji riddles – over 300 to guess, free",
+      "frase": "Emoji riddles",
+      "beskrivelse": "Guess sayings, things, places, animals, jobs and nursery rhymes from a few emojis. Over 300 emoji riddles – with friends or on your own, with hints. Free.",
+      "sok": [
+        "emoji quiz",
+        "emoji riddles",
+        "guess the emoji",
+        "emoji rebus"
+      ]
     }
   }
 }
