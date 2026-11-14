@@ -29,7 +29,7 @@ export default async function (t) {
   await enH1("gjør klart");
   t.sjekk(await har("#skjerm h1", "Gjør klart"), "Oppsettet skal hete «Gjør klart»");
   const fliser = await t.js(`Array.from(document.querySelectorAll('[data-h="pakke"]')).map((f) => f.dataset.v + (f.getAttribute("aria-pressed") === "true" ? "*" : "")).join()`);
-  t.sjekk(fliser === "familie*,venner*,fantasi,dypt", `Pakkene er feil: ${fliser}`);
+  t.sjekk(fliser === "familie*,venner*,fantasi,dypt,ungdom", `Pakkene er feil: ${fliser}`);
   t.sjekk(await t.finnes('[data-h="per"][data-v="5"][aria-pressed="true"]') && (await t.finnes('[data-h="stjerner"][aria-pressed="true"]')), "Standard: 5 spørsmål og stjerner på");
   await t.klikk('[data-h="pakke"][data-v="dypt"]');
   await t.klikk('[data-h="per"][data-v="3"]');
@@ -186,4 +186,34 @@ export default async function (t) {
   t.sjekk(s.spill.ferdig && s.skjerm === "slutt", "«Avslutt» med stjerner gikk ikke til kåringen");
   t.sjekk(await har("#skjerm h1", "Ingen stjerner denne gangen"), "Kåringen uten stjerner har feil overskrift");
   await t.bilde("slutt-tidlig");
+
+  // ---------- The teen pack («Ungdom» 13–16): last, not chosen by default, not 18+ ----------
+  await t.start({ navn: ["Testspiller A", "Testspiller B", "Testspiller C"] });
+  await t.klikk('[data-h="nytt"]');
+  const ungdom = await t.js(`(() => { const p = window.RUSJ_DATA.sporsmal.pakker; const u = p[p.length - 1]; return { id: u.id, navn: u.navn, antall: u.kort.length, fra: p.slice(0, -1).reduce((n, x) => n + x.kort.length, 0), kort: u.kort }; })()`);
+  t.sjekk(ungdom.id === "ungdom" && ungdom.antall >= 55, `Ungdomspakken skal stå sist i dataene, med rundt 60 spørsmål (${ungdom.id}: ${ungdom.antall})`);
+  const flis = await t.tekst('[data-h="pakke"][data-v="ungdom"]');
+  t.sjekk(/13–16/.test(flis) && !/18\+/.test(flis) && flis.includes(ungdom.navn), `Ungdomsflisa skal si navnet og 13–16, ikke 18+ («${flis.replace(/\s+/g, " ")}»)`);
+  await t.klikk('[data-h="pakke"][data-v="familie"]');
+  await t.klikk('[data-h="pakke"][data-v="venner"]');
+  await t.klikk('[data-h="pakke"][data-v="ungdom"]');
+  t.sjekk((await t.tilstand()).oppsett.pakker.join() === "ungdom", `Bare ungdomspakken skal være valgt (${(await t.tilstand()).oppsett.pakker})`);
+  await t.bilde("ungdom-oppsett", true);
+  await t.klikk('[data-h="start"]');
+  await t.vent(`document.querySelector('[data-h="sett"]')`);
+  await pause();
+  await t.klikk('[data-h="sett"]');
+  await sporsmal();
+  s = await sp();
+  t.sjekk(s.kort >= ungdom.fra && s.kort < ungdom.fra + ungdom.antall, `Spørsmålet kom ikke fra ungdomspakken (nr. ${s.kort})`);
+  t.sjekk((await t.tekst(".storkort-etikett")).toLocaleLowerCase().includes(ungdom.navn.toLocaleLowerCase()), `Kortet viser ikke pakkenavnet («${await t.tekst(".storkort-etikett")}»)`);
+  t.sjekk((await t.tekst(".storkort-tekst")).includes(ungdom.kort[s.kort - ungdom.fra]), "Kortet viser ikke spørsmålet fra ungdomspakken");
+  t.sjekk(await t.friForDokk(".storkort"), "Kortet havner bak knappene (ungdomspakken)");
+  await t.bilde("ungdom-sporsmal");
+  await t.klikk('[data-h="stjerne"]');
+  await pause();
+  await t.klikk('[data-h="neste"]', 700);
+  await sporsmal();
+  s = await sp();
+  t.sjekk(s.nr === 2 && s.poeng[s.rekke[0]] === 1 && s.kort >= ungdom.fra && s.kort < ungdom.fra + ungdom.antall, `Neste spørsmål skal også komme fra ungdomspakken, og stjerna skal telle (${s.kort}, ${s.poeng})`);
 }

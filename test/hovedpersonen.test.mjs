@@ -1,13 +1,15 @@
 // Hovedpersonen: the turn rules (everyone once in the chair, the reader is the next one round the
 // table, the star toggle, skipping, the end and the winners) as pure functions loaded in node:vm
-// without the kit — and the questions: the same four packs in nb, en and da with the same number
-// of cards, no question twice, short, ending in a question mark, nothing left in Norwegian.
+// without the kit — and the questions: the same five packs in nb, en and da with the same number
+// of cards, no question twice, short, ending in a question mark, nothing left in Norwegian. The
+// teen pack («Ungdom», 13–16) came last: the four packs before it draw exactly as before.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
+import { ungdomTester } from "./kortpakker.mjs";
 
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const window = {};
@@ -96,14 +98,14 @@ const NORSKE = {
 const norskOrd = (sprak, tekst) => (sprak === "en" && /[æøå]/i.test(tekst) ? ["æøå"] : []).concat((tekst.toLocaleLowerCase("nb").match(/[a-zæøå]+/g) || []).filter((o) => NORSKE[sprak].has(o)));
 const nokkel = (t) => t.toLocaleLowerCase("nb").replace(/[^a-zæøå0-9]+/g, " ").trim();
 
-test("samme fire pakker i alle språk, med like mange spørsmål – over 300 i hvert språk", () => {
+test("samme fem pakker i alle språk, med like mange spørsmål – over 300 i hvert språk", () => {
   const ider = (d) => d.pakker.map((p) => p.id).join();
   for (const sprak of ["nb", "en", "da"]) {
     const d = DATA[sprak];
-    assert.equal(ider(d), "familie,venner,fantasi,dypt", sprak);
+    assert.equal(ider(d), "familie,venner,fantasi,dypt,ungdom", sprak);
     for (const p of d.pakker) {
       for (const f of ["navn", "ikon", "tekst"]) assert.ok(typeof p[f] === "string" && p[f].trim(), `${sprak}/${p.id}: mangler ${f}`);
-      assert.ok(p.kort.length >= 75, `${sprak}/${p.id}: bare ${p.kort.length}`);
+      assert.ok(p.kort.length >= (p.id === "ungdom" ? 55 : 75), `${sprak}/${p.id}: bare ${p.kort.length}`);
       assert.equal(p.kort.length, DATA.nb.pakker.find((x) => x.id === p.id).kort.length, `${sprak}/${p.id}: ikke like mange som på norsk`);
       assert.equal(p.ikon, DATA.nb.pakker.find((x) => x.id === p.id).ikon, `${sprak}/${p.id}: annet ikon`);
     }
@@ -131,4 +133,24 @@ test("hvert spørsmål: unikt, kort, ett spørsmålstegn til slutt, ingen norske
   }
   const nb = DATA.nb.pakker.flatMap((p) => p.kort).join(" ");
   assert.ok(!/\bfrem\b|\bstod\b|\bfingre\b/.test(nb), "KIT-skrivemåter: fram, sto, fingrer");
+});
+
+// ---------- The teen pack ----------
+// The fingerprints were taken before the pack was added. If you change an existing question on
+// purpose, run the same draws again and update them here.
+ungdomTester({
+  id: "hovedpersonen",
+  fil: "sporsmal",
+  felt: "kort",
+  gamle: ["familie", "venner", "fantasi", "dypt"],
+  avtrykk: {
+    nb: { standard: ["familie", "venner"], antall: 329, kart: "6a0933829462f591", trekk: "3e96a4ab6f1b7c12" },
+    en: { standard: ["familie", "venner"], antall: 329, kart: "003b81b863b0c482", trekk: "0393dc818c20903f" },
+    da: { standard: ["familie", "venner"], antall: 329, kart: "cad31a98d3cd58b5", trekk: "a6582ec936c1f642" },
+  },
+  maks: 130,
+  // «Start» shows the chair first; the card is on the question screen.
+  skjerm: "sporsmal",
+  forbered: (S) => (S.spill.fase = "sporsmal"),
+  vist: (k) => [k],
 });
