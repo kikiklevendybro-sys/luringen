@@ -1901,6 +1901,7 @@
     notteknekkeren: ["#e8894a", "N"],
     pusen: ["#9a86e8", "P"],
     skattejegeren: ["#ffb547", "S"],
+    penselen: ["#6fc8ff", "P"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

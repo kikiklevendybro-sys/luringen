@@ -1,0 +1,447 @@
+/* Penselen — colouring pages. Everything is prefixed "pn-". A white sheet with the colours on a
+   canvas and the outlines as SVG on top (sharp at any zoom); tools and colours under the thumb
+   (beside the sheet on a phone on its side). Big round colours for small fingers. */
+
+/* ---------- The painting screen fills the phone; a finger never scrolls the page ---------- */
+
+html.pn-fast {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.pn-fast body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.pn-fast .app {
+  height: 100%;
+  min-height: 0;
+}
+
+html.pn-fast main,
+html.pn-fast .skjerm {
+  min-height: 0;
+}
+
+.skjerm-mal {
+  gap: 0;
+}
+
+.pn-spill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.pn-spill .dokk {
+  padding-top: 4px;
+  background: none;
+}
+
+/* ---------- The sheet ---------- */
+
+.pn-flate {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+  touch-action: none;
+}
+
+.pn-ark {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 0 0 3px var(--papir-2), 0 14px 30px var(--skygge);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.pn-ark.flytter {
+  cursor: grab;
+}
+
+.pn-zoom {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+.pn-farge,
+.pn-linjer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pn-linjer {
+  pointer-events: none;
+}
+
+.pn-zoomknapper {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  gap: 6px;
+}
+
+.pn-zoomknapper button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(21, 12, 40, 0.8);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 900 1.55rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.pn-zoomknapper button:disabled {
+  color: rgba(255, 241, 221, 0.3);
+  cursor: default;
+}
+
+.pn-zoomknapper button[hidden] {
+  display: none;
+}
+
+.pn-zoomknapper button[aria-pressed="true"] {
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.pn-zoomknapper span {
+  font-size: 1.25rem;
+}
+
+/* ---------- Tools and colours ---------- */
+
+.pn-styring {
+  display: grid;
+  gap: 8px;
+}
+
+.pn-verktoy {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.pn-knapp {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  height: 58px;
+  min-width: 0;
+  padding: 4px 2px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 800 0.72rem/1.1 var(--font-display);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pn-knapp span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pn-knapp svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pn-knapp svg .fylt {
+  fill: var(--pn-valgt, currentColor);
+  stroke: currentColor;
+  stroke-width: 1.4;
+}
+
+/* The brushes show the colour they paint with. */
+.pn-knapp[data-v="tynn"] svg path,
+.pn-knapp[data-v="tykk"] svg path {
+  stroke: var(--pn-valgt, currentColor);
+}
+
+.pn-knapp[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--aksent) 24%, var(--natt-2));
+  box-shadow: inset 0 0 0 3px var(--aksent);
+}
+
+.pn-knapp:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+.pn-knapp:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.pn-knapp.pn-ferdig {
+  background: var(--aksent);
+  box-shadow: 0 4px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.pn-palett {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.pn-fargeknapp {
+  justify-self: center;
+  width: 100%;
+  max-width: 50px;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--f);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.22), inset 0 -5px 0 rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.08s;
+}
+
+.pn-fargeknapp[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.22), 0 0 0 3px var(--natt), 0 0 0 6px var(--tekst);
+  transform: scale(1.06);
+}
+
+/* White is the eraser: a small rubber drawn on it. */
+.pn-fargeknapp[data-v="13"] {
+  background:
+    linear-gradient(135deg, transparent 38%, #ff9ec4 38% 62%, transparent 62%) center / 52% 52% no-repeat,
+    var(--f);
+}
+
+@media (max-height: 700px) {
+  .pn-knapp {
+    height: 52px;
+  }
+
+  .pn-knapp svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .pn-palett {
+    gap: 6px;
+  }
+
+  .pn-fargeknapp {
+    max-width: 44px;
+  }
+}
+
+/* The narrowest phones: six tools in a row still keep their whole word («Fortryd», «Færdig»). */
+@media (max-width: 359px) {
+  .pn-verktoy {
+    gap: 4px;
+  }
+
+  .pn-knapp {
+    padding-inline: 0;
+    font-size: 0.62rem;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ---------- Choosing a picture ---------- */
+
+.pn-temaer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pn-tema {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 800 0.95rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.pn-tema[aria-pressed="true"] {
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.pn-galleri {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 560px) {
+  .pn-galleri {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.pn-bilde {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 6px 7px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: #fff;
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 800 0.8rem/1.15 var(--font-display);
+  cursor: pointer;
+}
+
+.pn-bilde:active {
+  transform: translateY(2px);
+}
+
+.pn-bilde.aktiv {
+  box-shadow: 0 0 0 3px var(--aksent), 0 4px 0 var(--papir-2);
+}
+
+.pn-mini {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.pn-bilde-navn {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  text-wrap: balance;
+}
+
+.pn-bilde-merke {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--aksent);
+  color: var(--blekk);
+  font: 900 0.8rem/1 var(--font-display);
+  font-style: normal;
+}
+
+/* ---------- Home and the finished picture ---------- */
+
+.pn-sist {
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.pn-resultat {
+  display: grid;
+  place-items: center;
+}
+
+.pn-resultat img,
+.pn-lager {
+  width: min(100%, 340px);
+  aspect-ratio: 1;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 0 0 3px var(--papir-2), 0 14px 30px var(--skygge);
+}
+
+.pn-lager {
+  display: grid;
+  place-items: center;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+}
+
+/* ---------- Landscape phones: the sheet on the left, tools and colours on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="penselen"] .app:has(.pn-spill) {
+    max-width: 1000px;
+  }
+
+  .pn-spill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 330px);
+    column-gap: 16px;
+    padding-bottom: 8px;
+  }
+
+  .pn-spill .dokk {
+    position: static;
+    align-self: center;
+    margin: 0;
+    padding: 0 0 max(8px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .pn-verktoy {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pn-knapp {
+    grid-auto-flow: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    height: 46px;
+    font-size: 0.78rem;
+  }
+
+  .pn-fargeknapp {
+    max-width: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pn-fargeknapp {
+    transition: none;
+  }
+}
