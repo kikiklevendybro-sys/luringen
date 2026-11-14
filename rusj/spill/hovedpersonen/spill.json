@@ -1,0 +1,33 @@
+{
+  "id": "hovedpersonen",
+  "navn": "Hovedpersonen",
+  "undertittel": "Den varme stolen",
+  "beskrivelse": "Gratis «den varme stolen»-spill på norsk. Én sitter i stolen og svarer på spørsmål fra gjengen. Over 300 spørsmål for familie, venner og lange kvelder.",
+  "kort": "Én i stolen svarer – alle andre spør.",
+  "spillere": [2, 20],
+  "alder": 8,
+  "minutter": [10, 40],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "sporsmal"],
+  "rekkefolge": 94,
+  "alias": ["den-varme-stolen", "varm-stol"],
+  "sok": ["den varme stolen", "varm stol", "hot seat", "spørsmål til en", "bli kjent", "samtalespill", "spørsmålskort", "intervjuleken"],
+  "i18n": {
+    "en": {
+      "navn": "Nosy Parker",
+      "undertittel": "Hot seat",
+      "kort": "One in the hot seat answers – everyone else asks.",
+      "beskrivelse": "Free ‘hot seat’ game for your phone. One player sits in the hot seat and answers the group’s questions. Over 300 questions for family, friends and long evenings.",
+      "slug": "nosy-parker",
+      "sok": ["hot seat", "hot seat questions", "hot seat game", "getting to know you", "question cards", "conversation starters", "ice breaker"]
+    },
+    "da": {
+      "navn": "Hovedpersonen",
+      "undertittel": "Den varme stol",
+      "kort": "Én i den varme stol svarer – alle andre spørger.",
+      "beskrivelse": "Gratis »den varme stol«-spil på dansk. Én sidder i stolen og svarer på spørgsmål fra flokken. Over 300 spørgsmål til familie, venner og lange aftener.",
+      "slug": "hovedpersonen",
+      "sok": ["den varme stol", "hot seat", "spørgsmål til hinanden", "lær hinanden at kende", "samtalespil", "spørgsmålskort", "isbryder"]
+    }
+  }
+}

@@ -1,0 +1,220 @@
+/* Hovedpersonen: the chair screen, the question card with the star toggle under it. */
+
+.hp-sist {
+  margin: 10px auto 0;
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.35 var(--font-tekst);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ---------- Who takes the chair ---------- */
+.hp-stol {
+  display: grid;
+  flex: 1 1 auto;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px 0 6px;
+  text-align: center;
+}
+
+.hp-stol > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hp-stol h1 {
+  overflow-wrap: anywhere;
+  font-size: clamp(2rem, 9vw, 2.8rem);
+  line-height: 1.05;
+}
+
+.hp-stol-figur {
+  position: relative;
+  display: inline-grid;
+  margin-bottom: 8px;
+  animation: hp-inn 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.hp-stol-ikon {
+  position: absolute;
+  right: -14px;
+  bottom: -8px;
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--papir);
+  box-shadow: 0 0 0 3px var(--natt), 0 4px 0 rgba(0, 0, 0, 0.25);
+  font-size: 1.7rem;
+}
+
+.hp-leser {
+  color: var(--tekst-2);
+  font: 700 1.08rem/1.3 var(--font-tekst);
+  text-wrap: balance;
+}
+
+.hp-forrige {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 6px auto 0;
+  max-width: 26em;
+  font-weight: 700;
+  text-align: center;
+  text-wrap: balance;
+}
+
+@keyframes hp-inn {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-10deg);
+  }
+}
+
+/* ---------- The question ---------- */
+.hp-hvem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  min-width: 0;
+  font: 800 1.1rem/1.2 var(--font-display);
+}
+
+.hp-hvem > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hp-kort .storkort-tekst {
+  text-wrap: balance;
+}
+
+/* The star toggle beside the main button: an outline star, gold when given. */
+.hp-knapper {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+}
+
+.hp-stjerne {
+  gap: 8px;
+  padding-inline: 10px;
+  border-color: var(--lampe);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.hp-stjerne-ikon {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.hp-stjerne[aria-pressed="true"] {
+  background: var(--lampe);
+  color: var(--blekk);
+}
+
+.hp-stjerne[aria-pressed="true"] .hp-stjerne-ikon {
+  animation: hp-glimt 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+@keyframes hp-glimt {
+  from {
+    transform: scale(0.3) rotate(-40deg);
+  }
+}
+
+/* The card grows into the free space above the dock, and shrinks on the smallest phones. */
+html[data-spill="hovedpersonen"] .skjerm > .bunke:not(.kompakt) {
+  flex: 1 1 auto;
+  max-height: 600px;
+}
+
+.hp-del {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0 4px;
+}
+
+@media (max-height: 700px) {
+  .hp-stol {
+    gap: 2px;
+    padding-top: 4px;
+  }
+
+  .hp-stol .avatar.gigant {
+    width: 96px;
+    height: 96px;
+    font-size: 3rem;
+  }
+
+  .hp-stol-ikon {
+    width: 42px;
+    height: 42px;
+    font-size: 1.35rem;
+  }
+
+  .hp-hvem {
+    margin-bottom: 6px;
+  }
+
+  .hp-hvem .avatar.mid {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+}
+
+@media (orientation: portrait) and (max-height: 600px) {
+  html[data-spill="hovedpersonen"] .skjerm > .bunke:not(.kompakt) {
+    min-height: 220px;
+  }
+
+  .hp-stjerne-ikon {
+    font-size: 1.2rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .hp-stol .avatar.gigant {
+    width: 76px;
+    height: 76px;
+    font-size: 2.4rem;
+  }
+
+  .hp-stol h1 {
+    font-size: 1.9rem;
+  }
+
+  .hp-stol-ikon {
+    right: -10px;
+    bottom: -6px;
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
+
+  .hp-hvem {
+    margin-bottom: 4px;
+    font-size: 1rem;
+  }
+
+  .hp-hvem .avatar.mid {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-stol-figur,
+  .hp-stjerne[aria-pressed="true"] .hp-stjerne-ikon {
+    animation: none;
+  }
+}
