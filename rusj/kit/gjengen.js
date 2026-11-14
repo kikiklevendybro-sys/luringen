@@ -1890,6 +1890,44 @@
         <path d="M56 72 H64 L60 77Z" fill="${B}"/>
         ${tekst(110, 24, "?", 26, P)}`,
     },
+
+
+    // Skattejegeren: an amber treasure hunter in a red explorer's bandana with white dots and a
+    // knot at the side, a big grin – and a rolled-out treasure map with a dotted path to a red X.
+    skattejegeren: {
+      farge: "#ffb547",
+      tegn: (f) => `
+        ${hode(f)}
+        ${form("M13 54 Q12 16 60 13 Q108 16 107 54 Q86 40 60 40 Q34 40 13 54Z", ROD, 5)}
+        <circle cx="34" cy="31" r="3.4" fill="${P}"/><circle cx="58" cy="24" r="3.4" fill="${P}"/><circle cx="82" cy="27" r="3.4" fill="${P}"/><circle cx="46" cy="40" r="2.6" fill="${P}" opacity=".9"/><circle cx="72" cy="38" r="2.6" fill="${P}" opacity=".9"/>
+        ${form("M104 36 L121 24 L119 44Z", ROD, 4)}${form("M104 40 L119 56 L101 54Z", ROD, 4)}
+        <circle cx="105" cy="40" r="5.5" fill="${ROD}" stroke="${B}" stroke-width="4"/>
+        ${kinn(80)}
+        ${oyne({ y: 62, r: 11.5, pr: 5.4, dx: 1.5, dy: 1 })}
+        ${strek("M38 84 Q52 100 68 90", 5)}
+        ${form("M70 92 L116 86 L120 112 L74 117Z", "#f6e3b4", 4)}
+        ${form("M68 90 Q63 98 70 100 L76 117 Q67 119 67 111Z", "#e8cf98", 3.4)}
+        ${strek("M82 110 Q88 98 96 105 Q101 110 105 100", 2.6, "#b07a2a")}
+        ${strek("M104 93 L112 101M112 93 L104 101", 4, ROD)}`,
+    },
+
+
+    // Penselen: a sky-blue painter in a red beret with a stalk, dots of paint on one cheek, a happy
+    // grin – and a paintbrush with a yellow tip held up beside the face.
+    penselen: {
+      farge: "#6fc8ff",
+      tegn: (f) => `
+        ${hode(f)}
+        ${form("M18 40 Q22 10 66 12 Q108 16 100 36 Q86 44 56 42 Q30 42 18 40Z", ROD, 5)}
+        ${pinne("M62 12 Q64 4 70 2", ROD, 3)}
+        ${kinn(80)}
+        ${oyne({ y: 62, r: 11.5, pr: 5.4, dx: 2, dy: -1 })}
+        ${strek("M44 88 Q60 102 76 88", 5)}
+        <circle cx="30" cy="94" r="4.5" fill="${LAMPE}" stroke="${B}" stroke-width="2.5"/><circle cx="40" cy="102" r="3.2" fill="#ff7eb6" stroke="${B}" stroke-width="2.2"/><circle cx="26" cy="106" r="2.6" fill="#8bd346" stroke="${B}" stroke-width="2"/>
+        ${pinne("M96 118 L110 70", "#c98b5a", 5)}
+        ${form("M106 70 L114 72 L116 64 L108 62Z", METALL, 3.4)}
+        ${form("M108 62 Q106 48 116 40 Q122 52 116 64Z", LAMPE, 3.6)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

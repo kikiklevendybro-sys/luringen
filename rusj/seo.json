@@ -1141,6 +1141,28 @@
         "lurespørsmål",
         "hjernetrim"
       ]
+    },
+    "skattejegeren": {
+      "tittel": "Skattejakt for barn – gåter og ledetråder, gratis",
+      "frase": "Skattejakt for barn",
+      "beskrivelse": "Lag en skattejakt til barnebursdagen på to minutter: gåter og ledetråder for 4–12 år, inne eller ute, i seks temaer. Skriv ut kortene eller bruk mobilen.",
+      "sok": [
+        "skattejakt gåter",
+        "ledetråder til skattejakt",
+        "skattejakt inne for barn",
+        "aktivitet til barnebursdag"
+      ]
+    },
+    "penselen": {
+      "tittel": "Fargelegging for barn – 44 tegninger, gratis på nett",
+      "frase": "Fargelegging for barn",
+      "beskrivelse": "Fargelegg på mobilen: 44 egne tegninger av dyr, biler, troll, stavkirke, verdensrommet og havet. Trykk for å fylle, mal fritt og lagre bildet. Gratis.",
+      "sok": [
+        "fargeleggingsark gratis",
+        "fargelegging dyr",
+        "fargelegging på mobil",
+        "malebok for barn"
+      ]
     }
   }
 }
