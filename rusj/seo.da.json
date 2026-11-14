@@ -884,6 +884,18 @@
         "byt rundt på bogstaverne",
         "find ordet i bogstaverne"
       ]
+    },
+    "fiskeren": {
+      "tittel": "Kasino kortspil – gratis mod mobilen",
+      "frase": "Kasino",
+      "beskrivelse": "Spil kasino gratis på dansk: fisk kort fra bordet, byg og tag tabber. Saml esser, store og lille kasino, spar og flest kort mod én til tre mobiler.",
+      "sok": [
+        "kasino kortspil",
+        "kasino regler",
+        "store og lille kasino",
+        "kasino mod computeren"
+      ],
+      "motMobilen": true
     }
   }
 }

@@ -867,6 +867,18 @@
         "unscramble the letters",
         "make words from letters"
       ]
+    },
+    "fiskeren": {
+      "tittel": "Casino card game – free against the phone",
+      "frase": "Casino",
+      "beskrivelse": "Play the Casino card game free in your browser: fish cards from the table, build and sweep. Aces, big and little casino, spades and most cards score.",
+      "sok": [
+        "casino card game rules",
+        "cassino card game",
+        "fishing card game",
+        "casino against the computer"
+      ],
+      "motMobilen": true
     }
   }
 }

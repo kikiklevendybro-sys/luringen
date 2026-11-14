@@ -1,0 +1,764 @@
+/* Fiskeren. Game styles are prefixed "ka-"; the shared playing cards "sk-". */
+
+/* ---------- Playing cards (the same look in Kortkongen, Bussen and Pyramiden) ----------
+   .sk-kort takes its width from --kortbredde (or --kb on the card itself); the face is an SVG that
+   scales with it. The back uses the game's accent colour. Flip: add .sk-opp. */
+.sk-kort {
+  --kb: var(--kortbredde, 64px);
+  --sk-r: calc(var(--kb) * 0.1);
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--kb);
+  height: calc(var(--kb) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sk-r);
+  background: none;
+  color: inherit;
+  font: inherit;
+  perspective: calc(var(--kb) * 9);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sk-indre {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.3, 1.25, 0.45, 1);
+}
+
+.sk-kort.sk-opp .sk-indre {
+  transform: rotateY(180deg);
+}
+
+.sk-side {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--sk-r);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sk-for {
+  background: linear-gradient(170deg, #fffdf8 0%, #fff8ec 55%, #f9eedd 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(27, 18, 48, 0.16),
+    inset 0 calc(var(--kb) * -0.035) 0 rgba(27, 18, 48, 0.06),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+  transform: rotateY(180deg);
+}
+
+.sk-ansikt {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sk-ansikt text {
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* The back: a woven pattern in the game's colour, a paper rim and the rusj blob in the middle. */
+.sk-bak {
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.32), transparent 46%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.14) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.11)),
+    linear-gradient(160deg, color-mix(in srgb, var(--aksent) 82%, #fff) 0%, var(--aksent) 42%, color-mix(in srgb, var(--aksent) 62%, var(--natt)) 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.045) #fff8ec,
+    inset 0 0 0 calc(var(--kb) * 0.065) rgba(27, 18, 48, 0.18),
+    0 1px 2px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.05) calc(var(--kb) * 0.12) rgba(6, 2, 14, 0.28);
+}
+
+.sk-bak::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44%;
+  aspect-ratio: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-14 -14 28 28'%3E%3Cpath d='M0 -11 C7 -12 12 -6 11 1 C10 8 5 12 -1 11 C-8 10 -12 5 -11 -2 C-10 -8 -6 -10 0 -11Z' fill='%23fff8ec' stroke='%231b1230' stroke-opacity='.25' stroke-width='1.6'/%3E%3Cpath d='M-4.5 -3.5 C-3 -6.5 1 -7.5 3.5 -6' fill='none' stroke='%231b1230' stroke-opacity='.2' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: translate(-50%, -50%) rotate(-10deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-indre {
+    transition-duration: 0.01ms !important;
+  }
+}
+/* ---------- end of playing cards ---------- */
+
+
+/* ---------- The table ---------- */
+
+.skjerm-spill {
+  --kb-bord: 58px;
+  --kb-hand: 72px;
+  gap: 8px;
+}
+
+.skjerm-spill > .dokk {
+  margin-top: 0;
+  gap: 4px;
+  padding-top: 14px;
+}
+
+.ka-seter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ka-sete {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 4px;
+  border-radius: 16px;
+  background: rgba(14, 8, 30, 0.45);
+  transition: box-shadow 0.2s;
+}
+
+.ka-sete.aktiv {
+  box-shadow: 0 0 0 3px var(--aksent);
+}
+
+.ka-ava {
+  position: relative;
+  flex: none;
+}
+
+.ka-info {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.2;
+}
+
+.ka-navn {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ka-tall {
+  overflow: hidden;
+  color: var(--tekst-2);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ka-bak {
+  display: flex;
+  flex: none;
+  --kortbredde: 16px;
+}
+
+.ka-bak .sk-kort {
+  margin-left: -9px;
+}
+
+.ka-bak .sk-kort:first-child {
+  margin-left: 0;
+}
+
+.ka-tenker {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  display: flex;
+  gap: 2px;
+  padding: 3px 4px;
+  border-radius: 999px;
+  background: var(--papir);
+}
+
+.ka-tenker i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--blekk);
+  animation: ka-prikk 1s infinite ease-in-out;
+}
+
+.ka-tenker i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.ka-tenker i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes ka-prikk {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+.ka-midt {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  gap: 8px;
+  align-items: flex-start;
+  min-height: calc(var(--kb-bord) * 1.4 * 2 + 30px);
+  padding: 10px 8px;
+  border-radius: 24px;
+  background: radial-gradient(ellipse at 50% 55%, color-mix(in srgb, #0f6e7a 45%, var(--natt)) 0%, color-mix(in srgb, #0f6e7a 18%, var(--natt)) 80%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.06);
+}
+
+.ka-bunke {
+  position: relative;
+  display: grid;
+  flex: none;
+  justify-items: center;
+  gap: 2px;
+  color: var(--tekst-2);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  --kortbredde: calc(var(--kb-bord) * 0.62);
+}
+
+.ka-bord {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: center;
+  gap: 8px 6px;
+  min-width: 0;
+  --kortbredde: var(--kb-bord);
+}
+
+.ka-tom {
+  align-self: center;
+  margin: auto;
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+}
+
+.ka-ting {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.ka-ting .sk-kort {
+  box-shadow: 0 3px 8px rgba(6, 2, 14, 0.4);
+  border-radius: var(--sk-r);
+  transition: box-shadow 0.15s;
+}
+
+.ka-ting.kan .sk-kort {
+  box-shadow: 0 0 0 3px var(--mynte), 0 3px 8px rgba(6, 2, 14, 0.4);
+}
+
+.ka-ting.valgt {
+  transform: translateY(-6px);
+}
+
+.ka-ting.valgt .sk-kort {
+  box-shadow: 0 0 0 3px var(--lampe), 0 6px 12px rgba(6, 2, 14, 0.5);
+}
+
+.ka-ting.mal .sk-kort {
+  box-shadow: 0 0 0 3px var(--rosa), 0 3px 8px rgba(6, 2, 14, 0.4);
+}
+
+.ka-ting:focus-visible {
+  outline: 3px solid var(--lampe);
+  outline-offset: 3px;
+}
+
+/* A build: its cards fanned out, the sum and the owner under it. */
+.ka-stabel {
+  position: relative;
+  display: block;
+  width: calc(var(--kb-bord) + (var(--n) - 1) * var(--kb-bord) * 0.24);
+  height: calc(var(--kb-bord) * 1.4);
+}
+
+.ka-stabel > span {
+  position: absolute;
+  top: 0;
+  left: calc(var(--j) * var(--kb-bord) * 0.24);
+}
+
+.ka-merke {
+  display: grid;
+  max-width: calc(var(--kb-bord) * 2.2);
+  padding: 1px 8px 2px;
+  border-radius: 8px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.ka-merke small {
+  overflow: hidden;
+  color: var(--blekk-2);
+  font-family: var(--font-tekst, inherit);
+  font-size: 0.62rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ka-bygg.min .ka-merke {
+  background: var(--lampe);
+}
+
+/* The card a phone is about to play. */
+.ka-vist {
+  position: absolute;
+  right: 4px;
+  bottom: -6px;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 4px 6px 6px;
+  border-radius: 12px;
+  background: rgba(14, 8, 30, 0.85);
+  color: var(--tekst);
+  font-size: 0.72rem;
+  animation: ka-inn 0.3s cubic-bezier(0.2, 1.1, 0.4, 1) both;
+}
+
+@keyframes ka-inn {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.85);
+  }
+}
+
+.ka-melding {
+  display: grid;
+  gap: 2px;
+  min-height: 2.6em;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.ka-melding b {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+}
+
+.ka-melding.din b {
+  color: var(--lampe);
+}
+
+.ka-sist {
+  color: var(--tekst-2);
+  font-size: 0.85rem;
+}
+
+/* Two or three phones: the seats stand as small columns, without the backs of their cards. */
+.ka-seter[data-n="2"] .ka-bak,
+.ka-seter[data-n="3"] .ka-bak {
+  display: none;
+}
+
+.ka-seter[data-n="3"] .ka-sete {
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 4px 6px;
+  text-align: center;
+}
+
+.ka-seter[data-n="3"] .ka-info {
+  width: 100%;
+  justify-items: center;
+}
+
+/* ---------- The hand ---------- */
+
+.ka-handramme {
+  display: grid;
+  gap: 4px;
+}
+
+.ka-handtopp {
+  color: var(--tekst-2);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.ka-hand {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 10px;
+  --kortbredde: var(--kb-hand);
+}
+
+.ka-hk {
+  position: relative;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.ka-hk .sk-kort {
+  transition: transform 0.16s ease-out, filter 0.16s, box-shadow 0.16s;
+}
+
+.ka-hand:not(.min-tur) .ka-hk .sk-kort {
+  filter: brightness(0.75) saturate(0.8);
+}
+
+.ka-hk.valgt .sk-kort {
+  transform: translateY(-10px);
+  box-shadow: 0 0 0 3px var(--lampe);
+  border-radius: var(--sk-r);
+}
+
+.ka-hv {
+  position: absolute;
+  right: -5px;
+  top: -6px;
+  z-index: 2;
+  display: grid;
+  min-width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--lampe);
+  color: var(--blekk);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-style: normal;
+  box-shadow: 0 1px 3px rgba(6, 2, 14, 0.5);
+  transition: transform 0.16s ease-out;
+}
+
+.ka-hk.valgt .ka-hv {
+  transform: translateY(-10px);
+}
+
+.ka-hk:focus-visible {
+  outline: none;
+}
+
+.ka-hk:focus-visible .sk-kort {
+  outline: 3px solid var(--lampe);
+  outline-offset: 2px;
+  border-radius: var(--sk-r);
+}
+
+.ka-knapper {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.ka-knapper .knapp,
+.ka-knapper .knapp-2 {
+  min-height: 52px;
+  margin: 0;
+  padding-inline: 6px;
+}
+
+/* ---------- The round's points ---------- */
+
+.ka-rundetittel {
+  margin: 4px 0 0;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.ka-mal {
+  margin: 0;
+  color: var(--tekst-2);
+  text-align: center;
+}
+
+.ka-tabell-ramme {
+  overflow-x: auto;
+}
+
+.ka-tabell {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ka-tabell th,
+.ka-tabell td {
+  padding: 6px 4px;
+  text-align: center;
+}
+
+.ka-tabell thead th {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  vertical-align: bottom;
+}
+
+.ka-tabell thead th .avatar {
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 0 auto 2px;
+  font-size: 1rem;
+}
+
+.ka-tabell tbody tr,
+.ka-tabell tfoot tr {
+  background: var(--natt-2);
+}
+
+.ka-tabell tbody th,
+.ka-tabell tfoot th {
+  display: grid;
+  padding-left: 10px;
+  border-radius: 12px 0 0 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.ka-tabell th small,
+.ka-tabell td small {
+  display: block;
+  color: var(--tekst-2);
+  font-size: 0.68rem;
+  font-weight: 400;
+}
+
+.ka-tabell td:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+.ka-tabell tfoot tr {
+  background: color-mix(in srgb, var(--aksent) 22%, var(--natt-2));
+}
+
+.ka-tot {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+
+.ka-null {
+  color: var(--tekst-2);
+}
+
+.ka-forklar {
+  display: grid;
+  gap: 8px;
+  padding-left: 1.3em;
+}
+
+/* ---------- Home and the crowning ---------- */
+
+.ka-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.ka-rekorder ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ka-rekorder li,
+.ka-rekordlinje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ka-rekorder li b,
+.ka-rekordlinje b {
+  color: var(--tekst);
+}
+
+.ka-rekordlinje {
+  width: fit-content;
+  margin: 12px auto 0;
+}
+
+.ka-niva {
+  min-width: 5.5em;
+  font-family: var(--font-display);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ka-tenker i,
+  .ka-vist {
+    animation: none;
+  }
+}
+
+/* ---------- Smaller screens ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-spill {
+    --kb-bord: 42px;
+    --kb-hand: 56px;
+    gap: 4px;
+  }
+  .skjerm-spill > .dokk {
+    padding-top: 10px;
+  }
+  .ka-midt {
+    min-height: calc(var(--kb-bord) * 1.4 * 2 + 24px);
+    padding: 8px 6px;
+  }
+  .ka-sete .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+  .ka-bak {
+    display: none;
+  }
+  .ka-melding {
+    min-height: 2.2em;
+  }
+  .ka-melding b {
+    font-size: 0.9rem;
+  }
+  .ka-sist {
+    font-size: 0.78rem;
+  }
+  .ka-knapper .knapp,
+  .ka-knapper .knapp-2 {
+    min-height: 46px;
+  }
+}
+
+@media (max-width: 360px) {
+  .ka-navn {
+    font-size: 0.8rem;
+  }
+  .ka-tall {
+    font-size: 0.68rem;
+  }
+  .skjerm-spill {
+    --kb-bord: 40px;
+  }
+}
+
+/* ---------- A phone on its side: the table on the left, the hand and buttons on the right ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  @supports selector(:has(a)) {
+    html[data-spill="fiskeren"] .app:has(.skjerm-spill) {
+      max-width: 860px;
+    }
+
+    .skjerm-spill {
+      --kb-bord: 46px;
+      --kb-hand: 52px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      grid-template-rows: auto 1fr auto auto;
+      gap: 6px 16px;
+      align-items: start;
+    }
+
+    .skjerm-spill .ka-seter {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .skjerm-spill .ka-midt {
+      grid-column: 1;
+      grid-row: 2 / span 3;
+      align-self: stretch;
+      min-height: 0;
+    }
+
+    .skjerm-spill .ka-melding {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .skjerm-spill .ka-handramme {
+      grid-column: 2;
+      grid-row: 2;
+      align-self: center;
+    }
+
+    .skjerm-spill > .dokk {
+      position: static;
+      grid-column: 2;
+      grid-row: 3 / span 2;
+      align-self: end;
+      margin: 0;
+      padding: 0 0 8px;
+      background: none;
+    }
+
+    .ka-sete .avatar {
+      width: 24px;
+      height: 24px;
+      font-size: 0.85rem;
+    }
+
+    .ka-bak {
+      display: none;
+    }
+  }
+}
