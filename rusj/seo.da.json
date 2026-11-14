@@ -969,6 +969,52 @@
         "paranoia spørgsmål",
         "hvem her spørgsmål"
       ]
+    },
+    "edderkoppen": {
+      "tittel": "Find ord i 16 bogstaver – ordjagt på tid, gratis",
+      "frase": "Find ord i nettet",
+      "beskrivelse": "Gratis ordspil på dansk: find så mange ord, du kan, i et net på 4 × 4 bogstaver på tre minutter. Dagens net, frit spil og runder for hele banden.",
+      "sok": [
+        "find ord i bogstaver",
+        "ordspil på tid",
+        "4x4 ordspil",
+        "ordjagt i bogstavnet"
+      ]
+    },
+    "sjongloren": {
+      "tittel": "Anagrammer – lav ord af bogstaverne, gratis",
+      "frase": "Anagrammer",
+      "beskrivelse": "Gratis anagramspil på dansk: lav så mange ord, du kan, af seks eller syv bogstaver, og find helordet, der bruger dem alle. Fem runder, på tid eller uden ur.",
+      "sok": [
+        "anagram spil",
+        "lav ord af bogstaver",
+        "byt rundt på bogstaverne",
+        "find ordet i bogstaverne"
+      ]
+    },
+    "fiskeren": {
+      "tittel": "Kasino kortspil – gratis mod mobilen",
+      "frase": "Kasino",
+      "beskrivelse": "Spil kasino gratis på dansk: fisk kort fra bordet, byg og tag tabber. Saml esser, store og lille kasino, spar og flest kort mod én til tre mobiler.",
+      "sok": [
+        "kasino kortspil",
+        "kasino regler",
+        "store og lille kasino",
+        "kasino mod computeren"
+      ],
+      "motMobilen": true
+    },
+    "makkeren": {
+      "tittel": "Amerikaner kortspil – gratis mod mobilen",
+      "frase": "Amerikaner",
+      "beskrivelse": "Spil Amerikaner gratis på dansk: meld stik, vælg trumf, og spørg efter et kort for at finde din makker. To mod to hver runde, mod tre mobiler på tre niveauer.",
+      "sok": [
+        "amerikaner kortspil",
+        "amerikaner regler",
+        "kortspil med melding",
+        "meldespil mod computeren"
+      ],
+      "motMobilen": true
     }
   }
 }

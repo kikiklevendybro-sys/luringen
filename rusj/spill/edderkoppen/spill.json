@@ -1,0 +1,36 @@
+{
+  "id": "edderkoppen",
+  "navn": "Edderkoppen",
+  "undertittel": "Ordjakt på 4 × 4",
+  "beskrivelse": "Gratis ordspill på norsk: finn så mange ord du kan i 16 bokstaver på tre minutter – bokstavene må henge sammen. Dagens rutenett, fritt spill og gjengrunder.",
+  "kort": "Tre minutter, seksten bokstaver – spinn ord fra nabo til nabo.",
+  "spillere": [1, 8],
+  "minutter": [3, 20],
+  "alder": 9,
+  "mobiler": "en",
+  "tagger": ["daglig", "ord", "alene", "familie"],
+  "rekkefolge": 98,
+  "farge": "#9be36b",
+  "dagnavn": "Dagens rutenett",
+  "sok": ["finn ord", "ordjakt", "ord i rutenett", "bokstavrutenett", "4x4 ordspill", "ordspill på tid", "finn ordene", "bokstavterninger", "dagens ordspill", "ordleting"],
+  "alias": ["ordjakt"],
+  "om": "Ordlista bygger på Norsk ordbank – bokmål 2005 (Språkbanken, Nasjonalbiblioteket, CC BY 4.0), valgt ut etter N-gram – bokmål (Språkbanken, CC0). Engelsk: ENABLE (public domain) og 12dicts av Alan Beale (public domain). Dansk: Det Centrale Ordregister COR₁ (Dansk Sprognævn, CC0) og NST uttaleleksikon for dansk (Språkbanken, CC0).",
+  "i18n": {
+    "en": {
+      "navn": "Incy",
+      "undertittel": "Word grid hunt",
+      "kort": "Three minutes, sixteen letters – spin words from neighbour to neighbour.",
+      "beskrivelse": "Free word game: find as many words as you can in a 4 × 4 grid of letters in three minutes – the letters must touch. A daily grid, free play and family rounds.",
+      "slug": "incy",
+      "sok": ["word grid game", "find words in letters", "4x4 word game", "word search against the clock", "letter grid", "word dice game", "daily word game", "three minute word game", "word hunt", "word puzzle"]
+    },
+    "da": {
+      "navn": "Edderkoppen",
+      "undertittel": "Ordjagt på 4 × 4",
+      "kort": "Tre minutter, seksten bogstaver – spind ord fra nabo til nabo.",
+      "beskrivelse": "Gratis ordspil på dansk: find så mange ord, du kan, i 16 bogstaver på tre minutter – bogstaverne skal hænge sammen. Dagens net, frit spil og runder for banden.",
+      "slug": "edderkoppen",
+      "sok": ["find ord", "ordjagt", "ord i bogstavnet", "bogstavnet", "4x4 ordspil", "ordspil på tid", "find ordene", "dagens ordspil", "ordleg"]
+    }
+  }
+}

@@ -2094,6 +2094,10 @@
     spakona: ["#d67cff", "S"],
     telleren: ["#ffa552", "21"],
     mistanken: ["#6c9cff", "M"],
+    edderkoppen: ["#9be36b", "E"],
+    sjongloren: ["#ff9f5a", "S"],
+    fiskeren: ["#4fc3d9", "F"],
+    makkeren: ["#7fa8ff", "M"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

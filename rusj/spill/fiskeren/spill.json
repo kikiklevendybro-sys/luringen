@@ -1,0 +1,35 @@
+{
+  "id": "fiskeren",
+  "navn": "Fiskeren",
+  "undertittel": "Kortspillet kasino",
+  "beskrivelse": "Gratis kasino på norsk: fisk kort fra bordet, bygg og ta tabber. Samle ess, store og lille kasino, spar og flest kort. Du mot én til tre mobiler.",
+  "kort": "Fisk kort fra bordet – ess, kasinoer og tabber gir poeng.",
+  "spillere": [1, 1],
+  "minutter": [10, 30],
+  "alder": 8,
+  "mobiler": "en",
+  "tagger": ["kort", "klassiker", "familie"],
+  "rekkefolge": 101,
+  "farge": "#4fc3d9",
+  "sok": ["kasino", "kasino kortspill", "kortspillet kasino", "store kasino", "lille kasino", "tabbe", "kortspill", "kortspill mot mobilen", "kasino regler", "fiskespill"],
+  "motMobilen": true,
+  "alias": ["kasino"],
+  "i18n": {
+    "en": {
+      "navn": "Angler",
+      "undertittel": "Casino card game",
+      "kort": "Fish cards from the table – aces, the casinos and sweeps score.",
+      "beskrivelse": "Free Casino card game: fish cards from the table, build and sweep. Collect aces, big and little casino, spades and most cards. Against 1–3 phones.",
+      "slug": "angler",
+      "sok": ["casino card game", "cassino", "fishing card game", "big casino", "little casino", "sweep", "card game", "card game against computer", "casino rules"]
+    },
+    "da": {
+      "navn": "Fiskeren",
+      "undertittel": "Kasino",
+      "kort": "Fisk kort fra bordet – esser, kasinoer og tabber giver point.",
+      "beskrivelse": "Gratis kasino på dansk: fisk kort fra bordet, byg og tag tabber. Saml esser, store og lille kasino, spar og flest kort. Dig mod én til tre mobiler.",
+      "slug": "fiskeren",
+      "sok": ["kasino", "kasino kortspil", "kortspillet kasino", "store kasino", "lille kasino", "tabbe", "kortspil", "kortspil mod computeren", "kasino regler"]
+    }
+  }
+}

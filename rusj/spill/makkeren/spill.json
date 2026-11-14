@@ -1,0 +1,35 @@
+{
+  "id": "makkeren",
+  "navn": "Makkeren",
+  "undertittel": "Amerikaner",
+  "beskrivelse": "Gratis Amerikaner på norsk: meld stikk, velg trumf og spør etter et kort for å finne makkeren din. To mot to hver runde – du mot tre mobiler på tre nivåer.",
+  "kort": "Meld stikk, spør etter et kort – og finn makkeren din.",
+  "spillere": [1, 1],
+  "minutter": [15, 40],
+  "alder": 10,
+  "mobiler": "en",
+  "tagger": ["kort", "klassiker", "tenke"],
+  "rekkefolge": 100,
+  "farge": "#7fa8ff",
+  "sok": ["amerikaner", "amerikaner kortspill", "amerikaner regler", "kortspill med melding", "stikkspill", "makker", "kortspill", "kortspill mot mobilen", "spør etter ess", "melde stikk"],
+  "motMobilen": true,
+  "alias": ["amerikaner"],
+  "i18n": {
+    "en": {
+      "navn": "Sidekick",
+      "undertittel": "Amerikaner card game",
+      "kort": "Bid tricks, call a card – and find your partner.",
+      "beskrivelse": "Free Amerikaner, the Norwegian bidding card game: bid tricks, choose trumps and call a card to find your partner. Two against two, you against three phones.",
+      "slug": "sidekick",
+      "sok": ["amerikaner card game", "norwegian card game", "bidding card game", "trick-taking game", "call partner card game", "whist with bidding", "card game against computer", "partnership card game"]
+    },
+    "da": {
+      "navn": "Makkeren",
+      "undertittel": "Amerikaner",
+      "kort": "Meld stik, spørg efter et kort – og find din makker.",
+      "beskrivelse": "Gratis Amerikaner, det norske meldespil: meld stik, vælg trumf, og spørg efter et kort for at finde din makker. To mod to – dig mod tre mobiler.",
+      "slug": "makkeren",
+      "sok": ["amerikaner", "amerikaner kortspil", "kortspil med melding", "stikspil", "makker", "kortspil", "kortspil mod computeren", "whist med melding"]
+    }
+  }
+}

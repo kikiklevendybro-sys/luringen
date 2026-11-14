@@ -952,6 +952,52 @@
         "paranoia questions",
         "who here would questions"
       ]
+    },
+    "edderkoppen": {
+      "tittel": "Find words in 16 letters – word grid against the clock",
+      "frase": "Find words in the grid",
+      "beskrivelse": "Free word game in British English: find as many words as you can in a 4 × 4 grid of letters in three minutes. A daily grid, free play and rounds for the family.",
+      "sok": [
+        "find words in letters",
+        "word grid game",
+        "4x4 word game",
+        "three minute word game"
+      ]
+    },
+    "sjongloren": {
+      "tittel": "Anagrams – make words from the letters, free",
+      "frase": "Anagrams",
+      "beskrivelse": "Free anagram game in British English: make as many words as you can from six or seven letters and find the word that uses them all. Five rounds, timed or not.",
+      "sok": [
+        "anagram game online",
+        "word scramble",
+        "unscramble the letters",
+        "make words from letters"
+      ]
+    },
+    "fiskeren": {
+      "tittel": "Casino card game – free against the phone",
+      "frase": "Casino",
+      "beskrivelse": "Play the Casino card game free in your browser: fish cards from the table, build and sweep. Aces, big and little casino, spades and most cards score.",
+      "sok": [
+        "casino card game rules",
+        "cassino card game",
+        "fishing card game",
+        "casino against the computer"
+      ],
+      "motMobilen": true
+    },
+    "makkeren": {
+      "tittel": "Amerikaner card game – free against the phone",
+      "frase": "Amerikaner",
+      "beskrivelse": "Play Amerikaner, the Norwegian bidding card game, free: bid tricks, choose trumps and call a card to find your partner. Two against two, versus three phones.",
+      "sok": [
+        "amerikaner rules",
+        "norwegian card games",
+        "bidding card game online",
+        "call a partner card game"
+      ],
+      "motMobilen": true
     }
   }
 }
