@@ -711,6 +711,39 @@
         "swap and match puzzle",
         "match 3 without lives"
       ]
+    },
+    "planeten": {
+      "tittel": "Planet merge game – drop and merge, free",
+      "frase": "Drop and merge",
+      "beskrivelse": "Play a free drop-and-merge game: drop planets into the jar, and two alike become one bigger – from asteroid to the Sun. Real physics, no ads.",
+      "sok": [
+        "planet merge game",
+        "drop and merge free",
+        "merge game no ads",
+        "physics merge game"
+      ]
+    },
+    "maneten": {
+      "tittel": "One-tap game – hold to swim through the cave, free",
+      "frase": "One-tap game",
+      "beskrivelse": "Play a free one-tap game: hold to swim up, let go to sink, and steer a jellyfish past rocks and sea urchins. Collect pearls and beat your best. No ads.",
+      "sok": [
+        "one tap game free",
+        "hold to fly game",
+        "cave flying game",
+        "jellyfish game"
+      ]
+    },
+    "murbrekkeren": {
+      "tittel": "Brick breaker – twelve levels, free in your browser",
+      "frase": "Brick breaker",
+      "beskrivelse": "Play a free brick breaker: move the paddle, bounce the ball and smash the wall. Twelve levels with tough bricks, steel and capsules – no ads, no account.",
+      "sok": [
+        "brick breaker free",
+        "brick breaker online",
+        "paddle and ball game",
+        "smash the bricks"
+      ]
     }
   }
 }

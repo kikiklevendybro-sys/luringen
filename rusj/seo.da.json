@@ -728,6 +728,39 @@
         "byt og match spil",
         "match 3 uden liv"
       ]
+    },
+    "planeten": {
+      "tittel": "Planetspil – slip og slå planeter sammen, gratis",
+      "frase": "Slip og slå sammen",
+      "beskrivelse": "Spil et gratis slå sammen-spil på dansk: slip planeter i glasset, to ens bliver til én større – fra asteroide til Solen. Ægte fysik, uden reklamer.",
+      "sok": [
+        "merge spil gratis",
+        "planetspil",
+        "slå planeter sammen",
+        "fysikspil på mobilen"
+      ]
+    },
+    "maneten": {
+      "tittel": "Ét-tryks-spil – hold og svøm gennem hulen, gratis",
+      "frase": "Ét-tryks-spil",
+      "beskrivelse": "Spil et gratis ét-tryks-spil: hold for at svømme op, slip for at synke, og styr en gople forbi sten og søpindsvin. Saml perler og slå din rekord.",
+      "sok": [
+        "et tryk spil gratis",
+        "hold for at flyve spil",
+        "hulespil",
+        "gople spil"
+      ]
+    },
+    "murbrekkeren": {
+      "tittel": "Brick breaker – tolv baner, gratis i browseren",
+      "frase": "Brick breaker",
+      "beskrivelse": "Spil brick breaker gratis på dansk: styr battet, lad bolden springe, og smadr muren. Tolv baner med hårde klodser, stål og kapsler – uden reklamer.",
+      "sok": [
+        "brick breaker gratis",
+        "murbrækker spil",
+        "bat og bold spil",
+        "smadr klodserne"
+      ]
     }
   }
 }

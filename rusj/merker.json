@@ -74,6 +74,9 @@
 
     { "id": "arkade-bobla", "gruppe": "arkade", "navn": "Boblemester", "hvordan": "Klar brett 10 i Bobla.", "figur": "bobla", "emoji": "🫧", "regel": { "type": "merke" } },
     { "id": "arkade-ekornet", "gruppe": "arkade", "navn": "Fullt forråd", "hvordan": "Klar brett 10 i Ekornet.", "figur": "ekornet", "emoji": "🐿️", "regel": { "type": "merke" } },
+    { "id": "arkade-planeten", "gruppe": "arkade", "navn": "Her kommer sola", "hvordan": "Lag sola i Planeten.", "figur": "planeten", "emoji": "☀️", "regel": { "type": "merke" } },
+    { "id": "arkade-maneten", "gruppe": "arkade", "navn": "Dypdykker", "hvordan": "Svøm 300 meter i Maneten.", "figur": "maneten", "emoji": "🪼", "regel": { "type": "merke" } },
+    { "id": "arkade-murbrekkeren", "gruppe": "arkade", "navn": "Rivende god", "hvordan": "Klar fem brett i Murbrekkeren.", "figur": "murbrekkeren", "emoji": "🧱", "regel": { "type": "merke" } },
 
     { "id": "luke-1", "gruppe": "sesong", "navn": "Første luke", "hvordan": "Åpne luke 1 i Julekalenderen.", "figur": "julekalenderen", "tall": 1, "regel": { "type": "merke" } },
     { "id": "luke-12", "gruppe": "sesong", "navn": "Halvveis til jul", "hvordan": "Åpne luke 12 i Julekalenderen.", "figur": "julekalenderen", "tall": 12, "regel": { "type": "merke" } },
