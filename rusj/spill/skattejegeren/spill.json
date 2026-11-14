@@ -1,0 +1,34 @@
+{
+  "id": "skattejegeren",
+  "navn": "Skattejegeren",
+  "undertittel": "Skattejakt for barn",
+  "beskrivelse": "Gratis skattejakt til barnebursdagen: velg alder, tema og antall poster, så lager mobilen ledetrådene. Skriv dem ut, eller lås dem opp én og én på mobilen.",
+  "kort": "Ferdig skattejakt på to minutter – med gåter som passer alderen.",
+  "spillere": [1, 20],
+  "minutter": [10, 45],
+  "mobiler": "en",
+  "tagger": ["barn", "familie", "fest", "verktoy"],
+  "rekkefolge": 102,
+  "farge": "#ffb547",
+  "alder": 4,
+  "sok": ["skattejakt", "skattejakt for barn", "skattejakt bursdag", "barnebursdag", "ledetråder", "gåter for barn", "skattejakt inne", "skattejakt ute", "postløp", "bursdagsleker", "skattekart"],
+  "alias": ["skattejakt"],
+  "i18n": {
+    "en": {
+      "navn": "Treasure Hunter",
+      "undertittel": "Treasure hunt for kids",
+      "kort": "A ready-made treasure hunt in two minutes – with clues to suit their age.",
+      "beskrivelse": "Free treasure hunt for kids' parties: pick age, theme and number of clues, and the phone writes the riddles. Print them, or unlock them one by one on the phone.",
+      "slug": "treasure-hunter",
+      "sok": ["treasure hunt", "treasure hunt for kids", "treasure hunt clues", "scavenger hunt", "kids party games", "birthday party games", "riddles for kids", "indoor treasure hunt", "outdoor treasure hunt", "treasure hunt printable"]
+    },
+    "da": {
+      "navn": "Skattejægeren",
+      "undertittel": "Skattejagt for børn",
+      "kort": "En færdig skattejagt på to minutter – med gåder, der passer til alderen.",
+      "beskrivelse": "Gratis skattejagt til børnefødselsdagen: vælg alder, tema og antal poster, så skriver mobilen ledetrådene. Print dem, eller lås dem op én ad gangen på mobilen.",
+      "slug": "skattejaegeren",
+      "sok": ["skattejagt", "skattejagt for børn", "skattejagt fødselsdag", "børnefødselsdag", "ledetråde", "gåder for børn", "skattejagt indendørs", "skattejagt udendørs", "postløb", "fødselsdagslege", "skattekort"]
+    }
+  }
+}

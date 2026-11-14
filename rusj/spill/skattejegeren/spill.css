@@ -1,0 +1,740 @@
+/* Skattejegeren — a treasure hunt. Everything is prefixed "sk-". The clue cards are paper with a
+   dashed edge (they are cut out); on paper (@media print) only the cards of the print screen
+   are printed, two by three on an A4 sheet. */
+
+/* ---------- Setup ---------- */
+
+.sk-temaer .flis-ikon {
+  font-size: 1.9rem;
+}
+
+/* The three ways: one per row, the picture beside the words (and the themes too on the
+   narrowest phones, where «Verdensrommet» would not fit half the width). */
+.sk-maater .flis {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 2px;
+  padding-block: 12px;
+}
+
+.sk-maater .flis-ikon {
+  grid-row: span 2;
+  justify-self: center;
+  font-size: 1.8rem;
+}
+
+@media (max-width: 359px) {
+  .sk-temaer .fliser {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sk-temaer .flis {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+    padding-block: 10px;
+  }
+
+  .sk-temaer .flis-ikon {
+    grid-row: span 2;
+    justify-self: center;
+  }
+}
+
+/* ---------- Home ---------- */
+
+.sk-sist {
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ---------- The posts ---------- */
+
+.sk-sammendrag {
+  color: var(--tekst-2);
+  font: 800 0.95rem/1.35 var(--font-display);
+  text-wrap: balance;
+}
+
+.sk-hel {
+  white-space: nowrap;
+}
+
+.sk-rom {
+  margin: 6px 0 -4px;
+  color: var(--tekst-3);
+  font: 800 0.78rem/1.2 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sk-ingress {
+  font-size: 0.98rem;
+}
+
+.sk-poster {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sk-post {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 12px 12px 12px 10px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.sk-post-start {
+  grid-template-columns: 40px minmax(0, 1fr);
+  background: color-mix(in srgb, var(--aksent) 12%, var(--natt-2));
+}
+
+.sk-post-skatt {
+  background: color-mix(in srgb, var(--aksent) 18%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--aksent) 55%, var(--strek));
+}
+
+.sk-post.egen {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--mynte) 55%, var(--strek));
+}
+
+.sk-nr {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+  font: 900 1.1rem/1 var(--font-display);
+}
+
+.sk-post-start .sk-nr,
+.sk-post-skatt .sk-nr {
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  font-size: 1.3rem;
+}
+
+.sk-post-tekst {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sk-post-etikett {
+  color: var(--tekst-3);
+  font: 800 0.72rem/1.2 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sk-sted {
+  color: var(--tekst);
+  font: 800 1rem/1.3 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.sk-gate-liten {
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.sk-kode-linje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--tekst-3);
+  font-size: 0.85rem;
+}
+
+.sk-kode-linje .sk-kodeord {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--papir);
+  color: var(--blekk);
+  font: 900 0.85rem/1.4 var(--font-display);
+  letter-spacing: 0.08em;
+}
+
+.sk-kode-linje .sk-kodebilde {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.sk-endre {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 800 0.88rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.sk-endre:active {
+  transform: translateY(2px);
+}
+
+/* The sheet for one post */
+.sk-steder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sk-stedvalg {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 8px 13px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-3);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: 700 0.9rem/1.25 var(--font-tekst);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sk-stedvalg[aria-pressed="true"] {
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+}
+
+.sk-egen {
+  display: grid;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.sk-egen h3 {
+  margin: 4px 0 0;
+  font: 900 1.05rem/1.2 var(--font-display);
+}
+
+.sk-egen label {
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.sk-egen input,
+.sk-egen textarea,
+.sk-kodeform input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 2px solid var(--strek);
+  border-radius: var(--r-liten);
+  background: var(--natt);
+  color: var(--tekst);
+  font-size: 1rem;
+}
+
+.sk-egen textarea {
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.sk-egen input:focus,
+.sk-egen textarea:focus,
+.sk-kodeform input:focus {
+  border-color: var(--aksent);
+  outline: none;
+}
+
+.sk-svar {
+  padding: 18px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  color: var(--blekk);
+  font: 900 1.25rem/1.35 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ---------- Cards (on screen and on paper) ---------- */
+
+.sk-trykk {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.sk-kort,
+.sk-lapp {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px 12px;
+  border: 2.5px dashed #b39c7c;
+  border-radius: 14px;
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2), 0 14px 28px var(--skygge);
+  color: var(--blekk);
+}
+
+.sk-kort header,
+.sk-lapp header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--blekk-2);
+  font: 900 0.8rem/1.2 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sk-kort-ikon {
+  font-size: 1.35rem;
+  letter-spacing: 0;
+}
+
+.sk-kort-av {
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+.sk-kort-intro {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.sk-kort-innled {
+  font: 900 1rem/1.2 var(--font-display);
+  color: var(--rosa-dyp);
+}
+
+.sk-kort-bilde {
+  align-self: center;
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.sk-kort-gate {
+  font: 800 1.25rem/1.35 var(--font-display);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.sk-kort footer,
+.sk-lapp footer {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1.5px dotted #c9b291;
+  color: var(--blekk-2);
+  font-size: 0.78rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.sk-kort-skatt {
+  text-align: center;
+}
+
+.sk-kort-skatt header {
+  justify-content: center;
+}
+
+.sk-trykk-lapper {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sk-lapp {
+  align-items: center;
+  gap: 6px;
+  padding: 12px 10px 10px;
+  text-align: center;
+}
+
+.sk-lapp-kode {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.sk-lapp .sk-kodeord {
+  font: 900 1.3rem/1.15 var(--font-display);
+  letter-spacing: 0.06em;
+  overflow-wrap: anywhere;
+}
+
+.sk-lapp .sk-kodeord.liten {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.sk-lapp .sk-kodebilde {
+  font-size: 2.8rem;
+  line-height: 1.1;
+}
+
+@media (min-width: 560px) {
+  .sk-trykk-kort {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sk-trykk-lapper {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---------- The hunt ---------- */
+
+.skjerm-jakt {
+  gap: 16px;
+}
+
+.sk-ledetrad {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px 20px 24px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 8px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.sk-ledetrad.ny {
+  animation: sk-ny 0.55s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+@keyframes sk-ny {
+  from {
+    opacity: 0;
+    transform: rotateY(70deg) scale(0.9);
+  }
+}
+
+.sk-ledetrad-nr {
+  color: var(--blekk-2);
+  font: 900 0.8rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sk-intro {
+  font-size: 1rem;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+.sk-innled {
+  color: var(--rosa-dyp);
+  font: 900 1.15rem/1.2 var(--font-display);
+}
+
+.sk-bilde {
+  font-size: 4.2rem;
+  line-height: 1.05;
+}
+
+.sk-gate {
+  font: 900 1.55rem/1.3 var(--font-display);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.sk-sporsmal {
+  color: var(--tekst);
+  font: 800 1rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.sk-bildevalg {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sk-bildeknapp {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-height: 64px;
+  max-height: 96px;
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2);
+  font-size: 2.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.06s;
+}
+
+.sk-bildeknapp:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--papir-2);
+}
+
+.sk-bildeknapp:disabled {
+  opacity: 0.25;
+  filter: grayscale(1);
+}
+
+.sk-kodeform {
+  display: grid;
+  gap: 8px;
+}
+
+.sk-kodeform label {
+  color: var(--tekst-2);
+  font: 800 0.92rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.sk-koderad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.sk-kodeform input {
+  font: 900 1.2rem/1.2 var(--font-display);
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.sk-kodeform .knapp {
+  width: auto;
+  padding-inline: 18px;
+}
+
+.rist {
+  animation: sk-rist 0.35s ease-out;
+}
+
+@keyframes sk-rist {
+  25% {
+    transform: translateX(-6px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  75% {
+    transform: translateX(-3px);
+  }
+}
+
+@media (max-height: 700px) {
+  .sk-ledetrad {
+    gap: 8px;
+    padding: 16px 16px 18px;
+  }
+
+  .sk-bilde {
+    font-size: 3.2rem;
+  }
+
+  .sk-gate {
+    font-size: 1.35rem;
+  }
+
+  .sk-bildeknapp {
+    min-height: 56px;
+    font-size: 2rem;
+  }
+}
+
+/* ---------- The result ---------- */
+
+.sk-resultat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.sk-resultat.en {
+  grid-template-columns: minmax(0, 220px);
+  justify-content: center;
+}
+
+.sk-tall {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 16px 10px 14px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 7px 0 var(--papir-2), 0 18px 34px var(--skygge);
+  color: var(--blekk);
+}
+
+.sk-tall b {
+  font: 900 2.3rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-tall span {
+  font: 800 0.8rem/1 var(--font-display);
+  letter-spacing: 0.14em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.sk-linje {
+  text-align: center;
+}
+
+/* ---------- Landscape phones: the clue beside the buttons ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .sk-ledetrad {
+    gap: 6px;
+    padding: 12px 16px 14px;
+  }
+
+  .sk-bilde {
+    font-size: 2.6rem;
+  }
+
+  .sk-gate {
+    font-size: 1.25rem;
+  }
+
+  .sk-bildevalg {
+    max-width: 380px;
+    margin-inline: auto;
+    padding-bottom: 8px;
+  }
+
+  .sk-bildeknapp {
+    min-height: 52px;
+    max-height: 64px;
+    font-size: 1.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-ledetrad.ny,
+  .rist {
+    animation: none;
+  }
+}
+
+/* ---------- Paper: only the cards of the print screen, two by three on A4 ---------- */
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  html:has(.skjerm-utskrift),
+  html:has(.skjerm-utskrift) body {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  html:has(.skjerm-utskrift) body {
+    display: block !important;
+  }
+
+  html:has(.skjerm-utskrift) body > :not(.app),
+  html:has(.skjerm-utskrift) .topp,
+  .skjerm-utskrift > :not(.sk-trykk) {
+    display: none !important;
+  }
+
+  html:has(.skjerm-utskrift) .app,
+  html:has(.skjerm-utskrift) main,
+  .skjerm-utskrift {
+    display: block !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    animation: none !important;
+  }
+
+  .sk-trykk {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+  }
+
+  .sk-trykk-lapper {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .sk-kort,
+  .sk-lapp {
+    break-inside: avoid;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    min-height: 92mm;
+    margin: 0;
+    padding: 6mm 7mm 4mm;
+    border: 0.4mm dashed #777;
+    border-radius: 0;
+    background: #fff !important;
+    box-shadow: none !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sk-lapp {
+    min-height: 55mm;
+    justify-content: center;
+  }
+
+  .sk-kort header,
+  .sk-lapp header,
+  .sk-kort footer,
+  .sk-lapp footer {
+    color: #444 !important;
+  }
+
+  .sk-kort-innled {
+    color: #8a1d47 !important;
+  }
+
+  .sk-kort-gate {
+    font-size: 17pt;
+  }
+
+  .sk-kort-intro {
+    font-size: 11pt;
+  }
+
+  .sk-kort footer,
+  .sk-lapp footer {
+    border-top-color: #aaa;
+    font-size: 8.5pt;
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "om": "The themes of the treasure hunt, written for rusj.no. start: the first card per age (4, 7, 10). innled: short calls before the clues. skatt: the card at the treasure. koder: code words (o) and pictures (i) – the pictures are for the youngest.",
+  "temaer": [
+    {
+      "id": "pirat", "ikon": "🏴‍☠️", "navn": "Pirates", "tekst": "Treasure maps and gold",
+      "start": {
+        "4": "Ahoy, little pirates! The captain has hidden some treasure. Here is your first clue:",
+        "7": "Ahoy, shipmates! Captain Bristlebeard has hidden a chest full of gold. Follow the clues and you'll find it!",
+        "10": "Ahoy! An old treasure map has been found. Whoever solves every riddle will find the captain's chest."
+      },
+      "innled": ["Arrr!", "Ahoy!", "Land ahoy!", "Yo-ho-ho!", "Steady as she goes!", "Hoist the sails!"],
+      "skatt": { "tittel": "Treasure found!", "tekst": "You found the captain's treasure chest. Share the loot fairly, pirates!", "kort": "Well done, pirates! You found the treasure. Share it fairly with the whole crew!" },
+      "koder": [
+        { "o": "COMPASS", "i": "🧭" }, { "o": "ANCHOR", "i": "⚓" }, { "o": "PARROT", "i": "🦜" }, { "o": "SAIL", "i": "⛵" },
+        { "o": "GOLD", "i": "💰" }, { "o": "MAP", "i": "🗺️" }, { "o": "ISLAND", "i": "🏝️" }, { "o": "OCTOPUS", "i": "🐙" },
+        { "o": "CRAB", "i": "🦀" }, { "o": "SHELL", "i": "🐚" }, { "o": "WHALE", "i": "🐳" }, { "o": "WAVE", "i": "🌊" }
+      ]
+    },
+    {
+      "id": "rom", "ikon": "🚀", "navn": "Space", "tekst": "Rockets and planets",
+      "start": {
+        "4": "Hello, astronauts! A spaceship has lost its treasure. Here is your first clue:",
+        "7": "Mission control to the crew: treasure from a faraway planet has landed in our home. Find it!",
+        "10": "Mission control reports: an alien has hidden a treasure and sent us secret messages. Crack them all!"
+      },
+      "innled": ["Mission control here!", "Ready for lift-off!", "3, 2, 1 …", "A message from the moon:", "Beep-beep!", "Signal received:"],
+      "skatt": { "tittel": "Space treasure found!", "tekst": "Mission complete. Mission control salutes the whole crew!", "kort": "Mission complete! You found the space treasure. Welcome home, astronauts!" },
+      "koder": [
+        { "o": "ROCKET", "i": "🚀" }, { "o": "MOON", "i": "🌙" }, { "o": "STAR", "i": "⭐" }, { "o": "PLANET", "i": "🪐" },
+        { "o": "COMET", "i": "☄️" }, { "o": "ALIEN", "i": "👽" }, { "o": "SUN", "i": "☀️" }, { "o": "SATELLITE", "i": "🛰️" },
+        { "o": "TELESCOPE", "i": "🔭" }, { "o": "EARTH", "i": "🌍" }, { "o": "UFO", "i": "🛸" }, { "o": "ROBOT", "i": "🤖" }
+      ]
+    },
+    {
+      "id": "detektiv", "ikon": "🔍", "navn": "Detectives", "tekst": "Clues and secret codes",
+      "start": {
+        "4": "Hello, little detectives! Somebody has hidden a treasure. Here is your first clue:",
+        "7": "Hello, detectives! A treasure has gone missing, and someone has left clues. Can you solve the mystery?",
+        "10": "Top secret case: a treasure has vanished. Follow the clues, crack the riddles and solve the case!"
+      },
+      "innled": ["A new clue!", "Look closely!", "Shh …", "Top secret:", "Get your magnifying glass!", "Suspicious …"],
+      "skatt": { "tittel": "Case closed!", "tekst": "You found the missing treasure. Well done, detectives!", "kort": "Case closed! You found the treasure. Well done, detectives!" },
+      "koder": [
+        { "o": "LENS", "i": "🔍" }, { "o": "KEY", "i": "🔑" }, { "o": "FOOTPRINT", "i": "👣" }, { "o": "HAT", "i": "🎩" },
+        { "o": "LETTER", "i": "✉️" }, { "o": "TORCH", "i": "🔦" }, { "o": "NOTEBOOK", "i": "📒" }, { "o": "PENCIL", "i": "✏️" },
+        { "o": "LOCK", "i": "🔒" }, { "o": "CLOCK", "i": "⏰" }, { "o": "GLASSES", "i": "👓" }, { "o": "DOG", "i": "🐕" }
+      ]
+    },
+    {
+      "id": "dino", "ikon": "🦕", "navn": "Dinosaurs", "tekst": "Footprints and dino eggs",
+      "start": {
+        "4": "Rooaar! A dinosaur has hidden its egg. Here is your first clue:",
+        "7": "Rooaar! A friendly dinosaur has lost its egg. Follow the tracks and find it before it hatches!",
+        "10": "66 million years ago, a treasure was buried. Now the tracks have been found – follow them!"
+      },
+      "innled": ["Rooaar!", "Giant footprints!", "The ground is shaking …", "Dino message:", "Stomp, stomp!", "Grrr!"],
+      "skatt": { "tittel": "Dino egg found!", "tekst": "You found the prehistoric treasure. The dinosaur is proud of you!", "kort": "Rooaar! You found the dino treasure. Well done, dino hunters!" },
+      "koder": [
+        { "o": "EGG", "i": "🥚" }, { "o": "PAWPRINT", "i": "🐾" }, { "o": "VOLCANO", "i": "🌋" }, { "o": "BONE", "i": "🦴" },
+        { "o": "FERN", "i": "🌿" }, { "o": "TOOTH", "i": "🦷" }, { "o": "DINO", "i": "🦖" }, { "o": "LONGNECK", "i": "🦕" },
+        { "o": "TREE", "i": "🌳" }, { "o": "LEAF", "i": "🍃" }, { "o": "SUN", "i": "☀️" }, { "o": "LIZARD", "i": "🦎" }
+      ]
+    },
+    {
+      "id": "eventyr", "ikon": "🏰", "navn": "Fairy tale", "tekst": "Trolls, castles and magic",
+      "start": {
+        "4": "Once upon a time, a troll hid a treasure. Here is your first clue:",
+        "7": "Once upon a time, a troll stole the king's treasure. Only the bravest children can find it again!",
+        "10": "Once upon a time, a troll took the king's treasure and hid it. Solve the riddles and live happily ever after."
+      },
+      "innled": ["Once upon a time …", "Listen!", "Abracadabra!", "Deep in the forest …", "The troll whispers:", "Fee-fi-fo-fum!"],
+      "skatt": { "tittel": "Treasure found!", "tekst": "And they all lived happily ever after. The end!", "kort": "You found the troll's treasure! And they all lived happily ever after." },
+      "koder": [
+        { "o": "CROWN", "i": "👑" }, { "o": "CASTLE", "i": "🏰" }, { "o": "DRAGON", "i": "🐉" }, { "o": "FROG", "i": "🐸" },
+        { "o": "APPLE", "i": "🍎" }, { "o": "KEY", "i": "🔑" }, { "o": "STAR", "i": "⭐" }, { "o": "TOADSTOOL", "i": "🍄" },
+        { "o": "ROSE", "i": "🌹" }, { "o": "OWL", "i": "🦉" }, { "o": "UNICORN", "i": "🦄" }, { "o": "HORSE", "i": "🐴" }
+      ]
+    },
+    {
+      "id": "jungel", "ikon": "🦁", "navn": "Jungle", "tekst": "Wild animals and palm trees",
+      "start": {
+        "4": "Hello, little explorers! The monkeys have hidden some treasure in the jungle. Here is your first clue:",
+        "7": "Welcome to the jungle! The monkeys have taken the treasure and hidden it. Follow the clues!",
+        "10": "The expedition starts now. Somewhere in the jungle lies a forgotten treasure – and only the brave will find it."
+      },
+      "innled": ["Ooh-ooh-aah-aah!", "Watch out for the snake!", "Something's rustling …", "The expedition goes on:", "Roar!", "Swing on!"],
+      "skatt": { "tittel": "Jungle treasure found!", "tekst": "The expedition was a success. The monkeys are clapping for you!", "kort": "Hooray! You found the jungle treasure. The monkeys are clapping for you!" },
+      "koder": [
+        { "o": "LION", "i": "🦁" }, { "o": "MONKEY", "i": "🐒" }, { "o": "PALM", "i": "🌴" }, { "o": "BANANA", "i": "🍌" },
+        { "o": "SNAKE", "i": "🐍" }, { "o": "PARROT", "i": "🦜" }, { "o": "TIGER", "i": "🐯" }, { "o": "ELEPHANT", "i": "🐘" },
+        { "o": "GIRAFFE", "i": "🦒" }, { "o": "CROCODILE", "i": "🐊" }, { "o": "BUTTERFLY", "i": "🦋" }, { "o": "ZEBRA", "i": "🦓" }
+      ]
+    }
+  ]
+}

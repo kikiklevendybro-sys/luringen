@@ -862,6 +862,17 @@
         "krig kortspil for børn",
         "snap kortspil"
       ]
+    },
+    "skattejegeren": {
+      "tittel": "Skattejagt for børn – gåder og ledetråde, gratis",
+      "frase": "Skattejagt for børn",
+      "beskrivelse": "Lav en skattejagt til børnefødselsdagen på to minutter: gåder og ledetråde til 4–12 år, indenfor eller udenfor, seks temaer. Print kortene, eller brug mobilen.",
+      "sok": [
+        "skattejagt gåder",
+        "ledetråde til skattejagt",
+        "skattejagt indendørs for børn",
+        "aktivitet til børnefødselsdag"
+      ]
     }
   }
 }
