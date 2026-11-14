@@ -1903,6 +1903,7 @@
     sjefen: ["#8fdc5c", "S"],
     spakona: ["#d67cff", "S"],
     telleren: ["#ffa552", "21"],
+    mistanken: ["#6c9cff", "M"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

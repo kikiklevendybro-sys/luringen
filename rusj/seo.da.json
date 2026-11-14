@@ -892,6 +892,16 @@
         "tæl til 21 drukspil",
         "drukspil uden kort"
       ]
+    },
+    "mistanken": {
+      "tittel": "Paranoia drukspil – hemmelige spørgsmål (18+)",
+      "frase": "Paranoia – drukspil",
+      "beskrivelse": "Paranoia på mobilen (18+): Mobilen hvisker et hemmeligt »Hvem her …?«-spørgsmål, du svarer med et navn, og mønten afgør, om alle får at vide hvorfor.",
+      "sok": [
+        "paranoia drukspil regler",
+        "paranoia spørgsmål",
+        "hvem her spørgsmål"
+      ]
     }
   }
 }
