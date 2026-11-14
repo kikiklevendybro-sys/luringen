@@ -1734,6 +1734,92 @@
         ${oyne({ y: 64, r: 10.5, dx: 3, dy: 0 })}
         ${smil(80, 12)}`,
     },
+
+
+    // Pusen: a friendly black cat with green eyes, pink ears and a red bow tie, holding two animal
+    // cards – the cat is the odd card in Svarteper, and a good friend in the other games.
+    pusen: {
+      farge: "#9a86e8",
+      tegn: () => `
+        ${form("M18 46 L12 4 L46 26Z", "#3d3166", 5)}${form("M102 46 L108 4 L74 26Z", "#3d3166", 5)}
+        <path d="M21 34 L18 14 L35 25Z M99 34 L102 14 L85 25Z" fill="#ff9ec4"/>
+        ${hode("#3d3166")}
+        <ellipse cx="42" cy="58" rx="12" ry="13" fill="#9be15d" stroke="${B}" stroke-width="3"/>
+        <ellipse cx="78" cy="58" rx="12" ry="13" fill="#9be15d" stroke="${B}" stroke-width="3"/>
+        ${blunk(58, `<ellipse cx="43" cy="59" rx="4.4" ry="9" fill="${B}"/><ellipse cx="79" cy="59" rx="4.4" ry="9" fill="${B}"/><circle cx="39" cy="53" r="3" fill="${P}"/><circle cx="75" cy="53" r="3" fill="${P}"/>`)}
+        <path d="M54 74 H66 L60 81Z" fill="#ff9ec4"/>
+        ${strek("M60 81 Q55 88 48 85M60 81 Q65 88 72 85", 3, P)}
+        ${strek("M36 80 L12 76M36 86 L14 92M84 80 L108 76M84 86 L106 92", 2.4, "rgba(255,241,221,.8)")}
+        <ellipse cx="30" cy="80" rx="7" ry="4.5" fill="rgba(255,79,139,.55)"/><ellipse cx="90" cy="80" rx="7" ry="4.5" fill="rgba(255,79,139,.55)"/>
+        ${form("M44 106 L60 98 L76 106 L76 118 L60 110 L44 118Z", ROD, 3.6)}
+        <circle cx="60" cy="108" r="4.6" fill="${ROD}" stroke="${B}" stroke-width="3"/>
+        ${vifte(104, 124, [[-14, tekst(104, 103, "5", 15, "#e0729f")], [12, `${tekst(104, 101, "10", 12, "#3a8fd8")}`]])}`,
+    },
+
+
+    // Nøtteknekkeren: an orange squirrel with tufted ears, a cream face and a big bushy tail curling up
+    // behind it, holding a hazelnut – one nut for every right answer.
+    notteknekkeren: {
+      farge: "#e8894a",
+      tegn: (f) => `
+        ${form("M78 108 Q128 112 127 64 Q126 18 94 8 Q74 2 66 16 Q88 14 100 32 Q116 58 98 86 Q92 96 78 108Z", "#c9652c", 4.5)}
+        ${strek("M112 36 Q122 58 114 84", 3.2, "rgba(255,241,221,.5)")}
+        ${form("M24 36 L18 4 Q30 10 40 26Z", f, 4.2)}${form("M96 36 L102 4 Q90 10 80 26Z", f, 4.2)}
+        ${hode(f)}
+        <path d="M28 70 Q30 44 60 44 Q90 44 92 70 Q92 104 60 106 Q28 104 28 70Z" fill="#ffe4c4"/>
+        ${kinn(84)}
+        ${oyne({ y: 60, r: 11, pr: 5.4, dy: 1 })}
+        <ellipse cx="60" cy="78" rx="6" ry="4.5" fill="${B}"/>
+        ${strek("M60 82 V87M52 87 Q60 93 68 87", 3.6)}
+        ${form("M56.5 89.5 H63.5 V96 Q60 97.5 56.5 96Z", P, 2.6)}
+        ${form("M8 114 Q2 96 16 90 Q30 88 32 102 Q32 118 18 120 Q10 120 8 114Z", "#a8662e", 4)}
+        ${form("M8 98 Q16 84 30 96 Q22 92 8 98Z", "#6e3f1c", 3.2)}
+        ${glans("M14 104 Q16 98 20 97", 2.4)}`,
+    },
+
+
+    // Hermegåsa: a white goose with a curl on top, an orange beak open in a honk and a blue scarf;
+    // the four shapes of the game (circle, star, square, triangle) float around it.
+    hermegasa: {
+      farge: "#ffa14a",
+      tegn: (f) => `
+        ${form("M22 104 Q60 126 98 104 L104 118 Q60 134 16 118Z", HIMMEL, 4)}
+        ${hode("#f7f3ec")}
+        ${form("M58 18 Q50 2 62 -2 Q56 8 66 12 Q70 4 76 8 Q66 12 66 20Z", "#f7f3ec", 3.8)}
+        ${kinn(80)}
+        ${oyne({ y: 54, r: 11.5, pr: 5.6, dx: 1, dy: 1 })}
+        ${strek("M29 37 Q38 32 48 37M72 37 Q82 32 91 37", 4.2)}
+        ${form("M44 84 Q60 94 76 84 Q60 104 44 84Z", "#e0721c", 4)}
+        ${form("M38 76 Q60 60 82 76 Q74 86 60 86 Q46 86 38 76Z", f, 4.2)}
+        <circle cx="52" cy="74" r="2" fill="${B}"/><circle cx="68" cy="74" r="2" fill="${B}"/>
+        ${glans("M48 70 Q54 66 60 66", 2.6)}
+        <circle cx="6" cy="40" r="7.5" fill="#ff5a6e" stroke="${B}" stroke-width="3.2"/>
+        ${form("M112 20 L115.2 27 L122.8 27.8 L117.2 33 L118.8 40.6 L112 36.8 L105.2 40.6 L106.8 33 L101.2 27.8 L108.8 27Z", LAMPE, 3)}
+        ${form("M-2 78 H12 V92 H-2Z", "#4fb2ff", 3.2)}
+        ${form("M114 78 L122 92 L106 92Z", MYNT, 3.2)}`,
+    },
+
+
+    // Musa: a lavender mouse with big round ears, a pink nose and whiskers, two little front teeth –
+    // and a wedge of cheese, the goal of every maze.
+    musa: {
+      farge: "#c3b1f5",
+      tegn: (f) => `
+        <circle cx="22" cy="30" r="22" fill="${f}" stroke="${B}" stroke-width="5"/>
+        <circle cx="98" cy="30" r="22" fill="${f}" stroke="${B}" stroke-width="5"/>
+        <circle cx="23" cy="31" r="12.5" fill="#ff9ec4"/><circle cx="97" cy="31" r="12.5" fill="#ff9ec4"/>
+        ${hode(f)}
+        ${kinn(82)}
+        ${oyne({ y: 58, r: 11.5, pr: 5.6, dy: 1 })}
+        ${strek("M46 84 L16 78M46 89 L18 94M74 84 L104 78M74 89 L102 94", 2.8)}
+        ${form("M55.5 92 H64.5 V100.5 Q60 102.5 55.5 100.5Z", P, 2.8)}${strek("M60 92 V100", 2)}
+        ${strek("M50 89 Q60 95 70 89", 4)}
+        <ellipse cx="60" cy="82" rx="8" ry="6" fill="#ff6f9f" stroke="${B}" stroke-width="3.5"/>
+        ${glans("M56.5 80 Q58.5 78.5 61 79", 2.2)}
+        ${form("M84 120 L84 104 L116 90 L120 98 L120 114Z", LAMPE, 3.8)}
+        ${form("M84 104 L116 90 L120 98Z", "#ffe788", 3.2)}
+        <circle cx="96" cy="111" r="3.2" fill="#e8a91e"/><circle cx="109" cy="106" r="2.4" fill="#e8a91e"/><circle cx="112" cy="114" r="1.8" fill="#e8a91e"/>`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

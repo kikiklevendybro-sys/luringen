@@ -1048,6 +1048,51 @@
         "logikkspill gratis",
         "dagens logikkspill"
       ]
+    },
+    "pusen": {
+      "motMobilen": true,
+      "tittel": "Kortspill for barn – Svarteper, Fisk og Snapp gratis",
+      "frase": "Kortspill for barn",
+      "beskrivelse": "Gratis kortspill for barn med dyrekort: Svarteper med en snill katt, Fisk, Størst vinner (krig) og Snapp. Mot mobilen på tre nivåer eller sammen på én mobil.",
+      "sok": [
+        "svarteper på nett",
+        "fisk kortspill regler",
+        "krig kortspill for barn",
+        "snap kortspill"
+      ]
+    },
+    "notteknekkeren": {
+      "tittel": "Gangetabellen – gratis øving og hoderegning for barn",
+      "frase": "Gangetabellen",
+      "beskrivelse": "Øv på gangetabellen og hoderegning gratis: velg tabeller, se fremgangen for hver tabell og ta en rolig utfordring uten klokke. Pluss, minus og deling også.",
+      "sok": [
+        "øve gangetabellen på nett",
+        "gangetabell spill",
+        "hoderegning for barn",
+        "lille gangetabell øving"
+      ]
+    },
+    "hermegasa": {
+      "tittel": "Huskespill for barn – følg mønsteret med lyd",
+      "frase": "Følg mønsteret",
+      "beskrivelse": "Gratis huskespill for barn på norsk: gåsa viser farger, former og toner i en rekke – herm etter, og rekka vokser. Alene eller 2–4 som bytter på.",
+      "sok": [
+        "huskespill farger og lyd",
+        "husk rekkefølgen spill",
+        "følg mønsteret spill",
+        "gjenta rekka"
+      ]
+    },
+    "musa": {
+      "tittel": "Labyrint for barn – finn veien til osten, gratis",
+      "frase": "Labyrint for barn",
+      "beskrivelse": "Gratis labyrintspill for barn på norsk: hjelp musa gjennom hekkene og fram til osten. En ny labyrint hver gang i fire størrelser – sveip, dra eller bruk pilene.",
+      "sok": [
+        "labyrint for barn på nett",
+        "labyrintspill gratis",
+        "finn veien spill",
+        "labyrint mus og ost"
+      ]
     }
   }
 }
