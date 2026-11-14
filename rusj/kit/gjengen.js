@@ -1974,6 +1974,8 @@
     smilefjeset: ["#ffc93c", "S"],
     dommeren: ["#7c8cff", "D"],
     sfinksen: ["#e0b25a", "S"],
+    skattejegeren: ["#ffb547", "S"],
+    penselen: ["#6fc8ff", "P"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

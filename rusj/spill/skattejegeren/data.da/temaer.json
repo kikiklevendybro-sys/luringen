@@ -1,0 +1,95 @@
+{
+  "om": "Temaerne til skattejagten, skrevet til rusj.no. start: det første kort for hver alder (4, 7, 10). innled: korte råb før ledetrådene. skatt: kortet ved skatten. koder: kodeord (o) og billede (i) – billederne er til de mindste.",
+  "temaer": [
+    {
+      "id": "pirat", "ikon": "🏴‍☠️", "navn": "Pirater", "tekst": "Skattekort og guldkiste",
+      "start": {
+        "4": "Ohøj, små pirater! Kaptajnen har gemt en skat. Her er den første ledetråd:",
+        "7": "Ohøj, besætning! Kaptajn Skægbart har gemt en kiste fuld af guld. Følg ledetrådene, så finder I den!",
+        "10": "Ohøj! Et gammelt skattekort er blevet fundet. Den, der løser alle gåderne, finder kaptajnens kiste."
+      },
+      "innled": ["Arrr!", "Ohøj!", "Land i sigte!", "Hiv ohøj!", "Hold kursen!", "Sæt sejl!"],
+      "skatt": { "tittel": "Skatten er fundet!", "tekst": "I fandt kaptajnens skattekiste. Del byttet retfærdigt, pirater!", "kort": "Tillykke, pirater! I fandt skatten. Del den retfærdigt med hele besætningen!" },
+      "koder": [
+        { "o": "KOMPAS", "i": "🧭" }, { "o": "ANKER", "i": "⚓" }, { "o": "PAPEGØJE", "i": "🦜" }, { "o": "SEJL", "i": "⛵" },
+        { "o": "GULD", "i": "💰" }, { "o": "KORT", "i": "🗺️" }, { "o": "ØEN", "i": "🏝️" }, { "o": "BLÆKSPRUTTE", "i": "🐙" },
+        { "o": "KRABBE", "i": "🦀" }, { "o": "MUSLING", "i": "🐚" }, { "o": "HVAL", "i": "🐳" }, { "o": "BØLGE", "i": "🌊" }
+      ]
+    },
+    {
+      "id": "rom", "ikon": "🚀", "navn": "Rummet", "tekst": "Raketter og planeter",
+      "start": {
+        "4": "Hej, astronauter! Et rumskib har tabt en skat. Her er den første ledetråd:",
+        "7": "Rumkontrol kalder: En skat fra en fjern planet er landet hjemme hos os. Find den!",
+        "10": "Rumkontrol melder: Et rumvæsen har gemt en skat og sendt os hemmelige beskeder. Løs dem alle!"
+      },
+      "innled": ["Rumkontrol her!", "Klar til start!", "3, 2, 1 …", "Besked fra månen:", "Bip-bip!", "Signal modtaget:"],
+      "skatt": { "tittel": "Rumskatten er fundet!", "tekst": "Missionen er fuldført. Rumkontrol ønsker hele besætningen tillykke!", "kort": "Missionen er fuldført! I fandt rumskatten. Velkommen hjem, astronauter!" },
+      "koder": [
+        { "o": "RAKET", "i": "🚀" }, { "o": "MÅNE", "i": "🌙" }, { "o": "STJERNE", "i": "⭐" }, { "o": "PLANET", "i": "🪐" },
+        { "o": "KOMET", "i": "☄️" }, { "o": "RUMVÆSEN", "i": "👽" }, { "o": "SOL", "i": "☀️" }, { "o": "SATELLIT", "i": "🛰️" },
+        { "o": "TELESKOP", "i": "🔭" }, { "o": "JORDEN", "i": "🌍" }, { "o": "UFO", "i": "🛸" }, { "o": "ROBOT", "i": "🤖" }
+      ]
+    },
+    {
+      "id": "detektiv", "ikon": "🔍", "navn": "Detektiver", "tekst": "Spor og hemmelige koder",
+      "start": {
+        "4": "Hej, små detektiver! Nogen har gemt en skat. Her er det første spor:",
+        "7": "Hej, detektiver! En skat er forsvundet, og nogen har efterladt spor. Kan I opklare mysteriet?",
+        "10": "Tophemmelig opgave: En skat er sporløst forsvundet. Følg sporene, knæk gåderne, og opklar sagen!"
+      },
+      "innled": ["Nyt spor!", "Se godt efter!", "Shh …", "Tophemmeligt:", "Frem med luppen!", "Mistænkeligt …"],
+      "skatt": { "tittel": "Sagen er opklaret!", "tekst": "I fandt den forsvundne skat. Godt klaret, detektiver!", "kort": "Sagen er opklaret! I fandt skatten. Godt klaret, detektiver!" },
+      "koder": [
+        { "o": "LUP", "i": "🔍" }, { "o": "NØGLE", "i": "🔑" }, { "o": "SPOR", "i": "👣" }, { "o": "HAT", "i": "🎩" },
+        { "o": "BREV", "i": "✉️" }, { "o": "LOMMELYGTE", "i": "🔦" }, { "o": "NOTESBOG", "i": "📒" }, { "o": "BLYANT", "i": "✏️" },
+        { "o": "LÅS", "i": "🔒" }, { "o": "VÆKKEUR", "i": "⏰" }, { "o": "BRILLER", "i": "👓" }, { "o": "HUND", "i": "🐕" }
+      ]
+    },
+    {
+      "id": "dino", "ikon": "🦕", "navn": "Dinosaurer", "tekst": "Fodspor og dinoæg",
+      "start": {
+        "4": "Rooaar! En dinosaur har gemt sit æg. Her er den første ledetråd:",
+        "7": "Rooaar! En venlig dinosaur har mistet sit æg. Følg sporene, og find det, før det klækkes!",
+        "10": "For 66 millioner år siden blev en skat gravet ned. Nu er sporene fundet – følg dem!"
+      },
+      "innled": ["Rooaar!", "Store fodspor!", "Jorden ryster …", "Dinobesked:", "Stamp, stamp!", "Grrr!"],
+      "skatt": { "tittel": "Dinoægget er fundet!", "tekst": "I fandt den forhistoriske skat. Dinosauren er stolt af jer!", "kort": "Rooaar! I fandt dinoskatten. Godt klaret, dinojægere!" },
+      "koder": [
+        { "o": "ÆG", "i": "🥚" }, { "o": "FODSPOR", "i": "🐾" }, { "o": "VULKAN", "i": "🌋" }, { "o": "KNOGLE", "i": "🦴" },
+        { "o": "BREGNE", "i": "🌿" }, { "o": "TAND", "i": "🦷" }, { "o": "DINO", "i": "🦖" }, { "o": "LANGHALS", "i": "🦕" },
+        { "o": "TRÆ", "i": "🌳" }, { "o": "BLAD", "i": "🍃" }, { "o": "SOL", "i": "☀️" }, { "o": "ØGLE", "i": "🦎" }
+      ]
+    },
+    {
+      "id": "eventyr", "ikon": "🏰", "navn": "Eventyr", "tekst": "Trolde, slotte og trylleri",
+      "start": {
+        "4": "Der var engang en trold, som gemte en skat. Her er den første ledetråd:",
+        "7": "Der var engang en trold, som stjal kongens skat. Kun de modigste børn kan finde den igen!",
+        "10": "Der var engang en trold, som tog kongens skat og gemte den. Løs gåderne, så lever I lykkeligt til jeres dages ende."
+      },
+      "innled": ["Der var engang …", "Hør her!", "Abrakadabra!", "Dybt inde i skoven …", "Trolden hvisker:", "Hokus pokus!"],
+      "skatt": { "tittel": "Skatten er fundet!", "tekst": "Snip, snap, snude – nu er historien ude!", "kort": "I fandt troldens skat! Snip, snap, snude – nu er historien ude." },
+      "koder": [
+        { "o": "KRONE", "i": "👑" }, { "o": "SLOT", "i": "🏰" }, { "o": "DRAGE", "i": "🐉" }, { "o": "FRØ", "i": "🐸" },
+        { "o": "ÆBLE", "i": "🍎" }, { "o": "NØGLE", "i": "🔑" }, { "o": "STJERNE", "i": "⭐" }, { "o": "SVAMP", "i": "🍄" },
+        { "o": "ROSE", "i": "🌹" }, { "o": "UGLE", "i": "🦉" }, { "o": "ENHJØRNING", "i": "🦄" }, { "o": "HEST", "i": "🐴" }
+      ]
+    },
+    {
+      "id": "jungel", "ikon": "🦁", "navn": "Junglen", "tekst": "Vilde dyr og palmer",
+      "start": {
+        "4": "Hej, små opdagere! Aberne har gemt en skat i junglen. Her er den første ledetråd:",
+        "7": "Velkommen til junglen! Aberne har taget skatten og gemt den. Følg ledetrådene!",
+        "10": "Ekspeditionen starter nu. Et sted i junglen ligger en glemt skat – og kun de modige finder frem til den."
+      },
+      "innled": ["Uh-uh-ah-ah!", "Pas på slangen!", "Det rasler …", "Ekspeditionen fortsætter:", "Brøl!", "Sving dig videre!"],
+      "skatt": { "tittel": "Jungleskatten er fundet!", "tekst": "Ekspeditionen blev en succes. Aberne klapper for jer!", "kort": "Hurra! I fandt jungleskatten. Aberne klapper for jer!" },
+      "koder": [
+        { "o": "LØVE", "i": "🦁" }, { "o": "ABE", "i": "🐒" }, { "o": "PALME", "i": "🌴" }, { "o": "BANAN", "i": "🍌" },
+        { "o": "SLANGE", "i": "🐍" }, { "o": "PAPEGØJE", "i": "🦜" }, { "o": "TIGER", "i": "🐯" }, { "o": "ELEFANT", "i": "🐘" },
+        { "o": "GIRAF", "i": "🦒" }, { "o": "KROKODILLE", "i": "🐊" }, { "o": "SOMMERFUGL", "i": "🦋" }, { "o": "ZEBRA", "i": "🦓" }
+      ]
+    }
+  ]
+}

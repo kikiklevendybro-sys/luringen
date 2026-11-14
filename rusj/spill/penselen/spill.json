@@ -1,0 +1,34 @@
+{
+  "id": "penselen",
+  "navn": "Penselen",
+  "undertittel": "Fargelegging",
+  "beskrivelse": "Gratis fargelegging for barn: 44 egne tegninger av dyr, kjøretøy, verdensrommet, årstider, Norden og havet. Trykk for å fylle, mal fritt og lagre bildet.",
+  "kort": "Trykk i et felt, så fylles det med farge. Lagre bildet på mobilen.",
+  "spillere": [1, 1],
+  "minutter": [3, 30],
+  "mobiler": "en",
+  "tagger": ["barn", "tegning", "alene", "familie"],
+  "rekkefolge": 103,
+  "farge": "#6fc8ff",
+  "alder": 3,
+  "sok": ["fargelegging", "fargelegge", "fargeleggingsark", "fargeleggingsbilder", "tegninger å fargelegge", "malebok", "fargelegging for barn", "fargelegging på nett", "tegne og male", "fargebok"],
+  "alias": ["fargelegging"],
+  "i18n": {
+    "en": {
+      "navn": "Paintpot",
+      "undertittel": "Colouring pages",
+      "kort": "Tap a shape and it fills with colour. Save the picture to your phone.",
+      "beskrivelse": "Free colouring pages for kids: 44 pictures of animals, vehicles, space, the seasons, the North and the sea. Tap to fill, paint freely and save the picture.",
+      "slug": "paintpot",
+      "sok": ["colouring pages", "colouring in", "colouring for kids", "online colouring", "colouring book", "colouring pictures", "kids painting game", "tap to colour", "paint by tap"]
+    },
+    "da": {
+      "navn": "Penslen",
+      "undertittel": "Farvelægning",
+      "kort": "Tryk i et felt, så fyldes det med farve. Gem billedet på mobilen.",
+      "beskrivelse": "Gratis farvelægning for børn: 44 egne tegninger af dyr, køretøjer, rummet, årstider, Norden og havet. Tryk for at fylde, mal frit, og gem billedet.",
+      "slug": "penslen",
+      "sok": ["farvelægning", "tegninger til farvelægning", "malebog", "farvelægningsbilleder", "farvelægning for børn", "farvelægge online", "tegn og mal", "malebog online", "billeder til at farvelægge"]
+    }
+  }
+}

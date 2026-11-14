@@ -61,6 +61,8 @@
     { "id": "musa-ost", "gruppe": "utforsker", "navn": "Ostejeger", "hvordan": "Finn osten i en stor labyrint i Musa.", "figur": "musa", "emoji": "🧀", "regel": { "type": "merke" } },
     { "id": "smilefjeset-alle", "gruppe": "utforsker", "navn": "Emoji-ekspert", "hvordan": "Få alle riktig i en runde alene i Smilefjeset.", "figur": "smilefjeset", "emoji": "😄", "regel": { "type": "merke" } },
     { "id": "sfinksen-alle", "gruppe": "utforsker", "navn": "Gåteknekker", "hvordan": "Få alle riktig i en runde alene i Sfinksen.", "figur": "sfinksen", "emoji": "🦁", "regel": { "type": "merke" } },
+    { "id": "skattejegeren-skatt", "gruppe": "utforsker", "navn": "Skatten er vår!", "hvordan": "Finn skatten i en skattejakt fra Skattejegeren.", "figur": "skattejegeren", "emoji": "🗺️", "regel": { "type": "merke" } },
+    { "id": "penselen-ferdig", "gruppe": "utforsker", "navn": "Mesterverk", "hvordan": "Fargelegg et bilde ferdig i Penselen.", "figur": "penselen", "emoji": "🎨", "regel": { "type": "merke" } },
 
     { "id": "klassiker-sjakkhesten", "gruppe": "klassiker", "navn": "Sjakk matt!", "hvordan": "Slå mobilen i sjakk i Sjakkhesten.", "figur": "sjakkhesten", "regel": { "type": "merke" } },
     { "id": "klassiker-fireren", "gruppe": "klassiker", "navn": "Fire på rad", "hvordan": "Slå mobilen i fire på rad i Fireren.", "figur": "fireren", "regel": { "type": "merke" } },

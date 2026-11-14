@@ -907,6 +907,28 @@
         "drillespørgsmål",
         "hjernevrid"
       ]
+    },
+    "skattejegeren": {
+      "tittel": "Skattejagt for børn – gåder og ledetråde, gratis",
+      "frase": "Skattejagt for børn",
+      "beskrivelse": "Lav en skattejagt til børnefødselsdagen på to minutter: gåder og ledetråde til 4–12 år, indenfor eller udenfor, seks temaer. Print kortene, eller brug mobilen.",
+      "sok": [
+        "skattejagt gåder",
+        "ledetråde til skattejagt",
+        "skattejagt indendørs for børn",
+        "aktivitet til børnefødselsdag"
+      ]
+    },
+    "penselen": {
+      "tittel": "Farvelægning for børn – 44 tegninger, gratis online",
+      "frase": "Farvelægning for børn",
+      "beskrivelse": "Farvelæg på mobilen: 44 egne tegninger af dyr, biler, en trold, en stavkirke, rummet og havet. Tryk for at fylde, mal frit, og gem billedet. Gratis.",
+      "sok": [
+        "tegninger til farvelægning gratis",
+        "farvelægning dyr",
+        "farvelægning på mobil",
+        "malebog for børn"
+      ]
     }
   }
 }
