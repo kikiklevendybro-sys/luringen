@@ -3850,6 +3850,254 @@
           "eat inside on a sunny day"
         ]
       ]
+    },
+    {
+      "id": "ungdom",
+      "navn": "Teens",
+      "ikon": "🎧",
+      "tekst": "For ages 13–16",
+      "dilemmaer": [
+        [
+          "have every Friday off school",
+          "start school at eleven every day"
+        ],
+        [
+          "pick all your subjects yourself",
+          "pick all your teachers yourself"
+        ],
+        [
+          "choose where you sit in every lesson",
+          "choose who you work with in every group project"
+        ],
+        [
+          "be able to fast-forward to break time",
+          "be able to pause your teacher"
+        ],
+        [
+          "have your screen time shown to the whole class",
+          "have your playlist played to the whole class"
+        ],
+        [
+          "choose the name of the class group chat",
+          "choose the picture for the class group chat"
+        ],
+        [
+          "have a video of you watched by a million strangers",
+          "have a video of you watched by everyone at school"
+        ],
+        [
+          "have a profile picture your little brother chose",
+          "have a profile picture your gran chose"
+        ],
+        [
+          "have your mum comment on everything you post",
+          "have your form tutor follow you online"
+        ],
+        [
+          "send a message about your crush to the wrong person",
+          "say your crush’s name out loud in a silent classroom"
+        ],
+        [
+          "have your crush message you first",
+          "have your crush say hi to you in the corridor"
+        ],
+        [
+          "have your crush see you dancing alone in your room",
+          "have your crush hear you singing in the shower"
+        ],
+        [
+          "fall for someone you’ve never spoken to",
+          "fall for your best friend"
+        ],
+        [
+          "go bright red every time someone says your name",
+          "get the giggles every time you’re nervous"
+        ],
+        [
+          "go on a school trip to Rome",
+          "go on a school trip to an outdoor centre in Wales"
+        ],
+        [
+          "have a little sister who copies everything you do",
+          "have a big brother who bosses you about"
+        ],
+        [
+          "go to bed at nine until you finish Year 11",
+          "get up at six every Saturday"
+        ],
+        [
+          "have your parents pop in and chat to your whole class",
+          "have your parents dance at your birthday party"
+        ],
+        [
+          "take your little brother everywhere for a week",
+          "do all the washing-up at home for a month"
+        ],
+        [
+          "know which job you’ll have as a grown-up",
+          "know where you’ll live as a grown-up"
+        ],
+        [
+          "become a professional gamer",
+          "become a professional footballer"
+        ],
+        [
+          "move out when you’re sixteen",
+          "live at home until you’re thirty"
+        ],
+        [
+          "know your grade before the test starts",
+          "know the questions before the test starts"
+        ],
+        [
+          "have a Saturday job at a café",
+          "have a Saturday job coaching kids’ football"
+        ],
+        [
+          "play a game you love with a terrible connection",
+          "play a game you hate with a perfect connection"
+        ],
+        [
+          "win a tournament in your favourite game",
+          "win the 100 metres on sports day"
+        ],
+        [
+          "only play video games with the sound off",
+          "only play video games on a tiny screen"
+        ],
+        [
+          "have a teammate who sings in the changing room",
+          "have a teammate who always wants to take the penalties"
+        ],
+        [
+          "lose all your saved progress in your favourite game",
+          "never play your favourite game again"
+        ],
+        [
+          "win the county cup with your team",
+          "win a medal all on your own"
+        ],
+        [
+          "train every day and be the best",
+          "train once a week and have fun"
+        ],
+        [
+          "trip on the stage on your way to collect a prize",
+          "forget your thank-you speech when you get there"
+        ],
+        [
+          "trip over in front of the whole school",
+          "have your stomach rumble loudly in a silent exam"
+        ],
+        [
+          "send the class chat a selfie with food in your teeth",
+          "send the class chat a voice note of you singing"
+        ],
+        [
+          "have a hobby nobody’s ever heard of",
+          "have the same hobby as all your friends"
+        ],
+        [
+          "learn the guitar in a week",
+          "learn to draw like a pro in a week"
+        ],
+        [
+          "start a band with your friends",
+          "start a streaming channel with your friends"
+        ],
+        [
+          "spend all Saturday gaming",
+          "spend all Saturday baking"
+        ],
+        [
+          "win the school talent show",
+          "win the school quiz"
+        ],
+        [
+          "always be the one who makes the plans",
+          "always be the one who says yes to everything"
+        ],
+        [
+          "swap lives with your best friend for a week",
+          "swap lives with a teacher for a week"
+        ],
+        [
+          "choose what’s for tea at home every day",
+          "choose where the family goes on holiday"
+        ],
+        [
+          "have a phone that can only call and text",
+          "have a smartphone with no internet"
+        ],
+        [
+          "turn off every notification for ever",
+          "get a notification for every message in every chat"
+        ],
+        [
+          "have every message you write read out loud",
+          "have every message you get shown on a big screen"
+        ],
+        [
+          "have PE first thing every day",
+          "have PE last thing every day"
+        ],
+        [
+          "sit next to your crush in every lesson",
+          "be in your crush’s group for a big project"
+        ],
+        [
+          "forget a classmate’s name after three years together",
+          "call a teacher the wrong name for a whole year"
+        ],
+        [
+          "be in the school musical",
+          "be in the school esports team"
+        ],
+        [
+          "always know what people think of your clothes",
+          "never care what people think of your clothes"
+        ],
+        [
+          "wear your school uniform at weekends too",
+          "wear your own clothes but let your parents choose them"
+        ],
+        [
+          "have a non-uniform day every Friday",
+          "have a homework-free week every half-term"
+        ],
+        [
+          "take gaming as a GCSE",
+          "have cooking lessons every day"
+        ],
+        [
+          "write five pages about your favourite game",
+          "give a speech about your favourite team"
+        ],
+        [
+          "have your teacher show the class your oldest drawing",
+          "have your teacher show the class a video of you as a baby"
+        ],
+        [
+          "have a camera filming everything you do for a week",
+          "have a microphone recording everything you say for a week"
+        ],
+        [
+          "have a dog that walks you to school",
+          "have a cat that sleeps in your room"
+        ],
+        [
+          "be brilliant at writing",
+          "be brilliant at speaking in front of people"
+        ],
+        [
+          "have sofas in every classroom",
+          "have a trampoline in the playground"
+        ],
+        [
+          "go to prom in the fanciest outfit ever",
+          "go to prom in the silliest outfit ever"
+        ]
+      ]
     }
   ]
 }

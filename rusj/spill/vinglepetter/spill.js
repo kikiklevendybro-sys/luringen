@@ -24,7 +24,9 @@
     return m >= 11 || (m === 1 && d.getDate() <= 6);
   })();
   const PAKKER_VIST = iSesong ? [...PAKKER.filter((p) => p.sesong), ...PAKKER.filter((p) => !p.sesong)] : PAKKER;
-  const STANDARD = PAKKER.filter((p) => !p.voksen && !p.sesong).map((p) => p.id);
+  // The teen pack («Ungdom», 13–16, last in the data) is chosen on purpose, so the default packs
+  // and what they draw stay as before.
+  const STANDARD = PAKKER.filter((p) => !p.voksen && !p.sesong && p.id !== "ungdom").map((p) => p.id);
   const stokk = R.kortstokk("dilemmaer", ALLE.length);
   let H; // the actions, so one action can reuse another
   let opptatt = false; // a countdown or drum roll is running: ignore double taps (ghost taps: the kit)

@@ -418,5 +418,33 @@ export default async function (t) {
   await t.lastSide(t.side + "#jul", "document.querySelector('#skjerm h1')");
   s = await t.tilstand();
   t.sjekk(s.spill && !s.spill.ferdig && s.skjerm === "kort", `#jul skal ikke rive med seg et spill som pågår (skjerm: ${s.skjerm})`);
+
+  // ---------- The teen pack («Ungdom» 13–16): last in the data, not chosen by default, not 18+ ----------
+  await t.start();
+  await t.klikk('[data-h="nytt"]');
+  const ungdom = await t.js(`(() => { const p = window.RUSJ_DATA.dilemmaer.pakker; const u = p[p.length - 1]; return { id: u.id, navn: u.navn, ikon: u.ikon, antall: u.dilemmaer.length, voksen: !!u.voksen, fra: p.slice(0, -1).reduce((n, x) => n + x.dilemmaer.length, 0) }; })()`);
+  t.sjekk(ungdom.id === "ungdom" && ungdom.antall >= 55 && !ungdom.voksen, `Ungdomspakken skal stå sist i dataene, med rundt 60 dilemmaer (${JSON.stringify(ungdom)})`);
+  o = (await t.tilstand()).oppsett;
+  t.sjekk(!o.pakker.includes("ungdom"), "Ungdomspakken skal ikke være valgt fra start");
+  const flis = await t.tekst('[data-h="pakke"][data-v="ungdom"]');
+  t.sjekk(/13–16/.test(flis) && !/18\+/.test(flis) && flis.includes(ungdom.navn), `Ungdomsflisa skal si navnet og 13–16, ikke 18+ («${flis.replace(/\s+/g, " ")}»)`);
+  for (const v of o.pakker) await t.klikk(`[data-h="pakke"][data-v="${v}"]`, 60);
+  await t.klikk('[data-h="pakke"][data-v="ungdom"]');
+  o = (await t.tilstand()).oppsett;
+  t.sjekk(o.pakker.join() === "ungdom" && (await t.finnes('[data-h="pakke"][data-v="ungdom"][aria-pressed="true"]')), `Bare ungdomspakken skal være valgt (${o.pakker})`);
+  await t.bilde("oppsett-ungdom", true);
+  await t.klikk('[data-h="start"]');
+  await t.vent("document.querySelector('.vingle-kort')");
+  s = await t.tilstand();
+  t.sjekk(s.spill.kort >= ungdom.fra && s.spill.kort < ungdom.fra + ungdom.antall, `Dilemmaet kom ikke fra ungdomspakken (nr. ${s.spill.kort})`);
+  t.sjekk((await t.tekst(".storkort-etikett")).toLocaleLowerCase().includes(ungdom.navn.toLocaleLowerCase()), `Kortet viser ikke pakkenavnet («${await t.tekst(".storkort-etikett")}»)`);
+  await t.sov(400);
+  await t.bilde("ungdom-kort");
+  await stem(1);
+  s = await t.tilstand();
+  t.sjekk(s.spill.fase === "svar" && s.spill.a === 1 && s.spill.logg.length === 1, "Et dilemma fra ungdomspakken ble ikke talt");
+  t.sjekk(await t.friForDokk(".vingle-dom"), "Resultatet havner bak knappene nederst (ungdomspakken)");
+  await t.sov(1100);
+  await t.bilde("ungdom-svar");
   await t.send("Emulation.setEmulatedMedia", { features: [] });
 }

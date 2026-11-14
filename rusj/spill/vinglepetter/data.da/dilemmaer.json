@@ -3866,6 +3866,254 @@
           "cykle"
         ]
       ]
+    },
+    {
+      "id": "ungdom",
+      "navn": "Unge",
+      "ikon": "🎧",
+      "tekst": "For 13–16-årige",
+      "dilemmaer": [
+        [
+          "have fri hver fredag",
+          "møde klokken elleve hver dag"
+        ],
+        [
+          "selv vælge alle dine fag",
+          "selv vælge alle dine lærere"
+        ],
+        [
+          "selv vælge, hvor du sidder i alle timer",
+          "selv vælge, hvem du er i gruppe med"
+        ],
+        [
+          "kunne spole frem til frikvarteret",
+          "kunne sætte læreren på pause"
+        ],
+        [
+          "at hele klassen ser din skærmtid",
+          "at hele klassen hører din playliste"
+        ],
+        [
+          "bestemme navnet på klassens chat",
+          "bestemme profilbilledet til klassens chat"
+        ],
+        [
+          "at en video af dig bliver set af en million fremmede",
+          "at en video af dig bliver set af hele skolen"
+        ],
+        [
+          "have et profilbillede, din lillebror har valgt",
+          "have et profilbillede, din mormor har valgt"
+        ],
+        [
+          "at din mor kommenterer alt, hvad du lægger op",
+          "at din klasselærer følger dig på de sociale medier"
+        ],
+        [
+          "sende en besked om dit crush til den forkerte",
+          "sige navnet på dit crush højt i en helt stille time"
+        ],
+        [
+          "at dit crush skriver til dig først",
+          "at dit crush siger hej til dig på gangen"
+        ],
+        [
+          "at dit crush ser dig danse alene på dit værelse",
+          "at dit crush hører dig synge i bad"
+        ],
+        [
+          "blive forelsket i en, du aldrig har talt med",
+          "blive forelsket i din bedste ven"
+        ],
+        [
+          "altid rødme, når nogen siger dit navn",
+          "altid begynde at fnise, når du er nervøs"
+        ],
+        [
+          "tage på studietur til Berlin",
+          "tage på lejrskole på Bornholm"
+        ],
+        [
+          "have en lillesøster, der efterligner alt, hvad du gør",
+          "have en storebror, der bestemmer over alt, hvad du gør"
+        ],
+        [
+          "skulle i seng klokken ni, til du går ud af 9. klasse",
+          "skulle stå op klokken seks hver lørdag"
+        ],
+        [
+          "at dine forældre kommer forbi og hilser på hele klassen",
+          "at dine forældre danser til din fødselsdag"
+        ],
+        [
+          "have din lillebror med overalt i en uge",
+          "tage al opvasken derhjemme i en måned"
+        ],
+        [
+          "vide, hvilket job du får som voksen",
+          "vide, hvor du kommer til at bo som voksen"
+        ],
+        [
+          "blive professionel gamer",
+          "blive professionel fodboldspiller"
+        ],
+        [
+          "flytte hjemmefra som 16-årig",
+          "bo hjemme, til du er 30"
+        ],
+        [
+          "vide, hvilken karakter du får, før prøven går i gang",
+          "vide, hvilke spørgsmål der kommer, før prøven går i gang"
+        ],
+        [
+          "have fritidsjob i en isbod",
+          "have fritidsjob som fodboldtræner for børn"
+        ],
+        [
+          "spille et spil, du elsker, med elendigt net",
+          "spille et spil, du hader, med perfekt net"
+        ],
+        [
+          "vinde en turnering i dit yndlingsspil",
+          "vinde løbet til skolens motionsdag"
+        ],
+        [
+          "kun kunne game med lyden slået fra",
+          "kun kunne game på en bitte lille skærm"
+        ],
+        [
+          "have en holdkammerat, der altid synger i omklædningsrummet",
+          "have en holdkammerat, der altid vil tage straffesparkene"
+        ],
+        [
+          "miste alt, hvad du har gemt i dit yndlingsspil",
+          "aldrig få lov at spille dit yndlingsspil igen"
+        ],
+        [
+          "vinde en turnering med dit hold",
+          "vinde en medalje helt alene"
+        ],
+        [
+          "træne hver dag og blive den bedste",
+          "træne én gang om ugen og have det sjovt"
+        ],
+        [
+          "snuble på vej op for at modtage en pris",
+          "glemme din takketale, når du står med prisen"
+        ],
+        [
+          "falde i skolegården foran alle",
+          "have en mave, der rumler højt midt i en prøve"
+        ],
+        [
+          "sende en selfie med mad mellem tænderne til klassens chat",
+          "sende en talebesked, hvor du synger, til klassens chat"
+        ],
+        [
+          "have en hobby, ingen andre har hørt om",
+          "have samme hobby som alle dine venner"
+        ],
+        [
+          "lære at spille guitar på en uge",
+          "lære at tegne som en professionel på en uge"
+        ],
+        [
+          "starte et band med dine venner",
+          "starte en streamingkanal med dine venner"
+        ],
+        [
+          "bruge hele lørdagen på at game",
+          "bruge hele lørdagen på at bage"
+        ],
+        [
+          "vinde skolens talentshow",
+          "vinde skolens quiz"
+        ],
+        [
+          "altid være den, der planlægger noget",
+          "altid være den, der siger ja til alt"
+        ],
+        [
+          "bytte liv med din bedste ven i en uge",
+          "bytte liv med en lærer i en uge"
+        ],
+        [
+          "bestemme aftensmaden derhjemme hver dag",
+          "bestemme, hvor familien skal på ferie"
+        ],
+        [
+          "have en mobil, der kun kan ringe og sende sms",
+          "have en smartphone uden internet"
+        ],
+        [
+          "slå alle notifikationer fra for altid",
+          "få en notifikation for hver eneste besked i alle chats"
+        ],
+        [
+          "at alt, hvad du skriver, bliver læst højt",
+          "at alle beskeder, du får, bliver vist på storskærm"
+        ],
+        [
+          "have idræt i første time hver dag",
+          "have idræt i sidste time hver dag"
+        ],
+        [
+          "sidde ved siden af dit crush i alle timer",
+          "være i gruppe med dit crush i et stort projekt"
+        ],
+        [
+          "glemme navnet på en, du har gået i klasse med i tre år",
+          "kalde en lærer det forkerte navn et helt år"
+        ],
+        [
+          "være med i skolens musical",
+          "være med på skolens e-sportshold"
+        ],
+        [
+          "altid vide, hvad folk synes om dit tøj",
+          "aldrig tænke over, hvad folk synes om dit tøj"
+        ],
+        [
+          "holde konfirmation med hundrede gæster",
+          "holde konfirmation med kun de allernærmeste"
+        ],
+        [
+          "få konfirmationspengene nu",
+          "få dobbelt så mange penge om ti år"
+        ],
+        [
+          "holde blå mandag i en forlystelsespark",
+          "holde blå mandag i biografen med hele klassen"
+        ],
+        [
+          "have gaming som skolefag",
+          "have madkundskab hver dag"
+        ],
+        [
+          "skrive fem sider om dit yndlingsspil",
+          "holde en tale om dit yndlingshold"
+        ],
+        [
+          "at læreren viser klassen din ældste tegning",
+          "at læreren viser klassen en video af dig som baby"
+        ],
+        [
+          "have et kamera, der filmer alt, hvad du gør, i en uge",
+          "have en mikrofon, der optager alt, hvad du siger, i en uge"
+        ],
+        [
+          "tage på efterskole i 9. klasse",
+          "blive på din gamle skole sammen med alle dine venner"
+        ],
+        [
+          "have sofaer i klasselokalet",
+          "have en trampolin i skolegården"
+        ],
+        [
+          "møde din yndlingssanger",
+          "møde din yndlingsfodboldspiller"
+        ]
+      ]
     }
   ]
 }
