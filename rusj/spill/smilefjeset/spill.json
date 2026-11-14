@@ -1,0 +1,33 @@
+{
+  "id": "smilefjeset",
+  "navn": "Smilefjeset",
+  "undertittel": "Emoji-gåter",
+  "beskrivelse": "Gratis emoji-gåter på norsk. Se emojiene og gjett ordtaket, tingen, stedet, dyret, yrket eller sangen. Over 300 gåter – med gjengen eller alene.",
+  "kort": "Se emojiene – og gjett hva de betyr.",
+  "spillere": [1, 20],
+  "alder": 8,
+  "minutter": [5, 30],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "quiz", "alene"],
+  "rekkefolge": 95,
+  "alias": ["emoji-gater", "emojiquiz"],
+  "sok": ["emoji-gåter", "emojigåter", "emoji quiz", "gjett emojien", "rebus", "emojirebus", "gjett ordtaket", "emoji-leken"],
+  "i18n": {
+    "en": {
+      "navn": "Chuffed",
+      "undertittel": "Emoji riddles",
+      "kort": "Look at the emojis – and guess what they mean.",
+      "beskrivelse": "Free emoji riddles for your phone. Look at the emojis and guess the saying, thing, place, animal, job or song. Over 300 riddles – with friends or on your own.",
+      "slug": "chuffed",
+      "sok": ["emoji quiz", "emoji riddles", "guess the emoji", "emoji pictionary", "emoji rebus", "guess the phrase", "emoji game"]
+    },
+    "da": {
+      "navn": "Smilefjæset",
+      "undertittel": "Emoji-gåder",
+      "kort": "Se emojierne – og gæt, hvad de betyder.",
+      "beskrivelse": "Gratis emoji-gåder på dansk. Se emojierne og gæt ordsproget, tingen, stedet, dyret, jobbet eller sangen. Over 300 gåder – med vennerne eller alene.",
+      "slug": "smilefjaeset",
+      "sok": ["emoji-gåder", "emojigåder", "emoji quiz", "gæt emojien", "rebus", "gæt ordsproget", "emoji spil"]
+    }
+  }
+}

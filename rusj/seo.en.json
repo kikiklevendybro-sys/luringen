@@ -845,6 +845,51 @@
         "war card game for kids",
         "snap card game"
       ]
+    },
+    "hovedpersonen": {
+      "tittel": "Hot seat questions – 300 for friends and family",
+      "frase": "Hot seat",
+      "beskrivelse": "Play ‘hot seat’ on your phone: one answers, everyone asks. Over 300 questions for family, friends and deep chats – with stars for the best answers.",
+      "sok": [
+        "hot seat questions",
+        "hot seat game",
+        "questions to ask friends",
+        "getting to know you questions"
+      ]
+    },
+    "smilefjeset": {
+      "tittel": "Emoji riddles – over 300 to guess, free",
+      "frase": "Emoji riddles",
+      "beskrivelse": "Guess sayings, things, places, animals, jobs and nursery rhymes from a few emojis. Over 300 emoji riddles – with friends or on your own, with hints. Free.",
+      "sok": [
+        "emoji quiz",
+        "emoji riddles",
+        "guess the emoji",
+        "emoji rebus"
+      ]
+    },
+    "dommeren": {
+      "tittel": "Fill in the blank – party game with 500 cards",
+      "frase": "Fill in the blank",
+      "beskrivelse": "The party game where everyone secretly picks the funniest answer card and the judge crowns the best. Our own cards: family and grown-ups. Free, one phone.",
+      "sok": [
+        "fill in the blank game",
+        "party card game",
+        "answer cards game",
+        "funny party game"
+      ]
+    },
+    "sfinksen": {
+      "tittel": "Riddles with answers – trick questions, free",
+      "frase": "Riddles with a twist",
+      "beskrivelse": "Over 200 of our own riddles and trick questions: easy riddles for kids, wordplay and brain teasers for grown-ups. Play as a group or solo – with hints. Free.",
+      "sok": [
+        "riddles",
+        "riddles with answers",
+        "riddles for kids",
+        "trick questions",
+        "brain teasers"
+      ]
     }
   }
 }

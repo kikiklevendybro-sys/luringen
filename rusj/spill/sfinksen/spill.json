@@ -1,0 +1,33 @@
+{
+  "id": "sfinksen",
+  "navn": "Sfinksen",
+  "undertittel": "Gåter med en vri",
+  "beskrivelse": "Gratis gåter og lurespørsmål på norsk. Tenk deg godt om – svaret er ofte enklere enn du tror. Over 200 egne gåter for barn, familie og hjernetrim.",
+  "kort": "Gåter og lurespørsmål – tenk deg godt om!",
+  "spillere": [1, 20],
+  "alder": 7,
+  "minutter": [5, 30],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "quiz", "alene"],
+  "rekkefolge": 97,
+  "alias": ["gater-med-vri", "lurespørsmål"],
+  "sok": ["gåter", "gåter for barn", "lurespørsmål", "lure gåter", "gåter med svar", "hjernetrim", "tenkenøtter", "vitsegåter"],
+  "i18n": {
+    "en": {
+      "navn": "Sphinx",
+      "undertittel": "Trick riddles",
+      "kort": "Riddles with a twist – think carefully!",
+      "beskrivelse": "Free riddles and trick questions for your phone. Think carefully – the answer is often simpler than you think. Over 200 of our own riddles for kids, families and brainboxes.",
+      "slug": "sphinx",
+      "sok": ["riddles", "riddles for kids", "trick questions", "brain teasers", "riddles with answers", "lateral thinking puzzles", "funny riddles"]
+    },
+    "da": {
+      "navn": "Sfinksen",
+      "undertittel": "Gåder med et twist",
+      "kort": "Gåder og drillespørgsmål – tænk dig godt om!",
+      "beskrivelse": "Gratis gåder og drillespørgsmål på dansk. Tænk dig godt om – svaret er tit nemmere, end du tror. Over 200 egne gåder til børn, familie og hjernevrid.",
+      "slug": "sfinksen",
+      "sok": ["gåder", "gåder for børn", "drillespørgsmål", "gåder med svar", "hjernevrid", "tænkeopgaver", "sjove gåder"]
+    }
+  }
+}

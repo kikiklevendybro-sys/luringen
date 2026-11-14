@@ -862,6 +862,51 @@
         "krig kortspil for børn",
         "snap kortspil"
       ]
+    },
+    "hovedpersonen": {
+      "tittel": "Den varme stol – 300 spørgsmål på dansk, gratis",
+      "frase": "Den varme stol",
+      "beskrivelse": "Spil »den varme stol« direkte på mobilen: én svarer, alle spørger. Over 300 spørgsmål til familie, venner og dybe samtaler – med stjerner til de bedste svar.",
+      "sok": [
+        "den varme stol",
+        "spørgsmål til venner",
+        "lær hinanden at kende spørgsmål",
+        "hot seat"
+      ]
+    },
+    "smilefjeset": {
+      "tittel": "Emoji-gåder – 300 gåder på dansk, gratis",
+      "frase": "Emoji-gåder",
+      "beskrivelse": "Gæt ordsprog, ting, steder, dyr, job og børnesange ud fra nogle få emojier. Over 300 emoji-gåder på dansk – med vennerne eller alene, med hint. Gratis.",
+      "sok": [
+        "emoji-gåder",
+        "emoji quiz dansk",
+        "gæt emojien",
+        "emoji rebus"
+      ]
+    },
+    "dommeren": {
+      "tittel": "Udfyld det tomme felt – festspil med 500 kort",
+      "frase": "Udfyld det tomme felt",
+      "beskrivelse": "Festspillet, hvor alle i hemmelighed vælger det sjoveste svarkort, og dommeren kårer det bedste. Egne kort: familie og voksne. Gratis, én mobil.",
+      "sok": [
+        "udfyld det tomme felt",
+        "festspil med kort",
+        "svarkort spil",
+        "sjovt festspil"
+      ]
+    },
+    "sfinksen": {
+      "tittel": "Gåder med svar – drillespørgsmål og hjernevrid",
+      "frase": "Gåder med et twist",
+      "beskrivelse": "Over 200 egne gåder og drillespørgsmål på dansk: lette gåder til børn, ordleg og hjernevrid til voksne. Spil sammen eller alene – med hint. Gratis.",
+      "sok": [
+        "gåder",
+        "gåder med svar",
+        "gåder for børn",
+        "drillespørgsmål",
+        "hjernevrid"
+      ]
     }
   }
 }

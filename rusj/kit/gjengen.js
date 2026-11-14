@@ -1900,6 +1900,10 @@
     hermegasa: ["#ffa14a", "H"],
     notteknekkeren: ["#e8894a", "N"],
     pusen: ["#9a86e8", "P"],
+    hovedpersonen: ["#ff7a59", "H"],
+    smilefjeset: ["#ffc93c", "S"],
+    dommeren: ["#7c8cff", "D"],
+    sfinksen: ["#e0b25a", "S"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 

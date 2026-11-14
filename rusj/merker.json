@@ -42,6 +42,8 @@
     { "id": "kveld-fem", "gruppe": "kvelden", "navn": "Full pakke", "hvordan": "Spill fem spill i samme kveld.", "figur": "papegoyen", "regel": { "type": "kveldSpill", "n": 5 } },
     { "id": "kveld-stor", "gruppe": "kvelden", "navn": "Stor gjeng", "hvordan": "Spill et spill med åtte eller flere.", "figur": "varulven", "regel": { "type": "kveldFolk", "n": 8 } },
     { "id": "kveld-kronet", "gruppe": "kvelden", "navn": "Kveldens vinner", "hvordan": "Spill tre spill i én kveld, og få én klar vinner på tavla.", "emoji": "👑", "regel": { "type": "kronet", "n": 3 } },
+    { "id": "hovedpersonen-alle", "gruppe": "kvelden", "navn": "Alle i stolen", "hvordan": "Spill Hovedpersonen til alle har sittet i stolen.", "figur": "hovedpersonen", "emoji": "🪑", "regel": { "type": "merke" } },
+    { "id": "dommeren-seier", "gruppe": "kvelden", "navn": "Dommerens favoritt", "hvordan": "Vinn et spill i Dommeren.", "figur": "dommeren", "emoji": "⚖️", "regel": { "type": "merke" } },
 
     { "id": "provd-5", "gruppe": "utforsker", "navn": "Nysgjerrig", "hvordan": "Prøv fem forskjellige spill.", "figur": "detektiven", "tall": 5, "regel": { "type": "provd", "n": 5 } },
     { "id": "provd-15", "gruppe": "utforsker", "navn": "Oppdager", "hvordan": "Prøv femten forskjellige spill.", "figur": "spionen", "tall": 15, "regel": { "type": "provd", "n": 15 } },
@@ -57,6 +59,8 @@
     { "id": "notteknekkeren-alle", "gruppe": "utforsker", "navn": "Full nøttepose", "hvordan": "Få 20 av 20 i en utfordring i Nøtteknekkeren.", "figur": "notteknekkeren", "emoji": "🌰", "regel": { "type": "merke" } },
     { "id": "hermegasa-ti", "gruppe": "utforsker", "navn": "Hermemester", "hvordan": "Husk ti på rad i Hermegåsa.", "figur": "hermegasa", "emoji": "🪿", "regel": { "type": "merke" } },
     { "id": "musa-ost", "gruppe": "utforsker", "navn": "Ostejeger", "hvordan": "Finn osten i en stor labyrint i Musa.", "figur": "musa", "emoji": "🧀", "regel": { "type": "merke" } },
+    { "id": "smilefjeset-alle", "gruppe": "utforsker", "navn": "Emoji-ekspert", "hvordan": "Få alle riktig i en runde alene i Smilefjeset.", "figur": "smilefjeset", "emoji": "😄", "regel": { "type": "merke" } },
+    { "id": "sfinksen-alle", "gruppe": "utforsker", "navn": "Gåteknekker", "hvordan": "Få alle riktig i en runde alene i Sfinksen.", "figur": "sfinksen", "emoji": "🦁", "regel": { "type": "merke" } },
 
     { "id": "klassiker-sjakkhesten", "gruppe": "klassiker", "navn": "Sjakk matt!", "hvordan": "Slå mobilen i sjakk i Sjakkhesten.", "figur": "sjakkhesten", "regel": { "type": "merke" } },
     { "id": "klassiker-fireren", "gruppe": "klassiker", "navn": "Fire på rad", "hvordan": "Slå mobilen i fire på rad i Fireren.", "figur": "fireren", "regel": { "type": "merke" } },

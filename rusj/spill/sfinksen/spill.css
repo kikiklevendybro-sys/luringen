@@ -1,0 +1,189 @@
+/* Sfinksen: the riddle on the card, the hint as letter boxes, the answer with its «why». */
+
+.sx-sist {
+  margin: 10px auto 0;
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.4 var(--font-tekst);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* The card grows into the free space above the dock (up to a point). */
+html[data-spill="sfinksen"] .skjerm > .bunke:not(.kompakt) {
+  flex: 1 1 auto;
+  max-height: 620px;
+}
+
+.sx-kort .storkort-tekst {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 16px;
+  width: 100%;
+}
+
+.sx-gate {
+  display: block;
+  max-width: 100%;
+  text-wrap: pretty;
+}
+
+.sx-vist .sx-gate {
+  font-size: 0.72em;
+  line-height: 1.25;
+  opacity: 0.75;
+}
+
+.sx-svar {
+  display: block;
+  max-width: 100%;
+  padding: 10px 16px;
+  border-radius: var(--r-mid);
+  background: var(--aksent);
+  color: var(--blekk);
+  font: 800 clamp(1.25rem, 6vw, 1.75rem) / 1.2 var(--font-display);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  animation: sx-inn 0.4s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.sx-hvorfor {
+  display: block;
+  color: var(--blekk-2);
+  font: 700 clamp(0.95rem, 4.2vw, 1.1rem) / 1.35 var(--font-tekst);
+  letter-spacing: 0;
+  text-wrap: pretty;
+}
+
+@keyframes sx-inn {
+  from {
+    opacity: 0;
+    transform: scale(0.6) rotate(-3deg);
+  }
+}
+
+/* ---------- The hint: one box per letter ---------- */
+.sx-hint {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.sx-monster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  max-width: 100%;
+}
+
+.sx-ord {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+}
+
+.sx-boks {
+  display: inline-grid;
+  width: 18px;
+  height: 24px;
+  place-items: center;
+  border-bottom: 3px solid var(--blekk-2);
+  color: var(--blekk);
+  font: 800 1rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.sx-boks.vis {
+  border-bottom-color: var(--rosa-dyp);
+}
+
+.sx-tegn {
+  align-self: end;
+  color: var(--blekk-2);
+  font: 800 1rem/1 var(--font-display);
+}
+
+.sx-hintlinje {
+  color: var(--blekk-2);
+  font: 700 0.95rem/1.3 var(--font-tekst);
+  letter-spacing: 0;
+}
+
+.sx-knapper {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+}
+
+.sx-hvem h2 {
+  margin-bottom: 8px;
+}
+
+.sx-del {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0 4px;
+}
+
+@media (max-height: 700px) {
+  .sx-kort .storkort-tekst {
+    gap: 10px;
+  }
+}
+
+@media (orientation: portrait) and (max-height: 600px) {
+  html[data-spill="sfinksen"] .skjerm > .bunke:not(.kompakt) {
+    min-height: 230px;
+  }
+
+  .sx-boks {
+    width: 15px;
+    height: 20px;
+    font-size: 0.9rem;
+  }
+
+  .sx-svar {
+    padding: 8px 12px;
+    font-size: 1.2rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .sx-kort .storkort-tekst {
+    gap: 8px;
+  }
+
+  .sx-hvem {
+    margin-top: 16px;
+  }
+
+  .sx-svar {
+    padding: 6px 12px;
+    font-size: clamp(1.05rem, 5.6vh, 1.4rem);
+  }
+
+  .sx-hvorfor {
+    font-size: 0.95rem;
+  }
+
+  .sx-boks {
+    width: 15px;
+    height: 19px;
+    font-size: 0.85rem;
+  }
+}
+
+/* The compact card above the names (who got it first). */
+.bunke.kompakt .sx-kort .storkort-tekst {
+  gap: 8px;
+}
+
+.bunke.kompakt .sx-svar {
+  padding: 6px 12px;
+  font-size: clamp(1.05rem, 5vw, 1.35rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sx-svar {
+    animation: none;
+  }
+}
