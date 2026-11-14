@@ -1,0 +1,37 @@
+{
+  "_om": "Tally: the rules put on the numbers 1–20. maler: the text for each kind ({tall}, {a}, {b} are numbers, {ting} is a word, an action or a voice from the lists).",
+  "maler": {
+    "ord": "Say ‘{ting}’ instead of {tall}.",
+    "handling": "On {tall}: {ting} instead of saying the number.",
+    "stemme": "Say {tall} {ting}.",
+    "bytt": "{a} and {b} swap places: say {b} instead of {a} – and {a} instead of {b}.",
+    "hopp": "Nobody says {tall}. Skip straight over it.",
+    "alle": "On {tall}, everyone says the number together.",
+    "dobbel": "Say {tall} twice."
+  },
+  "ord": ["banana", "sausage", "potato", "sock", "trampoline", "penguin", "crumpet", "teapot", "seagull", "umbrella", "toothbrush", "hedgehog", "spaghetti", "porridge", "rubber duck", "tuba", "cactus", "giraffe", "waffle", "skipping rope"],
+  "handlinger": [
+    { "t": "clap your hands", "ikon": "👏" },
+    { "t": "say ‘miaow’", "ikon": "🐱" },
+    { "t": "stand up", "ikon": "🧍" },
+    { "t": "touch your nose", "ikon": "👃" },
+    { "t": "wave at someone", "ikon": "👋" },
+    { "t": "drum on the table", "ikon": "🥁" },
+    { "t": "say ‘baa’", "ikon": "🐑" },
+    { "t": "give a thumbs up", "ikon": "👍" },
+    { "t": "wink at someone", "ikon": "😉" },
+    { "t": "shout ‘cheers!’", "ikon": "🥂" },
+    { "t": "do a robot move", "ikon": "🤖" },
+    { "t": "scratch your head", "ikon": "🤔" }
+  ],
+  "stemmer": [
+    { "t": "in a deep voice", "ikon": "🎙️" },
+    { "t": "in a whisper", "ikon": "🤫" },
+    { "t": "like a robot", "ikon": "🤖" },
+    { "t": "singing", "ikon": "🎵" },
+    { "t": "in a squeaky voice", "ikon": "🐭" },
+    { "t": "like a newsreader", "ikon": "📺" },
+    { "t": "very slowly", "ikon": "🐢" },
+    { "t": "in French", "ikon": "🇫🇷" }
+  ]
+}

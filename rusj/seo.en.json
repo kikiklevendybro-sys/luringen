@@ -865,6 +865,16 @@
         "guess the card drinking game",
         "higher or lower card game"
       ]
+    },
+    "telleren": {
+      "tittel": "21 drinking game – count to 21 and make rules (18+)",
+      "frase": "21 drinking game",
+      "beskrivelse": "The 21 drinking game on your phone (18+): count round the circle to 21, and whoever says 21 makes a new rule. The phone keeps the board. Alcohol-free counts.",
+      "sok": [
+        "21 drinking game rules",
+        "count to 21 game",
+        "drinking games without cards"
+      ]
     }
   }
 }

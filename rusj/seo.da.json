@@ -882,6 +882,16 @@
         "gæt kortet drukspil",
         "højere lavere kortspil"
       ]
+    },
+    "telleren": {
+      "tittel": "21 drukspil – tæl til 21 og lav regler (18+)",
+      "frase": "21 – drukspil",
+      "beskrivelse": "Drukspillet 21 på mobilen (18+): tæl i rundkreds til 21, og den, der siger 21, laver en ny regel. Mobilen holder styr på tavlen. Alkoholfrit tæller.",
+      "sok": [
+        "21 drukspil regler",
+        "tæl til 21 drukspil",
+        "drukspil uden kort"
+      ]
     }
   }
 }
