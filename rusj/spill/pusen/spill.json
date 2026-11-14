@@ -1,0 +1,35 @@
+{
+  "id": "pusen",
+  "navn": "Pusen",
+  "undertittel": "Kortspill for barn",
+  "beskrivelse": "Gratis kortspill for barn med dyrekort: Svarteper, Fisk, Størst vinner og Snapp. Mot mobilen eller sammen på én mobil – og en snill, svart katt.",
+  "kort": "Svarteper, Fisk, Størst vinner og Snapp – med dyrekort.",
+  "spillere": [1, 4],
+  "minutter": [3, 15],
+  "mobiler": "en",
+  "tagger": ["barn", "kort", "familie", "klassiker"],
+  "rekkefolge": 81,
+  "farge": "#9a86e8",
+  "alder": 4,
+  "sok": ["svarteper", "svarte per", "fisk kortspill", "kortspill for barn", "krig kortspill", "snap kortspill", "barnekortspill", "dyrekort", "kortspill mot datamaskin", "kortspill for to"],
+  "motMobilen": true,
+  "alias": ["svarteper"],
+  "i18n": {
+    "en": {
+      "navn": "Kitty",
+      "undertittel": "Card games for kids",
+      "kort": "Old Maid, Go Fish, Biggest Wins and Snap – with animal cards.",
+      "beskrivelse": "Free card games for children with animal cards: Old Maid, Go Fish, Biggest Wins (like War) and Snap. Against the phone or together on one phone.",
+      "slug": "kitty",
+      "sok": ["old maid", "go fish", "snap", "war card game", "card games for kids", "kids card games", "animal cards", "card games against the computer", "card games for two"]
+    },
+    "da": {
+      "navn": "Missen",
+      "undertittel": "Kortspil for børn",
+      "kort": "Sorte Per, Fisk, Størst vinder og Snap – med dyrekort.",
+      "beskrivelse": "Gratis kortspil for børn med dyrekort: Sorte Per, Fisk, Størst vinder og Snap. Mod mobilen eller sammen på én mobil – og en sød, sort kat.",
+      "slug": "missen",
+      "sok": ["sorte per", "fisk kortspil", "kortspil for børn", "krig kortspil", "snap kortspil", "børnekortspil", "dyrekort", "kortspil mod computeren", "kortspil for to"]
+    }
+  }
+}

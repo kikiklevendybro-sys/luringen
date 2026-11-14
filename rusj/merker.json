@@ -54,6 +54,9 @@
     { "id": "provd-blof", "gruppe": "utforsker", "navn": "Pokerfjes", "hvordan": "Prøv et bløffespill.", "figur": "lognhalsen", "regel": { "type": "provdTagg", "tagg": "blof" } },
     { "id": "provd-hukommelse", "gruppe": "utforsker", "navn": "Elefanthukommelse", "hvordan": "Prøv et hukommelsesspill.", "figur": "elefanten", "regel": { "type": "provdTagg", "tagg": "hukommelse" } },
     { "id": "provd-alene", "gruppe": "utforsker", "navn": "Egen stund", "hvordan": "Prøv et spill du kan spille alene.", "figur": "slangen", "regel": { "type": "provdTagg", "tagg": "alene" } },
+    { "id": "notteknekkeren-alle", "gruppe": "utforsker", "navn": "Full nøttepose", "hvordan": "Få 20 av 20 i en utfordring i Nøtteknekkeren.", "figur": "notteknekkeren", "emoji": "🌰", "regel": { "type": "merke" } },
+    { "id": "hermegasa-ti", "gruppe": "utforsker", "navn": "Hermemester", "hvordan": "Husk ti på rad i Hermegåsa.", "figur": "hermegasa", "emoji": "🪿", "regel": { "type": "merke" } },
+    { "id": "musa-ost", "gruppe": "utforsker", "navn": "Ostejeger", "hvordan": "Finn osten i en stor labyrint i Musa.", "figur": "musa", "emoji": "🧀", "regel": { "type": "merke" } },
 
     { "id": "klassiker-sjakkhesten", "gruppe": "klassiker", "navn": "Sjakk matt!", "hvordan": "Slå mobilen i sjakk i Sjakkhesten.", "figur": "sjakkhesten", "regel": { "type": "merke" } },
     { "id": "klassiker-fireren", "gruppe": "klassiker", "navn": "Fire på rad", "hvordan": "Slå mobilen i fire på rad i Fireren.", "figur": "fireren", "regel": { "type": "merke" } },
@@ -76,6 +79,7 @@
     { "id": "klassiker-hjerteknuseren", "gruppe": "klassiker", "navn": "Kaldt hjerte", "hvordan": "Slå mobilene i Hjerteknuseren.", "figur": "hjerteknuseren", "emoji": "💔", "regel": { "type": "merke" } },
     { "id": "klassiker-lasesmeden", "gruppe": "klassiker", "navn": "Låst opp", "hvordan": "Knekk mobilens kode i Låsesmeden.", "figur": "lasesmeden", "emoji": "🔐", "regel": { "type": "merke" } },
     { "id": "klassiker-skyveren", "gruppe": "klassiker", "navn": "Femten på plass", "hvordan": "Løs femtenspillet på 4 × 4 eller større i Skyveren.", "figur": "skyveren", "emoji": "🧩", "regel": { "type": "merke" } },
+    { "id": "klassiker-pusen", "gruppe": "klassiker", "navn": "Mjau!", "hvordan": "Slå mobilen i et kortspill i Pusen.", "figur": "pusen", "emoji": "🐱", "regel": { "type": "merke" } },
 
     { "id": "arkade-bobla", "gruppe": "arkade", "navn": "Boblemester", "hvordan": "Klar brett 10 i Bobla.", "figur": "bobla", "emoji": "🫧", "regel": { "type": "merke" } },
     { "id": "arkade-ekornet", "gruppe": "arkade", "navn": "Fullt forråd", "hvordan": "Klar brett 10 i Ekornet.", "figur": "ekornet", "emoji": "🐿️", "regel": { "type": "merke" } },

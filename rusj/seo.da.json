@@ -817,6 +817,51 @@
         "logikspil gratis",
         "dagens logikspil"
       ]
+    },
+    "musa": {
+      "tittel": "Labyrint for børn – find vej til osten, gratis",
+      "frase": "Labyrint for børn",
+      "beskrivelse": "Gratis labyrintspil for børn på dansk: hjælp musen gennem hækkene hen til osten. En ny labyrint hver gang i fire størrelser – stryg, træk eller brug pilene.",
+      "sok": [
+        "labyrint for børn online",
+        "labyrintspil gratis",
+        "find vej spil",
+        "labyrint mus og ost"
+      ]
+    },
+    "hermegasa": {
+      "tittel": "Huskespil for børn – følg mønsteret med lyd",
+      "frase": "Følg mønsteret",
+      "beskrivelse": "Gratis huskespil for børn på dansk: gåsen viser farver, former og toner i en række – gør det samme, og rækken vokser. Alene eller 2–4, der skiftes.",
+      "sok": [
+        "huskespil farver og lyd",
+        "husk rækkefølgen spil",
+        "følg mønsteret spil",
+        "gentag rækken"
+      ]
+    },
+    "notteknekkeren": {
+      "tittel": "Den lille tabel – gratis tabeltræning for børn",
+      "frase": "Den lille tabel",
+      "beskrivelse": "Øv den lille tabel og hovedregning gratis: vælg tabeller, se dine fremskridt i hver tabel, og tag en rolig udfordring uden ur. Plus, minus og division også.",
+      "sok": [
+        "øv den lille tabel online",
+        "tabelspil",
+        "hovedregning for børn",
+        "gangetabel øvelse"
+      ]
+    },
+    "pusen": {
+      "motMobilen": true,
+      "tittel": "Kortspil for børn – Sorte Per, Fisk og Snap gratis",
+      "frase": "Kortspil for børn",
+      "beskrivelse": "Gratis kortspil for børn med dyrekort: Sorte Per med en sød kat, Fisk, Størst vinder (krig) og Snap. Mod mobilen på tre niveauer eller sammen på én mobil.",
+      "sok": [
+        "sorte per online",
+        "fisk kortspil regler",
+        "krig kortspil for børn",
+        "snap kortspil"
+      ]
     }
   }
 }

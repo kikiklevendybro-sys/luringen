@@ -1,0 +1,894 @@
+/* Pusen — children's card games. Everything is prefixed "pu-". Animal cards: a number in two corners
+   and the animal in the middle (bigger animals, bigger picture); the odd card is a black cat. */
+
+.skjerm-spill {
+  gap: 8px;
+}
+
+/* ---------- The cards ---------- */
+
+.pu-kort {
+  --kb: 60px;
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--kb);
+  height: calc(var(--kb) * 1.4);
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--kb) * 0.13);
+  background: none;
+  color: var(--blekk);
+  font: inherit;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 0.18s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.pu-side {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.pu-bak {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 248, 236, 0.9) 0 calc(var(--kb) * 0.13), transparent calc(var(--kb) * 0.135)),
+    radial-gradient(circle at 34% 34%, rgba(255, 248, 236, 0.85) 0 calc(var(--kb) * 0.06), transparent calc(var(--kb) * 0.065)),
+    radial-gradient(circle at 66% 34%, rgba(255, 248, 236, 0.85) 0 calc(var(--kb) * 0.06), transparent calc(var(--kb) * 0.065)),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.12) 0 1.5px, transparent 1.5px calc(var(--kb) * 0.12)),
+    linear-gradient(160deg, color-mix(in srgb, var(--aksent) 80%, #fff) 0%, var(--aksent) 45%, color-mix(in srgb, var(--aksent) 60%, var(--natt)) 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.05) #fff8ec,
+    inset 0 0 0 calc(var(--kb) * 0.07) rgba(27, 18, 48, 0.2),
+    0 2px 3px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.06) calc(var(--kb) * 0.14) rgba(6, 2, 14, 0.3);
+}
+
+.pu-for {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(170deg, #fffdf8 0%, var(--kf, #fff8ec) 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--kb) * 0.035) color-mix(in srgb, var(--kf, #fff) 60%, #170e2b 18%),
+    0 2px 3px rgba(6, 2, 14, 0.4),
+    0 calc(var(--kb) * 0.06) calc(var(--kb) * 0.14) rgba(6, 2, 14, 0.3);
+}
+
+.pu-tall {
+  position: absolute;
+  top: 5%;
+  left: 9%;
+  font: 900 calc(var(--kb) * 0.24) / 1 var(--font-display);
+}
+
+.pu-tall.ned {
+  top: auto;
+  right: 9%;
+  bottom: 5%;
+  left: auto;
+  transform: rotate(180deg);
+}
+
+.pu-dyr {
+  font-size: calc(var(--kb) * var(--s, 0.6));
+  line-height: 1;
+  filter: drop-shadow(0 2px 0 rgba(27, 18, 48, 0.15));
+}
+
+.pu-for.katt {
+  background: radial-gradient(circle at 50% 40%, #6c5a9e, #3a2f5c 75%);
+}
+
+.pu-katt {
+  width: 86%;
+  height: auto;
+}
+
+.pu-kort.ny {
+  animation: pu-ny 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+@keyframes pu-ny {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) rotateY(80deg) scale(0.85);
+  }
+}
+
+.pu-kort.tatt {
+  z-index: 2;
+  transform: translateY(-36px) rotate(-6deg) scale(1.05);
+}
+
+button.pu-kort {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button.pu-kort:hover,
+button.pu-kort:focus-visible {
+  z-index: 2;
+  transform: translateY(-10px);
+}
+
+button.pu-kort:active {
+  transform: translateY(-4px) scale(0.96);
+}
+
+/* A row of cards: they overlap when there is not room for all of them. */
+.pu-rad {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: calc(var(--kb, 60px) * 1.4);
+  container-type: inline-size;
+}
+
+.pu-rad > .pu-kort + .pu-kort {
+  margin-left: clamp(calc(var(--kb) * -0.8), calc((100cqw - var(--n) * var(--kb)) / (var(--n) - 1)), 6px);
+}
+
+/* ---------- The table ---------- */
+
+.pu-bord {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.pu-hint {
+  margin: 0;
+  color: var(--tekst-2);
+  font: 800 0.9rem/1.25 var(--font-display);
+  text-align: center;
+}
+
+.pu-melding {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  font: 900 1rem/1.2 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.pu-melding.tom {
+  visibility: hidden;
+}
+
+.pu-ikon {
+  flex: none;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.pu-seter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pu-sete {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "a n" "a m" "a i";
+  align-items: center;
+  column-gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 6px 12px 6px 6px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+  font: inherit;
+  text-align: left;
+}
+
+.pu-sete .avatar {
+  grid-area: a;
+}
+
+.pu-sete-navn {
+  grid-area: n;
+  overflow: hidden;
+  font: 900 0.92rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pu-sete small {
+  grid-area: i;
+  color: var(--tekst-2);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.pu-mini {
+  display: flex;
+  grid-area: m;
+  height: 12px;
+  margin: 2px 0;
+}
+
+.pu-mini i {
+  width: 9px;
+  height: 12px;
+  margin-right: -3px;
+  border-radius: 2px;
+  background: var(--aksent);
+  box-shadow: 0 0 0 1.5px var(--natt-2);
+}
+
+.pu-sete.na {
+  box-shadow: inset 0 0 0 3px var(--aksent);
+}
+
+.pu-sete.ute {
+  opacity: 0.55;
+}
+
+button.pu-sete {
+  cursor: pointer;
+}
+
+.pu-sete.valgt {
+  background: color-mix(in srgb, var(--aksent) 25%, var(--natt-2));
+  box-shadow: inset 0 0 0 3px var(--aksent), 0 4px 0 color-mix(in srgb, var(--aksent) 50%, var(--natt));
+}
+
+.pu-mobil {
+  --pf: color-mix(in srgb, var(--aksent) 70%, var(--natt-3));
+}
+
+.pu-midt {
+  display: grid;
+  flex: 1;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  min-height: 0;
+}
+
+.pu-trekk .pu-kort {
+  --kb: 62px;
+}
+
+.pu-trekk {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
+.pu-trekk.din .pu-rad {
+  padding-top: 10px;
+}
+
+.pu-min {
+  display: grid;
+  gap: 8px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+}
+
+.pu-hand .pu-kort {
+  --kb: 66px;
+}
+
+/* ---------- Fisk ---------- */
+
+.pu-dam-rad {
+  grid-auto-flow: column;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+}
+
+.pu-dam {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.pu-dam .pu-kort {
+  --kb: 56px;
+  grid-area: 1 / 1;
+}
+
+.pu-dam .pu-kort.bak2,
+.pu-bunke .pu-kort.bak2 {
+  transform: translate(5px, -5px) rotate(5deg);
+}
+
+.pu-dam-tall {
+  font: 900 1rem/1 var(--font-display);
+}
+
+.pu-boble {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 8px;
+  border-radius: 20px 20px 20px 6px;
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 2rem/1 var(--font-display);
+  animation: pu-ny 0.35s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+.pu-grupper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 8px;
+}
+
+.pu-gruppe {
+  --kbg: 58px;
+  display: flex;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+}
+
+.pu-gruppe .pu-kort {
+  --kb: var(--kbg);
+}
+
+.pu-gruppe .pu-kort + .pu-kort {
+  margin-left: calc(var(--kbg) * -0.7);
+}
+
+button.pu-gruppe {
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.15s;
+}
+
+button.pu-gruppe:hover,
+button.pu-gruppe:focus-visible {
+  transform: translateY(-8px);
+}
+
+button.pu-gruppe:active {
+  transform: translateY(-3px) scale(0.96);
+}
+
+.pu-sett {
+  letter-spacing: 2px;
+}
+
+/* ---------- Størst vinner and Snapp ---------- */
+
+.pu-side-topp,
+.pu-side-bunn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pu-side-topp.snudd {
+  transform: rotate(180deg);
+}
+
+.pu-side-bunn {
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+}
+
+.pu-vunnet {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  min-width: 0;
+}
+
+.pu-vunnet .avatar {
+  grid-row: span 2;
+}
+
+.pu-vunnet b {
+  overflow: hidden;
+  font: 900 0.95rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pu-vunnet small {
+  color: var(--tekst-2);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.pu-bunke {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0 8px 0 0;
+  border: 0;
+  background: none;
+  color: var(--tekst);
+  font: inherit;
+}
+
+.pu-bunke .pu-kort {
+  --kb: 62px;
+  grid-area: 1 / 1;
+}
+
+.pu-side-bunn .pu-bunke .pu-kort {
+  --kb: 76px;
+}
+
+.pu-bunke-tall {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  z-index: 3;
+  min-width: 28px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--natt);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  font: 900 0.85rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.pu-bunke.aktiv {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pu-bunke.aktiv .pu-kort:not(.bak2) {
+  box-shadow: 0 0 0 4px var(--aksent), 0 0 26px color-mix(in srgb, var(--aksent) 60%, transparent);
+  animation: pu-vink 1.6s ease-in-out infinite;
+}
+
+@keyframes pu-vink {
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.pu-trykk {
+  position: absolute;
+  bottom: -10px;
+  z-index: 3;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--aksent);
+  box-shadow: 0 3px 0 var(--aksent-dyp);
+  color: var(--blekk);
+  font: 900 0.95rem/1.1 var(--font-display);
+  white-space: nowrap;
+}
+
+.pu-arena {
+  align-content: center;
+}
+
+.pu-slagene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  --kbs: clamp(64px, calc(100cqw / (var(--runder) * 1.25) - 10px), 96px);
+}
+
+.pu-arena {
+  container-type: inline-size;
+}
+
+.pu-slag {
+  display: grid;
+  gap: 10px;
+}
+
+.pu-slag .pu-kort {
+  --kb: var(--kbs);
+  animation: pu-ny 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  animation-delay: calc(var(--i) * 0.35s);
+}
+
+.pu-slag .pu-kort.vinner {
+  box-shadow: 0 0 0 4px #3ed68a, 0 0 24px rgba(62, 214, 138, 0.6);
+}
+
+.pu-skjult {
+  display: grid;
+  gap: 10px;
+}
+
+.pu-skjult .pu-kort {
+  --kb: calc(var(--kbs) * 0.6);
+}
+
+.pu-haug {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 210px;
+  height: 160px;
+}
+
+.pu-haug .pu-kort {
+  --kb: 104px;
+  grid-area: 1 / 1;
+}
+
+.pu-haug .pu-kort.under {
+  transform: translateX(-44px) rotate(-10deg) scale(0.9);
+}
+
+.pu-haug .pu-kort.over {
+  transform: translateX(28px) rotate(5deg);
+}
+
+.pu-haug.like .pu-kort {
+  box-shadow: 0 0 0 4px var(--lampe), 0 0 30px color-mix(in srgb, var(--lampe) 70%, transparent);
+  border-radius: calc(var(--kb) * 0.13);
+}
+
+.pu-haug-tall {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--natt);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  font: 900 0.85rem/1.2 var(--font-display);
+}
+
+.pu-tom {
+  color: var(--tekst-3);
+  font: 800 0.95rem/1.2 var(--font-display);
+}
+
+.pu-snapp {
+  flex: none;
+  width: 116px;
+  height: 76px;
+  padding: 0;
+  border: 0;
+  border-radius: 24px;
+  background: var(--rosa);
+  box-shadow: 0 6px 0 var(--rosa-dyp), 0 12px 24px var(--skygge);
+  color: #fff;
+  font: 900 1.35rem/1 var(--font-display);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pu-snapp:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--rosa-dyp);
+  transform: translateY(5px);
+}
+
+.pu-snapp.like {
+  animation: pu-puls 0.6s ease-in-out infinite;
+}
+
+@keyframes pu-puls {
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.pu-snapp:disabled {
+  opacity: 0.4;
+}
+
+/* ---------- The gate, home, setup and result ---------- */
+
+.pu-port-sist {
+  align-self: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font: 800 0.95rem/1.2 var(--font-display);
+  text-align: center;
+}
+
+.pu-flisikon {
+  display: block;
+  width: 40px;
+  height: 40px;
+}
+
+.pu-flisikon .pu-katt {
+  width: 40px;
+}
+
+.pu-moduser .flis b {
+  hyphens: auto;
+}
+
+.pu-rekorder {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.pu-rekorder ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pu-rekorder li {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+}
+
+.pu-rekorder li b {
+  margin-right: 4px;
+  color: var(--tekst);
+}
+
+.pu-sistlinje,
+.pu-linje {
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.pu-stilling {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pu-stilling li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 10px 10px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.pu-stilling li.leder {
+  box-shadow: inset 0 0 0 3px var(--aksent);
+}
+
+.pu-stilling b {
+  overflow: hidden;
+  font: 900 1.05rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pu-stilling span {
+  font: 900 1rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.pu-sluttkatt {
+  display: inline-block;
+  width: 1.6em;
+  vertical-align: middle;
+}
+
+/* ---------- Smaller phones ---------- */
+
+@media (max-width: 359px) {
+  .pu-hand .pu-kort {
+    --kb: 56px;
+  }
+
+  .pu-trekk .pu-kort {
+    --kb: 54px;
+  }
+
+  .pu-gruppe {
+    --kbg: 50px;
+  }
+
+  .pu-snapp {
+    width: 96px;
+    height: 68px;
+    font-size: 1.15rem;
+  }
+
+  .pu-bunke .pu-kort {
+    --kb: 54px;
+  }
+
+  .pu-side-bunn .pu-bunke .pu-kort {
+    --kb: 62px;
+  }
+
+  .pu-sete small {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-height: 700px) {
+  .pu-bord {
+    gap: 6px;
+  }
+
+  .pu-melding {
+    min-height: 38px;
+    padding-block: 4px;
+    font-size: 0.92rem;
+  }
+
+  .pu-hand .pu-kort {
+    --kb: 54px;
+  }
+
+  .pu-trekk .pu-kort,
+  .pu-dam .pu-kort {
+    --kb: 48px;
+  }
+
+  .pu-gruppe {
+    --kbg: 48px;
+  }
+
+  .pu-haug {
+    height: 128px;
+  }
+
+  .pu-haug .pu-kort {
+    --kb: 84px;
+  }
+
+  .pu-bunke .pu-kort,
+  .pu-side-bunn .pu-bunke .pu-kort {
+    --kb: 54px;
+  }
+
+  .pu-snapp {
+    height: 62px;
+  }
+
+  .pu-slagene {
+    --kbs: clamp(52px, calc(100cqw / (var(--runder) * 1.25) - 10px), 74px);
+  }
+
+  .pu-boble {
+    font-size: 1.6rem;
+  }
+}
+
+/* ---------- Landscape phones: the table in two columns ---------- */
+
+@media (orientation: landscape) and (max-height: 600px) and (min-width: 560px) {
+  html[data-spill="pusen"] .app:has(.pu-bord) {
+    max-width: 1000px;
+  }
+
+  .pu-bord {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    column-gap: 18px;
+    row-gap: 6px;
+  }
+
+  .pu-seter,
+  .pu-melding {
+    grid-column: 1;
+  }
+
+  .pu-svarte .pu-midt,
+  .pu-fisk .pu-midt {
+    grid-column: 1;
+  }
+
+  .pu-svarte .pu-min,
+  .pu-fisk .pu-min {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-content: center;
+  }
+
+  .pu-krig .pu-arena,
+  .pu-snap .pu-arena {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .pu-krig .pu-melding,
+  .pu-snap .pu-melding {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .pu-side-topp {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .pu-side-bunn {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: end;
+  }
+
+  .pu-melding {
+    min-height: 36px;
+    font-size: 0.88rem;
+  }
+
+  .pu-hand .pu-kort {
+    --kb: 52px;
+  }
+
+  .pu-trekk .pu-kort,
+  .pu-dam .pu-kort {
+    --kb: 46px;
+  }
+
+  .pu-gruppe {
+    --kbg: 46px;
+  }
+
+  .pu-bunke .pu-kort,
+  .pu-side-bunn .pu-bunke .pu-kort {
+    --kb: 48px;
+  }
+
+  .pu-haug {
+    height: 150px;
+  }
+
+  .pu-haug .pu-kort {
+    --kb: 92px;
+  }
+
+  .pu-snapp {
+    width: 100px;
+    height: 58px;
+  }
+
+  .pu-slagene {
+    --kbs: clamp(52px, calc(100cqw / (var(--runder) * 1.25) - 10px), 84px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pu-kort,
+  .pu-slag .pu-kort,
+  .pu-kort.ny,
+  .pu-snapp.like,
+  .pu-bunke.aktiv .pu-kort:not(.bak2) {
+    animation: none;
+    transition: none;
+  }
+}

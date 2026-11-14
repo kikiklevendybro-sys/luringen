@@ -1,0 +1,34 @@
+{
+  "id": "hermegasa",
+  "navn": "Hermegåsa",
+  "undertittel": "Følg mønsteret",
+  "beskrivelse": "Gratis huskespill for barn: gåsa viser en rekke med farger, former og toner – herm etter, så blir rekka lengre. Alene eller 2–4 som bytter på.",
+  "kort": "Se, lytt og herm etter gåsa – rekka blir lengre og lengre.",
+  "spillere": [1, 4],
+  "minutter": [2, 15],
+  "mobiler": "en",
+  "tagger": ["barn", "hukommelse", "familie", "alene"],
+  "rekkefolge": 83,
+  "farge": "#ffa14a",
+  "alder": 4,
+  "sok": ["huskespill", "husk rekkefølgen", "følg mønsteret", "fargespill", "hukommelsesspill for barn", "gjenta mønsteret", "hermespill", "huskespill med lyd", "spill for barn"],
+  "alias": ["folg-monsteret"],
+  "i18n": {
+    "en": {
+      "navn": "Goosey",
+      "undertittel": "Follow the pattern",
+      "kort": "Watch, listen and copy the goose – the pattern grows and grows.",
+      "beskrivelse": "Free pattern game for children: the goose shows a pattern of colours, shapes and sounds – copy it and the pattern grows. On your own or 2–4 taking turns.",
+      "slug": "goosey",
+      "sok": ["follow the pattern", "pattern game", "repeat the sequence", "colour sequence game", "sequence game for kids", "copy the pattern", "sound and colour game", "games for kids"]
+    },
+    "da": {
+      "navn": "Gåsen",
+      "undertittel": "Følg mønsteret",
+      "kort": "Se, lyt og gør som gåsen – rækken bliver længere og længere.",
+      "beskrivelse": "Gratis huskespil for børn: gåsen viser en række farver, former og toner – gør det samme, så bliver rækken længere. Alene eller 2–4, der skiftes.",
+      "slug": "gaasen",
+      "sok": ["huskespil", "følg mønsteret", "husk rækkefølgen", "farvespil", "huskespil for børn", "gentag mønsteret", "spil for børn", "efterabe"]
+    }
+  }
+}

@@ -1810,6 +1810,10 @@
     skyveren: ["#3cc6b4", "S"],
     globetrotteren: ["#58a6ff", "G"],
     mureren: ["#e2704f", "M"],
+    musa: ["#c3b1f5", "M"],
+    hermegasa: ["#ffa14a", "H"],
+    notteknekkeren: ["#e8894a", "N"],
+    pusen: ["#9a86e8", "P"],
   };
   for (const [id, [farge, bokstav]] of Object.entries(NYE)) if (!FIGURER[id]) FIGURER[id] = plassholder(farge, bokstav);
 
