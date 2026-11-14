@@ -879,6 +879,18 @@
         "casino against the computer"
       ],
       "motMobilen": true
+    },
+    "makkeren": {
+      "tittel": "Amerikaner card game – free against the phone",
+      "frase": "Amerikaner",
+      "beskrivelse": "Play Amerikaner, the Norwegian bidding card game, free: bid tricks, choose trumps and call a card to find your partner. Two against two, versus three phones.",
+      "sok": [
+        "amerikaner rules",
+        "norwegian card games",
+        "bidding card game online",
+        "call a partner card game"
+      ],
+      "motMobilen": true
     }
   }
 }

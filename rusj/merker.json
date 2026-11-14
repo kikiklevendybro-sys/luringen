@@ -83,6 +83,7 @@
     { "id": "klassiker-skyveren", "gruppe": "klassiker", "navn": "Femten på plass", "hvordan": "Løs femtenspillet på 4 × 4 eller større i Skyveren.", "figur": "skyveren", "emoji": "🧩", "regel": { "type": "merke" } },
     { "id": "klassiker-pusen", "gruppe": "klassiker", "navn": "Mjau!", "hvordan": "Slå mobilen i et kortspill i Pusen.", "figur": "pusen", "emoji": "🐱", "regel": { "type": "merke" } },
     { "id": "klassiker-fiskeren", "gruppe": "klassiker", "navn": "Napp!", "hvordan": "Slå mobilen i kasino i Fiskeren.", "figur": "fiskeren", "emoji": "🎣", "regel": { "type": "merke" } },
+    { "id": "klassiker-makkeren", "gruppe": "klassiker", "navn": "Godt meldt!", "hvordan": "Slå mobilene i Amerikaner i Makkeren.", "figur": "makkeren", "emoji": "🤝", "regel": { "type": "merke" } },
 
     { "id": "arkade-bobla", "gruppe": "arkade", "navn": "Boblemester", "hvordan": "Klar brett 10 i Bobla.", "figur": "bobla", "emoji": "🫧", "regel": { "type": "merke" } },
     { "id": "arkade-ekornet", "gruppe": "arkade", "navn": "Fullt forråd", "hvordan": "Klar brett 10 i Ekornet.", "figur": "ekornet", "emoji": "🐿️", "regel": { "type": "merke" } },

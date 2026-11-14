@@ -896,6 +896,18 @@
         "kasino mod computeren"
       ],
       "motMobilen": true
+    },
+    "makkeren": {
+      "tittel": "Amerikaner kortspil – gratis mod mobilen",
+      "frase": "Amerikaner",
+      "beskrivelse": "Spil Amerikaner gratis på dansk: meld stik, vælg trumf, og spørg efter et kort for at finde din makker. To mod to hver runde, mod tre mobiler på tre niveauer.",
+      "sok": [
+        "amerikaner kortspil",
+        "amerikaner regler",
+        "kortspil med melding",
+        "meldespil mod computeren"
+      ],
+      "motMobilen": true
     }
   }
 }
