@@ -1,0 +1,33 @@
+{
+  "id": "mistanken",
+  "navn": "Mistanken",
+  "undertittel": "Paranoia",
+  "beskrivelse": "Gratis «Paranoia» på norsk (18+). Mobilen hvisker et hemmelig spørsmål – du svarer med et navn. Vil den utpekte vite hvorfor? Mynten bestemmer.",
+  "kort": "Et hemmelig spørsmål, et navn – og alle lurer på hvorfor.",
+  "spillere": [3, 16],
+  "alder": 18,
+  "minutter": [10, 45],
+  "mobiler": "en",
+  "tagger": ["drikke", "fest"],
+  "rekkefolge": 93,
+  "alder18": true,
+  "sok": ["paranoia", "paranoia drikkelek", "paranoia spørsmål", "hvem her", "hviskeleken", "drikkeleker"],
+  "i18n": {
+    "en": {
+      "navn": "Nosy",
+      "undertittel": "Paranoia",
+      "kort": "A secret question, a name – and everyone wonders why.",
+      "beskrivelse": "Free Paranoia drinking game (18+). The phone whispers a secret question – you answer with a name. Does the person named want to know why? A coin decides.",
+      "slug": "nosy",
+      "sok": ["paranoia", "paranoia drinking game", "paranoia questions", "who here would", "whisper game", "drinking games"]
+    },
+    "da": {
+      "navn": "Mistanken",
+      "undertittel": "Paranoia",
+      "kort": "Et hemmeligt spørgsmål, et navn – og alle undrer sig over hvorfor.",
+      "beskrivelse": "Gratis »Paranoia« på dansk (18+). Mobilen hvisker et hemmeligt spørgsmål – du svarer med et navn. Vil den udpegede vide hvorfor? Mønten bestemmer.",
+      "slug": "mistanken",
+      "sok": ["paranoia", "paranoia drukspil", "paranoia spørgsmål", "hvem her", "hviskelegen", "drukspil"]
+    }
+  }
+}

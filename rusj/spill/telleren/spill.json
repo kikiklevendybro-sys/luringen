@@ -1,0 +1,33 @@
+{
+  "id": "telleren",
+  "navn": "Telleren",
+  "undertittel": "Tell til 21",
+  "beskrivelse": "Gratis drikkelek på norsk (18+). Tell til 21 i ring – den som sier 21, lager en ny regel. Mobilen holder tavla. Små slurker – alkoholfritt teller like mye.",
+  "kort": "Tell til 21 – og for hver runde kommer en ny regel.",
+  "spillere": [2, 12],
+  "alder": 18,
+  "minutter": [10, 30],
+  "mobiler": "en",
+  "tagger": ["drikke", "fest"],
+  "rekkefolge": 92,
+  "alder18": true,
+  "sok": ["21 drikkelek", "tell til 21", "tjueen drikkelek", "telleleken", "drikkelek uten kort", "drikkeleker"],
+  "i18n": {
+    "en": {
+      "navn": "Tally",
+      "undertittel": "Count to 21",
+      "kort": "Count to 21 – and every round brings a new rule.",
+      "beskrivelse": "Free drinking game (18+). Count to 21 round the circle – whoever says 21 makes a new rule. The phone keeps the board. Small sips, and alcohol-free counts.",
+      "slug": "tally",
+      "sok": ["21 drinking game", "count to 21 drinking game", "21 game rules", "counting drinking game", "drinking games without cards", "drinking games"]
+    },
+    "da": {
+      "navn": "Tælleren",
+      "undertittel": "Tæl til 21",
+      "kort": "Tæl til 21 – og hver runde giver en ny regel.",
+      "beskrivelse": "Gratis drukspil på dansk (18+). Tæl til 21 i rundkreds – den, der siger 21, laver en ny regel. Mobilen holder styr på tavlen. Alkoholfrit tæller.",
+      "slug": "taelleren",
+      "sok": ["21 drukspil", "tæl til 21", "enogtyve drukspil", "tællelegen", "drukspil uden kort", "drukspil"]
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "_om": "Tælleren: reglerne, der lægges på tallene 1–20. maler: teksten for hver type ({tall}, {a}, {b} er tal, {ting} er et ord, en handling eller en stemme fra listerne).",
+  "maler": {
+    "ord": "Sig »{ting}« i stedet for {tall}.",
+    "handling": "Ved {tall}: {ting} i stedet for at sige tallet.",
+    "stemme": "Sig {tall} {ting}.",
+    "bytt": "{a} og {b} bytter plads: Sig {b} i stedet for {a} – og {a} i stedet for {b}.",
+    "hopp": "Ingen siger {tall}. Spring lige hen over det.",
+    "alle": "Ved {tall} siger alle tallet på samme tid.",
+    "dobbel": "Sig {tall} to gange."
+  },
+  "ord": ["banan", "pølse", "kartoffel", "sok", "trampolin", "pingvin", "frikadelle", "rugbrød", "måge", "paraply", "tandbørste", "pindsvin", "spaghetti", "grød", "badeand", "tuba", "kaktus", "giraf", "vaffel", "sjippetov"],
+  "handlinger": [
+    { "t": "klap i hænderne", "ikon": "👏" },
+    { "t": "sig »miav«", "ikon": "🐱" },
+    { "t": "rejs dig op", "ikon": "🧍" },
+    { "t": "tag dig på næsen", "ikon": "👃" },
+    { "t": "vink til nogen", "ikon": "👋" },
+    { "t": "bank i bordet", "ikon": "🥁" },
+    { "t": "sig »mæh«", "ikon": "🐑" },
+    { "t": "giv en tommel op", "ikon": "👍" },
+    { "t": "blink til nogen", "ikon": "😉" },
+    { "t": "råb »skål!«", "ikon": "🥂" },
+    { "t": "lav en robotbevægelse", "ikon": "🤖" },
+    { "t": "klø dig i hovedet", "ikon": "🤔" }
+  ],
+  "stemmer": [
+    { "t": "med dyb stemme", "ikon": "🎙️" },
+    { "t": "hviskende", "ikon": "🤫" },
+    { "t": "som en robot", "ikon": "🤖" },
+    { "t": "syngende", "ikon": "🎵" },
+    { "t": "med pibestemme", "ikon": "🐭" },
+    { "t": "som en nyhedsoplæser", "ikon": "📺" },
+    { "t": "meget langsomt", "ikon": "🐢" },
+    { "t": "på engelsk", "ikon": "🇬🇧" }
+  ]
+}

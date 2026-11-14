@@ -929,6 +929,46 @@
         "farvelægning på mobil",
         "malebog for børn"
       ]
+    },
+    "sjefen": {
+      "tittel": "Drukspil med navne – opgaver og regler (18+)",
+      "frase": "Drukspil med navne",
+      "beskrivelse": "Drukspil på mobilen, hvor kortene siger jeres navne (18+): opgaver, dueller, regler der varer, og »drik eller gør«. Små slurke – alkoholfrit tæller.",
+      "sok": [
+        "drukspil med navne",
+        "drukspil app gratis",
+        "drukleg med navne"
+      ]
+    },
+    "spakona": {
+      "tittel": "Giveren – drukspil med kort: gæt kortet (18+)",
+      "frase": "Gæt kortet – drukspil",
+      "beskrivelse": "Giver-legen på mobilen (18+): gæt værdien på næste kort, få »højere« eller »lavere« og ét forsøg til. Kun små slurke – alkoholfrit tæller lige så meget.",
+      "sok": [
+        "dealer drukspil regler",
+        "gæt kortet drukspil",
+        "højere lavere kortspil"
+      ]
+    },
+    "telleren": {
+      "tittel": "21 drukspil – tæl til 21 og lav regler (18+)",
+      "frase": "21 – drukspil",
+      "beskrivelse": "Drukspillet 21 på mobilen (18+): tæl i rundkreds til 21, og den, der siger 21, laver en ny regel. Mobilen holder styr på tavlen. Alkoholfrit tæller.",
+      "sok": [
+        "21 drukspil regler",
+        "tæl til 21 drukspil",
+        "drukspil uden kort"
+      ]
+    },
+    "mistanken": {
+      "tittel": "Paranoia drukspil – hemmelige spørgsmål (18+)",
+      "frase": "Paranoia – drukspil",
+      "beskrivelse": "Paranoia på mobilen (18+): Mobilen hvisker et hemmeligt »Hvem her …?«-spørgsmål, du svarer med et navn, og mønten afgør, om alle får at vide hvorfor.",
+      "sok": [
+        "paranoia drukspil regler",
+        "paranoia spørgsmål",
+        "hvem her spørgsmål"
+      ]
     }
   }
 }

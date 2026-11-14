@@ -1,0 +1,54 @@
+{
+  "_om": "Spåkona: det spåkona sier. hoyere/lavere: hintet etter første gjett. forste/andre: riktig på første eller andre forsøk. bom: feil to ganger.",
+  "hoyere": [
+    "Kula sier: høyere!",
+    "Jeg ser … noe høyere.",
+    "Høyere, kjære deg. Høyere!",
+    "Stjernene peker oppover.",
+    "Kula blinker: høyere!",
+    "Se opp – kortet er høyere.",
+    "Ånden hvisker: høyere.",
+    "Tåka letter … høyere!",
+    "Kortet ligger høyere enn du tror."
+  ],
+  "lavere": [
+    "Kula sier: lavere!",
+    "Jeg ser … noe lavere.",
+    "Lavere, kjære deg. Lavere!",
+    "Stjernene peker nedover.",
+    "Kula blinker: lavere!",
+    "Se ned – kortet er lavere.",
+    "Ånden hvisker: lavere.",
+    "Tåka letter … lavere!",
+    "Kortet ligger lavere enn du tror."
+  ],
+  "forste": [
+    "Rett i kula! Du er synsk.",
+    "Du så det før jeg gjorde!",
+    "Krystallklart!",
+    "Spåkona er imponert.",
+    "Første forsøk! Er det du som er spåkona?",
+    "Kortene har ingen hemmeligheter for deg.",
+    "Det sto skrevet i stjernene!"
+  ],
+  "andre": [
+    "Andre gang er lykkens gang!",
+    "Der kom synet!",
+    "Kula hjalp deg på vei.",
+    "Litt tåke, men du så det!",
+    "Godt lest!",
+    "Treff på andre forsøk!",
+    "Stjernene viste vei."
+  ],
+  "bom": [
+    "Tåka var for tett.",
+    "Kula ble helt grumsete.",
+    "Stjernene sto feil.",
+    "Spåkona rister på hodet.",
+    "Kortene lurte deg!",
+    "Ikke denne gangen.",
+    "Selv spåkoner bommer.",
+    "Synet uteble.",
+    "Kula trenger en pusse."
+  ]
+}

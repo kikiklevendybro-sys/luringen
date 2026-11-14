@@ -912,6 +912,46 @@
         "colouring on phone",
         "colouring book for kids"
       ]
+    },
+    "sjefen": {
+      "tittel": "Drinking game with names – tasks and rules (18+)",
+      "frase": "Drinking game with names",
+      "beskrivelse": "A drinking game on your phone where the cards call out your names (18+): tasks, duels, rules that last and ‘drink or dare’. Small sips – alcohol-free counts.",
+      "sok": [
+        "drinking game with names",
+        "drinking game app free",
+        "drink or dare game"
+      ]
+    },
+    "spakona": {
+      "tittel": "The dealer drinking game – guess the card (18+)",
+      "frase": "Guess the card drinking game",
+      "beskrivelse": "The dealer game on your phone (18+): guess the next card, hear ‘higher’ or ‘lower’ and get one more try. Small sips only – alcohol-free counts the same.",
+      "sok": [
+        "dealer drinking game rules",
+        "guess the card drinking game",
+        "higher or lower card game"
+      ]
+    },
+    "telleren": {
+      "tittel": "21 drinking game – count to 21 and make rules (18+)",
+      "frase": "21 drinking game",
+      "beskrivelse": "The 21 drinking game on your phone (18+): count round the circle to 21, and whoever says 21 makes a new rule. The phone keeps the board. Alcohol-free counts.",
+      "sok": [
+        "21 drinking game rules",
+        "count to 21 game",
+        "drinking games without cards"
+      ]
+    },
+    "mistanken": {
+      "tittel": "Paranoia drinking game – secret questions (18+)",
+      "frase": "Paranoia drinking game",
+      "beskrivelse": "Paranoia on your phone (18+): the phone whispers a secret ‘Who here …?’ question, you answer with a name, and a coin decides if everyone finds out why.",
+      "sok": [
+        "paranoia drinking game rules",
+        "paranoia questions",
+        "who here would questions"
+      ]
     }
   }
 }
