@@ -275,6 +275,39 @@ export default async function (t) {
   await t.sov(300);
   s = await t.tilstand();
   t.sjekk(s.spill && s.spill.ferdig === false && s.skjerm !== "oppsett", "#jul skal ikke avbryte et spill som pågår");
+
+  // The teen pack («Ungdom» 13–16): last in the data, not chosen by default, not 18+; a card from
+  // it all the way to the spotlight. (Four names, as above: the kit check below removes one.)
+  await t.start({ navn: ["Testspiller A", "Testspiller B", "Testspiller C", "Testspiller D"] });
+  await t.klikk('[data-h="nytt"]');
+  const ungdom = await t.js(`(() => { const p = window.RUSJ_DATA.utsagn.pakker; const u = p[p.length - 1]; return { id: u.id, navn: u.navn, antall: u.utsagn.length, fra: p.slice(0, -1).reduce((n, x) => n + x.utsagn.length, 0), utsagn: u.utsagn }; })()`);
+  t.sjekk(ungdom.id === "ungdom" && ungdom.antall >= 55, `Ungdomspakken skal stå sist i dataene, med rundt 60 utsagn (${ungdom.id}: ${ungdom.antall})`);
+  s = await t.tilstand();
+  t.sjekk(!s.oppsett.pakker.includes("ungdom"), "Ungdomspakken skal ikke være valgt fra start");
+  const flis = await t.tekst('[data-h="pakke"][data-v="ungdom"]');
+  t.sjekk(/13–16/.test(flis) && !/18\+/.test(flis) && flis.includes(ungdom.navn), `Ungdomsflisa skal si navnet og 13–16, ikke 18+ («${flis.replace(/\s+/g, " ")}»)`);
+  for (const v of s.oppsett.pakker) await t.klikk(`[data-h="pakke"][data-v="${v}"]`, 60);
+  await t.klikk('[data-h="pakke"][data-v="ungdom"]');
+  s = await t.tilstand();
+  t.sjekk(s.oppsett.pakker.join() === "ungdom", `Bare ungdomspakken skal være valgt (${s.oppsett.pakker})`);
+  await t.bilde("ungdom-oppsett", true);
+  await t.klikk('[data-h="start"]');
+  await t.vent("document.querySelector('.storkort')");
+  s = await t.tilstand();
+  t.sjekk(s.spill.kort >= ungdom.fra && s.spill.kort < ungdom.fra + ungdom.antall, `Kortet kom ikke fra ungdomspakken (nr. ${s.spill.kort})`);
+  t.sjekk((await t.tekst(".storkort-etikett")).toLocaleLowerCase().includes(ungdom.navn.toLocaleLowerCase()), `Kortet viser ikke pakkenavnet («${await t.tekst(".storkort-etikett")}»)`);
+  t.sjekk(await t.friForDokk(".storkort"), "Kortet havner bak knappene (ungdomspakken)");
+  await t.bilde("ungdom-kort");
+  const utsagn = ungdom.utsagn[s.spill.kort - ungdom.fra];
+  await pause();
+  await t.klikk('[data-h="pek"]', 50);
+  await t.vent("document.querySelector('[data-h=\"vinner\"]')", 8000);
+  await t.klikk('[data-h="vinner"][data-v="1"]');
+  await t.vent("document.querySelector('.peke-kaaret')");
+  t.sjekk((await t.tekst(".peke-kaaret-til")).includes(utsagn), `Rampelyset viser ikke utsagnet fra ungdomspakken («${await t.tekst(".peke-kaaret-til")}»)`);
+  t.sjekk(await t.friForDokk(".peke-kaaret-linje"), "Linja under stempelet havner bak knappene (ungdomspakken)");
+  await t.sov(500);
+  await t.bilde("ungdom-kaaret");
   // The kit check runs on the set-up screen: leave the game above and start from a clean slate.
   // (Norwegian only: it checks the kit's own words and the Norwegian file paths.)
   if (!t.norsk) return;
