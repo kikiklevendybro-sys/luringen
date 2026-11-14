@@ -77,9 +77,20 @@ visibility change) and work with keyboard; no ads, no lives to buy, no timers th
 Children's games: no reading needed where possible, big targets, praise, no failure sounds.
 
 ## Wave 4 — party and 18+
-13 18+: task deck with player names, Guess the card, Count to 21, Paranoia (responsible tone) ·
-14 Hot seat, Emoji riddles, Fill in the blank (own content), Trick riddles · 15 Word grid hunt
-(4×4), Anagrams, Amerikaner, Kasino · 16 Treasure hunt for kids' parties, Colouring.
+
+| job | games (rekkefolge) | tagger (suggested) |
+|---|---|---|
+| 13 | 18+: task deck with player names (90, «Picolo»-type, never that name), Guess the card (91, «the dealer» game, family-safe name), Count to 21 (92, rules that grow), Paranoia (93) | drikke, fest |
+| 14 | Hot seat (94), Emoji riddles (95, no brands or film/TV titles, use sayings, objects, places, traditional songs), Fill in the blank (96, own content, family deck + adult deck behind the 18+ door), Trick riddles (97) | fest, familie |
+| 15 | Word grid hunt 4×4 (98, Boggle-type, never that name), Anagrams (99), Amerikaner (100, card game in pairs with bidding), Kasino (101, the Nordic card game) | ord, kort, klassiker |
+| 16 | Treasure hunt for kids' parties (102, printable or on-phone clues by age), Colouring (103, own line art) | barn, familie |
+
+Notes: 18+ games follow the existing 18+ games exactly: `"alder18": true`, `"alder": 18`, the
+age door, a responsible tone, water/no-pressure options and the help line from
+scripts/om-spillet.mjs. No drinking pressure on anyone who says no. Party content must be
+kind: no humiliation, no sexual content outside the 18+ deck, nothing about real people.
+Check every new id and every en/da slug against the existing games before you start
+(ls rusj/spill and the i18n slugs) – two games may never share an id or a slug.
 
 ## Left out on purpose
 Falling blocks (Tetris trade dress), network/.io games, 3D runners and sports, poker/blackjack/
