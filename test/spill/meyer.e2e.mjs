@@ -3,7 +3,9 @@
 // reload while the dice are hidden under the cup keeps them hidden, back + «Fortsett» keeps the
 // game, and the last one standing gets «Kåringen» with the podium, the evening's scoreboard and the
 // best bluffer on the home screen. Then one person against the phone: its turns play visibly at a
-// readable pace and the game reaches «Kåringen».
+// readable pace and the game reaches «Kåringen». The dice are the kit's (R.terninger): two real dice
+// under the cup on the felt, shown on top as the game rolled them when the cup is lifted; the peek
+// card shows them lying still. A swipe on the felt shakes the cup.
 
 export default async function (t) {
   const sp = async () => (await t.tilstand()).spill;
@@ -24,8 +26,25 @@ export default async function (t) {
     await fase("resultat");
     await t.sov(1300);
   };
-  // No die may be drawn anywhere on the page while the dice are under the cup (only the held card shows them).
-  const skjulteTerninger = () => t.js(`document.querySelectorAll("#skjerm .my-t").length === 0 && !document.querySelector(".mappe.apen")`);
+  // No die may be seen anywhere on the page while the dice are under the cup (only the held card shows them).
+  const skjulteTerninger = () =>
+    t.js(`Array.from(document.querySelectorAll("#skjerm .trn-scene, #skjerm .trn-statisk")).every((e) => getComputedStyle(e).visibility === "hidden" || !e.getClientRects().length) && !document.querySelector(".mappe.apen")`);
+  // What the dice under the lifted cup show on top, read from how each cube is turned on screen.
+  const topp = () =>
+    t.js(`Array.from(document.querySelectorAll("#my-terninger .trn-t")).map((b) => {
+      const m = new DOMMatrix(getComputedStyle(b.querySelector(".trn-kube")).transform);
+      const z = [m.m13, m.m23, m.m33];
+      let best = -Infinity;
+      let verdi = 0;
+      b.querySelectorAll(".trn-flate").forEach((f, a) => {
+        const opp = (a & 1 ? -1 : 1) * z[a >> 1];
+        if (opp > best) {
+          best = opp;
+          verdi = Number(f.dataset.v);
+        }
+      });
+      return verdi;
+    }).sort().join(",")`);
 
   await t.start({ navn: ["Testspiller A", "Testspiller B", "Testspiller C"] });
   await t.js("Rusj.felles.installTips = 2; Rusj.lagreFelles()");
@@ -51,7 +70,7 @@ export default async function (t) {
   t.sjekk(await t.finnes(".my-titt .mappe"), "Mangler kortet man holder for å kikke");
   await t.bilde("skjult");
   const slipp = await t.hold(".my-titt .mappe", 600);
-  t.sjekk(await t.finnes(".mappe.apen .my-bak .my-t"), "Kortet viser ikke terningene når man holder");
+  t.sjekk((await t.antall(".mappe.apen .my-bak .trn-solo")) === 2, "Kortet viser ikke terningene når man holder");
   t.sjekk(/64/.test(await t.tekst(".mappe.apen .my-bak-verdi")), "Kortet sier ikke 64");
   await t.bilde("kikk");
   await slipp();
@@ -72,7 +91,8 @@ export default async function (t) {
   s = await sp();
   t.sjekk(s.utfall.sann === true && s.liv.join() === "6,5,6", `Løgn! på en sann melding: feil liv (${s.liv})`);
   t.sjekk(!t.norsk || /Det var sant/.test(await t.tekst("#skjerm h1")), "Resultatet sier ikke «Det var sant!»");
-  t.sjekk((await t.antall("#skjerm .my-t")) === 2, "Begeret ble løftet uten at terningene vises");
+  t.sjekk((await t.antall("#my-terninger .trn-t")) === 2 && (await t.js(`getComputedStyle(document.querySelector("#my-terninger .trn-scene")).visibility === "visible"`)), "Begeret ble løftet uten at terningene vises");
+  t.sjekk((await topp()) === "4,6", `Under begeret ligger ${await topp()}, kastet var 6-4`);
   await t.bilde("loftet-sant");
 
   // ----- Round 2: B (the loser) starts, rolls 3-1 and bluffs Meyer; C calls — B loses two -----

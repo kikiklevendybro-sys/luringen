@@ -4,7 +4,9 @@
 // keep the game; a double is offered and taken; a last checker borne off wins a gammon worth the
 // cube twice, «Angre» takes the win back, and the match ends in «Kåringen». Then against the phone
 // on Vanskelig: it rolls and plays without freezing the page, and a win counts in the record on the
-// home screen. The board must be clear of the dock and the page must not scroll at any size.
+// home screen. The board must be clear of the dock and the page must not scroll at any size. The dice
+// are the kit's (R.terninger): they roll along the bar, show on top what the game rolled, dim when used,
+// and a double shows how many moves each die still gives; the doubling cube is a small 3D cube.
 // Runs in every edition (texts are checked in Norwegian only).
 const punkt = (n) => `.tv-p[data-v="${n}"]`;
 
@@ -20,6 +22,24 @@ const tom = () => Array(52).fill(0);
 export default async function (t) {
   const sp = async () => (await t.tilstand()).spill;
   const klikk = (sel, ms = 420) => t.klikk(sel, ms);
+  const landet = () => t.vent("!document.querySelector('[data-kaster]')", 9000);
+  // What each die shows on top, read from how each cube is turned on screen, and whether it is dimmed.
+  const terningene = () =>
+    t.js(`Array.from(document.querySelectorAll("#tv-kast .trn-t")).map((b) => {
+      const m = new DOMMatrix(getComputedStyle(b.querySelector(".trn-kube")).transform);
+      const z = [m.m13, m.m23, m.m33];
+      let best = -Infinity;
+      let verdi = 0;
+      b.querySelectorAll(".trn-flate").forEach((f, a) => {
+        const opp = (a & 1 ? -1 : 1) * z[a >> 1];
+        if (opp > best) {
+          best = opp;
+          verdi = Number(f.dataset.v);
+        }
+      });
+      return { verdi, brukt: b.classList.contains("brukt"), merke: (b.querySelector(".trn-merke") || {}).textContent || "" };
+    })`);
+  const topp = async () => (await terningene()).map((d) => d.verdi).join();
 
   async function brettSjekk(navn) {
     await t.js("window.scrollTo(0, 0)");
@@ -51,6 +71,9 @@ export default async function (t) {
   await t.sov(400);
   let s = await sp();
   t.sjekk(s.apning && s.kast[0] !== s.kast[1] && s.tur === (s.kast[0] > s.kast[1] ? 0 : 1), "Åpningskastet bestemmer ikke hvem som begynner");
+  t.sjekk((await topp()) === s.kast.join(), `Åpningsterningene viser ${await topp()}, kastet var ${s.kast}`);
+  t.sjekk(await t.finnes("#tv-kast .trn-t.s0") && (await t.finnes("#tv-kast .trn-t.s1")), "Åpningskastet viser ikke én terning i hver farge");
+  t.sjekk(await t.finnes(".tv-kube .trn-dobling"), "Doblingskuben er ikke en 3D-kube");
   t.sjekk((await t.antall(".tv-b")) >= 30, "Brettet viser ikke de 30 brikkene");
   t.sjekk((await t.antall(".tv-celle.kan")) > 0, "Ingen brikker lyser selv om spilleren skal flytte");
   await t.bilde("start");
@@ -89,14 +112,22 @@ export default async function (t) {
   t.sjekk(s.tur === 1 && !s.kast, "Turen gikk ikke over til svart");
   t.sjekk(await t.finnes(".tv-p.sist"), "Det siste trekket er ikke merket for neste spiller");
 
-  // Black rolls and moves one checker; reload and back + continue keep it
-  await klikk('[data-h="kast"]', 900);
+  // Black rolls (5-2, forced) and moves one checker; reload and back + continue keep it
+  await t.js(`(() => { const v = [5, 2]; let i = 0; crypto.getRandomValues = (a) => { a[0] = Math.floor((v[i++ % v.length] - 0.5) / 6 * 4294967296); return a; }; })()`);
+  await klikk('[data-h="kast"]', 150);
+  await t.bilde("svart-i-lufta");
+  await landet();
+  await t.js("delete crypto.getRandomValues");
+  await t.sov(300);
   s = await sp();
-  t.sjekk(s.kast && s.rest.length >= 2, "Svart fikk ikke kastet");
+  t.sjekk(s.kast && s.kast.join() === "5,2" && s.rest.length === 2, `Svart fikk ikke kastet 5-2 (${s.kast})`);
+  t.sjekk((await topp()) === "5,2", `Terningene viser ${await topp()} på toppen, svart slo 5-2`);
+  t.sjekk(await t.js(`Array.from(document.querySelectorAll("#tv-kast .trn-t")).every((b) => b.classList.contains("s1"))`), "Svarts terninger er ikke svarte");
   await t.bilde("svart-kastet");
   if (!(await t.finnes(".tv-p.mal, .tv-ut.mal"))) await klikk(".tv-celle.kan");
   await klikk(".tv-p.mal, .tv-ut.mal");
   t.sjekk((await sp()).steg.length === 1, "Svart fikk ikke flyttet");
+  t.sjekk((await terningene()).filter((d) => d.brukt).length === 1, "Terningen som er brukt, er ikke dimmet");
   await t.lastSide(t.side, "document.querySelectorAll('.tv-p').length === 24");
   t.sjekk((await sp()).steg.length === 1, "Trekket ble borte etter omlasting");
   await t.klikk("#tilbake");
@@ -104,6 +135,17 @@ export default async function (t) {
   await t.bilde("hjem-fortsett");
   await klikk('[data-h="fortsett"]');
   await t.vent("document.querySelectorAll('.tv-p').length === 24");
+
+  // A double (4-4): two dice, each «×2», and one used move takes one from the first die
+  await lastMed(t, `(S) => { const sp = S.spill; sp.tur = 0; sp.kast = [4, 4]; sp.rest = [4, 4, 4, 4]; sp.steg = []; sp.apning = false; sp.valgt = -1; }`);
+  let d = await terningene();
+  t.sjekk(d.length === 2 && d.map((x) => x.verdi).join() === "4,4" && d.map((x) => x.merke).join() === "×2,×2", `En dobbel viser ${JSON.stringify(d)}`);
+  await klikk(".tv-celle.kan");
+  await klikk(".tv-p.mal, .tv-ut.mal");
+  d = await terningene();
+  t.sjekk(d.map((x) => x.merke).join() === "×1,×2", `Etter ett trekk med en dobbel: ${d.map((x) => x.merke)}`);
+  await t.bilde("dobbel");
+  await klikk('[data-h="angre"]');
 
   // The cube: white offers, black takes
   await lastMed(t, `(S) => { const sp = S.spill; sp.tur = 0; sp.kast = null; sp.rest = []; sp.steg = []; sp.apning = false; }`);
@@ -170,7 +212,11 @@ export default async function (t) {
     await taImot();
     await t.vent("Rusj.S.spill.tur === 0 || Rusj.S.spill.resultat", 15000);
     if ((await sp()).resultat) break;
-    if (await t.finnes('[data-h="kast"]:not([disabled])')) await klikk('[data-h="kast"]', 900);
+    if (await t.finnes('[data-h="kast"]:not([disabled])')) {
+      await klikk('[data-h="kast"]', 150);
+      await landet();
+      await t.sov(300);
+    }
     if (tur === 0) await t.bilde("din-tur");
     for (let n = 0; n < 5 && (await t.finnes(".tv-celle.kan")); n++) {
       if (!(await t.finnes(".tv-p.mal, .tv-ut.mal"))) await klikk(".tv-celle.kan");

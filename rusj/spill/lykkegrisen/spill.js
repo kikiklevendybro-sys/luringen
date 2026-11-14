@@ -236,60 +236,63 @@
   const kanStoppe = (sp, poeng) => sp.inne[sp.tur] || !sp.inngang || poeng >= sp.inngang;
 
   let robotId = null;
+  let tegnForKast = null; // the dice about to be thrown while the screen is drawn before the throw
   let robotTrykk = false;
   let hoppAnim = false;
   let ruller = false;
 
   // ---------- Dice ----------
-  // A flat die face; the throw is shown by visKast (one place, so a shared dice module can take over).
-  const PUNKTER = {
-    1: [[50, 50]],
-    2: [[72, 28], [28, 72]],
-    3: [[72, 28], [50, 50], [28, 72]],
-    4: [[28, 28], [72, 28], [28, 72], [72, 72]],
-    5: [[28, 28], [72, 28], [50, 50], [28, 72], [72, 72]],
-    6: [[28, 26], [72, 26], [28, 50], [72, 50], [28, 74], [72, 74]],
-  };
-  const flate = (n, klasse) =>
-    `<svg class="${klasse || "lg-flate"}" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><rect x="6" y="6" width="88" height="88" rx="20"/>${PUNKTER[n]
-      .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${n === 1 ? 13 : 10}"${n === 1 ? ' class="en"' : ""}/>`)
-      .join("")}</svg>`;
-  function visKast(indekser) {
-    return new Promise((ferdig) => {
-      const knapper = R.$$("#lg-brett .lg-t");
-      if (!knapper.length || R.rolig() || hoppAnim) return setTimeout(ferdig, 60);
-      for (let k = 0; k < 7; k++) R.lyd.stoy(k * 0.034 + Math.random() * 0.012, 0.024, 0.08 + Math.random() * 0.07, 2600 + Math.random() * 2800);
-      indekser.forEach((i, n) => {
-        const el = knapper[i];
-        if (!el) return;
-        el.style.setProperty("--forsink", `${n * 45}ms`);
-        el.classList.add("rull");
-      });
-      R.lyd.stoy(0.42, 0.04, 0.26, 1400);
-      R.lyd.stoy(0.52, 0.04, 0.18, 1500);
-      R.vibrer([14, 60, 10]);
-      setTimeout(ferdig, 680);
-    });
-  }
+  // Six real 3D dice in a tray, thrown with a simulated throw (R.terninger, rusj/kit/terninger.js);
+  // the dice put aside lie on the tray's shelf. The game decides the numbers; the kit lands the dice
+  // on them.
 
   // ---------- Markup ----------
-  function terningHtml(sp, i) {
-    const v = sp.terninger[i];
-    const valgt = !!sp.valgt[i];
-    const etikett = valgt ? R.t("Terning {n} viser {v}, lagt til side", { n: i + 1, v }) : R.t("Terning {n} viser {v}", { n: i + 1, v });
-    return `<button class="lg-t${valgt ? " valgt" : ""}" data-h="velg" data-v="${i}" data-stille aria-pressed="${valgt}" aria-label="${esc(etikett)}">${flate(v)}</button>`; // sprak-ok (the action's name)
+  // The six physical dice. Those put aside this turn lie on the shelf (in `hylla`, in the order of
+  // sp.lagt's dice since all six last were thrown); the others are this roll's dice, in order. Not
+  // saved: after a reload the shelf is filled from the left.
+  const BRETT = "lg-brett";
+  let hylla = [];
+  let sist = [5, 1, 4, 6, 2, 3]; // what each die showed last (before a turn's first throw)
+  let sveipKast = null; // a fling on the tray: its direction and speed for the next throw
+  function fysisk(sp) {
+    const n = sp.terninger.length;
+    if (!n) hylla = []; // before a turn's first throw: all six on the felt
+    else if (hylla.length !== 6 - n || hylla.some((id) => id < 0 || id > 5)) hylla = Array.from({ length: 6 - n }, (_, k) => k);
+    const naa = [0, 1, 2, 3, 4, 5].filter((id) => !hylla.includes(id)); // this roll's dice, in order
+    const lagt = hylla.length ? sp.lagt.flatMap((g) => g.verdier).slice(-hylla.length) : [];
+    const verdier = sist.slice();
+    hylla.forEach((id, k) => (verdier[id] = lagt[k] || verdier[id]));
+    naa.forEach((id, j) => {
+      if (j < n) verdier[id] = sp.terninger[j];
+    });
+    return { naa, verdier };
   }
-  function brettHtml(sp) {
+  function brettHtml(sp, forKast) {
+    const { naa, verdier } = fysisk(sp);
     const tom = sp.status === "kast" || !sp.terninger.length;
-    const terninger = tom ? Array.from({ length: sp.fri }, (_, i) => `<span class="lg-t vent" aria-hidden="true">${flate([5, 1, 4, 6, 2, 3][i])}</span>`).join("") : sp.terninger.map((_, i) => terningHtml(sp, i)).join("");
-    const lagt = sp.lagt.length
-      ? `<div class="lg-lagt" aria-label="${esc(R.t("Lagt til side"))}">${sp.lagt.map((g) => `<span class="lg-gruppe">${g.verdier.map((v) => flate(v, "lg-liten")).join("")}<b>+${tall(g.poeng)}</b></span>`).join("")}</div>`
-      : "";
-    return `<div class="lg-brett${tom ? " klar" : ""}${sp.status === "tomt" ? " tomt" : ""}" id="lg-brett" style="--n: ${Math.max(sp.fri, sp.terninger.length, 1)}">
-      <div class="lg-terninger" role="group" aria-label="${esc(R.t("Terningene"))}">${terninger}</div>
-      ${lagt}
-      <p class="lg-hint" id="lg-hint" aria-live="polite">${esc(hintTekst(sp))}</p>
-    </div>`;
+    const robot = erRobot(sp, sp.tur);
+    const indeks = (id) => (tom ? -1 : naa.indexOf(id)); // the die's place in this roll, −1 on the shelf
+    sist = verdier;
+    return R.terninger.html({
+      id: BRETT,
+      klasse: "lg-brett" + (sp.status === "tomt" ? " tomt" : ""),
+      verdier,
+      holdt: verdier.map((_, id) => hylla.includes(id) || (indeks(id) >= 0 && !!sp.valgt[indeks(id)])),
+      handling: "velg", // sprak-ok (the action's name)
+      dataV: verdier.map((_, id) => indeks(id)),
+      av: verdier.map((_, id) => indeks(id) < 0 || robot || ruller || sp.status !== "velg"),
+      etikett: (id, v, holdt) =>
+        indeks(id) < 0
+          ? tom
+            ? R.t("Terning {n} viser {v}", { n: id + 1, v })
+            : R.t("Terning {n} viser {v}, lagt til side", { n: id + 1, v })
+          : holdt
+            ? R.t("Terning {n} viser {v}, lagt til side", { n: indeks(id) + 1, v })
+            : R.t("Terning {n} viser {v}", { n: indeks(id) + 1, v }),
+      navn: R.t("Terningene"),
+      klar: sp.status === "kast" && !sp.klar,
+      forKast,
+    }) + `<p class="lg-hint" id="lg-hint" aria-live="polite">${esc(hintTekst(sp))}</p>`; // under the tray: also when dice lie on the shelf
   }
   function hintTekst(sp) {
     if (sp.klar) return R.t("Spillet er ferdig – se kåringen!");
@@ -408,6 +411,11 @@
   async function kast(S) {
     const sp = S.spill;
     if (!pagar(S) || ruller || sp.status === "tomt" || sp.klar) return;
+    const vei = sveipKast;
+    sveipKast = null;
+    // the physical dice chosen this roll go to the shelf (all six back on the felt when all scored)
+    const { naa } = fysisk(sp);
+    const valgteId = naa.filter((_, j) => j < sp.terninger.length && sp.valgt[j]);
     if (sp.status === "velg") {
       // Put the chosen dice aside first.
       const v = valgtVerdi(sp);
@@ -424,10 +432,16 @@
     sp.status = tomt ? "tomt" : "velg";
     if (tomt) bomTur(sp);
     R.lagre(); // the result is saved before the dice land
+    hylla = sp.fri === 6 ? [] : hylla.concat(valgteId);
+    const kastes = [0, 1, 2, 3, 4, 5].filter((id) => !hylla.includes(id));
     ruller = true;
+    tegnForKast = kastes;
     R.vis();
+    tegnForKast = null;
+    const brett = R.$("#lg-brett");
+    if (brett) brett.dataset.ruller = "1"; // gone with the redraw after the dice have landed
     const fortsatt = R.vakt();
-    await visKast(sp.terninger.map((_, i) => i));
+    await R.terninger.kast(BRETT, { verdier: fysisk(sp).verdier, indekser: kastes, retning: vei && vei.retning, styrke: vei && vei.styrke, rolig: hoppAnim });
     ruller = false;
     if (!fortsatt() || R.S.spill !== sp) return;
     R.vis();
@@ -814,8 +828,22 @@
           const sp = S.spill;
           visTabell(sp.tabell);
           const lapp = sp.logg.some((l) => l.length) ? `<section class="lg-under" aria-label="${esc(R.t("Poenglista"))}">${lappHtml(sp, { siste: 3 })}</section>` : "";
-          return `${hodeHtml(sp)}${stillingHtml(sp)}${brettHtml(sp)}${lapp}${dokkHtml(sp)}`;
+          return `${hodeHtml(sp)}${stillingHtml(sp)}${brettHtml(sp, tegnForKast)}${lapp}${dokkHtml(sp)}`;
         },
+        etter: () =>
+          R.terninger.koble(BRETT, {
+            vedSveip(vei) {
+              const sp = R.S.spill;
+              if (!pagar(R.S) || ruller || sp.klar || erRobot(sp, sp.tur) || R.arkApent()) return;
+              if (sp.status === "tomt") return;
+              if (sp.status === "velg" && !valgtVerdi(sp)) {
+                R.toast(valgte(sp).length ? R.t("Noen av dem du har valgt, gir ikke poeng") : R.t("Legg til side minst én terning som gir poeng"));
+                return;
+              }
+              sveipKast = vei;
+              kast(R.S).catch((feil) => console.error(feil));
+            },
+          }),
         inn(S) {
           if (!S.spill) return R.gaTil("hjem");
           ruller = false;
@@ -942,6 +970,8 @@
         if (sp.valgt[i]) R.lyd.pop();
         else R.lyd.tone(420, 0, 0.08, "sine", 0.16, 300);
         R.vibrer(8);
+        const id = fysisk(sp).naa[i];
+        if (id != null) R.terninger.hold(BRETT, id, sp.valgt[i], { rolig: hoppAnim });
         R.vis();
       },
       beste(el, e, S) {

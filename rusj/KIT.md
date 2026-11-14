@@ -154,7 +154,8 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
 
 Loaded only when spill.json has `"terninger": true`. A wooden tray with felt, seen from above with a
 mild perspective; real 3D dice (pips on all six faces, opposite faces sum to 7) that are thrown with a
-simulated physics throw, and a rail under the felt for held dice. Terninga is the reference.
+simulated physics throw, and a rail under the felt for held dice. Terninga is the reference; Meyer,
+Brikka, Stigespillet, Verktøykassa, Tavla and Lykkegrisen show the other ways to use it.
 
 ```js
 // in vis(S): the tray's markup (fills the height your CSS gives it; min. ~126 px)
@@ -177,8 +178,21 @@ R.terninger.hold("mitt-brett", i, true, { etikett, verdi });  // to the rail / b
 - Reduced motion (`R.rolig()`) or `rolig: true`: no flight, the dice fade in where they land.
 - Sounds (`R.lyd.stoy/tone`, as hard as each impact) and a light `R.vibrer` come with the throw.
 - Look: override `--trn-filt`, `--trn-tre`, `--trn-flate`, `--trn-oye`, `--trn-en` on `.trn-brett`;
-  `--trn-kant` is the wooden rim (10 px; Terninga uses 7 px on the smallest phones).
+  `--trn-kant` is the wooden rim (10 px; Terninga uses 7 px on the smallest phones). Per die (with
+  `klasser`): also `--trn-glans`, `--trn-oye-glans`, `--trn-kjerne` (Tavla's dark dice).
+- More `html` options: `plass` (felt width in dice: 2.15 is a small box for one die, 7.5 small dice
+  under Meyer's cup), `hoyde` (felt height in dice without a rail: 1.5 is a lane along Tavla's bar),
+  `flate: false` (no wood or felt: dice on your own board), `knapper: false` (dice nobody taps; the
+  tray is one picture labelled `navn`), `sveip: false` (taps go through to what lies under),
+  `klasser`/`merker` (per die: a class, a small badge such as «×2»), `av` and `dataV` (per die:
+  disabled, and what your action gets as `data-v`), `forKast: [i]` (the dice you are about to
+  throw keep showing their old faces if you redraw the screen before `kast`).
+- More `kast` options: `omrade: [w, h]` (thrown in a smaller space in the middle, e.g. under a cup),
+  `lyd: false`. While dice fly, the tray has `data-kaster` (tests wait for it to go).
+- `R.terninger.statisk(verdier, { s, vri })`: dice lying still, for a card (Meyer's peek card);
+  `R.terninger.dobling(verdi, { s })`: backgammon's doubling cube with its value on top.
 - `R.terninger.fysikk` is the pure physics (also `window.RusjTerninger` in Node: test/terninger.test.mjs).
+  test/terninger-spill.test.mjs proves that the games' rules give exactly what they gave before.
 
 ## Other languages (rusj/SPRAK.md)
 

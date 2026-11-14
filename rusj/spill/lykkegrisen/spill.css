@@ -130,163 +130,21 @@
 
 /* ---------- The tray ---------- */
 
+/* The tray (R.terninger, rusj/kit/terninger.css) takes the room the screen has left over; the dice put
+   aside lie on its shelf. */
 .lg-brett {
-  position: relative;
-  display: grid;
-  gap: 10px;
-  padding: 16px 12px 12px;
-  border-radius: 24px;
-  background:
-    radial-gradient(ellipse 90% 70% at 50% 40%, color-mix(in srgb, var(--aksent) 16%, transparent), transparent 75%),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 3px, transparent 3px 7px),
-    var(--lg-filt);
-  box-shadow:
-    inset 0 0 0 3px color-mix(in srgb, var(--aksent) 45%, var(--natt)),
-    inset 0 10px 22px rgba(6, 2, 14, 0.55),
-    0 6px 0 color-mix(in srgb, var(--aksent-dyp) 55%, var(--natt));
+  flex: 1 1 170px;
+  min-height: 170px;
+  max-height: 290px;
 }
 
-.lg-terninger {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
-.lg-t {
-  position: relative;
-  display: grid;
-  flex: 0 1 60px;
-  place-items: center;
-  min-width: 0;
-  aspect-ratio: 1;
-  padding: 0;
-  border: 0;
-  border-radius: 14px;
-  background: none;
-  cursor: pointer;
-  transition: transform 0.18s cubic-bezier(0.3, 1.6, 0.5, 1);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.lg-t svg {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 4px 0 rgba(6, 2, 14, 0.45));
-}
-
-.lg-flate rect,
-.lg-liten rect {
-  fill: #fffaf2;
-  stroke: #170e2b;
-  stroke-width: 7;
-}
-
-.lg-flate circle,
-.lg-liten circle {
-  fill: #170e2b;
-}
-
-.lg-flate circle.en,
-.lg-liten circle.en {
-  fill: #e3364f;
-}
-
-.lg-t.valgt {
-  transform: translateY(-8px);
-}
-
-.lg-t.valgt svg {
-  filter: drop-shadow(0 0 0 transparent) drop-shadow(0 0 2px var(--aksent)) drop-shadow(0 0 2px var(--aksent)) drop-shadow(0 10px 6px rgba(6, 2, 14, 0.45));
-}
-
-.lg-t.valgt .lg-flate rect {
-  fill: color-mix(in srgb, var(--aksent) 30%, #fffaf2);
-}
-
-.lg-t.vent {
-  cursor: default;
-  opacity: 0.45;
-}
-
-.lg-brett.klar .lg-t.vent {
-  animation: lg-vink 3.4s ease-in-out 1.2s infinite;
-}
-
-.lg-brett.klar .lg-t:nth-child(2) { animation-delay: 1.32s; }
-.lg-brett.klar .lg-t:nth-child(3) { animation-delay: 1.44s; }
-.lg-brett.klar .lg-t:nth-child(4) { animation-delay: 1.56s; }
-.lg-brett.klar .lg-t:nth-child(5) { animation-delay: 1.68s; }
-.lg-brett.klar .lg-t:nth-child(6) { animation-delay: 1.8s; }
-
-@keyframes lg-vink {
-  0%,
-  80%,
-  100% {
-    translate: 0 0;
-  }
-  86% {
-    translate: 0 -5px;
-  }
-  92% {
-    translate: 0 0;
-  }
-}
-
-.lg-t.rull svg {
-  animation: lg-rull 0.62s cubic-bezier(0.2, 0.7, 0.3, 1) var(--forsink, 0ms) both;
-}
-
-@keyframes lg-rull {
-  0% {
-    opacity: 0.2;
-    transform: translate(-16px, -26px) rotate(-280deg) scale(0.5);
-  }
-  55% {
-    opacity: 1;
-    transform: translate(3px, 3px) rotate(14deg) scale(1.08);
-  }
-  100% {
-    transform: none;
-  }
-}
-
-.lg-brett.tomt .lg-t {
-  opacity: 0.55;
-  filter: grayscale(0.6);
-}
-
-/* The dice put aside this turn */
-.lg-lagt {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-}
-
-.lg-gruppe {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px 9px 3px 4px;
-  border-radius: 999px;
-  background: rgba(6, 2, 14, 0.35);
-}
-
-.lg-liten {
-  width: 20px;
-  height: 20px;
-}
-
-.lg-gruppe b {
-  margin-left: 4px;
-  color: var(--mynte);
-  font: 900 0.82rem/1 var(--font-display);
-  font-variant-numeric: tabular-nums;
+.lg-brett.tomt .trn-scene {
+  filter: grayscale(0.7) brightness(0.8);
 }
 
 .lg-hint {
   min-height: 1.2em;
-  margin: 0;
+  margin-top: -4px;
   color: var(--tekst-2);
   font: 800 0.9rem/1.2 var(--font-display);
   text-align: center;
@@ -496,18 +354,9 @@
   }
 
   .lg-brett {
-    gap: 8px;
-    padding: 12px 10px 10px;
-  }
-
-  .lg-t {
-    flex-basis: 50px;
-  }
-}
-
-@media (max-width: 359px) {
-  .lg-terninger {
-    gap: 5px;
+    --trn-kant: 7px;
+    flex-basis: 130px;
+    min-height: 130px;
   }
 }
 
@@ -535,22 +384,7 @@
   }
 
   .lg-brett {
-    gap: 6px;
-    padding: 10px;
-  }
-
-  .lg-t {
-    flex-basis: 46px;
-  }
-
-  .lg-t.valgt {
-    transform: translateY(-5px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lg-t.rull svg,
-  .lg-brett.klar .lg-t.vent {
-    animation: none;
+    flex-basis: 178px;
+    min-height: 178px;
   }
 }

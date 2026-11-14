@@ -8,6 +8,7 @@
   "alder": 5,
   "minutter": [15, 40],
   "mobiler": "en",
+  "terninger": true,
   "tagger": ["klassiker", "familie", "barn"],
   "rekkefolge": 34,
   "sok": ["ludo", "knuff", "brettspill", "terningspill", "fia"],

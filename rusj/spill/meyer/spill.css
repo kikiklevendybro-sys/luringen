@@ -139,22 +139,26 @@
   min-height: 210px;
   max-height: 300px;
   margin: 8px 0 4px;
-  border-radius: 28px;
-  background:
-    radial-gradient(ellipse 80% 70% at 50% 60%, color-mix(in srgb, var(--aksent) 22%, transparent), transparent 75%),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 3px, transparent 3px 7px),
-    #1d4a3c;
-  box-shadow:
-    inset 0 0 0 3px color-mix(in srgb, var(--aksent) 40%, #0e2a22),
-    inset 0 12px 26px rgba(6, 2, 14, 0.55),
-    0 6px 0 #0e2a22;
-  overflow: hidden;
+}
+
+/* The felt is the kit's tray (R.terninger, rusj/kit/terninger.css); the dice lie in the middle,
+   under the cup, and show when it is lifted. */
+.my-filt {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+
+/* Under the cup nobody sees the dice – not even a corner while it shakes or tips */
+.my-brett:not(.loftet) .my-filt .trn-scene {
+  visibility: hidden;
 }
 
 .my-beger {
   position: relative;
   z-index: 2;
   display: block;
+  pointer-events: none;
   width: 132px;
   filter: drop-shadow(0 14px 10px rgba(6, 2, 14, 0.55));
   transform-origin: 50% 90%;
@@ -203,8 +207,8 @@
 .my-brett.loftet .my-beger {
   position: absolute;
   top: 6px;
-  right: 8%;
-  width: 92px;
+  right: var(--my-loft-h, 8%);
+  width: var(--my-loft-b, 92px);
   transform: rotate(18deg);
   opacity: 0.9;
 }
@@ -229,14 +233,14 @@
   }
   100% {
     top: 6px;
-    right: 8%;
-    width: 92px;
+    right: var(--my-loft-h, 8%);
+    width: var(--my-loft-b, 92px);
     transform: rotate(18deg);
     opacity: 0.9;
   }
 }
 
-.my-brett.loftet.anim .my-terninger {
+.my-brett.loftet.anim .trn-scene {
   animation: my-fram 0.5s 0.45s ease-out both;
 }
 
@@ -264,95 +268,6 @@
     opacity: 0;
     transform: rotate(-8deg) scale(2);
   }
-}
-
-/* ---------- Dice (cubes) ---------- */
-
-.my-terninger {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  gap: 18px;
-  justify-content: center;
-}
-
-.my-t {
-  --s: 62px;
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: calc(var(--s) * 1.25);
-  height: calc(var(--s) + 24px);
-  padding-bottom: 14px;
-  perspective: 520px;
-}
-
-.my-hopp,
-.my-kube {
-  position: relative;
-  display: block;
-  width: var(--s);
-  height: var(--s);
-  transform-style: preserve-3d;
-}
-
-.my-kube {
-  position: absolute;
-  inset: 0;
-}
-
-.my-side {
-  position: absolute;
-  inset: 0;
-  border-radius: 17%;
-  background: radial-gradient(circle at 30% 22%, #fffefa 0 28%, #f6e8d2 100%);
-  box-shadow:
-    inset 0 0 0 max(2px, calc(var(--s) * 0.05)) #170e2b,
-    inset 0 calc(var(--s) * -0.07) 0 rgba(23, 14, 43, 0.08);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-.my-side.s1 { transform: translateZ(calc(var(--s) / 2)); }
-.my-side.s6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
-.my-side.s2 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); }
-.my-side.s5 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
-.my-side.s3 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); }
-.my-side.s4 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }
-
-.my-side i {
-  position: absolute;
-  width: 20%;
-  height: 20%;
-  margin: -10% 0 0 -10%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #3b2b5c, #170e2b 70%);
-}
-
-.my-side.s1 i {
-  width: 28%;
-  height: 28%;
-  margin: -14% 0 0 -14%;
-  background: radial-gradient(circle at 40% 35%, #ff6d80, #d42a45 70%);
-}
-
-.my-side .p1 { left: 27%; top: 27%; }
-.my-side .p3 { left: 73%; top: 27%; }
-.my-side .p4 { left: 27%; top: 50%; }
-.my-side .p5 { left: 50%; top: 50%; }
-.my-side .p6 { left: 73%; top: 50%; }
-.my-side .p7 { left: 27%; top: 73%; }
-.my-side .p9 { left: 73%; top: 73%; }
-
-.my-skygge {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  width: calc(var(--s) * 1.02);
-  height: calc(var(--s) * 0.3);
-  margin-left: calc(var(--s) * -0.51);
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(6, 2, 14, 0.62), transparent);
 }
 
 /* ---------- The peek card ---------- */
@@ -426,14 +341,10 @@
   color: #cfe9de;
 }
 
-.my-bak .my-terninger {
+.my-bak .my-par {
   flex: none;
-  gap: 2px;
-}
-
-.my-bak .my-t {
-  --s: 46px;
-  padding-bottom: 8px;
+  gap: 14px;
+  padding: 4px 4px 10px;
 }
 
 .my-bak-verdi {
@@ -764,9 +675,6 @@
   .my-beger {
     width: 104px;
   }
-  .my-t {
-    --s: 52px;
-  }
   .my-melding {
     padding: 12px;
   }
@@ -800,11 +708,8 @@
   .my-beger {
     width: 96px;
   }
-  .my-brett.loftet .my-beger {
-    width: 70px;
-  }
-  .my-t {
-    --s: 48px;
+  .my-brett {
+    --my-loft-b: 70px;
   }
   .my-melding {
     margin-top: 6px;
@@ -853,11 +758,9 @@
   .my-beger {
     width: 78px;
   }
-  .my-brett.loftet .my-beger {
-    width: 64px;
-  }
-  .my-t {
-    --s: 44px;
+  .my-brett {
+    --my-loft-h: 2%;
+    --my-loft-b: 58px;
   }
   .my-hode {
     margin: 0;

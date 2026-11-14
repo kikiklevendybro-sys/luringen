@@ -3,8 +3,9 @@
 // banks them and «Angre» takes them back; an empty roll loses the turn; six scoring dice are rolled
 // again; reload and back + continue keep the game; the score sheet; the last round after the target
 // and «Kåringen». Then with a phone player on Vanskelig: it rolls, chooses and stops by itself without
-// freezing the page, and a win against it counts in the record and gives the sticker.
-// Runs in every edition (texts are checked in Norwegian only).
+// freezing the page, and a win against it counts in the record and gives the sticker. The dice are the
+// kit's (R.terninger): the dice put aside lie on the tray's shelf, and every die shows on top what the
+// game rolled. Runs in every edition (texts are checked in Norwegian only).
 
 async function lastMed(t, endring) {
   await t.js(`(() => { const S = Rusj.S; (${endring})(S); Rusj.lagre(); })()`);
@@ -17,6 +18,31 @@ const sett = (verdier, ekstra = "") => `(S) => { const sp = S.spill; sp.terninge
 export default async function (t) {
   const sp = async () => (await t.tilstand()).spill;
   const klikk = (sel, ms = 420) => t.klikk(sel, ms);
+  const landet = () => t.vent("document.querySelector('#lg-brett') && !document.querySelector('#lg-brett[data-ruller]')", 9000);
+  // Throw (the button), wait until every die lies still.
+  const kast = async () => {
+    await klikk('[data-h="kast"]', 60);
+    await landet();
+    await t.sov(300);
+  };
+  // What every die shows on top, read from how each cube is turned on screen; and which lie on the shelf.
+  const topp = () =>
+    t.js(`Array.from(document.querySelectorAll("#lg-brett .trn-t")).map((b) => {
+      const m = new DOMMatrix(getComputedStyle(b.querySelector(".trn-kube")).transform);
+      const z = [m.m13, m.m23, m.m33];
+      let best = -Infinity;
+      let verdi = 0;
+      b.querySelectorAll(".trn-flate").forEach((f, a) => {
+        const opp = (a & 1 ? -1 : 1) * z[a >> 1];
+        if (opp > best) {
+          best = opp;
+          verdi = Number(f.dataset.v);
+        }
+      });
+      return { verdi, hylle: b.getAttribute("aria-pressed") === "true" };
+    })`);
+  const pafelt = async () => (await topp()).filter((d) => !d.hylle).map((d) => d.verdi).join();
+  const pahylla = async () => (await topp()).filter((d) => d.hylle).map((d) => d.verdi).sort().join();
   const av = (sel) => t.js(`!!document.querySelector('${sel}') && document.querySelector('${sel}').disabled`);
 
   await t.start({ navn: ["Testspiller A", "Testspiller B"] });
@@ -30,12 +56,17 @@ export default async function (t) {
   await klikk('[data-h="tabell"][data-v="klassisk"]');
   await klikk('[data-h="start"]');
   await t.vent("document.querySelector('#lg-brett')");
-  t.sjekk((await t.antall(".lg-t.vent")) === 6, "Seks terninger venter ikke før første kast");
+  t.sjekk((await t.antall("#lg-brett .trn-t")) === 6 && (await t.finnes("#lg-brett.trn-klar")), "Seks terninger venter ikke før første kast");
   await t.bilde("start");
   t.sjekk(await t.friForDokk(".lg-brett"), "Terningbrettet ligger under dokka");
-  await klikk('[data-h="kast"]', 1100);
+  await t.js(`(() => { const v = [1, 5, 2, 2, 2, 3]; let i = 0; crypto.getRandomValues = (a) => { a[0] = Math.floor((v[i++ % v.length] - 0.5) / 6 * 4294967296); return a; }; })()`);
+  await klikk('[data-h="kast"]', 160);
+  await t.bilde("i-lufta");
+  await landet();
+  await t.js("delete crypto.getRandomValues");
   let s = await sp();
-  t.sjekk(s.terninger.length === 6 && ["velg", "tomt"].includes(s.status), "Kastet ga ikke seks terninger");
+  t.sjekk(s.terninger.join() === "1,5,2,2,2,3" && s.status === "velg", `Kastet ga ${s.terninger}, ventet 1,5,2,2,2,3`);
+  t.sjekk((await pafelt()) === "1,5,2,2,2,3", `Terningene viser ${await pafelt()} på toppen, spillet kastet 1,5,2,2,2,3`);
   await t.bilde("kastet");
 
   // A set roll: 1 5 2 2 2 3
@@ -53,10 +84,12 @@ export default async function (t) {
   s = await sp();
   t.sjekk(s.valgt.join() === "true,true,true,true,true,false", "«Velg poengene» valgte ikke ener, femmer og tre toere");
   t.sjekk(/350/.test(await t.tekst(".lg-tur")), "Turens poeng viser ikke 350");
+  t.sjekk((await pahylla()) === "1,2,2,2,5", `Hylla viser ${await pahylla()}, ventet de fem valgte`);
   await t.bilde("valgt");
-  await klikk('[data-h="kast"]', 1100);
+  await kast();
   s = await sp();
   t.sjekk(s.lagt.length === 1 && s.turPoeng === 350 && s.terninger.length === 1, "Terningene ble ikke lagt til side før neste kast");
+  t.sjekk((await pahylla()) === "1,2,2,2,5" && (await pafelt()) === String(s.terninger[0]), `Etter kastet: hylla ${await pahylla()}, filten ${await pafelt()} (kastet ${s.terninger})`);
   await t.bilde("lagt-til-side");
 
   // Stop and bank 1000, then undo it
@@ -85,9 +118,13 @@ export default async function (t) {
   await lastMed(t, sett([1, 1, 1, 5, 5, 5], "sp.tur = 0; sp.fri = 6; sp.lagt = []; sp.turPoeng = 0;"));
   await klikk('[data-h="beste"]');
   t.sjekk(!t.norsk || /Kast alle seks igjen/.test(await t.tekst('[data-h="kast"]')), "Knappen sier ikke «Kast alle seks igjen»");
-  await klikk('[data-h="kast"]', 1100);
+  t.sjekk((await pahylla()) === "1,1,1,5,5,5", "Alle seks skulle ligget på hylla før de kastes igjen");
+  await t.js(`(() => { const v = [6, 4, 3, 1, 2, 6]; let i = 0; crypto.getRandomValues = (a) => { a[0] = Math.floor((v[i++ % v.length] - 0.5) / 6 * 4294967296); return a; }; })()`);
+  await kast();
+  await t.js("delete crypto.getRandomValues");
   s = await sp();
   t.sjekk(s.terninger.length === 6 && s.lagt.length === 1 && s.turPoeng === 1500, "Seks som ga poeng, ble ikke kastet på nytt");
+  t.sjekk((await pahylla()) === "" && (await pafelt()) === "6,4,3,1,2,6", `Alle seks skulle ligget på filten og vist 6,4,3,1,2,6: ${await pafelt()}`);
   await t.bilde("alle-seks");
 
   // Reload, back + continue
@@ -131,13 +168,13 @@ export default async function (t) {
   await t.js(`window.__gap = 0; window.__sist = performance.now(); window.__probe = setInterval(() => { const n = performance.now(); window.__gap = Math.max(window.__gap, n - window.__sist); window.__sist = n; }, 8);`);
   for (const i of [0, 1]) {
     await t.vent(`Rusj.S.spill.tur === ${i}`, 15000);
-    await klikk('[data-h="kast"]', 1100);
+    await kast();
     if ((await sp()).status === "tomt") await klikk('[data-h="neste"]', 600);
     else {
       await klikk('[data-h="beste"]');
       if (!(await av('[data-h="stopp"]'))) await klikk('[data-h="stopp"]', 700);
       else {
-        await klikk('[data-h="kast"]', 1100);
+        await kast();
         await klikk((await sp()).status === "tomt" ? '[data-h="neste"]' : '[data-h="beste"]', 600);
         if ((await sp()).status === "velg" && !(await av('[data-h="stopp"]'))) await klikk('[data-h="stopp"]', 700);
       }
