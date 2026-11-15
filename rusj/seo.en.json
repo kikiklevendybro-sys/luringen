@@ -998,6 +998,17 @@
         "call a partner card game"
       ],
       "motMobilen": true
+    },
+    "fortelleren": {
+      "tittel": "Conversation cards for kids and adults – free",
+      "frase": "Conversation cards",
+      "beskrivelse": "Free conversation cards for kids and grown-ups, families, friends and teens: over 400 questions that get you telling stories and listening. Light to deep.",
+      "sok": [
+        "conversation cards",
+        "questions for kids",
+        "family conversation starters",
+        "getting to know you questions"
+      ]
     }
   }
 }

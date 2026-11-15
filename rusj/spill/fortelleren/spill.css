@@ -1,0 +1,463 @@
+/* Fortelleren: a calm, warm card table. The card's paper warms up as the level deepens
+   (cream → peach → dusk rose), the «Spør videre» line sits at the foot of the card, and the
+   heart sits beside the main button under the thumb. */
+
+html[data-spill="fortelleren"] {
+  --ft-papir-2: #ffe2c8;
+  --ft-papir-3: #f8d3dc;
+  --bunke: #c98a63;
+}
+
+.ft-sist {
+  margin: 10px auto 0;
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.35 var(--font-tekst);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.hjem-knapper .lenkerad {
+  flex-wrap: wrap;
+}
+
+/* ---------- Gjør klart ---------- */
+/* Five groups (or three ways of playing): the odd one out takes the whole row. */
+.ft-fliser .flis:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.ft-tips-boks {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  margin-top: 14px;
+}
+
+.ft-tips-boks p {
+  margin: 0;
+}
+
+.ft-tips-boks .lenke {
+  padding-inline: 0;
+  color: var(--blekk);
+}
+
+.ft-tips {
+  display: grid;
+  gap: 10px;
+  margin: 6px 0 18px;
+  padding-left: 1.2em;
+  font: 600 1rem/1.4 var(--font-tekst);
+}
+
+/* ---------- Who is on, above the card ---------- */
+.ft-hode {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin: 0 0 10px;
+}
+
+.ft-hvem {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.ft-hvem b {
+  display: -webkit-box;
+  overflow: hidden;
+  font: 900 1.12rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ft-hvem small {
+  color: var(--tekst-2);
+  font: 700 0.88rem/1.25 var(--font-tekst);
+}
+
+.ft-par {
+  display: inline-flex;
+  flex: none;
+}
+
+.ft-par .avatar + .avatar {
+  margin-left: -12px;
+  box-shadow: 0 0 0 3px var(--natt);
+}
+
+.ft-rolle {
+  flex: none;
+}
+
+.ft-niva {
+  flex: none;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #ffe9a8;
+  color: var(--blekk);
+  font: 800 0.78rem/1 var(--font-display);
+}
+
+.ft-niva.ft-n2 {
+  background: #ffc9a3;
+}
+
+.ft-niva.ft-n3 {
+  background: #f2b8d0;
+}
+
+/* ---------- The card ---------- */
+html[data-spill="fortelleren"] .skjerm > .bunke {
+  flex: 1 1 auto;
+  max-height: 620px;
+}
+
+.ft-kort {
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 22px 22px 20px;
+}
+
+.ft-kort.ft-n2 {
+  --kf: var(--ft-papir-2);
+  --kf-dyp: #edc29f;
+}
+
+.ft-kort.ft-n3 {
+  --kf: var(--ft-papir-3);
+  --kf-dyp: #dcaab8;
+}
+
+.ft-midt {
+  display: grid;
+  flex: 1 1 auto;
+  align-content: center;
+  justify-items: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ft-emoji {
+  font-size: 3.4rem;
+  line-height: 1.05;
+}
+
+.ft-tekst {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.ft-tekst.mid {
+  font-size: clamp(1.45rem, 6.2vw, 1.95rem);
+}
+
+.ft-tekst.lang {
+  font-size: clamp(1.28rem, 5.4vw, 1.62rem);
+}
+
+.ft-begge .ft-tekst {
+  font-size: clamp(1.4rem, 6vw, 1.85rem);
+}
+
+.ft-begge.ft-med-emoji .ft-emoji {
+  font-size: 2.6rem;
+}
+
+.ft-voksen {
+  width: 100%;
+  margin: 4px 0 0;
+  padding-top: 10px;
+  border-top: 2px dashed rgba(23, 14, 43, 0.22);
+  font: 800 clamp(1.05rem, 4.4vw, 1.25rem) / 1.25 var(--font-display);
+  text-wrap: pretty;
+}
+
+.ft-voksen b {
+  color: var(--blekk-2);
+  font-size: 0.82em;
+}
+
+.ft-videre {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--r-liten);
+  background: rgba(23, 14, 43, 0.07);
+  color: var(--blekk);
+  font: 600 0.98rem/1.35 var(--font-tekst);
+}
+
+.ft-videre b {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--blekk-2);
+  font: 800 0.74rem/1.2 var(--font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ---------- Guesses ---------- */
+.ft-gjett {
+  margin-top: 14px;
+}
+
+.ft-gjett-tittel {
+  margin: 0 0 8px;
+  color: var(--tekst-2);
+  font: 800 0.9rem/1.2 var(--font-display);
+}
+
+.ft-brikker .brikke {
+  gap: 6px;
+  max-width: 100%;
+}
+
+.ft-brikke-navn {
+  overflow: hidden;
+  max-width: 11em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- The dock: the heart beside the main button, three short links in one row ---------- */
+html[data-spill="fortelleren"] .dokk .lenkerad {
+  gap: 2px 6px;
+}
+
+html[data-spill="fortelleren"] .dokk .lenkerad .lenke {
+  padding-inline: 8px;
+}
+
+.ft-knapper {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+}
+
+.ft-hjerte {
+  gap: 8px;
+  padding-inline: 10px;
+  border-color: #ff8fb1;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.ft-hjerte-ikon {
+  color: #ff8fb1;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.ft-hjerte[aria-pressed="true"] {
+  background: #ff8fb1;
+  color: var(--blekk);
+}
+
+.ft-hjerte[aria-pressed="true"] .ft-hjerte-ikon {
+  color: var(--blekk);
+  animation: ft-banke 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+@keyframes ft-banke {
+  from {
+    transform: scale(0.4);
+  }
+}
+
+/* ---------- The end ---------- */
+.ft-del {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0 4px;
+}
+
+/* ---------- Favourites ---------- */
+.ft-favliste {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ft-fav {
+  position: relative;
+  padding-right: 58px;
+  transition: opacity 0.2s ease;
+}
+
+.ft-fav.fjernet {
+  opacity: 0.55;
+}
+
+.ft-fav-topp {
+  margin: 0 0 4px;
+  color: var(--blekk-2);
+  font: 800 0.78rem/1.25 var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ft-fav-tekst {
+  margin: 0;
+  font: 800 1.08rem/1.3 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.ft-fav-hjerte {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #c2275d;
+  font-size: 1.6rem;
+  line-height: 1;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.ft-fav-hjerte[aria-pressed="false"] {
+  color: var(--blekk-2);
+}
+
+.ft-tom {
+  margin-top: 14px;
+}
+
+.ft-midt-tekst {
+  text-align: center;
+}
+
+/* ---------- Short and small screens ---------- */
+@media (max-height: 700px) {
+  .ft-hode {
+    margin-bottom: 6px;
+  }
+
+  .ft-hode .avatar.mid {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+
+  .ft-kort {
+    gap: 8px;
+    padding: 16px 18px 16px;
+  }
+
+  .ft-emoji {
+    font-size: 2.6rem;
+  }
+
+  .ft-videre {
+    padding: 8px 10px;
+    font-size: 0.92rem;
+  }
+
+  .ft-gjett {
+    margin-top: 10px;
+  }
+}
+
+@media (orientation: portrait) and (max-height: 600px) {
+  html[data-spill="fortelleren"] .skjerm > .bunke {
+    min-height: 0;
+  }
+
+  .ft-tekst {
+    font-size: clamp(1.35rem, 6.6vw, 1.7rem);
+  }
+
+  .ft-tekst.mid,
+  .ft-begge .ft-tekst {
+    font-size: clamp(1.2rem, 5.6vw, 1.45rem);
+  }
+
+  .ft-tekst.lang {
+    font-size: clamp(1.1rem, 5vw, 1.3rem);
+  }
+
+  .ft-voksen {
+    font-size: 1rem;
+  }
+
+  .ft-emoji,
+  .ft-begge.ft-med-emoji .ft-emoji {
+    font-size: 2.2rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  html[data-spill="fortelleren"] .skjerm > .bunke {
+    min-height: 0;
+  }
+
+  .ft-hode {
+    margin-bottom: 4px;
+  }
+
+  .ft-hode .avatar.mid {
+    width: 34px;
+    height: 34px;
+    font-size: 1.1rem;
+  }
+
+  .ft-kort {
+    gap: 6px;
+    padding: 12px 16px;
+  }
+
+  .ft-emoji {
+    font-size: 2rem;
+  }
+
+  .ft-tekst {
+    font-size: clamp(1.2rem, 3.2vw, 1.5rem);
+  }
+
+  .ft-tekst.mid,
+  .ft-tekst.lang,
+  .ft-begge .ft-tekst {
+    font-size: clamp(1.05rem, 2.8vw, 1.3rem);
+  }
+
+  .ft-voksen {
+    padding-top: 6px;
+    font-size: 1rem;
+  }
+
+  .ft-videre {
+    padding: 6px 10px;
+    font-size: 0.88rem;
+  }
+}
+
+/* Narrow phones and phones on their side (the dock is a narrow column): the heart alone (its
+   name stays for screen readers). */
+@media (max-width: 380px), (orientation: landscape) and (max-height: 500px) {
+  .ft-knapper {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .ft-hjerte-tekst {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ft-hjerte[aria-pressed="true"] .ft-hjerte-ikon {
+    animation: none;
+  }
+}

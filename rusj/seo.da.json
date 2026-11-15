@@ -1015,6 +1015,17 @@
         "meldespil mod computeren"
       ],
       "motMobilen": true
+    },
+    "fortelleren": {
+      "tittel": "Samtalekort til børn og voksne – gratis på mobilen",
+      "frase": "Samtalekort",
+      "beskrivelse": "Gratis samtalekort til børn og voksne, familie, venner og unge: over 400 spørgsmål, der får jer til at fortælle og lytte. Let, mellem eller dybere.",
+      "sok": [
+        "samtalekort",
+        "samtalekort til børn",
+        "spørgsmål til børn",
+        "lær hinanden at kende"
+      ]
     }
   }
 }
