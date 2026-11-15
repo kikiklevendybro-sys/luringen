@@ -36,7 +36,10 @@
   "Tegn og gjett": "Draw and guess",
   "Kveldens utstilling": "Tonight's exhibition",
   "Vi klarte {n} av {av} sammen": "We got {n} of {av} together",
-  "{navn} vinner!|{navn} vinner!": { "one": "{navn} wins!", "other": "{navn} win!" },
+  "{navn} vinner!|{navn} vinner!": {
+    "one": "{navn} wins!",
+    "other": "{navn} win!"
+  },
   "Tegnet på rusj.no": "Drawn on rusj.no",
   "Tegneverktøy": "Drawing tools",
   "Viskelær": "Rubber",
@@ -254,9 +257,25 @@
   "Den neste må gjette hva ingenting er …": "The next person will have to guess what nothing is …",
   "Send tomt": "Send it blank",
   "Tegn litt": "Draw a bit",
-  "poeng|poeng": { "one": "point", "other": "points" },
-  "tegning|tegninger": { "one": "drawing", "other": "drawings" },
-  "gjetning|gjetninger": { "one": "guess", "other": "guesses" },
-  "kategori|kategorier": { "one": "category", "other": "categories" },
-  "runde|runder": { "one": "round", "other": "rounds" }
+  "poeng|poeng": {
+    "one": "point",
+    "other": "points"
+  },
+  "tegning|tegninger": {
+    "one": "drawing",
+    "other": "drawings"
+  },
+  "gjetning|gjetninger": {
+    "one": "guess",
+    "other": "guesses"
+  },
+  "kategori|kategorier": {
+    "one": "category",
+    "other": "categories"
+  },
+  "runde|runder": {
+    "one": "round",
+    "other": "rounds"
+  },
+  "TEGN!": "DRAW!"
 }

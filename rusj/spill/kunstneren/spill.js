@@ -2345,7 +2345,7 @@
         const fortsatt = R.vakt();
         let ferdigTalt = false;
         try {
-          ferdigTalt = await R.nedtelling(["3", "2", "1", "TEGN!"], 700);
+          ferdigTalt = await R.nedtelling(["3", "2", "1", R.t("TEGN!")], 700);
         } finally {
           opptatt = false;
         }
