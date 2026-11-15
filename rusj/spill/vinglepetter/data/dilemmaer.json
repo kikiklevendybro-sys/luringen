@@ -4030,6 +4030,254 @@
           "bo i fem forskjellige byer"
         ]
       ]
+    },
+    {
+      "id": "ungdom",
+      "navn": "Ungdom",
+      "ikon": "🎧",
+      "tekst": "For 13–16 år",
+      "dilemmaer": [
+        [
+          "ha skolefri hver fredag",
+          "begynne klokka elleve hver dag"
+        ],
+        [
+          "ha samme lærer i alle fag",
+          "få en ny lærer hver uke"
+        ],
+        [
+          "få velge hvor du sitter i alle timer",
+          "få velge hvem du har gruppearbeid med"
+        ],
+        [
+          "kunne spole fram til friminuttet",
+          "kunne sette læreren på pause"
+        ],
+        [
+          "at hele klassen ser skjermtiden din",
+          "at hele klassen hører spillelista di"
+        ],
+        [
+          "bestemme navnet på klassechatten",
+          "bestemme profilbildet til klassechatten"
+        ],
+        [
+          "at en video av deg blir sett av en million fremmede",
+          "at en video av deg blir sett av hele skolen"
+        ],
+        [
+          "ha et profilbilde lillebroren din har valgt",
+          "ha et profilbilde bestemoren din har valgt"
+        ],
+        [
+          "at foreldrene dine kommenterer alt du legger ut",
+          "at kontaktlæreren din følger deg på sosiale medier"
+        ],
+        [
+          "sende en melding om crushen din til feil person",
+          "si navnet på crushen din høyt i en helt stille klasse"
+        ],
+        [
+          "at crushen din sender melding først",
+          "at crushen din hilser på deg i gangen"
+        ],
+        [
+          "at crushen din ser deg danse alene på rommet",
+          "at crushen din hører deg synge i dusjen"
+        ],
+        [
+          "bli forelsket i en du aldri har snakket med",
+          "bli forelsket i bestevennen din"
+        ],
+        [
+          "alltid rødme når noen sier navnet ditt",
+          "alltid begynne å fnise når du er nervøs"
+        ],
+        [
+          "dra på klassetur til Roma",
+          "dra på klassetur til en fjellhytte uten nett"
+        ],
+        [
+          "ha en lillesøster som kopierer alt du gjør",
+          "ha en storebror som bestemmer alt du gjør"
+        ],
+        [
+          "måtte legge deg klokka ni hele ungdomsskolen",
+          "måtte stå opp klokka seks hver lørdag"
+        ],
+        [
+          "at foreldrene dine kommer og hilser på hele klassen din",
+          "at foreldrene dine danser på bursdagen din"
+        ],
+        [
+          "ha med lillebroren din overalt i en uke",
+          "ta all oppvasken hjemme i en måned"
+        ],
+        [
+          "vite hvilken jobb du får som voksen",
+          "vite hvor du kommer til å bo som voksen"
+        ],
+        [
+          "bli profesjonell gamer",
+          "bli profesjonell fotballspiller"
+        ],
+        [
+          "flytte hjemmefra når du er 16",
+          "bo hjemme til du er 30"
+        ],
+        [
+          "vite hvilken karakter du får før prøven begynner",
+          "vite hvilke oppgaver som kommer før prøven begynner"
+        ],
+        [
+          "ha sommerjobb på en campingplass",
+          "ha sommerjobb som fotballtrener for barn"
+        ],
+        [
+          "spille et spill du elsker med elendig nett",
+          "spille et spill du hater med perfekt nett"
+        ],
+        [
+          "vinne en turnering i favorittspillet ditt",
+          "vinne skoleløpet foran hele skolen"
+        ],
+        [
+          "bare kunne game med lyden av",
+          "bare kunne game på en bitteliten skjerm"
+        ],
+        [
+          "ha en lagkamerat som alltid synger i garderoben",
+          "ha en lagkamerat som alltid vil ta straffesparkene"
+        ],
+        [
+          "miste alt du har lagret i favorittspillet ditt",
+          "aldri få spille favorittspillet ditt igjen"
+        ],
+        [
+          "vinne kretsmesterskapet med laget ditt",
+          "vinne en medalje helt alene"
+        ],
+        [
+          "trene hver dag og bli best",
+          "trene én gang i uka og ha det gøy"
+        ],
+        [
+          "snuble på vei opp for å ta imot en premie",
+          "glemme talen din når du skal takke for premien"
+        ],
+        [
+          "snuble foran hele skolegården",
+          "høre magen rumle høyt midt i en prøve"
+        ],
+        [
+          "sende en selfie med mat i tennene til klassechatten",
+          "sende en talemelding der du synger, til klassechatten"
+        ],
+        [
+          "ha en hobby ingen andre har hørt om",
+          "ha samme hobby som alle vennene dine"
+        ],
+        [
+          "lære å spille gitar på en uke",
+          "lære å tegne som en proff på en uke"
+        ],
+        [
+          "starte et band med vennene dine",
+          "starte en strømmekanal med vennene dine"
+        ],
+        [
+          "bruke hele lørdagen på å game",
+          "bruke hele lørdagen på å bake"
+        ],
+        [
+          "vinne talentkonkurransen på skolen",
+          "vinne quizen på skolen"
+        ],
+        [
+          "alltid være den som planlegger noe",
+          "alltid være den som blir med på alt"
+        ],
+        [
+          "bytte liv med bestevennen din i en uke",
+          "bytte liv med en lærer i en uke"
+        ],
+        [
+          "bestemme middagen hjemme hver dag",
+          "bestemme hvor familien skal på ferie"
+        ],
+        [
+          "ha en mobil som bare kan ringe og sende SMS",
+          "ha en smarttelefon uten nett"
+        ],
+        [
+          "skru av alle varsler for alltid",
+          "få varsel om hver eneste melding i alle chatter"
+        ],
+        [
+          "at alt du skriver, blir lest opp høyt",
+          "at alle meldinger du får, blir vist på storskjerm"
+        ],
+        [
+          "ha gym første time hver dag",
+          "ha gym siste time hver dag"
+        ],
+        [
+          "sitte ved siden av crushen din i alle timer",
+          "være på gruppe med crushen din i et stort prosjekt"
+        ],
+        [
+          "glemme navnet på en du har gått i klasse med i tre år",
+          "kalle en lærer feil navn i et helt år"
+        ],
+        [
+          "være med i skolemusikalen",
+          "være med på skolens e-sportlag"
+        ],
+        [
+          "alltid vite hva folk synes om klærne dine",
+          "aldri bry deg om hva folk synes om klærne dine"
+        ],
+        [
+          "ha konfirmasjon med hundre gjester",
+          "ha konfirmasjon med bare de aller nærmeste"
+        ],
+        [
+          "få konfirmasjonspengene nå",
+          "få dobbelt så mye om ti år"
+        ],
+        [
+          "ha gaming som skolefag",
+          "ha mat og helse hver dag"
+        ],
+        [
+          "skrive fem sider om favorittspillet ditt",
+          "holde en tale om favorittlaget ditt"
+        ],
+        [
+          "at læreren viser klassen den eldste tegningen din",
+          "at læreren viser klassen en video av deg som baby"
+        ],
+        [
+          "ha et kamera som filmer alt du gjør i en uke",
+          "ha en mikrofon som tar opp alt du sier i en uke"
+        ],
+        [
+          "ha en hund som følger deg til skolen",
+          "ha en katt som sover på rommet ditt"
+        ],
+        [
+          "være kjempeflink til å skrive",
+          "være kjempeflink til å snakke foran folk"
+        ],
+        [
+          "ha sofaer i klasserommet",
+          "ha en trampoline i skolegården"
+        ],
+        [
+          "møte favorittartisten din",
+          "møte favorittspilleren din"
+        ]
+      ]
     }
   ]
 }
