@@ -103,6 +103,8 @@ export default async function (t) {
   t.sjekk(starter.every((l, i) => l === `DTSTART;TZID=${sone}:202612${String(i + 1).padStart(2, "0")}T180000`), `Påminnelsene er ikke klokka 18 i ${sone}: ${starter.slice(0, 2).join(" | ")}`);
   t.sjekk(hendelser.includes(`URL:${await lukeUrl(7)}`), "Påminnelsen for luke 7 lenker ikke til luke 7");
   t.sjekk((await toast()).length > 0, "Ingen beskjed etter at påminnelsene ble lastet ned");
+  // The anonymous counter for the button (rusj/kit/stat.js counts «jul.paminnelse»).
+  t.sjekk(await t.js(`Rusj._statKo.some((x) => x.h === "jul.paminnelse")`), "Påminnelse-knappen meldte ikke «jul.paminnelse» til statistikken");
 
   // «Gjør klart» before December: the choice is shown, then back without choosing.
   await klikk('[data-h="oppsett"]');
@@ -128,6 +130,7 @@ export default async function (t) {
   await t.js(`window.__skrevet = 0; window.print = () => { window.__skrevet++; }`);
   await t.klikk('[data-h="skriv-ut-ark"]');
   t.sjekk((await t.js("window.__skrevet")) === 1, "«Skriv ut» åpner ikke utskrift");
+  t.sjekk(await t.js(`Rusj._statKo.some((x) => x.h === "jul.utskrift")`), "«Skriv ut» meldte ikke «jul.utskrift» til statistikken");
 
   // ---------------- 1 December ----------------
   await settDato("2026-12-01");
@@ -272,6 +275,7 @@ export default async function (t) {
   await t.vent("window.__nedlast && window.__nedlast.length", 8000);
   const png = await lesNedlasting("bilde");
   t.sjekk(png && /\.png$/.test(png.navn) && png.type === "image/png" && png.storrelse > 20000, `Bildet av treet: ${JSON.stringify(png)}`);
+  t.sjekk(await t.js(`Rusj._statKo.some((x) => x.h === "jul.tre")`), "Nedlastingen av treet meldte ikke «jul.tre» til statistikken");
   await utskrift(true);
   t.sjekk((await synlig(".jk-stortre")) && !(await synlig(".topp")) && !(await synlig("#skjerm .dokk")), "Utskriften av treet viser mer enn treet");
   const treSider = await sider();

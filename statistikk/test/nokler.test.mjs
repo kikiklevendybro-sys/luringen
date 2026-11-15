@@ -1,7 +1,7 @@
 // The grammar of counter names: what is counted, and that nothing else can be.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { renNokkel, tolkPakke, gyldigeNokler, alleNokler, fasteNokler, SPILL_ID } from "../src/nokler.js";
+import { renNokkel, tolkPakke, gyldigeNokler, alleNokler, fasteNokler, SPILL_ID, PER_SPILL } from "../src/nokler.js";
 import { SPILL, DAGLIGE, MAKS_NOKLER, MAKS_NOKKEL_LENGDE } from "../src/oppsett.js";
 import { OPPSETT } from "./fast-oppsett.mjs";
 
@@ -9,8 +9,10 @@ test("every name in the vocabulary is accepted unchanged", () => {
   const alle = alleNokler();
   assert.equal(new Set(alle).size, alle.length, "no name twice");
   for (const k of alle) assert.equal(renNokkel(k), k, k);
-  // every game × (side, start, ferdig, daglig) + forside + annet + the fixed names
-  assert.equal(alle.length, Object.keys(SPILL).length * 4 + 2 + fasteNokler().length);
+  // every game × (side, start, ferdig, daglig, feil, nett.rom, nett.start, nett.ferdig)
+  // + forside + annet + the fixed names
+  assert.deepEqual(PER_SPILL, ["side", "start", "ferdig", "daglig", "feil", "nett.rom", "nett.start", "nett.ferdig"]);
+  assert.equal(alle.length, Object.keys(SPILL).length * 8 + 2 + fasteNokler().length);
 });
 
 test("dailies: «dagens» goes from 1 to 9, and «daglig» takes any game on the list", () => {
@@ -31,7 +33,36 @@ test("the fixed names are exactly these", () => {
     "tid.1", "tid.3", "tid.10", "tid.30",
     "dagens.1", "dagens.2", "dagens.3", "dagens.4", "dagens.5", "dagens.6", "dagens.7", "dagens.8", "dagens.9",
     "rekke.1", "rekke.2", "rekke.4", "rekke.7", "rekke.14", "rekke.30",
+    "utgave.nb", "utgave.en", "utgave.da",
+    "type.mobil", "type.nettbrett", "type.pc",
+    "kilde.sok", "kilde.sosial", "kilde.direkte", "kilde.annen",
+    "app.ny",
+    "jul.utskrift", "jul.paminnelse", "jul.tre",
   ]);
+});
+
+test("the new kinds: edition, device type, source, new install, errors, online play, the calendar", () => {
+  for (const k of ["utgave.nb", "utgave.en", "utgave.da", "type.mobil", "type.nettbrett", "type.pc", "kilde.sok", "kilde.sosial", "kilde.direkte", "kilde.annen", "app.ny", "jul.utskrift", "jul.paminnelse", "jul.tre"]) {
+    assert.equal(renNokkel(k, OPPSETT), k, k);
+  }
+  for (const k of ["feil.ordugla", "feil.sauen", "nett.rom.sauen", "nett.start.sauen", "nett.ferdig.sauen", "nett.rom.luringen"]) assert.equal(renNokkel(k, OPPSETT), k, k);
+  // Per game only for games on the list, and never for «forside» or «annet».
+  for (const k of ["feil.ukjentspill", "feil.forside", "feil.annet", "nett.rom.ukjentspill", "nett.start.forside", "nett.ferdig.annet"]) assert.equal(renNokkel(k, OPPSETT), null, k);
+  // The longest possible game id still fits the size limit in every per-game name.
+  for (const type of PER_SPILL) assert.ok((type + "." + "a".repeat(24)).length <= MAKS_NOKKEL_LENGDE, type);
+});
+
+test("a source is one of four words: no host, address or free text can be stored", () => {
+  const ugyldige = [
+    "kilde.google", "kilde.google.com", "kilde.www.google.com", "kilde.facebook", "kilde.Sok", "kilde.søk", "kilde.", "kilde",
+    "kilde.https://www.google.com/", "kilde.rusj.no", "kilde.sok.google", "kilde.annen.example", "kilde.direkte ", "kilde.t.co",
+    "utgave.no", "utgave.sv", "utgave.NB", "utgave.nb-NO", "utgave.", "type.tv", "type.Mobil", "type.iphone", "type.1280x800",
+    "jul.kalender", "jul.", "jul.utskrift.1", "app.gammel", "app.ny.1", "feil.ordugla.TypeError", "feil.ordugla:12", "feil.",
+    "nett.rom", "nett.rom.", "nett.spill.ordugla", "nett.rom.ordugla.x", "nett..ordugla", "nett.rom.ABCDEF", "nett.kode.ABC234",
+    "nett.rom.ordugla ", "nett.Rom.ordugla", "nett.start.ordugla.2",
+  ];
+  for (const k of ugyldige) assert.equal(renNokkel(k, OPPSETT), null, JSON.stringify(k));
+  for (const k of ugyldige) assert.equal(renNokkel(k), null, JSON.stringify(k));
 });
 
 test("every name fits the size limit and game ids fit the id pattern", () => {

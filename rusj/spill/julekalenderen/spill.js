@@ -757,7 +757,7 @@
   }
 
   function skrivUt(hva) {
-    R.statistikk("utskrift", { hva });
+    R.statistikk("jul.utskrift", { hva });
     try {
       window.print();
     } catch (e) {
@@ -1198,7 +1198,7 @@
           url: (d) => M.lukeAdresse(BASE, R.sprak, d),
         });
         lastNed(new Blob([tekst], { type: "text/calendar;charset=utf-8" }), R.t("julekalenderen-{aar}.ics", { aar }));
-        R.statistikk("paminnelse", { fra });
+        R.statistikk("jul.paminnelse", { fra });
         R.toast(R.t("Påminnelsene er lastet ned. Åpne fila for å legge dem i kalenderen."));
       },
       async "last-ned"(el, e, S) {
@@ -1209,7 +1209,7 @@
           const blob = await trebilde(S);
           if (!fortsatt() || !blob) return;
           lastNed(blob, bildenavn(S));
-          R.statistikk("bilde", { pynt: antallPynt(S) });
+          R.statistikk("jul.tre", { pynt: antallPynt(S) });
           R.toast(R.t("Bildet er lastet ned"));
         } catch (feil) {
           R.toast(R.t("Klarte ikke å lage bildet"));
@@ -1224,6 +1224,7 @@
         try {
           const blob = await trebilde(S);
           if (!fortsatt() || !blob) return;
+          R.statistikk("jul.tre", { pynt: antallPynt(S), del: true });
           const fil = typeof File === "function" ? new File([blob], bildenavn(S), { type: "image/png" }) : null;
           const tekst = R.t("Juletreet vårt fra julekalenderen på rusj.no 🎄");
           if (fil && navigator.canShare && navigator.canShare({ files: [fil] })) {
