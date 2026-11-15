@@ -9,7 +9,7 @@ import { mkdtempSync, mkdirSync, rmSync, readFileSync, readdirSync, existsSync, 
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { lesSeo, merkeI, merkeSynlig, TITTEL_MAKS, BESKRIVELSE_GRENSER, DOMENE, OMDOPT } from "../scripts/rusj.mjs";
+import { lesSeo, merkeI, merkeSynlig, TITTEL_MAKS, BESKRIVELSE_GRENSER, DOMENE, OMDOPT, statOpprinnelse, FASTE_STIER } from "../scripts/rusj.mjs";
 import { omSpilletHtml, flereTil } from "../scripts/om-spillet.mjs";
 import { SPRAK } from "../scripts/sprak.mjs";
 
@@ -91,6 +91,34 @@ test("renamed games: the old address sends the visitor on, no script, not indexe
     assert.match(html, new RegExp(`<a href="/${ny}/">`), `/${gammel}/: mangler lenke`);
     assert.ok(!/<script/i.test(html), `/${gammel}/: har script`);
     assert.ok(!readFileSync(join(WEB, "sitemap.xml"), "utf8").includes(`/${gammel}/`), `/${gammel}/ står i sitemap.xml`);
+  }
+});
+
+test("/admin/ sends the owner on to the statistics Worker: no script, not indexed, in no list", () => {
+  const stat = statOpprinnelse();
+  assert.ok(FASTE_STIER.includes("admin"), "no alias can take /admin/");
+  if (!stat) return assert.ok(!existsSync(join(WEB, "admin")), "no /admin/ while the statistics are off");
+  const kart = readFileSync(join(WEB, "sitemap.xml"), "utf8");
+  const sw = readFileSync(join(WEB, "sw.js"), "utf8");
+  for (const forran of ["", ...SPRAK.map((s) => s + "/")]) {
+    const html = readFileSync(join(WEB, forran, "admin/index.html"), "utf8");
+    assert.ok(html.includes(`<meta http-equiv="refresh" content="0; url=${stat}/admin">`), `/${forran}admin/: sends on`);
+    assert.ok(html.includes(`<a href="${stat}/admin" rel="noreferrer">`), `/${forran}admin/: a link too`);
+    assert.match(html, /<meta name="robots" content="noindex, nofollow">/);
+    assert.match(html, /<meta name="referrer" content="no-referrer">/);
+    assert.ok(!/<script/i.test(html), `/${forran}admin/: has a script`);
+    assert.ok(!kart.includes(`/${forran}admin/`), `/${forran}admin/ is in sitemap.xml`);
+    assert.ok(!sw.includes(`"/${forran}admin/`), `/${forran}admin/ is in the offline list`);
+  }
+});
+
+test("the privacy page names the new kinds of anonymous counting in every edition", () => {
+  if (!statOpprinnelse()) return;
+  const sider = { "personvern/index.html": ["Også telles, som summer per dag:", "søkemotor", "mobil, et nettbrett eller en PC", "julekalenderen", "aldri adressen du kom fra"], "en/privacy/index.html": ["Also counted, as daily totals:", "search engine", "never the address you came from"], "da/privatliv/index.html": ["Desuden tælles, som summer pr. dag:", "søgemaskine", "aldrig adressen, du kom fra"] };
+  for (const [fil, tekster] of Object.entries(sider)) {
+    const html = readFileSync(join(WEB, fil), "utf8").replace(/&#39;/g, "'");
+    for (const t of tekster) assert.ok(html.includes(t), `${fil}: ${t}`);
+    assert.doesNotMatch(html, /noe om enheten din|anything about your device|noget om din enhed/, `${fil}: the old sentence is gone`);
   }
 });
 

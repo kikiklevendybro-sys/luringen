@@ -18,7 +18,7 @@ export const DOMENE = "https://rusj.no";
 export const OMDOPT = { besserwisseren: "bedreviteren" };
 
 // Addresses that are pages of their own (or folders the build fills): an alias may never take one.
-export const FASTE_STIER = ["om", "personvern", "merker", "felles", "luringen", "404", "index", "sitemap", "robots", "manifest", "favicon", "sw"];
+export const FASTE_STIER = ["om", "personvern", "merker", "felles", "luringen", "404", "index", "sitemap", "robots", "manifest", "favicon", "sw", "admin"];
 
 // Alias addresses (`alias` in spill.json): /jeg-har-aldri/ → /sladrehanken/. Easy to say and type
 // at a party, and spelled the way people search. Returns Map(alias → game id) and stops the build
@@ -142,6 +142,36 @@ export function statFil(rot, stat = statOpprinnelse()) {
 }
 const STAT_FIL = statFil(join(dirname(fileURLToPath(import.meta.url)), ".."));
 const NETT = nettOpprinnelse();
+
+// rusj.no/admin/ (and /en/admin/, /da/admin/): an easy address for the owner's numbers. A tiny
+// page that sends the visitor on to the statistics Worker's /admin, where Cloudflare Access asks
+// who it is. No script, not indexed, not in the sitemap, the game lists or the offline list.
+// Written only when STAT_ADRESSE is set (statistikk/README.md).
+export function adminVideresending(stat = statOpprinnelse()) {
+  const mal = `${stat}/admin`;
+  // (Norwegian only: the page is for the owner.)
+  const tittel = "Tallene | rusj"; // sprak-ok
+  const tekst = "Tallene for rusj.no ligger hos statistikktjenesten. Du må logge inn."; // sprak-ok
+  const lenke = "Gå til tallene"; // sprak-ok
+  return `<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="${CSP}">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>${esc(tittel)}</title>
+<meta http-equiv="refresh" content="0; url=${esc(mal)}">
+<style>body{background:#150c28;color:#fff1dd;font:1.1rem/1.5 system-ui,sans-serif;text-align:center;padding:3rem 1rem}a{color:#ffd23f}</style>
+</head>
+<body>
+<p>${esc(tekst)}</p>
+<p><a href="${esc(mal)}" rel="noreferrer">${esc(lenke)}</a></p>
+</body>
+</html>
+`;
+}
 
 export const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
@@ -1276,7 +1306,8 @@ ${bunn(U, true, o.finn)}
     <p>${esc(t("For å vite om rusj blir brukt, teller vi anonymt. Nettleseren sender noen korte ord fra en fast liste, for eksempel «en side ble åpnet: Ordugla», «et spill ble startet» eller «var her også i går». Vi lagrer bare summen per dag, for eksempel «i går ble Ordugla startet 214 ganger»."))}</p>
     <ul>
       <li>${th("{tittel} hvilke sider og spill som åpnes, startes og spilles ferdig, om nettleseren var innom i går, siste uke, lenger siden eller aldri før, om rusj er åpnet fra hjemskjermen, omtrent hvor lenge et besøk varer (under 1, 1–3, 3–10, 10–30 eller over 30 minutter), og hvor mange av dagens oppgaver som er løst og hvor mange dager på rad (i grupper).", { tittel: `<b>${esc(t("Det som telles:"))}</b>` })}</li>
-      <li>${th("{tittel} navn, det dere skriver, svar, poeng, klokkeslett eller noe om enheten din. Det finnes ingen ID, ingen informasjonskapsler og ingen måte å følge én person fra dag til dag.", { tittel: `<b>${esc(t("Det som ikke telles:"))}</b>` })}</li>
+      <li>${th("{tittel} hvilken utgave av rusj som brukes (norsk, engelsk eller dansk), om det er en mobil, et nettbrett eller en PC, og om besøket kom fra en søkemotor, et sosialt medium, en annen nettside eller uten lenke – bare gruppen, aldri adressen du kom fra. Nettleseren avgjør dette selv og sender bare ordet. Vi teller også når et spill får en feil (bare hvilket spill), første gang rusj åpnes fra hjemskjermen, rom og kamper når dere spiller på nett (på mobilen som lager rommet), og knappene i julekalenderen (skriv ut, påminnelse og juletreet).", { tittel: `<b>${esc(t("Også telles, som summer per dag:"))}</b>` })}</li>
+      <li>${th("{tittel} navn, det dere skriver, svar, poeng, klokkeslett, adressen du kom fra eller detaljer om enheten din (bare om det er en mobil, et nettbrett eller en PC). Det finnes ingen ID, ingen informasjonskapsler og ingen måte å følge én person fra dag til dag.", { tittel: `<b>${esc(t("Det som ikke telles:"))}</b>` })}</li>
       <li>${th("{tittel} tallene lagres hos Cloudflare, i en database som ligger i EU. Når nettleseren sender, ser Cloudflare IP-adressen din, slik alle nettsteder gjør, men vi lagrer den ikke og har slått av loggene. Tall eldre enn 25 måneder slettes.", { tittel: `<b>${esc(t("Hvor:"))}</b>` })}</li>
       <li>${th("{tittel} har du slått på «Ikke spor» ({dnt} eller {gpc}) eller datasparing i nettleseren, sender rusj ingenting.", { tittel: `<b>${esc(t("Slik slår du det av:"))}</b>`, dnt: lokal_("Do Not Track"), gpc: lokal_("Global Privacy Control") })}</li>
     </ul>
@@ -1537,6 +1568,9 @@ ${album}
   });
   const iBygget = new Map([...(luringen ? [luringen] : []), ...spill].map((g) => [g.id, g]));
   for (const [a, id] of alias) if (iBygget.has(id)) skriv(`${a}/index.html`, videresendSide(iBygget.get(id), ""));
+
+  // ---------- /admin/: on to the owner's numbers (only with the statistics switched on) ----------
+  if (STAT_FIL) for (const forran of ["", ...SPRAK.map((s) => s + "/")]) skriv(`${forran}admin/index.html`, adminVideresending());
 
   // ---------- Manifest (one per edition), favicon, robots, sitemap ----------
   // Shortcuts (long press on the app icon): the three daily puzzles and «Overrask meg». Only games
