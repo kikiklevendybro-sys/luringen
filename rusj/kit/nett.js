@@ -809,7 +809,7 @@
         N.token = null;
         N.rom = null;
         N.du = -1;
-        N.navn = fellesNavn();
+        N.navn = ""; // the host sends no name it has not typed: it shows as «Spiller 1» (privacy)
         return lagRom();
       },
       "nett-bli": () => {

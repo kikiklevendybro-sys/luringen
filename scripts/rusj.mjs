@@ -907,8 +907,8 @@ ${STEMPEL_FILTER}
   <p class="bunn-logo">${G.logo()}</p>
   <p><b>${esc(U.t("Ingen konto. Ingen sporing. Ingen reklame."))}</b><br>${esc(
     STAT_FIL
-      ? U.t("Det dere skriver inn, lagres bare i nettleseren på denne enheten. Vi teller bare anonymt hvor mange som er innom og hvilke spill som åpnes – uten informasjonskapsler og uten personopplysninger.")
-      : U.t("Det dere skriver inn, lagres bare i nettleseren på denne enheten. Vi har ingen server som tar imot det."),
+      ? U.t("Det dere skriver inn, lagres bare i nettleseren på denne enheten. Spiller dere på nett, sendes bare trekk og kallenavn, og de slettes etter et døgn. Vi teller bare anonymt hvor mange som er innom og hvilke spill som åpnes – uten informasjonskapsler og uten personopplysninger.")
+      : U.t("Det dere skriver inn, lagres bare i nettleseren på denne enheten. Spiller dere på nett, sendes bare trekk og kallenavn, og de slettes etter et døgn."),
   )}</p>
   <nav class="bunn-lenker" aria-label="${esc(U.t("Om rusj"))}">${medHjem ? `<a href="${U.forside}">${esc(U.t("Alle spill"))}</a>` : ""}<a href="${U.side("merker")}">${esc(U.t("Klistremerkeboka"))}</a><a href="${U.side("om")}">${esc(U.t("Om rusj"))}</a><a href="${U.side("personvern")}">${esc(U.t("Personvern"))}</a></nav>
   ${sprakvalg(U, finn)}
