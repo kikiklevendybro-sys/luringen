@@ -1147,7 +1147,7 @@ ${bunn(U, false, (V) => V.forside)}
   }
 
   // ---------- Pages about rusj: /personvern/ and /om/ (in every edition) ----------
-  const SIDER_OPPDATERT = "2026-11-12";
+  const SIDER_OPPDATERT = "2026-11-15";
   const merkebokJs = skriv("felles/merkebok.js", kilde("rusj/portal/merkebok.js"));
   const datoTekst = (iso, U) =>
     U.sprak === "nb"
@@ -1187,6 +1187,20 @@ ${bunn(U, true, o.finn)}
       <li>${th("{tittel} har du slått på «Ikke spor» ({dnt} eller {gpc}) eller datasparing i nettleseren, sender rusj ingenting.", { tittel: `<b>${esc(t("Slik slår du det av:"))}</b>`, dnt: lokal_("Do Not Track"), gpc: lokal_("Global Privacy Control") })}</li>
     </ul>
   </section>`;
+    // «Spill på nett» (nett/README.md): only when NETT_ADRESSE is set.
+    const pvSpillNett = `
+
+  <section aria-labelledby="pv-spill-nett">
+    <h2 id="pv-spill-nett">${esc(t("Spill på nett"))}</h2>
+    <p>${esc(t("Noen spill kan dere spille sammen på hver deres mobil, fra hvert deres sted: én lager et rom og sender en lenke. Da går trekkene gjennom en liten tjeneste vi har laget, slik at alle mobilene får dem i samme rekkefølge. Det skjer bare når dere selv velger «Spill med en venn på nett»."))}</p>
+    <ul>
+      <li>${th("{tittel} trekkene dere gjør, et kallenavn (det første navnet som er skrevet inn i spillene på mobilen din, om det finnes – du kan endre det når du blir med), koden til rommet og et tilfeldig plassmerke, så mobilen din kommer inn igjen hvis nettet faller ut. Reaksjonene er seks faste emojier.", { tittel: `<b>${esc(t("Det som sendes:"))}</b>` })}</li>
+      <li>${th("{tittel} hos Cloudflare. Rommene er låst til EU, og innholdet deres lagres bare der. Cloudflare skriver rommets tilfeldige ID i sine logger for fakturering, også utenfor EU; ID-en sier ingenting om hvem som spiller.", { tittel: `<b>${esc(t("Hvor:"))}</b>` })}</li>
+      <li>${th("{tittel} alt i rommet slettes 24 timer etter siste trekk, og med én gang når alle har gått fra en ferdig kamp.", { tittel: `<b>${esc(t("Hvor lenge:"))}</b>` })}</li>
+      <li>${th("{tittel} ingen konto, ingen chat og ingen fritekst utenom kallenavnet, og vi logger ikke IP-adressen din. Når mobilen kobler til, ser Cloudflare IP-adressen i det øyeblikket, slik alle nettsteder gjør, men vi lagrer den ikke og har slått av loggene.", { tittel: `<b>${esc(t("Det som ikke finnes:"))}</b>` })}</li>
+    </ul>
+    <p>${esc(t("På mobilen din lagres koden til rommet og plassmerket mens kampen varer. I Admiralen blir skipene dine på din mobil: den andre får bare vite «bom», «treff» eller «senket», og ser hele flåten først når kampen er slutt."))}</p>
+  </section>`;
     skriv(
       `${U.side("personvern").slice(1)}index.html`,
       omSide(U, {
@@ -1198,7 +1212,7 @@ ${bunn(U, true, o.finn)}
         beskrivelse: t("rusj har ingen konto, ingen informasjonskapsler, ingen sporing og ingen reklame. Se nøyaktig hva som lagres i nettleseren din – og slett alt med ett trykk."),
         skript: portalSkript(U, siderJs),
         innhold: `  <h1>${esc(t("Personvern"))}</h1>
-  <p class="side-ingress">${esc(t("Kort sagt: rusj har ingen konto, ingen informasjonskapsler, ingen sporing og ingen reklame. Det dere skriver inn i spillene, blir i nettleseren på enheten deres."))}${STAT_FIL ? " " + esc(t("Vi teller bare anonymt hvor mange som bruker rusj, og hvilke spill som åpnes.")) : ""}</p>
+  <p class="side-ingress">${esc(t("Kort sagt: rusj har ingen konto, ingen informasjonskapsler, ingen sporing og ingen reklame. Det dere skriver inn i spillene, blir i nettleseren på enheten deres."))}${STAT_FIL ? " " + esc(t("Vi teller bare anonymt hvor mange som bruker rusj, og hvilke spill som åpnes.")) : ""}${NETT ? " " + esc(t("Spiller dere sammen på nett, går bare trekkene og et kallenavn dere velger selv via rusj (se «Spill på nett»).")) : ""}</p>
 
   <section aria-labelledby="pv-lagres">
     <h2 id="pv-lagres">${esc(t("Dette lagres i nettleseren din"))}</h2>
@@ -1220,7 +1234,7 @@ ${bunn(U, true, o.finn)}
       }
     </ul>
     <p>${esc(t("Alt dette ligger bare i denne nettleseren på denne enheten."))} ${esc(STAT_FIL ? t("Ingenting av det sendes til oss, og vi kan ikke se det.") : t("Vi har ingen server som tar imot det, og vi kan ikke se det."))}</p>
-  </section>${STAT_FIL ? pvTelling : ""}
+  </section>${STAT_FIL ? pvTelling : ""}${NETT ? pvSpillNett : ""}
 
   <section aria-labelledby="pv-nett">
     <h2 id="pv-nett">${esc(t("Spillene lastes ned for bruk uten nett"))}</h2>
