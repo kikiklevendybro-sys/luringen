@@ -1,26 +1,314 @@
 [
-  { "type": "quiz", "merke": "🕯️", "merkeNavn": "et lys", "tekst": "Den sidste søndag før jul brænder alle lysene i adventskransen. Hvor mange lys er der?", "valg": ["Tre", "Fire", "Fem"], "riktig": 1, "fakta": "Der er fire søndage i advent – og et nyt lys for hver af dem." },
-  { "type": "nott", "merke": "👣", "merkeNavn": "fodspor", "tekst": "Jo flere du tager, jo flere efterlader du. Hvad er det?", "svar": "Fodspor – for eksempel i sneen!" },
-  { "type": "ord", "merke": "🎅", "merkeNavn": "en nisse", "ord": "NISSE", "hint": "Han har rød hue på og elsker risengrød." },
-  { "type": "kos", "merke": "❤️", "merkeNavn": "et julehjerte", "tittel": "Flet julehjerter", "tekst": "Klip to ens stykker glanspapir i hver sin farve, og flet dem sammen til et julehjerte med hank. Hæng det på juletræet eller i vinduet.", "tips": "Det kræver lidt tålmodighed – de mindste kan få hjælp til at klippe." },
-  { "type": "sang", "merke": "🥣", "merkeNavn": "en grødskål", "tekst": "En nisse sidder og spiser sin julegrød i fred og ro – lige indtil en flok små gæster med lange haler dukker op.", "valg": ["På loftet sidder nissen", "Højt fra træets grønne top", "Glade jul"], "riktig": 0 },
-  { "type": "utfordring", "merke": "🎭", "merkeNavn": "teatermasker", "tittel": "Mim julen", "tekst": "Mim »pynt juletræet« eller »bag småkager« uden at sige et ord – de andre gætter. Mimen har sin egen julekategori.", "lenke": "/da/mimen/#jul", "lenkeTekst": "Spil Mimen" },
-  { "type": "quiz", "merke": "🔥", "merkeNavn": "en flamme", "tekst": "Kalenderlyset brændes lidt ned hver dag i december. Hvilke tal står der på det?", "valg": ["1 til 12", "1 til 24", "1 til 31"], "riktig": 1, "fakta": "Hver dag brænder man lyset ned til det næste tal – juleaften er det næsten brændt helt ned." },
-  { "type": "nott", "merke": "🧦", "merkeNavn": "en julesok", "tekst": "Hvad bliver vådere, jo mere det tørrer?", "svar": "Et håndklæde!" },
-  { "type": "ord", "merke": "⭐", "merkeNavn": "en stjerne", "ord": "STJERNE", "hint": "Den lyser i toppen af juletræet." },
-  { "type": "kos", "merke": "🌙", "merkeNavn": "en måne", "tittel": "Aftentur", "tekst": "Tag refleks på, og gå en kort aftentur sammen. Tæl julelysene i vinduerne – hvem ser flest? Måske ser I også nogle stjerner.", "tips": "Hold sammen, og gå, hvor der er lys." },
-  { "type": "sang", "merke": "🔔", "merkeNavn": "en bjælde", "tekst": "En sang om en tur i kane, hvor bjælderne klinger hele vejen.", "valg": ["Glade jul", "Bjældeklang", "Et barn er født i Betlehem"], "riktig": 1 },
-  { "type": "utfordring", "merke": "👉", "merkeNavn": "en pegefinger", "tittel": "Hvem er mest tilbøjelig til …?", "tekst": "Spil Pegefingeren med julepakken: læs udsagnet, tæl ned – og alle peger på samme tid. Perfekt omkring middagsbordet.", "lenke": "/da/pegefingeren/#jul", "lenkeTekst": "Spil Pegefingeren" },
-  { "type": "quiz", "merke": "👑", "merkeNavn": "en lyskrone", "tekst": "I dag er det Luciadag. Hvad har Lucia på hovedet, når hun går forrest i optoget?", "valg": ["En krans med lys", "En nissehue", "En krone af is"], "riktig": 0, "fakta": "Luciaoptoget kom til Danmark i 1944, under besættelsen, som et lys i mørket." },
-  { "type": "nott", "merke": "⏰", "merkeNavn": "et vækkeur", "tekst": "Hvad går og går, men kommer aldrig hen til døren?", "svar": "Et ur!" },
-  { "type": "ord", "merke": "⛄", "merkeNavn": "en snemand", "ord": "SNEMAND", "hint": "Han har en gulerod som næse og står udenfor hele vinteren." },
-  { "type": "kos", "merke": "💌", "merkeNavn": "et brev", "tittel": "Hemmelig hyggeseddel", "tekst": "Skriv eller tegn en sød hilsen til en i familien. Gem den et sted, hvor den bliver fundet i morgen – under puden, i en sko eller i madpakken.", "tips": "Den, der finder sedlen, kan sende en ny videre." },
-  { "type": "sang", "merke": "🌲", "merkeNavn": "et grantræ", "tekst": "Juletræet står pyntet med kræmmerhuse og flag, og børnene danser rundt om det – sangen begynder helt oppe i toppen.", "valg": ["Bjældeklang", "Højt fra træets grønne top", "Glade jul"], "riktig": 1 },
-  { "type": "quiz", "merke": "🍚", "merkeNavn": "en skål risalamande", "tekst": "Hvad gemmer man i risalamanden juleaften?", "valg": ["En mønt", "En hel mandel", "En nød"], "riktig": 1, "fakta": "Den, der finder den hele mandel, vinder mandelgaven – og mange gemmer den i munden, så spændingen varer længe." },
-  { "type": "utfordring", "merke": "🎁", "merkeNavn": "en gave", "tittel": "Hemmelige nisser", "tekst": "Træk lod om, hvem der er hemmelig nisse for hvem. Gaven kan sagtens være en tegning, et digt eller en god gerning – det fineste er tit hjemmelavet.", "lenke": "/da/nissen/", "lenkeTekst": "Åbn Nissen" },
-  { "type": "ord", "merke": "🍬", "merkeNavn": "et bolsje", "ord": "JULETRÆ", "hint": "Det står i stuen med pynt og lys." },
-  { "type": "quiz", "merke": "☀️", "merkeNavn": "en sol", "tekst": "Omkring 21. december har vi årets korteste dag. Hvad hedder den?", "valg": ["Jævndøgn", "Vintersolhverv", "Sankthans"], "riktig": 1, "fakta": "Efter vintersolhverv bliver dagene lidt længere igen. Solen er på vej tilbage!" },
-  { "type": "sang", "merke": "🎶", "merkeNavn": "noder", "tekst": "Alle holder hinanden i hånden og går rundt om træet – og viser med armene, hvad man laver hver dag i ugen.", "valg": ["Glade jul", "Kimer, I klokker", "Så går vi rundt om en enebærbusk"], "riktig": 2 },
-  { "type": "nott", "merke": "📅", "merkeNavn": "en kalender", "tekst": "Hvilken måned har 28 dage?", "svar": "Allesammen! Alle måneder har mindst 28 dage." },
-  { "type": "kos", "merke": "🌟", "merkeNavn": "julestjernen", "tittel": "Glædelig jul!", "tekst": "Tænd et lys, ryk tæt sammen, og fortæl hinanden om jeres fineste juleminde. Og husk at sætte en skål risengrød op på loftet til nissen i aften!", "tips": "Tak, fordi du åbnede kalenderen sammen med os." }
+  {
+    "merke": "🕯️", "merkeNavn": "et lys",
+    "tittel": "Lys i mørket",
+    "kos": { "tittel": "Decemberlisten", "min": 10, "tekst": "Tænd kalenderlyset, og sæt jer sammen. Skriv en liste over ting, I gerne vil lave sammen inden jul – ikke gaver, men stunder: kælke, bage, se en julefilm, gå en tur og kigge på julelys. Alle foreslår mindst én ting. Hæng listen på køleskabet, og sæt kryds i løbet af december.", "smaa": "De mindste tegner deres forslag, og en voksen skriver ved siden af." },
+    "prat": { "t": "Hvad glæder du dig mest til i december?", "f": "Hvad kan vi gøre, for at det bliver præcis sådan?" },
+    "bonus": { "type": "quiz", "tekst": "Hvor meget brænder kalenderlyset hver dag?", "valg": ["Ét tal – én dag", "Halvdelen af lyset", "Hele lyset"], "riktig": 0, "fakta": "Kalenderlyset har 24 streger – én for hver dag frem til juleaften." },
+    "spill": { "id": "fortelleren", "tekst": "Fortsæt snakken i levende lys med Fortælleren: Træk et kort, fortæl, og lad de andre spørge videre. Vælg »Familie« – eller børnekortene, når de mindste er med.", "figur": "Psst … kom lidt tættere på lyset. Jeg er Fortælleren, og jeg samler på historier. I aften vil jeg høre jeres! Træk et kort, så lytter jeg." },
+    "venner": {
+      "spill": { "id": "fortelleren", "tekst": "Fortsæt snakken i levende lys med Fortælleren: Træk et kort, fortæl, og lad de andre spørge videre. Vælg bunken »Venner«.", "figur": "Psst … kom lidt tættere på lyset. Jeg er Fortælleren, og jeg samler på historier. I aften vil jeg høre jeres! Træk et kort, så lytter jeg." }
+    },
+    "klasse": {
+      "kos": { "tittel": "Klassens decemberliste", "min": 10, "tekst": "Skriv ti ting på tavlen, som I vil lave sammen inden juleferien: en juleleg, højtlæsning med kakao, en tur ud, en julesang, I lærer. Alle må foreslå. Stem om de fem bedste, og hæng listen op i klassen." },
+      "prat": { "t": "Hvad er det bedste ved december, synes du?", "f": "Hvordan kan du mærke, at det nærmer sig jul?" },
+      "spill": { "id": "bedreviteren", "tekst": "Start december med en holdquiz: Del jer i to til fire hold, sæt Klogeågen på storskærmen, og lad holdene blive enige, før de svarer.", "figur": "Øhm! Jeg er Klogeågen, og jeg ved næsten alt. Næsten! Del jer i hold, så finder vi ud af, hvem der har fulgt bedst med i år." }
+    }
+  },
+  {
+    "merke": "👣", "merkeNavn": "fodspor",
+    "tittel": "Spor i sneen",
+    "kos": { "tittel": "Lygtetur", "min": 15, "tekst": "Tag varmt tøj og refleks på, og gå en lille tur i mørket sammen. Tæl julestjerner og adventslys i vinduerne – hvem ser flest? Stop et øjeblik og lyt: Hvad kan I høre? Er der ingen sne, så led efter andre spor.", "smaa": "De mindste bærer lommelygten og er turleder." },
+    "prat": { "t": "Fortæl om en vinterdag, du husker godt fra, da du var lille.", "f": "Hvem var med – og hvad gjorde dagen så god?" },
+    "bonus": { "type": "nott", "tekst": "Jo flere du laver, jo flere efterlader du bag dig. Hvad er det?", "svar": "Fodspor – for eksempel i sneen!" },
+    "spill": { "id": "femmeren", "tekst": "Tilbage i varmen: Femmeren med julebunken. Nævn tre ting på fem sekunder – som »tre ting, man hænger på juletræet«. Vælg »Jul«.", "figur": "Fem, fire, tre … Hej, jeg er Femmeren, og jeg har altid travlt! Tre juleting på fem sekunder – kan I nå det, før uret tager jer?" },
+    "klasse": {
+      "kos": { "tittel": "Sporjagt i skolegården", "min": 10, "tekst": "Gå ud i ti minutter. Hvem finder flest forskellige spor – fugl, sko, cykel, kat? Tilbage i klassen tegner I sporene på tavlen, og de andre gætter, hvem der har lavet dem." },
+      "prat": { "t": "Hvad er det bedste, du ved, at lave udenfor om vinteren?", "f": "Hvad har du brug for for at holde varmen?" }
+    }
+  },
+  {
+    "merke": "🎅", "merkeNavn": "en nisse",
+    "tittel": "Nisseværkstedet",
+    "kos": { "tittel": "Tegnestafet", "min": 10, "tekst": "Alle tegner på det samme papir. Den første tegner hovedet på en nisse, folder papiret, så tegningen er skjult, og sender det videre. Den næste tegner kroppen, den sidste benene. Fold det ud – sikken en nisse! Lav én til, så alle får lov at starte.", "smaa": "De mindste farvelægger den færdige nisse." },
+    "prat": { "t": "Hvad er den fineste gave, du har fået, som nogen har lavet selv?", "f": "Hvad gjorde den så fin?" },
+    "bonus": { "type": "quiz", "tekst": "Hvad sætter mange op på loftet til nissen juleaften?", "valg": ["Mælk og småkager", "En skål risengrød", "En gulerod"], "riktig": 1, "fakta": "Risengrød med en klat smør! Ellers bliver nissen sur – og laver ballade resten af året." },
+    "spill": { "id": "kunstneren", "tekst": "Mere tegning: Kunstneren. Én tegner, resten gætter i kor – eller send tegningerne rundt om bordet i Hviskelegen. Skæve rensdyr er de bedste.", "figur": "Hej, jeg er Kunstneren! Jeg tegner aldrig forkert – kun kunst. Tegn med fingeren, så gætter de andre. Jo skævere nisse, jo bedre!" },
+    "klasse": {
+      "prat": { "t": "Hvis du var nisse på julemandens værksted, hvad ville du så opfinde?", "f": "Hvem skulle have den første?" }
+    }
+  },
+  {
+    "merke": "❤️", "merkeNavn": "et julehjerte",
+    "tittel": "Et hjerte til nogen, vi holder af",
+    "kos": { "tittel": "Flet julehjerter", "min": 15, "tekst": "Klip glanspapir i to farver, og flet julehjerter sammen. Hjælp hinanden – det er lettere med fire hænder, og det er helt okay, hvis det første bliver skævt. Hæng dem på træet eller i vinduet, og flet ét ekstra til nogen, I holder af.", "smaa": "De mindste vælger farver og pynter hjertet med klistermærker." },
+    "snill": { "tittel": "Send et hjerte", "tekst": "Send hjertet eller en tegning til bedsteforældre, en moster eller en nabo – med posten, eller tag et billede og send det. Skriv én sætning: hvorfor I tænkte på netop dem." },
+    "prat": { "t": "Hvem tænker du på, når du tænker på jul?", "f": "Hvad ville du sige til den person lige nu?" },
+    "bonus": { "type": "quiz", "tekst": "Hvem flettede et af de ældste julehjerter, vi kender?", "valg": ["H.C. Andersen", "Christian 4.", "Karen Blixen"], "riktig": 0, "fakta": "Eventyrdigteren flettede hjerter i papir – et af dem kan stadig ses i Odense." },
+    "spill": { "id": "elefanten", "tekst": "Elefanten med julebilleder: Vend to og to kort, og find ens par. Spil på hold – de mindste og de største sammen. Vælg temaet »Jul«.", "figur": "Hej, jeg er Elefanten, og jeg glemmer aldrig noget! Næsten aldrig. Vend to kort, og find to ens julekugler – jeg hepper på de mindste." },
+    "venner": {
+      "snill": { "tittel": "Send et hjerte", "tekst": "Send en julehilsen til en ven, I ikke har talt med længe – et billede af hjertet og én sætning om et minde, I har sammen." },
+      "spill": { "id": "tieren", "tekst": "Mens hjerterne hænger: Tieren. Ti svar rundt om ringen – tag ét ad gangen, men ét forkert svar, og puljen ryger.", "figur": "Hej, jeg er Tieren! Ti svar, ti chancer. Tør I tage ét til – eller stopper I, mens julestemningen er god?" }
+    },
+    "klasse": {
+      "snill": { "tittel": "Send et hjerte", "tekst": "Flet hjerter til et plejehjem, en børnehave eller til dem, der gør rent og passer på skolen. Skriv »Glædelig jul fra os« på et kort, og aflevér dem sammen." },
+      "prat": { "t": "Hvem på skolen fortjener et ekstra tak inden jul?", "f": "Hvad kan klassen gøre for at vise det?" },
+      "spill": { "id": "elefanten", "tekst": "Elefanten på storskærmen: Del klassen i to hold, der skiftes til at vende to kort. Hele holdet hjælper med at huske. Vælg temaet »Jul«.", "figur": "Hej, jeg er Elefanten, og jeg glemmer aldrig noget! Næsten aldrig. Vend to kort, og find to ens julekugler – hele holdet må hjælpe." }
+    }
+  },
+  {
+    "merke": "🥣", "merkeNavn": "en grødskål",
+    "tittel": "Pebernøddedagen",
+    "kos": { "tittel": "Pebernødder", "min": 15, "tekst": "Rør en pebernøddedej – eller køb en færdig – og rul små kugler sammen. Alle ruller mindst ti. Mens de bager, dufter hele huset af jul. Spis de første lune, og gem en pose til nogen andre.", "smaa": "De mindste ruller kugler og tæller dem." },
+    "prat": { "t": "Hvilken duft minder dig mest om jul?", "f": "Hvor var du, første gang du lagde mærke til den?" },
+    "bonus": { "type": "quiz", "tekst": "Hvilken af disse er IKKE en klassisk dansk julesmåkage?", "valg": ["Vaniljekranse", "Brunkager", "Kanelsnegle"], "riktig": 2, "fakta": "Vaniljekranse, brunkager og pebernødder hører julen til – kanelsnegle spiser vi hele året!" },
+    "spill": { "id": "vinglepetter", "hash": "jul", "tekst": "Mens pebernødderne bager: Vingleren med julebunken. »Hvad vil du helst?« – alle vælger på samme tid og fortæller hvorfor.", "figur": "Hmm … skal jeg … eller skal jeg …? Hej, jeg er Vingleren, og jeg kan aldrig bestemme mig. Hjælp mig: Hvad vil I helst?" },
+    "klasse": {
+      "kos": { "tittel": "Småkageudstilling", "min": 15, "tekst": "Har I et køkken, pynter I færdige småkager sammen. Ellers: Tegn den mærkeligste peberkagemand, I kan forestille jer, på brunt papir, klip den ud, og hæng dem alle op som en udstilling." },
+      "prat": { "t": "Hvilken julemad eller julekage kan du bedst lide?", "f": "Forklar, hvordan den smager – uden at sige navnet!" },
+      "spill": { "id": "vinglepetter", "hash": "jul", "tekst": "Vingleren i klassen: Den ene side af lokalet er det ene valg, den anden side det andet. Læs spørgsmålet højt – og gå derhen, hvor du helst vil!", "figur": "Hmm … skal jeg … eller skal jeg …? Hej, jeg er Vingleren! I dag bestemmer I med benene: Gå til den side af lokalet, I vælger." }
+    }
+  },
+  {
+    "merke": "🎭", "merkeNavn": "teatermasker",
+    "tittel": "Mimeaften",
+    "kos": { "tittel": "Kravlenisser", "min": 15, "tekst": "Tegn nisser med lange arme og ben på pap, klip dem ud og farvelæg dem. Sæt dem til at kravle op ad gardiner, lamper og billeder – hvem finder det sjoveste sted?", "smaa": "De mindste farvelægger og bestemmer, hvor nisserne skal kravle." },
+    "prat": { "t": "Hvilken juletradition håber du, vi aldrig holder op med?", "f": "Hvordan tror du, den begyndte?" },
+    "bonus": { "type": "quiz", "tekst": "Et snekrystal har næsten altid lige mange arme. Hvor mange?", "valg": ["Fire", "Seks", "Otte"], "riktig": 1, "fakta": "Når vand fryser, ordner det sig i et mønster med seks sider. Derfor har snekrystaller seks arme." },
+    "spill": { "id": "mimen", "hash": "jul", "tekst": "Mimen med julekategorien: »pynte juletræet«, »danse om juletræet« – uden et eneste ord. De andre gætter.", "figur": "… ! (Mimen siger ingenting. Mimen lader, som om han hænger et julehjerte op, peger på jer og bukker dybt.)" },
+    "venner": {
+      "prat": { "t": "Hvilken af dine juletraditioner synes andre måske er lidt mærkelig?", "f": "Hvem fandt på den?" }
+    },
+    "klasse": {
+      "prat": { "t": "Hvilken jule- eller vintertradition fra hele verden kan du bedst lide?", "f": "Hvorfor lige den?" }
+    }
+  },
+  {
+    "merke": "🔥", "merkeNavn": "en flamme",
+    "tittel": "Detektivdagen",
+    "kos": { "tittel": "Hvad mangler på bakken?", "min": 10, "tekst": "Læg ti juleting på en bakke: en kugle, en pebernød, en vante, en kogle … Alle kigger i 30 sekunder. Læg et viskestykke over, og dagens nisse fjerner én ting i smug. Hvad mangler? Skiftes til at være den, der gemmer.", "smaa": "Start med fem ting til de mindste." },
+    "prat": { "t": "Fortæl om en gang, du blev rigtig overrasket – på en god måde.", "f": "Hvordan så du ud i ansigtet?" },
+    "bonus": { "type": "nott", "tekst": "Hvad bliver vådere, jo mere det tørrer?", "svar": "Et håndklæde!" },
+    "spill": { "id": "detektiven", "tekst": "Detektiven med julehemmeligheder: Én tænker på noget fra julen – de andre har højst 20 ja/nej-spørgsmål. Vælg kategorien »Jul«.", "figur": "Hmm. Interessant. Hej, jeg er Detektiven. Nogen her har en julehemmelighed, og jeg har brug for hjælp. Stil snedige ja/nej-spørgsmål – tyve er nok til et skarpt hoved!" },
+    "klasse": {
+      "prat": { "t": "Hvis du kunne overraske hele skolen inden jul, hvad ville du så gøre?", "f": "Hvad tror du, de andre ville sige?" }
+    }
+  },
+  {
+    "merke": "🧦", "merkeNavn": "en julesok",
+    "tittel": "Ring til en, du savner",
+    "kos": { "tittel": "Et takkebrev til julemanden", "min": 10, "tekst": "Skriv et brev til julemanden sammen – men ikke en ønskeseddel. Skriv, hvad I er glade for i år, og hvad I ønsker for andre. Alle siger mindst én sætning.", "smaa": "De mindste tegner noget, de er glade for." },
+    "snill": { "tittel": "Ring til en, I savner", "tekst": "Ring eller videoring til nogen, I savner – bedsteforældre, en ven, der er flyttet, en gammel nabo. Alle siger hej og fortæller én ting fra december indtil nu." },
+    "prat": { "t": "Hvem har betydet meget for dig i år?", "f": "Har du fortalt dem det?" },
+    "bonus": { "type": "quiz", "tekst": "Hvor bor julemanden ifølge mange danske børn?", "valg": ["I Grønland", "I Spanien", "På Bornholm"], "riktig": 0, "fakta": "Mange danske børn sender breve til julemanden i Grønland – og nogle får endda svar." },
+    "spill": { "id": "tankeleseren", "tekst": "Tankelæseren i juleudgaven: Er I på bølgelængde? Fra »dårlig julegave« til »perfekt julegave« – hvor rammer hintet? Vælg »Jul«.", "figur": "Jeg ved, hvad du tænker … næsten. Hej, jeg er Tankelæseren! Giv ét hint, så prøver de andre at læse dine tanker. Er I på julebølgelængde?" },
+    "klasse": {
+      "snill": { "tittel": "Et tak til nogen", "tekst": "Skriv et kort sammen til en, der arbejder på skolen, eller til et plejehjem i nærheden. Alle skriver eller tegner én ting på kortet." },
+      "prat": { "t": "Hvem på skolen gør dine dage lidt bedre?", "f": "Hvordan kan du sige tak til dem?" }
+    }
+  },
+  {
+    "merke": "⭐", "merkeNavn": "en stjerne",
+    "tittel": "Stjerneaften",
+    "kos": { "tittel": "Stjernehimmel i stuen", "min": 10, "tekst": "Klip en stor papirstjerne til vinduet. Sluk så lyset, læg jer på gulvet, og lav en stjernehimmel i loftet med lommelygter. Find på navne til jeres egne stjernebilleder!", "smaa": "De mindste styrer lommelygten og bestemmer, hvor stjernerne skal være." },
+    "prat": { "t": "Hvis du kunne ønske én ting for hele verden i julen, hvad skulle det så være?", "f": "Hvad kan vi gøre for at komme lidt tættere på det?" },
+    "bonus": { "type": "quiz", "tekst": "Hvilken stjerne er den klareste på nattehimlen?", "valg": ["Sirius", "Nordstjernen", "Karlsvognen"], "riktig": 0, "fakta": "Sirius er klarest. Nordstjernen er det ikke – men den står næsten helt stille over Nordpolen." },
+    "spill": { "id": "lognhalsen", "tekst": "Løgnhalsen med julehistorier: Fortæl tre ting fra en jul – to sande og én opdigtet. Kan de andre afsløre dig? Vælg temaet »Jul«.", "figur": "Jeg har aldrig løjet i hele mit liv! … Det var løgn. Hej, jeg er Løgnhalsen! Fortæl to sande julehistorier og én opdigtet – så ser vi, hvem der afslører dig." },
+    "klasse": {
+      "spill": { "id": "hviskeren", "tekst": "Hviskeren i grupper: Én gætter ordet, de andre giver ét hint hver – men ens hints bliver streget ud! Samarbejd, og tæl, hvor mange I klarer.", "figur": "Psst … hej, jeg er Hviskeren. Ét hint hver – men aldrig det samme som sidemanden! Hvisk klogt, så klarer I det sammen." }
+    }
+  },
+  {
+    "merke": "🌙", "merkeNavn": "en måne",
+    "tittel": "Lydaften",
+    "kos": { "tittel": "Gæt julelyden", "min": 10, "tekst": "Alle lukker øjnene. Én laver en julelyd: en bjælde, papir, der bliver revet, en ske i en kop, et »ho, ho, ho«. De andre gætter. Skiftes – hvem finder den mærkeligste lyd?", "smaa": "De mindste må lave den første lyd." },
+    "prat": { "t": "Hvad har du lært i år, som du er stolt af?", "f": "Hvem hjalp dig med at lære det?" },
+    "bonus": { "type": "quiz", "tekst": "Hvad betyder ordet »advent«?", "valg": ["Ankomst – noget, der kommer", "Sne", "Fire lys"], "riktig": 0, "fakta": "Advent kommer fra latin og betyder »ankomst«. Det er ventetiden før jul." },
+    "spill": { "id": "papegoyen", "tekst": "Papegøjen med julespørgsmål: Én sidder i papegøjestolen og svarer – uden at sige ja eller nej. Spørg for eksempel: »Glæder du dig til jul?«", "figur": "Ja! Nej! Ja! Pip! Hej, jeg er Papegøjen, og jeg hører ALT. Sig ja eller nej, så råber jeg det ud. Kan du svare på julespørgsmål uden?" },
+    "klasse": {
+      "prat": { "t": "Hvad er vores klasse blevet bedre til i år?", "f": "Hvad vil vi blive bedre til efter jul?" }
+    }
+  },
+  {
+    "merke": "🔔", "merkeNavn": "en bjælde",
+    "tittel": "Køkkenkoncert",
+    "kos": { "tittel": "Julekoncert med grydelåg", "min": 10, "tekst": "Lav instrumenter af det, I kan finde: grydelåg, ris i en dåse, skeer mod et glas. Vælg en julesang, alle kan, og spil og syng sammen. Jo mere falsk, jo bedre!", "smaa": "De mindste er dirigenter og bestemmer, hvornår alle spiller hurtigt og langsomt." },
+    "prat": { "t": "Hvilken julesang får dig i godt humør?", "f": "Hvad er det ved lige den sang?" },
+    "bonus": { "type": "quiz", "tekst": "Hvilken sang synger mange, når kæden løber gennem hele huset juleaften?", "valg": ["Nu er det jul igen", "Højt fra træets grønne top", "Et barn er født i Betlehem"], "riktig": 0, "fakta": "Først går man stille rundt om juletræet – så tager »Nu er det jul igen« fart, og kæden løber gennem stuer, køkken og gang!" },
+    "spill": { "id": "sauen", "tekst": "Fåret i juleudgaven: Svar det samme som flokken. »Noget, man spiser juleaften« – hvad skriver de fleste? Vælg »Jul«.", "figur": "Mææææ! Hej, jeg er Fåret. Jeg tænker præcis som flokken – og det skal I også. Svar det samme som de andre, så står ingen alene ude i sneen." },
+    "klasse": {
+      "kos": { "tittel": "Klasseorkester", "min": 10, "tekst": "Lav instrumenter af det, der er i lokalet: blyanter mod bordet, papir, der rasler, klap. Vælg en julesang, alle kan, og spil den sammen – først langsomt, så hurtigt." },
+      "prat": { "t": "Hvilken sang skulle med til klassens julekoncert?", "f": "Hvorfor lige den?" }
+    }
+  },
+  {
+    "merke": "👉", "merkeNavn": "en pegefinger",
+    "tittel": "Peberkagebyen",
+    "kos": { "tittel": "Vores egen peberkageby", "min": 15, "tekst": "Byg et peberkagehus – eller en hel lille by af kagestykker, kiks og glasur. Alle bygger deres egen del: et hus, en butik, et træ, en kirke. Sæt byen sammen til sidst.", "smaa": "De mindste pynter tagene med krymmel og slik." },
+    "prat": { "t": "Hvad er noget sødt, du har set nogen her gøre for nylig?", "f": "Hvordan var det at se?" },
+    "bonus": { "type": "quiz", "tekst": "Hvad er en kravlenisse?", "valg": ["En papnisse, der kravler på gardiner og lamper", "En nisse, der kravler i sneen", "En slags småkage"], "riktig": 0, "fakta": "Kravlenisser klippes ud af pap og hænger og kravler overalt i danske hjem i hele december." },
+    "spill": { "id": "pekefingeren", "hash": "jul", "tekst": "Pegefingeren med julebunken: »Hvem er mest tilbøjelig til at …« – tæl ned, og alle peger på samme tid. Søde svar og masser af grin!", "figur": "Der! Og der! Hej, jeg er Pegefingeren. Jeg peger altid – men aldrig ondt. Hvem spiser mest af peberkagebyen inden jul? Tæl ned … og peg!" },
+    "klasse": {
+      "kos": { "tittel": "Klassens peberkageby", "min": 15, "tekst": "Alle klipper et hus ud af brunt papir og pynter det med hvidt kridt eller tusch. Sæt husene sammen til en by på væggen – med gader, træer og et tog." },
+      "prat": { "t": "Hvis du skulle bygge noget helt nyt i peberkagebyen, hvad skulle det så være?", "f": "Hvem skulle bo der?" },
+      "spill": { "id": "kodeknekkeren", "tekst": "Kodeknækkeren på storskærmen: Hold Rosa mod Hold Blå. Kodemestrene giver ét ord og et tal – holdene leder efter deres agenter blandt 25 ord.", "figur": "Kode modtaget. Hej, jeg er Kodeknækkeren! Kun kodemestrene ved, hvem agenterne er. Ét ord, ét tal – resten er holdarbejde." }
+    }
+  },
+  {
+    "merke": "👑", "merkeNavn": "en lyskrone",
+    "tittel": "Luciadag",
+    "kos": { "tittel": "Lussekatte og luciaoptog", "min": 15, "tekst": "Bag lussekatte – eller køb nogle, og lun dem i ovnen. Sluk loftslyset, tænd lys, og gå et lille luciaoptog gennem huset, mens I synger »Sankta Lucia«.", "smaa": "De mindste går forrest med et batterilys." },
+    "snill": { "tittel": "God lucia til naboen", "tekst": "Giv et par lussekatte til en nabo eller en, der bor alene. Ring på, sig »God lucia!« – og smut, før de når at takke for meget." },
+    "prat": { "t": "Hvem ville du give en lussekat for at sige tak?", "f": "Hvad vil du takke dem for?" },
+    "bonus": { "type": "quiz", "tekst": "Hvad har Lucia på hovedet, når hun går forrest i optoget?", "valg": ["En krans med lys", "En nissehue", "En krone af is"], "riktig": 0, "fakta": "I Danmark gik det første luciaoptog i 1944 – som et lys i en mørk tid." },
+    "spill": { "id": "panna", "hash": "jul", "tekst": "Panden med julebunken: Hold mobilen på panden – de andre forklarer det juleord, du ikke kan se.", "figur": "Hej, jeg er Panden! Jeg sidder altid lidt højt – på din pande. Du kan ikke se ordet, men alle andre kan. Lyt godt efter, og gæt!" },
+    "klasse": {
+      "kos": { "tittel": "Luciaoptog", "min": 15, "tekst": "Alle får et batterilys. Øv »Sankta Lucia«, og gå i optog gennem gangen – én er Lucia, resten er følge. Lussekatte bagefter, hvis I har." },
+      "snill": { "tittel": "God lucia til andre", "tekst": "Gå luciaoptog for en anden klasse, kontoret eller SFO'en – og del tegninger eller lussekatte ud." }
+    }
+  },
+  {
+    "merke": "⏰", "merkeNavn": "et vækkeur",
+    "tittel": "Jul i gamle dage",
+    "kos": { "tittel": "Juleminder fra albummet", "min": 15, "tekst": "Find gamle billeder frem – på papir eller mobil – fra tidligere juleaftener. Hvem er det? Hvad skete der? Lad den ældste fortælle først, og de yngste stille spørgsmål.", "smaa": "De mindste leder efter sig selv – eller efter mor og far som børn." },
+    "prat": { "t": "Hvad er det sjoveste, der er sket i en jul, du kan huske?", "f": "Hvem griner mest, når I snakker om det nu?" },
+    "bonus": { "type": "nott", "tekst": "Hvad har tænder, men kan ikke bide?", "svar": "En kam – eller en lynlås!" },
+    "spill": { "id": "sladrehanken", "hash": "jul", "tekst": "Sladrehanken med julebunken: »Jeg har aldrig …« – har du gjort det alligevel, er du afsløret. Og historien skal frem!", "figur": "Hihi, jeg ved ting! Hej, jeg er Sladrehanken. »Jeg har aldrig købt alle julegaverne lillejuleaften« … eller har du? Fortæl!" },
+    "klasse": {
+      "kos": { "tittel": "Juletraditioner fra hele verden", "min": 15, "tekst": "Hvem kender en juletradition fra et andet land – eller en anden lysfest i den mørke tid? Saml dem på tavlen. Find landene på kortet, og vælg én, I vil prøve i klassen." },
+      "prat": { "t": "Hvad er det sjoveste, du har set eller hørt om i en jul – i en film, en bog eller i virkeligheden?", "f": "Hvad var det, der var så sjovt?" },
+      "spill": { "id": "sfinksen", "tekst": "Sfinksen: Gåder med et twist. Læs gåden højt fra storskærmen, og lad klassen tænke sammen – svaret er tit nemmere, end man tror.", "figur": "Hør min gåde … eller lyt bare godt efter. Hej, jeg er Sfinksen! Læs grundigt, tænk jer om – og svar ikke for hurtigt." }
+    }
+  },
+  {
+    "merke": "⛄", "merkeNavn": "en snemand",
+    "tittel": "Snemandsdagen",
+    "kos": { "tittel": "Snemand – ude eller inde", "min": 15, "tekst": "Er der sne? Byg en snemand eller en snelygte sammen. Ingen sne (det er jo Danmark)? Lav snemænd af hvide sokker fyldt med ris, eller tegn en snemand, hvor alle tegner hver sin del.", "smaa": "De mindste finder knapper til øjnene og et halstørklæde." },
+    "snill": { "tittel": "En hjælpende hånd", "tekst": "Skrab sne eller strø salt for en nabo – eller hjælp nogen med at bære indkøb eller brænde ind. Gør det gerne uden at sige noget først." },
+    "prat": { "t": "Hvis du kunne bytte plads med én i familien for en dag i julen, hvem skulle det så være?", "f": "Hvad ville du gøre først?" },
+    "bonus": { "type": "quiz", "tekst": "Hvilken farve har sne egentlig?", "valg": ["Hvid", "Gennemsigtig", "Lyseblå"], "riktig": 1, "fakta": "Hvert snekrystal er gennemsigtig is. Sneen ser hvid ud, fordi lyset spredes i alle retninger." },
+    "spill": { "id": "bokstavtrollet", "tekst": "Bogstavtrolden med julekategorier: Slå »Julekategorier« til, og find et ord på bogstavet, før bomben springer.", "figur": "Grrr … B! Hej, jeg er Bogstavtrolden, og jeg spiser bogstaver til morgenmad. Noget på juletræet, der starter med K? Hurtigt, før bomben springer!" },
+    "venner": {
+      "prat": { "t": "Hvis du kunne bytte plads med én her for en dag i julen, hvem skulle det så være?", "f": "Hvad ville du gøre først?" }
+    },
+    "klasse": {
+      "snill": { "tittel": "En hjælpende hånd", "tekst": "Ryd op i skolegården sammen, eller lav noget glad til de yngste elever – en kridtsnemand på muren eller en tegning i vinduet." },
+      "prat": { "t": "Hvis du kunne bytte plads med din lærer for en dag, hvad ville du så gøre?", "f": "Hvad tror du, der er det sværeste ved jobbet?" }
+    }
+  },
+  {
+    "merke": "💌", "merkeNavn": "et brev",
+    "tittel": "Hemmelige hyggesedler",
+    "kos": { "tittel": "En hemmelig hyggeseddel", "min": 10, "tekst": "Alle skriver eller tegner en sød hilsen til en anden her. Gem sedlerne, hvor de bliver fundet i morgen – under puden, i en sko, i madpakken. Den, der finder en seddel, kan sende en ny videre.", "smaa": "De mindste tegner hjerter og stjerner – en voksen hjælper med navnet." },
+    "prat": { "t": "Hvad er noget sødt, nogen har gjort for dig i år?", "f": "Hvordan føltes det?" },
+    "bonus": { "type": "nott", "tekst": "Hvad kan du holde uden at bruge hænderne?", "svar": "Et løfte – eller vejret!" },
+    "spill": { "id": "skattejegeren", "tekst": "Skattejægeren: Lav en julejagt på et par minutter. Mobilen laver ledetrådene, en voksen gemmer dem – og skatten kan være en pebernød eller en hyggeseddel.", "figur": "Ho, ho, ho – og et kort! Hej, jeg er Skattejægeren. Jeg har ledetråde til hele huset. Følg sporene – måske er skatten sød?" },
+    "venner": {
+      "kos": { "tittel": "En hemmelig hyggeseddel", "min": 10, "tekst": "Træk et navn hver. Skriv noget pænt til den, du fik – noget, du sætter pris på, eller et minde. Læg sedlerne i en skål, og læs dem højt på skift uden at sige, hvem der skrev." },
+      "spill": { "id": "dommeren", "tekst": "Dommeren: Alle vælger i hemmelighed det sjoveste svar fra deres egen hånd – og dommeren kårer det bedste. Perfekt til vennerne i adventstiden.", "figur": "Ro i retten! Hej, jeg er Dommeren. Jeg kårer det sjoveste svar – og jeg er garanteret helt upartisk. Næsten." }
+    },
+    "klasse": {
+      "kos": { "tittel": "Hyggeseddel-lodtrækning", "min": 10, "tekst": "Alle trækker et navn i klassen og skriver én pæn ting om den person på en seddel – noget personen er god til eller har gjort. Læreren samler sedlerne og deler dem ud." },
+      "prat": { "t": "Hvad er noget sødt, du har set nogen gøre på skolen?", "f": "Hvordan tror du, det føltes for den, der fik det?" },
+      "spill": { "id": "skattejegeren", "tekst": "Skattejagt i klassen: Mobilen laver ledetrådene, læreren gemmer dem i lokalet – og den, der finder skatten, deler den med alle.", "figur": "Ho, ho, ho – og et kort! Hej, jeg er Skattejægeren. Ledetrådene er gemt i klassen. Samarbejd, så finder I skatten!" }
+    }
+  },
+  {
+    "merke": "🌲", "merkeNavn": "et grantræ",
+    "tittel": "Til en, der er alene",
+    "kos": { "tittel": "Julekortværksted", "min": 15, "tekst": "Lav julekort sammen: fold, tegn, klip og lim. Skriv en hilsen indeni. Lav mindst ét kort ekstra – til en, der måske er alene i julen.", "smaa": "De mindste tegner, de største skriver." },
+    "snill": { "tittel": "Et kort til en, der er alene", "tekst": "Giv kortet til en nabo, der bor alene, eller send det til et plejehjem i nærheden. Mange får næsten ingen post i december – ét kort kan lyse en hel uge op." },
+    "prat": { "t": "Hvordan kan vi gøre julen lidt bedre for nogen andre i år?", "f": "Hvem kunne have mest brug for det?" },
+    "bonus": { "type": "quiz", "tekst": "Hvilket rensdyr har rød næse i den kendte sang?", "valg": ["Rudolf", "Komet", "Lynet"], "riktig": 0, "fakta": "Rudolf blev fundet på i en børnebog i 1939. Sangen kom ti år senere." },
+    "spill": { "id": "spionen", "tekst": "Spionen med julesteder: Alle ved, at I er på julemarkedet – undtagen spionen. Stil snedige spørgsmål, og find spionen! Vælg »Jul«.", "figur": "… jeg er her ikke. Du har ikke set mig. Hej, jeg er Spionen. Alle ved, hvor vi er – undtagen én. Stil snedige spørgsmål, og lad ikke spionen gætte stedet!" },
+    "klasse": {
+      "snill": { "tittel": "Kort til et plejehjem", "tekst": "Lav julekort til et plejehjem eller en børnehave i nærheden. Alle laver ét. Spørg læreren, om I kan aflevere dem samlet – måske kan I synge en sang også?" }
+    }
+  },
+  {
+    "merke": "🍚", "merkeNavn": "en skål risalamande",
+    "tittel": "Fredagsduft",
+    "kos": { "tittel": "Appelsiner med nelliker", "min": 15, "tekst": "Stik nelliker i appelsiner eller klementiner i mønstre – hjerter, stjerner, spiraler. Læg dem i en skål, eller hæng dem op med bånd. Huset dufter af jul i ugevis.", "smaa": "De mindste laver huller med en tandstik først, så går det lettere." },
+    "prat": { "t": "Hvad er det bedste, du har oplevet i år?", "f": "Hvem var med dig?" },
+    "bonus": { "type": "quiz", "tekst": "Hvad gemmer man i risalamanden juleaften?", "valg": ["En hel mandel", "En mønt", "En rosin"], "riktig": 0, "fakta": "Den, der finder mandlen, får mandelgaven – og det gælder om at skjule den længe!" },
+    "spill": { "id": "skravla", "hash": "jul", "tekst": "Snakketøjet med juleord: Hold mod hold – forklar »kalenderlys« uden at sige ordet. Først i mål vinder.", "figur": "Bla, bla, bla – hej, jeg er Snakketøjet! Jeg kan snakke om alt i hele verden. Forklar juleordet uden at sige det, så kommer jeres hold først i mål!" },
+    "klasse": {
+      "prat": { "t": "Hvad er det bedste, der er sket i klassen i år?", "f": "Hvad vil du gerne, at vi gør igen?" }
+    }
+  },
+  {
+    "merke": "🎁", "merkeNavn": "en gave",
+    "tittel": "Hemmelige nisser",
+    "kos": { "tittel": "En hjemmelavet gave", "min": 15, "tekst": "Træk hemmelige nisser. Alle laver en lille gave til den, de fik: en tegning, et digt, en kupon på »én opvask« eller en hemmelig tjeneste. Gaverne deles ud juleaften.", "smaa": "De mindste laver en tegning eller en perlekæde." },
+    "prat": { "t": "Hvad er den fineste gave, du har givet væk?", "f": "Hvorfor var den så god at give?" },
+    "bonus": { "type": "quiz", "tekst": "Hvor mange nætter skal man sove fra i aften til juleaften?", "valg": ["Fem", "Seks", "Syv"], "riktig": 0, "fakta": "Fem nætter! Kalenderlyset er allerede brændt næsten helt ned." },
+    "spill": { "id": "nissen", "tekst": "Nissen trækker, hvem der skal være hemmelig nisse for hvem – uden sedler i huen, og ingen ved, hvem der har trukket hvem.", "figur": "Ho, ho … tys! Hej, jeg er Nissen. Jeg holder på hemmeligheder bedre end nogen. Træk én, du skal lave en gave til – jeg siger det ikke til nogen!" },
+    "klasse": {
+      "kos": { "tittel": "Hemmelig nisseven", "min": 10, "tekst": "Træk, hvem I skal være nisseven for frem til juleferien. Gør noget sødt i smug hver dag: en tegning på bordet, et kompliment på en seddel, hjælp med jakken." },
+      "prat": { "t": "Hvad er den fineste gave, der ikke koster penge?", "f": "Hvem kunne du give den til?" }
+    }
+  },
+  {
+    "merke": "🍬", "merkeNavn": "et bolsje",
+    "tittel": "Konfekt og mod",
+    "kos": { "tittel": "Julekonfekt", "min": 15, "tekst": "Lav nem julekonfekt sammen: Smelt chokolade, og dyp nødder, rosiner eller kiks – eller form marcipangrise. Alle laver et ekstra fint stykke til en anden her.", "smaa": "De mindste ruller marcipankugler og pynter med krymmel." },
+    "snill": { "tittel": "Giv noget væk", "tekst": "Gå legetøj, bøger eller tøj igennem. Find én ting hver, der kan få en ny ejer, og giv den til en indsamling, en genbrugsbutik eller en, der har brug for den." },
+    "prat": { "t": "Hvad er du mest taknemmelig for i år?", "f": "Hvem burde høre det?" },
+    "bonus": { "type": "quiz", "tekst": "Hvornår blev det første juletræ, vi kender i Danmark, tændt?", "valg": ["I 1808", "I 1588", "I 1958"], "riktig": 0, "fakta": "Det stod på herregården Holsteinborg på Sjælland. Skikken kom fra Tyskland." },
+    "spill": { "id": "vaghalsen", "hash": "jul", "tekst": "Vovehalsen med julebunken: Sandhed eller konsekvens – trygt for stuen. »Syng ›Nu er det jul igen‹ som en operasanger!« Det er altid i orden at sige pas.", "figur": "Tør du? Selvfølgelig tør du! Hej, jeg er Vovehalsen. Vælg sandhed eller konsekvens – og husk: Det er altid i orden at sige pas." },
+    "klasse": {
+      "kos": { "tittel": "Giv væk-bordet", "min": 15, "tekst": "Tag en ting med, I ikke bruger mere – en bog, et spil, et puslespil – og lav et giv væk-bord i klassen. Alle må tage én ting med hjem inden jul." },
+      "snill": { "tittel": "Giv videre", "tekst": "Det, der bliver tilbage på bordet, giver I til en genbrugsbutik, et bibliotek eller en børnehave i nærheden." },
+      "prat": { "t": "Hvad er du taknemmelig for på skolen i år?", "f": "Hvem vil du sige tak til?" },
+      "spill": { "id": "tieren", "tekst": "Tieren på hold: Ti svar ligger rundt om ringen – holdene tager ét ad gangen. Ét forkert svar, og puljen ryger. Fortsæt, eller stop i tide?", "figur": "Hej, jeg er Tieren! Ti svar, ti chancer. Tager holdet ét svar til – eller stopper I, mens I fører?" }
+    }
+  },
+  {
+    "merke": "☀️", "merkeNavn": "en sol",
+    "tittel": "Den mørkeste dag",
+    "kos": { "tittel": "Lygter til årets korteste dag", "min": 15, "tekst": "Lav lygter af syltetøjsglas med silkepapir eller tegninger udenom. Sæt et fyrfadslys i, sluk loftslyset, og hold en lille lysfest. Fra i morgen bliver dagene længere igen!", "smaa": "De mindste limer silkepapir på – brug batterilys hos de allermindste." },
+    "snill": { "tittel": "En julegave til fuglene", "tekst": "Hæng en mejsebolle op, eller sæt et juleneg ud til fuglene. Se, hvem der kommer på besøg i morgen – og giv dem navne." },
+    "prat": { "t": "Hvad gør dig glad, når det er mørkt og koldt udenfor?", "f": "Hvordan kan vi få mere af det i vinter?" },
+    "bonus": { "type": "quiz", "tekst": "Omkring den 21. december har vi årets korteste dag. Hvad hedder den?", "valg": ["Jævndøgn", "Vintersolhverv", "Sankthans"], "riktig": 1, "fakta": "Efter vintersolhverv bliver dagene lidt længere igen. Solen er på vej tilbage!" },
+    "spill": { "id": "smilefjeset", "tekst": "Smilefjæset: Nogle få emojier gemmer en ting, et sted eller en sang. Gæt sammen – bunken med sange har også julesange!", "figur": "😄! Hej, jeg er Smilefjæset. Jeg taler kun emoji. 🎄 + 🧦 – hvad står der? Gæt sammen, så smiler jeg endnu bredere!" }
+  },
+  {
+    "merke": "🎶", "merkeNavn": "noder",
+    "tittel": "Eventyraften",
+    "kos": { "tittel": "En historie i mørket", "min": 10, "tekst": "Sluk lyset, og tænd ét lys. Den ældste begynder at fortælle et juleeventyr – eller en historie fra sin egen barndom. Så fortsætter de andre, én sætning hver, til historien har en slutning.", "smaa": "De mindste bestemmer, hvad der skal ske med nissen i historien." },
+    "prat": { "t": "Hvad håber du, at vi husker fra den her jul om mange år?", "f": "Hvad kan vi gøre, for at det bliver sådan?" },
+    "bonus": { "type": "quiz", "tekst": "Hvor mange lys er der i en adventskrans?", "valg": ["Tre", "Fire", "Fem"], "riktig": 1, "fakta": "Ét for hver søndag i advent – det første tændes fire søndage før jul." },
+    "spill": { "id": "nynneren", "hash": "jul", "tekst": "Nynneren med julesange: Nyn – uden ord – og lad de andre gætte. »Højt fra træets grønne top« er lettere, end man tror!", "figur": "Mmm-mm-mmmm! Hej, jeg er Nynneren. Jeg har glemt alle ordene, men melodien sidder! Nyn en julesang, så gætter de andre." },
+    "klasse": {
+      "kos": { "tittel": "Fortællestafet", "min": 10, "tekst": "Sluk loftslyset, og sæt jer i en rundkreds. Læreren begynder et juleeventyr. Så fortsætter eleverne, én sætning hver, hele vejen rundt. Den sidste finder på slutningen." },
+      "prat": { "t": "Hvilken julehistorie eller julefilm synes du, alle burde se?", "f": "Hvilken del er den bedste?" }
+    }
+  },
+  {
+    "merke": "📅", "merkeNavn": "en kalender",
+    "tittel": "Lillejuleaften",
+    "kos": { "tittel": "Æbleskiver og juletræ", "min": 15, "tekst": "Lav æbleskiver – eller lun en pose frosne – og pynt juletræet sammen. Alle hænger deres egen yndlingspynt op og fortæller, hvor den kommer fra.", "smaa": "De mindste hænger pynten nederst – og bestemmer, hvor stjernen skal sidde." },
+    "snill": { "tittel": "Tak til dem, der arbejder", "tekst": "Mange arbejder i julen: sygeplejersker, buschauffører, dem i butikken. Sig »glædelig jul« og tak til en, I møder – eller send en hilsen til en, I kender, der arbejder." },
+    "prat": { "t": "Hvad har været det bedste ved december indtil nu?", "f": "Hvilken låge vil du gerne lave igen?" },
+    "bonus": { "type": "nott", "tekst": "Hvilken måned har 28 dage?", "svar": "Dem alle sammen! Alle måneder har mindst 28 dage." },
+    "spill": { "id": "hatten", "tekst": "Hatten: Alle ordene i hatten, tre runder – forklar, sig ét ord, og mim. Læg mobilen i en nissehue mellem turene!", "figur": "Hej, jeg er Hatten! Alt havner i mig til sidst. De samme ord i tre runder: forklar, ét ord og så mime. Hvem husker bedst?" },
+    "klasse": {
+      "kos": { "tittel": "Klassens juletræ", "min": 15, "tekst": "Tegn et stort juletræ på tavlen eller på papir på væggen. Alle tegner eller klipper deres egen pynt og hænger den på – og siger én ting, de glæder sig til i ferien." },
+      "snill": { "tittel": "Tak til dem, der arbejder", "tekst": "Sig tak til dem, der arbejder på skolen – pedel, rengøring, kantine – med en tegning, en sang eller et »glædelig jul« fra hele klassen." },
+      "prat": { "t": "Hvad har været det bedste ved december i klassen?", "f": "Hvad glæder du dig mest til i ferien?" }
+    }
+  },
+  {
+    "merke": "🌟", "merkeNavn": "julestjernen",
+    "tittel": "Juleaften",
+    "storquiz": true,
+    "kos": { "tittel": "Et lys til julen", "min": 10, "tekst": "Tænd et lys, og sæt jer tæt sammen. Alle siger én ting, de er glade for i julen – og én ting, de ønsker for en anden. Husk risengrøden til nissen på loftet i aften, og held og lykke med mandlen!", "smaa": "De mindste puster lyset ud til sidst – med hjælp." },
+    "prat": { "t": "Hvad vil du ønske hinanden for det nye år?", "f": "Hvad kan vi hjælpe hinanden med?" },
+    "spill": { "id": "bingoballen", "tekst": "Juleaftensbingo med Bingobolden: Alle med mobil får en plade med ting, der sker i aften – »nogen finder mandlen«, »kæden løber gennem huset«. Vælg temaet »Juleaften«, og kryds af, når det sker!", "figur": "Bingo! … Nej, ikke endnu. Hej, jeg er Bingobolden! I aften ruller jeg rundt og kigger efter juleøjeblikke. Kryds af, når de sker – og råb højt!" },
+    "klasse": {
+      "kos": { "tittel": "Glædelig jul-rundkredsen", "min": 10, "tekst": "Stil jer i en stor rundkreds. Alle siger »glædelig jul« og én pæn ting til den, der står ved siden af. Til sidst klapper hele kredsen for et helt år sammen." },
+      "prat": { "t": "Hvad ønsker du for klassen efter jul?", "f": "Hvad kan du gøre, for at det sker?" },
+      "spill": { "id": "tidsmaskinen", "tekst": "Tidsmaskinen: Hvornår skete det? Byg tidslinjen sammen på hold – årstallet på kortet er skjult, til I har placeret det.", "figur": "Wiiiiu! Hej, jeg er Tidsmaskinen. Jeg har været både i 1800-tallet og i sidste uge. Hvornår skete det? Placér kortet – så afslører jeg året!" }
+    }
+  }
 ]

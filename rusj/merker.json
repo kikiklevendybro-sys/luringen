@@ -100,6 +100,9 @@
 
     { "id": "luke-1", "gruppe": "sesong", "navn": "Første luke", "hvordan": "Åpne luke 1 i Julekalenderen.", "figur": "julekalenderen", "tall": 1, "regel": { "type": "merke" } },
     { "id": "luke-12", "gruppe": "sesong", "navn": "Halvveis til jul", "hvordan": "Åpne luke 12 i Julekalenderen.", "figur": "julekalenderen", "tall": 12, "regel": { "type": "merke" } },
-    { "id": "luke-24", "gruppe": "sesong", "navn": "Julaften!", "hvordan": "Åpne luke 24 i Julekalenderen.", "emoji": "🎄", "tall": 24, "regel": { "type": "merke" } }
+    { "id": "luke-24", "gruppe": "sesong", "navn": "Julaften!", "hvordan": "Åpne luke 24 i Julekalenderen.", "emoji": "🎄", "tall": 24, "regel": { "type": "merke" } },
+    { "id": "luke-10", "gruppe": "sesong", "navn": "Ti pynt på treet", "hvordan": "Gjør ti luker sammen i Julekalenderen.", "figur": "julekalenderen", "tall": 10, "regel": { "type": "merke" } },
+    { "id": "luke-tre", "gruppe": "sesong", "navn": "Ferdig pyntet", "hvordan": "Heng alle 24 pyntene på juletreet i Julekalenderen.", "emoji": "🌟", "regel": { "type": "merke" } },
+    { "id": "luke-nisse", "gruppe": "sesong", "navn": "Dagens nisse", "hvordan": "Led en luke som dagens nisse i Julekalenderen.", "emoji": "🎅", "regel": { "type": "merke" } }
   ]
 }

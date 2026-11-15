@@ -488,12 +488,15 @@
       "type": "WebApplication"
     },
     "julekalenderen": {
-      "tittel": "Julekalender på nett – 24 luker for hele familien",
-      "frase": "Julekalender",
-      "beskrivelse": "Gratis julekalender med 24 luker: julenøtter, quiz, gjett julesangen, ordgåter og koselige ideer. Én ny luke hver dag i desember, uten konto.",
+      "tittel": "Julekalender 2026 for familie og klasse – 24 luker",
+      "frase": "Julekalender for familie og klasse",
+      "beskrivelse": "Gratis julekalender 2026 for familie og klasse: 24 luker med kos, prat og spill sammen. Skriv ut papirkalender med QR-koder og pynt juletreet.",
       "sok": [
         "adventskalender",
         "julekalender for barn",
+        "julekalender for familien",
+        "julekalender for klassen",
+        "julekalender skole",
         "julenøtter"
       ]
     },

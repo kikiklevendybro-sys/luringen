@@ -1,33 +1,34 @@
 {
   "id": "julekalenderen",
   "navn": "Julekalenderen",
-  "undertittel": "Adventskalender",
-  "beskrivelse": "Gratis julekalender på nett med 24 luker: julenøtter, quiz, julesanger, ordgåter og koselige ideer for hele familien. Én ny luke hver dag i desember.",
-  "kort": "24 luker med nøtter, quiz og julekos – én ny hver dag i desember.",
-  "spillere": [1, 20],
-  "alder": 5,
-  "minutter": [2, 5],
+  "undertittel": "Julekalender for familie og klasse",
+  "beskrivelse": "Gratis julekalender for familie, venner og klassen: 24 luker med kos, et julekort å prate om og et spill. Hver luke henger ny pynt på juletreet.",
+  "kort": "24 stunder sammen: kos, prat og et spill bak hver luke – og pynt på juletreet.",
+  "spillere": [1, 30],
+  "alder": 4,
+  "minutter": [5, 15],
   "mobiler": "en",
   "tagger": ["familie", "barn", "fest"],
   "rekkefolge": 48,
-  "sok": ["julekalender", "adventskalender", "luke", "jul", "desember", "julenøtter"],
+  "qr": true,
+  "sok": ["julekalender", "adventskalender", "luke", "jul", "desember", "julenøtter", "julekalender for familien", "julekalender for klassen", "julekalender skole", "julekalender 2026", "adventskalender barn", "aktivitetskalender jul"],
   "alias": ["adventskalender"],
   "i18n": {
     "en": {
       "navn": "Advent Calendar",
-      "undertittel": "24 doors to Christmas",
-      "kort": "24 doors with riddles, quizzes and Christmas fun – a new one every day in December.",
-      "beskrivelse": "Free online Advent calendar with 24 doors: Christmas riddles, quizzes, carols, word puzzles and cosy ideas for the whole family. A new door every day in December.",
+      "undertittel": "For families and classes",
+      "kort": "24 moments together: something cosy, a chat and a game behind every door – and a new bauble for your tree.",
+      "beskrivelse": "Free Advent calendar for families, friends and classes: 24 doors with something cosy, a card to chat about and a game. Each door adds a bauble to your tree.",
       "slug": "advent-calendar",
-      "sok": ["advent calendar", "online advent calendar", "christmas calendar", "advent", "christmas", "december", "christmas riddles", "advent calendar for kids"]
+      "sok": ["advent calendar", "online advent calendar", "christmas calendar", "advent", "christmas", "december", "christmas riddles", "advent calendar for kids", "family advent calendar", "advent calendar for school", "classroom advent calendar", "advent calendar 2026", "activity advent calendar"]
     },
     "da": {
       "navn": "Julekalenderen",
-      "undertittel": "24 låger til jul",
-      "kort": "24 låger med gåder, quiz og julehygge – en ny hver dag i december.",
-      "beskrivelse": "Gratis julekalender på nettet med 24 låger: julegåder, quiz, julesange, ordgåder og hyggelige idéer til hele familien. En ny låge hver dag i december.",
+      "undertittel": "Til familien og klassen",
+      "kort": "24 stunder sammen: hygge, snak og et spil bag hver låge – og pynt på juletræet.",
+      "beskrivelse": "Gratis julekalender til familien, vennerne og klassen: 24 låger med hygge, et julekort at snakke om og et spil. Hver låge hænger ny pynt på juletræet.",
       "slug": "julekalenderen",
-      "sok": ["julekalender", "adventskalender", "låge", "jul", "december", "julegåder", "julekalender for børn"]
+      "sok": ["julekalender", "adventskalender", "låge", "jul", "december", "julegåder", "julekalender for børn", "julekalender til familien", "julekalender til klassen", "julekalender skole", "julekalender 2026", "aktivitetskalender jul"]
     }
   }
 }

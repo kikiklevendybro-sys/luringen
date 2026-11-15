@@ -1,26 +1,314 @@
 [
-  { "type": "quiz", "merke": "🕯️", "merkeNavn": "a candle", "tekst": "Some families burn an Advent candle down a little every evening in December. What is printed down its side?", "valg": ["The letters A to Z", "The numbers 1 to 24", "The days of the week"], "riktig": 1, "fakta": "Each evening you burn it down to the next number – by Christmas Eve it's almost gone." },
-  { "type": "nott", "merke": "👣", "merkeNavn": "footprints", "tekst": "The more you take, the more you leave behind. What are they?", "svar": "Footsteps – in the snow, for example!" },
-  { "type": "ord", "merke": "🎅", "merkeNavn": "Father Christmas", "ord": "SANTA", "hint": "He wears a red suit and comes down the chimney." },
-  { "type": "kos", "merke": "🔗", "merkeNavn": "a paper chain", "tittel": "Paper chains", "tekst": "Cut coloured paper into strips, loop each strip into a ring and link them together into a long chain. Hang it across the room – the longer the better!", "tips": "A dab of glue or a bit of tape keeps the rings closed." },
-  { "type": "sang", "merke": "⛵", "merkeNavn": "a ship", "tekst": "An old carol about sailing ships that come in on Christmas morning.", "valg": ["I Saw Three Ships", "Jingle Bells", "Silent Night"], "riktig": 0 },
-  { "type": "utfordring", "merke": "🎭", "merkeNavn": "theatre masks", "tittel": "Christmas charades", "tekst": "Act out ‘decorating the tree’ or ‘wrapping presents’ without saying a word – the others guess. Charades has its own Christmas category.", "lenke": "/en/charades/#jul", "lenkeTekst": "Play Charades" },
-  { "type": "quiz", "merke": "🍮", "merkeNavn": "a Christmas pudding", "tekst": "What do some families hide in the Christmas pudding for luck?", "valg": ["A button", "A silver coin", "A marble"], "riktig": 1, "fakta": "Traditionally it was a silver sixpence – whoever finds it is said to have good luck all year. Mind your teeth!" },
-  { "type": "nott", "merke": "🧦", "merkeNavn": "a stocking", "tekst": "What gets wetter the more it dries?", "svar": "A towel!" },
-  { "type": "ord", "merke": "✨", "merkeNavn": "tinsel", "ord": "TINSEL", "hint": "Shiny, sparkly strands you drape over the tree." },
-  { "type": "kos", "merke": "🌙", "merkeNavn": "a moon", "tittel": "Christmas lights walk", "tekst": "Wrap up warm and go for a short evening walk together. Count the Christmas lights in the windows – who spots the most? Maybe you'll see some stars too.", "tips": "Stay together and stick to well-lit streets." },
-  { "type": "sang", "merke": "👑", "merkeNavn": "a crown", "tekst": "A king looks out on the Feast of Stephen and sees a poor man gathering firewood in the snow.", "valg": ["Away in a Manger", "Good King Wenceslas", "Deck the Halls"], "riktig": 1 },
-  { "type": "utfordring", "merke": "👉", "merkeNavn": "a pointing finger", "tittel": "Who's most likely to …?", "tekst": "Play Pointy with the Christmas pack: read the statement, count down – and everyone points at once. Perfect round the dinner table.", "lenke": "/en/pointy/#jul", "lenkeTekst": "Play Pointy" },
-  { "type": "quiz", "merke": "🐦", "merkeNavn": "a robin", "tekst": "Robins are on lots of Christmas cards. Why were Victorian postmen nicknamed ‘robins’?", "valg": ["They wore red uniforms", "They whistled as they worked", "They started work at dawn"], "riktig": 0, "fakta": "Postmen in red coats delivered the first Christmas cards – so the robin, with its red breast, ended up on the cards." },
-  { "type": "nott", "merke": "⏰", "merkeNavn": "a clock", "tekst": "What has hands but can't clap?", "svar": "A clock!" },
-  { "type": "ord", "merke": "⛄", "merkeNavn": "a snowman", "ord": "SNOWMAN", "hint": "He has a carrot for a nose and stays outside all winter." },
-  { "type": "kos", "merke": "💌", "merkeNavn": "a letter", "tittel": "Secret kind note", "tekst": "Write or draw a kind message to someone in the family. Hide it where they'll find it tomorrow – under a pillow, in a shoe or in a lunchbox.", "tips": "Whoever finds the note can pass a new one on." },
-  { "type": "sang", "merke": "🍐", "merkeNavn": "a pear", "tekst": "A true love sends more and more presents – birds, gold rings, dancing ladies – day after day.", "valg": ["Jingle Bells", "The Twelve Days of Christmas", "We Wish You a Merry Christmas"], "riktig": 1 },
-  { "type": "quiz", "merke": "🎄", "merkeNavn": "a Christmas tree", "tekst": "Every December a big Christmas tree stands in Trafalgar Square in London. Which country sends it?", "valg": ["Sweden", "Norway", "Finland"], "riktig": 1, "fakta": "The city of Oslo has sent a tree every year since 1947, as a thank-you for Britain's help during the Second World War." },
-  { "type": "utfordring", "merke": "🎁", "merkeNavn": "a present", "tittel": "Secret Santas", "tekst": "Draw who's Secret Santa for whom. The present can be a drawing, a poem or a good deed – the nicest ones are often homemade.", "lenke": "/en/secret-santa-draw/", "lenkeTekst": "Open Secret Santa" },
-  { "type": "ord", "merke": "💥", "merkeNavn": "a bang", "ord": "CRACKER", "hint": "Pull it with someone – bang! – and out falls a paper hat." },
-  { "type": "quiz", "merke": "☀️", "merkeNavn": "a sun", "tekst": "Around 21 December we have the shortest day of the year. What is it called?", "valg": ["The equinox", "The winter solstice", "Midsummer"], "riktig": 1, "fakta": "After the solstice the days slowly get longer again – and people gather at Stonehenge to watch the sun rise." },
-  { "type": "sang", "merke": "🎶", "merkeNavn": "musical notes", "tekst": "Carol singers at the door ask for figgy pudding – and say they won't go until they get some!", "valg": ["Silent Night", "Deck the Halls", "We Wish You a Merry Christmas"], "riktig": 2 },
-  { "type": "nott", "merke": "📅", "merkeNavn": "a calendar", "tekst": "Which month has 28 days?", "svar": "All of them! Every month has at least 28 days." },
-  { "type": "kos", "merke": "🌟", "merkeNavn": "the Christmas star", "tittel": "Christmas Eve", "tekst": "Light a candle, snuggle up and tell each other about your favourite Christmas memory. And don't forget to leave out a mince pie for Father Christmas – and a carrot for the reindeer!", "tips": "Thank you for opening the calendar with us. Merry Christmas!" }
+  {
+    "merke": "🕯️", "merkeNavn": "a candle",
+    "tittel": "A light in the dark",
+    "kos": { "tittel": "The December list", "min": 10, "tekst": "Light a candle and sit down together. Make a list of things you'd love to do together before Christmas – not presents, but moments: a frosty walk, making paper chains, a Christmas film under a blanket, going to see the lights. Everyone suggests at least one. Stick it on the fridge and tick things off as December goes by.", "smaa": "Little ones draw their idea, and a grown-up writes it next to the picture." },
+    "prat": { "t": "What are you most looking forward to this December?", "f": "What could we do to make it happen?" },
+    "bonus": { "type": "quiz", "tekst": "On an Advent candle, how much do you burn each day?", "valg": ["One numbered section", "Half the candle", "The whole candle"], "riktig": 0, "fakta": "An Advent candle is marked from 1 to 24. You burn it down one number a day until Christmas Eve." },
+    "spill": { "id": "fortelleren", "tekst": "Keep the chat going by candlelight with Chinwag: draw a card, tell your story, and let the others ask more. Choose ‘Family’ – or the children's cards when little ones are joining in.", "figur": "Psst… come a bit closer to the candle. I'm Chinwag, and I collect stories. Tonight I'd love to hear yours! Draw a card and I'll listen." },
+    "venner": {
+      "spill": { "id": "fortelleren", "tekst": "Keep the chat going by candlelight with Chinwag: draw a card, tell your story, and let the others ask more. Choose the ‘Friends’ deck.", "figur": "Psst… come a bit closer to the candle. I'm Chinwag, and I collect stories. Tonight I'd love to hear yours! Draw a card and I'll listen." }
+    },
+    "klasse": {
+      "kos": { "tittel": "Our class December list", "min": 10, "tekst": "Write on the board ten things you'd like to do together before the holidays: a Christmas game, a story with hot chocolate, a walk outside, a carol to learn. Everyone can suggest one. Vote for the top five and put the list up on the wall." },
+      "prat": { "t": "What's the best thing about December, do you think?", "f": "How can you tell Christmas is getting closer?" },
+      "spill": { "id": "bedreviteren", "tekst": "Start December with a team quiz: split into two to four teams, put Clever Clogs on the big screen and let each team agree before they answer.", "figur": "Ahem! I'm Clever Clogs, and I know nearly everything. Nearly! Split into teams and let's find out who's been paying attention this year." }
+    }
+  },
+  {
+    "merke": "👣", "merkeNavn": "footprints",
+    "tittel": "Footprints in the frost",
+    "kos": { "tittel": "A Christmas lights walk", "min": 15, "tekst": "Wrap up warm and go for a short walk in the dark together. Count the houses with lights up – who spots the most twinkly window? Stop for a moment and listen: what can you hear? No frost? Look for other footprints instead.", "smaa": "Little ones carry the torch and lead the way." },
+    "prat": { "t": "Tell us about a winter's day you remember from when you were little.", "f": "Who was there – and what made it so special?" },
+    "bonus": { "type": "nott", "tekst": "The more of them you make, the more you leave behind. What are they?", "svar": "Footprints – in the snow, or in a muddy field!" },
+    "spill": { "id": "femmeren", "tekst": "Back in the warm: Fiver with the Christmas pack. Name three things in five seconds – like ‘three things you hang on a tree’. Choose ‘Christmas’.", "figur": "Five, four, three… Hi, I'm Fiver, and I'm always in a rush! Three Christmassy things in five seconds – can you beat the clock?" },
+    "klasse": {
+      "kos": { "tittel": "A playground footprint hunt", "min": 10, "tekst": "Go outside for ten minutes. Who can find the most different tracks – birds, shoes, bikes, a cat? Back inside, draw the tracks on the board and let the others guess who made them." },
+      "prat": { "t": "What's your favourite thing to do outside in winter?", "f": "What do you need to keep warm?" }
+    }
+  },
+  {
+    "merke": "🎅", "merkeNavn": "Father Christmas",
+    "tittel": "The elves' workshop",
+    "kos": { "tittel": "Picture consequences", "min": 10, "tekst": "Everyone draws on the same sheet. The first person draws an elf's head, folds the paper over to hide it and passes it on. The next draws the body, the last draws the legs. Unfold it – what an elf! Do another so everyone gets to start one.", "smaa": "Little ones colour in the finished elf." },
+    "prat": { "t": "What's the loveliest present you've been given that someone made themselves?", "f": "What made it so special?" },
+    "bonus": { "type": "quiz", "tekst": "What do many children leave out for Father Christmas on Christmas Eve?", "valg": ["A mince pie – and a carrot for the reindeer", "A bowl of porridge", "A cup of soup"], "riktig": 0, "fakta": "Often with a glass of milk too. In the morning there are crumbs, and the carrot has a bite out of it!" },
+    "spill": { "id": "kunstneren", "tekst": "More drawing: Doodler. One draws, everyone else shouts out guesses – or pass the drawings round the table in Pass the Picture. Wonky reindeer are the best kind.", "figur": "Hi, I'm Doodler! I never draw anything wrong – it's all art. Use your finger to draw and let the others guess. The wonkier the elf, the better!" },
+    "klasse": {
+      "prat": { "t": "If you worked in Father Christmas's workshop, what would you invent?", "f": "Who would get the very first one?" }
+    }
+  },
+  {
+    "merke": "🔗", "merkeNavn": "a paper chain",
+    "tittel": "A hello to someone we love",
+    "kos": { "tittel": "Paper snowflakes", "min": 15, "tekst": "Fold a sheet of paper into a small triangle and snip little shapes along the edges. Unfold it – no two snowflakes are the same! Stick them on the window, and make an extra one for someone you love.", "smaa": "Little ones get help with the scissors and decorate their snowflake." },
+    "snill": { "tittel": "Send a hello", "tekst": "Post the snowflake or a drawing to grandparents, an auntie or a neighbour – or take a photo and send it. Add one line: why you were thinking of them." },
+    "prat": { "t": "Who do you think of when you think of Christmas?", "f": "What would you like to say to them right now?" },
+    "bonus": { "type": "quiz", "tekst": "A snow crystal almost always has the same number of arms. How many?", "valg": ["Four", "Six", "Eight"], "riktig": 1, "fakta": "When water freezes, it lines up in a six-sided pattern. That's why snow crystals have six arms." },
+    "spill": { "id": "elefanten", "tekst": "Nellie with Christmas pictures: turn over two cards at a time and find the pairs. Play in teams – the youngest with the oldest. Choose ‘Christmas’.", "figur": "Hello, I'm Nellie, and I never forget a thing! Well, hardly ever. Turn over two cards and find two matching baubles – I'm cheering for the little ones." },
+    "venner": {
+      "snill": { "tittel": "Send a hello", "tekst": "Send a Christmas message to a friend you haven't spoken to for ages – a photo of your snowflake and one line about a memory you share." },
+      "spill": { "id": "tieren", "tekst": "While the snowflakes dry: Tenner. Ten answers round the ring – take one at a time, but one wrong answer and you lose the pot.", "figur": "Hi, I'm Tenner! Ten answers, ten chances. Are you brave enough to go for one more – or will you stop while you're ahead?" }
+    },
+    "klasse": {
+      "snill": { "tittel": "Send a hello", "tekst": "Make snowflakes for a care home, a nursery, or the people who clean and look after your school. Write ‘Merry Christmas from us’ on a card and deliver them together." },
+      "prat": { "t": "Who at school deserves an extra thank you before Christmas?", "f": "What could the class do to show it?" },
+      "spill": { "id": "elefanten", "tekst": "Nellie on the big screen: split the class into two teams that take turns to flip two cards. The whole team helps to remember. Choose ‘Christmas’.", "figur": "Hello, I'm Nellie, and I never forget a thing! Well, hardly ever. Turn over two cards and find two matching baubles – the whole team can help." }
+    }
+  },
+  {
+    "merke": "⛵", "merkeNavn": "a ship",
+    "tittel": "Mince pie day",
+    "kos": { "tittel": "Mince pies", "min": 15, "tekst": "Make mince pies together – shop-bought pastry is absolutely fine. Everyone cuts out a star for the lid of their own pie. While they bake, the kitchen smells like Christmas. Give the best-looking one to someone else.", "smaa": "Little ones cut out the stars and spoon in the mincemeat." },
+    "prat": { "t": "Which smell reminds you most of Christmas?", "f": "Where were you the first time you remember smelling it?" },
+    "bonus": { "type": "quiz", "tekst": "What's inside a mince pie today?", "valg": ["Dried fruit and spices", "Minced beef", "Mashed potato"], "riktig": 0, "fakta": "Mince pies really did have meat in them a long time ago. Today it's raisins, currants, peel and spices." },
+    "spill": { "id": "vinglepetter", "hash": "jul", "tekst": "While the pies bake: Dithers with the Christmas pack. ‘Would you rather…?’ – everyone chooses at the same time and says why.", "figur": "Hmm… should I… or should I…? Hi, I'm Dithers, and I can never make up my mind. Help me out: what would you rather?" },
+    "klasse": {
+      "kos": { "tittel": "A biscuit gallery", "min": 15, "tekst": "If you have a kitchen, decorate ready-made biscuits together. If not: draw the strangest gingerbread person you can imagine on brown paper, cut it out, and put them all up as a gallery." },
+      "prat": { "t": "What's your favourite Christmas food?", "f": "Describe how it tastes – without saying its name!" },
+      "spill": { "id": "vinglepetter", "hash": "jul", "tekst": "Dithers in the classroom: one side of the room is one choice, the other side is the other. Read the question out – and walk to your side!", "figur": "Hmm… should I… or should I…? Hi, I'm Dithers! Today you choose with your feet: walk to the side of the room you'd rather." }
+    }
+  },
+  {
+    "merke": "🎭", "merkeNavn": "theatre masks",
+    "tittel": "Panto night",
+    "kos": { "tittel": "A paper chain for the room", "min": 15, "tekst": "Cut strips of coloured paper and make a paper chain long enough to go across the room. Before you glue each loop, write a wish or a happy memory on it. Hang it up straight away.", "smaa": "Little ones glue the loops together and choose the colours." },
+    "prat": { "t": "Which Christmas tradition should we never, ever stop doing?", "f": "How do you think it started?" },
+    "bonus": { "type": "quiz", "tekst": "At a pantomime, what does the audience shout when the baddie creeps up?", "valg": ["‘He's behind you!’", "‘Look out below!’", "‘Bless you!’"], "riktig": 0, "fakta": "Panto has been a British Christmas treat for about 300 years – and the Dame is traditionally played by a man." },
+    "spill": { "id": "mimen", "hash": "jul", "tekst": "Charades with the Christmas category: ‘decorating the tree’, ‘pulling a cracker’ – without a single word. The others guess.", "figur": "… ! (Charades says nothing at all. It pretends to hang a bauble, points at you, and takes a very deep bow.)" },
+    "venner": {
+      "prat": { "t": "Which of your Christmas traditions might other people find a bit odd?", "f": "Who started it?" }
+    },
+    "klasse": {
+      "prat": { "t": "Which Christmas or winter tradition from anywhere in the world do you like best?", "f": "Why that one?" }
+    }
+  },
+  {
+    "merke": "🍮", "merkeNavn": "a Christmas pudding",
+    "tittel": "Detective day",
+    "kos": { "tittel": "What's missing from the tray?", "min": 10, "tekst": "Put ten Christmassy things on a tray: a bauble, a cracker, a glove, a pine cone… Everyone looks for 30 seconds. Cover it with a tea towel, and today's elf secretly takes one thing away. What's missing? Take turns to be the one who hides.", "smaa": "Start with five things for little ones." },
+    "prat": { "t": "Tell us about a time you were really surprised – in a good way.", "f": "What did your face do?" },
+    "bonus": { "type": "nott", "tekst": "What gets wetter the more it dries?", "svar": "A towel!" },
+    "spill": { "id": "detektiven", "tekst": "Sleuth with Christmas secrets: one person thinks of something Christmassy – the others have at most 20 yes-or-no questions. Choose ‘Christmas’.", "figur": "Hmm. Interesting. Hello, I'm Sleuth. Someone here has a Christmas secret, and I need your help. Ask clever yes-or-no questions – twenty is plenty for a sharp mind!" },
+    "klasse": {
+      "prat": { "t": "If you could surprise the whole school before Christmas, what would you do?", "f": "What do you think everyone would say?" }
+    }
+  },
+  {
+    "merke": "🧦", "merkeNavn": "a stocking",
+    "tittel": "Call someone you miss",
+    "kos": { "tittel": "A thank-you letter to Father Christmas", "min": 10, "tekst": "Write a letter to Father Christmas together – but not a wish list. Write about what you're glad of this year, and what you wish for other people. Everyone adds at least one sentence.", "smaa": "Little ones draw something that makes them happy." },
+    "snill": { "tittel": "Call someone you miss", "tekst": "Ring or video call someone you miss – grandparents, a friend who has moved away, an old neighbour. Everyone says hello and shares one thing from December so far." },
+    "prat": { "t": "Who has meant a lot to you this year?", "f": "Have you told them?" },
+    "bonus": { "type": "quiz", "tekst": "Royal Mail has a special postcode for letters to Father Christmas. Which one?", "valg": ["XM4 5HQ", "NP1 2XM", "SN0 0WW"], "riktig": 0, "fakta": "Write to Father Christmas, Santa's Grotto, Reindeerland, XM4 5HQ – and you might even get a reply." },
+    "spill": { "id": "tankeleseren", "tekst": "Mind Reader, Christmas edition: are you on the same wavelength? From ‘terrible present’ to ‘perfect present’ – where does the clue land? Choose ‘Christmas’.", "figur": "I know what you're thinking… almost. Hi, I'm Mind Reader! Give one clue and the others try to read your mind. Are you all on the same festive wavelength?" },
+    "klasse": {
+      "snill": { "tittel": "A thank you", "tekst": "Write a card together for someone who works at your school, or for a care home nearby. Everyone writes or draws one thing on it." },
+      "prat": { "t": "Who at school makes your days a little bit better?", "f": "How could you thank them?" }
+    }
+  },
+  {
+    "merke": "✨", "merkeNavn": "tinsel",
+    "tittel": "Starry night",
+    "kos": { "tittel": "Stars on the ceiling", "min": 10, "tekst": "Cut out a big paper star for the window. Then switch off the lights, lie on the floor and make a starry sky on the ceiling with torches. Invent names for your own constellations!", "smaa": "Little ones hold the torch and decide where the stars go." },
+    "prat": { "t": "If you could wish for one thing for the whole world this Christmas, what would it be?", "f": "What could we do to help it come a bit closer?" },
+    "bonus": { "type": "quiz", "tekst": "Which is the brightest star in the night sky?", "valg": ["Sirius", "The Pole Star", "The Plough"], "riktig": 0, "fakta": "Sirius is the brightest. The Pole Star isn't – but it hardly moves, as it sits almost right above the North Pole." },
+    "spill": { "id": "lognhalsen", "tekst": "Fibber with Christmas stories: tell three things about a Christmas – two true and one made up. Can the others catch you out? Choose ‘Christmas’.", "figur": "I have never told a fib in my whole life! … That was a fib. Hi, I'm Fibber! Tell two true Christmas stories and one made-up one – let's see who catches you." },
+    "klasse": {
+      "spill": { "id": "hviskeren", "tekst": "Whisperer in groups: one guesses the word, the others give one clue each – but matching clues are crossed out! Work together and count how many you get.", "figur": "Psst… hi, I'm Whisperer. One clue each – but never the same as your neighbour! Whisper wisely and you'll crack it together." }
+    }
+  },
+  {
+    "merke": "🌙", "merkeNavn": "a moon",
+    "tittel": "A night of sounds",
+    "kos": { "tittel": "Guess the Christmas sound", "min": 10, "tekst": "Everyone closes their eyes. One person makes a Christmassy sound: a jingle bell, wrapping paper tearing, a spoon in a mug, a ‘ho, ho, ho’. The others guess. Take turns – who can find the strangest sound?", "smaa": "Little ones get to make the first sound." },
+    "prat": { "t": "What have you learned this year that you're proud of?", "f": "Who helped you learn it?" },
+    "bonus": { "type": "quiz", "tekst": "What time is the King's Christmas message usually shown on Christmas Day?", "valg": ["3 pm", "9 am", "Midnight"], "riktig": 0, "fakta": "The first royal Christmas message was on the radio in 1932." },
+    "spill": { "id": "papegoyen", "tekst": "Polly with Christmas questions: one person sits in the parrot's chair and answers – without saying yes or no. Try asking: ‘Are you excited about Christmas?’", "figur": "Yes! No! Yes! Squawk! Hi, I'm Polly, and I hear EVERYTHING. Say yes or no and I'll shout it out. Can you answer Christmas questions without them?" },
+    "klasse": {
+      "prat": { "t": "What has our class got better at this year?", "f": "What would we like to get better at after Christmas?" }
+    }
+  },
+  {
+    "merke": "👑", "merkeNavn": "a crown",
+    "tittel": "Kitchen carols",
+    "kos": { "tittel": "A saucepan-lid carol concert", "min": 10, "tekst": "Make instruments from whatever you can find: saucepan lids, rice in a tub, spoons on a glass. Choose a carol everyone knows and play and sing it together. The more out of tune, the better!", "smaa": "Little ones conduct and decide when everyone plays fast or slow." },
+    "prat": { "t": "Which Christmas song always puts you in a good mood?", "f": "What is it about that song?" },
+    "bonus": { "type": "quiz", "tekst": "Which carol is about a king who looks out on the Feast of Stephen?", "valg": ["Good King Wenceslas", "The Holly and the Ivy", "Jingle Bells"], "riktig": 0, "fakta": "The Feast of Stephen is 26 December – Boxing Day. In the song, the king goes out in the snow to help a poor man." },
+    "spill": { "id": "sauen", "tekst": "Sheepish, Christmas edition: give the same answer as the flock. ‘Something you eat on Christmas Day’ – what will most people write? Choose ‘Christmas’.", "figur": "Baaaa! Hi, I'm Sheepish. I think just like the flock – and so should you. Give the same answer as everyone else, and nobody ends up out in the cold." },
+    "klasse": {
+      "kos": { "tittel": "Classroom orchestra", "min": 10, "tekst": "Make instruments from what's in the room: pencils on desks, rustling paper, clapping. Choose a carol everyone knows and play it together – first slowly, then fast." },
+      "prat": { "t": "Which song would you want in the class Christmas concert?", "f": "Why that one?" }
+    }
+  },
+  {
+    "merke": "👉", "merkeNavn": "a pointing finger",
+    "tittel": "Gingerbread village",
+    "kos": { "tittel": "Our own gingerbread village", "min": 15, "tekst": "Build a gingerbread house – or a whole little village from gingerbread pieces, biscuits and icing. Everyone builds their own part: a house, a shop, a tree, a church. Put the village together at the end.", "smaa": "Little ones decorate the roofs with sprinkles and sweets." },
+    "prat": { "t": "What's something kind you've seen someone here do lately?", "f": "How did it feel to see it?" },
+    "bonus": { "type": "quiz", "tekst": "What happens when you pull a Christmas cracker?", "valg": ["Bang! Out fall a paper crown, a joke and a little toy", "It plays a carol", "It lights up the table"], "riktig": 0, "fakta": "Crackers were invented in London in the 1840s by a sweet-maker called Tom Smith." },
+    "spill": { "id": "pekefingeren", "hash": "jul", "tekst": "Pointy with the Christmas pack: ‘Who's most likely to…’ – count down, and everyone points at the same time. Kind answers and lots of laughs!", "figur": "There! And there! Hi, I'm Pointy. I'm always pointing – but never meanly. Who's most likely to nibble the gingerbread village before Christmas? Count down… and point!" },
+    "klasse": {
+      "kos": { "tittel": "Our class gingerbread village", "min": 15, "tekst": "Everyone cuts a house out of brown paper and decorates it with white chalk or pens. Put the houses together as a village on the wall – with streets, trees and a train." },
+      "prat": { "t": "If you could build something brand new in the gingerbread village, what would it be?", "f": "Who would live there?" },
+      "spill": { "id": "kodeknekkeren", "tekst": "Codebreaker on the big screen: Team Pink against Team Blue. The codemasters give one word and a number – the teams hunt for their agents among 25 words.", "figur": "Code received. Hi, I'm Codebreaker! Only the codemasters know who the agents are. One word, one number – the rest is teamwork." }
+    }
+  },
+  {
+    "merke": "🐦", "merkeNavn": "a robin",
+    "tittel": "Carols on the doorstep",
+    "kos": { "tittel": "Biscuits and a carol", "min": 15, "tekst": "Bake or decorate a batch of biscuits together and wrap a few in a napkin with a ribbon. Then practise one carol – just one verse – until everyone knows it by heart.", "smaa": "Little ones tie the ribbons and sing loudest." },
+    "snill": { "tittel": "A doorstep surprise", "tekst": "Knock on a neighbour's door – perhaps someone who lives on their own – sing your carol and hand over the biscuits. Say ‘Merry Christmas!’ and leave before they can make a fuss." },
+    "prat": { "t": "Who would you give a little present to, just to say thank you?", "f": "What would you thank them for?" },
+    "bonus": { "type": "quiz", "tekst": "Which bird turns up on lots of British Christmas cards?", "valg": ["The robin", "The parrot", "The penguin"], "riktig": 0, "fakta": "Victorian postmen wore red jackets and were nicknamed ‘robins’ – so robins started ‘delivering’ on Christmas cards." },
+    "spill": { "id": "panna", "hash": "jul", "tekst": "Forehead with the Christmas deck: hold the phone on your forehead – the others describe the Christmas word you can't see.", "figur": "Hi, I'm Forehead! I always sit up high – right on your forehead. You can't see the word, but everyone else can. Listen carefully and guess!" },
+    "klasse": {
+      "kos": { "tittel": "Learn a carol together", "min": 15, "tekst": "Choose one carol and learn a verse together. Try it quietly, then loudly, then in two groups like an echo. Perform it at the end of the day." },
+      "snill": { "tittel": "Carols for others", "tekst": "Sing your carol for another class, the school office or the dinner staff – and hand out drawings or cards." }
+    }
+  },
+  {
+    "merke": "⏰", "merkeNavn": "a clock",
+    "tittel": "Christmas past",
+    "kos": { "tittel": "Christmas memories from the album", "min": 15, "tekst": "Dig out old photos – printed or on a phone – from Christmases past. Who's that? What happened? Let the oldest person tell the story first, and the youngest ask the questions.", "smaa": "Little ones hunt for themselves – or for Mum and Dad as children." },
+    "prat": { "t": "What's the funniest thing that's happened at a Christmas you remember?", "f": "Who laughs the most when you talk about it now?" },
+    "bonus": { "type": "nott", "tekst": "What has hands and a face, but can't hold anything or smile?", "svar": "A clock!" },
+    "spill": { "id": "sladrehanken", "hash": "jul", "tekst": "Blabbermouth with the Christmas pack: ‘Never have I ever…’ – if you have, you're found out. And the story has to come out!", "figur": "Hee hee, I know things! Hi, I'm Blabbermouth. ‘Never have I ever bought all my presents on Christmas Eve’… or have you? Spill the beans!" },
+    "klasse": {
+      "kos": { "tittel": "Winter traditions around the world", "min": 15, "tekst": "Who knows a Christmas tradition from another country – or another festival of light in the dark months? Collect them on the board. Find the countries on a map and pick one to try as a class." },
+      "prat": { "t": "What's the funniest thing you've seen or heard about at Christmas – in a film, a book or real life?", "f": "What made it so funny?" },
+      "spill": { "id": "sfinksen", "tekst": "Sphinx: riddles with a twist. Read the riddle out from the big screen and let the class think it through together – the answer is often simpler than you think.", "figur": "Hear my riddle… or just listen. Hello, I'm Sphinx! Read carefully, think it over – and don't answer too fast." }
+    }
+  },
+  {
+    "merke": "⛄", "merkeNavn": "a snowman",
+    "tittel": "Snowman day",
+    "kos": { "tittel": "A snowman – outside or in", "min": 15, "tekst": "Is there snow? Build a snowman together. No snow (it is Britain, after all)? Make snowmen out of white socks filled with rice, or draw one where everyone draws a different part.", "smaa": "Little ones find buttons for the eyes and a scarf for the neck." },
+    "snill": { "tittel": "A helping hand", "tekst": "Help a neighbour: clear a frosty path, carry in their shopping, or put their bins out. Do it without being asked, if you can." },
+    "prat": { "t": "If you could swap places with someone in the family for one day at Christmas, who would it be?", "f": "What would you do first?" },
+    "bonus": { "type": "quiz", "tekst": "What colour is snow, really?", "valg": ["White", "See-through", "Pale blue"], "riktig": 1, "fakta": "Each snow crystal is clear ice. Snow looks white because the light bounces off it in every direction." },
+    "spill": { "id": "bokstavtrollet", "tekst": "Letter Troll with Christmas categories: switch on ‘Christmas categories’ and find a word with the right letter before the bomb goes off.", "figur": "Grrr… B! Hi, I'm Letter Troll, and I eat letters for breakfast. Something on the tree beginning with T? Quick, before the bomb goes off!" },
+    "venner": {
+      "prat": { "t": "If you could swap places with someone here for one day at Christmas, who would it be?", "f": "What would you do first?" }
+    },
+    "klasse": {
+      "snill": { "tittel": "A helping hand", "tekst": "Tidy up the playground together, or make something cheerful for the youngest pupils to find – a chalk snowman on the wall or a drawing in the window." },
+      "prat": { "t": "If you could swap places with your teacher for one day, what would you do?", "f": "What do you think is the hardest part of the job?" }
+    }
+  },
+  {
+    "merke": "💌", "merkeNavn": "a letter",
+    "tittel": "Secret kind notes",
+    "kos": { "tittel": "A secret kind note", "min": 10, "tekst": "Everyone writes or draws a kind message for someone else here. Hide the notes where they'll be found tomorrow – under a pillow, in a shoe, in a lunchbox. Whoever finds one can send a new one on.", "smaa": "Little ones draw hearts and stars – a grown-up helps with the name." },
+    "prat": { "t": "What's something kind someone has done for you this year?", "f": "How did it feel?" },
+    "bonus": { "type": "nott", "tekst": "What can you hold without using your hands?", "svar": "A promise – or your breath!" },
+    "spill": { "id": "skattejegeren", "tekst": "Treasure Hunter: make a Christmas treasure hunt in a couple of minutes. The phone writes the clues, a grown-up hides them – and the treasure could be a chocolate coin or a kind note.", "figur": "Ho, ho, ho – and a map! Hi, I'm Treasure Hunter. I've got clues for the whole house. Follow the trail – maybe the treasure is sweet?" },
+    "venner": {
+      "kos": { "tittel": "A secret kind note", "min": 10, "tekst": "Everyone draws a name. Write something nice for the person you got – something you appreciate, or a memory. Put the notes in a bowl and read them out in turn without saying who wrote them." },
+      "spill": { "id": "dommeren", "tekst": "Judgey: everyone secretly picks the funniest answer from their own hand – and the judge chooses the best. Perfect for friends in the run-up to Christmas.", "figur": "Order in court! Hi, I'm Judgey. I pick the funniest answer – and I'm completely impartial. Mostly." }
+    },
+    "klasse": {
+      "kos": { "tittel": "Kind note draw", "min": 10, "tekst": "Everyone draws a classmate's name and writes one nice thing about them on a slip – something they're good at or have done. The teacher collects the slips and hands them out." },
+      "prat": { "t": "What's something kind you've seen someone do at school?", "f": "How do you think it felt for the person who got it?" },
+      "spill": { "id": "skattejegeren", "tekst": "A classroom treasure hunt: the phone writes the clues, the teacher hides them around the room – and whoever finds the treasure shares it with everyone.", "figur": "Ho, ho, ho – and a map! Hi, I'm Treasure Hunter. The clues are hidden in the classroom. Work together and you'll find the treasure!" }
+    }
+  },
+  {
+    "merke": "🍐", "merkeNavn": "a pear",
+    "tittel": "For someone on their own",
+    "kos": { "tittel": "A Christmas card workshop", "min": 15, "tekst": "Make Christmas cards together: fold, draw, cut and stick. Write a message inside. Make at least one extra card – for someone who might be on their own this Christmas.", "smaa": "Little ones draw, older ones write." },
+    "snill": { "tittel": "A card for someone on their own", "tekst": "Give the card to a neighbour who lives alone, or post it to a care home nearby. Lots of people get very little post in December – one card can brighten a whole week." },
+    "prat": { "t": "How could we make Christmas a bit nicer for someone else this year?", "f": "Who might need it most?" },
+    "bonus": { "type": "quiz", "tekst": "Which reindeer has a red nose in the famous song?", "valg": ["Rudolph", "Comet", "Blitzen"], "riktig": 0, "fakta": "Rudolph was made up for a children's booklet in 1939. The song came ten years later." },
+    "spill": { "id": "spionen", "tekst": "Spy with Christmas places: everyone knows you're at the Christmas market – except the spy. Ask sneaky questions and find the spy! Choose ‘Christmas’.", "figur": "… I'm not here. You haven't seen me. Hello, I'm Spy. Everyone knows where we are – except one of you. Ask sneaky questions, and don't let the spy guess the place!" },
+    "klasse": {
+      "snill": { "tittel": "Cards for a care home", "tekst": "Make Christmas cards for a care home or a nursery nearby. Everyone makes one. Ask your teacher to deliver them together – maybe you could sing a carol too?" }
+    }
+  },
+  {
+    "merke": "🎄", "merkeNavn": "a Christmas tree",
+    "tittel": "A Friday smell",
+    "kos": { "tittel": "Orange pomanders", "min": 15, "tekst": "Push cloves into oranges or clementines in patterns – hearts, stars, spirals. Pile them in a bowl or hang them up with ribbon. The house will smell of Christmas for weeks.", "smaa": "Little ones make holes with a cocktail stick first, so it's easier." },
+    "prat": { "t": "What's the best thing that's happened to you this year?", "f": "Who was with you?" },
+    "bonus": { "type": "quiz", "tekst": "Who made the Christmas tree popular in Britain?", "valg": ["Queen Victoria and Prince Albert", "King Henry VIII", "King Arthur"], "riktig": 0, "fakta": "A drawing of Victoria and Albert's family round a decorated tree in 1848 made everyone want one." },
+    "spill": { "id": "skravla", "hash": "jul", "tekst": "Chatterbox with Christmas words: team against team – describe ‘Advent calendar’ without saying the word. First to the finish wins.", "figur": "Blah, blah, blah – hi, I'm Chatterbox! I can talk about absolutely anything. Describe the Christmas word without saying it, and your team gets to the finish first!" },
+    "klasse": {
+      "prat": { "t": "What's the best thing that's happened in our class this year?", "f": "What would you like us to do again?" }
+    }
+  },
+  {
+    "merke": "🎁", "merkeNavn": "a present",
+    "tittel": "Secret Santas",
+    "kos": { "tittel": "A homemade present", "min": 15, "tekst": "Draw Secret Santas. Everyone makes a small present for the person they got: a drawing, a poem, a voucher for ‘one washing-up’ or a secret favour. Hand them out on Christmas Day.", "smaa": "Little ones make a drawing or a bead necklace." },
+    "prat": { "t": "What's the loveliest present you've ever given someone?", "f": "Why was it so nice to give?" },
+    "bonus": { "type": "quiz", "tekst": "How many sleeps are there from tonight until Christmas Day?", "valg": ["Five", "Six", "Seven"], "riktig": 1, "fakta": "Six more sleeps! Lots of children count them down with an Advent calendar or candle." },
+    "spill": { "id": "nissen", "tekst": "Secret Santa draws who gives a present to whom – no names in a hat, and nobody knows who picked who.", "figur": "Ho, ho… shh! Hi, I'm Secret Santa. I keep secrets better than anyone. Draw someone to make a present for – I won't tell a soul!" },
+    "klasse": {
+      "kos": { "tittel": "Secret Santa friends", "min": 10, "tekst": "Draw who you'll be a secret friend for until the holidays. Do something kind in secret every day: a drawing on their desk, a compliment on a note, help with their coat." },
+      "prat": { "t": "What's the best present that doesn't cost any money?", "f": "Who could you give it to?" }
+    }
+  },
+  {
+    "merke": "💥", "merkeNavn": "a bang",
+    "tittel": "Sweets and dares",
+    "kos": { "tittel": "Peppermint creams", "min": 15, "tekst": "Make peppermint creams together: icing sugar, a little milk and a drop of peppermint. Roll them into balls and squash them flat. Everyone makes an extra-special one for someone else here.", "smaa": "Little ones roll the balls and press them with a fork." },
+    "snill": { "tittel": "Give something away", "tekst": "Go through toys, books or clothes. Everyone finds one thing that could have a new owner, and gives it to a toy appeal, a charity shop or someone who needs it." },
+    "prat": { "t": "What are you most grateful for this year?", "f": "Who ought to hear that?" },
+    "bonus": { "type": "quiz", "tekst": "What's traditionally hidden in a Christmas pudding for luck?", "valg": ["A silver coin", "An almond", "A button"], "riktig": 0, "fakta": "Everyone in the family takes a turn to stir the pudding mix and make a wish – traditionally on ‘Stir-up Sunday’ in late November." },
+    "spill": { "id": "vaghalsen", "hash": "jul", "tekst": "Plucky with the Christmas pack: truth or dare – safe for the living room. ‘Sing a carol like an opera singer!’ It's always fine to pass.", "figur": "Dare you? Of course you dare! Hi, I'm Plucky. Choose truth or dare – and remember: it's always fine to say pass." },
+    "klasse": {
+      "kos": { "tittel": "A swap table", "min": 15, "tekst": "Bring in something you don't use any more – a book, a game, a puzzle – and set up a swap table in the classroom. Everyone can take one thing home before the holidays." },
+      "snill": { "tittel": "Pass it on", "tekst": "Whatever's left on the table goes to a charity shop, a library or a nursery nearby." },
+      "prat": { "t": "What are you grateful for at school this year?", "f": "Who would you like to thank?" },
+      "spill": { "id": "tieren", "tekst": "Tenner in teams: ten answers round the ring – the teams take one each in turn. One wrong answer and the pot is gone. Go on, or stop in time?", "figur": "Hi, I'm Tenner! Ten answers, ten chances. Will your team go for one more – or stop while you're winning?" }
+    }
+  },
+  {
+    "merke": "☀️", "merkeNavn": "a sun",
+    "tittel": "The darkest day",
+    "kos": { "tittel": "Lanterns for the shortest day", "min": 15, "tekst": "Make lanterns from jam jars with tissue paper or drawings round the outside. Put a tea light inside, switch off the big light and have a little festival of light. From tomorrow, the days get longer again!", "smaa": "Little ones glue on the tissue paper – use a battery tea light for the very youngest." },
+    "snill": { "tittel": "A present for the birds", "tekst": "Hang up a fat ball or sprinkle seeds on the bird table. Watch who comes to visit tomorrow – and give them names." },
+    "prat": { "t": "What makes you happy when it's dark and cold outside?", "f": "How could we have more of that this winter?" },
+    "bonus": { "type": "quiz", "tekst": "Around 21 December we have the shortest day of the year. What is it called?", "valg": ["The equinox", "The winter solstice", "Midsummer"], "riktig": 1, "fakta": "After the winter solstice the days slowly get longer again. The sun is on its way back!" },
+    "spill": { "id": "smilefjeset", "tekst": "Chuffed: a few emojis hide a thing, a place or a song. Guess together – the Songs pack has Christmas songs in it too!", "figur": "😄! Hi, I'm Chuffed. I only speak emoji. 🎄 + 🧦 – what does it say? Guess together and I'll smile even wider!" }
+  },
+  {
+    "merke": "🎶", "merkeNavn": "musical notes",
+    "tittel": "A story by candlelight",
+    "kos": { "tittel": "A story in the dark", "min": 10, "tekst": "Switch off the lights and light one candle. The oldest starts telling a Christmas story – a made-up one, or one from their own childhood. Then everyone else carries it on, one sentence each, until the story has an ending.", "smaa": "Little ones decide what happens to the reindeer in the story." },
+    "prat": { "t": "What do you hope we'll remember about this Christmas in many years' time?", "f": "What could we do to make sure we do?" },
+    "bonus": { "type": "quiz", "tekst": "Who wrote ‘A Christmas Carol’, the story of Ebenezer Scrooge?", "valg": ["Charles Dickens", "William Shakespeare", "Roald Dahl"], "riktig": 0, "fakta": "Dickens wrote it in about six weeks in 1843 – and it has never been out of print." },
+    "spill": { "id": "nynneren", "hash": "jul", "tekst": "Humdinger with Christmas songs: hum – no words – and let the others guess. ‘Jingle Bells’ is easier than you think!", "figur": "Mmm-mm-mmmm! Hi, I'm Humdinger. I've forgotten all the words, but I know every tune! Hum a Christmas song and the others guess." },
+    "klasse": {
+      "kos": { "tittel": "Story relay", "min": 10, "tekst": "Switch off the big light and sit in a circle. The teacher starts a Christmas story. Then everyone carries it on, one sentence each, all the way round. The last person makes up the ending." },
+      "prat": { "t": "Which Christmas story or film should everyone see?", "f": "Which bit is the best?" }
+    }
+  },
+  {
+    "merke": "📅", "merkeNavn": "a calendar",
+    "tittel": "Stockings ready",
+    "kos": { "tittel": "Hang up the stockings", "min": 15, "tekst": "Decorate a stocking – or a big sock – for everyone, with their initial in felt, paper or pen. Hang them up together. Everyone says what they're most looking forward to about Christmas.", "smaa": "Little ones choose where the stockings hang – and check them twice." },
+    "snill": { "tittel": "Thank the people working", "tekst": "Lots of people work over Christmas: nurses, bus drivers, people in the shops. Say ‘Merry Christmas’ and thank someone you meet – or send a message to someone you know who's working." },
+    "prat": { "t": "What has been the best bit of December so far?", "f": "Which door would you do again?" },
+    "bonus": { "type": "nott", "tekst": "Which month has 28 days?", "svar": "All of them! Every month has at least 28 days." },
+    "spill": { "id": "hatten", "tekst": "The Hat Game: all the words go in the hat, three rounds – describe, one word, then mime. Pop the phone in a Santa hat between turns!", "figur": "Hi, I'm the Hat! Everything ends up in me sooner or later. The same words for three rounds: describe, one word, then mime. Who remembers best?" },
+    "klasse": {
+      "kos": { "tittel": "Our class Christmas tree", "min": 15, "tekst": "Draw a big Christmas tree on the board or on paper on the wall. Everyone draws or cuts out their own decoration and adds it – and says one thing they're looking forward to in the holidays." },
+      "snill": { "tittel": "Thank the people working", "tekst": "Say thank you to the people who work at your school – the caretaker, cleaners, dinner staff – with a drawing, a carol or a ‘Merry Christmas’ from the whole class." },
+      "prat": { "t": "What has been the best bit of December in our class?", "f": "What are you most looking forward to in the holidays?" }
+    }
+  },
+  {
+    "merke": "🌟", "merkeNavn": "the Christmas star",
+    "tittel": "Christmas Eve",
+    "storquiz": true,
+    "kos": { "tittel": "A candle for Christmas", "min": 10, "tekst": "Light a candle and snuggle up close. Everyone says one thing they're glad of this Christmas – and one thing they wish for someone else. Don't forget the mince pie and the carrot tonight!", "smaa": "Little ones put out the carrot for the reindeer – and blow out the candle at the end, with help." },
+    "prat": { "t": "What would you like to wish each other for the year ahead?", "f": "What could we help each other with?" },
+    "spill": { "id": "bingoballen", "tekst": "Christmas Day bingo with Bingo Ball: everyone with a phone gets a card of things that happen tomorrow – ‘the King's speech is on’, ‘someone reads out a cracker joke’. Choose ‘Christmas Day’ and tick them off as they happen!", "figur": "Bingo! … No, not yet. Hi, I'm Bingo Ball! Tomorrow I'll be rolling around looking for Christmas moments. Tick them off when they happen – and shout loudly!" },
+    "klasse": {
+      "kos": { "tittel": "The Merry Christmas circle", "min": 10, "tekst": "Stand in a big circle. Everyone says ‘Merry Christmas’ and one nice thing to the person next to them. At the end, the whole circle gives a round of applause for a whole year together." },
+      "prat": { "t": "What do you wish for our class after Christmas?", "f": "What could you do to help make it happen?" },
+      "spill": { "id": "tidsmaskinen", "tekst": "Time Traveller: when did it happen? Build the timeline together in teams – the year on the card stays hidden until you've placed it.", "figur": "Wheeee! Hi, I'm Time Traveller. I've been to the 1800s and to last Tuesday. When did it happen? Place the card – and I'll reveal the year!" }
+    }
+  }
 ]
