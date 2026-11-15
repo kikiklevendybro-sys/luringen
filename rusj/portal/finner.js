@@ -33,8 +33,8 @@
     kjapt: null,
   };
 
-  // Never a suggestion: tools are not games, and a calendar that only opens in December.
-  const IKKE = (s, maned) => s.tagger.includes("verktoy") || (s.id === "julekalenderen" && maned != null && maned !== 12);
+  // Never a suggestion: tools are not games, and the calendar outside November (print, reminders) and December.
+  const IKKE = (s, maned) => s.tagger.includes("verktoy") || (s.id === "julekalenderen" && maned != null && maned !== 11 && maned !== 12);
 
   // The kind of game, for the mix: at most one of each kind first, then two, then the rest.
   // Checked in this order, so a drawing game is «mime» even when it is also a party game.

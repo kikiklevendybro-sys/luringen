@@ -106,10 +106,11 @@ test("the wishes: words and quizzes, drawing and miming, quick, laughs, thinking
   assert.ok(["quiz", "ord"].includes(F.slag(med("ord")[0])), med("ord")[0].id);
 });
 
-test("never a tool, and the Christmas calendar only in December", () => {
+test("never a tool, and the Christmas calendar only in November (print, reminders) and December", () => {
   const alle = (maned) => F.finn(SPILL, { antall: "", yngst: "voksen", lyst: "alt" }, { maned });
   assert.ok(!alle(11).some((s) => s.tagger.includes("verktoy")), "et verktøy blant forslagene");
-  assert.ok(!alle(11).some((s) => s.id === "julekalenderen"), "julekalenderen i november");
+  assert.ok(!alle(10).some((s) => s.id === "julekalenderen"), "julekalenderen i oktober");
+  assert.ok(alle(11).some((s) => s.id === "julekalenderen"), "julekalenderen mangler i november");
   assert.ok(alle(12).some((s) => s.id === "julekalenderen"), "julekalenderen mangler i desember");
 });
 
