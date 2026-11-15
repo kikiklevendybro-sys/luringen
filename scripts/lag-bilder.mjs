@@ -88,16 +88,25 @@ const scene = `background:
   radial-gradient(ellipse 50% 60% at 100% 100%, rgba(255,79,139,.2), transparent 70%),
   #150c28;`;
 
-if (!bare.length) {
+// The front page's share image per edition: deling.png (nb), deling.en.png, deling.da.png.
+// `node scripts/lag-bilder.mjs forside` draws only these three.
+const SLAGORD = { nb: ["Spill for hele gjengen.", "Rett i nettleseren."] };
+for (const sp of ["en", "da"]) {
+  const ord = JSON.parse(readFileSync(join(ROT, `rusj/kit/tekst.${sp}.json`), "utf8"));
+  SLAGORD[sp] = SLAGORD.nb.map((t) => ord[t] || t);
+}
+for (const sp of !bare.length || bare.includes("forside") ? ["nb", "en", "da"] : []) {
+  const [slag1, slag2] = SLAGORD[sp];
   // A bold row of eleven well-known faces (old and new, no 18+ games) reads better in a small link
   // preview than all the mascots shrunk to dots. The row is wider than the image, so it bleeds off.
-  const utvalg = ["bokstavtrollet", "varulven", "ordugla", "sauen", "nissen", "luringen", "sjakkhesten", "kunstneren", "spionen", "terninga", "mimen"].filter((id) => G.alle.includes(id));
+  // Luringen exists only in the Norwegian edition.
+  const utvalg = ["bokstavtrollet", "varulven", "ordugla", "sauen", "nissen", sp === "nb" ? "luringen" : "fortelleren", "sjakkhesten", "kunstneren", "spionen", "terninga", "mimen"].filter((id) => G.alle.includes(id));
   const figurer = utvalg.map((id, n) => `<div style="width:118px;flex:none;transform:translateY(${n % 2 ? 14 : -6}px) rotate(${(n % 3) * 4 - 4}deg)">${G.svg(id)}</div>`).join("");
   await render(
     side(
       `<div style="width:1200px;height:630px;${scene};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;font-family:${FONT};color:#fff1dd;overflow:hidden">
         <div style="width:420px">${G.logo()}</div>
-        <div style="font-weight:900;font-size:56px;letter-spacing:-1px">Spill for hele gjengen. <span style="color:#3de3b0">Rett i nettleseren.</span></div>
+        <div style="font-weight:900;font-size:${Math.min(56, Math.floor((56 * 43) / (slag1.length + 1 + slag2.length)))}px;letter-spacing:-1px;white-space:nowrap">${esc(slag1)} <span style="color:#3de3b0">${esc(slag2)}</span></div>
         <div style="display:flex;gap:10px;width:1400px;justify-content:center;flex-wrap:nowrap">${figurer}</div>
       </div>`,
       1200,
@@ -105,7 +114,7 @@ if (!bare.length) {
     ),
     1200,
     630,
-    join(UT, "deling.png"),
+    join(UT, sp === "nb" ? "deling.png" : `deling.${sp}.png`),
   );
 }
 
