@@ -1332,9 +1332,11 @@
 
 /* ---------- Print: ink on white paper ---------- */
 @media print {
+  /* No page margin (some browsers paint it with the dark page colour): the white body keeps
+     10 mm clear on every side instead. */
   @page {
     size: A4 portrait;
-    margin: 10mm;
+    margin: 0;
   }
   html,
   body {
@@ -1342,10 +1344,11 @@
     min-height: 0 !important;
     background: #fff !important;
     color: #000 !important;
+    color-scheme: light;
   }
   body {
     display: block !important;
-    padding: 0 !important;
+    padding: 10mm !important;
   }
   body > :not(.app),
   .topp,

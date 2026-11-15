@@ -590,7 +590,6 @@
     const l = S.luker[d];
     const na = s[i];
     const til = R.ui.lenke(R.t("Til kalenderen"), "hjem");
-    const forrige = i > 0 ? R.ui.lenke(R.t("Forrige"), "forrige") : "";
     const neste = (tekst) => R.ui.knapp(tekst || R.t("Neste: {del}", { del: STEG[s[i + 1]].navn }), "neste");
     if (na === "gjett" && L.storquiz) {
       const q = l.quiz || { i: 0, rett: [], vist: false };
@@ -608,14 +607,14 @@
       if (g)
         return R.ui.dokk(
           `<a class="knapp mynte jk-spillknapp" href="${esc(g.url + (L.spill.hash ? "#" + L.spill.hash : ""))}"><span class="ikon" aria-hidden="true">🎲</span>${esc(R.t("Spill {navn}", { navn: g.navn }))}</a>`,
-          R.ui.lenkerad(forrige, R.ui.lenke(R.t("Neste: {del}", { del: STEG[s[i + 1]].navn }), "neste"), til),
+          R.ui.lenkerad(R.ui.lenke(R.t("Neste: {del}", { del: STEG[s[i + 1]].navn }), "neste"), til),
         );
     }
     if (na === "pynt") {
-      if (!l.ferdig) return R.ui.dokk(R.ui.knapp(R.t("Heng opp pynten"), "pynt", { variant: "lampe", ikon: "🎄" }), R.ui.lenkerad(forrige, til));
+      if (!l.ferdig) return R.ui.dokk(R.ui.knapp(R.t("Heng opp pynten"), "pynt", { variant: "lampe", ikon: "🎄" }), R.ui.lenkerad(til));
       return R.ui.dokk(R.ui.knapp(R.t("Del: Vi åpnet luke {n}!", { n: d }), "del-luke", { variant: "lampe", ikon: "📤" }), R.ui.lenkerad(R.ui.lenke(R.t("Se juletreet"), "tre"), til));
     }
-    return R.ui.dokk(neste(), R.ui.lenkerad(forrige, til));
+    return R.ui.dokk(neste(), R.ui.lenkerad(til));
   }
 
   // ---------- Opening a door ----------
@@ -900,9 +899,10 @@
 
       oppsett: {
         tittel: () => R.t("Gjør klart"),
+        // Back to the door it came from (when one is open and the group is known), else home.
         tilbake: (S) => {
           delete S.utkast;
-          const ut = S.etter === "luke" ? "hjem" : "hjem";
+          const ut = S.etter === "luke" && S.gruppe && S.aktiv && S.luker[S.aktiv] ? "luke" : "hjem";
           delete S.etter;
           return ut;
         },
@@ -1050,7 +1050,7 @@
         R.gaTil("hjem");
       },
       oppsett(el, e, S) {
-        if (!S.etter) S.etter = R.S && S.skjerm === "luke" ? "luke" : "hjem";
+        if (!S.etter) S.etter = S.skjerm === "luke" ? "luke" : "hjem";
         R.gaTil("oppsett");
       },
       gruppe(el, e, S) {
@@ -1086,13 +1086,6 @@
         const s = M.steg(luke(S, S.aktiv));
         l.steg = Math.min(s.length - 1, (l.steg || 0) + 1);
         R.lyd.sveip();
-        R.vis();
-        window.scrollTo(0, 0);
-      },
-      forrige(el, e, S) {
-        const l = S.luker[S.aktiv];
-        if (!l) return;
-        l.steg = Math.max(0, (l.steg || 0) - 1);
         R.vis();
         window.scrollTo(0, 0);
       },
