@@ -381,6 +381,7 @@ export const TAGGER = {
   kort: "Kortspill",
   verktoy: "Verktøy",
   drikke: "Drikkespill 18+",
+  arkade: "Arkade",
 };
 
 // The tag names in an edition (literal keys, so scripts/sprak.mjs can check the tables).
@@ -402,6 +403,7 @@ export const taggerPa = (t) => ({
   kort: t("Kortspill"),
   verktoy: t("Verktøy"),
   drikke: t("Drikkespill 18+"),
+  arkade: t("Arkade"),
 });
 
 const varslet = new Set();

@@ -8,7 +8,7 @@
   "alder": 6,
   "minutter": [2, 10],
   "mobiler": "en",
-  "tagger": ["alene", "barn"],
+  "tagger": ["alene", "barn", "arkade"],
   "rekkefolge": 79,
   "farge": "#ff86c8",
   "sok": ["ett trykk spill", "one tap", "hold for å fly", "hulespill", "undervannsspill", "manet", "reaksjonsspill", "arkadespill"],

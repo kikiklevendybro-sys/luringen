@@ -124,6 +124,12 @@
       "vors",
       "vorspiel",
       "nachspiel"
+    ],
+    "arkade": [
+      "arkadespill",
+      "arkade",
+      "mobilspill",
+      "retrospill"
     ]
   },
   "spill": {

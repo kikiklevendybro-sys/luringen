@@ -8,7 +8,7 @@
   "alder": 6,
   "minutter": [3, 20],
   "mobiler": "en",
-  "tagger": ["alene", "tenke", "barn"],
+  "tagger": ["alene", "tenke", "barn", "arkade"],
   "rekkefolge": 77,
   "farge": "#f0954a",
   "sok": ["match 3", "match-3", "tre på rad spill", "bytt og match", "matchespill", "tre like", "ekorn spill"],
