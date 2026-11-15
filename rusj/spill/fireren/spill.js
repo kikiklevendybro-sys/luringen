@@ -768,8 +768,8 @@
         modus: "nett",
         niva: 2,
         mal: MAL.includes(o.mal) ? o.mal : 3,
-        // Who opens: the seed decides the first match, then it alternates (and within a match, as always).
-        starter: (okt.fro + okt.kamp) % 2,
+        // Who opens: the host in the first match, then it alternates (and within a match, as always).
+        starter: (okt.kamp - 1) % 2,
         trekk: [],
         poeng: [0, 0],
         uavgjort: 0,

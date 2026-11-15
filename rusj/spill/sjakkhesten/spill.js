@@ -1699,8 +1699,8 @@
     maks: 2,
     oppsett: () => ({}),
     start(S, okt) {
-      // White: the seed decides the first match, then the colours swap from match to match.
-      const hvit = (okt.fro + okt.kamp) % 2;
+      // White: the host in the first match, then the colours swap from match to match.
+      const hvit = (okt.kamp - 1) % 2;
       S.spill = { id: okt.fro % 1e9, modus: "nett", niva: 2, meg: okt.meg === hvit ? HVIT : SVART, hvit, trekk: [], klokke: null, snu: false, snudd: false, resultat: null, ferdig: false, registrert: true };
       parti = null;
       valgt = -1;
