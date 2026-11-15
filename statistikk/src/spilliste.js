@@ -26,6 +26,7 @@ export const SPILL = {
   fireren: "Fireren",
   firklover: "Firkløveren",
   fiskeren: "Fiskeren",
+  fortelleren: "Fortelleren",
   globetrotteren: "Globetrotteren",
   golfballen: "Golfballen",
   hatten: "Hatten",
