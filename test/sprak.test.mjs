@@ -304,7 +304,8 @@ test("game pages: <html lang>, og:locale, canonical and hreflang between true eq
 test("game pages load the edition's table before the kit, share the code, and carry their own data", () => {
   const en = les("en/fourby/index.html");
   const skript = [...en.matchAll(/<script defer src="([^"?]+)/g)].map((m) => m[1]).filter((s) => !s.endsWith("stat.js"));
-  assert.deepEqual(skript, ["/felles/tekst.en.js", "/felles/gjengen.js", "/felles/merker.en.js", "/felles/rusj.js", "/en/fourby/data.js", "/fireren/spill.js"]);
+  // (Fireren is played on the net too: the QR code and R.nett come after the kit, before the game.)
+  assert.deepEqual(skript, ["/felles/tekst.en.js", "/felles/gjengen.js", "/felles/merker.en.js", "/felles/rusj.js", "/felles/qr.js", "/felles/nett.js", "/en/fourby/data.js", "/fireren/spill.js"]);
   const data = les("en/fourby/data.js");
   assert.match(data, /window\.RUSJ_TEKST_SPILL=\{/);
   assert.match(data, /"slug":"fourby"/);

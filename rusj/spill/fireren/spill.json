@@ -12,6 +12,7 @@
   "rekkefolge": 27,
   "sok": ["fire på rad", "4 på rad", "connect four", "connect 4", "firepårad"],
   "motMobilen": true,
+  "nett": true,
   "alias": ["fire-pa-rad"],
   "i18n": {
     "en": {
