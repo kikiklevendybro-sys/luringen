@@ -4,7 +4,8 @@
 //   GET  /admin             the owner's dashboard (Cloudflare Access, or the admin key)
 //   GET  /admin/data.json   the same numbers as JSON (same protection)
 //   GET  /                  health text
-//   cron                    deletes counters older than the retention limit
+//   cron                    deletes counters older than the retention limit, and adds up every
+//                           complete month into table maned (schema-2.sql)
 //
 // Privacy by construction: the only thing a request can change is a counter whose name is in the
 // grammar in nokler.js, on today's date as this Worker sees it. This file never reads the
@@ -12,7 +13,7 @@
 // (test/personvern.test.mjs checks the source for exactly that).
 import { OPPRINNELSER, MAKS_BYTES, MAKS_NOKLER, OPPBEVARING_MND, DAGER_TILBAKE, MIN_ADMIN_NOKKEL } from "./oppsett.js";
 import { tolkPakke, gyldigeNokler } from "./nokler.js";
-import { osloDag, osloKlokke, flytt, maanederFor } from "./dato.js";
+import { osloDag, osloKlokke, flytt, maanederFor, flyttMnd, manedene, manedSlutt } from "./dato.js";
 import { sammendrag } from "./tall.js";
 import { adminSide } from "./side.js";
 
@@ -21,6 +22,10 @@ export const SQL = {
   les: "SELECT dag, nokkel, n FROM teller WHERE dag >= ?1 AND dag <= ?2",
   forste: "SELECT MIN(dag) AS forste FROM teller",
   rydd: "DELETE FROM teller WHERE dag < ?1",
+  // Table maned (schema-2.sql): one total per month and counter name, written by the nightly job.
+  ryddMnd: "DELETE FROM maned WHERE maned < ?1",
+  mndFinnes: "SELECT value AS maned FROM json_each(?1) WHERE EXISTS (SELECT 1 FROM maned WHERE maned.maned = json_each.value)",
+  rull: "INSERT INTO maned (maned, nokkel, n) SELECT ?3, nokkel, SUM(n) FROM teller WHERE dag >= ?1 AND dag <= ?2 GROUP BY nokkel ON CONFLICT (maned, nokkel) DO UPDATE SET n = excluded.n",
 };
 
 const FELLES = {
@@ -196,10 +201,59 @@ async function admin(request, env, ctx, naa, sti) {
 // ---------- Retention ----------
 
 // Deletes every counter older than OPPBEVARING_MND months. Returns the limit that was used.
+// A monthly total is older than the limit when its whole month is: the months before the limit's.
+// (Without table maned — schema-2.sql not run yet — only the daily counters are deleted.)
 export async function ryddGamle(db, naa) {
   const grense = maanederFor(osloDag(naa), OPPBEVARING_MND);
   await db.prepare(SQL.rydd).bind(grense).run();
+  try {
+    await db.prepare(SQL.ryddMnd).bind(grense.slice(0, 7)).run();
+  } catch (e) {
+    /* no table maned yet */
+  }
   return grense;
+}
+
+// ---------- Monthly totals (table maned, schema-2.sql) ----------
+
+// Adds up one month of daily counters into table maned. Safe to run again: the totals are set,
+// not added to, so the same days give the same rows.
+export const rullManed = (db, maned) => db.prepare(SQL.rull).bind(maned + "-01", manedSlutt(maned), maned).run();
+
+// The months that can be added up: complete (before this month) and with every day still kept
+// (from the month after the retention limit's month, or the limit's own month when it is the 1st).
+export function manederSomKanRulles(iDag) {
+  const grense = maanederFor(iDag, OPPBEVARING_MND);
+  const forste = grense.endsWith("-01") ? grense.slice(0, 7) : flyttMnd(grense.slice(0, 7), 1);
+  return manedene(forste, flyttMnd(iDag.slice(0, 7), -1));
+}
+
+// The nightly job: every complete month that has no totals yet is added up. A month never changes
+// once it is over (no counter can be written to a past day), so a month that is there is skipped
+// at the cost of one row read. Returns the months that were added up.
+export async function rullOpp(db, naa) {
+  const maneder = manederSomKanRulles(osloDag(naa));
+  const { results } = await db.prepare(SQL.mndFinnes).bind(JSON.stringify(maneder)).all();
+  const ferdige = new Set((results || []).map((r) => r.maned));
+  const mangler = maneder.filter((m) => !ferdige.has(m));
+  if (mangler.length) await db.batch(mangler.map((m) => db.prepare(SQL.rull).bind(m + "-01", manedSlutt(m), m)));
+  return mangler;
+}
+
+// The scheduled job: retention first, then the monthly totals; one failing never stops the other.
+export async function natt(db, naa) {
+  const ut = { grense: null, rullet: null };
+  try {
+    ut.grense = await ryddGamle(db, naa);
+  } catch (e) {
+    /* tried again tomorrow */
+  }
+  try {
+    ut.rullet = await rullOpp(db, naa);
+  } catch (e) {
+    /* no table maned yet, or the database is busy: tried again tomorrow */
+  }
+  return ut;
 }
 
 // ---------- Routing ----------
@@ -215,5 +269,5 @@ export async function handter(request, env, ctx, naa = new Date()) {
 
 export default {
   fetch: (request, env, ctx) => handter(request, env, ctx),
-  scheduled: (hendelse, env, ctx) => ctx.waitUntil(ryddGamle(env.DB, new Date())),
+  scheduled: (hendelse, env, ctx) => ctx.waitUntil(natt(env.DB, new Date())),
 };

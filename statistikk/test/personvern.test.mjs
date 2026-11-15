@@ -3,8 +3,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
-import { handter } from "../src/index.js";
-import { falskD1, post, pakke, NAA, SKJEMA } from "./falsk-d1.mjs";
+import { handter, SQL } from "../src/index.js";
+import { falskD1, post, pakke, NAA, SKJEMA, SKJEMA_2 } from "./falsk-d1.mjs";
 
 const mappe = new URL("../src/", import.meta.url);
 const filer = readdirSync(mappe).filter((f) => f.endsWith(".js"));
@@ -35,12 +35,19 @@ test("the query string is never read", () => {
   assert.doesNotMatch(alt, /searchParams|\.search\b|\.hash\b/);
 });
 
-test("the database is one table with three columns: day, counter name, count", () => {
+test("the database is two tables of three columns: day or month, counter name, count", () => {
   const db = falskD1();
-  assert.deepEqual(db.skjema(), [{ type: "table", name: "teller" }]);
+  assert.deepEqual(db.skjema(), [{ type: "table", name: "maned" }, { type: "table", name: "teller" }]);
   assert.deepEqual(db.kolonner("teller"), ["dag", "nokkel", "n"]);
+  assert.deepEqual(db.kolonner("maned"), ["maned", "nokkel", "n"]);
   assert.equal(SKJEMA.match(/CREATE\s+(TABLE|INDEX|VIEW|TRIGGER)/gi).length, 1);
   assert.match(SKJEMA, /PRIMARY KEY \(dag, nokkel\)/);
+  assert.equal(SKJEMA_2.match(/CREATE\s+(TABLE|INDEX|VIEW|TRIGGER)/gi).length, 1);
+  assert.match(SKJEMA_2, /CREATE TABLE IF NOT EXISTS maned/);
+  assert.match(SKJEMA_2, /PRIMARY KEY \(maned, nokkel\)/);
+  assert.doesNotMatch(SKJEMA_2.replace(/--.*$/gm, ""), /DROP|ALTER|DELETE|UPDATE|INSERT/i);
+  // The monthly table is written only from the daily one, never from a request.
+  assert.doesNotMatch(kilde["index.js"].slice(kilde["index.js"].indexOf("async function taImot"), kilde["index.js"].indexOf("// ---------- Admin")), /maned/);
 });
 
 test("the schema itself refuses rows that are not a day, a short name and a positive count", () => {
@@ -55,9 +62,10 @@ test("the schema itself refuses rows that are not a day, a short name and a posi
 
 test("every statement the Worker runs uses bound values, never text pasted into SQL", () => {
   const sql = [...kilde["index.js"].matchAll(/"((?:INSERT|SELECT|DELETE|UPDATE|CREATE|DROP|ALTER)[^"]*)"/g)].map((m) => m[1]);
-  assert.equal(sql.length, 4);
+  assert.equal(sql.length, Object.keys(SQL).length);
   for (const s of sql) assert.doesNotMatch(s, /\$\{|'/, s);
-  assert.equal(kilde["index.js"].match(/\.prepare\(/g).length, 4);
+  // Every statement comes from the SQL table; prepare() never gets anything else.
+  for (const m of kilde["index.js"].matchAll(/\.prepare\(([^)]*)\)/g)) assert.match(m[1], /^SQL\.[a-zA-Z]+$|^sql$/, m[0]);
   assert.doesNotMatch(alt, /\.exec\(\s*[`"']|prepare\(\s*`/);
   assert.doesNotMatch(alt, /\b(DROP|ALTER|UPDATE teller|TRUNCATE)\b/);
 });
