@@ -243,7 +243,7 @@
   const voksenKnapp = $('#rommene [data-rom="voksen"]');
   const laastRom = voksenKnapp ? voksenKnapp.innerHTML : "";
   function visVoksenRom() {
-    if (!voksenKnapp) return;
+    if (!voksenKnapp || over18 === !voksenKnapp.classList.contains("rom-laast")) return; // drawn already
     const n18 = SPILL.filter((s) => s.alder18).length;
     voksenKnapp.classList.toggle("rom-laast", !over18);
     voksenKnapp.parentElement.classList.toggle("rom-bred", !over18);
@@ -335,7 +335,7 @@
     if (ny) ny.focus();
   });
 
-  let tall = { vist: 0, totalt: 0 };
+  let dorHtml = ""; // what the 18+ door says now
   // o.stille: nothing read aloud (the first drawing, a page back from memory).
   function oppdater(o = {}) {
     synk18();
@@ -353,7 +353,6 @@
       }
     }
     const totalt = SPILL.filter(synlig).length;
-    tall = { vist, totalt };
     const valgt = filtrert();
 
     // The 18+ door at the end of the list: before anyone is 18, when nothing is chosen, for
@@ -362,12 +361,14 @@
     const bakDora = !over18 && sok ? SPILL.filter((s) => s.alder18 && passerSok(s, sok)).length : 0;
     if (dor) {
       const n18 = SPILL.filter((s) => s.alder18).length;
-      if (!over18) {
-        dor.hidden = !(!valgt || hurtig === "vors" || bakDora);
-        dor.innerHTML = `<button type="button" class="dor" data-atten><span class="dor-ikon" aria-hidden="true">🔞</span><span class="dor-tekst"><b>${esc(hurtig === "vors" ? t("Vis drikkespillene") : t("Drikkespill (18+)"))}</b><span>${esc(bakDora ? t("+ {n} for voksne (18+)", { n: bakDora }) : t("{n} spill for voksne – trykk for å vise", { n: n18 }))}</span></span></button>`;
-      } else {
-        dor.hidden = !(rom === "voksen" || !valgt);
-        dor.innerHTML = `<div class="dor dor-apen"><span class="dor-ikon" aria-hidden="true">🔞</span><span class="dor-tekst"><b>${esc(t("Drikkespill (18+)"))}</b><span>${esc(t("{n} spill for voksne (18+)", { n: n18 }))}</span></span><button type="button" class="knapp-2 liten" data-skjul18>${esc(t("Skjul"))}</button></div>`;
+      dor.hidden = over18 ? !(rom === "voksen" || !valgt) : !(!valgt || hurtig === "vors" || bakDora);
+      const html = over18
+        ? `<div class="dor dor-apen"><span class="dor-ikon" aria-hidden="true">🔞</span><span class="dor-tekst"><b>${esc(t("Drikkespill (18+)"))}</b><span>${esc(t("{n} spill for voksne (18+)", { n: n18 }))}</span></span><button type="button" class="knapp-2 liten" data-skjul18>${esc(t("Skjul"))}</button></div>`
+        : `<button type="button" class="dor" data-atten><span class="dor-ikon" aria-hidden="true">🔞</span><span class="dor-tekst"><b>${esc(hurtig === "vors" ? t("Vis drikkespillene") : t("Drikkespill (18+)"))}</b><span>${esc(bakDora ? t("+ {n} for voksne (18+)", { n: bakDora }) : t("{n} spill for voksne – trykk for å vise", { n: n18 }))}</span></span></button>`;
+      // (only when it changes: a button with the focus stays)
+      if (dorHtml !== html) {
+        dor.innerHTML = html;
+        dorHtml = html;
       }
     }
     const dorApen = !!(dor && !dor.hidden && !over18);

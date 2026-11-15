@@ -2448,8 +2448,11 @@ body.portal {
 
 /* ---------- «Alle spill A–Å»: the one list ---------- */
 
-.alle-spill {
+/* A jump to the list (the skip link, #alle) or the heading (#spill) lands under the top bar. */
+.alle-spill,
+.start-topp h1 {
   min-width: 0;
+  scroll-margin-top: calc(var(--linje-h) + 4px);
 }
 
 /* Its heading, the «Nullstill» button and the chips stick under the top bar while the list scrolls
@@ -2831,6 +2834,26 @@ body.portal {
   .kveld-antall {
     font-size: 0.8rem;
   }
+
+  /* «Send rusj til gjengen» and «Ha rusj på hjemskjermen»: a smaller mascot, so a long word
+     («hjemmeskærmen») has room. */
+  .gjengen,
+  .installer {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .gjengen-figur,
+  .installer-figur {
+    width: 64px;
+  }
+}
+
+.gjengen h2,
+.installer h2 {
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 /* A phone on its side: little height. The list's heading scrolls away with it, and the slot

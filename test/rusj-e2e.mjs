@@ -89,126 +89,493 @@ function meta(id) {
   return m ? JSON.parse(m[1]) : { id };
 }
 
-// «Hva skal vi spille?» on the front page (every edition): the example from the brief – a parent
-// with daughters of 7 and 11 – in three taps (3–4, the age list, 7); the list follows at once, says
-// why each game fits, is remembered, mixes kinds, and never shows 18+ unless it is chosen.
-// The 18+ steps are checked further down (after the 18+ door has been opened): finnerAtten().
-async function finnerTur(t, c) {
-  const forside = `document.querySelector('.spillgrid')`;
-  const les = () =>
-    c.js(`(() => {
-      const spill = new Map((window.RUSJ_SPILLISTE || []).map((s) => [s.id, s]));
-      const kort = Array.from(document.querySelectorAll("#finner-liste .spillkort")).filter((k) => k.offsetParent);
-      const trykket = (sel, felt) => Array.from(document.querySelectorAll(sel)).filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset[felt]);
-      let lagret = null;
-      try { lagret = JSON.parse(localStorage.getItem(${JSON.stringify(t.nokkel("portal"))}) || "null"); } catch (e) { lagret = "?"; }
-      return {
-        treff: document.querySelector("#finner-treff").textContent,
-        live: document.querySelector("#finner-treff").getAttribute("aria-live"),
-        kort: kort.map((k) => {
-          const s = spill.get(k.dataset.id);
-          const g = k.querySelector(".kort-grunn");
-          const b = k.getBoundingClientRect();
-          return { id: s.id, alder: s.alder, spillere: s.spillere, alder18: !!s.alder18, tagger: s.tagger, minutter: s.minutter, slag: window.RusjFinner.slag(s), grunn: g ? g.textContent : "", navn: k.querySelector("a").getAttribute("aria-label") || "", ute: b.right > innerWidth + 1 || b.left < -1 };
-        }),
-        mer: !document.querySelector("#finner-mer").hidden,
-        antall: trykket("[data-finn-antall]", "finnAntall"),
-        lyst: trykket("[data-finn-lyst]", "finnLyst"),
-        yngst: document.querySelector("#finner-yngst").value,
-        trinn: Array.from(document.querySelectorAll("#finner-yngst option")).map((o) => o.value),
-        lagret,
-      };
+// ---------- The front page («Miks»), every edition ----------
+// One list of every game, «Alle spill A–Å», written into the page; the search in the top bar, the
+// shortcuts, the rooms and the three questions behind «Flere valg» filter it in place. Texts are
+// checked in Norwegian only (t.norsk); the rest holds in every edition and at every size.
+
+// What the page shows right now (read in the page). nokkel: where the edition keeps its choices.
+const lesForside = (nokkel) => `(() => {
+  const spill = new Map((window.RUSJ_SPILLISTE || []).map((s) => [s.id, s]));
+  const synlig = (el) => !!el && !el.hidden && !!el.offsetParent;
+  const vist = Array.from(document.querySelectorAll("#alle-liste li[data-id]")).filter((li) => !li.hidden).map((li) => li.dataset.id);
+  const beste = Array.from(document.querySelectorAll("#beste .forslagkort")).filter(synlig).map((k) => ({ id: k.dataset.id, grunn: k.querySelector(".kort-grunn").textContent, navn: k.querySelector("a").getAttribute("aria-label") }));
+  const dor = document.querySelector("#dor-celle");
+  return {
+    vist,
+    atten: vist.filter((id) => spill.get(id) && spill.get(id).alder18),
+    tittel: document.querySelector("#alle-t").textContent,
+    si: document.querySelector("#si").textContent,
+    live: document.querySelector("#si").getAttribute("aria-live"),
+    aktive: Array.from(document.querySelectorAll("#aktive [data-fjern]")).map((b) => b.dataset.fjern + ":" + b.textContent.replace(/×/g, "").trim()),
+    nullstill: !document.querySelector("#nullstill").hidden,
+    beste,
+    dor: synlig(dor) ? dor.innerText.replace(/\\s+/g, " ").trim() : "",
+    ingen: !document.querySelector("#ingen-treff").hidden,
+    trykket: Array.from(document.querySelectorAll("[data-hurtig][aria-pressed='true'], #rommene [data-rom][aria-pressed='true']")).map((b) => b.dataset.hurtig || b.dataset.rom),
+    lagret: (() => { try { return JSON.parse(localStorage.getItem(${JSON.stringify(nokkel)}) || "null"); } catch (e) { return "?"; } })(),
+  };
+})()`;
+
+async function forsideTur(t, c) {
+  const tast = async (key, vk, modifiers = 0) => {
+    await c.send("Input.dispatchKeyEvent", { type: "keyDown", key, code: key, windowsVirtualKeyCode: vk, modifiers });
+    await c.send("Input.dispatchKeyEvent", { type: "keyUp", key, code: key, windowsVirtualKeyCode: vk, modifiers });
+  };
+  const venter = async (uttrykk, ms = 3000) => {
+    try {
+      await c.vent(uttrykk, ms);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+  const les = () => c.js(lesForside(t.nokkel("portal")));
+  const lastPaNytt = async () => {
+    await c.lastSide(t.side, "document.querySelector('#alle-liste')");
+    await c.sov(300);
+  };
+  // A headless page has no focus, so «focus» never fires; the keyboard checks need it.
+  await c.send("Emulation.setFocusEmulationEnabled", { enabled: true });
+  await t.start();
+  await c.sov(600);
+  await t.bilde("forside");
+  const stor = BREDDE >= 720;
+  const staende = HOYDE > BREDDE;
+
+  // ---------- The page as it is written ----------
+  const side = await c.js(`({
+    alle: (window.RUSJ_SPILLISTE || []).map((s) => ({ id: s.id, alder18: !!s.alder18, url: s.url || "/" + s.id + "/", navn: s.navn })),
+    lenker: Array.from(document.querySelectorAll("#alle-liste a.spillflis")).map((a) => a.getAttribute("href")),
+    hreflang: Array.from(document.querySelectorAll('link[rel="alternate"]')).map((l) => l.hreflang + " " + new URL(l.href).pathname),
+    bryter: Array.from(document.querySelectorAll(".bunn .sprakvalg a, .bunn .sprakvalg [aria-current]")).map((a) => a.getAttribute("href") || "*"),
+    bunn: Array.from(document.querySelectorAll(".bunn-lenker a")).map((a) => a.getAttribute("href")),
+    h1: document.querySelector("h1") && document.querySelector("h1").textContent.trim(),
+    manifest: document.querySelector('link[rel="manifest"]').getAttribute("href"),
+    tittel: document.title,
+    beskrivelse: document.querySelector('meta[name="description"]').content,
+    ld: (() => { try { const g = JSON.parse(document.querySelector('script[type="application/ld+json"]').textContent)["@graph"]; return { typer: g.map((n) => n["@type"]), spill: g.find((n) => n["@type"] === "ItemList").itemListElement.length }; } catch (e) { return { feil: e.message }; } })(),
+    hopp: document.querySelector("body > a.hopp") === document.querySelector("body a"),
+  })`);
+  const vanlige = side.alle.filter((s) => !s.alder18);
+  const atten = side.alle.filter((s) => s.alder18);
+  t.sjekk(side.lenker.length === vanlige.length && side.lenker.every((h) => h.startsWith(t.forside)), `A–Å-lista har ${side.lenker.length} lenker, ventet ${vanlige.length} i ${t.forside}`);
+  if (!SPRAK) {
+    const ventet = bygget.length + (side.alle.some((s) => s.id === "luringen") ? 1 : 0);
+    t.sjekk(side.alle.length === ventet, `Spillista har ${side.alle.length} spill, ventet ${ventet}`);
+    for (const id of bygget) t.sjekk(side.alle.some((s) => s.id === id), `Forsiden mangler ${id}`);
+  } else t.sjekk(side.alle.length === UTGAVE.size, `Spillista på ${SPRAK} har ${side.alle.length} spill, ventet ${UTGAVE.size}`);
+  t.sjekk(!side.ld.feil && side.ld.typer.includes("WebSite") && side.ld.spill === vanlige.length, `Strukturerte data på forsiden: ${side.ld.feil || `${(side.ld.typer || []).join(", ")}, ${side.ld.spill} spill (ventet ${vanlige.length})`}`);
+  t.sjekk(["nb /", "en /en/", "da /da/", "x-default /"].every((x) => side.hreflang.includes(x)), `hreflang på forsiden: ${side.hreflang.join(", ")}`);
+  t.sjekk(side.bryter.length === 3 && side.bryter.includes("*"), `Språkvalget i bunnen: ${side.bryter.join(", ")}`);
+  t.sjekk(side.bunn.every((h) => h.startsWith(t.forside)), `Bunnlenkene peker ut av utgaven: ${side.bunn.join(", ")}`);
+  t.sjekk(!!side.h1 && side.manifest === `${t.forside}manifest.webmanifest` && side.hopp, `Forsiden mangler h1, eget manifest eller hopp-lenken først (${side.manifest})`);
+  if (t.norsk) {
+    t.sjekk(/selskapsleker/.test(side.tittel) && /selskapsleker/.test(side.beskrivelse) && !/festspill/i.test(side.tittel + side.beskrivelse), `Tittel eller beskrivelse på forsiden: «${side.tittel}» / «${side.beskrivelse}»`);
+    t.sjekk(side.h1.endsWith("Hva skal vi spille?") && (await c.tekst(".start-linje")).trim() === `${side.alle.length} gratis spill · ingen konto · ingen reklame`, `Overskriften eller linja under den: «${side.h1}» / «${await c.tekst(".start-linje")}»`);
+  }
+  // No drinking game before the 18+ door: not in the list, not anywhere on the page.
+  let f = await les();
+  t.sjekk(f.atten.length === 0 && !(await c.js(`${JSON.stringify(atten.map((s) => s.url))}.some((u) => document.querySelector('a[href="' + u + '"]'))`)), "Et drikkespill vises før 18-årsbekreftelsen");
+  t.sjekk(f.live === "polite" && f.si === "", `Antallet leses ikke høflig opp (aria-live="${f.live}"), eller noe leses opp ved lasting («${f.si}»)`);
+
+  // The first screen: the top bar with the search and the dice, the shortcuts and the rooms.
+  const forste = await c.js(`(() => {
+    const r = (sel) => { const e = document.querySelector(sel); if (!e) return null; const b = e.getBoundingClientRect(); return { topp: Math.round(b.top), bunn: Math.round(b.bottom), venstre: Math.round(b.left), hoyre: Math.round(b.right) }; };
+    const rom = Array.from(document.querySelectorAll("#rommene .rom")).map((b) => b.getBoundingClientRect());
+    return { sok: r("#sok"), terning: r("#overrask"), hurtig: r("#hurtig"), rom: rom.length, forsteRom: Math.round(rom[0].bottom), sisteRom: Math.round(rom[rom.length - 1].bottom), figurer: document.querySelectorAll("#rommene .rom-gjeng > svg").length, vh: innerHeight, vw: innerWidth };
+  })()`);
+  t.sjekk(forste.sok.bunn <= 80 && forste.terning.hoyre <= forste.vw && forste.hurtig.topp < forste.vh, `Søket, terningen eller snarveiene er ikke på første skjerm (${JSON.stringify(forste)})`);
+  t.sjekk(forste.rom >= 9 && forste.figurer >= 16, `Rommene mangler eller har ikke figurene sine (${forste.rom} rom, ${forste.figurer} figurer)`);
+  if (staende && HOYDE >= 800) t.sjekk(forste.sisteRom <= forste.vh, `Rommene får ikke plass på første skjerm (slutter på ${forste.sisteRom} av ${forste.vh} px)`);
+  else if (staende || stor) t.sjekk(forste.forsteRom <= forste.vh, `Den første raden med rom er ikke på første skjerm (slutter på ${forste.forsteRom} av ${forste.vh} px)`);
+  // The search field's placeholder fits («Søk i 104 spill»), also on the smallest phones.
+  const ph = await c.js(`(() => { const f = document.querySelector("#sok"); const s = getComputedStyle(f, "::placeholder"); const x = document.createElement("canvas").getContext("2d"); x.font = s.fontWeight + " " + s.fontSize + " " + s.fontFamily; const px = (n) => parseFloat(getComputedStyle(f)[n]) || 0; return { tekst: f.placeholder, bredde: Math.ceil(x.measureText(f.placeholder).width), rom: Math.floor(f.getBoundingClientRect().width - px("paddingLeft") - px("paddingRight")) }; })()`);
+  t.sjekk(ph.bredde <= ph.rom, `Plassholderen «${ph.tekst}» får ikke plass i søkefeltet (${ph.bredde} px tekst, ${ph.rom} px rom)`);
+  if (t.norsk) t.sjekk(ph.tekst === `Søk i ${side.alle.length} spill`, `Plassholderen: «${ph.tekst}»`);
+  // Only the first screen's mascots are drawn into the page; the list's are lazy pictures.
+  const bilder = await c.js(`({ lat: document.querySelectorAll('#alle-liste img[loading="lazy"]').length, inline: document.querySelectorAll("#alle-liste svg.figur").length, lastet: Array.from(document.querySelectorAll('#alle-liste img')).filter((i) => i.complete && i.naturalWidth).length })`);
+  t.sjekk(bilder.lat === vanlige.length && bilder.inline === 0, `A–Å-lista: ${bilder.lat} late bilder og ${bilder.inline} innebygde figurer (ventet ${vanlige.length} og 0)`);
+  // The top bar stays at the top, at one height, as the page scrolls.
+  const linje = await c.js(`(async () => { const l = document.querySelector("#linje"); const h0 = l.offsetHeight; scrollTo(0, 1500); await new Promise((r) => setTimeout(r, 200)); const b = l.getBoundingClientRect(); const ut = { topp: Math.round(b.top), h0, h1: l.offsetHeight, kant: l.classList.contains("skygget") }; scrollTo(0, 0); return ut; })()`);
+  t.sjekk(linje.topp === 0 && linje.h0 === linje.h1 && linje.kant, `Topplinja fester seg ikke øverst eller endrer høyde (${JSON.stringify(linje)})`);
+
+  // ---------- Keyboard: the order of the first stops, each with a visible ring ----------
+  await c.js("document.activeElement && document.activeElement.blur(); scrollTo(0, 0)");
+  const ventetStopp = ["hopp", "linje-logo", "#sok", "#overrask", "SUMMARY", ...Array(6).fill("hurtig"), "#flere", ...Array(forste.rom).fill("rom"), "#installtips-vis", "#installtips-lukk"];
+  const stopp = [];
+  for (let i = 0; i < ventetStopp.length; i++) {
+    await tast("Tab", 9);
+    await c.sov(60);
+    stopp.push(
+      await c.js(`(() => { const e = document.activeElement; const s = getComputedStyle(e); const ring = (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2) || (e.id === "sok" && /255, 210, 63/.test(s.boxShadow)); const b = e.getBoundingClientRect(); const synlig = b.bottom > 0 && b.top < innerHeight && b.right > 0 && b.left < innerWidth; const navn = e.id ? "#" + e.id : e.dataset.hurtig ? "hurtig" : e.classList.contains("rom") ? "rom" : String(e.className).split(" ")[0] || e.tagName; return navn + (ring ? "" : " (uten synlig fokus)") + (synlig ? "" : " (utenfor skjermen)"); })()`),
+    );
+  }
+  t.sjekk(stopp.join(" → ") === ventetStopp.join(" → "), `Tab-rekkefølgen på forsiden: ${stopp.join(" → ")}`);
+  // The skip link: to «Alle spill A–Å», with its heading in sight under the top bar.
+  await c.js("scrollTo(0, 0); document.querySelector('a.hopp').focus()");
+  await tast("Enter", 13);
+  await c.sov(500);
+  const hopp = await c.js(`(() => { const a = document.querySelector("#alle-t").getBoundingClientRect(); return { fokus: document.activeElement && document.activeElement.id, topp: Math.round(a.top), linje: document.querySelector("#linje").offsetHeight, vh: innerHeight }; })()`);
+  t.sjekk(hopp.fokus === "alle" && hopp.topp >= hopp.linje - 2 && hopp.topp < hopp.vh / 2, `Hopp-lenken går ikke til «Alle spill A–Å» (fokus ${hopp.fokus}, overskriften på ${hopp.topp} px)`);
+  // Tabbing backwards from the end of the list: what gets focus is never under the bars on top.
+  await c.js(`(() => { const a = Array.from(document.querySelectorAll("#alle-liste a")); a[a.length - 1].focus(); })()`);
+  await c.sov(200);
+  const dekket = [];
+  for (let i = 0; i < 8; i++) {
+    await tast("Tab", 9, 8);
+    await c.sov(80);
+    const under = await c.js(`(() => { const e = document.activeElement; const sperre = Math.max(document.querySelector("#linje").getBoundingClientRect().bottom, getComputedStyle(document.querySelector("#resultat-topp")).position === "sticky" ? document.querySelector("#resultat-topp").getBoundingClientRect().bottom : 0); const b = e.getBoundingClientRect(); return !e.closest("#linje, #resultat-topp") && b.top < sperre - 2 ? (e.getAttribute("href") || e.className) + " (" + Math.round(sperre - b.top) + " px)" : ""; })()`);
+    if (under) dekket.push(under);
+  }
+  t.sjekk(dekket.length === 0, `Fokus havner under topplinja når man tabber bakover: ${dekket.join(", ")}`);
+  await c.js("document.activeElement.blur(); scrollTo(0, 0)");
+  await c.sov(200);
+
+  // ---------- A shortcut: «Vorspiel» – the party games, and the door to the drinking games ----------
+  await c.klikk('[data-hurtig="vors"]');
+  await c.sov(900);
+  f = await les();
+  const vors = await c.js(`(() => { const F = window.RusjFinner; const v = F.HURTIG.vors(false); return (window.RUSJ_SPILLISTE || []).filter((s) => F.passer(s, v, { maned: new Date().getMonth() + 1 })).map((s) => s.id).sort(); })()`);
+  t.sjekk(f.vist.slice().sort().join() === vors.join() && f.vist.length >= 6, `«Vorspiel» viser ${f.vist.length} spill, ventet ${vors.length}`);
+  t.sjekk(f.atten.length === 0 && /\S/.test(f.dor), `«Vorspiel» viser drikkespill før aldersdøra, eller mangler døra til dem («${f.dor}»)`);
+  t.sjekk(f.trykket.join() === "vors" && f.aktive.length === 1 && f.aktive[0].startsWith("hurtig:") && f.nullstill, `«Vorspiel»: trykket ${f.trykket}, merkelapper ${f.aktive.join(" | ")}`);
+  t.sjekk(f.beste.length === 3 && f.beste.every((b) => vors.includes(b.id)), `«Vorspiel» gir ikke tre forslag som passer (${f.beste.map((b) => b.id).join(", ")})`);
+  t.sjekk(/\d/.test(f.si), `Antallet leses ikke opp etter et valg («${f.si}»)`);
+  if (t.norsk) t.sjekk(f.tittel === `${f.vist.length} spill passer` && f.dor.includes("Vis drikkespillene") && f.aktive[0] === "hurtig:🍻 Vorspiel", `Tekstene etter «Vorspiel»: «${f.tittel}», «${f.dor}», ${f.aktive}`);
+  const iSyne = await c.js(`(() => { const a = document.querySelector("#alle").getBoundingClientRect(); return a.top >= -2 && a.top < innerHeight / 2; })()`);
+  t.sjekk(iSyne, "Lista kommer ikke opp under topplinja etter en snarvei");
+  await t.bilde("forside-vorspiel");
+  // Off again with the chip's ×: everything is back, and the focus has somewhere to be.
+  await c.klikk('#aktive [data-fjern="hurtig"]');
+  f = await les();
+  t.sjekk(f.vist.length === vanlige.length && !f.nullstill && f.aktive.length === 0 && f.trykket.length === 0, `Merkelappens × tar ikke bort «Vorspiel» (${f.vist.length} spill, ${f.aktive})`);
+  t.sjekk(await c.js(`document.activeElement && document.activeElement.id === "alle-t"`), "Fokus går ikke til overskriften når den siste merkelappen fjernes");
+  if (t.norsk) t.sjekk(f.tittel === "Alle spill A–Å", `Overskriften etter at valget er fjernet: «${f.tittel}»`);
+
+  // ---------- Rooms: «Arkade» holds the arcade games; a room and a shortcut together ----------
+  const rom = (id) => c.js(`(window.RUSJ_SPILLISTE || []).filter((s) => window.RusjFinner.iRom(s, ${JSON.stringify(id)})).map((s) => s.id).sort()`);
+  await c.klikk('#rommene [data-rom="arkade"]');
+  await c.sov(400);
+  f = await les();
+  const arkade = await rom("arkade");
+  t.sjekk(arkade.length >= 6 && f.vist.slice().sort().join() === arkade.join() && f.trykket.join() === "arkade", `Rommet «Arkade» viser ${f.vist.join(", ")}, ventet ${arkade.join(", ")}`);
+  t.sjekk(f.beste.length === 3 && f.beste.every((b) => arkade.includes(b.id)), "Rommet «Arkade» gir ikke tre forslag fra rommet");
+  await t.bilde("forside-arkade");
+  await c.klikk('#rommene [data-rom="arkade"]');
+  t.sjekk((await les()).vist.length === vanlige.length, "Et nytt trykk på rommet tar det ikke bort");
+  await c.klikk('#rommene [data-rom="fest"]');
+  await c.klikk('[data-hurtig="to"]');
+  f = await les();
+  const fest = await rom("fest");
+  const to = await c.js(`(() => { const F = window.RusjFinner; return (window.RUSJ_SPILLISTE || []).filter((s) => F.passer(s, F.HURTIG.to(false), { maned: new Date().getMonth() + 1 })).map((s) => s.id); })()`);
+  t.sjekk(f.vist.length > 0 && f.vist.every((id) => fest.includes(id) && to.includes(id)) && f.aktive.length === 2, `Fest + «To stykker» viser ${f.vist.join(", ")} (${f.aktive.join(" | ")})`);
+  await c.klikk('#aktive [data-fjern="rom"]');
+  f = await les();
+  t.sjekk(f.aktive.length === 1 && f.aktive[0].startsWith("hurtig:") && f.vist.slice().sort().join() === to.slice().sort().join(), "Når rommet fjernes, står ikke snarveien igjen alene");
+  t.sjekk(await c.js(`document.activeElement && document.activeElement.dataset.fjern === "hurtig"`), "Fokus går ikke til neste merkelapp når én fjernes");
+  await c.klikk("#nullstill");
+  f = await les();
+  t.sjekk(f.vist.length === vanlige.length && f.aktive.length === 0 && (await c.js(`document.activeElement.id === "alle-t"`)), "«Nullstill» viser ikke alle spillene igjen, eller fokus forsvinner");
+
+  // ---------- Search ----------
+  const sok = async (q) => {
+    await c.skrivInn("#sok", q);
+    await c.sov(250);
+    return les();
+  };
+  const etNavn = vanlige[Math.floor(vanlige.length / 2)];
+  f = await sok(etNavn.navn);
+  t.sjekk(f.vist.includes(etNavn.id) && f.aktive.some((a) => a.startsWith("sok:")), `Søket etter «${etNavn.navn}» finner ikke spillet (${f.vist.join(", ")})`);
+  t.sjekk(await c.js(`(() => { const a = document.querySelector("#alle").getBoundingClientRect(); return a.top >= -2 && a.top < innerHeight / 2; })()`), "Treffene kommer ikke opp under topplinja når man søker");
+  await t.bilde("forside-sok");
+  await c.klikk("#sok-tom");
+  t.sjekk((await les()).vist.length === vanlige.length, "«Tøm søket» viser ikke alle spillene igjen");
+  f = await sok("xyzzy");
+  t.sjekk(f.vist.length === 0 && f.ingen, "Et tulleord gir treff, eller «ingen spill passer» vises ikke");
+  await tast("Escape", 27);
+  await c.sov(100);
+  t.sjekk((await les()).vist.length === vanlige.length && (await c.js(`document.querySelector("#sok").value`)) === "", "Escape tømmer ikke søket");
+  if (t.norsk) {
+    // The words people actually use find the games (rusj/seo.json), and the facts can be searched in phrases.
+    const finner = { alias: "skravla", imposter: "luringen", "nødt": "vaghalsen", pekeleken: "pekefingeren", "secret santa": "nissen", ludo: "brikka", mafia: "varulven", musikk: "nynneren", "bli kjent": "lognhalsen", arkadespill: "slangen" };
+    const anledninger = ["vors", "bursdag", "hyttetur", "selskapsleker", "festleker", "julebord", "klassefest", "leker til barnebursdag"];
+    const faktasok = { "flere mobiler": (s) => s.mobiler !== "en", "én mobil": (s) => s.mobiler !== "hver", alene: (s) => s.spillere[0] === 1, "mot mobilen": (s) => !!s.motMobilen };
+    const treff = await c.js(`(() => {
+      const felt = document.querySelector("#sok");
+      const ut = {};
+      for (const q of ${JSON.stringify([...Object.keys(finner), ...anledninger, ...Object.keys(faktasok), "quiz"])}) {
+        felt.value = q;
+        felt.dispatchEvent(new Event("input", { bubbles: true }));
+        ut[q] = Array.from(document.querySelectorAll("#alle-liste li[data-id]")).filter((li) => !li.hidden).map((li) => li.dataset.id).sort();
+      }
+      felt.value = "";
+      felt.dispatchEvent(new Event("input", { bubbles: true }));
+      return ut;
     })()`);
+    for (const [q, id] of Object.entries(finner)) if (side.alle.some((s) => s.id === id)) t.sjekk(treff[q].includes(id), `Søket «${q}» finner ikke ${id} (fant: ${treff[q].join(", ") || "ingenting"})`);
+    if (vanlige.length > 20) for (const q of anledninger) t.sjekk(treff[q].length >= 3, `Søket «${q}» gir bare ${treff[q].length} treff`);
+    const liste = await c.js(`window.RUSJ_SPILLISTE`);
+    for (const [q, passer] of Object.entries(faktasok)) {
+      const ventet = liste.filter((s) => !s.alder18 && passer(s)).map((s) => s.id).sort();
+      t.sjekk(treff[q].join() === ventet.join(), `Søket «${q}» gir ${treff[q].length} spill, ventet ${ventet.length}`);
+    }
+    t.sjekk(treff.quiz.length > 3 && treff.quiz.length < vanlige.length, `Søket «quiz» viser ${treff.quiz.length} spill`);
+    // Drinking games in a search before the door: the door says how many, never the games.
+    if (atten.length) {
+      f = await sok("drikkeleker");
+      t.sjekk(f.atten.length === 0 && new RegExp(`\\+ ${atten.length} for voksne \\(18\\+\\)`).test(f.dor) && !f.ingen, `Søket «drikkeleker» før aldersdøra: døra sier «${f.dor}»${f.ingen ? ", og «ingen spill passer» vises" : ""}`);
+      await t.bilde("forside-drikkeleker");
+      await c.klikk("#sok-tom");
+    }
+  }
+
+  // ---------- The three questions («Flere valg») ----------
+  await c.js("scrollTo(0, 0)");
+  await c.klikk("#flere");
+  t.sjekk(await c.js(`!document.querySelector("#finner").hidden && document.querySelector("#flere").getAttribute("aria-expanded") === "true"`), "«Flere valg» åpner ikke de tre spørsmålene");
   const velgAlder = async (v) => {
     await c.js(`(() => { const s = document.querySelector("#finner-yngst"); s.value = ${JSON.stringify(String(v))}; s.dispatchEvent(new Event("change", { bubbles: true })); })()`);
     await c.sov(150);
   };
-
-  // «Finn et spill» in the hero leads to the questions.
-  await c.js("scrollTo(0, 0)");
-  await c.klikk('a.knapp[href="#spill"]');
-  await c.sov(700);
-  const ved = await c.js(`({ fokus: document.activeElement && document.activeElement.id, topp: Math.round(document.querySelector("#spill").getBoundingClientRect().top), sporsmal: Math.round(document.querySelector("#finner .finner-sporsmal:last-of-type").getBoundingClientRect().bottom), vh: innerHeight })`);
-  t.sjekk(ved.fokus === "spill" && ved.topp >= -2 && ved.topp < ved.vh / 3, `«Finn et spill» går ikke til «Hva skal vi spille?» (fokus ${ved.fokus}, overskriften på ${ved.topp} px)`);
-
-  // Before anything is chosen: «Voksen», «Litt av alt», no player count; a list already, never 18+.
-  let f = await les();
-  t.sjekk(f.yngst === "voksen" && f.lyst.join() === "alt" && f.antall.length === 0, `Finneren starter ikke på Voksen / Litt av alt (${f.yngst}, ${f.lyst}, ${f.antall})`);
-  t.sjekk(f.live === "polite", "Antallet i finneren leses ikke opp (aria-live)");
-  t.sjekk(f.kort.length === 6 && f.kort.every((k) => !k.alder18), `Finneren viser ${f.kort.length} kort før noe er valgt${f.kort.some((k) => k.alder18) ? ", med 18+" : ""}`);
-  t.sjekk(!f.trinn.includes("fest") && f.trinn[0] === "3" && f.trinn[f.trinn.length - 1] === "voksen", `Alderstrinnene i finneren: ${f.trinn.join(", ")}`);
-
-  // The example in three taps: 3–4, then the age (the list opens on a tap; here its value is set).
-  await c.trykk('[data-finn-antall="3-4"]');
+  await c.klikk('[data-finn-antall="3-4"]');
   await velgAlder(7);
   f = await les();
-  t.sjekk(f.antall.join() === "3-4" && f.yngst === "7", `Valget ble ikke stående (${f.antall}, ${f.yngst})`);
-  t.sjekk(f.kort.length >= 4 && f.kort.length <= 6 && f.mer, `Eksempelet gir ${f.kort.length} kort${f.mer ? "" : " og ingen «Vis flere»"}`);
-  for (const k of f.kort) {
-    t.sjekk(k.alder <= 7 && k.spillere[0] <= 3 && k.spillere[1] >= 4 && !k.alder18, `${k.id} passer ikke for tre–fire med en sjuåring (fra ${k.alder} år, ${k.spillere.join("–")} spillere${k.alder18 ? ", 18+" : ""})`);
+  const passer7 = await c.js(`(() => { const F = window.RusjFinner; return (window.RUSJ_SPILLISTE || []).filter((s) => F.passer(s, { antall: "3-4", yngst: 7, lyst: "alt" }, { maned: new Date().getMonth() + 1 })).map((s) => s.id).sort(); })()`);
+  t.sjekk(f.vist.slice().sort().join() === passer7.join() && f.vist.length >= 4, `Tre–fire med en sjuåring viser ${f.vist.length} spill, ventet ${passer7.length}`);
+  t.sjekk(f.aktive.length === 2 && f.aktive[0].startsWith("antall:") && f.aktive[1].startsWith("yngst:"), `Merkelappene for svarene: ${f.aktive.join(" | ")}`);
+  t.sjekk(f.beste.length === 3 && f.beste.every((b) => passer7.includes(b.id) && /7|\d/.test(b.grunn)), `Forslagene for tre–fire med en sjuåring: ${f.beste.map((b) => b.id).join(", ")}`);
+  if (t.norsk) {
+    t.sjekk(f.aktive.join("|") === "antall:3–4 spillere|yngst:Yngste 7 år", `Merkelappene: ${f.aktive.join(" | ")}`);
     const fra = ([a, b]) => (a === b ? String(a) : `${a}–${b}`);
-    t.sjekk(new RegExp(`^\\D*${k.alder}\\D[^·]*· ${fra(k.spillere)} [^·]+ · ${fra(k.minutter)} min · \\S`).test(k.grunn), `${k.id}: grunnlinja «${k.grunn}»`);
-    t.sjekk(k.navn.includes(String(k.alder)), `${k.id}: alderen står ikke i lenkenavnet («${k.navn}»)`);
-    t.sjekk(!k.ute, `${k.id}: kortet stikker ut av skjermen`);
+    const liste = await c.js(`window.RUSJ_SPILLISTE`);
+    for (const b of f.beste) {
+      const s = liste.find((x) => x.id === b.id);
+      t.sjekk(b.grunn.startsWith(`Fra ${s.alder} år`) && b.grunn.includes(`${fra(s.spillere)} spillere`) && b.navn.includes(`Fra ${s.alder} år`), `${b.id}: grunnlinja «${b.grunn}» eller lenkenavnet «${b.navn}»`);
+    }
   }
-  const slag = f.kort.map((k) => k.slag);
-  t.sjekk(new Set(slag).size >= 3 && Math.max(...slag.map((s) => slag.filter((x) => x === s).length)) <= 2, `Eksempelet blander ikke: ${f.kort.map((k) => `${k.id} (${k.slag})`).join(", ")}`);
-  if (t.norsk) t.sjekk(/^\d+ spill passer$/.test(f.treff) && f.kort.every((k) => k.grunn.startsWith(`Fra ${k.alder} år · `)), `Teksten i finneren: «${f.treff}», «${f.kort[0] && f.kort[0].grunn}»`);
-  t.sjekk(JSON.stringify(f.lagret && f.lagret.finn) === JSON.stringify({ antall: "3-4", yngst: 7, lyst: "alt" }), `Finnerens valg lagres ikke i ${t.nokkel("portal")}: ${JSON.stringify(f.lagret)}`);
-  await c.js(`document.querySelector("#spill").scrollIntoView()`);
+  t.sjekk(JSON.stringify(f.lagret && f.lagret.finn) === JSON.stringify({ antall: "3-4", yngst: 7, lyst: "alt" }), `Svarene lagres ikke i ${t.nokkel("portal")}: ${JSON.stringify(f.lagret)}`);
+  await c.js(`document.querySelector("#finner").scrollIntoView({ block: "start" })`);
   await t.bilde("forside-finner");
-
   // The stepper: one year at a time, and «Voksen» after 17.
-  await c.trykk('[data-finn-yngst="1"]');
-  t.sjekk((await les()).yngst === "8", "+ i alderen går ikke ett år opp");
-  await c.trykk('[data-finn-yngst="-1"]');
+  await c.klikk('[data-finn-yngst="1"]');
+  t.sjekk((await c.js(`document.querySelector("#finner-yngst").value`)) === "8", "+ i alderen går ikke ett år opp");
   await velgAlder(17);
-  await c.trykk('[data-finn-yngst="1"]');
-  f = await les();
-  t.sjekk(f.yngst === "voksen" && (await c.js(`document.querySelector('[data-finn-yngst="1"]').getAttribute("aria-disabled")`)) === "true", `Etter 17 kommer ikke «Voksen» som siste trinn (${f.yngst})`);
+  await c.klikk('[data-finn-yngst="1"]');
+  t.sjekk((await c.js(`document.querySelector("#finner-yngst").value`)) === "voksen" && (await c.js(`document.querySelector('[data-finn-yngst="1"]').getAttribute("aria-disabled")`)) === "true", "Etter 17 kommer ikke «Voksen» som siste trinn");
   await velgAlder(7);
-
-  // «Vis flere»: six more, and the keyboard goes on to the first new one.
-  const for_ = (await les()).kort.map((k) => k.id);
-  await c.klikk("#finner-mer");
+  // Remembered after a reload: the answers and the list.
+  const for_ = (await les()).vist.join();
+  await lastPaNytt();
   f = await les();
-  t.sjekk(f.kort.length > for_.length && f.kort.slice(0, for_.length).map((k) => k.id).join() === for_.join(), `«Vis flere» viser ikke flere (${f.kort.length})`);
-  t.sjekk(await c.js(`document.activeElement && document.activeElement.closest("#finner-liste .spillkort") === document.querySelectorAll("#finner-liste .spillkort")[${for_.length}]`), "Fokus går ikke til det første nye kortet etter «Vis flere»");
+  t.sjekk(f.vist.join() === for_ && f.aktive.length === 2, `Svarene huskes ikke etter omlasting (${f.aktive.join(" | ")})`);
+  // The button under the questions goes to the list; Escape closes the questions.
+  await c.js("scrollTo(0, 0)");
+  await c.klikk("#flere");
+  await c.klikk("#finner-vis");
+  await c.sov(900);
+  t.sjekk(await c.js(`document.activeElement && document.activeElement.id === "alle-t" && document.querySelector("#alle").getBoundingClientRect().top < innerHeight / 2`), "Knappen under spørsmålene går ikke til lista");
+  await c.js(`document.querySelector('[data-finn-antall="3-4"]').focus()`);
+  await tast("Escape", 27);
+  t.sjekk(await c.js(`document.querySelector("#finner").hidden && document.activeElement && document.activeElement.id === "flere"`), "Escape lukker ikke spørsmålene, eller fokus går ikke tilbake til «Flere valg»");
+  await c.klikk("#nullstill");
 
-  // A wish narrows it; tapping it again goes back to «Litt av alt».
-  await c.trykk('[data-finn-lyst="ord"]');
+  // ---------- The 18+ door: the room, «Nei», «Ja», «Skjul» ----------
+  if (atten.length) {
+    await c.klikk('#rommene [data-rom="voksen"]');
+    t.sjekk(await c.js("document.querySelector('#dialog').open"), "18+-rommet åpner ikke spørsmålet om alder");
+    const svarLinjer = await c.js(`(() => { const k = document.querySelector('#dialog [value="ja"]'); const r = document.createRange(); r.selectNodeContents(k); return new Set(Array.from(r.getClientRects()).map((b) => Math.round(b.top))).size; })()`);
+    t.sjekk(svarLinjer === 1, `«Ja, jeg er 18 eller eldre» står på ${svarLinjer} linjer i dialogen`);
+    await t.bilde("forside-18");
+    await c.klikk('#dialog [value="nei"]');
+    f = await les();
+    t.sjekk(!(await c.js("document.querySelector('#dialog').open")) && f.atten.length === 0 && !(await c.js("document.body.classList.contains('over18')")), "«Nei» viser drikkespillene likevel");
+    await c.klikk('#rommene [data-rom="voksen"]');
+    await c.klikk('#dialog [value="ja"]');
+    await c.sov(300);
+    f = await les();
+    t.sjekk(f.atten.length === atten.length && f.vist.length === atten.length && f.trykket.join() === "voksen", `18+-rommet viser ${f.atten.length} drikkespill etter «Ja», ventet ${atten.length}`);
+    t.sjekk((await c.js(`Array.from(document.querySelectorAll("#finner-yngst option")).map((o) => o.value).slice(-2).join()`)) === "voksen,fest", "«Voksen fest (18+)» er ikke siste trinn etter 18+-bekreftelsen");
+    await t.bilde("forside-18-apen");
+    // «Vorspiel» now brings the drinking games too.
+    await c.klikk('#aktive [data-fjern="rom"]');
+    await c.klikk('[data-hurtig="vors"]');
+    t.sjekk((await les()).atten.length >= 1, "«Vorspiel» viser ikke drikkespill etter aldersdøra");
+    await c.klikk("#nullstill");
+    t.sjekk((await les()).vist.length === vanlige.length + atten.length, "Alle spill A–Å har ikke med drikkespillene etter aldersdøra");
+    await c.klikk("[data-skjul18]");
+    f = await les();
+    t.sjekk(f.atten.length === 0 && !(await c.js("document.body.classList.contains('over18')")) && (await c.js("document.activeElement !== document.body")), "«Skjul» skjuler ikke drikkespillene, eller fokus forsvinner");
+    t.sjekk(!(await c.js(`Array.from(document.querySelectorAll("#finner-yngst option")).some((o) => o.value === "fest")`)), "«Skjul» tar ikke bort «Voksen fest (18+)»");
+    // From a search: the door opens the question, and after «Ja» the games are right there.
+    if (t.norsk) {
+      await c.skrivInn("#sok", "drikkeleker");
+      await c.sov(200);
+      await c.klikk("#dor-celle [data-atten]");
+      await c.klikk('#dialog [value="ja"]');
+      await c.sov(200);
+      f = await les();
+      t.sjekk(f.atten.length === atten.length && (await c.js("!!document.activeElement.closest('#alle-liste li[data-alder18]')")), "Etter «Ja» fra et søk vises ikke drikkespillene som treff, eller fokus havner ikke på det første");
+      await c.klikk("#sok-tom");
+      await c.klikk("[data-skjul18]");
+    }
+  }
+
+  // ---------- «Overrask meg»: a game the page shows, and a player count of its own ----------
+  await c.klikk("#overrask");
+  await c.vent("document.querySelector('#automat [data-spill]').getAttribute('aria-disabled') === 'false'", 6000);
+  const valgt = await c.js("document.querySelector('#automat-svar b')?.textContent || ''");
+  t.sjekk(valgt && !atten.some((s) => s.navn === valgt), `Automaten valgte «${valgt}»`);
+  const boks = await c.js(`(() => { const r = document.querySelector("#automat").getBoundingClientRect(); return { topp: Math.round(r.top), bunn: Math.round(r.bottom), venstre: Math.round(r.left), hoyre: Math.round(r.right), vh: innerHeight, vw: innerWidth, bilde: !!document.querySelector("#automat .automat-figur:last-child img") }; })()`);
+  t.sjekk(boks.topp >= 0 && boks.bunn <= boks.vh && boks.venstre >= 0 && boks.hoyre <= boks.vw && boks.bilde, `Automaten får ikke plass på skjermen eller mangler figuren (${JSON.stringify(boks)})`);
+  await t.bilde("forside-overrask");
+  await c.klikk('#automat [data-antall="1"]');
+  await c.vent("document.querySelector('#automat [data-spill]').getAttribute('aria-disabled') === 'false'", 6000);
+  const fire = await c.js(`({ antall: document.querySelector("#automat #antall").textContent, valgt: (window.RUSJ_SPILLISTE || []).find((s) => s.navn === document.querySelector("#automat-svar b").textContent) })`);
+  t.sjekk(fire.antall === "2" && fire.valgt && fire.valgt.spillere[0] <= 2 && fire.valgt.spillere[1] >= 2, `Automaten for to spillere valgte ${fire.valgt && fire.valgt.id} (${fire.antall})`);
+  if (t.norsk) t.sjekk(/^Blant \d+ spill for 2 spillere$/.test(await c.tekst("#automat-under")), `Automaten sier «${await c.tekst("#automat-under")}»`);
+  await tast("Escape", 27);
+  await c.sov(200);
+  t.sjekk(await c.js("!document.querySelector('#automat').open && document.activeElement && document.activeElement.id === 'overrask'"), "Escape lukker ikke automaten, eller fokus går ikke tilbake til terningen");
+
+  // ---------- «Fortsett», «Kveldens gjeng», «På nett» and saved choices from the old page ----------
+  const fortsett = vanlige.find((s) => s.id !== "luringen");
+  const navn = ["Ada", "Bo", "Cia", "Dag", "Eli", "Fia", "Gro"];
+  await c.js(`localStorage.setItem(${JSON.stringify(`${t.nokkel(fortsett.id)}.v1`)}, JSON.stringify({ _aktiv: true, _tid: Date.now(), skjerm: "spill" }))`);
+  // Four players with points (Ada 5, Dag 3, Bo 2, Cia 1) and three without.
+  const kveld = { start: Date.now(), spill: [{ id: "x", resultat: navn.map((n, i) => ({ navn: n, plass: Math.min(i + 1, 4) })) }, { id: "y", resultat: [{ navn: "Dag", plass: 1 }, { navn: "Ada", plass: 2 }] }] };
+  await c.js(`localStorage.setItem(${JSON.stringify(t.nokkel("kveld"))}, ${JSON.stringify(JSON.stringify(kveld))})`);
+  // «På nett» (spill.json "nett"): the game in progress is marked as one, as the list would say it.
+  const { identifier } = await c.send("Page.addScriptToEvaluateOnNewDocument", {
+    source: `Object.defineProperty(window, "RUSJ_SPILLISTE", { configurable: true, get() { return this.__l; }, set(v) { for (const s of v) if (s.id === ${JSON.stringify(fortsett.id)}) s.nett = true; this.__l = v; } });`,
+  });
+  await lastPaNytt();
+  const rad = await c.js(`(() => { const a = document.querySelector('#fortsett:not([hidden]) #fortsett-rad li[data-id=${JSON.stringify(fortsett.id)}] a'); return a ? { merke: (a.querySelector(".flis-merke.fortsett") || {}).textContent || "", nett: !!a.querySelector(".nett-merke"), navn: a.getAttribute("aria-label") } : null; })()`);
+  t.sjekk(rad && rad.merke && rad.nett, `«Fortsett» viser ikke ${fortsett.id} med merket sitt og «På nett» (${JSON.stringify(rad)})`);
+  if (t.norsk) t.sjekk(rad && rad.merke === "Fortsett" && rad.navn.startsWith("Fortsett. ") && rad.navn.endsWith("kan spilles på nett."), `«Fortsett»/«På nett» i lenkenavnet: «${rad && rad.navn}»`);
+  await c.send("Page.removeScriptToEvaluateOnNewDocument", { identifier });
+  const tavle = () => c.js(`Array.from(document.querySelectorAll("#kveld-liste li:not([hidden])")).map((li) => li.querySelector(".kveld-navn").textContent)`);
+  t.sjekk((await tavle()).join(",") === "Ada,Dag,Bo", `Kveldens gjeng viser ikke de tre beste (${(await tavle()).join(", ")})`);
+  await c.js(`document.querySelector("#fortsett").scrollIntoView({ block: "start" })`);
+  await t.bilde("forside-fortsett");
+  await c.klikk("#kveld-alle");
+  t.sjekk((await tavle()).length === 7, "«Vis alle» viser ikke hele Kveldens gjeng");
+  if (!SPRAK && side.alle.some((s) => s.id === "luringen")) {
+    // Luringen keeps its own saved state: «in progress» for 12 hours, and only with the time it was saved.
+    const lurRad = async (tid) => {
+      await c.js(`localStorage.setItem("luringen.v1", JSON.stringify({ spill: { skjerm: "diskusjon" }${tid ? `, _tid: ${tid}` : ""} }))`);
+      await c.js(`window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }))`);
+      await c.sov(100);
+      return c.finnes('#fortsett-rad li[data-id="luringen"] .flis-merke.fortsett');
+    };
+    t.sjekk(await lurRad("Date.now() - 60 * 1000"), "Luringen vises ikke under «Fortsett» med et spill fra i sted");
+    t.sjekk(!(await lurRad("Date.now() - 13 * 3600 * 1000")), "Luringen står under «Fortsett» 13 timer etter siste runde");
+    t.sjekk(!(await lurRad(null)), "Luringen står under «Fortsett» uten tidspunkt for lagringen");
+    await c.js(`localStorage.removeItem("luringen.v1")`);
+  }
+  // The old page kept { antall, tagg, finn }: the type becomes its room, the player count an answer.
+  await c.js(`localStorage.setItem(${JSON.stringify(t.nokkel("portal"))}, JSON.stringify({ antall: 6, tagg: "kort", finn: { antall: "", yngst: "voksen", lyst: "alt" } }))`);
+  await lastPaNytt();
   f = await les();
-  t.sjekk(f.kort.length > 0 && f.kort.every((k) => k.tagger.includes("ord") || k.tagger.includes("quiz")), `«Ord og quiz» gir ${f.kort.map((k) => k.id).join(", ")}`);
-  await c.trykk('[data-finn-lyst="ord"]');
-  t.sjekk((await les()).lyst.join() === "alt", "Et nytt trykk på ønsket går ikke tilbake til «Litt av alt»");
+  t.sjekk(f.trykket.join() === "kort" && f.aktive.length === 2 && f.aktive[1].startsWith("antall:") && JSON.stringify(f.lagret) === JSON.stringify({ rom: "kort", hurtig: "", finn: { antall: "5-8", yngst: "voksen", lyst: "alt" } }), `Gamle valg flyttes ikke over (${f.aktive.join(" | ")}, ${JSON.stringify(f.lagret)})`);
+  await c.klikk("#nullstill");
 
-  // Remembered: the same answers and the same list after a reload.
-  const lista = (await les()).kort.map((k) => k.id).join();
-  await c.lastSide(t.side, forside);
-  await c.sov(300);
-  f = await les();
-  t.sjekk(f.antall.join() === "3-4" && f.yngst === "7" && f.lyst.join() === "alt" && f.kort.map((k) => k.id).join() === lista, `Finnerens valg huskes ikke etter omlasting (${f.antall}, ${f.yngst}, ${f.lyst})`);
-}
+  // ---------- «Dagens»: today's game, how today went and the streak ----------
+  const dagens = await c.js(`(() => { const a = document.querySelector("#dagens-kort"); return a && !a.hidden ? { href: a.getAttribute("href"), navn: a.querySelector(".dagens-navn").textContent, status: document.querySelector("#dagens-status").textContent, dato: document.querySelector("#dagens-dato").textContent } : null; })()`);
+  const daglige = await c.js(`(window.RUSJ_SPILLISTE || []).filter((s) => s.tagger.includes("daglig") && !s.alder18).map((s) => s.id)`);
+  if (daglige.length) {
+    t.sjekk(dagens && dagens.href.endsWith("#dagens") && dagens.status === "" && /\S/.test(dagens.dato), `«Dagens» for en ny besøkende: ${JSON.stringify(dagens)}`);
+    const iDag = await c.js(`(() => { const D = window.RusjDaglig; const nr = D.dag().nr; const l = (window.RUSJ_SPILLISTE || []).filter((s) => s.tagger.includes("daglig") && !s.alder18); return { nr, id: l[((nr % l.length) + l.length) % l.length].id }; })()`);
+    await c.js(`localStorage.setItem(${JSON.stringify(t.nokkel("daglig"))}, JSON.stringify({ ${JSON.stringify(iDag.id)}: { nr: ${iDag.nr}, vunnet: true, rekke: 3, res: "4/6" }, _: { v: 1, dager: { ${iDag.nr}: [${JSON.stringify(iDag.id)}], ${iDag.nr - 1}: [${JSON.stringify(iDag.id)}], ${iDag.nr - 2}: [${JSON.stringify(iDag.id)}] } } }))`);
+    await c.js(`window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }))`);
+    await c.sov(200);
+    const ferdig = await c.js(`({ merke: (document.querySelector("#dagens-kort .dagens-status-merke") || {}).textContent || "", status: document.querySelector("#dagens-status").textContent, navn: document.querySelector("#dagens-kort").getAttribute("aria-label") })`);
+    t.sjekk(ferdig.merke === "✓ 4/6" && /1/.test(ferdig.status) && /3/.test(ferdig.status), `«Dagens» etter en løst oppgave: ${JSON.stringify(ferdig)}`);
+    if (t.norsk) t.sjekk(ferdig.status === `✓ 1 av ${daglige.length} i dag · 🔥 3 dager på rad` && ferdig.navn.endsWith(" – ferdig i dag, 4 av 6"), `«Dagens»-teksten: «${ferdig.status}», «${ferdig.navn}»`);
+    await c.js(`document.querySelector("#dagens").scrollIntoView({ block: "center" })`);
+    await t.bilde("forside-dagens");
+    // Rubbish or blocked storage: as for a new visitor, without an error.
+    await c.js(`localStorage.setItem(${JSON.stringify(t.nokkel("daglig"))}, "{ødelagt")`);
+    await lastPaNytt();
+    t.sjekk((await c.tekst("#dagens-status")) === "", "Søppel i lagringen gir status i «Dagens»");
+    await c.js(`Object.defineProperty(window, "localStorage", { configurable: true, get() { throw new DOMException("blokkert", "SecurityError"); } }); window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }))`);
+    await c.sov(200);
+    t.sjekk((await c.tekst("#dagens-status")) === "", "Blokkert lagring gir status i «Dagens»");
+    await lastPaNytt();
+    await c.js(`localStorage.removeItem(${JSON.stringify(t.nokkel("daglig"))})`);
+  }
 
-// After «Ja, jeg er 18 eller eldre»: «Voksen fest (18+)» is the last step and brings drinking games;
-// «Skjul» takes the step away again, and with it every 18+ game.
-async function finnerAtten(t, c) {
-  const steg = () => c.js(`Array.from(document.querySelectorAll("#finner-yngst option")).map((o) => o.value)`);
-  const atten = () => c.js(`(() => { const spill = new Map((window.RUSJ_SPILLISTE || []).map((s) => [s.id, s])); return Array.from(document.querySelectorAll("#finner-liste .spillkort")).filter((k) => spill.get(k.dataset.id).alder18 && k.offsetParent).length; })()`);
-  t.sjekk((await steg()).slice(-2).join() === "voksen,fest", `«Voksen fest (18+)» er ikke siste trinn etter 18+-bekreftelsen (${(await steg()).slice(-2)})`);
-  t.sjekk((await atten()) === 0, "Finneren viser 18+ uten at «Voksen fest (18+)» er valgt");
-  await c.js(`(() => { const s = document.querySelector("#finner-yngst"); s.value = "fest"; s.dispatchEvent(new Event("change", { bubbles: true })); })()`);
-  await c.sov(150);
-  t.sjekk((await atten()) >= 1, "«Voksen fest (18+)» gir ingen drikkespill i finneren");
-  return async () => {
-    t.sjekk(!(await steg()).includes("fest") && (await c.js(`document.querySelector("#finner-yngst").value`)) === "voksen" && (await atten()) === 0, "«Skjul» tar ikke bort «Voksen fest (18+)» og drikkespillene i finneren");
+  // ---------- Reduced motion: the list comes up at once ----------
+  await c.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
+  await lastPaNytt();
+  await c.js("scrollTo(0, 0)");
+  await c.js(`document.querySelector('#rommene [data-rom="familie"]').click()`);
+  await c.sov(60);
+  t.sjekk(await c.js(`(() => { const a = document.querySelector("#alle").getBoundingClientRect(); return a.top >= -2 && a.top < innerHeight / 2; })()`), "Med redusert bevegelse kommer ikke lista opp med en gang");
+  await c.send("Emulation.setEmulatedMedia", { features: [] });
+  await c.js("localStorage.clear()");
+  await lastPaNytt();
+
+  // The whole page in one image on a phone (capped by the helper); one screen of the list when wide.
+  if (BREDDE <= 430) await t.bilde("forside-hel", true);
+  else {
+    await c.js(`scrollTo(0, document.querySelector("#alle").getBoundingClientRect().top + scrollY - 70)`);
+    await t.bilde("forside-liste");
+  }
+
+  // ---------- «Send rusj til gjengen» ----------
+  const qrArk = async () => {
+    await c.js(`document.querySelector("#send-rusj").scrollIntoView({ block: "center" })`);
+    await c.klikk("#send-rusj");
+    await c.vent("document.querySelector('#dialog').open && document.querySelector('#dialog .qr-ark')", 5000);
+    return c.js(`(() => {
+      const d = document.querySelector("#dialog");
+      const svg = d.querySelector(".qr-stor svg");
+      const b = d.getBoundingClientRect();
+      const q = svg ? svg.getBoundingClientRect() : { width: 0 };
+      return { svg: !!svg && !!svg.querySelector("path"), qrBredde: Math.round(q.width), tekst: d.innerText, tips: !!d.querySelector(".innebygd-tips"), del: !!d.querySelector("#del-lenken"), fokus: document.activeElement && document.activeElement.id, topp: Math.round(b.top), bunn: Math.round(b.bottom), vh: innerHeight };
+    })()`);
   };
+  const qr = await qrArk();
+  t.sjekk(qr.svg && qr.qrBredde >= Math.min(200, qr.vh * 0.4), `QR-koden i «Send rusj til gjengen» mangler eller er for liten (${qr.qrBredde} px)`);
+  t.sjekk(qr.del && !qr.tips && qr.topp >= 0 && qr.bunn <= qr.vh && qr.fokus === "del-lenken", `«Send rusj til gjengen»: ${JSON.stringify({ del: qr.del, tips: qr.tips, topp: qr.topp, bunn: qr.bunn, fokus: qr.fokus })}`);
+  if (t.norsk) t.sjekk(/Skann for å bli med/.test(qr.tekst), `«Send rusj til gjengen» mangler teksten: ${qr.tekst}`);
+  await t.bilde("forside-send-rusj");
+  await c.js(`window.__delt = null; navigator.share = undefined; Object.defineProperty(navigator, "clipboard", { value: { writeText: (x) => { window.__delt = x; return Promise.resolve(); } }, configurable: true })`);
+  await c.klikk("#del-lenken");
+  await c.sov(150);
+  t.sjekk((await c.js("window.__delt")) === `https://rusj.no${t.forside}`, "«Del lenken» kopierer ikke utgavens forside uten delingsmeny");
+  await c.klikk('#dialog [value="ok"]');
+  await c.sov(150);
+  t.sjekk(await c.js("!document.querySelector('#dialog').open && document.activeElement && document.activeElement.id === 'send-rusj'"), "«Lukk» lukker ikke arket, eller fokus går ikke tilbake til «Send rusj til gjengen»");
+  if (t.norsk) {
+    const vanligUa = await c.js("navigator.userAgent");
+    await c.send("Emulation.setUserAgentOverride", { userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 356.0.0.21.107" });
+    await lastPaNytt();
+    const qrApp = await qrArk();
+    t.sjekk(qrApp.tips && /Åpne i nettleseren for å installere og lagre/.test(qrApp.tekst), "Tipset for app-nettlesere mangler inne i Instagram");
+    t.sjekk(/Instagram/.test(await c.tekst("#installer-tekst")), "«Ha rusj på hjemskjermen» viser installeringsstegene inne i Instagram");
+    await tast("Escape", 27);
+    await c.sov(150);
+    t.sjekk(await c.js("!document.querySelector('#dialog').open && document.activeElement && document.activeElement.id === 'send-rusj'"), "Escape lukker ikke «Send rusj til gjengen», eller fokus går ikke tilbake");
+    await c.send("Emulation.setUserAgentOverride", { userAgent: vanligUa });
+    await lastPaNytt();
+  }
+  // The install tip: «×» hides it for good, and the focus goes to the heading.
+  if (await c.js(`!document.querySelector("#installtips").hidden`)) {
+    await c.klikk("#installtips-lukk");
+    t.sjekk(await c.js(`document.querySelector("#installtips").hidden && document.activeElement.id === "spill"`), "Installeringstipset lukkes ikke, eller fokus går ikke til overskriften");
+    await lastPaNytt();
+    t.sjekk(await c.js(`document.querySelector("#installtips").hidden`), "Installeringstipset kommer tilbake etter at det er lukket");
+  }
 }
 
 for (const id of valgt) {
   const mappe = join(BILDER, id);
   mkdirSync(mappe, { recursive: true });
-  const c0 = await startChrome({ bredde: BREDDE, hoyde: HOYDE });
+  // A desktop is no phone: no touch emulation, and pixel ratio 1 (at 2 headless Chrome never
+  // finishes a 1280 px wide screenshot of the front page).
+  const c0 = await startChrome({ bredde: BREDDE, hoyde: HOYDE, ...(BREDDE >= 1000 ? { skala: 1, mobil: false } : {}) });
   // With --a11y the same helpers, with clicks and gestures observed.
   const a11y = lagA11y ? await lagA11y(c0, { id, axMappe: join(A11Y_MAPPE, "ax", id) }) : null;
   const c = a11y ? a11y.chrome : c0;
@@ -241,8 +608,8 @@ for (const id of valgt) {
       if (bred > 0) feil.push(`Sidelengs scrolling på «${navn}»: ${bred}px for bred (siden blir zoomet ut på mobil)`);
       const utenfor = await c.js(`(() => {
         const ut = [];
-        for (const el of document.querySelectorAll("#skjerm *, .ark *, .portal-hoved *, .helt-slagord")) {
-          if (el.closest("svg, .parade, canvas, [data-utenfor-ok]")) continue;
+        for (const el of document.querySelectorAll("#skjerm *, .ark *, .forside-hoved *")) {
+          if (el.closest("svg, canvas, [data-utenfor-ok]")) continue;
           let rulles = false; // inside a row that is meant to scroll sideways
           for (let f = el.parentElement; f && f !== document.body; f = f.parentElement) {
             if (/(auto|scroll)/.test(getComputedStyle(f).overflowX)) { rulles = true; break; }
@@ -311,60 +678,26 @@ for (const id of valgt) {
       const navn = valg.navn && PROBE ? valg.navn.map((n, i) => `<x-q>${String.fromCharCode(65 + i)}</x-q>`) : valg.navn;
       if (navn) await c.js(`localStorage.setItem("rusj.felles", ${JSON.stringify(JSON.stringify({ lyd: false, navn }))})`);
       else await c.js(`localStorage.setItem("rusj.felles", JSON.stringify({ lyd: false, navn: [] }))`);
-      await c.lastSide(t.side, id === "forside" ? "document.querySelector('.spillgrid')" : "document.querySelector('#skjerm h1')");
+      await c.lastSide(t.side, id === "forside" ? "document.querySelector('#alle-liste')" : "document.querySelector('#skjerm h1')");
     },
   };
 
   try {
-    if (id === "forside" && SPRAK) {
-      // Another edition's front page: language-neutral checks (the Norwegian walk is below).
-      await t.start();
-      const spill = [...UTGAVE.keys()];
-      const forside = await c.js(`({
-        kort: Array.from(document.querySelectorAll("#spillgrid .spillkort a")).map((a) => a.getAttribute("href")),
-        hreflang: Array.from(document.querySelectorAll('link[rel="alternate"]')).map((l) => l.hreflang + " " + new URL(l.href).pathname),
-        bryter: Array.from(document.querySelectorAll(".bunn .sprakvalg a, .bunn .sprakvalg [aria-current]")).map((a) => a.getAttribute("href") || "*"),
-        bunn: Array.from(document.querySelectorAll(".bunn-lenker a")).map((a) => a.getAttribute("href")),
-        h1: document.querySelector("h1") && document.querySelector("h1").textContent.trim(),
-        manifest: document.querySelector('link[rel="manifest"]').getAttribute("href"),
-      })`);
-      t.sjekk(forside.kort.length === spill.length && forside.kort.every((h) => h.startsWith(FORSIDE)), `Forsiden på ${SPRAK} viser ${forside.kort.length} spill (${forside.kort.join(", ")}), ventet ${spill.length} under ${FORSIDE}`);
-      t.sjekk(["nb /", `${SPRAK} ${FORSIDE}`, "x-default /"].every((x) => forside.hreflang.includes(x)), `hreflang på forsiden: ${forside.hreflang.join(", ")}`);
-      t.sjekk(forside.bryter.length === 3 && forside.bryter.includes("/") && forside.bryter.includes("*"), `Språkvalget i bunnen: ${forside.bryter.join(", ")}`);
-      t.sjekk(forside.bunn.every((h) => h.startsWith(FORSIDE)), `Bunnlenkene peker ut av utgaven: ${forside.bunn.join(", ")}`);
-      t.sjekk(!!forside.h1 && forside.manifest === `${FORSIDE}manifest.webmanifest`, `Forsiden mangler h1 eller eget manifest (${forside.manifest})`);
-      await t.bilde("forside");
-      await t.bilde("forside-hel", true);
-      // Search: a game's own name finds it.
-      const navn = await c.tekst("#spillgrid .spillkort .kort-navn");
-      await c.skrivInn("#sok", navn);
-      await c.sov(300);
-      t.sjekk((await c.antall("#spillgrid .spillkort:not([hidden])")) >= 1 && /\S/.test(await c.tekst("#treff")), `Søket etter «${navn}» fant ingenting`);
-      await t.bilde("forside-sok");
-      await c.klikk("#sok-tom");
-      await finnerTur(t, c);
-      await c.klikk("#overrask");
-      await c.vent("document.querySelector('#automat[open] [data-spill]:not([aria-disabled=\"true\"])')", 6000);
-      await t.bilde("forside-overrask");
-      await c.klikk("#automat [data-lukk]");
-      for (const side of await c.js(`Array.from(document.querySelectorAll(".bunn-lenker a")).map((a) => a.getAttribute("href"))`)) {
-        await c.lastSide(`${tjener.url}${side}`, "document.querySelector('h1')");
-        t.sjekk(await c.js("location.pathname.startsWith('/' + document.documentElement.lang + '/')"), `${side}: ikke i utgaven`);
-        await t.bilde("side-" + side.split("/").filter(Boolean).pop(), true);
-      }
-      // The game page links back to this edition's front page.
-      if (spill.length) {
-        await c.lastSide(`${tjener.url}${UTGAVE.get(spill[0])}`, "document.querySelector('#skjerm h1')");
-        t.sjekk((await c.js(`document.querySelector("#tilportal").getAttribute("href")`)) === FORSIDE, "Spillets rusj-knapp går ikke til utgavens forside");
-      }
-    } else if (id === "forside") {
-      // A headless page has no focus, so «focus» never fires; the search row moves itself on focus.
-      await c.send("Emulation.setFocusEmulationEnabled", { enabled: true });
-      const tast = async (key, vk) => {
-        await c.send("Input.dispatchKeyEvent", { type: "keyDown", key, code: key, windowsVirtualKeyCode: vk });
-        await c.send("Input.dispatchKeyEvent", { type: "keyUp", key, code: key, windowsVirtualKeyCode: vk });
-      };
-      // Like c.vent, but an answer instead of an exception (one slow thing should not stop the rest).
+    if (id === "forside") {
+      await forsideTur(t, c);
+      if (SPRAK) {
+        // The pages about rusj in the edition, and the way back from a game.
+        for (const side of await c.js(`Array.from(document.querySelectorAll(".bunn-lenker a")).map((a) => a.getAttribute("href"))`)) {
+          await c.lastSide(`${tjener.url}${side}`, "document.querySelector('h1')");
+          t.sjekk(await c.js("location.pathname.startsWith('/' + document.documentElement.lang + '/')"), `${side}: ikke i utgaven`);
+          await t.bilde("side-" + side.split("/").filter(Boolean).pop(), true);
+        }
+        const spill = [...UTGAVE.keys()];
+        if (spill.length) {
+          await c.lastSide(`${tjener.url}${UTGAVE.get(spill[0])}`, "document.querySelector('#skjerm h1')");
+          t.sjekk((await c.js(`document.querySelector("#tilportal").getAttribute("href")`)) === FORSIDE, "Spillets rusj-knapp går ikke til utgavens forside");
+        }
+      } else {
       const venter = async (uttrykk, ms = 3000) => {
         try {
           await c.vent(uttrykk, ms);
@@ -373,587 +706,12 @@ for (const id of valgt) {
           return false;
         }
       };
-      await t.start();
-      await c.sov(2600); // let the intro animation finish
-      await t.bilde("forside");
-      const kort = await c.antall("#spillgrid .spillkort");
-      const liste = await c.js("(window.RUSJ_SPILLISTE || []).map((s) => s.id)");
-      const ventet = bygget.length + (liste.includes("luringen") ? 1 : 0);
-
-      // The words on top: «spill» and «selskapsleker», never «festspill» (that is an arts festival).
-      const ord = await c.js(`({ tittel: document.title, slagord: document.querySelector(".helt-slagord").innerText.replace(/\\s+/g, " ").trim(), beskrivelse: document.querySelector('meta[name="description"]').content })`);
-      t.sjekk(ord.slagord === "Spill for hele gjengen. Rett i nettleseren.", `Slagordet på forsiden: «${ord.slagord}»`);
-      t.sjekk(/selskapsleker/.test(ord.tittel) && /selskapsleker/.test(ord.beskrivelse) && !/festspill/i.test(ord.tittel + ord.slagord + ord.beskrivelse), `Tittel eller beskrivelse på forsiden: «${ord.tittel}» / «${ord.beskrivelse}»`);
-      // Structured data is an inline data block: the browser must be able to read it (and the
-      // content rules must let it be – a violation ends up among the console errors below).
-      const ld = await c.js(`(() => { try { const g = JSON.parse(document.querySelector('script[type="application/ld+json"]').textContent)["@graph"]; return { typer: g.map((n) => n["@type"]), spill: g.find((n) => n["@type"] === "ItemList").itemListElement.length }; } catch (e) { return { feil: e.message }; } })()`);
-      t.sjekk(!ld.feil && ld.typer.includes("WebSite") && ld.spill === ventet, `Strukturerte data på forsiden: ${ld.feil || `${(ld.typer || []).join(", ")}, ${ld.spill} spill (ventet ${ventet})`}`);
-      // Drinking games are in the list but hidden until someone confirms being over 18.
-      t.sjekk((await c.antall("#spillgrid .spillkort[data-alder18]:not([hidden])")) === 0 || (await c.js("document.body.classList.contains('over18')")), "Drikkespill vises før 18-årsbekreftelsen");
-      t.sjekk(kort === ventet && liste.length === ventet, `Forsiden viser ${kort} spillkort, ventet ${ventet}`);
-      for (const id of bygget) t.sjekk(liste.includes(id), `Forsiden mangler kortet for ${id}`);
-      const synligeKort = (sel = "#spillgrid .spillkort") => c.js(`Array.from(document.querySelectorAll(${JSON.stringify(sel)})).filter((k) => k.offsetParent).length`);
-      const alle = await synligeKort();
-
-      // First visit: the install tip is one compact row on the first screen, and on an ordinary
-      // phone a way to a game fits under it: the row «Mest spilt nå» when there is one, else the
-      // three questions of «Hva skal vi spille?».
-      const forste = await c.js(`(() => { const k = document.querySelector(".topp5 .spillkort a") || document.querySelector("#finner .finner-sporsmal:last-of-type"); const tips = document.querySelector("#installtips"); const b = tips.getBoundingClientRect(); return { hva: document.querySelector(".topp5") ? "Raden «Mest spilt nå»" : "Spørsmålene i «Hva skal vi spille?»", kortBunn: k ? Math.round(k.getBoundingClientRect().bottom) : 0, tipsSynlig: !tips.hidden, tipsHoyde: Math.round(b.height), tipsBunn: Math.round(b.bottom), vh: innerHeight }; })()`);
-      t.sjekk(forste.tipsSynlig && forste.tipsHoyde <= 48 && forste.tipsBunn <= forste.vh, `Installeringstipset er ikke én kompakt rad på første skjerm (${forste.tipsHoyde} px høyt, slutter på ${forste.tipsBunn} av ${forste.vh} px)`);
-      if (BREDDE <= 430 && HOYDE >= 800) t.sjekk(forste.kortBunn > 0 && forste.kortBunn <= forste.vh, `${forste.hva} får ikke plass på første skjerm (slutter på ${forste.kortBunn} av ${forste.vh} px)`);
-      const fakta = (await c.tekst(".helt-fakta")).replace(/\s+/g, " ");
-      t.sjekk(/Ingen konto/.test(fakta) && !/apper/.test(fakta), `Faktaene under logoen: «${fakta}»`);
-
-      // «Dagens utfordringer», new visitor: the shelf stands where it always has (not first), with
-      // no badges and no streak. The old «I dag» strip and its slim row are gone.
-      const daglige = await c.js(`(window.RUSJ_SPILLISTE || []).filter((s) => s.tagger.includes("daglig") && !s.alder18).map((s) => ({ id: s.id, navn: s.navn }))`);
-      const dagligHylle = () =>
-        c.js(`(() => {
-          const hyller = Array.from(document.querySelectorAll("#hyller > .hylle")).map((s) => s.id);
-          const gammel = !!document.querySelector("#idag, #idag-ny, .idag, .idag-ny");
-          const h = document.querySelector("#hylle-daglig");
-          if (!h) return { finnes: false, hyller, gammel, kort: [] };
-          const rad = h.querySelector(".hylle-rad");
-          const kort = Array.from(rad.querySelectorAll(".spillkort")).map((k) => {
-            const a = k.querySelector("a");
-            const m = k.querySelector(".kort-dagens");
-            const f = k.querySelector(".kort-figur").getBoundingClientRect();
-            const b = a.getBoundingClientRect();
-            const mb = m ? m.getBoundingClientRect() : f;
-            return { id: k.dataset.id, navn: a.getAttribute("aria-label") || "", merke: m ? m.textContent : null, ferdig: !!(m && m.classList.contains("ferdig")), skjult: !m || m.getAttribute("aria-hidden") === "true", inni: mb.left >= f.left - 0.5 && mb.right <= f.right + 0.5 && mb.top >= f.top - 0.5 && mb.bottom <= f.bottom + 0.5, storrelse: Math.round(b.width) + "×" + Math.round(b.height) };
-          });
-          const flamme = h.querySelector(".hylle-rekke");
-          const topp = h.querySelector(".hylle-topp").getBoundingClientRect();
-          return { finnes: true, hyller, gammel, kort, flamme: flamme ? { navn: flamme.getAttribute("aria-label"), tekst: flamme.textContent.trim() } : null, rulles: getComputedStyle(rad).overflowX, ute: topp.right > innerWidth + 1 || topp.left < -1 || document.documentElement.scrollWidth > innerWidth };
-        })()`);
-      const STATUS = / – (ferdig i dag|i gang)/;
-      let nyStorrelse = "";
-      if (daglige.length >= 2) {
-        const h = await dagligHylle();
-        nyStorrelse = h.kort.map((k) => k.storrelse).join(" ");
-        t.sjekk(h.finnes && h.hyller.indexOf("hylle-daglig") > 0, `Ny besøkende: hylla «Dagens utfordringer» skal stå der den alltid har stått, ikke først (${h.hyller.join(", ")})`);
-        t.sjekk(h.kort.length === daglige.length && h.kort.every((k) => k.merke === null && !STATUS.test(k.navn)) && !h.flamme, "Ny besøkende: dagens utfordringer har merker eller rekke");
-        t.sjekk(!h.gammel, "«I dag»-stripa eller den slanke raden finnes fortsatt");
-      }
-
-      // The numbers agree: the hero counts every game; the line over the list says how many show now
-      // and how many wait behind the 18+ question. («Overrask meg» is checked against it further down.)
-      const tall = () => c.js(`({ helt: Number(document.querySelector("#helt-antall").textContent), alle: (window.RUSJ_SPILLISTE || []).length, linje: document.querySelector("#treff").textContent })`);
-      const lesLinje = (linje) => /^(\d+) spill(?: \+ (\d+) for voksne \(18\+\))?/.exec(linje) || [];
-      const for18 = await tall();
-      const synligeSpill = Number(lesLinje(for18.linje)[1]);
-      const voksneSpill = Number(lesLinje(for18.linje)[2] || 0);
-      t.sjekk(for18.helt === for18.alle && synligeSpill + voksneSpill === for18.helt && synligeSpill === alle, `Antall spill stemmer ikke: logoen sier ${for18.helt}, lista sier «${for18.linje}» og viser ${alle}`);
-      t.sjekk(voksneSpill === (await c.antall("#spillgrid .spillkort[data-alder18]")), `«${for18.linje}» stemmer ikke med antall drikkespill`);
-
-      // The search field: the placeholder fits (also on the smallest phones).
-      const plassholder = () => c.js(`(() => { const f = document.querySelector("#sok"); const s = getComputedStyle(f); const x = document.createElement("canvas").getContext("2d"); x.font = s.fontWeight + " " + s.fontSize + " " + s.fontFamily; const px = (n) => parseFloat(s[n]) || 0; return { tekst: f.placeholder, bredde: Math.ceil(x.measureText(f.placeholder).width), rom: Math.floor(f.getBoundingClientRect().width - px("paddingLeft") - px("paddingRight") - px("borderLeftWidth") - px("borderRightWidth")) }; })()`);
-      let ph = await plassholder();
-      t.sjekk(ph.tekst === "Søk etter spill" && ph.bredde <= ph.rom, `Plassholderen «${ph.tekst}» får ikke plass i søkefeltet (${ph.bredde} px tekst, ${ph.rom} px rom)`);
-
-      // The shelves: names on one line across a shelf, and icons that show on the dark background.
-      const hyller = await c.js(`(() => {
-        const skjeve = [];
-        for (const h of document.querySelectorAll(".hylle")) {
-          const topper = new Set(Array.from(h.querySelectorAll(".spillkort a")).map((a) => Math.round(a.querySelector(".kort-navn").getBoundingClientRect().top - a.getBoundingClientRect().top)));
-          if (topper.size > 1) skjeve.push(h.getAttribute("aria-label"));
-        }
-        const ikoner = Array.from(document.querySelectorAll(".hylle h3 > span[aria-hidden]")).map((el) => {
-          const l = document.createElement("canvas");
-          l.width = l.height = 48;
-          const x = l.getContext("2d");
-          x.font = "32px " + getComputedStyle(document.body).fontFamily;
-          x.textBaseline = "top";
-          x.fillStyle = "#000";
-          x.fillText(el.textContent, 4, 6);
-          const d = x.getImageData(0, 0, 48, 48).data;
-          let n = 0, morke = 0;
-          for (let i = 0; i < d.length; i += 4) {
-            if (d[i + 3] < 128) continue;
-            n++;
-            if (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2] < 60) morke++;
-          }
-          return { ikon: el.textContent, mork: n ? morke / n : 1 };
-        });
-        return { skjeve, ikoner };
-      })()`);
-      t.sjekk(hyller.skjeve.length === 0, `Spillnavnene står ikke på linje på hylla: ${hyller.skjeve.join(", ")}`);
-      t.sjekk(new Set(hyller.ikoner.map((i) => i.ikon)).size === hyller.ikoner.length, "To hyller har samme ikon");
-      const morkeIkoner = hyller.ikoner.filter((i) => i.mork > 0.5).map((i) => i.ikon);
-      t.sjekk(morkeIkoner.length === 0, `Hylleikon som nesten forsvinner på mørk bakgrunn: ${morkeIkoner.join(" ")}`);
-
-      // The facts on the cards: players, phones and time, from the game list (never typed in by
-      // hand), the badges «Dagens» and «Mot mobilen», and the same as one sentence in the link's name.
-      const MOBILER = { en: { tekst: "1 mobil", kort: "1", lest: "én mobil" }, hver: { tekst: "Hver sin mobil", kort: "flere", lest: "hver sin mobil" }, begge: { tekst: "1 eller flere mobiler", kort: "1+", lest: "én eller flere mobiler" } };
-      const omrade = ([fra, til]) => (fra === til ? String(fra) : `${fra}–${til}`);
-      const kortene = await c.js(`(window.RUSJ_SPILLISTE || []).map((s) => {
-        const k = document.querySelector('#spillgrid .spillkort[data-id="' + s.id + '"]');
-        const t = (sel) => { const e = k.querySelector(sel); return e ? e.textContent.replace(/\\s+/g, " ").trim() : null; };
-        const synlige = Array.from(k.querySelectorAll(".kort-fakta > span")).filter((x) => x.offsetParent);
-        const ramme = k.getBoundingClientRect();
-        return {
-          id: s.id, spillere: s.spillere, minutter: s.minutter, mobiler: s.mobiler, daglig: s.tagger.includes("daglig"), mot: !!s.motMobilen, alder18: !!s.alder18,
-          vist: { spillere: t(".kort-spillere"), mobiler: t(".kort-mobiler .fakta-lang"), tid: t(".kort-tid"), merker: Array.from(k.querySelectorAll(".kort-merke")).map((m) => m.textContent).join(" + ") },
-          navn: k.querySelector("a").getAttribute("aria-label"),
-          synlige: synlige.length,
-          linjer: new Set(synlige.map((x) => Math.round(x.getBoundingClientRect().top))).size,
-          ute: synlige.some((x) => x.getBoundingClientRect().right > ramme.right - 4) || Array.from(k.querySelectorAll(".kort-merke")).some((x) => x.offsetParent && x.getBoundingClientRect().right > ramme.right - 4),
-          ikoner: synlige.every((x) => { const i = x.querySelector("svg"); return i && i.getBoundingClientRect().width >= 10; }),
-        };
-      })`);
-      const lest = (k) => {
-        const [a2, b2] = k.spillere;
-        const [fra, til] = k.minutter;
-        const deler = [a2 === b2 ? (a2 === 1 ? "én spiller" : `${a2} spillere`) : `${a2} til ${b2} spillere`, MOBILER[k.mobiler].lest, fra === til ? `${fra} minutter` : `${fra} til ${til} minutter`];
-        if (k.daglig) deler.push("ny oppgave hver dag");
-        if (k.mot) deler.push("kan spilles mot mobilen");
-        if (k.alder18) deler.push("for voksne over 18 år");
-        const setning = deler.join(", ") + ".";
-        return setning.charAt(0).toUpperCase() + setning.slice(1);
-      };
-      for (const k of kortene) {
-        const ventetVist = { spillere: omrade(k.spillere), mobiler: MOBILER[k.mobiler].tekst, tid: `${omrade(k.minutter)} min`, merker: [k.daglig && "Dagens", k.mot && "Mot mobilen"].filter(Boolean).join(" + ") };
-        t.sjekk(JSON.stringify(k.vist) === JSON.stringify(ventetVist), `Kortet for ${k.id} viser ${JSON.stringify(k.vist)}, ventet ${JSON.stringify(ventetVist)}`);
-        t.sjekk(k.navn.endsWith(" " + lest(k)), `Kortet for ${k.id} leses som «${k.navn}», ventet at det slutter med «${lest(k)}»`);
-        // In the list (drinking games are hidden for now): three facts on one line, inside the card.
-        if (!k.alder18) t.sjekk(k.synlige === 3 && k.linjer === 1 && !k.ute && k.ikoner, `Kortet for ${k.id}: ${k.synlige} fakta på ${k.linjer} linje(r)${k.ute ? ", noe stikker ut av kortet" : ""}${k.ikoner ? "" : ", et ikon mangler"}`);
-      }
-      if (ventet > 20) t.sjekk(kortene.some((k) => k.mot) && kortene.some((k) => !k.mot && k.spillere[0] === 1 && k.spillere[1] > 1), "«Mot mobilen» ser ut til å være gjettet ut fra antall spillere (ingen spill for 1–flere mangler merket)");
-      // On the shelves: two chips – players and phones in short – on one line, and no badges.
-      const flisene = await c.js(`Array.from(document.querySelectorAll(".hylle-rad .spillkort")).map((k) => {
-        const f = Array.from(k.querySelectorAll(".kort-fakta > span")).filter((x) => x.offsetParent);
-        const ramme = k.getBoundingClientRect();
-        return { id: k.dataset.id, tekst: f.map((x) => x.innerText.replace(/\\s+/g, " ").trim()).join(" | "), linjer: new Set(f.map((x) => Math.round(x.getBoundingClientRect().top))).size, ute: f.some((x) => x.getBoundingClientRect().right > ramme.right - 4), merker: Array.from(k.querySelectorAll(".kort-merke")).filter((x) => x.offsetParent).length };
-      })`);
-      const skjeveFliser = flisene.filter((fl) => { const k = kortene.find((x) => x.id === fl.id); return fl.tekst !== `${omrade(k.spillere)} | ${MOBILER[k.mobiler].kort}` || fl.linjer !== 1 || fl.ute || fl.merker; });
-      t.sjekk(flisene.length > 0 && skjeveFliser.length === 0, `Hyllekort med feil fakta eller fakta som ikke får plass: ${skjeveFliser.slice(0, 4).map((fl) => `${fl.id} «${fl.tekst}» (${fl.linjer} linjer)`).join(", ")}`);
-
-      // The mascot parade: filled by portal.js, never a drinking game, doubled for the loop.
-      const parade = await c.js(`(() => { const f = Array.from(document.querySelectorAll("#parade .parade-figur")); const ids = f.map((a) => a.getAttribute("href").split("/")[1]); const atten = (window.RUSJ_SPILLISTE || []).filter((s) => s.alder18).map((s) => s.id); return { n: f.length, skjult: f.filter((a) => a.getAttribute("aria-hidden") === "true").length, atten: ids.filter((i) => atten.includes(i)).length, fokus: f.filter((a) => a.tabIndex >= 0).length }; })()`);
-      t.sjekk(parade.n > 0 && parade.skjult === parade.n / 2, `Paraden er tom eller ikke doblet (${parade.n} figurer, ${parade.skjult} skjult)`);
-      t.sjekk(parade.atten === 0, "Paraden viser drikkespill");
-      t.sjekk(parade.fokus === 0, "Paradefigurene kan få tastaturfokus");
-
-      // Keyboard: the first stops come in reading order, and each one shows where the focus is.
-      // «Mest spilt nå» (when there is a list), the tip, then «Hva skal vi spille?»: the player chips,
-      // the age stepper (−, the list, +), the wishes, the cards and «Vis flere»; then the search row.
-      const finnerKort = await c.js(`Array.from(document.querySelectorAll("#finner-liste .spillkort a")).filter((a) => a.offsetParent).length`);
-      const ventetStopp = [
-        "SUMMARY", // the language picker at the top
-        "finn",
-        "#overrask",
-        ...Array((await c.antall(".topp5 .spillkort a")) || 0).fill("A"),
-        "#installtips-vis",
-        "#installtips-lukk",
-        ...Array(5).fill("brikke"),
-        "finner-steg-knapp",
-        "#finner-yngst",
-        "finner-steg-knapp",
-        ...Array(6).fill("brikke"),
-        ...Array(finnerKort).fill("A"),
-        ...((await c.js("!document.querySelector('#finner-mer').hidden")) ? ["#finner-mer"] : []),
-        "#sok",
-        "#filter-knapp",
-        "hylle-alle",
-      ];
-      const stopp = [];
-      for (let i = 0; i < ventetStopp.length; i++) {
-        await tast("Tab", 9);
-        await c.sov(80);
-        stopp.push(
-          await c.js(`(() => { const e = document.activeElement; const s = getComputedStyle(e); const ring = (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2) || (e.id === "sok" && s.borderTopColor === "rgb(255, 210, 63)"); return (e.id ? "#" + e.id : e.matches('a[href="#spill"]') ? "finn" : String(e.className).split(" ")[0] || e.tagName) + (ring ? "" : " (uten synlig fokus)"); })()`),
-        );
-      }
-      t.sjekk(finnerKort === 6 && stopp.join(" → ") === ventetStopp.join(" → "), `Tab-rekkefølgen på forsiden: ${stopp.join(" → ")}`);
-      // Backwards from the last game: what gets focus is scrolled to the top of the screen, and must
-      // not end up under the search row that sticks there.
-      await c.js(`(() => { const a = Array.from(document.querySelectorAll("#spillgrid .spillkort a")).filter((x) => x.offsetParent); a[a.length - 1].focus(); })()`);
-      await c.sov(200);
-      const dekket = [];
-      for (let i = 0; i < 8; i++) {
-        await c.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9, modifiers: 8 });
-        await c.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9, modifiers: 8 });
-        await c.sov(80);
-        const under = await c.js(`(() => { const e = document.activeElement; const l = document.querySelector("#filter").getBoundingClientRect(); const b = e.getBoundingClientRect(); return !e.closest("#filter") && l.top <= 0 && b.top < l.bottom - 2 ? (e.getAttribute("href") || e.className) + " (" + Math.round(l.bottom - b.top) + " px)" : ""; })()`);
-        if (under) dekket.push(under);
-      }
-      t.sjekk(dekket.length === 0, `Fokus havner under søkelinja når man tabber bakover: ${dekket.join(", ")}`);
-      await c.js("document.activeElement.blur(); scrollTo(0, 0)");
-      await c.sov(400);
-
-      // The search row sticks to the top. It must never change height there, and the page must not
-      // jump as it passes that point (that once made slow scrolling get stuck). Once the page has
-      // scrolled in under it, it gets its solid background.
-      const glid = await c.js(`(async () => {
-        const linje = document.querySelector("#filter");
-        scrollTo(0, 0);
-        const feste = Math.round(linje.getBoundingClientRect().top + scrollY);
-        const hoyder = new Set(), sider = new Set();
-        let hopp = 0;
-        for (let y = feste - 30; y <= feste + 60; y += 2) {
-          scrollTo(0, y);
-          await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-          hoyder.add(linje.offsetHeight);
-          sider.add(document.documentElement.scrollHeight);
-          if (Math.abs(scrollY - y) > 1) hopp++;
-        }
-        await new Promise((r) => setTimeout(r, 400));
-        const fast = linje.classList.contains("fast");
-        scrollTo(0, 0);
-        return { hoyder: [...hoyder], sider: sider.size, hopp, fast };
-      })()`);
-      t.sjekk(glid.hoyder.length === 1 && glid.sider === 1 && glid.hopp === 0, `Søkelinja endrer høyde eller siden hopper der den fester seg (høyder: ${glid.hoyder.join("/")} px, ${glid.sider} sidehøyder, ${glid.hopp} hopp)`);
-      t.sjekk(glid.fast, "Søkelinja får ikke bakgrunn når siden har rullet inn under den");
-      const linjeHoyde = glid.hoyder[0];
-      await c.sov(300);
-
-      // «Hva skal vi spille?»: the example in three taps, the stepper, «Vis flere», a wish, remembered.
-      await finnerTur(t, c);
-      await c.js("document.activeElement.blur(); scrollTo(0, 0)");
-      await c.sov(300);
-
-      // Search: focus moves the search row to the top (room for the keyboard), typing narrows the
-      // list, and the matches come right under the row.
-      await c.js("document.querySelector('#sok').focus()");
-      t.sjekk(await venter("document.querySelector('#filter').getBoundingClientRect().top <= 1"), "Søkefeltet flyttes ikke til toppen når det får fokus");
-      await c.skrivInn("#sok", "Quiz");
-      await c.sov(700);
-      const treff = await synligeKort();
-      t.sjekk(treff > 0 && treff < alle, `Søket «Quiz» viser ${treff} av ${alle} spill`);
-      t.sjekk(await c.js("document.querySelector('#hyller').hidden"), "Hyllene vises fortsatt under søket");
-      const sokt = await c.js(`(() => { const l = document.querySelector("#filter").getBoundingClientRect(); const k = Array.from(document.querySelectorAll("#spillgrid .spillkort")).find((x) => x.offsetParent).getBoundingClientRect(); return { topp: Math.round(l.top), hoyde: Math.round(l.height), kort: Math.round(k.top), vh: innerHeight }; })()`);
-      t.sjekk(sokt.topp <= 1 && sokt.kort < sokt.vh / 2, `Treffene kommer ikke øverst, rett under søkefeltet (søkefeltet på ${sokt.topp} px, første treff på ${sokt.kort} av ${sokt.vh} px)`);
-      t.sjekk(sokt.hoyde === linjeHoyde, `Søkelinja endrer høyde under søk (${linjeHoyde} → ${sokt.hoyde} px)`);
-      await t.bilde("forside-sok");
-      await c.klikk("#sok-tom");
-      t.sjekk((await synligeKort()) === alle, "«Tøm søket» viser ikke alle spillene igjen");
-      // The same from far down the list, where the search row is stuck to the top: a new search
-      // brings the page back to where its matches begin.
-      await c.js("scrollTo(0, document.documentElement.scrollHeight)");
-      await c.sov(300);
-      await c.skrivInn("#sok", "Quiz");
-      await c.sov(900);
-      const dypt = await c.js(`(() => { const k = Array.from(document.querySelectorAll("#spillgrid .spillkort")).find((x) => x.offsetParent).getBoundingClientRect(); return { kort: Math.round(k.top), vh: innerHeight }; })()`);
-      t.sjekk(dypt.kort > 0 && dypt.kort < dypt.vh / 2, `Et søk langt nede på siden viser ikke treffene (første treff på ${dypt.kort} av ${dypt.vh} px)`);
-      await c.klikk("#sok-tom");
-
-      // The words people actually use find the games: what a game is called elsewhere, and the
-      // occasion («vors», «bursdag» …). They come from rusj/seo.json.
-      const finner = { alias: "skravla", imposter: "luringen", "nødt": "vaghalsen", pekeleken: "pekefingeren", "secret santa": "nissen", ludo: "brikka", mafia: "varulven", musikk: "nynneren", "bli kjent": "lognhalsen" };
-      const anledninger = ["vors", "bursdag", "hyttetur", "selskapsleker", "festleker", "julebord", "klassefest", "leker til barnebursdag"];
-      const sokeTreff = await c.js(`(() => {
-        const felt = document.querySelector("#sok");
-        const ut = {};
-        for (const q of ${JSON.stringify([...Object.keys(finner), ...anledninger, "xyzzy"])}) {
-          felt.value = q;
-          felt.dispatchEvent(new Event("input", { bubbles: true }));
-          ut[q] = Array.from(document.querySelectorAll("#spillgrid .spillkort")).filter((k) => k.offsetParent).map((k) => k.dataset.id);
-        }
-        felt.value = "";
-        felt.dispatchEvent(new Event("input", { bubbles: true }));
-        return ut;
-      })()`);
-      for (const [q, id] of Object.entries(finner)) if (liste.includes(id)) t.sjekk(sokeTreff[q].includes(id), `Søket «${q}» finner ikke ${id} (fant: ${sokeTreff[q].join(", ") || "ingenting"})`);
-      if (ventet > 20) for (const q of anledninger) t.sjekk(sokeTreff[q].length >= 3, `Søket «${q}» gir bare ${sokeTreff[q].length} treff`);
-      t.sjekk(sokeTreff.xyzzy.length === 0, "Et tulleord gir treff i søket");
-      // The facts on the cards can be searched for: how many phones, alone, against the phone.
-      const faktasok = { "flere mobiler": (k) => k.mobiler !== "en", "én mobil": (k) => k.mobiler !== "hver", "hver sin mobil": (k) => k.mobiler !== "en", alene: (k) => k.spillere[0] === 1, "mot mobilen": (k) => k.mot };
-      const faktaTreff = await c.js(`(() => {
-        const felt = document.querySelector("#sok");
-        const ut = {};
-        for (const q of ${JSON.stringify(Object.keys(faktasok))}) {
-          felt.value = q;
-          felt.dispatchEvent(new Event("input", { bubbles: true }));
-          ut[q] = Array.from(document.querySelectorAll("#spillgrid .spillkort")).filter((k) => k.offsetParent).map((k) => k.dataset.id).sort();
-        }
-        felt.value = "";
-        felt.dispatchEvent(new Event("input", { bubbles: true }));
-        return ut;
-      })()`);
-      for (const [q, passerSpill] of Object.entries(faktasok)) {
-        const ventetTreff = kortene.filter((k) => !k.alder18 && passerSpill(k)).map((k) => k.id).sort();
-        t.sjekk(faktaTreff[q].join(",") === ventetTreff.join(","), `Søket «${q}» gir ${faktaTreff[q].length} spill, ventet ${ventetTreff.length} (${ventetTreff.filter((id) => !faktaTreff[q].includes(id)).concat(faktaTreff[q].filter((id) => !ventetTreff.includes(id))).slice(0, 5).join(", ")})`);
-      }
-      t.sjekk((await synligeKort()) === alle, "Lista er ikke tilbake etter søkene");
-
-      // The filter button opens and closes the panel; the badge counts the active filters.
-      t.sjekk(await c.js("document.querySelector('#filtre').hidden && document.querySelector('#filter-knapp').getAttribute('aria-expanded') === 'false'"), "Filterpanelet er åpent før det er valgt noe");
-      await c.klikk("#filter-knapp");
-      t.sjekk(await c.js("!document.querySelector('#filtre').hidden && document.querySelector('#filter-knapp').getAttribute('aria-expanded') === 'true'"), "Filterknappen åpner ikke panelet");
-      await c.klikk('[data-antall="1"]');
-      await c.klikk('[data-antall="1"]');
-      const synlige2 = await c.antall("#spillgrid .spillkort:not([hidden])");
-      t.sjekk(synlige2 > 0, "Ingen spill passer for 3 spillere");
-      await c.klikk("#tagger .brikke:not(.alle)");
-      t.sjekk((await c.tekst("#filter-antall")).trim() === "2", "Filterknappen viser ikke 2 aktive filtre");
-      ph = await plassholder();
-      t.sjekk(ph.bredde <= ph.rom, `Plassholderen får ikke plass i søkefeltet når filtertelleren vises (${ph.bredde} px tekst, ${ph.rom} px rom)`);
-      await t.bilde("forside-filter");
-      // Typing a search puts a tall panel away (it would hide the matches above the keyboard).
-      const panelHoyt = await c.js("document.querySelector('#filtre').getBoundingClientRect().height > (window.visualViewport ? visualViewport.height : innerHeight) * 0.35");
-      await c.skrivInn("#sok", "a");
-      t.sjekk((await c.js("document.querySelector('#filtre').hidden")) === panelHoyt, panelHoyt ? "Et høyt filterpanel blir stående over treffene når det søkes" : "Filterpanelet lukkes under søk selv om det er plass til det");
-      await c.klikk("#sok-tom");
-      if (await c.js("document.querySelector('#filtre').hidden")) await c.klikk("#filter-knapp");
-      await c.klikk('#tagger [data-tagg=""]');
-      await c.klikk('[data-antall="-1"]');
-      await c.klikk('[data-antall="-1"]'); // 3 → 2 → alle
-      t.sjekk(await c.js("document.querySelector('#filter-antall').hidden"), "Filtertelleren vises uten aktive filtre");
-      await c.klikk("#filter-knapp");
-      t.sjekk(await c.js("document.querySelector('#filtre').hidden"), "Filterknappen lukker ikke panelet");
-
-      // A search for drinking games before anyone has said they are 18: one row «Drikkespill (18+)»
-      // that opens the question – not «no games fit». After «Ja» the games are right there.
-      const atten = await c.antall("#spillgrid .spillkort[data-alder18]");
-      if (atten) {
-        for (const q of ["drikkeleker", "drikkespill"]) {
-          await c.skrivInn("#sok", q);
-          const dor = await c.js(`({ rad: !!document.querySelector("#atten-dor").offsetParent, tekst: document.querySelector("#atten-dor").innerText.replace(/\\s+/g, " "), ingen: !document.querySelector("#ingen-treff").hidden, linje: document.querySelector("#treff").textContent })`);
-          t.sjekk(dor.rad && /Drikkespill \(18\+\)/.test(dor.tekst) && !dor.ingen, `Søket «${q}» viser ikke raden «Drikkespill (18+)» (rad: ${dor.rad}, «ingen spill passer»: ${dor.ingen})`);
-          t.sjekk(new RegExp(`\\+ ${atten} for voksne`).test(dor.linje), `Søket «${q}»: linja over treffene sier «${dor.linje}»`);
-          t.sjekk((await synligeKort("#spillgrid .spillkort[data-alder18]")) === 0, `Søket «${q}» viser drikkespill før 18-årsbekreftelsen`);
-        }
-        await c.sov(700);
-        await t.bilde("forside-drikkeleker");
-        await c.skrivInn("#sok", "sudoku");
-        t.sjekk(!(await c.js(`!!document.querySelector("#atten-dor").offsetParent`)), "Raden «Drikkespill (18+)» vises for et søk som ikke gjelder drikkespill");
-        await c.skrivInn("#sok", "drikkeleker");
-        await c.klikk("#atten-dor button");
-        t.sjekk(await c.js("document.querySelector('#dialog').open"), "Raden «Drikkespill (18+)» åpner ikke 18+-dialogen");
-        // The answer is a whole sentence: it must stay on one line, also on the smallest phones.
-        const svarLinjer = await c.js(`(() => { const k = document.querySelector('#dialog [value="ja"]'); const r = document.createRange(); r.selectNodeContents(k); return new Set(Array.from(r.getClientRects()).map((b) => Math.round(b.top))).size; })()`);
-        t.sjekk(svarLinjer === 1, `«Ja, jeg er 18 eller eldre» står på ${svarLinjer} linjer i dialogen`);
-        await c.klikk('#dialog [value="nei"]');
-        t.sjekk(await c.js(`!document.querySelector("#dialog").open && !!document.querySelector("#atten-dor").offsetParent && !document.body.classList.contains("over18")`), "«Nei» i 18+-dialogen lukker ikke bare dialogen");
-        await c.klikk("#atten-dor button");
-        await c.klikk('#dialog [value="ja"]');
-        t.sjekk((await synligeKort("#spillgrid .spillkort[data-alder18]")) === atten && !(await c.js(`!!document.querySelector("#atten-dor").offsetParent`)), "Drikkespillene vises ikke som treff etter «Ja»");
-        t.sjekk(await c.js("!!document.activeElement.closest('#spillgrid .spillkort[data-alder18]')"), "Fokus havner ikke på det første drikkespillet blant treffene etter «Ja»");
-        // Back to «not confirmed» for the checks below.
-        await c.klikk("#sok-tom");
-        await c.klikk("[data-skjul18]");
-        t.sjekk(!(await c.js("document.body.classList.contains('over18')")), "«Skjul» virker ikke etter et søk");
-      }
-
-      // 18+: hidden until confirmed in the dialog, then focus lands on the drinking shelf.
-      if (atten) {
-        t.sjekk((await synligeKort("#spillgrid .spillkort[data-alder18]")) === 0, "Drikkespill vises før 18-årsbekreftelsen");
-        await c.klikk("[data-vis18]");
-        t.sjekk(await c.js("document.querySelector('#dialog').open"), "18+-dialogen åpnes ikke");
-        await t.bilde("forside-18");
-        await c.klikk('#dialog [value="ja"]');
-        t.sjekk((await synligeKort("#spillgrid .spillkort[data-alder18]")) === atten, "Drikkespillene vises ikke etter «Ja»");
-        t.sjekk(await c.js("!!document.activeElement.closest('.hylle-18')"), "Fokus havner ikke på drikkespill-hylla etter «Ja»");
-        const etter18 = await tall();
-        t.sjekk(Number(lesLinje(etter18.linje)[1]) === etter18.helt && !lesLinje(etter18.linje)[2], `Etter «Ja» sier lista «${etter18.linje}», logoen ${etter18.helt}`);
-        const etterSkjul = await finnerAtten(t, c);
-        await c.klikk("[data-skjul18]");
-        await etterSkjul();
-        t.sjekk((await synligeKort("#spillgrid .spillkort[data-alder18]")) === 0, "«Skjul» skjuler ikke drikkespillene");
-        t.sjekk(await c.js("document.activeElement !== document.body"), "Fokus forsvinner etter «Skjul»");
-      }
-
-      // «Overrask meg»: the slot machine opens on the screen, picks among the games that show now
-      // (never an 18+ game), and Escape closes it.
-      await c.klikk("#overrask");
-      t.sjekk(await c.js("document.querySelector('#automat').open"), "«Overrask meg» åpner ikke automaten");
-      await c.vent("document.querySelector('#automat [data-spill]').getAttribute('aria-disabled') === 'false'", 5000);
-      const valgt = await c.js("document.querySelector('#automat-svar b')?.textContent || ''");
-      const valgt18 = await c.js(`(window.RUSJ_SPILLISTE || []).some((s) => s.alder18 && s.navn === ${JSON.stringify(valgt)})`);
-      t.sjekk(valgt && !valgt18, `Automaten valgte «${valgt}»${valgt18 ? " (et drikkespill)" : ""}`);
-      const blant = Number((/Blant (\d+) spill/.exec(await c.tekst("#automat-under")) || [])[1]);
-      t.sjekk(blant === synligeSpill, `Automaten sier «Blant ${blant} spill», lista sier ${synligeSpill}`);
-      const boks = await c.js(`(() => { const r = document.querySelector("#automat").getBoundingClientRect(); const i = document.querySelector("#automat .automat-inn").getBoundingClientRect(); return { topp: Math.round(Math.min(r.top, i.top)), bunn: Math.round(Math.max(r.bottom, i.bottom)), venstre: Math.round(r.left), hoyre: Math.round(r.right), vh: innerHeight, vw: innerWidth }; })()`);
-      t.sjekk(boks.topp >= 0 && boks.bunn <= boks.vh && boks.venstre >= 0 && boks.hoyre <= boks.vw, `Automaten får ikke plass på skjermen (${boks.topp}–${boks.bunn} av ${boks.vh} px høyde)`);
-      await t.bilde("forside-overrask");
-      await c.klikk("#automat [data-en-til]");
-      await c.vent("document.querySelector('#automat [data-spill]').getAttribute('aria-disabled') === 'false'", 5000);
-      await tast("Escape", 27);
-      await c.sov(200);
-      t.sjekk(await c.js("!document.querySelector('#automat').open"), "Escape lukker ikke automaten");
-      t.sjekk(await c.js("document.activeElement && document.activeElement.id === 'overrask'"), "Fokus går ikke tilbake til «Overrask meg»");
-
-      // «Send rusj til gjengen»: a sheet with a big QR code for rusj.no, «Skann for å bli med» and
-      // «Del lenken»; it fits the screen, closes, and focus goes back to the button. Inside an app's
-      // own browser (here Instagram's user agent) a slim hint says to open the real browser.
-      const qrArk = async () => {
-        await c.js(`document.querySelector("#send-rusj").scrollIntoView({ block: "center" })`);
-        await c.klikk("#send-rusj");
-        await c.vent("document.querySelector('#dialog').open && document.querySelector('#dialog .qr-ark')", 5000);
-        return c.js(`(() => {
-          const d = document.querySelector("#dialog");
-          const svg = d.querySelector(".qr-stor svg");
-          const b = d.getBoundingClientRect();
-          const q = svg ? svg.getBoundingClientRect() : { width: 0 };
-          return { svg: !!svg && !!svg.querySelector("path"), qrBredde: Math.round(q.width), tekst: d.innerText, tips: !!d.querySelector(".innebygd-tips"), del: !!d.querySelector("#del-lenken"), fokus: document.activeElement && document.activeElement.id, topp: Math.round(b.top), bunn: Math.round(b.bottom), vh: innerHeight };
-        })()`);
-      };
-      const qr = await qrArk();
-      t.sjekk(qr.svg && qr.qrBredde >= Math.min(200, qr.vh * 0.4), `QR-koden i «Send rusj til gjengen» mangler eller er for liten (${qr.qrBredde} px)`);
-      t.sjekk(/Skann for å bli med/.test(qr.tekst) && qr.del && !qr.tips, `«Send rusj til gjengen» mangler tekst eller «Del lenken», eller viser app-tipset i en vanlig nettleser: ${qr.tekst}`);
-      t.sjekk(qr.topp >= 0 && qr.bunn <= qr.vh, `«Send rusj til gjengen» får ikke plass på skjermen (${qr.topp}–${qr.bunn} av ${qr.vh} px)`);
-      t.sjekk(qr.fokus === "del-lenken", `Fokus starter ikke på «Del lenken» (${qr.fokus})`);
-      await t.bilde("forside-send-rusj");
-      await c.js(`window.__delt = null; navigator.share = undefined; Object.defineProperty(navigator, "clipboard", { value: { writeText: (x) => { window.__delt = x; return Promise.resolve(); } }, configurable: true })`);
-      await c.klikk("#del-lenken");
-      await c.sov(150);
-      t.sjekk((await c.js("window.__delt")) === "https://rusj.no/" && /kopiert/.test(await c.tekst("#qr-melding")), "«Del lenken» kopierer ikke rusj.no uten delingsmeny");
-      await c.klikk('#dialog [value="ok"]');
-      await c.sov(150);
-      t.sjekk(await c.js("!document.querySelector('#dialog').open && document.activeElement && document.activeElement.id === 'send-rusj'"), "«Lukk» lukker ikke arket, eller fokus går ikke tilbake til «Send rusj til gjengen»");
-      const vanligUa = await c.js("navigator.userAgent");
-      await c.send("Emulation.setUserAgentOverride", { userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 356.0.0.21.107" });
-      await c.lastSide(t.side, "document.querySelector('.spillgrid')");
-      const qrApp = await qrArk();
-      t.sjekk(qrApp.tips && /Åpne i nettleseren for å installere og lagre/.test(qrApp.tekst), "Tipset for app-nettlesere mangler inne i Instagram");
-      t.sjekk(/Instagram/.test(await c.tekst("#installer-tekst")), "«Ha rusj på hjemskjermen» viser installeringsstegene inne i Instagram");
-      await t.bilde("forside-send-rusj-instagram");
-      await tast("Escape", 27);
-      await c.sov(150);
-      t.sjekk(await c.js("!document.querySelector('#dialog').open && document.activeElement && document.activeElement.id === 'send-rusj'"), "Escape lukker ikke «Send rusj til gjengen», eller fokus går ikke tilbake");
-      await c.send("Emulation.setUserAgentOverride", { userAgent: vanligUa });
-      await c.lastSide(t.side, "document.querySelector('.spillgrid')");
-
-      // «Fortsett der dere slapp» shows a game with saved, in-progress state (two lines of text and
-      // a «Fortsett» badge in ordinary case). «Kveldens gjeng» shows the three best, and everyone
-      // on «Vis alle».
-      const fortsettId = bygget.find((i) => !meta(i).alder18);
-      const navn = ["Ada", "Bo", "Cia", "Dag", "Eli", "Fia", "Gro"];
-      const kveld = (spill) => `localStorage.setItem("rusj.kveld", ${JSON.stringify(JSON.stringify({ start: Date.now(), spill }))})`;
-      await c.js(`localStorage.setItem("rusj.${fortsettId}.v1", JSON.stringify({ _aktiv: true, _tid: Date.now(), skjerm: "spill" }))`);
-      // Four players with points (Ada 5, Dag 3, Bo 2, Cia 1) and three without.
-      await c.js(kveld([{ id: "x", resultat: navn.map((n, i) => ({ navn: n, plass: Math.min(i + 1, 4) })) }, { id: "y", resultat: [{ navn: "Dag", plass: 1 }, { navn: "Ada", plass: 2 }] }]));
-      await c.lastSide(t.side, "document.querySelector('.spillgrid')");
-      await c.sov(2600);
-      t.sjekk(await c.finnes(`#fortsett:not([hidden]) #fortsett-rad .spillkort[data-id="${fortsettId}"] .kort-fortsett`), `«Fortsett»-raden viser ikke ${fortsettId}`);
-      const merke = await c.js(`(() => { const m = document.querySelector("#fortsett-rad .kort-fortsett"); const l = document.querySelector("#fortsett-rad .kort-linje"); return m && l ? { tekst: m.textContent, form: getComputedStyle(m).textTransform, linjer: getComputedStyle(l).webkitLineClamp } : null; })()`);
-      t.sjekk(merke && merke.tekst === "Fortsett" && merke.form === "none", `«Fortsett»-merket er ikke i vanlig skrift (${merke && merke.form})`);
-      t.sjekk(merke && merke.linjer === "2", "Fortsett-kortet viser ikke to linjer tekst");
-      const tavle = () => c.js(`Array.from(document.querySelectorAll("#kveld-liste li:not([hidden])")).map((li) => li.querySelector(".kveld-navn").textContent)`);
-      t.sjekk((await tavle()).join(",") === "Ada,Dag,Bo", `Kveldens gjeng viser ikke de tre beste (${(await tavle()).join(", ")})`);
-      await t.bilde("forside-fortsett");
-      // Back from a game (the page comes from the browser's memory) with a new evening where only
-      // two have points: the rows with 0 points stay hidden until «Vis alle».
-      await c.js(kveld([{ id: "z", resultat: navn.map((n, i) => ({ navn: n, plass: i < 2 ? i + 1 : 4 })) }]));
-      await c.js(`window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }))`);
-      await c.sov(150);
-      t.sjekk((await tavle()).join(",") === "Ada,Bo", `Kveldens gjeng viser spillere uten poeng før «Vis alle» (${(await tavle()).join(", ")})`);
-      // Luringen keeps its own saved state. It is «in progress» for 12 hours like the other games:
-      // not for ever after one round, and not at all without the time it was saved.
-      if (liste.includes("luringen")) {
-        const lurRad = async (tid) => {
-          await c.js(`localStorage.setItem("luringen.v1", JSON.stringify({ spill: { skjerm: "diskusjon" }${tid ? `, _tid: ${tid}` : ""} }))`);
-          await c.js(`window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }))`);
-          await c.sov(100);
-          return c.finnes('#fortsett-rad .spillkort[data-id="luringen"] .kort-fortsett');
-        };
-        t.sjekk(await lurRad("Date.now() - 60 * 1000"), "Luringen vises ikke under «Fortsett» med et spill fra i sted");
-        t.sjekk(!(await lurRad("Date.now() - 13 * 3600 * 1000")), "Luringen står under «Fortsett» 13 timer etter siste runde");
-        t.sjekk(!(await lurRad(null)), "Luringen står under «Fortsett» uten tidspunkt for lagringen");
-        await c.js(`localStorage.removeItem("luringen.v1")`);
-      }
-      await c.klikk("#kveld-alle");
-      t.sjekk((await tavle()).length === 7 && (await c.js("document.querySelector('#kveld-alle').getAttribute('aria-expanded') === 'true'")), "«Vis alle» viser ikke hele Kveldens gjeng");
-      const plasser = await c.js(`Array.from(document.querySelectorAll("#kveld-liste li .kveld-plass")).map((p) => p.textContent).join(" ")`);
-      t.sjekk(plasser === "🥇 🥈 3. 3. 3. 3. 3.", `Spillere uten poeng får medalje i Kveldens gjeng (${plasser})`);
-      // The whole page in one image, on phone widths. From the top: a full-page capture of a scrolled
-      // page makes headless Chrome jump to the end of the page, and the search row (which sticks to
-      // the top of the screen) goes missing in it. On wide screens such an image gets so big that
-      // headless Chrome hangs on it, so there the list is captured as one screen instead.
-      // First: a jump straight to the end of the page (the End key, a restored scroll position) with
-      // the heading far below the first screen. The search row must get its solid background there too.
-      await c.js("scrollTo(0, 0)");
-      await c.sov(150);
-      await c.js("scrollTo(0, document.documentElement.scrollHeight)");
-      t.sjekk(await venter("document.querySelector('#filter').classList.contains('fast')", 1500), "Søkelinja er gjennomsiktig etter et hopp rett til bunnen av siden");
-      if (BREDDE <= 430) {
-        await c.js("scrollTo(0, 0)");
-        await c.sov(200);
-        await t.bilde("forside-hel", true);
-      } else {
-        await c.js(`scrollTo(0, document.querySelector("#alle-tittel").getBoundingClientRect().top + scrollY - 90)`);
-        await c.sov(300);
-        await t.bilde("forside-liste");
-      }
-      // «Dagens utfordringer», returning players: the shelf comes first, each daily card says how
-      // today went, and the streak stands beside the heading. Storage is seeded in the format of
-      // rusj/DAGLIG.md; every number comes from the games tagged «daglig».
-      if (daglige.length >= 2) {
-        const T = await c.js("window.RusjDaglig.dag().nr"); // today in Norway, as the page counts it
-        const [a, b] = daglige;
-        // In --probe the texts from storage carry markup: it must come out as text, never as an element.
-        const merk = (tekst) => (PROBE ? `<x-q>${tekst.slice(0, 3)}</x-q>` : tekst);
-        const medDaglig = async (verdi, somRetur) => {
-          await c.js(`localStorage.setItem("rusj.daglig", ${JSON.stringify(typeof verdi === "string" ? verdi : JSON.stringify(verdi))})`);
-          // somRetur: the page comes back from the browser's memory (after a game) instead of loading anew.
-          if (somRetur) await c.js(`window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }))`);
-          else await c.lastSide(t.side, "document.querySelector('.spillgrid')");
-          await c.sov(somRetur ? 200 : 900);
-        };
-        const kort = (h, id) => h.kort.find((k) => k.id === id) || {};
-        const utseende = (h, hva, forst = true) => {
-          t.sjekk(h.finnes && (forst ? h.hyller[0] === "hylle-daglig" : h.hyller.indexOf("hylle-daglig") > 0), `Dagens utfordringer (${hva}): hylla står ${forst ? "ikke først" : "først for en ny besøkende"} (${h.hyller.join(", ")})`);
-          t.sjekk(h.kort.length === daglige.length && h.kort.every((k) => k.inni && k.skjult), `Dagens utfordringer (${hva}): et merke stikker ut av bildet eller leses opp for seg`);
-          t.sjekk(h.kort.map((k) => k.storrelse).join(" ") === nyStorrelse, `Dagens utfordringer (${hva}): kortene har endret størrelse (${h.kort.map((k) => k.storrelse).join(" ")}, før ${nyStorrelse})`);
-          t.sjekk(h.rulles === "auto" && !h.ute && !h.gammel, `Dagens utfordringer (${hva}): raden ruller ikke sidelengs, noe stikker ut, eller den gamle stripa er der`);
-        };
-
-        // (a) One daily finished today (4/6), one in progress, the rest new. Three days in a row.
-        const enFerdig = { [a.id]: { nr: T, vunnet: true, rekke: 3, res: merk("4/6") }, [b.id]: { nr: T - 9, vunnet: true, rekke: 1, res: "0:52", pagar: { nr: T, tekst: merk("5 av 8 ord") } } };
-        const logg = { [T]: [a.id], [T - 1]: [a.id], [T - 2]: [a.id], [T - 9]: [b.id] };
-        await medDaglig({ ...enFerdig, _: { v: 1, dager: logg } });
-        let h = await dagligHylle();
-        utseende(h, "én ferdig, én i gang");
-        const ka = kort(h, a.id);
-        const kb = kort(h, b.id);
-        t.sjekk(ka.merke === "✓ " + merk("4/6") && ka.ferdig && ka.navn.endsWith(" – ferdig i dag, " + (PROBE ? merk("4/6") : "4 av 6")), `Dagens utfordringer: det ferdige kortet viser «${ka.merke}» og heter «${ka.navn}»`);
-        t.sjekk(kb.merke === "I gang" && !kb.ferdig && kb.navn.endsWith(" – i gang"), `Dagens utfordringer: kortet som er i gang, viser «${kb.merke}» og heter «${kb.navn}»`);
-        t.sjekk(h.kort.filter((k) => k.id !== a.id && k.id !== b.id).every((k) => k.merke === null && !STATUS.test(k.navn)), "Dagens utfordringer: urørte kort har merke");
-        t.sjekk(h.flamme && h.flamme.navn === "3 dager på rad" && /🔥\s*3$/.test(h.flamme.tekst), `Dagens utfordringer: rekka er ${JSON.stringify(h.flamme)}`);
-        await t.bilde("forside-vendt");
-        await c.js(`document.querySelector("#hylle-daglig").scrollIntoView({ block: "center" })`);
-        await t.bilde("forside-dagens");
-
-        // (b) Back from a game (the page comes from the browser's memory): the second one is finished
-        // too – lost. The badges change in place; the row keeps where it was scrolled to.
-        const rulletFor = await c.js(`(() => { const r = document.querySelector("#hylle-daglig .hylle-rad"); r.scrollLeft = 60; return r.scrollLeft; })()`);
-        await medDaglig({ ...enFerdig, [b.id]: { nr: T, vunnet: false, rekke: 0, res: "X/6" }, _: { v: 1, dager: { ...logg, [T]: [a.id, b.id] } } }, true);
-        h = await dagligHylle();
-        utseende(h, "tilbake fra et spill");
-        const kb2 = kort(h, b.id);
-        t.sjekk(kb2.merke === "✓ X/6" && kb2.ferdig && kb2.navn.endsWith(" – ferdig i dag, X/6") && kort(h, a.id).ferdig, `Dagens utfordringer (tilbake): kortet viser «${kb2.merke}» og heter «${kb2.navn}»`);
-        t.sjekk((await c.js(`document.querySelector("#hylle-daglig .hylle-rad").scrollLeft`)) === rulletFor, "Dagens utfordringer (tilbake): raden hoppet tilbake til start");
-        await c.js(`(() => { document.querySelector("#hylle-daglig .hylle-rad").scrollLeft = 0; document.querySelector("#hylle-daglig").scrollIntoView({ block: "center" }); })()`);
-        await t.bilde("forside-dagens-ferdig");
-
-        // (c) The format the games wrote before (no result text, no day log): just «✓». One day: no streak.
-        await medDaglig({ [a.id]: { nr: T, vunnet: true, rekke: 1 } });
-        h = await dagligHylle();
-        utseende(h, "gammelt format");
-        t.sjekk(kort(h, a.id).merke === "✓" && kort(h, a.id).navn.endsWith(" – ferdig i dag") && !h.flamme, `Dagens utfordringer (gammelt format): «${kort(h, a.id).merke}», «${kort(h, a.id).navn}», rekke ${JSON.stringify(h.flamme)}`);
-
-        // (d) Storage blocked: the page reads as for a new visitor, without an error.
-        await c.js(`Object.defineProperty(window, "localStorage", { configurable: true, get() { throw new DOMException("blokkert", "SecurityError"); } }); window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }))`);
-        await c.sov(200);
-        h = await dagligHylle();
-        utseende(h, "lagring blokkert", false);
-        t.sjekk(h.kort.every((k) => k.merke === null) && !h.flamme, "Dagens utfordringer (lagring blokkert): merker eller rekke vises");
-        await c.lastSide(t.side, "document.querySelector('.spillgrid')"); // storage back
-
-        // (e) Rubbish in storage: the page treats the visitor as new, without an error.
-        for (const rot of ["{ødelagt", "[1,2,3]", JSON.stringify({ [a.id]: "x", _: 7 })]) {
-          await medDaglig(rot);
-          h = await dagligHylle();
-          t.sjekk(h.finnes && h.hyller[0] !== "hylle-daglig" && h.kort.every((k) => k.merke === null) && !h.flamme, `Søppel i lagringen (${rot.slice(0, 12)}) gir ikke forsiden for en ny besøkende`);
-        }
-        await c.js(`localStorage.removeItem("rusj.daglig")`);
-      }
-
+      const atten = await c.js("(window.RUSJ_SPILLISTE || []).filter((s) => s.alder18).length");
       // Old Luringen links (rusj.no/#CODE) are sent on to /luringen/ – but only real codes, never a
       // place on this page.
       for (const anker of ["#fortsett", "#overrask", "#spill"]) {
         await c.lastSide("about:blank");
-        await c.lastSide(`${tjener.url}/${anker}`, "document.querySelector('.spillgrid') || location.pathname !== '/'");
+        await c.lastSide(`${tjener.url}/${anker}`, "document.querySelector('#alle-liste') || location.pathname !== '/'");
         await c.sov(300);
         const havnet = await c.js("location.pathname");
         t.sjekk(havnet === "/", `Adressen /${anker} sendes til ${havnet} (skal bli på forsiden)`);
@@ -967,7 +725,7 @@ for (const id of valgt) {
 
       // The pages about rusj: linked from the footer of the front page, readable on a phone, and
       // the button on /personvern/ really removes everything – after asking.
-      await c.lastSide(t.side, "document.querySelector('.spillgrid')");
+      await c.lastSide(t.side, "document.querySelector('#alle-liste')");
       const bunnlenker = await c.js(`Array.from(document.querySelectorAll(".bunn a")).map((a) => a.getAttribute("href"))`);
       t.sjekk(bunnlenker.includes("/om/") && bunnlenker.includes("/personvern/"), `Bunnteksten på forsiden lenker ikke til /om/ og /personvern/ (${bunnlenker.join(", ")})`);
       const utenfor = () => c.js(`Array.from(document.querySelectorAll("main *, footer *")).filter((el) => { const b = el.getBoundingClientRect(); return b.width && b.height && !el.closest("svg, dialog") && (b.right > innerWidth + 1 || b.left < -1); }).map((el) => el.tagName.toLowerCase() + " «" + el.textContent.trim().slice(0, 30) + "»").slice(0, 3)`);
@@ -1037,6 +795,7 @@ for (const id of valgt) {
       t.sjekk(slettet.avregistrert === 1, "Etter «Ja, slett alt» er ikke hjelperen for bruk uten nett avregistrert");
       t.sjekk(/Slettet/.test(slettet.status), `Etter «Ja, slett alt» sier siden «${slettet.status}»`);
       await c.js(`localStorage.clear()`);
+      }
     } else if (id === "luringen") {
       await c.lastSide(t.side, "document.querySelector('#s-hjem h1')");
       await c.js("localStorage.clear()");

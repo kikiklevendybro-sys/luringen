@@ -1,12 +1,12 @@
 # `rusj.daglig` – the storage contract for «Dagens rusj»
 
 One `localStorage` key carries everything the daily ritual needs. **The kit writes it** (from the
-daily games), **the front page reads it** (the shelf «Dagens utfordringer»). Nothing leaves the phone.
+daily games), **the front page reads it** (the section «Dagens»). Nothing leaves the phone.
 
 - Writer: `rusj/kit/rusj.js` (`R.dagligFerdig`, and the new `R.dagligIGang`).
 - Reader: `rusj/portal/daglig.js` (pure functions, unit-tested in `test/daglig.test.mjs`) and
-  `rusj/portal/portal.js` (the shelf: first for returning players, a «✓ 4/6» / «I gang» badge on
-  each daily card, and the streak beside its heading from two days in a row).
+  `rusj/portal/portal.js` (the section «Dagens»: today's daily game with a «✓ 4/6» / «I gang» badge,
+  «✓ 1 av 19 i dag» and the streak from two days in a row).
 - A **daily game** is a game with the tag `daglig` in its `spill.json`. Nothing here is tied to the
   three that exist today.
 
