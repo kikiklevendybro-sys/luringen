@@ -1,0 +1,36 @@
+# rusj-nett — rooms for playing rusj.no games on two or more phones (Cloudflare Worker + one
+# Durable Object per room, created in the EU). No secrets in this file and none needed.
+# The steps for going live are in README.md. Wrangler is pinned: npx --yes wrangler@4.160.0
+
+name = "rusj-nett"
+main = "src/index.js"
+compatibility_date = "2026-11-11"
+
+# The Worker answers at https://rusj-nett.<account>.workers.dev
+workers_dev = true
+preview_urls = false
+
+# Cloudflare's own request logs for this Worker stay off: nothing about single requests is kept.
+[observability]
+enabled = false
+
+# One room per code. The class is SQLite-backed (works on the Workers Free plan). Every room is
+# created through the EU jurisdiction (env.ROM.jurisdiction("eu") in src/index.js).
+[[durable_objects.bindings]]
+name = "ROM"
+class_name = "Rom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Rom"]
+
+# A brake on POST /rom: at most 120 new rooms a minute per Cloudflare data centre, counted for the
+# endpoint as a whole (the key is a constant — nobody's address is used). Above that, 429. To run
+# without the brake, delete these lines; the Worker then skips it.
+[[ratelimits]]
+name = "FART"
+namespace_id = "1002"
+
+  [ratelimits.simple]
+  limit = 120
+  period = 60

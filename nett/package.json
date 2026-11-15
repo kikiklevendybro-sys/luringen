@@ -1,0 +1,9 @@
+{
+  "name": "rusj-nett",
+  "private": true,
+  "type": "module",
+  "description": "Rooms for playing rusj.no games on two or more phones (Cloudflare Worker + one Durable Object per room, in the EU). No dependencies.",
+  "scripts": {
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.mjs"
+  }
+}
