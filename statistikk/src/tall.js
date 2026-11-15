@@ -49,6 +49,70 @@ export function medianFraGrupper(antall) {
   return null;
 }
 
+// Every counter in a map of totals that starts with a prefix, per id after the prefix.
+export function medPrefiks(S, prefiks) {
+  const ut = new Map();
+  if (S) for (const [nokkel, n] of S) if (nokkel.startsWith(prefiks)) ut.set(nokkel.slice(prefiks.length), (ut.get(nokkel.slice(prefiks.length)) || 0) + n);
+  return ut;
+}
+
+// The numbers of one period from its totals. S: Map(counter name → total over the period).
+// dagenFor: the phones counted on the day before each day of the period, added up (the
+// denominator of «came back the next day»). serie: one entry per day, for the charts.
+export function periodeAvSummer({ id, navn, fra, til, antallDager, S, dagenFor, serie = [], oppsett = { SPILL, DAGLIGE } }) {
+  const n = (nokkel) => S.get(nokkel) || 0;
+  const besok = n("besok");
+  const sider = medPrefiks(S, "side.");
+  const startet = medPrefiks(S, "start.");
+  const ferdig = medPrefiks(S, "ferdig.");
+  const fullfort = medPrefiks(S, "daglig.");
+  const kat = Object.fromEntries(ENHET.map((e) => [e, n("enhet." + e)]));
+  const enh = ENHET.reduce((s, e) => s + kat[e], 0);
+
+  const spillIder = new Set([...startet.keys(), ...ferdig.keys(), ...[...sider.keys()].filter((s) => !ANDRE_SIDER.includes(s))]);
+  const spill = [...spillIder]
+    .map((sid) => ({ id: sid, navn: oppsett.SPILL[sid] || sid, startet: startet.get(sid) || 0, ferdig: ferdig.get(sid) || 0, apnet: sider.get(sid) || 0 }))
+    .sort((a, b) => b.startet - a.startet || b.apnet - a.apnet || a.navn.localeCompare(b.navn, "nb"));
+
+  // The dailies in the config first (front-page order), then any other game with finished
+  // dailies in the period — so a daily that is newer than this list still shows.
+  const daglige = [...oppsett.DAGLIGE, ...[...fullfort.keys()].filter((sid) => !oppsett.DAGLIGE.includes(sid)).sort()];
+  const antallDaglige = oppsett.DAGLIGE.length;
+  const trinn = DAGENS.filter((d) => d <= antallDaglige || n("dagens." + d) > 0);
+  return {
+    id,
+    navn,
+    fra,
+    til,
+    antallDager,
+    enheter: enh,
+    enheterPerDag: Math.round(enh / Math.max(1, antallDager)),
+    besok,
+    sider: [...sider.values()].reduce((a, b) => a + b, 0),
+    forside: sider.get("forside") || 0,
+    nye: kat.ny,
+    tilbake: {
+      ...kat,
+      // Of the phones that were here the day before, how many came back the next day.
+      nesteDag: { teller: kat.igar, nevner: dagenFor, prosent: prosent(kat.igar, dagenFor) },
+      // Of the phones that were here, how many had also been here during the week before.
+      innenUke: { teller: kat.igar + kat.uke, nevner: enh, prosent: prosent(kat.igar + kat.uke, enh) },
+    },
+    spill,
+    tid: tidsfordeling(besok, TID_MINUTTER.map((m) => n("tid." + m))),
+    daglig: {
+      antallDaglige,
+      spill: daglige.map((sid) => ({ id: sid, navn: oppsett.SPILL[sid] || sid, fullfort: fullfort.get(sid) || 0 })),
+      minst: trinn.map((d) => ({ n: d, antall: n("dagens." + d) })),
+      minstEn: n("dagens.1"),
+      alle: antallDaglige ? n("dagens." + antallDaglige) : 0,
+      rekker: REKKE_FRA.map((fraDag, i) => ({ fra: fraDag, navn: REKKEGRUPPER[i], antall: n("rekke." + fraDag) })),
+    },
+    app: { antall: n("app"), av: enh, prosent: prosent(n("app"), enh) },
+    serie,
+  };
+}
+
 // rader: [{ dag, nokkel, n }]. iDag: today's Oslo date. forsteDag: the oldest day with counters.
 export function sammendrag(rader, iDag, { forsteDag = null, oppsett = { SPILL, DAGLIGE } } = {}) {
   const perDag = new Map();
@@ -59,68 +123,23 @@ export function sammendrag(rader, iDag, { forsteDag = null, oppsett = { SPILL, D
   const tell = (dag, nokkel) => (perDag.get(dag) && perDag.get(dag).get(nokkel)) || 0;
   const sum = (dager, nokkel) => dager.reduce((s, d) => s + tell(d, nokkel), 0);
   const enheter = (dag) => ENHET.reduce((s, n) => s + tell(dag, "enhet." + n), 0);
-  // Sum of every counter that starts with a prefix, per id after the prefix.
-  const medPrefiks = (dager, prefiks) => {
-    const ut = new Map();
-    for (const d of dager)
-      for (const [nokkel, n] of perDag.get(d) || []) if (nokkel.startsWith(prefiks)) ut.set(nokkel.slice(prefiks.length), (ut.get(nokkel.slice(prefiks.length)) || 0) + n);
-    return ut;
-  };
 
   const periode = (id, navn, fra, til) => {
     const dager = dagene(fra, til);
-    const enh = dager.reduce((s, d) => s + enheter(d), 0);
-    const besok = sum(dager, "besok");
-    const sider = medPrefiks(dager, "side.");
-    const startet = medPrefiks(dager, "start.");
-    const ferdig = medPrefiks(dager, "ferdig.");
-    const fullfort = medPrefiks(dager, "daglig.");
-
-    const kat = Object.fromEntries(ENHET.map((n) => [n, sum(dager, "enhet." + n)]));
-    const dagenFor = dager.reduce((s, d) => s + enheter(flytt(d, -1)), 0);
-
-    const spillIder = new Set([...startet.keys(), ...ferdig.keys(), ...[...sider.keys()].filter((s) => !ANDRE_SIDER.includes(s))]);
-    const spill = [...spillIder]
-      .map((sid) => ({ id: sid, navn: oppsett.SPILL[sid] || sid, startet: startet.get(sid) || 0, ferdig: ferdig.get(sid) || 0, apnet: sider.get(sid) || 0 }))
-      .sort((a, b) => b.startet - a.startet || b.apnet - a.apnet || a.navn.localeCompare(b.navn, "nb"));
-
-    // The dailies in the config first (front-page order), then any other game with finished
-    // dailies in the period — so a daily that is newer than this list still shows.
-    const daglige = [...oppsett.DAGLIGE, ...[...fullfort.keys()].filter((sid) => !oppsett.DAGLIGE.includes(sid)).sort()];
-    const antallDaglige = oppsett.DAGLIGE.length;
-    const trinn = DAGENS.filter((n) => n <= antallDaglige || sum(dager, "dagens." + n) > 0);
-    return {
+    // Every counter added up over the days of the period.
+    const S = new Map();
+    for (const d of dager) for (const [nokkel, n] of perDag.get(d) || []) S.set(nokkel, (S.get(nokkel) || 0) + n);
+    return periodeAvSummer({
       id,
       navn,
       fra,
       til,
       antallDager: dager.length,
-      enheter: enh,
-      enheterPerDag: Math.round(enh / dager.length),
-      besok,
-      sider: [...sider.values()].reduce((a, b) => a + b, 0),
-      forside: sider.get("forside") || 0,
-      nye: kat.ny,
-      tilbake: {
-        ...kat,
-        // Of the phones that were here the day before, how many came back the next day.
-        nesteDag: { teller: kat.igar, nevner: dagenFor, prosent: prosent(kat.igar, dagenFor) },
-        // Of the phones that were here, how many had also been here during the week before.
-        innenUke: { teller: kat.igar + kat.uke, nevner: enh, prosent: prosent(kat.igar + kat.uke, enh) },
-      },
-      spill,
-      tid: tidsfordeling(besok, TID_MINUTTER.map((m) => sum(dager, "tid." + m))),
-      daglig: {
-        antallDaglige,
-        spill: daglige.map((sid) => ({ id: sid, navn: oppsett.SPILL[sid] || sid, fullfort: fullfort.get(sid) || 0 })),
-        minst: trinn.map((n) => ({ n, antall: sum(dager, "dagens." + n) })),
-        minstEn: sum(dager, "dagens.1"),
-        alle: antallDaglige ? sum(dager, "dagens." + antallDaglige) : 0,
-        rekker: REKKE_FRA.map((fraDag, i) => ({ fra: fraDag, navn: REKKEGRUPPER[i], antall: sum(dager, "rekke." + fraDag) })),
-      },
-      app: { antall: sum(dager, "app"), av: enh, prosent: prosent(sum(dager, "app"), enh) },
+      S,
+      dagenFor: dager.reduce((s, d) => s + enheter(flytt(d, -1)), 0),
       serie: dager.map((d) => ({ dag: d, enheter: enheter(d), besok: tell(d, "besok") })),
-    };
+      oppsett,
+    });
   };
 
   const iGar = flytt(iDag, -1);

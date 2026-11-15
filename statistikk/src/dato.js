@@ -52,6 +52,21 @@ export function maanederFor(dag, maaneder) {
   return `${Math.floor(mnd / 12)}-${to((mnd % 12) + 1)}-${to(d)}`;
 }
 
+// Months are written "2026-11". The month `antall` months later (or earlier), and every month
+// from `fra` to `til`.
+export function flyttMnd(maned, antall) {
+  const [a, m] = maned.split("-").map(Number);
+  const nr = a * 12 + (m - 1) + antall;
+  return `${Math.floor(nr / 12)}-${to((nr % 12) + 1)}`;
+}
+export function manedene(fra, til) {
+  const ut = [];
+  for (let m = fra; m <= til; m = flyttMnd(m, 1)) ut.push(m);
+  return ut;
+}
+// The last day of a month, "2026-02-28".
+export const manedSlutt = (maned) => flytt(flyttMnd(maned, 1) + "-01", -1);
+
 const UKEDAGER = ["man", "tir", "ons", "tor", "fre", "lør", "søn"];
 const MAANEDER = ["jan", "feb", "mar", "apr", "mai", "jun", "jul", "aug", "sep", "okt", "nov", "des"];
 const MAANEDER_LANG = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];

@@ -2,6 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { handter, adminInnlogging, likTid, nokkelPaa } from "../src/index.js";
+import { readFileSync } from "node:fs";
 import { falskD1, NAA } from "./falsk-d1.mjs";
 
 const NOKKEL = "Zr8mK2vQ9xT4bN7cW1yH6dJ3fL5gP0sAeUiOqRtYzXw="; // made up for the tests, 44 characters
@@ -165,14 +166,86 @@ test("the dashboard has no script; the login page has exactly one, with the nonc
   assert.match(html, /type="password"/);
 });
 
-test("the admin page loads nothing from anywhere else", async () => {
+test("the admin page loads nothing from anywhere else, and links only to its own pages", async () => {
   for (const hode of [{}, { "X-Admin-Nokkel": NOKKEL }]) {
     const html = await (await hent("/admin", hode, { ADMIN_NOKKEL: NOKKEL })).text();
     assert.doesNotMatch(html, /(src|href|action|srcset|poster|data)\s*=\s*["']?\s*(https?:)?\/\//i);
-    assert.doesNotMatch(html, /<link|<img|<iframe|<object|<embed|@import|url\(/i);
+    assert.doesNotMatch(html, /<img|<iframe|<object|<embed/i);
+    assert.doesNotMatch(/<style[^>]*>([\s\S]*?)<\/style>/.exec(html)[1], /@import|url\(/i, "the styles load nothing");
     assert.doesNotMatch(html, /\sstyle="/, "no inline style attributes (the policy would block them)");
-    for (const lenke of html.matchAll(/(?:href|action)="([^"]*)"/g)) assert.match(lenke[1], /^\/(admin|cdn-cgi\/access\/logout)$/);
+    // The only <link>s: the manifest and the icons, all from /admin/ on the same Worker.
+    assert.deepEqual([...html.matchAll(/<link [^>]*>/g)].map((m) => m[0]), [
+      '<link rel="manifest" href="/admin/manifest.webmanifest" crossorigin="use-credentials">',
+      '<link rel="icon" href="/admin/ikon.svg" type="image/svg+xml">',
+      '<link rel="apple-touch-icon" href="/admin/ikon-180.png">',
+    ]);
+    for (const lenke of html.matchAll(/(?:href|action)="([^"]*)"/g)) {
+      assert.match(lenke[1], /^\/(admin(\?p=(7|30|90|365|alt)(&amp;sort=[a-z]+)?)?|admin\/eksport\.csv\?fra=\d{4}-\d\d-\d\d&amp;til=\d{4}-\d\d-\d\d|admin\/(manifest\.webmanifest|ikon\.svg|ikon-180\.png)|cdn-cgi\/access\/logout)$/, lenke[1]);
+    }
   }
+});
+
+test("the home-screen app: manifest «rusj admin», icons, theme colour", async () => {
+  const html = await (await hent("/admin", { "X-Admin-Nokkel": NOKKEL }, { ADMIN_NOKKEL: NOKKEL })).text();
+  assert.match(html, /<meta name="theme-color" content="#150c28">/);
+  const m = await hent("/admin/manifest.webmanifest");
+  assert.equal(m.status, 200);
+  assert.match(m.headers.get("Content-Type"), /^application\/manifest\+json/);
+  const manifest = await m.json();
+  assert.equal(manifest.name, "rusj admin");
+  assert.equal(manifest.start_url, "/admin");
+  assert.equal(manifest.scope, "/admin");
+  assert.equal(manifest.display, "standalone");
+  assert.equal(manifest.theme_color, "#150c28");
+  for (const ikon of manifest.icons) assert.match(ikon.src, /^\/admin\/ikon(-\d+\.png|\.svg)$/);
+  for (const [sti, type, storrelse] of [["/admin/ikon-180.png", "image/png", 180], ["/admin/ikon-192.png", "image/png", 192], ["/admin/ikon-512.png", "image/png", 512]]) {
+    const svar = await hent(sti);
+    assert.equal(svar.status, 200, sti);
+    assert.equal(svar.headers.get("Content-Type"), type);
+    const b = new Uint8Array(await svar.arrayBuffer());
+    assert.deepEqual([...b.slice(1, 4)].map((c) => String.fromCharCode(c)).join(""), "PNG");
+    assert.equal(new DataView(b.buffer).getUint32(16), storrelse, sti);
+  }
+  const svg = await hent("/admin/ikon.svg");
+  assert.equal(svg.headers.get("Content-Type"), "image/svg+xml");
+  assert.match(await svg.text(), /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 512 512">/);
+  // Nothing but the icon in these answers, and only GET/HEAD.
+  assert.equal((await hent("/admin/manifest.webmanifest", {}, {}, {}, "POST")).status, 405);
+});
+
+test("src/ikon.js is what statistikk/lag-ikon.mjs writes", async () => {
+  const { somFil } = await import("../lag-ikon.mjs");
+  assert.equal(readFileSync(new URL("../src/ikon.js", import.meta.url), "utf8"), somFil(), "run `node statistikk/lag-ikon.mjs`");
+});
+
+// ---------- CSV export ----------
+
+test("CSV export: the stored rows, dag,nokkel,n, for the days asked, behind the same login", async () => {
+  const db = falskD1();
+  for (const [d, k, n] of [["2026-11-01", "besok", 5], ["2026-11-01", "side.ordugla", 3], ["2026-11-05", "kilde.sok", 2], ["2026-11-10", "besok", 7], ["2026-10-31", "besok", 9]]) db.sett(d, k, n);
+  const env = { DB: db, ADMIN_NOKKEL: NOKKEL };
+  const csv = (q, hode = { "X-Admin-Nokkel": NOKKEL }, ctx = {}) => handter(new Request("https://stat.example/admin/eksport.csv" + q, { headers: hode }), { ...env, ACCESS_AUD: AUD }, ctx, NAA);
+  const svar = await csv("?fra=2026-11-01&til=2026-11-10");
+  assert.equal(svar.status, 200);
+  assert.equal(svar.headers.get("Content-Type"), "text/csv; charset=utf-8");
+  assert.equal(svar.headers.get("Content-Disposition"), 'attachment; filename="rusj-tall-2026-11-01-til-2026-11-10.csv"');
+  assert.equal(svar.headers.get("Cache-Control"), "no-store");
+  assert.equal(await svar.text(), "dag,nokkel,n\n2026-11-01,besok,5\n2026-11-01,side.ordugla,3\n2026-11-05,kilde.sok,2\n2026-11-10,besok,7\n");
+  assert.equal(await (await csv("?fra=2026-12-01&til=2026-12-31")).text(), "dag,nokkel,n\n");
+  // Cloudflare Access works too.
+  assert.equal((await csv("?fra=2026-11-01&til=2026-11-01", {}, { access: { aud: AUD } })).status, 200);
+  // No login, a wrong key, or the key in the address: 401 and no rows.
+  for (const [q, hode] of [["?fra=2026-11-01&til=2026-11-10", {}], ["?fra=2026-11-01&til=2026-11-10", { "X-Admin-Nokkel": "feil" }], [`?fra=2026-11-01&til=2026-11-10&nokkel=${NOKKEL}`, {}]]) {
+    const ute = await csv(q, hode);
+    assert.equal(ute.status, 401);
+    assert.doesNotMatch(await ute.text(), /besok|dag,nokkel/);
+  }
+  // Bad or missing dates, the wrong order, or too long a range: 400.
+  for (const q of ["", "?fra=2026-11-01", "?fra=2026-13-01&til=2026-11-10", "?fra=2026-02-30&til=2026-03-01", "?fra=1.11.2026&til=2026-11-10", "?fra=2026-11-10&til=2026-11-01", "?fra=2024-01-01&til=2026-11-10", "?fra=2026-11-01'--&til=2026-11-10"]) {
+    assert.equal((await csv(q)).status, 400, q);
+  }
+  // Read-only, with the dates bound, never pasted into the SQL.
+  assert.ok(db.logg.every((l) => /^SELECT dag, nokkel, n FROM teller WHERE dag >= \?1 AND dag <= \?2 ORDER BY dag, nokkel$/.test(l.sql)));
 });
 
 test("only GET and HEAD on the admin routes", async () => {

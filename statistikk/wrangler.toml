@@ -5,6 +5,10 @@
 name = "rusj-statistikk"
 main = "src/index.js"
 compatibility_date = "2026-11-11"
+# The dashboard asks the rooms Worker (https://rusj-nett.<account>.workers.dev/, same account and
+# subdomain) whether it is up. Without this flag Cloudflare refuses a fetch from one Worker to
+# another on the same zone (error 1042). It is the only request this Worker makes.
+compatibility_flags = ["global_fetch_strictly_public"]
 
 # The Worker answers at https://rusj-statistikk.<account>.workers.dev
 workers_dev = true

@@ -16,6 +16,19 @@
 //   dagens.<n>       this phone has now finished <n> of today's daily puzzles (1–9)
 //   rekke.<fra>      sent with dagens.1: days in a row, as a group: 1, 2 (2–3), 4 (4–6),
 //                    7 (7–13), 14 (14–29) or 30 (30 or more)
+//   utgave.<sprak>   sent with besok: the edition the visit is in: nb, en or da
+//   type.<enhet>     sent with besok: mobil, nettbrett or pc (the phone decides from screen size and
+//                    pointer; only the group is sent)
+//   kilde.<gruppe>   sent with besok: where the visit came from, as a group: sok (a search engine),
+//                    sosial (a social network), direkte (no referring page) or annen (anything else).
+//                    The phone decides from fixed host lists; the referring address is never sent.
+//   app.ny           sent with app: the first time this phone opened rusj from the home screen
+//   feil.<spill>     a game page hit a script error (at most once per page view)
+//   nett.rom.<spill>     a room for playing on the net was made (counted by the phone that made it)
+//   nett.start.<spill>   a match in such a room started (the same phone)
+//   nett.ferdig.<spill>  a match in such a room was played to the end (the same phone)
+//   jul.<knapp>      the Christmas calendar's buttons: utskrift (print), paminnelse (the reminders
+//                    file) or tre (the tree picture downloaded or shared)
 import { SPILL, MAKS_NOKKEL_LENGDE } from "./oppsett.js";
 
 export const SPILL_ID = /^[a-z0-9]{2,24}$/;
@@ -25,6 +38,11 @@ export const TID_MINUTTER = [1, 3, 10, 30];
 export const REKKE_FRA = [1, 2, 4, 7, 14, 30];
 export const DAGENS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 export const ANDRE_SIDER = ["forside", "annet"];
+export const UTGAVER = ["nb", "en", "da"];
+export const TYPER = ["mobil", "nettbrett", "pc"];
+export const KILDER = ["sok", "sosial", "direkte", "annen"];
+export const JUL = ["utskrift", "paminnelse", "tre"];
+export const NETT = ["rom", "start", "ferdig"];
 
 const har = (objekt, id) => Object.prototype.hasOwnProperty.call(objekt, id);
 
@@ -39,8 +57,16 @@ export function fasteNokler() {
     ...TID_MINUTTER.map((m) => "tid." + m),
     ...DAGENS.map((n) => "dagens." + n),
     ...REKKE_FRA.map((r) => "rekke." + r),
+    ...UTGAVER.map((u) => "utgave." + u),
+    ...TYPER.map((t) => "type." + t),
+    ...KILDER.map((k) => "kilde." + k),
+    "app.ny",
+    ...JUL.map((j) => "jul." + j),
   ];
 }
+
+// Counter names per game: <type>.<game id>.
+export const PER_SPILL = ["side", "start", "ferdig", "daglig", "feil", ...NETT.map((n) => "nett." + n)];
 
 const FASTE = new Set(fasteNokler());
 
@@ -50,7 +76,7 @@ export function alleNokler(oppsett = { SPILL }) {
   return [
     ...fasteNokler(),
     ...ANDRE_SIDER.map((s) => "side." + s),
-    ...spill.flatMap((id) => ["side." + id, "start." + id, "ferdig." + id, "daglig." + id]),
+    ...spill.flatMap((id) => PER_SPILL.map((type) => type + "." + id)),
   ];
 }
 
@@ -61,6 +87,10 @@ export function renNokkel(nokkel, oppsett = { SPILL }) {
   if (typeof nokkel !== "string" || nokkel.length < 1 || nokkel.length > MAKS_NOKKEL_LENGDE) return null;
   if (FASTE.has(nokkel)) return nokkel;
   const deler = nokkel.split(".");
+  // nett.<rom|start|ferdig>.<spill>: the only names with three parts.
+  if (deler.length === 3 && deler[0] === "nett" && NETT.includes(deler[1])) {
+    return SPILL_ID.test(deler[2]) && har(oppsett.SPILL, deler[2]) ? nokkel : null;
+  }
   if (deler.length !== 2) return null;
   const [type, id] = deler;
   if (!SPILL_ID.test(id)) return null;
@@ -68,7 +98,7 @@ export function renNokkel(nokkel, oppsett = { SPILL }) {
   if (type === "side") return erSpill || ANDRE_SIDER.includes(id) ? nokkel : "side.annet";
   // (daglig.<spill> is accepted for every game: which games are dailies changes on the site, and
   // a new daily should be counted from its first day.)
-  if (type === "start" || type === "ferdig" || type === "daglig") return erSpill ? nokkel : null;
+  if (type === "start" || type === "ferdig" || type === "daglig" || type === "feil") return erSpill ? nokkel : null;
   return null;
 }
 

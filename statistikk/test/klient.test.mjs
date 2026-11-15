@@ -10,12 +10,15 @@ import { sammendrag } from "../src/tall.js";
 import { falskD1 } from "./falsk-d1.mjs";
 
 const T0 = Date.parse("2026-11-11T12:00:00Z"); // Wednesday 11 November 2026, 13:00 in Norway
+// A new visit always says which edition, what kind of device and where it came from. The pretend
+// browser is a PC (no coarse pointer) with no referring page.
+const BESOK = ["besok", "utgave.nb", "type.pc", "kilde.direkte"];
 
 test("first page ever: page view, visit, new phone, first this week and month — in one request", () => {
   const n = nettleser();
   assert.equal(n.sendt.length, 0, "nothing is sent before the short wait");
   n.fram(1500);
-  assert.deepEqual(n.pakker(), [["side.forside", "besok", "enhet.ny", "unik.uke", "unik.mnd"]]);
+  assert.deepEqual(n.pakker(), [["side.forside", ...BESOK, "enhet.ny", "unik.uke", "unik.mnd"]]);
   const { url, valg } = n.sendt[0];
   assert.equal(url, MAL + "/t");
   assert.equal(valg.method, "POST");
@@ -55,14 +58,14 @@ test("yesterday, this week, long ago: the phone says which, and nothing more", (
     n.lukk();
     return n.nokler();
   };
-  assert.deepEqual(dag(0), ["side.forside", "besok", "enhet.ny", "unik.uke", "unik.mnd"]); // Wed 11 Nov
-  assert.deepEqual(dag(1), ["side.forside", "besok", "enhet.igar"]); // Thu: yesterday, same week
-  assert.deepEqual(dag(1.2), ["side.forside", "besok"]); // later the same day: a new visit only
-  assert.deepEqual(dag(5), ["side.forside", "besok", "enhet.uke", "unik.uke"]); // Mon 16 Nov: 4 days, new week
-  assert.deepEqual(dag(12), ["side.forside", "besok", "enhet.uke", "unik.uke"]); // Mon 23 Nov: 7 days
-  assert.deepEqual(dag(20), ["side.forside", "besok", "enhet.lenge", "unik.uke", "unik.mnd"]); // Tue 1 Dec: 8 days, new month
-  assert.deepEqual(dag(21), ["side.forside", "besok", "enhet.igar"]); // Wed 2 Dec
-  assert.deepEqual(dag(60), ["side.forside", "besok", "enhet.lenge", "unik.uke", "unik.mnd"]); // January
+  assert.deepEqual(dag(0), ["side.forside", ...BESOK, "enhet.ny", "unik.uke", "unik.mnd"]); // Wed 11 Nov
+  assert.deepEqual(dag(1), ["side.forside", ...BESOK, "enhet.igar"]); // Thu: yesterday, same week
+  assert.deepEqual(dag(1.2), ["side.forside", ...BESOK]); // later the same day: a new visit only
+  assert.deepEqual(dag(5), ["side.forside", ...BESOK, "enhet.uke", "unik.uke"]); // Mon 16 Nov: 4 days, new week
+  assert.deepEqual(dag(12), ["side.forside", ...BESOK, "enhet.uke", "unik.uke"]); // Mon 23 Nov: 7 days
+  assert.deepEqual(dag(20), ["side.forside", ...BESOK, "enhet.lenge", "unik.uke", "unik.mnd"]); // Tue 1 Dec: 8 days, new month
+  assert.deepEqual(dag(21), ["side.forside", ...BESOK, "enhet.igar"]); // Wed 2 Dec
+  assert.deepEqual(dag(60), ["side.forside", ...BESOK, "enhet.lenge", "unik.uke", "unik.mnd"]); // January
 });
 
 test("the Oslo day decides, not the phone's time zone or UTC", () => {
@@ -73,14 +76,14 @@ test("the Oslo day decides, not the phone's time zone or UTC", () => {
   a.lukk();
   const b = nettleser({ lager, naa: Date.parse("2026-11-11T23:30:00Z") });
   b.fram(1500);
-  assert.deepEqual(b.nokler(), ["side.forside", "besok", "enhet.igar"]);
+  assert.deepEqual(b.nokler(), ["side.forside", ...BESOK, "enhet.igar"]);
 });
 
 test("opened from the home screen: «app» is sent with the day's first page", () => {
   const lager = new Map();
   const a = nettleser({ lager, appmodus: true });
   a.fram(1500);
-  assert.deepEqual(a.nokler(), ["side.forside", "besok", "enhet.ny", "unik.uke", "unik.mnd", "app"]);
+  assert.deepEqual(a.nokler(), ["side.forside", ...BESOK, "enhet.ny", "unik.uke", "unik.mnd", "app", "app.ny"]);
   a.lukk();
   const b = nettleser({ lager, appmodus: true, naa: T0 + 2 * MIN });
   b.fram(1500);
@@ -109,14 +112,14 @@ test("time on screen is reported as steps passed: 1, 3, 10, 30 minutes — each 
   const c = nettleser({ lager, naa: b.klokke.naa + 31 * MIN });
   c.fram(4 * MIN);
   c.lukk();
-  assert.deepEqual(c.nokler(), ["side.forside", "besok", "tid.1", "tid.3"]);
+  assert.deepEqual(c.nokler(), ["side.forside", ...BESOK, "tid.1", "tid.3"]);
 });
 
 test("a short visit reports no time step; closing the page sends what is waiting at once", () => {
   const a = nettleser();
   a.fram(400);
   a.lukk(); // closed before the short wait was over: sent on the way out, with no timer involved
-  assert.deepEqual(a.pakker(), [["side.forside", "besok", "enhet.ny", "unik.uke", "unik.mnd"]]);
+  assert.deepEqual(a.pakker(), [["side.forside", ...BESOK, "enhet.ny", "unik.uke", "unik.mnd"]]);
   assert.equal(a.notat().tid, 400);
 
   // Another phone: 20 seconds on the front page, then 45 seconds in a game. The minute is passed
@@ -164,7 +167,7 @@ test("back on screen after more than 30 minutes is a new visit; sooner is the sa
   n.fram(31 * MIN);
   n.vis();
   n.fram(2000);
-  assert.deepEqual(n.pakker().at(-1), ["besok"]);
+  assert.deepEqual(n.pakker().at(-1), [...BESOK]);
   assert.equal(n.nokler().filter((k) => k.startsWith("side.")).length, 1, "not a new page view");
 });
 
@@ -175,7 +178,7 @@ test("a tab left open over midnight counts the new day when it is looked at agai
   n.fram(10 * 60 * MIN); // 08:00 the next morning
   n.vis();
   n.fram(2000);
-  assert.deepEqual(n.pakker().at(-1), ["besok", "enhet.igar"]);
+  assert.deepEqual(n.pakker().at(-1), [...BESOK, "enhet.igar"]);
 });
 
 test("a page opened in the background waits until it is seen", () => {
@@ -185,7 +188,7 @@ test("a page opened in the background waits until it is seen", () => {
   assert.equal(n.notat(), null);
   n.vis();
   n.fram(1500);
-  assert.deepEqual(n.nokler(), ["side.forside", "besok", "enhet.ny", "unik.uke", "unik.mnd"]);
+  assert.deepEqual(n.nokler(), ["side.forside", ...BESOK, "enhet.ny", "unik.uke", "unik.mnd"]);
 });
 
 test("back/forward that restores the page counts as a page view", () => {
@@ -195,7 +198,7 @@ test("back/forward that restores the page counts as a page view", () => {
   n.fram(10 * 1000);
   n.tilbakeFraBuffer();
   n.fram(1500);
-  assert.deepEqual(n.pakker(), [["side.ordugla", "besok", "enhet.ny", "unik.uke", "unik.mnd"], ["side.ordugla"]]);
+  assert.deepEqual(n.pakker(), [["side.ordugla", ...BESOK, "enhet.ny", "unik.uke", "unik.mnd"], ["side.ordugla"]]);
 });
 
 test("silent: no endpoint configured", () => {
@@ -282,13 +285,13 @@ test("game events: only start and ferdig, only on a game page, and never the gam
   n.stat.hendelse();
   n.stat.hendelse({ toString: () => "start" });
   n.fram(1500);
-  assert.deepEqual(n.nokler(), ["side.sauen", "besok", "enhet.ny", "unik.uke", "unik.mnd", "start.sauen", "ferdig.sauen"]);
+  assert.deepEqual(n.nokler(), ["side.sauen", ...BESOK, "enhet.ny", "unik.uke", "unik.mnd", "start.sauen", "ferdig.sauen"]);
   assert.doesNotMatch(n.sendt[0].valg.body, /Kari|lag|spillere|6|runder/);
   const forside = nettleser();
   forside.stat.hendelse("start");
   forside.stat.daglig(1, 1);
   forside.fram(1500);
-  assert.deepEqual(forside.nokler(), ["side.forside", "besok", "enhet.ny", "unik.uke", "unik.mnd"]);
+  assert.deepEqual(forside.nokler(), ["side.forside", ...BESOK, "enhet.ny", "unik.uke", "unik.mnd"]);
 });
 
 test("a finished daily: the game, how many today, and the streak as a group", () => {
@@ -353,7 +356,12 @@ test("bounded: at most 16 names in a request and at most 40 requests from one pa
 });
 
 test("the script itself: no cookies, no ids, no beacon, nothing but the endpoint", () => {
-  assert.doesNotMatch(KILDE, /\.cookie|sessionStorage|indexedDB|crypto|Math\.random|randomUUID|userAgent|\.screen|\.languages?\b|\.referrer\b|sendBeacon\(|XMLHttpRequest|WebSocket|canvas|deviceMemory|hardwareConcurrency|\.plugins|getBattery|\.platform/);
+  assert.doesNotMatch(KILDE, /\.cookie|sessionStorage|indexedDB|crypto|Math\.random|randomUUID|userAgent|\.screen|\.languages?\b|sendBeacon\(|XMLHttpRequest|WebSocket|canvas|deviceMemory|hardwareConcurrency|\.plugins|getBattery|\.platform|devicePixelRatio|innerWidth|innerHeight|\.width\b|\.height\b|\.message\b|\.filename\b|\.stack\b|\.reason\b/);
+  // The referring page is read in one place only, to pick one of four words (see test/stat.test.mjs).
+  assert.equal(KILDE.match(/\.referrer\b/g).length, 1);
+  assert.match(KILDE, /fra = String\(doc\.referrer \|\| ""\)/);
+  // The kind of device comes from two yes/no media queries, never from a size that is read out.
+  assert.deepEqual([...KILDE.matchAll(/matchMedia\("([^"]+)"\)/g)].map((m) => m[1]).sort(), ["(display-mode: standalone)", "(max-width: 599px), (max-height: 599px)", "(pointer: coarse)"]);
   assert.equal(KILDE.match(/\.fetch\(/g).length, 1);
   assert.equal(KILDE.match(/localStorage\.(get|set)Item\(LAGER/g).length, 3, "one key, rusj.stat, and no other");
 });
@@ -372,10 +380,25 @@ const tilWorker = async (n, db, naa) => {
 test("contract: every name the client can send is in the Worker's grammar", async () => {
   const sett = new Set();
   const lager = new Map();
-  for (const [d, sti] of [[0, "/"], [0.01, "/ordugla/"], [1, "/sauen/"], [5, "/luringen/"], [20, "/blyanten/"], [21, "/tallknuseren/"], [80, "/"]]) {
-    const n = nettleser({ lager, url: "https://rusj.no" + sti, naa: T0 + d * DOGN, appmodus: true });
+  // (Each step is a new visit from another place, on another kind of device, in another edition.)
+  const steg = [
+    [0, "/", { fra: "https://www.google.no/" }],
+    [0.1, "/ordugla/", { fra: "https://l.facebook.com/", peker: "grov", vindu: [390, 844] }],
+    [1, "/sauen/", { fra: "https://example.com/blogg", peker: "grov", vindu: [820, 1180] }],
+    [5, "/luringen/", {}],
+    [20, "/blyanten/", { fra: "https://rusj.no/" }],
+    [21, "/tallknuseren/", {}],
+    [22, "/en/", {}],
+    [23, "/da/", {}],
+    [24, "/julekalenderen/", {}],
+    [80, "/", {}],
+  ];
+  for (const [d, sti, valg] of steg) {
+    const n = nettleser({ lager, url: "https://rusj.no" + sti, naa: T0 + d * DOGN, appmodus: true, ...valg });
     n.stat.hendelse("start");
     n.stat.hendelse("ferdig");
+    for (const h of ["nett.rom", "nett.start", "nett.ferdig", "jul.utskrift", "jul.paminnelse", "jul.tre"]) n.stat.hendelse(h);
+    n.feil();
     // (The kit calls daglig() from R.dagligFerdig, which only the daily games use.)
     n.fram(2000);
     if (DAGLIGE.includes(sti.replaceAll("/", ""))) {
@@ -394,7 +417,8 @@ test("contract: every name the client can send is in the Worker's grammar", asyn
     assert.ok(kjente.has(k), k);
   }
   // …and together the scenarios used every kind of name there is.
-  const typer = (liste) => [...new Set([...liste].map((k) => (/^(side|start|ferdig|daglig)\./.test(k) ? k.split(".")[0] : k)))].sort();
+  const type = (k) => (/^(side|start|ferdig|daglig|feil)\./.test(k) ? k.split(".")[0] : /^nett\./.test(k) ? k.split(".").slice(0, 2).join(".") : k);
+  const typer = (liste) => [...new Set([...liste].map(type))].sort();
   assert.deepEqual(typer(sett), typer(kjente));
 });
 
@@ -447,13 +471,13 @@ test("end to end: three phones over two days → the counters → the sentence o
   await tilWorker(n, db);
 
   assert.deepEqual(db.somObjekt("2026-11-09"), {
-    besok: 2, "enhet.ny": 2, "unik.uke": 2, "unik.mnd": 2,
+    besok: 2, "utgave.nb": 2, "type.pc": 2, "kilde.direkte": 2, "enhet.ny": 2, "unik.uke": 2, "unik.mnd": 2,
     "side.forside": 2, "side.ordugla": 1, "start.ordugla": 1, "ferdig.ordugla": 1,
     "tid.1": 1, "tid.3": 1,
     "daglig.ordugla": 1, "dagens.1": 1, "rekke.1": 1,
   });
   assert.deepEqual(db.somObjekt("2026-11-10"), {
-    besok: 2, "enhet.igar": 1, "enhet.ny": 1, "unik.uke": 1, "unik.mnd": 1, app: 1,
+    besok: 2, "utgave.nb": 2, "type.pc": 2, "kilde.direkte": 2, "enhet.igar": 1, "enhet.ny": 1, "unik.uke": 1, "unik.mnd": 1, app: 1, "app.ny": 1,
     "side.ordugla": 1, "side.blyanten": 1, "side.sauen": 1,
     "start.ordugla": 1, "ferdig.ordugla": 1, "start.blyanten": 1, "start.sauen": 1,
     "tid.1": 2, "tid.3": 2, "tid.10": 2, "tid.30": 1,

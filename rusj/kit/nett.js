@@ -291,6 +291,7 @@
     if (!N.rom || N.rom.startet) return;
     N.rom.startet = true;
     R.statistikk("start", { nett: 1 });
+    if (N.du === 0) R.statistikk("nett.start");
     bygg([]);
   }
 
@@ -382,6 +383,7 @@
     N.rom.ferdig = true;
     sendRaa({ h: "ferdig" });
     R.statistikk("ferdig", { nett: 1 });
+    if (N.du === 0) R.statistikk("nett.ferdig");
   }
 
   // A fresh match from the room's seed, then every move in the list, silently; then the screen.
@@ -487,6 +489,9 @@
     }
     if (!fortsatt() || !R.paNett()) return;
     if (!KODE.test(kode || "")) return visFeil(navigator.onLine === false ? "frakoblet" : "nett");
+    // Anonymous counting (rusj/kit/stat.js): only the phone that made the room counts the room, its
+    // matches and their ends, so each is counted once. Nothing about the room is sent.
+    R.statistikk("nett.rom");
     N.kode = kode;
     N.fro = R.nyttFro();
     kobl("lag");

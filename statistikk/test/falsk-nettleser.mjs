@@ -23,6 +23,9 @@ function lagNettleser({
   iRamme = false,
   lagerFeil = false,
   hentFeil = null, // "kast" or "avvis"
+  fra = "", // document.referrer: the page the visitor came from
+  peker = "fin", // "grov" = a touch screen (pointer: coarse)
+  vindu = [1280, 800], // the viewport in CSS pixels, [width, height]
   ekstra = {},
 } = {}) {
   const klokke = { naa };
@@ -50,7 +53,16 @@ function lagNettleser({
     },
     removeItem: (k) => (lagerKall.push("del " + k), lager.delete(k)),
   };
-  const document = { visibilityState: synlig ? "visible" : "hidden", addEventListener: (type, f) => (lyttere.dok[type] ||= []).push(f) };
+  const document = { visibilityState: synlig ? "visible" : "hidden", referrer: fra, addEventListener: (type, f) => (lyttere.dok[type] ||= []).push(f) };
+  const medier = []; // every media query asked
+  const passer = (q) => {
+    medier.push(q);
+    if (/display-mode: standalone/.test(q)) return appmodus;
+    if (q === "(pointer: coarse)") return peker === "grov";
+    const m = /^\(max-width: (\d+)px\), \(max-height: (\d+)px\)$/.exec(q);
+    if (m) return vindu[0] <= Number(m[1]) || vindu[1] <= Number(m[2]);
+    return false;
+  };
   const window = {
     document,
     navigator: { ...nav },
@@ -68,7 +80,8 @@ function lagNettleser({
     clearTimeout: (id) => void (tidtakere = tidtakere.filter((t) => t.id !== id)),
     setInterval: (fn, ms) => (tidtakere.push({ id: neste, fn, ved: klokke.naa + ms, hver: ms }), neste++),
     addEventListener: (type, f) => (lyttere.vindu[type] ||= []).push(f),
-    matchMedia: (q) => ({ matches: appmodus && /standalone/.test(q) }),
+    matchMedia: (q) => ({ matches: passer(q) }),
+    URL,
     ...ekstra,
   };
   if (stat !== undefined) window.RUSJ_STAT = stat;
@@ -83,6 +96,7 @@ function lagNettleser({
     lager,
     sendt,
     lagerKall,
+    medier,
     stat: window.RusjStat,
     klokke,
     antallTidtakere: () => tidtakere.length,
@@ -120,6 +134,13 @@ function lagNettleser({
     tilbakeFraBuffer() {
       document.visibilityState = "visible";
       kall("vindu", "pageshow", { persisted: true });
+    },
+    // A script error on the page, and a promise nobody caught.
+    feil(melding = "TypeError: x is undefined") {
+      kall("vindu", "error", { message: melding, filename: "https://rusj.no/x/spill.js", lineno: 1 });
+    },
+    avvist(grunn = new Error("hemmelig")) {
+      kall("vindu", "unhandledrejection", { reason: grunn });
     },
     // The counter names sent so far, batch by batch, and all together.
     pakker: () => sendt.map((s) => JSON.parse(s.valg.body).k),
