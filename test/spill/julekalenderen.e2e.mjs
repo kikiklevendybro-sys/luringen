@@ -87,6 +87,10 @@ export default async function (t) {
   await t.klikk('.jk-luke[data-v="1"]');
   t.sjekk((await toast()) === (await tr("Luke {n} åpner {n}. desember", { n: 1 })), `Låst luke før desember: toasten sier «${await toast()}»`);
 
+  // A QR code scanned before its day: the calendar with the countdown, and when the door opens.
+  await last("#" + (await lukeUrl(7)).split("#")[1]);
+  t.sjekk(!!(await t.finnes(".skjerm-hjem .jk-teaser")) && (await toast()) === (await tr("Luke {n} åpner {n}. desember", { n: 7 })), `En QR-kode før desember: toasten sier «${await toast()}»`);
+
   // The reminders: an .ics file made on the phone.
   await fangNedlasting();
   await t.klikk('[data-h="paminnelse"]');

@@ -1201,15 +1201,8 @@
     height: 80px;
   }
   html.jk-klasse .jk-trepanel {
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: center;
-    padding: 18px;
-  }
-  html.jk-klasse .jk-treknapp {
-    width: min(260px, 100%);
-  }
-  html.jk-klasse .jk-treinfo {
-    width: 100%;
+    grid-template-columns: 170px minmax(0, 1fr);
+    padding: 16px 18px 16px 10px;
   }
   html.jk-klasse .jk-treinfo h2 {
     font-size: 1.5rem;
