@@ -1,7 +1,13 @@
-/* Julekalenderen: a night-blue calendar with cream paper doors, snow and a warm glow. */
+/* Julekalenderen: a night-blue calendar with cream paper doors, snow, a warm glow – and the shared
+   Christmas tree that fills up through December. Door pages are big paper cards with large text, so
+   the phone can host from the middle of the table. Wide screens in class mode (html.jk-klasse) get
+   a smartboard layout. Printing gives the paper calendar, the tree or the door on white paper. */
 
 .skjerm-hjem,
-.skjerm-luke {
+.skjerm-luke,
+.skjerm-tre,
+.skjerm-utskrift,
+.skjerm-oppsett {
   gap: 14px;
 }
 
@@ -12,8 +18,8 @@
   gap: 12px;
 }
 .jk-hode .figur-ramme {
-  width: 74px;
-  height: 74px;
+  width: 70px;
+  height: 70px;
   flex: none;
 }
 .jk-hode .figur-ramme svg {
@@ -38,6 +44,251 @@
   font-family: var(--font-display);
   font-size: 1.05rem;
 }
+.jk-h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 6.4vw, 1.9rem);
+}
+
+/* ---------- The tree (SVG) ---------- */
+.jk-tre {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.jk-orn-ny {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: jk-heng 0.9s cubic-bezier(0.3, 0.8, 0.35, 1.3) both;
+}
+@keyframes jk-heng {
+  0% {
+    transform: translateY(-60px) scale(1.6);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(3px) rotate(6deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+.jk-lys {
+  animation: jk-blink 1.6s ease-in-out infinite;
+}
+.jk-lys:nth-of-type(2n) {
+  animation-delay: 0.8s;
+}
+@keyframes jk-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* The tree on the home screen, with the count and today's host. */
+.jk-trepanel {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px 12px 8px;
+  border-radius: var(--r-stor, 22px);
+  background:
+    radial-gradient(90% 80% at 20% 30%, rgba(255, 210, 63, 0.14), transparent 70%),
+    linear-gradient(170deg, #241654, #160d33);
+  border: 2px solid rgba(255, 241, 221, 0.1);
+}
+.jk-treknapp {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  cursor: pointer;
+}
+.jk-treinfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.jk-treinfo h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.jk-tretall {
+  margin: 0;
+  color: var(--tekst-2);
+}
+.jk-tretall b {
+  color: var(--lampe);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+.jk-linje {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--natt-3);
+  overflow: hidden;
+}
+.jk-linje span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--mynte), var(--lampe));
+}
+
+/* «Dagens nisse» */
+.jk-nisse {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 12px 8px 8px;
+  border-radius: 16px;
+  background: rgba(232, 65, 79, 0.16);
+  border: 2px solid rgba(255, 107, 94, 0.45);
+}
+.jk-nisse p {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.2;
+}
+.jk-nisse p span {
+  color: var(--tekst-2);
+  font-size: 0.82rem;
+}
+.jk-nisse p b {
+  overflow-wrap: anywhere;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+.jk-nisse .avatar {
+  flex: none;
+}
+.jk-nisse .lenke {
+  flex: none;
+  padding: 6px 4px;
+}
+.jk-nisse-lue {
+  flex: none;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+.jk-nisse-tom p span {
+  font-size: 0.9rem;
+}
+.jk-treinfo .jk-nisse {
+  padding: 6px 8px;
+}
+.jk-treinfo .jk-nisse p b {
+  font-size: 1.02rem;
+}
+
+/* ---------- Before December ---------- */
+.jk-teaser {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--r-stor, 22px);
+  background:
+    radial-gradient(100% 70% at 100% 100%, rgba(61, 227, 176, 0.14), transparent 70%),
+    linear-gradient(170deg, #241654, #160d33);
+  border: 2px solid rgba(255, 241, 221, 0.1);
+}
+.jk-teaser h2 {
+  margin: 0 0 6px;
+  color: var(--lampe);
+  font-size: 1.35rem;
+}
+.jk-teaser p {
+  margin: 0 0 10px;
+  color: var(--tekst-2);
+}
+.jk-deler {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+.jk-deler li {
+  display: flex;
+  gap: 8px;
+  line-height: 1.3;
+}
+.jk-deler li > span:first-child {
+  flex: none;
+  width: 1.4em;
+  text-align: center;
+}
+.jk-teaser .jk-teaser-tre {
+  margin: 0;
+  color: var(--tekst);
+  font-weight: 700;
+}
+.jk-teaser-bilde {
+  align-self: end;
+}
+.jk-hvem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: var(--natt-2);
+}
+.jk-hvem p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+}
+.jk-hvem p > span:first-child {
+  font-size: 1.6rem;
+}
+.jk-hvem p > span:last-child {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.jk-hvem small {
+  color: var(--tekst-2);
+}
+.jk-hvem .knapp-2 {
+  flex: none;
+  width: auto;
+  min-height: 44px;
+  padding-inline: 16px;
+}
+
+/* ---------- After Christmas ---------- */
+.jk-takk {
+  padding: 16px;
+  border-radius: var(--r-stor, 22px);
+  background: linear-gradient(170deg, #fff8ec, var(--papir));
+  border: 3px solid var(--blekk);
+  box-shadow: 0 6px 0 #0b0618;
+  color: var(--blekk);
+}
+.jk-takk h2 {
+  margin: 0 0 6px;
+  color: var(--rod-dyp);
+}
+.jk-takk p {
+  margin: 0;
+  color: var(--blekk-2);
+}
 
 /* ---------- The calendar ---------- */
 .jk-kalender {
@@ -52,7 +303,7 @@
     linear-gradient(180deg, #1d1446, #120a2a);
   box-shadow: 0 10px 30px var(--skygge), inset 0 0 0 2px rgba(255, 241, 221, 0.06);
 }
-/* Falling snow: two layers of dots drifting down (still with reduced motion). */
+/* Falling snow: two layers of dots drifting down. */
 .jk-sno,
 .jk-sno::after {
   position: absolute;
@@ -182,7 +433,6 @@
   font-size: 0.7rem;
   color: var(--lampe-dyp);
 }
-/* Closed doors before their day are a little quieter. */
 .jk-last .jk-dor {
   filter: saturate(0.75) brightness(0.92);
 }
@@ -190,7 +440,7 @@
   filter: saturate(0.85) brightness(0.97);
 }
 
-/* Opened: the flap stands ajar and the sticker sits in the hollow. */
+/* Opened: the flap stands ajar and the sticker sits in the hollow; done: a green tick. */
 .jk-hull {
   position: absolute;
   inset: 0;
@@ -209,38 +459,27 @@
 .jk-apner .jk-dor {
   transform: rotateY(-72deg);
 }
-
+.jk-ferdig::after {
+  content: "✓";
+  position: absolute;
+  right: -3px;
+  top: -3px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--blekk);
+  background: var(--mynte);
+  color: var(--blekk);
+  font: 900 0.68rem/1 var(--font-display);
+}
 .jk-luke.risting {
   animation: rist 0.4s;
 }
 
-/* ---------- Progress and stickers ---------- */
-.jk-samling {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.jk-telling {
-  margin: 0;
-  color: var(--tekst-2);
-}
-.jk-telling b {
-  color: var(--tekst);
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-}
-.jk-linje {
-  height: 8px;
-  border-radius: 99px;
-  background: var(--natt-3);
-  overflow: hidden;
-}
-.jk-linje span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--mynte), var(--lampe));
-}
+/* ---------- Stickers ---------- */
 .jk-merker {
   display: flex;
   flex-wrap: wrap;
@@ -249,13 +488,13 @@
 .jk-merke {
   display: inline-grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   background: var(--papir);
   border: 2.5px solid var(--blekk);
   box-shadow: 0 3px 0 #0b0618;
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
   transform: rotate(-4deg);
 }
@@ -270,25 +509,29 @@
 .jk-side {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 .jk-topp {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+}
+.jk-topp-tekst {
+  min-width: 0;
 }
 .jk-topp h1 {
   margin: 2px 0 0;
-  font-size: clamp(1.45rem, 6.4vw, 1.9rem);
+  font-size: clamp(1.4rem, 6.4vw, 1.85rem);
   line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 .jk-merke.jk-stort {
   flex: none;
-  width: 84px;
-  height: 84px;
-  border-radius: 20px;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
   border-width: 3px;
-  font-size: 50px;
+  font-size: 36px;
   box-shadow: 0 5px 0 #0b0618, 0 0 24px rgba(255, 210, 63, 0.35);
 }
 .jk-nytt {
@@ -304,16 +547,52 @@
     opacity: 1;
   }
 }
-.jk-fikk {
-  margin: 4px 0 0;
-  color: var(--lampe);
-  font-weight: 700;
+
+/* The parts of the door: one segment each, the current one lit. */
+.jk-steg ol {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.jk-stegknapp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 100%;
+  min-height: 48px;
+  padding: 5px 2px 4px;
+  border: 2px solid rgba(255, 241, 221, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 241, 221, 0.04);
+  color: var(--tekst-2);
+  font: 800 0.74rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+.jk-stegknapp span {
+  font-size: 1.05rem;
+  line-height: 1.1;
+}
+.jk-stegknapp.jk-forbi {
+  border-color: rgba(61, 227, 176, 0.55);
+  color: var(--tekst);
+}
+.jk-stegknapp[aria-current] {
+  border-color: var(--lampe);
+  background: var(--lampe);
+  color: var(--blekk);
+  --fokus: var(--blekk);
 }
 
+/* The paper card with today's part, in big type. */
 .jk-kort {
   --fokus: var(--blekk);
   --fokus-2: transparent;
-  padding: 18px 16px;
+  padding: 18px 18px 20px;
   border-radius: var(--r-stor, 22px);
   background: linear-gradient(170deg, #fff8ec, var(--papir));
   border: 3px solid var(--blekk);
@@ -326,151 +605,388 @@
 .jk-kort > :last-child {
   margin-bottom: 0;
 }
-.jk-sporsmal {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.3rem;
-  line-height: 1.3;
+.jk-etikett {
+  margin: 0 0 8px;
+  color: var(--rod-dyp);
+  font: 800 0.8rem/1.3 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.jk-kort-tittel {
+  margin: 0 0 10px;
+  color: var(--blekk);
+  font-size: clamp(1.35rem, 6vw, 1.7rem);
+  line-height: 1.15;
+}
+.jk-stortekst {
   margin: 0 0 14px;
+  font-size: 1.16rem;
+  line-height: 1.5;
 }
-.jk-sporsmal.jk-liten {
-  font-family: var(--font-tekst);
-  font-weight: 600;
-  font-size: 1.12rem;
-  line-height: 1.45;
+.jk-smaa {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #e7f6e3;
+  color: #0f4d3a;
+  line-height: 1.4;
 }
-.jk-tekst {
-  margin: 0 0 12px;
+.jk-prat {
+  margin: 4px 0 16px;
+  font: 800 clamp(1.4rem, 6.4vw, 1.75rem) / 1.25 var(--font-display);
+  text-wrap: balance;
+}
+.jk-videre {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-left: 5px solid var(--rosa-dyp);
+  border-radius: 0 12px 12px 0;
+  background: #fde8ee;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+.jk-kort .hjelp {
   color: var(--blekk-2);
 }
-.jk-tenk {
+.jk-sporsmal {
+  margin: 0 0 14px;
+  font: 800 1.3rem/1.3 var(--font-display);
+  text-wrap: balance;
+}
+.jk-midt {
+  text-align: center;
+}
+.jk-fra {
+  margin: 0 0 6px;
+  color: #1f66a8;
+  font-weight: 800;
+}
+.jk-instruks {
+  margin: 12px 0 0;
+  color: var(--blekk-2);
   font-style: italic;
+  line-height: 1.4;
 }
-.jk-hint {
-  margin: 0 0 12px;
-  font-size: 1.08rem;
-  line-height: 1.45;
-}
-
-.jk-valgliste {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.jk-poeng {
+  display: block;
+  margin-top: 6px;
+  color: #0f6e54;
+  font-style: normal;
+  font-weight: 800;
 }
 .jk-valg {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.jk-valg li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   min-height: 52px;
-  padding: 10px 14px;
+  padding: 8px 14px 8px 8px;
   border: 2.5px solid var(--blekk);
   border-radius: 14px;
   background: #fff;
-  box-shadow: 0 3px 0 var(--blekk);
-  color: var(--blekk);
-  font: 700 1.05rem/1.25 var(--font-tekst);
-  text-align: left;
-  cursor: pointer;
+  font: 700 1.12rem/1.25 var(--font-tekst);
 }
-.jk-valg:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--blekk);
+.jk-valg-nr {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--lampe);
+  border: 2px solid var(--blekk);
+  font: 900 1.1rem/1 var(--font-display);
 }
-.jk-valg.riktig {
+.jk-valg li.riktig {
   background: #c9f5e3;
   border-color: #0f6e54;
-  box-shadow: 0 3px 0 #0f6e54;
 }
-.jk-valg.feil {
-  background: #ffdbe1;
-  border-color: var(--rosa-dyp);
-  box-shadow: 0 3px 0 var(--rosa-dyp);
+.jk-valg li.riktig .jk-valg-nr {
+  background: var(--mynte);
 }
-.jk-valg.av {
-  opacity: 0.55;
-}
-.jk-valg[aria-disabled="true"] {
-  cursor: default;
-  transform: none;
+.jk-valg li.av {
+  opacity: 0.5;
 }
 .jk-hake {
+  margin-left: auto;
   color: #0f6e54;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+.jk-svar {
+  margin: 14px 0 0;
+  color: #0f6e54;
+  font-weight: 800;
   font-size: 1.2rem;
 }
-
-.jk-resultat {
-  margin: 14px 0 0;
-  font-weight: 800;
-  font-size: 1.12rem;
-  color: var(--rod-dyp);
-}
-.jk-resultat.ja {
-  color: #0f6e54;
-}
-.jk-resultat span {
+.jk-svar span {
   display: block;
   margin-top: 6px;
-  font-weight: 500;
-  font-size: 1rem;
   color: var(--blekk-2);
+  font-weight: 500;
+  font-size: 1.02rem;
 }
 
-/* Word puzzle */
-.jk-ruter {
+/* «Dagens figur»: the game's mascot with its own words. */
+.jk-figur {
   display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin: 4px 0 16px;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
 }
-.jk-rute {
-  flex: 1 1 0;
-  max-width: 44px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  border: 2.5px dashed var(--blekk-2);
-  border-radius: 10px;
-  font: 900 1.45rem/1 var(--font-display);
+.jk-figur .figur-ramme {
+  flex: none;
+  width: 66px;
+  height: 66px;
 }
-.jk-rute.full {
-  border-style: solid;
-  border-color: var(--blekk);
+.jk-figur .figur-ramme svg {
+  width: 100%;
+  height: 100%;
+}
+.jk-boble {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  margin: 6px 0 0;
+  padding: 12px 14px;
+  border: 2.5px solid var(--blekk);
+  border-radius: 18px 18px 18px 6px;
   background: #fff;
 }
-.jk-rute.riktig {
-  background: #c9f5e3;
-  border-color: #0f6e54;
-  color: #0f6e54;
+.jk-boble::before {
+  content: "";
+  position: absolute;
+  left: -11px;
+  top: 18px;
+  border: 9px solid transparent;
+  border-right-color: var(--blekk);
+  border-left-width: 0;
 }
-.jk-brikker {
+.jk-boble p {
+  margin: 0;
+  font-size: 1.04rem;
+  line-height: 1.42;
+  font-style: italic;
+}
+.jk-boble cite {
+  display: block;
+  margin-top: 6px;
+  color: var(--rod-dyp);
+  font: 800 0.86rem/1.2 var(--font-display);
+  font-style: normal;
+}
+.jk-spillknapp {
+  text-decoration: none;
+}
+.jk-fikk {
+  margin: 4px 0 0;
+  color: var(--lampe);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.jk-pynt-tre {
+  width: min(250px, 70%);
+  margin: 0 auto 10px;
+  padding: 10px 14px 4px;
+  border-radius: 20px;
+  background: radial-gradient(80% 70% at 50% 40%, #2c1c5c, #150c28);
+}
+.jk-sidetre {
+  display: none;
+}
+
+/* ---------- The tree page ---------- */
+.jk-treside {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   gap: 8px;
 }
-.jk-brikke {
-  width: 48px;
-  height: 52px;
-  border: 2.5px solid var(--blekk);
-  border-radius: 12px;
-  background: var(--lampe);
-  box-shadow: 0 4px 0 var(--blekk);
+.jk-treside h1 {
+  margin: 0;
+  color: var(--lampe);
+  font-size: clamp(1.6rem, 7vw, 2.2rem);
+  text-align: center;
+}
+.jk-tre-aar {
+  margin: 0;
+  color: var(--tekst-2);
+}
+.jk-stortre {
+  width: min(320px, 82%);
+  padding: 8px 0;
+}
+.jk-treside .jk-sporsmal {
+  color: var(--tekst);
+}
+.jk-treside .hjelp {
+  margin: 0;
+}
+
+/* ---------- The paper calendar (screen preview; A4 in print) ---------- */
+.jk-utskrift-intro h1 {
+  margin: 0 0 6px;
+  font-size: clamp(1.5rem, 6.4vw, 1.9rem);
+}
+.jk-utskrift-intro p {
+  margin: 0;
+  color: var(--tekst-2);
+}
+.jk-ark {
+  --fokus: var(--blekk);
+  padding: 12px;
+  border-radius: 14px;
+  background: #fffdf8;
   color: var(--blekk);
-  font: 900 1.5rem/1 var(--font-display);
-  cursor: pointer;
+  box-shadow: 0 8px 26px var(--skygge);
 }
-.jk-brikke:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 var(--blekk);
+.jk-ark-hode {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
-.jk-brikke:disabled {
-  opacity: 0.2;
-  box-shadow: none;
-  transform: translateY(3px);
+.jk-ark-hode .figur-ramme {
+  flex: none;
+  width: 46px;
+  height: 46px;
+}
+.jk-ark-hode .figur-ramme svg {
+  width: 100%;
+  height: 100%;
+}
+.jk-ark-tittel {
+  margin: 0;
+  color: #b3263a;
+  font: 900 1.25rem/1.1 var(--font-display);
+}
+.jk-ark-under {
+  margin: 2px 0 0;
+  color: var(--blekk-2);
+  font-size: 0.86rem;
+}
+.jk-ark-dorer {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.jk-ark-dor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 4px 6px;
+  border: 2px solid var(--blekk);
+  border-radius: 10px;
+  background: #fff6e8;
+}
+.jk-ark-dor:nth-child(3n) {
+  background: #ffe9e1;
+}
+.jk-ark-dor:nth-child(4n + 1) {
+  background: #eaf6e5;
+}
+.jk-ark-24 {
+  border-color: #d8404d !important;
+  box-shadow: inset 0 0 0 3px #f3b8be;
+  background: #fff1f1 !important;
+}
+.jk-ark-24 .jk-ark-nr {
+  color: #b3263a;
+}
+.jk-ark-nr {
+  align-self: flex-start;
+  min-width: 1.6em;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.85);
+  font: 900 1.05rem/1.2 var(--font-display);
+  text-align: center;
+}
+.jk-ark-qr {
+  display: block;
+  width: 78%;
+}
+.jk-ark-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.jk-ark-fot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: 10px;
+  color: var(--blekk-2);
+  font-size: 0.82rem;
+}
+.jk-ark-adresse {
+  color: #b3263a;
+  font-weight: 800;
+}
+
+/* ---------- Setup ---------- */
+.jk-grupper .fliser {
+  grid-template-columns: minmax(0, 1fr);
+}
+.jk-grupper .flis {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 2px;
+  padding-block: 12px;
+  text-align: left;
+}
+.jk-grupper .flis-ikon {
+  grid-row: span 2;
+  justify-self: center;
+  font-size: 1.9rem;
 }
 
 /* ---------- Small and sideways screens ---------- */
+@media (max-width: 359px) {
+  .jk-trepanel {
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .jk-teaser {
+    grid-template-columns: minmax(0, 1fr) 70px;
+    padding: 14px 12px;
+  }
+  .jk-kort {
+    padding: 16px 14px 18px;
+  }
+  .jk-stortekst {
+    font-size: 1.08rem;
+  }
+  .jk-stegknapp {
+    font-size: 0.66rem;
+  }
+  .jk-figur .figur-ramme {
+    width: 64px;
+    height: 64px;
+  }
+  .jk-ark {
+    padding: 8px;
+  }
+  .jk-ark-dorer {
+    gap: 4px;
+  }
+}
 @media (max-height: 700px) {
   .jk-hode .figur-ramme {
     width: 54px;
@@ -488,13 +1004,42 @@
   .jk-luke {
     aspect-ratio: 1.2 / 1;
   }
-  .skjerm-hjem {
+  .skjerm-hjem,
+  .skjerm-luke {
     gap: 10px;
   }
   .jk-merke.jk-stort {
-    width: 66px;
-    height: 66px;
-    font-size: 38px;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    font-size: 26px;
+  }
+  .jk-topp h1 {
+    font-size: 1.35rem;
+  }
+  .jk-fikk {
+    font-size: 0.82rem;
+  }
+  .jk-side {
+    gap: 9px;
+  }
+  .jk-side .jk-nisse {
+    padding: 5px 10px 5px 6px;
+  }
+  .jk-side .jk-nisse .avatar.mid {
+    width: 38px;
+    height: 38px;
+    font-size: 1.2rem;
+  }
+  .jk-side .jk-nisse p span:last-child {
+    display: none;
+  }
+  .jk-side .jk-nisse p b {
+    font-size: 1.05rem;
+  }
+  .jk-stegknapp {
+    min-height: 42px;
+    padding-block: 3px;
   }
   .jk-kalender {
     padding: 9px;
@@ -502,16 +1047,27 @@
   .jk-rutenett {
     gap: 5px;
   }
+  .jk-trepanel {
+    grid-template-columns: 96px minmax(0, 1fr);
+    padding-block: 8px;
+  }
 }
 @media (orientation: landscape) and (max-height: 500px) {
   .jk-hode .figur-ramme {
-    width: 48px;
-    height: 48px;
+    width: 46px;
+    height: 46px;
   }
   .jk-tittel h1 {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
   }
-  /* Eight doors in three rows: the whole calendar in view beside the dock. */
+  /* The calendar first (the tree, the host and the rest below it): eight doors in three rows,
+     the whole calendar in view beside the dock. */
+  .skjerm-hjem > .jk-hode {
+    order: -2;
+  }
+  .skjerm-hjem > .jk-kalender {
+    order: -1;
+  }
   .jk-rutenett {
     grid-template-columns: repeat(8, 1fr);
     gap: 5px;
@@ -538,7 +1094,8 @@
     left: 4px;
     font-size: 0.55rem;
   }
-  .skjerm-hjem {
+  .skjerm-hjem,
+  .skjerm-luke {
     gap: 10px;
   }
   .jk-nr {
@@ -547,16 +1104,376 @@
   .jk-hull {
     font-size: 1.4rem;
   }
+  .jk-trepanel {
+    grid-template-columns: 84px minmax(0, 1fr);
+    padding-block: 8px;
+  }
+  .jk-teaser {
+    grid-template-columns: minmax(0, 1fr) 80px;
+  }
+  .jk-merke.jk-stort {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    font-size: 24px;
+  }
+  .jk-topp h1 {
+    font-size: 1.3rem;
+  }
+  .jk-side {
+    gap: 8px;
+  }
+  .jk-side .jk-nisse {
+    padding: 4px 10px 4px 6px;
+  }
+  .jk-side .jk-nisse .avatar.mid {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
+  .jk-side .jk-nisse p span:last-child {
+    display: none;
+  }
+  .jk-stegknapp {
+    min-height: 40px;
+    padding-block: 3px;
+  }
+  .jk-stortre {
+    width: 190px;
+  }
+  .jk-pynt-tre {
+    width: 170px;
+  }
+}
+
+/* Tablets and computers: wider doors, so the whole calendar fits above the dock. */
+@media (min-width: 700px) and (min-height: 501px) {
+  .jk-luke {
+    aspect-ratio: 1.35 / 1;
+  }
+  .jk-luke.jk-stor {
+    aspect-ratio: auto;
+  }
+}
+
+/* ---------- Class mode on a big screen (smartboard) ---------- */
+@media (min-width: 900px) {
+  html.jk-klasse .app {
+    max-width: 1240px;
+  }
+  html.jk-klasse .skjerm-hjem {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
+    align-content: start;
+    align-items: start;
+    gap: 20px 28px;
+  }
+  html.jk-klasse .skjerm-hjem > * {
+    grid-column: 1 / -1;
+  }
+  html.jk-klasse .skjerm-hjem > .jk-kalender {
+    grid-column: 1;
+    grid-row: 2 / span 4;
+  }
+  html.jk-klasse .skjerm-hjem > :is(.jk-trepanel, .jk-takk, .jk-teaser, .jk-hvem, .jk-samling) {
+    grid-column: 2;
+  }
+  html.jk-klasse .jk-rutenett {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 9px;
+  }
+  html.jk-klasse .jk-luke,
+  html.jk-klasse .jk-luke.jk-stor {
+    grid-column: span 1;
+    aspect-ratio: 1.32 / 1;
+  }
+  html.jk-klasse .jk-hode {
+    gap: 16px;
+  }
+  html.jk-klasse .jk-nr {
+    font-size: 2rem;
+  }
+  html.jk-klasse .jk-tittel h1 {
+    font-size: 2.6rem;
+  }
+  html.jk-klasse .jk-hode .figur-ramme {
+    width: 80px;
+    height: 80px;
+  }
+  html.jk-klasse .jk-trepanel {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    padding: 18px;
+  }
+  html.jk-klasse .jk-treknapp {
+    width: min(260px, 100%);
+  }
+  html.jk-klasse .jk-treinfo {
+    width: 100%;
+  }
+  html.jk-klasse .jk-treinfo h2 {
+    font-size: 1.5rem;
+  }
+  html.jk-klasse .jk-teaser {
+    grid-template-columns: minmax(0, 1fr) 140px;
+  }
+  /* A door: the card big on the left, the tree on the right. */
+  html.jk-klasse .jk-side {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 16px 32px;
+  }
+  html.jk-klasse .jk-side > * {
+    grid-column: 1;
+  }
+  html.jk-klasse .jk-side > .jk-nisse {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+  }
+  html.jk-klasse .jk-side > .jk-sidetre {
+    display: block;
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    align-self: start;
+    padding: 18px;
+    border-radius: 24px;
+    background: radial-gradient(80% 70% at 50% 40%, #2c1c5c, #150c28);
+  }
+  html.jk-klasse .jk-topp h1 {
+    font-size: 2.8rem;
+  }
+  html.jk-klasse .jk-merke.jk-stort {
+    width: 90px;
+    height: 90px;
+    font-size: 52px;
+  }
+  html.jk-klasse .jk-nisse p b {
+    font-size: 1.5rem;
+  }
+  html.jk-klasse .jk-stegknapp {
+    min-height: 60px;
+    font-size: 1rem;
+  }
+  html.jk-klasse .jk-stegknapp span {
+    font-size: 1.4rem;
+  }
+  html.jk-klasse .jk-kort {
+    padding: 28px 32px 32px;
+  }
+  html.jk-klasse .jk-etikett {
+    font-size: 1rem;
+  }
+  html.jk-klasse .jk-kort-tittel {
+    font-size: 2.4rem;
+  }
+  html.jk-klasse .jk-stortekst {
+    font-size: 1.65rem;
+    line-height: 1.45;
+  }
+  html.jk-klasse .jk-prat {
+    font-size: 2.5rem;
+  }
+  html.jk-klasse .jk-videre {
+    font-size: 1.5rem;
+  }
+  html.jk-klasse .jk-sporsmal {
+    font-size: 2rem;
+  }
+  html.jk-klasse .jk-valg li {
+    min-height: 68px;
+    font-size: 1.55rem;
+  }
+  html.jk-klasse .jk-valg-nr {
+    width: 46px;
+    height: 46px;
+    font-size: 1.5rem;
+  }
+  html.jk-klasse .jk-svar,
+  html.jk-klasse .jk-instruks,
+  html.jk-klasse .jk-boble p {
+    font-size: 1.45rem;
+  }
+  html.jk-klasse .jk-figur .figur-ramme {
+    width: 130px;
+    height: 130px;
+  }
+  html.jk-klasse .jk-kort .hjelp {
+    font-size: 1.1rem;
+  }
+  html.jk-klasse .jk-pynt-tre {
+    width: 300px;
+  }
+  html.jk-klasse .jk-ark {
+    max-width: 760px;
+    margin-inline: auto;
+  }
+  html.jk-klasse .skjerm-oppsett,
+  html.jk-klasse .skjerm-utskrift > .jk-utskrift-intro {
+    max-width: 760px;
+    width: 100%;
+    margin-inline: auto;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .jk-sno,
   .jk-sno::after,
   .jk-idag:not(.jk-apen) .jk-dor,
-  .jk-nytt {
+  .jk-nytt,
+  .jk-orn-ny,
+  .jk-lys {
     animation: none;
   }
   .jk-dor {
     transition: none;
+  }
+}
+
+/* ---------- Print: ink on white paper ---------- */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+  html,
+  body {
+    height: auto !important;
+    min-height: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  body {
+    display: block !important;
+    padding: 0 !important;
+  }
+  body > :not(.app),
+  .topp,
+  #skjerm > .dokk,
+  .jk-sno,
+  .jk-steg,
+  .jk-sidetre,
+  .jk-ikke-utskrift,
+  .jk-spillknapp,
+  .jk-nisse .lenke,
+  .jk-treknapp + .jk-treinfo .jk-nisse {
+    display: none !important;
+  }
+  .app,
+  main,
+  #skjerm {
+    display: block !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    animation: none !important;
+  }
+  #skjerm > * + * {
+    margin-top: 5mm;
+  }
+  #skjerm,
+  #skjerm h1,
+  #skjerm h2,
+  .jk-status,
+  .jk-status b,
+  .jk-tre-aar,
+  .jk-nisse p span,
+  .jk-tretall,
+  .jk-tretall b,
+  .jk-teaser p,
+  .jk-treside .jk-sporsmal {
+    color: #000 !important;
+  }
+  .jk-kort,
+  .jk-takk,
+  .jk-teaser,
+  .jk-trepanel,
+  .jk-nisse,
+  .jk-hvem {
+    border: 0.4mm solid #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+  .jk-tre,
+  .jk-pynt-tre,
+  .jk-stortre,
+  .jk-ark,
+  .jk-ark * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .jk-pynt-tre {
+    background: #150c28 !important;
+  }
+
+  /* The paper calendar: one A4 page, four doors across and six down. */
+  html:has(.skjerm-utskrift) .jk-utskrift-intro {
+    display: none !important;
+  }
+  .jk-ark {
+    display: flex !important;
+    flex-direction: column;
+    width: 190mm;
+    height: 274mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+  .jk-ark-hode {
+    margin-bottom: 4mm;
+  }
+  .jk-ark-hode .figur-ramme {
+    width: 18mm;
+    height: 18mm;
+  }
+  .jk-ark-tittel {
+    font-size: 24pt;
+  }
+  .jk-ark-under {
+    font-size: 11pt;
+  }
+  .jk-ark-dorer {
+    flex: 1;
+    grid-template-rows: repeat(6, minmax(0, 1fr));
+    gap: 3mm;
+  }
+  .jk-ark-dor {
+    justify-content: center;
+    padding: 2mm;
+    border: 0.6mm solid #170e2b;
+    border-radius: 3mm;
+    break-inside: avoid;
+  }
+  .jk-ark-nr {
+    position: absolute;
+    top: 1.5mm;
+    left: 2mm;
+    font-size: 16pt;
+  }
+  .jk-ark-qr {
+    width: 25mm;
+  }
+  .jk-ark-fot {
+    margin-top: 4mm;
+    font-size: 10pt;
+  }
+
+  /* The tree: big, in the middle of the page. */
+  html:has(.skjerm-tre) .jk-treside {
+    align-items: center;
+  }
+  html:has(.skjerm-tre) .jk-stortre {
+    width: 150mm;
+    padding: 8mm;
+    border-radius: 6mm;
+    background: #150c28;
+  }
+  .jk-treside h1 {
+    font-size: 28pt;
   }
 }
