@@ -12,6 +12,8 @@ build's page head (`hode()` in `scripts/rusj.mjs`) or the way files get their ad
 - **Files never change.** Every script, stylesheet and icon a page names carries
   `?v=<hash of its content>`. The worker fetches such a file once and keeps it. It finds a page's
   files by reading the page: every `src="/…?v=…"` and `href="/…?v=…"`. There is no second list.
+  A picture with `loading="lazy"` (the front page's mascots further down) is not needed to show
+  the page: the browser fetches it when someone scrolls to it, the worker last when idle.
 - **First visit:** the worker stores the front page, the manifest and the page that is open.
   About 0.1–0.2 MB, most of it already in the browser's own cache.
 - **When idle:** the rest of the games, one page at a time, a few seconds after the last request
