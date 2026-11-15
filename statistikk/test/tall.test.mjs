@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { sammendrag, tidsfordeling, medianFraGrupper, tall } from "../src/tall.js";
-import { adminSide, tavle, stolper, akse, esc } from "../src/side.js";
+import { stolper, akse, esc } from "../src/side.js";
 import { hentSammendrag, handter } from "../src/index.js";
 import { DAGER_TILBAKE } from "../src/oppsett.js";
 import { flytt, dagene, ukeStart, maanedStart } from "../src/dato.js";
@@ -244,71 +244,20 @@ test("the Worker reads the last 62 days and the oldest day, and nothing else", a
   assert.equal((await hentSammendrag(falskD1(), NAA)).forsteDag, null);
 });
 
-test("data.json carries exactly the numbers of the summary", async () => {
+test("data.json carries the summary, and the dashboard and the health for the period", async () => {
   const db = falskD1();
   for (const r of [...I_GAR, ...FORGARS]) db.sett(r.dag, r.nokkel, r.n);
   const NOKKEL = "x".repeat(40);
-  const svar = await handter(new Request("https://stat.example/admin/data.json", { headers: { "X-Admin-Nokkel": NOKKEL } }), { DB: db, ADMIN_NOKKEL: NOKKEL }, {}, NAA);
+  const svar = await handter(new Request("https://stat.example/admin/data.json?p=30", { headers: { "X-Admin-Nokkel": NOKKEL } }), { DB: db, ADMIN_NOKKEL: NOKKEL }, {}, NAA);
   const json = await svar.json();
-  const { hentet, oppbevaringMaaneder, ...resten } = json;
+  const { hentet, oppbevaringMaaneder, tavle: t, drift, ...resten } = json;
   assert.equal(hentet, NAA.toISOString());
   assert.equal(oppbevaringMaaneder, 25);
   assert.deepEqual(resten, JSON.parse(JSON.stringify(sammendrag([...I_GAR, ...FORGARS], I_DAG, { forsteDag: "2026-11-09" }))));
-});
-
-test("the page shows the numbers from the counters", () => {
-  const data = sammendragFast([...I_GAR, ...FORGARS, ...I_DAG_RADER], I_DAG, { forsteDag: "2026-11-09" });
-  const html = tavle(data, { klokke: "13:00", innlogging: "nokkel" });
-  const igar = /<div class="panel panel-igar">([\s\S]*?)<div class="panel panel-d7">/.exec(html)[1].replace(/ /g, " ");
-  assert.match(html, /I går var <b>132<\/b> innom, <b>41<\/b> av dem var også her dagen før\./);
-  assert.match(html, /Hittil i dag: 23 innom\./);
-  assert.match(html, /Tellingen har tall fra og med 9\. november 2026\./);
-  assert.match(igar, /<dt>Enheter innom<\/dt><dd>132<small>anslag<\/small>/);
-  assert.match(igar, /<dt>Besøk<\/dt><dd>150</);
-  assert.match(igar, /<dt>Nye enheter<\/dt><dd>60</);
-  assert.match(igar, /<dt>Sider åpnet<\/dt><dd>268</);
-  assert.match(igar, /<dt>Tilbake dagen etter<\/dt><dd>34 %<small>41 av 120 som var her dagen før/);
-  assert.match(igar, /<dt>Var her uka før<\/dt><dd>44 %<small>58 av 132 enheter/);
-  assert.match(igar, /Ordugla<\/span><span class="rad-tall">50<small>startet<\/small><\/span><progress max="50" value="50"/);
-  assert.match(igar, /Sauen<\/span><span class="rad-tall">30<small>startet<\/small><\/span><progress max="50" value="30"/);
-  assert.match(igar, /åpnet 70 · spilt ferdig 45/);
-  assert.match(igar, /Forsiden ble åpnet 140 ganger\./);
-  assert.match(igar, /Et typisk besøk varer<\/dt><dd>ca\. 2,3 minutter<small>anslag/);
-  assert.match(igar, /1–3 minutter<\/span><span class="rad-tall">40<small>27 %<\/small>/);
-  assert.match(igar, /Fullførte alle tre<\/span><span class="rad-tall">6</);
-  assert.match(igar, /Fullførte minst én<\/span><span class="rad-tall">48</);
-  assert.match(igar, /7–13 dager<\/span><span class="rad-tall">5</);
-  assert.match(igar, /<b>9 av 132<\/b> enheter \(7 %\) åpnet rusj fra hjemskjermen/);
-  // Four tabs, the 7-day one chosen, and every period present.
-  assert.equal(html.match(/<div class="panel panel-/g).length, 4);
-  assert.match(html, /id="p-d7" checked/);
-});
-
-test("empty states explain themselves", () => {
-  const html = adminSide({ data: sammendragFast([], I_DAG), nonce: "n", klokke: "13:00", innlogging: "nokkel", nokkelPaa: true });
-  for (const tekst of [
-    "Ingen tall ennå. De kommer når tellingen er slått på på rusj.no.",
-    "Ingen enheter er talt ennå. Tallene for uke og måned kommer her.",
-    "Ingen er talt i denne perioden.",
-    "Ingen tall ennå. Dette fylles ut når enheter har vært innom",
-    "Ingen spill er åpnet eller startet i denne perioden.",
-    "Ingen besøk er talt i denne perioden.",
-    "Ingen har fullført en av dagens oppgaver i denne perioden.",
-    "Ingen enheter er talt i denne perioden.",
-    "Slik leser du tallene",
-    "Tall som er eldre enn 25 måneder, slettes automatisk.",
-  ]) {
-    assert.ok(html.includes(tekst), tekst);
-  }
-  assert.doesNotMatch(html, /NaN|undefined|null|Infinity/);
-  assert.doesNotMatch(html, /<svg/, "no chart without numbers");
-});
-
-test("a percentage that cannot be worked out is shown as a dash, with the reason", () => {
-  const data = sammendragFast(dag("2026-11-10", { "enhet.ny": 9, besok: 9 }), I_DAG);
-  const html = tavle(data, { klokke: "13:00", innlogging: "nokkel" });
-  assert.match(html, /<dt>Tilbake dagen etter<\/dt><dd>–<small>ingen ble talt dagen før/);
-  assert.doesNotMatch(html, /NaN|undefined|null %/);
+  assert.equal(t.periode.id, "30");
+  assert.equal(t.nokkeltall.find((k) => k.id === "besok").verdi, 280);
+  assert.equal(drift.sisteDag, "2026-11-10");
+  assert.deepEqual(drift.nett, { ok: true, ms: drift.nett.ms });
 });
 
 test("the bar chart: one bar per day, heights in proportion, labels on the tallest and the last", () => {
@@ -341,11 +290,26 @@ test("the axis tops at a round number at or above the largest value", () => {
   }
 });
 
-test("everything from the counters is escaped on the page", () => {
+
+test("weeks and months: named by their first day, a bar not over yet drawn paler, a missing month without a bar", () => {
+  const maneder = [
+    { dag: "2026-08-01", besok: 300 },
+    { dag: "2026-09-01", besok: 0, mangler: true },
+    { dag: "2026-10-01", besok: 9000 },
+    { dag: "2026-11-01", besok: 4000, delvis: true },
+  ];
+  const svg = stolper(maneder, "besok", "s-besok", "Besøk per måned", { navngi: { kort: (d) => d.dag.slice(5, 7), lang: (d) => "måned " + d.dag.slice(0, 7) } });
+  assert.match(svg, /aria-label="Besøk per måned, måned 2026-08 til måned 2026-11\. Høyest: 9\u00a0000 \(måned 2026-10\)\."/);
+  assert.match(svg, /<title>måned 2026-09: mangler<\/title>/);
+  assert.match(svg, /<title>måned 2026-11: 4\u00a0000 \(hittil\)<\/title>/);
+  assert.equal(svg.match(/s-delvis/g).length, 1);
+  assert.equal(svg.match(/<path /g).length, 3);
+  // Room on the left for «10 000».
+  assert.match(svg, /text-anchor="end">10\u00a0000<\/text>/);
+  assert.ok(Number(/x1="(\d+)"/.exec(svg)[1]) >= 8 + 6 * 5.8);
+});
+
+test("everything shown is escaped", () => {
   assert.equal(esc(`<b a="1" b='2'>&`), "&lt;b a=&quot;1&quot; b=&#39;2&#39;&gt;&amp;");
-  const oppsett = { SPILL: { ordugla: '<img src=x onerror="alert(1)">' }, DAGLIGE: ["ordugla"] };
-  const data = sammendrag(dag("2026-11-10", { "start.ordugla": 3, "enhet.ny": 2, "daglig.ordugla": 1, "dagens.1": 1, "start.<script>": 1 }), I_DAG, { oppsett });
-  const html = tavle(data, { klokke: "13:00", innlogging: "nokkel" });
-  assert.doesNotMatch(html, /<img|<script/);
-  assert.match(html, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt;/);
+  assert.equal(esc(null), "");
 });

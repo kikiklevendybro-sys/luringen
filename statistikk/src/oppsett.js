@@ -18,8 +18,18 @@ export const MAKS_NOKKEL_LENGDE = 40; // characters in one counter name
 // Daily counters are kept this many months, then deleted by the scheduled job.
 export const OPPBEVARING_MND = 25;
 
-// The dashboard reads this many days back (enough for «last 30 days» and «previous month»).
+// The dashboard always reads this many days of daily counters (enough for «previous month», the
+// 8-week sparklines and new games). Longer periods add whole months from table maned.
 export const DAGER_TILBAKE = 62;
+
+// The CSV export gives at most this many days at a time (25 months is about 761).
+export const MAKS_EKSPORT_DAGER = 800;
+
+// The rooms Worker for playing on the net: the dashboard asks its health text (GET / →
+// «rusj-nett: ok») and waits at most this long. The only request this Worker ever makes; it carries
+// nothing about anyone. Empty = no check.
+export const NETT_HELSE = "https://rusj-nett.kikiklevendybro.workers.dev/";
+export const HELSE_FRIST_MS = 2500;
 
 // The admin key (ADMIN_NOKKEL) must be at least this long, or the key login stays closed.
 export const MIN_ADMIN_NOKKEL = 32;

@@ -6,6 +6,15 @@
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
 
+// No request leaves the tests. The dashboard asks the rooms Worker whether it is up (src/helse.js);
+// here the answer comes from falskHent.svar, and every call is written down in hentLogg.
+export const hentLogg = [];
+export const falskHent = { svar: () => new Response("rusj-nett: ok\n") };
+globalThis.fetch = async (url, valg) => {
+  hentLogg.push({ url: String(url), valg });
+  return falskHent.svar(url, valg);
+};
+
 export const SKJEMA = readFileSync(new URL("../schema.sql", import.meta.url), "utf8");
 export const SKJEMA_2 = readFileSync(new URL("../schema-2.sql", import.meta.url), "utf8");
 
