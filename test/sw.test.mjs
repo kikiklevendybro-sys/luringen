@@ -35,7 +35,9 @@ const bytes = (v) => (typeof v === "string" ? new TextEncoder().encode(v) : new 
 
 // lagSted({ spill: ["a", "b"], endret: { a: 2 }, kit: 1 }) → the files of a small rusj: a front page,
 // one page per game, a manifest. `endret` gives a game's script new content (so a new ?v=).
-function lagSted({ spill = ["a", "b", "c"], endret = {}, kit = 1, forside = 1 } = {}) {
+// `figurer`: the front page also shows each game's mascot as a lazy picture (<img loading="lazy">),
+// `figurer[id]` being its content.
+function lagSted({ spill = ["a", "b", "c"], endret = {}, kit = 1, forside = 1, figurer = null } = {}) {
   const filer = new Map(); // path (with ?v=) → { kropp, type }
   const medV = (sti, tekst) => {
     const adr = `${sti}?v=${hashTekst(tekst)}`;
@@ -46,9 +48,18 @@ function lagSted({ spill = ["a", "b", "c"], endret = {}, kit = 1, forside = 1 } 
   const js = medV("/felles/rusj.js", `window.Rusj=${kit};`);
   const portal = medV("/felles/portal.js", `window.portal=${forside};`);
   filer.set("/ikon-192.png?v=bilde", { kropp: new Uint8Array([137, 80, 78, 71, 1, 2, 3]), type: "image/png" });
-  const side = (tittel, skript) =>
-    `<!doctype html><html><head><link rel="icon" href="/ikon-192.png?v=bilde" type="image/png"><link rel="stylesheet" href="${css}">${skript.map((s) => `<script defer src="${s}"></script>`).join("")}<meta property="og:image" content="https://rusj.no/deling.png"></head><body><h1>${tittel}</h1></body></html>`;
-  const sider = [["/", side(`rusj ${forside}`, [portal])]];
+  const side = (tittel, skript, kropp = "") =>
+    `<!doctype html><html><head><link rel="icon" href="/ikon-192.png?v=bilde" type="image/png"><link rel="stylesheet" href="${css}">${skript.map((s) => `<script defer src="${s}"></script>`).join("")}<meta property="og:image" content="https://rusj.no/deling.png"></head><body><h1>${tittel}</h1>${kropp}</body></html>`;
+  const bilder = figurer
+    ? spill
+        .map((id) => {
+          const adr = `/${id}/figur.svg?v=${hashTekst(figurer[id] || id)}`;
+          filer.set(adr, { kropp: figurer[id] || `<svg>${id}</svg>`, type: "image/svg+xml" });
+          return `<li><a href="/${id}/"><img src="${adr}" alt="" loading="lazy" width="64" height="64">${id}</a></li>`;
+        })
+        .join("")
+    : "";
+  const sider = [["/", side(`rusj ${forside}`, [portal], bilder ? `<ul>${bilder}</ul>` : "")]];
   for (const id of spill) sider.push([`/${id}/`, side(id, [js, medV(`/${id}/spill.js`, `spill("${id}",${endret[id] || 1});`)])]);
   for (const [sti, html] of sider) filer.set(sti, { kropp: html, type: "text/html; charset=utf-8" });
   filer.set("/manifest.webmanifest", { kropp: `{"name":"rusj"}`, type: "application/manifest+json" });
@@ -279,6 +290,51 @@ test("Save-Data or 2G: nothing is fetched in the background, but a game is store
     n.vert.nede = true;
     assert.match(await tekst((await sw.naviger("/a/")).svar), /<h1>a<\/h1>/, `${felt}: spillet virker ikke uten nett etter at det ble åpnet`);
   }
+});
+
+test("lazy pictures (the front page's mascots further down): not at install, last when idle, kept, there without a connection", async () => {
+  const figurer = { a: "<svg>a1</svg>", b: "<svg>b1</svg>", c: "<svg>c1</svg>" };
+  const n = lagNettleser();
+  const sted = lagSted({ figurer });
+  const bilder = sted.filerFor("/").filter((s) => s.includes("figur.svg"));
+  assert.equal(bilder.length, 3);
+  n.publiser(sted);
+  const sw = n.arbeider(sted);
+  await sw.installer();
+  assert.ok((await n.lagret()).includes("/"), "forsiden ble ikke lagret uten bildene lenger ned");
+  assert.ok(!n.hentet().some((s) => s.includes("figur.svg")), "bilder med loading=lazy ble hentet ved installasjon");
+  await sw.aktiver();
+  await sw.fyll();
+  const lagret = await n.lagret();
+  for (const b of bilder) assert.ok(lagret.includes(b), `${b} ble ikke hentet i bakgrunnen`);
+  const hentet = n.hentet();
+  assert.ok(Math.min(...bilder.map((b) => hentet.indexOf(b))) > Math.max(...["/a/", "/b/", "/c/"].map((s) => hentet.indexOf(s))), "bildene skal komme etter sidene");
+  assert.deepEqual(await sw.status(), { type: "rusj-status", versjon: "v1", sider: 4, lagret: 4, sparsomt: false });
+  n.vert.nede = true;
+  for (const b of bilder) assert.equal((await sw.hent(b)).status, 200, `${b} mangler uten nett`);
+  // A new mascot for a: the new picture comes, the old one is cleared away.
+  n.vert.nede = false;
+  const ny = lagSted({ figurer: { ...figurer, a: "<svg>a2</svg>" }, forside: 2 });
+  n.publiser(ny);
+  const sw2 = n.arbeider(ny, "v2");
+  await sw2.installer();
+  await sw2.aktiver();
+  await sw2.fyllHelt();
+  const etter = await n.lagret();
+  const nyA = ny.filerFor("/").find((s) => s.startsWith("/a/figur.svg"));
+  assert.ok(etter.includes(nyA) && !etter.includes(bilder.find((s) => s.startsWith("/a/figur.svg"))), "det nye bildet kom ikke, eller det gamle ble liggende");
+  // Save-Data: none in the background, but one the browser asks for is kept.
+  const spar = lagNettleser();
+  spar.nett.saveData = true;
+  spar.publiser(sted);
+  const sw3 = spar.arbeider(sted);
+  await sw3.installer();
+  await sw3.aktiver();
+  await sw3.fyll();
+  assert.ok(!spar.hentet().some((s) => s.includes("figur.svg")), "bilder ble hentet i bakgrunnen med datasparing");
+  assert.equal((await sw3.hent(bilder[0])).status, 200);
+  await spar.pause(200); // (stored after the answer)
+  assert.ok((await spar.lagret()).includes(bilder[0]), "et bilde nettleseren ba om, ble ikke lagret");
 });
 
 // ---------- Things go wrong ----------
@@ -702,8 +758,10 @@ test("the real site: a first visit is cheap, the idle download brings every page
   await sw.installer();
   const forst = [...new Set(n.hentet())];
   assert.ok(forst.includes("/") && forst.includes("/ordugla/") && forst.length < 25, `første besøk hentet ${forst.length} filer`);
-  // Uncompressed bytes; the server sends about a quarter (the front page with ~90 game cards is 317 kB, 40 kB gzipped).
-  assert.ok(kb(forst) < 1400, `første besøk hentet ${kb(forst)} kB (ukomprimert)`);
+  // Uncompressed bytes; the server sends about a quarter. The front page lists every game as a plain
+  // link and draws only the first screen's mascots (~130 kB, 23 kB gzipped); the rest of them are
+  // lazy pictures, fetched when idle. (Before: 1 086 kB, with a 377 kB front page.)
+  assert.ok(kb(forst) < 950, `første besøk hentet ${kb(forst)} kB (ukomprimert)`);
   await sw.aktiver();
   await sw.fyll();
   const status = await sw.status();

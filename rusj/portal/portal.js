@@ -1,8 +1,10 @@
-/* rusj.no front page: «Hva skal vi spille?» (three questions and a short list), search, category
-   shelves («Dagens utfordringer» with what is done today and the streak), filters by player count
-   and type, the 18+ gate for drinking games, «Kveldens gjeng» (the evening's scoreboard), «Overrask meg» (a slot machine), «Fortsett der dere slapp»,
-   the mascot parade and the install-as-app tip.
-   Reads window.RUSJ_SPILLISTE (written by the build). Nothing leaves the device.
+/* rusj.no front page («Miks»): one list of every game, «Alle spill A–Å», written into the page by
+   the build. The search in the top bar, the shortcuts («Med barna», «Vorspiel» …), the rooms (Fest,
+   Familie …) and the three questions behind «Flere valg» all filter that one list in place; what is
+   chosen shows as chips that can be removed, and with a choice the three best suggestions
+   (rusj/portal/finner.js) come first. Around it: «Fortsett der dere slapp», «Dagens», «Kveldens gjeng»,
+   «Overrask meg» (a slot machine), the 18+ door for the drinking games, the install tip and «Send
+   rusj til gjengen». Reads window.RUSJ_SPILLISTE (written by the build). Nothing leaves the device.
    The same file runs every edition (rusj/SPRAK.md): texts through t() from /felles/tekst.js. */
 (function () {
   "use strict";
@@ -15,7 +17,7 @@
 
   // Old Luringen join links (rusj.no/#CODE) moved to /luringen/. Only real codes are sent on: eight
   // or fifteen characters from Luringen's own alphabet (digits and capital letters without I, L, O
-  // and U) – never a place on this page (#fortsett, #overrask, #spill …).
+  // and U) – never a place on this page (#alle, #overrask, #spill …).
   const hash = location.hash || "";
   if (T.sprak === "nb" && /^#([0-9A-HJKMNP-TV-Z]{8}|[0-9A-HJKMNP-TV-Z]{15})$/.test(hash) && !document.getElementById(hash.slice(1))) {
     location.replace("/luringen/" + hash);
@@ -27,7 +29,12 @@
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   // A sentence with markup in it: the text is escaped, then the {places} get the markup.
   const th = (nokkel, html) => esc(t(nokkel)).replace(/\{(\w+)\}/g, (hele, n) => (n in html ? html[n] : hele));
+  const har = (o, n) => !!o && Object.prototype.hasOwnProperty.call(o, n);
   const SPILL = window.RUSJ_SPILLISTE || [];
+  const spillAv = new Map(SPILL.map((s) => [s.id, s]));
+  const F = window.RusjFinner;
+  const D = window.RusjDaglig;
+  const MANED = new Date().getMonth() + 1;
   const rolig = () => !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const fra = (a, b) => (a === b ? `${a}` : `${a}–${b}`);
 
@@ -45,22 +52,6 @@
     } catch (e) {
       /* ignore */
     }
-  };
-
-  // Every game has one card in «Alle spill» (built into the page). The shelves, the «Fortsett» row,
-  // the parade and «Overrask meg» use copies of it.
-  const kilde = (id) => $(`#spillgrid .spillkort[data-id="${id}"]`);
-  function kopi(id, klasse) {
-    const k = kilde(id);
-    if (!k) return "";
-    const c = k.cloneNode(true);
-    c.hidden = false;
-    c.classList.add(klasse);
-    return c.outerHTML;
-  }
-  const figur = (id) => {
-    const svg = $(`#spillgrid .spillkort[data-id="${id}"] .kort-figur svg`);
-    return svg ? svg.outerHTML : "";
   };
 
   // ---------- 18+ (shared with the games: rusj.felles.over18) ----------
@@ -96,20 +87,67 @@
     });
   }
 
-  // Everything that depends on the 18+ answer.
-  function nyAlder() {
-    byggHyller();
-    visFortsett();
-    visFinner();
-    oppdater();
+  // ---------- A game as the page draws it ----------
+
+  const MOB_LEST = { en: t("én mobil"), hver: t("hver sin mobil"), begge: t("én eller flere mobiler") };
+  const stor = (s) => s.charAt(0).toLocaleUpperCase(T.lokale) + s.slice(1);
+  // What a screen reader hears for a game (the same sentence as the build writes into the list).
+  function etikett(s) {
+    const [a, b] = s.spillere;
+    const [f, til] = s.minutter;
+    const fakta = [
+      a === b ? (a === 1 ? t("én spiller") : t("{n} spillere", { n: a })) : t("{a} til {b} spillere", { a, b }),
+      MOB_LEST[s.mobiler],
+      f === til ? t("{n} minutter", { n: f }) : t("{a} til {b} minutter", { a: f, b: til }),
+      s.tagger.includes("daglig") && t("ny oppgave hver dag"),
+      s.motMobilen && t("kan spilles mot mobilen"),
+      s.nett && t("kan spilles på nett"),
+      s.alder18 && t("for voksne over 18 år"),
+    ].filter(Boolean);
+    return `${s.navn}: ${s.undertittel}. ${s.kort} ${stor(fakta.join(", "))}.`;
+  }
+  // «Fra 7 år · 3–8 spillere · 10–30 min · én mobil · kan spilles på nett»: why a suggestion fits.
+  // [kind, text]: the kind lets a narrow card leave the phones out.
+  function grunn(s) {
+    const [a, b] = s.spillere;
+    const [f, til] = s.minutter;
+    return [
+      ["alder", s.alder18 ? "18+" : t("Fra {n} år", { n: s.alder })],
+      ["spillere", a === b ? (a === 1 ? t("1 spiller") : t("{n} spillere", { n: a })) : t("{a}–{b} spillere", { a, b })],
+      ["tid", f === til ? `${f} min` : `${f}–${til} min`],
+      ["mobiler", MOB_LEST[s.mobiler]],
+      ["nett", s.nett && t("kan spilles på nett")],
+    ].filter(([, tekst]) => tekst);
+  }
+  const ikon = (navn) => `<svg class="fakta-ikon" aria-hidden="true" focusable="false"><use href="#i-${navn}"/></svg>`;
+  // The mascot: its own picture (/<id>/figur.svg), fetched when it comes near unless `straks`.
+  const bilde = (s, straks) => (s && s.fig ? `<img src="${esc(s.fig)}" alt=""${straks ? "" : ' loading="lazy"'} decoding="async">` : "");
+  const nettMerke = () => `<span class="nett-merke" aria-hidden="true">${ikon("nett")}${esc(t("På nett"))}</span>`;
+  // A small tile as in «Alle spill A–Å»; o.fortsett: a game left in the middle.
+  function flis(s, o = {}) {
+    const merke = o.fortsett
+      ? `<span class="flis-merke fortsett" aria-hidden="true">${esc(t("Fortsett"))}</span>`
+      : s.alder18
+        ? '<span class="flis-merke atten" aria-hidden="true">18+</span>'
+        : s.tagger.includes("daglig")
+          ? '<span class="flis-merke dagens" aria-hidden="true">📅</span>'
+          : "";
+    const navn = (o.fortsett ? t("Fortsett.") + " " : "") + etikett(s);
+    return `<a class="spillflis" href="${esc(url(s))}" style="--kf: ${s.farge}" aria-label="${esc(navn)}"><span class="spillflis-bilde">${bilde(s)}${merke}${s.nett ? nettMerke() : ""}</span><span class="spillflis-navn">${esc(s.navn)}</span></a>`;
+  }
+  // A bigger card with the reason it fits (the three best suggestions).
+  function forslag(s, nr) {
+    const merker = [s.tagger.includes("daglig") && `<span class="kort-merke dagens">${esc(t("Dagens"))}</span>`, s.motMobilen && `<span class="kort-merke">${esc(t("Mot mobilen"))}</span>`, s.nett && `<span class="kort-merke nett">${ikon("nett")}${esc(t("På nett"))}</span>`].filter(Boolean).join("");
+    const navn = `${t("Nummer {n}.", { n: nr })} ${etikett(s)}${s.alder18 ? "" : " " + t("Fra {n} år", { n: s.alder }) + "."}`;
+    return `<li class="forslagkort" data-id="${s.id}"><a href="${esc(url(s))}" style="--kf: ${s.farge}" aria-label="${esc(navn)}"><span class="forslagkort-bilde"><span class="topp-nr" aria-hidden="true">${nr}</span>${bilde(s, true)}</span><span class="forslagkort-navn">${esc(s.navn)}</span>${merker ? `<span class="kort-merker" aria-hidden="true">${merker}</span>` : ""}<span class="kort-grunn" aria-hidden="true">${grunn(s)
+      .map(([slag, tekst]) => `<span class="grunn-${slag}">${esc(tekst)}</span>`)
+      .join(" ")}</span></a></li>`;
   }
 
-  // ---------- Search and filters ----------
+  // ---------- Search (whole phrases per language for the facts) ----------
 
-  const TAGG_NAVN = {};
-  $$("#tagger .brikke[data-tagg]").forEach((b) => (TAGG_NAVN[b.dataset.tagg] = b.textContent.trim()));
-  const ren = (t) =>
-    String(t || "")
+  const ren = (tekst) =>
+    String(tekst || "")
       .toLocaleLowerCase("nb")
       .replace(/[æøå]/g, (c) => ({ æ: "\u0001", ø: "\u0002", å: "\u0003" })[c])
       .normalize("NFD")
@@ -121,17 +159,7 @@
   // What a search looks in: the game's name, genre, one-liner and search words – and the words
   // people use for its kind of game («selskapsleker», «vors», «bursdag» …), from rusj/seo.json.
   const TAGGSOK = window.RUSJ_TAGGSOK || {};
-  const HAYSTACK = new Map(
-    SPILL.map((s) => [s.id, ren([s.navn, s.undertittel, s.kort, ...(s.sok || []), ...s.tagger.map((t) => TAGG_NAVN[t] || t), ...s.tagger.flatMap((t) => TAGGSOK[t] || [])].join(" "))]),
-  );
-
-  const lagret = les(k("portal"), {}) || {};
-  let antall = Number.isInteger(lagret.antall) ? lagret.antall : 0; // 0 = everyone
-  let tagg = typeof lagret.tagg === "string" ? lagret.tagg : "";
-  let sok = "";
-  if (tagg === "drikke" && !over18) tagg = "";
-
-  const passerAntall = (s) => !antall || (antall >= s.spillere[0] && antall <= s.spillere[1]);
+  const HAYSTACK = new Map(SPILL.map((s) => [s.id, ren([s.navn, s.undertittel, s.kort, ...(s.sok || []), ...s.tagger.flatMap((tg) => TAGGSOK[tg] || [])].join(" "))]));
   // The facts on the cards can be searched for in whole phrases: «én mobil», «flere mobiler»,
   // «alene», «mot mobilen». (Word by word they would fit almost every game: «en» is in most texts.)
   const FAKTASOK = {
@@ -154,75 +182,89 @@
       [/(^| )mod (mobilen|computeren|maskinen|pc en|pc)( |$)/, (s) => !!s.motMobilen],
     ],
   }[T.sprak];
-  // Search and filters, without the 18+ question.
-  const passerValg = (s) => {
-    if (!passerAntall(s)) return false;
-    if (tagg && !s.tagger.includes(tagg)) return false;
-    if (sok) {
-      let q = ren(sok);
-      for (const [frase, passerSpill] of FAKTASOK) {
-        if (!frase.test(q)) continue;
-        if (!passerSpill(s)) return false;
-        q = q.replace(frase, " ").trim();
-      }
-      const h = HAYSTACK.get(s.id) || "";
-      if (q && !q.split(/ +/).every((ord) => h.includes(ord))) return false;
+  function passerSok(s, q) {
+    let ord = ren(q);
+    for (const [frase, passerSpill] of FAKTASOK) {
+      if (!frase.test(ord)) continue;
+      if (!passerSpill(s)) return false;
+      ord = ord.replace(frase, " ").trim();
     }
-    return true;
-  };
-  const passer = (s) => (over18 || !s.alder18) && passerValg(s);
+    const h = HAYSTACK.get(s.id) || "";
+    return !ord || ord.split(/ +/).every((o) => h.includes(o));
+  }
 
-  // ---------- «Hva skal vi spille?»: three questions and a short list (rusj/portal/finner.js) ----------
-  // How many, the youngest one's age and what they fancy: the list under the questions answers at
-  // once (no button), with copies of the game cards and a line on why each one fits. The answers are
-  // kept with the filters (rusj.portal). «Voksen fest (18+)» is a step only behind the 18+ door.
+  // ---------- What the list shows ----------
+  // One room, the three answers (set by a shortcut or one by one) and the search, all at once.
+  // Kept in rusj.portal (not the search). The page before this one kept { antall, tagg, finn }: its
+  // type becomes the room that holds it, its player count the nearest answer.
 
-  const Finner = window.RusjFinner;
-  const FINN_SIDE = 6; // cards before «Vis flere»
-  const MOB_LEST = { en: t("én mobil"), hver: t("hver sin mobil"), begge: t("én eller flere mobiler") };
-  let finnValg = Finner ? Finner.normaliser(lagret.finn, over18) : null;
-  let finnVist = FINN_SIDE;
-  const finnListe = $("#finner-liste");
+  const lagret = les(k("portal"), {}) || {};
+  const GAMLE_TAGGER = { daglig: "dagens", fest: "fest", familie: "familie", barn: "barn", alene: "alene", klassiker: "klassikere", kort: "kort", ord: "ord", quiz: "ord", arkade: "arkade", drikke: "voksen" };
+  const naermesteBand = (n) => (n === 1 ? "1" : n === 2 ? "2" : n <= 4 ? "3-4" : n <= 8 ? "5-8" : "9+");
+  let rom = typeof lagret.rom === "string" && har(F.ROM, lagret.rom) ? lagret.rom : typeof lagret.tagg === "string" && har(GAMLE_TAGGER, lagret.tagg) ? GAMLE_TAGGER[lagret.tagg] : "";
+  let hurtig = typeof lagret.hurtig === "string" && har(F.HURTIG, lagret.hurtig) ? lagret.hurtig : "";
+  let valg = F.normaliser(lagret.finn, over18);
+  if (!valg.antall && Number.isInteger(lagret.antall) && lagret.antall > 0) valg.antall = naermesteBand(lagret.antall);
+  if (hurtig) valg = F.HURTIG[hurtig](over18);
+  if (rom === "voksen" && !over18) rom = "";
+  let sok = "";
+  const lagre = () => skriv(k("portal"), { rom, hurtig, finn: valg });
+
+  const synlig = (s) => over18 || !s.alder18;
+  const svart = () => !F.ubesvart(valg);
+  // In the 18+ room the answers mean an adult party: its drinking games count.
+  const finnValg = () => (rom === "voksen" && valg.yngst === "voksen" ? Object.assign({}, valg, { yngst: "fest" }) : valg);
+  const passer = (s) => synlig(s) && (!rom || F.iRom(s, rom)) && (!svart() || F.passer(s, finnValg(), { maned: MANED })) && (!sok || passerSok(s, sok));
+  const filtrert = () => !!(rom || svart() || sok);
+
+  // ---------- The drinking games in the list: only once someone is 18 ----------
+
+  const liste = $("#alle-liste");
+  const sorter = (a, b) => a.localeCompare(b, T.lokale);
+  function synk18() {
+    const der = $$("li[data-alder18]", liste);
+    if (!over18) {
+      der.forEach((li) => li.remove());
+      return;
+    }
+    if (der.length) return;
+    for (const s of SPILL.filter((x) => x.alder18)) {
+      const li = document.createElement("li");
+      li.dataset.id = s.id;
+      li.dataset.b = s.navn.charAt(0).toLocaleUpperCase(T.lokale);
+      li.setAttribute("data-alder18", "");
+      li.innerHTML = flis(s);
+      const etter = $$("li[data-id]", liste).find((x) => sorter(spillAv.get(x.dataset.id).navn, s.navn) > 0);
+      liste.insertBefore(li, etter || $("#dor-celle") || null);
+    }
+  }
+
+  // The 18+ room: a door until someone is 18, then a room like the others.
+  const voksenKnapp = $('#rommene [data-rom="voksen"]');
+  const laastRom = voksenKnapp ? voksenKnapp.innerHTML : "";
+  function visVoksenRom() {
+    if (!voksenKnapp || over18 === !voksenKnapp.classList.contains("rom-laast")) return; // drawn already
+    const n18 = SPILL.filter((s) => s.alder18).length;
+    voksenKnapp.classList.toggle("rom-laast", !over18);
+    voksenKnapp.parentElement.classList.toggle("rom-bred", !over18);
+    if (!over18) {
+      voksenKnapp.innerHTML = laastRom;
+      voksenKnapp.removeAttribute("aria-pressed");
+      voksenKnapp.removeAttribute("aria-label");
+      return;
+    }
+    const VOKSEN_FIGURER = ["ringen", "hjulet"];
+    const figurer = [...VOKSEN_FIGURER.map((id) => spillAv.get(id)), ...SPILL.filter((s) => s.alder18)].filter((s, i, a) => s && s.alder18 && a.indexOf(s) === i).slice(0, 2);
+    voksenKnapp.setAttribute("aria-label", `${t("Drikkespill 18+")}: ${t("{antall} spill", { antall: n18, n: n18 })}`);
+    voksenKnapp.innerHTML = `<span class="rom-navn">18+</span><span class="rom-antall" aria-hidden="true">${n18}</span><span class="rom-gjeng" aria-hidden="true">${figurer.map((s) => bilde(s, true)).join("")}</span>`;
+  }
+
+  // ---------- The three questions («Flere valg») ----------
+
   const yngstValg = $("#finner-yngst");
-  const lagre = () => skriv(k("portal"), Object.assign({ antall, tagg }, finnValg ? { finn: finnValg } : {}));
-
-  // «Fra 7 år · 3–8 spillere · 10–30 min · én mobil»: the parts, each kept whole on a line.
-  function grunn(s) {
-    const [a, b] = s.spillere;
-    const [fra, til] = s.minutter;
-    return [
-      s.alder18 ? "18+" : t("Fra {n} år", { n: s.alder }),
-      a === b ? (a === 1 ? t("1 spiller") : t("{n} spillere", { n: a })) : t("{a}–{b} spillere", { a, b }),
-      fra === til ? `${fra} min` : `${fra}–${til} min`,
-      MOB_LEST[s.mobiler],
-    ];
-  }
-  function finnKort(s) {
-    const k = kilde(s.id);
-    if (!k) return null;
-    const c = k.cloneNode(true);
-    c.hidden = false;
-    c.classList.add("finnerkort");
-    const linje = document.createElement("span");
-    linje.className = "kort-grunn";
-    grunn(s).forEach((del, i) => {
-      if (i) linje.append(" · ");
-      const d = document.createElement("span");
-      d.textContent = del;
-      linje.append(d);
-    });
-    $(".kort-tekst", c).append(linje);
-    // The age goes into the link's name too (players, phones and time are in it already).
-    const a = $("a", c);
-    if (a && !s.alder18) a.dataset.etikett = (a.dataset.etikett != null ? a.dataset.etikett : a.getAttribute("aria-label") || "") + " " + t("Fra {n} år", { n: s.alder }) + ".";
-    return c;
-  }
-
   function visFinner() {
-    if (!Finner || !finnListe) return;
-    finnValg = Finner.normaliser(finnValg, over18);
-    $$("[data-finn-antall]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.finnAntall === finnValg.antall)));
-    $$("[data-finn-lyst]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.finnLyst === finnValg.lyst)));
+    $$("[data-finn-antall]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.finnAntall === valg.antall)));
+    $$("[data-finn-lyst]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.finnLyst === valg.lyst)));
     let fest = $('option[value="fest"]', yngstValg);
     if (over18 && !fest) {
       fest = document.createElement("option");
@@ -230,274 +272,304 @@
       fest.textContent = t("Voksen fest (18+)");
       yngstValg.append(fest);
     } else if (!over18 && fest) yngstValg.removeChild(fest);
-    yngstValg.value = String(finnValg.yngst);
-    const trinn = Finner.alderTrinn(over18);
-    const her = trinn.indexOf(finnValg.yngst);
+    yngstValg.value = String(valg.yngst);
+    const trinn = F.alderTrinn(over18);
+    const her = trinn.indexOf(valg.yngst);
     // aria-disabled, not disabled: the button keeps the focus at the end of the steps.
     $('[data-finn-yngst="-1"]').setAttribute("aria-disabled", String(her <= 0));
     $('[data-finn-yngst="1"]').setAttribute("aria-disabled", String(her >= trinn.length - 1));
-    const liste = Finner.finn(
-      SPILL.filter((s) => kilde(s.id)),
-      finnValg,
-      { maned: new Date().getMonth() + 1 },
-    );
-    finnListe.textContent = "";
-    for (const s of liste.slice(0, finnVist)) {
-      const c = finnKort(s);
-      if (c) finnListe.append(c);
-    }
-    $("#finner-mer").hidden = liste.length <= finnVist;
-    const tekst = liste.length ? t("{n} spill passer", { n: liste.length }) : t("Ingen spill passer akkurat det. Prøv en annen alder eller et annet ønske.");
-    if ($("#finner-treff").textContent !== tekst) $("#finner-treff").textContent = tekst;
-    merkFortsett(); // the link names, and «Fortsett» on a game in progress
   }
-  function nyttFinnValg() {
-    finnVist = FINN_SIDE;
+
+  // ---------- Drawing the list, the chips and the suggestions ----------
+
+  const antallTekst = (band) => {
+    const [a, b] = band.split("-");
+    return band === "1" ? t("1 spiller") : b ? t("{a}–{b} spillere", { a, b }) : t("{n} spillere", { n: a });
+  };
+  const knappTekst = (sel) => {
+    const b = $(sel);
+    return b ? `${b.dataset.ikon ? b.dataset.ikon + " " : ""}${b.dataset.navn || b.textContent.trim()}` : "";
+  };
+  function aktiveValg() {
+    const ut = [];
+    if (rom) ut.push(["rom", knappTekst(`#rommene [data-rom="${rom}"]`)]);
+    if (hurtig) ut.push(["hurtig", knappTekst(`[data-hurtig="${hurtig}"]`)]);
+    else {
+      if (valg.antall) ut.push(["antall", antallTekst(valg.antall)]);
+      if (valg.yngst !== "voksen") ut.push(["yngst", valg.yngst === "fest" ? t("Voksen fest (18+)") : `${t("Yngste")} ${t("{n} år", { n: valg.yngst })}`]);
+      if (valg.lyst !== "alt") ut.push(["lyst", ($(`[data-finn-lyst="${valg.lyst}"]`) || {}).textContent || valg.lyst]);
+    }
+    if (sok) ut.push(["sok", `«${sok}»`]);
+    return ut;
+  }
+
+  let siTimer = null;
+  // Read aloud, politely: what the list shows now. A search waits until the typing stops.
+  function si(tekst, vent) {
+    clearTimeout(siTimer);
+    siTimer = setTimeout(() => ($("#si").textContent = tekst), vent ? 700 : 50);
+  }
+
+  // The best suggestions: three, and three more at a time on «Vis flere» (at most nine).
+  const BESTE = 3;
+  let beste = [];
+  let besteVist = BESTE;
+  function visBeste() {
+    const boks = $("#beste");
+    boks.hidden = beste.length < BESTE;
+    boks.innerHTML =
+      beste.length < BESTE
+        ? ""
+        : `<h3 class="beste-tittel" id="beste-t">${esc(t("Våre tre beste forslag"))}</h3><ol class="beste-liste" aria-label="${esc(t("Forslag"))}">${beste
+            .slice(0, besteVist)
+            .map((s, i) => forslag(s, i + 1))
+            .join("")}</ol>${beste.length > besteVist ? `<button type="button" class="knapp-2 liten beste-mer" id="beste-mer">${esc(t("Vis flere"))}</button>` : ""}`;
+  }
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#beste-mer")) return;
+    const for_ = besteVist;
+    besteVist += BESTE;
+    visBeste();
+    // On to the first new card (the button may be gone now).
+    const ny = $$("#beste .forslagkort a")[for_];
+    if (ny) ny.focus();
+  });
+
+  let dorHtml = ""; // what the 18+ door says now
+  // o.stille: nothing read aloud (the first drawing, a page back from memory).
+  function oppdater(o = {}) {
+    synk18();
+    visVoksenRom();
+    const vis = new Set(SPILL.filter(passer).map((s) => s.id));
+    const bokstaver = new Set();
+    let vist = 0;
+    for (const li of $$("li[data-id]", liste)) {
+      const ja = vis.has(li.dataset.id);
+      li.hidden = !ja;
+      li.classList.toggle("forste", ja && !bokstaver.has(li.dataset.b));
+      if (ja) {
+        bokstaver.add(li.dataset.b);
+        vist++;
+      }
+    }
+    const totalt = SPILL.filter(synlig).length;
+    const valgt = filtrert();
+
+    // The 18+ door at the end of the list: before anyone is 18, when nothing is chosen, for
+    // «Vorspiel», and when a search also fits drinking games. After: «Skjul» to hide them again.
+    const dor = $("#dor-celle");
+    const bakDora = !over18 && sok ? SPILL.filter((s) => s.alder18 && passerSok(s, sok)).length : 0;
+    if (dor) {
+      const n18 = SPILL.filter((s) => s.alder18).length;
+      dor.hidden = over18 ? !(rom === "voksen" || !valgt) : !(!valgt || hurtig === "vors" || bakDora);
+      const html = over18
+        ? `<div class="dor dor-apen"><span class="dor-ikon" aria-hidden="true">🔞</span><span class="dor-tekst"><b>${esc(t("Drikkespill (18+)"))}</b><span>${esc(t("{n} spill for voksne (18+)", { n: n18 }))}</span></span><button type="button" class="knapp-2 liten" data-skjul18>${esc(t("Skjul"))}</button></div>`
+        : `<button type="button" class="dor" data-atten><span class="dor-ikon" aria-hidden="true">🔞</span><span class="dor-tekst"><b>${esc(hurtig === "vors" ? t("Vis drikkespillene") : t("Drikkespill (18+)"))}</b><span>${esc(bakDora ? t("+ {n} for voksne (18+)", { n: bakDora }) : t("{n} spill for voksne – trykk for å vise", { n: n18 }))}</span></span></button>`;
+      // (only when it changes: a button with the focus stays)
+      if (dorHtml !== html) {
+        dor.innerHTML = html;
+        dorHtml = html;
+      }
+    }
+    const dorApen = !!(dor && !dor.hidden && !over18);
+
+    $("#alle-t").textContent = valgt ? t("{n} spill passer", { n: vist }) : t("Alle spill A–Å");
+    $("#nullstill").hidden = !valgt;
+    $("#ingen-treff").hidden = vist > 0 || dorApen;
+    $("#ingen-treff").textContent = svart() && !sok ? t("Ingen spill passer akkurat det. Prøv en annen alder eller et annet ønske.") : t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type.");
+
+    // The choices as chips that can be removed one by one.
+    const aktive = aktiveValg();
+    $("#aktive").hidden = !aktive.length;
+    $("#aktive").setAttribute("aria-label", t("Filter, {n} valgt", { n: aktive.length }));
+    $("#aktive").innerHTML = aktive.map(([n, tekst]) => `<button type="button" class="brikke aktiv-brikke" data-fjern="${n}" aria-label="${esc(t("Fjern {valg}", { valg: tekst }))}">${esc(tekst)} <span class="x" aria-hidden="true">×</span></button>`).join("");
+    liste.setAttribute("aria-label", valgt ? t("Treff") : t("Alle spill"));
+
+    // The best suggestions (rusj/portal/finner.js), once something is chosen and more than three fit.
+    beste = [];
+    besteVist = BESTE;
+    if (valgt && vist > BESTE) {
+      const ubesvart = { antall: "", yngst: rom === "voksen" ? "fest" : "voksen", lyst: "alt" };
+      beste = F.finn(SPILL.filter(passer), svart() ? finnValg() : ubesvart, { maned: MANED });
+      if (sok) {
+        const q = ren(sok).split(" ")[0];
+        const vekt = (s) => (ren(s.navn).startsWith(q) ? 0 : ren(s.navn).includes(q) ? 1 : 2);
+        beste = beste.map((s, i) => ({ s, i })).sort((a, b) => vekt(a.s) - vekt(b.s) || a.i - b.i).map((x) => x.s);
+      }
+      beste = beste.slice(0, 3 * BESTE);
+    }
+    visBeste();
+
+    // Which shortcut, room and answers are on.
+    $$("[data-hurtig]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.hurtig === hurtig)));
+    $$("#rommene .rom:not(.rom-laast)").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.rom === rom)));
     visFinner();
-    lagre();
-  }
-  if (Finner && finnListe) {
-    $("#finner").addEventListener("click", (e) => {
-      const a = e.target.closest("[data-finn-antall]");
-      if (a) {
-        finnValg.antall = finnValg.antall === a.dataset.finnAntall ? "" : a.dataset.finnAntall;
-        nyttFinnValg();
-        return;
-      }
-      const l = e.target.closest("[data-finn-lyst]");
-      if (l) {
-        finnValg.lyst = l.dataset.finnLyst === finnValg.lyst ? "alt" : l.dataset.finnLyst;
-        nyttFinnValg();
-        return;
-      }
-      const steg = e.target.closest("[data-finn-yngst]");
-      if (steg) {
-        if (steg.getAttribute("aria-disabled") === "true") return;
-        const trinn = Finner.alderTrinn(over18);
-        const her = trinn.indexOf(finnValg.yngst);
-        finnValg.yngst = trinn[Math.max(0, Math.min(trinn.length - 1, her + Number(steg.dataset.finnYngst)))];
-        nyttFinnValg();
-        return;
-      }
-      if (e.target.closest("#finner-mer")) {
-        const for_ = finnVist;
-        finnVist += FINN_SIDE;
-        visFinner();
-        // On to the first new card (the button may be gone now).
-        const ny = finnListe.children[for_];
-        if (ny && $("a", ny)) $("a", ny).focus();
-      }
-    });
-    yngstValg.addEventListener("change", () => {
-      finnValg.yngst = yngstValg.value;
-      nyttFinnValg();
-    });
-  }
-
-  const filterKnapp = $("#filter-knapp");
-  const filtre = $("#filtre");
-
-  function oppdater() {
-    $("#antall").textContent = antall ? String(antall) : t("alle");
-    $$(".antall-knapp")[0].disabled = antall === 0;
-    $$(".antall-knapp")[1].disabled = antall >= 20;
-    $$("#tagger .brikke").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tagg === tagg)));
+    $("#finner-treff").textContent = t("{n} spill passer", { n: vist });
     $("#sok-tom").hidden = !sok;
-    let synlige = 0;
-    const tilgjengelige = SPILL.filter((s) => over18 || !s.alder18).length;
-    for (const s of SPILL) {
-      const el = kilde(s.id);
-      if (!el) continue;
-      const ok = passer(s);
-      el.hidden = !ok;
-      if (ok) synlige++;
-    }
-    const filtrert = !!(sok || antall || tagg);
-    $("#hyller").hidden = filtrert;
-    // With a search or filter on, the line «Viser 3 av 42 spill» is heading enough for the eye: the
-    // matches come right under it (and above the keyboard). Screen readers still get «Treff».
-    $("#alle-tittel").textContent = filtrert ? (synlige ? t("Treff") : "") : t("Alle spill");
-    $("#alle-tittel").classList.toggle("vh", filtrert);
-    // A search that (also) fits drinking games, before anyone has said they are 18: one row
-    // «Drikkespill (18+)» that opens the question – not «no games fit».
-    const bakDora = !over18 && sok ? SPILL.filter((s) => s.alder18 && passerValg(s)).length : 0;
-    $("#atten-dor").hidden = !bakDora;
-    $("#atten-dor-antall").textContent = bakDora ? t("{n} spill for voksne – trykk for å vise", { n: bakDora }) : "";
-    $("#ingen-treff").hidden = synlige > 0 || bakDora > 0;
-    // The numbers must add up with the badge in the hero (every game) and with «Overrask meg»
-    // (the games that can be shown now): while the drinking games are hidden, say so.
-    const voksne = SPILL.length - tilgjengelige;
-    $("#treff").textContent = filtrert
-      ? t("Viser {synlige} av {n} spill", { synlige, n: tilgjengelige }) + (bakDora ? " " + t("+ {n} for voksne (18+)", { n: bakDora }) : "")
-      : voksne
-        ? t("{n} spill + {voksne} for voksne (18+)", { n: tilgjengelige, voksne })
-        : t("{n} spill – trykk på ett for å starte", { n: tilgjengelige });
-    // How many filters are on, on the button (the panel itself may be closed).
-    const valgt = (antall ? 1 : 0) + (tagg ? 1 : 0);
-    $("#filter-antall").hidden = !valgt;
-    $("#filter-antall").textContent = String(valgt);
-    filterKnapp.classList.toggle("aktiv", valgt > 0);
-    filterKnapp.setAttribute("aria-label", valgt ? t("Filter, {n} valgt", { n: valgt }) : t("Filter"));
     lagre();
-    sjekkFastSnart(); // the list changed length: the search row may have come loose or stuck
+
+    if (!o.stille) {
+      const voksne = SPILL.length - totalt;
+      si(
+        valgt
+          ? t("Viser {synlige} av {n} spill", { synlige: vist, n: totalt }) + (bakDora ? " " + t("+ {n} for voksne (18+)", { n: bakDora }) : "")
+          : voksne
+            ? t("{n} spill + {voksne} for voksne (18+)", { n: totalt, voksne })
+            : t("{n} spill – trykk på ett for å starte", { n: totalt }),
+        o.skriver,
+      );
+    }
   }
 
-  function visFiltre(apen) {
-    filtre.hidden = !apen;
-    filterKnapp.setAttribute("aria-expanded", String(apen));
+  // To the list: its heading right under the top bar (only when it is not there already).
+  function tilResultat() {
+    const y = $("#alle").getBoundingClientRect().top + window.scrollY - $("#linje").offsetHeight - 6;
+    if (Math.abs(y - window.scrollY) > 40) window.scrollTo({ top: Math.max(0, y), behavior: rolig() ? "auto" : "smooth" });
   }
-  filterKnapp.addEventListener("click", () => {
-    const apen = filtre.hidden;
-    visFiltre(apen);
-    // Opened from the stuck bar further down: the panel sits under the search row's own place, so go there.
-    if (apen && $("#filter").classList.contains("fast")) sokTilTopps(true);
-  });
-  filtre.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      visFiltre(false);
-      filterKnapp.focus();
-    }
-  });
+
+  // Everything that depends on the 18+ answer.
+  function nyAlder() {
+    visAlder();
+    if (!over18 && rom === "voksen") rom = "";
+    if (hurtig) valg = F.HURTIG[hurtig](over18);
+    valg = F.normaliser(valg, over18);
+    visFortsett();
+    oppdater();
+  }
 
   document.addEventListener("click", async (e) => {
-    const a = e.target.closest("[data-antall]");
-    if (a) {
-      const d = Number(a.dataset.antall);
-      if (antall === 0 && d > 0) antall = 2;
-      else if (antall === 2 && d < 0) antall = 0;
-      else antall = Math.max(0, Math.min(20, antall + d));
+    const fjern = e.target.closest("[data-fjern]");
+    if (fjern) {
+      const n = fjern.dataset.fjern;
+      const plass = $$("#aktive [data-fjern]").indexOf(fjern);
+      if (n === "rom") rom = "";
+      else if (n === "hurtig") {
+        hurtig = "";
+        valg = F.normaliser({}, over18);
+      } else if (n === "sok") {
+        sok = "";
+        $("#sok").value = "";
+      } else {
+        valg[n] = n === "yngst" ? "voksen" : n === "lyst" ? "alt" : "";
+      }
+      oppdater();
+      const igjen = $$("#aktive [data-fjern]");
+      (igjen[Math.min(plass, igjen.length - 1)] || $("#alle-t")).focus();
+      return;
+    }
+    const h = e.target.closest("[data-hurtig]");
+    if (h) {
+      const var_ = hurtig === h.dataset.hurtig;
+      hurtig = var_ ? "" : h.dataset.hurtig;
+      valg = var_ ? F.normaliser({}, over18) : F.HURTIG[hurtig](over18);
+      oppdater();
+      if (!var_) tilResultat();
+      return;
+    }
+    if (e.target.closest("#flere")) {
+      const apen = $("#finner").hidden;
+      $("#finner").hidden = !apen;
+      $("#flere").setAttribute("aria-expanded", String(apen));
+      return;
+    }
+    const a = e.target.closest("[data-finn-antall]");
+    const l = e.target.closest("[data-finn-lyst]");
+    const steg = e.target.closest("[data-finn-yngst]");
+    if (a || l || steg) {
+      if (steg && steg.getAttribute("aria-disabled") === "true") return;
+      hurtig = "";
+      if (a) valg.antall = valg.antall === a.dataset.finnAntall ? "" : a.dataset.finnAntall;
+      if (l) valg.lyst = valg.lyst === l.dataset.finnLyst ? "alt" : l.dataset.finnLyst;
+      if (steg) {
+        const trinn = F.alderTrinn(over18);
+        valg.yngst = trinn[Math.max(0, Math.min(trinn.length - 1, trinn.indexOf(valg.yngst) + Number(steg.dataset.finnYngst)))];
+      }
       oppdater();
       return;
     }
-    const b = e.target.closest("[data-tagg]");
-    if (b) {
-      const ny = b.dataset.tagg === tagg ? "" : b.dataset.tagg;
-      const var18 = over18;
-      if (ny === "drikke" && !over18 && !(await bekreft18())) return;
-      tagg = ny;
-      if (over18 !== var18) nyAlder();
-      else oppdater();
-      // «Se alle» on a shelf: the shelves hide, so take the reader to the filter and the results
-      // (under the search row, which comes after «Hva skal vi spille?»).
-      if (b.classList.contains("hylle-alle")) {
-        visFiltre(true);
-        sokTilTopps(true);
-        const valgtTagg = $("#tagger .brikke[aria-pressed='true']");
-        (valgtTagg || $("#filter-knapp")).focus({ preventScroll: true });
-      }
+    if (e.target.closest("#finner-vis")) {
+      tilResultat();
+      $("#alle-t").focus({ preventScroll: true });
       return;
     }
-    if (e.target.closest("[data-vis18]")) {
-      if (await bekreft18()) {
+    const r = e.target.closest("#rommene [data-rom], [data-til-rom]");
+    if (r) {
+      const id = r.dataset.rom || r.dataset.tilRom;
+      if (id === "voksen" && !over18) {
+        if (!(await bekreft18())) return;
+        rom = "voksen";
         nyAlder();
-        // The button that was pressed is gone: go on to the first drinking game (on its shelf, or
-        // among the matches when a search or filter is on).
-        const forste = $("#hyller").hidden ? $("#spillgrid .spillkort[data-alder18]:not([hidden]) a") : $(".hylle-18 .spillkort a");
-        (forste || $("#spill")).focus();
+        tilResultat();
+        return;
       }
+      rom = rom === id && r.dataset.rom ? "" : id;
+      oppdater();
+      if (rom) tilResultat();
+      return;
+    }
+    if (e.target.closest("[data-atten]")) {
+      if (!(await bekreft18())) return;
+      nyAlder();
+      // The button that was pressed is gone: on to the first drinking game in the list.
+      const forste = $("#alle-liste li[data-alder18]:not([hidden]) a");
+      (forste || $("#alle-t")).focus();
       return;
     }
     if (e.target.closest("[data-skjul18]")) {
       over18 = false;
       skriv("rusj.felles", Object.assign(felles(), { over18: false }));
-      visAlder();
-      if (tagg === "drikke") tagg = "";
       nyAlder();
-      const h = $(".hylle-18 h3");
-      (h || $("#spill")).focus();
+      $("#alle-t").focus();
     }
   });
-  // On a phone the keyboard covers the lower half of the screen. Bring the search row to the top,
-  // so the matches right under it can be seen while typing. (This only scrolls the page; the bar
-  // itself never changes height, see .filter in portal.css.)
-  const beroring = navigator.maxTouchPoints > 0 || !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
-  // ogsaOpp: also when the page is scrolled past the row (it sticks to the top then). A new search
-  // starts a new list, and its matches begin right under the row's own place in the page.
-  function sokTilTopps(ogsaOpp) {
-    const linje = $("#filter");
-    let topp = linje.getBoundingClientRect().top;
-    if (ogsaOpp && topp <= 1) {
-      // It sticks to the top now: find its own place in the page, where it would be if it did not.
-      linje.style.position = "static";
-      topp = linje.getBoundingClientRect().top;
-      linje.style.position = "";
-    }
-    if (Math.abs(topp) > 1) {
-      const langt = Math.abs(topp) > 2 * window.innerHeight;
-      window.scrollTo({ top: Math.max(0, topp + window.scrollY), behavior: rolig() || langt ? "auto" : "smooth" });
-    }
-  }
-  $("#sok").addEventListener("focus", () => {
-    // A little later, so the browser's own scrolling for the keyboard is done first.
-    if (beroring) setTimeout(() => document.activeElement === $("#sok") && sokTilTopps(false), 250);
-  });
-  $("#sok").addEventListener("input", (e) => {
-    sok = e.target.value.slice(0, 40);
-    // An open filter panel that fills much of what the keyboard leaves would hide the matches.
-    const synligHoyde = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    if (sok && !filtre.hidden && filtre.getBoundingClientRect().height > synligHoyde * 0.35) visFiltre(false);
+  $("#nullstill").addEventListener("click", () => {
+    rom = "";
+    hurtig = "";
+    sok = "";
+    $("#sok").value = "";
+    valg = F.normaliser({}, over18);
     oppdater();
-    sokTilTopps(true);
+    $("#alle-t").focus();
   });
-  $("#sok").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      // «Søk» on the keyboard: put it away; the matches stay right under the search row.
+  yngstValg.addEventListener("change", () => {
+    hurtig = "";
+    valg.yngst = /^\d+$/.test(yngstValg.value) ? Number(yngstValg.value) : yngstValg.value;
+    oppdater();
+  });
+  $("#finner").addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    $("#finner").hidden = true;
+    $("#flere").setAttribute("aria-expanded", "false");
+    $("#flere").focus();
+  });
+
+  // The search in the top bar: the list narrows as one types, and comes up under the bar.
+  const sokFelt = $("#sok");
+  sokFelt.addEventListener("input", () => {
+    const for_ = sok;
+    sok = sokFelt.value.slice(0, 40).trim();
+    oppdater({ skriver: true });
+    if (sok && !for_) tilResultat();
+  });
+  sokFelt.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && sokFelt.value) {
       e.preventDefault();
-      e.target.blur();
-      sokTilTopps(true);
+      sokFelt.value = "";
+      sok = "";
+      oppdater();
+    } else if (e.key === "Enter") {
+      // «Søk» on the keyboard: put it away; the matches are right under the bar.
+      e.preventDefault();
+      sokFelt.blur();
+      tilResultat();
     }
   });
   $("#sok-tom").addEventListener("click", () => {
     sok = "";
-    $("#sok").value = "";
+    sokFelt.value = "";
     oppdater();
-    $("#sok").focus();
+    sokFelt.focus();
   });
-
-  // ---------- Category shelves ----------
-
-  const HYLLER = [
-    { tagg: "fest", tittel: t("Til festen"), ikon: "🎉" },
-    { tagg: "familie", tittel: t("Hele familien"), ikon: "🏡" },
-    { tagg: "barn", tittel: t("For barna"), ikon: "🧸" },
-    { tagg: "daglig", tittel: t("Dagens utfordringer"), ikon: "📅" },
-    { tagg: "klassiker", tittel: t("Klassikere"), ikon: "👑" },
-    { tagg: "tenke", tittel: t("Hjernetrim"), ikon: "🧠" },
-    { tagg: "alene", tittel: t("Spill alene"), ikon: "🙋" },
-    { tagg: "quiz", tittel: t("Quiz og kunnskap"), ikon: "💡" },
-    { tagg: "kort", tittel: t("Kortspill"), ikon: "🃏" },
-    { tagg: "verktoy", tittel: t("Nyttige verktøy"), ikon: "🧰" },
-    { tagg: "drikke", tittel: t("Drikkespill 18+"), ikon: "🍻", alder18: true },
-  ];
-
-  function byggHyller() {
-    const ut = [];
-    // Returning players (a daily finished or started before) get «Dagens utfordringer» first.
-    const dag = lesDagens();
-    const hyller = dag && dag.vendt ? [...HYLLER.filter((h) => h.tagg === "daglig"), ...HYLLER.filter((h) => h.tagg !== "daglig")] : HYLLER;
-    for (const h of hyller) {
-      // Games where this category is their main thing come first (e.g. a party game on «Til festen»).
-      const spill = SPILL.filter((s) => s.tagger.includes(h.tagg) && (h.alder18 || !s.alder18))
-        .map((s, n) => ({ s, n, vekt: s.tagger.indexOf(h.tagg) }))
-        .sort((a, b) => a.vekt - b.vekt || a.n - b.n)
-        .map((x) => x.s);
-      if (spill.length < 2) continue;
-      let innhold;
-      if (h.alder18 && !over18) {
-        innhold = `<li class="hylle-port"><button type="button" data-vis18><span class="hylle-port-ikon" aria-hidden="true">🔞</span><b>${esc(t("Vis drikkespillene"))}</b><span>${esc(t("{n} spill for voksne (18+)", { n: spill.length }))}</span></button></li>`;
-      } else {
-        innhold = spill.map((s) => kopi(s.id, "hyllekort")).join("");
-      }
-      // Shown drinking games can be hidden again (a shared family tablet).
-      const skjul = h.alder18 && over18 ? `<button type="button" class="hylle-alle hylle-skjul" data-skjul18>${esc(t("Skjul"))}</button>` : "";
-      ut.push(`<section class="hylle${h.alder18 ? " hylle-18" : ""}" id="hylle-${h.tagg}" aria-label="${esc(h.tittel)}">
-        <div class="hylle-topp"><h3${h.alder18 ? ' tabindex="-1"' : ""}><span aria-hidden="true">${h.ikon}</span> ${esc(h.tittel)}</h3>${skjul}<button type="button" class="hylle-alle" data-tagg="${h.tagg}" aria-label="${esc(t("Se alle: {hylle}", { hylle: h.tittel }))}">${esc(t("Se alle"))}</button></div>
-        <ul class="hylle-rad">${innhold}</ul>
-      </section>`);
-    }
-    $("#hyller").innerHTML = ut.join("");
-    merkDagens();
-  }
 
   // ---------- Fortsett (games left in the middle) ----------
 
@@ -534,132 +606,50 @@
       if (pagar && l._tid && na - l._tid < 12 * 3600 * 1000) aktive.set(s.id, l._tid);
     }
   }
-  finnAktive();
-
-  // A «Fortsett» badge on every copy of a game that is in progress (and in its link text).
-  function merkFortsett() {
-    for (const k of $$(".spillkort[data-id]")) {
-      const pa = aktive.has(k.dataset.id);
-      const a = $("a", k);
-      if (!a) continue;
-      if (a.dataset.etikett == null) a.dataset.etikett = a.getAttribute("aria-label") || "";
-      a.setAttribute("aria-label", (pa ? t("Fortsett.") + " " : "") + a.dataset.etikett + (a.dataset.dagens || ""));
-      let merke = $(".kort-fortsett", k);
-      if (pa && !merke) {
-        merke = document.createElement("span");
-        merke.className = "kort-fortsett";
-        merke.setAttribute("aria-hidden", "true");
-        merke.textContent = t("Fortsett");
-        a.append(merke);
-      } else if (!pa && merke) merke.remove();
-    }
-  }
-
   function visFortsett() {
-    const ids = SPILL.filter((s) => aktive.has(s.id) && (over18 || !s.alder18))
-      .sort((a, b) => aktive.get(b.id) - aktive.get(a.id))
-      .map((s) => s.id);
-    $("#fortsett").hidden = !ids.length;
-    $("#fortsett-rad").innerHTML = ids.map((id) => kopi(id, "rad-kort")).join("");
-    merkFortsett();
+    const liste_ = SPILL.filter((s) => aktive.has(s.id) && synlig(s)).sort((a, b) => aktive.get(b.id) - aktive.get(a.id));
+    $("#fortsett").hidden = !liste_.length;
+    $("#fortsett-rad").innerHTML = liste_.map((s) => `<li data-id="${s.id}">${flis(s, { fortsett: true })}</li>`).join("");
   }
 
-  // ---------- «Dagens utfordringer»: today on the daily cards ----------
-  // What is done today and the streak, read from «rusj.daglig», which the games write through the
-  // kit (the format is in rusj/DAGLIG.md; the reading and the counting in daglig.js). Only the
-  // phone's own storage: when it is blocked, the page reads as for a new visitor.
+  // ---------- «Dagens»: today's daily game, how today went and the streak ----------
+  // Read from «rusj.daglig», which the games write through the kit (rusj/DAGLIG.md; the reading and
+  // the counting in daglig.js). The same game for everyone today. Storage blocked: as for a new visitor.
 
-  const D = window.RusjDaglig;
-  let dagens = null; // { nr, st, rekke, vendt }: what the shelf was last drawn from
-
-  function lesDagens() {
-    if (!D) return (dagens = null);
-    const nr = D.dag().nr;
-    const ider = SPILL.filter((s) => s.tagger.includes("daglig") && !s.alder18).map((s) => s.id);
-    const st = D.status(les(k("daglig"), null), ider, nr);
-    // A returning player has finished a daily before, or is in the middle of one.
-    return (dagens = { nr, st, rekke: D.rekke(st.dager, nr).rekke, vendt: st.noenGang || st.pagar > 0 });
-  }
-
-  // A small badge on the picture of each daily card – «✓ 4/6» or «I gang» – and the same in its
-  // link name; the streak beside the shelf's heading. Texts from storage only ever go in as text.
-  function merkDagens() {
-    const hylle = $("#hylle-daglig");
-    if (hylle && dagens) {
-      const topp = $(".hylle-topp", hylle);
-      let flamme = $(".hylle-rekke", topp);
-      if (dagens.rekke >= 2) {
-        if (!flamme) {
-          flamme = document.createElement("span");
-          flamme.className = "hylle-rekke";
-          flamme.setAttribute("role", "img");
-          $("h3", topp).after(flamme);
-        }
-        flamme.setAttribute("aria-label", t("{n} dager på rad", { n: dagens.rekke }));
-        flamme.innerHTML = `<span aria-hidden="true">🔥</span>${dagens.rekke}`;
-      } else if (flamme) flamme.remove();
-
-      const stand = new Map(dagens.st.spill.map((x) => [x.id, x]));
-      for (const k of $$(".spillkort[data-id]", hylle)) {
-        const a = $("a", k);
-        const x = stand.get(k.dataset.id);
-        if (!a || !x) continue;
-        // Straight to today's round, as the old «I dag» strip did (rusj/DAGLIG.md: #dagens).
-        const href = a.getAttribute("href") || "";
-        if (href && !href.includes("#")) a.setAttribute("href", href + "#dagens");
-        const ferdig = x.tilstand === "ferdig";
-        a.dataset.dagens = ferdig ? " – " + t("ferdig i dag") + (x.res ? ", " + D.lesbart(x.res) : "") : x.tilstand === "pagar" ? " – " + t("i gang") : "";
-        let merke = $(".kort-dagens", k);
-        if (!a.dataset.dagens) {
-          if (merke) merke.remove();
-          continue;
-        }
-        if (!merke) {
-          merke = document.createElement("span");
-          merke.className = "kort-dagens";
-          merke.setAttribute("aria-hidden", "true");
-          $(".kort-figur", a).append(merke);
-        }
-        merke.classList.toggle("ferdig", ferdig);
-        merke.textContent = ferdig ? "✓" + (x.res ? " " + x.res : "") : t("I gang");
-      }
-    }
-    merkFortsett(); // writes the link names, with today's state in them
-  }
-
-  // Back from a game, changed in another tab, a new day: up to date. The shelves are built anew
-  // only when «Dagens utfordringer» has to move (that would reset how far each row is scrolled).
-  function oppdaterDagens() {
-    const for_ = !!(dagens && dagens.vendt);
-    lesDagens();
-    if (dagens && dagens.vendt !== for_) byggHyller();
-    else merkDagens();
+  const daglige = SPILL.filter((s) => s.tagger.includes("daglig") && !s.alder18);
+  let dagNr = null;
+  function visDagens() {
+    const kort = $("#dagens-kort");
+    if (!kort || !daglige.length || !D) return;
+    const dag = D.dag();
+    dagNr = dag.nr;
+    const s = daglige[((dag.nr % daglige.length) + daglige.length) % daglige.length];
+    const st = D.status(les(k("daglig"), null), daglige.map((x) => x.id), dag.nr);
+    const r = D.rekke(st.dager, dag.nr);
+    const her = st.spill.find((x) => x.id === s.id) || {};
+    const tilstand = her.tilstand === "ferdig" ? " – " + t("ferdig i dag") + (her.res ? ", " + D.lesbart(her.res) : "") : her.tilstand === "pagar" ? " – " + t("i gang") : "";
+    kort.href = url(s) + "#dagens";
+    kort.style.setProperty("--kf", s.farge);
+    kort.setAttribute("aria-label", `${t("Dagens utfordring")}. ${etikett(s)}${tilstand}`);
+    const merke = her.tilstand === "ferdig" ? `<span class="dagens-status-merke ferdig" aria-hidden="true">✓${her.res ? " " + esc(her.res) : ""}</span>` : her.tilstand === "pagar" ? `<span class="dagens-status-merke" aria-hidden="true">${esc(t("I gang"))}</span>` : "";
+    $(".dagens-bilde", kort).innerHTML = bilde(s, true) + merke;
+    $(".dagens-navn", kort).textContent = s.navn;
+    $(".dagens-linje", kort).textContent = t("{undertittel} – ny hver natt, lik for alle", { undertittel: s.undertittel });
+    kort.hidden = false;
+    $("#dagens-dato").textContent = D.datoTekst(dag);
+    const status = [st.ferdige ? "✓ " + t("{n} av {alle} i dag", { n: st.ferdige, alle: st.antall }) : "", r.rekke >= 2 ? "🔥 " + t("{n} dager på rad", { n: r.rekke }) : ""].filter(Boolean);
+    $("#dagens-status").textContent = status.join(" · ");
   }
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) oppdaterDagens();
+    if (!document.hidden) visDagens();
   });
   window.addEventListener("storage", (e) => {
-    if (e.key === k("daglig")) oppdaterDagens();
+    if (e.key === k("daglig")) visDagens();
   });
-  // A page left open past midnight: yesterday's ticks go away.
+  // A page left open past midnight: a new game of the day.
   setInterval(() => {
-    if (D && dagens && !document.hidden && D.dag().nr !== dagens.nr) oppdaterDagens();
+    if (D && dagNr != null && !document.hidden && D.dag().nr !== dagNr) visDagens();
   }, 60000);
-
-  // ---------- Mascot parade under the hero (never drinking games) ----------
-
-  function byggParade() {
-    if (SPILL.filter((s) => !s.alder18).length < 6) {
-      const p = $("#parade");
-      if (p && p.parentElement) p.parentElement.hidden = true;
-      return;
-    }
-    const figurer = SPILL.filter((s) => !s.alder18)
-      .map((s) => `<a class="parade-figur" href="${url(s)}" tabindex="-1" style="--kf: ${s.farge}">${figur(s.id)}</a>`)
-      .join("");
-    // Two copies for a seamless loop; the second one is only for the eye.
-    $("#parade").innerHTML = figurer + figurer.replace(/<a /g, '<a aria-hidden="true" ');
-  }
 
   // ---------- Kveldens gjeng ----------
 
@@ -720,6 +710,12 @@
       <button type="button" class="automat-lukk" data-lukk aria-label="${esc(t("Lukk"))}">×</button>
       <h2 id="automat-tittel">${esc(t("Overrask meg"))}</h2>
       <p class="automat-under" id="automat-under"></p>
+      <div class="antall" role="group" aria-label="${esc(t("Hvor mange spillere er dere?"))}">
+        <span class="antall-tekst">${esc(t("Spillere"))}</span>
+        <button type="button" class="antall-knapp" data-antall="-1" aria-label="${esc(t("Færre spillere"))}">−</button>
+        <output id="antall" aria-live="polite">${esc(t("alle"))}</output>
+        <button type="button" class="antall-knapp" data-antall="1" aria-label="${esc(t("Flere spillere"))}">+</button>
+      </div>
       <div class="automat-maskin" aria-hidden="true">
         <span class="automat-lys"></span>
         <div class="automat-vindu"><div class="automat-hjul"></div></div>
@@ -738,26 +734,37 @@
   let snurrer = false;
   let hjulAnim = null;
 
+  // Among the games the list shows now (when that is a choice of a few), else among all of them,
+  // for as many players as the machine's own stepper says. Never a tool: this is for playing.
+  let spillere = 0; // 0 = any number
   function kandidater() {
-    const alle = SPILL.filter((s) => (over18 || !s.alder18) && kilde(s.id));
-    const passende = alle.filter(passerAntall);
-    return passende.length ? passende : alle;
+    const alle = SPILL.filter((s) => synlig(s) && !s.tagger.includes("verktoy"));
+    const viste = alle.filter(passer);
+    const blant = filtrert() && viste.length >= 2 ? viste : alle;
+    const passende = blant.filter((s) => !spillere || (s.spillere[0] <= spillere && s.spillere[1] >= spillere));
+    return passende.length ? passende : blant;
+  }
+  function visSpillere() {
+    $("#antall", automat).textContent = spillere ? String(spillere) : t("alle");
+    $$(".antall-knapp", automat)[0].disabled = spillere === 0;
+    $$(".antall-knapp", automat)[1].disabled = spillere >= 20;
   }
   function klar(ja) {
     for (const b of $$("[data-en-til], [data-spill]", automat)) b.setAttribute("aria-disabled", String(!ja));
   }
 
   async function snurr() {
-    const liste = kandidater();
-    if (!liste.length) return;
-    let vinner = liste[Math.floor(Math.random() * liste.length)];
-    for (let n = 0; n < 6 && liste.length > 1 && valgt && vinner.id === valgt.id; n++) vinner = liste[Math.floor(Math.random() * liste.length)];
+    const liste_ = kandidater();
+    if (!liste_.length) return;
+    let vinner = liste_[Math.floor(Math.random() * liste_.length)];
+    for (let n = 0; n < 6 && liste_.length > 1 && valgt && vinner.id === valgt.id; n++) vinner = liste_[Math.floor(Math.random() * liste_.length)];
     valgt = vinner;
-    $("#automat-under").textContent = antall && liste.every(passerAntall) ? t("Blant {n} spill for {antall} spillere", { n: liste.length, antall }) : t("Blant {n} spill", { n: liste.length });
+    const passer_ = spillere && liste_.every((s) => s.spillere[0] <= spillere && s.spillere[1] >= spillere);
+    $("#automat-under").textContent = passer_ ? t("Blant {n} spill for {antall} spillere", { n: liste_.length, antall: spillere }) : t("Blant {n} spill", { n: liste_.length });
     // The reel: random mascots, the winner last.
-    const rolle = rolig() ? [] : Array.from({ length: 16 }, () => liste[Math.floor(Math.random() * liste.length)]);
+    const rolle = rolig() ? [] : Array.from({ length: 16 }, () => liste_[Math.floor(Math.random() * liste_.length)]);
     rolle.push(vinner);
-    hjul.innerHTML = rolle.map((s) => `<span class="automat-figur" style="--kf: ${s.farge}">${figur(s.id)}</span>`).join("");
+    hjul.innerHTML = rolle.map((s) => `<span class="automat-figur" style="--kf: ${s.farge}">${bilde(s, true)}</span>`).join("");
     maskin.classList.remove("ferdig");
     svar.textContent = "";
     if (hjulAnim) hjulAnim.cancel();
@@ -800,6 +807,14 @@
       automat.close();
       return;
     }
+    const steg = e.target.closest("[data-antall]");
+    if (steg) {
+      const d = Number(steg.dataset.antall);
+      spillere = spillere === 0 && d > 0 ? 2 : spillere === 2 && d < 0 ? 0 : Math.max(0, Math.min(20, spillere + d));
+      visSpillere();
+      if (!snurrer) snurr();
+      return;
+    }
     if (snurrer) return;
     if (e.target.closest("[data-en-til]")) snurr();
     else if (e.target.closest("[data-spill]") && valgt) location.href = url(valgt);
@@ -819,7 +834,7 @@
   const innebygd = D && D.innebygdNettleser ? D.innebygdNettleser(navigator.userAgent) : "";
   let installer = null;
   if (installert) $("#installer").hidden = true;
-  // The quick tip at the top: until it's dismissed or rusj is installed.
+  // The quick tip under the rooms: until it's dismissed or rusj is installed.
   if (!installert && !les(k("portal.installSkjult"), false)) $("#installtips").hidden = false;
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
@@ -912,10 +927,9 @@
         </div>`;
       d.querySelector('[value="ok"]').addEventListener("click", () => d.close());
       d.querySelector("#del-lenken").addEventListener("click", async () => {
-        const url = ADRESSE;
         try {
           if (navigator.share) {
-            await navigator.share({ title: "rusj", text: t("Bli med på rusj – gratis spill for hele gjengen, rett i nettleseren."), url });
+            await navigator.share({ title: "rusj", text: t("Bli med på rusj – gratis spill for hele gjengen, rett i nettleseren."), url: ADRESSE });
             return;
           }
         } catch (e) {
@@ -923,7 +937,7 @@
         }
         let ok = false;
         try {
-          await navigator.clipboard.writeText(url);
+          await navigator.clipboard.writeText(ADRESSE);
           ok = true;
         } catch (e) {
           ok = false;
@@ -935,7 +949,7 @@
       d.querySelector("#del-lenken").focus();
     });
 
-  // ---------- Reveal sections on scroll ----------
+  // ---------- Reveal sections on scroll; the top bar's edge ----------
 
   if ("IntersectionObserver" in window && !rolig()) {
     const obs = new IntersectionObserver(
@@ -954,43 +968,29 @@
       obs.observe(el);
     });
   }
-
-  // The search bar gets a solid background (and a soft shadow) once the page has scrolled in under
-  // it: when what stands right above it («Hva skal vi spille?») is a little more than out of sight. Not at the very point where it
-  // starts to stick – that is where a search puts it, and the line right below it must stay clear.
-  // Only the background changes, never the height: see .filter.fast in portal.css.
-  // (Read from the scroll position, once per frame. An IntersectionObserver on the heading misses a
-  // jump straight past it – the End key, a restored scroll position – and leaves the bar see-through.)
-  function sjekkFast() {
-    sjekkFast.venter = false;
-    $("#filter").classList.toggle("fast", ($("#finner") || $("#spill")).getBoundingClientRect().bottom < -14);
-  }
-  function sjekkFastSnart() {
-    if (sjekkFast.venter) return;
-    sjekkFast.venter = true;
-    requestAnimationFrame(sjekkFast);
-  }
-  window.addEventListener("scroll", sjekkFastSnart, { passive: true });
-  window.addEventListener("resize", sjekkFastSnart);
-  sjekkFast();
-
-  // «Finn et spill» goes to «Hva skal vi spille?»: the three questions, right under the heading.
-  const finnKnapp = $('a.knapp[href="#spill"]');
-  if (finnKnapp)
-    finnKnapp.addEventListener("click", (e) => {
-      e.preventDefault();
-      $("#spill").scrollIntoView({ behavior: rolig() ? "auto" : "smooth", block: "start" });
-      $("#spill").focus({ preventScroll: true });
-    });
-
-  // The badge in the hero counts every game (the build wrote the same number into the page).
-  if ($("#helt-antall")) $("#helt-antall").textContent = String(SPILL.length);
+  // A line under the top bar once the page has scrolled in under it.
+  let kant = false;
+  const sjekkKant = () => {
+    kant = false;
+    $("#linje").classList.toggle("skygget", window.scrollY > 4);
+  };
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!kant) {
+        kant = true;
+        requestAnimationFrame(sjekkKant);
+      }
+    },
+    { passive: true },
+  );
+  sjekkKant();
 
   // ---------- Card rows for mouse users ----------
   // The rows scroll sideways with a finger or a trackpad, but a mouse wheel only scrolls the page.
   // With a mouse: arrow buttons on each row (shown when there is more to see that way), and
   // click-and-drag that never turns into a click on a card.
-  const RADER = ".hylle-rad, .fortsett-rad";
+  const RADER = ".forside-rad, .topp-rad";
   const finPeker = window.matchMedia("(hover: hover) and (pointer: fine)");
   const pilerFor = new WeakMap(); // row → its arrows
   const radFor = new WeakMap(); // arrows → their row
@@ -1005,14 +1005,16 @@
   function lagPiler() {
     for (const rad of $$(RADER)) {
       if (!(pilerFor.get(rad) && pilerFor.get(rad).isConnected)) {
-        const navn = (rad.closest("section") && rad.closest("section").getAttribute("aria-label")) || t("raden");
+        const del = rad.closest("section");
+        const h2 = del && $("h2", del);
+        const navn = (h2 && h2.textContent.replace(/^[^\p{L}\d]+/u, "").trim()) || t("raden");
         const p = document.createElement("div");
         p.className = "rad-piler";
         p.hidden = true;
         p.innerHTML = `<button type="button" data-rull="-1" aria-label="${esc(t("Bla tilbake i {rad}", { rad: navn }))}">‹</button><button type="button" data-rull="1" aria-label="${esc(t("Bla videre i {rad}", { rad: navn }))}">›</button>`;
-        // In a shelf the arrows sit in its header, next to «Se alle»; elsewhere just above the row.
-        const topp = rad.closest(".hylle") && rad.closest(".hylle").querySelector(".hylle-topp");
-        if (topp) topp.insertBefore(p, topp.querySelector(".hylle-alle"));
+        // In the heading row of the section, to the right.
+        const topp = del && $(".del-topp", del);
+        if (topp) topp.append(p);
         else rad.before(p);
         pilerFor.set(rad, p);
         radFor.set(p, rad);
@@ -1056,20 +1058,18 @@
   document.addEventListener("dragstart", (e) => {
     if (e.target.closest && e.target.closest(RADER)) e.preventDefault(); // links and images would start a browser drag
   });
-  const radObservator = new MutationObserver(lagPiler);
-  for (const el of [$("#hyller"), $("#fortsett-rad")]) if (el) radObservator.observe(el, { childList: true, subtree: true });
   window.addEventListener("resize", () => $$(RADER).forEach(oppdaterPiler));
   if (finPeker.addEventListener) finPeker.addEventListener("change", () => $$(RADER).forEach(oppdaterPiler));
 
-  byggParade();
-  byggHyller();
+  // ---------- Start ----------
+
+  finnAktive();
   visFortsett();
+  visDagens();
   visKveld();
-  visFiltre(!!(antall || tagg)); // open when filters from last time are still on
-  oppdater();
-  visFinner();
-  // Only changes are read aloud, not the first list.
-  if ($("#finner-treff")) $("#finner-treff").setAttribute("aria-live", "polite");
+  visSpillere();
+  oppdater({ stille: true });
+  lagPiler();
 
   // The app shortcut «Overrask meg» (a long press on the app icon) opens /#overrask: spin at once.
   if (hash === "#overrask" && automat.showModal) {
@@ -1089,16 +1089,14 @@
     if (automat.open) automat.close();
     if (!over18 && felles().over18) {
       over18 = true; // confirmed in a game's 18+ gate meanwhile
-      visAlder();
-      byggHyller();
-      visFinner();
+      nyAlder();
     }
     finnAktive();
-    oppdaterDagens(); // a daily puzzle may be finished since the page was left
     visFortsett();
+    visDagens();
     visKveld();
-    oppdater();
-    sjekkFast();
+    oppdater({ stille: true });
+    lagPiler();
   });
 
   // The language picker (a <details>) also closes on a tap outside it and on Escape.

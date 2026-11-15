@@ -1,5 +1,5 @@
-/* rusj.no front page. Builds on rusj.css (tokens, buttons, chips). Wider than the games:
-   one column on phones, a grid of game cards on bigger screens. */
+/* rusj.no: the front page and the pages about rusj (/om/, /personvern/, /merker/, the collections,
+   404). Builds on rusj.css (tokens, buttons, chips). The front page itself is at the end. */
 
 body.portal {
   --aksent: var(--lampe);
@@ -32,413 +32,6 @@ body.portal {
   to {
     transform: translate(-6vmax, 4vmax) scale(1.15, 0.9);
   }
-}
-
-/* ---------- Hero ---------- */
-
-/* Phones: compact, so the first row of games shows on the first screen. Wide screens and phones
-   on their side get the logo beside the text instead (see «Wide» further down). */
-.helt {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
-  text-align: center;
-}
-
-.helt-logo {
-  width: min(42vw, 300px);
-  margin: 0;
-  filter: drop-shadow(0 14px 30px rgba(255, 79, 139, 0.25));
-}
-
-/* Logo draws itself in, then the blob drops onto the j */
-.rusj-logo.tegnes .logo-for path {
-  stroke-dasharray: 260;
-  stroke-dashoffset: 260;
-  animation: tegn 0.9s cubic-bezier(0.5, 0, 0.2, 1) forwards;
-}
-
-.rusj-logo.tegnes .logo-for path:nth-child(2) {
-  animation-delay: 0.14s;
-}
-
-.rusj-logo.tegnes .logo-for path:nth-child(3) {
-  animation-delay: 0.28s;
-}
-
-.rusj-logo.tegnes .logo-for path:nth-child(4) {
-  animation-delay: 0.42s;
-}
-
-.rusj-logo.tegnes .logo-bak {
-  opacity: 0;
-  animation: frem 0.5s ease-out 0.9s forwards;
-}
-
-.rusj-logo.tegnes .logo-klatt,
-.rusj-logo.tegnes .logo-klatt-bak {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  translate: 0 -120px;
-  opacity: 0;
-  animation: dropp 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) 1.15s forwards;
-}
-
-.rusj-logo .logo-klatt {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-}
-
-.helt-logo:hover .logo-klatt {
-  animation: vugg 0.6s ease-in-out;
-}
-
-@keyframes tegn {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes frem {
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes dropp {
-  0% {
-    translate: 0 -120px;
-    opacity: 0;
-  }
-  60% {
-    translate: 0 4px;
-    scale: 1.25 0.75;
-    opacity: 1;
-  }
-  80% {
-    translate: 0 -6px;
-    scale: 0.9 1.12;
-  }
-  100% {
-    translate: 0 0;
-    scale: 1 1;
-    opacity: 1;
-  }
-}
-
-@keyframes vugg {
-  30% {
-    scale: 1.2 0.8;
-  }
-  60% {
-    scale: 0.9 1.15;
-  }
-}
-
-/* Tagline, facts and buttons. On phones they are simply stacked under the logo. */
-.helt-tekst {
-  display: contents;
-}
-
-.helt-slagord {
-  font: 900 clamp(1.35rem, 5.9vw, 2.4rem) / 1.08 var(--font-display);
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-  animation: inn 0.6s ease-out 0.5s both;
-}
-
-.helt-slagord em {
-  color: var(--mynte);
-  font-style: normal;
-}
-
-/* Four facts on one row on phones from 360 px wide (they shrink a little with the screen);
-   narrower than that they stand two and two, see «Smallest phones». */
-.helt-fakta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: clamp(4px, 1.4vw, 6px);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  animation: inn 0.6s ease-out 0.7s both;
-}
-
-.helt-fakta li {
-  padding: 6px clamp(8px, 2.4vw, 11px);
-  border: 1.5px solid var(--strek);
-  border-radius: 999px;
-  background: rgba(33, 20, 61, 0.6);
-  color: var(--tekst-2);
-  font: 700 clamp(0.74rem, 3.4vw, 0.86rem) / 1 var(--font-display);
-  text-align: center;
-  white-space: nowrap;
-}
-
-.helt-fakta b {
-  color: var(--lampe);
-  font-weight: 900;
-}
-
-.helt-knapper {
-  display: grid;
-  grid-template-columns: 1fr 1.3fr;
-  gap: 10px;
-  width: min(100%, 460px);
-  animation: inn 0.6s ease-out 0.85s both;
-}
-
-.helt-knapper .knapp,
-.helt-knapper .knapp-2 {
-  min-height: 52px;
-  padding: 8px 12px;
-  font-size: 1.08rem;
-}
-
-/* The gang parades past under the hero, from edge to edge */
-.parade {
-  position: relative;
-  z-index: 1;
-  margin-top: 6px;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
-  mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
-}
-
-.parade-spor {
-  display: flex;
-  gap: 12px;
-  width: max-content;
-  padding: 10px 0 3px;
-  animation: parade 55s linear infinite;
-}
-
-.parade:hover .parade-spor,
-.parade:focus-within .parade-spor {
-  animation-play-state: paused;
-}
-
-@keyframes parade {
-  to {
-    transform: translateX(calc(-50% - 7px));
-  }
-}
-
-.parade-figur {
-  display: block;
-  flex: none;
-  width: 48px;
-  transition: transform 0.2s;
-}
-
-/* The row is lively without a per-figure animation: 84 hopping figures on a moving track kept the
-   main thread busy 99 % of the time on a phone (measured), even when scrolled out of view. */
-.parade-figur:nth-child(3n + 1) {
-  translate: 0 -5px;
-  rotate: -4deg;
-}
-
-.parade-figur:nth-child(3n + 2) {
-  translate: 0 3px;
-  rotate: 3deg;
-}
-
-.parade-figur:hover,
-.parade-figur:focus-visible {
-  transform: scale(1.18) rotate(-6deg);
-}
-
-/* ---------- Search bar and filter panel ---------- */
-
-.portal-hoved {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 24px;
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 6px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px));
-}
-
-/* The search bar must never change height while it sticks: a height change moves the page,
-   which un-sticks it again, and slow scrolling gets caught in that loop. Only the background
-   changes (see .filter.fast). The filter panel opens below it, in the page, not in the bar. */
-.filter {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
-  padding: calc(10px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
-  background: transparent;
-  transition: background 0.25s, box-shadow 0.25s;
-}
-
-/* Solid only while it sticks to the top (set by portal.js), so it never draws a hard edge in the page. */
-.filter.fast {
-  /* Solid, so nothing shows through; the soft edge below is a shadow (no change in height). */
-  background: var(--natt);
-  box-shadow: 0 14px 14px -4px var(--natt);
-}
-
-.filter-overskrift {
-  margin-bottom: -18px;
-  font-size: clamp(1.5rem, 5.6vw, 2rem);
-  scroll-margin-top: 12px;
-}
-
-/* Headings that only get focus from the script (after «Se alle», «Skjul» …): no ring around text. */
-.filter-overskrift:focus,
-.hylle h3:focus {
-  outline: none;
-}
-
-/* Keyboard focus must never end up under the search row that sticks to the top: tabbing backwards
-   scrolls what gets focus to the very top of the screen, so keep that row's height clear above it. */
-.filtre button,
-.hyller a,
-.hyller button,
-.spillgrid a,
-.spillgrid button,
-.installer button {
-  scroll-margin: 84px 0 12px;
-}
-
-.filter-knapp {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 50px;
-  padding: 0 16px 0 13px;
-  border: 2px solid var(--strek);
-  border-radius: 999px;
-  background: var(--natt-2);
-  color: var(--tekst);
-  font: 800 0.98rem/1 var(--font-display);
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.filter-knapp svg {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-width: 2.2;
-}
-
-.filter-knapp circle {
-  fill: var(--natt-2);
-}
-
-.filter-knapp[aria-expanded="true"],
-.filter-knapp.aktiv {
-  border-color: var(--lampe);
-}
-
-.filter-knapp[aria-expanded="true"] svg {
-  color: var(--lampe);
-}
-
-.filter-antall {
-  display: grid;
-  place-items: center;
-  min-width: 22px;
-  height: 22px;
-  margin-right: -6px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--lampe);
-  color: var(--blekk);
-  font: 900 0.8rem/1 var(--font-display);
-  font-variant-numeric: tabular-nums;
-}
-
-.filtre {
-  display: grid;
-  gap: 14px;
-  margin-top: -20px;
-  padding: 14px;
-  border-radius: var(--r-stor);
-  background: var(--natt-2);
-  box-shadow: inset 0 0 0 1.5px var(--strek), 0 14px 30px var(--skygge);
-  animation: filtre-inn 0.22s ease-out both;
-}
-
-@keyframes filtre-inn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-}
-
-.antall {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-self: start;
-  gap: 6px;
-  padding: 4px 4px 4px 14px;
-  border-radius: 999px;
-  background: var(--natt);
-  box-shadow: inset 0 0 0 1.5px var(--strek);
-}
-
-.antall-tekst {
-  color: var(--tekst-2);
-  font: 800 0.92rem/1 var(--font-display);
-}
-
-.antall output {
-  min-width: 3.2ch;
-  font: 900 1.15rem/1 var(--font-display);
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-}
-
-.antall-knapp {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--natt-3);
-  color: var(--tekst);
-  font: 900 1.3rem/1 var(--font-display);
-  cursor: pointer;
-}
-
-.antall-knapp:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.filtre .brikke[aria-pressed="true"]:not(.alle) {
-  background: var(--lampe);
-  box-shadow: 0 3px 0 var(--lampe-dyp);
-}
-
-.treff {
-  min-height: 1.2em;
-  margin-top: -18px;
-  color: var(--tekst-3);
-  font: 700 0.9rem/1.2 var(--font-display);
 }
 
 /* ---------- «Hva skal vi spille?»: three questions and a short list ----------
@@ -545,33 +138,6 @@ body.portal {
   color: var(--tekst);
 }
 
-.finner-treff {
-  min-height: 1.2em;
-  margin-top: 2px;
-  color: var(--tekst-3);
-  font: 700 0.9rem/1.2 var(--font-display);
-}
-
-.finner-liste:empty {
-  display: none;
-}
-
-.finner-mer {
-  justify-self: start;
-}
-
-/* The finder's cards: the line on why a game fits («Fra 7 år · 3–8 spillere · …») takes the place
-   of the one-liner and the facts, so six cards stay a short list. */
-.finnerkort a {
-  grid-template-rows: auto;
-  grid-template-areas: "figur tekst";
-}
-
-.finnerkort .kort-linje,
-.finnerkort .kort-fakta {
-  display: none;
-}
-
 .kort-grunn {
   color: var(--tekst-2);
   font: 800 0.78rem/1.35 var(--font-display);
@@ -581,450 +147,6 @@ body.portal {
 /* Each part whole: a line breaks only between them. */
 .kort-grunn > span {
   white-space: nowrap;
-}
-
-/* ---------- Game cards ----------
-   One card per game. In «Alle spill» it is a compact row; copies become tiles on the shelves
-   (.hyllekort) and rows in «Fortsett» (.rad-kort). */
-
-.spillgrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* A row in «Alle spill»: the mascot and the text, and under them one line of facts – how many
-   players, how many phones, how long. */
-.spillkort a {
-  position: relative;
-  display: grid;
-  grid-template-columns: 60px minmax(0, 1fr);
-  grid-template-rows: 1fr auto;
-  grid-template-areas:
-    "figur tekst"
-    "fakta fakta";
-  align-items: center;
-  gap: 8px 12px;
-  height: 100%;
-  min-height: 78px;
-  padding: 9px 12px 8px 9px;
-  border-radius: 20px;
-  background: linear-gradient(100deg, color-mix(in srgb, var(--kf) 15%, var(--natt-2)), var(--natt-2) 62%);
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--kf) 28%, var(--strek));
-  color: var(--tekst);
-  text-decoration: none;
-  transition: transform 0.18s cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 0.18s;
-}
-
-.spillkort a:hover,
-.spillkort a:focus-visible {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 0 0 2px var(--kf),
-    0 12px 24px var(--skygge);
-}
-
-.spillkort a:active {
-  transform: scale(0.98);
-}
-
-.kort-figur {
-  position: relative;
-  display: grid;
-  grid-area: figur;
-  place-items: center;
-  width: 60px;
-  aspect-ratio: 1;
-  border-radius: 17px;
-  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--kf) 48%, var(--natt-2)), color-mix(in srgb, var(--kf) 16%, var(--natt)) 78%);
-}
-
-.kort-figur svg {
-  width: 86%;
-  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
-}
-
-.spillkort a:hover .kort-figur svg,
-.spillkort a:focus-visible .kort-figur svg {
-  transform: scale(1.1) rotate(-8deg);
-}
-
-.kort-tekst {
-  display: grid;
-  grid-area: tekst;
-  gap: 2px;
-  min-width: 0;
-}
-
-/* The genre, and to the right of it the small badges («Dagens», «Mot mobilen») */
-.kort-topp {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.kort-merker {
-  display: flex;
-  flex: none;
-  gap: 4px;
-  margin-left: auto;
-}
-
-.kort-merke {
-  padding: 3px 7px;
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1.2px color-mix(in srgb, var(--kf) 55%, var(--strek));
-  color: var(--tekst);
-  font: 800 0.64rem/1.1 var(--font-display);
-  white-space: nowrap;
-}
-
-.kort-merke.dagens {
-  background: var(--lampe);
-  box-shadow: none;
-  color: var(--blekk);
-}
-
-.kort-sjanger {
-  min-width: 0;
-  overflow: hidden;
-  color: color-mix(in srgb, var(--kf) 72%, #fff);
-  font: 900 0.7rem/1.25 var(--font-display);
-  letter-spacing: 0.05em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.kort-navn {
-  overflow: hidden;
-  font: 900 1.2rem/1.1 var(--font-display);
-  letter-spacing: -0.01em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.kort-linje {
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--tekst-2);
-  font-size: 0.86rem;
-  line-height: 1.3;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-}
-
-/* The facts: 👥 players · 📱 phones · ⏱ time – one line, each fact kept whole */
-.kort-fakta {
-  display: flex;
-  grid-area: fakta;
-  flex-wrap: wrap;
-  gap: 2px 12px;
-  padding-top: 7px;
-  border-top: 1px solid color-mix(in srgb, var(--kf) 16%, var(--strek));
-  color: var(--tekst-2);
-  font: 800 0.74rem/1.3 var(--font-display);
-  font-variant-numeric: tabular-nums;
-}
-
-.kort-fakta > span {
-  white-space: nowrap;
-}
-
-.fakta-ikon {
-  width: 1.2em;
-  height: 1.2em;
-  margin-right: 4px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2.2;
-  vertical-align: -0.24em;
-}
-
-/* The phones in short («1», «1+», «flere») are for the shelf tiles. */
-.fakta-kort {
-  display: none;
-}
-
-/* 18+ badge on the mascot */
-.kort-18 {
-  position: absolute;
-  top: -5px;
-  right: -7px;
-  padding: 3px 5px;
-  border-radius: 7px;
-  background: var(--rod);
-  box-shadow: 0 2px 0 var(--rod-dyp);
-  color: var(--blekk);
-  font: 900 0.66rem/1 var(--font-display);
-}
-
-/* «Fortsett» badge on a game that was left in the middle (added by portal.js) */
-.kort-fortsett {
-  position: absolute;
-  top: -8px;
-  right: 12px;
-  padding: 5px 9px;
-  border-radius: 999px;
-  background: var(--mynte);
-  box-shadow: 0 3px 0 var(--mynte-dyp);
-  color: var(--blekk);
-  font: 900 0.76rem/1 var(--font-display);
-}
-
-/* Tiles on the shelves */
-.spillkort.hyllekort a {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto 1fr auto;
-  grid-template-areas:
-    "figur"
-    "tekst"
-    "fakta";
-  align-items: start;
-  gap: 8px;
-  padding: 8px 8px 12px;
-  border-radius: 22px;
-  background: linear-gradient(175deg, color-mix(in srgb, var(--kf) 20%, var(--natt-2)), var(--natt-2) 70%);
-  box-shadow:
-    inset 0 0 0 1.5px color-mix(in srgb, var(--kf) 34%, var(--strek)),
-    0 6px 0 color-mix(in srgb, var(--kf) 18%, var(--natt));
-}
-
-.spillkort.hyllekort a:hover,
-.spillkort.hyllekort a:focus-visible {
-  transform: translateY(-4px) rotate(-0.8deg);
-  box-shadow:
-    inset 0 0 0 2px var(--kf),
-    0 9px 0 color-mix(in srgb, var(--kf) 28%, var(--natt)),
-    0 16px 26px var(--skygge);
-}
-
-.hyllekort .kort-figur {
-  width: 100%;
-  aspect-ratio: 8 / 5;
-  border-radius: 16px;
-}
-
-.hyllekort .kort-figur svg {
-  width: 56%;
-}
-
-.hyllekort .kort-18 {
-  top: 8px;
-  right: 8px;
-}
-
-.hyllekort .kort-tekst {
-  gap: 3px;
-  padding: 0 4px;
-}
-
-.hyllekort .kort-navn {
-  overflow: visible;
-  font-size: 1.04rem;
-  white-space: normal;
-  overflow-wrap: break-word;
-  hyphens: auto;
-}
-
-/* One line (ellipsis), so the names line up along a shelf. */
-.hyllekort .kort-sjanger {
-  font-size: 0.64rem;
-}
-
-.hyllekort .kort-linje {
-  display: none;
-}
-
-/* Two chips: players and phones (in short). The time is on the row in «Alle spill» – three
-   chips do not fit a tile without wrapping. No badges here either. */
-.hyllekort .kort-fakta {
-  flex-wrap: nowrap;
-  gap: 4px;
-  margin: 0 3px;
-  overflow: hidden;
-  padding: 0;
-  border: 0;
-  font-size: 0.76rem;
-  line-height: 1;
-}
-
-.hyllekort .kort-fakta > span {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 7px;
-  border-radius: 999px;
-  background: rgba(21, 12, 40, 0.55);
-  box-shadow: inset 0 0 0 1px var(--strek);
-}
-
-.hyllekort .fakta-ikon {
-  margin-right: 3px;
-}
-
-.hyllekort .kort-fakta > .kort-tid,
-.hyllekort .fakta-lang,
-.hyllekort .kort-merker {
-  display: none;
-}
-
-.hyllekort .fakta-kort {
-  display: inline;
-}
-
-.hyllekort .kort-fortsett {
-  top: 14px;
-  right: auto;
-  left: 14px;
-}
-
-/* Today's state on a daily card in «Dagens utfordringer» (added by portal.js): «✓ 4/6» or
-   «I gang» in the picture's corner. On top of the picture, so the card keeps its size. */
-.kort-dagens {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  max-width: calc(100% - 12px);
-  overflow: hidden;
-  padding: 4px 7px;
-  border-radius: 999px;
-  background: var(--slor);
-  box-shadow: inset 0 0 0 1.5px var(--lampe);
-  color: var(--lampe);
-  font: 800 0.72rem/1 var(--font-display);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.kort-dagens.ferdig {
-  background: var(--mynte);
-  box-shadow: 0 2px 0 var(--mynte-dyp);
-  color: var(--blekk);
-}
-
-/* Rows in «Fortsett der dere slapp»: the badge takes the player count's place */
-.rad-kort a {
-  background: linear-gradient(100deg, color-mix(in srgb, var(--mynte) 14%, var(--natt-2)), var(--natt-2) 70%);
-  box-shadow:
-    inset 0 0 0 2px color-mix(in srgb, var(--mynte) 55%, var(--strek)),
-    0 10px 24px var(--skygge);
-}
-
-.rad-kort a {
-  grid-template-columns: 60px minmax(0, 1fr) auto;
-  grid-template-rows: auto;
-  grid-template-areas: "figur tekst merke";
-  gap: 12px;
-  min-height: 86px;
-  padding-bottom: 9px;
-}
-
-.rad-kort .kort-fakta,
-.rad-kort .kort-merker {
-  display: none;
-}
-
-.rad-kort .kort-fortsett {
-  position: static;
-  grid-area: merke;
-  padding: 9px 12px;
-  font-size: 0.9rem;
-}
-
-.rad-kort .kort-fortsett::after {
-  content: " ▶";
-}
-
-.ingen-treff {
-  padding: 24px;
-  border: 2px dashed var(--strek);
-  border-radius: var(--r-stor);
-  color: var(--tekst-2);
-  text-align: center;
-}
-
-/* ---------- Fortsett der dere slapp ---------- */
-
-.fortsett {
-  display: grid;
-  gap: 10px;
-}
-
-.fortsett h2 {
-  font-size: 1.3rem;
-}
-
-.fortsett-rad {
-  display: grid;
-  grid-auto-columns: min(340px, 86%);
-  grid-auto-flow: column;
-  gap: 12px;
-  margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
-  padding: 10px max(16px, env(safe-area-inset-left, 0px)) 8px;
-  overflow-x: auto;
-  list-style: none;
-  scroll-padding-inline: max(16px, env(safe-area-inset-left, 0px));
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
-}
-
-.fortsett-rad:has(> :only-child) {
-  grid-auto-columns: min(420px, 100%);
-}
-
-.fortsett-rad::-webkit-scrollbar {
-  display: none;
-}
-
-.fortsett-rad > li {
-  scroll-snap-align: start;
-}
-
-/* ---------- «Mest spilt nå»: five numbered tiles under the hero (rusj/topp.json) ---------- */
-
-.topp5 {
-  display: grid;
-  gap: 6px;
-}
-
-.topp5 h2 {
-  font-size: 1.3rem;
-}
-
-.topp5-fot {
-  margin-top: -8px;
-  color: var(--tekst-3);
-  font: 700 0.8rem/1.2 var(--font-display);
-}
-
-/* The number on the picture's corner; «Fortsett» moves to the other corner. */
-.topp-nr {
-  position: absolute;
-  top: 7px;
-  left: 7px;
-  display: grid;
-  place-items: center;
-  min-width: 30px;
-  height: 30px;
-  padding: 0 7px;
-  border-radius: 999px;
-  background: var(--lampe);
-  box-shadow: 0 3px 0 var(--lampe-dyp);
-  color: var(--blekk);
-  font: 900 1.05rem/1 var(--font-display);
-  font-variant-numeric: tabular-nums;
-}
-
-.toppkort .kort-fortsett {
-  right: 14px;
-  left: auto;
 }
 
 /* ---------- How it works, install, footer ---------- */
@@ -1266,39 +388,13 @@ body.portal {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* The parade stands still: one row of mascots from the page margin, fading out to the right. */
-  .parade {
-    -webkit-mask-image: linear-gradient(to right, #000 82%, transparent);
-    mask-image: linear-gradient(to right, #000 82%, transparent);
-  }
-
-  .parade-spor {
-    padding-left: max(16px, env(safe-area-inset-left, 0px));
-  }
-
-  .parade-spor,
-  .parade-figur {
-    animation: none;
-  }
-
   .avdekk {
     opacity: 1;
     transform: none;
   }
-
-  .rusj-logo.tegnes .logo-for path {
-    stroke-dashoffset: 0;
-  }
-
-  .rusj-logo.tegnes .logo-bak,
-  .rusj-logo.tegnes .logo-klatt,
-  .rusj-logo.tegnes .logo-klatt-bak {
-    opacity: 1;
-    translate: none;
-  }
 }
 
-/* ---------- Install tip (top): one compact row ---------- */
+/* ---------- Install tip (under the rooms): one compact row ---------- */
 
 .installtips {
   display: flex;
@@ -1501,195 +597,6 @@ body.portal {
   transform: translateY(0.1em) rotate(-135deg);
 }
 
-/* ---------- Search ---------- */
-
-.sok {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.sok-ikon {
-  position: absolute;
-  left: 14px;
-  font-size: 1.05rem;
-  pointer-events: none;
-}
-
-.sok input {
-  width: 100%;
-  min-height: 50px;
-  padding: 10px 44px 10px 44px;
-  border: 2px solid var(--strek);
-  border-radius: 999px;
-  background: var(--natt-2);
-  color: var(--tekst);
-  font: 700 1.02rem/1.2 var(--font-tekst);
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.sok input::placeholder {
-  color: var(--tekst-3);
-  text-overflow: ellipsis;
-}
-
-/* The room on the right is for the «Tøm» button, which is only there when something is typed. */
-.sok input:placeholder-shown {
-  padding-right: 14px;
-  text-overflow: ellipsis;
-}
-
-.sok input:focus {
-  border-color: var(--lampe);
-  outline: none;
-}
-
-.sok input::-webkit-search-cancel-button {
-  display: none;
-}
-
-.sok-tom {
-  position: absolute;
-  right: 6px;
-  width: 38px;
-  height: 38px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--natt-3);
-  color: var(--tekst);
-  font: 900 1.2rem/1 var(--font-display);
-  cursor: pointer;
-}
-
-/* ---------- Shelves ---------- */
-
-.hyller {
-  display: grid;
-  gap: 18px;
-  margin-top: -8px;
-}
-
-.hylle {
-  display: grid;
-  gap: 6px;
-}
-
-.hylle-topp {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.hylle h3 {
-  min-width: 0;
-  font-size: 1.2rem;
-}
-
-.hylle-skjul {
-  margin-left: auto;
-}
-
-/* The streak beside «Dagens utfordringer» (from two days in a row): it follows the heading. */
-.hylle-rekke {
-  flex: none;
-  margin-right: auto;
-  padding: 5px 9px 5px 7px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--oransje) 16%, var(--natt-2));
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--oransje) 55%, var(--strek));
-  color: var(--tekst);
-  font: 900 0.85rem/1 var(--font-display);
-  white-space: nowrap;
-}
-
-.hylle-rekke span {
-  margin-right: 3px;
-}
-
-.hylle-alle {
-  flex: none;
-  min-height: 36px;
-  padding: 6px 12px;
-  border: 1.5px solid var(--strek);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--tekst-2);
-  font: 800 0.85rem/1 var(--font-display);
-  cursor: pointer;
-}
-
-.hylle-rad {
-  display: grid;
-  grid-auto-columns: 156px;
-  grid-auto-flow: column;
-  gap: 12px;
-  /* The top padding is room for the focus ring of a card that lifts (the row clips what sticks out). */
-  margin: -6px calc(-1 * max(16px, env(safe-area-inset-left, 0px))) 0;
-  padding: 12px max(16px, env(safe-area-inset-left, 0px)) 14px;
-  overflow-x: auto;
-  list-style: none;
-  scroll-padding-inline: max(16px, env(safe-area-inset-left, 0px));
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
-}
-
-.hylle-rad::-webkit-scrollbar {
-  display: none;
-}
-
-.hylle-rad > li {
-  scroll-snap-align: start;
-}
-
-.hylle-port {
-  grid-column: span 2;
-}
-
-.hylle-port button {
-  display: grid;
-  align-content: center;
-  justify-items: start;
-  gap: 4px;
-  width: 100%;
-  height: 100%;
-  min-height: 86px;
-  padding: 14px 16px;
-  border: 2px dashed rgba(255, 138, 92, 0.6);
-  border-radius: 20px;
-  background: rgba(255, 138, 92, 0.1);
-  color: var(--tekst);
-  text-align: left;
-  cursor: pointer;
-}
-
-.hylle-port-ikon {
-  font-size: 1.4rem;
-}
-
-.hylle-port b {
-  font: 900 1.05rem/1.1 var(--font-display);
-}
-
-.hylle-port span:last-child {
-  color: var(--tekst-2);
-  font-size: 0.85rem;
-}
-
-.alle-tittel {
-  font-size: clamp(1.3rem, 5vw, 1.7rem);
-}
-
-.alle-tittel:empty {
-  display: none;
-}
-
-/* Drinking games stay hidden until someone has confirmed their age */
-body:not(.over18) .spillkort[data-alder18] {
-  display: none;
-}
-
 /* ---------- Dialog (18+ and install help) ---------- */
 
 .dialog {
@@ -1879,11 +786,11 @@ body:not(.over18) .spillkort[data-alder18] {
   height: 150px;
 }
 
-.automat-figur svg {
+.automat-figur img {
   width: 112px;
 }
 
-.automat-maskin.snurrer .automat-figur svg {
+.automat-maskin.snurrer .automat-figur img {
   filter: blur(1.5px);
 }
 
@@ -1934,52 +841,6 @@ body:not(.over18) .spillkort[data-alder18] {
 
 .automat .knapp[aria-disabled="true"] {
   box-shadow: 0 6px 0 var(--f-dyp);
-}
-
-/* ---------- «Drikkespill (18+)» as a search result: it opens the age question ---------- */
-
-.atten-dor button {
-  display: grid;
-  grid-template-columns: 60px minmax(0, 1fr);
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  height: 100%;
-  min-height: 78px;
-  padding: 9px 12px 9px 9px;
-  border: 2px dashed rgba(255, 138, 92, 0.6);
-  border-radius: 20px;
-  background: rgba(255, 138, 92, 0.1);
-  color: var(--tekst);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.atten-dor-ikon {
-  display: grid;
-  place-items: center;
-  width: 60px;
-  aspect-ratio: 1;
-  border-radius: 17px;
-  background: rgba(255, 138, 92, 0.16);
-  font-size: 1.7rem;
-}
-
-.atten-dor-tekst {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.atten-dor-tekst b {
-  font: 900 1.2rem/1.1 var(--font-display);
-}
-
-.atten-dor-tekst span {
-  color: var(--tekst-2);
-  font-size: 0.86rem;
-  line-height: 1.3;
 }
 
 /* ---------- Footer links, and the pages about rusj (/om/, /personvern/) ---------- */
@@ -2113,8 +974,7 @@ body:not(.over18) .spillkort[data-alder18] {
   font-size: 0.88rem;
 }
 
-/* ---------- Sizes ----------
-   Everything above is the phone (portrait) layout. These come last, after the rules they change. */
+/* ---------- Sizes ---------- */
 
 /* Low screens: the slot machine a little smaller */
 @media (max-height: 600px) {
@@ -2128,393 +988,12 @@ body:not(.over18) .spillkort[data-alder18] {
     height: 120px;
   }
 
-  .automat-figur svg {
+  .automat-figur img {
     width: 90px;
   }
 
   .automat-svar {
     min-height: 4.6em;
-  }
-}
-
-/* Smallest phones */
-@media (max-width: 359px) {
-  /* Two and two facts, instead of three and a lonely fourth. */
-  .helt-fakta {
-    display: grid;
-    grid-template-columns: repeat(2, auto);
-    gap: 6px;
-  }
-
-  .helt-fakta li {
-    padding: 6px 11px;
-    font-size: 0.86rem;
-  }
-
-  /* «Overrask meg» on one line: the shorter button gives it the room. */
-  .helt-knapper {
-    grid-template-columns: 1fr 1.4fr;
-    gap: 8px;
-  }
-
-  .helt-knapper .knapp,
-  .helt-knapper .knapp-2 {
-    gap: 0.35em;
-    padding: 8px;
-    font-size: 0.98rem;
-  }
-
-  .installtips {
-    gap: 6px;
-    padding-left: 10px;
-  }
-
-  .installtips-vis {
-    padding: 6px 10px;
-  }
-
-  /* The filter button keeps only its icon (its name comes from aria-label). */
-  .filter-knapp {
-    padding: 0 13px;
-  }
-
-  .filter-knapp > span:not(.filter-antall) {
-    display: none;
-  }
-
-  .spillkort:not(.hyllekort) a {
-    grid-template-columns: 52px minmax(0, 1fr);
-    column-gap: 10px;
-  }
-
-  .rad-kort:not(.hyllekort) a {
-    grid-template-columns: 52px minmax(0, 1fr) auto;
-  }
-
-  /* The three facts on one line also here. */
-  .spillkort:not(.hyllekort) .kort-fakta {
-    column-gap: 9px;
-    font-size: 0.7rem;
-  }
-
-  .finner .brikke {
-    padding: 6px 12px;
-  }
-
-  .finner [data-finn-antall] {
-    min-width: 46px;
-  }
-
-  .spillkort:not(.hyllekort) .kort-figur {
-    width: 52px;
-  }
-
-  /* The longest names (Bokstavtrollet, Kodeknekkeren) on one line beside the player count */
-  .kort-navn {
-    font-size: 1rem;
-  }
-
-  .kveld h2 {
-    font-size: 1.15rem;
-  }
-
-  .kveld-antall {
-    font-size: 0.8rem;
-  }
-
-  /* «Fortsett» rows: the badge sits on the top edge (as in the list), so the text gets the width. */
-  .rad-kort .kort-fortsett {
-    position: absolute;
-    top: -9px;
-    right: 12px;
-    grid-area: auto;
-    padding: 6px 10px;
-    font-size: 0.8rem;
-  }
-}
-
-/* Wide (tablets, desktop) and phones on their side: the logo beside the text, so the games
-   start higher up. */
-@media (min-width: 720px), (orientation: landscape) and (min-width: 560px) and (max-height: 520px) {
-  .helt {
-    display: grid;
-    grid-template-columns: auto minmax(0, 460px);
-    align-items: center;
-    justify-content: center;
-    gap: 14px clamp(24px, 5vw, 56px);
-    padding-top: calc(28px + env(safe-area-inset-top, 0px));
-    text-align: left;
-  }
-
-  .helt-logo {
-    width: clamp(220px, 27vw, 330px);
-  }
-
-  .helt-tekst {
-    display: grid;
-    gap: 14px;
-    min-width: 0;
-  }
-
-  .helt-slagord {
-    font-size: clamp(1.7rem, 3.3vw, 2.5rem);
-  }
-
-  .helt-fakta {
-    justify-content: flex-start;
-  }
-
-  .helt-knapper {
-    width: 100%;
-  }
-
-  .parade {
-    margin-top: 14px;
-  }
-}
-
-@media (min-width: 720px) {
-  .helt-fakta {
-    gap: 8px;
-  }
-
-  .helt-fakta li {
-    padding: 7px 13px;
-    font-size: 0.92rem;
-  }
-
-  .helt-knapper .knapp,
-  .helt-knapper .knapp-2 {
-    min-height: 58px;
-  }
-
-  .parade-spor {
-    padding: 14px 0 6px;
-  }
-
-  .parade-figur {
-    width: 72px;
-  }
-
-  .portal-hoved {
-    gap: 28px;
-    padding-top: 14px;
-  }
-
-  /* The tip is as wide as its text (the whole sentence fits here), at the left edge of the column. */
-  .installtips {
-    justify-self: start;
-    max-width: 100%;
-    padding-left: 14px;
-  }
-
-  .installtips-mer {
-    display: inline;
-  }
-
-  /* The finder's questions in a column of their own, their chips beside them. */
-  .finner-sporsmal,
-  .finner-alder {
-    display: grid;
-    grid-template-columns: 12rem minmax(0, 1fr);
-    align-items: start;
-    column-gap: 14px;
-  }
-
-  /* The question beside the first row of its chips, also when they take two rows. */
-  .finner-sporsmal > .finner-tittel {
-    padding-top: 12px;
-  }
-
-  .finner-alder {
-    align-items: center;
-  }
-
-  .finner-alder > .finner-tittel {
-    padding-top: 0;
-  }
-
-  .finner-steg {
-    justify-self: start;
-  }
-
-  /* A search field of a sensible width, with the filter button right beside it. */
-  .filter {
-    grid-template-columns: minmax(0, 520px) auto;
-    justify-content: start;
-  }
-
-  .filtre {
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: start;
-  }
-
-  /* The page is wider than the bar: carry its background out to the screen edges (shadows only,
-     so the height never changes). */
-  .filter.fast {
-    box-shadow:
-      0 14px 14px -4px var(--natt),
-      -600px 0 0 var(--natt),
-      600px 0 0 var(--natt),
-      -600px 14px 14px -4px var(--natt),
-      600px 14px 14px -4px var(--natt);
-  }
-
-  .hyller {
-    gap: 22px;
-    margin-top: -6px;
-  }
-
-  .hylle-rad {
-    grid-auto-columns: 184px;
-  }
-
-  /* The shelves end at the column edge: fade them out there, there is more to scroll to. */
-  .hylle-rad,
-  .fortsett-rad {
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
-    mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
-  }
-
-  /* Kveldens gjeng: the heading and the buttons to the left, the scoreboard to the right. */
-  .kveld {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    grid-template-rows: auto auto 1fr;
-    grid-template-areas:
-      "topp liste"
-      "fot liste"
-      "knapper liste";
-    align-items: start;
-    gap: 10px 28px;
-    padding: 18px 20px;
-  }
-
-  .kveld-topp {
-    grid-area: topp;
-  }
-
-  .kveld-liste {
-    grid-area: liste;
-  }
-
-  .kveld-fot {
-    grid-area: fot;
-  }
-
-  .kveld-knapper {
-    grid-area: knapper;
-    justify-content: flex-start;
-  }
-
-  .kveld-knapper .lenke {
-    margin-left: 0;
-  }
-}
-
-/* A phone on its side: very little height. A low hero, and the slot machine beside its text. */
-@media (max-height: 520px) and (min-width: 560px) {
-  .helt {
-    gap: 6px clamp(20px, 4vw, 36px);
-    padding-top: calc(10px + env(safe-area-inset-top, 0px));
-  }
-
-  .helt-logo {
-    width: clamp(150px, 22vw, 190px);
-  }
-
-  .helt-tekst {
-    gap: 8px;
-  }
-
-  .helt-slagord {
-    font-size: clamp(1.15rem, 2.5vw, 1.35rem);
-  }
-
-  /* The tagline on one line */
-  .helt-slagord br {
-    display: none;
-  }
-
-  .helt-fakta {
-    gap: 6px;
-  }
-
-  .helt-fakta li {
-    padding: 6px 11px;
-    font-size: 0.86rem;
-  }
-
-  .helt-knapper .knapp,
-  .helt-knapper .knapp-2 {
-    min-height: 48px;
-  }
-
-  .parade {
-    margin-top: 6px;
-  }
-
-  .parade-spor {
-    padding: 9px 0 2px;
-  }
-
-  .parade-figur {
-    width: 48px;
-  }
-
-  .portal-hoved {
-    gap: 24px;
-    padding-top: 10px;
-  }
-
-  .filter-overskrift {
-    font-size: 1.5rem;
-  }
-
-  .dialog.automat {
-    width: min(94vw, 600px);
-  }
-
-  .automat-inn {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-    grid-template-rows: auto auto 1fr auto;
-    grid-template-areas:
-      "maskin tittel"
-      "maskin under"
-      "maskin svar"
-      "maskin knapper";
-    align-items: center;
-    gap: 6px 16px;
-    padding: 14px;
-  }
-
-  .automat-maskin {
-    grid-area: maskin;
-  }
-
-  .automat h2 {
-    grid-area: tittel;
-  }
-
-  .automat-under {
-    grid-area: under;
-    margin-top: -2px !important;
-  }
-
-  .automat-svar {
-    grid-area: svar;
-  }
-
-  .automat .dialog-knapper {
-    grid-area: knapper;
-  }
-
-  .automat-vindu,
-  .automat-figur {
-    height: 140px;
-  }
-
-  .automat-figur svg {
-    width: 104px;
   }
 }
 
@@ -2525,14 +1004,6 @@ body:not(.over18) .spillkort[data-alder18] {
   justify-content: flex-end;
   gap: 8px;
   margin: -4px 0 -2px;
-}
-
-.hylle-topp .rad-piler {
-  margin: 0 0 0 auto;
-}
-
-.hylle-topp .rad-piler + .hylle-alle {
-  margin-left: 0;
 }
 
 .rad-piler[hidden] {
@@ -2565,20 +1036,20 @@ body:not(.over18) .spillkort[data-alder18] {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .hylle-rad,
-  .fortsett-rad {
+  .forside-rad,
+  .topp-rad {
     cursor: grab;
   }
 
-  .hylle-rad.drar,
-  .fortsett-rad.drar {
+  .forside-rad.drar,
+  .topp-rad.drar {
     cursor: grabbing;
     scroll-snap-type: none;
     user-select: none;
   }
 
-  .hylle-rad.drar a,
-  .fortsett-rad.drar a {
+  .forside-rad.drar a,
+  .topp-rad.drar a {
     pointer-events: none;
   }
 }
@@ -2912,8 +1383,7 @@ body:not(.over18) .spillkort[data-alder18] {
     transition: none;
   }
 }
-/* the open list lies above the parade and the shelves below the header */
-.helt:has(.sprakvelger[open]),
+/* the open list lies above what comes below the header */
 .side-topp:has(.sprakvelger[open]) {
   z-index: 30;
 }
@@ -2925,5 +1395,1621 @@ body:not(.over18) .spillkort[data-alder18] {
   .sprakvelger summary {
     gap: 5px;
     padding: 0 8px 0 10px;
+  }
+}
+
+/* ---------- The front page («Miks») ----------
+   A top bar that sticks (logo, search, «Overrask meg»), then «Hva skal vi spille?»: shortcuts and
+   rooms on the first screen, «Mest spilt nå», «Dagens» and «Nytt», and one list of every game,
+   «Alle spill A–Å», that all of them filter. Phone first; the wide rules come after each part. */
+
+.forside {
+  --kant: max(16px, env(safe-area-inset-left, 0px));
+  --maks: 1180px;
+  --linje-h: 68px; /* the top bar: 10 + 48 + 10 */
+}
+
+@media (min-width: 720px) {
+  .forside {
+    --kant: 28px;
+  }
+}
+
+.hopp {
+  position: absolute;
+  top: -80px;
+  left: 8px;
+  z-index: 50;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--lampe);
+  color: var(--blekk);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.hopp:focus {
+  top: calc(8px + env(safe-area-inset-top, 0px));
+}
+
+/* Keyboard focus never ends up under the top bar (or the list's own heading, which sticks under
+   it): tabbing backwards scrolls what gets focus to the very top of the screen. */
+.forside-hoved a,
+.forside-hoved button,
+.forside-hoved summary,
+.forside-hoved select {
+  scroll-margin: calc(var(--linje-h) + 16px) 0 12px;
+}
+
+.alle-spill .alle-liste a,
+.alle-spill .alle-liste button,
+.alle-spill .beste a,
+.alle-spill .beste button {
+  scroll-margin-top: calc(var(--linje-h) + 120px);
+}
+
+/* Headings that only get focus from the script (after «Nullstill», «Skjul» …): no ring around text. */
+.start-topp h1:focus,
+.alle-spill:focus,
+.resultat-linje h2:focus {
+  outline: none;
+}
+
+/* ---------- The top bar ---------- */
+
+.linje {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid transparent;
+  background: color-mix(in srgb, var(--natt) 88%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transition: border-color 0.2s;
+}
+
+.linje.skygget {
+  border-bottom-color: color-mix(in srgb, var(--strek) 70%, transparent);
+}
+
+.linje-inn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: var(--maks);
+  margin: 0 auto;
+  padding: 10px var(--kant);
+}
+
+.linje-logo {
+  display: flex;
+  flex: none;
+  border-radius: 10px;
+  text-decoration: none;
+}
+
+.linje-logo .rusj-logo {
+  width: 64px;
+}
+
+.sokefelt {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.sokefelt input {
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 0 14px 0 42px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 600 1rem/1 var(--font-tekst);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.sokefelt input::placeholder {
+  color: var(--tekst-3);
+  opacity: 1;
+}
+
+.sokefelt input:not(:placeholder-shown) {
+  padding-right: 46px;
+}
+
+.sokefelt input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2.5px var(--lampe);
+}
+
+.sokefelt input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.sok-ikon {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--tekst-3);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.sok-tom {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-3);
+  color: var(--tekst);
+  font-size: 1.2rem;
+  line-height: 1;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+/* The dice alone on a phone (the name stays for screen readers); the dice and the name when wide. */
+.terning-knapp {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.terning-tekst {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .terning-knapp:hover {
+    box-shadow: inset 0 0 0 2px var(--lampe);
+  }
+}
+
+@media (min-width: 720px) {
+  .terning-knapp {
+    display: inline-flex;
+    gap: 8px;
+    width: auto;
+    padding: 0 18px 0 14px;
+    font: 800 0.98rem/1 var(--font-display);
+  }
+
+  .terning-tekst {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+}
+
+/* The smallest phones: a little less of everything, so «Søk i 104 spill» fits. */
+@media (max-width: 359px) {
+  .linje-inn {
+    gap: 6px;
+  }
+
+  .linje-logo .rusj-logo {
+    width: 44px;
+  }
+
+  .terning-knapp {
+    width: 44px;
+    height: 44px;
+    font-size: 1.15rem;
+  }
+
+  .sokefelt input {
+    padding-left: 36px;
+  }
+
+  .sokefelt input::placeholder {
+    font-size: 0.94rem;
+  }
+
+  .sok-ikon {
+    left: 12px;
+  }
+}
+
+/* ---------- The page under the bar ---------- */
+
+.forside-hoved {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 28px;
+  max-width: var(--maks);
+  margin: 0 auto;
+  padding: 0 var(--kant) 8px;
+}
+
+.forside-hoved > * {
+  min-width: 0;
+}
+
+/* «Hva skal vi spille?», the shortcuts, the three questions and the rooms */
+.start {
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+}
+
+.start-topp {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px 12px;
+}
+
+.start-topp h1 {
+  margin: 0;
+  font: 900 1.45rem/1.15 var(--font-display);
+}
+
+.start-linje {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+}
+
+.start-linje b {
+  color: var(--lampe);
+}
+
+.start-topp .sprakvelger {
+  position: relative;
+  top: auto;
+  right: auto;
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.start:has(.sprakvelger[open]) {
+  position: relative;
+  z-index: 30;
+}
+
+@media (min-width: 720px) {
+  .start-topp {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .start-topp h1 {
+    font-size: 1.6rem;
+  }
+
+  .start-linje {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .start-topp .sprakvelger {
+    grid-column: 3;
+  }
+}
+
+.hurtig {
+  display: flex;
+  gap: 8px;
+  margin: 0 calc(-1 * var(--kant));
+  padding: 2px var(--kant) 6px;
+  overflow-x: auto;
+  scroll-padding: 0 var(--kant);
+  scrollbar-width: none;
+}
+
+.hurtig::-webkit-scrollbar {
+  display: none;
+}
+
+.hurtig .hurtig-brikke {
+  flex: none;
+  min-height: 44px;
+  padding: 6px 15px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--hf, var(--tekst-3)) 30%, var(--natt-2)), var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--hf, var(--tekst-3)) 50%, var(--strek));
+  color: var(--tekst);
+  font: 800 0.94rem/1 var(--font-display);
+  white-space: nowrap;
+}
+
+.hurtig .hurtig-brikke[aria-pressed="true"] {
+  background: var(--hf);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--hf) 55%, #000);
+  color: var(--blekk);
+}
+
+.hurtig .flere[aria-expanded="true"] {
+  box-shadow: inset 0 0 0 2.5px var(--lampe);
+}
+
+@media (min-width: 720px) {
+  .hurtig {
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+}
+
+.finner {
+  padding: 14px;
+  border-radius: 22px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.finner .brikke {
+  background: var(--natt-3);
+}
+
+.finner-steg {
+  background: var(--natt-3);
+}
+
+.finner-nr {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: var(--lampe);
+  color: var(--blekk);
+  font-size: 0.76rem;
+  vertical-align: 1px;
+}
+
+.finner-vis {
+  justify-self: start;
+}
+
+/* The rooms: three across on a phone, five on a wide screen. */
+.rommene {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rommene > li {
+  min-width: 0;
+}
+
+.rommene > li.rom-bred {
+  grid-column: 1 / -1;
+}
+
+.rom {
+  --rf: var(--lilla);
+  position: relative;
+  isolation: isolate;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 92px;
+  padding: 10px 10px 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--rf) 60%, transparent), transparent 66%),
+    linear-gradient(160deg, color-mix(in srgb, var(--rf) 30%, var(--natt-2)), color-mix(in srgb, var(--rf) 10%, var(--natt)) 90%);
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--rf) 45%, var(--strek)),
+    0 4px 0 color-mix(in srgb, var(--rf) 22%, var(--natt));
+  color: var(--tekst);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.18s cubic-bezier(0.3, 1.4, 0.5, 1),
+    box-shadow 0.18s;
+}
+
+.rom:hover,
+.rom:focus-visible {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 2.5px var(--rf),
+    0 6px 0 color-mix(in srgb, var(--rf) 32%, var(--natt));
+}
+
+.rom[aria-pressed="true"] {
+  box-shadow:
+    inset 0 0 0 3px var(--papir),
+    0 4px 0 color-mix(in srgb, var(--rf) 40%, var(--natt));
+}
+
+.rom-navn {
+  position: relative;
+  z-index: 2;
+  display: block;
+  font: 900 1rem/1.05 var(--font-display);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.rom-antall {
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--papir);
+  color: var(--blekk);
+  font: 900 0.72rem/1.2 var(--font-display);
+}
+
+.rom-gjeng {
+  position: absolute;
+  right: -6px;
+  bottom: -5px;
+  z-index: 1;
+  width: 80%;
+  height: 64%;
+  pointer-events: none;
+}
+
+.rom .rom-gjeng > * {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 54%;
+  height: auto;
+  aspect-ratio: 1;
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.28));
+  transform: rotate(8deg);
+}
+
+.rom .rom-gjeng > :nth-child(2) {
+  right: 44%;
+  bottom: -4%;
+  z-index: 1;
+  width: 44%;
+  transform: rotate(-12deg);
+}
+
+/* 18+: a door until someone has confirmed being 18. */
+.rom.rom-laast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--rosa-dyp) 30%, var(--natt-2)) 0 12px, var(--natt-2) 12px 24px);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--rosa) 40%, var(--strek));
+}
+
+.rom-las {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--rosa);
+  color: #fff;
+  font: 900 0.86rem/1 var(--font-display);
+}
+
+.rom-laast .rom-navn {
+  font-size: 0.98rem;
+}
+
+.rom-under {
+  display: block;
+  color: var(--tekst-2);
+  font: 700 0.78rem/1.25 var(--font-tekst);
+}
+
+@media (max-width: 359px) {
+  .rom-navn {
+    font-size: 0.9rem;
+  }
+}
+
+@media (min-width: 720px) {
+  .rommene {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .rommene > li.rom-bred {
+    grid-column: auto;
+  }
+
+  .rom {
+    min-height: 112px;
+    padding: 14px 14px 10px;
+    border-radius: 22px;
+  }
+
+  .rom-navn {
+    font-size: 1.22rem;
+  }
+
+  .rom-gjeng {
+    bottom: -8px;
+    width: 58%;
+    height: 92%;
+  }
+
+  .rom.rom-laast {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    min-height: 112px;
+  }
+}
+
+/* ---------- Sections: a heading row, then a row or a card ---------- */
+
+.del-topp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin-bottom: 10px;
+}
+
+.del-topp h2 {
+  margin: 0;
+  font: 900 1.3rem/1.15 var(--font-display);
+}
+
+.del-under {
+  color: var(--tekst-3);
+  font: 700 0.86rem/1.2 var(--font-tekst);
+}
+
+.del-topp .rad-piler {
+  align-self: center;
+  margin: 0 0 0 auto;
+}
+
+/* A game as a small tile: the mascot on its colour, the name under it. */
+.spillflis {
+  --kf: var(--lilla);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 2px 8px;
+  border-radius: 18px;
+  color: var(--tekst);
+  text-align: center;
+  text-decoration: none;
+}
+
+.spillflis:hover,
+.spillflis:focus-visible {
+  background: color-mix(in srgb, var(--kf) 14%, var(--natt-2));
+}
+
+.spillflis-bilde {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 76px;
+  aspect-ratio: 1;
+  border-radius: 22px;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--kf) 52%, var(--natt-2)), color-mix(in srgb, var(--kf) 16%, var(--natt)) 82%);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--kf) 34%, transparent);
+}
+
+.spillflis-bilde > img,
+.spillflis-bilde > svg.figur {
+  display: block;
+  width: 80%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.spillflis-navn {
+  display: -webkit-box;
+  overflow: hidden;
+  font: 800 0.8rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.flis-merke {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--lampe);
+  box-shadow: 0 0 0 2.5px var(--natt);
+  color: var(--blekk);
+  font: 900 0.66rem/20px var(--font-display);
+}
+
+.flis-merke.ny,
+.flis-merke.fortsett {
+  background: var(--mynte);
+}
+
+.flis-merke.atten {
+  background: var(--rosa);
+  color: #fff;
+}
+
+/* «På nett»: a game for each on their own phone, online. */
+.nett-merke {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px 2px 5px;
+  border-radius: 999px;
+  background: var(--himmel);
+  box-shadow: 0 0 0 2px var(--natt);
+  color: var(--blekk);
+  font: 900 0.6rem/1.25 var(--font-display);
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.fakta-ikon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nett-merke .fakta-ikon {
+  width: 11px;
+  height: 11px;
+  stroke-width: 2.4;
+}
+
+/* A row that scrolls sideways («Fortsett», «Nytt»). */
+.forside-rad {
+  display: grid;
+  grid-auto-columns: 84px;
+  grid-auto-flow: column;
+  gap: 4px;
+  margin: 0 calc(-1 * var(--kant));
+  padding: 2px var(--kant) 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-padding: 0 var(--kant);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  list-style: none;
+}
+
+.forside-rad::-webkit-scrollbar {
+  display: none;
+}
+
+.forside-rad > li {
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 720px) {
+  .forside-rad {
+    grid-auto-columns: 100px;
+    margin: 0;
+    padding: 2px 0 10px;
+    scroll-padding: 0;
+  }
+}
+
+/* «Mest spilt nå» and «Dagens» side by side on a wide screen. */
+.naa {
+  display: grid;
+  gap: 28px 24px;
+}
+
+.naa > * {
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .naa {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.topp-rad {
+  display: grid;
+  grid-auto-columns: 150px;
+  grid-auto-flow: column;
+  gap: 12px;
+  margin: 0 calc(-1 * var(--kant));
+  padding: 4px var(--kant) 12px;
+  overflow-x: auto;
+  scroll-padding: 0 var(--kant);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  list-style: none;
+}
+
+.topp-rad::-webkit-scrollbar {
+  display: none;
+}
+
+.topp-rad > li {
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 720px) {
+  .topp-rad {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-auto-flow: row;
+    margin: 0;
+    padding: 4px 0 12px;
+    overflow: visible;
+  }
+}
+
+/* A card with facts: «Mest spilt nå» and the best suggestions. */
+.toppkort a,
+.forslagkort a {
+  --kf: var(--lilla);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 7px 7px 11px;
+  border-radius: 20px;
+  background: linear-gradient(175deg, color-mix(in srgb, var(--kf) 20%, var(--natt-2)), var(--natt-2) 70%);
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--kf) 34%, var(--strek)),
+    0 5px 0 color-mix(in srgb, var(--kf) 18%, var(--natt));
+  color: var(--tekst);
+  text-decoration: none;
+  transition:
+    transform 0.18s cubic-bezier(0.3, 1.4, 0.5, 1),
+    box-shadow 0.18s;
+}
+
+.toppkort a:hover,
+.toppkort a:focus-visible,
+.forslagkort a:hover,
+.forslagkort a:focus-visible {
+  transform: translateY(-3px);
+  box-shadow:
+    inset 0 0 0 2px var(--kf),
+    0 8px 0 color-mix(in srgb, var(--kf) 28%, var(--natt));
+}
+
+.toppkort-bilde,
+.forslagkort-bilde {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 15px;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--kf) 50%, var(--natt-2)), color-mix(in srgb, var(--kf) 14%, var(--natt)) 80%);
+}
+
+.toppkort-bilde > svg.figur,
+.forslagkort-bilde > img {
+  width: 58%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.topp-nr {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--lampe);
+  box-shadow: 0 3px 0 var(--lampe-dyp);
+  color: var(--blekk);
+  font: 900 0.95rem/1 var(--font-display);
+}
+
+.toppkort-tekst {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  padding: 0 4px;
+}
+
+.toppkort-sjanger {
+  overflow: hidden;
+  color: color-mix(in srgb, var(--kf) 70%, #fff);
+  font: 900 0.64rem/1.25 var(--font-display);
+  letter-spacing: 0.05em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.toppkort-navn,
+.forslagkort-navn {
+  padding: 0 4px;
+  font: 900 1rem/1.12 var(--font-display);
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.toppkort-fakta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: auto;
+  padding: 0 4px;
+  color: var(--tekst-2);
+  font: 700 0.74rem/1.2 var(--font-tekst);
+}
+
+.toppkort-fakta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* The badges: «Dagens», «Mot mobilen», «På nett». */
+.kort-merker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 4px;
+}
+
+.kort-merke {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.2px color-mix(in srgb, var(--kf) 55%, var(--strek));
+  color: var(--tekst);
+  font: 800 0.64rem/1.1 var(--font-display);
+  white-space: nowrap;
+}
+
+.kort-merke.dagens {
+  background: var(--lampe);
+  box-shadow: none;
+  color: var(--blekk);
+}
+
+.kort-merke.nett {
+  background: var(--himmel);
+  box-shadow: none;
+  color: var(--blekk);
+}
+
+.kort-merke .fakta-ikon {
+  width: 11px;
+  height: 11px;
+  stroke-width: 2.4;
+}
+
+/* «Dagens»: today's daily game, how today went and the streak. */
+.dagens-plass {
+  min-height: 108px;
+}
+
+.dagens-kort {
+  --kf: var(--lampe);
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--lampe) 24%, var(--natt-2)), var(--natt-2) 70%);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--lampe) 40%, var(--strek));
+  color: var(--tekst);
+  text-decoration: none;
+}
+
+.dagens-kort:hover {
+  box-shadow: inset 0 0 0 2.5px var(--lampe);
+}
+
+.dagens-bilde {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  aspect-ratio: 1;
+  border-radius: 22px;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--kf) 55%, var(--natt-2)), color-mix(in srgb, var(--kf) 16%, var(--natt)) 80%);
+}
+
+.dagens-bilde > img {
+  width: 84%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.dagens-status-merke {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--papir);
+  box-shadow: 0 0 0 2.5px var(--natt);
+  color: var(--blekk);
+  font: 900 0.7rem/1.1 var(--font-display);
+  white-space: nowrap;
+}
+
+.dagens-status-merke.ferdig {
+  background: var(--mynte);
+}
+
+.dagens-tekst {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dagens-merke {
+  color: var(--lampe);
+  font: 900 0.7rem/1.2 var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dagens-navn {
+  font: 900 1.2rem/1.1 var(--font-display);
+}
+
+.dagens-linje {
+  color: var(--tekst-2);
+  font-size: 0.86rem;
+}
+
+.dagens-flere {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+
+.dagens-flere .brikke {
+  min-height: 40px;
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.brikke-tall {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  color: var(--tekst);
+  font-size: 0.8rem;
+}
+
+.dagens-status {
+  color: var(--tekst-2);
+  font: 800 0.86rem/1.2 var(--font-display);
+}
+
+/* ---------- «Alle spill A–Å»: the one list ---------- */
+
+/* A jump to the list (the skip link, #alle) or the heading (#spill) lands under the top bar. */
+.alle-spill,
+.start-topp h1 {
+  min-width: 0;
+  scroll-margin-top: calc(var(--linje-h) + 4px);
+}
+
+/* Its heading, the «Nullstill» button and the chips stick under the top bar while the list scrolls
+   (not on a low screen: a phone on its side keeps the room for the games). */
+.resultat-topp {
+  position: sticky;
+  top: calc(var(--linje-h) - 1px);
+  z-index: 10;
+  padding: 10px 0 8px;
+  background: color-mix(in srgb, var(--natt) 92%, transparent);
+  /* the same band out to the screen's edges */
+  box-shadow: 0 0 0 100vmax color-mix(in srgb, var(--natt) 92%, transparent);
+  clip-path: inset(0 -100vmax);
+}
+
+.resultat-linje {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+}
+
+.resultat-linje h2 {
+  margin: 0;
+  font: 900 1.3rem/1.15 var(--font-display);
+}
+
+.nullstill {
+  flex: none;
+  min-height: 40px;
+  margin-left: auto;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--lampe);
+  font: 800 0.9rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.aktive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.aktive .aktiv-brikke {
+  min-height: 38px;
+  padding: 4px 7px 4px 12px;
+  background: var(--papir);
+  box-shadow: none;
+  color: var(--blekk);
+  font: 800 0.88rem/1.1 var(--font-display);
+}
+
+.aktiv-brikke .x {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(23, 14, 43, 0.12);
+  font-size: 1rem;
+}
+
+/* The best suggestions: three cards across. */
+.beste {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 18px;
+}
+
+.beste-tittel {
+  margin: 4px 0 0;
+  color: var(--tekst-2);
+  font: 900 1rem/1.2 var(--font-display);
+}
+
+.beste-liste {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.forslagkort-navn {
+  font-size: 0.92rem;
+}
+
+.forslagkort .kort-grunn {
+  padding: 0 4px;
+  font-size: 0.7rem;
+}
+
+/* «Fra 7 år · 3–8 spillere · 10–30 min · én mobil · kan spilles på nett»: the dots drawn here, so a
+   part can be left out. A narrow card leaves out the phones; «på nett» stays. */
+.forslagkort .kort-grunn > span + span::before {
+  content: "· ";
+}
+
+@media (max-width: 480px) {
+  .forslagkort .kort-grunn {
+    display: grid;
+  }
+
+  .forslagkort .kort-grunn > span + span::before {
+    content: none;
+  }
+
+  .forslagkort .grunn-mobiler {
+    display: none;
+  }
+
+  .forslagkort .grunn-nett {
+    white-space: normal;
+  }
+}
+
+.beste-mer {
+  justify-self: start;
+}
+
+@media (max-width: 400px) {
+  .forslagkort .kort-merker {
+    display: none;
+  }
+}
+
+@media (min-width: 720px) {
+  .beste-liste {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 230px));
+    gap: 16px;
+  }
+
+  .forslagkort-navn {
+    font-size: 1.06rem;
+  }
+}
+
+.alle-liste {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 6px 4px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.alle-liste > li {
+  position: relative;
+  min-width: 0;
+}
+
+/* The first game of each letter carries the letter. */
+.alle-liste > li.forste::before {
+  content: attr(data-b) / "";
+  position: absolute;
+  top: 1px;
+  left: max(0px, calc(50% - 46px));
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--lampe);
+  box-shadow: 0 0 0 2.5px var(--natt);
+  color: var(--blekk);
+  font: 900 0.8rem/1 var(--font-display);
+  pointer-events: none;
+}
+
+.alle-liste > .dor-celle {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+}
+
+@media (max-width: 359px) {
+  .alle-liste {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 720px) {
+  .alle-liste {
+    grid-template-columns: repeat(auto-fill, minmax(98px, 1fr));
+    gap: 10px 6px;
+  }
+
+  .alle-liste > li.forste::before {
+    left: max(0px, calc(50% - 50px));
+  }
+}
+
+/* The 18+ door at the end of the list (and «Skjul» once it is open). */
+.dor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 20px;
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--rosa-dyp) 26%, var(--natt-2)) 0 14px, var(--natt-2) 14px 28px);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--rosa) 40%, var(--strek));
+  color: var(--tekst);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dor-apen {
+  cursor: default;
+}
+
+.dor-apen .knapp-2 {
+  margin-left: auto;
+}
+
+.dor-ikon {
+  font-size: 1.6rem;
+}
+
+.dor-tekst {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dor-tekst b {
+  font: 900 1rem/1.2 var(--font-display);
+}
+
+.dor-tekst span {
+  color: var(--tekst-2);
+  font-size: 0.86rem;
+}
+
+.ingen-treff {
+  margin: 12px 0 0;
+  padding: 28px 16px;
+  border-radius: 22px;
+  background: var(--natt-2);
+  color: var(--tekst-2);
+  text-align: center;
+}
+
+/* «Så enkelt er det»: the motto and the four facts. */
+.slik-slagord {
+  margin: -6px 0 0;
+  color: var(--tekst-2);
+  font: 800 1.05rem/1.3 var(--font-display);
+}
+
+.slik-slagord em {
+  color: var(--lampe);
+  font-style: normal;
+}
+
+.slik-fakta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.slik-fakta li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 700 0.88rem/1.2 var(--font-display);
+}
+
+.slik-fakta b {
+  color: var(--lampe);
+}
+
+.gjengen-figur img,
+.installer-figur img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* The install tip as wide as its text on a wide screen; Kveldens gjeng in two columns. */
+@media (min-width: 720px) {
+  .forside-hoved > .installtips {
+    justify-self: start;
+    max-width: 100%;
+    padding-left: 14px;
+  }
+
+  .installtips-mer {
+    display: inline;
+  }
+
+  .finner-sporsmal,
+  .finner-alder {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    align-items: start;
+    column-gap: 14px;
+  }
+
+  .finner-sporsmal > .finner-tittel {
+    padding-top: 12px;
+  }
+
+  .finner-alder {
+    align-items: center;
+  }
+
+  .finner-alder > .finner-tittel {
+    padding-top: 0;
+  }
+
+  .finner-steg {
+    justify-self: start;
+  }
+
+  .kveld {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      "topp liste"
+      "fot liste"
+      "knapper liste";
+    align-items: start;
+    gap: 10px 28px;
+    padding: 18px 20px;
+  }
+
+  .kveld-topp {
+    grid-area: topp;
+  }
+
+  .kveld-liste {
+    grid-area: liste;
+  }
+
+  .kveld-fot {
+    grid-area: fot;
+  }
+
+  .kveld-knapper {
+    grid-area: knapper;
+    justify-content: flex-start;
+  }
+
+  .kveld-knapper .lenke {
+    margin-left: 0;
+  }
+}
+
+/* The smallest phones: the install tip and the scoreboard a little tighter. */
+@media (max-width: 359px) {
+  .installtips {
+    gap: 6px;
+    padding-left: 10px;
+  }
+
+  .installtips-vis {
+    padding: 6px 10px;
+  }
+
+  .kveld h2 {
+    font-size: 1.15rem;
+  }
+
+  .kveld-antall {
+    font-size: 0.8rem;
+  }
+
+  /* «Send rusj til gjengen» and «Ha rusj på hjemskjermen»: a smaller mascot, so a long word
+     («hjemmeskærmen») has room. */
+  .gjengen,
+  .installer {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .gjengen-figur,
+  .installer-figur {
+    width: 64px;
+  }
+}
+
+.gjengen h2,
+.installer h2 {
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+/* A phone on its side: little height. The list's heading scrolls away with it, and the slot
+   machine stands beside its text. */
+@media (max-height: 520px) {
+  .resultat-topp {
+    position: static;
+    padding: 4px 0 6px;
+    background: none;
+    box-shadow: none;
+  }
+
+  .alle-spill .alle-liste a,
+  .alle-spill .alle-liste button,
+  .alle-spill .beste a,
+  .alle-spill .beste button {
+    scroll-margin-top: calc(var(--linje-h) + 16px);
+  }
+
+  /* The suggestions as low cards: the mascot beside the text. */
+  .forslagkort a {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    grid-template-columns: 64px minmax(0, 1fr);
+    align-content: start;
+    column-gap: 10px;
+  }
+
+  .forslagkort-bilde {
+    grid-row: 1 / -1;
+    aspect-ratio: 1;
+  }
+
+  .forslagkort-bilde > img {
+    width: 78%;
+  }
+
+  .forslagkort .topp-nr {
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .forslagkort-navn {
+    font-size: 0.86rem;
+  }
+}
+
+@media (max-height: 520px) and (min-width: 560px) {
+  .dialog.automat {
+    width: min(94vw, 600px);
+  }
+
+  .automat-inn {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    grid-template-rows: auto auto auto 1fr auto;
+    grid-template-areas:
+      "maskin tittel"
+      "maskin under"
+      "maskin antall"
+      "maskin svar"
+      "maskin knapper";
+    align-items: center;
+    gap: 6px 16px;
+    padding: 14px;
+  }
+
+  .automat-maskin {
+    grid-area: maskin;
+  }
+
+  .automat h2 {
+    grid-area: tittel;
+  }
+
+  .automat-under {
+    grid-area: under;
+    margin-top: -2px !important;
+  }
+
+  .automat .antall {
+    grid-area: antall;
+  }
+
+  .automat-svar {
+    grid-area: svar;
+  }
+
+  .automat .dialog-knapper {
+    grid-area: knapper;
+  }
+
+  .automat-vindu,
+  .automat-figur {
+    height: 140px;
+  }
+
+  .automat-figur img {
+    width: 104px;
+  }
+}
+
+/* «Overrask meg»: how many players (the machine picks among the games for that many). */
+.automat .antall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.antall-tekst {
+  color: var(--tekst-2);
+  font: 800 0.9rem/1 var(--font-display);
+}
+
+.antall-knapp {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--natt-3);
+  color: var(--tekst);
+  font: 900 1.3rem/1 var(--font-display);
+  cursor: pointer;
+}
+
+.antall-knapp:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.automat .antall output {
+  min-width: 3.2em;
+  color: var(--tekst);
+  font: 900 1.05rem/1 var(--font-display);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rom:hover,
+  .rom:focus-visible,
+  .toppkort a:hover,
+  .toppkort a:focus-visible,
+  .forslagkort a:hover,
+  .forslagkort a:focus-visible {
+    transform: none;
+  }
+
+  .linje {
+    transition: none;
   }
 }

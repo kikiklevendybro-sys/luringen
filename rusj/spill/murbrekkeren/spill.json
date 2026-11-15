@@ -8,7 +8,7 @@
   "alder": 6,
   "minutter": [3, 20],
   "mobiler": "en",
-  "tagger": ["alene", "barn", "klassiker"],
+  "tagger": ["alene", "barn", "klassiker", "arkade"],
   "rekkefolge": 80,
   "farge": "#5fd0ff",
   "sok": ["brick breaker", "murbrekker", "knus klossene", "ballspill", "racket og ball", "arkadespill", "klossespill", "murspill"],

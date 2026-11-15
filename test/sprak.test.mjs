@@ -315,9 +315,9 @@ test("game pages load the edition's table before the kit, share the code, and ca
 
 test("front pages: one per edition with only its games, in the sitemap with hreflang", () => {
   const en = les("en/index.html");
-  const kort = [...en.matchAll(/<li class="spillkort" data-id="([^"]+)"/g)].map((m) => m[1]);
+  const kort = [...en.matchAll(/<li data-id="([^"]+)" data-b="[^"]+"/g)].map((m) => m[1]); // «All games A–Z»
   assert.deepEqual(kort, ["fireren"]);
-  assert.match(en, /<a href="\/en\/fourby\/"/);
+  assert.match(en, /<a class="spillflis" href="\/en\/fourby\/"/);
   assert.deepEqual(alternativer(en), ["nb /", "en /en/", "da /da/", "x-default /"]);
   assert.match(en, /<nav class="sprakvalg" aria-label="Language"><a href="\/" lang="nb" hreflang="nb">Norsk<\/a><b lang="en" aria-current="page">English<\/b><a href="\/da\/" lang="da" hreflang="da">Dansk<\/a><\/nav>/);
   const liste = les("felles/spilliste.en.js");

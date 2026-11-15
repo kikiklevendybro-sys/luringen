@@ -8,7 +8,7 @@
   "alder": 7,
   "minutter": [3, 20],
   "mobiler": "en",
-  "tagger": ["klassiker", "tenke", "alene", "daglig"],
+  "tagger": ["klassiker", "tenke", "alene", "daglig", "arkade"],
   "rekkefolge": 30,
   "farge": "#ffb26b",
   "sok": ["2048", "tallspill", "slå sammen tall", "sveipespill", "dagens lynrunde"],

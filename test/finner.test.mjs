@@ -136,3 +136,35 @@ test("stored answers are made safe", () => {
   assert.deepEqual(F.normaliser({ antall: ["1"], yngst: 18, lyst: "constructor" }, true), { antall: "", yngst: "voksen", lyst: "alt" });
   assert.equal(F.normaliser({ yngst: 17 }, false).yngst, 17);
 });
+
+// ---------- The front page's rooms and shortcuts ----------
+
+test("the rooms: each one holds its kind of game and never an 18+ game, except the 18+ room", () => {
+  assert.deepEqual(F.ROMMENE, ["dagens", "fest", "familie", "barn", "alene", "klassikere", "kort", "ord", "arkade", "voksen"]);
+  for (const rom of F.ROMMENE) {
+    const i = SPILL.filter((s) => F.iRom(s, rom));
+    assert.ok(i.length >= 5, `${rom}: bare ${i.length} spill`);
+    if (rom === "voksen") assert.ok(i.every((s) => s.alder18), "18+-rommet har vanlige spill");
+    else assert.ok(i.every((s) => !s.alder18 && s.tagger.some((t) => F.ROM[rom].includes(t))), `${rom}: et 18+-spill eller et spill uten taggen`);
+  }
+  assert.deepEqual(SPILL.filter((s) => F.iRom(s, "arkade")).map((s) => s.id).sort(), ["blokka", "bobla", "dobleren", "ekornet", "maneten", "murbrekkeren", "planeten", "slangen"]);
+  assert.equal(F.iRom(SPILL[0], "finnes-ikke"), false);
+});
+
+test("the shortcuts: a set of answers each, a fair choice, and «Vorspiel» drinking games only behind the door", () => {
+  assert.deepEqual(Object.keys(F.HURTIG), ["barn", "vors", "buss", "to", "stor", "fem"]);
+  for (const [id, lag] of Object.entries(F.HURTIG)) {
+    for (const over18 of [false, true]) {
+      const svar = lag(over18);
+      assert.deepEqual(F.normaliser(svar, over18), svar, `${id}: svarene er ikke gyldige`);
+      assert.ok(!F.ubesvart(svar), `${id}: snarveien filtrerer ingenting`);
+      const liste = F.finn(SPILL, svar, NOVEMBER);
+      assert.ok(liste.length >= 6, `${id}: bare ${liste.length} spill`);
+      assert.equal(liste.some((s) => s.alder18), id === "vors" && over18, `${id}: 18+-spill ${over18 ? "etter" : "før"} aldersdøra`);
+    }
+  }
+  // «Med barna»: games for the youngest of six; «Alene på bussen»: one player, quick.
+  assert.ok(F.finn(SPILL, F.HURTIG.barn(), NOVEMBER).every((s) => s.alder <= 6));
+  assert.ok(F.finn(SPILL, F.HURTIG.buss(), NOVEMBER).every((s) => s.spillere[0] === 1 && s.minutter[0] < 10));
+  assert.ok(F.ubesvart(F.normaliser({}, false)));
+});

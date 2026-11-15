@@ -29,7 +29,7 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
   "spillere": [3, 20],                             // min and max players
   "minutter": [5, 30],
   "mobiler": "en",                                 // "en" | "hver" | "begge"
-  "tagger": ["fest", "familie", "sporsmal"],       // fest familie barn blof ord lag quiz tegning hukommelse sporsmal
+  "tagger": ["fest", "familie", "sporsmal"],       // fest familie barn blof ord lag quiz tegning hukommelse sporsmal arkade
   "rekkefolge": 4,                                 // position on the front page (given in your brief)
   "farge": "#ffd23f",                              // optional accent; default = the mascot's colour
   "ordbank": false,                                // true → window.RUSJ_ORD is loaded: the edition's own word bank (data/kategorier, .en, .da)

@@ -381,6 +381,7 @@ export const TAGGER = {
   kort: "Kortspill",
   verktoy: "Verktøy",
   drikke: "Drikkespill 18+",
+  arkade: "Arkade",
 };
 
 // The tag names in an edition (literal keys, so scripts/sprak.mjs can check the tables).
@@ -402,6 +403,7 @@ export const taggerPa = (t) => ({
   kort: t("Kortspill"),
   verktoy: t("Verktøy"),
   drikke: t("Drikkespill 18+"),
+  arkade: t("Arkade"),
 });
 
 const varslet = new Set();
@@ -496,6 +498,7 @@ export function faktaLest(m, motMobilen, t = (k, v) => (v ? k.replace(/\{(\w+)\}
     fra === til ? t("{n} minutter", { n: fra }) : t("{a} til {b} minutter", { a: fra, b: til }),
     m.tagger.includes("daglig") && t("ny oppgave hver dag"),
     motMobilen && t("kan spilles mot mobilen"),
+    m.nett && t("kan spilles på nett"),
     m.alder18 && t("for voksne over 18 år"),
   ]
     .filter(Boolean)
@@ -871,6 +874,7 @@ ${STEMPEL_FILTER}
   <symbol id="i-spillere" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.4 3-5 6-5s5.4 1.6 6 5"/><circle cx="17.2" cy="9.2" r="2.4"/><path d="M17 14.2c2.3.3 3.7 1.7 4.1 4.3"/></symbol>
   <symbol id="i-mobil" viewBox="0 0 24 24"><rect x="7" y="2.8" width="10" height="18.4" rx="2.6"/><path d="M11 17.6h2"/></symbol>
   <symbol id="i-tid" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.6"/><path d="M12 9v4.2l2.7 1.7M9.8 2.8h4.4"/></symbol>
+  <symbol id="i-nett" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M3.4 12h17.2M12 3.4c2.3 2.4 3.5 5.3 3.5 8.6s-1.2 6.2-3.5 8.6c-2.3-2.4-3.5-5.3-3.5-8.6s1.2-6.2 3.5-8.6z"/></symbol>
 </svg>`;
   const ikon = (navn) => `<svg class="fakta-ikon" aria-hidden="true" focusable="false"><use href="#i-${navn}"/></svg>`;
   // The page's own scripts after the edition's table and t() (the front page and the pages about rusj).
@@ -888,11 +892,44 @@ ${STEMPEL_FILTER}
   ${sprakvalg(U, finn)}
   <p class="bunn-liten">${esc(U.t("rusj.no · laget i Norge"))}</p>
 </footer>`;
+  // The mascot as a picture of its own, per edition (/<id>/figur.svg, /en/<slug>/figur.svg: some
+  // mascots carry words in the edition's language). The front page shows most mascots that way, as
+  // <img loading="lazy">, so a first visit draws only what is on the first screen.
+  for (const U of Object.values(UTGAVE)) U.fig = new Map(U.kort.map((m) => [m.id, skriv(`${m.url.slice(1)}figur.svg`, figurSvg(G, m.id, U.sprak === "nb" ? undefined : U.sprak))]));
+  // The rooms on the front page (Finner.ROMMENE: the same filters as portal.js): an emoji, a colour
+  // and the mascots of the collage – the first two of these that are in the room in this edition.
+  const ROM_UTSEENDE = {
+    dagens: { ikon: "📅", farge: "#ffd23f", figurer: ["ordugla", "blyanten", "kortkongen", "tallknuseren"] },
+    fest: { ikon: "🎉", farge: "#ff4f8b", figurer: ["luringen", "spionen", "sladrehanken", "skravla"] },
+    familie: { ikon: "🏡", farge: "#ff8a3d", figurer: ["detektiven", "brikka", "terninga", "kunstneren"] },
+    barn: { ikon: "🧸", farge: "#3de3b0", figurer: ["elefanten", "bokstavtrollet", "ballongen", "penselen"] },
+    alene: { ikon: "🙋", farge: "#59b9ff", figurer: ["maneten", "ekornet", "sjakkhesten", "humla"] },
+    klassikere: { ikon: "👑", farge: "#a47bff", figurer: ["sjakkhesten", "terninga", "fireren", "tavla"] },
+    kort: { ikon: "🃏", farge: "#ff5a4e", figurer: ["kortkongen", "narren", "vriatter", "hjerteknuseren"] },
+    ord: { ikon: "💡", farge: "#6f8bff", figurer: ["bedreviteren", "ordugla", "tidsmaskinen", "skravla"] },
+    arkade: { ikon: "🕹️", farge: "#9be15d", figurer: ["slangen", "bobla", "murbrekkeren", "planeten"] },
+    voksen: { ikon: "🔞", farge: "#ff4f8b", figurer: [] }, // (drawn by portal.js behind the door)
+  };
+  // The shortcuts (Finner.HURTIG: each one a set of answers to the three questions).
+  const HURTIG_UTSEENDE = { barn: ["🧸", "#3de3b0"], vors: ["🍻", "#ff4f8b"], buss: ["🚌", "#59b9ff"], to: ["👫", "#a47bff"], stor: ["🙌", "#ff8a3d"], fem: ["⏱️", "#ffd23f"] };
+  for (const id of [...Finner.ROMMENE, ...Object.keys(Finner.HURTIG)]) if (!ROM_UTSEENDE[id] && !HURTIG_UTSEENDE[id]) throw new Error(`rusj/portal/finner.js: «${id}» mangler utseende i scripts/rusj.mjs`);
   for (const U of Object.values(UTGAVE)) {
     const t = U.t;
-    const MOB = mobilerPa(t);
-    const TAGG = taggerPa(t);
     const kortListe = U.kort;
+    // The names of the rooms and the shortcuts in this edition (literal keys for scripts/sprak.mjs).
+    const ROM_NAVN = {
+      dagens: [t("Dagens"), t("Dagens utfordringer")],
+      fest: [t("Fest"), t("Til festen")],
+      familie: [t("Familie"), t("Hele familien")],
+      barn: [t("Barn"), t("For barna")],
+      alene: [t("Alene"), t("Spill alene")],
+      klassikere: [t("Klassikere"), t("Klassikere")],
+      kort: [t("Kort"), t("Kortspill")],
+      ord: [t("Ord og quiz"), t("Ord og quiz")],
+      arkade: [t("Arkade"), t("Arkade")],
+      voksen: ["18+", t("Drikkespill 18+")],
+    };
+    const HURTIG_NAVN = { barn: t("Med barna"), vors: t("Vorspiel"), buss: t("Alene på bussen"), to: t("To stykker"), stor: t("Stor gjeng"), fem: t("5 minutter") };
     // The place of each of the edition's games in «Mest spilt nå» (1 = most played), for the finder.
     const toppPlass = new Map((topp ? topp.spill : []).filter((id) => kortListe.some((m) => m.id === id)).map((id, i) => [id, i + 1]));
     const spillData = kortListe.map((m) => ({
@@ -912,53 +949,96 @@ ${STEMPEL_FILTER}
       ...(motMobilen(m) ? { motMobilen: true } : {}),
       // The game's own search words plus the ones in rusj/seo.json (what people call the game).
       sok: [...new Set([...(Array.isArray(m.sok) ? m.sok : []), ...U.sokedata(m).sok])],
+      // Can be played online, each on their own phone (spill.json "nett"): a badge on the cards.
+      ...(m.nett ? { nett: true } : {}),
+      fig: U.fig.get(m.id),
       ...(U.sprak === "nb" ? {} : { url: m.url }),
     }));
-    // RUSJ_TAGGSOK: words people type for a whole kind of game («selskapsleker», «vors», «bursdag»).
-    const portalData = skriv(U.sprak === "nb" ? "felles/spilliste.js" : `felles/spilliste.${U.sprak}.js`, "window.RUSJ_SPILLISTE=" + somData(spillData) + ";\nwindow.RUSJ_TAGGSOK=" + somData(U.seo.tagger || {}) + ";");
-    // One card per game. «Alle spill» shows it as a compact row; portal.js copies it into the
-    // shelves (as a bigger tile), the «Fortsett» row, the parade and «Overrask meg».
-    // The facts on every card: players, phones and time (from spill.json), and small badges for a
-    // daily puzzle and for games one can play against the phone. The link's name says the same in
-    // one sentence. On the shelf tiles the phones are shown in their short form, and the time not.
+    // RUSJ_TAGGSOK: words people type for a whole kind of game: its names in the edition («Kortspill»,
+    // «Quiz og kunnskap») and the words in rusj/seo.json («selskapsleker», «vors», «bursdag»).
+    const TAGG = taggerPa(t);
+    const SLAGNAVN = { fest: t("Til festen"), familie: t("Hele familien"), barn: t("For barna"), daglig: t("Dagens utfordringer"), alene: t("Spill alene"), quiz: t("Quiz og kunnskap"), verktoy: t("Nyttige verktøy") };
+    const taggsok = Object.fromEntries(Object.keys(TAGGER).map((tg) => [tg, [TAGG[tg], ...(SLAGNAVN[tg] ? [SLAGNAVN[tg]] : []), ...((U.seo.tagger || {})[tg] || [])]]));
+    const portalData = skriv(U.sprak === "nb" ? "felles/spilliste.js" : `felles/spilliste.${U.sprak}.js`, "window.RUSJ_SPILLISTE=" + somData(spillData) + ";\nwindow.RUSJ_TAGGSOK=" + somData(taggsok) + ";");
     const svgFor = (id) => G.svg(id, U.sprak === "nb" ? undefined : { sprak: U.sprak });
-    // o.klasse: more classes on the card; o.nr: its number in «Mest spilt nå» (a badge on the
-    // picture, and «Nummer 1.» first in the link's name).
-    const kortHtml = (m, o = {}) => {
-        const mob = MOB[m.mobiler];
-        const merker = [m.tagger.includes("daglig") && `<span class="kort-merke dagens">${esc(t("Dagens"))}</span>`, motMobilen(m) && `<span class="kort-merke">${esc(t("Mot mobilen"))}</span>`].filter(Boolean).join("");
-        return `<li class="spillkort${o.klasse ? " " + o.klasse : ""}" data-id="${m.id}"${m.alder18 ? " data-alder18" : ""} style="--kf: ${m.farge}">
-        <a href="${m.url}" aria-label="${esc(`${o.nr ? t("Nummer {n}.", { n: o.nr }) + " " : ""}${m.navn}: ${m.undertittel}. ${m.kort} ${U.stor(faktaLest(m, motMobilen(m), t))}.`)}">
-          <span class="kort-figur">${svgFor(m.id)}${m.alder18 ? '<span class="kort-18" aria-hidden="true">18+</span>' : ""}${o.nr ? `<span class="topp-nr" aria-hidden="true">${o.nr}</span>` : ""}</span>
-          <span class="kort-tekst">
-            <span class="kort-topp"><span class="kort-sjanger">${esc(m.undertittel)}</span>${merker ? `<span class="kort-merker">${merker}</span>` : ""}</span>
-            <span class="kort-navn">${esc(m.navn)}</span>
-            <span class="kort-linje">${esc(m.kort)}</span>
-          </span>
-          <span class="kort-fakta">
-            <span class="kort-spillere">${ikon("spillere")}${spillereTekst(m)}</span>
-            <span class="kort-mobiler">${ikon("mobil")}<span class="fakta-lang">${mob.tekst}</span><span class="fakta-kort">${mob.kort}</span></span>
-            <span class="kort-tid">${ikon("tid")}${tidTekst(m)}</span>
-          </span>
-        </a>
-      </li>`;
+    // A mascot further down the page: its picture, fetched when it comes near (inline when a partial
+    // build has no picture of it).
+    const bilde = (id) => (U.fig.has(id) ? `<img src="${U.fig.get(id)}" alt="" loading="lazy" decoding="async">` : svgFor(id));
+    // Before the 18+ door the page holds no drinking game at all: not in the list, not in the rows,
+    // not in the structured data. portal.js adds them from the game list once someone is 18.
+    const vanlige = kortListe.filter((m) => !m.alder18);
+    U.antall18 = kortListe.length - vanlige.length;
+    // What a screen reader hears for a game: name, genre, one-liner and the facts in one sentence.
+    const lest = (m) => `${m.navn}: ${m.undertittel}. ${m.kort} ${U.stor(faktaLest(m, motMobilen(m), t))}.`;
+    // «Ny» on the eight newest games (their place in the site's order), «📅» on the daily ones.
+    const nyeste = vanlige.slice().sort((a, b) => b.rekkefolge - a.rekkefolge);
+    const NYE = new Set(nyeste.slice(0, 8).map((m) => m.id));
+    const merke = (m) => (m.tagger.includes("daglig") ? '<span class="flis-merke dagens" aria-hidden="true">📅</span>' : NYE.has(m.id) ? `<span class="flis-merke ny" aria-hidden="true">${esc(t("Ny"))}</span>` : "");
+    // «På nett»: the game can be played online, each on their own phone (spill.json "nett").
+    const nettMerke = `<span class="nett-merke" aria-hidden="true">${ikon("nett")}${esc(t("På nett"))}</span>`;
+    // A game as a small tile (the A–Å list, «Nytt»): the mascot and the name; the link says the rest.
+    const flis = (m) => `<a class="spillflis" href="${m.url}" style="--kf: ${m.farge}" aria-label="${esc(lest(m))}"><span class="spillflis-bilde">${bilde(m.id)}${merke(m)}${m.nett ? nettMerke : ""}</span><span class="spillflis-navn">${esc(m.navn)}</span></a>`;
+    // The badges on a card with facts («Mest spilt nå»): «Dagens», «Mot mobilen», «På nett».
+    const kortMerker = (m) => {
+      const ut = [
+        m.tagger.includes("daglig") && `<span class="kort-merke dagens">${esc(t("Dagens"))}</span>`,
+        motMobilen(m) && `<span class="kort-merke">${esc(t("Mot mobilen"))}</span>`,
+        m.nett && `<span class="kort-merke nett">${ikon("nett")}${esc(t("På nett"))}</span>`,
+      ].filter(Boolean);
+      return ut.length ? `<span class="kort-merker" aria-hidden="true">${ut.join("")}</span>` : "";
     };
-    const kort = kortListe.map((m) => kortHtml(m)).join("\n");
-    // «Mest spilt nå»: five numbered tiles right under the hero, from rusj/topp.json (never 18+;
-    // no row without at least three games of this edition in the list).
-    const toppRad = toppSpill(topp, kortListe);
-    const toppHtml = toppRad.length
-      ? `<section class="topp5" id="topp5" aria-label="${esc(t("Mest spilt nå"))}">
-    <h2>${esc(t("Mest spilt nå"))}</h2>
-    <ol class="hylle-rad topp5-rad" role="list">
-${toppRad.map((m, i) => kortHtml(m, { klasse: "hyllekort toppkort", nr: i + 1 })).join("\n")}
-    </ol>
-    <p class="topp5-fot">${esc(t("Etter anonym telling"))}</p>
-  </section>
-  `
+
+    // «Alle spill A–Å»: every game as a plain link, sorted by name in the edition's language, the
+    // first of each letter marked. The search, the shortcuts, the rooms and the questions filter it.
+    const aa = vanlige.slice().sort((a, b) => a.navn.localeCompare(b.navn, U.lokale));
+    let forrige = "";
+    const aaHtml = aa
+      .map((m) => {
+        const b = m.navn.charAt(0).toLocaleUpperCase(U.lokale);
+        const forste = b !== forrige;
+        forrige = b;
+        return `<li data-id="${m.id}" data-b="${esc(b)}"${forste ? ' class="forste"' : ""}>${flis(m)}</li>`;
+      })
+      .join("\n");
+    const dorHtml = U.antall18
+      ? `\n<li class="dor-celle" id="dor-celle"><button type="button" class="dor" data-atten><span class="dor-ikon" aria-hidden="true">🔞</span><span class="dor-tekst"><b id="dor-tittel">${esc(t("Drikkespill (18+)"))}</b><span id="dor-under">${esc(t("{n} spill for voksne – trykk for å vise", { n: U.antall18 }))}</span></span></button></li>`
       : "";
-    const brukteTagger = Object.keys(TAGGER).filter((tg) => kortListe.some((m) => m.tagger.includes(tg)));
-    U.antall18 = kortListe.filter((m) => m.alder18).length;
+
+    // The rooms: small tiles with two mascots and a count. 18+ is a door until someone is 18.
+    const romHtml = Finner.ROMMENE.map((id) => {
+      const r = ROM_UTSEENDE[id];
+      const [navn, lang] = ROM_NAVN[id];
+      if (id === "voksen")
+        return U.antall18
+          ? `<li class="rom-bred"><button type="button" class="rom rom-laast" data-rom="voksen" data-ikon="${r.ikon}" data-navn="${esc(navn)}" style="--rf: ${r.farge}"><span class="rom-las" aria-hidden="true">18+</span><span class="rom-tekst"><span class="rom-navn">${esc(t("Drikkespill"))}</span><span class="rom-under">${esc(t("{n} spill bak aldersdøra", { n: U.antall18 }))}</span></span></button></li>`
+          : "";
+      const iRommet = vanlige.filter((m) => Finner.iRom(m, id));
+      if (!iRommet.length) return "";
+      const figurer = [...r.figurer.filter((f) => iRommet.some((m) => m.id === f)), ...iRommet.map((m) => m.id)].filter((f, i, a) => a.indexOf(f) === i).slice(0, 2);
+      return `<li><button type="button" class="rom" data-rom="${id}" data-ikon="${r.ikon}" data-navn="${esc(navn)}" aria-pressed="false" style="--rf: ${r.farge}" aria-label="${esc(`${lang}: ${t("{antall} spill", { antall: iRommet.length, n: iRommet.length })}`)}"><span class="rom-navn">${esc(navn)}</span><span class="rom-antall" aria-hidden="true">${iRommet.length}</span><span class="rom-gjeng" aria-hidden="true">${figurer.map(svgFor).join("")}</span></button></li>`;
+    }).join("\n      ");
+
+    // «Mest spilt nå» (rusj/topp.json): three to five numbered cards, never 18+.
+    const toppRad = toppSpill(topp, kortListe);
+    const toppKort = (m, nr) =>
+      `<li class="toppkort" data-id="${m.id}"><a href="${m.url}" style="--kf: ${m.farge}" aria-label="${esc(`${t("Nummer {n}.", { n: nr })} ${lest(m)}`)}"><span class="toppkort-bilde"><span class="topp-nr" aria-hidden="true">${nr}</span>${svgFor(m.id)}</span><span class="toppkort-tekst"><span class="toppkort-sjanger">${esc(m.undertittel)}</span><span class="toppkort-navn">${esc(m.navn)}</span></span>${kortMerker(m)}<span class="toppkort-fakta"><span>${ikon("spillere")}${spillereTekst(m)}</span><span>${ikon("tid")}${tidTekst(m)}</span></span></a></li>`;
+    const toppHtml = toppRad.length
+      ? `<section class="forside-del topp5" id="topp5" aria-labelledby="topp5-t">
+      <div class="del-topp"><h2 id="topp5-t"><span aria-hidden="true">🔥</span> ${esc(t("Mest spilt nå"))}</h2><span class="del-under">${esc(t("Etter anonym telling"))}</span></div>
+      <ol class="topp-rad">
+${toppRad.map((m, i) => "        " + toppKort(m, i + 1)).join("\n")}
+      </ol>
+    </section>`
+      : "";
+    // «Dagens»: today's daily game is chosen in the browser (the same for everyone that day).
+    const daglige = vanlige.filter((m) => m.tagger.includes("daglig"));
+    const dagensHtml = daglige.length
+      ? `<section class="forside-del dagens" id="dagens" aria-labelledby="dagens-t">
+      <div class="del-topp"><h2 id="dagens-t"><span aria-hidden="true">📅</span> ${esc(t("Dagens"))}</h2><span class="del-under" id="dagens-dato"></span></div>
+      <div class="dagens-plass"><a class="dagens-kort" id="dagens-kort" href="${daglige[0].url}#dagens" hidden><span class="dagens-bilde"></span><span class="dagens-tekst"><span class="dagens-merke">${esc(t("Dagens utfordring"))}</span><b class="dagens-navn"></b><small class="dagens-linje"></small></span></a></div>
+      <div class="dagens-flere"><button type="button" class="brikke" data-til-rom="dagens" aria-label="${esc(t("Se alle: {hylle}", { hylle: t("Dagens utfordringer") }))}">${esc(t("Se alle"))} <span class="brikke-tall">${daglige.length}</span></button><span class="dagens-status" id="dagens-status"></span></div>
+    </section>`
+      : "";
     const forsideTittel = U.seo.forside.tittel;
     const forsideBeskrivelse = U.seo.forside.beskrivelse.replace("{antall}", kortListe.length);
     U.forsideTittel = forsideTittel;
@@ -982,35 +1062,76 @@ ${toppRad.map((m, i) => kortHtml(m, { klasse: "hyllekort toppkort", nr: i + 1 })
           {
             "@type": "ItemList",
             name: t("Alle spill på rusj"),
-            numberOfItems: kortListe.length,
-            itemListElement: kortListe.map((m, i) => ({ "@type": "ListItem", position: i + 1, name: U.sokedata(m).frase.includes(m.navn) ? U.sokedata(m).frase : `${m.navn} – ${U.sokedata(m).frase}`, url: `${DOMENE}${m.url}` })),
+            numberOfItems: vanlige.length,
+            itemListElement: vanlige.map((m, i) => ({ "@type": "ListItem", position: i + 1, name: U.sokedata(m).frase.includes(m.navn) ? U.sokedata(m).frase : `${m.navn} – ${U.sokedata(m).frase}`, url: `${DOMENE}${m.url}` })),
           },
         ],
       },
     })}
-<body class="portal">
+<body class="portal forside">
+<a class="hopp" href="#alle">${esc(t("Hopp til alle spill A–Å"))}</a>
 <div class="scene" aria-hidden="true"></div>
 ${IKONER}
 ${FLAGG}
-<header class="helt">
-  ${sprakvelger(U, (V) => V.forside)}
-  <h1 class="helt-logo"><span class="vh">${esc(forsideTittel)}</span>${G.logo({ klasse: "tegnes" })}</h1>
-  <div class="helt-tekst">
-    <p class="helt-slagord">${esc(t("Spill for hele gjengen."))} <br><em>${esc(t("Rett i nettleseren."))}</em></p>
-    <ul class="helt-fakta" aria-label="${esc(t("Om rusj"))}">
-      <li>${U.th("{antall} spill", { antall: `<b id="helt-antall">${kortListe.length}</b>` }, { n: kortListe.length })}</li><li>${U.th("{null} kr", { null: "<b>0</b>" })}</li><li>${U.th("{null} reklame", { null: "<b>0</b>" })}</li><li>${U.th("{ingen} konto", { ingen: `<b>${esc(t("Ingen"))}</b>` })}</li>
-    </ul>
-    <div class="helt-knapper">
-      <a class="knapp" href="#spill">${esc(t("Finn et spill"))}</a>
-      <button class="knapp-2" id="overrask" type="button" aria-haspopup="dialog"><span aria-hidden="true">🎲</span> ${esc(t("Overrask meg"))}</button>
+<header class="linje" id="linje">
+  <div class="linje-inn">
+    <a class="linje-logo" href="${U.forside}" aria-label="${esc(t("rusj – til alle spillene"))}">${LOGO}</a>
+    <div class="sokefelt" role="search" aria-label="${esc(t("Finn et spill"))}">
+      <svg class="sok-ikon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5l5 5"/></svg>
+      <input type="search" id="sok" placeholder="${esc(t("Søk i {n} spill", { n: kortListe.length }))}" aria-label="${esc(t("Søk etter spill"))}" aria-controls="alle-liste" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+      <button type="button" class="sok-tom" id="sok-tom" aria-label="${esc(t("Tøm søket"))}" hidden>×</button>
     </div>
+    <button type="button" class="terning-knapp" id="overrask" aria-haspopup="dialog"><span class="terning" aria-hidden="true">🎲</span><span class="terning-tekst">${esc(t("Overrask meg"))}</span></button>
   </div>
 </header>
-<div class="parade" aria-hidden="true"><div class="parade-spor" id="parade"></div></div>
-<main class="portal-hoved">
-  ${toppHtml}<section class="fortsett" id="fortsett" hidden aria-labelledby="fortsett-tittel">
-    <h2 id="fortsett-tittel">${esc(t("Fortsett der dere slapp"))}</h2>
-    <ul class="fortsett-rad" id="fortsett-rad"></ul>
+<main class="forside-hoved" id="hoved">
+  <section class="start" aria-labelledby="spill">
+    <div class="start-topp">
+      <h1 id="spill" tabindex="-1"><span class="vh">${esc(forsideTittel)}. </span>${esc(t("Hva skal vi spille?"))}</h1>
+      ${sprakvelger(U, (V) => V.forside)}
+      <p class="start-linje">${U.th("{antall} gratis spill · ingen konto · ingen reklame", { antall: `<b>${kortListe.length}</b>` })}</p>
+    </div>
+    <div class="hurtig" role="group" aria-label="${esc(t("Snarveier"))}" id="hurtig">
+      ${Object.keys(Finner.HURTIG)
+        .map((id) => {
+          const [ik, farge] = HURTIG_UTSEENDE[id];
+          return `<button type="button" class="brikke hurtig-brikke" data-hurtig="${id}" data-ikon="${ik}" data-navn="${esc(HURTIG_NAVN[id])}" aria-pressed="false" style="--hf: ${farge}"><span aria-hidden="true">${ik}</span> ${esc(HURTIG_NAVN[id])}</button>`;
+        })
+        .join("")}<button type="button" class="brikke hurtig-brikke flere" id="flere" aria-expanded="false" aria-controls="finner"><span aria-hidden="true">🧭</span> ${esc(t("Flere valg"))}</button>
+    </div>
+    <div class="finner" id="finner" role="group" aria-label="${esc(t("Filter"))}" hidden>
+      <div class="finner-sporsmal" role="group" aria-labelledby="finner-antall-tittel">
+        <span class="finner-tittel" id="finner-antall-tittel"><span class="finner-nr" aria-hidden="true">1</span>${esc(t("Hvor mange er dere?"))}</span>
+        <div class="brikker finner-brikker">${Object.keys(Finner.SPILLERE).map((v) => `<button type="button" class="brikke" data-finn-antall="${v}" aria-pressed="false">${v.replace("-", "–")}</button>`).join("")}</div>
+      </div>
+      <div class="finner-sporsmal finner-alder" role="group" aria-labelledby="finner-alder-tittel">
+        <label class="finner-tittel" id="finner-alder-tittel" for="finner-yngst"><span class="finner-nr" aria-hidden="true">2</span>${esc(t("Yngste"))}</label>
+        <div class="finner-steg">
+          <button type="button" class="finner-steg-knapp" data-finn-yngst="-1" aria-label="${esc(t("Yngre"))}">−</button>
+          <select id="finner-yngst">${Finner.alderTrinn(false).map((v) => `<option value="${v}"${v === "voksen" ? " selected" : ""}>${esc(v === "voksen" ? t("Voksen") : t("{n} år", { n: v }))}</option>`).join("")}</select>
+          <button type="button" class="finner-steg-knapp" data-finn-yngst="1" aria-label="${esc(t("Eldre"))}">+</button>
+        </div>
+      </div>
+      <div class="finner-sporsmal" role="group" aria-labelledby="finner-lyst-tittel">
+        <span class="finner-tittel" id="finner-lyst-tittel"><span class="finner-nr" aria-hidden="true">3</span>${esc(t("Hva har dere lyst på?"))}</span>
+        <div class="brikker finner-brikker">${[
+          ["alt", t("Litt av alt")],
+          ["tull", t("Le og tulle")],
+          ["tenke", t("Tenke og vinne")],
+          ["ord", t("Ord og quiz")],
+          ["tegne", t("Tegne og mime")],
+          ["kjapt", t("Kjapt (<10 min)")],
+        ]
+          .map(([v, navn]) => `<button type="button" class="brikke" data-finn-lyst="${v}" aria-pressed="${v === "alt"}">${esc(navn)}</button>`)
+          .join("")}</div>
+      </div>
+      <button type="button" class="knapp-2 liten finner-vis" id="finner-vis"><span id="finner-treff"></span> <span aria-hidden="true">↓</span></button>
+    </div>
+    <nav class="rom-nav" aria-label="${esc(t("Type spill"))}">
+      <ul class="rommene" id="rommene">
+      ${romHtml}
+      </ul>
+    </nav>
   </section>
   <div class="installtips" id="installtips" hidden>
     <span class="installtips-ikon" aria-hidden="true">📲</span>
@@ -1018,6 +1139,10 @@ ${FLAGG}
     <button type="button" class="installtips-vis" id="installtips-vis" aria-label="${esc(t("Vis meg hvordan rusj blir en app"))}">${esc(t("Vis meg"))}</button>
     <button type="button" class="installtips-lukk" id="installtips-lukk" aria-label="${esc(t("Skjul tipset"))}">×</button>
   </div>
+  <section class="forside-del fortsett" id="fortsett" hidden aria-labelledby="fortsett-tittel">
+    <div class="del-topp"><h2 id="fortsett-tittel">${esc(t("Fortsett der dere slapp"))}</h2></div>
+    <ul class="forside-rad" id="fortsett-rad"></ul>
+  </section>
   <section class="kveld" id="kveld" hidden aria-labelledby="kveld-tittel">
     <div class="kveld-topp"><h2 id="kveld-tittel">🏆 ${esc(t("Kveldens gjeng"))}</h2><span class="kveld-antall" id="kveld-antall"></span></div>
     <ol class="kveld-liste" id="kveld-liste"></ol>
@@ -1028,68 +1153,37 @@ ${FLAGG}
     <a class="kveld-merker" href="${U.side("merker")}"><span aria-hidden="true">📒</span> ${esc(t("Klistremerkeboka"))}<span class="kveld-merker-pil" aria-hidden="true">›</span></a>
     <p class="kveld-fot">${esc(t("3 poeng for seier, 2 for andreplass og 1 for tredjeplass – i alle spillene dere spiller i kveld."))}</p>
   </section>
-  <h2 class="filter-overskrift" id="spill" tabindex="-1">${esc(t("Hva skal vi spille?"))}</h2>
-  <div class="finner" id="finner">
-    <div class="finner-sporsmal" role="group" aria-labelledby="finner-antall-tittel">
-      <span class="finner-tittel" id="finner-antall-tittel">${esc(t("Hvor mange er dere?"))}</span>
-      <div class="brikker finner-brikker">${Object.keys(Finner.SPILLERE).map((v) => `<button type="button" class="brikke" data-finn-antall="${v}" aria-pressed="false">${v.replace("-", "–")}</button>`).join("")}</div>
+  ${toppHtml || dagensHtml ? `<div class="naa">\n    ${[toppHtml, dagensHtml].filter(Boolean).join("\n    ")}\n  </div>` : ""}
+  <section class="forside-del nytt" id="nytt" aria-labelledby="nytt-t">
+    <div class="del-topp"><h2 id="nytt-t"><span aria-hidden="true">✨</span> ${esc(t("Nytt"))}</h2></div>
+    <ul class="forside-rad" id="nytt-rad">
+${nyeste
+  .slice(0, 10)
+  .map((m) => `      <li data-id="${m.id}">${flis(m)}</li>`)
+  .join("\n")}
+    </ul>
+  </section>
+  <section class="alle-spill" id="alle" aria-labelledby="alle-t" tabindex="-1">
+    <div class="resultat-topp" id="resultat-topp">
+      <div class="resultat-linje"><h2 id="alle-t" tabindex="-1">${esc(t("Alle spill A–Å"))}</h2><button type="button" class="nullstill" id="nullstill" hidden>${esc(t("Nullstill"))}</button></div>
+      <div class="aktive" id="aktive" role="group" hidden></div>
     </div>
-    <div class="finner-sporsmal finner-alder" role="group" aria-labelledby="finner-alder-tittel">
-      <label class="finner-tittel" id="finner-alder-tittel" for="finner-yngst">${esc(t("Yngste"))}</label>
-      <div class="finner-steg">
-        <button type="button" class="finner-steg-knapp" data-finn-yngst="-1" aria-label="${esc(t("Yngre"))}">−</button>
-        <select id="finner-yngst">${Finner.alderTrinn(false).map((v) => `<option value="${v}"${v === "voksen" ? " selected" : ""}>${esc(v === "voksen" ? t("Voksen") : t("{n} år", { n: v }))}</option>`).join("")}</select>
-        <button type="button" class="finner-steg-knapp" data-finn-yngst="1" aria-label="${esc(t("Eldre"))}">+</button>
-      </div>
-    </div>
-    <div class="finner-sporsmal" role="group" aria-labelledby="finner-lyst-tittel">
-      <span class="finner-tittel" id="finner-lyst-tittel">${esc(t("Hva har dere lyst på?"))}</span>
-      <div class="brikker finner-brikker">${[
-        ["alt", t("Litt av alt")],
-        ["tull", t("Le og tulle")],
-        ["tenke", t("Tenke og vinne")],
-        ["ord", t("Ord og quiz")],
-        ["tegne", t("Tegne og mime")],
-        ["kjapt", t("Kjapt (<10 min)")],
-      ].map(([v, navn]) => `<button type="button" class="brikke" data-finn-lyst="${v}" aria-pressed="${v === "alt"}">${esc(navn)}</button>`).join("")}</div>
-    </div>
-    <p class="finner-treff" id="finner-treff"></p>
-    <ul class="spillgrid finner-liste" id="finner-liste" aria-label="${esc(t("Forslag"))}"></ul>
-    <button type="button" class="knapp-2 liten finner-mer" id="finner-mer" hidden>${esc(t("Vis flere"))}</button>
-  </div>
-  <div class="filter" id="filter" role="search">
-    <div class="sok">
-      <span class="sok-ikon" aria-hidden="true">🔎</span>
-      <input type="search" id="sok" placeholder="${esc(t("Søk etter spill"))}" aria-label="${esc(t("Søk etter spill"))}" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
-      <button type="button" class="sok-tom" id="sok-tom" aria-label="${esc(t("Tøm søket"))}" hidden>×</button>
-    </div>
-    <button type="button" class="filter-knapp" id="filter-knapp" aria-controls="filtre"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.3"/><circle cx="9" cy="17" r="2.3"/></svg><span>${esc(t("Filter"))}</span><span class="filter-antall" id="filter-antall" hidden></span></button>
-  </div>
-  <div class="filtre" id="filtre" role="group" aria-label="${esc(t("Filter"))}">
-    <div class="antall" role="group" aria-label="${esc(t("Hvor mange spillere er dere?"))}">
-      <span class="antall-tekst">${esc(t("Spillere"))}</span>
-      <button type="button" class="antall-knapp" data-antall="-1" aria-label="${esc(t("Færre spillere"))}">−</button>
-      <output id="antall" aria-live="polite">${esc(t("alle"))}</output>
-      <button type="button" class="antall-knapp" data-antall="1" aria-label="${esc(t("Flere spillere"))}">+</button>
-    </div>
-    <div class="brikker" id="tagger" role="group" aria-label="${esc(t("Type spill"))}">
-      <button type="button" class="brikke alle" data-tagg="" aria-pressed="true">${esc(t("Alle"))}</button>
-      ${brukteTagger.map((tg) => `<button type="button" class="brikke" data-tagg="${tg}" aria-pressed="false">${esc(TAGG[tg])}</button>`).join("")}
-    </div>
-  </div>
-  <p class="treff" id="treff" aria-live="polite"></p>
-  <div class="hyller" id="hyller"></div>
-  <h2 class="alle-tittel" id="alle-tittel">${esc(t("Alle spill"))}</h2>
-  <ul class="spillgrid" id="spillgrid">
-${kort}
-    <li class="atten-dor" id="atten-dor" hidden><button type="button" data-vis18><span class="atten-dor-ikon" aria-hidden="true">🔞</span><span class="atten-dor-tekst"><b>${esc(t("Drikkespill (18+)"))}</b><span id="atten-dor-antall"></span></span></button></li>
-  </ul>
-  <p class="ingen-treff" id="ingen-treff" hidden>${esc(t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type."))}</p>
+    <p class="vh" id="si" aria-live="polite"></p>
+    <div class="beste" id="beste" hidden></div>
+    <ul class="alle-liste" id="alle-liste">
+${aaHtml}${dorHtml}
+    </ul>
+    <p class="ingen-treff" id="ingen-treff" hidden>${esc(t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type."))}</p>
+  </section>
   <dialog class="dialog" id="dialog" aria-labelledby="dialog-tittel"></dialog>
   <dialog class="dialog automat" id="automat" aria-labelledby="automat-tittel"></dialog>
 
   <section class="slik" aria-labelledby="slik-tittel">
     <h2 id="slik-tittel">${esc(t("Så enkelt er det"))}</h2>
+    <p class="slik-slagord">${esc(t("Spill for hele gjengen."))} <em>${esc(t("Rett i nettleseren."))}</em></p>
+    <ul class="slik-fakta" aria-label="${esc(t("Om rusj"))}">
+      <li>${U.th("{antall} spill", { antall: `<b>${kortListe.length}</b>` }, { n: kortListe.length })}</li><li>${U.th("{null} kr", { null: "<b>0</b>" })}</li><li>${U.th("{null} reklame", { null: "<b>0</b>" })}</li><li>${U.th("{ingen} konto", { ingen: `<b>${esc(t("Ingen"))}</b>` })}</li>
+    </ul>
     <ol class="slik-steg">
       <li><b>${esc(t("Velg et spill"))}</b><span>${esc(t("Alt er gratis og klart med en gang."))}</span></li>
       <li><b>${esc(t("Skriv inn navnene"))}</b><span>${esc(t("Én gang. Alle spillene husker gjengen din."))}</span></li>
@@ -1098,7 +1192,7 @@ ${kort}
   </section>
 
   <section class="gjengen" id="gjengen" aria-labelledby="gjengen-tittel">
-    <span class="gjengen-figur" aria-hidden="true">${G.svg("skravla")}</span>
+    <span class="gjengen-figur" aria-hidden="true">${bilde("skravla")}</span>
     <div>
       <h2 id="gjengen-tittel">${esc(t("Få med gjengen"))}</h2>
       <p>${esc(t("Vis QR-koden på mobilen din, så er alle med på sekunder."))}</p>
@@ -1107,7 +1201,7 @@ ${kort}
   </section>
 
   <section class="installer" id="installer" aria-labelledby="installer-tittel">
-    <span class="installer-figur" aria-hidden="true">${G.svg("panna")}</span>
+    <span class="installer-figur" aria-hidden="true">${bilde("panna")}</span>
     <div>
       <h2 id="installer-tittel">${esc(t("Ha rusj på hjemskjermen"))}</h2>
       <p id="installer-tekst">${esc(t("Åpne delingsmenyen i nettleseren og velg «Legg til på Hjem-skjerm». Da starter rusj som en app – og spillene virker uten nett."))}</p>
@@ -1500,6 +1594,15 @@ ${album}
     sider: Object.values(UTGAVE).flatMap((U) => [U.forside, ...U.kort.map((m) => m.url), U.side("om"), U.side("personvern"), U.side("merker"), ...(U.sprak === "nb" ? samlinger.map((s) => `/${s.slug}/`) : [])]),
     manifester: Object.values(UTGAVE).map((U) => `${U.forside}manifest.webmanifest`),
   };
+}
+
+// The mascot alone, as an SVG file of its own (sprak: the words in the drawing). Self-contained: the
+// mascots draw with attributes only, never with the page's styles.
+export function figurSvg(G, id, sprak) {
+  const svg = G.svg(id, sprak ? { sprak } : undefined).replace(/>\s+</g, "><");
+  const boks = /^<svg [^>]*?(viewBox="[^"]+")[^>]*>/.exec(svg);
+  if (!boks) throw new Error(`gjengen.js: figuren «${id}» har ingen viewBox`);
+  return `<svg xmlns="http://www.w3.org/2000/svg" ${boks[1]}>` + svg.slice(boks[0].length) + "\n";
 }
 
 // Square icon with the game's mascot on the night background (sprak: the words in the drawing).

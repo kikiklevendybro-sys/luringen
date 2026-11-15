@@ -6,6 +6,8 @@
 //   it names is in place, and it is replaced the same way: files first, the page last. A stored
 //   page therefore always works without a connection, whatever else is going on.
 //   Files carry ?v=<hash of their content> in their address and never change: fetched once, kept.
+//   A picture marked loading="lazy" (the front page's mascots further down) is not needed to show
+//   the page: the browser fetches it when the page scrolls near it, the worker when it is idle.
 //
 // WHEN IT IS FETCHED
 //   Install    The front page and the page that is open right now. Nothing else, so a first visit
@@ -81,12 +83,18 @@ function sideSti(sti) {
   return sti;
 }
 
-// The files a page needs: every address on this site with ?v= in its markup (scripts, styles, icons).
-function filerI(html) {
+// Every address on this site with ?v= in a piece of markup.
+function adresser(html) {
   const ut = new Set();
   for (const m of html.matchAll(/\s(?:src|href)="(\/[^"?#]*\?v=[^"#]*)"/g)) ut.add(m[1]);
   return [...ut];
 }
+// A picture a page shows further down: <img loading="lazy">.
+const SENERE = /<img\b[^>]*\sloading="lazy"[^>]*>/g;
+// The files a page needs: scripts, styles, icons – everything with ?v= but the lazy pictures.
+const filerI = (html) => adresser(html.replace(SENERE, ""));
+// The lazy pictures: fetched last, when idle, so the whole page is there without a connection.
+const senereI = (html) => adresser((html.match(SENERE) || []).join(" "));
 
 // Save-Data, or a connection the browser calls 2G: fetch nothing that nobody asked for.
 function sparsomt() {
@@ -187,7 +195,9 @@ async function rydd(lager) {
     if (url.search || !ONSKET.has(url.pathname) || !url.pathname.endsWith("/")) continue;
     behold.add(url.pathname);
     const svar = await lager.match(foresporsel);
-    if (svar) for (const adr of filerI(await svar.text())) behold.add(adr);
+    if (!svar) continue;
+    const html = await svar.text();
+    for (const adr of [...filerI(html), ...senereI(html)]) behold.add(adr);
   }
   for (const foresporsel of nokler) {
     const url = new URL(foresporsel.url);
@@ -259,6 +269,27 @@ async function hentResten() {
     }
     await rolig(); // a page is loading: wait for it
     if (!(await ett(sti))) return;
+  }
+  // Last, the lazy pictures of the stored pages (the front page's mascots further down).
+  for (const [sti] of SIDER) {
+    if (!iBruk(sti)) continue;
+    const side = await lager.match(sti);
+    if (!side) continue;
+    for (const adr of senereI(await side.text())) {
+      if (await lager.match(adr)) continue;
+      if (sparsomt()) {
+        mangler++; // the browser fetches it when someone scrolls to it
+        break;
+      }
+      await rolig();
+      try {
+        await hentFil(lager, adr, lav);
+        endret++; // a new picture: an older one may be left over
+      } catch (feil) {
+        mangler++;
+        if (feil instanceof TypeError) return; // no connection: the next visit goes on from here
+      }
+    }
   }
   if (!mangler) {
     altLagret = true;
