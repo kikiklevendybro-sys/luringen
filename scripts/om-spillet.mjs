@@ -310,7 +310,8 @@ function hjelpelinje(U, h) {
 }
 
 // The block itself. o: regler, eksempler, frase, lenker ([[href, tekst]]), sprak (the edition, from
-// byggRusj: { t, forside }; left out = Norwegian), sprakvalg (the language switch, markup).
+// byggRusj: { t, forside }; left out = Norwegian), sprakvalg (the language switch, markup), nett
+// (the game can be played online too: one more fact).
 export function omSpilletHtml(m, o) {
   const t = o.sprak ? o.sprak.t : (k, v) => (v ? k.replace(/\{(\w+)\}/g, (h, n) => (n in v ? String(v[n]) : h)) : k);
   const [a, b] = m.spillere;
@@ -319,7 +320,8 @@ export function omSpilletHtml(m, o) {
   const [fra, til] = m.minutter;
   const mobiler = { en: t("1 mobil"), hver: t("Hver sin mobil"), begge: t("1 eller flere mobiler") }[m.mobiler];
   const r = o.regler;
-  const fakta = [spillere, fra === til ? `${fra} min` : `${fra}–${til} min`, mobiler, m.alder18 ? t("Bare for voksne (18+)") : null].filter(Boolean);
+  // o.nett: the game can also be played online, each on their own phone (R.nett).
+  const fakta = [spillere, fra === til ? `${fra} min` : `${fra}–${til} min`, mobiler, o.nett ? t("Også på nett, på hver sin mobil") : null, m.alder18 ? t("Bare for voksne (18+)") : null].filter(Boolean);
   const deler = [
     `<section class="om-spillet" id="om-spillet" aria-labelledby="om-spillet-tittel">`,
     `  <p class="om-etikett">${esc(t("Om spillet"))}</p>`,

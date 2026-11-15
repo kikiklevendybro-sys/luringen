@@ -103,5 +103,6 @@
   "Avslutte spillet?": "Quit the game?",
   "Dere går til kåringen. Stillingen er {stilling}.": "You'll go to the results. The score is {stilling}.",
   "Dere kan alltid starte et nytt.": "You can always start a new one.",
-  "Spill videre": "Keep playing"
+  "Spill videre": "Keep playing",
+  "Vent på tur – {navn} legger nå": "Wait your turn – {navn} is playing"
 }

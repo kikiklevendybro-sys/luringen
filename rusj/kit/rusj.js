@@ -2303,8 +2303,9 @@
   }
 
   let startesPaNytt = false; // «Start spillet på nytt» was pressed: nothing is saved on the way out
+  let paNett = false; // a match on the net is running (rusj/kit/nett.js): its state is never saved
   R.lagre = () => {
-    if (!APP || startesPaNytt) return;
+    if (!APP || startesPaNytt || paNett) return;
     S._tid = Date.now();
     // For the front page's «Fortsett» badge: is a game in progress? (APP.pagar decides if given.)
     try {
@@ -2314,6 +2315,44 @@
     }
     const data = APP.lagre ? APP.lagre(S) : S;
     R.skriv(NOKKEL, data);
+  };
+
+  // ---------- Online play (rusj/kit/nett.js) ----------
+  // A match on the net is played in a state of its own: a fresh S from the game's tilstand(), which
+  // is never written anywhere (the room has the moves; a reload replays them). The game on this
+  // phone – its saved state, settings, records and join codes – is not touched, and comes back from
+  // storage exactly as it was saved when the player leaves the match. The screen being left gets
+  // its ut(); then S.skjerm is null, and the caller goes to the next screen with R.gaTil.
+  R.paNett = () => paNett;
+  R._nettBytt = (paa) => {
+    if (!APP || !!paa === paNett) return S;
+    const sk = S && S.skjerm && APP.skjermer[S.skjerm];
+    if (sk && sk.ut) {
+      try {
+        sk.ut(S);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    rydd();
+    paNett = !!paa;
+    const ny = () => Object.assign({ skjerm: null }, APP.tilstand ? APP.tilstand() : {});
+    S = ny();
+    if (!paNett) {
+      const lagret = R.les(NOKKEL, null);
+      if (lagret && typeof lagret === "object") Object.assign(S, lagret);
+    }
+    if (APP.lastet) {
+      try {
+        APP.lastet(S);
+      } catch (e) {
+        console.error(e);
+        S = ny();
+      }
+    }
+    S.skjerm = null;
+    R.S = S;
+    return S;
   };
 
   function skjermDef(navn) {
@@ -2643,7 +2682,7 @@
       ${r.steg ? `<ol class="steg">${r.steg.map(([t, x]) => `<li><b>${esc(t)}</b><span>${esc(x)}</span></li>`).join("")}</ol>` : ""}
       ${r.tips && r.tips.length ? `<h3>${esc(R.t("Tips"))}</h3><ul class="tips">${r.tips.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : ""}
       ${r.ekstraHtml || ""}
-      <p class="personvern">${esc(window.RUSJ_STAT ? R.t("Det dere skriver inn, blir på denne mobilen. Ingen konto og ingen reklame. Vi teller bare anonymt hvor mange som spiller.") : R.t("Alt skjer på denne mobilen. Ingen konto, ingen reklame, og ingenting sendes noe sted."))}</p>
+      <p class="personvern">${esc(window.RUSJ_STAT ? R.t("Det dere skriver inn, blir på denne mobilen. Ingen konto og ingen reklame. Vi teller bare anonymt hvor mange som spiller.") : R.t("Alt skjer på denne mobilen. Ingen konto, ingen reklame, og ingenting sendes noe sted."))}${R.nett ? " " + esc(R.t("Spiller dere på nett, går bare trekkene og et kallenavn dere velger selv via rusj, og alt slettes etter et døgn.")) : ""}</p>
       <button class="knapp" data-h="lukk-ark">${esc(R.t("Skjønner!"))}</button>`);
   };
 
@@ -2682,7 +2721,9 @@
     // sound are kept — and load the page again.
     "start-pa-nytt": () => {
       startesPaNytt = true;
-      R.fjern(NOKKEL);
+      // On the net the saved game on this phone was not the one that failed: keep it. The reload
+      // comes back into the room and replays the match.
+      if (!paNett) R.fjern(NOKKEL);
       location.reload();
     },
     "ark-svar": (el) => {

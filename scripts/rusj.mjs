@@ -77,6 +77,15 @@ ${tekst ? `<p>${esc(tekst)}</p>\n` : ""}<p><a href="/${m.id}/">Gå til ${esc(m.n
 // window.RUSJ_STAT) on every page, and the footer and /personvern/ describe the counting.
 export const STAT_ADRESSE = "https://rusj-statistikk.kikiklevendybro.workers.dev";
 
+// «Spill med en venn på nett» (see nett/README.md and nett/KLIENT.md): the address of the rooms
+// Worker, e.g. "https://rusj-nett.<konto>.workers.dev". Empty = switched off: no button, nothing is
+// sent, the CSP and the privacy page are as before. When set, the build adds the address to
+// connect-src (as https: and wss:), publishes /felles/nett.js (which sets window.RUSJ_NETT) and
+// /felles/nett.css on the pages of games with "nett": true, and /personvern/ gets «Spill på nett».
+// A test build may point it elsewhere with the environment variable RUSJ_NETT_ADRESSE
+// (http://127.0.0.1:<port> for a local `wrangler dev`).
+export const NETT_ADRESSE = "https://rusj-nett.kikiklevendybro.workers.dev";
+
 // «Spander en kaffe»: per edition, the owner's payment link and the price shown on the button.
 // An empty link = off in that edition. When set, that edition's game pages carry them as
 // <html data-kaffe data-kaffe-pris>, and the kit asks for a coffee after every 20th finished game
@@ -90,25 +99,31 @@ for (const [s, k] of Object.entries(KAFFE)) if (k.lenke && !/^https:\/\/[^\s"<>]
 
 // Checks the address and returns its origin ("" when off). Throws on anything that is not a plain
 // https origin (or http://localhost / 127.0.0.1 for tests), so a typo cannot reach the CSP.
-export function statOpprinnelse(adresse = STAT_ADRESSE) {
+export function statOpprinnelse(adresse = STAT_ADRESSE, navn = "STAT_ADRESSE") {
   if (!adresse) return "";
   const u = new URL(adresse);
   const lokal = u.protocol === "http:" && /^(localhost|127\.0\.0\.1)$/.test(u.hostname);
   if ((u.protocol !== "https:" && !lokal) || u.username || u.password || u.search || u.hash || (u.pathname !== "/" && u.pathname !== "")) {
-    throw new Error(`STAT_ADRESSE må være bare en adresse som https://navn.workers.dev, ikke «${adresse}»`);
+    throw new Error(`${navn} må være bare en adresse som https://navn.workers.dev, ikke «${adresse}»`);
   }
   return u.origin;
 }
 
+// The rooms for playing on the net: the same rules as the statistics address.
+export const nettOpprinnelse = (adresse = process.env.RUSJ_NETT_ADRESSE ?? NETT_ADRESSE) => statOpprinnelse(adresse, "NETT_ADRESSE");
+// connect-src for the rooms: the address and its WebSocket twin (https → wss, http → ws for tests).
+export const nettKilder = (nett) => (nett ? [nett, nett.replace(/^http/, "ws")] : []);
+
 // Content Security Policy: only files from rusj.no itself; no inline scripts. The only outside
-// request ever allowed is to the statistics Worker, and only when STAT_ADRESSE is set.
-export const lagCsp = (stat = statOpprinnelse()) => [
+// requests ever allowed are to the statistics Worker (when STAT_ADRESSE is set) and to the rooms
+// for playing on the net (when NETT_ADRESSE is set).
+export const lagCsp = (stat = statOpprinnelse(), nett = nettOpprinnelse()) => [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  stat ? `connect-src 'self' ${stat}` : "connect-src 'self'",
+  ["connect-src 'self'", ...(stat ? [stat] : []), ...nettKilder(nett)].join(" "),
   "media-src 'self' data: blob:",
   "worker-src 'self'",
   "manifest-src 'self'",
@@ -126,6 +141,7 @@ export function statFil(rot, stat = statOpprinnelse()) {
   return { innhold, sti: "/felles/stat.js?v=" + hashTekst(innhold) };
 }
 const STAT_FIL = statFil(join(dirname(fileURLToPath(import.meta.url)), ".."));
+const NETT = nettOpprinnelse();
 
 export const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
@@ -555,6 +571,9 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
     // 3D dice in a tray (R.terninger): only for games with "terninger": true in spill.json
     terninger: skriv("felles/terninger.js", kilde("rusj/kit/terninger.js")),
     terningerCss: skriv("felles/terninger.css", kilde("rusj/kit/terninger.css")),
+    // Playing on the net (R.nett): only for games with "nett": true, and only with NETT_ADRESSE
+    nett: NETT && skriv("felles/nett.js", `window.RUSJ_NETT=${JSON.stringify(NETT)};\n` + kilde("rusj/kit/nett.js")),
+    nettCss: NETT && skriv("felles/nett.css", kilde("rusj/kit/nett.css")),
     ord: skriv("felles/ord.js", "window.RUSJ_ORD=" + JSON.stringify(ordData).replace(/</g, "\\u003c") + ";"),
     // t() for the front page and the pages about rusj (the kit has its own copy)
     tekst: skriv("felles/tekst.js", kilde("rusj/kit/tekst.js")),
@@ -761,14 +780,16 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
       const dataJs =
         "window.RUSJ_SPILL=" + JSON.stringify(meta) + ";\nwindow.RUSJ_ANDRE=" + somData(andre) + ";\nwindow.RUSJ_DATA=" + somData(data) + ";\n" + (spillTabell ? "window.RUSJ_TEKST_SPILL=" + somData(spillTabell) + ";\n" : "");
       const dataSti = skriv(`${mappe}data.js`, dataJs);
-      const css = [felles.css, ...(m.terninger ? [felles.terningerCss] : []), ...(spillCss ? [spillCss] : [])];
+      const paNett = !!(m.nett && felles.nett);
+      const css = [felles.css, ...(m.terninger ? [felles.terningerCss] : []), ...(paNett ? [felles.nettCss] : []), ...(spillCss ? [spillCss] : [])];
       const ikon = skriv(`${mappe}ikon.svg`, ikonSvg(G, id, U.sprak === "nb" ? undefined : U.sprak));
       const egenDeling = U.sprak === "nb" ? `deling-${id}.png` : `deling-${id}.${U.sprak}.png`;
       const deling = existsSync(join(BILDER, egenDeling)) ? kopier(join(BILDER, egenDeling), `${mappe}deling.png`) : deling0;
 
       const skript = [...forTekst(U), felles.gjengen, U.merkerJs, felles.js];
-      if (m.qr) skript.push(felles.qr);
+      if (m.qr || paNett) skript.push(felles.qr); // the invite sheet has a QR code
       if (m.terninger) skript.push(felles.terninger);
+      if (paNett) skript.push(felles.nett); // after the kit, before the game: it wraps Rusj.start
       if (m.ordbank && ordFor[U.sprak]) skript.push(ordFor[U.sprak].fil);
       skript.push(dataSti, jsSti);
 
@@ -792,6 +813,7 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
             lenker: U.sprak === "nb" ? samlingerMed(id) : [],
             sprak: U,
             sprakvalg: sprakvalg(U, spillSti(id)),
+            nett: paNett,
           })
         : "";
       const side = `${hodeMed({
@@ -947,6 +969,8 @@ ${STEMPEL_FILTER}
       ...(toppPlass.has(m.id) ? { topp: toppPlass.get(m.id) } : {}),
       alder18: !!m.alder18,
       ...(motMobilen(m) ? { motMobilen: true } : {}),
+      // Can be played with friends on their own phones online (R.nett): for the badge «På nett».
+      ...(m.nett && NETT ? { nett: true } : {}),
       // The game's own search words plus the ones in rusj/seo.json (what people call the game).
       sok: [...new Set([...(Array.isArray(m.sok) ? m.sok : []), ...U.sokedata(m).sok])],
       // Can be played online, each on their own phone (spill.json "nett"): a badge on the cards.
@@ -1217,7 +1241,7 @@ ${bunn(U, false, (V) => V.forside)}
   }
 
   // ---------- Pages about rusj: /personvern/ and /om/ (in every edition) ----------
-  const SIDER_OPPDATERT = "2026-11-12";
+  const SIDER_OPPDATERT = "2026-11-15";
   const merkebokJs = skriv("felles/merkebok.js", kilde("rusj/portal/merkebok.js"));
   const datoTekst = (iso, U) =>
     U.sprak === "nb"
@@ -1257,6 +1281,20 @@ ${bunn(U, true, o.finn)}
       <li>${th("{tittel} har du slått på «Ikke spor» ({dnt} eller {gpc}) eller datasparing i nettleseren, sender rusj ingenting.", { tittel: `<b>${esc(t("Slik slår du det av:"))}</b>`, dnt: lokal_("Do Not Track"), gpc: lokal_("Global Privacy Control") })}</li>
     </ul>
   </section>`;
+    // «Spill på nett» (nett/README.md): only when NETT_ADRESSE is set.
+    const pvSpillNett = `
+
+  <section aria-labelledby="pv-spill-nett">
+    <h2 id="pv-spill-nett">${esc(t("Spill på nett"))}</h2>
+    <p>${esc(t("Noen spill kan dere spille sammen på hver deres mobil, fra hvert deres sted: én lager et rom og sender en lenke. Da går trekkene gjennom en liten tjeneste vi har laget, slik at alle mobilene får dem i samme rekkefølge. Det skjer bare når dere selv velger «Spill med en venn på nett»."))}</p>
+    <ul>
+      <li>${th("{tittel} trekkene dere gjør, et kallenavn (det første navnet som er skrevet inn i spillene på mobilen din, om det finnes – du kan endre det når du blir med), koden til rommet og et tilfeldig plassmerke, så mobilen din kommer inn igjen hvis nettet faller ut. Reaksjonene er seks faste emojier.", { tittel: `<b>${esc(t("Det som sendes:"))}</b>` })}</li>
+      <li>${th("{tittel} hos Cloudflare. Rommene er låst til EU, og innholdet deres lagres bare der. Cloudflare skriver rommets tilfeldige ID i sine logger for fakturering, også utenfor EU; ID-en sier ingenting om hvem som spiller.", { tittel: `<b>${esc(t("Hvor:"))}</b>` })}</li>
+      <li>${th("{tittel} alt i rommet slettes 24 timer etter siste trekk, og med én gang når alle har gått fra en ferdig kamp.", { tittel: `<b>${esc(t("Hvor lenge:"))}</b>` })}</li>
+      <li>${th("{tittel} ingen konto, ingen chat og ingen fritekst utenom kallenavnet, og vi logger ikke IP-adressen din. Når mobilen kobler til, ser Cloudflare IP-adressen i det øyeblikket, slik alle nettsteder gjør, men vi lagrer den ikke og har slått av loggene.", { tittel: `<b>${esc(t("Det som ikke finnes:"))}</b>` })}</li>
+    </ul>
+    <p>${esc(t("På mobilen din lagres koden til rommet og plassmerket mens kampen varer. I Admiralen blir skipene dine på din mobil: den andre får bare vite «bom», «treff» eller «senket», og ser hele flåten først når kampen er slutt."))}</p>
+  </section>`;
     skriv(
       `${U.side("personvern").slice(1)}index.html`,
       omSide(U, {
@@ -1268,7 +1306,7 @@ ${bunn(U, true, o.finn)}
         beskrivelse: t("rusj har ingen konto, ingen informasjonskapsler, ingen sporing og ingen reklame. Se nøyaktig hva som lagres i nettleseren din – og slett alt med ett trykk."),
         skript: portalSkript(U, siderJs),
         innhold: `  <h1>${esc(t("Personvern"))}</h1>
-  <p class="side-ingress">${esc(t("Kort sagt: rusj har ingen konto, ingen informasjonskapsler, ingen sporing og ingen reklame. Det dere skriver inn i spillene, blir i nettleseren på enheten deres."))}${STAT_FIL ? " " + esc(t("Vi teller bare anonymt hvor mange som bruker rusj, og hvilke spill som åpnes.")) : ""}</p>
+  <p class="side-ingress">${esc(t("Kort sagt: rusj har ingen konto, ingen informasjonskapsler, ingen sporing og ingen reklame. Det dere skriver inn i spillene, blir i nettleseren på enheten deres."))}${STAT_FIL ? " " + esc(t("Vi teller bare anonymt hvor mange som bruker rusj, og hvilke spill som åpnes.")) : ""}${NETT ? " " + esc(t("Spiller dere sammen på nett, går bare trekkene og et kallenavn dere velger selv via rusj (se «Spill på nett»).")) : ""}</p>
 
   <section aria-labelledby="pv-lagres">
     <h2 id="pv-lagres">${esc(t("Dette lagres i nettleseren din"))}</h2>
@@ -1290,7 +1328,7 @@ ${bunn(U, true, o.finn)}
       }
     </ul>
     <p>${esc(t("Alt dette ligger bare i denne nettleseren på denne enheten."))} ${esc(STAT_FIL ? t("Ingenting av det sendes til oss, og vi kan ikke se det.") : t("Vi har ingen server som tar imot det, og vi kan ikke se det."))}</p>
-  </section>${STAT_FIL ? pvTelling : ""}
+  </section>${STAT_FIL ? pvTelling : ""}${NETT ? pvSpillNett : ""}
 
   <section aria-labelledby="pv-nett">
     <h2 id="pv-nett">${esc(t("Spillene lastes ned for bruk uten nett"))}</h2>

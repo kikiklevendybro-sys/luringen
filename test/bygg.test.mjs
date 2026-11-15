@@ -633,6 +633,22 @@ test("the original party games have their own generic search words, and the word
   for (const ord of ["imposter", "nødt", "pekeleken", "flasketuten", "bli kjent", "dilemma", "mafia", "huskespill", "vendespill", "jeg har aldri", "kims lek", "alfabetleken", "20 spørsmål", "selskapsleker", "hyttetur", "klassefest"]) assert.ok(spill.some((g) => hoystakk(g).includes(ord)), `søket finner ingenting på «${ord}»`);
 });
 
+// ---------- "nett" in spill.json: games that can be played online (rusj/kit/nett.js) ----------
+
+test("the games that can be played online are flagged in the game list, and their facts say so", () => {
+  const liste = readFileSync(join(WEB, "felles/spilliste.js"), "utf8");
+  const spill = JSON.parse(liste.slice(liste.indexOf("=") + 1, liste.indexOf(";\nwindow.RUSJ_TAGGSOK")));
+  const paNett = spill.filter((g) => g.nett).map((g) => g.id).sort();
+  assert.deepEqual(paNett, ["admiralen", "brikka", "fireren", "sjakkhesten", "terninga"]);
+  assert.ok(spill.filter((g) => !g.nett).every((g) => !("nett" in g)), "the flag is left out, not false");
+  for (const id of spillIder) {
+    const html = readFileSync(join(WEB, id, "index.html"), "utf8");
+    const fakta = (html.match(/<ul class="om-fakta">([\s\S]*?)<\/ul>/) || [])[1] || "";
+    assert.equal(fakta.includes("Også på nett, på hver sin mobil"), paNett.includes(id), `${id}: «Også på nett» i fakta`);
+    assert.equal(/felles\/nett\.js\?v=/.test(html), paNett.includes(id), `${id}: nett.js on the page`);
+  }
+});
+
 // ---------- "alder" in spill.json: the lowest recommended age (the front-page finder) ----------
 
 test("every game has its age, it reaches the front page's game list, and the build stops without it", async () => {

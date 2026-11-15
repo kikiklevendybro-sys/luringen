@@ -474,6 +474,7 @@
     const S = R.S;
     const sp = S.spill;
     if (!sp || S.skjerm !== "plasser" || e.button > 0) return;
+    if (paNett(sp) && (klarSendt || sp.klar[sp.meg])) return;
     const i = placementCelle(e);
     if (i == null) return;
     const flate = sp.flate[sp.plasserer];
@@ -580,6 +581,344 @@
   const SPILLSKJERMER = ["plasser", "gi", "kamp", "slutt"];
   const pagar = (S) => !!(S.spill && S.spill.vinner == null);
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Each phone keeps its own fleet to itself. «Klar!» sends only a commitment: SHA-256 of the fleet
+  // and a random salt. A shot is a move from the shooter, { skudd: i }; the defender's phone answers
+  // it by itself with a move, { svar: i, r: 1 miss | 2 hit | 3 sunk, skip: { id, c: cells } when
+  // sunk, alle: 1 when it was the last ship }. When the battle is over both phones reveal fleet and
+  // salt, { avslor: { flate, salt } }, and each checks the other's commitment and every answer.
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const beggeKlar = (sp) => !!(sp.klar[0] && sp.klar[1]);
+  const okFlate = (f, n) => Array.isArray(f) && f.length === FLATER[n].length && f.every((s, k) => s && s.id === FLATER[n][k][0] && s.lengde === FLATER[n][k][1] && ["h", "v"].includes(s.r) && Number.isInteger(s.x) && Number.isInteger(s.y)) && gyldig(f, n);
+  const renFlate = (f) => f.map((s) => ({ id: s.id, lengde: s.lengde, r: s.r, x: s.x, y: s.y }));
+  let klarSendt = false; // «Klar!» pressed on this phone: the fleet is locked
+  let svarId = null;
+  const sjekket = new Map(); // "kamp:seat" → true (the revealed fleet fits every answer) | false
+
+  async function sha256(tekst) {
+    const b = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(tekst)));
+    return Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  }
+  const nyttSalt = () => Array.from(crypto.getRandomValues(new Uint8Array(16)), (x) => x.toString(16).padStart(2, "0")).join("");
+
+  // What this phone knows about the other side's waters, from the answers it got.
+  function kunnskapMot(sp) {
+    const n = sp.n;
+    const t = new Array(n * n).fill(0);
+    const flate = FLATER[n].map(([id, lengde]) => ({ id, lengde }));
+    const senket = flate.map(() => false);
+    for (const a of sp.svar[sp.meg]) {
+      t[a.i] = a.r === 1 ? 1 : 2;
+      if (a.r !== 3 || !a.skip) continue;
+      for (const c of a.skip.c) t[c] = 3;
+      const k = flate.findIndex((s, j) => !senket[j] && s.id === a.skip.id);
+      if (k >= 0) senket[k] = true;
+    }
+    for (let c = 0; c < n * n; c++) if (t[c] === 3) for (const m of naboer(c, n, true)) if (t[m] === 0) t[m] = 4;
+    return { t, senket, flate };
+  }
+
+  // A sunk ship as the defender names it: a known ship, its length, cells in a straight line.
+  function gyldigSkip(skip, n) {
+    if (!skip || typeof skip !== "object" || !Array.isArray(skip.c)) return false;
+    const def = FLATER[n].find(([id]) => id === skip.id);
+    if (!def || skip.c.length !== def[1] || !skip.c.every((c) => Number.isInteger(c) && c >= 0 && c < n * n)) return false;
+    const c = skip.c.slice().sort((a, b) => a - b);
+    const vann = c.every((x, k) => !k || (x === c[k - 1] + 1 && Math.floor(x / n) === Math.floor(c[0] / n)));
+    const loddrett = c.every((x, k) => !k || x === c[k - 1] + n);
+    return vann || loddrett;
+  }
+
+  // The other side's revealed fleet, against its commitment and every answer it gave.
+  async function sjekkAvsloring(sp, s) {
+    const nokkel = sp.kamp + ":" + s;
+    if (sjekket.has(nokkel)) return;
+    sjekket.set(nokkel, null);
+    const a = sp.avslort[s];
+    let ok = !!a && okFlate(a.flate, sp.n) && (await sha256(JSON.stringify({ flate: renFlate(a.flate), salt: a.salt }))) === sp.hash[s];
+    if (ok) {
+      const fasit = tavle(a.flate, sp.skudd[1 - s], sp.n);
+      ok = sp.svar[1 - s].every((x) => (x.r === 1) === !fasit.eier.has(x.i));
+      ok = ok && sp.svar[1 - s].filter((x) => x.r === 3).length === fasit.senket.filter(Boolean).length;
+    }
+    sjekket.set(nokkel, ok);
+    if (R.S && R.S.spill === sp && R.S.skjerm === "slutt") R.vis();
+  }
+
+  // After every move on the net: answer a shot at this phone's fleet, reveal it when it is over.
+  function nettEtter(S) {
+    const sp = S && S.spill;
+    clearTimeout(svarId);
+    if (!paNett(sp) || sp.mistet || !sp.flate[sp.meg]) return;
+    const meg = sp.meg;
+    const v = sp.venter;
+    let skyldig = null; // the move this phone owes the room now
+    if (v && v.s !== meg) {
+      const { t, senket, eier } = tavle(sp.flate[meg], sp.skudd[1 - meg], sp.n);
+      const r = t[v.i] === 3 ? 3 : t[v.i] === 2 ? 2 : 1;
+      const skip = r === 3 ? sp.flate[meg][eier.get(v.i)] : null;
+      skyldig = { svar: v.i, r, ...(skip ? { skip: { id: skip.id, c: celler(skip, sp.n) } } : {}), ...(senket.every(Boolean) ? { alle: 1 } : {}) };
+    } else if (sp.vinner != null && !sp.avslort[meg] && sp.salt) skyldig = { avslor: { flate: renFlate(sp.flate[meg]), salt: sp.salt } };
+    if (sp.avslort[1 - meg]) sjekkAvsloring(sp, 1 - meg);
+    if (!skyldig) return;
+    // Sent unless a move of ours is still on its way. Until the room has it, the state says it is still
+    // owed, so it goes again in a moment (a lost line, or the other phone's move took that place).
+    if (!R.nett.venter() && R.nett.tilkoblet()) R.nett.send(skyldig);
+    svarId = setTimeout(() => R.S && R.S.spill === sp && nettEtter(R.S), 1200);
+  }
+
+  function kampNettHtml(S) {
+    const sp = S.spill;
+    const v = sp.meg;
+    const mot = 1 - v;
+    const mal = kunnskapMot(sp);
+    const egen = tavle(sp.flate[v], sp.skudd[mot], sp.n);
+    const begge = beggeKlar(sp);
+    const ferdig = sp.vinner != null;
+    const minTur = begge && !ferdig && !sp.venter && sp.tur === v && !sp.mistet;
+    const venterSvar = !!sp.venter && sp.venter.s === v;
+    let melding;
+    if (!begge) melding = { type: "venter", tekst: R.t("Venter på at {navn} plasserer flåten …", { navn: navnFor(sp, mot) }) };
+    else if (sp.mistet) melding = { type: "venter", tekst: R.t("Flåten din er ikke på denne mobilen. Fortsett på mobilen der du plasserte den.") };
+    else if (minTur && sp.sikte != null) melding = { type: "sikte", tekst: R.t("Sikter på {rute}. Trykk «Fyr!» – eller på ruta en gang til.", { rute: rute(sp.sikte, sp.n) }) };
+    else if (sp.melding && !venterSvar) melding = sp.melding;
+    else if (minTur) melding = { type: "tur", tekst: R.t("Din tur! Trykk på en rute i fiendens farvann.") };
+    else if (venterSvar) melding = { type: "venter", tekst: R.t("Venter på svar fra {navn} …", { navn: navnFor(sp, mot) }) };
+    else if (!ferdig) melding = { type: "venter", tekst: R.t("{navn} sikter …", { navn: navnFor(sp, mot) }) };
+    else melding = sp.melding;
+    const ferskMal = fersk && fersk.side === mot ? fersk : null;
+    const ferskEgen = fersk && fersk.side === v ? fersk : null;
+    const knapp = ferdig
+      ? R.ui.knapp(R.t("Til kåringen"), "til-slutt", { ikon: "🏆" })
+      : minTur
+        ? R.ui.knapp(sp.sikte != null ? R.t("Fyr på {rute}!", { rute: rute(sp.sikte, sp.n) }) : R.t("Fyr!"), "fyr", { av: sp.sikte == null, variant: "rod", ikon: "🎯" })
+        : R.ui.knapp(begge && !venterSvar ? R.t("{navn} sikter …", { navn: navnFor(sp, mot) }) : R.t("Venter …"), "fyr", { av: true });
+    // While the other side fires, this phone's own fleet takes the big board.
+    const visEgen = begge && !ferdig && !minTur && !venterSvar;
+    return `
+      <h1 class="vh" id="skjerm-tittel">${esc(R.t("Slaget til {navn}", { navn: navnFor(sp, v) }))}</h1>
+      <p class="ad-melding ${melding ? esc(melding.type) : ""}" aria-live="polite">${melding ? esc(melding.tekst) : ""}</p>
+      <div class="ad-kamp${visEgen ? " viser-egen" : ""}">
+        <div class="ad-mal-boks">
+          ${brettHtml(sp.n, { t: mal.t, sikte: minTur ? sp.sikte : null, knapp: minTur ? "sikt" : null, mal: true, fersk: ferskMal, etikett: R.t("Fiendens farvann") })}
+        </div>
+        <div class="ad-egen">
+          <p class="etikett">${esc(R.t("Din flåte"))}</p>
+          ${brettHtml(sp.n, { flate: sp.flate[v] || [], t: egen.t.map((x) => (x === 4 ? 0 : x)), fersk: ferskEgen, etikett: R.t("Din flåte") })}
+        </div>
+        <div class="ad-fiende">
+          <p class="etikett">${esc(R.t("Skipene til {navn}", { navn: navnFor(sp, mot) }))}</p>
+          ${skipListe(mal.flate, mal.senket, { liten: true })}
+          <p class="ad-tall">${esc(R.flertall(sp.skudd[v].length, "skudd", "skudd"))} · ${esc(R.flertall(sp.skudd[v].filter((i) => mal.t[i] >= 2).length, "treff", "treff"))}</p>
+        </div>
+      </div>
+      ${R.ui.dokk(knapp, ferdig ? "" : R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
+  }
+
+  function sluttNettHtml(S) {
+    const sp = S.spill;
+    const v = sp.vinner;
+    const meg = sp.meg;
+    const mot = 1 - meg;
+    const mal = kunnskapMot(sp);
+    const egen = tavle(sp.flate[meg], sp.skudd[mot], sp.n);
+    const motFlate = sp.avslort[mot] ? sp.avslort[mot].flate : null;
+    const kort = (s) => {
+      const k = s === meg ? mal : egen;
+      const treff = sp.skudd[s].filter((i) => k.t[i] >= 2).length;
+      const skudd = sp.skudd[s].length;
+      return `<div class="ad-statkort${s === v ? " vinner" : ""}">
+        <b class="ad-statnavn">${s === v ? "🏆 " : ""}${esc(s === meg ? R.t("Du") : navnFor(sp, s))}</b>
+        <span><b>${skudd}</b> ${esc(R.t("skudd|skudd", { n: skudd }))}</span>
+        <span><b>${treff}</b> ${esc(R.t("treff|treff", { n: treff }))}</span>
+        <span><b>${skudd ? Math.round((100 * treff) / skudd) : 0} %</b> ${esc(R.t("treffsikkerhet"))}</span>
+        <span><b>${k.senket.filter(Boolean).length}</b> ${esc(R.t("av {n} skip senket", { n: FLATER[sp.n].length }))}</span>
+      </div>`;
+    };
+    const sjekk = sjekket.get(sp.kamp + ":" + mot);
+    const sjekkLinje = !motFlate
+      ? R.t("Venter på at {navn} viser flåten sin …", { navn: navnFor(sp, mot) })
+      : sjekk === true
+        ? "✓ " + R.t("Flåten til {navn} stemmer med alle svarene.", { navn: navnFor(sp, mot) })
+        : sjekk === false
+          ? "⚠ " + R.t("Flåten til {navn} stemmer ikke med svarene!", { navn: navnFor(sp, mot) })
+          : "";
+    const boks = (s, flate, t) => `<div class="ad-egen"><p class="etikett">${esc(s === meg ? R.t("Din flåte") : R.t("Flåten til {navn}", { navn: navnFor(sp, s) }))}</p>${brettHtml(sp.n, { flate, t: t.map((x) => (x === 4 ? 0 : x)), liten: true })}</div>`;
+    return `
+      <div class="banner ${v === meg ? "aksent" : ""}">
+        ${R.figur()}
+        <p class="etikett">${esc(R.t("På nett"))}</p>
+        <h1 id="skjerm-tittel">${esc(v === meg ? R.t("Du vinner!") : R.t("{navn} vinner!", { navn: navnFor(sp, v) }))}</h1>
+        <p class="ingress">${esc(R.t("{a} senket hele flåten til {b}.", { a: navnFor(sp, v), b: navnFor(sp, 1 - v) }))}</p>
+      </div>
+      <section class="seksjon">
+        <h2>${esc(R.t("Slik gikk det"))}</h2>
+        <div class="ad-stat">${kort(meg)}${kort(mot)}</div>
+      </section>
+      <section class="seksjon">
+        <h2>${esc(R.t("Flåtene"))}</h2>
+        <div class="ad-under">${boks(meg, sp.flate[meg] || [], egen.t)}${boks(mot, motFlate || [], motFlate ? tavle(motFlate, sp.skudd[meg], sp.n).t : mal.t)}</div>
+        ${sjekkLinje ? `<p class="hjelp ad-sjekk" data-si>${esc(sjekkLinje)}</p>` : ""}
+      </section>
+      ${R.nett.sluttDokk()}`;
+  }
+
+  // «Klar!» on the net: only a commitment leaves the phone; the fleet and its salt stay here.
+  async function nettKlar(S) {
+    const sp = S.spill;
+    if (klarSendt || sp.klar[sp.meg]) return;
+    klarSendt = true;
+    const flate = renFlate(sp.flate[sp.meg]);
+    const salt = nyttSalt();
+    const hash = await sha256(JSON.stringify({ flate, salt }));
+    if (R.S.spill !== sp) return;
+    sp.flate[sp.meg] = flate;
+    sp.salt = salt;
+    sp.valgt = null;
+    R.nett.hemmelig({ flate, salt });
+    if (!R.nett.send({ klar: hash })) klarSendt = false;
+    R.lyd.riktig();
+    R.vis();
+  }
+
+  const NETT = {
+    min: 2,
+    maks: 2,
+    oppsett: (S) => ({ brett: S.oppsett.brett === 8 ? 8 : 10, ekstra: !!S.oppsett.ekstra }),
+    oppsettTekst: (o) => [o && o.brett === 8 ? R.t("Rask 8 × 8") : R.t("Klassisk 10 × 10"), o && o.ekstra ? R.t("Treff gir et skudd til") : ""].filter(Boolean).join(" · "),
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const n = o.brett === 8 ? 8 : 10;
+      const meg = okt.meg === 1 ? 1 : 0;
+      // This phone's fleet: the one it committed to, if it has pressed «Klar!» in this match already.
+      const lagret = R.nett.hemmelig();
+      const egen = lagret && okFlate(lagret.flate, n) ? renFlate(lagret.flate) : tilfeldigFlate(n);
+      const flate = [null, null];
+      flate[meg] = egen;
+      S.spill = {
+        modus: "nett",
+        niva: "middels",
+        n,
+        ekstra: !!o.ekstra,
+        navn: [R.navn(0), R.navn(1)],
+        flate,
+        skudd: [[], []],
+        svar: [[], []],
+        // Who fires first: the host in the first match, then it alternates (as at the table).
+        starter: (okt.kamp - 1) % 2,
+        tur: null,
+        ser: meg,
+        meg,
+        kamp: okt.kamp,
+        fase: "plasser",
+        plasserer: meg,
+        valgt: null,
+        sikte: null,
+        vinner: null,
+        melding: null,
+        klar: [false, false],
+        hash: [null, null],
+        salt: lagret && lagret.salt ? lagret.salt : null,
+        venter: null,
+        avslort: [null, null],
+        mistet: false,
+        feiret: false,
+      };
+      klarSendt = false;
+      fersk = null;
+      clearTimeout(svarId);
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || !t || typeof t !== "object") return;
+      const meg = sp.meg;
+      const n = sp.n;
+      if (typeof t.klar === "string") {
+        if (sp.klar[sete] || !/^[0-9a-f]{64}$/.test(t.klar)) return;
+        sp.klar[sete] = true;
+        sp.hash[sete] = t.klar;
+        if (sete === meg && !sp.salt) sp.mistet = true;
+        if (beggeKlar(sp)) {
+          sp.tur = sp.starter;
+          sp.fase = "kamp";
+          sp.melding = null;
+        }
+        if (!okt.gjenspill) {
+          if (sete === meg) R.gaTil("kamp");
+          else if (S.skjerm === "kamp") R.vis();
+          if (beggeKlar(sp)) R.lyd.riktig();
+        }
+        return;
+      }
+      if (t.avslor && typeof t.avslor === "object") {
+        if (sp.vinner == null || sp.avslort[sete] || !okFlate(t.avslor.flate, n) || typeof t.avslor.salt !== "string") return;
+        sp.avslort[sete] = { flate: renFlate(t.avslor.flate), salt: t.avslor.salt };
+        if (!okt.gjenspill && S.skjerm === "slutt") R.vis();
+        return;
+      }
+      if (!beggeKlar(sp) || sp.vinner != null) return;
+      if (Number.isInteger(t.skudd)) {
+        const i = t.skudd;
+        if (sete !== sp.tur || sp.venter || i < 0 || i >= n * n || sp.skudd[sete].includes(i)) return;
+        sp.skudd[sete].push(i);
+        sp.venter = { s: sete, i, n: okt.n };
+        sp.melding = null;
+        if (!okt.gjenspill) {
+          if (sete !== meg) LYD.sikt();
+          if (S.skjerm === "kamp") R.vis();
+        }
+        return;
+      }
+      if (Number.isInteger(t.svar)) {
+        const v = sp.venter;
+        if (!v || sete !== 1 - v.s || t.svar !== v.i || ![1, 2, 3].includes(t.r)) return;
+        const skip = t.r === 3 && gyldigSkip(t.skip, n) && t.skip.c.includes(v.i) ? { id: t.skip.id, c: t.skip.c.slice() } : null;
+        sp.svar[v.s].push({ i: v.i, r: skip ? 3 : t.r === 3 ? 2 : t.r, skip });
+        sp.venter = null;
+        if (t.alle === 1 && skip) {
+          sp.vinner = v.s;
+          sp.tur = null;
+        } else if (!(t.r !== 1 && sp.ekstra)) sp.tur = sete;
+        if (okt.gjenspill) return;
+        const type = t.r === 1 ? "bom" : skip ? "senk" : "treff";
+        fersk = { side: sete, i: v.i, type: type === "bom" ? "bom" : "treff", senk: skip ? skip.c : null };
+        const navn = rute(v.i, n);
+        if (v.s === meg) {
+          sp.melding = { type, tekst: type === "bom" ? R.t("Plask! Bom på {rute}.", { rute: navn }) : type === "senk" ? R.t("Du senket {skip}!", { skip: bestemt(skip.id) }) : R.t("Treff på {rute}!", { rute: navn }) };
+        } else {
+          const egen = tavle(sp.flate[meg], sp.skudd[v.s], n);
+          const mitt = egen.eier.has(v.i) ? sp.flate[meg][egen.eier.get(v.i)] : null;
+          const hvem = navnFor(sp, v.s);
+          sp.melding = {
+            type,
+            tekst: type === "bom" ? R.t("{navn} bommet på {rute}.", { navn: hvem, rute: navn }) : type === "senk" ? R.t("{navn} senket {skip}!", { navn: hvem, skip: SKIPSNAVN[(mitt || skip).id][2] }) : R.t("{navn} traff {skip} på {rute}!", { navn: hvem, skip: mitt ? SKIPSNAVN[mitt.id][2] : "", rute: navn }),
+          };
+        }
+        if (sp.tur === meg && sp.vinner == null) sp.melding.tekst += " " + R.t("Din tur!");
+        if (type === "bom") LYD.bom();
+        else if (type === "treff") LYD.treff();
+        else LYD.senk();
+        R.vibrer(type === "bom" ? 15 : type === "treff" ? [40, 30, 60] : [80, 40, 160]);
+        R.si(sp.melding.tekst);
+        if (S.skjerm === "kamp") R.vis();
+        if (sp.vinner != null) tilSlutt(S);
+      }
+    },
+    etter: (S) => nettEtter(S),
+    skjerm: (S) => {
+      const sp = S.spill;
+      if (!sp || !sp.klar[sp.meg]) return "plasser";
+      return sp.vinner != null ? "slutt" : "kamp";
+    },
+    tur: (S) => {
+      const sp = S.spill;
+      return sp && beggeKlar(sp) && sp.vinner == null && !sp.venter ? sp.tur : null;
+    },
+    // Over when both fleets are shown (or this phone has lost its own); «Ny kamp» already when someone won.
+    ferdig: (S) => !!S.spill && S.spill.vinner != null && ((!!S.spill.avslort[0] && !!S.spill.avslort[1]) || S.spill.mistet),
+    kanNy: (S) => !!S.spill && S.spill.vinner != null,
+  };
+
   const DEF = {
     id: "admiralen",
     versjon: 1,
@@ -638,7 +977,7 @@
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
               fortsettTekst: R.t("Fortsett slaget"),
-              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+              ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
               ["1–2", R.t("spillere")],
@@ -713,14 +1052,14 @@
       },
 
       plasser: {
-        tittel: (S) => (maskin(S.spill) ? R.t("Din flåte") : navnFor(S.spill, S.spill.plasserer)),
+        tittel: (S) => (maskin(S.spill) || paNett(S.spill) ? R.t("Din flåte") : navnFor(S.spill, S.spill.plasserer)),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
           const flate = sp.flate[sp.plasserer];
           const valgt = sp.valgt;
           return `
-            <h1 id="skjerm-tittel">${esc(maskin(sp) ? R.t("Plasser flåten") : R.t("Plasser flåten, {navn}", { navn: navnFor(sp, sp.plasserer) }))}</h1>
+            <h1 id="skjerm-tittel">${esc(maskin(sp) || paNett(sp) ? R.t("Plasser flåten") : R.t("Plasser flåten, {navn}", { navn: navnFor(sp, sp.plasserer) }))}</h1>
             <p class="ingress ad-hint">${esc(R.t("Dra et skip dit du vil – eller trykk på skipet og så på en ny rute. Trykk to ganger for å snu det."))}</p>
             ${brettHtml(sp.n, { flate, valgt, knapp: "plass-celle", plassering: true, etikett: R.t("Din flåte") })}
             ${skipListe(flate, null, { h: "velg-skip", valgt })}
@@ -739,6 +1078,7 @@
         tittel: (S) => (maskin(S.spill) ? R.t("Nivå: {niva}", { niva: NIVAER.find(([v]) => v === S.spill.niva)[1] }) : navnFor(S.spill, S.spill.ser)),
         tilbake: "hjem",
         vis(S) {
+          if (paNett(S.spill)) return kampNettHtml(S);
           const sp = S.spill;
           const v = sp.ser;
           const mot = 1 - v;
@@ -805,6 +1145,7 @@
         tittel: R.t("Kåringen"),
         tilbake: "hjem",
         vis(S) {
+          if (paNett(S.spill)) return sluttNettHtml(S);
           const sp = S.spill;
           const v = sp.vinner;
           const duVant = maskin(sp) && v === 0;
@@ -853,6 +1194,13 @@
           sp.feiret = true;
           R.lagre();
           R.slippVaken();
+          if (paNett(sp)) {
+            if (sp.vinner === sp.meg) {
+              R.lyd.fanfare();
+              R.konfetti();
+            } else R.lyd.pling();
+            return;
+          }
           const senket = (s) => tavle(sp.flate[1 - s], sp.skudd[s], sp.n).senket.filter(Boolean).length;
           R.statistikk("ferdig", { modus: sp.modus, niva: sp.niva, vant: sp.vinner === 0, skudd: sp.skudd[0].length, brett: sp.n });
           if (!maskin(sp)) R.kveld.registrer([0, 1].map((s) => ({ i: s, poeng: senket(s) })));
@@ -931,6 +1279,7 @@
       "plass-celle"(el, e, S) {
         if (performance.now() - sisteDra < 400) return; // the end of a drag, not a tap
         const sp = S.spill;
+        if (paNett(sp) && (klarSendt || sp.klar[sp.meg])) return;
         const n = sp.n;
         const flate = sp.flate[sp.plasserer];
         const i = Number(el.dataset.v);
@@ -958,12 +1307,14 @@
       },
       "velg-skip"(el, e, S) {
         const sp = S.spill;
+        if (paNett(sp) && (klarSendt || sp.klar[sp.meg])) return;
         const k = Number(el.dataset.v);
         sp.valgt = sp.valgt === k ? null : k;
         R.vis();
       },
       snu(el, e, S) {
         const sp = S.spill;
+        if (paNett(sp) && (klarSendt || sp.klar[sp.meg])) return;
         const flate = sp.flate[sp.plasserer];
         if (sp.valgt == null) return;
         const s = flate[sp.valgt];
@@ -979,6 +1330,7 @@
       },
       tilfeldig(el, e, S) {
         const sp = S.spill;
+        if (paNett(sp) && (klarSendt || sp.klar[sp.meg])) return;
         sp.flate[sp.plasserer] = tilfeldigFlate(sp.n);
         sp.valgt = null;
         R.lyd.sveip();
@@ -986,6 +1338,7 @@
       },
       klar(el, e, S) {
         const sp = S.spill;
+        if (paNett(sp)) return nettKlar(S);
         sp.klar[sp.plasserer] = true;
         sp.valgt = null;
         if (maskin(sp)) {
@@ -1014,7 +1367,8 @@
         const sp = S.spill;
         const i = Number(el.dataset.v);
         if (sp.vinner != null || sp.tur !== sp.ser || (maskin(sp) && sp.tur === MASKIN)) return;
-        const t = tavle(sp.flate[1 - sp.ser], sp.skudd[sp.ser], sp.n).t;
+        if (paNett(sp) && (sp.venter || !beggeKlar(sp) || R.nett.venter())) return;
+        const t = paNett(sp) ? kunnskapMot(sp).t : tavle(sp.flate[1 - sp.ser], sp.skudd[sp.ser], sp.n).t;
         if (t[i] !== 0) {
           R.toast(t[i] === 4 ? R.t("Det er bare vann rundt et senket skip") : R.t("Du har allerede skutt der"));
           return;
@@ -1029,6 +1383,11 @@
         const sp = S.spill;
         if (sp.sikte == null || sp.vinner != null || sp.tur !== sp.ser || (maskin(sp) && sp.tur === MASKIN)) return;
         const i = sp.sikte;
+        if (paNett(sp)) {
+          if (sp.venter || !beggeKlar(sp)) return;
+          if (R.nett.send({ skudd: i })) sp.sikte = null;
+          return;
+        }
         sp.sikte = null;
         const res = skyt(S, sp.ser, i);
         R.vis();
@@ -1071,5 +1430,6 @@
     };
   });
 
+  DEF.nett = NETT;
   R.start(DEF);
 })();
