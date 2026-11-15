@@ -45,6 +45,7 @@
     { "id": "kveld-kronet", "gruppe": "kvelden", "navn": "Kveldens vinner", "hvordan": "Spill tre spill i én kveld, og få én klar vinner på tavla.", "emoji": "👑", "regel": { "type": "kronet", "n": 3 } },
     { "id": "hovedpersonen-alle", "gruppe": "kvelden", "navn": "Alle i stolen", "hvordan": "Spill Hovedpersonen til alle har sittet i stolen.", "figur": "hovedpersonen", "emoji": "🪑", "regel": { "type": "merke" } },
     { "id": "dommeren-seier", "gruppe": "kvelden", "navn": "Dommerens favoritt", "hvordan": "Vinn et spill i Dommeren.", "figur": "dommeren", "emoji": "⚖️", "regel": { "type": "merke" } },
+    { "id": "fortelleren-ti", "gruppe": "kvelden", "navn": "Ti gode samtaler", "hvordan": "Snakk om ti kort i samme runde i Fortelleren.", "figur": "fortelleren", "emoji": "💬", "regel": { "type": "merke" } },
 
     { "id": "provd-5", "gruppe": "utforsker", "navn": "Nysgjerrig", "hvordan": "Prøv fem forskjellige spill.", "figur": "detektiven", "tall": 5, "regel": { "type": "provd", "n": 5 } },
     { "id": "provd-15", "gruppe": "utforsker", "navn": "Oppdager", "hvordan": "Prøv femten forskjellige spill.", "figur": "spionen", "tall": 15, "regel": { "type": "provd", "n": 15 } },

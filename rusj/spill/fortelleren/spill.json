@@ -1,0 +1,34 @@
+{
+  "id": "fortelleren",
+  "navn": "Fortelleren",
+  "undertittel": "Samtalekort for store og små",
+  "beskrivelse": "Gratis samtalekort på mobilen for barn og voksne, familie, venner og ungdom. Over 400 kort som får dere til å fortelle, lytte og bli bedre kjent.",
+  "kort": "Trekk et kort, fortell – og bli bedre kjent.",
+  "spillere": [2, 12],
+  "alder": 4,
+  "minutter": [5, 40],
+  "mobiler": "en",
+  "tagger": ["familie", "barn", "sporsmal"],
+  "rekkefolge": 104,
+  "farge": "#ffb27a",
+  "alias": ["samtalekort"],
+  "sok": ["samtalekort", "samtalespill", "samtalekort for barn", "samtalekort familie", "samtalekort ungdom", "bli kjent spørsmål", "spørsmål til barn", "spørsmål å stille", "middagsprat", "leggetid"],
+  "i18n": {
+    "en": {
+      "navn": "Chinwag",
+      "undertittel": "Conversation cards for all ages",
+      "kort": "Draw a card, tell your story – and get to know each other.",
+      "beskrivelse": "Free conversation cards on your phone for kids and grown-ups, families, friends and teens. Over 400 cards to get you telling, listening and getting closer.",
+      "slug": "chinwag",
+      "sok": ["conversation cards", "conversation starters", "questions for kids", "family conversation cards", "table talk", "getting to know you questions", "questions for teenagers", "deep questions", "bedtime questions"]
+    },
+    "da": {
+      "navn": "Fortælleren",
+      "undertittel": "Samtalekort til store og små",
+      "kort": "Træk et kort, fortæl – og lær hinanden bedre at kende.",
+      "beskrivelse": "Gratis samtalekort på mobilen til børn og voksne, familie, venner og unge. Over 400 kort, der får jer til at fortælle, lytte og komme tættere på hinanden.",
+      "slug": "fortaelleren",
+      "sok": ["samtalekort", "samtalespil", "samtalekort til børn", "samtalekort familie", "spørgsmål til børn", "lær hinanden at kende", "spørgsmål til unge", "dybe spørgsmål", "snak ved aftensmaden"]
+    }
+  }
+}
