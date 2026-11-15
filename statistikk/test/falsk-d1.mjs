@@ -10,6 +10,7 @@ import { readFileSync } from "node:fs";
 // here the answer comes from falskHent.svar, and every call is written down in hentLogg.
 export const hentLogg = [];
 export const falskHent = { svar: () => new Response("rusj-nett: ok\n") };
+export const ekteHent = globalThis.fetch; // (for helpers that must reach a local server)
 globalThis.fetch = async (url, valg) => {
   hentLogg.push({ url: String(url), valg });
   return falskHent.svar(url, valg);
