@@ -673,11 +673,9 @@
       const min = N.rom.min;
       const vert = N.du === 0;
       const rader = [];
-      for (let i = 0; i < maks; i++) {
-        const s = liste[i];
-        if (s) rader.push(`<li class="${s.med ? "med" : "av"}">${R.avatar(i)}<b>${esc(seteNavn(i))}</b><span>${esc(i === N.du ? R.t("deg") : s.med ? R.t("er her") : R.t("ikke tilkoblet"))}</span></li>`);
-        else rader.push(`<li class="ledig"><span class="avatar" aria-hidden="true"></span><b>${esc(R.t("Ledig plass"))}</b></li>`);
-      }
+      liste.forEach((s, i) => rader.push(`<li class="${s.med ? "med" : "av"}">${R.avatar(i)}<b>${esc(seteNavn(i))}</b><span>${esc(i === N.du ? R.t("deg") : s.med ? R.t("er her") : R.t("ikke tilkoblet"))}</span></li>`));
+      // One row for the free seats, however many (the count is in the heading).
+      if (liste.length < maks) rader.push(`<li class="ledig"><span class="avatar" aria-hidden="true"></span><b>${esc(R.t("Ledig plass"))}</b></li>`);
       const mangler = Math.max(0, min - liste.length);
       const tittel = mangler ? R.t("Venter på en venn …") : liste.length < maks ? R.t("Klare til å starte") : R.t("Alle er her!");
       const o = DEF.oppsettTekst ? DEF.oppsettTekst(N.rom.oppsett) : "";

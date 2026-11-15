@@ -37,7 +37,7 @@ const sov = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const NORSKE = {
   en: new Set("og ikke er på med som har kan vil det et av du dere deg din ditt dine jeg meg hva når nå igjen spill spillet spiller spillere mobilen runde runder trekk poeng vinner avslutt fortsett angre lukk tilbake ferdig neste velg trykk spill rommet kampen venter".split(" ")),
-  da: new Set("spill trykk velg igjen noe fortsett avslutt lukk uavgjort brettet deg meg dere hva gjør ble brikka rommet kampen".split(" ")),
+  da: new Set("spill trykk velg igjen noe fortsett avslutt lukk uavgjort brettet deg meg dere hva gjør ble brikka rommet".split(" ")), // («kampen» is Danish too)
 };
 const norskOrd = (tekst) => {
   const ren = String(tekst).replace(/Testspiller [A-Z]/g, " ");
@@ -89,7 +89,8 @@ const sideFor = (id) => {
   if (!SPRAK) return `/${id}/`;
   for (const d of readdirSync(join(WEB, SPRAK))) {
     const fil = join(WEB, SPRAK, d, "data.js");
-    if (existsSync(fil) && readFileSync(fil, "utf8").includes(`"id":"${id}"`)) return `/${SPRAK}/${d}/`;
+    const m = existsSync(fil) && /window\.RUSJ_SPILL=(\{.*?\});\n/.exec(readFileSync(fil, "utf8"));
+    if (m && JSON.parse(m[1]).id === id) return `/${SPRAK}/${d}/`;
   }
   throw new Error(`${id} finnes ikke på ${SPRAK}`);
 };

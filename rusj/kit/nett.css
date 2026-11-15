@@ -41,11 +41,12 @@ html[data-nett="med"] .topp-tittel,
 html[data-nett="borte"] .topp-tittel {
   display: -webkit-box;
   padding-block: 2px;
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  line-height: 1.25;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  text-transform: none;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
