@@ -167,6 +167,10 @@ export const EKSEMPLER = {
     const alle = D.dilemmaer.pakker;
     return { tittel: "Dilemmaer fra spillet", ting: spre(pakker(alle, ["barn", "familie", "mat", "fantasi", "venner", "jul", "sport", "sommer", "blikjent"], "vinglepetter").map((p) => p.dilemmaer), 24).map(([a, b]) => `Vil du heller ${a} eller ${b}?`), totalt: sum(alle.map((p) => p.dilemmaer)) };
   },
+  fortelleren: (D) => {
+    const alle = D.kort.stokker;
+    return { tittel: "Samtalekort fra spillet", ting: spre(alle.map((s) => s.kort.map((k) => k.t)), 24), totalt: sum(alle.map((s) => s.kort)) };
+  },
   papegoyen: (D) => {
     const alle = D.sporsmal.pakker;
     return { tittel: "Spørsmål fra spillet", ting: spre(pakker(alle, ["barn", "familie"], "papegoyen").map((p) => p.sporsmal), 24), totalt: sum(alle.map((p) => p.sporsmal)) };
