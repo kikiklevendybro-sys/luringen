@@ -153,5 +153,7 @@
   "{navn} (svart) gir opp": "{navn} (sort) opgiver",
   "Resultatet telles i stillingen.": "Resultatet tæller med i stillingen.",
   "Sjakkmatt!": "Skakmat!",
-  "Tiden er ute!": "Tiden er gået!"
+  "Tiden er ute!": "Tiden er gået!",
+  "Vent – det er {navn} sin tur": "Vent – det er {navn}, der er på",
+  "{navn} vinner dette partiet. Dere kan starte et nytt etterpå.": "{navn} vinder dette parti. I kan starte et nyt bagefter."
 }

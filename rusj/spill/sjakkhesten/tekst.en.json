@@ -153,5 +153,7 @@
   "{navn} (svart) gir opp": "{navn} (Black) resigns",
   "Resultatet telles i stillingen.": "The result counts towards the score.",
   "Sjakkmatt!": "Checkmate!",
-  "Tiden er ute!": "Out of time!"
+  "Tiden er ute!": "Out of time!",
+  "Vent – det er {navn} sin tur": "Wait – it's {navn}'s turn",
+  "{navn} vinner dette partiet. Dere kan starte et nytt etterpå.": "{navn} wins this game. You can start a new one afterwards."
 }

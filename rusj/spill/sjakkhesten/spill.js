@@ -1013,12 +1013,15 @@
   const spillerIndeks = (sp, farge) => (sp.modus === "mobil" ? 0 : farge === HVIT ? sp.hvit : 1 - sp.hvit);
   const erMaskin = (sp, farge) => sp.modus === "mobil" && farge !== sp.meg;
   const navnFor = (sp, farge) => (erMaskin(sp, farge) ? R.t("Mobilen") : sp.modus === "mobil" ? R.t("Du") : R.navn(spillerIndeks(sp, farge)));
+  // On the net (R.nett, rusj/kit/nett.js): seat `hvit` has white, the other seat black; sp.meg is
+  // this phone's colour. A move is played when the room sends it back, on both phones alike.
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
 
   // The colour at the bottom of the board. Two players with «snu»: the side to move.
   let bunnVist = null; // what is on screen now (follows the wish with a delay after a move)
   function onsketBunn(S) {
     const sp = S.spill;
-    let b = sp.modus === "mobil" ? sp.meg : sp.snu ? hentParti(S).pos.side : HVIT;
+    let b = sp.modus === "mobil" || sp.modus === "nett" ? sp.meg : sp.snu ? hentParti(S).pos.side : HVIT;
     if (sp.snudd) b ^= 1;
     return b;
   }
@@ -1127,7 +1130,7 @@
 
   const kanFlytte = (S, p) => {
     const sp = S.spill;
-    return !!sp && !sp.ferdig && !(sp.modus === "mobil" && p.pos.side !== sp.meg);
+    return !!sp && !sp.ferdig && !(sp.modus === "mobil" && p.pos.side !== sp.meg) && !(paNett(sp) && (p.pos.side !== sp.meg || R.nett.venter()));
   };
 
   function spillTrekk(S, m, dratt) {
@@ -1423,6 +1426,7 @@
     let status;
     if (maskin && aktiv) status = `<span class="sh-tenker">${esc(R.t("Tenker"))}<i>.</i><i>.</i><i>.</i></span>`;
     else if (sjakk) status = `<span class="sh-sjakk">${esc(R.t("Sjakk!"))}</span>`;
+    else if (aktiv && paNett(sp) && farge !== sp.meg) status = `<span class="sh-tenker">${esc(R.t("Tenker"))}<i>.</i><i>.</i><i>.</i></span>`;
     else if (aktiv) status = esc(R.t("Din tur"));
     else status = maskin ? esc(NIVANAVN[sp.niva]) : "";
     const ikon = `<span class="sh-farge${farge ? " svart" : ""}"><i aria-hidden="true"></i>${esc(FARGENAVN[farge])}</span>`;
@@ -1574,6 +1578,7 @@
         <button class="lenke" data-h="lukk-ark">${esc(R.t("Avbryt"))}</button>`);
       return;
     }
+    if (paNett(S.spill)) return void R.nett.send({ m: Sjakk.uci(trekk[0]) });
     spillTrekk(S, trekk[0], draget);
   }
 
@@ -1642,6 +1647,7 @@
     let tittel;
     if (vinner == null) tittel = R.t("Remis!");
     else if (sp.modus === "mobil") tittel = vinner === sp.meg ? R.t("Du vinner!") : R.t("Mobilen vinner!");
+    else if (paNett(sp) && vinner === sp.meg) tittel = R.t("Du vinner!");
     else tittel = R.t("{navn} vinner!", { navn: navnV });
     // One sentence per colour, so every language can say «White's king» its own way.
     const grunner = {
@@ -1660,7 +1666,7 @@
             ? R.t("Klokka til svart gikk ut.")
             : R.t("Klokka til hvit gikk ut."),
       ],
-      oppgitt: [R.t("Ga opp"), sp.modus === "mobil" ? R.t("Du ga opp partiet.") : R.t("{navn} ga opp.", { navn: navnFor(sp, taper) })],
+      oppgitt: [R.t("Ga opp"), sp.modus === "mobil" || (paNett(sp) && taper === sp.meg) ? R.t("Du ga opp partiet.") : R.t("{navn} ga opp.", { navn: navnFor(sp, taper) })],
       enige: [R.t("Remis"), R.t("Dere ble enige om remis.")],
     };
     let [etikett, forklaring] = grunner[r.grunn] || [R.t("Ferdig"), ""];
@@ -1684,10 +1690,74 @@
 
   const SPRINGER_IKON = `<svg class="sh-knappebrikke" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#sh-12"/></svg>`;
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Moves: { m: "e2e4" } (UCI, «e7e8q» for a promotion) from the seat whose colour is to move, if
+  // the rules allow it; { gi: 1 } resigns. No clock, no undo, no hints. Anything else is ignored on
+  // both phones alike.
+  const NETT = {
+    min: 2,
+    maks: 2,
+    oppsett: () => ({}),
+    start(S, okt) {
+      // White: the seed decides the first match, then the colours swap from match to match.
+      const hvit = (okt.fro + okt.kamp) % 2;
+      S.spill = { id: okt.fro % 1e9, modus: "nett", niva: 2, meg: okt.meg === hvit ? HVIT : SVART, hvit, trekk: [], klokke: null, snu: false, snudd: false, resultat: null, ferdig: false, registrert: true };
+      parti = null;
+      valgt = -1;
+      bunnVist = null;
+      animer = null;
+      hint = null;
+      ventendeForfremming = null;
+      stoppTenking();
+      stoppHint();
+      klokkeFra = null;
+      clearTimeout(sluttId);
+      clearTimeout(snuId);
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object") return;
+      const farge = sete === sp.hvit ? HVIT : SVART;
+      if (t.gi === 1) {
+        const st = { vinner: farge ^ 1, grunn: "oppgitt" };
+        if (okt.gjenspill) {
+          sp.resultat = { vinner: st.vinner, grunn: st.grunn, flagg: null };
+          sp.ferdig = true;
+          return;
+        }
+        if (R.arkApent()) R.lukkArk();
+        avsluttParti(S, st);
+        R.gaTil("slutt");
+        return;
+      }
+      const p = hentParti(S);
+      if (typeof t.m !== "string" || p.pos.side !== farge) return;
+      const m = p.lovlige.find((x) => Sjakk.uci(x) === t.m);
+      if (!m) return;
+      if (!okt.gjenspill) {
+        // A promotion sheet of mine, open when the other phone's move came: it is out of date.
+        if (ventendeForfremming && R.arkApent()) R.lukkArk();
+        return spillTrekk(S, m, false);
+      }
+      Sjakk.spill(p, m);
+      sp.trekk.push(t.m);
+      merkParti(S);
+      const st = Sjakk.status(p);
+      if (st.slutt) {
+        sp.resultat = { vinner: st.vinner, grunn: st.grunn, flagg: null };
+        sp.ferdig = true;
+      }
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "spill"),
+    tur: (S) => (S.spill && !S.spill.ferdig ? (hentParti(S).pos.side === HVIT ? S.spill.hvit : 1 - S.spill.hvit) : null),
+    ferdig: (S) => !!S.spill && !!S.spill.ferdig,
+  };
+
   R.start({
     id: "sjakkhesten",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({
       antall: 2,
@@ -1759,7 +1829,7 @@
               knapperHtml: R.ui.startKnapper({
                 pagar: aktiv,
                 fortsettTekst: aktiv ? R.t("Fortsett · trekk {n}", { n: Math.floor(sp.trekk.length / 2) + 1 }) : "",
-                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+                ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [
                 ["1–2", R.t("spillere")],
@@ -1843,7 +1913,11 @@
             ${loggHtml(p)}
             <span class="sh-luft under" aria-hidden="true"></span>
             ${R.ui.dokk(`<div class="sh-verktoy">
-              <button class="knapp-2 liten" data-h="angre"${kanAngre && !sp.ferdig ? "" : " disabled"}><span class="ikon" aria-hidden="true">↶</span>${esc(R.t("Angre"))}</button>
+              ${
+                paNett(sp)
+                  ? `<button class="knapp-2 liten" data-h="gi-opp"${sp.ferdig ? " disabled" : ""}><span class="ikon" aria-hidden="true">🏳️</span>${esc(R.t("Gi opp"))}</button>`
+                  : `<button class="knapp-2 liten" data-h="angre"${kanAngre && !sp.ferdig ? "" : " disabled"}><span class="ikon" aria-hidden="true">↶</span>${esc(R.t("Angre"))}</button>`
+              }
               ${
                 medHint
                   ? `<button class="knapp-2 liten" data-h="hint"${hjelpVises(S, p) && !hintStopp ? "" : " disabled"}><span class="ikon" aria-hidden="true">💡</span>${esc(R.t("Tips"))}</button>`
@@ -1888,9 +1962,10 @@
           const t = resultatTekst(S);
           const r = sp.resultat || {};
           const vant = r.vinner != null && (sp.modus === "to" || r.vinner === sp.meg);
-          const figur = sp.modus === "to" && r.vinner != null ? `<span class="sh-vinner">${R.avatar(spillerIndeks(sp, r.vinner), "gigant")}<span class="sh-krone" aria-hidden="true">👑</span></span>` : R.figur();
+          const figur = (sp.modus === "to" || paNett(sp)) && r.vinner != null ? `<span class="sh-vinner">${R.avatar(spillerIndeks(sp, r.vinner), "gigant")}<span class="sh-krone" aria-hidden="true">👑</span></span>` : R.figur();
           let poeng = "";
-          if (sp.modus === "to") {
+          if (paNett(sp)) poeng = "";
+          else if (sp.modus === "to") {
             const rader = [0, 1].map((i) => ({ i, poeng: S.stilling.seire[i] }));
             poeng = `<section class="seksjon sh-stilling" aria-label="${esc(R.t("Stillingen"))}">
                 <div class="seksjon-hode"><h2>${esc(R.t("Stillingen"))}</h2><span class="tall">${S.stilling.remis ? esc(R.flertall(S.stilling.remis, "remis", "remis")) : ""}</span></div>
@@ -1908,14 +1983,14 @@
               <h1 id="skjerm-tittel">${esc(t.tittel)}</h1>
               ${t.forklaring ? `<p class="ingress">${esc(t.forklaring)}</p>` : ""}
             </div>
-            <div class="sh-sluttbrett">${brettHtml(S, p, { bunn: sp.modus === "mobil" ? sp.meg : HVIT, interaktiv: false, liten: true })}</div>
+            <div class="sh-sluttbrett">${brettHtml(S, p, { bunn: sp.modus === "mobil" || paNett(sp) ? sp.meg : HVIT, interaktiv: false, liten: true })}</div>
             ${poeng}
             ${partietHtml(p)}
-            ${R.ui.flereSpill({ antall: sp.modus === "to" ? 2 : 1 })}
+            ${paNett(sp) ? R.nett.sluttDokk() : `${R.ui.flereSpill({ antall: sp.modus === "to" ? 2 : 1 })}
             ${R.ui.dokk(
               R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: SPRINGER_IKON }),
               R.ui.lenkerad(kanAngre ? R.ui.lenke(`↶ ${R.t("Angre")}`, "angre") : "", R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`),
-            )}`;
+            )}`}`;
         },
         inn(S) {
           leggInnSymboler();
@@ -1992,6 +2067,7 @@
         const p = hentParti(S);
         if (!kanFlytte(S, p)) {
           if (tenker(S)) R.toast(R.t("Vent litt – mobilen tenker"));
+          else if (paNett(sp) && p.pos.side !== sp.meg) R.toast(R.t("Vent – det er {navn} sin tur", { navn: navnFor(sp, p.pos.side) }));
           return;
         }
         const s = Sjakk.rute(el.dataset.v);
@@ -2022,7 +2098,18 @@
         ventendeForfremming = null;
         R.lukkArk();
         const p = S.spill && hentParti(S);
-        if (trekk && p && p.lovlige.includes(trekk) && kanFlytte(S, p)) spillTrekk(S, trekk, dratt);
+        if (trekk && p && p.lovlige.includes(trekk) && kanFlytte(S, p)) {
+          if (paNett(S.spill)) return void R.nett.send({ m: Sjakk.uci(trekk) });
+          spillTrekk(S, trekk, dratt);
+        }
+      },
+      // On the net: resign (the other side wins; both phones stay for «Ny kamp»).
+      async "gi-opp"(el, e, S) {
+        const sp = S.spill;
+        if (!paNett(sp) || sp.ferdig) return;
+        const fortsatt = R.vakt();
+        const ja = await R.bekreft(R.t("Gi opp partiet?"), R.t("{navn} vinner dette partiet. Dere kan starte et nytt etterpå.", { navn: navnFor(sp, sp.meg ^ 1) }), R.t("Gi opp"), R.t("Spill videre"));
+        if (ja && fortsatt() && S.spill === sp && !sp.ferdig) R.nett.send({ gi: 1 });
       },
       // Against Lett: the phone suggests a good move (it thinks like Middels for a moment).
       hint(el, e, S) {
@@ -2049,7 +2136,7 @@
       },
       angre(el, e, S) {
         const sp = S.spill;
-        if (!sp) return;
+        if (!sp || paNett(sp)) return;
         const p = hentParti(S);
         const varFerdig = sp.ferdig;
         if (varFerdig && (sp.modus !== "mobil" || ["tid", "oppgitt", "enige"].includes(sp.resultat && sp.resultat.grunn))) return;
