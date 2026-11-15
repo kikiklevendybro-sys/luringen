@@ -12,6 +12,7 @@
   "rekkefolge": 37,
   "sok": ["slagskip", "battleship", "senke skip", "senke slagskip", "sjøslag", "skipsspill", "slagskipspill"],
   "alias": ["slagskip"],
+  "nett": true,
   "i18n": {
     "en": {
       "navn": "Admiral",

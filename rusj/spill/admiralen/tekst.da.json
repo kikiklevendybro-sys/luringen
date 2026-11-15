@@ -121,5 +121,16 @@
   "Du har allerede skutt der": "Du har allerede skudt der",
   "Avslutte slaget?": "Afslutte slaget?",
   "Slaget blir borte. Stillingen fra tidligere slag er lagret.": "Slaget forsvinder. Stillingen fra tidligere slag er gemt.",
-  "Spill videre": "Spil videre"
+  "Spill videre": "Spil videre",
+  "{navn} bommet på {rute}.": "{navn} skød forbi på {rute}.",
+  "{navn} senket {skip}!": "{navn} sænkede {skip}!",
+  "{navn} sikter …": "{navn} sigter …",
+  "{navn} traff {skip} på {rute}!": "{navn} ramte {skip} på {rute}!",
+  "Flåten din er ikke på denne mobilen. Fortsett på mobilen der du plasserte den.": "Din flåde er ikke på denne mobil. Fortsæt på den mobil, hvor du placerede den.",
+  "Flåten til {navn} stemmer ikke med svarene!": "{navn}s flåde passer ikke med svarene!",
+  "Flåten til {navn} stemmer med alle svarene.": "{navn}s flåde passer med alle svarene.",
+  "Venter …": "Venter …",
+  "Venter på at {navn} plasserer flåten …": "Venter på, at {navn} placerer flåden …",
+  "Venter på at {navn} viser flåten sin …": "Venter på, at {navn} viser sin flåde …",
+  "Venter på svar fra {navn} …": "Venter på svar fra {navn} …"
 }

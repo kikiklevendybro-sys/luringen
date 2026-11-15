@@ -121,5 +121,16 @@
   "Du har allerede skutt der": "You've already fired there",
   "Avslutte slaget?": "Quit the battle?",
   "Slaget blir borte. Stillingen fra tidligere slag er lagret.": "This battle will be lost. The score from earlier battles is saved.",
-  "Spill videre": "Keep playing"
+  "Spill videre": "Keep playing",
+  "{navn} bommet på {rute}.": "{navn} missed at {rute}.",
+  "{navn} senket {skip}!": "{navn} sank {skip}!",
+  "{navn} sikter …": "{navn} is taking aim …",
+  "{navn} traff {skip} på {rute}!": "{navn} hit {skip} at {rute}!",
+  "Flåten din er ikke på denne mobilen. Fortsett på mobilen der du plasserte den.": "Your fleet isn't on this phone. Carry on with the phone where you placed it.",
+  "Flåten til {navn} stemmer ikke med svarene!": "{navn}'s fleet doesn't match the answers!",
+  "Flåten til {navn} stemmer med alle svarene.": "{navn}'s fleet matches every answer.",
+  "Venter …": "Waiting …",
+  "Venter på at {navn} plasserer flåten …": "Waiting for {navn} to place their fleet …",
+  "Venter på at {navn} viser flåten sin …": "Waiting for {navn} to show their fleet …",
+  "Venter på svar fra {navn} …": "Waiting for {navn} to answer …"
 }
