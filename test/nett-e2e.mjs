@@ -109,10 +109,11 @@ async function telefon(navn, id, t, valg = {}) {
     navn,
     side: `${tjener.url}${sideFor(id)}`,
     // Fresh phone: empty storage, sound off, then the game's page.
-    async apne(url = p.side) {
+    // navn: the names this phone already uses in the games (the kit's shared names).
+    async apne(url = p.side, navn = []) {
       await c.lastSide(p.side);
       await c.js("localStorage.clear()");
-      await c.js(`localStorage.setItem("rusj.felles", JSON.stringify({ lyd: false, navn: [] }))`);
+      await c.js(`localStorage.setItem("rusj.felles", ${JSON.stringify(JSON.stringify({ lyd: false, navn }))})`);
       // (A link to the same page with only another #hash would not load the page again.)
       if (url !== p.side) await c.lastSide("about:blank");
       await c.lastSide(url, "document.querySelector('#skjerm h1')");
@@ -205,13 +206,15 @@ function lagT(id) {
       return p;
     },
     // The host makes a room; returns the invite link.
+    // One tap on the game's home screen: the room is made and the invite comes up. The host's
+    // nickname is the first of its shared names (kallenavn: set as that name first).
     async lagRom(a, kallenavn) {
+      if (kallenavn != null) await a.js(`Rusj.felles.navn[0] = ${JSON.stringify(kallenavn)}`);
+      await a.bilde("hjem-med-knapp");
       await a.klikk('[data-h="nett-apne"]');
       await a.ventSkjerm("nett");
-      if (kallenavn != null) await a.skrivInn("#nett-navn", kallenavn);
-      await a.bilde("lag-rom");
-      await a.klikk('[data-h="nett-lag"]');
       await a.vent("document.querySelector('.nett-invitasjon')", 15000);
+      if (kallenavn != null) t.sjekk((await a.js("Rusj.nett.navn(0)")) === kallenavn, `Vertens kallenavn er ikke ${kallenavn}`);
       const lenke = await a.js(`location.origin + location.pathname + "#nett=" + document.querySelector(".nett-invitasjon .etikett").textContent.trim().split(" ").pop()`);
       t.sjekk(/#nett=[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/.test(lenke), `Invitasjonslenken ser feil ut: ${lenke}`);
       const vist = await a.tekst(".nett-lenke");
@@ -222,11 +225,13 @@ function lagT(id) {
       return lenke;
     },
     // A friend opens the link and joins.
+    // A friend opens the link and joins with one tap: the nickname field is already filled in
+    // from its shared names.
     async bliMed(b, lenke, kallenavn) {
-      await b.apne(lenke);
+      await b.apne(lenke, kallenavn != null ? [kallenavn] : []);
       await b.ventSkjerm("nett");
       t.sjekk((await b.js("location.hash")) === "", "Koden står igjen i adressen etter at lenken er åpnet");
-      if (kallenavn != null) await b.skrivInn("#nett-navn", kallenavn);
+      if (kallenavn != null) t.sjekk((await b.js(`document.querySelector("#nett-navn").value`)) === kallenavn, "Kallenavnet er ikke fylt inn fra navnene på mobilen");
       await b.bilde("bli-med");
       await b.klikk('[data-h="nett-bli"]');
     },
@@ -239,7 +244,7 @@ function lagT(id) {
       if (sjekkHos) {
         await sjekkHos.vent(`!document.querySelector("#nett-rom") || document.querySelector(".nett-seter") || true`);
         const tittel = await sjekkHos.tittel();
-        if (t.norsk && (await sjekkHos.js("Rusj.nett.aktiv()")) && !(await sjekkHos.minTur())) t.sjekk(/Venter på|sin tur/.test(tittel), `Tittelen hos ${sjekkHos.navn} mens ${p.navn} er borte: «${tittel}»`);
+        if (t.norsk && (await sjekkHos.js("Rusj.nett.aktiv()")) && !(await sjekkHos.minTur())) t.sjekk(/^Venter på /.test(tittel), `Tittelen hos ${sjekkHos.navn} mens ${p.navn} er borte: «${tittel}»`);
         await sjekkHos.bilde("venn-borte");
       }
       await p.lastSide(p.side, "document.querySelector('#skjerm h1')");
@@ -269,10 +274,7 @@ function lagT(id) {
     // Leave on purpose; the phone is back on the game's home screen, offline again.
     async forlat(p) {
       if (await p.finnes('[data-h="nett-forlat"]')) await p.klikk('[data-h="nett-forlat"]');
-      else {
-        await p.klikk('[data-h="nett-rommet"]');
-        await p.klikk('#ark [data-h="nett-forlat"]');
-      }
+      else await p.klikk("#tilbake"); // «back» in the top bar leaves the match, on every screen
       if (await p.finnes('#ark [data-h="ark-svar"][data-v="ja"]')) await p.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
       await p.ventSkjerm("hjem");
       t.sjekk(!(await p.js("Rusj.paNett()")), `${p.navn} er fortsatt «på nett» etter «Forlat»`);

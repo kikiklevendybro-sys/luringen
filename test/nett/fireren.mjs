@@ -60,8 +60,8 @@ export default async function (t) {
     }
     if (sp.runde === 1 && sp.trekk.length === 2 && !reaksjon) {
       reaksjon = true;
-      await a.klikk('[data-h="nett-rommet"]');
-      await a.bilde("rommet");
+      await a.klikk('[data-h="nett-reaksjoner"]');
+      await a.bilde("reaksjoner");
       await a.klikk('#ark [data-h="nett-reaksjon"][data-v="4"]');
       await b.vent(`document.querySelector("#nett-boble")`, 5000);
       await b.bilde("reaksjon");

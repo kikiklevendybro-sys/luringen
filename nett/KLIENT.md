@@ -128,11 +128,18 @@ match number, the seed, the setup, the number of seats and the move's own random
 (`R.nett.tilfeldig(fro, n)`). In the game: `R.nett.aktiv()`, `meg()`, `erMeg(i)`, `navn(i)`,
 `send(t)` (false when it cannot go now), `venter()` (a move of ours is on its way), `tilkoblet()`,
 `kamp()`, `hemmelig(verdi?)` (a secret kept on this phone for the match), `knapp()` (the home
-screen button), `sluttDokk()` (the end screen's «Ny kamp» / «Rommet» / «Forlat»), `forlat()`,
-`nyKamp()`. While online `R.navn(i)` returns seat i's nickname (or «Spiller i+1»).
+screen button), `sluttDokk()` (the end screen's «Ny kamp» / «Forlat»), `forlat()`, `nyKamp()`.
+While online `R.navn(i)` returns seat i's nickname (or «Spiller i+1»).
+
+The UI is kept small on purpose: one button on the game's home screen (it makes the room at once
+and opens the invite sheet: link, share, QR), one tap to join from a link (the nickname field is
+filled in from the first of the kit's shared names; the host's nickname is that name), the waiting
+room, the title bar as the status line («Din tur», «Venter på Kari …», «Kobler til igjen …»), and a
+small 😀 button in the top bar for one row of six reactions. No settings screen: the room's setup is
+the host's own settings in the game.
 
 While a match on the net is running the kit swaps in a separate state `S` that is never saved
 (`R._nettBytt`, `R.paNett()`): the game's own saved state (`rusj.<id>.v1`), its settings, records
 and join codes are untouched, and come back from storage as they were when the player leaves.
 The phone keeps only `rusj.nett` (per edition: `rusj.en.nett`): per game the room code, the seat
-token and the match's secret while it lasts, and the nickname used last.
+token and the match's secret while it lasts.

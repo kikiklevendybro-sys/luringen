@@ -1,5 +1,5 @@
 /* rusj/kit/nett.css — «Spill med en venn på nett» (rusj/kit/nett.js): the room screen, the invite
-   and room sheets, the reaction bubble and the button in the top bar. Loaded only on the pages of
+   sheet, the row of reactions and their bubble, and the button in the top bar. Loaded only on the pages of
    games with "nett": true. */
 
 /* ---------- Top bar ---------- */
@@ -60,12 +60,6 @@ html[data-nett="borte"] .topp-tittel {
 /* ---------- The room screen ---------- */
 .skjerm-nett .ingress {
   margin-bottom: 4px;
-}
-
-.nett-oppsett {
-  margin: 0;
-  color: var(--tekst-2);
-  font-weight: 700;
 }
 
 .nett-navn {
@@ -191,8 +185,7 @@ html[data-nett="borte"] .topp-tittel {
   content: "";
 }
 
-.nett-seter li.av,
-.nett-seter li.borte {
+.nett-seter li.av {
   opacity: 0.7;
 }
 
@@ -208,16 +201,6 @@ html[data-nett="borte"] .topp-tittel {
   box-shadow: inset 0 0 0 2px dashed var(--strek);
   outline: 2px dashed var(--strek);
   outline-offset: -2px;
-}
-
-.nett-seter.liten li {
-  min-height: 44px;
-}
-
-.nett-seter.liten .avatar {
-  width: 30px;
-  height: 30px;
-  font-size: 1rem;
 }
 
 /* ---------- Sheets ---------- */
@@ -237,31 +220,29 @@ html[data-nett="borte"] .topp-tittel {
   user-select: all;
 }
 
+/* One small row of six. */
 .nett-reaksjoner {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-block: 8px 18px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin-block: 4px 8px;
 }
 
 .nett-reaksjon {
   display: grid;
   place-items: center;
-  min-height: 64px;
+  min-height: 48px;
+  padding: 0;
   border: 2px solid var(--strek);
-  border-radius: var(--r-mid);
+  border-radius: var(--r-liten);
   background: var(--natt-2);
-  font-size: 2rem;
+  font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
 }
 
 .nett-reaksjon:active {
   transform: scale(0.94);
-}
-
-.ark h3 + .nett-seter {
-  margin-block: 8px 16px;
 }
 
 /* ---------- A reaction from someone ---------- */

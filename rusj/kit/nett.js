@@ -8,16 +8,18 @@
 
    How it fits the kit:
    - A game passes `nett: { min, maks, oppsett, oppsettTekst, start, trekk, skjerm, tur, ferdig, etter }`
-     to Rusj.start. This file wraps Rusj.start: it adds the screen «nett» (create a room, join from a
-     link, the waiting room, a friendly error), the actions «nett-*», the title in the top bar while
-     online (whose turn it is, «Kobler til igjen …»), and reads #nett=<kode> from the address.
+     to Rusj.start. This file wraps Rusj.start: it adds the screen «nett» (joining from a link, the
+     waiting room, a friendly error; the home-screen button makes a room at once), the actions
+     «nett-*», the title in the top bar as the status line while online («Din tur», «Venter på …»,
+     «Kobler til igjen …»), and reads #nett=<kode> from the address. Kept small on purpose.
    - While a match on the net runs, the kit plays it in a separate state (R._nettBytt): never saved,
      rebuilt from the room's moves on every reload. The game on this phone is left as it was.
    - The phone applies moves only as the room sends them back (its own too), so every phone sees the
      same order. A game's own input handlers call R.nett.send(trekk) instead of playing the move.
    - R.navn(i) returns the nickname of seat i while online, so the game's multi-player texts work.
    Stored on this phone (key «nett»): per game the room code and the seat token while a match lasts
-   (and a secret the game keeps for itself, e.g. Admiralen's fleet), and the last nickname used. */
+   (and a secret the game keeps for itself, e.g. Admiralen's fleet). The nickname is the first of the
+   kit's shared names; nothing more is stored for it. */
 (function () {
   "use strict";
   const R = window.Rusj;
@@ -44,7 +46,7 @@
   let DEF = null; // its nett block
   let ekteNavn = null; // R.navn on this phone (restored when leaving)
   const N = {
-    fase: null, // "lag" | "bli" | "kobler" | "vent" | "spill" | "feil"
+    fase: null, // "bli" | "kobler" | "vent" | "spill" | "feil"
     feil: null, // why the error screen shows
     kode: null,
     token: null,
@@ -94,12 +96,9 @@
   }
   const lagreOkt = () => N.kode && N.token && skrivOkt({ kode: N.kode, token: N.token });
   const glemOkt = () => skrivOkt(null);
-  const lagreNavn = () => {
-    const l = lesLager();
-    if (N.navn) l.navn = N.navn;
-    else delete l.navn;
-    R.skriv("nett", l);
-  };
+  // The nickname: the first of the names this phone already uses in the games (the kit's shared
+  // names), and only what the player sees in the field. Nothing extra is stored for it.
+  const fellesNavn = () => R.kutt(String((R.felles && R.felles.navn && R.felles.navn[0]) || "").replace(/\s+/g, " ").trim(), 16);
 
   // ---------- Names and seats ----------
   const seter = () => (N.rom && N.rom.seter) || [];
@@ -461,7 +460,7 @@
     N.logg = [];
     N.forsok = 0;
     N.vert = false;
-    N.navn = String(lesLager().navn || "");
+    N.navn = fellesNavn();
     if (egen) {
       N.fase = "kobler";
       tilSkjerm("nett");
@@ -472,11 +471,12 @@
     }
   }
 
+  // Straight from the button on the game's home screen: no screen of settings first.
   async function lagRom() {
     N.fase = "kobler";
     N.vert = true;
     N.forsok = 0;
-    R.vis();
+    tilSkjerm("nett");
     const fortsatt = R.vakt();
     let kode = null;
     try {
@@ -540,7 +540,7 @@
     if ($("#nett-rom")) return;
     const hoyre = $(".topp-hoyre");
     if (!hoyre) return;
-    hoyre.insertAdjacentHTML("afterbegin", `<button class="ikonknapp nett-rom" id="nett-rom" data-h="nett-rommet" aria-label="${esc(R.t("Rommet: reaksjoner og spillere"))}" hidden><span aria-hidden="true">😀</span><i class="nett-prikk" aria-hidden="true"></i></button>`);
+    hoyre.insertAdjacentHTML("afterbegin", `<button class="ikonknapp nett-rom" id="nett-rom" data-h="nett-reaksjoner" aria-label="${esc(R.t("Send en reaksjon"))}" hidden><span aria-hidden="true">😀</span><i class="nett-prikk" aria-hidden="true"></i></button>`);
   }
   function fjernTopp() {
     const k = $("#nett-rom");
@@ -551,17 +551,14 @@
     const b = $("#nett-boble");
     if (b) b.remove();
   }
-  // While online the title says whose turn it is (or that the line is down).
+  // While online the title is the status line: «Din tur», «Venter på Kari …» or «Kobler til igjen …».
   function tittelNett(S) {
     if (!R.paNett() || N.fase !== "spill" || !S || S !== R.S) return null;
     if (!N.tilkoblet) return R.t("Kobler til igjen …");
     if (N.rom.ferdig || (DEF.ferdig && DEF.ferdig(S))) return R.t("Kampen er ferdig");
     const t = DEF.tur ? DEF.tur(S) : null;
     if (t === N.du) return R.t("Din tur");
-    if (Number.isInteger(t) && t >= 0) {
-      const s = seter()[t];
-      return s && !s.med ? R.t("Venter på {navn} …", { navn: seteNavn(t) }) : R.t("{navn} sin tur", { navn: seteNavn(t) });
-    }
+    if (Number.isInteger(t) && t >= 0) return R.t("Venter på {navn} …", { navn: seteNavn(t) });
     return null;
   }
   function oppdaterStatus() {
@@ -608,19 +605,11 @@
     }
   }
 
-  function romArk() {
-    const liste = seter()
-      .map((s, i) => `<li class="${s.borte ? "borte" : s.med ? "med" : "av"}">${R.avatar(i)}<b>${esc(seteNavn(i))}</b><span>${esc(i === N.du ? R.t("deg") : s.borte ? R.t("har gått") : s.med ? R.t("tilkoblet") : R.t("ikke tilkoblet"))}</span></li>`)
-      .join("");
+  // The six reactions: one small row, nothing else.
+  function reaksjonArk() {
     R.ark(`
       <h2 id="ark-tittel">${esc(R.t("Send en reaksjon"))}</h2>
-      <div class="nett-reaksjoner">${REAKSJONER.map(([e, navn], i) => `<button class="nett-reaksjon" data-h="nett-reaksjon" data-v="${i}" aria-label="${esc(navn)}"><span aria-hidden="true">${e}</span></button>`).join("")}</div>
-      <h3>${esc(R.t("Rom {kode}", { kode: N.kode || "" }))}</h3>
-      <ul class="nett-seter liten">${liste}</ul>
-      <div class="stabel">
-        <button class="knapp" data-h="lukk-ark">${esc(R.t("Lukk"))}</button>
-        <button class="lenke" data-h="nett-forlat">${esc(R.t("Forlat kampen"))}</button>
-      </div>`);
+      <div class="nett-reaksjoner">${REAKSJONER.map(([e, navn], i) => `<button class="nett-reaksjon" data-h="nett-reaksjon" data-v="${i}" aria-label="${esc(navn)}"><span aria-hidden="true">${e}</span></button>`).join("")}</div>`);
   }
 
   function invitasjonArk() {
@@ -661,16 +650,6 @@
 
   function visNett() {
     const f = N.fase;
-    if (f === "lag") {
-      const o = DEF.oppsettTekst ? DEF.oppsettTekst(N.oppsett) : "";
-      return `
-        <h1 id="skjerm-tittel">${esc(R.t("Spill med en venn på nett"))}</h1>
-        <p class="ingress">${esc(R.t("Du får en lenke du kan sende. Vennen åpner den på sin mobil, og så spiller dere hver på deres – fra hvor som helst."))}</p>
-        ${o ? `<p class="nett-oppsett"><span aria-hidden="true">⚙️</span> ${esc(o)}</p>` : ""}
-        <section class="seksjon nett-navn">${navnFelt()}</section>
-        ${personvernLinje()}
-        ${R.ui.dokk(R.ui.knapp(R.t("Lag rom"), "nett-lag", { ikon: "🌐" }), avbryt())}`;
-    }
     if (f === "bli") {
       return `
         <h1 id="skjerm-tittel">${esc(R.t("Bli med på nett"))}</h1>
@@ -716,6 +695,7 @@
           <ul class="nett-seter">${rader.join("")}</ul>
           ${o ? `<p class="hjelp"><span aria-hidden="true">⚙️</span> ${esc(o)}</p>` : ""}
         </section>
+        ${personvernLinje()}
         ${R.ui.dokk(hovud, avbryt(vert ? R.t("Lukk rommet") : R.t("Forlat rommet")))}`;
     }
     if (f === "spill") {
@@ -790,7 +770,7 @@
       vis: visNett,
       inn() {
         oppdaterStatus();
-        if (N.fase === "lag" || N.fase === "bli") {
+        if (N.fase === "bli") {
           const f = $("#nett-navn");
           if (f && !N.navn && !matchMedia("(pointer: coarse)").matches) f.focus();
         }
@@ -831,18 +811,11 @@
         N.token = null;
         N.rom = null;
         N.du = -1;
-        N.navn = String(lesLager().navn || "");
-        N.fase = "lag";
-        R.gaTil("nett");
-      },
-      "nett-lag": () => {
-        if (N.fase !== "lag") return;
-        lagreNavn();
+        N.navn = fellesNavn();
         return lagRom();
       },
       "nett-bli": () => {
         if (N.fase !== "bli") return;
-        lagreNavn();
         N.fase = "kobler";
         R.vis();
         kobl("bli");
@@ -866,14 +839,13 @@
           R.vis();
           kobl("bli");
         } else if (N.vert || !N.kode) {
-          N.fase = "lag";
-          R.vis();
+          return lagRom();
         } else {
           N.fase = "bli";
           R.vis();
         }
       },
-      "nett-rommet": () => romArk(),
+      "nett-reaksjoner": () => reaksjonArk(),
       "nett-reaksjon": (el) => {
         const e = Number(el.dataset.v);
         if (!(e >= 0 && e < REAKSJONER.length)) return;
@@ -960,7 +932,7 @@
     // The home-screen button.
     knapp: () => R.ui.knapp2(hentOkt() ? R.t("Tilbake til nettkampen") : R.t("Spill med en venn på nett"), "nett-apne", { ikon: "🌐" }),
     // The end of a match: «Ny kamp» and «Forlat».
-    sluttDokk: () => R.ui.dokk(R.ui.knapp(R.t("Ny kamp"), "nett-ny", { ikon: "🔁", av: !N.tilkoblet }), R.ui.lenkerad(R.ui.lenke(R.t("Rommet"), "nett-rommet"), R.ui.lenke(R.t("Forlat"), "nett-forlat"))),
+    sluttDokk: () => R.ui.dokk(R.ui.knapp(R.t("Ny kamp"), "nett-ny", { ikon: "🔁", av: !N.tilkoblet }), R.ui.lenkerad(R.ui.lenke(R.t("Forlat"), "nett-forlat"))),
     forlat,
     nyKamp,
   };

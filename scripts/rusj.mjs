@@ -810,6 +810,7 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
             lenker: U.sprak === "nb" ? samlingerMed(id) : [],
             sprak: U,
             sprakvalg: sprakvalg(U, spillSti(id)),
+            nett: paNett,
           })
         : "";
       const side = `${hodeMed({
@@ -931,6 +932,8 @@ ${STEMPEL_FILTER}
       ...(toppPlass.has(m.id) ? { topp: toppPlass.get(m.id) } : {}),
       alder18: !!m.alder18,
       ...(motMobilen(m) ? { motMobilen: true } : {}),
+      // Can be played with friends on their own phones online (R.nett): for the badge «På nett».
+      ...(m.nett && NETT ? { nett: true } : {}),
       // The game's own search words plus the ones in rusj/seo.json (what people call the game).
       sok: [...new Set([...(Array.isArray(m.sok) ? m.sok : []), ...U.sokedata(m).sok])],
       ...(U.sprak === "nb" ? {} : { url: m.url }),
