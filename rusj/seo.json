@@ -1249,6 +1249,17 @@
         "amerikaner mot data"
       ],
       "motMobilen": true
+    },
+    "fortelleren": {
+      "tittel": "Samtalekort for barn og voksne – gratis på mobilen",
+      "frase": "Samtalekort",
+      "beskrivelse": "Samtalekort for barn og voksne, familie, venner og ungdom: over 400 spørsmål som får dere til å fortelle og lytte. Lett, middels eller dypere – gratis.",
+      "sok": [
+        "samtalekort",
+        "samtalekort for barn",
+        "spørsmål til barn",
+        "bli kjent spørsmål"
+      ]
     }
   }
 }
