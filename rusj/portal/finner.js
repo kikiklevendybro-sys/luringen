@@ -1,6 +1,7 @@
 /* rusj.no – «Hva skal vi spille?»: the finder's choice of games, as pure functions.
    Three answers in («Hvor mange er dere?», the youngest player's age, «Hva har dere lyst på?»), a
    ranked list out: the games that fit, best first, mixed so the short list is not five of a kind.
+   Also the front page's rooms (which tags each one gathers) and shortcuts (a set of answers each).
    No DOM, no storage and no texts here: the front page (portal.js) draws the questions and the cards,
    so the same code runs in the browser (window.RusjFinner) and in the tests (CommonJS).
    A game is an entry of window.RUSJ_SPILLISTE: { id, spillere, alder, minutter, mobiler, tagger,
@@ -144,7 +145,45 @@
     return ut;
   }
 
-  const api = { finn, passer, poeng, slag, normaliser, alderTrinn, SPILLERE, LYST, MIME, ALDER_MIN, ALDER_MAKS, VOKSEN };
+  // ---------- The front page's rooms and shortcuts ----------
+
+  // The rooms, in the order the front page shows them: the tags each one gathers. A room never holds
+  // an 18+ game – except «voksen», which holds only those (and opens only behind the 18+ door).
+  const ROMMENE = ["dagens", "fest", "familie", "barn", "alene", "klassikere", "kort", "ord", "arkade", "voksen"];
+  const ROM = {
+    dagens: ["daglig"],
+    fest: ["fest"],
+    familie: ["familie"],
+    barn: ["barn"],
+    alene: ["alene"],
+    klassikere: ["klassiker"],
+    kort: ["kort"],
+    ord: ["ord", "quiz"],
+    arkade: ["arkade"],
+    voksen: ["drikke"],
+  };
+  function iRom(s, rom) {
+    if (rom === "voksen") return !!s.alder18;
+    const tagger = ROM[rom];
+    return !!tagger && !s.alder18 && s.tagger.some((t) => tagger.includes(t));
+  }
+
+  // The shortcuts over the rooms: each one a set of answers to the three questions (players, the
+  // youngest one's age, the wish – «kjapt» is the time). «Vorspiel» is a party for adults; its
+  // drinking games come only once someone has confirmed being 18 (over18).
+  const HURTIG = {
+    barn: () => ({ antall: "", yngst: 6, lyst: "alt" }),
+    vors: (over18) => ({ antall: "5-8", yngst: over18 ? "fest" : "voksen", lyst: "tull" }),
+    buss: () => ({ antall: "1", yngst: "voksen", lyst: "kjapt" }),
+    to: () => ({ antall: "2", yngst: "voksen", lyst: "alt" }),
+    stor: () => ({ antall: "9+", yngst: "voksen", lyst: "tull" }),
+    fem: () => ({ antall: "", yngst: "voksen", lyst: "kjapt" }),
+  };
+
+  // Answers that filter nothing: no player count, «Voksen» and «Litt av alt».
+  const ubesvart = (v) => !v.antall && v.yngst === "voksen" && v.lyst === "alt";
+
+  const api = { finn, passer, poeng, slag, normaliser, alderTrinn, iRom, ubesvart, ROMMENE, ROM, HURTIG, SPILLERE, LYST, MIME, ALDER_MIN, ALDER_MAKS, VOKSEN };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.RusjFinner = api;
 })(typeof self !== "undefined" ? self : this);

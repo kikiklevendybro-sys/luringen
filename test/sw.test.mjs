@@ -758,8 +758,10 @@ test("the real site: a first visit is cheap, the idle download brings every page
   await sw.installer();
   const forst = [...new Set(n.hentet())];
   assert.ok(forst.includes("/") && forst.includes("/ordugla/") && forst.length < 25, `første besøk hentet ${forst.length} filer`);
-  // Uncompressed bytes; the server sends about a quarter (the front page with ~90 game cards is 317 kB, 40 kB gzipped).
-  assert.ok(kb(forst) < 1400, `første besøk hentet ${kb(forst)} kB (ukomprimert)`);
+  // Uncompressed bytes; the server sends about a quarter. The front page lists every game as a plain
+  // link and draws only the first screen's mascots (~130 kB, 23 kB gzipped); the rest of them are
+  // lazy pictures, fetched when idle. (Before: 1 086 kB, with a 377 kB front page.)
+  assert.ok(kb(forst) < 950, `første besøk hentet ${kb(forst)} kB (ukomprimert)`);
   await sw.aktiver();
   await sw.fyll();
   const status = await sw.status();
