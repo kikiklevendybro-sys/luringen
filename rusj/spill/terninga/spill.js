@@ -348,6 +348,11 @@
   const avatarFor = (sp, i, storrelse) =>
     erRobot(sp, i) ? `<span class="avatar tg-robot ${storrelse || ""}" style="--pf: var(--p${(i % 20) + 1})" aria-hidden="true">🤖</span>` : R.avatar(i, storrelse);
   const folkIndekser = (sp) => Array.from({ length: sp.antall }, (_, i) => i).filter((i) => !erRobot(sp, i));
+  // On the net (R.nett, rusj/kit/nett.js): player i is the room's seat i, each on their own phone.
+  // Only the phone whose turn it is rolls (with the dice it holds) and fills a box; the rest watch.
+  const paNett = (sp) => !!sp && !!sp.nett && !!R.nett;
+  const minTur = (sp) => paNett(sp) && R.nett.erMeg(sp.tur);
+  const andresTur = (sp) => paNett(sp) && !R.nett.erMeg(sp.tur);
 
   let H; // the actions
   let robotTrykk = false; // true while the phone presses its own buttons
@@ -427,7 +432,7 @@
   function sveipet(vei) {
     const S = R.S;
     const sp = S && S.spill;
-    if (!pagar(S) || ruller || laas || alleFulle(sp) || erRobot(sp, sp.tur) || R.arkApent()) return;
+    if (!pagar(S) || ruller || laas || alleFulle(sp) || erRobot(sp, sp.tur) || andresTur(sp) || R.arkApent()) return;
     if (igjen(sp) <= 0) {
       R.toast(R.t("Ingen kast igjen – velg et felt"));
       return;
@@ -459,7 +464,7 @@
       etikett = R.t("{felt}: ledig", { felt: navn });
     }
     const topp = iOver ? ansikt(OVER.indexOf(kat) + 1, "tg-felt-ikon") : `<span class="tg-felt-navn">${esc(KAT[kat].kort && sp.variant === "maxi" ? KAT[kat].kort : navn)}</span>`;
-    return `<button class="${klasse}" data-h="sett" data-v="${kat}" data-stille aria-label="${esc(etikett)}"${fylt ? ' aria-disabled="true"' : ""}>${topp}<span class="tg-verdi">${esc(verdi)}</span></button>`;
+    return `<button class="${klasse}" data-h="sett" data-v="${kat}" data-stille aria-label="${esc(etikett)}"${fylt || andresTur(sp) ? ' aria-disabled="true"' : ""}>${topp}<span class="tg-verdi">${esc(verdi)}</span></button>`;
   }
 
   function blokkHtml(sp) {
@@ -523,13 +528,14 @@
       if (spart) return R.t("Du har tre kast – og {kast} i tillegg.", { kast: R.flertall(spart, "spart kast", "sparte kast") });
       return sp.antall > 1 ? R.t("Tre kast. Lykke til!") : R.t("Du har tre kast denne runden.");
     }
-    if (erRobot(sp, sp.tur)) return rest > 0 ? R.t("{navn} velger hvilke terninger som skal holdes …", { navn: navnFor(sp, sp.tur) }) : R.t("{navn} velger et felt …", { navn: navnFor(sp, sp.tur) });
+    if (erRobot(sp, sp.tur) || andresTur(sp)) return rest > 0 ? R.t("{navn} velger hvilke terninger som skal holdes …", { navn: navnFor(sp, sp.tur) }) : R.t("{navn} velger et felt …", { navn: navnFor(sp, sp.tur) });
     if (rest > 0) return R.t("Trykk på terningene du vil holde");
     return R.t("Velg et felt på blokka");
   }
 
   function kastKnapp(sp) {
     if (alleFulle(sp)) return R.ui.knapp(R.t("Se kåringen"), "kaaring", { variant: "stor", ikon: "🏆" });
+    if (andresTur(sp)) return R.ui.knapp(R.t("{navn} spiller …", { navn: navnFor(sp, sp.tur) }), "kast", { variant: "stor", av: true, ikon: "🎲" });
     const rest = igjen(sp);
     const spart = VAR(sp).spar ? sp.spart[sp.tur] || 0 : 0;
     const vanlige = Math.max(0, KAST_PER_TUR - sp.kast);
@@ -604,7 +610,7 @@
     // Beat the phone: a full pad, and more points than every robot.
     const roboter = Array.from({ length: sp.antall }, (_, i) => i).filter((i) => erRobot(sp, i));
     if (komplett && roboter.length && roboter.every((i) => summer(sp.variant, sp.kort[i]).total < best.poeng)) R.merke("klassiker-terninga");
-    if (rader.length > 1) R.kveld.registrer(rader); // the phone never takes a place in «Kveldens gjeng»
+    if (rader.length > 1 && !paNett(sp)) R.kveld.registrer(rader); // the phone never takes a place in «Kveldens gjeng»
     R.statistikk("ferdig", { variant: sp.variant, spillere: rader.length, roboter: sp.antall - rader.length, poeng: best.poeng, yatzy: sp.yatzyer || 0, komplett });
   }
 
@@ -723,12 +729,156 @@
     robotId = setTimeout(neste, pause(700));
   }
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Moves, from the seat whose turn it is: { kast: [0, 1, …] } rolls every die not marked 1 (the
+  // dice it holds); the numbers come from the room's seed and the move's place, so every phone gets
+  // the same throw. { sett: "hus" } fills that box. The state changes at once; the throw on the
+  // tray is only a picture of it.
+  function nettKast(S, maske, okt) {
+    const sp = S.spill;
+    if (igjen(sp) <= 0) return;
+    const holdt = sp.terninger.map((_, i) => sp.kast > 0 && Array.isArray(maske) && maske[i] === 1);
+    const indekser = holdt.map((h, i) => (h ? -1 : i)).filter((i) => i >= 0);
+    if (!indekser.length) return;
+    sp.holdt = holdt;
+    for (const i of indekser) {
+      sp.terninger[i] = 1 + Math.floor(okt.rng() * 6);
+      sp.vri[i] = Math.round(okt.rng() * 36 - 18);
+    }
+    if (sp.kast >= KAST_PER_TUR) sp.spart[sp.tur] = Math.max(0, (sp.spart[sp.tur] || 0) - 1);
+    sp.kast += 1;
+    sp.angre = null;
+    if (!okt.gjenspill) visNettKast(S, indekser);
+  }
+
+  async function visNettKast(S, indekser) {
+    const sp = S.spill;
+    if (S.skjerm !== "spill" || !R.$(`#${BRETT}`)) return R.vis();
+    ruller = true;
+    // The dice the player kept go to the rail first (the other phones never saw them being held).
+    sp.holdt.forEach((h, i) => {
+      try {
+        R.terninger.hold(BRETT, i, h, { etikett: terningEtikett, verdi: sp.terninger[i], rolig: true });
+      } catch (e) {
+        /* a die that is not on the tray: the redraw puts it right */
+      }
+    });
+    const brett = R.$("#tg-brett");
+    if (brett) brett.dataset.ruller = "1";
+    R.$$('#skjerm .dokk button, #skjerm [data-h="sett"]').forEach((b) => (b.disabled = true));
+    const hint = R.$("#tg-hint");
+    if (hint) hint.textContent = R.t("Terningene ruller …");
+    const vei = sveipKast;
+    sveipKast = null;
+    const fortsatt = R.vakt();
+    try {
+      await R.terninger.kast(BRETT, { verdier: sp.terninger, indekser, retning: vei && vei.retning, styrke: vei && vei.styrke });
+    } catch (e) {
+      /* the tray went away: the state is right anyway */
+    }
+    ruller = false;
+    if (!fortsatt() || R.S.spill !== sp) return;
+    R.vis();
+    const kastet = R.ramsOpp(sp.terninger.map(String));
+    R.si(minTur(sp) ? R.t("Du kastet {terninger}.", { terninger: kastet }) : R.t("{navn} kastet {terninger}.", { navn: navnFor(sp, sp.tur), terninger: kastet }));
+    feirKast(sp);
+  }
+
+  function nettSett(S, kat, okt) {
+    const sp = S.spill;
+    const V = VAR(sp);
+    const kort = sp.kort[sp.tur];
+    if (sp.kast === 0 || !V.alle.includes(kat) || kort[kat] != null) return;
+    const verdi = poeng(kat, sp.terninger);
+    const forBonus = summer(sp.variant, kort).bonus;
+    const hvem = navnFor(sp, sp.tur);
+    kort[kat] = verdi;
+    sp.spart[sp.tur] = (sp.spart[sp.tur] || 0) + sparesVed(sp.variant, sp.kast);
+    const fikkBonus = !forBonus && summer(sp.variant, kort).bonus;
+    if (!alleFulle(sp)) {
+      sp.tur = (sp.tur + 1) % sp.antall;
+      sp.kast = 0;
+      sp.holdt = sp.holdt.map(() => false);
+    }
+    if (okt.gjenspill) return;
+    const navn = katNavn(kat, sp);
+    let melding;
+    if (fikkBonus) {
+      R.lyd.fanfare();
+      melding = R.t("Bonus! +{n} til {navn}", { n: V.bonus, navn: hvem });
+    } else if (verdi > 0) {
+      R.lyd.riktig();
+      melding = R.t("+{n} på {felt} til {navn}", { n: verdi, felt: navn, navn: hvem });
+    } else {
+      R.lyd.tone(330, 0, 0.12, "triangle", 0.09, 220);
+      melding = R.t("{felt} er strøket", { felt: navn });
+    }
+    if (S.skjerm !== "spill") return;
+    R.vis();
+    R.toast(melding);
+    if (alleFulle(sp)) {
+      R.si(R.t("Blokka er full. Trykk på «Se kåringen»."));
+      R.lyd.pling();
+    } else {
+      const hode = R.$(".tg-hode");
+      if (hode) hode.classList.add("ny");
+      R.lyd.pop();
+      R.si(R.t("{navn} sin tur.", { navn: navnFor(sp, sp.tur) }));
+    }
+  }
+
+  const NETT = {
+    min: 2,
+    maks: 6,
+    oppsett: (S) => ({ variant: VARIANTER[S.oppsett.variant] ? S.oppsett.variant : "vanlig" }),
+    oppsettTekst: (o) => (o && o.variant === "maxi" ? `${R.t("Seks terninger")} · ${R.t("20 felt · spar kast du ikke bruker")}` : `${R.t("Yatzy")} · ${R.t("5 terninger · 15 felt")}`),
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const variant = VARIANTER[o.variant] ? o.variant : "vanlig";
+      const n = VARIANTER[variant].terninger;
+      const antall = R.klamp(okt.antall, 2, 6);
+      const rng = R.rng(okt.fro >>> 0);
+      S.spill = {
+        nett: true,
+        variant,
+        antall,
+        mennesker: antall,
+        nivaa: "middels",
+        kort: Array.from({ length: antall }, () => ({})),
+        spart: Array.from({ length: antall }, () => 0),
+        // The host opens the first match, the next seat the second, and so on.
+        tur: (okt.kamp - 1) % antall,
+        terninger: Array.from({ length: n }, () => 1 + Math.floor(rng() * 6)),
+        vri: Array.from({ length: n }, () => 0),
+        holdt: Array.from({ length: n }, () => false),
+        kast: 0,
+        angre: null,
+        ferdig: false,
+        yatzyer: 0,
+      };
+      ruller = false;
+      laas = false;
+      sveipKast = null;
+      stoppRobot();
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || alleFulle(sp) || !t || typeof t !== "object" || sete !== sp.tur) return;
+      if (Array.isArray(t.kast)) return nettKast(S, t.kast, okt);
+      if (typeof t.sett === "string") return nettSett(S, t.sett, okt);
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "spill"),
+    tur: (S) => (S.spill && !S.spill.ferdig && !alleFulle(S.spill) ? S.spill.tur : null),
+    ferdig: (S) => !!S.spill && (S.spill.ferdig || alleFulle(S.spill)),
+  };
+
   // ---------- Start ----------
 
   R.start({
     id: "terninga",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({
       antall: Math.max(1, Math.min(6, R.felles.navn.filter((n) => String(n || "").trim()).length || 2)),
@@ -784,7 +934,7 @@
               knapperHtml: R.ui.startKnapper({
                 pagar: pagar(S),
                 fortsettTekst: pagar(S) ? (alleFulle(sp) ? R.t("Fortsett · se kåringen") : R.t("Fortsett · runde {n} av {alle}", { n: runde(sp), alle: VAR(sp).alle.length })) : "",
-                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+                ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [],
             }) +
@@ -841,7 +991,7 @@
             <div class="tg-hode">
               ${avatarFor(sp, sp.tur, "mid")}
               <div class="tg-hvem">
-                <p class="etikett">${esc(ferdig ? R.t("Spillet er ferdig") : erRobot(sp, sp.tur) ? R.t("Mobilen · {niva}", { niva: NIVANAVN[sp.nivaa] }) : sp.antall > 1 ? R.t("Din tur") : R.t("Ditt kast"))}</p>
+                <p class="etikett">${esc(ferdig ? R.t("Spillet er ferdig") : erRobot(sp, sp.tur) ? R.t("Mobilen · {niva}", { niva: NIVANAVN[sp.nivaa] }) : andresTur(sp) ? R.t("Spiller nå") : sp.antall > 1 ? R.t("Din tur") : R.t("Ditt kast"))}</p>
                 <h1 id="skjerm-tittel">${esc(navnFor(sp, sp.tur))}</h1>
               </div>
               <p class="tg-total"><b>${total}</b><small>${esc(R.t("poeng"))}</small></p>
@@ -879,7 +1029,7 @@
           const best = Math.max(...rader.map((r) => r.poeng));
           const vinnere = rader.filter((r) => r.poeng === best);
           const res = sp.resultat || {};
-          const dokk = R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`));
+          const dokk = paNett(sp) ? R.nett.sluttDokk() : R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`));
           const blokk = `<section class="seksjon"><h2>${esc(R.t("Blokka"))}</h2>${tabellHtml(sp, { slutt: true })}</section>`;
           if (sp.antall === 1) {
             const tittel = res.ny && res.gml != null ? R.t("Ny rekord!") : best >= 250 ? R.t("Råsterkt!") : best >= 200 ? R.t("Godt jobba!") : R.t("Godt kjempa!");
@@ -909,7 +1059,7 @@
             </div>
             ${robotAvatarer(sp, R.ui.pall(rader) + R.ui.poengliste(rader))}
             ${blokk}
-            ${R.ui.flereSpill({ antall: sp.antall })}
+            ${paNett(sp) ? "" : R.ui.flereSpill({ antall: sp.antall })}
             ${dokk}`;
         },
         inn(S) {
@@ -919,7 +1069,9 @@
           const res = sp.resultat || {};
           const folkBest = Math.max(...folkIndekser(sp).map((i) => totalFor(sp, i)));
           const mobilenVant = folkBest < best; // the phone won: warm words, no fanfare
-          if (!mobilenVant && (sp.antall > 1 || (res.ny && res.gml != null) || best >= 200)) {
+          // On the net: the fanfare on the winners' phones, warm notes on the others.
+          const tapte = paNett(sp) ? totalFor(sp, R.nett.meg()) < best : mobilenVant;
+          if (!tapte && (sp.antall > 1 || (res.ny && res.gml != null) || best >= 200)) {
             R.lyd.fanfare();
             R.vibrer([40, 60, 120]);
             R.konfetti();
@@ -977,6 +1129,7 @@
         const sp = S.spill;
         if (!pagar(S) || ruller || laas) return;
         if (erRobot(sp, sp.tur) && !robotTrykk) return;
+        if (andresTur(sp)) return;
         const i = Number(el.dataset.v);
         if (!(i >= 0 && i < sp.terninger.length)) return;
         if (sp.kast === 0) {
@@ -1003,6 +1156,14 @@
         const sp = S.spill;
         if (!pagar(S) || ruller || laas || alleFulle(sp)) return;
         if (erRobot(sp, sp.tur) && !robotTrykk) return;
+        if (paNett(sp)) {
+          // The room rolls: the dice this phone holds go with the move, the numbers come back.
+          if (andresTur(sp) || igjen(sp) <= 0 || R.nett.venter()) return;
+          const maske = sp.kast === 0 ? sp.terninger.map(() => 0) : sp.holdt.map((h) => (h ? 1 : 0));
+          if (sp.kast > 0 && maske.every(Boolean)) return R.toast(R.t("Alle terningene er holdt – slipp én, eller velg et felt"));
+          R.nett.send({ kast: maske });
+          return;
+        }
         const vei = sveipKast; // a fling on the tray says where and how hard
         sveipKast = null;
         if (igjen(sp) <= 0) return;
@@ -1052,6 +1213,8 @@
         if (!V.alle.includes(kat) || kort[kat] != null) return;
         const robot = erRobot(sp, sp.tur);
         if (robot && !robotTrykk) return;
+        if (andresTur(sp)) return;
+        if (paNett(sp) && sp.kast > 0) return void R.nett.send({ sett: kat });
         if (sp.kast === 0) {
           R.toast(R.t("Kast terningene først"));
           el.classList.remove("risting");
@@ -1158,7 +1321,7 @@
       kaaring(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || !alleFulle(sp) || laas) return;
-        lagreRekord(S);
+        if (!paNett(sp)) lagreRekord(S);
         sp.ferdig = true;
         sp.angre = null;
         R.gaTil("slutt");
