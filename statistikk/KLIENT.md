@@ -17,6 +17,8 @@ the client can send must pass the Worker's grammar).
     as the **first** script on every page (front page, game pages, Luringen, the pages about rusj),
     so `window.RusjStat` exists before the kit runs.
   - Footer, `/personvern/` («Anonym telling») and the rules sheet switch to the wording below.
+  - `/admin/`, `/en/admin/` and `/da/admin/`: a page with meta refresh and a link to
+    `<origin>/admin` (noindex, no script; not in the sitemap, the game lists or the offline list).
 
 ## Endpoint
 
@@ -53,22 +55,32 @@ and a beacon from such a page may arrive with `Origin: null`, which the Worker r
 | `daglig.<game>` | from `R.dagligFerdig`, the first time today's daily in that game is finished |
 | `dagens.<n>` (1–9) | with `daglig.*`: this device has now finished n of today's dailies |
 | `rekke.1/2/4/7/14/30` | with `dagens.1`: the site streak (DAGLIG.md rule) as a group: 1, 2–3, 4–6, 7–13, 14–29, 30+ |
+| `utgave.nb` / `utgave.en` / `utgave.da` | with `besok`: the edition, from the first path segment (`en`, `da`, else `nb`) |
+| `type.mobil` / `type.nettbrett` / `type.pc` | with `besok`: `matchMedia("(pointer: coarse)")` false → `pc`; else `matchMedia("(max-width: 599px), (max-height: 599px)")` → `mobil`, otherwise `nettbrett`. No media queries → not sent. No size is read out. |
+| `kilde.sok` / `kilde.sosial` / `kilde.direkte` / `kilde.annen` | with `besok`. On the page load that begins the visit: `document.referrer` empty → `direkte`; its host matched against fixed lists → `sok` (google, bing, duckduckgo, yahoo, ecosia, startpage, kvasir; any country domain; the Android Google app) or `sosial` (facebook, instagram, tiktok, snapchat, x/twitter/t.co, reddit, linkedin, pinterest, youtube, messenger and their short links); any other → `annen`; a rusj.no page → nothing. A visit that begins by coming back to an open tab → `direkte`. The referrer itself is never sent or stored. |
+| `app.ny` | the first time this device runs rusj from the home screen (the note remembers `app: 1`) |
+| `feil.<game>` | a `window` `error` or `unhandledrejection` on a game page; at most once per page view (a back/forward restore is a new one). Nothing about the error is read. |
+| `nett.rom.<game>`, `nett.start.<game>`, `nett.ferdig.<game>` | from `R.statistikk("nett.rom" \| "nett.start" \| "nett.ferdig")`, called by `R.nett` (`rusj/kit/nett.js`) only on the phone that made the room (seat 0): a room was made, a match started, a match was finished by the game's rules |
+| `jul.utskrift`, `jul.paminnelse`, `jul.tre` | from `R.statistikk("jul.…")` in Julekalenderen: print, the reminders file, the tree picture downloaded or shared. Only on the calendar's page. |
 
 `<game>` must be in `statistikk/src/spilliste.js` (generated from `rusj/spill/*/spill.json` by
 `node statistikk/oppdater-spilliste.mjs`), else the name is dropped.
 
 ## Local state
 
-One key, `rusj.stat` = `{ v:1, dag, sist, tid, trinn }`: last counted Oslo day number, last time on
-screen (ms), screen time of the current visit (ms) and how many time steps were reported. It never
-leaves the device. «Slett alt» on `/personvern/` removes it (it starts with `rusj.`). If it cannot
-be written (private mode, full), only `side.*`, `start.*`, `ferdig.*` and `daglig.*` are sent.
+One key, `rusj.stat` = `{ v:1, dag, sist, tid, trinn }` (+ `app: 1` once rusj has run from the
+home screen): last counted Oslo day number, last time on screen (ms), screen time of the current
+visit (ms) and how many time steps were reported. It never leaves the device. «Slett alt» on
+`/personvern/` removes it (it starts with `rusj.`). If it cannot be written (private mode, full),
+only `side.*`, `start.*`, `ferdig.*`, `daglig.*`, `feil.*`, `nett.*` and `jul.*` are sent (no
+visit, so no `utgave.*`, `type.*` or `kilde.*` either).
 `window.RUSJ_STAT_LAGRING = false` turns the key off entirely.
 
 ## Behaviour
 
 - Batching: names are collected for 1.5 s, then one request; at `visibilitychange → hidden` and
-  `pagehide` the queue is flushed at once (with the time step reached so far).
+  `pagehide` the queue is flushed at once (with the time step reached so far). A batch that
+  reaches 16 names is sent at once and the next name starts a new one (nothing is dropped).
 - Silent (no request, no storage, no timers) when `RUSJ_STAT` is not a valid origin,
   `navigator.doNotTrack === "1"` (or `window.doNotTrack`/`msDoNotTrack`),
   `navigator.globalPrivacyControl === true`, `navigator.connection.saveData === true`,
@@ -79,7 +91,9 @@ be written (private mode, full), only `side.*`, `start.*`, `ferdig.*` and `dagli
 
 ## Kit hooks (`rusj/kit/rusj.js`)
 
-- `R.statistikk(h, data)` → `window.RusjStat.hendelse(h)` (inside try/catch).
+- `R.statistikk(h, data)` → `window.RusjStat.hendelse(h)` (inside try/catch). Counted: `start`,
+  `ferdig`, `nett.rom`, `nett.start`, `nett.ferdig` (per game) and, on Julekalenderen's page,
+  `jul.utskrift`, `jul.paminnelse`, `jul.tre`. Every other event is ignored.
 - `R.dagligFerdig(info)` → on the first finish of the day for that game:
   `window.RusjStat.daglig(<games finished today>, <site streak>)`.
 - The rules sheet line switches on `window.RUSJ_STAT`.
@@ -93,8 +107,11 @@ be written (private mode, full), only `side.*`, `start.*`, `ferdig.*` and `dagli
   bare anonymt hvor mange som spiller.»
 - `/personvern/`: the intro adds «Vi teller bare anonymt hvor mange som bruker rusj, og hvilke spill
   som åpnes.»; the storage list adds the `rusj.stat` note; a new section «Anonym telling» says what
-  is counted, what is not, where (Cloudflare, database in the EU, IP seen but not stored, logs off,
-  deleted after 25 months) and how to opt out (Do Not Track / GPC / data saving); «Ingen sporing,
+  is counted, what else is counted as daily totals («Også telles»: edition, device type, source
+  group, errors per game, new installs, online rooms and matches, the calendar's buttons), what is
+  not (now also: the referring address and device details beyond phone/tablet/PC), where
+  (Cloudflare, database in the EU, IP seen but not stored, logs off, deleted after 25 months) and
+  how to opt out (Do Not Track / GPC / data saving); «Ingen sporing,
   statistikk eller måling» becomes «Ingen sporing av enkeltpersoner. Vi teller bare anonyme tall per
   dag». The exact text is in `PV_TELLING` and the template in `scripts/rusj.mjs`.
 - Still to do by hand when switching on: `README.md` in the repo root says «ingen analyse,
