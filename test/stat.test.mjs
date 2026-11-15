@@ -9,17 +9,18 @@ import "../statistikk/test/klient.test.mjs";
 
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+// (The second argument of lagCsp is the rooms for playing on the net – off here: test/nett.test.mjs.)
 test("statistics off: the CSP allows no outside request and no stat.js is made", () => {
-  assert.equal(lagCsp(""), lagCsp(statOpprinnelse("")));
-  assert.match(lagCsp(""), /connect-src 'self';/);
+  assert.equal(lagCsp("", ""), lagCsp(statOpprinnelse(""), ""));
+  assert.match(lagCsp("", ""), /connect-src 'self';/);
   assert.equal(statFil(ROT, ""), null);
   if (!STAT_ADRESSE) assert.equal(CSP, lagCsp(""));
 });
 
 test("statistics on: only the Worker's origin is added to connect-src", () => {
-  const csp = lagCsp("https://rusj-statistikk.eksempel.workers.dev");
+  const csp = lagCsp("https://rusj-statistikk.eksempel.workers.dev", "");
   assert.match(csp, /connect-src 'self' https:\/\/rusj-statistikk\.eksempel\.workers\.dev;/);
-  assert.equal(csp.replace(" https://rusj-statistikk.eksempel.workers.dev", ""), lagCsp(""));
+  assert.equal(csp.replace(" https://rusj-statistikk.eksempel.workers.dev", ""), lagCsp("", ""));
   const fil = statFil(ROT, "https://rusj-statistikk.eksempel.workers.dev");
   assert.ok(fil.innhold.startsWith('window.RUSJ_STAT="https://rusj-statistikk.eksempel.workers.dev";\n'));
   assert.match(fil.sti, /^\/felles\/stat\.js\?v=/);

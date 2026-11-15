@@ -34,7 +34,8 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
   "farge": "#ffd23f",                              // optional accent; default = the mascot's colour
   "ordbank": false,                                // true → window.RUSJ_ORD is loaded: the edition's own word bank (data/kategorier, .en, .da)
   "qr": false,                                     // true → window.LuringenQr is loaded (Rusj.kode.qr)
-  "terninger": false                               // true → R.terninger: 3D dice in a tray (see «Dice» below)
+  "terninger": false,                              // true → R.terninger: 3D dice in a tray (see «Dice» below)
+  "nett": false                                    // true → R.nett: play with friends on their own phones (see «Playing on the net»)
 }
 ```
 
@@ -193,6 +194,20 @@ R.terninger.hold("mitt-brett", i, true, { etikett, verdi });  // to the rail / b
   `R.terninger.dobling(verdi, { s })`: backgammon's doubling cube with its value on top.
 - `R.terninger.fysikk` is the pure physics (also `window.RusjTerninger` in Node: test/terninger.test.mjs).
   test/terninger-spill.test.mjs proves that the games' rules give exactly what they gave before.
+
+## Playing on the net: `R.nett` (rusj/kit/nett.js + .css)
+
+Loaded only when spill.json has `"nett": true` and the build has `NETT_ADRESSE`: two or more friends
+play on their own phones from different places, through a room on the rooms Worker (`nett/`). The kit
+does the rest – the button (`R.nett.knapp()` in the home screen's buttons), creating and joining a room
+(`#nett=<kode>` links, nickname, waiting room, invite sheet with QR), whose turn it is in the title bar,
+reconnecting, reactions, leaving and «Ny kamp». The game gives a `nett` block to `Rusj.start` (its
+online rules: start, trekk, skjerm, tur, ferdig) and, in its own input handlers, calls
+`R.nett.send(trekk)` instead of playing the move – the move is played when the room sends it back, on
+every phone in the same order. Rules that use chance take it from `okt.rng` (seed + the move's place).
+A match on the net runs in a separate state that is never saved, so the game on the phone is untouched.
+The protocol, the API and the rules for hidden information: nett/KLIENT.md. Fireren is the simplest
+example; Admiralen shows hidden information; Brikka and Terninga dice.
 
 ## Other languages (rusj/SPRAK.md)
 

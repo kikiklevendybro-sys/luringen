@@ -301,6 +301,7 @@ export function uoversatt(kilde, alle = strenger(kilde), somNokkel = nokler(kild
 export const FELLES_KILDER = [
   "rusj/kit/rusj.js",
   "rusj/kit/terninger.js",
+  "rusj/kit/nett.js",
   "rusj/portal/portal.js",
   "rusj/portal/daglig.js",
   "rusj/portal/merkebok.js",

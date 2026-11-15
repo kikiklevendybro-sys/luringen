@@ -1,0 +1,334 @@
+/* rusj/kit/nett.css — «Spill med en venn på nett» (rusj/kit/nett.js): the room screen, the invite
+   and room sheets, the reaction bubble and the button in the top bar. Loaded only on the pages of
+   games with "nett": true. */
+
+/* ---------- Top bar ---------- */
+.nett-rom {
+  position: relative;
+}
+
+.nett-rom > span {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.nett-prikk {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--natt);
+  border-radius: 50%;
+  background: var(--mynte);
+}
+
+.nett-rom.borte .nett-prikk {
+  background: var(--oransje);
+  animation: nett-puls 1.2s ease-in-out infinite;
+}
+
+html[data-nett-tur="meg"] .topp-tittel {
+  color: var(--aksent);
+}
+
+html[data-nett="borte"] .topp-tittel {
+  color: var(--oransje);
+}
+
+/* While online the title says whose turn it is, with a nickname in it: two lines rather than cut. */
+html[data-nett="med"] .topp-tittel,
+html[data-nett="borte"] .topp-tittel {
+  display: -webkit-box;
+  padding-block: 2px;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+@keyframes nett-puls {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ---------- The room screen ---------- */
+.skjerm-nett .ingress {
+  margin-bottom: 4px;
+}
+
+.nett-oppsett {
+  margin: 0;
+  color: var(--tekst-2);
+  font-weight: 700;
+}
+
+.nett-navn {
+  display: grid;
+  gap: 8px;
+}
+
+.nett-felt-etikett {
+  color: var(--tekst);
+  font: 800 1rem/1.3 var(--font-display);
+}
+
+.nett-navn .hjelp {
+  margin: 0;
+}
+
+.nett-personvern {
+  margin-top: 4px;
+  color: var(--tekst-3);
+}
+
+.nett-midt {
+  display: grid;
+  flex: 1;
+  justify-items: center;
+  align-content: center;
+  gap: 10px;
+  padding-block: 16px;
+  text-align: center;
+}
+
+.nett-midt .figur-ramme {
+  width: min(42vw, 150px);
+}
+
+.nett-midt .ingress {
+  max-width: 30em;
+}
+
+.nett-laster {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+}
+
+.nett-laster i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--aksent);
+  animation: nett-hopp 1s ease-in-out infinite;
+}
+
+.nett-laster i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.nett-laster i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.nett-laster.rolig i {
+  animation: none;
+  opacity: 0.8;
+}
+
+@keyframes nett-hopp {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+/* The seats: avatar, name, status. */
+.nett-seter {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nett-seter li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 7px 14px 7px 7px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.nett-seter li b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 800 1.05rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nett-seter li > span:last-child:not(.avatar) {
+  flex: none;
+  color: var(--tekst-2);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.nett-seter li.med > span:last-child:not(.avatar)::before {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--mynte);
+  content: "";
+}
+
+.nett-seter li.av,
+.nett-seter li.borte {
+  opacity: 0.7;
+}
+
+.nett-seter li.ledig {
+  background: none;
+  box-shadow: inset 0 0 0 2px var(--strek);
+  border: 0;
+  color: var(--tekst-3);
+}
+
+.nett-seter li.ledig .avatar {
+  background: none;
+  box-shadow: inset 0 0 0 2px dashed var(--strek);
+  outline: 2px dashed var(--strek);
+  outline-offset: -2px;
+}
+
+.nett-seter.liten li {
+  min-height: 44px;
+}
+
+.nett-seter.liten .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
+}
+
+/* ---------- Sheets ---------- */
+.nett-invitasjon {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-block: 6px 16px;
+}
+
+.nett-lenke {
+  max-width: 100%;
+  margin: 0;
+  color: var(--blekk);
+  font: 700 0.95rem/1.35 var(--font-mono);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.nett-reaksjoner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-block: 8px 18px;
+}
+
+.nett-reaksjon {
+  display: grid;
+  place-items: center;
+  min-height: 64px;
+  border: 2px solid var(--strek);
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.nett-reaksjon:active {
+  transform: scale(0.94);
+}
+
+.ark h3 + .nett-seter {
+  margin-block: 8px 16px;
+}
+
+/* ---------- A reaction from someone ---------- */
+.nett-boble {
+  position: fixed;
+  z-index: 60;
+  top: calc(env(safe-area-inset-top, 0px) + 70px);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 18px 8px 10px;
+  border-radius: 999px;
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2), 0 16px 32px var(--skygge);
+  color: var(--blekk);
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: nett-boble 2.6s ease-out forwards;
+}
+
+.nett-boble b {
+  overflow: hidden;
+  font: 800 1rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nett-boble-emoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+/* Reduced motion: the bubble just sits there for its 2.6 s (the kit cuts every animation short). */
+.nett-boble.rolig {
+  animation: none;
+}
+
+@keyframes nett-boble {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 16px) scale(0.8);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.06);
+  }
+  20% {
+    transform: translate(-50%, 0) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nett-boble {
+    animation: none;
+  }
+  .nett-laster i,
+  .nett-rom.borte .nett-prikk {
+    animation: none;
+  }
+}

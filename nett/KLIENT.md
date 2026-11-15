@@ -89,8 +89,8 @@ Close codes the client must not reconnect after: `1000` left, `4000` another soc
 - **Illegal moves** are not checked by the room. Every phone's rules ignore a move that is not
   legal (wrong seat, wrong turn, impossible) in the same way, so a broken or hostile client cannot
   split the match.
-- **Dice** (Brikka, Terninga): the value of a throw is `R.rng(fro ^ hash(n))` for the move at place
-  `n`, so every phone gets the same throw. (A modified client could compute a coming throw from the
+- **Dice** (Brikka, Terninga): a throw comes from `R.nett.tilfeldig(fro, n)` =
+  `R.rng(fro ^ R.hash("nett:" + n))` for the move at place `n`, so every phone gets the same throw. (A modified client could compute a coming throw from the
   seed; it is a game among friends.)
 - **Hidden information** (Admiralen): each phone keeps its fleet to itself. At «Klar» it sends a
   commitment (`SHA-256` of the fleet and a random salt). A shot is a move from the shooter; the
@@ -99,27 +99,40 @@ Close codes the client must not reconnect after: `1000` left, `4000` another soc
 
 ## Kit API (`R.nett`, rusj/kit/nett.js)
 
-A game opts in with `"nett": true` in spill.json, an entry in `SPILL` in `nett/src/oppsett.js`,
-and a `nett` block in `Rusj.start`:
+A game opts in with `"nett": true` in spill.json, an entry in `SPILL` in `nett/src/oppsett.js`
+(the same seats as its `min`/`maks`; `test/nett.test.mjs` checks that they agree), and a `nett`
+block in `Rusj.start`:
 
 ```js
 R.start({
   …,
   nett: {
     min: 2, maks: 2,
-    oppsett: (S) => ({ mal: S.oppsett.mal }),        // host's setup, read from the game's own settings
-    oppsettTekst: (o) => R.t("Først til {n}", { n: o.mal }),  // one line in the lobby (optional)
-    start(S, okt) { S.spill = …; return "spill"; },  // a new match on the online state S; returns the screen
-    trekk(S, t, sete, okt) { … },                   // apply one move (also while replaying: okt.gjenspill)
-    tur: (S) => seat | null,                         // whose turn (for the bar); null when over
-    ferdig: (S) => bool,                             // the rules say the match is over
-    etter(S, okt) {},                                // after a live move / after a replay (optional)
+    oppsett: (S) => ({ mal: S.oppsett.mal }),       // the host's setup, from the game's own settings
+    oppsettTekst: (o) => R.t("Først til {n}", { n: o.mal }), // one line in the lobby (optional)
+    start(S, okt) { S.spill = { modus: "nett", … } }, // a new match in the online state S
+    trekk(S, t, sete, okt) { … },                  // play one move; ignore it if the rules say no
+    skjerm: (S) => "spill",                         // the screen for this state (after a replay)
+    tur: (S) => seat | null,                        // whose turn it is (the title bar), null: nobody's
+    ferdig: (S) => bool,                            // the rules say the match is over
+    etter(S, okt) {},                               // after a live move, a replay or a refused move (optional)
+    kanNy: (S) => bool,                             // «Ny kamp» before ferdig (optional)
+    forlatVia: ["avslutt"],                         // the game's actions that mean «leave» (default)
   },
 });
-// in the game: R.nett.aktiv(), R.nett.meg(), R.nett.send(t), R.nett.navn(sete), R.nett.knapp(),
-// R.nett.forlat(), R.nett.nyKamp(), R.nett.terning(n) → 1–6 for the move at place n
 ```
 
-While a match on the net is running the kit swaps in a separate state `S` that is never saved:
-the game's own saved state (`rusj.<id>.v1`), its settings and its join codes are untouched, and
-come back as they were when the player leaves.
+`okt` = `{ n, gjenspill, meg, kamp, fro, oppsett, antall, rng }`: the move's place, whether it is
+being replayed (then: no sound, no animation, no redraw – just the state), this phone's seat, the
+match number, the seed, the setup, the number of seats and the move's own random generator
+(`R.nett.tilfeldig(fro, n)`). In the game: `R.nett.aktiv()`, `meg()`, `erMeg(i)`, `navn(i)`,
+`send(t)` (false when it cannot go now), `venter()` (a move of ours is on its way), `tilkoblet()`,
+`kamp()`, `hemmelig(verdi?)` (a secret kept on this phone for the match), `knapp()` (the home
+screen button), `sluttDokk()` (the end screen's «Ny kamp» / «Rommet» / «Forlat»), `forlat()`,
+`nyKamp()`. While online `R.navn(i)` returns seat i's nickname (or «Spiller i+1»).
+
+While a match on the net is running the kit swaps in a separate state `S` that is never saved
+(`R._nettBytt`, `R.paNett()`): the game's own saved state (`rusj.<id>.v1`), its settings, records
+and join codes are untouched, and come back from storage as they were when the player leaves.
+The phone keeps only `rusj.nett` (per edition: `rusj.en.nett`): per game the room code, the seat
+token and the match's secret while it lasts, and the nickname used last.

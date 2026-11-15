@@ -77,6 +77,15 @@ ${tekst ? `<p>${esc(tekst)}</p>\n` : ""}<p><a href="/${m.id}/">Gå til ${esc(m.n
 // window.RUSJ_STAT) on every page, and the footer and /personvern/ describe the counting.
 export const STAT_ADRESSE = "https://rusj-statistikk.kikiklevendybro.workers.dev";
 
+// «Spill med en venn på nett» (see nett/README.md and nett/KLIENT.md): the address of the rooms
+// Worker, e.g. "https://rusj-nett.<konto>.workers.dev". Empty = switched off: no button, nothing is
+// sent, the CSP and the privacy page are as before. When set, the build adds the address to
+// connect-src (as https: and wss:), publishes /felles/nett.js (which sets window.RUSJ_NETT) and
+// /felles/nett.css on the pages of games with "nett": true, and /personvern/ gets «Spill på nett».
+// A test build may point it elsewhere with the environment variable RUSJ_NETT_ADRESSE
+// (http://127.0.0.1:<port> for a local `wrangler dev`).
+export const NETT_ADRESSE = "https://rusj-nett.kikiklevendybro.workers.dev";
+
 // «Spander en kaffe»: per edition, the owner's payment link and the price shown on the button.
 // An empty link = off in that edition. When set, that edition's game pages carry them as
 // <html data-kaffe data-kaffe-pris>, and the kit asks for a coffee after every 20th finished game
@@ -90,25 +99,31 @@ for (const [s, k] of Object.entries(KAFFE)) if (k.lenke && !/^https:\/\/[^\s"<>]
 
 // Checks the address and returns its origin ("" when off). Throws on anything that is not a plain
 // https origin (or http://localhost / 127.0.0.1 for tests), so a typo cannot reach the CSP.
-export function statOpprinnelse(adresse = STAT_ADRESSE) {
+export function statOpprinnelse(adresse = STAT_ADRESSE, navn = "STAT_ADRESSE") {
   if (!adresse) return "";
   const u = new URL(adresse);
   const lokal = u.protocol === "http:" && /^(localhost|127\.0\.0\.1)$/.test(u.hostname);
   if ((u.protocol !== "https:" && !lokal) || u.username || u.password || u.search || u.hash || (u.pathname !== "/" && u.pathname !== "")) {
-    throw new Error(`STAT_ADRESSE må være bare en adresse som https://navn.workers.dev, ikke «${adresse}»`);
+    throw new Error(`${navn} må være bare en adresse som https://navn.workers.dev, ikke «${adresse}»`);
   }
   return u.origin;
 }
 
+// The rooms for playing on the net: the same rules as the statistics address.
+export const nettOpprinnelse = (adresse = process.env.RUSJ_NETT_ADRESSE ?? NETT_ADRESSE) => statOpprinnelse(adresse, "NETT_ADRESSE");
+// connect-src for the rooms: the address and its WebSocket twin (https → wss, http → ws for tests).
+export const nettKilder = (nett) => (nett ? [nett, nett.replace(/^http/, "ws")] : []);
+
 // Content Security Policy: only files from rusj.no itself; no inline scripts. The only outside
-// request ever allowed is to the statistics Worker, and only when STAT_ADRESSE is set.
-export const lagCsp = (stat = statOpprinnelse()) => [
+// requests ever allowed are to the statistics Worker (when STAT_ADRESSE is set) and to the rooms
+// for playing on the net (when NETT_ADRESSE is set).
+export const lagCsp = (stat = statOpprinnelse(), nett = nettOpprinnelse()) => [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  stat ? `connect-src 'self' ${stat}` : "connect-src 'self'",
+  ["connect-src 'self'", ...(stat ? [stat] : []), ...nettKilder(nett)].join(" "),
   "media-src 'self' data: blob:",
   "worker-src 'self'",
   "manifest-src 'self'",
@@ -126,6 +141,7 @@ export function statFil(rot, stat = statOpprinnelse()) {
   return { innhold, sti: "/felles/stat.js?v=" + hashTekst(innhold) };
 }
 const STAT_FIL = statFil(join(dirname(fileURLToPath(import.meta.url)), ".."));
+const NETT = nettOpprinnelse();
 
 export const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
@@ -552,6 +568,9 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
     // 3D dice in a tray (R.terninger): only for games with "terninger": true in spill.json
     terninger: skriv("felles/terninger.js", kilde("rusj/kit/terninger.js")),
     terningerCss: skriv("felles/terninger.css", kilde("rusj/kit/terninger.css")),
+    // Playing on the net (R.nett): only for games with "nett": true, and only with NETT_ADRESSE
+    nett: NETT && skriv("felles/nett.js", `window.RUSJ_NETT=${JSON.stringify(NETT)};\n` + kilde("rusj/kit/nett.js")),
+    nettCss: NETT && skriv("felles/nett.css", kilde("rusj/kit/nett.css")),
     ord: skriv("felles/ord.js", "window.RUSJ_ORD=" + JSON.stringify(ordData).replace(/</g, "\\u003c") + ";"),
     // t() for the front page and the pages about rusj (the kit has its own copy)
     tekst: skriv("felles/tekst.js", kilde("rusj/kit/tekst.js")),
@@ -758,14 +777,16 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
       const dataJs =
         "window.RUSJ_SPILL=" + JSON.stringify(meta) + ";\nwindow.RUSJ_ANDRE=" + somData(andre) + ";\nwindow.RUSJ_DATA=" + somData(data) + ";\n" + (spillTabell ? "window.RUSJ_TEKST_SPILL=" + somData(spillTabell) + ";\n" : "");
       const dataSti = skriv(`${mappe}data.js`, dataJs);
-      const css = [felles.css, ...(m.terninger ? [felles.terningerCss] : []), ...(spillCss ? [spillCss] : [])];
+      const paNett = !!(m.nett && felles.nett);
+      const css = [felles.css, ...(m.terninger ? [felles.terningerCss] : []), ...(paNett ? [felles.nettCss] : []), ...(spillCss ? [spillCss] : [])];
       const ikon = skriv(`${mappe}ikon.svg`, ikonSvg(G, id, U.sprak === "nb" ? undefined : U.sprak));
       const egenDeling = U.sprak === "nb" ? `deling-${id}.png` : `deling-${id}.${U.sprak}.png`;
       const deling = existsSync(join(BILDER, egenDeling)) ? kopier(join(BILDER, egenDeling), `${mappe}deling.png`) : deling0;
 
       const skript = [...forTekst(U), felles.gjengen, U.merkerJs, felles.js];
-      if (m.qr) skript.push(felles.qr);
+      if (m.qr || paNett) skript.push(felles.qr); // the invite sheet has a QR code
       if (m.terninger) skript.push(felles.terninger);
+      if (paNett) skript.push(felles.nett); // after the kit, before the game: it wraps Rusj.start
       if (m.ordbank && ordFor[U.sprak]) skript.push(ordFor[U.sprak].fil);
       skript.push(dataSti, jsSti);
 
