@@ -18,7 +18,7 @@ export const DOMENE = "https://rusj.no";
 export const OMDOPT = { besserwisseren: "bedreviteren" };
 
 // Addresses that are pages of their own (or folders the build fills): an alias may never take one.
-export const FASTE_STIER = ["om", "personvern", "merker", "felles", "luringen", "404", "index", "sitemap", "robots", "manifest", "favicon", "sw", "admin"];
+export const FASTE_STIER = ["om", "personvern", "merker", "felles", "luringen", "404", "index", "sitemap", "robots", "manifest", "favicon", "sw", "admin", "lab"];
 
 // Alias addresses (`alias` in spill.json): /jeg-har-aldri/ → /sladrehanken/. Easy to say and type
 // at a party, and spelled the way people search. Returns Map(alias → game id) and stops the build
@@ -1571,6 +1571,14 @@ ${album}
 
   // ---------- /admin/: on to the owner's numbers (only with the statistics switched on) ----------
   if (STAT_FIL) for (const forran of ["", ...SPRAK.map((s) => s + "/")]) skriv(`${forran}admin/index.html`, adminVideresending());
+
+  // ---------- /lab/baklengs/: the owner's test of recording a word and playing it backwards ----------
+  // Under the same Content-Security-Policy as the games, so the test tells the truth. Not linked,
+  // not indexed, not in the sitemap or the offline list. The recording never leaves the phone.
+  if (existsSync(join(ROT, "rusj/lab/baklengs.html"))) {
+    const skript = kopier(join(ROT, "rusj/lab/baklengs.js"), "lab/baklengs/baklengs.js");
+    skriv("lab/baklengs/index.html", kilde("rusj/lab/baklengs.html").replace("%CSP%", CSP).replace("%SKRIPT%", skript));
+  }
 
   // ---------- Manifest (one per edition), favicon, robots, sitemap ----------
   // Shortcuts (long press on the app icon): the three daily puzzles and «Overrask meg». Only games

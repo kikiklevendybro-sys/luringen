@@ -112,6 +112,20 @@ test("/admin/ sends the owner on to the statistics Worker: no script, not indexe
   }
 });
 
+test("/lab/baklengs/ is the owner's hidden microphone test: the games' CSP, not indexed, in no list, sends nothing", () => {
+  assert.ok(FASTE_STIER.includes("lab"), "no alias can take /lab/");
+  const html = readFileSync(join(WEB, "lab/baklengs/index.html"), "utf8");
+  const js = readFileSync(join(WEB, "lab/baklengs/baklengs.js"), "utf8");
+  assert.match(html, /<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self';/);
+  assert.match(html, /<meta name="robots" content="noindex, nofollow">/);
+  assert.match(html, /<script src="\/lab\/baklengs\/baklengs\.js\?v=[\w-]+" defer><\/script>/);
+  assert.ok(!/%CSP%|%SKRIPT%/.test(html), "a placeholder is left in the page");
+  // The recording lives in the page's memory only: nothing that sends or stores.
+  assert.ok(!/fetch\(|XMLHttpRequest|sendBeacon|WebSocket|localStorage|sessionStorage|indexedDB|document\.cookie/.test(js), "the test page sends or stores something");
+  assert.ok(!readFileSync(join(WEB, "sitemap.xml"), "utf8").includes("/lab/"), "/lab/ is in sitemap.xml");
+  assert.ok(!readFileSync(join(WEB, "sw.js"), "utf8").includes('"/lab/'), "/lab/ is in the offline list");
+});
+
 test("the privacy page names the new kinds of anonymous counting in every edition", () => {
   if (!statOpprinnelse()) return;
   const sider = { "personvern/index.html": ["Også telles, som summer per dag:", "søkemotor", "mobil, et nettbrett eller en PC", "julekalenderen", "aldri adressen du kom fra"], "en/privacy/index.html": ["Also counted, as daily totals:", "search engine", "never the address you came from"], "da/privatliv/index.html": ["Desuden tælles, som summer pr. dag:", "søgemaskine", "aldrig adressen, du kom fra"] };

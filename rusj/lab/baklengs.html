@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="%CSP%">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Baklengs – test | rusj</title>
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;background:#150c28;color:#fff1dd;font:1.05rem/1.45 ui-rounded,"SF Pro Rounded",system-ui,sans-serif}
+  main{max-width:30rem;margin:0 auto;padding:1.2rem 1rem 3rem}
+  h1{font-size:1.9rem;margin:.2rem 0 .6rem}
+  h1 small{font-size:.9rem;background:#ff4f8b;color:#170e2b;border-radius:99px;padding:.15rem .7rem;vertical-align:middle}
+  h2{font-size:1.15rem;margin:0 0 .6rem;color:#3de3b0}
+  section{background:#21143d;border-radius:1.1rem;padding:1rem;margin:0 0 .9rem}
+  .info{color:#cdbce9;font-size:.95rem;margin:.2rem 0 .9rem}
+  .ord{font-size:2rem;font-weight:900;margin:.1rem 0 .5rem;color:#ffd23f}
+  button{font:inherit;font-weight:800;border:0;border-radius:99px;padding:.8rem 1.2rem;margin:.25rem .3rem .25rem 0;background:#ffd23f;color:#170e2b;touch-action:manipulation}
+  button.stor{display:block;width:100%;font-size:1.25rem;padding:1rem;margin:.5rem 0 0;background:#3de3b0}
+  button.stor.pa{background:#ff4f8b}
+  button.liten{background:#3b3054;color:#fff1dd;font-weight:700;padding:.5rem 1rem}
+  button:disabled{opacity:.35}
+  .maler{height:.7rem;background:#150c28;border-radius:99px;margin:.7rem 0 0;overflow:hidden}
+  #niva{height:100%;width:0;background:#3de3b0;border-radius:99px}
+  .varsel{background:#ff4f8b;color:#170e2b;font-weight:700;border-radius:1rem;padding:.8rem 1rem}
+  textarea{width:100%;box-sizing:border-box;background:#150c28;color:#cdbce9;border:1px solid #3b3054;border-radius:.7rem;font:.8rem/1.35 ui-monospace,monospace;padding:.6rem}
+</style>
+<script src="%SKRIPT%" defer></script>
+</head>
+<body>
+<main>
+  <h1>Baklengs <small>test</small></h1>
+  <p class="info">Lyden blir på telefonen din. Den sendes ingen steder og er borte når du lukker siden.</p>
+  <p id="sperret" class="varsel" hidden>Denne nettleseren gir ikke tilgang til mikrofonen. Åpne siden i Safari eller Chrome.</p>
+  <p id="nektet" class="varsel" hidden>Mikrofonen ble ikke tillatt. Trykk «Tillat» når telefonen spør, eller slå den på i innstillingene for nettleseren.</p>
+  <p id="stille" class="varsel" hidden>Jeg hørte ingenting. Hold telefonen nærmere munnen og prøv igjen.</p>
+  <section>
+    <h2>1. Si ordet</h2>
+    <p class="ord" id="ord"></p>
+    <button id="nytt" class="liten" type="button">Nytt ord</button>
+    <button id="ta1" class="stor" type="button">Ta opp</button>
+    <div class="maler"><div id="niva"></div></div>
+  </section>
+  <section>
+    <h2>2. Hør det baklengs</h2>
+    <button id="bak1" type="button" disabled>Spill baklengs</button>
+    <button id="sakte1" type="button" disabled>Baklengs, sakte</button>
+    <button id="rett1" type="button" disabled>Spill vanlig</button>
+  </section>
+  <section>
+    <h2>3. Herm etter det du hørte</h2>
+    <button id="ta2" class="stor" type="button" disabled>Ta opp</button>
+  </section>
+  <section>
+    <h2>4. Fasit</h2>
+    <button id="bak2" type="button" disabled>Spill hermingen baklengs</button>
+    <button id="rett2" type="button" disabled>Spill hermingen vanlig</button>
+  </section>
+  <p class="info">Hører du ingenting på iPhone? Sjekk at lydløs-bryteren er av og at volumet er oppe.</p>
+  <section>
+    <h2>Rapport</h2>
+    <p class="info">Kopier dette og lim det inn i samtalen etter testen.</p>
+    <textarea id="rapport" readonly rows="10"></textarea>
+    <button id="kopier" class="liten" type="button">Kopier rapport</button>
+  </section>
+</main>
+</body>
+</html>
