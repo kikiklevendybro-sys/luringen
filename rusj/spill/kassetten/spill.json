@@ -1,0 +1,33 @@
+{
+  "id": "kassetten",
+  "navn": "Kassetten",
+  "undertittel": "Si det baklengs",
+  "beskrivelse": "Gratis baklengs-lek på mobilen: si et ord, hør det baklengs, og la neste herme. Spilles hermingen baklengs – blir det ordet igjen?",
+  "kort": "Si et ord, hør det baklengs – og herm så godt du kan!",
+  "spillere": [2, 20],
+  "alder": 7,
+  "minutter": [10, 30],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "ord", "barn"],
+  "rekkefolge": 105,
+  "sok": ["baklengs", "si det baklengs", "baklengs ord", "snakke baklengs", "baklengs utfordring", "reverse challenge"],
+  "alias": ["baklengs"],
+  "i18n": {
+    "en": {
+      "navn": "Rewind",
+      "undertittel": "Say it backwards",
+      "kort": "Say a word, hear it backwards – then copy it as best you can!",
+      "beskrivelse": "The free backwards challenge on your phone: say a word, hear it reversed, and let the next player copy it. Play the copy backwards – is it the word again?",
+      "slug": "rewind",
+      "sok": ["backwards challenge", "reverse audio challenge", "say it backwards", "talking backwards game", "reverse singing challenge", "party games for kids"]
+    },
+    "da": {
+      "navn": "Kassetten",
+      "undertittel": "Sig det baglæns",
+      "kort": "Sig et ord, hør det baglæns – og efterlign det så godt du kan!",
+      "beskrivelse": "Gratis baglæns-leg på mobilen: sig et ord, hør det baglæns, og lad den næste efterligne det. Spil efterligningen baglæns – bliver det ordet igen?",
+      "slug": "kassetten",
+      "sok": ["baglæns", "sig det baglæns", "baglæns udfordring", "tale baglæns", "reverse challenge", "selskabslege"]
+    }
+  }
+}

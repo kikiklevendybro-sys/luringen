@@ -126,6 +126,16 @@ test("/lab/baklengs/ is the owner's hidden microphone test: the games' CSP, not 
   assert.ok(!readFileSync(join(WEB, "sw.js"), "utf8").includes('"/lab/'), "/lab/ is in the offline list");
 });
 
+test("Kassetten keeps the recording in memory: its own script never sends or stores anything", () => {
+  const js = readFileSync(join(ROT, "rusj/spill/kassetten/spill.js"), "utf8");
+  assert.ok(!/fetch\(|XMLHttpRequest|sendBeacon|WebSocket|EventSource|localStorage|sessionStorage|indexedDB|caches\.|document\.cookie|MediaRecorder|createObjectURL/.test(js), "Kassetten's script sends or stores something");
+  assert.match(js, /getUserMedia/);
+  // The sound is kept outside the saved state (S), so R.lagre() can never write it.
+  assert.ok(!/S\.spill\.[\w.]*=\s*(buf|lyd|ren|raa)\b|sp\.[\w.]*=\s*(buf|lyd\.|ren|raa)\b/.test(js), "a recording is put in the saved state");
+  const pv = readFileSync(join(WEB, "personvern/index.html"), "utf8");
+  assert.match(pv, /id="pv-mikrofon"/);
+});
+
 test("the privacy page names the new kinds of anonymous counting in every edition", () => {
   if (!statOpprinnelse()) return;
   const sider = { "personvern/index.html": ["Også telles, som summer per dag:", "søkemotor", "mobil, et nettbrett eller en PC", "julekalenderen", "aldri adressen du kom fra"], "en/privacy/index.html": ["Also counted, as daily totals:", "search engine", "never the address you came from"], "da/privatliv/index.html": ["Desuden tælles, som summer pr. dag:", "søgemaskine", "aldrig adressen, du kom fra"] };

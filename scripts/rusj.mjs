@@ -1271,7 +1271,7 @@ ${bunn(U, false, (V) => V.forside)}
   }
 
   // ---------- Pages about rusj: /personvern/ and /om/ (in every edition) ----------
-  const SIDER_OPPDATERT = "2026-11-15";
+  const SIDER_OPPDATERT = "2026-11-16";
   const merkebokJs = skriv("felles/merkebok.js", kilde("rusj/portal/merkebok.js"));
   const datoTekst = (iso, U) =>
     U.sprak === "nb"
@@ -1360,6 +1360,11 @@ ${bunn(U, true, o.finn)}
     </ul>
     <p>${esc(t("Alt dette ligger bare i denne nettleseren på denne enheten."))} ${esc(STAT_FIL ? t("Ingenting av det sendes til oss, og vi kan ikke se det.") : t("Vi har ingen server som tar imot det, og vi kan ikke se det."))}</p>
   </section>${STAT_FIL ? pvTelling : ""}${NETT ? pvSpillNett : ""}
+
+  <section aria-labelledby="pv-mikrofon">
+    <h2 id="pv-mikrofon">${esc(t("Mikrofonen"))}</h2>
+    <p>${esc(t("Noen spill, som Kassetten, tar opp stemmen din et lite øyeblikk. Mobilen spør om lov først, og bare når du trykker «Ta opp». Opptaket ligger bare i minnet på mobilen mens turen varer, og slettes etter turen og når du lukker siden. Det lagres aldri og sendes ingen steder – heller ikke til oss."))}</p>
+  </section>
 
   <section aria-labelledby="pv-nett">
     <h2 id="pv-nett">${esc(t("Spillene lastes ned for bruk uten nett"))}</h2>

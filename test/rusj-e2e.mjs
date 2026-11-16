@@ -575,7 +575,7 @@ for (const id of valgt) {
   mkdirSync(mappe, { recursive: true });
   // A desktop is no phone: no touch emulation, and pixel ratio 1 (at 2 headless Chrome never
   // finishes a 1280 px wide screenshot of the front page).
-  const c0 = await startChrome({ bredde: BREDDE, hoyde: HOYDE, ...(BREDDE >= 1000 ? { skala: 1, mobil: false } : {}) });
+  const c0 = await startChrome({ bredde: BREDDE, hoyde: HOYDE, mikrofon: true, ...(BREDDE >= 1000 ? { skala: 1, mobil: false } : {}) });
   // With --a11y the same helpers, with clicks and gestures observed.
   const a11y = lagA11y ? await lagA11y(c0, { id, axMappe: join(A11Y_MAPPE, "ax", id) }) : null;
   const c = a11y ? a11y.chrome : c0;

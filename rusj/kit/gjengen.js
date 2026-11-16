@@ -2100,6 +2100,23 @@
         ${form("M10 14 H26 Q33 14 33 21 Q33 28 26 28 H17 L10 35 L11 28 H10 Q3 28 3 21 Q3 14 10 14Z", LAMPE, 3.2)}
         <circle cx="11" cy="21" r="2.2" fill="${B}"/><circle cx="18" cy="21" r="2.2" fill="${B}"/><circle cx="25" cy="21" r="2.2" fill="${B}"/>`,
     },
+
+
+    // Kassetten (say it backwards): a cassette tape with a face; its reels spin backwards while
+    // the sound plays (class ka-spole, used by the game's own CSS).
+    kassetten: {
+      farge: "#ff8a3d",
+      tegn: (f) => `
+        ${form("M10 30 Q10 20 20 20 L100 20 Q110 20 110 30 L110 100 Q110 110 100 110 L20 110 Q10 110 10 100Z", f, 5)}
+        ${form("M24 32 L96 32 L96 66 L24 66Z", P, 4)}
+        ${form("M32 110 L40 90 L80 90 L88 110Z", B, 3)}
+        <g class="ka-spole">${form("M30 49 m-11 0 a11 11 0 1 0 22 0 a11 11 0 1 0 -22 0", "#fff1dd", 4)}${strek("M30 41 L30 57 M22 49 L38 49", 3)}</g>
+        <g class="ka-spole">${form("M90 49 m-11 0 a11 11 0 1 0 22 0 a11 11 0 1 0 -22 0", "#fff1dd", 4)}${strek("M90 41 L90 57 M82 49 L98 49", 3)}</g>
+        ${form("M44 44 Q60 38 76 44 L76 56 Q60 62 44 56Z", B, 2)}
+        ${oyne({ y: 80, x1: 44, x2: 76, r: 7 })}
+        ${strek("M50 96 Q60 103 70 96", 4, P)}
+        ${form("M96 10 L108 3 L108 17Z", LAMPE, 3)}${form("M108 10 L120 3 L120 17Z", LAMPE, 3)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on

@@ -1,0 +1,223 @@
+/* Kassetten — the word card, the record button with its level meter, the spinning tape and the
+   verdict. Everything is prefixed ka-. */
+
+.ka-hvem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.ka-hvem small {
+  display: block;
+  color: var(--papir-2);
+  opacity: 0.8;
+}
+
+.ka-hvem b,
+.ka-hvem h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+/* ---------- The secret word ---------- */
+
+.ka-ordkort {
+  background: var(--papir);
+  color: var(--blekk);
+  border-radius: 22px;
+  padding: 18px 16px 12px;
+  text-align: center;
+  box-shadow: 0 6px 0 var(--papir-2);
+  margin: 0 0 16px;
+}
+
+.ka-ordkort small {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.ka-ordkort h1 {
+  font-size: clamp(2rem, 11vw, 3.2rem);
+  line-height: 1.05;
+  margin: 6px 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.ka-ordkort.lang h1 {
+  font-size: clamp(1.5rem, 7.5vw, 2.3rem);
+}
+
+.ka-ordkort .ka-bytt {
+  color: var(--blekk-2);
+}
+
+/* ---------- Recording ---------- */
+
+.ka-opptak {
+  width: 100%;
+}
+
+.ka-opptak .knapp {
+  width: 100%;
+}
+
+.ka-opptak .knapp.ka-pa {
+  animation: ka-puls 1s ease-in-out infinite;
+}
+
+@keyframes ka-puls {
+  50% {
+    transform: scale(1.03);
+    filter: brightness(1.15);
+  }
+}
+
+.ka-maler {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--natt-3);
+  overflow: hidden;
+  margin: 8px 0 2px;
+}
+
+#ka-niva {
+  height: 100%;
+  width: 0;
+  background: var(--mynte);
+  border-radius: 99px;
+  transition: width 0.08s linear;
+}
+
+.ka-varsel {
+  background: var(--rosa);
+  color: var(--blekk);
+  font-weight: 700;
+  border-radius: 16px;
+  padding: 10px 14px;
+  margin: 0 0 12px;
+}
+
+.ka-personvern {
+  margin-top: 4px;
+}
+
+/* ---------- The tape ---------- */
+
+.ka-spill {
+  text-align: center;
+  margin: 0 0 12px;
+}
+
+.ka-kassett {
+  width: 120px;
+  margin: 0 auto 6px;
+}
+
+.ka-kassett.spoler .ka-spole {
+  animation: ka-spol 1.4s linear infinite reverse;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes ka-spol {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ka-knapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.ka-knapper > .knapp {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.ka-fasit .etikett {
+  margin: 0;
+}
+
+.ka-fasit h1 {
+  margin: 2px 0 8px;
+  font-size: clamp(1.7rem, 8vw, 2.6rem);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Verdict and points ---------- */
+
+.ka-sporsmal {
+  text-align: center;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.ka-dom {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ka-dom .knapp {
+  padding-inline: 4px;
+}
+
+.ka-resultat {
+  text-align: center;
+}
+
+.ka-resultat h1 {
+  font-size: 1.5rem;
+}
+
+.ka-var {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--lampe);
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+
+.ka-treff {
+  text-align: center;
+  color: var(--papir-2);
+}
+
+.ka-vinner,
+.ka-delt {
+  position: relative;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.ka-krone {
+  position: absolute;
+  top: -18px;
+  right: -14px;
+  font-size: 2rem;
+}
+
+/* Phones on their side: no room for the tape picture above the buttons. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .ka-kassett {
+    display: none;
+  }
+
+  .ka-ordkort {
+    padding-block: 10px 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ka-opptak .knapp.ka-pa,
+  .ka-kassett.spoler .ka-spole {
+    animation: none;
+  }
+}

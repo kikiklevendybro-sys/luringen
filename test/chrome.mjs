@@ -40,13 +40,16 @@ export async function startTjener(rot) {
 }
 
 export async function startChrome(valg = {}) {
-  const { bredde = 390, hoyde = 844, skala = 2, mobil = true, gjennomsiktig = false } = valg;
+  const { bredde = 390, hoyde = 844, skala = 2, mobil = true, gjennomsiktig = false, mikrofon = false } = valg;
+  // mikrofon: a fake microphone (a test tone) that is allowed without asking, for games that record;
+  // the test's scripted taps are not user gestures, so sound may also start without one.
+  const mik = mikrofon ? ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", "--autoplay-policy=no-user-gesture-required"] : [];
   // Port 0: Chrome picks a free port and writes it to DevToolsActivePort in its profile, so
   // parallel test runs can never end up talking to each other's browser.
   const profil = mkdtempSync(join(tmpdir(), "rusj-chrome-"));
   const prosess = spawn(
     CHROME,
-    ["--headless=new", "--remote-debugging-port=0", `--user-data-dir=${profil}`, "--no-first-run", "--no-default-browser-check", "--hide-scrollbars", "--mute-audio", "--allow-file-access-from-files", "about:blank"],
+    ["--headless=new", "--remote-debugging-port=0", `--user-data-dir=${profil}`, "--no-first-run", "--no-default-browser-check", "--hide-scrollbars", "--mute-audio", "--allow-file-access-from-files", ...mik, "about:blank"],
     { stdio: "ignore" },
   );
   let port = null;
