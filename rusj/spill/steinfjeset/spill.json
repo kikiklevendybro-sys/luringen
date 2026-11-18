@@ -1,0 +1,34 @@
+{
+  "id": "steinfjeset",
+  "navn": "Steinfjeset",
+  "undertittel": "Ikke le!",
+  "beskrivelse": "Gratis ikke-le-lek på mobilen: klovnen får en tullete oppgave, steinfjeset må holde maska. Lo hen? 88 oppgaver for barn, familie og fest.",
+  "kort": "Klovnen tuller – steinfjeset må holde maska!",
+  "spillere": [2, 12],
+  "alder": 6,
+  "minutter": [5, 25],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "barn"],
+  "rekkefolge": 107,
+  "farge": "#a7b6c6",
+  "sok": ["ikke le", "ikke le-leken", "prøv å ikke le", "holde maska", "pokerfjes", "steinansikt", "try not to laugh"],
+  "alias": ["ikke-le"],
+  "i18n": {
+    "en": {
+      "navn": "Stone Face",
+      "undertittel": "Don’t laugh!",
+      "kort": "The clown gets silly – the stone face mustn’t crack!",
+      "beskrivelse": "The free try-not-to-laugh game on your phone: the clown gets a silly task, the stone face must keep a straight face. 88 tasks for kids, family and parties.",
+      "slug": "stone-face",
+      "sok": ["try not to laugh", "don't laugh game", "straight face game", "poker face", "keep a straight face", "party games for kids"]
+    },
+    "da": {
+      "navn": "Stenansigtet",
+      "undertittel": "Lad være med at grine!",
+      "kort": "Klovnen fjoller – stenansigtet skal holde masken!",
+      "beskrivelse": "Gratis lad-være-med-at-grine-leg på mobilen: klovnen får en fjollet opgave, stenansigtet skal holde masken. 88 opgaver til børn, familie og fest.",
+      "slug": "stenansigtet",
+      "sok": ["lad være med at grine", "prøv ikke at grine", "holde masken", "pokerfjæs", "try not to laugh", "selskabslege"]
+    }
+  }
+}

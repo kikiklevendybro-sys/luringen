@@ -1,0 +1,517 @@
+/* Steinfjeset — game styles (prefix sf-) */
+
+/* ---------- Setup ---------- */
+
+.sf-to {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.sf-to .seg button {
+  padding-inline: 4px;
+}
+
+/* ---------- The two players, face to face ---------- */
+
+.sf-duell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.sf-spiller {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  text-align: center;
+}
+
+.sf-spiller b {
+  max-width: 100%;
+  margin-top: 6px;
+  font: 900 clamp(1.15rem, 5.6vw, 1.5rem) / 1.1 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.sf-spiller small {
+  color: var(--tekst-3);
+  font: 800 0.72rem/1.2 var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sf-avatar {
+  position: relative;
+  display: inline-block;
+}
+
+.sf-merke {
+  position: absolute;
+  right: -10px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--papir);
+  box-shadow: 0 3px 0 var(--papir-2);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.sf-mot {
+  color: var(--aksent);
+  font: 900 1.5rem/1 var(--font-display);
+  transform: rotate(-6deg);
+}
+
+.sf-duell.liten {
+  margin: 0;
+  gap: 4px;
+}
+
+.sf-duell.liten b {
+  margin-top: 4px;
+  font-size: clamp(0.95rem, 4.4vw, 1.15rem);
+}
+
+.sf-duell.liten .sf-merke {
+  right: -8px;
+  bottom: -4px;
+  width: 26px;
+  height: 26px;
+  font-size: 0.95rem;
+}
+
+.sf-duell.liten .sf-mot {
+  font-size: 1.1rem;
+}
+
+.sf-tett {
+  margin: 0;
+  text-align: center;
+}
+
+/* The hold-card shares the screen with the pair: a bit lower than the kit's default */
+.skjerm-par .mappe {
+  height: min(40vh, 340px);
+  min-height: 230px;
+}
+
+.skjerm-par .mappe .figur-ramme {
+  max-height: 34%;
+}
+
+/* The back of the hold-card: the task, big */
+.sf-bak {
+  display: grid;
+  gap: 8px;
+  padding: 0 14px;
+  text-align: center;
+}
+
+.sf-bak small {
+  color: var(--blekk-2);
+  font: 800 0.78rem/1.2 var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sf-bak .kort-ord {
+  font-size: clamp(1.35rem, 6vw, 1.85rem);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- The duel ---------- */
+
+.skjerm-spill {
+  gap: 12px;
+}
+
+.sf-duell .timer {
+  padding: 0;
+  background: none;
+}
+
+.sf-duell .timer-ring {
+  width: 92px;
+  height: 92px;
+}
+
+.sf-duell .timer-tid {
+  font-size: 2rem;
+}
+
+/* The task card takes the room between the sign and the buttons. */
+.sf-kortplass {
+  display: grid;
+  flex: 1 1 auto;
+  align-content: center;
+}
+
+.sf-kortplass .bunke {
+  min-height: min(34vh, 280px);
+}
+
+.sf-kortplass.pauset .bunke {
+  opacity: 0.5;
+}
+
+.sf-skilt {
+  align-self: center;
+  margin: 0;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: var(--rod);
+  box-shadow: 0 4px 0 var(--rod-dyp, #b8322a);
+  color: var(--papir);
+  font: 900 1.05rem/1.1 var(--font-display);
+  letter-spacing: 0.04em;
+  text-align: center;
+  transform: rotate(-2deg);
+}
+
+.sf-skilt.pause {
+  background: var(--lampe);
+  box-shadow: 0 4px 0 var(--lampe-dyp);
+  color: var(--blekk);
+}
+
+.sf-kort {
+  --kf: var(--papir);
+}
+
+.bunke.kompakt .sf-kort .storkort-tekst {
+  margin: auto 0;
+  padding-bottom: 10px;
+  font-size: clamp(1.45rem, 6.6vw, 2rem);
+}
+
+.sf-knapper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.sf-knapper .knapp {
+  min-height: 66px;
+  padding-inline: 10px;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- The verdict ---------- */
+
+.sf-knakk,
+.sf-holdt {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.sf-knakk h1,
+.sf-holdt h1 {
+  font-size: clamp(1.6rem, 7.6vw, 2.2rem);
+  overflow-wrap: anywhere;
+}
+
+.sf-knakk .ingress,
+.sf-holdt .ingress {
+  margin: 0;
+}
+
+.sf-stein {
+  position: relative;
+  width: 140px;
+  margin: 18px 0 0 -70px;
+  animation: sf-rist 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.sf-stein .figur-ramme {
+  display: block;
+  width: 100%;
+}
+
+@keyframes sf-rist {
+  0% {
+    transform: scale(0.7);
+  }
+  20% {
+    transform: rotate(-7deg) scale(1.08);
+  }
+  40% {
+    transform: rotate(6deg);
+  }
+  60% {
+    transform: rotate(-4deg);
+  }
+  80% {
+    transform: rotate(2deg);
+  }
+}
+
+.sf-boble {
+  position: absolute;
+  top: -10px;
+  left: 110px;
+  width: max-content;
+  max-width: 44vw;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 1.2rem/1.15 var(--font-display);
+  text-align: left;
+  transform: rotate(4deg);
+  animation: sf-boble 0.45s 0.25s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.sf-boble::before {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  left: -12px;
+  border: 8px solid transparent;
+  border-right: 14px solid var(--papir);
+  border-left: 0;
+}
+
+@keyframes sf-boble {
+  from {
+    opacity: 0;
+    transform: rotate(4deg) scale(0.4);
+  }
+}
+
+.sf-holdt .stempel-sted {
+  min-height: 62px;
+}
+
+.sf-holdt .stempel {
+  font-size: clamp(1.6rem, 8vw, 2.2rem);
+}
+
+.sf-vinnere {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.sf-vinnere .avatar.gigant {
+  width: 104px;
+  height: 104px;
+  font-size: 3.3rem;
+}
+
+/* ---------- The end ---------- */
+
+.sf-vinner {
+  position: relative;
+  display: inline-block;
+}
+
+.sf-krone {
+  position: absolute;
+  top: -18px;
+  right: -16px;
+  font-size: 2.6rem;
+  transform: rotate(12deg);
+  animation: sveve 3s ease-in-out infinite;
+}
+
+.sf-delt {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.sf-delt-banner h1 {
+  font-size: clamp(1.8rem, 8vw, 2.4rem);
+  overflow-wrap: anywhere;
+}
+
+.sf-priser {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sf-priser li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.sf-pris-ikon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--papir);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.sf-priser span:last-child {
+  min-width: 0;
+}
+
+.sf-priser b {
+  display: block;
+  font: 900 1.02rem/1.2 var(--font-display);
+}
+
+.sf-priser small {
+  display: block;
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Short screens ---------- */
+
+@media (max-height: 700px) {
+  .skjerm-par .mappe {
+    height: min(36vh, 240px);
+    min-height: 180px;
+  }
+  .sf-duell .avatar.stor {
+    width: 56px;
+    height: 56px;
+    font-size: 1.8rem;
+  }
+  .sf-duell .timer-ring {
+    width: 76px;
+    height: 76px;
+  }
+  .sf-duell .timer-tid {
+    font-size: 1.7rem;
+  }
+  .sf-kortplass .bunke {
+    min-height: 0;
+  }
+  .sf-stein {
+    width: 108px;
+    margin-top: 10px;
+  }
+  .sf-boble {
+    left: 86px;
+  }
+  .sf-vinnere .avatar.gigant {
+    width: 80px;
+    height: 80px;
+    font-size: 2.6rem;
+  }
+  .sf-knapper .knapp {
+    min-height: 56px;
+  }
+  .bunke.kompakt .sf-kort .storkort-tekst {
+    font-size: clamp(1.25rem, 5.8vw, 1.7rem);
+  }
+}
+
+@media (max-width: 359px) {
+  .sf-to {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Landscape phones ---------- */
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .sf-duell .avatar.stor,
+  .sf-duell .avatar.mid {
+    width: 44px;
+    height: 44px;
+    font-size: 1.4rem;
+  }
+  .sf-spiller b {
+    font-size: 1.05rem;
+  }
+  .sf-duell .timer-ring {
+    width: 64px;
+    height: 64px;
+  }
+  .sf-duell .timer-tid {
+    font-size: 1.45rem;
+  }
+  .sf-stein {
+    width: 84px;
+    margin-top: 6px;
+  }
+  .sf-boble {
+    left: 70px;
+    font-size: 1rem;
+  }
+  .sf-vinnere .avatar.gigant {
+    width: 64px;
+    height: 64px;
+    font-size: 2rem;
+  }
+  .sf-knakk h1,
+  .sf-holdt h1 {
+    font-size: 1.5rem;
+  }
+  .sf-holdt .stempel-sted {
+    min-height: 44px;
+  }
+}
+
+/* The smallest phones: the pair, the line and the card must all fit above the dock */
+@media (max-height: 600px) {
+  .skjerm-par .fremdrift {
+    display: none;
+  }
+  .skjerm-par .sf-duell .avatar.stor {
+    width: 44px;
+    height: 44px;
+    font-size: 1.4rem;
+  }
+  .skjerm-par .sf-merke {
+    width: 26px;
+    height: 26px;
+    font-size: 0.95rem;
+  }
+  .skjerm-par .sf-spiller b {
+    font-size: 1.05rem;
+  }
+  .skjerm-par .sf-tett {
+    font-size: 0.9rem;
+  }
+  .skjerm-par .mappe {
+    height: 168px;
+    min-height: 150px;
+  }
+  .skjerm-par .mappe .figur-ramme {
+    display: none;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .skjerm-par .fremdrift {
+    display: none;
+  }
+  .skjerm-par .sf-duell {
+    margin: 0;
+  }
+  .skjerm-par .mappe {
+    height: 190px;
+    min-height: 170px;
+  }
+}
