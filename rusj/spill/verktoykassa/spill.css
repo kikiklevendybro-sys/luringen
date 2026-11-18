@@ -130,6 +130,7 @@ html[lang="da"] .vk-topp h1 {
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--vf) 42%, var(--strek));
   color: var(--tekst);
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -137,7 +138,7 @@ html[lang="da"] .vk-topp h1 {
   transform: scale(0.97);
 }
 
-.vk-flis:last-child {
+.vk-flis:last-child:nth-child(odd) {
   grid-column: span 2;
 }
 
@@ -169,14 +170,14 @@ html[lang="da"] .vk-topp h1 {
 
 /* Narrower phones: icon on top, so the names keep whole words (the wide last tile stays as it is) */
 @media (max-width: 389px) {
-  .vk-flis:not(:last-child) {
+  .vk-flis:not(:last-child:nth-child(odd)) {
     grid-template-columns: minmax(0, 1fr);
     align-content: start;
     row-gap: 3px;
     padding: 11px 12px 12px;
   }
 
-  .vk-flis:not(:last-child) .vk-flis-ikon {
+  .vk-flis:not(:last-child:nth-child(odd)) .vk-flis-ikon {
     grid-row: auto;
     width: 38px;
     height: 38px;
@@ -185,8 +186,8 @@ html[lang="da"] .vk-topp h1 {
     font-size: 1.25rem;
   }
 
-  .vk-flis:not(:last-child) b,
-  .vk-flis:not(:last-child) span:last-child {
+  .vk-flis:not(:last-child:nth-child(odd)) b,
+  .vk-flis:not(:last-child:nth-child(odd)) span:last-child {
     align-self: auto;
   }
 }

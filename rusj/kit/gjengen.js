@@ -473,7 +473,7 @@
         ${/* the game's own tiles: solid mint = right place, yellow ring = elsewhere */ ""}${flis(35, 101, ordFor(v, "ugle")[0], MYNT, -9)}<rect x="49" y="92" width="22" height="22" rx="4.5" fill="#2a1a4a" stroke="${B}" stroke-width="4"/><circle cx="60" cy="103" r="7.6" fill="none" stroke="${LAMPE}" stroke-width="2.6"/>${tekst(60, 107.2, ordFor(v, "ugle")[1], 11.5, "#fff1dd")}${flis(85, 101, ordFor(v, "ugle")[2], MYNT, 9)}`,
     },
 
-    // Nissen (Secret Santa): a Norwegian nisse, red cap and grey beard.
+    // Nissen (the almond in the porridge): a Norwegian nisse, red cap and grey beard.
     nissen: {
       farge: "#f2545b",
       tegn: (f) => {
@@ -492,6 +492,24 @@
           ${form("M8 42 Q60 20 112 42 L112 52 Q60 30 8 52Z", "#d8404d", 4)}
           <circle cx="117" cy="60" r="8" fill="#f4f1f8" stroke="${B}" stroke-width="4"/>`;
       },
+    },
+
+    // Nissetrekning (Secret Santa draw): a wrapped present with a face, wearing a nisse cap, a
+    // name tag hanging from its ribbon.
+    nissetrekning: {
+      farge: "#3fbf7f",
+      tegn: (f) => `
+        ${form("M14 40 L106 40 L106 112 Q106 116 102 116 L18 116 Q14 116 14 112Z", f, 5)}
+        ${form("M52 40 L68 40 L68 116 L52 116Z", "#e8384f", 3.5)}
+        ${form("M14 62 L106 62 L106 74 L14 74Z", "#e8384f", 3.5)}
+        ${oyne({ y: 92, x1: 34, x2: 86, r: 8 })}
+        ${smil(102, 10)}
+        ${form("M18 42 C20 14 48 -2 76 2 C98 5 112 18 116 34 Q104 26 92 22 Q100 30 104 40Z", "#f2545b", 4.5)}
+        ${form("M12 36 Q60 26 110 38 L110 48 Q60 36 12 46Z", "#f4f1f8", 4)}
+        <circle cx="108" cy="16" r="8" fill="#f4f1f8" stroke="${B}" stroke-width="4"/>
+        ${strek("M106 68 Q116 80 110 94", 3, "#e8384f")}
+        ${form("M102 92 L118 90 L119 108 L103 110Z", "#fff1dd", 3.4)}
+        <circle cx="107" cy="97" r="2" fill="${B}"/>`,
     },
 
     // Terninga (Yatzy): a white die-faced head with a red die tumbling past.

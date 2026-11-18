@@ -197,7 +197,7 @@ results» / «Kåringen». «Avslutt» always opens the same sheet: «Quit» / �
 **A – the rules are language-free** (35–100 strings each; converting is wrapping + tables):
 Tallknuseren, Sjakkhesten, Kortkongen, ~~Fireren~~ (done), Bonden, Minesveiperen, Dobleren, Slangen,
 Admiralen, Terninga (Nordic Yatzy: fine for Danish; English players expect other scoring – a rule
-variant), Brikka, Elefanten (picture labels), Skjæra (picture labels), Verktøykassa, Nissen (174 gift
+variant), Brikka, Elefanten (picture labels), Skjæra (picture labels), Verktøykassa, Nissetrekning (174 gift
 ideas), Bingoballen (number bingo; the party themes are cultural content), Dam, Reversi, Vri åtter
 («Crazy Eights» in English, «Olsen» in Danish – check that the local rules match), Meyer (dice bluff – well known in Denmark; 18+ wording), Stigespillet, Blokka.
 

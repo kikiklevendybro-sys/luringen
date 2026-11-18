@@ -156,5 +156,7 @@
   "Alle får 0 poeng. Navnene blir stående.": "Everyone goes back to 0. The names stay.",
   "tall|tall": { "one": "number", "other": "numbers" },
   "poeng|poeng": { "one": "point", "other": "points" },
-  "navn|navn": { "one": "name", "other": "names" }
+  "navn|navn": { "one": "name", "other": "names" },
+  "Hemmelig nisse – hvem gir gave til hvem?": "Secret Santa – who gives a present to whom?",
+  "Nissetrekning": "Secret Santa"
 }

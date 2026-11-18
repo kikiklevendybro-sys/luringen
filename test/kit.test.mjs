@@ -92,7 +92,7 @@ test("two check symbols catch (nearly) every typo and keep one-symbol codes unch
 });
 
 // Codes, links and daily puzzles are computed on every phone from these functions; a change would
-// make codes in use invalid, give Nissen links other recipients, or a different «dagens» puzzle.
+// make codes in use invalid, give Nissetrekning links other recipients, or a different «dagens» puzzle.
 // If one of these values changes on purpose, it is a breaking change for everyone mid-game.
 test("codes, hashes, seeded randomness and the daily date never change", () => {
   const { R } = lastKit();

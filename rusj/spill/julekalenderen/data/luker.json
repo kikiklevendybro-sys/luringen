@@ -242,7 +242,7 @@
     "kos": { "tittel": "En hjemmelaget gave", "min": 15, "tekst": "Trekk hemmelige nisser. Alle lager en liten gave til den de fikk: en tegning, et dikt, en kupong for «én oppvask» eller en hemmelig tjeneste. Gavene deles ut på julaften.", "smaa": "De minste lager en tegning eller et halskjede av perler." },
     "prat": { "t": "Hva er den fineste gaven du har gitt bort?", "f": "Hvorfor ble den så fin å gi?" },
     "bonus": { "type": "quiz", "tekst": "Hvor mange netter er det å sove fra i kveld til julaften?", "valg": ["Fem", "Seks", "Sju"], "riktig": 0, "fakta": "Fem netter! Mange barn teller ned med en julestrømpe eller et kalenderlys." },
-    "spill": { "id": "nissen", "tekst": "Nissen trekker hvem som skal være hemmelig nisse for hvem – uten lapper i lua, og ingen vet hvem som har trukket hvem.", "figur": "Ho, ho … hysj! Hei, jeg er Nissen. Jeg holder på hemmeligheter bedre enn noen. Trekk én du skal lage en gave til – jeg sier det ikke til noen!" },
+    "spill": { "id": "nissetrekning", "tekst": "Nissetrekning trekker hvem som skal være hemmelig nisse for hvem – uten lapper i lua, og ingen vet hvem som har trukket hvem.", "figur": "Ho, ho … hysj! Hei, jeg er Nissetrekning – en gave med nisselue. Jeg holder på hemmeligheter bedre enn noen. Trekk én du skal lage en gave til – jeg sier det ikke til noen!" },
     "klasse": {
       "kos": { "tittel": "Hemmelig nissevenn", "min": 10, "tekst": "Trekk hvem dere skal være nissevenn for fram til juleferien. Gjør noe hyggelig i smug hver dag: en tegning på pulten, et kompliment på en lapp, hjelp med jakka." },
       "prat": { "t": "Hva er den fineste gaven som ikke koster penger?", "f": "Hvem kunne du gitt den til?" }

@@ -242,7 +242,7 @@
     "kos": { "tittel": "A homemade present", "min": 15, "tekst": "Draw Secret Santas. Everyone makes a small present for the person they got: a drawing, a poem, a voucher for ‘one washing-up’ or a secret favour. Hand them out on Christmas Day.", "smaa": "Little ones make a drawing or a bead necklace." },
     "prat": { "t": "What's the loveliest present you've ever given someone?", "f": "Why was it so nice to give?" },
     "bonus": { "type": "quiz", "tekst": "How many sleeps are there from tonight until Christmas Day?", "valg": ["Five", "Six", "Seven"], "riktig": 1, "fakta": "Six more sleeps! Lots of children count them down with an Advent calendar or candle." },
-    "spill": { "id": "nissen", "tekst": "Secret Santa draws who gives a present to whom – no names in a hat, and nobody knows who picked who.", "figur": "Ho, ho… shh! Hi, I'm Secret Santa. I keep secrets better than anyone. Draw someone to make a present for – I won't tell a soul!" },
+    "spill": { "id": "nissetrekning", "tekst": "Secret Santa draws who gives a present to whom – no names in a hat, and nobody knows who picked who.", "figur": "Ho, ho… shh! Hi, I'm Secret Santa – a present in a Santa hat. I keep secrets better than anyone. Draw someone to make a present for – I won't tell a soul!" },
     "klasse": {
       "kos": { "tittel": "Secret Santa friends", "min": 10, "tekst": "Draw who you'll be a secret friend for until the holidays. Do something kind in secret every day: a drawing on their desk, a compliment on a note, help with their coat." },
       "prat": { "t": "What's the best present that doesn't cost any money?", "f": "Who could you give it to?" }

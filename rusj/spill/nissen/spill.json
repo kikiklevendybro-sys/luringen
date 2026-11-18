@@ -1,34 +1,33 @@
 {
   "id": "nissen",
   "navn": "Nissen",
-  "undertittel": "Nissetrekning",
-  "beskrivelse": "Gratis nissetrekning på norsk. Skriv navnene og trekk – alle ser hvem de skal gi gave til, på én mobil eller hver sin via lenke. Ingen konto.",
-  "kort": "Hemmelig nisse uten lapper i lua – på én mobil eller via lenke.",
-  "spillere": [3, 30],
-  "alder": 6,
-  "minutter": [2, 10],
-  "mobiler": "begge",
-  "tagger": ["familie", "fest", "verktoy"],
-  "rekkefolge": 32,
-  "qr": true,
-  "sok": ["secret santa", "nissetrekning", "trekk julegaver", "hemmelig nisse", "julegavetrekning", "trekke navn", "nisse"],
-  "alias": ["secret-santa", "nissetrekning"],
+  "undertittel": "Mandelen i grøten",
+  "beskrivelse": "Gratis julespill: mandelen i grøten som bløffespill. Én får mandelen i hemmelighet, nissen stiller spørsmål, og alle peker på den de tror har den.",
+  "kort": "Hvem har mandelen? Bløff, spørsmål fra nissen og marsipangris.",
+  "spillere": [3, 12],
+  "alder": 7,
+  "minutter": [10, 30],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "blof"],
+  "rekkefolge": 106,
+  "farge": "#f2545b",
+  "sok": ["mandelen i grøten", "mandel i grøten", "julespill", "jul", "julaften", "julegrøt", "risgrøt", "mandelgave", "marsipangris", "juleleker", "nisse", "bløffespill jul"],
   "i18n": {
     "en": {
-      "navn": "Secret Santa",
-      "undertittel": "Name draw",
-      "kort": "Secret Santa without names in a hat – on one phone or by link.",
-      "beskrivelse": "Free Secret Santa draw. Type the names and draw – everyone sees who they're buying for, on one phone or each with their own link. No account.",
-      "slug": "secret-santa-draw",
-      "sok": ["secret santa", "secret santa generator", "secret santa draw", "name draw", "draw names", "names out of a hat", "christmas gift exchange", "kris kringle", "office secret santa"]
+      "navn": "The Almond",
+      "undertittel": "Hidden in the porridge",
+      "kort": "Who has the almond? Bluffing, questions from the elf and a marzipan pig.",
+      "beskrivelse": "Free Christmas bluffing game: one player secretly gets the almond in the porridge, the elf asks questions, and everyone points at who they think has it.",
+      "slug": "the-almond",
+      "sok": ["christmas party game", "christmas bluffing game", "almond in the porridge", "rice pudding almond", "marzipan pig", "christmas games for families", "christmas eve game", "scandinavian christmas"]
     },
     "da": {
       "navn": "Nissen",
-      "undertittel": "Hemmelig nisse",
-      "kort": "Hemmelig nisse uden sedler i huen – på én mobil eller via link.",
-      "beskrivelse": "Gratis nissetrækning på dansk. Skriv navnene, og træk – alle ser, hvem de skal give gave til, på én mobil eller hver sin via link. Ingen konto.",
+      "undertittel": "Mandlen i risalamanden",
+      "kort": "Hvem har mandlen? Bluff, spørgsmål fra nissen og en marcipangris.",
+      "beskrivelse": "Gratis julespil: mandlen i risalamanden som bluffespil. Én får mandlen i hemmelighed, nissen stiller spørgsmål, og alle peger på den, de tror har den.",
       "slug": "nissen",
-      "sok": ["hemmelig nisse", "nissetrækning", "secret santa", "nisseven", "julegavetrækning", "lodtrækning", "træk navne", "nisse"]
+      "sok": ["mandelgave", "mandel i risalamande", "risalamande", "julespil", "juleaften", "marcipangris", "julelege", "bluffespil jul", "nisse"]
     }
   }
 }

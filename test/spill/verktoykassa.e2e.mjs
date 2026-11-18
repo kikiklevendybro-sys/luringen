@@ -38,6 +38,9 @@ export default async function (t) {
   await t.start({ navn: NAVN });
   t.sjekk((await t.antall('[data-h="apne"]')) === 8, "Verktøykassa skal ha åtte verktøy");
   t.sjekk(await t.finnes('.vk-helt[data-v="starter"]'), "«Hvem starter?» skal være det store verktøyet øverst");
+  // The ninth tile is Nissetrekning: a link to that game in the same edition, not a screen here.
+  const nisseLenke = await t.js(`(document.querySelector('a.vk-flis[href*="nissetrekning"], a.vk-flis[href*="secret-santa-draw"], a.vk-flis[href*="nissetraekning"]') || {}).getAttribute?.("href") || ""`);
+  t.sjekk(!!nisseLenke, "Verktøykassa skal ha en flis som lenker til Nissetrekning");
   await t.bilde("verktoy", true);
 
   // ---------- Hvem starter? ----------

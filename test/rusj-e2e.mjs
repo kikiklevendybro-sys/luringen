@@ -298,7 +298,7 @@ async function forsideTur(t, c) {
   t.sjekk((await les()).vist.length === vanlige.length && (await c.js(`document.querySelector("#sok").value`)) === "", "Escape tømmer ikke søket");
   if (t.norsk) {
     // The words people actually use find the games (rusj/seo.json), and the facts can be searched in phrases.
-    const finner = { alias: "skravla", imposter: "luringen", "nødt": "vaghalsen", pekeleken: "pekefingeren", "secret santa": "nissen", ludo: "brikka", mafia: "varulven", musikk: "nynneren", "bli kjent": "lognhalsen", arkadespill: "slangen" };
+    const finner = { alias: "skravla", imposter: "luringen", "nødt": "vaghalsen", pekeleken: "pekefingeren", "secret santa": "nissetrekning", ludo: "brikka", mafia: "varulven", musikk: "nynneren", "bli kjent": "lognhalsen", arkadespill: "slangen" };
     const anledninger = ["vors", "bursdag", "hyttetur", "selskapsleker", "festleker", "julebord", "klassefest", "leker til barnebursdag"];
     const faktasok = { "flere mobiler": (s) => s.mobiler !== "en", "én mobil": (s) => s.mobiler !== "hver", alene: (s) => s.spillere[0] === 1, "mot mobilen": (s) => !!s.motMobilen };
     const treff = await c.js(`(() => {
@@ -655,7 +655,8 @@ for (const id of valgt) {
       await c.skjermbilde(join(mappe, `${String(++nr).padStart(2, "0")}-${navn}.png`), { helside });
       if (a11y) await a11y.sjekk(navn); // findings are collected, never a test failure
     },
-    tilstand: () => c.js(`JSON.parse(localStorage.getItem("rusj.${SPRAK ? SPRAK + "." : ""}${id}.v1") || "null")`),
+    // The game's saved state: <id>.v1, or the highest version the game has saved (Nissen is v2).
+    tilstand: () => c.js(`(() => { const p = "rusj.${SPRAK ? SPRAK + "." : ""}${id}.v"; const k = Object.keys(localStorage).filter((x) => x.startsWith(p) && /^\\d+$/.test(x.slice(p.length))).sort((a, b) => Number(b.slice(p.length)) - Number(a.slice(p.length)))[0]; return JSON.parse((k && localStorage.getItem(k)) || "null"); })()`),
     // Is the element clear of the action area (the dock), with the page scrolled to the top?
     // Portrait: it ends above the dock. Landscape phones, where the kit makes the dock a column on
     // the right: it is beside the dock and inside the screen. `slakk` px of overlap are allowed.

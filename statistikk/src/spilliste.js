@@ -58,6 +58,7 @@ export const SPILL = {
   musa: "Musa",
   narren: "Narren",
   nissen: "Nissen",
+  nissetrekning: "Nissetrekning",
   nostet: "Nøstet",
   notteknekkeren: "Nøtteknekkeren",
   nynneren: "Nynneren",

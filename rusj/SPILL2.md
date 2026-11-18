@@ -84,7 +84,9 @@ walls on/off, food with little animations, best score, pause when the tab hides.
 
 ## Party and family
 
-### nissen — Nissen · «Nissetrekning» · 3–30 players · tagger familie fest verktoy · rekkefolge 32
+### nissetrekning — Nissetrekning · «Hemmelig nisse» · 3–30 players · tagger verktoy familie fest · rekkefolge 32
+(Until November 2026 this was «nissen» at /nissen/; that id is now the almond bluff game, which hands old
+/nissen/#2… links on to /nissetrekning/.)
 Secret Santa without a server. Enter names (+ optional «ikke trekk hverandre» pairs, budget, date).
 Two modes: **én mobil** (each person holds to see whom they give to, then passes on) and **hver sin
 mobil** (a share code/QR; each person picks their own name and sees only their match; the name locks

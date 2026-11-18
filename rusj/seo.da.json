@@ -228,6 +228,17 @@
       "type": "WebApplication"
     },
     "nissen": {
+      "tittel": "Mandlen i risalamanden – julespil for hele familien",
+      "frase": "Mandlen i risalamanden",
+      "beskrivelse": "Julespil på mobilen: én får mandlen i hemmelighed, nissen stiller spørgsmål, og alle peger på den, de tror har den. Gratis, uden app og reklamer.",
+      "sok": [
+        "julespil",
+        "julelege",
+        "mandelgave",
+        "juleaften"
+      ]
+    },
+    "nissetrekning": {
       "tittel": "Hemmelig nisse – gratis nissetrækning uden konto",
       "frase": "Nissetrækning",
       "beskrivelse": "Træk hemmelig nisse på et minut: skriv navnene, træk – og send hver sit hemmelige link. Gratis, uden e-mail, konto og reklamer.",

@@ -476,6 +476,17 @@
       "beskrivelse": "Gratis Snake på norsk. Styr slangen med sveip, piler eller tastatur, spis frukt og voks – tre hastigheter, med eller uten vegger, og din egen rekord."
     },
     "nissen": {
+      "tittel": "Mandelen i grøten – julespill for hele familien",
+      "frase": "Mandelen i grøten",
+      "beskrivelse": "Julespill på mobilen: én får mandelen i grøten i hemmelighet, nissen stiller spørsmål, og alle peker på den de tror har den. Gratis, uten app og reklame.",
+      "sok": [
+        "julespill",
+        "juleleker",
+        "mandelgave",
+        "julaften"
+      ]
+    },
+    "nissetrekning": {
       "tittel": "Nissetrekning (Secret Santa) – gratis, uten konto",
       "frase": "Nissetrekning",
       "beskrivelse": "Trekk hemmelig nisse (Secret Santa) på ett minutt: skriv navnene, trekk – og send hver sin hemmelige lenke. Gratis, uten e-post, konto og reklame.",

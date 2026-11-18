@@ -89,6 +89,12 @@
     { id: "klokke", navn: R.t("Klokke"), tekst: R.t("Nedtelling og stoppeklokke"), ikon: "⏱️", farge: "var(--rod)" },
   ];
   const verktoy = (id) => VERKTOY.find((v) => v.id === id);
+  // Nissetrekning (Secret Santa) is a game of its own: its tile is a link to it, not a screen here.
+  const nissetrekning = (() => {
+    const g = (window.RUSJ_ANDRE || []).find((x) => x.id === "nissetrekning");
+    // Its own label (not g.navn), so a long name can carry a soft hyphen for narrow phones.
+    return g ? { navn: R.t("Nissetrekning"), url: g.url || "/nissetrekning/" } : null;
+  })();
 
   const HENDER = {
     stein: { navn: R.t("Stein"), ikon: "✊" },
@@ -459,8 +465,16 @@
                   <span>${esc(merknad[v.id] || v.tekst)}</span>
                 </button>`,
               )
-              .join("")}</div>
-            ${R.ui.merker([["8", R.t("verktøy")], ["1–20", R.t("spillere")], ["0", R.t("reklame")]])}`;
+              .join("")}${
+              nissetrekning
+                ? `<a class="vk-flis" href="${esc(nissetrekning.url)}" style="--vf: var(--rod)">
+                  <span class="vk-flis-ikon" aria-hidden="true">🎁</span>
+                  <b>${esc(nissetrekning.navn)}</b>
+                  <span>${esc(R.t("Hemmelig nisse – hvem gir gave til hvem?"))}</span>
+                </a>`
+                : ""
+            }</div>
+            ${R.ui.merker([[String(VERKTOY.length + (nissetrekning ? 1 : 0)), R.t("verktøy")], ["1–20", R.t("spillere")], ["0", R.t("reklame")]])}`;
         },
       },
 
