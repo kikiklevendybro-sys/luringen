@@ -1,6 +1,8 @@
 /* Nissen — «Mandelen i grøten» (the almond in the Christmas porridge) as a bluffing game.
    Every round the phone goes round the table: each player holds a finger on the porridge bowl and
-   sees, in secret, «Bare grøt» or «MANDELEN!». Exactly one gets the almond. Then the elf (nissen)
+   sees, in secret, «Bare grøt» or «MANDELEN!». Exactly one gets the almond. Everyone has a real
+   almond (or a raisin) in hand: all turn away at once and pretend to pop it in their mouth, but only
+   the almond holder really does. Then the elf (nissen)
    asks one player at a time an awkward question, everybody points at once at whoever they think is
    hiding the almond, and the bowl is turned over. Caught: everyone else gets 1 point. Got away with
    it: the almond holder gets 3 points and the marzipan pig. Kåringen after the last round.
@@ -60,12 +62,18 @@
     sp.sett1 = true;
     return true;
   }
-  // Pass on: the next player, or the elf's questions when everybody has seen their bowl.
+  // Pass on: the next player, or «turn away and pop it in» when everybody has seen their bowl.
   function videre(sp) {
     if (sp.fase !== "se" || !sp.sett1) return null;
     sp.sett += 1;
     sp.sett1 = false;
-    sp.fase = sp.sett >= sp.antall ? "prat" : "gi";
+    sp.fase = sp.sett >= sp.antall ? "munn" : "gi";
+    return sp.fase;
+  }
+  // Everyone has turned back round (one of them with the almond in their mouth): the elf's questions.
+  function imunnen(sp) {
+    if (sp.fase !== "munn") return null;
+    sp.fase = "prat";
     return sp.fase;
   }
   // The elf picks the next player to ask: never the same twice in a row.
@@ -115,7 +123,7 @@
 
   const R = window.Rusj;
   if (!R) {
-    window.Nissen = { RUNDER, POENG_FANGET, POENG_SLAPP, TREKNINGSLENKE, ny, tur, sett, videre, nesteSpurt, avgjor, angre, nesteRunde };
+    window.Nissen = { RUNDER, POENG_FANGET, POENG_SLAPP, TREKNINGSLENKE, ny, tur, sett, videre, imunnen, nesteSpurt, avgjor, angre, nesteRunde };
     return;
   }
 
@@ -198,14 +206,14 @@
           Number.isInteger(n) && n >= MIN && n <= MAKS &&
           RUNDER.includes(sp.runder) && Number.isInteger(sp.runde) && sp.runde >= 0 && sp.runde <= sp.runder &&
           spiller(sp.mandel) && spiller(sp.start) && Number.isInteger(sp.sett) && sp.sett >= 0 && sp.sett <= n &&
-          ["gi", "se", "prat", "pek", "fasit"].includes(sp.fase) &&
+          ["gi", "se", "munn", "prat", "pek", "fasit"].includes(sp.fase) &&
           liste(sp.poeng) && liste(sp.slapp) && Array.isArray(sp.pekt) && sp.pekt.every(spiller) &&
           (sp.fase !== "prat" || (spiller(sp.spurt) && !!SPORSMAL[sp.k])) &&
           (sp.fase !== "fasit" || (sp.siste && Array.isArray(sp.siste.pluss) && sp.siste.pluss.length === n));
         if (!ok) S.spill = null;
       }
-      const skjermer = { gi: "gi", se: "gi", prat: "prat", pek: "pek", fasit: "fasit" };
-      if (["gi", "se", "prat", "pek", "fasit"].includes(S.skjerm)) S.skjerm = pagar(S) ? skjermer[S.spill.fase] : "hjem";
+      const skjermer = { gi: "gi", se: "gi", munn: "munn", prat: "prat", pek: "pek", fasit: "fasit" };
+      if (["gi", "se", "munn", "prat", "pek", "fasit"].includes(S.skjerm)) S.skjerm = pagar(S) ? skjermer[S.spill.fase] : "hjem";
       // The bowl is never on the screen after a reload: back to «give the phone to …».
       if (pagar(S) && S.spill.fase === "se") {
         S.spill.fase = "gi";
@@ -218,11 +226,12 @@
       intro: R.t("Mandelen i grøten som bløffespill. Én av dere får mandelen i hemmelighet – og må late som ingenting mens nissen stiller spørsmål."),
       steg: [
         [R.t("Se i bollen"), R.t("Mobilen går rundt. Hold fingeren på grøtbollen og se i hemmelighet om du fikk mandelen. Bare én får den.")],
-        [R.t("Nissen spør"), R.t("Nissen stiller spørsmål til én og én. Svar så godt du kan – og prøv å se uskyldig ut.")],
+        [R.t("Snu dere bort"), R.t("Alle snur seg samtidig og later som de putter mandelen i munnen. Bare den som fikk mandelen, putter den ekte i munnen – de andre gjemmer sin i hånda.")],
+        [R.t("Nissen spør"), R.t("Nissen stiller spørsmål til én og én. Svar så godt du kan – med mandelen i munnen – og prøv å se uskyldig ut.")],
         [R.t("Pek samtidig"), R.t("Tell ned og pek på den du tror har mandelen. Den som holder mobilen, trykker på den eller dem som fikk flest fingrer.")],
-        [R.t("Snu bollen"), R.t("Ble mandelholderen tatt, får alle andre 1 poeng. Slapp hen unna, får hen 3 poeng og marsipangrisen.")],
+        [R.t("Gap opp"), R.t("Den som hadde mandelen, gaper opp og viser den. Ble mandelholderen tatt, får alle andre 1 poeng. Slapp hen unna, får hen 3 poeng og marsipangrisen.")],
       ],
-      tips: [R.t("Den som har mandelen, kan godt peke på noen andre."), R.t("Alle må svare på spørsmålene – også den som har mandelen.")],
+      tips: [R.t("Alle trenger en mandel. Nøtteallergi rundt bordet? Bruk rosiner eller små drops."), R.t("Den som har mandelen, kan godt peke på noen andre."), R.t("De som ikke har mandelen, kan godt tygge litt for å lure de andre."), R.t("Alle må svare på spørsmålene – også den som har mandelen.")],
     },
 
     hemmelig: {
@@ -231,7 +240,7 @@
         if (!sp) return { html: "" };
         const har = tur(sp) === sp.mandel;
         return {
-          html: `<div class="ng-se ${har ? "har" : ""}">${bolle(har)}<p class="ng-se-tekst">${esc(har ? R.t("MANDELEN!") : R.t("Bare grøt"))}</p><p class="ng-se-hint">${esc(har ? R.t("Ikke vis noe! Late som ingenting.") : R.t("Prøv å finne ut hvem som har den."))}</p></div>`,
+          html: `<div class="ng-se ${har ? "har" : ""}">${bolle(har)}<p class="ng-se-tekst">${esc(har ? R.t("MANDELEN!") : R.t("Bare grøt"))}</p><p class="ng-se-hint">${esc(har ? R.t("Når alle snur seg: putt mandelen ekte i munnen. Ikke vis noe!") : R.t("Når alle snur seg: bare lat som du putter mandelen i munnen."))}</p></div>`,
           si: har ? R.t("Du har mandelen!") : R.t("Bare grøt"),
           klasse: "ng-bak",
         };
@@ -270,6 +279,7 @@
         vis(S) {
           return `
             <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
+            <p class="papirboks ng-mandler">${esc(R.t("Alle trenger en mandel. Nøtteallergi rundt bordet? Bruk rosiner eller små drops."))}</p>
             ${R.ui.spillere({ min: MIN, max: MAKS, hjelp: R.t("Mobilen går rundt i samme rekkefølge som lista.") })}
             <section class="seksjon">
               <div class="seksjon-hode"><h2>${esc(R.t("Runder"))}</h2></div>
@@ -306,10 +316,28 @@
             </div>
             ${R.ui.dokk(
               sp.sett1 ? "" : `<p class="hjelp">${esc(R.t("Se i bollen først."))}</p>`,
-              R.ui.knapp(sist ? R.t("Alle har sett – til nissen") : R.t("Ferdig – gi mobilen videre"), "videre", { av: !sp.sett1 }),
+              R.ui.knapp(sist ? R.t("Alle har sett – snu dere bort") : R.t("Ferdig – gi mobilen videre"), "videre", { av: !sp.sett1 }),
               R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
+      },
+
+      munn: {
+        tittel: (S) => R.t("Runde {n} av {m}", { n: S.spill.runde + 1, m: S.spill.runder }),
+        tilbake: "hjem",
+        vis() {
+          return `
+            <h1 id="skjerm-tittel">${esc(R.t("Snu dere bort!"))}</h1>
+            <p class="ingress">${esc(R.t("Alle snur ryggen til bordet og later som de putter mandelen i munnen. Bare den som fikk mandelen, gjør det ekte."))}</p>
+            <div class="ng-fasit">${bolle(true)}</div>
+            ${R.ui.knapp2(R.t("3 · 2 · 1 – Nam!"), "nam", { ikon: "😋" })}
+            <p class="hjelp">${esc(R.t("Snu dere tilbake og tygg uskyldig. Ingen sier noe!"))}</p>
+            ${R.ui.dokk(
+              R.ui.knapp(R.t("Alle har snudd seg – til nissen"), "til-nissen"),
+              R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")),
+            )}`;
+        },
+        inn: () => R.holdVaken(),
       },
 
       prat: {
@@ -377,8 +405,8 @@
           const navn = R.navn(r.mandel);
           const sist = sp.runde + 1 >= sp.runder;
           const banner = r.fanget
-            ? R.ui.banner({ etikett: R.t("Mandelen er funnet!"), tittel: R.t("{navn} hadde mandelen", { navn }), tekst: R.t("Godt jobba! Alle andre får 1 poeng."), klasse: "aksent", stemning: "lei" })
-            : R.ui.banner({ etikett: R.t("{navn} hadde mandelen!", { navn }), tittel: R.t("{navn} vinner marsipangrisen!", { navn }), tekst: R.t("Ingen avslørte det. 3 poeng!"), klasse: "aksent ng-gris-banner", stemning: "jubel" });
+            ? R.ui.banner({ etikett: R.t("Mandelen er funnet!"), tittel: R.t("{navn} hadde mandelen", { navn }), tekst: R.t("Gap opp, {navn}! Alle andre får 1 poeng.", { navn }), klasse: "aksent", stemning: "lei" })
+            : R.ui.banner({ etikett: R.t("{navn} hadde mandelen!", { navn }), tittel: R.t("{navn} vinner marsipangrisen!", { navn }), tekst: R.t("Gap opp og vis mandelen! Ingen avslørte det. 3 poeng.", { navn }), klasse: "aksent ng-gris-banner", stemning: "jubel" });
           return `
             ${banner}
             <div class="ng-fasit">${bolle(true)}${r.fanget ? "" : `<span class="ng-gris" aria-hidden="true">🐷</span>`}</div>
@@ -471,11 +499,26 @@
         if (!pagar(S)) return;
         const hvor = videre(sp);
         if (!hvor) return;
-        if (hvor === "prat") {
-          nyttSporsmal(sp);
-          R.lyd.pling();
-        }
+        if (hvor === "munn") R.lyd.pling();
         R.gaTil(hvor);
+      },
+      async nam() {
+        if (teller) return;
+        teller = true;
+        let ferdig = false;
+        try {
+          ferdig = await R.nedtelling(["3", "2", "1", R.t("NAM!")], 700);
+        } finally {
+          teller = false;
+        }
+        if (ferdig) R.vibrer([60, 40, 120]);
+      },
+      "til-nissen"(el, e, S) {
+        const sp = S.spill;
+        if (!pagar(S) || !imunnen(sp)) return;
+        nyttSporsmal(sp);
+        R.lyd.pling();
+        R.gaTil("prat");
       },
       "nytt-sporsmal"(el, e, S) {
         const sp = S.spill;

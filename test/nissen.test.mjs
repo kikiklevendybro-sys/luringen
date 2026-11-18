@@ -1,5 +1,5 @@
 // Nissen («Mandelen i grøten»): the elf's questions in nb, en and da, the bowl going round (everyone
-// sees theirs once, exactly one almond), the elf never asking the same player twice in a row, the
+// sees theirs once, exactly one almond, then everyone turns away to pop it in), the elf never asking the same player twice in a row, the
 // reveal (caught → everyone else 1 point, got away → 3 points to the holder), undo, the rounds and
 // the end, and the hand-off of old Secret Santa links. Loads spill.js without the kit.
 import { test } from "node:test";
@@ -51,7 +51,7 @@ test("the bowl goes round: everyone sees theirs once, then the elf", () => {
     const sp = N.ny(n, 5, r);
     assert.ok(sp.mandel >= 0 && sp.mandel < n, "the almond goes to a player");
     const sett = [];
-    while (sp.fase !== "prat") {
+    while (sp.fase !== "munn") {
       assert.equal(sp.fase, "gi");
       sp.fase = "se";
       assert.equal(N.videre(sp), null, "you can't pass on before you've looked");
@@ -60,6 +60,8 @@ test("the bowl goes round: everyone sees theirs once, then the elf", () => {
       N.videre(sp);
     }
     assert.deepEqual(sett.slice().sort((a, b) => a - b), Array.from({ length: n }, (_, i) => i), "everyone looks exactly once");
+    assert.equal(N.imunnen(sp), "prat", "everyone turns back round: over to the elf");
+    assert.equal(N.imunnen(sp), null, "only once");
   }
 });
 
@@ -126,11 +128,12 @@ test("whole games over many seeds: points always add up", () => {
     const sp = N.ny(n, runder, r);
     let ventet = 0;
     while (!sp.ferdig) {
-      while (sp.fase !== "prat") {
+      while (sp.fase !== "munn") {
         sp.fase = "se";
         N.sett(sp);
         N.videre(sp);
       }
+      N.imunnen(sp);
       sp.fase = "pek";
       const pekt = r() < 0.5 ? [sp.mandel] : [(sp.mandel + 1) % n];
       const res = N.avgjor(sp, pekt);

@@ -1,6 +1,6 @@
 // Nissen («Mandelen i grøten»): home and rules, «Gjør klart» (players, rounds), the bowl going
 // round («Gi mobilen til» → hold the bowl: «MANDELEN!» for exactly one, «Bare grøt» for the rest;
-// a reload never shows the bowl), the elf's question with the talking timer and «Nytt spørsmål»,
+// a reload never shows the bowl), «Snu dere bort!» with «3 · 2 · 1 – Nam!», the elf's question with the talking timer and «Nytt spørsmål»,
 // «3 · 2 · 1 – Pek!», the reveal (got away: 3 points and the pig; caught: 1 to everyone else),
 // «Angre», the next round, small screens and a phone on its side, Kåringen, «Spill igjen», and old
 // Secret Santa links (…/nissen/#2…) handed on to the draw with the hash.
@@ -45,9 +45,16 @@ export default async function (t) {
       await pause();
       await t.klikk('[data-h="videre"]');
       await t.sov(300);
-      if (await t.finnes(".ng-nissen")) break;
+      if (await t.finnes('[data-h="til-nissen"]')) break;
     }
     t.sjekk(sett.length === NAVN.length && sett.filter(Boolean).length === 1, `Alle skal se bollen én gang, og nøyaktig én skal ha mandelen (${sett.join()})`);
+    // Everyone turns away and pops the almond in (only the holder for real), then over to the elf.
+    t.sjekk((await s()).spill.fase === "munn", "Etter siste bolle skal alle snu seg bort");
+    if (bilder) await t.bilde("snu-dere");
+    await t.klikk('[data-h="nam"]');
+    await t.sov(3200);
+    await t.klikk('[data-h="til-nissen"]');
+    await t.vent("document.querySelector('.ng-nissen')");
   };
 
   // ---------- Home and rules ----------
