@@ -130,5 +130,6 @@
   "Uavgjort {tall}": "Draw {tall}",
   "Svart vant {tall}": "Black won {tall}",
   "Hvit vant {tall}": "White won {tall}",
-  "parti|partier": { "one": "game", "other": "games" }
+  "parti|partier": { "one": "game", "other": "games" },
+  "Vent på tur – {navn} legger nå": "Wait your turn – {navn} is playing"
 }

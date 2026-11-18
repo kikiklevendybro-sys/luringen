@@ -307,3 +307,42 @@ test("Admiralen: the fleets stay on their phones until the end; shots, answers a
   likt(a, b, (sp) => [sp.skudd, sp.svar, sp.klar, sp.hash, sp.tur, sp.vinner, sp.avslort]);
   likt(a, r.sen(1), (sp) => [sp.skudd, sp.svar, sp.vinner, sp.avslort]);
 });
+
+// Tries every square name in order until the seat's move is played (the rest are ignored alike).
+const forsokRuter = (r, sete, navn, lagt) => {
+  for (const s of navn) {
+    r.trekk(sete, s);
+    if (lagt()) return true;
+  }
+  return false;
+};
+const RUTENAVN = Array.from({ length: 64 }, (_, s) => "abcdefgh"[s & 7] + ((s >> 3) + 1));
+
+test("Reversi: a whole game on two phones, out-of-turn and illegal discs ignored, black alternates per match", () => {
+  const r = rom("reversi", 2, { mal: 1, prikker: true });
+  const [a, b] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().modus, "nett");
+  assert.equal(sp().starter, 0, "the host has black in match 1");
+  r.trekk(1, { s: "d3" }); // white first: ignored
+  r.trekk(0, { s: "a1" }); // flips nothing: ignored
+  r.trekk(0, { s: "zz" });
+  r.trekk(0, { runde: 1 }); // the game is not over: ignored
+  assert.equal(sp().trekk.length, 0);
+  for (let steg = 0; steg < 100 && !sp().resultat; steg++) {
+    const tur = a.def.nett.tur(a.S);
+    const n = sp().trekk.length;
+    assert.ok(forsokRuter(r, tur, RUTENAVN.map((s) => ({ s })), () => sp().trekk.length > n), "no legal square");
+  }
+  assert.ok(sp().resultat, "the game did not end");
+  assert.ok(a.def.nett.ferdig(a.S), "«Ett parti»: the match is over");
+  assert.equal(a.def.nett.tur(a.S), null);
+  assert.equal(sp().poeng[0] + sp().poeng[1] + sp().uavgjort, 1);
+  likt(a, b);
+  const sen = r.sen(1);
+  likt(a, sen);
+  assert.equal(sen.def.nett.skjerm(sen.S), "slutt", "a finished match, replayed: the result");
+  assert.equal(rom("reversi", 2, { mal: 1 }, 20261115, 2).tlf[0].S.spill.starter, 1, "match 2: the guest has black");
+  const r3 = rom("reversi", 2, { mal: 3 });
+  assert.equal(r3.tlf[0].S.spill.mal, 3);
+});

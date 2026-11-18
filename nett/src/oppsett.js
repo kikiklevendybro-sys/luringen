@@ -17,6 +17,7 @@ export const SPILL = {
   admiralen: [2, 2],
   brikka: [2, 4],
   terninga: [2, 6],
+  reversi: [2, 2],
 };
 
 // Limits per message and per socket.

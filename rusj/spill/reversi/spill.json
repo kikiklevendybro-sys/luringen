@@ -13,6 +13,7 @@
   "farge": "#7dd3a8",
   "sok": ["reversi", "snu brikkene", "reversi på nett", "brettspill svart hvit", "spill reversi"],
   "motMobilen": true,
+  "nett": true,
   "i18n": {
     "en": {
       "navn": "Reversi",
