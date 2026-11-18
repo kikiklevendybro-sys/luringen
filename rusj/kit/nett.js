@@ -321,7 +321,14 @@
       }
       return;
     }
-    if (k === "fort") return R.toast(R.t("Rolig nå – vent et øyeblikk."));
+    if (k === "fort") {
+      // The room dropped the message: a move of ours is not on its way any more (tap again).
+      if (N.sendt != null) {
+        N.sendt = null;
+        if (R.S && R.S.skjerm !== "nett") R.vis();
+      }
+      return R.toast(R.t("Rolig nå – vent et øyeblikk."));
+    }
     if (k === "logg") return R.toast(R.t("Kampen har blitt for lang til å spilles videre på nett."));
     if (k === "opptatt") return visFeil("nett");
     if (k === "ukjent" || k === "full" || k === "startet") {
