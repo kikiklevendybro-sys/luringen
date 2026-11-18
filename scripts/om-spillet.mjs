@@ -240,6 +240,7 @@ export const EKSEMPLER = {
     return { tittel: "Steder spionen må gjette", ting: spre(pakker(alle, ["hverdag", "norge", "reise", "sommer", "barn", "jul"], "spionen").map((p) => p.steder.map((s) => s.navn.replace(/­/g, ""))), 24), totalt: sum(alle.map((p) => p.steder)) };
   },
   brevduen: (D) => ({ tittel: "Spørsmål brevduen kan ha med seg", ting: spre([D.familie], 24), totalt: D.familie.length }),
+  steinfjeset: (D) => ({ tittel: "Oppgaver klovnen kan få", ting: spre([D.oppgaver.si, D.oppgaver.fjes, D.oppgaver.lat], 24), totalt: D.oppgaver.si.length + D.oppgaver.fjes.length + D.oppgaver.lat.length }),
   nissen: (D) => ({ tittel: "Spørsmål nissen kan stille", ting: spre([D.sporsmal], 24), totalt: D.sporsmal.length }),
   nissetrekning: (D) => {
     const lister = ["liten", "mellom", "middels", "stor"].map((k) => D.ideer[k] || []);

@@ -79,6 +79,7 @@ export const SPILL = {
   sebraen: "Sebraen",
   sfinksen: "Sfinksen",
   sjakkhesten: "Sjakkhesten",
+  steinfjeset: "Steinfjeset",
   sjefen: "Sjefen",
   sjongloren: "Sjongløren",
   skattejegeren: "Skattejegeren",

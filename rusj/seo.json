@@ -1296,6 +1296,19 @@
         "familiespill",
         "julebord"
       ]
+    },
+    "steinfjeset": {
+      "tittel": "Ikke le-leken – hold maska! Gratis på mobilen",
+      "frase": "Ikke le-leken",
+      "beskrivelse": "Gratis ikke-le-lek på mobilen: klovnen får en tullete oppgave, steinfjeset må holde maska. 88 oppgaver for barn, familie og fest.",
+      "sok": [
+        "ikke le",
+        "prøv å ikke le",
+        "holde maska",
+        "pokerfjes",
+        "le-konkurranse",
+        "try not to laugh"
+      ]
     }
   }
 }
