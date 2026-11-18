@@ -277,5 +277,20 @@
     "one": "runde",
     "other": "runder"
   },
-  "TEGN!": "TEGN!"
+  "TEGN!": "TEGN!",
+  "Skrevet av {navn}": "Skrevet af {navn}",
+  "Egen startsetning": "Egen startsætning",
+  "Startsetningen": "Startsætningen",
+  "Skriv startsetningen selv": "Skriv selv startsætningen",
+  "Den første finner på en hemmelig setning i stedet for å få et ord.": "Den første finder på en hemmelig sætning i stedet for at få et ord.",
+  "Du skal finne på en hemmelig setning og tegne den": "Du skal finde på en hemmelig sætning og tegne den",
+  "{navn} starter kjeden": "{navn} starter kæden",
+  "Skriv startsetningen": "Skriv startsætningen",
+  "For eksempel: En elg på skøyter": "For eksempel: En elg på skøjter",
+  "Hold den hemmelig: etterpå tegner du den selv, og de andre ser bare tegningen.": "Hold den hemmelig: bagefter tegner du den selv, og de andre ser kun tegningen.",
+  "Tegn den": "Tegn den",
+  "Gi meg et ord i stedet": "Giv mig et ord i stedet",
+  "Tegn setningen din": "Tegn din sætning",
+  "I Hviskeleken kan den første finne på sin egen hemmelige startsetning: slå på «Skriv startsetningen selv».": "I Hviskelegen kan den første finde på sin egen hemmelige startsætning: slå »Skriv selv startsætningen« til.",
+  "Skriv en setning først": "Skriv en sætning først"
 }

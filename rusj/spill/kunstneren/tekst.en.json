@@ -277,5 +277,20 @@
     "one": "round",
     "other": "rounds"
   },
-  "TEGN!": "DRAW!"
+  "TEGN!": "DRAW!",
+  "Skrevet av {navn}": "Written by {navn}",
+  "Egen startsetning": "Own starting sentence",
+  "Startsetningen": "The starting sentence",
+  "Skriv startsetningen selv": "Write your own starting sentence",
+  "Den første finner på en hemmelig setning i stedet for å få et ord.": "The first player makes up a secret sentence instead of getting a word.",
+  "Du skal finne på en hemmelig setning og tegne den": "You're making up a secret sentence and drawing it",
+  "{navn} starter kjeden": "{navn} starts the chain",
+  "Skriv startsetningen": "Write the starting sentence",
+  "For eksempel: En elg på skøyter": "For example: A hedgehog on a skateboard",
+  "Hold den hemmelig: etterpå tegner du den selv, og de andre ser bare tegningen.": "Keep it secret: you draw it next, and the others only see the drawing.",
+  "Tegn den": "Draw it",
+  "Gi meg et ord i stedet": "Give me a word instead",
+  "Tegn setningen din": "Draw your sentence",
+  "I Hviskeleken kan den første finne på sin egen hemmelige startsetning: slå på «Skriv startsetningen selv».": "In Pass the Picture the first player can make up a secret starting sentence of their own: turn on ‘Write your own starting sentence’.",
+  "Skriv en setning først": "Write a sentence first"
 }

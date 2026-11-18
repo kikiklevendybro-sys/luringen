@@ -734,4 +734,94 @@ export default async function (t) {
   t.sjekk((!t.norsk || /Dere klarte 2 av 2/.test(duo)) && (!t.norsk || /Ny rekord!/i.test(duo)) && (await t.finnes(".banner .figur-ramme.jubel")), `Ny rekord for to ble ikke feiret («${duo.replace(/\s+/g, " ")}»)`);
   t.sjekk((await lagretNokkel(t, "kunstneren.rekord")).duo["2-60"] === 2, "Den nye rekorden for to ble ikke lagret");
   await t.bilde("duo-rekord", true);
+
+  // ---------- …/kunstneren/#hvisk (the Hviskeleken card): the setup with Hviskeleken chosen ----------
+  // (a query string makes it a real page load, not just a jump within the page)
+  await t.lastSide(t.side + "?fra=kortet#hvisk", "document.querySelector('[data-h=\"start\"]')");
+  await t.sov(300);
+  let lenket = await t.js(`({ hash: location.hash, skjerm: Rusj.S.skjerm, modus: Rusj.S.oppsett.modus, antall: Rusj.S.antall, flis: document.querySelector('[data-h="modus"][data-v="hvisk"]').getAttribute("aria-pressed") })`);
+  t.sjekk(lenket.hash === "" && lenket.skjerm === "oppsett" && lenket.modus === "hvisk" && lenket.flis === "true" && lenket.antall === 4, `#hvisk åpner ikke oppsettet med Hviskeleken for fire (${JSON.stringify(lenket)})`);
+  t.sjekk(!t.norsk || (await t.tekst("#skjerm h1")) === "Gjør klart", "#hvisk viser ikke «Gjør klart»");
+  // The same within the page (the address only gets the #-part): from the start screen.
+  await t.js(`Rusj.S.oppsett.modus = "tegn"; Rusj.gaTil("hjem")`);
+  await t.js(`location.hash = "hvisk"`);
+  await t.vent("Rusj.S.skjerm === 'oppsett' && Rusj.S.oppsett.modus === 'hvisk'", 4000);
+  t.sjekk((await t.js("location.hash")) === "", "#hvisk ble stående i adressen etter et hopp i siden");
+  // Other #-parts and «Fortsett» after a reload are as before: a reload on the setup stays there.
+  await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
+  t.sjekk((await t.js("Rusj.S.skjerm")) === "oppsett", "Omlasting etter #hvisk gikk ikke tilbake til oppsettet");
+
+  // ---------- «Skriv startsetningen selv»: the first player types a secret sentence ----------
+  t.sjekk((await t.js(`document.querySelector('[data-h="egen"]').getAttribute("aria-pressed")`)) === "false", "«Skriv startsetningen selv» skal være av til den slås på");
+  await t.klikk('[data-h="egen"]');
+  lenket = await t.js(`({ egen: Rusj.S.oppsett.egen, niva: !!document.querySelector('[data-h="niva"]'), start: document.querySelector('[data-h="start"]').disabled })`);
+  t.sjekk(lenket.egen === true && !lenket.niva && !lenket.start, `Med egen startsetning skal ordvalgene bort og Start virke (${JSON.stringify(lenket)})`);
+  t.sjekk(!t.norsk || /Egen startsetning/.test(await t.tekst(".kunst-mer-knapp")), "«Flere valg» sier ikke at startsetningen er egen");
+  await t.bilde("oppsett-egen-setning", true);
+  await t.klikk('[data-h="start"]');
+  await t.vent("document.querySelector('[data-h=\"hjeg\"]')");
+  let sp = (await t.tilstand()).spill;
+  t.sjekk(sp.ord.egen === true && sp.ord.o === "" && sp.ord.i === sp.rekke[0], `Kjeden skal starte uten ord, med den første som forfatter (${JSON.stringify(sp.ord)})`);
+  t.sjekk(!t.norsk || /finne på en hemmelig setning/.test(await t.tekst(".kunst-oppdrag")), "Overleveringen sier ikke at den første skal finne på en setning");
+  t.sjekk((await hendelser(t, "start")).some((d) => d.modus === "hvisk" && d.egen === true), "Statistikken fikk ikke vite om egen startsetning");
+  await t.klikk('[data-h="hjeg"]');
+  await t.vent("document.querySelector('#kunst-setning')");
+  t.sjekk(await t.js("document.getElementById('kunst-setning-send').disabled"), "«Tegn den» skulle være av uten tekst");
+  t.sjekk((await t.js("document.getElementById('kunst-setning').maxLength")) === 60, "Startsetningen skal ha plass til 60 tegn");
+  await t.skrivInn("#kunst-setning", "Zebra <b>42</b> ski " + "x".repeat(60));
+  t.sjekk([...(await t.tilstand()).spill.utkast].length === 60, "Utkastet ble ikke kuttet til 60 tegn");
+  await t.skrivInn("#kunst-setning", "Zebra <b>42</b> ski");
+  await t.bilde("h-skriv-setning");
+  // The sentence is a secret: a reload goes back through «Jeg er …», and the draft is kept.
+  await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
+  t.sjekk((await t.finnes('[data-h="hjeg"]')) && !(await t.tekst("#skjerm")).includes("Zebra"), "Omlasting midt i startsetningen hoppet over «Jeg er …»");
+  await t.klikk('[data-h="hjeg"]');
+  await t.vent("document.querySelector('#kunst-setning')");
+  t.sjekk((await t.js("document.getElementById('kunst-setning').value")) === "Zebra <b>42</b> ski", "Utkastet til startsetningen overlevde ikke omlasting");
+  await t.klikk("#kunst-setning-send");
+  await t.vent("document.querySelector('.kunst-lerret')");
+  await t.sov(300);
+  t.sjekk((await t.tekst("#skjerm h1")) === "Zebra <b>42</b> ski" && !(await t.finnes("#skjerm h1 b")), "Tegneren ser ikke sin egen setning som ren tekst");
+  t.sjekk(!(await t.finnes('[data-h="hbytt"]')), "En egen setning skal ikke kunne byttes mot et ord");
+  t.sjekk(!t.norsk || /Tegn setningen din/i.test(await t.tekst(".kunst-oppgave .etikett")), "Tegneskjermen sier ikke «Tegn setningen din»");
+  await tegnHus(t);
+  await t.bilde("h-tegn-setning");
+  await t.klikk('[data-h="hferdig"]');
+  // Reload after the sentence: the chain goes on with it, no new sentence asked for.
+  await t.lastSide(t.side, "document.querySelector('[data-h=\"hjeg\"]')");
+  sp = (await t.tilstand()).spill;
+  t.sjekk(sp.na === 1 && sp.ord.o === "Zebra <b>42</b> ski", `Startsetningen overlevde ikke omlasting (${JSON.stringify(sp.ord)})`);
+  await t.klikk('[data-h="hjeg"]');
+  await t.vent("document.querySelector('#kunst-gjett')");
+  t.sjekk((await t.js("document.getElementById('kunst-gjett').maxLength")) === 60, "Gjetninger i en kjede med egen setning skal få plass til en setning");
+  await t.skrivInn("#kunst-gjett", "Zebra ".repeat(11));
+  await t.klikk("#kunst-send");
+  for (let k = 2; k < 4; k++) await kjedesteg(t, k, "zebra <b>42</b> ski");
+  await t.vent("document.querySelector('[data-h=\"vis-kjede\"]')");
+  sp = (await t.tilstand()).spill;
+  t.sjekk(sp.steg[1].g.length === 60, `Gjetningen ble ikke kuttet til 60 tegn (${sp.steg[1].g.length})`);
+  t.sjekk(JSON.stringify(sp).length < 30000, `Tilstanden er for stor (${JSON.stringify(sp).length} tegn)`);
+  await t.klikk('[data-h="vis-kjede"]');
+  await t.vent("document.querySelector('.kunst-kjede')");
+  const forfatter = (await t.js("Rusj.navn(Rusj.S.spill.ord.i)"));
+  const start = await t.tekst(".kunst-ledd.start");
+  t.sjekk(start.includes("Zebra <b>42</b> ski") && start.includes(forfatter) && (!t.norsk || /Startsetningen/i.test(start)), `Galleriet viser ikke startsetningen og hvem som skrev den («${start.replace(/\s+/g, " ")}»)`);
+  for (let k = 0; k < 4; k++) await t.klikk('[data-h="vis-neste"]', 250);
+  await t.sov(900);
+  await t.klikk('[data-h="hkaring"]');
+  await t.vent("document.querySelector('.kunst-finale')");
+  t.sjekk(/Zebra <b>42<\/b> ski/i.test(await t.tekst(".kunst-finale")) && (!t.norsk || /Startsetningen/i.test(await t.tekst(".kunst-finale"))), "Finalen viser ikke startsetningen");
+  t.sjekk(!(await t.finnes(".kunst-finale b b, .kunst-finale-kort b > b")), "Startsetningen ble tolket som HTML i finalen");
+  t.sjekk((await hendelser(t, "ferdig")).some((d) => d.modus === "hvisk" && d.hele === true), "«en elg på ski» skal telle som at setningen kom hele veien");
+  await t.bilde("h-kaaring-setning", true);
+
+  // «Gi meg et ord i stedet»: no idea for a sentence, a word card after all (the setting stays).
+  await t.klikk('[data-h="hny"]');
+  await t.vent("document.querySelector('[data-h=\"hjeg\"]')");
+  await t.klikk('[data-h="hjeg"]');
+  await t.vent("document.querySelector('#kunst-setning')");
+  await t.klikk('[data-h="hord"]');
+  await t.vent("document.querySelector('.kunst-lerret')");
+  sp = (await t.tilstand()).spill;
+  t.sjekk(!sp.ord.egen && sp.ord.o && (await t.finnes('[data-h="hbytt"]')) && (await t.tilstand()).oppsett.egen === true, `«Gi meg et ord i stedet» ga ikke et ord (${JSON.stringify(sp.ord)})`);
 }

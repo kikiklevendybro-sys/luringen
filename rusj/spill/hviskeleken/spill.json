@@ -1,0 +1,33 @@
+{
+  "id": "hviskeleken",
+  "navn": "Hviskeleken",
+  "undertittel": "Tegn, gjett og le",
+  "beskrivelse": "Gratis hviskelek med tegninger på én mobil: ord blir tegning, tegning blir gjetning – rundt bordet til ingen kjenner igjen startordet. For fire eller flere.",
+  "kort": "Ord blir tegning blir gjetning – send mobilen rundt og se det spore av.",
+  "spillere": [4, 20],
+  "alder": 6,
+  "minutter": [10, 30],
+  "mobiler": "en",
+  "tagger": ["tegning", "fest", "familie"],
+  "rekkefolge": 107,
+  "farge": "#5ccfb0",
+  "sok": ["hviskelek", "hviskeleken med tegning", "tegnetelefon", "tegn og gjett i kjede", "tegnelek", "tegn og gjett", "gartic phone", "telestrations"],
+  "i18n": {
+    "en": {
+      "navn": "Telephone Drawing",
+      "undertittel": "Draw, guess, laugh",
+      "kort": "A word becomes a drawing becomes a guess – pass the phone round and watch it go wrong.",
+      "beskrivelse": "Free telephone drawing game on one phone: a word becomes a drawing, the drawing a guess – round the table until nobody recognises the start. For four or more.",
+      "slug": "telephone-drawing",
+      "sok": ["telephone pictionary", "drawing telephone", "pass the picture", "draw and guess chain", "telephone game", "drawing game", "gartic phone", "telestrations"]
+    },
+    "da": {
+      "navn": "Hviskelegen",
+      "undertittel": "Tegn, gæt og grin",
+      "kort": "Ord bliver tegning bliver gæt – send mobilen rundt, og se det gå helt i ged.",
+      "beskrivelse": "Gratis hviskeleg med tegninger på én mobil: ord bliver tegning, tegning bliver gæt – rundt om bordet, til ingen kan genkende startordet. For fire eller flere.",
+      "slug": "hviskelegen",
+      "sok": ["hviskeleg", "hviskelegen", "tegnetelefon", "tegn og gæt i kæde", "tegneleg", "tegn og gæt", "gartic phone", "telestrations"]
+    }
+  }
+}

@@ -7,7 +7,10 @@
    - Hviskeleken (four or more): telephone with pictures. Word → drawing → guess → drawing … passed
      around, each player seeing only the step before, everyone exactly once. With an odd number of
      players the chain ends on a drawing, and the whole table guesses that one together. At the end
-     a gallery replays every drawing stroke by stroke next to the guesses.
+     a gallery replays every drawing stroke by stroke next to the guesses. With «Skriv startsetningen
+     selv» the first player types a secret sentence of their own instead of drawing a word card.
+   The address …/kunstneren/#hvisk (the Hviskeleken card on the front page hands over here) opens
+   the setup with Hviskeleken chosen.
    Drawings are kept as compact stroke strings (normalised, delta-encoded points), never as
    images, so a game survives a reload and the saved state stays small. A finished drawing is
    written once to its own storage key and left out of the save that happens on every stroke. */
@@ -60,6 +63,8 @@
   const MAKS_PUNKTER = 1500; // per stroke (a longer one is split)
   const MAKS_TEGN = 40000; // characters of stroke data per drawing
   const MAKS_TOTALT = 1500000; // …and in the whole game: localStorage is small and shared by all games
+  const MAKS_GJETT = 40; // characters in a guess
+  const MAKS_SETNING = 60; // …in a starting sentence of one's own (and in the guesses of that chain)
   const TOM = "C";
 
   const ALFABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -743,6 +748,7 @@
       .join(" ");
   const likOrd = (a, b) => R.normaliser(a) === R.normaliser(b) || rot(a) === rot(b);
   const ordPille = (ord) => {
+    if (ord.egen) return `✍️ ${esc(Number.isInteger(ord.i) && ord.i >= 0 ? R.t("Skrevet av {navn}", { navn: R.navn(ord.i) }) : R.t("Egen startsetning"))}`;
     const k = kategori(ord.k);
     return `${k ? `${esc(k.ikon)} ${esc(k.navn)} · ` : ""}${esc(NIVANAVN[ord.n] || "")}`;
   };
@@ -887,8 +893,9 @@
       utkast: "",
       her: "hgi",
     };
-    S.spill.ord = trekkOrd(S);
-    R.statistikk("start", { modus: "hvisk", spillere: antall, steg: S.spill.rekke.length, tid: o.htid });
+    // «Skriv startsetningen selv»: the first player types it on a screen of its own (hskriv).
+    S.spill.ord = o.egen ? { o: "", egen: true, i: S.spill.rekke[0] } : trekkOrd(S);
+    R.statistikk("start", { modus: "hvisk", spillere: antall, steg: S.spill.rekke.length, tid: o.htid, egen: !!o.egen });
   }
   const hTegner = (k) => k % 2 === 0;
   // How the guesses of a finished chain went: the number that hit, and whether the word made it.
@@ -900,6 +907,9 @@
   }
   // What a drawing step has to draw: the word (first step) or the guess before it.
   const hMotiv = (sp, k) => (k === 0 ? ordTekst(sp.ord) : sp.steg[k - 1].g);
+  // A chain that starts from a sentence of one's own gets room for sentences in its guesses too.
+  const gjettMaks = (sp) => (sp && sp.ord && sp.ord.egen ? MAKS_SETNING : MAKS_GJETT);
+  const startTittel = (sp) => (sp.ord.egen ? R.t("Startsetningen") : R.t("Startordet"));
 
   function nyttHSteg(S) {
     const sp = S.spill;
@@ -1403,7 +1413,7 @@
   function leddHtml(sp, k, ny) {
     const klasse = ny ? " ny" : "";
     if (k < 0) {
-      return `<li class="kunst-ledd start${klasse}"><p class="etikett">${esc(R.t("Startordet"))}</p><p class="kunst-ordet">${esc(ordTekst(sp.ord))}</p><p class="kort-pille">${ordPille(sp.ord)}</p></li>`;
+      return `<li class="kunst-ledd start${klasse}"><p class="etikett">${esc(startTittel(sp))}</p><p class="kunst-ordet">${esc(ordTekst(sp.ord))}</p><p class="kort-pille">${ordPille(sp.ord)}</p></li>`;
     }
     const st = sp.steg[k];
     const navn = hNavn(st.i);
@@ -1464,8 +1474,9 @@
     const ordAntall = ALLE.filter((w) => valgte.has(w.k) && (!o.niva || w.n === o.niva)).length;
     const lag = lagLov(antall, o.lag) ? o.lag : 0;
     const runder = runderFor(S);
+    const egen = !tegn && o.egen; // the first player writes the sentence: no word card, no categories
     const sammendrag = [
-      o.kategorier.length === ALLE_KAT.length ? R.t("Alle kategorier") : R.flertall(o.kategorier.length, "kategori", "kategorier"),
+      egen ? R.t("Egen startsetning") : o.kategorier.length === ALLE_KAT.length ? R.t("Alle kategorier") : R.flertall(o.kategorier.length, "kategori", "kategorier"),
       tegn ? R.t("{n} s", { n: o.tid }) : o.htid ? R.t("{n} s", { n: o.htid }) : R.t("Fri tid"),
       tegn ? R.flertall(runder, "runde", "runder") : o.lengde === 1 ? R.t("Én runde") : R.t("To runder"),
       tegn ? (lag ? R.t("{n} lag", { n: lag }) : antall === 2 ? R.t("Sammen") : R.t("Alle mot alle")) : "",
@@ -1496,15 +1507,19 @@
             ? R.t("Dere to spiller sammen: hvor mange tegninger klarer dere?")
             : R.t("Alle tegner etter tur, i denne rekkefølgen."),
       })}
-      <section class="seksjon">
+      ${egen ? "" : `<section class="seksjon">
         <div class="seksjon-hode"><h2>${esc(R.t("Ordene"))}</h2><span class="tall">${esc(R.t("{n} ord", { n: ordAntall }))}</span></div>
         ${R.ui.seg("niva", [["1", NIVANAVN[1]], ["2", NIVANAVN[2]], ["3", NIVANAVN[3]], ["0", NIVANAVN[0]]], o.niva, { etikett: R.t("Vanskelighetsgrad") })}
-      </section>
-      ${tegn ? R.ui.bryter("krav", o.krav, R.t("Kunstnerkrav"), R.t("Noen tegninger får en vri: feil hånd, lukkede øyne, bare rette streker …")) : ""}
+      </section>`}
+      ${
+        tegn
+          ? R.ui.bryter("krav", o.krav, R.t("Kunstnerkrav"), R.t("Noen tegninger får en vri: feil hånd, lukkede øyne, bare rette streker …"))
+          : R.ui.bryter("egen", o.egen, R.t("Skriv startsetningen selv"), R.t("Den første finner på en hemmelig setning i stedet for å få et ord."))
+      }
       <section class="kunst-mer${o.mer ? " apen" : ""}">
         <button type="button" class="kunst-mer-knapp" data-h="mer" aria-expanded="${o.mer}"><span><b>${esc(R.t("Flere valg"))}</b><small>${esc(sammendrag.join(" · "))}</small></span><i aria-hidden="true"></i></button>
         ${o.mer ? `<div class="kunst-mer-innhold">
-          <section class="seksjon">
+          ${egen ? "" : `<section class="seksjon">
             <div class="seksjon-hode"><h3>${esc(R.t("Kategorier"))}</h3><span class="tall">${esc(R.t("{n} av {av}", { n: o.kategorier.length, av: ALLE_KAT.length }))}</span></div>
             ${R.ui.brikker(
               "kategori",
@@ -1512,7 +1527,7 @@
               o.kategorier,
               { alle: true, etikett: R.t("Kategorier") },
             )}
-          </section>
+          </section>`}
           ${
             tegn
               ? `<section class="seksjon"><h3>${esc(R.t("Tid per tegning"))}</h3>${R.ui.seg("tid", [45, 60, 90].map((x) => [String(x), R.t("{n} s", { n: x })]), o.tid, { etikett: R.t("Tid per tegning") })}</section>
@@ -1527,13 +1542,13 @@
         </div>` : ""}
       </section>
       ${R.ui.dokk(
-        `<p class="hjelp kunst-estimat">${esc(o.kategorier.length ? estimat(S) : R.t("Velg minst én kategori under «Flere valg»"))}</p>`,
-        R.ui.knapp(R.t("Start"), "start", { av: !o.kategorier.length }),
+        `<p class="hjelp kunst-estimat">${esc(o.kategorier.length || egen ? estimat(S) : R.t("Velg minst én kategori under «Flere valg»"))}</p>`,
+        R.ui.knapp(R.t("Start"), "start", { av: !o.kategorier.length && !egen }),
       )}`;
   }
 
   // runder is only used once it has been chosen (runderValgt); until then the group's size decides.
-  const standardOppsett = () => ({ modus: "tegn", niva: 0, kategorier: ALLE_KAT.slice(), tid: 60, runder: 2, runderValgt: false, lag: 0, krav: false, htid: 30, lengde: 1, mer: false });
+  const standardOppsett = () => ({ modus: "tegn", niva: 0, kategorier: ALLE_KAT.slice(), tid: 60, runder: 2, runderValgt: false, lag: 0, krav: false, htid: 30, lengde: 1, egen: false, mer: false });
 
   // A saved game must fit what the screens expect; anything odd starts fresh.
   function gyldigSpill(sp) {
@@ -1567,13 +1582,16 @@
         Array.isArray(sp.steg) &&
         sp.steg.length === sp.na &&
         sp.steg.every((s, k) => s && (hTegner(k) ? strekliste(s.s) : typeof s.g === "string")) &&
+        // A sentence of one's own is typed before the first drawing: after that it can't be empty.
+        sp.ord.o.length <= MAKS_SETNING &&
+        (!sp.ord.egen || sp.na === 0 || !!sp.ord.o.trim()) &&
         heltall(sp.vist, 1, sp.rekke.length + 1)
       );
     }
     return false;
   }
 
-  const SPILLSKJERMER = { tegn: ["ord", "tegn", "resultat"], hvisk: ["hgi", "htegn", "hgjett", "hklar", "galleri", "hkaring"] };
+  const SPILLSKJERMER = { tegn: ["ord", "tegn", "resultat"], hvisk: ["hgi", "hskriv", "htegn", "hgjett", "hklar", "galleri", "hkaring"] };
 
   function fullforStrek() {
     if (brett && brett.na) brett.fullfor();
@@ -1862,7 +1880,7 @@
             </div>
             ${R.ui.dokk(R.ui.knapp(R.t("Vis tegningen"), "hjeg"), avslutt)}`;
         }
-        const oppdrag = k === 0 ? R.t("Du skal tegne et hemmelig ord") : hTegner(k) ? R.t("Du skal tegne det forrige svaret") : R.t("Du skal gjette hva tegningen er");
+        const oppdrag = k === 0 ? (sp.ord.egen && !sp.ord.o ? R.t("Du skal finne på en hemmelig setning og tegne den") : R.t("Du skal tegne et hemmelig ord")) : hTegner(k) ? R.t("Du skal tegne det forrige svaret") : R.t("Du skal gjette hva tegningen er");
         return `
           ${kjedePrikker(sp)}
           <div class="gi-til">
@@ -1876,6 +1894,35 @@
       },
       inn(S) {
         S.spill.her = "hgi";
+      },
+    },
+
+    // «Skriv startsetningen selv»: the first player types a secret sentence, then draws it.
+    // The sentence is secret too, so a reload goes through the hand-over again.
+    hskriv: {
+      tittel: stegTittel,
+      tilbake: "hjem",
+      gjenoppta: "hgi",
+      vis(S) {
+        const sp = S.spill;
+        const utkast = sp.utkast || "";
+        return `
+          <div class="kunst-gjett-topp" data-hemmelig>
+            <p class="etikett">${esc(R.t("{navn} starter kjeden", { navn: R.navn(sp.rekke[0]) }))}</p>
+            <h1 id="skjerm-tittel">${esc(R.t("Skriv startsetningen"))}</h1>
+          </div>
+          <form class="kunst-gjettskjema kunst-setningskjema" data-skjema="setning" autocomplete="off">
+            <label class="vh" for="kunst-setning">${esc(R.t("Startsetningen"))}</label>
+            <input class="tekstfelt" id="kunst-setning" data-felt="setning" maxlength="${MAKS_SETNING}" enterkeyhint="next" autocapitalize="sentences" autocomplete="off" spellcheck="false" placeholder="${esc(R.t("For eksempel: En elg på skøyter"))}" value="${esc(utkast)}">
+            <p class="hjelp">${esc(R.t("Hold den hemmelig: etterpå tegner du den selv, og de andre ser bare tegningen."))}</p>
+            ${R.ui.dokk(
+              `<button class="knapp" type="submit" id="kunst-setning-send"${utkast.trim() ? "" : " disabled"}>${esc(R.t("Tegn den"))}</button>`,
+              R.ui.lenkerad(R.ui.lenke(R.t("Gi meg et ord i stedet"), "hord")),
+            )}
+          </form>`;
+      },
+      inn(S) {
+        S.spill.her = "hskriv";
       },
     },
 
@@ -1893,11 +1940,11 @@
           <div class="kunst-topp">
             ${sp.tid ? R.ui.timer({ id: "kunst-tid", sekunder: Math.ceil(sp.igjen) }) : ""}
             <div class="kunst-oppgave">
-              <p class="etikett">${esc(sp.na === 0 ? R.t("Tegn dette ordet") : R.t("Tegn dette"))}</p>
+              <p class="etikett">${esc(sp.na === 0 ? (sp.ord.egen ? R.t("Tegn setningen din") : R.t("Tegn dette ordet")) : R.t("Tegn dette"))}</p>
               <h1 id="skjerm-tittel" class="${R.lengdeKlasse(motiv)}">${esc(motiv)}</h1>
               ${urort ? `<p class="kunst-tidhint" id="kunst-tidhint">${esc(R.t("Klokka starter når du tegner"))}</p>` : ""}
             </div>
-            ${sp.na === 0 && !sp.strek.length ? `<button type="button" class="kunst-bytt" data-h="hbytt" aria-label="${esc(R.t("Bytt ord"))}">${IKON.bytt}<span>${esc(R.t("Bytt"))}</span></button>` : ""}
+            ${sp.na === 0 && !sp.ord.egen && !sp.strek.length ? `<button type="button" class="kunst-bytt" data-h="hbytt" aria-label="${esc(R.t("Bytt ord"))}">${IKON.bytt}<span>${esc(R.t("Bytt"))}</span></button>` : ""}
           </div>
           ${levendeArk(sp.ute ? `<div class="kunst-slor ute"><span class="stempel">${esc(R.t("Tiden er ute!"))}</span><p>${esc(R.t("Send tegningen videre."))}</p></div>` : "")}
           ${verktoyHtml(sp, sp.ute)}
@@ -1939,7 +1986,7 @@
           <form class="kunst-gjettskjema" data-skjema="gjett" autocomplete="off">
             ${vet.length ? `<p class="hjelp kunst-vet">${esc(R.t("{navn} vet svaret og holder tett.", { navn: R.ramsOpp(vet) }))}</p>` : ""}
             <label class="vh" for="kunst-gjett">${esc(bord ? R.t("Hva tror dere tegningen er?") : R.t("Hva tror du tegningen er?"))}</label>
-            <input class="tekstfelt" id="kunst-gjett" data-felt="gjett" maxlength="40" enterkeyhint="send" autocapitalize="sentences" autocomplete="off" spellcheck="false" placeholder="${esc(bord ? R.t("Vi tror det er …") : R.t("Jeg tror det er …"))}" value="${esc(sp.utkast || "")}">
+            <input class="tekstfelt" id="kunst-gjett" data-felt="gjett" maxlength="${gjettMaks(sp)}" enterkeyhint="send" autocapitalize="sentences" autocomplete="off" spellcheck="false" placeholder="${esc(bord ? R.t("Vi tror det er …") : R.t("Jeg tror det er …"))}" value="${esc(sp.utkast || "")}">
             ${R.ui.dokk(`<button class="knapp" type="submit" id="kunst-send"${(sp.utkast || "").trim() ? "" : " disabled"}>${esc(bord ? R.t("Vis kjeden") : R.t("Send videre"))}</button>`)}
           </form>`;
       },
@@ -2000,7 +2047,7 @@
             <p class="etikett">${esc(sp.kuttet ? R.t("Så langt kom kjeden") : R.t("Kjeden er ferdig"))}</p>
             <span class="stempel ${treff ? "mynte" : ""}">${esc(treff ? R.t("Hele veien!") : R.t("På jordet!"))}</span>
             <div class="kunst-finale-par">
-              <p class="kunst-finale-kort"><small>${esc(R.t("Startordet"))}</small><b>${esc(ordTekst(sp.ord))}</b></p>
+              <p class="kunst-finale-kort"><small>${esc(startTittel(sp))}</small><b>${esc(ordTekst(sp.ord))}</b></p>
               <span class="kunst-finale-pil" aria-hidden="true">↓</span>
               <p class="kunst-finale-kort sist"><small>${esc(R.t("Ble til slutt"))}</small><b>${esc(R.t("«{tekst}»", { tekst: sist }))}</b></p>
             </div>
@@ -2090,6 +2137,7 @@
       o.runderValgt = o.runderValgt === true;
       if (![0, 2, 3, 4].includes(o.lag)) o.lag = 0;
       o.krav = o.krav === true;
+      o.egen = o.egen === true;
       if (![0, 30, 45, 60].includes(o.htid)) o.htid = o.htid === 90 ? 60 : 30;
       if (![1, 2].includes(o.lengde)) o.lengde = 1;
       o.mer = !!o.mer;
@@ -2133,6 +2181,7 @@
         R.t("Glemt ordet midt i tegningen? Snu mobilen og hold fingeren på øyet øverst."),
         R.t("Er dere to? Da spiller dere sammen: hvor mange tegninger klarer dere – og slår dere rekorden?"),
         R.t("Slå på «Kunstnerkrav» for tegninger med en vri: feil hånd, lukkede øyne og mer."),
+        R.t("I Hviskeleken kan den første finne på sin egen hemmelige startsetning: slå på «Skriv startsetningen selv»."),
       ],
       ekstraHtml: `<h3>${esc(R.t("Hviskeleken"))}</h3>
         <ol class="steg">
@@ -2162,6 +2211,16 @@
       },
     },
 
+    // …/kunstneren/#hvisk (the Hviskeleken card on the front page): the setup with Hviskeleken chosen,
+    // for at least four players. A link never throws a game in progress away: then it is the start
+    // screen («Fortsett», or «Nytt spill», which then opens in Hviskeleken).
+    vedHash(S, hash) {
+      if (hash !== "hvisk") return null;
+      if (!hviskLov(S.antall)) S.antall = MIN_HVISK;
+      S.oppsett.modus = "hvisk";
+      return iGang(S) ? "hjem" : "oppsett";
+    },
+
     vedSpillere(S) {
       if (!lagLov(S.antall, S.oppsett.lag)) S.oppsett.lag = 0;
       if (S.oppsett.modus === "hvisk" && !hviskLov(S.antall)) {
@@ -2174,14 +2233,37 @@
     felt: {
       gjett(S, el) {
         if (!S.spill) return;
-        S.spill.utkast = el.value.slice(0, 40);
+        S.spill.utkast = el.value.slice(0, gjettMaks(S.spill));
         const knapp = R.$("#kunst-send");
+        if (knapp) knapp.disabled = !el.value.trim();
+        R.lagre();
+      },
+      setning(S, el) {
+        if (!S.spill) return;
+        S.spill.utkast = R.kutt(el.value, MAKS_SETNING);
+        const knapp = R.$("#kunst-setning-send");
         if (knapp) knapp.disabled = !el.value.trim();
         R.lagre();
       },
     },
 
     skjema: {
+      setning(S, form) {
+        const sp = S.spill;
+        if (!sp || sp.modus !== "hvisk" || sp.na !== 0 || !sp.ord.egen) return;
+        const felt = form.querySelector("#kunst-setning");
+        const tekst = R.kutt(String(felt ? felt.value : "").replace(/\s+/g, " ").trim(), MAKS_SETNING).trim();
+        if (!tekst) {
+          if (felt) felt.focus();
+          R.toast(R.t("Skriv en setning først"));
+          return;
+        }
+        if (felt) felt.blur();
+        sp.ord.o = tekst;
+        sp.utkast = "";
+        R.lyd.pop();
+        R.gaTil("htegn");
+      },
       gjett(S, form) {
         const sp = S.spill;
         if (!sp || sp.modus !== "hvisk" || hTegner(sp.na)) return;
@@ -2189,7 +2271,7 @@
         const tekst = String(felt ? felt.value : "")
           .replace(/\s+/g, " ")
           .trim()
-          .slice(0, 40);
+          .slice(0, gjettMaks(sp));
         if (!tekst) {
           if (felt) felt.focus();
           R.toast(R.t("Skriv hva du tror tegningen er"));
@@ -2233,7 +2315,7 @@
         else {
           const lov = SPILLSKJERMER.hvisk;
           mal = lov.includes(sp.her) ? sp.her : lov[0];
-          if (mal === "htegn" || mal === "hgjett") mal = "hgi"; // secrets only after "Jeg er …"
+          if (mal === "htegn" || mal === "hgjett" || mal === "hskriv") mal = "hgi"; // secrets only after "Jeg er …"
         }
         R.gaTil(mal);
       },
@@ -2277,6 +2359,10 @@
         S.oppsett.krav = !S.oppsett.krav;
         R.vis();
       },
+      egen(el, e, S) {
+        S.oppsett.egen = !S.oppsett.egen;
+        R.vis();
+      },
       htid(el, e, S) {
         S.oppsett.htid = Number(el.dataset.v) || 0;
         R.vis();
@@ -2286,7 +2372,7 @@
         R.vis();
       },
       start(el, e, S) {
-        if (!S.oppsett.kategorier.length) return;
+        if (!S.oppsett.kategorier.length && !(modusFor(S) === "hvisk" && S.oppsett.egen)) return;
         R.holdVaken();
         if (modusFor(S) === "hvisk") {
           startHvisk(S);
@@ -2551,7 +2637,17 @@
       hjeg(el, e, S) {
         const sp = S.spill;
         if (!sp || sp.na >= sp.rekke.length) return;
+        if (sp.na === 0 && sp.ord.egen && !sp.ord.o) return R.gaTil("hskriv");
         R.gaTil(hTegner(sp.na) ? "htegn" : "hgjett");
+      },
+      // No idea for a sentence: a word card after all (this chain only; the setting stays).
+      hord(el, e, S) {
+        const sp = S.spill;
+        if (!sp || sp.na !== 0 || !sp.ord.egen || sp.ord.o) return;
+        sp.ord = trekkOrd(S);
+        sp.utkast = "";
+        R.lyd.sveip();
+        R.gaTil("htegn");
       },
       hbytt(el, e, S) {
         const sp = S.spill;
