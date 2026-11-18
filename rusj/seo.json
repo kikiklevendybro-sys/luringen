@@ -1333,6 +1333,17 @@
         "skuespill lek",
         "impro øvelser"
       ]
+    },
+    "hviskeleken": {
+      "tittel": "Hviskeleken med tegning – tegn og gjett i kjede",
+      "frase": "Hviskeleken med tegning",
+      "beskrivelse": "Hviskeleken på mobilen: ord blir tegning, tegning blir gjetning, rundt bordet til ingen kjenner igjen startordet. Gratis, for fire eller flere.",
+      "sok": [
+        "hviskelek",
+        "tegnetelefon",
+        "tegneleker",
+        "selskapsleker"
+      ]
     }
   }
 }

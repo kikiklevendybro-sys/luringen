@@ -9,7 +9,7 @@
   "minutter": [10, 30],
   "mobiler": "en",
   "tagger": ["tegning", "fest", "familie"],
-  "rekkefolge": 107,
+  "rekkefolge": 111,
   "farge": "#5ccfb0",
   "sok": ["hviskelek", "hviskeleken med tegning", "tegnetelefon", "tegn og gjett i kjede", "tegnelek", "tegn og gjett", "gartic phone", "telestrations"],
   "i18n": {

@@ -820,7 +820,10 @@ for (const id of valgt) {
     } else {
       const m = meta(id);
       await t.start();
-      if (m.alder18) {
+      // A card that hands over to another game at once (Hviskeleken → Kunstneren with #hvisk) has no
+      // home screen of its own: its scenario checks where it lands.
+      const overlevert = (await c.js("location.pathname")) !== sideFor(id);
+      if (!overlevert && m.alder18) {
         // Drinking games: the kit's 18+ gate comes first; "Nei" leads away, "Ja" opens the game.
         // The gate's heading is the game's name (with «18+»), and it asks as the front page does.
         const port = await c.tekst("#skjerm h1");
@@ -831,14 +834,16 @@ for (const id of valgt) {
         await c.klikk('[data-h="alder-ja"]');
         await c.vent("document.querySelector('#skjerm h1') && !document.querySelector('[data-h=\"alder-ja\"]')");
       }
-      const h1 = await c.tekst("#skjerm h1");
-      t.sjekk(h1.trim() === m.navn, `Hjem-skjermen har overskriften «${h1}», ventet «${m.navn}»`);
-      t.sjekk(await c.finnes("#tilportal:not([hidden])"), "Mangler rusj-knappen øverst på hjem-skjermen");
-      await t.bilde("hjem");
-      await c.klikk("#reglerknapp");
-      t.sjekk(await c.finnes("#ark:not([hidden]) .steg li"), "Reglene vises ikke");
-      await t.bilde("regler");
-      await c.klikk('#ark [data-h="lukk-ark"]');
+      if (!overlevert) {
+        const h1 = await c.tekst("#skjerm h1");
+        t.sjekk(h1.trim() === m.navn, `Hjem-skjermen har overskriften «${h1}», ventet «${m.navn}»`);
+        t.sjekk(await c.finnes("#tilportal:not([hidden])"), "Mangler rusj-knappen øverst på hjem-skjermen");
+        await t.bilde("hjem");
+        await c.klikk("#reglerknapp");
+        t.sjekk(await c.finnes("#ark:not([hidden]) .steg li"), "Reglene vises ikke");
+        await t.bilde("regler");
+        await c.klikk('#ark [data-h="lukk-ark"]');
+      }
       const scenario = join(ROT, "test/spill", `${id}.e2e.mjs`);
       if (existsSync(scenario)) {
         const modul = await import(pathToFileURL(scenario).href);
