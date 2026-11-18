@@ -13,6 +13,7 @@
   "farge": "#c98b5a",
   "sok": ["dam", "damspill", "dambrett", "checkers", "draughts", "dam på nett", "spill dam"],
   "motMobilen": true,
+  "nett": true,
   "alias": ["damspill"],
   "i18n": {
     "en": {

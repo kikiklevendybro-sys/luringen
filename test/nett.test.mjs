@@ -477,3 +477,42 @@ test("Snekkeren: a whole 3 × 3 game on two phones – a box gives another line,
   assert.equal(rom("snekkeren", 2, { n: 9 }, 20261115, 2).tlf[0].S.spill.n, 4, "an unknown size: 4 × 4");
   assert.equal(rom("snekkeren", 2, {}, 20261115, 2).tlf[1].S.spill.starter, 1, "match 2: the guest opens");
 });
+
+test("Dam: a whole game on two phones – forced captures, multi-jumps as one move, illegal moves ignored", () => {
+  const { Dam } = regler("dam", "Dam");
+  const r = rom("dam", 2, { mal: 1 });
+  const [a, b] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().starter, 0, "the host has white in match 1");
+  r.trekk(1, { m: "b6-a5" }); // black first: ignored
+  r.trekk(0, { m: "a1-b2" }); // occupied: ignored
+  r.trekk(0, { m: "c3-c4" }); // not diagonal: ignored
+  r.trekk(0, { m: 12 });
+  assert.equal(sp().trekk.length, 0);
+  let slag = false;
+  for (let steg = 0; steg < 400 && !sp().resultat; steg++) {
+    const tur = a.def.nett.tur(a.S);
+    const p = Dam.lastParti(Dam.START, sp().trekk);
+    // The longest capture there is, else the first move (so the game ends in a win, not a draw).
+    const m = p.lovlige.slice().sort((x, y) => y.slag.length - x.slag.length)[0];
+    if (m.slag.length) {
+      slag = true;
+      // A capture is mandatory: the same piece stepping to the first square it jumps to is ignored.
+      r.trekk(tur, { m: `${Dam.navn(m.fra)}-${Dam.navn(m.sti[0])}` });
+    }
+    r.trekk(1 - tur, { m: Dam.notasjon(m) }); // not your turn
+    const n = sp().trekk.length;
+    r.trekk(tur, { m: Dam.notasjon(m) });
+    assert.equal(sp().trekk.length, n + 1);
+  }
+  assert.ok(slag, "no capture");
+  assert.ok(sp().resultat, "the game did not end");
+  assert.ok(a.def.nett.ferdig(a.S));
+  likt(a, b);
+  const sen = r.sen(1);
+  likt(a, sen);
+  assert.equal(sen.def.nett.skjerm(sen.S), "slutt");
+  const r2 = rom("dam", 2, { mal: 3 }, 20261115, 2);
+  assert.equal(r2.tlf[0].S.spill.starter, 1, "match 2: the guest has white");
+  assert.equal(r2.tlf[0].S.spill.mal, 3);
+});

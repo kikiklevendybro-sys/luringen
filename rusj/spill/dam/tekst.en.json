@@ -142,5 +142,6 @@
   "Hvit vant!": "White won!",
   "Svart vant!": "Black won!",
   "brikke|brikker": { "one": "piece", "other": "pieces" },
-  "parti|partier": { "one": "game", "other": "games" }
+  "parti|partier": { "one": "game", "other": "games" },
+  "Vent på tur – {navn} spiller nå": "Wait your turn – {navn} is playing"
 }
