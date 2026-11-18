@@ -1,0 +1,33 @@
+{
+  "id": "kameleonen",
+  "navn": "Kameleonen",
+  "undertittel": "Følelsesbyttet",
+  "beskrivelse": "Gratis improlek på norsk: to spiller en scene, og mobilen bytter følelse midt i – sint, forelsket, robot, opera. Publikum kårer den beste. 70 scener.",
+  "kort": "Spill scenen – og bytt følelse når mobilen piper.",
+  "spillere": [3, 12],
+  "alder": 8,
+  "minutter": [10, 40],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "lag"],
+  "rekkefolge": 107,
+  "farge": "#7bd88f",
+  "sok": ["følelsesbyttet", "følelseslek", "improvisasjon", "impro", "teaterlek", "dramalek", "skuespill", "bytt følelse"],
+  "i18n": {
+    "en": {
+      "navn": "The Chameleon",
+      "undertittel": "Switch the feeling",
+      "kort": "Act the scene – and switch the feeling when the phone beeps.",
+      "beskrivelse": "Free improv game: two act a scene and the phone switches the emotion mid-scene – angry, in love, robot, opera. The audience picks the best. 70 scenes.",
+      "slug": "the-chameleon",
+      "sok": ["emotion switch", "improv game", "improv games for kids", "drama game", "acting game", "emotional rollercoaster", "change the emotion", "party acting game"]
+    },
+    "da": {
+      "navn": "Kamæleonen",
+      "undertittel": "Følelsesskiftet",
+      "kort": "Spil scenen – og skift følelse, når mobilen bipper.",
+      "beskrivelse": "Gratis improleg på dansk: to spiller en scene, og mobilen skifter følelse midt i – vred, forelsket, robot, opera. Publikum kårer den bedste. 70 scener.",
+      "slug": "kamaeleonen",
+      "sok": ["følelsesskift", "improleg", "improvisation", "dramaleg", "teaterleg", "skuespil", "skift følelse"]
+    }
+  }
+}

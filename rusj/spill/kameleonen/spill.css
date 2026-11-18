@@ -1,0 +1,336 @@
+/* Kameleonen: the scene card, the emotion that fills the screen and changes colour, the verdict.
+   Everything is prefixed kam- so it can't clash. */
+
+.kam-tett {
+  margin-top: -10px;
+}
+
+/* ---------- Setup ---------- */
+
+.kam-to {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: 12px;
+}
+
+.kam-to .seg button {
+  padding-inline: 2px;
+}
+
+.kam-estimat {
+  margin-bottom: -2px;
+  color: var(--tekst-2);
+}
+
+@media (max-width: 359px) {
+  .kam-to {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- The next scene ---------- */
+
+.kam-etikett {
+  margin: 6px 0 0;
+  text-align: center;
+}
+
+.kam-tittel {
+  margin: 4px 0 0;
+  font-size: clamp(1.6rem, 7.4vw, 2.3rem);
+  line-height: 1.12;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.kam-aktorer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
+  gap: 6px;
+  margin: 20px 0 6px;
+}
+
+.kam-og {
+  align-self: center;
+  margin-top: -30px;
+  font: 900 1.6rem/1 var(--font-display);
+  color: var(--aksent);
+}
+
+.kam-aktor {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  text-align: center;
+}
+
+.kam-aktor-navn {
+  max-width: 100%;
+  font: 800 1.2rem/1.15 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.kam-rolle {
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 241, 221, 0.1);
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.kam-forklar {
+  text-align: center;
+}
+
+/* ---------- The scene: the emotion fills the screen ---------- */
+
+.skjerm-scene {
+  gap: 0;
+}
+
+.kam-scene {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.kam-scenenavn {
+  margin: 2px 0 0;
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.kam-folelse {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 260px;
+  padding: 22px 18px;
+  border: 4px solid var(--blekk);
+  border-radius: var(--r-stor);
+  background: var(--kf, #7bd88f);
+  color: var(--blekk);
+  text-align: center;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.28);
+  transition: background-color 0.45s ease;
+}
+
+.kam-emoji {
+  font-size: clamp(4.6rem, 26vw, 7.5rem);
+  line-height: 1;
+}
+
+.kam-ord {
+  margin: 0;
+  font: 900 clamp(2.2rem, 11vw, 3.4rem)/1.05 var(--font-display);
+  color: var(--blekk);
+  overflow-wrap: anywhere;
+}
+
+.kam-ord.lang {
+  font-size: clamp(1.8rem, 8.6vw, 2.7rem);
+}
+
+.kam-ord.ekstra-lang {
+  font-size: clamp(1.5rem, 7vw, 2.2rem);
+}
+
+.kam-hint {
+  max-width: 26ch;
+  margin: 2px 0 0;
+  color: var(--blekk-2);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.kam-pause {
+  margin: 8px 0 0;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font-weight: 800;
+}
+
+.kam-scene.pauset .kam-folelse {
+  filter: saturate(0.55);
+}
+
+/* The switch: the card pops. */
+.kam-folelse.pop {
+  animation: kam-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.kam-folelse.pop .kam-emoji {
+  animation: kam-vri 0.6s ease-out;
+}
+
+@keyframes kam-pop {
+  0% {
+    transform: scale(0.86);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes kam-vri {
+  0% {
+    transform: rotate(-24deg) scale(0.5);
+  }
+  60% {
+    transform: rotate(10deg) scale(1.12);
+  }
+  100% {
+    transform: rotate(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kam-folelse {
+    transition: none;
+  }
+
+  .kam-folelse.pop,
+  .kam-folelse.pop .kam-emoji {
+    animation: none;
+  }
+}
+
+.kam-bunn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.kam-hvem {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  font: 800 1.05rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.kam-hvem small {
+  color: var(--tekst-2);
+  font: 600 0.88rem/1.3 var(--font-body, inherit);
+}
+
+.kam-bunn .timer-ring {
+  width: 84px;
+  height: 84px;
+}
+
+.kam-bunn .timer-tid {
+  font-size: 1.7rem;
+}
+
+/* ---------- The verdict ---------- */
+
+.kam-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.kam-chip {
+  padding: 3px 10px;
+  border: 2px solid var(--blekk);
+  border-radius: 999px;
+  background: var(--kf);
+  color: var(--blekk);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.kam-begge {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.kam-begge[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 3px var(--aksent);
+}
+
+.kam-del {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- Short screens ---------- */
+
+@media (max-height: 700px) {
+  .kam-aktorer {
+    margin-top: 12px;
+  }
+
+  .kam-aktor .avatar.stor {
+    width: 56px;
+    height: 56px;
+  }
+
+  .kam-folelse {
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .kam-emoji {
+    font-size: clamp(3.2rem, 18vw, 4.6rem);
+  }
+
+  .kam-ord {
+    font-size: clamp(1.8rem, 9vw, 2.6rem);
+  }
+
+  .kam-hint {
+    font-size: 0.95rem;
+  }
+
+  .kam-bunn .timer-ring {
+    width: 66px;
+    height: 66px;
+  }
+
+  .kam-bunn .timer-tid {
+    font-size: 1.35rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .kam-folelse {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    gap: 4px 14px;
+    padding: 10px 14px;
+  }
+
+  .kam-hint {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .kam-emoji {
+    font-size: 3.4rem;
+  }
+}
