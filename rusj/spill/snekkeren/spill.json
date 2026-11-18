@@ -13,6 +13,7 @@
   "alder": 6,
   "sok": ["prikker og bokser", "boksespill", "prikkspill", "lag bokser", "prikk og strek", "firkantspill", "bokser og streker", "papirspill"],
   "motMobilen": true,
+  "nett": true,
   "alias": ["prikker-og-bokser"],
   "i18n": {
     "en": {

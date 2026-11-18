@@ -448,3 +448,32 @@ test("Såmannen: a whole game of kalaha on two phones – extra turns, captures,
   assert.equal(sen.def.nett.skjerm(sen.S), "slutt");
   assert.equal(rom("samannen", 2, {}, 20261115, 2).tlf[0].S.spill.starter, 1, "match 2: the guest opens");
 });
+
+test("Snekkeren: a whole 3 × 3 game on two phones – a box gives another line, drawn and foreign lines ignored", () => {
+  const { Boks } = regler("snekkeren", "Snekkeren");
+  const r = rom("snekkeren", 2, { n: 3 });
+  const [a, b] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().n, 3);
+  let igjen = false;
+  for (let steg = 0; steg < 100 && !sp().resultat; steg++) {
+    const tur = a.def.nett.tur(a.S);
+    const lov = Boks.lovlige(Boks.spillUt(sp().n, sp().trekk));
+    r.trekk(1 - tur, { l: lov[0] }); // not your turn
+    if (sp().trekk.length) r.trekk(tur, { l: sp().trekk[0] }); // drawn already
+    r.trekk(tur, { l: 24 }); // no such line on 3 × 3
+    r.trekk(tur, { l: "0" });
+    const n = sp().trekk.length;
+    r.trekk(tur, { l: lov[0] });
+    assert.equal(sp().trekk.length, n + 1);
+    if (a.def.nett.tur(a.S) === tur && !sp().resultat) igjen = true;
+  }
+  assert.ok(igjen, "no box was closed");
+  assert.equal(sp().trekk.length, 24);
+  assert.equal(sp().resultat.bokser[0] + sp().resultat.bokser[1], 9);
+  assert.ok(a.def.nett.ferdig(a.S));
+  likt(a, b);
+  likt(a, r.sen(0));
+  assert.equal(rom("snekkeren", 2, { n: 9 }, 20261115, 2).tlf[0].S.spill.n, 4, "an unknown size: 4 × 4");
+  assert.equal(rom("snekkeren", 2, {}, 20261115, 2).tlf[1].S.spill.starter, 1, "match 2: the guest opens");
+});

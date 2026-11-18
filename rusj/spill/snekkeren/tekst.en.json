@@ -122,5 +122,6 @@
   "boks|bokser": {
     "one": "box",
     "other": "boxes"
-  }
+  },
+  "Vent på tur – {navn} tegner nå": "Wait your turn – {navn} is drawing"
 }
