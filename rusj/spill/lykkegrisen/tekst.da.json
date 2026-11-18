@@ -165,5 +165,8 @@
   "terning|terninger": {
     "one": "terning",
     "other": "terninger"
-  }
+  },
+  "Venter på at {navn} kaster": "Venter på at {navn} kaster",
+  "Vent på tur – {navn} kaster nå": "Vent på din tur – {navn} kaster nu",
+  "På tur": "På tur"
 }

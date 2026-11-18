@@ -552,3 +552,58 @@ test("Stigespillet: a whole game for three on three phones – the same dice, ou
   assert.equal(rom("stigespillet", 3, {}, 20261115, 2).tlf[0].S.spill.tur, 1, "match 2: the next seat begins");
   assert.equal(rom("stigespillet", 2, {}, 20261115, 4).tlf[0].S.spill.tur, 1);
 });
+
+test("Lykkegrisen: a whole game to 5000 for three on three phones – every roll, die and «Stopp» a move", () => {
+  const L = regler("lykkegrisen", "RusjLykkegrisen");
+  const r = rom("lykkegrisen", 3, { mal: 5000, tabell: "faste", inngang: 500, straff: true });
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().antall, 3);
+  assert.equal(sp().mal, 5000);
+  assert.equal(sp().tur, 0, "the host begins match 1");
+  r.trekk(0, { stopp: 1 }); // nothing to write down yet
+  r.trekk(1, { kast: 1 }); // not your turn
+  assert.equal(sp().terninger.length, 0);
+  let tomt = false;
+  let inngang = false;
+  for (let steg = 0; steg < 20000 && !a.def.nett.ferdig(a.S); steg++) {
+    const tur = sp().tur;
+    if (sp().status === "kast") {
+      r.trekk((tur + 1) % 3, { kast: 1 }); // not your turn
+      r.trekk(tur, { kast: 1 });
+      continue;
+    }
+    if (sp().status === "tomt") {
+      tomt = true;
+      r.trekk(tur, { kast: 1 }); // the turn is lost: no more rolls
+      r.trekk(tur, { neste: 1 });
+      continue;
+    }
+    // Choose: first one die by hand (and back), then the best; stop at 600 (or the entry score).
+    r.trekk(tur, { velg: 99 });
+    r.trekk(tur, { velg: 0 });
+    r.trekk(tur, { velg: 0 });
+    assert.ok(!sp().valgt[0]);
+    r.trekk(tur, { beste: 1 });
+    const v = L.verdi(sp().terninger.filter((_, i) => sp().valgt[i]), sp().tabell);
+    const poeng = sp().turPoeng + v;
+    if (!sp().inne[tur] && poeng < 500) {
+      const n = sp().logg[tur].length;
+      r.trekk(tur, { stopp: 1 }); // below the entry score: ignored
+      assert.equal(sp().logg[tur].length, n);
+      inngang = true;
+    }
+    if (poeng >= 600 && (sp().inne[tur] || poeng >= 500)) r.trekk(tur, { stopp: 1 });
+    else r.trekk(tur, { kast: 1 });
+  }
+  assert.ok(sp().klar, "the last round did not end");
+  assert.ok(a.def.nett.ferdig(a.S));
+  assert.ok(Math.max(...sp().totaler) >= 5000);
+  assert.ok(tomt && inngang);
+  likt(a, b);
+  likt(a, c);
+  const sen = r.sen(1);
+  likt(a, sen, (x) => ({ ...x, ferdig: true, resultat: null }));
+  assert.ok(sen.S.spill.ferdig && sen.def.nett.skjerm(sen.S) === "slutt", "a finished match, replayed: the result");
+  assert.equal(rom("lykkegrisen", 3, {}, 20261115, 2).tlf[0].S.spill.tur, 1, "match 2: the next seat begins");
+});

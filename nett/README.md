@@ -4,7 +4,7 @@ Denne mappa er en liten tjeneste hos Cloudflare som lar to eller flere venner sp
 
 Kort sagt: **tjenesten sender trekk videre, og glemmer alt etter et døgn.** Den kjenner ikke spillereglene. Mobilene regner ut spillet selv, og alle får de samme trekkene i samme rekkefølge.
 
-Med i første omgang: Sjakkhesten, Fireren, Terninga (Yatzy), Brikka (Ludo) og Admiralen (slagskip).
+Med: Sjakkhesten, Fireren, Terninga (Yatzy), Brikka (Ludo), Admiralen (slagskip), Reversi, Bonden (bondesjakk), Mølla, Såmannen (kalaha), Snekkeren (prikker og bokser), Dam, Stigespillet og Lykkegrisen (10 000).
 
 ## Hva et rom inneholder – og hva det ikke inneholder
 
@@ -31,7 +31,7 @@ Dette er sant fordi tjenesten er bygd slik:
 |---|---|
 | Én melding fra en mobil | høyst 2 KB (et trekk høyst 1 KB) |
 | Meldinger per mobil | høyst 20 per 10 sekunder; over 40 stenges forbindelsen |
-| Plasser | Sjakk, Fireren og Admiralen 2 · Ludo 2–4 · Yatzy 2–6 |
+| Plasser | Sjakk, Fireren, Admiralen, Reversi, Bonden, Mølla, Såmannen, Snekkeren og Dam 2 · Ludo og Stigespillet 2–4 · Yatzy 2–6 · Lykkegrisen 2–8 |
 | Mobiler koblet til samme rom | høyst 10 |
 | Trekk i én kamp | høyst 2000 |
 | Kallenavn | høyst 16 tegn, bare tekst |

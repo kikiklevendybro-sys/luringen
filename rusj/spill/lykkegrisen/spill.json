@@ -13,6 +13,7 @@
   "farge": "#ff9ec4",
   "alder": 8,
   "motMobilen": true,
+  "nett": true,
   "sok": ["10000", "10 000", "titusen", "ti tusen", "terningspill", "terningspill seks terninger", "10000 terningspill", "grådig gris"],
   "i18n": {
     "en": {

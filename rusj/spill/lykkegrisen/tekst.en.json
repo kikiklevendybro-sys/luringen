@@ -166,5 +166,8 @@
     "one": "die",
     "other": "dice"
   },
-  "Ingen": "None"
+  "Ingen": "None",
+  "Venter på at {navn} kaster": "Waiting for {navn} to roll",
+  "Vent på tur – {navn} kaster nå": "Wait your turn – {navn} is rolling",
+  "På tur": "On turn"
 }

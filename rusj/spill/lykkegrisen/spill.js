@@ -234,6 +234,13 @@
   const lederAndre = (sp, i) => Math.max(0, ...sp.totaler.filter((_, j) => j !== i));
   // May this player stop now? (The entry score must be reached first.)
   const kanStoppe = (sp, poeng) => sp.inne[sp.tur] || !sp.inngang || poeng >= sp.inngang;
+  // On the net (R.nett, rusj/kit/nett.js): seat i is player i on its own phone; every roll, every
+  // die put aside and every «Stopp» is a move, played when the room sends it back; the dice come
+  // from the room's chance for that move (okt.rng), so every phone sees the same numbers.
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const minTur = (sp) => !paNett(sp) || (sp.tur === R.nett.meg() && !R.nett.venter());
+  const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
+  const andresTur = (sp) => paNett(sp) && !erJeg(sp, sp.tur);
 
   let robotId = null;
   let tegnForKast = null; // the dice about to be thrown while the screen is drawn before the throw
@@ -280,7 +287,7 @@
       holdt: verdier.map((_, id) => hylla.includes(id) || (indeks(id) >= 0 && !!sp.valgt[indeks(id)])),
       handling: "velg", // sprak-ok (the action's name)
       dataV: verdier.map((_, id) => indeks(id)),
-      av: verdier.map((_, id) => indeks(id) < 0 || robot || ruller || sp.status !== "velg"),
+      av: verdier.map((_, id) => indeks(id) < 0 || robot || ruller || sp.status !== "velg" || !minTur(sp)),
       etikett: (id, v, holdt) =>
         indeks(id) < 0
           ? tom
@@ -290,18 +297,19 @@
             ? R.t("Terning {n} viser {v}, lagt til side", { n: indeks(id) + 1, v })
             : R.t("Terning {n} viser {v}", { n: indeks(id) + 1, v }),
       navn: R.t("Terningene"),
-      klar: sp.status === "kast" && !sp.klar,
+      klar: sp.status === "kast" && !sp.klar && minTur(sp),
       forKast,
     }) + `<p class="lg-hint" id="lg-hint" aria-live="polite">${esc(hintTekst(sp))}</p>`; // under the tray: also when dice lie on the shelf
   }
   function hintTekst(sp) {
     if (sp.klar) return R.t("Spillet er ferdig – se kåringen!");
     if (sp.status === "kast") {
+      if (andresTur(sp)) return R.t("Venter på at {navn} kaster", { navn: navnFor(sp, sp.tur) });
       return erRobot(sp, sp.tur) ? R.t("{navn} kaster snart …", { navn: navnFor(sp, sp.tur) }) : R.t("Kast seks terninger.");
     }
     if (sp.status === "tomt") return R.t("Ingen poeng – turen er tapt.");
     if (ruller) return R.t("Terningene ruller …");
-    if (erRobot(sp, sp.tur)) return R.t("{navn} velger …", { navn: navnFor(sp, sp.tur) });
+    if (erRobot(sp, sp.tur) || andresTur(sp)) return R.t("{navn} velger …", { navn: navnFor(sp, sp.tur) });
     const n = valgte(sp).length;
     if (!n) return R.t("Trykk på terningene som gir poeng.");
     const v = valgtVerdi(sp);
@@ -411,27 +419,43 @@
   async function kast(S) {
     const sp = S.spill;
     if (!pagar(S) || ruller || sp.status === "tomt" || sp.klar) return;
+    if (paNett(sp)) {
+      // On the net the roll goes to the room; the dice come back with it (okt.rng).
+      if (!minTur(sp) || !R.nett.send({ kast: 1 })) sveipKast = null;
+      return;
+    }
     const vei = sveipKast;
     sveipKast = null;
     // the physical dice chosen this roll go to the shelf (all six back on the felt when all scored)
-    const { naa } = fysisk(sp);
-    const valgteId = naa.filter((_, j) => j < sp.terninger.length && sp.valgt[j]);
+    const valgteId = valgteFysisk(sp);
+    const r = kastTilstand(sp, tilfeldig);
+    if (!r) return;
+    R.lagre(); // the result is saved before the dice land
+    return visKast(S, sp, valgteId, r.tomt, vei);
+  }
+  const valgteFysisk = (sp) => fysisk(sp).naa.filter((_, j) => j < sp.terninger.length && sp.valgt[j]);
+  // What a roll does to the state (the same offline and on the net): the chosen dice aside, the
+  // rest thrown with rnd. Null when the chosen dice give no points.
+  function kastTilstand(sp, rnd) {
     if (sp.status === "velg") {
       // Put the chosen dice aside first.
       const v = valgtVerdi(sp);
-      if (!v) return;
+      if (!v) return null;
       sp.lagt.push({ verdier: valgte(sp), poeng: v });
       sp.turPoeng += v;
       sp.fri = sp.terninger.length - valgte(sp).length || 6;
     }
     sp.angre = null;
     const n = sp.fri;
-    sp.terninger = Array.from({ length: n }, () => 1 + Math.floor(tilfeldig() * 6));
+    sp.terninger = Array.from({ length: n }, () => 1 + Math.floor(rnd() * 6));
     sp.valgt = sp.terninger.map(() => false);
     const tomt = !L.harPoeng(sp.terninger, sp.tabell);
     sp.status = tomt ? "tomt" : "velg";
     if (tomt) bomTur(sp);
-    R.lagre(); // the result is saved before the dice land
+    return { tomt };
+  }
+  // The roll on the screen: the dice fly and land on the numbers already decided.
+  async function visKast(S, sp, valgteId, tomt, vei) {
     hylla = sp.fri === 6 ? [] : hylla.concat(valgteId);
     const kastes = [0, 1, 2, 3, 4, 5].filter((id) => !hylla.includes(id));
     ruller = true;
@@ -446,7 +470,7 @@
     if (!fortsatt() || R.S.spill !== sp) return;
     R.vis();
     const kastet = R.ramsOpp(sp.terninger.map(String));
-    R.si((erRobot(sp, sp.tur) ? R.t("{navn} kastet {terninger}.", { navn: navnFor(sp, sp.tur), terninger: kastet }) : R.t("Du kastet {terninger}.", { terninger: kastet })) + (tomt ? " " + R.t("Ingen poeng – turen er tapt.") : ""));
+    R.si((erRobot(sp, sp.tur) || andresTur(sp) ? R.t("{navn} kastet {terninger}.", { navn: navnFor(sp, sp.tur), terninger: kastet }) : R.t("Du kastet {terninger}.", { terninger: kastet })) + (tomt ? " " + R.t("Ingen poeng – turen er tapt.") : ""));
     if (tomt) {
       stempel(R.t("Tomt!"), "rod");
       R.lyd.tone(330, 0, 0.18, "triangle", 0.12, 200);
@@ -488,8 +512,8 @@
     brett.insertAdjacentHTML("beforeend", `<span class="lg-stempel" aria-hidden="true"><span class="stempel ${klasse}">${esc(tekst)}</span></span>`);
   }
 
-  function nesteTur(S) {
-    const sp = S.spill;
+  // The turn passes on (state only); true when the game is over instead (sp.klar).
+  function nesteTurTilstand(sp) {
     // The last round is over (or the target reached alone): wait for «Se kåringen», so the last
     // «Stopp» can still be taken back.
     const neste = (sp.tur + 1) % sp.antall;
@@ -499,18 +523,25 @@
       sp.terninger = [];
       sp.lagt = [];
       sp.turPoeng = 0;
-      R.vis();
-      R.si(R.t("Spillet er ferdig – se kåringen!"));
-      return;
+      return true;
     }
     sp.tur = neste;
-    if (sp.tur === 0) sp.runde++;
+    if (sp.tur === (sp.forste || 0)) sp.runde++; // (on the net another seat may begin)
     sp.fri = 6;
     sp.terninger = [];
     sp.valgt = [];
     sp.lagt = [];
     sp.turPoeng = 0;
     sp.status = "kast";
+    return false;
+  }
+  function nesteTur(S) {
+    const sp = S.spill;
+    if (nesteTurTilstand(sp)) {
+      R.vis();
+      R.si(R.t("Spillet er ferdig – se kåringen!"));
+      return;
+    }
     if (!erRobot(sp, sp.tur)) hoppAnim = false;
     R.vis();
     if (sp.antall > 1) {
@@ -528,17 +559,15 @@
     const poeng = sp.turPoeng + v;
     if (!kanStoppe(sp, poeng)) return;
     const i = sp.tur;
-    if (!erRobot(sp, i)) sp.angre = JSON.stringify({ tur: i, terninger: sp.terninger, valgt: sp.valgt, fri: sp.fri, lagt: sp.lagt, turPoeng: sp.turPoeng, total: sp.totaler[i], inne: sp.inne[i], tomme: sp.tomme[i], sisteRunde: sp.sisteRunde, runde: sp.runde });
-    sp.totaler[i] += poeng;
-    sp.inne[i] = true;
-    sp.tomme[i] = 0;
-    sp.logg[i].push(poeng);
+    // (On the net there is no «Angre»: the others have seen the points written down.)
+    if (!erRobot(sp, i) && !paNett(sp)) sp.angre = JSON.stringify({ tur: i, terninger: sp.terninger, valgt: sp.valgt, fri: sp.fri, lagt: sp.lagt, turPoeng: sp.turPoeng, total: sp.totaler[i], inne: sp.inne[i], tomme: sp.tomme[i], sisteRunde: sp.sisteRunde, runde: sp.runde });
+    const forMal = sp.sisteRunde;
+    skrivOpp(sp, poeng);
     R.lyd.riktig();
     R.vibrer(20);
     const navn = navnFor(sp, i);
     let melding = sp.antall > 1 ? R.t("+{poeng} til {navn}", { poeng: tall(poeng), navn }) : R.t("+{poeng} poeng", { poeng: tall(poeng) });
-    if (sp.totaler[i] >= sp.mal && sp.sisteRunde < 0) {
-      sp.sisteRunde = i;
+    if (sp.sisteRunde === i && forMal < 0) {
       if (sp.antall > 1) {
         melding = R.t("{navn} nådde {mal}! Siste runde – alle andre får én tur til.", { navn, mal: tall(sp.mal) });
         R.lyd.fanfare();
@@ -547,6 +576,15 @@
     R.si(R.t("{navn} skrev opp {poeng} og har {total}.", { navn, poeng: tall(poeng), total: tall(sp.totaler[i]) }));
     nesteTur(S);
     if (R.S.skjerm === "spill") R.toast(melding);
+  }
+  // «Stopp»: the turn's points on the list (state only). The first to the target starts the last round.
+  function skrivOpp(sp, poeng) {
+    const i = sp.tur;
+    sp.totaler[i] += poeng;
+    sp.inne[i] = true;
+    sp.tomme[i] = 0;
+    sp.logg[i].push(poeng);
+    if (sp.totaler[i] >= sp.mal && sp.sisteRunde < 0) sp.sisteRunde = i;
   }
 
   function angre(S) {
@@ -596,7 +634,8 @@
       }
     }
     const rader = folk(sp).map((i) => ({ i, poeng: sp.totaler[i] }));
-    if (rader.length > 1) R.kveld.registrer(rader); // the phone never takes a place in «Kveldens gjeng»
+    // The phone never takes a place in «Kveldens gjeng»; on the net it is left alone.
+    if (rader.length > 1 && !paNett(sp)) R.kveld.registrer(rader);
     R.statistikk("ferdig", { spillere: sp.mennesker, roboter, mal: sp.mal, komplett: !!komplett, turer: sp.logg[0].length, poeng: topp });
     R.gaTil("slutt");
   }
@@ -660,7 +699,7 @@
   // ---------- Screens ----------
   function hodeHtml(sp) {
     const i = sp.tur;
-    const etikett = erRobot(sp, i) ? R.t("Mobilen · {niva}", { niva: NIVANAVN[sp.niva] }) : sp.antall > 1 ? R.t("Din tur") : R.t("Mål: {mal}", { mal: tall(sp.mal) });
+    const etikett = erRobot(sp, i) ? R.t("Mobilen · {niva}", { niva: NIVANAVN[sp.niva] }) : andresTur(sp) ? R.t("På tur") : sp.antall > 1 ? R.t("Din tur") : R.t("Mål: {mal}", { mal: tall(sp.mal) });
     const turVerdi = sp.turPoeng + (sp.status === "velg" ? valgtVerdi(sp) : 0);
     return `<div class="lg-hode">
       ${avatarFor(sp, i, "mid")}
@@ -676,6 +715,10 @@
     const lenker = [];
     if (sp.angre) lenker.push(`<button class="lenke" data-h="angre">↶ ${esc(R.t("Angre"))}</button>`);
     if (sp.klar) return R.ui.dokk(R.ui.knapp(R.t("Se kåringen"), "kaaring", { variant: "stor", ikon: "🏆" }), R.ui.lenkerad(...lenker, R.ui.lenke(R.t("Poenglista"), "lapp")));
+    if (andresTur(sp)) {
+      lenker.push(R.ui.lenke(R.t("Poenglista"), "lapp"), R.ui.lenke(R.t("Avslutt"), "avslutt"));
+      return R.ui.dokk(R.ui.knapp(R.t("{navn} spiller …", { navn: navnFor(sp, sp.tur) }), "vent", { av: true, ikon: "🎲" }), R.ui.lenkerad(...lenker));
+    }
     if (erRobot(sp, sp.tur)) {
       if (!hoppAnim && !R.rolig()) lenker.push(R.ui.lenke(R.t("Hopp over animasjonen"), "hopp-anim"));
       lenker.push(R.ui.lenke(R.t("Poenglista"), "lapp"), R.ui.lenke(R.t("Avslutt"), "avslutt"));
@@ -723,10 +766,125 @@
     </section>`;
   }
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Moves from the seat whose turn it is: { velg: i } puts die i aside (or back), { beste: 1 } puts
+  // aside the most points, { kast: 1 } rolls (the dice from okt.rng), { stopp: 1 } writes the
+  // turn's points down, { neste: 1 } passes on after an empty roll. Anything else, or anything the
+  // rules don't allow now, is ignored on every phone. When the last round is over the match is too.
+  const NETT = {
+    min: 2,
+    maks: 8,
+    oppsett: (S) => ({ mal: S.oppsett.mal, tabell: S.oppsett.tabell, inngang: S.oppsett.inngang, straff: !!S.oppsett.straff }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      return [R.t("Mål: {mal}", { mal: tall(MAL.includes(x.mal) ? x.mal : 10000) }), TABELLNAVN[L.TABELLER[x.tabell] ? x.tabell : "klassisk"], INNGANG.includes(x.inngang) && x.inngang ? `${R.t("Inngang")} ${tall(x.inngang)}` : "", x.straff ? R.t("Tre tomme kast på rad: −1000") : ""].filter(Boolean).join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const antall = R.klamp(okt.antall || 2, 2, 8);
+      const forste = (okt.kamp - 1) % antall; // who begins moves on one seat per match
+      S.spill = {
+        modus: "nett",
+        antall,
+        mennesker: antall,
+        niva: "middels",
+        mal: MAL.includes(o.mal) ? o.mal : 10000,
+        tabell: L.TABELLER[o.tabell] ? o.tabell : "klassisk",
+        inngang: INNGANG.includes(o.inngang) ? o.inngang : 0,
+        straff: !!o.straff,
+        totaler: Array(antall).fill(0),
+        inne: Array(antall).fill(false),
+        tomme: Array(antall).fill(0),
+        logg: Array.from({ length: antall }, () => []),
+        tur: forste,
+        forste,
+        fri: 6,
+        terninger: [],
+        valgt: [],
+        lagt: [],
+        turPoeng: 0,
+        status: "kast",
+        sisteRunde: -1,
+        klar: false,
+        angre: null,
+        ferdig: false,
+        registrert: true,
+        runde: 1,
+      };
+      hylla = [];
+      hoppAnim = false;
+      ruller = false;
+      sveipKast = null;
+      stoppRobot();
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || sp.klar || !t || typeof t !== "object" || sete !== sp.tur) return;
+      const live = !okt.gjenspill && S.skjerm === "spill";
+      if (t.kast === 1) {
+        if (sp.status === "tomt" || (sp.status === "velg" && !valgtVerdi(sp))) return;
+        const vei = erJeg(sp, sete) ? sveipKast : null;
+        sveipKast = null;
+        const valgteId = live && !ruller ? valgteFysisk(sp) : [];
+        const r = kastTilstand(sp, okt.rng);
+        // A roll that comes while the last one is still rolling here: its state is in, and the
+        // screen shows it when that one has landed.
+        if (live && !ruller) visKast(S, sp, valgteId, r.tomt, vei).catch((feil) => console.error(feil));
+        return;
+      }
+      if (sp.status === "velg" && Number.isInteger(t.velg) && t.velg >= 0 && t.velg < sp.terninger.length) {
+        const i = t.velg;
+        sp.valgt[i] = !sp.valgt[i];
+        if (!live || ruller) return;
+        if (sp.valgt[i]) R.lyd.pop();
+        else R.lyd.tone(420, 0, 0.08, "sine", 0.16, 300);
+        const id = fysisk(sp).naa[i];
+        if (id != null) R.terninger.hold(BRETT, id, sp.valgt[i]);
+        R.vis();
+        return;
+      }
+      if (t.beste === 1 && sp.status === "velg") {
+        const b = L.beste(sp.terninger, sp.tabell);
+        if (!b) return;
+        sp.valgt = sp.terninger.map((_, i) => b.idx.includes(i));
+        if (live && !ruller) {
+          R.lyd.pop();
+          R.vis();
+        }
+        return;
+      }
+      // (While a roll is still landing here, only the state changes; the screen follows.)
+      if (t.stopp === 1 && sp.status === "velg") {
+        const v = valgtVerdi(sp);
+        if (!v || !kanStoppe(sp, sp.turPoeng + v)) return;
+        if (live && !ruller) return stopp(S);
+        skrivOpp(sp, sp.turPoeng + v);
+        if (nesteTurTilstand(sp) && okt.gjenspill) tilResultat(sp);
+        return;
+      }
+      if (t.neste === 1 && sp.status === "tomt") {
+        sp.straffet = false;
+        if (live && !ruller) return nesteTur(S);
+        if (nesteTurTilstand(sp) && okt.gjenspill) tilResultat(sp);
+      }
+    },
+    // The match is over when the last round is (each phone goes to «Kåringen» itself).
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "spill"),
+    tur: (S) => (S.spill && !S.spill.ferdig && !S.spill.klar ? S.spill.tur : null),
+    ferdig: (S) => !!S.spill && (S.spill.ferdig || S.spill.klar),
+  };
+  // A finished match, replayed: straight to the result (what avsluttSpill decides, without records).
+  function tilResultat(sp) {
+    const topp = Math.max(...sp.totaler);
+    sp.ferdig = true;
+    sp.resultat = { vinnere: sp.totaler.map((t, i) => (t === topp && topp > 0 ? i : -1)).filter((i) => i >= 0), komplett: true, turer: sp.logg[0].length };
+  }
+
   R.start({
     id: "lykkegrisen",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({
       antall: Math.max(1, Math.min(8, R.felles.navn.filter((n) => String(n || "").trim()).length || 1)),
@@ -778,7 +936,7 @@
               knapperHtml: R.ui.startKnapper({
                 pagar: pagar(S),
                 fortsettTekst: pagar(S) ? R.t("Fortsett · runde {n}", { n: sp.runde }) : "",
-                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+                ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [
                 ["1–8", R.t("spillere")],
@@ -834,7 +992,7 @@
           R.terninger.koble(BRETT, {
             vedSveip(vei) {
               const sp = R.S.spill;
-              if (!pagar(R.S) || ruller || sp.klar || erRobot(sp, sp.tur) || R.arkApent()) return;
+              if (!pagar(R.S) || ruller || sp.klar || erRobot(sp, sp.tur) || !minTur(sp) || R.arkApent()) return;
               if (sp.status === "tomt") return;
               if (sp.status === "velg" && !valgtVerdi(sp)) {
                 R.toast(valgte(sp).length ? R.t("Noen av dem du har valgt, gir ikke poeng") : R.t("Legg til side minst én terning som gir poeng"));
@@ -878,7 +1036,7 @@
           }
           const vinnere = res.vinnere || [];
           const mobilVant = vinnere.length && vinnere.every((i) => erRobot(sp, i));
-          const tittel = !vinnere.length ? R.t("Ingen vinner denne gangen") : vinnere.length === 1 && !erRobot(sp, vinnere[0]) && sp.mennesker === 1 && sp.antall > 1 ? R.t("Du vinner!") : R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(vinnere.map((i) => navnFor(sp, i))), n: vinnere.length });
+          const tittel = !vinnere.length ? R.t("Ingen vinner denne gangen") : vinnere.length === 1 && !erRobot(sp, vinnere[0]) && ((sp.mennesker === 1 && sp.antall > 1) || erJeg(sp, vinnere[0])) ? R.t("Du vinner!") : R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(vinnere.map((i) => navnFor(sp, i))), n: vinnere.length });
           const tekst = !vinnere.length ? "" : vinnere.length > 1 ? R.t("Likt med {poeng} hver.", { poeng: tall(topp) }) : mobilVant ? R.t("{poeng} – mobilen vant denne gangen. Revansj?", { poeng: tall(topp) }) : R.t("{poeng} poeng", { poeng: tall(topp) });
           const robotAvatarer = (html) => {
             for (let i = sp.mennesker; i < sp.antall; i++) html = html.split(R.avatar(i, "stor")).join(avatarFor(sp, i, "stor")).split(R.avatar(i)).join(avatarFor(sp, i));
@@ -888,14 +1046,15 @@
             ${R.ui.banner({ tittel, tekst, etikett: R.t("Mål: {mal}", { mal: tall(sp.mal) }), klasse: mobilVant ? "" : "aksent", stemning: mobilVant || !vinnere.length ? "lei" : "jubel" })}
             ${robotAvatarer(R.ui.pall(rader) + R.ui.poengliste(rader))}
             ${lapp}
-            ${R.ui.flereSpill({ antall: sp.mennesker })}
-            ${dokk}`;
+            ${paNett(sp) ? R.nett.sluttDokk() : `${R.ui.flereSpill({ antall: sp.mennesker })}
+            ${dokk}`}`;
         },
         inn(S) {
           const sp = S.spill;
           if (!sp) return;
           const vinnere = (sp.resultat && sp.resultat.vinnere) || [];
-          if (vinnere.length && vinnere.some((i) => !erRobot(sp, i)) && sp.resultat.komplett !== false) {
+          // On the net: the fanfare on the winner's phone, a gentle note on the others.
+          if (vinnere.length && vinnere.some((i) => !erRobot(sp, i) && (!paNett(sp) || erJeg(sp, i))) && sp.resultat.komplett !== false) {
             R.lyd.fanfare();
             R.vibrer([40, 60, 120]);
             R.konfetti();
@@ -966,6 +1125,7 @@
         if (erRobot(sp, sp.tur) && !robotTrykk) return;
         const i = Number(el.dataset.v);
         if (!(i >= 0 && i < sp.terninger.length)) return;
+        if (paNett(sp)) return void (minTur(sp) && R.nett.send({ velg: i }));
         sp.valgt[i] = !sp.valgt[i];
         if (sp.valgt[i]) R.lyd.pop();
         else R.lyd.tone(420, 0, 0.08, "sine", 0.16, 300);
@@ -979,6 +1139,7 @@
         if (!pagar(S) || ruller || sp.status !== "velg" || erRobot(sp, sp.tur)) return;
         const b = L.beste(sp.terninger, sp.tabell);
         if (!b) return;
+        if (paNett(sp)) return void (minTur(sp) && R.nett.send({ beste: 1 }));
         sp.valgt = sp.terninger.map((_, i) => b.idx.includes(i));
         R.lyd.pop();
         R.vis();
@@ -986,6 +1147,7 @@
       kast(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || (erRobot(sp, sp.tur) && !robotTrykk)) return;
+        if (andresTur(sp)) return R.toast(R.t("Vent på tur – {navn} kaster nå", { navn: navnFor(sp, sp.tur) }));
         if (sp.status === "velg" && !valgtVerdi(sp)) {
           R.toast(valgte(sp).length ? R.t("Noen av dem du har valgt, gir ikke poeng") : R.t("Legg til side minst én terning som gir poeng"));
           return;
@@ -996,11 +1158,17 @@
       stopp(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || (erRobot(sp, sp.tur) && !robotTrykk)) return;
+        if (paNett(sp)) {
+          const v = valgtVerdi(sp);
+          if (minTur(sp) && !ruller && sp.status === "velg" && v && kanStoppe(sp, sp.turPoeng + v)) R.nett.send({ stopp: 1 });
+          return;
+        }
         stopp(S);
       },
       neste(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || sp.status !== "tomt" || ruller || (erRobot(sp, sp.tur) && !robotTrykk)) return;
+        if (paNett(sp)) return void (minTur(sp) && R.nett.send({ neste: 1 }));
         if (sp.straffet) R.toast(R.t("Tre tomme kast på rad – minus 1000!"));
         sp.straffet = false;
         nesteTur(S);
