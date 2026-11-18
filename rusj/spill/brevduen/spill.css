@@ -1,0 +1,195 @@
+/* Brevduen («Hvem skrev det?»): the pigeon's letter, writing in secret, the answer card and the
+   reveal. Everything new is prefixed bd-. */
+
+/* ---------- The pigeon brings the question ---------- */
+
+.bd-due {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.bd-due .figur-ramme {
+  width: 84px;
+}
+
+.bd-due h1 {
+  margin: 2px 0 0;
+}
+
+.bd-brev {
+  position: relative;
+  margin: 16px 0 6px;
+  padding: 26px 20px 22px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  color: var(--blekk);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18);
+  animation: bd-lander 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+/* The envelope flap along the top edge */
+.bd-brev::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 12px;
+  border-radius: var(--r-mid) var(--r-mid) 0 0;
+  background: repeating-linear-gradient(-45deg, #f2545b 0 10px, var(--papir) 10px 20px, #3a6fd8 20px 30px, var(--papir) 30px 40px);
+  opacity: 0.85;
+}
+
+.bd-stempel {
+  position: absolute;
+  top: -14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--lampe);
+  box-shadow: 0 0 0 3px var(--blekk);
+  font-size: 1.2rem;
+  transform: rotate(10deg);
+}
+
+.bd-brev-tekst {
+  margin: 0;
+  font: 900 clamp(1.3rem, 6.2vw, 1.75rem) / 1.2 var(--font-display);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.bd-brev.kompakt {
+  margin: 4px 0 0;
+  padding: 18px 14px 12px;
+  animation: none;
+}
+
+.bd-brev.kompakt .bd-stempel {
+  display: none;
+}
+
+.bd-brev.kompakt .bd-brev-tekst {
+  font-size: clamp(1.05rem, 4.8vw, 1.25rem);
+}
+
+.bd-hjelp {
+  margin: 10px 8px 0;
+  text-align: center;
+}
+
+/* ---------- Writing in secret ---------- */
+
+.bd-skriv {
+  display: grid;
+  gap: 12px;
+}
+
+.bd-topp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.bd-topp > div {
+  min-width: 0;
+}
+
+.bd-topp h1 {
+  margin: 0;
+  font-size: clamp(1.45rem, 7vw, 1.9rem);
+}
+
+.bd-topp .etikett {
+  overflow-wrap: anywhere;
+}
+
+.bd-felt textarea {
+  width: 100%;
+  min-height: 84px;
+  font-size: 1.15rem;
+  resize: none;
+}
+
+.bd-teller {
+  margin: -6px 4px 0;
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--tekst-3);
+}
+
+.bd-skriv .feil:empty {
+  display: none;
+}
+
+/* ---------- One answer at a time ---------- */
+
+.bd-h1 {
+  margin: 10px 0 4px;
+  text-align: center;
+}
+
+.bd-sporsmal {
+  margin: 0 0 10px;
+  color: var(--tekst-2);
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.bd-svar .storkort-tekst {
+  overflow-wrap: anywhere;
+}
+
+.bd-kort .bunke {
+  min-height: min(30vh, 250px);
+}
+
+.bd-banner p:not(.etikett) {
+  overflow-wrap: anywhere;
+}
+
+.bd-luring {
+  margin: 12px 0;
+  text-align: center;
+}
+
+@keyframes bd-lander {
+  from {
+    opacity: 0;
+    transform: translate(40px, -30px) rotate(8deg) scale(0.85);
+  }
+}
+
+@media (max-height: 700px) {
+  .bd-due {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+  .bd-due .figur-ramme {
+    width: 64px;
+  }
+  .bd-brev {
+    margin-top: 12px;
+    padding: 22px 16px 16px;
+  }
+  .bd-felt textarea {
+    min-height: 64px;
+  }
+  .bd-kort .bunke {
+    min-height: 150px;
+  }
+  .bd-kort + .bd-hjelp {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-brev {
+    animation: none;
+  }
+}

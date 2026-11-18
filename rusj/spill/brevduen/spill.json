@@ -1,0 +1,33 @@
+{
+  "id": "brevduen",
+  "navn": "Brevduen",
+  "undertittel": "Hvem skrev det?",
+  "beskrivelse": "Gratis selskapslek: alle svarer i hemmelighet på samme spørsmål, mobilen leser svarene ett for ett – og dere peker på hvem som skrev det. 3–12 spillere, én mobil.",
+  "kort": "Alle svarer i hemmelighet. Så peker dere: hvem skrev det?",
+  "spillere": [3, 12],
+  "alder": 8,
+  "minutter": [10, 30],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "sporsmal"],
+  "rekkefolge": 107,
+  "farge": "#8fb8ff",
+  "sok": ["hvem skrev det", "hvem sa det", "gjett hvem", "selskapslek", "selskapsleker", "familiespill", "bli kjent-lek", "spørsmålsspill", "julebord", "vors"],
+  "i18n": {
+    "en": {
+      "navn": "The Pigeon",
+      "undertittel": "Who wrote it?",
+      "kort": "Everyone answers in secret. Then you point: who wrote it?",
+      "beskrivelse": "Free party game: everyone secretly answers the same question, the phone reveals the answers one by one – and you point at who wrote each one. 3–12 players, one phone.",
+      "slug": "who-wrote-it",
+      "sok": ["who wrote it", "guess who wrote it", "who said it", "party game", "family party game", "get to know you game", "question game", "christmas party game", "pre-drinks game"]
+    },
+    "da": {
+      "navn": "Brevduen",
+      "undertittel": "Hvem skrev det?",
+      "kort": "Alle svarer i hemmelighed. Så peger I: hvem skrev det?",
+      "beskrivelse": "Gratis selskabsleg: alle svarer i hemmelighed på det samme spørgsmål, mobilen viser svarene ét ad gangen – og I peger på, hvem der skrev det. 3–12 spillere, én mobil.",
+      "slug": "brevduen",
+      "sok": ["hvem skrev det", "gæt hvem", "hvem sagde det", "selskabsleg", "selskabslege", "familiespil", "lær hinanden at kende", "spørgsmålsspil", "julefrokost"]
+    }
+  }
+}
