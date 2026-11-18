@@ -1051,6 +1051,17 @@
       "tittel": "Sig det baglæns – baglæns-legen på mobilen. Gratis",
       "frase": "Baglæns-legen",
       "beskrivelse": "Gratis baglæns-leg på mobilen: sig et ord, hør det baglæns, og lad den næste efterligne det. Spil efterligningen baglæns – bliver det ordet igen?"
+    },
+    "brevduen": {
+      "tittel": "Hvem skrev det? – selskabsleg for hele banden",
+      "frase": "Hvem skrev det?",
+      "beskrivelse": "Alle svarer i hemmelighed på det samme spørgsmål, så viser mobilen svarene ét ad gangen – og alle peger på, hvem der skrev det. Gratis for 3–12, én mobil.",
+      "sok": [
+        "selskabsleg",
+        "lær hinanden at kende",
+        "familiespil",
+        "julefrokost"
+      ]
     }
   }
 }

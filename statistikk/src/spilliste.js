@@ -38,6 +38,7 @@ export const SPILL = {
   humla: "Humla",
   hviskeren: "Hviskeren",
   julekalenderen: "Julekalenderen",
+  brevduen: "Brevduen",
   kassetten: "Kassetten",
   kodeknekkeren: "Kodeknekkeren",
   kortkongen: "Kortkongen",

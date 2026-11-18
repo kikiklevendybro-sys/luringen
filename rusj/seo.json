@@ -1285,6 +1285,17 @@
       "tittel": "Si det baklengs – baklengs-leken på mobilen. Gratis",
       "frase": "Baklengs-leken",
       "beskrivelse": "Gratis baklengs-lek på mobilen: si et ord, hør det baklengs, og la neste herme. Spilles hermingen baklengs – blir det ordet igjen?"
+    },
+    "brevduen": {
+      "tittel": "Hvem skrev det? – selskapslek for hele gjengen",
+      "frase": "Hvem skrev det?",
+      "beskrivelse": "Alle svarer i hemmelighet på det samme spørsmålet, så viser mobilen svarene ett for ett – og alle peker på hvem som skrev det. Gratis for 3–12, én mobil.",
+      "sok": [
+        "selskapslek",
+        "bli kjent-lek",
+        "familiespill",
+        "julebord"
+      ]
     }
   }
 }

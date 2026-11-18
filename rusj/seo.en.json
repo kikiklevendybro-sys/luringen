@@ -1033,6 +1033,16 @@
       "tittel": "Say It Backwards – the reverse audio challenge. Free",
       "frase": "The backwards challenge",
       "beskrivelse": "The free backwards challenge on your phone: say a word, hear it reversed, and let the next player copy it. Play the copy backwards – is it the word again?"
+    },
+    "brevduen": {
+      "tittel": "Who Wrote It? – a party game for the whole crew",
+      "frase": "Who wrote it?",
+      "beskrivelse": "Everyone secretly answers the same question, then the phone shows the answers one by one – and you all point at who wrote it. Free for 3–12 players, one phone.",
+      "sok": [
+        "party game",
+        "get to know you game",
+        "family games"
+      ]
     }
   }
 }
