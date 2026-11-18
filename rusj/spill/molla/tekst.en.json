@@ -160,5 +160,6 @@
   "parti|partier": {
     "one": "game",
     "other": "games"
-  }
+  },
+  "Vent på tur – {navn} spiller nå": "Wait your turn – {navn} is playing"
 }

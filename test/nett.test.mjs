@@ -386,3 +386,36 @@ test("Bonden: «først til 3» on two phones, taken cells and out-of-turn marks 
   r2.trekk(0, { i: 225 }); // off the 15 × 15 board
   assert.deepEqual(somJson(r2.tlf[1].S.spill.trekk), [224]);
 });
+
+test("Mølla: a whole game on two phones – mills and captures as one move, illegal moves ignored", () => {
+  const { Molle } = regler("molla", "Molla");
+  const r = rom("molla", 2, { mal: 1 });
+  const [a, b] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().mal, 1);
+  r.trekk(1, { m: "a1" }); // black first: ignored
+  r.trekk(0, { m: "a1-a4" }); // nothing to move yet: ignored
+  r.trekk(0, { m: "x9" });
+  r.trekk(0, { m: 5 });
+  assert.equal(sp().trekk.length, 0);
+  let molle = false;
+  for (let steg = 0; steg < 600 && !sp().resultat; steg++) {
+    const tur = a.def.nett.tur(a.S);
+    const lov = Molle.lovlige(Molle.spillUt(sp().trekk));
+    const m = lov.find((x) => x[2] >= 0) || lov[0];
+    if (m[2] >= 0) {
+      molle = true;
+      r.trekk(tur, { m: Molle.tekst([m[0], m[1], -1]) }); // a mill must take a piece: ignored
+    }
+    r.trekk(1 - tur, { m: Molle.tekst(m) }); // not your turn
+    const n = sp().trekk.length;
+    r.trekk(tur, { m: Molle.tekst(m) });
+    assert.equal(sp().trekk.length, n + 1);
+  }
+  assert.ok(molle, "no mill was made");
+  assert.ok(sp().resultat, "the game did not end");
+  assert.ok(a.def.nett.ferdig(a.S));
+  likt(a, b);
+  likt(a, r.sen(0));
+  assert.equal(rom("molla", 2, {}, 20261115, 2).tlf[1].S.spill.starter, 1, "match 2: the guest has white");
+});

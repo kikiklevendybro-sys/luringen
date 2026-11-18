@@ -13,6 +13,7 @@
   "alder": 7,
   "sok": ["mølle", "møllespill", "nimannsmølle", "ni menns mølle", "mylle", "mølle brettspill", "mølle mot datamaskin", "mølle på nett"],
   "motMobilen": true,
+  "nett": true,
   "alias": ["molle"],
   "i18n": {
     "en": {
