@@ -1067,6 +1067,29 @@
       "tittel": "Lad være med at grine – hold masken! Gratis leg",
       "frase": "Lad være med at grine",
       "beskrivelse": "Gratis lad-være-med-at-grine-leg på mobilen: klovnen får en fjollet opgave, stenansigtet skal holde masken. 88 opgaver til børn, familie og fest."
+    },
+    "leppeleseren": {
+      "tittel": "Læbelæsning – festlegen med høretelefoner og musik",
+      "frase": "Læbelæsning med høretelefoner",
+      "beskrivelse": "Festleg på mobilen: én har høretelefoner med høj musik, en anden siger en sjov sætning med store mundbevægelser – kan lytteren læse læberne?",
+      "sok": [
+        "høretelefonlegen",
+        "læs mine læber",
+        "læbelæsning",
+        "festlege"
+      ]
+    },
+    "kameleonen": {
+      "tittel": "Følelsesskiftet – improleg, hvor følelsen skifter",
+      "frase": "Følelsesskiftet",
+      "beskrivelse": "Improleg på dansk: to spiller en scene, og mobilen bipper og skifter følelse – vred, forelsket, robot, opera. 70 scener og 36 følelser, gratis for 3–12.",
+      "sok": [
+        "følelsesskift",
+        "improvisationsleg",
+        "dramaleg for børn",
+        "teaterleg",
+        "skuespilleg"
+      ]
     }
   }
 }

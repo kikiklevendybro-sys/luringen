@@ -241,6 +241,8 @@ export const EKSEMPLER = {
   },
   brevduen: (D) => ({ tittel: "Spørsmål brevduen kan ha med seg", ting: spre([D.familie], 24), totalt: D.familie.length }),
   steinfjeset: (D) => ({ tittel: "Oppgaver klovnen kan få", ting: spre([D.oppgaver.si, D.oppgaver.fjes, D.oppgaver.lat], 24), totalt: D.oppgaver.si.length + D.oppgaver.fjes.length + D.oppgaver.lat.length }),
+  kameleonen: (D) => ({ tittel: "Scener dere kan spille", ting: spre([D.innhold.scener.map((s) => (Array.isArray(s) ? s[0] : s))], 24), totalt: D.innhold.scener.length }),
+  leppeleseren: (D) => ({ tittel: "Setninger leseren kan få", ting: spre([D.fraser], 24), totalt: D.fraser.length }),
   nissen: (D) => ({ tittel: "Spørsmål nissen kan stille", ting: spre([D.sporsmal], 24), totalt: D.sporsmal.length }),
   nissetrekning: (D) => {
     const lister = ["liten", "mellom", "middels", "stor"].map((k) => D.ideer[k] || []);

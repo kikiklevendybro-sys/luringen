@@ -1309,6 +1309,30 @@
         "le-konkurranse",
         "try not to laugh"
       ]
+    },
+    "leppeleseren": {
+      "tittel": "Leppelesing – festleken med hodetelefoner og musikk",
+      "frase": "Leppelesing med hodetelefoner",
+      "beskrivelse": "Festlek på mobilen: én har hodetelefoner med høy musikk, en annen sier en morsom frase med store munnbevegelser – klarer lytteren å lese leppene?",
+      "sok": [
+        "hodetelefonleken",
+        "les leppene mine",
+        "leppelesing",
+        "festleker"
+      ]
+    },
+    "kameleonen": {
+      "tittel": "Følelsesbyttet – improlek der mobilen bytter følelse",
+      "frase": "Følelsesbyttet",
+      "beskrivelse": "Improlek på norsk: to spiller en scene, og mobilen piper og bytter følelse – sint, forelsket, robot, opera. 70 scener og 36 følelser, gratis for 3–12.",
+      "sok": [
+        "følelsesbyttet",
+        "improvisasjonslek",
+        "dramalek for barn",
+        "teaterlek",
+        "skuespill lek",
+        "impro øvelser"
+      ]
     }
   }
 }
