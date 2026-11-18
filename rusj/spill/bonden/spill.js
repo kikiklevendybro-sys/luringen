@@ -409,6 +409,11 @@
     return stilling;
   }
   const tur = (S) => spillerFor(S.spill, hentStilling(S).tur);
+  // On the net (R.nett, rusj/kit/nett.js): seat i plays player i (0 kryss, 1 bolle); a mark is drawn
+  // when the room sends the move back, on every phone in the same order.
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const minTur = (S) => !paNett(S.spill) || (tur(S) === R.nett.meg() && !R.nett.venter());
+  const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
 
   let nyCelle = -1; // the cell to draw with the pen on the next render
   let forslag = -1; // small cells: the cell tapped once (a faint mark waits for the second tap)
@@ -503,7 +508,7 @@
   function feir(S) {
     const sp = S.spill;
     const v = sp.resultat.vinner;
-    if (sp.modus === "mobil" && v === 1) {
+    if ((sp.modus === "mobil" && v === 1) || (paNett(sp) && !erJeg(sp, v))) {
       lyd.tap();
       return;
     }
@@ -577,8 +582,8 @@
     if (sp.resultat) {
       const v = sp.resultat.vinner;
       if (v == null) return `<p class="bo-melding uavgjort"><span>${esc(R.t("Uavgjort! Ingen fikk {rad}.", { rad: PA_RAD[sp.variant === "tre" ? "tre" : "fem"] }))}</span></p>`;
-      let tekst = sp.modus === "mobil" ? (v === 0 ? R.t("Du vinner!") : R.t("Mobilen vinner denne gangen!")) : R.t("{navn} vinner!", { navn: navn(sp, v) });
-      if (kampVunnet(sp)) tekst = sp.modus === "mobil" ? (v === 0 ? R.t("Du vinner kampen – først til {n}!", { n: sp.mal }) : R.t("Mobilen vinner kampen!")) : R.t("{navn} vinner kampen!", { navn: navn(sp, v) });
+      let tekst = sp.modus === "mobil" ? (v === 0 ? R.t("Du vinner!") : R.t("Mobilen vinner denne gangen!")) : erJeg(sp, v) ? R.t("Du vinner!") : R.t("{navn} vinner!", { navn: navn(sp, v) });
+      if (kampVunnet(sp)) tekst = sp.modus === "mobil" ? (v === 0 ? R.t("Du vinner kampen – først til {n}!", { n: sp.mal }) : R.t("Mobilen vinner kampen!")) : erJeg(sp, v) ? R.t("Du vinner kampen – først til {n}!", { n: sp.mal }) : R.t("{navn} vinner kampen!", { navn: navn(sp, v) });
       return `<p class="bo-melding vinner ${MERKE[v]}"><span>${esc(tekst)}</span></p>`;
     }
     const i = tur(S);
@@ -587,7 +592,7 @@
     let tekst;
     if (erMaskin(sp, i)) tekst = `<span class="bo-tenker">${esc(forste ? R.t("Mobilen begynner") : R.t("Mobilen tenker"))}<i>.</i><i>.</i><i>.</i></span>`;
     else if (forslag >= 0) tekst = esc(R.t("Trykk en gang til for å tegne"));
-    else if (sp.modus === "mobil") tekst = esc(forste ? R.t("Du begynner – tegn {merke}!", { merke }) : R.t("Din tur – tegn {merke}", { merke }));
+    else if (sp.modus === "mobil" || erJeg(sp, i)) tekst = esc(forste ? R.t("Du begynner – tegn {merke}!", { merke }) : R.t("Din tur – tegn {merke}", { merke }));
     else tekst = esc(forste ? R.t("{navn} begynner med {merke}!", { navn: navn(sp, i), merke }) : R.t("{navn} sin tur", { navn: navn(sp, i) }));
     return `<p class="bo-melding ${MERKE[i]}"><span class="bo-meldingsfigur" aria-hidden="true">${figurFor(sp, i)}</span><span>${tekst}</span></p>`;
   }
@@ -597,7 +602,7 @@
     const st = hentStilling(S);
     const n = st.n;
     const vinnende = new Set(sp.resultat ? sp.resultat.celler : []);
-    const kanTrykke = o.interaktiv && !sp.resultat && !erMaskin(sp, tur(S));
+    const kanTrykke = o.interaktiv && !sp.resultat && !erMaskin(sp, tur(S)) && minTur(S);
     const sist = sp.trekk.length ? sp.trekk[sp.trekk.length - 1] : -1;
     const celler = st.b
       .map((m, i) => {
@@ -707,6 +712,83 @@
     return `<span><b>${r.seier}</b> ${esc(R.t("seier|seirer", { n: r.seier }))}</span><span><b>${r.uavgjort}</b> ${esc(R.t("uavgjort|uavgjort", { n: r.uavgjort }))}</span><span><b>${r.tap}</b> ${esc(R.t("tap|tap", { n: r.tap }))}</span>`;
   }
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // A mark without sound, animation or redraw: what settMerke does to the state, for replaying a
+  // match after a reload.
+  function merkStille(S, i) {
+    const sp = S.spill;
+    const hvem = spillerFor(sp, hentStilling(S).tur);
+    sp.trekk.push(i);
+    const ny = hentStilling(S);
+    if (ny.vunnet) {
+      sp.resultat = { vinner: hvem, celler: ny.vunnet.celler };
+      sp.poeng[hvem]++;
+    } else if (ny.fullt) {
+      sp.resultat = { vinner: null, celler: [] };
+      sp.uavgjort++;
+    }
+  }
+  // Moves: { i: cell } draws the mark of the seat whose turn it is; { runde: 1 } starts the next
+  // round when this one is over (whoever taps first). Anything else is ignored on every phone.
+  const NETT = {
+    min: 2,
+    maks: 2,
+    oppsett: (S) => ({ variant: S.oppsett.variant, mal: S.oppsett.mal }),
+    oppsettTekst: (o) => {
+      const v = o && Brett.VARIANT[o.variant] ? o.variant : "tre";
+      const brett = v === "tre" ? R.t("Tre på rad") : v === "stor" ? R.t("Fem på rad, 15 × 15") : R.t("Fem på rad");
+      return `${brett} · ${o && o.mal ? R.t("Først til {n}", { n: o.mal }) : R.t("Uten slutt")}`;
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      S.spill = {
+        id: okt.fro % 1e9,
+        modus: "nett",
+        variant: Brett.VARIANT[o.variant] ? o.variant : "tre",
+        niva: 2,
+        mal: MAL.includes(o.mal) ? o.mal : 3,
+        // Who opens: the host in the first match, then it alternates (and within a match, as always).
+        starter: (okt.kamp - 1) % 2,
+        trekk: [],
+        poeng: [0, 0],
+        uavgjort: 0,
+        runde: 1,
+        resultat: null,
+        ferdig: false,
+        registrert: true,
+      };
+      stilling = null;
+      nyCelle = -1;
+      forslag = -1;
+      nyttRutenett = true;
+      stoppTenking();
+      clearTimeout(kaaringId);
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object") return;
+      if (t.runde === 1) {
+        if (!sp.resultat || kampVunnet(sp)) return;
+        nyRunde(S);
+        if (!okt.gjenspill) {
+          R.lyd.snu();
+          if (S.skjerm === "spill") R.vis();
+        }
+        return;
+      }
+      const i = t.i;
+      const st = hentStilling(S);
+      if (!Number.isInteger(i) || i < 0 || i >= st.b.length || st.b[i] || sp.resultat || tur(S) !== sete) return;
+      if (okt.gjenspill) {
+        merkStille(S, i);
+        if (kampVunnet(sp)) sp.ferdig = true; // a finished match, replayed: straight to the result
+      } else settMerke(S, i);
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "spill"),
+    tur: (S) => (S.spill && !S.spill.resultat ? tur(S) : null),
+    ferdig: (S) => !!S.spill && (S.spill.ferdig || kampVunnet(S.spill)),
+  };
+
   // The game's icon on buttons: a little kryss and bolle drawn side by side.
   const XO_IKON = `<svg class="bo-knappetegn" viewBox="0 0 200 100" aria-hidden="true" focusable="false"><path class="x" d="M22 26C34 40 50 57 70 74"/><path class="x" d="M69 25C55 41 40 58 23 75"/><path class="o" d="M149 22C167 21 179 34 179 50C179 67 166 79 149 79C132 79 120 67 120 50C120 35 131 23 147 22"/></svg>`;
 
@@ -714,6 +796,7 @@
     id: "bonden",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({
       antall: 2,
@@ -777,7 +860,7 @@
               knapperHtml: R.ui.startKnapper({
                 pagar: aktiv,
                 fortsettTekst: aktiv ? R.t("Fortsett · {stilling}", { stilling: `${sp.poeng[0]}–${sp.poeng[1]}` }) : "",
-                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+                ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [
                 ["1–2", R.t("spillere")],
@@ -859,7 +942,8 @@
             <span class="bo-luft under" aria-hidden="true"></span>
             ${R.ui.dokk(
               ferdig ? (kampVunnet(sp) ? R.ui.knapp(R.t("Se kåringen"), "kaaring", { ikon: "🏆" }) : R.ui.knapp(R.t("Ny runde"), "runde", { ikon: XO_IKON })) : "",
-              R.ui.lenkerad(`<button class="lenke" data-h="angre"${kanAngre ? "" : " disabled"}>↶ ${esc(R.t("Angre"))}</button>`, R.ui.lenke(R.t("Avslutt"), "avslutt")),
+              // On the net there is no «Angre»: the other phone has seen the mark.
+              R.ui.lenkerad(paNett(sp) ? "" : `<button class="lenke" data-h="angre"${kanAngre ? "" : " disabled"}>↶ ${esc(R.t("Angre"))}</button>`, R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         etter(S, rot) {
@@ -890,6 +974,7 @@
           let tittel;
           if (vinner == null) tittel = a === 0 ? R.t("Ingen vinner denne gangen") : R.t("Uavgjort!");
           else if (sp.modus === "mobil") tittel = vinner === 0 ? R.t("Du vinner!") : R.t("Mobilen vinner!");
+          else if (erJeg(sp, vinner)) tittel = R.t("Du vinner!");
           else tittel = R.t("{navn} vinner!", { navn: navn(sp, vinner) });
           const runder = a + b + sp.uavgjort;
           const etikett = `${R.flertall(runder, "runde", "runder")}${sp.uavgjort ? ` · ${R.flertall(sp.uavgjort, "uavgjort", "uavgjort")}` : ""}`;
@@ -906,8 +991,8 @@
               ${tekst ? `<p class="ingress">${esc(tekst)}</p>` : ""}
             </div>
             ${R.ui.poengliste(rader)}
-            ${R.ui.flereSpill({ antall: sp.modus === "to" ? 2 : 1 })}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: XO_IKON }), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${paNett(sp) ? R.nett.sluttDokk() : `${R.ui.flereSpill({ antall: sp.modus === "to" ? 2 : 1 })}
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: XO_IKON }), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -918,11 +1003,13 @@
             R.kveld.registrer([0, 1].map((i) => ({ i, poeng: sp.poeng[i] })));
             R.lagre();
           }
-          if (a !== b && !(sp.modus === "mobil" && b > a)) {
+          // On the net: the fanfare on the winner's phone, a gentle note on the other.
+          const tapte = paNett(sp) ? a !== b && !erJeg(sp, a > b ? 0 : 1) : sp.modus === "mobil" && b > a;
+          if (a !== b && !tapte) {
             R.lyd.fanfare();
             R.vibrer([40, 60, 120]);
             R.konfetti();
-          } else if (sp.modus === "mobil" && b > a) lyd.tap();
+          } else if (tapte) lyd.tap();
           else R.lyd.pling();
           R.slippVaken();
         },
@@ -968,6 +1055,7 @@
       },
       runde(el, e, S) {
         if (!S.spill || !S.spill.resultat) return;
+        if (paNett(S.spill)) return void (kampVunnet(S.spill) ? avsluttKamp(S) : R.nett.send({ runde: 1 }));
         if (kampVunnet(S.spill)) return avsluttKamp(S);
         nyRunde(S);
         R.vis();
@@ -980,6 +1068,11 @@
           R.toast(R.t("Vent litt – mobilen tenker"));
           return;
         }
+        if (paNett(sp) && tur(S) !== R.nett.meg()) {
+          R.toast(R.t("Vent på tur – {navn} tegner nå", { navn: navn(sp, tur(S)) }));
+          return;
+        }
+        if (paNett(sp) && R.nett.venter()) return;
         const i = Number(el.dataset.v);
         if (hentStilling(S).b[i]) return;
         // Small cells, touched with a finger (not the keyboard): first a faint mark, then the real one.
@@ -990,11 +1083,12 @@
           R.vis();
           return;
         }
+        if (paNett(sp)) return void R.nett.send({ i });
         settMerke(S, i);
       },
       angre(el, e, S) {
         const sp = S.spill;
-        if (!sp || sp.ferdig || !sp.trekk.length) return;
+        if (!sp || sp.ferdig || !sp.trekk.length || paNett(sp)) return;
         // Decided before anything is stopped: with nothing to take back, the phone thinks on.
         let n = 1;
         if (sp.modus === "mobil") {

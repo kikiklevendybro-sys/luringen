@@ -346,3 +346,43 @@ test("Reversi: a whole game on two phones, out-of-turn and illegal discs ignored
   const r3 = rom("reversi", 2, { mal: 3 });
   assert.equal(r3.tlf[0].S.spill.mal, 3);
 });
+
+// A game's pure rules, loaded without the kit (the file exports them as window[navn] then).
+function regler(id, navn) {
+  const window = {};
+  const kontekst = { window, performance, setTimeout, clearTimeout, console };
+  vm.createContext(kontekst);
+  vm.runInContext(readFileSync(join(ROT, "rusj/spill", id, "spill.js"), "utf8"), kontekst);
+  return window[navn];
+}
+
+test("Bonden: «først til 3» on two phones, taken cells and out-of-turn marks ignored, the opener alternates", () => {
+  const r = rom("bonden", 2, { variant: "tre", mal: 3 });
+  const [a, b] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().modus, "nett");
+  assert.equal(sp().starter, 0);
+  for (let steg = 0; steg < 200 && !a.def.nett.ferdig(a.S); steg++) {
+    if (sp().resultat) {
+      r.trekk(steg % 2, { runde: 1 });
+      continue;
+    }
+    const tur = a.def.nett.tur(a.S);
+    const fri = sp().trekk.length ? [0, 1, 2, 3, 4, 5, 6, 7, 8].find((i) => !sp().trekk.includes(i)) : 0;
+    r.trekk(1 - tur, { i: fri }); // not your turn
+    r.trekk(tur, { i: 9 }); // no such cell
+    if (sp().trekk.length) r.trekk(tur, { i: sp().trekk[0] }); // taken
+    r.trekk(tur, { i: "1" });
+    r.trekk(tur, { i: fri });
+  }
+  assert.equal(Math.max(...sp().poeng), 3);
+  assert.ok(a.def.nett.ferdig(a.S));
+  likt(a, b);
+  likt(a, r.sen(1));
+  const r2 = rom("bonden", 2, { variant: "stor", mal: 0 }, 20261115, 2);
+  assert.equal(r2.tlf[0].S.spill.starter, 1, "match 2: the guest opens");
+  assert.equal(r2.tlf[0].S.spill.variant, "stor");
+  r2.trekk(1, { i: 224 });
+  r2.trekk(0, { i: 225 }); // off the 15 × 15 board
+  assert.deepEqual(somJson(r2.tlf[1].S.spill.trekk), [224]);
+});
