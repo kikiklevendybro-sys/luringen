@@ -20,6 +20,7 @@ export const SPILL = {
   reversi: [2, 2],
   bonden: [2, 2],
   molla: [2, 2],
+  samannen: [2, 2],
 };
 
 // Limits per message and per socket.

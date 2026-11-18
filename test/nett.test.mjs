@@ -419,3 +419,32 @@ test("Mølla: a whole game on two phones – mills and captures as one move, ill
   likt(a, r.sen(0));
   assert.equal(rom("molla", 2, {}, 20261115, 2).tlf[1].S.spill.starter, 1, "match 2: the guest has white");
 });
+
+test("Såmannen: a whole game of kalaha on two phones – extra turns, captures, empty and foreign pits ignored", () => {
+  const { Kalaha } = regler("samannen", "Samannen");
+  const r = rom("samannen", 2, { kuler: 6 });
+  const [a, b] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().kuler, 6);
+  let igjen = false;
+  for (let steg = 0; steg < 400 && !sp().resultat; steg++) {
+    const tur = a.def.nett.tur(a.S);
+    const p = Kalaha.spillUt(sp().kuler, sp().trekk);
+    const lov = Kalaha.lovlige(p);
+    r.trekk(1 - tur, { i: lov[0] }); // not your turn
+    r.trekk(tur, { i: lov[0] < 7 ? 8 : 1 }); // the other side's pit
+    r.trekk(tur, { i: 6 }); // a store
+    const n = sp().trekk.length;
+    r.trekk(tur, { i: lov[lov.length - 1] });
+    assert.equal(sp().trekk.length, n + 1);
+    if (a.def.nett.tur(a.S) === tur && !sp().resultat) igjen = true;
+  }
+  assert.ok(igjen, "no extra turn");
+  assert.ok(sp().resultat && a.def.nett.ferdig(a.S));
+  assert.equal(sp().resultat.lager[0] + sp().resultat.lager[1], 72);
+  likt(a, b);
+  const sen = r.sen(1);
+  likt(a, sen);
+  assert.equal(sen.def.nett.skjerm(sen.S), "slutt");
+  assert.equal(rom("samannen", 2, {}, 20261115, 2).tlf[0].S.spill.starter, 1, "match 2: the guest opens");
+});

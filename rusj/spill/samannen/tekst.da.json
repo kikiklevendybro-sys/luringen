@@ -130,5 +130,7 @@
   "Mot mobilen · {niva}": "Mod mobilen · {niva}",
   "Avslutte spillet?": "Afslutte spillet?",
   "Spillet som er i gang, teller ikke. Dere kan alltid starte et nytt.": "Spillet, der er i gang, tæller ikke. I kan altid starte et nyt.",
-  "Spill videre": "Spil videre"
+  "Spill videre": "Spil videre",
+  "Vent på tur – {navn} spiller nå": "Vent på din tur – {navn} spiller nu",
+  "{navn} fanget {n} – din tur": "{navn} fangede {n} – din tur"
 }

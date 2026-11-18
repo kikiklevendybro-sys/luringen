@@ -13,6 +13,7 @@
   "alder": 6,
   "sok": ["kalaha", "mancala", "kalaha på nett", "kalaha mot datamaskin", "kulespill", "brettspill med kuler", "afrikansk brettspill"],
   "motMobilen": true,
+  "nett": true,
   "alias": ["kalaha"],
   "i18n": {
     "en": {

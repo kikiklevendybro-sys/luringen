@@ -130,5 +130,7 @@
   "Mot mobilen · {niva}": "Vs the phone · {niva}",
   "Avslutte spillet?": "Quit the game?",
   "Spillet som er i gang, teller ikke. Dere kan alltid starte et nytt.": "The game in progress won't count. You can always start a new one.",
-  "Spill videre": "Keep playing"
+  "Spill videre": "Keep playing",
+  "Vent på tur – {navn} spiller nå": "Wait your turn – {navn} is playing",
+  "{navn} fanget {n} – din tur": "{navn} captured {n} – your turn"
 }
