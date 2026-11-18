@@ -1,6 +1,6 @@
 // Nissen («Mandelen i grøten»): the elf's questions in nb, en and da, the bowl going round (everyone
 // sees theirs once, exactly one almond, then everyone turns away to pop it in), the elf never asking the same player twice in a row, the
-// reveal (caught → everyone else 1 point, got away → 3 points to the holder), undo, the rounds and
+// reveal (1 point per right guess, 0 for a wrong one, 1 to the holder per player fooled), undo, the rounds and
 // the end, and the hand-off of old Secret Santa links. Loads spill.js without the kit.
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -80,29 +80,35 @@ test("the elf never asks the same player twice in a row, and asks everyone over 
   assert.equal(spurt.size, 4);
 });
 
-test("the reveal: caught gives everyone else 1 point, getting away gives the holder 3", () => {
+test("the reveal: 1 point per right guess, 0 for a wrong one, 1 to the holder per player fooled", () => {
   const sp = N.ny(5, 3, rng(3));
   sp.mandel = 2;
   sp.fase = "pek";
-  const r = N.avgjor(sp, [2, 4]);
-  assert.ok(r.fanget);
-  assert.deepEqual(js(sp.poeng), [1, 1, 0, 1, 1]);
+  assert.equal(N.avgjor(sp, [0]), null, "not before «Gap opp!»");
+  assert.ok(N.gapOpp(sp));
+  assert.equal(sp.fase, "hvem");
+  // Two of four pointed right: 1 each; the holder fooled the other two.
+  const r = N.avgjor(sp, [0, 4, 2]);
+  assert.equal(r.lurte, 2);
+  assert.ok(!r.alle);
+  assert.deepEqual(js(sp.poeng), [1, 0, 2, 0, 1], "the holder can't be one of the right guesses");
   assert.equal(sp.fase, "fasit");
-  // Undo takes it all back, and the players can point again.
+  // Undo takes it all back.
   assert.ok(N.angre(sp));
   assert.deepEqual(js(sp.poeng), [0, 0, 0, 0, 0]);
-  assert.equal(sp.fase, "pek");
-  const r2 = N.avgjor(sp, [1]);
-  assert.ok(!r2.fanget);
-  assert.deepEqual(js(sp.poeng), [0, 0, 3, 0, 0]);
+  assert.equal(sp.fase, "hvem");
+  // Nobody right: the holder fooled all four and wins the marzipan pig.
+  const r2 = N.avgjor(sp, [-1, 9, 1.5]);
+  assert.ok(r2.alle);
+  assert.deepEqual(js(sp.poeng), [0, 0, 4, 0, 0]);
   assert.deepEqual(js(sp.slapp), [0, 0, 1, 0, 0]);
   assert.ok(N.angre(sp));
   assert.deepEqual(js(sp.slapp), [0, 0, 0, 0, 0]);
-  // Nobody pointed out: the holder gets away with it. Bad indexes are ignored.
-  const r3 = N.avgjor(sp, [-1, 9, 1.5]);
-  assert.ok(!r3.fanget);
-  assert.deepEqual(js(sp.pekt), []);
-  assert.equal(N.avgjor(sp, [2]), null, "only once per round");
+  // Everyone right: 1 each, nothing to the holder.
+  const r3 = N.avgjor(sp, [0, 1, 3, 4]);
+  assert.equal(r3.lurte, 0);
+  assert.deepEqual(js(sp.poeng), [1, 1, 0, 1, 1]);
+  assert.equal(N.avgjor(sp, [0]), null, "only once per round");
 });
 
 test("rounds: a new almond and the next player starts, then the end", () => {
@@ -111,16 +117,17 @@ test("rounds: a new almond and the next player starts, then the end", () => {
   for (let runde = 0; runde < 3; runde++) {
     assert.equal(sp.start, runde % 4);
     sp.fase = "pek";
+    N.gapOpp(sp);
     N.avgjor(sp, []);
     const hvor = N.nesteRunde(sp, r);
     assert.equal(hvor, runde < 2 ? "gi" : "slutt");
   }
   assert.ok(sp.ferdig);
   assert.equal(sp.runde, 3);
-  assert.equal(sp.poeng.reduce((s, p) => s + p, 0), 9, "nobody caught: 3 points a round");
+  assert.equal(sp.poeng.reduce((s, p) => s + p, 0), 9, "nobody right: 3 fooled a round");
 });
 
-test("whole games over many seeds: points always add up", () => {
+test("whole games over many seeds: every guesser scores either 1 point or fools the holder 1 point", () => {
   for (let fro = 1; fro <= 200; fro++) {
     const r = rng(fro);
     const n = 3 + (fro % 10);
@@ -135,9 +142,11 @@ test("whole games over many seeds: points always add up", () => {
       }
       N.imunnen(sp);
       sp.fase = "pek";
-      const pekt = r() < 0.5 ? [sp.mandel] : [(sp.mandel + 1) % n];
-      const res = N.avgjor(sp, pekt);
-      ventet += res.fanget ? n - 1 : 3;
+      N.gapOpp(sp);
+      const riktige = Array.from({ length: n }, (_, i) => i).filter((i) => i !== sp.mandel && r() < 0.4);
+      const res = N.avgjor(sp, riktige);
+      assert.equal(res.pluss.reduce((s, p) => s + p, 0), n - 1, "each guesser is worth exactly 1 point");
+      ventet += n - 1;
       N.nesteRunde(sp, r);
     }
     assert.equal(sp.poeng.reduce((s, p) => s + p, 0), ventet);

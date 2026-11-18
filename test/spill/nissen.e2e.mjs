@@ -1,7 +1,7 @@
 // Nissen («Mandelen i grøten»): home and rules, «Gjør klart» (players, rounds), the bowl going
 // round («Gi mobilen til» → hold the bowl: «MANDELEN!» for exactly one, «Bare grøt» for the rest;
 // a reload never shows the bowl), «Snu dere bort!» with «3 · 2 · 1 – Nam!», the elf's question with the talking timer and «Nytt spørsmål»,
-// «3 · 2 · 1 – Pek!», the reveal (got away: 3 points and the pig; caught: 1 to everyone else),
+// «3 · 2 · 1 – Pek!», «Gap opp!» and who pointed right (1 point each, 1 to the holder per player fooled, the pig for fooling all),
 // «Angre», the next round, small screens and a phone on its side, Kåringen, «Spill igjen», and old
 // Secret Santa links (…/nissen/#2…) handed on to the draw with the hash.
 // Language-neutral (rusj/SPRAK.md): words are checked per edition through ORD.
@@ -98,33 +98,38 @@ export default async function (t) {
   st = await s();
   t.sjekk(st.spill.spurt !== spurt0, "«Nytt spørsmål» spurte den samme igjen");
   await t.klikk('[data-h="til-pek"]');
-  await t.vent("document.querySelector('[data-h=\"pekt\"]')");
-  t.sjekk(await t.js(`document.querySelector('[data-h="snu"]').disabled`), "«Snu bollen» kan trykkes før noen er valgt");
+  await t.vent("document.querySelector('[data-h=\"snu\"]')");
   await t.klikk('[data-h="pek"]');
   await t.sov(3600);
-  const mandel = st.spill.mandel;
-  const uskyldig = (mandel + 1) % 4;
-  await t.klikk(`.velger[data-h="pekt"][data-v="${uskyldig}"]`);
   await t.bilde("pek");
+  // «Gap opp!»: the phone shows who had the almond; the holder can't be chosen as a right guess.
   await t.klikk('[data-h="snu"]');
-  await t.vent("document.querySelector('.ng-fasit')", 6000);
+  await t.vent("document.querySelector('[data-h=\"gi-poeng\"]')", 6000);
+  const mandel = st.spill.mandel;
+  const andre = [0, 1, 2, 3].filter((i) => i !== mandel);
+  t.sjekk((await t.tekst(".banner")).includes(NAVN[mandel]), "«Gap opp» viser ikke hvem som hadde mandelen");
+  t.sjekk(!(await t.finnes(`.velger[data-h="pekt"][data-v="${mandel}"]`)), "Mandelholderen kan velges som en som pekte riktig");
+  await t.bilde("gap-opp");
+  // Nobody pointed right: the holder fooled all three and wins the pig.
+  await t.klikk('[data-h="gi-poeng"]');
+  await t.vent("document.querySelector('.ng-fasit') && document.querySelector('.poengliste')", 6000);
   st = await s();
-  t.sjekk(!st.spill.siste.fanget && st.spill.poeng[mandel] === 3 && st.spill.poeng.reduce((a, b) => a + b, 0) === 3, `Mandelholderen slapp unna, men fikk ikke 3 poeng (${st.spill.poeng.join()})`);
+  t.sjekk(st.spill.siste.alle && st.spill.poeng[mandel] === 3 && st.spill.poeng.reduce((a, b) => a + b, 0) === 3, `Mandelholderen lurte alle, men fikk ikke 3 poeng (${st.spill.poeng.join()})`);
   t.sjekk(await t.finnes(".ng-gris"), "Marsipangrisen vises ikke");
   await t.bilde("fasit-slapp", true);
 
-  // «Angre» takes the points back; this time the holder is caught.
+  // «Angre» takes the points back; this time two pointed right.
   await pause();
   await t.klikk('[data-h="angre"]');
-  await t.vent("document.querySelector('[data-h=\"pekt\"]')");
+  await t.vent("document.querySelector('[data-h=\"gi-poeng\"]')");
   st = await s();
-  t.sjekk(st.spill.fase === "pek" && st.spill.poeng.every((p) => p === 0), "«Angre» tok ikke poengene tilbake");
-  await t.klikk(`.velger[data-h="pekt"][data-v="${uskyldig}"]`); // unselect
-  await t.klikk(`.velger[data-h="pekt"][data-v="${mandel}"]`);
-  await t.klikk('[data-h="snu"]');
-  await t.vent("document.querySelector('.ng-fasit')", 6000);
+  t.sjekk(st.spill.fase === "hvem" && st.spill.poeng.every((p) => p === 0), "«Angre» tok ikke poengene tilbake");
+  await t.klikk(`.velger[data-h="pekt"][data-v="${andre[0]}"]`);
+  await t.klikk(`.velger[data-h="pekt"][data-v="${andre[1]}"]`);
+  await t.klikk('[data-h="gi-poeng"]');
+  await t.vent("document.querySelector('.ng-fasit') && document.querySelector('.poengliste')", 6000);
   st = await s();
-  t.sjekk(st.spill.siste.fanget && st.spill.poeng[mandel] === 0 && st.spill.poeng.filter((p) => p === 1).length === 3, `Mandelholderen ble tatt, men poengene er feil (${st.spill.poeng.join()})`);
+  t.sjekk(st.spill.siste.lurte === 1 && st.spill.poeng[mandel] === 1 && st.spill.poeng[andre[0]] === 1 && st.spill.poeng[andre[1]] === 1 && st.spill.poeng[andre[2]] === 0, `Poengene for riktig og feil gjetning er feil (${st.spill.poeng.join()})`);
   await t.bilde("fasit-tatt");
 
   // ---------- Round 2 starts with the next player; small screens ----------
@@ -179,10 +184,12 @@ export default async function (t) {
   await endre("s.spill.runde = 2; s.spill.start = 2", GI);
   await runde();
   await t.klikk('[data-h="til-pek"]');
-  await t.vent("document.querySelector('[data-h=\"pekt\"]')");
-  await t.klikk('[data-h="ingen"]');
+  await t.vent("document.querySelector('[data-h=\"snu\"]')");
+  await t.klikk('[data-h="snu"]');
+  await t.vent("document.querySelector('[data-h=\"gi-poeng\"]')", 6000);
+  await t.klikk('[data-h="gi-poeng"]');
   await t.vent("document.querySelector('.ng-fasit')", 6000);
-  t.sjekk((await s()).spill.pekt.length === 0, "«Ingen fikk mer enn én finger» skal snu bollen uten noen pekt ut");
+  t.sjekk((await s()).spill.siste.alle, "«Ingen pekte riktig» skal gi marsipangrisen");
   await t.klikk('[data-h="neste"]');
   await t.vent("document.querySelector('.banner') && document.querySelector('.poengliste')", 6000);
   st = await s();
