@@ -223,7 +223,7 @@
     },
 
     regler: {
-      intro: R.t("Mandelen i grøten som bløffespill. Én av dere får mandelen i hemmelighet – og må late som ingenting mens nissen stiller spørsmål."),
+      intro: R.t("Mandelen i grøten som bløffespill. Én av dere får mandelen i hemmelighet – og må late som ingenting mens nissen stiller spørsmål.") + " " + R.t("Dere trenger én mandel per spiller (eller en rosin)."),
       steg: [
         [R.t("Se i bollen"), R.t("Mobilen går rundt. Hold fingeren på grøtbollen og se i hemmelighet om du fikk mandelen. Bare én får den.")],
         [R.t("Snu dere bort"), R.t("Alle snur seg samtidig og later som de putter mandelen i munnen. Bare den som fikk mandelen, putter den ekte i munnen – de andre gjemmer sin i hånda.")],
@@ -264,6 +264,7 @@
               ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
+              [R.t("1 mandel"), R.t("per spiller")],
               [`${MIN}–${MAKS}`, R.t("spillere")],
               [String(SPORSMAL.length), R.t("spørsmål")],
               ["0", R.t("reklame")],

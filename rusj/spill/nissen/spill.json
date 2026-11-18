@@ -2,7 +2,7 @@
   "id": "nissen",
   "navn": "Nissen",
   "undertittel": "Mandelen i grøten",
-  "beskrivelse": "Gratis julespill: mandelen i grøten som bløffespill. Én får mandelen i hemmelighet, nissen stiller spørsmål, og alle peker på den de tror har den.",
+  "beskrivelse": "Gratis julespill: mandelen i grøten som bløffespill. Én får mandelen i hemmelighet, nissen stiller spørsmål, og alle peker på den de tror har den. Ta med én mandel per spiller.",
   "kort": "Hvem har mandelen? Bløff, spørsmål fra nissen og marsipangris.",
   "spillere": [3, 12],
   "alder": 7,
@@ -17,7 +17,7 @@
       "navn": "The Almond",
       "undertittel": "Hidden in the porridge",
       "kort": "Who has the almond? Bluffing, questions from the elf and a marzipan pig.",
-      "beskrivelse": "Free Christmas bluffing game: one player secretly gets the almond in the porridge, the elf asks questions, and everyone points at who they think has it.",
+      "beskrivelse": "Free Christmas bluffing game: one player secretly gets the almond in the porridge, the elf asks questions, and everyone points at who they think has it. Bring one almond per player.",
       "slug": "the-almond",
       "sok": ["christmas party game", "christmas bluffing game", "almond in the porridge", "rice pudding almond", "marzipan pig", "christmas games for families", "christmas eve game", "scandinavian christmas"]
     },
@@ -25,7 +25,7 @@
       "navn": "Nissen",
       "undertittel": "Mandlen i risalamanden",
       "kort": "Hvem har mandlen? Bluff, spørgsmål fra nissen og en marcipangris.",
-      "beskrivelse": "Gratis julespil: mandlen i risalamanden som bluffespil. Én får mandlen i hemmelighed, nissen stiller spørgsmål, og alle peger på den, de tror har den.",
+      "beskrivelse": "Gratis julespil: mandlen i risalamanden som bluffespil. Én får mandlen i hemmelighed, nissen stiller spørgsmål, og alle peger på den, de tror har den. Tag én mandel med per spiller.",
       "slug": "nissen",
       "sok": ["mandelgave", "mandel i risalamande", "risalamande", "julespil", "juleaften", "marcipangris", "julelege", "bluffespil jul", "nisse"]
     }
