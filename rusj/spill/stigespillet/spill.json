@@ -13,6 +13,7 @@
   "rekkefolge": 56,
   "farge": "#ffb347",
   "motMobilen": true,
+  "nett": true,
   "sok": ["stigespill", "stiger og slanger", "slanger og stiger", "snakes and ladders", "brettspill for barn", "terningspill"],
   "alias": ["stiger-og-sklier"],
   "i18n": {

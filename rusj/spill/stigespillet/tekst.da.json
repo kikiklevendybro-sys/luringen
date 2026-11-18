@@ -85,5 +85,8 @@
   "Avslutte spillet?": "Afslutte spillet?",
   "Den som har kommet lengst, blir kåret.": "Den, der er nået længst, bliver kåret.",
   "Spill videre": "Spil videre",
-  "sekser|seksere": { "one": "sekser", "other": "seksere" }
+  "sekser|seksere": { "one": "sekser", "other": "seksere" },
+  "Venter på at {navn} kaster": "Venter på at {navn} kaster",
+  "Vent på tur – {navn} kaster nå": "Vent på din tur – {navn} kaster nu",
+  "på tur": "på tur"
 }

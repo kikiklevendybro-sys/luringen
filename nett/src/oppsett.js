@@ -23,6 +23,7 @@ export const SPILL = {
   samannen: [2, 2],
   snekkeren: [2, 2],
   dam: [2, 2],
+  stigespillet: [2, 4],
 };
 
 // Limits per message and per socket.

@@ -187,6 +187,11 @@
     return `<span class="avatar sg-robot ${storrelse || ""}" style="--pf: ${FARGE[s]}" aria-hidden="true">🤖</span>`;
   };
   const brettFor = (sp) => BRETT[sp.brett] || BRETT.hagen;
+  // On the net (R.nett, rusj/kit/nett.js): seat i is player i on its own phone; a throw comes from
+  // the room's chance for that move (okt.rng), so every phone gets the same die.
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const minTur = (sp) => !paNett(sp) || (sp.tur === R.nett.meg() && !R.nett.venter());
+  const erJeg = (sp, s) => paNett(sp) && R.nett.erMeg(s);
 
   function riktigRoboter(S) {
     const m = R.klamp(Number(S.antall) || 1, 1, 4);
@@ -234,7 +239,9 @@
     if (sp.ferdig) return R.t("I mål! 🏆");
     const navn = navnFor(sp, sp.tur);
     if (erRobot(sp, sp.tur)) return sp.ekstra ? R.t("Seks! {navn} kaster igjen …", { navn }) : R.t("{navn} kaster …", { navn });
+    if (paNett(sp) && !erJeg(sp, sp.tur)) return sp.ekstra ? R.t("Seks! {navn} kaster igjen …", { navn }) : R.t("Venter på at {navn} kaster", { navn });
     if (sp.ekstra) return R.t("Seks! Kast en gang til!");
+    if (paNett(sp)) return R.t("Din tur – kast terningen!");
     return sp.seter.filter((d) => d.type === "m").length > 1 ? R.t("Din tur – kast terningen!") : R.t("Kast terningen!");
   }
 
@@ -253,7 +260,7 @@
 
   const TERNING = "sg-terning";
   function terningHtml(sp) {
-    const kan = !erRobot(sp, sp.tur) && !sp.ferdig;
+    const kan = !erRobot(sp, sp.tur) && !sp.ferdig && minTur(sp);
     return R.terninger.html({
       id: TERNING,
       klasse: "sg-terning" + (kan ? " klar" : ""),
@@ -491,15 +498,32 @@
   async function kast(S) {
     const sp = S.spill;
     if (!pagar(S) || laast || S.skjerm !== "spill" || R.arkApent()) return;
+    if (paNett(sp)) {
+      // On the net the throw goes to the room; it is played when it comes back (from okt.rng).
+      if (!minTur(sp)) {
+        sveipKast = null;
+        if (sp.tur !== R.nett.meg()) R.toast(R.t("Vent på tur – {navn} kaster nå", { navn: navnFor(sp, sp.tur) }));
+        return;
+      }
+      if (!R.nett.send({ kast: 1 })) sveipKast = null;
+      return;
+    }
     stopp();
     const sete = sp.tur;
-    const navn = navnFor(sp, sete);
     const vei = sveipKast;
     sveipKast = null;
     const v = nyTerning();
+    const t = kastTilstand(S, sete, v, Math.round(Math.random() * 30 - 15));
+    R.lagre(); // the whole move is saved before anything moves: a reload never loses it
+    return visKast(S, sete, t, v, vei);
+  }
+
+  // What a throw of v does to the state (the same offline and on the net; stille: a replay).
+  function kastTilstand(S, sete, v, vri, stille) {
+    const sp = S.spill;
     const t = trekk(sp.pos[sete], v, brettFor(sp), sp.regler);
     sp.terning = v;
-    sp.vri = Math.round(Math.random() * 30 - 15);
+    sp.vri = vri;
     sp.siste = { sete, ...t };
     sp.pos[sete] = t.til;
     sp.stat.kast += 1;
@@ -515,10 +539,16 @@
     if (t.vant) {
       sp.ferdig = true;
       sp.vinner = sete;
-      avsluttSpill(S);
+      if (!stille) avsluttSpill(S);
     } else if (t.ekstra) sp.ekstra = true;
     else nesteTur(sp);
-    R.lagre(); // the whole move is saved before anything moves: a reload never loses it
+    return t;
+  }
+
+  // The throw on the screen: the die rolls, the piece hops (and climbs or slides), then the next turn.
+  async function visKast(S, sete, t, v, vei) {
+    const sp = S.spill;
+    const navn = navnFor(sp, sete);
     laast = true;
     opptatt();
     const knapp = R.$('#skjerm .dokk [data-h="kast"]');
@@ -538,8 +568,12 @@
     R.si(trekkTekst(t, navn));
     if (t.via === "stige") R.lyd.riktig();
     if (t.vant) {
-      R.lyd.fanfare();
-      R.konfetti();
+      // (On the net the fanfare is for the winner's phone.)
+      if (paNett(sp) && !erJeg(sp, sete)) R.lyd.pling();
+      else {
+        R.lyd.fanfare();
+        R.konfetti();
+      }
       R.vibrer([60, 40, 60, 40, 160]);
       R.vis();
       await R.vent(R.rolig() ? 400 : 1600);
@@ -548,8 +582,9 @@
     }
     await R.vent(R.rolig() ? 150 : t.via ? 700 : 450);
     if (!fortsatt()) return;
+    if (sp.ferdig) return R.gaTil("slutt"); // on the net: a winning throw came while this one rolled
     R.vis();
-    if (!erRobot(sp, sp.tur)) R.si(sp.ekstra ? R.t("Seks! Kast en gang til.") : R.t("{navn} sin tur.", { navn: navnFor(sp, sp.tur) }));
+    if (!erRobot(sp, sp.tur)) R.si(sp.ekstra && !(paNett(sp) && !erJeg(sp, sp.tur)) ? R.t("Seks! Kast en gang til.") : R.t("{navn} sin tur.", { navn: navnFor(sp, sp.tur) }));
     driv();
   }
 
@@ -559,7 +594,8 @@
     const rang = rangering(sp.pos, seter, sp.vinner);
     if (sp.vinner == null) sp.vinner = rang[0].sete;
     const mennesker = rang.filter((r) => !erRobot(sp, r.sete));
-    if (mennesker.length >= 2) R.kveld.registrer(mennesker.map((r) => ({ navn: navnFor(sp, r.sete), poeng: r.rute })));
+    // (On the net «Kveldens gjeng» on the phone is left alone.)
+    if (mennesker.length >= 2 && !paNett(sp)) R.kveld.registrer(mennesker.map((r) => ({ navn: navnFor(sp, r.sete), poeng: r.rute })));
     S.sist = { navn: navnFor(sp, sp.vinner), brett: sp.brett, robot: erRobot(sp, sp.vinner) };
     R.statistikk("ferdig", { spillere: sp.seter.length, kast: sp.stat.kast, robot: erRobot(sp, sp.vinner), fullfort: sp.pos[sp.vinner] === MAL, brett: sp.brett });
   }
@@ -568,10 +604,64 @@
 
   const OPPSETT = { roboter: 0, brett: "hagen", seks: true, eksakt: false };
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Moves: { kast: 1 } from the seat whose turn it is; the die is okt.rng's. Anything else is
+  // ignored on every phone. 2–4 seats, everyone a person; who begins moves on one seat per match.
+  const NETT = {
+    min: 2,
+    maks: 4,
+    oppsett: (S) => ({ brett: S.oppsett.brett, seks: !!S.oppsett.seks, eksakt: !!S.oppsett.eksakt }),
+    oppsettTekst: (o) => {
+      const b = (o && BRETT[o.brett]) || BRETT.hagen;
+      return [`${b.ikon} ${b.navn}`, o && o.seks ? R.t("Seks gir et ekstra kast") : "", o && o.eksakt ? R.t("Nøyaktig til 100") : ""].filter(Boolean).join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const n = R.klamp(okt.antall || 2, 2, 4);
+      S.spill = {
+        modus: "nett",
+        brett: BRETT[o.brett] ? o.brett : "hagen",
+        seter: Array.from({ length: n }, (_, k) => ({ sete: k, type: "m", i: k })),
+        pos: [0, 1, 2, 3].map((s) => (s < n ? START : null)),
+        regler: { seks: o.seks !== false, eksakt: !!o.eksakt },
+        tur: (okt.kamp - 1) % n,
+        terning: 1,
+        vri: 0,
+        ekstra: false,
+        siste: null,
+        ferdig: false,
+        vinner: null,
+        nr: 1,
+        stat: { kast: 0, seksere: [0, 0, 0, 0], stiger: [0, 0, 0, 0], sklier: [0, 0, 0, 0], skli: null, stige: null },
+      };
+      laast = false;
+      sveipKast = null;
+      stopp();
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || t.kast !== 1 || sete !== sp.tur || !deltaker(sp, sete)) return;
+      const v = 1 + Math.floor(okt.rng() * 6);
+      const vri = Math.round(okt.rng() * 30 - 15);
+      const vei = erJeg(sp, sete) ? sveipKast : null;
+      sveipKast = null;
+      const tt = kastTilstand(S, sete, v, vri, okt.gjenspill);
+      if (okt.gjenspill || S.skjerm !== "spill") return;
+      // A throw that comes while the last one is still rolling here: its state is in, and the
+      // screen shows it when that one is done.
+      if (laast) return;
+      visKast(S, sete, tt, v, vei).catch((feil) => console.error(feil));
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "spill"),
+    tur: (S) => (S.spill && !S.spill.ferdig ? S.spill.tur : null),
+    ferdig: (S) => !!S.spill && S.spill.ferdig,
+  };
+
   R.start({
     id: "stigespillet",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({ antall: 2, oppsett: { ...OPPSETT }, spill: null, sist: null }),
 
@@ -630,6 +720,7 @@
               fortsettTekst: pagar(S) ? R.t("Fortsett · {navn} sin tur", { navn: navnFor(S.spill, S.spill.tur) }) : "",
               ekstraHtml:
                 (S.sist && !pagar(S) ? `<p class="hjelp sg-sist">${esc(R.t("Sist vant {navn}", { navn: S.sist.navn }))} ${(BRETT[S.sist.brett] || BRETT.hagen).ikon}</p>` : "") +
+                (R.nett ? R.nett.knapp() : "") +
                 R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
@@ -678,12 +769,13 @@
           let knapp;
           if (sp.ferdig) knapp = R.ui.knapp(R.t("I mål!"), "kast", { variant: "stor", ikon: "🏆", av: true });
           else if (robot) knapp = R.ui.knapp(R.t("{navn} kaster …", { navn: navnFor(sp, s) }), "kast", { variant: "stor", ikon: "🤖", av: true });
+          else if (paNett(sp) && !erJeg(sp, s)) knapp = R.ui.knapp(R.t("{navn} kaster …", { navn: navnFor(sp, s) }), "kast", { variant: "stor", ikon: "🎲", av: true });
           else knapp = R.ui.knapp(sp.ekstra ? R.t("Kast igjen") : R.t("Kast"), "kast", { variant: `stor ${KNAPPFARGE[s]} sg-kast`, ikon: "🎲" });
           return `
             <div class="sg-tur${robot ? " robot" : ""}" style="--lf: ${FARGE[s]}">
               <span class="sg-meg">${avatarFor(sp, s, "mid")}<span class="sg-meg-rute" aria-hidden="true">${sp.pos[s]}</span></span>
               <div class="sg-hvem">
-                <p class="etikett">${esc(FARGENAVN[s])} · ${esc(robot ? R.t("mobilen") : R.t("din tur"))}</p>
+                <p class="etikett">${esc(FARGENAVN[s])} · ${esc(robot ? R.t("mobilen") : paNett(sp) && !erJeg(sp, s) ? R.t("på tur") : R.t("din tur"))}</p>
                 <h1 id="skjerm-tittel">${esc(navnFor(sp, s))}</h1>
                 <p class="sg-status" id="sg-status" aria-live="polite">${esc(statusTekst(sp))}</p>
               </div>
@@ -761,13 +853,14 @@
               )
               .join("")}</ol>
             ${fakta.length ? `<ul class="sg-fakta">${fakta.map(([ikon, tittel, verdi, hvem]) => `<li class="sg-faktum"><span class="sg-faktum-ikon" aria-hidden="true">${ikon}</span><span><span class="etikett">${esc(tittel)}</span><b>${esc(verdi)}</b><span>${esc(hvem)}</span></span></li>`).join("")}</ul>` : ""}
-            ${R.ui.flereSpill({ antall: sp.seter.filter((d) => d.type === "m").length })}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${paNett(sp) ? R.nett.sluttDokk() : `${R.ui.flereSpill({ antall: sp.seter.filter((d) => d.type === "m").length })}
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`}`;
         },
         inn(S) {
           const sp = S.spill;
           if (!sp) return;
-          if (!erRobot(sp, sp.vinner)) {
+          // On the net: the fanfare on the winner's phone, a gentle note on the others.
+          if (!erRobot(sp, sp.vinner) && !(paNett(sp) && !erJeg(sp, sp.vinner))) {
             R.lyd.fanfare();
             R.konfetti();
           } else {

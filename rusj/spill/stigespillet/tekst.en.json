@@ -86,5 +86,8 @@
   "Avslutte spillet?": "Quit the game?",
   "Den som har kommet lengst, blir kåret.": "Whoever has got furthest is crowned the winner.",
   "Spill videre": "Keep playing",
-  "sekser|seksere": { "one": "six", "other": "sixes" }
+  "sekser|seksere": { "one": "six", "other": "sixes" },
+  "Venter på at {navn} kaster": "Waiting for {navn} to roll",
+  "Vent på tur – {navn} kaster nå": "Wait your turn – {navn} is rolling",
+  "på tur": "on turn"
 }

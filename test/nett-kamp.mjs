@@ -6,7 +6,7 @@
 //
 // o: {
 //   lagret: the game's storage name ("reversi.v1"),
-//   offline: async (a) => …   play a little on A against the phone, end on the home screen,
+//   offline: async (a) => …   play a little on A (against the phone), end on the home screen,
 //   trekk: async (p, sp) => … p has the turn: make one move and wait until p has played it,
 //   utenTur: a selector the other phone taps out of turn (nothing may change), optional,
 //   nokkel: (sp) => …         the part of the state both phones must agree on,
@@ -139,7 +139,7 @@ export async function nettKamp(t, o) {
   t.sjekk(await a.finnes('[data-h="fortsett"]'), "«Fortsett» mangler etter nettkampen");
   await a.klikk('[data-h="fortsett"]');
   await a.ventSkjerm("spill");
-  t.sjekk((await a.spill()).modus === "mobil", "«Fortsett» ga ikke spillet mot mobilen");
+  t.sjekk((await a.spill()).modus !== "nett", "«Fortsett» ga ikke spillet fra før nettkampen");
   await a.bilde("fortsett-mot-mobilen");
   return { a, b };
 }

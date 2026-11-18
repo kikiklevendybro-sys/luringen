@@ -516,3 +516,39 @@ test("Dam: a whole game on two phones – forced captures, multi-jumps as one mo
   assert.equal(r2.tlf[0].S.spill.starter, 1, "match 2: the guest has white");
   assert.equal(r2.tlf[0].S.spill.mal, 3);
 });
+
+test("Stigespillet: a whole game for three on three phones – the same dice, out-of-turn throws ignored", () => {
+  const r = rom("stigespillet", 3, { brett: "jul", seks: true, eksakt: true });
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().seter.length, 3);
+  assert.equal(sp().brett, "jul");
+  assert.equal(sp().tur, 0, "the host begins match 1");
+  let seks = false;
+  let stige = false;
+  for (let steg = 0; steg < 3000 && !sp().ferdig; steg++) {
+    const tur = sp().tur;
+    r.trekk((tur + 1) % 3, { kast: 1 }); // not your turn
+    r.trekk(tur, { kast: 2 });
+    r.trekk(tur, { flytt: 1 });
+    const n = sp().stat.kast;
+    r.trekk(tur, { kast: 1 });
+    assert.equal(sp().stat.kast, n + 1);
+    if (sp().terning === 6 && !sp().ferdig) {
+      seks = true;
+      assert.equal(sp().tur, tur, "a six: the same one again");
+    }
+    if (sp().siste.via === "stige") stige = true;
+  }
+  assert.ok(sp().ferdig && sp().pos[sp().vinner] === 100, "nobody reached 100");
+  assert.ok(seks && stige);
+  assert.ok(a.def.nett.ferdig(a.S));
+  r.trekk(sp().tur, { kast: 1 }); // after the end: ignored
+  likt(a, b);
+  likt(a, c);
+  const sen = r.sen(2);
+  likt(a, sen);
+  assert.equal(sen.def.nett.skjerm(sen.S), "slutt");
+  assert.equal(rom("stigespillet", 3, {}, 20261115, 2).tlf[0].S.spill.tur, 1, "match 2: the next seat begins");
+  assert.equal(rom("stigespillet", 2, {}, 20261115, 4).tlf[0].S.spill.tur, 1);
+});
