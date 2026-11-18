@@ -1,0 +1,33 @@
+{
+  "id": "leppeleseren",
+  "navn": "Leppeleseren",
+  "undertittel": "Les leppene",
+  "beskrivelse": "Gratis leppelesing-lek: én har hodetelefoner med høy musikk fra mobilen, en annen sier en morsom frase – klarer lytteren å lese leppene? Ta med hodetelefoner.",
+  "kort": "Én hører bare musikk og leser leppene dine. Dere trenger hodetelefoner til mobilen.",
+  "spillere": [2, 12],
+  "alder": 8,
+  "minutter": [10, 30],
+  "mobiler": "en",
+  "tagger": ["fest", "familie", "lag"],
+  "rekkefolge": 107,
+  "farge": "#ff6fa5",
+  "sok": ["leppelesing", "les leppene mine", "hodetelefonleken", "hodetelefon-leken", "lip reading", "whisper challenge", "festmusikk", "lag mot lag"],
+  "i18n": {
+    "en": {
+      "navn": "The Lip Reader",
+      "undertittel": "Read my lips",
+      "kort": "One of you hears only music and reads your lips. You need headphones for the phone.",
+      "beskrivelse": "Free lip-reading party game: one wears headphones with loud music from the phone, another mouths a silly phrase – can they read your lips? Bring headphones.",
+      "slug": "lip-reader",
+      "sok": ["lip reading game", "read my lips", "headphone challenge", "whisper challenge", "lip sync guessing game", "headphones game", "party game", "family game"]
+    },
+    "da": {
+      "navn": "Læbelæseren",
+      "undertittel": "Læs mine læber",
+      "kort": "Én hører kun musik og læser dine læber. I skal bruge høretelefoner til mobilen.",
+      "beskrivelse": "Gratis læbelæsningsleg: én har høretelefoner med høj musik fra mobilen, en anden siger en sjov sætning – kan lytteren læse dine læber? Tag høretelefoner med.",
+      "slug": "laebelaeseren",
+      "sok": ["læbelæsning", "læs mine læber", "høretelefonlegen", "whisper challenge", "festleg", "familieleg", "hold mod hold"]
+    }
+  }
+}
