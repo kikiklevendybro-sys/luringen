@@ -1,7 +1,7 @@
 /* Nissen — «Mandelen i grøten» (the almond in the Christmas porridge) as a bluffing game.
    Every round the phone goes round the table: each player holds a finger on the porridge bowl and
    sees, in secret, «Bare grøt» or «MANDELEN!». Exactly one gets the almond. Everyone has a real
-   almond (or a raisin) in hand: all turn away at once and pretend to pop it in their mouth, but only
+   almond (or something as big) in hand: all turn away at once and pretend to pop it in their mouth, but only
    the almond holder really does. Then the elf (nissen)
    asks one player at a time an awkward question, everybody points at once at whoever they think is
    hiding the almond, and the bowl is turned over. Caught: everyone else gets 1 point. Got away with
@@ -223,7 +223,7 @@
     },
 
     regler: {
-      intro: R.t("Mandelen i grøten som bløffespill. Én av dere får mandelen i hemmelighet – og må late som ingenting mens nissen stiller spørsmål.") + " " + R.t("Dere trenger én mandel per spiller (eller en rosin)."),
+      intro: R.t("Mandelen i grøten som bløffespill. Én av dere får mandelen i hemmelighet – og må late som ingenting mens nissen stiller spørsmål.") + " " + R.t("Dere trenger én hel mandel per spiller – eller noe like stort, som en sjokoladebit eller en stor drops."),
       steg: [
         [R.t("Se i bollen"), R.t("Mobilen går rundt. Hold fingeren på grøtbollen og se i hemmelighet om du fikk mandelen. Bare én får den.")],
         [R.t("Snu dere bort"), R.t("Alle snur seg samtidig og later som de putter mandelen i munnen. Bare den som fikk mandelen, putter den ekte i munnen – de andre gjemmer sin i hånda.")],
@@ -231,7 +231,7 @@
         [R.t("Pek samtidig"), R.t("Tell ned og pek på den du tror har mandelen. Den som holder mobilen, trykker på den eller dem som fikk flest fingrer.")],
         [R.t("Gap opp"), R.t("Den som hadde mandelen, gaper opp og viser den. Ble mandelholderen tatt, får alle andre 1 poeng. Slapp hen unna, får hen 3 poeng og marsipangrisen.")],
       ],
-      tips: [R.t("Alle trenger en mandel. Nøtteallergi rundt bordet? Bruk rosiner eller små drops."), R.t("Den som har mandelen, kan godt peke på noen andre."), R.t("De som ikke har mandelen, kan godt tygge litt for å lure de andre."), R.t("Alle må svare på spørsmålene – også den som har mandelen.")],
+      tips: [R.t("Alle trenger en hel mandel. Nøtteallergi rundt bordet? Bruk noe like stort som er vanskelig å skjule, som en sjokoladebit eller en stor drops."), R.t("Den som har mandelen, kan godt peke på noen andre."), R.t("De som ikke har mandelen, kan godt tygge litt for å lure de andre."), R.t("Alle må svare på spørsmålene – også den som har mandelen.")],
     },
 
     hemmelig: {
@@ -280,7 +280,7 @@
         vis(S) {
           return `
             <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
-            <p class="papirboks ng-mandler">${esc(R.t("Alle trenger en mandel. Nøtteallergi rundt bordet? Bruk rosiner eller små drops."))}</p>
+            <p class="papirboks ng-mandler">${esc(R.t("Alle trenger en hel mandel. Nøtteallergi rundt bordet? Bruk noe like stort som er vanskelig å skjule, som en sjokoladebit eller en stor drops."))}</p>
             ${R.ui.spillere({ min: MIN, max: MAKS, hjelp: R.t("Mobilen går rundt i samme rekkefølge som lista.") })}
             <section class="seksjon">
               <div class="seksjon-hode"><h2>${esc(R.t("Runder"))}</h2></div>

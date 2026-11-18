@@ -75,7 +75,6 @@
   "Nissen stiller spørsmål til én og én. Svar så godt du kan – med mandelen i munnen – og prøv å se uskyldig ut.": "Nissen stiller spørgsmål til én ad gangen. Svar så godt du kan – med mandlen i munden – og prøv at se uskyldig ud.",
   "Gap opp": "Gab op",
   "Den som hadde mandelen, gaper opp og viser den. Ble mandelholderen tatt, får alle andre 1 poeng. Slapp hen unna, får hen 3 poeng og marsipangrisen.": "Den, der havde mandlen, gaber op og viser den. Blev mandelholderen afsløret, får alle andre 1 point. Slap vedkommende fri, får hen 3 point og marcipangrisen.",
-  "Alle trenger en mandel. Nøtteallergi rundt bordet? Bruk rosiner eller små drops.": "Alle skal have en mandel. Nøddeallergi ved bordet? Brug rosiner eller små bolsjer.",
   "De som ikke har mandelen, kan godt tygge litt for å lure de andre.": "Har du ikke mandlen, kan du godt tygge lidt for at narre de andre.",
   "Når alle snur seg: putt mandelen ekte i munnen. Ikke vis noe!": "Når alle vender sig om: put mandlen i munden for alvor. Lad som ingenting!",
   "Når alle snur seg: bare lat som du putter mandelen i munnen.": "Når alle vender sig om: lad bare, som om du putter mandlen i munden.",
@@ -88,7 +87,8 @@
   "Gap opp, {navn}! Alle andre får 1 poeng.": "Gab op, {navn}! Alle andre får 1 point.",
   "Gap opp og vis mandelen! Ingen avslørte det. 3 poeng.": "Gab op og vis mandlen! Ingen afslørede det. 3 point.",
   "NAM!": "NAM!",
-  "Dere trenger én mandel per spiller (eller en rosin).": "I skal bruge én mandel per spiller (eller en rosin).",
   "1 mandel": "1 mandel",
-  "per spiller": "per spiller"
+  "per spiller": "per spiller",
+  "Dere trenger én hel mandel per spiller – eller noe like stort, som en sjokoladebit eller en stor drops.": "I skal bruge én hel mandel per spiller – eller noget lige så stort, som et stykke chokolade eller et stort bolsje.",
+  "Alle trenger en hel mandel. Nøtteallergi rundt bordet? Bruk noe like stort som er vanskelig å skjule, som en sjokoladebit eller en stor drops.": "Alle skal have en hel mandel. Nøddeallergi ved bordet? Brug noget lige så stort, der er svært at skjule, som et stykke chokolade eller et stort bolsje."
 }

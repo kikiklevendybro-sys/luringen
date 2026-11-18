@@ -84,7 +84,6 @@
   "Nissen stiller spørsmål til én og én. Svar så godt du kan – med mandelen i munnen – og prøv å se uskyldig ut.": "The elf asks one player at a time. Answer as best you can – with the almond in your mouth – and try to look innocent.",
   "Gap opp": "Open wide",
   "Den som hadde mandelen, gaper opp og viser den. Ble mandelholderen tatt, får alle andre 1 poeng. Slapp hen unna, får hen 3 poeng og marsipangrisen.": "Whoever had the almond opens wide and shows it. If the almond holder was caught, everyone else gets 1 point. If they got away with it, they get 3 points and the marzipan pig.",
-  "Alle trenger en mandel. Nøtteallergi rundt bordet? Bruk rosiner eller små drops.": "Everyone needs an almond. Nut allergy at the table? Use raisins or small sweets.",
   "De som ikke har mandelen, kan godt tygge litt for å lure de andre.": "If you don't have the almond, chew a little to fool the others.",
   "Når alle snur seg: putt mandelen ekte i munnen. Ikke vis noe!": "When everyone turns away: pop the almond in your mouth for real. Don't give anything away!",
   "Når alle snur seg: bare lat som du putter mandelen i munnen.": "When everyone turns away: just pretend to pop the almond in your mouth.",
@@ -97,7 +96,8 @@
   "Gap opp, {navn}! Alle andre får 1 poeng.": "Open wide, {navn}! Everyone else gets 1 point.",
   "Gap opp og vis mandelen! Ingen avslørte det. 3 poeng.": "Open wide and show the almond! Nobody caught on. 3 points.",
   "NAM!": "YUM!",
-  "Dere trenger én mandel per spiller (eller en rosin).": "You need one almond per player (or a raisin).",
   "1 mandel": "1 almond",
-  "per spiller": "per player"
+  "per spiller": "per player",
+  "Dere trenger én hel mandel per spiller – eller noe like stort, som en sjokoladebit eller en stor drops.": "You need one whole almond per player – or something just as big, like a piece of chocolate or a big boiled sweet.",
+  "Alle trenger en hel mandel. Nøtteallergi rundt bordet? Bruk noe like stort som er vanskelig å skjule, som en sjokoladebit eller en stor drops.": "Everyone needs a whole almond. Nut allergy at the table? Use something just as big and hard to hide, like a piece of chocolate or a big boiled sweet."
 }
