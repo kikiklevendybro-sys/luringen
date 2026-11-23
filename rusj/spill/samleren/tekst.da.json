@@ -199,5 +199,8 @@
   "Spill videre": "Spil videre",
   "poeng|poeng": { "one": "point", "other": "point" },
   "kort|kort": { "one": "kort", "other": "kort" },
-  "runde|runder": { "one": "runde", "other": "runder" }
+  "runde|runder": { "one": "runde", "other": "runder" },
+  "Forlot kampen": "Forlod kampen",
+  "{navn} spiller …": "{navn} spiller …",
+  "Med flere enn to blir det vanlig rummy": "Med flere end to bliver det almindelig rommy"
 }

@@ -623,7 +623,7 @@
 
     return {
       sortAv, verdiAv, VARIANTER, esHoy, kortPer, maksSpillere, BANK_GRENSE, GIN_BONUS, UNDERCUT_BONUS, verdi, handVerdi, bland, meld, nyttMeld, utvid,
-      meldKortVerdi, utlagt, kandidater, beste, leggTilMed, kanBrukes, nyRunde, iTur, topp, trekk, kanTa, ta, avsla, kanLeggeUt, legUt, kanLeggeTil,
+      meldKortVerdi, utlagt, kandidater, beste, leggTilMed, kanBrukes, nyRunde, iTur, topp, nesteTur, trekk, kanTa, ta, avsla, kanLeggeUt, legUt, kanLeggeTil,
       leggTil, kanKaste, kast, bankDod, bank, kanStoppe, stopp, forsvar, hel,
     };
   })();
@@ -907,16 +907,24 @@
   //   picked deep in the pile), angre (the round as it was when this turn's laying out began), endret,
   //   ny [cards just drawn], ferdig, registrert }
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
-  const erMenneske = (sp, p) => sp.modus === "flere" || p === 0;
-  const navn = (sp, p) => (sp.modus === "flere" ? R.navn(p) : p === 0 ? R.t("Du") : sp.n === 2 ? R.t("Mobilen") : R.t("Mobil {n}", { n: p }));
-  const avatarNr = (sp, p) => (sp.modus === "flere" ? p : p === 0 ? 0 : 9 + p);
+  // On the net (R.nett, rusj/kit/nett.js; modus "nett"): seat i is player i on its own phone, every
+  // draw, meld, lay-off and discard is a move, played when the room sends it back. Each phone shows
+  // only its own hand; the others lie face down with a count. (The deal comes from the room's seed,
+  // so a modified client could work out the hidden cards – accepted: friends who invited each other.)
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const erJeg = (sp, p) => paNett(sp) && R.nett.erMeg(p);
+  const erUte = (sp, p) => !!sp.ute && sp.ute.includes(p); // left a match on the net
+  const erMenneske = (sp, p) => sp.modus === "flere" || sp.modus === "nett" || p === 0;
+  const navn = (sp, p) => (sp.modus === "nett" ? (erJeg(sp, p) ? R.t("Du") : R.navn(p)) : sp.modus === "flere" ? R.navn(p) : p === 0 ? R.t("Du") : sp.n === 2 ? R.t("Mobilen") : R.t("Mobil {n}", { n: p }));
+  const avatarNr = (sp, p) => (sp.modus === "flere" || sp.modus === "nett" ? p : p === 0 ? 0 : 9 + p);
   const avatar = (sp, p, str) => R.avatar(avatarNr(sp, p), str);
-  // The seat whose hand is shown: you against the phone, or the one whose turn it is.
-  const meg = (sp) => (sp.modus === "flere" ? sp.r.tur : 0);
+  // The seat whose hand is shown: you against the phone, the one whose turn it is, or (on the net) this phone's seat.
+  const meg = (sp) => (sp.modus === "nett" ? R.nett.meg() : sp.modus === "flere" ? sp.r.tur : 0);
   const rundeFerdig = (sp) => sp.r.fase === "slutt";
-  const minTur = (sp) => !rundeFerdig(sp) && !sp.port && erMenneske(sp, sp.r.tur) && sp.r.tur === meg(sp);
+  const minTur = (sp) => !rundeFerdig(sp) && !sp.port && erMenneske(sp, sp.r.tur) && sp.r.tur === meg(sp) && (!paNett(sp) || !R.nett.venter());
   const hoy = (sp) => Rummy.esHoy(sp.variant);
   const kampFerdig = (sp) => {
+    if (sp.avbrutt) return true;
     if (!sp.lagt) return false;
     if (sp.mal === "en") return sp.r.resultat.vinner != null;
     return sp.poeng.some((x) => x >= Number(sp.mal));
@@ -992,7 +1000,7 @@
   function meldingTekst(sp) {
     const r = sp.r;
     const p = r.tur;
-    if (!erMenneske(sp, p)) return R.t("{navn} tenker …", { navn: navn(sp, p) });
+    if (!erMenneske(sp, p) || (paNett(sp) && !erJeg(sp, p))) return R.t("{navn} tenker …", { navn: navn(sp, p) });
     const t = Rummy.topp(r);
     if (r.fase === "tilbud") return R.t("Vil du ha {kort}? Ellers går tilbudet videre.", { kort: kortnavn(t) });
     if (r.fase === "trekk") {
@@ -1022,10 +1030,10 @@
     const res = sp.r.resultat;
     const kamp = kampFerdig(sp) && sp.mal !== "en";
     const v = kamp ? kampVinnere(sp) : null;
-    if (kamp && v.length === 1) return v[0] === 0 && sp.modus === "mobil" ? R.t("Du vinner kampen!") : R.t("{navn} vinner kampen!", { navn: navn(sp, v[0]) });
+    if (kamp && v.length === 1) return (v[0] === 0 && sp.modus === "mobil") || erJeg(sp, v[0]) ? R.t("Du vinner kampen!") : R.t("{navn} vinner kampen!", { navn: navn(sp, v[0]) });
     if (kamp) return R.t("Uavgjort kamp!");
     if (res.type === "tom") return sp.variant === "500" ? R.t("Runden er over.") : R.t("Bunken tok slutt – ingen vinner runden.");
-    const du = sp.modus === "mobil" && res.vinner === 0;
+    const du = (sp.modus === "mobil" && res.vinner === 0) || erJeg(sp, res.vinner);
     if (res.type === "gin") return du ? R.t("Du fikk gin!") : R.t("{navn} fikk gin!", { navn: navn(sp, res.vinner) });
     if (res.type === "bank") {
       if (res.undercut) return du ? R.t("Du hadde færre løse poeng – du vinner runden!") : R.t("{navn} hadde færre løse poeng og vinner runden!", { navn: navn(sp, res.vinner) });
@@ -1038,8 +1046,9 @@
   const sluttVinnere = (sp) => (sp.mal !== "en" && sp.poeng.every((x) => x === 0) ? [] : kampVinnere(sp));
   function kampVinnere(sp) {
     if (sp.mal === "en") return sp.r.resultat && sp.r.resultat.vinner != null ? [sp.r.resultat.vinner] : [];
-    const topp = Math.max(...sp.poeng);
-    return sp.poeng.map((x, p) => (x === topp ? p : -1)).filter((p) => p >= 0);
+    // (A seat that left a match on the net keeps its points but cannot win.)
+    const topp = Math.max(...sp.poeng.filter((_, p) => !erUte(sp, p)));
+    return sp.poeng.map((x, p) => (x === topp && !erUte(sp, p) ? p : -1)).filter((p) => p >= 0);
   }
 
   // ---------- Flow ----------
@@ -1091,17 +1100,27 @@
     sp.endret = false;
   }
 
+  // The round's points on the list, once (state only). → true when they were counted just now.
+  function tellRunde(sp) {
+    if (!rundeFerdig(sp) || sp.lagt) return false;
+    const res = sp.r.resultat;
+    sp.lagt = true;
+    res.poeng.forEach((x, q) => {
+      if (!erUte(sp, q)) sp.poeng[q] += x;
+    });
+    if (res.vinner != null) sp.seire[res.vinner]++;
+    sp.port = false;
+    nullstillTur(sp);
+    return true;
+  }
+
   // After every move: the round may be over, or the phone goes to the next person.
-  function etterTrekk(S, forTur) {
+  // stille: state only (a move on the net being replayed).
+  function etterTrekk(S, forTur, stille) {
     const sp = S.spill;
     const r = sp.r;
-    if (rundeFerdig(sp) && !sp.lagt) {
+    if (tellRunde(sp)) {
       const res = r.resultat;
-      sp.lagt = true;
-      res.poeng.forEach((x, q) => (sp.poeng[q] += x));
-      if (res.vinner != null) sp.seire[res.vinner]++;
-      sp.port = false;
-      nullstillTur(sp);
       const ferdig = kampFerdig(sp);
       const vinnere = ferdig ? kampVinnere(sp) : [];
       if (ferdig && sp.modus === "mobil") {
@@ -1112,7 +1131,12 @@
           R.merke("klassiker-samleren");
         } else rek.tap++;
       }
-      const duTapte = sp.modus === "mobil" && (ferdig ? !vinnere.includes(0) : res.vinner != null && res.vinner !== 0);
+      if (stille) return;
+      const duTapte = paNett(sp)
+        ? ferdig
+          ? !vinnere.some((p) => erJeg(sp, p))
+          : res.vinner != null && !erJeg(sp, res.vinner)
+        : sp.modus === "mobil" && (ferdig ? !vinnere.includes(0) : res.vinner != null && res.vinner !== 0);
       const fortsatt = R.vakt();
       setTimeout(() => {
         if (!fortsatt()) return;
@@ -1136,7 +1160,8 @@
     const sp = S.spill;
     stoppMobil();
     sp.ferdig = true;
-    R.statistikk("ferdig", { variant: sp.variant, modus: sp.modus, spillere: sp.n, niva: sp.modus === "mobil" ? sp.niva : 0, runder: sp.runde - (sp.lagt ? 0 : 1), mal: sp.mal });
+    // (On the net the kit counts the match.)
+    if (!paNett(sp)) R.statistikk("ferdig", { variant: sp.variant, modus: sp.modus, spillere: sp.n, niva: sp.modus === "mobil" ? sp.niva : 0, runder: sp.runde - (sp.lagt ? 0 : 1), mal: sp.mal });
     R.gaTil("slutt");
   }
 
@@ -1194,11 +1219,12 @@
     return `<ul class="sa-andre" aria-label="${esc(R.t("Rundt bordet"))}">${seter
       .map((p) => {
         const n = r.hender[p].length;
-        const tenker = p === r.tur && !erMenneske(sp, p);
+        const tenker = p === r.tur && (!erMenneske(sp, p) || paNett(sp));
         const rygger = Array.from({ length: Math.min(n, 7) }, (_, i) => `<i style="--i:${i}"></i>`).join("");
-        return `<li class="sa-plass${p === r.tur ? " aktiv" : ""}">
+        const antall = erUte(sp, p) ? esc(R.t("Forlot kampen")) : `<span class="sa-rygger" aria-hidden="true" style="--n:${Math.min(n, 7)}">${rygger}</span>${esc(R.flertall(n, "kort", "kort"))}`;
+        return `<li class="sa-plass${p === r.tur ? " aktiv" : ""}${erUte(sp, p) ? " ute" : ""}">
           <span class="sa-ava">${avatar(sp, p)}${tenker ? '<span class="sa-tenker" aria-hidden="true"><i></i><i></i><i></i></span>' : ""}</span>
-          <span class="sa-info"><b class="sa-navn">${esc(navn(sp, p))}</b><span class="sa-antall"><span class="sa-rygger" aria-hidden="true" style="--n:${Math.min(n, 7)}">${rygger}</span>${esc(R.flertall(n, "kort", "kort"))}</span><span class="sa-p">${esc(poengTekst(sp.poeng[p]))}</span></span>
+          <span class="sa-info"><b class="sa-navn">${esc(navn(sp, p))}</b><span class="sa-antall">${antall}</span><span class="sa-p">${esc(poengTekst(sp.poeng[p]))}</span></span>
         </li>`;
       })
       .join("")}</ul>`;
@@ -1335,6 +1361,7 @@
       const hoved = kampFerdig(sp) ? R.ui.knapp(R.t("Se kåringen"), "kaaring", { ikon: "🏆" }) : R.ui.knapp(R.t("Ny runde"), "runde", { ikon: "🃏" });
       return R.ui.dokk(hoved, R.ui.lenkerad(avslutt));
     }
+    if (paNett(sp) && !erJeg(sp, r.tur)) return R.ui.dokk(R.ui.knapp(R.t("{navn} spiller …", { navn: navn(sp, r.tur) }), "trekk", { av: true, ikon: "🃏" }), R.ui.lenkerad(avslutt));
     if (!minTur(sp)) return R.ui.dokk(R.ui.knapp(R.t("Trekk fra bunken"), "trekk", { av: true }), R.ui.lenkerad(avslutt));
     const t = Rummy.topp(r);
     const angre = sp.angre && sp.endret ? R.ui.lenke(R.t("Angre"), "angre") : "";
@@ -1417,10 +1444,190 @@
 
   const STANDARD = () => ({ variant: "klassisk", modus: "mobil", mobiler: 1, niva: 2, mal: Object.assign({}, MAL_STANDARD) });
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Moves from the seat whose turn it is: { trekk: 1 } draws from the stock, { ta: i } takes from the
+  // discard pile (i = the top, or in 500 a card further down and everything above it), { avsla: 1 }
+  // turns gin's first card down, { stopp: 1 } ends a 500 round on an empty stock, { ut: [cards] } lays
+  // out a meld, { til: [cards], m: i } lays cards off on meld i, { kast: card } throws, { bank: card }
+  // knocks in gin. { runde: n } deals round n when the last one is over (any seat still in; the first
+  // one counts). Anything else, or anything the rules don't allow now, is ignored on every phone.
+  // The deal comes from the room's seed (round 1) and the chance of the move that deals (later rounds).
+  // The host's rules (variant, length); gin is for two, so with more seats it is classic rummy.
+  function nettValg(o, n) {
+    const x = o && typeof o === "object" ? o : {};
+    let variant = Rummy.VARIANTER.includes(x.variant) ? x.variant : "klassisk";
+    if (n > Rummy.maksSpillere(variant)) variant = "klassisk";
+    const mal = MAL[variant].some(([m]) => m === x.mal) ? x.mal : MAL_STANDARD[variant];
+    return { variant, mal };
+  }
+  const erKortliste = (x) => Array.isArray(x) && x.length > 0 && x.length <= 52 && x.every((k) => Number.isInteger(k));
+  // A seat that left is passed over: the turn goes on to the next one still in.
+  function hoppOverUte(sp) {
+    const r = sp.r;
+    for (let k = 0; k < r.n && r.fase !== "slutt" && erUte(sp, r.tur); k++) r.tur = (r.tur + 1) % r.n;
+  }
+  // A new round on the net (state only). Seats that left get no cards: theirs go under the stock.
+  function nettRunde(sp, rnd) {
+    sp.runde++;
+    for (let k = 0; k < sp.n; k++) {
+      sp.starter = (sp.starter + 1) % sp.n; // who begins goes round the table
+      if (!erUte(sp, sp.starter)) break;
+    }
+    sp.r = Rummy.nyRunde({ v: sp.variant, n: sp.n, start: sp.starter }, rnd);
+    for (const p of sp.ute) {
+      sp.r.stokk.unshift(...sp.r.hender[p]);
+      sp.r.hender[p] = [];
+    }
+    sp.lagt = false;
+    sp.port = false;
+    sp.ny = [];
+    sp.nyttMeld = null;
+    nullstillTur(sp);
+  }
+  const NETT = {
+    min: 2,
+    maks: 4,
+    oppsett: (S) => ({ variant: S.oppsett.variant, mal: S.oppsett.mal[S.oppsett.variant] }),
+    oppsettTekst: (o) => {
+      const { variant, mal } = nettValg(o, 2);
+      const malNavn = (MAL[variant].find(([m]) => m === mal) || MAL[variant][0])[1];
+      return [variantNavn(variant), malNavn, variant === "gin" ? R.t("Med flere enn to blir det vanlig rummy") : ""].filter(Boolean).join(" · ");
+    },
+    start(S, okt) {
+      const n = R.klamp(okt.antall || 2, 2, 4);
+      const { variant, mal } = nettValg(okt.oppsett, n);
+      S.spill = {
+        id: (okt.fro >>> 0) % 1e9,
+        variant,
+        modus: "nett",
+        niva: 2,
+        n,
+        mal,
+        runde: 0,
+        starter: ((((okt.kamp || 1) - 2) % n) + n) % n, // round 1 of match k: seat (k − 1) % n begins
+        poeng: Array(n).fill(0),
+        seire: Array(n).fill(0),
+        r: null,
+        lagt: false,
+        port: false,
+        valgt: [],
+        bunkeValg: null,
+        angre: null, // (no «Angre» on the net: the others have seen the move)
+        endret: false,
+        ny: [],
+        nyttMeld: null,
+        ferdig: false,
+        registrert: true, // «Kveldens gjeng» is left alone on the net
+        ute: [],
+        avbrutt: false,
+      };
+      nettRunde(S.spill, R.rng(((okt.fro >>> 0) ^ R.hash("samleren:1")) >>> 0));
+      stoppMobil();
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || Array.isArray(t) || !Number.isInteger(sete) || sete < 0 || sete >= sp.n || erUte(sp, sete)) return;
+      const live = !okt.gjenspill && S.skjerm === "spill";
+      if (t.runde != null) {
+        if (!rundeFerdig(sp) || !sp.lagt || kampFerdig(sp) || t.runde !== sp.runde + 1 || !okt.rng) return;
+        nettRunde(sp, okt.rng);
+        if (live) {
+          R.lyd.snu();
+          R.vis();
+        }
+        return;
+      }
+      const r = sp.r;
+      if (rundeFerdig(sp) || r.tur !== sete) return;
+      const forMeld = r.bord.length;
+      let ok = false;
+      let lydType = "legg";
+      if (t.trekk === 1) {
+        const k = Rummy.trekk(r, sete);
+        ok = k != null;
+        if (ok) sp.ny = [k];
+        lydType = "trekk";
+      } else if (Number.isInteger(t.ta)) {
+        const kort = r.bunke.slice(Math.max(0, t.ta));
+        ok = Rummy.ta(r, sete, t.ta);
+        if (ok) {
+          sp.ny = kort;
+          sp.valgt = r.maaBruke != null ? [r.maaBruke] : [];
+        }
+        lydType = "trekk";
+      } else if (t.avsla === 1) {
+        ok = Rummy.avsla(r, sete);
+        lydType = "pek";
+      } else if (t.stopp === 1) ok = Rummy.stopp(r, sete);
+      else if (erKortliste(t.ut)) {
+        ok = Rummy.legUt(r, sete, t.ut.slice());
+        if (ok) sp.nyttMeld = forMeld;
+        lydType = "meld";
+      } else if (erKortliste(t.til) && Number.isInteger(t.m)) {
+        ok = Rummy.leggTil(r, sete, t.til.slice(), t.m);
+        if (ok) sp.nyttMeld = t.m;
+        lydType = "meld";
+      } else if (Number.isInteger(t.kast)) {
+        ok = Rummy.kast(r, sete, t.kast);
+        if (ok) sp.nyttMeld = null;
+      } else if (Number.isInteger(t.bank)) {
+        ok = Rummy.bank(r, sete, t.bank);
+        lydType = "meld";
+      }
+      if (!ok) return;
+      sp.bunkeValg = null;
+      if (lydType === "meld") sp.valgt = [];
+      hoppOverUte(sp);
+      etterTrekk(S, sete, !live);
+      if (live) {
+        if (lydType === "trekk") lyd.trekk();
+        else if (lydType === "meld") lyd.meld();
+        else if (lydType === "pek") R.lyd.pek();
+        else lyd.legg();
+        if (erJeg(sp, sete)) R.vibrer(8);
+        R.vis();
+      }
+      // A finished match, replayed: straight to the result.
+      if (okt.gjenspill && rundeFerdig(sp) && kampFerdig(sp)) sp.ferdig = true;
+    },
+    // A seat left (the others play on): its hand goes under the stock, its melds stay on the table,
+    // its turns are passed over and its points no longer count for a win.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || !Number.isInteger(sete) || sete < 0 || sete >= sp.n || erUte(sp, sete)) return;
+      sp.ute.push(sete);
+      if (sp.ferdig) return;
+      const live = !okt.gjenspill && S.skjerm === "spill";
+      if (sp.n - sp.ute.length < 2) {
+        // Too few left to play on (the room never lets it come to this, but just in case).
+        sp.avbrutt = true;
+        sp.ferdig = true;
+        if (live) R.gaTil("slutt");
+        return;
+      }
+      const r = sp.r;
+      if (!rundeFerdig(sp)) {
+        r.stokk.unshift(...r.hender[sete]);
+        r.hender[sete] = [];
+        if (r.tur === sete) {
+          Rummy.nesteTur(r);
+          hoppOverUte(sp);
+          etterTrekk(S, sete, !live);
+        }
+      }
+      if (okt.gjenspill && rundeFerdig(sp) && kampFerdig(sp)) sp.ferdig = true;
+      if (live) R.vis();
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "spill"),
+    tur: (S) => (S.spill && !S.spill.ferdig && S.spill.r && !rundeFerdig(S.spill) ? S.spill.r.tur : null),
+    ferdig: (S) => !!S.spill && (S.spill.ferdig || (!!S.spill.r && rundeFerdig(S.spill) && S.spill.lagt && kampFerdig(S.spill))),
+  };
+
   R.start({
     id: "samleren",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({
       antall: 2,
@@ -1498,7 +1705,7 @@
               knapperHtml: R.ui.startKnapper({
                 pagar: aktiv,
                 fortsettTekst: aktiv ? R.t("Fortsett · runde {n}", { n: sp.runde }) : "",
-                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+                ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [
                 ["1–4", R.t("spillere")],
@@ -1574,7 +1781,7 @@
           const sp = S.spill;
           const rader = Array.from({ length: sp.n }, (_, p) => ({ navn: navn(sp, p), i: avatarNr(sp, p), poeng: sp.poeng[p] }));
           const vinnere = sluttVinnere(sp);
-          const duVant = sp.modus === "mobil" && vinnere.length === 1 && vinnere[0] === 0;
+          const duVant = (sp.modus === "mobil" && vinnere.length === 1 && vinnere[0] === 0) || (vinnere.length === 1 && erJeg(sp, vinnere[0]));
           const mobilVant = sp.modus === "mobil" && vinnere.length && !vinnere.includes(0);
           let tittel;
           if (!vinnere.length) tittel = R.t("Ingen vinner denne gangen");
@@ -1591,8 +1798,12 @@
             ${sp.n > 2 ? R.ui.pall(rader, { enhet: "p" }) : ""}
             ${R.ui.poengliste(rader)}
             ${rek ? `<p class="sa-rekordlinje"><span class="etikett">${esc(R.t("Mot mobilen"))} · ${esc(variantNavn(sp.variant))} · ${esc(NIVANAVN[sp.niva].toLowerCase())}</span>${rek}</p>` : ""}
-            ${R.ui.flereSpill({ antall: sp.modus === "flere" ? sp.n : 1 })}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: "🃏" }), R.ui.lenkerad(R.ui.lenke(R.t("Del resultatet"), "del"), R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${
+              paNett(sp)
+                ? R.nett.sluttDokk()
+                : `${R.ui.flereSpill({ antall: sp.modus === "flere" ? sp.n : 1 })}
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: "🃏" }), R.ui.lenkerad(R.ui.lenke(R.t("Del resultatet"), "del"), R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`
+            }`;
         },
         inn(S) {
           const sp = S.spill;
@@ -1605,7 +1816,8 @@
             R.lagre();
           }
           const v = sluttVinnere(sp);
-          if (sp.modus === "mobil" && v.length && !v.includes(0)) lyd.tap();
+          // On the net: the fanfare on the winner's phone, a gentle note on the others.
+          if ((sp.modus === "mobil" && v.length && !v.includes(0)) || (paNett(sp) && v.length && !v.some((p) => erJeg(sp, p)))) lyd.tap();
           else if (v.length) {
             R.lyd.fanfare();
             R.vibrer([40, 60, 120]);
@@ -1689,6 +1901,7 @@
         if (!minTur(sp)) return R.toast(R.t("Vent litt – {navn} tenker", { navn: navn(sp, r.tur) }));
         if (r.fase === "tilbud") return R.toast(R.t("Ta kortet, eller stå over"));
         if (r.fase !== "trekk") return R.toast(R.t("Du har trukket – legg ut eller kast"));
+        if (paNett(sp)) return void (r.stokk.length && R.nett.send({ trekk: 1 }));
         const k = Rummy.trekk(r, r.tur);
         if (k == null) return;
         sp.ny = [k];
@@ -1729,6 +1942,7 @@
           if (r.kunStokk) R.toast(R.t("Trekk fra bunken"));
           return;
         }
+        if (paNett(sp)) return void R.nett.send({ ta: i });
         const for0 = JSON.stringify(r);
         const kort = r.bunke.slice(i);
         if (!Rummy.ta(r, r.tur, i)) return;
@@ -1745,6 +1959,7 @@
         const sp = S.spill;
         if (!sp || !minTur(sp)) return;
         const p = sp.r.tur;
+        if (paNett(sp)) return void (sp.r.fase === "tilbud" && R.nett.send({ avsla: 1 }));
         if (!Rummy.avsla(sp.r, p)) return;
         R.lyd.pek();
         etterTrekk(S, p);
@@ -1755,6 +1970,7 @@
         const sp = S.spill;
         if (!sp || !minTur(sp)) return;
         const p = sp.r.tur;
+        if (paNett(sp)) return void (Rummy.kanStoppe(sp.r, p) && R.nett.send({ stopp: 1 }));
         if (!Rummy.stopp(sp.r, p)) return;
         etterTrekk(S, p);
         R.vis();
@@ -1765,7 +1981,8 @@
         const r = sp.r;
         const p = r.tur;
         const forMeld = r.bord.length;
-        if (!Rummy.legUt(r, p, sp.valgt.slice())) {
+        if (paNett(sp) && Rummy.kanLeggeUt(r, p, sp.valgt)) return void R.nett.send({ ut: sp.valgt.slice() });
+        if (paNett(sp) || !Rummy.legUt(r, p, sp.valgt.slice())) {
           R.lyd.feil();
           return R.toast(R.t("Det er ikke en kombinasjon"));
         }
@@ -1784,7 +2001,8 @@
         const p = r.tur;
         const mi = Number(el.dataset.v);
         if (!sp.valgt.length) return R.toast(R.t("Velg kortene du vil legge til først"));
-        if (!Rummy.leggTil(r, p, sp.valgt.slice(), mi)) {
+        if (paNett(sp) && Rummy.kanLeggeTil(r, p, sp.valgt, mi)) return void R.nett.send({ til: sp.valgt.slice(), m: mi });
+        if (paNett(sp) || !Rummy.leggTil(r, p, sp.valgt.slice(), mi)) {
           R.lyd.feil();
           return R.toast(R.t("Kortene passer ikke her"));
         }
@@ -1802,7 +2020,8 @@
         const r = sp.r;
         const p = r.tur;
         if (sp.valgt.length !== 1) return R.toast(R.t("Velg ett kort å kaste"));
-        if (!Rummy.kast(r, p, sp.valgt[0])) {
+        if (paNett(sp) && Rummy.kanKaste(r, p, sp.valgt[0])) return void R.nett.send({ kast: sp.valgt[0] });
+        if (paNett(sp) || !Rummy.kast(r, p, sp.valgt[0])) {
           R.lyd.feil();
           return R.toast(r.maaBruke != null ? R.t("Legg ut {kort} først", { kort: kortnavn(r.maaBruke) }) : R.t("Kortet du nettopp tok, kan du ikke kaste"));
         }
@@ -1817,6 +2036,11 @@
         const sp = S.spill;
         if (!sp || !minTur(sp) || sp.r.fase !== "spill" || sp.valgt.length !== 1) return;
         const p = sp.r.tur;
+        if (paNett(sp)) {
+          const dod = Rummy.bankDod(sp.r, p, sp.valgt[0]);
+          if (dod == null || dod > Rummy.BANK_GRENSE) return R.toast(R.t("Du har for mange løse poeng til å banke på"));
+          return void R.nett.send({ bank: sp.valgt[0] });
+        }
         if (!Rummy.bank(sp.r, p, sp.valgt[0])) return R.toast(R.t("Du har for mange løse poeng til å banke på"));
         lyd.meld();
         etterTrekk(S, p);
@@ -1844,6 +2068,7 @@
         const sp = S.spill;
         if (!sp || !rundeFerdig(sp)) return;
         if (kampFerdig(sp)) return avsluttKamp(S);
+        if (paNett(sp)) return void R.nett.send({ runde: sp.runde + 1 });
         nyRunde(S);
         R.lyd.snu();
         R.gaTil("spill");
