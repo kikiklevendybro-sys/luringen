@@ -12,7 +12,7 @@
 //
 // Deletion: an alarm deletes everything 24 hours after the last activity; a finished match is
 // deleted at once when no phone is left in it; a code nobody opened goes after 10 minutes.
-import { SPILL, FART, FART_STENG, MAKS_KOBLINGER, MAKS_TREKK, LEVETID_MS, RESERVERT_MS } from "./oppsett.js";
+import { SPILL, FORTSETT, FART, FART_STENG, MAKS_KOBLINGER, MAKS_TREKK, LEVETID_MS, RESERVERT_MS } from "./oppsett.js";
 import { lesMelding, rensNavn, erFro, kjentSpill, gyldigOppsett, gyldigTrekk, gyldigReaksjon, nyttToken, erToken } from "./protokoll.js";
 
 // Storage: the key "rom" (the room) and one key per move, "t:0000" … "t:1999".
@@ -124,6 +124,7 @@ export class Rom {
       kamp: r.kamp,
       min,
       maks,
+      fortsett: FORTSETT.has(r.spill),
       startet: r.startet,
       ferdig: r.ferdig,
       seter: this.seterUt(),
@@ -307,7 +308,9 @@ export class Rom {
   }
 
   // A phone leaves on purpose. Before the start its seat is freed (and when the host goes, the
-  // room goes); after the start the seat stays as «left» and the match is over.
+  // room goes); after the start the seat stays as «left». In most games the match is then over; in
+  // the games in FORTSETT the others play on while enough are left: the room adds the move
+  // `{ "$": "borte" }` from that seat, so every phone takes the seat out at the same place.
   async forlat(ws, sete) {
     const r = this.rom;
     if (!r.startet) {
@@ -321,6 +324,20 @@ export class Rom {
     }
     r.seter[sete].borte = true;
     r.seter[sete].token = null;
+    const igjen = r.seter.filter((s) => !s.borte).length;
+    const videre = FORTSETT.has(r.spill) && !r.ferdig && igjen >= Math.max(2, SPILL[r.spill][0]) && r.n < MAKS_TREKK;
+    if (videre) {
+      const n = r.n;
+      const t = { $: "borte" };
+      this.logg.push([sete, t]);
+      r.n = n + 1;
+      ws.serializeAttachment({ token: null });
+      this.steng(ws, LUKK.forlatt, "forlatt");
+      await this.lagre({ [trekkNokkel(n)]: [sete, t] });
+      this.kringkast({ h: "seter", seter: this.seterUt() });
+      this.kringkast({ h: "trekk", n, s: sete, t });
+      return;
+    }
     r.ferdig = true;
     ws.serializeAttachment({ token: null });
     this.steng(ws, LUKK.forlatt, "forlatt");

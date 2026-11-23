@@ -207,15 +207,13 @@ function lagT(id) {
       return p;
     },
     // The host makes a room; returns the invite link.
-    // One tap on the game's home screen: the room is made and the invite comes up. The host's
-    // nickname is the first of its shared names (kallenavn: set as that name first).
-    async lagRom(a, kallenavn) {
-      if (kallenavn != null) await a.js(`Rusj.felles.navn[0] = ${JSON.stringify(kallenavn)}`);
+    // One tap on the game's home screen: the room is made and the invite comes up. Since 3f87849 the
+    // host sends no name it has not typed, so it shows as «Spiller 1» (the second argument is ignored).
+    async lagRom(a) {
       await a.bilde("hjem-med-knapp");
       await a.klikk('[data-h="nett-apne"]');
       await a.ventSkjerm("nett");
       await a.vent("document.querySelector('.nett-invitasjon')", 15000);
-      if (kallenavn != null) t.sjekk((await a.js("Rusj.nett.navn(0)")) === kallenavn, `Vertens kallenavn er ikke ${kallenavn}`);
       const lenke = await a.js(`location.origin + location.pathname + "#nett=" + document.querySelector(".nett-invitasjon .etikett").textContent.trim().split(" ").pop()`);
       t.sjekk(/#nett=[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/.test(lenke), `Invitasjonslenken ser feil ut: ${lenke}`);
       const vist = await a.tekst(".nett-lenke");

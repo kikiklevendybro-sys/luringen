@@ -34,7 +34,7 @@ export default async function (t) {
   await b.ventSkjerm("spill");
   t.sjekk((await a.nettMeg()) === 0 && (await b.nettMeg()) === 1, "Plassene er ikke 0 (vert) og 1 (venn)");
   const navnA = await a.js(`Array.from(document.querySelectorAll(".fi-navn")).map((x) => x.textContent).join("|")`);
-  t.sjekk(navnA === "Testspiller A|Testspiller B", `Navnene i stillingen hos A: ${navnA}`);
+  t.sjekk(navnA === "Spiller 1|Testspiller B", `Navnene i stillingen hos A: ${navnA}`);
   await a.bilde("kamp-start");
   await b.bilde("kamp-start");
 

@@ -27,6 +27,12 @@ export const SPILL = {
   lykkegrisen: [2, 8],
 };
 
+// Games where a player who leaves on purpose is skipped and the others play on (party games with
+// many seats). The room then adds a move `{ "$": "borte" }` from that seat to the list, so every
+// phone takes the seat out at the same place in the match; when fewer than the game's minimum (and
+// never fewer than 2) are left, the match is over as in every other game.
+export const FORTSETT = new Set([]);
+
 // Limits per message and per socket.
 export const MAKS_BYTES = 2048; // one message from a phone, as UTF-8
 export const MAKS_TREKK_BYTES = 1024; // one move, as JSON
@@ -35,7 +41,7 @@ export const FART = { antall: 20, ms: 10000 }; // at most 20 messages per 10 s p
 export const FART_STENG = 40; // … and a socket that sends 40 in 10 s is closed
 
 // Limits per room.
-export const MAKS_KOBLINGER = 10; // open sockets at the same time (seats + phones on their way in)
+export const MAKS_KOBLINGER = 22; // open sockets at the same time (seats + phones on their way in; party games seat up to 20)
 export const MAKS_TREKK = 2000; // moves in one match
 export const MAKS_NAVN = 16; // characters in a nickname
 export const REAKSJONER = 6; // preset emoji, sent as their number 0–5 (the client draws them)

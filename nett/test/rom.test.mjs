@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { nyttRom, vekk, koble, romMedVert, NAA } from "./falsk.mjs";
 import { LUKK } from "../src/rom.js";
-import { FART, FART_STENG, MAKS_KOBLINGER, MAKS_TREKK, LEVETID_MS, RESERVERT_MS, SPILL } from "../src/oppsett.js";
+import { FART, FART_STENG, MAKS_KOBLINGER, MAKS_TREKK, LEVETID_MS, RESERVERT_MS, SPILL, FORTSETT } from "../src/oppsett.js";
 
 const TIME = 60 * 60 * 1000;
 
@@ -281,7 +281,7 @@ test("limit: at most 2000 moves in one match", async () => {
   assert.equal(ctx.storage.data.has("t:2000"), false);
 });
 
-test("limit: at most 10 open sockets in one room", async () => {
+test(`limit: at most ${MAKS_KOBLINGER} open sockets in one room`, async () => {
   const r = await romMedVert("terninga");
   const p = [];
   for (let i = 1; i < MAKS_KOBLINGER; i++) p.push(await koble(r));
@@ -397,6 +397,35 @@ test("leaving during the match: the seat is marked as left, the match is over, t
   assert.deepEqual(igjen.siste, { h: "feil", kode: "full" });
   await vert.send({ h: "trekk", n: 1, t: { k: 1 } });
   assert.deepEqual(vert.siste, { h: "feil", kode: "ugyldig" }, "no moves after the match is over");
+});
+
+test("leaving in a play-on game: the others go on, the room adds the seat's «borte» move in order", async () => {
+  FORTSETT.add("terninga");
+  try {
+    const r = await romMedVert("terninga");
+    const b = await koble(r);
+    await b.send({ h: "bli", navn: "Testspiller B" });
+    const c = await koble(r);
+    await c.send({ h: "bli", navn: "Testspiller C" });
+    await r.vert.send({ h: "start" });
+    assert.equal(c.av("rom").at(-1).fortsett, true);
+    await r.vert.send({ h: "trekk", n: 0, t: { k: 1 } });
+    await b.send({ h: "forlat" });
+    assert.deepEqual(c.siste, { h: "trekk", n: 1, s: 1, t: { $: "borte" } });
+    const lagret = await r.ctx.storage.get("rom");
+    assert.equal(lagret.ferdig, false);
+    assert.equal(lagret.seter[1].borte, true);
+    assert.equal(lagret.seter[1].token, null);
+    await c.send({ h: "trekk", n: 2, t: { k: 2 } });
+    assert.deepEqual(r.vert.siste, { h: "trekk", n: 2, s: 2, t: { k: 2 } }, "the match goes on");
+    // Two left of a minimum of two: the next one to leave ends it.
+    await c.send({ h: "forlat" });
+    assert.equal((await r.ctx.storage.get("rom")).ferdig, true);
+    await r.vert.send({ h: "trekk", n: 3, t: { k: 1 } });
+    assert.deepEqual(r.vert.siste, { h: "feil", kode: "ugyldig" });
+  } finally {
+    FORTSETT.delete("terninga");
+  }
 });
 
 test("«Ny kamp»: same seats, new seed, empty list, the old moves deleted", async () => {

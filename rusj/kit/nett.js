@@ -54,6 +54,7 @@
     navn: "", // my nickname
     rom: null, // { spill, oppsett, fro, kamp, min, maks, startet, ferdig, seter }
     logg: [], // the moves applied, [[seat, move]]
+    ute: new Set(), // seats that left a play-on match (from the «borte» moves in the list)
     oppsett: null, // the host's setup, before the room has it
     fro: 0,
     ws: null,
@@ -276,11 +277,14 @@
     N.rom.seter = liste;
     oppdaterStatus();
     if (N.fase === "vent" && R.S && R.S.skjerm === "nett") R.vis();
-    // Someone left the match on purpose: it is over for everyone.
+    // Someone left the match on purpose: it is over for everyone – except in a play-on game while
+    // enough are left (the room then sends the seat's «borte» move, and the match goes on).
+    const igjen = liste.filter((s) => !s.borte).length;
+    const videre = !!N.rom.fortsett && igjen >= Math.max(2, N.rom.min || 2);
     liste.forEach((s, i) => {
       if (!s.borte || N.borteVist.has(i)) return;
       N.borteVist.add(i);
-      if (N.fase === "spill" && i !== N.du) {
+      if (N.fase === "spill" && i !== N.du && !videre) {
         N.rom.ferdig = true;
         visForlatt(i);
       }
@@ -358,6 +362,7 @@
     fro: N.rom ? N.rom.fro : 0,
     oppsett: N.rom ? N.rom.oppsett : {},
     antall: seter().length,
+    ute: [...N.ute],
     rng: n == null ? null : rngFor(n),
   });
 
@@ -365,6 +370,23 @@
     N.logg.push([s, t]);
     if (N.sendt != null && N.sendt <= n) N.sendt = null;
     if (!Number.isInteger(s) || s < 0 || s >= seter().length) return;
+    // A seat that left a play-on match (the room adds this move): out from here on, the same on every phone.
+    if (t && typeof t === "object" && t.$ === "borte") {
+      if (N.ute.has(s)) return;
+      N.ute.add(s);
+      if (DEF.borte) {
+        try {
+          DEF.borte(R.S, s, okt(n, gjenspill));
+        } catch (e) {
+          console.warn("rusj nett: borte", n, e);
+        }
+      }
+      if (!gjenspill) {
+        if (s !== N.du) R.toast(R.t("{navn} forlot kampen", { navn: seteNavn(s) }));
+        etterTrekk();
+      }
+      return;
+    }
     try {
       DEF.trekk(R.S, t, s, okt(n, gjenspill));
     } catch (e) {
@@ -396,6 +418,7 @@
   // A fresh match from the room's seed, then every move in the list, silently; then the screen.
   function bygg(logg) {
     N.logg = [];
+    N.ute = new Set();
     N.sendt = null;
     N.ferdigSendt = !!N.rom.ferdig;
     N.fase = "spill";
@@ -509,7 +532,7 @@
     const iKamp = N.fase === "spill" && N.rom && !N.rom.ferdig && !(DEF.ferdig && DEF.ferdig(R.S));
     if (iKamp) {
       const fortsatt = R.vakt();
-      const ja = await R.bekreft(R.t("Forlate kampen?"), R.t("Kampen stopper for alle, og du kan ikke komme tilbake til den."), R.t("Forlat"), R.t("Spill videre"));
+      const ja = await R.bekreft(R.t("Forlate kampen?"), N.rom.fortsett ? R.t("De andre spiller videre uten deg, og du kan ikke komme tilbake til kampen.") : R.t("Kampen stopper for alle, og du kan ikke komme tilbake til den."), R.t("Forlat"), R.t("Spill videre"));
       if (!ja || !fortsatt()) return;
     } else if (N.fase === "vent" && N.du === 0) {
       const fortsatt = R.vakt();
@@ -909,6 +932,37 @@
     erMeg: (i) => R.paNett() && i === N.du,
     navn: seteNavn,
     antall: () => seter().length,
+    // Seats that left a play-on match (taken from the list of moves, so the same on every phone at
+    // the same place; use them inside start/trekk/borte, not from a timer).
+    ute: () => [...N.ute],
+    erUte: (i) => N.ute.has(i),
+    // The next seat after `fra` that is still in the match (turns in play-on games).
+    neste(fra, antall = seter().length) {
+      for (let k = 1; k <= antall; k++) {
+        const i = (fra + k) % antall;
+        if (!N.ute.has(i)) return i;
+      }
+      return fra;
+    },
+    // Simultaneous answers: has every seat still in the match an entry in `svar` (an object or
+    // array by seat)? Then the round can be shown.
+    alleHar(svar, antall = seter().length) {
+      if (!svar) return false;
+      for (let i = 0; i < antall; i++) if (!N.ute.has(i) && svar[i] == null) return false;
+      return true;
+    },
+    // Free text a player typed for the others (an answer, a hint): one line, no control or
+    // direction characters, at most `maks` characters. Clean it before sending AND when a move is
+    // played (a modified phone could send anything), and always show it through esc() – never as HTML.
+    tekst(s, maks = 60) {
+      const t = String(s == null ? "" : s)
+        .normalize("NFC")
+        .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028-\u202E\u2060-\u2069\uFEFF]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const tegn = [...t];
+      return tegn.length > maks ? tegn.slice(0, maks).join("").trim() : t;
+    },
     // Send a move. It is played when the room sends it back (to every phone in the same order).
     // false when it cannot go now (no line, or the last move is still on its way).
     send(t) {

@@ -11,7 +11,7 @@ export default async function (t) {
   await a.vent(`document.querySelector('[data-h="nett-start"]')`, 8000);
   await a.bilde("venterom");
   await b.ventSkjerm("nett");
-  if (t.norsk) t.sjekk(/Venter på at Testspiller A starter/.test(await b.tekst("#skjerm .ingress")), `Gjesten i venterommet: «${await b.tekst("#skjerm .ingress")}»`);
+  if (t.norsk) t.sjekk(/Venter på at Spiller 1 starter/.test(await b.tekst("#skjerm .ingress")), `Gjesten i venterommet: «${await b.tekst("#skjerm .ingress")}»`);
   await a.klikk('[data-h="nett-start"]');
   await a.ventSkjerm("spill");
   await b.ventSkjerm("spill");

@@ -56,7 +56,7 @@ platform without waking the room; the client sends it every 25 s.
 
 | `h` | Fields | When |
 |---|---|---|
-| `rom` | `spill oppsett fro kamp min maks startet ferdig seter du token logg` | after `lag`/`bli`, after `ny`, and to everyone when the seats are renumbered |
+| `rom` | `spill oppsett fro kamp min maks fortsett startet ferdig seter du token logg` | after `lag`/`bli`, after `ny`, and to everyone when the seats are renumbered |
 | `seter` | `seter: [{ navn, med, borte }]` | someone joined, left, lost or regained the connection |
 | `start` | – | the match begins (the last seat was taken, or the host started) |
 | `trekk` | `n s t` | a move, in order, to everyone (the sender too) |
@@ -65,7 +65,8 @@ platform without waking the room; the client sends it every 25 s.
 | `slettet` | `grunn`: `tid`, `ferdig`, `verten` | just before the room closes every socket |
 
 `du` is the receiving phone's seat (−1 = none); `token` is sent only to the phone that holds the
-seat. `logg` is `[[seat, move], …]`. `med`: connected now. `borte`: left on purpose.
+seat. `logg` is `[[seat, move], …]`. `med`: connected now. `borte`: left on purpose. `fortsett`: the
+game plays on when someone leaves (see «Leaving» below).
 
 Errors (`feil.kode`): `ukjent` (no such room), `full`, `startet` (the match began without you),
 `opptatt` (`lag` on a room that is set up), `sete` (no seat), `utdatert` (`n` was not the next place:
@@ -97,6 +98,28 @@ Close codes the client must not reconnect after: `1000` left, `4000` another soc
   defender's phone answers it with a move (`miss`, `hit`, or `sunk` with that ship's cells). When the
   match ends both phones reveal fleet and salt; each checks the other's commitment and every answer.
 
+## Leaving
+
+In most games a phone that leaves a started match on purpose ends it for everyone. Games listed in
+`FORTSETT` (`nett/src/oppsett.js`) play on while at least the game's minimum (never fewer than 2)
+are left: the room marks the seat as left and adds the move `{ "$": "borte" }` from that seat to the
+list, so every phone takes the seat out at the same place (also when replaying). The kit then calls
+the game's `borte(S, sete, okt)` instead of `trekk`, and keeps the seat in `okt.ute` /
+`R.nett.ute()`; `R.nett.neste(fra)` gives the next seat still in. A game in `FORTSETT` must
+implement `borte` (skip the seat's turns, stop waiting for its answer).
+
+## Free text and simultaneous answers
+
+- **Free text** (an answer or a hint the player types): at most 60 characters, cleaned with
+  `R.nett.tekst(s)` both before sending and when the move is played (a modified phone could send
+  anything), and always shown through `esc()` – never as HTML. It is stored in the room like any
+  move and deleted with it (24 hours at the latest).
+- **Simultaneous answers** (everyone answers, then all are shown): each answer is a move; the game
+  keeps them by seat and shows the round when `R.nett.alleHar(svar)` (every seat still in has one).
+  The other answers are in every phone's list before the reveal; the UI keeps them hidden.
+- **Hidden cards and roles** come from the room's seed, so a modified client could compute them,
+  as it can a coming dice throw. These are games among friends who invited each other.
+
 ## Kit API (`R.nett`, rusj/kit/nett.js)
 
 A game opts in with `"nett": true` in spill.json, an entry in `SPILL` in `nett/src/oppsett.js`
@@ -118,6 +141,7 @@ R.start({
     etter(S, okt) {},                               // after a live move, a replay or a refused move (optional)
     kanNy: (S) => bool,                             // «Ny kamp» before ferdig (optional)
     forlatVia: ["avslutt"],                         // the game's actions that mean «leave» (default)
+    borte(S, sete, okt) {},                        // play-on games (FORTSETT): this seat left; skip it from now on
   },
 });
 ```
