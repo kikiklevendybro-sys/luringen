@@ -162,5 +162,6 @@
   "Spill videre": "Keep playing",
   "poeng|poeng": { "one": "point", "other": "points" },
   "kort|kort": { "one": "card", "other": "cards" },
-  "runde|runder": { "one": "round", "other": "rounds" }
+  "runde|runder": { "one": "round", "other": "rounds" },
+  "Forlot kampen": "Left the match"
 }

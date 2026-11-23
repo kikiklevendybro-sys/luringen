@@ -13,6 +13,7 @@
   "farge": "#ff6b6b",
   "sok": ["vri åtter", "vri 8", "vriåtter", "vri åttern", "crazy eights", "kortspill", "kortspill for to", "kortspill på nett"],
   "motMobilen": true,
+  "nett": true,
   "alias": ["vri-atter"],
   "i18n": {
     "en": {
