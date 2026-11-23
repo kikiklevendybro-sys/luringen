@@ -179,5 +179,8 @@
   "Avslutte spillet?": "Quit the game?",
   "Spillet blir ikke ferdig, og ingen blir narren denne gangen.": "The game won't be finished, and nobody is the jester this time.",
   "Spill videre": "Keep playing",
-  "kort|kort": { "one": "card", "other": "cards" }
+  "kort|kort": { "one": "card", "other": "cards" },
+  "Venter på at de andre bytter kort …": "Waiting for the others to swap their cards …",
+  "Venter på de andre …": "Waiting for the others …",
+  "Forlot kampen": "Left the match"
 }

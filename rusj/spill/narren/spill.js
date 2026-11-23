@@ -127,7 +127,8 @@
   //   (open table cards), ned: [[card|null] × 3] (hidden table cards), stokk (draw pile, top = last),
   //   bunke (the pile in the middle, top = last), brent (burnt cards), fase ("bytte" | "spill" |
   //   "slutt"), klar (done swapping, per player), tur, igjen (the player burnt the pile and goes
-  //   again), ute (players out, in order), narr (the last one), trekk (moves so far), logg }
+  //   again), ute (players out, in order), narr (the last one), trekk (moves so far), logg,
+  //   borte (on the net only: players who left the match; skipped like those out, never placed) }
 
   const Idiot = (() => {
     const sortAv = (k) => (k / 13) | 0;
@@ -180,7 +181,7 @@
       };
     }
 
-    const erUte = (r, p) => r.ute.includes(p);
+    const erUte = (r, p) => r.ute.includes(p) || (!!r.borte && r.borte.includes(p));
     const antallIgjen = (r, p) => r.hender[p].length + r.opp[p].filter((k) => k != null).length + r.ned[p].filter((k) => k != null).length;
     // Where p plays from now: the hand, then the open table cards, then the hidden ones.
     function kilde(r, p) {
@@ -242,7 +243,7 @@
           }
         }
       }
-      return best == null ? (r.giver + 1) % r.n : best;
+      return best == null ? nesteFra(r, r.giver) : best;
     }
     function ferdigBytte(r, p) {
       if (r.fase !== "bytte" || r.klar[p]) return false;
@@ -365,6 +366,43 @@
       return true;
     }
 
+    // A player leaves for good (on the net): every card they still hold goes out of play (with the
+    // burnt ones), they are skipped from now on and never placed. If it was their turn, it passes
+    // on. When fewer than two players with cards are left, the game is over: the last one is placed
+    // after the others, and nobody is the fool.
+    function forlat(r, p) {
+      if (!Number.isInteger(p) || p < 0 || p >= r.n) return false;
+      if (!Array.isArray(r.borte)) r.borte = [];
+      if (r.borte.includes(p)) return false;
+      r.borte.push(p);
+      if (r.fase === "slutt") return true;
+      r.brent.push(...r.hender[p], ...r.opp[p].filter((k) => k != null), ...r.ned[p].filter((k) => k != null));
+      r.hender[p] = [];
+      r.opp[p] = [null, null, null];
+      r.ned[p] = [null, null, null];
+      r.logg = [{ type: "borte", p }];
+      const igjen = levende(r);
+      if (igjen.length <= 1) {
+        r.ute.push(...igjen);
+        r.narr = null;
+        r.fase = "slutt";
+        r.igjen = false;
+        return true;
+      }
+      if (r.fase === "bytte" && !r.klar[p]) {
+        r.klar[p] = true;
+        if (r.klar.every(Boolean)) {
+          r.fase = "spill";
+          r.tur = starter(r);
+          r.logg.push({ type: "start", p: r.tur });
+        }
+      } else if (r.fase === "spill" && r.tur === p) {
+        r.igjen = false;
+        r.tur = nesteFra(r, p);
+      }
+      return true;
+    }
+
     // How many cards of rank v lie on top of the pile in a row.
     function paToppen(r, v) {
       let n = 0;
@@ -384,7 +422,7 @@
       return Number.isInteger(r.tur) && r.tur >= 0 && r.tur < r.n && (r.fase !== "spill" || !erUte(r, r.tur));
     }
 
-    return { sortAv, verdiAv, rang, HAND, MAKS_TREKK, bland, nyRunde, erUte, antallIgjen, kilde, kortFra, topp, passer, iTur, lovlige, kanTa, blindt, levende, nesteFra, bytt, starter, ferdigBytte, bytter, legg, blind, taOpp, paToppen, hel };
+    return { sortAv, verdiAv, rang, HAND, MAKS_TREKK, bland, nyRunde, erUte, antallIgjen, kilde, kortFra, topp, passer, iTur, lovlige, kanTa, blindt, levende, nesteFra, bytt, starter, ferdigBytte, bytter, legg, blind, taOpp, forlat, paToppen, hel };
   })();
 
   // ---------- The phone players ----------
@@ -527,13 +565,20 @@
   //   hand waits behind «Vis kortene mine»), valgt (the cards picked to play), bytte (the card picked
   //   to swap), telt (the result is counted), ferdig, registrert }
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
-  const erMenneske = (sp, p) => sp.modus === "flere" || p === 0;
-  const navn = (sp, p) => (sp.modus === "flere" ? R.navn(p) : p === 0 ? R.t("Du") : sp.n === 2 ? R.t("Mobilen") : R.t("Mobil {n}", { n: p }));
-  const avatarNr = (sp, p) => (sp.modus === "flere" ? p : p === 0 ? 0 : 9 + p);
+  // On the net (R.nett, rusj/kit/nett.js; modus "nett"): seat i is player i on its own phone; every
+  // swap, play, pick-up and blind card is a move, played when the room sends it back.
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const erJeg = (sp, p) => paNett(sp) && R.nett.erMeg(p);
+  const erMenneske = (sp, p) => sp.modus === "flere" || sp.modus === "nett" || p === 0;
+  const navn = (sp, p) => (sp.modus === "nett" ? (erJeg(sp, p) ? R.t("Du") : R.navn(p)) : sp.modus === "flere" ? R.navn(p) : p === 0 ? R.t("Du") : sp.n === 2 ? R.t("Mobilen") : R.t("Mobil {n}", { n: p }));
+  const avatarNr = (sp, p) => (sp.modus !== "mobil" ? p : p === 0 ? 0 : 9 + p);
   const avatar = (sp, p, str) => R.avatar(avatarNr(sp, p), str);
-  const erDu = (sp, p) => sp.modus === "mobil" && p === 0;
-  // The seat whose cards are shown: you against the phone, or the one who swaps or plays.
-  const meg = (sp) => (sp.modus === "mobil" ? 0 : sp.r.fase === "bytte" ? Idiot.bytter(sp.r) : sp.r.tur);
+  const erDu = (sp, p) => (sp.modus === "mobil" && p === 0) || erJeg(sp, p);
+  // The seat whose cards are shown: you against the phone, the one who swaps or plays on one phone,
+  // or this phone's own seat on the net.
+  const meg = (sp) => (sp.modus === "nett" ? Math.max(0, R.nett ? R.nett.meg() : 0) : sp.modus === "mobil" ? 0 : sp.r.fase === "bytte" ? Idiot.bytter(sp.r) : sp.r.tur);
+  // A seat that left the match on the net.
+  const forlot = (sp, p) => paNett(sp) && Array.isArray(sp.r.borte) && sp.r.borte.includes(p);
   const rng = () => R.rng(R.nyttFro());
   const plassering = (r) => (r.narr == null ? r.ute.slice() : r.ute.concat(r.narr));
 
@@ -607,9 +652,10 @@
   function meldingTekst(sp) {
     const r = sp.r;
     if (r.fase === "slutt") return "";
+    if (r.fase === "bytte" && paNett(sp) && r.klar[meg(sp)]) return R.t("Venter på at de andre bytter kort …");
     if (r.fase === "bytte") return R.t("Trykk på et kort på hånda og så på et åpent kort for å bytte dem. Sterke kort er gode å ha liggende åpent.");
     const p = r.tur;
-    if (!erMenneske(sp, p)) return R.t("{navn} tenker …", { navn: navn(sp, p) });
+    if (!erMenneske(sp, p) || (paNett(sp) && !erJeg(sp, p))) return R.t("{navn} tenker …", { navn: navn(sp, p) });
     const kilde = Idiot.kilde(r, p);
     if (kilde === "ned") return R.t("Nå går det blindt: snu ett av de skjulte kortene dine.");
     if (!Idiot.lovlige(r, p).length) return R.t("Ingenting passer. Du må ta opp bunken.");
@@ -694,7 +740,8 @@
     const sp = S.spill;
     stoppMobil();
     sp.ferdig = true;
-    R.statistikk("ferdig", { modus: sp.modus, spillere: sp.n, niva: sp.modus === "mobil" ? sp.niva : 0, trekk: sp.r.trekk });
+    // (On the net the kit counts the match.)
+    if (!paNett(sp)) R.statistikk("ferdig", { modus: sp.modus, spillere: sp.n, niva: sp.modus === "mobil" ? sp.niva : 0, trekk: sp.r.trekk });
     R.gaTil("slutt");
   }
 
@@ -802,9 +849,11 @@
       .map((p) => {
         const n = r.hender[p].length;
         const ute = Idiot.erUte(r, p);
-        const tenker = p === aktiv && !erMenneske(sp, p);
+        const tenker = p === aktiv && (!erMenneske(sp, p) || paNett(sp));
         const rygger = Array.from({ length: Math.min(n, 6) }, (_, i) => `<i style="--i:${i}"></i>`).join("");
-        const status = ute ? `<span class="nr-uteMerke">${esc(R.t("Ute · {plass}. plass", { plass: r.ute.indexOf(p) + 1 }))}</span>` : `<span class="nr-antall"><span class="nr-rygger" aria-hidden="true" style="--n:${Math.min(n, 6)}">${rygger}</span><span class="nr-lang">${esc(R.t("{antall} på hånda", { antall: R.flertall(n, "kort", "kort") }))}</span><span class="nr-kort">${esc(R.flertall(n, "kort", "kort"))}</span></span>`;
+        // (On the net the others' hands are face down here, with a count: only this phone's own
+        // seat is shown face up.)
+        const status = forlot(sp, p) && !r.ute.includes(p) ? `<span class="nr-uteMerke">${esc(R.t("Forlot kampen"))}</span>` : ute ? `<span class="nr-uteMerke">${esc(R.t("Ute · {plass}. plass", { plass: r.ute.indexOf(p) + 1 }))}</span>` : `<span class="nr-antall"><span class="nr-rygger" aria-hidden="true" style="--n:${Math.min(n, 6)}">${rygger}</span><span class="nr-lang">${esc(R.t("{antall} på hånda", { antall: R.flertall(n, "kort", "kort") }))}</span><span class="nr-kort">${esc(R.flertall(n, "kort", "kort"))}</span></span>`;
         return `<li class="nr-plass${p === aktiv ? " aktiv" : ""}${ute ? " ute" : ""}">
           <span class="nr-topp"><span class="nr-ava">${avatar(sp, p)}${tenker ? '<span class="nr-tenker" aria-hidden="true"><i></i><i></i><i></i></span>' : ""}</span>
           <span class="nr-info"><b class="nr-navn">${esc(navn(sp, p))}</b>${status}</span></span>
@@ -848,7 +897,7 @@
   function minSideHtml(sp) {
     const r = sp.r;
     const p = meg(sp);
-    const bytte = r.fase === "bytte";
+    const bytte = r.fase === "bytte" && !r.klar[p]; // (on the net the others may still be swapping)
     const minTur = r.fase === "spill" && r.tur === p && erMenneske(sp, p);
     const kilde = minTur ? Idiot.kilde(r, p) : null;
     const lov = new Set(minTur ? Idiot.lovlige(r, p) : []);
@@ -883,12 +932,14 @@
 
   function resultatHtml(sp) {
     const r = sp.r;
-    const rekke = plassering(r);
+    const plasser = plassering(r);
+    // On the net those who left come last, without a place.
+    const rekke = plasser.concat(paNett(sp) && Array.isArray(r.borte) ? r.borte.filter((p) => !plasser.includes(p)) : []);
     return `<ol class="nr-plasser" aria-label="${esc(R.t("Rekkefølgen"))}">${rekke
       .map((p, i) => {
         const narr = p === r.narr;
-        const merke = narr ? R.t("Narren") : i === 0 ? R.t("Ute først") : R.t("{plass}. plass", { plass: i + 1 });
-        return `<li class="${i === 0 ? "forst" : ""}${narr ? " narr" : ""}"><span class="nr-nr">${narr ? "🃏" : i + 1}</span>${avatar(sp, p)}<b>${esc(navn(sp, p))}</b><span class="nr-plassmerke">${esc(merke)}</span></li>`;
+        const merke = i >= plasser.length ? R.t("Forlot kampen") : narr ? R.t("Narren") : i === 0 ? R.t("Ute først") : R.t("{plass}. plass", { plass: i + 1 });
+        return `<li class="${i === 0 ? "forst" : ""}${narr ? " narr" : ""}"><span class="nr-nr">${narr ? "🃏" : i >= plasser.length ? "–" : i + 1}</span>${avatar(sp, p)}<b>${esc(navn(sp, p))}</b><span class="nr-plassmerke">${esc(merke)}</span></li>`;
       })
       .join("")}</ol>`;
   }
@@ -896,6 +947,12 @@
   function resultatTittel(sp) {
     const r = sp.r;
     const forst = plassering(r)[0];
+    if (paNett(sp)) {
+      if (erJeg(sp, forst)) return R.t("Du ble kvitt alle kortene først!");
+      if (erJeg(sp, r.narr)) return R.t("Du ble narren denne gangen.");
+      if (r.narr != null) return R.t("{navn} er narren!", { navn: navn(sp, r.narr) });
+      return R.t("{navn} ble kvitt kortene først.", { navn: navn(sp, forst) });
+    }
     if (sp.modus === "mobil") {
       if (forst === 0) return R.t("Du ble kvitt alle kortene først!");
       if (r.narr === 0) return R.t("Du ble narren denne gangen.");
@@ -920,6 +977,7 @@
     const melding = slutt ? resultatTittel(sp) : meldingTekst(sp);
     let hoved;
     if (slutt) hoved = R.ui.knapp(R.t("Se kåringen"), "kaaring", { ikon: "🏆" });
+    else if (r.fase === "bytte" && paNett(sp) && r.klar[p]) hoved = R.ui.knapp(R.t("Venter på de andre …"), "vent", { av: true });
     else if (r.fase === "bytte") hoved = R.ui.knapp(R.t("Ferdig – start spillet"), "byttferdig");
     else if (minTur && Idiot.blindt(r, p)) hoved = R.ui.knapp(R.t("Snu et skjult kort"), "blind");
     else if (minTur && Idiot.kanTa(r, p)) hoved = R.ui.knapp(R.t("Ta opp bunken"), "ta", { variant: "rod" });
@@ -951,12 +1009,112 @@
     el.classList.add("risting");
   }
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Moves (from the seat that acts): { b: [hand card, open card] } swaps before the game and
+  // { klar: 1 } is done swapping (every seat swaps at the same time, on its own phone); then from
+  // the seat whose turn it is { l: [cards] } plays cards of one rank, { ned: i } turns hidden table
+  // card i, { ta: 1 } picks up the pile. The rules (Idiot) decide: anything they don't allow now is
+  // ignored on every phone. The deal comes from the room's seed, so every phone has the whole deck
+  // in its state and shows only its own hand and hidden cards face down; a modified phone could
+  // read the others' cards (accepted: a game among friends). A seat that leaves is skipped and its
+  // cards go out of play (Idiot.forlat); the game ends when one is left with cards.
+  const NETT = {
+    min: 2,
+    maks: 4,
+    oppsett: (S) => ({ fire: !!S.oppsett.fire, sju: !!S.oppsett.sju, atter: !!S.oppsett.atter }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      return [x.fire !== false ? R.t("Fire like brenner bunken") : "", x.sju ? R.t("Sjueren: neste må gå under") : "", x.atter ? R.t("Åtteren hopper over") : ""].filter(Boolean).join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const n = R.klamp(okt.antall || 2, 2, 4);
+      const regler = { fire: o.fire !== false, sju: !!o.sju, atter: !!o.atter };
+      // The last seat deals in match 1 (the host sits first in line); the dealer moves one seat on per
+      // match. The deal is the same on every phone: from the room's seed.
+      const giver = ((okt.kamp || 1) - 1 + n - 1) % n;
+      const r = Idiot.nyRunde({ n, giver, regler }, R.rng(((okt.fro >>> 0) ^ R.hash("narren")) >>> 0));
+      r.borte = [];
+      S.spill = { id: (okt.fro >>> 0) % 1e9, modus: "nett", niva: 2, n, regler, r, port: false, valgt: [], bytte: null, telt: true, ferdig: false, registrert: true };
+      nyttKort = null;
+      stoppMobil();
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || !t || typeof t !== "object" || Array.isArray(t)) return;
+      const r = sp.r;
+      if (!Number.isInteger(sete) || sete < 0 || sete >= r.n) return;
+      const fase = r.fase;
+      let ok = false;
+      if (Array.isArray(t.b)) ok = t.b.length === 2 && t.b.every(Number.isInteger) && Idiot.bytt(r, sete, t.b[0], t.b[1]);
+      else if (t.klar === 1) ok = Idiot.ferdigBytte(r, sete);
+      else if (Array.isArray(t.l)) ok = t.l.length >= 1 && t.l.length <= 4 && t.l.every(Number.isInteger) && Idiot.legg(r, sete, t.l.slice());
+      else if (Number.isInteger(t.ned)) ok = Idiot.blind(r, sete, t.ned);
+      else if (t.ta === 1) ok = Idiot.taOpp(r, sete);
+      if (!ok) return;
+      const min = erJeg(sp, sete);
+      // What this phone had picked is stale after its own move (it can only pick in its turn).
+      if (min || r.fase !== fase) {
+        sp.valgt = [];
+        sp.bytte = null;
+      }
+      if (r.fase === "slutt" && okt.gjenspill) sp.ferdig = true; // a finished match, replayed: straight to the result
+      if (okt.gjenspill || S.skjerm !== "spill") return;
+      // Live: the same sounds and the card landing as on one phone.
+      if (Array.isArray(t.l)) nyttKort = { k: t.l[t.l.length - 1], fra: min ? "hand" : "topp" };
+      else if (Number.isInteger(t.ned) && r.logg[0] && r.logg[0].ok) nyttKort = { k: r.logg[0].k, fra: min ? "hand" : "topp" };
+      if (fase === "spill") {
+        lydFor(r);
+        if (min) R.vibrer(10);
+      } else if (min || r.fase !== fase) {
+        R.lyd.snu();
+        if (min) R.vibrer(8);
+      }
+      if (r.fase === "slutt") nettSlutt(sp);
+      R.vis();
+    },
+    // The seat left (the room's «borte» move): Idiot.forlat skips it and takes its cards out of play.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || !Idiot.forlat(sp.r, sete)) return;
+      if (sp.r.fase !== "spill" || sp.r.tur !== meg(sp)) sp.valgt = [];
+      if (sp.r.fase === "slutt") {
+        if (okt.gjenspill) sp.ferdig = true;
+        else if (S.skjerm === "spill") nettSlutt(sp);
+      }
+      if (!okt.gjenspill && S.skjerm === "spill") R.vis();
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "spill"),
+    // While swapping every seat is busy at once: this phone's, until it is done; then the first who isn't.
+    tur: (S) => {
+      const sp = S.spill;
+      if (!sp || !sp.r || sp.r.fase === "slutt") return null;
+      const r = sp.r;
+      if (r.fase === "bytte") return !r.klar[meg(sp)] ? meg(sp) : Idiot.bytter(r);
+      return r.tur;
+    },
+    ferdig: (S) => !!S.spill && !!S.spill.r && S.spill.r.fase === "slutt",
+  };
+  // The game just ended on this phone (live): a sound in proportion, as on one phone.
+  function nettSlutt(sp) {
+    const fortsatt = R.vakt();
+    setTimeout(() => {
+      if (!fortsatt()) return;
+      if (erJeg(sp, sp.r.narr)) lyd.tap();
+      else {
+        R.lyd.riktig();
+        R.vibrer([30, 50, 80]);
+      }
+    }, 420);
+  }
+
   // ---------- Screens ----------
 
   R.start({
     id: "narren",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({
       antall: 2,
@@ -1020,7 +1178,7 @@
               knapperHtml: R.ui.startKnapper({
                 pagar: aktiv,
                 fortsettTekst: aktiv ? R.t("Fortsett spillet") : "",
-                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+                ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [
                 ["1–4", R.t("spillere")],
@@ -1103,6 +1261,20 @@
           let tittel;
           let tekst = "";
           let stemning = "jubel";
+          if (paNett(sp)) {
+            if (erJeg(sp, forst)) {
+              tittel = R.t("Du vinner!");
+              tekst = R.t("Godt jobba! Du ble kvitt kortene først.");
+            } else {
+              tittel = R.t("{navn} vinner!", { navn: navn(sp, forst) });
+              tekst = erJeg(sp, r.narr) ? R.t("Du ble narren denne gangen.") : r.narr != null ? R.t("{navn} ble narren.", { navn: navn(sp, r.narr) }) : "";
+              stemning = erJeg(sp, r.narr) ? "lei" : "";
+            }
+            return `
+              ${R.ui.banner({ tittel, etikett: R.flertall(sp.n, "spiller", "spillere"), tekst, stemning })}
+              ${resultatHtml(sp)}
+              ${R.nett.sluttDokk()}`;
+          }
           if (sp.modus === "mobil") {
             if (forst === 0) {
               tittel = R.t("Du vinner!");
@@ -1134,6 +1306,16 @@
           if (!sp) return R.gaTil("hjem");
           const r = sp.r;
           const rekke = plassering(r);
+          if (paNett(sp)) {
+            // On the net: the fanfare on the winner's phone, a gentle note (or the fool's) on the others.
+            if (erJeg(sp, rekke[0])) {
+              R.lyd.fanfare();
+              R.vibrer([40, 60, 120]);
+              R.konfetti();
+            } else if (erJeg(sp, r.narr)) lyd.tap();
+            else R.lyd.pling();
+            return R.slippVaken();
+          }
           if (!sp.registrert) {
             sp.registrert = true;
             // «Kveldens gjeng» counts people only, never the phone players: first out gets the most.
@@ -1217,7 +1399,10 @@
           if (sp.bytte == null || sp.bytte === k) sp.bytte = sp.bytte === k ? null : k;
           else if (paHand(sp.bytte) !== paHand(k)) {
             const [h, o] = paHand(k) ? [k, sp.bytte] : [sp.bytte, k];
-            if (Idiot.bytt(r, p, h, o)) {
+            // On the net the swap is a move (the others see the open cards change).
+            if (paNett(sp)) {
+              if (R.nett.send({ b: [h, o] })) sp.bytte = null;
+            } else if (Idiot.bytt(r, p, h, o)) {
               sp.bytte = null;
               R.lyd.snu();
               R.vibrer(8);
@@ -1248,6 +1433,7 @@
         const p = meg(sp);
         if (r.fase !== "spill" || r.tur !== p || !erMenneske(sp, p) || !sp.valgt.length) return;
         const kort = sp.valgt.slice();
+        if (paNett(sp)) return void R.nett.send({ l: kort });
         if (!Idiot.legg(r, p, kort)) {
           sp.valgt = [];
           return R.vis();
@@ -1265,7 +1451,8 @@
         const r = sp.r;
         const p = meg(sp);
         if (r.tur !== p || !erMenneske(sp, p)) return;
-        if (!Idiot.taOpp(r, p)) {
+        if (paNett(sp) && Idiot.kanTa(r, p)) return void R.nett.send({ ta: 1 });
+        if (paNett(sp) || !Idiot.taOpp(r, p)) {
           if (Idiot.lovlige(r, p).length) R.toast(R.t("Du har et kort som passer – legg det"));
           return;
         }
@@ -1283,6 +1470,7 @@
         const p = meg(sp);
         if (!Idiot.blindt(r, p) || !erMenneske(sp, p)) return;
         const i = el.dataset.v != null ? Number(el.dataset.v) : r.ned[p].findIndex((k) => k != null);
+        if (paNett(sp)) return void (r.ned[p][i] != null && R.nett.send({ ned: i }));
         if (!Idiot.blind(r, p, i)) return;
         const h = r.logg[0];
         if (h && h.ok) nyttKort = { k: h.k, fra: "hand" };
@@ -1296,6 +1484,7 @@
         const sp = S.spill;
         if (!sp || sp.port || sp.r.fase !== "bytte") return;
         const p = meg(sp);
+        if (paNett(sp)) return void (!sp.r.klar[p] && R.nett.send({ klar: 1 }));
         if (!Idiot.ferdigBytte(sp.r, p)) return;
         sp.bytte = null;
         R.lyd.snu();

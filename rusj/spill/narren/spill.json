@@ -13,6 +13,7 @@
   "alder": 8,
   "sok": ["idiot", "idiot kortspill", "kortspillet idiot", "idioten", "palace", "kortspill", "kortspill for to", "kortspill på nett", "brenne bunken"],
   "motMobilen": true,
+  "nett": true,
   "alias": ["idiot"],
   "i18n": {
     "en": {
