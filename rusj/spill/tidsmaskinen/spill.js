@@ -50,9 +50,20 @@
   const flereTekst = (sp, n) => (sp.modus === "lag" ? R.flertall(n, "lag", "lag") : R.flertall(n, "spiller", "spillere"));
   // Where a gap is: «før 1905», «etter 1905» or «mellom 1905 og 1969».
   const hvorTekst = (f, e) => (f == null ? R.t("før {aar}", { aar: e }) : e == null ? R.t("etter {aar}", { aar: f }) : R.t("mellom {fra} og {til}", { fra: f, til: e }));
-  const rader = (sp) => sp.linjer.map((l, i) => (sp.modus === "lag" ? { lag: i, poeng: l.length } : { i, poeng: l.length }));
+  const rader = (sp) => sp.linjer.map((l, i) => (sp.modus === "lag" ? { lag: i, poeng: l.length } : { i, poeng: l.length })).filter((r) => !forlot(sp, r.i));
   const rekorder = () => R.les("tidsmaskinen.rekord", {}) || {};
   const rekordFor = (niva) => Number(rekorder()[niva]) || 0;
+  // On the net (R.nett, rusj/kit/nett.js): seat i is player i on its own phone, each with a
+  // timeline of its own («Hver for seg»). Where the card lies is this phone's own until «Sjekk året»:
+  // that is the move (with the gap), and «Neste» another. The deck is shuffled from the room's seed,
+  // so every phone draws the same cards. A seat that left is skipped and is not ranked.
+  const paNett = (sp) => !!sp && sp.nett === true && !!R.nett;
+  const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
+  const andres = (sp) => paNett(sp) && !R.nett.erMeg(sp.tur); // another phone has the turn
+  const kanSpille = (sp) => !paNett(sp) || (R.nett.erMeg(sp.tur) && !R.nett.venter());
+  const forlot = (sp, i) => paNett(sp) && sp.ute.includes(i);
+  // A seat's place in the round (on the net another seat may begin; on one phone it is the seat).
+  const plass = (sp, i) => (i - (sp.forste || 0) + sp.deltakere) % sp.deltakere;
 
   function passer(o, h) {
     if (!o.kategorier.includes(h.k)) return false;
@@ -65,6 +76,13 @@
   // Draw a card that hasn't been used in this game (the deck also avoids repeats between games).
   function trekk(sp) {
     const brukt = new Set(sp.brukt);
+    if (paNett(sp)) {
+      // On the net: the next card of the room's deck (shuffled from its seed) that is not used.
+      const k = sp.bunke.find((x) => !brukt.has(x));
+      if (k == null) return -1;
+      sp.brukt.push(k);
+      return k;
+    }
     let i = stokk.neste((x) => !brukt.has(x) && passer(sp.filter, ALLE[x]));
     if (i < 0 || brukt.has(i)) i = stokk.neste((x) => !brukt.has(x) && sp.filter.kategorier.includes(ALLE[x].k));
     if (i < 0 || brukt.has(i)) return -1;
@@ -118,13 +136,20 @@
 
   // Who plays next, or -1 when the game is over. Once someone has reached the target, the round
   // is played to the end – but only by those who can still reach it this round.
+  // (On the net the round begins with sp.forste, and a seat that left is skipped.)
   function hvemNeste(sp) {
     if (erRekord(sp)) return sp.svar && sp.svar.riktig ? 0 : -1;
+    const n = sp.deltakere;
     if (sp.linjer.some((l) => l.length >= sp.mal)) {
-      for (let k = sp.tur + 1; k < sp.deltakere; k++) if (sp.linjer[k].length >= sp.mal - 1) return k;
+      for (let p = plass(sp, sp.tur) + 1; p < n; p++) {
+        const k = (p + (sp.forste || 0)) % n;
+        if (sp.linjer[k].length >= sp.mal - 1 && !forlot(sp, k)) return k;
+      }
       return -1;
     }
-    return (sp.tur + 1) % sp.deltakere;
+    if (!paNett(sp)) return (sp.tur + 1) % n;
+    for (let d = 1; d <= n; d++) if (!forlot(sp, (sp.tur + d) % n)) return (sp.tur + d) % n;
+    return -1;
   }
 
   const siKort = (sp) => R.si(R.t("{hvem}: {kort}. Hvor i tidslinja hører det hjemme?", { hvem: erRekord(sp) ? R.t("Nytt kort") : deltaker(sp, sp.tur), kort: ALLE[sp.kort].t }));
@@ -146,22 +171,30 @@
     const pips = Array.from({ length: sp.mal }, (_, n) => `<i class="${n < antall ? "fylt" : ""}"></i>`).join("");
     return `<div class="tm-hode">
       ${merke}
-      <div class="tm-hvem"><p class="etikett">${esc(sp.modus === "lag" ? R.t("Lagets tur") : R.t("Din tur"))}</p><h1 id="skjerm-tittel">${esc(deltaker(sp, i))}</h1></div>
+      <div class="tm-hvem"><p class="etikett">${esc(sp.modus === "lag" ? R.t("Lagets tur") : andres(sp) ? R.t("På tur") : R.t("Din tur"))}</p><h1 id="skjerm-tittel">${esc(deltaker(sp, i))}</h1></div>
       <div class="tm-mal" role="img" aria-label="${esc(R.t("{n} av {av} kort", { n: antall, av: sp.mal }))}"><span class="tm-pips" aria-hidden="true">${pips}</span><span class="tm-mal-tall" aria-hidden="true">${antall}<small>/${sp.mal}</small></span></div>
     </div>`;
   }
 
-  function handKortHtml(k) {
+  // o.bareVis: on the net, the card on the phones that watch (it cannot be dragged there).
+  function handKortHtml(k, o = {}) {
     const h = ALLE[k];
     const kat = KAT[h.k];
-    return `<article class="tm-kort" id="tm-hand" data-dra="hand" style="--kf: ${kat.farge}" aria-label="${esc(R.t("Kortet: {kort}. Året er skjult.", { kort: h.t }))}">
-      <div class="tm-kort-topp"><span class="tm-kat"><span aria-hidden="true">${kat.ikon}</span> ${esc(kat.kort)}</span><span class="tm-grep" aria-hidden="true">${GREP}<span class="tm-grep-tekst">${esc(R.t("Dra meg"))}</span></span></div>
+    return `<article class="tm-kort" id="tm-hand"${o.bareVis ? "" : ' data-dra="hand"'} style="--kf: ${kat.farge}" aria-label="${esc(R.t("Kortet: {kort}. Året er skjult.", { kort: h.t }))}">
+      <div class="tm-kort-topp"><span class="tm-kat"><span aria-hidden="true">${kat.ikon}</span> ${esc(kat.kort)}</span>${o.bareVis ? "" : `<span class="tm-grep" aria-hidden="true">${GREP}<span class="tm-grep-tekst">${esc(R.t("Dra meg"))}</span></span>`}</div>
       <p class="tm-kort-tekst">${esc(h.t)}</p>
       <div class="tm-kort-fot">${SKJULT}<span class="tm-kort-hint">${esc(R.t("Når skjedde det?"))}</span></div>
     </article>`;
   }
 
   function handHtml(sp) {
+    // On the net, on the phones that watch: the card, and who is finding its place.
+    // (While the year rolls in, the card lies in the timeline.)
+    if (andres(sp)) {
+      const hvem = deltaker(sp, sp.tur);
+      const kort = sp.plass == null ? handKortHtml(sp.kort, { bareVis: true }) : "";
+      return `<section class="tm-hand${kort ? "" : " tm-hand-tom"}" aria-label="${esc(R.t("Kortet til {navn}", { navn: hvem }))}">${kort}<p class="tm-hjelp">${esc(R.t("Venter på {navn} …", { navn: hvem }))}</p></section>`;
+    }
     if (sp.plass == null) {
       // The how-to line is for a player's first card; after that the timeline gets the room.
       const hjelp = sp.forsok[sp.tur]
@@ -213,7 +246,7 @@
     const synlig = f == null ? R.t("Før {aar}", { aar: e }) : e == null ? R.t("Etter {aar}", { aar: f }) : "";
     const her = sp.plass === g;
     return `<li class="tm-luke${her ? " tm-her" : ""}" data-luke="${g}">
-      <button class="tm-gap" data-h="plasser" data-v="${g}" aria-label="${esc(R.t("Legg kortet {hvor}", { hvor }))}"><span class="tm-pluss" aria-hidden="true">+</span>${synlig ? `<span class="tm-gap-tekst" aria-hidden="true">${esc(synlig)}</span>` : ""}</button>
+      <button class="tm-gap" data-h="plasser" data-v="${g}" aria-label="${esc(R.t("Legg kortet {hvor}", { hvor }))}"${andres(sp) ? " disabled" : ""}><span class="tm-pluss" aria-hidden="true">+</span>${synlig ? `<span class="tm-gap-tekst" aria-hidden="true">${esc(synlig)}</span>` : ""}</button>
       ${her ? nyKortHtml(sp.kort, { dra: true }) : ""}
     </li>`;
   }
@@ -249,6 +282,8 @@
 
   function dokkHtml(sp) {
     const lenker = R.ui.lenkerad(erRekord(sp) ? "" : R.ui.lenke(R.t("Stillingen"), "stilling"), R.ui.lenke(R.t("Avslutt"), "avslutt"));
+    // On the net, on the phones that watch: the one whose turn it is checks the year and goes on.
+    if (andres(sp) && !sp.ferdig) return R.ui.dokk(R.ui.knapp(R.t("Venter på {navn} …", { navn: deltaker(sp, sp.tur) }), sp.fase === "plasser" ? "sjekk" : "neste", { variant: sp.fase === "plasser" ? "stor" : "", id: sp.fase === "plasser" ? "tm-sjekk" : "tm-neste", av: true }), lenker);
     if (sp.fase === "plasser") return R.ui.dokk(R.ui.knapp(R.t("Sjekk året!"), "sjekk", { variant: "stor", id: "tm-sjekk", av: sp.plass == null }), lenker);
     const neste = hvemNeste(sp);
     let tekst = R.t("Til kåringen");
@@ -320,7 +355,7 @@
     if (dra || opptatt || (e.button != null && e.button > 0)) return;
     const el = e.target.closest && e.target.closest("[data-dra]");
     const S = R.S;
-    if (!el || !S || S.skjerm !== "tur" || !S.spill || S.spill.fase !== "plasser" || R.arkApent()) return;
+    if (!el || !S || S.skjerm !== "tur" || !S.spill || S.spill.fase !== "plasser" || R.arkApent() || !kanSpille(S.spill)) return;
     const b = el.getBoundingClientRect();
     dra = { id: e.pointerId, el, kilde: el.dataset.dra, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, ox: e.clientX - b.left, aktiv: false, mal: null };
     try {
@@ -670,18 +705,177 @@
       ${R.ui.poengliste(rader(sp))}
       ${prisHtml(sp)}
       <div class="stabel">${R.ui.knapp2(R.t("Se tidslinjene"), "tidslinjer", { ikon: "🗂️" })}</div>
-      ${R.ui.flereSpill(sp.modus === "spillere" ? { antall: sp.deltakere } : {})}
-      ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+      ${
+        paNett(sp)
+          ? R.nett.sluttDokk()
+          : `${R.ui.flereSpill(sp.modus === "spillere" ? { antall: sp.deltakere } : {})}
+      ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`
+      }`;
   }
 
-  // Celebrate in proportion: fanfare and confetti for a win or a strong streak.
+  // Celebrate in proportion: fanfare and confetti for a win or a strong streak (on the net: on the
+  // winner's phone).
   function feir(sp) {
-    const sterk = erRekord(sp) ? (sp.rekord && sp.rekord.ny && sp.rekord.forrige > 0) || sp.rekke >= 8 : true;
+    const sterk = erRekord(sp) ? (sp.rekord && sp.rekord.ny && sp.rekord.forrige > 0) || sp.rekke >= 8 : !paNett(sp) || sp.vinnere.some((i) => erJeg(sp, i));
     if (sterk) {
       R.lyd.fanfare();
       R.konfetti();
     } else R.lyd.pling();
   }
+
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Moves from the seat whose turn it is: { sjekk: g } puts the card in gap g of its timeline and
+  // checks the year; { neste: 1 } after that passes the turn (the next card is drawn) or ends the
+  // match. Anything else, or anything the rules don't allow now, is ignored on every phone. The
+  // categories, the difficulty and the target are the host's.
+
+  // «Sjekk året» (the state only): the card in gap g, right or wrong.
+  function sjekkTilstand(sp, g) {
+    const linje = sp.linjer[sp.tur];
+    const h = ALLE[sp.kort];
+    const [lo, hi] = luker(linje, h.a);
+    const riktig = g >= lo && g <= hi;
+    sp.plass = g;
+    sp.svar = { kort: sp.kort, plass: g, lo, hi, riktig };
+    sp.forsok[sp.tur] += 1;
+    if (riktig) {
+      linje.splice(g, 0, sp.kort);
+      sp.treff[sp.tur] += 1;
+    }
+    sp.fase = "svar";
+    return riktig;
+  }
+  // The match is over: the most cards wins (among the seats still in).
+  function sluttNett(sp, grunn) {
+    sp.ferdig = true;
+    sp.slutt = grunn;
+    const med = sp.linjer.map((_, i) => i).filter((i) => !forlot(sp, i));
+    const topp = Math.max(...med.map((i) => sp.linjer[i].length));
+    sp.vinnere = med.filter((i) => sp.linjer[i].length === topp);
+  }
+  // «Neste» (the state only): the next seat draws a card, or the match is over.
+  function nesteNett(sp) {
+    const k = hvemNeste(sp);
+    if (k < 0) return sluttNett(sp, "mal");
+    if (plass(sp, k) <= plass(sp, sp.tur)) sp.runde += 1;
+    sp.tur = k;
+    const kort = trekk(sp);
+    if (kort < 0) return sluttNett(sp, "tom");
+    sp.kort = kort;
+    sp.plass = null;
+    sp.fase = "plasser";
+    sp.svar = null;
+  }
+  // After «Neste» or a seat leaving, on the screen.
+  function visNeste(sp) {
+    if (sp.ferdig) return R.gaTil("slutt");
+    R.lyd.snu();
+    R.gaTil("tur");
+    siKort(sp);
+  }
+
+  const NETT = {
+    min: 2,
+    maks: 10,
+    oppsett: (S) => ({ kategorier: S.oppsett.kategorier.slice(), niva: S.oppsett.niva, mal: S.oppsett.mal }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      const antall = (Array.isArray(x.kategorier) ? x.kategorier : []).filter((id) => KAT[id]).length;
+      return [antall && antall < ALLE_KAT.length ? R.flertall(antall, "kategori", "kategorier") : R.t("Alle kategorier"), NIVANAVN[x.niva] || NIVANAVN.blandet, R.t("Først til {n}", { n: MAL.includes(x.mal) ? x.mal : 10 })].join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const kategorier = (Array.isArray(o.kategorier) ? o.kategorier : []).filter((id) => KAT[id]);
+      const filter = { kategorier: kategorier.length ? kategorier : ALLE_KAT.slice(), niva: NIVAER.includes(o.niva) ? o.niva : "blandet" };
+      const deltakere = R.klamp(okt.antall || 2, 2, 10);
+      // The deck: the cards that fit the setup in the room's order, then the rest of those categories
+      // (as on one phone), and if that is still too few for everyone, every card.
+      const rng = R.nett.tilfeldig(okt.fro, "kort");
+      const alle = ALLE.map((_, i) => i);
+      let bunke = R.stokk(alle.filter((i) => passer(filter, ALLE[i])), rng).concat(R.stokk(alle.filter((i) => !passer(filter, ALLE[i]) && filter.kategorier.includes(ALLE[i].k)), rng));
+      if (bunke.length < deltakere * 3) bunke = bunke.concat(R.stokk(alle.filter((i) => !bunke.includes(i)), rng));
+      const forste = (okt.kamp - 1) % deltakere; // who begins moves on one seat per match
+      const sp = {
+        modus: "spillere",
+        nett: true,
+        deltakere,
+        mal: MAL.includes(o.mal) ? o.mal : 10,
+        filter,
+        linjer: [],
+        tur: forste,
+        forste,
+        runde: 1,
+        kort: -1,
+        plass: null,
+        fase: "plasser",
+        svar: null,
+        brukt: [],
+        bunke,
+        treff: Array(deltakere).fill(0),
+        forsok: Array(deltakere).fill(0),
+        rekke: 0,
+        ferdig: false,
+        slutt: null,
+        vinnere: [],
+        rekord: null,
+        ute: [], // seats that left the match
+      };
+      for (let i = 0; i < deltakere; i++) sp.linjer.push([trekk(sp)]); // everyone starts with one card, year showing
+      sp.kort = trekk(sp);
+      S.spill = sp;
+      opptatt = false;
+      avbrytDra();
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || sete !== sp.tur) return;
+      const live = !okt.gjenspill && S.skjerm === "tur" && !opptatt;
+      if (sp.fase === "plasser" && Number.isInteger(t.sjekk) && t.sjekk >= 0 && t.sjekk <= sp.linjer[sp.tur].length) {
+        if (!live) return void sjekkTilstand(sp, t.sjekk);
+        // The card lies where it was put (on every phone), then the year rolls in.
+        avbrytDra();
+        sp.plass = t.sjekk;
+        R.vis();
+        const h = ALLE[sp.kort];
+        const linje = sp.linjer[sp.tur];
+        const riktig = sjekkTilstand(sp, t.sjekk);
+        opptatt = true;
+        const fortsatt = R.vakt();
+        rullInn(h.a, riktig)
+          .catch((feil) => console.error(feil))
+          .then(() => {
+            opptatt = false;
+            if (!fortsatt() || R.S.spill !== sp) return;
+            if (sp.ferdig) return R.gaTil("slutt");
+            R.vis();
+            if (riktig && linje.length >= sp.mal) R.lyd.fanfare();
+            iSikte(R.$("#skjerm .tm-fersk, #skjerm .tm-spokelse"));
+            R.si(`${riktig ? R.t("Riktig!") : R.t("Feil plass.")} ${h.t}: ${aarTekst(h.a)}.`);
+          });
+        return;
+      }
+      if (sp.fase === "svar" && t.neste === 1) {
+        nesteNett(sp);
+        if (live) visNeste(sp);
+      }
+    },
+    // The seat left: it is skipped from now on (a card it held is put aside) and is not ranked.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !(sete >= 0 && sete < sp.deltakere) || forlot(sp, sete)) return;
+      sp.ute.push(sete);
+      const igjen = sp.linjer.filter((_, i) => !forlot(sp, i)).length;
+      const hans = sp.tur === sete;
+      if (igjen < 2) sluttNett(sp, "borte");
+      else if (hans) nesteNett(sp);
+      if (okt.gjenspill || S.skjerm !== "tur" || opptatt) return;
+      if (sp.ferdig || hans) visNeste(sp);
+      else R.vis();
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "tur"),
+    tur: (S) => (S.spill && !S.spill.ferdig ? S.spill.tur : null),
+    ferdig: (S) => !!S.spill && S.spill.ferdig,
+  };
 
   // ---------- The game ----------
 
@@ -689,6 +883,7 @@
     id: "tidsmaskinen",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({ antall: 3, oppsett: standardOppsett(), spill: null }),
 
@@ -756,7 +951,7 @@
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
               fortsettTekst: sp ? (erRekord(sp) ? R.t("Fortsett · {n} på rad", { n: sp.rekke }) : R.t("Fortsett · runde {n}", { n: sp.runde })) : "",
-              ekstraHtml: (sp && sp.ferdig ? R.ui.knapp2(erRekord(sp) ? R.t("Se resultatet") : R.t("Til kåringen"), "resultat") : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
+              ekstraHtml: (sp && sp.ferdig ? R.ui.knapp2(erRekord(sp) ? R.t("Se resultatet") : R.t("Til kåringen"), "resultat") : "") + (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
               ["1–10", R.t("spillere")],
@@ -922,7 +1117,7 @@
       // Tap a gap: the card flies there. It can be moved until «Sjekk året».
       plasser(el, e, S) {
         const sp = S.spill;
-        if (!sp || sp.fase !== "plasser" || opptatt || dra || performance.now() - sluppet < 400) return;
+        if (!sp || sp.fase !== "plasser" || opptatt || dra || performance.now() - sluppet < 400 || !kanSpille(sp)) return;
         const g = Number(el.dataset.v);
         if (!Number.isInteger(g) || g < 0 || g > sp.linjer[sp.tur].length || g === sp.plass) return;
         const kilde = R.$("#tm-hand") || R.$("#skjerm .tm-ny-kort");
@@ -936,6 +1131,8 @@
       async sjekk(el, e, S) {
         const sp = S.spill;
         if (!sp || sp.fase !== "plasser" || sp.plass == null || opptatt || dra) return;
+        // On the net the check goes to the room with the gap; the year rolls in when it comes back.
+        if (paNett(sp)) return void (kanSpille(sp) && R.nett.send({ sjekk: sp.plass }));
         const t = sp.tur;
         const linje = sp.linjer[t];
         const h = ALLE[sp.kort];
@@ -969,6 +1166,10 @@
       neste(el, e, S) {
         const sp = S.spill;
         if (!sp || sp.fase !== "svar" || opptatt) return;
+        if (paNett(sp)) {
+          if (sp.ferdig) return R.gaTil("slutt");
+          return void (kanSpille(sp) && R.nett.send({ neste: 1 }));
+        }
         const k = hvemNeste(sp);
         if (k < 0) return avslutt(S, erRekord(sp) ? "feil" : "mal");
         if (!erRekord(sp)) {

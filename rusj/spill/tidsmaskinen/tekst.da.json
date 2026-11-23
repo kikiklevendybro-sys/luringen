@@ -132,5 +132,7 @@
   "kort|kort": { "one": "kort", "other": "kort" },
   "lag|lag": { "one": "hold", "other": "hold" },
   "runde|runder": { "one": "runde", "other": "runder" },
-  "kategori|kategorier": { "one": "kategori", "other": "kategorier" }
+  "kategori|kategorier": { "one": "kategori", "other": "kategorier" },
+  "På tur": "Har turen",
+  "Kortet til {navn}": "{navn}s kort"
 }

@@ -10,6 +10,7 @@
   "mobiler": "en",
   "tagger": ["quiz", "familie", "fest"],
   "rekkefolge": 36,
+  "nett": true,
   "sok": ["ti svar", "quizspill", "spørrespill", "ja eller nei quiz", "brettspill quiz"],
   "i18n": {
     "en": {

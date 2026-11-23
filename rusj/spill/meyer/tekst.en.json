@@ -153,5 +153,7 @@
   "Dere går rett til kåringen. Flest liv igjen leder.": "You'll go straight to the results. Most lives left leads.",
   "liv|liv": { "one": "life", "other": "lives" },
   "bløff|bløffer": { "one": "bluff", "other": "bluffs" },
-  "Ingen": "None"
+  "Ingen": "None",
+  "På tur": "Their turn",
+  "forlot kampen i runde {n}": "left the match in round {n}"
 }

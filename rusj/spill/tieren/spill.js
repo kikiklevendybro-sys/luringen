@@ -37,7 +37,24 @@
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
   const poengTekst = (n) => R.flertall(n, "poeng", "poeng");
   const kortNa = (sp) => ALLE[sp.kort[sp.runde]];
-  const rader = (sp) => sp.sum.map((p, i) => ({ i, poeng: p }));
+  const rader = (sp) => sp.sum.map((p, i) => ({ i, poeng: p })).filter((r) => !forlot(sp, r.i));
+  // On the net (R.nett, rusj/kit/nett.js): seat i is player i on its own phone. Which answer is
+  // picked is this phone's own until it is answered: the answer (with its place on the ring) is the
+  // move, «Stopp» another, «Neste runde» a third. The cards and the rings come from the room's seed,
+  // so every phone has the same ones. A seat that left is skipped and is not ranked.
+  const paNett = (sp) => !!sp && sp.nett === true && !!R.nett;
+  const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
+  const andres = (sp, i) => paNett(sp) && !R.nett.erMeg(i); // another phone has the move
+  const kanSpille = (sp, i) => !paNett(sp) || (R.nett.erMeg(i) && !R.nett.venter());
+  const forlot = (sp, i) => paNett(sp) && sp.ute.includes(i);
+  // Who begins round r: one seat on each round (on the net also one seat on each match, past those who left).
+  function starterFor(sp, r) {
+    const n = sp.deltakere;
+    if (!paNett(sp)) return r % n;
+    let s = (r + sp.forste) % n;
+    for (let k = 0; k < n && forlot(sp, s); k++) s = (s + 1) % n;
+    return s;
+  }
 
   function passer(o, k) {
     if (!o.kategorier.includes(k.k)) return false;
@@ -86,15 +103,16 @@
     return kort;
   }
 
-  function startRunde(sp, r) {
+  // rng: on the net the room's chance (the same ring on every phone).
+  function startRunde(sp, r, rng) {
     const n = sp.deltakere;
     sp.runde = r;
-    sp.ring = R.stokk(Array.from({ length: 10 }, (_, k) => k)); // ring position → item on the card
+    sp.ring = R.stokk(Array.from({ length: 10 }, (_, k) => k), rng); // ring position → item on the card
     sp.apne = Array(10).fill(null);
     sp.pott = Array(n).fill(0);
     sp.tapt = Array(n).fill(0);
-    sp.status = Array(n).fill("med"); // med → stopp | ute
-    sp.starter = r % n; // who begins moves one seat each round
+    sp.status = Array.from({ length: n }, (_, i) => (forlot(sp, i) ? "borte" : "med")); // med → stopp | ute (on the net: borte, left)
+    sp.starter = starterFor(sp, r); // who begins moves one seat each round
     sp.tur = sp.starter;
     sp.valgt = null;
     sp.fase = "velg"; // velg → ferdig (all answers shown)
@@ -179,7 +197,7 @@
     const pott = sp.pott[i];
     if (sp.valgt != null)
       return `${R.avatar(i, "mid")}<p class="ti-midt-valgt">${esc(kort.a[sp.ring[sp.valgt]][0])}</p>`;
-    return `${R.avatar(i, "stor")}<p class="ti-midt-navn"${navnStil(R.navn(i))}>${esc(R.navn(i))}</p><p class="ti-potte${pott ? "" : " tom"}"><b>${pott}</b><span>${esc(R.t("i potten"))}</span></p>${pott ? "" : `<p class="ti-midt-liten">${esc(R.t("Velg et svar!"))}</p>`}`;
+    return `${R.avatar(i, "stor")}<p class="ti-midt-navn"${navnStil(R.navn(i))}>${esc(R.navn(i))}</p><p class="ti-potte${pott ? "" : " tom"}"><b>${pott}</b><span>${esc(R.t("i potten"))}</span></p>${pott || andres(sp, i) ? "" : `<p class="ti-midt-liten">${esc(R.t("Velg et svar!"))}</p>`}`;
   }
 
   function ringHtml(sp, kort) {
@@ -197,11 +215,12 @@
       const st = sp.status[i];
       const na = sp.fase === "velg" && sp.tur === i;
       const pott = sp.pott[i];
-      const merke = st === "ute" ? "💥" : st === "stopp" ? "✋" : "";
+      const merke = st === "ute" ? "💥" : st === "stopp" ? "✋" : st === "borte" ? "👋" : "";
       const deler = [`${R.navn(i)}: ${poengTekst(sp.sum[i])}`];
       if (pott && st !== "ute") deler.push(R.t("{n} i potten", { n: pott }));
       if (st === "ute") deler.push(R.t("røk"));
       else if (st === "stopp") deler.push(R.t("har stoppet"));
+      else if (st === "borte") deler.push(R.t("forlot kampen"));
       else if (na) deler.push(R.t("har tur"));
       const etikett = deler.join(", ");
       return `<li class="ti-sete${na ? " na" : ""} ${st}" aria-label="${esc(etikett)}">
@@ -228,9 +247,13 @@
     const lenker = (...ekstra) => R.ui.lenkerad(...ekstra, R.ui.lenke(R.t("Stillingen"), "stilling"), R.ui.lenke(R.t("Avslutt"), "avslutt"));
     if (sp.fase === "ferdig") {
       const siste = sp.runde + 1 >= sp.runder;
+      // On the net the one who begins the next round starts it (everyone goes to «Kåringen» alone).
+      const neste = siste ? -1 : starterFor(sp, sp.runde + 1);
+      if (neste >= 0 && andres(sp, neste)) return R.ui.dokk(R.ui.knapp(R.t("Venter på {navn} …", { navn: R.navn(neste) }), "nesteRunde", { id: "ti-neste", av: true }), lenker());
       return R.ui.dokk(R.ui.knapp(siste ? R.t("Til kåringen") : R.t("Neste runde"), "nesteRunde", { id: "ti-neste" }), lenker());
     }
     const i = sp.tur;
+    if (andres(sp, i)) return R.ui.dokk(R.ui.knapp2(R.t("Venter på {navn} …", { navn: R.navn(i) }), "stopp", { av: true }), lenker());
     const angre = sp.angre ? R.ui.lenke("↶ " + R.t("Angre «Stopp» for {navn}", { navn: R.navn(sp.angre.i) }), "angre") : "";
     if (sp.valgt == null) {
       const pott = sp.pott[i];
@@ -361,9 +384,162 @@
       ${R.ui.poengliste(rader(sp))}
       ${prisHtml(sp)}
       <div class="stabel">${R.ui.knapp2(R.t("Se fasiten"), "fasit", { ikon: "📋" })}</div>
-      ${R.ui.flereSpill({ antall: sp.deltakere })}
-      ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+      ${
+        paNett(sp)
+          ? R.nett.sluttDokk()
+          : `${R.ui.flereSpill({ antall: sp.deltakere })}
+      ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`
+      }`;
   }
+
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Moves from the seat whose turn it is: { pos: 3, svar: "true" } answers the item at place 3 on
+  // the ring; { stopp: 1 } banks the pot. { runde: r } from the one who begins round r starts it.
+  // Anything else, or anything the rules don't allow now, is ignored on every phone. When the last
+  // round is over, so is the match (each phone goes to «Kåringen» itself). No «Angre» on the net:
+  // the others have seen the «Stopp». The categories, the difficulty and the rounds are the host's.
+
+  // An answer on the net (the state only, as the action does it on one phone). Null if it cannot be given.
+  function svarTilstand(sp, pos, v) {
+    const kort = kortNa(sp);
+    if (!Number.isInteger(pos) || pos < 0 || pos > 9 || sp.apne[pos] || !svarValg(kort).some((x) => x.v === v)) return null;
+    const n = sp.ring[pos];
+    const i = sp.tur;
+    const riktig = v === fasit(kort, n);
+    const tapt = riktig ? 0 : sp.pott[i];
+    sp.apne[pos] = { i, svar: v, riktig };
+    sp.valgt = null;
+    sp.angre = null;
+    if (riktig) {
+      sp.pott[i] += 1;
+      sp.topp[i] = Math.max(sp.topp[i] || 0, sp.pott[i]);
+    } else {
+      sp.tapt[i] = sp.pott[i];
+      sp.pott[i] = 0;
+      sp.status[i] = "ute";
+    }
+    videre(sp, i);
+    return { kort, n, i, riktig, tapt };
+  }
+  // The match is over (the state only): the most points wins, among the seats still in.
+  function sluttNett(sp) {
+    sp.ferdig = true;
+    const med = rader(sp);
+    const topp = Math.max(0, ...med.map((r) => r.poeng));
+    sp.vinnere = topp > 0 ? med.filter((r) => r.poeng === topp).map((r) => r.i) : [];
+  }
+  const sisteRundeOver = (sp) => sp.fase === "ferdig" && sp.runde + 1 >= sp.runder;
+  // After an answer or a «Stopp» on the screen: what happened, and whose turn it is.
+  function siEtter(sp, riktig, kort, n) {
+    if (sp.fase === "ferdig") {
+      R.lyd.pling();
+      R.si(`${R.t("Runden er over.")} ${R.ramsOpp(sp.logg[sp.logg.length - 1].pluss.map((p, k) => `${R.navn(k)} ${p > 0 ? "+" + p : "0"}`))}.`);
+    } else if (kort) R.si(`${riktig ? R.t("Riktig") : R.t("Feil")}: ${ren(kort.a[n][0])}, ${ren(fasitTekst(kort, n))}. ${R.t("{navn} har tur.", { navn: R.navn(sp.tur) })}`);
+  }
+
+  const NETT = {
+    min: 2,
+    maks: 8,
+    oppsett: (S) => ({ kategorier: S.oppsett.kategorier.slice(), niva: S.oppsett.niva, runder: S.oppsett.runder }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      const antall = (Array.isArray(x.kategorier) ? x.kategorier : []).filter((id) => KAT[id]).length;
+      return [antall && antall < ALLE_KAT.length ? R.flertall(antall, "kategori", "kategorier") : R.t("Alle kategorier"), NIVANAVN[x.niva] || NIVANAVN.blandet, R.flertall(RUNDER.includes(x.runder) ? x.runder : 5, "runde", "runder")].join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const kategorier = (Array.isArray(o.kategorier) ? o.kategorier : []).filter((id) => KAT[id]);
+      const filter = { kategorier: kategorier.length ? kategorier : ALLE_KAT.slice(), niva: NIVAER.includes(o.niva) ? o.niva : "blandet" };
+      const runder = RUNDER.includes(o.runder) ? o.runder : 5;
+      // The cards: those that fit the setup in the room's order, then the rest of those categories.
+      const rng = R.nett.tilfeldig(okt.fro, "kort");
+      const alle = ALLE.map((_, i) => i);
+      let kort = R.stokk(alle.filter((i) => passer(filter, ALLE[i])), rng)
+        .concat(R.stokk(alle.filter((i) => !passer(filter, ALLE[i]) && filter.kategorier.includes(ALLE[i].k)), rng))
+        .slice(0, runder);
+      if (!kort.length) kort = R.stokk(alle, rng).slice(0, runder);
+      const n = R.klamp(okt.antall || 2, 2, 8);
+      const sp = { nett: true, deltakere: n, runder: kort.length, kort, sum: Array(n).fill(0), topp: Array(n).fill(0), logg: [], ferdig: false, forste: (okt.kamp - 1) % n, ute: [] };
+      startRunde(sp, 0, R.nett.tilfeldig(okt.fro, "ring"));
+      S.spill = sp;
+      opptatt = false;
+      vistKaskade = "";
+      sisteStopp = -1e9;
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object") return;
+      const live = !okt.gjenspill && S.skjerm === "ring" && !opptatt;
+      if (sp.fase === "velg" && sete === sp.tur && typeof t.svar === "string") {
+        const r = svarTilstand(sp, t.pos, t.svar);
+        if (!r) return;
+        if (okt.gjenspill && sisteRundeOver(sp)) sluttNett(sp); // a finished match, replayed: the result
+        if (!live) return;
+        opptatt = true;
+        const fortsatt = R.vakt();
+        visSvar(t.pos, r.riktig, r.kort, r.n, r.i, r.tapt, sp.pott[r.i])
+          .catch((feil) => console.error(feil))
+          .then(() => {
+            opptatt = false;
+            if (!fortsatt() || R.S.spill !== sp) return;
+            R.vis();
+            siEtter(sp, r.riktig, r.kort, r.n);
+          });
+        return;
+      }
+      if (sp.fase === "velg" && sete === sp.tur && t.stopp === 1) {
+        const i = sp.tur;
+        const pott = sp.pott[i];
+        if (pott <= 0) return;
+        sp.status[i] = "stopp";
+        sp.valgt = null;
+        videre(sp, i);
+        if (okt.gjenspill && sisteRundeOver(sp)) sluttNett(sp);
+        if (!live) return;
+        R.lyd.takk();
+        R.vibrer(20);
+        R.vis();
+        R.si(R.t("{navn} stopper og tar med seg {poeng}.", { navn: R.navn(i), poeng: poengTekst(pott) }));
+        if (sp.fase === "ferdig") siEtter(sp);
+        return;
+      }
+      if (sp.fase === "ferdig" && t.runde === sp.runde + 1 && t.runde < sp.runder && sete === starterFor(sp, t.runde)) {
+        startRunde(sp, t.runde, okt.rng);
+        if (!live) return;
+        R.lyd.snu();
+        R.gaTil("ring");
+        R.si(`${R.t("Runde {n}.", { n: sp.runde + 1 })} ${R.t("{navn} begynner.", { navn: R.navn(sp.tur) })} ${kortNa(sp).s}`);
+      }
+    },
+    // The seat left: its pot is gone, it is skipped from now on and is not ranked.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !(sete >= 0 && sete < sp.deltakere) || forlot(sp, sete)) return;
+      sp.ute.push(sete);
+      sp.pott[sete] = 0;
+      if (sp.fase === "velg") {
+        sp.status[sete] = "borte";
+        if (sp.tur === sete) {
+          sp.valgt = null;
+          videre(sp, sete);
+        }
+      }
+      if (sp.deltakere - sp.ute.length < 2) {
+        if (sp.fase === "velg") avsluttRunde(sp);
+        sluttNett(sp);
+      } else if (okt.gjenspill && sisteRundeOver(sp)) sluttNett(sp);
+      if (okt.gjenspill || opptatt) return;
+      if (sp.ferdig && S.skjerm === "ring") return R.gaTil("slutt");
+      if (S.skjerm === "ring") R.vis();
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "ring"),
+    tur(S) {
+      const sp = S.spill;
+      if (!sp || sp.ferdig || sisteRundeOver(sp)) return null;
+      return sp.fase === "ferdig" ? starterFor(sp, sp.runde + 1) : sp.tur;
+    },
+    ferdig: (S) => !!S.spill && (S.spill.ferdig || sisteRundeOver(S.spill)),
+  };
 
   // ---------- The game ----------
 
@@ -371,6 +547,7 @@
     id: "tieren",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({ antall: 3, oppsett: standardOppsett(), spill: null }),
 
@@ -437,7 +614,7 @@
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
               fortsettTekst: sp ? R.t("Fortsett · runde {n} av {av}", { n: sp.runde + 1, av: sp.runder }) : "",
-              ekstraHtml: (sp && sp.ferdig ? R.ui.knapp2(R.t("Til kåringen"), "resultat") : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
+              ekstraHtml: (sp && sp.ferdig ? R.ui.knapp2(R.t("Til kåringen"), "resultat") : "") + (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
               ["2–8", R.t("spillere")],
@@ -507,7 +684,7 @@
         vis: sluttSkjerm,
         inn(S) {
           R.slippVaken();
-          if ((S.spill.vinnere || []).length) {
+          if ((S.spill.vinnere || []).length && (!paNett(S.spill) || S.spill.vinnere.some((i) => erJeg(S.spill, i)))) {
             R.lyd.fanfare();
             R.konfetti();
           } else R.lyd.pling();
@@ -569,6 +746,8 @@
         if (!sp || sp.fase !== "velg" || opptatt) return;
         const pos = Number(el.dataset.v);
         if (!Number.isInteger(pos) || pos < 0 || pos > 9 || sp.apne[pos]) return;
+        if (andres(sp, sp.tur)) return R.toast(R.t("Venter på {navn} …", { navn: R.navn(sp.tur) }));
+        if (!kanSpille(sp, sp.tur)) return;
         sp.valgt = sp.valgt === pos ? null : pos;
         sp.angre = null;
         if (sp.valgt != null) R.lyd.pop();
@@ -584,6 +763,8 @@
       async svar(el, e, S) {
         const sp = S.spill;
         if (!sp || sp.fase !== "velg" || sp.valgt == null || opptatt) return;
+        // On the net the answer goes to the room; it is revealed when it comes back.
+        if (paNett(sp)) return void (kanSpille(sp, sp.tur) && R.nett.send({ pos: sp.valgt, svar: String(el.dataset.v) }));
         const kort = kortNa(sp);
         const pos = sp.valgt;
         const n = sp.ring[pos];
@@ -634,6 +815,8 @@
           const ja = await R.bekreft(R.t("Stoppe nå?"), R.t("Da er runden over, og {navn} tar med seg {poeng}.", { navn: R.navn(i), poeng: poengTekst(pott) }), R.t("Stopp"), R.t("Fortsett"));
           if (!ja || !fortsatt() || R.S.spill !== sp || sp.fase !== "velg" || sp.tur !== i) return;
         }
+        // On the net «Stopp» goes to the room (and there is no «Angre»: the others have seen it).
+        if (paNett(sp)) return void (kanSpille(sp, i) && R.nett.send({ stopp: 1 }));
         sp.status[i] = "stopp";
         sp.valgt = null;
         videre(sp, i);
@@ -661,6 +844,15 @@
       nesteRunde(el, e, S) {
         const sp = S.spill;
         if (!sp || sp.fase !== "ferdig" || opptatt) return;
+        if (paNett(sp)) {
+          // The last round: every phone goes to «Kåringen» itself. Otherwise the one who begins
+          // the next round starts it, for everyone.
+          if (sp.runde + 1 >= sp.runder) {
+            if (!sp.ferdig) sluttNett(sp);
+            return R.gaTil("slutt");
+          }
+          return void (kanSpille(sp, starterFor(sp, sp.runde + 1)) && R.nett.send({ runde: sp.runde + 1 }));
+        }
         if (sp.runde + 1 >= sp.runder) return avsluttSpill(S);
         startRunde(sp, sp.runde + 1);
         R.lyd.snu();

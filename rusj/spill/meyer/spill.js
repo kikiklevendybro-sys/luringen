@@ -278,12 +278,27 @@
   const navnFor = (sp, i) => (erRobot(sp, i) ? ROBOTER[i - sp.mennesker] || ROBOTER[0] : R.navn(i));
   const avatarFor = (sp, i, st) =>
     erRobot(sp, i) ? `<span class="avatar my-robot ${st || ""}" style="--pf: var(--p${(i % 20) + 1})" aria-hidden="true">🤖</span>` : R.avatar(i, st);
+  // On the net (R.nett, rusj/kit/nett.js): seat i is player i on its own phone. The roll, the claim,
+  // the answer and «Ny runde» are moves, played when the room sends them back. The dice come from
+  // the room's chance for the roll (okt.rng): every phone computes them, but only the roller's shows
+  // them (the others see the cup) until the cup is lifted. (A modified phone could compute them from
+  // the room's seed, as it could any coming throw on the net: a game among friends.)
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
+  // Another phone has the move (on the net), so this one only watches.
+  const andres = (sp, i) => paNett(sp) && !R.nett.erMeg(i);
+  // May this phone act for seat i now? (Always off the net.)
+  const kanSpille = (sp, i) => !paNett(sp) || (R.nett.erMeg(i) && !R.nett.venter());
+  // The dice under the cup that this phone may draw: on the net only the roller's phone has them.
+  const synligKast = (sp) => (andres(sp, sp.tur) ? null : sp.kast);
 
   let H;
   let robotId = null;
   let robotSteg = -1; // the step the phone's pending move belongs to
   let rister = false; // the cup is shaking
   let animerSteg = -1; // the step whose result should be animated (not after a reload)
+  let ristId = null; // on the net: when the shake shown on this phone ends
+  let ristSlutt = 0;
 
   // ---------- Dice ----------
   // Flat faces (tiles, lives, rules); the dice under the cup are real 3D dice in the kit's tray
@@ -369,7 +384,7 @@
     const klasse = ["my-brett", o.rister ? "rister" : "", o.kikker ? "kikker" : "", o.loftet ? "loftet" : "", o.anim ? "anim" : ""].filter(Boolean).join(" ");
     if (o.kast) sistKast = o.kast;
     return `<div class="${klasse}" id="my-brett">
-      ${R.terninger.html({ id: BRETT, klasse: "my-filt", verdier: sp.kast || sistKast, hold: false, knapper: false, plass: 7.5 })}
+      ${R.terninger.html({ id: BRETT, klasse: "my-filt", verdier: synligKast(sp) || sistKast, hold: false, knapper: false, plass: 7.5 })}
       <span class="my-beger">${BEGER}</span>
       ${o.stempel || ""}
     </div>`;
@@ -397,6 +412,8 @@
     const a = navnFor(sp, u.av);
     const s = navnFor(sp, u.svarer);
     if (u.type === "felles") return { tittel: R.t("Fellesrunde!"), tekst: R.t("{navn} trodde på det. Ingen mister liv – ny runde.", { navn: s }) };
+    // On the net: the last but one player left the match.
+    if (u.type === "borte") return { tittel: R.t("{navn} forlot kampen", { navn: a }), tekst: "" };
     const t = navnFor(sp, u.taper);
     const ute = u.ute ? " " + R.t("{navn} er ute!", { navn: t }) : "";
     if (u.type === "godta") return { tittel: R.t("{navn} godtar Meyer", { navn: s }), tekst: R.t("{navn} mister ett liv uten å løfte.", { navn: s }) + ute };
@@ -568,7 +585,7 @@
     R.lyd.pop();
     R.vibrer(10);
     const s = svarer(sp);
-    R.si(R.t("{navn} sier {verdi}.", { navn: navnFor(sp, sp.melding.av), verdi: navn(v) }) + (erRobot(sp, s) ? "" : " " + R.t("Gi mobilen til {navn}.", { navn: navnFor(sp, s) })));
+    R.si(R.t("{navn} sier {verdi}.", { navn: navnFor(sp, sp.melding.av), verdi: navn(v) }) + (erRobot(sp, s) || paNett(sp) ? "" : " " + R.t("Gi mobilen til {navn}.", { navn: navnFor(sp, s) })));
     R.vis();
     return true;
   }
@@ -583,14 +600,14 @@
         R.lyd.pling();
         R.si(R.t("{navn} tror det. Fellesrunde – ingen mister liv.", { navn: navnFor(sp, s) }));
       } else R.si(R.t("{navn} tror på {verdi} og må slå det.", { navn: navnFor(sp, s), verdi: navn(v) }));
-      if (erRobot(sp, s)) R.toast(R.t("{navn} tror det", { navn: navnFor(sp, s) }));
+      if (erRobot(sp, s) || andres(sp, s)) R.toast(R.t("{navn} tror det", { navn: navnFor(sp, s) }));
       R.vis();
       return;
     }
     const ok = valg === "godta" ? godta(sp) : loft(sp);
     if (!ok) return;
     animerSteg = sp.steg;
-    if (erRobot(sp, s)) R.toast(valg === "godta" ? R.t("{navn} godtar Meyer", { navn: navnFor(sp, s) }) : R.t("{navn} roper «Løgn!»", { navn: navnFor(sp, s) }));
+    if (erRobot(sp, s) || andres(sp, s)) R.toast(valg === "godta" ? R.t("{navn} godtar Meyer", { navn: navnFor(sp, s) }) : R.t("{navn} roper «Løgn!»", { navn: navnFor(sp, s) }));
     R.vis();
     avslor(sp);
   }
@@ -616,6 +633,138 @@
     R.si(`${r.tittel} ${r.tekst}`);
   }
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Moves: { rist: 1 } from the seat whose turn it is shakes the cup (the dice from okt.rng);
+  // { meld: "64" } from the same seat says a value; { svar: "tro" | "loft" | "godta" } from the
+  // next seat still in answers; { runde: 1 } from the one who begins the next round starts it.
+  // Anything else, or anything the rules don't allow now, is ignored on every phone. Only humans
+  // play (no phone players); the setup is the host's lives and «Fellesrunde».
+
+  // The cup shakes on this phone (the roller's from its tap, the others' when the roll comes), then
+  // the screen shows what the state says: the roller's dice settle under the cup, on its phone only.
+  function nettRist(sp) {
+    if (!rister) {
+      rister = true;
+      ristSlutt = performance.now() + (R.rolig() ? 200 : 900);
+      R.vis();
+      rasle(8);
+      setTimeout(() => rasle(6), 280);
+      setTimeout(() => rasle(5), 560);
+      R.vibrer([14, 50, 14, 50, 14]);
+    }
+    clearTimeout(ristId);
+    ristId = setTimeout(() => {
+      ristId = null;
+      rister = false;
+      if (R.S.spill !== sp || R.S.skjerm !== "spill") return;
+      if (sp.fase === "skjult" && sp.kast) {
+        if (erJeg(sp, sp.tur)) {
+          R.terninger.kast(BRETT, { verdier: sp.kast, indekser: [0, 1], omrade: UNDER_BEGERET, rolig: true, lyd: false });
+          R.si(R.t("Terningene ligger under begeret. Hold fingeren på kortet for å se."));
+        }
+        klakk(0, 0.7);
+        klakk(0.08, 0.4);
+      }
+      R.vis();
+    }, Math.max(0, ristSlutt - performance.now()));
+  }
+
+  const NETT = {
+    min: 2,
+    maks: MAKS,
+    oppsett: (S) => ({ liv: S.oppsett.liv === 3 ? 3 : 6, felles: S.oppsett.felles !== false }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      return [R.t("{antall} hver", { antall: R.flertall(x.liv === 3 ? 3 : 6, "liv", "liv") }), x.felles !== false ? navn(FELLES) : ""].filter(Boolean).join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const antall = R.klamp(okt.antall || 2, 2, MAKS);
+      // Who begins moves on one seat per match.
+      const sp = nytt({ antall, mennesker: antall, liv: o.liv === 3 ? 3 : 6, felles: o.felles !== false, starter: (okt.kamp - 1) % antall });
+      S.spill = Object.assign(sp, { modus: "nett", registrert: true, forlot: [] });
+      stoppRobot();
+      clearTimeout(ristId);
+      ristId = null;
+      rister = false;
+      animerSteg = -1;
+      sistKast = [6, 5];
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || sp.vinner != null || !t || typeof t !== "object") return;
+      const live = !okt.gjenspill && S.skjerm === "spill";
+      if (t.rist === 1) {
+        if (sp.fase !== "rist" || sete !== sp.tur) return;
+        rull(sp, [1 + Math.floor(okt.rng() * 6), 1 + Math.floor(okt.rng() * 6)]);
+        if (live) nettRist(sp);
+        return;
+      }
+      if (typeof t.meld === "string") {
+        if (sp.fase !== "skjult" || sete !== sp.tur) return;
+        // (While the cup still shakes here, only the state changes; the screen follows.)
+        if (live && !rister) gjorMelding(sp, t.meld);
+        else meld(sp, t.meld);
+        return;
+      }
+      if (t.svar === "tro" || t.svar === "loft" || t.svar === "godta") {
+        if (sp.fase !== "svar" || sete !== svarer(sp)) return;
+        if (live && !rister) svar(sp, t.svar);
+        else ({ tro, loft, godta })[t.svar](sp);
+        if (okt.gjenspill && sp.vinner != null) sp.ferdig = true; // a finished match, replayed: the result
+        return;
+      }
+      if (t.runde === 1) {
+        if (sp.fase !== "resultat" || sete !== sp.starter || !nyRunde(sp) || !live) return;
+        R.lyd.klikk();
+        R.si(R.t("Runde {n}. {navn} begynner.", { n: sp.runde, navn: navnFor(sp, sp.tur) }));
+        R.vis();
+      }
+    },
+    // The seat left the match: it is out (no lives), and the next one still in takes over what it
+    // was doing. A claim it made still stands and can be lifted. When one is left, that one wins.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !(sete >= 0 && sete < sp.antall)) return;
+      if (!sp.forlot.includes(sete)) sp.forlot.push(sete);
+      if (sp.liv[sete] > 0) {
+        sp.liv[sete] = 0;
+        sp.ute.push(sete);
+        sp.uteRunde[sete] = sp.runde;
+      }
+      sp.steg++;
+      if (sp.vinner == null) {
+        const rest = igjen(sp);
+        if (rest.length <= 1) {
+          sp.vinner = rest.length ? rest[0] : sete;
+          if (sp.fase !== "resultat") {
+            sp.utfall = { type: "borte", av: sete, svarer: sete };
+            sp.fase = "resultat";
+          }
+        } else if ((sp.fase === "rist" || sp.fase === "skjult") && sp.tur === sete) {
+          // The cup goes on to the next one, who must beat what was said (or begins the round).
+          sp.tur = neste(sp, sete);
+          sp.kast = null;
+          sp.valgt = null;
+          sp.fase = "rist";
+        } else if (sp.fase === "resultat" && sp.starter === sete) sp.starter = neste(sp, sete);
+        // (While a claim waits for an answer, svarer() already skips the seat that left.)
+      }
+      if (okt.gjenspill && sp.vinner != null) sp.ferdig = true;
+      if (!okt.gjenspill && S.skjerm === "spill" && !rister) R.vis();
+    },
+    // Every phone goes to «Kåringen» itself when the last one standing is known.
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "spill"),
+    tur(S) {
+      const sp = S.spill;
+      if (!sp || sp.ferdig || sp.vinner != null) return null;
+      if (sp.fase === "svar") return svarer(sp);
+      if (sp.fase === "resultat") return sp.starter;
+      return sp.tur;
+    },
+    ferdig: (S) => !!S.spill && (S.spill.ferdig || S.spill.vinner != null),
+  };
+
   // ---------- Start ----------
 
   const STANDARD = { roboter: 0, nivaa: "middels", liv: 6, felles: true };
@@ -624,6 +773,7 @@
     id: "meyer",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({
       antall: Math.max(2, Math.min(MAKS, R.felles.navn.filter((n) => String(n || "").trim()).length || 3)),
@@ -683,7 +833,7 @@
     hemmelig: {
       innhold(S) {
         const sp = S.spill;
-        if (!sp || sp.fase !== "skjult" || !sp.kast || erRobot(sp, sp.tur)) return { html: "" };
+        if (!sp || sp.fase !== "skjult" || !sp.kast || erRobot(sp, sp.tur) || andres(sp, sp.tur)) return { html: "" };
         const e = verdi(sp.kast[0], sp.kast[1]);
         const v = sp.felles && e === "32" ? FELLES : e;
         const spes = navn(v) !== v;
@@ -706,7 +856,7 @@
               knapperHtml: R.ui.startKnapper({
                 pagar: pagar(S),
                 fortsettTekst: pagar(S) ? (sp.vinner != null ? R.t("Fortsett · se kåringen") : R.t("Fortsett · runde {n}", { n: sp.runde })) : "",
-                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+                ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [],
             }) +
@@ -749,34 +899,41 @@
           const sp = S.spill;
           const avslutt = R.ui.lenke(R.t("Avslutt"), "avslutt");
           const regler = R.ui.lenke(R.t("Rangeringen"), "regler");
-          // ----- Roll -----
-          if (sp.fase === "rist") {
+          // ----- Roll (on the net also while the cup still shakes after the roll) -----
+          if (sp.fase === "rist" || (rister && sp.fase === "skjult")) {
             const robot = erRobot(sp, sp.tur);
+            const andre = andres(sp, sp.tur); // on the net: another phone rolls, this one watches
             const f = forrigeV(sp);
+            const hvem = navnFor(sp, sp.tur);
             return `
               ${livRad(sp, sp.tur)}
               <div class="my-hode">
                 ${avatarFor(sp, sp.tur, "mid")}
-                <div><p class="etikett">${esc(robot ? `${R.t("Mobilen")} · ${NIVANAVN[sp.nivaa]}` : f ? R.t("Du tror det – din tur") : R.t("Din tur"))}</p><h1 id="skjerm-tittel">${esc(navnFor(sp, sp.tur))}</h1></div>
+                <div><p class="etikett">${esc(robot ? `${R.t("Mobilen")} · ${NIVANAVN[sp.nivaa]}` : andre ? R.t("På tur") : f ? R.t("Du tror det – din tur") : R.t("Din tur"))}</p><h1 id="skjerm-tittel">${esc(hvem)}</h1></div>
               </div>
-              ${robot ? `<p class="my-maal">${f ? `${esc(R.t("{navn} må slå", { navn: navnFor(sp, sp.tur) }))} <b>${esc(navn(f))}</b>` : esc(R.t("{navn} begynner runden", { navn: navnFor(sp, sp.tur) }))}</p>` : maaSla(sp)}
+              ${robot || andre ? `<p class="my-maal">${f ? `${esc(R.t("{navn} må slå", { navn: hvem }))} <b>${esc(navn(f))}</b>` : esc(R.t("{navn} begynner runden", { navn: hvem }))}</p>` : maaSla(sp)}
               ${kjedeHtml(sp)}
               ${begerBrett(sp, { rister })}
               ${R.ui.dokk(
-                robot ? R.ui.knapp(R.t("{navn} rister …", { navn: navnFor(sp, sp.tur) }), "rist", { variant: "stor", av: true, ikon: "🤖" }) : R.ui.knapp(R.t("Rist begeret"), "rist", { variant: "stor", ikon: "🎲", av: rister }),
+                robot
+                  ? R.ui.knapp(R.t("{navn} rister …", { navn: hvem }), "rist", { variant: "stor", av: true, ikon: "🤖" })
+                  : andre
+                    ? R.ui.knapp(rister ? R.t("{navn} rister …", { navn: hvem }) : R.t("Venter på {navn} …", { navn: hvem }), "rist", { variant: "stor", av: true, ikon: "🎲" })
+                    : R.ui.knapp(R.t("Rist begeret"), "rist", { variant: "stor", ikon: "🎲", av: rister || (paNett(sp) && R.nett.venter()) }),
                 R.ui.lenkerad(regler, avslutt),
               )}`;
           }
           // ----- Peek and say something -----
           if (sp.fase === "skjult") {
-            if (erRobot(sp, sp.tur)) {
+            const andre = andres(sp, sp.tur);
+            if (erRobot(sp, sp.tur) || andre) {
               return `
                 ${livRad(sp, sp.tur)}
-                <div class="my-hode">${avatarFor(sp, sp.tur, "mid")}<div><p class="etikett">${esc(`${R.t("Mobilen")} · ${NIVANAVN[sp.nivaa]}`)}</p><h1 id="skjerm-tittel">${esc(navnFor(sp, sp.tur))}</h1></div></div>
+                <div class="my-hode">${avatarFor(sp, sp.tur, "mid")}<div><p class="etikett">${esc(andre ? R.t("På tur") : `${R.t("Mobilen")} · ${NIVANAVN[sp.nivaa]}`)}</p><h1 id="skjerm-tittel">${esc(navnFor(sp, sp.tur))}</h1></div></div>
                 <p class="my-maal">${esc(R.t("{navn} kikker under begeret …", { navn: navnFor(sp, sp.tur) }))}</p>
                 ${kjedeHtml(sp)}
                 ${begerBrett(sp, { kikker: true })}
-                ${R.ui.dokk(R.ui.knapp(R.t("{navn} tenker …", { navn: navnFor(sp, sp.tur) }), "meld", { variant: "stor", av: true, ikon: "🤖" }), R.ui.lenkerad(regler, avslutt))}`;
+                ${R.ui.dokk(R.ui.knapp(R.t("{navn} tenker …", { navn: navnFor(sp, sp.tur) }), "meld", { variant: "stor", av: true, ikon: andre ? "🤔" : "🤖" }), R.ui.lenkerad(regler, avslutt))}`;
             }
             const v = sp.valgt;
             return `
@@ -796,9 +953,10 @@
           if (sp.fase === "svar") {
             const s = svarer(sp);
             const robot = erRobot(sp, s);
+            const andre = andres(sp, s); // on the net: another phone answers, this one watches
             const m = sp.melding;
-            const knapper = robot
-              ? R.ui.knapp(R.t("{navn} tenker …", { navn: navnFor(sp, s) }), "tro", { variant: "stor", av: true, ikon: "🤖" })
+            const knapper = robot || andre
+              ? R.ui.knapp(R.t("{navn} tenker …", { navn: navnFor(sp, s) }), "tro", { variant: "stor", av: true, ikon: andre ? "🤔" : "🤖" })
               : m.v === MEYER
                 ? `<div class="knapprad my-svar">${R.ui.knapp(R.t("Godta Meyer"), "godta", { variant: "papir", etikett: R.t("Godta Meyer og mist ett liv") })}${R.ui.knapp(R.t("Løgn!"), "loft", { variant: "rod", ikon: "✋" })}</div>`
                 : `<div class="knapprad my-svar">${R.ui.knapp(R.t("Tror det"), "tro", { variant: "mynte", ikon: "👍" })}${R.ui.knapp(R.t("Løgn!"), "loft", { variant: "rod", ikon: "✋" })}</div>`;
@@ -806,12 +964,12 @@
               ${livRad(sp, s)}
               <div class="my-hode">
                 ${avatarFor(sp, s, "mid")}
-                <div><p class="etikett">${esc(robot ? `${R.t("Mobilen")} · ${NIVANAVN[sp.nivaa]}` : erRobot(sp, m.av) ? R.t("Din tur") : R.t("Gi mobilen til"))}</p><h1 id="skjerm-tittel">${esc(navnFor(sp, s))}</h1></div>
+                <div><p class="etikett">${esc(robot ? `${R.t("Mobilen")} · ${NIVANAVN[sp.nivaa]}` : andre ? R.t("På tur") : erRobot(sp, m.av) || paNett(sp) ? R.t("Din tur") : R.t("Gi mobilen til"))}</p><h1 id="skjerm-tittel">${esc(navnFor(sp, s))}</h1></div>
               </div>
               ${meldingKort(sp, m)}
               ${kjedeHtml(sp)}
               <p class="my-hint">${
-                robot
+                robot || andre
                   ? esc(R.t("{navn} tenker på om det er sant …", { navn: navnFor(sp, s) }))
                   : m.v === MEYER
                     ? esc(R.t("Meyer kan ikke slås. Løft – taperen mister to liv – eller godta og mist ett."))
@@ -839,7 +997,9 @@
             ${R.ui.dokk(
               ferdig
                 ? R.ui.knapp(R.t("Til kåringen"), "kaaring", { variant: "stor", ikon: "🏆" })
-                : folkInne
+                : andres(sp, sp.starter)
+                  ? R.ui.knapp(R.t("Venter på {navn} …", { navn: navnFor(sp, sp.starter) }), "runde", { variant: "stor", av: true })
+                  : folkInne
                   ? R.ui.knapp(R.t("Ny runde"), "runde", { variant: "stor", etikett: R.t("Ny runde – {navn} begynner", { navn: navnFor(sp, sp.starter) }) })
                   : R.ui.knapp(R.t("Mobilen spiller videre …"), "runde", { variant: "stor", av: true, ikon: "🤖" }),
               R.ui.lenkerad(regler, ferdig ? "" : avslutt),
@@ -873,7 +1033,14 @@
           const rang = rangering(sp);
           const ledere = sp.vinner != null ? [sp.vinner] : rang.filter((r) => r.liv === rang[0].liv).map((r) => r.i);
           const robotVant = ledere.every((i) => erRobot(sp, i));
-          const etikett = (r) => (r.i === sp.vinner ? R.t("{antall} igjen", { antall: R.flertall(r.liv, "liv", "liv") }) : r.liv > 0 ? R.t("{antall} igjen", { antall: R.flertall(r.liv, "liv", "liv") }) : R.t("ute i runde {n}", { n: sp.uteRunde[r.i] }));
+          const etikett = (r) =>
+            r.i === sp.vinner
+              ? R.t("{antall} igjen", { antall: R.flertall(r.liv, "liv", "liv") })
+              : r.liv > 0
+                ? R.t("{antall} igjen", { antall: R.flertall(r.liv, "liv", "liv") })
+                : (sp.forlot || []).includes(r.i)
+                  ? R.t("forlot kampen i runde {n}", { n: sp.uteRunde[r.i] })
+                  : R.t("ute i runde {n}", { n: sp.uteRunde[r.i] });
           // The kit's podium ranks by points: give places as points and write lives / round out on it.
           const rader = rang.map((r, k) => ({ i: r.i, poeng: rang.length - k, ...(erRobot(sp, r.i) ? { navn: navnFor(sp, r.i) } : {}) }));
           let pall = R.ui.pall(rader);
@@ -909,14 +1076,19 @@
             </div>
             ${pall}
             <section class="seksjon"><h2>${esc(R.t("Slik gikk det"))}</h2>${liste}</section>
-            ${R.ui.flereSpill({ antall: sp.mennesker })}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${
+              paNett(sp)
+                ? R.nett.sluttDokk()
+                : `${R.ui.flereSpill({ antall: sp.mennesker })}
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`
+            }`;
         },
         inn(S) {
           const sp = S.spill;
           if (!sp) return;
           const robotVant = sp.vinner != null && erRobot(sp, sp.vinner);
-          if (sp.vinner != null && !robotVant) {
+          // On the net: the fanfare on the winner's phone, a gentle note on the others.
+          if (sp.vinner != null && !robotVant && (!paNett(sp) || erJeg(sp, sp.vinner))) {
             R.lyd.fanfare();
             R.vibrer([40, 60, 120]);
             R.konfetti();
@@ -979,6 +1151,11 @@
       async rist(el, e, S, robot) {
         const sp = S.spill;
         if (!pagar(S) || sp.fase !== "rist" || rister) return;
+        if (paNett(sp)) {
+          // The roll goes to the room; the cup shakes here meanwhile, and the dice come back with it.
+          if (kanSpille(sp, sp.tur) && R.nett.send({ rist: 1 })) nettRist(sp);
+          return;
+        }
         if (erRobot(sp, sp.tur) !== !!robot) return;
         const steg = sp.steg;
         rister = true;
@@ -1000,9 +1177,10 @@
         if (!erRobot(sp, sp.tur)) R.si(R.t("Terningene ligger under begeret. Hold fingeren på kortet for å se."));
         R.vis();
       },
+      // (On the net the value picked is this phone's own until it is said: only «Si» is a move.)
       velg(el, e, S) {
         const sp = S.spill;
-        if (!pagar(S) || sp.fase !== "skjult" || erRobot(sp, sp.tur)) return;
+        if (!pagar(S) || sp.fase !== "skjult" || erRobot(sp, sp.tur) || !kanSpille(sp, sp.tur) || rister) return;
         const v = el.dataset.v;
         if (!lovlige(forrigeV(sp), sp.felles).includes(v)) return;
         sp.valgt = sp.valgt === v ? null : v;
@@ -1012,25 +1190,30 @@
       meld(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || sp.fase !== "skjult" || erRobot(sp, sp.tur) || !sp.valgt) return;
+        if (paNett(sp)) return void (kanSpille(sp, sp.tur) && !rister && R.nett.send({ meld: sp.valgt }));
         gjorMelding(sp, sp.valgt);
       },
       tro(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || sp.fase !== "svar" || erRobot(sp, svarer(sp))) return;
+        if (paNett(sp)) return void (kanSpille(sp, svarer(sp)) && R.nett.send({ svar: "tro" }));
         svar(sp, "tro");
       },
       loft(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || sp.fase !== "svar" || erRobot(sp, svarer(sp))) return;
+        if (paNett(sp)) return void (kanSpille(sp, svarer(sp)) && R.nett.send({ svar: "loft" }));
         svar(sp, "loft");
       },
       godta(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || sp.fase !== "svar" || erRobot(sp, svarer(sp))) return;
+        if (paNett(sp)) return void (kanSpille(sp, svarer(sp)) && R.nett.send({ svar: "godta" }));
         svar(sp, "godta");
       },
       runde(el, e, S) {
         const sp = S.spill;
+        if (paNett(sp)) return void (pagar(S) && sp.fase === "resultat" && sp.vinner == null && kanSpille(sp, sp.starter) && R.nett.send({ runde: 1 }));
         if (!pagar(S) || !nyRunde(sp)) return;
         R.lyd.klikk();
         R.si(R.t("Runde {n}. {navn} begynner.", { n: sp.runde, navn: navnFor(sp, sp.tur) }));
@@ -1039,7 +1222,7 @@
       kaaring(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || sp.vinner == null) return;
-        lagreStat(S);
+        if (!paNett(sp)) lagreStat(S); // (on the net nothing is kept on this phone)
         sp.ferdig = true;
         R.gaTil("slutt");
       },

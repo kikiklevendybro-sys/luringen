@@ -52,7 +52,7 @@
     token: null,
     du: -1, // my seat
     navn: "", // my nickname
-    rom: null, // { spill, oppsett, fro, kamp, min, maks, startet, ferdig, seter }
+    rom: null, // { spill, oppsett, fro, kamp, min, maks, fortsett, startet, ferdig, seter }
     logg: [], // the moves applied, [[seat, move]]
     ute: new Set(), // seats that left a play-on match (from the «borte» moves in the list)
     oppsett: null, // the host's setup, before the room has it

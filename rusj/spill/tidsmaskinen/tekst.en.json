@@ -132,5 +132,7 @@
   "kort|kort": { "one": "card", "other": "cards" },
   "lag|lag": { "one": "team", "other": "teams" },
   "runde|runder": { "one": "round", "other": "rounds" },
-  "kategori|kategorier": { "one": "category", "other": "categories" }
+  "kategori|kategorier": { "one": "category", "other": "categories" },
+  "På tur": "Their turn",
+  "Kortet til {navn}": "{navn}'s card"
 }

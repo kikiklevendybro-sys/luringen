@@ -7,7 +7,8 @@
 // o: {
 //   lagret: the game's storage name ("reversi.v1"),
 //   offline: async (a) => …   play a little on A (against the phone), end on the home screen,
-//   trekk: async (p, sp) => … p has the turn: make one move and wait until p has played it,
+//   trekk: async (p, sp, andre) => … p has the turn: make one move and wait until p has played it
+//                              (andre: the other phones, to check what they show),
 //   utenTur: a selector the other phone taps out of turn (nothing may change), optional,
 //   nokkel: (sp) => …         the part of the state both phones must agree on,
 //   gjenoppkoble: (sp) => bool  when B closes its tab and comes back (once),
@@ -15,8 +16,11 @@
 //   vertStarter: true          the host taps «Start» (games for more than two),
 //   kamp2: async (a, b) => …   checks on match 2 (who starts),
 //   maksSteg: 400,
+//   skjerm: "spill"            the game's play screen («tur», «ring» …),
+//   forlat: '[data-h="avslutt"]'  what A taps to leave the match («#tilbake» where there is no «Avslutt»),
 // }
 export async function nettKamp(t, o) {
+  const SPILL = o.skjerm || "spill";
   const a = await t.telefon("A");
   const b = await t.telefon("B", { rolig: true });
   const LAGRET = t.nokkel(o.lagret);
@@ -51,8 +55,8 @@ export async function nettKamp(t, o) {
     await a.bilde("venterom-to");
     await a.klikk('[data-h="nett-start"]');
   }
-  await a.ventSkjerm("spill");
-  await b.ventSkjerm("spill");
+  await a.ventSkjerm(SPILL);
+  await b.ventSkjerm(SPILL);
   t.sjekk((await a.nettMeg()) === 0 && (await b.nettMeg()) === 1, "Plassene er ikke 0 (vert) og 1 (venn)");
   await a.bilde("kamp-start");
   await b.bilde("kamp-start");
@@ -99,7 +103,7 @@ export async function nettKamp(t, o) {
     const vent = (sist.get(p) || 0) + 600 - Date.now();
     if (vent > 0) await t.sov(vent);
     sist.set(p, Date.now());
-    await o.trekk(p, await p.spill());
+    await o.trekk(p, await p.spill(), [annen]);
     await likt(p, annen, `steg ${steg}`);
     if (steg === 6) {
       await p.bilde("midt-i-kampen");
@@ -116,13 +120,13 @@ export async function nettKamp(t, o) {
 
   // «Ny kamp»: both phones in match 2.
   await a.klikk('[data-h="nett-ny"]');
-  await a.vent(`Rusj.nett.kamp() === 2 && Rusj.S.skjerm === "spill"`, 10000);
-  await b.vent(`Rusj.nett.kamp() === 2 && Rusj.S.skjerm === "spill"`, 10000);
+  await a.vent(`Rusj.nett.kamp() === 2 && Rusj.S.skjerm === ${JSON.stringify(SPILL)}`, 10000);
+  await b.vent(`Rusj.nett.kamp() === 2 && Rusj.S.skjerm === ${JSON.stringify(SPILL)}`, 10000);
   if (o.kamp2) await o.kamp2(a, b);
   await b.bilde("ny-kamp");
 
   // A leaves during the match; B is told and goes home too.
-  await a.klikk('[data-h="avslutt"]');
+  await a.klikk(o.forlat || '[data-h="avslutt"]');
   await a.bilde("forlat-sporsmal");
   await a.klikk('#ark [data-h="ark-svar"][data-v="ja"]');
   await a.ventSkjerm("hjem");
@@ -138,7 +142,7 @@ export async function nettKamp(t, o) {
   t.sjekk(utenTid(await a.js(`localStorage.getItem(${JSON.stringify(LAGRET)})`)) === utenTid(lagret), "Spillet A hadde lagret, ble endret av nettkampen");
   t.sjekk(await a.finnes('[data-h="fortsett"]'), "«Fortsett» mangler etter nettkampen");
   await a.klikk('[data-h="fortsett"]');
-  await a.ventSkjerm("spill");
+  await a.ventSkjerm(SPILL);
   t.sjekk((await a.spill()).modus !== "nett", "«Fortsett» ga ikke spillet fra før nettkampen");
   await a.bilde("fortsett-mot-mobilen");
   return { a, b };

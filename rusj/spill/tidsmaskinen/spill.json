@@ -10,6 +10,7 @@
   "mobiler": "en",
   "tagger": ["quiz", "familie", "lag"],
   "rekkefolge": 35,
+  "nett": true,
   "sok": ["tidslinje", "tidslinjespill", "årstall", "historiequiz", "når skjedde det", "timeline"],
   "alias": ["tidslinja"],
   "i18n": {

@@ -105,5 +105,6 @@
   "runde|runder": { "one": "runde", "other": "runder" },
   "kategori|kategorier": { "one": "kategori", "other": "kategorier" },
   "kort|kort": { "one": "kort", "other": "kort" },
-  "ferdig runde|ferdige runder": { "one": "færdig runde", "other": "færdige runder" }
+  "ferdig runde|ferdige runder": { "one": "færdig runde", "other": "færdige runder" },
+  "forlot kampen": "forlod kampen"
 }
