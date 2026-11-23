@@ -12,6 +12,7 @@
   "rekkefolge": 86,
   "farge": "#f2b84b",
   "motMobilen": true,
+  "nett": true,
   "sok": ["knekk koden", "fargekode", "kodeknekker", "gjett koden", "fargespill", "logikkspill", "kodespill", "fargekodespill"],
   "i18n": {
     "en": {

@@ -74,6 +74,11 @@
   box-shadow: inset 0 0 0 2px var(--aksent), 0 0 14px color-mix(in srgb, var(--aksent) 30%, transparent);
 }
 
+/* On the net: a player who left the match */
+.do-andre li.ute {
+  opacity: 0.4;
+}
+
 .do-andre .avatar {
   flex: none;
   width: 32px;

@@ -124,19 +124,21 @@ function rom(id, antall, oppsett, fro = 20261115, kamp = 1) {
   const logg = [];
   const okt = (p, n, gjenspill = true) => ({ n, gjenspill, meg: p.meg, kamp, fro, oppsett, antall, rng: p.R.nett.tilfeldig(fro, n) });
   for (const p of tlf) p.def.nett.start(p.S, okt(p, null));
+  // As the kit plays a move: { $: "borte" } (the room's, for a seat that left a play-on match) goes to borte.
+  const spill = (p, s, t, n) => (t && t.$ === "borte" ? p.def.nett.borte(p.S, s, okt(p, n)) : p.def.nett.trekk(p.S, JSON.parse(JSON.stringify(t)), s, okt(p, n)));
   return {
     tlf,
     logg,
     trekk(sete, t) {
       const n = logg.length;
       logg.push([sete, t]);
-      for (const p of tlf) p.def.nett.trekk(p.S, JSON.parse(JSON.stringify(t)), sete, okt(p, n));
+      for (const p of tlf) spill(p, sete, t, n);
     },
     // A late phone: a fresh copy that replays the whole list.
     sen(meg) {
       const p = telefon(id, meg);
       p.def.nett.start(p.S, okt(p, null));
-      logg.forEach(([s, t], n) => p.def.nett.trekk(p.S, JSON.parse(JSON.stringify(t)), s, okt(p, n)));
+      logg.forEach(([s, t], n) => spill(p, s, t, n));
       return p;
     },
   };
@@ -606,4 +608,299 @@ test("Lykkegrisen: a whole game to 5000 for three on three phones – every roll
   likt(a, sen, (x) => ({ ...x, ferdig: true, resultat: null }));
   assert.ok(sen.S.spill.ferdig && sen.def.nett.skjerm(sen.S) === "slutt", "a finished match, replayed: the result");
   assert.equal(rom("lykkegrisen", 3, {}, 20261115, 2).tlf[0].S.spill.tur, 1, "match 2: the next seat begins");
+});
+
+test("Låsesmeden: two secret codes, guesses in turn answered by the owner's phone, the fair rule, the reveal", async () => {
+  const { createHash } = await import("node:crypto");
+  const hash = (kode, salt) => createHash("sha256").update(JSON.stringify({ kode, salt })).digest("hex");
+  const sov = () => new Promise((ok) => setTimeout(ok, 30));
+  // One match: each seat guesses by its own plan (from its history); svarFeil: B's lock lies once.
+  const kamp = (koder, plan, o = {}) => {
+    const r = rom("lasesmeden", 2, { niva: 2 }, 20261115, o.kamp || 1);
+    const [a, b] = r.tlf;
+    const M = a.window.Lasesmeden;
+    // (What «Lås koden» keeps on each phone: the code and its salt.)
+    for (const [p, i] of [[a, 0], [b, 1]]) Object.assign(p.S.spill, { egen: koder[i].slice(), salt: "salt" + i });
+    assert.equal(a.def.nett.skjerm(a.S), "lag");
+    r.trekk(0, { gjett: [0, 0, 0, 0] }); // nobody is ready: ignored
+    r.trekk(0, { klar: hash(koder[0], "salt0") });
+    r.trekk(0, { klar: "f".repeat(64) }); // only once
+    assert.equal(a.S.spill.hash[0], hash(koder[0], "salt0"));
+    assert.equal(a.def.nett.skjerm(a.S), "spill");
+    assert.equal(b.def.nett.skjerm(b.S), "lag", "B is still making its code");
+    assert.equal(a.def.nett.tur(a.S), null);
+    r.trekk(1, { klar: hash(koder[1], "salt1") });
+    assert.equal(a.def.nett.tur(a.S), a.S.spill.starter);
+    for (let steg = 0; steg < 40 && !a.S.spill.resultat; steg++) {
+      const s = a.def.nett.tur(a.S);
+      const eier = 1 - s;
+      const k = a.S.spill.runder[s].gjett.length;
+      const g = somJson(plan[s](a.S.spill.runder[s].gjett, M));
+      r.trekk(eier, { gjett: g }); // not your turn
+      r.trekk(s, { gjett: [9, 0, 0, 0] }); // no such colour
+      r.trekk(s, { gjett: g });
+      assert.deepEqual(somJson(a.S.spill.venter), { s, k, gjett: g });
+      assert.equal(a.def.nett.tur(a.S), null, "nobody's turn while the lock answers");
+      r.trekk(s, { gjett: g }); // waiting for the answer
+      const v = M.vurder(koder[eier], g);
+      const svar = o.svarFeil && eier === 1 && k === 0 ? { svar: k, s: v.svart === 0 ? 1 : 0, h: 0 } : { svar: k, s: v.svart, h: v.hvit };
+      r.trekk(s, svar); // the guesser cannot answer for the owner
+      r.trekk(eier, { ...svar, svar: k + 1 }); // another guess's number
+      r.trekk(eier, { svar: k, s: 3, h: 1 }); // impossible
+      assert.equal(a.S.spill.runder[s].gjett.length, k);
+      r.trekk(eier, svar);
+      assert.equal(a.S.spill.runder[s].gjett.length, k + 1);
+    }
+    return { r, a, b, M };
+  };
+  const kodene = [[0, 1, 2, 3], [5, 5, 4, 4]];
+  const smart = (hist, M) => M.mulige(2, hist)[0] || [0, 0, 0, 0]; // (after a lie nothing fits)
+  const dum = (hist) => [hist.length % 6, 0, 0, 0];
+  // A (the host, first) cracks the code; B gets its guess of the same number and misses: A wins.
+  const { r, a, b } = kamp(kodene, [smart, dum]);
+  const sp = () => a.S.spill;
+  assert.equal(sp().resultat.vinner, 0);
+  assert.equal(sp().runder[0].gjett.length, sp().runder[1].gjett.length, "the same number of guesses");
+  assert.ok(sp().runder[0].lost && !sp().runder[1].lost);
+  assert.equal(a.def.nett.skjerm(a.S), "slutt");
+  assert.equal(b.S.spill.egen.join(), "5,5,4,4");
+  assert.equal(a.S.spill.avslort[1], null, "A does not know B's code before the reveal");
+  assert.ok(!a.def.nett.ferdig(a.S) && a.def.nett.kanNy(a.S));
+  r.trekk(1, { avslor: { kode: [5, 5, 4, 4], salt: "salt1" } });
+  r.trekk(0, { avslor: { kode: [0, 1, 2, 3], salt: "salt0" } });
+  r.trekk(0, { avslor: { kode: [1, 1, 1, 1], salt: "x" } }); // only once
+  assert.ok(a.def.nett.ferdig(a.S));
+  likt(a, b, (x) => [x.klar, x.hash, x.runder.map((y) => [y.gjett, y.lost]), x.tur, x.resultat, x.avslort]);
+  const sen = r.sen(1);
+  likt(a, sen, (x) => [x.klar, x.hash, x.runder.map((y) => y.gjett), x.resultat, x.avslort]);
+  assert.ok(sen.S.spill.mistet, "a phone without its code knows it");
+  a.def.nett.etter(a.S, {});
+  await sov();
+  assert.match(a.def.skjermer.slutt.vis(a.S), /✓/, "A checks B's code against every answer");
+  // B cracks with the same number of guesses: a draw. Only B cracks: B wins (also when B began).
+  assert.equal(kamp([[1, 2, 3, 4], [1, 2, 3, 4]], [smart, smart]).a.S.spill.resultat.vinner, null);
+  assert.equal(kamp([[0, 0, 0, 0], [5, 4, 3, 2]], [dum, smart]).a.S.spill.resultat.vinner, 1);
+  const k2 = kamp(kodene, [dum, smart], { kamp: 2 });
+  assert.equal(k2.a.S.spill.starter, 1, "match 2: the guest guesses first");
+  assert.equal(k2.a.S.spill.resultat.vinner, 1);
+  // Nobody cracks within the ten guesses: a draw.
+  const ingen = kamp(kodene, [dum, dum]).a.S.spill;
+  assert.ok(ingen.resultat.vinner === null && ingen.runder.every((x) => x.gjett.length === 10 && !x.lost));
+  // A lock that lied about one answer is caught at the reveal.
+  const l = kamp(kodene, [smart, dum], { svarFeil: true });
+  for (const i of [1, 0]) l.r.trekk(i, { avslor: { kode: kodene[i], salt: "salt" + i } });
+  l.a.def.nett.etter(l.a.S, {});
+  await sov();
+  assert.match(l.a.def.skjermer.slutt.vis(l.a.S), /⚠/);
+});
+
+test("Tavla: a match to 3 with the cube on two phones – the same dice, whole turns checked, doubles taken and dropped", () => {
+  const T = regler("tavla", "RusjTavla");
+  const r = rom("tavla", 2, { mal: 3, kube: true });
+  const [a, b] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().modus, "nett");
+  assert.equal(sp().mal, 3);
+  assert.ok(sp().apning && sp().kast[0] !== sp().kast[1], "the opening roll: one die each");
+  assert.equal(sp().tur, sp().kast[0] > sp().kast[1] ? 0 : 1);
+  const rnd = T.rng(7);
+  let doblinger = 0;
+  let delvis = false;
+  for (let steg = 0; steg < 4000 && !a.def.nett.ferdig(a.S); steg++) {
+    const s = sp().tur;
+    if (sp().resultat) {
+      r.trekk(steg % 2, { kast: 1 }); // the game is over: no rolls
+      r.trekk(steg % 2, { neste: 1 });
+      continue;
+    }
+    if (sp().tilbud >= 0) {
+      const d = sp().tilbud;
+      assert.equal(a.def.nett.tur(a.S), 1 - d, "the one who must answer has the turn");
+      r.trekk(d, { ta: 1 }); // the one who offered cannot answer
+      assert.equal(sp().tilbud, d);
+      r.trekk(1 - d, doblinger === 1 ? { ta: 1 } : { slipp: 1 });
+      continue;
+    }
+    if (!sp().kast) {
+      r.trekk(1 - s, { kast: 1 }); // not your turn
+      r.trekk(s, { spill: [] }); // no dice yet
+      const kan = sp().kube && !sp().crawford && (sp().kubeEier === -1 || sp().kubeEier === s);
+      if (doblinger < 2 && kan && steg > 20 * (doblinger + 1)) {
+        doblinger++;
+        r.trekk(s, { doble: 1 });
+        assert.equal(sp().tilbud, s);
+        continue;
+      }
+      r.trekk(s, { kast: 1 });
+      continue;
+    }
+    const liste = T.velgTrekk(Int8Array.from(sp().pos), s, sp().rest, 2, rnd).map((m) => [m.f, m.t, m.d]);
+    if (liste.length) {
+      const n = sp().tur;
+      r.trekk(s, { spill: liste.slice(0, -1) }); // not the whole play
+      r.trekk(s, { spill: [[25, 1, 1]] }); // nonsense
+      r.trekk(1 - s, { spill: liste }); // not your turn
+      assert.ok(sp().kast && sp().tur === n);
+      delvis = true;
+    }
+    r.trekk(s, { spill: liste });
+  }
+  assert.ok(a.def.nett.ferdig(a.S), "the match did not end");
+  assert.ok(Math.max(...sp().poeng) >= 3);
+  assert.equal(doblinger, 2, "one double taken, one dropped");
+  assert.ok(delvis);
+  likt(a, b);
+  const sen = r.sen(1);
+  likt(a, sen, (x) => ({ ...x, ferdig: true }));
+  assert.equal(sen.def.nett.skjerm(sen.S), "slutt", "a finished match, replayed: the result");
+  const r2 = rom("tavla", 2, { mal: 9 }, 20261115, 2);
+  assert.equal(r2.tlf[0].S.spill.mal, 1, "an unknown length: one game");
+  likt(r2.tlf[0], r2.tlf[1]);
+});
+
+// A seeded chance for the phone players the tests let move.
+const tilfeldigFra = (fro) => {
+  let x = fro;
+  return () => (x = (x * 16807) % 2147483647) / 2147483647;
+};
+
+test("Hopperen: three phones, one leaves – its pegs go, its turns are skipped – the other two play to the end", () => {
+  const { Stjerne, Motor } = regler("hopperen", "Hopperen");
+  const r = rom("hopperen", 3, {});
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  const parti = () => Stjerne.spillUt(sp().plasser, sp().forste, sp().trekk, sp().seter);
+  assert.equal(sp().plasser, 3);
+  assert.deepEqual(somJson(sp().seter), [0, 2, 4]);
+  assert.equal(a.def.nett.tur(a.S), 0, "the host begins match 1");
+  const forste = Motor.velg(parti(), { niva: 2, tilfeldig: tilfeldigFra(1) });
+  r.trekk(1, { m: forste }); // not your turn (and not your peg)
+  r.trekk(0, { m: [forste[0], forste[0]] }); // nowhere
+  r.trekk(0, { m: "x" });
+  r.trekk(0, { m: [forste[0], 200] });
+  assert.equal(sp().trekk.length, 0);
+  const rnd = tilfeldigFra(7);
+  let ute = false;
+  for (let steg = 0; steg < 3000 && !a.def.nett.ferdig(a.S); steg++) {
+    const p = parti();
+    const s = p.tur;
+    if (!ute && sp().trekk.length >= 12 && s === 1) {
+      r.trekk(1, { $: "borte" }); // seat 1 leaves in the middle of its turn
+      r.trekk(1, { $: "borte" }); // (only once)
+      ute = true;
+      const q = parti();
+      assert.equal(Array.from(q.b).filter((x) => x === 1).length, 0, "its pegs are off the board");
+      assert.equal(q.tur, 2, "its turn is skipped");
+      assert.equal(a.def.nett.tur(a.S), 2);
+      continue;
+    }
+    const m = Motor.velg(p, { niva: 2, tilfeldig: rnd });
+    if (ute) r.trekk(1, { m }); // a seat that left plays no more
+    const n = sp().trekk.length;
+    r.trekk(s, { m });
+    assert.equal(sp().trekk.length, n + 1);
+    if (ute) assert.notEqual(parti().tur, 1);
+  }
+  assert.ok(ute && a.def.nett.ferdig(a.S), "the match did not end");
+  assert.ok([0, 2].includes(sp().resultat.vinner));
+  assert.equal(sp().resultat.grunn, "mal");
+  assert.equal(sp().resultat.plass[2], 1, "the seat that left is last");
+  likt(a, b);
+  likt(a, c);
+  const sen = r.sen(2);
+  likt(a, sen, (x) => ({ ...x, ferdig: true }));
+  assert.equal(sen.def.nett.skjerm(sen.S), "slutt", "a finished match, replayed: the result");
+  // Five players: the top point stays empty. Two of three leave: the last one wins.
+  assert.deepEqual(somJson(rom("hopperen", 5, {}).tlf[0].S.spill.seter), [0, 1, 2, 4, 5]);
+  const r3 = rom("hopperen", 3, {});
+  r3.trekk(2, { $: "borte" });
+  r3.trekk(0, { $: "borte" });
+  assert.deepEqual(somJson(r3.tlf[1].S.spill.resultat), { vinner: 1, grunn: "borte", plass: [1, 0, 2], iMal: [0, 0, 0] });
+  assert.ok(r3.tlf[1].def.nett.ferdig(r3.tlf[1].S));
+  assert.equal(rom("hopperen", 3, {}, 20261115, 2).tlf[0].S.spill.forste, 1, "match 2: the next seat begins");
+});
+
+test("Dobbelsekseren: draw dominoes to 50 for three phones, one leaves mid-round – its tiles go – the others play on", () => {
+  const D = regler("dobbelsekseren", "RusjDobbelsekseren");
+  const r = rom("dobbelsekseren", 3, { mal: 50, variant: "trekk" });
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().n, 3);
+  assert.equal(sp().mal, 50);
+  assert.deepEqual(somJson(sp().r.hender.map((h) => h.length)), [5, 5, 5], "draw game for three: five each");
+  assert.ok(sp().r.krav, "the first round opens with the highest double");
+  // One move by the rules, as a player would: the first tile that fits, else draw, else pass.
+  const trekk = () => {
+    const x = sp().r;
+    const lov = D.trekk(x.hender[x.tur], x.rekke, x.krav);
+    if (lov.length) return { legg: somJson(x.hender[x.tur][lov[0].i]), side: lov[0].side };
+    return sp().variant === "trekk" && x.bunke.length ? { trekk: 1 } : { pass: 1 };
+  };
+  const t0 = trekk();
+  r.trekk((sp().r.tur + 1) % 3, t0); // not your turn
+  r.trekk(sp().r.tur, { legg: [7, 7], side: "s" }); // no such tile
+  r.trekk(sp().r.tur, { pass: 1 }); // a tile fits: no passing
+  r.trekk(sp().r.tur, { trekk: 1 }); // … and no drawing
+  r.trekk(sp().r.tur, { runde: 1 }); // the round is not over
+  assert.equal(sp().r.logg.length, 0);
+  let ute = false;
+  let trukket = false;
+  for (let steg = 0; steg < 3000 && !a.def.nett.ferdig(a.S); steg++) {
+    if (sp().r.resultat) {
+      r.trekk(steg % 3, { runde: 1 });
+      continue;
+    }
+    if (!ute && sp().runde === 1 && sp().r.logg.length >= 4) {
+      const s = sp().r.tur;
+      const i = sp().r.hender[s].length;
+      r.trekk(s, { $: "borte" }); // the seat on turn leaves
+      ute = true;
+      assert.equal(sp().r.hender[s].length, 0);
+      assert.equal(sp().r.vekk.length, i, "its tiles left the game");
+      assert.notEqual(sp().r.tur, s, "its turn is skipped");
+      continue;
+    }
+    const t = trekk();
+    if (t.trekk) trukket = true;
+    r.trekk(sp().r.tur, t);
+  }
+  assert.ok(ute && trukket);
+  assert.ok(a.def.nett.ferdig(a.S), "the match did not end");
+  assert.ok(Math.max(...sp().poeng) >= 50);
+  likt(a, b);
+  likt(a, c);
+  const sen = r.sen(1);
+  likt(a, sen, (x) => ({ ...x, ferdig: true }));
+  assert.equal(sen.def.nett.skjerm(sen.S), "slutt", "a finished match, replayed: the result");
+  // Block dominoes to 100 for three: the opener leaves at once (any tile opens then); the next
+  // round is dealt to the two left, seven each (one round of two cannot reach 100).
+  const r4 = rom("dobbelsekseren", 3, { mal: 100, variant: "blokk" });
+  const x4 = () => r4.tlf[0].S.spill;
+  const aapner = x4().r.tur;
+  r4.trekk(aapner, { $: "borte" });
+  assert.equal(x4().r.krav, null);
+  for (let steg = 0; steg < 200 && !x4().r.resultat; steg++) {
+    const x = x4().r;
+    const lov = D.trekk(x.hender[x.tur], x.rekke, x.krav);
+    assert.notEqual(x.tur, aapner);
+    r4.trekk(x.tur, lov.length ? { legg: somJson(x.hender[x.tur][lov[0].i]), side: lov[0].side } : { pass: 1 });
+  }
+  assert.ok(x4().r.resultat && x4().r.resultat.vinner !== aapner);
+  r4.trekk(aapner, { runde: 1 }); // a seat that left taps nothing
+  assert.equal(x4().runde, 1);
+  r4.trekk((aapner + 1) % 3, { runde: 1 });
+  assert.equal(x4().runde, 2);
+  assert.deepEqual(somJson(x4().r.hender.map((h) => h.length)), [0, 1, 2].map((s) => (s === aapner ? 0 : 7)));
+  likt(r4.tlf[0], r4.tlf[1]);
+  likt(r4.tlf[0], r4.sen(2));
+  // Block dominoes for two: seven each; a blocked round goes to the lightest hand.
+  const r2 = rom("dobbelsekseren", 2, { mal: "en", variant: "blokk" }, 20261115, 2);
+  assert.deepEqual(somJson(r2.tlf[0].S.spill.r.hender.map((h) => h.length)), [7, 7]);
+  for (let steg = 0; steg < 200 && !r2.tlf[0].def.nett.ferdig(r2.tlf[0].S); steg++) {
+    const x = r2.tlf[0].S.spill.r;
+    const lov = D.trekk(x.hender[x.tur], x.rekke, x.krav);
+    r2.trekk(x.tur, lov.length ? { legg: somJson(x.hender[x.tur][lov[0].i]), side: lov[0].side } : { pass: 1 });
+  }
+  assert.ok(r2.tlf[0].def.nett.ferdig(r2.tlf[0].S) && r2.tlf[0].S.spill.r.resultat, "«Én runde»: the match is over");
+  likt(r2.tlf[0], r2.tlf[1]);
 });

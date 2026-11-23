@@ -13,6 +13,7 @@
   "farge": "#d8613f",
   "alder": 8,
   "motMobilen": true,
+  "nett": true,
   "sok": ["backgammon", "backgammon på norsk", "backgammon mot data", "backgammon for to", "brettspill", "terningspill", "doblingskube", "tavl"],
   "i18n": {
     "en": {

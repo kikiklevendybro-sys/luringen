@@ -128,5 +128,7 @@
   "Angret": "Undone",
   "Avslutte spillet?": "Quit the game?",
   "Spillet som er i gang, teller ikke. Dere kan alltid starte et nytt.": "The game in progress won't count. You can always start a new one.",
-  "Spill videre": "Keep playing"
+  "Spill videre": "Keep playing",
+  "De andre har gått – {navn} vinner!": "The others have gone – {navn} wins!",
+  "Vent på tur – {navn} spiller nå": "Wait your turn – {navn} is playing"
 }

@@ -175,5 +175,13 @@
   "spill|spill": {
     "one": "spil",
     "other": "spil"
-  }
+  },
+  "{navn} tenker på doblingen …": "{navn} tænker over doblingen …",
+  "{navn} vil doble til {n}. Tar du imot?": "{navn} vil doble til {n}. Tager du imod?",
+  "{navn} flytter {terninger}": "{navn} flytter {terninger}",
+  "{navn} tenker …": "{navn} tænker …",
+  "{navn} spiller …": "{navn} spiller …",
+  "Au! {navn} slo ut en brikke": "Av! {navn} slog en af dine brikker ud",
+  "Din tur.": "Din tur.",
+  "Vent på tur – {navn} spiller nå": "Vent på din tur – {navn} spiller nu"
 }

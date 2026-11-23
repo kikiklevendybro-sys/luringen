@@ -76,6 +76,11 @@
   color: var(--blekk);
 }
 
+/* On the net: a player who left the match */
+.hp-sete.ute {
+  opacity: 0.4;
+}
+
 .hp-setefigur {
   position: relative;
   display: block;

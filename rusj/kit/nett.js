@@ -239,7 +239,7 @@
     if (!m.spill || m.spill !== APP.id || !Array.isArray(m.seter) || !Array.isArray(m.logg)) return visFeil("ukjent");
     const forrige = N.rom;
     const forrigeLogg = N.logg;
-    N.rom = { spill: m.spill, oppsett: m.oppsett || {}, fro: m.fro >>> 0, kamp: m.kamp, min: m.min, maks: m.maks, startet: !!m.startet, ferdig: !!m.ferdig, seter: m.seter };
+    N.rom = { spill: m.spill, oppsett: m.oppsett || {}, fro: m.fro >>> 0, kamp: m.kamp, min: m.min, maks: m.maks, fortsett: !!m.fortsett, startet: !!m.startet, ferdig: !!m.ferdig, seter: m.seter };
     N.du = Number.isInteger(m.du) ? m.du : -1;
     if (m.token) N.token = m.token;
     N.tilkoblet = true;
