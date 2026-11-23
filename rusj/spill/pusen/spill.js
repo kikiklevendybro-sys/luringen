@@ -143,11 +143,12 @@
       const i = r.minne[p].indexOf(a);
       if (i >= 0) r.minne[p].splice(i, 1);
     },
-    // Everybody with an empty hand takes a card from the pond (while there are any).
+    // Everybody with an empty hand takes a card from the pond (while there are any) – except
+    // players who left a match on the net (r.borte, only there).
     fyll(r) {
       for (let i = 0; i < r.n; i++) {
         const p = (r.tur + i) % r.n;
-        if (!r.hender[p].length && r.dam.length) {
+        if (!r.hender[p].length && r.dam.length && !(r.borte && r.borte.includes(p))) {
           r.hender[p].push(r.dam.pop());
           Fisk.legg(r, p);
         }
@@ -386,12 +387,19 @@
   };
 
   // ---------- Players ----------
+  // sp.mot: "mobil" (you against the phone), "sammen" (together on one phone) or "nett" (each on
+  // their own phone, R.nett; see «On the net» below).
   const mot = (sp) => sp.mot === "mobil";
+  const sammen = (sp) => sp.mot === "sammen";
+  const paNett = (sp) => !!sp && sp.mot === "nett" && !!R.nett;
   const menneske = (sp, p) => !mot(sp) || p === 0;
-  // Whose eyes the table is seen with: you against the phone; together, the player whose turn it is.
-  const meg = (sp) => (mot(sp) ? 0 : sp.modus === "svarte" || sp.modus === "fisk" ? R.klamp(sp.seer | 0, 0, sp.n - 1) : 0);
-  const navn = (sp, p) => (!mot(sp) ? R.navn(p) : p === 0 ? R.t("Du") : sp.n === 2 ? R.t("Mobilen") : R.t("Mobil {n}", { n: p }));
-  const objekt = (sp, p) => (!mot(sp) ? R.navn(p) : p === 0 ? R.t("deg") : sp.n === 2 ? R.t("mobilen") : R.t("Mobil {n}", { n: p }));
+  // Whose eyes the table is seen with: you against the phone; together, the player whose turn it
+  // is; on the net, this phone's seat.
+  const meg = (sp) => (paNett(sp) ? R.klamp(R.nett.meg(), 0, sp.n - 1) : mot(sp) ? 0 : sp.modus === "svarte" || sp.modus === "fisk" ? R.klamp(sp.seer | 0, 0, sp.n - 1) : 0);
+  // Is it the turn of the one looking at the table? (On the net: this phone's seat.)
+  const visTur = (sp) => (paNett(sp) ? !sp.ferdig && sp.r.tur === meg(sp) : menneske(sp, sp.r.tur));
+  const navn = (sp, p) => (paNett(sp) ? (p === meg(sp) ? R.t("Du") : R.navn(p)) : !mot(sp) ? R.navn(p) : p === 0 ? R.t("Du") : sp.n === 2 ? R.t("Mobilen") : R.t("Mobil {n}", { n: p }));
+  const objekt = (sp, p) => (paNett(sp) ? (p === meg(sp) ? R.t("deg") : R.navn(p)) : !mot(sp) ? R.navn(p) : p === 0 ? R.t("deg") : sp.n === 2 ? R.t("mobilen") : R.t("Mobil {n}", { n: p }));
   const avatar = (sp, p, str = "") => (mot(sp) && p > 0 ? `<span class="avatar pu-mobil ${str}" aria-hidden="true">📱</span>` : R.avatar(p, str));
 
   // The phone players' dice; the seed moves on in the saved game, so a reload plays the same.
@@ -463,6 +471,14 @@
   function planlegg(S) {
     const sp = S.spill;
     const mitt = ++turNr;
+    // On the net there are no phone players: the moves come from the room. When the match is
+    // over, the table stays a moment, then the result.
+    if (paNett(sp)) {
+      if (!sp.ferdig || S.skjerm !== "spill") return;
+      const forbi = R.vakt();
+      setTimeout(() => mitt === turNr && forbi() && R.S === S && S.spill === sp && R.gaTil("slutt"), 1100 * FART());
+      return;
+    }
     if (!sp || sp.ferdig || S.skjerm !== "spill" || sp.port) return;
     const fortsatt = R.vakt();
     const nar = (ms, fn) => setTimeout(() => mitt === turNr && fortsatt() && S.spill === sp && !sp.ferdig && fn(), ms * FART());
@@ -719,7 +735,7 @@
     const r = sp.r;
     const jeg = meg(sp);
     const fra = Svarte.fra(r, r.tur);
-    const minTur = menneske(sp, r.tur) && r.taper == null && !sp.vist;
+    const minTur = visTur(sp) && r.taper == null && !sp.vist;
     const andre = Array.from({ length: sp.n }, (_, i) => i).filter((i) => i !== jeg);
     const seter = andre
       .map((p) =>
@@ -727,19 +743,19 @@
           na: r.tur === p && r.taper == null,
           ute: !r.hender[p].length,
           kort: r.hender[p].length,
-          info: r.hender[p].length ? R.flertall(r.hender[p].length, "kort", "kort") : r.taper === p ? "🐱" : R.t("Ferdig!"),
+          info: erBorte(sp, p) ? R.t("Forlot spillet") : r.hender[p].length ? R.flertall(r.hender[p].length, "kort", "kort") : r.taper === p ? "🐱" : R.t("Ferdig!"),
         }),
       )
       .join("");
     // The hand the turn draws from: face down. Your turn: each card is a button.
     let midt = "";
-    if (r.taper == null && fra >= 0 && !(sp.vist && !mot(sp))) {
+    if (r.taper == null && fra >= 0 && !(sp.vist && sammen(sp))) {
       const kort = r.hender[fra]
         .map((k, i) => (minTur ? kortHtml(k, { opp: false, h: "trekk", v: i, etikett: R.t("Kort {n} fra {navn}", { n: i + 1, navn: objekt(sp, fra) }) }) : kortHtml(k, { opp: false })))
         .join("");
       midt = `<div class="pu-trekk${minTur ? " din" : ""}">
-          <p class="pu-hint">${esc(minTur ? R.t("Trekk et kort fra {navn}", { navn: objekt(sp, fra) }) : fra === jeg && mot(sp) ? R.t("{navn} trekker fra deg …", { navn: navn(sp, r.tur) }) : R.t("{navn} trekker fra {mal} …", { navn: navn(sp, r.tur), mal: objekt(sp, fra) }))}</p>
-          ${fra === jeg && mot(sp) ? "" : rad(kort, r.hender[fra].length, "pu-bakrad")}
+          <p class="pu-hint">${esc(minTur ? R.t("Trekk et kort fra {navn}", { navn: objekt(sp, fra) }) : fra === jeg && !sammen(sp) ? R.t("{navn} trekker fra deg …", { navn: navn(sp, r.tur) }) : R.t("{navn} trekker fra {mal} …", { navn: navn(sp, r.tur), mal: objekt(sp, fra) }))}</p>
+          ${fra === jeg && !sammen(sp) ? "" : rad(kort, r.hender[fra].length, "pu-bakrad")}
         </div>`;
     }
     const min = r.hender[jeg];
@@ -751,7 +767,7 @@
       ${meldingHtml(sp)}
       <div class="pu-midt">${midt}</div>
       <div class="pu-min">
-        <p class="pu-hint">${esc(min.length ? (mot(sp) ? R.t("Dine kort") : R.t("Kortene til {navn}", { navn: R.navn(jeg) })) : R.t("Ingen kort igjen – du er ferdig!"))}${parene ? ` · ${esc(R.t("{n} par|{n} par", { n: parene }))}` : ""}</p>
+        <p class="pu-hint">${esc(min.length ? (!sammen(sp) ? R.t("Dine kort") : R.t("Kortene til {navn}", { navn: R.navn(jeg) })) : R.t("Ingen kort igjen – du er ferdig!"))}${parene ? ` · ${esc(R.t("{n} par|{n} par", { n: parene }))}` : ""}</p>
         ${rad(hand, min.length, "pu-hand")}
       </div>`;
   }
@@ -760,7 +776,7 @@
     const sp = S.spill;
     const r = sp.r;
     const jeg = meg(sp);
-    const minTur = menneske(sp, r.tur) && !Fisk.ferdig(r) && !sp.vist;
+    const minTur = visTur(sp) && !Fisk.ferdig(r) && !sp.vist;
     const andre = Array.from({ length: sp.n }, (_, i) => i).filter((i) => i !== jeg);
     const kan = andre.filter((i) => r.hender[i].length > 0);
     // The one to ask: chosen by a tap on a seat (with more than one to choose from).
@@ -773,7 +789,7 @@
           h: minTur && kan.length > 1 && r.hender[p].length ? "velg" : "",
           v: p,
           kort: r.hender[p].length,
-          info: `${R.flertall(r.hender[p].length, "kort", "kort")} · ${r.sett[p].map((a) => DYR[a].e).join("") || "–"}`,
+          info: `${erBorte(sp, p) ? R.t("Forlot spillet") : R.flertall(r.hender[p].length, "kort", "kort")} ·${r.sett[p].map((a) => DYR[a].e).join("") || "–"}`,
         }),
       )
       .join("");
@@ -807,7 +823,7 @@
         ${spm ? `<div class="pu-boble" aria-hidden="true">${avatar(sp, spm.p)}<b>${DYR[spm.a].e}?</b></div>` : ""}
       </div>
       <div class="pu-min">
-        <p class="pu-hint">${esc(minTur ? (sp.valgt >= 0 ? R.t("Trykk på et dyr for å spørre {mal}", { mal: objekt(sp, sp.valgt) }) : "") : mot(sp) ? R.t("Dine kort") : R.t("Kortene til {navn}", { navn: R.navn(jeg) }))}${sett.length ? ` · <span class="pu-sett" aria-label="${esc(R.t("Fire like: {n}", { n: sett.length }))}">${sett.map((a) => DYR[a].e).join("")}</span>` : ""}</p>
+        <p class="pu-hint">${esc(minTur ? (sp.valgt >= 0 ? R.t("Trykk på et dyr for å spørre {mal}", { mal: objekt(sp, sp.valgt) }) : "") : !sammen(sp) ? R.t("Dine kort") : R.t("Kortene til {navn}", { navn: R.navn(jeg) }))}${sett.length ? ` · <span class="pu-sett" aria-label="${esc(R.t("Fire like: {n}", { n: sett.length }))}">${sett.map((a) => DYR[a].e).join("")}</span>` : ""}</p>
         <div class="pu-grupper">${gruppeHtml}</div>
       </div>`;
   }
@@ -815,18 +831,19 @@
   // Størst vinner and Snapp: the other side at the top (turned round when two sit face to face).
   function siderHtml(sp, innholdTopp, innholdBunn, midt) {
     return `
-      <div class="pu-side-topp${mot(sp) ? "" : " snudd"}">${innholdTopp}</div>
+      <div class="pu-side-topp${sammen(sp) ? " snudd" : ""}">${innholdTopp}</div>
       ${meldingHtml(sp)}
       <div class="pu-midt pu-arena">${midt}</div>
       <div class="pu-side-bunn">${innholdBunn}</div>`;
   }
   // A deck to tap (face down, with the number of cards left), and what has been won.
-  function bunkeHtml(sp, p, igjen, aktiv, tekst) {
+  // merke: a label on a deck that cannot be tapped (on the net: «Klar!» while the other one turns).
+  function bunkeHtml(sp, p, igjen, aktiv, tekst, merke) {
     const etikett = R.t("{navn}: {n} kort igjen|{navn}: {n} kort igjen", { navn: navn(sp, p), n: igjen });
     const kort = igjen ? kortHtml(0, { opp: false }) + (igjen > 1 ? kortHtml(0, { opp: false, klasse: "bak2" }) : "") : "";
     return aktiv
       ? `<button class="pu-bunke aktiv" data-h="snu" data-v="${p}" aria-label="${esc(tekst + ". " + etikett)}">${kort}<span class="pu-bunke-tall">${igjen}</span><span class="pu-trykk">${esc(tekst)}</span></button>`
-      : `<div class="pu-bunke" role="img" aria-label="${esc(etikett)}">${kort}<span class="pu-bunke-tall">${igjen}</span></div>`;
+      : `<div class="pu-bunke" role="img" aria-label="${esc(merke ? merke + " " + etikett : etikett)}">${kort}<span class="pu-bunke-tall">${igjen}</span>${merke ? `<span class="pu-trykk" aria-hidden="true">${esc(merke)}</span>` : ""}</div>`;
   }
   const vunnetHtml = (sp, p, n) => `<span class="pu-vunnet">${avatar(sp, p)}<b>${esc(navn(sp, p))}</b><small>${esc(R.t("{n} vunnet", { n }))}</small></span>`;
 
@@ -846,6 +863,25 @@
     } else midt = `<p class="pu-hint">${esc(R.t("Snu kortet ditt – det største dyret vinner!"))}</p>`;
     const igjen = (p) => r.hender[p].length;
     const kanSnu = (p) => !Krig.ferdig(r) && !sp.klar[p];
+    if (paNett(sp)) {
+      // This phone's seat at the bottom, the other at the top (the battles too); a side that has
+      // tapped shows «Klar!» until the other has, and the cards turn.
+      const jeg = meg(sp);
+      const du = 1 - jeg;
+      const klar = (p) => (sp.klar[p] && !Krig.ferdig(r) ? R.t("Klar!") : "");
+      const slagene = s
+        ? s.runder
+            .map((x, i) => {
+              const kl = (p) => (s.vinner === p && i === s.runder.length - 1 ? " vinner" : "");
+              const skjult = s.skjult[i] ? `<span class="pu-skjult">${kortHtml(0, { opp: false })}${kortHtml(0, { opp: false })}</span>` : "";
+              return `<div class="pu-slag" style="--i:${i}">${kortHtml(x[du], { klasse: "topp" + kl(du) })}${kortHtml(x[jeg], { klasse: "bunn" + kl(jeg) })}</div>${skjult}`;
+            })
+            .join("")
+        : midt;
+      const toppN = `${vunnetHtml(sp, du, r.vunnet[du])}${bunkeHtml(sp, du, igjen(du), false, "", klar(du))}`;
+      const bunnN = `${bunkeHtml(sp, jeg, igjen(jeg), !sp.ferdig && kanSnu(jeg), R.t("Snu!"), klar(jeg))}${vunnetHtml(sp, jeg, r.vunnet[jeg])}`;
+      return siderHtml(sp, toppN, bunnN, `<div class="pu-slagene" style="--runder:${s ? s.runder.length : 1}">${slagene}</div>`);
+    }
     const topp = `${vunnetHtml(sp, 1, r.vunnet[1])}${bunkeHtml(sp, 1, igjen(1), !mot(sp) && kanSnu(1), sp.klar[1] ? R.t("Klar!") : R.t("Snu!"))}`;
     const bunn = `${bunkeHtml(sp, 0, igjen(0), kanSnu(0), sp.klar[0] ? R.t("Klar!") : R.t("Snu!"))}${vunnetHtml(sp, 0, r.vunnet[0])}`;
     return siderHtml(sp, topp, bunn, `<div class="pu-slagene" style="--runder:${s ? s.runder.length : 1}">${midt}</div>`);
@@ -899,9 +935,270 @@
         ${R.ui.giTil({ i: r.tur, h: "vis", knapp: R.t("Vis kortene mine"), advarsel: R.t("De andre ser bort"), prikker: [sp.n, r.tur] })}`;
     }
     const innhold = sp.modus === "svarte" ? svarteHtml(S) : sp.modus === "fisk" ? fiskHtml(S) : sp.modus === "krig" ? krigHtml(S) : snapHtml(S);
-    const videre = !mot(sp) && sp.vist ? R.ui.dokk(R.ui.knapp(R.t("Gi mobilen til {navn}", { navn: R.navn(r.tur) }), "videre")) : "";
+    const videre = sammen(sp) && sp.vist ? R.ui.dokk(R.ui.knapp(R.t("Gi mobilen til {navn}", { navn: R.navn(r.tur) }), "videre")) : "";
     return `<h1 class="vh" id="skjerm-tittel">${esc(MODUS[sp.modus].navn)}</h1>
-      <div class="pu-bord pu-${sp.modus}${mot(sp) ? "" : " sammen"}">${innhold}</div>${videre}`;
+      <div class="pu-bord pu-${sp.modus}${sammen(sp) ? " sammen" : ""}">${innhold}</div>${videre}`;
+  }
+
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Seat i is player i on its own phone, everyone a person (no phone players). Svarteper and Fisk
+  // for 2–4, Størst vinner for two (with more seats the room plays Svarteper). Snapp is never played
+  // on the net: it is a race to tap first, and the delays of the net would decide it.
+  // Every draw, question and «Snu!» is a move, played when the room sends it back – on every phone
+  // in the same order: Svarteper { k: i } (card i of the hand the turn draws from), Fisk { q, a }
+  // (ask seat q for animal a), Størst vinner { snu: 1 } (both tap, then the cards turn). Anything
+  // else, or anything the rules don't allow now (another seat's turn, a card that isn't there, an
+  // animal you don't hold), is ignored on every phone alike. The deck is shuffled from the room's
+  // seed and a hand is mixed after a draw with the move's own chance (okt.rng). Each phone shows
+  // only its own hand; a modified phone could work out the hidden cards from the seed – accepted,
+  // as for the dice: a game among friends who invited each other.
+  const NETTMODUSER = ["svarte", "fisk", "krig"];
+  const nettModus = (o, antall) => {
+    const m = o && NETTMODUSER.includes(o.modus) ? o.modus : "svarte";
+    return m === "krig" && antall > 2 ? "svarte" : m;
+  };
+  // Seats that left the match (the room's «borte» moves): their turns are skipped, they hold nothing.
+  const erBorte = (sp, i) => !!sp.borte && sp.borte.includes(i);
+  const inne = (sp) => alle(sp.n).filter((i) => !erBorte(sp, i));
+  // Whose turn it is (the title bar). In Størst vinner both turn at once: this phone until it has
+  // tapped, then the one who has not.
+  function nettTur(sp) {
+    const r = sp.r;
+    if (sp.ferdig) return null;
+    if (sp.modus === "krig") {
+      if (Krig.ferdig(r)) return null;
+      const jeg = R.nett.meg();
+      if ((jeg === 0 || jeg === 1) && !sp.klar[jeg]) return jeg;
+      return sp.klar[0] ? (sp.klar[1] ? null : 1) : 0;
+    }
+    if (sp.modus === "svarte") return r.taper == null ? r.tur : null;
+    return Fisk.ferdig(r) || Fisk.fast(r) ? null : r.tur;
+  }
+  const kanSende = (sp) => paNett(sp) && !sp.ferdig && nettTur(sp) === R.nett.meg() && !R.nett.venter();
+
+  // The match is over (state only, the same on every phone): what the result screen shows.
+  function nettSlutt(sp) {
+    const r = sp.r;
+    sp.ferdig = true;
+    const med = inne(sp);
+    if (sp.modus === "svarte") {
+      const plass = Svarte.plasser(r).filter((i) => !erBorte(sp, i));
+      sp.resultat = { poeng: alle(sp.n).map((i) => (erBorte(sp, i) || i === r.taper ? 0 : med.length - 1 - plass.indexOf(i))), vant: false, plass };
+    } else sp.resultat = { poeng: sp.modus === "fisk" ? r.sett.map((x) => x.length) : r.vunnet.slice(), vant: false };
+  }
+  // Did this phone win? (Svarteper: everyone who got away from the cat.)
+  function nettVant(sp) {
+    const jeg = meg(sp);
+    if (!sp.resultat) return false;
+    if (sp.modus === "svarte") return sp.r.taper !== jeg;
+    const p = sp.resultat.poeng;
+    return p[jeg] === Math.max(...inne(sp).map((i) => p[i]));
+  }
+
+  // Svarteper: the seat whose turn it is takes card k from the next hand.
+  function nettSvarte(sp, sete, t, okt, live) {
+    const r = sp.r;
+    if (sete !== r.tur || r.taper != null || !Number.isInteger(t.k)) return false;
+    const q = Svarte.fra(r, sete);
+    if (q < 0 || t.k < 0 || t.k >= r.hender[q].length) return false;
+    const x = Svarte.trekk(r, t.k, okt.rng);
+    if (!x) return false;
+    const jeg = meg(sp);
+    const hvem = navn(sp, x.p);
+    // Where the cat went is told only to the two who know: the one who took it and the one it came from.
+    if (x.par != null) logg(sp, R.t("{navn} fikk et par!", { navn: hvem }), x.p, DYR[x.par].e + DYR[x.par].e);
+    else if (x.kort === KATT && x.p === jeg) logg(sp, R.t("Du fikk katten! Mjau!"), x.p, "🐱");
+    else if (x.kort === KATT && x.q === jeg) logg(sp, R.t("{navn} tok katten fra deg!", { navn: hvem }), x.p, "🐱");
+    else logg(sp, R.t("{navn} trakk et kort.", { navn: hvem }), x.p, "");
+    if (live) {
+      if (x.par != null) R.lyd.riktig();
+      else if (x.kort === KATT && x.p === jeg) R.lyd.pop();
+      else if (x.kort === KATT && x.q === jeg) R.lyd.pling();
+      else R.lyd.snu();
+    }
+    const nye = r.ute.filter((i) => !sp.utMeldt.includes(i));
+    sp.utMeldt.push(...nye);
+    if (live) {
+      for (const i of nye) {
+        if (i === r.taper) continue;
+        if (i === jeg) {
+          R.lyd.fanfare();
+          R.si(R.t("Du er ferdig! Ingen kort igjen."));
+        } else R.si(R.t("{navn} er ferdig!", { navn: R.navn(i) }));
+      }
+    }
+    sp.sistTrukket = { p: x.p, kort: x.kort, par: x.par };
+    if (r.taper != null) nettSlutt(sp);
+    return true;
+  }
+
+  // Fisk: the seat whose turn it is asks seat q for animal a; the answer follows from the cards.
+  function nettFisk(sp, sete, t, live) {
+    const r = sp.r;
+    if (sete !== r.tur || !Number.isInteger(t.q) || !Number.isInteger(t.a) || t.a < 0 || t.a > 9 || erBorte(sp, t.q) || Fisk.fast(r) || !Fisk.lovlig(r, sete, t.q, t.a)) return false;
+    const x = Fisk.sporr(r, t.q, t.a);
+    if (!x) return false;
+    const dyr = DYR[x.a];
+    const hvem = navn(sp, x.p);
+    if (x.fikk) logg(sp, R.t("{navn} fikk {antall} av {mal}!", { navn: hvem, antall: R.flertall(x.fikk, "kort", "kort"), mal: objekt(sp, x.q) }), x.p, `${dyr.e}×${x.fikk}`);
+    else if (x.heldig) logg(sp, R.t("Fisk! {navn} trakk akkurat det dyret!", { navn: hvem }), x.p, `🎣${dyr.e}`);
+    else if (x.trakk != null) logg(sp, R.t("Fisk! {navn} trakk et kort.", { navn: hvem }), x.p, "🎣");
+    else logg(sp, R.t("Fisk! Men dammen er tom."), x.p, "🎣");
+    if (x.sett.length) logg(sp, R.t("{navn} fikk fire like!", { navn: hvem }), x.p, x.sett.map((a) => DYR[a].e.repeat(4)).join(" "));
+    if (live) {
+      if (x.fikk || x.heldig) R.lyd.riktig();
+      else if (x.trakk != null) R.lyd.sveip();
+      else R.lyd.pop();
+      if (x.sett.length) setTimeout(() => R.lyd.fanfare(), 300);
+    }
+    sp.sistSpurt = { p: x.p, q: x.q, a: x.a, fikk: x.fikk, trakk: x.trakk };
+    if (Fisk.ferdig(r) || Fisk.fast(r)) nettSlutt(sp);
+    return true;
+  }
+
+  // Størst vinner: each seat taps «Snu!» once; when both have, the cards turn.
+  function nettKrig(sp, sete, t, live) {
+    const r = sp.r;
+    if (t.snu !== 1 || sete > 1 || sp.klar[sete] || Krig.ferdig(r)) return false;
+    sp.klar[sete] = true;
+    if (!(sp.klar[0] && sp.klar[1])) {
+      if (live) R.lyd.klikk();
+      return true;
+    }
+    const s = Krig.slag(r);
+    sp.klar = [false, false];
+    if (s) {
+      const jeg = meg(sp);
+      const siste = s.runder[s.runder.length - 1];
+      if (s.vinner == null) logg(sp, R.t("Like store! Alle beholder sine."), -1, "🤝");
+      else {
+        const stor = DYR[art(siste[s.vinner])];
+        const tekst = s.vinner === jeg ? R.t("{dyr} vinner! Kortene er dine.", { dyr: stor.bestemt }) : R.t("{dyr} vinner! {navn} får kortene.", { dyr: stor.bestemt, navn: navn(sp, s.vinner) });
+        logg(sp, (s.runder.length > 1 ? R.t("Like store – en gang til!") + " " : "") + tekst, s.vinner, stor.e);
+      }
+      if (live) {
+        if (s.vinner === jeg) R.lyd.riktig();
+        else R.lyd.snu();
+      }
+    }
+    if (Krig.ferdig(r)) nettSlutt(sp);
+    return true;
+  }
+
+  const NETT = {
+    min: 2,
+    maks: 4,
+    // The host's game (the last one chosen in «Gjør klart») and its length; Snapp is played as Svarteper.
+    oppsett: (S) => ({ modus: MODUSER.includes(S.oppsett.modus) ? S.oppsett.modus : "svarte", lengde: S.oppsett.lengde === "lang" ? "lang" : "kort" }),
+    oppsettTekst(o) {
+      const x = o || {};
+      if (x.modus === "fisk") return MODUS.fisk.navn;
+      if (x.modus === "krig") return R.t("{spill} · {kort} (med flere enn to: {annet})", { spill: MODUS.krig.navn, kort: x.lengde === "lang" ? R.t("20 kort hver") : R.t("10 kort hver"), annet: MODUS.svarte.navn });
+      if (x.modus === "snap") return R.t("{spill} (Snapp kan ikke spilles på nett)", { spill: MODUS.svarte.navn });
+      return MODUS.svarte.navn;
+    },
+    start(S, okt) {
+      const antall = R.klamp(okt.antall || 2, 2, 4);
+      const o = okt.oppsett || {};
+      const modus = nettModus(o, antall);
+      const per = o.lengde === "lang" ? 20 : 10;
+      const forste = ((okt.kamp || 1) - 1) % antall; // who begins moves on one seat per match
+      const rng = R.rng(((okt.fro >>> 0) ^ R.hash("pusen")) >>> 0);
+      const r = modus === "svarte" ? Svarte.ny(antall, rng, forste) : modus === "fisk" ? Fisk.ny(antall, rng, forste) : Krig.ny(per, rng);
+      ++turNr;
+      S.spill = { modus, mot: "nett", n: antall, niva: 2, per, fro: 0, r, port: false, vist: false, seer: 0, valgt: -1, klar: [false, false], logg: null, ferdig: false, resultat: null, borte: [], utMeldt: [], sporsmal: null, loft: null, sistTrukket: null, sistSpurt: null };
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || !Number.isInteger(sete) || sete < 0 || sete >= sp.n || erBorte(sp, sete)) return;
+      const live = !okt.gjenspill && S.skjerm === "spill";
+      const ok = sp.modus === "svarte" ? nettSvarte(sp, sete, t, okt, live) : sp.modus === "fisk" ? nettFisk(sp, sete, t, live) : sp.modus === "krig" ? nettKrig(sp, sete, t, live) : false;
+      if (ok && live) {
+        R.vibrer(8);
+        R.vis();
+      }
+    },
+    // A seat left (play-on, FORTSETT): it is skipped from now on. Svarteper: its cards go to the next
+    // player still in who has cards (pairs laid down, the hand mixed), so the cat stays in the game.
+    // Fisk: its cards go back into the pond (shuffled), so every set can still be made; its sets stay
+    // on the table. When the rules say the game is over (one left with cards, all sets made), it is.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || !Number.isInteger(sete) || sete < 0 || sete >= sp.n || erBorte(sp, sete)) return;
+      sp.borte.push(sete);
+      if (sp.ferdig) return;
+      const r = sp.r;
+      const hand = r.hender[sete];
+      r.hender[sete] = [];
+      if (sp.modus === "svarte") {
+        if (!sp.utMeldt.includes(sete)) sp.utMeldt.push(sete);
+        const til = hand.length ? nesteAv(sp.n, sete, (i) => !erBorte(sp, i) && r.hender[i].length > 0) : -1;
+        if (til >= 0) {
+          const { hand: ny, par } = Svarte.kastPar([...r.hender[til], ...hand]);
+          r.hender[til] = bland(ny, okt.rng);
+          r.par[til].push(...par);
+          logg(sp, R.t("{navn} fikk kortene til {mal}.", { navn: navn(sp, til), mal: R.navn(sete) }), til, "🃏");
+        }
+        Svarte.oppdater(r);
+        if (r.taper == null && !r.hender[r.tur].length) r.tur = nesteAv(sp.n, r.tur, (i) => r.hender[i].length > 0);
+        for (const i of r.ute) if (!sp.utMeldt.includes(i)) sp.utMeldt.push(i);
+        if (r.taper != null) nettSlutt(sp);
+      } else if (sp.modus === "fisk") {
+        r.minne[sete] = [];
+        r.borte = sp.borte.slice();
+        if (hand.length) {
+          r.dam = bland(r.dam.concat(hand), okt.rng);
+          logg(sp, R.t("Kortene til {navn} ble lagt tilbake i dammen.", { navn: R.navn(sete) }), -1, "🎣");
+        }
+        Fisk.fyll(r);
+        if (!r.hender[r.tur].length) {
+          const x = nesteAv(sp.n, r.tur, (i) => r.hender[i].length > 0);
+          if (x >= 0) r.tur = x;
+        }
+        if (Fisk.ferdig(r) || Fisk.fast(r)) nettSlutt(sp);
+      } else nettSlutt(sp);
+      if (!okt.gjenspill && S.skjerm === "spill") R.vis();
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "spill"),
+    tur: (S) => (paNett(S.spill) ? nettTur(S.spill) : null),
+    ferdig: (S) => !!S.spill && !!S.spill.ferdig,
+  };
+
+  // The result on the net: each phone from its own seat; those who left are not ranked.
+  function sluttNettHtml(S) {
+    const sp = S.spill;
+    const r = sp.r;
+    const res = sp.resultat || { poeng: [], plass: [] };
+    const jeg = meg(sp);
+    const med = inne(sp);
+    let banner;
+    let liste;
+    if (sp.modus === "svarte") {
+      const plass = res.plass || [];
+      const taper = r.taper;
+      const forst = plass.length > 1 ? plass[0] : -1;
+      banner = R.ui.banner({
+        etikett: MODUS.svarte.navn,
+        tittel: taper === jeg ? R.t("Mjau! Du fikk katten") : forst === jeg ? R.t("Du ble ferdig først!") : forst >= 0 ? R.t("{navn} ble ferdig først!", { navn: R.navn(forst) }) : R.t("Du slapp unna katten!"),
+        tekstHtml: taper >= 0 ? `<span class="pu-sluttkatt">${KATTSVG}</span> ${esc(taper === jeg ? R.t("Katten Svarteper ble hos deg. Den gir deg en kos – prøv igjen!") : R.t("Katten Svarteper ble hos {navn}. Den gir en kos!", { navn: R.navn(taper) }))}` : "",
+        klasse: "aksent",
+        stemning: taper === jeg ? "" : "jubel",
+      });
+      liste = `<ol class="pu-stilling">${plass
+        .map((i, n) => `<li class="${n === 0 ? "leder" : ""}">${avatar(sp, i)}<b>${esc(navn(sp, i))}</b><span>${i === taper ? `<span class="pu-sluttkatt" role="img" aria-label="${esc(KATTENAVN)}">${KATTSVG}</span>` : esc(R.t("Nr. {n}", { n: n + 1 }))}</span></li>`)
+        .join("")}</ol>`;
+    } else {
+      const poeng = (i) => res.poeng[i] || 0;
+      const best = Math.max(...med.map(poeng));
+      const vinnere = med.filter((i) => poeng(i) === best);
+      const enhet = sp.modus === "fisk" ? R.t("fire like") : R.t("kort");
+      const etikett = MODUS[sp.modus].navn + (med.length === 2 ? " · " + med.map(poeng).join("–") + " " + enhet : "");
+      const tittel = vinnere.length === 1 && vinnere[0] === jeg ? R.t("Du vant!") : vinnere.length > 1 && med.length === 2 ? R.t("Uavgjort!") : R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(vinnere.map((i) => R.navn(i))), n: vinnere.length });
+      banner = R.ui.banner({ etikett, tittel, klasse: "aksent", stemning: "jubel" });
+      const rader = med.map((i) => ({ i, poeng: poeng(i) }));
+      liste = `${med.length >= 3 ? R.ui.pall(rader) : ""}${R.ui.poengliste(rader)}`;
+    }
+    return `${banner}${liste}${R.nett.sluttDokk()}`;
   }
 
   // ---------- Keys ----------
@@ -932,6 +1229,7 @@
     id: "pusen",
     versjon: 1,
     pagar: (S) => !!(S.spill && !S.spill.ferdig),
+    nett: NETT,
 
     tilstand: () => ({
       antall: 2,
@@ -1028,6 +1326,7 @@
               fortsettTekst: aktiv ? R.t("Fortsett · {spill}", { spill: MODUS[sp.modus].navn }) : "",
               startTekst: R.t("Start"),
               ekstraHtml:
+                (R.nett ? R.nett.knapp() : "") +
                 R.ui.lenke(R.t("Slik spiller du"), "regler") +
                 (sei.length || sist
                   ? `<section class="pu-rekorder" aria-label="${esc(R.t("Seirer mot mobilen"))}">${sei.length ? `<p class="etikett">${esc(R.t("Seirer mot mobilen"))}</p><ul>${sei.join("")}</ul>` : ""}${sist ? `<p class="pu-sistlinje">${esc(sist)}</p>` : ""}</section>`
@@ -1103,6 +1402,7 @@
         gjenoppta: "hjem",
         vis(S) {
           const sp = S.spill;
+          if (paNett(sp)) return sluttNettHtml(S);
           const res = sp.resultat || { poeng: [], vant: false };
           const r = sp.r;
           const rader = res.poeng.map((p, i) => ({ i, poeng: p, navn: navn(sp, i) }));
@@ -1150,7 +1450,8 @@
         inn(S) {
           const sp = S.spill;
           if (!sp || !sp.resultat) return;
-          if (!mot(sp) || sp.resultat.vant) {
+          // On the net: the fanfare on the winners' phones, a gentle note on the others.
+          if (paNett(sp) ? nettVant(sp) : !mot(sp) || sp.resultat.vant) {
             R.lyd.fanfare();
             R.vibrer([40, 60, 120]);
             R.konfetti();
@@ -1220,6 +1521,12 @@
       },
       trekk(el, e, S) {
         const sp = S.spill;
+        if (paNett(sp)) {
+          const i = Number(el.dataset.v);
+          const q = sp.modus === "svarte" && !sp.ferdig ? Svarte.fra(sp.r, sp.r.tur) : -1;
+          if (kanSende(sp) && q >= 0 && Number.isInteger(i) && i >= 0 && i < sp.r.hender[q].length) R.nett.send({ k: i });
+          return;
+        }
         if (!sp || sp.ferdig || sp.modus !== "svarte" || sp.port || sp.vist || !menneske(sp, sp.r.tur)) return;
         trekkSvarte(S, Number(el.dataset.v));
       },
@@ -1231,6 +1538,11 @@
       },
       sporr(el, e, S) {
         const sp = S.spill;
+        if (paNett(sp)) {
+          const a = Number(el.dataset.v);
+          if (sp.modus === "fisk" && kanSende(sp) && Fisk.lovlig(sp.r, sp.r.tur, sp.valgt, a)) R.nett.send({ q: sp.valgt, a });
+          return;
+        }
         if (!sp || sp.ferdig || sp.modus !== "fisk" || sp.port || sp.vist || !menneske(sp, sp.r.tur)) return;
         const a = Number(el.dataset.v);
         if (!Fisk.lovlig(sp.r, sp.r.tur, sp.valgt, a)) return;
@@ -1240,6 +1552,10 @@
       snu(el, e, S) {
         const sp = S.spill;
         if (!sp || sp.ferdig) return;
+        if (paNett(sp)) {
+          if (sp.modus === "krig" && kanSende(sp) && !sp.klar[meg(sp)]) R.nett.send({ snu: 1 });
+          return;
+        }
         const p = Number(el.dataset.v);
         if (sp.modus === "snap") {
           if (menneske(sp, p)) snu(S, p);

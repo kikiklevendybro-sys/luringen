@@ -157,5 +157,11 @@
   "Pusen 🐱 Jeg slo mobilen i {spill} ({stilling})! Klarer du det?": "Missen 🐱 Jeg slog mobilen i {spill} ({stilling})! Kan du gøre det?",
   "{n} × fire like": "{n} × fire ens",
   "Nr. {n}": "Nr. {n}",
-  "kort|kort": { "one": "kort", "other": "kort" }
+  "kort|kort": { "one": "kort", "other": "kort" },
+  "Forlot spillet": "Forlod spillet",
+  "{spill} · {kort} (med flere enn to: {annet})": "{spill} · {kort} (med flere end to: {annet})",
+  "{spill} (Snapp kan ikke spilles på nett)": "{spill} (Snap kan ikke spilles online)",
+  "{navn} fikk kortene til {mal}.": "{navn} fik kortene fra {mal}.",
+  "Kortene til {navn} ble lagt tilbake i dammen.": "Kortene fra {navn} kom tilbage i dammen.",
+  "Du ble ferdig først!": "Du blev færdig først!"
 }

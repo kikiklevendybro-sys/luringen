@@ -157,5 +157,11 @@
   "Pusen 🐱 Jeg slo mobilen i {spill} ({stilling})! Klarer du det?": "Kitty 🐱 I beat the phone at {spill} ({stilling})! Can you?",
   "{n} × fire like": "{n} × four of a kind",
   "Nr. {n}": "No. {n}",
-  "kort|kort": { "one": "card", "other": "cards" }
+  "kort|kort": { "one": "card", "other": "cards" },
+  "Forlot spillet": "Left the game",
+  "{spill} · {kort} (med flere enn to: {annet})": "{spill} · {kort} (with more than two: {annet})",
+  "{spill} (Snapp kan ikke spilles på nett)": "{spill} (Snap can't be played online)",
+  "{navn} fikk kortene til {mal}.": "{navn} got {mal}'s cards.",
+  "Kortene til {navn} ble lagt tilbake i dammen.": "{navn}'s cards went back into the pond.",
+  "Du ble ferdig først!": "You were out first!"
 }
