@@ -171,5 +171,7 @@
   "Dere går til kåringen. Hullet dere er midt i, teller ikke.": "I går til kåringen. Det hul, I er midt i, tæller ikke.",
   "Avslutte spillet?": "Afslutte spillet?",
   "kort|kort": { "one": "kort", "other": "kort" },
-  "hull|hull": { "one": "hul", "other": "huller" }
+  "hull|hull": { "one": "hul", "other": "huller" },
+  "Forlot kampen": "Forlod kampen",
+  "{navn} spiller …": "{navn} spiller …"
 }

@@ -166,6 +166,11 @@
   box-shadow: 0 0 0 2px var(--lampe);
 }
 
+/* On the net: a player who left the match (the grid stays, out of play). */
+.gb-sete.borte {
+  opacity: 0.5;
+}
+
 .gb-hode {
   display: flex;
   align-items: center;

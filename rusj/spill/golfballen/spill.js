@@ -363,7 +363,7 @@
       return Number.isInteger(r.tur) && r.tur >= 0 && r.tur < r.n;
     }
 
-    return { verdiAv, ANTALL, KOLONNER, MAKS_TURER, verdi, kolonner, makker, bland, poengFor, poeng, par, nyRunde, iTur, startKlar, klar, kanTrekke, kanTa, kanBanke, kanKaste, kanBytte, kanSnu, kanStartSnu, kanTitte, startSnu, titt, trekk, ta, bytt, kast, snu, bank, hel };
+    return { verdiAv, ANTALL, KOLONNER, MAKS_TURER, verdi, kolonner, makker, bland, poengFor, poeng, par, nyRunde, iTur, startKlar, klar, kanTrekke, kanTa, kanBanke, kanKaste, kanBytte, kanSnu, kanStartSnu, kanTitte, startSnu, titt, trekk, ta, bytt, kast, snu, bank, avslutt, hel };
   })();
 
   // ---------- The phone players ----------
@@ -587,13 +587,20 @@
   //   the grid waits behind «Vis kortene mine»), viser (looking at the bottom two), telt, ferdig,
   //   registrert }
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
-  const erMenneske = (sp, p) => sp.modus === "flere" || p === 0;
-  const navn = (sp, p) => (sp.modus === "flere" ? R.navn(p) : p === 0 ? R.t("Du") : sp.n === 2 ? R.t("Mobilen") : R.t("Mobil {n}", { n: p }));
-  const avatarNr = (sp, p) => (sp.modus === "flere" ? p : p === 0 ? 0 : 9 + p);
+  // On the net (R.nett, rusj/kit/nett.js): seat p is player p on its own phone (modus "nett").
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const erMenneske = (sp, p) => sp.modus === "flere" || sp.modus === "nett" || p === 0;
+  const navn = (sp, p) => (paNett(sp) ? (R.nett.erMeg(p) ? R.t("Du") : R.navn(p)) : sp.modus === "flere" ? R.navn(p) : p === 0 ? R.t("Du") : sp.n === 2 ? R.t("Mobilen") : R.t("Mobil {n}", { n: p }));
+  const avatarNr = (sp, p) => (sp.modus === "flere" || sp.modus === "nett" ? p : p === 0 ? 0 : 9 + p);
   const avatar = (sp, p, str) => R.avatar(avatarNr(sp, p), str);
-  const erDu = (sp, p) => sp.modus === "mobil" && p === 0;
-  // The grid shown at the bottom: yours against the phone, or the one whose turn it is.
-  const meg = (sp) => (sp.modus === "mobil" ? 0 : sp.r.tur);
+  const erDu = (sp, p) => (sp.modus === "mobil" && p === 0) || (paNett(sp) && R.nett.erMeg(p));
+  // The grid shown at the bottom: yours against the phone or on the net, or the one whose turn it is.
+  const meg = (sp) => (paNett(sp) ? R.nett.meg() : sp.modus === "mobil" ? 0 : sp.r.tur);
+  // On the net: my turn, and no move of mine still on its way.
+  const ledig = (sp) => !paNett(sp) || !R.nett.venter();
+  // The seats still in the match (on the net a seat that left drops out of the results and the
+  // ranking; its grid stays on the table, out of play).
+  const inne = (sp) => Array.from({ length: sp.n }, (_, p) => p).filter((p) => !(sp.ute || []).includes(p));
   const sum = (sp, p) => sp.poeng[p].reduce((a, b) => a + b, 0);
   const hullFerdig = (sp) => sp.r.fase === "ferdig";
   const kampFerdig = (sp) => hullFerdig(sp) && sp.poeng[0].length >= sp.hull;
@@ -661,7 +668,7 @@
     const r = sp.r;
     if (hullFerdig(sp)) return "";
     const p = r.tur;
-    if (!erMenneske(sp, p)) return R.t("{navn} tenker …", { navn: navn(sp, p) });
+    if (!erMenneske(sp, p) || (paNett(sp) && !R.nett.erMeg(p))) return R.t("{navn} tenker …", { navn: navn(sp, p) });
     const sist = r.slutt != null && r.slutt !== p ? R.t("Siste tur!") + " " : "";
     if (r.var === "seks" && !Golf.startKlar(r, p)) return r.startSnudd[p] ? R.t("Snu ett kort til.") : R.t("Snu to av kortene dine for å begynne.");
     if (r.var === "fire" && !r.tittet[p]) return R.t("Se på de to nederste kortene dine – og husk dem.");
@@ -699,11 +706,12 @@
     R.statistikk("start", { modus: o.modus, spillere: n, niva: o.modus === "mobil" ? o.niva : 0, kort: o.var === "fire" ? 4 : 6, hull: o.hull, toer: !!o.toer, snu: !!o.snu });
   }
 
-  function nyttHull(S) {
+  // (On the net the deal comes from the room's seed: rnd = hullRng.)
+  function nyttHull(S, rnd) {
     const sp = S.spill;
     sp.hullNr++;
     sp.giver = (sp.giver + 1 + sp.n) % sp.n;
-    sp.r = Golf.nyRunde({ n: sp.n, var: sp.var, regler: sp.regler, giver: sp.giver }, rng());
+    sp.r = Golf.nyRunde({ n: sp.n, var: sp.var, regler: sp.regler, giver: sp.giver }, rnd ? rnd(sp.hullNr) : rng());
     sp.port = trengerPort(sp);
     sp.viser = null;
     sp.telt = false;
@@ -718,8 +726,9 @@
     if (trengerPort(sp) && r.tur !== p) sp.port = true;
   }
 
-  // The hole is over: write the points, count the record after the last hole.
-  function ferdigHull(S) {
+  // The hole is over: write the points, count the record after the last hole. stille: state only
+  // (a move on the net replayed, or while another screen shows).
+  function ferdigHull(S, stille) {
     const sp = S.spill;
     if (sp.telt) return;
     sp.telt = true;
@@ -738,10 +747,12 @@
       } else if (mine === best) rek.uavgjort = (rek.uavgjort || 0) + 1;
       else rek.tap++;
     }
+    if (stille) return;
     setTimeout(() => {
       if (!fortsatt()) return;
-      const minst = Math.min(...r.resultat);
-      if (sp.modus === "mobil" && r.resultat[0] > minst) lyd.tap();
+      const minst = Math.min(...inne(sp).map((p) => r.resultat[p]));
+      const jeg = paNett(sp) ? R.nett.meg() : 0;
+      if ((sp.modus === "mobil" || paNett(sp)) && r.resultat[jeg] > minst) lyd.tap();
       else {
         R.lyd.riktig();
         R.vibrer([30, 50, 80]);
@@ -753,6 +764,8 @@
     const sp = S.spill;
     stoppMobil();
     sp.ferdig = true;
+    // (On the net the kit counts the match.)
+    if (paNett(sp)) return R.gaTil("slutt");
     R.statistikk("ferdig", { modus: sp.modus, spillere: sp.n, niva: sp.modus === "mobil" ? sp.niva : 0, hull: sp.poeng[0].length, kort: sp.var === "fire" ? 4 : 6 });
     R.gaTil("slutt");
   }
@@ -827,12 +840,13 @@
     return `<ul class="gb-andre seter-${seter.length}" aria-label="${esc(R.t("Rundt bordet"))}">${seter
       .map((p) => {
         const aktiv = !ferdig && p === r.tur;
-        const tenker = aktiv && !erMenneske(sp, p);
+        const tenker = aktiv && (!erMenneske(sp, p) || paNett(sp));
         const synlig = Golf.poeng(r, p, ferdig);
-        const linje = ferdig ? R.t("Hullet: {n}", { n: medFortegn(synlig) }) : r.var === "seks" ? R.t("Synlig: {n}", { n: medFortegn(synlig) }) : R.t("Totalt: {n}", { n: sum(sp, p) });
+        const borte = (sp.ute || []).includes(p);
+        const linje = borte ? R.t("Forlot kampen") : ferdig ? R.t("Hullet: {n}", { n: medFortegn(synlig) }) : r.var === "seks" ? R.t("Synlig: {n}", { n: medFortegn(synlig) }) : R.t("Totalt: {n}", { n: sum(sp, p) });
         const apne = r.rutenett[p].filter((x) => x.opp).length;
         const etikett = r.var === "seks" || ferdig ? R.t("{navn}: {apne} av {alle} kort åpne, {poeng} poeng synlig.", { navn: navn(sp, p), apne, alle: r.rutenett[p].length, poeng: synlig }) : R.t("{navn}: alle kortene ligger skjult.", { navn: navn(sp, p) });
-        return `<li class="gb-sete${aktiv ? " aktiv" : ""}${r.slutt === p ? " ute" : ""}">
+        return `<li class="gb-sete${aktiv ? " aktiv" : ""}${r.slutt === p ? " ute" : ""}${borte ? " borte" : ""}">
           <span class="gb-hode"><span class="gb-ava">${avatar(sp, p)}${tenker ? '<span class="gb-tenker" aria-hidden="true"><i></i><i></i><i></i></span>' : ""}</span>
           <span class="gb-info"><b class="gb-navn">${esc(navn(sp, p))}</b><span class="gb-linje">${esc(linje)}</span></span></span>
           <span class="gb-mini" role="img" aria-label="${esc(etikett)}">${rutenettHtml(sp, p, { liten: true, par: Golf.par(r, p) })}</span>
@@ -845,7 +859,7 @@
   function bordHtml(sp) {
     const r = sp.r;
     const p = meg(sp);
-    const minTur = !hullFerdig(sp) && erMenneske(sp, r.tur) && r.tur === p && sp.viser == null;
+    const minTur = !hullFerdig(sp) && erMenneske(sp, r.tur) && r.tur === p && sp.viser == null && ledig(sp);
     const kanTrekke = minTur && Golf.kanTrekke(r, p);
     const kanTa = minTur && Golf.kanTa(r, p);
     const kanKaste = minTur && Golf.kanKaste(r, p);
@@ -860,7 +874,8 @@
     else if (kanKaste) kastHtml = `<button class="gb-kast klar" data-h="kast" aria-label="${esc(kastEtikett + ". " + R.t("Kast kortet du trakk"))}">${kastInnhold}</button>`;
     else kastHtml = `<div class="gb-kast" role="img" aria-label="${esc(kastEtikett)}">${kastInnhold}</div>`;
     // The phone's drawn card stays hidden until it is placed or thrown; a taken discard is known.
-    const handOpp = r.hand != null && (r.fra === "kast" || erMenneske(sp, r.tur));
+    // On the net only the one who drew it sees it.
+    const handOpp = r.hand != null && (r.fra === "kast" || (erMenneske(sp, r.tur) && (!paNett(sp) || R.nett.erMeg(r.tur))));
     return `<div class="gb-bord">
       <button data-h="trekk" class="gb-stokk${kanTrekke ? " klar" : ""}" aria-label="${esc(R.t("Bunken, {antall}", { antall: R.flertall(r.stokk.length, "kort", "kort") }) + (kanTrekke ? ". " + R.t("Trekk et kort") : ""))}"${kanTrekke ? "" : ' aria-disabled="true"'}>
         ${r.stokk.length ? KORT.html(null, { klasse: "gb-stokkort" }) : '<span class="gb-tom" aria-hidden="true"></span>'}
@@ -878,7 +893,7 @@
     const r = sp.r;
     const p = meg(sp);
     const ferdig = hullFerdig(sp);
-    const minTur = !ferdig && erMenneske(sp, r.tur) && r.tur === p;
+    const minTur = !ferdig && erMenneske(sp, r.tur) && r.tur === p && ledig(sp);
     let knapper = null;
     if (minTur && sp.viser == null) {
       if (r.var === "seks" && !Golf.startKlar(r, p)) knapper = (i) => (r.rutenett[p][i].opp ? null : "startsnu");
@@ -899,8 +914,8 @@
   // The end of a hole: everybody's points.
   function hullResultatHtml(sp) {
     const r = sp.r;
-    const rekke = Array.from({ length: sp.n }, (_, p) => p).sort((a, b) => r.resultat[a] - r.resultat[b] || sum(sp, a) - sum(sp, b));
-    const best = Math.min(...r.resultat);
+    const rekke = inne(sp).sort((a, b) => r.resultat[a] - r.resultat[b] || sum(sp, a) - sum(sp, b));
+    const best = Math.min(...rekke.map((p) => r.resultat[p]));
     return `<ol class="gb-hullres" aria-label="${esc(R.t("Poeng for hullet"))}">${rekke
       .map((p) => `<li class="${r.resultat[p] === best ? "best" : ""}">${avatar(sp, p)}<b>${esc(navn(sp, p))}</b><span class="gb-hp">${esc(medFortegn(r.resultat[p]))}</span><span class="gb-sum">${esc(R.t("Totalt: {n}", { n: sum(sp, p) }))}</span></li>`)
       .join("")}</ol>`;
@@ -908,8 +923,8 @@
 
   function hullTittel(sp) {
     const r = sp.r;
-    const best = Math.min(...r.resultat);
-    const beste = Array.from({ length: sp.n }, (_, p) => p).filter((p) => r.resultat[p] === best);
+    const best = Math.min(...inne(sp).map((p) => r.resultat[p]));
+    const beste = inne(sp).filter((p) => r.resultat[p] === best);
     if (beste.length > 1) return R.t("Delt beste hull: {navn}.", { navn: R.ramsOpp(beste.map((p) => navn(sp, p))) });
     return erDu(sp, beste[0]) ? R.t("Du vant hullet med {n}!", { n: medFortegn(best) }) : R.t("{navn} vant hullet med {n}.", { navn: navn(sp, beste[0]), n: medFortegn(best) });
   }
@@ -924,13 +939,14 @@
         ${R.ui.giTil({ i: r.tur, h: "vis", knapp: R.t("Vis kortene mine"), tekst: r.turer.every((t) => t === 0) ? R.t("Hull {n} – gi mobilen til", { n: sp.hullNr }) : R.t("Gi mobilen til"), advarsel: R.t("De andre ser bort"), prikker: [sp.n, r.tur] })}`;
     }
     const p = meg(sp);
-    const minTur = !ferdig && erMenneske(sp, r.tur) && r.tur === p;
+    const minTur = !ferdig && erMenneske(sp, r.tur) && r.tur === p && ledig(sp);
     const sist = ferdig ? "" : sistTekst(sp);
     // Six cards on one phone has no gate: say whose turn it is.
     const melding = ferdig ? hullTittel(sp) : sp.modus === "flere" && minTur && !trengerPort(sp) ? R.t("{navn}, din tur!", { navn: navn(sp, p) }) + " " + meldingTekst(sp) : meldingTekst(sp);
     let hoved;
     const lenker = [];
-    if (ferdig) hoved = kampFerdig(sp) ? R.ui.knapp(R.t("Se kåringen"), "kaaring", { ikon: "🏆" }) : R.ui.knapp(R.t("Neste hull ({n} av {av})", { n: sp.hullNr + 1, av: sp.hull }), "neste", { ikon: "⛳" });
+    if (ferdig) hoved = kampFerdig(sp) ? R.ui.knapp(R.t("Se kåringen"), "kaaring", { ikon: "🏆" }) : R.ui.knapp(R.t("Neste hull ({n} av {av})", { n: sp.hullNr + 1, av: sp.hull }), "neste", { ikon: "⛳", av: !ledig(sp) });
+    else if (paNett(sp) && !R.nett.erMeg(r.tur)) hoved = R.ui.knapp(R.t("{navn} spiller …", { navn: navn(sp, r.tur) }), "vent", { av: true, ikon: "⛳" });
     else if (minTur && r.var === "fire" && !r.tittet[p]) hoved = R.ui.knapp(R.t("Se de to nederste"), "titt");
     else if (minTur && sp.viser != null) hoved = R.ui.knapp(R.t("Jeg husker dem"), "husker");
     else if (minTur && r.var === "seks" && !Golf.startKlar(r, p)) hoved = R.ui.knapp(R.t("Snu tilfeldig"), "startsnu");
@@ -963,7 +979,7 @@
   // The score card: a row per player, a column per hole.
   function scorekortHtml(sp) {
     const hull = sp.poeng[0].length;
-    const rekke = Array.from({ length: sp.n }, (_, p) => p).sort((a, b) => sum(sp, a) - sum(sp, b));
+    const rekke = inne(sp).sort((a, b) => sum(sp, a) - sum(sp, b));
     return `<div class="gb-kortwrap"><table class="gb-scorekort">
       <caption class="vh">${esc(R.t("Scorekortet"))}</caption>
       <thead><tr><th scope="col">${esc(R.t("Spiller"))}</th>${Array.from({ length: hull }, (_, h) => `<th scope="col">${h + 1}</th>`).join("")}<th scope="col">${esc(R.t("Sum"))}</th></tr></thead>
@@ -971,12 +987,173 @@
     </table></div>`;
   }
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Every step of a turn is a move from the seat whose turn it is: { start: [i] | [i, j] } turns
+  // cards at the start (six cards; the sender's phone picked them), { titt: 1 } looks at the bottom
+  // two (four cards), { trekk: 1 } draws (a reshuffle of the discards comes from okt.rng), { ta: 1 }
+  // takes the top discard, { bytt: i } puts the card in hand at position i, { kast: 1 } throws the
+  // drawn card away, { snu: i } turns a card after a throw (house rule), { bank: 1 } knocks (four
+  // cards). When a hole is over, { hull: k } from any seat still in deals hole k (the first one
+  // counts; the deal comes from the room's seed and k). Anything else, or anything the rules don't
+  // allow now, is ignored on every phone alike.
+  // Hidden cards: every phone has the whole deal (it comes from the room's seed) but shows only what
+  // this seat may see – its own look at the bottom two, the card it drew; the others' grids only as
+  // far as they are face up. A modified phone could work the hidden cards out from the seed; it is a
+  // game among friends.
+  // A seat that leaves (FORTSETT) is skipped from then on: a card in its hand goes on the discards,
+  // its turns pass (they still count down «one more turn each»), its grid stays on the table out of
+  // play, and it drops out of the results.
+  const hullRng = (fro) => (k) => R.rng(((fro >>> 0) ^ R.hash("golfballen:" + k)) >>> 0);
+  let bygget = false; // the match was just rebuilt from the room's list (see etter)
+
+  // Skip the turns of seats that left, as if each had passed (the same on every phone).
+  function hoppUte(sp) {
+    const r = sp.r;
+    for (let vakt = 0; vakt < sp.n && r.fase === "spill" && (sp.ute || []).includes(r.tur); vakt++) {
+      const p = r.tur;
+      if (r.hand != null) r.kast.push(r.hand);
+      r.hand = null;
+      r.fra = null;
+      r.maaSnu = false;
+      r.turer[p]++;
+      if (r.slutt == null) {
+        if (r.turer.every((t) => t >= Golf.MAKS_TURER)) {
+          r.slutt = p;
+          r.igjen = r.n - 1;
+          r.logg.push({ type: "stopp" });
+        }
+      } else if (--r.igjen <= 0) {
+        Golf.avslutt(r);
+        return;
+      }
+      r.tur = (r.tur + 1) % r.n;
+    }
+  }
+
+  const NETT = {
+    min: 2,
+    maks: 4,
+    oppsett: (S) => ({ var: S.oppsett.var, hull: S.oppsett.hull, toer: !!S.oppsett.toer, snu: !!S.oppsett.snu }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      const v = x.var === "fire" ? "fire" : "seks";
+      return [v === "fire" ? R.t("4 kort") : R.t("6 kort"), R.flertall(HULL.includes(x.hull) ? x.hull : 9, "hull", "hull"), x.toer !== false ? R.t("Toer minus to") : "", v === "seks" && x.snu ? R.t("Snu når du kaster") : ""].filter(Boolean).join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const n = R.klamp(okt.antall || 2, 2, 4);
+      const v = o.var === "fire" ? "fire" : "seks";
+      const forste = ((okt.kamp || 1) - 1) % n; // who begins moves on one seat per match
+      S.spill = {
+        id: (okt.fro >>> 0) % 1e9,
+        modus: "nett",
+        niva: 2,
+        n,
+        var: v,
+        regler: { toer: o.toer !== false, snu: v === "seks" && !!o.snu },
+        hull: HULL.includes(o.hull) ? o.hull : 9,
+        hullNr: 0,
+        giver: forste - 2, // (nyttHull moves the deal on one seat; the one after the dealer begins)
+        poeng: Array.from({ length: n }, () => []),
+        r: null,
+        port: false,
+        viser: null, // (this phone only: looking at its bottom two)
+        telt: false,
+        ferdig: false,
+        registrert: true,
+        ute: [],
+      };
+      stoppMobil();
+      nyttHull(S, hullRng(okt.fro));
+      bygget = true;
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !sp.r || !t || typeof t !== "object" || Array.isArray(t) || sp.ute.includes(sete)) return;
+      const r = sp.r;
+      const live = !okt.gjenspill && S.skjerm === "spill";
+      if ("hull" in t) {
+        if (!hullFerdig(sp) || kampFerdig(sp) || t.hull !== sp.hullNr + 1) return;
+        nyttHull(S, hullRng(okt.fro));
+        hoppUte(sp);
+        if (hullFerdig(sp)) ferdigHull(S, !live);
+        if (live) {
+          R.lyd.snu();
+          R.vis();
+        }
+        return;
+      }
+      if (hullFerdig(sp) || sete !== r.tur) return;
+      let type = null;
+      if (Array.isArray(t.start)) {
+        const kort = t.start;
+        if (!(kort.length >= 1 && kort.length <= 2 && r.startSnudd[sete] + kort.length <= 2 && new Set(kort).size === kort.length && kort.every((i) => Golf.kanStartSnu(r, sete, i)))) return;
+        for (const i of kort) Golf.startSnu(r, sete, i);
+        type = "startsnu";
+      } else if (t.titt === 1) type = Golf.titt(r, sete) ? "titt" : null;
+      else if (t.trekk === 1) type = Golf.trekk(r, sete, okt.rng) ? "trekk" : null;
+      else if (t.ta === 1) type = Golf.ta(r, sete) ? "ta" : null;
+      else if (Number.isInteger(t.bytt)) type = Golf.bytt(r, sete, t.bytt) ? "bytt" : null;
+      else if (t.kast === 1) type = Golf.kast(r, sete) ? "kast" : null;
+      else if (Number.isInteger(t.snu)) type = Golf.snu(r, sete, t.snu) ? "snu" : null;
+      else if (t.bank === 1) type = Golf.bank(r, sete) ? "bank" : null;
+      if (!type) return;
+      hoppUte(sp);
+      if (hullFerdig(sp)) ferdigHull(S, !live);
+      if (!live) return;
+      if (type === "bytt" || type === "kast") nyttKast = r.kast[r.kast.length - 1];
+      if (type === "titt" && R.nett.erMeg(sete)) sp.viser = sete;
+      lydFor(type === "titt" ? "snu" : type);
+      if (R.nett.erMeg(sete)) R.vibrer(type === "bank" ? [20, 60, 20] : 8);
+      R.vis();
+    },
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || !sp.r || sp.ute.includes(sete)) return;
+      sp.ute.push(sete);
+      if (sp.ferdig || kampFerdig(sp)) return;
+      const live = !okt.gjenspill && S.skjerm === "spill";
+      if (inne(sp).length < 2) {
+        // Too few left to play on (the room ends such a match itself): over, the hole being played
+        // does not count.
+        sp.ferdig = true;
+        if (live) R.gaTil("slutt");
+        return;
+      }
+      if (!hullFerdig(sp)) {
+        hoppUte(sp);
+        if (hullFerdig(sp)) ferdigHull(S, !live);
+      }
+      if (live) R.vis();
+    },
+    // The last hole over: the match is (each phone goes to «Kåringen» itself, or straight there
+    // after a reload).
+    skjerm: (S) => (S.spill && S.spill.r && (S.spill.ferdig || kampFerdig(S.spill)) ? "slutt" : "spill"),
+    tur: (S) => (S.spill && S.spill.r && !S.spill.ferdig && !hullFerdig(S.spill) ? S.spill.r.tur : null),
+    ferdig: (S) => !!(S.spill && S.spill.r) && (S.spill.ferdig || kampFerdig(S.spill)),
+    // After a reload in the middle of looking at the bottom two (four cards): they show again while
+    // it is still this seat's first turn.
+    etter(S) {
+      if (!bygget) return;
+      bygget = false;
+      const sp = S.spill;
+      if (!paNett(sp) || !sp.r || hullFerdig(sp)) return;
+      const r = sp.r;
+      const jeg = R.nett.meg();
+      if (r.var === "fire" && r.tur === jeg && r.tittet[jeg] && !r.turer[jeg] && r.hand == null && sp.viser == null) {
+        sp.viser = jeg;
+        if (S.skjerm === "spill") R.vis();
+      }
+    },
+  };
+
   // ---------- Screens ----------
 
   R.start({
     id: "golfballen",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({
       antall: 2,
@@ -1042,7 +1219,7 @@
               knapperHtml: R.ui.startKnapper({
                 pagar: aktiv,
                 fortsettTekst: aktiv ? R.t("Fortsett · hull {n}", { n: sp.hullNr }) : "",
-                ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+                ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
               }),
               merker: [
                 ["1–4", R.t("spillere")],
@@ -1130,9 +1307,9 @@
           const sp = S.spill;
           const hull = sp.poeng[0].length;
           const summer = Array.from({ length: sp.n }, (_, p) => sum(sp, p));
-          const best = Math.min(...summer);
-          const vinnere = summer.map((x, p) => (x === best ? p : -1)).filter((p) => p >= 0);
-          const duVant = sp.modus === "mobil" && vinnere.length === 1 && vinnere[0] === 0;
+          const best = Math.min(...inne(sp).map((p) => summer[p]));
+          const vinnere = inne(sp).filter((p) => summer[p] === best);
+          const duVant = (sp.modus === "mobil" || paNett(sp)) && vinnere.length === 1 && erDu(sp, vinnere[0]);
           const mobilVant = sp.modus === "mobil" && !vinnere.includes(0);
           let tittel;
           if (!hull) tittel = R.t("Ingen vinner denne gangen");
@@ -1142,21 +1319,26 @@
           const etikett = `${R.flertall(hull, "hull", "hull")}${sp.modus === "mobil" ? ` · ${NIVANAVN[sp.niva].toLowerCase()}` : ""}`;
           const tekst = !hull ? "" : mobilVant ? R.t("Godt kjempa! Neste gang triller ballen din vei.") : duVant ? R.t("Godt jobba! Lavest sum: {n}.", { n: medFortegn(best) }) : R.t("Lavest sum: {n}.", { n: medFortegn(best) });
           const rek = sp.modus === "mobil" ? rekordHtml(S, sp.niva) : "";
-          const rader = Array.from({ length: sp.n }, (_, p) => p).sort((a, b) => summer[a] - summer[b]);
+          const rader = inne(sp).sort((a, b) => summer[a] - summer[b]);
           return `
             ${R.ui.banner({ tittel, etikett, tekst, stemning: mobilVant || !hull ? "lei" : "jubel" })}
             <ol class="gb-plasser" aria-label="${esc(R.t("Resultatet"))}">${rader
-              .map((p) => `<li class="${summer[p] === best && hull ? "best" : ""}"><span class="gb-nr">${1 + summer.filter((x) => x < summer[p]).length}</span>${avatar(sp, p)}<b>${esc(navn(sp, p))}</b><span class="gb-sum">${esc(medFortegn(summer[p]))}</span></li>`)
+              .map((p) => `<li class="${summer[p] === best && hull ? "best" : ""}"><span class="gb-nr">${1 + rader.filter((q) => summer[q] < summer[p]).length}</span>${avatar(sp, p)}<b>${esc(navn(sp, p))}</b><span class="gb-sum">${esc(medFortegn(summer[p]))}</span></li>`)
               .join("")}</ol>
             ${hull > 1 ? scorekortHtml(sp) : ""}
             ${rek ? `<p class="gb-rekordlinje"><span class="etikett">${esc(R.t("Mot mobilen"))} · ${esc(NIVANAVN[sp.niva].toLowerCase())}</span>${rek}</p>` : ""}
-            ${R.ui.flereSpill({ antall: sp.modus === "flere" ? sp.n : 1 })}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: "⛳" }), R.ui.lenkerad(R.ui.lenke(R.t("Del resultatet"), "del"), R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${
+              paNett(sp)
+                ? R.nett.sluttDokk()
+                : `${R.ui.flereSpill({ antall: sp.modus === "flere" ? sp.n : 1 })}
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: "⛳" }), R.ui.lenkerad(R.ui.lenke(R.t("Del resultatet"), "del"), R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`
+            }`;
         },
         inn(S) {
           const sp = S.spill;
           if (!sp) return R.gaTil("hjem");
           const summer = Array.from({ length: sp.n }, (_, p) => sum(sp, p));
+          // (On the net nothing is registered: the state is never saved, and sp.registrert is set.)
           if (!sp.registrert) {
             sp.registrert = true;
             // «Kveldens gjeng» counts people only (higher is better there, so the sums turn round).
@@ -1164,8 +1346,9 @@
             if (sp.poeng[0].length) R.kveld.registrer(mennesker.map((p) => ({ i: p, poeng: -summer[p] })));
             R.lagre();
           }
-          const best = Math.min(...summer);
-          if (sp.modus === "mobil" && summer[0] > best) lyd.tap();
+          const best = Math.min(...inne(sp).map((p) => summer[p]));
+          // On the net: the fanfare on the winners' phones, a gentle note on the others.
+          if ((sp.modus === "mobil" && summer[0] > best) || (paNett(sp) && summer[R.nett.meg()] > best)) lyd.tap();
           else if (sp.poeng[0].length) {
             R.lyd.fanfare();
             R.vibrer([40, 60, 120]);
@@ -1241,6 +1424,15 @@
         if (!erMenneske(sp, p) || r.tur !== p) return;
         const skjulte = r.rutenett[p].map((c, i) => (c.opp ? -1 : i)).filter((i) => i >= 0);
         const i = el.dataset.v != null ? Number(el.dataset.v) : skjulte[Math.floor(Math.random() * skjulte.length)];
+        if (paNett(sp)) {
+          // On the net the random cards are chosen here, before sending: the move names them.
+          if (!ledig(sp) || !Golf.kanStartSnu(r, p, i)) return;
+          const kort = [i];
+          const rest = skjulte.filter((j) => j !== i);
+          if (el.dataset.v == null && r.startSnudd[p] === 0 && rest.length) kort.push(rest[Math.floor(Math.random() * rest.length)]);
+          R.nett.send({ start: kort });
+          return;
+        }
         if (!Golf.startSnu(r, p, i)) return;
         // The button turns both at once.
         if (el.dataset.v == null && !Golf.startKlar(r, p)) {
@@ -1255,6 +1447,7 @@
         const sp = S.spill;
         if (!sp || sp.port) return;
         const p = meg(sp);
+        if (paNett(sp)) return void (ledig(sp) && Golf.kanTitte(sp.r, p) && R.nett.send({ titt: 1 }));
         if (!erMenneske(sp, p) || !Golf.titt(sp.r, p)) return;
         sp.viser = p;
         lyd.snu();
@@ -1273,6 +1466,12 @@
         const r = sp.r;
         const p = meg(sp);
         if (hullFerdig(sp) || !erMenneske(sp, r.tur) || r.tur !== p) return R.toast(hullFerdig(sp) ? R.t("Hullet er ferdig") : R.t("Vent litt – {navn} tenker", { navn: navn(sp, r.tur) }));
+        if (paNett(sp)) {
+          if (!ledig(sp)) return;
+          if (Golf.kanTrekke(r, p)) R.nett.send({ trekk: 1 });
+          else if (r.hand != null) R.toast(R.t("Bytt eller kast kortet du har"));
+          return;
+        }
         if (!Golf.trekk(r, p, rng())) {
           if (r.hand != null) R.toast(R.t("Bytt eller kast kortet du har"));
           return;
@@ -1286,7 +1485,9 @@
         if (!sp || sp.port || sp.viser != null) return;
         const r = sp.r;
         const p = meg(sp);
-        if (!erMenneske(sp, r.tur) || r.tur !== p || !Golf.ta(r, p)) return;
+        if (!erMenneske(sp, r.tur) || r.tur !== p) return;
+        if (paNett(sp)) return void (ledig(sp) && Golf.kanTa(r, p) && R.nett.send({ ta: 1 }));
+        if (!Golf.ta(r, p)) return;
         lyd.trekk();
         R.vibrer(8);
         R.vis();
@@ -1296,7 +1497,9 @@
         if (!sp || sp.port || el.dataset.v == null) return;
         const r = sp.r;
         const p = meg(sp);
-        if (!erMenneske(sp, r.tur) || r.tur !== p || !Golf.bytt(r, p, Number(el.dataset.v))) return;
+        if (!erMenneske(sp, r.tur) || r.tur !== p) return;
+        if (paNett(sp)) return void (ledig(sp) && Golf.kanBytte(r, p, Number(el.dataset.v)) && R.nett.send({ bytt: Number(el.dataset.v) }));
+        if (!Golf.bytt(r, p, Number(el.dataset.v))) return;
         nyttKast = r.kast[r.kast.length - 1];
         lyd.legg();
         R.vibrer(10);
@@ -1309,7 +1512,9 @@
         if (!sp || sp.port) return;
         const r = sp.r;
         const p = meg(sp);
-        if (!erMenneske(sp, r.tur) || r.tur !== p || !Golf.kast(r, p)) return;
+        if (!erMenneske(sp, r.tur) || r.tur !== p) return;
+        if (paNett(sp)) return void (ledig(sp) && Golf.kanKaste(r, p) && R.nett.send({ kast: 1 }));
+        if (!Golf.kast(r, p)) return;
         nyttKast = r.kast[r.kast.length - 1];
         lyd.legg();
         etterTrekk(S, p);
@@ -1322,7 +1527,9 @@
         if (!sp || sp.port || el.dataset.v == null) return;
         const r = sp.r;
         const p = meg(sp);
-        if (!erMenneske(sp, r.tur) || r.tur !== p || !Golf.snu(r, p, Number(el.dataset.v))) return;
+        if (!erMenneske(sp, r.tur) || r.tur !== p) return;
+        if (paNett(sp)) return void (ledig(sp) && Golf.kanSnu(r, p, Number(el.dataset.v)) && R.nett.send({ snu: Number(el.dataset.v) }));
+        if (!Golf.snu(r, p, Number(el.dataset.v))) return;
         lyd.snu();
         etterTrekk(S, p);
         R.vis();
@@ -1336,7 +1543,9 @@
         if (!erMenneske(sp, r.tur) || r.tur !== p || !Golf.kanBanke(r, p)) return;
         const fortsatt = R.vakt();
         const ja = await R.bekreft(R.t("Banke på?"), R.t("De andre får én tur hver, og så telles hullet."), R.t("Bank på"), R.t("Spill videre"));
-        if (!ja || !fortsatt() || S.spill !== sp || !Golf.bank(r, p)) return;
+        if (!ja || !fortsatt() || S.spill !== sp) return;
+        if (paNett(sp)) return void (ledig(sp) && Golf.kanBanke(r, p) && R.nett.send({ bank: 1 }));
+        if (!Golf.bank(r, p)) return;
         lyd.bank();
         R.vibrer([20, 60, 20]);
         etterTrekk(S, p);
@@ -1347,10 +1556,13 @@
         const sp = S.spill;
         if (!sp || !hullFerdig(sp)) return;
         if (kampFerdig(sp)) return avsluttKamp(S);
+        // On the net the next hole is a move (the deal from the room's seed), from whoever taps first.
+        if (paNett(sp)) return void (ledig(sp) && R.nett.send({ hull: sp.hullNr + 1 }));
         nyttHull(S);
         R.lyd.snu();
         R.gaTil("spill");
       },
+      vent() {},
       kaaring(el, e, S) {
         if (S.spill && !S.spill.ferdig && kampFerdig(S.spill)) avsluttKamp(S);
       },
