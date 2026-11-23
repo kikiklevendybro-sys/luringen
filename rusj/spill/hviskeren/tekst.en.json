@@ -205,5 +205,18 @@
   "poeng|poeng": { "one": "point", "other": "points" },
   "kort|kort": { "one": "card", "other": "cards" },
   "ord|ord": { "one": "word", "other": "words" },
-  "riktig|riktige": { "one": "right", "other": "right" }
+  "riktig|riktige": { "one": "right", "other": "right" },
+  "{n} av {m} har skrevet": "{n} of {m} have written",
+  "Du gjetter denne runden": "You're guessing this round",
+  "Ikke kikk på mobilene til de andre!": "No peeking at the others' phones!",
+  "De andre skriver hint …": "The others are writing clues …",
+  "Venter på de andre …": "Waiting for the others …",
+  "Skriv to hint": "Write two clues",
+  "Send": "Send",
+  "Hintene dine er sendt.": "Your clues have been sent.",
+  "Hintet ditt er sendt.": "Your clue has been sent.",
+  "{navn} gjetter denne runden": "{navn} is guessing this round",
+  "De andre sjekker hintene …": "The others are checking the clues …",
+  "Vis hintene til {navn}": "Show the clues to {navn}",
+  "Hintene til {navn}": "The clues for {navn}"
 }

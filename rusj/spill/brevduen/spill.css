@@ -166,6 +166,20 @@
   }
 }
 
+/* ---------- On the net ---------- */
+
+.bd-sendt,
+.bd-sitat {
+  margin: 14px 0 0;
+  text-align: center;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.bd-sitat {
+  margin: 0 0 4px;
+}
+
 @media (max-height: 700px) {
   .bd-due {
     grid-template-columns: 64px minmax(0, 1fr);

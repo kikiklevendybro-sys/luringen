@@ -205,5 +205,18 @@
   "poeng|poeng": "point",
   "kort|kort": "kort",
   "ord|ord": "ord",
-  "riktig|riktige": { "one": "rigtigt", "other": "rigtige" }
+  "riktig|riktige": { "one": "rigtigt", "other": "rigtige" },
+  "{n} av {m} har skrevet": "{n} af {m} har skrevet",
+  "Du gjetter denne runden": "Du gætter denne runde",
+  "Ikke kikk på mobilene til de andre!": "Kig ikke på de andres mobiler!",
+  "De andre skriver hint …": "De andre skriver hints …",
+  "Venter på de andre …": "Venter på de andre …",
+  "Skriv to hint": "Skriv to hints",
+  "Send": "Send",
+  "Hintene dine er sendt.": "Dine hints er sendt.",
+  "Hintet ditt er sendt.": "Dit hint er sendt.",
+  "{navn} gjetter denne runden": "{navn} gætter denne runde",
+  "De andre sjekker hintene …": "De andre tjekker hintene …",
+  "Vis hintene til {navn}": "Vis hintene til {navn}",
+  "Hintene til {navn}": "Hintene til {navn}"
 }

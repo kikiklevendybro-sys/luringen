@@ -175,5 +175,12 @@
   "Dere går til kåringen med stillingen så langt.": "You'll go to the results with the scores so far.",
   "Spill videre": "Keep playing",
   "gang|ganger": { "one": "time", "other": "times" },
-  "runde|runder": { "one": "round", "other": "rounds" }
+  "runde|runder": { "one": "round", "other": "rounds" },
+  "{n} av {m} har svart": "{n} of {m} have answered",
+  "{navn} går videre når dere er klare.": "{navn} moves on when you're ready.",
+  "Svaret ditt": "Your answer",
+  "Send svaret": "Send your answer",
+  "Svaret ditt er sendt.": "Your answer has been sent.",
+  "Svarene vises ett og ett – den største gruppen kommer til slutt.": "The answers appear one by one – the biggest group comes last.",
+  "Betyr to svar egentlig det samme? Si fra til {navn}, som slår dem sammen før poengene deles ut.": "Do two answers really mean the same? Tell {navn}, who merges them before the points are given out."
 }

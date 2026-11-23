@@ -108,5 +108,14 @@
   "stemme|stemmer": { "one": "stemme", "other": "stemmer" },
   "gang|ganger": { "one": "gang", "other": "gange" },
   "runde|runder": { "one": "runde", "other": "runder" },
-  "poeng|poeng": { "one": "point", "other": "point" }
+  "poeng|poeng": { "one": "point", "other": "point" },
+  "{n} av {m} har skrevet": "{n} af {m} har skrevet",
+  "{n} av {m} har stemt": "{n} af {m} har stemt",
+  "{navn} går videre når dere er klare.": "{navn} går videre, når I er klar.",
+  "Venter på de andre …": "Venter på de andre …",
+  "Skrønen din": "Din skrøne",
+  "Send skrønen": "Send skrønen",
+  "Skrønen din er sendt.": "Din skrøne er sendt.",
+  "Du fant det ekte svaret og står over stemmingen.": "Du fandt det ægte svar og står over afstemningen.",
+  "Stemmen din er sendt.": "Din stemme er sendt."
 }

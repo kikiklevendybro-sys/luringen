@@ -572,7 +572,8 @@
 
   // The fun titles: who was in the flock most often, who stood alone most often.
   function priser(sp) {
-    const mest = (tall) => {
+    const mest = (alle) => {
+      const tall = alle.map((n, i) => (ute(sp, i) ? 0 : n)); // (a seat that left the net match gets no title)
       const maks = Math.max(0, ...tall);
       const hvem = tall.map((n, i) => (n === maks ? i : -1)).filter((i) => i >= 0);
       return maks > 0 && hvem.length <= 2 ? { navn: liste(hvem.map((i) => R.navn(i))), hvem, n: maks } : null;
@@ -618,7 +619,10 @@
 
   function poengtavle(S, pluss) {
     const sp = S.spill;
-    const rekke = alleSpillere(sp.antall).sort((a, b) => sp.poeng[b] - sp.poeng[a] || a - b);
+    // (on the net a seat that left is not on the board; off the net nobody leaves)
+    const rekke = alleSpillere(sp.antall)
+      .filter((i) => !ute(sp, i))
+      .sort((a, b) => sp.poeng[b] - sp.poeng[a] || a - b);
     const topp = Math.max(...sp.poeng);
     return `<ol class="sau-tavle">${rekke
       .map((i) => {
@@ -643,6 +647,7 @@
     const spillere = svar.map((k) => r.svar[k].i).sort((a, b) => a - b);
     const tekster = teksterI(r, svar);
     const kanDeles = o.knapp && r.grupper[n].length > 1;
+    const valgt = valgtGruppe(S.spill);
     const klasse = [
       "sau-gruppe",
       spillere.length === 1 ? "alene" : "",
@@ -651,7 +656,7 @@
       o.svart ? "svart" : "",
       o.spot && !o.svart && !o.flokk ? "spot" : "",
       o.inn ? "inn" : "",
-      o.knapp && r.valgt === n ? "valgt" : "",
+      o.knapp && valgt === n ? "valgt" : "",
       o.knapp && n === puls ? "puls" : "",
       kanDeles ? "kan-deles" : "",
     ].filter(Boolean);
@@ -672,7 +677,7 @@
       ${tekster.length > 1 ? `<span class="sau-varianter">${tekster.slice(1).map(esc).join(" · ")}</span>` : ""}
       <span class="sau-gruppe-hvem">${spillere.map((i) => `<span class="sau-hvem">${R.avatar(i)}<span>${esc(R.navn(i))}</span></span>`).join("")}</span>
       ${merke}
-      ${o.knapp ? `<button class="sau-gruppeknapp" data-h="velg" data-v="${n}" aria-pressed="${r.valgt === n}" aria-label="${esc(R.t("«{tekst}»", { tekst: tekster[0] }))}, ${antall}"></button>` : ""}
+      ${o.knapp ? `<button class="sau-gruppeknapp" data-h="velg" data-v="${n}" aria-pressed="${valgt === n}" aria-label="${esc(R.t("«{tekst}»", { tekst: tekster[0] }))}, ${antall}"></button>` : ""}
       ${kanDeles ? `<button class="sau-del" data-h="del-opp" data-v="${n}" aria-label="${esc(R.t("Del opp «{tekst}»", { tekst: tekster.join(", ") }))}"><span aria-hidden="true">✂</span></button>` : ""}
     </li>`;
   }
@@ -714,12 +719,388 @@
     return { etikett: R.t("Ingen tenkte likt"), tittel: R.t("Ingen poeng"), tekst: R.t("Alle svarte noe forskjellig. For en sprø flokk!") };
   }
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Every player on their own phone, 3–12. The moves:
+  //   { svar: "…", q }   my answer to question q (cleaned with R.nett.tekst before it is sent and
+  //                      again when it is played);
+  //   { bytt: 1 }        the round's leader takes another question, before anyone has answered;
+  //   { neste: steg }    the leader shows the next group of answers, gives out the points, and
+  //                      starts the next question;
+  //   { sla: [a, b] }, { delOpp: g }, { angre: 1 }  the leader merges two groups that mean the
+  //                      same, splits one up, or takes that back – as with one phone, while the
+  //                      others watch (and talk) on theirs.
+  // Anything else, or anything the rules don't allow now, is ignored on every phone. Equal answers
+  // are grouped by the rules (grupperSvar: R.normaliser with a fixed locale, so alike on every
+  // phone); the questions come from the room's seed, the order of the reveal from okt.rng of the
+  // move that completed the answers. The leader moves one seat per round (and per match). A seat
+  // that left is never waited for, its answer goes (also from a reveal), the black sheep goes with
+  // it, and it can't win.
+  // Friends level: an answer is a move from its seat in the room's list (kept in the room, deleted
+  // with it, at the latest after 24 hours). The screens show no answer before everyone still in has
+  // answered, but a modified phone could read the list.
+  const NETT_MAKS = 60; // characters in an answer on the net (R.nett.tekst)
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const ute = (sp, i) => paNett(sp) && sp.ute.includes(i);
+  const inne = (sp) => alleSpillere(sp.antall).filter((i) => !ute(sp, i));
+  const meg = () => (R.nett ? R.nett.meg() : -1);
+  function forsteInne(sp, s) {
+    for (let k = 0; k < sp.antall; k++) {
+      const i = (s + k) % sp.antall;
+      if (!ute(sp, i)) return i;
+    }
+    return s;
+  }
+  const harAlle = (sp, liste) => R.nett.alleHar(liste, sp.antall);
+  // My answer on its way: { oppgave, t, ved }. When another move got the place first, the room drops
+  // mine; it is sent again once per move that came in between (ved: the moves played when it was
+  // last sent) – never on a timer. Dropped for another reason (a lost line, «fort»): the field comes
+  // back with the text in it.
+  let venterSvar = null;
+  let antallTrekk = 0; // moves played on this phone in this match
+  let utkast = { oppgave: "", tekst: "" }; // what I have typed so far (a redraw keeps it)
+  let nettValgt = -1; // the group the leader has marked to merge (this phone only)
+  let tegnes = false; // a live move changed the state: etter() draws
+  let lyd = ""; // the sound of that move
+  let vistFase = ""; // the phase this phone's screen shows (a new one is drawn as a new screen)
+  let feireNett = false; // the match ended on this phone just now (not a replay)
+  const valgtGruppe = (sp) => (paNett(sp) ? nettValgt : sp.r.valgt);
+
+  function nettSporsmal(sp) {
+    const k = sp.stokk[sp.pos % sp.stokk.length];
+    sp.pos += 1;
+    return k;
+  }
+  function nettRunde(sp) {
+    const leder = forsteInne(sp, (sp.forste + sp.nr) % sp.antall);
+    sp.nr += 1;
+    sp.r = { q: nettSporsmal(sp), leder, inn: Array(sp.antall).fill(null), svar: [], enheter: [], grupper: [], rekkefolge: [], vist: 0, avslort: false, angre: [], valgt: -1, res: null, fase: "skriv" };
+  }
+  // Everyone still in has answered: the groups, and the reveal order (smallest first, equal sizes
+  // in the room's order).
+  function nettGrupper(sp, rng) {
+    const r = sp.r;
+    r.svar = [];
+    for (let k = 0; k < sp.antall; k++) {
+      const i = (r.leder + k) % sp.antall;
+      if (!ute(sp, i) && r.inn[i] != null) r.svar.push({ i, t: r.inn[i] });
+    }
+    const g = grupperSvar(r.svar.map((s) => s.t));
+    r.enheter = g.enheter;
+    r.grupper = g.grupper;
+    r.rekkefolge = R.stokk(r.grupper.map((x, n) => n), rng).sort((a, b) => storrelse(r, a) - storrelse(r, b));
+    r.vist = 0;
+    r.avslort = false;
+    r.angre = [];
+    r.fase = "avslor";
+  }
+  // A seat left during the reveal: its answer goes from the groups (and the reveal order).
+  function taUt(r, sete) {
+    const k = r.svar.findIndex((s) => s.i === sete);
+    if (k < 0) return;
+    const enheter = [];
+    const nyEnhet = r.enheter.map((u) => {
+      const rest = u.filter((x) => x !== k);
+      if (!rest.length) return -1;
+      enheter.push(rest);
+      return enheter.length - 1;
+    });
+    const grupper = [];
+    const nyGruppe = r.grupper.map((g) => {
+      const rest = g.map((u) => nyEnhet[u]).filter((u) => u >= 0);
+      if (!rest.length) return -1;
+      grupper.push(rest);
+      return grupper.length - 1;
+    });
+    const vist = r.rekkefolge.slice(0, r.vist).filter((g) => nyGruppe[g] >= 0).length;
+    r.rekkefolge = r.rekkefolge.map((g) => nyGruppe[g]).filter((g) => g >= 0);
+    r.vist = r.avslort ? r.rekkefolge.length : Math.min(vist, r.rekkefolge.length);
+    r.enheter = enheter;
+    r.grupper = grupper;
+    r.angre = [];
+  }
+  // «Del ut poengene» on the net: as delUt, with the state only (the seats that left are not counted).
+  function nettDelUt(sp) {
+    const r = sp.r;
+    const info = r.grupper
+      .map((g) => {
+        const svar = gruppeSvar(r, g).filter((k) => !ute(sp, r.svar[k].i));
+        return { spillere: svar.map((k) => r.svar[k].i), tekst: svar.length ? teksterI(r, svar)[0] : "" };
+      })
+      .filter((x) => x.spillere.length);
+    const ut = regnUt(
+      info.map((x) => x.spillere),
+      sp.sau,
+    );
+    const storst = Math.max(0, ...info.map((x) => x.spillere.length));
+    const sau = sp.sauUte ? -1 : ut.sau;
+    r.res = {
+      flokk: ut.flokk,
+      uavgjort: !!ut.uavgjort,
+      alene: ut.alene,
+      forrigeSau: sp.sau,
+      sau,
+      tekst: ut.flokk ? info.find((x) => x.spillere.length === storst).tekst : "",
+      like: ut.uavgjort ? info.filter((x) => x.spillere.length === storst).map((x) => x.tekst) : [],
+      aleneTekst: ut.alene.length === 1 ? info.find((x) => x.spillere.length === 1 && x.spillere[0] === ut.alene[0]).tekst : "",
+    };
+    (ut.flokk || []).forEach((i) => {
+      sp.poeng[i] += 1;
+      sp.iFlokk[i] += 1;
+    });
+    ut.alene.forEach((i) => (sp.alene[i] += 1));
+    sp.sau = sau;
+    sp.logg.push({ q: r.q, n: ut.flokk ? ut.flokk.length : 0, sau });
+    const v = vinnere(sp.poeng, sp.sau, sp.mal).filter((i) => !ute(sp, i));
+    if (v.length) {
+      sp.ferdig = true;
+      sp.vinnere = v;
+    }
+    r.fase = "poeng";
+  }
+
+  // What this phone is to do now ("" = nothing): my answer.
+  function minOppgave(sp) {
+    const i = meg();
+    if (!paNett(sp) || sp.ferdig || i < 0 || ute(sp, i) || sp.r.fase !== "skriv" || sp.r.inn[i] != null) return "";
+    return `skriv:${sp.nr}:${sp.r.q}`;
+  }
+  const kanSvare = (sp) => !!minOppgave(sp) && !(venterSvar && venterSvar.oppgave === minOppgave(sp) && R.nett.venter());
+  const tellerTekst = (sp) => {
+    const med = inne(sp);
+    return R.t("{n} av {m} har svart", { n: med.filter((i) => sp.r.inn[i] != null).length, m: med.length });
+  };
+  // The leader's dock; the others are told who goes on.
+  const nettVenter = (sp) => `<p class="hjelp sau-nett-linje">${esc(R.t("{navn} går videre når dere er klare.", { navn: R.navn(sp.r.leder) }))}</p>`;
+  const styrer = (sp) => !paNett(sp) || R.nett.erMeg(sp.r.leder);
+  const fasenokkel = (sp) => (sp.ferdig ? "slutt" : `${sp.r.fase}:${sp.nr}`);
+  // After a live move: a new phase is a new screen; else the same one again – or, while this phone
+  // is typing, only the count (the field is left as it is).
+  function nettTegn(S) {
+    const sp = S.spill;
+    if (R.S !== S || !S.skjerm || S.skjerm === "nett" || !paNett(sp)) return;
+    const l = lyd;
+    lyd = "";
+    // The last round's points first; «Til kåringen» from there.
+    const mal = sp.ferdig && ["avslor", "poeng"].includes(S.skjerm) ? "poeng" : NETT.skjerm(S);
+    if (l && R.lyd[l]) R.lyd[l]();
+    if (S.skjerm !== mal || fasenokkel(sp) !== vistFase) {
+      vistFase = fasenokkel(sp);
+      if (sp.ferdig) feireNett = true;
+      return R.gaTil(mal);
+    }
+    const skjema = R.$("#skjerm [data-nett-skjema]");
+    const teller = R.$("#skjerm [data-nett-teller]");
+    if (skjema && teller && kanSvare(sp) && skjema.dataset.nettSkjema === minOppgave(sp)) {
+      teller.textContent = tellerTekst(sp);
+      return;
+    }
+    R.vis();
+  }
+
+  const NETT = {
+    min: 3,
+    maks: 12,
+    // The host's packs and target (0: it follows the number of players).
+    oppsett: (S) => ({ pakker: S.oppsett.pakker.slice(), mal: MAL.includes(S.oppsett.mal) ? S.oppsett.mal : 0 }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      const ikoner = PAKKER.filter((p) => Array.isArray(x.pakker) && x.pakker.includes(p.id))
+        .map((p) => p.ikon)
+        .join("");
+      return [MAL.includes(x.mal) ? R.t("Først til {n}", { n: x.mal }) : "", ikoner].filter(Boolean).join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const n = R.klamp(okt.antall || 3, 3, 12);
+      const valgt = (Array.isArray(o.pakker) ? o.pakker : []).filter((id) => pakke(id));
+      const pakker = valgt.length ? valgt : STANDARD_PAKKER.slice();
+      // The questions of the host's packs in the room's order (no repeats in a match); the widest
+      // ones last when four or fewer play, as off the net.
+      const rng = R.nett.tilfeldig(okt.fro, "sporsmal");
+      const alle = ALLE.map((_, i) => i).filter((i) => pakker.includes(ALLE[i].p));
+      const smal = n <= 4;
+      const stokk = R.stokk(
+        alle.filter((i) => !(smal && ALLE[i].bred)),
+        rng,
+      ).concat(
+        R.stokk(
+          alle.filter((i) => smal && ALLE[i].bred),
+          rng,
+        ),
+      );
+      const sp = {
+        modus: "nett",
+        antall: n,
+        mal: MAL.includes(o.mal) ? o.mal : standardMal(n),
+        sauUte: n === 3, // three players: the black sheep is at pasture, as off the net
+        poeng: Array(n).fill(0),
+        iFlokk: Array(n).fill(0),
+        alene: Array(n).fill(0),
+        sau: -1,
+        nr: 0,
+        logg: [],
+        r: null,
+        ferdig: false,
+        tidlig: false,
+        vinnere: [],
+        ute: [],
+        forste: (okt.kamp - 1) % n, // the first round's leader: one seat on per match
+        steg: 0,
+        stokk: stokk.length ? stokk : ALLE.map((_, i) => i),
+        pos: 0,
+      };
+      nettRunde(sp);
+      S.spill = sp;
+      venterSvar = null;
+      antallTrekk = 0;
+      utkast = { oppgave: "", tekst: "" };
+      nettValgt = -1;
+      tegnes = false;
+      lyd = "";
+      vistFase = "";
+      feireNett = false;
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      antallTrekk += 1;
+      // My own move came back (played or not): it is not on its way any more.
+      if (venterSvar && sete === meg() && JSON.stringify(t) === JSON.stringify(venterSvar.t)) {
+        venterSvar = null;
+        if (!okt.gjenspill) tegnes = true;
+      }
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || !(sete >= 0 && sete < sp.antall) || ute(sp, sete)) return;
+      const r = sp.r;
+      const leder = sete === r.leder;
+      let l = "";
+      if (r.fase === "skriv" && typeof t.svar === "string") {
+        const tekst = R.nett.tekst(t.svar, NETT_MAKS);
+        if (t.q !== r.q || r.inn[sete] != null || !R.normaliser(tekst)) return;
+        r.inn[sete] = tekst;
+        if (harAlle(sp, r.inn)) {
+          nettGrupper(sp, okt.rng);
+          l = "pling";
+        }
+      } else if (r.fase === "skriv" && t.bytt === 1) {
+        if (!leder || r.inn.some((x) => x != null)) return;
+        r.q = nettSporsmal(sp);
+        l = "sveip";
+      } else if (r.fase === "avslor" && Number.isInteger(t.neste)) {
+        if (!leder || t.neste !== sp.steg) return;
+        sp.steg += 1;
+        if (r.avslort) {
+          nettDelUt(sp);
+          l = r.res.sau >= 0 && r.res.sau !== r.res.forrigeSau ? "latter" : r.res.flokk ? "pling" : "";
+        } else if (r.vist >= r.rekkefolge.length - 1) {
+          r.vist = r.rekkefolge.length;
+          r.avslort = true;
+          if (!okt.gjenspill) nyttKort = r.rekkefolge[r.rekkefolge.length - 1];
+          l = regnUt(
+            r.grupper.map((g) => spillereI(r, g)),
+            sp.sau,
+          ).flokk
+            ? "riktig"
+            : "buu";
+        } else {
+          r.vist += 1;
+          l = "snu";
+        }
+      } else if (r.fase === "avslor" && r.avslort && Array.isArray(t.sla)) {
+        const [a, b] = t.sla;
+        if (!leder || t.sla.length !== 2 || !Number.isInteger(a) || !Number.isInteger(b) || a === b || !r.grupper[a] || !r.grupper[b]) return;
+        r.angre.push(r.grupper.map((x) => x.slice()));
+        const [x, y] = [Math.min(a, b), Math.max(a, b)];
+        r.grupper[x] = r.grupper[x].concat(r.grupper[y]);
+        r.grupper.splice(y, 1);
+        if (!okt.gjenspill) puls = x;
+        l = "pop";
+      } else if (r.fase === "avslor" && r.avslort && Number.isInteger(t.delOpp)) {
+        const g = t.delOpp;
+        if (!leder || !r.grupper[g] || r.grupper[g].length < 2) return;
+        r.angre.push(r.grupper.map((x) => x.slice()));
+        r.grupper.splice(g, 1, ...r.grupper[g].map((u) => [u]));
+        l = "sveip";
+      } else if (r.fase === "avslor" && r.avslort && t.angre === 1) {
+        if (!leder || !r.angre.length) return;
+        r.grupper = r.angre.pop();
+      } else if (r.fase === "poeng" && Number.isInteger(t.neste)) {
+        if (!leder || t.neste !== sp.steg) return;
+        sp.steg += 1;
+        nettRunde(sp);
+      } else return;
+      nettValgt = -1;
+      if (!okt.gjenspill) {
+        tegnes = true;
+        lyd = l;
+      }
+    },
+    // The seat left: never waited for again, its answer goes (also from a reveal), the black sheep
+    // goes with it, the next seat leads if it led, and it can't win.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      antallTrekk += 1;
+      if (!paNett(sp) || sp.ferdig || !(sete >= 0 && sete < sp.antall) || ute(sp, sete)) return;
+      sp.ute.push(sete);
+      if (sp.sau === sete) sp.sau = -1;
+      const r = sp.r;
+      if (inne(sp).length < 3) {
+        // (The room ends the match before this happens.) The leaders so far win, as with «Avslutt».
+        const kandidater = sp.poeng.map((p, i) => (i !== sp.sau && !ute(sp, i) ? p : -1));
+        const topp = Math.max(...kandidater);
+        sp.vinnere = topp > 0 ? kandidater.map((p, i) => (p === topp ? i : -1)).filter((i) => i >= 0) : [];
+        sp.ferdig = true;
+        sp.tidlig = true;
+      } else {
+        if (r.leder === sete) r.leder = forsteInne(sp, sete);
+        if (r.fase === "skriv") {
+          r.inn[sete] = null;
+          if (r.inn.some((x) => x != null) && harAlle(sp, r.inn)) nettGrupper(sp, okt.rng);
+        } else if (r.fase === "avslor") taUt(r, sete);
+      }
+      nettValgt = -1;
+      if (!okt.gjenspill) tegnes = true;
+    },
+    skjerm(S) {
+      const sp = S.spill;
+      if (!sp || sp.ferdig) return "vinner";
+      return { avslor: "avslor", poeng: "poeng" }[sp.r.fase] || "n-skriv";
+    },
+    // Answering: my turn while I haven't, else the first one still to; then the leader.
+    tur(S) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig) return null;
+      const r = sp.r;
+      if (r.fase !== "skriv") return r.leder;
+      if (minOppgave(sp)) return meg();
+      for (let k = 0; k < sp.antall; k++) {
+        const i = (r.leder + k) % sp.antall;
+        if (!ute(sp, i) && r.inn[i] == null) return i;
+      }
+      return null;
+    },
+    ferdig: (S) => !!S.spill && !!S.spill.ferdig,
+    // After every live move, a replay or a move the room dropped: my answer again if another move got
+    // its place, then the screen.
+    etter(S) {
+      const sp = S.spill;
+      if (!paNett(sp)) return;
+      if (venterSvar) {
+        if (venterSvar.oppgave !== minOppgave(sp)) venterSvar = null;
+        else if (antallTrekk > venterSvar.ved && !R.nett.venter() && R.nett.send(venterSvar.t)) venterSvar.ved = antallTrekk;
+      }
+      if (tegnes) {
+        tegnes = false;
+        nettTegn(S);
+      }
+    },
+  };
+
   // ---------- The game ----------
 
   R.start({
     id: "sauen",
     versjon: 1,
     pagar, // true while a game runs: the front page's «Fortsett» badge and the wake lock use it
+    nett: NETT,
 
     tilstand: () => ({
       // A fresh setup starts from the group that is already saved on this phone.
@@ -811,7 +1192,7 @@
             pagar: pagar(S),
             fortsettTekst: pagar(S) ? R.t("Fortsett · runde {n}", { n: S.spill.nr }) : "",
             // (in the middle of a round the way to «Kåringen» is here: back, then «Avslutt»)
-            ekstraHtml: R.ui.lenkerad(R.ui.lenke(R.t("Slik spiller du"), "regler"), pagar(S) ? R.ui.lenke(R.t("Avslutt"), "avslutt") : ""),
+            ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenkerad(R.ui.lenke(R.t("Slik spiller du"), "regler"), pagar(S) ? R.ui.lenke(R.t("Avslutt"), "avslutt") : ""),
           })}</div>
           <ul class="merker" aria-label="${esc(R.t("Om spillet"))}">
             ${S.sist ? `<li class="sau-sist"><b>${esc(R.t("SIST"))}</b> ${esc(sistTekst(S.sist))}</li>` : ""}
@@ -976,6 +1357,43 @@
         },
       },
 
+      // On the net: the question, and my answer on my own phone. Nobody else's answer is on the page.
+      "n-skriv": {
+        tittel: (S) => R.t("Runde {n}", { n: S.spill.nr }),
+        tilbake: "hjem",
+        vis(S) {
+          const sp = S.spill;
+          const r = sp.r;
+          vistFase = fasenokkel(sp);
+          const q = ALLE[r.q];
+          const p = pakke(q.p) || { ikon: "🐑", navn: R.t("Spørsmål") };
+          const oppgave = minOppgave(sp);
+          const kan = kanSvare(sp);
+          const bytte = R.nett.erMeg(r.leder) && r.inn.every((x) => x == null);
+          return `
+            <div class="bunke"><article class="storkort sau-kort">
+              <div class="storkort-topp"><span class="storkort-etikett">${esc(p.ikon + " " + p.navn)}</span><span class="storkort-nr">${esc(R.t("Først til {n}", { n: sp.mal }))}</span></div>
+              <h1 class="storkort-tekst ${q.t.length > 34 ? "lang" : ""}" id="skjerm-tittel">${esc(q.t)}</h1>
+              <p class="storkort-fot">${esc(R.t("Alle svarer i hemmelighet. Svar det du tror de {andre} svarer!")).replace("{andre}", () => `<em>${esc(R.t("andre"))}</em>`)}</p>
+            </article></div>
+            ${
+              sp.sau >= 0
+                ? `<p class="sau-holder">${medSau(S, sp.sau)}<span>${esc(R.t("{navn} har den svarte sauen")).replace("{navn}", () => `<b>${esc(R.navn(sp.sau))}</b>`)}</span></p>`
+                : ""
+            }
+            ${
+              kan
+                ? `<form class="sau-skriv" data-skjema="n-svar" data-nett-skjema="${esc(oppgave)}" autocomplete="off" novalidate>
+                    <input id="svar-felt" class="tekstfelt sau-felt" data-felt="n-utkast" maxlength="${NETT_MAKS}" value="${esc(utkast.oppgave === oppgave ? utkast.tekst : "")}" autocomplete="off" autocorrect="on" autocapitalize="sentences" spellcheck="false" enterkeyhint="send" placeholder="${esc(R.t("Skriv svaret ditt her …"))}" aria-label="${esc(R.t("Svaret ditt"))}" aria-describedby="svar-feil">
+                    <p class="feil" id="svar-feil" aria-live="assertive"></p>
+                    ${R.ui.dokk(`<button class="knapp" type="submit">${esc(R.t("Send svaret"))}</button>`, R.ui.lenkerad(bytte ? R.ui.lenke(R.t("Bytt spørsmål"), "n-bytt") : "", R.ui.lenke(R.t("Stillingen"), "stilling")))}
+                  </form>`
+                : `<p class="papirboks sau-sendt">✓ ${esc(R.t("Svaret ditt er sendt."))}</p>`
+            }
+            <p class="hjelp sau-nett-linje" data-nett-teller>${esc(tellerTekst(sp))}</p>`;
+        },
+      },
+
       avslor: {
         tittel: R.t("Avsløringen"),
         tilbake: "hjem",
@@ -998,9 +1416,13 @@
               .reverse()
               .join("");
             return `
-              ${r.vist ? hode(R.t("Svar {n} av {av}", { n: r.vist, av: total })) : hode(R.t("Alle har svart!"), R.t("Samle dere rundt mobilen. Svarene vises ett og ett – den største gruppen kommer til slutt."))}
+              ${
+                r.vist
+                  ? hode(R.t("Svar {n} av {av}", { n: r.vist, av: total }))
+                  : hode(R.t("Alle har svart!"), paNett(sp) ? R.t("Svarene vises ett og ett – den største gruppen kommer til slutt.") : R.t("Samle dere rundt mobilen. Svarene vises ett og ett – den største gruppen kommer til slutt."))
+              }
               ${r.vist ? `<ol class="sau-avslorte">${kort}</ol>` : `<div class="sau-venter">${R.figur()}</div>`}
-              ${R.ui.dokk(R.ui.knapp(r.vist === 0 ? R.t("Avslør svarene") : siste ? R.t("Vis den største gruppen") : R.t("Vis neste svar"), "neste-svar"))}`;
+              ${styrer(sp) ? R.ui.dokk(R.ui.knapp(r.vist === 0 ? R.t("Avslør svarene") : siste ? R.t("Vis den største gruppen") : R.t("Vis neste svar"), "neste-svar")) : nettVenter(sp)}`;
           }
           // Everything is out: biggest group first. Tap two groups that mean the same to merge them.
           const rekke = r.grupper.map((g, n) => n).sort((a, b) => storrelse(r, b) - storrelse(r, a));
@@ -1014,16 +1436,17 @@
           const svartN = !sp.sauUte && ut.alene.length === 1 ? r.grupper.findIndex((g) => spillereI(r, g).length === 1 && spillereI(r, g)[0] === ut.alene[0]) : -1;
           const flere = r.grupper.length > 1;
           const forklaring = ut.flokk ? "" : ut.uavgjort ? R.t("De største gruppene er like store.") + " " : R.t("Alle svarte noe forskjellig.") + " ";
+          // (On the net only the round's leader merges; the others say so out loud.)
+          const slaSammen = styrer(sp)
+            ? R.t("Betyr to svar egentlig det samme? Trykk på begge for å slå dem sammen før poengene deles ut.")
+            : R.t("Betyr to svar egentlig det samme? Si fra til {navn}, som slår dem sammen før poengene deles ut.", { navn: R.navn(r.leder) });
           return `
-            ${hode(
-              ut.flokk ? R.t("Flokken er funnet!") : ut.uavgjort ? R.t("Uavgjort!") : R.t("Ingen tenkte likt!"),
-              flere ? forklaring + R.t("Betyr to svar egentlig det samme? Trykk på begge for å slå dem sammen før poengene deles ut.") : R.t("Hele flokken tenkte det samme!"),
-            )}
+            ${hode(ut.flokk ? R.t("Flokken er funnet!") : ut.uavgjort ? R.t("Uavgjort!") : R.t("Ingen tenkte likt!"), flere ? forklaring + slaSammen : R.t("Hele flokken tenkte det samme!"))}
             <ol class="sau-avslorte">${rekke
               .map((n) =>
                 gruppekort(S, n, {
                   ferdig: true,
-                  knapp: flere,
+                  knapp: flere && styrer(sp),
                   inn: n === nyttKort,
                   flokk: n === flokkN,
                   uavgjort: ut.uavgjort && storrelse(r, n) === storst,
@@ -1031,14 +1454,18 @@
                 }),
               )
               .join("")}</ol>
-            ${R.ui.dokk(
-              r.valgt >= 0 ? `<p class="sau-tips">${esc(R.t("Trykk på svaret som betyr det samme – eller på det samme igjen for å angre."))}</p>` : "",
-              R.ui.knapp(R.t("Del ut poengene"), "del-ut"),
-              r.angre.length ? R.ui.lenkerad(R.ui.lenke(R.t("Angre"), "angre")) : "",
-            )}`;
+            ${
+              styrer(sp)
+                ? R.ui.dokk(
+                    valgtGruppe(sp) >= 0 ? `<p class="sau-tips">${esc(R.t("Trykk på svaret som betyr det samme – eller på det samme igjen for å angre."))}</p>` : "",
+                    R.ui.knapp(R.t("Del ut poengene"), "del-ut"),
+                    r.angre.length ? R.ui.lenkerad(R.ui.lenke(R.t("Angre"), "angre")) : "",
+                  )
+                : nettVenter(sp)
+            }`;
         },
         inn(S) {
-          S.spill.skjerm = "avslor";
+          if (!paNett(S.spill)) S.spill.skjerm = "avslor";
         },
         etter() {
           puls = -1;
@@ -1130,13 +1557,22 @@
               <div class="seksjon-hode"><h2>${esc(R.t("Stillingen"))}</h2><span class="tall">${esc(R.t("Først til {n}", { n: sp.mal }))}</span></div>
               ${poengtavle(S, res.flokk || [])}
             </section>
-            ${R.ui.dokk(
-              sp.ferdig ? R.ui.knapp(R.t("Til kåringen"), "til-vinner") : R.ui.knapp(R.t("Neste spørsmål"), "neste-runde"),
-              R.ui.lenkerad(R.ui.lenke(R.t("Angre"), "angre-poeng"), sp.ferdig ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")),
-            )}`;
+            ${
+              // On the net: no «Angre»; «Til kåringen» on every phone, the next question from the leader.
+              !paNett(sp)
+                ? R.ui.dokk(
+                    sp.ferdig ? R.ui.knapp(R.t("Til kåringen"), "til-vinner") : R.ui.knapp(R.t("Neste spørsmål"), "neste-runde"),
+                    R.ui.lenkerad(R.ui.lenke(R.t("Angre"), "angre-poeng"), sp.ferdig ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")),
+                  )
+                : sp.ferdig
+                  ? R.ui.dokk(R.ui.knapp(R.t("Til kåringen"), "til-vinner"))
+                  : styrer(sp)
+                    ? R.ui.dokk(R.ui.knapp(R.t("Neste spørsmål"), "neste-runde"))
+                    : nettVenter(sp)
+            }`;
         },
         inn(S) {
-          S.spill.skjerm = "poeng";
+          if (!paNett(S.spill)) S.spill.skjerm = "poeng";
         },
       },
 
@@ -1180,12 +1616,26 @@
             ${pall}
             ${poengtavle(S, [])}
             ${titler.length ? `<ul class="sau-titler">${titler.map(([ikon, t, n, x]) => `<li><span aria-hidden="true">${ikon}</span><div><small>${esc(t)}</small><b>${esc(n)}</b><span>${esc(x)}</span></div></li>`).join("")}</ul>` : ""}
-            ${R.ui.knapp2(R.t("Del resultatet"), "del")}
+            ${
+              paNett(sp)
+                ? R.nett.sluttDokk()
+                : `${R.ui.knapp2(R.t("Del resultatet"), "del")}
             ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`
+            }`;
         },
         inn(S) {
           const sp = S.spill;
+          if (paNett(sp)) {
+            // On the net: nothing to save or count here; the party only when the match ended just now.
+            R.slippVaken();
+            if (feireNett && sp.vinnere.length) {
+              R.lyd.fanfare();
+              R.konfetti(["--aksent", "--papir", "--mynte", "--lampe", "--lilla"]);
+            } else if (feireNett) R.lyd.pling();
+            feireNett = false;
+            return;
+          }
           const forste = !sp.feiret; // not again after a reload
           sp.ferdig = true;
           sp.feiret = true;
@@ -1204,6 +1654,26 @@
     },
 
     skjema: {
+      // On the net: my answer goes to the room (cleaned; the rules clean it again when it is played).
+      "n-svar"(S, form) {
+        const sp = S.spill;
+        if (!paNett(sp) || !kanSvare(sp)) return;
+        const felt = form.querySelector("input");
+        const tekst = R.nett.tekst(felt.value, NETT_MAKS);
+        if (!R.normaliser(tekst)) {
+          R.$("#svar-feil").textContent = tekst ? R.t("Svaret må ha bokstaver eller tall.") : R.t("Skriv et svar først.");
+          felt.setAttribute("aria-invalid", "true");
+          felt.focus();
+          R.lyd.feil();
+          return;
+        }
+        const t = { svar: tekst, q: sp.r.q };
+        const oppgave = minOppgave(sp);
+        if (!R.nett.send(t)) return;
+        R.lyd.pop();
+        venterSvar = { oppgave, t, ved: antallTrekk };
+        R.vis();
+      },
       svar(S, form) {
         const sp = S.spill;
         const r = sp.r;
@@ -1251,9 +1721,20 @@
         const feil = R.$("#svar-feil");
         if (feil && feil.textContent) feil.textContent = "";
       },
+      "n-utkast"(S, el) {
+        utkast = { oppgave: minOppgave(S.spill), tekst: el.value };
+        el.removeAttribute("aria-invalid");
+        const feil = R.$("#svar-feil");
+        if (feil && feil.textContent) feil.textContent = "";
+      },
     },
 
     handlinger: (H = {
+      // ----- On the net -----
+      "n-bytt"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && sp.r.fase === "skriv" && styrer(sp) && !R.nett.venter()) R.nett.send({ bytt: 1 });
+      },
       async nytt(el, e, S) {
         const fortsatt = R.vakt();
         if (!(await R.bekreftNytt(pagar(S))) || !fortsatt()) return;
@@ -1328,6 +1809,17 @@
         const r = S.spill.r;
         const g = Number(el.dataset.v);
         if (!r.avslort || r.res || !r.grupper[g]) return;
+        // On the net the leader marks one group here, and the merge is a move.
+        if (paNett(S.spill)) {
+          if (!styrer(S.spill) || R.nett.venter()) return;
+          if (nettValgt < 0 || nettValgt >= r.grupper.length) {
+            nettValgt = g;
+            R.lyd.klikk();
+            R.si(R.t("Valgt. Trykk på svaret som betyr det samme, eller på det samme igjen for å angre."));
+          } else if (nettValgt === g) nettValgt = -1;
+          else R.nett.send({ sla: [nettValgt, g] });
+          return R.vis();
+        }
         if (r.valgt < 0 || r.valgt >= r.grupper.length) {
           r.valgt = g;
           R.lyd.klikk();
@@ -1352,6 +1844,7 @@
         const r = S.spill.r;
         const g = Number(el.dataset.v);
         if (!r.avslort || r.res || !r.grupper[g] || r.grupper[g].length < 2) return;
+        if (paNett(S.spill)) return void (styrer(S.spill) && !R.nett.venter() && R.nett.send({ delOpp: g }));
         r.angre.push(r.grupper.map((x) => x.slice()));
         const deler = r.grupper[g].map((u) => [u]);
         r.grupper.splice(g, 1, ...deler);
@@ -1363,6 +1856,7 @@
       angre(el, e, S) {
         const r = S.spill.r;
         if (!r.angre.length) return;
+        if (paNett(S.spill)) return void (styrer(S.spill) && r.avslort && !r.res && !R.nett.venter() && R.nett.send({ angre: 1 }));
         r.grupper = r.angre.pop();
         r.valgt = -1;
         R.vis();
@@ -1371,6 +1865,8 @@
         const r = S.spill.r;
         const total = r.rekkefolge.length;
         if (opptatt || r.avslort) return;
+        // On the net the leader's tap is a move: the next group comes up on every phone together.
+        if (paNett(S.spill)) return void (styrer(S.spill) && !R.nett.venter() && R.nett.send({ neste: S.spill.steg }));
         if (r.vist >= total - 1) {
           // The biggest group: drum roll first.
           opptatt = true;
@@ -1416,6 +1912,7 @@
         const r = sp.r;
         if (!r.avslort) return;
         if (r.res) return R.gaTil("poeng");
+        if (paNett(sp)) return void (styrer(sp) && !R.nett.venter() && R.nett.send({ neste: sp.steg }));
         const info = r.grupper.map((g) => {
           const svar = gruppeSvar(r, g);
           return { spillere: svar.map((k) => r.svar[k].i), tekst: teksterI(r, svar)[0] };
@@ -1508,6 +2005,7 @@
       },
       "neste-runde"(el, e, S) {
         if (!pagar(S) || S.spill.ferdig) return;
+        if (paNett(S.spill)) return void (S.spill.r.fase === "poeng" && styrer(S.spill) && !R.nett.venter() && R.nett.send({ neste: S.spill.steg }));
         nyRunde(S);
         R.gaTil("sporsmal");
       },

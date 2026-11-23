@@ -92,5 +92,18 @@
   "Angret – poengene er tatt bort": "Undone – the points are gone",
   "Avslutte spillet?": "Quit the game?",
   "Svarene som er skrevet, slettes. Dere kan alltid starte et nytt.": "The answers written so far are deleted. You can always start a new one.",
-  "Svarene som er skrevet, slettes, og dere går rett til kåringen.": "The answers written so far are deleted, and you go straight to the results."
+  "Svarene som er skrevet, slettes, og dere går rett til kåringen.": "The answers written so far are deleted, and you go straight to the results.",
+  "På nett går svarene gjennom rommet til de andre mobilene. Rommet slettes senest et døgn etter siste trekk.": "Online, the answers go through the room to the other phones. The room is deleted a day after the last move at the latest.",
+  "{n} av {m} har skrevet": "{n} of {m} have written",
+  "{n} av {m} har pekt": "{n} of {m} have pointed",
+  "Venter på de andre …": "Waiting for the others …",
+  "Svaret ditt": "Your answer",
+  "Send svaret": "Send your answer",
+  "Svaret ditt er sendt.": "Your answer has been sent.",
+  "Ditt svar! Pek på en annen, så ingen skjønner det.": "That one's yours! Point at someone else so nobody twigs.",
+  "Pek på den du tror skrev det": "Point at who you think wrote it",
+  "Du har pekt.": "You've pointed.",
+  "Pekte riktig: {navn}": "Pointed right: {navn}",
+  "{navn} går videre når dere er klare.": "{navn} moves on when you're ready.",
+  "runde|runder": { "one": "round", "other": "rounds" }
 }

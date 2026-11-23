@@ -262,7 +262,9 @@
     // missed is played. Anything else (a new match, a reload): the whole match is rebuilt.
     const samme = forrige && N.fase === "spill" && forrige.kamp === m.kamp && forrige.fro === N.rom.fro && forrigeLogg.length <= m.logg.length && forrigeLogg.every((x, i) => somTekst(x) === somTekst(m.logg[i]));
     if (samme) {
-      if (N.sendt != null && N.sendt < m.logg.length) N.sendt = null;
+      // A move of ours that is not in the room's list by now never got there (the line it went on
+      // is gone): it is not on its way any more, or this phone could never send again.
+      if (N.sendt != null && N.sendt <= m.logg.length) N.sendt = null;
       if (m.logg.length > forrigeLogg.length) {
         for (let i = forrigeLogg.length; i < m.logg.length; i++) bruk(m.logg[i][0], m.logg[i][1], i, true);
         etterGjenspill(true);

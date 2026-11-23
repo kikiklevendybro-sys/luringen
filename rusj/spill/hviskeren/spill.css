@@ -161,6 +161,25 @@
   overflow-wrap: anywhere;
 }
 
+/* ---------- On the net: each on their own phone ---------- */
+
+.hv-nett-h1 {
+  margin: 4px 0 10px;
+}
+
+.hv-sendt {
+  display: block;
+  margin: 12px 0;
+  padding: 12px 14px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.hv-venter {
+  margin: 14px 8px 0;
+  text-align: center;
+}
+
 /* ---------- One phone: the hand-over and the hint field on one screen ---------- */
 
 .hv-skriv {

@@ -10,6 +10,7 @@
   "mobiler": "en",
   "tagger": ["ord", "familie", "fest"],
   "rekkefolge": 14,
+  "nett": true,
   "ordbank": true,
   "sok": ["bare ett hint", "ett hint", "hint", "samarbeidsspill", "gjett ordet", "ordlek"],
   "i18n": {

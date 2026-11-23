@@ -362,12 +362,271 @@
       </article>`;
   }
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Every player on their own phone, 3–10. The moves:
+  //   { skrone: "…", kort }  my fake for card `kort` (cleaned with R.nett.tekst before it is sent and
+  //                          again when it is played). If it is the real answer, I get the bonus and
+  //                          write another one, as off the net;
+  //   { bytt: 1 }            the round's leader takes another card, before anyone has written;
+  //   { stem: k, rn }        my vote in round rn: option k, never my own (those who wrote the real
+  //                          answer sit out the vote);
+  //   { neste: steg }        the round's leader shows the next fake, the truth, the points, the next
+  //                          round or «Kåringen».
+  // Anything else, or anything the rules don't allow now, is ignored on every phone. The cards come
+  // from the room's seed, the order of the options from okt.rng of the move that completed the
+  // fakes. The leader moves one seat per round (and per match). A seat that left is never waited
+  // for; a fake it wrote before the vote stays an option; it is not ranked.
+  // Friends level: a fake is a move from its seat in the room's list (kept in the room, deleted
+  // with it, at the latest after 24 hours). The screens show no fake before everyone still in has
+  // written and no writer before the reveal, but a modified phone could read the list.
+  const NETT_MAKS = 60; // characters in a fake on the net (R.nett.tekst)
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const ute = (sp, i) => paNett(sp) && sp.ute.includes(i);
+  const inne = (sp) => Array.from({ length: sp.antall }, (_, i) => i).filter((i) => !ute(sp, i));
+  const meg = () => (R.nett ? R.nett.meg() : -1);
+  // A list by player with the seats that left set to 0 (they are not ranked).
+  const utenUte = (sp, liste) => liste.map((x, i) => (ute(sp, i) ? 0 : x));
+  function forsteInne(sp, s) {
+    for (let k = 0; k < sp.antall; k++) {
+      const i = (s + k) % sp.antall;
+      if (!ute(sp, i)) return i;
+    }
+    return s;
+  }
+  const harAlle = (sp, liste) => R.nett.alleHar(liste, sp.antall);
+  // My fake or vote on its way: { oppgave, t, ved }. When another move got the place first, the room
+  // drops mine; it is sent again once per move that came in between (ved: the moves played when it
+  // was last sent) – never on a timer. Dropped for another reason (a lost line, «fort»): the field
+  // or the options come back.
+  let venterSvar = null;
+  let antallTrekk = 0; // moves played on this phone in this match
+  let utkast = { oppgave: "", tekst: "" }; // what I have typed so far (a redraw keeps it)
+  let nettValgt = { oppgave: "", k: -1 }; // the option marked on my voting screen
+  let tegnes = false; // a live move changed the state: etter() draws
+  let vistFase = ""; // the phase this phone's screen shows (a new one is drawn as a new screen)
+
+  function nettKort(sp) {
+    const k = sp.stokk[sp.pos % sp.stokk.length];
+    sp.pos += 1;
+    return k;
+  }
+  function nettRunde(sp) {
+    const leder = forsteInne(sp, (sp.forst + sp.rn) % sp.antall);
+    sp.r = Object.assign(M.nyRunde(sp.antall, leder), { leder });
+    sp.fase = "skriv";
+  }
+  const harStemt = (sp) => sp.r.stemmer.map((k, i) => (sp.r.sann[i] || k >= 0 ? true : null));
+  // Everyone still in has written: the options in an order from the room's chance.
+  function nettTilStem(sp, rng) {
+    const r = sp.r;
+    M.tilStemming(r, ALLE[sp.kort].a, rng);
+    r.srekke = r.srekke.filter((i) => !ute(sp, i));
+    sp.fase = "stem";
+    if (harAlle(sp, harStemt(sp))) nettTilAvslor(sp);
+  }
+  // Everyone still in has voted: the points, then the reveal one option at a time.
+  function nettTilAvslor(sp) {
+    M.fullfor(sp);
+    sp.r.vist = 0;
+    sp.fase = "avslor";
+  }
+
+  // What this phone is to do now ("" = nothing): my fake, or my vote.
+  function minOppgave(sp) {
+    const i = meg();
+    if (!paNett(sp) || sp.ferdig || i < 0 || ute(sp, i)) return "";
+    const r = sp.r;
+    if (sp.fase === "skriv" && r.skrevet[i] == null) return `skriv:${sp.rn}:${sp.kort}:${r.sann[i] ? 1 : 0}`;
+    if (sp.fase === "stem" && r.srekke.includes(i) && r.stemmer[i] < 0) return `stem:${sp.rn}`;
+    return "";
+  }
+  const kanSvare = (sp) => !!minOppgave(sp) && !(venterSvar && venterSvar.oppgave === minOppgave(sp) && R.nett.venter());
+  function sendSvar(sp, t) {
+    const oppgave = minOppgave(sp);
+    if (!oppgave || !kanSvare(sp) || !R.nett.send(t)) return;
+    venterSvar = { oppgave, t, ved: antallTrekk };
+    R.vis();
+  }
+  function tellerTekst(sp) {
+    const r = sp.r;
+    if (sp.fase === "skriv") {
+      const med = inne(sp);
+      return R.t("{n} av {m} har skrevet", { n: med.filter((i) => r.skrevet[i] != null).length, m: med.length });
+    }
+    return R.t("{n} av {m} har stemt", { n: r.srekke.filter((i) => r.stemmer[i] >= 0).length, m: r.srekke.length });
+  }
+  // The leader's button on the reveal and the points; the others are told who goes on.
+  const nettDokk = (sp, tekst) =>
+    R.nett.erMeg(sp.r.leder) ? R.ui.dokk(R.ui.knapp(tekst, "n-neste")) : `<p class="hjelp skrone-hjelp">${esc(R.t("{navn} går videre når dere er klare.", { navn: R.navn(sp.r.leder) }))}</p>`;
+  const fasenokkel = (sp) => (sp.ferdig ? "slutt" : `${sp.fase}:${sp.rn}`);
+  // After a live move: a new phase is a new screen; else the same one again – or, while this phone
+  // is typing, only the count (the field is left as it is).
+  function nettTegn(S) {
+    const sp = S.spill;
+    if (R.S !== S || !S.skjerm || S.skjerm === "nett" || !paNett(sp)) return;
+    const mal = NETT.skjerm(S);
+    if (S.skjerm !== mal || fasenokkel(sp) !== vistFase) {
+      vistFase = fasenokkel(sp);
+      if (sp.ferdig) feire = true;
+      else if (sp.fase === "stem") R.lyd.pling();
+      else if (sp.fase === "avslor") R.lyd.trommevirvel(0.5);
+      return R.gaTil(mal);
+    }
+    const skjema = R.$("#skjerm [data-nett-skjema]");
+    const teller = R.$("#skjerm [data-nett-teller]");
+    if (skjema && teller && kanSvare(sp) && skjema.dataset.nettSkjema === minOppgave(sp)) {
+      teller.textContent = tellerTekst(sp);
+      return;
+    }
+    R.vis();
+    if (sp.fase === "avslor" && sp.r.vist > 0) {
+      const rekke = M.avslorRekke(sp.r);
+      const v = sp.r.valg[rekke[sp.r.vist - 1]];
+      if (v && v.sann) R.lyd.riktig();
+      else if (v) R.lyd.latter();
+    }
+  }
+
+  const NETT = {
+    min: 3,
+    maks: 10,
+    oppsett: (S) => ({ pakker: S.oppsett.pakker.slice(), runder: S.oppsett.runder }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      const pakker = D.pakker.filter((p) => Array.isArray(x.pakker) && x.pakker.includes(p.id));
+      return [R.flertall(RUNDER.includes(x.runder) ? x.runder : 5, "runde", "runder"), pakker.map((p) => p.ikon).join("")].filter(Boolean).join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const n = R.klamp(okt.antall || 3, 3, 10);
+      const valgt = (Array.isArray(o.pakker) ? o.pakker : []).filter((id) => pakke(id));
+      const pakker = valgt.length ? valgt : STANDARD.slice();
+      // The cards of the host's packs, in the room's order (no repeats in a match).
+      const kort = ALLE.map((_, i) => i).filter((i) => pakker.includes(ALLE[i].p));
+      // The first round's leader moves one seat per match.
+      const sp = Object.assign(M.nyttSpill({ pakker, runder: o.runder }, n, (okt.kamp - 1) % n, 0), {
+        modus: "nett",
+        ute: [],
+        steg: 0,
+        stokk: R.stokk(kort, R.nett.tilfeldig(okt.fro, "kort")),
+        pos: 0,
+      });
+      sp.kort = nettKort(sp);
+      nettRunde(sp);
+      S.spill = sp;
+      feire = false;
+      venterSvar = null;
+      antallTrekk = 0;
+      utkast = { oppgave: "", tekst: "" };
+      nettValgt = { oppgave: "", k: -1 };
+      tegnes = false;
+      vistFase = "";
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      antallTrekk += 1;
+      // My own move came back (played or not): it is not on its way any more.
+      if (venterSvar && sete === meg() && JSON.stringify(t) === JSON.stringify(venterSvar.t)) {
+        venterSvar = null;
+        if (!okt.gjenspill) tegnes = true;
+      }
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || !(sete >= 0 && sete < sp.antall) || ute(sp, sete)) return;
+      const r = sp.r;
+      if (sp.fase === "skriv" && typeof t.skrone === "string") {
+        const tekst = R.nett.tekst(t.skrone, NETT_MAKS);
+        if (t.kort !== sp.kort || r.skrevet[sete] != null || !nokkel(tekst)) return;
+        if (M.erSann(tekst, ALLE[sp.kort])) r.sann[sete] = true;
+        else {
+          r.skrevet[sete] = tekst;
+          if (harAlle(sp, r.skrevet)) nettTilStem(sp, okt.rng);
+        }
+      } else if (sp.fase === "skriv" && t.bytt === 1) {
+        if (sete !== r.leder || r.skrevet.some((x) => x != null) || r.sann.some(Boolean)) return;
+        sp.kort = nettKort(sp);
+      } else if (sp.fase === "stem" && Number.isInteger(t.stem)) {
+        if (t.rn !== sp.rn || !r.srekke.includes(sete) || r.stemmer[sete] >= 0 || !M.kanStemme(r, sete, t.stem)) return;
+        r.stemmer[sete] = t.stem;
+        if (harAlle(sp, harStemt(sp))) nettTilAvslor(sp);
+      } else if ((sp.fase === "avslor" || sp.fase === "resultat") && Number.isInteger(t.neste)) {
+        if (t.neste !== sp.steg || sete !== r.leder) return;
+        sp.steg += 1;
+        if (sp.fase === "avslor") {
+          if (r.vist < M.avslorRekke(r).length) r.vist += 1;
+          else sp.fase = "resultat";
+        } else if (M.sisteRunde(sp)) sp.ferdig = true;
+        else {
+          sp.rn += 1;
+          sp.kort = nettKort(sp);
+          nettRunde(sp);
+        }
+      } else return;
+      if (!okt.gjenspill) tegnes = true;
+    },
+    // The seat left: never waited for again, the next seat leads if it led, and it is not ranked. A
+    // fake it wrote before the vote stays an option (its points go nowhere).
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      antallTrekk += 1;
+      if (!paNett(sp) || sp.ferdig || !(sete >= 0 && sete < sp.antall) || ute(sp, sete)) return;
+      sp.ute.push(sete);
+      const r = sp.r;
+      if (inne(sp).length < 3) sp.ferdig = true; // (the room ends the match before this happens)
+      else {
+        if (r.leder === sete) r.leder = forsteInne(sp, sete);
+        if (sp.fase === "skriv") {
+          r.skrevet[sete] = null;
+          r.sann[sete] = false;
+          if (r.skrevet.some((x) => x != null) && harAlle(sp, r.skrevet)) nettTilStem(sp, okt.rng);
+        } else if (sp.fase === "stem") {
+          r.srekke = r.srekke.filter((i) => i !== sete);
+          if (harAlle(sp, harStemt(sp))) nettTilAvslor(sp);
+        }
+      }
+      if (!okt.gjenspill) tegnes = true;
+    },
+    skjerm(S) {
+      const sp = S.spill;
+      if (!sp || sp.ferdig) return "slutt";
+      return { skriv: "n-skriv", stem: "n-stem", avslor: "avslor", resultat: "resultat" }[sp.fase] || "n-skriv";
+    },
+    // Writing and voting: my turn while I haven't, else the first one still to; the leader after that.
+    tur(S) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig) return null;
+      const r = sp.r;
+      if (sp.fase === "avslor" || sp.fase === "resultat") return r.leder;
+      if (minOppgave(sp)) return meg();
+      for (let k = 0; k < sp.antall; k++) {
+        const i = (r.leder + k) % sp.antall;
+        if (ute(sp, i)) continue;
+        if (sp.fase === "skriv" ? r.skrevet[i] == null : r.srekke.includes(i) && r.stemmer[i] < 0) return i;
+      }
+      return null;
+    },
+    ferdig: (S) => !!S.spill && !!S.spill.ferdig,
+    // After every live move, a replay or a move the room dropped: my fake or vote again if another
+    // move got its place, then the screen.
+    etter(S) {
+      const sp = S.spill;
+      if (!paNett(sp)) return;
+      if (venterSvar) {
+        if (venterSvar.oppgave !== minOppgave(sp)) venterSvar = null;
+        else if (antallTrekk > venterSvar.ved && !R.nett.venter() && R.nett.send(venterSvar.t)) venterSvar.ved = antallTrekk;
+      }
+      if (tegnes) {
+        tegnes = false;
+        nettTegn(S);
+      }
+    },
+  };
+
   // ---------- Start ----------
 
   R.start({
     id: "skronemakeren",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({
       antall: R.klamp(lagretAntall() || 4, 3, 10),
@@ -468,7 +727,7 @@
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
               fortsettTekst: pagar(S) ? R.t("Fortsett · {runde}", { runde: tittel(S).toLocaleLowerCase(R.lokale) }) : "",
-              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+              ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [["3–10", R.t("spillere")], [String(ALLE.length), R.t("kort")], ["1", R.t("mobil")]],
           });
@@ -660,6 +919,80 @@
         },
       },
 
+      // On the net: the card, and my fake on my own phone. Nobody else's fake is on the page.
+      "n-skriv": {
+        tittel,
+        tilbake: "hjem",
+        vis(S) {
+          const sp = S.spill;
+          const r = sp.r;
+          vistFase = fasenokkel(sp);
+          const jeg = meg();
+          const oppgave = minOppgave(sp);
+          const kan = kanSvare(sp);
+          const bytte = R.nett.erMeg(r.leder) && r.skrevet.every((x) => x == null) && !r.sann.some(Boolean);
+          return `
+            <h1 id="skjerm-tittel" class="skrone-nett-h1">${esc(!kan ? R.t("Venter på de andre …") : r.sann[jeg] ? R.t("Skriv en skrøne til") : R.t("Dikt en skrøne"))}</h1>
+            ${kortet(sp)}
+            ${
+              kan && r.sann[jeg]
+                ? `<p class="papirboks skrone-truffet" role="status">🎯 <b>${esc(R.t("Det var det ekte svaret!"))}</b> ${esc(R.t("Du får {bonus} poeng i bonus. Skriv en skrøne til, så de andre har noe å gå på.", { bonus: BONUS }))}</p>`
+                : ""
+            }
+            ${
+              kan
+                ? `<form class="skrone-skriv" data-skjema="n-skrone" data-nett-skjema="${esc(oppgave)}" autocomplete="off" novalidate>
+                    <label class="vh" for="skrone-nett-felt">${esc(R.t("Skrønen din"))}</label>
+                    <input id="skrone-nett-felt" class="tekstfelt" data-felt="n-utkast" maxlength="${NETT_MAKS}" value="${esc(utkast.oppgave === oppgave ? utkast.tekst : "")}" placeholder="${esc(R.t("Skriv et svar som høres ekte ut …"))}" autocomplete="off" autocapitalize="sentences" spellcheck="false" enterkeyhint="send" aria-describedby="skrone-feil">
+                    <p class="feil" id="skrone-feil" aria-live="assertive"></p>
+                    ${R.ui.dokk(`<button class="knapp" type="submit">${esc(R.t("Send skrønen"))}</button>`, bytte ? R.ui.lenkerad(R.ui.lenke(R.t("Bytt kort"), "n-bytt")) : "")}
+                  </form>`
+                : `<p class="papirboks skrone-sendt">✓ ${esc(R.t("Skrønen din er sendt."))}</p>`
+            }
+            <p class="hjelp skrone-hjelp" data-nett-teller>${esc(tellerTekst(sp))}</p>`;
+        },
+        inn: () => R.holdVaken(),
+      },
+
+      // On the net: all the options on every phone; I vote on mine (never on my own fake).
+      "n-stem": {
+        tittel,
+        tilbake: "hjem",
+        vis(S) {
+          const sp = S.spill;
+          const r = sp.r;
+          vistFase = fasenokkel(sp);
+          const jeg = meg();
+          const kan = kanSvare(sp);
+          const valgt = kan && nettValgt.oppgave === minOppgave(sp) ? nettValgt.k : -1;
+          const fant = r.rekke.filter((i) => r.sann[i] && !ute(sp, i));
+          return `
+            <h1 id="skjerm-tittel">${esc(R.t("Hva er sant?"))}</h1>
+            <p class="skrone-sporsmal">${esc(ALLE[sp.kort].s)}</p>
+            ${
+              fant.length
+                ? `<p class="papirboks skrone-fant">🎯 ${esc(R.t("{navn} skrev det ekte svaret og får {bonus} poeng i bonus – og står over stemmingen.", { navn: navneliste(fant), bonus: BONUS, n: fant.length }))}</p>`
+                : ""
+            }
+            ${
+              kan
+                ? `<div class="skrone-valg" role="group" aria-label="${esc(R.t("Svarene"))}">
+                    ${r.valg
+                      .map((v, k) => {
+                        const egen = v.av.includes(jeg);
+                        return `<button class="skrone-alt${egen ? " egen" : ""}${valgt === k ? " valgt" : ""}" data-h="n-velg" data-v="${k}" aria-pressed="${valgt === k}"${egen ? " disabled" : ""}>${bokstav(k)}<span class="skrone-alt-tekst">${esc(v.t)}</span>${egen ? `<span class="skrone-din">${esc(R.t("Din"))}</span>` : ""}</button>`; // sprak-ok
+                      })
+                      .join("")}
+                  </div>`
+                : `<ol class="skrone-liste">${r.valg.map((v, k) => `<li>${bokstav(k)}<span>${esc(v.t)}</span></li>`).join("")}</ol>
+                  <p class="papirboks skrone-sendt">${esc(r.sann[jeg] ? R.t("Du fant det ekte svaret og står over stemmingen.") : `✓ ${R.t("Stemmen din er sendt.")}`)}</p>`
+            }
+            <p class="hjelp skrone-hjelp" data-nett-teller>${esc(tellerTekst(sp))}</p>
+            ${kan ? R.ui.dokk(R.ui.knapp(valgt >= 0 ? R.t("Stem på {bokstav}", { bokstav: BOKSTAV[valgt] }) : R.t("Velg et svar"), "n-stem", { av: valgt < 0 })) : ""}`;
+        },
+        inn: () => R.holdVaken(),
+      },
+
       // Everyone: the fakes one by one, the truth last.
       avslor: {
         tittel: R.t("Avsløringen"),
@@ -674,8 +1007,12 @@
               <h1 id="skjerm-tittel">${esc(R.t("Avsløringen"))}</h1>
               <p class="skrone-sporsmal">${esc(ALLE[sp.kort].s)}</p>
               <div class="skrone-venter">${R.figur()}</div>
-              <p class="ingress skrone-ingress">${esc(R.t("Samle dere rundt mobilen."))} ${esc(rekke.length > 1 ? R.t("Først skrønene noen gikk på – det ekte svaret til slutt.") : R.t("Ingen gikk på en skrøne. Hva var det ekte svaret?"))}</p>
-              ${R.ui.dokk(R.ui.knapp(rekke.length > 1 ? R.t("Vis første skrøne") : R.t("Vis det ekte svaret"), "vis-neste"), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
+              <p class="ingress skrone-ingress">${paNett(sp) ? "" : `${esc(R.t("Samle dere rundt mobilen."))} `}${esc(rekke.length > 1 ? R.t("Først skrønene noen gikk på – det ekte svaret til slutt.") : R.t("Ingen gikk på en skrøne. Hva var det ekte svaret?"))}</p>
+              ${
+                paNett(sp)
+                  ? nettDokk(sp, rekke.length > 1 ? R.t("Vis første skrøne") : R.t("Vis det ekte svaret"))
+                  : R.ui.dokk(R.ui.knapp(rekke.length > 1 ? R.t("Vis første skrøne") : R.t("Vis det ekte svaret"), "vis-neste"), R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))
+              }`;
           }
           const siste = vist === rekke.length;
           const tidligere = rekke.slice(0, vist - 1).reverse();
@@ -684,7 +1021,7 @@
             <p class="skrone-sporsmal liten">${esc(ALLE[sp.kort].s)}</p>
             ${avslortKort(S, rekke[vist - 1], { ny: true })}
             ${tidligere.length ? `<div class="skrone-tidligere">${tidligere.map((k) => avslortKort(S, k)).join("")}</div>` : ""}
-            ${R.ui.dokk(R.ui.knapp(siste ? R.t("Se poengene") : vist === rekke.length - 1 ? R.t("Vis det ekte svaret") : R.t("Vis neste skrøne"), "vis-neste"))}`;
+            ${(paNett(sp) ? (tekst) => nettDokk(sp, tekst) : (tekst) => R.ui.dokk(R.ui.knapp(tekst, "vis-neste")))(siste ? R.t("Se poengene") : vist === rekke.length - 1 ? R.t("Vis det ekte svaret") : R.t("Vis neste skrøne"))}`;
         },
         inn(S) {
           R.holdVaken();
@@ -699,8 +1036,10 @@
           const sp = S.spill;
           const r = sp.r;
           const sannK = M.sannIndeks(r.valg);
-          const rader = M.rader(sp).map((rad) => Object.assign(rad, r.pluss[rad.i] ? { pluss: r.pluss[rad.i] } : {}));
-          const lurere = M.toppen(r.lurt);
+          const rader = M.rader(sp)
+            .filter((rad) => !ute(sp, rad.i))
+            .map((rad) => Object.assign(rad, r.pluss[rad.i] ? { pluss: r.pluss[rad.i] } : {}));
+          const lurere = M.toppen(utenUte(sp, r.lurt));
           const ekte = ALLE[sp.kort];
           return `
             <h1 id="skjerm-tittel">${esc(M.sisteRunde(sp) ? R.t("Siste runde er ferdig") : R.t("Runde {n} er ferdig", { n: sp.rn + 1 }))}</h1>
@@ -723,7 +1062,11 @@
                 )
                 .join("")}</ul>
             </details>
-            ${R.ui.dokk(R.ui.knapp(M.sisteRunde(sp) ? R.t("Til kåringen") : R.t("Neste runde"), "videre"), R.ui.lenkerad(M.sisteRunde(sp) ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
+            ${
+              paNett(sp)
+                ? nettDokk(sp, M.sisteRunde(sp) ? R.t("Til kåringen") : R.t("Neste runde"))
+                : R.ui.dokk(R.ui.knapp(M.sisteRunde(sp) ? R.t("Til kåringen") : R.t("Neste runde"), "videre"), R.ui.lenkerad(M.sisteRunde(sp) ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")))
+            }`;
         },
         inn(S) {
           S.spill.fase = "resultat";
@@ -736,10 +1079,10 @@
         gjenoppta: "hjem",
         vis(S) {
           const sp = S.spill;
-          const rader = M.rader(sp);
-          const v = M.vinnere(sp);
-          const skrone = M.toppen(sp.lurt);
-          const jeger = M.toppen(sp.funnet);
+          const rader = M.rader(sp).filter((rad) => !ute(sp, rad.i));
+          const v = M.toppen(utenUte(sp, sp.poeng)); // (M.vinnere, without the seats that left the match on the net)
+          const skrone = M.toppen(utenUte(sp, sp.lurt));
+          const jeger = M.toppen(utenUte(sp, sp.funnet));
           const h1 = !v.length ? R.t("Ingen poeng denne gangen") : vinnerTekst(v);
           const pris = (ikon, navn, hvem, linje) =>
             `<div class="skrone-pris"><span class="skrone-pris-ikon" aria-hidden="true">${ikon}</span><div><p class="etikett">${esc(navn)}</p><p class="skrone-pris-navn">${esc(
@@ -760,14 +1103,18 @@
             ${v.length ? R.ui.pall(rader) : ""}
             ${R.ui.poengliste(rader)}
             ${priser ? `<section class="skrone-priser">${priser}</section>` : ""}
-            ${v.length ? `<div class="skrone-del">${R.ui.knapp2(R.t("Del resultatet"), "del", { ikon: "📣" })}</div>` : ""}
+            ${
+              paNett(sp)
+                ? R.nett.sluttDokk()
+                : `${v.length ? `<div class="skrone-del">${R.ui.knapp2(R.t("Del resultatet"), "del", { ikon: "📣" })}</div>` : ""}
             ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`
+            }`;
         },
         inn(S) {
           if (!feire) return;
           feire = false;
-          if (M.vinnere(S.spill).length) {
+          if (M.toppen(utenUte(S.spill, S.spill.poeng)).length) {
             R.lyd.fanfare();
             R.konfetti();
           } else R.lyd.pling();
@@ -808,9 +1155,31 @@
         if (M.alleHarSkrevet(r)) return tilLesing(S);
         R.gaTil("gi"); // a new screen: nothing of this fake is left on the page
       },
+      // On the net: my fake goes to the room (cleaned; the rules clean it again when it is played).
+      "n-skrone"(S, form) {
+        const sp = S.spill;
+        if (!paNett(sp) || sp.fase !== "skriv" || !kanSvare(sp)) return;
+        const felt = form.querySelector("input");
+        const tekst = R.nett.tekst(felt.value, NETT_MAKS);
+        if (!nokkel(tekst)) {
+          R.$("#skrone-feil").textContent = tekst ? R.t("Skrønen må ha bokstaver eller tall.") : R.t("Skriv en skrøne først.");
+          felt.setAttribute("aria-invalid", "true");
+          felt.focus();
+          R.lyd.feil();
+          return;
+        }
+        R.lyd.pop();
+        sendSvar(sp, { skrone: tekst, kort: sp.kort });
+      },
     },
 
     felt: {
+      "n-utkast"(S, el) {
+        utkast = { oppgave: minOppgave(S.spill), tekst: el.value };
+        el.removeAttribute("aria-invalid");
+        const feil = R.$("#skrone-feil");
+        if (feil && feil.textContent) feil.textContent = "";
+      },
       utkast(S, el) {
         const sp = S.spill;
         if (!sp || !sp.r) return;
@@ -825,6 +1194,29 @@
     },
 
     handlinger: (H = {
+      // ----- On the net -----
+      "n-velg"(el, e, S) {
+        const sp = S.spill;
+        const k = Number(el.dataset.v);
+        if (!paNett(sp) || sp.fase !== "stem" || !kanSvare(sp) || !M.kanStemme(sp.r, meg(), k)) return;
+        nettValgt = { oppgave: minOppgave(sp), k };
+        R.lyd.klikk();
+        R.vis();
+      },
+      "n-stem"(el, e, S) {
+        const sp = S.spill;
+        if (!paNett(sp) || sp.fase !== "stem" || nettValgt.oppgave !== minOppgave(sp) || !M.kanStemme(sp.r, meg(), nettValgt.k)) return;
+        R.lyd.pop();
+        sendSvar(sp, { stem: nettValgt.k, rn: sp.rn });
+      },
+      "n-neste"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && (sp.fase === "avslor" || sp.fase === "resultat") && R.nett.erMeg(sp.r.leder) && !R.nett.venter()) R.nett.send({ neste: sp.steg });
+      },
+      "n-bytt"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && sp.fase === "skriv" && R.nett.erMeg(sp.r.leder) && !R.nett.venter()) R.nett.send({ bytt: 1 });
+      },
       async nytt(el, e, S) {
         const fortsatt = R.vakt();
         if (!(await R.bekreftNytt(pagar(S))) || !fortsatt()) return;
