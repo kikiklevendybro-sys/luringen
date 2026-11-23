@@ -128,5 +128,7 @@
   "Angret": "Fortrudt",
   "Avslutte spillet?": "Afslutte spillet?",
   "Spillet som er i gang, teller ikke. Dere kan alltid starte et nytt.": "Spillet, der er i gang, tæller ikke. I kan altid starte et nyt.",
-  "Spill videre": "Spil videre"
+  "Spill videre": "Spil videre",
+  "De andre har gått – {navn} vinner!": "De andre er gået – {navn} vinder!",
+  "Vent på tur – {navn} spiller nå": "Vent på din tur – {navn} spiller nu"
 }

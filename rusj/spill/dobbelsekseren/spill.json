@@ -12,6 +12,7 @@
   "farge": "#3fb6c8",
   "alder": 6,
   "motMobilen": true,
+  "nett": true,
   "sok": ["domino", "dominobrikker", "domino spill", "trekkdomino", "blokkdomino", "domino mot data", "dobbel seks", "brettspill"],
   "i18n": {
     "en": {

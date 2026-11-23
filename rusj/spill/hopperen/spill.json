@@ -13,6 +13,7 @@
   "alder": 7,
   "sok": ["kinasjakk", "kinesisk sjakk", "stjernespill", "hoppespill", "kinasjakk på nett", "kinasjakk mot datamaskin", "stjernebrett"],
   "motMobilen": true,
+  "nett": true,
   "alias": ["kinasjakk"],
   "i18n": {
     "en": {

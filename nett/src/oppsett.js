@@ -25,13 +25,17 @@ export const SPILL = {
   dam: [2, 2],
   stigespillet: [2, 4],
   lykkegrisen: [2, 8],
+  tavla: [2, 2],
+  hopperen: [2, 6],
+  dobbelsekseren: [2, 4],
+  lasesmeden: [2, 2],
 };
 
 // Games where a player who leaves on purpose is skipped and the others play on (party games with
 // many seats). The room then adds a move `{ "$": "borte" }` from that seat to the list, so every
 // phone takes the seat out at the same place in the match; when fewer than the game's minimum (and
 // never fewer than 2) are left, the match is over as in every other game.
-export const FORTSETT = new Set([]);
+export const FORTSETT = new Set(["hopperen", "dobbelsekseren"]);
 
 // Limits per message and per socket.
 export const MAKS_BYTES = 2048; // one message from a phone, as UTF-8

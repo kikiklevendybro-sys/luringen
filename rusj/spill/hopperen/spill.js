@@ -47,13 +47,29 @@
     const MAKS_RUNDER = 150; // a safety net: after this many rounds the one who has come furthest wins
 
     // A game: seats (points of the star, in turn order), the board (seat index per hole or −1),
-    // whose turn (index into seats).
-    function nyttParti(antall, forste = 0) {
-      const seter = SETER[antall];
-      if (!seter) return null;
+    // whose turn (index into seats), the seats that have left (on the net). seter: another layout
+    // of the points than SETER (five on the net).
+    function nyttParti(antall, forste = 0, seter = SETER[antall]) {
+      if (!Array.isArray(seter) || seter.length !== antall) return null;
       const b = new Int8Array(N).fill(-1);
       seter.forEach((k, s) => SPISS[k].forEach((i) => (b[i] = s)));
-      return { antall, seter, b, tur: forste % antall, hist: [], vinner: null, slutt: false, grunn: "" };
+      return { antall, seter, b, tur: forste % antall, hist: [], ute: [], vinner: null, slutt: false, grunn: "" };
+    }
+    // The next seat after s that is still in the game.
+    const nesteInne = (p, s) => {
+      for (let k = 1; k <= p.antall; k++) if (!p.ute.includes((s + k) % p.antall)) return (s + k) % p.antall;
+      return s;
+    };
+    // Seat s leaves (on the net): its pegs go off the board, its turns are skipped. With one seat
+    // left, that one wins.
+    function fjern(p, s) {
+      if (p.slutt || !Number.isInteger(s) || s < 0 || s >= p.antall || p.ute.includes(s)) return null;
+      for (let i = 0; i < N; i++) if (p.b[i] === s) p.b[i] = -1;
+      p.ute.push(s);
+      if (p.tur === s) p.tur = nesteInne(p, s);
+      const inne = [...Array(p.antall).keys()].filter((x) => !p.ute.includes(x));
+      if (inne.length < 2) Object.assign(p, { slutt: true, vinner: inne.length ? inne[0] : null, grunn: "borte" });
+      return true;
     }
     // Where can the peg in hole a go? Map target → previous hole on the way (for the path).
     function maal(p, a) {
@@ -117,7 +133,7 @@
     // Places when the game ends: the winner first, then most pegs in the goal, then the shortest way.
     function rangering(p) {
       const s = [...Array(p.antall).keys()];
-      return s.sort((a, b) => (b === p.vinner) - (a === p.vinner) || iMalet(p, b) - iMalet(p, a) || rest(p, a) - rest(p, b) || a - b);
+      return s.sort((a, b) => (b === p.vinner) - (a === p.vinner) || p.ute.includes(a) - p.ute.includes(b) || iMalet(p, b) - iMalet(p, a) || rest(p, a) - rest(p, b) || a - b);
     }
     function spill(p, fra, til) {
       if (p.slutt || p.b[fra] !== p.tur) return null;
@@ -129,7 +145,7 @@
       p.b[til] = s;
       const h = { fra, til, s, vei: veien };
       p.hist.push(h);
-      p.tur = (s + 1) % p.antall;
+      p.tur = nesteInne(p, s);
       if (iMalet(p, s) === 10) Object.assign(p, { slutt: true, vinner: s, grunn: "mal" });
       else if (p.hist.length >= MAKS_RUNDER * p.antall) {
         p.slutt = true;
@@ -147,14 +163,15 @@
       Object.assign(p, { slutt: false, vinner: null, grunn: "" });
       return h;
     }
-    function spillUt(antall, forste, liste) {
-      const p = nyttParti(antall, forste);
+    // A game from its list of moves ([from, to]; [−1, seat]: that seat left).
+    function spillUt(antall, forste, liste, seter) {
+      const p = nyttParti(antall, forste, seter);
       if (!p || !Array.isArray(liste)) return null;
-      for (const m of liste) if (!Array.isArray(m) || !spill(p, m[0], m[1])) return null;
+      for (const m of liste) if (!Array.isArray(m) || !(m[0] === -1 ? fjern(p, m[1]) : spill(p, m[0], m[1]))) return null;
       return p;
     }
 
-    return { HULL, N, NABO, HOPP, SPISS, SPISS_AV, TIL, SETER, MAKS_RUNDER, finn, mal, nyttParti, maal, vei, lovlige, iMalet, rest, rangering, spill, tilbake, spillUt };
+    return { HULL, N, NABO, HOPP, SPISS, SPISS_AV, TIL, SETER, MAKS_RUNDER, finn, mal, nyttParti, maal, vei, lovlige, iMalet, rest, rangering, spill, tilbake, spillUt, fjern };
   })();
 
   // ---------- The engine ----------
@@ -260,7 +277,13 @@
     if (erMaskin(sp, s)) return antallMaskiner(sp) === 1 ? R.t("Mobilen") : R.t("Mobil {n}", { n: s - sp.folk + 1 });
     return sp.modus === "mobil" ? R.t("Du") : R.navn(s);
   }
-  const fargeFor = (sp, s) => Stjerne.SETER[sp.plasser][s];
+  const fargeFor = (sp, s) => (sp.seter || Stjerne.SETER[sp.plasser])[s];
+  // On the net (R.nett, rusj/kit/nett.js): seat i is player i on its own phone; a move is played when
+  // the room sends it back, on every phone in the same order. Each phone sees its own point at the
+  // bottom. Five players: the top point stays empty.
+  const NETT_SETER = { 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 4, 5], 6: [0, 1, 2, 3, 4, 5] };
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
 
   let parti = null;
   let partiFor = "";
@@ -269,7 +292,7 @@
     const sp = S.spill;
     const k = partiNokkel(sp);
     if (parti && partiFor === k) return parti;
-    parti = Stjerne.spillUt(sp.plasser, sp.forste, sp.trekk);
+    parti = Stjerne.spillUt(sp.plasser, sp.forste, sp.trekk, sp.seter);
     partiFor = k;
     return parti;
   }
@@ -297,7 +320,7 @@
   // ---------- Playing ----------
   const kanFlytte = (S) => {
     const sp = S.spill;
-    return !!sp && !sp.ferdig && !sp.resultat && !erMaskin(sp, tur(S));
+    return !!sp && !sp.ferdig && !sp.resultat && !erMaskin(sp, tur(S)) && (!paNett(sp) || (tur(S) === R.nett.meg() && !R.nett.venter()));
   };
 
   function flytt(S, fra, til) {
@@ -316,11 +339,12 @@
     else lyd.steg();
     R.vibrer(erHopp ? [8, 30, 8] : 8);
     const n = { navn: navn(sp, s), hopp };
-    let linje = erHopp ? (sp.modus === "mobil" && s === 0 ? R.t("Du hoppet {hopp} gang.|Du hoppet {hopp} ganger.", { hopp, n: hopp }) : R.t("{navn} hoppet {hopp} gang.|{navn} hoppet {hopp} ganger.", { ...n, n: hopp })) : sp.modus === "mobil" && s === 0 ? R.t("Du flyttet ett steg.") : R.t("{navn} flyttet ett steg.", n);
+    const du = (sp.modus === "mobil" && s === 0) || erJeg(sp, s);
+    let linje = erHopp ? (du ? R.t("Du hoppet {hopp} gang.|Du hoppet {hopp} ganger.", { hopp, n: hopp }) : R.t("{navn} hoppet {hopp} gang.|{navn} hoppet {hopp} ganger.", { ...n, n: hopp })) : du ? R.t("Du flyttet ett steg.") : R.t("{navn} flyttet ett steg.", n);
     if (p.slutt) {
       avsluttRunde(S, p);
       linje += " " + resultatLinje(S);
-    } else if (!erMaskin(sp, p.tur)) linje += " " + (sp.modus === "mobil" ? R.t("Din tur.") : R.t("{navn} sin tur.", { navn: navn(sp, p.tur) }));
+    } else if (!erMaskin(sp, p.tur)) linje += " " + (sp.modus === "mobil" || erJeg(sp, p.tur) ? R.t("Din tur.") : R.t("{navn} sin tur.", { navn: navn(sp, p.tur) }));
     R.si(linje);
     R.vis();
     if (!p.slutt) startTenking(S);
@@ -331,13 +355,15 @@
     const r = sp.resultat;
     if (!r) return "";
     if (r.grunn === "runder") return R.t("{n} runder er spilt – {navn} har kommet lengst!", { n: Stjerne.MAKS_RUNDER, navn: navn(sp, r.vinner) });
-    return sp.modus === "mobil" && r.vinner === 0 ? R.t("Du vinner – alle brikkene i mål!") : R.t("{navn} vinner – alle brikkene i mål!", { navn: navn(sp, r.vinner) });
+    if (r.grunn === "borte") return R.t("De andre har gått – {navn} vinner!", { navn: navn(sp, r.vinner) });
+    return (sp.modus === "mobil" && r.vinner === 0) || erJeg(sp, r.vinner) ? R.t("Du vinner – alle brikkene i mål!") : R.t("{navn} vinner – alle brikkene i mål!", { navn: navn(sp, r.vinner) });
   }
 
+  const resultatFor = (sp, p) => ({ vinner: p.vinner, grunn: p.grunn, plass: Stjerne.rangering(p), iMal: [...Array(sp.plasser).keys()].map((s) => Stjerne.iMalet(p, s)) });
   function avsluttRunde(S, p) {
     const sp = S.spill;
     stoppTenking();
-    sp.resultat = { vinner: p.vinner, grunn: p.grunn, plass: Stjerne.rangering(p), iMal: [...Array(sp.plasser).keys()].map((s) => Stjerne.iMalet(p, s)) };
+    sp.resultat = resultatFor(sp, p);
     if (sp.modus === "mobil") {
       const k = `${sp.plasser}-${sp.niva}`;
       const r = S.rekord[k] || (S.rekord[k] = { seier: 0, tap: 0 });
@@ -352,7 +378,8 @@
   }
   function feir(S) {
     const sp = S.spill;
-    if (erMaskin(sp, sp.resultat.vinner)) return lyd.tap();
+    // (On the net: the fanfare on the winner's phone, a gentle note on the others.)
+    if (erMaskin(sp, sp.resultat.vinner) || (paNett(sp) && !erJeg(sp, sp.resultat.vinner))) return lyd.tap();
     R.lyd.fanfare();
     R.vibrer([40, 60, 120]);
     R.konfetti();
@@ -373,7 +400,8 @@
     stoppTenking();
     sp.ferdig = true;
     parti = null;
-    R.statistikk("ferdig", { modus: sp.modus, plasser: sp.plasser, folk: sp.folk, niva: antallMaskiner(sp) ? sp.niva : 0, trekk: sp.trekk.length, vinner: sp.resultat ? sp.resultat.vinner : -1 });
+    // (On the net the kit counts the match.)
+    if (!paNett(sp)) R.statistikk("ferdig", { modus: sp.modus, plasser: sp.plasser, folk: sp.folk, niva: antallMaskiner(sp) ? sp.niva : 0, trekk: sp.trekk.length, vinner: sp.resultat ? sp.resultat.vinner : -1 });
     R.gaTil("slutt");
   }
 
@@ -421,14 +449,19 @@
   // Hole centres in board units: x = q + r/2 (−6…6), y = r·√3/2. The board is 13 × 14.86 units.
   const BREDDE = 13;
   const HOYDE = 16 * ROT3 + 1;
+  // The board turned k sixths of a turn (on the net: this phone's point at the bottom). One sixth,
+  // (q, r) to (q + r, -q), takes point j to point j - 1.
+  const DREID = [Stjerne.HULL];
+  for (let k = 1; k < 6; k++) DREID.push(DREID[k - 1].map(([q, r]) => [q + r, -q]));
+  let dreiing = 0;
   const xy = (i) => {
-    const [q, r] = Stjerne.HULL[i];
+    const [q, r] = DREID[dreiing][i];
     return [((q + r / 2 + 6.5) / BREDDE) * 100, ((r * ROT3 + HOYDE / 2) / HOYDE) * 100];
   };
   const hullNavn = (i) => {
-    const [q, r] = Stjerne.HULL[i];
+    const [q, r] = DREID[dreiing][i];
     const rad = r + 9;
-    const iRad = Stjerne.HULL.filter(([, r2]) => r2 === r);
+    const iRad = DREID[dreiing].filter(([, r2]) => r2 === r);
     const nr = iRad.findIndex(([q2]) => q2 === q) + 1;
     return R.t("rad {rad}, hull {nr}", { rad, nr });
   };
@@ -436,6 +469,7 @@
   function brettHtml(S, o) {
     const sp = S.spill;
     const p = hentParti(S);
+    dreiing = paNett(sp) && R.nett.meg() >= 0 ? fargeFor(sp, R.nett.meg()) % 6 : 0;
     const fri = o.interaktiv && kanFlytte(S);
     const meg = p.tur;
     const flyttbare = new Set();
@@ -494,13 +528,13 @@
       const s = k; // seat order (= turn order); you are always first
       const f = FARGE[fargeFor(sp, s)];
       const figur = erMaskin(sp, s) ? `<span class="hp-maskin">${R.figur()}</span>` : R.avatar(s);
-      rader.push(`<li class="hp-sete ${f}${naa === s ? " aktiv" : ""}${sp.resultat && sp.resultat.vinner === s ? " vant" : ""}">
+      rader.push(`<li class="hp-sete ${f}${naa === s ? " aktiv" : ""}${sp.resultat && sp.resultat.vinner === s ? " vant" : ""}${p.ute.includes(s) ? " ute" : ""}">
         <span class="hp-setefigur" aria-hidden="true">${figur}<i class="hp-prikk ${f}"></i></span>
         <span class="hp-setenavn">${esc(navn(sp, s))}</span>
         <b class="hp-imal" aria-hidden="true">${Stjerne.iMalet(p, s)}<small>/10</small></b>
       </li>`);
     }
-    const tekst = [...Array(sp.plasser).keys()].map((s) => R.t("{navn} ({farge}): {n} av 10 i mål", { navn: navn(sp, s), farge: FARGENAVN[fargeFor(sp, s)], n: Stjerne.iMalet(p, s) })).join(". ");
+    const tekst = [...Array(sp.plasser).keys()].map((s) => (p.ute.includes(s) ? R.t("{navn} forlot kampen", { navn: navn(sp, s) }) : R.t("{navn} ({farge}): {n} av 10 i mål", { navn: navn(sp, s), farge: FARGENAVN[fargeFor(sp, s)], n: Stjerne.iMalet(p, s) }))).join(". ");
     return `<ul class="hp-seter n${sp.plasser}" aria-label="${esc(tekst)}">${rader.join("")}</ul>`;
   }
 
@@ -511,8 +545,9 @@
     const f = FARGE[fargeFor(sp, s)];
     let tekst;
     if (erMaskin(sp, s)) tekst = `<span class="hp-tenker">${esc(R.t("{navn} tenker", { navn: navn(sp, s) }))}<i>.</i><i>.</i><i>.</i></span>`;
-    else if (valgt >= 0) tekst = esc(sp.modus === "mobil" ? R.t("Velg hvor den skal") : R.t("{navn}: velg hvor den skal", { navn: navn(sp, s) }));
-    else tekst = esc(sp.modus === "mobil" ? R.t("Din tur – velg en brikke") : R.t("{navn}: velg en brikke", { navn: navn(sp, s) }));
+    else if (paNett(sp) && !erJeg(sp, s)) tekst = esc(R.t("{navn} sin tur", { navn: navn(sp, s) }));
+    else if (valgt >= 0) tekst = esc(sp.modus === "mobil" || paNett(sp) ? R.t("Velg hvor den skal") : R.t("{navn}: velg hvor den skal", { navn: navn(sp, s) }));
+    else tekst = esc(sp.modus === "mobil" || paNett(sp) ? R.t("Din tur – velg en brikke") : R.t("{navn}: velg en brikke", { navn: navn(sp, s) }));
     return `<p class="hp-melding ${f}"><i class="hp-prikk ${f}" aria-hidden="true"></i><span>${tekst}</span></p>`;
   }
 
@@ -630,10 +665,65 @@
     return R.t("{navn} vant kinasjakk med {m} spillere!", { navn: R.kutt(navn(sp, r.vinner), 16), m: sp.plasser });
   }
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Moves: { m: [from, to] } for the seat whose turn it is (the whole jump chain as one move); anything
+  // else, or a move the rules don't allow, is ignored on every phone. A seat that leaves (the room's
+  // «borte», see KLIENT.md) is taken off the board – its pegs go – and skipped from then on.
+  const NETT = {
+    min: 2,
+    maks: 6,
+    oppsett: () => ({}),
+    start(S, okt) {
+      const antall = R.klamp(okt.antall || 2, 2, 6);
+      // Who begins moves on one seat per match.
+      S.spill = { id: okt.fro % 1e9, modus: "nett", niva: 2, plasser: antall, folk: antall, seter: NETT_SETER[antall], forste: (okt.kamp - 1) % antall, trekk: [], resultat: null, ferdig: false, registrert: true };
+      nullstillVisning();
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || sp.resultat || !t || !Array.isArray(t.m) || t.m.length !== 2) return;
+      const [fra, til] = t.m;
+      if (!Number.isInteger(fra) || !Number.isInteger(til) || fra < 0 || til < 0 || fra >= Stjerne.N || til >= Stjerne.N) return;
+      const p = hentParti(S);
+      if (p.tur !== sete || p.b[fra] !== sete || !Stjerne.maal(p, fra).has(til)) return;
+      if (!okt.gjenspill && S.skjerm === "spill") return flytt(S, fra, til);
+      // Replayed (or not on the board now): the state only; a finished match goes straight to the result.
+      Stjerne.spill(p, fra, til);
+      sp.trekk.push([fra, til]);
+      merkParti(S);
+      if (valgt >= 0 && p.b[valgt] !== R.nett.meg()) valgt = -1;
+      if (p.slutt) {
+        sp.resultat = resultatFor(sp, p);
+        if (okt.gjenspill) sp.ferdig = true;
+        else tilKaaringOm(S, 3000);
+      }
+    },
+    // A seat left: its pegs leave the board and its turns are skipped (the room only lets the others
+    // play on while at least two are left).
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || sp.resultat) return;
+      const p = hentParti(S);
+      if (!Stjerne.fjern(p, sete)) return;
+      sp.trekk.push([-1, sete]);
+      merkParti(S);
+      if (p.slutt) {
+        if (!okt.gjenspill && S.skjerm === "spill") avsluttRunde(S, p);
+        else sp.resultat = resultatFor(sp, p);
+        if (okt.gjenspill) sp.ferdig = true;
+      }
+      if (!okt.gjenspill && S.skjerm === "spill") R.vis();
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "spill"),
+    tur: (S) => (S.spill && !S.spill.resultat && !S.spill.ferdig ? tur(S) : null),
+    ferdig: (S) => !!S.spill && (!!S.spill.resultat || S.spill.ferdig),
+  };
+
   R.start({
     id: "hopperen",
     versjon: 1,
     pagar,
+    nett: NETT,
 
     tilstand: () => ({
       antall: 2,
@@ -700,7 +790,7 @@
           return (
             R.ui.spillhjem({
               slagordHtml: `${esc(R.t("Hopp over stjerna –"))}<br><em>${esc(R.t("først i mål vinner!"))}</em>`,
-              knapperHtml: R.ui.startKnapper({ pagar: aktiv, fortsettTekst: aktiv ? R.t("Fortsett spillet") : "", ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler") }),
+              knapperHtml: R.ui.startKnapper({ pagar: aktiv, fortsettTekst: aktiv ? R.t("Fortsett spillet") : "", ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler") }),
               merker: [
                 ["2–6", R.t("plasser")],
                 ["3", R.t("nivåer")],
@@ -762,7 +852,7 @@
           const ferdig = !!sp.resultat;
           const kanAngre = angreAntall(S) > 0 && !ferdig;
           const s = tur(S);
-          const tittel = R.t("Kinasjakk") + ": " + (ferdig ? R.t("spillet er ferdig") : erMaskin(sp, s) ? R.t("{navn} sin tur", { navn: navn(sp, s) }) : sp.modus === "mobil" ? R.t("din tur") : R.t("{navn} sin tur", { navn: navn(sp, s) }));
+          const tittel = R.t("Kinasjakk") + ": " + (ferdig ? R.t("spillet er ferdig") : erMaskin(sp, s) ? R.t("{navn} sin tur", { navn: navn(sp, s) }) : sp.modus === "mobil" || erJeg(sp, s) ? R.t("din tur") : R.t("{navn} sin tur", { navn: navn(sp, s) }));
           const stempel = ferdig ? { tekst: R.t("{navn} vant", { navn: R.kutt(navn(sp, sp.resultat.vinner), 12) }), klasse: "aksent" } : null;
           return `
             <h1 class="vh" id="skjerm-tittel">${esc(tittel)}</h1>
@@ -771,7 +861,8 @@
             <div class="hp-brettramme">${brettHtml(S, { interaktiv: true, stempel })}</div>
             ${R.ui.dokk(
               ferdig ? R.ui.knapp(R.t("Se kåringen"), "kaaring", { ikon: "🏆" }) : "",
-              R.ui.lenkerad(`<button class="lenke" data-h="angre"${kanAngre ? "" : " disabled"}>↶ ${esc(R.t("Angre"))}</button>`, R.ui.lenke(R.t("Avslutt"), "avslutt")),
+              // (On the net there is no «Angre»: the others have seen the move.)
+              R.ui.lenkerad(paNett(sp) ? "" : `<button class="lenke" data-h="angre"${kanAngre ? "" : " disabled"}>↶ ${esc(R.t("Angre"))}</button>`, R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
         },
         etter() {
@@ -799,9 +890,9 @@
           const r = sp.resultat;
           if (!r) return `<h1 id="skjerm-tittel">${esc(R.t("Ingen vinner denne gangen"))}</h1>${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: IKON }))}`;
           const v = r.vinner;
-          const tittel = sp.modus === "mobil" ? (v === 0 ? R.t("Du vinner!") : R.t("{navn} vinner!", { navn: navn(sp, v) })) : R.t("{navn} vinner!", { navn: navn(sp, v) });
+          const tittel = (sp.modus === "mobil" && v === 0) || erJeg(sp, v) ? R.t("Du vinner!") : R.t("{navn} vinner!", { navn: navn(sp, v) });
           const figur = !erMaskin(sp, v) ? `<span class="hp-vinner">${R.avatar(v, "gigant")}<span class="hp-kroneemoji" aria-hidden="true">👑</span></span>` : R.figur();
-          const tekst = sp.modus === "mobil" && v !== 0 ? R.t("Du fikk {n} av 10 i mål. Godt kjempa – prøv igjen!", { n: r.iMal[0] }) : r.grunn === "runder" ? R.t("Ingen fikk alle i mål på {n} runder.", { n: Stjerne.MAKS_RUNDER }) : "";
+          const tekst = sp.modus === "mobil" && v !== 0 ? R.t("Du fikk {n} av 10 i mål. Godt kjempa – prøv igjen!", { n: r.iMal[0] }) : r.grunn === "runder" ? R.t("Ingen fikk alle i mål på {n} runder.", { n: Stjerne.MAKS_RUNDER }) : r.grunn === "borte" ? resultatLinje(S) : "";
           const rader = r.plass.map((s) => ({ navn: navn(sp, s), i: s, poeng: r.iMal[s] }));
           let rekord = "";
           if (sp.modus === "mobil") {
@@ -817,9 +908,9 @@
             </div>
             ${R.ui.poengliste(rader)}
             ${rekord}
-            <div class="hp-del">${R.ui.knapp2(R.t("Del resultatet"), "del", { ikon: "📣" })}</div>
+            ${paNett(sp) ? R.nett.sluttDokk() : `<div class="hp-del">${R.ui.knapp2(R.t("Del resultatet"), "del", { ikon: "📣" })}</div>
             ${R.ui.flereSpill({ antall: sp.folk })}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: IKON }), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen", { ikon: IKON }), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`}`;
         },
         inn(S) {
           const sp = S.spill;
@@ -831,7 +922,7 @@
             S.sist = { tekst: sp.modus === "mobil" ? R.t("Du mot {n} mobil ({niva})|Du mot {n} mobiler ({niva})", { n: sp.plasser - 1, niva: NIVANAVN[sp.niva].toLowerCase() }) : R.t("{n} spillere", { n: sp.plasser }), navn: R.kutt(navn(sp, r.vinner), 16) };
             R.lagre();
           }
-          if (r && !erMaskin(sp, r.vinner)) {
+          if (r && !erMaskin(sp, r.vinner) && (!paNett(sp) || erJeg(sp, r.vinner))) {
             R.lyd.fanfare();
             R.vibrer([40, 60, 120]);
             R.konfetti();
@@ -879,8 +970,12 @@
       hull(el, e, S) {
         const sp = S.spill;
         if (!sp || sp.ferdig || sp.resultat) return;
+        if (paNett(sp) && tur(S) !== R.nett.meg()) {
+          if (el.dataset.v != null) R.toast(R.t("Vent på tur – {navn} spiller nå", { navn: navn(sp, tur(S)) }));
+          return;
+        }
         if (!kanFlytte(S)) {
-          if (el.dataset.v != null) R.toast(R.t("Vent litt – mobilen tenker"));
+          if (el.dataset.v != null && !paNett(sp)) R.toast(R.t("Vent litt – mobilen tenker"));
           return;
         }
         const i = naermeste(el, e);
@@ -898,14 +993,15 @@
           R.vis();
           return;
         }
-        if (valgt >= 0 && Stjerne.maal(p, valgt).has(i)) return flytt(S, valgt, i);
+        // On the net the move goes to the room (the peg stays picked up until it comes back).
+        if (valgt >= 0 && Stjerne.maal(p, valgt).has(i)) return paNett(sp) ? void (R.nett.send({ m: [valgt, i] }) && R.vis()) : flytt(S, valgt, i);
         if (p.b[i] >= 0) return nei(R.t("Det er ikke din brikke"));
         if (valgt < 0) return nei(R.t("Velg først en av brikkene dine"));
         nei(R.t("Dit kommer den ikke – velg et hull med prikk"));
       },
       angre(el, e, S) {
         const sp = S.spill;
-        if (!sp || sp.ferdig || sp.resultat) return;
+        if (!sp || sp.ferdig || sp.resultat || paNett(sp)) return;
         const n = angreAntall(S);
         if (n <= 0) return;
         stoppTenking();
