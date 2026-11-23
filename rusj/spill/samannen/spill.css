@@ -374,6 +374,10 @@
   animation-delay: calc(var(--nr) * 80ms);
 }
 
+.sa-hull.slipp {
+  animation: sa-fikk 0.3s ease-out both;
+}
+
 @keyframes sa-fikk {
   40% {
     box-shadow: inset 0 5px 9px rgba(20, 8, 0, 0.6), 0 0 0 3px var(--lampe), 0 0 16px rgba(255, 210, 63, 0.8);

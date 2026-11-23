@@ -267,6 +267,15 @@
   const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
 
   let animer = null; // the move just played: { h } (the pits that got a marble pulse in order)
+  // The sowing shown one marble at a time (the setting «Én og én», never with reduced motion): the
+  // board as drawn, the pits still to get a marble, and what to do when the last one has landed.
+  // Display only – the game's state has the whole move at once, on every phone.
+  let saing = null; // { nokkel, b, fra, hvem, gang, k, id, ferdig }
+  const saingAktiv = (S) => !!saing && !!S.spill && saing.nokkel === partiNokkel(S.spill);
+  const enOgEn = (S) => S.oppsett.enOgEn !== false && !R.rolig();
+  // Time per marble: a small move is easy to follow, a big one is still sown in under two seconds.
+  const stegMs = (n) => R.klamp(Math.round(1500 / n), 90, 230);
+  const visBrett = (S, p) => (saingAktiv(S) ? saing.b : p.b);
   let tenkId = null;
   let tenkStopp = null;
   let tenkerPa = "";
@@ -296,6 +305,8 @@
   };
 
   function spillHull(S, i) {
+    // A new move while the last one is still being sown (the other phone on the net): land it first.
+    if (saing) ferdigSaing();
     const sp = S.spill;
     const p = hentParti(S);
     const hvem = spillerFor(sp, p.tur);
@@ -303,32 +314,93 @@
     if (!h) return;
     sp.trekk.push(i);
     merkParti(S);
-    animer = R.rolig() ? null : { h };
-    lyd.sa(h.gang.length);
-    const mobil = sp.modus === "mobil";
+    const steg = enOgEn(S) && h.gang.length > 0;
     const n = h.gang.length;
+    const ekstra = steg ? stegMs(n) * n + 400 : 0;
+    animer = R.rolig() || steg ? null : { h };
+    if (!steg) lyd.sa(n);
+    const mobil = sp.modus === "mobil";
     const nr = hullNr(sp, i);
     // (On the net the line is about whoever played, by name; «Din tur» when it is this phone's.)
     let linje = mobil ? (hvem === 0 ? R.t("Du tok {n} kule fra hull {nr}.|Du tok {n} kuler fra hull {nr}.", { n, nr }) : R.t("Mobilen tok {n} kule fra hull {nr}.|Mobilen tok {n} kuler fra hull {nr}.", { n, nr })) : R.t("{navn} tok {n} kule fra hull {nr}.|{navn} tok {n} kuler fra hull {nr}.", { navn: navn(sp, hvem), n, nr });
-    if (h.tatt) {
-      setTimeout(lyd.fang, Math.min(n, 12) * 75);
-      R.vibrer([20, 40, 30]);
-      linje += " " + R.t("Fangst! {n} kuler i kalahaen.", { n: h.tatt.antall });
-    } else if (h.igjen) {
-      setTimeout(lyd.igjen, Math.min(n, 12) * 75);
-      R.vibrer([10, 30, 10]);
-      linje += " " + R.t("Siste kule i kalahaen – en tur til!");
-    } else R.vibrer(8);
+    // The capture or the extra turn is heard and felt when the last marble lands.
+    const landet = () => {
+      if (h.tatt) {
+        lyd.fang();
+        R.vibrer([20, 40, 30]);
+      } else if (h.igjen) {
+        lyd.igjen();
+        R.vibrer([10, 30, 10]);
+      } else R.vibrer(8);
+    };
+    if (!steg) {
+      if (h.tatt || h.igjen) setTimeout(h.tatt ? lyd.fang : lyd.igjen, Math.min(n, 12) * 75);
+      R.vibrer(h.tatt ? [20, 40, 30] : h.igjen ? [10, 30, 10] : 8);
+    }
+    if (h.tatt) linje += " " + R.t("Fangst! {n} kuler i kalahaen.", { n: h.tatt.antall });
+    else if (h.igjen) linje += " " + R.t("Siste kule i kalahaen – en tur til!");
     if (p.slutt) {
-      avsluttRunde(S, p);
+      avsluttRunde(S, p, ekstra);
       linje += " " + resultatLinje(S);
     } else if (!erMaskin(sp, spillerFor(sp, p.tur))) {
       const neste = spillerFor(sp, p.tur);
       if (!h.igjen) linje += " " + (mobil || erJeg(sp, neste) ? R.t("Din tur.") : R.t("{navn} sin tur.", { navn: navn(sp, neste) }));
     }
     R.si(linje);
+    if (steg) {
+      const nokkel = partiNokkel(sp);
+      return saa(S, h, hvem, () => {
+        landet();
+        if (!R.S.spill || partiNokkel(R.S.spill) !== nokkel) return;
+        animer = { h, steg: true };
+        R.vis();
+        if (!p.slutt) startTenking(R.S, h.igjen);
+      });
+    }
     R.vis();
     if (!p.slutt) startTenking(S, h.igjen);
+  }
+
+  // Sow h on the screen one marble at a time; a tap on the board lands the rest at once.
+  function saa(S, h, hvem, ferdig) {
+    const ms = stegMs(h.gang.length);
+    const b = h.for_.slice();
+    b[h.i] = 0;
+    saing = { nokkel: partiNokkel(S.spill), b, fra: h.i, hvem, gang: h.gang, k: 0, id: 0, ferdig };
+    R.vis();
+    const s = saing;
+    const neste = () => {
+      if (saing !== s) return;
+      const i = s.gang[s.k++];
+      s.b[i]++;
+      tegnHull(i, s.b[i]);
+      R.lyd.tone(900 + ((s.k * 37) % 5) * 60, 0, 0.05, "sine", 0.07);
+      s.id = s.k < s.gang.length ? setTimeout(neste, ms) : setTimeout(ferdigSaing, 400);
+    };
+    s.id = setTimeout(neste, Math.min(ms, 160));
+  }
+  function ferdigSaing() {
+    const s = saing;
+    if (!s) return;
+    clearTimeout(s.id);
+    saing = null;
+    s.ferdig();
+  }
+  function avbrytSaing() {
+    if (saing) clearTimeout(saing.id);
+    saing = null;
+  }
+  // One pit gets its next marble: only that pit is redrawn, with a little pulse.
+  function tegnHull(i, n) {
+    const el = document.querySelector(`.sa-brett .sa-hull[data-v="${i}"]`);
+    if (!el) return;
+    const kuler = el.querySelector(".sa-kuler");
+    if (kuler) kuler.outerHTML = kulerHtml(n, el.classList.contains("lager"));
+    const tall = el.querySelector(".sa-tall");
+    if (tall) tall.textContent = String(n);
+    el.classList.remove("slipp");
+    void el.offsetWidth;
+    el.classList.add("slipp");
   }
 
   function resultatLinje(S) {
@@ -341,7 +413,7 @@
     return sp.modus === "mobil" ? (r.vinner === 0 ? R.t("Du vinner {tall}!", { tall }) : R.t("Mobilen vinner {tall}!", { tall })) : R.t("{navn} vinner {tall}!", { navn: navn(sp, r.vinner), tall });
   }
 
-  function avsluttRunde(S, p) {
+  function avsluttRunde(S, p, ekstra = 0) {
     const sp = S.spill;
     stoppTenking();
     const l = [lager(sp, p, 0), lager(sp, p, 1)];
@@ -351,8 +423,8 @@
     if (sp.modus === "mobil" && vinner === 0) R.merke("klassiker-samannen");
     const fortsatt = R.vakt();
     const id = sp.id;
-    setTimeout(() => fortsatt() && R.S.spill && R.S.spill.id === id && R.S.spill.resultat && feir(R.S), R.rolig() ? 100 : 1100);
-    tilKaaringOm(S, 3200);
+    setTimeout(() => fortsatt() && R.S.spill && R.S.spill.id === id && R.S.spill.resultat && feir(R.S), (R.rolig() ? 100 : 1100) + ekstra);
+    tilKaaringOm(S, 3200 + ekstra);
   }
   function feir(S) {
     const sp = S.spill;
@@ -403,7 +475,8 @@
     // Let the marbles of the last move land before the phone moves again.
     const forrige = hentParti(S).hist;
     const sa = forrige.length ? Math.min(forrige[forrige.length - 1].gang.length, 14) * 80 : 0;
-    const vent = (igjen ? IGJEN_TENK : MIN_TENK) + (R.rolig() ? 0 : sa);
+    // (Sown one by one, the marbles have landed already.)
+    const vent = (igjen ? IGJEN_TENK : MIN_TENK) + (R.rolig() || enOgEn(S) ? 0 : sa);
     const start = performance.now();
     tenkStopp = Motor.tenk(Kalaha.spillUt(sp.kuler, sp.trekk), { niva: sp.niva }, (i) => {
       tenkStopp = null;
@@ -468,11 +541,15 @@
   function brettHtml(S, o) {
     const sp = S.spill;
     const p = hentParti(S);
-    const fri = o.interaktiv && kanSpille(S) && minTur(S);
+    const sar = o.interaktiv && saingAktiv(S);
+    const b = sar ? saing.b : p.b;
+    const fri = o.interaktiv && !sar && kanSpille(S) && minTur(S);
     const lov = new Set(fri ? Kalaha.lovlige(p) : []);
+    // (After a move sown one by one, only the capture is shown: the pits have had their pulse.)
     const h = o.interaktiv && animer ? animer.h : null;
+    const enkelt = !!(animer && animer.steg);
     const fikk = new Map(); // pit → the order its first marble came in
-    if (h) h.gang.forEach((k, nr) => !fikk.has(k) && fikk.set(k, nr));
+    if (h && !enkelt) h.gang.forEach((k, nr) => !fikk.has(k) && fikk.set(k, nr));
     const sist = p.hist.length ? p.hist[p.hist.length - 1] : null;
     const deler = [];
     for (let i = 0; i < 14; i++) {
@@ -482,14 +559,14 @@
       const erLager = side < 0;
       const eierSide = erLager ? (i === 6 ? 0 : 1) : side;
       const spiller = spillerFor(sp, eierSide);
-      const n = p.b[i];
+      const n = b[i];
       const kl = ["sa-hull", KLASSE[spiller]];
       if (erLager) kl.push("lager");
       if (lov.has(i)) kl.push("kan");
       if (fikk.has(i)) kl.push("fikk");
-      if (h && h.i === i) kl.push("tomt");
+      if ((h && !enkelt && h.i === i) || (sar && saing.fra === i)) kl.push("tomt");
       if (h && h.tatt && (h.tatt.fra === i || h.gang[h.gang.length - 1] === i)) kl.push("fanget");
-      if (sist && sist.i === i && !h) kl.push("sist");
+      if (sist && sist.i === i && !h && !sar) kl.push("sist");
       const stil = `--sr:${st[0]};--sk:${st[1]};--lr:${li[0]};--lk:${li[1]};--nr:${fikk.has(i) ? fikk.get(i) : 0}`;
       const innhold = `${kulerHtml(n, erLager)}<b class="sa-tall">${n}</b>`;
       if (erLager) {
@@ -503,7 +580,7 @@
     }
     if (o.interaktiv) animer = null;
     const stempel = o.stempel ? `<span class="sa-stempel" aria-hidden="true"><span class="stempel ${o.stempel.klasse}">${esc(o.stempel.tekst)}</span></span>` : "";
-    return `<div class="sa-brett${fri ? " fri" : ""}"${o.interaktiv ? ` role="group" aria-label="${esc(R.t("Brettet"))}"` : ' aria-hidden="true"'}>${deler.join("")}${stempel}</div>`;
+    return `<div class="sa-brett${fri ? " fri" : ""}"${sar ? ' data-h="hopp"' : ""}${o.interaktiv ? ` role="group" aria-label="${esc(R.t("Brettet"))}"` : ' aria-hidden="true"'}>${deler.join("")}${stempel}</div>`;
   }
 
   function poengHtml(S) {
@@ -515,15 +592,20 @@
         <b class="sa-navn">${esc(navn(sp, i))}</b>
       </div>`;
     const tekst = R.t("I kalahaen: {a} {pa}, {b} {pb}.", { a: navn(sp, 0), pa: lager(sp, p, 0), b: navn(sp, 1), pb: lager(sp, p, 1) });
+    const vist = { b: visBrett(S, p) }; // (while a move is sown: the stores as drawn)
     return `<div class="sa-stilling" role="group" aria-label="${esc(tekst)}">
       ${kort(0)}
-      <div class="sa-tall-stilling" aria-hidden="true"><b class="rosa">${lager(sp, p, 0)}</b><span>–</span><b class="bla">${lager(sp, p, 1)}</b></div>
+      <div class="sa-tall-stilling" aria-hidden="true"><b class="rosa">${lager(sp, vist, 0)}</b><span>–</span><b class="bla">${lager(sp, vist, 1)}</b></div>
       ${kort(1)}
     </div>`;
   }
 
   function meldingHtml(S) {
     const sp = S.spill;
+    if (saingAktiv(S)) {
+      const v = saing.hvem;
+      return `<p class="sa-melding ${KLASSE[v]}"><span class="sa-meldingsmerke" aria-hidden="true">${erMaskin(sp, v) ? `<span class="sa-maskin">${R.figur()}</span>` : R.avatar(v)}</span><span>${esc(R.t("Én kule i hvert hull …"))}</span></p>`;
+    }
     if (sp.resultat) {
       const v = sp.resultat.vinner;
       return `<p class="sa-melding ${v == null ? "remis" : "vinner"}"><span>${esc(resultatLinje(S))}</span></p>`;
@@ -600,6 +682,7 @@
   function nullstillVisning() {
     parti = null;
     animer = null;
+    avbrytSaing();
     stoppTenking();
     clearTimeout(kaaringId);
   }
@@ -685,14 +768,15 @@
 
     tilstand: () => ({
       antall: 2,
-      oppsett: { modus: "mobil", niva: 2, kuler: 4, starter: 0 },
+      oppsett: { modus: "mobil", niva: 2, kuler: 4, starter: 0, enOgEn: true },
       spill: null,
       rekord: {},
       sist: null,
     }),
 
     lastet(S) {
-      const o = (S.oppsett = Object.assign({ modus: "mobil", niva: 2, kuler: 4, starter: 0 }, S.oppsett));
+      const o = (S.oppsett = Object.assign({ modus: "mobil", niva: 2, kuler: 4, starter: 0, enOgEn: true }, S.oppsett));
+      o.enOgEn = o.enOgEn !== false;
       if (!["mobil", "to"].includes(o.modus)) o.modus = "mobil";
       if (!NIVAER.includes(o.niva)) o.niva = 2;
       if (!Kalaha.KULER.includes(o.kuler)) o.kuler = 4;
@@ -800,6 +884,11 @@
               ${R.ui.seg("starter", hvem, o.starter, { etikett: R.t("Hvem begynner") })}
               <p class="hjelp">${esc(mot ? R.t("Du og mobilen bytter på å begynne.") : R.t("Dere bytter på å begynne."))}</p>
             </section>
+            <section class="seksjon">
+              <h2>${esc(R.t("Vis hvordan kulene legges"))}</h2>
+              ${R.ui.seg("enogen", [[1, R.t("Én og én")], [0, R.t("Med en gang")]], o.enOgEn ? 1 : 0, { etikett: R.t("Vis hvordan kulene legges") })}
+              <p class="hjelp">${esc(o.enOgEn ? R.t("Kulene legges i ett hull om gangen, så du ser hva som skjer. Trykk på brettet for å hoppe over.") : R.t("Brettet viser trekket med en gang."))}</p>
+            </section>
             ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { variant: "stor", ikon: IKON }))}`;
         },
       },
@@ -817,7 +906,7 @@
             ${poengHtml(S)}
             ${meldingHtml(S)}
             <span class="sa-luft" aria-hidden="true"></span>
-            <div class="sa-brettramme">${brettHtml(S, { interaktiv: true, stempel: ferdig ? stempelFor(sp) : null })}</div>
+            <div class="sa-brettramme">${brettHtml(S, { interaktiv: true, stempel: ferdig && !saingAktiv(S) ? stempelFor(sp) : null })}</div>
             <span class="sa-luft under" aria-hidden="true"></span>
             ${R.ui.dokk(
               ferdig ? R.ui.knapp(R.t("Se kåringen"), "kaaring", { ikon: "🏆" }) : "",
@@ -926,6 +1015,13 @@
         S.oppsett.starter = el.dataset.v === "1" ? 1 : 0;
         R.vis();
       },
+      hopp(el, e, S) {
+        if (saingAktiv(S)) ferdigSaing();
+      },
+      enogen(el, e, S) {
+        S.oppsett.enOgEn = el.dataset.v !== "0";
+        R.vis();
+      },
       start(el, e, S) {
         nyttSpill(S);
         R.gaTil("spill");
@@ -939,6 +1035,7 @@
       },
       hull(el, e, S) {
         const sp = S.spill;
+        if (saingAktiv(S)) return ferdigSaing();
         if (!sp || sp.ferdig || sp.resultat) return;
         if (!kanSpille(S)) {
           R.toast(R.t("Vent litt – mobilen tenker"));
@@ -969,6 +1066,7 @@
         const n = angreAntall(S);
         if (n <= 0) return;
         stoppTenking();
+        avbrytSaing();
         const p = hentParti(S);
         for (let k = 0; k < n; k++) {
           Kalaha.tilbake(p);

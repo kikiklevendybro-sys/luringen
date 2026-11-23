@@ -30,7 +30,12 @@ async function brettPasser(t, navn) {
 }
 
 export default async function (t) {
-  const velg = async (v, ms = 500) => t.klikk(hull(v), ms);
+  // «Én og én» is on by default: a move is sown one marble at a time; wait until it has landed.
+  const saar = `document.querySelector('.sa-brett[data-h="hopp"]')`;
+  const velg = async (v, ms = 500) => {
+    await t.klikk(hull(v), ms);
+    await t.vent(`!${saar}`, 5000);
+  };
   const sp = async () => (await t.tilstand()).spill;
   const kuler = (v) => t.js(`Number(document.querySelector('${hull(v)} .sa-tall').textContent)`);
 
@@ -51,8 +56,15 @@ export default async function (t) {
   t.sjekk((await t.antall(".sa-hull.kan")) === 6, "Spiller 1 skal kunne velge sine seks hull");
   t.sjekk((t.norsk ? /^Hull 3 til Testspiller A: 4 kuler, kan velges/ : /\S/).test(await t.js(`document.querySelector('${hull(2)}').getAttribute('aria-label')`)), "Hullet har ikke et godt navn");
 
-  // Pit 3 (index 2) with 4 ends in the store: another turn
-  await velg(2, 700);
+  // Pit 3 (index 2) with 4 ends in the store: another turn. The marbles go into one pit at a time,
+  // the board can't be played meanwhile, and the message says what happens.
+  await t.klikk(hull(2), 150);
+  t.sjekk(!!(await t.js(saar)), "Kulene ble ikke lagt én og én");
+  t.sjekk((await t.antall(".sa-hull.kan")) === 0, "Brettet kan spilles mens kulene legges");
+  t.sjekk(!t.norsk || /Én kule i hvert hull/.test(await t.tekst(".sa-melding")), "Meldingen forklarer ikke at kulene legges én og én");
+  await t.bilde("en-og-en");
+  await t.vent(`!${saar}`, 5000);
+  await t.sov(300);
   let s = await sp();
   t.sjekk(s.trekk.join() === "2", "Trekket ble ikke spilt");
   t.sjekk((await kuler(6)) === 1 && (await kuler(2)) === 0 && (await kuler(5)) === 5, "Kulene ble ikke sådd riktig");
@@ -63,7 +75,11 @@ export default async function (t) {
   await velg(9, 300);
   await velg(2, 300);
   t.sjekk((await sp()).trekk.length === 1, "Et ulovlig hull ble spilt");
-  await velg(5);
+  // A tap on the board lands the rest of the marbles at once.
+  await t.klikk(hull(5), 120);
+  await t.klikk(".sa-brett", 150);
+  t.sjekk(!(await t.js(saar)) && (await kuler(5)) === 0 && (await kuler(6)) === 2, "Et trykk på brettet hoppet ikke over såingen");
+  await t.sov(200);
   await velg(9);
   t.sjekk((await sp()).trekk.join() === "2,5,9", "Spiller 2 fikk ikke spille");
 

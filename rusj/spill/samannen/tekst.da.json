@@ -132,5 +132,11 @@
   "Spillet som er i gang, teller ikke. Dere kan alltid starte et nytt.": "Spillet, der er i gang, tæller ikke. I kan altid starte et nyt.",
   "Spill videre": "Spil videre",
   "Vent på tur – {navn} spiller nå": "Vent på din tur – {navn} spiller nu",
-  "{navn} fanget {n} – din tur": "{navn} fangede {n} – din tur"
+  "{navn} fanget {n} – din tur": "{navn} fangede {n} – din tur",
+  "Én kule i hvert hull …": "Én kugle i hvert hul …",
+  "Vis hvordan kulene legges": "Vis, hvordan kuglerne lægges",
+  "Én og én": "Én ad gangen",
+  "Med en gang": "Med det samme",
+  "Kulene legges i ett hull om gangen, så du ser hva som skjer. Trykk på brettet for å hoppe over.": "Kuglerne lægges i ét hul ad gangen, så du kan se, hvad der sker. Tryk på brættet for at springe over.",
+  "Brettet viser trekket med en gang.": "Brættet viser trækket med det samme."
 }

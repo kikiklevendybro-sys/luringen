@@ -132,5 +132,11 @@
   "Spillet som er i gang, teller ikke. Dere kan alltid starte et nytt.": "The game in progress won't count. You can always start a new one.",
   "Spill videre": "Keep playing",
   "Vent på tur – {navn} spiller nå": "Wait your turn – {navn} is playing",
-  "{navn} fanget {n} – din tur": "{navn} captured {n} – your turn"
+  "{navn} fanget {n} – din tur": "{navn} captured {n} – your turn",
+  "Én kule i hvert hull …": "One stone in each pit …",
+  "Vis hvordan kulene legges": "Show how the stones are sown",
+  "Én og én": "One by one",
+  "Med en gang": "All at once",
+  "Kulene legges i ett hull om gangen, så du ser hva som skjer. Trykk på brettet for å hoppe over.": "The stones go into one pit at a time, so you can see what happens. Tap the board to skip.",
+  "Brettet viser trekket med en gang.": "The board shows the move straight away."
 }
