@@ -13,6 +13,7 @@
   "alder": 8,
   "sok": ["rummy", "rommy", "romme", "500", "femhundre", "500 rummy", "gin rummy", "kortspill", "kortspill for to", "rummy regler", "rummy mot mobilen", "sett og rekker"],
   "motMobilen": true,
+  "nett": true,
   "alias": ["rummy"],
   "i18n": {
     "en": {

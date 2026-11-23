@@ -13,6 +13,7 @@
   "alder": 4,
   "sok": ["svarteper", "svarte per", "fisk kortspill", "kortspill for barn", "krig kortspill", "snap kortspill", "barnekortspill", "dyrekort", "kortspill mot datamaskin", "kortspill for to"],
   "motMobilen": true,
+  "nett": true,
   "alias": ["svarteper"],
   "i18n": {
     "en": {

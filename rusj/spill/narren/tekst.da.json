@@ -179,5 +179,8 @@
   "Avslutte spillet?": "Afslutte spillet?",
   "Spillet blir ikke ferdig, og ingen blir narren denne gangen.": "Spillet bliver ikke færdigt, og ingen bliver narren denne gang.",
   "Spill videre": "Spil videre",
-  "kort|kort": { "one": "kort", "other": "kort" }
+  "kort|kort": { "one": "kort", "other": "kort" },
+  "Venter på at de andre bytter kort …": "Venter på at de andre bytter kort …",
+  "Venter på de andre …": "Venter på de andre …",
+  "Forlot kampen": "Forlod kampen"
 }

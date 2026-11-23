@@ -171,5 +171,7 @@
   "Dere går til kåringen. Hullet dere er midt i, teller ikke.": "You'll go to the results. The hole you're in the middle of won't count.",
   "Avslutte spillet?": "Quit the game?",
   "kort|kort": { "one": "card", "other": "cards" },
-  "hull|hull": { "one": "hole", "other": "holes" }
+  "hull|hull": { "one": "hole", "other": "holes" },
+  "Forlot kampen": "Left the match",
+  "{navn} spiller …": "{navn} is playing …"
 }

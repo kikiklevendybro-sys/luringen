@@ -13,6 +13,7 @@
   "alder": 7,
   "sok": ["golf kortspill", "kortgolf", "golf med kort", "kortspillet golf", "seks kort golf", "fire kort golf", "kortspill", "kortspill for to", "kortspill på nett"],
   "motMobilen": true,
+  "nett": true,
   "alias": ["kortgolf"],
   "i18n": {
     "en": {
