@@ -87,7 +87,7 @@
 /* ---------- The grid ---------- */
 
 .sh-rute {
-  --sh-c: min(calc((100vw - 40px) / var(--br)), calc((100dvh - 340px) / var(--ho)), 64px);
+  --sh-c: min(calc((100vw - 40px) / var(--br)), calc((100dvh - 385px) / var(--ho)), 64px);
   position: relative;
   display: grid;
   grid-template-columns: repeat(var(--br), var(--sh-c));
@@ -97,6 +97,18 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* The button row at the bottom sticks to the screen and may reach over the grid on short phones: its
+   empty parts must not catch the finger meant for the bottom letters. */
+.skjerm-brett .dokk,
+.skjerm-leting .dokk {
+  pointer-events: none;
+}
+
+.skjerm-brett .dokk :is(button, a),
+.skjerm-leting .dokk :is(button, a) {
+  pointer-events: auto;
 }
 
 .sh-linjer {
@@ -471,7 +483,7 @@
   }
 
   .sh-rute {
-    --sh-c: min(calc((100vw - 40px) / var(--br)), calc((100dvh - 330px) / var(--ho)), 64px);
+    --sh-c: min(calc((100vw - 40px) / var(--br)), calc((100dvh - 340px) / var(--ho)), 64px);
   }
 
   .sh-let {
