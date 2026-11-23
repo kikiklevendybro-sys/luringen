@@ -76,12 +76,26 @@ function spillData(id) {
   return data;
 }
 
+// The Norwegian word bank as the build gives it (window.RUSJ_ORD), for games with "ordbank": true.
+function ordbank() {
+  const mappe = join(ROT, "data/kategorier");
+  const kategorier = readdirSync(mappe)
+    .filter((f) => f.endsWith(".json"))
+    .sort()
+    .map((f) => {
+      const k = JSON.parse(readFileSync(join(mappe, f), "utf8"));
+      return { id: k.id, navn: k.navn, ikon: k.ikon, ord: k.ord.map((e) => [e.o.trim(), e.n, e.h.trim(), e.l.trim()]) };
+    });
+  return { kategorier };
+}
+
 function telefon(id, meg, valg = {}) {
   const lager = new Map();
   const location = { protocol: "https:", origin: "https://rusj.no", pathname: `/${id}/`, hash: "", search: "" };
   const window = {
     RUSJ_SPILL: { id, navn: id },
     RUSJ_DATA: spillData(id),
+    ...(existsSync(join(ROT, "rusj/spill", id, "spill.json")) && spillJson(id).ordbank ? { RUSJ_ORD: ordbank() } : {}),
     RUSJ_NETT: valg.adresse === undefined ? ADR : valg.adresse,
     RusjGjengen: { svg: () => "<svg></svg>", logo: () => "<svg></svg>", alle: ["luringen", "elefanten"] },
     matchMedia: () => ({ matches: false }),
@@ -2074,4 +2088,551 @@ test("Golfballen: four-card golf for three phones – one leaves mid-turn, the o
   r3.borte(2);
   r3.borte(1);
   assert.ok(r3.tlf[0].S.spill.ferdig && r3.tlf[0].def.nett.ferdig(r3.tlf[0].S));
+});
+
+// ---------- The free-text games: everyone writes on their own phone ----------
+
+// What R.nett.tekst makes of a long answer with control and direction characters.
+const SKITTEN = "Bananer\u0000 i‮ pyjamas\n " + "x".repeat(80);
+const REN = "Bananer i pyjamas " + "x".repeat(42);
+const SKRIPT = "<script>window.__x=1</script>";
+const BILDE = '<img src=x onerror="window.__x=2">';
+
+test("Brevduen: three phones – answers cleaned and hidden until all are in, the room's order, everyone points, the leader goes on; illegal moves ignored", () => {
+  const r = rom("brevduen", 3, { runder: 3 });
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().modus, "nett");
+  assert.equal(sp().fase, "skriv");
+  assert.equal(sp().r.leder, 0, "the host leads match 1");
+  assert.equal(a.def.nett.skjerm(a.S), "n-skriv");
+  const k0 = sp().r.k;
+  r.trekk(1, { bytt: 1 }); // only the leader takes another question
+  assert.equal(sp().r.k, k0);
+  r.trekk(0, { bytt: 1 });
+  assert.notEqual(sp().r.k, k0);
+  const k = sp().r.k;
+  r.trekk(0, { svar: SKITTEN, k });
+  assert.equal(sp().r.svar[0], REN, "cleaned when it is played");
+  r.trekk(0, { svar: "igjen", k }); // twice
+  r.trekk(0, { bytt: 1 }); // someone has written: no other question now
+  r.trekk(1, { svar: " \u0007 ", k }); // nothing left after cleaning
+  r.trekk(1, { svar: "gammelt", k: k0 }); // the question before
+  r.trekk(1, { svar: 42, k }); // not text
+  r.trekk(7, { svar: "x", k }); // no such seat
+  r.trekk(1, { pek: 0, v: 0 }); // not the time for pointing
+  assert.equal(sp().r.k, k);
+  assert.deepEqual(somJson(sp().r.svar), [REN, null, null]);
+  assert.equal(b.def.nett.tur(b.S), 1, "my turn while I haven't written");
+  r.trekk(1, { svar: SKRIPT, k });
+  assert.equal(sp().fase, "skriv", "not shown before everyone is in");
+  r.trekk(2, { svar: BILDE, k });
+  assert.equal(sp().fase, "pek");
+  assert.deepEqual(somJson(sp().r.svar), [REN, SKRIPT, BILDE], "kept as text: the screens escape it");
+  assert.deepEqual(somJson(sp().r.rekke.slice().sort()), [0, 1, 2]);
+  let runder = 1;
+  let lurt = 0;
+  let riktig = 0;
+  for (let steg = 0; steg < 200 && !sp().ferdig; steg++) {
+    const s = sp();
+    if (s.fase === "skriv") {
+      if (s.r.svar.every((x) => x == null)) {
+        runder++;
+        assert.equal(s.r.leder, s.runde % 3, "one seat on per round");
+      }
+      for (let i = 0; i < 3; i++) r.trekk(i, { svar: `Svar ${s.runde}-${i}`, k: s.r.k });
+      continue;
+    }
+    if (s.fase === "pek") {
+      const v = s.r.vis;
+      const forfatter = s.r.rekke[v];
+      r.trekk(0, { pek: 0, v }); // never myself
+      r.trekk(1, { pek: 0, v: v + 1 }); // another answer
+      r.trekk(1, { pek: 9, v }); // no such seat
+      assert.equal(s.fase, "pek");
+      for (let i = 0; i < 3; i++) {
+        const andre = [0, 1, 2].filter((x) => x !== i);
+        const gjett = i !== forfatter && (steg + i) % 2 === 0 ? forfatter : andre.find((x) => x !== forfatter);
+        r.trekk(i, { pek: gjett, v });
+        if (i < 2) assert.equal(s.fase, "pek", "the author stays hidden until everyone has pointed");
+      }
+      assert.equal(s.fase, "fasit");
+      assert.equal(s.r.siste.forfatter, forfatter);
+      if (s.r.siste.riktige.length) riktig++;
+      if (s.r.siste.lurte) lurt++;
+      continue;
+    }
+    const leder = s.r.leder;
+    r.trekk((leder + 1) % 3, { neste: s.steg }); // only the leader goes on
+    r.trekk(leder, { neste: s.steg + 1 }); // an old tap
+    assert.equal(s.fase, "fasit");
+    r.trekk(leder, { neste: s.steg });
+  }
+  assert.ok(sp().ferdig && a.def.nett.ferdig(a.S));
+  assert.equal(runder, 3);
+  assert.equal(sp().vist, 9, "every answer of every round was shown");
+  assert.ok(riktig && lurt, `riktig ${riktig}, lurt ${lurt}`);
+  assert.equal(sp().poeng.reduce((x, y) => x + y, 0), 9 * 2, "each answer gives out one point per other player");
+  assert.equal(a.def.nett.skjerm(a.S), "slutt");
+  assert.equal(a.def.nett.tur(a.S), null);
+  r.trekk(0, { svar: "for sent", k: sp().r.k }); // after the end
+  likt(a, b);
+  likt(a, c);
+  likt(a, r.sen(2));
+  assert.equal(rom("brevduen", 3, {}, 20261115, 2).tlf[0].S.spill.r.leder, 1, "match 2: the next seat leads");
+  assert.equal(rom("brevduen", 3, {}).tlf[0].S.spill.runder, 3);
+  const voksen = rom("brevduen", 4, { voksen: true, runder: 5 }).tlf[0].S.spill;
+  assert.ok(voksen.stokk.length > rom("brevduen", 4, { runder: 5 }).tlf[0].S.spill.stokk.length, "18+ questions only with the host's setting");
+});
+
+test("Brevduen: five phones – a seat that leaves is never waited for, its answers go (also the one being guessed), the next one leads", () => {
+  const r = rom("brevduen", 5, { runder: 3 });
+  const [a, , , , e] = r.tlf;
+  const sp = () => a.S.spill;
+  const k = sp().r.k;
+  r.trekk(2, { svar: "Seat two", k });
+  r.trekk(0, { svar: "Seat zero", k });
+  r.borte(2); // wrote, then left: the answer goes
+  assert.equal(sp().r.svar[2], null);
+  assert.equal(sp().fase, "skriv");
+  r.trekk(2, { svar: "back again", k }); // gone: ignored
+  r.trekk(1, { svar: "Seat one", k });
+  r.trekk(3, { svar: "Seat three", k });
+  assert.equal(sp().fase, "skriv");
+  r.trekk(4, { svar: "Seat four", k });
+  assert.equal(sp().fase, "pek", "the seat that left is not waited for");
+  assert.deepEqual(somJson(sp().r.rekke.slice().sort()), [0, 1, 3, 4]);
+  // The author of the answer being guessed leaves: that answer goes, the next one comes up.
+  const v = sp().r.vis;
+  const forfatter = sp().r.rekke[v];
+  const andre = [0, 1, 3, 4].filter((i) => i !== forfatter);
+  r.trekk(andre[0], { pek: andre[1], v });
+  r.borte(forfatter);
+  assert.equal(sp().fase, "pek");
+  assert.equal(sp().r.rekke.length, 3);
+  assert.ok(!sp().r.rekke.includes(forfatter));
+  assert.deepEqual(somJson(sp().r.pek), [null, null, null, null, null], "the guesses start again");
+  const inne = andre;
+  for (let steg = 0; steg < 200 && !sp().ferdig; steg++) {
+    const s = sp();
+    assert.ok(!s.ute.includes(a.def.nett.tur(a.S)), "never the turn of a seat that left");
+    if (s.fase === "skriv") for (const i of inne) r.trekk(i, { svar: `Svar ${i}`, k: s.r.k });
+    else if (s.fase === "pek") for (const i of inne) r.trekk(i, { pek: inne.find((x) => x !== i), v: s.r.vis });
+    else r.trekk(s.r.leder, { neste: s.steg });
+  }
+  assert.ok(sp().ferdig);
+  assert.equal(sp().ute.length, 2);
+  assert.equal(a.def.nett.skjerm(a.S), "slutt");
+  likt(a, e);
+  likt(a, r.sen(0));
+  // The leader leaves after a reveal: the next seat still in leads.
+  const r2 = rom("brevduen", 4, { runder: 3 });
+  const s2 = () => r2.tlf[1].S.spill;
+  for (let i = 0; i < 4; i++) r2.trekk(i, { svar: `Svar ${i}`, k: s2().r.k });
+  for (let i = 0; i < 4; i++) r2.trekk(i, { pek: (i + 1) % 4, v: 0 });
+  assert.equal(s2().fase, "fasit");
+  r2.borte(0);
+  assert.equal(s2().r.leder, 1);
+  r2.trekk(1, { neste: s2().steg });
+  assert.equal(s2().fase, "pek");
+  // Fewer than three left (the room ends such a match itself): over on every phone.
+  const r3 = rom("brevduen", 3, {});
+  r3.borte(1);
+  assert.ok(r3.tlf[0].def.nett.ferdig(r3.tlf[0].S));
+});
+
+// Skrønemakeren's cards in the game's order (the same as window.RusjSkrone sees them).
+function skroneKort(p) {
+  const ut = [];
+  p.window.RUSJ_DATA.kort.pakker.forEach((pk) => pk.kort.forEach((k) => ut.push(k)));
+  return ut;
+}
+
+test("Skrønemakeren: three phones – fakes and votes as moves, the truth gives a bonus, equal fakes merge, the leader reveals; illegal moves ignored", () => {
+  const r = rom("skronemakeren", 3, { runder: 3 });
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  const M = a.window.RusjSkrone;
+  const KORT = skroneKort(a);
+  assert.equal(sp().modus, "nett");
+  assert.equal(sp().fase, "skriv");
+  assert.equal(sp().r.leder, 0);
+  const kort0 = sp().kort;
+  r.trekk(2, { bytt: 1 }); // not the leader
+  assert.equal(sp().kort, kort0);
+  r.trekk(0, { bytt: 1 });
+  const kort = sp().kort;
+  assert.notEqual(kort, kort0);
+  // Seat 1 writes the real answer: the bonus, and another fake to write.
+  r.trekk(1, { skrone: KORT[kort].a, kort });
+  assert.equal(sp().r.sann[1], true);
+  assert.equal(sp().r.skrevet[1], null);
+  r.trekk(0, { bytt: 1 }); // someone has written: no other card now
+  assert.equal(sp().kort, kort);
+  r.trekk(0, { skrone: "En diger fisk", kort });
+  r.trekk(0, { skrone: "igjen", kort }); // twice
+  r.trekk(2, { skrone: "!!!", kort }); // no letters
+  r.trekk(2, { skrone: "x", kort: kort0 }); // the card before
+  r.trekk(2, { skrone: "diger fisk", kort }); // the same fake: merged with seat 0's
+  assert.equal(sp().fase, "skriv", "not before everyone has written");
+  r.trekk(1, { skrone: SKITTEN, kort });
+  assert.equal(sp().fase, "stem");
+  const r1 = sp().r;
+  assert.equal(r1.valg.length, 3, "two fakes (one merged) and the truth");
+  const sann = M.sannIndeks(r1.valg);
+  const felles = r1.valg.findIndex((v) => v.av.includes(0));
+  const ener = r1.valg.findIndex((v) => v.av.includes(1));
+  assert.deepEqual(somJson(r1.valg[felles].av), [0, 2]);
+  assert.equal(r1.valg[ener].t, REN, "cleaned when it is played");
+  assert.deepEqual(somJson(r1.srekke), [0, 2], "the one who wrote the truth sits out the vote");
+  r.trekk(1, { stem: sann, rn: 0 }); // sits out
+  r.trekk(0, { stem: felles, rn: 0 }); // its own fake
+  r.trekk(0, { stem: sann, rn: 1 }); // another round
+  r.trekk(0, { stem: 9, rn: 0 }); // no such option
+  assert.equal(sp().fase, "stem");
+  r.trekk(0, { stem: sann, rn: 0 });
+  r.trekk(0, { stem: ener, rn: 0 }); // twice
+  r.trekk(2, { stem: ener, rn: 0 });
+  assert.equal(sp().fase, "avslor");
+  assert.deepEqual(somJson(sp().poeng), [M.SANN, M.BONUS + M.LURT, 0]);
+  // The reveal: the leader only, one tap per option, then the points.
+  const rekke = M.avslorRekke(sp().r);
+  r.trekk(1, { neste: sp().steg });
+  assert.equal(sp().r.vist, 0);
+  for (let n = 1; n <= rekke.length; n++) {
+    r.trekk(0, { neste: sp().steg });
+    assert.equal(sp().r.vist, n);
+  }
+  r.trekk(0, { neste: sp().steg });
+  assert.equal(sp().fase, "resultat");
+  r.trekk(0, { neste: sp().steg });
+  assert.equal(sp().rn, 1);
+  assert.equal(sp().r.leder, 1, "one seat on per round");
+  for (let steg = 0; steg < 300 && !sp().ferdig; steg++) {
+    const s = sp();
+    const r0 = s.r;
+    if (s.fase === "skriv") for (let i = 0; i < 3; i++) r.trekk(i, { skrone: `Skrøne ${s.rn} nr ${i}`, kort: s.kort });
+    else if (s.fase === "stem") for (const i of r0.srekke) r.trekk(i, { stem: r0.valg.findIndex((v) => !v.av.includes(i)), rn: s.rn });
+    else r.trekk(r0.leder, { neste: s.steg });
+  }
+  assert.ok(sp().ferdig && a.def.nett.ferdig(a.S));
+  assert.equal(sp().spilt, 3);
+  assert.equal(a.def.nett.skjerm(a.S), "slutt");
+  likt(a, b);
+  likt(a, c);
+  likt(a, r.sen(1));
+  assert.equal(rom("skronemakeren", 3, {}, 20261115, 2).tlf[0].S.spill.r.leder, 1, "match 2: the next seat leads");
+});
+
+test("Skrønemakeren: five phones – a seat that leaves is never waited for, its fake goes before the vote, the next one leads", () => {
+  const r = rom("skronemakeren", 5, { runder: 3 });
+  const [a, b] = r.tlf;
+  const sp = () => a.S.spill;
+  const kort = sp().kort;
+  r.trekk(3, { skrone: "Noe helt annet", kort });
+  r.borte(3); // wrote, then left: the fake goes
+  r.trekk(0, { skrone: "Første skrøne", kort });
+  r.trekk(1, { skrone: "Andre skrøne", kort });
+  r.trekk(2, { skrone: "Tredje skrøne", kort });
+  assert.equal(sp().fase, "skriv");
+  r.trekk(4, { skrone: "Fjerde skrøne", kort });
+  assert.equal(sp().fase, "stem");
+  assert.equal(sp().r.valg.length, 5, "four fakes and the truth – not the fake of the seat that left");
+  assert.deepEqual(somJson(sp().r.srekke), [0, 1, 2, 4]);
+  const sann = sp().r.valg.findIndex((v) => v.sann);
+  r.trekk(1, { stem: sann, rn: 0 });
+  r.trekk(2, { stem: sann, rn: 0 });
+  r.trekk(4, { stem: sann, rn: 0 });
+  r.borte(0); // the leader leaves before voting: not waited for, and the next seat leads
+  assert.equal(sp().fase, "avslor");
+  assert.equal(sp().r.leder, 1);
+  r.trekk(0, { neste: sp().steg });
+  assert.equal(sp().r.vist, 0, "a seat that left cannot move");
+  const inne = [1, 2, 4];
+  for (let steg = 0; steg < 300 && !sp().ferdig; steg++) {
+    const s = sp();
+    assert.ok(!s.ute.includes(a.def.nett.tur(a.S)));
+    if (s.fase === "skriv") for (const i of inne) r.trekk(i, { skrone: `Skrøne ${s.rn} ${i}`, kort: s.kort });
+    else if (s.fase === "stem") for (const i of s.r.srekke) r.trekk(i, { stem: s.r.valg.findIndex((v) => v.sann), rn: s.rn });
+    else r.trekk(s.r.leder, { neste: s.steg });
+  }
+  assert.ok(sp().ferdig);
+  assert.equal(sp().spilt, 3);
+  likt(a, b);
+  likt(a, r.sen(2));
+  // Fewer than three left (the room ends such a match itself): over on every phone.
+  const r3 = rom("skronemakeren", 3, {});
+  r3.borte(0);
+  assert.ok(r3.tlf[1].def.nett.ferdig(r3.tlf[1].S));
+});
+
+// Hviskeren's words in the game's order, from the same word bank (for the forbidden hint).
+function hviskOrd(p) {
+  const ut = [];
+  p.window.RUSJ_ORD.kategorier.forEach((k) => k.ord.forEach((e) => !/[,!?]/.test(e[0]) && e[0].trim().split(/\s+/).length <= 2 && ut.push({ o: e[0], h: e[2] })));
+  return ut;
+}
+
+test("Hviskeren: three phones – two hints each, twins struck by the rules, the givers strike more, the guesser guesses and judges; illegal moves ignored", () => {
+  const r = rom("hviskeren", 3, { runder: 8, forbudt: true });
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  const ORD = hviskOrd(a);
+  assert.equal(sp().modus, "nett");
+  assert.equal(sp().r.gjetter, 0, "the host guesses first in match 1");
+  assert.equal(sp().r.per, 2, "three players: two hints each");
+  assert.equal(a.def.nett.skjerm(a.S), "n-skriv");
+  const ord0 = sp().r.ord;
+  r.trekk(2, { bytt: 1 }); // not the first hint giver
+  r.trekk(0, { bytt: 1 }); // the guesser
+  assert.equal(sp().r.ord, ord0);
+  r.trekk(1, { bytt: 1 });
+  const ord = sp().r.ord;
+  assert.notEqual(ord, ord0);
+  const ordet = ORD[ord].o;
+  r.trekk(0, { hint: ["Zorbel", "Kviff"], ord }); // the guesser gives no hints
+  r.trekk(1, { hint: ["Zorbel"], ord }); // one too few
+  r.trekk(1, { hint: ["to ord", "Kviff"], ord }); // one word each
+  r.trekk(1, { hint: [ordet, "Kviff"], ord }); // the word itself
+  r.trekk(1, { hint: [ORD[ord].h, "Kviff"], ord }); // the forbidden hint
+  r.trekk(1, { hint: ["Kviff", "kviff"], ord }); // the same twice
+  r.trekk(1, { hint: ["Zorbel", "Kviff"], ord: ord0 }); // another word
+  assert.deepEqual(somJson(sp().r.gitt), [null, null, null]);
+  assert.equal(b.def.nett.tur(b.S), 1);
+  r.trekk(1, { hint: ["Zorbel", "Kviff\u0000"], ord });
+  r.trekk(1, { hint: ["Plonk", "Snerk"], ord }); // twice
+  assert.equal(sp().r.fase, "skriv");
+  r.trekk(2, { hint: ["zorbelen", "Plonk"], ord });
+  assert.equal(sp().r.fase, "sjekk");
+  assert.deepEqual(
+    somJson(sp().r.hint),
+    [
+      { i: 1, t: "Zorbel", a: true, s: true },
+      { i: 1, t: "Kviff", a: false, s: false },
+      { i: 2, t: "zorbelen", a: true, s: true },
+      { i: 2, t: "Plonk", a: false, s: false },
+    ],
+    "twins (zorbel / zorbelen) struck the same on every phone",
+  );
+  r.trekk(0, { stryk: 1 }); // the guesser can't strike
+  r.trekk(2, { stryk: 9 }); // no such hint
+  r.trekk(2, { stryk: 3 });
+  assert.equal(sp().r.hint[3].s, true);
+  r.trekk(1, { stryk: 3 });
+  assert.equal(sp().r.hint[3].s, false, "and back");
+  r.trekk(0, { gjett: "sjekk" }); // not yet
+  r.trekk(2, { neste: sp().steg }); // not the first hint giver
+  assert.equal(sp().r.fase, "sjekk");
+  r.trekk(1, { neste: sp().steg });
+  assert.equal(sp().r.fase, "gjett");
+  assert.equal(a.def.nett.tur(a.S), 0);
+  r.trekk(1, { gjett: "sjekk" }); // only the guesser
+  r.trekk(0, { gjett: "sjekk" });
+  assert.equal(sp().r.fase, "svar");
+  assert.equal(sp().r.utfall, null);
+  r.trekk(0, { neste: sp().steg }); // not judged yet
+  r.trekk(1, { utfall: "riktig" }); // only the guesser judges
+  r.trekk(0, { utfall: "kanskje" });
+  assert.equal(sp().r.utfall, null);
+  r.trekk(0, { utfall: "riktig" });
+  r.trekk(0, { utfall: "feil" }); // judged already
+  assert.equal(sp().r.utfall, "riktig");
+  r.trekk(0, { neste: sp().steg });
+  assert.equal(sp().poeng, 1);
+  assert.equal(sp().logg.length, 1);
+  assert.equal(sp().r.gjetter, 1, "the next seat guesses");
+  const utfall = ["feil", "pass", "riktig"];
+  let feil = 0;
+  for (let steg = 0; steg < 400 && !sp().ferdig; steg++) {
+    const s = sp();
+    const g = s.r.gjetter;
+    const givere = [0, 1, 2].filter((i) => i !== g);
+    if (s.r.fase === "skriv") givere.forEach((i, n) => r.trekk(i, { hint: [`Qwx${s.nr}a${n}`, `Vyk${s.nr}b${n}`], ord: s.r.ord }));
+    else if (s.r.fase === "sjekk") r.trekk(a.def.nett.tur(a.S), { neste: s.steg });
+    else if (s.r.fase === "gjett") r.trekk(g, { gjett: s.logg.length % 3 === 1 ? "pass" : "sjekk" });
+    else if (!s.r.utfall) {
+      const u = utfall[s.logg.length % 3];
+      if (u === "feil") feil++;
+      r.trekk(g, { utfall: u });
+    } else r.trekk(g, { neste: s.steg });
+  }
+  assert.ok(sp().ferdig && a.def.nett.ferdig(a.S));
+  assert.ok(feil > 0 && sp().tapt > 0, "a wrong guess costs a card");
+  assert.equal(sp().logg.length + sp().tapt, 8);
+  assert.equal(a.def.nett.skjerm(a.S), "slutt");
+  likt(a, b);
+  likt(a, c);
+  likt(a, r.sen(2));
+  assert.equal(rom("hviskeren", 3, {}, 20261115, 2).tlf[0].S.spill.r.gjetter, 1, "match 2: the next seat guesses first");
+  assert.equal(rom("hviskeren", 4, {}).tlf[0].S.spill.r.per, 1, "four players: one hint each");
+  assert.equal(rom("hviskeren", 4, {}).tlf[0].S.spill.runder, 13);
+});
+
+test("Hviskeren: a seat that leaves is never waited for; if the guesser leaves, the next one guesses a new word and no card is lost", () => {
+  const r = rom("hviskeren", 5, { runder: 8 });
+  const [a, , , , e] = r.tlf;
+  const sp = () => a.S.spill;
+  let ord = sp().r.ord;
+  r.trekk(2, { hint: ["Zorbel"], ord });
+  r.borte(2); // wrote, then left: its hint goes
+  r.trekk(1, { hint: ["Kviff"], ord });
+  r.trekk(3, { hint: ["Plonk"], ord });
+  assert.equal(sp().r.fase, "skriv");
+  r.trekk(4, { hint: ["Snerk"], ord });
+  assert.equal(sp().r.fase, "sjekk", "the seat that left is not waited for");
+  assert.deepEqual(somJson(sp().r.hint.map((h) => h.i)), [1, 3, 4]);
+  r.trekk(1, { neste: sp().steg });
+  r.trekk(0, { gjett: "sjekk" });
+  r.trekk(0, { utfall: "riktig" });
+  r.trekk(0, { neste: sp().steg });
+  assert.equal(sp().r.gjetter, 1);
+  assert.equal(sp().r.per, 1, "four still in: one hint each");
+  ord = sp().r.ord;
+  for (const i of [0, 3, 4]) r.trekk(i, { hint: [`Hint${i}`], ord });
+  r.trekk(3, { neste: sp().steg });
+  assert.equal(sp().r.fase, "gjett");
+  r.borte(1); // the guesser leaves: a new word for the next seat still in, no card lost
+  assert.equal(sp().r.fase, "skriv");
+  assert.equal(sp().r.gjetter, 3);
+  assert.notEqual(sp().r.ord, ord);
+  assert.equal(sp().logg.length, 1);
+  assert.equal(sp().r.per, 2, "three still in: two hints each");
+  for (let steg = 0; steg < 400 && !sp().ferdig; steg++) {
+    const s = sp();
+    const g = s.r.gjetter;
+    assert.ok(!s.ute.includes(a.def.nett.tur(a.S)));
+    const givere = [0, 3, 4].filter((i) => i !== g);
+    if (s.r.fase === "skriv") givere.forEach((i, n) => r.trekk(i, { hint: [`Qwx${s.nr}a${n}`, `Vyk${s.nr}b${n}`], ord: s.r.ord }));
+    else if (s.r.fase === "sjekk") r.trekk(a.def.nett.tur(a.S), { neste: s.steg });
+    else if (s.r.fase === "gjett") r.trekk(g, { gjett: "pass" });
+    else r.trekk(g, { neste: s.steg });
+  }
+  assert.ok(sp().ferdig);
+  assert.equal(sp().logg.length, 8);
+  likt(a, e);
+  likt(a, r.sen(3));
+  // The first hint giver leaves while the hints are checked: the next giver sends them on.
+  const r2 = rom("hviskeren", 5, {});
+  const s2 = () => r2.tlf[0].S.spill;
+  for (const i of [1, 2, 3, 4]) r2.trekk(i, { hint: [`Hint${i}`], ord: s2().r.ord });
+  assert.equal(s2().r.fase, "sjekk");
+  r2.borte(1);
+  r2.trekk(2, { neste: s2().steg });
+  assert.equal(s2().r.fase, "gjett");
+  // The guesser leaves after judging: the round counts.
+  r2.trekk(0, { gjett: "sjekk" });
+  r2.trekk(0, { utfall: "riktig" });
+  r2.borte(0);
+  assert.equal(s2().logg.length, 1);
+  assert.equal(s2().poeng, 1);
+});
+
+test("Sauen: four phones – answers grouped the same on every phone, the leader reveals, merges and splits, the black sheep, the first to the target wins", () => {
+  const r = rom("sauen", 4, { mal: 5 });
+  const [a, b, c, d] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().modus, "nett");
+  assert.equal(sp().mal, 5);
+  assert.equal(sp().sauUte, false);
+  assert.equal(sp().r.leder, 0);
+  const q0 = sp().r.q;
+  r.trekk(3, { bytt: 1 }); // not the leader
+  assert.equal(sp().r.q, q0);
+  r.trekk(0, { bytt: 1 });
+  const q = sp().r.q;
+  assert.notEqual(q, q0);
+  r.trekk(0, { svar: "Banan", q });
+  r.trekk(0, { svar: "Eple", q }); // twice
+  r.trekk(0, { bytt: 1 }); // someone has answered
+  r.trekk(1, { svar: "...", q }); // no letters
+  r.trekk(1, { svar: "bananer", q: q0 }); // the question before
+  assert.equal(sp().r.q, q);
+  r.trekk(1, { svar: "bananer", q });
+  r.trekk(2, { svar: "en banan", q });
+  assert.equal(sp().r.fase, "skriv");
+  assert.equal(d.def.nett.tur(d.S), 3);
+  r.trekk(3, { svar: SKITTEN, q });
+  assert.equal(sp().r.fase, "avslor");
+  assert.equal(sp().r.inn[3], REN);
+  assert.equal(sp().r.grupper.length, 2, "banan, bananer and en banan are one group");
+  // The reveal: the leader only.
+  r.trekk(1, { neste: sp().steg });
+  assert.equal(sp().r.vist, 0);
+  r.trekk(0, { neste: sp().steg });
+  assert.equal(sp().r.vist, 1);
+  r.trekk(0, { neste: sp().steg });
+  assert.equal(sp().r.avslort, true);
+  // Merge, take back, split, take back – the leader only.
+  r.trekk(1, { sla: [0, 1] });
+  assert.equal(sp().r.grupper.length, 2);
+  r.trekk(0, { sla: [0, 0] }); // the same group
+  r.trekk(0, { sla: [0, 5] }); // no such group
+  r.trekk(0, { sla: [0, 1] });
+  assert.equal(sp().r.grupper.length, 1);
+  r.trekk(0, { angre: 1 });
+  assert.equal(sp().r.grupper.length, 2);
+  const stor = sp().r.grupper.findIndex((g) => g.length > 1);
+  r.trekk(0, { delOpp: stor });
+  assert.equal(sp().r.grupper.length, 3);
+  r.trekk(0, { angre: 1 });
+  r.trekk(0, { angre: 1 }); // nothing more to take back
+  assert.equal(sp().r.grupper.length, 2);
+  r.trekk(0, { neste: sp().steg }); // «Del ut poengene»
+  assert.equal(sp().r.fase, "poeng");
+  assert.deepEqual(somJson(sp().poeng), [1, 1, 1, 0]);
+  assert.equal(sp().sau, 3, "alone: the black sheep");
+  r.trekk(0, { neste: sp().steg });
+  assert.equal(sp().r.leder, 1, "one seat on per round");
+  for (let steg = 0; steg < 400 && !sp().ferdig; steg++) {
+    const s = sp();
+    if (s.r.fase === "skriv") for (let i = 0; i < 4; i++) r.trekk(i, { svar: "Sol", q: s.r.q });
+    else r.trekk(s.r.leder, { neste: s.steg });
+  }
+  assert.ok(sp().ferdig && a.def.nett.ferdig(a.S));
+  assert.deepEqual(somJson(sp().vinnere), [0, 1, 2], "the black sheep can't win");
+  assert.equal(a.def.nett.skjerm(a.S), "vinner");
+  likt(a, b);
+  likt(a, c);
+  likt(a, r.sen(3));
+  assert.equal(rom("sauen", 4, {}, 20261115, 2).tlf[0].S.spill.r.leder, 1, "match 2: the next seat leads");
+  assert.equal(rom("sauen", 3, {}).tlf[0].S.spill.sauUte, true, "three players: the sheep is at pasture");
+  assert.equal(rom("sauen", 8, {}).tlf[0].S.spill.mal, 5, "the target follows the group when the host has not chosen one");
+});
+
+test("Sauen: a seat that leaves is never waited for, its answer leaves the reveal, the black sheep goes with it, the next one leads", () => {
+  const r = rom("sauen", 5, { mal: 5 });
+  const [a, b] = r.tlf;
+  const sp = () => a.S.spill;
+  const q = sp().r.q;
+  ["Ost", "Ost", "Melk", "Brød"].forEach((t, i) => r.trekk(i, { svar: t, q }));
+  r.borte(4); // never answered: not waited for
+  assert.equal(sp().r.fase, "avslor");
+  assert.equal(sp().r.svar.length, 4);
+  r.trekk(0, { neste: sp().steg });
+  r.borte(3); // its answer («Brød», alone) leaves the reveal
+  assert.equal(sp().r.grupper.length, 2);
+  assert.ok(sp().r.rekkefolge.every((g) => g < 2));
+  for (let n = 0; n < 5 && !sp().r.avslort; n++) r.trekk(0, { neste: sp().steg });
+  r.trekk(0, { neste: sp().steg });
+  assert.deepEqual(somJson(sp().poeng), [1, 1, 0, 0, 0]);
+  assert.equal(sp().sau, 2, "«Melk» stood alone");
+  r.trekk(0, { neste: sp().steg });
+  assert.equal(sp().r.leder, 1, "one seat on per round");
+  // The holder of the black sheep leaves: the sheep goes with it. (Only two are left: the match is
+  // over – the room ends it too.)
+  r.trekk(2, { svar: "Te", q: sp().r.q });
+  r.borte(2);
+  assert.equal(sp().sau, -1);
+  assert.ok(a.def.nett.ferdig(a.S));
+  assert.deepEqual(somJson(sp().vinnere), [0, 1], "the leaders so far, among those still in");
+  likt(a, b);
+  likt(a, r.sen(0));
+  // A leader that leaves: the next seat still in leads.
+  const r2 = rom("sauen", 4, {});
+  r2.borte(0);
+  assert.equal(r2.tlf[1].S.spill.r.leder, 1);
+  for (const i of [1, 2, 3]) r2.trekk(i, { svar: "Hav", q: r2.tlf[1].S.spill.r.q });
+  assert.equal(r2.tlf[1].S.spill.r.fase, "avslor");
+  r2.trekk(1, { neste: r2.tlf[1].S.spill.steg });
+  assert.equal(r2.tlf[1].S.spill.r.avslort, true);
 });

@@ -10,6 +10,7 @@
   "mobiler": "en",
   "tagger": ["fest", "ord", "blof"],
   "rekkefolge": 58,
+  "nett": true,
   "farge": "#b48cff",
   "sok": ["bløffspill", "ordbløff", "finn det ekte svaret", "dikt en forklaring", "falske svar", "hva betyr ordet", "løgn eller sannhet", "ordbokleken"],
   "i18n": {

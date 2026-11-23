@@ -108,5 +108,14 @@
   "stemme|stemmer": { "one": "vote", "other": "votes" },
   "gang|ganger": { "one": "time", "other": "times" },
   "runde|runder": { "one": "round", "other": "rounds" },
-  "poeng|poeng": { "one": "point", "other": "points" }
+  "poeng|poeng": { "one": "point", "other": "points" },
+  "{n} av {m} har skrevet": "{n} of {m} have written",
+  "{n} av {m} har stemt": "{n} of {m} have voted",
+  "{navn} går videre når dere er klare.": "{navn} moves on when you're ready.",
+  "Venter på de andre …": "Waiting for the others …",
+  "Skrønen din": "Your porky",
+  "Send skrønen": "Send your porky",
+  "Skrønen din er sendt.": "Your porky has been sent.",
+  "Du fant det ekte svaret og står over stemmingen.": "You found the real answer, so you sit out the vote.",
+  "Stemmen din er sendt.": "Your vote has been sent."
 }

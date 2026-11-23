@@ -51,6 +51,18 @@
   animation: skrone-inn 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
+/* On the net: my own fake or vote is in */
+.skrone-nett-h1 {
+  margin: 0 0 4px;
+}
+.skrone-sendt {
+  display: block;
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  text-align: center;
+  font-weight: 800;
+}
+
 /* The question as a line */
 .skrone-sporsmal {
   margin: 0;

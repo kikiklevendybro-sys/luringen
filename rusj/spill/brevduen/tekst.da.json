@@ -83,5 +83,18 @@
   "Angret – poengene er tatt bort": "Fortrudt – pointene er fjernet",
   "Avslutte spillet?": "Afslut spillet?",
   "Svarene som er skrevet, slettes. Dere kan alltid starte et nytt.": "De svar, der er skrevet, slettes. I kan altid starte et nyt.",
-  "Svarene som er skrevet, slettes, og dere går rett til kåringen.": "De svar, der er skrevet, slettes, og I går direkte til kåringen."
+  "Svarene som er skrevet, slettes, og dere går rett til kåringen.": "De svar, der er skrevet, slettes, og I går direkte til kåringen.",
+  "På nett går svarene gjennom rommet til de andre mobilene. Rommet slettes senest et døgn etter siste trekk.": "Online går svarene gennem rummet til de andre mobiler. Rummet slettes senest et døgn efter sidste træk.",
+  "{n} av {m} har skrevet": "{n} af {m} har skrevet",
+  "{n} av {m} har pekt": "{n} af {m} har peget",
+  "Venter på de andre …": "Venter på de andre …",
+  "Svaret ditt": "Dit svar",
+  "Send svaret": "Send svaret",
+  "Svaret ditt er sendt.": "Dit svar er sendt.",
+  "Ditt svar! Pek på en annen, så ingen skjønner det.": "Det er dit svar! Peg på en anden, så ingen opdager det.",
+  "Pek på den du tror skrev det": "Peg på den, du tror skrev det",
+  "Du har pekt.": "Du har peget.",
+  "Pekte riktig: {navn}": "Pegede rigtigt: {navn}",
+  "{navn} går videre når dere er klare.": "{navn} går videre, når I er klar.",
+  "runde|runder": { "one": "runde", "other": "runder" }
 }
