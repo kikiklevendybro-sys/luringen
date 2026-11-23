@@ -105,5 +105,6 @@
   "runde|runder": { "one": "round", "other": "rounds" },
   "kategori|kategorier": { "one": "category", "other": "categories" },
   "kort|kort": { "one": "card", "other": "cards" },
-  "ferdig runde|ferdige runder": { "one": "finished round", "other": "finished rounds" }
+  "ferdig runde|ferdige runder": { "one": "finished round", "other": "finished rounds" },
+  "forlot kampen": "left the match"
 }

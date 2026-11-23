@@ -66,14 +66,22 @@ test("the games with \"nett\": true are exactly the rooms' games, with the same 
 
 // ---------- A phone in node:vm ----------
 
+// The game's data/ as the build gives it (window.RUSJ_DATA: one key per file, Norwegian).
+function spillData(id) {
+  const mappe = join(ROT, "rusj/spill", id, "data");
+  const data = {};
+  if (existsSync(mappe)) for (const f of readdirSync(mappe).sort()) if (f.endsWith(".json")) data[f.replace(/\.json$/, "")] = JSON.parse(readFileSync(join(mappe, f), "utf8"));
+  return data;
+}
+
 function telefon(id, meg, valg = {}) {
   const lager = new Map();
   const location = { protocol: "https:", origin: "https://rusj.no", pathname: `/${id}/`, hash: "", search: "" };
   const window = {
     RUSJ_SPILL: { id, navn: id },
-    RUSJ_DATA: {},
+    RUSJ_DATA: spillData(id),
     RUSJ_NETT: valg.adresse === undefined ? ADR : valg.adresse,
-    RusjGjengen: { svg: () => "<svg></svg>", logo: () => "<svg></svg>" },
+    RusjGjengen: { svg: () => "<svg></svg>", logo: () => "<svg></svg>", alle: ["luringen", "elefanten"] },
     matchMedia: () => ({ matches: false }),
     addEventListener() {},
     location,
@@ -132,11 +140,17 @@ function rom(id, antall, oppsett, fro = 20261115, kamp = 1) {
       logg.push([sete, t]);
       for (const p of tlf) p.def.nett.trekk(p.S, JSON.parse(JSON.stringify(t)), sete, okt(p, n));
     },
+    // A seat leaves a play-on match: the room adds its «borte» move, the kit calls the game's borte.
+    borte(sete) {
+      const n = logg.length;
+      logg.push([sete, { $: "borte" }]);
+      for (const p of tlf) if (p.meg !== sete) p.def.nett.borte(p.S, sete, okt(p, n));
+    },
     // A late phone: a fresh copy that replays the whole list.
     sen(meg) {
       const p = telefon(id, meg);
       p.def.nett.start(p.S, okt(p, null));
-      logg.forEach(([s, t], n) => p.def.nett.trekk(p.S, JSON.parse(JSON.stringify(t)), s, okt(p, n)));
+      logg.forEach(([s, t], n) => (t.$ === "borte" ? p.def.nett.borte(p.S, s, okt(p, n)) : p.def.nett.trekk(p.S, JSON.parse(JSON.stringify(t)), s, okt(p, n))));
       return p;
     },
   };
@@ -606,4 +620,415 @@ test("Lykkegrisen: a whole game to 5000 for three on three phones – every roll
   likt(a, sen, (x) => ({ ...x, ferdig: true, resultat: null }));
   assert.ok(sen.S.spill.ferdig && sen.def.nett.skjerm(sen.S) === "slutt", "a finished match, replayed: the result");
   assert.equal(rom("lykkegrisen", 3, {}, 20261115, 2).tlf[0].S.spill.tur, 1, "match 2: the next seat begins");
+});
+
+test("Meyer: a whole match for three on three phones – the roll is a move, the claim and the answer too; out-of-turn and impossible moves ignored", () => {
+  const M = regler("meyer", "RusjMeyer");
+  const r = rom("meyer", 3, { liv: 3, felles: true });
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().modus, "nett");
+  assert.deepEqual(somJson(sp().liv), [3, 3, 3]);
+  assert.equal(sp().tur, 0, "the host begins match 1");
+  r.trekk(1, { rist: 1 }); // not your turn
+  r.trekk(0, { meld: "64" }); // nothing rolled yet
+  assert.equal(sp().fase, "rist");
+  let loftet = 0;
+  let trodd = 0;
+  for (let steg = 0; steg < 2000 && sp().vinner == null; steg++) {
+    const s = sp();
+    if (s.fase === "rist") {
+      r.trekk(s.tur, { rist: 1 });
+      assert.equal(s.fase, "skjult");
+      assert.ok(s.kast.every((x) => x >= 1 && x <= 6));
+      continue;
+    }
+    if (s.fase === "skjult") {
+      const lov = M.lovlige(s.melding && s.melding.v, s.felles);
+      const ekte = M.verdi(s.kast[0], s.kast[1]);
+      r.trekk(s.tur, { meld: "99" }); // no such value
+      r.trekk((s.tur + 1) % 3, { meld: lov[0] }); // not yours to say
+      r.trekk(s.tur, { meld: lov.includes(ekte) ? ekte : lov.filter((v) => v !== M.FELLES).at(-1) || lov[0] });
+      assert.equal(s.fase, "svar");
+      continue;
+    }
+    if (s.fase === "svar") {
+      const sv = M.svarer(s);
+      r.trekk(s.tur, { svar: "loft" }); // the claimer cannot answer
+      if (s.melding.v === M.MEYER) r.trekk(sv, { svar: "tro" }); // Meyer cannot be believed
+      const valg = s.melding.v === M.MEYER ? "godta" : steg % 3 === 0 ? "tro" : "loft";
+      r.trekk(sv, { svar: valg });
+      if (valg === "loft") loftet++;
+      if (valg === "tro") trodd++;
+      continue;
+    }
+    r.trekk((s.starter + 1) % 3, { runde: 1 }); // only the one who begins
+    r.trekk(s.starter, { runde: 1 });
+  }
+  assert.ok(sp().vinner != null, "nobody won");
+  assert.ok(loftet && trodd);
+  assert.ok(a.def.nett.ferdig(a.S));
+  assert.equal(a.def.nett.tur(a.S), null);
+  r.trekk(sp().tur, { rist: 1 }); // after the end: ignored
+  likt(a, b, (x) => ({ ...x, valgt: null }));
+  likt(a, c, (x) => ({ ...x, valgt: null }));
+  const sen = r.sen(1);
+  likt(a, sen, (x) => ({ ...x, ferdig: true, valgt: null }));
+  assert.equal(sen.def.nett.skjerm(sen.S), "slutt", "a finished match, replayed: the result");
+  assert.equal(rom("meyer", 3, {}, 20261115, 2).tlf[0].S.spill.tur, 1, "match 2: the next seat begins");
+  assert.equal(rom("meyer", 2, {}).tlf[0].S.spill.maksLiv, 6);
+});
+
+test("Meyer: a seat that leaves is out, the next one takes the cup, and the last one standing wins", () => {
+  const r = rom("meyer", 3, { liv: 6 });
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  r.trekk(0, { rist: 1 });
+  r.trekk(0, { meld: "41" });
+  r.trekk(1, { svar: "tro" });
+  r.trekk(1, { rist: 1 });
+  assert.equal(sp().tur, 1);
+  assert.equal(sp().fase, "skjult");
+  r.borte(1); // B leaves with the dice under its cup: C must beat 41 from a fresh roll
+  assert.equal(sp().liv[1], 0);
+  assert.equal(sp().tur, 2);
+  assert.equal(sp().fase, "rist");
+  assert.equal(sp().melding.v, "41");
+  assert.equal(a.def.nett.tur(a.S), 2);
+  r.trekk(1, { rist: 1 }); // gone: ignored
+  assert.equal(sp().fase, "rist");
+  r.trekk(2, { rist: 1 });
+  r.trekk(2, { meld: "21" });
+  assert.equal(a.def.nett.tur(a.S), 0, "A answers C, past B");
+  likt(a, c, (x) => ({ ...x, valgt: null }));
+  r.borte(2); // one left: A wins
+  assert.equal(sp().vinner, 0);
+  assert.ok(a.def.nett.ferdig(a.S));
+  assert.deepEqual(somJson(sp().forlot), [1, 2]);
+  const sen = r.sen(0);
+  likt(a, sen, (x) => ({ ...x, ferdig: true, valgt: null }));
+  assert.equal(sen.def.nett.skjerm(sen.S), "slutt");
+});
+
+// Elefanten's player: turns the first card it has not seen, then its mate – or, every third move, a
+// card that is not the mate (a miss). Returns false when nothing was turned.
+function elefantTrekk(r, steg, p = r.tlf[0]) {
+  const sp = p.S.spill;
+  const tur = sp.tur;
+  const fri = sp.kort.map((_, i) => i).filter((i) => sp.funnet[i] < 0 && !sp.opp.includes(i));
+  if (!sp.opp.length) {
+    r.trekk(tur, { snu: fri[0] });
+    return true;
+  }
+  const a = sp.opp[0];
+  const make = fri.find((i) => sp.kort[i] === sp.kort[a]);
+  const bom = fri.find((i) => sp.kort[i] !== sp.kort[a]);
+  r.trekk(tur, { snu: steg % 3 === 0 && bom != null ? bom : make });
+  return true;
+}
+
+test("Elefanten: a whole board for two on two phones – the same deal, a pair gives another turn, taken and foreign cards ignored", () => {
+  const r = rom("elefanten", 2, { tema: "dyr", kort: 12, kikk: false });
+  const [a, b] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().modus, "nett");
+  assert.equal(sp().kort.length, 14, "two players: an odd number of pairs (12 → 14 cards)");
+  assert.deepEqual(somJson(sp().kort), somJson(b.S.spill.kort), "the same deal on both phones");
+  assert.equal(sp().tur, 0);
+  r.trekk(1, { snu: 0 }); // not your turn
+  r.trekk(0, { snu: 14 }); // no such card
+  r.trekk(0, { snu: "1" });
+  assert.equal(sp().opp.length, 0);
+  let ekstra = false;
+  let bom = false;
+  for (let steg = 0; steg < 200 && !sp().ferdig; steg++) {
+    const tur = sp().tur;
+    const par = sp().poeng.reduce((s, p) => s + p, 0);
+    if (sp().opp.length) r.trekk(tur, { snu: sp().opp[0] }); // the card already up
+    elefantTrekk(r, steg);
+    if (sp().poeng.reduce((s, p) => s + p, 0) > par && sp().tur === tur) ekstra = true;
+    if (sp().tur !== tur) bom = true;
+  }
+  assert.ok(sp().ferdig, "the board was not cleared");
+  assert.ok(ekstra && bom);
+  assert.equal(sp().poeng[0] + sp().poeng[1], 7);
+  assert.ok(a.def.nett.ferdig(a.S));
+  assert.equal(a.def.nett.skjerm(a.S), "slutt");
+  likt(a, b);
+  likt(a, r.sen(1));
+  const r2 = rom("elefanten", 2, { tema: "dyr", kort: 12 }, 20261115, 2);
+  assert.equal(r2.tlf[0].S.spill.tur, 1, "match 2: the guest begins");
+  assert.notDeepEqual(somJson(rom("elefanten", 2, { tema: "dyr", kort: 12 }, 7).tlf[0].S.spill.kort), somJson(sp().kort), "another seed, another deal");
+  assert.equal(rom("elefanten", 4, { tema: "mat", kort: 24 }).tlf[0].S.spill.kort.length, 24);
+});
+
+test("Elefanten: level at the top – a tie-break board from the room's chance; a seat that leaves is skipped and cannot win", () => {
+  const r = rom("elefanten", 3, { tema: "dyr", kort: 12 });
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().kort.length, 12);
+  // A finds three pairs, misses; B finds three pairs: level at 3 – 3 – 0, a tie-break for A and B.
+  const finn = (sete) => {
+    const s = sp();
+    const i = s.kort.findIndex((k, n) => s.funnet[n] < 0);
+    const j = s.kort.findIndex((k, n) => n !== i && s.funnet[n] < 0 && k === s.kort[i]);
+    r.trekk(sete, { snu: i });
+    r.trekk(sete, { snu: j });
+  };
+  const bom = (sete) => {
+    const s = sp();
+    const i = s.kort.findIndex((k, n) => s.funnet[n] < 0);
+    const j = s.kort.findIndex((k, n) => s.funnet[n] < 0 && k !== s.kort[i]);
+    r.trekk(sete, { snu: i });
+    r.trekk(sete, { snu: j });
+  };
+  finn(0);
+  finn(0);
+  finn(0);
+  bom(0);
+  assert.equal(sp().tur, 1);
+  finn(1);
+  finn(1);
+  const forBrett = somJson(sp().kort);
+  finn(1);
+  assert.equal(sp().omkamp, 1, "level at the top: a tie-break");
+  assert.deepEqual(somJson(sp().med), [0, 1]);
+  assert.equal(sp().kort.length, 6, "two share the lead: three new pairs");
+  assert.notDeepEqual(somJson(sp().kort), forBrett);
+  assert.equal(a.def.nett.skjerm(a.S), "omkamp");
+  likt(a, b);
+  likt(a, c);
+  r.trekk(2, { snu: 0 }); // C is not in the tie-break
+  assert.equal(sp().opp.length, 0);
+  r.trekk(0, { snu: 0 });
+  assert.equal(a.def.nett.skjerm(a.S), "spill");
+  r.borte(0); // A leaves the tie-break: B is the last one in it, and wins
+  assert.ok(b.S.spill.ferdig);
+  assert.deepEqual(somJson(b.S.spill.ute), [0]);
+  likt(b, c);
+  likt(b, r.sen(2));
+
+  // Three play on after one leaves: the turn skips the seat.
+  const r3 = rom("elefanten", 3, { tema: "dyr", kort: 12 });
+  const s3 = () => r3.tlf[1].S.spill; // (B: A leaves)
+  r3.trekk(0, { snu: 0 });
+  r3.borte(0); // A leaves with a card up: it goes back, B's turn
+  assert.equal(s3().tur, 1);
+  assert.equal(s3().opp.length, 0);
+  assert.ok(!s3().ferdig);
+  r3.trekk(0, { snu: 1 }); // gone: ignored
+  assert.equal(s3().opp.length, 0);
+  for (let steg = 0; steg < 200 && !s3().ferdig; steg++) {
+    assert.notEqual(s3().tur, 0, "the seat that left got the turn");
+    if (s3().omkamp && s3().med) assert.ok(!s3().med.includes(0));
+    elefantTrekk(r3, steg, r3.tlf[1]);
+  }
+  assert.ok(s3().ferdig);
+  likt(r3.tlf[1], r3.tlf[2]);
+  likt(r3.tlf[1], r3.sen(2));
+});
+
+// Tidsmaskinen's events in the game's order (files in name order), to know where a card belongs.
+const HENDELSER = (() => {
+  const d = spillData("tidsmaskinen");
+  return Object.keys(d)
+    .filter((n) => n.startsWith("hendelser-"))
+    .sort()
+    .flatMap((n) => d[n]);
+})();
+// The gaps of the timeline where a card fits (as the game's luker).
+const riktigeLuker = (linje, kort) => {
+  const a = HENDELSER[kort].a;
+  const ut = [];
+  for (let g = 0; g <= linje.length; g++) if ((g === 0 || HENDELSER[linje[g - 1]].a <= a) && (g === linje.length || HENDELSER[linje[g]].a >= a)) ut.push(g);
+  return ut;
+};
+
+test("Tidsmaskinen: first to 5 for three on three phones – the same deck, «Sjekk året» and «Neste» are moves, the last round is played out", () => {
+  const r = rom("tidsmaskinen", 3, { kategorier: ["sport", "kultur"], niva: "blandet", mal: 5 });
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().mal, 5);
+  assert.deepEqual(somJson(sp().filter.kategorier), ["sport", "kultur"]);
+  assert.ok(sp().linjer.every((l) => l.length === 1));
+  assert.deepEqual(somJson(sp().linjer), somJson(b.S.spill.linjer), "the same first cards on every phone");
+  assert.ok([...sp().brukt].every((k) => ["sport", "kultur"].includes(HENDELSER[k].k)));
+  assert.equal(sp().tur, 0);
+  r.trekk(1, { sjekk: 0 }); // not your turn
+  r.trekk(0, { sjekk: 5 }); // no such gap
+  r.trekk(0, { neste: 1 }); // the year is not checked yet
+  assert.equal(sp().fase, "plasser");
+  let feil = false;
+  for (let steg = 0; steg < 400 && !sp().ferdig; steg++) {
+    const s = sp();
+    const tur = s.tur;
+    const lov = riktigeLuker(s.linjer[tur], s.kort);
+    const galt = Array.from({ length: s.linjer[tur].length + 1 }, (_, g) => g).find((g) => !lov.includes(g));
+    const g = steg % 4 === 3 && galt != null ? galt : lov[0];
+    r.trekk(tur, { sjekk: g });
+    assert.equal(s.fase, "svar");
+    assert.equal(s.svar.riktig, lov.includes(g));
+    if (!s.svar.riktig) feil = true;
+    r.trekk(tur, { sjekk: g }); // only once
+    r.trekk((tur + 1) % 3, { neste: 1 }); // not yours
+    r.trekk(tur, { neste: 1 });
+  }
+  assert.ok(sp().ferdig, "nobody reached 5");
+  assert.ok(feil);
+  assert.ok(sp().vinnere.length && sp().vinnere.every((i) => sp().linjer[i].length >= 5));
+  assert.equal(new Set(sp().forsok).size, 1, "the round was played to the end: everyone had as many tries");
+  assert.ok(a.def.nett.ferdig(a.S));
+  assert.equal(a.def.nett.skjerm(a.S), "slutt");
+  likt(a, b, (x) => ({ ...x, plass: null }));
+  likt(a, c, (x) => ({ ...x, plass: null }));
+  likt(a, r.sen(2), (x) => ({ ...x, plass: null }));
+  const r2 = rom("tidsmaskinen", 3, { mal: 7 }, 20261115, 2);
+  assert.equal(r2.tlf[0].S.spill.tur, 1, "match 2: the next seat begins");
+  assert.equal(r2.tlf[0].S.spill.mal, 7);
+  assert.equal(r2.tlf[0].S.spill.filter.kategorier.length, a.S.spill.filter.kategorier.length + 4, "no categories given: all of them");
+});
+
+test("Tidsmaskinen: a seat that leaves is skipped (its card is put aside), and is not ranked", () => {
+  const r = rom("tidsmaskinen", 4, { mal: 5 });
+  const [, b, , d] = r.tlf;
+  const sp = () => b.S.spill;
+  const riktig = (sete) => r.trekk(sete, { sjekk: riktigeLuker(sp().linjer[sete], sp().kort)[0] });
+  riktig(0);
+  r.trekk(0, { neste: 1 });
+  assert.equal(sp().tur, 1);
+  const kort = sp().kort;
+  r.borte(0); // A leaves, not on its turn: nothing else changes
+  assert.equal(sp().tur, 1);
+  assert.equal(sp().kort, kort);
+  riktig(1);
+  r.trekk(1, { neste: 1 });
+  assert.equal(sp().tur, 2);
+  const cKort = sp().kort;
+  r.borte(2); // C leaves on its turn: its card is put aside, D draws
+  assert.equal(sp().tur, 3);
+  assert.notEqual(sp().kort, cKort);
+  assert.ok(sp().brukt.includes(cKort));
+  assert.equal(sp().fase, "plasser");
+  riktig(3);
+  r.trekk(3, { neste: 1 });
+  assert.equal(sp().tur, 1, "past A");
+  assert.equal(sp().runde, 2);
+  r.trekk(0, { sjekk: 0 }); // gone: ignored
+  assert.equal(sp().fase, "plasser");
+  likt(b, d, (x) => ({ ...x, plass: null }));
+  likt(b, r.sen(3), (x) => ({ ...x, plass: null }));
+  r.borte(3); // one left: the match is over, B wins (A and C are not ranked)
+  assert.ok(sp().ferdig);
+  assert.deepEqual(somJson(sp().vinnere), [1]);
+  assert.equal(b.def.nett.ferdig(b.S), true);
+});
+
+// Tieren's cards in the game's order, and one player's move: the right answer for the first open
+// item – wrong every fifth time, and «Stopp» with two in the pot.
+const TIKORT = (() => {
+  const d = spillData("tieren");
+  return Object.keys(d)
+    .filter((n) => n.startsWith("kort-"))
+    .sort()
+    .flatMap((n) => d[n]);
+})();
+function tierTrekk(r, steg, p = r.tlf[0]) {
+  const sp = p.S.spill;
+  const tur = sp.tur;
+  if (sp.pott[tur] >= 2) return r.trekk(tur, { stopp: 1 });
+  const kort = TIKORT[sp.kort[sp.runde]];
+  const pos = sp.apne.findIndex((x) => !x);
+  const fasit = String(kort.a[sp.ring[pos]][1]);
+  const valg = kort.t === "ja" ? ["true", "false"] : kort.t === "gruppe" ? kort.v : kort.t === "rekke" ? kort.a.map((_, n) => String(n + 1)) : [...new Set(kort.a.map((x) => String(x[1])))];
+  const feil = valg.find((v) => v !== fasit);
+  r.trekk(tur, { pos, svar: steg % 5 === 4 && feil ? feil : fasit });
+}
+
+test("Tieren: three rounds for three on three phones – the same cards and rings, answers and «Stopp» are moves, the last round ends the match", () => {
+  const r = rom("tieren", 3, { kategorier: ["mat", "sport"], niva: "blandet", runder: 3 });
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().runder, 3);
+  assert.ok(sp().kort.every((k) => ["mat", "sport"].includes(TIKORT[k].k)));
+  assert.deepEqual(somJson(sp().ring), somJson(c.S.spill.ring), "the same ring on every phone");
+  assert.equal(sp().tur, 0);
+  r.trekk(1, { pos: 0, svar: "true" }); // not your turn
+  r.trekk(0, { pos: 10, svar: "true" }); // no such place
+  r.trekk(0, { pos: 0, svar: "tull" }); // no such answer
+  r.trekk(0, { stopp: 1 }); // nothing in the pot
+  assert.ok(sp().apne.every((x) => !x));
+  let rok = false;
+  let stoppet = false;
+  for (let steg = 0; steg < 400 && !a.def.nett.ferdig(a.S); steg++) {
+    if (sp().fase === "ferdig") {
+      const neste = a.def.nett.tur(a.S);
+      assert.equal(neste, (sp().runde + 1) % 3, "the next seat begins the next round");
+      r.trekk((neste + 1) % 3, { runde: sp().runde + 1 }); // not the one who begins
+      r.trekk(neste, { runde: sp().runde + 5 }); // not the next round
+      assert.equal(sp().fase, "ferdig");
+      r.trekk(neste, { runde: sp().runde + 1 });
+      assert.equal(sp().fase, "velg");
+      assert.equal(sp().tur, neste);
+      continue;
+    }
+    const st = sp().status.slice();
+    tierTrekk(r, steg);
+    if (sp().status.some((s, i) => s === "ute" && st[i] !== "ute")) rok = true;
+    if (sp().status.some((s, i) => s === "stopp" && st[i] !== "stopp")) stoppet = true;
+  }
+  assert.ok(a.def.nett.ferdig(a.S));
+  assert.ok(rok && stoppet);
+  assert.equal(sp().logg.length, 3);
+  assert.equal(a.def.nett.tur(a.S), null);
+  assert.equal(a.def.nett.skjerm(a.S), "slutt", "(replayed: the result; live, the last answers show first, then «Til kåringen»)");
+  likt(a, b, (x) => ({ ...x, valgt: null }));
+  likt(a, c, (x) => ({ ...x, valgt: null }));
+  const sen = r.sen(1);
+  assert.ok(sen.S.spill.ferdig && sen.def.nett.skjerm(sen.S) === "slutt", "a finished match, replayed: the result");
+  const topp = Math.max(...sen.S.spill.sum);
+  assert.deepEqual(somJson(sen.S.spill.vinnere), somJson(sen.S.spill.sum.map((p, i) => (p === topp ? i : -1)).filter((i) => i >= 0)));
+  assert.equal(rom("tieren", 3, {}, 20261115, 2).tlf[0].S.spill.tur, 1, "match 2: the next seat begins");
+});
+
+test("Tieren: a seat that leaves loses its pot, is skipped in this round and the next, and is not ranked", () => {
+  const r = rom("tieren", 3, { runder: 3 });
+  const [a, b, c] = r.tlf;
+  const sp = () => b.S.spill;
+  tierTrekk(r, 0, b); // A answers right: 1 in the pot, B's turn
+  assert.equal(sp().pott[0], 1);
+  assert.equal(sp().tur, 1);
+  r.borte(0);
+  assert.equal(sp().status[0], "borte");
+  assert.equal(sp().pott[0], 0);
+  tierTrekk(r, 0, b); // B
+  assert.equal(sp().tur, 2);
+  tierTrekk(r, 0, b); // C
+  assert.equal(sp().tur, 1, "past A");
+  r.trekk(0, { stopp: 1 }); // gone: ignored
+  likt(b, c, (x) => ({ ...x, valgt: null }));
+  r.borte(1); // B leaves on its turn: one left, the match is over (C's points count, A's and B's not)
+  assert.ok(c.S.spill.ferdig);
+  assert.ok(c.S.spill.vinnere.every((i) => i === 2));
+  // Four seats: one leaves between rounds, the round after skips it.
+  const r4 = rom("tieren", 4, { runder: 3 });
+  const s4 = () => r4.tlf[2].S.spill;
+  for (let steg = 0; steg < 100 && s4().fase === "velg"; steg++) tierTrekk(r4, steg, r4.tlf[2]);
+  assert.equal(s4().fase, "ferdig");
+  r4.borte(1); // the one who begins round 2
+  assert.equal(r4.tlf[2].def.nett.tur(r4.tlf[2].S), 2, "round 2 begins with the next seat still in");
+  r4.trekk(2, { runde: 1 });
+  assert.equal(s4().status[1], "borte");
+  for (let steg = 0; steg < 400 && !r4.tlf[2].def.nett.ferdig(r4.tlf[2].S); steg++) {
+    if (s4().fase === "ferdig") {
+      r4.trekk(r4.tlf[2].def.nett.tur(r4.tlf[2].S), { runde: s4().runde + 1 });
+      continue;
+    }
+    assert.notEqual(s4().tur, 1);
+    tierTrekk(r4, steg, r4.tlf[2]);
+  }
+  likt(r4.tlf[0], r4.tlf[2], (x) => ({ ...x, valgt: null }));
+  const sen = r4.sen(3);
+  assert.ok(sen.S.spill.ferdig);
+  assert.ok(!sen.S.spill.vinnere.includes(1), "the seat that left is not ranked");
+  assert.ok(sen.S.spill.status.every((s, i) => i !== 1 || s === "borte"));
 });

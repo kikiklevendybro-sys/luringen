@@ -52,7 +52,7 @@
     token: null,
     du: -1, // my seat
     navn: "", // my nickname
-    rom: null, // { spill, oppsett, fro, kamp, min, maks, startet, ferdig, seter }
+    rom: null, // { spill, oppsett, fro, kamp, min, maks, fortsett, startet, ferdig, seter }
     logg: [], // the moves applied, [[seat, move]]
     ute: new Set(), // seats that left a play-on match (from the «borte» moves in the list)
     oppsett: null, // the host's setup, before the room has it
@@ -239,7 +239,7 @@
     if (!m.spill || m.spill !== APP.id || !Array.isArray(m.seter) || !Array.isArray(m.logg)) return visFeil("ukjent");
     const forrige = N.rom;
     const forrigeLogg = N.logg;
-    N.rom = { spill: m.spill, oppsett: m.oppsett || {}, fro: m.fro >>> 0, kamp: m.kamp, min: m.min, maks: m.maks, startet: !!m.startet, ferdig: !!m.ferdig, seter: m.seter };
+    N.rom = { spill: m.spill, oppsett: m.oppsett || {}, fro: m.fro >>> 0, kamp: m.kamp, min: m.min, maks: m.maks, fortsett: !!m.fortsett, startet: !!m.startet, ferdig: !!m.ferdig, seter: m.seter };
     N.du = Number.isInteger(m.du) ? m.du : -1;
     if (m.token) N.token = m.token;
     N.tilkoblet = true;

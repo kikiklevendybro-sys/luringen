@@ -14,6 +14,7 @@
   "farge": "#e85d75",
   "sok": ["meyer", "mia", "meier", "terningbløff", "bløff med terninger", "lille meyer", "terningspill bløff", "løgnerterning"],
   "motMobilen": true,
+  "nett": true,
   "i18n": {
     "en": {
       "navn": "Mia",

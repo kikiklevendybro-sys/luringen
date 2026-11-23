@@ -152,5 +152,7 @@
   "Spill videre": "Spil videre",
   "Dere går rett til kåringen. Flest liv igjen leder.": "I går direkte til kåringen. Flest liv tilbage fører.",
   "liv|liv": { "one": "liv", "other": "liv" },
-  "bløff|bløffer": { "one": "bluff", "other": "bluff" }
+  "bløff|bløffer": { "one": "bluff", "other": "bluff" },
+  "På tur": "Har turen",
+  "forlot kampen i runde {n}": "forlod kampen i runde {n}"
 }

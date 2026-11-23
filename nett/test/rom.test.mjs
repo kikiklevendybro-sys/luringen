@@ -106,7 +106,7 @@ test("a started Yatzy room with free seats says «startet» to a new phone", asy
 });
 
 test("seats per game: chess, Fireren and Admiralen 2, Ludo 4, Yatzy 6", async () => {
-  assert.deepEqual(SPILL, { sjakkhesten: [2, 2], fireren: [2, 2], admiralen: [2, 2], brikka: [2, 4], terninga: [2, 6], reversi: [2, 2], bonden: [2, 2], molla: [2, 2], samannen: [2, 2], snekkeren: [2, 2], dam: [2, 2], stigespillet: [2, 4], lykkegrisen: [2, 8] });
+  assert.deepEqual(SPILL, { sjakkhesten: [2, 2], fireren: [2, 2], admiralen: [2, 2], brikka: [2, 4], terninga: [2, 6], reversi: [2, 2], bonden: [2, 2], molla: [2, 2], samannen: [2, 2], snekkeren: [2, 2], dam: [2, 2], stigespillet: [2, 4], lykkegrisen: [2, 8], meyer: [2, 10], elefanten: [2, 4], tidsmaskinen: [2, 10], tieren: [2, 8] });
   for (const [spill, [, maks]] of Object.entries(SPILL)) {
     const r = await romMedVert(spill);
     const inne = [r.vert];

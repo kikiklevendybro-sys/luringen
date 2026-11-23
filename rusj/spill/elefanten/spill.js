@@ -139,9 +139,9 @@
   const tilbud = (S) => (S.oppsett.modus === "elefant" || (S.oppsett.modus === "sammen" && R.klamp(S.antall || 2, 2, 4) === 2) ? STORRELSER_TO : STORRELSER);
   const kortValgt = (S) => tilbud(S)[Math.max(0, STORRELSER.indexOf(S.oppsett.kort))];
 
-  function del(temaId, par) {
+  // rng: on the net the room's chance, so every phone deals the same board.
+  function del(temaId, par, rng = R.rng(R.nyttFro())) {
     const liste = LISTER[temaId];
-    const rng = R.rng(R.nyttFro());
     const valgte = R.stokk(liste.map((_, i) => i), rng).slice(0, Math.min(par, liste.length));
     return R.stokk([...valgte, ...valgte], rng);
   }
@@ -186,9 +186,9 @@
   }
 
   // Level at the top after the last pair: a small new board for those who share the lead.
-  function startOmkamp(S, topp) {
+  function startOmkamp(S, topp, rng) {
     const sp = S.spill;
-    sp.kort = del(sp.tema, omkampPar(topp.length));
+    sp.kort = del(sp.tema, omkampPar(topp.length), rng);
     sp.funnet = sp.kort.map(() => -1);
     sp.opp = [];
     sp.omkamp = (sp.omkamp || 0) + 1;
@@ -207,6 +207,16 @@
   const merkeFor = (sp, i) => (sp.motstander && i === 1 ? "🐘" : R.DYR[i % 20]);
   const avatarFor = (sp, i) => (sp.motstander && i === 1 ? `<span class="avatar ele-elefant" aria-hidden="true">${G.svg("elefanten")}</span>` : R.avatar(i));
   const rekordNokkel = (sp) => (sp.tema === GJENGEN ? "g" : "") + sp.kort.length;
+  // On the net (R.nett, rusj/kit/nett.js): seat i is player i on its own phone. Every card turned is
+  // a move from the seat whose turn it is, played when the room sends it back; the board (and a
+  // tie-break board) is dealt from the room's chance, so it is the same on every phone. A seat that
+  // left the match is skipped, and cannot win.
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
+  const forlot = (sp, i) => paNett(sp) && sp.ute.includes(i);
+  const inne = (sp) => sp.poeng.map((_, i) => i).filter((i) => !forlot(sp, i));
+  // Those who share the lead when the last pair is found (together, not alone or against the elephant).
+  const toppen = (sp) => (erSammen(sp) ? ledere(sp.poeng, paNett(sp) ? inne(sp) : undefined) : []);
 
   // One number from the elephant's dice. The seed moves on in the saved game.
   function terning(sp) {
@@ -272,7 +282,7 @@
     // In a tie-break only those who share the lead play: the others are dimmed.
     return `<div class="ele-hud flere${sp.antall >= 3 ? " stablet" : ""}" style="--antall:${sp.antall}" role="list" aria-label="${esc(R.t("Poeng"))}">${sp.poeng
       .map(
-        (p, i) => `<span class="ele-spiller${i === sp.tur ? " na" : ""}${sp.med && !sp.med.includes(i) ? " ute" : ""}" role="listitem" style="--pf: ${fargeFor(sp, i)}"${i === sp.tur ? ' aria-current="true"' : ""}>
+        (p, i) => `<span class="ele-spiller${i === sp.tur ? " na" : ""}${(sp.med && !sp.med.includes(i)) || forlot(sp, i) ? " ute" : ""}" role="listitem" style="--pf: ${fargeFor(sp, i)}"${i === sp.tur ? ' aria-current="true"' : ""}>
           ${avatarFor(sp, i)}<span class="ele-navn">${esc(hvem(sp, i))}</span><b class="ele-poeng">${p}</b>
         </span>`,
       )
@@ -287,6 +297,13 @@
     if (sp.motstander) {
       const tekst = i === 0 ? (begynner ? R.t("Du begynner!") : R.t("Din tur")) : R.t("Elefantens tur");
       melding(`${avatarFor(sp, i)}<span class="ele-m-tekst"><b>${esc(tekst)}</b></span>`, "tur");
+      R.si(tekst);
+      return;
+    }
+    if (erJeg(sp, i)) {
+      // On the net, on the phone whose turn it is.
+      const tekst = begynner ? R.t("Du begynner!") : R.t("Din tur");
+      melding(navnLinje(sp, i, tekst), "tur");
       R.si(tekst);
       return;
     }
@@ -448,12 +465,45 @@
   function nesteTur(sp) {
     if (sp.antall < 2) return;
     const ko = Array.isArray(sp.med) && sp.med.length ? sp.med : sp.poeng.map((_, i) => i);
-    sp.tur = ko[(ko.indexOf(sp.tur) + 1) % ko.length];
+    if (!paNett(sp)) {
+      sp.tur = ko[(ko.indexOf(sp.tur) + 1) % ko.length];
+      return;
+    }
+    // On the net: the next seat still in the match (also when the one whose turn it was has left).
+    const med = ko.filter((i) => !forlot(sp, i));
+    if (!med.length) return;
+    const neste = med.find((i) => i > sp.tur);
+    sp.tur = neste != null ? neste : med[0];
+  }
+
+  // On the net: a card turned while this phone does not show the board (a replay, another screen,
+  // the peek or the end of a board) – the state only, exactly as vend() leaves it.
+  function vendStille(S, i, rng) {
+    const sp = S.spill;
+    sp.startet = true;
+    if (!sp.opp.length) {
+      sp.opp = [i];
+      return;
+    }
+    const a = sp.opp[0];
+    sp.opp = [];
+    sp.trekk += 1;
+    if (sp.kort[a] !== sp.kort[i]) return nesteTur(sp);
+    const f = sp.tur;
+    sp.funnet[a] = f;
+    sp.funnet[i] = f;
+    sp.poeng[f] += 1;
+    sp.fant.push([sp.kort[i], f]);
+    if (!sp.funnet.every((x) => x >= 0)) return;
+    const topp = toppen(sp);
+    if (topp.length > 1) startOmkamp(S, topp, rng);
+    else sp.ferdig = true;
   }
 
   // Turn card i for the player whose turn it is (a person or the elephant).
   // Returns "forste" (one card up), "par", "ferdig" (the last pair) or "bom".
-  function vend(S, i) {
+  // rng: the chance for a tie-break board (on the net the room's, for that move).
+  function vend(S, i, rng) {
     const sp = S.spill;
     if (!sp.startet) {
       sp.startet = true;
@@ -511,7 +561,7 @@
       const ekstra = sp.motstander ? (elefanten ? R.t("Ekstra tur til elefanten") : R.t("Ekstra tur til deg")) : sp.antall > 1 ? R.t("Ekstra tur til {navn}", { navn: R.navn(f) }) : "";
       if (ferdig) {
         melding(`<span>${esc(navn)}!</span>`, "par");
-        avslutt(S);
+        avslutt(S, rng);
         return "ferdig";
       }
       melding(`<span>${esc(navn)}!</span>${ekstra ? `<small>${esc(ekstra)}</small>` : ""}`, "par");
@@ -584,18 +634,21 @@
     sp.kikket = true;
     R.lagre();
     las = false;
+    // On the net another phone may have turned cards meanwhile: draw the board as it is.
+    if (paNett(sp)) R.vis();
     if (sp.antall > 1) meldTur(S, true);
   }
 
   // ---------- End ----------
 
-  function avslutt(S) {
+  function avslutt(S, rng) {
     const sp = S.spill;
     stoppKlokke(S);
     // Together, and level at the top: no shared win – those who share the lead play on.
-    const topp = erSammen(sp) ? ledere(sp.poeng) : [];
+    const topp = toppen(sp);
     const omkamp = topp.length > 1;
-    if (omkamp) startOmkamp(S, topp);
+    if (omkamp) startOmkamp(S, topp, rng);
+    else if (paNett(sp)) sp.ferdig = true; // (on the net nothing is kept on this phone; the kit counts the match)
     else {
       sp.ferdig = true;
       if (sp.antall === 1) {
@@ -722,8 +775,9 @@
 
   function sammenResultat(S) {
     const sp = S.spill;
-    const rader = sp.poeng.map((p, i) => ({ i, poeng: p }));
-    const best = Math.max(...sp.poeng);
+    // (On the net a seat that left the match is not ranked.)
+    const rader = sp.poeng.map((p, i) => ({ i, poeng: p })).filter((r) => !forlot(sp, r.i));
+    const best = Math.max(...rader.map((r) => r.poeng));
     const vinnere = rader.filter((r) => r.poeng === best);
     const alene = vinnere.length === 1;
     const alle = sp.poeng.reduce((s, p) => s + p, 0);
@@ -745,11 +799,119 @@
     return R.t("Elefanten 🐘 {hvor} på {trekk} trekk {stjerner}\nKlarer du det på færre?", { hvor: hvor(sp), trekk: r.trekk, stjerner: "⭐".repeat(r.st || 1) });
   }
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Moves: { snu: i } from the seat whose turn it is turns card i. Anything else, or a card that is
+  // found, already up or not there, is ignored on every phone. A pair gives another turn; the most
+  // pairs wins; level at the top, those who share the lead play a small tie-break board. Only people
+  // play (no elephant); the theme, the size and «Kikk først» are the host's.
+  function nettIgjen(S) {
+    if (venter) {
+      clearTimeout(venter.id);
+      venter = null;
+    }
+    klokkeFra = null;
+    las = false;
+    nyDeling = true;
+    turNr++;
+  }
+  const NETT = {
+    min: 2,
+    maks: 4,
+    oppsett: (S) => ({ tema: S.oppsett.tema, kort: S.oppsett.kort, kikk: !!S.oppsett.kikk }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      const t = tema(x.tema);
+      return [t ? t.navn : "", x.kikk ? R.t("Kikk først") : ""].filter(Boolean).join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const antall = R.klamp(okt.antall || 2, 2, 4);
+      const temaId = tema(o.tema) ? o.tema : "dyr";
+      // The host's size; two players get the odd number of pairs, so somebody always wins.
+      const n = (antall === 2 ? STORRELSER_TO : STORRELSER)[STORRELSER.includes(o.kort) ? STORRELSER.indexOf(o.kort) : 1];
+      const kort = del(temaId, n / 2, R.nett.tilfeldig(okt.fro, "kort"));
+      S.spill = {
+        modus: "nett",
+        tema: temaId,
+        antall,
+        kort,
+        funnet: kort.map(() => -1),
+        opp: [],
+        trekk: 0,
+        tid: 0,
+        startet: false,
+        tur: (okt.kamp - 1) % antall, // who begins moves on one seat per match
+        poeng: Array.from({ length: antall }, () => 0),
+        ferdig: false,
+        resultat: null,
+        fant: [],
+        kikk: !!o.kikk,
+        kikket: false,
+        omkamp: 0,
+        med: null,
+        ute: [], // seats that left the match
+      };
+      nettIgjen(S);
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || sete !== sp.tur || forlot(sp, sete)) return;
+      const i = t.snu;
+      if (!Number.isInteger(i) || i < 0 || i >= sp.kort.length || sp.funnet[i] >= 0 || sp.opp.includes(i)) return;
+      // Live on the board: the card turns as on one phone (two that wait to turn back go first).
+      if (okt.gjenspill || S.skjerm !== "spill" || las || !R.$(".ele-brett")) return vendStille(S, i, okt.rng);
+      if (venter) snuTilbake(S);
+      vend(S, i, okt.rng);
+    },
+    // The seat left: a card it had turned goes back, the turn passes on, and it cannot win. When
+    // fewer than two are left (in a tie-break: one), the match is over.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !(sete >= 0 && sete < sp.antall) || forlot(sp, sete)) return;
+      sp.ute.push(sete);
+      if (sp.med) sp.med = sp.med.filter((i) => !forlot(sp, i));
+      if (inne(sp).length < 2 || (sp.med && sp.med.length < 2)) {
+        sp.opp = [];
+        sp.ferdig = true;
+      } else if (sp.tur === sete) {
+        sp.opp = [];
+        nesteTur(sp);
+      }
+      if (okt.gjenspill) return;
+      if (sp.ferdig) {
+        if (S.skjerm === "spill" || S.skjerm === "omkamp") R.gaTil("slutt");
+        return;
+      }
+      if (S.skjerm === "spill" && !las) {
+        if (venter) {
+          clearTimeout(venter.id);
+          venter = null;
+        }
+        R.vis();
+        meldTur(S);
+      }
+    },
+    skjerm(S) {
+      const sp = S.spill;
+      if (!sp) return "spill";
+      if (sp.ferdig) return "slutt";
+      // A tie-break board nobody has touched yet: its introduction first.
+      return sp.omkamp && !sp.funnet.some((f) => f >= 0) && !sp.opp.length ? "omkamp" : "spill";
+    },
+    tur: (S) => (S.spill && !S.spill.ferdig ? S.spill.tur : null),
+    ferdig: (S) => !!S.spill && S.spill.ferdig,
+    // A tie-break that ended while this phone still showed its introduction: on to the result.
+    etter(S) {
+      if (S.spill && S.spill.ferdig && S.skjerm === "omkamp") R.gaTil("slutt");
+    },
+  };
+
   // ---------- Start ----------
 
   R.start({
     id: "elefanten",
     versjon: 1,
+    nett: NETT,
     // A game is in progress until all pairs are found (front page «Fortsett», screen wake lock).
     pagar: (S) => !!(S.spill && !S.spill.ferdig),
 
@@ -864,7 +1026,7 @@
             knapperHtml: R.ui.startKnapper({
               pagar: !!aktiv,
               fortsettTekst: aktiv ? (sp.omkamp ? R.t("Fortsett · omkamp") : R.t("Fortsett · {n} av {alle} par", { n: parFunnet(sp), alle: parTotalt(sp) })) : "",
-              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler") + (rekorder ? `<section class="ele-rekorder" aria-label="${esc(R.t("Dine rekorder"))}">${rekorder}</section>` : ""),
+              ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler") + (rekorder ? `<section class="ele-rekorder" aria-label="${esc(R.t("Dine rekorder"))}">${rekorder}</section>` : ""),
             }),
             merker: [
               ["1–4", R.t("spillere")],
@@ -1012,18 +1174,20 @@
         vis(S) {
           const sp = S.spill;
           const innhold = sp.motstander ? elefantResultat(S) : sp.antall === 1 ? soloResultat(S) : sammenResultat(S);
+          if (paNett(sp)) return `${innhold}${R.nett.sluttDokk()}`;
           return `
             ${innhold}
             ${R.ui.flereSpill({ antall: sp.motstander ? 1 : sp.antall })}
             ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         // Celebrate in proportion: a fanfare for a win, a record or a good game alone; a warm
-        // "pling" when it took many moves or the elephant won.
+        // "pling" when it took many moves or the elephant won. On the net: the fanfare on the
+        // winner's phone.
         inn(S) {
           const sp = S.spill;
           if (!sp) return;
           const r = sp.resultat || {};
-          const fest = sp.motstander ? r.vant : sp.antall > 1 || (r.st || stjernerFor(sp.trekk, parTotalt(sp))) >= 2 || r.nyTrekk || r.nyTid;
+          const fest = paNett(sp) ? ledere(sp.poeng, inne(sp)).some((i) => erJeg(sp, i)) : sp.motstander ? r.vant : sp.antall > 1 || (r.st || stjernerFor(sp.trekk, parTotalt(sp))) >= 2 || r.nyTrekk || r.nyTid;
           if (fest) {
             R.lyd.fanfare();
             R.vibrer([40, 60, 120]);
@@ -1093,7 +1257,7 @@
         R.gaTil("spill");
       },
       "start-omkamp"(el, e, S) {
-        if (!S.spill || S.spill.ferdig) return R.gaTil("hjem");
+        if (!S.spill || S.spill.ferdig) return R.gaTil(paNett(S.spill) ? "slutt" : "hjem");
         nyDeling = true;
         R.gaTil("spill");
       },
@@ -1105,6 +1269,18 @@
         if (!sp || sp.ferdig || las) return;
         const i = Number(el.dataset.v);
         if (!(i >= 0 && i < sp.kort.length) || sp.funnet[i] >= 0) return;
+        if (paNett(sp)) {
+          // A tap while two cards wait to turn back hurries them (as on one phone); the card goes
+          // to the room, and turns when it comes back.
+          if (venter) {
+            const ventet = venter.a === i || venter.b === i;
+            snuTilbake(S);
+            if (ventet) return;
+          }
+          if (!erJeg(sp, sp.tur)) return R.toast(R.t("Venter på {navn} …", { navn: R.navn(sp.tur) }));
+          if (!sp.opp.includes(i) && !R.nett.venter()) R.nett.send({ snu: i });
+          return;
+        }
         const elefantens = erElefantensTur(sp);
         if (venter) {
           // Tapping on while two cards wait to turn back: turn them now and go on. (When the

@@ -10,6 +10,7 @@
   "mobiler": "en",
   "tagger": ["barn", "familie", "hukommelse"],
   "rekkefolge": 21,
+  "nett": true,
   "farge": "#85a3ff",
   "sok": ["huskespill", "vendespill", "finn to like", "finn parene", "memory", "hukommelse"],
   "alias": ["vendespill"],
