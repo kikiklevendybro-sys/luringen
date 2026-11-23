@@ -242,3 +242,14 @@ html[data-spill="dommeren"] .skjerm-kort > .bunke:not(.kompakt) {
     animation: none;
   }
 }
+
+/* ---------- On the net ---------- */
+/* Who has chosen (the room's list of seats), and the options on the phones that do not judge. */
+.dom-klare {
+  margin-top: 12px;
+}
+
+p.dom-alternativ {
+  margin: 0;
+  cursor: default;
+}

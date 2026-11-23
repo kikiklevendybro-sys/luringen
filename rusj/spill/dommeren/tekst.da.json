@@ -72,5 +72,21 @@
   "Spill videre": "Spil videre",
   "{spill} – dommeren har talt ⚖️": "{spill} – dommeren har talt ⚖️",
   "poeng|poeng": { "one": "point", "other": "point" },
-  "runde|runder": { "one": "runde", "other": "runder" }
+  "runde|runder": { "one": "runde", "other": "runder" },
+  "{n} av {av} har valgt": "{n} af {av} har valgt",
+  "har valgt": "har valgt",
+  "velger …": "vælger …",
+  "Dommeren forlot kampen – nytt kort, ny dommer.": "Dommeren forlod kampen – nyt kort, ny dommer.",
+  "Du er dommer": "Du er dommer",
+  "Runde {n}: du er dommer": "Runde {n}: Du er dommer",
+  "Les kortet høyt mens de andre velger et svar.": "Læs kortet højt, mens de andre vælger et svar.",
+  "Kortet ditt er lagt": "Dit kort er lagt",
+  "Ta kortet tilbake": "Tag kortet tilbage",
+  "{navn} velger det beste svaret": "{navn} vælger det bedste svar",
+  "Du er neste dommer.": "Du er næste dommer.",
+  "{navn} er neste dommer og starter neste runde.": "{navn} er næste dommer og starter næste runde.",
+  "{pakke} (18+)": "{pakke} (18+)",
+  "Først til {n}": "Først til {n}",
+  "Alle har valgt! Les svarene høyt og velg det beste.": "Alle har valgt! Læs svarene højt, og vælg det bedste.",
+  "Alle har valgt! {navn} leser svarene.": "Alle har valgt! {navn} læser svarene."
 }

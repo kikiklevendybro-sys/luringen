@@ -72,5 +72,21 @@
   "Spill videre": "Keep playing",
   "{spill} – dommeren har talt ⚖️": "{spill} – the judge has spoken ⚖️",
   "poeng|poeng": { "one": "point", "other": "points" },
-  "runde|runder": { "one": "round", "other": "rounds" }
+  "runde|runder": { "one": "round", "other": "rounds" },
+  "{n} av {av} har valgt": "{n} of {av} have chosen",
+  "har valgt": "has chosen",
+  "velger …": "choosing …",
+  "Dommeren forlot kampen – nytt kort, ny dommer.": "The judge left the match – new card, new judge.",
+  "Du er dommer": "You’re the judge",
+  "Runde {n}: du er dommer": "Round {n}: you’re the judge",
+  "Les kortet høyt mens de andre velger et svar.": "Read the card out loud while the others pick an answer.",
+  "Kortet ditt er lagt": "Your card is in",
+  "Ta kortet tilbake": "Take your card back",
+  "{navn} velger det beste svaret": "{navn} is picking the best answer",
+  "Du er neste dommer.": "You’re the next judge.",
+  "{navn} er neste dommer og starter neste runde.": "{navn} is the next judge and starts the next round.",
+  "{pakke} (18+)": "{pakke} (18+)",
+  "Først til {n}": "First to {n}",
+  "Alle har valgt! Les svarene høyt og velg det beste.": "Everyone has chosen! Read the answers out loud and pick the best.",
+  "Alle har valgt! {navn} leser svarene.": "Everyone has chosen! {navn} reads the answers."
 }
