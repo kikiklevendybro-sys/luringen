@@ -398,6 +398,15 @@
     if (kuler) kuler.outerHTML = kulerHtml(n, el.classList.contains("lager"));
     const tall = el.querySelector(".sa-tall");
     if (tall) tall.textContent = String(n);
+    el.classList.remove("tomt");
+    // A marble in a store: the score at the top follows.
+    if (el.classList.contains("lager") && saing && R.S.spill) {
+      const vist = { b: saing.b };
+      const sp = R.S.spill;
+      const [a, b] = [".sa-tall-stilling .rosa", ".sa-tall-stilling .bla"].map((q) => document.querySelector(q)); // sprak-ok
+      if (a) a.textContent = String(lager(sp, vist, 0));
+      if (b) b.textContent = String(lager(sp, vist, 1));
+    }
     el.classList.remove("slipp");
     void el.offsetWidth;
     el.classList.add("slipp");
@@ -465,7 +474,8 @@
   // ---------- The phone's turn ----------
   function startTenking(S, igjen) {
     const sp = S.spill;
-    if (!sp || sp.ferdig || sp.resultat || S.skjerm !== "spill" || !erMaskin(sp, tur(S))) return;
+    // (While a move is being sown the phone waits: the sowing starts it when the last marble lands.)
+    if (!sp || sp.ferdig || sp.resultat || S.skjerm !== "spill" || !erMaskin(sp, tur(S)) || saingAktiv(S)) return;
     const nokkel = partiNokkel(sp);
     if ((tenkStopp || tenkId) && tenkerPa === nokkel) return;
     stoppTenking();
@@ -925,6 +935,7 @@
         },
         ut() {
           stoppTenking();
+          avbrytSaing(); // (back on the board, the move is shown as it stands)
           clearTimeout(kaaringId);
           animer = null;
         },
