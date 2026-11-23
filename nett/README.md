@@ -12,8 +12,8 @@ Med: Sjakkhesten, Fireren, Terninga (Yatzy), Brikka (Ludo), Admiralen (slagskip)
 |---|---|
 | Hvilket spill, og innstillingene verten valgte | IP-adresse, nettlesertype, språk, hvor folk er |
 | Et tilfeldig tall som gjør terningkast og lignende likt på alle mobilene | Noen konto, e-post eller telefonnummer |
-| Plassene: et tilfeldig «plassmerke» per mobil (så en mobil som mister nettet, får plassen tilbake) og et kallenavn på høyst 16 tegn hvis man skrev et | Fritekst eller chat (det finnes ingen) |
-| Trekkene i rekkefølge | Reaksjonene (de seks faste emojiene sendes bare videre) |
+| Plassene: et tilfeldig «plassmerke» per mobil (så en mobil som mister nettet, får plassen tilbake) og et kallenavn på høyst 16 tegn hvis man skrev et | Chat (det finnes ingen), og ingen fritekst utenom svarene under |
+| Trekkene i rekkefølge – i Brevduen, Skrønemakeren, Hviskeren og Sauen også de korte svarene spillerne skriver (høyst 60 tegn, vaskes på mobilen og vises alltid som ren tekst) | Reaksjonene (de seks faste emojiene sendes bare videre) |
 | | Skipene i Admiralen: de blir på eierens mobil |
 
 Dette er sant fordi tjenesten er bygd slik:
