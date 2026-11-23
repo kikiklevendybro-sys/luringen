@@ -28,6 +28,9 @@ test("seeds, games, setups, moves and reactions", () => {
   const sirkel = {};
   sirkel.selv = sirkel;
   assert.equal(gyldigTrekk(sirkel), false);
+  assert.equal(gyldigTrekk({ $: "borte" }), false, "the room's own «borte» move can't be sent by a phone");
+  assert.equal(gyldigTrekk({ $: 1, k: 3 }), false);
+  assert.ok(gyldigTrekk([{ $: "borte" }]), "only a top-level «$» is the room's");
   assert.ok([0, 1, 2, 3, 4, 5].every(gyldigReaksjon) && !gyldigReaksjon(6) && !gyldigReaksjon("0") && !gyldigReaksjon(-1));
 });
 

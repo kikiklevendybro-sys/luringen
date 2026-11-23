@@ -103,7 +103,8 @@ Close codes the client must not reconnect after: `1000` left, `4000` another soc
 In most games a phone that leaves a started match on purpose ends it for everyone. Games listed in
 `FORTSETT` (`nett/src/oppsett.js`) play on while at least the game's minimum (never fewer than 2)
 are left: the room marks the seat as left and adds the move `{ "$": "borte" }` from that seat to the
-list, so every phone takes the seat out at the same place (also when replaying). The kit then calls
+list, so every phone takes the seat out at the same place (also when replaying). The key `$` is the
+room's own: a move from a phone with `$` at the top level is refused as `ugyldig`. The kit then calls
 the game's `borte(S, sete, okt)` instead of `trekk`, and keeps the seat in `okt.ute` /
 `R.nett.ute()`; `R.nett.neste(fra)` gives the next seat still in. A game in `FORTSETT` must
 implement `borte` (skip the seat's turns, stop waiting for its answer).

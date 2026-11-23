@@ -49,6 +49,8 @@ export function gyldigOppsett(o) {
 // A move: any JSON value up to 1 KB. The room never looks inside; the phones' game rules do.
 export function gyldigTrekk(t) {
   if (t === undefined) return false;
+  // The key «$» is the room's own (the «borte» move for a seat that left): never from a phone.
+  if (t !== null && typeof t === "object" && Object.prototype.hasOwnProperty.call(t, "$")) return false;
   try {
     const s = JSON.stringify(t);
     return typeof s === "string" && bytes(s) <= MAKS_TREKK_BYTES;
