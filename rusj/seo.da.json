@@ -1100,6 +1100,18 @@
         "tegnetelefon",
         "selskabslege"
       ]
+    },
+    "flinkisen": {
+      "tittel": "Stop-legen på mobilen – kategorier på bogstav",
+      "frase": "Kategorier på bogstav",
+      "beskrivelse": "Spil kategorilegen gratis: ét bogstav, fem kategorier, og den første siger stop. For 2–10 med blyant og papir – eller på hver sin mobil på nettet.",
+      "sok": [
+        "stop leg",
+        "by land navn",
+        "land og by",
+        "kategorileg",
+        "ordleg på nettet"
+      ]
     }
   }
 }

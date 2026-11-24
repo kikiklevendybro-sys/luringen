@@ -1,0 +1,34 @@
+{
+  "id": "flinkisen",
+  "navn": "Flinkisen",
+  "undertittel": "Kategorier på bokstav",
+  "beskrivelse": "Navn, by, land på mobilen: én bokstav, fem kategorier, og førstemann sier stopp. Gratis for 2–10 – med blyant og papir, eller på hver sin mobil på nett.",
+  "kort": "Én bokstav, fem kategorier – og førstemann sier stopp!",
+  "spillere": [2, 10],
+  "alder": 7,
+  "minutter": [10, 30],
+  "mobiler": "begge",
+  "tagger": ["fest", "familie", "ord"],
+  "rekkefolge": 114,
+  "farge": "#4cc9b0",
+  "nett": true,
+  "sok": ["navn by land", "navn land by", "kategorispill", "kategorier på bokstav", "stopp-leken", "bokstavlek", "geografileken", "ordlek på nett", "scattergories", "stadt land fluss"],
+  "i18n": {
+    "en": {
+      "navn": "Swotty",
+      "undertittel": "Categories by letter",
+      "kort": "One letter, five categories – and the first to finish says stop!",
+      "beskrivelse": "The categories game on your phone: one letter, five categories, and the first to finish says stop. Free for 2–10 – with pen and paper, or a phone each online.",
+      "slug": "swotty",
+      "sok": ["categories game", "name place animal thing", "stop the bus", "letter categories", "word game online", "pen and paper game", "scattergories", "categories by letter"]
+    },
+    "da": {
+      "navn": "Duksen",
+      "undertittel": "Kategorier på bogstav",
+      "kort": "Ét bogstav, fem kategorier – og den første siger stop!",
+      "beskrivelse": "Navn, by, land på mobilen: ét bogstav, fem kategorier, og den første siger stop. Gratis for 2–10 – med blyant og papir eller på hver sin mobil på nettet.",
+      "slug": "duksen",
+      "sok": ["stop leg", "by land navn", "land og by", "kategorileg", "kategorier på bogstav", "bogstavleg", "ordleg på nettet", "scattergories", "stadt land fluss"]
+    }
+  }
+}

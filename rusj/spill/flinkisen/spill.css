@@ -1,0 +1,738 @@
+/* Flinkisen («Kategorier på bokstav»): the letter tile, the categories, the answer sheet on the net,
+   the scoring. Everything new is prefixed fl-. */
+
+/* ---------- The letter and the round's heading ---------- */
+
+.fl-topp {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.fl-topp.med-klokke {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.fl-topp h1 {
+  margin: 2px 0 0;
+  font-size: clamp(1.5rem, 7.2vw, 2.1rem);
+  overflow-wrap: anywhere;
+}
+
+.fl-bokstav {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border: 4px solid var(--blekk);
+  border-radius: 20px;
+  background: var(--lampe);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.28);
+  color: var(--blekk);
+  font: 900 3.4rem/1 var(--font-display);
+  transform: rotate(-4deg);
+}
+
+.fl-bokstav.ny {
+  animation: fl-lander 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.fl-bokstav.trekker {
+  background: var(--papir);
+  animation: fl-rister 0.32s linear infinite;
+}
+
+@keyframes fl-lander {
+  from {
+    opacity: 0;
+    transform: translateY(-26px) rotate(14deg) scale(0.6);
+  }
+}
+
+@keyframes fl-rister {
+  25% {
+    transform: rotate(-9deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+}
+
+/* The clock beside the letter (the round's time, or the ten seconds after «Stopp») */
+.fl-topp .timer {
+  display: block;
+  padding: 0;
+  background: none;
+}
+
+.fl-topp .timer-ring {
+  width: 84px;
+  height: 84px;
+}
+
+.fl-topp .timer-tid {
+  font-size: 1.45rem;
+}
+
+.fl-topp.stoppet h1 {
+  color: var(--lampe);
+}
+
+.fl-stopplinje {
+  margin: 2px 0 0;
+  color: var(--tekst-2);
+  font: 800 0.95rem/1.25 var(--font-display);
+}
+
+/* ---------- The categories ---------- */
+
+.fl-kat {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fl-kat li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 8px 14px 8px 8px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 4px 0 var(--papir-2);
+  color: var(--blekk);
+  animation: fl-kat-inn 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  animation-delay: calc(var(--n) * 90ms);
+}
+
+@keyframes fl-kat-inn {
+  from {
+    opacity: 0;
+    transform: translateX(-36px) rotate(-3deg);
+  }
+}
+
+.fl-kat.skjult li {
+  visibility: hidden;
+  animation: none;
+}
+
+.fl-nr {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--aksent);
+  font: 900 1rem/1 var(--font-display);
+}
+
+.fl-kn {
+  min-width: 0;
+  font: 900 1.05rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.fl-klar {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.fl-klar .figur-ramme {
+  width: 84px;
+}
+
+.fl-klar h1 {
+  margin: 2px 0 0;
+  font-size: clamp(1.45rem, 6.8vw, 1.95rem);
+}
+
+.fl-hjelp {
+  margin: 12px 8px 0;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.fl-venter {
+  padding-bottom: 12px;
+  color: var(--tekst);
+  font-weight: 800;
+}
+
+/* ---------- Scoring: the category card ---------- */
+
+.fl-domkort {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px 14px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 8px 0 var(--papir-2);
+  color: var(--blekk);
+  text-align: center;
+}
+
+.fl-domkort .etikett {
+  color: var(--blekk-2);
+}
+
+.fl-domkort h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 10px;
+  font-size: clamp(1.35rem, 6.2vw, 1.85rem);
+  overflow-wrap: anywhere;
+}
+
+.fl-pa {
+  padding: 2px 12px;
+  border: 3px solid var(--blekk);
+  border-radius: 12px;
+  background: var(--lampe);
+  white-space: nowrap;
+}
+
+.fl-forklaring {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fl-forklaring li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: rgba(23, 14, 43, 0.07);
+  font: 700 0.8rem/1.2 var(--font-tekst);
+}
+
+.fl-forklaring b {
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--blekk);
+  color: var(--papir);
+  font: 900 0.82rem/1 var(--font-display);
+}
+
+/* ---------- Scoring on one phone: 0, 5 or 10 per player ---------- */
+
+/* minmax(0, 1fr): the column never grows past the screen, so long names shrink instead of pushing
+   the buttons out on small phones. */
+.fl-poengrader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fl-poengrader li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 8px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+}
+
+.fl-pr-navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 800 1rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fl-poengrader li.mangler {
+  box-shadow: inset 0 0 0 2.5px var(--lampe);
+}
+
+.fl-mangler {
+  display: block;
+  color: var(--lampe);
+  font: 800 0.75rem/1.3 var(--font-display);
+}
+
+.fl-mangler-linje {
+  margin: 0;
+  color: var(--tekst);
+  font: 800 0.92rem/1.3 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.fl-pseg {
+  flex: none;
+  grid-auto-columns: 48px;
+  gap: 4px;
+  padding: 4px;
+}
+
+.fl-pseg button {
+  min-height: 44px;
+  padding: 0;
+  font-size: 1.15rem;
+}
+
+/* ---------- On the net: the answer sheet ---------- */
+
+.fl-stopp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 0;
+  padding: 10px 12px 10px 16px;
+  border: 2.5px solid var(--lampe);
+  border-radius: var(--r-mid);
+  background: rgba(255, 210, 63, 0.14);
+}
+
+.fl-stopp[hidden] {
+  display: none;
+}
+
+.fl-stopp p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--tekst);
+  font: 800 1rem/1.25 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.fl-ned {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--lampe);
+  color: var(--blekk);
+  font: 900 1.5rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.fl-stopp.ute .fl-ned {
+  display: none;
+}
+
+.fl-skjema {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.fl-felt {
+  display: grid;
+  gap: 4px;
+}
+
+.fl-felt label {
+  padding-left: 4px;
+  color: var(--tekst-2);
+  font: 800 0.88rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.fl-felt .tekstfelt {
+  min-height: 52px;
+  padding: 8px 14px;
+  font-size: 1.15rem;
+}
+
+.fl-felt small {
+  display: none;
+  padding-left: 4px;
+  color: var(--lampe);
+  font: 800 0.78rem/1.2 var(--font-display);
+}
+
+.fl-felt.feil small {
+  display: block;
+}
+
+.fl-felt.feil .tekstfelt {
+  border-color: var(--lampe);
+}
+
+.fl-sendt {
+  margin: 14px 0 0;
+  padding: 16px;
+}
+
+.fl-sendt-tittel {
+  margin: 0;
+  font: 900 1.1rem/1.2 var(--font-display);
+}
+
+.fl-mine {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fl-mine li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-top: 1.5px dashed rgba(23, 14, 43, 0.16);
+}
+
+.fl-mine span {
+  flex: none;
+  max-width: 55%;
+  color: var(--blekk-2);
+  font: 700 0.82rem/1.25 var(--font-tekst);
+}
+
+.fl-mine b {
+  min-width: 0;
+  font: 900 1rem/1.2 var(--font-display);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.fl-teller {
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+/* ---------- On the net: the answers of one category ---------- */
+
+.fl-svar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fl-rad {
+  display: grid;
+  gap: 6px;
+  padding: 8px 10px 10px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+}
+
+.fl-rad.meg {
+  box-shadow: inset 0 0 0 2px var(--strek);
+}
+
+.fl-rad-hode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fl-rad-hode .avatar {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
+}
+
+.fl-rad-navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tekst-2);
+  font: 800 0.9rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fl-rad-merke {
+  flex: none;
+  color: var(--tekst-2);
+  font: 800 0.74rem/1 var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fl-rad-poeng {
+  display: grid;
+  flex: none;
+  place-items: center;
+  min-width: 38px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--strek);
+  color: var(--tekst);
+  font: 900 1rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.fl-rad.alene .fl-rad-poeng {
+  background: var(--mynte);
+  color: var(--blekk);
+}
+
+.fl-rad.delt .fl-rad-poeng {
+  background: var(--lampe);
+  color: var(--blekk);
+}
+
+.fl-rad-svar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.fl-tekst {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--papir);
+  color: var(--blekk);
+  font: 900 1.1rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.fl-tekst.tom {
+  background: none;
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst-2);
+}
+
+.fl-rad.feil .fl-tekst,
+.fl-rad.strok .fl-tekst {
+  background: color-mix(in srgb, var(--papir) 55%, var(--natt-2));
+  text-decoration: line-through;
+  text-decoration-thickness: 2.5px;
+}
+
+.fl-merk {
+  display: grid;
+  flex: none;
+  justify-items: center;
+  gap: 2px;
+  min-width: 96px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 2px solid var(--strek);
+  border-radius: 12px;
+  background: none;
+  color: var(--tekst);
+  font: 800 0.82rem/1.1 var(--font-display);
+  cursor: pointer;
+}
+
+.fl-merk small {
+  color: var(--tekst-2);
+  font: 700 0.72rem/1 var(--font-tekst);
+}
+
+.fl-merk[aria-pressed="true"] {
+  border-color: var(--rosa);
+  background: color-mix(in srgb, var(--rosa) 22%, transparent);
+}
+
+/* ---------- Small and short screens ---------- */
+
+@media (max-width: 359px) {
+  .fl-bokstav {
+    width: 72px;
+    height: 72px;
+    font-size: 2.8rem;
+  }
+
+  .fl-topp {
+    gap: 10px;
+  }
+
+  .fl-topp .timer-ring {
+    width: 68px;
+    height: 68px;
+  }
+
+  .fl-topp .timer-tid {
+    font-size: 1.2rem;
+  }
+
+  .fl-poengrader .fl-pr-navn {
+    display: -webkit-box;
+    font-size: 0.92rem;
+    white-space: normal;
+    hyphens: auto;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .fl-pseg {
+    grid-auto-columns: 42px;
+  }
+
+  .fl-merk {
+    min-width: 84px;
+    padding: 6px 6px;
+  }
+}
+
+@media (max-height: 700px) {
+  .fl-bokstav {
+    width: 68px;
+    height: 68px;
+    border-radius: 16px;
+    font-size: 2.6rem;
+  }
+
+  .fl-topp .timer-ring {
+    width: 68px;
+    height: 68px;
+  }
+
+  .fl-topp .timer-tid {
+    font-size: 1.2rem;
+  }
+
+  .fl-kat {
+    gap: 5px;
+    margin-top: 8px;
+  }
+
+  .fl-kat li {
+    min-height: 37px;
+    padding: 3px 12px 3px 5px;
+    box-shadow: 0 3px 0 var(--papir-2);
+  }
+
+  .fl-nr {
+    width: 26px;
+    height: 26px;
+    font-size: 0.85rem;
+  }
+
+  .fl-kn {
+    font-size: 0.98rem;
+  }
+
+  .fl-klar {
+    grid-template-columns: 60px minmax(0, 1fr);
+  }
+
+  .fl-klar .figur-ramme {
+    width: 60px;
+  }
+
+  .fl-hjelp {
+    margin-top: 8px;
+  }
+
+  .fl-domkort {
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  /* (the top bar says which category it is; the card keeps the category, the letter and the points) */
+  .fl-domkort .etikett {
+    display: none;
+  }
+
+  .fl-poengrader {
+    gap: 5px;
+    margin-top: 10px;
+  }
+
+  .fl-poengrader li {
+    padding: 3px 6px 3px 8px;
+  }
+
+  .fl-skjema {
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .fl-felt .tekstfelt {
+    min-height: 46px;
+  }
+
+  /* Home: the three buttons and the fact chips fit a phone in the browser (390 × 664) */
+  .skjerm-hjem .spillhjem {
+    gap: 8px;
+  }
+
+  .skjerm-hjem .spillhjem .figur-ramme {
+    width: min(26vw, 96px);
+  }
+
+  .skjerm-hjem .spillhjem h1 {
+    font-size: clamp(2.2rem, 10.5vw, 2.9rem);
+  }
+
+  .skjerm-hjem .hjem-knapper {
+    gap: 8px;
+  }
+}
+
+/* A phone on its side: the categories and the fields in two columns, a lower category card */
+@media (orientation: landscape) and (max-height: 500px) {
+  .fl-kat,
+  .fl-skjema {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .fl-domkort {
+    gap: 4px;
+    padding: 8px 12px 10px;
+  }
+
+  .fl-domkort .etikett {
+    display: none;
+  }
+
+  .fl-domkort h1 {
+    font-size: 1.3rem;
+  }
+
+  .fl-poengrader li {
+    padding: 3px 6px 3px 8px;
+  }
+
+  .fl-svar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-bokstav.ny,
+  .fl-bokstav.trekker,
+  .fl-kat li {
+    animation: none;
+  }
+}

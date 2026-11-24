@@ -1,0 +1,84 @@
+{
+  "om": "Duksen: kategoripakkerne, skrevet til rusj.no (rigsdansk). «fast»: de samme kategorier i samme rækkefølge hver runde (de fem første, eller alle seks). Ellers trækkes nye kategorier fra pakken til hver runde.",
+  "pakker": [
+    {
+      "id": "klassisk",
+      "navn": "Klassisk",
+      "ikon": "✏️",
+      "tekst": "Navn, by, land, dyr og mad",
+      "fast": true,
+      "k": ["Navn", "By", "Land", "Dyr", "Mad", "Job"]
+    },
+    {
+      "id": "barn",
+      "navn": "Børn",
+      "ikon": "🧸",
+      "tekst": "For de mindste",
+      "k": [
+        "Dyr",
+        "Noget du kan spise",
+        "Navn",
+        "Legetøj eller spil",
+        "Noget i naturen",
+        "Ting på dit værelse",
+        "Frugt eller grøntsag",
+        "Tøj",
+        "Noget i skolen",
+        "Noget der larmer",
+        "Noget fra et eventyr",
+        "Noget i køkkenet",
+        "Noget du kan lave udenfor",
+        "Noget der er sjovt",
+        "Noget der er stort"
+      ]
+    },
+    {
+      "id": "fest",
+      "navn": "Fest",
+      "ikon": "🎉",
+      "tekst": "Lidt mere på kanten (18+)",
+      "k": [
+        "Dårlig undskyldning for at komme for sent",
+        "Noget du ikke siger til chefen",
+        "Grund til at gå tidligt fra festen",
+        "Dårlig scorereplik",
+        "Noget du fortryder dagen derpå",
+        "Kælenavn til eksen",
+        "Noget du gemmer, før gæsterne kommer",
+        "Pinlig ting at tabe i bussen",
+        "Navn på et band, ingen gider høre",
+        "Verdens værste job",
+        "Noget du råber til fodbold",
+        "Dårlig gave til svigermor",
+        "Noget du finder på et kollegieværelse",
+        "Noget i glasset",
+        "Noget du ikke googler på arbejdet",
+        "Grund til at aflyse en date"
+      ]
+    },
+    {
+      "id": "jul",
+      "navn": "Jul",
+      "ikon": "🎄",
+      "tekst": "Til hele december",
+      "k": [
+        "Noget på julebordet",
+        "Julegave",
+        "Noget på juletræet",
+        "Noget du laver i juledagene",
+        "Noget i julemandens sæk",
+        "Noget fra en julesang",
+        "Julebag eller juleslik",
+        "Noget du laver i sneen",
+        "Dårlig julegave",
+        "Noget der er rødt",
+        "Navn på en nisse",
+        "Noget i en pakkekalender",
+        "Grund til at komme for sent til julemiddagen",
+        "Julepynt",
+        "Vintertøj",
+        "Noget der dufter af jul"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "om": "Flinkisen: kategoripakkene. Skrevet for rusj.no. «fast»: de samme kategoriene i samme rekkefølge hver runde (de fem første, eller alle seks). Ellers trekkes nye kategorier fra pakken for hver runde.",
+  "pakker": [
+    {
+      "id": "klassisk",
+      "navn": "Klassisk",
+      "ikon": "✏️",
+      "tekst": "Navn, by, land, dyr og mat",
+      "fast": true,
+      "k": ["Navn", "By", "Land", "Dyr", "Mat", "Yrke"]
+    },
+    {
+      "id": "barn",
+      "navn": "Barn",
+      "ikon": "🧸",
+      "tekst": "For de minste",
+      "k": [
+        "Dyr",
+        "Noe du kan spise",
+        "Navn",
+        "Leke eller spill",
+        "Noe i naturen",
+        "Ting på rommet ditt",
+        "Frukt eller grønnsak",
+        "Klær",
+        "Noe på skolen",
+        "Noe som lager lyd",
+        "Noe fra et eventyr",
+        "Noe på kjøkkenet",
+        "Noe du kan gjøre ute",
+        "Noe som er gøy",
+        "Noe som er stort"
+      ]
+    },
+    {
+      "id": "fest",
+      "navn": "Fest",
+      "ikon": "🎉",
+      "tekst": "Litt mer på kanten (18+)",
+      "k": [
+        "Dårlig unnskyldning for å komme for sent",
+        "Noe du ikke sier til sjefen",
+        "Grunn til å gå tidlig fra festen",
+        "Dårlig sjekkereplikk",
+        "Noe du angrer på dagen derpå",
+        "Kallenavn på eksen",
+        "Noe du gjemmer før gjestene kommer",
+        "Pinlig ting å miste på bussen",
+        "Navn på et band ingen vil høre",
+        "Verdens verste jobb",
+        "Noe du roper på fotballkamp",
+        "Dårlig gave til svigermor",
+        "Noe du finner i en studenthybel",
+        "Noe i glasset",
+        "Noe du ikke googler på jobb",
+        "Grunn til å avlyse en date"
+      ]
+    },
+    {
+      "id": "jul",
+      "navn": "Jul",
+      "ikon": "🎄",
+      "tekst": "For hele desember",
+      "k": [
+        "Noe på julebordet",
+        "Julegave",
+        "Noe på juletreet",
+        "Noe du gjør i romjula",
+        "Noe nissen har i sekken",
+        "Noe fra en julesang",
+        "Julebakst eller julegodt",
+        "Noe du gjør i snøen",
+        "Dårlig julegave",
+        "Noe som er rødt",
+        "Navn på en nisse",
+        "Noe i julekalenderen",
+        "Grunn til å komme for sent til julemiddagen",
+        "Julepynt",
+        "Vinterklær",
+        "Noe som lukter jul"
+      ]
+    }
+  ]
+}
