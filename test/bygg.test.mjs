@@ -691,7 +691,7 @@ test("the games that can be played online are flagged in the game list, and thei
   const liste = readFileSync(join(WEB, "felles/spilliste.js"), "utf8");
   const spill = JSON.parse(liste.slice(liste.indexOf("=") + 1, liste.indexOf(";\nwindow.RUSJ_TAGGSOK")));
   const paNett = spill.filter((g) => g.nett).map((g) => g.id).sort();
-  assert.deepEqual(paNett, ["admiralen", "bonden", "brevduen", "brikka", "dam", "detektiven", "dobbelsekseren", "dommeren", "elefanten", "fireren", "flinkisen", "golfballen", "hopperen", "hviskeren", "kodeknekkeren", "lasesmeden", "lykkegrisen", "meyer", "molla", "narren", "nissen", "pusen", "reversi", "samannen", "samleren", "sauen", "sjakkhesten", "skronemakeren", "snekkeren", "spionen", "stigespillet", "tankeleseren", "tavla", "terninga", "tidsmaskinen", "tieren", "varulven", "vriatter"]);
+  assert.deepEqual(paNett, ["admiralen", "bonden", "brevduen", "brikka", "dam", "detektiven", "dobbelsekseren", "dommeren", "elefanten", "fireren", "flinkisen", "golfballen", "hopperen", "hviskeren", "kodeknekkeren", "lasesmeden", "lurendreieren", "lykkegrisen", "meyer", "molla", "narren", "nissen", "pusen", "reversi", "samannen", "samleren", "sauen", "sjakkhesten", "skronemakeren", "snekkeren", "spionen", "stigespillet", "tankeleseren", "tavla", "terninga", "tidsmaskinen", "tieren", "varulven", "vriatter"]);
   assert.ok(spill.filter((g) => !g.nett).every((g) => !("nett" in g)), "the flag is left out, not false");
   for (const id of spillIder) {
     const html = readFileSync(join(WEB, id, "index.html"), "utf8");

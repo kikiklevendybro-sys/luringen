@@ -4034,3 +4034,157 @@ test("Flinkisen: a seat that leaves is never waited for, its answers and its mar
   for (let n = 0; n < 5; n++) r3.trekk(0, { neste: s3().steg });
   assert.deepEqual(somJson(s3().poeng), [40, 50]);
 });
+
+// ---------- Lurendreieren: hidden dice from the room's seed, bids and «Løgn!» ----------
+
+// (The bid a phone is building on its own screen is not part of the match.)
+const lurFelt = (x) => ({ ...x, valg: null });
+
+test("Lurendreieren: a whole match for three on three phones – the same dice everywhere, each page only its own; bids and «Løgn!» are moves; out-of-turn, lower and stale moves ignored", () => {
+  const L = regler("lurendreieren", "RusjLurendreieren");
+  const r = medSkjerm(rom("lurendreieren", 3, { terninger: 3, joker: true }));
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().modus, "nett");
+  assert.deepEqual(somJson(sp().ant), [3, 3, 3]);
+  assert.equal(sp().tur, 0, "the host begins match 1");
+  assert.equal(sp().runde, 1);
+  assert.ok(sp().kast.every((l) => l.length === 3 && l.every((v) => v >= 1 && v <= 6)));
+  likt(a, b, lurFelt);
+  likt(a, c, lurFelt);
+  // While the bidding goes on, a phone's page has its own dice and nobody else's.
+  for (const p of r.tlf) {
+    const html = p.def.skjermer.spill.vis(p.S);
+    assert.deepEqual([...new Set([...html.matchAll(/data-sete="(\d+)"/g)].map((m) => Number(m[1])))], [p.meg], `seat ${p.meg}`);
+  }
+  const forste = somJson(sp().kast);
+  r.trekk(1, { bud: [1, 2], r: 1, k: 0 }); // not your turn
+  r.trekk(0, { lyv: 1, r: 1, k: 0 }); // no bid to call
+  r.trekk(0, { bud: [1, 1], r: 1, k: 0 }); // ones are wild: no bid on ones
+  r.trekk(0, { bud: [10, 3], r: 1, k: 0 }); // nine dice on the table
+  r.trekk(0, { bud: [2, 3], r: 2, k: 0 }); // another round
+  r.trekk(0, { bud: [2, 3], r: 1, k: 1 }); // a count of bids that is not this one
+  r.trekk(0, { bud: [2, 3, 4], r: 1, k: 0 });
+  r.trekk(0, { bud: "2,3", r: 1, k: 0 });
+  assert.equal(sp().bud, null);
+  r.trekk(0, { bud: [2, 3], r: 1, k: 0 });
+  assert.deepEqual(somJson(sp().bud), { n: 2, x: 3, av: 0 });
+  assert.equal(sp().tur, 1);
+  assert.equal(b.def.nett.tur(b.S), 1);
+  r.trekk(0, { bud: [3, 3], r: 1, k: 1 }); // not A's turn any more
+  r.trekk(1, { bud: [2, 3], r: 1, k: 1 }); // the same bid
+  r.trekk(1, { bud: [2, 2], r: 1, k: 1 }); // as many of a lower face
+  r.trekk(1, { bud: [3, 2], r: 1, k: 0 }); // a tap from before A's bid
+  assert.equal(sp().kjede.length, 1);
+  r.trekk(1, { bud: [2, 4], r: 1, k: 1 }); // as many of a higher face
+  assert.deepEqual(somJson(sp().bud), { n: 2, x: 4, av: 1 });
+  r.trekk(1, { lyv: 1, r: 1, k: 2 }); // B cannot call its own bid
+  r.trekk(2, { neste: 1 }); // nothing is revealed yet
+  r.trekk(2, { lyv: 1, r: 1, k: 1 }); // a call on the bid before
+  assert.equal(sp().fase, "bud");
+  r.trekk(2, { lyv: 1, r: 1, k: 2 });
+  assert.equal(sp().fase, "avslort");
+  assert.equal(sp().utfall.antall, L.tell(sp().kast, 4, true));
+  assert.equal(sp().utfall.holdt, sp().utfall.antall >= 2);
+  assert.equal(sp().utfall.taper, sp().utfall.holdt ? 2 : 1);
+  assert.equal(sp().ant.reduce((x, y) => x + y, 0), 8);
+  // At the reveal every die is on every page.
+  for (const p of r.tlf) assert.equal(new Set([...p.def.skjermer.spill.vis(p.S).matchAll(/data-sete="(\d+)"/g)].map((m) => m[1])).size, 3, `the reveal on seat ${p.meg}`);
+  r.trekk(2, { lyv: 1, r: 1, k: 2 }); // twice
+  const taper = sp().utfall.taper;
+  assert.equal(sp().starter, taper);
+  assert.equal(a.def.nett.tur(a.S), taper, "the loser begins the next round");
+  r.trekk((taper + 1) % 3, { neste: 1 }); // only the one who begins
+  r.trekk(taper, { neste: 2 }); // not this round
+  assert.equal(sp().runde, 1);
+  r.trekk(taper, { neste: 1 });
+  assert.equal(sp().runde, 2);
+  assert.equal(sp().tur, taper);
+  assert.equal(sp().kast[taper].length, 2, "one die less for the loser");
+  assert.notDeepEqual(somJson(sp().kast), forste, "new dice every round");
+  r.trekk(taper, { neste: 1 }); // a double tap: the round is on
+  assert.equal(sp().runde, 2);
+  // To the end: the lowest bid, and a call every third move.
+  for (let steg = 0; steg < 500 && sp().vinner == null; steg++) {
+    const s = sp();
+    if (s.fase === "avslort") {
+      r.trekk(s.starter, { neste: s.runde });
+      continue;
+    }
+    const lav = L.lavesteBud(s);
+    if (s.bud && (steg % 3 === 0 || !lav)) r.trekk(s.tur, { lyv: 1, r: s.runde, k: s.kjede.length });
+    else r.trekk(s.tur, { bud: [lav.n, lav.x], r: s.runde, k: s.kjede.length });
+  }
+  assert.ok(sp().vinner != null, "nobody won");
+  assert.deepEqual(somJson(L.igjen(sp())), [sp().vinner]);
+  assert.ok(a.def.nett.ferdig(a.S));
+  assert.equal(a.def.nett.tur(a.S), null);
+  assert.equal(a.def.nett.skjerm(a.S), "slutt");
+  r.trekk(sp().starter, { neste: sp().runde }); // after the end: ignored
+  likt(a, b, lurFelt);
+  likt(a, c, lurFelt);
+  const sen = r.sen(1);
+  likt(a, sen, lurFelt);
+  assert.equal(sen.def.nett.skjerm(sen.S), "slutt", "a finished match, replayed: the result");
+  assert.equal(rom("lurendreieren", 3, {}, 20261115, 2).tlf[0].S.spill.tur, 1, "match 2: the next seat begins");
+  const std = rom("lurendreieren", 2, {}).tlf[0].S.spill;
+  assert.deepEqual([std.start, std.joker, std.kast.map((l) => l.length).join()], [5, true, "5,5"]);
+  assert.notDeepEqual(somJson(rom("lurendreieren", 2, {}, 7).tlf[0].S.spill.kast), somJson(std.kast), "another seed, other dice");
+});
+
+test("Lurendreieren: a seat that leaves – its dice stay in this round's count and are gone from the next, the turn passes, the bid stands; the last one with dice wins", () => {
+  const L = regler("lurendreieren", "RusjLurendreieren");
+  const r = medSkjerm(rom("lurendreieren", 4, { terninger: 5, joker: false }));
+  const [a, , c] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().joker, false);
+  r.trekk(0, { bud: [2, 1], r: 1, k: 0 }); // without wild ones a one is a face of its own
+  assert.equal(sp().tur, 1);
+  r.borte(1); // B leaves on its turn: the turn passes, the bid stands
+  assert.equal(sp().tur, 2);
+  assert.deepEqual(somJson(sp().bud), { n: 2, x: 1, av: 0 });
+  assert.equal(sp().ant[1], 0);
+  assert.equal(sp().kast[1].length, 5, "its dice are still on the table this round");
+  assert.equal(L.total(sp()), 20);
+  assert.equal(c.def.nett.tur(c.S), 2);
+  r.trekk(1, { lyv: 1, r: 1, k: 1 }); // gone
+  assert.equal(sp().fase, "bud");
+  r.trekk(2, { lyv: 1, r: 1, k: 1 });
+  assert.equal(sp().utfall.antall, sp().kast.flat().filter((v) => v === 1).length, "counted with the dice of the one who left");
+  assert.equal(sp().ant.reduce((x, y) => x + y, 0), 14);
+  r.trekk(sp().starter, { neste: 1 });
+  assert.deepEqual(somJson(sp().kast[1]), [], "no dice for it in the next round");
+  assert.equal(L.total(sp()), 14);
+  // The bidder leaves; the bid is called and was a bluff: nobody has a die to lose.
+  const byr = sp().tur;
+  r.trekk(byr, { bud: [14, 6], r: 2, k: 0 });
+  const roper = sp().tur;
+  r.borte(byr);
+  assert.equal(sp().tur, roper, "not its turn: the turn stays");
+  assert.equal(sp().bud.av, byr);
+  const forKall = sp().ant.reduce((x, y) => x + y, 0);
+  r.trekk(roper, { lyv: 1, r: 2, k: 1 });
+  assert.deepEqual([sp().utfall.holdt, sp().utfall.taper, sp().utfall.mistet], [false, byr, false]);
+  assert.equal(sp().ant.reduce((x, y) => x + y, 0), forKall);
+  assert.equal(sp().vinner, null);
+  assert.ok(L.inne(sp(), sp().starter), "the one who begins the next round is still in");
+  assert.deepEqual(somJson(sp().forlot), [1, byr]);
+  likt(a, c, lurFelt);
+  // One more leaves: the last one with dice wins, and every phone goes to the result.
+  const igjen = L.igjen(sp());
+  r.borte(igjen[0]);
+  assert.equal(sp().vinner, igjen[1]);
+  assert.ok(a.def.nett.ferdig(a.S));
+  assert.equal(a.def.nett.tur(a.S), null);
+  likt(a, c, lurFelt);
+  const sen = r.sen(igjen[1]);
+  likt(a, sen, lurFelt);
+  assert.equal(sen.def.nett.skjerm(sen.S), "slutt");
+  // Two phones: the other one leaves during the bidding – the round ends at once.
+  const to = rom("lurendreieren", 2, {});
+  to.trekk(0, { bud: [1, 2], r: 1, k: 0 });
+  to.borte(1);
+  assert.equal(to.tlf[0].S.spill.vinner, 0);
+  assert.equal(to.tlf[0].S.spill.utfall.type, "borte");
+  assert.equal(typeof to.tlf[0].def.skjermer.slutt.vis(to.tlf[0].S), "string");
+});
