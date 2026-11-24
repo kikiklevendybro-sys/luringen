@@ -297,5 +297,13 @@
   "Ikke ennå": "Not yet",
   "Brett {n} – sjekk at ordene stemmer med brettet": "Board {n} – check the words match the board",
   "Tilbake til brett {n}": "Back to board {n}",
-  "brett|brett": { "one": "board", "other": "boards" }
+  "brett|brett": { "one": "board", "other": "boards" },
+  "{lag} gjetter …": "{lag} is guessing …",
+  "Du er kodemester – bare du ser fargene.": "You’re the code master – only you can see the colours.",
+  "Du er kodemester – bare kodemesterne ser fargene.": "You’re a code master – only the code masters can see the colours.",
+  "{navn} starter neste brett.": "{navn} starts the next board.",
+  "Lag mot lag fra fire spillere, ellers sammen": "Team v team from four players, otherwise Beat the Trap",
+  "{navn} er kodemester nå.": "{navn} is the code master now.",
+  "{navn} er kodemester for {lag} nå.": "{navn} is the code master for {lag} now.",
+  "Du er kodemester nå – du ser fargene": "You’re the code master now – you can see the colours"
 }

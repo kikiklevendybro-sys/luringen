@@ -297,5 +297,13 @@
   "Ikke ennå": "Ikke endnu",
   "Brett {n} – sjekk at ordene stemmer med brettet": "Bræt {n} – tjek, at ordene passer med brættet",
   "Tilbake til brett {n}": "Tilbage til bræt {n}",
-  "brett|brett": "bræt"
+  "brett|brett": "bræt",
+  "{lag} gjetter …": "{lag} gætter …",
+  "Du er kodemester – bare du ser fargene.": "Du er kodemester – kun du kan se farverne.",
+  "Du er kodemester – bare kodemesterne ser fargene.": "Du er kodemester – kun kodemestrene kan se farverne.",
+  "{navn} starter neste brett.": "{navn} starter det næste bræt.",
+  "Lag mot lag fra fire spillere, ellers sammen": "Hold mod hold fra fire spillere, ellers sammen mod fælden",
+  "{navn} er kodemester nå.": "{navn} er kodemester nu.",
+  "{navn} er kodemester for {lag} nå.": "{navn} er kodemester for {lag} nu.",
+  "Du er kodemester nå – du ser fargene": "Du er kodemester nu – du kan se farverne"
 }

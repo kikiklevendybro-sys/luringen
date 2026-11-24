@@ -2162,3 +2162,30 @@ button.kk-n:active {
     min-height: calc((100vw - 32px) * 0.49);
   }
 }
+
+/* On the net: «waiting for …» in the dock, on a solid pill so it never sits over the page. */
+.dokk > .nett-vent {
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* On the net: the code master's line over the board, and the strip on a phone that only reads it. */
+.kk-rolle {
+  margin: 0 0 8px;
+  color: var(--tekst-2);
+  font-weight: 700;
+  text-align: center;
+  text-wrap: balance;
+}
+
+p.kk-hint-vis {
+  margin: 0;
+  cursor: default;
+}
