@@ -27,7 +27,7 @@
       "kort": "Es til konge, rød på sort. Går kabalen op?",
       "beskrivelse": "Gratis kabale på dansk: Klondike med »Dagens kabale«, Edderkop, FreeCell, Pyramide, Tre tinder og Golf. Fortryd, hint og kabaler, der kan gå op.",
       "slug": "kortkongen",
-      "sok": ["kabale", "klondike", "solitaire", "kabale online", "dagens kabale", "7-kabale", "kortspil", "edderkop", "edderkopkabale", "spider", "freecell", "pyramide", "tri peaks", "tre tinder", "golf"]
+      "sok": ["kabale", "klondike", "solitaire", "kabale online", "dagens kabale", "7-kabale", "kortspil", "edderkop", "edderkopkabale", "spider", "freecell", "pyramide", "tri peaks", "tre tinder", "golf", "patience"]
     }
   }
 }

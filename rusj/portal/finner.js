@@ -12,6 +12,8 @@
   // «Hvor mange er dere?»: a chip and the counts it stands for. A game fits when it can be played by
   // every count in the band (3–4: both by three and by four). «9+»: at least nine and ten.
   const SPILLERE = { 1: [1, 1], 2: [2, 2], "3-4": [3, 4], "5-8": [5, 8], "9+": [9, 10] };
+  // The chip a head count belongs to («vi er 5» in the search, a count saved by an older page).
+  const naermesteBand = (n) => (n <= 1 ? "1" : n === 2 ? "2" : n <= 4 ? "3-4" : n <= 8 ? "5-8" : "9+");
 
   // «Hvem er yngst?»: an age from 3 to 17, then «voksen». «fest» (adults, 18+ games welcome) is only
   // there once someone has confirmed being 18 (rusj.felles.over18).
@@ -183,7 +185,7 @@
   // Answers that filter nothing: no player count, «Voksen» and «Litt av alt».
   const ubesvart = (v) => !v.antall && v.yngst === "voksen" && v.lyst === "alt";
 
-  const api = { finn, passer, poeng, slag, normaliser, alderTrinn, iRom, ubesvart, ROMMENE, ROM, HURTIG, SPILLERE, LYST, MIME, ALDER_MIN, ALDER_MAKS, VOKSEN };
+  const api = { finn, passer, poeng, slag, normaliser, alderTrinn, iRom, ubesvart, naermesteBand, ROMMENE, ROM, HURTIG, SPILLERE, LYST, MIME, ALDER_MIN, ALDER_MAKS, VOKSEN };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.RusjFinner = api;
 })(typeof self !== "undefined" ? self : this);

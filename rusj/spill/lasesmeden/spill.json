@@ -13,7 +13,7 @@
   "farge": "#f2b84b",
   "motMobilen": true,
   "nett": true,
-  "sok": ["knekk koden", "fargekode", "kodeknekker", "gjett koden", "fargespill", "logikkspill", "kodespill", "fargekodespill"],
+  "sok": ["knekk koden", "fargekode", "kodeknekker", "gjett koden", "fargespill", "logikkspill", "kodespill", "fargekodespill", "mastermind"],
   "i18n": {
     "en": {
       "navn": "Locksmith",
@@ -21,7 +21,7 @@
       "kort": "Guess the secret colour code – the pins tell you how close you are.",
       "beskrivelse": "Free code-breaking game: guess the secret row of colours and shapes, and use the pins to crack the code. Against the phone at three levels, or two players.",
       "slug": "locksmith",
-      "sok": ["code breaker", "colour code game", "crack the code", "guess the code", "bulls and cows", "logic game", "colour code breaker"]
+      "sok": ["code breaker", "colour code game", "crack the code", "guess the code", "bulls and cows", "logic game", "colour code breaker", "mastermind"]
     },
     "da": {
       "navn": "Låsesmeden",
@@ -29,7 +29,7 @@
       "kort": "Gæt den hemmelige farvekode – prikkerne viser, hvor tæt du er på.",
       "beskrivelse": "Gratis kodeknækkerspil på dansk: gæt den hemmelige række af farver og former, og brug prikkerne til at knække koden. Mod mobilen på tre niveauer eller for to.",
       "slug": "laasesmeden",
-      "sok": ["knæk koden", "farvekode", "kodeknækker", "gæt koden", "farvespil", "logikspil", "farvekodespil"]
+      "sok": ["knæk koden", "farvekode", "kodeknækker", "gæt koden", "farvespil", "logikspil", "farvekodespil", "mastermind"]
     }
   }
 }

@@ -9,7 +9,7 @@ import { mkdtempSync, mkdirSync, rmSync, readFileSync, readdirSync, existsSync, 
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { lesSeo, merkeI, merkeSynlig, TITTEL_MAKS, BESKRIVELSE_GRENSER, DOMENE, OMDOPT, statOpprinnelse, FASTE_STIER } from "../scripts/rusj.mjs";
+import { lesSeo, merkeI, merkeSynlig, MERKER, TITTEL_MAKS, BESKRIVELSE_GRENSER, DOMENE, OMDOPT, statOpprinnelse, FASTE_STIER } from "../scripts/rusj.mjs";
 import { omSpilletHtml, flereTil } from "../scripts/om-spillet.mjs";
 import { SPRAK } from "../scripts/sprak.mjs";
 
@@ -279,8 +279,9 @@ test("«Alle spill A–Å»: every game as a plain link in every edition, sorted
   // The scripts of the page, in order (stat.js first on every page when anonymous statistics are on).
   const f = sider.find((s) => s.sti === "/");
   const skript = [...f.html.matchAll(/<script defer src="\/felles\/([a-z]+)\.js\?v=[a-z0-9]+"><\/script>/g)].map((m) => m[1]);
-  assert.deepEqual(skript.filter((s) => s !== "stat"), ["tekst", "spilliste", "daglig", "finner", "portal"]);
+  assert.deepEqual(skript.filter((s) => s !== "stat"), ["tekst", "spilliste", "daglig", "finner", "sok", "portal"]);
   assert.equal(readFileSync(join(WEB, "felles/finner.js"), "utf8"), readFileSync(join(ROT, "rusj/portal/finner.js"), "utf8"));
+  assert.equal(readFileSync(join(WEB, "felles/sok.js"), "utf8"), readFileSync(join(ROT, "rusj/portal/sok.js"), "utf8"));
   // «Mot mobilen» in rusj/seo.json reaches the list.
   const seo = lesSeo(ROT);
   const liste = spillliste("felles/spilliste.js");
@@ -683,6 +684,40 @@ test("the original party games have their own generic search words, and the word
   }
   const hoystakk = (g) => [g.navn, g.undertittel, g.kort, ...g.sok, ...g.tagger.flatMap((t) => taggsok[t] || [])].join(" ").toLocaleLowerCase("nb");
   for (const ord of ["imposter", "nødt", "pekeleken", "flasketuten", "bli kjent", "dilemma", "mafia", "huskespill", "vendespill", "jeg har aldri", "kims lek", "alfabetleken", "20 spørsmål", "selskapsleker", "hyttetur", "klassefest"]) assert.ok(spill.some((g) => hoystakk(g).includes(ord)), `søket finner ingenting på «${ord}»`);
+});
+
+test("a brand name that helps the search is never written into a page: no `sok` word from MERKER in any built HTML", () => {
+  // The brands the search knows: every MERKER name that is a search word of a game (or of a
+  // variant inside one) in some edition.
+  const ren = (t) => " " + String(t).toLocaleLowerCase("nb").replace(/[^a-zæøå0-9-]+/g, " ") + " ";
+  const iSok = new Set();
+  for (const fil of ["felles/spilliste.js", ...SPRAK.map((s) => `felles/spilliste.${s}.js`)]) {
+    for (const g of spillliste(fil)) for (const ord of [...g.sok, ...(g.varianter || []).flatMap((v) => v.sok || [])]) for (const m of MERKER) if (ren(ord).includes(ren(m))) iSok.add(m);
+  }
+  for (const m of ["uno", "alias", "codenames", "kahoot", "wordle", "boggle", "farkle", "yahtzee", "candy crush", "flappy bird"]) assert.ok(iSok.has(m), `«${m}» er ikke lenger et søkeord – da beviser testen mindre`);
+  // Everyday English that shares its spelling with a brand («just one square», «the phone's memory»,
+  // «their own timeline»): allowed in the English edition, nowhere else.
+  const HVERDAGSORD = { en: ["just one", "memory", "timeline"] };
+  const filer = [];
+  const gaa = (mappe) => {
+    for (const f of readdirSync(mappe, { withFileTypes: true })) {
+      if (f.isDirectory()) gaa(join(mappe, f.name));
+      else if (f.name.endsWith(".html")) filer.push(join(mappe, f.name));
+    }
+  };
+  gaa(WEB);
+  assert.ok(filer.length > 300, `bare ${filer.length} HTML-filer i bygget`);
+  for (const fil of filer) {
+    const sti = fil.slice(WEB.length).split("\\").join("/");
+    const utgave = SPRAK.find((s) => sti.startsWith(`/${s}/`)) || "nb";
+    const tekst_ = ren(readFileSync(fil, "utf8"));
+    for (const m of iSok) {
+      if ((HVERDAGSORD[utgave] || []).includes(m)) continue;
+      assert.ok(!tekst_.includes(ren(m)), `${sti}: merkenavnet «${m}» står i siden (det skal bare finnes som søkeord i spillista)`);
+    }
+  }
+  // The search module itself names games we do not have (rusj/portal/sok.js): a script, never markup.
+  assert.match(readFileSync(join(WEB, "felles/sok.js"), "utf8"), /IKKE_ENNA/);
 });
 
 // ---------- "nett" in spill.json: games that can be played online (rusj/kit/nett.js) ----------

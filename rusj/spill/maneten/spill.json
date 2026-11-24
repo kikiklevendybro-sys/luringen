@@ -11,7 +11,7 @@
   "tagger": ["alene", "barn", "arkade"],
   "rekkefolge": 79,
   "farge": "#ff86c8",
-  "sok": ["ett trykk spill", "one tap", "hold for å fly", "hulespill", "undervannsspill", "manet", "reaksjonsspill", "arkadespill"],
+  "sok": ["ett trykk spill", "one tap", "hold for å fly", "hulespill", "undervannsspill", "manet", "reaksjonsspill", "arkadespill", "flappy", "flappy bird"],
   "i18n": {
     "en": {
       "navn": "Bloop",
@@ -19,7 +19,7 @@
       "kort": "Hold to swim up, let go to sink. How far can you get?",
       "beskrivelse": "Free one-tap game in your browser: hold your finger down and the jellyfish swims up – let go and it sinks. Dodge rocks and sea urchins, collect pearls, set a record.",
       "slug": "bloop",
-      "sok": ["one tap game", "one button game", "hold to fly", "cave game", "underwater game", "jellyfish game", "arcade game", "endless swimmer"]
+      "sok": ["one tap game", "one button game", "hold to fly", "cave game", "underwater game", "jellyfish game", "arcade game", "endless swimmer", "flappy", "flappy bird"]
     },
     "da": {
       "navn": "Goplen",
@@ -27,7 +27,7 @@
       "kort": "Hold for at svømme op, slip for at synke. Hvor langt kommer du?",
       "beskrivelse": "Gratis ét-tryks-spil på dansk: hold fingeren nede, så svømmer goplen op – slip, så synker den. Undgå sten og søpindsvin, saml perler, og sæt rekord.",
       "slug": "goplen",
-      "sok": ["et tryk spil", "one tap", "hold for at flyve", "hulespil", "undervandsspil", "vandmand", "gople", "arkadespil"]
+      "sok": ["et tryk spil", "one tap", "hold for at flyve", "hulespil", "undervandsspil", "vandmand", "gople", "arkadespil", "flappy", "flappy bird"]
     }
   }
 }

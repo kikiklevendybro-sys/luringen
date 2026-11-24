@@ -11,7 +11,7 @@
   "rekkefolge": 81,
   "farge": "#9a86e8",
   "alder": 4,
-  "sok": ["svarteper", "svarte per", "fisk kortspill", "kortspill for barn", "krig kortspill", "snap kortspill", "barnekortspill", "dyrekort", "kortspill mot datamaskin", "kortspill for to"],
+  "sok": ["svarteper", "svarte per", "fisk kortspill", "kortspill for barn", "krig kortspill", "snap kortspill", "barnekortspill", "dyrekort", "kortspill mot datamaskin", "kortspill for to", "go fish"],
   "motMobilen": true,
   "nett": true,
   "alias": ["svarteper"],
@@ -30,7 +30,7 @@
       "kort": "Sorte Per, Fisk, Størst vinder og Snap – med dyrekort.",
       "beskrivelse": "Gratis kortspil for børn med dyrekort: Sorte Per, Fisk, Størst vinder og Snap. Mod mobilen eller sammen på én mobil – og en sød, sort kat.",
       "slug": "missen",
-      "sok": ["sorte per", "fisk kortspil", "kortspil for børn", "krig kortspil", "snap kortspil", "børnekortspil", "dyrekort", "kortspil mod computeren", "kortspil for to"]
+      "sok": ["sorte per", "fisk kortspil", "kortspil for børn", "krig kortspil", "snap kortspil", "børnekortspil", "dyrekort", "kortspil mod computeren", "kortspil for to", "go fish"]
     }
   }
 }

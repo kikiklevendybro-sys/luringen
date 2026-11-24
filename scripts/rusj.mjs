@@ -203,10 +203,14 @@ export function morkere(hex, mengde = 0.3) {
 
 // Other companies' game brands. They may help the front-page search find a game (as hidden
 // synonyms in `sok`), but never go into a title, a description, a link preview or structured data.
-const MERKER = [
+export const MERKER = [
   "alias", "codenames", "spyfall", "heads up", "wavelength", "just one", "herd mentality", "smart10", "timeline", "hitster",
   "kahoot", "pictionary", "skribbl", "gartic", "battleship", "connect four", "connect 4", "yahtzee", "uno", "scattergories",
   "taboo", "tabu", "trivial pursuit", "bezzerwizzer", "fia med knuff", "maxi-yatzy", "maxi yatzy", "memory",
+  // names the front-page search knows (rusj/portal/sok.js and the games' `sok`) – only coined ones:
+  // «othello», «mastermind» and «monopoly» are also ordinary words (a play in a quiz, «a monopoly on …»)
+  "wordle", "boggle", "farkle", "candy crush", "suika", "flappy bird", "tetris",
+  "scrabble", "wordfeud", "catan", "minecraft", "roblox", "fortnite", "geoguessr", "rummikub", "cluedo",
 ];
 const finnMerke = (liste, tekst) => {
   const t = " " + String(tekst).toLocaleLowerCase("nb").replace(/[^a-zæøå0-9-]+/g, " ") + " ";
@@ -215,7 +219,7 @@ const finnMerke = (liste, tekst) => {
 export const merkeI = (tekst) => finnMerke(MERKER, tekst);
 // Text the build writes itself (the «Slik spiller dere» block, collection pages, alias addresses)
 // is held to a stricter list: also game names that sound generic but belong to someone.
-const MERKER_SYNLIG = [...MERKER, "ring of fire", "wordle", "time's up", "times up", "codenames"];
+const MERKER_SYNLIG = [...MERKER, "ring of fire", "time's up", "times up"];
 export const merkeSynlig = (tekst) => finnMerke(MERKER_SYNLIG, tekst);
 export const TITTEL_MAKS = 62; // with « | rusj»; search results show about 60 characters
 export const BESKRIVELSE_GRENSER = [100, 160];
@@ -916,6 +920,7 @@ ${STEMPEL_FILTER}
   const portalJs = skriv("felles/portal.js", kilde("rusj/portal/portal.js"));
   const dagligJs = skriv("felles/daglig.js", kilde("rusj/portal/daglig.js")); // «Dagens rusj»: see rusj/DAGLIG.md
   const finnerJs = skriv("felles/finner.js", kilde("rusj/portal/finner.js")); // «Hva skal vi spille?»: the finder's choice
+  const sokJs = skriv("felles/sok.js", kilde("rusj/portal/sok.js")); // the search: names people use, typos, head counts
   const Finner = require(join(ROT, "rusj/portal/finner.js")); // its chips and age steps, for the markup
   // «Mest spilt nå» (rusj/topp.json): a row under the hero, and a place in the finder's ranking.
   const topp = lesTopp(toppFil);
@@ -1107,7 +1112,7 @@ ${toppRad.map((m, i) => "        " + toppKort(m, i + 1)).join("\n")}
       deling: delingFor(U),
       delingAlt: t("rusj – gratis spill og selskapsleker på norsk"),
       css: [felles.css, portalCss],
-      skript: portalSkript(U, portalData, dagligJs, finnerJs, portalJs),
+      skript: portalSkript(U, portalData, dagligJs, finnerJs, sokJs, portalJs),
       jsonld: {
         "@context": "https://schema.org",
         "@graph": [
@@ -1223,11 +1228,12 @@ ${nyeste
       <div class="aktive" id="aktive" role="group" hidden></div>
     </div>
     <p class="vh" id="si" aria-live="polite"></p>
+    <p class="sok-melding" id="sok-melding" hidden></p>
     <div class="beste" id="beste" hidden></div>
     <ul class="alle-liste" id="alle-liste">
 ${aaHtml}${dorHtml}
     </ul>
-    <p class="ingen-treff" id="ingen-treff" hidden>${esc(t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type."))}</p>
+    <div class="ingen-treff" id="ingen-treff" hidden><p>${esc(t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type."))}</p></div>
   </section>
   <dialog class="dialog" id="dialog" aria-labelledby="dialog-tittel"></dialog>
   <dialog class="dialog automat" id="automat" aria-labelledby="automat-tittel"></dialog>

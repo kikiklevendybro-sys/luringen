@@ -144,53 +144,16 @@
       .join(" ")}</span></a></li>`;
   }
 
-  // ---------- Search (whole phrases per language for the facts) ----------
-
-  const ren = (tekst) =>
-    String(tekst || "")
-      .toLocaleLowerCase("nb")
-      .replace(/[æøå]/g, (c) => ({ æ: "\u0001", ø: "\u0002", å: "\u0003" })[c])
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .replace(/[\u0001-\u0003]/g, (c) => ({ "\u0001": "æ", "\u0002": "ø", "\u0003": "å" })[c])
-      .replace(/[^a-z0-9æøå ]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  // What a search looks in: the game's name, genre, one-liner and search words – and the words
-  // people use for its kind of game («selskapsleker», «vors», «bursdag» …), from rusj/seo.json.
-  const TAGGSOK = window.RUSJ_TAGGSOK || {};
-  const HAYSTACK = new Map(SPILL.map((s) => [s.id, ren([s.navn, s.undertittel, s.kort, ...(s.sok || []), ...s.tagger.flatMap((tg) => TAGGSOK[tg] || [])].join(" "))]));
-  // The facts on the cards can be searched for in whole phrases: «én mobil», «flere mobiler»,
-  // «alene», «mot mobilen». (Word by word they would fit almost every game: «en» is in most texts.)
-  const FAKTASOK = {
-    nb: [
-      [/(^| )(en|1|samme) mobil( |$)/, (s) => s.mobiler !== "hver"],
-      [/(^| )(flere mobiler|hver sin mobil)( |$)/, (s) => s.mobiler !== "en"],
-      [/(^| )(alene|solo|en spiller|1 spiller)( |$)/, (s) => s.spillere[0] === 1],
-      [/(^| )mot (mobilen|maskinen|datamaskinen|pc|pcen)( |$)/, (s) => !!s.motMobilen],
-    ],
-    en: [
-      [/(^| )(one|1|same) (phone|mobile)( |$)/, (s) => s.mobiler !== "hver"],
-      [/(^| )(several|more|own|their own) (phones|mobiles|phone)( |$)/, (s) => s.mobiler !== "en"],
-      [/(^| )(alone|solo|single player|one player|1 player)( |$)/, (s) => s.spillere[0] === 1],
-      [/(^| )(against|vs|versus) (the )?(phone|computer|cpu|ai|machine)( |$)/, (s) => !!s.motMobilen],
-    ],
-    da: [
-      [/(^| )(en|1|samme) (mobil|telefon)( |$)/, (s) => s.mobiler !== "hver"],
-      [/(^| )(flere mobiler|hver sin mobil|egen mobil)( |$)/, (s) => s.mobiler !== "en"],
-      [/(^| )(alene|solo|en spiller|1 spiller)( |$)/, (s) => s.spillere[0] === 1],
-      [/(^| )mod (mobilen|computeren|maskinen|pc en|pc)( |$)/, (s) => !!s.motMobilen],
-    ],
-  }[T.sprak];
-  function passerSok(s, q) {
-    let ord = ren(q);
-    for (const [frase, passerSpill] of FAKTASOK) {
-      if (!frase.test(ord)) continue;
-      if (!passerSpill(s)) return false;
-      ord = ord.replace(frase, " ").trim();
-    }
-    const h = HAYSTACK.get(s.id) || "";
-    return !ord || ord.split(/ +/).every((o) => h.includes(o));
+  // ---------- Search (rusj/portal/sok.js) ----------
+  // The names people use for a game, a typo put right, head counts («2 spillere», «for to»), the
+  // facts in whole phrases («én mobil», «alene», «mot mobilen», «på nett», «kjapt») and the words
+  // for a kind of game («selskapsleker», «vors», «bursdag» …, from rusj/seo.json).
+  const Sok = window.RusjSok.lag({ spill: SPILL, taggsok: window.RUSJ_TAGGSOK || {}, sprak: T.sprak, F });
+  let sok = "";
+  let funn = null; // what the search found for `sok`; null while nothing is typed
+  function settSok(q) {
+    sok = q;
+    funn = q ? Sok.sok(q) : null;
   }
 
   // ---------- What the list shows ----------
@@ -200,21 +163,19 @@
 
   const lagret = les(k("portal"), {}) || {};
   const GAMLE_TAGGER = { daglig: "dagens", fest: "fest", familie: "familie", barn: "barn", alene: "alene", klassiker: "klassikere", kort: "kort", ord: "ord", quiz: "ord", arkade: "arkade", drikke: "voksen" };
-  const naermesteBand = (n) => (n === 1 ? "1" : n === 2 ? "2" : n <= 4 ? "3-4" : n <= 8 ? "5-8" : "9+");
   let rom = typeof lagret.rom === "string" && har(F.ROM, lagret.rom) ? lagret.rom : typeof lagret.tagg === "string" && har(GAMLE_TAGGER, lagret.tagg) ? GAMLE_TAGGER[lagret.tagg] : "";
   let hurtig = typeof lagret.hurtig === "string" && har(F.HURTIG, lagret.hurtig) ? lagret.hurtig : "";
   let valg = F.normaliser(lagret.finn, over18);
-  if (!valg.antall && Number.isInteger(lagret.antall) && lagret.antall > 0) valg.antall = naermesteBand(lagret.antall);
+  if (!valg.antall && Number.isInteger(lagret.antall) && lagret.antall > 0) valg.antall = F.naermesteBand(lagret.antall);
   if (hurtig) valg = F.HURTIG[hurtig](over18);
   if (rom === "voksen" && !over18) rom = "";
-  let sok = "";
   const lagre = () => skriv(k("portal"), { rom, hurtig, finn: valg });
 
   const synlig = (s) => over18 || !s.alder18;
   const svart = () => !F.ubesvart(valg);
   // In the 18+ room the answers mean an adult party: its drinking games count.
   const finnValg = () => (rom === "voksen" && valg.yngst === "voksen" ? Object.assign({}, valg, { yngst: "fest" }) : valg);
-  const passer = (s) => synlig(s) && (!rom || F.iRom(s, rom)) && (!svart() || F.passer(s, finnValg(), { maned: MANED })) && (!sok || passerSok(s, sok));
+  const passer = (s) => synlig(s) && (!rom || F.iRom(s, rom)) && (!svart() || F.passer(s, finnValg(), { maned: MANED })) && (!funn || funn.av.has(s.id));
   const filtrert = () => !!(rom || svart() || sok);
 
   // ---------- The drinking games in the list: only once someone is 18 ----------
@@ -234,9 +195,34 @@
       li.dataset.b = s.navn.charAt(0).toLocaleUpperCase(T.lokale);
       li.setAttribute("data-alder18", "");
       li.innerHTML = flis(s);
-      const etter = $$("li[data-id]", liste).find((x) => sorter(spillAv.get(x.dataset.id).navn, s.navn) > 0);
-      liste.insertBefore(li, etter || $("#dor-celle") || null);
+      liste.insertBefore(li, $("#dor-celle") || null); // (ordne() puts it in its place)
     }
+  }
+
+  // The order of the rows: A–Å as the build wrote the list (the drinking games put in by name) –
+  // or, while something is typed, the search's own order: the best match first.
+  const statisk = $$("li[data-id]", liste).map((li) => li.dataset.id);
+  let rekke = statisk.join();
+  function ordne() {
+    const li = new Map($$("li[data-id]", liste).map((x) => [x.dataset.id, x]));
+    let ider;
+    if (funn) {
+      ider = funn.treff.filter((x) => !x.v && li.has(x.s.id)).map((x) => x.s.id);
+      const tatt = new Set(ider);
+      for (const id of li.keys()) if (!tatt.has(id)) ider.push(id);
+    } else {
+      ider = statisk.filter((id) => li.has(id));
+      for (const id of li.keys()) {
+        if (statisk.includes(id)) continue;
+        const etter = ider.findIndex((x) => sorter(spillAv.get(x).navn, spillAv.get(id).navn) > 0);
+        ider.splice(etter < 0 ? ider.length : etter, 0, id);
+      }
+    }
+    const ny = ider.join();
+    if (ny === rekke) return;
+    rekke = ny;
+    const slutt = $("#dor-celle");
+    for (const id of ider) liste.insertBefore(li.get(id), slutt);
   }
 
   // The 18+ room: a door until someone is 18, then a room like the others.
@@ -335,18 +321,41 @@
     if (ny) ny.focus();
   });
 
+  // Never a dead end: with nothing to show after a search, say so and offer something – the
+  // nearest we have when a well-known game is not here yet, else three of the most played – and
+  // the kinds of game. (What was typed is shown as text, never as markup.)
+  function ingenTreff() {
+    if (!sok) return `<p>${esc(svart() ? t("Ingen spill passer akkurat det. Prøv en annen alder eller et annet ønske.") : t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type."))}</p>`;
+    const ikke = funn && funn.ikkeEnna;
+    const mestSpilt = (liste) => liste.filter((s) => !s.alder18 && !s.tagger.includes("verktoy")).sort((a, b) => (a.topp || Infinity) - (b.topp || Infinity) || a.rekkefolge - b.rekkefolge).slice(0, 3);
+    const rommene = $$("#rommene .rom:not(.rom-laast)").map((b) => b.dataset.rom).filter((id) => id !== "voksen");
+    // The nearest we have: the games named for it, else the most played of its kind.
+    let naer = ikke ? ikke.spill.filter((s) => !s.alder18).slice(0, 3) : [];
+    if (ikke && !naer.length && rommene.includes(ikke.rom)) naer = mestSpilt(SPILL.filter((s) => F.iRom(s, ikke.rom)));
+    const mest = mestSpilt(SPILL);
+    if (ikke && rommene.includes(ikke.rom)) rommene.unshift(...rommene.splice(rommene.indexOf(ikke.rom), 1));
+    return `<p class="ingen-tittel">${esc(t("Fant ingen spill for «{sok}»", { sok }))}</p>${ikke ? `<p class="ingen-ikke">${esc(t("Det har vi ikke ennå."))}</p>` : ""}
+      <p class="ingen-under">${esc(naer.length ? t("Det nærmeste vi har:") : t("Prøv et av de mest spilte:"))}</p>
+      <ul class="ingen-liste">${(naer.length ? naer : mest).map((s) => `<li>${flis(s)}</li>`).join("")}</ul>
+      <p class="ingen-under">${esc(t("Eller velg en type spill:"))}</p>
+      <div class="ingen-rom">${rommene.map((id) => `<button type="button" class="brikke" data-til-rom="${id}">${esc(knappTekst(`#rommene [data-rom="${id}"]`))}</button>`).join("")}</div>`;
+  }
+
   let dorHtml = ""; // what the 18+ door says now
+  let ingenHtml = null; // … and the box for «nothing fits»
   // o.stille: nothing read aloud (the first drawing, a page back from memory).
   function oppdater(o = {}) {
     synk18();
     visVoksenRom();
+    ordne();
     const vis = new Set(SPILL.filter(passer).map((s) => s.id));
     const bokstaver = new Set();
     let vist = 0;
     for (const li of $$("li[data-id]", liste)) {
       const ja = vis.has(li.dataset.id);
       li.hidden = !ja;
-      li.classList.toggle("forste", ja && !bokstaver.has(li.dataset.b));
+      // (the letters belong to A–Å, not to the search's order)
+      li.classList.toggle("forste", !funn && ja && !bokstaver.has(li.dataset.b));
       if (ja) {
         bokstaver.add(li.dataset.b);
         vist++;
@@ -358,7 +367,7 @@
     // The 18+ door at the end of the list: before anyone is 18, when nothing is chosen, for
     // «Vorspiel», and when a search also fits drinking games. After: «Skjul» to hide them again.
     const dor = $("#dor-celle");
-    const bakDora = !over18 && sok ? SPILL.filter((s) => s.alder18 && passerSok(s, sok)).length : 0;
+    const bakDora = !over18 && funn ? SPILL.filter((s) => s.alder18 && funn.av.has(s.id)).length : 0;
     if (dor) {
       const n18 = SPILL.filter((s) => s.alder18).length;
       dor.hidden = over18 ? !(rom === "voksen" || !valgt) : !(!valgt || hurtig === "vors" || bakDora);
@@ -375,8 +384,18 @@
 
     $("#alle-t").textContent = valgt ? t("{n} spill passer", { n: vist }) : t("Alle spill A–Å");
     $("#nullstill").hidden = !valgt;
-    $("#ingen-treff").hidden = vist > 0 || dorApen;
-    $("#ingen-treff").textContent = svart() && !sok ? t("Ingen spill passer akkurat det. Prøv en annen alder eller et annet ønske.") : t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type.");
+    const tomt = vist === 0 && !dorApen;
+    $("#ingen-treff").hidden = !tomt;
+    const ingen = tomt ? ingenTreff() : "";
+    // (only when it changes: the pictures in it are not fetched again for every letter typed)
+    if (ingen !== ingenHtml) {
+      $("#ingen-treff").innerHTML = ingen;
+      ingenHtml = ingen;
+    }
+    // A typo the search put right: say which word the matches are for.
+    const rettet = funn && funn.rettet && !tomt ? t("Viser treff for «{ord}»", { ord: funn.rettet }) : "";
+    $("#sok-melding").hidden = !rettet;
+    $("#sok-melding").textContent = rettet;
 
     // The choices as chips that can be removed one by one.
     const aktive = aktiveValg();
@@ -388,15 +407,12 @@
     // The best suggestions (rusj/portal/finner.js), once something is chosen and more than three fit.
     beste = [];
     besteVist = BESTE;
-    if (valgt && vist > BESTE) {
-      const ubesvart = { antall: "", yngst: rom === "voksen" ? "fest" : "voksen", lyst: "alt" };
-      beste = F.finn(SPILL.filter(passer), svart() ? finnValg() : ubesvart, { maned: MANED });
-      if (sok) {
-        const q = ren(sok).split(" ")[0];
-        const vekt = (s) => (ren(s.navn).startsWith(q) ? 0 : ren(s.navn).includes(q) ? 1 : 2);
-        beste = beste.map((s, i) => ({ s, i })).sort((a, b) => vekt(a.s) - vekt(b.s) || a.i - b.i).map((x) => x.s);
-      }
-      beste = beste.slice(0, 3 * BESTE);
+    // (Not while words are searched for: then the list itself is in the order of the best match.)
+    if (valgt && vist > BESTE && !(funn && funn.tekst)) {
+      let svar = svart() ? finnValg() : { antall: "", yngst: rom === "voksen" ? "fest" : "voksen", lyst: "alt" };
+      // «for to» and «kjapt» in the search count as answers here.
+      if (funn) svar = Object.assign({}, svar, funn.antall && !svar.antall ? { antall: funn.antall } : null, funn.kjapt && svar.lyst === "alt" ? { lyst: "kjapt" } : null);
+      beste = F.finn(SPILL.filter(passer), svar, { maned: MANED }).slice(0, 3 * BESTE);
     }
     visBeste();
 
@@ -411,9 +427,11 @@
     if (!o.stille) {
       const voksne = SPILL.length - totalt;
       si(
-        valgt
-          ? t("Viser {synlige} av {n} spill", { synlige: vist, n: totalt }) + (bakDora ? " " + t("+ {n} for voksne (18+)", { n: bakDora }) : "")
-          : voksne
+        tomt && sok
+          ? t("Fant ingen spill for «{sok}»", { sok }) + (funn && funn.ikkeEnna ? " " + t("Det har vi ikke ennå.") : "")
+          : valgt
+            ? (rettet ? rettet + ". " : "") + t("Viser {synlige} av {n} spill", { synlige: vist, n: totalt }) + (bakDora ? " " + t("+ {n} for voksne (18+)", { n: bakDora }) : "")
+            : voksne
             ? t("{n} spill + {voksne} for voksne (18+)", { n: totalt, voksne })
             : t("{n} spill – trykk på ett for å starte", { n: totalt }),
         o.skriver,
@@ -447,7 +465,7 @@
         hurtig = "";
         valg = F.normaliser({}, over18);
       } else if (n === "sok") {
-        sok = "";
+        settSok("");
         $("#sok").value = "";
       } else {
         valg[n] = n === "yngst" ? "voksen" : n === "lyst" ? "alt" : "";
@@ -495,6 +513,12 @@
     const r = e.target.closest("#rommene [data-rom], [data-til-rom]");
     if (r) {
       const id = r.dataset.rom || r.dataset.tilRom;
+      // From the box under a search that found nothing: the room instead of the search.
+      const fraIngen = !!r.closest("#ingen-treff");
+      if (fraIngen) {
+        settSok("");
+        $("#sok").value = "";
+      }
       if (id === "voksen" && !over18) {
         if (!(await bekreft18())) return;
         rom = "voksen";
@@ -505,6 +529,7 @@
       rom = rom === id && r.dataset.rom ? "" : id;
       oppdater();
       if (rom) tilResultat();
+      if (fraIngen) $("#alle-t").focus({ preventScroll: true }); // the button that was pressed is gone
       return;
     }
     if (e.target.closest("[data-atten]")) {
@@ -525,7 +550,7 @@
   $("#nullstill").addEventListener("click", () => {
     rom = "";
     hurtig = "";
-    sok = "";
+    settSok("");
     $("#sok").value = "";
     valg = F.normaliser({}, over18);
     oppdater();
@@ -547,7 +572,7 @@
   const sokFelt = $("#sok");
   sokFelt.addEventListener("input", () => {
     const for_ = sok;
-    sok = sokFelt.value.slice(0, 40).trim();
+    settSok(sokFelt.value.slice(0, 40).trim());
     oppdater({ skriver: true });
     if (sok && !for_) tilResultat();
   });
@@ -555,7 +580,7 @@
     if (e.key === "Escape" && sokFelt.value) {
       e.preventDefault();
       sokFelt.value = "";
-      sok = "";
+      settSok("");
       oppdater();
     } else if (e.key === "Enter") {
       // «Søk» on the keyboard: put it away; the matches are right under the bar.
@@ -565,7 +590,7 @@
     }
   });
   $("#sok-tom").addEventListener("click", () => {
-    sok = "";
+    settSok("");
     sokFelt.value = "";
     oppdater();
     sokFelt.focus();
