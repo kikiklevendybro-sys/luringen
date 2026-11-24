@@ -1222,13 +1222,22 @@
     display: none;
   }
 
-  /* Home: «Send en utfordring» and the record chip fit a phone in the browser (390 × 664) */
+  /* Home: «Send en utfordring», «Spill med en venn på nett» and the record chip fit a phone in
+     the browser (390 × 664) */
+  .skjerm-hjem .spillhjem {
+    gap: 8px;
+  }
+
   .skjerm-hjem .spillhjem .figur-ramme {
-    width: min(34vw, 128px);
+    width: min(24vw, 88px);
+  }
+
+  .skjerm-hjem .spillhjem h1 {
+    font-size: clamp(2.2rem, 10.5vw, 2.9rem);
   }
 
   .skjerm-hjem .hjem-knapper {
-    gap: 10px;
+    gap: 8px;
   }
 
   .skjerm-hjem .hjem-knapper .knapp-2 {
