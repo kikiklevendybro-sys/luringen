@@ -5,6 +5,7 @@
 // tap shows a faint mark first, five at the edge wins). Everything must fit on small phones.
 // Runs in every edition (node test/rusj-e2e.mjs --sprak en bonden): the texts are checked in
 // Norwegian only (t.norsk); elsewhere the names, the state and the links (t.forside).
+import { sjekkVariantlenke } from "./variantlenke.mjs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { mkdirSync } from "node:fs";
@@ -233,4 +234,8 @@ export default async function (t) {
   await t.bilde("stor-vinner");
   await storrelse(t, "stor", 375, 560);
   await storrelse(t, "stor", 320, 568);
+
+  // ---------- The front page's row «Fem på rad · i Bonden»: rusj.no/bonden/#variant=fem ----------
+  // The setup with the big board chosen; with three in a row in progress the usual question first.
+  await sjekkVariantlenke(t, { variant: "fem", valgt: `Rusj.S.oppsett.variant !== "tre"`, annet: `Rusj.S.oppsett.variant = "tre"`, start: { navn: ["Testspiller A", "Testspiller B"] } });
 }

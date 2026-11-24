@@ -30,7 +30,9 @@ before(() => {
     const sok = S.lag({ spill, taggsok, sprak, F });
     // What a visitor sees before the 18+ door: the games (and variants) found, best first.
     const finn = (q) => sok.sok(q).treff.filter((x) => !x.s.alder18).map((x) => x.n);
-    U[sprak] = { spill, av: new Map(spill.map((s) => [s.id, s])), sok, finn };
+    // … and the game of the best match (the game itself, or the game a variant is inside).
+    const forste = (q) => (finn(q)[0] || "").split("#")[0];
+    U[sprak] = { spill, av: new Map(spill.map((s) => [s.id, s])), sok, finn, forste };
   }
 });
 after(() => {
@@ -38,6 +40,8 @@ after(() => {
 });
 
 const vanlige = (sprak) => U[sprak].spill.filter((s) => !s.alder18);
+// The game of a hit: «pusen» for the game and for «pusen#fisk» (Fisk, inside Pusen).
+const spillAv = (sprak, n) => U[sprak].av.get(n.split("#")[0]);
 const ider = (liste) => liste.map((s) => s.id).sort();
 
 test("the names people use find the game, first in the list (Norwegian)", () => {
@@ -50,7 +54,8 @@ test("the names people use find the game, first in the list (Norwegian)", () => 
     "go fish": "pusen", solitaire: "kortkongen", patience: "kortkongen", minesweeper: "minesveiperen", flappy: "maneten", suika: "planeten", "candy crush": "ekornet",
     "bubble shooter": "bobla", yatzy: "terninga", yahtzee: "terninga", kabal: "kortkongen", sjakk: "sjakkhesten", ludo: "brikka", backgammon: "tavla", sudoku: "tallknuseren",
   };
-  for (const [q, id] of Object.entries(forst)) assert.equal(U.nb.finn(q)[0], id, `«${q}» → ${U.nb.finn(q).slice(0, 4).join(", ") || "ingenting"}`);
+  // (the game itself, or the well-known game inside it: «go fish» is Fisk in Pusen)
+  for (const [q, id] of Object.entries(forst)) assert.equal(U.nb.forste(q), id, `«${q}» → ${U.nb.finn(q).slice(0, 4).join(", ") || "ingenting"}`);
   // «gartic» is both the drawing game and the chain of drawings.
   assert.ok(U.nb.finn("gartic").includes("hviskeleken"), U.nb.finn("gartic").join());
   // «sjakk»: the chess game before the games with chess in their genre.
@@ -63,9 +68,9 @@ test("the names people use find the game, first in the list (Norwegian)", () => 
 
 test("the same in the English and the Danish edition", () => {
   const en = { uno: "vriatter", alias: "skravla", taboo: "skravla", codenames: "kodeknekkeren", wordle: "ordugla", kahoot: "bedreviteren", mafia: "varulven", yahtzee: "terninga", chess: "sjakkhesten", boggle: "edderkoppen", othello: "reversi", mastermind: "lasesmeden", "candy crush": "ekornet", patience: "kortkongen", "never have i ever": "sladrehanken", battleships: "admiralen", "go fish": "pusen" };
-  for (const [q, id] of Object.entries(en)) assert.equal(U.en.finn(q)[0], id, `en «${q}» → ${U.en.finn(q).slice(0, 4).join(", ") || "nothing"}`);
+  for (const [q, id] of Object.entries(en)) assert.equal(U.en.forste(q), id, `en «${q}» → ${U.en.finn(q).slice(0, 4).join(", ") || "nothing"}`);
   const da = { uno: "vriatter", olsen: "vriatter", alias: "skravla", tabu: "skravla", codenames: "kodeknekkeren", wordle: "ordugla", kahoot: "bedreviteren", mafia: "varulven", yatzy: "terninga", skak: "sjakkhesten", boggle: "edderkoppen", othello: "reversi", kabale: "kortkongen", "jeg har aldrig": "sladrehanken", "sænke slagskibe": "admiralen" };
-  for (const [q, id] of Object.entries(da)) assert.equal(U.da.finn(q)[0], id, `da «${q}» → ${U.da.finn(q).slice(0, 4).join(", ") || "ingenting"}`);
+  for (const [q, id] of Object.entries(da)) assert.equal(U.da.forste(q), id, `da «${q}» → ${U.da.finn(q).slice(0, 4).join(", ") || "ingenting"}`);
 });
 
 test("a typo is put right from our own words, and the search says which word it shows", () => {
@@ -109,7 +114,7 @@ test("head counts: «2 spillere», «to spillere», «for to», «par» give the
   }
   // A count and words together.
   const kort = U.nb.finn("kortspill for to");
-  assert.ok(kort.length >= 4 && kort.every((id) => U.nb.av.get(id).spillere[0] <= 2 && U.nb.av.get(id).spillere[1] >= 2 && U.nb.av.get(id).tagger.includes("kort")), kort.join());
+  assert.ok(kort.length >= 4 && kort.every((n) => spillAv("nb", n).spillere[0] <= 2 && spillAv("nb", n).spillere[1] >= 2 && spillAv("nb", n).tagger.includes("kort")), kort.join());
   // A number that is not a head count is left alone.
   assert.equal(U.nb.finn("20 spørsmål")[0], "detektiven");
   assert.equal(U.nb.finn("2048")[0], "dobleren");
@@ -194,13 +199,14 @@ test("the facts in whole phrases: one phone, several, a phone each, alone, again
   assert.deepEqual(U.da.finn("hurtigt").slice().sort(), ider(vanlige("da").filter((s) => s.minutter[0] < 10)));
   // A fact and a word together.
   assert.equal(U.nb.finn("yatzy mot data")[0], "terninga");
-  assert.ok(U.nb.finn("kortspill alene").every((id) => U.nb.av.get(id).spillere[0] === 1));
+  assert.ok(U.nb.finn("kortspill alene").every((n) => spillAv("nb", n).spillere[0] === 1));
 });
 
 test("«på nett» finds exactly the games that can be played online", () => {
   for (const [sprak, sporsmal] of [["nb", ["på nett", "online", "nettspill", "spill på nett", "på nettet"]], ["en", ["online", "online games", "remote"]], ["da", ["online", "på nettet", "spil online"]]]) {
     const nett = ider(vanlige(sprak).filter((s) => s.nett));
     assert.ok(nett.length >= 30, `${sprak}: bare ${nett.length} spill på nett`);
+    assert.deepEqual(ider(vanlige(sprak).filter((s) => F.iRom(s, "nett"))), nett, `${sprak}: rommet «På nett» og søket er ikke de samme spillene`);
     for (const q of sporsmal) assert.deepEqual(U[sprak].finn(q).slice().sort(), nett, `${sprak} «${q}»`);
     // No game carries the bare words as a search word of its own (it would join the list).
     for (const s of U[sprak].spill) for (const q of sporsmal) assert.ok(![s.navn, s.undertittel, ...s.sok].map(S.ren).includes(S.ren(q)), `${sprak} ${s.id}: «${q}» er et eget søkeord`);
@@ -257,6 +263,42 @@ test("never a dead end: a well-known game that is not here says «not yet» and 
   const tomt = U.nb.sok.sok("  ");
   assert.equal(tomt.tom, true);
   assert.deepEqual(tomt.treff.map((x) => x.n), U.nb.spill.map((s) => s.id));
+});
+
+test("well-known games inside games are entries of their own: «spider», «freecell», «fem på rad», «gin rummy», «svarteper»", () => {
+  const forst = {
+    spider: "kortkongen#edderkopp", "spider kabal": "kortkongen#edderkopp", edderkoppkabal: "kortkongen#edderkopp", freecell: "kortkongen#freecell", "free cell": "kortkongen#freecell",
+    pyramidekabal: "kortkongen#pyramide", "tre topper": "kortkongen#topper", "tri peaks": "kortkongen#topper", golfkabal: "kortkongen#golf",
+    "fem på rad": "bonden#fem", gomoku: "bonden#fem", "gin rummy": "samleren#gin", 500: "samleren#500", femhundre: "samleren#500",
+    svarteper: "pusen#svarte", "go fish": "pusen#fisk", krig: "pusen#krig", snapp: "pusen#snap", "én natt": "varulven#en", "one night": "varulven#en",
+  };
+  for (const [q, n] of Object.entries(forst)) assert.equal(U.nb.finn(q)[0], n, `«${q}» → ${U.nb.finn(q).slice(0, 4).join(", ") || "ingenting"}`);
+  for (const [q, n] of Object.entries({ spider: "kortkongen#edderkopp", "spider solitaire": "kortkongen#edderkopp", freecell: "kortkongen#freecell", "five in a row": "bonden#fem", "gin rummy": "samleren#gin", "old maid": "pusen#svarte", "go fish": "pusen#fisk", "one night": "varulven#en" })) assert.equal(U.en.finn(q)[0], n, `en «${q}» → ${U.en.finn(q).slice(0, 4).join(", ")}`);
+  for (const [q, n] of Object.entries({ spider: "kortkongen#edderkopp", freecell: "kortkongen#freecell", "fem på stribe": "bonden#fem", "gin rummy": "samleren#gin", "sorte per": "pusen#svarte", "én nat": "varulven#en" })) assert.equal(U.da.finn(q)[0], n, `da «${q}» → ${U.da.finn(q).slice(0, 4).join(", ")}`);
+  // «spider» and «freecell» are the solitaires inside Kortkongen and nothing else.
+  assert.deepEqual(U.nb.finn("spider"), ["kortkongen#edderkopp"]);
+  assert.deepEqual(U.nb.finn("freecell"), ["kortkongen#freecell"]);
+  // The genre finds the game first, then the games inside it; a game named for the word before a variant.
+  const kabal = U.nb.finn("kabal");
+  assert.equal(kabal[0], "kortkongen");
+  for (const v of ["edderkopp", "freecell", "pyramide", "topper", "golf"]) assert.ok(kabal.includes(`kortkongen#${v}`), `«kabal» mangler ${v}: ${kabal.join(", ")}`);
+  assert.deepEqual(U.nb.finn("golf").slice(0, 2), ["golfballen", "kortkongen#golf"]);
+  // A hit carries the game and the variant (the page links to /<game>/#variant=<id>).
+  const treff = U.nb.sok.sok("freecell").treff[0];
+  assert.equal(treff.s.id, "kortkongen");
+  assert.deepEqual([treff.v.id, treff.v.navn], ["freecell", "FreeCell"]);
+  // Never counted as games: not in an empty search, and not found by facts alone.
+  for (const q of ["", "for to", "på nett", "alene", "kjapt"]) assert.ok(U.nb.sok.sok(q).treff.every((x) => !x.v), `«${q}» lister varianter`);
+  assert.equal(U.nb.sok.sok("").treff.length, U.nb.spill.length);
+  // A variant's own facts count where it has them: gin rummy is for two, Snapp is not played online.
+  assert.equal(U.nb.finn("gin rummy for to")[0], "samleren#gin");
+  assert.ok(!U.nb.finn("gin rummy for fire").includes("samleren#gin"), "gin rummy for fire");
+  assert.ok(!U.nb.finn("snapp på nett").includes("pusen#snap"), "Snapp spilles ikke på nett");
+  assert.ok(U.nb.finn("svarteper på nett").includes("pusen#svarte"));
+  // The five games, and every variant with a name in all three editions.
+  const med = U.nb.spill.filter((s) => s.varianter);
+  assert.deepEqual(med.map((s) => s.id).sort(), ["bonden", "kortkongen", "pusen", "samleren", "varulven"]);
+  for (const sprak of ["en", "da"]) for (const s of med) assert.deepEqual((U[sprak].av.get(s.id).varianter || []).map((v) => v.id), s.varianter.map((v) => v.id), `${sprak} ${s.id}: variantene`);
 });
 
 test("the 18+ games are found like the others (the page keeps them behind the door)", () => {

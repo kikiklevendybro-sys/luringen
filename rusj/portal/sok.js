@@ -16,7 +16,8 @@
 
    A game is an entry of window.RUSJ_SPILLISTE: { id, navn, undertittel, kort, sok, tagger, spillere,
    minutter, mobiler, rekkefolge, topp?, nett?, motMobilen?, alder18?, varianter?: [{ id, navn,
-   undertittel?, sok }] }. */
+   undertittel?, sok, spillere?, minutter?, nett? }] } – a variant's own facts only where they differ
+   from the game's. */
 (function (root) {
   "use strict";
 
@@ -210,7 +211,9 @@
         legg(s.kort, 2, false, false);
         for (const tg of s.tagger || []) for (const x of taggsok[tg] || []) legg(x, 3, false, true);
       }
-      return { s, v: variant || null, n: variant ? s.id + "#" + variant.id : s.id, ord: Array.from(ord), fraser, nr };
+      // f: the facts a query is held against (a variant's own, where it has them).
+      const f = variant ? Object.assign({}, s, variant.spillere ? { spillere: variant.spillere } : null, variant.minutter ? { minutter: variant.minutter } : null, variant.nett === false ? { nett: false } : null) : s;
+      return { s, v: variant || null, f, n: variant ? s.id + "#" + variant.id : s.id, ord: Array.from(ord), fraser, nr };
     }
     for (const s of spill) {
       oppforinger.push(oppforing(s, null, 0));
@@ -323,7 +326,7 @@
           if (best < 0) ok = false;
           else if (best > poeng) poeng = best;
         }
-        if (ok && !krav.every((k) => k.passer(e.s))) ok = false;
+        if (ok && !krav.every((k) => k.passer(e.f))) ok = false;
         if (!ok && !noyaktig) continue;
         if (!ok) poeng = 6;
         const frase = flere && e.fraser.some((f) => (" " + f).includes(flere));

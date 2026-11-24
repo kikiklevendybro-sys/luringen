@@ -787,5 +787,7 @@
   "Det nærmeste vi har:": "The nearest we have:",
   "Prøv et av de mest spilte:": "Try one of the most played:",
   "Eller velg en type spill:": "Or pick a type of game:",
-  "Hjelp oss å velge": "Help us choose"
+  "Hjelp oss å velge": "Help us choose",
+  "i {spill}": "in {spill}",
+  "Også:": "Also:"
 }

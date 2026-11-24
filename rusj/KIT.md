@@ -126,6 +126,29 @@ test/spill/<id>.e2e.mjs         automated play-through (required)
 - spill.json: `"alias": ["jeg-har-aldri"]` — extra addresses (`rusj.no/jeg-har-aldri`) that send on to the
   game. Lower case, digits and hyphens; never another company's game name. The build stops when an alias
   is already a game, a collection (`rusj/samlinger/`), a page or another alias.
+- spill.json: `"varianter"` — well-known games inside your game (Edderkoppkabal in Kortkongen, «Fem på
+  rad» in Bonden). Each is an entry of its own in the front-page search («FreeCell · i Kortkongen») and
+  a link under your game's row in a room; never counted as a game. The words people type for it go in
+  its own `sok`, not in the game's.
+  ```json
+  "varianter": [
+    { "id": "fem", "navn": "Fem på rad", "undertittel": "Kryss og bolle på stort brett", "sok": ["fem på rad", "gomoku"],
+      "i18n": { "en": { "navn": "Five in a row", "undertittel": "…", "sok": ["five in a row"] }, "da": { … } } }
+  ]
+  ```
+  `spillere`, `minutter` and `"nett": false` only where the variant differs from the game. No brand in
+  `navn` or `undertittel`. The row opens `/<id>/#variant=<variant id>`, so the game needs the two hooks
+  below (the build stops without `variant`):
+  - `variant(S, id)` in `Rusj.start`: choose the variant in your setup and return the screen to show
+    (your normal setup or start screen), or `null` for an id you do not have – or when that variant is
+    already on the table, so the visit goes on as usual.
+  - A game in progress is never thrown away unasked: when one is on, the kit first shows the usual
+    «Starte et nytt spill?» over the screen the visit starts on, and calls `variant` only after «Start
+    nytt». It asks when `pagar(S)` is true; say it more exactly with `variantSpor(S, id)` – return
+    `false` when nothing would be replaced (the same variant is on the table already, or every variant
+    keeps its own game, as in Kortkongen), or `{ solo: true }` for the wording to one person.
+  The same link works while the page is open (`hashchange`). Check it in your e2e scenario with
+  `test/spill/variantlenke.mjs`.
 - **«Slik spiller dere …» under the page:** the build runs your `spill.js` once in Node, takes the
   `regler` you pass to `Rusj.start` (intro, steg, tips) and prints them as readable text below the app,
   plus 20–30 examples from your data when `scripts/om-spillet.mjs` (`EKSEMPLER`) has an entry for the
@@ -300,6 +323,8 @@ R.start({
   regler: { intro, steg: [[tittel, tekst], ...], tips: [...] },     // "?" button + rules sheet
   hemmelig: { innhold(S, id) { return { html, klasse } }, sett(S, id) {} },  // hold-to-reveal cards
   vedHash(S, hash) { return "skjermnavn" | null },                    // join links  …/<id>/#CODE
+  variant(S, id) { return "oppsett" | null },                         // …/<id>/#variant=<id> (spill.json "varianter")
+  variantSpor(S, id) { return false | true | { solo: true } },        // ask before a game in progress is replaced?
   vedSpillere(S) {},                 // after a player is added/removed in R.ui.spillere()
   felt: { navn(S, el, e) {} },       // <input data-felt="navn"> → called on every input
   skjema: { navn(S, form, e) {} },   // <form data-skjema="navn"> → called on submit

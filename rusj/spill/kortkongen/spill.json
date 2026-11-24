@@ -10,8 +10,15 @@
   "mobiler": "en",
   "tagger": ["daglig", "klassiker", "kort", "alene", "tenke"],
   "rekkefolge": 25,
-  "sok": ["kabal", "klondike", "solitaire", "patience", "kortkabal", "kabal på nett", "dagens kabal", "edderkopp", "edderkoppkabal", "spider", "freecell", "pyramide", "pyramidekabal", "tre topper", "tri peaks", "golf", "golfkabal"],
+  "sok": ["kabal", "klondike", "solitaire", "patience", "kortkabal", "kabal på nett", "dagens kabal"],
   "alias": ["kabal"],
+  "varianter": [
+    { "id": "edderkopp", "navn": "Edderkoppkabal", "undertittel": "Bygg hele rekker i samme sort", "sok": ["edderkopp", "edderkoppkabal", "spider", "spider kabal", "spiderkabal", "spider solitaire"], "i18n": { "en": { "navn": "Spider patience", "undertittel": "Build whole runs in one suit", "sok": ["spider", "spider solitaire", "spider patience"] }, "da": { "navn": "Edderkopkabale", "undertittel": "Byg hele rækker i samme kulør", "sok": ["edderkop", "edderkopkabale", "spider", "spider kabale", "spider solitaire"] } } },
+    { "id": "freecell", "navn": "FreeCell", "undertittel": "Alle kortene synlige, fire frie celler", "sok": ["freecell", "free cell", "frie celler", "freecell kabal"], "i18n": { "en": { "navn": "FreeCell", "undertittel": "Every card face up, four free cells", "sok": ["freecell", "free cell", "freecell solitaire", "freecell patience"] }, "da": { "navn": "FreeCell", "undertittel": "Alle kort synlige, fire frie celler", "sok": ["freecell", "free cell", "frie celler", "freecell kabale"] } } },
+    { "id": "pyramide", "navn": "Pyramidekabal", "undertittel": "Fjern par som blir 13", "sok": ["pyramide", "pyramidekabal", "pyramide kabal", "pyramid solitaire"], "i18n": { "en": { "navn": "Pyramid patience", "undertittel": "Remove pairs that make 13", "sok": ["pyramid", "pyramid solitaire", "pyramid patience"] }, "da": { "navn": "Pyramidekabale", "undertittel": "Fjern par, der giver 13", "sok": ["pyramide", "pyramidekabale", "pyramide kabale", "pyramid solitaire"] } } },
+    { "id": "topper", "navn": "Tre topper", "undertittel": "Rydd tre topper – ett opp eller ned", "sok": ["tre topper", "tri peaks", "tripeaks", "tre topper kabal"], "i18n": { "en": { "navn": "Tri Peaks", "undertittel": "Clear three peaks – one up or down", "sok": ["tri peaks", "tripeaks", "three peaks", "tri peaks solitaire"] }, "da": { "navn": "Tre tinder", "undertittel": "Ryd tre tinder – én op eller ned", "sok": ["tre tinder", "tri peaks", "tripeaks", "tre tinder kabale"] } } },
+    { "id": "golf", "navn": "Golfkabal", "undertittel": "Rydd sju kolonner – ett opp eller ned", "sok": ["golfkabal", "golf kabal", "golf solitaire"], "i18n": { "en": { "navn": "Golf patience", "undertittel": "Clear seven columns – one up or down", "sok": ["golf solitaire", "golf patience"] }, "da": { "navn": "Golfkabale", "undertittel": "Ryd syv kolonner – én op eller ned", "sok": ["golfkabale", "golf kabale", "golf solitaire"] } } }
+  ],
   "i18n": {
     "en": {
       "navn": "Card King",
@@ -19,7 +26,7 @@
       "kort": "Ace to king, red on black. Will it come out?",
       "beskrivelse": "Free patience in your browser: Klondike with a new deal every day, plus Spider, FreeCell, Pyramid, Tri Peaks and Golf. Undo, hints and deals that can come out.",
       "slug": "card-king",
-      "sok": ["patience", "solitaire", "klondike", "klondike solitaire", "daily solitaire", "card game", "card king", "spider solitaire", "freecell", "pyramid solitaire", "tri peaks", "golf solitaire"]
+      "sok": ["patience", "solitaire", "klondike", "klondike solitaire", "daily solitaire", "card game", "card king"]
     },
     "da": {
       "navn": "Kortkongen",
@@ -27,7 +34,7 @@
       "kort": "Es til konge, rød på sort. Går kabalen op?",
       "beskrivelse": "Gratis kabale på dansk: Klondike med »Dagens kabale«, Edderkop, FreeCell, Pyramide, Tre tinder og Golf. Fortryd, hint og kabaler, der kan gå op.",
       "slug": "kortkongen",
-      "sok": ["kabale", "klondike", "solitaire", "kabale online", "dagens kabale", "7-kabale", "kortspil", "edderkop", "edderkopkabale", "spider", "freecell", "pyramide", "tri peaks", "tre tinder", "golf", "patience"]
+      "sok": ["kabale", "klondike", "solitaire", "kabale online", "dagens kabale", "7-kabale", "kortspil", "patience"]
     }
   }
 }

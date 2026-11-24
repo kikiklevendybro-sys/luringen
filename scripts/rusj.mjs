@@ -413,6 +413,58 @@ export function sjekkAlder(m, hvor) {
   if (!Number.isInteger(m.alder) || m.alder < min || m.alder > maks) throw new Error(`${hvor}: "alder" må være et helt tall fra ${min} til ${maks}, ikke ${JSON.stringify(m.alder)}`);
   if (m.alder18 && m.alder !== 18) throw new Error(`${hvor}: et 18+-spill skal ha "alder": 18, ikke ${m.alder}`);
 }
+// "varianter": well-known games inside a game (Edderkoppkabal in Kortkongen, «Fem på rad» in Bonden).
+// Each one is an entry of its own in the front-page search and opens with /<id>/#variant=<variant
+// id>, which the game's `variant` hook answers (rusj/KIT.md). Not games of their own: never counted,
+// never in «Alle spill A–Å».
+//   [{ id, navn, undertittel?, sok: [], spillere?: [a, b], minutter?: [a, b], nett?: false,
+//      i18n?: { en: { navn, undertittel?, sok }, da: { … } } }]
+// spillere, minutter and nett only where the variant differs from the game. A name or a genre is
+// shown on the front page: never another company's brand there (those go in "sok").
+export function sjekkVarianter(m, hvor) {
+  if (m.varianter == null) return;
+  if (!Array.isArray(m.varianter) || !m.varianter.length) throw new Error(`${hvor}: "varianter" må være en liste med minst én variant`);
+  const ider = new Set();
+  const tekster = (v, sted) => {
+    if (typeof v.navn !== "string" || !v.navn.trim()) throw new Error(`${hvor}: ${sted} mangler "navn"`);
+    if (v.undertittel != null && (typeof v.undertittel !== "string" || !v.undertittel.trim())) throw new Error(`${hvor}: ${sted} har en tom "undertittel"`);
+    if (!Array.isArray(v.sok) || v.sok.some((o) => typeof o !== "string" || !o.trim())) throw new Error(`${hvor}: ${sted} må ha "sok" som en liste med ord`);
+    for (const felt of ["navn", "undertittel"]) {
+      const merke = v[felt] && merkeI(v[felt]);
+      if (merke) throw new Error(`${hvor}: ${sted}: «${merke}» i "${felt}" er en annens merkevare og kan bare stå i "sok"`);
+    }
+  };
+  for (const v of m.varianter) {
+    if (!v || typeof v !== "object" || Array.isArray(v)) throw new Error(`${hvor}: en variant må være { id, navn, sok }`);
+    if (typeof v.id !== "string" || v.id.length > 30 || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(v.id)) throw new Error(`${hvor}: variant-id-en «${v.id}» kan bare ha små bokstaver a–z, tall og bindestrek`);
+    if (ider.has(v.id)) throw new Error(`${hvor}: to varianter heter «${v.id}»`);
+    ider.add(v.id);
+    tekster(v, `varianten «${v.id}»`);
+    for (const felt of ["spillere", "minutter"]) {
+      const x = v[felt];
+      if (x != null && !(Array.isArray(x) && x.length === 2 && x.every(Number.isInteger) && x[0] >= 1 && x[0] <= x[1])) throw new Error(`${hvor}: varianten «${v.id}»: "${felt}" må være [fra, til]`);
+    }
+    if (v.nett != null && v.nett !== false) throw new Error(`${hvor}: varianten «${v.id}»: "nett" kan bare være false (varianten kan ikke spilles på nett selv om spillet kan)`);
+    if (v.i18n != null) {
+      if (typeof v.i18n !== "object" || Array.isArray(v.i18n)) throw new Error(`${hvor}: varianten «${v.id}»: "i18n" må være { en: {…}, da: {…} }`);
+      for (const [sprak, i] of Object.entries(v.i18n)) {
+        if (!SPRAK.includes(sprak)) throw new Error(`${hvor}: varianten «${v.id}»: ukjent språk «${sprak}» i "i18n"`);
+        if (!i || typeof i !== "object") throw new Error(`${hvor}: varianten «${v.id}»: i18n.${sprak} må være { navn, sok }`);
+        tekster(i, `varianten «${v.id}» (i18n.${sprak})`);
+      }
+    }
+  }
+}
+// A game's variants as one edition shows them (the front page's game list): those that have their
+// texts in the edition, with the facts only where they differ from the game's.
+export const varianterI = (m, sprak) =>
+  (m.varianter || [])
+    .map((v) => {
+      const k = sprak === "nb" ? v : v.i18n && v.i18n[sprak];
+      return k ? { id: v.id, navn: k.navn, ...(k.undertittel ? { undertittel: k.undertittel } : {}), ...(v.spillere ? { spillere: v.spillere } : {}), ...(v.minutter ? { minutter: v.minutter } : {}), ...(v.nett === false ? { nett: false } : {}), sok: k.sok } : null;
+    })
+    .filter(Boolean);
+
 export const TAGGER = {
   fest: "Fest",
   familie: "Familie",
@@ -467,6 +519,7 @@ export function lesSpill(rot, utvalg) {
     const m = JSON.parse(readFileSync(fil, "utf8"));
     sjekkAlder(m, fil);
     for (const felt of PAKREVD) if (m[felt] == null) throw new Error(`${fil}: mangler "${felt}"`);
+    sjekkVarianter(m, fil);
     if (m.id !== id) throw new Error(`${fil}: id "${m.id}" matcher ikke mappenavnet`);
     if (!G.finnes(id)) throw new Error(`${fil}: ingen figur for "${id}" i rusj/kit/gjengen.js`);
     if (!["en", "hver", "begge"].includes(m.mobiler)) throw new Error(`${fil}: mobiler må være en, hver eller begge`);
@@ -780,6 +833,8 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
     if (!existsSync(js)) throw new Error(`rusj/spill/${id}/spill.js mangler`);
     const spillJs = readFileSync(js, "utf8");
     if (/<\/script/i.test(spillJs)) throw new Error(`${id}: spill.js inneholder </script>`);
+    // A game with "varianter" answers /<id>/#variant=<id>: its Rusj.start() needs the `variant` hook.
+    if (nm.varianter && !/^ {4}variant\s*[(:]/m.test(spillJs)) throw new Error(`${id}: spill.json har "varianter", men spill.js mangler variant(S, id) i Rusj.start (se rusj/KIT.md)`);
     spillFiler.set(id, {
       kode: spillJs,
       js: skriv(`${id}/spill.js`, spillJs),
@@ -1013,6 +1068,8 @@ ${STEMPEL_FILTER}
       ...(paNett(m) ? { nett: true } : {}),
       // The game's own search words plus the ones in rusj/seo.json (what people call the game).
       sok: [...new Set([...(Array.isArray(m.sok) ? m.sok : []), ...U.sokedata(m).sok])],
+      // Well-known games inside this one: rows of their own in the search («FreeCell · i Kortkongen»).
+      ...(varianterI(m, U.sprak).length ? { varianter: varianterI(m, U.sprak) } : {}),
       fig: U.fig.get(m.id),
       ...(U.sprak === "nb" ? {} : { url: m.url }),
     }));

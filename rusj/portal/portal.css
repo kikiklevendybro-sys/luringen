@@ -2170,6 +2170,52 @@ body.portal {
   display: none;
 }
 
+/* A well-known game inside a game, as a row of its own: «FreeCell · i Kortkongen». */
+.spillflis-i {
+  color: var(--tekst-2);
+  font: 700 0.82em/1.2 var(--font-tekst);
+  white-space: nowrap;
+}
+
+/* … and under the game's own row in a room: «Også: Edderkoppkabal · FreeCell …», each a link. */
+.flis-ogsa {
+  display: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: 6px 0 2px;
+  padding: 0 4px;
+  color: var(--tekst-3);
+  font: 800 0.78rem/1.2 var(--font-display);
+}
+
+.alle-liste.rader.med-ogsa .flis-ogsa {
+  display: flex;
+}
+
+.flis-ogsa > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst);
+  font: 700 0.82rem/1.2 var(--font-tekst);
+  text-decoration: none;
+}
+
+.flis-ogsa > a:hover,
+.flis-ogsa > a:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--lampe);
+}
+
+/* (with the line under it, the row keeps its own height) */
+.alle-liste.rader.med-ogsa > li:has(> .flis-ogsa) > .spillflis {
+  height: auto;
+}
+
 /* A tile in a row that scrolls sideways («Fortsett», «Nytt»): the mascot, the name and the genre under it. */
 .forside-rad .spillflis {
   display: flex;

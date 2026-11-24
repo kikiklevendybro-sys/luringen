@@ -728,6 +728,66 @@ test("a brand name that helps the search is never written into a page: no `sok` 
   assert.match(readFileSync(join(WEB, "felles/sok.js"), "utf8"), /IKKE_ENNA/);
 });
 
+// ---------- "varianter" in spill.json: well-known games inside a game ----------
+
+test("\"varianter\": checked by the build, in the game list of every edition, and never games of their own", async () => {
+  const { sjekkVarianter, varianterI } = await import("../scripts/rusj.mjs");
+  const med = (v) => ({ id: "x", varianter: Array.isArray(v) ? v : [v] });
+  const ok = { id: "fem", navn: "Fem på rad", undertittel: "På stort brett", sok: ["fem på rad", "connect four"], spillere: [1, 2], minutter: [5, 20], nett: false, i18n: { en: { navn: "Five in a row", sok: ["five in a row", "uno"] } } };
+  assert.doesNotThrow(() => sjekkVarianter(med(ok), "x"));
+  assert.doesNotThrow(() => sjekkVarianter({ id: "x" }, "x"), "a game without variants");
+  assert.throws(() => sjekkVarianter(med([]), "x"), /minst én variant/);
+  assert.throws(() => sjekkVarianter({ varianter: "fem" }, "x"), /må være en liste/);
+  assert.throws(() => sjekkVarianter(med({ ...ok, id: "Fem På Rad" }), "x"), /små bokstaver a–z, tall og bindestrek/);
+  assert.throws(() => sjekkVarianter(med([ok, ok]), "x"), /to varianter heter «fem»/);
+  assert.throws(() => sjekkVarianter(med({ ...ok, navn: " " }), "x"), /mangler "navn"/);
+  assert.throws(() => sjekkVarianter(med({ ...ok, undertittel: "" }), "x"), /tom "undertittel"/);
+  assert.throws(() => sjekkVarianter(med({ ...ok, sok: "fem på rad" }), "x"), /"sok" som en liste/);
+  assert.throws(() => sjekkVarianter(med({ ...ok, spillere: [2, 1] }), "x"), /"spillere" må være \[fra, til\]/);
+  assert.throws(() => sjekkVarianter(med({ ...ok, minutter: "5" }), "x"), /"minutter" må være \[fra, til\]/);
+  assert.throws(() => sjekkVarianter(med({ ...ok, nett: true }), "x"), /"nett" kan bare være false/);
+  assert.throws(() => sjekkVarianter(med({ ...ok, i18n: { sv: { navn: "Fem i rad", sok: [] } } }), "x"), /ukjent språk «sv»/);
+  assert.throws(() => sjekkVarianter(med({ ...ok, i18n: { da: { sok: [] } } }), "x"), /\(i18n\.da\) mangler "navn"/);
+  // A name or a genre is shown on the front page: another company's brand only in "sok".
+  assert.throws(() => sjekkVarianter(med({ ...ok, navn: "Connect Four" }), "x"), /«connect four» i "navn" er en annens merkevare/);
+  assert.throws(() => sjekkVarianter(med({ ...ok, undertittel: "Som Uno" }), "x"), /«uno» i "undertittel" er en annens merkevare/);
+  assert.throws(() => sjekkVarianter(med({ ...ok, i18n: { en: { navn: "Uno", sok: [] } } }), "x"), /\(i18n\.en\): «uno» i "navn"/);
+  // As an edition shows them: its own texts, the facts only where the variant has its own.
+  assert.deepEqual(varianterI(med(ok), "nb"), [{ id: "fem", navn: "Fem på rad", undertittel: "På stort brett", spillere: [1, 2], minutter: [5, 20], nett: false, sok: ["fem på rad", "connect four"] }]);
+  assert.deepEqual(varianterI(med(ok), "en"), [{ id: "fem", navn: "Five in a row", spillere: [1, 2], minutter: [5, 20], nett: false, sok: ["five in a row", "uno"] }]);
+  assert.deepEqual(varianterI(med(ok), "da"), [], "no texts in the edition: not shown there");
+  assert.deepEqual(varianterI({ id: "x" }, "nb"), []);
+
+  // The real games: five have variants, in every edition, and each answers /<id>/#variant=<id>.
+  const HOOK = /^ {4}variant\s*[(:]/m;
+  assert.ok(!HOOK.test("    handlinger: {\n      variant(el, e, S) {}\n    }"), "an action called «variant» is not the hook");
+  const ekte = readdirSync(join(ROT, "rusj/spill")).filter((id) => existsSync(join(ROT, "rusj/spill", id, "spill.json"))).map((id) => JSON.parse(readFileSync(join(ROT, "rusj/spill", id, "spill.json"), "utf8")));
+  const medVarianter = ekte.filter((m) => m.varianter);
+  assert.deepEqual(medVarianter.map((m) => m.id).sort(), ["bonden", "kortkongen", "pusen", "samleren", "varulven"]);
+  for (const m of medVarianter) {
+    assert.match(readFileSync(join(ROT, "rusj/spill", m.id, "spill.js"), "utf8"), HOOK, `${m.id}: spill.js mangler variant(S, id) i Rusj.start`);
+    for (const v of m.varianter) assert.deepEqual(Object.keys(v.i18n || {}).sort(), ["da", "en"], `${m.id}: varianten «${v.id}» mangler navn på engelsk eller dansk`);
+  }
+  for (const [sti, liste, sprak] of [["index.html", "felles/spilliste.js", "nb"], ["en/index.html", "felles/spilliste.en.js", "en"], ["da/index.html", "felles/spilliste.da.js", "da"]]) {
+    const spill = spillliste(liste);
+    for (const m of medVarianter) {
+      const g = spill.find((x) => x.id === m.id);
+      assert.deepEqual(g.varianter, varianterI(m, sprak), `${sti}: variantene til ${m.id} i spillista`);
+      // The variants' own words are theirs alone: the game's own "sok" does not repeat them, so a
+      // search for «freecell» shows the row «FreeCell · i Kortkongen» and not the game as well.
+      const egne = (sprak === "nb" ? m.sok : m.i18n[sprak].sok) || [];
+      for (const v of g.varianter) for (const ord of v.sok) assert.ok(!egne.includes(ord), `${sti}: ${m.id}: «${ord}» står både i spillets og variantens "sok"`);
+    }
+    assert.ok(spill.filter((g) => !medVarianter.some((m) => m.id === g.id)).every((g) => !("varianter" in g)), `${sti}: «varianter» på et spill uten`);
+    // Not games of their own: not in the page as written (portal.js makes their rows when a search
+    // finds them), and not counted.
+    const html = readFileSync(join(WEB, sti), "utf8");
+    assert.ok(!html.includes("#variant="), `${sti}: en variant er skrevet inn i siden`);
+    assert.equal(aaListe(html).length, spill.filter((g) => !g.alder18).length);
+  }
+  assert.match(sider.find((s) => s.sti === "/").html, new RegExp(`<p class="start-linje"><b>${spillIder.length}</b> gratis spill`));
+});
+
 // ---------- "nett" in spill.json: games that can be played online (rusj/kit/nett.js) ----------
 
 test("the games that can be played online are flagged in the game list, and their facts say so", () => {

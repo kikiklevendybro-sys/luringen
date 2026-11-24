@@ -8,6 +8,7 @@
 // table; «Ny kabal» from home deals at once; the board fits on 320 × 568, 375 × 560 and on its side.
 // Runs in every edition (node test/rusj-e2e.mjs --sprak en kortkongen): the texts are checked in
 // Norwegian only (t.norsk); elsewhere the numbers, the state, the storage keys and the links.
+import { apneVariant } from "./variantlenke.mjs";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { join, dirname } from "node:path";
@@ -135,7 +136,7 @@ export default async function (t) {
   // Put a position in storage and open the game on it. (Via the front page: the game itself saves its
   // own state when the page is hidden, which would overwrite the injected one.)
   async function lastInn(S) {
-    await t.lastSide(t.url + "/", "document.querySelector('.spillgrid')");
+    await t.lastSide(t.url + "/", "document.querySelector('#alle-liste')");
     await t.js(`localStorage.setItem("${t.nokkel("kortkongen.v1")}", ${JSON.stringify(JSON.stringify(S))})`);
     await t.lastSide(t.side, "document.querySelectorAll('.kk-kort').length === 52");
     await t.sov(400);
@@ -333,7 +334,7 @@ export default async function (t) {
   await t.bilde("tomt-for-trekk");
 
   // 13. «Dagens kabal»: the day's fixed, proven deal – in its own slot beside free play
-  await t.lastSide(t.url + "/", "document.querySelector('.spillgrid')");
+  await t.lastSide(t.url + "/", "document.querySelector('#alle-liste')");
   await t.js(`localStorage.removeItem("${t.nokkel("kortkongen.v1")}"); localStorage.removeItem("${t.nokkel("daglig")}")`);
   await t.lastSide(t.side, "document.querySelector('.hjem-knapper')");
   const dag = await t.js("window.Rusj.dag()");
@@ -418,10 +419,10 @@ export default async function (t) {
   await t.vent("document.querySelector('.skjerm-slutt')");
   t.sjekk((!t.norsk || /Dagens kabal gikk opp/.test(await t.tekst("#skjerm h1"))), "«Se resultatet» åpner ikke dagens resultat");
   // …/kortkongen/#dagens: the result when it is solved, the board when it is not
-  await t.lastSide(t.url + "/", "document.querySelector('.spillgrid')");
+  await t.lastSide(t.url + "/", "document.querySelector('#alle-liste')");
   await t.lastSide(t.side + "#dagens", "document.querySelector('.skjerm-slutt')");
   t.sjekk((!t.norsk || /Dagens kabal gikk opp/.test(await t.tekst("#skjerm h1"))), "#dagens skal vise resultatet når dagens kabal er løst");
-  await t.lastSide(t.url + "/", "document.querySelector('.spillgrid')");
+  await t.lastSide(t.url + "/", "document.querySelector('#alle-liste')");
   await t.js(`localStorage.removeItem("${t.nokkel("kortkongen.v1")}")`);
   await t.lastSide(t.side + "#dagens", brettKlart);
   s = await t.tilstand();
@@ -576,7 +577,7 @@ async function varianter(t) {
   const kode = async (id) => (await t.tilstand()).v[id].kode;
   const kortKlart = (id) => `document.querySelectorAll('#kv-brett .kk-kort').length === ${ANTALL[id]}`;
   async function lastInn(S, ventPa) {
-    await t.lastSide(t.url + "/", "document.querySelector('.spillgrid')");
+    await t.lastSide(t.url + "/", "document.querySelector('#alle-liste')");
     await t.js(`localStorage.setItem("${t.nokkel("kortkongen.v1")}", ${JSON.stringify(JSON.stringify(S))})`);
     await t.lastSide(t.side, ventPa || "document.querySelector('#skjerm h1')");
     await t.sov(400);
@@ -814,4 +815,34 @@ async function varianter(t) {
     } else t.feil("Teststillingen med lang Edderkopp-kolonne er ugyldig");
     await t.send("Emulation.setDeviceMetricsOverride", { width: b0, height: h0, deviceScaleFactor: 2, mobile: true });
   }
+
+  // ---------- The front page's rows for the solitaires inside: rusj.no/kortkongen/#variant=<id> ----------
+  // As a tap on the tile under «Flere kabaler»: FreeCell is dealt at once, and the same deal goes on
+  // the next time. Every solitaire keeps its own game, so nothing is asked – also with a game of
+  // Klondike on the table. (A clean start goes via the front page: the game saves its own state when
+  // its page is hidden, so clearing the storage on the game's page would not last.)
+  await t.lastSide(t.url + t.forside, "document.querySelector('#alle-liste')");
+  await t.js(`localStorage.removeItem("${t.nokkel("kortkongen.v1")}")`);
+  await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
+  await t.klikk('[data-h="nytt"]', 700);
+  const klondike = await t.js("Rusj.S.spill && Rusj.S.spill.kode");
+  t.sjekk(!!klondike, "Fikk ikke delt ut en vanlig kabal til testen av variantlenka");
+  let lenke = await apneVariant(t, "freecell");
+  t.sjekk(lenke.skjerm === "vspill" && lenke.hash === "" && !lenke.ark && (await t.js(`Rusj.S.vid === "freecell" && !!Rusj.S.v.freecell && !Rusj.S.v.freecell.ferdig`)), `#variant=freecell deler ikke ut FreeCell (${JSON.stringify(lenke)})`);
+  t.sjekk((await t.js("document.querySelectorAll('#kv-brett .kk-kort').length")) === 52, "FreeCell-brettet tegnes ikke etter lenka");
+  await t.bilde("variant-freecell");
+  const utdelt = await t.js("Rusj.S.v.freecell.kode");
+  lenke = await apneVariant(t, "freecell");
+  t.sjekk(lenke.skjerm === "vspill" && !lenke.ark && (await t.js("Rusj.S.v.freecell.kode")) === utdelt, "Lenka delte ut FreeCell på nytt i stedet for å fortsette kabalen som lå der");
+  t.sjekk(await t.js(`[Rusj.S.spill, Rusj.S.annet].some((x) => x && !x.ferdig && x.kode === ${JSON.stringify(klondike)})`), "Den vanlige kabalen som lå på bordet, er borte etter variantlenka");
+  // Edderkopp asks how many suits first; the others are dealt at once (also while the page is open).
+  lenke = await apneVariant(t, "edderkopp");
+  t.sjekk(lenke.skjerm === "voppsett" && lenke.hash === "" && (await t.js("Rusj.S.vid")) === "edderkopp", `#variant=edderkopp går ikke til valget av sorter (${JSON.stringify(lenke)})`);
+  for (const id of ["pyramide", "topper", "golf"]) {
+    lenke = await apneVariant(t, id, { sammeSide: id !== "pyramide" });
+    t.sjekk(lenke.skjerm === "vspill" && lenke.hash === "" && !lenke.ark && (await t.js("Rusj.S.vid")) === id, `#variant=${id} åpner ikke kabalen (${JSON.stringify(lenke)})`);
+  }
+  // A solitaire we do not have: the usual start, the address clean.
+  lenke = await apneVariant(t, "finnes-ikke");
+  t.sjekk(lenke.hash === "" && !lenke.ark, `En ukjent kabal i lenka rydder ikke adressen (${JSON.stringify(lenke)})`);
 }
