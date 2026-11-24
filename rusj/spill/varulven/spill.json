@@ -11,6 +11,7 @@
   "tagger": ["fest", "blof", "lag"],
   "sok": ["én natt", "en natt", "one night", "varulvspill"],
   "rekkefolge": 18,
+  "nett": true,
   "alias": ["varulv"],
   "i18n": {
     "en": {

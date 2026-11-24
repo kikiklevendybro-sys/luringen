@@ -590,8 +590,10 @@
   // ---------- «Kåringen» ----------
 
   // Most points first; equal points → most rounds won as spy. `plass` is shared only when both are equal.
+  // (On the net the seats that left are not ranked.)
   function rangering(sp) {
     const rader = range(sp.antall)
+      .filter((i) => !(sp.ute || []).includes(i))
       .map((i) => ({ i, poeng: sp.poeng[i], seire: sp.seire[i] }))
       .sort((a, b) => b.poeng - a.poeng || b.seire - a.seire || a.i - b.i);
     rader.forEach((r) => (r.plass = 1 + rader.filter((x) => x.poeng > r.poeng || (x.poeng === r.poeng && x.seire > r.seire)).length));
@@ -628,8 +630,9 @@
   function priser(sp) {
     const ut = [];
     const legg = (liste, ikon, tittel, tekst) => {
-      const topp = Math.max(...liste);
-      const hvem = range(sp.antall).filter((i) => liste[i] === topp);
+      const med = range(sp.antall).filter((i) => !(sp.ute || []).includes(i)); // (on the net: not those who left)
+      const topp = Math.max(...med.map((i) => liste[i]));
+      const hvem = med.filter((i) => liste[i] === topp);
       if (topp > 0 && hvem.length <= 2) ut.push({ ikon, tittel, hvem, tekst: tekst(topp) });
     };
     legg(sp.seire, "🕵️", R.t("Mesterspion"), (n) => R.t("Vant {runder} som spion", { runder: R.flertall(n, "runde", "runder") }));
@@ -725,9 +728,435 @@
     return true;
   }
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Seat i is player i on its own phone; the players still talk together (in the room or on a call).
+  // A round: every phone holds its own card (place and role, or «Du er spionen») and taps «Klar»;
+  // when all are ready the clock starts on every phone. Anyone may call «Stopp» – then everyone votes
+  // on their own phone, and the one with the most votes is accused (a tie: back to the round). An
+  // accused spy gets one guess at the place; the spy may also guess on its own at any time during the
+  // round. The one who called «Stopp» gets the accuser's extra point when the spy is caught. The leader
+  // of the next round (one seat on each round, and each match) starts it.
+  // Moves: { klar: r }; { stopp: r }; { stem: i, r }; { gjett: place, r } (the accused, or a spy on
+  // its own in the round); { uenige: r } (time is up and you could not agree: the spy escapes);
+  // { runde: r } from the leader of round r; { kaaring: r } from the same seat in «Fri». Anything else,
+  // or anything the rules don't allow now, is ignored on every phone.
+  // The place, the spies and the roles come from the room's seed: a modified phone could compute them
+  // – a game among friends (rusj-nett KLIENT.md). The votes are in every phone's list before they are
+  // counted; the screens only say how many have voted. The clock is each phone's own (it starts when
+  // the round starts there); nothing in the rules depends on it. A seat that leaves is skipped; if it
+  // was a spy, the round does not count. Fewer than three left: the match is over. Nothing is stamped
+  // in «Stedspasset» and no deck is used on the net: the phone's own game is left as it was.
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const erInne = (sp, i) => Number.isInteger(i) && i >= 0 && i < sp.antall && !sp.ute.includes(i);
+  const nettInne = (sp) => range(sp.antall).filter((i) => !sp.ute.includes(i));
+  const tomListe = (n) => range(n).map(() => null);
+  function lederFor(sp, runde) {
+    let s = (sp.forste + runde - 1) % sp.antall;
+    for (let j = 0; j < sp.antall && sp.ute.includes(s); j++) s = (s + 1) % sp.antall;
+    return s;
+  }
+  function venterPa(sp, svar) {
+    const meg = R.nett.meg();
+    if (erInne(sp, meg) && svar[meg] == null) return meg;
+    const mangler = nettInne(sp).filter((i) => svar[i] == null);
+    return mangler.length === 1 ? mangler[0] : null;
+  }
+
+  // Round `runde` from the seed: the place in the room's order, the spies among the seats still in.
+  function nettRunde(sp, runde) {
+    const t = R.nett.tilfeldig(sp.fro, "runde:" + runde);
+    const rekke = stedrekke(utvalg(sp.pakker), sp.fro);
+    const med = nettInne(sp);
+    const spioner = R.stokk(med, t)
+      .slice(0, Math.min(sp.spioner, maksSpioner(med.length)))
+      .sort((a, b) => a - b);
+    const starter = med[Math.floor(t() * med.length)];
+    const rollerekke = R.stokk(range(7), t);
+    let k = 0;
+    const roller = range(sp.antall).map((i) => (spioner.includes(i) || sp.ute.includes(i) ? -1 : rollerekke[k++ % 7]));
+    Object.assign(sp, {
+      runde,
+      r: { sted: rekke[(runde - 1) % rekke.length], spioner, starter, roller },
+      fase: "kort",
+      klar: tomListe(sp.antall),
+      stemmer: null,
+      stopper: null,
+      anklaget: null,
+      gjett: null,
+      gjetter: null,
+      utfall: null,
+      uavgjort: false,
+      // (this phone's own clock: the rules never read it)
+      klokke: { total: sp.tid * 60, igjen: sp.tid * 60 * 1000, slutt: null, gaar: true },
+      tidUte: false,
+    });
+  }
+
+  // The round is decided (state only): the points, as on one phone; the one who called «Stopp» gets
+  // the accuser's extra point when the group caught the spy and the spy's guess missed.
+  function nettFerdig(sp, spionVant, grunn) {
+    const modig = spionVant && grunn === "gjettet" && sp.gjetter === "frivillig";
+    const pluss = range(sp.antall).map((i) => (sp.ute.includes(i) ? 0 : erSpion(sp.r, i) ? (spionVant ? (modig ? 3 : 2) : 0) : spionVant ? 0 : 1));
+    const stoppet = !spionVant && sp.gjetter === "tatt" && erInne(sp, sp.stopper) && !erSpion(sp.r, sp.stopper) && sp.stopper !== sp.anklaget ? sp.stopper : null;
+    sp.utfall = { spionVant, grunn, pluss, modig, stoppet };
+    bokfor(sp, 1);
+    sp.fase = "resultat";
+    if (sp.runder && sp.runde >= sp.runder) sp.ferdig = true;
+  }
+  // Everyone still in has voted: the one with the most votes is accused; a tie, and the round goes on.
+  function nettTell(sp) {
+    const stemmer = range(sp.antall).map((i) => nettInne(sp).filter((j) => sp.stemmer[j] === i).length);
+    const topp = Math.max(...stemmer);
+    const hvem = range(sp.antall).filter((i) => stemmer[i] === topp);
+    sp.stemmer = null;
+    if (hvem.length !== 1) {
+      sp.fase = "runde";
+      sp.uavgjort = true;
+      sp.stopper = null;
+      return;
+    }
+    sp.anklaget = hvem[0];
+    if (erSpion(sp.r, sp.anklaget)) {
+      sp.gjetter = "tatt";
+      sp.fase = "gjett";
+    } else nettFerdig(sp, true, "uskyldig");
+  }
+  function nettGjett(sp, sted, gjetter) {
+    sp.gjetter = gjetter;
+    sp.gjett = sted;
+    const riktig = sted === sp.r.sted;
+    nettFerdig(sp, riktig, riktig ? "gjettet" : "feilgjett");
+  }
+
+  const NETTSKJERMER = { kort: "nettkort", runde: "nettrunde", stem: "nettstem", gjett: "nettgjett", resultat: "nettresultat" };
+  const nettSkjerm = (sp) => NETTSKJERMER[sp.fase] || "nettrunde";
+  let nettSett = ""; // the round whose card this phone has looked at («Klar» waits for it)
+  let nettValgt = null; // the name marked before «Stem på …»
+  let nettVelger = false; // a spy is picking a place on its own (the screen «nettgjett» during the round)
+  let nettFeire = false; // the match ended on this phone just now: «Kåringen» celebrates
+  const runde0 = (sp) => `${R.nett.kamp()}:${sp.runde}`;
+
+  // After a move: the screen for the new phase, or the same one drawn again.
+  function nettTegn(S, for_) {
+    const sp = S.spill;
+    if (!Object.values(NETTSKJERMER).includes(S.skjerm)) return;
+    if (sp.fase !== for_) nettValgt = null;
+    if (sp.fase === "resultat" && for_ !== "resultat") {
+      const u = sp.utfall;
+      if (u.tom) R.lyd.pling();
+      else if (u.spionVant) R.lyd.latter();
+      else R.lyd.fanfare();
+      R.vibrer([60, 30, 120]);
+      if (sp.ferdig) nettFeire = true;
+    } else if (sp.fase === "stem" && for_ === "runde") {
+      R.lyd.pek();
+      R.vibrer([60, 40, 120]);
+    } else if (sp.fase === "gjett" && for_ !== "gjett") R.lyd.fanfare();
+    else if (sp.fase === "runde" && for_ === "kort") R.lyd.pek();
+    const ny = nettSkjerm(sp);
+    if (nettVelger && sp.fase === "runde" && S.skjerm === "nettgjett") return R.vis();
+    nettVelger = false;
+    if (S.skjerm === ny) R.vis();
+    else R.gaTil(ny);
+  }
+
+  // «2 av 4 er klare» and who is still missing – never what anyone chose.
+  function klarLinje(sp, svar) {
+    const med = nettInne(sp);
+    const mangler = med.filter((i) => svar[i] == null);
+    const hvem = mangler.length && mangler.length <= 3 ? " · " + R.t("Venter på {navn} …", { navn: R.ramsOpp(mangler.map(R.navn)) }) : "";
+    return `<p class="hjelp sp-klar" data-si>${esc(R.t("{n} av {m} er klare", { n: med.length - mangler.length, m: med.length }) + hvem)}</p>`;
+  }
+  const lederHjelp = (i) => `<p class="hjelp">${esc(R.t("Det er {navn} som trykker videre.", { navn: R.navn(i) }))}</p>`;
+  const nettPiller = (sp) => piller([R.flertall(nettInne(sp).length, "spiller", "spillere"), spionTekst(sp.r.spioner.length), R.t("{n} steder", { n: utvalg(sp.pakker).length })]);
+
+  // This phone's clock: it runs while the round is on screen, and stops when you leave it.
+  function nettStartKlokke(S) {
+    const sp = S.spill;
+    const k = sp.klokke;
+    if (k.gaar && !k.slutt) k.slutt = Date.now() + k.igjen;
+    const igjen = igjenMs(k);
+    const t = new R.Timer({ id: "klokke", sekunder: k.total, vedSlutt: () => nettTidUte(S) });
+    t.igjenMs = igjen;
+    if (igjen > 0) return void t.start();
+    Object.assign(k, { igjen: 0, slutt: null, gaar: false });
+    t.tegn();
+    if (!sp.tidUte) {
+      sp.tidUte = true;
+      R.vis();
+    }
+  }
+  function nettTidUte(S) {
+    const sp = S.spill;
+    if (!paNett(sp) || S.skjerm !== "nettrunde") return;
+    Object.assign(sp.klokke, { igjen: 0, slutt: null, gaar: false });
+    sp.tidUte = true;
+    R.vis();
+  }
+
+  const NETT = {
+    min: MIN,
+    maks: MAKS,
+    oppsett: (S) => ({ spioner: S.oppsett.spioner, tid: S.oppsett.tidValgt ? S.oppsett.tid : 0, runder: S.oppsett.runder, pakker: S.oppsett.pakker.slice() }),
+    oppsettTekst(o) {
+      const x = o || {};
+      const pakker = PAKKER.map((p) => p.id).filter((id) => Array.isArray(x.pakker) && x.pakker.includes(id));
+      return [
+        R.t("{n} steder", { n: utvalg(pakker.length ? pakker : standardPakker()).length }),
+        x.spioner === 2 ? R.t("2 spioner fra 7 spillere") : spionTekst(1),
+        TIDER.includes(x.tid) ? R.t("{n} min per runde", { n: x.tid }) : "",
+        RUNDER.includes(x.runder) && x.runder ? R.flertall(x.runder, "runde", "runder") : R.t("Fri"),
+      ]
+        .filter(Boolean)
+        .join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const n = R.klamp(okt.antall || MIN, MIN, MAKS);
+      const pakker = PAKKER.map((p) => p.id).filter((id) => Array.isArray(o.pakker) && o.pakker.includes(id));
+      const sp = {
+        modus: "nett",
+        salt: SALT,
+        antall: n,
+        spioner: o.spioner === 2 ? 2 : 1,
+        tid: TIDER.includes(o.tid) ? o.tid : tidFor(n),
+        runder: RUNDER.includes(o.runder) ? o.runder : 5,
+        pakker: pakker.length ? pakker : standardPakker(),
+        fro: okt.fro >>> 0,
+        runde: 0,
+        spilt: 0,
+        poeng: nuller(n),
+        seire: nuller(n),
+        fangst: nuller(n),
+        logg: [],
+        forste: (okt.kamp - 1) % n,
+        ute: [],
+        ferdig: false,
+      };
+      nettRunde(sp, 1);
+      S.spill = sp;
+      nettSett = "";
+      nettValgt = null;
+      nettVelger = false;
+      nettFeire = false;
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || !erInne(sp, sete)) return;
+      const for_ = sp.fase;
+      const r = sp.runde;
+      const stedOk = (i) => Number.isInteger(i) && !!STEDER[i] && sp.pakker.includes(STEDER[i].p);
+      if (sp.fase === "kort" && t.klar === r && sp.klar[sete] == null) {
+        sp.klar[sete] = 1;
+        if (R.nett.alleHar(sp.klar, sp.antall)) sp.fase = "runde";
+      } else if (sp.fase === "runde" && t.stopp === r) {
+        sp.fase = "stem";
+        sp.stopper = sete;
+        sp.stemmer = tomListe(sp.antall);
+        sp.uavgjort = false;
+      } else if (sp.fase === "stem" && t.r === r && sp.stemmer[sete] == null && erInne(sp, t.stem) && t.stem !== sete) {
+        sp.stemmer[sete] = t.stem;
+        if (R.nett.alleHar(sp.stemmer, sp.antall)) nettTell(sp);
+      } else if (sp.fase === "gjett" && t.r === r && sete === sp.anklaget && stedOk(t.gjett)) {
+        nettGjett(sp, t.gjett, "tatt");
+      } else if (sp.fase === "runde" && t.r === r && erSpion(sp.r, sete) && stedOk(t.gjett)) {
+        nettGjett(sp, t.gjett, "frivillig");
+      } else if (sp.fase === "runde" && t.uenige === r) {
+        nettFerdig(sp, true, "uenige");
+      } else if (sp.fase === "resultat" && t.runde === r + 1 && sete === lederFor(sp, r + 1)) {
+        nettRunde(sp, r + 1);
+      } else if (sp.fase === "resultat" && !sp.runder && t.kaaring === r && sete === lederFor(sp, r + 1)) {
+        sp.ferdig = true;
+      } else return;
+      if (okt.gjenspill) return;
+      if (sp.ferdig && for_ === "resultat") {
+        nettFeire = true;
+        return void (Object.values(NETTSKJERMER).includes(S.skjerm) && R.gaTil("slutt"));
+      }
+      nettTegn(S, for_);
+    },
+    // The seat left: it is skipped from now on. A spy that leaves ends the round (it does not count).
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !(sete >= 0 && sete < sp.antall) || sp.ute.includes(sete)) return;
+      const for_ = sp.fase;
+      sp.ute.push(sete);
+      if (sp.stemmer) sp.stemmer[sete] = null; // (its vote goes with it)
+      if (nettInne(sp).length < MIN) sp.ferdig = true;
+      else if (sp.fase !== "resultat" && erSpion(sp.r, sete)) {
+        sp.utfall = { tom: true, borte: sete, spionVant: false, grunn: "borte", pluss: nuller(sp.antall), modig: false, stoppet: null };
+        sp.fase = "resultat";
+        sp.stemmer = null;
+        if (sp.runder && sp.runde >= sp.runder) sp.ferdig = true;
+      } else if (sp.fase === "kort" && R.nett.alleHar(sp.klar, sp.antall)) sp.fase = "runde";
+      else if (sp.fase === "stem" && R.nett.alleHar(sp.stemmer, sp.antall)) nettTell(sp);
+      if (okt.gjenspill) return;
+      if (sp.ferdig && sp.fase !== "resultat") {
+        nettFeire = true;
+        return void (Object.values(NETTSKJERMER).includes(S.skjerm) && R.gaTil("slutt"));
+      }
+      nettTegn(S, for_);
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : nettSkjerm(S.spill)),
+    tur(S) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig) return null;
+      if (sp.fase === "kort") return venterPa(sp, sp.klar);
+      if (sp.fase === "stem") return venterPa(sp, sp.stemmer);
+      if (sp.fase === "gjett") return sp.anklaget;
+      if (sp.fase === "resultat") return lederFor(sp, sp.runde + 1);
+      return null;
+    },
+    ferdig: (S) => !!S.spill && paNett(S.spill) && !!S.spill.ferdig,
+  };
+
+  // The screens on the net (one per phase).
+  const nettKortMappe = () => R.ui.mappe({ id: "nett", etikett: R.t("Topphemmelig"), tekst: HOLD });
+
+  function visNettKort(S) {
+    const sp = S.spill;
+    const meg = R.nett.meg();
+    const sendt = sp.klar[meg] != null;
+    const sett = nettSett === runde0(sp);
+    return `
+      ${nettPiller(sp)}
+      <h1 id="skjerm-tittel" class="sp-du-er">${R.avatar(meg, "mid")}<span>${esc(R.t("Kortet ditt"))}</span></h1>
+      ${nettKortMappe()}
+      <p class="hjelp">${esc(R.t("{navn} spør først!", { navn: R.navn(sp.r.starter) }))}</p>
+      ${klarLinje(sp, sp.klar)}
+      ${R.ui.dokk(sendt ? "" : R.ui.knapp(sett ? R.t("Klar!") : R.t("Se kortet ditt først"), "pa-klar", { av: !sett || R.nett.venter() }))}`;
+  }
+
+  function visNettRunde(S) {
+    const sp = S.spill;
+    const hode = sp.tidUte
+      ? `<p class="sp-tid-ute"><span aria-hidden="true">⏰</span> ${esc(R.t("Tiden er ute!"))}</p>
+         <p class="sp-topp-hjelp">${esc(R.t("Rop stopp og stem på den dere mistenker."))}</p>`
+      : `<p class="sp-status"><span class="sp-rundemerke">${esc(rundeTittel(sp))}</span><span>${esc(spionTekst(sp.r.spioner.length))}</span></p>
+         <p class="sp-starter-navn">${esc(R.t("{navn} spør først!")).replace("{navn}", () => `<b>${esc(R.navn(sp.r.starter))}</b>`)}</p>`;
+    return `
+      <h1 class="vh" id="skjerm-tittel">${esc(R.t("{runde}: still spørsmål", { runde: rundeTittel(sp) }))}</h1>
+      <div class="sp-topp">
+        ${R.ui.timer({ id: "klokke", sekunder: Math.ceil(igjenMs(sp.klokke) / 1000), alene: true })}
+        <div class="sp-topp-tekst">${hode}</div>
+      </div>
+      ${sp.uavgjort ? `<p class="papirboks sp-uavgjort">${esc(R.t("Uavgjort – ingen ble anklaget. Spill videre!"))}</p>` : ""}
+      <section class="sp-apent" id="sp-apent" tabindex="0" aria-label="${esc(R.t("Mulige steder"))}">
+        <p class="hjelp">${esc(R.t("Dere er på ett av disse {n} stedene.", { n: utvalg(sp.pakker).length }))}</p>
+        ${stedListe(sp.pakker, { nivaa: 2 })}
+        ${R.ui.lenkerad(R.ui.lenke(R.t("Spørsmålsideer"), "ide"), sp.tidUte ? R.ui.lenke(R.t("Vi ble ikke enige – spionen slipper unna"), "pa-uenige") : "")}
+      </section>
+      ${R.ui.dokk(
+        R.ui.knapp(sp.tidUte ? R.t("Hvem er spionen?") : R.t("Stopp – vi anklager noen!"), "pa-stopp", { variant: "rosa", av: R.nett.venter() }),
+        `<div class="knapprad">${R.ui.knapp2(R.t("Glemt kortet?"), "pa-se-igjen")}${R.ui.knapp2(R.t("Spionen gjetter"), "pa-spion")}</div>`,
+      )}`;
+  }
+
+  function visNettStem(S) {
+    const sp = S.spill;
+    const meg = R.nett.meg();
+    const min = sp.stemmer[meg];
+    const ropte = `<p class="ingress">${esc(R.t("{navn} ropte stopp!", { navn: R.navn(sp.stopper) }))} ${esc(R.t("Stem på den du tror er spionen. Den som får flest stemmer, blir anklaget."))}</p>`;
+    if (min != null) {
+      return `
+        <h1 id="skjerm-tittel">${esc(R.t("Hvem er spionen?"))}</h1>
+        ${ropte}
+        <p class="ingress">${esc(R.t("Du stemte på {navn}.", { navn: R.navn(min) }))}</p>
+        ${klarLinje(sp, sp.stemmer)}`;
+    }
+    return `
+      <h1 id="skjerm-tittel">${esc(R.t("Hvem er spionen?"))}</h1>
+      ${ropte}
+      ${R.ui.velgere("pa-marker", nettInne(sp).filter((i) => i !== meg), nettValgt)}
+      ${klarLinje(sp, sp.stemmer)}
+      ${R.ui.dokk(R.ui.knapp(nettValgt != null ? R.t("Stem på {navn}", { navn: R.navn(nettValgt) }) : R.t("Velg hvem dere anklager"), "pa-stem", { variant: "rosa", av: nettValgt == null || R.nett.venter() }))}`;
+  }
+
+  // The accused spy guesses the place (or a spy that guesses on its own, during the round).
+  function visNettGjett(S) {
+    const sp = S.spill;
+    const meg = R.nett.meg();
+    if (sp.fase === "gjett" && sp.anklaget !== meg) {
+      const a = sp.anklaget;
+      return `
+        <div class="sp-spotlys">
+          <span class="sp-skjelv">${R.avatar(a, "gigant")}</span>
+          <h1 id="skjerm-tittel">${esc(sp.r.spioner.length > 1 ? R.t("{navn} er en spion!", { navn: R.navn(a) }) : R.t("{navn} er spionen!", { navn: R.navn(a) }))}</h1>
+          <div class="stempel-sted"><span class="stempel">${esc(R.t("Avslørt!"))}</span></div>
+        </div>
+        <p class="ingress midt"><b>${esc(R.t("Men vent …"))}</b> ${esc(R.t("Spionen får én sjanse til. Gjetter {navn} stedet, vinner spionen likevel.", { navn: R.navn(a) }))}</p>`;
+    }
+    const tatt = sp.fase === "gjett";
+    return `
+      <div class="sp-gjett-topp">
+        ${R.figur()}
+        <div>
+          <h1 id="skjerm-tittel">${esc(tatt ? R.t("Du er avslørt! Hvor er dere?") : R.t("Hvor er dere?"))}</h1>
+          <p class="ingress">${esc(R.t("Riktig svar gir seier – feil svar gir tap."))}</p>
+        </div>
+      </div>
+      ${stedListe(sp.pakker, { h: "pa-sted", nivaa: 2 })}
+      ${tatt ? "" : R.ui.dokk(R.ui.lenkerad(R.ui.lenke(R.t("Tilbake til runden"), "pa-tilbake")))}`;
+  }
+
+  function visNettResultat(S) {
+    const sp = S.spill;
+    const u = sp.utfall;
+    const flere = sp.r.spioner.length > 1;
+    const fasit = STEDER[sp.r.sted];
+    const meg = R.nett.meg();
+    const neste = lederFor(sp, sp.runde + 1);
+    const dokk = sp.ferdig
+      ? R.ui.knapp(R.t("Til kåringen"), "pa-kaaring")
+      : neste === meg
+        ? R.ui.knapp(R.t("Ny runde"), "pa-neste", { av: R.nett.venter() }) + (sp.runder ? "" : R.ui.lenkerad(R.ui.lenke(R.t("Til kåringen"), "pa-slutt")))
+        : lederHjelp(neste);
+    const rader = nettInne(sp).map((i) => ({ i, poeng: sp.poeng[i], pluss: u.pluss[i] + (u.stoppet === i ? 1 : 0) }));
+    const roller = nettInne(sp)
+      .concat(u.tom ? [u.borte] : [])
+      .map((i) => `<li class="${erSpion(sp.r, i) ? "spion" : ""}">${R.avatar(i)}<span><b>${esc(R.navn(i))}</b>${erSpion(sp.r, i) ? `🕵️ ${esc(R.t("Spionen"))}` : esc(rolleFor(sp.r, i))}</span></li>`)
+      .join("");
+    const banner = u.tom
+      ? R.ui.banner({ etikett: R.t("Runden teller ikke"), tittel: R.t("{navn} gikk – og var spion", { navn: R.navn(u.borte) }), tekst: R.t("Ingen får poeng denne runden."), klasse: "aksent", stemning: "lei" })
+      : R.ui.banner({
+          tittel: u.modig ? R.t("Modig spion!") : u.spionVant ? (flere ? R.t("Spionene vinner!") : R.t("Spionen vinner!")) : flere ? R.t("Dere slo spionene!") : R.t("Dere tok spionen!"),
+          tekst: grunnTekst(sp),
+          klasse: u.spionVant ? "rosa" : "mynte",
+          stemning: u.spionVant ? "jubel" : "lei",
+        });
+    const regel = u.tom
+      ? ""
+      : u.modig
+        ? R.t("Modig spion: 3 poeng for å stoppe klokka selv og gjette riktig.")
+        : u.spionVant
+          ? flere
+            ? R.t("2 poeng til hver spion.")
+            : R.t("2 poeng til spionen.")
+          : R.t("1 poeng til alle som ikke var spion.");
+    const stopper = u.stoppet != null ? `<p class="hjelp">${esc(R.t("{navn} ropte stopp og får 1 poeng ekstra.", { navn: R.navn(u.stoppet) }))}</p>` : "";
+    return `
+      ${banner}
+      <div class="papirboks sp-fasit">
+        <div><span class="etikett">${esc(R.t("Stedet var"))}</span><strong>${esc(fasit.ikon)} ${esc(fasit.navn)}</strong></div>
+        <div><span class="etikett">${esc(flere ? R.t("Spionene var") : R.t("Spionen var"))}</span>${navnerad(sp.r.spioner)}</div>
+      </div>
+      <section class="seksjon">
+        <div class="seksjon-hode"><h2>${esc(R.t("Poeng"))}</h2><span class="tall">${esc(R.t("etter {runder}", { runder: R.flertall(sp.spilt, "runde", "runder") }))}</span></div>
+        ${R.ui.poengliste(rader)}
+        ${stopper}
+        ${regel ? `<p class="hjelp">${esc(regel)}</p>` : ""}
+      </section>
+      <section class="seksjon">
+        <h2>${esc(R.t("Hvem var hvem?"))}</h2>
+        <ul class="sp-rolleliste">${roller}</ul>
+      </section>
+      ${R.ui.dokk(dokk)}`;
+  }
+
   const DEF = {
     id: "spionen",
     versjon: 1,
+    nett: NETT,
     // A game is in progress (front page badge, screen kept awake): hosting, or holding a seat as a guest.
     pagar: (S) => pagar(S) || !!(S.gjest && S.gjest.plass != null),
 
@@ -808,6 +1237,8 @@
 
     hemmelig: {
       innhold(S, id) {
+        // On the net: this phone's own card, never another seat's.
+        if (id === "nett") return paNett(S.spill) ? kortHtml(S.spill.r, R.nett.meg()) : { html: "" };
         // Seeing a card (even a quick peek) locks the seat, so nobody can look at other seats.
         if (id === "gjest") {
           const g = S.gjest;
@@ -834,6 +1265,11 @@
         return kortHtml(S.spill.r, Number(String(id).slice(1)));
       },
       sett(S, id) {
+        if (id === "nett") {
+          if (!paNett(S.spill) || S.spill.fase !== "kort") return;
+          nettSett = runde0(S.spill);
+          return R.vis();
+        }
         if (id === "gjest" && S.skjerm === "gjest") {
           R.vis(); // the seat is locked now: drop «Bytt nummer»
           return;
@@ -929,6 +1365,7 @@
               ekstraHtml:
                 (S.gjest && S.gjest.plass != null ? R.ui.knapp2(R.t("Tilbake til kortet ditt · nr. {n}", { n: S.gjest.plass + 1 }), "til-gjest") : "") +
                 R.ui.knapp2(R.t("Bli med i et spill"), "bli-med", { ikon: "📲" }) +
+                (R.nett ? R.nett.knapp() : "") +
                 R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
           })}
@@ -1367,6 +1804,52 @@
         },
       },
 
+      // ----- On the net (see «On the net» above) -----
+
+      nettkort: {
+        tittel: (S) => rundeTittel(S.spill),
+        tilbake: "hjem",
+        vis: visNettKort,
+        inn: () => R.holdVaken(),
+      },
+
+      nettrunde: {
+        tittel: R.t("Still spørsmål"),
+        tilbake: "hjem",
+        vis: visNettRunde,
+        inn: (S) => nettStartKlokke(S),
+        ut(S) {
+          stoppKlokke(S);
+          stedrull = 0;
+        },
+        etter(S, rot) {
+          const t = R.timer("klokke");
+          if (t) t.tegn();
+          const liste = rot.querySelector("#sp-apent");
+          if (!liste) return;
+          liste.scrollTop = stedrull;
+          liste.addEventListener("scroll", () => (stedrull = liste.scrollTop), { passive: true });
+        },
+      },
+
+      nettstem: {
+        tittel: R.t("Anklage"),
+        tilbake: "hjem",
+        vis: visNettStem,
+      },
+
+      nettgjett: {
+        tittel: R.t("Spionen gjetter"),
+        tilbake: "hjem",
+        vis: visNettGjett,
+      },
+
+      nettresultat: {
+        tittel: (S) => rundeTittel(S.spill),
+        tilbake: "hjem",
+        vis: visNettResultat,
+      },
+
       slutt: {
         tittel: R.t("Kåringen"),
         tilbake: "hjem",
@@ -1403,13 +1886,27 @@
             }
             ${sp.spilt ? R.ui.knapp2(R.t("Del resultatet"), "del") : ""}
             ${besokt ? R.ui.lenke(R.t("Stedspasset: {n} av {av} steder", { n: besokt, av: STEDER.length }), "pass") : ""}
-            ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${
+              paNett(sp)
+                ? R.nett.sluttDokk()
+                : `${R.ui.flereSpill({ antall: sp.antall })}
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`
+            }`;
         },
         // The first time «Kåringen» is shown the game is over: the result goes to «Kveldens gjeng»
         // once (not again after a reload or a visit to the home screen).
         inn(S) {
           const sp = S.spill;
+          // On the net nothing is kept on this phone (no «Kveldens gjeng»): only the party, once.
+          if (paNett(sp)) {
+            R.slippVaken();
+            if (nettFeire && Math.max(...rangering(sp).map((r) => r.poeng)) > 0) {
+              R.lyd.fanfare();
+              R.konfetti();
+            }
+            nettFeire = false;
+            return;
+          }
           if (sp.ferdig) return;
           sp.ferdig = true;
           R.lagre();
@@ -1787,6 +2284,81 @@
           R.gaTil("hjem");
         }
       },
+      // On the net: each tap is a move, played when the room sends it back.
+      "pa-klar"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && sp.fase === "kort" && nettSett === runde0(sp)) R.nett.send({ klar: sp.runde });
+      },
+      "pa-stopp"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && sp.fase === "runde") R.nett.send({ stopp: sp.runde });
+      },
+      "pa-marker"(el, e, S) {
+        const sp = S.spill;
+        const i = Number(el.dataset.v);
+        if (!paNett(sp) || sp.fase !== "stem" || !erInne(sp, i) || i === R.nett.meg()) return;
+        nettValgt = i;
+        R.vis();
+      },
+      "pa-stem"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && sp.fase === "stem" && nettValgt != null) R.nett.send({ stem: nettValgt, r: sp.runde });
+      },
+      "pa-se-igjen"(el, e, S) {
+        if (!paNett(S.spill)) return;
+        R.ark(`
+          <h2 id="ark-tittel">${esc(R.t("Kortet ditt"))}</h2>
+          ${nettKortMappe()}
+          <p class="hjelp">${esc(R.t("Bare du skal se. Slipp for å skjule."))}</p>
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Ferdig"))}</button>`);
+      },
+      // «Spionen gjetter» is on every phone (so the screens look alike); only a spy goes on.
+      async "pa-spion"(el, e, S) {
+        const sp = S.spill;
+        if (!paNett(sp) || sp.fase !== "runde") return;
+        if (!erSpion(sp.r, R.nett.meg())) return R.toast(R.t("Bare spionen kan gjette stedet."));
+        const fortsatt = R.vakt();
+        const ja = await R.bekreft(
+          R.t("Er du spionen?"),
+          R.t("Da stopper du klokka og gjetter stedet. Riktig svar gir deg 3 poeng. Feil svar: de andre vinner."),
+          R.t("Ja, jeg vil gjette"),
+          R.t("Spill videre"),
+        );
+        if (!ja || !fortsatt() || S.spill !== sp || sp.fase !== "runde") return;
+        nettVelger = true;
+        R.gaTil("nettgjett");
+      },
+      "pa-tilbake"(el, e, S) {
+        nettVelger = false;
+        if (paNett(S.spill)) R.gaTil(nettSkjerm(S.spill));
+      },
+      async "pa-sted"(el, e, S) {
+        const sp = S.spill;
+        const i = Number(el.dataset.v);
+        const s = STEDER[i];
+        if (!paNett(sp) || !s) return;
+        const fortsatt = R.vakt();
+        const ja = await R.bekreft(`${s.ikon} ${rentNavn(i)}?`, R.t("Spionen har bare ett forsøk."), R.t("Ja, det er svaret"), R.t("Velg et annet"));
+        if (!ja || !fortsatt() || S.spill !== sp || !["runde", "gjett"].includes(sp.fase)) return;
+        R.nett.send({ gjett: i, r: sp.runde });
+      },
+      async "pa-uenige"(el, e, S) {
+        const sp = S.spill;
+        if (!paNett(sp) || sp.fase !== "runde") return;
+        const flere = sp.r.spioner.length > 1;
+        const fortsatt = R.vakt();
+        const ja = await R.bekreft(
+          R.t("Ble dere ikke enige?"),
+          flere ? R.t("Da slipper spionene unna og får 2 poeng hver.") : R.t("Da slipper spionen unna og får 2 poeng."),
+          flere ? R.t("Ja, spionene slapp unna") : R.t("Ja, spionen slapp unna"),
+          R.t("Spill videre"),
+        );
+        if (ja && fortsatt() && S.spill === sp && sp.fase === "runde") R.nett.send({ uenige: sp.runde });
+      },
+      "pa-neste": (el, e, S) => paNett(S.spill) && S.spill.fase === "resultat" && R.nett.send({ runde: S.spill.runde + 1 }),
+      "pa-slutt": (el, e, S) => paNett(S.spill) && S.spill.fase === "resultat" && R.nett.send({ kaaring: S.spill.runde }),
+      "pa-kaaring": (el, e, S) => paNett(S.spill) && S.spill.ferdig && R.gaTil("slutt"),
+
       kryss(el, e, S) {
         const i = Number(el.dataset.v);
         const liste = S.gjest.kryss || [];

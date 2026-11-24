@@ -11,6 +11,7 @@
   "tagger": ["fest", "familie", "blof"],
   "rekkefolge": 106,
   "farge": "#f2545b",
+  "nett": true,
   "sok": ["mandelen i grøten", "mandel i grøten", "julespill", "jul", "julaften", "julegrøt", "risgrøt", "mandelgave", "marsipangris", "juleleker", "nisse", "bløffespill jul"],
   "i18n": {
     "en": {

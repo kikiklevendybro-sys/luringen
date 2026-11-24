@@ -101,5 +101,16 @@
   "Mandelen var hos {navn}": "The almond was with {navn}",
   "Snu dere tilbake og se uskyldige ut. Ingen sier noe!": "Turn back round and look innocent. Nobody says a word!",
   "Tell ned, og alle peker samtidig på den de tror har mandelen. Hold fingeren der!": "Count down, and everyone points at once at who they think has the almond. Keep pointing!",
-  "Trykk på alle som pekte riktig.": "Tap everyone who pointed right."
+  "Trykk på alle som pekte riktig.": "Tap everyone who pointed right.",
+  "{n} av {m} er klare": "{n} of {m} ready",
+  "Det er {navn} som trykker videre.": "{navn} taps to carry on.",
+  "Se i grøtbollen din": "Look in your porridge bowl",
+  "Jeg har sett": "I've looked",
+  "Du pekte på {navn}.": "You pointed at {navn}.",
+  "Pek på den du tror har mandelen – her på mobilen din. Den som har mandelen, peker også.": "Point at whoever you think has the almond – here on your phone. Whoever has the almond points too.",
+  "Pek på {navn}": "Point at {navn}",
+  "Trykk på et navn": "Tap a name",
+  "Runden teller ikke": "This round doesn't count",
+  "{navn} gikk – med mandelen": "{navn} left – with the almond",
+  "Ingen får poeng denne runden.": "Nobody scores this round."
 }
