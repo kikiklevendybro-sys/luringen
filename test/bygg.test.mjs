@@ -691,7 +691,7 @@ test("the games that can be played online are flagged in the game list, and thei
   const liste = readFileSync(join(WEB, "felles/spilliste.js"), "utf8");
   const spill = JSON.parse(liste.slice(liste.indexOf("=") + 1, liste.indexOf(";\nwindow.RUSJ_TAGGSOK")));
   const paNett = spill.filter((g) => g.nett).map((g) => g.id).sort();
-  assert.deepEqual(paNett, ["admiralen", "bonden", "brikka", "dam", "dobbelsekseren", "elefanten", "fireren", "golfballen", "hopperen", "lasesmeden", "lykkegrisen", "meyer", "molla", "narren", "pusen", "reversi", "samannen", "samleren", "sjakkhesten", "snekkeren", "stigespillet", "tavla", "terninga", "tidsmaskinen", "tieren", "vriatter"]);
+  assert.deepEqual(paNett, ["admiralen", "bonden", "brikka", "dam", "detektiven", "dobbelsekseren", "dommeren", "elefanten", "fireren", "golfballen", "hopperen", "kodeknekkeren", "lasesmeden", "lykkegrisen", "meyer", "molla", "narren", "pusen", "reversi", "samannen", "samleren", "sjakkhesten", "snekkeren", "stigespillet", "tankeleseren", "tavla", "terninga", "tidsmaskinen", "tieren", "vriatter"]);
   assert.ok(spill.filter((g) => !g.nett).every((g) => !("nett" in g)), "the flag is left out, not false");
   for (const id of spillIder) {
     const html = readFileSync(join(WEB, id, "index.html"), "utf8");
