@@ -252,7 +252,7 @@
     voksenKnapp.innerHTML = `<span class="rom-navn">18+</span><span class="rom-antall" aria-hidden="true">${n18}</span><span class="rom-gjeng" aria-hidden="true">${figurer.map((s) => bilde(s, true)).join("")}</span>`;
   }
 
-  // ---------- The three questions («Flere valg») ----------
+  // ---------- The three questions («Hjelp oss å velge») ----------
 
   const yngstValg = $("#finner-yngst");
   function visFinner() {
@@ -423,7 +423,8 @@
       let svar = svart() ? finnValg() : { antall: "", yngst: rom === "voksen" ? "fest" : "voksen", lyst: "alt" };
       // «for to» and «kjapt» in the search count as answers here.
       if (funn) svar = Object.assign({}, svar, funn.antall && !svar.antall ? { antall: funn.antall } : null, funn.kjapt && svar.lyst === "alt" ? { lyst: "kjapt" } : null);
-      beste = F.finn(SPILL.filter(passer), svar, { maned: MANED }).slice(0, 3 * BESTE);
+      // («Med barna», «Vorspiel» …: together, so the games for one alone come last)
+      beste = F.finn(SPILL.filter(passer), svar, { maned: MANED, gruppe: har(F.GRUPPE, hurtig) }).slice(0, 3 * BESTE);
     }
     visBeste();
 

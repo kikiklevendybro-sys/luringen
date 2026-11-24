@@ -640,7 +640,6 @@
   "Søk i {n} spill": "Søg i {n} spil",
   "{antall} gratis spill · ingen konto · ingen reklame": "{antall} gratis spil · ingen konto · ingen reklamer",
   "Snarveier": "Genveje",
-  "Flere valg": "Flere valg",
   "Nytt": "Nyt",
   "Nullstill": "Nulstil",
   "Spiller dere på nett, går bare trekkene og et kallenavn dere velger selv via rusj, og alt slettes etter et døgn.": "Spiller I online, går kun trækkene og et kaldenavn, I selv vælger, gennem rusj, og alt slettes efter et døgn.",
@@ -751,5 +750,6 @@
   "Det har vi ikke ennå.": "Det har vi ikke endnu.",
   "Det nærmeste vi har:": "Det nærmeste, vi har:",
   "Prøv et av de mest spilte:": "Prøv et af de mest spillede:",
-  "Eller velg en type spill:": "Eller vælg en type spil:"
+  "Eller velg en type spill:": "Eller vælg en type spil:",
+  "Hjelp oss å velge": "Hjælp os med at vælge"
 }

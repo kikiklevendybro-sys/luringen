@@ -1749,8 +1749,16 @@ body.portal {
   color: var(--blekk);
 }
 
+/* «Hjelp oss å velge»: first in the row and filled, so the three questions are one obvious tap away. */
+.hurtig .flere {
+  background: var(--lampe);
+  box-shadow: 0 3px 0 var(--lampe-dyp);
+  color: var(--blekk);
+}
+
 .hurtig .flere[aria-expanded="true"] {
-  box-shadow: inset 0 0 0 2.5px var(--lampe);
+  background: var(--papir);
+  box-shadow: inset 0 0 0 2.5px var(--lampe-dyp);
 }
 
 @media (min-width: 720px) {
@@ -1794,7 +1802,8 @@ body.portal {
   justify-self: start;
 }
 
-/* The rooms: three across on a phone, five on a wide screen. */
+/* The rooms: three across on a phone, four on a tablet, six on a wide screen. The 18+ door fills
+   what is left of the last row. */
 .rommene {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1810,6 +1819,11 @@ body.portal {
 
 .rommene > li.rom-bred {
   grid-column: 1 / -1;
+}
+
+/* (one room before it in the row: the door takes the other two places) */
+.rommene > li.rom-bred:nth-child(3n + 2) {
+  grid-column: span 2;
 }
 
 .rom {
@@ -1945,12 +1959,21 @@ body.portal {
 
 @media (min-width: 720px) {
   .rommene {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
   }
 
-  .rommene > li.rom-bred {
+  .rommene > li.rom-bred,
+  .rommene > li.rom-bred:nth-child(3n + 2) {
     grid-column: auto;
+  }
+
+  .rommene > li.rom-bred:nth-child(4n + 3) {
+    grid-column: span 2;
+  }
+
+  .rommene > li.rom-bred:nth-child(4n + 2) {
+    grid-column: span 3;
   }
 
   .rom {
@@ -1974,6 +1997,24 @@ body.portal {
     align-items: flex-start;
     justify-content: space-between;
     min-height: 112px;
+  }
+}
+
+@media (min-width: 900px) {
+  .rommene {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .rommene > li.rom-bred:nth-child(n) {
+    grid-column: auto;
+  }
+
+  .rommene > li.rom-bred:nth-child(6n + 5) {
+    grid-column: span 2;
+  }
+
+  .rommene > li.rom-bred:nth-child(6n + 4) {
+    grid-column: span 3;
   }
 }
 
@@ -2693,9 +2734,16 @@ body.portal {
   font-size: 0.92rem;
 }
 
+/* (the cards are narrow: the genre may take two lines rather than be cut) */
 .forslagkort-sjanger {
-  margin-bottom: -5px;
+  display: -webkit-box;
+  margin-bottom: -4px;
   padding: 0 4px;
+  letter-spacing: 0.03em;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .forslagkort .kort-grunn {

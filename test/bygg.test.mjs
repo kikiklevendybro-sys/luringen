@@ -301,26 +301,30 @@ test("«På nett»: the sentence says it, and the game list carries the field on
   for (const g of spillliste("felles/spilliste.js")) if (ekte.has(g.id)) assert.equal(!!g.nett, ekte.get(g.id).nett === true, `${g.id}: «nett» i spillista`);
 });
 
-test("the first screen: shortcuts, rooms with their counts, and the mascots that are drawn at once", async () => {
+test("the first screen: «Hjelp oss å velge» first, the shortcuts, rooms with their counts («På nett» too), and the mascots that are drawn at once", async () => {
   const F = (await import("node:module")).createRequire(import.meta.url)(join(ROT, "rusj/portal/finner.js"));
   for (const [sti, liste, hurtig, rom] of [
-    ["index.html", "felles/spilliste.js", ["Med barna", "Vorspiel", "Alene på bussen", "To stykker", "Stor gjeng", "5 minutter", "Flere valg"], ["Dagens", "Fest", "Familie", "Barn", "Alene", "Klassikere", "Kort", "Ord og quiz", "Arkade"]],
-    ["en/index.html", "felles/spilliste.en.js", ["With the kids", "Pre-drinks", "Alone on the bus", "Just the two of us", "Big crew", "5 minutes", "More options"], ["Daily", "Party", "Family", "Kids", "Solo", "Classics", "Cards", "Words and quizzes", "Arcade"]],
-    ["da/index.html", "felles/spilliste.da.js", ["Med børnene", "Forfest", "Alene i bussen", "Bare os to", "Stor bande", "5 minutter", "Flere valg"], ["Dagens", "Fest", "Familie", "Børn", "Alene", "Klassikere", "Kort", "Ord og quiz", "Arkade"]],
+    ["index.html", "felles/spilliste.js", ["Hjelp oss å velge", "Med barna", "Vorspiel", "Alene på bussen", "To stykker", "Stor gjeng", "5 minutter"], ["Dagens", "Fest", "Familie", "Barn", "Alene", "På nett", "Klassikere", "Kort", "Ord og quiz", "Arkade"]],
+    ["en/index.html", "felles/spilliste.en.js", ["Help us choose", "With the kids", "Pre-drinks", "Alone on the bus", "Just the two of us", "Big crew", "5 minutes"], ["Daily", "Party", "Family", "Kids", "Solo", "Online", "Classics", "Cards", "Words and quizzes", "Arcade"]],
+    ["da/index.html", "felles/spilliste.da.js", ["Hjælp os med at vælge", "Med børnene", "Forfest", "Alene i bussen", "Bare os to", "Stor bande", "5 minutter"], ["Dagens", "Fest", "Familie", "Børn", "Alene", "Online", "Klassikere", "Kort", "Ord og quiz", "Arkade"]],
   ]) {
     const html = readFileSync(join(WEB, sti), "utf8");
     const spill = spillliste(liste).filter((g) => !g.alder18);
     const brikker = [...html.matchAll(/<button type="button" class="brikke hurtig-brikke[^"]*"[^>]*><span aria-hidden="true">[^<]+<\/span> ([^<]+)<\/button>/g)].map((m) => tekst(m[1]));
     assert.deepEqual(brikker, hurtig, `${sti}: snarveiene`);
-    assert.match(html, /id="flere" aria-expanded="false" aria-controls="finner"/);
+    // The three questions are one tap from the first screen: their button is the first chip.
+    assert.match(html, /<div class="hurtig" role="group" aria-label="[^"]+" id="hurtig">\s*<button type="button" class="brikke hurtig-brikke flere" id="flere" aria-expanded="false" aria-controls="finner">/, `${sti}: «Hjelp oss å velge» står ikke først`);
     const rommene = [...html.matchAll(/<button type="button" class="rom" data-rom="([a-z]+)"[^>]*><span class="rom-navn">([^<]+)<\/span><span class="rom-antall" aria-hidden="true">(\d+)<\/span><span class="rom-gjeng" aria-hidden="true">((?:<svg[\s\S]*?<\/svg>){2})<\/span>/g)];
     assert.deepEqual(rommene.map((m) => tekst(m[2])), rom, `${sti}: rommene`);
     for (const [, id, , n] of rommene) assert.equal(Number(n), spill.filter((g) => F.iRom(g, id)).length, `${sti}: antallet i rommet ${id}`);
+    // «På nett» holds the games that can be played online, each on their own phone.
+    const nett = rommene.find((m) => m[1] === "nett");
+    assert.ok(nett && Number(nett[3]) === spill.filter((g) => g.nett).length && Number(nett[3]) >= 30, `${sti}: rommet «På nett» har ${nett && nett[3]} spill`);
     assert.match(html, /<button type="button" class="rom rom-laast" data-rom="voksen"[^>]*><span class="rom-las" aria-hidden="true">18\+<\/span>/, `${sti}: 18+-døra blant rommene`);
     // Inline only on the first screen (the rooms' and «Mest spilt nå»'s mascots); the rest are pictures.
     const kropp = html.slice(html.indexOf("<body"));
     const inline = (kropp.match(/<svg class="figur /g) || []).length;
-    assert.ok(inline >= 18 && inline <= 23, `${sti}: ${inline} figurer tegnet inn i siden (ventet rommene og «Mest spilt nå»)`);
+    assert.ok(inline >= 20 && inline <= 25, `${sti}: ${inline} figurer tegnet inn i siden (ventet rommene og «Mest spilt nå»)`);
     assert.ok(!kropp.slice(kropp.indexOf('id="alle"')).includes('<svg class="figur '), `${sti}: figurer tegnet inn i A–Å-lista`);
   }
   // Each picture is the mascot alone, a file of its own.
@@ -779,7 +783,7 @@ test("every game has its age, it reaches the front page's game list, and the bui
 
 // ---------- «Hva skal vi spille?» (the finder) and «Mest spilt nå» on the front page ----------
 
-test("the finder: three questions behind «Flere valg», under «Hva skal vi spille?», in every edition", () => {
+test("the finder: three questions behind «Hjelp oss å velge», under «Hva skal vi spille?», in every edition", () => {
   for (const [sti, ord] of [
     ["index.html", ["Hvor mange er dere?", "Yngste", "Voksen", "7 år", "Hva har dere lyst på?", "Litt av alt", "Kjapt (&lt;10 min)"]],
     ["en/index.html", ["How many of you are there?", "Youngest", "Adult", "7 years", "What do you fancy?", "A bit of everything", "Quick (&lt;10 min)"]],
@@ -788,7 +792,7 @@ test("the finder: three questions behind «Flere valg», under «Hva skal vi spi
     const html = readFileSync(join(WEB, sti), "utf8");
     const finner = html.slice(html.indexOf('<div class="finner" id="finner"'), html.indexOf('<nav class="rom-nav"'));
     assert.ok(html.indexOf('id="spill"') < html.indexOf('id="finner"') && finner.length > 200, `${sti}: finneren står ikke under overskriften, før rommene`);
-    assert.match(finner, /^<div class="finner" id="finner" role="group" aria-label="[^"]+" hidden>/, `${sti}: finneren er ikke skjult til «Flere valg» åpner den`);
+    assert.match(finner, /^<div class="finner" id="finner" role="group" aria-label="[^"]+" hidden>/, `${sti}: finneren er ikke skjult til «Hjelp oss å velge» åpner den`);
     for (const o of ord) assert.ok(finner.includes(o), `${sti}: mangler «${o}» i finneren`);
     assert.deepEqual([...finner.matchAll(/data-finn-antall="([^"]+)" aria-pressed="false">([^<]+)</g)].map((m) => m[2]), ["1", "2", "3–4", "5–8", "9+"]);
     assert.deepEqual([...finner.matchAll(/<option value="([^"]+)"/g)].map((m) => m[1]), [..."3 4 5 6 7 8 9 10 11 12 13 14 15 16 17".split(" "), "voksen"], `${sti}: alderstrinnene (18+ legges til av siden bak 18+-døra)`);

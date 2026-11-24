@@ -23,7 +23,7 @@ for (const id of readdirSync(join(ROT, "rusj/spill"))) {
   const fil = join(ROT, "rusj/spill", id, "spill.json");
   if (!existsSync(fil)) continue;
   const m = JSON.parse(readFileSync(fil, "utf8"));
-  SPILL.push({ id, spillere: m.spillere, alder: m.alder, minutter: m.minutter, mobiler: m.mobiler, tagger: m.tagger, rekkefolge: m.rekkefolge, ...(m.alder18 ? { alder18: true } : {}), ...(m.motMobilen ? { motMobilen: true } : {}) });
+  SPILL.push({ id, spillere: m.spillere, alder: m.alder, minutter: m.minutter, mobiler: m.mobiler, tagger: m.tagger, rekkefolge: m.rekkefolge, ...(m.alder18 ? { alder18: true } : {}), ...(m.motMobilen ? { motMobilen: true } : {}), ...(m.nett ? { nett: true } : {}) });
 }
 SPILL.sort((a, b) => a.rekkefolge - b.rekkefolge);
 const NOVEMBER = { maned: 11 };
@@ -141,13 +141,20 @@ test("stored answers are made safe", () => {
 // ---------- The front page's rooms and shortcuts ----------
 
 test("the rooms: each one holds its kind of game and never an 18+ game, except the 18+ room", () => {
-  assert.deepEqual(F.ROMMENE, ["dagens", "fest", "familie", "barn", "alene", "klassikere", "kort", "ord", "arkade", "voksen"]);
+  assert.deepEqual(F.ROMMENE, ["dagens", "fest", "familie", "barn", "alene", "nett", "klassikere", "kort", "ord", "arkade", "voksen"]);
   for (const rom of F.ROMMENE) {
+    assert.ok(Array.isArray(F.ROM[rom]), `${rom}: mangler i ROM (lagrede valg sjekkes mot den)`);
     const i = SPILL.filter((s) => F.iRom(s, rom));
     assert.ok(i.length >= 5, `${rom}: bare ${i.length} spill`);
     if (rom === "voksen") assert.ok(i.every((s) => s.alder18), "18+-rommet har vanlige spill");
+    else if (rom === "nett") assert.ok(i.every((s) => !s.alder18 && s.nett), "«På nett» har et 18+-spill eller et spill som ikke kan spilles på nett");
     else assert.ok(i.every((s) => !s.alder18 && s.tagger.some((t) => F.ROM[rom].includes(t))), `${rom}: et 18+-spill eller et spill uten taggen`);
   }
+  // «På nett»: exactly the games with "nett" in spill.json, never an 18+ one (Meyer is both).
+  assert.deepEqual(SPILL.filter((s) => F.iRom(s, "nett")).map((s) => s.id).sort(), SPILL.filter((s) => s.nett && !s.alder18).map((s) => s.id).sort());
+  assert.ok(SPILL.filter((s) => F.iRom(s, "nett")).length >= 30);
+  assert.equal(F.iRom({ id: "x", nett: true, alder18: true, tagger: [] }, "nett"), false);
+  assert.equal(F.iRom({ id: "x", tagger: ["fest"] }, "nett"), false);
   assert.deepEqual(SPILL.filter((s) => F.iRom(s, "arkade")).map((s) => s.id).sort(), ["blokka", "bobla", "dobleren", "ekornet", "maneten", "murbrekkeren", "planeten", "slangen"]);
   assert.equal(F.iRom(SPILL[0], "finnes-ikke"), false);
 });
@@ -166,6 +173,19 @@ test("the shortcuts: a set of answers each, a fair choice, and «Vorspiel» drin
   }
   // «Med barna»: games for the youngest of six; «Alene på bussen»: one player, quick.
   assert.ok(F.finn(SPILL, F.HURTIG.barn(), NOVEMBER).every((s) => s.alder <= 6));
+  // «Med barna» is together: with the place in «Mest spilt nå» a game for one (Slangen) came first.
+  // With `gruppe`, everything two or more can play comes before the games for one alone.
+  const medTopp = SPILL.map((s) => ({ ...s, ...(s.id === "slangen" ? { topp: 1 } : s.id === "bobla" ? { topp: 2 } : {}) }));
+  assert.ok(medTopp.some((s) => s.topp === 1 && s.spillere[1] === 1 && s.alder <= 6), "Slangen er ikke lenger et spill for én fra seks år – velg et annet til testen");
+  const barna = F.finn(medTopp, F.HURTIG.barn(), { ...NOVEMBER, gruppe: true });
+  const forsteAlene = barna.findIndex((s) => s.spillere[1] < 2);
+  assert.ok(forsteAlene >= 9, `«Med barna»: et spill for én er nummer ${forsteAlene + 1} (${kortliste(barna).map((s) => s.id).join(", ")})`);
+  assert.ok(barna.slice(forsteAlene).every((s) => s.spillere[1] < 2), "et spill for flere står etter et spill for én");
+  assert.deepEqual(barna.map((s) => s.id).sort(), F.finn(medTopp, F.HURTIG.barn(), NOVEMBER).map((s) => s.id).sort(), "`gruppe` endrer rekkefølgen, ikke utvalget");
+  assert.equal(F.finn(medTopp, F.HURTIG.barn(), NOVEMBER)[0].id, "slangen", "uten `gruppe` er rekkefølgen som før");
+  assert.deepEqual(Object.keys(F.GRUPPE).sort(), ["barn", "stor", "to", "vors"]);
+  // A head count typed in the search lands in the chip it belongs to.
+  assert.deepEqual([1, 2, 3, 4, 5, 8, 9, 20].map(F.naermesteBand), ["1", "2", "3-4", "3-4", "5-8", "5-8", "9+", "9+"]);
   assert.ok(F.finn(SPILL, F.HURTIG.buss(), NOVEMBER).every((s) => s.spillere[0] === 1 && s.minutter[0] < 10));
   assert.ok(F.ubesvart(F.normaliser({}, false)));
 });

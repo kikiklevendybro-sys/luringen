@@ -91,7 +91,7 @@ function meta(id) {
 
 // ---------- The front page («Miks»), every edition ----------
 // One list of every game, «Alle spill A–Å», written into the page; the search in the top bar, the
-// shortcuts, the rooms and the three questions behind «Flere valg» filter it in place. Texts are
+// shortcuts, the rooms and the three questions behind «Hjelp oss å velge» filter it in place. Texts are
 // checked in Norwegian only (t.norsk); the rest holds in every edition and at every size.
 
 // What the page shows right now (read in the page). nokkel: where the edition keeps its choices.
@@ -187,6 +187,13 @@ async function forsideTur(t, c) {
   })()`);
   t.sjekk(forste.sok.bunn <= 80 && forste.terning.hoyre <= forste.vw && forste.hurtig.topp < forste.vh, `Søket, terningen eller snarveiene er ikke på første skjerm (${JSON.stringify(forste)})`);
   t.sjekk(forste.rom >= 9 && forste.figurer >= 16, `Rommene mangler eller har ikke figurene sine (${forste.rom} rom, ${forste.figurer} figurer)`);
+  // «Hjelp oss å velge» (the three questions) is the first chip, whole on the first screen and filled.
+  const velg = await c.js(`(() => { const k = document.querySelector("#flere"); const b = k.getBoundingClientRect(); const andre = document.querySelector("[data-hurtig]"); return { forst: document.querySelector("#hurtig").firstElementChild === k, venstre: Math.round(b.left), hoyre: Math.round(b.right), bunn: Math.round(b.bottom), vw: innerWidth, vh: innerHeight, egenFarge: getComputedStyle(k).backgroundColor !== getComputedStyle(andre).backgroundColor, tekst: k.textContent.trim() }; })()`);
+  t.sjekk(velg.forst && velg.venstre >= 0 && velg.hoyre <= velg.vw && velg.bunn <= velg.vh && velg.egenFarge, `«Hjelp oss å velge» er ikke den første brikken, hel og tydelig på første skjerm (${JSON.stringify(velg)})`);
+  if (t.norsk) t.sjekk(velg.tekst.endsWith("Hjelp oss å velge"), `Knappen til de tre spørsmålene heter «${velg.tekst}»`);
+  // The room «På nett»: the games that can be played online, with a count.
+  const nettRom = await c.js(`(() => { const b = document.querySelector('#rommene [data-rom="nett"]'); return b ? { antall: Number(b.querySelector(".rom-antall").textContent), ventet: (window.RUSJ_SPILLISTE || []).filter((s) => s.nett && !s.alder18).length } : null; })()`);
+  t.sjekk(nettRom && nettRom.antall === nettRom.ventet && nettRom.antall > 0, `Rommet «På nett» mangler eller teller feil (${JSON.stringify(nettRom)})`);
   if (staende && HOYDE >= 800) t.sjekk(forste.sisteRom <= forste.vh, `Rommene får ikke plass på første skjerm (slutter på ${forste.sisteRom} av ${forste.vh} px)`);
   else if (staende || stor) t.sjekk(forste.forsteRom <= forste.vh, `Den første raden med rom er ikke på første skjerm (slutter på ${forste.forsteRom} av ${forste.vh} px)`);
   // The search field's placeholder fits («Søk i 104 spill»), also on the smallest phones.
@@ -202,7 +209,8 @@ async function forsideTur(t, c) {
 
   // ---------- Keyboard: the order of the first stops, each with a visible ring ----------
   await c.js("document.activeElement && document.activeElement.blur(); scrollTo(0, 0)");
-  const ventetStopp = ["hopp", "linje-logo", "#sok", "#overrask", "SUMMARY", ...Array(6).fill("hurtig"), "#flere", ...Array(forste.rom).fill("rom"), "#installtips-vis", "#installtips-lukk"];
+  // («Hjelp oss å velge», #flere, comes before the shortcuts: it was the last chip, out of sight.)
+  const ventetStopp = ["hopp", "linje-logo", "#sok", "#overrask", "SUMMARY", "#flere", ...Array(6).fill("hurtig"), ...Array(forste.rom).fill("rom"), "#installtips-vis", "#installtips-lukk"];
   const stopp = [];
   for (let i = 0; i < ventetStopp.length; i++) {
     await tast("Tab", 9);
@@ -330,10 +338,10 @@ async function forsideTur(t, c) {
     }
   }
 
-  // ---------- The three questions («Flere valg») ----------
+  // ---------- The three questions («Hjelp oss å velge») ----------
   await c.js("scrollTo(0, 0)");
   await c.klikk("#flere");
-  t.sjekk(await c.js(`!document.querySelector("#finner").hidden && document.querySelector("#flere").getAttribute("aria-expanded") === "true"`), "«Flere valg» åpner ikke de tre spørsmålene");
+  t.sjekk(await c.js(`!document.querySelector("#finner").hidden && document.querySelector("#flere").getAttribute("aria-expanded") === "true"`), "«Hjelp oss å velge» åpner ikke de tre spørsmålene");
   const velgAlder = async (v) => {
     await c.js(`(() => { const s = document.querySelector("#finner-yngst"); s.value = ${JSON.stringify(String(v))}; s.dispatchEvent(new Event("change", { bubbles: true })); })()`);
     await c.sov(150);
@@ -377,7 +385,7 @@ async function forsideTur(t, c) {
   t.sjekk(await c.js(`document.activeElement && document.activeElement.id === "alle-t" && document.querySelector("#alle").getBoundingClientRect().top < innerHeight / 2`), "Knappen under spørsmålene går ikke til lista");
   await c.js(`document.querySelector('[data-finn-antall="3-4"]').focus()`);
   await tast("Escape", 27);
-  t.sjekk(await c.js(`document.querySelector("#finner").hidden && document.activeElement && document.activeElement.id === "flere"`), "Escape lukker ikke spørsmålene, eller fokus går ikke tilbake til «Flere valg»");
+  t.sjekk(await c.js(`document.querySelector("#finner").hidden && document.activeElement && document.activeElement.id === "flere"`), "Escape lukker ikke spørsmålene, eller fokus går ikke tilbake til «Hjelp oss å velge»");
   await c.klikk("#nullstill");
 
   // ---------- The 18+ door: the room, «Nei», «Ja», «Skjul» ----------

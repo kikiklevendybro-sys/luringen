@@ -961,6 +961,7 @@ ${STEMPEL_FILTER}
     familie: { ikon: "🏡", farge: "#ff8a3d", figurer: ["detektiven", "brikka", "terninga", "kunstneren"] },
     barn: { ikon: "🧸", farge: "#3de3b0", figurer: ["elefanten", "bokstavtrollet", "ballongen", "penselen"] },
     alene: { ikon: "🙋", farge: "#59b9ff", figurer: ["maneten", "ekornet", "sjakkhesten", "humla"] },
+    nett: { ikon: "🌐", farge: "#22c7e8", figurer: ["spionen", "terninga", "varulven", "vriatter"] },
     klassikere: { ikon: "👑", farge: "#a47bff", figurer: ["sjakkhesten", "terninga", "fireren", "tavla"] },
     kort: { ikon: "🃏", farge: "#ff5a4e", figurer: ["kortkongen", "narren", "vriatter", "hjerteknuseren"] },
     ord: { ikon: "💡", farge: "#6f8bff", figurer: ["bedreviteren", "ordugla", "tidsmaskinen", "skravla"] },
@@ -980,6 +981,7 @@ ${STEMPEL_FILTER}
       familie: [t("Familie"), t("Hele familien")],
       barn: [t("Barn"), t("For barna")],
       alene: [t("Alene"), t("Spill alene")],
+      nett: [t("På nett"), t("Spill på nett")],
       klassikere: [t("Klassikere"), t("Klassikere")],
       kort: [t("Kort"), t("Kortspill")],
       ord: [t("Ord og quiz"), t("Ord og quiz")],
@@ -1075,7 +1077,8 @@ ${STEMPEL_FILTER}
         return U.antall18
           ? `<li class="rom-bred"><button type="button" class="rom rom-laast" data-rom="voksen" data-ikon="${r.ikon}" data-navn="${esc(navn)}" style="--rf: ${r.farge}"><span class="rom-las" aria-hidden="true">18+</span><span class="rom-tekst"><span class="rom-navn">${esc(t("Drikkespill"))}</span><span class="rom-under">${esc(t("{n} spill bak aldersdøra", { n: U.antall18 }))}</span></span></button></li>`
           : "";
-      const iRommet = vanlige.filter((m) => Finner.iRom(m, id));
+      // («På nett» only while the rooms for it are switched on: paNett)
+      const iRommet = vanlige.filter((m) => Finner.iRom({ ...m, nett: paNett(m) }, id));
       if (!iRommet.length) return "";
       const figurer = [...r.figurer.filter((f) => iRommet.some((m) => m.id === f)), ...iRommet.map((m) => m.id)].filter((f, i, a) => a.indexOf(f) === i).slice(0, 2);
       return `<li><button type="button" class="rom" data-rom="${id}" data-ikon="${r.ikon}" data-navn="${esc(navn)}" aria-pressed="false" style="--rf: ${r.farge}" aria-label="${esc(`${lang}: ${t("{antall} spill", { antall: iRommet.length, n: iRommet.length })}`)}"><span class="rom-navn">${esc(navn)}</span><span class="rom-antall" aria-hidden="true">${iRommet.length}</span><span class="rom-gjeng" aria-hidden="true">${figurer.map(svgFor).join("")}</span></button></li>`;
@@ -1155,12 +1158,12 @@ ${FLAGG}
       <p class="start-linje">${U.th("{antall} gratis spill · ingen konto · ingen reklame", { antall: `<b>${kortListe.length}</b>` })}</p>
     </div>
     <div class="hurtig" role="group" aria-label="${esc(t("Snarveier"))}" id="hurtig">
-      ${Object.keys(Finner.HURTIG)
+      <button type="button" class="brikke hurtig-brikke flere" id="flere" aria-expanded="false" aria-controls="finner"><span aria-hidden="true">🧭</span> ${esc(t("Hjelp oss å velge"))}</button>${Object.keys(Finner.HURTIG)
         .map((id) => {
           const [ik, farge] = HURTIG_UTSEENDE[id];
           return `<button type="button" class="brikke hurtig-brikke" data-hurtig="${id}" data-ikon="${ik}" data-navn="${esc(HURTIG_NAVN[id])}" aria-pressed="false" style="--hf: ${farge}"><span aria-hidden="true">${ik}</span> ${esc(HURTIG_NAVN[id])}</button>`;
         })
-        .join("")}<button type="button" class="brikke hurtig-brikke flere" id="flere" aria-expanded="false" aria-controls="finner"><span aria-hidden="true">🧭</span> ${esc(t("Flere valg"))}</button>
+        .join("")}
     </div>
     <div class="finner" id="finner" role="group" aria-label="${esc(t("Filter"))}" hidden>
       <div class="finner-sporsmal" role="group" aria-labelledby="finner-antall-tittel">
