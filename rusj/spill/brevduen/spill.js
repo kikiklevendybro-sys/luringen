@@ -236,6 +236,8 @@
   // with it, at the latest after 24 hours). The screens show no answer before everyone still in has
   // written and no author before everyone has guessed, but a modified phone could read the list.
   const NETT_MAKS = 60; // characters in an answer on the net (R.nett.tekst)
+  // An answer on the net needs at least one sign one can see (not only blank-looking signs).
+  const synlig = (s) => /[\p{L}\p{N}\p{P}\p{S}]/u.test(s);
   const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
   const ute = (sp, i) => paNett(sp) && sp.ute.includes(i);
   const inne = (sp) => range(sp.antall).filter((i) => !ute(sp, i));
@@ -401,7 +403,7 @@
       const r = sp.r;
       if (sp.fase === "skriv" && typeof t.svar === "string") {
         const tekst = R.nett.tekst(t.svar, NETT_MAKS);
-        if (t.k !== r.k || r.svar[sete] != null || !tekst) return;
+        if (t.k !== r.k || r.svar[sete] != null || !tekst || !synlig(tekst)) return;
         r.svar[sete] = tekst;
         if (harAlle(sp, r.svar)) nettTilPek(sp, okt.rng);
       } else if (sp.fase === "skriv" && t.bytt === 1) {
@@ -917,7 +919,7 @@
         if (!paNett(sp) || sp.fase !== "skriv" || !kanSvare(sp)) return;
         const felt = form.querySelector("input");
         const tekst = R.nett.tekst(felt.value, NETT_MAKS);
-        if (!tekst) {
+        if (!tekst || !synlig(tekst)) {
           R.$("#bd-feil").textContent = R.t("Skriv et svar først.");
           felt.setAttribute("aria-invalid", "true");
           felt.focus();

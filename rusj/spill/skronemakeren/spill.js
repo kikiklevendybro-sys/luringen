@@ -352,7 +352,7 @@
       : `<p class="skrone-ingen">${esc(R.t("Ingen stemte på denne."))}</p>`;
     const hvem = v.sann
       ? `<p class="skrone-av sann">${esc(stemte.length ? R.t("+{n} til {navn}", { n: SANN, navn: navneliste(stemte) }) : R.t("Ingen fant sannheten!"))}</p>`
-      : `<p class="skrone-av">${esc(R.t("Skrøne av {navn}")).replace("{navn}", `<b>${esc(navneliste(v.av))}</b>`)}${stemte.length ? ` · +${stemte.length * LURT}` : ""}</p>`;
+      : `<p class="skrone-av">${esc(R.t("Skrøne av {navn}")).replace("{navn}", () => `<b>${esc(navneliste(v.av))}</b>`)}${stemte.length ? ` · +${stemte.length * LURT}` : ""}</p>`;
     return `
       <article class="skrone-avslort papirboks${v.sann ? " sann" : ""}${o.ny ? " ny" : ""}" aria-label="${esc(v.sann ? R.t("Det ekte svaret") : R.t("En skrøne"))}">
         <p class="skrone-tekst">${bokstav(k)}<span>${esc(v.t)}</span></p>
@@ -1048,7 +1048,7 @@
               <p class="skrone-fasit-svar">✅ ${esc(r.valg[sannK].t)}</p>
               ${
                 lurere.length
-                  ? `<p class="skrone-runde-linje">${esc(R.t("Rundens skrønemaker: {navn}")).replace("{navn}", `<b>${esc(navneliste(lurere))}</b>`)}</p>`
+                  ? `<p class="skrone-runde-linje">${esc(R.t("Rundens skrønemaker: {navn}")).replace("{navn}", () => `<b>${esc(navneliste(lurere))}</b>`)}</p>`
                   : `<p class="skrone-runde-linje">${esc(R.t("Ingen gikk på en skrøne denne runden."))}</p>`
               }
             </div>

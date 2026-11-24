@@ -60,7 +60,7 @@
   // English: plural -s, -es, -ies → -y and -ves → -f / -fe (cats, boxes, berries, knives).
   function stammerEngelsk(ord) {
     const ut = new Set([ord]);
-    if (ENGELSK[ord]) ut.add(ENGELSK[ord]);
+    if (Object.prototype.hasOwnProperty.call(ENGELSK, ord)) ut.add(ENGELSK[ord]);
     const n = ord.length;
     if (n > 4 && ord.endsWith("ies")) ut.add(ord.slice(0, -3) + "y");
     if (n > 4 && ord.endsWith("ves")) {
@@ -79,7 +79,7 @@
   function stammer(ord) {
     if (R.sprak === "en") return stammerEngelsk(ord);
     const ut = new Set([ord]);
-    if (UREGEL[ord]) ut.add(UREGEL[ord]);
+    if (Object.prototype.hasOwnProperty.call(UREGEL, ord)) ut.add(UREGEL[ord]);
     // støvel → støvler, sykkel → sykler, finger → fingre: the e before a final l or r drops out.
     const el = /^(.*[^aeiouyæøå])e([lr])$/.exec(ord);
     if (el) {

@@ -959,6 +959,9 @@
     tekst(s, maks = 60) {
       const t = String(s == null ? "" : s)
         .normalize("NFC")
+        // Signs that look like nothing (the same as the room's nickname rule, nett/src/protokoll.js,
+        // plus Braille blank and tag signs) go; control and direction signs become a space.
+        .replace(/[\u00AD\u034F\u061C\u115F\u1160\u180E\u206A-\u206F\u2800\u3164\uFFA0\uFFF0-\uFFFF\u{E0000}-\u{E007F}]/gu, "")
         .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028-\u202E\u2060-\u2069\uFEFF]/g, " ")
         .replace(/\s+/g, " ")
         .trim();
