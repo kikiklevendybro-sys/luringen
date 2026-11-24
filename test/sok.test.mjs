@@ -12,6 +12,7 @@ import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { MERKER, merkeI } from "../scripts/rusj.mjs";
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
 const F = require(join(ROT, "rusj/portal/finner.js"));
@@ -74,13 +75,29 @@ test("the same in the English and the Danish edition", () => {
 });
 
 test("a typo is put right from our own words, and the search says which word it shows", () => {
-  for (const [q, ord, id] of [["yatsy", "yatzy", "terninga"], ["sudoko", "sudoku", "tallknuseren"], ["codnames", "codenames", "kodeknekkeren"], ["luddo", "ludo", "brikka"], ["kabel", "kabal", "kortkongen"], ["bakgammon", "backgammon", "tavla"]]) {
+  for (const [q, ord, id] of [["yatsy", "yatzy", "terninga"], ["sudoko", "sudoku", "tallknuseren"], ["luddo", "ludo", "brikka"], ["kabel", "kabal", "kortkongen"], ["bakgammon", "backgammon", "tavla"]]) {
     const r = U.nb.sok.sok(q);
     assert.equal(r.rettet, ord, `«${q}» ble rettet til «${r.rettet}»`);
     assert.equal(r.treff[0].n, id, `«${q}» → ${r.treff.slice(0, 3).map((x) => x.n).join(", ")}`);
   }
+  // A word that is only a search word (it may be somebody's brand) finds the game, but is never
+  // written out on the page.
+  const merke = U.nb.sok.sok("codnames");
+  assert.deepEqual([merke.treff[0].n, merke.rettet], ["kodeknekkeren", ""]);
+  for (const sprak of ["nb", "en", "da"]) {
+    // (a name on the list that is also an ordinary word the edition itself uses – «memory» in English – is not hidden)
+    for (const m of MERKER) {
+      if (m.split(/[ -]/).every((d) => U[sprak].sok.viser(d))) continue;
+      for (let i = 1; i < m.length; i++) {
+        const feil = m.slice(0, i) + m.slice(i + 1); // one letter dropped
+        const r = U[sprak].sok.sok(feil).rettet;
+        assert.equal(merkeI(r), null, `${sprak} «${feil}» skriver ut «${r}»`);
+      }
+    }
+  }
   assert.equal(U.da.sok.sok("yatsy").rettet, "yatzy");
-  assert.equal(U.en.sok.sok("yahtzea").rettet, "yahtzee");
+  const merkeEn = U.en.sok.sok("yahtzea");
+  assert.deepEqual([merkeEn.treff[0].n, merkeEn.rettet], ["terninga", ""]);
   // No correction when the word is found as it is, for short words, or far from everything we know –
   // and never to a word of three letters («fifa» is not «fia») or, for a short word, to the start of
   // a longer one («dans» is not «damspill», «lego» is not «legger»).
@@ -95,9 +112,9 @@ test("a typo is put right from our own words, and the search says which word it 
   assert.equal(S.avstand("codnamse", "codenames", 2), 2);
   assert.ok(S.avstand("yahtze", "yatzy", 1) > 1);
   const liten = S.lag({ spill: [{ id: "a", navn: "Kodeknekkeren", undertittel: "Kodeord", kort: "", sok: ["mastermind"], tagger: [], spillere: [1, 2], minutter: [5, 10], mobiler: "en", rekkefolge: 1 }], taggsok: {}, sprak: "nb", F });
-  assert.equal(liten.sok("mastermnid").rettet, "mastermind"); // 10 letters, one swap
-  assert.equal(liten.sok("mostermund").rettet, "mastermind"); // 10 letters, two edits
-  assert.equal(liten.sok("mostermunt").rettet, ""); // three edits: no
+  assert.deepEqual([liten.sok("mastermnid").treff.length, liten.sok("mastermnid").rettet], [1, ""]); // 10 letters, one swap (a search word: found, not shown)
+  assert.equal(liten.sok("mostermund").treff.length, 1); // 10 letters, two edits
+  assert.equal(liten.sok("mostermunt").treff.length, 0); // three edits: no
   assert.equal(liten.sok("kodeort").rettet, "kodeord"); // 7 letters, one edit
   assert.equal(liten.sok("kadeort").rettet, ""); // 7 letters, two edits: no
 });

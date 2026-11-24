@@ -190,26 +190,28 @@
     const oppforinger = [];
     const alleOrd = new Set(); // every word a token can meet
     const vokab = new Map(); // the words a typo may be corrected to → their best tier
+    const synlig = new Set(); // the words the page itself shows (names, genres, one-liners, kinds of game)
     function oppforing(s, variant, nr) {
       const ord = new Map();
       const fraser = [];
-      const legg = (tekst, trinn, egen, retting) => {
+      const legg = (tekst, trinn, egen, retting, vises) => {
         const r = ren(tekst);
         if (!r) return;
         if (egen) fraser.push(r);
         for (const x of r.split(" ")) {
+          if (vises) synlig.add(x);
           if (!ord.has(x) || ord.get(x) > trinn) ord.set(x, trinn);
           alleOrd.add(x);
           if (retting && x.length >= 3 && !/^\d+$/.test(x) && !(vokab.get(x) <= trinn)) vokab.set(x, trinn);
         }
       };
       const k = variant || s;
-      legg(k.navn, 0, true, true);
-      legg(k.undertittel, 1, true, true);
-      for (const x of k.sok || []) legg(x, 2, true, true);
+      legg(k.navn, 0, true, true, true);
+      legg(k.undertittel, 1, true, true, true);
+      for (const x of k.sok || []) legg(x, 2, true, true, false);
       if (!variant) {
-        legg(s.kort, 2, false, false);
-        for (const tg of s.tagger || []) for (const x of taggsok[tg] || []) legg(x, 3, false, true);
+        legg(s.kort, 2, false, false, true);
+        for (const tg of s.tagger || []) for (const x of taggsok[tg] || []) legg(x, 3, false, true, true);
       }
       // f: the facts a query is held against (a variant's own, where it has them).
       const f = variant ? Object.assign({}, s, variant.spillere ? { spillere: variant.spillere } : null, variant.minutter ? { minutter: variant.minutter } : null, variant.nett === false ? { nett: false } : null) : s;
@@ -402,17 +404,21 @@
           if (r) endret = true;
           return r || x;
         });
+        // A word that is only a search word may be somebody's brand: it finds the game, but is never
+        // written out. «Viser treff for …» is shown only when every word in it is one the page shows.
+        const vises = (x) => synlig.has(x) || Array.from(synlig).some((y) => y.startsWith(x));
+        const skjult = !ord.every(vises);
         if (endret) {
           const Q2 = Object.assign({}, Q, { ord, rest: ord.join(" "), hele: ord.join(" ") });
           funn = let_(Q2, false);
           if (!funn.length && Q.krav.some((k) => k.myk)) funn = let_(Q2, true);
-          if (funn.length) ut.rettet = ord.join(" ");
+          if (funn.length) ut.rettet = skjult ? "" : ord.join(" ");
         }
       }
       return ferdig(funn);
     }
 
-    return { sok, tolk, rett, oppforinger: oppforinger.length };
+    return { sok, tolk, rett, oppforinger: oppforinger.length, viser: (x) => synlig.has(x) };
   }
 
   const api = { lag, ren, mote, avstand, REGLER, KRAV, IKKE_ENNA };

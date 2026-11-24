@@ -343,7 +343,7 @@ async function forsideTur(t, c) {
   // «på nett» – and a game inside a game, as a row that opens it.
   const ORD = {
     nb: { skrivefeil: ["yatsy", "yatzy"], antall: "for to", nett: "på nett" },
-    en: { skrivefeil: ["yahtzea", "yahtzee"], antall: "for two", nett: "online" },
+    en: { skrivefeil: ["dicye", "dicey"], antall: "for two", nett: "online" },
     da: { skrivefeil: ["yatsy", "yatzy"], antall: "for to", nett: "online" },
   }[t.sprak];
   const har = (id) => side.alle.some((s) => s.id === id);
