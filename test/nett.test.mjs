@@ -2950,6 +2950,51 @@ test("Spionen: a tie goes back to the round, «uenige», «Fri» ends when the l
   assert.ok(r2.tlf[0].def.nett.ferdig(r2.tlf[0].S));
 });
 
+test("Spionen and Varulven: votes for a seat that has since left do not count", () => {
+  // Spionen: two vote for an innocent seat that then leaves – it cannot be accused; one each is a tie.
+  const r = medSkjerm(rom("spionen", 5, { spioner: 1, runder: 0 }));
+  const sp = () => r.tlf[0].S.spill;
+  [0, 1, 2, 3, 4].forEach((i) => r.trekk(i, { klar: 1 }));
+  const spion = sp().r.spioner[0];
+  const [x, n1, n2, n3] = [0, 1, 2, 3, 4].filter((i) => i !== spion);
+  r.trekk(n1, { stopp: 1 });
+  r.trekk(n1, { stem: x, r: 1 });
+  r.trekk(n2, { stem: x, r: 1 });
+  r.borte(x);
+  r.trekk(n3, { stem: n1, r: 1 });
+  r.trekk(spion, { stem: n2, r: 1 });
+  assert.equal(sp().anklaget, null, "the seat that left is not accused");
+  assert.equal(sp().fase, "runde", "one vote each for those still in: a tie");
+  for (const p of r.tlf.slice(1)) if (p.meg !== x) likt(r.tlf[0], p);
+  // Varulven «Klassisk»: two vote for the hunter, who then leaves – the village does not wait for its shot.
+  const v = medSkjerm(rom("varulven", 6, { modus: "klassisk", ulver: 1, synsk: true, lege: true, jeger: true, tid: 2, fredelig: false }));
+  const vs = () => v.tlf[0].S.spill;
+  const rolle = (navn) => vs().roller.indexOf(navn);
+  const [ulv, synsk, lege, jeger] = ["varulv", "synsk", "lege", "jeger"].map(rolle);
+  const [l1, l2] = [0, 1, 2, 3, 4, 5].filter((i) => vs().roller[i] === "landsby");
+  [0, 1, 2, 3, 4, 5].forEach((i) => v.trekk(i, { klar: 1 }));
+  v.trekk(ulv, { valg: l1, n: 1 });
+  v.trekk(synsk, { valg: ulv, n: 1 });
+  v.trekk(lege, { valg: lege, n: 1 });
+  v.trekk(jeger, { valg: l2, n: 1 });
+  v.trekk(l1, { valg: ulv, n: 1 });
+  v.trekk(l2, { valg: synsk, n: 1 });
+  assert.equal(vs().morgen.offer, l1);
+  v.trekk(l1, { stem: 1 });
+  assert.equal(vs().fase, "stemme");
+  v.trekk(ulv, { mot: jeger, d: 1 });
+  v.trekk(synsk, { mot: jeger, d: 1 });
+  v.borte(jeger);
+  v.trekk(lege, { mot: l2, d: 1 });
+  v.trekk(l2, { mot: lege, d: 1 });
+  assert.equal(vs().fase, "utkastet");
+  assert.equal(vs().utkastet, null, "the hunter had left: one vote each for the others is a tie");
+  assert.equal(vs().jeger, null, "nobody waits for a shot");
+  v.trekk(l1, { kveld: 2 });
+  assert.equal(vs().fase, "natt", "the game goes on");
+  for (const p of v.tlf.slice(1)) if (p.meg !== jeger) likt(v.tlf[0], p);
+});
+
 test("Varulven: «Klassisk» for six phones – own roles, the night on every phone, the hunter's shot, a tied vote, a saved night, the village wins", () => {
   const r = medSkjerm(rom("varulven", 6, { modus: "klassisk", ulver: 1, synsk: true, lege: true, jeger: true, tid: 2, fredelig: false }));
   const [a] = r.tlf;

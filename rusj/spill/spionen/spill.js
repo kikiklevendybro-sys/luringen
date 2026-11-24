@@ -805,7 +805,9 @@
   }
   // Everyone still in has voted: the one with the most votes is accused; a tie, and the round goes on.
   function nettTell(sp) {
-    const stemmer = range(sp.antall).map((i) => nettInne(sp).filter((j) => sp.stemmer[j] === i).length);
+    // Votes for a seat that has since left do not count (it cannot be accused).
+    const inne = nettInne(sp);
+    const stemmer = range(sp.antall).map((i) => (inne.includes(i) ? inne.filter((j) => sp.stemmer[j] === i).length : 0));
     const topp = Math.max(...stemmer);
     const hvem = range(sp.antall).filter((i) => stemmer[i] === topp);
     sp.stemmer = null;

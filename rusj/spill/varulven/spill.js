@@ -1355,7 +1355,8 @@
   // Everyone alive has voted: the one with the most votes leaves the village; a tie, nobody does.
   function nettTelling(sp) {
     const med = levende(sp);
-    const tall = range(sp.n).map((i) => med.filter((j) => sp.stemmer[j] === i).length);
+    // Only the living can leave the village: votes for a seat that has since left do not count.
+    const tall = range(sp.n).map((i) => (sp.levende[i] ? med.filter((j) => sp.stemmer[j] === i).length : 0));
     const topp = Math.max(...tall);
     const hvem = range(sp.n).filter((i) => topp > 0 && tall[i] === topp);
     sp.stemmer = null;
