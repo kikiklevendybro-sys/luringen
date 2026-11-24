@@ -10,6 +10,7 @@
   "mobiler": "en",
   "tagger": ["fest", "familie", "ord"],
   "rekkefolge": 96,
+  "nett": true,
   "alias": ["fyll-inn", "fyll-inn-det-som-mangler"],
   "sok": ["fyll inn", "fyll inn det som mangler", "fyll-inn-spill", "svarkort", "festspill med kort", "partyspill", "morsomme kort", "kortspill for voksne"],
   "i18n": {

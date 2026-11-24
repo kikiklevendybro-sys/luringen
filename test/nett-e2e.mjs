@@ -40,7 +40,10 @@ const NORSKE = {
   da: new Set("spill trykk velg igjen noe fortsett avslutt lukk uavgjort brettet deg meg dere hva gjør ble brikka rommet".split(" ")), // («kampen» is Danish too)
 };
 const norskOrd = (tekst) => {
-  const ren = String(tekst).replace(/Testspiller [A-Z]/g, " ");
+  // (A room code with digits in it splits into bits like «AV» in «Z3AV4Z»: not Norwegian.)
+  const ren = String(tekst)
+    .replace(/Testspiller [A-Z]/g, " ")
+    .replace(/(?<![A-Za-z0-9])(?=[A-Z]*\d)[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}(?![A-Za-z0-9])/g, " ");
   if (SPRAK === "en" && /[æøå]/i.test(ren)) return true;
   return (ren.toLocaleLowerCase("nb").match(/[a-zæøå]+/g) || []).some((o) => NORSKE[SPRAK].has(o));
 };

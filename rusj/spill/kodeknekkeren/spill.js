@@ -420,6 +420,7 @@
   // The code masters of this board when the group has typed its names: one per team, or one in
   // co-op. A new one every board, in turn.
   function mestere(sp) {
+    if (sp.nett) return sp.mester.slice(); // (on the net: kept with the board, see «On the net»)
     if (!sp.navn) return null;
     if (erSammen(sp)) return [(sp.mstart[0] + sp.mnr) % sp.antall];
     return sp.lag.map((medlemmer, l) => medlemmer[(sp.mstart[l] + sp.mnr) % medlemmer.length]);
@@ -616,7 +617,7 @@
 
   // «Sammen mot fella»: hint number `nr` is over. The next one starts, or — after the seventh —
   // the board ends. forst: what happened («Tiden er ute!», ««Frost» var nøytralt.»), type: its look.
-  function hintSlutt(S, nr, forst, type) {
+  function hintSlutt(S, nr, forst, type, ui = true) {
     const sp = S.spill;
     tomHint(sp);
     if (nr >= HINT) {
@@ -624,10 +625,10 @@
       sp.spilt += 1;
       S.laert = true;
       sp.melding = { tekst: forst ? R.t("{forst} – og det var siste hint.", { forst: forst.replace(/[.!]$/, "") }) : R.t("Det var siste hint."), type };
-      R.si(sp.melding.tekst);
-      stoppTur();
-      R.vis();
-      tilResultatOm(1400);
+      if (ui) R.si(sp.melding.tekst);
+      if (ui) stoppTur();
+      if (ui) R.vis();
+      if (ui) tilResultatOm(1400);
       return;
     }
     sp.melding = {
@@ -636,9 +637,9 @@
         : R.t("Hint {n} av {antall}. {navn} gir ett ord og et tall.", { n: nr + 1, antall: HINT, navn: mesterNavn(sp) }),
       type,
     };
-    R.si(sp.melding.tekst);
-    R.vis();
-    startTur(S);
+    if (ui) R.si(sp.melding.tekst);
+    if (ui) R.vis();
+    if (ui) startTur(S);
   }
 
   function tidenUte(S) {
@@ -906,6 +907,13 @@
     const ord = R.kutt(String(felt ? felt.value : sp.utkast || "").replace(/\s+/g, " ").trim(), 20);
     const n = "n" in o ? o.n : sp.hint ? sp.hint.n : null;
     if (!ord && n == null) return;
+    if (paNett(sp)) {
+      if (!erJeg(sp, mesterPaTur(sp)) || !R.nett.send({ hint: { ord, n }, h: sp.hist.length })) return;
+      sp.utkast = ord;
+      const norm = R.normaliser(ord);
+      if (norm && sp.ord.some((w, i) => !sp.vist.includes(i) && R.normaliser(w) === norm)) R.toast(R.t("Hintet kan ikke være et ord på brettet"), { topp: true });
+      return;
+    }
     const forrige = sp.hint;
     sp.utkast = "";
     sp.redigerer = false;
@@ -965,7 +973,7 @@
 
   // ---------- The first board on this phone: a three-frame example ----------
 
-  const visEksempel = (S) => !S.laert && !!S.spill && !S.spill.hist.length && !over(S.spill);
+  const visEksempel = (S) => !S.laert && !!S.spill && !S.spill.nett && !S.spill.hist.length && !over(S.spill);
   function eksempelHtml(sp) {
     const kort = (ord, klasse) => `<i${klasse ? ` class="${klasse}"` : ""}>${esc(ord)}</i>`;
     const farge = erSammen(sp) ? "sammen" : `lag-${LAG[sp.tur].klasse}`;
@@ -1146,12 +1154,12 @@
     const lagkort = (l) => `<div class="kk-lagkort ${LAG[l].klasse}${v === l ? " vinner" : ""}">
         <h2>${esc(LAG[l].navn)}</h2>
         <p class="kk-lagkort-tall">${medHtml(R.t("{tall} brett|{tall} brett", { tall: "{tall}", n: sp.stilling[l] }), { tall: `<b>${sp.stilling[l]}</b>` })}</p>
-        ${sp.navn ? `<p class="kk-lagkort-navn">${esc(R.ramsOpp(sp.lag[l].map((i) => navnPa(sp, i))))}</p>` : ""}
+        ${sp.navn ? `<p class="kk-lagkort-navn">${esc(R.ramsOpp(sp.lag[l].filter((i) => !forlot(sp, i)).map((i) => navnPa(sp, i))))}</p>` : ""}
       </div>`;
     return `${banner}
       ${sp.spilt ? `<div class="kk-lagkortene" role="group" aria-label="${esc(R.t("Stillingen"))}">${lagkort(0)}${lagkort(1)}</div>` : ""}
       ${prisHtml(sp)}
-      ${sp.spilt ? R.ui.knapp2(R.t("Del resultatet"), "del") : ""}`;
+      ${sp.spilt && !paNett(sp) ? R.ui.knapp2(R.t("Del resultatet"), "del") : ""}`;
   }
 
   function karingSammen(S, sp) {
@@ -1192,7 +1200,7 @@
       }
       ${m ? `<p class="hjelp">${esc(R.t("Kodemester på dette brettet: {navn}.", { navn: navnPa(sp, m[0]) }))}</p>` : ""}
       ${prisHtml(sp)}
-      ${R.ui.knapp2(R.t("Del resultatet"), "del")}`;
+      ${paNett(sp) ? "" : R.ui.knapp2(R.t("Del resultatet"), "del")}`;
   }
 
   // ---------- The code master's phone ----------
@@ -1332,11 +1340,412 @@
     return over(sp) ? R.t("Fortsett · {stilling}", { stilling: stillingTekst(sp) }) : R.t("Fortsett · brett {n}", { n: sp.brett + 1 });
   }
 
+  // Turn card i for the team on turn (one tap on the board; on the net: the move). ui: false while
+  // a match on the net is replayed (only the state).
+  function snuKort(S, i, ui) {
+    const sp = S.spill;
+    const sammen = erSammen(sp);
+    const lag = sp.tur;
+    const type = sp.nokkel[i];
+    const ord = sp.ord[i];
+    const nr = hintNr(sp);
+    const egen = type === (sammen ? ROSA : lag);
+    // A card that ends the turn or the board also remembers the hint on the strip (for undo).
+    const steg = { t: "kort", i, tur: lag };
+    const slutt = () => {
+      steg.hint = sp.hint;
+      tomHint(sp);
+    };
+    sp.hist.push(steg);
+    sp.vist.push(i);
+    sp.sist = i;
+
+    if (type === FELLE) {
+      sp.grunn = "fella";
+      sp.spilt += 1;
+      S.laert = true;
+      if (!sammen) {
+        sp.vinner = 1 - lag;
+        sp.stilling[sp.vinner] += 1;
+      }
+      slutt();
+      sp.melding = { tekst: sammen ? R.t("«{ord}» var fella! Brettet er over.", { ord }) : R.t("«{ord}» var fella! {lag} taper brettet.", { ord, lag: LAG[lag].navn }), type: "felle" };
+      if (ui) R.si(sp.melding.tekst);
+      if (ui) R.lyd.bom();
+      if (ui) R.vibrer([90, 60, 260]);
+      if (ui) stoppTur();
+      if (ui) {
+        R.vis();
+        const brett = R.$(".kk-brett");
+        if (brett) brett.classList.add("kk-smell");
+      }
+      if (ui) blits();
+      if (ui) tilResultatOm(1700);
+      return;
+    }
+
+    const vinner = sammen ? null : igjen(sp, ROSA) === 0 ? ROSA : igjen(sp, BLA) === 0 ? BLA : null;
+    if (vinner != null || (sammen && igjen(sp, ROSA) === 0)) {
+      sp.grunn = "alle";
+      sp.spilt += 1;
+      S.laert = true;
+      if (!sammen) {
+        sp.vinner = vinner;
+        sp.stilling[vinner] += 1;
+      }
+      slutt();
+      sp.melding = {
+        tekst: sammen ? R.t("Alle ni agentene er funnet!") : vinner === lag ? R.t("{lag} har funnet alle agentene!", { lag: LAG[vinner].navn }) : R.t("Oi! «{ord}» var den siste agenten til {lag} – brettet er deres.", { ord, lag: LAG[vinner].navn }),
+        type: sammen || vinner === lag ? "riktig" : "feil",
+      };
+      if (ui) R.si(sp.melding.tekst);
+      if (ui) R.lyd.riktig();
+      if (ui) R.vibrer(30);
+      if (ui) stoppTur();
+      if (ui) R.vis();
+      if (ui) tilResultatOm(1200);
+      return;
+    }
+
+    if (egen) {
+      const knapp = sammen ? (nr >= HINT ? R.t("Ferdig med siste hint") : R.t("Neste hint")) : R.t("{lag} er ferdig", { lag: LAG[lag].navn });
+      sp.melding = { tekst: hintRest(sp).brukt ? R.t("Riktig! Forsøkene er brukt – trykk «{knapp}».", { knapp }) : R.t("Riktig! Gjett videre – eller trykk «{knapp}».", { knapp }), type: "riktig" };
+      if (ui) R.lyd.riktig();
+      if (ui) R.vibrer(20);
+      if (ui) R.si(sp.melding.tekst);
+      if (ui) R.vis();
+      return;
+    }
+    steg.hint = sp.hint;
+    if (sammen) {
+      if (ui) R.lyd.takk();
+      hintSlutt(S, nr, R.t("«{ord}» var nøytralt.", { ord }), "noytral", ui);
+      return;
+    }
+    tomHint(sp);
+    sp.tur = 1 - lag;
+    if (type === NOYTRAL) {
+      sp.melding = { tekst: R.t("«{ord}» var nøytralt. Nå er det {lag} sin tur.", { ord, lag: LAG[sp.tur].navn }), type: "noytral" };
+      if (ui) R.lyd.takk();
+    } else {
+      sp.melding = { tekst: R.t("Oi! «{ord}» tilhørte {lag} – og nå er det deres tur.", { ord, lag: LAG[type].navn }), type: "feil" };
+      if (ui) R.lyd.feil();
+      if (ui) R.vibrer([30, 40, 30]);
+    }
+    if (ui) R.si(sp.melding.tekst);
+    if (ui) R.vis();
+    if (ui) startTur(S);
+  }
+
+  // «Lag X er ferdig» / «Neste hint» (the state, and with ui the sound and the redraw).
+  function turFerdig(S, ui) {
+    const sp = S.spill;
+    const nr = hintNr(sp);
+    sp.hist.push({ t: "ferdig", tur: sp.tur, hint: sp.hint });
+    if (ui) R.lyd.pop();
+    if (erSammen(sp)) {
+      hintSlutt(S, nr, "", "tur", ui);
+      return;
+    }
+    tomHint(sp);
+    sp.tur = 1 - sp.tur;
+    sp.melding = { tekst: R.t("{lag} sin tur. {navn} gir ett ord og et tall.", { lag: LAG[sp.tur].navn, navn: mesterNavn(sp, sp.tur) }), type: "tur" };
+    if (ui) R.si(sp.melding.tekst);
+    if (ui) R.vis();
+    if (ui) startTur(S);
+  }
+
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Seat i is player i on its own phone. «Lag mot lag» (four or more on the net; fewer play «Sammen
+  // mot fella»): the seats take turns to be Rosa and Blå. The code masters see the board with the
+  // key on their own phones; everyone else sees only the board. The board and the key come from the
+  // room's seed, so every phone draws the same ones (a modified phone could work out the key: a
+  // game among friends). The hint is said out loud – and the code master on turn may also put it on
+  // the strip, so it shows on every phone. A guesser of the team on turn taps the cards.
+  // Moves:
+  //   { kort: i, h }        a guesser of the team on turn turns card i (h: the steps so far, so two
+  //                         taps at once from two phones turn one card, not two)
+  //   { ferdig: h }         «Lag X er ferdig» / «Neste hint», from anyone in the team on turn
+  //   { hint: { ord, n }, h }  the code master on turn writes the hint on the strip (free text, cleaned)
+  //   { neste: b }          after board b: the next board, from the one who will lead it
+  //   { karing: 1 }         «Fri kamp»: to «Kåringen» instead, from the same phone
+  // Anything else, or anything the rules don't allow now, is ignored on every phone. No «Angre» and no
+  // turn timer on the net (a timer would have to send moves by itself). The mode, the match length
+  // and the words are the host's; the code masters move on one place each board and each match.
+  // A seat that leaves is skipped; a code master that leaves hands the key to the next one on its
+  // team; a team with fewer than two left (or one player left) ends the match.
+
+  const paNett = (sp) => !!sp && sp.nett === true && !!R.nett;
+  const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
+  const forlot = (sp, i) => paNett(sp) && sp.ute.includes(i);
+  const inne = (sp) => Array.from({ length: sp.antall }, (_, i) => i).filter((i) => !forlot(sp, i));
+  function nesteInne(sp, i) {
+    for (let k = 1; k <= sp.antall; k++) {
+      const s = (i + k) % sp.antall;
+      if (!forlot(sp, s)) return s;
+    }
+    return i;
+  }
+  const lagAv = (sp, i) => (sp.lag && sp.lag[1].includes(i) ? 1 : 0);
+  // The next one on team l after seat fra, still in (the key goes round the team).
+  function nesteILaget(sp, l, fra) {
+    const m = sp.lag[l];
+    const k = m.indexOf(fra);
+    for (let n = 1; n <= m.length; n++) {
+      const s = m[(k + n) % m.length];
+      if (!forlot(sp, s)) return s;
+    }
+    return fra;
+  }
+  const nesteMestere = (sp) => (erSammen(sp) ? [nesteInne(sp, sp.mester[0])] : [0, 1].map((l) => nesteILaget(sp, l, sp.mester[l])));
+  const erMester = (sp, i) => paNett(sp) && sp.mester.includes(i);
+  // In the team on turn (the whole group in «Sammen mot fella»).
+  const paLaget = (sp, i) => paNett(sp) && !over(sp) && i >= 0 && !forlot(sp, i) && (erSammen(sp) || lagAv(sp, i) === sp.tur);
+  const kanGjette = (sp, i) => paLaget(sp, i) && !erMester(sp, i);
+  const mesterPaTur = (sp) => sp.mester[erSammen(sp) ? 0 : sp.tur];
+  // Who leads the next board (its code master on the team that begins it) – and chooses it.
+  const velger = (sp) => nesteMestere(sp)[erSammen(sp) ? 0 : 1 - sp.start];
+  // «Lag mot lag» needs a code master and a guesser on each team.
+  const forFa = (sp) => (erSammen(sp) ? inne(sp).length < 2 : [0, 1].some((l) => sp.lag[l].filter((i) => !forlot(sp, i)).length < 2));
+
+  // A board on the net: the room's seed, this board's number, its code masters.
+  function brettNett(o, mester) {
+    const sp = nyttBrett(o);
+    sp.nett = true;
+    sp.ute = o.ute || [];
+    sp.mester = mester;
+    sp.stopp = false;
+    sp.melding = startMelding(sp);
+    return sp;
+  }
+  // «Kåringen» reached (the state): the best hint of the match is looked up once.
+  function karingNett(sp, avbrutt) {
+    if (sp.ferdig) return;
+    sp.ferdig = true;
+    sp.avbrutt = !!avbrutt;
+    sp.beste = besteAv(sp);
+    tomHint(sp);
+    sp.feire = true;
+  }
+  const nettSkjerm = (sp) => (sp.ferdig ? "karing" : over(sp) ? "resultat" : "brett");
+  function visNett(S) {
+    const mal = nettSkjerm(S.spill);
+    if (S.skjerm !== mal) R.gaTil(mal);
+    else R.vis();
+  }
+
+  // The strip on a phone that only reads it.
+  function hintLes(sp) {
+    const h = sp.hint;
+    if (!h) return "";
+    const rest = hintRest(sp);
+    return `<div class="kk-hint satt ${erSammen(sp) ? "sammen" : `lag-${LAG[sp.tur].klasse}`}${rest.brukt ? " brukt" : ""}"><p class="kk-hint-vis"><b>${esc(hintHode(h))}</b>${rest.tekst ? `<span>${esc(rest.tekst)}</span>` : ""}</p></div>`;
+  }
+
+  // The board on the net: the code masters see the key on it, the team on turn taps.
+  function brettSkjermNett(S) {
+    const sp = S.spill;
+    const meg = R.nett.meg();
+    const sammen = erSammen(sp);
+    const ferdig = over(sp);
+    const na = LAG[sp.tur];
+    const nr = hintNr(sp);
+    const mester = erMester(sp, meg);
+    const pa = paLaget(sp, meg);
+    const klar = !ferdig && hintRest(sp).brukt;
+    let knapp;
+    if (ferdig) knapp = R.ui.knapp(R.t("Se resultatet"), "til-resultat");
+    else if (pa)
+      knapp = sammen
+        ? R.ui.knapp("", "ferdig", {
+            variant: klar ? "kk-klar" : "",
+            tekstHtml: `<span class="kk-ferdig"><b>${esc(nr >= HINT ? R.t("Ferdig med siste hint") : R.t("Neste hint"))}</b><small>${esc(nr >= HINT ? R.t("Da er brettet over") : R.t("Ferdig med hint {n} av {antall}", { n: nr, antall: HINT }))}</small></span>`,
+          })
+        : R.ui.knapp("", "ferdig", {
+            variant: `${na.knapp}${klar ? " kk-klar" : ""}`,
+            tekstHtml: `<span class="kk-ferdig"><b>${esc(R.t("{lag} er ferdig", { lag: na.navn }))}</b><small>${esc(R.t("Turen går til {lag}", { lag: LAG[1 - sp.tur].navn }))}</small></span>`,
+          });
+    else knapp = `<p class="nett-vent">${esc(R.t("{lag} gjetter …", { lag: na.navn }))}</p>`;
+    const rolle = mester
+      ? `<p class="kk-rolle"><span aria-hidden="true">🔑</span> ${esc(sammen ? R.t("Du er kodemester – bare du ser fargene.") : R.t("Du er kodemester – bare kodemesterne ser fargene."))}</p>`
+      : "";
+    return `
+      <h1 class="vh" id="skjerm-tittel">${esc(
+        R.t("Brett {n}: {status}", {
+          n: sp.brett + 1,
+          status: sammen ? (ferdig ? R.t("brettet er over") : R.t("hint {n} av {antall}", { n: nr, antall: HINT })) : ferdig ? R.t("{lag} tok brettet", { lag: LAG[sp.vinner].navn }) : R.t("{lag} sin tur", { lag: na.navn }),
+        }),
+      )}</h1>
+      ${statusHtml(sp)}
+      ${meldingHtml(sp)}
+      ${rolle}
+      ${ferdig ? "" : mester && meg === mesterPaTur(sp) ? hintHtml(sp) : hintLes(sp)}
+      ${brettHtml(sp, { sist: sp.sist, fasit: mester })}
+      ${R.ui.dokk(knapp, R.ui.lenkerad(sp.hintlogg.length ? `<button class="lenke" data-h="hint-logg">💬 ${esc(R.t("Hintene"))}</button>` : "", R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
+  }
+
+  // The dock under a board's result: the next board (or «Kåringen» in «Fri kamp») on the phone of
+  // the one who leads it; «Til kåringen» on every phone when the match is decided.
+  function resultatDokkNett(sp) {
+    const lenker = R.ui.lenkerad(sp.hintlogg.length ? R.ui.lenke(`💬 ${R.t("Hintene")}`, "hint-logg") : "", R.ui.lenke(R.t("Avslutt"), "avslutt"));
+    if (avgjort(sp)) return R.ui.dokk(R.ui.knapp(R.t("Til kåringen"), "til-karing"), lenker);
+    const v = velger(sp);
+    if (erJeg(sp, v)) return R.ui.dokk(R.ui.knapp(R.t("Neste brett"), "neste-brett"), sp.kamp === "fri" ? R.ui.knapp2(R.t("Til kåringen"), "nett-karing") : "", lenker);
+    return R.ui.dokk(`<p class="nett-vent">${esc(R.t("{navn} starter neste brett.", { navn: R.navn(v) }))}</p>`, lenker);
+  }
+
+  const NETT = {
+    min: 2,
+    maks: 20,
+    oppsett: (S) => ({ modus: S.oppsett.modus === "sammen" ? "sammen" : "lag", kamp: S.oppsett.kamp, lett: S.oppsett.lett === true }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      const lag = x.modus !== "sammen";
+      return [lag ? R.t("Lag mot lag fra fire spillere, ellers sammen") : R.t("Sammen mot fella"), lag ? KAMPNAVN[KAMPER.includes(x.kamp) ? x.kamp : "best3"] : "", x.lett ? R.t("Bare lette ord") : ""].filter(Boolean).join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const antall = R.klamp(okt.antall || 2, 2, 20);
+      const lag = o.modus !== "sammen" && antall >= 4;
+      const kamp = lag && KAMPER.includes(o.kamp) ? o.kamp : lag ? "best3" : "ett";
+      const forste = okt.kamp - 1;
+      // The seats take turns to be Rosa and Blå; the first code masters move on one place each match.
+      const lister = lag ? [0, 1].map((l) => Array.from({ length: antall }, (_, i) => i).filter((i) => i % 2 === l)) : null;
+      const mester = lag ? lister.map((m) => m[forste % m.length]) : [forste % antall];
+      S.spill = brettNett(
+        {
+          modus: lag ? "lag" : "sammen",
+          kamp,
+          fro: (okt.fro >>> 0) % (MAKS_FRO + 1),
+          brett: 0,
+          start: lag ? forste % 2 : 0,
+          lett: o.lett === true,
+          tid: 0,
+          navn: Array.from({ length: antall }, (_, i) => R.navn(i)),
+          lag: lister,
+          antall,
+        },
+        mester,
+      );
+      clearTimeout(sluttId);
+      stoppTur();
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || !(sete >= 0 && sete < sp.antall) || forlot(sp, sete)) return;
+      const live = !okt.gjenspill;
+      if (Number.isInteger(t.kort)) {
+        if (over(sp) || t.h !== sp.hist.length || !kanGjette(sp, sete) || !heltall(t.kort, 0, ANTALL - 1) || sp.vist.includes(t.kort)) return;
+        snuKort(S, t.kort, live);
+        if (okt.gjenspill && avgjort(sp)) karingNett(sp, false); // a finished match, replayed: the result
+        return;
+      }
+      if (Number.isInteger(t.ferdig)) {
+        if (over(sp) || t.ferdig !== sp.hist.length || !paLaget(sp, sete)) return;
+        turFerdig(S, live);
+        if (okt.gjenspill && avgjort(sp)) karingNett(sp, false);
+        return;
+      }
+      if (t.hint && typeof t.hint === "object") {
+        if (over(sp) || t.h !== sp.hist.length || sete !== mesterPaTur(sp)) return;
+        const ord = R.kutt(R.nett.tekst(t.hint.ord, 20), 20);
+        const n = t.hint.n == null ? null : t.hint.n;
+        if ((n != null && !TALL.includes(n)) || (!ord && n == null)) return;
+        const forrige = sp.hint;
+        if (forrige && forrige.ord === ord && forrige.n === n) return;
+        // (As settHint on one phone: a step in the history, and the hint in «Hintene så langt».)
+        sp.hist.push({ t: "hint", tur: sp.tur, forrige });
+        sp.hint = { ord, n };
+        const post = { lag: sp.tur, nr: hintNr(sp), ord, n, fra: turStart(sp) };
+        if (forrige) sp.hintlogg[sp.hintlogg.length - 1] = post;
+        else sp.hintlogg.push(post);
+        if (erJeg(sp, sete)) {
+          sp.utkast = "";
+          sp.redigerer = false;
+        }
+        if (!live) return;
+        R.lyd.pop();
+        visNett(S);
+        R.si(R.t("Hint: {hint}.", { hint: hintHode(sp.hint).replace(" · ", ", ").replace("∞", R.t("uendelig")) }));
+        return;
+      }
+      if (t.neste === sp.brett) {
+        if (!over(sp) || avgjort(sp) || sete !== velger(sp)) return;
+        const ny = brettNett(
+          {
+            modus: sp.modus,
+            kamp: sp.kamp,
+            fro: sp.brett + 1 > MAKS_BRETT ? R.hash(`${sp.fro}:neste`) % (MAKS_FRO + 1) : sp.fro,
+            brett: sp.brett + 1 > MAKS_BRETT ? 0 : sp.brett + 1,
+            start: erSammen(sp) ? 0 : 1 - sp.start,
+            lett: sp.lett,
+            tid: 0,
+            stilling: sp.stilling.slice(),
+            spilt: sp.spilt,
+            beste: besteAv(sp),
+            navn: sp.navn,
+            lag: sp.lag,
+            antall: sp.antall,
+            ute: sp.ute.slice(),
+          },
+          nesteMestere(sp),
+        );
+        S.spill = ny;
+        if (!live) return;
+        R.lyd.snu();
+        R.gaTil("brett");
+        R.si(ny.melding.tekst);
+        return;
+      }
+      if (t.karing === 1) {
+        if (!over(sp) || avgjort(sp) || sp.kamp !== "fri" || sete !== velger(sp)) return;
+        karingNett(sp, false);
+        if (live) R.gaTil("karing");
+      }
+    },
+    // The seat left: skipped from now on. A code master that leaves hands the key to the next one
+    // on its team (who sees it from now on); too few left ends the match with the score as it is.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !(sete >= 0 && sete < sp.antall) || forlot(sp, sete)) return;
+      sp.ute.push(sete);
+      let ny = -1;
+      if (forFa(sp)) {
+        sp.stopp = true;
+        karingNett(sp, !avgjort(sp));
+      } else if (sp.mester.includes(sete)) {
+        const k = sp.mester.indexOf(sete);
+        sp.mester[k] = erSammen(sp) ? nesteInne(sp, sete) : nesteILaget(sp, k, sete);
+        ny = sp.mester[k];
+        if (!over(sp)) sp.melding = { tekst: erSammen(sp) ? R.t("{navn} er kodemester nå.", { navn: R.navn(ny) }) : R.t("{navn} er kodemester for {lag} nå.", { navn: R.navn(ny), lag: LAG[k].navn }), type: "tur" };
+      }
+      if (okt.gjenspill) return;
+      if (sp.ferdig) {
+        clearTimeout(sluttId);
+        return R.gaTil("karing");
+      }
+      if (ny >= 0 && erJeg(sp, ny)) R.toast(R.t("Du er kodemester nå – du ser fargene"));
+      visNett(S);
+    },
+    skjerm: (S) => (S.spill ? nettSkjerm(S.spill) : "brett"),
+    // The team on turn (each of its phones: «Din tur»; the others wait for its code master); between
+    // boards the one who leads the next.
+    tur(S) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig) return null;
+      if (over(sp)) return avgjort(sp) ? null : velger(sp);
+      const meg = R.nett.meg();
+      return paLaget(sp, meg) ? meg : mesterPaTur(sp);
+    },
+    ferdig: (S) => !!S.spill && (!!S.spill.ferdig || avgjort(S.spill)),
+  };
+
   // ---------- The app ----------
 
   R.start({
     id: "kodeknekkeren",
     versjon: 1,
+    nett: NETT,
 
     // In progress: a match that hasn't reached «Kåringen», or a code master looking at the key
     // (keeps the screen on).
@@ -1493,7 +1902,7 @@
             knapperHtml: R.ui.startKnapper({
               pagar: pagarSpill(S),
               fortsettTekst: pagarSpill(S) ? fortsettTekst(S.spill) : "",
-              ekstraHtml: R.ui.knapp2(R.t("Jeg er kodemester"), "bli-med", { ikon: "🔑" }) + R.ui.lenke(R.t("Slik spiller du"), "regler"),
+              ekstraHtml: R.ui.knapp2(R.t("Jeg er kodemester"), "bli-med", { ikon: "🔑" }) + (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [...(S.rekord ? [[R.t("REKORD"), rekordTekst(S.rekord)]] : []), ["2–20", R.t("spillere")], ["2", R.t("lag – eller sammen")], [R.tall(KANDIDATER[2].length), R.t("ord")]],
           }),
@@ -1614,6 +2023,7 @@
         liggende: false, // landscape phones: the board has its own wide layout (html.kk-vid in spill.css)
         vis(S) {
           const sp = S.spill;
+          if (paNett(sp)) return brettSkjermNett(S);
           const sammen = erSammen(sp);
           const ferdig = over(sp);
           const na = LAG[sp.tur];
@@ -1699,7 +2109,7 @@
             ${banner}
             ${brettHtml(sp, { fasit: true })}
             <p class="hjelp kk-fasit-hjelp">${esc(R.t("Kort med bare farget kant rakk ingen å ta."))}</p>
-            ${R.ui.dokk(
+            ${paNett(sp) ? resultatDokkNett(sp) : R.ui.dokk(
               sist ? R.ui.knapp(R.t("Til kåringen"), "til-karing") : R.ui.knapp(R.t("Neste brett"), "neste-brett"),
               R.ui.lenkerad(`<button class="lenke" data-h="angre" aria-label="${esc(R.t("Angre siste trykk"))}">↶ ${esc(R.t("Angre"))}</button>`, sp.hintlogg.length ? R.ui.lenke(`💬 ${R.t("Hintene")}`, "hint-logg") : "", sist ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")),
             )}`;
@@ -1731,8 +2141,8 @@
           const sp = S.spill;
           return `
             ${erSammen(sp) ? karingSammen(S, sp) : karingLag(sp)}
-            ${R.ui.flereSpill(sp.antall ? { antall: sp.antall } : {})}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${paNett(sp) ? R.nett.sluttDokk() : R.ui.flereSpill(sp.antall ? { antall: sp.antall } : {}) + 
+R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
         },
         // Celebrate in proportion, and only the first time the screen is shown.
         inn(S) {
@@ -1929,12 +2339,25 @@
       "neste-brett"(el, e, S) {
         const sp = S.spill;
         if (!sp || !over(sp) || sp.ferdig || avgjort(sp)) return;
+        if (paNett(sp)) return void (erJeg(sp, velger(sp)) && R.nett.send({ neste: sp.brett }));
         S.spill = nesteBrett(sp, false);
         R.gaTil("nokkel");
       },
       "til-karing"(el, e, S) {
         const sp = S.spill;
+        if (paNett(sp)) {
+          // The match is decided: each phone goes to «Kåringen» by itself.
+          if (!avgjort(sp)) return;
+          clearTimeout(sluttId);
+          karingNett(sp, false);
+          return R.gaTil("karing");
+        }
         if (sp && avgjort(sp)) tilKaring(S, false);
+      },
+      // «Fri kamp» on the net: the one who would lead the next board ends the match for everyone.
+      "nett-karing"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && over(sp) && !avgjort(sp) && sp.kamp === "fri" && erJeg(sp, velger(sp))) R.nett.send({ karing: 1 });
       },
       // «Spill igjen»: a new match with the same teams and settings.
       igjen(el, e, S) {
@@ -1951,7 +2374,7 @@
 
       "til-brett": () => R.gaTil("brett"),
       "til-resultat": (el, e, S) => S.spill && over(S.spill) && R.gaTil("resultat"),
-      "nokkel-ark": (el, e, S) => visNokkelArk(S),
+      "nokkel-ark": (el, e, S) => !paNett(S.spill) && visNokkelArk(S),
       kopier: (el, e, S) => R.kopier(R.kode.formater(lagKode(S.spill))),
       "del-lenke"(el, e, S) {
         const kode = lagKode(S.spill);
@@ -1988,95 +2411,8 @@
         const sp = S.spill;
         const i = Number(el.dataset.v);
         if (!sp || over(sp) || !heltall(i, 0, ANTALL - 1) || sp.vist.includes(i)) return;
-        const sammen = erSammen(sp);
-        const lag = sp.tur;
-        const type = sp.nokkel[i];
-        const ord = sp.ord[i];
-        const nr = hintNr(sp);
-        const egen = type === (sammen ? ROSA : lag);
-        // A card that ends the turn or the board also remembers the hint on the strip (for undo).
-        const steg = { t: "kort", i, tur: lag };
-        const slutt = () => {
-          steg.hint = sp.hint;
-          tomHint(sp);
-        };
-        sp.hist.push(steg);
-        sp.vist.push(i);
-        sp.sist = i;
-
-        if (type === FELLE) {
-          sp.grunn = "fella";
-          sp.spilt += 1;
-          S.laert = true;
-          if (!sammen) {
-            sp.vinner = 1 - lag;
-            sp.stilling[sp.vinner] += 1;
-          }
-          slutt();
-          sp.melding = { tekst: sammen ? R.t("«{ord}» var fella! Brettet er over.", { ord }) : R.t("«{ord}» var fella! {lag} taper brettet.", { ord, lag: LAG[lag].navn }), type: "felle" };
-          R.si(sp.melding.tekst);
-          R.lyd.bom();
-          R.vibrer([90, 60, 260]);
-          stoppTur();
-          R.vis();
-          const brett = R.$(".kk-brett");
-          if (brett) brett.classList.add("kk-smell");
-          blits();
-          tilResultatOm(1700);
-          return;
-        }
-
-        const vinner = sammen ? null : igjen(sp, ROSA) === 0 ? ROSA : igjen(sp, BLA) === 0 ? BLA : null;
-        if (vinner != null || (sammen && igjen(sp, ROSA) === 0)) {
-          sp.grunn = "alle";
-          sp.spilt += 1;
-          S.laert = true;
-          if (!sammen) {
-            sp.vinner = vinner;
-            sp.stilling[vinner] += 1;
-          }
-          slutt();
-          sp.melding = {
-            tekst: sammen ? R.t("Alle ni agentene er funnet!") : vinner === lag ? R.t("{lag} har funnet alle agentene!", { lag: LAG[vinner].navn }) : R.t("Oi! «{ord}» var den siste agenten til {lag} – brettet er deres.", { ord, lag: LAG[vinner].navn }),
-            type: sammen || vinner === lag ? "riktig" : "feil",
-          };
-          R.si(sp.melding.tekst);
-          R.lyd.riktig();
-          R.vibrer(30);
-          stoppTur();
-          R.vis();
-          tilResultatOm(1200);
-          return;
-        }
-
-        if (egen) {
-          const knapp = sammen ? (nr >= HINT ? R.t("Ferdig med siste hint") : R.t("Neste hint")) : R.t("{lag} er ferdig", { lag: LAG[lag].navn });
-          sp.melding = { tekst: hintRest(sp).brukt ? R.t("Riktig! Forsøkene er brukt – trykk «{knapp}».", { knapp }) : R.t("Riktig! Gjett videre – eller trykk «{knapp}».", { knapp }), type: "riktig" };
-          R.lyd.riktig();
-          R.vibrer(20);
-          R.si(sp.melding.tekst);
-          R.vis();
-          return;
-        }
-        steg.hint = sp.hint;
-        if (sammen) {
-          R.lyd.takk();
-          hintSlutt(S, nr, R.t("«{ord}» var nøytralt.", { ord }), "noytral");
-          return;
-        }
-        tomHint(sp);
-        sp.tur = 1 - lag;
-        if (type === NOYTRAL) {
-          sp.melding = { tekst: R.t("«{ord}» var nøytralt. Nå er det {lag} sin tur.", { ord, lag: LAG[sp.tur].navn }), type: "noytral" };
-          R.lyd.takk();
-        } else {
-          sp.melding = { tekst: R.t("Oi! «{ord}» tilhørte {lag} – og nå er det deres tur.", { ord, lag: LAG[type].navn }), type: "feil" };
-          R.lyd.feil();
-          R.vibrer([30, 40, 30]);
-        }
-        R.si(sp.melding.tekst);
-        R.vis();
-        startTur(S);
+        if (paNett(sp)) return void (kanGjette(sp, R.nett.meg()) && R.nett.send({ kort: i, h: sp.hist.length }));
+        snuKort(S, i, true);
       },
 
       // «Lag X er ferdig» / «Neste hint»
@@ -2085,23 +2421,13 @@
         if (!sp || over(sp)) return;
         if (performance.now() - sisteTurbytte < 700) return; // the second tap of a double tap
         sisteTurbytte = performance.now();
-        const nr = hintNr(sp);
-        sp.hist.push({ t: "ferdig", tur: sp.tur, hint: sp.hint });
-        R.lyd.pop();
-        if (erSammen(sp)) {
-          hintSlutt(S, nr, "", "tur");
-          return;
-        }
-        tomHint(sp);
-        sp.tur = 1 - sp.tur;
-        sp.melding = { tekst: R.t("{lag} sin tur. {navn} gir ett ord og et tall.", { lag: LAG[sp.tur].navn, navn: mesterNavn(sp, sp.tur) }), type: "tur" };
-        R.si(sp.melding.tekst);
-        R.vis();
-        startTur(S);
+        if (paNett(sp)) return void (paLaget(sp, R.nett.meg()) && R.nett.send({ ferdig: sp.hist.length }));
+        turFerdig(S, true);
       },
 
       angre(el, e, S) {
         const sp = S.spill;
+        if (paNett(sp)) return; // (no «Angre» on the net: the others have seen it)
         if (!sp || sp.ferdig || performance.now() - sisteAngring < 400) return; // a double tap undoes one step
         sisteAngring = performance.now();
         const h = sp.hist.pop();

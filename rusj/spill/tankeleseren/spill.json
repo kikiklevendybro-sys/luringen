@@ -10,6 +10,7 @@
   "mobiler": "en",
   "tagger": ["fest", "familie", "lag", "sporsmal"],
   "rekkefolge": 13,
+  "nett": true,
   "sok": ["wavelength", "skala", "på samme bølgelengde", "tankelesing", "utfordre en venn", "julebordsleker"],
   "i18n": {
     "en": {

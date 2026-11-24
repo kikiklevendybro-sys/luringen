@@ -214,5 +214,20 @@
   "Avhøret fortsetter": "Forhøret fortsætter",
   "spørsmål|spørsmål": "spørgsmål",
   "ord|ord": "ord",
-  "bokstav|bokstaver": { "one": "bogstav", "other": "bogstaver" }
+  "bokstav|bokstaver": { "one": "bogstav", "other": "bogstaver" },
+  "{n} av {av} spørsmål er brukt": "{n} af {av} spørgsmål er brugt",
+  "Nå skal du gjette": "Nu skal du gætte",
+  "Hvem er du?": "Hvem er du?",
+  "De andre ser kortet ditt nå – ikke kikk på skjermene deres!": "De andre ser dit kort nu – lad være med at kigge på deres skærme!",
+  "{navn} ser på hemmeligheten …": "{navn} kigger på hemmeligheden …",
+  "Spør videre – hvem er du?": "Spørg videre – hvem er du?",
+  "Spør de andre om deg selv. De svarer på mobilene sine.": "Spørg de andre om dig selv. De svarer på deres mobiler.",
+  "{navn} svarer på mobilen sin.": "{navn} svarer på sin mobil.",
+  "Still {navn} ja/nei-spørsmål – høyt!": "Stil {navn} ja/nej-spørgsmål – højt!",
+  "{navn} gjetter nå.": "{navn} gætter nu.",
+  "{navn} får en ny hemmelighet.": "{navn} får en ny hemmelighed.",
+  "Jeg er klar til å gjette": "Jeg er klar til at gætte",
+  "Hent hemmeligheten": "Hent hemmeligheden",
+  "{navn} skal gjette neste.": "{navn} skal gætte som den næste.",
+  "{navn} får neste hemmelighet.": "{navn} får den næste hemmelighed."
 }

@@ -214,5 +214,20 @@
   "Avhøret fortsetter": "The questioning continues",
   "spørsmål|spørsmål": { "one": "question", "other": "questions" },
   "ord|ord": { "one": "word", "other": "words" },
-  "bokstav|bokstaver": { "one": "letter", "other": "letters" }
+  "bokstav|bokstaver": { "one": "letter", "other": "letters" },
+  "{n} av {av} spørsmål er brukt": "{n} of {av} questions used",
+  "Nå skal du gjette": "Your turn to guess",
+  "Hvem er du?": "Who are you?",
+  "De andre ser kortet ditt nå – ikke kikk på skjermene deres!": "The others are looking at your card now – don’t peek at their screens!",
+  "{navn} ser på hemmeligheten …": "{navn} is looking at the secret …",
+  "Spør videre – hvem er du?": "Keep asking – who are you?",
+  "Spør de andre om deg selv. De svarer på mobilene sine.": "Ask the others about yourself. They answer on their phones.",
+  "{navn} svarer på mobilen sin.": "{navn} answers on their phone.",
+  "Still {navn} ja/nei-spørsmål – høyt!": "Ask {navn} yes/no questions – out loud!",
+  "{navn} gjetter nå.": "{navn} is guessing now.",
+  "{navn} får en ny hemmelighet.": "{navn} gets a new secret.",
+  "Jeg er klar til å gjette": "I’m ready to guess",
+  "Hent hemmeligheten": "Get the secret",
+  "{navn} skal gjette neste.": "{navn} guesses next.",
+  "{navn} får neste hemmelighet.": "{navn} gets the next secret."
 }
