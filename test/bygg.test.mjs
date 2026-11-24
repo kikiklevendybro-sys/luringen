@@ -545,8 +545,10 @@ test("examples: 20–30 real items on ordinary card games, none on 18+ games; 18
 
 test("the block escapes what it prints, and «over N» is always true", () => {
   const m = { id: "x", navn: "<b>X</b>", spillere: [2, 4], minutter: [5, 10], mobiler: "en" };
-  const html = omSpilletHtml(m, { frase: "A & B", regler: { intro: "<script>alert(1)</script>", steg: [["<i>", '"x"'], ["a", "b"], ["c", "d"]], tips: ["<img src=x>"] }, eksempler: { tittel: "<u>", ting: ["<svg onload=x>"], totalt: 5, antall: 1 }, lenker: [["/a/", "<a>"]] });
-  for (const farlig of ["<script", "<b>X", "<i>", "<img", "<svg", "<u>", "<a>"]) assert.ok(!html.includes(farlig), `«${farlig}» kom med uescapet`);
+  const html = omSpilletHtml(m, { frase: "A & B", regler: { intro: "<script>alert(1)</script>", steg: [["<i>", '"x"'], ["a", "b"], ["c", "d"]], tips: ["<img src=x>"] }, eksempler: { tittel: "<u>", ting: ["<svg onload=x>"], totalt: 5, antall: 1 }, lenker: [["/a/", "<a>"]], prov: [{ href: '/b/"><em>', navn: "<s>", sjanger: "<em>", grunn: "<video>" }] });
+  for (const farlig of ["<script", "<b>X", "<i>", "<img", "<svg", "<u>", "<a>", "<s>", "<em>", "<video>"]) assert.ok(!html.includes(farlig), `«${farlig}» kom med uescapet`);
+  assert.match(html, /<h3>Prøv også<\/h3>\n {2}<ul class="om-prov"><li><a href="\/b\/&quot;&gt;&lt;em&gt;">&lt;s&gt;<\/a> – &lt;em&gt;<p>&lt;video&gt;<\/p><\/li><\/ul>/);
+  assert.ok(!omSpilletHtml(m, { frase: "A", regler: { intro: "x", steg: [], tips: [] }, prov: [] }).includes("om-prov"), "no relatives: no list");
   assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
   assert.match(html, /Slik spiller dere &lt;b&gt;X&lt;\/b&gt;/);
   assert.equal(flereTil(1437), "… og over 1 400 til i spillet.");
@@ -726,6 +728,88 @@ test("a brand name that helps the search is never written into a page: no `sok` 
   }
   // The search module itself names games we do not have (rusj/portal/sok.js): a script, never markup.
   assert.match(readFileSync(join(WEB, "felles/sok.js"), "utf8"), /IKKE_ENNA/);
+});
+
+// ---------- «Prøv også»: rusj/familier.json ----------
+
+test("«Prøv også»: the groups of games that are alike are sound, and each game page links to its relatives – an 18+ game only from another", async () => {
+  const { lesFamilier, provOgsa, PROV_MAKS } = await import("../scripts/rusj.mjs");
+  const ekte = readdirSync(join(ROT, "rusj/spill")).filter((id) => existsSync(join(ROT, "rusj/spill", id, "spill.json"))).map((id) => ({ id }));
+  const familier = lesFamilier(join(ROT, "rusj/familier.json"), [{ id: "luringen" }, ...ekte]);
+  assert.ok(familier.length >= 10, `bare ${familier.length} familier`);
+  assert.equal(PROV_MAKS, 4);
+
+  // The rules, with made-up games: never the game itself, never a game the edition lacks, an 18+
+  // game only on the page of another 18+ game, the closest group first, at most four.
+  const grunn = (x) => ({ nb: x, en: x + " (en)", da: x + " (da)" });
+  const F = [
+    { id: "a", spill: ["x", "y", "voksen"], grunn: grunn("A") },
+    { id: "b", spill: ["z", "x", "y", "v", "w", "u"], grunn: grunn("B") },
+  ];
+  const liste = ["x", "y", "z", "v", "w", "u"].map((id) => ({ id })).concat({ id: "voksen", alder18: true });
+  const ider = (m, l = liste, sprak) => provOgsa(F, m, l, sprak).map((p) => `${p.g.id}:${p.grunn}`);
+  assert.deepEqual(ider({ id: "x" }), ["y:A", "z:B", "v:B", "w:B"]);
+  assert.deepEqual(ider({ id: "voksen", alder18: true }), ["x:A", "y:A"]);
+  assert.deepEqual(ider({ id: "y" }, liste.filter((g) => g.id !== "x"), "en"), ["z:B (en)", "v:B (en)", "w:B (en)", "u:B (en)"]);
+  assert.deepEqual(ider({ id: "ukjent" }), []);
+  // A file that would not work stops the build.
+  const mappe = mkdtempSync(join(tmpdir(), "rusj-familier-"));
+  try {
+    const les = (familier_) => () => {
+      writeFileSync(join(mappe, "familier.json"), JSON.stringify({ familier: familier_ }));
+      return lesFamilier(join(mappe, "familier.json"), [{ id: "x" }, { id: "y" }]);
+    };
+    const ok = { id: "a", spill: ["x", "y"], grunn: grunn("Like spill") };
+    assert.doesNotThrow(les([ok]));
+    assert.deepEqual(lesFamilier(join(mappe, "finnes-ikke.json"), []), [], "no file: no suggestions");
+    assert.throws(les([{ ...ok, spill: ["x"] }]), /minst to ulike spill/);
+    assert.throws(les([{ ...ok, spill: ["x", "x"] }]), /minst to ulike spill/);
+    assert.throws(les([{ ...ok, spill: ["x", "q"] }]), /ukjent spill «q»/);
+    assert.throws(les([ok, ok]), /a står to ganger/);
+    assert.throws(les([{ ...ok, id: "Stor Bokstav" }]), /mangler "id"/);
+    assert.throws(les([{ ...ok, grunn: { nb: "A", en: "A" } }]), /mangler "grunn" på da/);
+    assert.throws(les([{ ...ok, grunn: grunn("x".repeat(80)) }]), /maks 70/);
+    assert.throws(les([{ ...ok, grunn: grunn("Som Uno") }]), /«uno» i grunnen er en annens merkevare/);
+  } finally {
+    rmSync(mappe, { recursive: true, force: true });
+  }
+
+  // The built pages, in every edition: the list under «Slik spiller dere» is what the groups say,
+  // every link goes to a page that exists, and no ordinary game links to an 18+ game.
+  let medListe = 0;
+  for (const [liste_, sprak, tittel] of [["felles/spilliste.js", "nb", "Prøv også"], ["felles/spilliste.en.js", "en", "Try these too"], ["felles/spilliste.da.js", "da", "Prøv også"]]) {
+    const spill = spillliste(liste_).map((g) => ({ ...g, url: g.url || `/${g.id}/` }));
+    for (const g of spill) {
+      if (g.id === "luringen") continue; // (its page is not built on the kit: no block under it)
+      const html = readFileSync(join(WEB, g.url, "index.html"), "utf8");
+      const blokk = (/<h3>([^<]+)<\/h3>\s*<ul class="om-prov">([\s\S]*?)<\/ul>/.exec(html) || []).slice(1);
+      const lenker = [...(blokk[1] || "").matchAll(/<li><a href="([^"]+)">([^<]+)<\/a> – ([^<]*)<p>([^<]*)<\/p><\/li>/g)].map((m) => ({ href: m[1], navn: tekst(m[2]), sjanger: tekst(m[3]), grunn: tekst(m[4]) }));
+      const ventet = provOgsa(familier, g, spill, sprak).map(({ g: x, grunn: gr }) => ({ href: x.url, navn: x.navn, sjanger: x.undertittel, grunn: gr }));
+      assert.deepEqual(lenker, ventet, `${g.url}: «Prøv også»`);
+      if (!ventet.length) {
+        assert.ok(!html.includes("om-prov"), `${g.url}: en tom «Prøv også»`);
+        continue;
+      }
+      medListe++;
+      assert.equal(tekst(blokk[0]), tittel, `${g.url}: overskriften`);
+      assert.ok(html.indexOf('class="om-prov"') > html.indexOf('id="om-spillet"') && html.indexOf('class="om-prov"') < html.indexOf('class="om-lenker"'), `${g.url}: lista står ikke i blokken under spillet`);
+      for (const l of lenker) {
+        assert.ok(existsSync(join(WEB, l.href, "index.html")), `${g.url}: lenker til ${l.href}, som ikke finnes`);
+        const mal = spill.find((x) => x.url === l.href);
+        assert.ok(mal && mal.id !== g.id && (g.alder18 || !mal.alder18), `${g.url}: foreslår ${l.href}${mal && mal.alder18 ? " (18+)" : ""}`);
+      }
+    }
+  }
+  assert.ok(medListe >= 80, `bare ${medListe} spillsider har «Prøv også»`);
+  // A few by name (Norwegian): the explain-the-word family, «Jeg har aldri» and its 18+ twin, the two
+  // games about the one who does not know – and Luringen is Norwegian only.
+  const prov = (sti) => [...((/<ul class="om-prov">([\s\S]*?)<\/ul>/.exec(readFileSync(join(WEB, sti, "index.html"), "utf8")) || [])[1] || "").matchAll(/<a href="([^"]+)">/g)].map((m) => m[1]);
+  assert.deepEqual(prov("skravla"), ["/hatten/", "/panna/", "/mimen/"]);
+  assert.ok(!prov("sladrehanken").includes("/torsten/") && prov("sladrehanken").length === 4, "Sladrehanken lenker til 18+-utgaven");
+  assert.equal(prov("torsten")[0], "/sladrehanken/");
+  assert.deepEqual(prov("spionen"), ["/luringen/"]);
+  assert.deepEqual(prov("en/spy"), []);
+  assert.deepEqual(prov("ringen"), ["/hjulet/", "/sjefen/"]);
 });
 
 // ---------- "varianter" in spill.json: well-known games inside a game ----------

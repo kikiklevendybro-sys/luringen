@@ -360,6 +360,14 @@ export function omSpilletHtml(m, o) {
     const mer = flereTil(e.totalt - e.antall);
     if (mer) deler.push(`  <p class="om-mer">${esc(mer)}</p>`);
   }
+  // «Prøv også»: games that are alike (rusj/familier.json) – what each one is, and why it is here.
+  // o.prov: [{ href, navn, sjanger, grunn }]
+  if (o.prov && o.prov.length) {
+    deler.push(
+      `  <h3>${esc(t("Prøv også"))}</h3>`,
+      `  <ul class="om-prov">${o.prov.map((p) => `<li><a href="${esc(p.href)}">${esc(p.navn)}</a> – ${esc(p.sjanger)}<p>${esc(p.grunn)}</p></li>`).join("")}</ul>`,
+    );
+  }
   const lenker = o.lenker || [];
   deler.push(`  <nav class="om-lenker" aria-label="${esc(t("Flere spill"))}">${[...lenker, [o.sprak ? o.sprak.forside : "/", t("Alle spill på rusj")]].map(([h, x]) => `<a href="${esc(h)}">${esc(x)}</a>`).join("")}</nav>`);
   if (o.sprakvalg) deler.push(`  ${o.sprakvalg}`);

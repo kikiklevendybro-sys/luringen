@@ -465,6 +465,55 @@ export const varianterI = (m, sprak) =>
     })
     .filter(Boolean);
 
+// ---------- «Prøv også»: rusj/familier.json ----------
+// Groups of games that are alike, each with a short reason in every edition. The page of a game
+// lists the others in its groups under «Slik spiller dere …» – so two games that turn out to be much
+// the same become a way on, not a disappointment. The closest groups come first in the file.
+// spill: every game ({ id }), Luringen too. Stops the build on a group that would not work.
+export const PROV_MAKS = 4; // games on one page
+export function lesFamilier(fil, spill) {
+  if (!existsSync(fil)) return [];
+  let data;
+  try {
+    data = JSON.parse(readFileSync(fil, "utf8"));
+  } catch (e) {
+    throw new Error(`${fil}: ugyldig JSON (${e.message})`);
+  }
+  const kjent = new Set(spill.map((g) => g.id));
+  const ider = new Set();
+  if (!Array.isArray(data.familier)) throw new Error(`${fil}: mangler "familier" (en liste)`);
+  for (const f of data.familier) {
+    if (!f || typeof f.id !== "string" || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(f.id)) throw new Error(`${fil}: en familie mangler "id" (små bokstaver a–z, tall og bindestrek)`);
+    if (ider.has(f.id)) throw new Error(`${fil}: ${f.id} står to ganger`);
+    ider.add(f.id);
+    if (!Array.isArray(f.spill) || f.spill.length < 2 || new Set(f.spill).size !== f.spill.length) throw new Error(`${fil}: ${f.id}: "spill" må være minst to ulike spill`);
+    for (const id of f.spill) if (!kjent.has(id)) throw new Error(`${fil}: ${f.id}: ukjent spill «${id}»`);
+    for (const sprak of ALLE_SPRAK) {
+      const grunn = f.grunn && f.grunn[sprak];
+      if (typeof grunn !== "string" || !grunn.trim()) throw new Error(`${fil}: ${f.id}: mangler "grunn" på ${sprak}`);
+      if (grunn.length > 70) throw new Error(`${fil}: ${f.id}: grunnen på ${sprak} er ${grunn.length} tegn (maks 70)`);
+      if (merkeSynlig(grunn)) throw new Error(`${fil}: ${f.id}: «${merkeSynlig(grunn)}» i grunnen er en annens merkevare`);
+    }
+  }
+  return data.familier;
+}
+// The games to suggest on the page of game m in one edition: [{ g, grunn }], at most PROV_MAKS, the
+// closest group first. liste: the edition's games ({ id, alder18 … }). Never the game itself, never
+// a game the edition lacks – and an 18+ game only on the page of another 18+ game.
+export function provOgsa(familier, m, liste, sprak = "nb") {
+  const av = new Map(liste.map((g) => [g.id, g]));
+  const ut = [];
+  for (const f of familier) {
+    if (!f.spill.includes(m.id)) continue;
+    for (const id of f.spill) {
+      const g = av.get(id);
+      if (!g || id === m.id || (g.alder18 && !m.alder18) || ut.some((x) => x.g.id === id)) continue;
+      ut.push({ g, grunn: f.grunn[sprak] });
+    }
+  }
+  return ut.slice(0, PROV_MAKS);
+}
+
 export const TAGGER = {
   fest: "Fest",
   familie: "Familie",
@@ -806,6 +855,8 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
     merke: merkeSynlig,
   });
   const samlingerMed = (id) => samlinger.filter((s) => s.spill.some(([x]) => x === id)).map((s) => [`/${s.slug}/`, s.navn]);
+  // «Prøv også» (rusj/familier.json): games that are alike, for the block under each game page.
+  const familier = lesFamilier(join(ROT, "rusj/familier.json"), alleSpillKort.some((g) => g.id === "luringen") ? alleSpillKort : [{ id: "luringen" }, ...alleSpillKort]);
   const hodeMed = (o) => hode({ pngIkon: ikoner.p192, appleIkon: ikoner.p180, ...o });
 
   const STEMPEL_FILTER = `<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="stempel-ruff" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="7" result="stoy"/><feDisplacementMap in="SourceGraphic" in2="stoy" scale="4" xChannelSelector="R" yChannelSelector="G"/></filter></svg>`;
@@ -900,6 +951,7 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
             eksempler: U.sprak === "nb" ? eksemplerFor(m, data) : null,
             frase: merkeSynlig(sd.frase) ? m.undertittel : sd.frase,
             lenker: U.sprak === "nb" ? samlingerMed(id) : [],
+            prov: provOgsa(familier, m, U.alle, U.sprak).map(({ g, grunn }) => ({ href: g.url, navn: g.navn, sjanger: g.undertittel, grunn })),
             sprak: U,
             sprakvalg: sprakvalg(U, spillSti(id)),
             nett: paNett,
