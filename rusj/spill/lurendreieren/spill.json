@@ -1,0 +1,35 @@
+{
+  "id": "lurendreieren",
+  "navn": "Lurendreieren",
+  "undertittel": "Løgnerterning",
+  "beskrivelse": "Løgnerterning på mobilen: fem skjulte terninger hver – by høyere, eller rop «Løgn!». Gratis for 2–8 på hver sin mobil på nett, eller send mobilen rundt.",
+  "kort": "By høyere – eller rop løgn!",
+  "spillere": [2, 8],
+  "alder": 10,
+  "minutter": [10, 30],
+  "mobiler": "hver",
+  "terninger": true,
+  "tagger": ["fest", "blof", "klassiker"],
+  "rekkefolge": 115,
+  "farge": "#b86fc6",
+  "nett": true,
+  "sok": ["løgnerterning", "løgner terning", "liar's dice", "liars dice", "bløffeterning", "terningbløff", "terningspill med bløff", "snyd", "dudo", "perudo"],
+  "i18n": {
+    "en": {
+      "navn": "Chancer",
+      "undertittel": "Liar's dice",
+      "kort": "Bid higher – or call liar!",
+      "beskrivelse": "Liar's dice on your phone: five hidden dice each – bid higher, or call ‘Liar!’. Free for 2–8 with a phone each online, or pass one phone round the table.",
+      "slug": "chancer",
+      "sok": ["liar's dice", "liars dice", "liar dice", "dudo", "perudo", "bluff dice", "dice bluffing game", "dice game online"]
+    },
+    "da": {
+      "navn": "Lurendrejeren",
+      "undertittel": "Snyd",
+      "kort": "Byd højere – eller råb snyd!",
+      "beskrivelse": "Terningespillet Snyd på mobilen: fem skjulte terninger hver – byd højere, eller råb »Snyd!«. Gratis for 2–8 på hver sin mobil på nettet, eller send mobilen rundt.",
+      "slug": "lurendrejeren",
+      "sok": ["snyd", "snyd terningespil", "snyd regler", "snyd med terninger", "løgnerterning", "liar's dice", "terningebluff", "bluff med terninger", "perudo"]
+    }
+  }
+}

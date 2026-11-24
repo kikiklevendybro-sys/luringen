@@ -1,0 +1,84 @@
+{
+  "om": "Clever Clogs: the category packs, written for rusj.no (British English). «fast»: the same categories in the same order every round (the first five, or all six). Otherwise new categories are drawn from the pack for every round.",
+  "pakker": [
+    {
+      "id": "klassisk",
+      "navn": "Classic",
+      "ikon": "✏️",
+      "tekst": "Name, place, country, animal and food",
+      "fast": true,
+      "k": ["Name", "Town or city", "Country", "Animal", "Food", "Job"]
+    },
+    {
+      "id": "barn",
+      "navn": "Kids",
+      "ikon": "🧸",
+      "tekst": "For the little ones",
+      "k": [
+        "Animal",
+        "Something you can eat",
+        "Name",
+        "Toy or game",
+        "Something in nature",
+        "Something in your bedroom",
+        "Fruit or vegetable",
+        "Clothes",
+        "Something at school",
+        "Something that makes a noise",
+        "Something from a fairy tale",
+        "Something in the kitchen",
+        "Something you can do outside",
+        "Something fun",
+        "Something big"
+      ]
+    },
+    {
+      "id": "fest",
+      "navn": "Party",
+      "ikon": "🎉",
+      "tekst": "A bit more cheeky (18+)",
+      "k": [
+        "Rubbish excuse for being late",
+        "Something you'd never say to your boss",
+        "Reason to leave the party early",
+        "Terrible chat-up line",
+        "Something you regret the morning after",
+        "Nickname for your ex",
+        "Something you hide before guests arrive",
+        "Embarrassing thing to drop on the bus",
+        "Name for a band nobody wants to hear",
+        "World's worst job",
+        "Something you shout at the football",
+        "Rubbish present for your mother-in-law",
+        "Something you find in a student flat",
+        "Something in the glass",
+        "Something you shouldn't look up at work",
+        "Reason to cancel a date"
+      ]
+    },
+    {
+      "id": "jul",
+      "navn": "Christmas",
+      "ikon": "🎄",
+      "tekst": "For the whole of December",
+      "k": [
+        "Something on the Christmas dinner table",
+        "Christmas present",
+        "Something on the tree",
+        "Something you do on Boxing Day",
+        "Something in Father Christmas's sack",
+        "Something from a carol",
+        "Christmas bake or sweet",
+        "Something you do in the snow",
+        "Rubbish Christmas present",
+        "Something red",
+        "Name for an elf",
+        "Something in an advent calendar",
+        "Reason to be late for Christmas dinner",
+        "Christmas decoration",
+        "Winter clothes",
+        "Something that smells of Christmas"
+      ]
+    }
+  ]
+}

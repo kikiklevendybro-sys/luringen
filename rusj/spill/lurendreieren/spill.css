@@ -1,0 +1,857 @@
+/* Lurendreieren («Løgnerterning»): who has how many dice, the bid that stands, building a bid, one's
+   own dice, and the reveal where the matching dice are counted up. Everything new is prefixed lur-.
+   The dice that lie still are the kit's (R.terninger.statisk). */
+
+/* ---------- Flat faces (buttons, the bid) ---------- */
+
+.lur-flate {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Who has how many dice ---------- */
+
+.lur-bord-rad {
+  display: flex;
+  gap: 6px;
+  margin: 0 -4px 6px;
+  padding: 2px 4px 6px;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.lur-bord-rad::-webkit-scrollbar {
+  display: none;
+}
+
+.lur-bord-rad li {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 66px;
+  padding: 6px 4px 5px;
+  border-radius: 16px;
+  background: var(--natt-3);
+  color: var(--tekst-2);
+  font: 800 0.72rem/1.1 var(--font-display);
+}
+
+.lur-bord-rad li .avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 19px;
+}
+
+.lur-bord-rad li.na {
+  box-shadow: inset 0 0 0 2px var(--pf);
+  color: var(--tekst);
+}
+
+.lur-bord-rad li.ute {
+  opacity: 0.5;
+}
+
+.lur-bord-navn {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The number of dice, on a little die */
+.lur-ant {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #fffaf2;
+  box-shadow: 0 0 0 2px var(--blekk), 0 2px 0 rgba(6, 2, 14, 0.6);
+  color: var(--blekk);
+  font: 900 0.8rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.lur-bord-rad .lur-ant {
+  position: absolute;
+  top: 24px;
+  right: 6px;
+}
+
+/* ---------- Whose turn ---------- */
+
+.lur-gi,
+.lur-hode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 2px;
+  min-width: 0;
+}
+
+.lur-gi > div,
+.lur-hode > div {
+  min-width: 0;
+}
+
+.lur-gi h1,
+.lur-hode h1 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.5rem, 7vw, 2rem);
+  line-height: 1.1;
+}
+
+.lur-gi .etikett,
+.lur-hode .etikett {
+  margin: 0 0 2px;
+}
+
+.lur-hode.kompakt h1 {
+  font-size: clamp(1.3rem, 6vw, 1.65rem);
+}
+
+.lur-hint {
+  margin: 10px 4px 0;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.lur-ute-linje {
+  margin: 12px 0 0;
+  color: var(--tekst-2);
+  font: 800 1rem/1.3 var(--font-display);
+  text-align: center;
+}
+
+/* ---------- The bid that stands ---------- */
+
+.lur-bud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "hvem verdi" "tekst verdi";
+  align-items: center;
+  gap: 2px 14px;
+  margin: 12px 0 0;
+  padding: 12px 16px 14px;
+  border-radius: var(--r-stor);
+  background: var(--papir);
+  box-shadow: 0 6px 0 var(--papir-2);
+  color: var(--blekk);
+}
+
+.lur-bud.tomt {
+  display: block;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  color: var(--tekst);
+}
+
+.lur-bud-hvem {
+  grid-area: hvem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  color: var(--blekk-2);
+  font: 800 0.9rem/1.2 var(--font-display);
+}
+
+.lur-bud-hvem .avatar {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+}
+
+.lur-bud-hvem span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lur-bud-verdi {
+  grid-area: verdi;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font: 900 2.6rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.lur-bud-verdi i {
+  color: var(--blekk-2);
+  font: 900 1.4rem/1 var(--font-display);
+}
+
+.lur-bud-verdi .lur-flate {
+  width: 52px;
+  height: 52px;
+  transform: rotate(6deg);
+}
+
+.lur-bud-tekst {
+  grid-area: tekst;
+  margin: 0;
+  font: 900 1.2rem/1.2 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.lur-bud.tomt .lur-bud-tekst {
+  font-size: 1.05rem;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ---------- My own dice ---------- */
+
+.lur-terninger {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.lur-t {
+  display: block;
+  line-height: 0;
+}
+
+.lur-t > .lur-flate {
+  width: 30px;
+  height: 30px;
+}
+
+.lur-hand {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 10px 12px 16px;
+  border-radius: var(--r-stor);
+  background:
+    radial-gradient(ellipse 80% 90% at 30% 40%, rgba(255, 255, 255, 0.08), transparent 70%),
+    #1d4a3c;
+  box-shadow: inset 0 0 0 3px #0e2a22;
+}
+
+.lur-hand .etikett {
+  margin: 0;
+  color: #cfe9de;
+}
+
+.lur-hand .lur-terninger {
+  gap: 12px;
+}
+
+.lur-hand .lur-t > .lur-flate {
+  width: 40px;
+  height: 40px;
+}
+
+.lur-hand.ny .lur-t {
+  animation: lur-trill 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.lur-hand.ny .lur-t:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.lur-hand.ny .lur-t:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.lur-hand.ny .lur-t:nth-child(4) {
+  animation-delay: 180ms;
+}
+
+.lur-hand.ny .lur-t:nth-child(5) {
+  animation-delay: 240ms;
+}
+
+@keyframes lur-trill {
+  from {
+    opacity: 0;
+    transform: translateY(-22px) rotate(-200deg) scale(0.6);
+  }
+}
+
+/* One phone: the hold-card with one's own dice on the back */
+.lur-titt {
+  margin: 10px 0 0;
+}
+
+.lur-titt .mappe {
+  height: 112px;
+  min-height: 0;
+}
+
+.lur-titt .mappe-forside {
+  flex-direction: row;
+  gap: 14px;
+  padding: 12px 16px;
+}
+
+.lur-titt .mappe-forside .figur-ramme {
+  width: 60px;
+  flex: none;
+}
+
+.lur-titt .mappe-etikett {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  padding: 5px 9px;
+  font-size: 0.66rem;
+}
+
+.lur-titt .mappe-finger {
+  flex-direction: row;
+  gap: 10px;
+  font-size: clamp(0.88rem, 4.2vw, 1rem);
+  line-height: 1.2;
+  text-align: left;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.lur-titt .mappe-finger span {
+  text-align: left;
+}
+
+.lur-titt .mappe-finger svg {
+  flex: none;
+  width: 36px;
+  height: 36px;
+}
+
+.lur-titt .mappe-bakside.lur-bak {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background:
+    radial-gradient(ellipse 80% 90% at 30% 60%, rgba(255, 255, 255, 0.08), transparent 70%),
+    #1d4a3c;
+  box-shadow: 0 10px 0 #0e2a22, 0 24px 44px var(--skygge);
+  color: #fff6e8;
+}
+
+.lur-bak-terninger {
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+
+.lur-bak-terninger .lur-t > .lur-flate {
+  width: 40px;
+  height: 40px;
+}
+
+.lur-bak-tekst {
+  margin: 0;
+  color: #cfe9de;
+  font: 800 0.74rem/1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- Building a bid ---------- */
+
+.lur-bygger {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+}
+
+.lur-bygg-rad {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.lur-bygg-etikett {
+  color: var(--tekst-2);
+  font: 800 0.95rem/1.2 var(--font-display);
+}
+
+.lur-bygger .teller {
+  padding: 6px;
+}
+
+.lur-bygger .teller button {
+  width: 52px;
+  height: 48px;
+}
+
+.lur-bygger .teller output {
+  font-size: 2.1rem;
+}
+
+.lur-flater {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.lur-flateknapp {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  max-height: 64px;
+  padding: 7px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 2px var(--strek);
+  cursor: pointer;
+}
+
+.lur-flateknapp .lur-flate {
+  max-width: 44px;
+  max-height: 44px;
+}
+
+.lur-flateknapp[aria-pressed="true"] {
+  background: var(--aksent);
+  box-shadow: inset 0 0 0 2px var(--aksent), 0 4px 0 var(--aksent-dyp);
+}
+
+.lur-flateknapp:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.lur-bygg-hjelp {
+  margin: 0;
+  text-align: center;
+}
+
+/* «Løgn!» is the narrow one, the bid takes the rest */
+.lur-svar {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.lur-svar > :only-child {
+  grid-column: 1 / -1;
+}
+
+.lur-svar .knapp {
+  padding-inline: 16px;
+}
+
+/* ---------- The reveal ---------- */
+
+.lur-avsloring {
+  display: grid;
+  gap: 12px;
+}
+
+.lur-dom {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.lur-dom h1 {
+  margin: 2px 0 0;
+  font-size: clamp(1.45rem, 7vw, 2rem);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.lur-avsloring.ferdig.blof h1 {
+  color: var(--rosa);
+}
+
+.lur-avsloring.ferdig.holdt h1 {
+  color: var(--mynte);
+}
+
+.lur-dom .etikett {
+  margin: 0;
+}
+
+/* The counter: how many matching dice so far, of how many the bid said */
+.lur-telleverk {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  width: 84px;
+  height: 84px;
+  margin: 0;
+  border-radius: 50%;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 4px var(--strek);
+}
+
+.lur-telleverk b {
+  color: var(--tekst);
+  font: 900 2.2rem/0.9 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.lur-telleverk b.nok {
+  color: var(--mynte);
+}
+
+.lur-telleverk span {
+  color: var(--tekst-2);
+  font: 800 0.74rem/1 var(--font-display);
+}
+
+.lur-avsloring.ferdig.blof .lur-telleverk {
+  box-shadow: inset 0 0 0 4px var(--rosa);
+}
+
+.lur-avsloring.ferdig.holdt .lur-telleverk {
+  box-shadow: inset 0 0 0 4px var(--mynte);
+}
+
+.lur-bord {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lur-rad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px 10px;
+  border-radius: 14px;
+  background: var(--natt-2);
+}
+
+.lur-avsloring.ferdig .lur-rad.taper {
+  box-shadow: inset 0 0 0 2px var(--rosa);
+}
+
+.lur-rad .avatar {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+}
+
+.lur-rad-navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 800 0.92rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lur-rad-navn small {
+  display: block;
+  overflow: hidden;
+  color: var(--tekst-2);
+  font: 700 0.7rem/1.2 var(--font-tekst);
+  text-overflow: ellipsis;
+}
+
+.lur-rad .lur-terninger {
+  flex: none;
+  flex-wrap: nowrap;
+  gap: 5px;
+}
+
+/* A die that counts turns gold when it is counted; the rest fade when the count is over */
+.lur-t.talt .trn-statisk {
+  --trn-flate: #ffd23f;
+  --trn-flate-kant: #e3a81a;
+  --trn-glans: #fff3b8;
+}
+
+.lur-t.talt > .lur-flate rect {
+  fill: #ffd23f;
+}
+
+.lur-t.na {
+  animation: lur-talt 0.26s cubic-bezier(0.3, 1.8, 0.5, 1) both;
+}
+
+@keyframes lur-talt {
+  from {
+    transform: scale(1.5) rotate(-12deg);
+  }
+}
+
+.lur-avsloring.ferdig .lur-t:not(.treff) {
+  opacity: 0.4;
+}
+
+.lur-res {
+  margin: 0;
+  color: var(--tekst);
+  font: 800 1.05rem/1.35 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.lur-neste {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+}
+
+.lur-neste .avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 14px;
+}
+
+/* ---------- «Kåringen» ---------- */
+
+.lur-vinner {
+  position: relative;
+  display: inline-block;
+}
+
+.lur-krone {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  font-size: 34px;
+  transform: translateX(-50%) rotate(-8deg);
+}
+
+.lur-plasser {
+  grid-template-columns: minmax(0, 1fr);
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lur-plasser li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--natt-3);
+}
+
+.lur-plasser li.leder {
+  box-shadow: inset 0 0 0 2px var(--aksent);
+}
+
+.lur-plasser .plass-nr {
+  width: 1.2em;
+  color: var(--tekst-2);
+  font: 900 1rem/1 var(--font-display);
+  text-align: center;
+}
+
+.lur-plasser .navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 800 1rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lur-plasser small {
+  display: block;
+  overflow: hidden;
+  color: var(--tekst-2);
+  font: 600 0.78rem/1.3 var(--font-tekst);
+  text-overflow: ellipsis;
+}
+
+/* ---------- Small and short screens ---------- */
+
+@media (max-width: 359px) {
+  .lur-bud-verdi {
+    font-size: 2.1rem;
+  }
+
+  .lur-bud-verdi .lur-flate {
+    width: 42px;
+    height: 42px;
+  }
+
+  .lur-rad {
+    gap: 6px;
+    padding: 5px 8px;
+  }
+
+  .lur-rad .lur-terninger {
+    gap: 3px;
+  }
+
+  .lur-telleverk {
+    width: 70px;
+    height: 70px;
+  }
+
+  .lur-telleverk b {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-height: 700px) {
+  .lur-bord-rad li {
+    flex-direction: row;
+    width: auto;
+    max-width: 120px;
+    padding: 4px 8px 4px 4px;
+    gap: 5px;
+  }
+
+  .lur-bord-rad li .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+  }
+
+  .lur-bord-rad .lur-ant {
+    position: static;
+    order: 3;
+    flex: none;
+    width: 20px;
+    height: 20px;
+  }
+
+  .lur-bud {
+    margin-top: 8px;
+    padding: 8px 14px 10px;
+  }
+
+  .lur-bud-verdi {
+    font-size: 2.1rem;
+  }
+
+  .lur-bud-verdi .lur-flate {
+    width: 42px;
+    height: 42px;
+  }
+
+  .lur-hode {
+    margin: 0;
+  }
+
+  .lur-hode.kompakt .etikett {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lur-titt {
+    margin-top: 6px;
+  }
+
+  .lur-titt .mappe {
+    height: 82px;
+  }
+
+  .lur-titt .mappe-forside .figur-ramme {
+    width: 48px;
+  }
+
+  .lur-hand {
+    margin-top: 8px;
+    padding: 6px 10px 12px;
+    gap: 5px;
+  }
+
+  .lur-bygger {
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .lur-bygger .teller button {
+    height: 40px;
+  }
+
+  .lur-bygger .teller output {
+    font-size: 1.7rem;
+  }
+
+  .lur-flateknapp {
+    max-height: 46px;
+    padding: 5px;
+    border-radius: 12px;
+  }
+
+  .lur-bygg-hjelp {
+    display: none;
+  }
+
+  .lur-avsloring {
+    gap: 8px;
+  }
+
+  .lur-telleverk {
+    width: 64px;
+    height: 64px;
+  }
+
+  .lur-telleverk b {
+    font-size: 1.7rem;
+  }
+
+  .lur-rad {
+    min-height: 40px;
+    padding: 3px 8px;
+  }
+
+  /* Home: the three buttons and the fact chips fit a phone in the browser (390 × 664) */
+  .skjerm-hjem .spillhjem {
+    gap: 8px;
+  }
+
+  .skjerm-hjem .spillhjem .figur-ramme {
+    width: min(26vw, 96px);
+  }
+
+  .skjerm-hjem .spillhjem h1 {
+    font-size: clamp(2.1rem, 9.6vw, 2.8rem);
+  }
+
+  .skjerm-hjem .hjem-knapper {
+    gap: 8px;
+  }
+}
+
+/* A phone on its side: the rows of the reveal in two columns */
+@media (orientation: landscape) and (max-height: 500px) {
+  .lur-bord {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .lur-titt .mappe {
+    height: 84px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lur-hand.ny .lur-t,
+  .lur-t.na {
+    animation: none;
+  }
+}
