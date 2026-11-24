@@ -1,8 +1,9 @@
 /* rusj.no front page («Miks»): one list of every game, «Alle spill A–Å», written into the page by
-   the build. The search in the top bar, the shortcuts («Med barna», «Vorspiel» …), the rooms (Fest,
-   Familie …) and the three questions behind «Flere valg» all filter that one list in place; what is
-   chosen shows as chips that can be removed, and with a choice the three best suggestions
-   (rusj/portal/finner.js) come first. Around it: «Fortsett der dere slapp», «Dagens», «Kveldens gjeng»,
+   the build: small cards with the mascot, the name and what the game is. The search in the top bar
+   (rusj/portal/sok.js), the shortcuts («Med barna», «Vorspiel» …), the rooms (Fest, Familie …) and
+   the three questions behind «Hjelp oss å velge» all filter that one list in place – then it is rows
+   with the facts; what is chosen shows as chips that can be removed, and with a choice the three
+   best suggestions (rusj/portal/finner.js) come first. Around it: «Fortsett der dere slapp», «Dagens», «Kveldens gjeng»,
    «Overrask meg» (a slot machine), the 18+ door for the drinking games, the install tip and «Send
    rusj til gjengen». Reads window.RUSJ_SPILLISTE (written by the build). Nothing leaves the device.
    The same file runs every edition (rusj/SPRAK.md): texts through t() from /felles/tekst.js. */
@@ -123,7 +124,13 @@
   // The mascot: its own picture (/<id>/figur.svg), fetched when it comes near unless `straks`.
   const bilde = (s, straks) => (s && s.fig ? `<img src="${esc(s.fig)}" alt=""${straks ? "" : ' loading="lazy"'} decoding="async">` : "");
   const nettMerke = () => `<span class="nett-merke" aria-hidden="true">${ikon("nett")}${esc(t("På nett"))}</span>`;
-  // A small tile as in «Alle spill A–Å»; o.fortsett: a game left in the middle.
+  // The facts of a row: players, minutes and «På nett» (the link's name says them aloud).
+  function fakta(s) {
+    const [f, til] = s.minutter;
+    return `<span class="spillflis-fakta" aria-hidden="true"><span>${ikon("spillere")}${fra(...s.spillere)}</span><span>${ikon("tid")}${fra(f, til)} min</span>${s.nett ? `<span class="fakta-nett">${ikon("nett")}${esc(t("På nett"))}</span>` : ""}</span>`;
+  }
+  // A game in a list, as the build writes «Alle spill A–Å» (flis() in scripts/rusj.mjs): the
+  // mascot, the name and the genre – and here the facts too. o.fortsett: a game left in the middle.
   function flis(s, o = {}) {
     const merke = o.fortsett
       ? `<span class="flis-merke fortsett" aria-hidden="true">${esc(t("Fortsett"))}</span>`
@@ -133,13 +140,13 @@
           ? '<span class="flis-merke dagens" aria-hidden="true">📅</span>'
           : "";
     const navn = (o.fortsett ? t("Fortsett.") + " " : "") + etikett(s);
-    return `<a class="spillflis" href="${esc(url(s))}" style="--kf: ${s.farge}" aria-label="${esc(navn)}"><span class="spillflis-bilde">${bilde(s)}${merke}${s.nett ? nettMerke() : ""}</span><span class="spillflis-navn">${esc(s.navn)}</span></a>`;
+    return `<a class="spillflis" href="${esc(url(s))}" style="--kf: ${s.farge}" aria-label="${esc(navn)}"><span class="spillflis-bilde">${bilde(s)}${merke}${s.nett ? nettMerke() : ""}</span><span class="spillflis-tekst"><span class="spillflis-navn">${esc(s.navn)}</span><span class="spillflis-sjanger">${esc(s.undertittel)}</span>${fakta(s)}</span></a>`;
   }
   // A bigger card with the reason it fits (the three best suggestions).
   function forslag(s, nr) {
     const merker = [s.tagger.includes("daglig") && `<span class="kort-merke dagens">${esc(t("Dagens"))}</span>`, s.motMobilen && `<span class="kort-merke">${esc(t("Mot mobilen"))}</span>`, s.nett && `<span class="kort-merke nett">${ikon("nett")}${esc(t("På nett"))}</span>`].filter(Boolean).join("");
     const navn = `${t("Nummer {n}.", { n: nr })} ${etikett(s)}${s.alder18 ? "" : " " + t("Fra {n} år", { n: s.alder }) + "."}`;
-    return `<li class="forslagkort" data-id="${s.id}"><a href="${esc(url(s))}" style="--kf: ${s.farge}" aria-label="${esc(navn)}"><span class="forslagkort-bilde"><span class="topp-nr" aria-hidden="true">${nr}</span>${bilde(s, true)}</span><span class="forslagkort-navn">${esc(s.navn)}</span>${merker ? `<span class="kort-merker" aria-hidden="true">${merker}</span>` : ""}<span class="kort-grunn" aria-hidden="true">${grunn(s)
+    return `<li class="forslagkort" data-id="${s.id}"><a href="${esc(url(s))}" style="--kf: ${s.farge}" aria-label="${esc(navn)}"><span class="forslagkort-bilde"><span class="topp-nr" aria-hidden="true">${nr}</span>${bilde(s, true)}</span><span class="forslagkort-sjanger">${esc(s.undertittel)}</span><span class="forslagkort-navn">${esc(s.navn)}</span>${merker ? `<span class="kort-merker" aria-hidden="true">${merker}</span>` : ""}<span class="kort-grunn" aria-hidden="true">${grunn(s)
       .map(([slag, tekst]) => `<span class="grunn-${slag}">${esc(tekst)}</span>`)
       .join(" ")}</span></a></li>`;
   }
@@ -336,7 +343,7 @@
     if (ikke && rommene.includes(ikke.rom)) rommene.unshift(...rommene.splice(rommene.indexOf(ikke.rom), 1));
     return `<p class="ingen-tittel">${esc(t("Fant ingen spill for «{sok}»", { sok }))}</p>${ikke ? `<p class="ingen-ikke">${esc(t("Det har vi ikke ennå."))}</p>` : ""}
       <p class="ingen-under">${esc(naer.length ? t("Det nærmeste vi har:") : t("Prøv et av de mest spilte:"))}</p>
-      <ul class="ingen-liste">${(naer.length ? naer : mest).map((s) => `<li>${flis(s)}</li>`).join("")}</ul>
+      <ul class="ingen-liste rader">${(naer.length ? naer : mest).map((s) => `<li>${flis(s)}</li>`).join("")}</ul>
       <p class="ingen-under">${esc(t("Eller velg en type spill:"))}</p>
       <div class="ingen-rom">${rommene.map((id) => `<button type="button" class="brikke" data-til-rom="${id}">${esc(knappTekst(`#rommene [data-rom="${id}"]`))}</button>`).join("")}</div>`;
   }
@@ -349,11 +356,14 @@
     visVoksenRom();
     ordne();
     const vis = new Set(SPILL.filter(passer).map((s) => s.id));
+    const valgt = filtrert();
     const bokstaver = new Set();
     let vist = 0;
     for (const li of $$("li[data-id]", liste)) {
       const ja = vis.has(li.dataset.id);
       li.hidden = !ja;
+      // A row gets its facts the first time it is shown as one (the build writes name and genre).
+      if (ja && valgt && !$(".spillflis-fakta", li)) $(".spillflis-tekst", li).insertAdjacentHTML("beforeend", fakta(spillAv.get(li.dataset.id)));
       // (the letters belong to A–Å, not to the search's order)
       li.classList.toggle("forste", !funn && ja && !bokstaver.has(li.dataset.b));
       if (ja) {
@@ -362,7 +372,6 @@
       }
     }
     const totalt = SPILL.filter(synlig).length;
-    const valgt = filtrert();
 
     // The 18+ door at the end of the list: before anyone is 18, when nothing is chosen, for
     // «Vorspiel», and when a search also fits drinking games. After: «Skjul» to hide them again.
@@ -403,6 +412,8 @@
     $("#aktive").setAttribute("aria-label", t("Filter, {n} valgt", { n: aktive.length }));
     $("#aktive").innerHTML = aktive.map(([n, tekst]) => `<button type="button" class="brikke aktiv-brikke" data-fjern="${n}" aria-label="${esc(t("Fjern {valg}", { valg: tekst }))}">${esc(tekst)} <span class="x" aria-hidden="true">×</span></button>`).join("");
     liste.setAttribute("aria-label", valgt ? t("Treff") : t("Alle spill"));
+    // Something is chosen: rows with the facts, instead of the small cards of A–Å.
+    liste.classList.toggle("rader", valgt);
 
     // The best suggestions (rusj/portal/finner.js), once something is chosen and more than three fit.
     beste = [];

@@ -2002,23 +2002,31 @@ body.portal {
   margin: 0 0 0 auto;
 }
 
-/* A game as a small tile: the mascot on its colour, the name under it. */
+/* A game in a list: the mascot on its colour, the name and what the game is (its genre). One
+   markup, three looks: a small card in «Alle spill A–Å» (this one), a row with the facts once
+   something is chosen (.rader, below), and a tile with the name under the mascot in the rows that
+   scroll sideways (.forside-rad). */
 .spillflis {
   --kf: var(--lilla);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
   align-items: center;
-  gap: 7px;
-  padding: 6px 2px 8px;
-  border-radius: 18px;
+  gap: 9px;
+  height: 100%;
+  min-height: 58px;
+  padding: 6px 8px 6px 6px;
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--kf) 9%, var(--natt-2));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--kf) 24%, var(--strek));
   color: var(--tekst);
-  text-align: center;
+  text-align: left;
   text-decoration: none;
 }
 
 .spillflis:hover,
 .spillflis:focus-visible {
-  background: color-mix(in srgb, var(--kf) 14%, var(--natt-2));
+  background: color-mix(in srgb, var(--kf) 20%, var(--natt-2));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--kf) 70%, var(--strek));
 }
 
 .spillflis-bilde {
@@ -2026,9 +2034,8 @@ body.portal {
   display: grid;
   place-items: center;
   width: 100%;
-  max-width: 76px;
   aspect-ratio: 1;
-  border-radius: 22px;
+  border-radius: 14px;
   background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--kf) 52%, var(--natt-2)), color-mix(in srgb, var(--kf) 16%, var(--natt)) 82%);
   box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--kf) 34%, transparent);
 }
@@ -2041,12 +2048,128 @@ body.portal {
   aspect-ratio: 1;
 }
 
+.spillflis-tekst {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
 .spillflis-navn {
   display: -webkit-box;
   overflow: hidden;
-  font: 800 0.8rem/1.15 var(--font-display);
+  font: 800 0.86rem/1.15 var(--font-display);
   overflow-wrap: anywhere;
   hyphens: auto;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* What the game is: «Yatzy», «Ludo», «Forklar ordet». One line in the small card. */
+.spillflis-sjanger {
+  overflow: hidden;
+  color: color-mix(in srgb, var(--kf) 38%, var(--tekst-2));
+  font: 700 0.74rem/1.25 var(--font-tekst);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Players, minutes and «På nett»: only in the rows. */
+.spillflis-fakta {
+  display: none;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin-top: 3px;
+  color: var(--tekst-2);
+  font: 700 0.76rem/1.3 var(--font-tekst);
+}
+
+.spillflis-fakta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.spillflis-fakta .fakta-nett {
+  color: var(--himmel);
+}
+
+/* A row with the facts: what a search, a room, a shortcut or the three questions show. One column
+   on a phone, two from 560 px. */
+.rader > li > .spillflis {
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 12px;
+  min-height: 78px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 20px;
+}
+
+.rader .spillflis-bilde {
+  border-radius: 17px;
+}
+
+.rader .spillflis-navn {
+  font-size: 1.02rem;
+}
+
+.rader .spillflis-sjanger {
+  display: -webkit-box;
+  font-size: 0.86rem;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.rader .spillflis-fakta {
+  display: flex;
+}
+
+/* (the row says «På nett» among its facts) */
+.rader .spillflis .nett-merke {
+  display: none;
+}
+
+/* A tile in a row that scrolls sideways («Fortsett», «Nytt»): the mascot, the name and the genre under it. */
+.forside-rad .spillflis {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-height: 0;
+  padding: 6px 2px 8px;
+  border-radius: 18px;
+  background: none;
+  box-shadow: none;
+  text-align: center;
+}
+
+.forside-rad .spillflis:hover,
+.forside-rad .spillflis:focus-visible {
+  background: color-mix(in srgb, var(--kf) 14%, var(--natt-2));
+  box-shadow: none;
+}
+
+.forside-rad .spillflis-bilde {
+  max-width: 76px;
+  border-radius: 22px;
+}
+
+.forside-rad .spillflis-tekst {
+  justify-items: center;
+  gap: 2px;
+  width: 100%;
+}
+
+.forside-rad .spillflis-navn {
+  font-size: 0.8rem;
+}
+
+.forside-rad .spillflis-sjanger {
+  display: -webkit-box;
+  font-size: 0.66rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  white-space: normal;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -2109,6 +2232,29 @@ body.portal {
   width: 11px;
   height: 11px;
   stroke-width: 2.4;
+}
+
+/* On the small card of «Alle spill A–Å» there is room for the globe only (the link's name says it),
+   and the badge in the other corner is smaller. */
+.alle-liste:not(.rader) .nett-merke {
+  right: -5px;
+  bottom: -5px;
+  left: auto;
+  gap: 0;
+  padding: 3px;
+  font-size: 0;
+  transform: none;
+}
+
+.alle-liste:not(.rader) .flis-merke {
+  top: -5px;
+  right: -5px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  box-shadow: 0 0 0 2px var(--natt);
+  font-size: 0.56rem;
+  line-height: 17px;
 }
 
 /* A row that scrolls sideways («Fortsett», «Nytt»). */
@@ -2268,7 +2414,8 @@ body.portal {
   padding: 0 4px;
 }
 
-.toppkort-sjanger {
+.toppkort-sjanger,
+.forslagkort-sjanger {
   overflow: hidden;
   color: color-mix(in srgb, var(--kf) 70%, #fff);
   font: 900 0.64rem/1.25 var(--font-display);
@@ -2546,6 +2693,11 @@ body.portal {
   font-size: 0.92rem;
 }
 
+.forslagkort-sjanger {
+  margin-bottom: -5px;
+  padding: 0 4px;
+}
+
 .forslagkort .kort-grunn {
   padding: 0 4px;
   font-size: 0.7rem;
@@ -2596,37 +2748,44 @@ body.portal {
   }
 }
 
-.alle-liste {
+/* Small cards, two across on a phone: the mascot, the name and what the game is. */
+.alle-liste,
+.ingen-liste {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-  gap: 6px 4px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 8px;
   margin: 6px 0 0;
   padding: 0;
   list-style: none;
 }
 
-.alle-liste > li {
+.alle-liste > li,
+.ingen-liste > li {
   position: relative;
   min-width: 0;
 }
 
-/* The first game of each letter carries the letter. */
+/* The first game of each letter carries the letter (A–Å only: rows are not in that order). */
 .alle-liste > li.forste::before {
   content: attr(data-b) / "";
   position: absolute;
-  top: 1px;
-  left: max(0px, calc(50% - 46px));
+  top: -4px;
+  left: -4px;
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 21px;
+  height: 21px;
   border-radius: 999px;
   background: var(--lampe);
   box-shadow: 0 0 0 2.5px var(--natt);
   color: var(--blekk);
-  font: 900 0.8rem/1 var(--font-display);
+  font: 900 0.72rem/1 var(--font-display);
   pointer-events: none;
+}
+
+.alle-liste.rader > li.forste::before {
+  content: none;
 }
 
 .alle-liste > .dor-celle {
@@ -2634,20 +2793,46 @@ body.portal {
   margin-top: 10px;
 }
 
+/* Rows: one across on a phone. */
+.alle-liste.rader,
+.ingen-liste.rader {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
 @media (max-width: 359px) {
+  .alle-liste:not(.rader) .spillflis {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 7px;
+    padding-right: 6px;
+  }
+
+  .alle-liste:not(.rader) .spillflis-navn {
+    font-size: 0.8rem;
+  }
+}
+
+@media (min-width: 560px) {
   .alle-liste {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  }
+
+  .alle-liste.rader,
+  .ingen-liste.rader {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 720px) {
   .alle-liste {
-    grid-template-columns: repeat(auto-fill, minmax(98px, 1fr));
-    gap: 10px 6px;
+    gap: 10px;
   }
+}
 
-  .alle-liste > li.forste::before {
-    left: max(0px, calc(50% - 50px));
+@media (min-width: 1000px) {
+  .alle-liste.rader,
+  .ingen-liste.rader {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -2696,13 +2881,69 @@ body.portal {
   font-size: 0.86rem;
 }
 
+/* A typo the search put right: «Viser treff for «yatzy»». */
+.sok-melding {
+  margin: 10px 0 0;
+  color: var(--tekst-2);
+  font: 700 0.92rem/1.3 var(--font-tekst);
+}
+
+/* Nothing fits: say so, and never leave it at that – a few games and the kinds of game. */
 .ingen-treff {
+  display: grid;
+  gap: 10px;
   margin: 12px 0 0;
-  padding: 28px 16px;
+  padding: 20px 14px 18px;
   border-radius: 22px;
   background: var(--natt-2);
   color: var(--tekst-2);
+}
+
+.ingen-treff[hidden] {
+  display: none;
+}
+
+.ingen-treff p {
+  margin: 0;
+}
+
+.ingen-treff > p:only-child {
+  padding: 8px 2px;
   text-align: center;
+}
+
+.ingen-tittel {
+  color: var(--tekst);
+  font: 900 1.08rem/1.25 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.ingen-ikke {
+  margin-top: -6px;
+  font: 700 0.95rem/1.3 var(--font-tekst);
+}
+
+.ingen-under {
+  margin-top: 4px;
+  color: var(--tekst-3);
+  font: 800 0.84rem/1.2 var(--font-display);
+}
+
+.ingen-liste {
+  margin: 0;
+}
+
+.ingen-rom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ingen-rom .brikke {
+  min-height: 40px;
+  padding: 4px 13px;
+  background: var(--natt-3);
+  font: 800 0.88rem/1 var(--font-display);
 }
 
 /* «Så enkelt er det»: the motto and the four facts. */
@@ -2876,7 +3117,7 @@ body.portal {
   /* The suggestions as low cards: the mascot beside the text. */
   .forslagkort a {
     display: grid;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto auto auto 1fr;
     grid-template-columns: 64px minmax(0, 1fr);
     align-content: start;
     column-gap: 10px;

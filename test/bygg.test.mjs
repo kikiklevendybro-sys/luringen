@@ -238,7 +238,7 @@ test("the front page: the words people search for – and not «festspill» (an 
   for (const id of spillIder) assert.equal(f.html.includes(`href="/${id}/"`), !atten.has(id), atten.has(id) ? `forsiden lenker til 18+-spillet /${id}/ før aldersdøra` : `forsiden lenker ikke til /${id}/`);
 });
 
-test("«Alle spill A–Å»: every game as a plain link in every edition, sorted, with its facts – no 18+ game before the door", () => {
+test("«Alle spill A–Å»: every game as a plain link in every edition, sorted, with its name, what it is and its facts – no 18+ game before the door", () => {
   for (const [sti, liste, lokale, ord] of [
     ["index.html", "felles/spilliste.js", "nb", { tittel: "Alle spill A–Å", hopp: "Hopp til alle spill A–Å", fakta: /(spiller|spillere), (én mobil|hver sin mobil|én eller flere mobiler), \d+( til \d+)? minutter/ }],
     ["en/index.html", "felles/spilliste.en.js", "en-GB", { tittel: "All games A–Z", hopp: "Skip to all games A–Z", fakta: /players?, (one phone|a phone each|one or more phones), \d+( to \d+)? minutes?/ }],
@@ -259,6 +259,10 @@ test("«Alle spill A–Å»: every game as a plain link in every edition, sorted
       assert.ok(x.navn.startsWith(`${g.navn}: ${g.undertittel}. `) && ord.fakta.test(x.navn), `${sti}: lenkenavnet til ${x.id} sier ikke fakta («${x.navn}»)`);
       assert.match(x.html, new RegExp(`<img src="${(g.fig || "").replace(/[?.]/g, "\\$&")}" alt="" loading="lazy" decoding="async">`), `${sti}: ${x.id} mangler figuren som eget bilde (loading=lazy)`);
       assert.match(x.html, new RegExp(`<span class="spillflis-navn">${g.navn.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}</span>`), `${sti}: ${x.id} viser ikke navnet`);
+      // What the game is, right under the mascot's name: «Terninga» alone does not say Yatzy.
+      assert.equal(tekst((/<span class="spillflis-sjanger">([^<]*)<\/span>/.exec(x.html) || [])[1] || ""), g.undertittel, `${sti}: ${x.id} viser ikke sjangeren («${g.undertittel}»)`);
+      // (the facts of a row are added by portal.js when the list is filtered: the page stays small)
+      assert.ok(!x.html.includes("spillflis-fakta"), `${sti}: ${x.id} har fakta skrevet inn i siden`);
       assert.equal(x.forste, x.b !== forrige, `${sti}: ${x.id} skal${x.b !== forrige ? "" : " ikke"} bære bokstaven ${x.b}`);
       forrige = x.b;
       // «Mot mobilen» and «På nett» come from the games (spill.json / rusj/seo.json), never guessed.

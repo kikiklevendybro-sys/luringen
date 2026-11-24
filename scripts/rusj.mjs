@@ -989,6 +989,8 @@ ${STEMPEL_FILTER}
     const HURTIG_NAVN = { barn: t("Med barna"), vors: t("Vorspiel"), buss: t("Alene på bussen"), to: t("To stykker"), stor: t("Stor gjeng"), fem: t("5 minutter") };
     // The place of each of the edition's games in «Mest spilt nå» (1 = most played), for the finder.
     const toppPlass = new Map((topp ? topp.spill : []).filter((id) => kortListe.some((m) => m.id === id)).map((id, i) => [id, i + 1]));
+    // «På nett» on the front page: the game has it (spill.json "nett") and the rooms are switched on.
+    const paNett = (m) => !!(m.nett && NETT);
     const spillData = kortListe.map((m) => ({
       id: m.id,
       navn: m.navn,
@@ -1004,12 +1006,11 @@ ${STEMPEL_FILTER}
       ...(toppPlass.has(m.id) ? { topp: toppPlass.get(m.id) } : {}),
       alder18: !!m.alder18,
       ...(motMobilen(m) ? { motMobilen: true } : {}),
-      // Can be played with friends on their own phones online (R.nett): for the badge «På nett».
-      ...(m.nett && NETT ? { nett: true } : {}),
+      // Can be played with friends on their own phones online (R.nett): the badge «På nett», the
+      // room of that name and the search. Only while the rooms are switched on (NETT_ADRESSE).
+      ...(paNett(m) ? { nett: true } : {}),
       // The game's own search words plus the ones in rusj/seo.json (what people call the game).
       sok: [...new Set([...(Array.isArray(m.sok) ? m.sok : []), ...U.sokedata(m).sok])],
-      // Can be played online, each on their own phone (spill.json "nett"): a badge on the cards.
-      ...(m.nett ? { nett: true } : {}),
       fig: U.fig.get(m.id),
       ...(U.sprak === "nb" ? {} : { url: m.url }),
     }));
@@ -1028,21 +1029,24 @@ ${STEMPEL_FILTER}
     const vanlige = kortListe.filter((m) => !m.alder18);
     U.antall18 = kortListe.length - vanlige.length;
     // What a screen reader hears for a game: name, genre, one-liner and the facts in one sentence.
-    const lest = (m) => `${m.navn}: ${m.undertittel}. ${m.kort} ${U.stor(faktaLest(m, motMobilen(m), t))}.`;
+    const lest = (m) => `${m.navn}: ${m.undertittel}. ${m.kort} ${U.stor(faktaLest({ ...m, nett: paNett(m) }, motMobilen(m), t))}.`;
     // «Ny» on the eight newest games (their place in the site's order), «📅» on the daily ones.
     const nyeste = vanlige.slice().sort((a, b) => b.rekkefolge - a.rekkefolge);
     const NYE = new Set(nyeste.slice(0, 8).map((m) => m.id));
     const merke = (m) => (m.tagger.includes("daglig") ? '<span class="flis-merke dagens" aria-hidden="true">📅</span>' : NYE.has(m.id) ? `<span class="flis-merke ny" aria-hidden="true">${esc(t("Ny"))}</span>` : "");
     // «På nett»: the game can be played online, each on their own phone (spill.json "nett").
     const nettMerke = `<span class="nett-merke" aria-hidden="true">${ikon("nett")}${esc(t("På nett"))}</span>`;
-    // A game as a small tile (the A–Å list, «Nytt»): the mascot and the name; the link says the rest.
-    const flis = (m) => `<a class="spillflis" href="${m.url}" style="--kf: ${m.farge}" aria-label="${esc(lest(m))}"><span class="spillflis-bilde">${bilde(m.id)}${merke(m)}${m.nett ? nettMerke : ""}</span><span class="spillflis-navn">${esc(m.navn)}</span></a>`;
+    // A game in a list (the A–Å list, «Nytt»): the mascot, the name and what the game is (its genre).
+    // The link's name says it all in one sentence. When the list becomes rows (a search, a room, the
+    // three questions), portal.js adds the facts to the rows it shows – so the page as written stays small.
+    const flis = (m) =>
+      `<a class="spillflis" href="${m.url}" style="--kf: ${m.farge}" aria-label="${esc(lest(m))}"><span class="spillflis-bilde">${bilde(m.id)}${merke(m)}${paNett(m) ? nettMerke : ""}</span><span class="spillflis-tekst"><span class="spillflis-navn">${esc(m.navn)}</span><span class="spillflis-sjanger">${esc(m.undertittel)}</span></span></a>`;
     // The badges on a card with facts («Mest spilt nå»): «Dagens», «Mot mobilen», «På nett».
     const kortMerker = (m) => {
       const ut = [
         m.tagger.includes("daglig") && `<span class="kort-merke dagens">${esc(t("Dagens"))}</span>`,
         motMobilen(m) && `<span class="kort-merke">${esc(t("Mot mobilen"))}</span>`,
-        m.nett && `<span class="kort-merke nett">${ikon("nett")}${esc(t("På nett"))}</span>`,
+        paNett(m) && `<span class="kort-merke nett">${ikon("nett")}${esc(t("På nett"))}</span>`,
       ].filter(Boolean);
       return ut.length ? `<span class="kort-merker" aria-hidden="true">${ut.join("")}</span>` : "";
     };
