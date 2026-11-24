@@ -268,7 +268,18 @@
       if (m.logg.length > forrigeLogg.length) {
         for (let i = forrigeLogg.length; i < m.logg.length; i++) bruk(m.logg[i][0], m.logg[i][1], i, true);
         etterGjenspill(true);
-      } else oppdaterStatus();
+      } else {
+        // Nothing new, but the line is back: the game gets to send what it still owes (a move of
+        // ours that never arrived, or one that came due while the line was down).
+        if (DEF.etter) {
+          try {
+            DEF.etter(R.S, okt(null, false));
+          } catch (e) {
+            console.warn("rusj nett: etter", e);
+          }
+        }
+        oppdaterStatus();
+      }
       return;
     }
     bygg(m.logg);
