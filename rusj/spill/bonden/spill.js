@@ -798,6 +798,16 @@
     pagar,
     nett: NETT,
 
+    // rusj.no/bonden/#variant=fem (the front page's row «Fem på rad · i Bonden»): the setup with the
+    // big board chosen. With a game of three in a row in progress the kit asks first, as «Nytt
+    // spill» does; five in a row already on the table just goes on.
+    variantSpor: (S, id) => id === "fem" && pagar(S) && S.spill.variant === "tre" && { solo: S.spill.modus === "mobil" },
+    variant(S, id) {
+      if (id !== "fem" || (pagar(S) && S.spill.variant !== "tre")) return null;
+      if (S.oppsett.variant === "tre") S.oppsett.variant = "fem"; // (15 × 15 stays, if that was the board last time)
+      return "oppsett";
+    },
+
     tilstand: () => ({
       antall: 2,
       oppsett: { modus: "mobil", variant: "tre", niva: 2, mal: 3 },

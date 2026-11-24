@@ -3228,6 +3228,38 @@
     } catch (e) {
       harHistorikk = false;
     }
+    // …/<id>/#variant=<id>: a well-known game inside this one (the front page's rows «Edderkoppkabal
+    // · i Kortkongen»). The game's own `variant(S, id)` chooses it in its setup and says which screen
+    // to show. A game in progress is never thrown away unasked: then the usual question comes first
+    // (over the screen the visit would have started on), and «Avbryt» changes nothing. A game whose
+    // variants never replace anything says so with `variantSpor: () => false`; one that wants «du»
+    // in the question returns { solo: true }.
+    const variantFra = (h) => {
+      const m = /^variant=([a-z0-9-]{1,30})$/.exec(h);
+      return m ? m[1] : null;
+    };
+    const velgVariant = (id) => {
+      try {
+        const sk = APP.variant(S, id);
+        return sk && APP.skjermer[sk] ? sk : null;
+      } catch (e) {
+        return null;
+      }
+    };
+    const variantSpor = (id) => {
+      try {
+        return APP.variantSpor ? APP.variantSpor(S, id) : !!(APP.pagar && APP.pagar(S));
+      } catch (e) {
+        return false;
+      }
+    };
+    const sporVariant = async (id, spor) => {
+      const fortsatt = R.vakt();
+      if (!(await R.bekreftNytt(true, spor && typeof spor === "object" ? !!spor.solo : undefined)) || !fortsatt()) return;
+      const sk = velgVariant(id);
+      if (sk) R.gaTil(sk);
+    };
+    let variantVenter = null; // [id, what variantSpor said]: asked once the first screen is up
     if (hash === "utfordring") {
       // A challenge link: no data in it, just «someone dared you» on the home screen.
       R.utfordret = true;
@@ -3235,6 +3267,17 @@
         history.replaceState(history.state, "", location.pathname + location.search);
       } catch (e) {
         /* ignore */
+      }
+    } else if (variantFra(hash)) {
+      try {
+        history.replaceState(null, "", location.pathname + location.search);
+      } catch (e) {
+        /* ignore */
+      }
+      if (APP.variant) {
+        const spor = variantSpor(variantFra(hash));
+        if (spor) variantVenter = [variantFra(hash), spor];
+        else fraHash = velgVariant(variantFra(hash));
       }
     } else if (hash && APP.vedHash) {
       try {
@@ -3289,6 +3332,9 @@
     // gets the «Last resort» sheet.
     spillVises = true;
     meldLagring();
+    // A link to a variant while a game is in progress: ask before anything is replaced. (Not at the
+    // age gate: there the link is forgotten.)
+    if (variantVenter && S.skjerm !== "alder") sporVariant(variantVenter[0], variantVenter[1]);
     // Stickers that follow from what is stored already, and any earned but not yet celebrated.
     merkerSjekk();
     feirMerkerSnart(1200);
@@ -3304,6 +3350,22 @@
         R.utfordret = true;
         if (S.skjerm === (APP.hjem || "hjem")) tegn({});
         else R.gaTil(APP.hjem || "hjem");
+        return;
+      }
+      if (variantFra(h)) {
+        // The same link opened while the page is open (back from the front page, a pasted address).
+        try {
+          history.replaceState(history.state, "", location.pathname + location.search);
+        } catch (e) {
+          /* ignore */
+        }
+        if (!APP.variant || S.skjerm === "alder") return;
+        const spor = variantSpor(variantFra(h));
+        if (spor) sporVariant(variantFra(h), spor);
+        else {
+          const sk = velgVariant(variantFra(h));
+          if (sk) R.gaTil(sk);
+        }
         return;
       }
       if (!h || !APP.vedHash) return;

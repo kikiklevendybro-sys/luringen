@@ -1231,6 +1231,16 @@
     pagar: (S) => !!(S.spill && !S.spill.ferdig),
     nett: NETT,
 
+    // rusj.no/pusen/#variant=svarte (fisk, krig, snap) – the front page's rows «Svarteper · i Pusen»
+    // and so on: the setup with that card game chosen. With another one in progress the kit asks
+    // first, as «Nytt spill» does; the same game already on the table just goes on.
+    variantSpor: (S, id) => MODUSER.includes(id) && !!S.spill && !S.spill.ferdig && S.spill.modus !== id && { solo: mot(S.spill) },
+    variant(S, id) {
+      if (!MODUSER.includes(id) || (S.spill && !S.spill.ferdig && S.spill.modus === id)) return null;
+      S.oppsett.modus = id;
+      return "oppsett";
+    },
+
     tilstand: () => ({
       antall: 2,
       oppsett: { modus: "svarte", mot: "mobil", mobiler: 1, niva: 2, lengde: "kort" },

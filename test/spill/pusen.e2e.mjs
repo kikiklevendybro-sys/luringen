@@ -9,6 +9,8 @@
 // 5 Snapp, two on one phone face to face: turn in turn, a snap without a pair rests the button, a
 //   snap on a pair wins the pile; «Kåringen» and Kveldens gjeng.
 // 6 Svarteper, three on one phone: the gate before every turn, a reload shows the gate again.
+import { sjekkVariantlenke, apneVariant } from "./variantlenke.mjs";
+
 export default async function (t) {
   const spillet = async () => (await t.tilstand()).spill;
   const fort = () => t.js("window.Pusen.fart = 0.12");
@@ -195,4 +197,15 @@ export default async function (t) {
   await t.bilde("svarteper-sammen-slutt", true);
   s = await t.tilstand();
   t.sjekk(s.spill.ferdig && s.spill.r.hender[s.spill.r.taper].join() === "40", "Svarteper sammen endte ikke med katten hos én");
+
+  // ---------- The front page's rows «Svarteper · i Pusen», «Fisk», «Størst vinner», «Snapp» ----------
+  // rusj.no/pusen/#variant=fisk: the setup with that card game chosen; with another one in progress
+  // the usual question first.
+  await sjekkVariantlenke(t, { variant: "fisk", valgt: `Rusj.S.oppsett.modus === "fisk"`, annet: `Rusj.S.oppsett.modus = "svarte"` });
+  for (const id of ["svarte", "krig", "snap"]) {
+    await t.start();
+    await t.js(`Rusj.S.oppsett.modus = ${JSON.stringify(id === "krig" ? "snap" : "krig")}; Rusj.lagre()`);
+    const v = await apneVariant(t, id, { valgt: `Rusj.S.oppsett.modus === ${JSON.stringify(id)}` });
+    t.sjekk(v.skjerm === "oppsett" && v.valgt && v.hash === "" && (await t.js(`document.querySelector('[data-h="modus"][data-v="${id}"]').getAttribute("aria-pressed")`)) === "true", `#variant=${id} åpner ikke oppsettet med spillet valgt (${JSON.stringify(v)})`);
+  }
 }

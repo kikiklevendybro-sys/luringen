@@ -10,10 +10,13 @@
   "mobiler": "en",
   "tagger": ["klassiker", "barn", "familie", "alene"],
   "rekkefolge": 28,
-  "sok": ["tre på rad", "kryss og bolle", "tic tac toe", "fem på rad", "bondesjakk"],
+  "sok": ["tre på rad", "kryss og bolle", "tic tac toe", "bondesjakk"],
   "motMobilen": true,
   "nett": true,
   "alias": ["bondesjakk", "tre-pa-rad"],
+  "varianter": [
+    { "id": "fem", "navn": "Fem på rad", "undertittel": "Kryss og bolle på stort brett", "sok": ["fem på rad", "5 på rad", "fempårad", "gomoku", "luffarsjakk"], "i18n": { "en": { "navn": "Five in a row", "undertittel": "Noughts and crosses on a big board", "sok": ["five in a row", "5 in a row", "gomoku", "five in a line"] }, "da": { "navn": "Fem på stribe", "undertittel": "Kryds og bolle på en stor plade", "sok": ["fem på stribe", "5 på stribe", "fem på række", "gomoku"] } } }
+  ],
   "i18n": {
     "en": {
       "navn": "Noughty",
@@ -21,7 +24,7 @@
       "kort": "Noughts or crosses? Three in a row wins.",
       "beskrivelse": "Free noughts and crosses in your browser: three in a row or five in a row – against a friend on the same phone, or against the phone at three levels.",
       "slug": "noughty",
-      "sok": ["noughts and crosses", "tic tac toe", "tic-tac-toe", "three in a row", "five in a row", "gomoku", "x and o", "noughty"]
+      "sok": ["noughts and crosses", "tic tac toe", "tic-tac-toe", "three in a row", "x and o", "noughty"]
     },
     "da": {
       "navn": "Bonden",
@@ -29,7 +32,7 @@
       "kort": "Kryds eller bolle? Tre på stribe vinder.",
       "beskrivelse": "Gratis kryds og bolle direkte i browseren: tre på stribe eller fem på stribe – mod en ven på samme mobil eller mod mobilen på tre niveauer.",
       "slug": "bonden",
-      "sok": ["kryds og bolle", "tre på stribe", "fem på stribe", "tic tac toe", "kryds og bolle online", "krydsogbolle"]
+      "sok": ["kryds og bolle", "tre på stribe", "tic tac toe", "kryds og bolle online", "krydsogbolle"]
     }
   }
 }

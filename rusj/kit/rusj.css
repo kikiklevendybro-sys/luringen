@@ -3410,6 +3410,35 @@ html[data-skjerm]:not([data-skjerm="hjem"]):not([data-skjerm="alder"]) .om-spill
   text-underline-offset: 3px;
 }
 
+/* «Prøv også»: games that are alike – the name (a link), what it is, and why it is here. */
+.om-prov {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.om-prov li {
+  padding: 10px 14px;
+  border: 2px solid var(--strek);
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  color: var(--tekst-2);
+}
+
+.om-prov a {
+  display: inline-block;
+  padding: 4px 0;
+  font: 800 1.02rem/1.2 var(--font-display);
+}
+
+.om-prov p {
+  margin: 2px 0 0;
+  color: var(--tekst-3);
+  font-size: 0.9rem;
+}
+
 /* The language switch under every page (rusj/SPRAK.md): small and quiet, «Norsk · English · Dansk». */
 .sprakvalg {
   display: flex;

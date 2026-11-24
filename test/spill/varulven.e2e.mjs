@@ -16,6 +16,8 @@
 // Session B (7 players): two wolves who see each other, the troublemaker's two names, the swaps in
 // the right order (the swapper's first), «Avslutt» from the reveal → «Kåringen» with one round.
 // Then «Avslutt» before any round is finished, and a damaged saved state in both ways of playing.
+import { sjekkVariantlenke } from "./variantlenke.mjs";
+
 const NAVN = ["Testspiller A", "Testspiller B", "Testspiller C", "Testspiller D", "Testspiller E", "Testspiller F"];
 // The edition (rusj/SPRAK.md): the state is kept under its own keys, and the texts are checked in
 // the edition's own words (set when the scenario starts).
@@ -946,4 +948,8 @@ export default async function (t) {
   if (del !== "klassisk") await enNattSpill(t);
   await odelagtLagring(t);
   t.sjekk(!klipte.length, `Innholdet er høyere enn kortet (blir kuttet): ${[...new Set(klipte)].join(", ")}`);
+
+  // ---------- The front page's row «Én natt · i Varulven»: rusj.no/varulven/#variant=en ----------
+  // The setup with «Én natt» chosen; with a classic game in progress the usual question first.
+  await sjekkVariantlenke(t, { variant: "en", valgt: `Rusj.S.oppsett.modus === "en"`, annet: `Rusj.S.oppsett.modus = "klassisk"; Rusj.S.antall = 6`, start: { navn: NAVN } });
 }

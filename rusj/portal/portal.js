@@ -1,8 +1,9 @@
 /* rusj.no front page («Miks»): one list of every game, «Alle spill A–Å», written into the page by
-   the build. The search in the top bar, the shortcuts («Med barna», «Vorspiel» …), the rooms (Fest,
-   Familie …) and the three questions behind «Flere valg» all filter that one list in place; what is
-   chosen shows as chips that can be removed, and with a choice the three best suggestions
-   (rusj/portal/finner.js) come first. Around it: «Fortsett der dere slapp», «Dagens», «Kveldens gjeng»,
+   the build: small cards with the mascot, the name and what the game is. The search in the top bar
+   (rusj/portal/sok.js), the shortcuts («Med barna», «Vorspiel» …), the rooms (Fest, Familie …) and
+   the three questions behind «Hjelp oss å velge» all filter that one list in place – then it is rows
+   with the facts; what is chosen shows as chips that can be removed, and with a choice the three
+   best suggestions (rusj/portal/finner.js) come first. Around it: «Fortsett der dere slapp», «Dagens», «Kveldens gjeng»,
    «Overrask meg» (a slot machine), the 18+ door for the drinking games, the install tip and «Send
    rusj til gjengen». Reads window.RUSJ_SPILLISTE (written by the build). Nothing leaves the device.
    The same file runs every edition (rusj/SPRAK.md): texts through t() from /felles/tekst.js. */
@@ -91,11 +92,11 @@
 
   const MOB_LEST = { en: t("én mobil"), hver: t("hver sin mobil"), begge: t("én eller flere mobiler") };
   const stor = (s) => s.charAt(0).toLocaleUpperCase(T.lokale) + s.slice(1);
-  // What a screen reader hears for a game (the same sentence as the build writes into the list).
-  function etikett(s) {
+  // The facts of a game in one sentence: «3 til 10 spillere, én mobil, 10 til 20 minutter …».
+  function faktaLest(s) {
     const [a, b] = s.spillere;
     const [f, til] = s.minutter;
-    const fakta = [
+    return [
       a === b ? (a === 1 ? t("én spiller") : t("{n} spillere", { n: a })) : t("{a} til {b} spillere", { a, b }),
       MOB_LEST[s.mobiler],
       f === til ? t("{n} minutter", { n: f }) : t("{a} til {b} minutter", { a: f, b: til }),
@@ -103,9 +104,16 @@
       s.motMobilen && t("kan spilles mot mobilen"),
       s.nett && t("kan spilles på nett"),
       s.alder18 && t("for voksne over 18 år"),
-    ].filter(Boolean);
-    return `${s.navn}: ${s.undertittel}. ${s.kort} ${stor(fakta.join(", "))}.`;
+    ]
+      .filter(Boolean)
+      .join(", ");
   }
+  // What a screen reader hears for a game (the same sentence as the build writes into the list).
+  const etikett = (s) => `${s.navn}: ${s.undertittel}. ${s.kort} ${stor(faktaLest(s))}.`;
+  // A well-known game inside a game (spill.json "varianter"): where it opens, and its facts – the
+  // game's own, but for what the variant says differently (and never «ny oppgave hver dag»).
+  const variantUrl = (s, v) => url(s) + "#variant=" + v.id;
+  const somVariant = (s, v) => Object.assign({}, s, { tagger: s.tagger.filter((x) => x !== "daglig") }, v.spillere ? { spillere: v.spillere } : null, v.minutter ? { minutter: v.minutter } : null, v.nett === false ? { nett: false } : null);
   // «Fra 7 år · 3–8 spillere · 10–30 min · én mobil · kan spilles på nett»: why a suggestion fits.
   // [kind, text]: the kind lets a narrow card leave the phones out.
   function grunn(s) {
@@ -123,8 +131,22 @@
   // The mascot: its own picture (/<id>/figur.svg), fetched when it comes near unless `straks`.
   const bilde = (s, straks) => (s && s.fig ? `<img src="${esc(s.fig)}" alt=""${straks ? "" : ' loading="lazy"'} decoding="async">` : "");
   const nettMerke = () => `<span class="nett-merke" aria-hidden="true">${ikon("nett")}${esc(t("På nett"))}</span>`;
-  // A small tile as in «Alle spill A–Å»; o.fortsett: a game left in the middle.
+  // The facts of a row: players, minutes and «På nett» (the link's name says them aloud).
+  function fakta(s) {
+    const [f, til] = s.minutter;
+    return `<span class="spillflis-fakta" aria-hidden="true"><span>${ikon("spillere")}${fra(...s.spillere)}</span><span>${ikon("tid")}${fra(f, til)} min</span>${s.nett ? `<span class="fakta-nett">${ikon("nett")}${esc(t("På nett"))}</span>` : ""}</span>`;
+  }
+  // A game in a list, as the build writes «Alle spill A–Å» (flis() in scripts/rusj.mjs): the
+  // mascot, the name and the genre – and here the facts too. o.fortsett: a game left in the middle.
+  // o.variant: a well-known game inside this one, as a row of its own: «FreeCell · i Kortkongen».
   function flis(s, o = {}) {
+    if (o.variant) {
+      const v = o.variant;
+      const g = somVariant(s, v);
+      const i = t("i {spill}", { spill: s.navn });
+      const sjanger = v.undertittel || s.undertittel;
+      return `<a class="spillflis" href="${esc(variantUrl(s, v))}" style="--kf: ${s.farge}" aria-label="${esc(`${v.navn}, ${i}: ${sjanger}. ${stor(faktaLest(g))}.`)}"><span class="spillflis-bilde">${bilde(s)}</span><span class="spillflis-tekst"><span class="spillflis-navn">${esc(v.navn)} <span class="spillflis-i">· ${esc(i)}</span></span><span class="spillflis-sjanger">${esc(sjanger)}</span>${fakta(g)}</span></a>`;
+    }
     const merke = o.fortsett
       ? `<span class="flis-merke fortsett" aria-hidden="true">${esc(t("Fortsett"))}</span>`
       : s.alder18
@@ -133,64 +155,27 @@
           ? '<span class="flis-merke dagens" aria-hidden="true">📅</span>'
           : "";
     const navn = (o.fortsett ? t("Fortsett.") + " " : "") + etikett(s);
-    return `<a class="spillflis" href="${esc(url(s))}" style="--kf: ${s.farge}" aria-label="${esc(navn)}"><span class="spillflis-bilde">${bilde(s)}${merke}${s.nett ? nettMerke() : ""}</span><span class="spillflis-navn">${esc(s.navn)}</span></a>`;
+    return `<a class="spillflis" href="${esc(url(s))}" style="--kf: ${s.farge}" aria-label="${esc(navn)}"><span class="spillflis-bilde">${bilde(s)}${merke}${s.nett ? nettMerke() : ""}</span><span class="spillflis-tekst"><span class="spillflis-navn">${esc(s.navn)}</span><span class="spillflis-sjanger">${esc(s.undertittel)}</span>${fakta(s)}</span></a>`;
   }
   // A bigger card with the reason it fits (the three best suggestions).
   function forslag(s, nr) {
     const merker = [s.tagger.includes("daglig") && `<span class="kort-merke dagens">${esc(t("Dagens"))}</span>`, s.motMobilen && `<span class="kort-merke">${esc(t("Mot mobilen"))}</span>`, s.nett && `<span class="kort-merke nett">${ikon("nett")}${esc(t("På nett"))}</span>`].filter(Boolean).join("");
     const navn = `${t("Nummer {n}.", { n: nr })} ${etikett(s)}${s.alder18 ? "" : " " + t("Fra {n} år", { n: s.alder }) + "."}`;
-    return `<li class="forslagkort" data-id="${s.id}"><a href="${esc(url(s))}" style="--kf: ${s.farge}" aria-label="${esc(navn)}"><span class="forslagkort-bilde"><span class="topp-nr" aria-hidden="true">${nr}</span>${bilde(s, true)}</span><span class="forslagkort-navn">${esc(s.navn)}</span>${merker ? `<span class="kort-merker" aria-hidden="true">${merker}</span>` : ""}<span class="kort-grunn" aria-hidden="true">${grunn(s)
+    return `<li class="forslagkort" data-id="${s.id}"><a href="${esc(url(s))}" style="--kf: ${s.farge}" aria-label="${esc(navn)}"><span class="forslagkort-bilde"><span class="topp-nr" aria-hidden="true">${nr}</span>${bilde(s, true)}</span><span class="forslagkort-sjanger">${esc(s.undertittel)}</span><span class="forslagkort-navn">${esc(s.navn)}</span>${merker ? `<span class="kort-merker" aria-hidden="true">${merker}</span>` : ""}<span class="kort-grunn" aria-hidden="true">${grunn(s)
       .map(([slag, tekst]) => `<span class="grunn-${slag}">${esc(tekst)}</span>`)
       .join(" ")}</span></a></li>`;
   }
 
-  // ---------- Search (whole phrases per language for the facts) ----------
-
-  const ren = (tekst) =>
-    String(tekst || "")
-      .toLocaleLowerCase("nb")
-      .replace(/[æøå]/g, (c) => ({ æ: "\u0001", ø: "\u0002", å: "\u0003" })[c])
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .replace(/[\u0001-\u0003]/g, (c) => ({ "\u0001": "æ", "\u0002": "ø", "\u0003": "å" })[c])
-      .replace(/[^a-z0-9æøå ]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  // What a search looks in: the game's name, genre, one-liner and search words – and the words
-  // people use for its kind of game («selskapsleker», «vors», «bursdag» …), from rusj/seo.json.
-  const TAGGSOK = window.RUSJ_TAGGSOK || {};
-  const HAYSTACK = new Map(SPILL.map((s) => [s.id, ren([s.navn, s.undertittel, s.kort, ...(s.sok || []), ...s.tagger.flatMap((tg) => TAGGSOK[tg] || [])].join(" "))]));
-  // The facts on the cards can be searched for in whole phrases: «én mobil», «flere mobiler»,
-  // «alene», «mot mobilen». (Word by word they would fit almost every game: «en» is in most texts.)
-  const FAKTASOK = {
-    nb: [
-      [/(^| )(en|1|samme) mobil( |$)/, (s) => s.mobiler !== "hver"],
-      [/(^| )(flere mobiler|hver sin mobil)( |$)/, (s) => s.mobiler !== "en"],
-      [/(^| )(alene|solo|en spiller|1 spiller)( |$)/, (s) => s.spillere[0] === 1],
-      [/(^| )mot (mobilen|maskinen|datamaskinen|pc|pcen)( |$)/, (s) => !!s.motMobilen],
-    ],
-    en: [
-      [/(^| )(one|1|same) (phone|mobile)( |$)/, (s) => s.mobiler !== "hver"],
-      [/(^| )(several|more|own|their own) (phones|mobiles|phone)( |$)/, (s) => s.mobiler !== "en"],
-      [/(^| )(alone|solo|single player|one player|1 player)( |$)/, (s) => s.spillere[0] === 1],
-      [/(^| )(against|vs|versus) (the )?(phone|computer|cpu|ai|machine)( |$)/, (s) => !!s.motMobilen],
-    ],
-    da: [
-      [/(^| )(en|1|samme) (mobil|telefon)( |$)/, (s) => s.mobiler !== "hver"],
-      [/(^| )(flere mobiler|hver sin mobil|egen mobil)( |$)/, (s) => s.mobiler !== "en"],
-      [/(^| )(alene|solo|en spiller|1 spiller)( |$)/, (s) => s.spillere[0] === 1],
-      [/(^| )mod (mobilen|computeren|maskinen|pc en|pc)( |$)/, (s) => !!s.motMobilen],
-    ],
-  }[T.sprak];
-  function passerSok(s, q) {
-    let ord = ren(q);
-    for (const [frase, passerSpill] of FAKTASOK) {
-      if (!frase.test(ord)) continue;
-      if (!passerSpill(s)) return false;
-      ord = ord.replace(frase, " ").trim();
-    }
-    const h = HAYSTACK.get(s.id) || "";
-    return !ord || ord.split(/ +/).every((o) => h.includes(o));
+  // ---------- Search (rusj/portal/sok.js) ----------
+  // The names people use for a game, a typo put right, head counts («2 spillere», «for to»), the
+  // facts in whole phrases («én mobil», «alene», «mot mobilen», «på nett», «kjapt») and the words
+  // for a kind of game («selskapsleker», «vors», «bursdag» …, from rusj/seo.json).
+  const Sok = window.RusjSok.lag({ spill: SPILL, taggsok: window.RUSJ_TAGGSOK || {}, sprak: T.sprak, F });
+  let sok = "";
+  let funn = null; // what the search found for `sok`; null while nothing is typed
+  function settSok(q) {
+    sok = q;
+    funn = q ? Sok.sok(q) : null;
   }
 
   // ---------- What the list shows ----------
@@ -200,21 +185,21 @@
 
   const lagret = les(k("portal"), {}) || {};
   const GAMLE_TAGGER = { daglig: "dagens", fest: "fest", familie: "familie", barn: "barn", alene: "alene", klassiker: "klassikere", kort: "kort", ord: "ord", quiz: "ord", arkade: "arkade", drikke: "voksen" };
-  const naermesteBand = (n) => (n === 1 ? "1" : n === 2 ? "2" : n <= 4 ? "3-4" : n <= 8 ? "5-8" : "9+");
   let rom = typeof lagret.rom === "string" && har(F.ROM, lagret.rom) ? lagret.rom : typeof lagret.tagg === "string" && har(GAMLE_TAGGER, lagret.tagg) ? GAMLE_TAGGER[lagret.tagg] : "";
   let hurtig = typeof lagret.hurtig === "string" && har(F.HURTIG, lagret.hurtig) ? lagret.hurtig : "";
   let valg = F.normaliser(lagret.finn, over18);
-  if (!valg.antall && Number.isInteger(lagret.antall) && lagret.antall > 0) valg.antall = naermesteBand(lagret.antall);
+  if (!valg.antall && Number.isInteger(lagret.antall) && lagret.antall > 0) valg.antall = F.naermesteBand(lagret.antall);
   if (hurtig) valg = F.HURTIG[hurtig](over18);
   if (rom === "voksen" && !over18) rom = "";
-  let sok = "";
   const lagre = () => skriv(k("portal"), { rom, hurtig, finn: valg });
 
   const synlig = (s) => over18 || !s.alder18;
   const svart = () => !F.ubesvart(valg);
   // In the 18+ room the answers mean an adult party: its drinking games count.
   const finnValg = () => (rom === "voksen" && valg.yngst === "voksen" ? Object.assign({}, valg, { yngst: "fest" }) : valg);
-  const passer = (s) => synlig(s) && (!rom || F.iRom(s, rom)) && (!svart() || F.passer(s, finnValg(), { maned: MANED })) && (!sok || passerSok(s, sok));
+  // The room and the answers (a variant's row follows its game's), and the search on top of them.
+  const passerValg = (s) => synlig(s) && (!rom || F.iRom(s, rom)) && (!svart() || F.passer(s, finnValg(), { maned: MANED }));
+  const passer = (s) => passerValg(s) && (!funn || funn.av.has(s.id));
   const filtrert = () => !!(rom || svart() || sok);
 
   // ---------- The drinking games in the list: only once someone is 18 ----------
@@ -234,10 +219,65 @@
       li.dataset.b = s.navn.charAt(0).toLocaleUpperCase(T.lokale);
       li.setAttribute("data-alder18", "");
       li.innerHTML = flis(s);
-      const etter = $$("li[data-id]", liste).find((x) => sorter(spillAv.get(x.dataset.id).navn, s.navn) > 0);
-      liste.insertBefore(li, etter || $("#dor-celle") || null);
+      liste.insertBefore(li, $("#dor-celle") || null); // (ordne() puts it in its place)
     }
   }
+
+  // The order of the rows: A–Å as the build wrote the list (the drinking games put in by name) –
+  // or, while something is typed, the search's own order: the best match first.
+  // A search also finds the well-known games inside games («freecell», «fem på rad»): each is a row
+  // of its own (li[data-var], never li[data-id]: it is not a game) that opens the game with it
+  // chosen. Made when a search shows it, taken away when it does not.
+  const statisk = $$("li[data-id]", liste).map((li) => li.dataset.id);
+  const varianter = new Map(); // «id#variant» → its row
+  let rekke = statisk.join();
+  function ordne() {
+    const li = new Map($$("li[data-id]", liste).map((x) => [x.dataset.id, x]));
+    const rader = []; // [key, row]
+    const vist = new Set();
+    if (funn) {
+      for (const x of funn.treff) {
+        if (!x.v) {
+          if (li.has(x.s.id)) rader.push([x.s.id, li.get(x.s.id)]);
+          continue;
+        }
+        if (!passerValg(x.s)) continue;
+        if (!varianter.has(x.n)) {
+          const rad = document.createElement("li");
+          rad.dataset.var = x.n;
+          rad.innerHTML = flis(x.s, { variant: x.v });
+          varianter.set(x.n, rad);
+        }
+        vist.add(x.n);
+        rader.push([x.n, varianter.get(x.n)]);
+      }
+      const tatt = new Set(rader.map(([n]) => n));
+      for (const [id, el] of li) if (!tatt.has(id)) rader.push([id, el]);
+    } else {
+      const ider = statisk.filter((id) => li.has(id));
+      for (const id of li.keys()) {
+        if (statisk.includes(id)) continue;
+        const etter = ider.findIndex((x) => sorter(spillAv.get(x).navn, spillAv.get(id).navn) > 0);
+        ider.splice(etter < 0 ? ider.length : etter, 0, id);
+      }
+      for (const id of ider) rader.push([id, li.get(id)]);
+    }
+    for (const [n, el] of varianter) {
+      if (vist.has(n)) continue;
+      el.remove();
+      varianter.delete(n);
+    }
+    const ny = rader.map(([n]) => n).join();
+    if (ny === rekke) return;
+    rekke = ny;
+    const slutt = $("#dor-celle");
+    for (const [, el] of rader) liste.insertBefore(el, slutt);
+  }
+  // Under the row of a game with well-known games inside it: «Også: Edderkoppkabal · FreeCell …»,
+  // each a link straight to it. Shown in the rows of a room, a shortcut or the three questions –
+  // not while words are searched for: then the ones that match are rows of their own.
+  const ogsa = (s) =>
+    `<p class="flis-ogsa"><span>${esc(t("Også:"))}</span>${s.varianter.map((v) => `<a href="${esc(variantUrl(s, v))}" aria-label="${esc(`${v.navn}, ${t("i {spill}", { spill: s.navn })}`)}">${esc(v.navn)}</a>`).join("")}</p>`;
 
   // The 18+ room: a door until someone is 18, then a room like the others.
   const voksenKnapp = $('#rommene [data-rom="voksen"]');
@@ -259,7 +299,7 @@
     voksenKnapp.innerHTML = `<span class="rom-navn">18+</span><span class="rom-antall" aria-hidden="true">${n18}</span><span class="rom-gjeng" aria-hidden="true">${figurer.map((s) => bilde(s, true)).join("")}</span>`;
   }
 
-  // ---------- The three questions («Flere valg») ----------
+  // ---------- The three questions («Hjelp oss å velge») ----------
 
   const yngstValg = $("#finner-yngst");
   function visFinner() {
@@ -335,30 +375,62 @@
     if (ny) ny.focus();
   });
 
+  // Never a dead end: with nothing to show after a search, say so and offer something – the
+  // nearest we have when a well-known game is not here yet, else three of the most played – and
+  // the kinds of game. (What was typed is shown as text, never as markup.)
+  function ingenTreff() {
+    if (!sok) return `<p>${esc(svart() ? t("Ingen spill passer akkurat det. Prøv en annen alder eller et annet ønske.") : t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type."))}</p>`;
+    const ikke = funn && funn.ikkeEnna;
+    const mestSpilt = (liste) => liste.filter((s) => !s.alder18 && !s.tagger.includes("verktoy")).sort((a, b) => (a.topp || Infinity) - (b.topp || Infinity) || a.rekkefolge - b.rekkefolge).slice(0, 3);
+    const rommene = $$("#rommene .rom:not(.rom-laast)").map((b) => b.dataset.rom).filter((id) => id !== "voksen");
+    // The nearest we have: the games named for it, else the most played of its kind.
+    let naer = ikke ? ikke.spill.filter((s) => !s.alder18).slice(0, 3) : [];
+    if (ikke && !naer.length && rommene.includes(ikke.rom)) naer = mestSpilt(SPILL.filter((s) => F.iRom(s, ikke.rom)));
+    const mest = mestSpilt(SPILL);
+    if (ikke && rommene.includes(ikke.rom)) rommene.unshift(...rommene.splice(rommene.indexOf(ikke.rom), 1));
+    return `<p class="ingen-tittel">${esc(t("Fant ingen spill for «{sok}»", { sok }))}</p>${ikke ? `<p class="ingen-ikke">${esc(t("Det har vi ikke ennå."))}</p>` : ""}
+      <p class="ingen-under">${esc(naer.length ? t("Det nærmeste vi har:") : t("Prøv et av de mest spilte:"))}</p>
+      <ul class="ingen-liste rader">${(naer.length ? naer : mest).map((s) => `<li>${flis(s)}</li>`).join("")}</ul>
+      <p class="ingen-under">${esc(t("Eller velg en type spill:"))}</p>
+      <div class="ingen-rom">${rommene.map((id) => `<button type="button" class="brikke" data-til-rom="${id}">${esc(knappTekst(`#rommene [data-rom="${id}"]`))}</button>`).join("")}</div>`;
+  }
+
   let dorHtml = ""; // what the 18+ door says now
+  let ingenHtml = null; // … and the box for «nothing fits»
   // o.stille: nothing read aloud (the first drawing, a page back from memory).
   function oppdater(o = {}) {
     synk18();
     visVoksenRom();
+    ordne();
     const vis = new Set(SPILL.filter(passer).map((s) => s.id));
+    const valgt = filtrert();
     const bokstaver = new Set();
     let vist = 0;
     for (const li of $$("li[data-id]", liste)) {
       const ja = vis.has(li.dataset.id);
       li.hidden = !ja;
-      li.classList.toggle("forste", ja && !bokstaver.has(li.dataset.b));
+      // A row gets its facts (and the line of games inside it) the first time it is shown as one:
+      // the build writes name and genre.
+      if (ja && valgt && !$(".spillflis-fakta", li)) {
+        const s = spillAv.get(li.dataset.id);
+        $(".spillflis-tekst", li).insertAdjacentHTML("beforeend", fakta(s));
+        if (s.varianter) li.insertAdjacentHTML("beforeend", ogsa(s));
+      }
+      // (the letters belong to A–Å, not to the search's order)
+      li.classList.toggle("forste", !funn && ja && !bokstaver.has(li.dataset.b));
       if (ja) {
         bokstaver.add(li.dataset.b);
         vist++;
       }
     }
     const totalt = SPILL.filter(synlig).length;
-    const valgt = filtrert();
+    // (the rows of games inside games are matches too, but never counted as games)
+    const treff = vist + varianter.size;
 
     // The 18+ door at the end of the list: before anyone is 18, when nothing is chosen, for
     // «Vorspiel», and when a search also fits drinking games. After: «Skjul» to hide them again.
     const dor = $("#dor-celle");
-    const bakDora = !over18 && sok ? SPILL.filter((s) => s.alder18 && passerSok(s, sok)).length : 0;
+    const bakDora = !over18 && funn ? SPILL.filter((s) => s.alder18 && funn.av.has(s.id)).length : 0;
     if (dor) {
       const n18 = SPILL.filter((s) => s.alder18).length;
       dor.hidden = over18 ? !(rom === "voksen" || !valgt) : !(!valgt || hurtig === "vors" || bakDora);
@@ -373,10 +445,20 @@
     }
     const dorApen = !!(dor && !dor.hidden && !over18);
 
-    $("#alle-t").textContent = valgt ? t("{n} spill passer", { n: vist }) : t("Alle spill A–Å");
+    $("#alle-t").textContent = valgt ? t("{n} spill passer", { n: treff }) : t("Alle spill A–Å");
     $("#nullstill").hidden = !valgt;
-    $("#ingen-treff").hidden = vist > 0 || dorApen;
-    $("#ingen-treff").textContent = svart() && !sok ? t("Ingen spill passer akkurat det. Prøv en annen alder eller et annet ønske.") : t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type.");
+    const tomt = treff === 0 && !dorApen;
+    $("#ingen-treff").hidden = !tomt;
+    const ingen = tomt ? ingenTreff() : "";
+    // (only when it changes: the pictures in it are not fetched again for every letter typed)
+    if (ingen !== ingenHtml) {
+      $("#ingen-treff").innerHTML = ingen;
+      ingenHtml = ingen;
+    }
+    // A typo the search put right: say which word the matches are for.
+    const rettet = funn && funn.rettet && !tomt ? t("Viser treff for «{ord}»", { ord: funn.rettet }) : "";
+    $("#sok-melding").hidden = !rettet;
+    $("#sok-melding").textContent = rettet;
 
     // The choices as chips that can be removed one by one.
     const aktive = aktiveValg();
@@ -384,19 +466,20 @@
     $("#aktive").setAttribute("aria-label", t("Filter, {n} valgt", { n: aktive.length }));
     $("#aktive").innerHTML = aktive.map(([n, tekst]) => `<button type="button" class="brikke aktiv-brikke" data-fjern="${n}" aria-label="${esc(t("Fjern {valg}", { valg: tekst }))}">${esc(tekst)} <span class="x" aria-hidden="true">×</span></button>`).join("");
     liste.setAttribute("aria-label", valgt ? t("Treff") : t("Alle spill"));
+    // Something is chosen: rows with the facts, instead of the small cards of A–Å.
+    liste.classList.toggle("rader", valgt);
+    liste.classList.toggle("med-ogsa", valgt && !(funn && funn.tekst));
 
     // The best suggestions (rusj/portal/finner.js), once something is chosen and more than three fit.
     beste = [];
     besteVist = BESTE;
-    if (valgt && vist > BESTE) {
-      const ubesvart = { antall: "", yngst: rom === "voksen" ? "fest" : "voksen", lyst: "alt" };
-      beste = F.finn(SPILL.filter(passer), svart() ? finnValg() : ubesvart, { maned: MANED });
-      if (sok) {
-        const q = ren(sok).split(" ")[0];
-        const vekt = (s) => (ren(s.navn).startsWith(q) ? 0 : ren(s.navn).includes(q) ? 1 : 2);
-        beste = beste.map((s, i) => ({ s, i })).sort((a, b) => vekt(a.s) - vekt(b.s) || a.i - b.i).map((x) => x.s);
-      }
-      beste = beste.slice(0, 3 * BESTE);
+    // (Not while words are searched for: then the list itself is in the order of the best match.)
+    if (valgt && vist > BESTE && !(funn && funn.tekst)) {
+      let svar = svart() ? finnValg() : { antall: "", yngst: rom === "voksen" ? "fest" : "voksen", lyst: "alt" };
+      // «for to» and «kjapt» in the search count as answers here.
+      if (funn) svar = Object.assign({}, svar, funn.antall && !svar.antall ? { antall: funn.antall } : null, funn.kjapt && svar.lyst === "alt" ? { lyst: "kjapt" } : null);
+      // («Med barna», «Vorspiel» …: together, so the games for one alone come last)
+      beste = F.finn(SPILL.filter(passer), svar, { maned: MANED, gruppe: har(F.GRUPPE, hurtig) }).slice(0, 3 * BESTE);
     }
     visBeste();
 
@@ -404,16 +487,18 @@
     $$("[data-hurtig]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.hurtig === hurtig)));
     $$("#rommene .rom:not(.rom-laast)").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.rom === rom)));
     visFinner();
-    $("#finner-treff").textContent = t("{n} spill passer", { n: vist });
+    $("#finner-treff").textContent = t("{n} spill passer", { n: treff });
     $("#sok-tom").hidden = !sok;
     lagre();
 
     if (!o.stille) {
       const voksne = SPILL.length - totalt;
       si(
-        valgt
-          ? t("Viser {synlige} av {n} spill", { synlige: vist, n: totalt }) + (bakDora ? " " + t("+ {n} for voksne (18+)", { n: bakDora }) : "")
-          : voksne
+        tomt && sok
+          ? t("Fant ingen spill for «{sok}»", { sok }) + (funn && funn.ikkeEnna ? " " + t("Det har vi ikke ennå.") : "")
+          : valgt
+            ? (rettet ? rettet + ". " : "") + t("Viser {synlige} av {n} spill", { synlige: treff, n: totalt }) + (bakDora ? " " + t("+ {n} for voksne (18+)", { n: bakDora }) : "")
+            : voksne
             ? t("{n} spill + {voksne} for voksne (18+)", { n: totalt, voksne })
             : t("{n} spill – trykk på ett for å starte", { n: totalt }),
         o.skriver,
@@ -447,7 +532,7 @@
         hurtig = "";
         valg = F.normaliser({}, over18);
       } else if (n === "sok") {
-        sok = "";
+        settSok("");
         $("#sok").value = "";
       } else {
         valg[n] = n === "yngst" ? "voksen" : n === "lyst" ? "alt" : "";
@@ -495,6 +580,12 @@
     const r = e.target.closest("#rommene [data-rom], [data-til-rom]");
     if (r) {
       const id = r.dataset.rom || r.dataset.tilRom;
+      // From the box under a search that found nothing: the room instead of the search.
+      const fraIngen = !!r.closest("#ingen-treff");
+      if (fraIngen) {
+        settSok("");
+        $("#sok").value = "";
+      }
       if (id === "voksen" && !over18) {
         if (!(await bekreft18())) return;
         rom = "voksen";
@@ -505,6 +596,7 @@
       rom = rom === id && r.dataset.rom ? "" : id;
       oppdater();
       if (rom) tilResultat();
+      if (fraIngen) $("#alle-t").focus({ preventScroll: true }); // the button that was pressed is gone
       return;
     }
     if (e.target.closest("[data-atten]")) {
@@ -525,7 +617,7 @@
   $("#nullstill").addEventListener("click", () => {
     rom = "";
     hurtig = "";
-    sok = "";
+    settSok("");
     $("#sok").value = "";
     valg = F.normaliser({}, over18);
     oppdater();
@@ -547,7 +639,7 @@
   const sokFelt = $("#sok");
   sokFelt.addEventListener("input", () => {
     const for_ = sok;
-    sok = sokFelt.value.slice(0, 40).trim();
+    settSok(sokFelt.value.slice(0, 40).trim());
     oppdater({ skriver: true });
     if (sok && !for_) tilResultat();
   });
@@ -555,7 +647,7 @@
     if (e.key === "Escape" && sokFelt.value) {
       e.preventDefault();
       sokFelt.value = "";
-      sok = "";
+      settSok("");
       oppdater();
     } else if (e.key === "Enter") {
       // «Søk» on the keyboard: put it away; the matches are right under the bar.
@@ -565,7 +657,7 @@
     }
   });
   $("#sok-tom").addEventListener("click", () => {
-    sok = "";
+    settSok("");
     sokFelt.value = "";
     oppdater();
     sokFelt.focus();

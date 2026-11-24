@@ -14,7 +14,7 @@
   "alder": 8,
   "motMobilen": true,
   "nett": true,
-  "sok": ["10000", "10 000", "titusen", "ti tusen", "terningspill", "terningspill seks terninger", "10000 terningspill", "grådig gris"],
+  "sok": ["10000", "10 000", "titusen", "ti tusen", "terningspill", "terningspill seks terninger", "10000 terningspill", "grådig gris", "farkle"],
   "i18n": {
     "en": {
       "navn": "Greedy Pig",
@@ -22,7 +22,7 @@
       "kort": "Six dice, one target: 10,000. Dare you roll again?",
       "beskrivelse": "Free 10,000 dice game in your browser: roll six dice, keep what scores – and dare to roll on. For 1 to 8 players, with the phone as an opponent.",
       "slug": "greedy-pig",
-      "sok": ["10000", "10,000 dice game", "ten thousand", "ten thousand dice game", "dice game", "six dice", "hot dice", "push your luck"]
+      "sok": ["10000", "10,000 dice game", "ten thousand", "ten thousand dice game", "dice game", "six dice", "hot dice", "push your luck", "farkle"]
     },
     "da": {
       "navn": "Lykkegrisen",
@@ -30,7 +30,7 @@
       "kort": "Seks terninger, ét mål: 10.000. Tør du slå en gang til?",
       "beskrivelse": "Gratis 10.000 på dansk: slå med seks terninger, læg til side, hvad der giver point – og tør at slå videre. For 1–8, med mobilen som modspiller.",
       "slug": "lykkegrisen",
-      "sok": ["10000", "10.000", "titusind", "ti tusind", "terningespil", "terningspil", "seks terninger", "10000 terningespil"]
+      "sok": ["10000", "10.000", "titusind", "ti tusind", "terningespil", "terningspil", "seks terninger", "10000 terningespil", "farkle"]
     }
   }
 }

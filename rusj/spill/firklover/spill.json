@@ -12,7 +12,7 @@
   "rekkefolge": 52,
   "farge": "#7bd88f",
   "dagnavn": "Dagens kløver",
-  "sok": ["fire grupper", "finn sammenhengen", "ordgåte", "koble ord", "dagens ordgåte", "grupper ord"],
+  "sok": ["fire grupper", "finn sammenhengen", "ordgåte", "koble ord", "dagens ordgåte", "grupper ord", "connections"],
   "i18n": {
     "en": {
       "navn": "Clover",
