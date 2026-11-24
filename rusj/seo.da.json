@@ -24,7 +24,14 @@
       "efterfest",
       "lejrskole",
       "firmafest",
-      "kolleger"
+      "kolleger",
+      "nytår",
+      "nytårsaften",
+      "halloween",
+      "polterabend",
+      "rustur",
+      "fødselsdagsfest",
+      "sommerfest"
     ],
     "familie": [
       "familiespil",
@@ -35,7 +42,8 @@
       "sommerhus",
       "sommerhuset",
       "hyttetur",
-      "lejrskole"
+      "lejrskole",
+      "nytårsaften"
     ],
     "barn": [
       "børnespil",

@@ -81,8 +81,14 @@ test("a typo is put right from our own words, and the search says which word it 
   }
   assert.equal(U.da.sok.sok("yatsy").rettet, "yatzy");
   assert.equal(U.en.sok.sok("yahtzea").rettet, "yahtzee");
-  // No correction when the word is found as it is, for short words, or far from everything we know.
-  for (const q of ["yatzy", "uno", "xyzzy", "qqqqqqqq", "abc"]) assert.equal(U.nb.sok.sok(q).rettet, "", `«${q}» ble rettet`);
+  // No correction when the word is found as it is, for short words, or far from everything we know –
+  // and never to a word of three letters («fifa» is not «fia») or, for a short word, to the start of
+  // a longer one («dans» is not «damspill», «lego» is not «legger»).
+  for (const q of ["yatzy", "uno", "xyzzy", "qqqqqqqq", "abc", "fifa", "dans", "lego", "unoo"]) assert.equal(U.nb.sok.sok(q).rettet, "", `«${q}» ble rettet til «${U.nb.sok.sok(q).rettet}»`);
+  // From six letters, a word still being typed is put right against the start of a longer one.
+  assert.match(U.nb.sok.sok("selksap").rettet, /^selskapslek/);
+  assert.ok(U.nb.sok.sok("selksap").treff.length > 20);
+  assert.equal(U.nb.sok.sok("selksap quiz").rettet, "", "only the word being typed (the last one) is read as a start");
   // The distance: one edit for 4–7 letters, two for 8 or more (neighbours swapped count as one).
   assert.equal(S.avstand("yatsy", "yatzy", 2), 1);
   assert.equal(S.avstand("yazty", "yatzy", 2), 1);
@@ -228,7 +234,7 @@ test("occasions: the words for an evening find the kind of game", () => {
     assert.ok(funnet.length >= ventet.length && ventet.every((s) => funnet.includes(s.id)), `${sprak} «${q}» fant ${funnet.length} spill, ventet de ${ventet.length} med «${tagg}»`);
   };
   for (const q of ["hytta", "hyttetur", "klassetur"]) med("nb", q, "familie");
-  for (const q of ["venner", "vennekveld", "nachspiel", "hjemmefest", "vors", "klassetur", "kollegaer"]) med("nb", q, "fest");
+  for (const q of ["venner", "vennekveld", "nachspiel", "hjemmefest", "vors", "klassetur", "kollegaer", "nyttårsaften", "halloween", "utdrikningslag", "bursdagsfest"]) med("nb", q, "fest");
   for (const q of ["teambuilding", "jobb", "kollegaer"]) med("nb", q, "lag");
   for (const q of ["eldre", "besteforeldre"]) med("nb", q, "klassiker");
   assert.ok(U.nb.finn("eldre").length < 50, "«eldre» skal ikke finne alle familiespillene (via «besteforeldre»)");

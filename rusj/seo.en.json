@@ -23,7 +23,14 @@
       "afterparty",
       "school trip",
       "work do",
-      "colleagues"
+      "colleagues",
+      "new year",
+      "new years eve",
+      "halloween",
+      "hen do",
+      "stag do",
+      "freshers",
+      "birthday party"
     ],
     "familie": [
       "family games",
@@ -33,7 +40,9 @@
       "cabin",
       "holiday cottage",
       "grandparents",
-      "school trip"
+      "school trip",
+      "new years eve",
+      "sunday lunch"
     ],
     "barn": [
       "kids games",

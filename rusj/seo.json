@@ -42,7 +42,14 @@
       "klassetur",
       "jobbfest",
       "kollegaer",
-      "kolleger"
+      "kolleger",
+      "nyttår",
+      "nyttårsaften",
+      "halloween",
+      "utdrikningslag",
+      "fadderuke",
+      "bursdagsfest",
+      "sommerfest"
     ],
     "familie": [
       "familiespill",
@@ -56,7 +63,9 @@
       "hytta",
       "hytte",
       "hyttespill",
-      "klassetur"
+      "klassetur",
+      "nyttårsaften",
+      "søndagsmiddag"
     ],
     "barn": [
       "barnespill",

@@ -336,15 +336,18 @@
     }
 
     // The nearest word we know for a token that finds nothing: one edit away for 4–7 letters, two
-    // for 8 or more. siste: the token is still being typed, so the start of a longer word counts too.
+    // for 8 or more. Never a word of three letters or fewer (a short word is one edit from almost
+    // anything: «fifa» is not «fia»). siste: the token is still being typed, so from six letters the
+    // start of a longer word counts too («selksap» on its way to «selskapsleker»).
     function rett(token, siste) {
       const maks = /^\d+$/.test(token) ? 0 : token.length >= 8 ? 2 : token.length >= 4 ? 1 : 0;
       if (!maks) return null;
       let best = null;
       for (const [x, trinn] of vokab) {
+        if (x.length < 4) continue;
         let d = avstand(token, x, maks);
         // (half a step behind a whole word at the same distance)
-        if (d > maks && siste && x.length > token.length) d = avstand(token, x.slice(0, token.length), maks) + 0.5;
+        if (d > maks && siste && token.length >= 6 && x.length > token.length) d = avstand(token, x.slice(0, token.length), maks) + 0.5;
         if (d > maks + 0.5) continue;
         const k = [d, x[0] === token[0] ? 0 : 1, trinn, x];
         if (!best || k[0] < best[0] || (k[0] === best[0] && (k[1] < best[1] || (k[1] === best[1] && (k[2] < best[2] || (k[2] === best[2] && k[3] < best[3])))))) best = k;
