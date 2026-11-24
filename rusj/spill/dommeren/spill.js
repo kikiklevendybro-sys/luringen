@@ -415,7 +415,7 @@
     if (M.erFerdig(sp)) return R.ui.dokk(R.ui.knapp(R.t("Til kåringen"), "videre"));
     const neste = nesteDommer(sp);
     if (erJeg(sp, neste)) return R.ui.dokk(R.ui.knapp(R.t("Neste runde"), "videre"), `<p class="hjelp">${esc(R.t("Du er neste dommer."))}</p>`, R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")));
-    return R.ui.dokk(`<p class="hjelp">${esc(R.t("{navn} er neste dommer og starter neste runde.", { navn: R.navn(neste) }))}</p>`, R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")));
+    return R.ui.dokk(`<p class="nett-vent">${esc(R.t("{navn} er neste dommer og starter neste runde.", { navn: R.navn(neste) }))}</p>`, R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")));
   }
 
   const NETT = {

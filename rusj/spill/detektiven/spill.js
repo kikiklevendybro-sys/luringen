@@ -50,7 +50,10 @@
   const erModus = (m) => MODUSER.some((x) => x.v === m);
   const rangert = (sp) => sp.modus !== "sammen"; // points and a «Kåring»
   // Whose secret it is: the keeper – or, in «Hvem er jeg?», the one who guesses.
-  const tur = (sp) => (sp.start + sp.logg.length) % sp.antall;
+  // (On the net the seat is kept in sp.k: seats that leave are skipped.)
+  const tur = (sp) => (sp.nett ? sp.k : (sp.start + sp.logg.length) % sp.antall);
+  // On the net: seats that left the match (never ranked, never asked who guessed).
+  const forlot = (sp, i) => !!sp.nett && sp.ute.includes(i);
   const ferdig = (sp) => sp.logg.length >= sp.totalt;
   // How many questions a solve took: those on the meter plus the winning guess (the last chance
   // after question 20 is free). The same number decides every text and every point.
@@ -126,7 +129,7 @@
     if (utfall.lost) {
       pluss[utfall.g] = 2;
       // Good questions pay: a quick solve gives every other detective a point too.
-      if (n <= 10) for (let i = 0; i < sp.antall; i++) if (i !== k && i !== utfall.g) pluss[i] = 1;
+      if (n <= 10) for (let i = 0; i < sp.antall; i++) if (i !== k && i !== utfall.g && !forlot(sp, i)) pluss[i] = 1;
     }
     // Giving up never pays more than the questions have earned – not 3 points after one question.
     const holdt = !utfall.lost && !utfall.opp && r.spm >= MAKS ? 3 : holdtPoeng(r.spm);
@@ -141,6 +144,13 @@
     const pluss = poengFor(sp, r, utfall);
     Object.keys(pluss).forEach((i) => (sp.poeng[i] += pluss[i]));
     const l = { k: tur(sp), h: r.h, spm: r.spm, lost: !!utfall.lost, g: utfall.lost && utfall.g >= 0 ? utfall.g : -1, opp: !!utfall.opp, pluss, svar: r.svar.slice(), hint: r.hint, ny: "" };
+    if (sp.nett) {
+      // On the net nothing is kept on the phone: no record. The next secret goes to the next seat still in.
+      sp.logg.push(l);
+      sp.runde = null;
+      sp.k = nesteInne(sp, sp.k);
+      return;
+    }
     // This phone's record. The old numbers are kept so «Angre» can put them back.
     const st = lesStat();
     sp.statFor = Object.assign({}, st);
@@ -164,7 +174,7 @@
 
   // ---------- The result ----------
   // Who is ranked: everyone in «20 spørsmål»; in «Hvem er jeg?» those who have had a secret of their own.
-  const deltakere = (sp) => Array.from({ length: sp.antall }, (_, i) => i).filter((i) => sp.modus !== "jeg" || sp.logg.some((l) => l.k === i));
+  const deltakere = (sp) => Array.from({ length: sp.antall }, (_, i) => i).filter((i) => !forlot(sp, i) && (sp.modus !== "jeg" || sp.logg.some((l) => l.k === i)));
   // Equal points are common, so a tie is broken by the detective work itself: the fastest solve
   // («20 spørsmål») or the fewest questions per secret («Hvem er jeg?»). Still equal = a shared place.
   function rangering(sp) {
@@ -244,7 +254,8 @@
   });
   let nySeg = -1; // the segment that was just added (animated once)
 
-  function lupe(sp, r) {
+  // styr: false on the net for a phone that only watches the meter (no button, no «+1»).
+  function lupe(sp, r, styr = true) {
     const svg = `<svg class="detektiv-lupe-svg" viewBox="0 0 240 240" aria-hidden="true" focusable="false">
       <line class="skaft-kant" x1="${C + 74}" y1="${C + 74}" x2="${C + 114}" y2="${C + 114}"/>
       <line class="skaft" x1="${C + 74}" y1="${C + 74}" x2="${C + 114}" y2="${C + 114}"/>
@@ -255,6 +266,8 @@
       <path class="glans" d="M${C - 46} ${C - 22} A52 52 0 0 1 ${C - 14} ${C - 50}"/>
     </svg>`;
     const fullt = r.spm >= MAKS;
+    if (!styr)
+      return `<div class="detektiv-lupe" role="img" aria-label="${esc(R.t("{n} av {av} spørsmål er brukt", { n: r.spm, av: MAKS }))}">${svg}<span class="detektiv-tall"><b>${r.spm}</b><small>${esc(R.t("av {n}", { n: MAKS }))}</small></span></div>`;
     // The name starts with the words on the button («+1 spørsmål»), so voice control finds it.
     return `<button class="detektiv-lupe" id="detektiv-lupe" data-h="spm" data-stille${fullt ? " disabled" : ""} aria-label="${esc(fullt ? R.t("Alle 20 spørsmålene er brukt") : R.t("+1 spørsmål. {n} av {av} er brukt.", { n: r.spm, av: MAKS }))}">
       ${svg}
@@ -307,6 +320,12 @@
     if (!r || r.spm >= MAKS) return;
     r.svar.push(v);
     r.spm = r.svar.length;
+    tellEffekt(S, v);
+  }
+  // What a counted question looks and sounds like (on the net: on every phone, as it comes).
+  function tellEffekt(S, v) {
+    const sp = S.spill;
+    const r = sp.runde;
     nySeg = r.spm - 1;
     R.vis();
     nySeg = -1;
@@ -334,10 +353,247 @@
 
   let dramatikk = false; // the next reveal gets a drum roll (only right after an unsolved secret)
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Seat i is player i on its own phone. The secret is on the phone of the one who keeps it («20
+  // spørsmål», «Alle mot hemmeligheten») – in «Hvem er jeg?» on every phone but the guesser's –
+  // behind the hold-to-see card; the others ask out loud (in the room or on a call) and watch the
+  // meter on their own phones. The order of the secrets comes from the room's seed, so every phone
+  // draws the same ones (a modified phone could work them out: a game among friends).
+  // Moves from a phone that holds the card (in «Hvem er jeg?»: any phone but the guesser's):
+  //   { start: h }   the questioning of secret h begins      { ny: h }       another secret (before it begins)
+  //   { svar: "j" | "n" | "k" | "x", nr }  question nr + 1 is counted (a second tap for the same one is ignored)
+  //   { angre: nr }  takes question nr back                  { gjettet: g }  g guessed it (−1: the group)
+  //   { ingen: 1 }   nobody did, after 20                    { opp: 1 }      give up: the secret is shown
+  // From any phone: { hint: n } shows hint n + 1 when it is due. From the next keeper (or guesser):
+  // { neste: n } starts secret n + 1. Anything else, or anything the rules don't allow now, is
+  // ignored on every phone. The mode, categories, level, length and hints are the host's; the role
+  // starts one seat further on each match. A seat that leaves is skipped and is not ranked; if it
+  // held the secret (or was guessing), that secret goes away uncounted and the next seat gets a new one.
+
+  const paNett = (sp) => !!sp && sp.nett === true && !!R.nett;
+  const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
+  const inne = (sp) => Array.from({ length: sp.antall }, (_, i) => i).filter((i) => !forlot(sp, i));
+  // The next seat after i still in the match.
+  function nesteInne(sp, i) {
+    for (let k = 1; k <= sp.antall; k++) {
+      const s = (i + k) % sp.antall;
+      if (!forlot(sp, s)) return s;
+    }
+    return i;
+  }
+  // Who sees the card and counts the answers: the keeper – in «Hvem er jeg?» everyone but the guesser.
+  const ser = (sp, i) => !forlot(sp, i) && (sp.modus === "jeg" ? i !== sp.k : i === sp.k);
+  const styrer = (sp) => !paNett(sp) || ser(sp, R.nett.meg());
+  // «20 spørsmål»: who can have guessed it – the detectives still in.
+  const gjettere = (sp) => inne(sp).filter((i) => i !== sp.k);
+
+  function nyRundeNett(sp) {
+    sp.runde = { h: sp.rekke[sp.rNr % sp.rekke.length], sett: false, startet: false, spm: 0, svar: [], hint: 0 };
+    sp.rNr += 1;
+  }
+
+  const nettSkjerm = (sp) => {
+    if (sp.ferdig) return "slutt";
+    if (!sp.runde) return sp.logg.length ? "avsloring" : "gi";
+    if (sp.runde.startet) return "avhor";
+    return ser(sp, R.nett.meg()) ? "hemmelig" : "gi";
+  };
+  function visNett(S) {
+    const mal = nettSkjerm(S.spill);
+    if (S.skjerm === mal || (S.skjerm === "hvem" && mal === "avhor")) R.vis();
+    else R.gaTil(mal);
+  }
+
+  // While the card is looked at: who has it (or, for the guesser: don't look at the others' phones).
+  function giNett(S) {
+    const sp = S.spill;
+    const k = sp.k;
+    const jeg = sp.modus === "jeg";
+    const meg = jeg && erJeg(sp, k);
+    return `
+      <div class="gi-til">
+        <span class="gi-til-avatar">${R.avatar(k, "gigant")}<span class="gi-til-merke">${jeg ? "🙈" : "🤫"}</span></span>
+        <p class="etikett">${esc(meg ? R.t("Nå skal du gjette") : jeg ? R.t("Nå skal denne gjette") : R.t("Hemmeligheten går til"))}</p>
+        <h1 id="skjerm-tittel">${esc(meg ? R.t("Hvem er du?") : R.navn(k))}</h1>
+        <p class="ikke-se">${esc(meg ? R.t("De andre ser kortet ditt nå – ikke kikk på skjermene deres!") : R.t("{navn} ser på hemmeligheten …", { navn: R.navn(k) }))}</p>
+      </div>
+      ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
+  }
+
+  // The line under the meter on a phone that only watches it.
+  function statusSe(sp, r) {
+    if (r.spm >= MAKS) return ["slutt", R.t("Siste sjanse! Én gjetning til.")];
+    if (r.spm >= 17) return ["varsel", R.t("Snart tomt for spørsmål!")];
+    if (r.spm === 10) return ["", R.t("Halvveis!")];
+    if (sp.modus === "jeg") return ["", r.spm ? R.t("Spør videre – hvem er du?") : R.t("Spør de andre om deg selv. De svarer på mobilene sine.")];
+    return ["", r.spm ? R.t("{navn} svarer på mobilen sin.", { navn: R.navn(sp.k) }) : R.t("Still {navn} ja/nei-spørsmål – høyt!", { navn: R.navn(sp.k) })];
+  }
+
+  // A count from a phone with the card: the move names the question, so it is counted once.
+  function svarNett(S, v) {
+    const sp = S.spill;
+    const r = sp && sp.runde;
+    if (!r || !r.startet || r.spm >= MAKS || !styrer(sp)) return;
+    R.nett.send({ svar: v, nr: r.spm });
+  }
+
+  const NETT = {
+    min: 2,
+    maks: 20,
+    oppsett: (S) => ({ modus: S.oppsett.modus, kategorier: S.oppsett.kategorier.slice(), nivaa: S.oppsett.nivaa, antallH: S.oppsett.antallH, hint: S.oppsett.hint !== false }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      const m = MODUSER.find((y) => y.v === x.modus) || MODUSER[0];
+      const niva = (NIVAER.find(([n]) => n === x.nivaa) || NIVAER[1])[1];
+      const n = Number.isInteger(x.antallH) && x.antallH >= 1 ? R.klamp(x.antallH, 1, MAKS_H) : 0;
+      const lengde = n ? R.flertall(n, "hemmelighet", "hemmeligheter") : "";
+      return [m.tittel, niva, lengde].filter(Boolean).join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const modus = erModus(o.modus) ? o.modus : "spm";
+      const kategorier = (Array.isArray(o.kategorier) ? o.kategorier : []).filter((id) => kat(id));
+      const valg = { kategorier: kategorier.length ? kategorier : KAT.map((k) => k.id), nivaa: [1, 2, 3].includes(o.nivaa) ? o.nivaa : 2 };
+      const antall = R.klamp(okt.antall || 2, 2, 20);
+      let utvalg = ALLE.map((_, i) => i).filter((i) => iUtvalg(valg, ALLE[i]));
+      if (!utvalg.length) utvalg = ALLE.map((_, i) => i);
+      const start = (okt.kamp - 1) % antall;
+      S.spill = {
+        nett: true,
+        modus,
+        antall,
+        totalt: Number.isInteger(o.antallH) && o.antallH >= 1 ? R.klamp(o.antallH, 1, MAKS_H) : autoAntall(modus, antall),
+        start,
+        k: start,
+        kategorier: valg.kategorier,
+        nivaa: valg.nivaa,
+        hint: o.hint !== false,
+        poeng: Array(antall).fill(0),
+        logg: [],
+        runde: null,
+        skjerm: "gi",
+        rekke: R.stokk(utvalg, R.nett.tilfeldig(okt.fro, "hemmeligheter")),
+        rNr: 0,
+        ute: [],
+        ferdig: false,
+      };
+      nyRundeNett(S.spill);
+      dramatikk = false;
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || !(sete >= 0 && sete < sp.antall) || forlot(sp, sete)) return;
+      const live = !okt.gjenspill;
+      const r = sp.runde;
+      if (!r) {
+        if (t.neste !== sp.logg.length || ferdig(sp) || sete !== sp.k) return;
+        nyRundeNett(sp);
+        if (!live) return;
+        R.lyd.snu();
+        visNett(S);
+        return;
+      }
+      if (Number.isInteger(t.hint)) {
+        const liste = sp.hint ? hintListe(sp, r.h) : [];
+        if (!r.startet || t.hint !== r.hint || r.hint >= liste.length || r.spm < HINT_VED[r.hint]) return;
+        r.hint += 1;
+        if (!live) return;
+        visNett(S);
+        R.lyd.pling();
+        R.si(R.t("Hint: {etikett}: {tekst}", { etikett: liste[r.hint - 1].etikett, tekst: liste[r.hint - 1].tekst }));
+        return;
+      }
+      if (!ser(sp, sete)) return;
+      if (t.start === r.h || t.ny === r.h) {
+        if (r.startet) return;
+        if (t.start === r.h) r.startet = true;
+        else {
+          r.h = sp.rekke[sp.rNr % sp.rekke.length];
+          sp.rNr += 1;
+          r.sett = false;
+          r.ny = true;
+        }
+        if (!live) return;
+        if (r.startet) R.lyd.pop();
+        else R.lyd.snu();
+        visNett(S);
+        if (!r.startet) R.si(R.t("Ny hemmelighet trukket."));
+        return;
+      }
+      if (!r.startet) return;
+      if (typeof t.svar === "string") {
+        if (!["j", "n", "k", "x"].includes(t.svar) || t.nr !== r.spm || r.spm >= MAKS) return;
+        r.svar.push(t.svar);
+        r.spm = r.svar.length;
+        if (!live) return;
+        if (S.skjerm === "avhor") tellEffekt(S, t.svar);
+        else visNett(S);
+        return;
+      }
+      if (Number.isInteger(t.angre)) {
+        if (t.angre !== r.spm || !r.spm) return;
+        r.svar.pop();
+        r.spm = r.svar.length;
+        if (!live) return;
+        visNett(S);
+        R.si(R.t("Angret. {n} av {av}", { n: r.spm, av: MAKS }));
+        return;
+      }
+      let utfall = null;
+      if (Number.isInteger(t.gjettet)) {
+        const g = t.gjettet;
+        if (sp.modus === "jeg" ? g !== sp.k : sp.modus === "sammen" ? g !== -1 : !gjettere(sp).includes(g)) return;
+        utfall = { lost: true, g };
+      } else if (t.ingen === 1) {
+        if (r.spm < MAKS) return;
+        utfall = { lost: false };
+      } else if (t.opp === 1) utfall = { lost: false, opp: true };
+      if (!utfall) return;
+      avsluttRunde(S, utfall);
+      if (okt.gjenspill && ferdig(sp)) sp.ferdig = true; // a finished match, replayed: the result
+      if (!live) return;
+      dramatikk = !utfall.lost;
+      R.lukkArk();
+      visNett(S);
+    },
+    // The seat left: skipped from now on and not ranked. If the secret was its (or it was guessing),
+    // that secret goes away uncounted and the next seat still in gets a new one.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !(sete >= 0 && sete < sp.antall) || forlot(sp, sete)) return;
+      sp.ute.push(sete);
+      let ny = false;
+      if (inne(sp).length < 2) sp.ferdig = true;
+      else if (sete === sp.k) {
+        sp.k = nesteInne(sp, sete);
+        if (sp.runde) {
+          nyRundeNett(sp);
+          ny = true;
+        }
+      }
+      if (okt.gjenspill) return;
+      if (ny) R.lukkArk();
+      if (sp.ferdig && S.skjerm !== "slutt") return R.gaTil("slutt");
+      visNett(S);
+      if (ny) R.si(sp.modus === "jeg" ? R.t("{navn} gjetter nå.", { navn: R.navn(sp.k) }) : R.t("{navn} får en ny hemmelighet.", { navn: R.navn(sp.k) }));
+    },
+    skjerm: (S) => (S.spill ? nettSkjerm(S.spill) : "gi"),
+    // The keeper's turn; in «Hvem er jeg?» everyone's (the guesser asks, the others answer).
+    tur(S) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || ferdig(sp)) return null;
+      if (!sp.runde || sp.modus !== "jeg") return sp.k;
+      const meg = R.nett.meg();
+      return meg >= 0 && !forlot(sp, meg) ? meg : sp.k;
+    },
+    ferdig: (S) => !!S.spill && (!!S.spill.ferdig || ferdig(S.spill)),
+  };
+
   R.start({
     id: "detektiven",
     versjon: 1,
     pagar, // a game is in progress (front page badge, screen kept awake)
+    nett: NETT,
     liggende: false, // landscape phones: this game has its own layout (a slim dock at the bottom, see spill.css)
 
     tilstand: () => ({
@@ -469,6 +725,7 @@
             knapperHtml:
               R.ui.startKnapper({ pagar: pagar(S), fortsettTekst }) +
               (rekord ? `<p class="detektiv-rekord"><span class="etikett">${esc(R.t("Rekord"))}</span> <b>${esc(rekord)}</b></p>` : "") +
+              (R.nett ? R.nett.knapp() : "") +
               R.ui.lenke(R.t("Slik spiller du"), "regler"),
             merker: [["2–20", R.t("spillere")], [String(ALLE.length), R.t("hemmeligheter")]].concat(st.lost ? [[R.tall(st.lost), R.t("oppklart")]] : []),
           });
@@ -519,6 +776,7 @@
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
+          if (paNett(sp)) return giNett(S);
           const k = tur(sp);
           const jeg = sp.modus === "jeg";
           // The dots are the players: who has had the role in this lap, and whose turn it is.
@@ -582,16 +840,29 @@
           const r = sp.runde;
           const k = tur(sp);
           const jeg = sp.modus === "jeg";
-          const [klasse, status] = statusTekst(sp, r);
+          // On the net only the phones with the card count the answers; the others watch the meter.
+          const styr = styrer(sp);
+          const [klasse, status] = styr ? statusTekst(sp, r) : statusSe(sp, r);
           const fullt = r.spm >= MAKS;
           // stille: the answer has its own sound, so no kit click on top of it.
           const svar = (tekst, v, variant) => R.ui.knapp(tekst, "svar", { v, variant, stille: true, etikett: R.t("{svar} – teller som ett spørsmål", { svar: tekst }) });
           // With one possible guesser the button names that player, and no «Hvem gjettet det?» follows.
-          const gjettet = jeg
-            ? R.t("{navn} gjettet det!", { navn: R.navn(k) })
-            : sp.modus === "spm" && sp.antall === 2
-              ? R.t("{navn} gjettet det!", { navn: R.navn((k + 1) % 2) })
-              : R.t("Noen gjettet det!");
+          const ene = paNett(sp) ? (gjettere(sp).length === 1 ? gjettere(sp)[0] : -1) : sp.antall === 2 ? (k + 1) % 2 : -1;
+          const gjettet = jeg ? R.t("{navn} gjettet det!", { navn: R.navn(k) }) : sp.modus === "spm" && ene >= 0 ? R.t("{navn} gjettet det!", { navn: R.navn(ene) }) : R.t("Noen gjettet det!");
+          if (!styr)
+            return `
+            <h1 class="vh" id="skjerm-tittel">${esc(R.t("Avhøret: {n} av {av} spørsmål brukt", { n: r.spm, av: MAKS }))}</h1>
+            <div class="detektiv-avhor">
+              <div class="detektiv-lupe-sted">
+                ${lupe(sp, r, false)}
+                <div class="detektiv-stempel" id="detektiv-stempel" aria-hidden="true"></div>
+              </div>
+              <div class="detektiv-styring">
+                <p class="detektiv-status ${klasse}">${esc(status)}</p>
+                ${hintHtml(sp, r)}
+              </div>
+            </div>
+            ${R.ui.dokk(R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
           return `
             <h1 class="vh" id="skjerm-tittel">${esc(R.t("Avhøret: {n} av {av} spørsmål brukt", { n: r.spm, av: MAKS }))}</h1>
             <div class="detektiv-avhor">
@@ -625,7 +896,7 @@
           const sp = S.spill;
           const r = sp.runde;
           const k = tur(sp);
-          const andre = Array.from({ length: sp.antall }, (_, i) => i).filter((i) => i !== k);
+          const andre = paNett(sp) ? gjettere(sp) : Array.from({ length: sp.antall }, (_, i) => i).filter((i) => i !== k);
           const n = medGjett(r.spm);
           const holdt = holdtPoeng(r.spm);
           return `
@@ -663,7 +934,15 @@
           const n = brukt(l);
           const jeg = sp.modus === "jeg";
           const sammen = sp.modus === "sammen";
-          const neste = ferdig(sp) ? R.ui.knapp(sammen ? R.t("Til rapporten") : R.t("Til kåringen"), "neste", { variant: "stor" }) : R.ui.knapp(R.t("Neste: {navn}", { navn: R.navn(tur(sp)) }), "neste", { variant: "stor" });
+          const nett = paNett(sp);
+          // On the net the next keeper (or guesser) starts the next secret from its own phone.
+          const neste = ferdig(sp)
+            ? R.ui.knapp(sammen ? R.t("Til rapporten") : R.t("Til kåringen"), "neste", { variant: "stor" })
+            : !nett
+              ? R.ui.knapp(R.t("Neste: {navn}", { navn: R.navn(tur(sp)) }), "neste", { variant: "stor" })
+              : erJeg(sp, sp.k)
+                ? R.ui.knapp(jeg ? R.t("Jeg er klar til å gjette") : R.t("Hent hemmeligheten"), "neste", { variant: "stor" })
+                : `<p class="nett-vent">${esc(jeg ? R.t("{navn} skal gjette neste.", { navn: R.navn(sp.k) }) : R.t("{navn} får neste hemmelighet.", { navn: R.navn(sp.k) }))}</p>`;
           if (dramatikk) {
             return `
               <div class="detektiv-avsloring spenning">
@@ -680,7 +959,7 @@
               ? R.t("{navn} fant det ikke ut", { navn: R.navn(l.k) })
               : R.t("Hemmeligheten holdt!");
           const ingress = l.lost ? (sammen ? "" : R.t("Løst på {spm}.", { spm: spmTekst(n) })) : l.opp ? R.t("Avslørt etter {spm}.", { spm: spmTekst(l.spm) }) : R.t("Alle {n} spørsmålene ble brukt.", { n: MAKS });
-          const st = lesStat();
+          const st = nett ? { rad: 0 } : lesStat(); // (on the net: no record on this phone)
           const rekord =
             l.ny === "raskest"
               ? `⚡ ${R.t("Ny rekord: løst på {spm}!", { spm: spmTekst(n) })}`
@@ -700,7 +979,7 @@
             .sort((a, b) => l.pluss[b] - l.pluss[a] || a - b)
             .map((i) => `<li>${R.avatar(i)}<span class="navn">${esc(R.navn(i))}</span><span class="grunn">${esc(grunn(i))}</span><b>+${l.pluss[i]}</b></li>`)
             .join("");
-          const rader = sp.poeng.map((poeng, i) => ({ i, poeng, pluss: l.pluss[i] || 0 }));
+          const rader = sp.poeng.map((poeng, i) => ({ i, poeng, pluss: l.pluss[i] || 0 })).filter((x) => !forlot(sp, x.i));
           const resten = sammen
             ? `<section class="seksjon">
                 <div class="seksjon-hode"><h2>${esc(R.t("Så langt"))}</h2><span class="tall">${esc(R.t("{n} av {hemmeligheter}", { n: sp.logg.length, hemmeligheter: R.flertall(sp.totalt, "hemmelighet", "hemmeligheter") }))}</span></div>
@@ -727,7 +1006,7 @@
               ${rekord ? `<p class="detektiv-nyrekord">${esc(rekord)}</p>` : ""}
             </div>
             ${resten}
-            ${R.ui.dokk(neste, R.ui.lenkerad(R.ui.lenke(sammen ? R.t("Angre") : R.t("Angre poengene"), "angre-poeng"), ferdig(sp) ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
+            ${R.ui.dokk(neste, R.ui.lenkerad(nett ? "" : R.ui.lenke(sammen ? R.t("Angre") : R.t("Angre poengene"), "angre-poeng"), ferdig(sp) ? "" : R.ui.lenke(R.t("Avslutt"), "avslutt")))}`;
         },
         inn(S) {
           S.spill.skjerm = "avsloring";
@@ -756,10 +1035,13 @@
         gjenoppta: "hjem",
         vis(S) {
           const sp = S.spill;
-          const dokk = R.ui.flereSpill({ antall: sp.antall }) + R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`));
+          const nett = paNett(sp);
+          const dokk = nett
+            ? R.nett.sluttDokk()
+            : R.ui.flereSpill({ antall: sp.antall }) + R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`));
           const losteRunder = sp.logg.filter((l) => l.lost).sort((a, b) => brukt(a) - brukt(b));
           const holdte = sp.logg.filter((l) => !l.lost).sort((a, b) => b.spm - a.spm);
-          const st = lesStat();
+          const st = nett ? { bestRad: 0, raskest: 0 } : lesStat(); // (on the net: no record on this phone)
           const fakta = [];
           if (!rangert(sp)) {
             const alle = losteRunder.length === sp.logg.length;
@@ -780,7 +1062,7 @@
               })}
               ${sakerHtml(sp)}
               ${fakta.length ? `<ul class="detektiv-fakta">${fakta.map(([ikon, t, x]) => `<li><span aria-hidden="true">${ikon}</span><p><b>${esc(t)}</b> ${esc(x)}</p></li>`).join("")}</ul>` : ""}
-              ${R.ui.knapp2(R.t("Del resultatet"), "del")}
+              ${nett ? "" : R.ui.knapp2(R.t("Del resultatet"), "del")}
               ${dokk}`;
           }
           const rad = rangering(sp);
@@ -797,7 +1079,7 @@
                 ? ["🔒", R.t("Vanskeligste nøtt"), R.t("«{hemmelighet}» – {navn} fant det ikke ut", { hemmelighet: ALLE[holdte[0].h].navn, navn: R.navn(holdte[0].k) })]
                 : ["🔒", R.t("Best bevarte hemmelighet"), R.t("{navn} som «{hemmelighet}»", { navn: R.navn(holdte[0].k), hemmelighet: ALLE[holdte[0].h].navn })],
             );
-          const utenTur = jeg && rad.length < sp.antall;
+          const utenTur = jeg && rad.length < sp.antall - (nett ? sp.ute.length : 0);
           return `
             ${R.ui.banner({
               klasse: "aksent",
@@ -818,6 +1100,7 @@
           sp.ferdig = true;
           R.slippVaken();
           const lost = sp.logg.filter((l) => l.lost).length;
+          if (paNett(sp)) sp.meldt = true; // (on the net: nothing on this phone's evening scoreboard; the kit counts the match)
           if (!sp.meldt) {
             // Once per game: the evening's scoreboard (only when players are ranked) and the statistics.
             sp.meldt = true;
@@ -903,6 +1186,7 @@
       "jeg-er": () => R.gaTil("hemmelig"),
       "ny-hemmelighet"(el, e, S) {
         const r = S.spill && S.spill.runde;
+        if (r && paNett(S.spill)) return void (!r.startet && styrer(S.spill) && R.nett.send({ ny: r.h }));
         if (!r || r.spm) return;
         r.h = trekk(S);
         r.sett = false;
@@ -915,14 +1199,17 @@
       "start-avhor"(el, e, S) {
         const r = S.spill && S.spill.runde;
         if (!r || !r.sett) return;
+        if (paNett(S.spill)) return void (!r.startet && styrer(S.spill) && R.nett.send({ start: r.h }));
         R.gaTil("avhor");
       },
 
       // --- questioning ---
-      spm: (el, e, S) => tell(S, "x"),
-      svar: (el, e, S) => tell(S, el.dataset.v),
+      // (On the net a count is a move with the number of the question, so a double tap counts once.)
+      spm: (el, e, S) => (paNett(S.spill) ? svarNett(S, "x") : tell(S, "x")),
+      svar: (el, e, S) => (paNett(S.spill) ? svarNett(S, el.dataset.v) : tell(S, el.dataset.v)),
       angre(el, e, S) {
         const r = S.spill && S.spill.runde;
+        if (r && paNett(S.spill)) return void (r.startet && r.spm && styrer(S.spill) && R.nett.send({ angre: r.spm }));
         if (!r || !r.spm) return;
         r.svar.pop();
         r.spm = r.svar.length;
@@ -940,6 +1227,7 @@
         if (!r) return;
         const liste = hintListe(sp, r.h);
         if (r.hint >= liste.length || r.spm < HINT_VED[r.hint]) return;
+        if (paNett(sp)) return void R.nett.send({ hint: r.hint });
         r.hint += 1;
         R.vis();
         R.lyd.pling();
@@ -962,6 +1250,12 @@
       gjettet(el, e, S) {
         const sp = S.spill;
         if (!sp || !sp.runde) return;
+        if (paNett(sp)) {
+          if (!sp.runde.startet || !styrer(sp)) return;
+          const g = gjettere(sp);
+          if (sp.modus === "spm" && g.length > 1) return R.gaTil("hvem");
+          return void R.nett.send({ gjettet: sp.modus === "jeg" ? sp.k : sp.modus === "spm" ? g[0] : -1 });
+        }
         if (sp.modus === "spm" && sp.antall > 2) return R.gaTil("hvem");
         // One possible guesser: the one on turn («Hvem er jeg?») or the only detective (two players).
         const k = tur(sp);
@@ -974,12 +1268,14 @@
         const sp = S.spill;
         const g = Number(el.dataset.v);
         if (!sp || !sp.runde || !(g >= 0 && g < sp.antall) || g === tur(sp)) return;
+        if (paNett(sp)) return void (styrer(sp) && R.nett.send({ gjettet: g }));
         avsluttRunde(S, { lost: true, g });
         dramatikk = false;
         R.gaTil("avsloring");
       },
       ingen(el, e, S) {
         if (!S.spill || !S.spill.runde) return;
+        if (paNett(S.spill)) return void (styrer(S.spill) && R.nett.send({ ingen: 1 }));
         avsluttRunde(S, { lost: false });
         dramatikk = true;
         R.gaTil("avsloring");
@@ -1001,6 +1297,7 @@
               : R.t("Hemmeligheten blir avslørt og teller som uoppklart.");
         const ja = await R.bekreft(R.t("Gi opp?"), tekst, R.t("Avslør den"), R.t("Spill videre"));
         if (!ja || !fortsatt() || S.spill !== sp || sp.runde !== r) return;
+        if (paNett(sp)) return void (styrer(sp) && R.nett.send({ opp: 1 }));
         avsluttRunde(S, { lost: false, opp: true });
         dramatikk = true;
         R.gaTil("avsloring");
@@ -1037,6 +1334,12 @@
       },
       neste(el, e, S) {
         const sp = S.spill;
+        if (paNett(sp)) {
+          if (sp.runde) return;
+          // The match is over: each phone goes to «Kåringen» by itself.
+          if (ferdig(sp)) return R.gaTil("slutt");
+          return void (erJeg(sp, sp.k) && R.nett.send({ neste: sp.logg.length }));
+        }
         if (ferdig(sp)) return R.gaTil("slutt");
         nyRunde(S);
         R.gaTil("gi");

@@ -10,6 +10,7 @@
   "mobiler": "en",
   "tagger": ["familie", "sporsmal", "barn", "ord"],
   "rekkefolge": 11,
+  "nett": true,
   "alias": ["20-sporsmal", "hvem-er-jeg"],
   "sok": ["20 spørsmål", "tjue spørsmål", "hvem er jeg", "ja eller nei", "gjettelek", "gjett hva jeg tenker på"],
   "i18n": {
