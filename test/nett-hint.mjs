@@ -10,7 +10,8 @@
 //
 // o: {
 //   antall: 3,                     phones in the room (A is the host, seat 0; the others in order)
-//   lagret: "dommeren.v1",         the game's storage name, with offline:
+//   lagret: "dommeren.v1",         the game's storage name, with offline (lagretSom: (state) => state
+//                                   evens out what the game's own loading tidies on every reload):
 //   offline: async (a) => …        play a little on A first, end on the home screen (optional)
 //   forbered: async (a) => …       A's own settings before the room is made (the room's setup), optional
 //   steg: async (tlf, sp, ctx) => bool   one step of the match: make a move on a phone (each phone
@@ -158,9 +159,13 @@ export async function hintRom(t, o) {
     await t.forlat(p);
   }
   if (lagret) {
-    // A's own game: exactly as saved before the match on the net (only `_tid` moves).
-    const utenTid = (x) => JSON.stringify({ ...JSON.parse(x), _tid: 0 });
-    t.sjekk(utenTid(await a.js(`localStorage.getItem(${JSON.stringify(LAGRET)})`)) === utenTid(lagret), "Spillet A hadde lagret, ble endret av nettkampen");
+    // A's own game: exactly as saved before the match on the net (only `_tid` moves; o.lagretSom
+    // evens out what the game's own loading tidies on any reload).
+    const utenTid = (x) => JSON.stringify((o.lagretSom || ((y) => y))({ ...JSON.parse(x), _tid: 0 }));
+    const etter = utenTid(await a.js(`localStorage.getItem(${JSON.stringify(LAGRET)})`));
+    const for_ = utenTid(lagret);
+    const i = [...for_].findIndex((ch, n) => ch !== etter[n]);
+    t.sjekk(etter === for_, `Spillet A hadde lagret, ble endret av nettkampen (før: …${for_.slice(Math.max(0, i - 40), i + 40)}… etter: …${etter.slice(Math.max(0, i - 40), i + 40)}…)`);
     t.sjekk(await a.finnes('[data-h="fortsett"]'), "«Fortsett» mangler etter nettkampen");
   }
   return { tlf };

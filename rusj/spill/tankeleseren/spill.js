@@ -628,7 +628,14 @@
   }
 
   function avslor(S) {
-    const sp = S.spill;
+    avslorTilstand(S.spill);
+    R.vis();
+    window.scrollTo(0, 0);
+    fokuser("#skjerm-tittel");
+    spillAvsloring(S);
+  }
+  // The round is locked (the state only; on the net every phone does it when the move comes).
+  function avslorTilstand(sp) {
     const poeng = poengFor(Math.abs(sp.viser - sp.mal));
     let tippRiktig = null;
     if (sp.modus === "lag" && sp.tipp) tippRiktig = sp.tipp === "v" ? sp.mal < sp.viser : sp.mal > sp.viser;
@@ -642,10 +649,7 @@
       // The catch-up rule: full marks and still behind → the same team goes again.
       else if (poeng === 4 && p[sp.tur] < p[1 - sp.tur]) runde.igjen = true;
     }
-    R.vis();
-    window.scrollTo(0, 0);
-    fokuser("#skjerm-tittel");
-    spillAvsloring(S);
+    return runde;
   }
 
   // The "install as an app" tip at a calm moment – only if the players are still on the screen.
@@ -1082,9 +1086,399 @@
 
   // ---------- The app ----------
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Seat i is player i on its own phone. The hint giver's phone has the target (hold to see), the
+  // other card of the round and a field for the hint (optional – it can also just be said out
+  // loud); the others wait until the giver is ready. Then every guesser drags a needle on its own
+  // phone and locks it; the group's answer is the middle of the locked needles, scored as the one
+  // needle on one phone. «Lag mot lag» (four or more on the net; fewer play «Sammen»): the seats take
+  // turns to be Rosa and Blå, the team on turn guesses and the other team bets left or right. The
+  // cards and the targets come from the room's seed, so every phone has the same ones (a modified
+  // phone could work out a target: a game among friends). The needles are moves in the room's list;
+  // the screens show only who has locked until the round is revealed.
+  // Moves:
+  //   { bytt: r }              the giver swaps in the other card of round r (before it is ready)
+  //   { klar: 1, hint: "…" }   the giver is ready; the hint is free text (cleaned, at most 40 signs)
+  //   { las: v }               a guesser locks its needle at v (0–100), once per round
+  //   { tipp: "v" | "h" | "-" }  «Lag mot lag»: the other team bets (anyone of it, the first one counts)
+  //   { neste: r }             the next giver starts round r + 1
+  // Anything else, or anything the rules don't allow now, is ignored on every phone. The mode and the
+  // packs are the host's. A seat that leaves is skipped: nobody waits for its needle; a giver that
+  // leaves before it is ready gives its round to the next one; a team with fewer than two left ends
+  // the match.
+
+  const paNett = (sp) => !!sp && sp.nett === true && !!R.nett;
+  const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
+  const forlot = (sp, i) => paNett(sp) && sp.ute.includes(i);
+  const inne = (sp) => Array.from({ length: sp.antall }, (_, i) => i).filter((i) => !forlot(sp, i));
+  function nesteInne(sp, i) {
+    for (let k = 1; k <= sp.antall; k++) {
+      const s = (i + k) % sp.antall;
+      if (!forlot(sp, s)) return s;
+    }
+    return i;
+  }
+  const medlemmerInne = (sp, lag) => medlemmer(sp, lag).filter((i) => !forlot(sp, i));
+  // Who drags a needle this round: the team on turn («Sammen»: everyone) but the giver.
+  const gjettere = (sp) => (sp.modus === "lag" ? medlemmerInne(sp, sp.tur) : inne(sp)).filter((i) => i !== sp.giver);
+  const laste = (sp) => gjettere(sp).filter((i) => sp.laste[i] != null);
+  const motlaget = (sp) => (sp.modus === "lag" ? medlemmerInne(sp, 1 - sp.tur) : []);
+  const egenNal = (sp) => (paNett(sp) ? sp.laste[R.nett.meg()] : null);
+  const nettSlutt = (sp) => paNett(sp) && (sp.stopp || iMal(sp));
+  // «Lag mot lag» needs two in each team: a giver and someone to guess.
+  const forFa = (sp) => sp.modus === "lag" && (medlemmerInne(sp, 0).length < 2 || medlemmerInne(sp, 1).length < 2);
+
+  // The next round's giver, as nyRundeNett will pick it.
+  function nesteGiver(sp) {
+    if (sp.modus !== "lag") return nesteInne(sp, sp.giver);
+    const l = sp.logg[sp.logg.length - 1];
+    const tur = l && l.igjen ? sp.tur : 1 - sp.tur;
+    const m = medlemmerInne(sp, tur);
+    const teller = sp.teller[tur] + (tur === sp.tur ? 1 : 0);
+    return m.length ? m[teller % m.length] : -1;
+  }
+  // A new round: the giver, two cards from the room's deck and a target from the room's seed.
+  // giver: the seat that gives the hint («Sammen»; in a team game it follows from the team's turn).
+  function nyRundeNett(sp, giver) {
+    if (sp.modus === "lag") {
+      const m = medlemmerInne(sp, sp.tur);
+      sp.giver = m[sp.teller[sp.tur] % m.length];
+    } else sp.giver = giver;
+    const n = sp.kortRekke.length;
+    sp.kort = sp.kortRekke[sp.kNr % n];
+    sp.alt = n > 1 ? sp.kortRekke[(sp.kNr + 1) % n] : -1;
+    sp.kNr += 2;
+    sp.par = [ALLE[sp.kort].v, ALLE[sp.kort].h];
+    sp.mal = Math.round((3 + R.nett.tilfeldig(sp.fro, "mal:" + sp.trekkNr)() * 94) * 10) / 10;
+    sp.trekkNr += 1;
+    sp.viser = 50;
+    sp.fase = "gi";
+    sp.sett = false;
+    sp.tipp = null;
+    sp.avslort = false;
+    sp.hint = "";
+    sp.laste = {};
+    nettUtkast = "";
+  }
+  // Every guesser still in has locked: the group's needle is the middle of theirs.
+  function sjekkLast(sp) {
+    if (sp.fase !== "gjett") return false;
+    const g = gjettere(sp);
+    if (!g.length || g.some((i) => sp.laste[i] == null)) return false;
+    sp.viser = Math.round((g.reduce((s, i) => s + sp.laste[i], 0) / g.length) * 10) / 10;
+    if (motlaget(sp).length) sp.fase = "motlag";
+    else avslorNett(sp);
+    return true;
+  }
+  function avslorNett(sp) {
+    const runde = avslorTilstand(sp);
+    runde.naler = gjettere(sp).map((i) => [i, sp.laste[i]]);
+  }
+
+  let nettUtkast = ""; // the hint the giver is typing (this phone only)
+  // Replaying a finished round: no drum roll; a finished match (or one stopped): the result.
+  function replayEtter(sp) {
+    if (sp.fase === "fasit") sp.avslort = true;
+    if (nettSlutt(sp)) sp.slutt = true;
+  }
+
+  const nettSkjerm = (sp) => {
+    if (sp.slutt) return "slutt";
+    const meg = R.nett.meg();
+    if (sp.fase === "gi") return meg === sp.giver ? "hint" : "gi";
+    if (sp.fase === "gjett" && meg === sp.giver) return "hint";
+    return "skive";
+  };
+  function visNett(S) {
+    const sp = S.spill;
+    const mal = nettSkjerm(sp);
+    if (S.skjerm !== mal) return R.gaTil(mal);
+    R.vis();
+    if (mal === "skive" && sp.fase === "fasit" && !sp.avslort) spillAvsloring(S);
+  }
+
+  // Who has locked (the room's list of seats; the needles stay hidden).
+  const klarListe = (sp) =>
+    `<ul class="nett-seter tl-klare" id="tl-klare">${gjettere(sp)
+      .map((i) => `<li class="${sp.laste[i] != null ? "med" : "av"}">${R.avatar(i)}<b>${esc(R.navn(i))}</b><span>${esc(sp.laste[i] != null ? R.t("har låst") : R.t("drar …"))}</span></li>`)
+      .join("")}</ul>`;
+  const klarTall = (sp) => R.t("{n} av {av} har låst", { n: laste(sp).length, av: gjettere(sp).length });
+  const lagLinje = (sp) => (sp.modus === "lag" ? `<p class="tl-lagmerke ${LAG[sp.tur].klasse}"><i aria-hidden="true"></i>${esc(R.t("{lag} gjetter", { lag: LAG[sp.tur].navn }))}</p>` : "");
+  const dokkUt = () => R.ui.lenkerad(R.ui.lenke(R.t("Avslutt"), "avslutt"));
+
+  // While the giver looks: who it is.
+  function giNett(S) {
+    const sp = S.spill;
+    const lag = sp.modus === "lag" ? `<p class="tl-lagmerke ${LAG[sp.tur].klasse}"><i aria-hidden="true"></i>${esc(R.t("{lag} gir hint", { lag: LAG[sp.tur].navn }))}</p>` : "";
+    return `${lag}
+      <div class="gi-til">
+        <span class="gi-til-avatar">${R.avatar(sp.giver, "gigant")}<span class="gi-til-merke">🤫</span></span>
+        <p class="etikett">${esc(R.t("Hintgiver denne runden"))}</p>
+        <h1 id="skjerm-tittel">${esc(R.navn(sp.giver))}</h1>
+        <p class="ikke-se">${esc(R.t("{navn} ser målet og finner et hint …", { navn: R.navn(sp.giver) }))}</p>
+      </div>
+      ${R.ui.dokk(dokkUt())}`;
+  }
+
+  // The giver's phone: the target (hold to see), the hint – then waiting for the needles.
+  function hintNett(S) {
+    const sp = S.spill;
+    if (sp.fase === "gi")
+      return `
+        <div class="tl-hint-topp">
+          <p class="etikett">${esc(R.t("Bare for deg"))}</p>
+          <h1 id="skjerm-tittel">${esc(R.t("Se målet i smug"))}</h1>
+        </div>
+        ${kortHtml(sp)}
+        ${skiveHtml(sp, { modus: "kikk", mal: true })}
+        ${HOLDKNAPP}
+        ${hintFelt({ verdi: nettUtkast, merke: R.t("Hintet ditt"), plass: R.t("Skriv det her – eller si det høyt") })}
+        <p class="hjelp" id="tl-kikk-hjelp">${kikkHjelp(S, sp)}</p>
+        ${R.ui.dokk(R.ui.knapp(sp.sett ? R.t("Jeg har et hint!") : R.t("Se målet først"), "hint-klar", { av: !sp.sett, id: "tl-klar" }), byttKnapp(sp), dokkUt())}`;
+    return `
+      ${statusHtml(sp)}
+      <h1 id="skjerm-tittel" class="tl-sporsmal">${esc(R.t("De andre drar viseren"))}</h1>
+      ${kortrad(hintVist(sp.hint, R.t("Hintet ditt")), sp)}
+      ${skiveHtml(sp, { modus: "kikk", mal: true })}
+      ${HOLDKNAPP}
+      <p class="hjelp" id="tl-kikk-hjelp">${esc(klarTall(sp))}</p>
+      ${klarListe(sp)}
+      ${R.ui.dokk(dokkUt())}`;
+  }
+
+  // The dial screen on the net: drag and lock, wait, bet, or the result.
+  function skiveNett(S) {
+    const sp = S.spill;
+    const meg = R.nett.meg();
+    const giver = R.navn(sp.giver);
+    const hint = sp.hint ? hintVist(sp.hint, R.t("Hintet")) : "";
+    if (sp.fase === "gjett") {
+      const min = gjettere(sp).includes(meg);
+      const lastet = egenNal(sp);
+      if (min && lastet == null)
+        return `${statusHtml(sp)}
+          <h1 id="skjerm-tittel" tabindex="-1" class="tl-sporsmal gjett">${sp.modus === "lag" ? `<span class="tl-farge ${LAG[sp.tur].klasse}">${LAG[sp.tur].navn}:</span> ` : ""}${esc(R.t("Hvor er målet?"))}</h1>
+          <p class="tl-under gjett">${esc(sp.hint ? R.t("Hintet fra {navn} står over skiva. Dra viseren dit du tror.") : R.t("Hør på hintet fra {navn} og dra viseren.")).replace("{navn}", () => `<b>${esc(giver)}</b>`)}</p>
+          ${kortrad(hint, sp)}
+          ${skiveHtml(sp, { modus: "dra", viser: true })}${finHtml(sp)}
+          ${R.ui.dokk(R.ui.knapp(R.t("Lås svaret"), "las"), `<p class="hjelp tl-klartall" id="tl-klartall">${esc(klarTall(sp))}</p>`, dokkUt())}`;
+      const vis = Object.assign({}, sp, { viser: lastet != null ? lastet : 50 });
+      return `${statusHtml(sp)}
+        ${lagLinje(sp)}
+        <h1 id="skjerm-tittel" tabindex="-1" class="tl-sporsmal">${esc(min ? R.t("Låst! Venter på de andre …") : R.t("De andre drar viseren"))}</h1>
+        ${kortrad(hint, sp)}
+        ${skiveHtml(vis, { modus: "fast", viser: lastet != null, etikett: lastet != null ? R.t("Viseren din står på {n} av 100", { n: Math.round(lastet) }) : R.t("Skiva") })}
+        <p class="hjelp">${esc(klarTall(sp))}</p>
+        ${klarListe(sp)}
+        ${R.ui.dokk(dokkUt())}`;
+    }
+    if (sp.fase === "motlag") {
+      const m = LAG[1 - sp.tur];
+      const byr = motlaget(sp).includes(meg);
+      return `${statusHtml(sp)}
+        <h1 id="skjerm-tittel" tabindex="-1" class="tl-sporsmal"><span class="tl-farge ${m.klasse}">${m.navn}:</span> ${esc(R.t("venstre eller høyre?"))}</h1>
+        <p class="tl-under">${esc(R.t("Ligger målet til venstre eller høyre for viseren? Riktig gir 1 poeng."))}</p>
+        ${kortrad(hint, sp)}
+        ${skiveHtml(sp, { modus: "fast", viser: true, etikett: R.t("Viseren står på {n} av 100", { n: Math.round(sp.viser) }) })}
+        ${
+          byr
+            ? R.ui.dokk(
+                `<div class="knapprad">${R.ui.knapp(R.t("Venstre"), "tipp", { v: "v", variant: m.knapp, ikon: "◀" })}${R.ui.knapp("", "tipp", { v: "h", variant: m.knapp, tekstHtml: `${esc(R.t("Høyre"))}<span class="ikon" aria-hidden="true">▶</span>` })}</div>`,
+                R.ui.lenkerad(R.ui.lenke(R.t("Vi står over"), "tipp", { v: "-" }), R.ui.lenke(R.t("Avslutt"), "avslutt")),
+              )
+            : R.ui.dokk(`<p class="nett-vent">${esc(R.t("{lag} tipper …", { lag: m.navn }))}</p>`, dokkUt())
+        }`;
+    }
+    // «Fasit»: the cover sweeps away on every phone; then the next giver goes on.
+    const l = sp.logg[sp.logg.length - 1];
+    const resultat = sp.avslort ? resultatHtml(sp) : VENTER;
+    const naler =
+      sp.avslort && l.naler && l.naler.length > 1
+        ? `<p class="hjelp tl-naler">${esc(R.t("Viseren sto midt mellom nålene deres: {liste}", { liste: l.naler.map(([i, v]) => `${R.navn(i)} ${poengFor(Math.abs(v - l.mal))}`).join(" · ") }))}</p>`
+        : "";
+    let dokk;
+    if (nettSlutt(sp)) dokk = R.ui.dokk(R.ui.knapp(R.t("Til kåringen"), "neste", { av: !sp.avslort }));
+    else {
+      const neste = nesteGiver(sp);
+      dokk = erJeg(sp, neste)
+        ? R.ui.dokk(R.ui.knapp(R.t("Neste runde – du gir hint"), "neste", { av: !sp.avslort }), dokkUt())
+        : R.ui.dokk(`<p class="nett-vent">${esc(R.t("{navn} gir neste hint.", { navn: R.navn(neste) }))}</p>`, dokkUt());
+    }
+    return `${statusHtml(sp)}
+      <h1 id="skjerm-tittel" tabindex="-1" class="vh">${esc(R.t("Fasit"))}</h1>
+      ${kortrad(hintVist(l.hint, R.t("Hintet")), sp)}
+      ${skiveHtml(sp, { modus: "fast", viser: true, mal: true, apen: sp.avslort, etikett: sp.avslort ? R.t("Målet var ved {mal}, viseren sto ved {viser}", { mal: Math.round(sp.mal), viser: Math.round(sp.viser) }) : R.t("Skiva åpnes …") })}
+      ${resultat}
+      ${naler}
+      ${dokk}`;
+  }
+
+  const NETT = {
+    min: 2,
+    maks: 20,
+    oppsett: (S) => ({ modus: S.oppsett.modus === "lag" ? "lag" : "sammen", pakker: S.oppsett.pakker.slice() }),
+    oppsettTekst: (o) => {
+      const x = o || {};
+      const pakker = (Array.isArray(x.pakker) ? x.pakker : []).filter((id) => pakke(id));
+      return [x.modus === "lag" ? R.t("Lag mot lag fra fire spillere, ellers sammen") : R.t("Sammen"), R.t("{n} kort", { n: antallKort(pakker.length ? pakker : STANDARD) })].join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const antall = R.klamp(okt.antall || 2, 2, 20);
+      const valgt = (Array.isArray(o.pakker) ? o.pakker : []).filter((id) => pakke(id));
+      const pakker = valgt.length ? valgt : STANDARD.slice();
+      const lag = o.modus === "lag" && antall >= 4;
+      const kort = ALLE.map((_, i) => i).filter((i) => pakker.includes(ALLE[i].p));
+      const sp = {
+        nett: true,
+        fro: okt.fro >>> 0,
+        modus: lag ? "lag" : "sammen",
+        antall,
+        pakker,
+        // The seats take turns to be Rosa and Blå; the team that begins and the first giver move on each match.
+        lag: lag ? Array.from({ length: antall }, (_, i) => i % 2) : null,
+        teller: [okt.kamp - 1, okt.kamp - 1],
+        tur: lag ? (okt.kamp - 1) % 2 : 0,
+        runde: 1,
+        runder: lag ? null : runderFor(antall),
+        logg: [],
+        vinner: null,
+        skjerm: "gi",
+        kortRekke: R.stokk(kort.length ? kort : ALLE.map((_, i) => i), R.nett.tilfeldig(okt.fro, "kort")),
+        kNr: 0,
+        trekkNr: 0,
+        ute: [],
+        laste: {},
+        stopp: false,
+        slutt: false,
+        avbrutt: false,
+        rekord: null,
+      };
+      nyRundeNett(sp, (okt.kamp - 1) % antall);
+      S.spill = sp;
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.slutt || nettSlutt(sp) || !t || typeof t !== "object" || !(sete >= 0 && sete < sp.antall) || forlot(sp, sete)) return;
+      const live = !okt.gjenspill;
+      if (t.bytt === sp.runde) {
+        if (sp.fase !== "gi" || sete !== sp.giver || !ALLE[sp.alt]) return;
+        [sp.kort, sp.alt] = [sp.alt, sp.kort];
+        sp.par = [ALLE[sp.kort].v, ALLE[sp.kort].h];
+        if (!live) return;
+        if (erJeg(sp, sete)) {
+          lukkKikk(S, true);
+          R.lyd.sveip();
+          R.si(R.t("Skalaen går nå fra «{a}» til «{b}».", { a: sp.par[0], b: sp.par[1] }));
+        }
+        visNett(S);
+        return;
+      }
+      if (t.klar === 1) {
+        if (sp.fase !== "gi" || sete !== sp.giver) return;
+        sp.hint = rensHint(R.nett.tekst(typeof t.hint === "string" ? t.hint : "", HINT_MAKS));
+        sp.fase = "gjett";
+        sp.viser = 50;
+        if (!live) return;
+        R.lyd.pop();
+        visNett(S);
+        if (!erJeg(sp, sete)) R.si(sp.hint ? R.t("Hintet er «{tekst}». Dra viseren og lås svaret.", { tekst: sp.hint }) : R.t("{navn} er klar. Dra viseren og lås svaret.", { navn: R.navn(sete) }));
+        return;
+      }
+      if (typeof t.las === "number") {
+        if (sp.fase !== "gjett" || !gjettere(sp).includes(sete) || sp.laste[sete] != null || !(t.las >= 0 && t.las <= 100)) return;
+        sp.laste[sete] = Math.round(t.las * 10) / 10;
+        const videre = sjekkLast(sp);
+        if (okt.gjenspill) replayEtter(sp);
+        if (!live) return;
+        if (erJeg(sp, sete)) R.vibrer(30);
+        if (videre) {
+          R.lyd.pop();
+          window.scrollTo(0, 0);
+          return visNett(S);
+        }
+        // Someone else locked while this phone still drags: only the count changes (the needle stays under the finger).
+        if (S.skjerm === "skive" && gjettere(sp).includes(R.nett.meg()) && egenNal(sp) == null) {
+          const tall = R.$("#tl-klartall");
+          if (tall) tall.textContent = klarTall(sp);
+          return;
+        }
+        visNett(S);
+        return;
+      }
+      if (t.tipp === "v" || t.tipp === "h" || t.tipp === "-") {
+        if (sp.fase !== "motlag" || !motlaget(sp).includes(sete)) return;
+        sp.tipp = t.tipp === "-" ? null : t.tipp;
+        avslorNett(sp);
+        if (okt.gjenspill) replayEtter(sp);
+        if (!live) return;
+        window.scrollTo(0, 0);
+        visNett(S);
+        return;
+      }
+      if (t.neste === sp.runde) {
+        if (sp.fase !== "fasit" || sete !== nesteGiver(sp)) return;
+        if (sp.modus === "lag") {
+          sp.teller[sp.tur] += 1;
+          if (!sp.logg[sp.logg.length - 1].igjen) sp.tur = 1 - sp.tur;
+        }
+        const giver = nesteGiver(sp);
+        sp.runde += 1;
+        nyRundeNett(sp, giver);
+        if (!live) return;
+        R.lyd.snu();
+        visNett(S);
+      }
+    },
+    // The seat left: nobody waits for its needle. A giver that leaves before it is ready gives the
+    // round to the next one (new cards, a new target); a team with fewer than two left ends the match.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.slutt || nettSlutt(sp) || !(sete >= 0 && sete < sp.antall) || forlot(sp, sete)) return;
+      sp.ute.push(sete);
+      delete sp.laste[sete];
+      let ny = false;
+      if (inne(sp).length < 2 || forFa(sp)) {
+        sp.stopp = true;
+        sp.avbrutt = true;
+        if (sp.modus === "lag") sp.vinner = leder(sp);
+      } else if (sete === sp.giver && sp.fase === "gi") {
+        nyRundeNett(sp, nesteInne(sp, sete));
+        ny = true;
+      } else sjekkLast(sp);
+      if (okt.gjenspill) return replayEtter(sp);
+      if (sp.stopp) {
+        sp.slutt = true;
+        return R.gaTil("slutt");
+      }
+      if (ny && erJeg(sp, sp.giver)) R.toast(R.t("Du gir hint denne runden"));
+      visNett(S);
+    },
+    skjerm: (S) => (S.spill ? nettSkjerm(S.spill) : "gi"),
+    // The giver; while the needles are dragged this phone's own seat if it still has to lock (else the
+    // first one that hasn't); the team that bets; the next giver.
+    tur(S) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.slutt || nettSlutt(sp)) return null;
+      const meg = R.nett.meg();
+      if (sp.fase === "gi") return sp.giver;
+      if (sp.fase === "gjett") {
+        const mangler = gjettere(sp).filter((i) => sp.laste[i] == null);
+        return mangler.includes(meg) ? meg : mangler.length ? mangler[0] : null;
+      }
+      if (sp.fase === "motlag") {
+        const m = motlaget(sp);
+        return m.includes(meg) ? meg : m.length ? m[0] : null;
+      }
+      return nesteGiver(sp);
+    },
+    ferdig: (S) => !!S.spill && (!!S.spill.slutt || nettSlutt(S.spill)),
+  };
+
   R.start({
     id: "tankeleseren",
     versjon: 1,
+    nett: NETT,
 
     // In progress until the last round is locked or the game is ended (front page «Fortsett»
     // badge, screen kept on).
@@ -1167,6 +1561,12 @@
     // The hint field: saved as it is typed, never redrawn (the caret stays where it is).
     felt: {
       hint(S, el) {
+        if (S.skjerm === "hint" && paNett(S.spill)) {
+          nettUtkast = rensHint(el.value);
+          const boks = el.closest(".tl-hint");
+          if (boks) boks.className = `tl-hint${nettUtkast ? " har" : ""}${hintKlasse(nettUtkast)}`;
+          return;
+        }
         const o = S.skjerm === "lag" ? S.utf.lag : S.skjerm === "skive" ? S.spill : null;
         if (!o) return;
         o.hint = rensHint(el.value);
@@ -1193,8 +1593,8 @@
           }
           // With a game in progress there are two big buttons already: the challenge is a link then.
           const ekstra = igang
-            ? R.ui.lenkerad(R.ui.lenke(R.t("Send en utfordring"), "utfordre"), R.ui.lenke(R.t("Slik spiller du"), "regler"))
-            : R.ui.knapp2(R.t("Send en utfordring"), "utfordre") + R.ui.lenke(R.t("Slik spiller du"), "regler");
+            ? (R.nett ? R.nett.knapp() : "") + R.ui.lenkerad(R.ui.lenke(R.t("Send en utfordring"), "utfordre"), R.ui.lenke(R.t("Slik spiller du"), "regler"))
+            : R.ui.knapp2(R.t("Send en utfordring"), "utfordre") + (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler");
           return R.ui.spillhjem({
             slagordHtml: `${esc(R.t("Ett hint. Én skive."))}<br><em>${esc(R.t("Er dere på samme bølgelengde?"))}</em>`,
             knapperHtml: R.ui.startKnapper({ pagar: igang, fortsettTekst: tekst, ekstraHtml: ekstra }),
@@ -1250,6 +1650,7 @@
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
+          if (paNett(sp)) return giNett(S);
           const forrige = sp.logg[sp.logg.length - 1];
           const igjen = sp.modus === "lag" && sp.fase === "gjett" && forrige && forrige.igjen;
           const lag = sp.modus === "lag" ? `<p class="tl-lagmerke ${LAG[sp.tur].klasse}"><i aria-hidden="true"></i>${esc(igjen ? R.t("Ekstrarunde: {lag} gir hint igjen", { lag: LAG[sp.tur].navn }) : R.t("{lag} gir hint", { lag: LAG[sp.tur].navn }))}</p>` : "";
@@ -1267,6 +1668,7 @@
         gjenoppta: "gi", // after a reload, hand the phone over again before the target can be seen
         vis(S) {
           const sp = S.spill;
+          if (paNett(sp)) return hintNett(S);
           return `
             <div class="tl-hint-topp">
               <p class="etikett">${esc(R.t("Bare for {navn}", { navn: R.navn(sp.giver) }))}</p>
@@ -1296,6 +1698,7 @@
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
+          if (paNett(sp)) return skiveNett(S);
           const giver = R.navn(sp.giver);
           let topp = "";
           let hint = "";
@@ -1342,7 +1745,8 @@
           if (S.spill.fase === "fasit" && !S.spill.avslort) spillAvsloring(S);
         },
         etter(S, rot) {
-          if (S.spill.fase !== "gjett") return;
+          const sp = S.spill;
+          if (sp.fase !== "gjett" || (paNett(sp) && !(gjettere(sp).includes(R.nett.meg()) && egenNal(sp) == null))) return;
           koblingDra(S, rot.querySelector(".tl-skive"));
           koblingFin(S, rot);
           const felt = rot.querySelector("#tl-hint");
@@ -1360,7 +1764,7 @@
         vis(S) {
           const sp = S.spill;
           const spilt = sp.logg.length;
-          const hale = `${spilt ? `${loggHtml(sp)}${R.ui.knapp2(R.t("Del resultatet"), "del")}` : ""}${R.ui.flereSpill({ antall: sp.antall })}${R.ui.dokk(
+          const hale = paNett(sp) ? `${spilt ? loggHtml(sp) : ""}${R.nett.sluttDokk()}` : `${spilt ? `${loggHtml(sp)}${R.ui.knapp2(R.t("Del resultatet"), "del")}` : ""}${R.ui.flereSpill({ antall: sp.antall })}${R.ui.dokk(
             R.ui.knapp(R.t("Spill igjen"), "igjen"),
             R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`),
           )}`;
@@ -1391,7 +1795,7 @@
           }
           const p = poengSum(sp);
           const vinner = leder(sp);
-          const navn = vinner == null ? [] : medlemmer(sp, vinner).map((i) => R.navn(i));
+          const navn = vinner == null ? [] : medlemmer(sp, vinner).filter((i) => !forlot(sp, i)).map((i) => R.navn(i));
           return `
             ${R.ui.banner({
               klasse: `tl-banner tl-vinner ${vinner == null ? "" : LAG[vinner].klasse}`, // sprak-ok
@@ -1578,6 +1982,7 @@
       },
       // The round's two cards change places (the target stays where it is).
       "bytt-kort"(el, e, S) {
+        if (S.skjerm === "hint" && paNett(S.spill)) return void (S.spill.fase === "gi" && erJeg(S.spill, S.spill.giver) && R.nett.send({ bytt: S.spill.runde }));
         const o = S.skjerm === "lag" ? S.utf.lag : S.skjerm === "hint" ? S.spill : null;
         if (!o || !ALLE[o.alt] || o.alt === o.kort) return;
         lukkKikk(S, true);
@@ -1589,6 +1994,11 @@
       },
       "hint-klar"(el, e, S) {
         if (!S.spill.sett) return;
+        if (paNett(S.spill)) {
+          const felt = R.$("#tl-hint");
+          if (felt) nettUtkast = rensHint(felt.value);
+          return void (S.spill.fase === "gi" && erJeg(S.spill, S.spill.giver) && R.nett.send({ klar: 1, hint: R.nett.tekst(nettUtkast, HINT_MAKS) }));
+        }
         R.gaTil("skive");
       },
       flytt(el, e, S) {
@@ -1601,6 +2011,7 @@
       las(el, e, S) {
         const sp = S.spill;
         if (sp.fase !== "gjett") return;
+        if (paNett(sp)) return void (gjettere(sp).includes(R.nett.meg()) && egenNal(sp) == null && R.nett.send({ las: Math.round(sp.viser * 10) / 10 }));
         R.vibrer(30);
         if (sp.modus === "lag") {
           sp.fase = "motlag";
@@ -1616,6 +2027,7 @@
       tipp(el, e, S) {
         const sp = S.spill;
         if (sp.fase !== "motlag") return;
+        if (paNett(sp)) return void (motlaget(sp).includes(R.nett.meg()) && R.nett.send({ tipp: el.dataset.v === "v" || el.dataset.v === "h" ? el.dataset.v : "-" }));
         const tipp = el.dataset.v === "v" || el.dataset.v === "h" ? el.dataset.v : null;
         // «Venstre»/«Høyre» sit where «Lås svaret» was: ignore them for a moment after locking.
         if (tipp && Date.now() - (sp.laste || 0) < 400) return;
@@ -1634,6 +2046,14 @@
       neste(el, e, S) {
         const sp = S.spill;
         if (sp.fase !== "fasit" || !sp.avslort) return;
+        if (paNett(sp)) {
+          // The match is over: each phone goes to «Kåringen» by itself.
+          if (nettSlutt(sp)) {
+            sp.slutt = true;
+            return R.gaTil("slutt");
+          }
+          return void (erJeg(sp, nesteGiver(sp)) && R.nett.send({ neste: sp.runde }));
+        }
         if (ferdig(sp)) {
           tilKaringen(S, false);
           return;
