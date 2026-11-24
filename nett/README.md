@@ -4,7 +4,7 @@ Denne mappa er en liten tjeneste hos Cloudflare som lar to eller flere venner sp
 
 Kort sagt: **tjenesten sender trekk videre, og glemmer alt etter et døgn.** Den kjenner ikke spillereglene. Mobilene regner ut spillet selv, og alle får de samme trekkene i samme rekkefølge.
 
-Med: Sjakkhesten, Fireren, Terninga (Yatzy), Brikka (Ludo), Admiralen (slagskip), Reversi, Bonden (bondesjakk), Mølla, Såmannen (kalaha), Snekkeren (prikker og bokser), Dam, Stigespillet, Lykkegrisen (10 000), Tavla (backgammon), Hopperen (kinasjakk), Dobbelsekseren (domino), Låsesmeden (knekk koden), Meyer, Elefanten (vendespill), Tidsmaskinen (tidslinje), Tieren (ti svar), Vri åtter, Narren (idiot), Samleren (rummy), Golfballen (kortgolf), Pusen (kortspill for barn), Spionen (finn spionen), Varulven, Nissen (mandelen), Kodeknekkeren (kodeord), Detektiven (20 spørsmål), Tankeleseren (bølgelengde), Dommeren (fyll inn), Brevduen (hvem skrev det?), Skrønemakeren, Hviskeren (bare ett hint) og Sauen (tenk som flokken).
+Med: Sjakkhesten, Fireren, Terninga (Yatzy), Brikka (Ludo), Admiralen (slagskip), Reversi, Bonden (bondesjakk), Mølla, Såmannen (kalaha), Snekkeren (prikker og bokser), Dam, Stigespillet, Lykkegrisen (10 000), Tavla (backgammon), Hopperen (kinasjakk), Dobbelsekseren (domino), Låsesmeden (knekk koden), Meyer, Elefanten (vendespill), Tidsmaskinen (tidslinje), Tieren (ti svar), Vri åtter, Narren (idiot), Samleren (rummy), Golfballen (kortgolf), Pusen (kortspill for barn), Spionen (finn spionen), Varulven, Nissen (mandelen), Kodeknekkeren (kodeord), Detektiven (20 spørsmål), Tankeleseren (bølgelengde), Dommeren (fyll inn), Brevduen (hvem skrev det?), Skrønemakeren, Hviskeren (bare ett hint), Sauen (tenk som flokken), Flinkisen (kategorier på bokstav) og Lurendreieren (løgnerterning).
 
 ## Hva et rom inneholder – og hva det ikke inneholder
 
@@ -13,7 +13,7 @@ Med: Sjakkhesten, Fireren, Terninga (Yatzy), Brikka (Ludo), Admiralen (slagskip)
 | Hvilket spill, og innstillingene verten valgte | IP-adresse, nettlesertype, språk, hvor folk er |
 | Et tilfeldig tall som gjør terningkast og lignende likt på alle mobilene | Noen konto, e-post eller telefonnummer |
 | Plassene: et tilfeldig «plassmerke» per mobil (så en mobil som mister nettet, får plassen tilbake) og et kallenavn på høyst 16 tegn hvis man skrev et | Chat (det finnes ingen), og ingen fritekst utenom svarene og hintene under |
-| Trekkene i rekkefølge – i Brevduen, Skrønemakeren, Hviskeren og Sauen også de korte svarene spillerne skriver, og i Tankeleseren og Kodeknekkeren hintet (høyst 60 tegn, vaskes på mobilen og vises alltid som ren tekst) | Reaksjonene (de seks faste emojiene sendes bare videre) |
+| Trekkene i rekkefølge – i Brevduen, Skrønemakeren, Hviskeren, Sauen og Flinkisen også de korte svarene spillerne skriver (i Flinkisen ett per kategori, høyst 30 tegn hver), og i Tankeleseren og Kodeknekkeren hintet (høyst 60 tegn, vaskes på mobilen og vises alltid som ren tekst) | Reaksjonene (de seks faste emojiene sendes bare videre) |
 | | Skipene i Admiralen: de blir på eierens mobil |
 
 Dette er sant fordi tjenesten er bygd slik:
@@ -31,7 +31,7 @@ Dette er sant fordi tjenesten er bygd slik:
 |---|---|
 | Én melding fra en mobil | høyst 2 KB (et trekk høyst 1 KB) |
 | Meldinger per mobil | høyst 20 per 10 sekunder; over 40 stenges forbindelsen |
-| Plasser | Sjakk, Fireren, Admiralen, Reversi, Bonden, Mølla, Såmannen, Snekkeren, Dam, Tavla og Låsesmeden 2 · Ludo, Stigespillet, Domino, Vendespill og de fem kortspillene 2–4 · Yatzy og Kinasjakk 2–6 · Lykkegrisen og Tieren 2–8 · Meyer og Tidsmaskinen 2–10 · Skrønemakeren, Hviskeren og Dommeren 3–10 · Spionen, Nissen, Brevduen og Sauen 3–12 · Varulven 4–12 · Kodeknekkeren, Detektiven og Tankeleseren 2–20 |
+| Plasser | Sjakk, Fireren, Admiralen, Reversi, Bonden, Mølla, Såmannen, Snekkeren, Dam, Tavla og Låsesmeden 2 · Ludo, Stigespillet, Domino, Vendespill og de fem kortspillene 2–4 · Yatzy og Kinasjakk 2–6 · Lykkegrisen, Tieren og Lurendreieren 2–8 · Meyer, Tidsmaskinen og Flinkisen 2–10 · Skrønemakeren, Hviskeren og Dommeren 3–10 · Spionen, Nissen, Brevduen og Sauen 3–12 · Varulven 4–12 · Kodeknekkeren, Detektiven og Tankeleseren 2–20 |
 | Mobiler koblet til samme rom | høyst 22 |
 | Trekk i én kamp | høyst 2000 |
 | Kallenavn | høyst 16 tegn, bare tekst |

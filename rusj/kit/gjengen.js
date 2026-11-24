@@ -2242,6 +2242,45 @@
         ${form("M52 104 Q54 84 65 76 Q73 72 72 83 Q70 95 60 106Z", f, 4.5)}
         ${strek("M60 31 q5 -4 0 -9M66 35 q10 -8 0 -17", 3.6, P)}`,
     },
+
+    // Flinkisen: the keen pupil who always has the answer – one arm stretched straight up behind
+    // the head, round glasses with the eyes on the teacher, a wide open smile and a gold star
+    // stuck on the forehead.
+    flinkisen: {
+      farge: "#4cc9b0",
+      tegn: (f) => `
+        ${form("M88 56 Q84 26 92 12 Q99 0 108 7 Q116 14 113 32 Q111 46 106 58Z", f)}
+        ${strek("M98 9 V19M105 9 V18", 3)}
+        ${strek("M116 6 l5 -5M119 16 h7", 3.5, LAMPE)}
+        ${hode(f)}
+        ${rodme(82)}
+        ${oyne({ y: 58, r: 11, pr: 5, dx: 1.5, dy: -2.5 })}
+        <circle cx="40" cy="58" r="15.5" fill="rgba(255,241,221,.2)" stroke="${B}" stroke-width="4.5"/>
+        <circle cx="80" cy="58" r="15.5" fill="rgba(255,241,221,.2)" stroke="${B}" stroke-width="4.5"/>
+        ${strek("M55.5 56 Q60 52 64.5 56", 4.5)}
+        ${strek("M28 38 Q40 32 50 38M70 38 Q80 32 92 38", 5)}
+        <path d="M44 86 Q60 106 76 86Z" fill="#7a2338" stroke="${B}" stroke-width="4.5" stroke-linejoin="round"/>
+        <path d="M52 95 Q60 90 68 95 Q60 101 52 95Z" fill="${ROSA}"/>
+        <path d="M24 5 L27.4 13.3 L36.4 14 L29.6 19.8 L31.6 28.5 L24 23.9 L16.4 28.5 L18.4 19.8 L11.6 14 L20.6 13.3Z" fill="${LAMPE}" stroke="${B}" stroke-width="3.5" stroke-linejoin="round"/>`,
+    },
+
+    // Lurendreieren: the trickster – a rogue's mask over narrow eyes that glance sideways, one
+    // eyebrow up, a crooked smirk, and two dice tucked behind the head where nobody is meant to
+    // see them.
+    lurendreieren: {
+      farge: "#b86fc6",
+      tegn: (f) => `
+        ${terning(99, 30, 14, 12)}
+        ${terning(20, 34, 12, -16, ["#fff0b0", LAMPE, "#e0ac1c"], B)}
+        ${hode(f)}
+        ${kinn(84)}
+        <path d="M13 52 Q60 37 107 52 L105 68 Q86 77 73 67 Q60 59 47 67 Q34 77 15 68Z" fill="${B}"/>
+        ${blunk(59, `<path d="M28 59 Q40 51 52 59 Q40 68 28 59Z" fill="${P}"/><path d="M68 59 Q80 51 92 59 Q80 68 68 59Z" fill="${P}"/><circle cx="45" cy="60" r="4.3" fill="${B}"/><circle cx="85" cy="60" r="4.3" fill="${B}"/>`)}
+        ${strek("M27 37 Q40 28 53 36", 5.5)}${strek("M68 40 Q80 37 93 43", 5.5)}
+        ${strek("M41 89 Q60 101 81 85", 5)}
+        ${strek("M78 81 l6.5 2", 4)}
+        ${glimt(108, 62, 5)}`,
+    },
   };
 
   // Fallback for a game whose mascot is not drawn yet: the standard head with the first letter on
