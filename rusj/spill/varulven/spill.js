@@ -674,6 +674,7 @@
       if (h.type === "natt" && h.offer === i) return R.t("Tatt natt {n}", { n: h.nr });
       if (h.type === "dag" && h.ut === i) return R.t("Kastet ut dag {n}", { n: h.nr });
       if (h.type === "jeger" && h.mal === i) return R.t("Skutt av jegeren");
+      if (h.type === "borte" && h.i === i) return R.t("Forlot spillet"); // (only on the net)
     }
     return R.t("Overlevde");
   }
@@ -694,6 +695,8 @@
           }
           return `<li><span class="vu-hist-ikon" aria-hidden="true">🌙</span><span><b class="vu-hist-tittel">${esc(R.t("Natt {n}", { n: h.nr }))}</b> ${deler.join(" ")}</span></li>`;
         }
+        // (only on the net: a player who left the match)
+        if (h.type === "borte") return `<li><span class="vu-hist-ikon" aria-hidden="true">🚪</span><span>${esc(R.t("{hvem} forlot spillet.")).replace("{hvem}", () => navnRolle(h.i))}</span></li>`;
         if (h.type === "dag") {
           return `<li><span class="vu-hist-ikon" aria-hidden="true">☀️</span><span><b class="vu-hist-tittel">${esc(R.t("Dag {n}", { n: h.nr }))}</b> ${
             h.ut != null ? esc(R.t("Landsbyen kastet ut {hvem}.")).replace("{hvem}", () => navnRolle(h.ut)) : esc(R.t("Ingen ble kastet ut."))
@@ -802,6 +805,8 @@
   // ---------- «Én natt»: the game ----------
 
   const EN_REKKE = ["varulv", "synsk", "bytter", "brak", "landsby"];
+  // «Én natt» – on one phone, or on the net (where `modus` is "nett" and `type` the way of playing).
+  const erEn = (sp) => sp.modus === "en" || sp.type === "en";
   const nattSkjerm = (sp) => (sp.modus === "en" ? "en-natt" : "natt");
   const rollenavn = (r) => EN_ROLLER[r].navn.toLowerCase();
   const rundeTekst = (sp) => (sp.runder ? R.t("Runde {n} av {av}", { n: sp.runde, av: sp.runder }) : R.t("Runde {n}", { n: sp.runde }));
@@ -1053,8 +1058,9 @@
   }
 
   const enVinnere = (sp) => {
-    const topp = Math.max(0, ...sp.poeng);
-    return topp > 0 ? range(sp.n).filter((i) => sp.poeng[i] === topp) : [];
+    const med = range(sp.n).filter((i) => !(sp.ute || []).includes(i)); // (on the net: not those who left)
+    const topp = Math.max(0, ...med.map((i) => sp.poeng[i]));
+    return topp > 0 ? med.filter((i) => sp.poeng[i] === topp) : [];
   };
 
   // «Del resultatet» for a session: the winner(s) by first name and the numbers.
@@ -1075,7 +1081,10 @@
   // «Kåringen» after a session: the winner(s), the podium, the scores and the awards.
   function enKaring(S) {
     const sp = S.spill;
-    const rader = range(sp.n).map((i) => ({ i, poeng: sp.poeng[i] }));
+    const nett = sp.modus === "nett" && !!R.nett;
+    const rader = range(sp.n)
+      .filter((i) => !nett || !sp.ute.includes(i)) // (on the net: not those who left)
+      .map((i) => ({ i, poeng: sp.poeng[i] }));
     const vinnere = enVinnere(sp);
     const mange = vinnere.length > 3;
     const seirer = seirerTekst(sp.seirer);
@@ -1093,8 +1102,12 @@
       ${prisHtml(enPriser(sp))}
       ${stillingHtml(S)}
       ${vinnere.length ? R.ui.knapp2(R.t("Del resultatet"), "del") : ""}
-      ${R.ui.flereSpill({ antall: sp.n })}
-      ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+      ${
+        nett
+          ? R.nett.sluttDokk()
+          : `${R.ui.flereSpill({ antall: sp.n })}
+      ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`
+      }`;
   }
 
   // A game is in progress until «Kåringen» (front page badge, screen kept awake).
@@ -1243,10 +1256,596 @@
     },
   };
 
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Seat i is player i on its own phone; the players still talk together (in the room or on a call).
+  // No game leader is needed: the phones run the night. Everyone sees their own role on their own
+  // phone, and at night every player still alive does their night job at the same time on their own
+  // phone (everyone picks one name, so nobody can tell roles from what they do). When the last one has
+  // picked, the morning is the same on every phone; the vote is on the phones too. The host's setup
+  // decides the way of playing: «Klassisk» needs six (fewer play «Én natt»), «Én natt» takes up to ten
+  // (more play «Klassisk»). The roles are those of the game on one phone.
+  // Moves – «Klassisk»: { klar: 1 } (I have seen my role); { valg: i, n } (my night pick, night n);
+  // { stem: d } from the leader (to the vote on day d); { mot: i, d } (my vote); { skyt: i } from the
+  // hunter; { kveld: n } from the leader (night n falls). «Én natt»: { valg: i | [i, j], r } (the
+  // troublemaker picks two); { stem: r } from the leader; { mot: i, r }; { runde: r } and, in «Fri»,
+  // { kaaring: r } from the leader. Anything else, or anything the rules don't allow now, is ignored on
+  // every phone. The leader («Klassisk»: the first one out, as the game leader on one phone – until then
+  // one seat on from the last match; «Én natt»: one seat on each round) only moves the game on.
+  // The roles come from the room's seed (okt.rng), so a modified phone could compute them – a game
+  // among friends (rusj-nett KLIENT.md). The night picks and the votes are answers everyone gives at
+  // once: they are in every phone's list of moves before the morning or the count, and the screens show
+  // only one's own and how many are ready (a commitment would need every phone to send a second move at
+  // dawn, all at once). The wolves' tie is broken by the chance of the move that ended the night.
+  // A seat that leaves: in «Klassisk» it is out (its role is shown, as for the dead) and the game goes on
+  // – a hunter that leaves does not shoot; in «Én natt» the round does not count. Fewer than four: over.
+  // Nothing is kept on this phone (no tally, no «Kveldens gjeng»).
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const erInne = (sp, i) => erIndeks(i, sp.n) && !sp.ute.includes(i);
+  const nettInne = (sp) => range(sp.n).filter((i) => !sp.ute.includes(i));
+  const tom = (n) => range(n).map(() => null);
+  // Who answers now: «Klassisk» the living, «Én natt» everyone still in.
+  const svarere = (sp) => (sp.type === "en" ? nettInne(sp) : levende(sp));
+  const alleSvart = (sp, svar) => svarere(sp).every((i) => svar[i] != null);
+  function venterPa(sp, svar) {
+    const meg = R.nett.meg();
+    const med = svarere(sp);
+    if (med.includes(meg) && svar[meg] == null) return meg;
+    const mangler = med.filter((i) => svar[i] == null);
+    return mangler.length === 1 ? mangler[0] : null;
+  }
+  function forbi(sp, s) {
+    for (let j = 0; j < sp.n && sp.ute.includes(s); j++) s = (s + 1) % sp.n;
+    return s;
+  }
+  // «Klassisk»: the first one out leads (if still here); «Én natt»: one seat on each round.
+  const nettLeder = (sp, runde) =>
+    sp.type === "en" ? forbi(sp, (sp.forste + (runde || sp.runde) - 1) % sp.n) : sp.spilleder != null && !sp.ute.includes(sp.spilleder) ? sp.spilleder : forbi(sp, sp.forste);
+  const jegerVenter = (sp) => !!(sp.jeger && sp.jeger.mal == null);
+  function sjekkVinner(sp) {
+    const v = vinner(sp);
+    if (!v) return;
+    sp.vinner = v;
+    sp.ferdig = true;
+  }
+
+  // «Klassisk»: a new night.
+  function nettNyNatt(sp) {
+    sp.natt += 1;
+    sp.valg = tom(sp.n);
+    sp.jeger = null;
+    sp.utkastet = null;
+    sp.fase = "natt";
+  }
+  // Everyone alive has picked: the morning (state only), as on one phone; the moon is the move's chance.
+  function nettMorgen(sp, rng) {
+    const fredelig = erFredelig(sp);
+    const stemmer = new Map();
+    if (!fredelig) {
+      ulveflokk(sp).forEach((u) => {
+        const m = sp.valg[u];
+        if (m != null && sp.levende[m]) stemmer.set(m, (stemmer.get(m) || 0) + 1);
+      });
+    }
+    let mal = null;
+    if (stemmer.size) {
+      const topp = Math.max(...stemmer.values());
+      const like = [...stemmer.keys()].filter((k) => stemmer.get(k) === topp).sort((a, b) => a - b);
+      mal = like[Math.floor(rng() * like.length)];
+    }
+    const lege = levendeMed(sp, "lege")[0];
+    const beskyttet = !fredelig && lege != null && sp.valg[lege] != null ? sp.valg[lege] : null;
+    const synsk = levendeMed(sp, "synsk")[0];
+    const reddet = mal != null && mal === beskyttet;
+    const offer = mal != null && !reddet ? mal : null;
+    sp.hendelser.push({ type: "natt", nr: sp.natt, fredelig, mal, reddet, offer, synsk: synsk != null && sp.valg[synsk] != null ? { av: synsk, sjekket: sp.valg[synsk], ulv: erUlv(sp, sp.valg[synsk]) } : null });
+    levende(sp).forEach((i) => {
+      if ((sp.roller[i] === "landsby" || sp.roller[i] === "jeger") && sp.valg[i] != null) sp.mistanker.push({ natt: sp.natt, fra: i, til: sp.valg[i] });
+    });
+    sp.forrigeBeskyttet = beskyttet;
+    if (offer != null) {
+      ut(sp, offer);
+      if (sp.roller[offer] === "jeger") sp.jeger = { av: offer, valgt: null, mal: null, vist: true, etter: "dag" };
+    }
+    sp.morgen = { offer, reddet, fredelig, vist: true };
+    sp.ingenUt = false;
+    sp.dag += 1;
+    sp.fase = "dag";
+    if (!sp.jeger) sjekkVinner(sp);
+  }
+  // Everyone alive has voted: the one with the most votes leaves the village; a tie, nobody does.
+  function nettTelling(sp) {
+    const med = levende(sp);
+    const tall = range(sp.n).map((i) => med.filter((j) => sp.stemmer[j] === i).length);
+    const topp = Math.max(...tall);
+    const hvem = range(sp.n).filter((i) => topp > 0 && tall[i] === topp);
+    sp.stemmer = null;
+    sp.fase = "utkastet";
+    if (hvem.length !== 1) {
+      sp.utkastet = null;
+      sp.hendelser.push({ type: "dag", nr: sp.dag, ut: null });
+      sp.ingenUt = true;
+      return;
+    }
+    const i = hvem[0];
+    ut(sp, i);
+    sp.utkastet = i;
+    sp.hendelser.push({ type: "dag", nr: sp.dag, ut: i });
+    if (sp.roller[i] === "jeger") sp.jeger = { av: i, valgt: null, mal: null, vist: true, etter: "natt" };
+    else sjekkVinner(sp);
+  }
+  // A night pick that the rules allow («Klassisk», the same list as on one phone).
+  function lovligNatt(sp, meg, i) {
+    if (!erIndeks(i, sp.n) || !sp.levende[i]) return false;
+    const r = sp.roller[meg];
+    if (r === "varulv") return !erUlv(sp, i);
+    if (r === "lege") return i !== sp.forrigeBeskyttet;
+    return i !== meg;
+  }
+
+  // «Én natt»: a new deal to the seats still in.
+  function nettEnRunde(sp, runde, rng) {
+    const med = nettInne(sp);
+    const kort = R.stokk(enStokk(med.length), rng);
+    sp.roller = tom(sp.n);
+    med.forEach((i, k) => (sp.roller[i] = kort[k]));
+    Object.assign(sp, { runde, valg: tom(sp.n), slutt: null, stemmer: null, pekt: null, talt: false, fase: "natt", borte: null });
+  }
+  function lovligEn(sp, meg, v) {
+    const ok = (i) => erInne(sp, i) && i !== meg;
+    if (sp.roller[meg] === "brak") return Array.isArray(v) && v.length === 2 && v[0] !== v[1] && v.every(ok);
+    if (!ok(v)) return false;
+    return !(sp.roller[meg] === "varulv" && sp.roller[v] === "varulv");
+  }
+  // Everyone has voted: the most votes are pointed out (several on a tie); nobody if nobody got two.
+  function nettEnTelling(sp) {
+    const med = nettInne(sp);
+    const tall = range(sp.n).map((i) => med.filter((j) => sp.stemmer[j] === i).length);
+    const topp = Math.max(...tall);
+    sp.pekt = topp > 1 ? range(sp.n).filter((i) => tall[i] === topp) : [];
+    sp.stemmer = null;
+    // The round in the books (as enTell on one phone, without the tally on this phone).
+    const v = enVinner(sp);
+    med.forEach((i) => {
+      if (enVant(sp, i)) sp.poeng[i] += 1;
+    });
+    const gjettet = med.filter((i) => sp.roller[i] === "landsby" && erIndeks(sp.valg[i], sp.n));
+    sp.logg.push({ v, pekt: sp.pekt.slice(), ulver: med.filter((i) => sp.slutt[i] === "varulv"), treff: gjettet.filter((i) => sp.roller[sp.valg[i]] === "varulv"), bom: gjettet.filter((i) => sp.roller[sp.valg[i]] !== "varulv") });
+    if (sp.logg.length > 60) sp.logg.shift();
+    sp.spilt += 1;
+    sp.seirer[v] += 1;
+    sp.talt = true;
+    sp.vist = true;
+    sp.fase = "avsloring";
+    if (sisteRunde(sp)) sp.ferdig = true;
+  }
+
+  let nettSett = ""; // this phone has looked at its role («Klar» waits for it)
+  let nettMerket = []; // the names marked on this phone, before the pick is sent
+  let nettNokkel = "";
+  let nettFeire = false;
+  let nettKlokke = ""; // the day the clock on this phone belongs to
+  const nokkelFor = (sp) => `${R.nett.kamp()}:${sp.type === "en" ? sp.runde : sp.natt + "/" + sp.dag}:${sp.fase}`;
+
+  // After a move on the screen: redraw, with a sound when the phase changed.
+  function nettTegn(S, for_) {
+    const sp = S.spill;
+    if (S.skjerm !== "nettvarulv") return;
+    R.vis();
+    if (sp.ferdig) nettFeire = true;
+    if (sp.fase === for_) {
+      // (the same phase: only the hunter's shot is news)
+      if (sp.jeger && sp.jeger.mal != null && sp.fase !== "natt") {
+        fokuserTittel();
+        R.lyd.bom();
+      }
+      return;
+    }
+    fokuserTittel();
+    if (sp.fase === "natt") ul();
+    else if (sp.fase === "dag" && sp.type !== "en" && sp.morgen && sp.morgen.offer != null) {
+      hane();
+      setTimeout(() => R.lyd.bom(), 600);
+    } else if (sp.fase === "dag") hane();
+    else if (sp.fase === "stemme") R.lyd.pek();
+    else if (sp.fase === "utkastet") (sp.utkastet != null && erUlv(sp, sp.utkastet) ? R.lyd.fanfare : R.lyd.feil)();
+    else if (sp.fase === "avsloring") (enVinner(sp) === "landsby" ? R.lyd.fanfare : ul)();
+    else R.lyd.pling();
+  }
+
+  // «2 av 6 er klare» and who is still missing – never what anyone chose.
+  function klarLinje(sp, svar, med) {
+    const mangler = med.filter((i) => svar[i] == null);
+    const hvem = mangler.length && mangler.length <= 3 ? " · " + R.t("Venter på {navn} …", { navn: R.ramsOpp(mangler.map(R.navn)) }) : "";
+    return `<p class="hjelp vu-klar" data-si>${esc(R.t("{n} av {m} er klare", { n: med.length - mangler.length, m: med.length }) + hvem)}</p>`;
+  }
+  const lederHjelp = (i) => `<p class="hjelp">${esc(R.t("Det er {navn} som trykker videre.", { navn: R.navn(i) }))}</p>`;
+  const kortMappe = () => R.ui.mappe({ id: "nett", etikett: R.t("Hemmelig rolle"), tekst: HOLD });
+  const seIgjen = (sp) => R.ui.lenkerad(R.ui.lenke(sp.type === "en" ? R.t("Glemt hva du så?") : R.t("Glemt rollen din?"), "pa-se-igjen"));
+
+  // The names to pick at night (a tap marks, the dock confirms), as on one phone.
+  function nettNavn(sp, meg, kan) {
+    const med = sp.type === "en" ? nettInne(sp) : levende(sp);
+    return `<div class="velgere vu-velgere">${med
+      .map((i) => {
+        const r = sp.roller[meg];
+        const deg = i === meg;
+        const ulv = r === "varulv" && sp.roller[i] === "varulv";
+        let merke = deg ? R.t("deg") : ulv ? "🐺" : "";
+        if (sp.type !== "en" && r === "lege" && i === sp.forrigeBeskyttet) merke = R.t("i går");
+        return `<button class="velger" data-h="pa-marker" data-v="${i}" aria-pressed="${nettMerket.includes(i)}"${kan(i) ? "" : " disabled"}>${R.avatar(i)}<span><b>${esc(R.navn(i))}</b>${merke ? `<small>${esc(merke)}</small>` : ""}</span></button>`;
+      })
+      .join("")}</div>`;
+  }
+
+  function visNettNatt(S) {
+    const sp = S.spill;
+    const meg = R.nett.meg();
+    const en = sp.type === "en";
+    const med = svarere(sp);
+    const tittel = en ? rundeTekst(sp) : R.t("Natt {n}", { n: sp.natt });
+    if (!med.includes(meg)) {
+      return `
+        <div class="vu-natthimmel">
+          <span class="vu-maane" aria-hidden="true">🌙</span>
+          <h1 id="skjerm-tittel">${esc(tittel)}</h1>
+          <p class="vu-fortelling">${esc(R.t("Du er ute. Se på – og ikke si noe."))}</p>
+        </div>
+        ${klarLinje(sp, sp.valg, med)}`;
+    }
+    const valgt = sp.valg[meg];
+    const rolleNavn = en ? EN_ROLLER[sp.roller[meg]] : nattjobb(sp, meg);
+    const hode = `
+      <div class="vu-oppdrag${en ? " vu-en-oppdrag" : ""}">
+        <div class="vu-hvem">${R.avatar(meg)}<div><h1 id="skjerm-tittel">${esc(tittel)}</h1> <span>· ${rolleNavn.ikon} ${esc(rolleNavn.navn)}</span></div></div>
+        ${valgt == null ? `<p class="vu-sporsmal">${esc(rolleNavn.sporsmal)}</p><p>${sp.roller[meg] === "varulv" ? (en ? enUlveInfo(sp, meg) : ulveInfo(sp, meg)) : esc(rolleNavn.info)}</p>` : ""}
+      </div>`;
+    if (valgt != null) {
+      const svar = en ? enSvar(sp, meg) : nattSvar(sp, meg);
+      return `
+        ${hode}
+        <div class="vu-svar">
+          <span class="vu-svar-ikon" aria-hidden="true">${svar.ikon}</span>
+          <p class="vu-svar-hoved">${esc(svar.hoved)}</p>
+          <p class="vu-svar-under">${esc(svar.under)}</p>
+        </div>
+        ${klarLinje(sp, sp.valg, med)}
+        <p class="hjelp">${esc(R.t("Ikke si noe. Når alle er ferdige, våkner landsbyen."))}</p>`;
+    }
+    const brak = en && sp.roller[meg] === "brak";
+    const kan = (i) => (en ? erInne(sp, i) && i !== meg && !(sp.roller[meg] === "varulv" && sp.roller[i] === "varulv") : lovligNatt(sp, meg, i));
+    const m = nettMerket;
+    const klar = m.length === (brak ? 2 : 1);
+    const knapp = !klar
+      ? R.ui.knapp(brak ? (m.length ? R.t("Trykk på ett navn til") : R.t("Trykk på to navn")) : R.t("Trykk på et navn"), "pa-velg", { av: true })
+      : brak
+        ? R.ui.knapp("", "pa-velg", { tekstHtml: toLinjer(R.t("Bytt om rollene"), R.ramsOpp([R.navn(m[0]), R.navn(m[1])])), av: R.nett.venter() })
+        : R.ui.knapp(`${rolleNavn.verb} ${R.navn(m[0])}`, "pa-velg", { av: R.nett.venter() });
+    return `
+      ${hode}
+      ${nettNavn(sp, meg, kan)}
+      ${klarLinje(sp, sp.valg, med)}
+      ${R.ui.dokk(knapp)}`;
+  }
+
+  // The hunter's last shot, on the hunter's phone; the others wait for it.
+  function jegerHtml(sp) {
+    const j = sp.jeger;
+    if (!j) return "";
+    if (j.mal != null) {
+      return `<p class="vu-jobb"><span class="vu-jobb-ikon" aria-hidden="true">🏹</span><span>${esc(R.t("Jegeren {av} tok med seg {hvem}.", { av: R.navn(j.av) })).replace("{hvem}", () => `<b>${esc(R.navn(j.mal))}</b> (${esc(rolle(sp, j.mal).navn.toLowerCase())})`)}</span></p>`;
+    }
+    if (j.av !== R.nett.meg()) return `<p class="vu-jobb"><span class="vu-jobb-ikon" aria-hidden="true">🏹</span><span><b>${esc(R.t("{navn} var jeger", { navn: R.navn(j.av) }))}</b> ${esc(R.t("Jegeren sikter …"))}</span></p>`;
+    const m = nettMerket[0];
+    return `
+      <section class="seksjon">
+        <h2>${esc(R.t("Et siste skudd"))}</h2>
+        <p class="ingress">${esc(R.t("{navn} peker på én person som må bli med ut av spillet.", { navn: R.navn(j.av) }))}</p>
+        ${R.ui.velgere("pa-marker", levende(sp), m)}
+      </section>
+      ${R.ui.dokk(R.ui.knapp(m != null ? R.t("Skyt {navn}", { navn: R.navn(m) }) : R.t("Velg hvem jegeren skyter"), "pa-skyt", { variant: "rosa", av: m == null || R.nett.venter() }))}`;
+  }
+
+  function visNettDag(S) {
+    const sp = S.spill;
+    const meg = R.nett.meg();
+    const leder = nettLeder(sp);
+    const en = sp.type === "en";
+    let nytt = "";
+    if (!en) {
+      const m = sp.morgen;
+      nytt =
+        m.offer == null
+          ? `<div class="vu-spotlys"><div class="vu-stor-ikon" aria-hidden="true">${m.fredelig ? "🕊️" : m.reddet ? "🩹" : "🌤️"}</div>
+             <h1 id="skjerm-tittel">${esc(m.fredelig ? R.t("Alle våknet. Denne gangen.") : R.t("Alle overlevde natta!"))}</h1>
+             <p class="vu-fortelling">${esc(m.fredelig ? linje(sp, "fredelig", 0) : m.reddet ? linje(sp, "reddet", sp.natt) : R.t("En helt stille natt."))}</p></div>`
+          : `<div class="vu-spotlys"><span class="vu-dod">${R.avatar(m.offer, "stor")}</span>
+             <h1 id="skjerm-tittel">${esc(R.t("{navn} ble tatt i natt", { navn: R.navn(m.offer) }))}<span class="vh"> – ${esc(rolle(sp, m.offer).navn)}</span></h1>
+             <div class="stempel-sted">${stempel(sp, m.offer)}</div>
+             <p class="ingress midt">${esc(rolle(sp, m.offer).ute)}</p></div>`;
+    } else {
+      nytt = `
+        <div class="vu-mottaker">
+          <h1 id="skjerm-tittel">${esc(R.t("Alle åpner øynene!"))}</h1>
+          <p class="vu-fortelling">${esc(linje(sp, "enDag", sp.runde))}</p>
+        </div>`;
+    }
+    const jeger = jegerHtml(sp);
+    if (jegerVenter(sp)) return nytt + jeger;
+    if (sp.ferdig) return nytt + jeger + R.ui.dokk(R.ui.knapp(R.t("Se hvem som vant"), "pa-kaaring"));
+    const lev = en ? 0 : levende(sp).length;
+    const landsby = en
+      ? `<section class="seksjon"><h2>${esc(R.t("Rollene i natt"))}</h2><p class="vu-stokk">${stokkTekst(sp.roller.filter(Boolean), EN_ROLLER, EN_REKKE)}</p>
+         <p class="hjelp vu-venstre">${esc(R.t("Landsbyen vinner hvis en varulv blir pekt ut. Husk: roller kan ha byttet plass i natt – kanskje din også."))}</p></section>`
+      : `<section class="seksjon"><div class="seksjon-hode"><h2>${esc(R.t("Landsbyen"))}</h2><span class="tall">${esc(R.t("{lever} lever · {ute} ute", { lever: lev, ute: sp.n - lev }))}</span></div>${landsbyen(sp)}</section>`;
+    return `
+      ${nytt}
+      ${jeger}
+      ${R.ui.timer({ id: "klokke", sekunder: (en ? TALETID : sp.tid) * 60, kontrollHtml: `<span class="etikett">${esc(R.t("Tid til å snakke"))}</span>` })}
+      ${landsby}
+      ${seIgjen(sp)}
+      ${R.ui.dokk(leder === meg ? R.ui.knapp(en ? R.t("Stem nå") : R.t("Klare til å stemme"), "pa-stemme", { variant: "rosa", av: R.nett.venter() }) : lederHjelp(leder))}`;
+  }
+
+  function visNettStemme(S) {
+    const sp = S.spill;
+    const meg = R.nett.meg();
+    const en = sp.type === "en";
+    const med = svarere(sp);
+    const tittel = `<h1 id="skjerm-tittel">${esc(en ? R.t("Pek ut en varulv") : R.t("Landsbyen stemmer"))}</h1>`;
+    if (!med.includes(meg)) return `${tittel}<p class="ingress">${esc(R.t("Du er ute og stemmer ikke."))}</p>${klarLinje(sp, sp.stemmer, med)}`;
+    const min = sp.stemmer[meg];
+    if (min != null) return `${tittel}<p class="ingress">${esc(R.t("Du stemte på {navn}.", { navn: R.navn(min) }))}</p>${klarLinje(sp, sp.stemmer, med)}`;
+    const m = nettMerket[0];
+    return `
+      ${tittel}
+      <p class="ingress">${esc(en ? R.t("Stem på den du tror er varulv. Landsbyen vinner hvis en varulv er blant dem som får flest stemmer.") : R.t("Stem på den du vil kaste ut. Den som får flest stemmer, må forlate landsbyen."))}</p>
+      ${R.ui.velgere("pa-marker", med.filter((i) => i !== meg), m)}
+      ${klarLinje(sp, sp.stemmer, med)}
+      ${R.ui.dokk(R.ui.knapp(m != null ? R.t("Stem på {navn}", { navn: R.navn(m) }) : R.t("Trykk på et navn"), "pa-mot", { variant: "rosa", av: m == null || R.nett.venter() }))}`;
+  }
+
+  function visNettUtkastet(S) {
+    const sp = S.spill;
+    const i = sp.utkastet;
+    const meg = R.nett.meg();
+    const topp =
+      i == null
+        ? `<div class="vu-spotlys"><div class="vu-stor-ikon" aria-hidden="true">🤷</div><h1 id="skjerm-tittel">${esc(R.t("Uavgjort – ingen ble kastet ut i dag."))}</h1></div>`
+        : `<div class="vu-spotlys">
+             <span class="vu-dod">${R.avatar(i, "stor")}</span>
+             <h1 id="skjerm-tittel">${esc(R.t("{navn} var …", { navn: R.navn(i) }))}<span class="vh"> ${esc(rolle(sp, i).navn)}</span></h1>
+             <div class="stempel-sted">${stempel(sp, i)}</div>
+             <p class="ingress midt">${esc(erUlv(sp, i) ? R.t("Riktig!") : R.t("Å nei, en uskyldig!"))} ${esc(rolle(sp, i).ute)}</p>
+           </div>`;
+    const jeger = jegerHtml(sp);
+    if (jegerVenter(sp)) return topp + jeger;
+    if (sp.ferdig) return topp + jeger + R.ui.dokk(R.ui.knapp(R.t("Se hvem som vant"), "pa-kaaring"));
+    const leder = nettLeder(sp);
+    return `${topp}${jeger}${R.ui.dokk(leder === meg ? R.ui.knapp(R.t("Natta faller på"), "pa-kveld", { av: R.nett.venter() }) : lederHjelp(leder))}`;
+  }
+
+  // «Én natt»: the reveal with the roles as they ended (or a round that does not count).
+  function visNettAvsloring(S) {
+    const sp = S.spill;
+    const meg = R.nett.meg();
+    const neste = nettLeder(sp, sp.runde + 1);
+    const dokk = sp.ferdig
+      ? R.ui.knapp(R.t("Til kåringen"), "pa-kaaring")
+      : neste === meg
+        ? R.ui.knapp(R.t("Neste runde"), "pa-runde", { av: R.nett.venter() }) + (sp.runder ? "" : R.ui.lenkerad(R.ui.lenke(R.t("Til kåringen"), "pa-slutt")))
+        : lederHjelp(neste);
+    const poeng = `<section class="seksjon"><h2>${esc(R.t("Stillingen"))}</h2>${R.ui.poengliste(nettInne(sp).map((i) => ({ i, poeng: sp.poeng[i], pluss: !sp.borte && sp.slutt && enVant(sp, i) ? 1 : 0 })))}</section>`;
+    if (sp.fase === "tom") {
+      return `
+        ${R.ui.banner({ etikett: R.t("Runden teller ikke"), tittel: R.t("{navn} forlot runden", { navn: R.navn(sp.borte) }), tekst: R.t("Ingen får poeng denne runden."), klasse: "aksent", stemning: "lei" })}
+        ${poeng}
+        ${R.ui.dokk(dokk)}`;
+    }
+    const pekt = sp.pekt;
+    const v = enVinner(sp);
+    const med = nettInne(sp);
+    const ulver = med.filter((i) => sp.slutt[i] === "varulv");
+    const tatt = pekt.filter((i) => sp.slutt[i] === "varulv");
+    const storrelse = pekt.length === 1 ? "gigant" : "stor";
+    const forklaring =
+      v === "landsby"
+        ? R.t("{hvem} endte natta som varulv – og ble pekt ut.|{hvem} endte natta som varulv – og ble pekt ut.", { n: tatt.length, hvem: R.ramsOpp(tatt.map(R.navn)) })
+        : `${pekt.length ? R.t("Ingen varulv ble pekt ut.") : R.t("Ingen ble pekt ut.")} ${ulver.length > 1 ? R.t("Varulvene var {hvem}.", { hvem: R.ramsOpp(ulver.map(R.navn)) }) : ulver.length ? R.t("Varulven var {hvem}.", { hvem: R.ramsOpp(ulver.map(R.navn)) }) : ""}`;
+    const hvemVarHvem = med
+      .map((i) => {
+        const a = EN_ROLLER[sp.roller[i]];
+        const b = EN_ROLLER[sp.slutt[i]];
+        const roller = a === b ? `${a.ikon} ${esc(a.navn)}` : `${a.ikon} ${esc(a.navn)} <span aria-hidden="true">→</span><span class="vh"> ${esc(R.t("ble til"))} </span> ${b.ikon} ${esc(b.navn)}`;
+        return `<li class="${sp.slutt[i] === "varulv" ? "ulv" : ""}">${R.avatar(i)}<span><b>${esc(R.navn(i))}</b><small>${roller}</small></span></li>`;
+      })
+      .join("");
+    return `
+      <div class="vu-spotlys">
+        ${
+          pekt.length
+            ? `<ul class="vu-pekte${pekt.length > 1 ? " flere" : ""}">${pekt.map((i) => `<li>${R.avatar(i, storrelse)}<b>${esc(R.navn(i))}</b><span class="stempel ${sp.slutt[i] === "varulv" ? "mynte" : ""}">${esc(EN_ROLLER[sp.slutt[i]].navn)}</span></li>`).join("")}</ul>`
+            : '<div class="vu-stor-ikon" aria-hidden="true">🐺</div>'
+        }
+        <h1 id="skjerm-tittel" class="vu-dom ${v === "landsby" ? "mynte" : "rosa"}">${esc(v === "landsby" ? R.t("Landsbyen vinner runden!") : R.t("Varulvene vinner runden!"))}</h1>
+        <p class="ingress midt">${esc(forklaring)}</p>
+      </div>
+      <section class="seksjon"><h2>${esc(R.t("Hvem var hvem?"))}</h2><ul class="vu-rolleliste">${hvemVarHvem}</ul></section>
+      <section class="seksjon"><h2>${esc(R.t("Slik gikk natta"))}</h2><ol class="vu-historikk">${enHistorie(sp)}</ol></section>
+      ${poeng}
+      ${R.ui.dokk(dokk)}`;
+  }
+
+  function visNettRoller(S) {
+    const sp = S.spill;
+    const meg = R.nett.meg();
+    const sendt = sp.klar[meg] != null;
+    const sett = nettSett === `${R.nett.kamp()}`;
+    return `
+      <h1 id="skjerm-tittel" class="spillernavn">${R.avatar(meg, "stor")}<span>${esc(R.t("Se rollen din"))}</span></h1>
+      ${kortMappe()}
+      ${klarLinje(sp, sp.klar, nettInne(sp))}
+      ${R.ui.dokk(sendt ? "" : R.ui.knapp(sett ? R.t("Klar!") : R.t("Se rollen din først"), "pa-klar", { av: !sett || R.nett.venter() }))}`;
+  }
+
+  const NETT = {
+    min: MODUS.en.min,
+    maks: MAKS,
+    oppsett: (S) => {
+      const o = S.oppsett;
+      return { modus: o.modus, ulver: o.ulver, synsk: o.synsk, lege: o.lege, jeger: o.jeger, tid: o.tid, fredelig: o.fredelig, runder: o.runder };
+    },
+    oppsettTekst(o) {
+      const x = o || {};
+      if (x.modus === "en") return [R.t("Én natt"), RUNDER.includes(x.runder) && x.runder ? R.flertall(x.runder, "runde", "runder") : R.t("Fri"), R.t("Over 10: Klassisk")].join(" · ");
+      const roller = SPESIAL.filter((r) => x[r]).map((r) => ROLLER[r].navn.toLowerCase());
+      return [R.t("Klassisk"), ...(roller.length ? [R.ramsOpp(roller)] : []), R.t("{n} min", { n: TIDER.includes(x.tid) ? x.tid : 3 }), R.t("Færre enn 6: Én natt")].join(" · ");
+    },
+    start(S, okt) {
+      const o = okt.oppsett || {};
+      const n = R.klamp(okt.antall || MODUS.en.min, MODUS.en.min, MAKS);
+      const type = o.modus === "en" ? (n <= MODUS.en.maks ? "en" : "klassisk") : n >= MIN ? "klassisk" : "en";
+      const rng = R.nett.tilfeldig(okt.fro, "roller");
+      const felles = { modus: "nett", type, n, forste: (okt.kamp - 1) % n, ute: [], fro: (okt.fro >>> 0) % 1000, ferdig: false, valg: tom(n), stemmer: null };
+      if (type === "en") {
+        S.spill = Object.assign(felles, { runder: RUNDER.includes(o.runder) ? o.runder : 5, runde: 0, spilt: 0, poeng: range(n).map(() => 0), seirer: { landsby: 0, ulv: 0 }, logg: [], vist: false, talt: false });
+        nettEnRunde(S.spill, 1, rng);
+      } else {
+        const roller = { synsk: o.synsk !== false, lege: o.lege !== false, jeger: !!o.jeger };
+        const ulver = R.klamp(Number.isInteger(o.ulver) ? o.ulver : anbefalteUlver(n), 1, maksUlver(n));
+        S.spill = Object.assign(felles, {
+          roller: R.stokk(kortstokk(n, ulver, roller), rng),
+          levende: range(n).map(() => true),
+          tid: TIDER.includes(o.tid) ? o.tid : 3,
+          fredelig: o.fredelig == null ? n <= FREDELIG_TIL : !!o.fredelig,
+          natt: 0,
+          dag: 0,
+          fase: "roller",
+          klar: tom(n),
+          forrigeBeskyttet: null,
+          hendelser: [],
+          mistanker: [],
+          morgen: null,
+          jeger: null,
+          utkastet: null,
+          spilleder: null,
+          ingenUt: false,
+          vinner: null,
+        });
+      }
+      nettSett = "";
+      nettMerket = [];
+      nettNokkel = "";
+      nettFeire = false;
+      nettKlokke = "";
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || !erInne(sp, sete)) return;
+      const for_ = sp.fase;
+      const leder = nettLeder(sp);
+      if (sp.type === "en") {
+        const r = sp.runde;
+        if (sp.fase === "natt" && t.r === r && sp.roller[sete] && sp.valg[sete] == null && lovligEn(sp, sete, t.valg)) {
+          sp.valg[sete] = Array.isArray(t.valg) ? t.valg.slice() : t.valg;
+          if (alleSvart(sp, sp.valg)) {
+            sp.slutt = sluttroller(sp);
+            sp.fase = "dag";
+          }
+        } else if (sp.fase === "dag" && t.stem === r && sete === leder) {
+          sp.fase = "stemme";
+          sp.stemmer = tom(sp.n);
+        } else if (sp.fase === "stemme" && t.d === r && sp.stemmer[sete] == null && erInne(sp, t.mot) && t.mot !== sete) {
+          sp.stemmer[sete] = t.mot;
+          if (alleSvart(sp, sp.stemmer)) nettEnTelling(sp);
+        } else if ((sp.fase === "avsloring" || sp.fase === "tom") && t.runde === r + 1 && sete === nettLeder(sp, r + 1)) {
+          nettEnRunde(sp, r + 1, okt.rng);
+        } else if ((sp.fase === "avsloring" || sp.fase === "tom") && !sp.runder && t.kaaring === r && sete === nettLeder(sp, r + 1)) {
+          sp.ferdig = true;
+        } else return;
+      } else {
+        if (sp.fase === "roller" && t.klar === 1 && sp.klar[sete] == null) {
+          sp.klar[sete] = 1;
+          if (R.nett.alleHar(sp.klar, sp.n)) nettNyNatt(sp);
+        } else if (sp.fase === "natt" && t.n === sp.natt && sp.levende[sete] && sp.valg[sete] == null && lovligNatt(sp, sete, t.valg)) {
+          sp.valg[sete] = t.valg;
+          if (alleSvart(sp, sp.valg)) nettMorgen(sp, okt.rng);
+        } else if (jegerVenter(sp) && sete === sp.jeger.av && erInne(sp, t.skyt) && sp.levende[t.skyt] && t.skyt !== sete) {
+          sp.jeger.mal = t.skyt;
+          ut(sp, t.skyt);
+          sp.hendelser.push({ type: "jeger", av: sp.jeger.av, mal: t.skyt });
+          sjekkVinner(sp);
+        } else if (sp.fase === "dag" && t.stem === sp.dag && sete === leder && !jegerVenter(sp)) {
+          sp.fase = "stemme";
+          sp.stemmer = tom(sp.n);
+        } else if (sp.fase === "stemme" && t.d === sp.dag && sp.levende[sete] && sp.stemmer[sete] == null && erInne(sp, t.mot) && sp.levende[t.mot] && t.mot !== sete) {
+          sp.stemmer[sete] = t.mot;
+          if (alleSvart(sp, sp.stemmer)) nettTelling(sp);
+        } else if (sp.fase === "utkastet" && t.kveld === sp.natt + 1 && sete === leder && !jegerVenter(sp)) {
+          nettNyNatt(sp);
+        } else return;
+      }
+      if (okt.gjenspill) return;
+      if (sp.ferdig && (for_ === "avsloring" || for_ === "tom")) {
+        nettFeire = true;
+        return void (S.skjerm === "nettvarulv" && R.gaTil("slutt"));
+      }
+      nettTegn(S, for_);
+    },
+    // The seat left: «Klassisk» – out of the village (its role is shown); «Én natt» – the round does not count.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !erIndeks(sete, sp.n) || sp.ute.includes(sete)) return;
+      const for_ = sp.fase;
+      sp.ute.push(sete);
+      if (sp.stemmer) sp.stemmer[sete] = null;
+      if (sp.type === "en") {
+        if (nettInne(sp).length < MODUS.en.min) sp.ferdig = true;
+        else if (sp.fase !== "avsloring" && sp.fase !== "tom") {
+          sp.fase = "tom";
+          sp.borte = sete;
+          sp.stemmer = null;
+          if (sisteRunde(sp)) sp.ferdig = true;
+        }
+      } else {
+        if (sp.levende[sete]) {
+          sp.levende[sete] = false;
+          sp.hendelser.push({ type: "borte", i: sete });
+        }
+        if (jegerVenter(sp) && sp.jeger.av === sete) sp.jeger = null; // (a hunter that leaves does not shoot)
+        if (nettInne(sp).length < MODUS.en.min) sp.ferdig = true;
+        else if (sp.fase === "roller" && R.nett.alleHar(sp.klar, sp.n)) nettNyNatt(sp);
+        else if (sp.fase === "natt" && alleSvart(sp, sp.valg)) nettMorgen(sp, okt.rng);
+        else if (sp.fase === "stemme" && alleSvart(sp, sp.stemmer)) nettTelling(sp);
+        if (!sp.ferdig && !jegerVenter(sp)) sjekkVinner(sp);
+      }
+      if (okt.gjenspill) return;
+      // Over because someone left (the last wolf, say): on to «Kåringen», unless a result is on screen.
+      if (sp.ferdig && !["dag", "utkastet", "avsloring", "tom"].includes(sp.fase)) {
+        nettFeire = true;
+        return void (S.skjerm === "nettvarulv" && R.gaTil("slutt"));
+      }
+      nettTegn(S, for_);
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "nettvarulv"),
+    tur(S) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig) return null;
+      if (sp.fase === "roller") return venterPa(sp, sp.klar);
+      if (sp.fase === "natt") return venterPa(sp, sp.valg);
+      if (sp.fase === "stemme") return venterPa(sp, sp.stemmer);
+      if (jegerVenter(sp)) return sp.jeger.av;
+      if (sp.fase === "utkastet") return nettLeder(sp);
+      if (sp.fase === "avsloring" || sp.fase === "tom") return nettLeder(sp, sp.runde + 1);
+      return null; // the day: you talk (the leader starts the vote)
+    },
+    ferdig: (S) => !!S.spill && paNett(S.spill) && !!S.spill.ferdig,
+  };
+
   const DEF = {
     id: "varulven",
     versjon: 1,
     pagar: (S) => pagar(S),
+    nett: NETT,
 
     // A fresh setup starts from the saved group: six or more start in the classic game, fewer
     // in «Én natt» (which needs four).
@@ -1294,7 +1893,7 @@
     // The rules sheet leads with the way of playing that is in use, and has the other one below.
     get regler() {
       const S = R.S;
-      const modus = S && S.spill && !S.spill.ferdig ? S.spill.modus : S && S.oppsett ? S.oppsett.modus : "klassisk";
+      const modus = S && S.spill && !S.spill.ferdig ? S.spill.type || S.spill.modus : S && S.oppsett ? S.oppsett.modus : "klassisk";
       const [forst, sa] = modus === "en" ? [REGLER.en, REGLER.klassisk] : [REGLER.klassisk, REGLER.en];
       return {
         intro: forst.intro,
@@ -1311,12 +1910,19 @@
     hemmelig: {
       innhold(S, id) {
         const sp = S.spill;
+        // On the net: this phone's own role, never another seat's.
+        if (id === "nett") return paNett(sp) ? (sp.type === "en" ? enKort(sp, R.nett.meg()) : rollekort(sp, R.nett.meg())) : { html: "" };
         const i = Number(String(id).slice(1));
         if (!sp || !erIndeks(i, sp.n)) return { html: "" };
         return sp.modus === "en" ? enKort(sp, i) : rollekort(sp, i);
       },
       sett(S, id) {
         const sp = S.spill;
+        if (id === "nett") {
+          if (!paNett(sp) || sp.fase !== "roller") return;
+          nettSett = `${R.nett.kamp()}`;
+          return R.vis();
+        }
         if (S.skjerm === "roller" && id === "r" + sp.vis.i && !sp.vis.sett) {
           sp.vis.sett = true;
           R.vis();
@@ -1340,7 +1946,7 @@
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
               fortsettTekst: pagar(S) ? fortsettTekst(S.spill) : "",
-              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+              ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
               ...(harStilling(S) ? [[R.t("STILLING"), stillingTekst(S)]] : []),
@@ -1872,13 +2478,52 @@
         },
       },
 
+      // On the net: one screen for the whole game, drawn from the phase (see «On the net» above).
+      nettvarulv: {
+        tittel: (S) => {
+          const sp = S.spill;
+          if (sp.type === "en") return rundeTekst(sp);
+          if (sp.fase === "roller") return R.t("Rollene");
+          return sp.fase === "natt" ? R.t("Natt {n}", { n: sp.natt }) : R.t("Dag {n}", { n: sp.dag });
+        },
+        tilbake: "hjem",
+        vis(S) {
+          const sp = S.spill;
+          const n = nokkelFor(sp);
+          if (n !== nettNokkel) {
+            nettNokkel = n;
+            nettMerket = [];
+          }
+          if (sp.fase === "roller") return visNettRoller(S);
+          if (sp.fase === "natt") return visNettNatt(S);
+          if (sp.fase === "dag") return visNettDag(S);
+          if (sp.fase === "stemme") return visNettStemme(S);
+          if (sp.fase === "utkastet") return visNettUtkastet(S);
+          return visNettAvsloring(S);
+        },
+        inn: () => R.holdVaken(),
+        etter(S) {
+          const sp = S.spill;
+          if (!paNett(sp)) return;
+          stemning(sp.fase === "natt" ? "natt" : sp.fase === "dag" ? "morgen" : sp.fase === "avsloring" && !sp.borte ? (enVinner(sp) === "ulv" ? "natt" : "morgen") : "");
+          // The day's clock is this phone's own: it starts when the day comes, and runs across redraws.
+          if (sp.fase !== "dag" || !document.getElementById("klokke")) return;
+          const nokkel = `${R.nett.kamp()}:${sp.type === "en" ? sp.runde : sp.dag}`;
+          const t = R.timer("klokke");
+          if (t && nettKlokke === nokkel) return t.tegn();
+          if (t) t.stopp();
+          nettKlokke = nokkel;
+          new R.Timer({ id: "klokke", sekunder: (sp.type === "en" ? TALETID : sp.tid) * 60 }).start();
+        },
+      },
+
       slutt: {
         tittel: R.t("Kåringen"),
         tilbake: "hjem",
         stemning: null,
         vis(S) {
           const sp = S.spill;
-          if (sp.modus === "en") return enKaring(S);
+          if (erEn(sp)) return enKaring(S);
           const ulvVant = sp.vinner === "ulv";
           const roller = range(sp.n)
             .map((i) => {
@@ -1920,19 +2565,28 @@
                 : ""
             }
             ${sp.vinner ? R.ui.knapp2(R.t("Del resultatet"), "del") : ""}
-            ${R.ui.flereSpill({ antall: sp.n })}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${
+              paNett(sp)
+                ? R.nett.sluttDokk()
+                : `${R.ui.flereSpill({ antall: sp.n })}
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "nytt"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`
+            }`;
         },
         inn(S) {
           const sp = S.spill;
-          if (sp.feiret) return;
+          // On the net: the party once, when the match ends on this phone (not after a reload).
+          if (paNett(sp)) {
+            R.slippVaken();
+            if (!nettFeire) return;
+            nettFeire = false;
+          } else if (sp.feiret) return;
           sp.feiret = true;
           R.lagre();
           R.slippVaken();
           if (sp.vinner === "ulv") {
             ul();
             R.konfetti(["--rosa", "--lilla", "--aksent", "--natt-3"]);
-          } else if (sp.vinner === "landsby" || (sp.modus === "en" && sp.spilt > 0)) {
+          } else if (sp.vinner === "landsby" || (erEn(sp) && sp.spilt > 0)) {
             R.lyd.fanfare();
             R.konfetti();
           } else {
@@ -2306,12 +2960,59 @@
         nyNatt(S);
       },
 
+      // On the net: each tap is a move, played when the room sends it back.
+      "pa-klar"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && sp.fase === "roller" && nettSett === `${R.nett.kamp()}`) R.nett.send({ klar: 1 });
+      },
+      // A tap marks a name (the troublemaker marks two); the dock sends it.
+      "pa-marker"(el, e, S) {
+        const sp = S.spill;
+        const i = Number(el.dataset.v);
+        if (!paNett(sp) || !erInne(sp, i)) return;
+        const brak = sp.type === "en" && sp.fase === "natt" && sp.roller[R.nett.meg()] === "brak";
+        nettMerket = brak ? (nettMerket.includes(i) ? nettMerket.filter((x) => x !== i) : [...nettMerket, i].slice(-2)) : [i];
+        R.vis();
+      },
+      "pa-velg"(el, e, S) {
+        const sp = S.spill;
+        const meg = R.nett.meg();
+        if (!paNett(sp) || sp.fase !== "natt" || sp.valg[meg] != null) return;
+        if (sp.type === "en") {
+          const brak = sp.roller[meg] === "brak";
+          if (nettMerket.length !== (brak ? 2 : 1)) return;
+          R.nett.send({ valg: brak ? nettMerket.slice() : nettMerket[0], r: sp.runde });
+        } else if (nettMerket.length === 1) R.nett.send({ valg: nettMerket[0], n: sp.natt });
+        R.vibrer(15);
+      },
+      "pa-stemme": (el, e, S) => paNett(S.spill) && S.spill.fase === "dag" && R.nett.send({ stem: S.spill.type === "en" ? S.spill.runde : S.spill.dag }),
+      "pa-mot"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && sp.fase === "stemme" && nettMerket.length === 1) R.nett.send({ mot: nettMerket[0], d: sp.type === "en" ? sp.runde : sp.dag });
+      },
+      "pa-skyt"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && jegerVenter(sp) && nettMerket.length === 1) R.nett.send({ skyt: nettMerket[0] });
+      },
+      "pa-kveld": (el, e, S) => paNett(S.spill) && S.spill.fase === "utkastet" && R.nett.send({ kveld: S.spill.natt + 1 }),
+      "pa-runde": (el, e, S) => paNett(S.spill) && R.nett.send({ runde: S.spill.runde + 1 }),
+      "pa-slutt": (el, e, S) => paNett(S.spill) && R.nett.send({ kaaring: S.spill.runde }),
+      "pa-kaaring": (el, e, S) => paNett(S.spill) && S.spill.ferdig && R.gaTil("slutt"),
+      "pa-se-igjen"(el, e, S) {
+        if (!paNett(S.spill)) return;
+        R.ark(`
+          <h2 id="ark-tittel">${esc(S.spill.type === "en" ? R.t("Natta di") : R.t("Rollen din"))}</h2>
+          ${kortMappe()}
+          <p class="hjelp">${esc(R.t("Bare du skal se. Slipp for å skjule."))}</p>
+          <button class="knapp" data-h="lukk-ark">${esc(R.t("Ferdig"))}</button>`);
+      },
+
       // End
       igjen: (el, e, S) => (S.oppsett.modus === "en" ? enNyttSpill(S) : nyttSpill(S)),
       del(el, e, S) {
         const sp = S.spill;
         if (!sp || !sp.ferdig) return;
-        const tekst = sp.modus === "en" ? (enVinnere(sp).length ? enDelTekst(S) : "") : sp.vinner ? delTekst(S) : "";
+        const tekst = erEn(sp) ? (enVinnere(sp).length ? enDelTekst(S) : "") : sp.vinner ? delTekst(S) : "";
         if (tekst) R.del(R.t("Varulven"), tekst, location.origin + R.forside + ((R.sprak !== "nb" && window.RUSJ_SPILL && window.RUSJ_SPILL.slug) || "varulven") + "/");
       },
     }),
@@ -2327,7 +3028,7 @@
       // or not revealed yet). A session of «Én natt» ends in the morning light.
       const sp = S.spill;
       let v = null;
-      if (sp && navn === "slutt") v = sp.modus === "en" ? (sp.spilt > 0 ? "landsby" : null) : sp.vinner;
+      if (sp && navn === "slutt") v = erEn(sp) ? (sp.spilt > 0 ? "landsby" : null) : sp.vinner;
       if (sp && navn === "en-avsloring" && sp.vist && sp.pekt && sp.slutt) v = enVinner(sp);
       stemning(v === "ulv" ? "natt" : v === "landsby" ? "morgen" : sk.stemning || "");
       if (etter) etter(S, rot);

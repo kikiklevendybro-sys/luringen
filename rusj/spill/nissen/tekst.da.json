@@ -95,5 +95,16 @@
   "Mandelen var hos {navn}": "Mandlen var hos {navn}",
   "Snu dere tilbake og se uskyldige ut. Ingen sier noe!": "Vend jer om igen, og se uskyldige ud. Ingen siger noget!",
   "Tell ned, og alle peker samtidig på den de tror har mandelen. Hold fingeren der!": "Tæl ned, og alle peger på samme tid på den, de tror har mandlen. Hold fingeren der!",
-  "Trykk på alle som pekte riktig.": "Tryk på alle, der pegede rigtigt."
+  "Trykk på alle som pekte riktig.": "Tryk på alle, der pegede rigtigt.",
+  "{n} av {m} er klare": "{n} af {m} er klar",
+  "Det er {navn} som trykker videre.": "Det er {navn}, der trykker videre.",
+  "Se i grøtbollen din": "Kig i din skål",
+  "Jeg har sett": "Jeg har kigget",
+  "Du pekte på {navn}.": "Du pegede på {navn}.",
+  "Pek på den du tror har mandelen – her på mobilen din. Den som har mandelen, peker også.": "Peg på den, du tror har mandlen – her på din mobil. Den, der har mandlen, peger også.",
+  "Pek på {navn}": "Peg på {navn}",
+  "Trykk på et navn": "Tryk på et navn",
+  "Runden teller ikke": "Runden tæller ikke",
+  "{navn} gikk – med mandelen": "{navn} gik – med mandlen",
+  "Ingen får poeng denne runden.": "Ingen får point i denne runde."
 }

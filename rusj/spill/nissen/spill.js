@@ -92,10 +92,11 @@
     return true;
   }
   // riktige = the players who pointed at the almond holder (the holder is never one of them).
-  function avgjor(sp, riktige) {
+  // ute = seats that have left a match on the net: neither right nor fooled (nobody off the net).
+  function avgjor(sp, riktige, ute = []) {
     if (sp.fase !== "hvem") return null;
-    const liste = [...new Set((riktige || []).filter((i) => Number.isInteger(i) && i >= 0 && i < sp.antall && i !== sp.mandel))].sort((a, b) => a - b);
-    const lurte = sp.antall - 1 - liste.length;
+    const liste = [...new Set((riktige || []).filter((i) => Number.isInteger(i) && i >= 0 && i < sp.antall && i !== sp.mandel && !ute.includes(i)))].sort((a, b) => a - b);
+    const lurte = sp.antall - 1 - ute.filter((i) => i !== sp.mandel).length - liste.length;
     const alle = liste.length === 0; // fooled everyone: the marzipan pig
     const pluss = Array(sp.antall).fill(0);
     for (const i of liste) pluss[i] = POENG_RIKTIG;
@@ -191,10 +192,291 @@
       ${mandel ? `<g class="ng-mandel"><path d="M46 44 Q50 26 72 24 Q84 24 86 30 Q78 46 46 44Z" fill="#c8874a" stroke="var(--blekk)" stroke-width="3.5" stroke-linejoin="round"/><path d="M54 40 Q66 32 80 30" fill="none" stroke="#8a5428" stroke-width="2.4" stroke-linecap="round"/></g>` : ""}
     </svg>`;
 
+  // The bowl behind the hold card: the almond, or just porridge.
+  const bolleKort = (har) => ({
+    html: `<div class="ng-se ${har ? "har" : ""}">${bolle(har)}<p class="ng-se-tekst">${esc(har ? R.t("MANDELEN!") : R.t("Bare grøt"))}</p><p class="ng-se-hint">${esc(har ? R.t("Når alle snur seg: putt mandelen ekte i munnen. Ikke vis noe!") : R.t("Når alle snur seg: bare lat som du putter mandelen i munnen."))}</p></div>`,
+    si: har ? R.t("Du har mandelen!") : R.t("Bare grøt"),
+    klasse: "ng-bak",
+  });
+
+  // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
+  // Seat i is player i on its own phone. Everyone still sits together (or on a call) with a real
+  // almond each: the phones only replace passing one phone round. Every round each phone holds its
+  // own bowl (only its own, R.nett.meg()) and taps «Jeg har sett»; the round's leader sends everyone
+  // to the elf and asks for new questions; then everyone points on their own phone, and when the
+  // last one has pointed, every phone shows who had the almond and the points. The leader moves one
+  // seat on each round, and each match begins one seat further on.
+  // Moves: { sett: r } (I have looked in my bowl in round r); { nissen: r }, { sporsmal: r } and
+  // { pek: r } from the leader; { stem: i, r } (I point at seat i); { runde: r } from the leader of
+  // round r. Anything else, or anything the rules don't allow now, is ignored on every phone.
+  // Who gets the almond and the elf's questions come from the room's seed (okt.rng): a modified phone
+  // could compute them – a game among friends, as with dice on the net. Who pointed at whom is in
+  // every phone's list of moves before the reveal; the screens show only how many are ready.
+  // A seat that leaves is skipped; if it had the almond, the round does not count. Fewer than three
+  // left: the match is over. No «Angre» on the net: everyone has seen the points.
+  const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
+  const erInne = (sp, i) => Number.isInteger(i) && i >= 0 && i < sp.antall && !sp.ute.includes(i);
+  const nettInne = (sp) => range(sp.antall).filter((i) => !sp.ute.includes(i));
+  // The leader of round k: one seat on each round (past those who left).
+  function lederFor(sp, k) {
+    let s = (sp.forste + k) % sp.antall;
+    for (let j = 0; j < sp.antall && sp.ute.includes(s); j++) s = (s + 1) % sp.antall;
+    return s;
+  }
+  const nettLeder = (sp) => lederFor(sp, sp.runde);
+  const tom = (n) => Array(n).fill(null);
+  const nettAlle = (sp, svar) => R.nett.alleHar(svar, sp.antall);
+  // In a phase where everyone answers: this phone if it still owes an answer, else the one left (if one).
+  function venterPa(sp, svar) {
+    const meg = R.nett.meg();
+    if (erInne(sp, meg) && svar[meg] == null) return meg;
+    const mangler = nettInne(sp).filter((i) => svar[i] == null);
+    return mangler.length === 1 ? mangler[0] : null;
+  }
+
+  // A new round k: the almond goes to one of the seats still in.
+  function nettRunde(sp, k, rng) {
+    const med = nettInne(sp);
+    Object.assign(sp, { runde: k, mandel: med[Math.floor(rng() * med.length)], fase: "se", sett: tom(sp.antall), stemmer: tom(sp.antall), spurt: null, k: null, siste: null });
+  }
+  // The elf asks someone else (still in) a question not asked yet in this match.
+  function nettSporsmal(sp, rng) {
+    const med = nettInne(sp).filter((i) => i !== sp.spurt);
+    if (med.length) sp.spurt = med[Math.floor(rng() * med.length)];
+    let ledige = range(SPORSMAL.length).filter((k) => !sp.brukt.includes(k));
+    if (!ledige.length) {
+      sp.brukt = [];
+      ledige = range(SPORSMAL.length);
+    }
+    sp.k = ledige[Math.floor(rng() * ledige.length)];
+    sp.brukt.push(sp.k);
+  }
+  // Everyone still in has pointed: the points (1 per right guess, 1 to the holder per player fooled).
+  function nettAvgjor(sp) {
+    sp.fase = "hvem";
+    avgjor(sp, range(sp.antall).filter((i) => sp.stemmer[i] === sp.mandel), sp.ute);
+    sp.spilt += 1;
+    if (sp.runde + 1 >= sp.runder) sp.ferdig = true;
+  }
+
+  let nettSett = ""; // the round whose bowl this phone has looked at (the button waits for it)
+  let nettValgt = null; // the name marked on this phone, before «Pek på …»
+  let nettNokkel = ""; // match, round and phase on screen: a new one clears the mark
+  let pratNokkel = ""; // the question the elf's clock belongs to
+  const nokkelFor = (sp) => `${R.nett.kamp()}:${sp.runde}:${sp.fase}`;
+
+  // After a move on the screen: redraw, and a sound when the phase changed.
+  function nettTegn(S, for_) {
+    const sp = S.spill;
+    if (S.skjerm !== "nettspill") return;
+    R.vis();
+    if (sp.fase === for_) return;
+    if (sp.fase === "fasit" && sp.siste) {
+      if (sp.siste.tom) R.lyd.pling();
+      else if (sp.siste.alle) {
+        R.lyd.fanfare();
+        R.konfetti(["--rosa", "--lampe", "--aksent"]);
+      } else if (!sp.siste.lurte) R.lyd.buu();
+      else R.lyd.fanfare();
+      R.vibrer([40, 30, 90]);
+      R.si(R.t("Mandelen var hos {navn}", { navn: R.navn(sp.siste.mandel) }));
+      if (sp.ferdig) feire = true;
+    } else if (sp.fase === "pek") R.lyd.pek();
+    else R.lyd.pling();
+  }
+
+  // «2 av 4 er klare» and who is still missing – never what anyone chose.
+  function klarLinje(sp, svar) {
+    const med = nettInne(sp);
+    const mangler = med.filter((i) => svar[i] == null);
+    const hvem = mangler.length && mangler.length <= 3 ? " · " + R.t("Venter på {navn} …", { navn: R.ramsOpp(mangler.map(R.navn)) }) : "";
+    return `<p class="hjelp ng-klar" data-si>${esc(R.t("{n} av {m} er klare", { n: med.length - mangler.length, m: med.length }) + hvem)}</p>`;
+  }
+  const lederHjelp = (sp, i) => `<p class="hjelp">${esc(R.t("Det er {navn} som trykker videre.", { navn: R.navn(i) }))}</p>`;
+
+  function nettVis(S) {
+    const sp = S.spill;
+    const meg = R.nett.meg();
+    const led = nettLeder(sp);
+    const kan = !R.nett.venter();
+    if (nettNokkel !== nokkelFor(sp)) {
+      nettNokkel = nokkelFor(sp);
+      nettValgt = null;
+    }
+    if (sp.fase === "se") {
+      const sendt = sp.sett[meg] != null;
+      const sett = nettSett === `${R.nett.kamp()}:${sp.runde}`;
+      return `
+        <div data-hemmelig>
+          <h1 id="skjerm-tittel">${esc(R.t("Se i grøtbollen din"))}</h1>
+          ${R.ui.mappe({ id: "nett", etikett: R.t("Grøtbollen"), tekst: HOLD, etikettAria: R.t("Hold fingeren på kortet for å se om du fikk mandelen") })}
+        </div>
+        ${klarLinje(sp, sp.sett)}
+        ${R.ui.dokk(sendt ? "" : sett ? "" : `<p class="hjelp">${esc(R.t("Se i bollen først."))}</p>`, sendt ? "" : R.ui.knapp(R.t("Jeg har sett"), "pa-sett", { av: !sett || !kan }))}`;
+    }
+    if (sp.fase === "munn") {
+      return `
+        <h1 id="skjerm-tittel">${esc(R.t("Snu dere bort!"))}</h1>
+        <p class="ingress">${esc(R.t("Alle snur ryggen til bordet og later som de putter mandelen i munnen. Bare den som fikk mandelen, gjør det ekte."))}</p>
+        <div class="ng-fasit">${bolle(true)}</div>
+        ${R.ui.knapp2(R.t("3 · 2 · 1 – Nam!"), "nam", { ikon: "😋" })}
+        <p class="hjelp">${esc(R.t("Snu dere tilbake og se uskyldige ut. Ingen sier noe!"))}</p>
+        ${R.ui.dokk(led === meg ? R.ui.knapp(R.t("Alle har snudd seg – til nissen"), "pa-nissen", { av: !kan }) : lederHjelp(sp, led))}`;
+    }
+    if (sp.fase === "prat") {
+      return `
+        <div class="ng-nissen">
+          ${R.figur()}
+          <div class="ng-boble">
+            <p class="etikett">${esc(R.t("Nissen spør {navn}", { navn: R.navn(sp.spurt) }))}</p>
+            <h1 id="skjerm-tittel">${esc(SPORSMAL[sp.k])}</h1>
+          </div>
+        </div>
+        <p class="ng-til">${R.avatar(sp.spurt, "stor")}<b>${esc(R.navn(sp.spurt))}</b></p>
+        ${R.ui.timer({ id: "klokke", sekunder: PRATETID, kontrollHtml: `<span class="etikett">${esc(R.t("Tid til å snakke"))}</span>${R.ui.knapp2(R.t("+30 s"), "pluss", { variant: "liten" })}` })}
+        ${R.ui.dokk(
+          led === meg ? R.ui.knapp2(R.t("Nytt spørsmål"), "pa-sporsmal", { ikon: "🎅", av: !kan }) + R.ui.knapp(R.t("Klare til å peke"), "pa-pek", { variant: "rosa", av: !kan }) : lederHjelp(sp, led),
+        )}`;
+    }
+    if (sp.fase === "pek") {
+      const min = sp.stemmer[meg];
+      if (min != null) {
+        return `
+          <h1 id="skjerm-tittel">${esc(R.t("Hvem har mandelen?"))}</h1>
+          <p class="ingress">${esc(R.t("Du pekte på {navn}.", { navn: R.navn(min) }))}</p>
+          ${klarLinje(sp, sp.stemmer)}`;
+      }
+      const andre = nettInne(sp).filter((i) => i !== meg);
+      return `
+        <h1 id="skjerm-tittel">${esc(R.t("Hvem har mandelen?"))}</h1>
+        <p class="ingress">${esc(R.t("Pek på den du tror har mandelen – her på mobilen din. Den som har mandelen, peker også."))}</p>
+        ${R.ui.velgere("pa-marker", andre, nettValgt)}
+        ${klarLinje(sp, sp.stemmer)}
+        ${R.ui.dokk(R.ui.knapp(nettValgt != null ? R.t("Pek på {navn}", { navn: R.navn(nettValgt) }) : R.t("Trykk på et navn"), "pa-stem", { variant: "rosa", av: nettValgt == null || !kan }))}`;
+    }
+    // «fasit»: who had the almond, the points – or a round that does not count.
+    const r = sp.siste;
+    const navn = R.navn(r.mandel);
+    const neste = lederFor(sp, sp.runde + 1);
+    const dokk = sp.ferdig ? R.ui.knapp(R.t("Til kåringen"), "pa-kaaring") : neste === meg ? R.ui.knapp(R.t("Neste runde"), "pa-neste", { av: !kan }) : lederHjelp(sp, neste);
+    if (r.tom) {
+      return `
+        ${R.ui.banner({ etikett: R.t("Runden teller ikke"), tittel: R.t("{navn} gikk – med mandelen", { navn }), tekst: R.t("Ingen får poeng denne runden."), klasse: "aksent", stemning: "lei" })}
+        <section class="seksjon"><div class="seksjon-hode"><h2>${esc(R.t("Poeng"))}</h2></div>${R.ui.poengliste(nettRader(sp))}</section>
+        ${R.ui.dokk(dokk)}`;
+    }
+    const poeng = R.flertall(r.pluss[r.mandel], "poeng", "poeng");
+    const banner = r.alle
+      ? R.ui.banner({ etikett: R.t("{navn} lurte alle sammen!", { navn }), tittel: R.t("{navn} vinner marsipangrisen!", { navn }), tekst: R.t("{poeng} til {navn}.", { poeng, navn }), klasse: "aksent ng-gris-banner", stemning: "jubel" })
+      : !r.lurte
+        ? R.ui.banner({ etikett: R.t("Mandelen er funnet!"), tittel: R.t("Alle pekte på {navn}!", { navn }), tekst: R.t("1 poeng til alle som pekte riktig."), klasse: "aksent", stemning: "lei" })
+        : R.ui.banner({ etikett: R.t("{navn} hadde mandelen", { navn }), tittel: R.t("{navn} lurte {n} av {m}", { navn, n: r.lurte, m: r.lurte + r.riktige.length }), tekst: R.t("{poeng} til {navn}, og 1 poeng til hver som pekte riktig.", { poeng, navn }), klasse: "aksent" });
+    return `
+      ${banner}
+      <div class="ng-fasit">${bolle(true)}${r.alle ? `<span class="ng-gris" aria-hidden="true">🐷</span>` : ""}</div>
+      <p class="hjelp midt">${esc(R.t("Gap opp og vis mandelen, {navn}!", { navn }))}</p>
+      <section class="seksjon"><div class="seksjon-hode"><h2>${esc(R.t("Poeng"))}</h2></div>${R.ui.poengliste(nettRader(sp, true))}</section>
+      ${R.ui.dokk(dokk)}`;
+  }
+  // The points of the seats still in (those who left are not ranked).
+  const nettRader = (sp, medPluss) => rader(sp, medPluss).filter((r) => !sp.ute.includes(r.i));
+  function nettToppen(sp) {
+    const best = Math.max(0, ...nettRader(sp).map((r) => r.poeng));
+    return best > 0 ? nettInne(sp).filter((i) => sp.poeng[i] === best) : [];
+  }
+
+  // The elf's clock: a new one for each question, kept across redraws.
+  function nettEtter(S) {
+    const sp = S.spill;
+    if (!paNett(sp) || sp.fase !== "prat") return;
+    const nokkel = `${R.nett.kamp()}:${sp.runde}:${sp.k}`;
+    const t = R.timer("klokke");
+    if (t && pratNokkel === nokkel) return t.tegn();
+    if (t) t.stopp();
+    pratNokkel = nokkel;
+    new R.Timer({ id: "klokke", sekunder: PRATETID }).start();
+  }
+
+  const NETT = {
+    min: MIN,
+    maks: MAKS,
+    oppsett: (S) => ({ runder: S.runder }),
+    oppsettTekst: (o) => R.flertall(RUNDER.includes((o || {}).runder) ? o.runder : 5, "runde", "runder"),
+    start(S, okt) {
+      const n = R.klamp(okt.antall || MIN, MIN, MAKS);
+      const runder = RUNDER.includes((okt.oppsett || {}).runder) ? okt.oppsett.runder : 5;
+      const sp = { modus: "nett", antall: n, runder, runde: 0, spilt: 0, forste: (okt.kamp - 1) % n, ute: [], poeng: Array(n).fill(0), slapp: Array(n).fill(0), brukt: [], pekt: [], ferdig: false };
+      nettRunde(sp, 0, R.nett.tilfeldig(okt.fro, "mandel"));
+      S.spill = sp;
+      nettSett = "";
+      nettValgt = null;
+      nettNokkel = "";
+      pratNokkel = "";
+      feire = false;
+    },
+    trekk(S, t, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || !erInne(sp, sete)) return;
+      const for_ = sp.fase;
+      const r = sp.runde;
+      if (sp.fase === "se" && t.sett === r && sp.sett[sete] == null) {
+        sp.sett[sete] = 1;
+        if (nettAlle(sp, sp.sett)) sp.fase = "munn";
+      } else if (sp.fase === "munn" && t.nissen === r && sete === nettLeder(sp)) {
+        sp.fase = "prat";
+        nettSporsmal(sp, okt.rng);
+      } else if (sp.fase === "prat" && t.sporsmal === r && sete === nettLeder(sp)) {
+        nettSporsmal(sp, okt.rng);
+      } else if (sp.fase === "prat" && t.pek === r && sete === nettLeder(sp)) {
+        sp.fase = "pek";
+      } else if (sp.fase === "pek" && t.r === r && sp.stemmer[sete] == null && erInne(sp, t.stem) && t.stem !== sete) {
+        sp.stemmer[sete] = t.stem;
+        if (nettAlle(sp, sp.stemmer)) nettAvgjor(sp);
+      } else if (sp.fase === "fasit" && t.runde === r + 1 && sete === lederFor(sp, r + 1)) {
+        nettRunde(sp, t.runde, okt.rng);
+      } else return;
+      if (!okt.gjenspill) nettTegn(S, for_);
+    },
+    // The seat left: it is skipped from now on. With the almond, the round does not count.
+    borte(S, sete, okt) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig || !(sete >= 0 && sete < sp.antall) || sp.ute.includes(sete)) return;
+      const for_ = sp.fase;
+      sp.ute.push(sete);
+      sp.stemmer[sete] = null; // (its vote goes with it)
+      if (nettInne(sp).length < MIN) sp.ferdig = true;
+      else if (sete === sp.mandel && sp.fase !== "fasit") {
+        sp.fase = "fasit";
+        sp.siste = { tom: true, mandel: sete, riktige: [], lurte: 0, alle: false, pluss: Array(sp.antall).fill(0) };
+        if (sp.runde + 1 >= sp.runder) sp.ferdig = true;
+      } else if (sp.fase === "se" && nettAlle(sp, sp.sett)) sp.fase = "munn";
+      else if (sp.fase === "pek" && nettAlle(sp, sp.stemmer)) nettAvgjor(sp);
+      else if (sp.fase === "prat" && sp.spurt === sete) nettSporsmal(sp, okt.rng);
+      if (okt.gjenspill) return;
+      if (sp.ferdig && sp.fase !== "fasit") {
+        feire = true;
+        if (S.skjerm === "nettspill") R.gaTil("slutt");
+        return;
+      }
+      nettTegn(S, for_);
+    },
+    skjerm: (S) => (S.spill && S.spill.ferdig ? "slutt" : "nettspill"),
+    tur(S) {
+      const sp = S.spill;
+      if (!paNett(sp) || sp.ferdig) return null;
+      if (sp.fase === "se") return venterPa(sp, sp.sett);
+      if (sp.fase === "pek") return venterPa(sp, sp.stemmer);
+      if (sp.fase === "fasit") return lederFor(sp, sp.runde + 1);
+      return nettLeder(sp);
+    },
+    ferdig: (S) => !!S.spill && paNett(S.spill) && !!S.spill.ferdig,
+  };
+
   R.start({
     id: "nissen",
     versjon: 2, // version 1 was the Secret Santa draw that used to live here (now «nissetrekning»)
     pagar,
+    nett: NETT,
 
     tilstand: () => ({
       antall: standardAntall(),
@@ -246,15 +528,17 @@
       innhold(S) {
         const sp = S.spill;
         if (!sp) return { html: "" };
-        const har = tur(sp) === sp.mandel;
-        return {
-          html: `<div class="ng-se ${har ? "har" : ""}">${bolle(har)}<p class="ng-se-tekst">${esc(har ? R.t("MANDELEN!") : R.t("Bare grøt"))}</p><p class="ng-se-hint">${esc(har ? R.t("Når alle snur seg: putt mandelen ekte i munnen. Ikke vis noe!") : R.t("Når alle snur seg: bare lat som du putter mandelen i munnen."))}</p></div>`,
-          si: har ? R.t("Du har mandelen!") : R.t("Bare grøt"),
-          klasse: "ng-bak",
-        };
+        // On the net: this phone's own bowl, never another seat's.
+        if (paNett(sp)) return bolleKort(R.nett.meg() === sp.mandel);
+        return bolleKort(tur(sp) === sp.mandel);
       },
       sett(S) {
         const sp = S.spill;
+        if (paNett(sp)) {
+          if (sp.fase !== "se" || sp.ferdig) return;
+          nettSett = `${R.nett.kamp()}:${sp.runde}`;
+          return R.vis();
+        }
         if (!pagar(S) || !sett(sp)) return;
         R.vis();
       },
@@ -269,7 +553,7 @@
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
               fortsettTekst: pagar(S) ? R.t("Fortsett · runde {n} av {m}", { n: S.spill.runde + 1, m: S.spill.runder }) : "",
-              ekstraHtml: R.ui.lenke(R.t("Slik spiller du"), "regler"),
+              ekstraHtml: (R.nett ? R.nett.knapp() : "") + R.ui.lenke(R.t("Slik spiller du"), "regler"),
             }),
             merker: [
               [R.t("1 mandel"), R.t("per spiller")],
@@ -437,15 +721,27 @@
         },
       },
 
+      // On the net: one screen for the whole round, drawn from the phase (see «On the net» above).
+      nettspill: {
+        tittel: (S) => R.t("Runde {n} av {m}", { n: S.spill.runde + 1, m: S.spill.runder }),
+        tilbake: "hjem",
+        vis: nettVis,
+        etter: nettEtter,
+        inn: () => R.holdVaken(),
+      },
+
       slutt: {
         tittel: R.t("Kåringen"),
         tilbake: "hjem",
         vis(S) {
           const sp = S.spill;
-          const topp = toppen(sp);
+          const nett = paNett(sp);
+          const liste = nett ? nettRader(sp) : rader(sp);
+          const spilt = nett ? sp.spilt : sp.runde;
+          const topp = nett ? nettToppen(sp) : toppen(sp);
           const griser = sp.slapp.reduce((s, n) => s + n, 0);
           const banner = topp.length
-            ? R.ui.banner({ tittel: R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(topp.map(R.navn)), n: topp.length }), tekst: R.t("{poeng} etter {runder}", { poeng: R.flertall(sp.poeng[topp[0]], "poeng", "poeng"), runder: R.flertall(sp.runde, "runde", "runder") }), klasse: "aksent" })
+            ? R.ui.banner({ tittel: R.t("{navn} vinner!|{navn} vinner!", { navn: R.ramsOpp(topp.map(R.navn)), n: topp.length }), tekst: R.t("{poeng} etter {runder}", { poeng: R.flertall(sp.poeng[topp[0]], "poeng", "poeng"), runder: R.flertall(spilt, "runde", "runder") }), klasse: "aksent" })
             : R.ui.banner({ tittel: R.t("Ingen poeng ennå"), tekst: R.t("Spill en runde, så blir det kåring!"), klasse: "aksent", stemning: "" });
           const grisLinje = griser
             ? R.t("Marsipangriser i kveld: {liste}", {
@@ -458,11 +754,15 @@
             : R.t("Ingen slapp unna med mandelen i kveld. For en gjeng med detektiver!");
           return `
             ${banner}
-            ${topp.length ? R.ui.pall(rader(sp)) : ""}
-            ${sp.runde ? R.ui.poengliste(rader(sp)) : ""}
-            ${sp.runde ? `<p class="papirboks ng-griser">${esc(grisLinje)}</p>` : ""}
-            ${R.ui.flereSpill({ antall: sp.antall })}
-            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`;
+            ${topp.length ? R.ui.pall(liste) : ""}
+            ${spilt ? R.ui.poengliste(liste) : ""}
+            ${spilt ? `<p class="papirboks ng-griser">${esc(grisLinje)}</p>` : ""}
+            ${
+              nett
+                ? R.nett.sluttDokk()
+                : `${R.ui.flereSpill({ antall: sp.antall })}
+            ${R.ui.dokk(R.ui.knapp(R.t("Spill igjen"), "igjen"), R.ui.lenkerad(R.ui.lenke(R.t("Endre oppsett"), "endre"), `<a class="lenke" href="${R.forside}">${esc(R.t("Alle spill"))}</a>`))}`
+            }`;
         },
         inn(S) {
           R.slippVaken();
@@ -639,6 +939,28 @@
         S.spill = null;
         H.start(el, e, S);
       },
+
+      // On the net: each tap is a move, played when the room sends it back.
+      "pa-sett"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && sp.fase === "se" && nettSett === `${R.nett.kamp()}:${sp.runde}`) R.nett.send({ sett: sp.runde });
+      },
+      "pa-nissen": (el, e, S) => paNett(S.spill) && R.nett.send({ nissen: S.spill.runde }),
+      "pa-sporsmal": (el, e, S) => paNett(S.spill) && R.nett.send({ sporsmal: S.spill.runde }),
+      "pa-pek": (el, e, S) => paNett(S.spill) && R.nett.send({ pek: S.spill.runde }),
+      "pa-marker"(el, e, S) {
+        const sp = S.spill;
+        const i = Number(el.dataset.v);
+        if (!paNett(sp) || sp.fase !== "pek" || !erInne(sp, i) || i === R.nett.meg()) return;
+        nettValgt = i;
+        R.vis();
+      },
+      "pa-stem"(el, e, S) {
+        const sp = S.spill;
+        if (paNett(sp) && sp.fase === "pek" && nettValgt != null) R.nett.send({ stem: nettValgt, r: sp.runde });
+      },
+      "pa-neste": (el, e, S) => paNett(S.spill) && R.nett.send({ runde: S.spill.runde + 1 }),
+      "pa-kaaring": (el, e, S) => paNett(S.spill) && S.spill.ferdig && R.gaTil("slutt"),
     }),
   });
 })();
