@@ -7,6 +7,9 @@
    and the group tells the phone what each answer was worth.
    On the net: a phone each, the answers are typed, and the phones do the scoring – everyone can
    mark another player's answer as «teller ikke», and the majority of the others decides.
+   (Friends level on the net: the answers are in the room's list before the round is closed, and
+   the ten seconds after «Stopp» are counted by each phone itself – a modified phone could read
+   the list, or take more time than the others.)
    The rules at the top are pure; test/flinkisen.test.mjs loads this file without the kit. */
 (function () {
   "use strict";
@@ -82,31 +85,41 @@
     if (pakke.fast) return range(n);
     return range(n).map((j) => rekke[(runde * n + j) % rekke.length]);
   }
-  // «Teller ikke»: an answer is struck when more than half of the OTHER players still in have
-  // marked it. merker: the seats that marked it; inne: the seats still in.
-  function strok(merker, forfatter, inne) {
-    const andre = inne.filter((i) => i !== forfatter);
-    const antall = andre.filter((i) => (merker || []).includes(i)).length;
+  // «Teller ikke»: an answer is struck when more than half of the OTHER voters have marked it.
+  // merker: the seats that marked it. velgere: the seats that were in when the round was closed –
+  // the electorate is fixed there, so a seat that leaves during the scoring never turns a vote.
+  // inne: the seats still in (a voter that has left counts as «not marked»).
+  function strok(merker, forfatter, velgere, inne) {
+    const andre = velgere.filter((i) => i !== forfatter);
+    const med = inne || velgere;
+    const antall = andre.filter((i) => med.includes(i) && (merker || []).includes(i)).length;
     return andre.length > 0 && antall * 2 > andre.length;
   }
-  const kravTil = (inne) => Math.floor((inne.length - 1) / 2) + 1; // marks it takes
+  const kravTil = (velgere) => Math.floor((velgere.length - 1) / 2) + 1; // marks it takes
+  // A round on the net may be closed without the seats that have not delivered when two seats
+  // still in have (so one phone alone cannot cut the others off); with two seats in, one is enough.
+  const kanLukke = (levert, antallInne) => levert >= Math.min(2, antallInne - 1);
   // One category: svar[i] is seat i's answer (or null). Returns what each seat's answer is
   // («tom», «feil» letter, «strok» by the others, «delt» with someone, «alene») and its points.
+  // An answer is «delt» when another seat has the same one with the right letter – struck or not:
+  // striking somebody's answer never lifts one's own identical answer from 5 to 10.
   function domKategori(svar, bokstav, inne, erStrok, antall) {
     const status = Array(antall).fill("ute");
     const poeng = Array(antall).fill(0);
-    const gyldige = [];
+    const riktige = []; // an answer, and on the round's letter
     for (const i of inne) {
       const t = svar[i];
       if (t == null || !norm(t)) status[i] = "tom";
       else if (!passer(t, bokstav)) status[i] = "feil";
-      else if (erStrok && erStrok(i)) status[i] = "strok";
-      else gyldige.push(i);
+      else riktige.push(i);
     }
-    for (const i of gyldige) {
-      const delt = gyldige.some((j) => j !== i && norm(svar[j]) === norm(svar[i]));
-      status[i] = delt ? "delt" : "alene";
-      poeng[i] = delt ? DELT : ALENE;
+    for (const i of riktige) {
+      const delt = riktige.some((j) => j !== i && norm(svar[j]) === norm(svar[i]));
+      if (erStrok && erStrok(i)) status[i] = "strok";
+      else {
+        status[i] = delt ? "delt" : "alene";
+        poeng[i] = delt ? DELT : ALENE;
+      }
     }
     return { status, poeng };
   }
@@ -226,7 +239,7 @@
     return "klar";
   }
 
-  const Regler = { MAKS_TEGN, NEDTELLING, RUNDER, KATEGORIER, TIDER, ALENE, DELT, MIN, MAKS, ALFABET, bokstaver, harEkstra, stokk, norm, passer, rens, kategorierFor, strok, kravTil, domKategori, toppen, ny, nyRunde, trekk, begynn, siStopp, blyanterNed, settPoeng, katNeste, katForrige, endrePoeng, nesteRunde };
+  const Regler = { MAKS_TEGN, NEDTELLING, RUNDER, KATEGORIER, TIDER, ALENE, DELT, MIN, MAKS, ALFABET, bokstaver, harEkstra, stokk, norm, passer, rens, kategorierFor, strok, kravTil, kanLukke, domKategori, toppen, ny, nyRunde, trekk, begynn, siStopp, blyanterNed, settPoeng, katNeste, katForrige, endrePoeng, nesteRunde };
   window.RusjFlinkisen = Regler;
 
   const R = window.Rusj;
@@ -355,20 +368,32 @@
   //                           before it is sent and again when it is played: a modified phone could
   //                           send anything. The first one in is the «Stopp»;
   //   { lukk: r }             close round r without the seats that have not delivered – from a seat
-  //                           that has delivered, after a «Stopp»;
+  //                           that has delivered, after a «Stopp», and only when two seats still in
+  //                           have delivered (with two seats in: one);
   //   { merk: [kat, sete], pa: 0 | 1, r }   my «teller ikke» mark on seat's answer in the category
   //                           being judged – never on my own answer;
   //   { neste: steg }, { forrige: steg }   the round's leader goes on (the next category, the
   //                           points, the next round, «Kåringen») or one category back.
   // Anything else, or anything the rules don't allow now, is ignored on every phone. The letters and
-  // the categories come from the room's seed. The leader moves one seat per round (and per match).
+  // the categories come from the room's seed. The leader moves on to the next seat still in for
+  // every round (and one seat on per match).
   // The ten seconds after «Stopp» run on each phone by itself: when they are out, a phone that has
   // not delivered sends what it has – once – and the round closes when every seat still in has
   // delivered (or on «lukk»). No move is ever sent on a repeating timer.
-  // A seat that left is never waited for; its answers and its marks no longer count; it is not ranked.
+  // A phone that has undertaken to deliver (it pressed the button, or its ten seconds are out) OWES
+  // its answers until they are in the room's list: etter() sends them again when another move took
+  // their place, and when the line comes back after having been down. Until then the screen says
+  // «sender», never «sendt».
+  // What a player has typed stays on that phone: the draft of the round (and whether the phone owes
+  // it) is kept in the kit's own store for the match (R.nett.hemmelig – never sent, gone with the
+  // session), so a reload while writing keeps the text. It is cleared when the answers are in the
+  // room's list or the round is over.
+  // «Teller ikke»: the voters are the seats that were in when the round was closed (r.velgere), so
+  // a seat that leaves during the scoring does not turn a vote. A seat that left is never waited
+  // for; its answers and its own marks no longer count; it is not ranked.
   // Friends level: the answers are moves in the room's list (kept in the room, deleted with it, at
   // the latest after 24 hours). The screens show no answer before the round is closed, but a
-  // modified phone could read the list.
+  // modified phone could read the list – and the ten seconds are each phone's own count.
   const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
   const ute = (sp, i) => paNett(sp) && sp.ute.includes(i);
   const inne = (sp) => range(sp.antall).filter((i) => !ute(sp, i));
@@ -381,20 +406,26 @@
     }
     return s;
   }
+  // The next seat still in after seat s.
+  const nesteInne = (sp, s) => forsteInne(sp, (s + 1) % sp.antall);
   const harAlle = (sp, liste) => R.nett.alleHar(liste, sp.antall);
   // An answer on the net: the kit's cleaning, and never half of a pair (a lone half would be written
   // as six signs in the move).
   const nettRens = (s) => R.nett.tekst(String(s == null ? "" : s).replace(/[\uD800-\uDFFF]/gu, ""), MAKS_TEGN);
-  // My answers on their way: { nokkel, t, ved }. When another move got the place first, the room
-  // drops mine; it is sent again once per move that came in between (ved: the moves played when it
-  // was last sent) – never on a timer. Dropped for another reason (a lost line, «fort»): the fields
-  // come back with the text in them.
-  let venterSvar = null;
-  // The round whose ten seconds ran out while this phone had no line: what is in the fields goes
-  // when the line is back (with the next thing that happens – never on a timer).
+  // The round this phone OWES its answers for ("" = none): it pressed the button, or its ten
+  // seconds are out, and the answers are not in the room's list yet. etter() sends them again –
+  // once per call, never on a timer – when a move has been played since they were last sent
+  // (another move took their place: sendtVed) or the line has been down since (linjeBrutt: what was
+  // on its way is gone). Meanwhile the screen says «sender», never «sendt».
   let skylder = "";
+  let sendtVed = -1; // the moves played on this phone when the answers were last sent
+  let linjeBrutt = false; // the line has been down since then
   let antallTrekk = 0; // moves played on this phone in this match
-  let utkast = { nokkel: "", felt: [] }; // what I have typed so far (a redraw keeps it)
+  // What I have typed so far, by round. It is also kept on this phone (the kit's own store for the
+  // match, R.nett.hemmelig: never sent anywhere), so a reload while writing keeps the text; it is
+  // removed from there when the answers are in the room's list.
+  let utkast = { nokkel: "", felt: [] };
+  let lagret = null; // the round whose draft lies in the phone's store ("" = none, null = not looked yet)
   let tegnes = false; // a live move changed the state: etter() draws
   let vistFase = ""; // the phase this phone's screen shows (a new one is drawn as a new screen)
   // The ten seconds on this phone: { nokkel, slutt, id, sist, ute, apen, etterId }.
@@ -403,12 +434,18 @@
   function nettRunde(sp) {
     const p = pakke(sp.pakke);
     const k = kategorierFor(p, sp.kat, sp.runde, sp.katRekke);
-    sp.r = { b: sp.bokstaver[sp.runde], k, leder: forsteInne(sp, (sp.forste + sp.runde) % sp.antall), fase: "skriv", svar: Array(sp.antall).fill(null), stopp: -1, nr: 0, merk: {}, pluss: null, status: null };
+    // The leader: the first round's is the match's first seat; then the next seat still in after
+    // the one who led the round before (a seat that has left never makes anyone lead twice).
+    const leder = sp.r ? nesteInne(sp, sp.r.leder) : forsteInne(sp, sp.forste);
+    sp.r = { b: sp.bokstaver[sp.runde], k, leder, fase: "skriv", svar: Array(sp.antall).fill(null), stopp: -1, velgere: null, nr: 0, merk: {}, pluss: null, status: null };
   }
-  // The round is closed: a seat without answers has empty ones.
+  // The round is closed: a seat without answers has empty ones, and the seats that are in now are
+  // the voters of this round's scoring.
   function tilDom(sp) {
     const r = sp.r;
-    for (const i of inne(sp)) if (r.svar[i] == null) r.svar[i] = r.k.map(() => "");
+    const med = inne(sp);
+    for (const i of med) if (r.svar[i] == null) r.svar[i] = r.k.map(() => "");
+    r.velgere = med;
     r.fase = "dom";
     r.nr = 0;
   }
@@ -416,11 +453,12 @@
   function nettDom(sp, n) {
     const r = sp.r;
     const med = inne(sp);
+    const velgere = r.velgere || med;
     return domKategori(
       r.svar.map((s) => (s ? s[n] : null)),
       r.b,
       med,
-      (i) => strok(r.merk[`${n}:${i}`], i, med),
+      (i) => strok(r.merk[`${n}:${i}`], i, velgere, med),
       sp.antall,
     );
   }
@@ -443,7 +481,13 @@
     if (!paNett(sp) || sp.ferdig || i < 0 || ute(sp, i) || sp.r.fase !== "skriv" || sp.r.svar[i] != null) return "";
     return `skriv:${nokkelFor(sp)}`;
   }
-  const kanSvare = (sp) => !!minOppgave(sp) && !(venterSvar && venterSvar.nokkel === minOppgave(sp) && R.nett.venter());
+  // My answers are on their way: sent, and the room has not answered yet.
+  const paVei = (sp) => {
+    const oppgave = minOppgave(sp);
+    return !!oppgave && skylder === oppgave && R.nett.venter();
+  };
+  // The fields are on the screen: my answers are neither in the room's list nor on their way.
+  const kanSvare = (sp) => !!minOppgave(sp) && !paVei(sp);
   const styrer = (sp) => paNett(sp) && R.nett.erMeg(sp.r.leder);
   const fasenokkel = (sp) => (sp.ferdig ? "slutt" : `${sp.r.fase}:${sp.runde}:${sp.r.fase === "dom" ? sp.r.nr : 0}`);
   const tellerTekst = (sp) => {
@@ -459,20 +503,85 @@
   const knappTekst = (sp) => (sp.r.stopp < 0 ? R.t("Stopp – jeg er ferdig!") : R.t("Send svarene"));
   // What is in my fields now (as it would be sent).
   function mineSvar(sp) {
+    hentUtkast(sp);
     const felt = Array.from(document.querySelectorAll("#skjerm [data-felt='n-utkast']"));
     const fra = felt.length ? felt.map((f) => f.value) : utkast.nokkel === minOppgave(sp) ? utkast.felt : [];
     return sp.r.k.map((_, n) => nettRens(fra[n]));
   }
+
+  // ----- The draft on this phone -----
+  // What the phone's store holds: { n: the round, f: the fields, s: 1 when the phone owes them }.
+  function lesLager() {
+    try {
+      const x = R.nett.hemmelig();
+      return x && typeof x === "object" && typeof x.n === "string" && Array.isArray(x.f) ? x : null;
+    } catch (e) {
+      return null;
+    }
+  }
+  // This round's draft: what is in memory, or – after a reload – what the phone's store has (and
+  // whether the phone had undertaken to deliver: then it still owes).
+  function hentUtkast(sp) {
+    const oppgave = minOppgave(sp);
+    if (!oppgave || utkast.nokkel === oppgave) return;
+    utkast = { nokkel: oppgave, felt: [] };
+    const x = lesLager();
+    lagret = x ? x.n : "";
+    if (!x || x.n !== oppgave) return;
+    utkast.felt = sp.r.k.map((_, n) => (typeof x.f[n] === "string" ? Array.from(x.f[n]).slice(0, MAKS_TEGN).join("") : ""));
+    if (x.s === 1) {
+      skylder = oppgave;
+      linjeBrutt = true; // (whatever the page before this one sent is not on its way any more)
+    }
+  }
+  function lagreUtkast() {
+    if (!utkast.nokkel) return;
+    try {
+      R.nett.hemmelig({ n: utkast.nokkel, f: Array.from(utkast.felt, (x) => Array.from(String(x == null ? "" : x)).slice(0, MAKS_TEGN).join("")), s: skylder === utkast.nokkel ? 1 : 0 });
+      lagret = utkast.nokkel;
+    } catch (e) {
+      /* the store is closed or full: the draft stays in memory */
+    }
+  }
+  // The answers are in the room's list (or the round is over): nothing of them stays in the store.
+  function glemUtkast(sp) {
+    if (lagret === null) {
+      const x = lesLager();
+      lagret = x ? x.n : "";
+    }
+    if (!lagret || lagret === minOppgave(sp)) return;
+    lagret = "";
+    try {
+      R.nett.hemmelig(null);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  // ----- Delivering -----
   // My answers go to the room: one move, well under 1 KB (six answers of at most 30 characters).
-  function sendSvar(S, liste) {
+  // false: they did not go (no line, or a move of mine is on its way).
+  function sendNa(S) {
     const sp = S.spill;
-    const nokkel = minOppgave(sp);
-    if (!nokkel || !kanSvare(sp)) return false;
-    const t = { svar: liste, r: sp.runde };
-    if (new TextEncoder().encode(JSON.stringify(t)).length > 1000) t.svar = liste.map((x) => Array.from(x).slice(0, 12).join(""));
-    const sendt = R.nett.send(t);
-    venterSvar = sendt ? { nokkel, t, ved: antallTrekk } : null;
-    return sendt;
+    const t = { svar: mineSvar(sp), r: sp.runde };
+    if (new TextEncoder().encode(JSON.stringify(t)).length > 1000) t.svar = t.svar.map((x) => Array.from(x).slice(0, 12).join(""));
+    if (!R.nett.tilkoblet()) linjeBrutt = true;
+    if (!R.nett.send(t)) return false;
+    sendtVed = antallTrekk;
+    linjeBrutt = false;
+    return true;
+  }
+  // This phone undertakes to deliver (the button, or its ten seconds are out): from now on it owes
+  // what is in the fields, and they go at once if they can. What it owes is kept with the draft,
+  // so a reload does not forget it.
+  function lever(S) {
+    const sp = S.spill;
+    const oppgave = minOppgave(sp);
+    if (!oppgave || paVei(sp)) return false;
+    utkast = { nokkel: oppgave, felt: mineSvar(sp) };
+    skylder = oppgave;
+    lagreUtkast();
+    return sendNa(S);
   }
 
   // ----- The ten seconds -----
@@ -493,6 +602,7 @@
     const S = R.S;
     const sp = S && S.spill;
     if (!ned || !paNett(sp) || sp.ferdig || nokkelFor(sp) !== ned.nokkel || sp.r.fase !== "skriv") return stoppNed();
+    if (!R.nett.tilkoblet()) linjeBrutt = true; // (the clock is running anyway: it notices too)
     const igjen = nedIgjen();
     if (igjen !== ned.sist) {
       ned.sist = igjen;
@@ -511,7 +621,7 @@
     if (kanSvare(sp)) {
       R.lukkArk();
       R.lyd.alarm();
-      if (!sendSvar(S, mineSvar(sp))) skylder = minOppgave(sp);
+      lever(S); // (no line just now: the phone owes them, and etter() sends them when it is back)
       if (S.skjerm === "n-skriv") R.vis();
     }
     // A little later the ones who have delivered may go on without the rest (a button, never by itself).
@@ -525,7 +635,8 @@
   // The state says whether the ten seconds run (after «Stopp», while the round is open).
   function passNed(S, live) {
     const sp = S.spill;
-    if (!paNett(sp) || sp.ferdig || sp.r.fase !== "skriv" || sp.r.stopp < 0) return stoppNed();
+    // (No page – the rules run alone, as in the unit tests: no clock.)
+    if (!paNett(sp) || sp.ferdig || sp.r.fase !== "skriv" || sp.r.stopp < 0 || !R.$("#skjerm")) return stoppNed();
     if (ned && ned.nokkel === nokkelFor(sp)) return;
     stoppNed();
     ned = { nokkel: nokkelFor(sp), slutt: performance.now() + NEDTELLING * 1000, id: setInterval(tikkNed, 200), sist: null, ute: false, apen: false, etterId: null };
@@ -559,7 +670,7 @@
   // is typing, only what stands around the fields.
   function nettTegn(S) {
     const sp = S.spill;
-    if (R.S !== S || !S.skjerm || S.skjerm === "nett" || !paNett(sp)) return;
+    if (R.S !== S || !S.skjerm || S.skjerm === "nett" || !paNett(sp) || !R.$("#skjerm")) return;
     const mal = NETT.skjerm(S);
     if (S.skjerm !== mal || fasenokkel(sp) !== vistFase) {
       if (sp.ferdig) feire = true;
@@ -613,8 +724,11 @@
       nettRunde(sp);
       S.spill = sp;
       feire = false;
-      venterSvar = null;
       skylder = "";
+      sendtVed = -1;
+      linjeBrutt = false;
+      utkast = { nokkel: "", felt: [] };
+      lagret = null;
       antallTrekk = 0;
       tegnes = false;
       vistFase = "";
@@ -623,11 +737,6 @@
     trekk(S, t, sete, okt) {
       const sp = S.spill;
       antallTrekk += 1;
-      // My own move came back (played or not): it is not on its way any more.
-      if (venterSvar && sete === meg() && JSON.stringify(t) === JSON.stringify(venterSvar.t)) {
-        venterSvar = null;
-        if (!okt.gjenspill) tegnes = true;
-      }
       if (!paNett(sp) || sp.ferdig || !t || typeof t !== "object" || !(sete >= 0 && sete < sp.antall) || ute(sp, sete)) return;
       const r = sp.r;
       if (r.fase === "skriv" && Array.isArray(t.svar)) {
@@ -636,7 +745,10 @@
         if (r.stopp < 0) r.stopp = sete;
         if (harAlle(sp, r.svar)) tilDom(sp);
       } else if (r.fase === "skriv" && Number.isInteger(t.lukk)) {
-        if (t.lukk !== sp.runde || r.stopp < 0 || r.svar[sete] == null) return;
+        // From a seat that has delivered, after a «Stopp» – and never from one phone alone: two
+        // seats still in must have delivered (with two seats in, the one is enough).
+        const med = inne(sp);
+        if (t.lukk !== sp.runde || r.stopp < 0 || r.svar[sete] == null || !kanLukke(med.filter((i) => r.svar[i] != null).length, med.length)) return;
         tilDom(sp);
       } else if (r.fase === "dom" && Array.isArray(t.merk)) {
         const [kat, hvem] = t.merk;
@@ -669,8 +781,9 @@
       } else return;
       if (!okt.gjenspill) tegnes = true;
     },
-    // The seat left: never waited for again, its answers and its marks no longer count (the scoring
-    // only looks at the seats still in), the next seat leads if it led, and it is not ranked.
+    // The seat left: never waited for again, its answers and its own marks no longer count, the
+    // next seat leads if it led, and it is not ranked. (The voters of a round that is being scored
+    // stay as they were when it was closed: its leaving turns no vote.)
     borte(S, sete, okt) {
       const sp = S.spill;
       antallTrekk += 1;
@@ -696,6 +809,9 @@
     // Writing: my turn while I have not delivered, else the first one still to; then the leader.
     tur(S) {
       const sp = S.spill;
+      // (The kit asks whose turn it is also when the line goes: that is where this phone notices
+      // that whatever it had on its way is gone.)
+      if (!R.nett.tilkoblet()) linjeBrutt = true;
       if (!paNett(sp) || sp.ferdig) return null;
       const r = sp.r;
       if (r.fase !== "skriv") return r.leder;
@@ -707,23 +823,20 @@
       return null;
     },
     ferdig: (S) => !!S.spill && !!S.spill.ferdig,
-    // After every live move, a replay or a move the room dropped: my answers again if another move
-    // got their place, then the screen, then the ten seconds as the state says.
+    // After every live move, a replay, a move the room dropped, and when the line is back with
+    // nothing new: what this phone owes goes again – once per call, never on a timer – when the
+    // answers are not in the room's list, nothing of ours is on its way, the line is up, and either
+    // a move has been played since they were last sent (it took their place) or the line has been
+    // down since. Then the screen, then the ten seconds as the state says.
     etter(S) {
       const sp = S.spill;
       if (!paNett(sp)) return;
-      if (venterSvar) {
-        if (venterSvar.nokkel !== minOppgave(sp)) venterSvar = null;
-        else if (antallTrekk > venterSvar.ved && !R.nett.venter() && R.nett.send(venterSvar.t)) venterSvar.ved = antallTrekk;
-      }
-      if (skylder) {
-        if (skylder !== minOppgave(sp)) skylder = "";
-        else if (!venterSvar && R.nett.tilkoblet() && !R.nett.venter()) {
-          skylder = "";
-          if (sendSvar(S, mineSvar(sp))) tegnes = true;
-        }
-      }
+      hentUtkast(sp);
+      if (!R.nett.tilkoblet()) linjeBrutt = true;
+      if (skylder && skylder !== minOppgave(sp)) skylder = "";
+      glemUtkast(sp);
       const live = tegnes;
+      if (skylder && R.nett.tilkoblet() && !R.nett.venter() && (antallTrekk > sendtVed || linjeBrutt) && sendNa(S)) tegnes = true;
       if (tegnes) {
         tegnes = false;
         nettTegn(S);
@@ -790,7 +903,7 @@
     // (a getter: on the net the answers do leave the phone, and the last tip says so)
     get regler() {
       return {
-        intro: R.t("Én bokstav, fem kategorier, og alle skriver samtidig. Vær først ferdig – men finn på noe ingen andre har."),
+        intro: R.t("Én bokstav, fem eller seks kategorier, og alle skriver samtidig. Vær først ferdig – men finn på noe ingen andre har."),
         steg: [
           [R.t("Trekk en bokstav"), R.t("Mobilen trekker bokstaven og viser kategoriene. Alle skriver ett svar til hver kategori – på papir, eller på hver sin mobil på nett.")],
           [R.t("Si stopp"), R.t("Den første som har svar på alt, trykker «Stopp». Da har de andre ti sekunder på seg.")],
@@ -812,7 +925,7 @@
         tilbake: "portal",
         vis(S) {
           return R.ui.spillhjem({
-            slagordHtml: `${esc(R.t("Én bokstav, fem kategorier."))}<br><em>${esc(R.t("Førstemann sier stopp!"))}</em>`,
+            slagordHtml: `${esc(S.oppsett.kat === 6 ? R.t("Én bokstav, seks kategorier.") : R.t("Én bokstav, fem kategorier."))}<br><em>${esc(R.t("Førstemann sier stopp!"))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
               fortsettTekst: pagar(S) ? R.t("Fortsett · runde {n} av {m}", { n: S.spill.runde + 1, m: S.spill.runder }) : "",
@@ -984,14 +1097,21 @@
           const sp = S.spill;
           const r = sp.r;
           vistFase = fasenokkel(sp);
+          hentUtkast(sp);
           const oppgave = minOppgave(sp);
           const kan = kanSvare(sp);
           const jeg = meg();
           const felt = utkast.nokkel === oppgave ? utkast.felt : [];
-          // What I sent (my own answers, on my own phone), while it is on its way and after.
-          const mine = r.svar[jeg] || (venterSvar && venterSvar.nokkel === oppgave ? venterSvar.t.svar : null);
-          const mangler = inne(sp).filter((i) => r.svar[i] == null);
-          const videre = !kan && r.svar[jeg] != null && ned && ned.apen && ned.nokkel === nokkelFor(sp) && mangler.length > 0;
+          // «Sendt» only when my answers are in the room's list; «sender» while they are on their
+          // way. (My own answers, on my own phone.)
+          const sendt = !!r.svar[jeg];
+          const sender = paVei(sp);
+          const mine = r.svar[jeg] || (sender ? r.k.map((_, n) => nettRens(felt[n])) : null);
+          const med = inne(sp);
+          const mangler = med.filter((i) => r.svar[i] == null);
+          const videre = sendt && ned && ned.apen && ned.nokkel === nokkelFor(sp) && mangler.length > 0 && kanLukke(med.length - mangler.length, med.length);
+          // The phone owes its answers and has no line: they go when it is back.
+          const venterLinje = kan && skylder === oppgave && !R.nett.tilkoblet();
           return `
             <div class="fl-topp">
               ${flis(r.b, "ny")}
@@ -1018,11 +1138,14 @@
                       })
                       .join("")}
                   </form>`
-                : `<div class="papirboks fl-sendt">
-                    <p class="fl-sendt-tittel">✓ ${esc(R.t("Svarene dine er sendt."))}</p>
-                    ${mine ? `<ul class="fl-mine">${r.k.map((k, n) => `<li><span>${esc(katNavn(sp, k))}</span><b>${mine[n] ? esc(mine[n]) : "–"}</b></li>`).join("")}</ul>` : ""}
+                : mine
+                  ? `<div class="papirboks fl-sendt${sendt ? "" : " sender"}">
+                    <p class="fl-sendt-tittel" role="status">${sendt ? `✓ ${esc(R.t("Svarene dine er sendt."))}` : esc(R.t("Sender svarene dine …"))}</p>
+                    <ul class="fl-mine">${r.k.map((k, n) => `<li><span>${esc(katNavn(sp, k))}</span><b>${mine[n] ? esc(mine[n]) : "–"}</b></li>`).join("")}</ul>
                   </div>`
+                  : ""
             }
+            ${venterLinje ? `<p class="hjelp fl-skylder" role="status">${esc(R.t("Svarene går så snart mobilen er på nett igjen."))}</p>` : ""}
             <p class="hjelp fl-teller" data-fl-teller>${esc(tellerTekst(sp))}</p>
             ${
               kan
@@ -1060,7 +1183,7 @@
           const jeg = meg();
           const med = inne(sp);
           const d = nettDom(sp, n);
-          const krav = kravTil(med);
+          const krav = kravTil(r.velgere || med);
           const siste = n === r.k.length - 1;
           const MERKE = { tom: R.t("tomt"), feil: R.t("feil bokstav"), strok: R.t("teller ikke"), delt: R.t("likt"), alene: R.t("alene") };
           return `
@@ -1158,9 +1281,10 @@
       "n-utkast"(S, el) {
         const sp = S.spill;
         if (!paNett(sp)) return;
-        const oppgave = minOppgave(sp);
-        if (utkast.nokkel !== oppgave) utkast = { nokkel: oppgave, felt: [] };
+        if (!minOppgave(sp)) return;
+        hentUtkast(sp);
         utkast.felt[Number(el.dataset.k) || 0] = el.value;
+        lagreUtkast(); // (on this phone only: a reload while writing keeps the text)
         const rad = el.closest(".fl-felt");
         if (rad) rad.classList.toggle("feil", !!norm(el.value) && !passer(el.value, sp.r.b));
       },
@@ -1171,8 +1295,7 @@
       async "n-stopp"(el, e, S) {
         const sp = S.spill;
         if (!paNett(sp) || !kanSvare(sp)) return;
-        const liste = mineSvar(sp);
-        const tomme = liste.filter((x) => !norm(x)).length;
+        const tomme = mineSvar(sp).filter((x) => !norm(x)).length;
         // The first to stop should have an answer for everything; an empty field is asked about once.
         if (sp.r.stopp < 0 && tomme) {
           const fortsatt = R.vakt();
@@ -1180,12 +1303,14 @@
           if (!ja || !fortsatt() || S.spill !== sp || !kanSvare(sp)) return;
         }
         R.lyd.pop();
-        sendSvar(S, mineSvar(sp));
+        lever(S);
         R.vis();
       },
       "n-lukk"(el, e, S) {
         const sp = S.spill;
-        if (paNett(sp) && sp.r.fase === "skriv" && sp.r.stopp >= 0 && sp.r.svar[meg()] != null && !R.nett.venter()) R.nett.send({ lukk: sp.runde });
+        if (!paNett(sp) || sp.r.fase !== "skriv" || sp.r.stopp < 0 || sp.r.svar[meg()] == null || R.nett.venter()) return;
+        const med = inne(sp);
+        if (kanLukke(med.filter((i) => sp.r.svar[i] != null).length, med.length)) R.nett.send({ lukk: sp.runde });
       },
       "n-merk"(el, e, S) {
         const sp = S.spill;

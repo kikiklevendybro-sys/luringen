@@ -1,10 +1,13 @@
 // Flinkisen on the net: A has a game on paper saved (three rounds, the classic five), makes a
 // room; B, C and D join and A starts with four (of up to ten); a fifth phone is told the match has
 // begun. Everyone types at once on their own phone, one answer per category.
-// Round 1: B is first and taps «Stopp» – its answers are in no other phone's page; the others get
-// ten seconds (counted on each phone); A and C send at the same time (one answer is
+// Round 1: D types two answers and loads the page again: the text is still in the fields (kept
+// on D's phone only). B is first and taps «Stopp» – its answers are in no other phone's page; the
+// others get ten seconds (counted on each phone); A and C send at the same time (one answer is
 // `<script>…</script>`, another `<img onerror=…>`), D sends nothing and its phone sends what it
-// has when its own ten seconds are out. Category by category every answer is plain text; two of the
+// has when its own ten seconds are out – into a line that is dead: the page says «sender», never
+// «sendt», and when the line is back the phone sends what it owes by itself. Category by category
+// every answer is plain text; two of the
 // three others mark an answer as «teller ikke» and it scores 0; only the leader goes on.
 // Round 2: C closes its tab while it should write; A stops, B and D send, and when the ten seconds
 // and a little more are out A goes on without C; C comes back into the same match.
@@ -111,6 +114,20 @@ export default async function (t) {
   await a.skrivInn("#fl-felt-3", "1x");
   t.sjekk(await a.js(`document.querySelector("#fl-felt-3").closest(".fl-felt").classList.contains("feil")`), "Feil bokstav i et felt blir ikke merket");
   await a.skrivInn("#fl-felt-3", "");
+  // D types two answers and loads the page again while writing: the text is still in the fields.
+  // It is kept on D's phone only (no other phone has it), and a reload delivers nothing.
+  await fyll(d, [`${L}yxad0`, `${L}yxad1`]);
+  // (The page is left and opened again, as in the other scenarios: the document is loaded anew.)
+  await d.js("window.__forOmlasting = 1");
+  await d.js("location.href = 'about:blank'");
+  await t.sov(500);
+  await d.lastSide(d.side, "document.querySelector('#skjerm h1')");
+  await d.vent(`${pa} && !!document.querySelector("#fl-felt-4")`, 15000).catch(() => t.feil("D kom ikke tilbake til feltene etter å ha lastet siden på nytt"));
+  t.sjekk(await d.js("typeof window.__forOmlasting === 'undefined'"), "Siden til D ble ikke lastet på nytt");
+  const utkastD = await d.js(`[0, 1, 2, 3, 4].map((n) => document.querySelector("#fl-felt-" + n).value).join("|")`);
+  t.sjekk(utkastD === `${L}yxad0|${L}yxad1|||`, `Det D hadde skrevet ble borte da siden ble lastet på nytt: «${utkastD}»`);
+  t.sjekk(!(await a.js(`JSON.stringify(Rusj.S.spill).includes("yxad")`)) && (await a.spill()).r.svar[3] == null, "Utkastet til D gikk til rommet");
+  await d.bilde("utkast-etter-omlasting");
   // B is first with all five: «Stopp». Its answers are on no other phone's page.
   await fyll(b, [L + MERKE, ...egne(sp, "b").slice(1)]);
   await send(b);
@@ -127,9 +144,11 @@ export default async function (t) {
   t.sjekk((await b.antall(".fl-mine li")) === 5, "B ser ikke sine egne svar etter at de er sendt");
   await a.bilde("stopp-ti-sekunder");
   await b.bilde("har-sagt-stopp");
-  // A and C send at the same time; C's first answer is a script, A's second an image tag. D types
-  // two answers and sends nothing: its phone does, when its own ten seconds are out.
-  await fyll(d, [`${L}yxad0`, `${L}yxad1`]);
+  // D's line dies without the phone knowing: what it sends from now on never reaches the room.
+  await d.js(`(() => { window.__ekteSend = WebSocket.prototype.send; window.__slukt = 0; WebSocket.prototype.send = function (m) { window.__ws = this; if (m !== "ping") window.__slukt += 1; }; })()`);
+  // A and C send at the same time; C's first answer is a script, A's second an image tag. D has
+  // its two answers from before the reload and sends nothing: its phone does, when its own ten
+  // seconds are out.
   await Promise.all([
     (async () => {
       await fyll(a, [`${L}yxaa0`, L + BILDE, ...egne(sp, "a").slice(2)]);
@@ -141,11 +160,26 @@ export default async function (t) {
     })(),
   ]);
   for (const p of [a, c]) await levert(p);
+  // D's ten seconds run out: its phone sends what is in the fields – into the dead line. Its page
+  // says «sender», not «sendt», and the room has nothing from D (the round is still open).
+  await d.vent(`window.__slukt >= 1 && !!document.querySelector(".fl-sendt.sender")`, 20000).catch(() => t.feil("D sin mobil sendte ikke da tiden var ute (eller viser ikke «Sender …»)"));
+  if (t.norsk) t.sjekk(/Sender svarene dine/.test(await d.tekst(".fl-sendt-tittel")) && !/er sendt/.test(await d.tekst(".fl-sendt-tittel")), `D med død linje: «${await d.tekst(".fl-sendt-tittel")}»`);
+  await t.sov(400);
+  sp = await a.spill();
+  t.sjekk(sp.r.fase === "skriv" && sp.r.svar[3] == null && (await d.spill()).r.svar[3] == null, "Rommet fikk svar fra D gjennom en død linje");
+  await d.bilde("sender");
+  // The phone notices that the line is gone (close code 1006, as a dead line gives – a close of
+  // our own would look like the room saying goodbye) and connects again: it sends what it owes by
+  // itself – nobody touches it – and the round closes with D's answers.
+  await d.js(`(() => { WebSocket.prototype.send = window.__ekteSend; const ws = window.__ws; ws.onclose(new CloseEvent("close", { code: 1006 })); ws.close(); })()`);
   for (const p of [a, b, c, d]) await fase(p, "dom", 20000).catch(() => t.feil(`${p.navn} kom ikke til poengene etter ti sekunder`));
+  t.sjekk((await d.js("window.__slukt")) === 1, `D sin mobil sendte ${await d.js("window.__slukt")} ganger inn i den døde linja (ventet én)`);
   await likt([a, b, c, d], "runde 1 ble lukket");
   sp = await a.spill();
   t.sjekk(sp.r.stopp === 1 && sp.r.svar[3].join("|") === `${L}yxad0|${L}yxad1|||`, `D sin mobil sendte ikke det som sto i feltene: ${JSON.stringify(sp.r.svar[3])}`);
   t.sjekk(sp.r.svar[2][0] === L + SKRIPT && sp.r.svar[0][1] === L + BILDE, "HTML-svarene kom ikke fram som de ble skrevet");
+  // In the room's list: nothing of the draft is left on D's phone.
+  t.sjekk(await d.js(`Rusj.nett.hemmelig() == null`), "Utkastet til D ligger igjen på mobilen etter at svarene er levert");
 
   // Category 1: every answer as plain text; C's script is on the page as text, on every other phone.
   for (const p of [a, b, d]) {

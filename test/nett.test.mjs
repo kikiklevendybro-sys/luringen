@@ -3886,6 +3886,9 @@ test("Flinkisen: three phones – one move per player with all answers, the firs
   assert.equal(sp().r.svar[1][4], L + "ost");
   assert.equal(b.def.nett.tur(b.S), 0, "B has delivered: the first one still to");
   assert.equal(b.def.nett.skjerm(b.S), "n-skriv");
+  r.trekk(1, { lukk: 0 }); // the one who said stop cannot close the round alone
+  assert.equal(sp().r.fase, "skriv");
+  assert.equal(sp().r.velgere, null);
   r.trekk(0, { svar: [L + "ama", L + "ima", L + "and", "", L + "ost"], r: 0 });
   // Only someone who has delivered may close the round without the rest.
   r.trekk(2, { lukk: 0 });
@@ -3893,6 +3896,7 @@ test("Flinkisen: three phones – one move per player with all answers, the firs
   r.trekk(0, { lukk: 1 }); // the wrong round
   r.trekk(0, { lukk: 0 });
   assert.equal(sp().r.fase, "dom");
+  assert.deepEqual(somJson(sp().r.velgere), [0, 1, 2], "the voters of this round's scoring");
   assert.deepEqual(somJson(sp().r.svar[2]), ["", "", "", "", ""], "C never delivered: empty answers");
   r.trekk(2, { svar: [L + "a", L + "b", L + "c", L + "d", L + "e"], r: 0 }); // too late
   assert.deepEqual(somJson(sp().r.svar[2]), ["", "", "", "", ""]);
@@ -4033,6 +4037,177 @@ test("Flinkisen: a seat that leaves is never waited for, its answers and its mar
   r3.trekk(1, { merk: [0, 0], pa: 1, r: 0 });
   for (let n = 0; n < 5; n++) r3.trekk(0, { neste: s3().steg });
   assert.deepEqual(somJson(s3().poeng), [40, 50]);
+});
+
+test("Flinkisen: striking an answer never lifts one's own identical answer; the voters are fixed when the round is closed; the leader goes round among the seats still in", () => {
+  // Two phones with the same answers: B strikes A's first one – B keeps 5 for its own (not 10).
+  const to = rom("flinkisen", 2, { runder: 3 });
+  const s2 = () => to.tlf[0].S.spill;
+  const M = s2().r.b;
+  for (const i of [0, 1]) to.trekk(i, { svar: s2().r.k.map((_, n) => `${M}like${n}`), r: 0 });
+  assert.equal(s2().r.fase, "dom");
+  to.trekk(1, { merk: [0, 0], pa: 1, r: 0 });
+  for (let n = 0; n < 5; n++) to.trekk(0, { neste: s2().steg });
+  assert.deepEqual(somJson(s2().r.status[0]), ["strok", "delt"]);
+  assert.deepEqual(somJson(s2().poeng), [20, 25], "five shared answers: 25 – and 20 with one struck, never 30 against 20");
+  likt(to.tlf[0], to.tlf[1]);
+
+  // Five phones: two of four mark A's answer (it stands); a seat leaves – still two of FOUR.
+  const fem = medSkjerm(rom("flinkisen", 5, { runder: 3 }));
+  const [a, b] = fem.tlf;
+  const sp = () => a.S.spill;
+  const L = sp().r.b;
+  for (let i = 0; i < 5; i++) fem.trekk(i, { svar: sp().r.k.map((_, n) => `${L}${i}${n}`), r: 0 });
+  assert.deepEqual(somJson(sp().r.velgere), [0, 1, 2, 3, 4]);
+  fem.trekk(1, { merk: [0, 0], pa: 1, r: 0 });
+  fem.trekk(2, { merk: [0, 0], pa: 1, r: 0 });
+  assert.equal(a.def.nett.skjerm(a.S), "n-dom");
+  fem.borte(4); // not one of the two who marked
+  assert.deepEqual(somJson(sp().r.velgere), [0, 1, 2, 3, 4], "the electorate does not shrink");
+  // Three of four strike B's answer; one of the three leaves: two of four – it stands again.
+  for (const i of [0, 2, 3]) fem.trekk(i, { merk: [0, 1], pa: 1, r: 0 });
+  fem.borte(3);
+  for (let n = 0; n < 5; n++) fem.trekk(0, { neste: sp().steg });
+  assert.equal(sp().r.fase, "poeng");
+  assert.deepEqual(somJson(sp().r.status[0]), ["alene", "alene", "alene", "ute", "ute"]);
+  assert.deepEqual(somJson(sp().poeng), [50, 50, 50, 0, 0]);
+  likt(a, b);
+  likt(a, fem.sen(2));
+
+  // The leader: four phones, seat 1 leaves – 0, 2, 3, 0, 2 (nobody leads twice in a row).
+  const fire = rom("flinkisen", 4, { runder: 5 });
+  const s4 = () => fire.tlf[0].S.spill;
+  fire.borte(1);
+  const ledere = [];
+  for (let steg = 0; steg < 400 && !s4().ferdig; steg++) {
+    const x = s4();
+    if (x.r.fase === "skriv") {
+      ledere.push(x.r.leder);
+      for (const i of [0, 2, 3]) fire.trekk(i, { svar: x.r.k.map((_, n) => `${x.r.b}${i}${n}`), r: x.runde });
+    } else fire.trekk(x.r.leder, { neste: x.steg });
+  }
+  assert.deepEqual(ledere, [0, 2, 3, 0, 2]);
+  // A leader that leaves mid-round hands the round on; the next round goes to the one after.
+  const tre = rom("flinkisen", 4, { runder: 5 });
+  const s3 = () => tre.tlf[1].S.spill;
+  tre.borte(0);
+  assert.equal(s3().r.leder, 1);
+  for (const i of [1, 2, 3]) tre.trekk(i, { svar: s3().r.k.map((_, n) => `${s3().r.b}${i}${n}`), r: 0 });
+  for (let n = 0; n < 6; n++) tre.trekk(1, { neste: s3().steg });
+  assert.equal(s3().runde, 1);
+  assert.equal(s3().r.leder, 2);
+});
+
+test("Flinkisen: what a phone owes – the draft stays on the phone over a reload, «sendt» only when the answers are in the room's list, and they go again when the line is back or their place was taken", () => {
+  const r = rom("flinkisen", 3, { runder: 3 });
+  const sp = () => r.tlf[0].S.spill;
+  const L = sp().r.b;
+  // A phone with a line of its own: what it sends, whether something is on its way, whether it
+  // is up – and the phone's own store (what R.nett.hemmelig keeps for the match).
+  const medLinje = (p) => {
+    const linje = { sendt: [], oppe: true, paVei: false, lager: undefined };
+    p.R.nett.hemmelig = (v) => (v === undefined ? linje.lager : void (linje.lager = v === null ? undefined : somJson(v)));
+    p.R.nett.tilkoblet = () => linje.oppe;
+    p.R.nett.venter = () => linje.paVei;
+    p.R.nett.send = (t) => {
+      if (!linje.oppe || linje.paVei) return false;
+      linje.sendt.push(somJson(t));
+      linje.paVei = true;
+      return true;
+    };
+    return linje;
+  };
+  const okt = (p) => ({ n: null, gjenspill: false, meg: p.meg, kamp: 1, fro: 20261115, oppsett: {}, antall: 3, ute: [], rng: null });
+  const etter = (p) => p.def.nett.etter(p.S, okt(p));
+  const skjerm = (p) => p.def.skjermer["n-skriv"].vis(p.S);
+  const skriv = (p, k, tekst) => p.def.felt["n-utkast"](p.S, { value: tekst, dataset: { k: String(k) }, closest: () => null });
+  // The page of seat `sete` is loaded anew (a reload): a fresh phone that replays the room's list
+  // and has the same store.
+  const lastPaNytt = (sete, lager) => {
+    const p = r.sen(sete);
+    const linje = medLinje(p);
+    linje.lager = lager;
+    r.tlf[sete] = p;
+    return [p, linje];
+  };
+
+  // ----- The draft: on this phone only, and still there after a reload -----
+  let b = r.tlf[1];
+  let lb = medLinje(b);
+  skriv(b, 0, `${L}ever`);
+  skriv(b, 2, `${L}akeri `);
+  assert.equal(lb.sendt.length, 0, "typing sends nothing");
+  assert.deepEqual(somJson(lb.lager.f), [`${L}ever`, "", `${L}akeri `]);
+  assert.equal(lb.lager.s, 0);
+  [b, lb] = lastPaNytt(1, lb.lager);
+  assert.match(skjerm(b), new RegExp(`id="fl-felt-0"[^>]* value="${L}ever"`), "the text is back in the field after a reload");
+  assert.match(skjerm(b), new RegExp(`id="fl-felt-2"[^>]* value="${L}akeri "`));
+  etter(b);
+  assert.equal(lb.sendt.length, 0, "a draft is not owed: nothing goes by itself");
+
+  // ----- B had pressed the button before the reload: it owes its answers -----
+  lb.lager.s = 1;
+  [b, lb] = lastPaNytt(1, lb.lager);
+  etter(b);
+  assert.deepEqual(lb.sendt, [{ svar: [`${L}ever`, "", `${L}akeri`, "", ""], r: 0 }]);
+  // On its way – the line swallows it. The screen says «sender», never «sendt».
+  assert.match(skjerm(b), /Sender svarene dine/);
+  assert.doesNotMatch(skjerm(b), /Svarene dine er sendt/);
+  etter(b);
+  assert.equal(lb.sendt.length, 1, "nothing more while it is on its way");
+  // The line goes (the kit: nothing is on its way any more, and it asks whose turn it is).
+  lb.oppe = false;
+  lb.paVei = false;
+  b.def.nett.tur(b.S);
+  etter(b);
+  assert.equal(lb.sendt.length, 1, "no line: nothing is sent");
+  assert.match(skjerm(b), /Svarene går så snart mobilen er på nett igjen/);
+  assert.match(skjerm(b), new RegExp(`id="fl-felt-0"[^>]* value="${L}ever"`), "the fields are back, with the text");
+  // The line is back and the room's list has nothing new (the kit calls etter): they go again.
+  lb.oppe = true;
+  etter(b);
+  assert.equal(lb.sendt.length, 2, "the owed answers go when the line is back");
+  assert.deepEqual(lb.sendt[1], lb.sendt[0]);
+  assert.equal(sp().r.svar[1], null, "not in the room's list yet");
+  // This time the room gets them.
+  lb.paVei = false;
+  r.trekk(1, lb.sendt[1]);
+  etter(b);
+  assert.deepEqual(somJson(sp().r.svar[1]), [`${L}ever`, "", `${L}akeri`, "", ""]);
+  assert.equal(lb.sendt.length, 2);
+  assert.equal(lb.lager, undefined, "in the room's list: the draft is gone from the phone");
+  assert.match(skjerm(b), /Svarene dine er sendt/);
+  assert.doesNotMatch(skjerm(b), /Sender svarene dine/);
+
+  // ----- C owes its answers too, and another phone's move takes their place -----
+  let [c, lc] = lastPaNytt(2, { n: `skriv:${sp().fro}:0`, f: [`${L}ris`], s: 1 });
+  etter(c);
+  assert.equal(lc.sendt.length, 1);
+  r.trekk(0, { svar: [`${L}a`, `${L}b`, `${L}c`, `${L}d`, `${L}e`], r: 0 }); // A's answers got the place
+  lc.paVei = false; // (the kit: the place is taken, ours is not on its way)
+  etter(c);
+  assert.equal(lc.sendt.length, 2, "sent again, once, for the move that came in between");
+  // The room's «utdatert» for the first one comes late: the kit clears «on its way» – the second
+  // one is still in flight, and nothing has been played since. Nothing more is sent.
+  lc.paVei = false;
+  etter(c);
+  etter(c);
+  assert.equal(lc.sendt.length, 2, "no third send: no move since, and the line was never down");
+  r.trekk(2, lc.sendt[1]);
+  etter(c);
+  assert.equal(sp().r.fase, "dom", "everyone has delivered: the round is closed");
+  assert.deepEqual(somJson(sp().r.svar[2]), [`${L}ris`, "", "", "", ""]);
+  assert.equal(lc.lager, undefined);
+  assert.equal(lc.sendt.length, 2);
+  likt(r.tlf[0], c);
+  likt(r.tlf[0], b);
+
+  // A stale draft (another round) is not shown, not sent, and is cleared from the phone.
+  r.trekk(0, { neste: sp().steg });
+  let [d, ld] = lastPaNytt(1, { n: "skriv:1:9", f: ["gammelt"], s: 1 });
+  etter(d);
+  assert.equal(ld.sendt.length, 0);
+  assert.equal(ld.lager, undefined);
 });
 
 // ---------- Lurendreieren: hidden dice from the room's seed, bids and «Løgn!» ----------

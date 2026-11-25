@@ -389,6 +389,23 @@
   font: 900 1.1rem/1.2 var(--font-display);
 }
 
+/* On their way, not in the room's list yet */
+.fl-sendt.sender {
+  box-shadow: 0 8px 0 var(--papir-2), inset 0 0 0 3px var(--lampe);
+}
+
+.fl-sendt.sender .fl-sendt-tittel {
+  color: var(--blekk-2);
+}
+
+.fl-skylder {
+  margin: 10px 0 0;
+  color: var(--lampe);
+  font-weight: 800;
+  text-align: center;
+  text-wrap: balance;
+}
+
 .fl-mine {
   display: grid;
   gap: 4px;
