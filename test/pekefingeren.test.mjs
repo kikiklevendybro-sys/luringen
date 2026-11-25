@@ -16,9 +16,9 @@ ungdomTester({
   felt: "utsagn",
   gamle: GAMLE,
   avtrykk: {
-    nb: { standard: ["familie", "venner"], antall: 963, kart: "a37ff80c3c78ff01", trekk: "18875ad3834e0902" },
-    en: { standard: ["familie", "venner"], antall: 915, kart: "efa6d98b394a5950", trekk: "f5b7db01541bd8ff" },
-    da: { standard: ["familie", "venner"], antall: 929, kart: "e4ebfea14c302f7e", trekk: "21ae57d2f56625ac" },
+    nb: { standard: ["familie", "venner"], antall: 963, kart: "97686130cf99d8e4", trekk: "4f1b3402c9ce517b" },
+    en: { standard: ["familie", "venner"], antall: 915, kart: "3025009c9be651d4", trekk: "2a0f790d8db7a72b" },
+    da: { standard: ["familie", "venner"], antall: 929, kart: "cbfc37f74c0eeb55", trekk: "55ed9359b4cd6921" },
   },
   maks: 75,
   skjerm: "kort",
