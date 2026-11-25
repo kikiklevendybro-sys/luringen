@@ -37,7 +37,7 @@
   "Av og til finner dere på resten av setningen selv. Sikt gjerne på noen rundt bordet!": "En gang imellem finder I selv på resten af sætningen. Sigt gerne på nogen rundt om bordet!",
   "Vil dere spille til bare én står igjen? Velg det under «Spillet varer til …».": "Vil I spille, til der kun er én tilbage? Vælg det under »Spillet slutter, når …«.",
   "Velg «Bare kort» hvis dere vil lese og prate uten å telle liv.": "Vælg »Kun kort«, hvis I vil læse og snakke uden at tælle liv.",
-  "Festpakken er for voksne og er ikke med før dere velger den.": "Festpakken er for voksne og er ikke med, før I vælger den.",
+  "Pakkene merket 18+ er bare for voksne. Mobilen spør om alder før dere kan velge dem.": "Pakkerne mærket 18+ er kun for voksne. Mobilen spørger om alder, før I kan vælge dem.",
   "Les kortet høyt.": "Læs kortet højt.",
   "Har du gjort det, er du avslørt!": "Har du gjort det, er du afsløret!",
   "Fortsett · kort {nr}": "Fortsæt · kort {nr}",
@@ -130,5 +130,6 @@
   "{navn} er beste forteller 🎤|{navn} er beste forteller 🎤": { "one": "{navn} er bedste fortæller 🎤", "other": "{navn} er bedste fortællere 🎤" },
   "Kåringen i {spill}: {deler}.": "Kåringen i {spill}: {deler}.",
   "Kortet som avslørte flest, fant vi på selv.": "Kortet, der afslørede flest, fandt vi selv på.",
-  "Kortet som avslørte flest: «{kort}».": "Kortet, der afslørede flest: »{kort}«."
+  "Kortet som avslørte flest: «{kort}».": "Kortet, der afslørede flest: »{kort}«.",
+  "«{pakke}» er bare for voksne.": "»{pakke}« er kun for voksne."
 }

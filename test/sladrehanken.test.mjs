@@ -5,7 +5,7 @@
 // The fingerprints were taken before the pack was added. If you change an existing card on
 // purpose, run the same draws again and update them here.
 import assert from "node:assert/strict";
-import { ungdomTester } from "./kortpakker.mjs";
+import { ungdomTester, voksenTester } from "./kortpakker.mjs";
 
 const GAMLE = ["familie", "venner", "pinlig", "reise", "mat", "jobb", "fest", "jul", "barn", "blikjent", "hytte", "sommer", "russ"];
 const STANDARD = ["familie", "venner", "pinlig", "reise", "mat", "jobb", "barn", "blikjent", "hytte", "sommer"];
@@ -30,3 +30,6 @@ ungdomTester({
     assert.ok(!/^(jeg|never|i)\b/i.test(k), `${sprak}: «${k}» – «Jeg har aldri …» står allerede foran`);
   },
 });
+
+// «Fest» and «Russ» sit behind the 18+ question (as in Dommeren), in every edition.
+voksenTester({ id: "sladrehanken", fil: "kort", voksne: ["fest", "russ"], standard: STANDARD });
