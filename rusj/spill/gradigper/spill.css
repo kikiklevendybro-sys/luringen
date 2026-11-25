@@ -1,0 +1,829 @@
+/* Grådigper — the table: one tile per player with the cards face up, this round's points and the
+   total; the heading says whose turn it is; the card just drawn shows big for a moment.
+   The cards are rusj's own: a colour per number, dark bonus cards, a back with a seed in a frame.
+   Everything new is prefixed gp-. */
+
+.skjerm-spill {
+  gap: 10px;
+}
+
+/* ---------- The cards ---------- */
+
+.gp-kort {
+  --kf: var(--papir);
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  aspect-ratio: 5 / 7;
+  border-radius: 17% / 12%;
+  background: var(--kf);
+  box-shadow:
+    inset 0 0 0 1.5px #170e2b,
+    inset 0 -3px 0 rgba(23, 14, 43, 0.14),
+    0 2px 0 rgba(6, 2, 14, 0.45);
+  color: var(--blekk);
+  font: 900 0.8rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+
+/* A colour per number, so two alike are seen at a glance */
+.gp-kort.t0 {
+  --kf: #f2ecff;
+}
+
+.gp-kort.t1 {
+  --kf: #ffe08a;
+}
+
+.gp-kort.t2 {
+  --kf: #ffd23f;
+}
+
+.gp-kort.t3 {
+  --kf: #ffb347;
+}
+
+.gp-kort.t4 {
+  --kf: #ff8a5c;
+}
+
+.gp-kort.t5 {
+  --kf: #ff7a9c;
+}
+
+.gp-kort.t6 {
+  --kf: #f7a6ff;
+}
+
+.gp-kort.t7 {
+  --kf: #c9a2ff;
+}
+
+.gp-kort.t8 {
+  --kf: #9db4ff;
+}
+
+.gp-kort.t9 {
+  --kf: #7fd0ff;
+}
+
+.gp-kort.t10 {
+  --kf: #5fe0d2;
+}
+
+.gp-kort.t11 {
+  --kf: #6fe59a;
+}
+
+.gp-kort.t12 {
+  --kf: #c4ee6b;
+}
+
+/* Bonus cards: dark, with a light rim */
+.gp-kort.bonus {
+  --kf: #2e1e52;
+  box-shadow:
+    inset 0 0 0 1.5px #170e2b,
+    inset 0 0 0 3px var(--kr, var(--lampe)),
+    0 2px 0 rgba(6, 2, 14, 0.45);
+  color: var(--kr, var(--lampe));
+  letter-spacing: -0.06em;
+}
+
+.gp-kort.dobbel {
+  --kr: var(--mynte);
+}
+
+.gp-kort.pose {
+  --kr: #ffa94d;
+}
+
+.gp-kort.pose svg {
+  display: block;
+  width: 78%;
+  height: auto;
+}
+
+/* The number that came twice: laid across the row's end, struck out */
+.gp-kort.to {
+  outline: 2.5px solid var(--rod);
+  outline-offset: -1px;
+}
+
+.gp-kort.to::after {
+  position: absolute;
+  inset: 44% -8%;
+  border-radius: 2px;
+  background: var(--rod);
+  content: "";
+  transform: rotate(-32deg);
+}
+
+.gp-kort.ny {
+  animation: gp-ny 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) 0.55s both;
+}
+
+@keyframes gp-ny {
+  from {
+    opacity: 0;
+    transform: scale(1.8) rotate(8deg);
+  }
+}
+
+/* The back: aubergine with a framed seed */
+.gp-bak {
+  --kf: #4a2f8a;
+  background:
+    radial-gradient(circle at 25% 20%, rgba(255, 241, 221, 0.16) 0 9%, transparent 10%),
+    radial-gradient(circle at 75% 80%, rgba(255, 241, 221, 0.16) 0 9%, transparent 10%),
+    radial-gradient(circle at 75% 20%, rgba(255, 169, 77, 0.3) 0 7%, transparent 8%),
+    radial-gradient(circle at 25% 80%, rgba(255, 169, 77, 0.3) 0 7%, transparent 8%),
+    #4a2f8a;
+}
+
+.gp-bak i {
+  position: absolute;
+  inset: 16% 18%;
+  border: 2px solid var(--aksent);
+  border-radius: 46%;
+  background: radial-gradient(ellipse 34% 44% at 50% 50%, var(--aksent) 0 98%, transparent 100%);
+}
+
+/* ---------- Whose turn ---------- */
+
+.gp-topp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.gp-hvem {
+  flex: 1;
+  min-width: 0;
+}
+
+.gp-hvem .etikett {
+  margin-bottom: 2px;
+}
+
+.gp-hvem h1 {
+  font-size: clamp(1.6rem, 7.6vw, 2.15rem);
+  overflow-wrap: anywhere;
+}
+
+.gp-bunke {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 56px;
+  margin-right: 6px;
+}
+
+.gp-bunke .gp-kort {
+  position: absolute;
+  inset: 0;
+}
+
+.gp-bunke .gp-kort:nth-child(1) {
+  transform: translate(-6px, 3px) rotate(-9deg);
+}
+
+.gp-bunke .gp-kort:nth-child(2) {
+  transform: translate(-3px, 1px) rotate(-4deg);
+}
+
+.gp-hendelse {
+  display: grid;
+  align-items: center;
+  min-height: 2.5em;
+  margin-top: -4px;
+  color: var(--tekst-2);
+  font: 700 0.92rem/1.25 var(--font-display);
+  text-wrap: balance;
+}
+
+/* ---------- The table ---------- */
+
+.gp-bord {
+  --per: 7;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Two players: one wide tile each, big cards */
+.gp-bord.n2 {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+/* Three or four: two tiles a row, five cards a line */
+.gp-bord.n4 {
+  --per: 5;
+}
+
+.gp-bord.n8 {
+  gap: 6px;
+}
+
+.gp-plass {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.gp-bord.n2 .gp-plass {
+  gap: 8px;
+  padding: 12px;
+}
+
+.gp-bord.n8 .gp-plass {
+  gap: 5px;
+  padding: 7px;
+}
+
+.gp-plass.na {
+  background: color-mix(in srgb, var(--pf) 16%, var(--natt-2));
+  box-shadow:
+    inset 0 0 0 3px var(--pf),
+    0 0 18px color-mix(in srgb, var(--pf) 35%, transparent);
+}
+
+.gp-plass.meg:not(.na) {
+  box-shadow: inset 0 0 0 1.5px var(--tekst-3);
+}
+
+.gp-plass-hode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.gp-plass-hode .avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 0.82rem;
+}
+
+.gp-bord.n2 .gp-plass-hode .avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 1.1rem;
+}
+
+.gp-navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 800 0.9rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gp-bord.n2 .gp-navn {
+  font-size: 1.15rem;
+}
+
+.gp-sum {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--natt-3);
+  font: 900 0.95rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.gp-bord.n2 .gp-sum {
+  padding: 5px 12px;
+  font-size: 1.2rem;
+}
+
+.gp-rad {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(var(--per), minmax(0, 1fr));
+  gap: 3px;
+}
+
+.gp-bord.n2 .gp-rad {
+  gap: 6px;
+}
+
+.gp-rad .gp-kort {
+  font-size: calc(100cqw / var(--per) * 0.56);
+}
+
+.gp-rad .gp-kort.bonus {
+  font-size: calc(100cqw / var(--per) * 0.44);
+}
+
+.gp-tom {
+  aspect-ratio: 5 / 7;
+}
+
+.gp-plass.ute .gp-rad .gp-kort:not(.to) {
+  filter: grayscale(1) brightness(0.8);
+}
+
+.gp-plass.borte {
+  opacity: 0.55;
+}
+
+.gp-plass-fot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 22px;
+}
+
+.gp-merke {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tekst-2);
+  font: 800 0.74rem/1.1 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gp-merke.teller {
+  padding: 2px 7px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  font-variant-numeric: tabular-nums;
+}
+
+.gp-merke.ute {
+  color: #ff8d84;
+}
+
+.gp-merke.stopp {
+  color: var(--mynte);
+}
+
+.gp-merke.sju {
+  color: var(--lampe);
+}
+
+.gp-bord.n2 .gp-merke {
+  font-size: 0.9rem;
+}
+
+.gp-rp {
+  flex: none;
+  color: var(--aksent);
+  font: 900 1.2rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.gp-bord.n2 .gp-rp {
+  font-size: 1.7rem;
+}
+
+.gp-rp.tapt {
+  color: var(--tekst-3);
+  text-decoration: line-through;
+}
+
+.gp-bord.over .gp-rp:not(.tapt) {
+  color: var(--mynte);
+}
+
+.gp-plass.sju {
+  box-shadow: inset 0 0 0 3px var(--lampe);
+}
+
+/* ---------- «Stopp» and «Ett til», side by side under the thumbs ---------- */
+
+.gp-valg .knapp,
+.gp-valg .knapp-2 {
+  min-height: 64px;
+  padding-inline: 10px;
+  white-space: nowrap;
+}
+
+.gp-valg .knapp-2 {
+  font-size: 1.14rem;
+}
+
+.gp-valg .knapp-2 b {
+  color: var(--aksent);
+  font-size: 1.2em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* «Ett til» carries a little card with rusj's own back */
+.gp-ikon {
+  display: block;
+  flex: none;
+  width: 22px;
+}
+
+.gp-ikon .gp-kort {
+  width: 22px;
+  transform: rotate(-8deg);
+}
+
+.gp-valg .knapp:disabled .gp-ikon {
+  opacity: 0.45;
+}
+
+/* ---------- The card just drawn, big for a moment ---------- */
+
+.gp-blink {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  z-index: 8;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: gp-blink 1.25s ease both;
+}
+
+@keyframes gp-blink {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -38%) scale(0.45) rotate(-9deg);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.07) rotate(2deg);
+  }
+  22%,
+  76% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -58%) scale(0.9);
+  }
+}
+
+.gp-blink-navn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 70vw;
+  padding: 4px 14px 4px 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--natt-tett);
+  box-shadow: inset 0 0 0 2.5px var(--pf);
+  font: 800 1.05rem/1.1 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gp-blink-navn .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
+}
+
+.gp-kort.stor {
+  width: 124px;
+  border-radius: 16px;
+  box-shadow:
+    inset 0 0 0 3px #170e2b,
+    inset 0 -8px 0 rgba(23, 14, 43, 0.14),
+    0 0 0 4px rgba(21, 12, 40, 0.6),
+    0 18px 40px rgba(6, 2, 14, 0.7);
+  font-size: 4.4rem;
+}
+
+.gp-kort.stor.bonus {
+  box-shadow:
+    inset 0 0 0 3px #170e2b,
+    inset 0 0 0 8px var(--kr, var(--lampe)),
+    0 0 0 4px rgba(21, 12, 40, 0.6),
+    0 18px 40px rgba(6, 2, 14, 0.7);
+  font-size: 3.4rem;
+}
+
+.gp-blink .stempel {
+  margin-top: -58px;
+  background: var(--natt-tett);
+  font-size: 1.9rem;
+  white-space: nowrap;
+}
+
+.gp-blink .stempel.rod {
+  --st: #ff7a70;
+}
+
+.gp-blink.like .gp-kort {
+  filter: saturate(0.55);
+}
+
+/* ---------- Score sheet ---------- */
+
+.gp-lapp-ramme {
+  overflow-x: auto;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  color: var(--blekk);
+}
+
+.gp-lapp {
+  width: 100%;
+  border-collapse: collapse;
+  font: 800 0.9rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.gp-lapp th,
+.gp-lapp td {
+  padding: 6px 8px;
+  border-bottom: 1.5px solid var(--papir-2);
+}
+
+.gp-lapp thead th {
+  padding-top: 10px;
+  vertical-align: bottom;
+}
+
+.gp-lapp thead .avatar {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto 3px;
+  font-size: 0.95rem;
+}
+
+.gp-lapp-navn {
+  display: block;
+  max-width: 5.5em;
+  margin: 0 auto;
+  overflow: hidden;
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gp-lapp tbody th,
+.gp-lapp tfoot th {
+  color: var(--blekk-2);
+  font-size: 0.78rem;
+}
+
+.gp-lapp tfoot td,
+.gp-lapp tfoot th {
+  border-bottom: 0;
+  background: var(--papir-2);
+  font-size: 1.02rem;
+  font-weight: 900;
+}
+
+.gp-lapp b {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--lampe);
+}
+
+.gp-null {
+  color: var(--rod-dyp);
+}
+
+/* ---------- The cards explained (the rules sheet, «Kortene») ---------- */
+
+.gp-forklaring {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gp-forklaring li {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.gp-forklaring li > span:last-child {
+  color: var(--tekst-2);
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.gp-forklaring b {
+  display: block;
+  color: var(--tekst);
+  font: 900 1rem/1.2 var(--font-display);
+}
+
+.gp-vifte {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.gp-vifte .gp-kort {
+  width: 29px;
+  font-size: 0.95rem;
+}
+
+.gp-vifte .gp-kort.bonus {
+  font-size: 0.78rem;
+}
+
+.gp-ark-kort h3 {
+  display: none;
+}
+
+/* ---------- Tall phones: three or four players get bigger cards ---------- */
+
+@media (min-height: 760px) and (orientation: portrait) {
+  .gp-bord.n4 {
+    --per: 4;
+  }
+
+  .gp-bord.n4 .gp-plass {
+    gap: 8px;
+    padding: 10px;
+  }
+}
+
+/* ---------- Short phones ---------- */
+
+@media (max-height: 700px) {
+  /* Home: «Start spill», «Spill med en venn på nett» and the facts fit a phone in the browser (390 × 664) */
+  .skjerm-hjem .spillhjem {
+    gap: 8px;
+  }
+
+  .skjerm-hjem .spillhjem .figur-ramme {
+    width: min(25vw, 96px);
+  }
+
+  .skjerm-hjem .spillhjem h1 {
+    font-size: clamp(2.2rem, 10.5vw, 2.9rem);
+  }
+
+  .skjerm-hjem .hjem-knapper {
+    gap: 9px;
+  }
+
+  .skjerm-spill {
+    gap: 7px;
+  }
+
+  .gp-hvem h1 {
+    font-size: clamp(1.4rem, 6.6vw, 1.8rem);
+  }
+
+  .gp-bunke {
+    width: 32px;
+    height: 45px;
+  }
+
+  .gp-hendelse {
+    font-size: 0.86rem;
+  }
+
+  .gp-plass {
+    gap: 5px;
+    padding: 6px 7px;
+  }
+
+  .gp-plass-fot {
+    min-height: 19px;
+  }
+
+  .gp-rp {
+    font-size: 1.08rem;
+  }
+
+  .gp-valg .knapp,
+  .gp-valg .knapp-2 {
+    min-height: 58px;
+  }
+
+  .gp-kort.stor {
+    width: 104px;
+    font-size: 3.7rem;
+  }
+
+  .gp-kort.stor.bonus {
+    font-size: 2.9rem;
+  }
+}
+
+@media (max-width: 350px) {
+  .gp-bord {
+    gap: 5px;
+  }
+
+  .gp-plass,
+  .gp-bord.n8 .gp-plass {
+    padding: 6px;
+  }
+
+  .gp-navn {
+    font-size: 0.82rem;
+  }
+
+  .gp-merke {
+    font-size: 0.68rem;
+  }
+
+  .gp-valg .knapp-2 {
+    font-size: 1.02rem;
+  }
+
+  /* (no room for the hand beside a three-digit number) */
+  .gp-valg .knapp-2 .ikon {
+    display: none;
+  }
+}
+
+/* ---------- A phone on its side: the table beside the buttons ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .gp-bunke {
+    display: none;
+  }
+
+  .gp-hendelse {
+    min-height: 1.3em;
+  }
+
+  .gp-bord.n2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gp-bord.n2 .gp-plass {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .gp-bord.n4 {
+    --per: 7;
+  }
+
+  .gp-bord.n8 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* The buttons are a column beside the table: «Ett til» on top, «Stopp» under it */
+  html[data-liggende="side"] .gp-valg {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  html[data-liggende="side"] .gp-valg .knapp {
+    order: -1;
+  }
+
+  html[data-liggende="side"] .gp-valg .knapp,
+  html[data-liggende="side"] .gp-valg .knapp-2 {
+    min-height: 54px;
+  }
+
+  .gp-blink {
+    top: 52%;
+    left: 31%;
+  }
+
+  .gp-kort.stor {
+    width: 92px;
+    font-size: 3.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-kort.ny {
+    animation: none;
+  }
+
+  .gp-blink {
+    animation: gp-blink-rolig 0.9s linear both;
+  }
+
+  @keyframes gp-blink-rolig {
+    0%,
+    80% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+}

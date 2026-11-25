@@ -693,6 +693,17 @@
       "frase": "The 10,000 dice game",
       "beskrivelse": "Play the 10,000 dice game free: roll six dice, keep what scores and dare to roll on – or lose the lot. For 1 to 8 players, with the phone as an opponent."
     },
+    "gradigper": {
+      "tittel": "Push your luck card game – one more card? Free",
+      "frase": "Push your luck card game",
+      "beskrivelse": "A free push-your-luck card game: take one more card or stop in time. Two alike and the round's points are gone. For 2–8, on one phone or a phone each online.",
+      "sok": [
+        "one more card",
+        "press your luck card game",
+        "seven different numbers",
+        "family card games"
+      ]
+    },
     "dobbelsekseren": {
       "tittel": "Dominoes online – free against the phone",
       "frase": "Dominoes",
