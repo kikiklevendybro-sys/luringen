@@ -41,7 +41,7 @@
         "En fugl, der ikke kan flyve", "Et hvidt dyr", "Et dyr, der lever i ørkenen", "Et dyr, der svømmer i åen",
         "Et dyr med vinger, der ikke er en fugl", "Et stort dyr i havet", "Et husdyr", "Et dyr, der lever i junglen",
         "Et dyr, der lægger æg", "Et dyr med lang hals", "Et dyr, der er farligt i havet", "Et dyr, der siger en sjov lyd",
-        "Et dyr i et eventyr", "En sommerfugl eller et andet smukt insekt", "Et dyr, du ser på safari", "Noget, en fugl bygger rede af",
+        "Et dyr i et eventyr", "En sommerfugl eller et andet smukt insekt", "Et dyr, der lever i en sø", "Noget, en fugl bygger rede af",
         "Et brunt dyr", "En sort fugl", "Et dyr, der bor i et træ", "Et dyr, der spiser myrer",
         "Noget, der vokser i haven", "Et dyr med pigge", "Et dyr med lange ører", "Noget grønt i skoven"
       ]
@@ -58,15 +58,15 @@
         "Noget, du køber i supermarkedet hver uge", "Noget, du har i entréen", "Noget, du glemmer, når du skal ud ad døren", "Et møbel",
         "Noget, der tit går i stykker", "Noget, du gør om søndagen", "Noget med fjernbetjening", "Noget, der hænger på køleskabsdøren",
         "Noget, der dufter godt derhjemme", "Noget, du har i lommen", "Noget, der tager for lang tid om morgenen", "Noget, man skændes om derhjemme",
-        "Noget, du gør, når du keder dig", "Noget, du finder på loftet", "Noget, du har i værktøjskassen", "Det første, du gør, når du kommer hjem",
+        "Noget, du gør, når du keder dig", "Noget, du finder på loftet", "Noget, der kommer ind ad brevsprækken", "Det første, du gør, når du kommer hjem",
         "Noget, du finder i skuret", "Noget hvidt i køkkenet", "Noget, du skal vaske tit", "En lyd, du hører hver morgen",
         "Noget, du gør hver morgen", "Noget, du bruger hver dag", "Noget, du har på køkkenbordet", "Noget, du rydder væk",
-        "Noget, der ligger i entréen", "Noget, du gør efter aftensmaden", "Noget, du gør i weekenden", "Noget, der står i stuen",
+        "Noget, der står i vindueskarmen", "Noget, du gør efter aftensmaden", "Noget, du gør i weekenden", "Noget, der står i stuen",
         "Noget, der fylder meget", "Noget, du vasker", "Noget, du tænder for", "Noget med knapper",
         "Noget, der er i opvaskemaskinen", "Noget, du har i soveværelset", "En ting, der altid er tom", "Noget, du gør, når du er syg",
         "Noget, du gør, mens du venter", "Noget, du har i en skuffe", "Noget, du gør på mobilen", "Noget, der bipper",
         "Noget, du hænger op", "Noget, du tit skal købe nyt af", "Noget, der lugter", "Noget, du finder i bryggerset",
-        "Noget, du gør før morgenmaden", "Noget, du åbner", "Noget med hjul", "Noget, du rydder væk, før der kommer gæster"
+        "Noget, du gør, mens du venter på bussen", "Noget, du åbner", "Noget med hjul", "Noget, du gør, før der kommer gæster"
       ]
     },
     {
@@ -84,7 +84,7 @@
         "Noget, du køber i kiosken", "Et kendt sted i den danske natur", "En dansk tradition", "Noget, du har på, når du cykler i regnvejr",
         "Noget, du ser langs vejen i Danmark", "Noget, du gør på en sommerferie i Danmark", "Noget, du gør på Grundlovsdag", "Noget, danskere altid har i fryseren",
         "Noget, danskere gør om søndagen", "Noget typisk for Fyn", "Noget typisk for Sønderjylland", "En dansk sø eller å",
-        "Noget, du har på til et bryllup", "Noget, du hører til en landskamp", "Noget, du gør, når der er sol i marts", "Noget, danskere altid har med på tur",
+        "Noget, du har på til et bryllup", "Noget, du hører til en landskamp", "Noget, du gør, når der er sol i marts", "En kendt dansker",
         "Et typisk dansk pålæg", "Et typisk dansk dyr", "Noget, du gør ved vandkanten", "Et dansk ord for dårligt vejr",
         "Noget, du gør i julen i Danmark", "Noget, du ser på en cykeltur", "En kendt dansk forfatter eller kunstner", "En dansk ø",
         "Noget, danskere altid siger i telefonen", "Noget typisk for København", "Noget typisk for Vestkysten", "Noget, du gør i en snestorm",
@@ -106,11 +106,11 @@
         "Noget, du skal bruge for at spille fodbold", "Et kortspil", "Noget, der altid sker i gyserfilm", "Et sted, du tager hen for at have det sjovt",
         "Noget, du kan gøre med en bold", "Noget, du kan se på i timevis", "Noget, du hører i bilen", "Noget, du laver med hænderne",
         "En superhelt", "Noget, du kan gøre helt gratis", "En aktivitet for hele familien", "Et computerspil",
-        "Noget, du gør i biografen", "En sport med bold", "En vintersport, der ikke er ski", "Noget, du skal bruge for at fiske",
+        "Noget, du gør i biografen", "En sport med ketsjer", "En vintersport, der ikke er ski", "Noget, du skal bruge for at fiske",
         "Noget, du gør på en vandretur", "Noget, du ser i fjernsynet fredag aften", "Noget, du gør i haven", "Noget, du gør med vennerne",
         "Et instrument i et orkester", "Noget, du kan lave i sneen", "En leg udenfor", "En figur i et eventyr",
-        "Noget, du skal bruge på telttur", "Noget, du kan samle på", "En kampsport", "Noget, man ser i et cirkus",
-        "En aktivitet på sommerlejr", "Noget, du gør i et svømmebassin", "Noget, du hører til en fodboldkamp", "En slags dans",
+        "Noget, du skal bruge på telttur", "Noget, du øver dig på", "En kampsport", "Noget, man ser i et cirkus",
+        "En aktivitet på sommerlejr", "Noget, du gør på skøjtebanen", "Noget, du hører til en fodboldkamp", "Noget, du gør til en koncert",
         "Noget, du gør på en legeplads", "Noget, du gør i et tivoli", "Noget, der er sjovt at se på", "Noget, du kan gøre alene",
         "En sang, alle kan", "Noget, der skal have batterier", "Noget, du gør på biblioteket", "Noget, du kan gøre i en snedrive",
         "Noget, du lærer på et kursus"
@@ -131,7 +131,7 @@
         "Noget, du gør på en lang biltur", "Noget, du finder på et hotelværelse", "En hovedstad", { "t": "Et sted, du gerne ville bo", "bred": true },
         "Noget, du køber på færgen", "Noget typisk for en charterferie", "Et land i Sydamerika", "Noget, du ser på en campingplads",
         "Et land i Afrika", "En kendt bygning", "Noget, du gør på en bådtur", "Noget, du skal bruge for at rejse til udlandet",
-        "Et land, hvor de taler spansk", "En kendt flod i verden", "Noget, du ser på en safari", "Noget, du køber på ferie",
+        "Et land, hvor de taler spansk", "En kendt flod i verden", "Noget, du ser på en safari", "Noget, du gør på ferie, når det regner",
         "Noget, du gør, når flyet er forsinket", "Noget, du spiser i flyet", "Noget, du tager med i flyet", "Et sted med sne hele året",
         "Noget, du ser i Rom", "Noget, du ser i London", "Noget, du gør på et krydstogtskib", "Et sted i udlandet, hvor du kan stå på ski",
         "Noget, du ser på en øde ø", "Noget typisk for Sverige", "Noget typisk for Tyskland", "Noget, du gør på campingpladsen",
@@ -206,7 +206,7 @@
         "Noget, du gør på en lang lørdag", "Noget, der sker i en andelsboligforening", "Noget, du sparer op til", "Noget besværligt ved at have bil",
         "Noget, du gør, når du er alene hjemme", "Noget, der er kedeligt at købe", "Noget, du skal have i et nyt hjem", "Noget, voksne spiser, når børnene er lagt i seng",
         "Noget, der tager lang tid", "Noget, du køber på apoteket", "Noget, der altid slipper op derhjemme", "Noget, der altid skal skiftes",
-        "Noget, voksne gør fredag aften", "Noget, du gør, når du får besøg", "Noget, der er smart at have i bilen", "Noget kedeligt ved søndage",
+        "Noget, voksne gør fredag aften", "Noget, du gør, når du får besøg", "Noget, der er smart at have i køkkenet", "Noget kedeligt ved søndage",
         "Noget, der sker, når man bliver forælder", "Noget, du skal forny", "Noget, der er dejligt at komme hjem til", "Noget, du gør en hverdagsaften"
       ]
     },
@@ -229,7 +229,7 @@
         "Noget, en ko ville sige, hvis den kunne tale", "Noget, et spøgelse er bange for", "Noget, der ikke burde være i et køleskab", "Noget, der er sjovt at hoppe i",
         "Noget mærkeligt at tage med på stranden", "Noget, der er umuligt at bære", "Noget, du ikke vil have i madpakken", "Noget, et monster har under sengen",
         "Noget mærkeligt at strikke", "Noget, en heks flyver på", "Noget, en kat tænker på", "Noget mærkeligt at se i en elevator",
-        "Noget, du ikke vil træde i med bare tæer", "Noget, en pirat har i sin kiste", { "t": "Et skørt navn til en båd", "bred": true }, "Noget, et rumvæsen tager med hjem fra Jorden",
+        "Noget, der er mærkeligt at finde i skoven", "Noget, en pirat har på", { "t": "Et skørt navn til en båd", "bred": true }, "Noget, et rumvæsen tager med hjem fra Jorden",
         "Noget mærkeligt at synge om", "Noget, der bliver mærkeligt med is på", "Noget mærkeligt at give i fødselsdagsgave", "Noget, en snemand drømmer om"
       ]
     },
@@ -251,7 +251,7 @@
         "Noget, du gør i august", "Noget, du gør, når det bliver mørkt tidligt", "Noget, der sker om efteråret", "Noget, du gør på mors dag eller fars dag",
         "Noget, du gør på årets første snedag", "Noget rødt og hvidt på Grundlovsdag", "Noget typisk for sommeren", "Noget, du køber i november",
         "Noget, du gør på årets længste dag", "Noget, du gør på årets korteste dag", "Noget, du finder i et påskeæg", "Noget, du gør på andres fødselsdag",
-        "Noget, du gør i juli", "Noget typisk for foråret", "Noget, du gør i en hedebølge", "Noget, du gør nytårsdag",
+        "Noget, du gør i februar", "Noget typisk for foråret", "Noget, du gør i en hedebølge", "Noget, du gør nytårsdag",
         "Noget, der sker til en børnefødselsdag", "Noget grønt om foråret", "Noget, du gør mortensaften", "Noget, du gør til halloween",
         "Noget, du klæder dig ud som til fastelavn", "Noget, du gør en lang sommeraften", "Noget, du gør, når det slasker", "Noget, der sker i december"
       ]
@@ -276,7 +276,7 @@
         "Noget, du kan spille på", "Noget stort", "Noget lille", "Noget, du kan have på hovedet",
         "Et dyr, der kan svømme", "Noget, du får i en godtepose", "Noget, du har på pizza", "Noget, du ser i en eventyrbog",
         "Noget hvidt", "Noget, du har på om sommeren", "Noget, du kan bygge en hule af", "Noget, der er sjovt at lege med i sneen",
-        "Noget, du kan se i en dyrepark", "Noget, du kan lave af papir", "En farve i regnbuen", "Noget, du kan trille",
+        "Noget, du kan se i et akvarium", "Noget, du kan lave af papir", "En farve i regnbuen", "Noget, du kan trille",
         "Noget lodent", "Noget, du kan finde i en skov", "Et eventyrdyr", "Noget, du tager med i børnehaven"
       ]
     },
@@ -286,7 +286,7 @@
       "ikon": "🎄",
       "tekst": "Julefrokost, nisser og flæskesteg",
       "sporsmal": [
-        "Noget, du spiser til julefrokost", "Noget, du har på til julefrokost", "Noget, der altid sker til julefrokosten", "En julefilm",
+        "Noget, du spiser til julefrokost", "Noget, du har på til julefrokost", "Noget, der altid sker juleaften", "En julefilm",
         "Den værste julegave", "Noget, julemanden har i sækken", "Noget, julemanden har på", "Et sted, julemanden bor",
         "Noget, du stiller frem til nissen", "Tilbehør til flæskesteg", "Noget, du drikker til julemaden", "Julemad, folk enten elsker eller hader",
         "Noget, du kommer på risalamanden", "Noget, du laver af brunkagedej", "Noget, der ligger i godteskålen i julen", "Noget, der dufter af jul",
@@ -295,8 +295,8 @@
         "Noget, du skal nå før jul", "Et sted, hvor der er kø i december", "Noget, du køber på et julemarked", "Noget, du gør lillejuleaften",
         "Noget, du gør juledag", "En typisk gave til mormor", "En typisk gave til far", "Noget, der er svært at pakke ind",
         "Det bedste ved julen", "Det værste ved julen", "Noget, du spiser juleaften efter middagen", "Noget, du gør juleaften før middagen",
-        "Noget, du finder på et julefrokostbord", "Noget grønt i julen", "En julesang, børn synger", "Noget, der hænger i vinduet i december",
-        "Noget, du bager til jul", "Noget hvidt i julen", "Noget, du køber til jul", "Noget, der sker til en juletræsfest",
+        "Noget, du gør, hvis det sner juleaften", "Noget grønt i julen", "En juleskikkelse", "Noget, der hænger i vinduet i december",
+        "Noget, du gør, mens du venter på juleaften", "Noget hvidt i julen", "Noget, du køber til jul", "Noget, der sker til en juletræsfest",
         "En julegave til en teenager", "En julegave til en baby", "Noget, du spiser i romjulen", "Noget, du hører i julen",
         "Noget, julemanden siger", "Noget, der sker til juleafslutningen", "Noget, du pynter med i julen", "Noget guld i julen",
         "Noget, du gør juleaftensmorgen", "Noget, du ser på et julemarked", "Noget, du har på juleaften", "Noget, der altid slipper op i julen",
@@ -310,20 +310,20 @@
       "ikon": "☀️",
       "tekst": "Strand, bål og lyse nætter",
       "sporsmal": [
-        "Noget, du tager med på stranden", "Noget, du spiser på en varm dag", "Noget, du griller", "Noget, du gør i sommerhuset om sommeren",
-        "Noget, du har på på stranden", "Et insekt, du ser om sommeren", "En yndlingsis", "Noget, du gør i båden",
-        "Noget, du tager med på telttur", "Noget, du gør en lys sommeraften", "Noget, du kan fange i vandet", "Et spil, du spiller udenfor",
+        "Noget, du tager med på stranden", "Noget, du spiser på en varm dag", "Noget, du kan plukke om sommeren", "Noget, du gør i sommerhuset om sommeren",
+        "Noget, du har på på stranden", "Et insekt, du ser om sommeren", "Noget, der smelter i solen", "Noget, du gør i båden",
+        "Noget, du gør, når myggene stikker", "Noget, du gør en lys sommeraften", "Noget, du kan fange i vandet", "Et spil, du spiller udenfor",
         "Noget, du kommer i køletasken", "Noget, du drikker om sommeren", "Noget typisk for en dansk sommer", "Noget, du finder på en badebro",
         "Noget, du gør, når du er solskoldet", "Noget, du gør i en hængekøje", "Noget, du gør for enden af badebroen", "Noget, du hører på stranden",
         "Noget, du ser på en musikfestival", "Noget, du skal bruge for at bade", "Noget, du hører om natten i sommerhuset", "Noget, du gør ved bålet",
-        "Noget, du spiser over bålet", "Noget gult om sommeren", "Noget, der flyder", "Noget, du puster op",
-        "Noget, du gør ved en sø", "Noget, du gør på en campingplads", "Noget, du sover i på tur", "Noget, du skal have med på cykelferie",
+        "Noget, du gør i en å", "Noget gult om sommeren", "Noget, der flyder", "Noget, du puster op",
+        "Noget, du gør ved en sø", "Noget, du gør i en kano", "Noget, du sover i på tur", "Noget, du skal have med på cykelferie",
         "Noget, du køber i isbutikken", "Noget, du ser på stranden", "Noget, du gør til en sommerfest", "Noget, der er godt med jordbær",
         "Noget, du gør, når du holder sommerferie hjemme", "Noget typisk for en tur i sommerhus", "Noget, du glemmer i sommerhuset", "Noget, du gør på færgen",
         "Noget, du ser fra båden", "Noget, du gør en varm nat", "Noget, du gør med en vandpistol", "Noget, du gør efter en dukkert",
         "Noget, du smører dig ind i", "Et dyr, du ser om sommeren", "En blomst, du ser om sommeren", "Noget, du sidder på udenfor",
-        "Noget, du gør på en mark eller en eng", "Noget, du gør i tordenvejr", "Noget, du har i en picnickurv", "Noget, du gør på sommerlejr",
-        "Noget, du tager med på en bådtur", "Noget, der hører til en sommeraften", "Noget, du gør, når det er varmt", "Noget, du har på en sandwich på tur",
+        "Noget, du gør på en mark eller en eng", "Noget, du gør i tordenvejr", "Noget, du har i en picnickurv", "Noget, du samler på stranden",
+        "Noget, du tager med på en bådtur", "Noget, der hører til en sommeraften", "Noget, du gør på en cykeltur", "Noget, du har på en sandwich på tur",
         "Noget, du ser fra Himmelbjerget", "Noget, der er godt at drikke efter en lang tur", "Noget, du hører i skoven om sommeren", "Noget, du bygger på stranden"
       ]
     }
