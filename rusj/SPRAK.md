@@ -54,7 +54,9 @@ same page in the other edition, or to its front page when the game is not there 
   5»), and the phrases for the facts («på nett», «online», «kjapt», «against the computer») – the
   table `REGLER` in that file, one entry per edition. The words for a kind of game («hyttetur»,
   «house party», «spilleaften») are in `rusj/seo.<lang>.json` under `tagger`, and the names people
-  use for a game in its `sok`. `test/sok.test.mjs` checks all three editions on the real games.
+  use for a game in its `sok`. An 18+ game is only found by its own name, genre and `sok` and by the
+  words under the tag `drikke` – never by the words for a party or another kind of game.
+  `test/sok.test.mjs` checks all three editions on the real games.
 - **Anonymous counting** (`rusj/kit/stat.js`): a page of another edition is counted under its game id (data-spill), the front page as «forside»
   (the first part of its address); «start» and «ferdig» carry the game id as before.
 - **Only Norwegian for now:** collection pages (`rusj/samlinger`), alias addresses, Luringen, the

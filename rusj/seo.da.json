@@ -31,7 +31,12 @@
       "polterabend",
       "rustur",
       "fødselsdagsfest",
-      "sommerfest"
+      "sommerfest",
+      "flok",
+      "stor flok",
+      "hele banden",
+      "rund fødselsdag",
+      "selskab"
     ],
     "familie": [
       "familiespil",
@@ -126,9 +131,7 @@
       "drukspil",
       "drukleg",
       "drukspil med kort",
-      "forfest",
-      "hjemmefest",
-      "efterfest"
+      "forfest"
     ],
     "arkade": [
       "arkadespil",

@@ -368,7 +368,20 @@ async function forsideTur(t, c) {
       f = await sok("uno");
       r = await rader();
       t.sjekk(f.vist[0] === "vriatter" && r.length >= 1 && !/\buno\b/i.test(r.map((x) => x.tekst + " " + x.etikett).join(" ")), `Søket «uno» finner ikke kortspillet, eller merkenavnet står i raden (${f.vist.slice(0, 3).join(", ")})`);
+      // … nor in the line over the matches or in what is read aloud; the chip is the visitor's own
+      // text, and the name is nowhere else on the page.
+      await c.sov(800);
+      const skrevet = `({ melding: document.querySelector("#sok-melding").hidden ? "" : document.querySelector("#sok-melding").textContent, si: document.querySelector("#si").textContent, brikke: Array.from(document.querySelectorAll('#aktive [data-fjern="sok"]')).map((b) => b.textContent.replace(/×/g, "").trim()).join("|"), ellers: (() => { const k = document.body.cloneNode(true); for (const el of k.querySelectorAll("#aktive, script, style")) el.remove(); return k.textContent; })() })`;
+      const merke = await c.js(skrevet);
+      t.sjekk(merke.melding === "" && /\d/.test(merke.si) && !/\buno\b/i.test(merke.si) && merke.brikke === "«uno»" && !/\buno\b/i.test(merke.ellers), `Etter søket «uno»: linja over treffene «${merke.melding}», opplest «${merke.si}», merkelappen «${merke.brikke}»${/\buno\b/i.test(merke.ellers) ? " – og navnet står et annet sted på siden" : ""}`);
       await t.bilde("forside-sok-merke");
+      // The same for a name misspelt: the game is found, and the name is not written out by us.
+      if (har("kodeknekkeren")) {
+        f = await sok("codnames");
+        await c.sov(800);
+        const feil = await c.js(skrevet);
+        t.sjekk(f.vist[0] === "kodeknekkeren" && feil.melding === "" && !/codenames/i.test(feil.si + " " + feil.ellers) && feil.brikke === "«codnames»", `Et feilstavet merkenavn: ${f.vist.slice(0, 2).join(", ")}; linja «${feil.melding}», opplest «${feil.si}», merkelappen «${feil.brikke}»`);
+      }
     }
   }
   // Nothing found is never a dead end: three games to try and the kinds of game, and what was
@@ -410,8 +423,49 @@ async function forsideTur(t, c) {
     const r = await rader();
     const kk = side.alle.find((s) => s.id === "kortkongen");
     t.sjekk(f.vist.length === 0 && !f.ingen && r.length === 1 && r[0].n === "kortkongen#freecell" && r[0].href === kk.url + "#variant=freecell" && r[0].navn.includes(kk.navn) && r[0].etikett.includes(kk.navn), `«freecell» gir ikke raden for kabalen inni kabalspillet (${JSON.stringify(r.map((x) => [x.n, x.href, x.navn]))})`);
-    t.sjekk(/1/.test(f.tittel) && side.alle.length === (await c.js("window.RUSJ_SPILLISTE.length")), `En variant telles som et spill, eller overskriften teller den ikke som treff («${f.tittel}»)`);
-    if (t.norsk) t.sjekk(r[0] && r[0].navn === "FreeCell · i Kortkongen", `Raden heter «${r[0] && r[0].navn}»`);
+    // A game inside a game is a match, never a game: the heading, the button in the finder and
+    // what is read aloud say «treff» – one number, the rows – and never a number of games.
+    await c.sov(800);
+    const talt = async () => ({ tittel: await c.tekst("#alle-t"), si: await c.tekst("#si"), finner: await c.js(`document.querySelector("#finner-treff").textContent`), rader: (await rader()).length });
+    const tallI = (tekst) => (tekst.match(/\d+/g) || []).join();
+    let tall = await talt();
+    t.sjekk(tallI(tall.tittel) === "1" && tallI(tall.si) === "1" && tallI(tall.finner) === "1", `«freecell» (én rad, ingen spill): overskriften «${tall.tittel}», opplest «${tall.si}», knappen «${tall.finner}»`);
+    if (t.norsk) t.sjekk(tall.tittel === "1 treff" && tall.si === "Viser 1 treff" && r[0] && r[0].navn === "FreeCell · i Kortkongen", `«freecell»: «${tall.tittel}», «${tall.si}», raden «${r[0] && r[0].navn}»`);
+    // A search that lists games and games inside them: more rows than games, and the rows counted.
+    const kabal = await sok({ nb: "kabal", en: "solitaire", da: "kabale" }[t.sprak]);
+    await c.sov(800);
+    tall = await talt();
+    t.sjekk(kabal.vist.length >= 1 && tall.rader > kabal.vist.length, `Søket etter kabal lister ikke både spill og kabaler inni dem (${tall.rader} rader, ${kabal.vist.length} spill)`);
+    t.sjekk(tallI(tall.tittel) === String(tall.rader) && tallI(tall.si) === String(tall.rader) && tallI(tall.finner) === String(tall.rader), `Med varianter blant radene (${tall.rader} rader, ${kabal.vist.length} spill): overskriften «${tall.tittel}», opplest «${tall.si}», knappen «${tall.finner}»`);
+    if (t.norsk) t.sjekk(tall.tittel === `${tall.rader} treff` && tall.si === `Viser ${tall.rader} treff`, `Med varianter blant radene: «${tall.tittel}», «${tall.si}»`);
+    // Without one, it is the number of games – of all the games there are – as before.
+    const uten = await c.js(`(window.RUSJ_SPILLISTE || []).find((s) => !s.alder18 && !s.varianter && !/\\d/.test(s.navn) && s.navn.length >= 6).navn`);
+    f = await sok(uten);
+    await c.sov(800);
+    tall = await talt();
+    t.sjekk(f.vist.length >= 1 && tall.rader === f.vist.length && tallI(tall.tittel) === String(f.vist.length) && tallI(tall.si) === `${f.vist.length},${vanlige.length}`, `Uten varianter («${uten}», ${f.vist.length} spill, ${tall.rader} rader): overskriften «${tall.tittel}», opplest «${tall.si}»`);
+    // A variant's row follows its own facts in a room and with the three questions: «Snapp» is not
+    // played online, «Gin rummy» is for two.
+    if (har("pusen") && har("samleren")) {
+      const variantRader = async () => (await rader()).filter((x) => x.n.includes("#")).map((x) => x.n);
+      await sok({ nb: "snapp", en: "snap", da: "snap" }[t.sprak]);
+      const utenRom = await variantRader();
+      await c.klikk('#rommene [data-rom="nett"]');
+      const iNettrom = await variantRader();
+      t.sjekk(utenRom.includes("pusen#snap") && !iNettrom.includes("pusen#snap"), `«Snapp» i rommet «På nett»: ${iNettrom.join(", ") || "ingen variantrader"} (uten rom: ${utenRom.join(", ") || "ingen"})`);
+      await c.klikk("#nullstill");
+      await sok("gin");
+      const utenSvar = await variantRader();
+      await c.js(`document.querySelector('[data-finn-antall="3-4"]').click()`);
+      await c.sov(200);
+      const forFire = await variantRader();
+      await c.js(`document.querySelector('[data-finn-antall="2"]').click()`);
+      await c.sov(200);
+      const forToen = await variantRader();
+      t.sjekk(utenSvar.includes("samleren#gin") && !forFire.includes("samleren#gin") && forToen.includes("samleren#gin"), `«Gin rummy» med 3–4 spillere valgt: ${forFire.join(", ") || "ingen"} (uten svar: ${utenSvar.join(", ") || "ingen"}; for to: ${forToen.join(", ") || "ingen"})`);
+      await c.klikk("#nullstill");
+    }
+    f = await sok("freecell");
     await t.bilde("forside-sok-variant");
     await c.klikk('#alle-liste li[data-var="kortkongen#freecell"] a');
     const apnet = await venter(`window.Rusj && Rusj.S && Rusj.S.skjerm === "vspill" && Rusj.S.vid === "freecell"`, 10000);
@@ -422,6 +476,80 @@ async function forsideTur(t, c) {
     await c.js(`localStorage.removeItem(${JSON.stringify(t.nokkel("kortkongen.v1"))})`);
     await lastPaNytt();
   } else await c.klikk("#sok-tom");
+  // ---------- The 18+ door in a search ----------
+  // Only when the words ask for a drinking game: never for an occasion or a kind of game («skole»,
+  // «bursdag», «fest»), never for a fact, and never in a room, with «Med barna» or an age chosen.
+  const dorNa = async () => {
+    await c.sov(120);
+    const x = await les();
+    return { dor: x.dor, atten: x.atten.length, ingen: x.ingen, vist: x.vist.length };
+  };
+  // Typed one after the other: the queries that bring the door (or an 18+ row) forward.
+  const henterDora = (sporsmal) =>
+    c.js(`(() => { const felt = document.querySelector("#sok"); const dor = document.querySelector("#dor-celle"); const ut = []; for (const q of ${JSON.stringify(sporsmal)}) { felt.value = q; felt.dispatchEvent(new Event("input", { bubbles: true })); if ((dor && !dor.hidden && dor.offsetParent) || document.querySelector("#alle-liste li[data-alder18]:not([hidden])")) ut.push(q); } return ut; })()`);
+  if (atten.length) {
+    // Every word for a kind of game but the drinking games (the words for a pre-party are both),
+    // a head count and «online» – and, to know the check can fail, the words for drinking games.
+    const ordene = await c.js(`(() => { const T = window.RUSJ_TAGGSOK || {}; const drikke = T.drikke || []; return { drikke, andre: [...new Set(Object.keys(T).filter((k) => k !== "drikke").flatMap((k) => T[k]))].filter((q) => !drikke.includes(q)) }; })()`);
+    const apner = await henterDora([...ordene.andre, ORD.antall, ORD.nett, ...ordene.drikke]);
+    t.sjekk(ordene.andre.length >= 80 && ordene.drikke.length >= 3 && apner.join("|") === ordene.drikke.join("|"), `Aldersdøra i et søk: ventet den for ${ordene.drikke.join(", ")} og ikke for noen av ${ordene.andre.length} andre ord, fikk ${apner.join(", ") || "ingen"}`);
+    // Every drinking game by its whole name: the door, and no row for it.
+    const navnene = await henterDora(atten.map((s) => s.navn));
+    t.sjekk(navnene.length === atten.length && (await les()).atten.length === 0, `Navnet på et drikkespill henter ikke fram aldersdøra: ${atten.filter((s) => !navnene.includes(s.navn)).map((s) => s.navn).join(", ")}`);
+    // … and when nothing else is found: the help, with the door under it.
+    const ett = atten.find((s) => s.id === "torsten") || atten[0];
+    await c.skrivInn("#sok", ett.navn);
+    let d = await dorNa();
+    const under = await c.js(`(() => { const b = document.querySelector("#ingen-treff"); const dor = document.querySelector("#dor-celle"); return !b.hidden && !dor.hidden && dor.getBoundingClientRect().top >= b.getBoundingClientRect().bottom - 1 && b.querySelectorAll(".ingen-liste a.spillflis").length === 3 && b.querySelectorAll(".ingen-rom [data-til-rom]").length >= 5; })()`);
+    t.sjekk(d.vist === 0 && d.atten === 0 && (d.dor.match(/\d+/g) || []).join() === "18,1,18" && d.ingen && under, `Navnet på et drikkespill («${ett.navn}») før aldersdøra: ${JSON.stringify(d)}${under ? "" : " – hjelpen (tre spill og typene) står ikke over døra"}`);
+    await c.sov(800);
+    const lest = await c.tekst("#si");
+    t.sjekk(/(^|\D)1(\D|$)/.test(lest) && /18/.test(lest) && !atten.some((s) => s !== ett && lest.includes(s.navn)), `Det som leses opp når bare et drikkespill passer: «${lest}»`);
+    await t.bilde("forside-sok-bare-18");
+    // With «Med barna» there is no door at all, and the help only has games for that age.
+    await c.klikk('[data-hurtig="barn"]');
+    d = await dorNa();
+    const aldre = await c.js(`Array.from(document.querySelectorAll("#ingen-treff .ingen-liste a.spillflis")).map((a) => { const s = (window.RUSJ_SPILLISTE || []).find((x) => (x.url || "/" + x.id + "/") === a.getAttribute("href")); return s ? s.alder : 99; })`);
+    await c.sov(800);
+    t.sjekk(d.dor === "" && d.atten === 0 && d.ingen && aldre.length === 3 && aldre.every((a) => a <= 6) && !/18/.test(await c.tekst("#si")), `«Med barna» + navnet på et drikkespill: døra «${d.dor}», forslag for alder ${aldre.join(", ")}, opplest «${await c.tekst("#si")}»`);
+    await t.bilde("forside-sok-barn-ingen");
+    // … nor for the words for drinking games, nor with an age chosen for the youngest.
+    const medBarna = await henterDora([...ordene.drikke, ...atten.map((s) => s.navn)]);
+    await c.klikk("#nullstill");
+    await c.js(`(() => { const v = document.querySelector("#finner-yngst"); v.value = "10"; v.dispatchEvent(new Event("change", { bubbles: true })); })()`);
+    const tiAr = (await les()).aktive.length ? await henterDora([...ordene.drikke, ...atten.map((s) => s.navn)]) : ["(alderen ble ikke valgt)"];
+    t.sjekk(medBarna.length === 0 && tiAr.length === 0, `Aldersdøra kommer fram i et søk med barn: «Med barna»: ${medBarna.join(", ") || "ingen"}; yngste 10 år: ${tiAr.join(", ") || "ingen"}`);
+    await c.klikk("#nullstill");
+    // In a room: the same.
+    await c.klikk('#rommene [data-rom="fest"]');
+    const iRom = await henterDora([...ordene.drikke, ...atten.map((s) => s.navn)]);
+    t.sjekk(iRom.length === 0, `Aldersdøra kommer fram i et søk i rommet «Fest»: ${iRom.join(", ")}`);
+    await c.klikk("#nullstill");
+    if (t.norsk) {
+      // A slip in a drinking game's name is not put right for a visitor behind the door: no line that
+      // names it, no door, the usual help.
+      for (const q of ["torsten", "spåkone", "drikkspill"]) {
+        await c.skrivInn("#sok", q);
+        d = await dorNa();
+        const linje = await c.js(`document.querySelector("#sok-melding").hidden ? "" : document.querySelector("#sok-melding").textContent`);
+        t.sjekk(linje === "" && d.dor === "" && d.ingen && d.vist === 0, `Skrivefeilen «${q}» før aldersdøra: linja «${linje}», døra «${d.dor}»`);
+      }
+      // Words a drinking game shares with ordinary games do not bring the door; its own words do.
+      for (const [q, ventet] of [["bursdag", ""], ["klassetur", ""], ["kort", ""], ["gjett", ""], ["hviskeleken", ""], ["for to", ""], ["2 spillere", ""], ["lykkehjul", "1"], ["rød eller svart", "1"], ["drikkespill", String(atten.length)]]) {
+        await c.skrivInn("#sok", q);
+        d = await dorNa();
+        t.sjekk(((d.dor.match(/\d+/g) || [])[1] || "") === ventet && d.atten === 0 && d.ingen === (ventet === "1"), `Søket «${q}»: døra «${d.dor}» (ventet ${ventet ? `+ ${ventet}` : "ingen dør"}), hjelpen ${d.ingen ? "vises" : "vises ikke"}`);
+      }
+    }
+    await henterDora([""]);
+  }
+  // What has no letter or digit in it is not a search: no chip, no count, the list as it was.
+  for (const q of ["!!!", "🎲", ".*"]) {
+    await c.skrivInn("#sok", q);
+    f = await les();
+    t.sjekk(f.aktive.length === 0 && !f.nullstill && f.vist.length === vanlige.length && !f.ingen && (await c.js(`!document.querySelector("#alle-liste").classList.contains("rader") && !document.querySelector("#sok-tom").hidden`)), `«${q}» behandles som et søk (${f.aktive.join(" | ")}, ${f.vist.length} spill)`);
+  }
+  await c.klikk("#sok-tom");
   // With the search gone, the list is A–Å again: the small cards, the letters and the order.
   await c.js(`(() => { const f = document.querySelector("#sok"); f.value = ""; f.dispatchEvent(new Event("input", { bubbles: true })); })()`);
   const tilbake = await c.js(`({ rekke: Array.from(document.querySelectorAll("#alle-liste > li[data-id]")).map((li) => li.dataset.id).join(), rader: document.querySelector("#alle-liste").classList.contains("rader"), bokstaver: document.querySelectorAll("#alle-liste > li.forste").length, varianter: document.querySelectorAll("#alle-liste > li[data-var]").length, sjanger: Array.from(document.querySelectorAll("#alle-liste > li[data-id] .spillflis-sjanger")).filter((s) => s.offsetParent && s.textContent.trim()).length })`);

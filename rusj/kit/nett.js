@@ -898,6 +898,9 @@
   }
 
   const ekteStart = R.start;
+  // While the kit draws its first screen: is this page on its way into a room (an invite link, or a
+  // reload in the middle of a match)? The kit then leaves a link to a variant alone (R.nett.paVei).
+  let paVei = false;
   R.start = (def) => {
     const brukes = !!(def && def.nett && typeof def.nett.start === "function" && typeof def.nett.trekk === "function");
     let fraLenke = null;
@@ -905,8 +908,14 @@
       kobleInn(def);
       fraLenke = lesLenke();
       if (fraLenke) tomAdresse();
+      const okt = hentOkt();
+      paVei = !!(fraLenke || (okt && Date.now() - okt.tid < GJENOPPTA));
     }
-    ekteStart(def);
+    try {
+      ekteStart(def);
+    } finally {
+      paVei = false;
+    }
     if (!brukes) return;
     // A link opened while the page is open (pasted in the same tab).
     window.addEventListener("hashchange", () => {
@@ -929,6 +938,8 @@
   R.nett = {
     // Is a match on the net running on this page (the online state is in use)?
     aktiv: () => R.paNett() && N.fase === "spill",
+    // During the kit's start: the page is about to go into a room.
+    paVei: () => paVei,
     // My seat (0, 1, …), −1 when none.
     meg: () => N.du,
     erMeg: (i) => R.paNett() && i === N.du,

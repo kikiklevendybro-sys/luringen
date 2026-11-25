@@ -15,7 +15,7 @@
   "nett": true,
   "alias": ["bondesjakk", "tre-pa-rad"],
   "varianter": [
-    { "id": "fem", "navn": "Fem på rad", "undertittel": "Kryss og bolle på stort brett", "sok": ["fem på rad", "5 på rad", "fempårad", "gomoku", "luffarsjakk"], "i18n": { "en": { "navn": "Five in a row", "undertittel": "Noughts and crosses on a big board", "sok": ["five in a row", "5 in a row", "gomoku", "five in a line"] }, "da": { "navn": "Fem på stribe", "undertittel": "Kryds og bolle på en stor plade", "sok": ["fem på stribe", "5 på stribe", "fem på række", "gomoku"] } } }
+    { "id": "fem", "navn": "Fem på rad", "undertittel": "Kryss og bolle på stort brett", "sok": ["fem på rad", "5 på rad", "fempårad", "gomoku", "luffarsjakk"], "i18n": { "en": { "navn": "Five in a row", "undertittel": "Noughts and crosses on a big board", "sok": ["five in a row", "5 in a row", "gomoku", "five in a line"] }, "da": { "navn": "Fem på stribe", "undertittel": "Kryds og bolle på et stort bræt", "sok": ["fem på stribe", "5 på stribe", "fem på række", "gomoku"] } } }
   ],
   "i18n": {
     "en": {

@@ -30,7 +30,11 @@
       "hen do",
       "stag do",
       "freshers",
-      "birthday party"
+      "birthday party",
+      "group",
+      "big group",
+      "crowd",
+      "the whole crew"
     ],
     "familie": [
       "family games",
@@ -65,7 +69,9 @@
       "work",
       "colleagues",
       "office party",
-      "away day"
+      "away day",
+      "teams",
+      "in teams"
     ],
     "blof": [
       "bluffing games",
@@ -122,10 +128,7 @@
     "drikke": [
       "drinking games",
       "drinking game",
-      "pre-drinks",
-      "house party",
-      "after-party",
-      "afterparty"
+      "pre-drinks"
     ],
     "arkade": [
       "arcade games",

@@ -1088,7 +1088,7 @@ ${STEMPEL_FILTER}
       familie: [t("Familie"), t("Hele familien")],
       barn: [t("Barn"), t("For barna")],
       alene: [t("Alene"), t("Spill alene")],
-      nett: [t("På nett"), t("Spill på nett")],
+      nett: [t("På nett"), t("Nettspill")],
       klassikere: [t("Klassikere"), t("Klassikere")],
       kort: [t("Kort"), t("Kortspill")],
       ord: [t("Ord og quiz"), t("Ord og quiz")],
@@ -1346,10 +1346,10 @@ ${nyeste
     <p class="vh" id="si" aria-live="polite"></p>
     <p class="sok-melding" id="sok-melding" hidden></p>
     <div class="beste" id="beste" hidden></div>
+    <div class="ingen-treff" id="ingen-treff" hidden><p>${esc(t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type."))}</p></div>
     <ul class="alle-liste" id="alle-liste">
 ${aaHtml}${dorHtml}
     </ul>
-    <div class="ingen-treff" id="ingen-treff" hidden><p>${esc(t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type."))}</p></div>
   </section>
   <dialog class="dialog" id="dialog" aria-labelledby="dialog-tittel"></dialog>
   <dialog class="dialog automat" id="automat" aria-labelledby="automat-tittel"></dialog>

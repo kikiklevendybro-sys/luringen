@@ -50,9 +50,11 @@ export async function sjekkVariantlenke(t, o) {
   let v = await apne(o.variant);
   t.sjekk(v.skjerm === skjerm && v.valgt && v.hash === "" && !v.ark, `#variant=${o.variant} åpner ikke oppsettet med varianten valgt (${JSON.stringify({ skjerm: v.skjerm, valgt: v.valgt, hash: v.hash, ark: v.ark })})`);
   await t.bilde(`variant-${o.variant}`, true);
-  // A variant the game does not have: the usual start, nothing asked, the address clean.
+  // A variant the game does not have: the usual start, nothing asked, the address clean – and the
+  // setup as it was.
+  const forUkjent = v.oppsett;
   v = await apne("finnes-ikke");
-  t.sjekk(v.hash === "" && !v.ark, `En ukjent variant i lenka rydder ikke adressen, eller spør om noe (${JSON.stringify({ hash: v.hash, ark: v.ark })})`);
+  t.sjekk(v.hash === "" && !v.ark && v.oppsett === forUkjent, `En ukjent variant i lenka rydder ikke adressen, spør om noe eller endrer oppsettet (${JSON.stringify({ hash: v.hash, ark: v.ark, oppsett: v.oppsett === forUkjent })})`);
 
   // A game of another kind is in progress: the usual question first – «Avbryt» changes nothing.
   await t.js(`(() => { ${o.annet}; Rusj.lagre(); })()`);
@@ -78,4 +80,79 @@ export async function sjekkVariantlenke(t, o) {
   const samme = await les(t, o.valgt);
   v = await apne(o.variant);
   t.sjekk(!v.ark && v.pagar && v.skjerm !== skjerm && v.spill === samme.spill && v.hash === "", `Lenka til varianten som pågår, spør eller starter på nytt (${JSON.stringify({ ark: v.ark, skjerm: v.skjerm, pagar: v.pagar })})`);
+
+  await sjekkNettkamp(t, o.variant);
+  await sjekkAldersport(t, o.variant);
+}
+
+// At the 18+ gate of a drinking game the link waits for the answer: the game's hook is not called
+// before «Ja» – and then the link is followed. (No game with variants is 18+ today, so the gate is
+// put up here: a screen named as the kit's own, with the kit's own answer on its button.)
+export async function sjekkAldersport(t, variant) {
+  const over18 = await t.js("!!Rusj.felles.over18");
+  await t.js(`(() => {
+    const app = Rusj.app;
+    window.__variantkall = 0;
+    for (const n of ["variant", "variantSpor"]) {
+      const ekte = app[n];
+      if (ekte && !ekte.__telt) {
+        app[n] = function () { window.__variantkall++; return ekte.apply(this, arguments); };
+        app[n].__telt = true;
+      }
+    }
+    app.skjermer.alder = { tittel: "18+", gjenoppta: false, vis: () => '<div class="papirboks"><p>18+</p></div>' + Rusj.ui.dokk(Rusj.ui.knapp("18+", "alder-ja")) };
+    Rusj.gaTil("alder");
+  })()`);
+  await t.sov(300);
+  await t.js(`location.hash = ${JSON.stringify("variant=" + variant)}`);
+  await t.sov(500);
+  const les_ = () => t.js(`({ skjerm: Rusj.S.skjerm, hash: location.hash, ark: !document.querySelector("#ark").hidden, kall: window.__variantkall })`);
+  let v = await les_();
+  t.sjekk(v.skjerm === "alder" && v.hash === "" && !v.ark && v.kall === 0, `#variant=${variant} foran aldersporten: ${JSON.stringify(v)} (ventet at lenka venter på svaret, og at spillets variant-krok ikke ble kalt)`);
+  await t.klikk('#skjerm [data-h="alder-ja"]', 600);
+  v = await les_();
+  t.sjekk(v.skjerm !== "alder" && v.kall >= 1, `Etter «Ja» i aldersporten følges ikke lenka til varianten: ${JSON.stringify(v)}`);
+  if (v.ark) await svar(t, false);
+  // (the gate was only put up for this check: the phone is as it was)
+  await t.js(`(() => { delete Rusj.app.skjermer.alder; Rusj.lagreFelles({ over18: ${over18} }); })()`);
+}
+
+// In a match on the net the game on this phone is not on the table (the kit plays the match in a
+// state of its own): the link says «Forlat kampen du er i først.» and the game's hook is never
+// called – not for the question either. (The state of a match is what R._nettBytt gives the kit;
+// no room is needed to check this.)
+export async function sjekkNettkamp(t, variant) {
+  await t.js("Rusj.lagre()");
+  const lagret = await t.js(`localStorage.getItem(${JSON.stringify(t.nokkel(t.id))} + ".v" + (Rusj.app.versjon || 1))`);
+  await t.js(`(() => {
+    const app = Rusj.app;
+    window.__variantkall = 0;
+    for (const n of ["variant", "variantSpor"]) {
+      const ekte = app[n];
+      if (ekte && !ekte.__telt) {
+        app[n] = function () { window.__variantkall++; return ekte.apply(this, arguments); };
+        app[n].__telt = true;
+      }
+    }
+    Rusj._nettBytt(true);
+    Rusj.gaTil(app.hjem || "hjem");
+  })()`);
+  await t.sov(300);
+  const for_ = await t.js(`JSON.stringify(Rusj.S.oppsett || null)`);
+  await t.js(`location.hash = ${JSON.stringify("variant=" + variant)}`);
+  await t.sov(500);
+  const v = await t.js(`({ paNett: Rusj.paNett(), hash: location.hash, ark: !document.querySelector("#ark").hidden, toast: document.querySelector("#toast").classList.contains("vis") ? document.querySelector("#toast").textContent : "", kall: window.__variantkall, skjerm: Rusj.S.skjerm, oppsett: JSON.stringify(Rusj.S.oppsett || null) })`);
+  t.sjekk(v.paNett && v.hash === "" && !v.ark && v.kall === 0 && /\S/.test(v.toast) && v.oppsett === for_, `#variant=${variant} midt i en kamp på nett: ${JSON.stringify(v)} (ventet en beskjed, ingen spørsmål og at spillets variant-krok ikke ble kalt)`);
+  if (t.norsk) t.sjekk(v.toast === "Forlat kampen du er i først.", `Beskjeden i en kamp på nett: «${v.toast}»`);
+  await t.bilde(`variant-${variant}-nettkamp`);
+  // Out of the match: the game on this phone is as it was saved.
+  await t.js(`(() => { Rusj._nettBytt(false); Rusj.gaTil(Rusj.app.hjem || "hjem"); })()`);
+  await t.sov(300);
+  const etter = await t.js(`({ paNett: Rusj.paNett(), lagret: localStorage.getItem(${JSON.stringify(t.nokkel(t.id))} + ".v" + (Rusj.app.versjon || 1)) })`);
+  // (its setup and which game is on the table – a phone player may have moved meanwhile)
+  const kjerne = (x) => {
+    const s = JSON.parse(x || "{}");
+    return JSON.stringify([s.oppsett || null, s.spill ? [s.spill.id, s.spill.variant, s.spill.modus, s.spill.type, !!s.spill.ferdig] : null, s.vid || null]);
+  };
+  t.sjekk(!etter.paNett && kjerne(etter.lagret) === kjerne(lagret), "Spillet på denne mobilen ble endret av en variantlenke midt i en kamp på nett");
 }

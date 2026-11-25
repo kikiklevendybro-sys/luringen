@@ -113,7 +113,7 @@
   // A well-known game inside a game (spill.json "varianter"): where it opens, and its facts – the
   // game's own, but for what the variant says differently (and never «ny oppgave hver dag»).
   const variantUrl = (s, v) => url(s) + "#variant=" + v.id;
-  const somVariant = (s, v) => Object.assign({}, s, { tagger: s.tagger.filter((x) => x !== "daglig") }, v.spillere ? { spillere: v.spillere } : null, v.minutter ? { minutter: v.minutter } : null, v.nett === false ? { nett: false } : null);
+  const somVariant = window.RusjSok.somVariant;
   // «Fra 7 år · 3–8 spillere · 10–30 min · én mobil · kan spilles på nett»: why a suggestion fits.
   // [kind, text]: the kind lets a narrow card leave the phones out.
   function grunn(s) {
@@ -172,10 +172,12 @@
   // for a kind of game («selskapsleker», «vors», «bursdag» …, from rusj/seo.json).
   const Sok = window.RusjSok.lag({ spill: SPILL, taggsok: window.RUSJ_TAGGSOK || {}, sprak: T.sprak, F });
   let sok = "";
-  let funn = null; // what the search found for `sok`; null while nothing is typed
+  // What the search found for `sok` (null while nothing is typed). Looked up again in every
+  // oppdater(): what it may list follows the 18+ door.
+  let funn = null;
+  // What is typed is a search only when a letter or a digit is left of it: «!!!» and «🎲» are not.
   function settSok(q) {
-    sok = q;
-    funn = q ? Sok.sok(q) : null;
+    sok = window.RusjSok.ren(q) ? q : "";
   }
 
   // ---------- What the list shows ----------
@@ -241,7 +243,8 @@
           if (li.has(x.s.id)) rader.push([x.s.id, li.get(x.s.id)]);
           continue;
         }
-        if (!passerValg(x.s)) continue;
+        // (held against its own facts: «Snapp» is not played online, «Gin rummy» is for two)
+        if (!passerValg(somVariant(x.s, x.v))) continue;
         if (!varianter.has(x.n)) {
           const rad = document.createElement("li");
           rad.dataset.var = x.n;
@@ -383,10 +386,15 @@
     const ikke = funn && funn.ikkeEnna;
     const mestSpilt = (liste) => liste.filter((s) => !s.alder18 && !s.tagger.includes("verktoy")).sort((a, b) => (a.topp || Infinity) - (b.topp || Infinity) || a.rekkefolge - b.rekkefolge).slice(0, 3);
     const rommene = $$("#rommene .rom:not(.rom-laast)").map((b) => b.dataset.rom).filter((id) => id !== "voksen");
-    // The nearest we have: the games named for it, else the most played of its kind.
-    let naer = ikke ? ikke.spill.filter((s) => !s.alder18).slice(0, 3) : [];
-    if (ikke && !naer.length && rommene.includes(ikke.rom)) naer = mestSpilt(SPILL.filter((s) => F.iRom(s, ikke.rom)));
-    const mest = mestSpilt(SPILL);
+    // The nearest we have: the games named for it, else the most played of its kind – and of
+    // those, the ones that fit what is chosen («Med barna»: nothing for older children). Only when
+    // the choice leaves nothing at all: as if nothing were chosen.
+    const forslag = (fra) => {
+      const naer_ = ikke ? fra(ikke.spill).filter((s) => !s.alder18).slice(0, 3) : [];
+      return { naer: ikke && !naer_.length && rommene.includes(ikke.rom) ? mestSpilt(fra(SPILL.filter((s) => F.iRom(s, ikke.rom)))) : naer_, mest: mestSpilt(fra(SPILL)) };
+    };
+    let { naer, mest } = forslag((liste) => liste.filter(passerValg));
+    if (!naer.length && !mest.length) ({ naer, mest } = forslag((liste) => liste));
     if (ikke && rommene.includes(ikke.rom)) rommene.unshift(...rommene.splice(rommene.indexOf(ikke.rom), 1));
     return `<p class="ingen-tittel">${esc(t("Fant ingen spill for «{sok}»", { sok }))}</p>${ikke ? `<p class="ingen-ikke">${esc(t("Det har vi ikke ennå."))}</p>` : ""}
       <p class="ingen-under">${esc(naer.length ? t("Det nærmeste vi har:") : t("Prøv et av de mest spilte:"))}</p>
@@ -399,6 +407,7 @@
   let ingenHtml = null; // … and the box for «nothing fits»
   // o.stille: nothing read aloud (the first drawing, a page back from memory).
   function oppdater(o = {}) {
+    funn = sok ? Sok.sok(sok, { over18 }) : null;
     synk18();
     visVoksenRom();
     ordne();
@@ -424,13 +433,17 @@
       }
     }
     const totalt = SPILL.filter(synlig).length;
-    // (the rows of games inside games are matches too, but never counted as games)
-    const treff = vist + varianter.size;
+    // The rows listed: games, and games inside games. The second kind are matches, never games: with
+    // one of them among the rows the page says «treff», so it never counts more games than there are.
+    const rader = vist + varianter.size;
+    const treffTekst = varianter.size ? t("{n} treff", { n: rader }) : t("{n} spill passer", { n: vist });
 
     // The 18+ door at the end of the list: before anyone is 18, when nothing is chosen, for
     // «Vorspiel», and when a search also fits drinking games. After: «Skjul» to hide them again.
     const dor = $("#dor-celle");
-    const bakDora = !over18 && funn ? SPILL.filter((s) => s.alder18 && funn.av.has(s.id)).length : 0;
+    // (a search: only when the words ask for a drinking game by name, genre or its own search
+    // words, or for drinking games as such – and never in a room or with a child's age chosen)
+    const bakDora = window.RusjSok.bakDora(funn, { over18, rom, yngst: valg.yngst });
     if (dor) {
       const n18 = SPILL.filter((s) => s.alder18).length;
       dor.hidden = over18 ? !(rom === "voksen" || !valgt) : !(!valgt || hurtig === "vors" || bakDora);
@@ -445,9 +458,11 @@
     }
     const dorApen = !!(dor && !dor.hidden && !over18);
 
-    $("#alle-t").textContent = valgt ? t("{n} spill passer", { n: treff }) : t("Alle spill A–Å");
+    $("#alle-t").textContent = valgt ? treffTekst : t("Alle spill A–Å");
     $("#nullstill").hidden = !valgt;
-    const tomt = treff === 0 && !dorApen;
+    // No row to list: the box with something to try, and the door (if it is there) under it. Only
+    // when the words asked for the drinking games themselves, the door alone is the answer.
+    const tomt = rader === 0 && !(dorApen && (!funn || funn.drikke));
     $("#ingen-treff").hidden = !tomt;
     const ingen = tomt ? ingenTreff() : "";
     // (only when it changes: the pictures in it are not fetched again for every letter typed)
@@ -456,7 +471,8 @@
       ingenHtml = ingen;
     }
     // A typo the search put right: say which word the matches are for.
-    const rettet = funn && funn.rettet && !tomt ? t("Viser treff for «{ord}»", { ord: funn.rettet }) : "";
+    // (only with a row to show for it: never a word for what is behind the door alone)
+    const rettet = funn && funn.rettet && rader > 0 ? t("Viser treff for «{ord}»", { ord: funn.rettet }) : "";
     $("#sok-melding").hidden = !rettet;
     $("#sok-melding").textContent = rettet;
 
@@ -487,17 +503,17 @@
     $$("[data-hurtig]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.hurtig === hurtig)));
     $$("#rommene .rom:not(.rom-laast)").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.rom === rom)));
     visFinner();
-    $("#finner-treff").textContent = t("{n} spill passer", { n: treff });
-    $("#sok-tom").hidden = !sok;
+    $("#finner-treff").textContent = treffTekst;
+    $("#sok-tom").hidden = !$("#sok").value;
     lagre();
 
     if (!o.stille) {
       const voksne = SPILL.length - totalt;
       si(
         tomt && sok
-          ? t("Fant ingen spill for «{sok}»", { sok }) + (funn && funn.ikkeEnna ? " " + t("Det har vi ikke ennå.") : "")
+          ? t("Fant ingen spill for «{sok}»", { sok }) + (funn && funn.ikkeEnna ? " " + t("Det har vi ikke ennå.") : "") + (bakDora ? " " + t("+ {n} for voksne (18+)", { n: bakDora }) : "")
           : valgt
-            ? (rettet ? rettet + ". " : "") + t("Viser {synlige} av {n} spill", { synlige: treff, n: totalt }) + (bakDora ? " " + t("+ {n} for voksne (18+)", { n: bakDora }) : "")
+            ? (rettet ? rettet + ". " : "") + (varianter.size ? t("Viser {n} treff", { n: rader }) : t("Viser {synlige} av {n} spill", { synlige: vist, n: totalt })) + (bakDora ? " " + t("+ {n} for voksne (18+)", { n: bakDora }) : "")
             : voksne
             ? t("{n} spill + {voksne} for voksne (18+)", { n: totalt, voksne })
             : t("{n} spill – trykk på ett for å starte", { n: totalt }),

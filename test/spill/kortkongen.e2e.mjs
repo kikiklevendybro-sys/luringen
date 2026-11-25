@@ -8,7 +8,7 @@
 // table; «Ny kabal» from home deals at once; the board fits on 320 × 568, 375 × 560 and on its side.
 // Runs in every edition (node test/rusj-e2e.mjs --sprak en kortkongen): the texts are checked in
 // Norwegian only (t.norsk); elsewhere the numbers, the state, the storage keys and the links.
-import { apneVariant } from "./variantlenke.mjs";
+import { apneVariant, sjekkNettkamp, sjekkAldersport } from "./variantlenke.mjs";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { join, dirname } from "node:path";
@@ -842,7 +842,12 @@ async function varianter(t) {
     lenke = await apneVariant(t, id, { sammeSide: id !== "pyramide" });
     t.sjekk(lenke.skjerm === "vspill" && lenke.hash === "" && !lenke.ark && (await t.js("Rusj.S.vid")) === id, `#variant=${id} åpner ikke kabalen (${JSON.stringify(lenke)})`);
   }
-  // A solitaire we do not have: the usual start, the address clean.
+  // A solitaire we do not have: the usual start, the address clean, nothing dealt.
+  const forUkjent = await t.js("JSON.stringify([Rusj.S.vid, Object.keys(Rusj.S.v).sort(), Rusj.S.vopp])");
   lenke = await apneVariant(t, "finnes-ikke");
-  t.sjekk(lenke.hash === "" && !lenke.ark, `En ukjent kabal i lenka rydder ikke adressen (${JSON.stringify(lenke)})`);
+  t.sjekk(lenke.hash === "" && !lenke.ark && (await t.js("JSON.stringify([Rusj.S.vid, Object.keys(Rusj.S.v).sort(), Rusj.S.vopp])")) === forUkjent, `En ukjent kabal i lenka rydder ikke adressen, eller deler ut noe (${JSON.stringify(lenke)})`);
+  // In a match on the net (the kit's own state for it): a message, and the hook is not called.
+  await sjekkNettkamp(t, "golf");
+  // … and at an 18+ gate the link waits for the answer.
+  await sjekkAldersport(t, "golf");
 }

@@ -790,5 +790,14 @@
   "Hjelp oss å velge": "Help us choose",
   "i {spill}": "in {spill}",
   "Også:": "Also:",
-  "Prøv også": "Try these too"
+  "Prøv også": "Try these too",
+  "{n} treff": {
+    "one": "{n} result",
+    "other": "{n} results"
+  },
+  "Viser {n} treff": {
+    "one": "Showing {n} result",
+    "other": "Showing {n} results"
+  },
+  "Nettspill": "Online games"
 }

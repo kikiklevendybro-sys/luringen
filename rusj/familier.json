@@ -34,7 +34,7 @@
     {
       "id": "sporsmalskort",
       "spill": ["fortelleren", "hovedpersonen"],
-      "grunn": { "nb": "Spørsmålskort som setter i gang praten", "en": "Question cards that get the talk going", "da": "Spørgsmålskort, der sætter gang i snakken" }
+      "grunn": { "nb": "Spørsmålskort som setter i gang praten", "en": "Question cards that get the conversation going", "da": "Spørgsmålskort, der sætter gang i snakken" }
     },
     {
       "id": "pek-ut",
@@ -44,7 +44,7 @@
     {
       "id": "gate-og-fasit",
       "spill": ["sfinksen", "smilefjeset"],
-      "grunn": { "nb": "En gåte, litt tenking og en fasit", "en": "A riddle, a think and the answer", "da": "En gåde, lidt tænkning og et svar" }
+      "grunn": { "nb": "En gåte, litt tenking og en fasit", "en": "A riddle, a bit of thinking and the answer", "da": "En gåde, lidt tænkning og et svar" }
     },
     {
       "id": "ord-av-bokstaver",
@@ -54,12 +54,12 @@
     {
       "id": "sla-sammen",
       "spill": ["dobleren", "planeten"],
-      "grunn": { "nb": "Slå sammen to like til noe større", "en": "Merge two the same into something bigger", "da": "Slå to ens sammen til noget større" }
+      "grunn": { "nb": "Slå sammen to like til noe større", "en": "Merge two of a kind into something bigger", "da": "Slå to ens sammen til noget større" }
     },
     {
       "id": "tre-like",
       "spill": ["ekornet", "bobla"],
-      "grunn": { "nb": "Tre like forsvinner", "en": "Three the same disappear", "da": "Tre ens forsvinder" }
+      "grunn": { "nb": "Tre like forsvinner", "en": "Three of a kind disappear", "da": "Tre ens forsvinder" }
     },
     {
       "id": "terning-og-flytt",
