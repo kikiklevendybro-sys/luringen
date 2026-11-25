@@ -168,13 +168,16 @@
     if (!inne(sp, sp.starter)) sp.starter = neste(sp, sp.starter);
     return true;
   }
+  // Is a reveal on the table – every die face up after «Løgn!», with matching dice to count?
+  // (Not while the bidding goes on, and not when the match ended because the last opponent left.)
+  const tellbar = (sp) => !!sp && sp.fase === "avslort" && !!sp.utfall && sp.utfall.type === "lyv";
   // Places: the winner, then the ones still in by dice, then the last to go out first.
   function rangering(sp) {
     const rad = range(sp.antall).map((i) => ({ i, ant: sp.ant[i], ut: sp.ute.indexOf(i) }));
     return rad.sort((a, b) => (b.i === sp.vinner) - (a.i === sp.vinner) || b.ant - a.ant || b.ut - a.ut);
   }
 
-  const Regler = { MIN, MAKS, START, flater, teller, tell, nytt, inne, igjen, neste, total, nyRunde, minste, lovlig, kanBy, lavesteBud, by, lyv, forlat, rangering };
+  const Regler = { MIN, MAKS, START, flater, teller, tell, nytt, inne, igjen, neste, total, nyRunde, minste, lovlig, kanBy, lavesteBud, by, lyv, forlat, tellbar, rangering };
   window.RusjLurendreieren = Regler;
 
   const R = window.Rusj;
@@ -290,7 +293,7 @@
 
   // ---------- The reveal: the matching dice are counted up one by one ----------
 
-  const tellesOpp = (sp) => !!anim && anim.steg === sp.steg && sp.fase === "avslort";
+  const tellesOpp = (sp) => !!anim && anim.steg === sp.steg && tellbar(sp);
   function stoppAnim() {
     if (anim) clearTimeout(anim.id);
     anim = null;
@@ -312,7 +315,9 @@
     R.vis();
   }
   function tellVidere(sp) {
-    if (!anim || R.S.spill !== sp || sp.steg !== anim.steg || R.S.skjerm !== "spill") return stoppAnim();
+    // (Only while this reveal is on the table: a new round, or a match that ended because someone
+    // left, has no dice to count – the outcome may not even be there.)
+    if (!anim || R.S.spill !== sp || sp.steg !== anim.steg || R.S.skjerm !== "spill" || !tellbar(sp)) return stoppAnim();
     const u = sp.utfall;
     if (anim.vist >= u.antall) {
       anim.id = setTimeout(() => domAvsagt(sp), 520);
@@ -475,7 +480,12 @@
       if (!paNett(sp) || sp.ferdig || !forlat(sp, sete)) return;
       if (okt.gjenspill && sp.vinner != null) sp.ferdig = true;
       if (!okt.gjenspill && S.skjerm === "spill") {
-        if (anim && anim.steg !== sp.steg) anim.steg = sp.steg; // (the count on the screen goes on)
+        // The count on the screen goes on – but only if it is this reveal that is still on the
+        // table (the next round may have begun a moment ago: then there is nothing to count).
+        if (anim) {
+          if (tellbar(sp)) anim.steg = sp.steg;
+          else stoppAnim();
+        }
         R.vis();
       }
     },
@@ -510,6 +520,7 @@
     startAvsloring(sp);
   }
   function kastet(sp) {
+    stoppAnim(); // (a new round: whatever was being counted is over)
     rasle(7);
     setTimeout(() => rasle(5), 240);
     R.vibrer([12, 40, 12]);
@@ -568,9 +579,9 @@
     },
 
     regler: {
-      intro: R.t("Alle har fem skjulte terninger. By på hvor mange av et tall dere har til sammen – sant eller bløff. Tror du ikke på budet, roper du «Løgn!»."),
+      intro: R.t("Alle har skjulte terninger. By på hvor mange av et tall dere har til sammen – sant eller bløff. Tror du ikke på budet, roper du «Løgn!»."),
       steg: [
-        [R.t("Kast og kikk"), R.t("Alle kaster fem terninger. Bare du ser dine egne.")],
+        [R.t("Kast og kikk"), R.t("Alle kaster terningene sine – fem hver, eller tre i et kjapt spill. Bare du ser dine egne.")],
         [R.t("Si et bud"), R.t("Et bud er for eksempel «minst fire femmere» – blant alle terningene på bordet. Neste bud må være høyere: flere terninger, eller like mange med flere øyne.")],
         [R.t("… eller rop «Løgn!»"), R.t("Da vises alle terningene. Stemte budet, mister den som ropte, en terning. Var det bløff, mister den som bød. Sist med terninger igjen vinner.")],
       ],
@@ -601,7 +612,7 @@
         vis(S) {
           const sp = S.spill;
           return R.ui.spillhjem({
-            slagordHtml: `${esc(R.t("Fem terninger i skjul."))}<br><em>${esc(R.t("Hvor mange tør du love?"))}</em>`,
+            slagordHtml: `${esc(S.oppsett.terninger === 3 ? R.t("Tre terninger i skjul.") : R.t("Fem terninger i skjul."))}<br><em>${esc(R.t("Hvor mange tør du love?"))}</em>`,
             knapperHtml: R.ui.startKnapper({
               pagar: pagar(S),
               fortsettTekst: pagar(S) ? (sp.vinner != null ? R.t("Fortsett · se kåringen") : R.t("Fortsett · runde {n}", { n: sp.runde })) : "",
@@ -609,7 +620,7 @@
             }),
             merker: [
               [`${MIN}–${MAKS}`, R.t("spillere")],
-              ["5", R.t("terninger hver")],
+              [String(S.oppsett.terninger), R.t("terninger hver")],
               ["0", R.t("reklame")],
             ],
           });

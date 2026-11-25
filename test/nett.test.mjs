@@ -4363,3 +4363,113 @@ test("Lurendreieren: a seat that leaves – its dice stay in this round's count 
   assert.equal(to.tlf[0].S.spill.utfall.type, "borte");
   assert.equal(typeof to.tlf[0].def.skjermer.slutt.vis(to.tlf[0].S), "string");
 });
+
+test("Lurendreieren: the count-up on a live page – it goes on when a seat leaves during the reveal, and it is over when the next round has begun or the others have left (never an outcome that is not there, never an endless tick)", () => {
+  const L = regler("lurendreieren", "RusjLurendreieren");
+  const FRO = 20261115;
+  const OPPSETT = { terninger: 3, joker: true };
+  // Seat 2's page is live (the two other phones replay): its timers are the test's own, its
+  // ticks are counted, and nothing is drawn.
+  const liveRom = () => {
+    const r = rom("lurendreieren", 3, OPPSETT, FRO);
+    const c = r.tlf.pop();
+    c.S.skjerm = c.def.nett.skjerm(c.S); // (where the kit has the page during a match)
+    assert.equal(c.S.skjerm, "spill");
+    const koe = [];
+    let sist = 0;
+    const verden = c.R.rolig.constructor("return globalThis")(); // (the page's own global object)
+    verden.setTimeout = (f) => {
+      koe.push({ id: ++sist, f });
+      return sist;
+    };
+    verden.clearTimeout = (id) => {
+      const i = koe.findIndex((e) => e.id === id);
+      if (i >= 0) koe.splice(i, 1);
+    };
+    const hendt = { tikk: 0, tegnet: 0 };
+    for (const k of Object.keys(c.R.lyd)) {
+      if (typeof c.R.lyd[k] === "function") c.R.lyd[k] = () => void (k === "tone" && (hendt.tikk += 1));
+    }
+    Object.assign(c.R, { vis: () => void (hendt.tegnet += 1), si() {}, toast() {}, skjulToast() {}, vibrer() {}, rolig: () => false });
+    const okt = (n) => ({ n, gjenspill: false, meg: 2, kamp: 1, fro: FRO, oppsett: OPPSETT, antall: 3, ute: [...c.ute], rng: c.R.nett.tilfeldig(FRO, n) });
+    const spill = (sete, t) => {
+      r.trekk(sete, t);
+      const n = r.logg.length - 1;
+      if (t.$ === "borte") {
+        c.ute.add(sete);
+        c.def.nett.borte(c.S, sete, okt(n));
+      } else c.def.nett.trekk(c.S, somJson(t), sete, okt(n));
+    };
+    // Every timer that waits, and the ones they start. true: nothing is left waiting.
+    const kjor = (maks = 200) => {
+      for (let n = 0; koe.length && n < maks; n++) koe.shift().f();
+      return koe.length === 0;
+    };
+    const sp = () => c.S.spill;
+    // Seat 0 says «one of» the face there is most of, and seat 1 calls: C's page starts counting.
+    const kall = () => {
+      const antallAv = (x) => sp().kast.flat().filter((v) => v === x || v === 1).length;
+      const x = [2, 3, 4, 5, 6].sort((p, q) => antallAv(q) - antallAv(p))[0];
+      spill(0, { bud: [1, x], r: 1, k: 0 });
+      spill(1, { lyv: 1, r: 1, k: 1 });
+      assert.ok(L.tellbar(sp()));
+      assert.ok(sp().utfall.antall >= 2, "nine dice and wild ones: at least two of some face");
+      assert.equal(hendt.tikk, 0);
+      assert.ok(koe.length >= 1, "the count is waiting to begin");
+    };
+    return { r, c, sp, spill, kjor, kall, hendt, koe };
+  };
+
+  // The bidder leaves in the middle of the count: the reveal is still on the table, and the count
+  // goes on to its end – every matching die once.
+  {
+    const { r, c, sp, spill, kjor, kall, hendt, koe } = liveRom();
+    kall();
+    while (hendt.tikk < 1 && koe.length) koe.shift().f();
+    assert.equal(hendt.tikk, 1, "the first die is counted");
+    spill(0, { $: "borte" });
+    assert.ok(L.tellbar(sp()));
+    assert.equal(sp().vinner, null);
+    const tegnet = hendt.tegnet;
+    assert.ok(kjor(), "the count comes to its end");
+    assert.equal(hendt.tikk, sp().utfall.antall);
+    assert.ok(hendt.tegnet > tegnet, "…and the verdict is drawn");
+    likt(c, r.tlf[0], lurFelt);
+  }
+
+  // The starter begins the next round at once, then a seat leaves, then the last opponent: the
+  // old count is over at the new round – nothing ticks, and nothing reads an outcome that is gone.
+  {
+    const { sp, spill, kjor, kall, hendt } = liveRom();
+    kall();
+    spill(sp().starter, { neste: 1 });
+    assert.equal(sp().fase, "bud");
+    assert.equal(sp().utfall, null);
+    spill(0, { $: "borte" });
+    assert.equal(sp().vinner, null);
+    assert.ok(kjor());
+    assert.equal(hendt.tikk, 0);
+    spill(1, { $: "borte" });
+    assert.equal(sp().utfall.type, "borte");
+    assert.equal(sp().vinner, 2);
+    assert.ok(kjor(), "no endless tick when the others have left");
+    assert.equal(hendt.tikk, 0);
+  }
+
+  // The same with a count that is still waiting when the seat leaves (the page was elsewhere when
+  // the next round began, so nothing told it): the leaving itself ends the count.
+  {
+    const { c, sp, spill, kjor, kall, hendt } = liveRom();
+    kall();
+    c.S.skjerm = "regler";
+    spill(sp().starter, { neste: 1 });
+    c.S.skjerm = "spill";
+    spill(0, { $: "borte" });
+    assert.ok(kjor());
+    assert.equal(hendt.tikk, 0);
+    spill(1, { $: "borte" });
+    assert.equal(sp().vinner, 2);
+    assert.ok(kjor());
+    assert.equal(hendt.tikk, 0);
+  }
+});

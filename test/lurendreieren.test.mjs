@@ -181,6 +181,31 @@ test("a seat that leaves: its dice stay in this round's count, the bid stands, t
   assert.deepEqual(somJson(L.rangering(to).map((r) => r.i)), [0, 1]);
 });
 
+test("a reveal to count up: only after «Løgn!» – not while the bidding goes on, and not when the others left", () => {
+  const sp = L.nytt({ antall: 3, terninger: 3, joker: true, starter: 0 });
+  assert.equal(L.tellbar(sp), false, "before the first round");
+  L.nyRunde(sp, faste([[2, 2, 3], [4, 5, 6], [1, 6, 6]]));
+  assert.equal(L.tellbar(sp), false, "the bidding");
+  assert.ok(L.by(sp, 2, 2));
+  assert.equal(L.tellbar(sp), false);
+  assert.ok(L.lyv(sp));
+  assert.equal(L.tellbar(sp), true, "every die face up, with an outcome to count to");
+  assert.equal(sp.utfall.antall, 3);
+  // A seat leaves during the reveal: it is still the same reveal.
+  assert.ok(L.forlat(sp, 0));
+  assert.equal(L.tellbar(sp), true);
+  // The next round: nothing to count (the outcome is gone).
+  assert.ok(L.nyRunde(sp, faste([[], [4, 5, 6], [1, 6, 6]])));
+  assert.equal(sp.utfall, null);
+  assert.equal(L.tellbar(sp), false);
+  // The last opponent leaves during the bidding: the match is over with no dice to count.
+  assert.ok(L.forlat(sp, 1));
+  assert.equal(sp.fase, "avslort");
+  assert.equal(sp.utfall.type, "borte");
+  assert.equal(L.tellbar(sp), false);
+  assert.equal(L.tellbar(null), false);
+});
+
 test("whole games with random play: one die goes per round, every bid is higher than the last, one winner", () => {
   for (let fro = 1; fro <= 60; fro++) {
     const r = rng(fro);
