@@ -352,7 +352,7 @@
         ["A pet you've had", "I've had …"],
         ["An animal you're scared of", "I'm scared of …"],
         ["Something you've seen out in nature", "I've seen …"],
-        ["Something you've found on the beach", "On the beach I've found …"],
+        ["Animal tracks you've followed", "Once I followed the tracks of …"],
         ["A time an animal surprised you", "Once a … came …"],
         ["An animal you've ridden", "I've ridden …"],
         ["Something you've picked in the woods", "I've picked …"],
@@ -437,7 +437,7 @@
         ["An audiobook or a podcast you've listened to", "I listened to … on a long journey."],
         ["A work of art you've seen", "I've seen …"],
         ["A gig you missed", "I missed …"],
-        ["A pub quiz question only you knew", "In a quiz, I was the only one who knew …"],
+        ["A quiz question only you knew", "In a quiz, I was the only one who knew …"],
         ["A song you can play", "I can play … on …"]
       ]
     },
@@ -473,7 +473,7 @@
         ["Something you've made that lots of people have seen", "I've made … that over a hundred people have seen."],
         ["A jigsaw you've done", "I've done a jigsaw with … pieces."],
         ["The longest walk you've done in a day", "I've walked … in one day."],
-        ["Something you've won in a raffle", "I've won … in a raffle."],
+        ["The biggest ice cream you've ever eaten", "I've eaten an ice cream with … scoops."],
         ["The longest you've held your breath", "I've held my breath for …"],
         ["The biggest meal you've cooked", "I've cooked for …"],
         ["Something you managed without any help", "I managed … completely on my own."],
