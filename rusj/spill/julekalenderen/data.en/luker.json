@@ -112,7 +112,7 @@
     "tittel": "Starry night",
     "kos": { "tittel": "Stars on the ceiling", "min": 10, "tekst": "Cut out a big paper star for the window. Then switch off the lights, lie on the floor and make a starry sky on the ceiling with torches. Invent names for your own constellations!", "smaa": "Little ones hold the torch and decide where the stars go." },
     "prat": { "t": "If you could wish for one thing for the whole world this Christmas, what would it be?", "f": "What could we do to help it come a bit closer?" },
-    "bonus": { "type": "quiz", "tekst": "Which is the brightest star in the night sky?", "valg": ["Sirius", "The Pole Star", "The Plough"], "riktig": 0, "fakta": "Sirius is the brightest. The Pole Star isn't – but it hardly moves, as it sits almost right above the North Pole." },
+    "bonus": { "type": "quiz", "tekst": "Which is the brightest star in the night sky?", "valg": ["Sirius", "The Pole Star", "Vega"], "riktig": 0, "fakta": "Sirius is the brightest. The Pole Star isn't – but it hardly moves, as it sits almost right above the North Pole." },
     "spill": { "id": "lognhalsen", "tekst": "Fibber with Christmas stories: tell three things about a Christmas – two true and one made up. Can the others catch you out? Choose ‘Christmas’.", "figur": "I have never told a fib in my whole life! … That was a fib. Hi, I'm Fibber! Tell two true Christmas stories and one made-up one – let's see who catches you." },
     "klasse": {
       "spill": { "id": "hviskeren", "tekst": "Whisperer in groups: one guesses the word, the others give one clue each – but matching clues are crossed out! Work together and count how many you get.", "figur": "Psst… hi, I'm Whisperer. One clue each – but never the same as your neighbour! Whisper wisely and you'll crack it together." }
@@ -227,7 +227,7 @@
   },
   {
     "merke": "🎄", "merkeNavn": "a Christmas tree",
-    "tittel": "A Friday smell",
+    "tittel": "Smells like Christmas",
     "kos": { "tittel": "Orange pomanders", "min": 15, "tekst": "Push cloves into oranges or clementines in patterns – hearts, stars, spirals. Pile them in a bowl or hang them up with ribbon. The house will smell of Christmas for weeks.", "smaa": "Little ones make holes with a cocktail stick first, so it's easier." },
     "prat": { "t": "What's the best thing that's happened to you this year?", "f": "Who was with you?" },
     "bonus": { "type": "quiz", "tekst": "Who made the Christmas tree popular in Britain?", "valg": ["Queen Victoria and Prince Albert", "King Henry VIII", "King Arthur"], "riktig": 0, "fakta": "A drawing of Victoria and Albert's family round a decorated tree in 1848 made everyone want one." },
