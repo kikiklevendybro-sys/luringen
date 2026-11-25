@@ -68,7 +68,7 @@
     { "t": "Noget, der vokser", "i": "🌱", "n": 1, "b": 1 },
     { "t": "Noget, man kan tegne", "i": "🖍️", "n": 1, "b": 2 },
     { "t": "Lande", "i": "🌍", "n": 2, "b": 2 },
-    { "t": "Steder i Danmark", "i": "🗺️", "n": 2, "b": 2 },
+    { "t": "Steder i Danmark", "i": "🗺️", "n": 2, "b": 1 },
     { "t": "Byer i verden", "i": "🗺️", "n": 2, "b": 2 },
     { "t": "Sportsgrene", "i": "🏅", "n": 2, "b": 2 },
     { "t": "Musikinstrumenter", "i": "🎸", "n": 2, "b": 1 },

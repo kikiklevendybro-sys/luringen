@@ -68,7 +68,7 @@
     { "t": "Something that grows", "i": "🌱", "n": 1, "b": 1 },
     { "t": "Something you can draw", "i": "🖍️", "n": 1, "b": 2 },
     { "t": "Countries", "i": "🌍", "n": 2, "b": 2 },
-    { "t": "Places in Britain", "i": "🗺️", "n": 2, "b": 2 },
+    { "t": "Places in Britain", "i": "🗺️", "n": 2, "b": 1 },
     { "t": "Cities of the world", "i": "🗺️", "n": 2, "b": 2 },
     { "t": "Sports", "i": "🏅", "n": 2, "b": 2 },
     { "t": "Musical instruments", "i": "🎸", "n": 2, "b": 1 },
