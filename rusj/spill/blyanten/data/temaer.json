@@ -265,7 +265,7 @@
         ["mandarin", "Liten søt frukt vi spiser til jul"],
         ["papaya", "Tropisk frukt med svarte frø"],
         ["rosin", "Tørket drue"],
-        ["nøtt", "Ekornet samler den"],
+        ["bjørnebær", "Svart bær i tornekratt"],
         ["skall", "Det skreller du av"],
         ["kjerne", "Frøet inni frukten"],
         ["saft", "Drikk laget av bær"],
@@ -968,7 +968,7 @@
         ["bane", "Veien rundt sola"],
         ["univers", "Alt som finnes"],
         ["lysår", "Mål for enorme avstander"],
-        ["nordlys", "Grønne bølger på himmelen"],
+        ["stjerneskudd", "Lysstripe du kan ønske deg noe på"],
         ["solsystem", "Planetene og stjernen de går rundt"],
         ["fullmåne", "Rund og hel på himmelen"],
         ["halvmåne", "Formet som en båt på nattehimmelen"],
@@ -1088,7 +1088,7 @@
         ["slegge", "Stor tung hammer"],
         ["verksted", "Her repareres ting"],
         ["sparkel", "Fyller hull i veggen"],
-        ["kost", "Feier gulvet"],
+        ["hakke", "Graver i hard jord"],
         ["planke", "Langt, flatt stykke tre"]
       ]
     },
@@ -1150,7 +1150,7 @@
         ["forelsket", "Hjertet banker for noen"],
         ["ensom", "Når du savner selskap"],
         ["sliten", "Etter en lang dag"],
-        ["sulten", "Magen rumler"],
+        ["skuffet", "Når det ikke ble som du håpet"],
         ["glede", "Får deg til å smile"],
         ["sinne", "Følelse når noe er urettferdig"],
         ["frykt", "Følelse i et spøkelseshus"],
@@ -1314,7 +1314,7 @@
         ["kasserer", "Tar imot betalingen"],
         ["handel", "Kjøp og salg"],
         ["melk", "Står i kjøledisken"],
-        ["brød", "Kjøpes ferskt i bakeriet"]
+        ["brød", "Skjæres i skiver til matpakka"]
       ]
     },
     {
@@ -1377,7 +1377,7 @@
         ["røntgen", "Bilde av skjelettet"],
         ["allergi", "Du nyser av pollen"],
         ["snue", "Tett nese"],
-        ["influensa", "Kraftig forkjølelse med feber"],
+        ["influensa", "Smittsom sykdom med høy feber"],
         ["hodepine", "Det dunker og verker i skallen"],
         ["brudd", "Brukket bein"],
         ["sår", "Blør litt etter et fall"],
