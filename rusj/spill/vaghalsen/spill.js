@@ -17,6 +17,12 @@
   const PAKKER = D.pakker;
   const STANDARD = ["familie", "venner"];
   const pakke = (id) => PAKKER.find((p) => p.id === id);
+  // «Par» is for two people who are together: {spiller} on its cards is the partner and «dere to» is
+  // the couple. So it is only offered when exactly two play (simpler than asking who is with whom);
+  // a chosen «Par» waits while there are more than two.
+  const BARE_TO = ["par"];
+  const forTo = (id, n) => n === 2 || !BARE_TO.includes(id);
+  const aktive = (pakker, n) => pakker.filter((id) => forTo(id, n));
   // The season's pack («Jul») is listed first from 1 November to 6 January, otherwise last (as in the data).
   const iSesong = (() => {
     const d = new Date();
@@ -806,7 +812,8 @@
           ["snurr", "valg", "kort", "mal"].includes(sp.fase) && typeof sp.vinkel === "number";
         if (!ok) S.spill = null;
         else {
-          sp.pakker = sp.pakker.filter((id) => pakke(id));
+          sp.pakker = sp.pakker.filter((id) => pakke(id) && forTo(id, sp.antall));
+          if (!sp.pakker.length) sp.pakker = STANDARD.slice();
           sp.stat.forEach((st) => (st.m = Number.isInteger(st.m) && st.m > 0 ? st.m : 0));
           sp.ferdig = !!sp.ferdig;
           const m = sp.mal;
@@ -870,6 +877,7 @@
         R.t("Noen konsekvenser varer til du står for tur igjen. De står under bordet – trykk på brikken hvis noen glemmer seg."),
         R.t("Dere bestemmer hvor lenge spillet varer: noen turer hver, først til 10 poeng – eller fritt."),
         R.t("«Barn» passer fra 6 år. «Fest» er for voksne (18+)."),
+        R.t("Kortene for par kan bare velges når dere er akkurat to."),
         R.t("Vil dere heller gå på rekke og rad? Velg det når dere gjør klart."),
       ],
     },
@@ -899,6 +907,7 @@
         vis(S) {
           const o = S.oppsett;
           const n = R.klamp(S.antall, 2, 20);
+          const valgt = aktive(o.pakker, n);
           const turer = turerHver(n);
           const forklaring = {
             turer: turer === 1 ? R.t("Alle får én tur – så blir det kåring.") : R.t("Alle får {n} turer – så blir det kåring.", { n: turer }),
@@ -920,11 +929,11 @@
           </section>
           ${R.ui.spillere({ min: 2, max: 20, hjelp: R.t("Navnene vises rundt bordet. Dyrene viser hvem som er hvem.") })}
           <section class="seksjon">
-            <div class="seksjon-hode"><h2>${esc(R.t("Hvilke kort?"))}</h2><span class="tall">${esc(R.t("{n} valgt", { n: o.pakker.length }))}</span></div>
+            <div class="seksjon-hode"><h2>${esc(R.t("Hvilke kort?"))}</h2><span class="tall">${esc(R.t("{n} valgt", { n: valgt.length }))}</span></div>
             ${R.ui.fliser(
               "pakke",
-              PAKKER_VIST.map((p) => ({ v: p.id, tittel: p.navn, tekst: p.tekst, ikon: p.ikon })),
-              o.pakker,
+              PAKKER_VIST.map((p) => (forTo(p.id, n) ? { v: p.id, tittel: p.navn, tekst: p.tekst, ikon: p.ikon } : { v: p.id, tittel: p.navn, tekst: R.t("Bare når dere er to"), ikon: p.ikon, av: true })),
+              valgt,
             )}
           </section>
           <section class="seksjon">
@@ -941,7 +950,7 @@
             )}
             <p class="hjelp" id="vh-mal-hjelp">${esc(forklaring[o.mal])}</p>
           </section>
-          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { av: !o.pakker.length }))}`;
+          ${R.ui.dokk(R.ui.knapp(R.t("Start"), "start", { av: !valgt.length }))}`;
         },
       },
 
@@ -1106,6 +1115,7 @@
       },
       pakke(el, e, S) {
         const id = el.dataset.v;
+        if (!pakke(id) || !forTo(id, R.klamp(S.antall, 2, 20))) return;
         const liste = S.oppsett.pakker;
         S.oppsett.pakker = liste.includes(id) ? liste.filter((x) => x !== id) : [...liste, id];
         R.vis();
@@ -1119,15 +1129,16 @@
         R.vis();
       },
       start(el, e, S) {
-        if (!S.oppsett.pakker.length) return;
         const n = R.klamp(S.antall, 2, 20);
+        const pakker = aktive(S.oppsett.pakker, n);
+        if (!pakker.length) return;
         const rekke = S.oppsett.tur === "rekke";
         // In turn order the first player moves one seat for every game (the first game: player 1).
         const start = rekke ? S.nesteStart % n : 0;
         if (rekke) S.nesteStart = start + 1;
         S.spill = {
           antall: n,
-          pakker: S.oppsett.pakker.slice(),
+          pakker,
           modus: rekke ? "rekke" : "flaske",
           mal: malFor(S.oppsett.mal, n),
           fase: rekke ? "valg" : "snurr",

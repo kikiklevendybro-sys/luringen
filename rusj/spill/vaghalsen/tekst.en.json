@@ -143,5 +143,7 @@
   "Avslutte spillet?": "Quit the game?",
   "Dere går rett til kåringen. Den med flest poeng vinner.": "You’ll go straight to the results. Whoever has the most points wins.",
   "Dere kan alltid starte et nytt.": "You can always start a new one.",
-  "tur|turer": { "one": "turn", "other": "turns" }
+  "tur|turer": { "one": "turn", "other": "turns" },
+  "Kortene for par kan bare velges når dere er akkurat to.": "The couples cards can only be chosen when there are exactly two of you.",
+  "Bare når dere er to": "Only when there are two of you"
 }

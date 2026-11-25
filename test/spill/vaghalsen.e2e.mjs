@@ -304,7 +304,18 @@ export default async function (t) {
   await t.start({ navn: ["Testspiller A", "Testspiller B"] });
   await t.klikk('[data-h="nytt"]');
   t.sjekk((await t.antall(".spiller")) === 2, "Oppsettet viser ikke to spillere");
+  // «Par» (the other player is the partner) can only be chosen when exactly two play: a third
+  // player greys it out and it is not counted; back to two, it is chosen again.
+  t.sjekk(await t.finnes('[data-h="pakke"][data-v="par"]:not(:disabled)'), "«Par» skal kunne velges med to spillere");
+  await t.klikk('[data-h="pakke"][data-v="par"]');
+  t.sjekk((await t.tilstand()).oppsett.pakker.includes("par"), "«Par» ble ikke valgt med to spillere");
+  await t.klikk('[data-h="spiller-legg-til"]');
+  t.sjekk(await t.finnes('[data-h="pakke"][data-v="par"]:disabled[aria-pressed="false"]'), "Med tre spillere skal «Par» være grå og ikke valgt");
+  await t.bilde("par-tre-spillere", true);
+  await t.klikk('[data-h="spiller-fjern"][data-v="2"]');
+  t.sjekk((await t.antall(".spiller")) === 2 && (await t.finnes('[data-h="pakke"][data-v="par"]:not(:disabled)[aria-pressed="true"]')), "Tilbake til to spillere skal «Par» være valgt igjen");
   await t.klikk('[data-h="start"]');
+  t.sjekk((await t.tilstand()).spill.pakker.includes("par"), "Et spill for to skal bruke «Par» når den er valgt");
   await t.klikk('[data-h="snurr"]', 40);
   await t.vent(VALG, 9000);
   await t.sov(700);
