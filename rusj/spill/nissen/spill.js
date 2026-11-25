@@ -513,7 +513,7 @@
     },
 
     regler: {
-      intro: R.t("Mandelen i grøten som bløffespill. Én av dere får mandelen i hemmelighet – og må late som ingenting mens nissen stiller spørsmål.") + " " + R.t("Dere trenger én hel mandel per spiller – eller noe like stort, som en sjokoladebit eller en stor drops."),
+      intro: R.t("Mandelen i grøten som bløffespill. Én av dere får mandelen i hemmelighet – og må late som ingenting mens nissen stiller spørsmål.") + " " + R.t("Dere trenger én hel mandel per spiller – eller noe like stort, som en sjokoladebit."),
       steg: [
         [R.t("Se i bollen"), R.t("Mobilen går rundt. Hold fingeren på grøtbollen og se i hemmelighet om du fikk mandelen. Bare én får den.")],
         [R.t("Snu dere bort"), R.t("Alle snur seg samtidig og later som de putter mandelen i munnen. Bare den som fikk mandelen, putter den ekte i munnen – de andre gjemmer sin i hånda.")],
@@ -521,7 +521,7 @@
         [R.t("Pek samtidig"), R.t("Tell ned, og alle peker samtidig på den de tror har mandelen. Hold fingeren der!")],
         [R.t("Gap opp"), R.t("Den som hadde mandelen, gaper opp og viser den. Pekte du riktig, får du 1 poeng. Mandelholderen får 1 poeng for hver hen lurte – og marsipangrisen hvis hen lurte alle.")],
       ],
-      tips: [R.t("Alle trenger en hel mandel. Nøtteallergi rundt bordet? Bruk noe like stort som er vanskelig å skjule, som en sjokoladebit eller en stor drops."), R.t("Den som har mandelen, kan godt peke på noen andre."), R.t("Ikke svelg mandelen! Gjem den i munnen til det er tid for å gape opp."), R.t("Alle må svare på spørsmålene – også den som har mandelen.")],
+      tips: [R.t("Alle trenger en hel mandel. Nøtteallergi rundt bordet? Bruk noe uten nøtter som er like stort, som en sjokoladebit."), R.t("Små barn med? Bruk heller en liten sjokoladebit enn en hel mandel, og pass på at ingen løper eller tuller med noe i munnen."), R.t("Den som har mandelen, kan godt peke på noen andre."), R.t("Ikke svelg mandelen! Gjem den i munnen til det er tid for å gape opp."), R.t("Alle må svare på spørsmålene – også den som har mandelen.")],
     },
 
     hemmelig: {
@@ -572,7 +572,7 @@
         vis(S) {
           return `
             <h1 id="skjerm-tittel">${esc(R.t("Gjør klart"))}</h1>
-            <p class="papirboks ng-mandler">${esc(R.t("Alle trenger en hel mandel. Nøtteallergi rundt bordet? Bruk noe like stort som er vanskelig å skjule, som en sjokoladebit eller en stor drops."))}</p>
+            <p class="papirboks ng-mandler">${esc(R.t("Alle trenger en hel mandel. Nøtteallergi rundt bordet? Bruk noe uten nøtter som er like stort, som en sjokoladebit."))}<br>${esc(R.t("Små barn med? Bruk heller en liten sjokoladebit enn en hel mandel, og pass på at ingen løper eller tuller med noe i munnen."))}</p>
             ${R.ui.spillere({ min: MIN, max: MAKS, hjelp: R.t("Mobilen går rundt i samme rekkefølge som lista.") })}
             <section class="seksjon">
               <div class="seksjon-hode"><h2>${esc(R.t("Runder"))}</h2></div>
