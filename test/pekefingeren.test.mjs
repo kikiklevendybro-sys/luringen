@@ -6,7 +6,7 @@
 // The fingerprints were taken before the pack was added. If you change an existing statement on
 // purpose, run the same draws again and update them here.
 import assert from "node:assert/strict";
-import { ungdomTester } from "./kortpakker.mjs";
+import { ungdomTester, voksenTester } from "./kortpakker.mjs";
 
 const GAMLE = ["familie", "venner", "fest", "jobb", "reise", "kaos", "jul", "barn", "russ", "bryllup", "laget"];
 
@@ -16,9 +16,9 @@ ungdomTester({
   felt: "utsagn",
   gamle: GAMLE,
   avtrykk: {
-    nb: { standard: ["familie", "venner"], antall: 963, kart: "f63fd5b7dbe4b0e5", trekk: "6d09b8ff4cb61cc0" },
-    en: { standard: ["familie", "venner"], antall: 915, kart: "47e632ce70e32a2b", trekk: "e48918b4f6fee188" },
-    da: { standard: ["familie", "venner"], antall: 929, kart: "10ea2963904c220e", trekk: "a531baa658b50300" },
+    nb: { standard: ["familie", "venner"], antall: 963, kart: "a37ff80c3c78ff01", trekk: "18875ad3834e0902" },
+    en: { standard: ["familie", "venner"], antall: 915, kart: "efa6d98b394a5950", trekk: "f5b7db01541bd8ff" },
+    da: { standard: ["familie", "venner"], antall: 929, kart: "e4ebfea14c302f7e", trekk: "21ae57d2f56625ac" },
   },
   maks: 75,
   skjerm: "kort",
@@ -30,3 +30,6 @@ ungdomTester({
     assert.ok(!/^(å|to|at) /.test(k), `${sprak}: «${k}» – «til å / to / til at» står allerede foran`);
   },
 });
+
+// «Fest» and «Russ» sit behind the 18+ question (as in Dommeren), in every edition.
+voksenTester({ id: "pekefingeren", fil: "utsagn", voksne: ["fest", "russ"], standard: ["familie", "venner"] });
