@@ -1227,8 +1227,8 @@
           "kunne holde dig vågen i en uge"
         ],
         [
-          "have en lomme, der altid er fuld af penge",
-          "have et køleskab, der altid er fuldt af mad"
+          "have en pung, der altid har lige nok penge",
+          "have en rygsæk, der altid har lige det, du mangler"
         ],
         [
           "se i mørke",
@@ -1492,7 +1492,7 @@
         ],
         [
           "finde et hår i suppen",
-          "finde en flue i drinken"
+          "finde en flue i sodavanden"
         ],
         [
           "spise et råt æg",
@@ -2012,7 +2012,7 @@
         ],
         [
           "træne sammen",
-          "tage på værtshus sammen"
+          "gå til dans sammen"
         ],
         [
           "få en overraskelsesfest",
@@ -2373,7 +2373,7 @@
         ],
         [
           "have tømmermænd i to dage",
-          "have hovedpine i en uge"
+          "have hikke i to dage"
         ],
         [
           "altid fortælle din kæreste alt",
@@ -2517,7 +2517,7 @@
           "gemme dem alle til juleaften"
         ],
         [
-          "holde julefrokost på et værtshus",
+          "holde julefrokost i en bowlinghal",
           "holde julefrokost på et fint hotel"
         ],
         [
@@ -2682,7 +2682,7 @@
         ],
         [
           "gå i kirke juleaften",
-          "tage på værtshus den 23. december"
+          "gå en tur i frostvejret juleaften"
         ],
         [
           "pynte brunkagerne",
@@ -2709,8 +2709,8 @@
           "have en, der spiller musik"
         ],
         [
-          "drikke gløgg",
-          "drikke juleøl"
+          "lave konfekt med marcipan",
+          "lave kræmmerhuse til juletræet"
         ]
       ]
     },
@@ -2758,7 +2758,7 @@
         ],
         [
           "se kampen på stadion",
-          "se den på værtshus"
+          "se den hjemme i sofaen"
         ],
         [
           "være anfører",
@@ -2997,8 +2997,8 @@
           "flyve i ti timer"
         ],
         [
-          "bo på et slot",
-          "bo i et træhus"
+          "sove under åben himmel på stranden",
+          "sove i en hængekøje i skoven"
         ],
         [
           "tage på ferie med vennerne",
@@ -3461,7 +3461,7 @@
           "altid gå sent"
         ],
         [
-          "være med til fredagsbar hver uge",
+          "holde fredagsmorgenmad hver uge",
           "holde kagedag hver uge"
         ]
       ]
@@ -3470,7 +3470,7 @@
       "id": "par",
       "navn": "Par",
       "ikon": "💕",
-      "tekst": "For kærester og samlevere",
+      "tekst": "For kærester og samlevere (18+)",
       "voksen": true,
       "dilemmaer": [
         [

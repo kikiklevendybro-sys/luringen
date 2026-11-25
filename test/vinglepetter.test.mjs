@@ -5,7 +5,7 @@
 // The fingerprints were taken before the pack was added. If you change an existing dilemma on
 // purpose, run the same draws again and update them here.
 import assert from "node:assert/strict";
-import { ungdomTester } from "./kortpakker.mjs";
+import { ungdomTester, voksenTester } from "./kortpakker.mjs";
 
 ungdomTester({
   id: "vinglepetter",
@@ -13,9 +13,9 @@ ungdomTester({
   felt: "dilemmaer",
   gamle: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "fest", "jul", "sport", "sommer", "jobb", "par", "blikjent"],
   avtrykk: {
-    nb: { standard: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "sport", "sommer", "jobb", "blikjent"], antall: 981, kart: "c54913e687c24929", trekk: "46857dfad6eb5578" },
-    en: { standard: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "sport", "sommer", "jobb", "blikjent"], antall: 936, kart: "63c91bfafc456a34", trekk: "20c04dc2805a0cf8" },
-    da: { standard: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "sport", "sommer", "jobb", "blikjent"], antall: 940, kart: "0c1db00726bfe8c4", trekk: "23d974b74cba300d" },
+    nb: { standard: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "sport", "sommer", "jobb", "blikjent"], antall: 981, kart: "0a35cd6825497b10", trekk: "91e1ffc4712e16e1" },
+    en: { standard: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "sport", "sommer", "jobb", "blikjent"], antall: 936, kart: "36a5c1590d1fcd15", trekk: "20c04dc2805a0cf8" },
+    da: { standard: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "sport", "sommer", "jobb", "blikjent"], antall: 940, kart: "200d867a13e20d38", trekk: "cf1c5620d6a41a1e" },
   },
   maks: 62,
   // The hidden heading of the card screen says both options as they are written.
@@ -31,3 +31,6 @@ ungdomTester({
     }
   },
 });
+
+// «Fest» and «Par» sit behind the 18+ question (as in Dommeren), in every edition.
+voksenTester({ id: "vinglepetter", fil: "dilemmaer", voksne: ["fest", "par"], standard: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "sport", "sommer", "jobb", "blikjent"] });
