@@ -18,16 +18,16 @@
         "Animal",
         "Something you can eat",
         "Name",
-        "Toy or game",
+        "Something in a shop",
         "Something in nature",
-        "Something in your bedroom",
+        "Something in a house",
         "Fruit or vegetable",
         "Clothes",
         "Something at school",
         "Something that makes a noise",
-        "Something from a fairy tale",
+        "Something from a story or a film",
         "Something in the kitchen",
-        "Something you can do outside",
+        "Something round",
         "Something fun",
         "Something big"
       ]
@@ -37,6 +37,7 @@
       "navn": "Party",
       "ikon": "🎉",
       "tekst": "A bit more cheeky (18+)",
+      "voksen": true,
       "k": [
         "Rubbish excuse for being late",
         "Something you'd never say to your boss",
@@ -64,20 +65,20 @@
       "k": [
         "Something on the Christmas dinner table",
         "Christmas present",
-        "Something on the tree",
-        "Something you do on Boxing Day",
+        "Something in a Christmas film",
+        "Something you do over the Christmas holidays",
         "Something in Father Christmas's sack",
-        "Something from a carol",
-        "Christmas bake or sweet",
-        "Something you do in the snow",
+        "Something you'd say to Father Christmas",
+        "Something that tastes nice",
+        "Something warm",
         "Rubbish Christmas present",
-        "Something red",
+        "Something red, white or green",
         "Name for an elf",
-        "Something in an advent calendar",
+        "Something you can make yourself",
         "Reason to be late for Christmas dinner",
-        "Christmas decoration",
-        "Winter clothes",
-        "Something that smells of Christmas"
+        "Something you can hang up",
+        "Something you can wear",
+        "Something that smells nice"
       ]
     }
   ]

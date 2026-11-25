@@ -1,5 +1,6 @@
-// Flinkisen on one phone: three people set up (the children's pack, six categories, three rounds,
-// 60 s), the phone draws a letter that the edition allows and shows the round's categories; a
+// Flinkisen on one phone: the party pack asks «Er du 18 år eller eldre?» first («Nei» leaves it
+// unchosen, «Ja» chooses it and is remembered); three people set up (the children's pack, six
+// categories, three rounds, 60 s), the phone draws a letter that the edition allows and shows the round's categories; a
 // reload while everyone writes keeps the letter and the clock; «Stopp» gives ten seconds and then
 // «Blyantene ned!»; the scoring goes category by category (nobody is left without points, «Forrige
 // kategori», «Endre poengene»); the round's clock running out also ends the writing; back +
@@ -60,6 +61,23 @@ export default async function (t) {
   t.sjekk(!t.norsk || /Gjør klart/.test(await t.tekst("#skjerm h1")), "Oppsettet heter ikke «Gjør klart»");
   t.sjekk((await t.antall("#spillerboks input[data-navn]")) === 3, "Tre spillere er ikke ført opp");
   t.sjekk((await t.antall('[data-h="pakke"]')) === 4, "Det er ikke fire pakker å velge mellom");
+  // The party pack (18+): the age question first. «Nei» leaves it unchosen and is not remembered.
+  const over18 = () => t.js(`!!(JSON.parse(localStorage.getItem("rusj.felles") || "{}").over18)`);
+  const valgtPakke = () => t.js(`Rusj.S.oppsett.pakke`);
+  await t.klikk('[data-h="pakke"][data-v="fest"]');
+  await t.vent(`document.querySelector('#ark:not([hidden]) [data-h="ark-svar"]')`);
+  if (t.norsk) t.sjekk(/Er du 18 år eller eldre\?/.test(await t.tekst("#ark")), "Festpakken spør ikke om alder");
+  await t.bilde("atten-ark");
+  await t.klikk('#ark [data-h="ark-svar"][data-v="nei"]', 400);
+  t.sjekk((await valgtPakke()) !== "fest" && !(await over18()) && !(await t.finnes('[data-h="pakke"][data-v="fest"][aria-pressed="true"]')), "«Nei» skal la festpakken være uvalgt");
+  // «Ja»: chosen, and the answer is kept – the next time there is no question.
+  await t.klikk('[data-h="pakke"][data-v="fest"]');
+  await t.vent(`document.querySelector('#ark:not([hidden]) [data-h="ark-svar"]')`);
+  await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]', 400);
+  t.sjekk((await valgtPakke()) === "fest" && (await over18()), "«Ja» skal velge festpakken og huske svaret");
+  await t.klikk('[data-h="pakke"][data-v="klassisk"]', 200);
+  await t.klikk('[data-h="pakke"][data-v="fest"]', 300);
+  t.sjekk(!(await t.finnes("#ark:not([hidden])")) && (await valgtPakke()) === "fest", "Andre gang skal ikke spørre om alder igjen");
   await t.klikk('[data-h="pakke"][data-v="barn"]', 200);
   await t.klikk('[data-h="kat"][data-v="6"]', 200);
   await t.klikk('[data-h="runder"][data-v="3"]', 200);

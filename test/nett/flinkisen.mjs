@@ -1,5 +1,5 @@
-// Flinkisen on the net: A has a game on paper saved (three rounds, the classic five), makes a
-// room; B, C and D join and A starts with four (of up to ten); a fifth phone is told the match has
+// Flinkisen on the net: A has a game on paper saved (three rounds, the classic five; the party
+// pack asked about age first and A said «Nei», so it is not the room's pack), makes a room; B, C and D join and A starts with four (of up to ten); a fifth phone is told the match has
 // begun. Everyone types at once on their own phone, one answer per category.
 // Round 1: D types two answers and loads the page again: the text is still in the fields (kept
 // on D's phone only). B is first and taps «Stopp» – its answers are in no other phone's page; the
@@ -72,6 +72,12 @@ export default async function (t) {
   await a.apne();
   await a.klikk('[data-h="nytt"]');
   await a.ventSkjerm("oppsett");
+  // The party pack is 18+: A says «Nei», and neither the game nor the room gets it.
+  await a.klikk('[data-h="pakke"][data-v="fest"]');
+  await a.vent(`document.querySelector('#ark:not([hidden]) [data-h="ark-svar"]')`, 6000).catch(() => t.feil("Festpakken spør ikke om alder"));
+  if (t.norsk) t.sjekk(/Er du 18 år eller eldre\?/.test(await a.tekst("#ark")), "Festpakken spør ikke om alder");
+  await a.klikk('#ark [data-h="ark-svar"][data-v="nei"]', 300);
+  t.sjekk((await a.js("Rusj.S.oppsett.pakke")) !== "fest" && (await a.js("!JSON.parse(localStorage.getItem('rusj.felles') || '{}').over18")), "«Nei» valgte festpakken likevel");
   await a.klikk('[data-h="pakke"][data-v="klassisk"]');
   await a.klikk('[data-h="kat"][data-v="5"]');
   await a.klikk('[data-h="runder"][data-v="3"]');
@@ -92,6 +98,7 @@ export default async function (t) {
   await t.bliMed(d, lenke, "Testspiller D");
   await a.vent(`document.querySelectorAll(".nett-seter li:not(.ledig)").length === 4 && document.querySelector('[data-h="nett-start"]')`, 10000);
   if (t.norsk) t.sjekk(/Klassisk.*3 runder.*5 kategorier/.test(await a.tekst("#skjerm .seksjon .hjelp")), `Venterommet viser ikke vertens oppsett: «${await a.tekst("#skjerm .seksjon .hjelp")}»`);
+  t.sjekk(!/18\+/.test(await a.tekst("#skjerm .seksjon .hjelp")), "Rommet er satt opp med festpakken uten ja på aldersspørsmålet");
   await a.bilde("venterom");
   await a.klikk('[data-h="nett-start"]');
   for (const p of [a, b, c, d]) await p.vent(pa, 15000);

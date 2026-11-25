@@ -18,16 +18,16 @@
         "Dyr",
         "Noe du kan spise",
         "Navn",
-        "Leke eller spill",
+        "Noe i en butikk",
         "Noe i naturen",
-        "Ting på rommet ditt",
+        "Noe i et hus",
         "Frukt eller grønnsak",
         "Klær",
         "Noe på skolen",
         "Noe som lager lyd",
-        "Noe fra et eventyr",
+        "Noe fra et eventyr eller en film",
         "Noe på kjøkkenet",
-        "Noe du kan gjøre ute",
+        "Noe som er rundt",
         "Noe som er gøy",
         "Noe som er stort"
       ]
@@ -37,6 +37,7 @@
       "navn": "Fest",
       "ikon": "🎉",
       "tekst": "Litt mer på kanten (18+)",
+      "voksen": true,
       "k": [
         "Dårlig unnskyldning for å komme for sent",
         "Noe du ikke sier til sjefen",
@@ -64,20 +65,20 @@
       "k": [
         "Noe på julebordet",
         "Julegave",
-        "Noe på juletreet",
-        "Noe du gjør i romjula",
+        "Noe i en julefilm",
+        "Noe du gjør i juleferien",
         "Noe nissen har i sekken",
-        "Noe fra en julesang",
-        "Julebakst eller julegodt",
-        "Noe du gjør i snøen",
+        "Noe du sier til nissen",
+        "Noe som smaker godt",
+        "Noe som er varmt",
         "Dårlig julegave",
-        "Noe som er rødt",
+        "Noe som er rødt, hvitt eller grønt",
         "Navn på en nisse",
-        "Noe i julekalenderen",
+        "Noe du kan lage selv",
         "Grunn til å komme for sent til julemiddagen",
-        "Julepynt",
-        "Vinterklær",
-        "Noe som lukter jul"
+        "Noe du kan henge opp",
+        "Noe du kan ha på deg",
+        "Noe som lukter godt"
       ]
     }
   ]

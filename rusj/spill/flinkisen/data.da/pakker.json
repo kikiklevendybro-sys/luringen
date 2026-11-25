@@ -18,16 +18,16 @@
         "Dyr",
         "Noget du kan spise",
         "Navn",
-        "Legetøj eller spil",
+        "Noget i en butik",
         "Noget i naturen",
-        "Ting på dit værelse",
+        "Noget i et hus",
         "Frugt eller grøntsag",
         "Tøj",
         "Noget i skolen",
         "Noget der larmer",
-        "Noget fra et eventyr",
+        "Noget fra et eventyr eller en film",
         "Noget i køkkenet",
-        "Noget du kan lave udenfor",
+        "Noget der er rundt",
         "Noget der er sjovt",
         "Noget der er stort"
       ]
@@ -37,6 +37,7 @@
       "navn": "Fest",
       "ikon": "🎉",
       "tekst": "Lidt mere på kanten (18+)",
+      "voksen": true,
       "k": [
         "Dårlig undskyldning for at komme for sent",
         "Noget du ikke siger til chefen",
@@ -64,20 +65,20 @@
       "k": [
         "Noget på julebordet",
         "Julegave",
-        "Noget på juletræet",
-        "Noget du laver i juledagene",
+        "Noget i en julefilm",
+        "Noget du laver i juleferien",
         "Noget i julemandens sæk",
-        "Noget fra en julesang",
-        "Julebag eller juleslik",
-        "Noget du laver i sneen",
+        "Noget du siger til julemanden",
+        "Noget der smager godt",
+        "Noget der er varmt",
         "Dårlig julegave",
-        "Noget der er rødt",
+        "Noget der er rødt, hvidt eller grønt",
         "Navn på en nisse",
-        "Noget i en pakkekalender",
+        "Noget du kan lave selv",
         "Grund til at komme for sent til julemiddagen",
-        "Julepynt",
-        "Vintertøj",
-        "Noget der dufter af jul"
+        "Noget du kan hænge op",
+        "Noget du kan have på",
+        "Noget der dufter godt"
       ]
     }
   ]

@@ -26,12 +26,16 @@
   const VERDIER = [0, DELT, ALENE];
   const MIN = 2;
   const MAKS = 10;
-  // The letters that are drawn. Letters that start almost no words are left out: C, Q, W, X and Z
-  // in Norwegian and Danish (Æ, Ø and Å only when the setup says so), Q, X and Z in English.
+  // The letters that are drawn. Letters that start almost no words are left out: C, Q, W, X, Y and
+  // Z in Norwegian and Danish (no country and no common animal on Y; Æ, Ø and Å only when the setup
+  // says so), Q, U, X, Y and Z in English (no common animal or food on U; Y has hardly an answer
+  // outside the classic categories). test/flinkisen-ord.mjs has an answer per letter for the
+  // categories of the packs, and test/flinkisen.test.mjs checks that every category has one on at
+  // least 18 of the letters.
   const ALFABET = {
-    nb: { vanlige: "ABDEFGHIJKLMNOPRSTUVY", ekstra: "ÆØÅ" }, // sprak-ok
-    da: { vanlige: "ABDEFGHIJKLMNOPRSTUVY", ekstra: "ÆØÅ" }, // sprak-ok
-    en: { vanlige: "ABCDEFGHIJKLMNOPRSTUVWY", ekstra: "" },
+    nb: { vanlige: "ABDEFGHIJKLMNOPRSTUV", ekstra: "ÆØÅ" }, // sprak-ok
+    da: { vanlige: "ABDEFGHIJKLMNOPRSTUV", ekstra: "ÆØÅ" }, // sprak-ok
+    en: { vanlige: "ABCDEFGHIJKLMNOPRSTVW", ekstra: "" },
   };
 
   const range = (n) => Array.from({ length: n }, (_, i) => i);
@@ -253,6 +257,11 @@
   const SPRAK = R.sprak;
   const EKSTRA_FINNES = harEkstra(SPRAK);
   const STANDARD = { pakke: PAKKER[0].id, runder: 5, kat: 5, tid: 0, ekstra: false };
+  // The party pack is for adults («voksen» in the data): behind the same 18+ question as the
+  // drinking games and Dommeren's «Fest» (R.felles.over18, once per phone). Until the visitor has
+  // said yes it is never chosen – not on this phone, and not for a room this phone makes.
+  const voksen = (id) => !!pakke(id).voksen;
+  const tillatt = (id) => (voksen(id) && !R.felles.over18 ? STANDARD.pakke : pakke(id).id);
   const TIDNAVN = { 0: R.t("Av"), 60: R.t("60 s"), 90: R.t("90 s"), 120: R.t("2 min") };
 
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
@@ -267,7 +276,7 @@
 
   function nyttSpill(S) {
     const o = S.oppsett;
-    S.spill = ny({ antall: S.antall, pakke: pakke(o.pakke), runder: o.runder, kat: o.kat, tid: o.tid, ekstra: o.ekstra, sprak: SPRAK, rng: R.rng(R.nyttFro()) });
+    S.spill = ny({ antall: S.antall, pakke: pakke(tillatt(o.pakke)), runder: o.runder, kat: o.kat, tid: o.tid, ekstra: o.ekstra, sprak: SPRAK, rng: R.rng(R.nyttFro()) });
     feire = false;
     R.statistikk("start", { spillere: S.spill.antall, runder: S.spill.runder, pakke: S.spill.pakke, tid: S.spill.tid });
   }
@@ -688,11 +697,11 @@
     min: MIN,
     maks: MAKS,
     // The host's own settings: pack, rounds, categories and the extra letters.
-    oppsett: (S) => ({ pakke: pakke(S.oppsett.pakke).id, runder: S.oppsett.runder, kat: S.oppsett.kat, ekstra: !!S.oppsett.ekstra && EKSTRA_FINNES }),
+    oppsett: (S) => ({ pakke: tillatt(S.oppsett.pakke), runder: S.oppsett.runder, kat: S.oppsett.kat, ekstra: !!S.oppsett.ekstra && EKSTRA_FINNES }),
     oppsettTekst: (o) => {
       const x = o || {};
       const p = pakke(x.pakke);
-      return [`${p.navn} ${p.ikon}`, R.flertall(RUNDER.includes(x.runder) ? x.runder : 5, "runde", "runder"), R.flertall(KATEGORIER.includes(x.kat) ? x.kat : 5, "kategori", "kategorier")].join(" · ");
+      return [`${p.voksen ? R.t("{pakke} (18+)", { pakke: p.navn }) : p.navn} ${p.ikon}`, R.flertall(RUNDER.includes(x.runder) ? x.runder : 5, "runde", "runder"), R.flertall(KATEGORIER.includes(x.kat) ? x.kat : 5, "kategori", "kategorier")].join(" · ");
     },
     start(S, okt) {
       const o = okt.oppsett || {};
@@ -862,7 +871,7 @@
     lastet(S) {
       S.antall = R.klamp(Number(S.antall) || standardAntall(), MIN, MAKS);
       const o = (S.oppsett = Object.assign({}, STANDARD, S.oppsett && typeof S.oppsett === "object" ? S.oppsett : {}));
-      o.pakke = pakke(o.pakke).id;
+      o.pakke = tillatt(o.pakke);
       if (!RUNDER.includes(o.runder)) o.runder = STANDARD.runder;
       if (!KATEGORIER.includes(o.kat)) o.kat = STANDARD.kat;
       if (!TIDER.includes(o.tid)) o.tid = STANDARD.tid;
@@ -1342,8 +1351,18 @@
       fortsett(el, e, S) {
         if (pagar(S)) R.gaTil(skjermFor(S.spill));
       },
-      pakke(el, e, S) {
-        S.oppsett.pakke = pakke(el.dataset.v).id;
+      async pakke(el, e, S) {
+        const id = pakke(el.dataset.v).id;
+        if (id === S.oppsett.pakke) return;
+        // The party pack: the same 18+ question as the drinking games, once per phone.
+        if (voksen(id) && !R.felles.over18) {
+          const fortsatt = R.vakt();
+          const ja = await R.bekreft(R.t("Er du 18 år eller eldre?"), R.t("«{pakke}» har litt drøyere humor og er bare for voksne.", { pakke: pakke(id).navn }), R.t("Ja, jeg er 18 eller eldre"), R.t("Nei"));
+          if (!ja || !fortsatt()) return;
+          R.lagreFelles({ over18: true });
+          R.statistikk("alder18");
+        }
+        S.oppsett.pakke = id;
         R.vis();
       },
       kat(el, e, S) {

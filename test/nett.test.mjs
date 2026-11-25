@@ -4356,6 +4356,55 @@ test("Flinkisen: what a phone owes – the draft stays on the phone over a reloa
   assert.equal(ld.lager, undefined);
 });
 
+test("Flinkisen: the party pack is behind the 18+ question – it is never chosen before the yes, on one phone or for a room this phone makes", async () => {
+  const p = telefon("flinkisen", 0, { antall: 3 });
+  const { R, def, S } = p;
+  R.vis = () => {};
+  const spurt = [];
+  R.bekreft = async (tittel) => {
+    spurt.push(tittel);
+    return spurt.length > 1; // «Nei» the first time, «Ja» the second
+  };
+  const velg = (id) => def.handlinger.pakke({ dataset: { v: id } }, null, S);
+  assert.ok(!R.felles.over18);
+  // A setup saved with the party pack (an old save, or a phone that has not said yes) is not kept,
+  // and a room made from it gets the classic pack.
+  S.oppsett = { pakke: "fest" };
+  def.lastet(S);
+  assert.equal(S.oppsett.pakke, "klassisk");
+  S.oppsett.pakke = "fest";
+  assert.equal(def.nett.oppsett(S).pakke, "klassisk", "no party pack into a room before the yes");
+  S.oppsett.pakke = "klassisk";
+  // «Nei»: nothing changes, and nothing is remembered.
+  await velg("fest");
+  assert.deepEqual(spurt, ["Er du 18 år eller eldre?"]);
+  assert.equal(S.oppsett.pakke, "klassisk");
+  assert.ok(!R.felles.over18);
+  assert.equal(def.nett.oppsett(S).pakke, "klassisk");
+  // «Ja»: the pack is chosen, the answer is kept for the phone, and the room says 18+.
+  await velg("fest");
+  assert.equal(spurt.length, 2);
+  assert.equal(S.oppsett.pakke, "fest");
+  assert.equal(R.felles.over18, true);
+  assert.equal(JSON.parse(p.lager.get("rusj.felles")).over18, true);
+  assert.equal(def.nett.oppsett(S).pakke, "fest");
+  assert.match(def.nett.oppsettTekst(def.nett.oppsett(S)), /\(18\+\)/);
+  assert.doesNotMatch(def.nett.oppsettTekst({ pakke: "barn" }), /18\+/);
+  // Asked once per phone.
+  await velg("barn");
+  await velg("fest");
+  assert.equal(spurt.length, 2);
+  assert.equal(S.oppsett.pakke, "fest");
+  // Every other pack is chosen without a question.
+  const q = telefon("flinkisen", 0, { antall: 3 });
+  q.R.vis = () => {};
+  q.R.bekreft = async () => assert.fail("asked about age for a pack for everyone");
+  for (const id of ["barn", "jul", "klassisk"]) {
+    await q.def.handlinger.pakke({ dataset: { v: id } }, null, q.S);
+    assert.equal(q.S.oppsett.pakke, id);
+  }
+});
+
 // ---------- Lurendreieren: hidden dice from the room's seed, bids and «Løgn!» ----------
 
 // (The bid a phone is building on its own screen is not part of the match.)

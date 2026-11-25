@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
+import ORD from "./flinkisen-ord.mjs";
 
 const ROT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const kontekst = { window: {}, console };
@@ -26,18 +27,19 @@ function rng(fro) {
   };
 }
 
-test("the letters: no C, Q, W, X or Z in Norwegian and Danish (Æ, Ø, Å only when asked for), no Q, X or Z in English", () => {
+test("the letters: no C, Q, W, X, Y or Z in Norwegian and Danish (Æ, Ø, Å only when asked for), no Q, U, X, Y or Z in English", () => {
   for (const sprak of ["nb", "da"]) {
     const vanlige = F.bokstaver(sprak, false);
-    assert.equal(vanlige.length, 21);
-    for (const b of "CQWXZÆØÅ") assert.ok(!vanlige.includes(b), `${sprak}: ${b}`);
+    assert.equal(vanlige.length, 20);
+    for (const b of "CQWXYZÆØÅ") assert.ok(!vanlige.includes(b), `${sprak}: ${b}`);
     const alle = F.bokstaver(sprak, true);
-    assert.equal(alle.length, 24);
+    assert.equal(alle.length, 23);
     for (const b of "ÆØÅ") assert.ok(alle.includes(b), `${sprak}: ${b}`);
     assert.ok(F.harEkstra(sprak));
   }
   const en = F.bokstaver("en", true);
-  assert.equal(en.length, 23);
+  assert.equal(en.length, 21);
+  for (const b of "QUXYZ") assert.ok(!en.includes(b), `en: ${b}`);
   for (const b of "QXZÆØÅ") assert.ok(!en.includes(b), `en: ${b}`);
   assert.ok(en.includes("C") && en.includes("W"));
   assert.ok(!F.harEkstra("en"));
@@ -159,8 +161,28 @@ test("the packs: classic, children, party and Christmas in three languages, the 
       assert.equal(!!p.fast, p.id === "klassisk", `${mappe}/${p.id}: only the classic pack is fixed`);
     }
     assert.ok(/18\+/.test(liste.find((p) => p.id === "fest").tekst), `${mappe}: the party pack says 18+`);
+    assert.deepEqual(liste.filter((p) => p.voksen).map((p) => p.id), ["fest"], `${mappe}: the party pack (and only it) is behind the 18+ question`);
   }
   assert.deepEqual(nb[0].k.slice(0, 5), ["Navn", "By", "Land", "Dyr", "Mat"]);
+});
+
+test("every category of the classic, children's and Christmas packs has a natural answer on at least 18 of the letters, in every language (test/flinkisen-ord.mjs)", () => {
+  const MAPPE = { nb: "data", en: "data.en", da: "data.da" };
+  for (const [sprak, mappe] of Object.entries(MAPPE)) {
+    const bokstaver = F.bokstaver(sprak, false);
+    const kategorier = pakker(mappe)
+      .filter((p) => !p.voksen)
+      .flatMap((p) => p.k);
+    for (const kat of kategorier) {
+      assert.ok(ORD[sprak][kat], `${sprak}: no answers written for «${kat}»`);
+      const svar = ORD[sprak][kat].split("|");
+      for (const x of svar) assert.ok(bokstaver.some((b) => F.passer(x, b)), `${sprak} «${kat}»: «${x}» does not begin with a letter that is drawn`);
+      const uten = bokstaver.filter((b) => !svar.some((x) => F.passer(x, b)));
+      assert.ok(bokstaver.length - uten.length >= 18, `${sprak} «${kat}»: an answer on ${bokstaver.length - uten.length} of ${bokstaver.length} letters (none on ${uten.join(" ")})`);
+    }
+    // No list for a category that is no longer in a pack (renamed, or taken out).
+    for (const kat of Object.keys(ORD[sprak])) assert.ok(kategorier.includes(kat), `${sprak}: «${kat}» is in no pack`);
+  }
 });
 
 test("a match on one phone: letter, stop, scoring category by category, the points taken back, the end", () => {
