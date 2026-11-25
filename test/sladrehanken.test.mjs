@@ -16,9 +16,9 @@ ungdomTester({
   felt: "kort",
   gamle: GAMLE,
   avtrykk: {
-    nb: { standard: STANDARD, antall: 1173, kart: "457d2d37dfec4fb8", trekk: "e0d76342eff35d27" },
-    en: { standard: STANDARD, antall: 1151, kart: "9e4c245d633e9cf4", trekk: "350d660fd71c7234" },
-    da: { standard: STANDARD, antall: 1160, kart: "9ed747f257ed73ba", trekk: "bf17c4cc568ae753" },
+    nb: { standard: STANDARD, antall: 1173, kart: "8f6648949b2fe456", trekk: "e0d76342eff35d27" },
+    en: { standard: STANDARD, antall: 1151, kart: "189a1b066932881c", trekk: "501f7a116c0168e7" },
+    da: { standard: STANDARD, antall: 1160, kart: "ff703eea82b2bbbf", trekk: "a74f9cf7c7d41dc6" },
   },
   maks: 80,
   skjerm: "kort",
