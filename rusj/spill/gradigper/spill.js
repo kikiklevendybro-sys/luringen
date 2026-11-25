@@ -75,22 +75,38 @@
         angre: null,
       };
     }
-    // Who begins round r: one seat on for every round, past those who left.
-    function starterFor(sp, r) {
-      let s = (sp.forste + r) % sp.antall;
-      for (let k = 0; k < sp.antall && sp.ute.includes(s); k++) s = (s + 1) % sp.antall;
+    // The first seat still in from seat s (s itself if it is in).
+    function inneFra(sp, s) {
+      for (let k = 0; k < sp.antall; k++) {
+        const i = (s + k) % sp.antall;
+        if (!sp.ute.includes(i)) return i;
+      }
       return s;
     }
-    // One card out of the pack: any of those left, equally likely.
-    function dra(sp, rnd) {
-      if (!sp.bunke.length) sp.bunke = kortstokk(); // (never happens: a round cannot use 89 cards)
-      const n = Math.min(sp.bunke.length - 1, Math.floor(rnd() * sp.bunke.length));
-      return sp.bunke.splice(n, 1)[0];
+    // Who begins the next round: the first seat still in after the one who began this round (so the
+    // seats still in take turns evenly, also after someone has left). Round 0: the first seat.
+    const nesteStarter = (sp) => inneFra(sp, (sp.starter + 1) % sp.antall);
+    // The pack is shuffled once, when the round begins (rnd decides the whole order), and every card
+    // after that is the top one. On the net nothing that happens later in the round – a move, an
+    // ignored move, a seat leaving – can change which card comes next.
+    function stokk(rnd) {
+      const k = kortstokk();
+      for (let i = k.length - 1; i > 0; i--) {
+        const j = Math.min(i, Math.floor(rnd() * (i + 1)));
+        [k[i], k[j]] = [k[j], k[i]];
+      }
+      return k;
     }
-    // Round r begins: a fresh pack, one card each from the one who begins and round the table.
+    // The top card of the pack.
+    function dra(sp) {
+      if (!sp.bunke.length) sp.bunke = kortstokk(); // (never happens: a round cannot use 89 cards)
+      return sp.bunke.shift();
+    }
+    // Round r begins: a freshly shuffled pack, one card each from the one who begins and round the table.
     function nyRunde(sp, r, rnd) {
+      const starter = r === 0 ? inneFra(sp, sp.forste) : nesteStarter(sp);
       sp.runde = r;
-      sp.bunke = kortstokk();
+      sp.bunke = stokk(rnd);
       sp.rader = seter(sp).map(() => []);
       sp.like = seter(sp).map(() => null);
       sp.status = seter(sp).map((i) => (sp.ute.includes(i) ? "borte" : "med"));
@@ -98,10 +114,10 @@
       sp.siste = null;
       sp.angre = null;
       sp.fase = "spill";
-      sp.starter = starterFor(sp, r);
+      sp.starter = starter;
       for (let k = 0; k < sp.antall; k++) {
         const i = (sp.starter + k) % sp.antall;
-        if (sp.status[i] === "med") sp.rader[i].push(dra(sp, rnd));
+        if (sp.status[i] === "med") sp.rader[i].push(dra(sp));
       }
       sp.tur = sp.starter;
       sp.steg++;
@@ -134,14 +150,14 @@
     }
     const paTur = (sp) => !sp.ferdig && sp.fase === "spill" && sp.status[sp.tur] === "med";
 
-    // «Ett til»: the seat on turn takes a card. Returns { i, kort, hva } with hva "tall" (a new
+    // «Ett til»: the seat on turn takes the top card. Returns { i, kort, hva } with hva "tall" (a new
     // number), "bonus", "like" (a number it had: the round is lost), "reddet" (… but a cheek pouch
     // swallowed it) or "sju" (the seventh different number: the round ends). Null when nobody may draw.
-    function trekk(sp, rnd) {
+    function trekk(sp) {
       if (!paTur(sp)) return null;
       const i = sp.tur;
       const rad = sp.rader[i];
-      const kort = dra(sp, rnd);
+      const kort = dra(sp);
       let hva = "bonus";
       if (erTall(kort)) {
         if (rad.includes(kort)) {
@@ -193,10 +209,15 @@
       sp.vinnere = topp > 0 ? med.filter((i) => sp.sum[i] === topp) : [];
     }
     // On the net: a seat left. Its cards of this round are gone, it is never waited for and is not
-    // ranked; with fewer than two left the match is over.
+    // ranked; with fewer than two left the match is over. Once somebody has reached the target the
+    // match is decided and a seat leaving changes nothing: a phone that replays the match is at
+    // «Kåringen» at once, while a phone that played it live gets there with «Se kåringen» – both
+    // must rank the same seats.
     function forlat(sp, sete) {
-      if (sp.ferdig || !Number.isInteger(sete) || sete < 0 || sete >= sp.antall || sp.ute.includes(sete)) return false;
+      if (sp.ferdig || sp.slutt || !Number.isInteger(sete) || sete < 0 || sete >= sp.antall || sp.ute.includes(sete)) return false;
       sp.ute.push(sete);
+      // (The line under the heading told what this seat just did, with the cards that are now gone.)
+      if (sp.siste && sp.siste.i === sete) sp.siste = { i: sete, kort: null, hva: "borte" };
       if (sp.fase === "spill") {
         const hadde = sp.status[sete];
         sp.status[sete] = "borte";
@@ -234,7 +255,7 @@
       return true;
     }
 
-    return { MIN, MAKS, SJU, SJU_BONUS, MAL, BONUSKORT, erTall, erKort, kortstokk, tallene, ulike, poeng, inne, nytt, starterFor, nyRunde, start, trekk, stopp, nesteRunde, kaar, forlat, paTur, risiko, gyldig };
+    return { MIN, MAKS, SJU, SJU_BONUS, MAL, BONUSKORT, erTall, erKort, kortstokk, stokk, tallene, ulike, poeng, inne, nytt, nesteStarter, nyRunde, start, trekk, stopp, nesteRunde, kaar, forlat, paTur, risiko, gyldig };
   })();
 
   const R = window.Rusj;
@@ -255,9 +276,9 @@
   const poengTekst = (n) => R.flertall(n, "poeng", "poeng");
   // On the net (R.nett, rusj/kit/nett.js): seat i is player i on its own phone. Every card lies face
   // up on every phone, so there is nothing to hide; «Ett til», «Stopp» and «Neste runde» are moves,
-  // played when the room sends them back. The card of a draw comes from the room's chance for that
-  // move (okt.rng: the seed and the move's place), so every phone turns the same card.
-  // (Friends level: a changed client could work out the coming card from the seed.)
+  // played when the room sends them back. Each round's pack is shuffled from the room's seed and the
+  // round's number (rundeRng below), so every phone turns the same cards in the same order.
+  // (Friends level: a changed client could work out the order from the seed, but never choose it.)
   const paNett = (sp) => !!sp && sp.modus === "nett" && !!R.nett;
   const erJeg = (sp, i) => paNett(sp) && R.nett.erMeg(i);
   const kanSpille = (sp, i) => !paNett(sp) || (R.nett.erMeg(i) && !R.nett.venter());
@@ -290,6 +311,7 @@
     const s = sp.siste;
     if (!s) return sp.runde === 0 ? R.t("Alle har fått ett kort. Ett til – eller stopp?") : R.t("Nye kort til alle. Ett til – eller stopp?");
     const navn = R.navn(s.i);
+    if (s.hva === "borte") return R.t("{navn} forlot kampen.", { navn });
     if (s.hva === "stopp") return R.t("{navn} stopper og beholder {poeng}.", { navn, poeng: poengTekst(G.poeng(sp.rader[s.i])) });
     if (s.hva === "like") return R.t("{navn} fikk {kort} en gang til og mister rundens poeng.", { navn, kort: kortNavn(s.kort) });
     if (s.hva === "reddet") return R.t("{navn} fikk {kort} en gang til – men kinnposen tok den!", { navn, kort: kortNavn(s.kort) });
@@ -372,7 +394,7 @@
     lenker.push(R.ui.lenke(R.t("Kortene"), "kortene"), R.ui.lenke(R.t("Avslutt"), "avslutt"));
     if (sp.fase === "ferdig") {
       if (sp.slutt) return R.ui.dokk(R.ui.knapp(R.t("Se kåringen"), "kaaring", { variant: "stor", ikon: "🏆" }), R.ui.lenkerad(...lenker));
-      const neste = G.starterFor(sp, sp.runde + 1);
+      const neste = G.nesteStarter(sp);
       if (paNett(sp) && !erJeg(sp, neste)) return R.ui.dokk(R.ui.knapp(R.t("{navn} deler ut …", { navn: R.navn(neste) }), "vent", { av: true }), R.ui.lenkerad(...lenker));
       return R.ui.dokk(R.ui.knapp(R.t("Neste runde"), "neste", { variant: "stor", id: "gp-neste" }), R.ui.lenkerad(...lenker));
     }
@@ -506,7 +528,11 @@
   }
 
   // ---------- On the net (R.nett, rusj/kit/nett.js) ----------
-  // Moves from the seat on turn: { til: 1, r, n } takes a card (which one: okt.rng), { stopp: 1, r, n }
+  // The pack of round r is shuffled from the room's seed and the round's number only – not from the
+  // place a move gets in the list – so no move, ignored or not, can choose a card.
+  // (Friends level: a changed phone could work the order out from the seed.)
+  const rundeRng = (okt, r) => R.nett.tilfeldig(okt.fro, "runde" + r);
+  // Moves from the seat on turn: { til: 1, r, n } takes the top card, { stopp: 1, r, n }
   // keeps the round's points. r is the round and n the step the phone saw when the button was
   // tapped: a tap that comes late or twice names an old step and is ignored, the same on every
   // phone. { runde: r } from the one who begins round r deals it. Anything else, or anything the
@@ -523,7 +549,7 @@
       const antall = R.klamp(okt.antall || G.MIN, G.MIN, G.MAKS);
       const sp = G.nytt({ antall, mal: o.mal, forste: (okt.kamp - 1) % antall });
       sp.modus = "nett";
-      G.nyRunde(sp, 0, R.nett.tilfeldig(okt.fro, "runde0"));
+      G.nyRunde(sp, 0, rundeRng(okt, 0));
       S.spill = sp;
       laast = false;
       blink = null;
@@ -535,7 +561,7 @@
       const live = !okt.gjenspill && S.skjerm === "spill";
       if (sp.fase === "spill" && sete === sp.tur && t.r === sp.runde && t.n === sp.steg) {
         if (t.til === 1) {
-          const h = G.trekk(sp, okt.rng);
+          const h = G.trekk(sp);
           if (!h) return;
           if (okt.gjenspill && sp.slutt) G.kaar(sp); // a finished match, replayed: the result
           if (live) visTrekk(sp, h);
@@ -548,8 +574,8 @@
         }
         return;
       }
-      if (sp.fase === "ferdig" && !sp.slutt && t.runde === sp.runde + 1 && sete === G.starterFor(sp, t.runde)) {
-        if (!G.nesteRunde(sp, okt.rng)) return;
+      if (sp.fase === "ferdig" && !sp.slutt && t.runde === sp.runde + 1 && sete === G.nesteStarter(sp)) {
+        if (!G.nesteRunde(sp, rundeRng(okt, t.runde))) return;
         if (live) visNyRunde();
       }
     },
@@ -567,7 +593,7 @@
     tur(S) {
       const sp = S.spill;
       if (!sp || sp.ferdig || sp.slutt) return null;
-      return sp.fase === "ferdig" ? G.starterFor(sp, sp.runde + 1) : sp.tur;
+      return sp.fase === "ferdig" ? G.nesteStarter(sp) : sp.tur;
     },
     ferdig: (S) => !!S.spill && (S.spill.ferdig || S.spill.slutt),
   };
@@ -749,7 +775,7 @@
         const sp = S.spill;
         if (!pagar(S) || laast || !G.paTur(sp) || !kanSpille(sp, sp.tur)) return;
         if (paNett(sp)) return void R.nett.send({ til: 1, r: sp.runde, n: sp.steg });
-        const h = G.trekk(sp, tilfeldig);
+        const h = G.trekk(sp);
         if (h) visTrekk(sp, h);
       },
       stopp(el, e, S) {
@@ -783,7 +809,7 @@
       neste(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || sp.fase !== "ferdig" || sp.slutt) return;
-        if (paNett(sp)) return void (kanSpille(sp, G.starterFor(sp, sp.runde + 1)) && R.nett.send({ runde: sp.runde + 1 }));
+        if (paNett(sp)) return void (kanSpille(sp, G.nesteStarter(sp)) && R.nett.send({ runde: sp.runde + 1 }));
         if (G.nesteRunde(sp, tilfeldig)) visNyRunde();
       },
       kaaring(el, e, S) {

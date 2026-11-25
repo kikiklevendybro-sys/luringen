@@ -27,13 +27,17 @@ const rng = (fro) => {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 };
-// A «chance» that makes the next card drawn this one.
-const neste = (sp, kort) => () => {
+// The next card drawn is this one: it is put on top of the pack (cards are always taken from the top).
+const tilTopps = (sp, kort) => {
   const i = sp.bunke.indexOf(kort);
   assert.ok(i >= 0, `${kort} is not in the pack`);
-  return (i + 0.5) / sp.bunke.length;
+  sp.bunke.splice(i, 1);
+  sp.bunke.unshift(kort);
 };
-const trekk = (sp, kort) => j(G.trekk(sp, neste(sp, kort)));
+const trekk = (sp, kort) => {
+  tilTopps(sp, kort);
+  return j(G.trekk(sp));
+};
 // A game where the rows are what the test says (the rest of the pack is left as dealt).
 function bord(rader, o = {}) {
   const sp = G.start({ antall: rader.length, mal: o.mal || 200, forste: o.forste || 0 }, rng(o.fro || 7));
@@ -153,7 +157,7 @@ test("seven different numbers end the round at once: 15 extra, and everyone stil
   assert.deepEqual([sp.fase, sp.sju], ["ferdig", 0]);
   assert.deepEqual(j(sp.logg[0]), { pluss: [31 + 15, 14, 0, 9], status: ["med", "med", "ute", "stopp"], sju: 0 });
   assert.deepEqual(j(sp.sum), [46, 14, 0, 9]);
-  assert.equal(G.trekk(sp, rng(1)), null, "no more cards this round");
+  assert.equal(G.trekk(sp), null, "no more cards this round");
   assert.equal(G.stopp(sp), null);
   // A seventh number that is one it already has is two alike, not seven
   const b = bord([[0, 1, 2, 4, 6, 8], [3]]);
@@ -226,8 +230,57 @@ test("the next round: a fresh pack, one card each, and the next seat begins", ()
     assert.equal(G.nesteRunde(sp, rng(100 + r)), true);
     assert.equal(sp.steg, steg + 1);
   }
+  // Another first seat: the seats take turns from there
   const n = G.start({ antall: 4, forste: 3 }, rng(1));
-  assert.deepEqual([0, 1, 2, 3, 4].map((r) => G.starterFor(n, r)), [3, 0, 1, 2, 3]);
+  const startere = [n.starter];
+  for (let r = 0; r < 4; r++) {
+    for (let k = 0; k < 4; k++) G.stopp(n);
+    if (n.slutt) break;
+    G.nesteRunde(n, rng(200 + r));
+    startere.push(n.starter);
+  }
+  assert.deepEqual(startere.slice(0, 5), [3, 0, 1, 2, 3].slice(0, startere.length));
+});
+
+test("who begins: the seats still in take turns evenly, also after someone has left", () => {
+  // Three seats, the middle one leaves: the two left take every other round (not 0 2 2 0 2 2 …)
+  const sp = G.start({ antall: 3, mal: 200 }, rng(11));
+  for (let k = 0; k < 3; k++) G.stopp(sp);
+  G.forlat(sp, 1);
+  const startere = [sp.starter];
+  for (let r = 1; r <= 6; r++) {
+    assert.equal(G.nesteStarter(sp), r % 2 ? 2 : 0);
+    sp.sum = [0, 0, 0]; // (nobody reaches the target)
+    sp.slutt = false;
+    assert.ok(G.nesteRunde(sp, rng(300 + r)));
+    startere.push(sp.starter);
+    assert.equal(sp.tur, sp.starter);
+    while (sp.fase === "spill") G.stopp(sp);
+  }
+  assert.deepEqual(startere, [0, 2, 0, 2, 0, 2, 0]);
+  // Five seats, two leave: the three left take turns 0 → 2 → 4 → 0 …
+  const fem = G.start({ antall: 5, mal: 200 }, rng(12));
+  for (let k = 0; k < 5; k++) G.stopp(fem);
+  G.forlat(fem, 1);
+  G.forlat(fem, 3);
+  const rekke = [];
+  for (let r = 1; r <= 6; r++) {
+    fem.sum = fem.sum.map(() => 0);
+    G.nesteRunde(fem, rng(400 + r));
+    rekke.push(fem.starter);
+    while (fem.fase === "spill") G.stopp(fem);
+  }
+  assert.deepEqual(rekke, [2, 4, 0, 2, 4, 0]);
+  // The one who would begin leaves between rounds: the next seat still in begins
+  const b = G.start({ antall: 4, mal: 200 }, rng(13));
+  for (let k = 0; k < 4; k++) G.stopp(b);
+  G.forlat(b, 1);
+  assert.equal(G.nesteStarter(b), 2);
+  // The first seat of the match has left before round 0 is dealt (a fresh state): the next one in
+  const tom = G.nytt({ antall: 3, forste: 2 });
+  tom.ute = [2];
+  G.nyRunde(tom, 0, rng(14));
+  assert.equal(tom.starter, 0);
 });
 
 test("a seat that leaves (on the net): its cards go, it is skipped and not ranked; under two the match is over", () => {
@@ -250,7 +303,7 @@ test("a seat that leaves (on the net): its cards go, it is skipped and not ranke
   const b = bord([[1], [2], [3], [4]]);
   for (let k = 0; k < 4; k++) G.stopp(b);
   G.forlat(b, 1); // between rounds: the one who would begin
-  assert.equal(G.starterFor(b, 1), 2);
+  assert.equal(G.nesteStarter(b), 2);
   G.nesteRunde(b, rng(9));
   assert.deepEqual([b.tur, b.status[1], b.rader[1].length, b.bunke.length], [2, "borte", 0, 86]);
   // A seat that had stopped leaves: its points of the round are void
@@ -278,6 +331,28 @@ test("a seat that leaves (on the net): its cards go, it is skipped and not ranke
   const f = bord([[7], [3]]);
   G.forlat(f, 0);
   assert.deepEqual([f.ferdig, j(f.vinnere), j(f.sum)], [true, [1], [0, 3]]);
+});
+
+test("once somebody has reached the target, a seat leaving changes nothing – before and after «Kåringen»", () => {
+  const sp = bord([[12], [5], [4]], { mal: 100 });
+  sp.sum = [95, 40, 20];
+  for (let k = 0; k < 3; k++) G.stopp(sp);
+  assert.deepEqual([sp.slutt, sp.ferdig], [true, false]);
+  const for_ = JSON.stringify(sp);
+  assert.equal(G.forlat(sp, 0), false, "the winner leaves before «Se kåringen»");
+  assert.equal(G.forlat(sp, 1), false);
+  assert.equal(JSON.stringify(sp), for_);
+  G.kaar(sp);
+  assert.deepEqual(j(sp.vinnere), [0]);
+  assert.equal(G.forlat(sp, 2), false, "… and after");
+  // The line about the one who just stopped does not survive its cards going
+  const b = bord([[9, 3], [5], [4]]);
+  G.stopp(b);
+  assert.equal(b.siste.hva, "stopp");
+  G.forlat(b, 0);
+  assert.deepEqual(j(b.siste), { i: 0, kort: null, hva: "borte" });
+  G.forlat(b, 2); // another seat leaving leaves the line alone
+  assert.deepEqual(j(b.siste), { i: 0, kort: null, hva: "borte" });
 });
 
 test("the chance of two alike follows the cards left in the pack", () => {
@@ -344,7 +419,7 @@ test("whole games with a seeded pack: no card is lost or made, no row ever holds
       const for_ = sp.steg;
       if (modig(i) ? G.risiko(sp, i) > 0.55 : G.risiko(sp, i) > mot[i] || G.poeng(sp.rader[i]) >= 25 + 10 * (i % 3)) assert.ok(G.stopp(sp));
       else {
-        const h = G.trekk(sp, r);
+        const h = G.trekk(sp);
         if (h.hva === "like") ute += 1;
         if (h.hva === "reddet") {
           ute += 2;
@@ -388,10 +463,45 @@ test("the draw is fair: every card left is as likely as any other", () => {
   assert.ok(Math.abs(tall.get(0) - N / 89) < 5 * Math.sqrt(N / 89) + 5);
   const bonus = sum(["+3", "+5", "+7", "x2", "kp"].map((k) => tall.get(k) || 0));
   assert.ok(Math.abs(bonus - (N * 10) / 89) < 5 * Math.sqrt((N * 10) / 89), `bonus cards: ${bonus}`);
-  // The edge of the chance (just below 1) never reaches past the end of the pack
-  const sp = G.start({ antall: 2 }, rng(1));
-  assert.ok(G.trekk(sp, () => 0.9999999999999999));
+  // The edges of the chance (0 and just below 1) still give the whole pack, every card once
+  for (const kant of [() => 0, () => 0.9999999999999999]) {
+    const k = j(G.stokk(kant));
+    assert.deepEqual(k.map(String).sort(), j(G.kortstokk()).map(String).sort());
+  }
   assert.match(KILDE, /const tilfeldig = \(\) => R\.nyttFro\(\) \/ 4294967296;/, "on one phone the chance is the kit's real randomness");
+});
+
+test("the pack is shuffled once per round and every card is the top one: nothing done later chooses a card", () => {
+  // The whole order is decided when the round is dealt …
+  const sp = G.start({ antall: 3 }, rng(77));
+  const ordning = j(sp.bunke);
+  assert.equal(ordning.length, 86);
+  const h = j(G.trekk(sp));
+  assert.equal(h.kort, ordning[0], "«Ett til» takes the top card");
+  assert.deepEqual(j(sp.bunke), ordning.slice(1));
+  // … so whatever happens before a draw – stops, ignored attempts, a seat leaving – the next card is
+  // the same as without it.
+  const a = G.start({ antall: 4 }, rng(78));
+  const b = G.start({ antall: 4 }, rng(78));
+  assert.deepEqual(j(a.bunke), j(b.bunke));
+  G.trekk(a);
+  G.stopp(a);
+  for (let k = 0; k < 5; k++) {
+    assert.equal(G.nesteRunde(b, rng(k)), false); // not between rounds: ignored
+    assert.equal(G.forlat(b, 9), false);
+  }
+  G.trekk(b);
+  G.stopp(b);
+  G.forlat(a, 3);
+  G.forlat(b, 3);
+  assert.deepEqual(j(G.trekk(a)), j(G.trekk(b)));
+  // A round is the same deal for the same chance, whoever begins it
+  const c = G.nytt({ antall: 3, forste: 0 });
+  const d = G.nytt({ antall: 3, forste: 2 });
+  G.nyRunde(c, 0, rng(5));
+  G.nyRunde(d, 0, rng(5));
+  assert.deepEqual(j(c.rader.flat().concat(c.bunke)).sort(), j(d.rader.flat().concat(d.bunke)).sort());
+  assert.deepEqual([c.rader[0][0], d.rader[2][0]], [j(G.stokk(rng(5)))[0], j(G.stokk(rng(5)))[0]], "the first card goes to the one who begins");
 });
 
 test("no casino words in the game's texts", () => {

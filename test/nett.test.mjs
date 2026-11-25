@@ -1435,7 +1435,7 @@ test("Grådigper: a match to 100 for three phones – the same cards everywhere;
   likt(a, c);
   const slutt = somJson(sp());
   r.trekk(sp().tur, { til: 1, r: sp().runde, n: sp().steg }); // the match is over
-  r.trekk(G.starterFor(sp(), sp().runde + 1), { runde: sp().runde + 1 });
+  r.trekk(G.nesteStarter(sp()), { runde: sp().runde + 1 });
   assert.deepEqual(somJson(sp()), slutt);
   const sen = r.sen(1);
   likt(a, sen);
@@ -1484,7 +1484,7 @@ test("Grådigper: a seat that leaves loses the round's cards, is skipped – als
   assert.ok(sp().ferdig && sp().slutt && c.def.nett.ferdig(c.S));
   assert.equal(c.def.nett.skjerm(c.S), "slutt");
   assert.equal(c.def.nett.tur(c.S), null);
-  assert.ok(sp().vinnere.every((i) => i === 2));
+  assert.deepEqual(somJson(sp().vinnere), [2], "C, the only one left, wins (an empty list would not do)");
   assert.equal(sp().sum[3], d.S.spill.sum[3]);
   likt(c, d);
   likt(c, r.sen(2));
@@ -1505,6 +1505,203 @@ test("Grådigper: a seat that leaves loses the round's cards, is skipped – als
   assert.ok(p.S.spill.rader[2].length === 0 && p.S.spill.sum[2] === 0);
   likt(p, r3.tlf[1]);
   likt(p, r3.sen(1));
+});
+
+// A phone that plays the room's moves LIVE (okt.gjenspill false) – the game's live branch runs, as on
+// a phone that is in the match while it happens – next to the room's phones, which replay. The kit's
+// drawing is stood in for: R.vis and R.gaTil draw the screen (the game's own vis) after every move,
+// sounds, toasts and the like do nothing. Every move given to r.trekk / r.borte reaches it too.
+// tegnes: false for a game whose live branch needs a real page (then the screen is left alone, and
+// only the state follows the live path).
+// (A live phone marks a match it ended with «Se kåringen» as complete; a replaying phone does not.)
+const utenKomplett = (x) => ({ ...x, komplett: null });
+function levende(id, r, meg, { antall, oppsett = {}, fro = 20261115, kamp = 1, skjerm = "spill", tegnes = true }) {
+  const p = telefon(id, meg, { antall });
+  p.vist = [];
+  const tegn = () => {
+    const sk = p.def.skjermer[p.S.skjerm];
+    const html = sk.vis(p.S);
+    assert.equal(typeof html, "string", `${p.S.skjerm} on the live phone`);
+    p.html = html;
+  };
+  Object.assign(p.R, {
+    vis: () => tegnes && tegn(),
+    gaTil(navn) {
+      p.S.skjerm = navn;
+      p.vist.push(navn);
+      if (tegnes) tegn();
+    },
+    si() {},
+    toast() {},
+    vibrer() {},
+    konfetti() {},
+    holdVaken() {},
+    slippVaken() {},
+    rolig: () => true,
+  });
+  for (const k of Object.keys(p.R.lyd)) if (typeof p.R.lyd[k] === "function") p.R.lyd[k] = () => {};
+  p.window.scrollTo = () => {};
+  const okt = (n, gjenspill = false) => ({ n, gjenspill, meg, kamp, fro, oppsett, antall, ute: [...p.ute], rng: n == null ? null : p.R.nett.tilfeldig(fro, n) });
+  p.def.nett.start(p.S, okt(null, true));
+  p.S.skjerm = skjerm;
+  if (tegnes) tegn();
+  const trekk = r.trekk.bind(r);
+  r.trekk = (sete, t) => {
+    trekk(sete, t);
+    const n = r.logg.length - 1;
+    if (t && t.$ === "borte") {
+      if (p.ute.has(sete)) return;
+      p.ute.add(sete);
+      p.def.nett.borte(p.S, sete, okt(n));
+    } else p.def.nett.trekk(p.S, somJson(t), sete, okt(n));
+    if (tegnes) tegn();
+  };
+  return p;
+}
+
+test("Grådigper: a phone that plays the match live draws every screen and ends where the replaying phones end; no «Angre», no «Kveldens gjeng»", () => {
+  const G = regler("gradigper", "RusjGradigper");
+  const r = medSkjerm(rom("gradigper", 3, { mal: 100 }, 777));
+  const [a, b] = r.tlf;
+  const L = levende("gradigper", r, 1, { antall: 3, oppsett: { mal: 100 }, fro: 777 });
+  const sp = () => L.S.spill;
+  // (Not ferdig, vinnere or komplett: live phones get to «Kåringen» with a tap.)
+  const bord = (x) => ({ ...x, ferdig: null, vinnere: null, komplett: null });
+  likt(L, a);
+  let stopp = 0;
+  for (let n = 0; n < 5000 && !sp().slutt; n++) {
+    if (sp().fase === "ferdig") {
+      const neste = L.def.nett.tur(L.S);
+      if (L.R.nett.erMeg(neste)) assert.match(L.html, /id="gp-neste"/, "the one who deals has «Neste runde»");
+      else assert.doesNotMatch(L.html, /id="gp-neste"/);
+      r.trekk(neste, { runde: sp().runde + 1 });
+      assert.equal(sp().fase, "spill", "the live phone dealt the next round");
+      continue;
+    }
+    const tur = sp().tur;
+    // The buttons are this phone's only on its own turn
+    assert.equal(/id="gp-til"/.test(L.html), tur === 1, `«Ett til» on the live phone, seat ${tur} on turn`);
+    gradigTrekk(r, G, L);
+    if (sp().siste && sp().siste.hva === "stopp") {
+      stopp++;
+      // No «Angre» on the net: not on the screen, not in the state.
+      assert.equal(sp().angre, null);
+      assert.doesNotMatch(L.html, /data-h="angre"/);
+    }
+    likt(L, a, bord);
+  }
+  assert.ok(sp().slutt && !sp().ferdig && stopp > 3, "the match did not reach its end");
+  assert.match(L.html, /data-h="kaaring"/, "live: «Se kåringen» after the last round");
+  assert.ok(a.S.spill.ferdig, "replayed: «Kåringen» at once");
+  // The tap on «Se kåringen» on the live phone: the same result as the replaying phones.
+  L.def.handlinger.kaaring(null, null, L.S);
+  assert.deepEqual(L.vist.slice(-1), ["slutt"]);
+  assert.match(L.html, /data-h="nett-ny"/, "«Ny kamp» on the live phone's «Kåringen»");
+  likt(L, a, utenKomplett);
+  likt(L, b, utenKomplett);
+  assert.ok(sp().vinnere.length >= 1);
+  // The phone's own «Kveldens gjeng» and saved game are left alone on the net.
+  assert.ok(![...L.lager.keys()].some((k) => /kveld|gradigper\.v/.test(k)), [...L.lager.keys()].join());
+  // The «Stopp» button on the net sends (nothing to send here) and never leaves an «Angre» behind.
+  const r2 = rom("gradigper", 2, {}, 778);
+  const M = levende("gradigper", r2, 0, { antall: 2, fro: 778 });
+  M.def.handlinger.stopp(null, null, M.S);
+  assert.equal(M.S.spill.angre, null);
+  assert.equal(M.S.spill.status[0], "med", "the button alone plays nothing: the move comes from the room");
+});
+
+test("Grådigper: a seat that leaves as the match is decided – live and replaying phones rank the same seats", () => {
+  // The race the room allows: the last «Stopp» reaches the target, the room still adds «borte» for a
+  // seat that leaves before it has heard «ferdig». A replaying phone is at «Kåringen» at once; a live
+  // phone gets there with «Se kåringen» – after the «borte».
+  const G = regler("gradigper", "RusjGradigper");
+  for (const fro of [31, 32, 33, 34, 35, 36]) {
+    const r = rom("gradigper", 3, { mal: 100 }, fro);
+    const L = levende("gradigper", r, 2, { antall: 3, oppsett: { mal: 100 }, fro });
+    const a = r.tlf[0];
+    for (let n = 0; n < 5000 && !L.S.spill.slutt; n++) {
+      if (L.S.spill.fase === "ferdig") r.trekk(L.def.nett.tur(L.S), { runde: L.S.spill.runde + 1 });
+      else gradigTrekk(r, G, L);
+    }
+    assert.ok(L.S.spill.slutt && !L.S.spill.ferdig && a.S.spill.ferdig);
+    // The leader leaves (it would have won), then another seat
+    const leder = a.S.spill.vinnere[0];
+    r.borte(leder);
+    r.borte((leder + 1) % 3);
+    L.def.handlinger.kaaring(null, null, L.S);
+    assert.deepEqual(somJson(L.S.spill.vinnere), somJson(a.S.spill.vinnere), `seed ${fro}: live and replayed winners differ`);
+    assert.deepEqual(somJson(L.S.spill.ute), somJson(a.S.spill.ute));
+    likt(L, a, utenKomplett);
+    likt(L, r.sen(1), utenKomplett);
+    assert.ok(a.S.spill.vinnere.includes(leder), "the match was decided before the seat left: it still counts");
+  }
+});
+
+test("Grådigper: moves that are ignored – from any seat, before a draw – never change the card that comes", () => {
+  // Two rooms with the same seed: in one, every draw is preceded by moves the rules ignore (another
+  // seat's «Ett til», an old step, a deal out of time, nonsense). The cards must be the same.
+  const G = regler("gradigper", "RusjGradigper");
+  const ren = rom("gradigper", 3, { mal: 100 }, 4242);
+  const rot = rom("gradigper", 3, { mal: 100 }, 4242);
+  const a = ren.tlf[0];
+  const x = rot.tlf[0];
+  const kort = [];
+  for (let n = 0; n < 400 && !a.S.spill.slutt; n++) {
+    const sp = a.S.spill;
+    if (sp.fase === "ferdig") {
+      const neste = a.def.nett.tur(a.S);
+      const runde = sp.runde + 1;
+      for (const s of [0, 1, 2]) if (s !== neste) rot.trekk(s, { runde }); // not the dealer
+      ren.trekk(neste, { runde });
+      rot.trekk(neste, { runde });
+      likt(a, x);
+      continue;
+    }
+    const tur = sp.tur;
+    const [r0, n0] = [sp.runde, sp.steg];
+    const t = G.poeng(sp.rader[tur]) >= 20 || G.risiko(sp, tur) > 0.3 ? { stopp: 1, r: r0, n: n0 } : { til: 1, r: r0, n: n0 };
+    if (t.til) {
+      for (const s of [0, 1, 2]) {
+        if (s !== tur) rot.trekk(s, { til: 1, r: r0, n: n0 });
+        rot.trekk(s, { til: 1, r: r0, n: n0 - 1 });
+        rot.trekk(s, { runde: r0 + 1 });
+        rot.trekk(s, { tull: s });
+      }
+    }
+    ren.trekk(tur, t);
+    rot.trekk(tur, t);
+    if (t.til) kort.push(a.S.spill.siste.kort);
+    assert.deepEqual(somJson(x.S.spill.siste), somJson(a.S.spill.siste), `move ${n}: another card after ignored moves`);
+    likt(a, x);
+  }
+  assert.ok(rot.logg.length > ren.logg.length * 2 && kort.length > 10);
+  likt(a, x);
+});
+
+test("Tieren: a seat that leaves as the last round ends – live and replaying phones rank the same seats", () => {
+  // As in Grådigper: after the last answer a replaying phone is at «Kåringen» at once, a live phone
+  // when it taps «Til kåringen». A «borte» in between must count the same on both. (The live phone's
+  // state follows the live path; its screen, which needs a real page, is not drawn.)
+  let ulik = 0;
+  for (const fro of [41, 42, 43, 44, 45]) {
+    const r = rom("tieren", 3, { runder: 3 }, fro);
+    const L = levende("tieren", r, 2, { antall: 3, oppsett: { runder: 3 }, fro, skjerm: "x", tegnes: false });
+    const a = r.tlf[0];
+    for (let steg = 0; steg < 400 && !a.def.nett.ferdig(a.S); steg++) {
+      if (a.S.spill.fase === "ferdig") r.trekk(a.def.nett.tur(a.S), { runde: a.S.spill.runde + 1 });
+      else tierTrekk(r, steg);
+    }
+    assert.ok(a.S.spill.ferdig && !L.S.spill.ferdig, "replayed: the result at once; live: not yet");
+    const leder = a.S.spill.vinnere[0];
+    if (leder == null) continue;
+    r.borte(leder);
+    L.def.handlinger.nesteRunde(null, null, L.S); // «Til kåringen»
+    assert.ok(L.S.spill.ferdig);
+    assert.deepEqual(somJson(L.S.spill.vinnere), somJson(a.S.spill.vinnere), `seed ${fro}: live and replayed winners differ`);
+    assert.deepEqual(somJson(L.S.spill.ute), somJson(a.S.spill.ute));
+    ulik++;
+  }
+  assert.ok(ulik >= 3, "too few matches with a winner to test");
 });
 
 test("Vri åtter: a whole match «først til 3» on two phones, then three where one leaves – the same cards everywhere", () => {
