@@ -13,7 +13,7 @@
         { "t": "Ting man finner i et kjøleskap. {a} begynner, og så går det rundt. Den som står fast, tar en slurk.", "type": "kategori" },
         { "t": "{a}, fortell om den beste ferien din på ti sekunder – eller ta en slurk.", "type": "valg" },
         "{a}, gi en slurk til den som sist sendte deg en melding.",
-        { "t": "Alle som har vært på Hurtigruta, tar en slurk.", "type": "alle" },
+        { "t": "Alle som har tatt nattferje, tar en slurk.", "type": "alle" },
         { "t": "Ingen får si «ja» eller «nei». Den som glemmer seg, tar en slurk.", "type": "regel", "slutt": "Dere kan si «ja» og «nei» igjen. For en lettelse!" },
         { "t": "Tell til tre og pek på den som oftest glemmer hvor nøklene er. Den med flest fingrer deler ut to slurker.", "type": "pek" },
         "{a}, si noe hyggelig om {b}. Så skåler dere to.",
@@ -23,7 +23,7 @@
         "{a}, del ut tre slurker. Du bestemmer hvordan.",
         { "t": "{a} og {b}: Den som først peker på noe rødt i rommet, deler ut to slurker.", "type": "duell" },
         { "t": "Norske byer. {a} begynner. Den som står fast eller sier en by to ganger, tar en slurk.", "type": "kategori" },
-        "{a}, skål med den til høyre for deg, og si hva du liker best med vedkommende.",
+        "{a}, skål med den til høyre for deg, og si hva du liker best ved vedkommende.",
         { "t": "Alle som har bursdag fra oktober til mars, tar en slurk.", "type": "alle" },
         { "t": "{a} er konge eller dronning. Alle sier «Deres Majestet» før de snakker til {a}. Den som glemmer det, tar en slurk.", "type": "regel", "slutt": "{a} gir fra seg krona. Ingen flere «Deres Majestet»." },
         "{a}, si navnet på alle her på fem sekunder. Klarer du det, deler du ut tre slurker. Hvis ikke, tar du en.",
@@ -37,12 +37,12 @@
         { "t": "Ting som er gule. {a} begynner. Den som står fast, tar en slurk.", "type": "kategori" },
         { "t": "{a} og {b} er drikkekompiser. Når den ene tar en slurk, tar den andre også en.", "type": "regel", "slutt": "{a} og {b} er ikke drikkekompiser lenger. Skål for samarbeidet!" },
         "{a}, fortell en vits. Ler noen, deler du ut to slurker. Ler ingen, ler du selv – og tar en slurk.",
-        "Skål for {a}! Alle sier én ting de liker med {a}.",
+        "Skål for {a}! Alle sier én ting de liker ved {a}.",
         { "t": "{a} og {b}: Tommelkrig! Den som taper, tar en slurk.", "type": "duell" },
         "{a}, pek på den du tror har flest uleste e-poster. Riktig: Vedkommende tar en slurk. Feil: Du tar en.",
         { "t": "Alle som har sett soloppgangen i år, tar en slurk.", "type": "alle" },
         "{a}, del ut to slurker til den som kom sist i kveld.",
-        { "t": "{a}, si tre ting du har i lomma eller veska – uten å se etter. Alle riktige: Del ut tre slurker. Ellers tar du en.", "type": "valg" }
+        "{a}, si tre ting du har i lomma eller veska – uten å se etter. Alle riktige: Del ut tre slurker. Ellers tar du en."
       ]
     },
     {
@@ -122,7 +122,7 @@
         "{a}, nynn en sang. Den som gjetter den først, deler ut to slurker.",
         { "t": "{a}, vær værmelder og meld været for resten av kvelden – eller ta to slurker.", "type": "valg" },
         { "t": "{a}, sitt på gulvet til neste kort – eller ta en slurk.", "type": "valg" },
-        { "t": "{a}, si en setning der hvert ord er ett ord lenger enn det forrige – eller ta en slurk.", "type": "valg" },
+        { "t": "{a}, si en setning der hvert ord er én bokstav lenger enn det forrige – eller ta en slurk.", "type": "valg" },
         { "t": "{a}, lat som du er guide og vis {b} rundt i rommet i 20 sekunder – eller ta to slurker.", "type": "valg" },
         { "t": "{a}, hils på alle som om de var gamle venner du ikke har sett på ti år – eller ta to slurker.", "type": "valg" },
         { "t": "{a}, si «takk for maten» på tre språk – eller ta en slurk.", "type": "valg" }

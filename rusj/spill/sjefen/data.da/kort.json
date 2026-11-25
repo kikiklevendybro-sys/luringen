@@ -29,7 +29,7 @@
         "{a}, sig navnet på alle her på fem sekunder. Klarer du det, deler du tre slurke ud. Ellers tager du en.",
         "{a}, gæt, hvor mange søskende {b} har. Rigtigt: Del to slurke ud. Forkert: Tag en.",
         { "t": "Alle med under 20 procent strøm på mobilen tager en slurk – og finder en oplader.", "type": "alle" },
-        "{a}, gæt {b}s livret. Rigtigt: {b} tager en slurk. Forkert: Du tager en.",
+        "{a}, gæt livretten til {b}. Rigtigt: {b} tager en slurk. Forkert: Du tager en.",
         "{a}, hold en skål for aftenen. Alle løfter glasset.",
         { "t": "Tæl til tre, og peg på den, der ville vinde en madkonkurrence. Den med flest fingre deler to slurke ud.", "type": "pek" },
         "{a}, lav en dyrelyd. Den, der gætter dyret, deler en slurk ud.",
@@ -42,7 +42,7 @@
         "{a}, peg på den, du tror, har flest ulæste mails. Rigtigt: Vedkommende tager en slurk. Forkert: Du tager en.",
         { "t": "Alle, der har set solen stå op i år, tager en slurk.", "type": "alle" },
         "{a}, del to slurke ud til den, der kom sidst i aften.",
-        { "t": "{a}, nævn tre ting i din lomme eller taske – uden at kigge. Alle rigtige: Del tre slurke ud. Ellers tager du en.", "type": "valg" }
+        "{a}, nævn tre ting i din lomme eller taske – uden at kigge. Alle rigtige: Del tre slurke ud. Ellers tager du en."
       ]
     },
     {
@@ -106,8 +106,8 @@
         { "t": "{a}, vis den sidste emoji, du sendte, og forklar hvorfor – eller tag en slurk.", "type": "valg" },
         { "t": "{a}, balancér en pude på hovedet til næste kort – eller tag to slurke.", "type": "valg" },
         { "t": "{a}, lav en reklame for din drink på ti sekunder – eller tag to slurke.", "type": "valg" },
-        { "t": "{a}, sig »Fem flotte flyvefisk flyver forbi« tre gange hurtigt – eller tag en slurk.", "type": "valg" },
-        { "t": "{a}, syng »I dag er det {b}s fødselsdag« – eller tag to slurke.", "type": "valg" },
+        { "t": "{a}, sig »Fem flade flødeboller på et fladt flødebollefad« tre gange hurtigt – eller tag en slurk.", "type": "valg" },
+        { "t": "{a}, syng fødselsdagssangen for {b} – eller tag to slurke.", "type": "valg" },
         { "t": "{a}, de andre vælger en positur, du skal stå i til næste kort – eller tag to slurke.", "type": "valg" },
         { "t": "{a}, fortæl en historie, hvor alle ordene begynder med S – i ti sekunder. Eller tag en slurk.", "type": "valg" },
         "{a}, prøv at slikke dig på albuen. Klarer du det, deler du tre slurke ud. Prøvede du, deler du én ud.",
