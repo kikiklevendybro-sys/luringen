@@ -23,7 +23,7 @@
         ["Fem små apekatter", 1],
         ["Pål sine høner", 1],
         ["Her kommer Pippi Langstrømpe", 1, "fra Pippi Langstrømpe"],
-        ["Baby Shark", 1, "Pinkfong", 2016],
+        ["Baby Shark", 1, "Leirbålsang", 2016],
         ["Old MacDonald Had a Farm", 1],
         ["Bro, bro brille", 2],
         ["Per Spelmann", 2],
@@ -44,8 +44,8 @@
         ["Fola, fola Blakken", 3],
         ["Kom skal vi klippe sauen", 2],
         ["Haba haba", 3, "Lillebjørn Nilsen"],
-        ["Twinkle, Twinkle, Little Star", 1],
-        ["PPAP (Pen-Pineapple-Apple-Pen)", 2, "Pikotaro", 2016]
+        ["Fløy en liten blåfugl", 1],
+        ["Kua mi jeg selge", 1]
       ]
     },
     {
@@ -55,7 +55,7 @@
       "laater": [
         ["Jeg er så glad hver julekveld", 1],
         ["Glade jul", 1],
-        ["Stille natt", 1],
+        ["Jul, jul, strålende jul", 2],
         ["Musevisa", 1, "Alf Prøysen"],
         ["Nå er det jul igjen", 1],
         ["På låven sitter nissen", 1],
@@ -598,7 +598,7 @@
         ["Mitt lille land", 2],
         ["Vi ere en nasjon, vi med", 2],
         ["Barn av regnbuen", 2],
-        ["God Save the King", 2],
+        ["O Canada", 2],
         ["La Marseillaise", 2],
         ["The Star-Spangled Banner", 2],
         ["O store Gud", 2],
