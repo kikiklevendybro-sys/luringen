@@ -139,7 +139,7 @@
       "id": "steder",
       "navn": "Steder",
       "ikon": "🗺️",
-      "tekst": "Byer og seværdigheder",
+      "tekst": "Byer, lande og seværdigheder",
       "kort": [
         { "e": "🧣🏰", "s": "Silkeborg" },
         { "e": "🔴🏘️", "s": "Rødby" },
@@ -312,7 +312,7 @@
       "id": "sanger",
       "navn": "Sange",
       "ikon": "🎵",
-      "tekst": "Børnesange og julesange",
+      "tekst": "Børnesange, julesange og fællessange",
       "kort": [
         { "e": "🐑🐑🤏", "s": "Bæ, bæ, lille lam" },
         { "e": "🤏👦🕷️", "s": "Lille Peter Edderkop" },
