@@ -251,11 +251,17 @@
   // Phrases with commas or more than two words make poor secret words for one-word hints.
   const egnet = (o) => !/[,!?]/.test(o) && o.trim().split(/\s+/).length <= 2;
   const KATEGORIER = BANK.kategorier.map((k) => ({ id: k.id, navn: k.navn, ikon: k.ikon }));
-  // o = the word, n = difficulty 1–3, h = the bank's own obvious hint (the forbidden one in hard mode).
+  // The forbidden hint in hard mode is the game's own list of the most obvious hint (data/forbudt.json,
+  // per category: word → hint). The bank's h is written for Luringen, where it must not give the word
+  // away, so it is only the fallback for a word the list does not have.
+  const FORBUDT = new Map();
+  const forbudtData = (window.RUSJ_DATA && window.RUSJ_DATA.forbudt) || {};
+  Object.keys(forbudtData).forEach((g) => Object.keys(forbudtData[g] || {}).forEach((o) => FORBUDT.set(o, String(forbudtData[g][o]).trim())));
+  // o = the word, n = difficulty 1–3, h = the most obvious hint (the forbidden one in hard mode).
   const ORD = [];
   BANK.kategorier.forEach((k) =>
     k.ord.forEach((e) => {
-      if (egnet(e[0])) ORD.push({ k: k.id, o: e[0], n: e[1], h: String(e[2] || "").trim() });
+      if (egnet(e[0])) ORD.push({ k: k.id, o: e[0], n: e[1], h: FORBUDT.get(e[0]) || String(e[2] || "").trim() });
     }),
   );
   const kategori = (id) => KATEGORIER.find((k) => k.id === id);
