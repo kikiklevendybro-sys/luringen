@@ -761,7 +761,9 @@ test("the real site: a first visit is cheap, the idle download brings every page
   // Uncompressed bytes; the server sends about a quarter. The front page lists every game as a plain
   // link and draws only the first screen's mascots (~130 kB, 23 kB gzipped); the rest of them are
   // lazy pictures, fetched when idle. (Before: 1 086 kB, with a 377 kB front page.)
-  assert.ok(kb(forst) < 950, `første besøk hentet ${kb(forst)} kB (ukomprimert)`);
+  // (950 kB held until 115 games: every game adds a row to «Alle spill A–Å» and the search list, about
+  // 2.5 kB each. Raised to 1 000 kB with the four Christmas games, 959 kB.)
+  assert.ok(kb(forst) < 1000, `første besøk hentet ${kb(forst)} kB (ukomprimert)`);
   await sw.aktiver();
   await sw.fyll();
   const status = await sw.status();

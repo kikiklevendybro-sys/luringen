@@ -111,8 +111,10 @@ test("a typo is put right from our own words, and the search says which word it 
   const IKKE = {
     nb: ["hest → helst", "hestespill → hermespill", "jentespill → vendespill", "guttespill → mattespill", "skytespill → skuespill", "fyllespill → møllespill", "pong → poeng", "dart → dare", "dobble → dobbel", "scrabb → scramble", "scrabbl → scramble", "mono → moon", "monop → moon", "jigs → pigs", "vitser → vitsegåter"],
     en: ["horse → house", "drunk → drink", "pong → song", "scrabb → scramble", "scrabbl → scramble", "scrabble → scramble", "mono → moon", "monop → moon", "monopol → moon", "monopoly → moon", "jigs → pigs", "jigsa → pigs", "jigsaw → pigs"],
-    da: ["pigespil → stigespil", "snyd → skyd", "hest → helst", "dart → dare"],
+    da: ["pigespil → stigespil", "hest → helst", "dart → dare"],
   };
+  // («snyd» was on the list until Lurendrejeren came: «Snyd» is its Danish genre, so it is found as it is.)
+  assert.deepEqual([U.da.sok.sok("snyd").rettet, U.da.sok.sok("snyd").treff[0].n], ["", "lurendreieren"]);
   for (const [sprak, par] of Object.entries(IKKE)) {
     for (const p of par) {
       const q = p.split(" → ")[0];
