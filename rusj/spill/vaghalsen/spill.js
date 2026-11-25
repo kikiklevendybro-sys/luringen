@@ -23,6 +23,9 @@
   const BARE_TO = ["par"];
   const forTo = (id, n) => n === 2 || !BARE_TO.includes(id);
   const aktive = (pakker, n) => pakker.filter((id) => forTo(id, n));
+  // The adult packs («Fest», «Russ»: "voksen" in the data) sit behind the same 18+ question as the
+  // drinking games (R.felles.over18), as in Dommeren.
+  const voksen = (id) => !!(pakke(id) && pakke(id).voksen);
   // The season's pack («Jul») is listed first from 1 November to 6 January, otherwise last (as in the data).
   const iSesong = (() => {
     const d = new Date();
@@ -797,7 +800,7 @@
     // before get the new fields here (and play on without a goal, as they started).
     lastet(S) {
       S.oppsett = Object.assign({ pakker: STANDARD.slice(), tur: "flaske", mal: "turer" }, S.oppsett || {});
-      S.oppsett.pakker = (Array.isArray(S.oppsett.pakker) ? S.oppsett.pakker : []).filter((id) => pakke(id));
+      S.oppsett.pakker = (Array.isArray(S.oppsett.pakker) ? S.oppsett.pakker : []).filter((id) => pakke(id) && (!voksen(id) || R.felles.over18));
       if (!S.oppsett.pakker.length) S.oppsett.pakker = STANDARD.slice();
       if (!["flaske", "rekke"].includes(S.oppsett.tur)) S.oppsett.tur = "flaske";
       if (!MAL.includes(S.oppsett.mal)) S.oppsett.mal = "turer";
@@ -876,7 +879,7 @@
         R.t("Står det en tid på kortet? Trykk på klokka, så tar mobilen tiden."),
         R.t("Noen konsekvenser varer til du står for tur igjen. De står under bordet – trykk på brikken hvis noen glemmer seg."),
         R.t("Dere bestemmer hvor lenge spillet varer: noen turer hver, først til 10 poeng – eller fritt."),
-        R.t("«Barn» passer fra 6 år. «Fest» er for voksne (18+)."),
+        R.t("«Barn» passer fra 6 år. Pakkene merket 18+ er bare for voksne – mobilen spør om alder før dere kan velge dem."),
         R.t("Kortene for par kan bare velges når dere er akkurat to."),
         R.t("Vil dere heller gå på rekke og rad? Velg det når dere gjør klart."),
       ],
@@ -1113,11 +1116,23 @@
       fortsett(el, e, S) {
         if (pagar(S)) R.gaTil(S.spill.fase === "kort" ? "kort" : "runde");
       },
-      pakke(el, e, S) {
+      async pakke(el, e, S) {
         const id = el.dataset.v;
         if (!pakke(id) || !forTo(id, R.klamp(S.antall, 2, 20))) return;
         const liste = S.oppsett.pakker;
-        S.oppsett.pakker = liste.includes(id) ? liste.filter((x) => x !== id) : [...liste, id];
+        if (liste.includes(id)) {
+          S.oppsett.pakker = liste.filter((x) => x !== id);
+          return R.vis();
+        }
+        // An adult pack: the same 18+ question as the drinking games, once per phone.
+        if (voksen(id) && !R.felles.over18) {
+          const fortsatt = R.vakt();
+          const ja = await R.bekreft(R.t("Er du 18 år eller eldre?"), R.t("«{pakke}» er bare for voksne.", { pakke: pakke(id).navn }), R.t("Ja, jeg er 18 eller eldre"), R.t("Nei"));
+          if (!ja || !fortsatt()) return;
+          R.lagreFelles({ over18: true });
+          R.statistikk("alder18");
+        }
+        S.oppsett.pakker = [...S.oppsett.pakker.filter((x) => x !== id), id];
         R.vis();
       },
       turmodus(el, e, S) {

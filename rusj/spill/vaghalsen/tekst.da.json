@@ -51,7 +51,7 @@
   "Står det en tid på kortet? Trykk på klokka, så tar mobilen tiden.": "Står der en tid på kortet? Tryk på uret, så tager mobilen tid.",
   "Noen konsekvenser varer til du står for tur igjen. De står under bordet – trykk på brikken hvis noen glemmer seg.": "Nogle konsekvenser varer, til det er din tur igen. De står under bordet – tryk på mærket, hvis nogen glemmer det.",
   "Dere bestemmer hvor lenge spillet varer: noen turer hver, først til 10 poeng – eller fritt.": "I bestemmer, hvor længe spillet varer: et par ture hver, først til 10 point – eller frit.",
-  "«Barn» passer fra 6 år. «Fest» er for voksne (18+).": "»Børn« passer fra 6 år. »Fest« er for voksne (18+).",
+  "«Barn» passer fra 6 år. Pakkene merket 18+ er bare for voksne – mobilen spør om alder før dere kan velge dem.": "»Børn« passer fra 6 år. Pakkerne mærket 18+ er kun for voksne – mobilen spørger om alder, før I kan vælge dem.",
   "Vil dere heller gå på rekke og rad? Velg det når dere gjør klart.": "Vil I hellere tage tur på skift? Vælg det, når I gør klar.",
   "Snurr flaska. Velg sannhet": "Snur flasken. Vælg sandhed",
   "eller konsekvens.": "eller konsekvens.",
@@ -145,5 +145,6 @@
   "Dere kan alltid starte et nytt.": "I kan altid starte et nyt.",
   "tur|turer": { "one": "tur", "other": "ture" },
   "Kortene for par kan bare velges når dere er akkurat to.": "Kortene for par kan kun vælges, når I er præcis to.",
-  "Bare når dere er to": "Kun når I er to"
+  "Bare når dere er to": "Kun når I er to",
+  "«{pakke}» er bare for voksne.": "»{pakke}« er kun for voksne."
 }

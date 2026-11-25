@@ -3,7 +3,7 @@
 // game's own «start», «pakke» and «lastet» on the real kit, in every edition.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { lastSpill, SPRAK } from "./kortpakker.mjs";
+import { lastSpill, SPRAK, voksenTester } from "./kortpakker.mjs";
 
 test("vaghalsen: «Par» kan bare velges og brukes når dere er akkurat to", () => {
   for (const sprak of SPRAK) {
@@ -47,3 +47,6 @@ test("vaghalsen: «Par» kan bare velges og brukes når dere er akkurat to", () 
     assert.ok(S.spill && !S.spill.pakker.includes("par") && S.spill.pakker.length, `${sprak}: et lagret spill for fire beholdt «Par» (${S.spill && S.spill.pakker})`);
   }
 });
+
+// «Fest» and «Russ» sit behind the 18+ question (as in Dommeren), in every edition.
+voksenTester({ id: "vaghalsen", fil: "kort", voksne: ["fest", "russ"], standard: ["familie", "venner"] });

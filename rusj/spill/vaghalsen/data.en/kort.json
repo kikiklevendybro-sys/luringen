@@ -731,6 +731,7 @@
       "navn": "Party",
       "ikon": "🎉",
       "tekst": "A bit more cheeky (18+)",
+      "voksen": true,
       "sannhet": [
         "What’s the best chat-up line you’ve heard – or used?",
         "Who in this room would you most like to go on a date with?",
@@ -1155,6 +1156,7 @@
       "navn": "Uni and sixth form",
       "ikon": "🎓",
       "tekst": "Freshers, prom and school memories (18+)",
+      "voksen": true,
       "sannhet": [
         "What’s the most embarrassing thing you did in freshers’ week?",
         "Which lecturer or teacher do you still quote?",

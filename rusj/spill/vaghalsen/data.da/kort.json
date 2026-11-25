@@ -731,6 +731,7 @@
       "navn": "Fest",
       "ikon": "🎉",
       "tekst": "Lidt mere frækt (18+)",
+      "voksen": true,
       "sannhet": [
         "Hvad er den bedste scorereplik, du har hørt – eller brugt?",
         "Hvem her i rummet ville du helst på date med?",
@@ -1155,6 +1156,7 @@
       "navn": "Gymnasiet og studenten",
       "ikon": "🎓",
       "tekst": "Studentertid og skoleminder (18+)",
+      "voksen": true,
       "sannhet": [
         "Hvad er det mest pinlige, du gjorde i rusugen?",
         "Hvilken underviser eller lærer citerer du stadig?",

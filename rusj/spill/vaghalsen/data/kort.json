@@ -740,6 +740,7 @@
       "navn": "Fest",
       "ikon": "🎉",
       "tekst": "Litt mer på kanten (18+)",
+      "voksen": true,
       "sannhet": [
         "Hva er den beste sjekkereplikken du har hørt – eller brukt?",
         "Hvem i rommet ville du helst gått på date med?",
@@ -1163,6 +1164,7 @@
       "navn": "Russ",
       "ikon": "🎓",
       "tekst": "Russetid og skoleminner (18+)",
+      "voksen": true,
       "sannhet": [
         "Hva er den beste russeknuten du har tatt – eller ville tatt?",
         "Hvilken lærer husker du best, og hvorfor?",
