@@ -13,7 +13,7 @@ ungdomTester({
   felt: "dilemmaer",
   gamle: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "fest", "jul", "sport", "sommer", "jobb", "par", "blikjent"],
   avtrykk: {
-    nb: { standard: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "sport", "sommer", "jobb", "blikjent"], antall: 981, kart: "0a35cd6825497b10", trekk: "91e1ffc4712e16e1" },
+    nb: { standard: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "sport", "sommer", "jobb", "blikjent"], antall: 981, kart: "4db8ab3f17dced75", trekk: "91e1ffc4712e16e1" },
     en: { standard: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "sport", "sommer", "jobb", "blikjent"], antall: 936, kart: "36a5c1590d1fcd15", trekk: "20c04dc2805a0cf8" },
     da: { standard: ["barn", "familie", "mat", "fantasi", "ekkelt", "venner", "sport", "sommer", "jobb", "blikjent"], antall: 940, kart: "200d867a13e20d38", trekk: "cf1c5620d6a41a1e" },
   },
