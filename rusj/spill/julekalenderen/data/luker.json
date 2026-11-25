@@ -112,7 +112,7 @@
     "tittel": "Stjernekveld",
     "kos": { "tittel": "Stjernehimmel i stua", "min": 10, "tekst": "Klipp en stor papirstjerne til vinduet. Så slukker dere lysene, legger dere på gulvet og lager en stjernehimmel i taket med lommelykter. Finn på navn på stjernebildene deres!", "smaa": "De minste styrer lommelykta og bestemmer hvor stjernene skal være." },
     "prat": { "t": "Hvis du kunne ønske noe for hele verden i jula, hva ville det vært?", "f": "Hva kan vi gjøre for å komme litt nærmere det?" },
-    "bonus": { "type": "quiz", "tekst": "Hvilken stjerne er den klareste på nattehimmelen?", "valg": ["Sirius", "Polarstjerna", "Karlsvogna"], "riktig": 0, "fakta": "Sirius er klarest. Polarstjerna er ikke det – men den står nesten helt stille over Nordpolen." },
+    "bonus": { "type": "quiz", "tekst": "Hvilken stjerne er den klareste på nattehimmelen?", "valg": ["Sirius", "Polarstjerna", "Vega"], "riktig": 0, "fakta": "Sirius er klarest. Polarstjerna er ikke det – men den står nesten helt stille over Nordpolen." },
     "spill": { "id": "lognhalsen", "tekst": "Løgnhalsen med julehistorier: Fortell tre ting fra en jul – to sanne og én oppdiktet. Klarer de andre å avsløre deg? Velg temaet «Jul».", "figur": "Jeg har aldri løyet i hele mitt liv! … Det var løgn. Hei, jeg er Løgnhalsen! Fortell to sanne julehistorier og én oppdiktet – så får vi se hvem som avslører deg." },
     "klasse": {
       "spill": { "id": "hviskeren", "tekst": "Hviskeren i grupper: Én gjetter ordet, de andre gir ett hint hver – men like hint blir strøket! Samarbeid, og tell hvor mange dere klarer.", "figur": "Psst … hei, jeg er Hviskeren. Ett hint hver – men aldri det samme som naboen! Hvisk lurt, så klarer dere det sammen." }
@@ -227,7 +227,7 @@
   },
   {
     "merke": "🎄", "merkeNavn": "et juletre",
-    "tittel": "Fredagslukt",
+    "tittel": "Julelukt",
     "kos": { "tittel": "Nellikappelsiner", "min": 15, "tekst": "Stikk nellikspiker inn i appelsiner eller klementiner i mønstre – hjerter, stjerner, spiraler. Legg dem i en skål eller heng dem opp med bånd. Huset lukter jul i ukevis.", "smaa": "De minste lager hull med en tannpirker først, så går det lettere." },
     "prat": { "t": "Hva er det beste du har opplevd i år?", "f": "Hvem var med deg da?" },
     "bonus": { "type": "quiz", "tekst": "Hvor kommer skikken med pyntet juletre i stua fra?", "valg": ["Tyskland", "Italia", "Island"], "riktig": 0, "fakta": "Pyntede juletrær inne ble vanlig i Tyskland først. Til Norge kom skikken på 1800-tallet." },

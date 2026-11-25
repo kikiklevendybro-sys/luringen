@@ -1,6 +1,6 @@
 {
   "id": "land",
-  "navn": "Land og byer i verden",
+  "navn": "Land, byer og severdigheter",
   "ikon": "🌍",
   "ord": [
     { "o": "Sverige", "n": 1, "h": "Nabo", "l": "Danmark" },

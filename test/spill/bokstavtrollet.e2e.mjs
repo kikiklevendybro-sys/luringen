@@ -39,7 +39,7 @@ export default async function (t) {
   await t.klikk('[data-h="krav"][data-v="begge"]');
   t.sjekk((t.norsk ? /16 kategorier/ : / 16 /).test(await t.tekst(".skjerm-oppsett")), "«Begge» på barnenivå skal trekke blant de 16 brede kategoriene");
   await t.klikk('[data-h="niva"][data-v="familie"]');
-  t.sjekk((t.norsk ? /27 kategorier/ : / 27 /).test(await t.tekst(".skjerm-oppsett")), "«Begge» på familienivå skal trekke blant 27 brede kategorier");
+  t.sjekk((t.norsk ? /25 kategorier/ : / 25 /).test(await t.tekst(".skjerm-oppsett")), "«Begge» på familienivå skal trekke blant 25 brede kategorier");
   await t.klikk('[data-h="jul"]');
   t.sjekk((t.norsk ? / 4 kategorier/ : / 4 /).test(await t.tekst(".skjerm-oppsett")), "Julekategoriene med bokstav skal være fire på familienivå");
   await t.klikk('[data-h="jul"]');

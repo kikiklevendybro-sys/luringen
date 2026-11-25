@@ -2368,7 +2368,11 @@ test("Skrønemakeren: five phones – a seat that leaves is never waited for, it
 // Hviskeren's words in the game's order, from the same word bank (for the forbidden hint).
 function hviskOrd(p) {
   const ut = [];
-  p.window.RUSJ_ORD.kategorier.forEach((k) => k.ord.forEach((e) => !/[,!?]/.test(e[0]) && e[0].trim().split(/\s+/).length <= 2 && ut.push({ o: e[0], h: e[2] })));
+  // The forbidden hint: the game's own list (data/forbudt.json), the bank's h when the word is not in it.
+  const forbudt = new Map();
+  const liste = p.window.RUSJ_DATA.forbudt || {};
+  Object.keys(liste).forEach((g) => Object.keys(liste[g]).forEach((o) => forbudt.set(o, liste[g][o])));
+  p.window.RUSJ_ORD.kategorier.forEach((k) => k.ord.forEach((e) => !/[,!?]/.test(e[0]) && e[0].trim().split(/\s+/).length <= 2 && ut.push({ o: e[0], h: forbudt.get(e[0]) || e[2] })));
   return ut;
 }
 

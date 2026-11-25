@@ -28,7 +28,7 @@
         ["🥪", "Sandwich"], ["🧀", "Ost"], ["🥚", "Æg"], ["🍳", "Spejlæg"], ["🥞", "Pandekager"], ["🧇", "Vaffel"],
         ["🍞", "Brød"], ["🥐", "Croissant"], ["🍗", "Kyllingelår"], ["🍣", "Sushi"], ["🍜", "Nudler"], ["🍛", "Karry"],
         ["🍙", "Riskugle"], ["🥟", "Dumpling"], ["🍖", "Kødben"], ["🥓", "Bacon"], ["🥯", "Bagel"], ["🥨", "Kringle"],
-        ["🫓", "Fladbrød"], ["🍤", "Rejer"], ["🌯", "Burrito"], ["🥫", "Konservesdåse"], ["🥖", "Flute"]
+        ["🫓", "Fladbrød"], ["🍤", "Scampi"], ["🌯", "Burrito"], ["🥫", "Konservesdåse"], ["🥖", "Flute"]
       ]
     },
     {
@@ -101,7 +101,7 @@
         ["🧸", "Bamse"], ["🪀", "Yoyo"], ["🪁", "Drage"], ["🎈", "Ballon"], ["🎲", "Terning"], ["🧩", "Puslespilsbrik"],
         ["🎨", "Malerpalet"], ["🖍️", "Farveblyant"], ["🎮", "Controller"], ["🃏", "Spillekort"], ["♟️", "Skakbrik"], ["🪃", "Boomerang"],
         ["🎯", "Dartskive"], ["🎠", "Karrusellhest"], ["🤖", "Robot"], ["🪄", "Tryllestav"], ["🪅", "Piñata"], ["🪆", "Russisk dukke"],
-        ["🛝", "Rutsjebane"], ["🔫", "Vandpistol"], ["🛼", "Rulleskøjte"], ["🎡", "Pariserhjul"], ["🎢", "Rutsjebane i tivoli"], ["🎳", "Bowlingkegle"]
+        ["🛝", "Rutsjebane"], ["🔫", "Vandpistol"], ["🛼", "Rulleskøjte"], ["🎡", "Pariserhjul"], ["🎢", "Rollercoaster"], ["🎳", "Bowlingkegle"]
       ]
     },
     {
@@ -133,7 +133,7 @@
         ["🍴", "Bestik"], ["🥄", "Ske"], ["🍽️", "Tallerken"], ["🫖", "Tekande"], ["☕", "Kop"], ["🥛", "Mælk"],
         ["🧂", "Saltbøsse"], ["🥢", "Spisepinde"], ["🧊", "Isterning"], ["⏲️", "Æggeur"], ["🍼", "Sutteflaske"], ["🧈", "Smør"],
         ["🥣", "Morgenmadsskål"], ["🍲", "Gryde"], ["🧃", "Juice"], ["🔪", "Kniv"], ["🫙", "Glaskrukke"], ["🍵", "Tekop"],
-        ["🥘", "Langpande"], ["🍚", "Risskål"], ["🫕", "Fonduegryde"], ["🥡", "Madkasse"]
+        ["🥘", "Gryderet"], ["🍚", "Risskål"], ["🫕", "Fonduegryde"], ["🥡", "Nudelæske"]
       ]
     },
     {
@@ -166,7 +166,7 @@
       "ting": [
         ["🎸", "Guitar"], ["🎹", "Klaver"], ["🥁", "Tromme"], ["🎺", "Trompet"], ["🎻", "Violin"], ["🎷", "Saxofon"],
         ["🪗", "Harmonika"], ["🎤", "Mikrofon"], ["🎧", "Høretelefoner"], ["🎵", "Node"], ["🔔", "Bjælde"], ["🎉", "Konfettikanon"],
-        ["🎁", "Gave"], ["🎀", "Sløjfe"], ["🎭", "Teatermasker"], ["🎪", "Cirkustelt"], ["🪕", "Banjo"], ["🎼", "Noder"],
+        ["🎁", "Gave"], ["🎀", "Sløjfe"], ["🎭", "Teatermasker"], ["🎪", "Cirkustelt"], ["🪕", "Banjo"], ["🎼", "Nodeark"],
         ["📯", "Posthorn"], ["🎙️", "Studiemikrofon"], ["🔊", "Højttaler"], ["💿", "CD"], ["🎟️", "Billet"], ["🪩", "Diskokugle"],
         ["🎬", "Filmklapper"], ["🎊", "Konfettibold"]
       ]
@@ -198,7 +198,7 @@
   "jul": {
     "navn": "Jul",
     "ting": [
-      ["🎄", "Juletræ"], ["🎅", "Julemanden"], ["🤶", "Nissemor"], ["🦌", "Rensdyr"], ["🎁", "Julegave"], ["🔔", "Juleklokke"],
+      ["🎄", "Juletræ"], ["🎅", "Julemand"], ["🤶", "Nissemor"], ["🦌", "Rensdyr"], ["🎁", "Julegave"], ["🔔", "Juleklokke"],
       ["🕯️", "Julelys"], ["⛄", "Snemand"], ["❄️", "Snefnug"], ["🧦", "Julesok"], ["🍪", "Julesmåkage"], ["⭐", "Julestjerne"],
       ["👼", "Engel"], ["⛪", "Kirke"], ["🛷", "Kælk"], ["🧣", "Halstørklæde"], ["🧤", "Handsker"], ["🍊", "Klementin"],
       ["🥜", "Nødder"], ["🍬", "Slik"], ["🎇", "Stjernekaster"], ["🧶", "Garnnøgle"], ["🪵", "Brændeknude"], ["🎿", "Ski"],

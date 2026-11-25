@@ -12,7 +12,7 @@
       "skatt": { "tittel": "Skatten er fundet!", "tekst": "I fandt kaptajnens skattekiste. Del byttet retfærdigt, pirater!", "kort": "Tillykke, pirater! I fandt skatten. Del den retfærdigt med hele besætningen!" },
       "koder": [
         { "o": "KOMPAS", "i": "🧭" }, { "o": "ANKER", "i": "⚓" }, { "o": "PAPEGØJE", "i": "🦜" }, { "o": "SEJL", "i": "⛵" },
-        { "o": "GULD", "i": "💰" }, { "o": "KORT", "i": "🗺️" }, { "o": "ØEN", "i": "🏝️" }, { "o": "BLÆKSPRUTTE", "i": "🐙" },
+        { "o": "GULD", "i": "💰" }, { "o": "KORT", "i": "🗺️" }, { "o": "SKATTEØ", "i": "🏝️" }, { "o": "BLÆKSPRUTTE", "i": "🐙" },
         { "o": "KRABBE", "i": "🦀" }, { "o": "MUSLING", "i": "🐚" }, { "o": "HVAL", "i": "🐳" }, { "o": "BØLGE", "i": "🌊" }
       ]
     },

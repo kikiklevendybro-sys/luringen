@@ -97,7 +97,7 @@
         { "s": "En elbil kjører vestover i full storm. Hvilken vei blåser eksosen?", "a": "Ingen vei", "f": "Elbiler har ingen eksos." },
         { "s": "Hvor mange ganger kan du trekke 5 fra 50?", "a": "Én gang", "f": "Etter første gang trekker du fra 45." },
         { "s": "Moren til Ola har tre barn: Vår, Sommer og …?", "a": "Ola", "f": "Ola er det tredje barnet." },
-        { "s": "Hvilket ord blir kortere når du legger til to bokstaver?", "a": "Kort", "f": "Kort + er = kortere." },
+        { "s": "Hvilket ord blir kortere når du legger til tre bokstaver?", "a": "Kort", "f": "Kort + ere = kortere." },
         { "s": "Hva kan du klappe på med høyre hånd, men aldri med venstre?", "a": "Venstre albue", "f": "Prøv å klappe på høyre albue med høyre hånd …" },
         { "s": "Hvilket fjell var det høyeste i verden før Mount Everest ble oppdaget?", "a": "Mount Everest", "f": "Fjellet var like høyt før noen fant det." },
         { "s": "Hvor mye jord er det i et hull som er én meter dypt og én meter bredt?", "a": "Ingenting", "f": "Et hull er tomt." },
