@@ -137,7 +137,7 @@
     const andre = D.pakker.filter((p) => p.id !== "jul");
     return julesesong() ? [...jul, ...andre] : [...andre, ...jul];
   })();
-  const STANDARD = ["familie", "norge"];
+  const STANDARD = ["familie"];
   const OPPSETT = () => ({ pakker: STANDARD.slice(), maal: "runder", runder: 3, poengMaal: 10, tid: 5, utfordre: true, giVidere: false });
   const stokk = R.kortstokk("kort", ALLE.length);
   const pagar = (S) => !!(S.spill && !S.spill.ferdig);
