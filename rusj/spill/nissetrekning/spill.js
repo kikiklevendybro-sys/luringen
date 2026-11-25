@@ -33,9 +33,9 @@
   // The budget steps in the edition's own money – round amounts people actually use, not converted
   // kroner – and the top of the small, middle, medium and big gift-idea bands.
   const PENGER = {
-    nb: { trinn: [0, 50, 100, 150, 200, 250, 300, 400, 500, 750, 1000], band: [100, 200, 300, 500] },
-    en: { trinn: [0, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100], band: [10, 20, 30, 50] },
-    da: { trinn: [0, 50, 75, 100, 150, 200, 250, 300, 400, 500, 750], band: [75, 150, 250, 400] },
+    nb: { trinn: [0, 50, 100, 150, 200, 250, 300, 400, 500, 750, 1000, 1500, 2000], band: [100, 200, 300, 500] },
+    en: { trinn: [0, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200], band: [10, 20, 30, 50] },
+    da: { trinn: [0, 50, 75, 100, 150, 200, 250, 300, 400, 500, 750, 1000, 1500], band: [75, 150, 250, 400] },
   };
   const BUDSJETT = (PENGER[R.sprak] || PENGER.nb).trinn;
   const BAND_TOPP = (PENGER[R.sprak] || PENGER.nb).band;
