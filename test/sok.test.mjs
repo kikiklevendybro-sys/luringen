@@ -572,3 +572,16 @@ test("a game inside a game is held against its own facts, in the rooms and the f
   assert.equal(freecell.id, "kortkongen");
   assert.ok(kk.tagger.includes("daglig"), "the game itself is untouched");
 });
+
+test("a number before a word for children is a head count, and the word is still looked for", () => {
+  for (const [sprak, q, n] of [["nb", "for 8 barn", 8], ["nb", "leker for 5 barn", 5], ["nb", "3 barn", 3], ["nb", "for 20 barn", 20], ["en", "for 8 kids", 8], ["da", "for 8 børn", 8]]) {
+    const tolket = U[sprak].sok.tolk(U[sprak].sok.sok(q) && S.ren(q));
+    assert.equal(tolket.n, n, `${sprak} «${q}» → n=${tolket.n}`);
+    const ids = U[sprak].finn(q);
+    assert.ok(ids.length > 3 && ids.length < U[sprak].spill.length / 2, `${sprak} «${q}» → ${ids.join(", ") || "nothing"}`);
+    for (const id of ids) {
+      const g = U[sprak].av.get(id.split("#")[0]);
+      assert.ok(g.spillere[0] <= n && n <= g.spillere[1], `${sprak} «${q}» lists ${id} (${g.spillere})`);
+    }
+  }
+});

@@ -67,6 +67,7 @@
       folk: "spillere|spiller|personer|person|stk|stykker|stykk|folk|mann|deltakere|deltagere|venner|voksne|av oss",
       vi: "vi er|vi blir|dere er",
       til: "for|til|på",
+      barn: "barn|barna|unger|ungene|småbarn",
       to: "par|paret|date|daten|datekveld|date night|kjæreste|kjæresten|kjærester|kjærestepar|tomannsspill",
       toAlene: "to",
       kjapt: "kjapt|kjappe|kjapp|raskt|raske|rask|hurtig|lynraskt|kort tid|liten tid|dårlig tid|korte spill|korte runder",
@@ -88,6 +89,7 @@
       folk: "players|player|people|persons|person|of us|friends|adults|guests",
       vi: "we are|we re|there are|there s",
       til: "for",
+      barn: "kids|kid|children|child|toddlers",
       to: "couple|couples|date|date night|partner|girlfriend|boyfriend|husband|wife",
       toAlene: "two",
       kjapt: "quick|quickly|fast|short|in a hurry|short on time|little time",
@@ -109,6 +111,7 @@
       folk: "spillere|spiller|personer|person|stk|styk|mennesker|mand|deltagere|venner|voksne|af os",
       vi: "vi er|vi bliver",
       til: "for|til|på",
+      barn: "børn|børnene|unger|ungerne|småbørn",
       to: "par|parret|date|daten|dateaften|date night|kæreste|kæresten|kærester|kærestepar",
       toAlene: "to",
       kjapt: "hurtigt|hurtig|hurtige|lynhurtigt|kort tid|lidt tid|korte spil|korte runder",
@@ -318,6 +321,8 @@
       folk: new RegExp(" " + N("") + " " + alt(R.folk) + "(?= )"),
       // («for to», «til 4», «på 8»: only when nothing follows – «til 17. mai», «for 2 lag» are not counts)
       til: new RegExp(" " + alt(R.til) + " " + N(R.ikkeTil) + "(?= $)"),
+      // («for 8 barn», «8 kids»: a head count too – the word for children stays, as a word to look for)
+      barn: new RegExp(" (?:" + alt(R.til) + " )?" + N(R.ikkeTil) + "(?= " + alt(R.barn) + " )"),
       to: re(R.to),
     };
     const FYLL = new Set((R.fyll + " " + R.spill).split(" "));
@@ -388,7 +393,7 @@
         n = 2;
         t = " ";
       } else if ((m = ta(RE.omrade))) omfang = [Math.min(Number(m[1]), Number(m[2])), Math.max(Number(m[1]), Number(m[2]))];
-      else if ((m = ta(RE.vi) || ta(RE.folk) || ta(RE.til))) n = verdi(m[1]);
+      else if ((m = ta(RE.vi) || ta(RE.folk) || ta(RE.til) || ta(RE.barn))) n = verdi(m[1]);
       else if (ta(RE.to)) n = 2;
       if (n > 0) omfang = [n, n];
       if (omfang && omfang[0] > 0) {
