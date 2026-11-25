@@ -240,6 +240,17 @@
       ],
       "type": "WebApplication"
     },
+    "pakketyven": {
+      "tittel": "Present dice game – roll a six, pinch a parcel",
+      "frase": "Present dice game",
+      "beskrivelse": "The Nordic Christmas present game on one phone: roll a six to take a parcel, then pinch from each other until the secret clock sounds the horn. Free, for 4–20.",
+      "sok": [
+        "christmas present game",
+        "gift exchange dice game",
+        "steal a present game",
+        "christmas party games"
+      ]
+    },
     "femmeren": {
       "tittel": "Five-second game – name three things in five seconds",
       "frase": "Name three things in five seconds",
