@@ -43,6 +43,7 @@
     { "o": "Hårføner", "n": 1, "h": "Varm luft", "l": "Vifte" },
     { "o": "Bokhylle", "n": 1, "h": "Lesing", "l": "Skrivebord" },
     { "o": "Sparegris", "n": 1, "h": "Mynter", "l": "Safe" },
+    { "o": "Snøkule", "n": 1, "h": "Suvenir", "l": "Spilledåse" },
 
     { "o": "Kommode", "n": 2, "h": "Oppbevaring", "l": "Nattbord" },
     { "o": "Nattbord", "n": 2, "h": "Søvn", "l": "Kommode" },
