@@ -32,8 +32,12 @@
      ]
     },
     {
-     "s": "Hva betyr «hesje»?",
-     "a": "Et stativ av stokker og streng til å tørke høy på"
+     "s": "Hva betyr «skjeppe»?",
+     "a": "Et gammelt mål for korn, omtrent 17 liter",
+     "g": [
+      "kornmål",
+      "mål for korn"
+     ]
     },
     {
      "s": "Hva betyr «sennegras»?",
@@ -51,10 +55,11 @@
      ]
     },
     {
-     "s": "Hva betyr «truger»?",
-     "a": "Rammer under skoene så man ikke synker i snøen",
+     "s": "Hva betyr «eldhus»?",
+     "a": "Et eget hus på gården der man bakte og kokte",
      "g": [
-      "snøsko"
+      "bakehus",
+      "kokehus"
      ]
     },
     {
@@ -78,17 +83,19 @@
      "a": "Ei samisk gryte med reinkjøtt"
     },
     {
-     "s": "Hva betyr «smalahove»?",
-     "a": "Et svidd og kokt sauehode",
+     "s": "Hva betyr «gomme»?",
+     "a": "Søt ost kokt av melk",
      "g": [
-      "sauehode"
+      "melkeost",
+      "søtost"
      ]
     },
     {
-     "s": "Hva er en «fattigmann» på julebordet?",
-     "a": "En sprø julekake stekt i fett",
+     "s": "Hva betyr «rekling»?",
+     "a": "Tørkede strimler av kveite",
      "g": [
-      "julekake"
+      "tørket kveite",
+      "tørket fisk"
      ]
     },
     {
@@ -106,8 +113,12 @@
      ]
     },
     {
-     "s": "Hva betyr «myse»?",
-     "a": "Væska som blir igjen når man lager ost"
+     "s": "Hva betyr «lauving»?",
+     "a": "Å sanke løv til vinterfôr for dyra",
+     "g": [
+      "sanke løv",
+      "løvsanking"
+     ]
     },
     {
      "s": "Hva betyr «tjukkmjølk»?",
@@ -171,8 +182,8 @@
      "a": "Et lite vesen som bor under jorda"
     },
     {
-     "s": "Hva betyr «kverulant»?",
-     "a": "En som stadig klager og krangler"
+     "s": "Hva betyr «strandsitter»?",
+     "a": "En som bodde ved sjøen uten jord og levde av fiske"
     },
     {
      "s": "Hva betyr «skokk»?",
@@ -183,20 +194,27 @@
      ]
     },
     {
-     "s": "Hva betyr «kløne»?",
-     "a": "En klossete person"
-    },
-    {
-     "s": "Hva betyr «tufs»?",
-     "a": "En tosk",
+     "s": "Hva betyr «fut»?",
+     "a": "Kongens skatteoppkrever i et distrikt",
      "g": [
-      "tosk",
-      "dust"
+      "skatteoppkrever"
      ]
     },
     {
-     "s": "Hva betyr «pjokk»?",
-     "a": "En liten gutt"
+     "s": "Hva betyr «innerst»?",
+     "a": "En som leide husrom på en gård, uten egen jord",
+     "g": [
+      "leieboer",
+      "losjerende"
+     ]
+    },
+    {
+     "s": "Hva betyr «snes»?",
+     "a": "Tjue stykker",
+     "g": [
+      "tjue",
+      "20"
+     ]
     },
     {
      "s": "Hva betyr «skolt»?",
@@ -207,23 +225,32 @@
      ]
     },
     {
-     "s": "Hva betyr «tinning»?",
-     "a": "Siden av hodet mellom øyet og øret"
-    },
-    {
-     "s": "Hva betyr «vrist»?",
-     "a": "Oversiden av foten"
-    },
-    {
-     "s": "Hva betyr «knehase»?",
-     "a": "Baksiden av kneet"
-    },
-    {
-     "s": "Hva betyr «hybelkanin»?",
-     "a": "En støvdott under senga",
+     "s": "Hva betyr «jeksel»?",
+     "a": "En kinntann",
      "g": [
-      "støvdott",
-      "støvdotter"
+      "kinntann",
+      "jaksel"
+     ]
+    },
+    {
+     "s": "Hva betyr «klave»?",
+     "a": "En trebøyle rundt halsen på kua til å binde henne med",
+     "g": [
+      "halsbånd"
+     ]
+    },
+    {
+     "s": "Hva betyr «esse»?",
+     "a": "Ildstedet i ei smie",
+     "g": [
+      "ildsted"
+     ]
+    },
+    {
+     "s": "Hva betyr «slagbenk»?",
+     "a": "En benk som kan trekkes ut til ei seng",
+     "g": [
+      "sovebenk"
      ]
     },
     {
@@ -231,19 +258,26 @@
      "a": "Smuler og lo nederst i lomma"
     },
     {
-     "s": "Hva betyr «smørøye»?",
-     "a": "En smørklatt midt i grøten"
-    },
-    {
-     "s": "Hva betyr «klegg»?",
-     "a": "Ei stor flue som stikker",
+     "s": "Hva betyr «langeleik»?",
+     "a": "Et langt strengeinstrument som ligger på bordet",
      "g": [
-      "blindflue"
+      "strengeinstrument"
      ]
     },
     {
-     "s": "Hva betyr «knott»?",
-     "a": "Bittesmå mygg som biter"
+     "s": "Hva betyr «gaukesyre»?",
+     "a": "En liten skogplante med sure kløverblader",
+     "g": [
+      "harekål"
+     ]
+    },
+    {
+     "s": "Hva betyr «tyri»?",
+     "a": "Feit furuved full av kvae som brenner godt",
+     "g": [
+      "furuved",
+      "kvaeved"
+     ]
     },
     {
      "s": "Hva betyr «bøkker»?",
@@ -287,8 +321,12 @@
      "a": "En som leide et lite bruk og betalte med arbeid"
     },
     {
-     "s": "Hva betyr «budeie»?",
-     "a": "Ei jente som stelte dyra på setra"
+     "s": "Hva betyr «klokker»?",
+     "a": "En kirketjener som ledet salmesangen i kirka",
+     "g": [
+      "kirketjener",
+      "kirkesanger"
+     ]
     },
     {
      "s": "Hva betyr «skysstasjon»?",
@@ -323,12 +361,20 @@
      ]
     },
     {
-     "s": "Hva betyr «ljå»?",
-     "a": "Et langt redskap med krumt blad til å slå gras"
+     "s": "Hva betyr «hjell»?",
+     "a": "Et stativ til å henge fisk til tørk på",
+     "g": [
+      "fiskehjell",
+      "tørkestativ"
+     ]
     },
     {
-     "s": "Hva betyr «sigd»?",
-     "a": "Et lite, krumt redskap til å skjære korn"
+     "s": "Hva betyr «oppstadvev»?",
+     "a": "En gammel vev der garnet henger loddrett",
+     "g": [
+      "vev",
+      "vevstol"
+     ]
     },
     {
      "s": "Hva betyr «vadmel»?",
@@ -438,10 +484,11 @@
      "a": "Ei oval treeske med lokk"
     },
     {
-     "s": "Hva betyr «rokk»?",
-     "a": "Et hjul til å spinne ull til garn",
+     "s": "Hva betyr «hespetre»?",
+     "a": "Et trestativ til å vinde opp garn på",
      "g": [
-      "spinnerokk"
+      "garnvinde",
+      "haspel"
      ]
     },
     {
@@ -480,10 +527,12 @@
      ]
     },
     {
-     "s": "Hvem er onsdag oppkalt etter?",
-     "a": "Odin",
+     "s": "Hvem er tirsdag oppkalt etter?",
+     "a": "Krigsguden Ty",
      "g": [
-      "odin"
+      "ty",
+      "tyr",
+      "guden ty"
      ]
     },
     {
@@ -577,15 +626,18 @@
      "a": "1960"
     },
     {
-     "s": "Før 1925 het Oslo …",
-     "a": "Kristiania",
+     "s": "Fram til 1928 het Halden …",
+     "a": "Fredrikshald",
      "g": [
-      "christiania"
+      "frederikshald"
      ]
     },
     {
-     "s": "I middelalderen het Trondheim …",
-     "a": "Nidaros"
+     "s": "Fram til 1902 het Narvik …",
+     "a": "Victoriahavn",
+     "g": [
+      "viktoriahavn"
+     ]
     },
     {
      "s": "Det er forbudt å ta med seg … til Svalbard.",
@@ -882,12 +934,8 @@
      "a": "Tromsø"
     },
     {
-     "s": "Bergen kalles byen mellom de … fjell.",
-     "a": "Sju",
-     "g": [
-      "syv",
-      "7"
-     ]
+     "s": "Hvilken bygd i Ottadalen regnes som Norges tørreste?",
+     "a": "Skjåk"
     },
     {
      "s": "Hvilken norsk kommune har færrest innbyggere?",
@@ -989,10 +1037,10 @@
      "a": "Lebanon"
     },
     {
-     "s": "Hva heter Norges lengste elv?",
-     "a": "Glomma",
+     "s": "Hva heter Norges høyeste foss med fritt fall?",
+     "a": "Vettisfossen",
      "g": [
-      "glåma"
+      "vettis"
      ]
     },
     {
@@ -1000,8 +1048,11 @@
      "a": "Giethoorn"
     },
     {
-     "s": "Hvilken by ligger på to kontinenter?",
-     "a": "Istanbul"
+     "s": "I hvilket land ligger byen Hell-Ville?",
+     "a": "Madagaskar",
+     "g": [
+      "madagascar"
+     ]
     },
     {
      "s": "Hvilket land har et flagg som ikke er firkantet?",
@@ -1024,12 +1075,16 @@
      "a": "Røros"
     },
     {
-     "s": "Hva heter øygruppa mellom Norge og Island som hører til Danmark?",
-     "a": "Færøyene"
+     "s": "Hva heter det høyeste fjellet på Svalbard?",
+     "a": "Newtontoppen"
     },
     {
-     "s": "Hva heter Norges største innsjø?",
-     "a": "Mjøsa"
+     "s": "Hvilken innsjø i Telemark skal huse sjøormen Selma?",
+     "a": "Seljordsvatnet",
+     "g": [
+      "seljord",
+      "seljordsvannet"
+     ]
     }
    ]
   },
@@ -1083,8 +1138,8 @@
      ]
     },
     {
-     "s": "Norges nasjonalfugl er …",
-     "a": "Fossekallen"
+     "s": "Norges nasjonalblomst er …",
+     "a": "Bergfrue"
     },
     {
      "s": "Hva kalles røyskatten når den har hvit vinterpels?",
@@ -1307,25 +1362,27 @@
      "a": "Hjernen"
     },
     {
-     "s": "Ugla kan snu hodet omtrent …",
-     "a": "270 grader",
+     "s": "Tårnfalken finner musestiene i graset fordi den kan se …",
+     "a": "Ultrafiolett lys",
      "g": [
-      "270"
+      "uv lys",
+      "ultrafiolett"
      ]
     },
     {
-     "s": "Delfiner sover med … om gangen.",
-     "a": "Halve hjernen",
+     "s": "Blåskjellet fester seg til steinen med …",
+     "a": "Seige tråder",
      "g": [
-      "en hjernehalvdel"
+      "tråder",
+      "byssustråder"
      ]
     },
     {
-     "s": "Hos sjøhesten er det … som går gravid.",
-     "a": "Hannen",
+     "s": "Ålekvabben er en av få fisker i Norge som …",
+     "a": "Føder levende unger",
      "g": [
-      "pappaen",
-      "faren"
+      "føder levende",
+      "levende unger"
      ]
     },
     {
@@ -1388,7 +1445,7 @@
    "id": "oppfinnelser",
    "navn": "Gamle oppfinnelser",
    "ikon": "⚙️",
-   "tekst": "Og gamle lover",
+   "tekst": "Og hvordan de ble til",
    "kort": [
     {
      "s": "Ostehøvelen ble oppfunnet i 1925 av en snekker fra …",
