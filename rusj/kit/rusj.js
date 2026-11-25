@@ -2712,6 +2712,10 @@
       R.lagreFelles({ over18: true });
       R.statistikk("alder18");
       R.gaTil(APP.hjem || "hjem");
+      // A link to a variant that came in at the gate: now it is followed.
+      const id = variantEtterAlder;
+      variantEtterAlder = null;
+      if (id) folgVariant(id);
     },
     "alder-nei": () => {
       // Replace, so «back» on the front page doesn't return to the gate.
@@ -2980,6 +2984,62 @@
 
   // ---------- Start ----------
 
+  // ---------- …/<id>/#variant=<id> ----------
+  // A well-known game inside this one (the front page's rows «Edderkoppkabal · i Kortkongen»). The
+  // game's own `variant(S, id)` chooses it in its setup and says which screen to show. Three things
+  // come first:
+  // · the age gate: the game's hook is not called before it is passed (the link waits for «Ja»);
+  // · a match on the net: the game on this phone is not on the table then – «Forlat kampen du er i
+  //   først», as for an invite link, and the hook never sees the online state;
+  // · a game in progress, which is never thrown away unasked: the usual question (over the screen
+  //   the visit started on), and «Avbryt» changes nothing. A game whose variants never replace
+  //   anything says so with `variantSpor: () => false`; one that wants «du» in the question returns
+  //   { solo: true }.
+  let variantEtterAlder = null;
+  const variantFra = (h) => {
+    const m = /^variant=([a-z0-9-]{1,30})$/.exec(h);
+    return m ? m[1] : null;
+  };
+  const velgVariant = (id) => {
+    try {
+      const sk = APP.variant(S, id);
+      return sk && APP.skjermer[sk] ? sk : null;
+    } catch (e) {
+      return null;
+    }
+  };
+  const variantSpor = (id) => {
+    try {
+      return APP.variantSpor ? APP.variantSpor(S, id) : !!(APP.pagar && APP.pagar(S));
+    } catch (e) {
+      return false;
+    }
+  };
+  const iNettkamp = () => {
+    if (!R.paNett()) return false;
+    R.toast(R.t("Forlat kampen du er i først."));
+    return true;
+  };
+  async function sporVariant(id, spor) {
+    const fortsatt = R.vakt();
+    if (!(await R.bekreftNytt(true, spor && typeof spor === "object" ? !!spor.solo : undefined)) || !fortsatt() || iNettkamp()) return;
+    const sk = velgVariant(id);
+    if (sk) R.gaTil(sk);
+  }
+  // The link is followed on a page that is up (the address changed, or the age gate was passed).
+  function folgVariant(id) {
+    if (!APP.variant) return;
+    if (S.skjerm === "alder") {
+      variantEtterAlder = id;
+      return;
+    }
+    if (iNettkamp()) return;
+    const spor = variantSpor(id);
+    if (spor) return void sporVariant(id, spor);
+    const sk = velgVariant(id);
+    if (sk) R.gaTil(sk);
+  }
+
   R.start = (def) => {
     if (APP) throw new Error("Rusj.start kan bare kalles én gang");
     APP = def;
@@ -3228,6 +3288,10 @@
     } catch (e) {
       harHistorikk = false;
     }
+    // …/<id>/#variant=<id> (see «folgVariant» above): which variant the visit came for.
+    let variantLenke = null;
+    let variantVenter = null; // [id, what variantSpor said]: asked once the first screen is up
+    let nettkampVenter = false; // the link came into a match on the net: said once the first screen is up
     if (hash === "utfordring") {
       // A challenge link: no data in it, just «someone dared you» on the home screen.
       R.utfordret = true;
@@ -3236,6 +3300,13 @@
       } catch (e) {
         /* ignore */
       }
+    } else if (variantFra(hash)) {
+      try {
+        history.replaceState(null, "", location.pathname + location.search);
+      } catch (e) {
+        /* ignore */
+      }
+      if (APP.variant) variantLenke = variantFra(hash);
     } else if (hash && APP.vedHash) {
       try {
         fraHash = APP.vedHash(S, lesHash(hash));
@@ -3257,6 +3328,16 @@
     else if (nylig && forrige && typeof forrige.gjenoppta === "string" && APP.skjermer[forrige.gjenoppta]) forste = forrige.gjenoppta;
     else if (nylig && forrige && forrige.gjenoppta !== false && typeof forrige.gjenoppta !== "string") forste = S.skjerm;
     if (meta().alder18 && !R.felles.over18) forste = "alder"; // the age gate comes before everything
+    if (variantLenke) {
+      if (forste === "alder") variantEtterAlder = variantLenke;
+      // (a reload or a link into a match on the net: rusj/kit/nett.js is on its way back into the room)
+      else if (R.paNett() || (R.nett && R.nett.paVei && R.nett.paVei())) nettkampVenter = true;
+      else {
+        const spor = variantSpor(variantLenke);
+        if (spor) variantVenter = [variantLenke, spor];
+        else forste = velgVariant(variantLenke) || forste;
+      }
+    }
     S.skjerm = null;
     R.statistikk("visning");
     try {
@@ -3289,6 +3370,10 @@
     // gets the «Last resort» sheet.
     spillVises = true;
     meldLagring();
+    // A link to a variant while a game is in progress: ask before anything is replaced. Into a
+    // match on the net: say why nothing happens.
+    if (variantVenter) sporVariant(variantVenter[0], variantVenter[1]);
+    if (nettkampVenter) R.toast(R.t("Forlat kampen du er i først."));
     // Stickers that follow from what is stored already, and any earned but not yet celebrated.
     merkerSjekk();
     feirMerkerSnart(1200);
@@ -3304,6 +3389,16 @@
         R.utfordret = true;
         if (S.skjerm === (APP.hjem || "hjem")) tegn({});
         else R.gaTil(APP.hjem || "hjem");
+        return;
+      }
+      if (variantFra(h)) {
+        // The same link opened while the page is open (back from the front page, a pasted address).
+        try {
+          history.replaceState(history.state, "", location.pathname + location.search);
+        } catch (e) {
+          /* ignore */
+        }
+        folgVariant(variantFra(h));
         return;
       }
       if (!h || !APP.vedHash) return;

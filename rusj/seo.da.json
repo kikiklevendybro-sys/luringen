@@ -16,7 +16,27 @@
       "festspil",
       "partyspil",
       "forfest",
-      "voksne"
+      "voksne",
+      "venner",
+      "venneaften",
+      "spilleaften",
+      "hjemmefest",
+      "efterfest",
+      "lejrskole",
+      "firmafest",
+      "kolleger",
+      "nytår",
+      "nytårsaften",
+      "halloween",
+      "polterabend",
+      "rustur",
+      "fødselsdagsfest",
+      "sommerfest",
+      "flok",
+      "stor flok",
+      "hele banden",
+      "rund fødselsdag",
+      "selskab"
     ],
     "familie": [
       "familiespil",
@@ -24,7 +44,11 @@
       "jul",
       "juleaften",
       "ferie",
-      "sommerhus"
+      "sommerhus",
+      "sommerhuset",
+      "hyttetur",
+      "lejrskole",
+      "nytårsaften"
     ],
     "barn": [
       "børnespil",
@@ -43,7 +67,12 @@
     "lag": [
       "holdspil",
       "holdkonkurrence",
-      "teambuilding"
+      "teambuilding",
+      "arbejde",
+      "arbejdet",
+      "kolleger",
+      "firmafest",
+      "kickoff"
     ],
     "blof": [
       "bluffspil",
@@ -70,7 +99,10 @@
     ],
     "klassiker": [
       "klassiske spil",
-      "brætspil"
+      "brætspil",
+      "ældre",
+      "bedsteforældre",
+      "pensionister"
     ],
     "daglig": [
       "daglig",

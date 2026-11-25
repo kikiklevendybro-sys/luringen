@@ -4093,6 +4093,24 @@
     return VOM[id];
   }
 
+  // One of the other solitaires is chosen (its tile on the home screen, or a link from the front
+  // page): its game goes on, or a new one is dealt – Edderkopp asks for suits first. Returns the
+  // screen to show, or null for a solitaire we do not have.
+  function apneVariant(S, id) {
+    if (!VID.includes(id)) return null;
+    const sp = S.v[id];
+    if (sp && !sp.ferdig) {
+      vLegg(S, id);
+      return "vspill";
+    }
+    if (id === "edderkopp") {
+      S.vid = id;
+      return "voppsett";
+    }
+    vNytt(S, id);
+    return "vspill";
+  }
+
   function vHjemHtml(S) {
     return `<section class="kk-varianter" aria-labelledby="kk-v-tittel">
       <h2 id="kk-v-tittel">${esc(R.t("Flere kabaler"))}</h2>
@@ -4290,6 +4308,12 @@
     vedHash(S, hash) {
       return String(hash).toLowerCase() === "dagens" ? tilDagens(S) : null;
     },
+
+    // rusj.no/kortkongen/#variant=freecell (the front page's rows for the solitaires inside this
+    // game): the same as a tap on its tile under «Flere kabaler». Every solitaire keeps its own game,
+    // so nothing is ever replaced – and nothing needs asking.
+    variantSpor: () => false,
+    variant: (S, id) => apneVariant(S, id),
 
     regler: {
       intro: R.t("Få alle kortene hjem i fire bunker – én for hver sort, fra ess til konge."),
@@ -4702,19 +4726,8 @@
       },
       // A tile on the home screen: its game goes on, or a new one is dealt (Edderkopp asks for suits first).
       variant(el, e, S) {
-        const id = el.dataset.v;
-        if (!VUI[id]) return;
-        const sp = S.v[id];
-        if (sp && !sp.ferdig) {
-          vLegg(S, id);
-          return R.gaTil("vspill");
-        }
-        if (id === "edderkopp") {
-          S.vid = id;
-          return R.gaTil("voppsett");
-        }
-        vNytt(S, id);
-        R.gaTil("vspill");
+        const skjerm = apneVariant(S, el.dataset.v);
+        if (skjerm) R.gaTil(skjerm);
       },
       vsorter(el, e, S) {
         const n = Number(el.dataset.v);

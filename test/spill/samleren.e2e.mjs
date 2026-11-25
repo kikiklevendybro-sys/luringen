@@ -8,6 +8,8 @@
 // only (t.norsk); elsewhere the state, the classes and the links (t.forside, t.nokkel).
 
 // Card number: suit 0 spar, 1 hjerter, 2 ruter, 3 kløver; value 1 (ess) … 13 (konge).
+import { sjekkVariantlenke, apneVariant } from "./variantlenke.mjs";
+
 const K = (s, v) => s * 13 + v - 1;
 
 // Lay out a round exactly: hands, discard pile (top last), the next cards of the stock in order.
@@ -314,4 +316,12 @@ export default async function (t) {
     t.sjekk(siste && siste.id === "samleren" && siste.resultat.length === 2, "Kåringen ble ikke registrert i Kveldens gjeng");
     await t.bilde("kaaringen-flere", true);
   }
+
+  // ---------- The front page's rows «Gin rummy · i Samleren» and «500 · i Samleren» ----------
+  // rusj.no/samleren/#variant=gin: the setup with that game chosen; with a game of another kind in
+  // progress the usual question first.
+  await sjekkVariantlenke(t, { variant: "gin", valgt: `Rusj.S.oppsett.variant === "gin"`, annet: `Rusj.S.oppsett.variant = "klassisk"` });
+  await t.start();
+  const femhundre = await apneVariant(t, "500", { valgt: `Rusj.S.oppsett.variant === "500"` });
+  t.sjekk(femhundre.skjerm === "oppsett" && femhundre.valgt && femhundre.hash === "", `#variant=500 åpner ikke oppsettet med 500 valgt (${JSON.stringify(femhundre)})`);
 }

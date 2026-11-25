@@ -11,10 +11,16 @@
   "rekkefolge": 81,
   "farge": "#9a86e8",
   "alder": 4,
-  "sok": ["svarteper", "svarte per", "fisk kortspill", "kortspill for barn", "krig kortspill", "snap kortspill", "barnekortspill", "dyrekort", "kortspill mot datamaskin", "kortspill for to"],
+  "sok": ["kortspill for barn", "barnekortspill", "dyrekort", "kortspill mot datamaskin", "kortspill for to"],
   "motMobilen": true,
   "nett": true,
   "alias": ["svarteper"],
+  "varianter": [
+    { "id": "svarte", "navn": "Svarteper", "undertittel": "Ikke bli sittende med katten!", "sok": ["svarteper", "svarte per", "svarteper kortspill"], "i18n": { "en": { "navn": "Old Maid", "undertittel": "Don't get stuck with the cat!", "sok": ["old maid", "old maid card game"] }, "da": { "navn": "Sorte Per", "undertittel": "Bliv ikke siddende med katten!", "sok": ["sorte per", "sorteper", "sorte per kortspil"] } } },
+    { "id": "fisk", "navn": "Fisk", "undertittel": "Samle fire like dyr", "sok": ["fisk", "fisk kortspill", "go fish", "fiskespill med kort"], "i18n": { "en": { "navn": "Go Fish", "undertittel": "Collect four of an animal", "sok": ["go fish", "fish card game", "happy families"] }, "da": { "navn": "Fisk", "undertittel": "Saml fire ens dyr", "sok": ["fisk", "fisk kortspil", "go fish"] } } },
+    { "id": "krig", "navn": "Størst vinner", "undertittel": "Kortspillet krig: det største dyret vinner", "sok": ["krig", "krig kortspill", "kortspillet krig", "størst vinner"], "i18n": { "en": { "navn": "Biggest Wins", "undertittel": "Like War: the biggest animal wins", "sok": ["war", "war card game", "biggest wins"] }, "da": { "navn": "Størst vinder", "undertittel": "Kortspillet krig: det største dyr vinder", "sok": ["krig", "krig kortspil", "størst vinder"] } } },
+    { "id": "snap", "navn": "Snapp", "undertittel": "Like dyr? Trykk først!", "nett": false, "sok": ["snapp", "snap", "snap kortspill"], "i18n": { "en": { "navn": "Snap", "undertittel": "Two the same? Tap first!", "sok": ["snap", "snap card game"] }, "da": { "navn": "Snap", "undertittel": "Ens dyr? Tryk først!", "sok": ["snap", "snap kortspil"] } } }
+  ],
   "i18n": {
     "en": {
       "navn": "Kitty",
@@ -22,7 +28,7 @@
       "kort": "Old Maid, Go Fish, Biggest Wins and Snap – with animal cards.",
       "beskrivelse": "Free card games for children with animal cards: Old Maid, Go Fish, Biggest Wins (like War) and Snap. Against the phone or together on one phone.",
       "slug": "kitty",
-      "sok": ["old maid", "go fish", "snap", "war card game", "card games for kids", "kids card games", "animal cards", "card games against the computer", "card games for two"]
+      "sok": ["card games for kids", "kids card games", "animal cards", "card games against the computer", "card games for two"]
     },
     "da": {
       "navn": "Missen",
@@ -30,7 +36,7 @@
       "kort": "Sorte Per, Fisk, Størst vinder og Snap – med dyrekort.",
       "beskrivelse": "Gratis kortspil for børn med dyrekort: Sorte Per, Fisk, Størst vinder og Snap. Mod mobilen eller sammen på én mobil – og en sød, sort kat.",
       "slug": "missen",
-      "sok": ["sorte per", "fisk kortspil", "kortspil for børn", "krig kortspil", "snap kortspil", "børnekortspil", "dyrekort", "kortspil mod computeren", "kortspil for to"]
+      "sok": ["kortspil for børn", "børnekortspil", "dyrekort", "kortspil mod computeren", "kortspil for to"]
     }
   }
 }

@@ -1,0 +1,75 @@
+{
+  "_om": "Games that are alike, in groups, each with a short reason in every edition. The page of a game lists the others in its groups under «Prøv også» (scripts/rusj.mjs: lesFamilier, provOgsa). The closest groups first: a page shows at most four games, in this order. An 18+ game is only ever suggested from another 18+ game; a game that an edition does not have is left out there. No brand names in the reasons.",
+  "familier": [
+    {
+      "id": "jeg-har-aldri",
+      "spill": ["sladrehanken", "torsten"],
+      "grunn": { "nb": "Samme lek: «Jeg har aldri»", "en": "The same game: ‘Never have I ever’", "da": "Samme leg: »Jeg har aldrig«" }
+    },
+    {
+      "id": "finn-den-ene",
+      "spill": ["luringen", "spionen"],
+      "grunn": { "nb": "Alle vet hemmeligheten – unntatt én", "en": "Everyone knows the secret – except one", "da": "Alle kender hemmeligheden – undtagen én" }
+    },
+    {
+      "id": "forklar-ordet",
+      "spill": ["skravla", "hatten", "panna", "mimen"],
+      "grunn": { "nb": "Forklar eller vis et ord uten å si det", "en": "Explain or act out a word without saying it", "da": "Forklar eller vis et ord uden at sige det" }
+    },
+    {
+      "id": "gjett-selv",
+      "spill": ["detektiven", "panna"],
+      "grunn": { "nb": "Én vet ikke svaret og må gjette seg fram", "en": "One player doesn't know the answer and has to guess", "da": "Én kender ikke svaret og må gætte sig frem" }
+    },
+    {
+      "id": "drikkekort",
+      "spill": ["ringen", "hjulet", "sjefen"],
+      "grunn": { "nb": "Trekk noe tilfeldig, følg regelen, ta en slurk", "en": "Draw something at random, follow the rule, take a sip", "da": "Træk noget tilfældigt, følg reglen, tag en tår" }
+    },
+    {
+      "id": "rod-eller-svart",
+      "spill": ["bussen", "spakona", "pyramiden"],
+      "grunn": { "nb": "Gjett på kortene: rødt eller svart, høyere eller lavere", "en": "Guess the cards: red or black, higher or lower", "da": "Gæt på kortene: rød eller sort, højere eller lavere" }
+    },
+    {
+      "id": "sporsmalskort",
+      "spill": ["fortelleren", "hovedpersonen"],
+      "grunn": { "nb": "Spørsmålskort som setter i gang praten", "en": "Question cards that get the conversation going", "da": "Spørgsmålskort, der sætter gang i snakken" }
+    },
+    {
+      "id": "pek-ut",
+      "spill": ["pekefingeren", "mistanken"],
+      "grunn": { "nb": "Pek ut den som passer best", "en": "Point at the one it fits best", "da": "Peg på den, det passer bedst på" }
+    },
+    {
+      "id": "gate-og-fasit",
+      "spill": ["sfinksen", "smilefjeset"],
+      "grunn": { "nb": "En gåte, litt tenking og en fasit", "en": "A riddle, a bit of thinking and the answer", "da": "En gåde, lidt tænkning og et svar" }
+    },
+    {
+      "id": "ord-av-bokstaver",
+      "spill": ["humla", "sjongloren", "edderkoppen"],
+      "grunn": { "nb": "Lag ord av noen få bokstaver", "en": "Make words from a handful of letters", "da": "Lav ord af nogle få bogstaver" }
+    },
+    {
+      "id": "sla-sammen",
+      "spill": ["dobleren", "planeten"],
+      "grunn": { "nb": "Slå sammen to like til noe større", "en": "Merge two of a kind into something bigger", "da": "Slå to ens sammen til noget større" }
+    },
+    {
+      "id": "tre-like",
+      "spill": ["ekornet", "bobla"],
+      "grunn": { "nb": "Tre like forsvinner", "en": "Three of a kind disappear", "da": "Tre ens forsvinder" }
+    },
+    {
+      "id": "terning-og-flytt",
+      "spill": ["brikka", "stigespillet"],
+      "grunn": { "nb": "Slå terningen og flytt brikken", "en": "Roll the dice and move your counter", "da": "Slå med terningen og flyt brikken" }
+    },
+    {
+      "id": "les-kortet-hoyt",
+      "spill": ["sladrehanken", "pekefingeren", "vinglepetter", "vaghalsen", "fortelleren", "hovedpersonen", "papegoyen", "femmeren", "mistanken"],
+      "grunn": { "nb": "Mobilen viser et kort – moroa skjer rundt bordet", "en": "The phone shows a card – the fun happens round the table", "da": "Mobilen viser et kort – det sjove sker rundt om bordet" }
+    }
+  ]
+}

@@ -149,6 +149,20 @@
   // «Fredelig første natt» follows the number of players until someone flips the switch.
   const fredeligPa = (S) => (S.oppsett.fredelig == null ? S.antall <= FREDELIG_TIL : !!S.oppsett.fredelig);
 
+  // The way of playing in the setup (its tiles, and a link from the front page). The list of
+  // players follows what the new way allows; going straight back gives the list it had (unless
+  // players were added or removed in between). False when nothing changed.
+  function settModus(S, ny) {
+    const o = S.oppsett;
+    if (!MODUS[ny] || ny === o.modus) return false;
+    const husket = o.bytte && o.bytte.modus === ny ? o.bytte.antall : S.antall;
+    o.bytte = { modus: o.modus, antall: S.antall };
+    o.modus = ny;
+    S.antall = R.klamp(husket, MODUS[ny].min, MODUS[ny].maks);
+    o.ulver = null;
+    return true;
+  }
+
   // ---------- Reading the game state ----------
 
   const erUlv = (sp, i) => sp.roller[i] === "varulv";
@@ -1938,6 +1952,18 @@
       S.oppsett.bytte = null;
     },
 
+    // rusj.no/varulven/#variant=en (the front page's row «Én natt · i Varulven»): the setup with «Én
+    // natt» chosen. With a classic game in progress the kit asks first, as «Nytt spill» does; a
+    // game of «Én natt» already on the table just goes on.
+    variantSpor: (S, id) => id === "en" && pagar(S) && !erEn(S.spill),
+    variant(S, id) {
+      if (id !== "en" || (pagar(S) && erEn(S.spill))) return null;
+      S.spill = null; // (as «Nytt spill» does)
+      R.slippVaken();
+      settModus(S, "en");
+      return "oppsett";
+    },
+
     skjermer: {
       hjem: {
         tilbake: "portal",
@@ -2615,17 +2641,10 @@
       },
 
       // Setup
-      // The way of playing. The list of players follows what the new way allows; going straight
-      // back gives the list it had (unless players were added or removed in between).
+      // The way of playing (settModus above).
       modus(el, e, S) {
-        const o = S.oppsett;
         const ny = el.dataset.v;
-        if (!MODUS[ny] || ny === o.modus) return;
-        const husket = o.bytte && o.bytte.modus === ny ? o.bytte.antall : S.antall;
-        o.bytte = { modus: o.modus, antall: S.antall };
-        o.modus = ny;
-        S.antall = R.klamp(husket, MODUS[ny].min, MODUS[ny].maks);
-        o.ulver = null;
+        if (!settModus(S, ny)) return;
         R.vis();
         R.si(`${ny === "en" ? R.t("Én natt") : R.t("Klassisk")}. ${R.flertall(S.antall, "spiller", "spillere")}.`);
       },

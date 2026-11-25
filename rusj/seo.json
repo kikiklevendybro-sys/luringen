@@ -33,7 +33,29 @@
       "julebord",
       "russ",
       "voksne",
-      "ungdom"
+      "ungdom",
+      "venner",
+      "vennekveld",
+      "vennegjeng",
+      "spillkveld",
+      "hjemmefest",
+      "klassetur",
+      "jobbfest",
+      "kollegaer",
+      "kolleger",
+      "nyttår",
+      "nyttårsaften",
+      "halloween",
+      "utdrikningslag",
+      "fadderuke",
+      "bursdagsfest",
+      "sommerfest",
+      "gjeng",
+      "stor gjeng",
+      "hele gjengen",
+      "50-årsdag",
+      "årsdag",
+      "jubileum"
     ],
     "familie": [
       "familiespill",
@@ -43,7 +65,13 @@
       "jul",
       "17. mai",
       "påske",
-      "ferie"
+      "ferie",
+      "hytta",
+      "hytte",
+      "hyttespill",
+      "klassetur",
+      "nyttårsaften",
+      "søndagsmiddag"
     ],
     "barn": [
       "barnespill",
@@ -66,7 +94,13 @@
     "lag": [
       "lagspill",
       "lagkonkurranse",
-      "teambuilding"
+      "teambuilding",
+      "jobb",
+      "jobben",
+      "kollegaer",
+      "kolleger",
+      "firmafest",
+      "kickoff"
     ],
     "blof": [
       "bløffespill",
@@ -93,7 +127,10 @@
     ],
     "klassiker": [
       "klassiske spill",
-      "brettspill"
+      "brettspill",
+      "eldre",
+      "besteforeldre",
+      "pensjonister"
     ],
     "daglig": [
       "daglig",
@@ -219,7 +256,8 @@
         "forklaringslek",
         "forbudte ord",
         "alias",
-        "tabu"
+        "tabu",
+        "taboo"
       ]
     },
     "panna": {

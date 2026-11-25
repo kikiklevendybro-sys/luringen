@@ -203,10 +203,14 @@ export function morkere(hex, mengde = 0.3) {
 
 // Other companies' game brands. They may help the front-page search find a game (as hidden
 // synonyms in `sok`), but never go into a title, a description, a link preview or structured data.
-const MERKER = [
+export const MERKER = [
   "alias", "codenames", "spyfall", "heads up", "wavelength", "just one", "herd mentality", "smart10", "timeline", "hitster",
   "kahoot", "pictionary", "skribbl", "gartic", "battleship", "connect four", "connect 4", "yahtzee", "uno", "scattergories",
   "taboo", "tabu", "trivial pursuit", "bezzerwizzer", "fia med knuff", "maxi-yatzy", "maxi yatzy", "memory",
+  // names the front-page search knows (rusj/portal/sok.js and the games' `sok`) – only coined ones:
+  // «othello», «mastermind» and «monopoly» are also ordinary words (a play in a quiz, «a monopoly on …»)
+  "wordle", "boggle", "farkle", "candy crush", "suika", "flappy bird", "tetris",
+  "scrabble", "wordfeud", "catan", "minecraft", "roblox", "fortnite", "geoguessr", "rummikub", "cluedo",
 ];
 const finnMerke = (liste, tekst) => {
   const t = " " + String(tekst).toLocaleLowerCase("nb").replace(/[^a-zæøå0-9-]+/g, " ") + " ";
@@ -215,7 +219,7 @@ const finnMerke = (liste, tekst) => {
 export const merkeI = (tekst) => finnMerke(MERKER, tekst);
 // Text the build writes itself (the «Slik spiller dere» block, collection pages, alias addresses)
 // is held to a stricter list: also game names that sound generic but belong to someone.
-const MERKER_SYNLIG = [...MERKER, "ring of fire", "wordle", "time's up", "times up", "codenames"];
+const MERKER_SYNLIG = [...MERKER, "ring of fire", "time's up", "times up"];
 export const merkeSynlig = (tekst) => finnMerke(MERKER_SYNLIG, tekst);
 export const TITTEL_MAKS = 62; // with « | rusj»; search results show about 60 characters
 export const BESKRIVELSE_GRENSER = [100, 160];
@@ -409,6 +413,107 @@ export function sjekkAlder(m, hvor) {
   if (!Number.isInteger(m.alder) || m.alder < min || m.alder > maks) throw new Error(`${hvor}: "alder" må være et helt tall fra ${min} til ${maks}, ikke ${JSON.stringify(m.alder)}`);
   if (m.alder18 && m.alder !== 18) throw new Error(`${hvor}: et 18+-spill skal ha "alder": 18, ikke ${m.alder}`);
 }
+// "varianter": well-known games inside a game (Edderkoppkabal in Kortkongen, «Fem på rad» in Bonden).
+// Each one is an entry of its own in the front-page search and opens with /<id>/#variant=<variant
+// id>, which the game's `variant` hook answers (rusj/KIT.md). Not games of their own: never counted,
+// never in «Alle spill A–Å».
+//   [{ id, navn, undertittel?, sok: [], spillere?: [a, b], minutter?: [a, b], nett?: false,
+//      i18n?: { en: { navn, undertittel?, sok }, da: { … } } }]
+// spillere, minutter and nett only where the variant differs from the game. A name or a genre is
+// shown on the front page: never another company's brand there (those go in "sok").
+export function sjekkVarianter(m, hvor) {
+  if (m.varianter == null) return;
+  if (!Array.isArray(m.varianter) || !m.varianter.length) throw new Error(`${hvor}: "varianter" må være en liste med minst én variant`);
+  const ider = new Set();
+  const tekster = (v, sted) => {
+    if (typeof v.navn !== "string" || !v.navn.trim()) throw new Error(`${hvor}: ${sted} mangler "navn"`);
+    if (v.undertittel != null && (typeof v.undertittel !== "string" || !v.undertittel.trim())) throw new Error(`${hvor}: ${sted} har en tom "undertittel"`);
+    if (!Array.isArray(v.sok) || v.sok.some((o) => typeof o !== "string" || !o.trim())) throw new Error(`${hvor}: ${sted} må ha "sok" som en liste med ord`);
+    for (const felt of ["navn", "undertittel"]) {
+      const merke = v[felt] && merkeI(v[felt]);
+      if (merke) throw new Error(`${hvor}: ${sted}: «${merke}» i "${felt}" er en annens merkevare og kan bare stå i "sok"`);
+    }
+  };
+  for (const v of m.varianter) {
+    if (!v || typeof v !== "object" || Array.isArray(v)) throw new Error(`${hvor}: en variant må være { id, navn, sok }`);
+    if (typeof v.id !== "string" || v.id.length > 30 || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(v.id)) throw new Error(`${hvor}: variant-id-en «${v.id}» kan bare ha små bokstaver a–z, tall og bindestrek`);
+    if (ider.has(v.id)) throw new Error(`${hvor}: to varianter heter «${v.id}»`);
+    ider.add(v.id);
+    tekster(v, `varianten «${v.id}»`);
+    for (const felt of ["spillere", "minutter"]) {
+      const x = v[felt];
+      if (x != null && !(Array.isArray(x) && x.length === 2 && x.every(Number.isInteger) && x[0] >= 1 && x[0] <= x[1])) throw new Error(`${hvor}: varianten «${v.id}»: "${felt}" må være [fra, til]`);
+    }
+    if (v.nett != null && v.nett !== false) throw new Error(`${hvor}: varianten «${v.id}»: "nett" kan bare være false (varianten kan ikke spilles på nett selv om spillet kan)`);
+    if (v.i18n != null) {
+      if (typeof v.i18n !== "object" || Array.isArray(v.i18n)) throw new Error(`${hvor}: varianten «${v.id}»: "i18n" må være { en: {…}, da: {…} }`);
+      for (const [sprak, i] of Object.entries(v.i18n)) {
+        if (!SPRAK.includes(sprak)) throw new Error(`${hvor}: varianten «${v.id}»: ukjent språk «${sprak}» i "i18n"`);
+        if (!i || typeof i !== "object") throw new Error(`${hvor}: varianten «${v.id}»: i18n.${sprak} må være { navn, sok }`);
+        tekster(i, `varianten «${v.id}» (i18n.${sprak})`);
+      }
+    }
+  }
+}
+// A game's variants as one edition shows them (the front page's game list): those that have their
+// texts in the edition, with the facts only where they differ from the game's.
+export const varianterI = (m, sprak) =>
+  (m.varianter || [])
+    .map((v) => {
+      const k = sprak === "nb" ? v : v.i18n && v.i18n[sprak];
+      return k ? { id: v.id, navn: k.navn, ...(k.undertittel ? { undertittel: k.undertittel } : {}), ...(v.spillere ? { spillere: v.spillere } : {}), ...(v.minutter ? { minutter: v.minutter } : {}), ...(v.nett === false ? { nett: false } : {}), sok: k.sok } : null;
+    })
+    .filter(Boolean);
+
+// ---------- «Prøv også»: rusj/familier.json ----------
+// Groups of games that are alike, each with a short reason in every edition. The page of a game
+// lists the others in its groups under «Slik spiller dere …» – so two games that turn out to be much
+// the same become a way on, not a disappointment. The closest groups come first in the file.
+// spill: every game ({ id }), Luringen too. Stops the build on a group that would not work.
+export const PROV_MAKS = 4; // games on one page
+export function lesFamilier(fil, spill) {
+  if (!existsSync(fil)) return [];
+  let data;
+  try {
+    data = JSON.parse(readFileSync(fil, "utf8"));
+  } catch (e) {
+    throw new Error(`${fil}: ugyldig JSON (${e.message})`);
+  }
+  const kjent = new Set(spill.map((g) => g.id));
+  const ider = new Set();
+  if (!Array.isArray(data.familier)) throw new Error(`${fil}: mangler "familier" (en liste)`);
+  for (const f of data.familier) {
+    if (!f || typeof f.id !== "string" || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(f.id)) throw new Error(`${fil}: en familie mangler "id" (små bokstaver a–z, tall og bindestrek)`);
+    if (ider.has(f.id)) throw new Error(`${fil}: ${f.id} står to ganger`);
+    ider.add(f.id);
+    if (!Array.isArray(f.spill) || f.spill.length < 2 || new Set(f.spill).size !== f.spill.length) throw new Error(`${fil}: ${f.id}: "spill" må være minst to ulike spill`);
+    for (const id of f.spill) if (!kjent.has(id)) throw new Error(`${fil}: ${f.id}: ukjent spill «${id}»`);
+    for (const sprak of ALLE_SPRAK) {
+      const grunn = f.grunn && f.grunn[sprak];
+      if (typeof grunn !== "string" || !grunn.trim()) throw new Error(`${fil}: ${f.id}: mangler "grunn" på ${sprak}`);
+      if (grunn.length > 70) throw new Error(`${fil}: ${f.id}: grunnen på ${sprak} er ${grunn.length} tegn (maks 70)`);
+      if (merkeSynlig(grunn)) throw new Error(`${fil}: ${f.id}: «${merkeSynlig(grunn)}» i grunnen er en annens merkevare`);
+    }
+  }
+  return data.familier;
+}
+// The games to suggest on the page of game m in one edition: [{ g, grunn }], at most PROV_MAKS, the
+// closest group first. liste: the edition's games ({ id, alder18 … }). Never the game itself, never
+// a game the edition lacks – and an 18+ game only on the page of another 18+ game.
+export function provOgsa(familier, m, liste, sprak = "nb") {
+  const av = new Map(liste.map((g) => [g.id, g]));
+  const ut = [];
+  for (const f of familier) {
+    if (!f.spill.includes(m.id)) continue;
+    for (const id of f.spill) {
+      const g = av.get(id);
+      if (!g || id === m.id || (g.alder18 && !m.alder18) || ut.some((x) => x.g.id === id)) continue;
+      ut.push({ g, grunn: f.grunn[sprak] });
+    }
+  }
+  return ut.slice(0, PROV_MAKS);
+}
+
 export const TAGGER = {
   fest: "Fest",
   familie: "Familie",
@@ -463,6 +568,7 @@ export function lesSpill(rot, utvalg) {
     const m = JSON.parse(readFileSync(fil, "utf8"));
     sjekkAlder(m, fil);
     for (const felt of PAKREVD) if (m[felt] == null) throw new Error(`${fil}: mangler "${felt}"`);
+    sjekkVarianter(m, fil);
     if (m.id !== id) throw new Error(`${fil}: id "${m.id}" matcher ikke mappenavnet`);
     if (!G.finnes(id)) throw new Error(`${fil}: ingen figur for "${id}" i rusj/kit/gjengen.js`);
     if (!["en", "hver", "begge"].includes(m.mobiler)) throw new Error(`${fil}: mobiler må være en, hver eller begge`);
@@ -749,6 +855,8 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
     merke: merkeSynlig,
   });
   const samlingerMed = (id) => samlinger.filter((s) => s.spill.some(([x]) => x === id)).map((s) => [`/${s.slug}/`, s.navn]);
+  // «Prøv også» (rusj/familier.json): games that are alike, for the block under each game page.
+  const familier = lesFamilier(join(ROT, "rusj/familier.json"), alleSpillKort.some((g) => g.id === "luringen") ? alleSpillKort : [{ id: "luringen" }, ...alleSpillKort]);
   const hodeMed = (o) => hode({ pngIkon: ikoner.p192, appleIkon: ikoner.p180, ...o });
 
   const STEMPEL_FILTER = `<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="stempel-ruff" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="7" result="stoy"/><feDisplacementMap in="SourceGraphic" in2="stoy" scale="4" xChannelSelector="R" yChannelSelector="G"/></filter></svg>`;
@@ -776,6 +884,8 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
     if (!existsSync(js)) throw new Error(`rusj/spill/${id}/spill.js mangler`);
     const spillJs = readFileSync(js, "utf8");
     if (/<\/script/i.test(spillJs)) throw new Error(`${id}: spill.js inneholder </script>`);
+    // A game with "varianter" answers /<id>/#variant=<id>: its Rusj.start() needs the `variant` hook.
+    if (nm.varianter && !/^ {4}variant\s*[(:]/m.test(spillJs)) throw new Error(`${id}: spill.json har "varianter", men spill.js mangler variant(S, id) i Rusj.start (se rusj/KIT.md)`);
     spillFiler.set(id, {
       kode: spillJs,
       js: skriv(`${id}/spill.js`, spillJs),
@@ -841,6 +951,7 @@ export function byggRusj({ ROT, WEB, ordData, ordbanker = {}, utvalg, luringen, 
             eksempler: U.sprak === "nb" ? eksemplerFor(m, data) : null,
             frase: merkeSynlig(sd.frase) ? m.undertittel : sd.frase,
             lenker: U.sprak === "nb" ? samlingerMed(id) : [],
+            prov: provOgsa(familier, m, U.alle, U.sprak).map(({ g, grunn }) => ({ href: g.url, navn: g.navn, sjanger: g.undertittel, grunn })),
             sprak: U,
             sprakvalg: sprakvalg(U, spillSti(id)),
             nett: paNett,
@@ -916,6 +1027,7 @@ ${STEMPEL_FILTER}
   const portalJs = skriv("felles/portal.js", kilde("rusj/portal/portal.js"));
   const dagligJs = skriv("felles/daglig.js", kilde("rusj/portal/daglig.js")); // «Dagens rusj»: see rusj/DAGLIG.md
   const finnerJs = skriv("felles/finner.js", kilde("rusj/portal/finner.js")); // «Hva skal vi spille?»: the finder's choice
+  const sokJs = skriv("felles/sok.js", kilde("rusj/portal/sok.js")); // the search: names people use, typos, head counts
   const Finner = require(join(ROT, "rusj/portal/finner.js")); // its chips and age steps, for the markup
   // «Mest spilt nå» (rusj/topp.json): a row under the hero, and a place in the finder's ranking.
   const topp = lesTopp(toppFil);
@@ -956,6 +1068,7 @@ ${STEMPEL_FILTER}
     familie: { ikon: "🏡", farge: "#ff8a3d", figurer: ["detektiven", "brikka", "terninga", "kunstneren"] },
     barn: { ikon: "🧸", farge: "#3de3b0", figurer: ["elefanten", "bokstavtrollet", "ballongen", "penselen"] },
     alene: { ikon: "🙋", farge: "#59b9ff", figurer: ["maneten", "ekornet", "sjakkhesten", "humla"] },
+    nett: { ikon: "🌐", farge: "#22c7e8", figurer: ["spionen", "terninga", "varulven", "vriatter"] },
     klassikere: { ikon: "👑", farge: "#a47bff", figurer: ["sjakkhesten", "terninga", "fireren", "tavla"] },
     kort: { ikon: "🃏", farge: "#ff5a4e", figurer: ["kortkongen", "narren", "vriatter", "hjerteknuseren"] },
     ord: { ikon: "💡", farge: "#6f8bff", figurer: ["bedreviteren", "ordugla", "tidsmaskinen", "skravla"] },
@@ -975,6 +1088,7 @@ ${STEMPEL_FILTER}
       familie: [t("Familie"), t("Hele familien")],
       barn: [t("Barn"), t("For barna")],
       alene: [t("Alene"), t("Spill alene")],
+      nett: [t("På nett"), t("Nettspill")],
       klassikere: [t("Klassikere"), t("Klassikere")],
       kort: [t("Kort"), t("Kortspill")],
       ord: [t("Ord og quiz"), t("Ord og quiz")],
@@ -984,6 +1098,8 @@ ${STEMPEL_FILTER}
     const HURTIG_NAVN = { barn: t("Med barna"), vors: t("Vorspiel"), buss: t("Alene på bussen"), to: t("To stykker"), stor: t("Stor gjeng"), fem: t("5 minutter") };
     // The place of each of the edition's games in «Mest spilt nå» (1 = most played), for the finder.
     const toppPlass = new Map((topp ? topp.spill : []).filter((id) => kortListe.some((m) => m.id === id)).map((id, i) => [id, i + 1]));
+    // «På nett» on the front page: the game has it (spill.json "nett") and the rooms are switched on.
+    const paNett = (m) => !!(m.nett && NETT);
     const spillData = kortListe.map((m) => ({
       id: m.id,
       navn: m.navn,
@@ -999,12 +1115,13 @@ ${STEMPEL_FILTER}
       ...(toppPlass.has(m.id) ? { topp: toppPlass.get(m.id) } : {}),
       alder18: !!m.alder18,
       ...(motMobilen(m) ? { motMobilen: true } : {}),
-      // Can be played with friends on their own phones online (R.nett): for the badge «På nett».
-      ...(m.nett && NETT ? { nett: true } : {}),
+      // Can be played with friends on their own phones online (R.nett): the badge «På nett», the
+      // room of that name and the search. Only while the rooms are switched on (NETT_ADRESSE).
+      ...(paNett(m) ? { nett: true } : {}),
       // The game's own search words plus the ones in rusj/seo.json (what people call the game).
       sok: [...new Set([...(Array.isArray(m.sok) ? m.sok : []), ...U.sokedata(m).sok])],
-      // Can be played online, each on their own phone (spill.json "nett"): a badge on the cards.
-      ...(m.nett ? { nett: true } : {}),
+      // Well-known games inside this one: rows of their own in the search («FreeCell · i Kortkongen»).
+      ...(varianterI(m, U.sprak).length ? { varianter: varianterI(m, U.sprak) } : {}),
       fig: U.fig.get(m.id),
       ...(U.sprak === "nb" ? {} : { url: m.url }),
     }));
@@ -1023,21 +1140,24 @@ ${STEMPEL_FILTER}
     const vanlige = kortListe.filter((m) => !m.alder18);
     U.antall18 = kortListe.length - vanlige.length;
     // What a screen reader hears for a game: name, genre, one-liner and the facts in one sentence.
-    const lest = (m) => `${m.navn}: ${m.undertittel}. ${m.kort} ${U.stor(faktaLest(m, motMobilen(m), t))}.`;
+    const lest = (m) => `${m.navn}: ${m.undertittel}. ${m.kort} ${U.stor(faktaLest({ ...m, nett: paNett(m) }, motMobilen(m), t))}.`;
     // «Ny» on the eight newest games (their place in the site's order), «📅» on the daily ones.
     const nyeste = vanlige.slice().sort((a, b) => b.rekkefolge - a.rekkefolge);
     const NYE = new Set(nyeste.slice(0, 8).map((m) => m.id));
     const merke = (m) => (m.tagger.includes("daglig") ? '<span class="flis-merke dagens" aria-hidden="true">📅</span>' : NYE.has(m.id) ? `<span class="flis-merke ny" aria-hidden="true">${esc(t("Ny"))}</span>` : "");
     // «På nett»: the game can be played online, each on their own phone (spill.json "nett").
     const nettMerke = `<span class="nett-merke" aria-hidden="true">${ikon("nett")}${esc(t("På nett"))}</span>`;
-    // A game as a small tile (the A–Å list, «Nytt»): the mascot and the name; the link says the rest.
-    const flis = (m) => `<a class="spillflis" href="${m.url}" style="--kf: ${m.farge}" aria-label="${esc(lest(m))}"><span class="spillflis-bilde">${bilde(m.id)}${merke(m)}${m.nett ? nettMerke : ""}</span><span class="spillflis-navn">${esc(m.navn)}</span></a>`;
+    // A game in a list (the A–Å list, «Nytt»): the mascot, the name and what the game is (its genre).
+    // The link's name says it all in one sentence. When the list becomes rows (a search, a room, the
+    // three questions), portal.js adds the facts to the rows it shows – so the page as written stays small.
+    const flis = (m) =>
+      `<a class="spillflis" href="${m.url}" style="--kf: ${m.farge}" aria-label="${esc(lest(m))}"><span class="spillflis-bilde">${bilde(m.id)}${merke(m)}${paNett(m) ? nettMerke : ""}</span><span class="spillflis-tekst"><span class="spillflis-navn">${esc(m.navn)}</span><span class="spillflis-sjanger">${esc(m.undertittel)}</span></span></a>`;
     // The badges on a card with facts («Mest spilt nå»): «Dagens», «Mot mobilen», «På nett».
     const kortMerker = (m) => {
       const ut = [
         m.tagger.includes("daglig") && `<span class="kort-merke dagens">${esc(t("Dagens"))}</span>`,
         motMobilen(m) && `<span class="kort-merke">${esc(t("Mot mobilen"))}</span>`,
-        m.nett && `<span class="kort-merke nett">${ikon("nett")}${esc(t("På nett"))}</span>`,
+        paNett(m) && `<span class="kort-merke nett">${ikon("nett")}${esc(t("På nett"))}</span>`,
       ].filter(Boolean);
       return ut.length ? `<span class="kort-merker" aria-hidden="true">${ut.join("")}</span>` : "";
     };
@@ -1066,7 +1186,8 @@ ${STEMPEL_FILTER}
         return U.antall18
           ? `<li class="rom-bred"><button type="button" class="rom rom-laast" data-rom="voksen" data-ikon="${r.ikon}" data-navn="${esc(navn)}" style="--rf: ${r.farge}"><span class="rom-las" aria-hidden="true">18+</span><span class="rom-tekst"><span class="rom-navn">${esc(t("Drikkespill"))}</span><span class="rom-under">${esc(t("{n} spill bak aldersdøra", { n: U.antall18 }))}</span></span></button></li>`
           : "";
-      const iRommet = vanlige.filter((m) => Finner.iRom(m, id));
+      // («På nett» only while the rooms for it are switched on: paNett)
+      const iRommet = vanlige.filter((m) => Finner.iRom({ ...m, nett: paNett(m) }, id));
       if (!iRommet.length) return "";
       const figurer = [...r.figurer.filter((f) => iRommet.some((m) => m.id === f)), ...iRommet.map((m) => m.id)].filter((f, i, a) => a.indexOf(f) === i).slice(0, 2);
       return `<li><button type="button" class="rom" data-rom="${id}" data-ikon="${r.ikon}" data-navn="${esc(navn)}" aria-pressed="false" style="--rf: ${r.farge}" aria-label="${esc(`${lang}: ${t("{antall} spill", { antall: iRommet.length, n: iRommet.length })}`)}"><span class="rom-navn">${esc(navn)}</span><span class="rom-antall" aria-hidden="true">${iRommet.length}</span><span class="rom-gjeng" aria-hidden="true">${figurer.map(svgFor).join("")}</span></button></li>`;
@@ -1107,7 +1228,7 @@ ${toppRad.map((m, i) => "        " + toppKort(m, i + 1)).join("\n")}
       deling: delingFor(U),
       delingAlt: t("rusj – gratis spill og selskapsleker på norsk"),
       css: [felles.css, portalCss],
-      skript: portalSkript(U, portalData, dagligJs, finnerJs, portalJs),
+      skript: portalSkript(U, portalData, dagligJs, finnerJs, sokJs, portalJs),
       jsonld: {
         "@context": "https://schema.org",
         "@graph": [
@@ -1146,12 +1267,12 @@ ${FLAGG}
       <p class="start-linje">${U.th("{antall} gratis spill · ingen konto · ingen reklame", { antall: `<b>${kortListe.length}</b>` })}</p>
     </div>
     <div class="hurtig" role="group" aria-label="${esc(t("Snarveier"))}" id="hurtig">
-      ${Object.keys(Finner.HURTIG)
+      <button type="button" class="brikke hurtig-brikke flere" id="flere" aria-expanded="false" aria-controls="finner"><span aria-hidden="true">🧭</span> ${esc(t("Hjelp oss å velge"))}</button>${Object.keys(Finner.HURTIG)
         .map((id) => {
           const [ik, farge] = HURTIG_UTSEENDE[id];
           return `<button type="button" class="brikke hurtig-brikke" data-hurtig="${id}" data-ikon="${ik}" data-navn="${esc(HURTIG_NAVN[id])}" aria-pressed="false" style="--hf: ${farge}"><span aria-hidden="true">${ik}</span> ${esc(HURTIG_NAVN[id])}</button>`;
         })
-        .join("")}<button type="button" class="brikke hurtig-brikke flere" id="flere" aria-expanded="false" aria-controls="finner"><span aria-hidden="true">🧭</span> ${esc(t("Flere valg"))}</button>
+        .join("")}
     </div>
     <div class="finner" id="finner" role="group" aria-label="${esc(t("Filter"))}" hidden>
       <div class="finner-sporsmal" role="group" aria-labelledby="finner-antall-tittel">
@@ -1223,11 +1344,12 @@ ${nyeste
       <div class="aktive" id="aktive" role="group" hidden></div>
     </div>
     <p class="vh" id="si" aria-live="polite"></p>
+    <p class="sok-melding" id="sok-melding" hidden></p>
     <div class="beste" id="beste" hidden></div>
+    <div class="ingen-treff" id="ingen-treff" hidden><p>${esc(t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type."))}</p></div>
     <ul class="alle-liste" id="alle-liste">
 ${aaHtml}${dorHtml}
     </ul>
-    <p class="ingen-treff" id="ingen-treff" hidden>${esc(t("Ingen spill passer akkurat det. Prøv et annet søkeord, et annet antall eller en annen type."))}</p>
   </section>
   <dialog class="dialog" id="dialog" aria-labelledby="dialog-tittel"></dialog>
   <dialog class="dialog automat" id="automat" aria-labelledby="automat-tittel"></dialog>

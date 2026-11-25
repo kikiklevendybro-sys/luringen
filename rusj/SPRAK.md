@@ -49,6 +49,14 @@ same page in the other edition, or to its front page when the game is not there 
   language, `hreflang` (nb, en, da, x-default → Norwegian) in `<head>` and in `sitemap.xml` – only
   between real equivalents. `spill.js` and `spill.css` are the same file for every edition. One
   service worker serves all; it fetches ahead only the editions a visitor actually uses.
+- **The front-page search** (`rusj/portal/sok.js`) reads each edition's own words: the number
+  words one to twelve, the nouns that make a number a head count («2 spillere», «for two», «vi er
+  5»), and the phrases for the facts («på nett», «online», «kjapt», «against the computer») – the
+  table `REGLER` in that file, one entry per edition. The words for a kind of game («hyttetur»,
+  «house party», «spilleaften») are in `rusj/seo.<lang>.json` under `tagger`, and the names people
+  use for a game in its `sok`. An 18+ game is only found by its own name, genre and `sok` and by the
+  words under the tag `drikke` – never by the words for a party or another kind of game.
+  `test/sok.test.mjs` checks all three editions on the real games.
 - **Anonymous counting** (`rusj/kit/stat.js`): a page of another edition is counted under its game id (data-spill), the front page as «forside»
   (the first part of its address); «start» and «ferdig» carry the game id as before.
 - **Only Norwegian for now:** collection pages (`rusj/samlinger`), alias addresses, Luringen, the
@@ -123,7 +131,9 @@ keys of the shared table, but only the stickers an edition's games can give are 
    `slug` (a–z, digits, hyphen) is the address: `/en/fourby/`. A mascot may keep its name where it
    works in the language (Danish «Fireren») or get a new one (English «Fourby»). `tagger` may be
    given when the edition should file the game differently. `sok`: the words people type, brands
-   allowed here only.
+   allowed here only. A game with `varianter` (well-known games inside it, rusj/KIT.md) gives each
+   variant its own `i18n` with `navn`, `sok` and, where it has one, `undertittel`; a variant without
+   texts in an edition is simply not shown there.
 5. **SEO:** an entry in `rusj/seo.en.json` and `rusj/seo.da.json` under `spill.<id>` with `tittel`
    (search phrase first, at most 55 characters), `frase`, `beskrivelse` (100–160, unique) and
    `motMobilen` if it applies – the same rules as `rusj/seo.json`; never a brand in those three.

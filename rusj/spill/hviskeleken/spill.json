@@ -11,7 +11,7 @@
   "tagger": ["tegning", "fest", "familie"],
   "rekkefolge": 111,
   "farge": "#5ccfb0",
-  "sok": ["hviskelek", "hviskeleken med tegning", "tegnetelefon", "tegn og gjett i kjede", "tegnelek", "tegn og gjett", "gartic phone", "telestrations"],
+  "sok": ["hviskelek", "hviskeleken med tegning", "tegnetelefon", "tegn og gjett i kjede", "tegnelek", "tegn og gjett", "gartic phone", "telestrations", "gartic"],
   "i18n": {
     "en": {
       "navn": "Telephone Drawing",
@@ -19,7 +19,7 @@
       "kort": "A word becomes a drawing becomes a guess – pass the phone round and watch it go wrong.",
       "beskrivelse": "Free telephone drawing game on one phone: a word becomes a drawing, the drawing a guess – round the table until nobody recognises the start. For four or more.",
       "slug": "telephone-drawing",
-      "sok": ["telephone pictionary", "drawing telephone", "pass the picture", "draw and guess chain", "telephone game", "drawing game", "gartic phone", "telestrations"]
+      "sok": ["telephone pictionary", "drawing telephone", "pass the picture", "draw and guess chain", "telephone game", "drawing game", "gartic phone", "telestrations", "gartic"]
     },
     "da": {
       "navn": "Hviskelegen",
@@ -27,7 +27,7 @@
       "kort": "Ord bliver tegning bliver gæt – send mobilen rundt, og se det gå helt i ged.",
       "beskrivelse": "Gratis hviskeleg med tegninger på én mobil: ord bliver tegning, tegning bliver gæt – rundt om bordet, til ingen kan genkende startordet. For fire eller flere.",
       "slug": "hviskelegen",
-      "sok": ["hviskeleg", "hviskelegen", "tegnetelefon", "tegn og gæt i kæde", "tegneleg", "tegn og gæt", "gartic phone", "telestrations"]
+      "sok": ["hviskeleg", "hviskelegen", "tegnetelefon", "tegn og gæt i kæde", "tegneleg", "tegn og gæt", "gartic phone", "telestrations", "gartic"]
     }
   }
 }

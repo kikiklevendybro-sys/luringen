@@ -14,13 +14,39 @@
       "party game",
       "games for parties",
       "pre-drinks",
-      "adults"
+      "adults",
+      "friends",
+      "game night",
+      "games night",
+      "house party",
+      "after-party",
+      "afterparty",
+      "school trip",
+      "work do",
+      "colleagues",
+      "new year",
+      "new years eve",
+      "halloween",
+      "hen do",
+      "stag do",
+      "freshers",
+      "birthday party",
+      "group",
+      "big group",
+      "crowd",
+      "the whole crew"
     ],
     "familie": [
       "family games",
       "family game night",
       "christmas",
-      "holiday games"
+      "holiday games",
+      "cabin",
+      "holiday cottage",
+      "grandparents",
+      "school trip",
+      "new years eve",
+      "sunday lunch"
     ],
     "barn": [
       "kids games",
@@ -38,7 +64,14 @@
     ],
     "lag": [
       "team games",
-      "team building"
+      "team building",
+      "teambuilding",
+      "work",
+      "colleagues",
+      "office party",
+      "away day",
+      "teams",
+      "in teams"
     ],
     "blof": [
       "bluffing games",
@@ -63,7 +96,11 @@
     ],
     "klassiker": [
       "classic games",
-      "board games"
+      "board games",
+      "older people",
+      "elderly",
+      "grandparents",
+      "pensioners"
     ],
     "daglig": [
       "daily",

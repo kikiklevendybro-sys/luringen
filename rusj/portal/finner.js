@@ -5,13 +5,16 @@
    No DOM, no storage and no texts here: the front page (portal.js) draws the questions and the cards,
    so the same code runs in the browser (window.RusjFinner) and in the tests (CommonJS).
    A game is an entry of window.RUSJ_SPILLISTE: { id, spillere, alder, minutter, mobiler, tagger,
-   rekkefolge, alder18?, motMobilen?, topp? } – topp is its place in «Mest spilt nå» (1 = most played). */
+   rekkefolge, alder18?, motMobilen?, nett?, topp? } – topp is its place in «Mest spilt nå» (1 = most
+   played), nett: it can be played online, each on their own phone. */
 (function (root) {
   "use strict";
 
   // «Hvor mange er dere?»: a chip and the counts it stands for. A game fits when it can be played by
   // every count in the band (3–4: both by three and by four). «9+»: at least nine and ten.
   const SPILLERE = { 1: [1, 1], 2: [2, 2], "3-4": [3, 4], "5-8": [5, 8], "9+": [9, 10] };
+  // The chip a head count belongs to («vi er 5» in the search, a count saved by an older page).
+  const naermesteBand = (n) => (n <= 1 ? "1" : n === 2 ? "2" : n <= 4 ? "3-4" : n <= 8 ? "5-8" : "9+");
 
   // «Hvem er yngst?»: an age from 3 to 17, then «voksen». «fest» (adults, 18+ games welcome) is only
   // there once someone has confirmed being 18 (rusj.felles.over18).
@@ -95,7 +98,8 @@
   }
 
   // How well a fitting game fits (higher is better): the wish, the age and the group.
-  function poeng(s, valg) {
+  // o.gruppe: the choice means several people together (see GRUPPE).
+  function poeng(s, valg, o) {
     let p = 0;
     // The wish: the game's main thing (its first tag) answers it, or only one of its tags does.
     const tagger = LYST[valg.lyst];
@@ -114,11 +118,13 @@
     // The group: one alone gets the games made for one; two get the games made for a few.
     if (valg.antall === "1" && (s.tagger.includes("alene") || s.motMobilen)) p += 1;
     if (valg.antall === "2" && s.spillere[1] <= 6) p += 1;
+    // Together: a game for one only comes after everything two or more can play.
+    if (o && o.gruppe && s.spillere[1] < 2) p -= 2;
     return p;
   }
 
   // Every game that fits, in the order to show them. spill: the edition's list; valg: the answers
-  // (normalised); o.maned: this month (1–12), for the seasonal rule.
+  // (normalised); o.maned: this month (1–12), for the seasonal rule; o.gruppe: several people together.
   // Ranked by how well it fits, then by its place in «Mest spilt nå», then by the site's own order;
   // then mixed: among the games that fit well (at most one point below the best), the best of each
   // kind first and a second of each kind next; then the others that lost no points (made for much
@@ -128,7 +134,7 @@
     const orden = (k) => (typeof k.s.rekkefolge === "number" ? k.s.rekkefolge : k.n);
     const kandidater = (spill || [])
       .filter((s) => passer(s, v, o))
-      .map((s, n) => ({ s, n, p: poeng(s, v), slag: slag(s) }))
+      .map((s, n) => ({ s, n, p: poeng(s, v, o), slag: slag(s) }))
       .sort((a, b) => b.p - a.p || (a.s.topp || Infinity) - (b.s.topp || Infinity) || orden(a) - orden(b) || a.n - b.n);
     const ut = [];
     const tatt = new Set();
@@ -149,13 +155,15 @@
 
   // The rooms, in the order the front page shows them: the tags each one gathers. A room never holds
   // an 18+ game – except «voksen», which holds only those (and opens only behind the 18+ door).
-  const ROMMENE = ["dagens", "fest", "familie", "barn", "alene", "klassikere", "kort", "ord", "arkade", "voksen"];
+  // «nett» is not a tag but a fact: the games that can be played online, each on their own phone.
+  const ROMMENE = ["dagens", "fest", "familie", "barn", "alene", "nett", "klassikere", "kort", "ord", "arkade", "voksen"];
   const ROM = {
     dagens: ["daglig"],
     fest: ["fest"],
     familie: ["familie"],
     barn: ["barn"],
     alene: ["alene"],
+    nett: [],
     klassikere: ["klassiker"],
     kort: ["kort"],
     ord: ["ord", "quiz"],
@@ -164,6 +172,7 @@
   };
   function iRom(s, rom) {
     if (rom === "voksen") return !!s.alder18;
+    if (rom === "nett") return !!s.nett && !s.alder18;
     const tagger = ROM[rom];
     return !!tagger && !s.alder18 && s.tagger.some((t) => tagger.includes(t));
   }
@@ -180,10 +189,14 @@
     fem: () => ({ antall: "", yngst: "voksen", lyst: "kjapt" }),
   };
 
+  // The shortcuts that mean several people together: «Med barna» is with the children, not a game
+  // for one child. Their suggestions put the games two or more can play first (o.gruppe in finn).
+  const GRUPPE = { barn: true, vors: true, to: true, stor: true };
+
   // Answers that filter nothing: no player count, «Voksen» and «Litt av alt».
   const ubesvart = (v) => !v.antall && v.yngst === "voksen" && v.lyst === "alt";
 
-  const api = { finn, passer, poeng, slag, normaliser, alderTrinn, iRom, ubesvart, ROMMENE, ROM, HURTIG, SPILLERE, LYST, MIME, ALDER_MIN, ALDER_MAKS, VOKSEN };
+  const api = { finn, passer, poeng, slag, normaliser, alderTrinn, iRom, ubesvart, naermesteBand, ROMMENE, ROM, HURTIG, GRUPPE, SPILLERE, LYST, MIME, ALDER_MIN, ALDER_MAKS, VOKSEN };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.RusjFinner = api;
 })(typeof self !== "undefined" ? self : this);

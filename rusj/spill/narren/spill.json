@@ -11,7 +11,7 @@
   "rekkefolge": 65,
   "farge": "#a77bff",
   "alder": 8,
-  "sok": ["idiot", "idiot kortspill", "kortspillet idiot", "idioten", "palace", "kortspill", "kortspill for to", "kortspill på nett", "brenne bunken"],
+  "sok": ["idiot", "idiot kortspill", "kortspillet idiot", "idioten", "palace", "kortspill", "kortspill for to", "kortspill på nett", "brenne bunken", "shithead"],
   "motMobilen": true,
   "nett": true,
   "alias": ["idiot"],
@@ -22,7 +22,7 @@
       "kort": "Play equal or higher – whoever is left holding cards is the jester.",
       "beskrivelse": "Free Palace card game in your browser: play equal or higher, burn the pile with a ten and get rid of your cards first. Against the phone, or 2–4 on one phone.",
       "slug": "jester",
-      "sok": ["palace", "palace card game", "idiot card game", "shed card game", "card game", "card game for two", "burn the pile"]
+      "sok": ["palace", "palace card game", "idiot card game", "shed card game", "card game", "card game for two", "burn the pile", "shithead"]
     },
     "da": {
       "navn": "Narren",
@@ -30,7 +30,7 @@
       "kort": "Læg lige så højt eller højere – den, der sidder tilbage med kort, er narren.",
       "beskrivelse": "Gratis idiot på dansk: læg lige så højt eller højere, brænd bunken med tieren, og bliv først af med kortene. Mod mobilen på tre niveauer eller 2–4 på én mobil.",
       "slug": "narren",
-      "sok": ["idiot", "idiot kortspil", "kortspillet idiot", "palace", "kortspil", "kortspil for to", "kortspil online", "brænde bunken"]
+      "sok": ["idiot", "idiot kortspil", "kortspillet idiot", "palace", "kortspil", "kortspil for to", "kortspil online", "brænde bunken", "shithead"]
     }
   }
 }

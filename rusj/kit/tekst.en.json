@@ -676,7 +676,6 @@
   "Søk i {n} spill": "Search {n} games",
   "{antall} gratis spill · ingen konto · ingen reklame": "{antall} free games · no account · no ads",
   "Snarveier": "Shortcuts",
-  "Flere valg": "More options",
   "Nytt": "New",
   "Nullstill": "Clear all",
   "Spiller dere på nett, går bare trekkene og et kallenavn dere velger selv via rusj, og alt slettes etter et døgn.": "If you play online, only the moves and a nickname you choose go through rusj, and everything is deleted after a day.",
@@ -781,5 +780,24 @@
   "Også telles, som summer per dag:": "Also counted, as daily totals:",
   "{tittel} hvilken utgave av rusj som brukes (norsk, engelsk eller dansk), om det er en mobil, et nettbrett eller en PC, og om besøket kom fra en søkemotor, et sosialt medium, en annen nettside eller uten lenke – bare gruppen, aldri adressen du kom fra. Nettleseren avgjør dette selv og sender bare ordet. Vi teller også når et spill får en feil (bare hvilket spill), første gang rusj åpnes fra hjemskjermen, rom og kamper når dere spiller på nett (på mobilen som lager rommet), og knappene i julekalenderen (skriv ut, påminnelse og juletreet).": "{tittel} which edition of rusj is used (Norwegian, English or Danish), whether it is a phone, a tablet or a computer, and whether the visit came from a search engine, a social network, another website or no link – only the group, never the address you came from. Your browser works this out itself and sends only the word. We also count when a game hits an error (only which game), the first time rusj is opened from the home screen, rooms and matches when you play online (on the phone that creates the room), and the buttons in the advent calendar (print, reminder and the Christmas tree).",
   "Mikrofonen": "The microphone",
-  "Noen spill, som Kassetten, tar opp stemmen din et lite øyeblikk. Mobilen spør om lov først, og bare når du trykker «Ta opp». Opptaket ligger bare i minnet på mobilen mens turen varer, og slettes etter turen og når du lukker siden. Det lagres aldri og sendes ingen steder – heller ikke til oss.": "Some games, like Rewind, record your voice for a moment. Your phone asks for permission first, and only when you tap ‘Record’. The recording only stays in the phone's memory during the turn, and is deleted after the turn and when you close the page. It is never stored and never sent anywhere – not to us either."
+  "Noen spill, som Kassetten, tar opp stemmen din et lite øyeblikk. Mobilen spør om lov først, og bare når du trykker «Ta opp». Opptaket ligger bare i minnet på mobilen mens turen varer, og slettes etter turen og når du lukker siden. Det lagres aldri og sendes ingen steder – heller ikke til oss.": "Some games, like Rewind, record your voice for a moment. Your phone asks for permission first, and only when you tap ‘Record’. The recording only stays in the phone's memory during the turn, and is deleted after the turn and when you close the page. It is never stored and never sent anywhere – not to us either.",
+  "Viser treff for «{ord}»": "Showing results for ‘{ord}’",
+  "Fant ingen spill for «{sok}»": "No games found for ‘{sok}’",
+  "Det har vi ikke ennå.": "We don't have that one yet.",
+  "Det nærmeste vi har:": "The nearest we have:",
+  "Prøv et av de mest spilte:": "Try one of the most played:",
+  "Eller velg en type spill:": "Or pick a type of game:",
+  "Hjelp oss å velge": "Help us choose",
+  "i {spill}": "in {spill}",
+  "Også:": "Also:",
+  "Prøv også": "Try these too",
+  "{n} treff": {
+    "one": "{n} result",
+    "other": "{n} results"
+  },
+  "Viser {n} treff": {
+    "one": "Showing {n} result",
+    "other": "Showing {n} results"
+  },
+  "Nettspill": "Online games"
 }

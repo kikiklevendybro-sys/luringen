@@ -1629,6 +1629,16 @@
     pagar,
     nett: NETT,
 
+    // rusj.no/samleren/#variant=gin and #variant=500 (the front page's rows «Gin rummy · i Samleren»
+    // and «500 · i Samleren»): the setup with that game chosen. With another game in progress the
+    // kit asks first, as «Nytt spill» does; the same game already on the table just goes on.
+    variantSpor: (S, id) => ["gin", "500"].includes(id) && pagar(S) && S.spill.variant !== id && { solo: S.spill.modus === "mobil" },
+    variant(S, id) {
+      if (!["gin", "500"].includes(id) || (pagar(S) && S.spill.variant === id)) return null;
+      S.oppsett.variant = id;
+      return "oppsett";
+    },
+
     tilstand: () => ({
       antall: 2,
       oppsett: STANDARD(),
