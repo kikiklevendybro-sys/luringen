@@ -265,7 +265,7 @@
         ["mandarin", "Liten søt frukt vi spiser til jul"],
         ["papaya", "Tropisk frukt med svarte frø"],
         ["rosin", "Tørket drue"],
-        ["bjørnebær", "Svart bær i tornekratt"],
+        ["nøtt", "Ekornet samler den"],
         ["skall", "Det skreller du av"],
         ["kjerne", "Frøet inni frukten"],
         ["saft", "Drikk laget av bær"],
@@ -1150,7 +1150,7 @@
         ["forelsket", "Hjertet banker for noen"],
         ["ensom", "Når du savner selskap"],
         ["sliten", "Etter en lang dag"],
-        ["skuffet", "Når det ikke ble som du håpet"],
+        ["sulten", "Magen rumler"],
         ["glede", "Får deg til å smile"],
         ["sinne", "Følelse når noe er urettferdig"],
         ["frykt", "Følelse i et spøkelseshus"],
@@ -1314,7 +1314,7 @@
         ["kasserer", "Tar imot betalingen"],
         ["handel", "Kjøp og salg"],
         ["melk", "Står i kjøledisken"],
-        ["brød", "Skjæres i skiver til matpakka"]
+        ["brød", "Kjøpes ferskt i bakeriet"]
       ]
     },
     {
@@ -1377,7 +1377,7 @@
         ["røntgen", "Bilde av skjelettet"],
         ["allergi", "Du nyser av pollen"],
         ["snue", "Tett nese"],
-        ["influensa", "Smittsom sykdom med høy feber"],
+        ["influensa", "Kraftig forkjølelse med feber"],
         ["hodepine", "Det dunker og verker i skallen"],
         ["brudd", "Brukket bein"],
         ["sår", "Blør litt etter et fall"],
