@@ -70,12 +70,33 @@ export default async function (t) {
   t.sjekk(!t.norsk || (await t.js(`document.querySelector("#skjerm h2").textContent`)) === "Hvordan vil dere spille?", "Valget av spillemåte skal stå først på «Gjør klart»");
   t.sjekk(await t.finnes('[data-h="telle"][aria-pressed="true"]'), "«Tell stemmer» skal være på fra start");
   let o = (await t.tilstand()).oppsett;
-  t.sjekk(!o.pakker.includes("fest") && !o.pakker.includes("jul"), "Festpakken (18+) og julepakken skal ikke være med fra start");
+  t.sjekk(!o.pakker.includes("fest") && !o.pakker.includes("par") && !o.pakker.includes("jul"), "Fest og Par (18+) og julepakken skal ikke være med fra start");
   t.sjekk(/^4\b/.test((await t.tekst("#vingle-antall output")).trim()), `«Hvor mange er dere?» skal følge gjengens fire navn («${await t.tekst("#vingle-antall output")}»)`);
   t.sjekk(await t.finnes('[data-h="lengde"][data-v="10"][aria-pressed="true"]'), "«10 dilemmaer» skal være valgt fra start");
   await t.bilde("oppsett", true);
+  // The adult packs («Fest», «Par») sit behind the 18+ question, as in Dommeren: «Nei» leaves each
+  // of them off, «Ja» turns one on and is remembered, so the other one needs no second question.
+  const over18 = () => t.js(`!!(JSON.parse(localStorage.getItem("rusj.felles") || "{}").over18)`);
+  const ark = () => t.vent(`document.querySelector('#ark:not([hidden]) [data-h="ark-svar"]')`);
+  const voksne = await t.js(`RUSJ_DATA.dilemmaer.pakker.filter((p) => p.voksen).map((p) => p.id)`);
+  t.sjekk(voksne.join() === "fest,par", `Voksenpakkene skal være fest og par (${voksne})`);
+  for (const id of voksne) {
+    t.sjekk(/18\+/.test(await t.tekst(`[data-h="pakke"][data-v="${id}"]`)), `«${id}» er ikke merket 18+`);
+    await t.klikk(`[data-h="pakke"][data-v="${id}"]`);
+    await ark();
+    t.sjekk(await t.js(`document.querySelector("#ark").textContent.includes(Rusj.t("Er du 18 år eller eldre?"))`), `«${id}» spør ikke om alder`);
+    if (id === "fest") await t.bilde("atten-ark");
+    await t.klikk('#ark [data-h="ark-svar"][data-v="nei"]', 400);
+    t.sjekk(!(await t.tilstand()).oppsett.pakker.includes(id) && !(await over18()), `«Nei» skal la «${id}» være av`);
+  }
   await t.klikk('[data-h="pakke"][data-v="ekkelt"]');
   await t.klikk('[data-h="pakke"][data-v="fest"]');
+  await ark();
+  await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]', 400);
+  t.sjekk((await t.tilstand()).oppsett.pakker.includes("fest") && (await over18()), "«Ja» skal slå på «fest» og huske svaret");
+  await t.klikk('[data-h="pakke"][data-v="par"]');
+  t.sjekk(!(await t.finnes("#ark:not([hidden])")) && (await t.tilstand()).oppsett.pakker.includes("par"), "Etter «Ja» skal «par» kunne velges uten å spørre igjen");
+  await t.klikk('[data-h="pakke"][data-v="par"]');
   o = (await t.tilstand()).oppsett;
   t.sjekk(o.pakker.includes("fest") && !o.pakker.includes("ekkelt"), "Pakkevalget ble ikke lagret");
   await t.klikk('#vingle-antall [data-v="1"]');

@@ -144,9 +144,9 @@ ungdomTester({
   felt: "kort",
   gamle: ["familie", "venner", "fantasi", "dypt"],
   avtrykk: {
-    nb: { standard: ["familie", "venner"], antall: 329, kart: "6a0933829462f591", trekk: "3e96a4ab6f1b7c12" },
-    en: { standard: ["familie", "venner"], antall: 329, kart: "003b81b863b0c482", trekk: "0393dc818c20903f" },
-    da: { standard: ["familie", "venner"], antall: 329, kart: "cad31a98d3cd58b5", trekk: "a6582ec936c1f642" },
+    nb: { standard: ["familie", "venner"], antall: 329, kart: "9c57cb570087a53b", trekk: "1e9be3ac87cf48f7" },
+    en: { standard: ["familie", "venner"], antall: 329, kart: "a8c61bfd69698cb9", trekk: "beeb67cecb3821ec" },
+    da: { standard: ["familie", "venner"], antall: 329, kart: "0a757b701fe40014", trekk: "0ad3366c203418dd" },
   },
   maks: 130,
   // «Start» shows the chair first; the card is on the question screen.

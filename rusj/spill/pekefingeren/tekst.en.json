@@ -103,5 +103,7 @@
   "Dere kan alltid starte et nytt.": "You can always start a new one.",
   "{navn} – mest sannsynlig til å {utsagn}.": "{navn} – most likely to {utsagn}.",
   "Diplom fra {spill} 👉": "A certificate from {spill} 👉",
-  "Diplomer fra {spill} 👉": "Certificates from {spill} 👉"
+  "Diplomer fra {spill} 👉": "Certificates from {spill} 👉",
+  "«{pakke}» er bare for voksne.": "‘{pakke}’ is for adults only.",
+  "Pakkene merket 18+ er bare for voksne. Mobilen spør om alder før dere kan velge dem.": "The packs marked 18+ are for adults only. The phone asks your age before you can choose them."
 }

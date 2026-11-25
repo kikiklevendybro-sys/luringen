@@ -195,9 +195,9 @@
       ]
     },
     "sladrehanken": {
-      "tittel": "Jeg har aldri – 500 spørsmål på norsk, gratis",
+      "tittel": "Jeg har aldri – 1000 spørsmål på norsk, gratis",
       "frase": "Jeg har aldri",
-      "beskrivelse": "Spill «Jeg har aldri» rett på mobilen: over 500 spørsmål for venner, familie, reise og fest. Les kortet høyt – har du gjort det, er du avslørt. Gratis.",
+      "beskrivelse": "Spill «Jeg har aldri» rett på mobilen: over 1000 spørsmål for venner, familie, reise og fest. Les kortet høyt – har du gjort det, er du avslørt. Gratis.",
       "sok": [
         "jeg har aldri",
         "jeg har aldri spørsmål",
@@ -209,7 +209,7 @@
     "pekefingeren": {
       "tittel": "Pekeleken – hvem er mest sannsynlig til å …?",
       "frase": "Pekeleken",
-      "beskrivelse": "Pekeleken på norsk: les utsagnet, tell ned – og alle peker samtidig. Over 400 «hvem er mest sannsynlig»-spørsmål for fest, venner og familie. Gratis.",
+      "beskrivelse": "Pekeleken på norsk: les utsagnet, tell ned – og alle peker samtidig. Over 1000 «hvem er mest sannsynlig»-spørsmål for fest, venner og familie. Gratis.",
       "sok": [
         "pekeleken",
         "pekelek",
@@ -220,9 +220,9 @@
       ]
     },
     "vaghalsen": {
-      "tittel": "Nødt eller sannhet – nesten 500 spørsmål og nødt",
+      "tittel": "Nødt eller sannhet – over 1000 spørsmål og nødt",
       "frase": "Nødt eller sannhet",
-      "beskrivelse": "Nødt eller sannhet (sannhet eller konsekvens) på norsk: snurr flaska og velg. Nesten 500 spørsmål og utfordringer for barn, familie, venner og fest.",
+      "beskrivelse": "Nødt eller sannhet (sannhet eller konsekvens) på norsk: snurr flaska og velg. Over 1000 spørsmål og utfordringer for barn, familie, venner og fest.",
       "sok": [
         "nødt",
         "nødt eller sannhet",
@@ -235,9 +235,9 @@
       ]
     },
     "vinglepetter": {
-      "tittel": "Hva vil du helst? 400 dilemmaer på norsk, gratis",
+      "tittel": "Hva vil du helst? 1000 dilemmaer på norsk, gratis",
       "frase": "Hva vil du helst?",
-      "beskrivelse": "«Hva vil du helst?» på norsk: over 400 morsomme dilemmaer for barn, familie, venner og fest. To valg, tell ned – og alle velger samtidig. Gratis.",
+      "beskrivelse": "«Hva vil du helst?» på norsk: over 1000 morsomme dilemmaer for barn, familie, venner og fest. To valg, tell ned – og alle velger samtidig. Gratis.",
       "sok": [
         "vil du heller",
         "dilemma",
@@ -355,7 +355,7 @@
     "lognhalsen": {
       "tittel": "To sannheter og en løgn – bli kjent-lek, gratis",
       "frase": "To sannheter og en løgn",
-      "beskrivelse": "«To sannheter og en løgn» på norsk: få et tema, si tre ting om deg selv – og la de andre avsløre løgnen. Gratis bli kjent-lek for 3–20, med over 270 kort.",
+      "beskrivelse": "«To sannheter og en løgn» på norsk: få et tema, si tre ting om deg selv – og la de andre avsløre løgnen. Gratis bli kjent-lek for 3–20, med over 670 kort.",
       "sok": [
         "to sannheter og en løgn eksempler",
         "bli kjent-lek",
@@ -610,7 +610,7 @@
     "papegoyen": {
       "tittel": "Ja- og nei-leken – ikke si ja eller nei! Gratis",
       "frase": "Ja- og nei-leken",
-      "beskrivelse": "Gratis ja-og-nei-lek på norsk: svar på lure spørsmål uten å si «ja» eller «nei». Over 350 spørsmål for barn, familie og voksne."
+      "beskrivelse": "Gratis ja-og-nei-lek på norsk: svar på lure spørsmål uten å si «ja» eller «nei». Over 700 spørsmål for barn, familie og voksne."
     },
     "bingoballen": {
       "tittel": "Bingo på mobilen – tallbingo og festbingo, gratis",
@@ -668,9 +668,9 @@
       "beskrivelse": "Gratis drikkelek på norsk (18+): Snurr det store hjulet og se hva det lander på. Lag egne husregler. Bare små slurker – alkoholfritt teller like mye."
     },
     "torsten": {
-      "tittel": "Jeg har aldri som drikkelek – 450 kort (18+)",
+      "tittel": "Jeg har aldri som drikkelek – 800 kort (18+)",
       "frase": "Jeg har aldri – drikkelek",
-      "beskrivelse": "Gratis «Jeg har aldri» som drikkelek på norsk (18+). Over 450 kort i sju pakker. Har du gjort det, tar du en slurk – alkoholfritt teller like mye."
+      "beskrivelse": "Gratis «Jeg har aldri» som drikkelek på norsk (18+). Over 800 kort i ni pakker. Har du gjort det, tar du en slurk – alkoholfritt teller like mye."
     },
     "firklover": {
       "tittel": "Fire grupper – dagens ordgåte på norsk, gratis",

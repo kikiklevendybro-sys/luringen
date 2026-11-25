@@ -176,7 +176,7 @@
       "Ting på et kontor",
       "Dansestiler",
       "Ting man kan bygge av snø",
-      "Ting man finner i en fruktbolle",
+      "Ting man finner i en bil",
       "Ting som er varme",
       "Ord på fire bokstaver",
       "Gode unnskyldninger for å komme for sent",
@@ -199,7 +199,7 @@
       "Ting som har vinger",
       "Fjell i Norge",
       "Øyer",
-      "Sjømat",
+      "Ting man kan gjøre med en snor",
       "Retter med egg",
       "Ting man ser på 17. mai",
       "Ting man gjør i påsken",
@@ -208,7 +208,7 @@
       "Gaver man kan gi bort",
       "Ting man har på hodet",
       "Ting i en matbutikk",
-      "Planeter og himmellegemer",
+      "Ting man finner på et hotellrom",
       "Ting man kan spise rått",
       "Ting man finner i en skuff",
       "Ting som har en skjerm",
@@ -266,11 +266,11 @@
       "sekk", "tre", "sky", "vind", "bjørn", "regn", "lue", "egg", "gull", "drøm",
       "gave", "måne", "planke", "ski", "dør", "jakke", "hage", "lykke", "pære", "kjole",
       "mat", "bord", "flagg", "pute", "bilde", "hjerte", "sommer", "vinter", "brød", "skog",
-      "hatt", "bro", "park", "fjord", "skjerf", "te", "nese", "lampe", "tog", "gate",
-      "sjø", "stein", "vegg", "rom", "pil", "støvel", "tann", "hånd", "stol", "kort",
+      "hatt", "bro", "park", "fjord", "sti", "te", "nese", "lampe", "tog", "gate",
+      "sjø", "stein", "vegg", "rom", "pil", "fly", "tann", "hånd", "stol", "kort",
       "spill", "sild", "bær", "skje", "ark", "kanal", "mor", "sopp", "rull", "stokk",
-      "pels", "ku", "høst", "knapp", "vott", "lim", "hav", "brev", "kniv", "flue",
-      "fjær", "garn", "kran", "frosk", "mynt", "plante", "sukker", "øy", "bøtte", "skap"
+      "mel", "ku", "høst", "knapp", "vott", "lim", "hav", "brev", "kniv", "flue",
+      "fjær", "garn", "kran", "bad", "mynt", "plante", "sukker", "øy", "bøtte", "skap"
     ],
     "aldri": [
       "sovnet i en badstue",
@@ -362,7 +362,7 @@
       "laget en kortfilm",
       "vært med i en flashmob",
       "vunnet en kakekonkurranse",
-      "fått et brev fra noen jeg aldri har møtt"
+      "sendt en flaskepost"
     ],
     "regel": [
       "Alle må skåle med venstre hånd.",
@@ -447,7 +447,7 @@
       "Den som trekker en femmer, må vinke til alle.",
       "Alle må si «mmm» før de drikker.",
       "Ingen får legge albuene på bordet.",
-      "Den som trekker, må si en ting de liker med naboen.",
+      "Den som trekker, må si én fin ting om naboen sin.",
       "Alle må kalle bunken med kort for «skattkammeret»."
     ],
     "skal": [
@@ -496,7 +496,7 @@
       "Skål for vinterkvelder!",
       "Skål for alle nye vennskap!",
       "Skål for en god natts søvn i morgen!",
-      "Skål for de som jobber i morgen!",
+      "Skål for dem som jobber i morgen!",
       "Skål for den som valgte musikken!",
       "Skål for alle som spør hvordan det går – og venter på svaret!",
       "Skål for alle som har sunget i kveld!",
@@ -511,7 +511,7 @@
       "Skål for den som rydder oppvasken!",
       "Skål for gamle venner som fortsatt stiller opp!",
       "Skål for at vi kan stå over når vi vil!",
-      "Skål for de som tok med snacks!",
+      "Skål for dem som tok med snacks!",
       "Skål for alle i rommet – én etter én!",
       "Skål for en kveld vi skal huske!",
       "Skål for at det er lov å si nei!",

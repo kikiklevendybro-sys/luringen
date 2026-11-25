@@ -46,7 +46,7 @@
       "kat", "sol", "fest", "skål", "hus", "bil", "sko", "is", "glas", "dans", "sang", "nat", "lys", "hest", "fisk", "lyd", "bold",
       "seng", "ven", "tid", "kage", "ost", "båd", "bakke", "dag", "mus", "tag", "ring", "kop", "lam", "pind", "rose", "krone", "sne",
       "vand", "fod", "stjerne", "ræv", "bog", "klokke", "sæk", "træ", "sky", "vind", "bjørn", "regn", "hue", "æg", "guld", "drøm",
-      "gave", "måne", "ski", "dør", "jakke", "have", "kjole", "mad", "bord", "flag", "pude", "billede", "hjerte", "sommer", "vinter",
+      "gave", "måne", "ski", "dør", "jakke", "have", "kjole", "mad", "bord", "flag", "pude", "mand", "hjerte", "sommer", "vinter",
       "brød", "skov", "hat", "bro", "park", "te", "næse", "lampe", "tog", "gade", "sø", "sten", "væg", "stol", "kort", "spil", "sild",
       "ske", "mor", "svamp", "ko", "knap", "hav", "brev", "kniv", "flue", "frø", "mønt", "sukker", "ø", "spand", "skab"
     ],
@@ -64,7 +64,7 @@
       "vundet en dansekonkurrence", "boet på en gård", "set nordlys", "plukket æbler direkte fra træet", "stået på vandski",
       "sprunget i faldskærm", "gået en tur på over ti timer", "holdt en slange", "lavet mine egne smykker", "set en vulkan",
       "sejlet med natfærge", "cyklet over hundrede kilometer på én dag", "set en solformørkelse", "spillet et instrument foran publikum",
-      "været hentet i lufthavnen med et navneskilt", "lavet en kortfilm", "vundet en bagekonkurrence", "fået et brev fra en, jeg aldrig har mødt"
+      "været hentet i lufthavnen med et navneskilt", "lavet en kortfilm", "vundet en bagekonkurrence", "sendt en flaskepost"
     ],
     "regel": [
       "Alle skal skåle med venstre hånd.", "Ingen må sige »ja« eller »nej«.", "Ingen må sige navne – brug øgenavne i stedet.",
@@ -90,7 +90,7 @@
       "Afbryder du nogen, skal du sige undskyld på rim.", "Den, der glemmer en regel, tager en slurk vand.",
       "Alle skal sige »vidunderligt« om alt, de smager på.", "Alle skal kalde deres glas for »pokalen«.",
       "Giv en tommel op, før du trækker.", "Den, der trækker et es, vælger den næste sang.", "Ingen må sige »ringen« – sig »cirklen« i stedet.",
-      "Ingen må have albuerne på bordet.", "Den, der trækker, skal sige én ting, de kan lide ved deres nabo.",
+      "Ingen må have albuerne på bordet.", "Den, der trækker, skal sige én pæn ting om sin nabo.",
       "Alle skal kalde bunken med kort for »skatkammeret«.", "Tal fint og fornemt, når du taler til værten."
     ],
     "skal": [
