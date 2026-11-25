@@ -18,6 +18,8 @@
   "{n} pakke igjen i haugen|{n} pakker igjen i haugen": { "one": "{n} pakke tilbage i bunken", "other": "{n} pakker tilbage i bunken" },
   "pakke igjen i haugen|pakker igjen i haugen": { "one": "pakke tilbage i bunken", "other": "pakker tilbage i bunken" },
   "Klokka går …": "Uret går …",
+  "Klokka venter på dere": "Uret venter på jer",
+  "Trykk for å fortsette": "Tryk for at fortsætte",
   "Ingen vet når hornet går!": "Ingen ved, hvornår hornet lyder!",
   "Kast terningen": "Slå med terningen",
   "Terningen viser {n}": "Terningen viser {n}",

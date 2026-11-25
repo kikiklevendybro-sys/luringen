@@ -6,7 +6,9 @@
    player. When the horn goes, it is over and everyone opens what they have.
    House rule «Enere gir bort»: a one gives one of your parcels to somebody else.
    The clock runs only while the game is on the screen: it stands still when the phone is locked,
-   on the home screen or while the page loads again, and it is never drawn anywhere.
+   on the home screen or while the page loads again, and it is never drawn anywhere. It is measured
+   with a steady timer, so setting the phone's own clock does not move the horn, and after a reload
+   it waits for a tap («Trykk for å fortsette»), without which a phone may not play the horn.
    The rules are pure functions at the top (window.RusjPakketyven when loaded without the kit);
    test/pakketyven.test.mjs checks them. */
 (function () {
@@ -157,6 +159,15 @@
     };
     const klokkeIgjen = (k, na) => (!k ? Infinity : k.slutt != null ? Math.max(0, k.slutt - na) : k.igjen);
     const klokkeUte = (k, na) => !!k && klokkeIgjen(k, na) <= 0;
+    // While the clock runs on the screen it is measured with a steady timer (performance.now), not
+    // the phone's own clock, which the user may set at any time. lop = { mono, igjen }: the steady
+    // time and what was left when it started. The saved end (`slutt`, in the phone's time, for a
+    // reload) follows it; returns what is left.
+    function klokkeFolg(k, lop, mono, vegg) {
+      const igjen = Math.max(0, lop.igjen - Math.max(0, mono - lop.mono));
+      if (k) k.slutt = vegg + igjen;
+      return igjen;
+    }
     // A saved clock is repaired: never more time than it was given, never a broken number.
     function klokkeGyldig(k, na, lengde) {
       if (!k || typeof k !== "object") return null;
@@ -218,7 +229,7 @@
       return true;
     }
 
-    return { MIN, MAKS, MAKS_PAKKER, LENGDER, standardPakker, nytt, neste, kandidater, andreMedPakker, kast, velg, startDel2, varighet, klokkeStart, klokkePause, klokkeIgjen, klokkeUte, klokkeGyldig, rett, horn, rekkefolge, flest, gyldig };
+    return { MIN, MAKS, MAKS_PAKKER, LENGDER, standardPakker, nytt, neste, kandidater, andreMedPakker, kast, velg, startDel2, varighet, klokkeStart, klokkePause, klokkeIgjen, klokkeUte, klokkeFolg, klokkeGyldig, rett, horn, rekkefolge, flest, gyldig };
   })();
 
   const R = window.Rusj;
@@ -251,9 +262,15 @@
 
   let ruller = false; // the die is in the air
   let sveipKast = null; // a fling on the tray: its direction and speed for the next throw
-  let pause = false; // a short beat after a six, so everyone sees it
+  let pause = false; // a short rest after every throw (a longer one after a six), so a second tap meant for the same die never throws for the next player
   let pauseId = null;
   let klokkeId = null;
+  let klokkeTikk = 0;
+  let lop = null; // the hidden clock while it runs on this page: { mono, igjen } (P.klokkeFolg)
+  // A phone plays sound only after a tap on the page. After a reload in part 2 the clock waits for
+  // one («Trykk for å fortsette»), so the horn can be heard; any way into the game with a tap
+  // (Fortsett, Start klokka, a choice) counts.
+  let vekket = false;
   let tuter = false; // the horn goes when the result screen comes up
 
   // ---------- Drawings ----------
@@ -331,11 +348,13 @@
     </div>`;
   }
   // Part 2: the clock that shows nothing. (No time, no bar, nothing that moves with the time.)
-  const urHtml = () =>
-    `<div class="pt-klokke">${klokkeSvg()}<p><b>${esc(R.t("Klokka går …"))}</b><span>${esc(R.t("Ingen vet når hornet går!"))}</span></p></div>`;
+  const urHtml = (venter) =>
+    `<div class="pt-klokke${venter ? " venter" : ""}">${klokkeSvg()}<p><b>${esc(venter ? R.t("Klokka venter på dere") : R.t("Klokka går …"))}</b><span>${esc(R.t("Ingen vet når hornet går!"))}</span></p></div>`;
+  // After a reload in part 2 the clock stands still until somebody taps (see `vekket`).
+  const venterPaTrykk = (sp) => sp.fase === 2 && !sp.ferdig && !vekket;
 
   function brettHtml(sp) {
-    const kan = sp.status === "kast" && !ruller && !pause;
+    const kan = sp.status === "kast" && !ruller && !pause && !venterPaTrykk(sp);
     return R.terninger.html({
       id: BRETT,
       klasse: "pt-brett",
@@ -365,7 +384,11 @@
     const lenker = [];
     if (sp.angre) lenker.push(`<button class="lenke" data-h="angre">↶ ${esc(R.t("Angre"))}</button>`);
     lenker.push(R.ui.lenke(R.t("Rett opp"), "rett-opp"), R.ui.lenke(R.t("Avslutt"), "avslutt"));
-    const hoved = tomHaug ? R.ui.knapp(R.t("Haugen er tom – videre"), "videre", { variant: "stor" }) : R.ui.knapp(R.t("Kast terningen"), "kast", { variant: "stor", ikon: "🎲", av: ruller || pause });
+    const hoved = tomHaug
+      ? R.ui.knapp(R.t("Haugen er tom – videre"), "videre", { variant: "stor" })
+      : venterPaTrykk(sp)
+        ? R.ui.knapp(R.t("Trykk for å fortsette"), "vekk", { variant: "stor", ikon: "▶️" })
+        : R.ui.knapp(R.t("Kast terningen"), "kast", { variant: "stor", ikon: "🎲", av: ruller || pause });
     return `
       <div class="pt-hode" style="--pf: var(--p${(i % 20) + 1})">
         ${R.avatar(i, "stor")}
@@ -377,7 +400,7 @@
       </div>
       ${brettHtml(sp)}
       <p class="pt-hendelse" id="pt-hendelse" aria-live="polite">${esc(hendelseTekst(sp))}<span class="vh"> ${esc(sp.sist ? R.t("{navn} sin tur.", { navn: R.navn(i) }) : "")}</span></p>
-      ${sp.fase === 1 ? haugHtml(sp) : urHtml()}
+      ${sp.fase === 1 ? haugHtml(sp) : urHtml(venterPaTrykk(sp))}
       ${bordHtml(sp)}
       ${R.ui.dokk(hoved, R.ui.lenkerad(...lenker))}`;
   }
@@ -431,29 +454,38 @@
   function startKlokke(S) {
     const sp = S.spill;
     stoppTikk();
-    if (!sp || sp.ferdig || sp.fase !== 2 || !sp.klokke || S.skjerm !== "spill" || document.hidden) return;
-    P.klokkeStart(sp.klokke, Date.now());
+    if (!sp || sp.ferdig || sp.fase !== 2 || !sp.klokke || S.skjerm !== "spill" || document.hidden || !vekket) return;
+    if (!lop) {
+      P.klokkeStart(sp.klokke, Date.now());
+      lop = { mono: performance.now(), igjen: P.klokkeIgjen(sp.klokke, Date.now()) };
+    }
     R.lagre();
     klokkeId = setInterval(sjekkKlokke, 250);
   }
   function pauseKlokke(S) {
     stoppTikk();
     const sp = S && S.spill;
-    if (!sp || !sp.klokke || sp.klokke.slutt == null) return;
-    P.klokkePause(sp.klokke, Date.now());
-    R.lagre();
+    if (sp && sp.klokke && sp.klokke.slutt != null) {
+      if (lop) P.klokkeFolg(sp.klokke, lop, performance.now(), Date.now());
+      P.klokkePause(sp.klokke, Date.now());
+      R.lagre();
+    }
+    lop = null;
   }
   // Time is up: the horn – but a throw in the air lands first, and a six that is waiting for its
   // choice is allowed to steal.
   function sjekkKlokke() {
     const S = R.S;
     const sp = S && S.spill;
-    if (!sp || sp.ferdig || sp.fase !== 2 || S.skjerm !== "spill") return stoppTikk();
+    if (!sp || sp.ferdig || sp.fase !== 2 || S.skjerm !== "spill" || !lop) return stoppTikk();
+    const igjen = P.klokkeFolg(sp.klokke, lop, performance.now(), Date.now());
+    if (++klokkeTikk % 4 === 0) R.lagre(); // (about once a second: the save follows the clock)
     if (ruller || sp.status !== "kast") return;
-    if (P.klokkeUte(sp.klokke, Date.now())) hornetGar(S);
+    if (igjen <= 0) hornetGar(S);
   }
   function hornetGar(S) {
     const sp = S.spill;
+    lop = null;
     stoppTikk();
     clearTimeout(pauseId);
     pause = false;
@@ -518,13 +550,14 @@
     S.spill = P.nytt({ antall: S.antall, pakker: pakkerFor(S), enere: o.enere, lengde: o.lengde, tema: temaFor({ oppsett: o, spill: null }) });
     ruller = false;
     pause = false;
+    lop = null;
     const sp = S.spill;
     R.statistikk("start", { spillere: sp.antall, pakker: sp.pakker, enere: sp.enere, lengde: sp.lengde, tema: sp.tema });
   }
 
   async function kast(S) {
     const sp = S.spill;
-    if (!pagar(S) || ruller || pause || sp.status !== "kast" || S.skjerm !== "spill") return;
+    if (!pagar(S) || ruller || pause || sp.status !== "kast" || S.skjerm !== "spill" || venterPaTrykk(sp)) return;
     if (sp.fase === 1 && sp.haug <= 0) return H.videre(null, null, S);
     const vei = sveipKast;
     sveipKast = null;
@@ -544,8 +577,10 @@
   function etterKast(S, h) {
     const sp = S.spill;
     const seks = h.v === 6;
-    // A six gets a beat of its own before the next throw (and a taken parcel is seen leaving the pile).
-    pause = seks && sp.status === "kast";
+    // Every throw is followed by a short rest before the next one (a longer one after a six, so everyone
+    // sees the parcel go): a second tap meant for the same die never throws for the next player,
+    // whose name is on the screen at once.
+    pause = sp.status === "kast";
     R.vis();
     if (h.hva === "tok") {
       stempel(h.siste ? R.t("Siste pakke!") : R.t("Sekser!"), "lampe");
@@ -573,10 +608,13 @@
         () => {
           pause = false;
           if (!fortsatt() || R.S.spill !== sp) return;
-          for (const k of R.$$('#skjerm [data-h="kast"]')) k.disabled = false;
+          for (const k of R.$$('#skjerm [data-h="kast"]')) {
+            k.disabled = false;
+            if (k.classList.contains("trn-t")) k.setAttribute("aria-label", R.t("Kast terningen"));
+          }
           sjekkKlokke();
         },
-        R.rolig() ? 250 : 800,
+        seks && !R.rolig() ? 800 : 450,
       );
       return;
     }
@@ -807,6 +845,7 @@
         R.gaTil("oppsett");
       },
       fortsett(el, e, S) {
+        vekket = true; // (a tap: the sound may play)
         if (pagar(S)) R.gaTil(skjermFor(S.spill));
       },
       resultat(el, e, S) {
@@ -850,8 +889,17 @@
         const sp = S.spill;
         if (!pagar(S) || sp.status !== "mellom") return;
         if (!P.startDel2(sp, P.varighet(sp.lengde, tilfeldig))) return;
+        vekket = true;
+        lop = null;
         R.lyd.pling();
         R.gaTil("spill");
+      },
+      // After a reload in part 2: the tap that lets the hidden clock go on (and the horn be heard).
+      vekk(el, e, S) {
+        if (!pagar(S) || S.skjerm !== "spill") return;
+        vekket = true;
+        startKlokke(S);
+        R.vis();
       },
       "lyd-pa"() {
         if (!R.felles.lyd) {
@@ -864,6 +912,11 @@
       velg(el, e, S) {
         const sp = S.spill;
         if (!pagar(S) || sp.status !== "velg") return;
+        if (!vekket) {
+          // (A choice after a reload is the tap that lets the clock go on.)
+          vekket = true;
+          startKlokke(S);
+        }
         const for_ = JSON.stringify({ har: sp.har, tur: sp.tur, velg: sp.velg, sist: sp.sist, tyverier: sp.tyverier });
         const h = P.velg(sp, Number(el.dataset.v));
         if (!h) return;
@@ -926,6 +979,7 @@
           return;
         }
         stoppTikk();
+        lop = null;
         P.horn(sp, false);
         avslutt(S);
       },
