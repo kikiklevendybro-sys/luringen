@@ -282,6 +282,18 @@
       ],
       "type": "WebApplication"
     },
+    "pakketyven": {
+      "tittel": "Pakkeleg med terning – gratis på mobilen",
+      "frase": "Pakkeleg",
+      "beskrivelse": "Pakkeleg på mobilen: slå en sekser, og tag en pakke. Når bunken er tom, går et hemmeligt ur – og sekserne stjæler, til hornet lyder. Gratis, for 4–20.",
+      "sok": [
+        "pakkeleg regler",
+        "pakkespil",
+        "julelege",
+        "juleaften",
+        "julefrokost"
+      ]
+    },
     "femmeren": {
       "tittel": "Fem sekunder – nævn tre ting på fem sekunder",
       "frase": "Nævn tre ting på fem sekunder",
@@ -731,6 +743,17 @@
       "tittel": "10.000 terningespil – gratis på dansk",
       "frase": "Terningespillet 10.000",
       "beskrivelse": "Spil terningespillet 10.000 gratis: slå med seks terninger, læg til side, hvad der giver point, og tør at slå videre. For 1–8, med mobilen som modspiller."
+    },
+    "gradigper": {
+      "tittel": "Et kort til? Gratis kortspil for 2–8 på mobilen",
+      "frase": "Et kort til?",
+      "beskrivelse": "Gratis kortspil, hvor du presser heldet: træk et kort til, eller stop i tide. To ens, og rundens point ryger. For 2–8, på én mobil eller hver sin på nettet.",
+      "sok": [
+        "pres heldet kortspil",
+        "syv forskellige tal",
+        "familiekortspil",
+        "kortspil online"
+      ]
     },
     "dobbelsekseren": {
       "tittel": "Domino online – gratis mod mobilen",

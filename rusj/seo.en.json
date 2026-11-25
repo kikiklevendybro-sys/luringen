@@ -277,6 +277,17 @@
       ],
       "type": "WebApplication"
     },
+    "pakketyven": {
+      "tittel": "Present dice game – roll a six, pinch a parcel",
+      "frase": "Present dice game",
+      "beskrivelse": "The Nordic Christmas present game on one phone: roll a six to take a parcel, then pinch from each other until the secret clock sounds the horn. Free, for 4–20.",
+      "sok": [
+        "christmas present game",
+        "gift exchange dice game",
+        "steal a present game",
+        "christmas party games"
+      ]
+    },
     "femmeren": {
       "tittel": "Five-second game – name three things in five seconds",
       "frase": "Name three things in five seconds",
@@ -718,6 +729,17 @@
       "tittel": "10,000 dice game – free online, 1 to 8 players",
       "frase": "The 10,000 dice game",
       "beskrivelse": "Play the 10,000 dice game free: roll six dice, keep what scores and dare to roll on – or lose the lot. For 1 to 8 players, with the phone as an opponent."
+    },
+    "gradigper": {
+      "tittel": "Push your luck card game – one more card? Free",
+      "frase": "Push your luck card game",
+      "beskrivelse": "A free push-your-luck card game: take one more card or stop in time. Two alike and the round's points are gone. For 2–8, on one phone or a phone each online.",
+      "sok": [
+        "one more card",
+        "press your luck card game",
+        "seven different numbers",
+        "family card games"
+      ]
     },
     "dobbelsekseren": {
       "tittel": "Dominoes online – free against the phone",

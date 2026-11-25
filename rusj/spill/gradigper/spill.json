@@ -1,0 +1,34 @@
+{
+  "id": "gradigper",
+  "navn": "Grådigper",
+  "undertittel": "Ett kort til?",
+  "beskrivelse": "Gratis kortspill på mobilen: trekk ett kort til, eller stopp mens leken er god. Får du et tall du har fra før, ryker rundens poeng. Først til 200. For 2–8.",
+  "kort": "Ett kort til – eller stopp? To like, og rundens poeng ryker.",
+  "spillere": [2, 8],
+  "alder": 7,
+  "minutter": [10, 30],
+  "mobiler": "begge",
+  "tagger": ["fest", "familie", "kort"],
+  "rekkefolge": 113,
+  "farge": "#ffa94d",
+  "nett": true,
+  "sok": ["ett kort til", "press lykken", "push your luck", "tallkort", "sju ulike", "kortspill for familien", "raskt kortspill", "stopp i tide", "først til 200", "flip 7", "flip seven"],
+  "i18n": {
+    "en": {
+      "navn": "Nibbles",
+      "undertittel": "One more card?",
+      "kort": "One more card – or stop? Two the same and the round's points are gone.",
+      "beskrivelse": "A free push-your-luck card game on your phone: take one more card, or stop while you're ahead. Draw a number you already have and the round's points are gone.",
+      "slug": "nibbles",
+      "sok": ["one more card", "push your luck", "push your luck card game", "number cards", "seven different", "family card game", "quick card game", "first to 200", "flip 7", "flip seven"]
+    },
+    "da": {
+      "navn": "Slughalsen",
+      "undertittel": "Et kort til?",
+      "kort": "Et kort til – eller stop? To ens, og rundens point ryger.",
+      "beskrivelse": "Gratis kortspil på mobilen: træk et kort til, eller stop, mens legen er god. Får du et tal, du har i forvejen, ryger rundens point. Først til 200. For 2–8.",
+      "slug": "slughalsen",
+      "sok": ["et kort til", "pres heldet", "push your luck", "talkort", "syv forskellige", "kortspil for familien", "hurtigt kortspil", "stop i tide", "først til 200", "flip 7", "flip seven"]
+    }
+  }
+}

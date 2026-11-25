@@ -1,0 +1,862 @@
+/* Pakketyven — one big die in a tray, whose turn it is in big letters, the pile of parcels (part 1)
+   or the clock that shows nothing (part 2), and everyone round the table with their parcels.
+   Two looks: Christmas (red felt, fairy lights) and party (purple felt, bunting).
+   Everything new is prefixed pt-. */
+
+.skjerm-spill,
+.skjerm-tyveri {
+  gap: 12px;
+}
+
+.skjerm-slutt {
+  gap: 16px;
+}
+
+/* The wrapper only carries the look (pt-jul / pt-fest): its children lie in the screen's own column. */
+.pt-scene {
+  display: contents;
+}
+
+.pt-jul {
+  --pt-filt: #a3202f;
+  --pt-filt-lys: #c7323f;
+  --pt-glod: #ffd23f;
+}
+
+.pt-fest {
+  --pt-filt: #4b2a9a;
+  --pt-filt-lys: #6a3fd1;
+  --pt-glod: #3de3b0;
+}
+
+/* ---------- The string across the top ---------- */
+
+.pt-pynt {
+  display: block;
+  flex: none;
+  width: calc(100% + 32px);
+  height: 30px;
+  margin: -8px -16px -8px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.pt-paere ellipse {
+  filter: drop-shadow(0 0 3px currentColor);
+  animation: pt-blink 2.8s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.62s);
+}
+
+@keyframes pt-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.62;
+  }
+}
+
+/* ---------- A parcel ---------- */
+
+.pt-pakke {
+  display: block;
+  flex: none;
+  width: 28px;
+  height: 28px;
+}
+
+/* ---------- Whose turn ---------- */
+
+.pt-hode,
+.pt-velg-hode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pt-hode .avatar,
+.pt-velg-hode .avatar {
+  box-shadow:
+    inset 0 -5px 0 rgba(0, 0, 0, 0.18),
+    0 0 0 3px var(--natt),
+    0 0 0 6px var(--pf);
+}
+
+.pt-hvem {
+  flex: 1;
+  min-width: 0;
+}
+
+.pt-hvem .etikett {
+  margin-bottom: 2px;
+}
+
+.pt-hode h1 {
+  font-size: clamp(1.9rem, 9.4vw, 2.7rem);
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+/* A long name: smaller letters, so it stays on one line where it can */
+.pt-hode h1.lang {
+  font-size: clamp(1.4rem, 6.7vw, 1.8rem);
+  line-height: 1.05;
+}
+
+.pt-mine {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  color: var(--aksent);
+  font: 900 2.1rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.pt-mine .pt-pakke {
+  width: 36px;
+  height: 36px;
+}
+
+/* ---------- The die (R.terninger, rusj/kit/terninger.css) ---------- */
+
+.pt-brett {
+  --trn-filt: var(--pt-filt);
+  --trn-filt-lys: var(--pt-filt-lys);
+  flex: 1 1 140px;
+  min-height: 132px;
+  max-height: 200px;
+}
+
+.pt-stempel {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  animation: pt-ut 0.45s ease-in 1.5s both;
+}
+
+.pt-stempel .stempel {
+  font-size: clamp(1.7rem, 9vw, 2.3rem);
+  text-shadow: 0 2px 0 var(--natt);
+  animation: pt-inn 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes pt-inn {
+  from {
+    opacity: 0;
+    transform: scale(2.2) rotate(-14deg);
+  }
+}
+
+@keyframes pt-ut {
+  to {
+    opacity: 0;
+  }
+}
+
+.pt-hendelse {
+  display: grid;
+  place-items: center;
+  min-height: 2.5em;
+  margin-top: -2px;
+  color: var(--tekst);
+  font: 800 1.04rem/1.25 var(--font-display);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ---------- The pile (part 1) and the clock (part 2) ---------- */
+
+.pt-haug,
+.pt-klokke {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 8px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+}
+
+.pt-haug-ikoner {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+  padding-left: 9px;
+}
+
+.pt-haug-ikoner .pt-pakke {
+  width: 30px;
+  height: 30px;
+  margin: -2px 0 -2px -9px;
+}
+
+.pt-haug-ikoner .pt-pakke:nth-child(3n + 1) {
+  transform: rotate(-7deg);
+}
+
+.pt-haug-ikoner .pt-pakke:nth-child(3n) {
+  transform: rotate(6deg);
+}
+
+.pt-haug-ikoner i {
+  margin-left: 6px;
+  color: var(--tekst-2);
+  font: 900 0.95rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.pt-haug p {
+  flex: none;
+  max-width: 46%;
+  color: var(--tekst-2);
+  font: 800 0.82rem/1.15 var(--font-display);
+  text-align: right;
+}
+
+.pt-haug p b {
+  display: block;
+  color: var(--aksent);
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.pt-ur {
+  display: block;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  transform-origin: 50% 90%;
+  animation: pt-tikk 1s steps(1) infinite;
+}
+
+/* Tick, tock: the same beat from the first second to the last (it tells nothing of the time left). */
+@keyframes pt-tikk {
+  0%,
+  100% {
+    transform: rotate(-7deg);
+  }
+  50% {
+    transform: rotate(7deg);
+  }
+}
+
+.pt-klokke p {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pt-klokke b {
+  color: var(--aksent);
+  font: 900 1.25rem/1.1 var(--font-display);
+}
+
+.pt-klokke span {
+  color: var(--tekst-2);
+  font: 700 0.92rem/1.2 var(--font-display);
+}
+
+/* ---------- Everyone round the table ---------- */
+
+.pt-bord {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pt-bord li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 3px 10px 3px 3px;
+  border-radius: 999px;
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  font: 800 0.86rem/1.1 var(--font-display);
+  text-align: left;
+}
+
+.pt-bord .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.95rem;
+}
+
+.pt-bord-navn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tekst-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-bord b {
+  flex: none;
+  color: var(--tekst);
+  font-size: 1.08rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pt-bord li.tom b {
+  color: var(--tekst-3);
+}
+
+.pt-bord li.na {
+  box-shadow: inset 0 0 0 2.5px var(--pf);
+}
+
+.pt-bord li.na .pt-bord-navn {
+  color: var(--tekst);
+}
+
+.pt-bord li.fikk {
+  animation: pt-fikk 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+.pt-bord li.mistet {
+  animation: pt-mistet 0.6s ease-out both;
+}
+
+@keyframes pt-fikk {
+  0% {
+    background: var(--pt-glod);
+    transform: scale(1.14);
+  }
+}
+
+@keyframes pt-mistet {
+  0% {
+    background: var(--rod-dyp);
+    transform: translateX(-4px);
+  }
+  30% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+}
+
+/* Up to eight round the table: two wide columns, names in full */
+.pt-bord.fa {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pt-bord.fa li {
+  gap: 8px;
+  padding: 4px 14px 4px 4px;
+  font-size: 1rem;
+}
+
+.pt-bord.fa .avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 1.1rem;
+}
+
+.pt-bord.fa b {
+  font-size: 1.3rem;
+}
+
+.pt-bord.mange {
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 5px;
+}
+
+.pt-bord.mange li {
+  gap: 4px;
+  padding-right: 8px;
+  font-size: 0.78rem;
+}
+
+.pt-bord.mange .avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 0.82rem;
+}
+
+/* ---------- A six in part 2: who to steal from ---------- */
+
+.pt-velg-hode h1 {
+  font-size: clamp(1.4rem, 6.6vw, 1.9rem);
+  line-height: 1.06;
+}
+
+.pt-terningtall {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  margin-right: 2px;
+  border-radius: 0.35em;
+  background: var(--papir);
+  color: var(--blekk);
+  font-size: 0.92rem;
+  letter-spacing: 0;
+}
+
+/* Up to six to choose from: one wide button each. More: two columns of smaller ones. */
+.pt-ofre {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px 10px;
+  padding-bottom: 6px;
+}
+
+.pt-offer {
+  --fokus: var(--aksent);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 64px;
+  padding: 8px 16px 8px 10px;
+  border: 0;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  box-shadow: 0 5px 0 var(--papir-2);
+  color: var(--blekk);
+  font: 900 1.25rem/1.1 var(--font-display);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pt-offer .avatar {
+  width: 44px;
+  height: 44px;
+  font-size: 1.4rem;
+}
+
+.pt-offer:active {
+  box-shadow: 0 2px 0 var(--papir-2);
+  transform: translateY(3px);
+}
+
+.pt-offer-navn {
+  display: -webkit-box;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.pt-offer-antall {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pt-offer-antall .pt-pakke {
+  width: 30px;
+  height: 30px;
+}
+
+.pt-ofre.mange {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 8px;
+}
+
+.pt-ofre.mange .pt-offer {
+  gap: 8px;
+  min-height: 52px;
+  padding: 5px 8px 5px 6px;
+  font-size: 0.94rem;
+}
+
+.pt-ofre.mange .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
+}
+
+.pt-ofre.mange .pt-offer-antall {
+  gap: 1px;
+  font-size: 1.25rem;
+}
+
+.pt-ofre.mange .pt-offer-antall .pt-pakke {
+  width: 24px;
+  height: 24px;
+}
+
+/* ---------- The pile is empty: before the clock starts ---------- */
+
+.pt-mellom-topp {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.pt-mellom-topp .pt-ur {
+  width: 92px;
+  height: 92px;
+  margin-bottom: 2px;
+  animation: none;
+  filter: drop-shadow(0 12px 18px color-mix(in srgb, var(--aksent) 35%, transparent));
+}
+
+.pt-mellom-topp .ingress {
+  max-width: 30ch;
+  text-wrap: balance;
+}
+
+.pt-hemmelig {
+  max-width: 30ch;
+  color: var(--aksent);
+  font: 800 1.05rem/1.3 var(--font-display);
+  text-wrap: balance;
+}
+
+/* The sound is off: one line with its button (short phones have no room for more) */
+.pt-lyd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 14px;
+}
+
+.pt-lyd p {
+  flex: 1;
+  min-width: 0;
+  color: var(--tekst-2);
+  font: 700 0.92rem/1.25 var(--font-display);
+}
+
+.pt-lyd .knapp-2 {
+  flex: none;
+  padding-inline: 12px;
+}
+
+/* ---------- Kåringen ---------- */
+
+.pt-resultat {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pt-resultat li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px 10px;
+  padding: 8px 14px 8px 8px;
+  border-radius: var(--r-mid);
+  background: var(--papir);
+  color: var(--blekk);
+}
+
+.pt-resultat .avatar {
+  grid-area: 1 / 1 / 3 / 2;
+}
+
+.pt-res-navn {
+  grid-area: 1 / 2;
+  overflow: hidden;
+  font: 900 1.08rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-resultat li > b {
+  grid-area: 1 / 3 / 3 / 4;
+  font: 900 1.05rem/1.1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pt-res-pakker {
+  display: flex;
+  grid-area: 2 / 2;
+  align-items: center;
+  min-height: 22px;
+  padding-left: 5px;
+}
+
+.pt-res-pakker .pt-pakke {
+  width: 22px;
+  height: 22px;
+  margin-left: -5px;
+}
+
+.pt-res-pakker i {
+  margin-left: 4px;
+  color: var(--blekk-2);
+  font: 900 0.8rem/1 var(--font-display);
+  font-style: normal;
+}
+
+.pt-resultat li.tom {
+  background: var(--papir-2);
+}
+
+.pt-resultat li.tom > b {
+  color: var(--blekk-2);
+}
+
+.pt-fakta {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--r-mid);
+  background: var(--natt-2);
+  box-shadow: inset 0 0 0 1.5px var(--strek);
+  color: var(--tekst-2);
+  font: 700 0.95rem/1.3 var(--font-display);
+  list-style: none;
+}
+
+/* ---------- «Rett opp» ---------- */
+
+.pt-rett {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pt-rett li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pt-rett-navn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pt-rett-navn b {
+  min-width: 0;
+  overflow: hidden;
+  font: 800 1rem/1.15 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-rett .teller {
+  flex: none;
+  gap: 6px;
+  padding: 4px;
+}
+
+.pt-rett .teller button {
+  width: 44px;
+  height: 44px;
+  font-size: 1.5rem;
+}
+
+.pt-rett .teller output {
+  justify-content: center;
+  min-width: 1.6em;
+  font-size: 1.5rem;
+}
+
+/* ---------- Short phones ---------- */
+
+@media (max-height: 700px) {
+  /* Home: «Fortsett», «Nytt spill» and the facts fit a phone in the browser (390 × 664) */
+  .skjerm-hjem .spillhjem {
+    gap: 9px;
+  }
+
+  .skjerm-hjem .spillhjem .figur-ramme {
+    width: min(32vw, 124px);
+  }
+
+  .skjerm-hjem .hjem-knapper {
+    gap: 10px;
+  }
+
+  .skjerm-spill,
+  .skjerm-tyveri {
+    gap: 9px;
+  }
+
+  .pt-hode .avatar.stor,
+  .pt-velg-hode .avatar.stor {
+    width: 52px;
+    height: 52px;
+    font-size: 1.6rem;
+  }
+
+  .pt-hode h1 {
+    font-size: clamp(1.7rem, 8.4vw, 2.2rem);
+  }
+
+  .pt-brett {
+    flex-basis: 118px;
+    min-height: 118px;
+    max-height: 150px;
+  }
+
+  .pt-hendelse {
+    min-height: 2.4em;
+    font-size: 0.96rem;
+  }
+
+  .pt-haug,
+  .pt-klokke {
+    min-height: 52px;
+    padding-block: 5px;
+  }
+
+  .pt-haug p b {
+    font-size: 1.6rem;
+  }
+
+  .pt-ur {
+    width: 40px;
+    height: 40px;
+  }
+
+  .pt-mellom-topp {
+    gap: 6px;
+  }
+
+  .pt-mellom-topp .pt-ur {
+    width: 60px;
+    height: 60px;
+  }
+
+  /* (the top bar says «Del 2» already) */
+  .pt-mellom-topp .etikett {
+    display: none;
+  }
+
+  .pt-mellom-topp .ingress {
+    font-size: 0.98rem;
+  }
+
+  .pt-hemmelig {
+    font-size: 0.98rem;
+  }
+
+  .pt-offer {
+    min-height: 54px;
+  }
+}
+
+/* The smallest phones (320 px): two chips per row round the table */
+@media (max-width: 350px) {
+  .pt-mine {
+    font-size: 1.7rem;
+  }
+
+  .pt-mine .pt-pakke {
+    width: 30px;
+    height: 30px;
+  }
+
+  .pt-offer {
+    font-size: 1.1rem;
+  }
+
+  .pt-ofre.mange .pt-offer {
+    gap: 6px;
+    padding: 5px 6px 5px 5px;
+    font-size: 0.84rem;
+  }
+
+  .pt-ofre.mange .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+
+  .pt-ofre.mange .pt-offer-antall {
+    font-size: 1.05rem;
+  }
+
+  .pt-ofre.mange .pt-offer-antall .pt-pakke {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ---------- A phone on its side: whose turn beside the die ---------- */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .pt-pynt {
+    display: none;
+  }
+
+  .pt-hode h1 {
+    font-size: clamp(1.5rem, 4.6vw, 2rem);
+  }
+
+  .pt-brett {
+    flex: none;
+    height: 124px;
+    min-height: 124px;
+  }
+
+  .pt-hendelse {
+    min-height: 1.4em;
+  }
+
+  .pt-ofre {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pt-ofre.mange {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pt-offer {
+    min-height: 52px;
+    font-size: 1.1rem;
+  }
+
+  .pt-offer .avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
+
+  .pt-mellom-topp .pt-ur {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-paere ellipse,
+  .pt-ur,
+  .pt-bord li.fikk,
+  .pt-bord li.mistet,
+  .pt-stempel .stempel {
+    animation: none;
+  }
+}

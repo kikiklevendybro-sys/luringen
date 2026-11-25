@@ -1361,6 +1361,152 @@ test("Tieren: a seat that leaves loses its pot, is skipped in this round and the
   assert.ok(sen.S.spill.status.every((s, i) => i !== 1 || s === "borte"));
 });
 
+// Grådigper: one step for the seat on turn – stop at 18 points or when two alike is likely, else one
+// more card (the first seat is bolder). A move names the round and the step it was made at.
+function gradigTrekk(r, G, p = r.tlf[0]) {
+  const sp = p.S.spill;
+  const tur = sp.tur;
+  const stopp = tur === 0 ? G.poeng(sp.rader[tur]) >= 36 || G.risiko(sp, tur) > 0.45 : G.poeng(sp.rader[tur]) >= 18 || G.risiko(sp, tur) > 0.2;
+  r.trekk(tur, stopp ? { stopp: 1, r: sp.runde, n: sp.steg } : { til: 1, r: sp.runde, n: sp.steg });
+}
+
+test("Grådigper: a match to 100 for three phones – the same cards everywhere; late, double and out-of-turn taps count for nothing", () => {
+  const G = regler("gradigper", "RusjGradigper");
+  const r = medSkjerm(rom("gradigper", 3, { mal: 100 }));
+  const [a, b, c] = r.tlf;
+  const sp = () => a.S.spill;
+  assert.equal(sp().mal, 100);
+  assert.equal(sp().tur, 0, "the host begins match 1");
+  assert.ok(sp().rader.every((x) => x.length === 1) && sp().bunke.length === 86, "one card each from a fresh pack");
+  likt(a, b);
+  likt(a, c);
+  const steg = sp().steg;
+  const for_ = somJson(sp());
+  r.trekk(1, { til: 1, r: 0, n: steg }); // not your turn
+  r.trekk(0, { til: 1, r: 0, n: steg + 1 }); // a step that has not come yet
+  r.trekk(0, { til: 1, r: 0, n: steg - 1 }); // an old step
+  r.trekk(0, { til: 1, r: 1, n: steg }); // another round
+  r.trekk(0, { til: 1 }); // no round, no step
+  r.trekk(0, { til: 2, r: 0, n: steg }); // not a move
+  r.trekk(0, { stopp: "1", r: 0, n: steg });
+  r.trekk(0, { runde: 1 }); // the round is not over
+  r.trekk(0, null);
+  r.trekk(0, "til");
+  assert.deepEqual(somJson(sp()), for_, "nothing happened");
+  // A takes a card; the same tap sent again (a double tap, a slow line) counts once
+  const tapp = { til: 1, r: 0, n: steg };
+  r.trekk(0, tapp);
+  assert.equal(sp().steg, steg + 1);
+  assert.equal(sp().bunke.length, 85);
+  const etter = somJson(sp());
+  r.trekk(0, tapp);
+  r.trekk(sp().tur, tapp); // … also from the seat that has the turn now: the step is an old one
+  assert.deepEqual(somJson(sp()), etter);
+  likt(a, c);
+  let stoppet = false;
+  let like = false;
+  for (let n = 0; n < 5000 && !a.def.nett.ferdig(a.S); n++) {
+    if (sp().fase === "ferdig") {
+      const neste = a.def.nett.tur(a.S);
+      assert.equal(neste, (sp().runde + 1) % 3, "the next seat deals the next round");
+      r.trekk((neste + 1) % 3, { runde: sp().runde + 1 }); // not the one who deals
+      r.trekk(neste, { runde: sp().runde + 2 }); // not the next round
+      r.trekk(neste, { til: 1, r: sp().runde, n: sp().steg }); // no cards between rounds
+      assert.equal(sp().fase, "ferdig");
+      r.trekk(neste, { runde: sp().runde + 1 });
+      assert.deepEqual([sp().fase, sp().tur, sp().bunke.length], ["spill", neste, 86]);
+      r.trekk(neste, { runde: sp().runde }); // the same tap again
+      assert.equal(sp().bunke.length, 86);
+      continue;
+    }
+    gradigTrekk(r, G);
+    if (sp().siste.hva === "stopp") stoppet = true;
+    if (sp().siste.hva === "like") like = true;
+    for (const rad of sp().rader) assert.equal(new Set(G.tallene(rad)).size, G.tallene(rad).length);
+  }
+  assert.ok(a.def.nett.ferdig(a.S) && sp().slutt);
+  assert.ok(stoppet && like && sp().logg.length >= 2, "too little of the game was played");
+  assert.ok(Math.max(...sp().sum) >= 100);
+  assert.equal(a.def.nett.tur(a.S), null);
+  assert.equal(a.def.nett.skjerm(a.S), "slutt", "(replayed: the result; live, the round is shown first, then «Se kåringen»)");
+  const topp = Math.max(...sp().sum);
+  assert.deepEqual(somJson(sp().vinnere), somJson(sp().sum.map((p, i) => (p === topp ? i : -1)).filter((i) => i >= 0)));
+  likt(a, b);
+  likt(a, c);
+  const slutt = somJson(sp());
+  r.trekk(sp().tur, { til: 1, r: sp().runde, n: sp().steg }); // the match is over
+  r.trekk(G.starterFor(sp(), sp().runde + 1), { runde: sp().runde + 1 });
+  assert.deepEqual(somJson(sp()), slutt);
+  const sen = r.sen(1);
+  likt(a, sen);
+  assert.ok(sen.S.spill.ferdig && sen.def.nett.skjerm(sen.S) === "slutt", "a finished match, replayed: the result");
+  assert.equal(rom("gradigper", 3, {}, 20261115, 2).tlf[0].S.spill.tur, 1, "match 2: the next seat begins");
+  assert.equal(rom("gradigper", 2, {}).tlf[0].S.spill.mal, 200, "the usual target");
+  assert.equal(rom("gradigper", 2, { mal: 7 }).tlf[0].S.spill.mal, 200, "a target the game does not have");
+  assert.equal(a.def.nett.oppsettTekst({ mal: 100 }), "Først til 100");
+  assert.notDeepEqual(somJson(rom("gradigper", 8, {}, 1).tlf[0].S.spill.rader), somJson(rom("gradigper", 8, {}, 2).tlf[0].S.spill.rader), "another room, another deal");
+});
+
+test("Grådigper: a seat that leaves loses the round's cards, is skipped – also as the one who deals – and is not ranked; one left ends the match", () => {
+  const G = regler("gradigper", "RusjGradigper");
+  const r = medSkjerm(rom("gradigper", 4, { mal: 100 }));
+  const [, b, c, d] = r.tlf;
+  const sp = () => c.S.spill;
+  assert.equal(sp().tur, 0);
+  r.borte(0); // A leaves on its turn
+  assert.deepEqual(somJson([sp().status[0], sp().rader[0], sp().tur, sp().ute]), ["borte", [], 1, [0]]);
+  const for_ = somJson(sp());
+  r.trekk(0, { til: 1, r: 0, n: sp().steg }); // gone: ignored
+  r.trekk(0, { stopp: 1, r: 0, n: sp().steg });
+  assert.deepEqual(somJson(sp()), for_);
+  likt(b, c);
+  likt(c, d);
+  r.trekk(1, { stopp: 1, r: 0, n: sp().steg });
+  r.trekk(2, { stopp: 1, r: 0, n: sp().steg });
+  assert.equal(sp().tur, 3);
+  r.trekk(3, { stopp: 1, r: 0, n: sp().steg });
+  assert.equal(sp().fase, "ferdig");
+  assert.equal(sp().logg[0].pluss[0], 0, "nothing for the seat that left");
+  assert.equal(c.def.nett.tur(c.S), 1, "round 2 is dealt by the next seat …");
+  r.borte(1); // … which leaves before it deals
+  assert.equal(c.def.nett.tur(c.S), 2, "… then by the next one still in");
+  r.trekk(1, { runde: 1 }); // gone
+  r.trekk(3, { runde: 1 }); // not the one who deals
+  assert.equal(sp().fase, "ferdig");
+  r.trekk(2, { runde: 1 });
+  assert.deepEqual(somJson([sp().fase, sp().runde, sp().tur, sp().status, sp().bunke.length, sp().rader[0], sp().rader[1]]), ["spill", 1, 2, ["borte", "borte", "med", "med"], 87, [], []]);
+  likt(c, d);
+  // A phone that comes back in the middle of the round (a reload) has the same table
+  r.trekk(2, { til: 1, r: 1, n: sp().steg });
+  likt(c, r.sen(3));
+  // D leaves: one left – the match is over, and only C can have won
+  r.borte(3);
+  assert.ok(sp().ferdig && sp().slutt && c.def.nett.ferdig(c.S));
+  assert.equal(c.def.nett.skjerm(c.S), "slutt");
+  assert.equal(c.def.nett.tur(c.S), null);
+  assert.ok(sp().vinnere.every((i) => i === 2));
+  assert.equal(sp().sum[3], d.S.spill.sum[3]);
+  likt(c, d);
+  likt(c, r.sen(2));
+  // Three seats, one leaves at once: the other two play the match out
+  const r3 = medSkjerm(rom("gradigper", 3, { mal: 100 }, 5));
+  const p = r3.tlf[0];
+  r3.borte(2);
+  for (let n = 0; n < 5000 && !p.def.nett.ferdig(p.S); n++) {
+    if (p.S.spill.fase === "ferdig") {
+      assert.notEqual(p.def.nett.tur(p.S), 2, "the empty seat never deals");
+      r3.trekk(p.def.nett.tur(p.S), { runde: p.S.spill.runde + 1 });
+      continue;
+    }
+    assert.notEqual(p.S.spill.tur, 2, "the empty seat never has the turn");
+    gradigTrekk(r3, G);
+  }
+  assert.ok(p.S.spill.ferdig && !p.S.spill.vinnere.includes(2) && Math.max(p.S.spill.sum[0], p.S.spill.sum[1]) >= 100);
+  assert.ok(p.S.spill.rader[2].length === 0 && p.S.spill.sum[2] === 0);
+  likt(p, r3.tlf[1]);
+  likt(p, r3.sen(1));
+});
+
 test("Vri åtter: a whole match «først til 3» on two phones, then three where one leaves – the same cards everywhere", () => {
   const { Vri, Mobil } = regler("vriatter", "VriAtter");
   // One move for the seat whose turn it is, as a player would choose it (the phone's own player).
