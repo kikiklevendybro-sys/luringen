@@ -792,7 +792,6 @@
     "Hårføner": "Tørke",
     "Bokhylle": "Bøker",
     "Sparegris": "Penger",
-    "Snøkule": "Riste",
     "Kommode": "Skuffer",
     "Nattbord": "Seng",
     "Lenestol": "Sofa",
@@ -844,7 +843,7 @@
     "Dusjforheng": "Bad",
     "Gulvvarme": "Varm",
     "Klesstativ": "Klær",
-    "Vaskeservant": "Bad"
+    "Snøkule": "Riste"
   },
   "hobby": {
     "Strikking": "Garn",

@@ -43,7 +43,6 @@
     { "o": "Hårføner", "n": 1, "h": "Varm luft", "l": "Vifte" },
     { "o": "Bokhylle", "n": 1, "h": "Lesing", "l": "Skrivebord" },
     { "o": "Sparegris", "n": 1, "h": "Mynter", "l": "Safe" },
-    { "o": "Snøkule", "n": 1, "h": "Suvenir", "l": "Spilledåse" },
 
     { "o": "Kommode", "n": 2, "h": "Oppbevaring", "l": "Nattbord" },
     { "o": "Nattbord", "n": 2, "h": "Søvn", "l": "Kommode" },
@@ -106,6 +105,6 @@
     { "o": "Gulvvarme", "n": 3, "h": "Barbeint", "l": "Radiator" },
     { "o": "Knagg", "n": 3, "h": "Jakke", "l": "Kleshenger" },
     { "o": "Klesstativ", "n": 3, "h": "Tørke", "l": "Klessnor" },
-    { "o": "Vaskeservant", "n": 3, "h": "Speil", "l": "Kjøkkenvask" }
+    { "o": "Snøkule", "n": 1, "h": "Suvenir", "l": "Spilledåse" }
   ]
 }
