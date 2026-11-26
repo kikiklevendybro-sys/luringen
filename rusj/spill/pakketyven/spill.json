@@ -17,11 +17,11 @@
   "i18n": {
     "en": {
       "navn": "Parcel Pincher",
-      "undertittel": "The present dice game",
-      "kort": "Roll a six, take a present – and pinch more until the horn goes.",
-      "beskrivelse": "The free present dice game on your phone: roll a six and take a present. When the pile is empty a secret clock starts – now sixes steal. For 4–20 players.",
+      "undertittel": "The parcel dice game",
+      "kort": "Roll a six, take a parcel – and pinch more until the horn sounds.",
+      "beskrivelse": "The free parcel dice game on your phone: roll a six and take a parcel. When the pile is empty a secret clock starts – now sixes pinch. For 4–20 players.",
       "slug": "parcel-pincher",
-      "sok": ["present dice game", "gift exchange dice game", "christmas present game", "steal a present game", "present swap game", "christmas party games", "family christmas games", "birthday party games", "white elephant", "yankee swap", "dirty santa"]
+      "sok": ["present dice game", "parcel dice game", "christmas parcel game", "gift exchange dice game", "christmas present game", "steal a present game", "present swap game", "christmas party games", "family christmas games", "birthday party games", "white elephant", "yankee swap", "dirty santa"]
     },
     "da": {
       "navn": "Pakketyven",

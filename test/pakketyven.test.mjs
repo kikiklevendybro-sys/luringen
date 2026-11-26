@@ -3,8 +3,10 @@
 // takes a parcel, the last one leads to part 2); part 2 (a six chooses among those who have
 // parcels, «Stjel ikke», nobody to steal from); «Enere gir bort»; the hidden clock (its length is
 // fair and inside the setting, it stands still while paused, a saved clock is never given more
-// time); «Rett opp»; the order on «Kåringen»; saved games that cannot be drawn; and whole games
-// with a seeded die where no parcel is ever lost or made.
+// time, the phone's own clock cannot move it); «Rett opp»; the order on «Kåringen»; saved games
+// that cannot be drawn; whole games with a seeded die where no parcel is ever lost or made. And
+// the game itself with the kit in node:vm: the screen drawn with two different clocks is the same,
+// and after a reload in part 2 the clock waits for a tap.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -355,11 +357,151 @@ test("the die is fair enough: the game's own formula gives every face, none much
   assert.match(KILDE, /const tilfeldig = \(\) => R\.nyttFro\(\) \/ 4294967296;/, "… and takes its chance from the kit's real randomness");
 });
 
-test("nothing of the clock is ever put on the screen: the game's markup has no place for the time", () => {
-  // The only things drawn from the clock are «it runs» (a fixed text) and the horn at the end.
-  const ui = KILDE.slice(KILDE.indexOf("// ---------- The game on the page ----------"));
-  const vis = ui.slice(ui.indexOf("// ---------- Pieces of the screens ----------"), ui.indexOf("// ---------- The hidden clock ----------"));
-  assert.doesNotMatch(vis, /klokke\.(igjen|slutt)|klokkeIgjen|formaterTid|R\.ui\.timer|R\.Timer/);
-  const skjermer = ui.slice(ui.indexOf("skjermer: {"), ui.indexOf("handlinger: (H = {"));
-  assert.doesNotMatch(skjermer, /klokke\.(igjen|slutt)|klokkeIgjen|formaterTid|R\.ui\.timer|R\.Timer/);
+// The game on a page in node:vm: the kit (rusj/kit/rusj.js), the dice (terninger.js) and the game,
+// with a stand-in for the page. Returns { R, def, S } – def is what the game gave Rusj.start.
+function side() {
+  const lager = new Map();
+  const location = { protocol: "https:", origin: "https://rusj.no", pathname: "/pakketyven/", hash: "", search: "" };
+  const window = { RUSJ_SPILL: { id: "pakketyven", navn: "Pakketyven" }, RUSJ_DATA: {}, RusjGjengen: { svg: () => "<svg></svg>", logo: () => "<svg></svg>", alle: ["pakketyven"] }, matchMedia: () => ({ matches: false }), addEventListener() {}, location };
+  window.self = window;
+  window.top = window;
+  const kontekst = {
+    window,
+    localStorage: { getItem: (k) => (lager.has(k) ? lager.get(k) : null), setItem: (k, v) => lager.set(k, String(v)), removeItem: (k) => lager.delete(k) },
+    navigator: { onLine: true },
+    document: { addEventListener() {}, documentElement: { setAttribute() {}, removeAttribute() {} }, querySelector: () => null, querySelectorAll: () => [] },
+    crypto: globalThis.crypto,
+    TextEncoder,
+    location,
+    history: { pushState() {}, replaceState() {}, state: null },
+    console,
+    setTimeout,
+    clearTimeout,
+    setInterval,
+    clearInterval,
+    performance,
+  };
+  vm.createContext(kontekst);
+  vm.runInContext(readFileSync(join(ROT, "rusj/kit/rusj.js"), "utf8"), kontekst);
+  const R = window.Rusj;
+  let def = null;
+  R.start = (d) => (def = d);
+  // (Drawing, moving between screens and messages are the page's: stood in for here.)
+  Object.assign(R, { vis() {}, gaTil: (navn) => void (R.S.skjerm = navn), toast() {}, si() {} });
+  vm.runInContext(readFileSync(join(ROT, "rusj/kit/terninger.js"), "utf8"), kontekst);
+  vm.runInContext(KILDE, kontekst);
+  const S = Object.assign({ skjerm: "hjem" }, def.tilstand());
+  def.lastet(S);
+  R.S = S;
+  return { R, def, S };
+}
+
+test("nothing of the clock is ever put on the screen: the same game with two different clocks draws the same", () => {
+  // A game in part 2, drawn with lots of time left and with almost none – waiting for a tap after a
+  // reload, and running. The screen (#skjerm) and the title bar must be the same, character for
+  // character, so nothing on them can tell the time.
+  const lag = (klokke) => {
+    const s = P.nytt({ antall: 6, pakker: 6, lengde: "vanlig" });
+    s.haug = 0;
+    s.har = [1, 2, 0, 1, 1, 1];
+    s.status = "mellom";
+    P.startDel2(s, 300);
+    s.klokke = klokke;
+    s.tur = 3;
+    s.kast = 14;
+    s.sist = { i: 2, v: 6, hva: "stjal", mot: 1 };
+    return s;
+  };
+  const tegn = (klokke, o = {}) => {
+    const { R, def, S } = side();
+    S.spill = lag(klokke);
+    S.skjerm = "spill";
+    if (o.vekket) {
+      def.handlinger.vekk(null, null, S); // the tap after a reload: the clock goes on
+      assert.notEqual(S.spill.klokke.slutt, null, "the tap did not start the clock");
+      def.skjermer.spill.ut(S); // (stops it again: no timer left behind)
+    }
+    if (o.velg) {
+      S.spill.status = "velg";
+      S.spill.velg = { type: "stjel", fra: 3 };
+    }
+    const sk = def.skjermer.spill;
+    return { skjerm: sk.vis(S), tittel: typeof sk.tittel === "function" ? sk.tittel(S) : sk.tittel, vekket: !!o.vekket };
+  };
+  const na = Date.now();
+  const klokker = [
+    { igjen: 299000, slutt: null },
+    { igjen: 1200, slutt: null },
+    { igjen: 0, slutt: null },
+  ];
+  for (const o of [{}, { vekket: true }, { velg: true }]) {
+    const [a, ...andre] = klokker.map((k) => tegn({ ...k }, o));
+    assert.match(a.skjerm, o.velg ? /pt-offer/ : o.vekket ? /data-h="kast"/ : /data-h="vekk"/, JSON.stringify(o));
+    for (const b of andre) {
+      assert.equal(b.skjerm, a.skjerm, `the screen tells the time (${JSON.stringify(o)})`);
+      assert.equal(b.tittel, a.tittel);
+    }
+  }
+  // Running clocks too (the saved end in the phone's time): the same screen at 4 min 59 s and at 1 s.
+  const ute = tegn({ igjen: 1000, slutt: na + 1000 }, { vekket: true });
+  const lenge = tegn({ igjen: 299000, slutt: na + 299000 }, { vekket: true });
+  assert.equal(ute.skjerm, lenge.skjerm);
+  assert.doesNotMatch(ute.skjerm.replace(/<[^>]+>/g, " "), /\d\s*:\s*\d\d|\d+\s*(s|sek|min|minutter)\b/);
+});
+
+test("the clock follows a steady timer, not the phone's own clock: setting the phone's time does not move the horn", () => {
+  const k = { igjen: 60000, slutt: null };
+  // Started at steady time 1 000 (the phone said 5e12)
+  P.klokkeStart(k, 5e12);
+  const lop = { mono: 1000, igjen: P.klokkeIgjen(k, 5e12) };
+  assert.equal(lop.igjen, 60000);
+  // 10 s later on the steady timer; the phone's clock was set an hour on
+  let igjen = P.klokkeFolg(k, lop, 11000, 5e12 + 10000 + 3600000);
+  assert.equal(igjen, 50000);
+  assert.equal(P.klokkeUte(k, 5e12 + 10000 + 3600000), false, "an hour on: no horn");
+  assert.equal(P.klokkeIgjen(k, 5e12 + 10000 + 3600000), 50000, "the saved end follows");
+  // … then set back six hours: still the time the steady timer says
+  igjen = P.klokkeFolg(k, lop, 21000, 5e12 + 20000 - 6 * 3600000);
+  assert.equal(igjen, 40000);
+  assert.equal(P.klokkeIgjen(k, 5e12 + 20000 - 6 * 3600000), 40000, "set back: no more time");
+  // The steady timer reaches the end: the horn
+  assert.equal(P.klokkeFolg(k, lop, 61000, 1), 0);
+  assert.equal(P.klokkeUte(k, 1), true);
+  assert.equal(P.klokkeFolg(k, lop, 90000, 1), 0, "never below zero");
+  // A paused clock keeps exactly what was left
+  const p = { igjen: 30000, slutt: null };
+  P.klokkeStart(p, 100);
+  const lp = { mono: 0, igjen: 30000 };
+  P.klokkeFolg(p, lp, 12000, 777777);
+  P.klokkePause(p, 777777);
+  assert.deepEqual(j(p), { igjen: 18000, slutt: null });
+});
+
+test("after a reload in part 2 the clock waits for a tap, which then starts it; a choice counts as one", () => {
+  for (const status of ["kast", "velg"]) {
+    const { def, S } = side();
+    const s = P.nytt({ antall: 4, pakker: 4 });
+    s.haug = 0;
+    s.har = [1, 1, 1, 1];
+    s.status = "mellom";
+    P.startDel2(s, 200);
+    if (status === "velg") {
+      s.status = "velg";
+      s.velg = { type: "stjel", fra: 0 };
+    }
+    S.spill = s;
+    S.skjerm = "spill";
+    def.skjermer.spill.inn(S); // the page came back on this screen (no tap yet)
+    assert.equal(s.klokke.slutt, null, `${status}: the clock started by itself after a reload`);
+    if (status === "kast") {
+      assert.match(def.skjermer.spill.vis(S), /data-h="vekk"/);
+      def.handlinger.kast(null, null, S); // the die cannot be thrown before the tap
+      assert.equal(s.kast, 0);
+      def.handlinger.vekk(null, null, S);
+    } else def.handlinger.velg({ dataset: { v: "2" } }, null, S);
+    assert.notEqual(s.klokke.slutt, null, `${status}: the tap did not start the clock`);
+    if (status === "velg") assert.deepEqual(j(s.har), [2, 1, 0, 1]);
+    def.skjermer.spill.ut(S);
+    assert.equal(s.klokke.slutt, null);
+  }
 });

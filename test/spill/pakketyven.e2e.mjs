@@ -1,11 +1,13 @@
 // Pakketyven (Pakkeleken): six players round one phone. Setup (parcels follow the players until
 // they are set by hand, the length of part 2, «Enere gir bort», the look); part 1 with decided
 // throws – a three passes the turn on, a six takes a parcel from the pile and the die on the
-// screen really shows six, a one gives a parcel away (and «Angre» takes the choice back); reload,
-// back + «Fortsett», «Rett opp»; the last parcel leads to the screen before part 2 (sound warning);
-// part 2 with the hidden clock: nothing on the screen tells the time, it stands still on the home
-// screen and through a reload (neither reset nor used up), a six chooses whom to steal from (only
-// those with parcels), «Stjel ikke», a six thrown just before time is up may still steal – then
+// screen really shows six, two real taps 250 ms apart throw once (the rest after every throw), a
+// one gives a parcel away (and «Angre» takes the choice back); reload, back + «Fortsett», «Rett
+// opp»; the last parcel leads to the screen before part 2 (sound warning); part 2 with the hidden
+// clock: nothing on the screen tells the time, setting the phone's own clock does not move it, it
+// stands still on the home screen and through a reload (neither reset nor used up) and after a
+// reload waits for «Trykk for å fortsette», a six chooses whom to steal from (only those with
+// parcels), «Stjel ikke», a six thrown just before time is up may still steal – then
 // the horn and «Kåringen» (nobody placed in «Kveldens gjeng»); «Spill igjen», «Avslutt» (two
 // kinds), the horn while nobody throws, twenty players, and damaged saves.
 // Runs in every edition (texts are checked in Norwegian only) and at every size.
@@ -140,6 +142,31 @@ export default async function (t) {
   // From here the dice fade in instead of flying (the rest of the game is the same, only quicker).
   await t.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
 
+  // Two real taps 250 ms apart (with reduced motion the die is down after 200 ms): the second lands
+  // in the short rest after every throw. The next player's name is already there, and nothing is
+  // thrown for them.
+  await t.vent(ROLIG, 12000);
+  s = await sp();
+  const [kast0, tur0] = [s.kast, s.tur];
+  await t.js(tving([2, 4]));
+  await t.js("window.scrollTo(0, 0)");
+  const knapp = await t.js(`(() => { const b = document.querySelector('#skjerm .dokk [data-h="kast"]').getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; })()`);
+  const tapp = async () => {
+    await t.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [knapp] });
+    await t.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  };
+  await tapp();
+  await t.sov(250);
+  const mellom = await t.js(`({ navn: document.querySelector("#skjerm h1").textContent.trim(), av: document.querySelector('#skjerm .dokk [data-h="kast"]').disabled, ruller: !!document.querySelector("#pt-brett[data-kaster]") })`);
+  await tapp();
+  await t.sov(150);
+  s = await sp();
+  t.sjekk(s.kast === kast0 + 1 && s.tur === (tur0 + 1) % 6, `Det andre trykket kastet for neste spiller (${s.kast - kast0} kast, tur ${tur0} → ${s.tur})`);
+  t.sjekk(mellom.navn === (await t.js(`Rusj.navn(${(tur0 + 1) % 6})`)) && mellom.av && !mellom.ruller, `Rett etter kastet: ${JSON.stringify(mellom)} (ventet neste navn og en hvilende knapp)`);
+  await t.vent(ROLIG, 3000);
+  await t.js("delete crypto.getRandomValues");
+  await sett(`(S) => { S.spill.tur = ${tur0}; }`);
+
   // «Enere gir bort»: empty-handed, nothing to give; with a parcel, choose who gets it – and undo
   await kast(1);
   s = await sp();
@@ -233,6 +260,20 @@ export default async function (t) {
   await t.sov(1300);
   t.sjekk((await t.js(`document.querySelector(".pt-klokke").outerHTML`)) === klokke1, "Klokkefeltet endrer seg mens tiden går");
 
+  // The phone's own clock is set six minutes on, then six minutes back: the horn does not move
+  // (while the game is on the screen the clock is measured with a steady timer).
+  const forStill = await igjen();
+  await t.js(`(() => { window.__ekteNaa = Date.now; const e = Date.now; Date.now = () => e() + 6 * 60 * 1000; })()`);
+  await t.sov(1300);
+  const fram = await igjen();
+  t.sjekk((await t.tilstand()).skjerm === "spill" && !(await sp()).ferdig && fram <= forStill - 900 && fram > forStill - 4000, `Klokka på mobilen ble stilt fram, og den skjulte klokka fulgte med (${Math.round(forStill)} → ${Math.round(fram)} ms)`);
+  await t.js(`(() => { const e = window.__ekteNaa; Date.now = () => e() - 6 * 60 * 1000; })()`);
+  await t.sov(1300);
+  const tilbake = await igjen();
+  t.sjekk(tilbake <= fram - 900 && tilbake > fram - 4000, `Klokka på mobilen ble stilt tilbake, og den skjulte klokka fulgte med (${Math.round(fram)} → ${Math.round(tilbake)} ms)`);
+  await t.js("Date.now = window.__ekteNaa");
+  await t.sov(400);
+
   // A six: only those with parcels can be stolen from; undo; «Stjel ikke»
   await sett("(S) => { const s = S.spill; s.har = [1, 0, 0, 4, 1, 3]; s.tur = 2; }");
   await kast(6);
@@ -265,7 +306,7 @@ export default async function (t) {
   const for_ = await igjen();
   await t.klikk("#tilbake");
   s = await sp();
-  t.sjekk(s.klokke.slutt === null && s.klokke.igjen <= for_ && s.klokke.igjen > for_ - 4000, `Klokka stoppet ikke på hjem-skjermen: ${JSON.stringify(s.klokke)} (${for_})`);
+  t.sjekk(s.klokke.slutt === null && s.klokke.igjen <= for_ + 5 && s.klokke.igjen > for_ - 4000, `Klokka stoppet ikke på hjem-skjermen: ${JSON.stringify(s.klokke)} (${for_})`);
   if (t.norsk) t.sjekk(/Fortsett tyverunden/.test(await t.tekst('[data-h="fortsett"]')), "«Fortsett»-knappen i del 2 sier noe annet");
   t.sjekk(!/\d/.test(await t.tekst('[data-h="fortsett"]')), "«Fortsett»-knappen røper noe med tall i del 2");
   await t.sov(1500);
@@ -274,7 +315,8 @@ export default async function (t) {
   const etterPause = await igjen();
   t.sjekk(etterPause <= s.klokke.igjen && etterPause > s.klokke.igjen - 4000 && (await sp()).klokke.slutt != null, `Klokka gikk mens spillet lå på hjem-skjermen, eller startet ikke igjen (${s.klokke.igjen} → ${etterPause})`);
 
-  // … and through a reload: neither reset nor used up
+  // … and through a reload: neither reset nor used up. After a reload the phone may only play sound
+  // after a tap, so the clock waits for one («Trykk for å fortsette») – and still shows no time.
   await t.sov(1100);
   const forLast = await igjen();
   const dom1 = await t.js(`document.querySelector(".pt-klokke").outerHTML`);
@@ -282,9 +324,19 @@ export default async function (t) {
   await t.sov(300);
   const etterLast = await igjen();
   s = await sp();
-  t.sjekk((await t.tilstand()).skjerm === "spill" && s.fase === 2 && s.klokke.slutt != null, "Del 2 kom ikke tilbake med klokka i gang etter en omlasting");
+  t.sjekk((await t.tilstand()).skjerm === "spill" && s.fase === 2 && s.klokke.slutt == null, `Etter en omlasting skal klokka stå til noen trykker: ${JSON.stringify(s.klokke)}`);
+  t.sjekk((await t.finnes('#skjerm .dokk [data-h="vekk"]')) && !(await t.finnes('#skjerm .dokk [data-h="kast"]')) && (await t.js(`document.querySelector("#pt-brett .trn-t").disabled`)), "Etter en omlasting vises ikke «Trykk for å fortsette», eller terningen kan kastes");
+  if (t.norsk) t.sjekk(/Trykk for å fortsette/.test(await t.tekst("#skjerm .dokk .knapp")) && /venter/.test(await t.tekst(".pt-klokke")), `Teksten mens klokka venter: «${await t.tekst(".pt-klokke")}»`);
+  tid = await viserTid();
+  t.sjekk(!Object.values(tid).some(Boolean), `Skjermen røper klokka mens den venter: ${JSON.stringify(tid)}`);
+  await t.bilde("trykk-for-a-fortsette");
+  await t.sov(1200);
+  t.sjekk((await igjen()) === etterLast, "Klokka gikk før noen trykket");
   t.sjekk(etterLast <= forLast + 50 && etterLast > forLast - 8000, `Omlastingen stilte klokka tilbake eller brukte den opp (${Math.round(forLast)} → ${Math.round(etterLast)} ms)`);
   t.sjekk(etterLast < start0 - 2500, `Klokka ser ut til å ha startet på nytt (${Math.round(etterLast)} ms igjen av ${start0})`);
+  await t.klikk('#skjerm .dokk [data-h="vekk"]');
+  s = await sp();
+  t.sjekk(s.klokke.slutt != null && (await t.finnes('#skjerm .dokk [data-h="kast"]')), "«Trykk for å fortsette» satte ikke klokka i gang");
   t.sjekk((await t.js(`document.querySelector(".pt-klokke").outerHTML`)) === dom1, "Klokkefeltet er ikke det samme etter en omlasting");
   tid = await viserTid();
   t.sjekk(!Object.values(tid).some(Boolean), `Skjermen røper klokka etter en omlasting: ${JSON.stringify(tid)}`);
@@ -295,16 +347,20 @@ export default async function (t) {
   await t.lastSide(t.side, "document.querySelector('#skjerm h1')");
   await t.sov(300);
   s = await sp();
-  t.sjekk((await t.tilstand()).skjerm === "spill" && !s.ferdig && s.klokke.slutt != null && (await igjen()) > 40000 && (await igjen()) <= 55000, `En klokke som sto og gikk i lagringen, ble brukt opp mens siden var borte: ${JSON.stringify(s.klokke)}`);
+  t.sjekk((await t.tilstand()).skjerm === "spill" && !s.ferdig && s.klokke.slutt == null && s.klokke.igjen > 40000 && s.klokke.igjen <= 55000, `En klokke som sto og gikk i lagringen, ble brukt opp mens siden var borte: ${JSON.stringify(s.klokke)}`);
+  // (The tap lets the clock go on.)
+  await t.klikk('#skjerm .dokk [data-h="vekk"]');
 
-  // Time runs out while a six is in the air: the six may steal first, then the horn
-  await sett("(S) => { const s = S.spill; s.har = [1, 0, 2, 4, 1, 1]; s.tur = 1; }");
+  // Time runs out while a six is in the air: the six may steal first, then the horn. (The clock is
+  // set on the home screen, where it stands still; «Fortsett» and the throw come in the same instant.)
   await t.send("Emulation.setEmulatedMedia", { features: [] });
   await t.vent(ROLIG, 6000);
+  await t.klikk("#tilbake");
+  await t.js(`(() => { const s = Rusj.S.spill; s.har = [1, 0, 2, 4, 1, 1]; s.tur = 1; s.klokke.igjen = 300; })()`);
   // With the sound on, so the horn itself is made (the vibration is answered here, not by the phone).
   await t.js("navigator.vibrate = () => true; Rusj.felles.lyd = true;");
   await t.js(tving([6]));
-  await t.js(`(() => { const k = Rusj.S.spill.klokke; k.slutt = Date.now() + 300; k.igjen = 300; document.querySelector('#skjerm .dokk [data-h="kast"]').click(); })()`);
+  await t.js(`(() => { document.querySelector('[data-h="fortsett"]').click(); document.querySelector('#skjerm .dokk [data-h="kast"]').click(); })()`);
   await t.vent(ROLIG, 12000);
   await t.js("delete crypto.getRandomValues");
   await t.sov(700);
@@ -347,7 +403,9 @@ export default async function (t) {
   await t.vent(`Rusj.S.skjerm === "tyveri"`, 6000);
   await t.klikk('[data-h="start-klokka"]');
   await t.vent(`Rusj.S.skjerm === "spill" && Rusj.S.spill.fase === 2`, 6000);
-  await t.js(`(() => { const k = Rusj.S.spill.klokke; k.slutt = Date.now() + 500; k.igjen = 500; })()`);
+  await t.klikk("#tilbake");
+  await t.js(`Rusj.S.spill.klokke.igjen = 500`);
+  await t.klikk('[data-h="fortsett"]');
   await t.vent(`Rusj.S.skjerm === "slutt"`, 5000);
   await t.sov(500);
   s = await sp();
@@ -385,7 +443,9 @@ export default async function (t) {
   for (const sel of [".pt-brett", ".pt-hendelse"]) t.sjekk(await t.friForDokk(sel), `${sel} ligger bak dokka med tjue spillere`);
   await kast(6);
   await t.bilde("tjue", true);
-  await sett(`(S) => { const s = S.spill; s.fase = 2; s.haug = 0; s.klokke = { igjen: 200000, slutt: Date.now() + 200000 }; s.har = s.har.map((_, i) => (i % 5) + 1); s.tur = 19; }`);
+  await sett(`(S) => { const s = S.spill; s.fase = 2; s.haug = 0; s.klokke = { igjen: 200000, slutt: null }; s.har = s.har.map((_, i) => (i % 5) + 1); s.tur = 19; }`);
+  // (Straight into part 2 on a page that has not had «Start klokka»: the clock waits for a tap.)
+  await t.klikk('#skjerm .dokk [data-h="vekk"]');
   await kast(6);
   t.sjekk((await t.antall(".pt-offer")) === 19, "Nitten å stjele fra ble ikke vist");
   await t.bilde("tjue-stjel", true);

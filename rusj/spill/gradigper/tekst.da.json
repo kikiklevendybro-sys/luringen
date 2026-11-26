@@ -88,7 +88,7 @@
   "Ingen vinner denne gangen": "Ingen vinder denne gang",
   "Du vinner!": "Du vinder!",
   "{navn} vinner!|{navn} vinner!": { "one": "{navn} vinder!", "other": "{navn} vinder!" },
-  "Likt med {poeng} hver.": "Lige med {poeng} hver.",
+  "Likt med {poeng} hver.": "Delt sejr – {poeng} til hver.",
   "{poeng} da spillet ble avsluttet.": "{poeng}, da spillet blev afsluttet.",
   "{poeng} – først til {mal}!": "{poeng} – først til {mal}!",
   "Del resultatet": "Del resultatet",

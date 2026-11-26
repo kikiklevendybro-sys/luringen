@@ -511,10 +511,12 @@
         R.si(`${R.t("Runde {n}.", { n: sp.runde + 1 })} ${R.t("{navn} begynner.", { navn: R.navn(sp.tur) })} ${kortNa(sp).s}`);
       }
     },
-    // The seat left: its pot is gone, it is skipped from now on and is not ranked.
+    // The seat left: its pot is gone, it is skipped from now on and is not ranked. Once the last round
+    // is over the match is decided and a seat leaving changes nothing (a replaying phone is at
+    // «Kåringen» at once, a live one after «Til kåringen»: both must rank the same seats).
     borte(S, sete, okt) {
       const sp = S.spill;
-      if (!paNett(sp) || sp.ferdig || !(sete >= 0 && sete < sp.deltakere) || forlot(sp, sete)) return;
+      if (!paNett(sp) || sp.ferdig || sisteRundeOver(sp) || !(sete >= 0 && sete < sp.deltakere) || forlot(sp, sete)) return;
       sp.ute.push(sete);
       sp.pott[sete] = 0;
       if (sp.fase === "velg") {

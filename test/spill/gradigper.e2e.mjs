@@ -33,15 +33,14 @@ const KLAR = `!document.querySelector("#skjerm .dokk [data-laast]")`;
 export default async function (t) {
   const sp = async () => (await t.tilstand()).spill;
   const sett = (endring) => t.js(`(() => { const S = Rusj.S; (${endring})(S); Rusj.vis(); })()`);
-  // The next card drawn is this one: the game takes card number floor(chance × cards left).
+  // The next card drawn is this one: it is put on top of the pack (a card is always the top one).
   const tving = (kort) =>
     t.js(`(() => { const b = Rusj.S.spill.bunke; const i = b.indexOf(${JSON.stringify(kort)}); if (i < 0) throw new Error("kortet ligger ikke i bunken: " + ${JSON.stringify(String(kort))});
-      crypto.getRandomValues = (a) => { a[0] = Math.floor(((i + 0.5) / b.length) * 4294967296); return a; }; })()`);
+      b.splice(i, 1); b.unshift(${JSON.stringify(kort)}); })()`);
   const trekk = async (kort) => {
     await t.vent(KLAR, 5000);
     await tving(kort);
     await t.klikk("#gp-til", 60);
-    await t.js("delete crypto.getRandomValues");
     await t.vent(KLAR, 5000);
   };
   const stopp = async () => {
@@ -108,7 +107,6 @@ export default async function (t) {
   // (The tap, what the screen shows right after it, and a second tap in the same instant.)
   const rett = await t.js(`(() => { document.querySelector("#gp-til").click(); const til = document.querySelector("#gp-til"); const st = document.querySelector("#gp-stopp");
     const ut = { hviler: til.disabled && st.disabled, stort: !!document.querySelector(".gp-blink .gp-kort.stor") }; til.click(); st.click(); return ut; })()`);
-  await t.js("delete crypto.getRandomValues");
   s = await sp();
   t.sjekk(s.rader[0].join() === "3,7,9" && s.tur === 1 && s.siste.hva === "tall" && s.siste.kort === 9 && s.bunke.length === 85, `Et nytt tall: ${JSON.stringify([s.rader[0], s.tur, s.siste])}`);
   t.sjekk(rett.hviler && rett.stort, `Knappene hviler ikke rett etter et kort, eller kortet vises ikke stort: ${JSON.stringify(rett)}`);
@@ -140,14 +138,12 @@ export default async function (t) {
   // The cheek pouch swallows a number that comes again; a treat and «Dobbel» count
   await tving("kp");
   await t.klikk("#gp-til", 400);
-  await t.js("delete crypto.getRandomValues");
   await t.bilde("kinnpose");
   s = await sp();
   t.sjekk(s.rader[0].join() === "3,7,9,kp" && s.tur === 0, "Kinnposen ble ikke lagt i raden, eller turen gikk ikke tilbake til den eneste som er med");
   await tving(3);
   await t.vent(KLAR, 5000);
   await t.klikk("#gp-til", 400);
-  await t.js("delete crypto.getRandomValues");
   await t.bilde("reddet");
   s = await sp();
   t.sjekk(s.rader[0].join() === "3,7,9" && s.status[0] === "med" && s.siste.hva === "reddet", `Kinnposen reddet ikke: ${JSON.stringify([s.rader[0], s.status[0], s.siste])}`);
@@ -196,7 +192,6 @@ export default async function (t) {
   t.sjekk((await t.tekst(".gp-plass.na .gp-merke")).trim() === "6/7", `Telleren for ulike tall viser «${await t.tekst(".gp-plass.na .gp-merke")}»`);
   await tving(10);
   await t.klikk("#gp-til", 450);
-  await t.js("delete crypto.getRandomValues");
   await t.bilde("sju-ulike");
   s = await sp();
   t.sjekk(s.fase === "ferdig" && s.sju === 1 && s.siste.hva === "sju" && s.logg[1].pluss.join() === "11,46,7" && s.sum.join() === "54,51,7" && s.logg[1].sju === 1, `Sju ulike: ${JSON.stringify([s.fase, s.sju, s.logg[1], s.sum])}`);
