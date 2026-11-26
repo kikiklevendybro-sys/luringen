@@ -192,6 +192,7 @@ test("the target: the round is played out, then the game is over – most points
   G.stopp(sp); // C
   G.stopp(sp); // B
   assert.deepEqual([sp.fase, sp.slutt], ["ferdig", true]);
+  assert.equal(sp.forFa, undefined, "reached the target, not ended by too few");
   assert.deepEqual(j(sp.sum), [102, 112, 24]);
   assert.equal(G.nesteRunde(sp, rng(1)), false, "no more rounds");
   G.kaar(sp);
@@ -326,6 +327,7 @@ test("a seat that leaves (on the net): its cards go, it is skipped and not ranke
   assert.equal(e.ferdig, false);
   G.forlat(e, 2);
   assert.deepEqual([e.ferdig, e.slutt, e.fase, j(e.vinnere), j(e.sum)], [true, true, "ferdig", [0], [10, 0, 0]]);
+  assert.equal(e.forFa, true, "ended by too few, so the result screen does not say the target was reached");
   assert.equal(G.forlat(e, 0), false, "nothing more happens in a finished match");
   // Two players: the one who stays wins what lies in front of it
   const f = bord([[7], [3]]);

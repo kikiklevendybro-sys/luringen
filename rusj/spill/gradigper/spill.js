@@ -229,6 +229,7 @@
       if (sp.antall - sp.ute.length < MIN) {
         if (sp.fase === "spill") avsluttRunde(sp);
         sp.slutt = true;
+        sp.forFa = true; // ended because too few are left, not because someone reached the goal
         kaar(sp);
       } else if (sp.fase === "ferdig" && !sp.slutt && inne(sp).some((i) => sp.sum[i] >= sp.mal)) sp.slutt = true;
       return true;
@@ -814,7 +815,7 @@
       },
       kaaring(el, e, S) {
         const sp = S.spill;
-        if (pagar(S) && sp.slutt && sp.fase === "ferdig") tilKaaring(S, true);
+        if (pagar(S) && sp.slutt && sp.fase === "ferdig") tilKaaring(S, !sp.forFa);
       },
       lapp(el, e, S) {
         const sp = S.spill;
