@@ -112,7 +112,7 @@
     "tittel": "Stjerneaften",
     "kos": { "tittel": "Stjernehimmel i stuen", "min": 10, "tekst": "Klip en stor papirstjerne til vinduet. Sluk så lyset, læg jer på gulvet, og lav en stjernehimmel i loftet med lommelygter. Find på navne til jeres egne stjernebilleder!", "smaa": "De mindste styrer lommelygten og bestemmer, hvor stjernerne skal være." },
     "prat": { "t": "Hvis du kunne ønske én ting for hele verden i julen, hvad skulle det så være?", "f": "Hvad kan vi gøre for at komme lidt tættere på det?" },
-    "bonus": { "type": "quiz", "tekst": "Hvilken stjerne er den klareste på nattehimlen?", "valg": ["Sirius", "Nordstjernen", "Karlsvognen"], "riktig": 0, "fakta": "Sirius er klarest. Nordstjernen er det ikke – men den står næsten helt stille over Nordpolen." },
+    "bonus": { "type": "quiz", "tekst": "Hvilken stjerne er den klareste på nattehimlen?", "valg": ["Sirius", "Nordstjernen", "Vega"], "riktig": 0, "fakta": "Sirius er klarest. Nordstjernen er det ikke – men den står næsten helt stille over Nordpolen." },
     "spill": { "id": "lognhalsen", "tekst": "Løgnhalsen med julehistorier: Fortæl tre ting fra en jul – to sande og én opdigtet. Kan de andre afsløre dig? Vælg temaet »Jul«.", "figur": "Jeg har aldrig løjet i hele mit liv! … Det var løgn. Hej, jeg er Løgnhalsen! Fortæl to sande julehistorier og én opdigtet – så ser vi, hvem der afslører dig." },
     "klasse": {
       "spill": { "id": "hviskeren", "tekst": "Hviskeren i grupper: Én gætter ordet, de andre giver ét hint hver – men ens hints bliver streget ud! Samarbejd, og tæl, hvor mange I klarer.", "figur": "Psst … hej, jeg er Hviskeren. Ét hint hver – men aldrig det samme som sidemanden! Hvisk klogt, så klarer I det sammen." }
@@ -227,7 +227,7 @@
   },
   {
     "merke": "🍚", "merkeNavn": "en skål risalamande",
-    "tittel": "Fredagsduft",
+    "tittel": "Juleduft",
     "kos": { "tittel": "Appelsiner med nelliker", "min": 15, "tekst": "Stik nelliker i appelsiner eller klementiner i mønstre – hjerter, stjerner, spiraler. Læg dem i en skål, eller hæng dem op med bånd. Huset dufter af jul i ugevis.", "smaa": "De mindste laver huller med en tandstik først, så går det lettere." },
     "prat": { "t": "Hvad er det bedste, du har oplevet i år?", "f": "Hvem var med dig?" },
     "bonus": { "type": "quiz", "tekst": "Hvad gemmer man i risalamanden juleaften?", "valg": ["En hel mandel", "En mønt", "En rosin"], "riktig": 0, "fakta": "Den, der finder mandlen, får mandelgaven – og det gælder om at skjule den længe!" },

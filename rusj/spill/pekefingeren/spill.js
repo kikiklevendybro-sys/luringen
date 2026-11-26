@@ -15,6 +15,9 @@
   const ALLE = [];
   D.pakker.forEach((p) => p.utsagn.forEach((t) => ALLE.push({ p: p.id, t })));
   const pakke = (id) => D.pakker.find((p) => p.id === id);
+  // The adult packs («Fest», «Russ»: "voksen" in the data) sit behind the same 18+ question as the
+  // drinking games (R.felles.over18), as in Dommeren.
+  const voksen = (id) => !!(pakke(id) && pakke(id).voksen);
   // The Christmas pack is listed first while it is the season (1 Nov – 6 Jan), otherwise last.
   const julesesong = (d = new Date()) => d.getMonth() >= 10 || (d.getMonth() === 0 && d.getDate() <= 6);
   const PAKKER = (() => {
@@ -184,7 +187,7 @@
     // saved by an earlier version what they lack.
     lastet(S) {
       const o = (S.oppsett = Object.assign({ pakker: STANDARD.slice(), poeng: true, lengde: 20 }, S.oppsett));
-      o.pakker = (Array.isArray(o.pakker) ? o.pakker : []).filter((id) => pakke(id));
+      o.pakker = (Array.isArray(o.pakker) ? o.pakker : []).filter((id) => pakke(id) && (!voksen(id) || R.felles.over18));
       if (!o.pakker.length) o.pakker = STANDARD.slice();
       if (!LENGDER.includes(o.lengde)) o.lengde = 20;
       o.poeng = !!o.poeng;
@@ -227,6 +230,7 @@
         R.t("Trykket feil? «Angre» tar poenget tilbake."),
         R.t("Sveip kortet til siden for å bytte det ut."),
         R.t("Skru av poeng hvis dere bare vil prate."),
+        R.t("Pakkene merket 18+ er bare for voksne. Mobilen spør om alder før dere kan velge dem."),
       ],
     },
 
@@ -405,10 +409,23 @@
       fortsett(el, e, S) {
         if (pagar(S)) R.gaTil("kort");
       },
-      pakke(el, e, S) {
+      async pakke(el, e, S) {
         const id = el.dataset.v;
+        if (!pakke(id)) return;
         const valgt = S.oppsett.pakker;
-        S.oppsett.pakker = valgt.includes(id) ? valgt.filter((x) => x !== id) : [...valgt, id];
+        if (valgt.includes(id)) {
+          S.oppsett.pakker = valgt.filter((x) => x !== id);
+          return R.vis();
+        }
+        // An adult pack: the same 18+ question as the drinking games, once per phone.
+        if (voksen(id) && !R.felles.over18) {
+          const fortsatt = R.vakt();
+          const ja = await R.bekreft(R.t("Er du 18 år eller eldre?"), R.t("«{pakke}» er bare for voksne.", { pakke: pakke(id).navn }), R.t("Ja, jeg er 18 eller eldre"), R.t("Nei"));
+          if (!ja || !fortsatt()) return;
+          R.lagreFelles({ over18: true });
+          R.statistikk("alder18");
+        }
+        S.oppsett.pakker = [...S.oppsett.pakker.filter((x) => x !== id), id];
         R.vis();
       },
       lengde(el, e, S) {

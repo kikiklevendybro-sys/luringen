@@ -57,6 +57,32 @@ export default async function (t) {
   await t.klikk('[data-h="lengde"][data-v="10"]');
   t.sjekk((await t.tilstand()).oppsett.lengde === 10, "Valget «10 kort» ble ikke lagret");
 
+  // The adult packs («Fest», «Russ») sit behind the 18+ question, as in Dommeren: «Nei» leaves each
+  // of them off, «Ja» turns one on and is remembered, so the other one needs no second question.
+  const over18 = () => t.js(`!!(JSON.parse(localStorage.getItem("rusj.felles") || "{}").over18)`);
+  const ark = () => t.vent(`document.querySelector('#ark:not([hidden]) [data-h="ark-svar"]')`);
+  const pakker = async () => (await t.tilstand()).oppsett.pakker;
+  const voksne = await t.js(`RUSJ_DATA.utsagn.pakker.filter((p) => p.voksen).map((p) => p.id)`);
+  t.sjekk(voksne.join() === "fest,russ", `Voksenpakkene skal være fest og russ (${voksne})`);
+  t.sjekk(!voksne.some((id) => fliser.indexOf(id) < 0), "En voksenpakke mangler i lista");
+  for (const id of voksne) {
+    await t.klikk(`[data-h="pakke"][data-v="${id}"]`);
+    await ark();
+    t.sjekk(await t.js(`document.querySelector("#ark").textContent.includes(Rusj.t("Er du 18 år eller eldre?"))`), `«${id}» spør ikke om alder`);
+    if (id === "fest") await t.bilde("atten-ark");
+    await t.klikk('#ark [data-h="ark-svar"][data-v="nei"]', 400);
+    t.sjekk(!(await pakker()).includes(id) && !(await over18()), `«Nei» skal la «${id}» være av`);
+  }
+  await t.klikk('[data-h="pakke"][data-v="fest"]');
+  await ark();
+  await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]', 400);
+  t.sjekk((await pakker()).includes("fest") && (await over18()), "«Ja» skal slå på «fest» og huske svaret");
+  await t.klikk('[data-h="pakke"][data-v="russ"]');
+  t.sjekk(!(await t.finnes("#ark:not([hidden])")) && (await pakker()).includes("russ"), "Etter «Ja» skal «russ» kunne velges uten å spørre igjen");
+  await t.klikk('[data-h="pakke"][data-v="fest"]');
+  await t.klikk('[data-h="pakke"][data-v="russ"]');
+  t.sjekk(!(await pakker()).some((id) => voksne.includes(id)), "Voksenpakkene ble ikke valgt bort igjen");
+
   // Toggle a pack on, add a player
   await t.klikk('[data-h="pakke"][data-v="kaos"]');
   t.sjekk((await t.tilstand()).oppsett.pakker.includes("kaos"), "Kaos-pakken ble ikke valgt");

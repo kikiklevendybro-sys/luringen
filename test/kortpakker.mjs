@@ -221,3 +221,52 @@ export function ungdomTester(o) {
     }
   });
 }
+
+// ---------- The adult packs ("voksen": true) behind the 18+ question ----------
+
+// The same gate as Dommeren's «Fest» (R.felles.over18, asked once per phone): an adult pack is never
+// on by default, a tap on it asks first («Nei» leaves it off), a saved setup does not bring it back
+// for a phone that has not said yes, and after «Ja» it can be chosen. o: { id, fil, voksne (pack ids),
+// standard (the default packs) }.
+export function voksenTester(o) {
+  const { id, fil, voksne, standard } = o;
+  test(`${id}: voksenpakkene (${voksne.join(", ")}) kan ikke velges før mobilen har svart ja på 18+-spørsmålet`, async () => {
+    for (const sprak of SPRAK) {
+      const { R, cfg, data, S } = lastSpill(id, fil, sprak);
+      assert.deepEqual(data.pakker.filter((p) => p.voksen).map((p) => p.id), voksne, `${sprak}: voksenpakkene`);
+      for (const p of data.pakker.filter((x) => x.voksen)) assert.ok(/\(18\+\)/.test(p.tekst), `${sprak}: «${p.navn}» sier ikke (18+) («${p.tekst}»)`);
+      assert.deepEqual([...S.oppsett.pakker], standard, `${sprak}: standardpakkene`);
+      const spurt = [];
+      let svar = false;
+      R.bekreft = async (tittel) => (spurt.push(tittel), svar);
+      R.felles.over18 = false;
+      // A saved setup with an adult pack, on a phone that has not said yes: back to the default packs.
+      S.oppsett.pakker = [voksne[0]];
+      cfg.lastet(S);
+      assert.deepEqual([...S.oppsett.pakker], standard, `${sprak}: en lagret voksenpakke skal ikke komme tilbake uten ja`);
+      // «Nei»: asked, and the pack stays off.
+      for (const v of voksne) {
+        await cfg.handlinger.pakke({ dataset: { v } }, null, S);
+        assert.ok(!S.oppsett.pakker.includes(v), `${sprak}: «${v}» ble valgt etter «Nei»`);
+      }
+      assert.equal(spurt.length, voksne.length, `${sprak}: hver voksenpakke skal spørre om alder`);
+      assert.ok(spurt.every((t) => t === "Er du 18 år eller eldre?"), `${sprak}: feil spørsmål (${spurt})`);
+      assert.ok(!R.felles.over18, `${sprak}: «Nei» skal ikke huskes som ja`);
+      // An ordinary pack never asks.
+      const vanlig = data.pakker.find((p) => !p.voksen && !standard.includes(p.id)).id;
+      await cfg.handlinger.pakke({ dataset: { v: vanlig } }, null, S);
+      assert.ok(S.oppsett.pakker.includes(vanlig) && spurt.length === voksne.length, `${sprak}: «${vanlig}» skal velges uten spørsmål`);
+      // «Ja»: on, remembered, and the next adult pack does not ask again.
+      svar = true;
+      await cfg.handlinger.pakke({ dataset: { v: voksne[0] } }, null, S);
+      assert.ok(S.oppsett.pakker.includes(voksne[0]) && R.felles.over18, `${sprak}: «Ja» skal slå på «${voksne[0]}» og huske svaret`);
+      for (const v of voksne.slice(1)) {
+        await cfg.handlinger.pakke({ dataset: { v } }, null, S);
+        assert.ok(S.oppsett.pakker.includes(v), `${sprak}: «${v}» ble ikke valgt etter ja`);
+      }
+      assert.equal(spurt.length, voksne.length + 1, `${sprak}: etter ja skal ingen pakke spørre igjen`);
+      cfg.lastet(S);
+      assert.ok(voksne.every((v) => S.oppsett.pakker.includes(v)), `${sprak}: etter ja skal voksenpakkene bli værende i oppsettet`);
+    }
+  });
+}

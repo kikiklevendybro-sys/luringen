@@ -41,7 +41,7 @@
         "A bird that can't fly", "A white animal", "An animal that lives in the desert", "An animal that swims in a river",
         "An animal with wings that isn't a bird", "A big animal in the sea", "A pet", "An animal that lives in the jungle",
         "An animal that lays eggs", "An animal with a long neck", "An animal that's dangerous in the sea", "An animal that makes a funny noise",
-        "An animal in a fairy tale", "A butterfly or another pretty insect", "An animal you see on safari", "Something a bird builds a nest from",
+        "An animal in a fairy tale", "A butterfly or another pretty insect", "An animal that lives in a lake", "Something a bird builds a nest from",
         "A brown animal", "A black bird", "An animal that lives in a tree", "An animal that eats ants",
         "Something that grows in the garden", "An animal with spines", "An animal with long ears", "Something green in the woods"
       ]
@@ -58,15 +58,15 @@
         "Something you buy at the supermarket every week", "Something in your hallway", "Something you forget on your way out", "A piece of furniture",
         "Something that often breaks", "Something you do on Sundays", "Something with a remote control", "Something on the fridge door",
         "Something that smells nice at home", "Something in your pocket", "Something that takes too long in the morning", "Something people argue about at home",
-        "Something you do when you're bored", "Something you find in the loft", "Something in your toolbox", "The first thing you do when you get home",
+        "Something you do when you're bored", "Something you find in the loft", "Something that comes through the letterbox", "The first thing you do when you get home",
         "Something you find in the shed", "Something white in the kitchen", "Something you have to wash often", "A sound you hear every morning",
         "Something you do every morning", "Something you use every day", "Something on the kitchen worktop", "Something you tidy away",
-        "Something lying in the hall", "Something you do after dinner", "Something you do at the weekend", "Something in the living room",
+        "Something on the windowsill", "Something you do after dinner", "Something you do at the weekend", "Something in the living room",
         "Something that takes up lots of room", "Something you wash", "Something you switch on", "Something with buttons",
         "Something in the dishwasher", "Something in your bedroom", "Something that's always empty", "Something you do when you're ill",
         "Something you do while you wait", "Something you keep in a drawer", "Something you do on your phone", "Something that beeps",
         "Something you hang up", "Something you have to buy new often", "Something with a smell", "Something you find in the utility room",
-        "Something you do before breakfast", "Something you open", "Something with wheels", "Something you tidy away before guests come"
+        "Something you do while waiting for the bus", "Something you open", "Something with wheels", "Something you do before guests arrive"
       ]
     },
     {
@@ -88,7 +88,7 @@
         "A typically British spread", "A typically British animal", "Something you do at the beach", "A British word for bad weather",
         "Something you do at Christmas in Britain", "Something you see on a walk in the hills", "A famous British writer or artist", "A British island",
         "Something Brits always say on the phone", "Something typical of London", "Something typical of the seaside", "Something you do in a snowstorm",
-        "A British pudding", "Something that happens at a village fete", "Something Brits do in Spain", "A British biscuit",
+        "A British pudding", "Something Brits eat on a Friday night", "Something Brits do in Spain", "A British biscuit",
         "Something red and British", "Something typically British to moan about", "Something Brits pack for Spain", "Something you see on a British farm"
       ]
     },
@@ -106,11 +106,11 @@
         "Something you need to play football", "A card game", "Something that always happens in horror films", "A place you go to have fun",
         "Something you can do with a ball", "Something you could watch for hours", "Something you listen to in the car", "Something you make with your hands",
         "A superhero", "Something you can do for free", "An activity for the whole family", "A video game",
-        "Something you do at the cinema", "A sport with a ball", "A winter sport that isn't skiing", "Something you need to go fishing",
+        "Something you do at the cinema", "A sport with a racket", "A winter sport that isn't skiing", "Something you need to go fishing",
         "Something you do on a walk in the hills", "Something you watch on TV on a Saturday", "Something you do in the garden", "Something you do with friends",
         "An instrument in a brass band", "Something you can make in the snow", "A game you play outside", "A character in a fairy tale",
-        "Something you need for a camping trip", "Something you can collect", "A martial art", "Something you see at a circus",
-        "An activity at summer camp", "Something you do in a swimming pool", "Something you hear at a football match on TV", "A type of dance",
+        "Something you need for a camping trip", "Something you practise", "A martial art", "Something you see at a circus",
+        "An activity at summer camp", "Something you do at the ice rink", "Something you hear at a football match on TV", "Something you do at a concert",
         "Something you do at a playground", "Something you do at a funfair", "Something fun to watch", "Something you can do on your own",
         "A song everyone knows", "Something that needs batteries", "Something you do at a library", "Something you learn on a course",
         "Something you do in a snowdrift"
@@ -131,7 +131,7 @@
         "Something you do on a long car journey", "Something you find in a hotel room", "A capital city", { "t": "A place you'd love to live", "bred": true },
         "Something you buy on a ferry", "Something typical of a package holiday", "A country in South America", "Something you see at a campsite",
         "A country in Africa", "A famous building", "Something you do on a boat trip", "Something you need to travel abroad",
-        "A country where they speak Spanish", "A famous river in the world", "Something you see on a safari", "Something you buy on holiday",
+        "A country where they speak Spanish", "A famous river in the world", "Something you see on a safari", "Something you do on holiday when it rains",
         "Something you do when your flight is delayed", "Something you eat on a plane", "Something you take on a plane", "A place with snow all year",
         "Something you see in Rome", "Something you see in New York", "Something you do on a cruise ship", "A place abroad you can go skiing",
         "Something you see on a desert island", "Something typical of Ireland", "Something typical of France", "Something you do at a campsite",
@@ -206,7 +206,7 @@
         "Something you do on a long Saturday", "Something that happens in a block of flats", "Something you save up for", "Something tiresome about owning a car",
         "Something you do when you're home alone", "Something boring to shop for", "Something you must have in a new home", "Something grown-ups eat once the kids are in bed",
         "Something that takes ages", "Something you buy at the chemist", "Something that always runs out at home", "Something that always needs changing",
-        "Something grown-ups do on a Friday night", "Something you do when you have visitors", "Something sensible to keep in the car", "Something boring about Sundays",
+        "Something grown-ups do on a Friday night", "Something you do when you have visitors", "Something sensible to keep in the kitchen", "Something boring about Sundays",
         "Something that happens when you become a parent", "Something you have to renew", "Something lovely to come home to", "Something you do on a weeknight"
       ]
     },
@@ -229,7 +229,7 @@
         "Something a cow would say if it could talk", "Something a ghost is scared of", "Something that shouldn't be in a fridge", "Something fun to jump in",
         "Something odd to take to the beach", "Something impossible to carry", "Something you don't want in your packed lunch", "Something a monster keeps under the bed",
         "Something odd to knit", "Something a witch flies on", "Something a cat thinks about", "Something odd to see in a lift",
-        "Something you don't want to tread in with bare feet", "Something a pirate keeps in his chest", { "t": "A silly name for a boat", "bred": true }, "Something an alien takes home from Earth",
+        "Something strange to find in the woods", "Something a pirate wears", { "t": "A silly name for a boat", "bred": true }, "Something an alien takes home from Earth",
         "Something odd to sing about", "Something that gets weird with ice cream on it", "Something odd to give as a birthday present", "Something a snowman dreams about"
       ]
     },
@@ -251,7 +251,7 @@
         "Something you do in August", "Something you do when it gets dark early", "Something that happens in autumn", "Something you do on Mother's Day or Father's Day",
         "Something you do on the first snowy day of the year", "Something you see on Bonfire Night", "Something typical of summer", "Something you buy in November",
         "Something you do on the longest day of the year", "Something you do on the shortest day of the year", "Something you find in an Easter egg", "Something you do on someone else's birthday",
-        "Something you do in July", "Something typical of spring", "Something you do in a heatwave", "Something you do on New Year's Day",
+        "Something you do in February", "Something typical of spring", "Something you do in a heatwave", "Something you do on New Year's Day",
         "Something that happens at a kids' birthday party", "Something green in spring", "Something you do on the last day of term before Christmas", "Something you do at Halloween",
         "Something you dress up as for World Book Day", "Something you do on a long summer evening", "Something you do when it's sleeting", "Something that happens in December"
       ]
@@ -276,7 +276,7 @@
         "Something you can play music on", "Something big", "Something little", "Something you can wear on your head",
         "An animal that can swim", "Something you get in a party bag", "Something you have on a pizza", "Something you see in a storybook",
         "Something white", "Something you wear in summer", "Something you can build a den out of", "Something fun to play with in the snow",
-        "Something you can see at a wildlife park", "Something you can make out of paper", "A colour in the rainbow", "Something you can roll",
+        "Something you can see in an aquarium", "Something you can make out of paper", "A colour in the rainbow", "Something you can roll",
         "Something fluffy", "Something you can find in a forest", "A magical animal", "Something you take to nursery"
       ]
     },
@@ -286,7 +286,7 @@
       "ikon": "🎄",
       "tekst": "Office parties, crackers and turkey",
       "sporsmal": [
-        "Something you eat at the office Christmas party", "Something you wear to the office Christmas party", "Something that always happens at the office party", "A Christmas film",
+        "Something you eat at the office Christmas party", "Something you wear to the office Christmas party", "Something that always happens on Christmas Day", "A Christmas film",
         "The worst Christmas present", "Something in Father Christmas's sack", "Something Father Christmas wears", "A place where Father Christmas lives",
         "Something you leave out for Father Christmas", "Something that goes with the turkey", "Something you drink with Christmas dinner", "Christmas food people either love or hate",
         "Something you find in a Christmas cracker", "Something you make out of gingerbread", "Something in the tin of chocolates at Christmas", "Something that smells of Christmas",
@@ -295,8 +295,8 @@
         "Something you have to get done before Christmas", "A place with queues in December", "Something you buy at a Christmas market", "Something you do on Christmas Eve",
         "Something you do on Boxing Day", "A typical present for Grandma", "A typical present for Dad", "Something hard to wrap",
         "The best thing about Christmas", "The worst thing about Christmas", "Something you eat on Christmas evening after dinner", "Something you do on Christmas morning",
-        "Something you find at an office party", "Something green at Christmas", "A carol kids sing", "Something in the window in December",
-        "Something you bake for Christmas", "Something white at Christmas", "Something you buy for Christmas", "Something that happens in a nativity play",
+        "Something you do if it snows on Christmas Day", "Something green at Christmas", "A Christmas character", "Something in the window in December",
+        "Something you do while you wait for Christmas", "Something white at Christmas", "Something you buy for Christmas", "Something that happens in a nativity play",
         "A Christmas present for a teenager", "A Christmas present for a baby", "Something you eat after Boxing Day", "Something you hear at Christmas",
         "Something Father Christmas says", "Something that happens at the school Christmas fair", "Something you decorate with at Christmas", "Something gold at Christmas",
         "Something you do on Christmas Day before dinner", "Something you see at a Christmas market", "Something you wear on Christmas Day", "Something that always runs out at Christmas",
@@ -310,20 +310,20 @@
       "ikon": "☀️",
       "tekst": "Beach, barbecues and long evenings",
       "sporsmal": [
-        "Something you take to the beach", "Something you eat on a hot day", "Something you barbecue", "Something you do in a caravan in summer",
-        "Something you wear on the beach", "An insect you see in summer", "A favourite ice lolly", "Something you do in a boat",
-        "Something you take on a camping trip", "Something you do on a light summer evening", "Something you can catch in the sea", "A garden game",
+        "Something you take to the beach", "Something you eat on a hot day", "Something you can pick in summer", "Something you do in a caravan in summer",
+        "Something you wear on the beach", "An insect you see in summer", "Something that melts in the sun", "Something you do in a boat",
+        "Something you do when the midges bite", "Something you do on a light summer evening", "Something you can catch in the sea", "A garden game",
         "Something you put in the cool box", "Something you drink in summer", "Something typical of a British summer", "Something you find on a pier",
         "Something you do when you're sunburnt", "Something you do in a hammock", "Something you do on the end of a pier", "Something you hear on the beach",
         "Something you see at a summer festival", "Something you need to go swimming", "Something you hear at night when camping", "Something you do round a campfire",
-        "Something you toast on a campfire", "Something yellow in summer", "Something that floats", "Something you blow up",
+        "Something you do in a river", "Something yellow in summer", "Something that floats", "Something you blow up",
         "Something you do on a lake", "Something you do at a festival campsite", "Something you sleep in on a trip", "Something you must take up a mountain in summer",
         "Something you buy from the ice cream van", "Something you see on the beach", "Something you do at a summer party", "Something that goes well with strawberries",
         "Something you do on a staycation", "Something typical of a caravan holiday", "Something you leave behind in the holiday cottage", "Something you do on a ferry",
         "Something you see from a boat", "Something you do on a hot night", "Something you do with a water pistol", "Something you do after a swim",
         "Something you put on your skin", "An animal you see in summer", "A flower you see in summer", "Something you sit on outside",
-        "Something you do in a field or a meadow", "Something you do in a thunderstorm", "Something in a picnic basket", "Something you do at summer camp",
-        "Something you take on a boat trip", "Something that goes with a summer evening", "Something you do when it's hot", "Something in a sandwich on a day out",
+        "Something you do in a field or a meadow", "Something you do in a thunderstorm", "Something in a picnic basket", "Something you collect on the beach",
+        "Something you take on a boat trip", "Something that goes with a summer evening", "Something you do on a bike ride", "Something in a sandwich on a day out",
         "Something you see from a hilltop", "Something lovely to drink after a long walk", "Something you hear in the woods in summer", "Something you build on the beach"
       ]
     }

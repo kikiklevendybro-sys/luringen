@@ -51,7 +51,7 @@
   "Står det en tid på kortet? Trykk på klokka, så tar mobilen tiden.": "Is there a time on the card? Tap the clock and the phone keeps time.",
   "Noen konsekvenser varer til du står for tur igjen. De står under bordet – trykk på brikken hvis noen glemmer seg.": "Some dares last until your next turn. They’re shown under the table – tap the badge if someone forgets.",
   "Dere bestemmer hvor lenge spillet varer: noen turer hver, først til 10 poeng – eller fritt.": "You decide how long the game lasts: a few turns each, first to 10 points – or no limit.",
-  "«Barn» passer fra 6 år. «Fest» er for voksne (18+).": "‘Kids’ suits ages 6 and up. ‘Party’ is for adults (18+).",
+  "«Barn» passer fra 6 år. Pakkene merket 18+ er bare for voksne – mobilen spør om alder før dere kan velge dem.": "‘Kids’ suits ages 6 and up. The packs marked 18+ are for adults only – the phone asks your age before you can choose them.",
   "Vil dere heller gå på rekke og rad? Velg det når dere gjør klart.": "Would you rather go round in order? Choose that when you get ready.",
   "Snurr flaska. Velg sannhet": "Spin the bottle. Choose truth",
   "eller konsekvens.": "or dare.",
@@ -143,5 +143,8 @@
   "Avslutte spillet?": "Quit the game?",
   "Dere går rett til kåringen. Den med flest poeng vinner.": "You’ll go straight to the results. Whoever has the most points wins.",
   "Dere kan alltid starte et nytt.": "You can always start a new one.",
-  "tur|turer": { "one": "turn", "other": "turns" }
+  "tur|turer": { "one": "turn", "other": "turns" },
+  "Kortene for par kan bare velges når dere er akkurat to.": "The couples cards can only be chosen when there are exactly two of you.",
+  "Bare når dere er to": "Only when there are two of you",
+  "«{pakke}» er bare for voksne.": "‘{pakke}’ is for adults only."
 }

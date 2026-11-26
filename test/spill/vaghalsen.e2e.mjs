@@ -71,8 +71,29 @@ export default async function (t) {
   t.sjekk((await t.antall(".spiller")) === 3, "Oppsettet viser ikke de tre lagrede spillerne");
   t.sjekk(await t.finnes('.fliser.flervalg [data-h="pakke"]'), "Kortpakkene ser ikke ut som flervalg (mangler ✓-stilen)");
   t.sjekk(!(await t.finnes('.fliser.flervalg [data-h="turmodus"]')), "«Hvem står for tur?» skal være ett valg, ikke flervalg");
+  // The adult packs («Fest», «Russ») sit behind the 18+ question, as in Dommeren: «Nei» leaves each
+  // of them off, «Ja» turns one on and is remembered, so the other one needs no second question.
+  const over18 = () => t.js(`!!(JSON.parse(localStorage.getItem("rusj.felles") || "{}").over18)`);
+  const ark = () => t.vent(`document.querySelector('#ark:not([hidden]) [data-h="ark-svar"]')`);
+  const voksne = await t.js(`RUSJ_DATA.kort.pakker.filter((p) => p.voksen).map((p) => p.id)`);
+  t.sjekk(voksne.join() === "fest,russ", `Voksenpakkene skal være fest og russ (${voksne})`);
+  for (const id of voksne) {
+    t.sjekk(/18\+/.test(await t.tekst(`[data-h="pakke"][data-v="${id}"]`)), `«${id}» er ikke merket 18+`);
+    await t.klikk(`[data-h="pakke"][data-v="${id}"]`);
+    await ark();
+    t.sjekk(await t.js(`document.querySelector("#ark").textContent.includes(Rusj.t("Er du 18 år eller eldre?"))`), `«${id}» spør ikke om alder`);
+    if (id === "fest") await t.bilde("atten-ark");
+    await t.klikk('#ark [data-h="ark-svar"][data-v="nei"]', 400);
+    t.sjekk(!(await t.tilstand()).oppsett.pakker.includes(id) && !(await over18()), `«Nei» skal la «${id}» være av`);
+  }
   await t.klikk('[data-h="pakke"][data-v="fest"]');
-  t.sjekk((await t.tilstand()).oppsett.pakker.includes("fest"), "Fest-pakken ble ikke valgt");
+  await ark();
+  await t.klikk('#ark [data-h="ark-svar"][data-v="ja"]', 400);
+  t.sjekk((await t.tilstand()).oppsett.pakker.includes("fest") && (await over18()), "«Ja» skal slå på «fest» og huske svaret");
+  await t.klikk('[data-h="pakke"][data-v="russ"]');
+  t.sjekk(!(await t.finnes("#ark:not([hidden])")) && (await t.tilstand()).oppsett.pakker.includes("russ"), "Etter «Ja» skal «russ» kunne velges uten å spørre igjen");
+  await t.klikk('[data-h="pakke"][data-v="russ"]');
+  t.sjekk((await t.tilstand()).oppsett.pakker.includes("fest") && !(await t.tilstand()).oppsett.pakker.includes("russ"), "Fest-pakken ble ikke valgt");
   await t.bilde("oppsett", true);
   await t.klikk('[data-h="pakke"][data-v="fest"]');
   await t.klikk('[data-h="start"]');
@@ -304,7 +325,18 @@ export default async function (t) {
   await t.start({ navn: ["Testspiller A", "Testspiller B"] });
   await t.klikk('[data-h="nytt"]');
   t.sjekk((await t.antall(".spiller")) === 2, "Oppsettet viser ikke to spillere");
+  // «Par» (the other player is the partner) can only be chosen when exactly two play: a third
+  // player greys it out and it is not counted; back to two, it is chosen again.
+  t.sjekk(await t.finnes('[data-h="pakke"][data-v="par"]:not(:disabled)'), "«Par» skal kunne velges med to spillere");
+  await t.klikk('[data-h="pakke"][data-v="par"]');
+  t.sjekk((await t.tilstand()).oppsett.pakker.includes("par"), "«Par» ble ikke valgt med to spillere");
+  await t.klikk('[data-h="spiller-legg-til"]');
+  t.sjekk(await t.finnes('[data-h="pakke"][data-v="par"]:disabled[aria-pressed="false"]'), "Med tre spillere skal «Par» være grå og ikke valgt");
+  await t.bilde("par-tre-spillere", true);
+  await t.klikk('[data-h="spiller-fjern"][data-v="2"]');
+  t.sjekk((await t.antall(".spiller")) === 2 && (await t.finnes('[data-h="pakke"][data-v="par"]:not(:disabled)[aria-pressed="true"]')), "Tilbake til to spillere skal «Par» være valgt igjen");
   await t.klikk('[data-h="start"]');
+  t.sjekk((await t.tilstand()).spill.pakker.includes("par"), "Et spill for to skal bruke «Par» når den er valgt");
   await t.klikk('[data-h="snurr"]', 40);
   await t.vent(VALG, 9000);
   await t.sov(700);

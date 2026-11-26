@@ -1,6 +1,6 @@
 {
   "id": "land",
-  "navn": "Countries and cities",
+  "navn": "Countries, cities and landmarks",
   "ikon": "🌍",
   "ord": [
     { "o": "France", "n": 1, "h": "Paris", "l": "Spain" },

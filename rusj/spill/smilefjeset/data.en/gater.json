@@ -138,7 +138,7 @@
       "id": "steder",
       "navn": "Places",
       "ikon": "🗺️",
-      "tekst": "Towns and landmarks",
+      "tekst": "Towns, countries and landmarks",
       "kort": [
         { "e": "⚫🏊", "s": "Blackpool" },
         { "e": "📷🌉", "s": "Cambridge" },
@@ -312,7 +312,7 @@
       "id": "sanger",
       "navn": "Songs",
       "ikon": "🎵",
-      "tekst": "Nursery rhymes and carols",
+      "tekst": "Nursery rhymes, carols and singalongs",
       "kort": [
         { "e": "🐑⚫", "s": "Baa, Baa, Black Sheep" },
         { "e": "✨✨🤏⭐", "s": "Twinkle, Twinkle, Little Star" },

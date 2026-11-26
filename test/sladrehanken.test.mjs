@@ -5,7 +5,7 @@
 // The fingerprints were taken before the pack was added. If you change an existing card on
 // purpose, run the same draws again and update them here.
 import assert from "node:assert/strict";
-import { ungdomTester } from "./kortpakker.mjs";
+import { ungdomTester, voksenTester } from "./kortpakker.mjs";
 
 const GAMLE = ["familie", "venner", "pinlig", "reise", "mat", "jobb", "fest", "jul", "barn", "blikjent", "hytte", "sommer", "russ"];
 const STANDARD = ["familie", "venner", "pinlig", "reise", "mat", "jobb", "barn", "blikjent", "hytte", "sommer"];
@@ -16,9 +16,9 @@ ungdomTester({
   felt: "kort",
   gamle: GAMLE,
   avtrykk: {
-    nb: { standard: STANDARD, antall: 1173, kart: "53ce441a02045f4f", trekk: "fe51a947c32279cb" },
-    en: { standard: STANDARD, antall: 1151, kart: "7ca1d6dc38a9df04", trekk: "8f826cd087e57f33" },
-    da: { standard: STANDARD, antall: 1160, kart: "ca94ca9b47fd463b", trekk: "0b9b1b9b05d87692" },
+    nb: { standard: STANDARD, antall: 1173, kart: "8f6648949b2fe456", trekk: "e0d76342eff35d27" },
+    en: { standard: STANDARD, antall: 1151, kart: "189a1b066932881c", trekk: "501f7a116c0168e7" },
+    da: { standard: STANDARD, antall: 1160, kart: "ff703eea82b2bbbf", trekk: "a74f9cf7c7d41dc6" },
   },
   maks: 80,
   skjerm: "kort",
@@ -30,3 +30,6 @@ ungdomTester({
     assert.ok(!/^(jeg|never|i)\b/i.test(k), `${sprak}: «${k}» – «Jeg har aldri …» står allerede foran`);
   },
 });
+
+// «Fest» and «Russ» sit behind the 18+ question (as in Dommeren), in every edition.
+voksenTester({ id: "sladrehanken", fil: "kort", voksne: ["fest", "russ"], standard: STANDARD });

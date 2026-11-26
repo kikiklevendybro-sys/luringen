@@ -51,6 +51,7 @@ const UTE = {
 const NAER = { MYS: 0.7, DNK: 0.4 };
 const VERDENSDEL = { Africa: "af", Asia: "as", Europe: "eu", "North America": "na", "South America": "sa", Oceania: "oc" };
 const HAV = { MUS: "af", SYC: "af", MDV: "as" }; // «Seven seas» in Natural Earth
+const UNNTAK = { CYP: "eu" }; // Natural Earth says Asia, but players know Cyprus as a European (EU) country
 
 const geo = JSON.parse(readFileSync(kilde, "utf8"));
 const etter = new Map();
@@ -218,7 +219,7 @@ for (const a3 of LAND) {
     d += deler.join(" ").replace(/ -/g, "-") + "z";
   }
   const id = ID[a3] || a3;
-  const del = HAV[a3] || VERDENSDEL[p.CONTINENT];
+  const del = UNNTAK[a3] || HAV[a3] || VERDENSDEL[p.CONTINENT];
   if (!del) throw new Error(a3 + ": ukjent verdensdel " + p.CONTINENT);
   ut[id] = { d, w: W, h: Hh, x: Math.round(p.LABEL_X * 100) / 100, y: Math.round(p.LABEL_Y * 100) / 100, a: Math.max(1, Math.round(km2 / 1000)), v: del };
 }

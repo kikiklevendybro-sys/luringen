@@ -435,9 +435,9 @@
         ["Rolig", 1],
         ["Syk", 1],
         ["Forsiktig", 1],
-        ["Ivrig", 1],
+        ["Ivrig", 2],
         ["Lat", 1],
-        ["Alvorlig", 1],
+        ["Alvorlig", 2],
         ["Skeptisk", 2],
         ["Håpefull", 2],
         ["Trassig", 2],
@@ -640,7 +640,7 @@
       "oppgaver": [
         ["Gå på glatt is", 1],
         ["Bære en altfor tung sekk", 1],
-        ["Tråkke på en legokloss", 1],
+        ["Tråkke på en byggekloss", 1],
         ["Stå i en lang kø", 1],
         ["Miste iskremen i bakken", 1],
         ["Forsove seg", 1],
@@ -717,8 +717,8 @@
         ["Holde døra for noen som er langt unna", 3],
         ["Prøve å svare på mobilen med fulle hender", 3],
         ["Miste nøklene ned i en kum", 3],
-        ["Synge feil tekst høyt", 3],
-        ["Si «takk, i like måte» på feil sted", 3]
+        ["Miste mobilen i vannet mens du tar selfie", 3],
+        ["Tråkke i en sølepytt med nye sko", 3]
       ]
     },
     {

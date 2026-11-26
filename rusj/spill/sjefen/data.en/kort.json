@@ -42,7 +42,7 @@
         "{a}, point at whoever you think has the most unread emails. Right: they take a sip. Wrong: you take one.",
         { "t": "Everyone who has watched the sunrise this year takes a sip.", "type": "alle" },
         "{a}, hand out two sips to whoever arrived last tonight.",
-        { "t": "{a}, name three things in your pocket or bag – without looking. All right: hand out three sips. Otherwise, take one.", "type": "valg" }
+        "{a}, name three things in your pocket or bag – without looking. All right: hand out three sips. Otherwise, take one."
       ]
     },
     {

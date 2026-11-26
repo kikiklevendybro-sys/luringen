@@ -216,7 +216,7 @@
         { "s": "Three cats catch three mice in three minutes. How many cats do you need to catch a hundred mice in a hundred minutes?", "a": "Three", "f": "Together three cats catch one mouse a minute – a hundred in a hundred minutes." },
         { "s": "What do you get more of the more you take?", "a": "Steps", "f": "The more steps you take, the more you've walked." },
         { "s": "You're the captain of a ship carrying 20 cows, 30 sheep and 10 goats. How old is the captain?", "a": "As old as you are", "f": "You were the captain!" },
-        { "s": "What can you keep without ever touching it?", "a": "A promise" },
+        { "s": "If you have me, you want to share me. If you share me, you haven't got me any more. What am I?", "a": "A secret" },
         { "s": "What's as big as an elephant but weighs nothing at all?", "a": "An elephant's shadow" },
         { "s": "A girl has as many brothers as sisters, but each brother has twice as many sisters as brothers. How many children are in the family?", "a": "Seven", "f": "Four girls and three boys." },
         { "s": "How do you share 7 apples equally between 12 children without cutting any apple into more than four pieces?", "a": "Cut four apples into thirds and three into quarters", "f": "Everyone gets one third and one quarter." },

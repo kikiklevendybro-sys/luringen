@@ -41,7 +41,7 @@
       "innled": ["A new clue!", "Look closely!", "Shh …", "Top secret:", "Get your magnifying glass!", "Suspicious …"],
       "skatt": { "tittel": "Case closed!", "tekst": "You found the missing treasure. Well done, detectives!", "kort": "Case closed! You found the treasure. Well done, detectives!" },
       "koder": [
-        { "o": "LENS", "i": "🔍" }, { "o": "KEY", "i": "🔑" }, { "o": "FOOTPRINT", "i": "👣" }, { "o": "HAT", "i": "🎩" },
+        { "o": "CLUE", "i": "🔍" }, { "o": "KEY", "i": "🔑" }, { "o": "FOOTPRINT", "i": "👣" }, { "o": "HAT", "i": "🎩" },
         { "o": "LETTER", "i": "✉️" }, { "o": "TORCH", "i": "🔦" }, { "o": "NOTEBOOK", "i": "📒" }, { "o": "PENCIL", "i": "✏️" },
         { "o": "LOCK", "i": "🔒" }, { "o": "CLOCK", "i": "⏰" }, { "o": "GLASSES", "i": "👓" }, { "o": "DOG", "i": "🐕" }
       ]
@@ -56,7 +56,7 @@
       "innled": ["Rooaar!", "Giant footprints!", "The ground is shaking …", "Dino message:", "Stomp, stomp!", "Grrr!"],
       "skatt": { "tittel": "Dino egg found!", "tekst": "You found the prehistoric treasure. The dinosaur is proud of you!", "kort": "Rooaar! You found the dino treasure. Well done, dino hunters!" },
       "koder": [
-        { "o": "EGG", "i": "🥚" }, { "o": "PAWPRINT", "i": "🐾" }, { "o": "VOLCANO", "i": "🌋" }, { "o": "BONE", "i": "🦴" },
+        { "o": "EGG", "i": "🥚" }, { "o": "ROCK", "i": "🪨" }, { "o": "VOLCANO", "i": "🌋" }, { "o": "BONE", "i": "🦴" },
         { "o": "FERN", "i": "🌿" }, { "o": "TOOTH", "i": "🦷" }, { "o": "DINO", "i": "🦖" }, { "o": "LONGNECK", "i": "🦕" },
         { "o": "TREE", "i": "🌳" }, { "o": "LEAF", "i": "🍃" }, { "o": "SUN", "i": "☀️" }, { "o": "LIZARD", "i": "🦎" }
       ]

@@ -132,7 +132,7 @@
   "Ujevnt resultat? Gi mindretallet en forsvarstale på 20 sekunder – kanskje noen bytter side.": "Uneven result? Give the minority a 20-second defence speech – maybe someone will switch sides.",
   "Skru av «Tell stemmer» hvis dere bare vil diskutere.": "Turn off ‘Count votes’ if you just want to talk it over.",
   "Sveip kortet til siden for et nytt dilemma.": "Swipe the card aside for a new dilemma.",
-  "Festpakken er for voksne og er ikke med før dere velger den.": "The Party pack is for adults and stays out until you choose it.",
+  "Pakkene merket 18+ er bare for voksne. Mobilen spør om alder før dere kan velge dem.": "The packs marked 18+ are for adults only. The phone asks your age before you can choose them.",
   "To valg. Begge fristende.": "Two options. Both tempting.",
   "Du må velge ett!": "You have to choose one!",
   "Fortsett · runde {nr}": "Continue · round {nr}",
@@ -190,5 +190,6 @@
   "Spill videre": "Keep playing",
   "Dere kan alltid starte et nytt.": "You can always start a new one.",
   "stemme|stemmer": { "one": "vote", "other": "votes" },
-  "dilemma|dilemmaer": { "one": "dilemma", "other": "dilemmas" }
+  "dilemma|dilemmaer": { "one": "dilemma", "other": "dilemmas" },
+  "«{pakke}» er bare for voksne.": "‘{pakke}’ is for adults only."
 }

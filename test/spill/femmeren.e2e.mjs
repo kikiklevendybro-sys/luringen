@@ -22,7 +22,7 @@ export default async function (t) {
   const fliser = await t.js(`Array.from(document.querySelectorAll('[data-h="pakke"]')).map((f) => f.dataset.v)`);
   t.sjekk(["familie", "fest", "norge", "jul", "vanskelig"].every((p) => fliser.includes(p)), `Pakkene mangler: ${fliser.join(", ")}`);
   let s = await t.tilstand();
-  t.sjekk(s.oppsett.pakker.join() === "familie,norge" && !s.oppsett.pakker.includes("fest"), `Familie og Norge skal være valgt fra start: ${s.oppsett.pakker}`);
+  t.sjekk(s.oppsett.pakker.join() === "familie" && !s.oppsett.pakker.includes("fest"), `Bare Familie skal være valgt fra start: ${s.oppsett.pakker}`);
   t.sjekk(s.oppsett.tid === 5 && s.oppsett.utfordre === true && s.oppsett.runder === 3, "Standardoppsettet skal være 5 s, 3 runder og «Utfordre» på");
 
   // Two rounds, the Vanskelig pack on, 10 s and back to 5 s

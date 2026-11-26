@@ -132,7 +132,7 @@
   "Ujevnt resultat? Gi mindretallet en forsvarstale på 20 sekunder – kanskje noen bytter side.": "Skævt resultat? Giv mindretallet en forsvarstale på 20 sekunder – måske skifter nogen side.",
   "Skru av «Tell stemmer» hvis dere bare vil diskutere.": "Slå »Tæl stemmer« fra, hvis I bare vil diskutere.",
   "Sveip kortet til siden for et nytt dilemma.": "Swipe kortet til siden for et nyt dilemma.",
-  "Festpakken er for voksne og er ikke med før dere velger den.": "Festpakken er for voksne og er ikke med, før I vælger den.",
+  "Pakkene merket 18+ er bare for voksne. Mobilen spør om alder før dere kan velge dem.": "Pakkerne mærket 18+ er kun for voksne. Mobilen spørger om alder, før I kan vælge dem.",
   "To valg. Begge fristende.": "To valg. Begge fristende.",
   "Du må velge ett!": "Du skal vælge ét!",
   "Fortsett · runde {nr}": "Fortsæt · runde {nr}",
@@ -190,5 +190,6 @@
   "Spill videre": "Spil videre",
   "Dere kan alltid starte et nytt.": "I kan altid starte et nyt.",
   "stemme|stemmer": { "one": "stemme", "other": "stemmer" },
-  "dilemma|dilemmaer": { "one": "dilemma", "other": "dilemmaer" }
+  "dilemma|dilemmaer": { "one": "dilemma", "other": "dilemmaer" },
+  "«{pakke}» er bare for voksne.": "»{pakke}« er kun for voksne."
 }

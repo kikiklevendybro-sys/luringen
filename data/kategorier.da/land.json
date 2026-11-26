@@ -1,6 +1,6 @@
 {
   "id": "land",
-  "navn": "Lande og byer i verden",
+  "navn": "Lande, byer og seværdigheder",
   "ikon": "🌍",
   "ord": [
     { "o": "Frankrig", "n": 1, "h": "Paris", "l": "Spanien" },

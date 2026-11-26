@@ -37,7 +37,7 @@
   "Av og til finner dere på resten av setningen selv. Sikt gjerne på noen rundt bordet!": "Now and then you make up the rest of the sentence yourselves. Feel free to aim at someone round the table!",
   "Vil dere spille til bare én står igjen? Velg det under «Spillet varer til …».": "Want to play until only one is left? Choose it under ‘The game lasts until …’.",
   "Velg «Bare kort» hvis dere vil lese og prate uten å telle liv.": "Choose ‘Just cards’ if you’d rather read and chat without counting lives.",
-  "Festpakken er for voksne og er ikke med før dere velger den.": "The Party pack is for adults and stays out until you choose it.",
+  "Pakkene merket 18+ er bare for voksne. Mobilen spør om alder før dere kan velge dem.": "The packs marked 18+ are for adults only. The phone asks your age before you can choose them.",
   "Les kortet høyt.": "Read the card aloud.",
   "Har du gjort det, er du avslørt!": "If you’ve done it, you’re caught out!",
   "Fortsett · kort {nr}": "Continue · card {nr}",
@@ -145,5 +145,6 @@
   },
   "Kåringen i {spill}: {deler}.": "The results from {spill}: {deler}.",
   "Kortet som avslørte flest, fant vi på selv.": "The card that caught out the most was one we made up ourselves.",
-  "Kortet som avslørte flest: «{kort}».": "The card that caught out the most: ‘{kort}’."
+  "Kortet som avslørte flest: «{kort}».": "The card that caught out the most: ‘{kort}’.",
+  "«{pakke}» er bare for voksne.": "‘{pakke}’ is for adults only."
 }
